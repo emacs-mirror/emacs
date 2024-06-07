@@ -1877,7 +1877,8 @@ chat buffers use by default.
 ---
 *** New user option 'Buffer-menu-group-by'.
 It controls how buffers are divided into groups that are displayed with
-headings using Outline minor mode.
+headings using Outline minor mode.  Using commands that mark buffers
+on the outline heading line will mark all buffers in the outline.
 
 +++
 *** New command 'Buffer-menu-toggle-internal'.

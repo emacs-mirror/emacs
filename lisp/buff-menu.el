@@ -411,19 +411,50 @@ is nil or omitted, and signal an error otherwise."
 
 ;;; Commands for modifying Buffer Menu entries.
 
+(defvar outline-minor-mode)
+(declare-function outline-on-heading-p "outline" (&optional invisible-ok))
+(declare-function outline-end-of-subtree "outline" ())
+(declare-function outline-previous-heading "outline" ())
+
 (defun Buffer-menu-mark ()
   "Mark the Buffer menu entry at point for later display.
-It will be displayed by the \\<Buffer-menu-mode-map>\\[Buffer-menu-select] command."
+It will be displayed by the \\<Buffer-menu-mode-map>\\[Buffer-menu-select] command.
+When `outline-minor-mode' is enabled and point is on the outline
+heading line, this command will mark all entries in the outline."
   (interactive nil Buffer-menu-mode)
-  (tabulated-list-set-col 0 (char-to-string Buffer-menu-marker-char) t)
-  (forward-line))
+  (cond ((tabulated-list-get-id)
+         (tabulated-list-set-col 0 (char-to-string Buffer-menu-marker-char) t)
+         (forward-line))
+        ((and (bound-and-true-p outline-minor-mode) (outline-on-heading-p))
+         (let ((limit (save-excursion (outline-end-of-subtree) (point)))
+               ;; Skip outline subheadings on recursive calls
+               (outline-minor-mode nil))
+           (forward-line)
+           (while (< (point) limit)
+             (Buffer-menu-mark))))
+        (t (forward-line))))
 
 (defun Buffer-menu-unmark (&optional backup)
   "Cancel all requested operations on buffer on this line and move down.
-Optional prefix arg means move up."
+Optional prefix arg means move up.
+When `outline-minor-mode' is enabled and point is on the outline
+heading line, this command will unmark all entries in the outline."
   (interactive "P" Buffer-menu-mode)
-  (Buffer-menu--unmark)
-  (forward-line (if backup -1 1)))
+  (cond ((tabulated-list-get-id)
+         (Buffer-menu--unmark)
+         (forward-line (if backup -1 1)))
+        ((and (bound-and-true-p outline-minor-mode) (outline-on-heading-p))
+         (let ((old-pos (point))
+               (limit (save-excursion (outline-end-of-subtree) (point)))
+               ;; Skip outline subheadings on recursive calls
+               (outline-minor-mode nil))
+           (forward-line)
+           (while (< (point) limit)
+             (Buffer-menu-unmark))
+           (when backup
+             (goto-char old-pos)
+             (outline-previous-heading))))
+        (t (forward-line (if backup -1 1)))))
 
 (defun Buffer-menu-unmark-all-buffers (mark)
   "Cancel a requested operation on all buffers.
@@ -449,7 +480,10 @@ When called interactively prompt for MARK;  RET remove all marks."
   "Move up and cancel all requested operations on buffer on line above."
   (interactive nil Buffer-menu-mode)
   (forward-line -1)
-  (Buffer-menu--unmark))
+  (while (and (not (tabulated-list-get-id)) (not (bobp)))
+    (forward-line -1))
+  (unless (bobp)
+    (Buffer-menu--unmark)))
 
 (defun Buffer-menu--unmark ()
   (tabulated-list-set-col 0 " " t)
@@ -465,20 +499,34 @@ A subsequent \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command \
 will delete it.
 
 If prefix argument ARG is non-nil, it specifies the number of
-buffers to delete; a negative ARG means to delete backwards."
+buffers to delete; a negative ARG means to delete backwards.
+
+When `outline-minor-mode' is enabled and point is on the outline
+heading line, this command will mark all entries in the outline.
+However, ARG is not supported in this case."
   (interactive "p" Buffer-menu-mode)
-  (if (or (null arg) (= arg 0))
-      (setq arg 1))
-  (while (> arg 0)
-    (when (Buffer-menu-buffer)
-      (tabulated-list-set-col 0 (char-to-string Buffer-menu-del-char) t))
-    (forward-line 1)
-    (setq arg (1- arg)))
-  (while (< arg 0)
-    (when (Buffer-menu-buffer)
-      (tabulated-list-set-col 0 (char-to-string Buffer-menu-del-char) t))
-    (forward-line -1)
-    (setq arg (1+ arg))))
+  (cond
+   ((and (bound-and-true-p outline-minor-mode) (outline-on-heading-p))
+    (let ((limit (save-excursion (outline-end-of-subtree) (point)))
+          ;; Skip outline subheadings on recursive calls
+          (outline-minor-mode nil))
+      (forward-line)
+      (while (< (point) limit)
+        (Buffer-menu-delete))))
+   (t
+    (if (or (null arg) (= arg 0))
+        (setq arg 1))
+    (while (> arg 0)
+      (when (Buffer-menu-buffer)
+        (tabulated-list-set-col 0 (char-to-string Buffer-menu-del-char) t))
+      (forward-line 1)
+      (setq arg (1- arg)))
+
+    (while (< arg 0)
+      (when (Buffer-menu-buffer)
+        (tabulated-list-set-col 0 (char-to-string Buffer-menu-del-char) t))
+      (forward-line -1)
+      (setq arg (1+ arg))))))
 
 (defun Buffer-menu-delete-backwards (&optional arg)
   "Mark the buffer on this Buffer Menu line for deletion, and move up.
@@ -491,11 +539,22 @@ will delete the marked buffer.  Prefix ARG
 (defun Buffer-menu-save ()
   "Mark the buffer on this Buffer Menu line for saving.
 A subsequent \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] \
-command will save it."
+command will save it.
+When `outline-minor-mode' is enabled and point is on the outline
+heading line, this command will mark all entries in the outline."
   (interactive nil Buffer-menu-mode)
-  (when (Buffer-menu-buffer)
-    (tabulated-list-set-col 2 "S" t)
-    (forward-line 1)))
+  (cond ((tabulated-list-get-id)
+         (when (Buffer-menu-buffer)
+           (tabulated-list-set-col 2 "S" t))
+         (forward-line))
+        ((and (bound-and-true-p outline-minor-mode) (outline-on-heading-p))
+         (let ((limit (save-excursion (outline-end-of-subtree) (point)))
+               ;; Skip outline subheadings on recursive calls
+               (outline-minor-mode nil))
+           (forward-line)
+           (while (< (point) limit)
+             (Buffer-menu-save))))
+        (t (forward-line))))
 
 (defun Buffer-menu-not-modified (&optional arg)
   "Mark the buffer on this line as unmodified (no changes to save).
