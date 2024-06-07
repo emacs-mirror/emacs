@@ -405,7 +405,7 @@ interested third-party developers, and librsvg is addressed below.
 
 LIBRSVG
 
-Librsvg 2.40.21, the final release of the librsvg 2.40.x series, the
+Librsvg 2.40.21, the final release in the librsvg 2.40.x series, the
 last to be implemented in C, is provided as:
 
   librsvg-2.40.21-emacs.tar.gz
