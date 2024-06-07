@@ -5105,6 +5105,18 @@ hash_table_thaw (Lisp_Object hash_table)
 	  set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
 	  set_hash_index_slot (h, start_of_bucket, i);
 	}
+
+#if defined HAVE_MPS && defined ENABLE_CHECKING
+      if (h->weakness == Weak_None)
+	{
+	  DOHASH_SAFE (h, i)
+	    {
+	      Lisp_Object key = HASH_KEY (h, i);
+	      ptrdiff_t j = hash_lookup (h, key);
+	      eassert (j == i);
+	    }
+	}
+#endif
     }
 }
 
