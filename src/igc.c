@@ -3787,6 +3787,11 @@ copy_dump_to_mps (struct igc_mirror *m)
   record_time (m, "Copy objects to MPS");
 }
 
+struct igc_pair
+{
+  void *orig, *copy;
+};
+
 static void
 mirror_lisp_obj (struct igc_mirror *m, Lisp_Object *pobj)
 {
@@ -3881,8 +3886,9 @@ mirror_fwd (struct igc_mirror *m, lispfwd fwd)
 }
 
 static void
-mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *org, struct Lisp_Symbol *cpy)
+mirror_symbol (struct igc_mirror *m, struct igc_pair *p)
 {
+  struct Lisp_Symbol *cpy = p->copy;
   IGC_MIRROR_OBJ (m, &cpy->u.s.name);
   IGC_MIRROR_OBJ (m, &cpy->u.s.function);
   IGC_MIRROR_OBJ (m, &cpy->u.s.plist);
@@ -3912,24 +3918,26 @@ mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *org, struct Lisp_Symbol
 }
 
 static void
-mirror_string (struct igc_mirror *m, struct Lisp_String *org, struct Lisp_String *cpy)
+mirror_string (struct igc_mirror *m, struct igc_pair *p)
 {
+  struct Lisp_String *s = p->copy;
+
   /* FIXME: AFAIR, IGC_OBJ_STRING_DATA is currently not used in the
      pdumped, which means string data has no igc_header int the dump. We
      could leave the string data alone. Not sure what's best.  */
-  igc_assert (pdumper_object_p (cpy->u.s.data));
-  ptrdiff_t nbytes = STRING_BYTES (cpy);
+  igc_assert (pdumper_object_p (s->u.s.data));
+  ptrdiff_t nbytes = STRING_BYTES (s);
   unsigned char *data = alloc_string_data (nbytes, false);
-  memcpy (data, cpy->u.s.data, nbytes + 1);
-  cpy->u.s.data = data;
+  memcpy (data, s->u.s.data, nbytes + 1);
+  s->u.s.data = data;
 
-  IGC_MIRROR_RAW (m, &cpy->u.s.intervals);
+  IGC_MIRROR_RAW (m, &s->u.s.intervals);
 }
 
 static void
-mirror_interval (struct igc_mirror *m, struct interval *org,
-		 struct interval *cpy)
+mirror_interval (struct igc_mirror *m, struct igc_pair *p)
 {
+  struct interval *cpy = p->copy;
   IGC_MIRROR_RAW (m, &cpy->left);
   IGC_MIRROR_RAW (m, &cpy->right);
   if (cpy->up_obj)
@@ -3943,17 +3951,16 @@ mirror_interval (struct igc_mirror *m, struct interval *org,
   igc_assert_fail (__FILE__, __LINE__, "not implemented")
 
 static void
-mirror_itree_tree (struct igc_mirror *m, struct itree_tree *org,
-		   struct itree_tree *cpy)
+mirror_itree_tree (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_itree_node (struct igc_mirror *m, struct itree_node *org,
-		   struct itree_node *cpy)
+mirror_itree_node (struct igc_mirror *m, struct igc_pair *p)
+
 {
-  if (cpy->parent)
+  struct itree_node *cpy = p->copy;
     IGC_MIRROR_RAW (m, &cpy->parent);
   if (cpy->left)
     IGC_MIRROR_RAW (m, &cpy->left);
@@ -3963,41 +3970,39 @@ mirror_itree_node (struct igc_mirror *m, struct itree_node *org,
 }
 
 static void
-mirror_image (struct igc_mirror *m, struct image *org,
-	      struct image *cpy)
+mirror_image (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_image_cache (struct igc_mirror *m, struct image_cache *org,
-		    struct image_cache *cpy)
+mirror_image_cache (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_face (struct igc_mirror *m, struct face *org, struct face *cpy)
+mirror_face (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_face_cache (struct igc_mirror *m, struct face_cache *org,
-		   struct face_cache *cpy)
+mirror_face_cache (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_ptr_vec (struct igc_mirror *m, void *org, void *cpy)
+mirror_ptr_vec (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_obj_vec (struct igc_mirror *m, Lisp_Object *org, Lisp_Object *cpy)
+mirror_obj_vec (struct igc_mirror *m, struct igc_pair *p)
 {
+  Lisp_Object *cpy = p->copy;
   struct igc_header *h = client_to_base (cpy);
   size_t n = client_nelems_from_header (h, sizeof *cpy);
   for (size_t i = 0; i < n; ++i)
@@ -4005,63 +4010,63 @@ mirror_obj_vec (struct igc_mirror *m, Lisp_Object *org, Lisp_Object *cpy)
 }
 
 static void
-mirror_handler (struct igc_mirror *m, void *org, void *cpy)
+mirror_handler (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_weak_ref (struct igc_mirror *m, struct Lisp_Weak_Ref *org,
-		 struct Lisp_Weak_Ref *cpy)
+mirror_weak_ref (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_weak (struct igc_mirror *m, struct igc_header *org,
-	     struct igc_header *cpy)
+mirror_weak (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_cons (struct igc_mirror *m, struct Lisp_Cons *org,
-	     struct Lisp_Cons *cpy)
+mirror_cons (struct igc_mirror *m, struct igc_pair *p)
 {
+  struct Lisp_Cons *cpy = p->copy;
   IGC_MIRROR_OBJ (m, &cpy->u.s.car);
   IGC_MIRROR_OBJ (m, &cpy->u.s.u.cdr);
 }
 
 static void
-mirror_blv (struct igc_mirror *m, struct Lisp_Buffer_Local_Value *org,
-	    struct Lisp_Buffer_Local_Value *cpy)
+mirror_blv (struct igc_mirror *m, struct igc_pair *p)
 {
+  struct Lisp_Buffer_Local_Value *cpy = p->copy;
   IGC_MIRROR_OBJ (m, &cpy->where);
   IGC_MIRROR_OBJ (m, &cpy->defcell);
   IGC_MIRROR_OBJ (m, &cpy->valcell);
 }
 
 static void
-mirror_vectorlike (struct igc_mirror *m, void *org, void *cpy)
+mirror_vectorlike (struct igc_mirror *m, struct igc_pair *p)
 {
-  struct Lisp_Vector *v = cpy;
+  struct Lisp_Vector *v = p->copy;
   ptrdiff_t size = vector_size (v);
   IGC_MIRROR_NOBJS (m, v->contents, size);
 }
 
 #ifndef IN_MY_FORK
 static void
-mirror_obarray (struct igc_mirror *m, struct Lisp_Obarray *o)
+mirror_obarray (struct igc_mirror *m, struct igc_pair *p)
 {
+  struct Lisp_Obarray *o = p->copy;
   if (o->buckets)
     IGC_MIRROR_NOBJS (m, o->buckets, obarray_size (o));
 }
 #endif
 
 static void
-mirror_font (struct igc_mirror *m, struct Lisp_Vector *org, struct Lisp_Vector *cpy)
+mirror_font (struct igc_mirror *m, struct igc_pair *p)
 {
-  mirror_vectorlike (m, org, cpy);
+  mirror_vectorlike (m, p);
+  struct Lisp_Vector *cpy = p->copy;
   switch (vector_size (cpy))
     {
     case FONT_SPEC_MAX:
@@ -4082,23 +4087,22 @@ mirror_font (struct igc_mirror *m, struct Lisp_Vector *org, struct Lisp_Vector *
 }
 
 static void
-mirror_mutex (struct igc_mirror *m, struct Lisp_Mutex *org,
-	      struct Lisp_Mutex *cpy)
+mirror_mutex (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_coding (struct igc_mirror *m, struct coding_system *cs)
+mirror_coding (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_buffer (struct igc_mirror *m, struct buffer *org,
-	       struct buffer *cpy)
+mirror_buffer (struct igc_mirror *m, struct igc_pair *p)
 {
-  mirror_vectorlike (m, org, cpy);
+  struct buffer *cpy = p->copy;
+  mirror_vectorlike (m, p);
   IGC_MIRROR_RAW (m, &cpy->own_text.intervals);
   IGC_MIRROR_RAW (m, &cpy->own_text.markers);
   IGC_MIRROR_RAW (m, &cpy->overlays);
@@ -4114,16 +4118,16 @@ mirror_buffer (struct igc_mirror *m, struct buffer *org,
 }
 
 static void
-mirror_glyph_matrix (struct igc_mirror *m, struct glyph_matrix *org,
-		     struct glyph_matrix *cpy)
+mirror_glyph_matrix (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_frame (struct igc_mirror *m, struct frame *org, struct frame *cpy)
+mirror_frame (struct igc_mirror *m, struct igc_pair *p)
 {
-  mirror_vectorlike (m, org, cpy);
+  struct frame *cpy = p->copy;
+  mirror_vectorlike (m, p);
   IGC_MIRROR_RAW (m, &cpy->face_cache);
   if (cpy->terminal)
     IGC_MIRROR_RAW (m, &cpy->terminal);
@@ -4133,9 +4137,10 @@ mirror_frame (struct igc_mirror *m, struct frame *org, struct frame *cpy)
 }
 
 static void
-mirror_window (struct igc_mirror *m, struct window *org, struct window *cpy)
+mirror_window (struct igc_mirror *m, struct igc_pair *p)
 {
-  mirror_vectorlike (m, org, cpy);
+  struct window *cpy = p->copy;
+  mirror_vectorlike (m, p);
   igc_assert (cpy->current_matrix == NULL);
   igc_assert (cpy->desired_matrix == NULL);
   IGC_MIRROR_OBJ (m, &cpy->prev_buffers);
@@ -4143,9 +4148,9 @@ mirror_window (struct igc_mirror *m, struct window *org, struct window *cpy)
 }
 
 static void
-mirror_hash_table (struct igc_mirror *m, struct Lisp_Hash_Table *org,
-		   struct Lisp_Hash_Table *cpy)
+mirror_hash_table (struct igc_mirror *m, struct igc_pair *p)
 {
+  struct Lisp_Hash_Table *cpy = p->copy;
   /* Thawing a hash table leaves key and value pointing to the dump. */
   IGC_MIRROR_RAW (m, &cpy->key);
   IGC_MIRROR_RAW (m, &cpy->value);
@@ -4157,93 +4162,85 @@ mirror_hash_table (struct igc_mirror *m, struct Lisp_Hash_Table *org,
 }
 
 static void
-mirror_char_table (struct igc_mirror *m, struct Lisp_Vector *org,
-		   struct Lisp_Vector *cpy)
+mirror_char_table (struct igc_mirror *m, struct igc_pair *p)
 {
+  struct Lisp_Vector *cpy = p->copy;
   for (size_t i = vector_start (cpy), n = vector_size (cpy); i < n; ++i)
     IGC_MIRROR_OBJ (m, &cpy->contents[i]);
 }
 
 static void
-mirror_overlay (struct igc_mirror *m, struct Lisp_Overlay *org,
-		struct Lisp_Overlay *cpy)
+mirror_overlay (struct igc_mirror *m, struct igc_pair *p)
 {
+  struct Lisp_Overlay *cpy = p->copy;
   IGC_MIRROR_RAW (m, &cpy->buffer);
   IGC_MIRROR_OBJ (m, &cpy->plist);
   IGC_MIRROR_RAW (m, &cpy->interval);
 }
 
 static void
-mirror_subr (struct igc_mirror *m, struct Lisp_Subr *org,
-	     struct Lisp_Subr *cpy)
+mirror_subr (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_misc_ptr (struct igc_mirror *m, struct Lisp_Misc_Ptr *org,
-		 struct Lisp_Misc_Ptr *cpy)
+mirror_misc_ptr (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_user_ptr (struct igc_mirror *m, struct Lisp_User_Ptr *org,
-		 struct Lisp_User_Ptr *cpy)
+mirror_user_ptr (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_thread (struct igc_mirror *m, struct thread_state *org,
-	       struct thread_state *cpy)
+mirror_thread (struct igc_mirror *m, struct igc_pair *p)
 {
-  mirror_vectorlike (m, org, cpy);
+  mirror_vectorlike (m, p);
+  struct thread_state *cpy = p->copy;
   IGC_MIRROR_RAW (m, &cpy->m_current_buffer);
   IGC_MIRROR_RAW (m, &cpy->next_thread);
   IGC_MIRROR_RAW (m, &cpy->m_handlerlist);
 }
 
 static void
-mirror_terminal (struct igc_mirror *m, struct terminal *org,
-		 struct terminal *cpy)
+mirror_terminal (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_marker (struct igc_mirror *m, struct Lisp_Marker *org,
-	       struct Lisp_Marker *cpy)
+mirror_marker (struct igc_mirror *m, struct igc_pair *p)
 {
+  struct Lisp_Marker *cpy = p->copy;
   IGC_MIRROR_RAW (m, &cpy->buffer);
   IGC_MIRROR_RAW (m, &cpy->next);
 }
 
 static void
-mirror_finalizer (struct igc_mirror *m, struct Lisp_Finalizer *org,
-		  struct Lisp_Finalizer *cpy)
+mirror_finalizer (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_comp_unit (struct igc_mirror *m, struct Lisp_Native_Comp_Unit *org,
-		  struct Lisp_Native_Comp_Unit *cpy)
+mirror_comp_unit (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 #ifdef HAVE_XWIDGETS
 static void
-mirror_xwidget (struct igc_mirror *m, struct xwidget *org,
-		struct xwidget *cpy)
+mirror_xwidget (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 
 static void
-mirror_xwidget_view (struct igc_mirror *m, struct xwidget_view *org,
-		     struct xwidget *cpy)
+mirror_xwidget_view (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
@@ -4251,71 +4248,68 @@ mirror_xwidget_view (struct igc_mirror *m, struct xwidget_view *org,
 
 #ifdef HAVE_MODULES
 static void
-mirror_global_ref (struct igc_mirror *m, struct module_global_reference *org,
-		   struct module_global_reference *cpy)
+mirror_global_ref (struct igc_mirror *m, struct igc_pair *p)
 {
   NOT_IMPLEMENTED ();
 }
 #endif
 
 static void
-mirror_vector (struct igc_mirror *m, struct Lisp_Vector *org, struct Lisp_Vector *cpy)
+mirror_vector (struct igc_mirror *m, struct igc_pair *p)
 {
-  void *copy_client = cpy;
-  void *org_client = org;
-  switch (pseudo_vector_type (cpy))
+  switch (pseudo_vector_type (p->copy))
     {
 #ifndef IN_MY_FORK
     case PVEC_OBARRAY:
-      mirror_obarray (c, org_client, copy_client);
+      mirror_obarray (c, p);
       break;
 #endif
 
     case PVEC_BUFFER:
-      mirror_buffer (m, org_client, copy_client);
+      mirror_buffer (m, p);
       break;
 
     case PVEC_FRAME:
-      mirror_frame (m, org_client, copy_client);
+      mirror_frame (m, p);
       break;
 
     case PVEC_WINDOW:
-      mirror_window (m, org_client, copy_client);
+      mirror_window (m, p);
       break;
 
     case PVEC_HASH_TABLE:
-      mirror_hash_table (m, org_client, copy_client);
+      mirror_hash_table (m, p);
       break;
 
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
-      mirror_char_table (m, org_client, copy_client);
+      mirror_char_table (m, p);
       break;
 
     case PVEC_BOOL_VECTOR:
       break;
 
     case PVEC_OVERLAY:
-      mirror_overlay (m, org_client, copy_client);
+      mirror_overlay (m, p);
       break;
 
     case PVEC_SUBR:
-      mirror_subr (m, org_client, copy_client);
+      mirror_subr (m, p);
       break;
 
     case PVEC_FREE:
       emacs_abort ();
 
     case PVEC_FINALIZER:
-      mirror_finalizer (m, org_client, copy_client);
+      mirror_finalizer (m, p);
       break;
 
     case PVEC_MISC_PTR:
-      mirror_misc_ptr (m, org_client, copy_client);
+      mirror_misc_ptr (m, p);
       break;
 
     case PVEC_USER_PTR:
-      mirror_user_ptr (m, org_client, copy_client);
+      mirror_user_ptr (m, p);
       break;
 
 #ifdef HAVE_XWIDGETS
@@ -4329,36 +4323,36 @@ mirror_vector (struct igc_mirror *m, struct Lisp_Vector *org, struct Lisp_Vector
 #endif
 
     case PVEC_THREAD:
-      mirror_thread (m, org_client, copy_client);
+      mirror_thread (m, p);
       break;
 
     case PVEC_MUTEX:
-      mirror_mutex (m, org_client, copy_client);
+      mirror_mutex (m, p);
       break;
 
     case PVEC_TERMINAL:
-      mirror_terminal (m, org_client, copy_client);
+      mirror_terminal (m, p);
       break;
 
     case PVEC_MARKER:
-      mirror_marker (m, org_client, copy_client);
+      mirror_marker (m, p);
       break;
 
     case PVEC_BIGNUM:
       break;
 
     case PVEC_NATIVE_COMP_UNIT:
-      mirror_comp_unit (m, org_client, copy_client);
+      mirror_comp_unit (m, p);
       break;
 
     case PVEC_MODULE_GLOBAL_REFERENCE:
 #ifdef HAVE_MODULES
-      mirror_global_ref (m, org_client, copy_client);
+      mirror_global_ref (m, p);
 #endif
       break;
 
     case PVEC_FONT:
-      mirror_font (m, org_client, copy_client);
+      mirror_font (m, p);
       break;
 
     case PVEC_NORMAL_VECTOR:
@@ -4379,7 +4373,7 @@ mirror_vector (struct igc_mirror *m, struct Lisp_Vector *org, struct Lisp_Vector
 #ifdef IN_MY_FORK
     case PVEC_PACKAGE:
 #endif
-      mirror_vectorlike (m, org_client, copy_client);
+      mirror_vectorlike (m, p);
       break;
 
     case PVEC_WEAK_REF:
@@ -4390,8 +4384,12 @@ mirror_vector (struct igc_mirror *m, struct Lisp_Vector *org, struct Lisp_Vector
 static void
 mirror (struct igc_mirror *m, void *org_base, void *copy_base)
 {
-  void *copy_client = base_to_client (copy_base);
-  void *org_client = base_to_client (org_base);
+  struct igc_pair p =
+  {
+    .copy = base_to_client (copy_base),
+    .orig = base_to_client (org_base)
+  };
+
   struct igc_header *h = copy_base;
   switch (h->obj_type)
     {
@@ -4402,19 +4400,19 @@ mirror (struct igc_mirror *m, void *org_base, void *copy_base)
       emacs_abort ();
 
     case IGC_OBJ_OBJ_VEC:
-      mirror_obj_vec (m, org_client, copy_client);
+      mirror_obj_vec (m, &p);
       break;
 
     case IGC_OBJ_HANDLER:
-      mirror_handler (m, org_client, copy_client);
+      mirror_handler (m, &p);
       break;
 
     case IGC_OBJ_PTR_VEC:
-      mirror_ptr_vec (m, org_client, copy_client);
+      mirror_ptr_vec (m, &p);
       break;
 
     case IGC_OBJ_CONS:
-      mirror_cons (m, org_client, copy_client);
+      mirror_cons (m, &p);
       break;
 
     case IGC_OBJ_STRING_DATA:
@@ -4422,51 +4420,51 @@ mirror (struct igc_mirror *m, void *org_base, void *copy_base)
       break;
 
     case IGC_OBJ_SYMBOL:
-      mirror_symbol (m, org_client, copy_client);
+      mirror_symbol (m, &p);
       break;
 
     case IGC_OBJ_INTERVAL:
-      mirror_interval (m, org_client, copy_client);
+      mirror_interval (m, &p);
       break;
 
     case IGC_OBJ_STRING:
-      mirror_string (m, org_client, copy_client);
+      mirror_string (m, &p);
       break;
 
     case IGC_OBJ_VECTOR:
-      mirror_vector (m, org_client, copy_client);
+      mirror_vector (m, &p);
       break;
 
     case IGC_OBJ_ITREE_TREE:
-      mirror_itree_tree (m, org_client, copy_client);
+      mirror_itree_tree (m, &p);
       break;
 
     case IGC_OBJ_ITREE_NODE:
-      mirror_itree_node (m, org_client, copy_client);
+      mirror_itree_node (m, &p);
       break;
 
     case IGC_OBJ_IMAGE:
-      mirror_image (m, org_client, copy_client);
+      mirror_image (m, &p);
       break;
 
     case IGC_OBJ_IMAGE_CACHE:
-      mirror_image_cache (m, org_client, copy_client);
+      mirror_image_cache (m, &p);
       break;
 
     case IGC_OBJ_FACE:
-      mirror_face (m, org_client, copy_client);
+      mirror_face (m, &p);
       break;
 
     case IGC_OBJ_FACE_CACHE:
-      mirror_face_cache (m, org_client, copy_client);
+      mirror_face_cache (m, &p);
       break;
 
     case IGC_OBJ_BLV:
-      mirror_blv (m, org_client, copy_client);
+      mirror_blv (m, &p);
       break;
 
     case IGC_OBJ_WEAK:
-      mirror_weak (m, org_client, copy_client);
+      mirror_weak (m, &p);
       break;
     }
 }
@@ -4479,6 +4477,15 @@ mirror_references (struct igc_mirror *m)
   record_time (m, "Mirror references");
 }
 
+typedef void (*igc_mirror_fn) (struct igc_mirror *, struct igc_pair *);
+
+static void
+call_mirror (igc_mirror_fn fn, struct igc_mirror *m, void *addr)
+{
+  struct igc_pair p = { .orig = NULL, .copy = addr };
+  fn (m, &p);
+}
+
 static void
 refer_roots_to_mps (struct igc_mirror *m)
 {
@@ -4486,12 +4493,12 @@ refer_roots_to_mps (struct igc_mirror *m)
     IGC_MIRROR_OBJ (m, igc_const_cast (Lisp_Object *, staticvec[i]));
 
   for (int i = 0; i < ARRAYELTS (lispsym); ++i)
-    mirror_symbol (m, NULL, &lispsym[i]);
+    call_mirror (mirror_symbol, m, lispsym + i);
 
-  mirror_buffer (m, NULL, &buffer_defaults);
-  mirror_buffer (m, NULL, &buffer_local_symbols);
+  call_mirror (mirror_buffer, m, &buffer_defaults);
+  call_mirror (mirror_buffer, m, &buffer_local_symbols);
   IGC_MIRROR_RAW (m, &terminal_list);
-  mirror_thread (m, NULL, &main_thread.s);
+  call_mirror (mirror_thread, m, &main_thread.s);
 
   record_time (m, "Fix roots");
 }
