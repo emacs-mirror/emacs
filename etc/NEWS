@@ -1995,6 +1995,11 @@ A major mode based on the tree-sitter library for editing Elixir files.
 *** New major mode 'lua-ts-mode'.
 A major mode based on the tree-sitter library for editing Lua files.
 
+---
+*** New major mode 'php-ts-mode'.
+A major mode based on the tree-sitter library for editing PHP files.
+
+
 ** Minibuffer and Completions
 
 +++
