@@ -17360,10 +17360,13 @@ redisplay_internal (void)
 		= f->redisplay || !REDISPLAY_SOME_P ();
 	      bool f_redisplay_flag = f->redisplay;
 
-	      /* The X error handler may have deleted that frame
-		 before we went back to retry_frame.  This must come
+	      /* The X error handler may have deleted that frame before
+		 we went back to retry_frame.  Or this could be a TTY
+		 frame that is not completely made, in which case we
+		 cannot safely redisplay its windows.  This must come
 		 before any accesses to f->terminal.  */
-	      if (!FRAME_LIVE_P (f))
+	      if (!FRAME_LIVE_P (f)
+		  || (FRAME_TERMCAP_P (f) && !f->after_make_frame))
 		continue;
 
 	      /* Mark all the scroll bars to be removed; we'll redeem
