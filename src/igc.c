@@ -4148,6 +4148,17 @@ mirror_window (struct igc_mirror *m, struct igc_pair *p)
 }
 
 static void
+check_ht (struct Lisp_Hash_Table *h)
+{
+  DOHASH_SAFE (h, i)
+    {
+      Lisp_Object key = HASH_KEY (h, i);
+      ptrdiff_t j = hash_lookup (h, key);
+      igc_assert (i == j);
+    }
+}
+
+static void
 mirror_hash_table (struct igc_mirror *m, struct igc_pair *p)
 {
   struct Lisp_Hash_Table *cpy = p->copy;
@@ -4159,6 +4170,8 @@ mirror_hash_table (struct igc_mirror *m, struct igc_pair *p)
   IGC_MIRROR_RAW (m, &cpy->index);
   igc_assert (!pdumper_object_p (cpy->key));
   igc_assert (!pdumper_object_p (cpy->value));
+  check_ht (p->orig);
+  check_ht (cpy);
 }
 
 static void
