@@ -4178,7 +4178,10 @@ mirror_user_ptr (struct igc_mirror *m, struct Lisp_User_Ptr *p)
 static void
 mirror_thread (struct igc_mirror *m, struct thread_state *s)
 {
-  NOT_IMPLEMENTED ();
+  mirror_vectorlike (m, (struct Lisp_Vector *) s);
+  IGC_MIRROR_RAW (m, &s->m_current_buffer);
+  IGC_MIRROR_RAW (m, &s->next_thread);
+  IGC_MIRROR_RAW (m, &s->m_handlerlist);
 }
 
 static void
@@ -4458,6 +4461,9 @@ refer_roots_to_mps (struct igc_mirror *m)
 
   mirror_buffer (m, &buffer_defaults);
   mirror_buffer (m, &buffer_local_symbols);
+  IGC_MIRROR_RAW (m, &terminal_list);
+  mirror_thread (m, &main_thread.s);
+
   record_time (m, "Fix roots");
 }
 
