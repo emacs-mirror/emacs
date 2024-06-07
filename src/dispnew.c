@@ -5265,7 +5265,7 @@ update_frame_line (struct frame *f, int vpos, bool updating_menu_p)
 
   /* This should never happen, but evidently sometimes does if one
      resizes the frame quickly enough.  Prevent aborts in cmcheckmagic.  */
-  if (vpos >= FRAME_LINES (f))
+  if (vpos >= FRAME_TOTAL_LINES (f))
     return;
 
   if (colored_spaces_p)
