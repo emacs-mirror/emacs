@@ -929,14 +929,15 @@ where every string is an outline heading at increasing level of deepness."
           (cl-pushnew entry (gethash path hash))))
       (trie-get tree nil))))
 
-(defun tabulated-list-groups-sort (tree sort-function)
+(defun tabulated-list-groups-sort (tree sort-function &optional level)
   "Sort TREE using the sort function SORT-FUN."
+  (unless level (setq level 1))
   (mapcar (lambda (elt)
             (if (vectorp (cdr elt))
                 elt
               (cons (car elt) (tabulated-list-groups-sort
-                               (cdr elt) sort-function))))
-          (funcall sort-function tree)))
+                               (cdr elt) sort-function (1+ level)))))
+          (funcall sort-function tree level)))
 
 (defun tabulated-list-groups-flatten (tree)
   "Flatten multi-level TREE to single level."

@@ -119,6 +119,19 @@ If this is nil, buffers are not divided into groups."
   :group 'Buffer-menu
   :version "30.1")
 
+(defcustom Buffer-menu-group-sort-by nil
+  "If non-nil, function to sort buffer-menu groups by name.
+Each function is called with two arguments: an alist of groups
+where an alist key is a group name and also the level as a number,
+and should return the same alist where groups are sorted.
+If this is nil, group names are unsorted."
+  :type '(choice (const :tag "No group sorting" nil)
+                 (const :tag "Sort groups alphabetically"
+                        Buffer-menu-group-sort-alphabetically)
+                 (function :tag "Custom function"))
+  :group 'Buffer-menu
+  :version "30.1")
+
 (defvar-local Buffer-menu-files-only nil
   "Non-nil if the current Buffer Menu lists only file buffers.
 This is set by the prefix argument to `buffer-menu' and related
@@ -759,8 +772,7 @@ See more at `Buffer-menu-filter-predicate'."
       (tabulated-list-print)
       (when tabulated-list-groups
         (setq-local outline-minor-mode-cycle t
-                    outline-minor-mode-highlight t
-                    outline-minor-mode-use-buttons 'in-margins)
+                    outline-minor-mode-highlight t)
         (outline-minor-mode 1)))
     buffer))
 
@@ -845,10 +857,7 @@ See more at `Buffer-menu-filter-predicate'."
              ,(lambda (entry)
                 (list (mapcar (lambda (f) (funcall f entry))
                               Buffer-menu-group-by)))
-             :sort-function
-             ,(lambda (groups)
-                ;; Sort groups by name
-                (sort groups :key #'car :in-place t))))))
+             :sort-function ,Buffer-menu-group-sort-by))))
   (tabulated-list-init-header))
 
 (defun tabulated-list-entry-size-> (entry1 entry2)
@@ -880,5 +889,8 @@ See more at `Buffer-menu-filter-predicate'."
     (if-let ((project (project-current)))
         (project-root project)
       default-directory)))
+
+(defun Buffer-menu-group-sort-alphabetically (groups _level)
+  (sort groups :in-place t :key #'car))
 
 ;;; buff-menu.el ends here
