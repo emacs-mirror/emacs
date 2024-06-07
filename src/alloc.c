@@ -5795,7 +5795,7 @@ hash_table_alloc_bytes (ptrdiff_t nbytes)
   tally_consing (nbytes);
   hash_table_allocated_bytes += nbytes;
 #ifdef HAVE_MPS
-  void *p = igc_make_byte_vec (nbytes);
+  void *p = igc_alloc_bytes (nbytes);
 #else
   void *p = xmalloc (nbytes);
 #endif

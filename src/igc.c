@@ -208,6 +208,7 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_PTR_VEC",
   "IGC_OBJ_OBJ_VEC",
   "IGC_OBJ_HANDLER",
+  "IGC_OBJ_BYTES",
   "IGC_OBJ_BUILTIN_SYMBOL",
 };
 
@@ -1405,6 +1406,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 
       case IGC_OBJ_STRING_DATA:
       case IGC_OBJ_FLOAT:
+      case IGC_OBJ_BYTES:
 	/* Can occur in the dump. */
 	break;
 
@@ -2735,6 +2737,7 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
     case IGC_OBJ_BUILTIN_SYMBOL:
+    case IGC_OBJ_BYTES:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
 
@@ -2919,6 +2922,7 @@ thread_ap (enum igc_obj_type type)
 
     case IGC_OBJ_STRING_DATA:
     case IGC_OBJ_FLOAT:
+    case IGC_OBJ_BYTES:
       return t->d.leaf_ap;
     }
   emacs_abort ();
@@ -3084,12 +3088,10 @@ alloc_string_data (size_t nbytes, bool clear)
   return data;
 }
 
-uintptr_t *
-igc_make_byte_vec (size_t nbytes)
+void *
+igc_alloc_bytes (size_t nbytes)
 {
-  mps_addr_t addr = alloc (nbytes, IGC_OBJ_STRING_DATA);
-  igc_assert (is_aligned (addr));
-  return (uintptr_t *)addr;
+  return alloc (nbytes, IGC_OBJ_BYTES);
 }
 
 /* Reallocate multibyte STRING data when a single character is
@@ -4455,6 +4457,7 @@ mirror (struct igc_mirror *m, void *org_base, void *copy_base)
 
     case IGC_OBJ_STRING_DATA:
     case IGC_OBJ_FLOAT:
+    case IGC_OBJ_BYTES:
       break;
 
     case IGC_OBJ_SYMBOL:
