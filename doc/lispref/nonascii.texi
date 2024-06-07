@@ -435,6 +435,11 @@ This function returns @code{nil} if @var{string} does not name a character.
 @end example
 @end defun
 
+@defun char-to-name char
+This function returns the Unicode name of @var{char}.  Returns
+@code{nil} if @var{char} is not a character or has no Unicode name.
+@end defun
+
 @defun get-byte &optional pos string
 This function returns the byte at character position @var{pos} in the
 current buffer.  If the current buffer is unibyte, this is literally

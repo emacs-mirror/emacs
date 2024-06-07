@@ -2244,6 +2244,10 @@ it returns a short "unique" string that identifies the function.
 In either case, the string is propertized so clicking on it gives
 further details.
 
+** New function 'char-to-name'.
+This is a convenience function to return the Unicode name of a char (if
+it has one).
+
 ** New function 'cl-type-of'.
 This function is like 'type-of' except that it sometimes returns
 a more precise type.  For example, for nil and t it returns 'null'
