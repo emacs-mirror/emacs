@@ -3781,9 +3781,9 @@ static void
 copy_dump_to_mps (struct igc_mirror *m)
 {
   struct pdumper_object_it it = {0};
-  void *dump_base;
-  while ((dump_base = pdumper_next_object (&it)) != NULL)
-    record_copy (m, dump_base, copy (dump_base));
+  void *org_base;
+  while ((org_base = pdumper_next_object (&it)) != NULL)
+    record_copy (m, org_base, copy (org_base));
   record_time (m, "Copy objects to MPS");
 }
 
@@ -4261,61 +4261,61 @@ mirror_global_ref (struct igc_mirror *m, struct module_global_reference *org,
 static void
 mirror_vector (struct igc_mirror *m, struct Lisp_Vector *org, struct Lisp_Vector *cpy)
 {
-  void *mps_client = cpy;
-  void *dump_client = org;
+  void *copy_client = cpy;
+  void *org_client = org;
   switch (pseudo_vector_type (cpy))
     {
 #ifndef IN_MY_FORK
     case PVEC_OBARRAY:
-      mirror_obarray (c, dump_client, mps_client);
+      mirror_obarray (c, org_client, copy_client);
       break;
 #endif
 
     case PVEC_BUFFER:
-      mirror_buffer (m, dump_client, mps_client);
+      mirror_buffer (m, org_client, copy_client);
       break;
 
     case PVEC_FRAME:
-      mirror_frame (m, dump_client, mps_client);
+      mirror_frame (m, org_client, copy_client);
       break;
 
     case PVEC_WINDOW:
-      mirror_window (m, dump_client, mps_client);
+      mirror_window (m, org_client, copy_client);
       break;
 
     case PVEC_HASH_TABLE:
-      mirror_hash_table (m, dump_client, mps_client);
+      mirror_hash_table (m, org_client, copy_client);
       break;
 
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
-      mirror_char_table (m, dump_client, mps_client);
+      mirror_char_table (m, org_client, copy_client);
       break;
 
     case PVEC_BOOL_VECTOR:
       break;
 
     case PVEC_OVERLAY:
-      mirror_overlay (m, dump_client, mps_client);
+      mirror_overlay (m, org_client, copy_client);
       break;
 
     case PVEC_SUBR:
-      mirror_subr (m, dump_client, mps_client);
+      mirror_subr (m, org_client, copy_client);
       break;
 
     case PVEC_FREE:
       emacs_abort ();
 
     case PVEC_FINALIZER:
-      mirror_finalizer (m, dump_client, mps_client);
+      mirror_finalizer (m, org_client, copy_client);
       break;
 
     case PVEC_MISC_PTR:
-      mirror_misc_ptr (m, dump_client, mps_client);
+      mirror_misc_ptr (m, org_client, copy_client);
       break;
 
     case PVEC_USER_PTR:
-      mirror_user_ptr (m, dump_client, mps_client);
+      mirror_user_ptr (m, org_client, copy_client);
       break;
 
 #ifdef HAVE_XWIDGETS
@@ -4329,36 +4329,36 @@ mirror_vector (struct igc_mirror *m, struct Lisp_Vector *org, struct Lisp_Vector
 #endif
 
     case PVEC_THREAD:
-      mirror_thread (m, dump_client, mps_client);
+      mirror_thread (m, org_client, copy_client);
       break;
 
     case PVEC_MUTEX:
-      mirror_mutex (m, dump_client, mps_client);
+      mirror_mutex (m, org_client, copy_client);
       break;
 
     case PVEC_TERMINAL:
-      mirror_terminal (m, dump_client, mps_client);
+      mirror_terminal (m, org_client, copy_client);
       break;
 
     case PVEC_MARKER:
-      mirror_marker (m, dump_client, mps_client);
+      mirror_marker (m, org_client, copy_client);
       break;
 
     case PVEC_BIGNUM:
       break;
 
     case PVEC_NATIVE_COMP_UNIT:
-      mirror_comp_unit (m, dump_client, mps_client);
+      mirror_comp_unit (m, org_client, copy_client);
       break;
 
     case PVEC_MODULE_GLOBAL_REFERENCE:
 #ifdef HAVE_MODULES
-      mirror_global_ref (m, dump_client, mps_client);
+      mirror_global_ref (m, org_client, copy_client);
 #endif
       break;
 
     case PVEC_FONT:
-      mirror_font (m, dump_client, mps_client);
+      mirror_font (m, org_client, copy_client);
       break;
 
     case PVEC_NORMAL_VECTOR:
@@ -4379,7 +4379,7 @@ mirror_vector (struct igc_mirror *m, struct Lisp_Vector *org, struct Lisp_Vector
 #ifdef IN_MY_FORK
     case PVEC_PACKAGE:
 #endif
-      mirror_vectorlike (m, dump_client, mps_client);
+      mirror_vectorlike (m, org_client, copy_client);
       break;
 
     case PVEC_WEAK_REF:
@@ -4388,11 +4388,11 @@ mirror_vector (struct igc_mirror *m, struct Lisp_Vector *org, struct Lisp_Vector
 }
 
 static void
-mirror (struct igc_mirror *m, void *dump_base, void *mps_base)
+mirror (struct igc_mirror *m, void *org_base, void *copy_base)
 {
-  void *mps_client = base_to_client (mps_base);
-  void *dump_client = base_to_client (dump_base);
-  struct igc_header *h = mps_base;
+  void *copy_client = base_to_client (copy_base);
+  void *org_client = base_to_client (org_base);
+  struct igc_header *h = copy_base;
   switch (h->obj_type)
     {
     case IGC_OBJ_PAD:
@@ -4402,19 +4402,19 @@ mirror (struct igc_mirror *m, void *dump_base, void *mps_base)
       emacs_abort ();
 
     case IGC_OBJ_OBJ_VEC:
-      mirror_obj_vec (m, dump_client, mps_client);
+      mirror_obj_vec (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_HANDLER:
-      mirror_handler (m, dump_client, mps_client);
+      mirror_handler (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_PTR_VEC:
-      mirror_ptr_vec (m, dump_client, mps_client);
+      mirror_ptr_vec (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_CONS:
-      mirror_cons (m, dump_client, mps_client);
+      mirror_cons (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_STRING_DATA:
@@ -4422,51 +4422,51 @@ mirror (struct igc_mirror *m, void *dump_base, void *mps_base)
       break;
 
     case IGC_OBJ_SYMBOL:
-      mirror_symbol (m, dump_client, mps_client);
+      mirror_symbol (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_INTERVAL:
-      mirror_interval (m, dump_client, mps_client);
+      mirror_interval (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_STRING:
-      mirror_string (m, dump_client, mps_client);
+      mirror_string (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_VECTOR:
-      mirror_vector (m, dump_client, mps_client);
+      mirror_vector (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_ITREE_TREE:
-      mirror_itree_tree (m, dump_client, mps_client);
+      mirror_itree_tree (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_ITREE_NODE:
-      mirror_itree_node (m, dump_client, mps_client);
+      mirror_itree_node (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_IMAGE:
-      mirror_image (m, dump_client, mps_client);
+      mirror_image (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_IMAGE_CACHE:
-      mirror_image_cache (m, dump_client, mps_client);
+      mirror_image_cache (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_FACE:
-      mirror_face (m, dump_client, mps_client);
+      mirror_face (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_FACE_CACHE:
-      mirror_face_cache (m, dump_client, mps_client);
+      mirror_face_cache (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_BLV:
-      mirror_blv (m, dump_client, mps_client);
+      mirror_blv (m, org_client, copy_client);
       break;
 
     case IGC_OBJ_WEAK:
-      mirror_weak (m, dump_client, mps_client);
+      mirror_weak (m, org_client, copy_client);
       break;
     }
 }
@@ -4474,8 +4474,8 @@ mirror (struct igc_mirror *m, void *dump_base, void *mps_base)
 static void
 mirror_references (struct igc_mirror *m)
 {
-  DOHASH (XHASH_TABLE (m->dump_to_mps), dump_base, mps_base)
-    mirror (m, fixnum_to_pointer (dump_base), fixnum_to_pointer (mps_base));
+  DOHASH (XHASH_TABLE (m->dump_to_mps), org_base, copy_base)
+    mirror (m, fixnum_to_pointer (org_base), fixnum_to_pointer (copy_base));
   record_time (m, "Mirror references");
 }
 
