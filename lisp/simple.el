@@ -1827,8 +1827,7 @@ in *Help* buffer.  See also the command `describe-char'."
   (interactive "P")
   (let* ((char (following-char))
          (char-name (and what-cursor-show-names
-                         (or (get-char-code-property char 'name)
-                             (get-char-code-property char 'old-name))))
+                         (char-to-name char)))
          (char-name-fmt (if char-name
                             (format ", %s" char-name)
                           ""))
