@@ -88,7 +88,7 @@ The Modus themes consist of eight themes, divided into four subgroups.
   are variants of the two main themes.  They slightly tone down the
   intensity of the background and provide a bit more color variety.
   ~modus-operandi-tinted~ has a set of base tones that are shades of
-  light ochre (earthly colors), while ~modus-vivendi-tinted~ gives a
+  light ocher (earthly colors), while ~modus-vivendi-tinted~ gives a
   night sky impression.
 
 - Deuteranopia themes :: ~modus-operandi-deuteranopia~ and its
@@ -4442,7 +4442,7 @@ advanced customization options of the themes.
 [[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]].
 
 In the following example, we are assuming that the user wants to (i)
-re-use color variables provided by the themes, (ii) be able to retain
+reuse color variables provided by the themes, (ii) be able to retain
 their tweaks while switching between ~modus-operandi~ and ~modus-vivendi~,
 and (iii) have the option to highlight either the foreground of the
 parentheses or the background as well.
@@ -4462,7 +4462,7 @@ Then we can update our preference with this:
 (setq my-highlight-parentheses-use-background nil)
 #+end_src
 
-To re-use colors from the themes, we must wrap our code in the
+To reuse colors from the themes, we must wrap our code in the
 ~modus-themes-with-colors~ macro.  Our implementation must interface with
 the variables ~highlight-parentheses-background-colors~ and/or
 ~highlight-parentheses-colors~.

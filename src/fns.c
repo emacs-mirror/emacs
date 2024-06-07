@@ -3058,7 +3058,7 @@ value_cmp (Lisp_Object a, Lisp_Object b, int maxdepth)
       goto type_mismatch;
 
     case Lisp_Cons:
-      /* FIXME: Optimise for difference in the first element? */
+      /* FIXME: Optimize for difference in the first element? */
       FOR_EACH_TAIL (b)
 	{
 	  int cmp = value_cmp (XCAR (a), XCAR (b), maxdepth - 1);

@@ -65,7 +65,7 @@ sections if you need to.
 
 		 ./configure --prefix=/SOME/OTHER/DIRECTORY
 
-      where /SOME/OTHER/DIRECTORY is a directory writeable by your user,
+      where /SOME/OTHER/DIRECTORY is a directory writable by your user,
       for example, a subdirectory of your home directory.
 
   3. When 'configure' finishes, it prints several lines of details
@@ -470,7 +470,7 @@ should put emacs and its data files.  This defaults to '/usr/local'.
 
 If you don't have write access to the default '/usr/local' tree, and
 cannot have root access (without which "make install" will fail),
-specify '--prefix=PREFIXDIR' where PREFIXDIR is a directyory writeable
+specify '--prefix=PREFIXDIR' where PREFIXDIR is a directory writable
 by your user, for example your HOME directory or some subdirectory of
 it.
 

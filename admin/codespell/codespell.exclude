@@ -1585,3 +1585,16 @@ VERY VERY LONG STRIN | VERY VERY LONG STRIN
 .UE .
  (0.03 ":bob!~u@euegh6mj3y8r2.irc PRIVMSG #chan :alice: See, by good hap, yonder's my lord; I have sweat to see his honour.")
  (0.05 ":bob!~u@euegh6mj3y8r2.irc PRIVMSG #chan :alice: But, in defence, by mercy, 'tis most just.")
+               "n" "nu" "nul" "nulL" "nulll"
+	rin=\E[%p1%dT, rmacs=\E[10m, rmso=\E[m, rmul=\E[m,
+	(ede-load-project-file): Add new input DETECTIN.
+(defun ede-load-project-file (dir &optional detectin rootreturn)
+Optional DETECTIN is an autoload cons from `ede-detect-directory-for-project'
+	   (detect (or detectin (ede-directory-project-cons path)))
+				;; Postpone readin hook till we map
+	      ;; Don't make undo entries for readin.
+  :nicky!uhuser@host212223.dialin.fnordisp.net PRIVMSG #lazybastards :Hello!
+         (skipp (or (bound-and-true-p erc-stamp--display-margin-mode)
+         (erc--msg-prop-overrides `(,@(and skipp `((erc--skip stamp)))
+    ("\\.\\(flc\\|fli\\|rle\\|iff\\|pfx\\|avi\\|sme\\|rpza\\|dl\\|qt\\|rsrc\\|mov\\)$" "xanim")
+    ("\\.sme$" "video/sme")

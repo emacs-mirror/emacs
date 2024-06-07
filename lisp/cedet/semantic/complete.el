@@ -1407,7 +1407,7 @@ This object type doesn't do focus, so will never have a focus object."
   ()
   "Display options in *Completions* buffer.
 Traditional display mechanism for a list of possible completions.
-Completions are showin in a new buffer and listed with the ability
+Completions are shown in a new buffer and listed with the ability
 to click on the items to aid in completion.")
 
 (define-obsolete-function-alias 'semantic-displayor-show-request

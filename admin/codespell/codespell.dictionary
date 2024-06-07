@@ -6,9 +6,9 @@ defalises->defaliases
 ecmacs->emacs
 ehsell->eshell
 emcs->emacs
+file-writeable-p->file-writable-p
 finis->finish
 firs->first
-file-writeable-p->file-writable-p
 hep->help
 least-favourite->least-favorite
 lien->line
