@@ -359,7 +359,11 @@ public static final String[] EMACS_SHARED_LIBRARIES\
 # all shared libraries are compiled, because the computation of
 # ALL_DEPENDENCIES in this instance of Make cannot be postponed until
 # that stage.
-cf-stamp: $(NDK_BUILD_SHARED) $(CROSS_LIBS)
+#
+# This recipe needs no dependency on $(NDK_BUILD_LIBS), since
+# $(CROSS_LIBS) is a phony target that itself guarantees that they are
+# up to date.
+cf-stamp: $(CROSS_LIBS)
 	$(AM_V_EMACSCONFIG) $(MAKE) cf-stamp-1
 	$(AM_V_at) touch $@
 $(CONFIG_FILE): cf-stamp; @true
@@ -433,4 +437,4 @@ clean:
 	find . -name '*.class' $(FIND_DELETE)
 
 maintainer-clean distclean bootstrap-clean: clean
-	rm -f Makefile ndk-build.mk
+	rm -f Makefile
