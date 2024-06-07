@@ -208,6 +208,7 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_PTR_VEC",
   "IGC_OBJ_OBJ_VEC",
   "IGC_OBJ_HANDLER",
+  "IGC_OBJ_BUILTIN_SYMBOL",
 };
 
 igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_NUM_TYPES);
@@ -1379,6 +1380,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
     switch (header->obj_type)
       {
       case IGC_OBJ_INVALID:
+      case IGC_OBJ_BUILTIN_SYMBOL:
 	emacs_abort ();
 
       case IGC_OBJ_PAD:
@@ -2732,6 +2734,7 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_INVALID:
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
+    case IGC_OBJ_BUILTIN_SYMBOL:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
 
@@ -2890,6 +2893,7 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_INVALID:
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
+    case IGC_OBJ_BUILTIN_SYMBOL:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
 
@@ -3588,6 +3592,14 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type, char *base, char *end
       return base + to_bytes (h->nwords);
     }
 
+  /* Make built-in symbols recognizable as such because we
+     don't want to replace them with copies. */
+  if (c_symbol_p (client))
+    {
+      igc_assert (type == IGC_OBJ_SYMBOL);
+      type = IGC_OBJ_BUILTIN_SYMBOL;
+    }
+
   igc_assert (!pdumper_object_p (client));
   size_t client_size = end - base - sizeof *out;
   size_t nbytes = obj_size (client_size);
@@ -3783,7 +3795,14 @@ copy_dump_to_mps (struct igc_mirror *m)
   struct pdumper_object_it it = {0};
   void *org_base;
   while ((org_base = pdumper_next_object (&it)) != NULL)
-    record_copy (m, org_base, copy (org_base));
+    {
+      struct igc_header *h = org_base;
+      if (h->obj_type != IGC_OBJ_BUILTIN_SYMBOL)
+	{
+	  void *copy_base = copy (org_base);
+	  record_copy (m, org_base, copy_base);
+	}
+    }
   record_time (m, "Copy objects to MPS");
 }
 
@@ -4150,11 +4169,14 @@ mirror_window (struct igc_mirror *m, struct igc_pair *p)
 static void
 check_ht (struct Lisp_Hash_Table *h)
 {
-  DOHASH_SAFE (h, i)
+  if (h->weakness == Weak_None)
     {
-      Lisp_Object key = HASH_KEY (h, i);
-      ptrdiff_t j = hash_lookup (h, key);
-      igc_assert (i == j);
+      DOHASH_SAFE (h, i)
+	{
+	  Lisp_Object key = HASH_KEY (h, i);
+	  ptrdiff_t j = hash_lookup (h, key);
+	  igc_assert (i == j);
+	}
     }
 }
 
@@ -4406,6 +4428,9 @@ mirror (struct igc_mirror *m, void *org_base, void *copy_base)
   struct igc_header *h = copy_base;
   switch (h->obj_type)
     {
+    case IGC_OBJ_BUILTIN_SYMBOL:
+      break;
+
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
     case IGC_OBJ_INVALID:
