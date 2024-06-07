@@ -139,10 +139,10 @@ compiler.  For example:
 
   ./configure [...] \
      ANDROID_CC="i686-linux-android-gcc \
-		 --sysroot=/path/to/ndk/platforms/android-14/arch-x86/"
-     ANDROID_CFLAGS="-isystem /path/to/ndk/sysroot/usr/include \
-		     -isystem /path/to/ndk/sysroot/usr/include/i686-linux-android \
-		     -D__ANDROID_API__=14"
+		 --sysroot=/path/to/ndk/platforms/android-14/arch-x86/
+		 -isystem /path/to/ndk/sysroot/usr/include \
+		 -isystem /path/to/ndk/sysroot/usr/include/i686-linux-android \
+		 -D__ANDROID_API__=14"
 
 Where __ANDROID_API__ and the version identifier in
 "platforms/android-14" defines the version of Android you are building
@@ -391,7 +391,7 @@ provided as:
   giflib-5.2.1-emacs.tar.gz
   libjpeg-turbo-3.0.2-emacs.tar.gz
   libpng-1.6.41-emacs.tar.gz
-  tiff-4.5.0-emacs.tar.gz
+  tiff-4.5.1-emacs.tar.gz
 
 Of which all but libjpeg-turbo-3.0.2-emacs.tar.gz should compile on
 every supported Android system and toolchain; where the latter does not
@@ -400,14 +400,46 @@ substitute.
 
 Of the three remaining image-related dependencies, libwebp provides
 upstream support for ndk-build, ImageMagick has been ported by
-interested third-party developers, while librsvg2, with its numerous and
-unnavigable web of dependencies and toolchains for non-C languages,
-would be such a great undertaking to port that we do not anticipate its
-ever becoming available.
+interested third-party developers, and librsvg is addressed below.
 
-We are actively searching for alternatives to librsvg2 that are feasible
-to port, or better yet, natively support Android.  Please send
-suggestions or patches to emacs-devel@gnu.org.
+
+LIBRSVG
+
+Librsvg 2.40.21, the final release of the librsvg 2.40.x series, the
+last to be implemented in C, is provided as:
+
+  librsvg-2.40.21-emacs.tar.gz
+
+and has been lightly edited for compatibility with environments where
+Pango cannot provide fonts, with the obvious caveat that text cannot be
+displayed with the resulting librsvg binary.  Among numerous
+dependencies are PCRE, and:
+
+  libiconv-1.17-emacs.tar.gz
+  libffi-3.4.5-emacs.tar.gz
+  pango-1.38.1-emacs.tar.gz
+  glib-2.33.14-emacs.tar.gz
+  libcroco-0.6.13-emacs.tar.gz
+  pixman-0.38.4-emacs.tar.gz
+  libxml2-2.12.4-emacs.tar.gz
+  gdk-pixbuf-2.22.1-emacs.tar.gz
+  giflib-5.2.1-emacs.tar.gz
+  libjpeg-turbo-3.0.2-emacs.tar.gz
+  libpng-1.6.41-emacs.tar.gz
+  tiff-4.5.1-emacs.tar.gz
+  cairo-1.16.0-emacs.tar.gz
+
+which must be individually unpacked and their contents provided on the
+command line, as with other dependencies.  They will introduce
+approximately 8 MiB's worth of shared libraries into the finished
+application package.  It is unlikely that later releases of librsvg will
+ever be ported, as they have migrated to a different implementation
+language.
+
+No effort has been expended on providing the latest and greatest of
+these dependencies either; rather, the versions chosen are often the
+earliest versions required by their dependents, these being the smaller
+of all available versions, and generally more straightforward to port.
 
 
 SELINUX
