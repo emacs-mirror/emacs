@@ -3586,6 +3586,66 @@ igc_header_size (void)
   return sizeof (struct igc_header);
 }
 
+static bool
+is_builtin_subr (enum igc_obj_type type, void *client)
+{
+  if (type == IGC_OBJ_VECTOR && pseudo_vector_type (client) == PVEC_SUBR)
+    {
+      Lisp_Object subr = make_lisp_ptr (client, Lisp_Vectorlike);
+      return !SUBR_NATIVE_COMPILEDP (subr);
+    }
+  return false;
+}
+
+static enum igc_obj_type
+builtin_obj_type (enum igc_obj_type type, void *client)
+{
+  if (c_symbol_p (client))
+    return IGC_OBJ_BUILTIN_SYMBOL;
+  if (client == &main_thread)
+    return IGC_OBJ_BUILTIN_THREAD;
+  if (is_builtin_subr (type, client))
+    return IGC_OBJ_BUILTIN_SUBR;
+  emacs_abort ();
+}
+
+static bool
+is_builtin_obj_type (enum igc_obj_type type)
+{
+  switch (type)
+    {
+    case IGC_OBJ_INVALID:
+    case IGC_OBJ_PAD:
+    case IGC_OBJ_FWD:
+    case IGC_OBJ_CONS:
+    case IGC_OBJ_SYMBOL:
+    case IGC_OBJ_INTERVAL:
+    case IGC_OBJ_STRING:
+    case IGC_OBJ_STRING_DATA:
+    case IGC_OBJ_VECTOR:
+    case IGC_OBJ_ITREE_TREE:
+    case IGC_OBJ_ITREE_NODE:
+    case IGC_OBJ_IMAGE:
+    case IGC_OBJ_IMAGE_CACHE:
+    case IGC_OBJ_FACE:
+    case IGC_OBJ_FACE_CACHE:
+    case IGC_OBJ_FLOAT:
+    case IGC_OBJ_BLV:
+    case IGC_OBJ_WEAK:
+    case IGC_OBJ_PTR_VEC:
+    case IGC_OBJ_OBJ_VEC:
+    case IGC_OBJ_HANDLER:
+    case IGC_OBJ_BYTES:
+    case IGC_OBJ_NUM_TYPES:
+      return false;
+
+    case IGC_OBJ_BUILTIN_SYMBOL:
+    case IGC_OBJ_BUILTIN_THREAD:
+    case IGC_OBJ_BUILTIN_SUBR:
+      return true;
+    }
+}
+
 char *
 igc_dump_finish_obj (void *client, enum igc_obj_type type,
 		     char *base, char *end)
@@ -3603,24 +3663,10 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
       return base + to_bytes (h->nwords);
     }
 
-  /* If the copied object is not in MPS, it is something
-     like a built-in symbol. */
-  if (c_symbol_p (client))
-    type = IGC_OBJ_BUILTIN_SYMBOL;
-  else if (client == &main_thread)
-    type = IGC_OBJ_BUILTIN_THREAD;
-#ifdef HAVE_NATIVE_COMP
-  else if (type == IGC_OBJ_VECTOR
-	   && pseudo_vector_type (client) == PVEC_SUBR
-	   && !((struct Aligned_Lisp_Subr *) client)->s.native_comp_u)
-    type = IGC_OBJ_BUILTIN_SUBR;
-#endif
-  else
-    emacs_abort ();
-
   size_t client_size = end - base - sizeof *out;
   size_t nbytes = obj_size (client_size);
   size_t nwords = to_words (nbytes);
+  type = builtin_obj_type (type, client);
   *out = (struct igc_header) { .obj_type = type, .nwords = nwords };
   return base + nbytes;
 }
@@ -3804,43 +3850,6 @@ lookup_base (struct igc_mirror *m, void *base)
   Lisp_Object key = pointer_to_fixnum (base);
   Lisp_Object found = Fgethash (key, m->dump_to_mps, Qnil);
   return NILP (found) ? NULL : fixnum_to_pointer (found);
-}
-
-static bool
-is_builtin_obj_type (enum igc_obj_type type)
-{
-  switch (type)
-    {
-    case IGC_OBJ_INVALID:
-    case IGC_OBJ_PAD:
-    case IGC_OBJ_FWD:
-    case IGC_OBJ_CONS:
-    case IGC_OBJ_SYMBOL:
-    case IGC_OBJ_INTERVAL:
-    case IGC_OBJ_STRING:
-    case IGC_OBJ_STRING_DATA:
-    case IGC_OBJ_VECTOR:
-    case IGC_OBJ_ITREE_TREE:
-    case IGC_OBJ_ITREE_NODE:
-    case IGC_OBJ_IMAGE:
-    case IGC_OBJ_IMAGE_CACHE:
-    case IGC_OBJ_FACE:
-    case IGC_OBJ_FACE_CACHE:
-    case IGC_OBJ_FLOAT:
-    case IGC_OBJ_BLV:
-    case IGC_OBJ_WEAK:
-    case IGC_OBJ_PTR_VEC:
-    case IGC_OBJ_OBJ_VEC:
-    case IGC_OBJ_HANDLER:
-    case IGC_OBJ_BYTES:
-    case IGC_OBJ_NUM_TYPES:
-      return false;
-
-    case IGC_OBJ_BUILTIN_SYMBOL:
-    case IGC_OBJ_BUILTIN_THREAD:
-    case IGC_OBJ_BUILTIN_SUBR:
-      return true;
-    }
 }
 
 static void
