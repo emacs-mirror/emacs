@@ -100,7 +100,7 @@ one's optionally accessible from the keyboard, just like any other
 side window.  Hit '<RET>' over a nick to spawn a "/QUERY" or a
 "Lastlog" (Occur) session.  See 'erc-nickbar-mode' for more.
 
-** New module to keep tabs on query pals who aren't in your channels.
+** New 'querypoll' module for tracking non-channel query participants.
 ERC has gotten a bit pickier about managing participants in query
 buffers.  "Untracked" correspondents no longer appear automatically in
 membership tables, even if you respond or initiate contact.  Instead,
@@ -112,7 +112,7 @@ Those familiar with the IRCv3 Monitor extension can think of this as
 "fallback code" and a temporary placeholder for the real thing.
 Add 'querypoll' (and 'nickbar') to 'erc-modules' to try it out.
 
-** Option 'erc-timestamp-use-align-to' more versatile.
+** Option 'erc-timestamp-use-align-to' made more versatile.
 While this option has always offered to right-align stamps via the
 'display' text property, it's now more effective at doing so when set
 to a number indicating an offset from the right edge.  Users of the
@@ -143,7 +143,7 @@ connectivity before attempting to reconnect in earnest.  See option
 'erc-server-reconnect-function' and new local module 'services-regain'
 (also experimental) to get started.
 
-** Modules rather than their libraries set major-mode keybindings.
+** Module-based keybinding adjustments for major modes.
 To put it another way, simply loading a built-in module's library no
 longer modifies 'erc-mode-map'.  Instead, modifications occur during
 module setup.  This should not impact most user configs since ERC
@@ -162,7 +162,7 @@ asking users who've customized this option to switch to
 that some other solution, like automatic migration, is justified,
 please make that known on the bug list.
 
-** Module 'noncommands' deprecated, replaced by 'command-indicator'.
+** Module 'command-indicator' revives echoing, replacing 'noncommands'.
 Command-line echoing has returned to ERC after a near decade-long
 hiatus.  This means you can elect to have ERC leave a trail of (most)
 slash-command input submitted at the prompt, in a manner resembling
@@ -202,13 +202,14 @@ s-expressions, which ERC will continue to honor.  Although the default
 lineup remains functionally equivalent, its members have all been
 updated accordingly.
 
-** 'erc-track-faces-priority-list' and 'erc-track-faces-normal-list' slimmed.
-These options have been purged of certain 'button'-related face
-combinations.  Originally added in ERC 5.3, these combinations
-described the effect of "buttonizing" atop faces added by the 'match'
-module, like '(erc-nick-default-face erc-pal-face)'.  However, since
-at least Emacs 27, 'match' has run before 'button' in
-'erc-insert-modify-hook', meaning such permutations aren't possible.
+** A slimmed down 'erc-track-faces-priority-list'.
+This option, along with 'erc-track-faces-normal-list', has been purged
+of certain 'button'-related face combinations.  Originally added in
+ERC 5.3, these combinations described the effect of "buttonizing" atop
+faces added by the 'match' module, like '(erc-nick-default-face
+erc-pal-face)'.  However, since at least Emacs 27, 'match' has run
+before 'button' in 'erc-insert-modify-hook', meaning such permutations
+aren't possible.
 
 More importantly, users who've customized either of these options
 should update them with the new default value of the option
@@ -244,15 +245,14 @@ wherever it happens to reside instead of forcing it to the bottom of a
 window, meaning new input appears above the prompt, scrolling existing
 messages upward to compensate.
 
-** Subtle changes in two fundamental faces.
+** Subtle changes for two fundamental faces.
 Users of the default theme may notice that 'erc-action-face' and
-'erc-notice-face' now appear slightly less bold on systems supporting
-a weight of 'semi-bold'.  This was done to make buttons detectable and
-to spare users from resorting to tweaking these faces, or options like
-'erc-notice-highlight-type', just to achieve this effect.  It's
-currently most prominent in "/ME" messages, where 'erc-action-face'
-sits beneath 'erc-input-face', as well as 'erc-my-nick-face' in the
-speaker portion.
+'erc-notice-face' now appear slightly less bold.  This improves button
+detection and spares users from having to tweak faces (or options,
+like 'erc-notice-highlight-type') just to achieve this effect.  The
+change is currently most noticeable in "/ME" messages, where
+'erc-action-face' appears beneath 'erc-input-face' and
+'erc-my-nick-face'.
 
 ** Fewer nick buttons in QUIT, JOIN, and PART messages.
 Common messages that show a nickname followed by a "userhost" often
@@ -392,7 +392,7 @@ from 't' to the more useful 'erc-prompt', although the property of the
 same name has been retained and now has a value of 'hidden' when
 disconnected.
 
-*** Lists of faces in buttonized text are no longer nested.
+*** Flattened face lists for buttonized text.
 Previously, when "buttonizing" a new region, ERC would combine faces
 by blindly consing the new onto the existing.  In theory, this kept a
 nice record of all modifications to a given region.  However, it also
@@ -691,7 +691,7 @@ that the killing of buffers done on behalf of the option
 'erc-kill-buffer-on-part' has been made more detectable by the flag
 'erc-killing-buffer-on-part-p'.
 
-*** Channel-mode handling has become stricter and more predictable.
+*** Stricter and more predictable channel-mode handling.
 ERC has always processed channel modes using "standardized" letters
 and popular status prefixes.  Starting with this release, ERC will
 begin preferring advertised "CHANMODES" when interpreting letters and
@@ -733,6 +733,13 @@ separate "speaker catalog" keyed by contextual symbols, like
 'query-privmsg', ERC (and eventually everyone) will more easily be
 able to influence how inserted messages take shape in buffers.
 
+As a consequence of this transition, the default client no longer
+calls `erc-format-privmessage' to format speaker messages.  See that
+function's doc string for help adapting to the new system, but please
+keep in mind that discussions are still ongoing regarding its eventual
+public interface.  As usual, anyone interested should get involved by
+writing to the mailing list.
+
 *** New format templates for inserted CTCP ACTION messages.
 In 5.5 and earlier, ERC displayed outgoing CTCP ACTION messages in
 'erc-input-face' alone (before buttonizing).  Incoming ACTION messages
@@ -747,7 +754,7 @@ default "language catalog" in favor of an entry from the new internal
 by toggling a provided compatibility switch.  See source code around
 the function 'erc-send-action' for details.
 
-*** Miscellaneous changes
+*** Miscellaneous changes.
 In 'erc-button-alist', 'Info-goto-node' has been supplanted by plain
 old 'info', and the "<URL:...>" entry has been removed because it was
 more or less redundant.  In all ERC buffers, the "<TAB>" key is now

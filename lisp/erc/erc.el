@@ -13,7 +13,7 @@
 ;;               Michael Olson (mwolson@gnu.org)
 ;;               Kelvin White (kwhite@gnu.org)
 ;; Version: 5.6-git
-;; Package-Requires: ((emacs "27.1") (compat "29.1.4.4"))
+;; Package-Requires: ((emacs "27.1") (compat "29.1.4.5"))
 ;; Keywords: IRC, chat, client, Internet
 ;; URL: https://www.gnu.org/software/emacs/erc.html
 
@@ -6187,7 +6187,15 @@ NUH, and the current `erc-response' object.")
   (and erc-channel-users (gethash downcased erc-channel-users)))
 
 (defun erc-format-privmessage (nick msg privp msgp)
-  "Format a PRIVMSG in an insertable fashion."
+  "Format a PRIVMSG in an insertable fashion.
+
+Note that as of version 5.6, the default client no longer calls this
+function.  It instead defers to the `format-spec'-based message-catalog
+system to handle all message formatting.  Anyone needing to influence
+such formatting should describe their use case via \\[erc-bug] or
+similar.  Please do this instead of resorting to things like modifying
+formatting templates to remove speaker brackets (because many modules
+rely on their presence, and cleaner ways exist)."
   (let* ((mark-s (if msgp (if privp "*" "<") "-"))
          (mark-e (if msgp (if privp "*" ">") "-"))
          (str    (format "%s%s%s %s" mark-s nick mark-e msg))
@@ -9681,7 +9689,7 @@ See also `format-spec'."
     erc-networks-shrink-ids-and-buffer-names
     erc-networks-rename-surviving-target-buffer)
   "Invoked whenever a channel-buffer is killed via `kill-buffer'."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :group 'erc-hooks
   :type 'hook)
 
