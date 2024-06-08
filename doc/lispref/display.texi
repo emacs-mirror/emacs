@@ -5933,25 +5933,30 @@ parameters is a useful way of saying ``display this image as large as
 possible, but no larger than the available display area''.
 
 @item :scale @var{scale}
-This should be a number, where values higher than 1 means to increase
-the size, and lower means to decrease the size, by multiplying both
-the width and height.  For instance, a value of 0.25 will make the
-image a quarter size of what it originally was.  If the scaling makes
-the image larger than specified by @code{:max-width} or
-@code{:max-height}, the resulting size will not exceed those two
-values.  If both @code{:scale} and @code{:height}/@code{:width} are
-specified, the height/width will be adjusted by the specified scaling
-factor.
+This should be a scaling factor for the image, a number.  Values higher
+than 1 mean to increase the image size, and lower values mean to
+decrease the size, by multiplying both the width and height of the image
+by the factor.  For instance, a value of 0.25 will make the image a
+quarter size of what it originally was.  If the scaling makes the image
+larger than specified by @code{:max-width} or @code{:max-height}, the
+resulting size will not exceed those two values.  If both @code{:scale}
+and @code{:height}/@code{:width} are specified, the height/width will be
+adjusted by the specified scaling factor.
 
 @vindex image-scaling-factor
-Alternatively, the symbol @code{default} may be specified, indicating
-that the image should be scaled according as the value of the
-@code{image-scaling-factor} variable is the default @code{auto} or a
-number, which by default scales the image in proportion to the average
-widths (@pxref{Low-Level Font}) of the default faces of frames on which
-it happens to be displayed, if such widths should exceed @code{10}
-pixels.  If no other value is provided, @code{create-image} will specify
-this value in image specifications it creates.
+The value of @var{scale} can also be the symbol @code{default}, which
+means to use the value of @code{image-scaling-factor}.  If that value is
+a number, it is the scale factor to use; if it is @code{auto} (the
+default), it means to compute the scaling factor based on pixel size of
+the font used by the frame's default face (@pxref{Low-Level Font}).
+Specifically, if the pixel width of the default face's font is greater
+than 10, the image is enlarged by the factor computed as the ratio of
+the font width to 10; if the font width is 10 pixels or less, the image
+is not scaled.  For example, if the default font's width is 15, the
+image will be scaled by the factor 1.5.
+
+If @var{scale} is not provided, @code{create-image} scales the image
+according to the value of @code{image-scaling-factor}.
 
 @item :rotation @var{angle}
 Specifies a rotation angle in degrees.  Only multiples of 90 degrees
