@@ -1961,6 +1961,11 @@ The following new XML schemas are now supported:
 
 ** color.el now supports the Oklab color representation.
 
+---
+** 'M-x ping' can now give "ping" additional flags.
+Typing 'C-u M-x ping' prompts first for the host, and then for the flags
+to give to "ping".
+
 
 * New Modes and Packages in Emacs 30.1
 
