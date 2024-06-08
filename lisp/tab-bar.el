@@ -1168,33 +1168,47 @@ length of the tab's name."
   :group 'tab-bar
   :version "29.1")
 
-(defcustom tab-bar-auto-width-max '(220 20)
+(defcustom tab-bar-auto-width-max '((220) 20)
   "Maximum width for automatic resizing of width of tab-bar tabs.
 This determines the maximum width of tabs before their names will be
 truncated on display.
-The value should be a list of two numbers: the first is the maximum
-width of tabs in pixels for GUI frames, the second is the maximum
-width of tabs in characters on TTY frames.
+
+The value should be a list of two values: the first is the maximum width
+of tabs in pixels for GUI frames, the second is the maximum width of
+tabs in characters on TTY frames.  Of these two values both accept
+integers, but the first element that provides a width in pixels can
+further be a list of a single integer, also specifying an integral width
+in pixels, but signifying that it should be scaled by the difference
+between the `frame-char-height' of the tab bar's frame, and 15, when the
+former height exceeds the latter threshold.
+
 If the value of this variable is nil, there is no limit on maximum
 width.
 This variable has effect only when `tab-bar-auto-width' is non-nil."
   :type '(choice
           (const :tag "No limit" nil)
-          (list (integer :tag "Max width (pixels)" :value 220)
+          (list (choice
+                 (integer :tag "Max width (pixels)" :value 220)
+                 (list (integer :tag "Max width (scaled pixels)"
+                                :value 220)))
                 (integer :tag "Max width (chars)" :value 20)))
   :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
          (setq tab-bar--auto-width-hash nil))
   :group 'tab-bar
-  :version "29.1")
+  :version "30.1")
 
-(defvar tab-bar-auto-width-min '(20 2)
+(defvar tab-bar-auto-width-min '((20) 2)
   "Minimum width of tabs for automatic resizing under `tab-bar-auto-width'.
 The value should be a list of two numbers, giving the minimum width
 as the number of pixels for GUI frames and the number of characters
 for text-mode frames.  Tabs whose width is smaller than this will not
 be narrowed.
+
+The first value may also be a list, as in `tab-bar-auto-width-max',
+which see.
+
 It's not recommended to change this value since with larger values, the
 tab bar might wrap to the second line when it shouldn't.")
 
@@ -1206,6 +1220,18 @@ tab bar might wrap to the second line when it shouldn't.")
 
 (defvar tab-bar--auto-width-hash nil
   "Memoization table for `tab-bar-auto-width'.")
+
+(defun tab-bar-auto-width-1 (wvalue)
+  "Return scaled value if WVALUE, if necessary.
+If WVALUE is a list of the form accepted as pixel width specifications
+by `tab-bar-auto-width-max' and suchlike, return its value as it should
+be scaled for display on the current frame."
+  (if (consp wvalue)
+      (let ((height (frame-char-height)))
+        (if (< height 15)
+            (car wvalue)
+          (* (car wvalue) (/ height 15.0))))
+    wvalue))
 
 (defun tab-bar-auto-width (items)
   "Return tab-bar items with resized tab names."
@@ -1232,11 +1258,13 @@ tab bar might wrap to the second line when it shouldn't.")
                      (length tabs)))
       (when tab-bar-auto-width-min
         (setq width (max width (if (window-system)
-                                   (nth 0 tab-bar-auto-width-min)
+                                   (tab-bar-auto-width-1
+                                    (nth 0 tab-bar-auto-width-min))
                                  (nth 1 tab-bar-auto-width-min)))))
       (when tab-bar-auto-width-max
         (setq width (min width (if (window-system)
-                                   (nth 0 tab-bar-auto-width-max)
+                                   (tab-bar-auto-width-1
+                                    (nth 0 tab-bar-auto-width-max))
                                  (nth 1 tab-bar-auto-width-max)))))
       (dolist (item tabs)
         (setf (nth 2 item)
