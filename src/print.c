@@ -1404,6 +1404,7 @@ pp_stack_push_values (Lisp_Object vectorlike, ptrdiff_t start, ptrdiff_t n)
     grow_pp_stack ();
   ppstack.stack[ppstack.sp++]
     = (struct print_pp_entry){ .start = start, .n = n, .u.vectorlike = vectorlike };
+  ppstack.stack[ppstack.sp - 1].is_free = false;
 }
 #else
 static inline void
@@ -1416,7 +1417,6 @@ pp_stack_push_values (Lisp_Object *values, ptrdiff_t n)
     grow_pp_stack ();
   ppstack.stack[ppstack.sp++] = (struct print_pp_entry){.n = n,
 							.u.values = values};
-  ppstack.stack[ppstack.sp - 1].is_free = false;
 }
 #endif
 

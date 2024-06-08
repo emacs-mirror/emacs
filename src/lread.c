@@ -4515,9 +4515,10 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
       struct read_stack_entry *e = read_stack_top ();
       switch (e->type)
 	{
+#ifdef HAVE_MPS
 	case RE_free:
 	  emacs_abort ();
-
+#endif
 	case RE_list_start:
 	  e->type = RE_list;
 	  e->u.list.head = e->u.list.tail = Fcons (obj, Qnil);
