@@ -109,8 +109,10 @@ command alias go process launch --disable-aslr false --working-dir ../lisp
 #command alias go process launch --disable-aslr false --working-dir .
 #b wrong_type_argument
 
-target create bootstrap-emacs
-settings set -- target.run-args  -batch --no-site-file --no-site-lisp  -f batch-byte-compile emacs-lisp/macroexp.el
-command alias go process launch --working-dir ../lisp
+#target create temacs
+#settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest /Users/gerd/emacs/github/igc-copy/nextstep/Emacs.app/Contents/MacOS/ --eln-dest /Users/gerd/emacs/github/igc-copy/nextstep/Emacs.app/Contents/Frameworks/
+#command alias go process launch --working-dir .
 
-# end.
+target create bootstrap-emacs
+settings set -- target.run-args -batch --no-site-file --no-site-lisp --eval "(setq load-prefer-newer t byte-compile-warnings 'all)" --eval "(setq org--inhibit-version-check t)"  -f batch-byte-compile emacs-lisp/loaddefs-gen.el
+command alias go process launch --working-dir ../lisp

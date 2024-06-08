@@ -12341,3 +12341,21 @@ reset_coding_after_pdumper_load (void)
      it up now; otherwise safe_terminal_coding will remain zeroed.  */
   Fset_safe_terminal_coding_system_internal (Qus_ascii);
 }
+
+#ifdef HAVE_MPS
+void
+igc_reset_coding_after_mirror (struct Lisp_Hash_Table *old_ht)
+{
+  struct Lisp_Hash_Table *new_ht = XHASH_TABLE (Vcoding_system_hash_table);
+  for (int i = 0; i < coding_category_max; ++i)
+    {
+      struct coding_system *cs = coding_categories + i;
+      if (cs->id >= 0)
+        {
+	  Lisp_Object name = HASH_KEY (old_ht, cs->id);
+	  cs->id = hash_lookup (new_ht, name);
+	  eassert (cs->id >= 0);
+        }
+    }
+}
+#endif
