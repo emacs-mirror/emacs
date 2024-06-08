@@ -401,7 +401,8 @@ Use `auto-revert-tail-mode' if you know that the file will only grow
 without being changed in the part that is already in the buffer."
   :group 'auto-revert :lighter auto-revert-mode-text
   (if auto-revert-mode
-      (when (not (memq (current-buffer) auto-revert-buffer-list))
+      (when (and (not (buffer-base-buffer (current-buffer)))
+                 (not (memq (current-buffer) auto-revert-buffer-list)))
         (push (current-buffer) auto-revert-buffer-list)
         (add-hook
          'kill-buffer-hook
@@ -639,7 +640,10 @@ will use an up-to-date value of `auto-revert-interval'."
 
 (defun auto-revert-notify-rm-watch ()
   "Disable file notification for current buffer's associated file."
-  (when-let ((desc auto-revert-notify-watch-descriptor))
+  (when-let ((desc
+              ;; Don't disable notifications if this is an indirect buffer.
+              (and (null (buffer-base-buffer))
+                   auto-revert-notify-watch-descriptor)))
     (setq auto-revert--buffer-by-watch-descriptor
           (assoc-delete-all desc auto-revert--buffer-by-watch-descriptor))
     (ignore-errors
