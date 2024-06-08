@@ -210,6 +210,8 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_HANDLER",
   "IGC_OBJ_BYTES",
   "IGC_OBJ_BUILTIN_SYMBOL",
+  "IGC_OBJ_BUILTIN_THREAD",
+  "IGC_OBJ_BUILTIN_SUBR",
 };
 
 igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_NUM_TYPES);
@@ -1382,6 +1384,8 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
       {
       case IGC_OBJ_INVALID:
       case IGC_OBJ_BUILTIN_SYMBOL:
+      case IGC_OBJ_BUILTIN_THREAD:
+      case IGC_OBJ_BUILTIN_SUBR:
 	emacs_abort ();
 
       case IGC_OBJ_PAD:
@@ -2737,6 +2741,8 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
     case IGC_OBJ_BUILTIN_SYMBOL:
+    case IGC_OBJ_BUILTIN_THREAD:
+    case IGC_OBJ_BUILTIN_SUBR:
     case IGC_OBJ_BYTES:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
@@ -2897,6 +2903,8 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
     case IGC_OBJ_BUILTIN_SYMBOL:
+    case IGC_OBJ_BUILTIN_THREAD:
+    case IGC_OBJ_BUILTIN_SUBR:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
 
@@ -3579,7 +3587,8 @@ igc_header_size (void)
 }
 
 char *
-igc_dump_finish_obj (void *client, enum igc_obj_type type, char *base, char *end)
+igc_dump_finish_obj (void *client, enum igc_obj_type type,
+		     char *base, char *end)
 {
   if (client == NULL)
     return end;
@@ -3594,15 +3603,21 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type, char *base, char *end
       return base + to_bytes (h->nwords);
     }
 
-  /* Make built-in symbols recognizable as such because we
-     don't want to replace them with copies. */
+  /* If the copied object is not in MPS, it is something
+     like a built-in symbol. */
   if (c_symbol_p (client))
-    {
-      igc_assert (type == IGC_OBJ_SYMBOL);
-      type = IGC_OBJ_BUILTIN_SYMBOL;
-    }
+    type = IGC_OBJ_BUILTIN_SYMBOL;
+  else if (client == &main_thread)
+    type = IGC_OBJ_BUILTIN_THREAD;
+#ifdef HAVE_NATIVE_COMP
+  else if (type == IGC_OBJ_VECTOR
+	   && pseudo_vector_type (client) == PVEC_SUBR
+	   && !((struct Aligned_Lisp_Subr *) client)->s.native_comp_u)
+    type = IGC_OBJ_BUILTIN_SUBR;
+#endif
+  else
+    emacs_abort ();
 
-  igc_assert (!pdumper_object_p (client));
   size_t client_size = end - base - sizeof *out;
   size_t nbytes = obj_size (client_size);
   size_t nwords = to_words (nbytes);
@@ -3791,6 +3806,43 @@ lookup_base (struct igc_mirror *m, void *base)
   return NILP (found) ? NULL : fixnum_to_pointer (found);
 }
 
+static bool
+is_builtin_obj_type (enum igc_obj_type type)
+{
+  switch (type)
+    {
+    case IGC_OBJ_INVALID:
+    case IGC_OBJ_PAD:
+    case IGC_OBJ_FWD:
+    case IGC_OBJ_CONS:
+    case IGC_OBJ_SYMBOL:
+    case IGC_OBJ_INTERVAL:
+    case IGC_OBJ_STRING:
+    case IGC_OBJ_STRING_DATA:
+    case IGC_OBJ_VECTOR:
+    case IGC_OBJ_ITREE_TREE:
+    case IGC_OBJ_ITREE_NODE:
+    case IGC_OBJ_IMAGE:
+    case IGC_OBJ_IMAGE_CACHE:
+    case IGC_OBJ_FACE:
+    case IGC_OBJ_FACE_CACHE:
+    case IGC_OBJ_FLOAT:
+    case IGC_OBJ_BLV:
+    case IGC_OBJ_WEAK:
+    case IGC_OBJ_PTR_VEC:
+    case IGC_OBJ_OBJ_VEC:
+    case IGC_OBJ_HANDLER:
+    case IGC_OBJ_BYTES:
+    case IGC_OBJ_NUM_TYPES:
+      return false;
+
+    case IGC_OBJ_BUILTIN_SYMBOL:
+    case IGC_OBJ_BUILTIN_THREAD:
+    case IGC_OBJ_BUILTIN_SUBR:
+      return true;
+    }
+}
+
 static void
 copy_dump_to_mps (struct igc_mirror *m)
 {
@@ -3799,7 +3851,7 @@ copy_dump_to_mps (struct igc_mirror *m)
   while ((org_base = pdumper_next_object (&it)) != NULL)
     {
       struct igc_header *h = org_base;
-      if (h->obj_type != IGC_OBJ_BUILTIN_SYMBOL)
+      if (!is_builtin_obj_type (h->obj_type))
 	{
 	  void *copy_base = copy (org_base);
 	  record_copy (m, org_base, copy_base);
@@ -4431,6 +4483,8 @@ mirror (struct igc_mirror *m, void *org_base, void *copy_base)
   switch (h->obj_type)
     {
     case IGC_OBJ_BUILTIN_SYMBOL:
+    case IGC_OBJ_BUILTIN_THREAD:
+    case IGC_OBJ_BUILTIN_SUBR:
       break;
 
     case IGC_OBJ_PAD:
