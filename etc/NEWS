@@ -505,7 +505,7 @@ This function lets the user execute multiple SQL statements in one go.
 It is useful, for example, when a Lisp program needs to evaluate an
 entire SQL file.
 
-+++
+** The default value of 'read-process-output-max' was increased to 65536.
 
 * Editing Changes in Emacs 30.1
 

@@ -8877,7 +8877,7 @@ amounts of data in one go.
 
 On GNU/Linux systems, the value should not exceed
 /proc/sys/fs/pipe-max-size.  See pipe(7) manpage for details.  */);
-  read_process_output_max = 4096;
+  read_process_output_max = 65536;
 
   DEFVAR_BOOL ("read-process-output-fast", read_process_output_fast,
 	       doc: /* Non-nil to optimize the insertion of process output.
