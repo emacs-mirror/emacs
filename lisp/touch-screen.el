@@ -1211,48 +1211,35 @@ last such event."
             (initial-distance (aref touch-screen-aux-tool 4))
             (initial-centrum (aref touch-screen-aux-tool 5)))
         (let* ((ratio (/ distance initial-distance))
-               (ratio-diff (- ratio (aref touch-screen-aux-tool 6)))
-               (diff (abs (- ratio (aref touch-screen-aux-tool 6))))
-               (centrum-diff (+ (abs (- (car initial-centrum)
-                                        (car centrum)))
-                                (abs (- (cdr initial-centrum)
-                                        (cdr centrum))))))
-          ;; If the difference in ratio has surpassed a threshold of
-          ;; 0.2 or the centrum difference exceeds the frame's char
-          ;; width, send a touchscreen-pinch event with this
-          ;; information and update that saved in
-          ;; touch-screen-aux-tool.
-          (when (or (> diff 0.2)
-                    (> centrum-diff
-                       (/ (frame-char-width) 2)))
-            (aset touch-screen-aux-tool 5 centrum)
-            (aset touch-screen-aux-tool 6 ratio)
-            (throw 'input-event
-                   (list 'touchscreen-pinch
-                         (if (or (<= (car centrum) 0)
-                                 (<= (cdr centrum) 0))
+               (ratio-diff (- ratio (aref touch-screen-aux-tool 6))))
+          ;; Update the internal record of its position and generate an
+          ;; event.
+          (aset touch-screen-aux-tool 5 centrum)
+          (aset touch-screen-aux-tool 6 ratio)
+          (throw 'input-event
+                 (list 'touchscreen-pinch
+                       (if (or (<= (car centrum) 0)
+                               (<= (cdr centrum) 0))
+                           (list window nil centrum nil nil
+                                 nil nil nil nil nil)
+                         (let ((posn (posn-at-x-y (car centrum)
+                                                  (cdr centrum)
+                                                  window)))
+                           (if (eq (posn-window posn)
+                                   window)
+                               posn
+                             ;; Return a placeholder outside the window
+                             ;; if the centrum has moved beyond the
+                             ;; confines of the window where the gesture
+                             ;; commenced.
                              (list window nil centrum nil nil
-                                   nil nil nil nil nil)
-                           (let ((posn (posn-at-x-y (car centrum)
-                                                    (cdr centrum)
-                                                    window)))
-                             (if (eq (posn-window posn)
-                                     window)
-                                 posn
-                               ;; Return a placeholder
-                               ;; outside the window if
-                               ;; the centrum has moved
-                               ;; beyond the confines of
-                               ;; the window where the
-                               ;; gesture commenced.
-                               (list window nil centrum nil nil
-                                     nil nil nil nil nil))))
-                         ratio
-                         (- (car centrum)
-                            (car initial-centrum))
-                         (- (cdr centrum)
-                            (cdr initial-centrum))
-                         ratio-diff))))))))
+                                   nil nil nil nil nil))))
+                       ratio
+                       (- (car centrum)
+                          (car initial-centrum))
+                       (- (cdr centrum)
+                          (cdr initial-centrum))
+                       ratio-diff)))))))
 
 (defun touch-screen-window-selection-changed (frame)
   "Notice that FRAME's selected window has changed.
