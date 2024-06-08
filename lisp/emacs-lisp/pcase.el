@@ -857,13 +857,36 @@ A and B can be one of:
   (or (keywordp upat) (integerp upat) (stringp upat)))
 
 (defun pcase--app-subst-match (match sym fun nsym)
+  "Refine MATCH knowing that NSYM = (funcall FUN SYM)."
   (cond
    ((eq (car-safe match) 'match)
-    (if (and (eq sym (cadr match))
-             (eq 'app (car-safe (cddr match)))
-             (equal fun (nth 1 (cddr match))))
-        (pcase--match nsym (nth 2 (cddr match)))
-      match))
+    (cond
+     ((not (eq sym (cadr match))) match)
+     ((and (eq 'app (car-safe (cddr match)))
+           (equal fun (nth 1 (cddr match))))
+      ;; MATCH is (match SYM app FUN UPAT), so we can refine it to refer to
+      ;; NSYM rather than re-compute (funcall FUN SYM).
+      (pcase--match nsym (nth 2 (cddr match))))
+     ((eq 'quote (car-safe (cddr match)))
+      ;; MATCH is (match SYM quote VAL), so we can decompose it into
+      ;; (match NSYM quote (funcall FUN VAL)) plus a check that
+      ;; the part of VAL not included in (funcall FUN VAL) still
+      ;; result is SYM matching (quote VAL).  (bug#71398)
+      (condition-case nil
+          `(and (match ,nsym . ',(funcall fun (nth 3 match)))
+                ;; FIXME: "the part of VAL not included in (funcall FUN VAL)"
+                ;; is hard to define for arbitrary FUN.  We do it only when
+                ;; FUN is `c[ad]r', and for the rest we just preserve
+                ;; the original `match' which is not optimal but safe.
+                ,(if (and (memq fun '(car cdr car-safe cdr-safe))
+                          (consp (nth 3 match)))
+                     (let ((otherfun (if (memq fun '(car car-safe))
+                                         #'cdr-safe #'car-safe)))
+                       `(match ,(cadr match) app ,otherfun
+                               ',(funcall otherfun (nth 3 match))))
+                   match))
+        (error match)))
+     (t match)))
    ((memq (car-safe match) '(or and))
     `(,(car match)
       ,@(mapcar (lambda (match)

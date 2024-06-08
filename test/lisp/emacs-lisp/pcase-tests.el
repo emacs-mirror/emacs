@@ -83,7 +83,14 @@
   (should-not (pcase-tests-grep
                'FOO (macroexpand '(pcase EXP
                                     (`(,_ . ,_) (BAR))
-                                    ('(a b) (FOO)))))))
+                                    ('(a b) (FOO))))))
+  (let ((exp1 (macroexpand '(pcase EXP
+                              (`(`(,(or 'a1 'b1)) (FOO1)))
+                              ('(c) (FOO2))
+                              ('(d) (FOO3))))))
+    (should (= 1 (with-temp-buffer (prin1 exp1 (current-buffer))
+                                   (goto-char (point-min))
+                                   (count-matches "(FOO3)"))))))
 
 (ert-deftest pcase-tests-bug14773 ()
   (let ((f (lambda (x)
