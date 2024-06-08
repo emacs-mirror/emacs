@@ -2194,6 +2194,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       outchannel = p->open_fd[WRITE_TO_SUBPROCESS];
     }
 
+  p->readmax = clip_to_bounds (1, read_process_output_max, INT_MAX);
+
   /* Set up stdout for the child process.  */
   if (ptychannel >= 0 && p->pty_out)
     {
@@ -2210,11 +2212,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #if defined(F_SETPIPE_SZ) && defined(F_GETPIPE_SZ)
       /* If they requested larger reads than the default system pipe
          capacity, try enlarging the capacity to match the request.  */
-      if (read_process_output_max > fcntl (inchannel, F_GETPIPE_SZ))
-	{
-	  int readmax = clip_to_bounds (1, read_process_output_max, INT_MAX);
-	  fcntl (inchannel, F_SETPIPE_SZ, readmax);
-	}
+      if (p->readmax > fcntl (inchannel, F_GETPIPE_SZ))
+	fcntl (inchannel, F_SETPIPE_SZ, p->readmax);
 #endif
     }
 
@@ -6171,7 +6170,7 @@ read_process_output (Lisp_Object proc, int channel)
   eassert (0 <= channel && channel < FD_SETSIZE);
   struct coding_system *coding = proc_decode_coding_system[channel];
   int carryover = p->decoding_carryover;
-  ptrdiff_t readmax = clip_to_bounds (1, read_process_output_max, PTRDIFF_MAX);
+  ptrdiff_t readmax = p->readmax;
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object odeactivate;
   char *chars;
