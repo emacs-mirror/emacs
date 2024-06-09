@@ -6263,7 +6263,7 @@ read_process_output (Lisp_Object proc, int channel)
      friends don't expect current-buffer to be changed from under them.  */
   record_unwind_current_buffer ();
 
-  if (read_process_output_fast && p->filter == Qinternal_default_process_filter)
+  if (read_process_output_fast && EQ (p->filter, Qinternal_default_process_filter))
     read_and_insert_process_output (p, chars, nbytes, coding);
   else
     read_and_dispose_of_process_output (p, chars, nbytes, coding);
@@ -8884,7 +8884,7 @@ On GNU/Linux systems, the value should not exceed
 We skip calling `internal-default-process-filter' and don't allocate
 the Lisp string that would be used as its argument.  Only affects the
 case of asynchronous process with the default filter.  */);
-  read_process_output_fast = Qt;
+  read_process_output_fast = true;
 
   DEFVAR_INT ("process-error-pause-time", process_error_pause_time,
 	      doc: /* The number of seconds to pause after handling process errors.
