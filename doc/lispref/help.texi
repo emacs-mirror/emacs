@@ -368,7 +368,7 @@ and @samp{\=\=} puts @samp{\=} into the output.
 
 @item \+
 This indicates that the symbol directly following should not be marked
-as link in the @file{*Help*} buffer.
+as a link in the @file{*Help*} buffer.
 @end table
 
 @strong{Please note:} Each @samp{\} must be doubled when written in a
