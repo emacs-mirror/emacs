@@ -117,6 +117,18 @@
   "Test running an Eshell script file as a batch script."
   (skip-unless (not (memq system-type '(windows-nt ms-dos))))
   (ert-with-temp-file temp-file
+    :text "echo hi"
+    (with-temp-buffer
+      (with-temp-eshell-settings
+       (call-process (expand-file-name invocation-name invocation-directory)
+                     nil '(t nil) nil
+                     "--batch" "-f" "eshell-batch-file" temp-file))
+      (should (equal (buffer-string) "hi\n")))))
+
+(ert-deftest em-script-test/batch-file/shebang ()
+  "Test running an Eshell script file as a batch script via a shebang."
+  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (ert-with-temp-file temp-file
     :text (format
            "#!/usr/bin/env -S %s --batch -f eshell-batch-file\necho hi"
            (expand-file-name invocation-name invocation-directory))

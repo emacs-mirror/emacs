@@ -137,6 +137,10 @@ Comments begin with `#'."
   "Return non-nil to indicate that the display is line-oriented."
   t)
 
+(cl-defmethod eshell-close-target ((_target eshell-princ-target) _status)
+  "Close the `princ' function TARGET."
+  nil)
+
 ;;;###autoload
 (defun eshell-batch-file ()
   "Execute an Eshell script as a batch script from the command line.
