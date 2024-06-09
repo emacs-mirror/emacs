@@ -115,7 +115,6 @@
 
 (ert-deftest em-script-test/batch-file ()
   "Test running an Eshell script file as a batch script."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
   (ert-with-temp-file temp-file
     :text "echo hi"
     (with-temp-buffer
