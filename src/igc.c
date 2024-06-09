@@ -3000,7 +3000,8 @@ igc_hash (Lisp_Object key)
       break;
     }
 
-  if (is_mps (client))
+  /* Objects in the The dump have igc_headers, too. */
+  if (is_mps (client) || pdumper_object_p (client))
     {
       // The following assertion is very expensive.
       // igc_assert (mps_arena_has_addr (global_igc->arena, client));
