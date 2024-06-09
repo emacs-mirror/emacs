@@ -8738,7 +8738,7 @@ there is one, return it."
 	   (save-window-excursion
              ;; We have no direct control over how
              ;; `with-output-to-temp-buffer' displays the buffer.  Try
-             ;; to gain more space, makign sure that only the Org
+             ;; to gain more space, making sure that only the Org
              ;; buffer and the *Select link* buffer are displayed for
              ;; the duration of selection.
 	     (ignore-errors (delete-other-windows))
@@ -10041,7 +10041,7 @@ where CURRENT-TODO-KEYWORD belongs over on in another sequence."
 			  org-todo-key-alist))))
          field-number ; current todo keyword column in the completion buffer.
          todo-binding-spec todo-keyword todo-char input-char)
-    ;; Display todo selection dialogue, read the user input, and return.
+    ;; Display todo selection dialog, read the user input, and return.
     (save-excursion
       (save-window-excursion
         ;; Select todo keyword list buffer, and display it unless EXPERT-INTERFACE.
@@ -12224,7 +12224,7 @@ Returns the new tags string, or nil to not change the current settings."
     (move-overlay org-tags-overlay ov-start ov-end)
     ;; Highlight tags overlay in Org buffer.
     (org-set-current-tags-overlay current-tags ov-prefix)
-    ;; Display tag selection dialogue, read the user input, and return.
+    ;; Display tag selection dialog, read the user input, and return.
     (save-excursion
       (save-window-excursion
         ;; Select tag list buffer, and display it unless EXPERT-INTERFACE.
@@ -12239,7 +12239,7 @@ Returns the new tags string, or nil to not change the current settings."
         ;; Insert current tags.
 	(org-fast-tag-insert "Inherited" inherited-tags inherited-face "\n")
 	(org-fast-tag-insert "Current" current-tags current-face "\n\n")
-        ;; Display whether next change exits selection dialogue.
+        ;; Display whether next change exits selection dialog.
 	(org-fast-tag-show-exit exit-after-next)
         ;; Show tags, tag groups, and bindings in a grid.
         ;; Each tag in the grid occupies FIELD-WIDTH characters.
@@ -20965,7 +20965,7 @@ SEPARATOR is the string to insert after each link."
   "The method to use for dropped file.")
 (defun org--dnd-xds-function (need-name filename)
   "Handle file with FILENAME dropped via XDS protocol.
-When NEED-NAME is t, FILNAME is the base name of the file to be
+When NEED-NAME is t, FILENAME is the base name of the file to be
 saved.
 When NEED-NAME is nil, the drop is complete."
   (if need-name

@@ -148,7 +148,7 @@ random	   Automatically generate a unique, random label."
 	  (const :tag "Prompt for label" nil)
 	  (const :tag "Create automatic [fn:N]" t)
 	  (const :tag "Offer automatic [fn:N] for editing" confirm)
-	  (const :tag "Create anoymous [fn::]" anonymous)
+	  (const :tag "Create anonymous [fn::]" anonymous)
 	  (const :tag "Create a random label" random))
   :safe #'symbolp)
 

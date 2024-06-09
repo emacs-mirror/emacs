@@ -530,7 +530,7 @@ DIR-property exists (that is different from the unset one)."
   "Turn the autotag on or (if OFF is set) off."
   (when org-attach-auto-tag
     ;; FIXME: There is currently no way to set #+FILETAGS
-    ;; programatically.  Do nothing when before first heading
+    ;; programmatically.  Do nothing when before first heading
     ;; (attaching to file) to avoid blocking error.
     (unless (org-before-first-heading-p)
       (save-excursion

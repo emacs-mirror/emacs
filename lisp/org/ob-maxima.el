@@ -137,7 +137,7 @@ This function is called by `org-babel-execute-src-block'."
 	 (let* ((cmdline (or (cdr (assq :cmdline params)) ""))
                 (batch/load (or (cdr (assq :batch params)) "batchload"))
                 (cmdline (if (or (equal cmdline "") (equal batch/load "batchload"))
-                             ;; legacy behaviour:
+                             ;; legacy behavior:
                              ;; ensure that --very-quiet is on command-line by default
                              (concat cmdline " " org-babel-maxima--command-arguments-default)
                            ;; if using an alternate loader, :cmdline overwrites default

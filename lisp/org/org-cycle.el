@@ -633,7 +633,7 @@ With a numeric prefix, show all headlines up to that level."
     (org-cycle-content 5))
    ;; `nofold' and `showall' are technically not allowed values, but
    ;; they are often intuitively tried by users by analogy with
-   ;; #+STARTUP: nofold or #STARUP: showall.
+   ;; #+STARTUP: nofold or #STARTUP: showall.
    ((memq org-startup-folded '(showeverything nil nofold showall))
     (org-fold-show-all)))
   (unless (eq org-startup-folded 'showeverything)

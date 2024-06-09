@@ -276,7 +276,7 @@ passing universal argument.
 
 When using this feature, IDs should not include =::=, which is used in
 links to indicate the start of the search string.  For backwards
-compability, existing IDs including =::= will still be matched (but
+compatibility, existing IDs including =::= will still be matched (but
 cannot be used together with search option).  A new org-lint checker
 has been added to warn about this.
 
@@ -417,8 +417,8 @@ in the dynamic block.
 A global default formatting function for =colview= dynamic blocks can
 be set via the new option ~org-columns-dblock-formatter~ which
 defaults to the new function ~org-columns-dblock-write-default~, that
-implements the previous (fixed) formatting behaviour. Hence, the
-default behaviour is identical to previous versions.
+implements the previous (fixed) formatting behavior. Hence, the
+default behavior is identical to previous versions.
 
 The global default function can be overridden for any given =colview=
 dynamic block individually by specifying a custom formatter function
@@ -884,7 +884,7 @@ order to remain backward-compatible.
 
 Before, a ClojureScript source block used the same backend as Clojure,
 configured in ~org-babel-clojure-backend~ and relied on an undocumented
-~:target~ paramter.
+~:target~ parameter.
 
 Now, there's ~org-babel-clojurescript-backend~ to determine the
 backend used for evaluation of ClojureScript.
@@ -962,7 +962,7 @@ manner with ~run-python~.
 
 *** New hook option ~org-indent-post-buffer-init-functions~
 
-This allows to run functions after ~org-indent~ intializes a buffer to
+This allows to run functions after ~org-indent~ initializes a buffer to
 enrich its properties.
 *** New option ~org-agenda-start-with-archives-mode~
 
@@ -1025,7 +1025,7 @@ of the dynamic block. This new option can be used to set the global
 default formatting function that will be used for =colview= dynamic
 blocks that do not specify any ~:formatter~ parameter. Its default
 value (the new function ~org-columns-dblock-write-default~) yields the
-previous (fixed) formatting behaviour.
+previous (fixed) formatting behavior.
 
 *** New allowed value of ~org-md-headline-style~ to mix ATX and Setext style headlines
 
@@ -1569,12 +1569,12 @@ is initiated only when user explicitly executes R/Julia-mode commands
 that trigger session interactions (requires ESS 24.01.0 or newer).
 The same session will remain available in the context of Org babel.
 
-*** ~org-store-link~ behaviour storing additional =CUSTOM_ID= links has changed
+*** ~org-store-link~ behavior storing additional =CUSTOM_ID= links has changed
 
 Previously, when storing =id:= link, ~org-store-link~ stored an
 additional "human readable" link using a node's =CUSTOM_ID= property.
 
-This behaviour has been expanded to store an additional =CUSTOM_ID=
+This behavior has been expanded to store an additional =CUSTOM_ID=
 link when storing any type of external link type in an Org file, not
 just =id:= links.
 

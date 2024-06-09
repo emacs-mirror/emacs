@@ -126,7 +126,7 @@ to your init:
 
     (advice-add 'completion-at-point :after #'minibuffer-hide-completions)
 
-** The defult process filter was rewritten in native code.
+** The default process filter was rewritten in native code.
 The round-trip through the Lisp function
 'internal-default-process-filter' is skipped when the process filter is
 the default one. It's reimplemented in native code, reducing GC churn.

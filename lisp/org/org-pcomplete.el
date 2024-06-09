@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; This library implementes completion support in Org mode buffers.
+;; This library implements completion support in Org mode buffers.
 
 ;;; Code:
 

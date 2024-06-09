@@ -4489,7 +4489,7 @@ Assume point is at the beginning of the timestamp."
                  (and (org-string-nw-p warning-string) (concat " " warning-string))
                  (cdr brackets))))
           (concat
-           ;; Opening backet: [ or <
+           ;; Opening bracket: [ or <
            (car brackets)
            ;; Starting date/time: YYYY-MM-DD DAY[ HH:MM]
            (if (eq type 'diary)

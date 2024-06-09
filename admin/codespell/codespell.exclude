@@ -1277,7 +1277,8 @@ Forward propagate immediate involed in assignments." ; FIXME: Typo.  Involved or
 		     (dt (- (if tend (min te tend) te)
                 te (match-string 3))
           (setq s (- (org-time-string-to-seconds te)
-    ("te"  :babel-ini-only "telugu" :polyglossia "telugu" :lang-name "Telugu")
+      ("te" :babel-ini-only "telugu" :polyglossia "telugu" :lang-name "Telugu" :script "telugu" :script-tag "telu")
+      ("bn"  :babel-ini-only "bengali" :polyglossia "bengali" :lang-name "Bengali" :script "bengali" :script-tag: "beng")
 2016-09-10  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
 	Reported by Toke Høiland-Jørgensen <toke@toke.dk>.
 2012-07-17  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
@@ -1598,3 +1599,15 @@ Optional DETECTIN is an autoload cons from `ede-detect-directory-for-project'
          (erc--msg-prop-overrides `(,@(and skipp `((erc--skip stamp)))
     ("\\.\\(flc\\|fli\\|rle\\|iff\\|pfx\\|avi\\|sme\\|rpza\\|dl\\|qt\\|rsrc\\|mov\\)$" "xanim")
     ("\\.sme$" "video/sme")
+     ("pl" :default "Indeks tabel")
+    ("nn" "Fil"      "N" "Tidspunkt" "Overskrift" "Tid" "ALLE" "Total tid" "Filtid" "Tidsoversyn")
+            (setq te (org-insert-timestamp (or at-time now) 'with-hm 'inactive))
+		     (te (float-time
+     ("notin" "\\notin" t "&notin;" "[not an element of]" "[not an element of]" "∉")
+     ("nn" :default "Held fram frå førre side")
+     ("nn" :default "Held fram på neste side")
+     ("pl" :default "Spis treści" :html "Spis tre&#x015b;ci")
+    ("sme" . "UTF-8") ; MS-Windows Northern Sami (Norway)
+  '("\\(?:Entering\\|Leavin\\(g\\)\\) directory [`']\\(.+\\)'$" (2 . 1))
+    "dropping" "fillin" "from" "granularity" "hppp" "inwindow"
+    (".G1" . ".G2")			; grap

@@ -230,7 +230,7 @@ convert them into an Emacs-lisp table.  Otherwise return the
 results as a string."
   (let ((res (if (and (> (length results) 0)
                       (string-equal "{" (substring results 0 1)))
-                 results ;don't covert dicts to elisp
+                 results ;don't convert dicts to elisp
                (org-babel-script-escape results))))
     (if (listp res)
         (mapcar (lambda (el) (if (eq el 'None)

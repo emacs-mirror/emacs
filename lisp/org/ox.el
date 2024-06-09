@@ -6254,7 +6254,7 @@ them."
      ("no" :default "Illustrasjon")
      ("nb" :default "Illustrasjon")
      ("nn" :default "Illustrasjon")
-     ("pl" :default "Obrazek") ; alternativly "Rysunek"
+     ("pl" :default "Obrazek") ; alternatively "Rysunek"
      ("pt_BR" :default "Figura")
      ("ro" :default "Imaginea")
      ("ru" :html "&#1056;&#1080;&#1089;&#1091;&#1085;&#1086;&#1082;" :utf-8 "Рисунок")
@@ -6277,7 +6277,7 @@ them."
      ("no" :default "Illustrasjon %d")
      ("nb" :default "Illustrasjon %d")
      ("nn" :default "Illustrasjon %d")
-     ("pl" :default "Obrazek %d") ; alternativly "Rysunek %d"
+     ("pl" :default "Obrazek %d") ; alternatively "Rysunek %d"
      ("pt_BR" :default "Figura %d:")
      ("ro" :default "Imaginea %d:")
      ("ru" :html "&#1056;&#1080;&#1089;. %d.:" :utf-8 "Рис. %d.:")
@@ -6438,7 +6438,7 @@ them."
      ("nl" :default "Zie figuur %s"
       :html "Zie figuur&nbsp;%s" :latex "Zie figuur~%s")
      ("nn" :default "Sjå figur %s")
-     ("pl" :default "Patrz obrazek %s") ; alternativly "Patrz rysunek %s"
+     ("pl" :default "Patrz obrazek %s") ; alternatively "Patrz rysunek %s"
      ("pt_BR" :default "Veja a figura %s")
      ("ro" :default "Vezi figura %s")
      ("sl" :default "Glej sliko %s")

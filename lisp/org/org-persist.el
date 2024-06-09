@@ -452,7 +452,7 @@ FORMAT and ARGS are passed to `message'."
   "Write elisp DATA to FILE."
   ;; Fsync slightly reduces the chance of an incomplete filesystem
   ;; write, however on modern hardware its effectiveness is
-  ;; questionable and it is insufficient to garantee complete writes.
+  ;; questionable and it is insufficient to guarantee complete writes.
   ;; Coupled with the significant performance hit if writing many
   ;; small files, it simply does not make sense to use fsync here,
   ;; particularly as cache corruption is only a minor inconvenience.

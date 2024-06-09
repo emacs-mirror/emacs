@@ -369,7 +369,7 @@ another window."
 		 (const wl-other-frame)))))
 
 (defcustom org-link-search-must-match-exact-headline 'query-to-create
-  "Control fuzzy link behaviour when specific matches not found.
+  "Control fuzzy link behavior when specific matches not found.
 
 When nil, if a fuzzy link does not match a more specific
 target (such as a heading, named block, target, or code ref),
@@ -378,7 +378,7 @@ attempt a regular text search.  When set to the special value
 link instead.  Otherwise, signal an error rather than attempting
 a regular text search.
 
-This option only affects behaviour in Org buffers.  Spaces and
+This option only affects behavior in Org buffers.  Spaces and
 statistics cookies are ignored during heading searches."
   :group 'org-link-follow
   :version "24.1"
