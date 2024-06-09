@@ -1422,6 +1422,11 @@ Controls for which packages Emacs runs extra build commands when
 installing directly from the package VCS repository.
 
 ---
+*** New command 'package-vc-log-incoming'.
+This commands displays incoming changes for a VC package without
+modifying the current checkout.
+
+---
 *** New command to start an inferior Emacs loading only specific packages.
 The new command 'package-isolate' will start a new Emacs process, as
 a sub-process of Emacs where you invoke the command, in a way that

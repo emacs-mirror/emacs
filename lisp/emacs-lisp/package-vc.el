@@ -1025,5 +1025,12 @@ See also `vc-prepare-patch'."
     (vc-prepare-patch (package-maintainers pkg-desc t)
                       subject revisions)))
 
+(defun package-vc-log-incoming (pkg-desc)
+  "Call `vc-log-incoming' for the package PKG-DESC."
+  (interactive
+   (list (package-vc--read-package-desc "Incoming log for package: " t)))
+  (let ((default-directory (package-desc-dir pkg-desc)))
+    (call-interactively #'vc-log-incoming)))
+
 (provide 'package-vc)
 ;;; package-vc.el ends here
