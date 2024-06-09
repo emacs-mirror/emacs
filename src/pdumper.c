@@ -5993,6 +5993,10 @@ pdumper_load (const char *dump_filename, char *argv0)
   dump_do_all_dump_reloc_for_phase (header, dump_base, LATE_RELOCS);
   dump_do_all_dump_reloc_for_phase (header, dump_base, VERY_LATE_RELOCS);
 
+# ifdef HAVE_MPS
+  igc_on_pdump_loaded (hot_start, hot_end);
+# endif
+
   /* Run the functions Emacs registered for doing post-dump-load
      initialization.  */
   for (int i = 0; i < nr_dump_late_hooks; ++i)
@@ -6004,10 +6008,6 @@ pdumper_load (const char *dump_filename, char *argv0)
     timespec_sub (current_timespec (), start_time);
   dump_private.load_time = timespectod (load_timespec);
   dump_private.dump_filename = dump_filename_copy;
-
-# ifdef HAVE_MPS
-  igc_on_pdump_loaded (hot_start, hot_end);
-# endif
 
  out:
   for (int i = 0; i < ARRAYELTS (sections); ++i)
