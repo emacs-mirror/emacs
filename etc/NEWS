@@ -189,6 +189,9 @@ This user option controls outline visibility in the output buffer of
 *** 'C-h m' ('describe-mode') uses outlining by default.
 Set 'describe-mode-outline' to nil to get back the old behavior.
 
+** Emacs now comes with Org v9.7.
+See the file "etc/ORG-NEWS" for user-visible changes in Org.
+
 ** Outline mode
 
 *** New commands to show/hide outlines by regexp.
