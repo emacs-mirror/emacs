@@ -545,22 +545,17 @@ leaves point where it was."
   ;; this `eshell-operator' keyword gets parsed out by
   ;; `eshell-split-commands'.  Right now the only possibility for
   ;; error is an incorrect output redirection specifier.
-  (when (looking-at "[&|;\n]\\s-*")
-    (let ((end (match-end 0)))
+  (when (looking-at (rx (group (or "&" "|" ";" "\n" "&&" "||"))
+                        (* (syntax whitespace))))
     (if eshell-current-argument
 	(eshell-finish-arg)
-      (eshell-finish-arg
-       (prog1
-	   (list 'eshell-operator
-		 (cond
-		  ((eq (char-after end) ?\&)
-		   (setq end (1+ end)) "&&")
-		  ((eq (char-after end) ?\|)
-		   (setq end (1+ end)) "||")
-		  ((eq (char-after) ?\n) ";")
-		  (t
-		   (char-to-string (char-after)))))
-	 (goto-char end)))))))
+      (let ((operator (match-string 1)))
+        (when (string= operator "\n")
+          (setq operator ";"))
+        (eshell-finish-arg
+         (prog1
+	     `(eshell-operator ,operator)
+	   (goto-char (match-end 0))))))))
 
 (defun eshell-prepare-splice (args)
   "Prepare a list of ARGS for splicing, if any arg requested a splice.

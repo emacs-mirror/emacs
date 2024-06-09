@@ -410,24 +410,34 @@ command hooks should be run before and after the command."
            (goto-char (point-max))
            (eshell-parse-arguments (point-min) (point-max))))
        args))
+     ;; Split up our commands in reverse order.
      (`(,sub-chains . ,sep-terms)
-      (eshell-split-commands terms "[&;]" nil t))
+      (eshell-split-commands terms "[&;]" t t))
+     ;; The last command (first in our reversed list) is implicitly
+     ;; terminated by ";".
+     (sep-terms (cons ";" sep-terms))
+     (steal-handles t)
      (commands
-      (mapcar
-       (lambda (cmd)
-         (let ((sep (pop sep-terms)))
-           (setq cmd (eshell-parse-pipeline cmd))
-           (unless eshell-in-pipeline-p
-             (setq cmd `(eshell-trap-errors ,cmd)))
-           ;; Copy I/O handles so each full statement can manipulate
-           ;; them if they like.  Steal the handles for the last
-           ;; command in the list; we won't use the originals again
-           ;; anyway.
-           (setq cmd `(eshell-with-copied-handles ,cmd ,(not sep)))
-           (when (equal sep "&")
-             (setq cmd `(eshell-do-subjob ,cmd)))
-           cmd))
-       sub-chains)))
+      (nreverse
+       (mapcan
+        (lambda (cmd)
+          (let ((sep (pop sep-terms)))
+            (if (null cmd)
+                (when (equal sep "&")
+                  (error "Empty command before `&'"))
+              (setq cmd (eshell-parse-pipeline cmd))
+              (unless eshell-in-pipeline-p
+                (setq cmd `(eshell-trap-errors ,cmd)))
+              ;; Copy I/O handles so each full statement can manipulate
+              ;; them if they like.  Steal the handles for the last
+              ;; command (first in our reversed list); we won't use the
+              ;; originals again anyway.
+              (setq cmd `(eshell-with-copied-handles ,cmd ,steal-handles)
+                    steal-handles nil)
+              (when (equal sep "&")
+                (setq cmd `(eshell-do-subjob ,cmd)))
+              (list cmd))))
+        sub-chains))))
     (if toplevel
 	`(eshell-commands (progn
                             (run-hooks 'eshell-pre-command-hook)
@@ -703,7 +713,7 @@ as a pair of lists."
             (push (nreverse sub-terms) sub-chains)
             (setq sub-terms nil))
         (push term sub-terms)))
-    (when sub-terms
+    (when terms
       (push (nreverse sub-terms) sub-chains))
     (unless reversed
       (setq sub-chains (nreverse sub-chains)
