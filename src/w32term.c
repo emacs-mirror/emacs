@@ -6114,11 +6114,13 @@ w32_read_socket (struct terminal *terminal,
 
 	  if (f)
 	    {
-	      TOUCHINPUT points[MAX_TOUCH_POINTS];
-	      int i, x;
+	      TOUCHINPUT *points;
+	      int i, x, px, py;
+	      POINT pt;
 
+	      points = alloca (sizeof *points * LOWORD (msg.msg.wParam));
 	      if ((*pfnGetTouchInputInfo) ((HANDLE) msg.msg.lParam,
-					   MAX_TOUCH_POINTS,
+					   LOWORD (msg.msg.wParam),
 					   points, sizeof (TOUCHINPUT)))
 		{
 		  bool movement_p = false;
@@ -6128,7 +6130,7 @@ w32_read_socket (struct terminal *terminal,
 		     structure, and for each, enter or remove
 		     information into and from F->touch_ids, and
 		     generate events correspondingly.  */
-		  for (i = 0; i < MAX_TOUCH_POINTS; ++i)
+		  for (i = 0; i < LOWORD (msg.msg.wParam); ++i)
 		    {
 		      if (!points[i].dwID)
 			continue;
@@ -6137,13 +6139,33 @@ w32_read_socket (struct terminal *terminal,
 			 empty or matches dwID.  */
 		      for (x = 0; x < MAX_TOUCH_POINTS; x++)
 			{
-			  if (FRAME_OUTPUT_DATA (f)->touch_ids[x] == -1
-			      || (FRAME_OUTPUT_DATA (f)->touch_ids[x]
-				  == points[i].dwID))
+			  if (FRAME_OUTPUT_DATA (f)->touch_ids[x]
+			      == points[i].dwID)
 			    break;
 			}
+
+		      if (x < MAX_TOUCH_POINTS)
+			goto touch_located;
+
+		      for (x = 0; x < MAX_TOUCH_POINTS; x++)
+			{
+			  if (FRAME_OUTPUT_DATA (f)->touch_ids[x] == -1)
+			    break;
+			}
+
 		      if (x == MAX_TOUCH_POINTS)
 			continue;
+
+		    touch_located:
+		      /* X and Y are fractional values.  */
+		      pt.x = points[i].x / 100;
+		      pt.y = points[i].y / 100;
+
+		      /* Convert them from screen values to client
+			 values.  */
+		      ScreenToClient (msg.msg.hwnd, &pt);
+		      px = pt.x;
+		      py = pt.y;
 
 		      if (points[i].dwFlags & TOUCHEVENTF_UP)
 			{
@@ -6157,22 +6179,25 @@ w32_read_socket (struct terminal *terminal,
 			  inev.kind = TOUCHSCREEN_END_EVENT;
 			  inev.timestamp = msg.msg.time;
 			  XSETFRAME (inev.frame_or_window, f);
-			  XSETINT (inev.x, points[i].x);
-			  XSETINT (inev.y, points[i].y);
+			  XSETINT (inev.x, px);
+			  XSETINT (inev.y, py);
 			  XSETINT (inev.arg, x + base);
 			  kbd_buffer_store_event (&inev);
 			  EVENT_INIT (inev);
 			}
 		      else if (points[i].dwFlags & TOUCHEVENTF_DOWN)
 			{
-			  bool recorded_p
+			  bool recorded_p;
+
+			touchscreen_down:
+			  recorded_p
 			    = FRAME_OUTPUT_DATA (f)->touch_ids[x] != -1;
 
 			  /* Report and record (if not already recorded)
 			     the addition.  */
 			  FRAME_OUTPUT_DATA (f)->touch_ids[x] = points[i].dwID;
-			  FRAME_OUTPUT_DATA (f)->touch_x[x] = points[i].x;
-			  FRAME_OUTPUT_DATA (f)->touch_y[x] = points[i].y;
+			  FRAME_OUTPUT_DATA (f)->touch_x[x] = px;
+			  FRAME_OUTPUT_DATA (f)->touch_y[x] = py;
 
 			  if (recorded_p)
 			    movement_p = true;
@@ -6181,8 +6206,8 @@ w32_read_socket (struct terminal *terminal,
 			      inev.kind = TOUCHSCREEN_BEGIN_EVENT;
 			      inev.timestamp = msg.msg.time;
 			      XSETFRAME (inev.frame_or_window, f);
-			      XSETINT (inev.x, points[i].x);
-			      XSETINT (inev.y, points[i].y);
+			      XSETINT (inev.x, px);
+			      XSETINT (inev.y, py);
 			      XSETINT (inev.arg, x + base);
 			      kbd_buffer_store_event (&inev);
 			      EVENT_INIT (inev);
@@ -6190,10 +6215,20 @@ w32_read_socket (struct terminal *terminal,
 			}
 		      else
 			{
-			  FRAME_OUTPUT_DATA (f)->touch_ids[x] = points[i].dwID;
-			  FRAME_OUTPUT_DATA (f)->touch_x[x] = points[i].x;
-			  FRAME_OUTPUT_DATA (f)->touch_y[x] = points[i].y;
-			  movement_p = true;
+			  bool recorded_p
+			    = FRAME_OUTPUT_DATA (f)->touch_ids[x] != -1;
+			  if (!recorded_p)
+			    goto touchscreen_down;
+
+			  if (FRAME_OUTPUT_DATA (f)->touch_x[x] != px
+			      || FRAME_OUTPUT_DATA (f)->touch_y[x] != py)
+			    {
+			      movement_p = true;
+			      FRAME_OUTPUT_DATA (f)->touch_ids[x]
+				= points[i].dwID;
+			      FRAME_OUTPUT_DATA (f)->touch_x[x] = px;
+			      FRAME_OUTPUT_DATA (f)->touch_y[x] = py;
+			    }
 			}
 		    }
 
@@ -6209,13 +6244,22 @@ w32_read_socket (struct terminal *terminal,
 		      arg = Qnil;
 
 		      for (i = 0; i < MAX_TOUCH_POINTS; ++i)
-			arg
-			  = Fcons (list3i (FRAME_OUTPUT_DATA (f)->touch_x[i],
-					   FRAME_OUTPUT_DATA (f)->touch_y[i],
-					   i + base),
-				   arg);
+			{
+			  if (FRAME_OUTPUT_DATA (f)->touch_ids[i] == -1)
+			    continue;
+
+			  arg
+			    = Fcons (list3i (FRAME_OUTPUT_DATA (f)->touch_x[i],
+					     FRAME_OUTPUT_DATA (f)->touch_y[i],
+					     i + base),
+				     arg);
+			}
 
 		      inev.arg = arg;
+
+		      /* Don't generate events if they would be empty.  */
+		      if (NILP (arg))
+			EVENT_INIT (inev);
 		    }
 		}
 	    }

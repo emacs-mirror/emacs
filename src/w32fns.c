@@ -218,6 +218,19 @@ typedef BOOL (WINAPI * WTSUnRegisterSessionNotification_Proc) (HWND hwnd);
 
 typedef BOOL (WINAPI * RegisterTouchWindow_proc) (HWND, ULONG);
 
+/* Types for gesture recognition are documented by Microsoft but appear
+   not to be defined anywhere in MinGW's includes.  */
+
+typedef struct Emacs_GESTURECONFIG
+{
+  DWORD dwID;
+  DWORD dwWant;
+  DWORD dwBlock;
+} Emacs_GESTURECONFIG, *Emacs_PGESTURECONFIG;
+
+typedef BOOL (WINAPI * SetGestureConfig_proc) (HWND, DWORD, UINT,
+					       Emacs_PGESTURECONFIG, UINT);
+
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ImmGetCompositionString_Proc get_composition_string_fn = NULL;
 ImmGetContext_Proc get_ime_context_fn = NULL;
@@ -237,6 +250,7 @@ DwmSetWindowAttribute_Proc DwmSetWindowAttribute_fn = NULL;
 WTSUnRegisterSessionNotification_Proc WTSUnRegisterSessionNotification_fn = NULL;
 WTSRegisterSessionNotification_Proc WTSRegisterSessionNotification_fn = NULL;
 RegisterTouchWindow_proc RegisterTouchWindow_fn = NULL;
+SetGestureConfig_proc SetGestureConfig_fn = NULL;
 
 extern AppendMenuW_Proc unicode_append_menu;
 
@@ -2553,7 +2567,20 @@ w32_createwindow (struct frame *f, int *coords)
 
       /* Enable touch-screen input.  */
       if (RegisterTouchWindow_fn)
-	(*RegisterTouchWindow_fn) (hwnd, 0);
+	{
+	  Emacs_GESTURECONFIG cfg;
+
+	  (*RegisterTouchWindow_fn) (hwnd, 0);
+
+	  /* Disable Window's emulation of mouse events.  */
+	  cfg.dwID = 0;
+	  cfg.dwWant = 0;
+#ifndef GC_ALLGESTURES
+#define GC_ALLGESTURES 0x00000001
+#endif /* GC_ALLGESTURES */
+	  cfg.dwBlock = GC_ALLGESTURES;
+	  (*SetGestureConfig_fn) (hwnd, 0, 1, &cfg, sizeof cfg);
+	}
 
       /* Reset F's touch point array.  */
       for (i = 0; i < ARRAYELTS (f->output_data.w32->touch_ids); ++i)
@@ -4803,6 +4830,14 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	 are used together, but only if user has two button mouse. */
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
+
+      /* Ignore mouse events produced by a touch screen.  */
+#ifndef MOUSEEVENTF_FROMTOUCH
+#define MOUSEEVENTF_FROMTOUCH 0xFF515700
+#endif /* MOUSEEVENTF_FROMTOUCH */
+      if (GetMessageExtraInfo () & MOUSEEVENTF_FROMTOUCH)
+	goto dflt;
+
       if (w32_num_mouse_buttons > 2)
 	goto handle_plain_button;
 
@@ -4868,6 +4903,13 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
+      /* Ignore mouse events produced by a touch screen.  */
+#ifndef MOUSEEVENTF_FROMTOUCH
+#define MOUSEEVENTF_FROMTOUCH 0xFF515700
+#endif /* MOUSEEVENTF_FROMTOUCH */
+      if (GetMessageExtraInfo () & MOUSEEVENTF_FROMTOUCH)
+	goto dflt;
+
       if (w32_num_mouse_buttons > 2)
 	goto handle_plain_button;
 
@@ -11441,6 +11483,9 @@ globals_of_w32fns (void)
   RegisterTouchWindow_fn
     = (RegisterTouchWindow_proc) get_proc_addr (user32_lib,
 						"RegisterTouchWindow");
+  SetGestureConfig_fn
+    = (SetGestureConfig_proc) get_proc_addr (user32_lib,
+					     "SetGestureConfig");
 
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
