@@ -4571,69 +4571,11 @@ call_mirror (igc_mirror_fn fn, struct igc_mirror *m, void *addr)
   fn (m, &p);
 }
 
-static Lisp_Object
-copy_of (struct igc_mirror *m, Lisp_Object obj)
-{
-  igc_assert (SYMBOLP (obj));
-  struct Lisp_Symbol *sym = XSYMBOL (obj);
-  igc_assert (pdumper_object_p (sym));
-  void *org_base = client_to_base (sym);
-  void *copy_base = lookup_base (m, org_base);
-  igc_assert (copy_base && is_mps (copy_base));
-  sym = base_to_client (copy_base);
-  return make_lisp_symbol (sym);
-}
-
-static void
-reset_coding_after_mirror (struct igc_mirror *m,
-			   struct Lisp_Hash_Table *old_ht)
-{
-  struct Lisp_Hash_Table *new_ht = XHASH_TABLE (Vcoding_system_hash_table);
-  int n;
-  struct coding_system *cats = coding_system_categories (&n);
-  for (struct coding_system *cs = cats; cs < cats + n; ++cs)
-    if (cs->id >= 0)
-      {
-	Lisp_Object orig_name = HASH_KEY (old_ht, cs->id);
-	hash_hash_t orig_hash = HASH_HASH (old_ht, cs->id);
-	Lisp_Object copy_name = copy_of (m, orig_name);
-	int new_id = hash_lookup (new_ht, copy_name);
-	if (new_id < 0)
-	  {
-	    DOHASH_SAFE (new_ht, i)
-	    {
-	      Lisp_Object k = HASH_KEY (new_ht, i);
-	      Lisp_Object v = HASH_VALUE (new_ht, i);
-	      igc_assert (SYMBOLP (k));
-	      if (EQ (k, copy_name))
-		{
-		  hash_hash_t h1 = HASH_HASH (new_ht, i);
-		  hash_hash_t h2 = hash_from_key (new_ht, k);
-		  igc_assert (h1 == orig_hash);
-		  igc_assert (h1 == h2);
-		}
-	    }
-	    igc_assert (new_id >= 0);
-	  }
-	cs->id = new_id;
-      }
-}
-
 static void
 redirect_roots (struct igc_mirror *m)
 {
-  /* coding_system::id is actually an index into a hash table's key/value
-     vectors. Once the pdump is loaded, these ids are recomputed in
-     reset_coding_after_pdumper_load as needed. This means that we have to
-     repeat this step when we change the hash table. */
-  struct Lisp_Hash_Table *old = XHASH_TABLE (Vcoding_system_hash_table);
-  igc_assert (pdumper_object_p (old));
-
   for (int i = 0; i < staticidx; ++i)
     IGC_MIRROR_OBJ (m, igc_const_cast (Lisp_Object *, staticvec[i]));
-
-  igc_assert (is_mps (XHASH_TABLE (Vcoding_system_hash_table)));
-  reset_coding_after_mirror (m, old);
 
   for (int i = 0; i < ARRAYELTS (lispsym); ++i)
     call_mirror (mirror_symbol, m, lispsym + i);
