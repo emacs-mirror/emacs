@@ -196,22 +196,18 @@ pipeline."
 ;; against; that way, users don't need to have GNU coreutils (or
 ;; similar) installed.
 
+;; This is needed because system shell quoting semantics is not relevant
+;; when Eshell is the shell.
+(defun esh-proc-test-quote-argument (argument)
+  "Quote ARGUMENT using Posix semantics."
+  (shell-quote-argument argument t))
+
 (defsubst esh-proc-test/emacs-command (command)
   "Evaluate COMMAND in a new Emacs batch instance."
-  (if (eq system-type 'windows-nt)
-      ;; The MS-Windows implementation of shell-quote-argument is too
-      ;; much for arguments that already have quotes, so we quote "by
-      ;; hand" here.
-      (concat (shell-quote-argument
-               (expand-file-name invocation-name invocation-directory))
-              " -Q --batch --eval "
-              "\""
-              (string-replace "\"" "\\\"" (prin1-to-string command))
-              "\"")
-    (mapconcat #'shell-quote-argument
-               `(,(expand-file-name invocation-name invocation-directory)
-                 "-Q" "--batch" "--eval" ,(prin1-to-string command))
-               " ")))
+  (mapconcat #'esh-proc-test-quote-argument
+             `(,(expand-file-name invocation-name invocation-directory)
+               "-Q" "--batch" "--eval" ,(prin1-to-string command))
+             " "))
 
 (defvar esh-proc-test/emacs-echo
   (esh-proc-test/emacs-command '(princ "hello\n"))
