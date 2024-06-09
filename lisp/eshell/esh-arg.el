@@ -351,7 +351,8 @@ argument list in place of the value of the current argument."
 
 (defun eshell-quote-argument (string)
   "Return STRING with magic characters quoted.
-Magic characters are those in `eshell-special-chars-outside-quoting'."
+Magic characters are those in `eshell-special-chars-outside-quoting'.
+For consistent results, only call this function within an Eshell buffer."
   (let ((index 0))
     (mapconcat (lambda (c)
 		 (prog1
@@ -448,12 +449,15 @@ Point is left at the end of the arguments."
 
 (defun eshell-quote-backslash (string &optional index)
   "Intelligently backslash the character occurring in STRING at INDEX.
-If the character is itself a backslash, it needs no escaping."
+If the character is itself a backslash, it needs no escaping.  If the
+character is a newline, quote it using single-quotes."
   (let ((char (aref string index)))
-    (if (eq char ?\\)
-	(char-to-string char)
-      (if (memq char eshell-special-chars-outside-quoting)
-	  (string ?\\ char)))))
+    (cond ((eq char ?\\)
+	   (char-to-string char))
+          ((eq char ?\n)
+           "'\n'")
+          ((memq char eshell-special-chars-outside-quoting)
+	   (string ?\\ char)))))
 
 (defun eshell-parse-backslash ()
   "Parse a single backslash (\\) character and the character after.
