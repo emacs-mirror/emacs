@@ -120,13 +120,44 @@ BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 /* PlgBlt is available since Windows 2000.  */
 BOOL (WINAPI *pfnPlgBlt) (HDC, const POINT *, HDC, int, int, int, int, HBITMAP, int, int);
 
+/* Define required types and constants on systems with older headers
+   lest they be absent.  */
+
+#if _WIN32_WINNT < 0x0601
+#define TOUCHEVENTF_DOWN			       0x0001
+#define TOUCHEVENTF_UP				       0x0004
+
+/* These are currently unused; prevent compiler warnings.  */
+#if 0
+#define TOUCHEVENTF_MOVE			       0x0002
+#define TOUCHEVENTMASKF_CONTACTAREA		       0x0004
+#define TOUCHEVENTMASKF_EXTRAINFO		       0x0002
+#define TOUCHEVENTMASKF_TIMEFROMSYSTEM		       0x0001
+#endif	/* 0 */
+
+#define WM_TOUCHMOVE					  576
+
+typedef struct _TOUCHINPUT
+{
+  LONG x;
+  LONG y;
+  HANDLE hSource;
+  DWORD dwID;
+  DWORD dwFlags;
+  DWORD dwMask;
+  DWORD dwTime;
+  ULONG_PTR dwExtraInfo;
+  DWORD cxContact;
+  DWORD cyContact;
+} TOUCHINPUT, *PTOUCHINPUT;
+#endif /* _WIN32_WINNT < 0x0601 */
+
 /* Functions that extract data from touch-screen events.  */
 typedef BOOL (WINAPI * CloseTouchInputHandle_proc) (HANDLE);
 typedef BOOL (WINAPI * GetTouchInputInfo_proc) (HANDLE, UINT, PTOUCHINPUT, int);
 
 CloseTouchInputHandle_proc pfnCloseTouchInputHandle;
 GetTouchInputInfo_proc pfnGetTouchInputInfo;
-
 
 #ifndef LWA_ALPHA
 #define LWA_ALPHA 0x02
@@ -145,35 +176,6 @@ GetTouchInputInfo_proc pfnGetTouchInputInfo;
 #ifndef SM_CYVIRTUALSCREEN
 #define SM_CYVIRTUALSCREEN 79
 #endif
-
-/* Define required types and constants on systems with older headers
-   lest they be absent.  */
-
-#if _WIN32_WINNT < 0x0601
-#define TOUCHEVENTF_DOWN			       0x0001
-#define TOUCHEVENTF_MOVE			       0x0002
-#define TOUCHEVENTF_UP				       0x0004
-
-#define TOUCHEVENTMASKF_CONTACTAREA		       0x0004
-#define TOUCHEVENTMASKF_EXTRAINFO		       0x0002
-#define TOUCHEVENTMASKF_TIMEFROMSYSTEM		       0x0001
-
-#define WM_TOUCHMOVE					  576
-
-typedef struct _TOUCHINPUT
-{
-  LONG x;
-  LONG y;
-  HANDLE hSource;
-  DWORD dwID;
-  DWORD dwFlags;
-  DWORD dwMask;
-  DWORD dwTime;
-  ULONG_PTR dwExtraInfo;
-  DWORD cxContact;
-  DWORD cyContact;
-} TOUCHINPUT, *PTOUCHINPUT;
-#endif /* _WIN32_WINNT < 0x0601 */
 
 /* The handle of the frame that currently owns the system caret.  */
 HWND w32_system_caret_hwnd;
@@ -6264,7 +6266,7 @@ w32_read_socket (struct terminal *terminal,
 		}
 	    }
 
-	  (*CloseTouchInputHandle) ((HANDLE) msg.msg.lParam);
+	  (*pfnCloseTouchInputHandle) ((HANDLE) msg.msg.lParam);
 	  break;
 
 	default:
