@@ -781,9 +781,7 @@ extern struct coding_system safe_terminal_coding;
 
 extern char emacs_mule_bytes[256];
 
-#ifdef HAVE_MPS
-void igc_reset_coding_after_mirror (struct Lisp_Hash_Table *old_ht);
-#endif
+struct coding_system *coding_system_categories (int *n);
 
 INLINE_HEADER_END
 
