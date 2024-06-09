@@ -1160,8 +1160,9 @@ fix_face_cache (mps_ss_t ss, struct face_cache *c)
 }
 
 static size_t
-client_nelems_from_header (struct igc_header *h, size_t elem_size)
+object_nelems (void *client, size_t elem_size)
 {
+  struct igc_header *h = client_to_base (client);
   size_t client_nwords = h->nwords - to_words (sizeof *h);
   size_t client_nbytes = to_bytes (client_nwords);
   return client_nbytes / elem_size;
@@ -1172,9 +1173,8 @@ fix_ptr_vec (mps_ss_t ss, void *client)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    struct igc_header *h = client_to_base (client);
     void **v = client;
-    size_t n = client_nelems_from_header (h, sizeof *v);
+    size_t n = object_nelems (client, sizeof *v);
     for (size_t i = 0; i < n; ++i)
       IGC_FIX12_RAW (ss, &v[i]);
   }
@@ -1187,8 +1187,7 @@ fix_obj_vec (mps_ss_t ss, Lisp_Object *v)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    struct igc_header *h = client_to_base (v);
-    size_t n = client_nelems_from_header (h, sizeof *v);
+    size_t n = object_nelems (v, sizeof *v);
     for (size_t i = 0; i < n; ++i)
       IGC_FIX12_OBJ (ss, &v[i]);
   }
@@ -3907,8 +3906,6 @@ mirror_lisp_obj (struct igc_mirror *m, Lisp_Object *pobj)
 	  mps_addr_t mirror = lookup_base (m, base);
 	  igc_assert (mirror != NULL);
 	  client = base_to_client (mirror);
-	  if (client == (mps_addr_t) 0x0000000105e597c8)
-	    igc_break ();
 	  *p = (mps_word_t) client | tag;
 	}
     }
@@ -4083,8 +4080,7 @@ static void
 mirror_obj_vec (struct igc_mirror *m, struct igc_pair *p)
 {
   Lisp_Object *cpy = p->copy;
-  struct igc_header *h = client_to_base (cpy);
-  size_t n = client_nelems_from_header (h, sizeof *cpy);
+  size_t n = object_nelems (cpy, sizeof *cpy);
   for (size_t i = 0; i < n; ++i)
     IGC_MIRROR_OBJ (m, &cpy[i]);
 }
@@ -4230,8 +4226,10 @@ mirror_window (struct igc_mirror *m, struct igc_pair *p)
 static void
 mirror_hash_table (struct igc_mirror *m, struct igc_pair *p)
 {
+  /* Note that objects are mirrored in the order we find them in the
+     dump. Means that key and value haven't been seen yet when we come
+     here.  */
   struct Lisp_Hash_Table *cpy = p->copy;
-  /* Thawing a hash table leaves key and value pointing to the dump. */
   IGC_MIRROR_RAW (m, &cpy->key);
   IGC_MIRROR_RAW (m, &cpy->value);
   IGC_MIRROR_RAW (m, &cpy->hash);
@@ -4572,6 +4570,54 @@ call_mirror (igc_mirror_fn fn, struct igc_mirror *m, void *addr)
   fn (m, &p);
 }
 
+static Lisp_Object
+copy_of (struct igc_mirror *m, Lisp_Object obj)
+{
+  igc_assert (SYMBOLP (obj));
+  struct Lisp_Symbol *sym = XSYMBOL (obj);
+  igc_assert (pdumper_object_p (sym));
+  void *org_base = client_to_base (sym);
+  void *copy_base = lookup_base (m, org_base);
+  igc_assert (copy_base && is_mps (copy_base));
+  sym = base_to_client (copy_base);
+  return make_lisp_symbol (sym);
+}
+
+static void
+reset_coding_after_mirror (struct igc_mirror *m,
+			   struct Lisp_Hash_Table *old_ht)
+{
+  struct Lisp_Hash_Table *new_ht = XHASH_TABLE (Vcoding_system_hash_table);
+  int n;
+  struct coding_system *cats = coding_system_categories (&n);
+  for (struct coding_system *cs = cats; cs < cats + n; ++cs)
+    if (cs->id >= 0)
+      {
+	Lisp_Object orig_name = HASH_KEY (old_ht, cs->id);
+	hash_hash_t orig_hash = HASH_HASH (old_ht, cs->id);
+	Lisp_Object copy_name = copy_of (m, orig_name);
+	int new_id = hash_lookup (new_ht, copy_name);
+	if (new_id < 0)
+	  {
+	    DOHASH_SAFE (new_ht, i)
+	    {
+	      Lisp_Object k = HASH_KEY (new_ht, i);
+	      Lisp_Object v = HASH_VALUE (new_ht, i);
+	      igc_assert (SYMBOLP (k));
+	      if (EQ (k, copy_name))
+		{
+		  hash_hash_t h1 = HASH_HASH (new_ht, i);
+		  hash_hash_t h2 = hash_from_key (new_ht, k);
+		  igc_assert (h1 == orig_hash);
+		  igc_assert (h1 == h2);
+		}
+	    }
+	    igc_assert (new_id >= 0);
+	  }
+	cs->id = new_id;
+      }
+}
+
 static void
 refer_roots_to_mps (struct igc_mirror *m)
 {
@@ -4586,7 +4632,7 @@ refer_roots_to_mps (struct igc_mirror *m)
     IGC_MIRROR_OBJ (m, igc_const_cast (Lisp_Object *, staticvec[i]));
 
   igc_assert (is_mps (XHASH_TABLE (Vcoding_system_hash_table)));
-  igc_reset_coding_after_mirror (old);
+  reset_coding_after_mirror (m, old);
 
   for (int i = 0; i < ARRAYELTS (lispsym); ++i)
     call_mirror (mirror_symbol, m, lispsym + i);
