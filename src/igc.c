@@ -4620,7 +4620,7 @@ reset_coding_after_mirror (struct igc_mirror *m,
 }
 
 static void
-refer_roots_to_mps (struct igc_mirror *m)
+redirect_roots (struct igc_mirror *m)
 {
   /* coding_system::id is actually an index into a hash table's key/value
      vectors. Once the pdump is loaded, these ids are recomputed in
@@ -4643,7 +4643,7 @@ refer_roots_to_mps (struct igc_mirror *m)
   IGC_MIRROR_RAW (m, &terminal_list);
   call_mirror (mirror_thread, m, &main_thread.s);
 
-  record_time (m, "Fix roots");
+  record_time (m, "Redirect roots");
 }
 
 static void
@@ -4654,7 +4654,7 @@ mirror_dump (void)
   record_time (&m, "Start");
   copy_dump_to_mps (&m);
   mirror_references (&m);
-  refer_roots_to_mps (&m);
+  redirect_roots (&m);
   unbind_to (count, Qnil);
 
   if (getenv ("IGC_MIRROR_STATS"))
