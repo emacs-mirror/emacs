@@ -165,10 +165,7 @@
 (ert-deftest esh-util-test/path/get ()
   "Test that getting the Eshell path returns the expected results."
   (let ((expected-path (butlast (exec-path))))
-    (should (equal (eshell-get-path)
-                   (if (eshell-under-windows-p)
-                       (cons "." expected-path)
-                     expected-path)))
+    (should (equal (eshell-get-path) expected-path))
     (should (equal (eshell-get-path 'literal)
                    expected-path))))
 

@@ -43,7 +43,12 @@
                                  "#<buffer \\*compilation\\*>")
     (with-current-buffer "*compilation*"
       (forward-line 3)
-      (should (looking-at "echo hello")))))
+      (should (looking-at
+               ;; MS-Windows/DOS quote by unconditionally enclosing in
+               ;; double quotes.
+               (if (memq system-type '(windows-nt ms-dos))
+                   "\"echo\" \"hello\""
+                 "echo hello"))))))
 
 (ert-deftest em-unix-test/compile/noninteractive ()
   "Check that `eshell/compile' writes to stdout noninteractively."
