@@ -1567,7 +1567,8 @@ ARG, show only buffers that are visiting files."
     (funcall project-buffers-viewer pr arg)))
 
 (defun project-list-buffers-buffer-menu (project &optional files-only)
-  "Lists buffers of a project in Buffer-menu mode"
+  "List buffers for PROJECT in Buffer-menu mode.
+If FILES-ONLY is non-nil, only show the file-visiting buffers."
   (let ((buffer-list-function
          (lambda ()
            (seq-filter
@@ -1598,11 +1599,13 @@ ARG, show only buffers that are visiting files."
        (list-buffers-noselect files-only buffer-list-function)))))
 
 (defun project-list-buffers-ibuffer (project &optional files-only)
-  "Lists buffers of a project with Ibuffer"
-  ;; TODO files-only
+  "List buffers for PROJECT using Ibuffer.
+If FILES-ONLY is non-nil, only show the file-visiting buffers."
   (ibuffer t (format "*Ibuffer-%s*" (project-name project))
-           `((predicate . (member (current-buffer)
-                                  (project-buffers ',project))))))
+           `((predicate . (and
+                           (or ,(not files-only) buffer-file-name)
+                           (member (current-buffer)
+                                   (project-buffers ',project)))))))
 
 (defcustom project-kill-buffer-conditions
   '(buffer-file-name    ; All file-visiting buffers are included.
