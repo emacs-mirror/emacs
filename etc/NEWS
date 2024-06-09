@@ -559,11 +559,12 @@ function call.
 
 +++
 ** Emacs now has better support for touchscreen devices.
-On systems that understand them (at present X, Android, and PGTK), many
-touch screen gestures are now implemented and translated into mouse or
-gesture events, and support for tapping tool bar buttons and opening
-menus has been written.  Countless packages, such as Dired and Custom
-have been adjusted to better understand touch screen input.
+On systems that understand them (at present X, Android, PGTK, and
+MS-Windows), many touch screen gestures are now implemented and
+translated into mouse or gesture events, and support for tapping tool
+bar buttons and opening menus has been written.  Countless packages,
+such as Dired and Custom have been adjusted to better understand touch
+screen input.
 
 ---
 ** On X, Emacs now supports input methods which perform "string conversion".

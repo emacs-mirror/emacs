@@ -120,6 +120,13 @@ BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 /* PlgBlt is available since Windows 2000.  */
 BOOL (WINAPI *pfnPlgBlt) (HDC, const POINT *, HDC, int, int, int, int, HBITMAP, int, int);
 
+/* Functions that extract data from touch-screen events.  */
+typedef BOOL (WINAPI * CloseTouchInputHandle_proc) (HANDLE);
+typedef BOOL (WINAPI * GetTouchInputInfo_proc) (HANDLE, UINT, PTOUCHINPUT, int);
+
+CloseTouchInputHandle_proc pfnCloseTouchInputHandle;
+GetTouchInputInfo_proc pfnGetTouchInputInfo;
+
 
 #ifndef LWA_ALPHA
 #define LWA_ALPHA 0x02
@@ -138,6 +145,35 @@ BOOL (WINAPI *pfnPlgBlt) (HDC, const POINT *, HDC, int, int, int, int, HBITMAP, 
 #ifndef SM_CYVIRTUALSCREEN
 #define SM_CYVIRTUALSCREEN 79
 #endif
+
+/* Define required types and constants on systems with older headers
+   lest they be absent.  */
+
+#if _WIN32_WINNT < 0x0601
+#define TOUCHEVENTF_DOWN			       0x0001
+#define TOUCHEVENTF_MOVE			       0x0002
+#define TOUCHEVENTF_UP				       0x0004
+
+#define TOUCHEVENTMASKF_CONTACTAREA		       0x0004
+#define TOUCHEVENTMASKF_EXTRAINFO		       0x0002
+#define TOUCHEVENTMASKF_TIMEFROMSYSTEM		       0x0001
+
+#define WM_TOUCHMOVE					  576
+
+typedef struct _TOUCHINPUT
+{
+  LONG x;
+  LONG y;
+  HANDLE hSource;
+  DWORD dwID;
+  DWORD dwFlags;
+  DWORD dwMask;
+  DWORD dwTime;
+  ULONG_PTR dwExtraInfo;
+  DWORD cxContact;
+  DWORD cyContact;
+} TOUCHINPUT, *PTOUCHINPUT;
+#endif /* _WIN32_WINNT < 0x0601 */
 
 /* The handle of the frame that currently owns the system caret.  */
 HWND w32_system_caret_hwnd;
@@ -6056,6 +6092,137 @@ w32_read_socket (struct terminal *terminal,
 	  break;
 #endif
 
+#if 0
+	  /* These messages existed in prerelease versions of Windows 7,
+	     yet, though superseded by just WM_TOUCHMOVE (renamed
+	     WM_TOUCH) in the release, are still defined by MinGW's
+	     winuser.h.  */
+	case WM_TOUCHDOWN:
+	case WM_TOUCHUP:
+#endif /* 0 */
+#ifdef WM_TOUCHMOVE
+	case WM_TOUCHMOVE:
+#else /* not WM_TOUCHMOVE */
+	case WM_TOUCH:
+#endif /* not WM_TOUCHMOVE */
+	  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
+
+	  /* WM_TOUCH should never be received when touch input
+	     functions are unavailable.  */
+	  if (!pfnGetTouchInputInfo)
+	    break;
+
+	  if (f)
+	    {
+	      TOUCHINPUT points[MAX_TOUCH_POINTS];
+	      int i, x;
+
+	      if ((*pfnGetTouchInputInfo) ((HANDLE) msg.msg.lParam,
+					   MAX_TOUCH_POINTS,
+					   points, sizeof (TOUCHINPUT)))
+		{
+		  bool movement_p = false;
+		  EMACS_INT base = FRAME_OUTPUT_DATA (f)->touch_base;
+
+		  /* Iterate over the list of touch points in the
+		     structure, and for each, enter or remove
+		     information into and from F->touch_ids, and
+		     generate events correspondingly.  */
+		  for (i = 0; i < MAX_TOUCH_POINTS; ++i)
+		    {
+		      if (!points[i].dwID)
+			continue;
+
+		      /* Search for a slot in touch_ids that is either
+			 empty or matches dwID.  */
+		      for (x = 0; x < MAX_TOUCH_POINTS; x++)
+			{
+			  if (FRAME_OUTPUT_DATA (f)->touch_ids[x] == -1
+			      || (FRAME_OUTPUT_DATA (f)->touch_ids[x]
+				  == points[i].dwID))
+			    break;
+			}
+		      if (x == MAX_TOUCH_POINTS)
+			continue;
+
+		      if (points[i].dwFlags & TOUCHEVENTF_UP)
+			{
+			  /* Clear the entry in touch_ids and report the
+			     change.  Unless, of course, the entry be
+			     empty.  */
+			  if (FRAME_OUTPUT_DATA (f)->touch_ids[x] == -1)
+			    continue;
+			  FRAME_OUTPUT_DATA (f)->touch_ids[x] = -1;
+
+			  inev.kind = TOUCHSCREEN_END_EVENT;
+			  inev.timestamp = msg.msg.time;
+			  XSETFRAME (inev.frame_or_window, f);
+			  XSETINT (inev.x, points[i].x);
+			  XSETINT (inev.y, points[i].y);
+			  XSETINT (inev.arg, x + base);
+			  kbd_buffer_store_event (&inev);
+			  EVENT_INIT (inev);
+			}
+		      else if (points[i].dwFlags & TOUCHEVENTF_DOWN)
+			{
+			  bool recorded_p
+			    = FRAME_OUTPUT_DATA (f)->touch_ids[x] != -1;
+
+			  /* Report and record (if not already recorded)
+			     the addition.  */
+			  FRAME_OUTPUT_DATA (f)->touch_ids[x] = points[i].dwID;
+			  FRAME_OUTPUT_DATA (f)->touch_x[x] = points[i].x;
+			  FRAME_OUTPUT_DATA (f)->touch_y[x] = points[i].y;
+
+			  if (recorded_p)
+			    movement_p = true;
+			  else
+			    {
+			      inev.kind = TOUCHSCREEN_BEGIN_EVENT;
+			      inev.timestamp = msg.msg.time;
+			      XSETFRAME (inev.frame_or_window, f);
+			      XSETINT (inev.x, points[i].x);
+			      XSETINT (inev.y, points[i].y);
+			      XSETINT (inev.arg, x + base);
+			      kbd_buffer_store_event (&inev);
+			      EVENT_INIT (inev);
+			    }
+			}
+		      else
+			{
+			  FRAME_OUTPUT_DATA (f)->touch_ids[x] = points[i].dwID;
+			  FRAME_OUTPUT_DATA (f)->touch_x[x] = points[i].x;
+			  FRAME_OUTPUT_DATA (f)->touch_y[x] = points[i].y;
+			  movement_p = true;
+			}
+		    }
+
+		  /* Report updated positions of touchpoints if some
+		     changed.  */
+		  if (movement_p)
+		    {
+		      Lisp_Object arg;
+
+		      inev.kind = TOUCHSCREEN_UPDATE_EVENT;
+		      inev.timestamp = msg.msg.time;
+		      XSETFRAME (inev.frame_or_window, f);
+		      arg = Qnil;
+
+		      for (i = 0; i < MAX_TOUCH_POINTS; ++i)
+			arg
+			  = Fcons (list3i (FRAME_OUTPUT_DATA (f)->touch_x[i],
+					   FRAME_OUTPUT_DATA (f)->touch_y[i],
+					   i + base),
+				   arg);
+
+		      inev.arg = arg;
+		    }
+		}
+	    }
+
+	  (*CloseTouchInputHandle) ((HANDLE) msg.msg.lParam);
+	  break;
+
 	default:
 	  /* Check for messages registered at runtime.  */
 	  if (msg.msg.message == msh_mousewheel)
@@ -7893,12 +8060,13 @@ w32_initialize (void)
 #define LOAD_PROC(lib, fn) pfn##fn = (void *) GetProcAddress (lib, #fn)
 
     LOAD_PROC (user_lib, SetLayeredWindowAttributes);
+    LOAD_PROC (user_lib, CloseTouchInputHandle);
+    LOAD_PROC (user_lib, GetTouchInputInfo);
 
     /* PlgBlt is not available on Windows 9X.  */
     HMODULE hgdi = LoadLibrary ("gdi32.dll");
     if (hgdi)
       LOAD_PROC (hgdi, PlgBlt);
-
 #undef LOAD_PROC
 
     /* Ensure scrollbar handles are at least 5 pixels.  */

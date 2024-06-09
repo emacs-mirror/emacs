@@ -216,6 +216,8 @@ typedef BOOL (WINAPI * WTSRegisterSessionNotification_Proc)
   (HWND hwnd, DWORD dwFlags);
 typedef BOOL (WINAPI * WTSUnRegisterSessionNotification_Proc) (HWND hwnd);
 
+typedef BOOL (WINAPI * RegisterTouchWindow_proc) (HWND, ULONG);
+
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ImmGetCompositionString_Proc get_composition_string_fn = NULL;
 ImmGetContext_Proc get_ime_context_fn = NULL;
@@ -234,6 +236,7 @@ SetWindowTheme_Proc SetWindowTheme_fn = NULL;
 DwmSetWindowAttribute_Proc DwmSetWindowAttribute_fn = NULL;
 WTSUnRegisterSessionNotification_Proc WTSUnRegisterSessionNotification_fn = NULL;
 WTSRegisterSessionNotification_Proc WTSRegisterSessionNotification_fn = NULL;
+RegisterTouchWindow_proc RegisterTouchWindow_fn = NULL;
 
 extern AppendMenuW_Proc unicode_append_menu;
 
@@ -2455,6 +2458,7 @@ w32_createwindow (struct frame *f, int *coords)
   RECT rect;
   int top, left;
   Lisp_Object border_width = Fcdr (Fassq (Qborder_width, f->param_alist));
+  static EMACS_INT touch_base;
 
   if (FRAME_PARENT_FRAME (f) && FRAME_W32_P (FRAME_PARENT_FRAME (f)))
     {
@@ -2517,6 +2521,8 @@ w32_createwindow (struct frame *f, int *coords)
 
   if (hwnd)
     {
+      int i;
+
       if (FRAME_SKIP_TASKBAR (f))
 	SetWindowLong (hwnd, GWL_EXSTYLE,
 		       GetWindowLong (hwnd, GWL_EXSTYLE) | WS_EX_NOACTIVATE);
@@ -2544,6 +2550,20 @@ w32_createwindow (struct frame *f, int *coords)
 	/* For a child window we have to get its coordinates wrt its
 	   parent.  */
 	MapWindowPoints (HWND_DESKTOP, parent_hwnd, (LPPOINT) &rect, 2);
+
+      /* Enable touch-screen input.  */
+      if (RegisterTouchWindow_fn)
+	(*RegisterTouchWindow_fn) (hwnd, 0);
+
+      /* Reset F's touch point array.  */
+      for (i = 0; i < ARRAYELTS (f->output_data.w32->touch_ids); ++i)
+	f->output_data.w32->touch_ids[i] = -1;
+
+      /* Assign an offset for touch points reported to F.  */
+      if (FIXNUM_OVERFLOW_P (touch_base + MAX_TOUCH_POINTS - 1))
+	touch_base = 0;
+      f->output_data.w32->touch_base = touch_base;
+      touch_base += MAX_TOUCH_POINTS;
 
       f->left_pos = rect.left;
       f->top_pos = rect.top;
@@ -5369,6 +5389,19 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       goto dflt;
+
+#ifdef WM_TOUCHMOVE
+    case WM_TOUCHMOVE:
+#else /* not WM_TOUCHMOVE */
+#ifndef WM_TOUCH
+#define WM_TOUCH 576
+#endif /* WM_TOUCH */
+    case WM_TOUCH:
+#endif /* not WM_TOUCHMOVE */
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      /* It is said that DefWindowProc will release the touch
+	 information in the event.  */
+      return 0;
 
 #ifdef WINDOWSNT
     case WM_CREATE:
@@ -11405,6 +11438,9 @@ globals_of_w32fns (void)
   system_parameters_info_w_fn = (SystemParametersInfoW_Proc)
     get_proc_addr (user32_lib, "SystemParametersInfoW");
 #endif
+  RegisterTouchWindow_fn
+    = (RegisterTouchWindow_proc) get_proc_addr (user32_lib,
+						"RegisterTouchWindow");
 
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");

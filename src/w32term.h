@@ -434,6 +434,18 @@ struct w32_output
 
   /* Whether or not this frame should be double buffered.  */
   unsigned want_paint_buffer : 1;
+
+#define MAX_TOUCH_POINTS 10
+  /* Array of dwIDs of presently active touch points, or -1 when
+     unpopulated.  */
+  int touch_ids[MAX_TOUCH_POINTS];
+
+  /* X and Y coordinates of active touchpoints.  */
+  LONG touch_x[MAX_TOUCH_POINTS], touch_y[MAX_TOUCH_POINTS];
+
+  /* Base value for touch point identifiers registered by this
+     frame.  */
+  EMACS_INT touch_base;
 };
 
 extern struct w32_output w32term_display;
