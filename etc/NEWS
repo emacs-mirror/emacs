@@ -265,6 +265,11 @@ When this minor mode is enabled, buttons representing modifier keys
 are displayed along the tool bar.
 
 +++
+** New user option 'tool-bar-always-show-default'.
+When non-nil, the tool bar at the top of a frame does not show buffer
+local customization of the tool bar.  The default value is nil.
+
++++
 ** "d" in the mode line now indicates that the window is dedicated.
 Windows have always been able to be dedicated to a specific buffer;
 see 'window-dedicated-p'.  Now the mode line indicates the dedicated
@@ -2017,6 +2022,13 @@ To revert to the previous behavior, set the (also new) variable
 'async-shell-command-mode' to 'shell-mode'.  Any hooks or mode-specific
 variables used should be adapted appropriately.
 
++++
+** New package Window-Tool-Bar.
+This provides a new minor mode, 'window-tool-bar-mode'.  When this minor
+mode is enabled, a tool bar is displayed at the top of a window.  To
+conserve space, no tool bar is shown if 'tool-bar-map' is nil.  The
+global minor mode 'global-window-tool-bar-mode' enables this minor mode
+in all buffers.
 
 * Incompatible Lisp Changes in Emacs 30.1
 

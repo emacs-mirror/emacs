@@ -1436,10 +1436,12 @@ particular appearance or behavior.  For example, you might use a theme
 for your favorite set of faces (q.v.).
 
 @item Tool Bar
-The tool bar is a line (sometimes multiple lines) of icons at the top
-of an Emacs frame.  Clicking on one of these icons executes a command.
-You can think of this as a graphical relative of the menu bar (q.v.).
-@xref{Tool Bars}.
+The tool bar is a line (sometimes multiple lines) of buttons with icons
+at the top of an Emacs frame.  Clicking on one of these buttons executes
+a command.  You can think of this as a graphical relative of the menu
+bar (q.v.).  @xref{Tool Bars}.  There is also a window tool bar that
+behaves similarly, but is at the top of an Emacs window.  @xref{Window
+Tool Bar}.
 
 @anchor{Glossary---Tooltips}
 @item Tooltips

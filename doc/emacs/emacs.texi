@@ -529,6 +529,7 @@ Multiple Windows
 * Temporary Displays::  Displaying non-editable buffers.
 * Window Convenience::  Convenience functions for window handling.
 * Tab Line::            Window tab line.
+* Window Tool Bar::     A tool bar that is attached to windows.
 
 Displaying a Buffer in a Window
 
