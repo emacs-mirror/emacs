@@ -2592,6 +2592,9 @@ w32_createwindow (struct frame *f, int *coords)
       f->output_data.w32->touch_base = touch_base;
       touch_base += MAX_TOUCH_POINTS;
 
+      /* Reset the tool bar touch sequence identifier slot.  */
+      f->output_data.w32->tool_bar_dwID = -1;
+
       f->left_pos = rect.left;
       f->top_pos = rect.top;
     }
