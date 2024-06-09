@@ -3851,7 +3851,7 @@ lookup_base (struct igc_mirror *m, void *base)
 }
 
 static void
-copy_dump_to_mps (struct igc_mirror *m)
+copy_dump (struct igc_mirror *m)
 {
   struct pdumper_object_it it = {0};
   void *org_base;
@@ -4555,7 +4555,7 @@ mirror (struct igc_mirror *m, void *org_base, void *copy_base)
 }
 
 static void
-mirror_references (struct igc_mirror *m)
+mirror_refs (struct igc_mirror *m)
 {
   DOHASH (XHASH_TABLE (m->dump_to_mps), org_base, copy_base)
     mirror (m, fixnum_to_pointer (org_base), fixnum_to_pointer (copy_base));
@@ -4649,16 +4649,17 @@ redirect_roots (struct igc_mirror *m)
 static void
 mirror_dump (void)
 {
-  specpdl_ref count = igc_park_arena ();
-  struct igc_mirror m = make_igc_mirror ();
-  record_time (&m, "Start");
-  copy_dump_to_mps (&m);
-  mirror_references (&m);
-  redirect_roots (&m);
-  unbind_to (count, Qnil);
+  IGC_WITH_PARKED (global_igc)				\
+    {
+      struct igc_mirror m = make_igc_mirror ();
+      record_time (&m, "Start");
+      copy_dump (&m);
+      mirror_refs (&m);
+      redirect_roots (&m);
 
-  if (getenv ("IGC_MIRROR_STATS"))
-    print_mirror_stats (&m);
+      if (getenv ("IGC_MIRROR_STATS"))
+	print_mirror_stats (&m);
+    }
 }
 
 void
