@@ -446,6 +446,10 @@ struct w32_output
   /* Base value for touch point identifiers registered by this
      frame.  */
   EMACS_INT touch_base;
+
+  /* Windows identifier of any touch point reserved for the tool bar, or
+     -1.  */
+  DWORD tool_bar_dwID;
 };
 
 extern struct w32_output w32term_display;

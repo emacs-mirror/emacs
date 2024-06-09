@@ -6117,7 +6117,7 @@ w32_read_socket (struct terminal *terminal,
 	  if (f)
 	    {
 	      TOUCHINPUT *points;
-	      int i, x, px, py;
+	      int i, x UNINIT, px, py;
 	      POINT pt;
 
 	      points = alloca (sizeof *points * LOWORD (msg.msg.wParam));
@@ -6136,6 +6136,20 @@ w32_read_socket (struct terminal *terminal,
 		    {
 		      if (!points[i].dwID)
 			continue;
+
+		      /* Skip to `touch_located' if the point is
+			 reserved for the tool bar, and hasn't just been
+			 placed.  */
+		      if (points[i].dwID
+			  == FRAME_OUTPUT_DATA (f)->tool_bar_dwID)
+			{
+			  if (points[i].dwFlags & TOUCHEVENTF_UP)
+			    goto touch_located;
+
+			  /* Other like events should be simply
+			     discarded.  */
+			  continue;
+			}
 
 		      /* Search for a slot in touch_ids that is either
 			 empty or matches dwID.  */
@@ -6171,6 +6185,18 @@ w32_read_socket (struct terminal *terminal,
 
 		      if (points[i].dwFlags & TOUCHEVENTF_UP)
 			{
+			  if (points[i].dwID
+			      == FRAME_OUTPUT_DATA (f)->tool_bar_dwID)
+			    {
+			      FRAME_OUTPUT_DATA (f)->tool_bar_dwID = -1;
+			      if (f->last_tool_bar_item != -1)
+				handle_tool_bar_click (f, px, py, false, 0);
+
+			      /* Cancel any outstanding mouse highlight.  */
+			      note_mouse_highlight (f, -1, -1);
+			      continue;
+			    }
+
 			  /* Clear the entry in touch_ids and report the
 			     change.  Unless, of course, the entry be
 			     empty.  */
@@ -6190,37 +6216,67 @@ w32_read_socket (struct terminal *terminal,
 		      else if (points[i].dwFlags & TOUCHEVENTF_DOWN)
 			{
 			  bool recorded_p;
+			  Lisp_Object window;
 
-			touchscreen_down:
 			  recorded_p
 			    = FRAME_OUTPUT_DATA (f)->touch_ids[x] != -1;
 
-			  /* Report and record (if not already recorded)
-			     the addition.  */
-			  FRAME_OUTPUT_DATA (f)->touch_ids[x] = points[i].dwID;
+			  /* Update the local record of its
+			     position.  */
 			  FRAME_OUTPUT_DATA (f)->touch_x[x] = px;
 			  FRAME_OUTPUT_DATA (f)->touch_y[x] = py;
 
 			  if (recorded_p)
-			    movement_p = true;
-			  else
 			    {
-			      inev.kind = TOUCHSCREEN_BEGIN_EVENT;
-			      inev.timestamp = msg.msg.time;
-			      XSETFRAME (inev.frame_or_window, f);
-			      XSETINT (inev.x, px);
-			      XSETINT (inev.y, py);
-			      XSETINT (inev.arg, x + base);
-			      kbd_buffer_store_event (&inev);
-			      EVENT_INIT (inev);
+			      movement_p = true;
+			      continue;
 			    }
+
+			  /* This event might have landed above the tool
+			     bar, which if true its dwID should be
+			     reserved for manipulation of the tool bar.  */
+			  window = window_from_coordinates (f, px, py, 0,
+							    true, true, true);
+			  if (EQ (window, f->tool_bar_window))
+			    {
+			      if (!NILP (Vmouse_highlight))
+				{
+				  note_mouse_highlight (f, px, py);
+
+				  /* Always allow future mouse motion to
+				     update the mouse highlight, no matter
+				     where it is.  */
+				  memset (&dpyinfo->last_mouse_glyph, 0,
+					  sizeof dpyinfo->last_mouse_glyph);
+				  dpyinfo->last_mouse_glyph_frame = f;
+				}
+
+			      handle_tool_bar_click (f, px, py, true, 0);
+			      FRAME_OUTPUT_DATA (f)->tool_bar_dwID
+				= points[i].dwID;
+			      continue;
+			    }
+
+			  /* Report and record (if not already recorded)
+			     the addition.  */
+			  FRAME_OUTPUT_DATA (f)->touch_ids[x] = points[i].dwID;
+
+			  inev.kind = TOUCHSCREEN_BEGIN_EVENT;
+			  inev.timestamp = msg.msg.time;
+			  XSETFRAME (inev.frame_or_window, f);
+			  XSETINT (inev.x, px);
+			  XSETINT (inev.y, py);
+			  XSETINT (inev.arg, x + base);
+			  kbd_buffer_store_event (&inev);
+			  EVENT_INIT (inev);
 			}
 		      else
 			{
 			  bool recorded_p
 			    = FRAME_OUTPUT_DATA (f)->touch_ids[x] != -1;
+
 			  if (!recorded_p)
-			    goto touchscreen_down;
+			    continue;
 
 			  if (FRAME_OUTPUT_DATA (f)->touch_x[x] != px
 			      || FRAME_OUTPUT_DATA (f)->touch_y[x] != py)
