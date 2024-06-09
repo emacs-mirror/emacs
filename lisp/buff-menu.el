@@ -97,6 +97,8 @@ as it is by default."
 
 (defcustom Buffer-menu-group-by nil
   "If non-nil, functions to call to divide buffer-menu buffers into groups.
+When customized to a function, this function should return names
+of all levels for each entry.
 When customized to a list of functions, then each function defines
 the group name at each nested level of multiple levels.
 Each function is called with one argument: a list of entries in the same
@@ -109,13 +111,14 @@ The default options can group by a mode, and by a root directory of
 a project or just `default-directory'.
 If this is nil, buffers are not divided into groups."
   :type '(choice (const :tag "No grouping" nil)
-                 (repeat :tag "Group by"
+                 (function :tag "Custom function")
+                 (repeat :tag "Use levels"
                   (choice
                    (const :tag "Group by project root or directory"
                           Buffer-menu-group-by-root)
                    (const :tag "Group by mode"
                           Buffer-menu-group-by-mode)
-                   (function :tag "Custom function"))))
+                   (function :tag "Custom level function"))))
   :group 'Buffer-menu
   :version "30.1")
 
@@ -854,9 +857,11 @@ See more at `Buffer-menu-filter-predicate'."
           (tabulated-list-groups
            tabulated-list-entries
            `(:path-function
-             ,(lambda (entry)
-                (list (mapcar (lambda (f) (funcall f entry))
-                              Buffer-menu-group-by)))
+             ,(if (functionp Buffer-menu-group-by)
+                  Buffer-menu-group-by
+                (lambda (entry)
+                  (list (mapcar (lambda (f) (funcall f entry))
+                                Buffer-menu-group-by))))
              :sort-function ,Buffer-menu-group-sort-by))))
   (tabulated-list-init-header))
 
