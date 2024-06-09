@@ -2827,6 +2827,7 @@ hash_from_key (struct Lisp_Hash_Table *h, Lisp_Object key)
     else
 
 void hash_table_thaw (Lisp_Object hash_table);
+void hash_table_rehash (struct Lisp_Hash_Table *h);
 
 /* Default size for hash tables if not specified.  */
 

@@ -5087,7 +5087,6 @@ hash_table_thaw (Lisp_Object hash_table)
 #endif
 
       h->hash = hash_table_alloc_bytes (size * sizeof *h->hash);
-
       h->next = hash_table_alloc_bytes (size * sizeof *h->next);
 
       ptrdiff_t index_size = hash_table_index_size (h);
@@ -5105,18 +5104,54 @@ hash_table_thaw (Lisp_Object hash_table)
 	  set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
 	  set_hash_index_slot (h, start_of_bucket, i);
 	}
+    }
+}
 
-#if defined HAVE_MPS && defined ENABLE_CHECKING
-      if (h->weakness == Weak_None)
-	{
-	  DOHASH_SAFE (h, i)
-	    {
-	      Lisp_Object key = HASH_KEY (h, i);
-	      ptrdiff_t j = hash_lookup (h, key);
-	      eassert (j == i);
-	    }
-	}
-#endif
+void
+hash_table_rehash (struct Lisp_Hash_Table *h)
+{
+  if (h->count == 0)
+    return;
+
+  ptrdiff_t j = 0;
+  for (ptrdiff_t i = 0; i < h->table_size; ++i)
+    if (!hash_unused_entry_key_p (h->key[i]))
+      {
+	h->key[j] = h->key[i];
+	h->value[j] = h->value[i];
+	h->hash[j] = h->hash[i];
+	++j;
+      }
+
+  for (; j < h->table_size; ++j)
+    {
+      h->key[j] = HASH_UNUSED_ENTRY_KEY;
+      h->value[j] = Qnil;
+    }
+
+  if (h->count < h->table_size)
+    {
+      for (ptrdiff_t i = h->count; i < h->table_size - 1; ++i)
+	h->next[i] = i + 1;
+      h->next[h->table_size - 1] = -1;
+      h->next_free = h->count;
+    }
+  else
+    h->next_free = -1;
+
+  ptrdiff_t index_size = hash_table_index_size (h);
+  for (ptrdiff_t i = 0; i < index_size; i++)
+    h->index[i] = -1;
+
+  for (ptrdiff_t i = 0; i < h->count; i++)
+    {
+      Lisp_Object key = HASH_KEY (h, i);
+      hash_hash_t hash_code = hash_from_key (h, key);
+      eassert (HASH_HASH (h, i) == hash_code);
+      ptrdiff_t start_of_bucket = hash_index_index (h, hash_code);
+      set_hash_hash_slot (h, i, hash_code);
+      set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
+      set_hash_index_slot (h, start_of_bucket, i);
     }
 }
 
