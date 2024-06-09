@@ -28,7 +28,7 @@
 ;;
 ;; Allows Org mode to make use of the Emacs `etags' system.  Defines
 ;; tag destinations in Org files as any text between <<double angled
-;; brackets>>. This allows the tags-generation program `exuberant
+;; brackets>>.  This allows the tags-generation program `exuberant
 ;; ctags' to parse these files and create tag tables that record where
 ;; these destinations are found.  Plain [[links]] in org mode files
 ;; which do not have <<matching destinations>> within the same file
@@ -57,6 +57,12 @@
 ;;    (add-hook 'org-mode-hook
 ;;      (lambda ()
 ;;        (define-key org-mode-map "\C-co" 'org-ctags-find-tag-interactive)))
+;;    (with-eval-after-load "org-ctags"
+;;      (org-ctags-enable))
+;;
+;; To activate the library, you need to call `org-ctags-enable' explicitly.
+;; It used to be invoked during library loading, but it was against Emacs
+;; policy and caused inconvenience of Org users who do not use `org-ctags'.
 ;;
 ;; By default, with org-ctags loaded, org will first try and visit the tag
 ;; with the same name as the link; then, if unsuccessful, ask the user if
@@ -66,7 +72,7 @@
 ;; search the entire text of the current buffer for 'tag'.
 ;;
 ;; This behavior can be modified by changing the value of
-;; ORG-CTAGS-OPEN-LINK-FUNCTIONS. For example I have the following in my
+;; ORG-CTAGS-OPEN-LINK-FUNCTIONS.  For example, I have the following in my
 ;; .emacs, which describes the same behavior as the above paragraph with
 ;; one difference:
 ;;
@@ -149,19 +155,35 @@
 (defvar org-ctags-enabled-p t
   "Activate ctags support in org mode?")
 
-(defvar org-ctags-tag-regexp "/<<([^>]+)>>/\\1/d,definition/"
+(defvar org-ctags-tag-regexp "/<<([^<>]+)>>/\\1/d,definition/"
   "Regexp expression used by ctags external program.
 The regexp matches tag destinations in Org files.
 Format is: /REGEXP/TAGNAME/FLAGS,TAGTYPE/
 See the ctags documentation for more information.")
 
 (defcustom org-ctags-path-to-ctags
-  (if (executable-find "ctags-exuberant")
-      "ctags-exuberant"
-    ctags-program-name)
+  (cond ((executable-find "ctags-exuberant")
+         "ctags-exuberant")
+        ((boundp 'ctags-program-name)
+         ctags-program-name)
+        (t "ctags"))          ; Emacs < 30
   "Name of the ctags executable file."
   :version "24.1"
   :type 'file)
+
+(defconst org-ctags--open-link-functions-list
+  (list
+   #'org-ctags-find-tag
+   #'org-ctags-ask-rebuild-tags-file-then-find-tag
+   #'org-ctags-rebuild-tags-file-then-find-tag
+   #'org-ctags-ask-append-topic
+   #'org-ctags-append-topic
+   #'org-ctags-ask-visit-buffer-or-file
+   #'org-ctags-visit-buffer-or-file
+   #'org-ctags-fail-silently)
+  "Options for `org-open-link-functions'.
+Ensure that the user option and `unload-feature'
+use the same set of functions.")
 
 (defcustom org-ctags-open-link-functions
   '(org-ctags-find-tag
@@ -170,14 +192,7 @@ See the ctags documentation for more information.")
   "List of functions to be prepended to ORG-OPEN-LINK-FUNCTIONS by ORG-CTAGS."
   :version "24.1"
   :type 'hook
-  :options '(org-ctags-find-tag
-             org-ctags-ask-rebuild-tags-file-then-find-tag
-             org-ctags-rebuild-tags-file-then-find-tag
-             org-ctags-ask-append-topic
-             org-ctags-append-topic
-             org-ctags-ask-visit-buffer-or-file
-             org-ctags-visit-buffer-or-file
-             org-ctags-fail-silently))
+  :options org-ctags--open-link-functions-list)
 
 
 (defvar org-ctags-tag-list nil
@@ -193,21 +208,21 @@ The following patterns are replaced in the string:
   :type 'string)
 
 
-(add-hook 'org-mode-hook
-          (lambda ()
-            (when (and org-ctags-enabled-p
-                       (buffer-file-name))
-              ;; Make sure this file's directory is added to default
-              ;; directories in which to search for tags.
-              (let ((tags-filename
-                     (expand-file-name
-                      (concat (file-name-directory (buffer-file-name))
-                              "/TAGS"))))
-                (when (file-exists-p tags-filename)
-                  (visit-tags-table tags-filename))))))
+(defun org-ctags--visit-tags-table ()
+  "Load tags for current file.
+A function for `org-mode-hook."
+  (when (and org-ctags-enabled-p
+             (buffer-file-name))
+    ;; Make sure this file's directory is added to default
+    ;; directories in which to search for tags.
+    (let ((tags-filename
+           (expand-file-name
+            (concat (file-name-directory (buffer-file-name))
+                    "/TAGS"))))
+      (when (file-exists-p tags-filename)
+        (visit-tags-table tags-filename)))))
 
 
-(advice-add 'visit-tags-table :after #'org--ctags-load-tag-list)
 (defun org--ctags-load-tag-list (&rest _)
   (when (and org-ctags-enabled-p tags-file-name)
     (setq-local org-ctags-tag-list
@@ -215,10 +230,26 @@ The following patterns are replaced in the string:
 
 
 (defun org-ctags-enable ()
+  (add-hook 'org-mode-hook #'org-ctags--visit-tags-table)
+  (advice-add 'visit-tags-table :after #'org--ctags-load-tag-list)
+  (advice-add 'xref-find-definitions :before
+              #'org--ctags-set-org-mark-before-finding-tag)
+
   (put 'org-mode 'find-tag-default-function 'org-ctags-find-tag-at-point)
   (setq org-ctags-enabled-p t)
   (dolist (fn org-ctags-open-link-functions)
     (add-hook 'org-open-link-functions fn t)))
+
+
+(defun org-ctags-unload-function ()
+  "Disable `org-ctags' library.
+Called by `unload-feature'."
+  (put 'org-mode 'find-tag-default-function nil)
+  (advice-remove 'visit-tags-table #'org--ctags-load-tag-list)
+  (advice-remove 'xref-find-definitions
+                 #'org--ctags-set-org-mark-before-finding-tag)
+  (dolist (fn org-ctags--open-link-functions-list)
+    (remove-hook 'org-open-link-functions fn nil)))
 
 
 ;;; General utility functions.  ===============================================
@@ -296,8 +327,6 @@ The new topic will be titled NAME (or TITLE if supplied)."
 ;;;; Misc interoperability with etags system =================================
 
 
-(advice-add 'xref-find-definitions :before
-            #'org--ctags-set-org-mark-before-finding-tag)
 (defun org--ctags-set-org-mark-before-finding-tag (&rest _)
   "Before trying to find a tag, save our current position on org mark ring."
   (save-excursion
@@ -479,18 +508,21 @@ function may take several seconds to finish if the directory or
 its subdirectories contain large numbers of taggable files."
   (interactive)
   (cl-assert (buffer-file-name))
-  (let ((dir-name (or directory-name
-                      (file-name-directory (buffer-file-name))))
+  (let ((dir-name (shell-quote-argument
+                   (expand-file-name
+                    (if directory-name
+                        (file-name-as-directory directory-name)
+                      (file-name-directory (buffer-file-name))))))
         (exitcode nil))
     (save-excursion
       (setq exitcode
             (shell-command
              (format (concat "%s --langdef=orgmode --langmap=orgmode:.org "
-                             "--regex-orgmode=\"%s\" -f \"%s\" -e -R \"%s\"")
+                             "--regex-orgmode=%s -f %sTAGS -e -R %s*")
                      org-ctags-path-to-ctags
-                     org-ctags-tag-regexp
-                     (expand-file-name (concat dir-name "/TAGS"))
-                     (expand-file-name (concat dir-name "/*")))))
+                     (shell-quote-argument org-ctags-tag-regexp)
+                     dir-name
+                     dir-name)))
       (cond
        ((eql 0 exitcode)
         (setq-local org-ctags-tag-list
@@ -508,12 +540,11 @@ its subdirectories contain large numbers of taggable files."
 
 (defun org-ctags-find-tag-interactive ()
   "Prompt for the name of a tag, with autocompletion, then visit the named tag.
-Uses `ido-mode' if available.
 If the user enters a string that does not match an existing tag, create
 a new topic."
   (interactive)
-  (let* ((tag (ido-completing-read "Topic: " org-ctags-tag-list
-                       nil 'confirm nil 'org-ctags-find-tag-history)))
+  (let* ((tag (completing-read "Topic: " org-ctags-tag-list
+                               nil 'confirm nil 'org-ctags-find-tag-history)))
     (when tag
       (cond
        ((member tag org-ctags-tag-list)
@@ -525,8 +556,6 @@ a new topic."
         (run-hook-with-args-until-success
 	 'org-open-link-functions tag))))))
 
-
-(org-ctags-enable)
 
 (provide 'org-ctags)
 

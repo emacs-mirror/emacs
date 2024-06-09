@@ -94,9 +94,8 @@ Don't set it to something higher than `29' or clocking will break since this
 is the hardcoded maximum number of stars `org-clock-sum' will work with.
 
 It is strongly recommended that you set `org-cycle-max-level' not at all,
-or to a number smaller than this one.  In fact, when `org-cycle-max-level' is
-not set, it will be assumed to be one less than the value of smaller than
-the value of this variable."
+or to a number smaller than this one.  See `org-cycle-max-level'
+docstring for more details."
   :group 'org-inlinetask
   :type '(choice
 	  (const :tag "Off" nil)
@@ -175,7 +174,7 @@ The number of levels is controlled by `org-inlinetask-min-level'."
 (defun org-inlinetask-in-task-p ()
   "Return true if point is inside an inline task."
   (save-excursion
-    (beginning-of-line)
+    (forward-line 0)
     (let ((case-fold-search t))
       (or (looking-at-p (concat (org-inlinetask-outline-regexp) "\\(?:.*\\)"))
 	  (and (re-search-forward "^\\*+[ \t]+" nil t)
@@ -194,7 +193,7 @@ The number of levels is controlled by `org-inlinetask-min-level'."
   "Go to the end of the inline task at point.
 Return point."
   (save-match-data
-    (beginning-of-line)
+    (forward-line 0)
     (let ((case-fold-search t)
 	  (inlinetask-re (org-inlinetask-outline-regexp)))
       (cond
@@ -242,7 +241,7 @@ going below `org-inlinetask-min-level'."
 	  (replace-match down-task nil t nil 1)
 	  (org-inlinetask-goto-end)
           (if (and (eobp) (looking-back "END\\s-*" (line-beginning-position)))
-              (beginning-of-line)
+              (forward-line 0)
             (forward-line -1))
 	  (unless (= (point) beg)
             (looking-at (org-inlinetask-outline-regexp))
@@ -268,7 +267,7 @@ If the task has an end part, also demote it."
 	(replace-match down-task nil t nil 1)
 	(org-inlinetask-goto-end)
         (if (and (eobp) (looking-back "END\\s-*" (line-beginning-position)))
-            (beginning-of-line)
+            (forward-line 0)
           (forward-line -1))
 	(unless (= (point) beg)
           (looking-at (org-inlinetask-outline-regexp))

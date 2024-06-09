@@ -40,11 +40,11 @@
 (declare-function org-babel-update-block-body "ob-core" (new-body))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-before-first-heading-p "org" ())
-(declare-function org-element--cache-active-p "org-element" ())
-(declare-function org-element-lineage "org-element" (datum &optional types with-self))
-(declare-function org-element-property "org-element" (property element))
+(declare-function org-element-lineage "org-element-ast" (datum &optional types with-self))
+(declare-function org-element-property "org-element-ast" (property node))
+(declare-function org-element-begin "org-element" (node))
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
-(declare-function org-element-type "org-element" (element))
+(declare-function org-element-type-p "org-element-ast" (node types))
 (declare-function org-heading-components "org" ())
 (declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
 (declare-function org-in-archived-heading-p "org" (&optional no-inheritance))
@@ -166,6 +166,23 @@ read-write permissions for the user, read-only for everyone else."
   :package-version '(Org . "9.6")
   :type 'integer)
 
+(defcustom org-babel-tangle-remove-file-before-write 'auto
+  "How to overwrite the existing tangle target.
+When set to nil, `org-babel-tangle' will replace contents of an existing
+tangle target (and fail when tangle target is read-only).
+When set to t, the tangle target (including read-only) will be deleted
+first and a new file, possibly with different ownership and
+permissions, will be created.
+When set to symbol `auto', overwrite read-only tangle targets and
+replace contents otherwise."
+  :group 'org-babel-tangle
+  :package-version '(Org . "9.7")
+  :type '(choice
+	  (const :tag "Replace contents, but keep the same file" nil)
+          (const :tag "Re-create file" t)
+          (const :tag "Re-create when read-only" auto))
+  :safe t)
+
 (defun org-babel-find-file-noselect-refresh (file)
   "Find file ensuring that the latest changes on disk are
 represented in the file."
@@ -205,21 +222,20 @@ source code blocks by languages matching a regular expression.
 
 Return list of the tangled file names."
   (interactive "fFile to tangle: \nP")
-  (let* ((visited (find-buffer-visiting file))
-         (buffer (or visited (find-file-noselect file))))
-    (prog1
-        (with-current-buffer buffer
-          (org-with-wide-buffer
-           (mapcar #'expand-file-name
-                   (org-babel-tangle nil target-file lang-re))))
-      (unless visited (kill-buffer buffer)))))
+  (org-with-file-buffer file
+    (org-with-wide-buffer
+     (mapcar #'expand-file-name
+             (org-babel-tangle nil target-file lang-re)))))
 
 (defun org-babel-tangle-publish (_ filename pub-dir)
   "Tangle FILENAME and place the results in PUB-DIR."
   (unless (file-exists-p pub-dir)
     (make-directory pub-dir t))
   (setq pub-dir (file-name-as-directory pub-dir))
-  (mapc (lambda (el) (copy-file el pub-dir t)) (org-babel-tangle-file filename)))
+  ;; Rename files to avoid copying to same file when publishing to ./
+  ;; `copy-file' would throw an error when copying file to self.
+  (mapc (lambda (el) (rename-file el pub-dir t))
+        (org-babel-tangle-file filename)))
 
 ;;;###autoload
 (defun org-babel-tangle (&optional arg target-file lang-re)
@@ -253,7 +269,8 @@ matching a regular expression."
 	     (when (equal arg '(16))
 	       (or (cdr (assq :tangle (nth 2 (org-babel-get-src-block-info 'no-eval))))
 		   (user-error "Point is not in a source code block"))))
-	    path-collector)
+	    path-collector
+            (source-file buffer-file-name))
 	(mapc ;; map over file-names
 	 (lambda (by-fn)
 	   (let ((file-name (car by-fn)))
@@ -310,10 +327,28 @@ matching a regular expression."
                                       (compare-buffer-substrings
                                        nil nil nil
                                        tangle-buf nil nil)))))))
-                     ;; erase previous file
-                     (when (file-exists-p file-name)
+                     (when (equal (if (file-name-absolute-p file-name)
+                                      file-name
+                                    (expand-file-name file-name))
+                                  (if (file-name-absolute-p source-file)
+                                      source-file
+                                    (expand-file-name source-file)))
+                       (error "Not allowed to tangle into the same file as self"))
+                     ;; We do not erase, but overwrite previous file
+                     ;; to preserve any existing symlinks.
+                     ;; This behavior is modified using
+                     ;; `org-babel-tangle-remove-file-before-write' to
+                     ;; tangle to read-only files.
+                     (when (and
+			    (file-exists-p file-name)
+                            (pcase org-babel-tangle-remove-file-before-write
+                              (`auto (not (file-writable-p file-name)))
+                              (`t t)
+                              (`nil nil)
+                              (_ (error "Invalid value of `org-babel-tangle-remove-file-before-write': %S"
+					org-babel-tangle-remove-file-before-write))))
                        (delete-file file-name))
-		     (write-region nil nil file-name)
+                     (write-region nil nil file-name)
 		     (mapc (lambda (mode) (set-file-modes file-name mode)) modes))
                    (push file-name path-collector))))))
 	 (if (equal arg '(4))
@@ -378,7 +413,7 @@ references."
   (goto-char (point-min))
   (while (or (re-search-forward "\\[\\[file:.*\\]\\[.*\\]\\]" nil t)
              (re-search-forward (org-babel-noweb-wrap) nil t))
-    (delete-region (save-excursion (beginning-of-line 1) (point))
+    (delete-region (save-excursion (forward-line) (point))
                    (save-excursion (end-of-line 1) (forward-char 1) (point)))))
 
 (defun org-babel-spec-to-string (spec)
@@ -427,17 +462,19 @@ that the appropriate major-mode is set.  SPEC has the form:
 		org-babel-tangle-comment-format-end link-data)))))
 
 (defun org-babel-effective-tangled-filename (buffer-fn src-lang src-tfile)
-  "Return effective tangled filename of a source-code block.
-BUFFER-FN is the name of the buffer, SRC-LANG the language of the
-block and SRC-TFILE is the value of the :tangle header argument,
-as computed by `org-babel-tangle-single-block'."
-  (let ((base-name (cond
-                    ((string= "yes" src-tfile)
-                     ;; Use the buffer name
-                     (file-name-sans-extension buffer-fn))
-                    ((string= "no" src-tfile) nil)
-                    ((> (length src-tfile) 0) src-tfile)))
-        (ext (or (cdr (assoc src-lang org-babel-tangle-lang-exts)) src-lang)))
+  "Return effective tangled absolute filename of a source-code block.
+BUFFER-FN is the absolute file name of the buffer, SRC-LANG the
+language of the block and SRC-TFILE is the value of the :tangle
+header argument, as computed by `org-babel-tangle-single-block'."
+  (let* ((fnd (file-name-directory buffer-fn))
+         (base-name (cond
+                     ((string= "yes" src-tfile)
+                      ;; Use the buffer name
+                      (file-name-sans-extension buffer-fn))
+                     ((string= "no" src-tfile) nil)
+                     ((> (length src-tfile) 0)
+                      (expand-file-name src-tfile fnd))))
+         (ext (or (cdr (assoc src-lang org-babel-tangle-lang-exts)) src-lang)))
     (when base-name
       ;; decide if we want to add ext to base-name
       (if (and ext (string= "yes" src-tfile))
@@ -454,13 +491,16 @@ source code blocks by languages matching a regular expression.
 
 Optional argument TANGLE-FILE can be used to limit the collected
 code blocks by target file."
-  (let ((counter 0) last-heading-pos blocks)
+  (let ((counter 0)
+        (buffer-fn (buffer-file-name (buffer-base-buffer)))
+        last-heading-pos blocks)
     (org-babel-map-src-blocks (buffer-file-name)
       (let ((current-heading-pos
-             (if (org-element--cache-active-p)
-                 (or (org-element-property :begin (org-element-lineage (org-element-at-point) '(headline) t)) 1)
-	       (org-with-wide-buffer
-	        (org-with-limited-levels (outline-previous-heading))))))
+             (or (org-element-begin
+                  (org-element-lineage
+                   (org-element-at-point)
+                   'headline t))
+                 1)))
 	(if (eq last-heading-pos current-heading-pos) (cl-incf counter)
 	  (setq counter 1)
 	  (setq last-heading-pos current-heading-pos)))
@@ -470,6 +510,7 @@ code blocks by target file."
 	       (src-lang (nth 0 info))
 	       (src-tfile (cdr (assq :tangle (nth 2 info)))))
 	  (unless (or (string= src-tfile "no")
+                      (not src-lang) ;; src block without lang
 		      (and tangle-file (not (equal tangle-file src-tfile)))
 		      (and lang-re (not (string-match-p lang-re src-lang))))
 	    ;; Add the spec for this block to blocks under its tangled
@@ -477,7 +518,7 @@ code blocks by target file."
 	    (let* ((block (org-babel-tangle-single-block counter))
                    (src-tfile (cdr (assq :tangle (nth 4 block))))
 		   (file-name (org-babel-effective-tangled-filename
-                               (nth 1 block) src-lang src-tfile))
+                               buffer-fn src-lang src-tfile))
 		   (by-fn (assoc file-name blocks)))
 	      (if by-fn (setcdr by-fn (cons (cons src-lang block) (cdr by-fn)))
 		(push (cons file-name (list (cons src-lang block))) blocks)))))))
@@ -491,12 +532,7 @@ code blocks by target file."
 The PARAMS are the 3rd element of the info for the same src block."
   (unless (string= "no" (cdr (assq :comments params)))
     (save-match-data
-      (let* (;; The created link is transient.  Using ID is not necessary,
-             ;; but could have side-effects if used.  An ID property may
-             ;; be added to existing entries thus creating unexpected file
-             ;; modifications.
-             (org-id-link-to-org-use-id nil)
-             (l (org-no-properties
+      (let* ((l (org-no-properties
                  (cl-letf (((symbol-function 'org-store-link-functions)
                             (lambda () nil)))
                    (org-store-link nil))))
@@ -589,13 +625,12 @@ non-nil, return the full association list to be used by
 		link
 		source-name
 		params
-		(if org-src-preserve-indentation
-		    (org-trim body t)
+		(if (org-src-preserve-indentation-p) (org-trim body t)
 		  (org-trim (org-remove-indentation body)))
 		comment)))
     (if only-this-block
         (let* ((file-name (org-babel-effective-tangled-filename
-                           (nth 1 result) src-lang src-tfile)))
+                           file src-lang src-tfile)))
           (list (cons file-name (list (cons src-lang result)))))
       result)))
 
@@ -616,9 +651,12 @@ by `org-babel-get-src-block-info'."
 
 ;; de-tangling functions
 (defun org-babel-detangle (&optional source-code-file)
-  "Propagate changes in source file back original to Org file.
+  "Propagate changes from current source buffer back to the original Org file.
 This requires that code blocks were tangled with link comments
-which enable the original code blocks to be found."
+which enable the original code blocks to be found.
+
+Optional argument SOURCE-CODE-FILE is the file path to be used instead
+of the current buffer."
   (interactive)
   (save-excursion
     (when source-code-file (find-file source-code-file))
@@ -673,8 +711,7 @@ which enable the original code blocks to be found."
 	      (org-back-to-heading t))
 	    ;; Do not skip the first block if it begins at point min.
 	    (cond ((or (org-at-heading-p)
-		       (not (eq (org-element-type (org-element-at-point))
-				'src-block)))
+		       (not (org-element-type-p (org-element-at-point) 'src-block)))
 		   (org-babel-next-src-block n))
 		  ((= n 1))
 		  (t (org-babel-next-src-block (1- n)))))

@@ -34,9 +34,9 @@
 (require 'org)
 (require 'cl-lib)
 
-(declare-function org-element-type "org-element" (element))
 (declare-function org-datetree-find-date-create "org-datetree" (date &optional keep-restriction))
 (declare-function org-inlinetask-remove-END-maybe "org-inlinetask" ())
+(declare-function org-timestamp-to-now "org" (timestamp-string &optional seconds))
 
 ;; From org-element.el
 (defvar org-element--cache-avoid-synchronous-headline-re-parsing)
@@ -154,10 +154,10 @@ archive location, but not yet deleted from the original file.")
 
 ;;;###autoload
 (defun org-add-archive-files (files)
-  "Splice the archive files into the list of files.
+  "Splice the archive FILES into the list of files.
 This implies visiting all these files and finding out what the
 archive file is."
-  (org-uniquify
+  (seq-uniq
    (apply
     'append
     (mapcar
@@ -166,7 +166,9 @@ archive file is."
 	   nil
 	 (with-current-buffer (org-get-agenda-file-buffer f)
 	   (cons f (org-all-archive-files)))))
-     files))))
+     files))
+   #'file-equal-p
+   ))
 
 (defun org-all-archive-files ()
   "List of all archive files used in the current buffer."
@@ -252,8 +254,7 @@ direct children of this heading."
 	     (newfile-p (and (org-string-nw-p afile)
 			     (not (file-exists-p afile))))
 	     (buffer (cond ((not (org-string-nw-p afile)) this-buffer)
-			   ((find-buffer-visiting afile))
-			   ((find-file-noselect afile))
+			   ((find-file-noselect afile 'nowarn))
 			   (t (error "Cannot access file \"%s\"" afile))))
 	     (org-odd-levels-only
 	      (if (local-variable-p 'org-odd-levels-only (current-buffer))
@@ -477,9 +478,9 @@ Archiving time is retained in the ARCHIVE_TIME node property."
 	  (goto-char e)
 	  (or (bolp) (newline))
 	  (insert leader org-archive-sibling-heading "\n")
-	  (beginning-of-line 0)
+	  (forward-line -1)
 	  (org-toggle-tag org-archive-tag 'on))
-	(beginning-of-line 1)
+	(forward-line 0)
 	(if org-archive-reversed-order
 	    (outline-next-heading)
 	  (org-end-of-subtree t t))
@@ -524,12 +525,12 @@ When TAG is non-nil, don't move trees, but mark them with the ARCHIVE tag."
      (let (ts)
        (and (re-search-forward org-ts-regexp end t)
 	    (setq ts (match-string 0))
-	    (< (org-time-stamp-to-now ts) 0)
+	    (< (org-timestamp-to-now ts) 0)
 	    (if (not (looking-at
-		      (concat "--\\(" org-ts-regexp "\\)")))
+		    (concat "--\\(" org-ts-regexp "\\)")))
 		(concat "old timestamp " ts)
 	      (setq ts (concat "old timestamp " ts (match-string 0)))
-	      (and (< (org-time-stamp-to-now (match-string 1)) 0)
+	      (and (< (org-timestamp-to-now (match-string 1)) 0)
 		   ts)))))
    tag))
 
@@ -590,8 +591,9 @@ don't move trees, but mark them with the ARCHIVE tag."
 ;;;###autoload
 (defun org-toggle-archive-tag (&optional find-done)
   "Toggle the archive tag for the current headline.
-With prefix ARG, check all children of current headline and offer tagging
-the children that do not contain any open TODO items."
+With prefix argument FIND-DONE, check all children of current headline
+and offer tagging the children that do not contain any open TODO
+items."
   (interactive "P")
   (if (and (org-region-active-p) org-loop-over-headlines-in-active-region)
       (let ((cl (if (eq org-loop-over-headlines-in-active-region 'start-level)
@@ -608,7 +610,7 @@ the children that do not contain any open TODO items."
 	  (org-back-to-heading t)
 	  (setq set (org-toggle-tag org-archive-tag))
 	  (when set (org-fold-subtree t)))
-	(and set (beginning-of-line 1))
+	(and set (forward-line 0))
 	(message "Subtree %s" (if set "archived" "unarchived"))))))
 
 (defun org-archive-set-tag ()

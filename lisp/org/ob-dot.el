@@ -51,7 +51,9 @@
 
 (defun org-babel-expand-body:dot (body params)
   "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (org-babel--get-vars params)))
+  (let ((vars (org-babel--get-vars params))
+        (prologue (cdr (assq :prologue params)))
+        (epilogue (cdr (assq :epilogue params))))
     (mapc
      (lambda (pair)
        (let ((name (symbol-name (car pair)))
@@ -64,10 +66,13 @@
 		t
 		t))))
      vars)
-    body))
+    (concat
+     (and prologue (concat prologue "\n"))
+     body
+     (and epilogue (concat "\n" epilogue "\n")))))
 
 (defun org-babel-execute:dot (body params)
-  "Execute a block of Dot code with org-babel.
+  "Execute Dot BODY with org-babel according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
   (let* ((out-file (cdr (or (assq :file params)
 			    (error "You need to specify a :file parameter"))))

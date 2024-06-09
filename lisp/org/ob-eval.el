@@ -37,16 +37,21 @@
 (declare-function org-babel-temp-file "ob-core" (prefix &optional suffix))
 
 (defun org-babel-eval-error-notify (exit-code stderr)
-  "Open a buffer to display STDERR and a message with the value of EXIT-CODE."
+  "Open a buffer to display STDERR and a message with the value of EXIT-CODE.
+If EXIT-CODE is nil, display the message without a code."
   (let ((buf (get-buffer-create org-babel-error-buffer-name)))
     (with-current-buffer buf
       (goto-char (point-max))
       (save-excursion
         (unless (bolp) (insert "\n"))
         (insert stderr)
-        (insert (format "[ Babel evaluation exited with code %S ]" exit-code))))
+        (if exit-code
+            (insert (format "[ Babel evaluation exited with code %S ]" exit-code))
+          (insert "[ Babel evaluation exited abnormally ]"))))
     (display-buffer buf))
-  (message "Babel evaluation exited with code %S" exit-code))
+  (if exit-code
+      (message "Babel evaluation exited with code %S" exit-code)
+    (message "Babel evaluation exited abnormally")))
 
 (defun org-babel-eval (command query)
   "Run COMMAND on QUERY.
@@ -59,6 +64,7 @@ Writes QUERY into a temp-buffer that is processed with
   (let ((error-buffer (get-buffer-create " *Org-Babel Error*")) exit-code)
     (with-current-buffer error-buffer (erase-buffer))
     (with-temp-buffer
+      ;; Ensure trailing newline.  It is required for cmdproxy.exe.
       (insert query "\n")
       (setq exit-code
             (org-babel--shell-command-on-region
@@ -100,11 +106,6 @@ returned."
 	(error-file (if error-buffer (org-babel-temp-file "ob-error-") nil))
 	(shell-file-name (org-babel--get-shell-file-name))
 	exit-status)
-    ;; There is an error in `process-file' when `error-file' exists.
-    ;; This is fixed in Emacs trunk as of 2012-12-21; let's use this
-    ;; workaround for now.
-    (unless (file-remote-p default-directory)
-      (delete-file error-file))
     ;; we always call this with 'replace, remove conditional
     ;; Replace specified region with output from command.
     (org-babel--write-temp-buffer-input-file input-file)

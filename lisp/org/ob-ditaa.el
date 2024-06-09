@@ -83,11 +83,11 @@ Do not leave leading or trailing spaces in this string."
   :type 'string)
 
 (defun org-babel-execute:ditaa (body params)
-  "Execute a block of Ditaa code with org-babel.
+  "Execute BODY of Ditaa code with org-babel according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
   (let* ((out-file (or (cdr (assq :file params))
 		       (error
-			"ditaa code block requires :file header argument")))
+			"Ditaa code block requires :file header argument")))
 	 (cmdline (cdr (assq :cmdline params)))
 	 (java (cdr (assq :java params)))
 	 (in-file (org-babel-temp-file "ditaa-"))

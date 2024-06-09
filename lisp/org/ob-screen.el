@@ -50,8 +50,8 @@ In case you want to use a different screen than one selected by your $PATH")
   "Default arguments to use when running screen source blocks.")
 
 (defun org-babel-execute:screen (body params)
-  "Send a block of code via screen to a terminal using Babel.
-\"default\" session is used when none is specified."
+  "Send BODY via screen to a terminal using Babel, according to PARAMS.
+\"default\" session is used when none is specified in the PARAMS."
   (message "Sending source code block to interactive terminal session...")
   (save-window-excursion
     (let* ((session (cdr (assq :session params)))

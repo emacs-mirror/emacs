@@ -143,6 +143,7 @@ This function is called by `org-babel-execute-src-block'."
 			    ("eps" '("-teps"))
 			    ("pdf" '("-tpdf"))
 			    ("tex" '("-tlatex"))
+                            ("tikz" '("-tlatex:nopreamble"))
 			    ("vdx" '("-tvdx"))
 			    ("xmi" '("-txmi"))
 			    ("scxml" '("-tscxml"))

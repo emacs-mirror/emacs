@@ -24,7 +24,7 @@
 ;;; Commentary:
 ;;
 ;; Org Tempo reimplements completions of structure template before
-;; point like `org-try-structure-completion' in Org v9.1 and earlier.
+;; point in Org v9.1 and earlier.
 ;; For example, strings like "<e" at the beginning of the line will be
 ;; expanded to an example block.
 ;;
@@ -118,7 +118,7 @@ Go through `org-structure-template-alist' and
     (mapc #'org-tempo-add-keyword org-tempo-keywords-alist)))
 
 (defun org-tempo-add-block (entry)
-  "Add block entry from `org-structure-template-alist'."
+  "Add block ENTRY from `org-structure-template-alist'."
   (let* ((key (format "<%s" (car entry)))
 	 (name (cdr entry))
 	 (special (member name '("src" "export")))
@@ -139,7 +139,7 @@ Go through `org-structure-template-alist' and
 			   'org-tempo-tags)))
 
 (defun org-tempo-add-keyword (entry)
-  "Add keyword entry from `org-tempo-keywords-alist'."
+  "Add keyword ENTRY from `org-tempo-keywords-alist'."
   (let* ((key (format "<%s" (car entry)))
 	 (name (cdr entry)))
     (tempo-define-template (format "org-%s" (replace-regexp-in-string " " "-" name))

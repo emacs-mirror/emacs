@@ -95,10 +95,11 @@ The PARAMS argument is passed to
     session))
 
 (defun org-babel-variable-assignments:eshell (params)
-  "Convert ob-eshell :var specified variables into Eshell variables assignments."
+  "Convert ob-eshell variables from PARAMS into Eshell variables assignments."
   (mapcar
    (lambda (pair)
-     (format "(setq %s %S)" (car pair) (cdr pair)))
+     ;; Use `ignore' to suppress value in the command output.
+     (format "(ignore (setq %s %S))" (car pair) (cdr pair)))
    (org-babel--get-vars params)))
 
 (defun org-babel-load-session:eshell (session body params)

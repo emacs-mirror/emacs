@@ -24,12 +24,17 @@
 ;;
 ;;; Commentary:
 
+;; This file implements links to man pages from within Org mode.
+
+;;; Code:
+
 (require 'org-macs)
 (org-assert-version)
 
 (require 'ol)
 
 (org-link-set-parameters "man"
+                         :complete #'org-man-complete
 			 :follow #'org-man-open
 			 :export #'org-man-export
 			 :store #'org-man-store-link)
@@ -37,15 +42,29 @@
 (defcustom org-man-command 'man
   "The Emacs command to be used to display a man page."
   :group 'org-link
-  :type '(choice (const man) (const woman)))
+  :type '(choice (const man) (const :tag "WoMan (obsolete)" woman)))
 
+(declare-function Man-translate-references "man" (ref))
 (defun org-man-open (path _)
   "Visit the manpage on PATH.
 PATH should be a topic that can be thrown at the man command.
 If PATH contains extra ::STRING which will use `occur' to search
 matched strings in man buffer."
+  (require 'man) ; For `Man-translate-references'
   (string-match "\\(.*?\\)\\(?:::\\(.*\\)\\)?$" path)
   (let* ((command (match-string 1 path))
+         ;; FIXME: Remove after we drop Emacs 29 support.
+         ;; Working around security bug #66390.
+         (command (if (not (equal (Man-translate-references ";id") ";id"))
+                      ;; We are on Emacs that escapes man command args
+                      ;; (see Emacs commit 820f0793f0b).
+                      command
+                    ;; Older Emacs without the fix - escape the
+                    ;; arguments ourselves.
+                    (mapconcat 'identity
+                               (mapcar #'shell-quote-argument
+                                       (split-string command "\\s-+"))
+                               " ")))
          (search (match-string 2 path))
          (buffer (funcall org-man-command command)))
     (when search
@@ -63,7 +82,7 @@ matched strings in man buffer."
             (set-window-point window point)
             (set-window-start window point)))))))
 
-(defun org-man-store-link ()
+(defun org-man-store-link (&optional _interactive?)
   "Store a link to a README file."
   (when (memq major-mode '(Man-mode woman-mode))
     ;; This is a man page, we do make this link
@@ -82,17 +101,30 @@ matched strings in man buffer."
       (match-string 1 (buffer-name))
     (error "Cannot create link to this man page")))
 
-(defun org-man-export (link description format)
-  "Export a man page link from Org files."
+(defun org-man-export (link description backend)
+  "Export a man page LINK with DESCRIPTION.
+BACKEND is the current export backend."
   (let ((path (format "http://man.he.net/?topic=%s&section=all" link))
 	(desc (or description link)))
     (cond
-     ((eq format 'html) (format "<a target=\"_blank\" href=\"%s\">%s</a>" path desc))
-     ((eq format 'latex) (format "\\href{%s}{%s}" path desc))
-     ((eq format 'texinfo) (format "@uref{%s,%s}" path desc))
-     ((eq format 'ascii) (format "%s (%s)" desc path))
-     ((eq format 'md) (format "[%s](%s)" desc path))
+     ((eq backend 'html) (format "<a target=\"_blank\" href=\"%s\">%s</a>" path desc))
+     ((eq backend 'latex) (format "\\href{%s}{%s}" path desc))
+     ((eq backend 'texinfo) (format "@uref{%s,%s}" path desc))
+     ((eq backend 'ascii) (format "[%s] (<%s>)" desc path))
+     ((eq backend 'md) (format "[%s](%s)" desc path))
      (t path))))
+
+(defvar Man-completion-cache) ; Defined in `man'.
+(defun org-man-complete (&optional _arg)
+  "Complete man pages for `org-insert-link'."
+  (require 'man)
+  (concat
+   "man:"
+   (let ((completion-ignore-case t) ; See `man' comments.
+         (Man-completion-cache)) ; See `man' implementation.
+     (completing-read
+      "Manual entry: "
+      'Man-completion-table))))
 
 (provide 'ol-man)
 
