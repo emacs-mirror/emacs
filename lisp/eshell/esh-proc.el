@@ -360,8 +360,7 @@ Used only on systems which do not support async subprocesses.")
                :file-handler t)))
       (eshell-debug-command 'process
         "started external process `%s'\n\n%s" proc
-        (mapconcat (lambda (i) (shell-quote-argument i 'posix))
-                   (process-command proc) " "))
+        (mapconcat #'shell-quote-argument (process-command proc) " "))
       (eshell-record-process-object proc)
       (eshell-record-process-properties proc)
       (when stderr-proc
