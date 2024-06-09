@@ -462,7 +462,9 @@ as argument, to ask the user that question."
   "List of functions to call when Rmail is invoked.")
 
 (defvar rmail-get-new-mail-hook nil
-  "List of functions to call when Rmail has retrieved new mail.")
+  "List of functions to call when Rmail has retrieved new mail.
+The functions are called in `rmail-buffer' narrowed to include
+only the new email messages, with point at the first new mail.")
 
 ;;;###autoload
 (defcustom rmail-show-message-hook nil
