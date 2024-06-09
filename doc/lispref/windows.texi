@@ -2806,16 +2806,16 @@ some other window, preferably a large window on some visible frame.  It
 can fail if all windows are dedicated to other buffers (@pxref{Dedicated
 Windows}).
 
-The above describes the behavior when @code{some-window} @var{alist}
-entry is @code{lru} or @code{nil} which is the default.  But when,
-for example, @code{display-buffer-base-action} is customized to
-@w{@code{(nil . ((some-window . mru)))}}, then the value @code{mru}
-means that this function will prefer the most recently used window
-that is useful to display several buffers from the consecutive calls
-of @code{display-buffer} in the same window.  Consider a configuration
-of three or more windows where a user wants to consult, in
-a non-selected window, one after the other, the results of a query
-spread among several buffers.  With the @code{lru} strategy, Emacs might
+The above describes the behavior when the @code{some-window} @var{alist}
+entry is @code{lru} or @code{nil} which is the default.  Another
+possible value is @code{mru}.  If, for example,
+@code{display-buffer-base-action} is customized to @w{@code{(nil
+. ((some-window . mru)))}}, then this function will prefer the most
+recently used window.  This will try to display several buffers from
+consecutive calls of @code{display-buffer} in the same window.  Consider
+a configuration of three or more windows where a user wants to consult,
+in a non-selected window, one after the other, the results of a query
+spread among several buffers.  With the @code{lru} strategy, Emacs may
 continuously choose another window because the least recently used
 window changes with every call of @code{display-buffer-use-some-window}.
 With the @code{mru} strategy, the window chosen would always remain the

@@ -337,11 +337,11 @@ right-aligned to is controlled by the new user option
 
 +++
 *** New action alist entry 'some-window' for 'display-buffer'.
-It defines which window 'display-buffer-use-some-window' should prefer.
+It specifies which window 'display-buffer-use-some-window' should prefer.
 For example, when 'display-buffer-base-action' is customized to
-'(nil . ((some-window . mru)))' then a buffer will be displayed
-in the same most recently used window from the consecutive calls
-display-buffer' (on a configuration with more than two windows).
+'(nil . ((some-window . mru)))', then a buffer will be displayed
+in the same most recently used window from consecutive calls of
+'display-buffer' (in a configuration with more than two windows).
 
 +++
 *** New action alist entry 'category' for 'display-buffer'.
