@@ -927,6 +927,8 @@ make_process (Lisp_Object name)
   eassert (NILP (p->gnutls_boot_parameters));
 #endif
 
+  p->readmax = clip_to_bounds (1, read_process_output_max, INT_MAX);
+
   /* If name is already in use, modify it until it is unused.  */
 
   Lisp_Object name1 = name;
@@ -2193,8 +2195,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       forkin = p->open_fd[SUBPROCESS_STDIN];
       outchannel = p->open_fd[WRITE_TO_SUBPROCESS];
     }
-
-  p->readmax = clip_to_bounds (1, read_process_output_max, INT_MAX);
 
   /* Set up stdout for the child process.  */
   if (ptychannel >= 0 && p->pty_out)
