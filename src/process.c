@@ -6140,15 +6140,13 @@ read_process_output_error_handler (Lisp_Object error_val)
   return Qt;
 }
 
-static void
-read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
-				    ssize_t nbytes,
-				    struct coding_system *coding);
+static void read_and_dispose_of_process_output (struct Lisp_Process *, char *,
+						ssize_t,
+						struct coding_system *);
 
-static void
-read_and_insert_process_output (struct Lisp_Process *p, char *buf,
-				    ssize_t nread,
-				struct coding_system *process_coding);
+static void read_and_insert_process_output (struct Lisp_Process *, char *,
+					    ssize_t,
+					    struct coding_system *);
 
 /* Read pending output from the process channel,
    starting with our buffered-ahead character if we have one.
@@ -6346,9 +6344,10 @@ read_process_output_after_insert (struct Lisp_Process *p, Lisp_Object *old_read_
   SET_PT_BOTH (opoint, opoint_byte);
 }
 
-static void read_and_insert_process_output (struct Lisp_Process *p, char *buf,
-				    ssize_t nread,
-				    struct coding_system *process_coding)
+static void
+read_and_insert_process_output (struct Lisp_Process *p, char *buf,
+				ssize_t nread,
+				struct coding_system *process_coding)
 {
   if (!nread || NILP (p->buffer) || !BUFFER_LIVE_P (XBUFFER (p->buffer)))
     return;
@@ -6359,10 +6358,11 @@ static void read_and_insert_process_output (struct Lisp_Process *p, char *buf,
   ptrdiff_t opoint, opoint_byte;
 
   read_process_output_before_insert (p, &old_read_only, &old_begv, &old_zv,
-				     &before, &before_byte, &opoint, &opoint_byte);
+				     &before, &before_byte, &opoint,
+				     &opoint_byte);
 
   /* Adapted from call_process.  */
-  if (NILP (BVAR (XBUFFER(p->buffer), enable_multibyte_characters))
+  if (NILP (BVAR (XBUFFER (p->buffer), enable_multibyte_characters))
 	   && ! CODING_MAY_REQUIRE_DECODING (process_coding))
     {
       insert_1_both (buf, nread, nread, 0, 0, 0);
