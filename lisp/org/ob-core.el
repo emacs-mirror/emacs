@@ -900,46 +900,49 @@ guess will be made."
 			     (not (listp r)))
 			(list (list r))
 		      r)))
-	    (let ((file (and (member "file" result-params)
-			     (cdr (assq :file params)))))
-	      ;; If non-empty result and :file then write to :file.
-	      (when file
-		;; If `:results' are special types like `link' or
-		;; `graphics', don't write result to `:file'.  Only
-		;; insert a link to `:file'.
-		(when (and result
-			   (not (or (member "link" result-params)
-				  (member "graphics" result-params))))
-		  (with-temp-file file
-		    (insert (org-babel-format-result
-			     result
-			     (cdr (assq :sep params)))))
-		  ;; Set file permissions if header argument
-		  ;; `:file-mode' is provided.
-		  (when (assq :file-mode params)
-		    (set-file-modes file (cdr (assq :file-mode params)))))
-		(setq result file))
-	      ;; Possibly perform post process provided its
-	      ;; appropriate.  Dynamically bind "*this*" to the
-	      ;; actual results of the block.
-	      (let ((post (cdr (assq :post params))))
-		(when post
-		  (let ((*this* (if (not file) result
-				  (org-babel-result-to-file
-				   file
-				   (org-babel--file-desc params result)
-                                   'attachment))))
-		    (setq result (org-babel-ref-resolve post))
-		    (when file
-		      (setq result-params (remove "file" result-params))))))
-	      (unless (member "none" result-params)
-	        (org-babel-insert-result
-	         result result-params info
-                 ;; append/prepend cannot handle hash as we accumulate
-                 ;; multiple outputs together.
-                 (when (member "replace" result-params) new-hash)
-                 lang
-                 (time-subtract (current-time) exec-start-time))))
+            ;; XXX: remove this block once the Org Mode issue is
+            ;; resolved.
+            (ignore-errors
+	      (let ((file (and (member "file" result-params)
+			       (cdr (assq :file params)))))
+	        ;; If non-empty result and :file then write to :file.
+	        (when file
+		  ;; If `:results' are special types like `link' or
+		  ;; `graphics', don't write result to `:file'.  Only
+		  ;; insert a link to `:file'.
+		  (when (and result
+			     (not (or (member "link" result-params)
+				      (member "graphics" result-params))))
+		    (with-temp-file file
+		      (insert (org-babel-format-result
+			       result
+			       (cdr (assq :sep params)))))
+		    ;; Set file permissions if header argument
+		    ;; `:file-mode' is provided.
+		    (when (assq :file-mode params)
+		      (set-file-modes file (cdr (assq :file-mode params)))))
+		  (setq result file))
+	        ;; Possibly perform post process provided its
+	        ;; appropriate.  Dynamically bind "*this*" to the
+	        ;; actual results of the block.
+	        (let ((post (cdr (assq :post params))))
+		  (when post
+		    (let ((*this* (if (not file) result
+				    (org-babel-result-to-file
+				     file
+				     (org-babel--file-desc params result)
+                                     'attachment))))
+		      (setq result (org-babel-ref-resolve post))
+		      (when file
+		        (setq result-params (remove "file" result-params))))))
+	        (unless (member "none" result-params)
+	          (org-babel-insert-result
+	           result result-params info
+                   ;; append/prepend cannot handle hash as we accumulate
+                   ;; multiple outputs together.
+                   (when (member "replace" result-params) new-hash)
+                   lang
+                   (time-subtract (current-time) exec-start-time)))))
 	    (run-hooks 'org-babel-after-execute-hook)
 	    result)))))))
 
