@@ -32,6 +32,7 @@
 (eval-when-compile (require 'rx))
 (require 'c-ts-common) ; For comment indent and filling.
 
+(declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-end "treesit.c")
 (declare-function treesit-parser-create "treesit.c")
