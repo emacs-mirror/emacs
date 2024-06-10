@@ -6263,7 +6263,7 @@ read_process_output (Lisp_Object proc, int channel)
      friends don't expect current-buffer to be changed from under them.  */
   record_unwind_current_buffer ();
 
-  if (read_process_output_fast && EQ (p->filter, Qinternal_default_process_filter))
+  if (fast_read_process_output && EQ (p->filter, Qinternal_default_process_filter))
     read_and_insert_process_output (p, chars, nbytes, coding);
   else
     read_and_dispose_of_process_output (p, chars, nbytes, coding);
