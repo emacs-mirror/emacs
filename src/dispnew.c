@@ -1851,6 +1851,7 @@ adjust_frame_glyphs (struct frame *f)
       eassert (FRAME_INITIAL_P (f)
 	       || noninteractive
 	       || !initialized
+	       || !f->terminal->name /* frame is being deleted */
 	       || (f->current_matrix
 		   && f->current_matrix->nrows > 0
 		   && f->current_matrix->rows
