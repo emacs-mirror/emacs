@@ -528,8 +528,9 @@ This expects `auto-revert--messages' to be bound by
              (unless was-in-global-auto-revert-mode
                (global-auto-revert-mode 0)) ; Turn it off.
              (dolist (buf (list buf-1 buf-2 buf-3))
-               (with-current-buffer buf (setq-local kill-buffer-hook nil))
-               (ignore-errors (kill-buffer buf)))
+               (ignore-errors
+                 (with-current-buffer buf (setq-local kill-buffer-hook nil))
+                 (kill-buffer buf)))
              (ignore-errors (delete-file file-2b)))))))))
 
 (auto-revert--deftest-remote auto-revert-test05-global-notify
@@ -568,7 +569,7 @@ This expects `auto-revert--messages' to be bound by
 (auto-revert--deftest-remote auto-revert-test06-write-file
   "Test `write-file' in `auto-revert-mode' for remote buffers.")
 
-;; This is inspired by Bug#44638.
+;; This is inspired by Bug#44638, Bug#71424.
 (ert-deftest auto-revert-test07-auto-revert-several-buffers ()
   "Check autorevert for several buffers visiting the same file."
   ;; (with-auto-revert-test
@@ -591,24 +592,50 @@ This expects `auto-revert--messages' to be bound by
               (auto-revert-mode 1)
               (should auto-revert-mode))
 
-            (dotimes (i num-buffers)
-              (push (make-indirect-buffer
-                     (car buffers)
-                     (format "%s-%d" (buffer-file-name (car buffers)) i)
-                     'clone)
-                    buffers))
+            (dolist (clone '(clone nil))
+              (dotimes (i num-buffers)
+                (push (make-indirect-buffer
+                       (car (last buffers))
+                       (format "%s-%d-%s"
+                               (buffer-file-name (car (last buffers))) i clone)
+                       clone)
+                      buffers)))
             (setq buffers (nreverse buffers))
             (dolist (buf buffers)
               (with-current-buffer buf
                 (should (string-equal (buffer-string) "any text"))
-                (should auto-revert-mode)))
+                (if (string-suffix-p "-nil" (buffer-name buf))
+                    (should-not auto-revert-mode)
+                  (should auto-revert-mode))))
 
             (auto-revert-tests--write-file "another text" tmpfile (pop times))
             ;; Check, that the buffer has been reverted.
             (auto-revert--wait-for-revert (car buffers))
             (dolist (buf buffers)
               (with-current-buffer buf
-                (should (string-equal (buffer-string) "another text")))))
+                (should (string-equal (buffer-string) "another text"))))
+
+            ;; Disabling autorevert in an indirect buffer does not
+            ;; disable autorevert in the corresponding base buffer.
+            (dolist (buf (cdr buffers))
+              (with-current-buffer buf
+                (auto-revert-mode 0)
+                (should-not auto-revert-mode))
+              (with-current-buffer (car buffers)
+                (should
+                 (buffer-local-value
+                  'auto-revert-notify-watch-descriptor (current-buffer)))
+                (should auto-revert-mode)))
+
+            ;; Killing an indirect buffer does not disable autorevert in
+            ;; the corresponding base buffer.
+            (dolist (buf (cdr buffers))
+              (kill-buffer buf))
+            (with-current-buffer (car buffers)
+                (should
+                 (buffer-local-value
+                  'auto-revert-notify-watch-descriptor (current-buffer)))
+              (should auto-revert-mode)))
 
         ;; Exit.
         (ignore-errors
