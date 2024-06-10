@@ -3666,7 +3666,7 @@ result that the next redisplay recenters the window around this outdated
 position.  There is no solution but installing a more
 cooperative--and preferably free--input method.
 
-** The default input method sometimes performs edits out of place in large buffers.
+** The default input method performs edits elsewhere than point in large buffers.
 
 When first reactivated in a window after having been dismissed, certain
 heuristics applied by the "Android Keyboard (AOSP)" input method to
@@ -3679,6 +3679,14 @@ might be wildly removed from the current insertion point.  This is a bug
 in the input method that can be easily reproduced by inserting lengthy
 documents into any text editor, with no real solution except avoiding
 edit suggestions from recently-reactivated input methods.
+
+** The F3 key appears to be spontaneously activated.
+
+It is possible that this is a product of your inadvertently contacting
+the back-facing fingerprint sensor, which generates F3 key events on
+devices manufactured by OnePlus and possibly others.  Sadly, to the best
+of our knowledge such events cannot be distinguished from legitimate
+keypresses.
 
 * Build-time problems
 

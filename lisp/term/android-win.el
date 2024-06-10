@@ -618,5 +618,15 @@ accessible to other programs."
   :ccl-encoder 'android-encode-jni)
 
 
+;; Default key definitions.
+
+;; Suppress KEYCODE_NOTIFICATION, which has been observed to be
+;; spontaneously generated on certain tablets, so that the user may not
+;; be disturbed by intrusive messages when it is registered.
+(global-set-key [KEYCODE_NOTIFICATION] #'ignore)
+(global-set-key [\83] #'ignore) ; KEYCODE_NOTIFICATION on pre-Honeycomb
+                                ; releases.
+
+
 (provide 'android-win)
 ;; android-win.el ends here.
