@@ -539,6 +539,8 @@ extern void map_charset_chars (void (*) (Lisp_Object, Lisp_Object),
                                Lisp_Object, Lisp_Object,
                                struct charset *, unsigned, unsigned);
 
+extern struct charset charset_table_init[180];
+
 INLINE_HEADER_END
 
 #endif /* EMACS_CHARSET_H */

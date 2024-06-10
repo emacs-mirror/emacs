@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include "bignum.h"
 #include "buffer.h"
 #include "coding.h"
+#include "charset.h"
 #include "dispextern.h"
 #include "emacs-module.h"
 #include "font.h"
@@ -2185,6 +2186,13 @@ root_create_igc (struct igc *gc)
   root_create (gc, gc, gc + 1, mps_rank_exact (), scan_igc, NULL, false);
 }
 
+static void
+root_create_charset_table (struct igc *gc)
+{
+  root_create_ambig (gc, charset_table_init,
+		     charset_table_init + ARRAYELTS (charset_table_init));
+}
+
 #ifndef IN_MY_FORK
 static void
 root_create_pure (struct igc *gc)
@@ -2507,12 +2515,6 @@ igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
     root_create_ambig (global_igc, pa, end);
   }
   return pa;
-}
-
-void
-igc_create_charset_root (void *table, size_t size)
-{
-  root_create_ambig (global_igc, table, (char *) table + size);
 }
 
 static void
@@ -3547,6 +3549,7 @@ make_igc (void)
 #ifndef IN_MY_FORK
   root_create_pure (gc);
 #endif
+  root_create_charset_table (gc);
   root_create_buffer (gc, &buffer_defaults);
   root_create_buffer (gc, &buffer_local_symbols);
   root_create_staticvec (gc);
@@ -4540,6 +4543,14 @@ redirect_roots (struct igc_mirror *m)
   mirror_buffer (m, &buffer_local_symbols);
   mirror_thread (m, &main_thread.s);
   IGC_MIRROR_RAW (m, &terminal_list);
+
+  /* charset_table is a vector of struct charset, which contain a
+     Lisp_Object. It is currently an ambig root in igc, via
+     igc_xpalloc. */
+  for (int i = 0; i < charset_table_used; ++i)
+    IGC_MIRROR_OBJ (m, &charset_table[i].attributes);
+  for (int i = 0; i < ARRAYELTS (charset_table_init); ++i)
+    IGC_MIRROR_OBJ (m, &charset_table_init[i].attributes);
 
   record_time (m, "Redirect roots");
 }

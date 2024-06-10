@@ -2356,7 +2356,7 @@ init_charset_once (void)
    during an initial bootstrap wreak havoc after dumping; see the
    M_MMAP_THRESHOLD value in alloc.c, plus there is an extra overhead
    internal to glibc malloc and perhaps to Emacs malloc debugging.  */
-static struct charset charset_table_init[180];
+struct charset charset_table_init[180];
 
 void
 syms_of_charset (void)
@@ -2390,9 +2390,6 @@ syms_of_charset (void)
 
   charset_table = charset_table_init;
   charset_table_size = ARRAYELTS (charset_table_init);
-#ifdef HAVE_MPS
-  igc_create_charset_root (charset_table_init, sizeof charset_table_init);
-#endif
   PDUMPER_REMEMBER_SCALAR (charset_table_size);
   charset_table_used = 0;
   PDUMPER_REMEMBER_SCALAR (charset_table_used);
