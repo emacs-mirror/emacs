@@ -574,7 +574,10 @@ See the command `outline-mode' for more information on this mode."
               (progn
                 (font-lock-add-keywords nil outline-font-lock-keywords t)
                 (font-lock-flush))
-            (outline-minor-mode-highlight-buffer)))
+            (progn
+              (outline-minor-mode-highlight-buffer)
+              (add-hook 'revert-buffer-restore-functions
+                        #'outline-revert-buffer-rehighlight nil t))))
         (outline--fix-up-all-buttons)
 	;; Turn off this mode if we change major modes.
 	(add-hook 'change-major-mode-hook
@@ -582,8 +585,6 @@ See the command `outline-mode' for more information on this mode."
 		  nil t)
         (add-hook 'revert-buffer-restore-functions
                   #'outline-revert-buffer-restore-visibility nil t)
-        (add-hook 'revert-buffer-restore-functions
-                  #'outline-revert-buffer-rehighlight nil t)
         (setq-local line-move-ignore-invisible t)
 	;; Cause use of ellipses for invisible text.
 	(add-to-invisibility-spec '(outline . t))
@@ -1696,44 +1697,63 @@ LEVEL, decides of subtree visibility according to
      (point-min) (point-max)))
   (run-hooks 'outline-view-change-hook))
 
-(defun outline-hidden-headings-regexp ()
-  "Return a regexp that matches all currently hidden outlines.
-This is useful to save the hidden outlines and restore them later,
-for example, after reverting the buffer."
-  (let ((headings))
+(defun outline-hidden-headings-paths ()
+  "Return a hash with headings of currently hidden outlines.
+Every hash key is a list whose elements compose a complete path
+of headings descending from the top level down to the bottom level.
+This is useful to save the hidden outlines and restore them later
+after reverting the buffer."
+  (let ((paths (make-hash-table :test #'equal))
+        current-path)
     (outline-map-region
      (lambda ()
-       (when (save-excursion
-               (outline-end-of-heading)
-               (seq-some (lambda (o) (eq (overlay-get o 'invisible)
-                                         'outline))
-                         (overlays-at (point))))
-         (push (buffer-substring (pos-bol) (pos-eol)) headings)))
+       (let* ((level (funcall outline-level))
+              (heading (buffer-substring-no-properties (pos-bol) (pos-eol)))
+              path)
+         (while (and current-path (>= (cdar current-path) level))
+           (pop current-path))
+         (push (cons heading level) current-path)
+         (when (save-excursion
+                 (outline-end-of-heading)
+                 (seq-some (lambda (o) (eq (overlay-get o 'invisible)
+                                           'outline))
+                           (overlays-at (point))))
+           (setf (gethash (mapcar #'car current-path) paths) t))))
      (point-min) (point-max))
-    (when headings
-      (mapconcat (lambda (heading)
-                   (concat "\\`" (regexp-quote heading) "\\'"))
-                 (nreverse headings) "\\|"))))
+    paths))
+
+(defun outline-hidden-headings-restore-paths (paths)
+  "Restore hidden outlines from a hash of hidden headings.
+This is useful after reverting the buffer to restore the outlines
+hidden by `outline-hidden-headings-paths'."
+  (let (current-path outline-view-change-hook)
+    (outline-map-region
+     (lambda ()
+       (let* ((level (funcall outline-level))
+              (heading (buffer-substring (pos-bol) (pos-eol)))
+              path)
+         (while (and current-path (>= (cdar current-path) level))
+           (pop current-path))
+         (push (cons heading level) current-path)
+         (when (gethash (mapcar #'car current-path) paths)
+           (outline-hide-subtree))))
+     (point-min) (point-max))))
 
 (defun outline-revert-buffer-restore-visibility ()
   "Preserve visibility when reverting buffer under `outline-minor-mode'.
 This function restores the visibility of outlines after the buffer
 under `outline-minor-mode' is reverted by `revert-buffer'."
-  (let ((regexp (outline-hidden-headings-regexp)))
-    (when regexp
+  (let ((paths (outline-hidden-headings-paths)))
+    (unless (hash-table-empty-p paths)
       (lambda ()
-        (outline-hide-by-heading-regexp regexp)))))
+        (outline-hidden-headings-restore-paths paths)))))
 
 (defun outline-revert-buffer-rehighlight ()
   "Rehighlight outlines when reverting buffer under `outline-minor-mode'.
 This function rehighlights outlines after the buffer under
 `outline-minor-mode' is reverted by `revert-buffer' when font-lock
 can't update highlighting for `outline-minor-mode-highlight'."
-  (when (and outline-minor-mode-highlight
-             (not (and global-font-lock-mode
-                       (font-lock-specified-p major-mode))))
-    (lambda ()
-      (outline-minor-mode-highlight-buffer))))
+  (lambda () (outline-minor-mode-highlight-buffer)))
 
 
 ;;; Visibility cycling
