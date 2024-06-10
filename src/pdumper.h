@@ -302,5 +302,7 @@ struct pdumper_object_it
 void *pdumper_next_object (struct pdumper_object_it *it);
 #endif
 
+void dump_discard_mem (void *mem, size_t size);
+
 INLINE_HEADER_END
 #endif
