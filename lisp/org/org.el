@@ -20749,7 +20749,7 @@ it has a `diary' type."
     (yank-media-handler "image/.*" #'org--image-yank-media-handler)
     ;; Looks like different DEs go for different handler names,
     ;; https://larsee.com/blog/2019/05/clipboard-files/.
-    (yank-media-handler "x/special-\\(?:gnome\|KDE\|mate\\)-files"
+    (yank-media-handler "x/special-\\(?:gnome\\|KDE\\|mate\\)-files"
                         #'org--copied-files-yank-media-handler))
   (when (boundp 'x-dnd-direct-save-function)
     (setq-local x-dnd-direct-save-function #'org--dnd-xds-function)))

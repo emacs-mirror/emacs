@@ -648,7 +648,7 @@ IMPORTANT: The buffer copy may also have variable `buffer-file-name'
 copied.
 
 To prevent Emacs overwriting the original buffer file,
-`write-contents-functions' is set to \='(always).  Do not alter this
+`write-contents-functions' is set to \\='(always).  Do not alter this
 variable and do not do anything that might alter it (like calling a
 major mode) to prevent data corruption.  Also, do note that Emacs may
 jump into the created buffer if the original file buffer is closed and

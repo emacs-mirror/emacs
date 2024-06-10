@@ -815,7 +815,7 @@ Match at beginning of line when WITH-BOL is non-nil."
   (and (not (bobp))
        (save-excursion
 	 (forward-line n)
-         (skip-chars-forward "[ \t]")
+         (skip-chars-forward " \t")
          (eolp))))
 
 (defun org-previous-line-empty-p ()
