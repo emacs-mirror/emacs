@@ -4531,6 +4531,26 @@ mirror_refs (struct igc_mirror *m)
 }
 
 static void
+redirect_charset_table (struct igc_mirror *m)
+{
+  /* charset_table points to a vector of struct charset, which contain a
+     Lisp_Object. When dumping, charset_table contents are written to
+     the dump.  When loading a dump, charset_table is made to point to
+     these charsets in the dump. When charset_table is enlarged,
+     igc_xpalloc is used to make it a root, but until then, it is
+     not. See also the comment in charset.c:1145. */
+  igc_assert (pdumper_object_p (charset_table));
+  size_t nbytes = charset_table_size * sizeof *charset_table;
+  struct charset *new_table = igc_xzalloc_ambig (nbytes);
+  size_t used_nbytes = charset_table_used * sizeof *charset_table;
+  memcpy (new_table, charset_table, used_nbytes);
+  charset_table = new_table;
+
+  for (int i = 0; i < charset_table_used; ++i)
+    IGC_MIRROR_OBJ (m, &charset_table[i].attributes);
+}
+
+static void
 redirect_roots (struct igc_mirror *m)
 {
   for (int i = 0; i < staticidx; ++i)
@@ -4543,14 +4563,7 @@ redirect_roots (struct igc_mirror *m)
   mirror_buffer (m, &buffer_local_symbols);
   mirror_thread (m, &main_thread.s);
   IGC_MIRROR_RAW (m, &terminal_list);
-
-  /* charset_table is a vector of struct charset, which contain a
-     Lisp_Object. It is currently an ambig root in igc, via
-     igc_xpalloc. */
-  for (int i = 0; i < charset_table_used; ++i)
-    IGC_MIRROR_OBJ (m, &charset_table[i].attributes);
-  for (int i = 0; i < ARRAYELTS (charset_table_init); ++i)
-    IGC_MIRROR_OBJ (m, &charset_table_init[i].attributes);
+  redirect_charset_table (m);
 
   record_time (m, "Redirect roots");
 }
