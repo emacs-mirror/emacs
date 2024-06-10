@@ -7852,14 +7852,14 @@ Action alist entries are:
  `some-window' -- This entry defines which window
     `display-buffer-use-some-window' should choose.  The possible choices
     are `lru' or nil (the default) to select the least recently used window,
-    and `mru' to select the most recently used window.  It can also be
-    a function that takes two arguments: a buffer and an alist, and should
-    return the window where to display the buffer.  If the value is `lru',
-    it avoids selecting windows that are not full-width and windows on
-    another frame.  If the value is `mru', it does not consider the
-    selected window and windows on any frame but the selected one.
-    It's useful to customize `display-buffer-base-action' to
-    `(nil . ((some-window . mru))) when you want to display buffers in the
+    and `mru' to select the most recently used window.  It can also be a
+    function that takes two arguments: a buffer and an alist, and should
+    return the window in which to display the buffer.  If the value is
+    `lru', it avoids selecting windows that are not full-width and windows
+    on another frame.  If the value is `mru', it does not consider the
+    selected window and windows on any frame but the selected one.  It's
+    useful to customize `display-buffer-base-action' to
+    `(nil . ((some-window . mru)))' when you want to display buffers in the
     same non-selected window in a configuration with more than two windows.
  `body-function' -- A function called with one argument - the
     displayed window.  It is called after the buffer is
