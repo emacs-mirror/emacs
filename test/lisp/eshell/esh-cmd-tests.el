@@ -507,13 +507,14 @@ NAME is the name of the test case."
 
 (ert-deftest esh-cmd-test/empty-background-command ()
   "Test that Eshell reports an error when trying to background a nil command."
-  (with-temp-eshell
-    (eshell-match-command-output "echo hi & &"
-                                 "\\`Empty command before `&'\n")
-    ;; Make sure the next Eshell prompt has the original input so the
-    ;; user can fix it.
-    (should (equal (buffer-substring eshell-last-output-end (point))
-                   "echo hi & &"))))
+  (let ((text-quoting-style 'grave))
+    (with-temp-eshell
+     (eshell-match-command-output "echo hi & &"
+                                  "\\`Empty command before `&'\n")
+     ;; Make sure the next Eshell prompt has the original input so the
+     ;; user can fix it.
+     (should (equal (buffer-substring eshell-last-output-end (point))
+                    "echo hi & &")))))
 
 (ert-deftest esh-cmd-test/throw ()
   "Test that calling `throw' as an Eshell command unwinds everything properly."
