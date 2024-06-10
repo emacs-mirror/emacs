@@ -118,7 +118,6 @@
 ;;; Code:
 
 (require 'tramp)
-(defvar tramp-actions-before-shell)
 
 ;;;###tramp-autoload
 (defcustom tramp-docker-program "docker"

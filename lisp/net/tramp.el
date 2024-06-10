@@ -1635,12 +1635,12 @@ entry does not exist, return DEFAULT."
 ;;;###tramp-autoload
 (defun tramp-file-local-name (name)
   "Return the local name component of NAME.
-This function removes from NAME the specification of the remote
-host and the method of accessing the host, leaving only the part
-that identifies NAME locally on the remote system.  If NAME does
-not match `tramp-file-name-regexp', just `file-local-name' is
-called.  The returned file name can be used directly as argument
-of `process-file', `start-file-process', or `shell-command'."
+This function removes from NAME the specification of the remote host and
+the method of accessing the host, leaving only the part that identifies
+NAME locally on the remote system.  If NAME does not match
+`tramp-file-name-regexp', just `file-local-name' is called.  The
+returned file name can be used directly as argument of `make-process',
+`process-file', `start-file-process', or `shell-command'."
   (or (and (tramp-tramp-file-p name)
            (string-match (nth 0 tramp-file-name-structure) name)
            (match-string (nth 4 tramp-file-name-structure) name))
@@ -2688,8 +2688,8 @@ not in completion mode."
   (let ((tramp-verbose 0)
 	(vec (tramp-ensure-dissected-file-name vec-or-filename)))
     (or ;; We check this for the process related to
-	;; `tramp-buffer-name'; otherwise `start-file-process'
-	;; wouldn't run ever when `non-essential' is non-nil.
+	;; `tramp-buffer-name'; otherwise `make-process' wouldn't run
+	;; ever when `non-essential' is non-nil.
         (process-live-p (tramp-get-process vec))
 	(not non-essential))))
 
@@ -3519,6 +3519,63 @@ BODY is the backend specific code."
 	 (tramp-flush-file-properties v localname)
 	 ,@body
 	 nil))))
+
+(defmacro tramp-skeleton-make-process (args null-command stderr-file &rest body)
+  "Skeleton for `tramp-*-handle-make-process'.
+NULL-COMMAND indicates a possible empty command.  STDERR-FILE means,
+that a stederr file is supported.  BODY is the backend specific code."
+  (declare (indent 3) (debug t))
+  `(when ,args
+     (with-parsed-tramp-file-name (expand-file-name default-directory) nil
+       (let ((name (plist-get ,args :name))
+	     (buffer (plist-get ,args :buffer))
+	     (command (plist-get ,args :command))
+	     (coding (plist-get ,args :coding))
+	     (noquery (plist-get ,args :noquery))
+	     (connection-type
+	      (or (plist-get ,args :connection-type) process-connection-type))
+	     (filter (plist-get ,args :filter))
+	     (sentinel (plist-get ,args :sentinel))
+	     (stderr (plist-get ,args :stderr)))
+	 (unless (stringp name)
+	   (signal 'wrong-type-argument (list #'stringp name)))
+	 (unless (or (bufferp buffer) (string-or-null-p buffer))
+	   (signal 'wrong-type-argument (list #'bufferp buffer)))
+	 (unless (or (consp command) (and ,null-command (null command)))
+	   (signal 'wrong-type-argument (list #'consp command)))
+	 (unless (or (null coding)
+		     (and (symbolp coding) (memq coding coding-system-list))
+		     (and (consp coding)
+			  (memq (car coding) coding-system-list)
+			  (memq (cdr coding) coding-system-list)))
+	   (signal 'wrong-type-argument (list #'symbolp coding)))
+	 (when (eq connection-type t)
+	   (setq connection-type 'pty))
+	 (unless (or (and (consp connection-type)
+			  (memq (car connection-type) '(nil pipe pty))
+			  (memq (cdr connection-type) '(nil pipe pty)))
+		     (memq connection-type '(nil pipe pty)))
+	   (signal 'wrong-type-argument (list #'symbolp connection-type)))
+	 (unless (or (null filter) (eq filter t) (functionp filter))
+	   (signal 'wrong-type-argument (list #'functionp filter)))
+	 (unless (or (null sentinel) (functionp sentinel))
+	   (signal 'wrong-type-argument (list #'functionp sentinel)))
+	 (unless (or (null stderr) (bufferp stderr)
+		     (and ,stderr-file (stringp stderr)))
+	   (signal 'wrong-type-argument (list #'bufferp stderr)))
+	 (when (and (stringp stderr)
+		    (not (tramp-equal-remote default-directory stderr)))
+	   (signal 'file-error (list "Wrong stderr" stderr)))
+
+	 (let ((default-directory tramp-compat-temporary-file-directory)
+	       (buffer
+		(if buffer
+		    (get-buffer-create buffer)
+		  ;; BUFFER can be nil.  We use a temporary buffer.
+		  (generate-new-buffer tramp-temp-buffer-name)))
+	       (orig-command command))
+
+	   ,@body)))))
 
 (defmacro tramp-skeleton-make-symbolic-link
   (target linkname &optional ok-if-already-exists &rest body)
@@ -4893,177 +4950,131 @@ should be set connection-local.")
 
 (defun tramp-handle-make-process (&rest args)
   "An alternative `make-process' implementation for Tramp files."
-  (when args
-    (with-parsed-tramp-file-name (expand-file-name default-directory) nil
-      (let ((default-directory tramp-compat-temporary-file-directory)
-	    (name (plist-get args :name))
-	    (buffer (plist-get args :buffer))
-	    (command (plist-get args :command))
-	    (coding (plist-get args :coding))
-	    (noquery (plist-get args :noquery))
-	    (connection-type
-	     (or (plist-get args :connection-type) process-connection-type))
-	    (filter (plist-get args :filter))
-	    (sentinel (plist-get args :sentinel))
-	    (stderr (plist-get args :stderr)))
-	(unless (stringp name)
-	  (signal 'wrong-type-argument (list #'stringp name)))
-	(unless (or (bufferp buffer) (string-or-null-p buffer))
-	  (signal 'wrong-type-argument (list #'bufferp buffer)))
-	(unless (consp command)
-	  (signal 'wrong-type-argument (list #'consp command)))
-	(unless (or (null coding)
-		    (and (symbolp coding) (memq coding coding-system-list))
-		    (and (consp coding)
-			 (memq (car coding) coding-system-list)
-			 (memq (cdr coding) coding-system-list)))
-	  (signal 'wrong-type-argument (list #'symbolp coding)))
-	(when (eq connection-type t)
-	  (setq connection-type 'pty))
-	(unless (or (and (consp connection-type)
-			 (memq (car connection-type) '(nil pipe pty))
-			 (memq (cdr connection-type) '(nil pipe pty)))
-		    (memq connection-type '(nil pipe pty)))
-	  (signal 'wrong-type-argument (list #'symbolp connection-type)))
-	(unless (or (null filter) (eq filter t) (functionp filter))
-	  (signal 'wrong-type-argument (list #'functionp filter)))
-	(unless (or (null sentinel) (functionp sentinel))
-	  (signal 'wrong-type-argument (list #'functionp sentinel)))
-	(unless (or (null stderr) (bufferp stderr))
-	  (signal 'wrong-type-argument (list #'bufferp stderr)))
+  (tramp-skeleton-make-process args nil nil
+    ;; Check for `tramp-sh-file-name-handler' and
+    ;; `adb-file-name-handler-p', because something is different
+    ;; between tramp-sh.el, and tramp-adb.el or tramp-sshfs.el.
+    (let* ((sh-file-name-handler-p (tramp-sh-file-name-handler-p v))
+	   (adb-file-name-handler-p (tramp-adb-file-name-p v))
+	   (env (mapcar
+		 (lambda (elt)
+		   (when (tramp-compat-string-search "=" elt) elt))
+		 tramp-remote-process-environment))
+	   ;; We use as environment the difference to toplevel
+	   ;; `process-environment'.
+	   (env (dolist (elt process-environment env)
+		  (when (and
+			 (tramp-compat-string-search "=" elt)
+			 (not
+			  (member
+			   elt (default-toplevel-value 'process-environment))))
+		    (setq env (cons elt env)))))
+	   ;; Add remote path if exists.
+	   (env (if-let ((sh-file-name-handler-p)
+			 (remote-path
+			  (string-join (tramp-get-remote-path v) ":")))
+		    (setenv-internal env "PATH" remote-path 'keep)
+		  env))
+	   ;; Add HISTFILE if indicated.
+	   (env (if-let ((sh-file-name-handler-p))
+		    (cond
+		     ((stringp tramp-histfile-override)
+		      (setenv-internal
+		       env "HISTFILE" tramp-histfile-override 'keep))
+		     (tramp-histfile-override
+		      (setq env (setenv-internal env "HISTFILE" "''" 'keep))
+		      (setq env (setenv-internal env "HISTSIZE" "0" 'keep))
+		      (setenv-internal env "HISTFILESIZE" "0" 'keep))
+		     (t env))
+		  env))
+	   ;; Add INSIDE_EMACS.
+	   (env (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
+	   (env (mapcar #'tramp-shell-quote-argument (delq nil env)))
+	   ;; Quote command.
+	   (command (mapconcat #'tramp-shell-quote-argument command " "))
+	   ;; Set cwd and environment variables.
+	   (command
+	    (append
+	     `("cd" ,(tramp-shell-quote-argument localname) "&&" "(" "env")
+	     env `(,command ")")))
+	   ;; Add remote shell if needed.
+	   (command
+	    (if (consp (tramp-get-method-parameter v 'tramp-direct-async))
+		(append
+		 (tramp-get-method-parameter v 'tramp-direct-async)
+                 `(,(string-join command " ")))
+	      command))
+	   (login-program
+	    (tramp-get-method-parameter v 'tramp-login-program))
+	   ;; We don't create the temporary file.  In fact, it is just
+	   ;; a prefix for the ControlPath option of ssh; the real
+	   ;; temporary file has another name, and it is created and
+	   ;; protected by ssh.  It is also removed by ssh when the
+	   ;; connection is closed.  The temporary file name is cached
+	   ;; in the main connection process, therefore we cannot use
+	   ;; `tramp-get-connection-process'.
+	   (tmpfile
+	    (when sh-file-name-handler-p
+	      (with-tramp-connection-property
+		  (tramp-get-process v) "temp-file"
+		(tramp-compat-make-temp-name))))
+	   (options
+	    (when sh-file-name-handler-p
+	      (tramp-compat-funcall
+		  'tramp-ssh-controlmaster-options v)))
+	   (device
+	    (when adb-file-name-handler-p
+	      (tramp-compat-funcall
+		  'tramp-adb-get-device v)))
+           (pta (unless (eq connection-type 'pipe) "-t"))
+	   login-args p)
 
-	;; Check for `tramp-sh-file-name-handler', because something
-	;; is different between tramp-sh.el, and tramp-adb.el or
-	;; tramp-sshfs.el.
-	(let* ((sh-file-name-handler-p (tramp-sh-file-name-handler-p v))
-	       (adb-file-name-handler-p (tramp-adb-file-name-p v))
-	       (buffer
-		(if buffer
-		    (get-buffer-create buffer)
-		  ;; BUFFER can be nil.  We use a temporary buffer.
-		  (generate-new-buffer tramp-temp-buffer-name)))
-	       (orig-command command)
-	       (env (mapcar
-		     (lambda (elt)
-		       (when (tramp-compat-string-search "=" elt) elt))
-		     tramp-remote-process-environment))
-	       ;; We use as environment the difference to toplevel
-	       ;; `process-environment'.
-	       (env (dolist (elt process-environment env)
-		      (when
-			  (and
-			   (tramp-compat-string-search "=" elt)
-			   (not
-			    (member
-			     elt (default-toplevel-value 'process-environment))))
-			(setq env (cons elt env)))))
-	       ;; Add remote path if exists.
-	       (env (if-let ((sh-file-name-handler-p)
-			     (remote-path
-			      (string-join (tramp-get-remote-path v) ":")))
-			(setenv-internal env "PATH" remote-path 'keep)
-		      env))
-	       ;; Add HISTFILE if indicated.
-	       (env (if-let ((sh-file-name-handler-p))
-			(cond
-			 ((stringp tramp-histfile-override)
-			  (setenv-internal env "HISTFILE" tramp-histfile-override 'keep))
-			 (tramp-histfile-override
-			  (setq env (setenv-internal env "HISTFILE" "''" 'keep))
-			  (setq env (setenv-internal env "HISTSIZE" "0" 'keep))
-			  (setenv-internal env "HISTFILESIZE" "0" 'keep))
-			 (t env))
-		      env))
-	       ;; Add INSIDE_EMACS.
-	       (env (setenv-internal
-		     env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
-	       (env (mapcar #'tramp-shell-quote-argument (delq nil env)))
-	       ;; Quote command.
-	       (command (mapconcat #'tramp-shell-quote-argument command " "))
-	       ;; Set cwd and environment variables.
-	       (command
-	        (append
-		 `("cd" ,(tramp-shell-quote-argument localname) "&&" "(" "env")
-		 env `(,command ")")))
-	       ;; Add remote shell if needed.
-	       (command
-		(if (consp (tramp-get-method-parameter v 'tramp-direct-async))
-		    (append
-		     (tramp-get-method-parameter v 'tramp-direct-async)
-                     `(,(string-join command " ")))
-		  command))
-	       (login-program
-		(tramp-get-method-parameter v 'tramp-login-program))
-	       ;; We don't create the temporary file.  In fact, it is
-	       ;; just a prefix for the ControlPath option of ssh; the
-	       ;; real temporary file has another name, and it is
-	       ;; created and protected by ssh.  It is also removed by
-	       ;; ssh when the connection is closed.  The temporary
-	       ;; file name is cached in the main connection process,
-	       ;; therefore we cannot use
-	       ;; `tramp-get-connection-process'.
-	       (tmpfile
-		(when sh-file-name-handler-p
-		  (with-tramp-connection-property
-		      (tramp-get-process v) "temp-file"
-		    (tramp-compat-make-temp-name))))
-	       (options
-		(when sh-file-name-handler-p
-		  (tramp-compat-funcall
-		      'tramp-ssh-controlmaster-options v)))
-	       (device
-		(when adb-file-name-handler-p
-		  (tramp-compat-funcall
-		      'tramp-adb-get-device v)))
-               (pta (unless (eq connection-type 'pipe) "-t"))
-	       login-args p)
+      ;; Command could be too long, for example due to a longish PATH.
+      (when (and sh-file-name-handler-p
+		 (tramp-compat-length>
+		  (string-join command) (tramp-get-remote-pipe-buf v)))
+	(signal 'error (cons "Command too long:" command)))
 
-	  ;; Command could be too long, for example due to a longish PATH.
-	  (when (and sh-file-name-handler-p
-		     (tramp-compat-length>
-		      (string-join command) (tramp-get-remote-pipe-buf v)))
-	    (signal 'error (cons "Command too long:" command)))
+      (setq
+       ;; Replace `login-args' place holders.  Split ControlMaster
+       ;; options.
+       login-args
+       (append
+	(flatten-tree (tramp-get-method-parameter v 'tramp-async-args))
+	(flatten-tree
+	 (mapcar
+	  (lambda (x) (split-string x " "))
+	  (tramp-expand-args
+	   v 'tramp-login-args nil
+	   ?h (or host "") ?u (or user "") ?p (or port "")
+	   ?c (format-spec (or options "") (format-spec-make ?t tmpfile))
+	   ?d (or device "") ?a (or pta "") ?l ""))))
+       ;; Suppress `internal-default-process-sentinel', which is set
+       ;; when :sentinel is nil.  (Bug#71049)
+       p (make-process
+	  :name name :buffer buffer
+	  :command (append `(,login-program) login-args command)
+	  :coding coding :noquery noquery :connection-type connection-type
+	  :sentinel (or sentinel #'ignore) :stderr stderr))
+      ;; Set filter.  Prior Emacs 29.1, it doesn't work reliably to
+      ;; provide it as `make-process' argument when filter is t.  See
+      ;; Bug#51177.
+      (when filter
+	(set-process-filter p filter))
+      (tramp-post-process-creation p v)
+      ;; Query flag is overwritten in `tramp-post-process-creation',
+      ;; so we reset it.
+      (set-process-query-on-exit-flag p (null noquery))
+      ;; This is needed for ssh or PuTTY based processes, and only if
+      ;; the respective options are set.  Perhaps, the setting could
+      ;; be more fine-grained.
+      ;; (process-put p 'tramp-shared-socket t)
+      (process-put p 'remote-command orig-command)
+      (tramp-set-connection-property p "remote-command" orig-command)
+      (when (bufferp stderr)
+	(tramp-taint-remote-process-buffer stderr))
 
-	  (setq
-	   ;; Replace `login-args' place holders.  Split ControlMaster
-	   ;; options.
-	   login-args
-	   (append
-	    (flatten-tree (tramp-get-method-parameter v 'tramp-async-args))
-	    (flatten-tree
-	     (mapcar
-	      (lambda (x) (split-string x " "))
-	      (tramp-expand-args
-	       v 'tramp-login-args nil
-	       ?h (or host "") ?u (or user "") ?p (or port "")
-	       ?c (format-spec (or options "") (format-spec-make ?t tmpfile))
-	       ?d (or device "") ?a (or pta "") ?l ""))))
-	   ;; Suppress `internal-default-process-sentinel', which is
-	   ;; set when :sentinel is nil.  (Bug#71049)
-	   p (make-process
-	      :name name :buffer buffer
-	      :command (append `(,login-program) login-args command)
-	      :coding coding :noquery noquery :connection-type connection-type
-	      :sentinel (or sentinel #'ignore) :stderr stderr))
-	  ;; Set filter.  Prior Emacs 29.1, it doesn't work reliably
-	  ;; to provide it as `make-process' argument when filter is
-	  ;; t.  See Bug#51177.
-	  (when filter
-	    (set-process-filter p filter))
-	  (tramp-post-process-creation p v)
-	  ;; Query flag is overwritten in `tramp-post-process-creation',
-	  ;; so we reset it.
-	  (set-process-query-on-exit-flag p (null noquery))
-	  ;; This is needed for ssh or PuTTY based processes, and
-	  ;; only if the respective options are set.  Perhaps, the
-	  ;; setting could be more fine-grained.
-	  ;; (process-put p 'tramp-shared-socket t)
-	  (process-put p 'remote-command orig-command)
-	  (tramp-set-connection-property p "remote-command" orig-command)
-	  (when (bufferp stderr)
-	    (tramp-taint-remote-process-buffer stderr))
-
-	  p)))))
+      p)))
 
 (defun tramp-handle-make-symbolic-link
     (_target linkname &optional _ok-if-already-exists)
