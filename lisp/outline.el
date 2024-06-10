@@ -1708,8 +1708,7 @@ after reverting the buffer."
     (outline-map-region
      (lambda ()
        (let* ((level (funcall outline-level))
-              (heading (buffer-substring-no-properties (pos-bol) (pos-eol)))
-              path)
+              (heading (buffer-substring-no-properties (pos-bol) (pos-eol))))
          (while (and current-path (>= (cdar current-path) level))
            (pop current-path))
          (push (cons heading level) current-path)
@@ -1730,8 +1729,7 @@ hidden by `outline-hidden-headings-paths'."
     (outline-map-region
      (lambda ()
        (let* ((level (funcall outline-level))
-              (heading (buffer-substring (pos-bol) (pos-eol)))
-              path)
+              (heading (buffer-substring (pos-bol) (pos-eol))))
          (while (and current-path (>= (cdar current-path) level))
            (pop current-path))
          (push (cons heading level) current-path)
