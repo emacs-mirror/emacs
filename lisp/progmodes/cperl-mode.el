@@ -3683,7 +3683,7 @@ fontified.  Do nothing if BEGIN and END are equal.  If
                                          ( ?\N{U+1F8AB} . ?\N{U+1F8AA} ))
   "Full list of paired delimiters for quote-like constructs.
 As an experimental feature, Perl uses these under \"feature
-\='extra_paired_delimiters\='\" or in feature bundles of Perl 5.40 or
+\\='extra_paired_delimiters\\='\" or in feature bundles of Perl 5.40 or
 newer.  To activate the extra delimiters, switch on the minor mode
 `cperl-extra-paired-delimiters-mode'.  This is also available from the
 \"Perl\" menu in section \"Toggle...\".
