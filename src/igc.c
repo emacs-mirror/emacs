@@ -4560,21 +4560,23 @@ redirect_roots (struct igc_mirror *m)
 }
 
 static void
-discard_dump (void)
+discard_dump (void *start, void *end)
 {
+  size_t n = (char *) end - (char *) start;
+  dump_discard_mem (start, n);
 }
 
 static void
-mirror_dump (void)
+mirror_dump (void *start, void *end)
 {
-  IGC_WITH_PARKED (global_igc)				\
+  IGC_WITH_PARKED (global_igc)
     {
       struct igc_mirror m = make_igc_mirror ();
       record_time (&m, "Start");
       copy_dump (&m);
       mirror_references (&m);
       redirect_roots (&m);
-      discard_dump ();
+      discard_dump (start, end);
 
       if (getenv ("IGC_MIRROR_STATS"))
 	print_mirror_stats (&m);
@@ -4584,5 +4586,5 @@ mirror_dump (void)
 void
 igc_on_pdump_loaded (void *start, void *end)
 {
-  mirror_dump ();
+  mirror_dump (start, end);
 }
