@@ -2549,6 +2549,15 @@ identifier, showing the file name and the line where the identifier is
 referenced.  The XREF mode commands are available in this buffer, see
 @ref{Xref Commands}.
 
+When invoked in a buffer whose major mode uses the @code{etags} backend,
+@kbd{M-?} searches files and buffers whose major mode matches that of
+the original buffer.  It guesses that mode from file extensions, so if
+@kbd{M-?} seems to be skipping relevant buffers or files, try
+customizing either the variable @code{semantic-symref-filepattern-alist}
+(if your buffer's major mode already has an entry in it), or
+@code{auto-mode-alist} (if not), thereby informing @code{xref} of the
+missing extensions (@pxref{Choosing Modes}).
+
 @vindex xref-auto-jump-to-first-xref
   If the value of the variable @code{xref-auto-jump-to-first-xref} is
 @code{t}, @code{xref-find-references} automatically jumps to the first
@@ -2767,10 +2776,32 @@ Tags for variables and functions in classes are named
 @item
 In @LaTeX{} documents, the arguments for @code{\chapter},
 @code{\section}, @code{\subsection}, @code{\subsubsection},
-@code{\eqno}, @code{\label}, @code{\ref}, @code{\cite},
-@code{\bibitem}, @code{\part}, @code{\appendix}, @code{\entry},
-@code{\index}, @code{\def}, @code{\newcommand}, @code{\renewcommand},
-@code{\newenvironment} and @code{\renewenvironment} are tags.
+@code{\eqno}, @code{\label}, @code{\ref}, @code{\Ref}, @code{\footref},
+@code{\cite}, @code{\bibitem}, @code{\part}, @code{\appendix},
+@code{\entry}, @code{\index}, @code{\def}, @code{\edef}, @code{\gdef},
+@code{\xdef}, @code{\newcommand}, @code{\renewcommand},
+@code{\newenvironment}, @code{\renewenvironment},
+@code{\DeclareRobustCommand}, @code{\newrobustcmd},
+@code{\renewrobustcmd}, @code{\providecommand},
+@code{\providerobustcmd}, @code{\NewDocumentCommand},
+@code{\RenewDocumentCommand}, @code{\ProvideDocumentCommand},
+@code{\DeclareDocumentCommand}, @code{\NewExpandableDocumentCommand},
+@code{\RenewExpandableDocumentCommand},
+@code{\ProvideExpandableDocumentCommand},
+@code{\DeclareExpandableDocumentCommand},
+@code{\NewDocumentEnvironment}, @code{\RenewDocumentEnvironment},
+@code{\ProvideDocumentEnvironment}, @code{\DeclareDocumentEnvironment},
+@code{\csdef}, @code{\csedef}, @code{\csgdef}, @code{\csxdef},
+@code{\csletcs}, @code{\cslet}, @code{\letcs}, @code{\let},
+@code{\cs_new_protected_nopar}, @code{\cs_new_protected},
+@code{\cs_new_nopar}, @code{\cs_new_eq}, @code{\cs_new},
+@code{\cs_set_protected_nopar}, @code{\cs_set_protected},
+@code{\cs_set_nopar}, @code{\cs_set_eq}, @code{\cs_set},
+@code{\cs_gset_protected_nopar}, @code{\cs_gset_protected},
+@code{\cs_gset_nopar}, @code{\cs_gset_eq}, @code{\cs_gset},
+@code{\cs_generate_from_arg_count}, and @code{\cs_generate_variant} are
+tags.  So too are the arguments of any starred variants of these
+commands.
 
 Other commands can make tags as well, if you specify them in the
 environment variable @env{TEXTAGS} before invoking @command{etags}.  The

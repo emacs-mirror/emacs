@@ -343,6 +343,15 @@ the 'grep' results editable.  The edits will be reflected in the buffer
 visiting the originating file.  Typing 'C-c C-c' will leave the Grep
 Edit mode.
 
+** TeX modes
+
++++
+*** New xref backend for TeX modes.
+The new backend ('tex-etags') is on by default, and improves the
+functionality of the standard 'xref' commands in TeX buffers.  You can
+restore the standard 'etags' backend with the 'M-x xref-etags-mode'
+toggle.
+
 
 * New Modes and Packages in Emacs 31.1
 

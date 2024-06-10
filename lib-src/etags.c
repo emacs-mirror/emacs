@@ -793,11 +793,27 @@ variables set with 'set!' at top level in the file.";
 static const char *TeX_suffixes [] =
   { "bib", "clo", "cls", "ltx", "sty", "TeX", "tex", NULL };
 static const char TeX_help [] =
-"In LaTeX text, the argument of any of the commands '\\chapter',\n\
-'\\section', '\\subsection', '\\subsubsection', '\\eqno', '\\label',\n\
-'\\ref', '\\cite', '\\bibitem', '\\part', '\\appendix', '\\entry',\n\
-'\\index', '\\def', '\\newcommand', '\\renewcommand',\n\
-'\\newenvironment' or '\\renewenvironment' is a tag.\n\
+"In LaTeX text, the argument of the commands '\\chapter', '\\section',\n\
+'\\subsection', '\\subsubsection', '\\eqno', '\\label', '\\ref',\n\
+'\\Ref', '\\footref', '\\cite', '\\bibitem', '\\part', '\\appendix',\n\
+'\\entry', '\\index', '\\def', '\\edef', '\\gdef', '\\xdef',\n\
+'\\newcommand', '\\renewcommand', '\\newrobustcmd', '\\renewrobustcmd',\n\
+'\\newenvironment', '\\renewenvironment', '\\DeclareRobustCommand',\n\
+'\\providecommand', '\\providerobustcmd', '\\NewDocumentCommand',\n\
+'\\RenewDocumentCommand', '\\ProvideDocumentCommand',\n\
+'\\DeclareDocumentCommand', '\\NewExpandableDocumentCommand',\n\
+'\\RenewExpandableDocumentCommand', '\\ProvideExpandableDocumentCommand',\n\
+'\\DeclareExpandableDocumentCommand', '\\NewDocumentEnvironment',\n\
+'\\RenewDocumentEnvironment', '\\ProvideDocumentEnvironment',\n\
+'\\DeclareDocumentEnvironment','\\csdef', '\\csedef', '\\csgdef',\n\
+'\\csxdef', '\\csletcs', '\\cslet', '\\letcs', '\\let',\n\
+'\\cs_new_protected_nopar', '\\cs_new_protected', '\\cs_new_nopar',\n\
+'\\cs_new_eq', '\\cs_new', '\\cs_set_protected_nopar',\n\
+'\\cs_set_protected', '\\cs_set_nopar', '\\cs_set_eq', '\\cs_set',\n\
+'\\cs_gset_protected_nopar', '\\cs_gset_protected', '\\cs_gset_nopar',\n\
+'\\cs_gset_eq', '\\cs_gset', '\\cs_generate_from_arg_count', or\n\
+'\\cs_generate_variant' is a tag.  So is the argument of any starred\n\
+variant of these commands.\n\
 \n\
 Other commands can be specified by setting the environment variable\n\
 'TEXTAGS' to a colon-separated list like, for example,\n\
@@ -5746,9 +5762,20 @@ static linebuffer *TEX_toktab = NULL; /* Table with tag tokens */
 /* Default set of control sequences to put into TEX_toktab.
    The value of environment var TEXTAGS is prepended to this.  */
 static const char *TEX_defenv = "\
-:chapter:section:subsection:subsubsection:eqno:label:ref:cite:bibitem\
-:part:appendix:entry:index:def\
-:newcommand:renewcommand:newenvironment:renewenvironment";
+:label:ref:Ref:footref:chapter:section:subsection:subsubsection:eqno:cite\
+:bibitem:part:appendix:entry:index:def:edef:gdef:xdef:newcommand:renewcommand\
+:newenvironment:renewenvironment:DeclareRobustCommand:renewrobustcmd\
+:newrobustcmd:providecommand:providerobustcmd:NewDocumentCommand\
+:RenewDocumentCommand:ProvideDocumentCommand:DeclareDocumentCommand\
+:NewExpandableDocumentCommand:RenewExpandableDocumentCommand\
+:ProvideExpandableDocumentCommand:DeclareExpandableDocumentCommand\
+:NewDocumentEnvironment:RenewDocumentEnvironment\
+:ProvideDocumentEnvironment:DeclareDocumentEnvironment:csdef\
+:csedef:csgdef:csxdef:csletcs:cslet:letcs:let:cs_new_protected_nopar\
+:cs_new_protected:cs_new_nopar:cs_new_eq:cs_new:cs_set_protected_nopar\
+:cs_set_protected:cs_set_nopar:cs_set_eq:cs_set:cs_gset_protected_nopar\
+:cs_gset_protected:cs_gset_nopar:cs_gset_eq:cs_gset\
+:cs_generate_from_arg_count:cs_generate_variant";
 
 static void TEX_decode_env (const char *, const char *);
 
@@ -5807,19 +5834,139 @@ TeX_commands (FILE *inf)
 	      {
 		char *p;
 		ptrdiff_t namelen, linelen;
-		bool opgrp = false;
+		bool opgrp = false, one_esc = false, is_explthree = false;
 
 		cp = skip_spaces (cp + key->len);
+
+		/* 1. The canonical expl3 syntax looks something like this:
+		   \cs_new:Npn \__hook_tl_gput:Nn { \ERROR }.  First, if we
+		   want to tag any such commands, we include only the part
+		   before the colon (cs_new) in TEX_defenv or TEXTAGS.  Second,
+		   etags skips the argument specifier (including the colon)
+		   after the tag token, so that it doesn't become the tag name.
+		   Third, we set the boolean 'is_explthree' to true so that we
+		   can remove the argument specifier from the actual tag name
+		   (__hook_tl_gput).  This all allows us to include expl3
+		   constructs in TEX_defenv or in the environment variable
+		   TEXTAGS without requiring a change of separator, and it also
+		   allows us to find the definition of variant commands (with
+		   different argument specifiers) defined using, for example,
+		   \cs_generate_variant:Nn.  Please note that the expl3 spec
+		   requires etags to pay more attention to whitespace in the
+		   code.
+
+		   2. We also automatically remove the asterisk from starred
+		   variants of all commands, without the need to include the
+		   starred commands explicitly in TEX_defenv or TEXTAGS. */
+		if (*cp == ':')
+		  {
+		    while (!c_isspace (*cp) && *cp != TEX_opgrp)
+		      cp++;
+		    cp = skip_spaces (cp);
+		    is_explthree = true;
+		  }
+		else if (*cp == '*')
+		  cp++;
+
+		/* Skip the optional arguments to commands in the tags list so
+		   that these arguments don't end up as the name of the tag.
+		   The name will instead come from the argument in curly braces
+		   that follows the optional ones.  The '\let' command gets
+		   special treatment. */
+		while (*cp != '\0' && *cp != '%'
+		       && !streq (key->buffer, "let"))
+		  {
+		    if (*cp == '[')
+		      {
+			while (*cp != ']' && *cp != '\0' && *cp != '%')
+			  cp++;
+		      }
+		    else if (*cp == '(')
+		      {
+			while (*cp != ')' && *cp != '\0' && *cp != '%')
+			  cp++;
+		      }
+		    else if (*cp == ']' || *cp == ')')
+		      cp++;
+		    else
+		      break;
+		  }
 		if (*cp == TEX_opgrp)
 		  {
 		    opgrp = true;
 		    cp++;
+		    cp = skip_spaces (cp); /* For expl3 code. */
 		  }
+
+		/* Removing the TeX escape character from tag names simplifies
+		   things for editors finding tagged commands in TeX buffers.
+		   This applies to Emacs but also to the tag-finding behavior
+		   of at least some of the editors that use ctags, though in
+		   the latter case this will remain suboptimal.  The
+		   undocumented ctags option '--no-duplicates' may help. */
+		if (*cp == TEX_esc)
+		  {
+		    cp++;
+		    one_esc = true;
+		  }
+
+		/* Testing !c_isspace && !c_ispunct is simpler, but halts
+		   processing at too many places.  The list as it stands tries
+		   both to ensure that tag names will derive from macro names
+		   rather than from optional parameters to those macros, and
+		   also to return findable names while still allowing for
+		   unorthodox constructs. */
 		for (p = cp;
-		     (!c_isspace (*p) && *p != '#' &&
-		      *p != TEX_opgrp && *p != TEX_clgrp);
+		     (!c_isspace (*p) && *p != '#' && *p != '=' &&
+		      *p != '[' && *p != '(' && *p != TEX_opgrp &&
+		      *p != TEX_clgrp && *p != '"' && *p != '\'' &&
+		      *p != '%' && *p != ',' && *p != '|' && *p != '$');
 		     p++)
-		  continue;
+		  /* In expl3 code we remove the argument specification from
+		     the tag name.  More generally we allow only one (deleted)
+		     escape char in a tag name, which (primarily) enables
+		     tagging a TeX command's different, possibly temporary,
+		     '\let' bindings. */
+		  if (is_explthree && *p == ':')
+		    break;
+		  else if (*p == TEX_esc)
+		    { /* Second part of test is for, e.g., \cslet. */
+		      if (!one_esc && !opgrp)
+			{
+			  one_esc = true;
+			  continue;
+			}
+		      else
+			break;
+		    }
+		  else
+		    continue;
+		/* For TeX files, tags without a name are basically cruft, and
+		   in some situations they can produce spurious and confusing
+		   matches.  Try to catch as many cases as possible where a
+		   command name is of the form '\(', but avoid, as far as
+		   possible, the spurious matches. */
+		if (p == cp)
+		  {
+		    switch (*p)
+		      { /* Include =? */
+		      case '(': case '[': case '"': case '\'':
+		      case '\\': case '!': case '=': case ',':
+		      case '|': case '$':
+			p++;
+			break;
+		      case '{': case '}': case '<': case '>':
+			if (!opgrp)
+			  {
+			      p++;
+			      if (*p == '\0' || *p == '%')
+				goto tex_next_line;
+			  }
+			break;
+		      default:
+			break;
+		      }
+		  }
 		namelen = p - cp;
 		linelen = lb.len;
 		if (!opgrp || *p == TEX_clgrp)
@@ -5828,9 +5975,18 @@ TeX_commands (FILE *inf)
 		      p++;
 		    linelen = p - lb.buffer + 1;
 		  }
-		make_tag (cp, namelen, true,
-			  lb.buffer, linelen, lineno, linecharno);
-		goto tex_next_line; /* We only tag a line once */
+		if (namelen)
+		  make_tag (cp, namelen, true,
+			    lb.buffer, linelen, lineno, linecharno);
+		/* Lines with more than one \def or \let are surprisingly
+		   common in TeX files, especially in the system files that
+		   form the basis of the various TeX formats.  This tags them
+		   all. */
+		/* goto tex_next_line; /\* We only tag a line once *\/ */
+		while (*cp != '\0' && *cp != '%' && *cp != TEX_esc)
+		  cp++;
+		if (*cp != TEX_esc)
+		  goto tex_next_line;
 	      }
 	}
     tex_next_line:
