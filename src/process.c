@@ -8879,12 +8879,12 @@ On GNU/Linux systems, the value should not exceed
 /proc/sys/fs/pipe-max-size.  See pipe(7) manpage for details.  */);
   read_process_output_max = 65536;
 
-  DEFVAR_BOOL ("read-process-output-fast", read_process_output_fast,
+  DEFVAR_BOOL ("read-process-output-fast", fast_read_process_output,
 	       doc: /* Non-nil to optimize the insertion of process output.
 We skip calling `internal-default-process-filter' and don't allocate
 the Lisp string that would be used as its argument.  Only affects the
 case of asynchronous process with the default filter.  */);
-  read_process_output_fast = true;
+  fast_read_process_output = true;
 
   DEFVAR_INT ("process-error-pause-time", process_error_pause_time,
 	      doc: /* The number of seconds to pause after handling process errors.
