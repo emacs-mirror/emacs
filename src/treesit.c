@@ -433,7 +433,7 @@ static Lisp_Object Vtreesit_str_pred;
    If we think of programs and AST, it is very rare for any program to
    have a very deep AST. For example, you would need 1000+ levels of
    nested if-statements, or a struct somehow nested for 1000+ levels.
-   It’s hard for me to imagine any hand-written or machine generated
+   It's hard for me to imagine any hand-written or machine generated
    program to be like that.  So I think 1000 is already generous.  If
    we look at xdisp.c, its AST only have 30 levels.  */
 #define TREESIT_RECURSION_LIMIT 1000
