@@ -1988,10 +1988,10 @@ sequences.  For example, to bind @kbd{C-c h} to the string
 @end example
 
   Non-@acronym{ASCII} characters can be specified directly in the
-string. To bind to  e.g. @samp{ol@U{00E1}}, use:
+string. To bind to  e.g. @samp{olá}, use:
 
 @example
-(keymap-global-set "C-c h" (key-description "ol@U{00E1}"))
+(keymap-global-set "C-c h" (key-description "olá"))
 @end example
 
   However, be aware that language and coding systems may cause problems
