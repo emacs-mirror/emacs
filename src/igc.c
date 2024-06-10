@@ -1490,22 +1490,6 @@ dflt_scan (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit)
   return MPS_RES_OK;
 }
 
-#if 0
-static mps_res_t
-scan_dump (mps_ss_t ss, void *start, void *end, void *closure)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    struct pdumper_object_it it = { 0 };
-    void *base;
-    while ((base = pdumper_next_object (&it)) != NULL)
-      IGC_FIX_CALL (ss, dflt_scan_obj (ss, base, end, NULL));
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-#endif
-
 static mps_res_t
 fix_vectorlike (mps_ss_t ss, struct Lisp_Vector *v)
 {
@@ -4235,7 +4219,14 @@ mirror_overlay (struct igc_mirror *m, struct Lisp_Overlay *o)
 static void
 mirror_subr (struct igc_mirror *m, struct Lisp_Subr *s)
 {
-  NOT_IMPLEMENTED ();
+  IGC_MIRROR_OBJ (m, &s->command_modes);
+#ifdef HAVE_NATIVE_COMP
+  IGC_MIRROR_OBJ (m, &s->intspec.native);
+  IGC_MIRROR_OBJ (m, &s->command_modes);
+  IGC_MIRROR_OBJ (m, &s->native_comp_u);
+  IGC_MIRROR_OBJ (m, &s->lambda_list);
+  IGC_MIRROR_OBJ (m, &s->type);
+#endif
 }
 
 static void
@@ -4281,7 +4272,7 @@ mirror_finalizer (struct igc_mirror *m, struct Lisp_Finalizer *f)
 static void
 mirror_comp_unit (struct igc_mirror *m, struct Lisp_Native_Comp_Unit *u)
 {
-  NOT_IMPLEMENTED ();
+  IGC_MIRROR_VECTORLIKE (m, u);
 }
 
 #ifdef HAVE_XWIDGETS
@@ -4523,7 +4514,7 @@ mirror (struct igc_mirror *m, void *org_base, void *copy_base)
 }
 
 static void
-mirror_refs (struct igc_mirror *m)
+mirror_references (struct igc_mirror *m)
 {
   DOHASH (XHASH_TABLE (m->dump_to_mps), org_base, copy_base)
     mirror (m, fixnum_to_pointer (org_base), fixnum_to_pointer (copy_base));
@@ -4540,9 +4531,9 @@ redirect_charset_table (struct igc_mirror *m)
      igc_xpalloc is used to make it a root, but until then, it is
      not. See also the comment in charset.c:1145. */
   igc_assert (pdumper_object_p (charset_table));
-  size_t nbytes = charset_table_size * sizeof *charset_table;
+  const size_t nbytes = charset_table_size * sizeof *charset_table;
   struct charset *new_table = igc_xzalloc_ambig (nbytes);
-  size_t used_nbytes = charset_table_used * sizeof *charset_table;
+  const size_t used_nbytes = charset_table_used * sizeof *charset_table;
   memcpy (new_table, charset_table, used_nbytes);
   charset_table = new_table;
 
@@ -4569,6 +4560,11 @@ redirect_roots (struct igc_mirror *m)
 }
 
 static void
+discard_dump (void)
+{
+}
+
+static void
 mirror_dump (void)
 {
   IGC_WITH_PARKED (global_igc)				\
@@ -4576,8 +4572,9 @@ mirror_dump (void)
       struct igc_mirror m = make_igc_mirror ();
       record_time (&m, "Start");
       copy_dump (&m);
-      mirror_refs (&m);
+      mirror_references (&m);
       redirect_roots (&m);
+      discard_dump ();
 
       if (getenv ("IGC_MIRROR_STATS"))
 	print_mirror_stats (&m);
@@ -4587,7 +4584,5 @@ mirror_dump (void)
 void
 igc_on_pdump_loaded (void *start, void *end)
 {
-  /* FIXME: Remove root once dump has been copied. */
-  //root_create_exact (global_igc, start, end, scan_dump);
   mirror_dump ();
 }
