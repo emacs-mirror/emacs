@@ -1991,7 +1991,7 @@ sequences.  For example, to bind @kbd{C-c h} to the string
 string. To bind to  e.g. @samp{olá}, use:
 
 @example
-(keymap-global-set "C-c h" (key-description "olá"))
+(keymap-global-set "C-c h" (key-description "ol@'a"))
 @end example
 
   However, be aware that language and coding systems may cause problems
