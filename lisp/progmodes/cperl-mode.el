@@ -3688,7 +3688,7 @@ newer.  To activate the extra delimiters, switch on the minor mode
 `cperl-extra-paired-delimiters-mode'.  This is also available from the
 \"Perl\" menu in section \"Toggle...\".
 The character pairs available are:
-(), <>, [], {}, «», »«, ༺༻, ༼༽, ᚛᚜, ‘’, ’‘, “”, ”“, ‵′, ‶″, ‷‴, ‹›, ›‹, ⁅⁆,
+(), <>, [], {}, «», »«, ༺༻, ༼༽, ᚛᚜, \\=‘\\=’, \\=’\\=‘, \\=“\\=”, \\=”\\=“, \\=‵\\=′, \\=‶\\=″, \\=‷\\=‴, ‹›, ›‹, ⁅⁆,
 ⁍⁌, ⁽⁾, ₍₎, →←, ↛↚, ↝↜, ↠↞, ↣↢, ↦↤, ↪↩, ↬↫, ↱↰, ↳↲, ⇀↼, ⇁↽, ⇉⇇, ⇏⇍, ⇒⇐, ⇛⇚,
 ⇝⇜, ⇢⇠, ⇥⇤, ⇨⇦, ⇴⬰, ⇶⬱, ⇸⇷, ⇻⇺, ⇾⇽, ∈∋, ∉∌, ∊∍, ≤≥, ≦≧, ≨≩, ≪≫, ≮≯, ≰≱, ≲≳,
 ≴≵, ≺≻, ≼≽, ≾≿, ⊀⊁, ⊂⊃, ⊄⊅, ⊆⊇, ⊈⊉, ⊊⊋, ⊣⊢, ⊦⫞, ⊨⫤, ⊩⫣, ⊰⊱, ⋐⋑, ⋖⋗, ⋘⋙, ⋜⋝,
