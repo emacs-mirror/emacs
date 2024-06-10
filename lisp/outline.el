@@ -34,7 +34,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 (require 'icons)
 
 (defgroup outlines nil
