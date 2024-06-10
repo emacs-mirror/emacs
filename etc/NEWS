@@ -1657,9 +1657,9 @@ fit on fewer lines without negatively impacting readability.
 CPerl mode fontifies subroutine signatures like variable declarations
 which makes them visually distinct from subroutine prototypes.
 
-*** Syntax of Perl up to version 5.38 is supported.
+*** Syntax of Perl up to version 5.40 is supported.
 CPerl mode supports the new keywords for exception handling and the
-object oriented syntax which were added in Perl 5.36 and 5.38.
+object oriented syntax which were added in Perl 5.36, 5.38 and 5.40.
 
 *** New user option 'cperl-fontify-trailer'.
 This user option takes the values 'perl-code' or 'comment' and treats
@@ -1672,6 +1672,11 @@ comment, like Perl mode does.
 This command sets the indentation style for the current buffer.  To
 change the default style, either use the user option with the same name
 or use the command 'cperl-set-style'.
+
+*** New minor mode cperl-extra-paired-delimiters-mode
+Perl 5.36 and newer allows using more than 200 non-ASCII paired
+delimiters for quote-like constructs, eg. "q«text»".  Use this minor
+mode in buffers where this feature is activated.
 
 *** Commands using the Perl info page are obsolete.
 The Perl documentation in info format is no longer distributed with
