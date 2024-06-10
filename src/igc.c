@@ -795,16 +795,14 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
     /* MPS docs say that root scanning functions have exclusive access
        to what is being scanned, the same way format scanning functions
        do. That does not mean one can rely on the thread's specpdl_ptr
-       here. It might be off because it may be updated after this
-       scanner runs. */
+       here because it may be updated after this function runs. */
     struct igc_thread_list *t = closure;
     igc_assert (start == (void *) t->d.ts->m_specpdl);
     igc_assert (end == (void *) t->d.ts->m_specpdl_end);
 
-    for (union specbinding *pdl = start; (void *) pdl < end; ++pdl)
+    for (union specbinding *pdl = start;
+	 (void *) pdl < end && pdl->kind != SPECPDL_FREE; ++pdl)
       {
-	if (pdl->kind == SPECPDL_FREE)
-	  break;
 	switch (pdl->kind)
 	  {
 	  case SPECPDL_FREE:
@@ -852,12 +850,8 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 	    break;
 
 	  case SPECPDL_UNWIND_PTR:
-	    /* This defines a mark function of its own, which
-	       is of no use to us.  Only user is sort.c. */
-	    if (pdl->unwind_ptr.mark)
-	      {
-		igc_assert (!"SPECPDL_UNWIND_PTR with mark function");
-	      }
+	    /* This can contain a mark function of its own, which is of
+	       no use to us.  Only user is sort.c. */
 	    break;
 
 	  case SPECPDL_UNWIND_INT:
