@@ -72,16 +72,17 @@ coding styles between different editors and IDEs."
   :prefix "editorconfig-"
   :group 'tools)
 
-(define-obsolete-variable-alias
-  'edconf-custom-hooks
-  'editorconfig-after-apply-functions
-  "0.5")
-(define-obsolete-variable-alias
-  'editorconfig-custom-hooks
-  'editorconfig-after-apply-functions
-  "0.7.14")
-(defcustom editorconfig-after-apply-functions ()
-  "A list of functions after loading common EditorConfig settings.
+(when (< emacs-major-version 30)
+  (define-obsolete-variable-alias
+    'edconf-custom-hooks
+    'editorconfig-after-apply-functions
+    "0.5")
+  (define-obsolete-variable-alias
+    'editorconfig-custom-hooks
+    'editorconfig-after-apply-functions
+    "0.7.14")
+  (defcustom editorconfig-after-apply-functions ()
+    "A list of functions after loading common EditorConfig settings.
 
 Each element in this list is a hook function.  This hook function
 takes one parameter, which is a property hash table.  The value
@@ -100,10 +101,11 @@ show line numbers on the left:
 
 This hook will be run even when there are no matching sections in
 \".editorconfig\", or no \".editorconfig\" file was found at all."
-  :type 'hook)
+    :type 'hook))
 
-(defcustom editorconfig-hack-properties-functions ()
-  "A list of function to alter property values before applying them.
+(when (< emacs-major-version 30)
+  (defcustom editorconfig-hack-properties-functions ()
+    "A list of function to alter property values before applying them.
 
 These functions will be run after loading \".editorconfig\" files and before
 applying them to current buffer, so that you can alter some properties from
@@ -122,12 +124,10 @@ overwrite \"indent_style\" property when current `major-mode' is a
 
 This hook will be run even when there are no matching sections in
 \".editorconfig\", or no \".editorconfig\" file was found at all."
-  :type 'hook)
+    :type 'hook))
 (make-obsolete-variable 'editorconfig-hack-properties-functions
-                        "Using `editorconfig-after-apply-functions' instead is recommended,
-    because since 2021/08/30 (v0.9.0) this variable cannot support all properties:
-    charset values will be referenced before running this hook."
-                        "v0.9.0")
+                        'editorconfig-get-local-variables-functions
+                        "2024")
 
 (define-obsolete-variable-alias
   'edconf-indentation-alist
@@ -641,30 +641,83 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
                         (format "Error while setting variables from EditorConfig: %S" err))))
     ret))
 
+(defvar editorconfig--getting-coding-system nil)
+
+(defun editorconfig--get-coding-system (&optional _size)
+  "Return the coding system to use according to EditorConfig.
+Meant to be used on `auto-coding-functions'."
+  (defvar auto-coding-file-name) ;; Emacs≥30
+  (when (and (stringp auto-coding-file-name)
+             (file-name-absolute-p auto-coding-file-name)
+	     ;; Don't recurse infinitely.
+	     (not (member auto-coding-file-name
+	                  editorconfig--getting-coding-system)))
+    (let* ((editorconfig--getting-coding-system
+            (cons auto-coding-file-name editorconfig--getting-coding-system))
+           (props (editorconfig-call-get-properties-function
+                   auto-coding-file-name)))
+      (editorconfig-merge-coding-systems (gethash 'end_of_line props)
+                                         (gethash 'charset props)))))
+
+(defun editorconfig--get-dir-local-variables ()
+  "Return the directory local variables specified via EditorConfig.
+Meant to be used on `hack-dir-local-get-variables-functions'."
+  (when (stringp buffer-file-name)
+    (let* ((props (editorconfig-call-get-properties-function buffer-file-name))
+           (alist (editorconfig--get-local-variables props)))
+      ;; FIXME: If there's `/foo/.editorconfig', `/foo/bar/.dir-locals.el',
+      ;; and `/foo/bar/baz/.editorconfig', it would be nice to return two
+      ;; pairs here, so that hack-dir-local can give different priorities
+      ;; to the `/foo/.editorconfig' settings compared to those of
+      ;; `/foo/bar/baz/.editorconfig', but we can't just convert the
+      ;; settings from each file individually and let hack-dir-local merge
+      ;; them because hack-dir-local doesn't have the notion of "unset",
+      ;; and because the conversion of `indent_size' depends on `tab_width'.
+      (when alist
+        (cons
+         (file-name-directory (editorconfig-core-get-nearest-editorconfig
+                               buffer-file-name))
+         alist)))))
 
 ;;;###autoload
 (define-minor-mode editorconfig-mode
   "Toggle EditorConfig feature."
   :global t
-  (let ((modehooks '(prog-mode-hook
-                     text-mode-hook
-                     ;; Some modes call `kill-all-local-variables' in their init
-                     ;; code, which clears some values set by editorconfig.
-                     ;; For those modes, editorconfig-apply need to be called
-                     ;; explicitly through their hooks.
-                     rpm-spec-mode-hook)))
-    (if editorconfig-mode
-        (progn
-          (advice-add 'find-file-noselect :around 'editorconfig--advice-find-file-noselect)
-          (advice-add 'insert-file-contents :around 'editorconfig--advice-insert-file-contents)
-          (dolist (hook modehooks)
-            (add-hook hook
-                      'editorconfig-major-mode-hook
-                      t)))
-      (advice-remove 'find-file-noselect 'editorconfig--advice-find-file-noselect)
-      (advice-remove 'insert-file-contents 'editorconfig--advice-insert-file-contents)
-      (dolist (hook modehooks)
-        (remove-hook hook 'editorconfig-major-mode-hook)))))
+  (if (boundp 'hack-dir-local-get-variables-functions) ;Emacs≥30
+      (if editorconfig-mode
+          (progn
+            (add-hook 'hack-dir-local-get-variables-functions
+                      ;; Give them slightly lower precedence than settings from
+                      ;; `dir-locals.el'.
+                      #'editorconfig--get-dir-local-variables t)
+            ;; `auto-coding-functions' also exists in Emacs<30 but without
+            ;; access to the file's name via `auto-coding-file-name'.
+            (add-hook 'auto-coding-functions
+                      #'editorconfig--get-coding-system))
+        (remove-hook 'hack-dir-local-get-variables-functions
+                     #'editorconfig--get-dir-local-variables)
+        (remove-hook 'auto-coding-functions
+                     #'editorconfig--get-coding-system))
+    ;; Emacs<30
+    (let ((modehooks '(prog-mode-hook
+                       text-mode-hook
+                       ;; Some modes call `kill-all-local-variables' in their init
+                       ;; code, which clears some values set by editorconfig.
+                       ;; For those modes, editorconfig-apply need to be called
+                       ;; explicitly through their hooks.
+                       rpm-spec-mode-hook)))
+      (if editorconfig-mode
+          (progn
+            (advice-add 'find-file-noselect :around #'editorconfig--advice-find-file-noselect)
+            (advice-add 'insert-file-contents :around #'editorconfig--advice-insert-file-contents)
+            (dolist (hook modehooks)
+              (add-hook hook
+                        #'editorconfig-major-mode-hook
+                        t)))
+        (advice-remove 'find-file-noselect #'editorconfig--advice-find-file-noselect)
+        (advice-remove 'insert-file-contents #'editorconfig--advice-insert-file-contents)
+        (dolist (hook modehooks)
+          (remove-hook hook #'editorconfig-major-mode-hook))))))
 
 
 ;; (defconst editorconfig--version
