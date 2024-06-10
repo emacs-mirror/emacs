@@ -4974,7 +4974,7 @@ def foo():
   "Return Jedi readline setup file if PYTHONSTARTUP is not set."
   (or (getenv "PYTHONSTARTUP")
       (with-temp-buffer
-        (if (eql 0 (call-process (python-tests-get-shell-interpreter)
+        (if (eql 0 (call-process python-shell-interpreter
                                  nil t nil "-m" "jedi" "repl"))
             (string-trim (buffer-string))
           ""))))
