@@ -185,7 +185,7 @@ All these properties should be backend agnostic.  Backend
 specific properties are set through `org-export-define-backend'.
 Properties redefined there have precedence over these.")
 
-(defconst org-export-filters-alist
+(defvar org-export-filters-alist
   '((:filter-body . org-export-filter-body-functions)
     (:filter-bold . org-export-filter-bold-functions)
     (:filter-babel-call . org-export-filter-babel-call-functions)
