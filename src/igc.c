@@ -3934,12 +3934,14 @@ mirror_string (struct igc_mirror *m, struct Lisp_String *s)
   /* FIXME: IGC_OBJ_STRING_DATA is currently not used in the dump, which
      means string data has no igc_header in the dump. We could leave
      the string data alone. Not sure what's best.  */
-  igc_assert (pdumper_object_p (s->u.s.data));
-  ptrdiff_t nbytes = STRING_BYTES (s);
-  unsigned char *data = alloc_string_data (nbytes, false);
-  memcpy (data, s->u.s.data, nbytes + 1);
-  s->u.s.data = data;
-
+  if (s->u.s.size_byte != -2)
+    {
+      igc_assert (pdumper_object_p (s->u.s.data));
+      ptrdiff_t nbytes = STRING_BYTES (s);
+      unsigned char *data = alloc_string_data (nbytes, false);
+      memcpy (data, s->u.s.data, nbytes + 1);
+      s->u.s.data = data;
+    }
   IGC_MIRROR_RAW (m, &s->u.s.intervals);
 }
 
@@ -4055,8 +4057,7 @@ mirror_vectorlike_ (struct igc_mirror *m, struct Lisp_Vector *v)
 static void
 mirror_obarray (struct igc_mirror *m, struct Lisp_Obarray *o)
 {
-  if (o->buckets)
-    IGC_MIRROR_NOBJS (m, o->buckets, obarray_size (o));
+  IGC_MIRROR_RAW (m, &o->buckets);
 }
 #endif
 
@@ -4254,7 +4255,7 @@ mirror_vector (struct igc_mirror *m, void *client)
     {
 #ifndef IN_MY_FORK
     case PVEC_OBARRAY:
-      mirror_obarray (c, client);
+      mirror_obarray (m, client);
       break;
 #endif
 
