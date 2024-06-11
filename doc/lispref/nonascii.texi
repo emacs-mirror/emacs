@@ -436,7 +436,7 @@ This function returns @code{nil} if @var{string} does not name a character.
 @end defun
 
 @defun char-to-name char
-This function returns the Unicode name of @var{char}.  Returns
+This function returns the Unicode name of @var{char}.  It returns
 @code{nil} if @var{char} is not a character or has no Unicode name.
 @end defun
 
