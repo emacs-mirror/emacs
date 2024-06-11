@@ -2273,14 +2273,14 @@ option are non-nil, renaming a directory named `old_name' to
 trailing /) is given or this option or
 `dired-create-destination-dirs' is nil, `old_name' will be
 renamed to `new_name'."
-  :type '(choice
+  :type `(choice
           (const :tag
-                 (concat "Do not treat destination dirs with a "
-                         "trailing directory separator specially")
+                 ,(concat "Do not treat destination dirs with a "
+                          "trailing directory separator specially")
                  nil)
           (const :tag
-                 (concat "Treat destination dirs with trailing "
-                         "directory separator specially")
+                 ,(concat "Treat destination dirs with trailing "
+                          "directory separator specially")
                  t))
   :group 'dired
   :version "29.1")
