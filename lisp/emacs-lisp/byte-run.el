@@ -293,67 +293,9 @@ The original FORM is not changed.  Return a changed copy of FORM, or FORM."
           (if changed new form))
         form)))
 
-(defalias 'byte-run--posify-def-form
-  #'(lambda (form)
-      "Posify FORM, a defining form.
-A defining form is one whose function has a `byte-run-defined-form'
-property.  Examples are `defun', `cl-defmethod'."
-  (let* ((df (get (car form) 'byte-run-defined-form))
-         (mth (car df))
-         (nth (and (integerp mth) (if (> mth 0) mth (- mth))))
-         (posifier (cdr df))
-         defining-symbol       ; Bound for `byte-run-posify-doc-string'.
-         old-ds new-ds new-obj
-         (obj
-          (and nth
-               (condition-case nil
-                   (nth nth form)
-                 (wrong-type-argument nil)
-                 (t nil)))))
-    (if obj
-        (progn
-          (setq new-obj
-                (if (> mth 0)
-                    (if (symbol-with-pos-p obj)
-                        (progn (setq defining-symbol obj)
-                               (bare-symbol obj))
-                      obj)
-                  (if (and (eq (car-safe obj) 'quote)
-                           (symbol-with-pos-p (car-safe (cdr obj))))
-                      (progn (setq defining-symbol (car (cdr obj)))
-                             (list 'quote (bare-symbol (car (cdr obj)))))
-                    obj)))
-          (if (let (symbols-with-pos-enabled)
-                (null (eq new-obj obj)))
-              (progn
-                (if (functionp posifier)
-                    (progn
-                      (setq posifier (funcall posifier form))))
-                (let ((flat-posifier
-                       (if (integerp posifier)
-                           posifier
-                         ;; At this stage the &rest arguments won't have been
-                         ;; gathered into a single list, hence we must treat
-                         ;; them as individual arguments.
-                         (+ (car posifier) (cdr posifier)))))
-                  (setq old-ds (nth flat-posifier form))
-                  (setq new-ds
-                        (byte-run-posify-doc-string (and (stringp old-ds) old-ds)))
-                  (append (take nth form)
-                          (list new-obj)
-                          (take (- flat-posifier (1+ nth))
-                                (nthcdr (1+ nth) form))
-                          (list new-ds)
-                          (nthcdr (if (stringp old-ds)
-                                      (1+ flat-posifier)
-                                    flat-posifier)
-                                  form))))
-            form))
-      form))))
-
 (defalias 'byte-run--posify-list
   #'(lambda (form)
-      "Posify any lambda or defining forms still unposified in the list FORM.
+      "Posify any lambda forms still unposified in the list FORM.
 This original FORM is not changed.  Return a changed copy of FORM or FORM."
       (let ((a form)
             changed elt new)
@@ -367,7 +309,7 @@ This original FORM is not changed.  Return a changed copy of FORM or FORM."
                    (eq (bare-symbol (car a)) 'lambda))
               (if (and
                    (cdr-safe a)
-                   (listp (car-safe (cdr a)))) ; valid param list.
+                   (consp (car-safe (cdr a)))) ; valid param list.
                 (let ((stripped
                        (byte-run-posify-lambda-form
                         a (symbol-with-pos-pos (car a))
@@ -377,21 +319,14 @@ This original FORM is not changed.  Return a changed copy of FORM or FORM."
                         a (cdr a))
                   (setq new (cons (car a) new) ; param list.
                         a (cdr a))
-                  (setq new (cons (car a) new) ; doc string.
-                        a (cdr a))
+                  ;; Leave the doc string as the car of A to be accumulated
+                  ;; into NEW below.
+                  ;; (setq new (cons (car a) new) ; doc string.
+                  ;;       a (cdr a))
                   (setq changed t))
-              (byte-run-pull-lambda-source (car a))
-              (setq new (cons 'lambda new)
-                    a (cdr a))))
-
-          ;; Do we need to posify a defining form?
-          (if (and (symbolp (car a))
-                   (get (car a) 'byte-run-defined-form))
-              (let ((stripped (byte-run--posify-def-form a)))
-                (if (null (eq stripped a))
-                    (progn
-                      (setq a stripped)
-                      (setq changed t)))))
+                (byte-run-pull-lambda-source (car a))
+                (setq a (cons 'lambda (cdr a))
+                      changed t)))
 
           ;; Accumulate an element.
           (if (consp a)
@@ -431,14 +366,13 @@ This original FORM is not changed.  Return a changed copy of FORM or FORM."
               rev)
           form))))
 
-(defalias 'byte-run-posify-all-lambdas-etc
+(defalias 'byte-run-posify-all-lambdas
   #'(lambda (form)
       "Posify any lambda forms still unposified in FORM.
-Also strip the positions of any `lambda' which doesn't open a form.
 
-FORM is any Lisp object, but is usually a list or a vector or a
-record, containing symbols with position.  Return FORM, possibly
-destructively modified."
+FORM is any Lisp object, but is usually a list or a vector or a record,
+containing symbols with position.  Return a modified copy of FORM, or
+FORM."
       (setq byte-run--ssp-seen (make-hash-table :test 'eq))
       (cond
        ((consp form)
@@ -682,47 +616,52 @@ read-stream (typically as a symbol) where FORM occurred or nil.
 
 The modification of FORM will be done by creating a new list
 form."
-      (let* ((bare-ds (bare-symbol defining-symbol))
-             (cand-doc-string (nth 2 form))
-             (doc-string
-              (and (byte-run-valid-doc-string cand-doc-string)
-                   cand-doc-string))
-             (already-posified
-              (and doc-string
-                   (cond
-                    ((stringp doc-string)
-                     (string-match "^;POS\036\001\001\001" doc-string))
-                    ((stringp (car-safe (cdr-safe doc-string)))
-                     (string-match "^;POS\036\001\001\001"
-                                   (car (cdr doc-string))))
+      ;; We need a proper list with at least the arglist present.
+      (if (and (proper-list-p form)
+               (cdr-safe form))
+          (let* ((bare-ds (bare-symbol defining-symbol))
+                 (cand-doc-string (nth 2 form))
+                 (doc-string
+                  (and (byte-run-valid-doc-string cand-doc-string)
+                       cand-doc-string))
+                 (already-posified
+                  (and doc-string
+                       (cond
+                        ((stringp doc-string)
+                         (string-match "^;POS\036\001\001\001" doc-string))
+                        ((stringp (car-safe (cdr-safe doc-string)))
+                         (string-match "^;POS\036\001\001\001"
+                                       (car (cdr doc-string))))
 ;;;; STOUGH TO AMEND WHEN APPROPRIATE, 2023-12-17
-                    (t t) ; For (:documentation 'symbol), in oclosures.
+                        (t t) ; For (:documentation 'symbol), in oclosures.
 ;;;; END OF STOUGH
-                         )))
-             (empty-body-allowed
-              (and bare-ds (get bare-ds 'empty-body-allowed)))
-             (insert (or (null doc-string)
-                         (and (null empty-body-allowed)
-                              (null (nthcdr 3 form))))))
+                        )))
+                 (empty-body-allowed
+                  (and bare-ds (get bare-ds 'empty-body-allowed)))
+                 (insert (or (null doc-string)
+                             (and (null empty-body-allowed)
+                                  (null (nthcdr 3 form))))))
 
-        (cond
-         ((and (null already-posified)
-               (>= (length form) 2))
-            (let ((new-doc-string (byte-run-posify-doc-string
-                                   doc-string
-                                   position
-                                   lambda-read-stream)))
-              (append
-               (if byte-compile-in-progress
-                   (take 1 form)
-                 (list 'lambda))      ; Strip the lambda of its position.
-               (take 1 (cdr form))
-               (list new-doc-string)
-               (nthcdr (if insert 2 3) form))))
-         ((and (null byte-compile-in-progress)
-               (symbol-with-pos-p (car form)))
-          (cons 'lambda (cdr form)))
-         (t form)))))
+            (cond
+             ((and (null already-posified)
+                   (>= (length form) 2))
+              (let ((new-doc-string (byte-run-posify-doc-string
+                                     doc-string
+                                     position
+                                     lambda-read-stream)))
+                (append
+                 (if byte-compile-in-progress
+                     (take 1 form)
+                   (list 'lambda))   ; Strip the lambda of its position.
+                 (take 1 (cdr form))
+                 (list new-doc-string)
+                 (nthcdr (if insert 2 3) form))))
+             ((and (null byte-compile-in-progress)
+                   (symbol-with-pos-p (car form)))
+              (cons 'lambda (cdr form)))
+             (t form)))
+        ;; We've got an invalid lambda form.  Just return it.
+        form)))
 
 (defalias 'function-put
   ;; We don't want people to just use `put' because we can't conveniently
@@ -740,39 +679,32 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
 ;; handle declarations in macro definitions and this is the first file
 ;; loaded by loadup.el that uses declarations in macros.  We specify
 ;; the values as named aliases so that `describe-variable' prints
-;; something useful; cf. Bug#40491.  We can only use backquotes inside
-;; the lambdas and not for those properties that are used by functions
-;; loaded before backquote.el.
+;; something useful; cf. Bug#40491.  Backquotes can be used freely in
+;; this file since 2024-06.
 
 (defalias 'byte-run--set-advertised-calling-convention
   #'(lambda (f _args arglist when)
-      (list 'set-advertised-calling-convention
-            (list 'quote f) (list 'quote arglist) (list 'quote when))))
+      `(set-advertised-calling-convention ',f ',arglist ',when)))
 
 (defalias 'byte-run--set-obsolete
   #'(lambda (f _args new-name when)
-      (list 'make-obsolete
-            (list 'quote f) (list 'quote new-name) when)))
+      `(make-obsolete ',f ',new-name ,when)))
 
 (defalias 'byte-run--set-interactive-only
   #'(lambda (f _args instead)
-      (list 'function-put (list 'quote f)
-            ''interactive-only (list 'quote instead))))
+      `(function-put ',f 'interactive-only ',instead)))
 
 (defalias 'byte-run--set-pure
   #'(lambda (f _args val)
-      (list 'function-put (list 'quote f)
-            ''pure (list 'quote val))))
+      `(function-put ',f 'pure ',val)))
 
 (defalias 'byte-run--set-side-effect-free
   #'(lambda (f _args val)
-      (list 'function-put (list 'quote f)
-            ''side-effect-free (list 'quote val))))
+      `(function-put ',f 'side-effect-free ',val)))
 
 (defalias 'byte-run--set-important-return-value
   #'(lambda (f _args val)
-      (list 'function-put (list 'quote f)
-            ''important-return-value (list 'quote val))))
+      `(function-put ',f 'important-return-value ',val)))
 
 (put 'compiler-macro 'edebug-declaration-spec
      '(&or symbolp ("lambda" &define lambda-list lambda-doc def-body)))
@@ -801,51 +733,39 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
 
 (defalias 'byte-run--set-doc-string
   #'(lambda (f _args pos)
-      (list 'function-put (list 'quote f)
-            ''doc-string-elt (if (numberp pos)
-                                 pos
-                               (list 'quote pos)))))
+      `(function-put ',f 'doc-string-elt
+                     ,(if (numberp pos) pos `',pos))))
 
 (defalias 'byte-run--set-indent
   #'(lambda (f _args val)
-      (list 'function-put (list 'quote f)
-            ''lisp-indent-function (if (numberp val)
-                                       val
-                                     (list 'quote val)))))
+      `(function-put ',f 'lisp-indent-function
+                     ,(if (numberp val) val `',val))))
 
 (defalias 'byte-run--set-speed
   #'(lambda (f _args val)
-      (list 'function-put (list 'quote f)
-            ''speed (list 'quote val))))
+      `(function-put ',f 'speed ',val)))
 
 (defalias 'byte-run--set-safety
   #'(lambda (f _args val)
-      (list 'function-put (list 'quote f)
-            ''safety (list 'quote val))))
+      `(function-put ',f 'safety ',val)))
 
 (defalias 'byte-run--set-completion
   #'(lambda (f _args val)
-      (list 'function-put (list 'quote f)
-            ''completion-predicate (list 'function val))))
+      `(function-put ',f 'completion-predicate #',val)))
 
 (defalias 'byte-run--set-modes
   #'(lambda (f _args &rest val)
-      (list 'function-put (list 'quote f)
-            ''command-modes (list 'quote val))))
+      `(function-put ',f 'command-modes ',val)))
 
 (defalias 'byte-run--set-interactive-args
   #'(lambda (f args &rest val)
       (setq args (remove '&optional (remove '&rest args)))
-      (list 'function-put (list 'quote f)
-            ''interactive-args
-            (list
-             'quote
-             (mapcar
-              (lambda (elem)
-                (cons
-                 (seq-position args (car elem))
-                 (cadr elem)))
-              val)))))
+      `(function-put ',f 'interactive-args
+                     ',(mapcar (lambda (elem)
+                                 (cons
+                                  (seq-position args (car elem))
+                                  (cadr elem)))
+                               val))))
 
 (defalias 'byte-run--extract-sym-from-form
   #'(lambda (form args)
@@ -961,93 +881,70 @@ an example of its use."
                    f def-index))
 
         (cons
-         (list 'function-put (list 'quote f)
-               ''byte-run-defined-form
-               (list 'quote (cons def-index (if doc-n
-                                                (cons doc-index doc-n)
-                                              doc-index))))
-         (list
-          'progn
-          (list 'or 'defining-symbol
-                (list 'setq 'defining-symbol def-spec))
-
-          (list 'let*
-                (list
-                 (list 'old-ds
-                       (list 'and (list 'byte-run-valid-doc-string doc-spec)
-                             doc-spec))
-                 (list 'new-ds (list 'byte-run-posify-doc-string 'old-ds)))
-                ;; Strip the symbol position from the name being defined.
-                (list 'if '(null byte-compile-in-progress)
-                      (list 'setq def-arg-sym
-                            (list 'byte-run-strip-symbol-positions
-                                  def-arg-sym)))
-                ;; Strip the symbol position from the name in the
-                ;; original form.
-                (list 'if (list 'and 'cur-evalled-macro-form
-                                (list 'null 'byte-compile-in-progress))
-                      (list
-                       'let
-                       (list
-                        (list 'stripped-arg
-                              (list 'byte-run-strip-symbol-positions
-                                    (list 'nth def-index
-                                          'cur-evalled-macro-form))))
-                       (list 'setcar (list 'nthcdr def-index
-                                           'cur-evalled-macro-form)
-                             'stripped-arg)))
-                (if empty-body-flag
-                    (list 'put def-spec ''empty-body-allowed t)
-                  (list 'progn))
-                ;; Replace the old doc string with the new, or
-                ;; insert the new.
-                (cond
-                 (can-insert-doc-before-rest
-                  (list 'if (list 'byte-run-valid-doc-string 'old-ds)
-                        (list 'setq doc-spec 'new-ds)
-                        ;; If `doc-spec' isn't a string, it's part of the body.
-                        (list 'setq body-spec
-                              (list 'cons doc-spec body-spec))
-                        (list 'setq doc-spec 'new-ds)))
-                 ((symbolp doc-spec)
-                  (list 'setq doc-spec 'new-ds))
-                 (t
-                   (list
-                    'setq doc-arg-sym
-                    (list
-                     'append
-                     (list 'take doc-n doc-arg-sym)
-                     (list
-                      'cond
-                      ;; doc-string present and a non-nil (cdr body):
-                      (list (list 'and (list 'byte-run-valid-doc-string
-                                             doc-spec)
-                                  after-doc-spec)
-                            (list 'list 'new-ds))
-                      ;; Single string, both doc string and return value:
-                      (list (list 'byte-run-valid-doc-string doc-spec)
-                            (if empty-body-flag
-                                (list 'list 'new-ds)
-                              (list 'list 'new-ds 'old-ds)))
-                      ;; Neither doc string nor return value:
-                      (list (list 'null (list 'nthcdr doc-n doc-arg-sym))
-                            (if empty-body-flag
-                                (list 'list 'new-ds)
-                              (list 'list 'new-ds ''nil)))
-                      ;; No doc string, but a non-nil body, not a string.
-                      (list t
-                            (list 'list 'new-ds doc-spec)))
-                     after-doc-spec))))))))))
-
+         `(function-put ',f 'byte-run-defined-form
+                        '(,def-index ,@(if doc-n (cons doc-index doc-n)
+                                         doc-index)))
+         `(progn
+            (or defining-symbol (setq defining-symbol ,def-spec))
+            (let* ((old-ds (and (byte-run-valid-doc-string ,doc-spec)
+                                ,doc-spec))
+                   (new-ds (byte-run-posify-doc-string old-ds)))
+              ;; Strip the symbol position from the name being defined.
+              (if (null byte-compile-in-progress)
+                  (setq ,def-arg-sym
+                        (byte-run-strip-symbol-positions ,def-arg-sym)))
+              ;; Strip the symbol position from the name in the
+              ;; original form.
+              (if (and cur-evalled-macro-form
+                       (null byte-compile-in-progress))
+                  (let ((stripped-arg
+                         (byte-run-strip-symbol-positions
+                          (nth ,def-index cur-evalled-macro-form))))
+                    (setcar (nthcdr ,def-index cur-evalled-macro-form)
+                            stripped-arg)))
+              ,@(if empty-body-flag
+                  `((put ,def-spec 'empty-body-allowed t)))
+              ;; Replace the old doc string with the new, or
+              ;; insert the new.
+              ,(cond
+                (can-insert-doc-before-rest
+                 `(if (byte-run-valid-doc-string old-ds)
+                      (setq ,doc-spec new-ds)
+                    ;; if `doc-spec' isn't a string, it's part of the body.
+                    (setq ,body-spec (cons ,doc-spec ,body-spec))
+                    (setq ,doc-spec new-ds)))
+                ((symbolp doc-spec)
+                 `(setq ,doc-spec new-ds))
+                (t `(setq ,doc-arg-sym
+                          (append
+                           (take ,doc-n ,doc-arg-sym)
+                           (cond
+                            ;; doc-string present and a non-nil (cdr body):
+                            ((and (byte-run-valid-doc-string ,doc-spec)
+                                  ,after-doc-spec)
+                             (list new-ds))
+                            ;; Single string, both doc string and return value
+                            ((byte-run-valid-doc-string ,doc-spec)
+                             ,(if empty-body-flag
+                                  `(list new-ds)
+                                `(list new-ds old-ds)))
+                            ;; Neither doc string nor return value:
+                            ((null (nthcdr ,doc-n ,doc-arg-sym))
+                             ,(if empty-body-flag
+                                  `(list new-ds)
+                                `(list new-ds 'nil)))
+                            ;; No doc string, but a non-nil, non-string body.
+                            (t (list new-ds ,doc-spec)))
+                           ,after-doc-spec))))))))))
 (put 'byte-run--posify-defining-form 'byte-run-pre-form t)
+
 (defalias 'byte-run--set-function-type
   #'(lambda (f _args val &optional f2)
       (when (and f2 (not (eq f2 f)))
         (error
          "`%s' does not match top level function `%s' inside function type \
 declaration" f2 f))
-      (list 'function-put (list 'quote f)
-            ''function-type (list 'quote val))))
+      `(function-put ',f 'function-type ',val)))
 
 ;; Add any new entries to info node `(elisp)Declare Form'.
 (defvar defun-declarations-alist
@@ -1085,14 +982,12 @@ This is used by `declare'.")
 
 (defalias 'byte-run--set-debug
   #'(lambda (name _args spec)
-      (list 'progn :autoload-end
-	    (list 'put (list 'quote name)
-		  ''edebug-form-spec (list 'quote spec)))))
+      `(progn :autoload-end
+              (put ',name 'edebug-form-spec ',spec))))
 
 (defalias 'byte-run--set-no-font-lock-keyword
   #'(lambda (name _args val)
-      (list 'function-put (list 'quote name)
-	    ''no-font-lock-keyword (list 'quote val))))
+      `(function-put ',name 'no-font-lock-keyword ',val)))
 
 (defalias 'byte-run--parse-body
   #'(lambda (body allow-interactive)
@@ -1251,10 +1146,8 @@ interpreted according to `macro-declarations-alist'.
              (setq body (cons docstring body)))
          (if (null body)
              (setq body '(nil)))
-         (let* ((fun (list 'function (cons 'lambda (cons arglist body))))
-	        (def (list 'defalias
-		           (list 'quote name)
-		           (list 'cons ''macro fun))))
+         (let* ((fun `(function (lambda ,arglist ,@body)))
+	        (def `(defalias ',name (cons 'macro ,fun))))
            (if declarations
 	       (cons 'prog1 (cons def (car declarations)))
 	     def))))))
@@ -1279,8 +1172,7 @@ INTERACTIVE is an optional `interactive' specification.
             (null (delq t (mapcar #'symbolp arglist)))))
       (error "Malformed arglist: %s" arglist))
   (let* ((parse (byte-run--parse-body body t))
-         (docstring
-          (nth 0 parse))
+         (docstring (nth 0 parse))
          (declare-form (nth 1 parse))
          (interactive-form (nth 2 parse))
          (body
@@ -1299,11 +1191,7 @@ INTERACTIVE is an optional `interactive' specification.
         (setq body (cons docstring body)))
     (if (null body)
         (setq body '(nil)))
-    (let ((def (list 'defalias
-                     (list 'quote name)
-                     (list 'function
-                           (cons 'lambda
-                                 (cons arglist body))))))
+    (let ((def `(defalias ',name (function (lambda ,arglist ,@body)))))
       (if declarations
           (cons 'prog1 (cons def (car declarations)))
         def))))
@@ -1649,7 +1537,7 @@ obsolete, for example a date or a release number."
   "Like `progn', but the body always runs interpreted (not compiled).
 If you think you need this, you're probably making a mistake somewhere."
   (declare (debug t) (indent 0) (obsolete nil "24.4"))
-  (list 'eval (list 'quote (if (cdr body) (cons 'progn body) (car body)))))
+  `(eval ',(if (cdr body) `(progn ,@body) (car body))))
 
 
 ;; interface to evaluating things at compile time and/or load time
@@ -1665,8 +1553,7 @@ constant.  In interpreted code, this is entirely equivalent to
 not necessarily) computed at load time if eager macro expansion
 is enabled."
   (declare (debug (&rest def-form)) (indent 0))
-  (list 'quote (eval (cons 'progn (byte-run-posify-all-lambdas-etc body))
-                     lexical-binding)))
+  `',(eval `(progn ,@(byte-run-posify-all-lambdas body)) lexical-binding))
 
 (defmacro eval-and-compile (&rest body)
   "Like `progn', but evaluates the body at compile time and at load time.
@@ -1678,8 +1565,7 @@ enabled."
   ;; When the byte-compiler expands code, this macro is not used, so we're
   ;; either about to run `body' (plain interpretation) or we're doing eager
   ;; macroexpansion.
-  (list 'quote (eval (cons 'progn (byte-run-posify-all-lambdas-etc body))
-                     lexical-binding)))
+  `',(eval `(progn ,@(byte-run-posify-all-lambdas body)) lexical-binding))
 
 (defun with-no-warnings (&rest body)
   "Like `progn', but prevents compiler warnings in the body."

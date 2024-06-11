@@ -40,7 +40,8 @@
 
 ;; function and macro versions of backquote-list*
 
-(defun backquote-list*-function (first &rest list)
+(defalias 'backquote-list*-function
+       #'(lambda (first &rest list)
   "Like `list' but the last argument is the tail of the new list.
 
 For example (backquote-list* \\='a \\='b \\='c) => (a b . c)"
@@ -55,9 +56,11 @@ For example (backquote-list* \\='a \\='b \\='c) => (a b . c)"
 		rest (cdr rest)))
 	(setcdr last (car rest))
 	newlist)
-    first))
+    first)))
 
-(defmacro backquote-list*-macro (first &rest list)
+(defalias 'backquote-list*-macro
+          (cons 'macro
+                #'(lambda (first &rest list)
   "Like `list' but the last argument is the tail of the new list.
 
 For example (backquote-list* \\='a \\='b \\='c) => (a b . c)"
@@ -75,7 +78,7 @@ For example (backquote-list* \\='a \\='b \\='c) => (a b . c)"
 	  (setq newlist (list 'cons (car rest) newlist)
 		rest (cdr rest)))
 	newlist)
-    first))
+    first))))
 
 (defalias 'backquote-list* (symbol-function 'backquote-list*-macro))
 
@@ -90,8 +93,10 @@ For example (backquote-list* \\='a \\='b \\='c) => (a b . c)"
 (defconst backquote-splice-symbol '\,@
   "Symbol used to represent a splice inside a backquote.")
 
-(defmacro backquote (structure)
-  "Argument STRUCTURE describes a template to build.
+(defalias 'backquote
+  (cons 'macro
+        #'(lambda (structure)
+            "Argument STRUCTURE describes a template to build.
 
 The whole structure acts as if it were quoted except for certain
 places where expressions are evaluated and inserted or spliced in.
@@ -107,7 +112,7 @@ Vectors work just like lists.  Nested backquotes are permitted.
 
 Note that some macros, such as `pcase', use this symbol for other
 purposes."
-  (cdr (backquote-process structure)))
+  (cdr (backquote-process structure)))))
 
 ;; GNU Emacs has no reader macros
 
@@ -118,29 +123,31 @@ purposes."
 ;; constant, 1 => to be unquoted, 2 => to be spliced in.
 ;; The top-level backquote macro just discards the tag.
 
-(defun backquote-delay-process (s level)
+(defalias 'backquote-delay-process
+       #'(lambda (s level)
   "Process a (un|back|splice)quote inside a backquote.
 This simply recurses through the body."
   (let ((exp (backquote-listify (list (cons 0 (list 'quote (car s))))
                                 (backquote-process (cdr s) level))))
-    (cons (if (eq (car-safe exp) 'quote) 0 1) exp)))
+    (cons (if (eq (car-safe exp) 'quote) 0 1) exp))))
 
-(defun backquote-process (s &optional level)
-  "Process the body of a backquote.
+(defalias 'backquote-process
+  #'(lambda (s &optional level)
+      "Process the body of a backquote.
 S is the body.  Returns a cons cell whose cdr is piece of code which
 is the macro-expansion of S, and whose car is a small integer whose value
 can either indicate that the code is constant (0), or not (1), or returns
 a list which should be spliced into its environment (2).
 LEVEL is only used internally and indicates the nesting level:
 0 (the default) is for the toplevel nested inside a single backquote."
-  (unless level (setq level 0))
+  (if (null level) (setq level 0))
   (cond
    ((vectorp s)
     (let ((n (backquote-process (append s ()) level)))
       (if (= (car n) 0)
 	  (cons 0 s)
 	(cons 1 (cond
-		 ((not (listp (cdr n)))
+		 ((null (listp (cdr n)))
 		  (list 'vconcat (cdr n)))
 		 ((eq (nth 1 n) 'list)
 		  (cons 'vector (nthcdr 2 n)))
@@ -150,7 +157,7 @@ LEVEL is only used internally and indicates the nesting level:
 		  (list 'apply '(function vector) (cdr n))))))))
    ((atom s)
     ;; FIXME: Use macroexp-quote!
-    (cons 0 (if (or (null s) (eq s t) (not (symbolp s)))
+    (cons 0 (if (or (null s) (eq s t) (null (symbolp s)))
 		s
 	      (list 'quote s))))
    ((eq (car s) backquote-unquote-symbol)
@@ -187,8 +194,8 @@ LEVEL is only used internally and indicates the nesting level:
                   ;; Stop if the cdr is an expression inside a backquote or
                   ;; unquote since this needs to go recursively through
                   ;; backquote-process.
-                  (not (or (eq (car rest) backquote-unquote-symbol)
-                           (eq (car rest) backquote-backquote-symbol))))
+                  (null (or (eq (car rest) backquote-unquote-symbol)
+                            (eq (car rest) backquote-backquote-symbol))))
 	(setq item (backquote-process (car rest) level))
 	(cond
 	 ((= (car item) 2)
@@ -199,8 +206,8 @@ LEVEL is only used internally and indicates the nesting level:
 		    list nil))
 	  ;; Otherwise, put any preceding nonspliced items into LISTS.
 	  (if list
-	      (push (backquote-listify list '(0 . nil)) lists))
-	  (push (cdr item) lists)
+              (setq lists (cons (backquote-listify list '(0 . nil)) lists)))
+          (setq lists (cons (cdr item) lists))
 	  (setq list nil))
 	 (t
 	  (setq list (cons item list))))
@@ -208,8 +215,9 @@ LEVEL is only used internally and indicates the nesting level:
       ;; Handle nonsplicing final elements, and the tail of the list
       ;; (which remains in REST).
       (if (or rest list)
-	  (push (backquote-listify list (backquote-process rest level))
-                lists))
+          (setq lists
+                (cons (backquote-listify list (backquote-process rest level))
+                      lists)))
       ;; Turn LISTS into a form that produces the combined list.
       (setq expression
 	    (if (or (cdr lists)
@@ -219,13 +227,14 @@ LEVEL is only used internally and indicates the nesting level:
       ;; Tack on any initial elements.
       (if firstlist
 	  (setq expression (backquote-listify firstlist (cons 1 expression))))
-      (cons (if (eq (car-safe expression) 'quote) 0 1) expression)))))
+      (cons (if (eq (car-safe expression) 'quote) 0 1) expression))))))
 
 ;; backquote-listify takes (tag . structure) pairs from backquote-process
 ;; and decides between append, list, backquote-list*, and cons depending
 ;; on which tags are in the list.
 
-(defun backquote-listify (list old-tail)
+(defalias 'backquote-listify
+  #'(lambda (list old-tail)
   (let ((heads nil) (tail (cdr old-tail)) (list-tail list) (item nil))
     (if (= (car old-tail) 0)
 	(setq tail (eval tail)
@@ -248,7 +257,7 @@ LEVEL is only used internally and indicates the nesting level:
 	    (cons (if use-list* 'backquote-list* 'cons)
 		  (append heads (list tail))))
 	tail))
-     (t (cons 'list heads)))))
+     (t (cons 'list heads))))))
 
 
 ;; Give `,' and `,@' documentation strings which can be examined by C-h f.

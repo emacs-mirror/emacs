@@ -169,11 +169,12 @@
            (byte-run-strip-lambda-doc
             (macroexpand-1
              '(erc--with-dependent-type-match (repeat face) erc-match)))
-           '(backquote-list*
-             'repeat :match (lambda (w v)
-                              (require 'erc-match)
-                              (widget-editable-list-match w v))
-             '(face)))))
+           (byte-run-strip-lambda-doc
+            '(backquote-list*
+              'repeat :match (lambda (w v)
+                               (require 'erc-match)
+                               (widget-editable-list-match w v))
+              '(face))))))
 
 (ert-deftest erc--doarray ()
   (let ((array "abcdefg")

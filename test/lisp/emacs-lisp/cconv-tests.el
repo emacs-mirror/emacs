@@ -179,8 +179,9 @@
                   (cconv-closure-convert
                   '#'(lambda (x) (let ((f #'(lambda () (+ x 1))))
                                    (funcall f)))))
+                 (byte-run-strip-lambda-doc
                  '#'(lambda (x) (let ((f #'(lambda (x) (+ x 1))))
-                                  (funcall f x)))))
+                                  (funcall f x))))))
 
   ;; Bug#30872.
   (should
@@ -216,10 +217,11 @@
            (cconv-closure-convert
             '#'(lambda (x)
                  #'(lambda () x)))))
-           '#'(lambda (x)
-                (internal-make-closure
-                 nil (x) nil
-                 (internal-get-closed-var 0)))))
+                 (byte-run-strip-lambda-doc
+                  '#'(lambda (x)
+                       (internal-make-closure
+                        nil (x) nil
+                        (internal-get-closed-var 0))))))
 
   ;; Basic case:
   (should (equal (byte-run-strip-lambda-doc (cconv-tests--intern-all
@@ -228,22 +230,24 @@
                         (let ((f #'(lambda () x)))
                           (let ((x 'b))
                             (list x (funcall f))))))))
-                 '#'(lambda (x)
-                      (let ((f #'(lambda (x) x)))
-                        (let ((x 'b)
-                              (closed-x x))
-                          (list x (funcall f closed-x)))))))
+                 (byte-run-strip-lambda-doc
+                  '#'(lambda (x)
+                       (let ((f #'(lambda (x) x)))
+                         (let ((x 'b)
+                               (closed-x x))
+                           (list x (funcall f closed-x))))))))
   (should (equal (byte-run-strip-lambda-doc (cconv-tests--intern-all
                   (cconv-closure-convert
                    '#'(lambda (x)
                         (let ((f #'(lambda () x)))
                           (let* ((x 'b))
                             (list x (funcall f))))))))
-                 '#'(lambda (x)
-                      (let ((f #'(lambda (x) x)))
-                        (let* ((closed-x x)
-                               (x 'b))
-                          (list x (funcall f closed-x)))))))
+                 (byte-run-strip-lambda-doc
+                  '#'(lambda (x)
+                       (let ((f #'(lambda (x) x)))
+                         (let* ((closed-x x)
+                                (x 'b))
+                           (list x (funcall f closed-x))))))))
 
   ;; With the lambda-lifted shadowed variable also being captured:
   (should (equal (byte-run-strip-lambda-doc
@@ -254,13 +258,14 @@
                       (let ((f #'(lambda () x)))
                         (let ((x 'a))
                           (list x (funcall f)))))))))
-           '#'(lambda (x)
-                (internal-make-closure
-                 nil (x) nil
-                 (let ((f #'(lambda (x) x)))
-                   (let ((x 'a)
-                         (closed-x (internal-get-closed-var 0)))
-                     (list x (funcall f closed-x))))))))
+                 (byte-run-strip-lambda-doc
+                  '#'(lambda (x)
+                       (internal-make-closure
+                        nil (x) nil
+                        (let ((f #'(lambda (x) x)))
+                          (let ((x 'a)
+                                (closed-x (internal-get-closed-var 0)))
+                            (list x (funcall f closed-x)))))))))
   (should (equal (byte-run-strip-lambda-doc
            (cconv-tests--intern-all
             (cconv-closure-convert
@@ -269,13 +274,14 @@
                       (let ((f #'(lambda () x)))
                         (let* ((x 'a))
                           (list x (funcall f)))))))))
-           '#'(lambda (x)
-                (internal-make-closure
-                 nil (x) nil
-                 (let ((f #'(lambda (x) x)))
-                   (let* ((closed-x (internal-get-closed-var 0))
-                          (x 'a))
-                     (list x (funcall f closed-x))))))))
+                 (byte-run-strip-lambda-doc
+                  '#'(lambda (x)
+                       (internal-make-closure
+                        nil (x) nil
+                        (let ((f #'(lambda (x) x)))
+                          (let* ((closed-x (internal-get-closed-var 0))
+                                 (x 'a))
+                            (list x (funcall f closed-x)))))))))
   ;; With lambda-lifted shadowed variable also being mutably captured:
   (should (equal (byte-run-strip-lambda-doc
            (cconv-tests--intern-all
@@ -286,16 +292,17 @@
                         (setq x x)
                         (let ((x 'a))
                           (list x (funcall f)))))))))
-           '#'(lambda (x)
-                (let ((x (list x)))
-                  (internal-make-closure
-                   nil (x) nil
-                   (let ((f #'(lambda (x) (car-safe x))))
-                     (setcar (internal-get-closed-var 0)
-                             (car-safe (internal-get-closed-var 0)))
-                     (let ((x 'a)
-                           (closed-x (internal-get-closed-var 0)))
-                       (list x (funcall f closed-x)))))))))
+                 (byte-run-strip-lambda-doc
+                  '#'(lambda (x)
+                       (let ((x (list x)))
+                         (internal-make-closure
+                          nil (x) nil
+                          (let ((f #'(lambda (x) (car-safe x))))
+                            (setcar (internal-get-closed-var 0)
+                                    (car-safe (internal-get-closed-var 0)))
+                            (let ((x 'a)
+                                  (closed-x (internal-get-closed-var 0)))
+                              (list x (funcall f closed-x))))))))))
   (should (equal (byte-run-strip-lambda-doc
            (cconv-tests--intern-all
             (cconv-closure-convert
@@ -305,16 +312,17 @@
                         (setq x x)
                         (let* ((x 'a))
                           (list x (funcall f)))))))))
-           '#'(lambda (x)
-                (let ((x (list x)))
-                  (internal-make-closure
-                   nil (x) nil
-                   (let ((f #'(lambda (x) (car-safe x))))
-                     (setcar (internal-get-closed-var 0)
-                             (car-safe (internal-get-closed-var 0)))
-                     (let* ((closed-x (internal-get-closed-var 0))
-                            (x 'a))
-                       (list x (funcall f closed-x)))))))))
+                 (byte-run-strip-lambda-doc
+                  '#'(lambda (x)
+                       (let ((x (list x)))
+                         (internal-make-closure
+                          nil (x) nil
+                          (let ((f #'(lambda (x) (car-safe x))))
+                            (setcar (internal-get-closed-var 0)
+                                    (car-safe (internal-get-closed-var 0)))
+                            (let* ((closed-x (internal-get-closed-var 0))
+                                   (x 'a))
+                              (list x (funcall f closed-x))))))))))
   ;; Lambda-lifted variable that isn't actually captured where it is shadowed:
   (should (equal (byte-run-strip-lambda-doc
            (cconv-tests--intern-all
@@ -324,13 +332,14 @@
                         (h #'(lambda () (setq x x))))
                     (let ((x 'b))
                       (list x (funcall g) (funcall h))))))))
-           '#'(lambda (x)
-                (let ((x (list x)))
-                  (let ((g #'(lambda (x) (car-safe x)))
-                        (h #'(lambda (x) (setcar x (car-safe x)))))
-                    (let ((x 'b)
-                          (closed-x x))
-                      (list x (funcall g closed-x) (funcall h closed-x))))))))
+                 (byte-run-strip-lambda-doc
+                  '#'(lambda (x)
+                       (let ((x (list x)))
+                         (let ((g #'(lambda (x) (car-safe x)))
+                               (h #'(lambda (x) (setcar x (car-safe x)))))
+                           (let ((x 'b)
+                                 (closed-x x))
+                             (list x (funcall g closed-x) (funcall h closed-x)))))))))
   (should (equal (byte-run-strip-lambda-doc
            (cconv-tests--intern-all
             (cconv-closure-convert
@@ -339,14 +348,14 @@
                         (h #'(lambda () (setq x x))))
                     (let* ((x 'b))
                       (list x (funcall g) (funcall h))))))))
-           '#'(lambda (x)
-                (let ((x (list x)))
-                  (let ((g #'(lambda (x) (car-safe x)))
-                        (h #'(lambda (x) (setcar x (car-safe x)))))
-                    (let* ((closed-x x)
-                           (x 'b))
-                      (list x (funcall g closed-x) (funcall h closed-x))))))))
-  )
+                 (byte-run-strip-lambda-doc
+                  '#'(lambda (x)
+                       (let ((x (list x)))
+                         (let ((g #'(lambda (x) (car-safe x)))
+                               (h #'(lambda (x) (setcar x (car-safe x)))))
+                           (let* ((closed-x x)
+                                  (x 'b))
+                             (list x (funcall g closed-x) (funcall h closed-x))))))))))
 
 (ert-deftest cconv-tests-interactive-closure-bug51695 ()
   (let ((f (let ((d 51695))
@@ -384,10 +393,11 @@
 				    (prefix-numeric-value current-prefix-arg)
 			          'toggle)))
                          (ignore arg))))
-         (if (cadr (nth 2 (cadr f))))
+         (f2 (byte-run-strip-lambda-doc f))
+         (if (cadr (nth 2 (cadr f2))))
          (if2))
-    (cconv-closure-convert f)
-    (setq if2 (cadr (nth 2 (cadr f))))
+    (cconv-closure-convert f2)
+    (setq if2 (cadr (nth 2 (cadr f2))))
     (should (eq if if2))))
 
 (provide 'cconv-tests)

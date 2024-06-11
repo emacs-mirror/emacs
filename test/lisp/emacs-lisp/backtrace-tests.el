@@ -225,12 +225,14 @@
 (ert-deftest backtrace-tests--single-and-multi-line ()
   "Forms in backtrace frames can be on a single line or on multiple lines."
   (ert-with-test-buffer (:name "single-multi-line")
-    (let* ((arg '(lambda (x)  ; Quote this so it isn't made into a closure.
-                   ;; Make the form long enough so `number' should not
-                   ;; appear on the first line once pretty-printed.
-                   (interactive (region-beginning))
-                   (let ((number (1+ x)))
-                     (+ x number))))
+    (let* ((arg
+            (byte-run-strip-lambda-doc
+             '(lambda (x)  ; Quote this so it isn't made into a closure.
+                ;; Make the form long enough so `number' should not
+                ;; appear on the first line once pretty-printed.
+                (interactive (region-beginning))
+                (let ((number (1+ x)))
+                  (+ x number)))))
            (header-string "Test header: ")
            (header (format "%s%s\n" header-string arg))
            (insert-header-function (lambda ()

@@ -384,8 +384,8 @@ Assumes the caller has bound `macroexpand-all-environment'."
 
         ;; `eval-when-compile' and `eval-and-compile' need their args expanded
         ;; first, in case there are any backquote constructs in them which
-        ;; would otherwise confuse the `byte-run-posify-all-lambdas-etc' calls
-        ;; in those macros.
+        ;; would otherwise confuse the `byte-run-posify-all-lambdas' calls in
+        ;; those macros.
         (macroexpand (macroexp--all-forms form 1)
                      macroexpand-all-environment))
 
@@ -473,8 +473,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
 
             (`(function . ,_) form)
             (`(quote ,_arg)
-             (if (null byte-compile-in-progress)
-                 (setq form (byte-run-posify-all-lambdas-etc form)))
+             (setq form (byte-run-posify-all-lambdas form))
              form)
             (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body)
                                                  pcase--dontcare))

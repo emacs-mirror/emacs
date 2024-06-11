@@ -129,6 +129,7 @@
 (defvar real-defvar (symbol-function 'defvar))
 (fset 'defvar (symbol-function 'defvar-bootstrap))
 (load "emacs-lisp/debug-early")
+(load "emacs-lisp/backquote")
 (load "emacs-lisp/byte-run")
 (byte-run-posify-existing-defaliases)
 (byte-run-posify-existing-lambdas)
@@ -136,7 +137,6 @@
 ;; (makunbound 'early-lambda-lists)
 (setq early-lambda-lists nil) ; We don't want its symbols with
                               ; position in the dumped image.
-(load "emacs-lisp/backquote")
 (load "subr")
 (load "keymap")
 
@@ -180,11 +180,11 @@
 ;;;; END OF NEW STOUGH
 
 (load "emacs-lisp/debug-early")
+(load "emacs-lisp/backquote")
 (load "emacs-lisp/byte-run")
 (message "loadup.el, just after second load of byte-run.el.")
 (message "loadup.el, just after setting base-loaded to t")
 (unintern 'base-loaded nil) ; So that it can't be messed with from Lisp.
-(load "emacs-lisp/backquote")
 ;; Second loading of these files to clear out symbols with positions from
 ;; lambda symbols.  This absolutely requires macroexp.el.
 ;; In the second loading, we make `internal-macroexpand-for-load' unbound so

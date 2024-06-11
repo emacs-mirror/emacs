@@ -632,7 +632,7 @@ See `byte-run--posify-def-form' in byte-run.el."
                              (cl-generic--method-qualifier-p (car ptr)))
                    (setq ptr (cdr ptr))
                    (setq i (1+ i)))
-                 `(1 . (3 . ,i))))))
+                 `(3 . ,i)))))
 
 (defun cl--generic-member-method (specializers qualifiers methods)
   (while
