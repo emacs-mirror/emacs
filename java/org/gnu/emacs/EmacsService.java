@@ -899,11 +899,19 @@ public final class EmacsService extends Service
     if (DEBUG_IC)
       Log.d (TAG, "resetIC: " + window + ", " + icMode);
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-	&& (oldMode = window.view.getICMode ()) == icMode
-	/* Don't do this if there is currently no input
-	   connection.  */
-	&& oldMode != IC_MODE_NULL)
+    oldMode = window.view.getICMode ();
+
+    /* If it's not necessary to reset the input connection for ICMODE to
+       take effect, return immediately.  */
+    if (oldMode == IC_MODE_NULL && icMode == IC_MODE_NULL)
+      {
+	if (DEBUG_IC)
+	  Log.d (TAG, "resetIC: redundant invocation ignored");
+	return;
+      }
+
+    if (oldMode == icMode
+	&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
       {
 	if (DEBUG_IC)
 	  Log.d (TAG, "resetIC: calling invalidateInput");

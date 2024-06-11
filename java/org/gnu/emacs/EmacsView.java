@@ -891,13 +891,13 @@ public final class EmacsView extends ViewGroup
     return true;
   }
 
-  public synchronized void
+  public void
   setICMode (int icMode)
   {
     this.icMode = icMode;
   }
 
-  public synchronized int
+  public int
   getICMode ()
   {
     return icMode;
