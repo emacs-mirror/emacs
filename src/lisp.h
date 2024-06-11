@@ -2902,6 +2902,7 @@ struct Lisp_Marker
   /* The remaining fields are meaningless in a marker that
      does not point anywhere.  */
 
+#ifndef HAVE_MPS
   /* For markers that point somewhere,
      this is used to chain of all the markers in a given buffer.
      The chain does not preserve markers from garbage collection;
@@ -2910,6 +2911,8 @@ struct Lisp_Marker
      That would also allow us to preserve it ordered.  */
   struct Lisp_Marker *next;
   /* This is the char position where the marker points.  */
+#endif
+
   ptrdiff_t charpos;
   /* This is the byte position.
      It's mostly used as a charpos<->bytepos cache (i.e. it's not directly

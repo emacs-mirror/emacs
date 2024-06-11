@@ -271,6 +271,9 @@ struct buffer_text
     /* Properties of this buffer's text.  */
     INTERVAL intervals;
 
+# ifdef HAVE_MPS
+    Lisp_Object markers;
+# else
     /* The markers that refer to this buffer.
        This is actually a single marker ---
        successive elements in its marker `chain'
@@ -279,6 +282,7 @@ struct buffer_text
        very cheap to add a marker to the list and it's also very cheap
        to move a marker within a buffer.  */
     struct Lisp_Marker *markers;
+# endif
 
     /* Usually false.  Temporarily true in decode_coding_gap to
        prevent Fgarbage_collect from shrinking the gap and losing
@@ -707,6 +711,91 @@ struct buffer
      the struct buffer. So we copy it around in set_buffer_internal.  */
   Lisp_Object undo_list_;
 };
+
+struct marker_it
+{
+#ifdef HAVE_MPS
+  Lisp_Object markers, obj;
+  ptrdiff_t i;
+# else
+  struct Lisp_Marker *marker;
+#endif
+};
+
+#ifdef HAVE_MPS
+INLINE struct marker_it
+marker_it_init (struct buffer *b)
+{
+  Lisp_Object v = BUF_MARKERS (b);
+  if (!VECTORP (v))
+    return (struct marker_it){ .obj = Qnil };
+
+  Lisp_Object obj = Qnil;
+  for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
+    {
+      obj = AREF (v, i);
+      if (!NILP (obj))
+	return (struct marker_it) { .i = i, .markers = v, .obj = obj };
+    }
+
+  return (struct marker_it) { .obj = Qnil };
+}
+
+INLINE bool
+marker_it_valid (struct marker_it *it)
+{
+  return MARKERP (it->obj);
+}
+
+INLINE void
+marker_it_next (struct marker_it *it)
+{
+  it->obj = Qnil;
+  for (++it->i; it->i < ASIZE (it->markers); ++it->i)
+    {
+      it->obj = AREF (it->markers, it->i);
+      if (!NILP (it->obj))
+	break;
+    }
+}
+
+INLINE struct Lisp_Marker *
+marker_it_marker (struct marker_it *it)
+{
+  return XMARKER (it->obj);
+}
+
+# else
+INLINE struct marker_it
+marker_it_init (struct buffer *b)
+{
+  return (struct marker_it) { .markers = BUF_MARKERS (b) };
+}
+
+INLINE bool
+marker_it_valid (struct marker_it *it)
+{
+  return it->markers != NULL;
+}
+
+INLINE void
+marker_it_next (struct marker_it *it)
+{
+  return it->markers = it->markers->next;
+}
+
+INLINE struct Lisp_Marker *
+marker_it_marker (struct marker_it *it)
+{
+  return it->markers;
+}
+
+# endif
+
+# define DO_MARKERS(b, m)                                                  \
+  for (struct marker_it it_ = marker_it_init (b); marker_it_valid (&it_); \
+       marker_it_next (&it_)) \
+    for (struct Lisp_Marker *m = marker_it_marker (&it_); m; m = NULL)
 
 struct sortvec
 {

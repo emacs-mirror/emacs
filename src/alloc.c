@@ -4155,7 +4155,9 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   p->buffer = 0;
   p->bytepos = 0;
   p->charpos = 0;
+#ifndef HAVE_MPS
   p->next = NULL;
+#endif
   p->insertion_type = 0;
   p->need_adjustment = 0;
   return make_lisp_ptr (p, Lisp_Vectorlike);
@@ -4180,8 +4182,12 @@ build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
   m->bytepos = bytepos;
   m->insertion_type = 0;
   m->need_adjustment = 0;
+#ifdef HAVE_MPS
+  igc_add_marker (buf, m);
+#else
   m->next = BUF_MARKERS (buf);
   BUF_MARKERS (buf) = m;
+#endif
   return make_lisp_ptr (m, Lisp_Vectorlike);
 }
 

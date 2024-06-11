@@ -1423,7 +1423,7 @@ fix_buffer (mps_ss_t ss, struct buffer *b)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, b, fix_vectorlike);
     IGC_FIX12_RAW (ss, &b->own_text.intervals);
-    IGC_FIX12_RAW (ss, &b->own_text.markers);
+    IGC_FIX12_OBJ (ss, &b->own_text.markers);
     IGC_FIX12_RAW (ss, &b->overlays);
 
     IGC_FIX12_RAW (ss, &b->base_buffer);
@@ -1698,8 +1698,8 @@ fix_marker (mps_ss_t ss, struct Lisp_Marker *m)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_RAW (ss, &m->buffer);
-    IGC_FIX12_RAW (ss, &m->next);
+    if (m->buffer)
+      IGC_FIX12_RAW (ss, &m->buffer);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -3209,13 +3209,78 @@ igc_valid_lisp_object_p (Lisp_Object obj)
 }
 
 Lisp_Object
-igc_make_weak_vector (ptrdiff_t len, Lisp_Object init)
+igc_alloc_vector_weak (ptrdiff_t len, Lisp_Object init)
 {
-  struct Lisp_Vector *v = alloc_weak (len * word_size, IGC_OBJ_VECTOR, true);
+  struct Lisp_Vector *v
+    = alloc_weak (header_size + len * word_size, IGC_OBJ_VECTOR, true);
   v->header.size = len;
   for (ptrdiff_t i = 0; i < len; ++i)
     v->contents[i] = init;
   return make_lisp_ptr (v, Lisp_Vectorlike);
+}
+
+static ptrdiff_t
+find_nil_index (Lisp_Object v)
+{
+  for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
+    if (NILP (AREF (v, i)))
+      return i;
+  return ASIZE (v);
+}
+
+static Lisp_Object
+larger_weak_vector (Lisp_Object v)
+{
+  ptrdiff_t new_len = 2 * ASIZE (v);
+  Lisp_Object new_v = igc_alloc_vector_weak (new_len, Qnil);
+  for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
+    ASET (new_v, i, AREF (v, i));
+  return new_v;
+}
+
+void
+igc_add_marker (struct buffer *b, struct Lisp_Marker *m)
+{
+  Lisp_Object v = BUF_MARKERS (b);
+  if (NILP (v))
+    v = BUF_MARKERS (b) = igc_alloc_vector_weak (100, Qnil);
+
+  ptrdiff_t i = find_nil_index (v);
+  if (i == ASIZE (v))
+    v = BUF_MARKERS (b) = larger_weak_vector (v);
+  ASET (v, i, make_lisp_ptr (m, Lisp_Vectorlike));
+}
+
+void
+igc_remove_marker (struct buffer *b, struct Lisp_Marker *m)
+{
+  Lisp_Object v = BUF_MARKERS (b);
+  igc_assert (VECTORP (v));
+  Lisp_Object marker = make_lisp_ptr (m, Lisp_Vectorlike);
+  for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
+    if (EQ (AREF (v, i), marker))
+      {
+	ASET (v, i, Qnil);
+	break;
+      }
+}
+
+void
+igc_remove_all_markers (struct buffer *b)
+{
+  Lisp_Object v = BUF_MARKERS (b);
+  if (VECTORP (v))
+    {
+      for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
+	{
+	  Lisp_Object m = AREF (v, i);
+	  if (MARKERP (m))
+	    {
+	      XMARKER (m)->buffer = NULL;
+	      ASET (v, i, Qnil);
+	    }
+	}
+    }
 }
 
 DEFUN ("igc-make-weak-vector", Figc_make_weak_vector, Sigc_make_weak_vector, 2, 2, 0,
@@ -3225,7 +3290,7 @@ See also the function `vector'.  */)
 {
   CHECK_TYPE (FIXNATP (length) && XFIXNAT (length) <= PTRDIFF_MAX,
 	      Qwholenump, length);
-  return igc_make_weak_vector (XFIXNAT (length), init);
+  return igc_alloc_vector_weak (XFIXNAT (length), init);
 }
 
 DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
@@ -4039,9 +4104,8 @@ mirror_buffer (struct igc_mirror *m, struct buffer *b)
 {
   IGC_MIRROR_VECTORLIKE (m, b);
   IGC_MIRROR_RAW (m, &b->own_text.intervals);
-  IGC_MIRROR_RAW (m, &b->own_text.markers);
+  IGC_MIRROR_OBJ (m, &b->own_text.markers);
   IGC_MIRROR_RAW (m, &b->overlays);
-  IGC_MIRROR_RAW (m, &b->own_text.markers);
 
   IGC_MIRROR_RAW (m, &b->base_buffer);
   if (b->base_buffer)
@@ -4151,7 +4215,6 @@ static void
 mirror_marker (struct igc_mirror *m, struct Lisp_Marker *ma)
 {
   IGC_MIRROR_RAW (m, &ma->buffer);
-  IGC_MIRROR_RAW (m, &ma->next);
 }
 
 static void

@@ -45,6 +45,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xwidget.h"
 #include "itree.h"
 #include "pdumper.h"
+#include "igc.h"
 
 #ifdef WINDOWSNT
 #include "w32heap.h"		/* for mmap_* */
@@ -661,8 +662,11 @@ even if it is dead.  The return value is never nil.  */)
   reset_buffer_local_variables (b, 1);
 
   bset_mark (b, Fmake_marker ());
+#ifdef HAVE_MPS
+  BUF_MARKERS (b) = Qnil;
+#else
   BUF_MARKERS (b) = NULL;
-
+#endif
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buffer, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, list1 (Fcons (name, buffer)));
@@ -1891,7 +1895,6 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   Lisp_Object buffer;
   struct buffer *b;
   Lisp_Object tem;
-  struct Lisp_Marker *m;
 
   if (NILP (buffer_or_name))
     buffer = Fcurrent_buffer ();
@@ -2069,6 +2072,16 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       /* Unchain all markers that belong to this indirect buffer.
 	 Don't unchain the markers that belong to the base buffer
 	 or its other indirect buffers.  */
+#ifdef HAVE_MPS
+      DO_MARKERS (b, m)
+	{
+	  if (m->buffer == b)
+	    {
+	      m->buffer = NULL;
+	      igc_remove_marker (b, m);
+	    }
+	}
+#else
       struct Lisp_Marker **mp = &BUF_MARKERS (b);
       while ((m = *mp))
 	{
@@ -2080,7 +2093,8 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	  else
 	    mp = &m->next;
 	}
-      /* Intervals should be owned by the base buffer (Bug#16502).  */
+ #endif
+     /* Intervals should be owned by the base buffer (Bug#16502).  */
       i = buffer_intervals (b);
       if (i)
 	{
@@ -2093,6 +2107,9 @@ cleaning up all windows currently displaying the buffer to be killed. */)
     {
       /* Unchain all markers of this buffer and its indirect buffers.
 	 and leave them pointing nowhere.  */
+#ifdef HAVE_MPS
+      igc_remove_all_markers (b);
+#else
       for (m = BUF_MARKERS (b); m; )
 	{
 	  struct Lisp_Marker *next = m->next;
@@ -2101,6 +2118,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	  m = next;
 	}
       BUF_MARKERS (b) = NULL;
+#endif
       set_buffer_intervals (b, NULL);
 
       /* Perhaps we should explicitly free the interval tree here...  */
@@ -2624,21 +2642,24 @@ results, see Info node `(elisp)Swapping Text'.  */)
   other_buffer->text->end_unchanged = other_buffer->text->gpt;
   swap_buffer_overlays (current_buffer, other_buffer);
   {
-    struct Lisp_Marker *m;
-    for (m = BUF_MARKERS (current_buffer); m; m = m->next)
-      if (m->buffer == other_buffer)
-	m->buffer = current_buffer;
-      else
-	/* Since there's no indirect buffer in sight, markers on
-	   BUF_MARKERS(buf) should either be for `buf' or dead.  */
-	eassert (!m->buffer);
-    for (m = BUF_MARKERS (other_buffer); m; m = m->next)
-      if (m->buffer == current_buffer)
-	m->buffer = other_buffer;
-      else
-	/* Since there's no indirect buffer in sight, markers on
-	   BUF_MARKERS(buf) should either be for `buf' or dead.  */
-	eassert (!m->buffer);
+    DO_MARKERS (current_buffer, m)
+      {
+	if (m->buffer == other_buffer)
+	  m->buffer = current_buffer;
+	else
+	  /* Since there's no indirect buffer in sight, markers on
+	     BUF_MARKERS(buf) should either be for `buf' or dead.  */
+	  eassert (!m->buffer);
+      }
+    DO_MARKERS (other_buffer, m)
+      {
+	if (m->buffer == current_buffer)
+	  m->buffer = other_buffer;
+	else
+	  /* Since there's no indirect buffer in sight, markers on
+	     BUF_MARKERS(buf) should either be for `buf' or dead.  */
+	  eassert (!m->buffer);
+      }
   }
   { /* Some of the C code expects that both window markers of a
        live window points to that window's buffer.  So since we
@@ -2701,7 +2722,9 @@ If the multibyte flag was really changed, undo information of the
 current buffer is cleared.  */)
   (Lisp_Object flag)
 {
+#ifndef HAVE_MPS
   struct Lisp_Marker *tail, *markers;
+#endif
   Lisp_Object btail, other;
   ptrdiff_t begv, zv;
   bool narrowed = (BEG != BEGV || Z != ZV);
@@ -2750,9 +2773,10 @@ current buffer is cleared.  */)
       GPT = GPT_BYTE;
       TEMP_SET_PT_BOTH (PT_BYTE, PT_BYTE);
 
-
-      for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
-	tail->charpos = tail->bytepos;
+      DO_MARKERS (current_buffer, tail)
+	{
+	  tail->charpos = tail->bytepos;
+	}
 
       /* Convert multibyte form of 8-bit characters to unibyte.  */
       pos = BEG;
@@ -2902,6 +2926,16 @@ current buffer is cleared.  */)
 	TEMP_SET_PT_BOTH (position, byte);
       }
 
+#ifdef HAVE_MPS
+      DO_MARKERS (current_buffer, tail)
+	{
+	  Lisp_Object buf_markers = BUF_MARKERS (current_buffer);
+	  BUF_MARKERS (current_buffer) = Qnil;
+	  tail->bytepos = advance_to_char_boundary (tail->bytepos);
+	  tail->charpos = BYTE_TO_CHAR (tail->bytepos);
+	  BUF_MARKERS (current_buffer) = buf_markers;
+	}
+#else
       tail = markers = BUF_MARKERS (current_buffer);
 
       /* This prevents BYTE_TO_CHAR (that is, buf_bytepos_to_charpos) from
@@ -2921,6 +2955,7 @@ current buffer is cleared.  */)
 	emacs_abort ();
 
       BUF_MARKERS (current_buffer) = markers;
+#endif
 
       /* Do this last, so it can calculate the new correspondences
 	 between chars and bytes.  */

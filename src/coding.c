@@ -8111,9 +8111,7 @@ decode_coding_object (struct coding_system *coding,
 	move_gap_both (from, from_byte);
       if (BASE_EQ (src_object, dst_object))
 	{
-	  struct Lisp_Marker *tail;
-
-	  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
+	  DO_MARKERS (current_buffer, tail)
 	    {
 	      tail->need_adjustment
 		= tail->charpos == (tail->insertion_type ? from : to);
@@ -8243,9 +8241,7 @@ decode_coding_object (struct coding_system *coding,
 
       if (need_marker_adjustment)
 	{
-	  struct Lisp_Marker *tail;
-
-	  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
+	  DO_MARKERS (current_buffer, tail)
 	    if (tail->need_adjustment)
 	      {
 		tail->need_adjustment = 0;
@@ -8331,11 +8327,8 @@ encode_coding_object (struct coding_system *coding,
   bool same_buffer = false;
   if (BASE_EQ (src_object, dst_object) && BUFFERP (src_object))
     {
-      struct Lisp_Marker *tail;
-
       same_buffer = true;
-
-      for (tail = BUF_MARKERS (XBUFFER (src_object)); tail; tail = tail->next)
+      DO_MARKERS (XBUFFER (src_object), tail)
 	{
 	  tail->need_adjustment
 	    = tail->charpos == (tail->insertion_type ? from : to);
@@ -8498,9 +8491,7 @@ encode_coding_object (struct coding_system *coding,
 
       if (need_marker_adjustment)
 	{
-	  struct Lisp_Marker *tail;
-
-	  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
+	  DO_MARKERS (current_buffer, tail)
 	    if (tail->need_adjustment)
 	      {
 		tail->need_adjustment = 0;

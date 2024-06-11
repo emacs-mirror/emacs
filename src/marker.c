@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "buffer.h"
 #include "window.h"
+#include "igc.h"
 
 /* Record one cached position found recently by
    buf_charpos_to_bytepos or buf_bytepos_to_charpos.  */
@@ -166,7 +167,6 @@ CHECK_MARKER (Lisp_Object x)
 ptrdiff_t
 buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 {
-  struct Lisp_Marker *tail;
   ptrdiff_t best_above, best_above_byte;
   ptrdiff_t best_below, best_below_byte;
   ptrdiff_t distance = BYTECHAR_DISTANCE_INITIAL;
@@ -202,7 +202,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
   if (b == cached_buffer && BUF_MODIFF (b) == cached_modiff)
     CONSIDER (cached_charpos, cached_bytepos);
 
-  for (tail = BUF_MARKERS (b); tail; tail = tail->next)
+  DO_MARKERS (b, tail)
     {
       CONSIDER (tail->charpos, tail->bytepos);
 
@@ -323,7 +323,6 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 ptrdiff_t
 buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 {
-  struct Lisp_Marker *tail;
   ptrdiff_t best_above, best_above_byte;
   ptrdiff_t best_below, best_below_byte;
   ptrdiff_t distance = BYTECHAR_DISTANCE_INITIAL;
@@ -354,7 +353,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
   if (b == cached_buffer && BUF_MODIFF (b) == cached_modiff)
     CONSIDER (cached_bytepos, cached_charpos);
 
-  for (tail = BUF_MARKERS (b); tail; tail = tail->next)
+  DO_MARKERS (b, tail)
     {
       CONSIDER (tail->bytepos, tail->charpos);
 
@@ -414,9 +413,13 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 	 It will last until the next GC.
 	 But don't do it if BUF_MARKERS is nil;
 	 that is a signal from Fset_buffer_multibyte.  */
+#ifdef HAVE_MPS
+      if (record && VECTORP (BUF_MARKERS (b)))
+	build_marker (b, best_above, best_above_byte);
+#else
       if (record && BUF_MARKERS (b))
 	build_marker (b, best_above, best_above_byte);
-
+#endif
       byte_char_debug_check (b, best_above, best_above_byte);
 
       cached_buffer = b;
@@ -495,8 +498,12 @@ attach_marker (struct Lisp_Marker *m, struct buffer *b,
     {
       unchain_marker (m);
       m->buffer = b;
+#ifdef HAVE_MPS
+      igc_add_marker (b, m);
+#else
       m->next = BUF_MARKERS (b);
       BUF_MARKERS (b) = m;
+#endif
     }
 }
 
@@ -695,6 +702,9 @@ unchain_marker (register struct Lisp_Marker *marker)
 
   if (b)
     {
+#ifdef HAVE_MPS
+      igc_remove_marker (b, marker);
+#else
       register struct Lisp_Marker *tail, **prev;
 
       /* No dead buffers here.  */
@@ -723,6 +733,7 @@ unchain_marker (register struct Lisp_Marker *marker)
 
       /* Error if marker was not in it's chain.  */
       eassert (tail != NULL);
+#endif
     }
 }
 
