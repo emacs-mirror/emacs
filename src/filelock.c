@@ -60,7 +60,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define pidintmax intmax_t
 #define EPRIdMAX PRIdMAX
 #define getpid_for_lock() getpid ()
-#define pid_strtoimax strtoimax
+#define strtoimax strtoimax
 #endif /* WIDNOWSNT */
 
 #ifndef MSDOS
