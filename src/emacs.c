@@ -2936,7 +2936,8 @@ Emacs process, using the same command line arguments as the currently
 running Emacs process.
 
 This function is called upon receipt of the signals SIGTERM
-or SIGHUP, and upon SIGINT in batch mode.
+or SIGHUP, and upon SIGINT in batch mode.  (Other fatal signals
+shut down Emacs without calling this function.)
 
 The value of `kill-emacs-hook', if not void, is a list of functions
 (of no args), all of which are called before Emacs is actually
