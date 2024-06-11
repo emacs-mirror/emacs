@@ -68,6 +68,7 @@ void igc_on_face_cache_change (void *face_cache);
 
 void igc_process_messages (void);
 Lisp_Object igc_make_cons (Lisp_Object car, Lisp_Object cdr);
+Lisp_Object igc_make_weak_vector (ptrdiff_t len, Lisp_Object init);
 Lisp_Object igc_alloc_symbol (void);
 void *igc_alloc_global_ref (void);
 

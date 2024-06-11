@@ -2939,6 +2939,15 @@ alloc_immovable (size_t size, enum igc_obj_type type)
   return alloc_impl (size, type, t->d.ams_ap);
 }
 
+static mps_addr_t
+alloc_weak (size_t size, enum igc_obj_type type, bool weak)
+{
+  struct igc_thread_list *t = current_thread->gc_info;
+  if (weak)
+    return alloc_impl (size, type, t->d.weak_weak_ap);
+  return alloc_impl (size, type, t->d.weak_strong_ap);
+}
+
 void *
 igc_alloc_global_ref (void)
 {
@@ -3197,6 +3206,26 @@ int
 igc_valid_lisp_object_p (Lisp_Object obj)
 {
   return 1;
+}
+
+Lisp_Object
+igc_make_weak_vector (ptrdiff_t len, Lisp_Object init)
+{
+  struct Lisp_Vector *v = alloc_weak (len * word_size, IGC_OBJ_VECTOR, true);
+  v->header.size = len;
+  for (ptrdiff_t i = 0; i < len; ++i)
+    v->contents[i] = init;
+  return make_lisp_ptr (v, Lisp_Vectorlike);
+}
+
+DEFUN ("igc-make-weak-vector", Figc_make_weak_vector, Sigc_make_weak_vector, 2, 2, 0,
+       doc: /* Return a newly created vector of length LENGTH, with each element being INIT.
+See also the function `vector'.  */)
+  (Lisp_Object length, Lisp_Object init)
+{
+  CHECK_TYPE (FIXNATP (length) && XFIXNAT (length) <= PTRDIFF_MAX,
+	      Qwholenump, length);
+  return igc_make_weak_vector (XFIXNAT (length), init);
 }
 
 DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
@@ -3534,6 +3563,7 @@ void
 syms_of_igc (void)
 {
   defsubr (&Sigc_info);
+  defsubr (&Sigc_make_weak_vector);
   defsubr (&Sigc_roots);
   defsubr (&Sigc__collect);
   DEFSYM (Qambig, "ambig");
