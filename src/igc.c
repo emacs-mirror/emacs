@@ -64,10 +64,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #ifndef HAVE_PDUMPER
 # error "HAVE_PDUMPER required"
 #endif
-#ifdef HAVE_TEXT_CONVERSION
-//# error "HAVE_TEXT_CONVERSION not supported"
-# warning "HAVE_TEXT_CONVERSION not supported"
-#endif
 
 struct Lisp_Weak_Ref
 {
