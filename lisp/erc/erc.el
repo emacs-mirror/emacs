@@ -676,10 +676,11 @@ Also remove members from the server table if this was their only buffer."
     (erc-remove-channel-users)))
 
 (defmacro erc--define-channel-user-status-compat-getter (name c d)
-  "Define a gv getter for historical `erc-channel-user' status slot NAME.
-Expect NAME to be a string, C to be its traditionally associated
-letter, and D to be its fallback power-of-2 integer for non-ERC
-buffers."
+  "Define accessor with gv getter for historical `erc-channel-user' slot NAME.
+Expect NAME to be a string, C to be its traditionally associated letter,
+and D to be its fallback power-of-2 integer for non-ERC buffers.  Unlike
+pre-ERC-5.6 accessors, do not bother generating a compiler macro for
+inlining calls to these adapters."
   `(defun ,(intern (concat "erc-channel-user-" name)) (u)
      ,(format "Get equivalent of pre-5.6 `%s' slot for `erc-channel-user'."
               name)

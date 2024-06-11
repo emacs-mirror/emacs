@@ -1649,6 +1649,10 @@ Would expand to:
 
   See also `erc-server-311'.\"))
 
+  Note that while all ALIASES share the same handler function, each gets
+  its own distinct hook variable.  The default value of these variables
+  may be a list or a function.  Robust code should handle both.
+
 \(fn (NAME &rest ALIASES) &optional EXTRA-FN-DOC EXTRA-VAR-DOC &rest FN-BODY)"
   (declare (debug (&define [&name "erc-response-handler@"
                                   ;; No `def-edebug-elem-spec' in 27.
