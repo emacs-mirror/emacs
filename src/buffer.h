@@ -769,25 +769,25 @@ marker_it_marker (struct marker_it *it)
 INLINE struct marker_it
 marker_it_init (struct buffer *b)
 {
-  return (struct marker_it) { .markers = BUF_MARKERS (b) };
+  return (struct marker_it) { .marker = BUF_MARKERS (b) };
 }
 
 INLINE bool
 marker_it_valid (struct marker_it *it)
 {
-  return it->markers != NULL;
+  return it->marker != NULL;
 }
 
 INLINE void
 marker_it_next (struct marker_it *it)
 {
-  return it->markers = it->markers->next;
+  it->marker = it->marker->next;
 }
 
 INLINE struct Lisp_Marker *
 marker_it_marker (struct marker_it *it)
 {
-  return it->markers;
+  return it->marker;
 }
 
 # endif

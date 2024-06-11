@@ -2083,6 +2083,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	}
 #else
       struct Lisp_Marker **mp = &BUF_MARKERS (b);
+      struct Lisp_Marker *m;
       while ((m = *mp))
 	{
 	  if (m->buffer == b)
@@ -2110,7 +2111,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 #ifdef HAVE_MPS
       igc_remove_all_markers (b);
 #else
-      for (m = BUF_MARKERS (b); m; )
+      for (struct Lisp_Marker *m = BUF_MARKERS (b); m; )
 	{
 	  struct Lisp_Marker *next = m->next;
 	  m->buffer = 0;
