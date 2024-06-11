@@ -729,63 +729,11 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 (defun tramp-adb-handle-process-file
   (program &optional infile destination display &rest args)
   "Like `process-file' for Tramp files."
-  ;; The implementation is not complete yet.
-  (when (and (numberp destination) (zerop destination))
-    (error "Implementation does not handle immediate return"))
-
-  (with-parsed-tramp-file-name (expand-file-name default-directory) nil
-    (let (command input tmpinput stderr tmpstderr outbuf ret)
+  (tramp-skeleton-process-file program infile destination display args
       ;; Compute command.
       (setq command (mapconcat #'tramp-shell-quote-argument
 			       (cons program args) " "))
-      ;; Determine input.
-      (if (null infile)
-	  (setq input (tramp-get-remote-null-device v))
-	(setq infile (file-name-unquote (expand-file-name infile)))
-	(if (tramp-equal-remote default-directory infile)
-	    ;; INFILE is on the same remote host.
-	    (setq input (tramp-unquote-file-local-name infile))
-	  ;; INFILE must be copied to remote host.
-	  (setq input (tramp-make-tramp-temp-file v)
-		tmpinput (tramp-make-tramp-file-name v input))
-	  (copy-file infile tmpinput t)))
       (when input (setq command (format "%s <%s" command input)))
-
-      ;; Determine output.
-      (cond
-       ;; Just a buffer.
-       ((bufferp destination)
-	(setq outbuf destination))
-       ;; A buffer name.
-       ((stringp destination)
-	(setq outbuf (get-buffer-create destination)))
-       ;; (REAL-DESTINATION ERROR-DESTINATION)
-       ((consp destination)
-	;; output.
-	(cond
-	 ((bufferp (car destination))
-	  (setq outbuf (car destination)))
-	 ((stringp (car destination))
-	  (setq outbuf (get-buffer-create (car destination))))
-	 ((car destination)
-	  (setq outbuf (current-buffer))))
-	;; stderr.
-	(cond
-	 ((stringp (cadr destination))
-	  (setcar (cdr destination) (expand-file-name (cadr destination)))
-	  (if (tramp-equal-remote default-directory (cadr destination))
-	      ;; stderr is on the same remote host.
-	      (setq stderr (tramp-unquote-file-local-name (cadr destination)))
-	    ;; stderr must be copied to remote host.  The temporary
-	    ;; file must be deleted after execution.
-	    (setq stderr (tramp-make-tramp-temp-file v)
-		  tmpstderr (tramp-make-tramp-file-name v stderr))))
-	 ;; stderr to be discarded.
-	 ((null (cadr destination))
-	  (setq stderr (tramp-get-remote-null-device v)))))
-       ;; 't
-       (destination
-	(setq outbuf (current-buffer))))
       (when stderr (setq command (format "%s 2>%s" command stderr)))
 
       ;; Send the command.  It might not return in time, so we protect
@@ -819,21 +767,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; since Emacs 28.1.
       (when (and (bound-and-true-p process-file-return-signal-string)
 		 (natnump ret) (> ret 128))
-	(setq ret (nth (- ret 128) (tramp-adb-get-signal-strings v))))
-
-      ;; Provide error file.
-      (when tmpstderr (rename-file tmpstderr (cadr destination) t))
-
-      ;; Cleanup.  We remove all file cache values for the connection,
-      ;; because the remote process could have changed them.
-      (when tmpinput (delete-file tmpinput))
-      (when process-file-side-effects
-        (tramp-flush-directory-properties v "/"))
-
-      ;; Return exit status.
-      (if (equal ret -1)
-	  (keyboard-quit)
-	ret))))
+	(setq ret (nth (- ret 128) (tramp-adb-get-signal-strings v))))))
 
 ;; We use BUFFER also as connection buffer during setup.  Because of
 ;; this, its original contents must be saved, and restored once
@@ -868,19 +802,11 @@ will be used."
 	     (tramp-process-connection-type
 	      (or (null program) tramp-process-connection-type))
 	     (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
-	     (name1 name)
-	     (i 0)
 	     p)
 
 	(when (string-match-p (rx multibyte) command)
 	  (tramp-error
 	   v 'file-error "Cannot apply multibyte command `%s'" command))
-
-	(while (get-process name1)
-	  ;; NAME must be unique as process name.
-	  (setq i (1+ i)
-		name1 (format "%s<%d>" name i)))
-	(setq name name1)
 
 	(with-tramp-saved-connection-properties
 	    v '("process-name" "process-buffer")

@@ -1963,6 +1963,16 @@ from the default one."
   (or (tramp-get-connection-property vec "process-name")
       (tramp-buffer-name vec)))
 
+(defun tramp-get-unique-process-name (name)
+  "Return a unique process name, based on NAME."
+  (let ((name1 name)
+	(i 0))
+    (while (get-process name1)
+      ;; NAME must be unique as process name.
+      (setq i (1+ i)
+	    name1 (format "%s<%d>" name i)))
+    name1))
+
 (defun tramp-get-process (vec-or-proc)
   "Get the default connection process to be used for VEC-OR-PROC.
 Return `tramp-cache-undefined' in case it doesn't exist."
@@ -3568,6 +3578,7 @@ that a stederr file is supported.  BODY is the backend specific code."
 	   (signal 'file-error (list "Wrong stderr" stderr)))
 
 	 (let ((default-directory tramp-compat-temporary-file-directory)
+	       (name (tramp-get-unique-process-name name))
 	       (buffer
 		(if buffer
 		    (get-buffer-create buffer)
@@ -3619,6 +3630,82 @@ on the same host.  Otherwise, TARGET is quoted."
        (tramp-flush-file-properties v localname)
 
        ,@body)))
+
+(defmacro tramp-skeleton-process-file
+    (_program &optional infile destination _display _args &rest body)
+  "Skeleton for `tramp-*-handle-process-file'.
+BODY is the backend specific code."
+  (declare (indent 5) (debug t))
+  `(with-parsed-tramp-file-name (expand-file-name default-directory) nil
+     ;; The implementation is not complete yet.
+     (when (and (numberp ,destination) (zerop ,destination))
+       (tramp-error
+	v 'file-error "Implementation does not handle immediate return"))
+
+     (let (command input tmpinput stderr tmpstderr outbuf ret)
+       ;; Determine input.
+       (if (null ,infile)
+	   (setq input (tramp-get-remote-null-device v))
+	 (setq ,infile (file-name-unquote (expand-file-name ,infile)))
+	 (if (tramp-equal-remote default-directory ,infile)
+	     ;; INFILE is on the same remote host.
+	     (setq input (tramp-unquote-file-local-name ,infile))
+	   ;; ,INFILE must be copied to remote host.
+	   (setq input (tramp-make-tramp-temp-file v)
+		 tmpinput (tramp-make-tramp-file-name v input))
+	   (copy-file ,infile tmpinput t)))
+
+       ;; Determine output.
+       (cond
+	;; Just a buffer.
+	((bufferp ,destination)
+	 (setq outbuf ,destination))
+	;; A buffer name.
+	((stringp ,destination)
+	 (setq outbuf (get-buffer-create ,destination)))
+	;; (REAL-,DESTINATION ERROR-,DESTINATION)
+	((consp ,destination)
+	 ;; output.
+	 (cond
+	  ((bufferp (car ,destination))
+	   (setq outbuf (car ,destination)))
+	  ((stringp (car ,destination))
+	   (setq outbuf (get-buffer-create (car ,destination))))
+	  ((car ,destination)
+	   (setq outbuf (current-buffer))))
+	 ;; stderr.
+	 (cond
+	  ((stringp (cadr ,destination))
+	   (setcar (cdr ,destination) (expand-file-name (cadr ,destination)))
+	   (if (tramp-equal-remote default-directory (cadr ,destination))
+	       ;; stderr is on the same remote host.
+	       (setq stderr (tramp-unquote-file-local-name (cadr ,destination)))
+	     ;; stderr must be copied to remote host.  The temporary
+	     ;; file must be deleted after execution.
+	     (setq stderr (tramp-make-tramp-temp-file v)
+		   tmpstderr (tramp-make-tramp-file-name v stderr))))
+	  ;; stderr to be discarded.
+	  ((null (cadr ,destination))
+	   (setq stderr (tramp-get-remote-null-device v)))))
+	;; t
+	(,destination
+	(setq outbuf (current-buffer))))
+
+       ,@body
+
+       ;; Provide error file.
+       (when tmpstderr (rename-file tmpstderr (cadr ,destination) t))
+
+       ;; Cleanup.  We remove all file cache values for the connection,
+       ;; because the remote process could have changed them.
+       (when tmpinput (delete-file tmpinput))
+       (when process-file-side-effects
+         (tramp-flush-directory-properties v "/"))
+
+       ;; Return exit status.
+       (if (equal ret -1)
+	   (keyboard-quit)
+	 ret))))
 
 (defcustom tramp-inhibit-errors-if-setting-file-attributes-fail nil
   "Whether to warn only if `tramp-*-set-file-{modes,times,uid-gid}' fails."
@@ -5065,10 +5152,6 @@ should be set connection-local.")
       ;; Query flag is overwritten in `tramp-post-process-creation',
       ;; so we reset it.
       (set-process-query-on-exit-flag p (null noquery))
-      ;; This is needed for ssh or PuTTY based processes, and only if
-      ;; the respective options are set.  Perhaps, the setting could
-      ;; be more fine-grained.
-      ;; (process-put p 'tramp-shared-socket t)
       (process-put p 'remote-command orig-command)
       (tramp-set-connection-property p "remote-command" orig-command)
       (when (bufferp stderr)
@@ -6936,18 +7019,13 @@ If VEC is `tramp-null-hop', return local null device."
 ;;   <https://www.mail-archive.com/tramp-devel@nongnu.org/msg01041.html>.
 ;;   (Bug#6850)
 ;;
-;; * Refactor code from different handlers.  Start with
-;;   *-process-file.  One idea is to generalize `tramp-send-command'
-;;   and friends, for most of the handlers this is the major
-;;   difference between the different backends.  Other handlers but
-;;   *-process-file would profit from this as well.
-;;
 ;; * Implement file name abbreviation for a different user.  That is,
 ;;   (abbreviate-file-name "/ssh:user1@host:/home/user2") =>
 ;;   "/ssh:user1@host:~user2".
 ;;
 ;; * Implement file name abbreviation for user and host names.
 ;;
-;; * Implement user and host name completion for multi-hops.
+;; * Implement user and host name completion for multi-hops.  Some
+;;   methods in tramp-container.el have it already.
 
 ;;; tramp.el ends here
