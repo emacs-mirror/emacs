@@ -3104,8 +3104,13 @@ detection and just returns nil."
       (let* ((code (concat
                     "import sys\n"
                     "ps = [getattr(sys, 'ps%s' % i, '') for i in range(1,4)]\n"
+                    "try:\n"
+                    "    import json\n"
+                    "    ps_json = '\\n' + json.dumps(ps)\n"
+                    "except ImportError:\n"
                     ;; JSON is built manually for compatibility
-                    "ps_json = '\\n[\"%s\", \"%s\", \"%s\"]\\n' % tuple(ps)\n"
+                    "    ps_json = '\\n[\"%s\", \"%s\", \"%s\"]\\n' % tuple(ps)\n"
+                    "\n"
                     "print (ps_json)\n"
                     "sys.exit(0)\n"))
              (interpreter python-shell-interpreter)
@@ -3168,7 +3173,7 @@ detection and just returns nil."
             "Or alternatively in:\n"
             "  + `python-shell-prompt-input-regexps'\n"
             "  + `python-shell-prompt-output-regexps'")))
-        prompts))))
+        (mapcar #'ansi-color-filter-apply prompts)))))
 
 (defun python-shell-prompt-validate-regexps ()
   "Validate all user provided regexps for prompts.

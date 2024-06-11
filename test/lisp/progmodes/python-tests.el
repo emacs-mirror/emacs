@@ -3820,6 +3820,17 @@ This function is intended to be used as the PRED argument of
   (when (string= (car (split-string (cdr info) "\\.")) "3")
     (car info)))
 
+(defun python-tests-interpreter-2-6-higher-p (info)
+  "Check if the interpreter major version in INFO is 2.6 or higher.
+This function is intended to be used as the PRED argument of
+`python-tests-get-shell-interpreter'."
+  (let* ((version (split-string (cdr info) "\\."))
+         (major (string-to-number (car version)))
+         (minor (string-to-number (cadr version))))
+    (when (or (>= major 3)
+              (and (= major 2) (>= minor 6)))
+      (car info))))
+
 (ert-deftest python-shell-get-process-name-1 ()
   "Check process name calculation sans `buffer-file-name'."
   (python-tests-with-temp-buffer
@@ -4351,6 +4362,23 @@ and `python-shell-interpreter-args' in the new shell buffer."
            (should (not python-shell-prompt-detect-enabled))
            (should (not (python-shell-prompt-detect)))
            (should (not (get-buffer "*Warnings*"))))
+       (ignore-errors (delete-file startup-file))))))
+
+(ert-deftest python-shell-prompt-detect-7 ()
+  "Check prompt autodetection with escape sequences.  Bug#71440."
+  (python-tests-with-shell-interpreter
+   #'python-tests-interpreter-2-6-higher-p
+   (let* ((process-environment process-environment)
+          (startup-code (concat "import sys\n"
+                                "sys.ps1 = '\033[32mpy> \033[0m'\n"
+                                "sys.ps2 = '\033[32m..> \033[0m'\n"
+                                "sys.ps3 = '\033[32mout \033[0m'\n"))
+          (startup-file (python-shell--save-temp-file startup-code)))
+     (unwind-protect
+         (progn
+           (setenv "PYTHONSTARTUP" startup-file)
+           (should python-shell-prompt-detect-enabled)
+           (should (equal (python-shell-prompt-detect) '("py> " "..> " "out "))))
        (ignore-errors (delete-file startup-file))))))
 
 (ert-deftest python-shell-prompt-validate-regexps-1 ()
