@@ -6362,6 +6362,8 @@ read_and_insert_process_output (struct Lisp_Process *p, char *buf,
 				     &opoint_byte);
 
   /* Adapted from call_process.  */
+  prepare_to_modify_buffer (PT, PT, NULL);
+
   if (NILP (BVAR (XBUFFER (p->buffer), enable_multibyte_characters))
 	   && ! CODING_MAY_REQUIRE_DECODING (process_coding))
     {
