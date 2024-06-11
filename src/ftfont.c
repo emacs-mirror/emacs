@@ -658,6 +658,11 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
 }
 
 #if defined HAVE_XFT && defined FC_COLOR
+#if (XFT_MAJOR < 2						\
+    || (XFT_MAJOR == 2 && (XFT_MINOR < 3			\
+			   || (XFT_MINOR == 3			\
+			       && XFT_REVISION < 6))))
+
 static bool
 xft_color_font_whitelisted_p (const char *family)
 {
@@ -675,7 +680,9 @@ xft_color_font_whitelisted_p (const char *family)
 
   return false;
 }
-#endif
+
+#endif /* Xft < 2.3.6 */
+#endif /* HAVE_XFT && FC_COLOR */
 
 static FcPattern *
 ftfont_spec_pattern (Lisp_Object spec, char *otlayout,
@@ -815,14 +822,19 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout,
       && ! FcPatternAddBool (pattern, FC_SCALABLE, scalable ? FcTrue : FcFalse))
     goto err;
 #if defined HAVE_XFT && defined FC_COLOR
-  /* We really don't like color fonts, they cause Xft crashes.  See
-     Bug#30874.  */
+#if (XFT_MAJOR < 2						\
+     || (XFT_MAJOR == 2 && (XFT_MINOR < 3			\
+			    || (XFT_MINOR == 3			\
+				&& XFT_REVISION < 6))))
+  /* We really don't like color fonts, they cause Xft crashes with
+     releases older than 2.3.6.  See Bug#30874.  */
   if (xft_ignore_color_fonts
       && (NILP (AREF (spec, FONT_FAMILY_INDEX))
 	  || NILP (Vxft_color_font_whitelist))
       && ! FcPatternAddBool (pattern, FC_COLOR, FcFalse))
     goto err;
-#endif
+#endif /* Xft < 2.3.6 */
+#endif /* HAVE_XFT && FC_COLOR */
 
   goto finish;
 
@@ -959,6 +971,10 @@ ftfont_list (struct frame *f, Lisp_Object spec)
     {
       Lisp_Object entity;
 #if defined HAVE_XFT && defined FC_COLOR
+#if (XFT_MAJOR < 2						\
+     || (XFT_MAJOR == 2 && (XFT_MINOR < 3			\
+			    || (XFT_MINOR == 3			\
+				&& XFT_REVISION < 6))))
       {
         /* Some fonts, notably NotoColorEmoji, have an FC_COLOR value
            that's neither FcTrue nor FcFalse, which means FcFontList
@@ -975,7 +991,8 @@ ftfont_list (struct frame *f, Lisp_Object spec)
             == FcResultMatch && b != FcFalse)
             continue;
       }
-#endif
+#endif /* Xft < 2.3.6 */
+#endif /* HAVE_XFT && FC_COLOR */
       if (spacing >= 0)
 	{
 	  int this;

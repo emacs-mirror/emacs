@@ -977,6 +977,8 @@ to take advantage of.
 
 ** Some fonts are detected but not usable under Xft.
 
+We understand that these issues were resolved in Xft release 2.3.6.
+
 Some fonts might not be usable under Emacs even though they show up in
 the font family list when Emacs is built with Xft.  This is because
 Emacs prevents fonts that have color glyphs (such as color Emoji) from
