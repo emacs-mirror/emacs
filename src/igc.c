@@ -197,6 +197,7 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_STRING",
   "IGC_OBJ_STRING_DATA",
   "IGC_OBJ_VECTOR",
+  "IGC_OBJ_VECTOR_WEAK",
   "IGC_OBJ_ITREE_TREE",
   "IGC_OBJ_ITREE_NODE",
   "IGC_OBJ_IMAGE",
@@ -1342,6 +1343,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	break;
 
       case IGC_OBJ_VECTOR:
+      case IGC_OBJ_VECTOR_WEAK:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_vector);
 	break;
 
@@ -2656,6 +2658,7 @@ finalize (struct igc *gc, mps_addr_t base)
       break;
 
     case IGC_OBJ_VECTOR:
+    case IGC_OBJ_VECTOR_WEAK:
       finalize_vector (client);
       break;
     }
@@ -2794,6 +2797,9 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_BUILTIN_SUBR:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
+
+    case IGC_OBJ_VECTOR_WEAK:
+      return t->d.weak_weak_ap;
 
     case IGC_OBJ_VECTOR:
     case IGC_OBJ_CONS:
@@ -2937,15 +2943,6 @@ alloc_immovable (size_t size, enum igc_obj_type type)
 {
   struct igc_thread_list *t = current_thread->gc_info;
   return alloc_impl (size, type, t->d.ams_ap);
-}
-
-static mps_addr_t
-alloc_weak (size_t size, enum igc_obj_type type, bool weak)
-{
-  struct igc_thread_list *t = current_thread->gc_info;
-  if (weak)
-    return alloc_impl (size, type, t->d.weak_weak_ap);
-  return alloc_impl (size, type, t->d.weak_strong_ap);
 }
 
 void *
@@ -3208,11 +3205,11 @@ igc_valid_lisp_object_p (Lisp_Object obj)
   return 1;
 }
 
-Lisp_Object
-igc_alloc_vector_weak (ptrdiff_t len, Lisp_Object init)
+static Lisp_Object
+alloc_vector_weak (ptrdiff_t len, Lisp_Object init)
 {
   struct Lisp_Vector *v
-    = alloc_weak (header_size + len * word_size, IGC_OBJ_VECTOR, true);
+    = alloc (header_size + len * word_size, IGC_OBJ_VECTOR_WEAK);
   v->header.size = len;
   for (ptrdiff_t i = 0; i < len; ++i)
     v->contents[i] = init;
@@ -3229,10 +3226,10 @@ find_nil_index (Lisp_Object v)
 }
 
 static Lisp_Object
-larger_weak_vector (Lisp_Object v)
+larger_vector_weak (Lisp_Object v)
 {
   ptrdiff_t new_len = 2 * ASIZE (v);
-  Lisp_Object new_v = igc_alloc_vector_weak (new_len, Qnil);
+  Lisp_Object new_v = alloc_vector_weak (new_len, Qnil);
   for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
     ASET (new_v, i, AREF (v, i));
   return new_v;
@@ -3243,12 +3240,13 @@ igc_add_marker (struct buffer *b, struct Lisp_Marker *m)
 {
   Lisp_Object v = BUF_MARKERS (b);
   if (NILP (v))
-    v = BUF_MARKERS (b) = igc_alloc_vector_weak (100, Qnil);
+    v = BUF_MARKERS (b) = alloc_vector_weak (100, Qnil);
 
   ptrdiff_t i = find_nil_index (v);
   if (i == ASIZE (v))
-    v = BUF_MARKERS (b) = larger_weak_vector (v);
-  ASET (v, i, make_lisp_ptr (m, Lisp_Vectorlike));
+    v = BUF_MARKERS (b) = larger_vector_weak (v);
+  Lisp_Object marker = make_lisp_ptr (m, Lisp_Vectorlike);
+  ASET (v, i, marker);
 }
 
 void
@@ -3290,7 +3288,7 @@ See also the function `vector'.  */)
 {
   CHECK_TYPE (FIXNATP (length) && XFIXNAT (length) <= PTRDIFF_MAX,
 	      Qwholenump, length);
-  return igc_alloc_vector_weak (XFIXNAT (length), init);
+  return alloc_vector_weak (XFIXNAT (length), init);
 }
 
 DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
@@ -3554,42 +3552,6 @@ builtin_obj_type (enum igc_obj_type type, void *client)
   emacs_abort ();
 }
 
-static bool
-is_builtin_obj_type (enum igc_obj_type type)
-{
-  switch (type)
-    {
-    case IGC_OBJ_INVALID:
-    case IGC_OBJ_PAD:
-    case IGC_OBJ_FWD:
-    case IGC_OBJ_CONS:
-    case IGC_OBJ_SYMBOL:
-    case IGC_OBJ_INTERVAL:
-    case IGC_OBJ_STRING:
-    case IGC_OBJ_STRING_DATA:
-    case IGC_OBJ_VECTOR:
-    case IGC_OBJ_ITREE_TREE:
-    case IGC_OBJ_ITREE_NODE:
-    case IGC_OBJ_IMAGE:
-    case IGC_OBJ_IMAGE_CACHE:
-    case IGC_OBJ_FACE:
-    case IGC_OBJ_FACE_CACHE:
-    case IGC_OBJ_FLOAT:
-    case IGC_OBJ_BLV:
-    case IGC_OBJ_PTR_VEC:
-    case IGC_OBJ_OBJ_VEC:
-    case IGC_OBJ_HANDLER:
-    case IGC_OBJ_BYTES:
-    case IGC_OBJ_NUM_TYPES:
-      return false;
-
-    case IGC_OBJ_BUILTIN_SYMBOL:
-    case IGC_OBJ_BUILTIN_THREAD:
-    case IGC_OBJ_BUILTIN_SUBR:
-      return true;
-    }
-}
-
 char *
 igc_dump_finish_obj (void *client, enum igc_obj_type type,
 		     char *base, char *end)
@@ -3601,7 +3563,10 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
   if (is_mps (client))
     {
       struct igc_header *h = client_to_base (client);
-      igc_assert (type == h->obj_type);
+      if (h->obj_type == IGC_OBJ_VECTOR_WEAK)
+	igc_assert (
+	  (type == IGC_OBJ_VECTOR && h->obj_type == IGC_OBJ_VECTOR_WEAK)
+	  || h->obj_type == type);
       igc_assert (base + to_bytes (h->nwords) >= end);
       *out = *h;
       return base + to_bytes (h->nwords);
@@ -3655,12 +3620,12 @@ are handled as if they were the default value.  */);
 
 #pragma GCC diagnostic ignored "-Wunused-function"
 
-/* Copy object with base address BASE to MPS. BASE must be an object in
+/* Copy object with base address BASE to MPS.  BASE must be an object in
    the loaded dump. Ensure that the copy has the same hash as the copied
    object so that hash tables don't need to be re-hashed.  Value is the
    base address of the copy. */
 static mps_addr_t
-copy (mps_addr_t base)
+copy_to_mps (mps_addr_t base)
 {
   igc_assert (pdumper_object_p (base));
   struct igc_header *h = base;
@@ -3801,10 +3766,38 @@ copy_dump (struct igc_mirror *m)
   while ((org_base = pdumper_next_object (&it)) != NULL)
     {
       struct igc_header *h = org_base;
-      if (!is_builtin_obj_type (h->obj_type))
+      switch (h->obj_type)
 	{
-	  void *copy_base = copy (org_base);
-	  record_copy (m, org_base, copy_base);
+	case IGC_OBJ_INVALID:
+	case IGC_OBJ_PAD:
+	case IGC_OBJ_FWD:
+	case IGC_OBJ_CONS:
+	case IGC_OBJ_SYMBOL:
+	case IGC_OBJ_INTERVAL:
+	case IGC_OBJ_STRING:
+	case IGC_OBJ_STRING_DATA:
+	case IGC_OBJ_VECTOR:
+	case IGC_OBJ_VECTOR_WEAK:
+	case IGC_OBJ_ITREE_TREE:
+	case IGC_OBJ_ITREE_NODE:
+	case IGC_OBJ_IMAGE:
+	case IGC_OBJ_IMAGE_CACHE:
+	case IGC_OBJ_FACE:
+	case IGC_OBJ_FACE_CACHE:
+	case IGC_OBJ_FLOAT:
+	case IGC_OBJ_BLV:
+	case IGC_OBJ_PTR_VEC:
+	case IGC_OBJ_OBJ_VEC:
+	case IGC_OBJ_HANDLER:
+	case IGC_OBJ_BYTES:
+	case IGC_OBJ_NUM_TYPES:
+	  record_copy (m, org_base, copy_to_mps (org_base));
+	  break;
+
+	case IGC_OBJ_BUILTIN_SYMBOL:
+	case IGC_OBJ_BUILTIN_THREAD:
+	case IGC_OBJ_BUILTIN_SUBR:
+	  break;
 	}
     }
   record_time (m, "Copy objects to MPS");
@@ -4427,6 +4420,7 @@ mirror (struct igc_mirror *m, void *org_base, void *copy_base)
       break;
 
     case IGC_OBJ_VECTOR:
+    case IGC_OBJ_VECTOR_WEAK:
       mirror_vector (m, client);
       break;
 

@@ -34,6 +34,7 @@ enum igc_obj_type
   IGC_OBJ_STRING,
   IGC_OBJ_STRING_DATA,
   IGC_OBJ_VECTOR,
+  IGC_OBJ_VECTOR_WEAK,
   IGC_OBJ_ITREE_TREE,
   IGC_OBJ_ITREE_NODE,
   IGC_OBJ_IMAGE,
@@ -68,7 +69,6 @@ void igc_on_face_cache_change (void *face_cache);
 
 void igc_process_messages (void);
 Lisp_Object igc_make_cons (Lisp_Object car, Lisp_Object cdr);
-Lisp_Object igc_alloc_vector_weak (ptrdiff_t len, Lisp_Object init);
 void igc_add_marker (struct buffer *b, struct Lisp_Marker *m);
 void igc_remove_marker (struct buffer *b, struct Lisp_Marker *m);
 void igc_remove_all_markers (struct buffer *b);
