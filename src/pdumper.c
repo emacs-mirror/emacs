@@ -3561,11 +3561,19 @@ dump_cold_string (struct dump_context *ctx, Lisp_Object string)
     error ("string too large");
   dump_off total_size = ptrdiff_t_to_dump_off (SBYTES (string) + 1);
   eassert (total_size > 0);
+
+# ifdef HAVE_MPS
+  dump_align_output (ctx, DUMP_ALIGNMENT);
+  dump_igc_start_obj (ctx, IGC_OBJ_STRING_DATA, XSTRING (string)->u.s.data);
+# endif
   dump_remember_fixup_ptr_raw
     (ctx,
      string_offset + dump_offsetof (struct Lisp_String, u.s.data),
      ctx->offset);
   dump_write (ctx, XSTRING (string)->u.s.data, total_size);
+# ifdef HAVE_MPS
+  dump_igc_finish_obj (ctx);
+# endif
 }
 
 static void

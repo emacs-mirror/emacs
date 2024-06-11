@@ -109,6 +109,9 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 #define igc_static_assert(x) verify (x)
 #define igc_const_cast(type, expr) ((type) (expr))
 
+#define NOT_IMPLEMENTED() \
+  igc_assert_fail (__FILE__, __LINE__, "not implemented")
+
 #define IGC_TAG_MASK (~VALMASK)
 
 /* Using mps_arena_has_addr is expensive. so try to do something that is
@@ -3546,15 +3549,40 @@ is_builtin_subr (enum igc_obj_type type, void *client)
 }
 
 static enum igc_obj_type
-builtin_obj_type (enum igc_obj_type type, void *client)
+builtin_obj_type (size_t *hash, enum igc_obj_type type, void *client)
 {
   if (c_symbol_p (client))
-    return IGC_OBJ_BUILTIN_SYMBOL;
+    return *hash = igc_hash (make_lisp_symbol (client)),
+      IGC_OBJ_BUILTIN_SYMBOL;
   if (client == &main_thread)
-    return IGC_OBJ_BUILTIN_THREAD;
+    return *hash = igc_hash (make_lisp_ptr (client, Lisp_Vectorlike)),
+      IGC_OBJ_BUILTIN_THREAD;
   if (is_builtin_subr (type, client))
-    return IGC_OBJ_BUILTIN_SUBR;
+    return *hash = igc_hash (make_lisp_ptr (client, Lisp_Vectorlike)),
+      IGC_OBJ_BUILTIN_SUBR;
   emacs_abort ();
+}
+
+static enum igc_obj_type
+pure_obj_type_and_hash (size_t *hash_o, enum igc_obj_type type, void *client)
+{
+  switch (type)
+    {
+    case IGC_OBJ_STRING:
+      return *hash_o = igc_hash (make_lisp_ptr (client, Lisp_String)), type;
+    case IGC_OBJ_VECTOR:
+      return *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Vectorlike)),
+	     type;
+    case IGC_OBJ_CONS:
+      return *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Cons)), type;
+    case IGC_OBJ_STRING_DATA:
+      return *hash_o = (uintptr_t)client & IGC_HASH_MASK, type;
+    case IGC_OBJ_FLOAT:
+      return *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Float)), type;
+    default:
+      NOT_IMPLEMENTED ();
+      emacs_abort ();
+    }
 }
 
 char *
@@ -3576,13 +3604,15 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
       *out = *h;
       return base + to_bytes (h->nwords);
     }
-
   size_t client_size = end - base - sizeof *out;
   size_t nbytes = obj_size (client_size);
   size_t nwords = to_words (nbytes);
-  type = builtin_obj_type (type, client);
-  *out = (struct igc_header)
-    { .obj_type = type, .hash = igc_hash (client), .nwords = nwords };
+  size_t hash;
+  type = is_pure (client) ? pure_obj_type_and_hash (&hash, type, client)
+			  : builtin_obj_type_and_hash (&hash, type, client);
+  *out = (struct igc_header){ .obj_type = type,
+			      .hash = hash,
+			      .nwords = nwords };
   return base + nbytes;
 }
 
@@ -3931,17 +3961,7 @@ mirror_symbol (struct igc_mirror *m, struct Lisp_Symbol *sym)
 static void
 mirror_string (struct igc_mirror *m, struct Lisp_String *s)
 {
-  /* FIXME: IGC_OBJ_STRING_DATA is currently not used in the dump, which
-     means string data has no igc_header in the dump. We could leave
-     the string data alone. Not sure what's best.  */
-  if (s->u.s.size_byte != -2)
-    {
-      igc_assert (pdumper_object_p (s->u.s.data));
-      ptrdiff_t nbytes = STRING_BYTES (s);
-      unsigned char *data = alloc_string_data (nbytes, false);
-      memcpy (data, s->u.s.data, nbytes + 1);
-      s->u.s.data = data;
-    }
+  IGC_MIRROR_RAW (m, &s->u.s.data);
   IGC_MIRROR_RAW (m, &s->u.s.intervals);
 }
 
@@ -3956,9 +3976,6 @@ mirror_interval (struct igc_mirror *m, struct interval *i)
     IGC_MIRROR_RAW (m, &i->up.interval);
   IGC_MIRROR_OBJ (m, &i->plist);
 }
-
-#define NOT_IMPLEMENTED() \
-  igc_assert_fail (__FILE__, __LINE__, "not implemented")
 
 static void
 mirror_itree_tree (struct igc_mirror *m, struct itree_tree *t)
