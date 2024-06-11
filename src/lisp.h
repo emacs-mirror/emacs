@@ -1053,7 +1053,6 @@ enum pvec_type
   PVEC_TS_NODE,
   PVEC_TS_COMPILED_QUERY,
   PVEC_SQLITE,
-  PVEC_WEAK_REF,
 
   /* These should be last, for internal_equal and sxhash_obj.  */
   PVEC_CLOSURE,

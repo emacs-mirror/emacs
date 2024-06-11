@@ -42,7 +42,6 @@ enum igc_obj_type
   IGC_OBJ_FACE_CACHE,
   IGC_OBJ_FLOAT,
   IGC_OBJ_BLV,
-  IGC_OBJ_WEAK,
   IGC_OBJ_PTR_VEC,
   IGC_OBJ_OBJ_VEC,
   IGC_OBJ_HANDLER,
@@ -140,23 +139,6 @@ void igc_root_create_exact (Lisp_Object *start, Lisp_Object *end);
 void igc_root_create_exact_ptr (void *var_addr);
 void igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u);
 void *igc_root_create_n (Lisp_Object start[], size_t n);
-
-struct Lisp_Weak_Ref;
-Lisp_Object igc_weak_ref_deref (struct Lisp_Weak_Ref *);
-
-INLINE bool
-WEAK_REF_P (Lisp_Object x)
-{
-  return PSEUDOVECTORP (x, PVEC_WEAK_REF);
-}
-
-INLINE struct Lisp_Weak_Ref *
-XWEAK_REF (Lisp_Object a)
-{
-  eassert (WEAK_REF_P (a));
-  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Weak_Ref);
-}
-
 size_t igc_header_size (void);
 char *igc_dump_finish_obj (void *client, enum igc_obj_type type,
 			   char *base, char *end);

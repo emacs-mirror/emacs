@@ -292,8 +292,6 @@ a fixed set of types.  */)
           return Qsqlite;
         case PVEC_SUB_CHAR_TABLE:
           return Qsub_char_table;
-	case PVEC_WEAK_REF:
-	  return Qweak_ref;
 
 	/* "Impossible" cases.  */
 	case PVEC_MISC_PTR:
@@ -4198,7 +4196,6 @@ syms_of_data (void)
   DEFSYM (Qtreesit_node, "treesit-node");
   DEFSYM (Qtreesit_compiled_query, "treesit-compiled-query");
   DEFSYM (Qobarray, "obarray");
-  DEFSYM (Qweak_ref, "weak-ref");
 
   DEFSYM (Qdefun, "defun");
 

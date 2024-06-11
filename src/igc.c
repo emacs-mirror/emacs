@@ -205,7 +205,6 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_FACE_CACHE",
   "IGC_OBJ_FLOAT",
   "IGC_OBJ_BLV",
-  "IGC_OBJ_WEAK",
   "IGC_OBJ_PTR_VEC",
   "IGC_OBJ_OBJ_VEC",
   "IGC_OBJ_HANDLER",
@@ -262,7 +261,6 @@ static const char *pvec_type_names[] = {
   "PVEC_TS_NODE",
   "PVEC_TS_COMPILED_QUERY",
   "PVEC_SQLITE",
-  "PVEC_WEAK_REF",
   "PVEC_CLOSURE",
   "PVEC_CHAR_TABLE",
   "PVEC_SUB_CHAR_TABLE",
@@ -1226,40 +1224,6 @@ fix_obj_vec (mps_ss_t ss, Lisp_Object *v)
 }
 
 static mps_res_t
-fix_weak_ref (mps_ss_t ss, struct Lisp_Weak_Ref *wref)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    IGC_FIX12_OBJ (ss, &wref->ref);
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-/* MPS docs 7.4 says that weak objects must must follow certain rules to
-   enable instruction emulation on 32-bit Windows and Linux x86 systems.
-   This doesn't follow the rules. */
-
-static mps_res_t
-fix_weak (mps_ss_t ss, struct Lisp_Vector* v)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    switch (pseudo_vector_type (v))
-      {
-      case PVEC_WEAK_REF:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Ref, v, fix_weak_ref);
-	break;
-
-      default:
-	igc_assert (!"fix_weak");
-      }
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-static mps_res_t
 fix_cons (mps_ss_t ss, struct Lisp_Cons *cons)
 {
   MPS_SCAN_BEGIN (ss)
@@ -1408,10 +1372,6 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
       case IGC_OBJ_BLV:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Buffer_Local_Value, client,
 			 fix_blv);
-	break;
-
-      case IGC_OBJ_WEAK:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_weak);
 	break;
       }
   }
@@ -1983,9 +1943,6 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 #endif
 	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
 	break;
-
-      case PVEC_WEAK_REF:
-	emacs_abort ();
       }
   }
   MPS_SCAN_END (ss);
@@ -2656,7 +2613,6 @@ finalize_vector (mps_addr_t v)
     case PVEC_XWIDGET_VIEW:
     case PVEC_TERMINAL:
     case PVEC_MARKER:
-    case PVEC_WEAK_REF:
     case PVEC_MODULE_GLOBAL_REFERENCE:
       igc_assert (!"finalization not implemented");
       break;
@@ -2692,7 +2648,6 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_FACE:
     case IGC_OBJ_FACE_CACHE:
     case IGC_OBJ_FLOAT:
-    case IGC_OBJ_WEAK:
     case IGC_OBJ_BLV:
     case IGC_OBJ_PTR_VEC:
     case IGC_OBJ_OBJ_VEC:
@@ -2756,7 +2711,6 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
 #ifdef IN_MY_FORK
     case PVEC_PACKAGE:
 #endif
-    case PVEC_WEAK_REF:
     case PVEC_MODULE_GLOBAL_REFERENCE:
       break;
     }
@@ -2840,9 +2794,6 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_BUILTIN_SUBR:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
-
-    case IGC_OBJ_WEAK:
-      return t->d.weak_weak_ap;
 
     case IGC_OBJ_VECTOR:
     case IGC_OBJ_CONS:
@@ -3227,41 +3178,6 @@ igc_make_image_cache (void)
 }
 #endif
 
-DEFUN ("igc-make-weak-ref", Figc_make_weak_ref, Sigc_make_weak_ref, 1, 1, 0,
-       doc
-       : /* todo */)
-(Lisp_Object target)
-{
-  const enum pvec_type type = PVEC_WEAK_REF;
-  struct Lisp_Weak_Ref *wref = alloc (sizeof *wref, IGC_OBJ_WEAK);
-  int nwords_lisp = VECSIZE (struct Lisp_Weak_Ref);
-  XSETPVECTYPESIZE (wref, type, nwords_lisp, 0);
-  wref->ref = target;
-  Lisp_Object obj = make_lisp_ptr (wref, Lisp_Vectorlike);
-  return obj;
-}
-
-static void
-CHECK_WEAK_REF_P (Lisp_Object x)
-{
-  CHECK_TYPE (WEAK_REF_P (x), Qweak_ref_p, x);
-}
-
-Lisp_Object
-igc_weak_ref_deref (struct Lisp_Weak_Ref *wref)
-{
-  return wref->ref;
-}
-
-DEFUN ("igc-weak-ref-deref", Figc_weak_reaf_deref, Sigc_weak_ref_deref, 1, 1,
-       0, doc
-       : /* todo */)
-(Lisp_Object obj)
-{
-  CHECK_WEAK_REF_P (obj);
-  return igc_weak_ref_deref (XWEAK_REF (obj));
-}
-
 struct Lisp_Buffer_Local_Value *
 igc_alloc_blv (void)
 {
@@ -3566,7 +3482,6 @@ is_builtin_obj_type (enum igc_obj_type type)
     case IGC_OBJ_FACE_CACHE:
     case IGC_OBJ_FLOAT:
     case IGC_OBJ_BLV:
-    case IGC_OBJ_WEAK:
     case IGC_OBJ_PTR_VEC:
     case IGC_OBJ_OBJ_VEC:
     case IGC_OBJ_HANDLER:
@@ -3620,8 +3535,6 @@ syms_of_igc (void)
 {
   defsubr (&Sigc_info);
   defsubr (&Sigc_roots);
-  defsubr (&Sigc_make_weak_ref);
-  defsubr (&Sigc_weak_ref_deref);
   defsubr (&Sigc__collect);
   DEFSYM (Qambig, "ambig");
   DEFSYM (Qexact, "exact");
@@ -4023,12 +3936,6 @@ mirror_weak_ref (struct igc_mirror *m, struct Lisp_Weak_Ref *r)
 }
 
 static void
-mirror_weak (struct igc_mirror *m, struct Lisp_Vector *v)
-{
-  NOT_IMPLEMENTED ();
-}
-
-static void
 mirror_cons (struct igc_mirror *m, struct Lisp_Cons *c)
 {
   IGC_MIRROR_OBJ (m, &c->u.s.car);
@@ -4372,9 +4279,6 @@ mirror_vector (struct igc_mirror *m, void *client)
 #endif
       IGC_MIRROR_VECTORLIKE (m, client);
       break;
-
-    case PVEC_WEAK_REF:
-      emacs_abort ();
     }
 }
 
@@ -4459,10 +4363,6 @@ mirror (struct igc_mirror *m, void *org_base, void *copy_base)
 
     case IGC_OBJ_BLV:
       mirror_blv (m, client);
-      break;
-
-    case IGC_OBJ_WEAK:
-      mirror_weak (m, client);
       break;
     }
 }
