@@ -598,7 +598,10 @@ fix_raw (mps_ss_t ss, mps_addr_t *p)
 	    mps_res_t res = MPS_FIX2 (ss, &base);
 	    if (res != MPS_RES_OK)
 	      return res;
-	    *p = base_to_client (base);
+	    if (base == NULL)
+	      *p = NULL;
+	    else
+	      *p = base_to_client (base);
 	  }
       }
   }
