@@ -6263,10 +6263,7 @@ read_process_output (Lisp_Object proc, int channel)
      friends don't expect current-buffer to be changed from under them.  */
   record_unwind_current_buffer ();
 
-  if (fast_read_process_output && EQ (p->filter, Qinternal_default_process_filter))
-    read_and_insert_process_output (p, chars, nbytes, coding);
-  else
-    read_and_dispose_of_process_output (p, chars, nbytes, coding);
+  read_and_dispose_of_process_output (p, chars, nbytes, coding);
 
   /* Handling the process output should not deactivate the mark.  */
   Vdeactivate_mark = odeactivate;
@@ -6479,19 +6476,27 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
      save the match data in a special nonrecursive fashion.  */
   running_asynch_code = 1;
 
-  decode_coding_c_string (coding, (unsigned char *) chars, nbytes, Qt);
-  text = coding->dst_object;
+  if (fast_read_process_output && EQ (p->filter, Qinternal_default_process_filter))
+    {
+      read_and_insert_process_output (p, chars, nbytes, coding);
+    }
+  else
+    {
+      decode_coding_c_string (coding, (unsigned char *) chars, nbytes, Qt);
+      text = coding->dst_object;
 
-  read_process_output_set_last_coding_system (p, coding);
+      read_process_output_set_last_coding_system (p, coding);
 
-  if (SBYTES (text) > 0)
-    /* FIXME: It's wrong to wrap or not based on debug-on-error, and
-       sometimes it's simply wrong to wrap (e.g. when called from
-       accept-process-output).  */
-    internal_condition_case_1 (read_process_output_call,
-			       list3 (outstream, make_lisp_proc (p), text),
-			       !NILP (Vdebug_on_error) ? Qnil : Qerror,
-			       read_process_output_error_handler);
+      if (SBYTES (text) > 0)
+	/* FIXME: It's wrong to wrap or not based on debug-on-error, and
+	   sometimes it's simply wrong to wrap (e.g. when called from
+	   accept-process-output).  */
+	internal_condition_case_1 (read_process_output_call,
+				   list3 (outstream, make_lisp_proc (p), text),
+				   !NILP (Vdebug_on_error) ? Qnil : Qerror,
+				   read_process_output_error_handler);
+
+    }
 
   /* If we saved the match data nonrecursively, restore it now.  */
   restore_search_regs ();
