@@ -47,21 +47,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #include <share.h>
 #include <sys/socket.h>	/* for fcntl */
-
-/* getpid is liable to return negative values, which the lock string
-   parser cannot grok, but Windows process IDs are DWORDS, i.e.,
-   representable as unsigned longs.  (bug#71477) */
-#define pid_t unsigned long
-#define getpid_for_lock() ((unsigned long) getpid ())
-#define pidintmax unsigned long
-#define EPRIdMAX "lu"
-#define pid_strtoimax strtoul
-#else /* !WINDOWSNT */
-#define pidintmax intmax_t
-#define EPRIdMAX PRIdMAX
-#define getpid_for_lock() getpid ()
-#define strtoimax strtoimax
-#endif /* WIDNOWSNT */
+#endif
 
 #ifndef MSDOS
 
@@ -295,11 +281,11 @@ lock_file_1 (Lisp_Object lfname, bool force)
   char const *user_name = STRINGP (luser_name) ? SSDATA (luser_name) : "";
   char const *host_name = STRINGP (lhost_name) ? SSDATA (lhost_name) : "";
   char lock_info_str[MAX_LFINFO + 1];
-  pidintmax pid = getpid_for_lock ();
+  intmax_t pid = getpid ();
 
   char const *lock_info_fmt = (boot
-			       ? "%s@%s.%"EPRIdMAX":%"PRIdMAX
-			       : "%s@%s.%"EPRIdMAX);
+			       ? "%s@%s.%"PRIdMAX":%"PRIdMAX
+			       : "%s@%s.%"PRIdMAX);
   int len = snprintf (lock_info_str, sizeof lock_info_str,
 		      lock_info_fmt, user_name, host_name, pid, boot);
   if (! (0 <= len && len < sizeof lock_info_str))
@@ -381,8 +367,7 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
 {
   lock_info_type local_owner;
   ptrdiff_t lfinfolen;
-  intmax_t boot_time;
-  pidintmax pid;
+  intmax_t pid, boot_time;
   char *at, *dot, *lfinfo_end;
 
   /* Even if the caller doesn't want the owner info, we still have to
@@ -411,7 +396,7 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
   if (! c_isdigit (dot[1]))
     return EINVAL;
   errno = 0;
-  pid = pid_strtoimax (dot + 1, &owner->colon, 10);
+  pid = strtoimax (dot + 1, &owner->colon, 10);
   if (errno == ERANGE)
     pid = -1;
 
@@ -456,7 +441,7 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
   /* Protect against the extremely unlikely case of the host name
      containing an @ character.  */
   else if (strchr (SSDATA (system_name), '@'))
-    system_name = CALLN (Ffuncall, Qstring_replace,
+    system_name = CALLN (Ffuncall, intern ("string-replace"),
 			 build_string ("@"), build_string ("-"),
 			 system_name);
   /* On current host?  */
@@ -464,7 +449,7 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
       && dot - (at + 1) == SBYTES (system_name)
       && memcmp (at + 1, SSDATA (system_name), SBYTES (system_name)) == 0)
     {
-      if (pid == getpid_for_lock ())
+      if (pid == getpid ())
         return I_OWN_IT;
       else if (0 < pid && pid <= TYPE_MAXIMUM (pid_t)
                && (kill (pid, 0) >= 0 || errno == EPERM)
