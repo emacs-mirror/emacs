@@ -2773,14 +2773,19 @@ igc_on_idle (void)
 {
   process_messages (global_igc);
 
-  double interval = 0.05;
-  if (NUMBERP (Vigc_step_interval))
+  /* mps_arena_step does not guarantee to return swiftly. And it seems
+     that it sometimes does an opportunistic full collection. */
+  if (!FIXNUMP (Vigc_step_interval) || XFIXNUM (Vigc_step_interval) != 0)
     {
-      interval = XFLOATINT (Vigc_step_interval);
-      if (interval < 0)
-	interval = 0.05;
+      double interval = 0;
+      if (NUMBERP (Vigc_step_interval))
+	{
+	  interval = XFLOATINT (Vigc_step_interval);
+	  if (interval < 0)
+	    interval = 0.05;
+	}
+      mps_arena_step (global_igc->arena, interval, 0);
     }
-  mps_arena_step (global_igc->arena, interval, 0);
 }
 
 static mps_ap_t
@@ -3602,15 +3607,13 @@ syms_of_igc (void)
   DEFSYM (Qweak_ref, "weak-ref");
   Fprovide (intern_c_string ("mps"), Qnil);
 
-  /* FIXME: What is the meaning of zero here? diallow igc on idle?  The
-     doc string should say that.  */
   DEFVAR_LISP ("igc-step-interval", Vigc_step_interval,
     doc: /* How much time is MPS allowed to spend in GC when Emacs is idle.
 The value is in seconds, and should be a non-negative number.  It can
-be either an integer or a float.  The default value is 0.05, i.e.
-50 milliseconds.  Negative values and values that are not numbers
+be either an integer or a float.  The default value is 0 which means .
+don't do something when idle.  Negative values and values that are not numbers
 are handled as if they were the default value.  */);
-  Vigc_step_interval = make_float (0.05);
+  Vigc_step_interval = make_fixnum (0);
 }
 
 
@@ -4482,6 +4485,7 @@ redirect_charset_table (struct igc_mirror *m)
     IGC_MIRROR_OBJ (m, &charset_table[i].attributes);
 }
 
+/* Redirecto all roots to point to MPS copies. */
 static void
 redirect_roots (struct igc_mirror *m)
 {
@@ -4500,6 +4504,7 @@ redirect_roots (struct igc_mirror *m)
   record_time (m, "Redirect roots");
 }
 
+/* Discard the dump [START, END). */
 static void
 discard_dump (void *start, void *end)
 {
@@ -4507,6 +4512,7 @@ discard_dump (void *start, void *end)
   dump_discard_mem (start, n);
 }
 
+/* Copy the dump [START, END) to MPS, and discard it. */
 static void
 mirror_dump (void *start, void *end)
 {
@@ -4524,6 +4530,8 @@ mirror_dump (void *start, void *end)
     }
 }
 
+/* Called from pdumper_load. [START, END) is the hot section of the
+   dump.  Copy objects from the dump to MPS, and discard the dump. */
 void
 igc_on_pdump_loaded (void *start, void *end)
 {
