@@ -486,6 +486,37 @@ deregister_thread (struct igc_thread_list *t)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
+static size_t
+object_nelems (void *client, size_t elem_size)
+{
+  struct igc_header *h = client_to_base (client);
+  size_t client_nwords = h->nwords - to_words (sizeof *h);
+  size_t client_nbytes = to_bytes (client_nwords);
+  return client_nbytes / elem_size;
+}
+
+static enum pvec_type
+pseudo_vector_type (const struct Lisp_Vector *v)
+{
+  return PSEUDOVECTOR_TYPE (v);
+}
+
+static size_t
+vector_size (const struct Lisp_Vector *v)
+{
+  size_t size = v->header.size;
+  if (size & PSEUDOVECTOR_FLAG)
+    size &= PSEUDOVECTOR_SIZE_MASK;
+  return size;
+}
+
+static size_t
+vector_start (const struct Lisp_Vector *v)
+{
+  enum pvec_type type = pseudo_vector_type (v);
+  return type == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0;
+}
+
 static mps_res_t
 fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
 {
@@ -512,9 +543,14 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
 		mps_res_t res = MPS_FIX2 (ss, &base);
 		if (res != MPS_RES_OK)
 		  return res;
-		client = base_to_client (base);
-		ptrdiff_t new_off = (char *) client - (char *) lispsym;
-		*p = new_off | tag;
+		if (base == NULL)
+		  *(Lisp_Object *) p = Qnil;
+		else
+		  {;
+		    client = base_to_client (base);
+		    ptrdiff_t new_off = (char *) client - (char *) lispsym;
+		    *p = new_off | tag;
+		  }
 	      }
 	  }
       }
@@ -533,8 +569,13 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
 		mps_res_t res = MPS_FIX2 (ss, &base);
 		if (res != MPS_RES_OK)
 		  return res;
-		client = base_to_client (base);
-		*p = (mps_word_t) client | tag;
+		if (base == NULL)
+		  *(Lisp_Object *) p = Qnil;
+		else
+		  {;
+		    client = base_to_client (base);
+		    *p = (mps_word_t) client | tag;
+		  }
 	      }
 	  }
       }
@@ -1154,15 +1195,6 @@ fix_face_cache (mps_ss_t ss, struct face_cache *c)
   return MPS_RES_OK;
 }
 
-static size_t
-object_nelems (void *client, size_t elem_size)
-{
-  struct igc_header *h = client_to_base (client);
-  size_t client_nwords = h->nwords - to_words (sizeof *h);
-  size_t client_nbytes = to_bytes (client_nwords);
-  return client_nbytes / elem_size;
-}
-
 static mps_res_t
 fix_ptr_vec (mps_ss_t ss, void *client)
 {
@@ -1195,97 +1227,15 @@ fix_weak_ref (mps_ss_t ss, struct Lisp_Weak_Ref *wref)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    /* FIXME: The below explicitly assumes Lisp_Object is of the same
-       width as mps_word_t!  */
-    const mps_word_t tagged_word = (ptrdiff_t) igc_weak_ref_deref (wref);
-    const enum Lisp_Type tag = tagged_word & IGC_TAG_MASK;
-
-    switch (tag)
-      {
-      case Lisp_Int0:
-      case Lisp_Int1:
-	return MPS_RES_OK;
-
-      case Lisp_Type_Unused0:
-	emacs_abort ();
-
-      case Lisp_Symbol:
-	{
-	  ptrdiff_t off = tagged_word ^ Lisp_Symbol;
-	  mps_addr_t client = (mps_addr_t)((char *)lispsym + off);
-	  if (is_mps (client))
-	    {
-	      mps_addr_t base = client_to_base (client);
-	      if (MPS_FIX1 (ss, base))
-		{
-		  mps_res_t res = MPS_FIX2 (ss, &base);
-		  if (res != MPS_RES_OK)
-		    return res;
-		  if (base == NULL)
-		    {
-		      wref->ref = Qnil;
-		    }
-		  else
-		    {
-		      client = base_to_client (base);
-		      ptrdiff_t new_off = (char *)client - (char *)lispsym;
-		      wref->ref = (Lisp_Object)(new_off | tag);
-		    }
-		}
-	    }
-	}
-	break;
-
-      default:
-	{
-	  const mps_addr_t client = (mps_addr_t)(tagged_word ^ tag);
-	  if (is_mps (client))
-	    {
-	      mps_addr_t base = client_to_base (client);
-	      if (MPS_FIX1 (ss, base))
-		{
-		  const mps_res_t res = MPS_FIX2 (ss, &base);
-		  if (res != MPS_RES_OK)
-		    return res;
-		  if (base == NULL)
-		    {
-		      wref->ref = Qnil;
-		    }
-		  else
-		    {
-		      const mps_addr_t client2 = base_to_client (base);
-		      wref->ref = (Lisp_Object)((mps_word_t)client2 | tag);
-		    }
-		}
-	    }
-	}
-      }
+    IGC_FIX12_OBJ (ss, &wref->ref);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
 }
 
-static enum pvec_type
-pseudo_vector_type (const struct Lisp_Vector *v)
-{
-  return PSEUDOVECTOR_TYPE (v);
-}
-
-static size_t
-vector_size (const struct Lisp_Vector *v)
-{
-  size_t size = v->header.size;
-  if (size & PSEUDOVECTOR_FLAG)
-    size &= PSEUDOVECTOR_SIZE_MASK;
-  return size;
-}
-
-static size_t
-vector_start (const struct Lisp_Vector *v)
-{
-  enum pvec_type type = pseudo_vector_type (v);
-  return type == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0;
-}
+/* MPS docs 7.4 says that weak objects must must follow certain rules to
+   enable instruction emulation on 32-bit Windows and Linux x86 systems.
+   This doesn't follow the rules. */
 
 static mps_res_t
 fix_weak (mps_ss_t ss, struct Lisp_Vector* v)
@@ -1297,6 +1247,7 @@ fix_weak (mps_ss_t ss, struct Lisp_Vector* v)
       case PVEC_WEAK_REF:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Ref, v, fix_weak_ref);
 	break;
+
       default:
 	igc_assert (!"fix_weak");
       }
