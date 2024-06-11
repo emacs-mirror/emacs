@@ -6476,10 +6476,9 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
      save the match data in a special nonrecursive fashion.  */
   running_asynch_code = 1;
 
-  if (fast_read_process_output && EQ (p->filter, Qinternal_default_process_filter))
-    {
-      read_and_insert_process_output (p, chars, nbytes, coding);
-    }
+  if (fast_read_process_output
+      && EQ (p->filter, Qinternal_default_process_filter))
+    read_and_insert_process_output (p, chars, nbytes, coding);
   else
     {
       decode_coding_c_string (coding, (unsigned char *) chars, nbytes, Qt);
