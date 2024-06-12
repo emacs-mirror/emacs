@@ -1047,6 +1047,7 @@ dflt_pad (mps_addr_t base_addr, size_t nbytes)
   struct igc_header *h = base_addr;
   h->obj_type = IGC_OBJ_PAD;
   h->nwords = to_words (nbytes);
+  igc_assert (to_bytes (h->nwords) == nbytes);
 }
 
 static void
@@ -1073,8 +1074,9 @@ static mps_addr_t
 dflt_skip (mps_addr_t base_addr)
 {
   struct igc_header *h = base_addr;
+  igc_assert (h->obj_type == IGC_OBJ_PAD
+	      || to_bytes (h->nwords) >= sizeof (struct igc_fwd));
   mps_addr_t next = (char *) base_addr + to_bytes (h->nwords);
-  igc_assert (to_bytes (h->nwords) >= sizeof (struct igc_header));
   return next;
 }
 
@@ -3664,6 +3666,7 @@ copy_to_mps (mps_addr_t base)
   struct igc_header *h = base;
   mps_ap_t ap = thread_ap (h->obj_type);
   size_t nbytes = to_bytes (h->nwords);
+  igc_assert (nbytes >= sizeof (struct igc_fwd));
   mps_addr_t copy;
   do
     {
