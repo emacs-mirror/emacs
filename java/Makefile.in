@@ -258,7 +258,8 @@ install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)
 	{ hostname; date +%s; } > install_temp/assets/build_info
 # Produce the file index.
 	$(AM_V_SILENT) $(libsrc)/asset-directory-tool 		\
-	  install_temp/assets install_temp/assets/directory-tree
+	  install_temp/assets install_temp/assets/directory-tree\
+	  $(if $(ANDROID_SDK_8_OR_EARLIER),--api-8)
 # If the package targets Android 2.2, move compressable and
 # non-compressable assets to separate directories.
 	$(AM_V_SILENT)						\
@@ -266,6 +267,7 @@ install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)
 	  echo "Moving large and gzipped files to separate directories...">&2;\
 	  mkdir -p install_temp/assets_raw;			\
 	  cd install_temp/assets;				\
+	  mv directory-tree ../assets_raw;			\
 	  find . \( -size +1536 -o -size 1536 \)		\
 	    \( \! -name '*.gz' \) -type f > files.txt;		\
 	  tar cf ../assets_raw/largefiles.tar -T files.txt;	\

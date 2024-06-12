@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
+#include <verify.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <byteswap.h>
@@ -35,17 +36,19 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    application package.
 
    Such a file records the layout of the `assets' directory in the
-   package.  Emacs records this information itself and uses it in the
-   Android emulation of readdir, because the system asset manager APIs
-   are routinely buggy, and are often unable to locate directories or
-   files.
+   package, and, in packages targeting Android 2.2, the size of each of
+   its members.  Emacs records this information itself and uses it in
+   the Android emulation of readdir, because the system asset manager
+   APIs are often unable to locate directories or files, or provide
+   corresponding metadata.
 
-   The file is packed, with no data alignment guarantees made.  The
-   file starts with the bytes "EMACS", following which is the name of
-   the first file or directory, a NULL byte and an unsigned int
-   indicating the offset from the start of the file to the start of
-   the next sibling.  Following that is a list of subdirectories or
-   files in the same format.  The long is stored LSB first.
+   The file is packed, with no data alignment guarantees made.  The file
+   starts with the bytes "EMACS", or EMACS____ on Android 2.2, following
+   which is the name of the first file or directory, a NULL byte, an
+   unsigned int holding its size (on Android 2.2), and an unsigned int
+   indicating the offset from the start of the file to the start of the
+   next sibling.  Following that is a list of subdirectories or files in
+   the same format.  The long is stored LSB first.
 
    Directories can be distinguished from ordinary files through the
    last bytes of their file names (immediately previous to their
@@ -62,9 +65,18 @@ struct directory_tree
   /* The name of this directory or file.  */
   char *name;
 
+  /* st_size of this entry.  */
+  off_t st_size;
+
   /* Subdirectories and files inside this directory.  */
   struct directory_tree *children, *next;
 };
+
+/* Whether the size of each entry should be prepended to the start
+   pointer.  */
+static bool need_file_size;
+
+
 
 /* Exit with EXIT_FAILURE, after printing a description of a failing
    function WHAT along with the details of the error.  */
@@ -138,11 +150,14 @@ main_1 (DIR *dir, struct directory_tree *parent)
 	  last = &this->next;
 	  this->name = xmalloc (length + 2);
 	  strcpy (this->name, dirent->d_name);
+	  this->st_size = 0;
 
 	  /* Now record the offset to the end of this directory.  This
-	     is length + 1, for the file name, and 5 more bytes for
-	     the trailing NULL and long.  */
-	  this->offset = parent->offset + length + 6;
+	     is length + 1, for the file name, 5 more bytes for the
+	     trailing NULL and long, and 4 further bytes if a file size
+	     is required.  */
+	  this->offset = (parent->offset
+			  + length + 6 + (need_file_size ? 4 : 0));
 
 	  /* Terminate that with a slash and trailing NULL byte.  */
 	  this->name[length] = '/';
@@ -175,11 +190,22 @@ main_1 (DIR *dir, struct directory_tree *parent)
 	  *last = this;
 	  last = &this->next;
 	  this->name = xmalloc (length + 1);
+	  this->st_size = statb.st_size;
 	  strcpy (this->name, dirent->d_name);
 
-	  /* This is one byte shorter because there is no trailing
+	  if (this->st_size >= 0x1ffffff)
+	    {
+	      fprintf (stderr,
+		       "asset-directory-tool: file size exceeds maximum"
+		       " representable in a directory-tree: %s\n",
+		       dirent->d_name);
+	      exit (EXIT_FAILURE);
+	    }
+
+	  /* This is one byte the shorter because there is no trailing
 	     slash.  */
-	  this->offset = parent->offset + length + 5;
+	  this->offset = (parent->offset + length + 5
+			  + (need_file_size ? 4 : 0));
 	  parent->offset = this->offset;
 	}
     }
@@ -194,7 +220,7 @@ main_2 (int fd, struct directory_tree *tree, size_t *offset)
 {
   ssize_t size;
   struct directory_tree *child;
-  unsigned int output;
+  unsigned int output[2];
 
   /* Write tree->name with the trailing NULL byte.  */
   size = strlen (tree->name) + 1;
@@ -203,13 +229,26 @@ main_2 (int fd, struct directory_tree *tree, size_t *offset)
 
   /* Write the offset.  */
 #ifdef WORDS_BIGENDIAN
-  output = bswap_32 (tree->offset);
-#else
-  output = tree->offset;
-#endif
-  if (write (fd, &output, 4) < 1)
-    croak ("write");
-  size += 4;
+  output[1] = bswap_32 (tree->offset);
+  output[0] = bswap_32 ((unsigned int) tree->st_size);
+#else /* !WORDS_BIGENDIAN */
+  output[1] = tree->offset;
+  output[0] = (unsigned int) tree->st_size;
+#endif /* !WORDS_BIGENDIAN */
+
+  verify (sizeof output == 8 && sizeof output[0] == 4);
+  if (!need_file_size)
+    {
+      if (write (fd, output + 1, 4) < 1)
+	croak ("write");
+      size += 4;
+    }
+  else
+    {
+      if (write (fd, output, 8) < 1)
+	croak ("write");
+      size += 8;
+    }
 
   /* Now update offset.  */
   *offset += size;
@@ -240,12 +279,15 @@ main (int argc, char **argv)
   struct directory_tree tree;
   size_t offset;
 
-  if (argc != 3)
+  if (argc != 3 && argc != 4)
     {
-      fprintf (stderr, "usage: %s directory output-file\n",
-	       argv[0]);
+      fprintf (stderr, "usage: %s directory output-file "
+	       "[--api-8]\n", argv[0]);
       return EXIT_FAILURE;
     }
+
+  if (argc == 4 && !strcmp (argv[3], "--api-8"))
+    need_file_size = true;
 
   fd = open (argv[2], O_CREAT | O_TRUNC | O_RDWR,
 	     S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
@@ -272,16 +314,23 @@ main (int argc, char **argv)
       return EXIT_FAILURE;
     }
 
+  /* And a further 4 bytes of padding if need_file_size.  */
+  if (need_file_size && write (fd, "____", 4) < 4)
+    {
+      perror ("write");
+      return EXIT_FAILURE;
+    }
+
   /* Now iterate through children of INDIR, building the directory
      tree.  */
-  tree.offset = 5;
+  tree.offset = 5 + (need_file_size ? 4 : 0);
   tree.children = NULL;
 
   main_1 (indir, &tree);
   closedir (indir);
 
   /* Finally, write the directory tree to the output file.  */
-  offset = 5;
+  offset = 5 + (need_file_size ? 4 : 0);
   for (; tree.children; tree.children = tree.children->next)
     main_2 (fd, tree.children, &offset);
 

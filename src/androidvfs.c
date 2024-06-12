@@ -46,8 +46,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #if __ANDROID_API__ >= 9
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
+#define OLD_ANDROID_ASSETS 0
 #else /* __ANDROID_API__ < 9 */
 #include "android-asset.h"
+#define OLD_ANDROID_ASSETS 1
 #endif /* __ANDROID_API__ >= 9 */
 
 #include <android/log.h>
@@ -1001,7 +1003,7 @@ static AAssetManager *asset_manager;
 /* Read an unaligned (32-bit) long from the address POINTER.  */
 
 static unsigned int
-android_extract_long (char *pointer)
+android_extract_long (const char *pointer)
 {
   unsigned int number;
 
@@ -1022,16 +1024,20 @@ android_extract_long (char *pointer)
    directory.  */
 
 static const char *
-android_scan_directory_tree (char *file, size_t *limit_return)
+android_scan_directory_tree (const char *file, size_t *limit_return)
 {
   char *token, *saveptr, *copy, *start, *max, *limit;
   size_t token_length, ntokens, i, len;
-  char *tokens[10];
+  char *tokens[20];
 
   USE_SAFE_ALLOCA;
 
-  /* Skip past the 5 byte header.  */
+  /* Skip past the 5 or 9 byte header.  */
+#if !OLD_ANDROID_ASSETS
   start = (char *) directory_tree + 5;
+#else /* OLD_ANDROID_ASSETS */
+  start = (char *) directory_tree + 9;
+#endif /* OLD_ANDROID_ASSETS */
 
   /* Figure out the current limit.  */
   limit = (char *) directory_tree + directory_tree_size;
@@ -1098,9 +1104,9 @@ android_scan_directory_tree (char *file, size_t *limit_return)
 	{
 	  /* They probably match.  Find the NULL byte.  It must be
 	     either one byte past start + token_length, with the last
-	     byte a trailing slash (indicating that it is a
-	     directory), or just start + token_length.  Return 4 bytes
-	     past the next NULL byte.  */
+	     byte a trailing slash (indicating that it is a directory),
+	     or just start + token_length.  Return 4 or 8 bytes past the
+	     next NULL byte.  */
 
 	  max = memchr (start, 0, limit - start);
 
@@ -1113,13 +1119,14 @@ android_scan_directory_tree (char *file, size_t *limit_return)
 	     last token.  Otherwise, set it as start and the limit as
 	     start + the offset and continue the loop.  */
 
-	  if (max && max + 5 <= limit)
+	  if (max && max + (OLD_ANDROID_ASSETS ? 9 : 5) <= limit)
 	    {
 	      if (i < ntokens - 1)
 		{
-		  start = max + 5;
+		  start = max + (OLD_ANDROID_ASSETS ? 9 : 5);
 		  limit = ((char *) directory_tree
-			   + android_extract_long (max + 1));
+			   + android_extract_long (max + (OLD_ANDROID_ASSETS
+							  ? 5 : 1)));
 
 		  /* Make sure limit is still in range.  */
 		  if (limit > directory_tree + directory_tree_size
@@ -1137,10 +1144,12 @@ android_scan_directory_tree (char *file, size_t *limit_return)
 		{
 		  /* Figure out the limit.  */
 		  if (limit_return)
-		    *limit_return = android_extract_long (max + 1);
+		    *limit_return
+		      = android_extract_long (max + (OLD_ANDROID_ASSETS
+						     ? 5 : 1));
 
 		  /* Go to the end of this file.  */
-		  max += 5;
+		  max += (OLD_ANDROID_ASSETS ? 9 : 5);
 		}
 
 	      SAFE_FREE ();
@@ -1161,11 +1170,12 @@ android_scan_directory_tree (char *file, size_t *limit_return)
 
       start = memchr (start, 0, limit - start);
 
-      if (!start || start + 5 > limit)
+      if (!start || start + (OLD_ANDROID_ASSETS ? 9 : 5) > limit)
 	goto fail;
 
       start = ((char *) directory_tree
-	       + android_extract_long (start + 1));
+	       + android_extract_long (start
+				       + (OLD_ANDROID_ASSETS ? 5 : 1)));
 
       /* Make sure start is still in bounds.  */
 
@@ -1192,13 +1202,20 @@ android_is_directory (const char *dir)
 {
   /* If the directory is the directory tree, then it is a
      directory.  */
-  if (dir == directory_tree + 5)
+  if (dir == directory_tree + (OLD_ANDROID_ASSETS ? 9 : 5))
     return true;
 
+#if !OLD_ANDROID_ASSETS
   /* Otherwise, look 5 bytes behind.  If it is `/', then it is a
      directory.  */
   return (dir - 6 >= directory_tree
 	  && *(dir - 6) == '/');
+#else /* OLD_ANDROID_ASSETS */
+  /* Otherwise, look 9 bytes behind.  If it is `/', then it is a
+     directory.  */
+  return (dir - 10 >= directory_tree
+	  && *(dir - 10) == '/');
+#endif /* OLD_ANDROID_ASSETS */
 }
 
 /* Initialize asset retrieval.  ENV should be a JNI environment for
@@ -1232,6 +1249,7 @@ android_init_assets (JNIEnv *env, jobject manager)
   /* Now figure out how big the directory tree is, and compare the
      first few bytes.  */
   directory_tree_size = AAsset_getLength (asset);
+#if !OLD_ANDROID_ASSETS
   if (directory_tree_size < 5
       || memcmp (directory_tree, "EMACS", 5))
     {
@@ -1239,6 +1257,15 @@ android_init_assets (JNIEnv *env, jobject manager)
 			   "Directory tree has bad magic");
       emacs_abort ();
     }
+#else /* OLD_ANDROID_ASSETS */
+  if (directory_tree_size < 9
+      || memcmp (directory_tree, "EMACS____", 9))
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "Directory tree has bad magic");
+      emacs_abort ();
+    }
+#endif /* OLD_ANDROID_ASSETS */
 
   /* Hold a VM reference to the asset manager to prevent the native
      object from being deleted.  */
@@ -2287,8 +2314,13 @@ android_afs_readdir (struct android_vdir *vdir)
     dirent.d_type = DT_REG;
 
   /* Forward dir->asset_dir to the file past last.  */
+#if !OLD_ANDROID_ASSETS
   dir->asset_dir = ((char *) directory_tree
 		    + android_extract_long ((char *) last));
+#else /* OLD_ANDROID_ASSETS */
+  dir->asset_dir = ((char *) directory_tree
+		    + android_extract_long ((char *) last + 4));
+#endif /* OLD_ANDROID_ASSETS */
 
   return &dirent;
 }

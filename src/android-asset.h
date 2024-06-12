@@ -19,6 +19,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <android/log.h>
 
+
+
+/* Forward declarations.  */
+
+static const char *directory_tree;
+
+static const char *android_scan_directory_tree (const char *, size_t *);
+static unsigned int android_extract_long (const char *);
+
+
+
 /* This file contains an emulation of the Android asset manager API
    used on builds for Android 2.2.  It is included by android.c
    whenever appropriate.
@@ -34,6 +45,7 @@ struct android_asset_manager
   /* Asset manager class and functions.  */
   jclass class;
   jmethodID open_fd;
+  jmethodID open;
 
   /* Asset file descriptor class and functions.  */
   jclass fd_class;
@@ -62,6 +74,9 @@ struct android_asset
 
   /* The asset file descriptor and input stream.  */
   jobject fd, stream;
+
+  /* Alternatively, the name of the file.  */
+  jstring name;
 
   /* The mode.  */
   int mode;
@@ -98,6 +113,12 @@ AAssetManager_fromJava (JNIEnv *env, jobject java_manager)
     = (*env)->GetMethodID (env, manager->class, "openFd",
 			   "(Ljava/lang/String;)"
 			   "Landroid/content/res/AssetFileDescriptor;");
+  assert (manager->open_fd);
+
+  manager->open
+    = (*env)->GetMethodID (env, manager->class, "open",
+			   "(Ljava/lang/String;)"
+			   "Ljava/io/InputStream;");
   assert (manager->open);
 
   manager->fd_class
@@ -168,6 +189,8 @@ AAssetManager_open (AAssetManager *manager, const char *c_name,
   jobject desc;
   jstring name;
   AAsset *asset;
+  const char *asset_dir;
+  jlong st_size = -1;
 
   /* Push a local frame.  */
   asset = NULL;
@@ -177,53 +200,86 @@ AAssetManager_open (AAssetManager *manager, const char *c_name,
   if ((*(manager->env))->ExceptionCheck (manager->env))
     goto fail;
 
-  /* Encoding issues can be ignored for now as there are only ASCII
-     file names in Emacs.  */
+  /* If the directory tree has been initialized, it is possible to avoid
+     opening an AssetFileDescriptor and thereby access compressed
+     assets, without sacrificing the possibility of reading the file
+     size.  */
+  if (directory_tree)
+    {
+      /* Search for a matching asset.  */
+      asset_dir = android_scan_directory_tree (c_name, NULL);
+      if (!asset_dir)
+	goto fail;
+
+      /* Extract the size of the asset from this directory.  */
+      st_size = android_extract_long (asset_dir - 8);
+    }
+
+  /* Encoding issues can be ignored for the time being as there are only
+     ASCII file names in Emacs.  */
   name = (*(manager->env))->NewStringUTF (manager->env, c_name);
 
   if (!name)
     goto fail;
 
-  /* Now try to open an ``AssetFileDescriptor''.  */
-  desc = (*(manager->env))->CallObjectMethod (manager->env,
-					      manager->asset_manager,
-					      manager->open_fd,
-					      name);
+  /* If st_size has been set, it ought to be possible to open an input
+     stream directly upon the first attempt to read from the asset,
+     sidestepping the intermediate AssetFileDescriptor.  */
 
-  if (!desc)
-    goto fail;
+  desc = NULL;
+
+  if (st_size < 0)
+    /* Otherwise attempt to open an ``AssetFileDescriptor''.  */
+    desc = (*(manager->env))->CallObjectMethod (manager->env,
+						manager->asset_manager,
+						manager->open_fd,
+						name);
 
   /* Allocate the asset.  */
   asset = calloc (1, sizeof *asset);
 
   if (!asset)
-    {
-      (*(manager->env))->CallVoidMethod (manager->env,
-					 desc,
-					 manager->close);
-      goto fail;
-    }
-
-  /* Pop the local frame and return desc.  */
-  desc = (*(manager->env))->NewGlobalRef (manager->env, desc);
-
-  if (!desc)
     goto fail;
+
+  if (desc)
+    {
+      /* Pop the local frame and return desc.  */
+      desc = (*(manager->env))->NewGlobalRef (manager->env, desc);
+
+      if (!desc)
+	goto fail;
+
+      /* Will be released by PopLocalFrame.  */
+      name = NULL;
+    }
+  else /* if (name) */
+    {
+      /* Pop the local frame and return name.  */
+      name = (*(manager->env))->NewGlobalRef (manager->env, name);
+
+      if (!name)
+	goto fail;
+    }
 
   (*(manager->env))->PopLocalFrame (manager->env, NULL);
 
   asset->manager = manager;
-  asset->length = -1;
+  asset->length = st_size;
   asset->fd = desc;
+  asset->name = name;
   asset->mode = mode;
 
   return asset;
 
  fail:
+  if (desc)
+    (*(manager->env))->CallVoidMethod (manager->env,
+				       desc,
+				       manager->close);
+
   (*(manager->env))->ExceptionClear (manager->env);
   (*(manager->env))->PopLocalFrame (manager->env, NULL);
   free (asset);
-
   return NULL;
 }
 
@@ -234,11 +290,14 @@ AAsset_close (AAsset *asset)
 
   env = asset->manager->env;
 
-  (*env)->CallVoidMethod (asset->manager->env,
-			  asset->fd,
-			  asset->manager->close);
-  (*env)->DeleteGlobalRef (asset->manager->env,
-			   asset->fd);
+  if (asset->fd)
+    {
+      (*env)->CallVoidMethod (asset->manager->env,
+			      asset->fd,
+			      asset->manager->close);
+      (*env)->DeleteGlobalRef (asset->manager->env,
+			       asset->fd);
+    }
 
   if (asset->stream)
     {
@@ -248,6 +307,10 @@ AAsset_close (AAsset *asset)
       (*env)->DeleteGlobalRef (asset->manager->env,
 			       asset->stream);
     }
+
+  if (asset->name)
+    (*env)->DeleteGlobalRef (asset->manager->env,
+			     asset->name);
 
   free (asset);
 }
@@ -264,10 +327,17 @@ android_asset_create_stream (AAsset *asset)
   jobject stream;
   JNIEnv *env;
 
+  assert (asset->fd || asset->name);
+
   env = asset->manager->env;
-  stream
-    = (*env)->CallObjectMethod (env, asset->fd,
-				asset->manager->create_input_stream);
+
+  if (asset->name)
+    stream = (*env)->CallObjectMethod (env, asset->manager->asset_manager,
+				       asset->manager->open, asset->name);
+  else
+    stream
+      = (*env)->CallObjectMethod (env, asset->fd,
+				  asset->manager->create_input_stream);
 
   if (!stream)
     {
@@ -380,6 +450,8 @@ AAsset_getLength (AAsset *asset)
 
   if (asset->length != -1)
     return asset->length;
+  if (!asset->fd)
+    return 0;
 
   env = asset->manager->env;
   asset->length

@@ -69,7 +69,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define lread_fd_cmp(n) (fd == (n))
 #define lread_fd_p	(fd >= 0)
 #define lread_close	emacs_close
-#define lread_fstat	fstat
+#define lread_fstat	sys_fstat
 #define lread_read_quit	emacs_read_quit
 #define lread_lseek	lseek
 
