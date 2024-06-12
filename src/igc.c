@@ -353,6 +353,7 @@ igc_round (size_t nbytes, size_t align)
   return ROUNDUP (nbytes, align);
 }
 
+#ifdef IGC_CHECK_FWD
 void
 igc_check_fwd (void *client)
 {
@@ -362,6 +363,7 @@ igc_check_fwd (void *client)
       igc_assert (h->obj_type != IGC_OBJ_FWD);
     }
 }
+#endif
 
 /* Value is the size in bytes that we need to allocate from MPS
    for a client object of size NBYTES. */
