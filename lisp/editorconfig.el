@@ -141,7 +141,7 @@ This hook will be run even when there are no matching sections in
     (csharp-mode c-basic-offset)
     (csharp-ts-mode c-basic-offset
                     csharp-ts-mode-indent-offset)
-    (emacs-lisp-mode lisp-indent-offset)
+    (emacs-lisp-mode . editorconfig-set-indentation-lisp-mode)
     (ess-mode ess-indent-offset)
     (feature-mode feature-indent-offset
                   feature-indent-level)
@@ -154,7 +154,7 @@ This hook will be run even when there are no matching sections in
     (js-mode js-indent-level)
     (jsonian-mode jsonian-default-indentation)
     (latex-mode . editorconfig-set-indentation-latex-mode)
-    (lisp-mode lisp-indent-offset)
+    (lisp-mode . editorconfig-set-indentation-lisp-mode)
     (matlab-mode matlab-indent-level)
     (octave-mode octave-block-offset)
     ;; No need to change `php-mode-coding-style' value for php-mode
@@ -235,15 +235,20 @@ Make a message by passing ARGS to `format-message'."
   (setq-local LaTeX-item-indent size)
   (setq-local TeX-brace-indent-level size))
 
-(cl-defun editorconfig--should-set (symbol &optional size)
-  "Determine if editorconfig should set SYMBOL.
+(defun editorconfig-set-indentation-lisp-mode (size)
+ "Set indent size to SIZE for Lisp mode(s)."
+ (when (cond ((null editorconfig-lisp-use-default-indent)  t)
+             ((eql t editorconfig-lisp-use-default-indent) nil)
+             ((numberp editorconfig-lisp-use-default-indent)
+              (not (eql size editorconfig-lisp-use-default-indent)))
+             (t t))
+   (setq-local lisp-indent-offset size)))
 
-Optional arg SIZE is used when symbol is `lisp-indent-offset'.
-See `editorconfig-lisp-use-default-indent' for details."
+(cl-defun editorconfig--should-set (symbol)
+  "Determine if editorconfig should set SYMBOL."
   (display-warning '(editorconfig editorconfig--should-set)
-                   (format "symbol: %S | size: %S"
-                           symbol
-                           size)
+                   (format "symbol: %S"
+                           symbol)
                    :debug)
   (when (assq symbol file-local-variables-alist)
     (cl-return-from editorconfig--should-set
@@ -252,14 +257,6 @@ See `editorconfig-lisp-use-default-indent' for details."
   (when (assq symbol dir-local-variables-alist)
     (cl-return-from editorconfig--should-set
       nil))
-
-  (when (eq symbol 'lisp-indent-offset)
-    (cl-return-from editorconfig--should-set
-      (cond ((null editorconfig-lisp-use-default-indent)  t)
-            ((eql t editorconfig-lisp-use-default-indent) nil)
-            ((numberp editorconfig-lisp-use-default-indent)
-             (not (eql size editorconfig-lisp-use-default-indent)))
-            (t t))))
 
   t)
 
