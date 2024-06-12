@@ -699,6 +699,7 @@ AC_ARG_ENABLE([checking],
 		 enable only specific categories of checks.
 		 Categories are: all,yes,no.
 		 Flags are: stringbytes, stringoverrun, stringfreelist,
+		 igc_check_fwd,
 		 structs, glyphs])],
 [ac_checking_flags="${enableval}"],[])
 IFS="${IFS= 	}"; ac_save_IFS="$IFS"; IFS="$IFS,"
@@ -726,7 +727,9 @@ do
 	stringfreelist) ac_gc_check_string_free_list=1 ;;
 	structs)	CHECK_STRUCTS=true ;;
 	glyphs)		ac_glyphs_debug=1 ;;
-	*)	AC_MSG_ERROR([unknown check category $check]) ;;
+	# Very special case, so don't include it in all.
+	igc_check_fwd)	ac_igc_check_fwd=1 ;;
+	*)	AC_MSG_ERROR([uuu unknown check category $check]) ;;
 	esac
 done
 IFS="$ac_save_IFS"
@@ -772,6 +775,10 @@ AS_IF([test "$with_android" = no || test -n "$XCONFIGURE"],[
   if test x$ac_glyphs_debug != x ; then
     AC_DEFINE([GLYPH_DEBUG], [1],
   [Define this to enable glyphs debugging code.])
+  fi
+  if test x$ac_igc_check_fwd != x ; then
+    AC_DEFINE([IGC_CHECK_FWD], [1],
+  [Define this to enable igc forwarding check code.])
   fi
 ],[AS_IF([test "x$ac_enable_checking" != x],
     [android_enable_checking=yes
