@@ -2076,10 +2076,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       DO_MARKERS (b, m)
 	{
 	  if (m->buffer == b)
-	    {
-	      m->buffer = NULL;
-	      igc_remove_marker (b, m);
-	    }
+	    igc_remove_marker (b, m);
 	}
 #else
       struct Lisp_Marker **mp = &BUF_MARKERS (b);

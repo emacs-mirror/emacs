@@ -3257,6 +3257,7 @@ igc_add_marker (struct buffer *b, struct Lisp_Marker *m)
 void
 igc_remove_marker (struct buffer *b, struct Lisp_Marker *m)
 {
+  m->buffer = NULL;
   Lisp_Object v = BUF_MARKERS (b);
   igc_assert (VECTORP (v));
   Lisp_Object marker = make_lisp_ptr (m, Lisp_Vectorlike);
