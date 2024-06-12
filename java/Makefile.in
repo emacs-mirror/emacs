@@ -340,7 +340,7 @@ emacs.apk-in: install_temp AndroidManifest.xml classes.dex
 	  echo "Packaging files eligible for compression...">&2;\
 	  cd install_temp; find assets -type f 			\
 	    | xargs $(ZIP) ../$@ &> /dev/null;			\
-	  echo "Packagging files already compressed...">&2;	\
+	  echo "Packaging files already compressed...">&2;	\
 	  cd assets_gz; find assets -type f			\
 	    | xargs $(ZIP) ../../$@ &> /dev/null;		\
 	  echo "Packaging shared libraries and code..." >&2;	\
