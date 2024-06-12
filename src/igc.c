@@ -71,7 +71,7 @@ struct Lisp_Weak_Ref
   Lisp_Object ref;
 } GCALIGNED_STRUCT;
 
-/* Note: Emacs will call allocation functions whlle aborting. This leads
+/* Note: Emacs will call allocation functions while aborting. This leads
    to all sorts of interesting phenomena when an assertion fails inside
    a function called from MPS.
 
@@ -282,19 +282,19 @@ struct igc_stats
 {
   struct
   {
-    size_t nwords;
+    size_t nbytes;
     size_t nobjs;
   } obj[IGC_OBJ_NUM_TYPES];
 
   struct
   {
-    size_t nwords;
+    size_t nbytes;
     size_t nobjs;
   } pvec[PVEC_TAG_MAX + 1];
 };
 
 /* Always having a header makes it possible to have an
-   address-independant hash, which is (a) much easier to handle than MPS
+   address-independent hash, which is (a) much easier to handle than MPS
    location dependencies, and (b) makes it possible to implement sxhash
    variants in a way that works as expected even if GCs happen between
    calls.  */
@@ -315,6 +315,12 @@ struct igc_header
   mps_word_t nwords : IGC_SIZE_BITS;
 };
 
+struct igc_fwd
+{
+  struct igc_header header;
+  mps_addr_t new_base_addr;
+};
+
 igc_static_assert (sizeof (struct igc_header) == 8);
 
 static mps_word_t
@@ -330,11 +336,34 @@ to_bytes (mps_word_t nwords)
   return nwords * sizeof (mps_word_t);
 }
 
-struct igc_fwd
+/* Value is the size in bytes of the object described by header H.
+   The name header_size is taken by lisp.h. */
+
+static mps_word_t
+header_nbytes (const struct igc_header *h)
 {
-  struct igc_header header;
-  mps_addr_t new_base_addr;
-};
+  mps_word_t nbytes = to_bytes (h->nwords);
+  igc_assert (h->obj_type == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
+  return nbytes;
+}
+
+/* Set the fields of header H to the given values. Use this instead of
+   setting the fields directly to make it easy to add assertions. */
+
+static void
+set_header (struct igc_header *h, enum igc_obj_type type,
+	    mps_word_t nbytes, mps_word_t hash)
+{
+#if IGC_SIZE_BITS >= 32 && INTPTR_MAX > INT_MAX
+  /* On 32-bit architecture the assertion below is redundant and
+     causes compiler warnings.  */
+  igc_assert (nbytes < ((size_t) 1 << IGC_SIZE_BITS));
+#endif
+  igc_assert (type == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
+  h->obj_type = type;
+  h->nwords = to_words (nbytes);
+  h->hash = hash;
+}
 
 static mps_addr_t
 client_to_base (mps_addr_t client_addr)
@@ -354,18 +383,6 @@ igc_round (size_t nbytes, size_t align)
   return ROUNDUP (nbytes, align);
 }
 
-#ifdef IGC_CHECK_FWD
-void
-igc_check_fwd (void *client)
-{
-  if (is_mps (client))
-    {
-      struct igc_header *h = client_to_base (client);
-      igc_assert (h->obj_type != IGC_OBJ_FWD);
-    }
-}
-#endif
-
 /* Value is the size in bytes that we need to allocate from MPS
    for a client object of size NBYTES. */
 
@@ -377,6 +394,21 @@ obj_size (size_t nbytes)
   nbytes = igc_round (nbytes, IGC_ALIGN_DFLT);
   return nbytes;
 }
+
+/* This runs in various places for --enable-checking=igc_check_fwd.  See
+   lisp.h, like XSYMBOL, XSTRING and alike. */
+
+#ifdef IGC_CHECK_FWD
+void
+igc_check_fwd (void *client)
+{
+  if (is_mps (client))
+    {
+      struct igc_header *h = client_to_base (client);
+      igc_assert (h->obj_type != IGC_OBJ_FWD);
+    }
+}
+#endif
 
 struct igc_root
 {
@@ -491,8 +523,7 @@ static size_t
 object_nelems (void *client, size_t elem_size)
 {
   struct igc_header *h = client_to_base (client);
-  size_t client_nwords = h->nwords - to_words (sizeof *h);
-  size_t client_nbytes = to_bytes (client_nwords);
+  size_t client_nbytes = header_nbytes (h) - sizeof *h;
   return client_nbytes / elem_size;
 }
 
@@ -1046,16 +1077,14 @@ dflt_pad (mps_addr_t base_addr, size_t nbytes)
 {
   igc_assert (nbytes >= sizeof (struct igc_header));
   struct igc_header *h = base_addr;
-  h->obj_type = IGC_OBJ_PAD;
-  h->nwords = to_words (nbytes);
-  igc_assert (to_bytes (h->nwords) == nbytes);
+  set_header (h, IGC_OBJ_PAD, nbytes, 0);
 }
 
 static void
 dflt_fwd (mps_addr_t old_base_addr, mps_addr_t new_base_addr)
 {
   struct igc_header *h = old_base_addr;
-  igc_assert (to_bytes (h->nwords) >= sizeof (struct igc_fwd));
+  igc_assert (header_nbytes (h) >= sizeof (struct igc_fwd));
   igc_assert (h->obj_type != IGC_OBJ_PAD);
   struct igc_fwd *f = old_base_addr;
   f->header.obj_type = IGC_OBJ_FWD;
@@ -1075,9 +1104,7 @@ static mps_addr_t
 dflt_skip (mps_addr_t base_addr)
 {
   struct igc_header *h = base_addr;
-  igc_assert (h->obj_type == IGC_OBJ_PAD
-	      || to_bytes (h->nwords) >= sizeof (struct igc_fwd));
-  mps_addr_t next = (char *) base_addr + to_bytes (h->nwords);
+  mps_addr_t next = (char *) base_addr + header_nbytes (h);
   return next;
 }
 
@@ -1285,14 +1312,14 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	struct igc_stats *st = closure;
 	mps_word_t obj_type = header->obj_type;
 	igc_assert (obj_type < IGC_OBJ_NUM_TYPES);
-	st->obj[obj_type].nwords += header->nwords;
+	st->obj[obj_type].nbytes += header_nbytes (header);
 	st->obj[obj_type].nobjs += 1;
 	if (obj_type == IGC_OBJ_VECTOR)
 	  {
 	    struct Lisp_Vector* v = (struct Lisp_Vector*) client;
 	    enum pvec_type pvec_type = pseudo_vector_type (v);
 	    igc_assert (0 <= pvec_type && pvec_type <= PVEC_TAG_MAX);
-	    st->pvec[pvec_type].nwords += header->nwords;
+	    st->pvec[pvec_type].nbytes += header_nbytes (header);
 	    st->pvec[pvec_type].nobjs += 1;
 	  }
       }
@@ -1525,7 +1552,7 @@ fix_window (mps_ss_t ss, struct window *w)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->desired_matrix));
 
     /* FIXME: The following two are handled specially in the old GC:
-       Both are lisgs from which entries for non-live buffers are
+       Both are lists from which entries for non-live buffers are
        removed (mark_window -> mark_discard_killed_buffers).
        So, they are kind of weak lists. I think this could be done
        from a timer. */
@@ -2727,7 +2754,7 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
 }
 
 /* Process MPS messages. This should be extended to handle messages only
-   for a certain amoount of time. See mps_clock_t, mps_clock, and
+   for a certain amount of time. See mps_clock_t, mps_clock, and
    mps_clocks_per_sec functions.  */
 
 static void
@@ -2840,7 +2867,8 @@ thread_ap (enum igc_obj_type type)
 }
 
 /* Conditional breakpoints can be so slow that it is often more
-   effective to instrument code. This fucntion is for such cases. */
+   effective to instrument code. This function is for such cases. */
+
 void
 igc_break (void)
 {
@@ -2931,14 +2959,7 @@ alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
       // Object _must_ have valid contents before commit
       memclear (p, size);
       struct igc_header *h = p;
-      h->obj_type = type;
-      h->hash = obj_hash ();
-#if IGC_SIZE_BITS >= 32 && INTPTR_MAX > INT_MAX
-      /* On 32-bit architecture the assertion below is redudnant and
-         causes compiler warnings.  */
-      igc_assert (size < ((size_t) 1 << IGC_SIZE_BITS));
-#endif
-      h->nwords = to_words (size);
+      set_header (h, type, size, obj_hash ());
       obj = base_to_client (p);
     }
   while (!mps_commit (ap, p, size));
@@ -3011,6 +3032,7 @@ igc_alloc_bytes (size_t nbytes)
    The character being replaced is CHAR_LEN bytes long, and the
    character that will replace it is NEW_CLEN bytes long.  Return the
    address where the caller should store the new character.  */
+
 unsigned char *
 igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
 		  ptrdiff_t old_char_len, ptrdiff_t new_char_len)
@@ -3024,7 +3046,7 @@ igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
   ptrdiff_t old_nbytes = SBYTES (string);
   ptrdiff_t nbytes_needed = old_nbytes + (new_char_len - old_char_len);
   struct igc_header *old_header = client_to_base (s->u.s.data);
-  ptrdiff_t capacity = to_bytes (old_header->nwords) - sizeof *old_header;
+  ptrdiff_t capacity = header_nbytes (old_header) - sizeof *old_header;
   if (capacity < nbytes_needed)
     {
       unsigned char *new_data = alloc_string_data (nbytes_needed, false);
@@ -3143,6 +3165,7 @@ igc_make_ptr_vec (size_t n)
 
 /* Allocate a Lisp_Object vector with N elements.
    Currently only used by SAFE_ALLOCA_LISP. */
+
 Lisp_Object *
 igc_alloc_lisp_obj_vec (size_t n)
 {
@@ -3158,6 +3181,7 @@ igc_make_hash_table_vec (size_t n)
 /* Like xpalloc, but uses 'alloc' instead of xrealloc, and should only
    be used for growing a vector of pointers whose current size is N
    pointers.  */
+
 void *
 igc_grow_ptr_vec (void *v, ptrdiff_t *n, ptrdiff_t n_incr_min, ptrdiff_t n_max)
 {
@@ -3329,14 +3353,14 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
     {
       Lisp_Object e
 	= list3 (build_string (obj_type_name (i)),
-		 make_int (st.obj[i].nobjs), make_int (st.obj[i].nwords));
+		 make_int (st.obj[i].nobjs), make_int (st.obj[i].nbytes));
       result = Fcons (e, result);
     }
   for (enum pvec_type i = 0; i <= PVEC_TAG_MAX; i++)
     {
       Lisp_Object e
 	  = list3 (build_string (pvec_type_name (i)),
-		   make_int (st.pvec[i].nobjs), make_int (st.pvec[i].nwords));
+		   make_int (st.pvec[i].nobjs), make_int (st.pvec[i].nbytes));
       result = Fcons (e, result);
     }
   result = Fcons (list2 (build_string ("pause-time"),
@@ -3606,19 +3630,19 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
 	igc_assert (
 	  (type == IGC_OBJ_VECTOR && h->obj_type == IGC_OBJ_VECTOR_WEAK)
 	  || h->obj_type == type);
-      igc_assert (base + to_bytes (h->nwords) >= end);
+      igc_assert (base + header_nbytes (h) >= end);
       *out = *h;
-      return base + to_bytes (h->nwords);
+      return base + header_nbytes (h);
     }
+
+  // FIXME: check this...
   size_t client_size = end - base - sizeof *out;
   size_t nbytes = obj_size (client_size);
-  size_t nwords = to_words (nbytes);
   size_t hash;
-  type = is_pure (client) ? pure_obj_type_and_hash (&hash, type, client)
-			  : builtin_obj_type_and_hash (&hash, type, client);
-  *out = (struct igc_header){ .obj_type = type,
-			      .hash = hash,
-			      .nwords = nwords };
+  type = is_pure (client)
+    ? pure_obj_type_and_hash (&hash, type, client)
+    : builtin_obj_type_and_hash (&hash, type, client);
+  set_header (out, type, nbytes, hash);
   return base + nbytes;
 }
 
@@ -3663,13 +3687,14 @@ are handled as if they were the default value.  */);
    the loaded dump. Ensure that the copy has the same hash as the copied
    object so that hash tables don't need to be re-hashed.  Value is the
    base address of the copy. */
+
 static mps_addr_t
 copy_to_mps (mps_addr_t base)
 {
   igc_assert (pdumper_object_p (base));
   struct igc_header *h = base;
   mps_ap_t ap = thread_ap (h->obj_type);
-  size_t nbytes = to_bytes (h->nwords);
+  size_t nbytes = header_nbytes (h);
   igc_assert (nbytes >= sizeof (struct igc_fwd));
   mps_addr_t copy;
   do
@@ -3779,14 +3804,14 @@ record_copy (struct igc_mirror *m, void *dumped, void *copy)
 
   struct igc_header *h = copy;
   m->objs[h->obj_type].n += 1;
-  m->objs[h->obj_type].nbytes += to_bytes (h->nwords);
+  m->objs[h->obj_type].nbytes += header_nbytes (h);
 
   if (h->obj_type == IGC_OBJ_VECTOR)
     {
       struct Lisp_Vector *v = base_to_client (copy);
       int i = pseudo_vector_type (v);
       m->pvec[i].n += 1;
-      m->pvec[i].nbytes += to_bytes (h->nwords);
+      m->pvec[i].nbytes += header_nbytes (h);
     }
 }
 
@@ -4513,6 +4538,7 @@ redirect_charset_table (struct igc_mirror *m)
 }
 
 /* Redirect all roots to point to MPS copies. */
+
 static void
 redirect_roots (struct igc_mirror *m)
 {
@@ -4532,6 +4558,7 @@ redirect_roots (struct igc_mirror *m)
 }
 
 /* Discard the dump [START, END). */
+
 static void
 discard_dump (void *start, void *end)
 {
@@ -4540,6 +4567,7 @@ discard_dump (void *start, void *end)
 }
 
 /* Copy the dump [START, END) to MPS, and discard it. */
+
 static void
 mirror_dump (void *start, void *end)
 {
@@ -4559,6 +4587,7 @@ mirror_dump (void *start, void *end)
 
 /* Called from pdumper_load. [START, END) is the hot section of the
    dump. Copy objects from the dump to MPS, and discard the dump. */
+
 void
 igc_on_pdump_loaded (void *start, void *end)
 {
