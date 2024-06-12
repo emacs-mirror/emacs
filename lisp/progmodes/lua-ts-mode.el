@@ -117,7 +117,7 @@
 (defcustom lua-ts-indent-continuation-lines t
   "Controls how multi-line if/else statements are aligned.
 
-If t, then continuation lines are indented by `lua-ts-indent-offset':
+If non-nil, then continuation lines are indented by `lua-ts-indent-offset':
 
   if a
       and b then
