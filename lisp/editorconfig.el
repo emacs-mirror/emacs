@@ -349,13 +349,22 @@ to non-nil when FINAL-NEWLINE is true."
    ("false"
     )))
 
+(defun editorconfig--delete-trailing-whitespace ()
+  "Call `delete-trailing-whitespace' unless the buffer is read-only."
+  (unless buffer-read-only (delete-trailing-whitespace)))
+
 (defun editorconfig-set-trailing-ws (trim-trailing-ws)
-    (if editorconfig-trim-whitespaces-mode
-        (funcall editorconfig-trim-whitespaces-mode 1)
-      ...)
-    (when editorconfig-trim-whitespaces-mode
-      (funcall editorconfig-trim-whitespaces-mode 0))
-    ...)
+  (pcase trim-trailing-ws
+    ("true"
+     (if editorconfig-trim-whitespaces-mode
+         (funcall editorconfig-trim-whitespaces-mode 1)
+       (add-hook 'before-save-hook
+                 #'editorconfig--delete-trailing-whitespace nil t)))
+    ("false"
+     (when editorconfig-trim-whitespaces-mode
+       (funcall editorconfig-trim-whitespaces-mode 0))
+     (remove-hook 'before-save-hook
+                  #'editorconfig--delete-trailing-whitespace t))))
 
 (defun editorconfig-set-line-length (length)
   "Set the max line length (`fill-column') to LENGTH."
@@ -521,7 +530,6 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
   :global t
   (let ((modehooks '(prog-mode-hook
                      text-mode-hook
-                     read-only-mode-hook
                      ;; Some modes call `kill-all-local-variables' in their init
                      ;; code, which clears some values set by editorconfig.
                      ;; For those modes, editorconfig-apply need to be called
