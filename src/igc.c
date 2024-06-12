@@ -207,6 +207,7 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_BLV",
   "IGC_OBJ_PTR_VEC",
   "IGC_OBJ_OBJ_VEC",
+  "IGC_OBJ_HASH_VEC",
   "IGC_OBJ_HANDLER",
   "IGC_OBJ_BYTES",
   "IGC_OBJ_BUILTIN_SYMBOL",
@@ -1317,6 +1318,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	break;
 
       case IGC_OBJ_OBJ_VEC:
+      case IGC_OBJ_HASH_VEC:
 	IGC_FIX_CALL_FN (ss, Lisp_Object, client, fix_obj_vec);
 	break;
 
@@ -2657,6 +2659,7 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_BLV:
     case IGC_OBJ_PTR_VEC:
     case IGC_OBJ_OBJ_VEC:
+    case IGC_OBJ_HASH_VEC:
     case IGC_OBJ_HANDLER:
       igc_assert (!"finalize not implemented");
       break;
@@ -2824,6 +2827,7 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_BLV:
     case IGC_OBJ_PTR_VEC:
     case IGC_OBJ_OBJ_VEC:
+    case IGC_OBJ_HASH_VEC:
     case IGC_OBJ_HANDLER:
       return t->d.dflt_ap;
 
@@ -3137,6 +3141,8 @@ igc_make_ptr_vec (size_t n)
   return alloc (n * sizeof (void *), IGC_OBJ_PTR_VEC);
 }
 
+/* Allocate a Lisp_Object vector with N elements.
+   Currently only used by SAFE_ALLOCA_LISP. */
 Lisp_Object *
 igc_alloc_lisp_obj_vec (size_t n)
 {
@@ -3146,9 +3152,7 @@ igc_alloc_lisp_obj_vec (size_t n)
 Lisp_Object *
 igc_make_hash_table_vec (size_t n)
 {
-  /* FIXME: Make this return a special vector object suitabke
-     for weak hash tables. */
-  return igc_alloc_lisp_obj_vec (n);
+  return alloc (n * sizeof (Lisp_Object), IGC_OBJ_HASH_VEC);
 }
 
 /* Like xpalloc, but uses 'alloc' instead of xrealloc, and should only
@@ -3824,6 +3828,7 @@ copy_dump (struct igc_mirror *m)
 	case IGC_OBJ_BLV:
 	case IGC_OBJ_PTR_VEC:
 	case IGC_OBJ_OBJ_VEC:
+	case IGC_OBJ_HASH_VEC:
 	case IGC_OBJ_HANDLER:
 	case IGC_OBJ_BYTES:
 	case IGC_OBJ_NUM_TYPES:
@@ -4411,6 +4416,7 @@ mirror (struct igc_mirror *m, void *org_base, void *copy_base)
       emacs_abort ();
 
     case IGC_OBJ_OBJ_VEC:
+    case IGC_OBJ_HASH_VEC:
       mirror_obj_vec (m, client);
       break;
 

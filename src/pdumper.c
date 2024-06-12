@@ -2783,15 +2783,15 @@ hash_table_freeze (struct Lisp_Hash_Table *h)
 }
 
 static dump_off
-dump_object_array (struct dump_context *ctx,
-		   const Lisp_Object array[], size_t len)
+dump_hash_vec (struct dump_context *ctx,
+	       const Lisp_Object array[], size_t len)
 {
   dump_align_output (ctx, DUMP_ALIGNMENT);
   struct dump_flags old_flags = ctx->flags;
   ctx->flags.pack_objects = true;
 
 #ifdef HAVE_MPS
-  dump_igc_start_obj (ctx, IGC_OBJ_OBJ_VEC, array);
+  dump_igc_start_obj (ctx, IGC_OBJ_HASH_VEC, array);
 #endif
   dump_off start_offset = ctx->offset;
 
@@ -2814,13 +2814,13 @@ dump_object_array (struct dump_context *ctx,
 static dump_off
 dump_hash_table_key (struct dump_context *ctx, struct Lisp_Hash_Table *h)
 {
-  return dump_object_array (ctx, h->key, h->count);
+  return dump_hash_vec (ctx, h->key, h->count);
 }
 
 static dump_off
 dump_hash_table_value (struct dump_context *ctx, struct Lisp_Hash_Table *h)
 {
-  return dump_object_array (ctx, h->value, h->count);
+  return dump_hash_vec (ctx, h->value, h->count);
 }
 
 static dump_off
