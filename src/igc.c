@@ -3245,7 +3245,7 @@ igc_add_marker (struct buffer *b, struct Lisp_Marker *m)
 {
   Lisp_Object v = BUF_MARKERS (b);
   if (NILP (v))
-    v = BUF_MARKERS (b) = alloc_vector_weak (100, Qnil);
+    v = BUF_MARKERS (b) = alloc_vector_weak (1, Qnil);
 
   ptrdiff_t i = find_nil_index (v);
   if (i == ASIZE (v))
