@@ -3545,7 +3545,7 @@ is_builtin_subr (enum igc_obj_type type, void *client)
 }
 
 static enum igc_obj_type
-builtin_obj_type (size_t *hash, enum igc_obj_type type, void *client)
+builtin_obj_type_and_hash (size_t *hash, enum igc_obj_type type, void *client)
 {
   if (c_symbol_p (client))
     return *hash = igc_hash (make_lisp_symbol (client)),
