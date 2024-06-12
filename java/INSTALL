@@ -158,10 +158,13 @@ the NDK r10b or later.  We wanted to make Emacs work on even older
 versions of Android, but they are missing the required JNI graphics
 library that allows Emacs to display text from C code.
 
-Due to an extremely nasty bug in the Android 2.2 system, the generated
-Emacs package cannot be compressed in builds for Android 2.2.  As a
-result, the Emacs package will be approximately 100 megabytes larger
-than a compressed package for a newer version of Android.
+There is an extremely nasty bug in the Android 2.2 system, the upshot of
+which is that large files within the generated Emacs package cannot be
+compressed in builds for Android 2.2, so that the Emacs package will be
+approximately 15 megabytes larger than a compressed package for a newer
+version of Android.  For such systems the `zip' utility is also required
+to produce packages that will not be misinterpreted by the package
+manager.
 
 
 BUILDING C++ DEPENDENCIES

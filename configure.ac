@@ -878,6 +878,7 @@ AC_ARG_VAR([JAVAC], [Java compiler path.  Used for Android.])
 AC_ARG_VAR([JARSIGNER], [Java package signer path.  Used for Android.])
 AC_ARG_VAR([APKSIGNER], [Android package signer path.  Used for Android.])
 AC_ARG_VAR([SDK_BUILD_TOOLS], [Path to the Android SDK build tools.])
+AC_ARG_VAR([ZIP], [Path to the `zip' utility.])
 
 if test "$with_android" = "yes"; then
    AC_MSG_ERROR([Please specify the path to the Android.jar file, like so:
@@ -1223,8 +1224,13 @@ package will likely install on older systems but crash on startup.])
   ANDROID_SDK_8_OR_EARLIER=
   if test "$android_sdk" -le "8"; then
      ANDROID_SDK_8_OR_EARLIER=yes
+     AC_CHECK_PROGS([ZIP], [zip])
+     AS_IF([test -z "$ZIP"],
+       [AC_MSG_ERROR([The `zip' utility is required for generating \
+packages targeting Android 2.2.])])
   fi
   AC_SUBST([ANDROID_SDK_8_OR_EARLIER])
+  AC_SUBST([ZIP])
 
   # Save confdefs.h and config.log for now.
   mv -f confdefs.h _confdefs.h
