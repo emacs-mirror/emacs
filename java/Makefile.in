@@ -199,7 +199,8 @@ $(libsrc)/asset-directory-tool:
 # does already.
 
 .PHONY: install_temp
-install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)
+install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)	\
+  $(libsrc)/asset-directory-tool
 	$(AM_V_GEN)
 # Make the working directory for this stuff
 	$(AM_V_SILENT) rm -rf install_temp
