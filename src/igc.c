@@ -105,7 +105,7 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 #define igc_static_assert(x) verify (x)
 #define igc_const_cast(type, expr) ((type) (expr))
 
-#define NOT_IMPLEMENTED() \
+#define IGC_NOT_IMPLEMENTED() \
   igc_assert_fail (__FILE__, __LINE__, "not implemented")
 
 #define IGC_TAG_MASK (~VALMASK)
@@ -1518,10 +1518,11 @@ fix_window (mps_ss_t ss, struct window *w)
     if (w->desired_matrix)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->desired_matrix));
 
-    /* FIXME: window.h syas the following two are "marked specially", so
-       they are not seen by fix_vectorlike. That's of course a no-go
-       with MPS. What ever is special about these, we have to find
-       another way to accomplish that with MPS. */
+    /* FIXME: The following two are handled specially in the old GC:
+       Both are lisgs from which entries for non-live buffers are
+       removed (mark_window -> mark_discard_killed_buffers).
+       So, they are kind of weak lists. I think this could be done
+       from a timer. */
     IGC_FIX12_OBJ (ss, &w->prev_buffers);
     IGC_FIX12_OBJ (ss, &w->next_buffers);
 
@@ -3576,7 +3577,7 @@ pure_obj_type_and_hash (size_t *hash_o, enum igc_obj_type type, void *client)
     case IGC_OBJ_FLOAT:
       return *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Float)), type;
     default:
-      NOT_IMPLEMENTED ();
+      IGC_NOT_IMPLEMENTED ();
       emacs_abort ();
     }
 }
@@ -3976,7 +3977,7 @@ mirror_interval (struct igc_mirror *m, struct interval *i)
 static void
 mirror_itree_tree (struct igc_mirror *m, struct itree_tree *t)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
@@ -3994,31 +3995,31 @@ mirror_itree_node (struct igc_mirror *m, struct itree_node *n)
 static void
 mirror_image (struct igc_mirror *m, struct image *i)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_image_cache (struct igc_mirror *m, struct image_cache *c)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_face (struct igc_mirror *m, struct face *f)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_face_cache (struct igc_mirror *m, struct face_cache *c)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_ptr_vec (struct igc_mirror *m, void *p)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
@@ -4032,13 +4033,13 @@ mirror_obj_vec (struct igc_mirror *m, Lisp_Object *v)
 static void
 mirror_handler (struct igc_mirror *m, struct handler *h)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_weak_ref (struct igc_mirror *m, struct Lisp_Weak_Ref *r)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
@@ -4100,13 +4101,13 @@ mirror_font (struct igc_mirror *m, struct Lisp_Vector *v)
 static void
 mirror_mutex (struct igc_mirror *m, struct Lisp_Mutex *x)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_coding (struct igc_mirror *m, struct coding_system *cs)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
@@ -4129,7 +4130,7 @@ mirror_buffer (struct igc_mirror *m, struct buffer *b)
 static void
 mirror_glyph_matrix (struct igc_mirror *m, struct glyph_matrix *g)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
@@ -4197,13 +4198,13 @@ mirror_subr (struct igc_mirror *m, struct Lisp_Subr *s)
 static void
 mirror_misc_ptr (struct igc_mirror *m, struct Lisp_Misc_Ptr *p)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_user_ptr (struct igc_mirror *m, struct Lisp_User_Ptr *p)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
@@ -4218,7 +4219,7 @@ mirror_thread (struct igc_mirror *m, struct thread_state *s)
 static void
 mirror_terminal (struct igc_mirror *m, struct terminal *t)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
@@ -4230,7 +4231,7 @@ mirror_marker (struct igc_mirror *m, struct Lisp_Marker *ma)
 static void
 mirror_finalizer (struct igc_mirror *m, struct Lisp_Finalizer *f)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
@@ -4243,13 +4244,13 @@ mirror_comp_unit (struct igc_mirror *m, struct Lisp_Native_Comp_Unit *u)
 static void
 mirror_xwidget (struct igc_mirror *m, struct xwidget *w)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
 mirror_xwidget_view (struct igc_mirror *m, struct xwidget_view *v)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 #endif
 
@@ -4257,7 +4258,7 @@ mirror_xwidget_view (struct igc_mirror *m, struct xwidget_view *v)
 static void
 mirror_global_ref (struct igc_mirror *m, struct module_global_reference *r)
 {
-  NOT_IMPLEMENTED ();
+  IGC_NOT_IMPLEMENTED ();
 }
 #endif
 
@@ -4499,7 +4500,7 @@ redirect_charset_table (struct igc_mirror *m)
     IGC_MIRROR_OBJ (m, &charset_table[i].attributes);
 }
 
-/* Redirecto all roots to point to MPS copies. */
+/* Redirect all roots to point to MPS copies. */
 static void
 redirect_roots (struct igc_mirror *m)
 {
@@ -4545,7 +4546,7 @@ mirror_dump (void *start, void *end)
 }
 
 /* Called from pdumper_load. [START, END) is the hot section of the
-   dump.  Copy objects from the dump to MPS, and discard the dump. */
+   dump. Copy objects from the dump to MPS, and discard the dump. */
 void
 igc_on_pdump_loaded (void *start, void *end)
 {
