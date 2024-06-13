@@ -3061,8 +3061,12 @@ igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
   /* Set up string as if the character had been inserted. */
   s->u.s.size_byte = nbytes_needed;
   unsigned char *insertion_addr = s->u.s.data + at_byte_pos;
+  /* Need to move the rest of the string after the insertion point
+     (old_nbytes - at_bytespos), but not the old char itself (-
+     old_char_len), but do include the NUL at the end (+ 1). */
+  ptrdiff_t nbytes_to_move = old_nbytes - at_byte_pos - old_char_len + 1;
   memmove (insertion_addr + new_char_len, insertion_addr + old_char_len,
-	   old_nbytes - (at_byte_pos + old_char_len - 1));
+	   nbytes_to_move);
   return insertion_addr;
 }
 
