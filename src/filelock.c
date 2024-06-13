@@ -47,6 +47,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #include <share.h>
 #include <sys/socket.h>	/* for fcntl */
+#include "w32common.h"
 #endif
 
 #ifndef MSDOS
@@ -353,7 +354,7 @@ integer_prefixed (char const *s)
 
 /* Whether the integer P could identify an individual process.  On most
    platforms this simply checks for positive pid_t, but on some
-   Microsoft ports our headers #define it to to some other test.  */
+   MS-Windows ports our headers #define it to to some other test.  */
 #ifndef VALID_PROCESS_ID
 # define VALID_PROCESS_ID(p) (0 < (p) && (p) <= TYPE_MAXIMUM (pid_t))
 #endif

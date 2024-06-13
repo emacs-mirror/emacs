@@ -53,6 +53,8 @@ extern void cache_system_info (void);
 #ifdef WINDOWSNT
 /* Return a static buffer with the MS-Windows version string.  */
 extern char * w32_version_string (void);
+extern bool w32_valid_process_id (intmax_t);
+# define VALID_PROCESS_ID(p) w32_valid_process_id(p)
 #endif
 
 typedef void (* VOIDFNPTR) (void);

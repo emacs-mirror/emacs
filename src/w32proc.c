@@ -2676,6 +2676,19 @@ count_children:
   return nr;
 }
 
+/* This is called from filelock.c:current_lock_owner to validate a PID.
+   Return true if PID could identify a process on the current host,
+   false otherwise.  */
+bool
+w32_valid_process_id (intmax_t id)
+{
+  if (id == -1 || id == 0	/* always invalid */
+      || id > UINT32_MAX 	/* PID is actually a DWORD */
+      || id < INT32_MIN)	/* Windows 9X can report negative PIDs */
+    return false;
+  return true;
+}
+
 /* Substitute for certain kill () operations */
 
 static BOOL CALLBACK
