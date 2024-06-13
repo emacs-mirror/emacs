@@ -337,14 +337,23 @@ to_bytes (mps_word_t nwords)
 }
 
 /* Value is the size in bytes of the object described by header H.
-   The name header_size is taken by lisp.h. */
+   This includes the header itself. */
 
 static mps_word_t
-header_nbytes (const struct igc_header *h)
+obj_size (const struct igc_header *h)
 {
   mps_word_t nbytes = to_bytes (h->nwords);
   igc_assert (h->obj_type == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
   return nbytes;
+}
+
+/* Value is the size in bytes of the client area of the object described
+   by header H. */
+
+static mps_word_t
+obj_client_size (const struct igc_header *h)
+{
+  return obj_size (h) - sizeof *h;
 }
 
 /* Set the fields of header H to the given values. Use this instead of
@@ -387,7 +396,7 @@ igc_round (size_t nbytes, size_t align)
    for a client object of size NBYTES. */
 
 static size_t
-obj_size (size_t nbytes)
+alloc_size (size_t nbytes)
 {
   nbytes += sizeof (struct igc_header);
   nbytes = max (nbytes, sizeof (struct igc_fwd));
@@ -523,8 +532,7 @@ static size_t
 object_nelems (void *client, size_t elem_size)
 {
   struct igc_header *h = client_to_base (client);
-  size_t client_nbytes = header_nbytes (h) - sizeof *h;
-  return client_nbytes / elem_size;
+  return obj_client_size (h) / elem_size;
 }
 
 static enum pvec_type
@@ -1084,7 +1092,7 @@ static void
 dflt_fwd (mps_addr_t old_base_addr, mps_addr_t new_base_addr)
 {
   struct igc_header *h = old_base_addr;
-  igc_assert (header_nbytes (h) >= sizeof (struct igc_fwd));
+  igc_assert (obj_size (h) >= sizeof (struct igc_fwd));
   igc_assert (h->obj_type != IGC_OBJ_PAD);
   struct igc_fwd *f = old_base_addr;
   f->header.obj_type = IGC_OBJ_FWD;
@@ -1104,7 +1112,7 @@ static mps_addr_t
 dflt_skip (mps_addr_t base_addr)
 {
   struct igc_header *h = base_addr;
-  mps_addr_t next = (char *) base_addr + header_nbytes (h);
+  mps_addr_t next = (char *) base_addr + obj_size (h);
   return next;
 }
 
@@ -1312,14 +1320,14 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	struct igc_stats *st = closure;
 	mps_word_t obj_type = header->obj_type;
 	igc_assert (obj_type < IGC_OBJ_NUM_TYPES);
-	st->obj[obj_type].nbytes += header_nbytes (header);
+	st->obj[obj_type].nbytes += obj_size (header);
 	st->obj[obj_type].nobjs += 1;
 	if (obj_type == IGC_OBJ_VECTOR)
 	  {
 	    struct Lisp_Vector* v = (struct Lisp_Vector*) client;
 	    enum pvec_type pvec_type = pseudo_vector_type (v);
 	    igc_assert (0 <= pvec_type && pvec_type <= PVEC_TAG_MAX);
-	    st->pvec[pvec_type].nbytes += header_nbytes (header);
+	    st->pvec[pvec_type].nbytes += obj_size (header);
 	    st->pvec[pvec_type].nobjs += 1;
 	  }
       }
@@ -2950,7 +2958,7 @@ static mps_addr_t
 alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
 {
   mps_addr_t p, obj;
-  size = obj_size (size);
+  size = alloc_size (size);
   do
     {
       mps_res_t res = mps_reserve (&p, ap, size);
@@ -3050,7 +3058,7 @@ igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
   /* The capacity is the number of bytes the client has available,
      including the terminating NUL byte. Sizes computed from Lisp
      strings don't include the NUL. That's the 1 in the if. */
-  ptrdiff_t capacity = header_nbytes (old_header) - sizeof *old_header;
+  ptrdiff_t capacity = obj_client_size (old_header);
   if (capacity < nbytes_needed + 1)
     {
       unsigned char *new_data = alloc_string_data (nbytes_needed, false);
@@ -3670,14 +3678,14 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
 	igc_assert (
 	  (type == IGC_OBJ_VECTOR && h->obj_type == IGC_OBJ_VECTOR_WEAK)
 	  || h->obj_type == type);
-      igc_assert (base + header_nbytes (h) >= end);
+      igc_assert (base + obj_size (h) >= end);
       *out = *h;
-      return base + header_nbytes (h);
+      return base + obj_size (h);
     }
 
   /* We are dumping some non-MPS object, e.g. a built-in symbol. */
   size_t client_size = end - base - sizeof *out;
-  size_t nbytes = obj_size (client_size);
+  size_t nbytes = alloc_size (client_size);
   size_t hash;
   type = (is_pure (client)
 	  ? pure_obj_type_and_hash (&hash, type, client)
@@ -3702,7 +3710,7 @@ copy_to_mps (mps_addr_t base)
   igc_assert (pdumper_object_p (base));
   struct igc_header *h = base;
   mps_ap_t ap = thread_ap (h->obj_type);
-  size_t nbytes = header_nbytes (h);
+  size_t nbytes = obj_size (h);
   igc_assert (nbytes >= sizeof (struct igc_fwd));
   mps_addr_t copy;
   do
@@ -3812,14 +3820,14 @@ record_copy (struct igc_mirror *m, void *dumped, void *copy)
 
   struct igc_header *h = copy;
   m->objs[h->obj_type].n += 1;
-  m->objs[h->obj_type].nbytes += header_nbytes (h);
+  m->objs[h->obj_type].nbytes += obj_size (h);
 
   if (h->obj_type == IGC_OBJ_VECTOR)
     {
       struct Lisp_Vector *v = base_to_client (copy);
       int i = pseudo_vector_type (v);
       m->pvec[i].n += 1;
-      m->pvec[i].nbytes += header_nbytes (h);
+      m->pvec[i].nbytes += obj_size (h);
     }
 }
 
