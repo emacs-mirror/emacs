@@ -2727,6 +2727,7 @@ sys_kill (pid_t pid, int sig)
   HANDLE proc_hand;
   int need_to_free = 0;
   int rc = 0;
+  pid_t orig_pid = pid;
 
   /* Each process is in its own process group.  */
   if (pid < 0)
@@ -2734,7 +2735,8 @@ sys_kill (pid_t pid, int sig)
 
   /* Only handle signals that can be mapped to a similar behavior on Windows */
   if (sig != 0
-      && sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP && sig != SIGTRAP)
+      && sig != SIGINT && sig != SIGKILL && sig != SIGQUIT
+      && sig != SIGHUP && sig != SIGTRAP)
     {
       errno = EINVAL;
       return -1;
@@ -2760,11 +2762,34 @@ sys_kill (pid_t pid, int sig)
 	      errno = EPERM;
 	      return -1;
 	    case ERROR_INVALID_PARAMETER: /* process PID does not exist */
-	      errno = ESRCH;
-	      return -1;
+	      {
+		if (orig_pid == pid)
+		  {
+		    errno = ESRCH;
+		    return -1;
+		  }
+		/* If we received a negative value, try again with the
+                   original one we received.  */
+		proc_hand = OpenProcess (PROCESS_QUERY_INFORMATION,
+					 0, orig_pid);
+		if (proc_hand == NULL)
+		  {
+		    err = GetLastError ();
+		    switch (err)
+		      {
+		      case ERROR_ACCESS_DENIED:
+			errno = EPERM;
+			return -1;
+		      case ERROR_INVALID_PARAMETER:
+			errno = ESRCH;
+			return -1;
+		      }
+		  }
+		break;
+	      }
 	    }
 	}
-      else
+      if (proc_hand != NULL)
 	CloseHandle (proc_hand);
       return 0;
     }
