@@ -192,6 +192,9 @@ class Class::Class 0.01 {
     method init_again (@with_parameters) {
 	...;
     }
+
+    # A false positive
+    my $class_false;
 }
 
 =head1 Perl 5.40 brings new stuff

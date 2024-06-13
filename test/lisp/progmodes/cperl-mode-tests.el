@@ -977,7 +977,8 @@ created by CPerl mode, so skip it for Perl mode."
                         "With::Readers::auto_reader"
                         "With::Readers::named")))
         (dolist (sub expected)
-          (should (assoc-string sub index)))))))
+          (should (assoc-string sub index))))
+      (should-not (assoc-string "_false" index)))))
 
 ;;; Tests for issues reported in the Bug Tracker
 

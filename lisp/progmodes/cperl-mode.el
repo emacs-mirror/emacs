@@ -1392,7 +1392,7 @@ Contains three groups for the initial keyword \"package\" or
   (defconst cperl--package-for-imenu-rx
     `(sequence symbol-start
                (group-n 1 "package")
-               ,cperl--ws*-rx
+               ,cperl--ws+-rx
                (group-n 2 ,cperl--normal-identifier-rx)
                (optional (sequence ,cperl--ws+-rx
                                    (regexp ,cperl--version-regexp)))
@@ -1408,9 +1408,9 @@ name, and one for the discovery of a following BLOCK.")
   ;; (e.g. ":isa(Parent)") while packages don't.  We skip over it, but
   ;; like for "package" we capture the following ";" or "{".
   (defconst cperl--class-for-imenu-rx
-    `(sequence symbol-start
+    `(sequence (or space line-start)
                (group-n 1 "class")
-               ,cperl--ws*-rx
+               ,cperl--ws+-rx
                (group-n 2 ,cperl--normal-identifier-rx)
                (optional (sequence ,cperl--ws+-rx
                                    (regexp ,cperl--version-regexp)))
@@ -6395,7 +6395,7 @@ functions (which they are not).  Inherits from `default'.")
             ;; -------- various stuff calling for a package name
             ;; (matcher (subexp facespec) (subexp facespec))
             `(,(rx (sequence
-                    (or (sequence symbol-start
+                    (or (sequence (or line-start space "{" )
                                   (or "package" "require" "use" "import"
                                       "no" "bootstrap" "class")
                                   (eval cperl--ws+-rx))
