@@ -887,7 +887,8 @@ dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
   ctx->igc_base_offset = ctx->offset;
   if (ctx->flags.dump_object_contents)
     {
-      /* FIXME: Because of an assertion in dump_write. */
+      /* This saving of obj_offset is Because of an assertion in
+	 dump_write. */
       dump_off obj_offset = ctx->obj_offset;
       ctx->obj_offset = 0;
       dump_write_zero (ctx, igc_header_size ());

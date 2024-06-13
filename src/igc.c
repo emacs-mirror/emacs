@@ -3253,15 +3253,6 @@ alloc_vector_weak (ptrdiff_t len, Lisp_Object init)
   return make_lisp_ptr (v, Lisp_Vectorlike);
 }
 
-static ptrdiff_t
-find_nil_index (Lisp_Object v)
-{
-  for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
-    if (NILP (AREF (v, i)))
-      return i;
-  return ASIZE (v);
-}
-
 static Lisp_Object
 larger_vector_weak (Lisp_Object v)
 {
@@ -3270,6 +3261,15 @@ larger_vector_weak (Lisp_Object v)
   for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
     ASET (new_v, i, AREF (v, i));
   return new_v;
+}
+
+static ptrdiff_t
+find_nil_index (Lisp_Object v)
+{
+  for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
+    if (NILP (AREF (v, i)))
+      return i;
+  return ASIZE (v);
 }
 
 void
@@ -3320,7 +3320,7 @@ igc_remove_all_markers (struct buffer *b)
 }
 
 DEFUN ("igc-make-weak-vector", Figc_make_weak_vector, Sigc_make_weak_vector, 2, 2, 0,
-       doc: /* Return a newly created vector of length LENGTH, with each element being INIT.
+       doc: /* Return a new weak vector of length LENGTH, with each element being INIT.
 See also the function `vector'.  */)
   (Lisp_Object length, Lisp_Object init)
 {
@@ -3330,7 +3330,7 @@ See also the function `vector'.  */)
 }
 
 DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
-(void)
+  (void)
 {
   struct igc *gc = global_igc;
   struct igc_stats st = { 0 };
@@ -3561,6 +3561,11 @@ igc_postmortem (void)
   mps_arena_postmortem (global_igc->arena);
 }
 
+
+/***********************************************************************
+				Dumping
+ ***********************************************************************/
+
 size_t
 igc_header_size (void)
 {
@@ -3582,14 +3587,23 @@ static enum igc_obj_type
 builtin_obj_type_and_hash (size_t *hash, enum igc_obj_type type, void *client)
 {
   if (c_symbol_p (client))
-    return *hash = igc_hash (make_lisp_symbol (client)),
-      IGC_OBJ_BUILTIN_SYMBOL;
+    {
+      *hash = igc_hash (make_lisp_symbol (client));
+      return IGC_OBJ_BUILTIN_SYMBOL;
+    }
+
   if (client == &main_thread)
-    return *hash = igc_hash (make_lisp_ptr (client, Lisp_Vectorlike)),
-      IGC_OBJ_BUILTIN_THREAD;
+    {
+      *hash = igc_hash (make_lisp_ptr (client, Lisp_Vectorlike));
+      return IGC_OBJ_BUILTIN_THREAD;
+    }
+
   if (is_builtin_subr (type, client))
-    return *hash = igc_hash (make_lisp_ptr (client, Lisp_Vectorlike)),
-      IGC_OBJ_BUILTIN_SUBR;
+    {
+      *hash = igc_hash (make_lisp_ptr (client, Lisp_Vectorlike));
+      return IGC_OBJ_BUILTIN_SUBR;
+    }
+
   emacs_abort ();
 }
 
@@ -3599,21 +3613,39 @@ pure_obj_type_and_hash (size_t *hash_o, enum igc_obj_type type, void *client)
   switch (type)
     {
     case IGC_OBJ_STRING:
-      return *hash_o = igc_hash (make_lisp_ptr (client, Lisp_String)), type;
+      *hash_o = igc_hash (make_lisp_ptr (client, Lisp_String));
+      return type;
+
     case IGC_OBJ_VECTOR:
-      return *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Vectorlike)),
-	     type;
+      *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Vectorlike));
+      return type;
+
     case IGC_OBJ_CONS:
-      return *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Cons)), type;
+      *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Cons));
+      return type;
+
     case IGC_OBJ_STRING_DATA:
-      return *hash_o = (uintptr_t)client & IGC_HASH_MASK, type;
+      *hash_o = (uintptr_t) client & IGC_HASH_MASK;
+      return type;
+
     case IGC_OBJ_FLOAT:
-      return *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Float)), type;
+      *hash_o = igc_hash (make_lisp_ptr (client, Lisp_Float));
+      return type;
+
     default:
       IGC_NOT_IMPLEMENTED ();
       emacs_abort ();
     }
 }
+
+/* Called from the dumper at the end of dumping an object. This function
+   is responsible for filling out the igc_header of the dumped object.
+   CLIENT points to the object being dumped. TYPE is the type of objcect
+   the pdumper intends to write. BASE points to where in the dump CLIENT
+   has been written, i.e. it is a pointer to its header in the dump.
+   END is the current end of the object whose start is BASE. Value is
+   the address in the dump where the object should end which can be >=
+   end for alignment purposes. */
 
 char *
 igc_dump_finish_obj (void *client, enum igc_obj_type type,
@@ -3635,53 +3667,21 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
       return base + header_nbytes (h);
     }
 
-  // FIXME: check this...
+  /* We are dumping some non-MPS object, e.g. a built-in symbol. */
   size_t client_size = end - base - sizeof *out;
   size_t nbytes = obj_size (client_size);
   size_t hash;
-  type = is_pure (client)
-    ? pure_obj_type_and_hash (&hash, type, client)
-    : builtin_obj_type_and_hash (&hash, type, client);
+  type = (is_pure (client)
+	  ? pure_obj_type_and_hash (&hash, type, client)
+	  : builtin_obj_type_and_hash (&hash, type, client));
   set_header (out, type, nbytes, hash);
   return base + nbytes;
-}
-
-void
-init_igc (void)
-{
-  mps_lib_assert_fail_install (igc_assert_fail);
-  global_igc = make_igc ();
-  add_main_thread ();
-}
-
-void
-syms_of_igc (void)
-{
-  defsubr (&Sigc_info);
-  defsubr (&Sigc_make_weak_vector);
-  defsubr (&Sigc_roots);
-  defsubr (&Sigc__collect);
-  DEFSYM (Qambig, "ambig");
-  DEFSYM (Qexact, "exact");
-  DEFSYM (Qweak_ref_p, "weak-ref-p");
-  DEFSYM (Qweak_ref, "weak-ref");
-  Fprovide (intern_c_string ("mps"), Qnil);
-
-  DEFVAR_LISP ("igc-step-interval", Vigc_step_interval,
-    doc: /* How much time is MPS allowed to spend in GC when Emacs is idle.
-The value is in seconds, and should be a non-negative number.  It can
-be either an integer or a float.  The default value is 0 which means .
-don't do something when idle.  Negative values and values that are not numbers
-are handled as if they were the default value.  */);
-  Vigc_step_interval = make_fixnum (0);
 }
 
 
 /***********************************************************************
 			    Copying the dump
  ***********************************************************************/
-
-#pragma GCC diagnostic ignored "-Wunused-function"
 
 /* Copy object with base address BASE to MPS.  BASE must be an object in
    the loaded dump. Ensure that the copy has the same hash as the copied
@@ -3816,9 +3816,9 @@ record_copy (struct igc_mirror *m, void *dumped, void *copy)
 }
 
 static void *
-lookup_base (struct igc_mirror *m, void *base)
+lookup_copy (struct igc_mirror *m, void *dumped)
 {
-  Lisp_Object key = pointer_to_fixnum (base);
+  Lisp_Object key = pointer_to_fixnum (dumped);
   Lisp_Object found = Fgethash (key, m->dump_to_mps, Qnil);
   return NILP (found) ? NULL : fixnum_to_pointer (found);
 }
@@ -3888,7 +3888,7 @@ mirror_lisp_obj (struct igc_mirror *m, Lisp_Object *pobj)
       if (pdumper_object_p (client))
 	{
 	  mps_addr_t base = client_to_base (client);
-	  mps_addr_t mirror = lookup_base (m, base);
+	  mps_addr_t mirror = lookup_copy (m, base);
 	  igc_assert (mirror != NULL);
 	  client = base_to_client (mirror);
 	  ptrdiff_t new_off = (char *) client - (char *) lispsym;
@@ -3901,7 +3901,7 @@ mirror_lisp_obj (struct igc_mirror *m, Lisp_Object *pobj)
       if (pdumper_object_p (client))
 	{
 	  mps_addr_t base = client_to_base (client);
-	  mps_addr_t mirror = lookup_base (m, base);
+	  mps_addr_t mirror = lookup_copy (m, base);
 	  igc_assert (mirror != NULL);
 	  client = base_to_client (mirror);
 	  *p = (mps_word_t) client | tag;
@@ -3916,7 +3916,7 @@ mirror_raw (struct igc_mirror *m, mps_addr_t *p)
   if (pdumper_object_p (client))
     {
       mps_addr_t base = client_to_base (client);
-      mps_addr_t mirror = lookup_base (m, base);
+      mps_addr_t mirror = lookup_copy (m, base);
       igc_assert (mirror != NULL);
       *p = base_to_client (mirror);
     }
@@ -4073,12 +4073,6 @@ mirror_handler (struct igc_mirror *m, struct handler *h)
 }
 
 static void
-mirror_weak_ref (struct igc_mirror *m, struct Lisp_Weak_Ref *r)
-{
-  IGC_NOT_IMPLEMENTED ();
-}
-
-static void
 mirror_cons (struct igc_mirror *m, struct Lisp_Cons *c)
 {
   IGC_MIRROR_OBJ (m, &c->u.s.car);
@@ -4141,12 +4135,6 @@ mirror_mutex (struct igc_mirror *m, struct Lisp_Mutex *x)
 }
 
 static void
-mirror_coding (struct igc_mirror *m, struct coding_system *cs)
-{
-  IGC_NOT_IMPLEMENTED ();
-}
-
-static void
 mirror_buffer (struct igc_mirror *m, struct buffer *b)
 {
   IGC_MIRROR_VECTORLIKE (m, b);
@@ -4161,12 +4149,6 @@ mirror_buffer (struct igc_mirror *m, struct buffer *b)
     b->text = &b->own_text;
 
   IGC_MIRROR_OBJ (m, &b->undo_list_);
-}
-
-static void
-mirror_glyph_matrix (struct igc_mirror *m, struct glyph_matrix *g)
-{
-  IGC_NOT_IMPLEMENTED ();
 }
 
 static void
@@ -4592,4 +4574,40 @@ void
 igc_on_pdump_loaded (void *start, void *end)
 {
   mirror_dump (start, end);
+}
+
+
+
+/***********************************************************************
+				  Init
+ ***********************************************************************/
+
+void
+init_igc (void)
+{
+  mps_lib_assert_fail_install (igc_assert_fail);
+  global_igc = make_igc ();
+  add_main_thread ();
+}
+
+void
+syms_of_igc (void)
+{
+  defsubr (&Sigc_info);
+  defsubr (&Sigc_make_weak_vector);
+  defsubr (&Sigc_roots);
+  defsubr (&Sigc__collect);
+  DEFSYM (Qambig, "ambig");
+  DEFSYM (Qexact, "exact");
+  DEFSYM (Qweak_ref_p, "weak-ref-p");
+  DEFSYM (Qweak_ref, "weak-ref");
+  Fprovide (intern_c_string ("mps"), Qnil);
+
+  DEFVAR_LISP ("igc-step-interval", Vigc_step_interval,
+    doc: /* How much time is MPS allowed to spend in GC when Emacs is idle.
+The value is in seconds, and should be a non-negative number.  It can
+be either an integer or a float.  The default value is 0 which means .
+don't do something when idle.  Negative values and values that are not numbers
+are handled as if they were the default value.  */);
+  Vigc_step_interval = make_fixnum (0);
 }
