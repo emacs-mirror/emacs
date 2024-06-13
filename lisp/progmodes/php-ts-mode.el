@@ -242,8 +242,8 @@ Calls REPORT-FN directly."
                                (rx bol (? "PHP ") ;; every dignostic line start with PHP
                                    (group (or "Fatal" "Parse")) ;; 1: type
                                    " error:" (+ (syntax whitespace))
-                                   (group (+? any)) ;; 2: msg
-                                   " in " (group (+? any)) ;; 3: file
+                                   (group (+? nonl)) ;; 2: msg
+                                   " in " (group (+? nonl)) ;; 3: file
                                    " on line " (group (+ num)) ;; 4: line
                                    eol))))
     (save-restriction
@@ -739,7 +739,7 @@ characters of the current line."
     "PHP_SHLIB_SUFFIX" "PHP_FD_SETSIZE" "E_ERROR" "E_WARNING" "E_PARSE"
     "E_NOTICE" "E_CORE_ERROR" "E_CORE_WARNING" "E_COMPILE_ERROR"
     "E_COMPILE_WARNING" "E_USER_ERROR" "E_USER_WARNING"
-    "E_USER_NOTICE" "E_USER_NOTICE" "E_DEPRECATED" "E_USER_DEPRECATED"
+    "E_USER_NOTICE" "E_DEPRECATED" "E_USER_DEPRECATED"
     "E_ALL" "E_STRICT"
     ;; magic constant
     "__COMPILER_HALT_OFFSET__" "__CLASS__" "__DIR__" "__FILE__"
