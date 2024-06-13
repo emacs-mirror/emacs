@@ -33,6 +33,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "textconv.h"
 #include "coding.h"
 #include "pdumper.h"
+#include "keymap.h"
 
 /* This is a chain of structures for all the X displays currently in
    use.  */
@@ -6641,7 +6642,7 @@ android_term_init (void)
   dpyinfo->resx = android_pixel_density_x;
   dpyinfo->resy = android_pixel_density_y;
   dpyinfo->font_resolution = android_scaled_pixel_density;
-#endif /* ANDROID_STUBIFY */
+#endif /* !ANDROID_STUBIFY */
 
   /* https://lists.gnu.org/r/emacs-devel/2015-11/msg00194.html  */
   dpyinfo->smallest_font_height = 1;
@@ -6679,7 +6680,13 @@ android_term_init (void)
 #ifndef ANDROID_STUBIFY
   sem_init (&edit_sem, false, 0);
   register_textconv_interface (&text_conversion_interface);
-#endif
+#endif /* !ANDROID_STUBIFY */
+
+  /* Binding certain key events in the terminal's `input-decode-map',
+     which being keyboard-local is not accessible from any point in
+     android-win.el.  */
+  Fdefine_key (KVAR (terminal->kboard, Vinput_decode_map),
+	       make_vector (1, Qselect), Qreturn, Qnil);
 }
 
 
@@ -6907,6 +6914,10 @@ for instance, `early-init.el', or they will be of no effect.  */);
   Fput (Qmeta, Qmodifier_value, make_fixnum (meta_modifier));
   DEFSYM (Qsuper, "super");
   Fput (Qsuper, Qmodifier_value, make_fixnum (super_modifier));
+
+  /* Key symbols.  */
+  DEFSYM (Qselect, "select");
+  DEFSYM (Qreturn, "return");
 }
 
 void

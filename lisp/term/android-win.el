@@ -627,9 +627,6 @@ accessible to other programs."
 (global-set-key [\83] #'ignore) ; KEYCODE_NOTIFICATION on pre-Honeycomb
                                 ; releases.
 
-;; `select' key, which I suppose amounts to return.
-(define-key input-decode-map [select] [return])
-
 
 (provide 'android-win)
 ;; android-win.el ends here.
