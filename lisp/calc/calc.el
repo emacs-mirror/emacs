@@ -2184,7 +2184,7 @@ the United States."
 	(beginning-of-line)
 	(if (eobp)
             (forward-line -1))
-	(if (or (bobp) (eobp))
+	(if (and (bobp) (eobp))
 	    (setq overlay-arrow-position nil)   ; trail is empty
 	  (set-marker calc-trail-pointer (point) (current-buffer))
 	  (setq calc-trail-overlay (concat (buffer-substring (point)
