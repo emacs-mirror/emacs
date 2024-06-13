@@ -271,6 +271,15 @@ prompt.  See bug#54136."
    (eshell-wait-for-subprocess)
    (should (eshell-match-output "\\[sh\\(\\.exe\\)?\\] [[:digit:]]+\n"))))
 
+(ert-deftest esh-proc-test/kill-process/redirect-message ()
+  "Test that killing a process with a redirected stderr omits the exit status."
+  (skip-unless (executable-find "sleep"))
+  (eshell-with-temp-buffer bufname ""
+    (with-temp-eshell
+     (eshell-insert-command (format "sleep 100 2> #<buffer %s>" bufname))
+     (kill-process (eshell-head-process)))
+    (should (equal (buffer-string) ""))))
+
 (ert-deftest esh-proc-test/kill-pipeline ()
   "Test that killing a pipeline of processes only emits a single
 prompt.  See bug#54136."
@@ -310,19 +319,10 @@ write the exit status to the pipe.  See bug#54136."
                      output-start (eshell-end-of-output))
                     "")))))
 
-(ert-deftest esh-proc-test/kill-process/redirect-message ()
-  "Test that killing a process with a redirected stderr omits the exit status."
-  (skip-unless (executable-find "sleep"))
-  (eshell-with-temp-buffer bufname ""
-    (with-temp-eshell
-     (eshell-insert-command (format "sleep 100 2> #<buffer %s>" bufname))
-     (kill-process (eshell-head-process)))
-    (should (equal (buffer-string) ""))))
-
 
 ;; Remote processes
 
-(ert-deftest esh-var-test/remote/remote-path ()
+(ert-deftest esh-proc-test/remote/remote-path ()
   "Ensure that setting the remote PATH in Eshell doesn't interfere with Tramp.
 See bug#65551."
   (skip-unless (and (eshell-tests-remote-accessible-p)
