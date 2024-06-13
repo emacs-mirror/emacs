@@ -6686,7 +6686,8 @@ android_term_init (void)
      which being keyboard-local is not accessible from any point in
      android-win.el.  */
   Fdefine_key (KVAR (terminal->kboard, Vinput_decode_map),
-	       make_vector (1, Qselect), Qreturn, Qnil);
+	       make_vector (1, Qselect), make_vector (1, Qreturn),
+	       Qnil);
 }
 
 
