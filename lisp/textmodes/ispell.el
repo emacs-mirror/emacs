@@ -219,8 +219,9 @@ This is also used by `ispell-lookup-words' and `ispell-complete-word'."
   :type '(choice file (const :tag "None" nil)))
 
 (defcustom ispell-complete-word-dict nil
-  "Plain word-list dictionary used for word completion if
-different from `ispell-alternate-dictionary'.
+  "Plain word-list dictionary used for word completion.
+This word-list is used if it is different from
+`ispell-alternate-dictionary'.
 This is also used by `ispell-lookup-words' and `ispell-complete-word'."
   :type '(choice file (const :tag "None" nil)))
 
@@ -639,8 +640,8 @@ this would require some extra guessing in `ispell-aspell-find-dictionary'.")
     ("slovenian"     "sl_SI")
     ("svenska"       "sv_SE")
     ("hebrew"        "he_IL"))
-  "Alist with known matching locales for standard dict names in
-`ispell-dictionary-base-alist'.")
+  "Alist with known matching locales for standard dict names.
+Standard dict names are defined in `ispell-dictionary-base-alist'.")
 
 
 ;;; **********************************************************************
@@ -759,14 +760,16 @@ Otherwise return the library directory name, if that is defined."
      ,@body))
 
 (defun ispell-call-process (&rest args)
-  "Like `call-process', but defend against bad `default-directory'."
+  "Like `call-process', but defend against bad `default-directory'.
+ARGS are passed to `call-process'."
   (ispell-with-safe-default-directory
-    (apply 'call-process args)))
+    (apply #'call-process args)))
 
 (defun ispell-call-process-region (&rest args)
-  "Like `call-process-region', but defend against bad `default-directory'."
+  "Like `call-process-region', but defend against bad `default-directory'.
+ARGS are passed to `call-process'."
   (ispell-with-safe-default-directory
-    (apply 'call-process-region args)))
+    (apply #'call-process-region args)))
 
 (defvar ispell-debug-buffer)
 
@@ -856,10 +859,9 @@ Assumes that value contains no whitespace."
     (car (split-string (buffer-string)))))
 
 (defun ispell-aspell-find-dictionary (dict-name)
-  "For Aspell dictionary DICT-NAME, return a list of parameters if an
-associated data file is found or nil otherwise.  List format is that
-of `ispell-dictionary-base-alist' elements."
-
+  "For Aspell dictionary DICT-NAME, return a list of parameters.
+List format is that of `ispell-dictionary-base-alist' elements.  Return
+nil if no associated data file is found."
   ;; Make sure `ispell-aspell-dict-dir' is defined
   (or ispell-aspell-dict-dir
       (setq ispell-aspell-dict-dir
@@ -1614,8 +1616,8 @@ a `~' followed by an extended-character mode -- such as `~.tex'.
 The last occurring definition in the buffer will be used.")
 
 (defun ispell--\\w-filter (char)
-  "Return CHAR in a string when CHAR doesn't have \"word\" syntax,
-nil otherwise.  CHAR must be a character."
+  "Return CHAR as a string when CHAR doesn't have \"word\" syntax.
+CHAR must be a valid character.  Return nil otherwise."
   (let ((str (string char)))
     (and
      (not (string-match "\\w" str))
@@ -3891,7 +3893,8 @@ Otherwise, it must be a function which is called to get the limit.")
 
 
 (defun ispell-mime-multipartp (&optional limit)
-  "Return multipart message start boundary or nil if none."
+  "Return the start boundary of a multipart message, or nil if none.
+LIMIT is passed to `re-search-forward', which see."
   ;; caller must ensure `case-fold-search' is set to t
   (and
    (re-search-forward
