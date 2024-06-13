@@ -3,7 +3,7 @@
 
 This file is part of GNU Emacs.
 
-Author: Gerd Moellmann <gerd@gnu.org>
+Author: Gerd Möllmann <gerd@gnu.org>
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -65,12 +65,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # error "HAVE_PDUMPER required"
 #endif
 
-struct Lisp_Weak_Ref
-{
-  union vectorlike_header header;
-  Lisp_Object ref;
-} GCALIGNED_STRUCT;
-
 /* Note: Emacs will call allocation functions while aborting. This leads
    to all sorts of interesting phenomena when an assertion fails inside
    a function called from MPS.
@@ -89,15 +83,13 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 }
 
 #ifdef IGC_DEBUG
-
-#define igc_assert(expr)				\
+# define igc_assert(expr)				\
   do							\
     {							\
       if (!(expr))					\
 	igc_assert_fail (__FILE__, __LINE__, #expr);	\
     }							\
-  while (0)						\
-
+  while (0)
 #else
 # define igc_assert(expr) (void) 9
 #endif
@@ -108,7 +100,13 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 #define IGC_NOT_IMPLEMENTED() \
   igc_assert_fail (__FILE__, __LINE__, "not implemented")
 
-#define IGC_TAG_MASK (~VALMASK)
+enum
+{
+  IGC_TAG_MASK = (~VALMASK),
+  IGC_TAG_BITS = GCTYPEBITS,
+  IGC_ALIGN = GCALIGNMENT,
+  IGC_ALIGN_DFLT = IGC_ALIGN,
+};
 
 /* Using mps_arena_has_addr is expensive. so try to do something that is
    "good enough". This can return true for malloc'd memory. */
@@ -131,12 +129,6 @@ is_mps (const mps_addr_t addr)
   return addr >= min_addr && addr < max_addr && !pdumper_object_p (addr)
     && !c_symbol_p (addr) && !is_pure (addr);
 }
-
-enum
-{
-  IGC_ALIGN = GCALIGNMENT,
-  IGC_ALIGN_DFLT = IGC_ALIGN,
-};
 
 static bool
 is_aligned (const mps_addr_t addr)
@@ -298,6 +290,7 @@ struct igc_stats
    location dependencies, and (b) makes it possible to implement sxhash
    variants in a way that works as expected even if GCs happen between
    calls.  */
+
 enum
 {
   IGC_TYPE_BITS = 5,
@@ -385,6 +378,15 @@ base_to_client (mps_addr_t base_addr)
 {
   return (char *) base_addr + sizeof (struct igc_header);
 }
+
+static size_t
+object_nelems (void *client, size_t elem_size)
+{
+  struct igc_header *h = client_to_base (client);
+  return obj_client_size (h) / elem_size;
+}
+
+/* Round NBYTES to the next multiple of ALIGN. */
 
 static size_t
 igc_round (size_t nbytes, size_t align)
@@ -527,13 +529,6 @@ deregister_thread (struct igc_thread_list *t)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
-
-static size_t
-object_nelems (void *client, size_t elem_size)
-{
-  struct igc_header *h = client_to_base (client);
-  return obj_client_size (h) / elem_size;
-}
 
 static enum pvec_type
 pseudo_vector_type (const struct Lisp_Vector *v)
