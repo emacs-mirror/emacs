@@ -2086,7 +2086,9 @@ resize_string_data (Lisp_Object string, ptrdiff_t cidx_byte,
 		    int clen, int new_clen)
 {
 #ifdef HAVE_MPS
-  return igc_replace_char (string, cidx_byte, clen, new_clen);
+  unsigned char *s = igc_replace_char (string, cidx_byte, clen, new_clen);
+  clear_string_char_byte_cache ();
+  return s;
 #else
   eassume (STRING_MULTIBYTE (string));
   sdata *old_sdata = SDATA_OF_STRING (XSTRING (string));

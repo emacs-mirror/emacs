@@ -3046,19 +3046,23 @@ igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
   ptrdiff_t old_nbytes = SBYTES (string);
   ptrdiff_t nbytes_needed = old_nbytes + (new_char_len - old_char_len);
   struct igc_header *old_header = client_to_base (s->u.s.data);
+
+  /* The capacity is the number of bytes the client has available,
+     including the terminating NUL byte. Sizes computed from Lisp
+     strings don't include the NUL. That's the 1 in the if. */
   ptrdiff_t capacity = header_nbytes (old_header) - sizeof *old_header;
-  if (capacity < nbytes_needed)
+  if (capacity < nbytes_needed + 1)
     {
       unsigned char *new_data = alloc_string_data (nbytes_needed, false);
-      memcpy (new_data, SDATA (string), old_nbytes);
+      memcpy (new_data, SDATA (string), old_nbytes + 1);
       s->u.s.data = new_data;
     }
 
-  // Set up string as if the character had been inserted.
+  /* Set up string as if the character had been inserted. */
   s->u.s.size_byte = nbytes_needed;
   unsigned char *insertion_addr = s->u.s.data + at_byte_pos;
   memmove (insertion_addr + new_char_len, insertion_addr + old_char_len,
-	   eabs (new_char_len - old_char_len));
+	   old_nbytes - (at_byte_pos + old_char_len - 1));
   return insertion_addr;
 }
 
