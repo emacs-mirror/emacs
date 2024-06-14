@@ -1094,7 +1094,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
    GPT_ADDR (if not text_at_gap_tail).
    Contrary to insert_from_gap, this does not invalidate any cache,
    nor update any markers, nor record any buffer modification information
-   of any sort.  */
+   of any sort, with the single exception of notifying tree-sitter.  */
 void
 insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 {
