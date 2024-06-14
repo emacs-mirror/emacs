@@ -108,6 +108,10 @@ Comments begin with `#'."
 ;;;###autoload
 (defun eshell-execute-file (file &optional args destination)
   "Execute a series of Eshell commands in FILE, passing ARGS.
+If DESTINATION is t, write the command output to the current buffer.  If
+nil, don't write the output anywhere.  For any other value, output to
+the corresponding Eshell target (see `eshell-get-target').
+
 Comments begin with `#'."
   (let ((eshell-non-interactive-p t)
         (stdout (if (eq destination t) (current-buffer) destination)))
