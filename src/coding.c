@@ -5698,6 +5698,7 @@ setup_coding_system (Lisp_Object coding_system, struct coding_system *coding)
   coding->default_char = XFIXNUM (CODING_ATTR_DEFAULT_CHAR (attrs));
   coding->carryover_bytes = 0;
   coding->raw_destination = 0;
+  coding->insert_before_markers = 0;
 
   coding_type = CODING_ATTR_TYPE (attrs);
   if (EQ (coding_type, Qundecided))
@@ -7209,7 +7210,8 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 
   produced = dst - (coding->destination + coding->produced);
   if (BUFFERP (coding->dst_object) && produced_chars > 0)
-    insert_from_gap (produced_chars, produced, 0);
+    insert_from_gap (produced_chars, produced, 0,
+		     coding->insert_before_markers);
   coding->produced += produced;
   coding->produced_char += produced_chars;
   return carryover;
@@ -7814,7 +7816,8 @@ encode_coding (struct coding_system *coding)
   } while (coding->consumed_char < coding->src_chars);
 
   if (BUFFERP (coding->dst_object) && coding->produced_char > 0)
-    insert_from_gap (coding->produced_char, coding->produced, 0);
+    insert_from_gap (coding->produced_char, coding->produced, 0,
+		     coding->insert_before_markers);
 
   SAFE_FREE ();
 }
@@ -8008,7 +8011,7 @@ decode_coding_gap (struct coding_system *coding, ptrdiff_t bytes)
 	    }
 	  coding->produced = bytes;
 	  coding->produced_char = chars;
-	  insert_from_gap (chars, bytes, 1);
+	  insert_from_gap (chars, bytes, 1, coding->insert_before_markers);
 	  return;
 	}
     }
@@ -9980,7 +9983,7 @@ encode_string_utf_8 (Lisp_Object string, Lisp_Object buffer,
       struct buffer *oldb = current_buffer;
 
       current_buffer = XBUFFER (buffer);
-      insert_from_gap (outbytes, outbytes, false);
+      insert_from_gap (outbytes, outbytes, false, false);
       current_buffer = oldb;
     }
   return val;
@@ -10290,7 +10293,7 @@ decode_string_utf_8 (Lisp_Object string, const char *str, ptrdiff_t str_len,
       struct buffer *oldb = current_buffer;
 
       current_buffer = XBUFFER (buffer);
-      insert_from_gap (outchars, outbytes, false);
+      insert_from_gap (outchars, outbytes, false, false);
       current_buffer = oldb;
     }
   return val;

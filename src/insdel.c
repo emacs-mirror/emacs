@@ -1129,10 +1129,15 @@ insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
    starting at GAP_END_ADDR - NBYTES (if text_at_gap_tail) and at
-   GPT_ADDR (if not text_at_gap_tail).  */
+   GPT_ADDR (if not text_at_gap_tail).
+
+  If BEFORE_MARKERS is true, insert before markers.  At the moment the
+  only high-level callers of this functionality is
+  read_and_insert_process_output in process.c.  */
 
 void
-insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
+insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail,
+		 bool before_markers)
 {
   ptrdiff_t ins_charpos = GPT, ins_bytepos = GPT_BYTE;
 
@@ -1151,7 +1156,8 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
   insert_from_gap_1 (nchars, nbytes, text_at_gap_tail);
 
   adjust_markers_for_insert (ins_charpos, ins_bytepos,
-			     ins_charpos + nchars, ins_bytepos + nbytes, false);
+			     ins_charpos + nchars, ins_bytepos + nbytes,
+			     before_markers);
 
   if (buffer_intervals (current_buffer))
     {

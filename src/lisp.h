@@ -4371,8 +4371,8 @@ extern void insert (const char *, ptrdiff_t);
 extern void insert_and_inherit (const char *, ptrdiff_t);
 extern void insert_1_both (const char *, ptrdiff_t, ptrdiff_t,
 			   bool, bool, bool);
-extern void insert_from_gap_1 (ptrdiff_t, ptrdiff_t, bool text_at_gap_tail);
-extern void insert_from_gap (ptrdiff_t, ptrdiff_t, bool text_at_gap_tail);
+extern void insert_from_gap_1 (ptrdiff_t, ptrdiff_t, bool);
+extern void insert_from_gap (ptrdiff_t, ptrdiff_t, bool, bool);
 extern void insert_from_string (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				ptrdiff_t, ptrdiff_t, bool);
 extern void insert_from_buffer (struct buffer *, ptrdiff_t, ptrdiff_t, bool);

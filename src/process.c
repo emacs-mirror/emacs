@@ -6406,6 +6406,9 @@ read_and_insert_process_output (struct Lisp_Process *p, char *buf,
   if (NILP (BVAR (XBUFFER (p->buffer), enable_multibyte_characters))
 	   && ! CODING_MAY_REQUIRE_DECODING (process_coding))
     {
+      /* For compatibility with the long-standing behavior of
+	 internal-default-process-filter we insert before markers,
+	 both here and in the 'else' branch.  */
       insert_1_both (buf, nread, nread, 0, 0, 1);
       signal_after_change (PT - nread, 0, nread);
     }
@@ -6415,6 +6418,7 @@ read_and_insert_process_output (struct Lisp_Process *p, char *buf,
       specpdl_ref count1 = SPECPDL_INDEX ();
 
       XSETBUFFER (curbuf, current_buffer);
+      process_coding->insert_before_markers = true;
       /* We cannot allow after-change-functions be run
 	 during decoding, because that might modify the
 	 buffer, while we rely on process_coding.produced to
@@ -6423,9 +6427,6 @@ read_and_insert_process_output (struct Lisp_Process *p, char *buf,
       specbind (Qinhibit_modification_hooks, Qt);
       decode_coding_c_string (process_coding,
 			      (unsigned char *) buf, nread, curbuf);
-      adjust_markers_for_insert (PT, PT_BYTE,
-				 PT + process_coding->produced_char,
-				 PT_BYTE + process_coding->produced, true);
       unbind_to (count1, Qnil);
 
       read_process_output_set_last_coding_system (p, process_coding);
