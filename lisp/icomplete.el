@@ -1057,7 +1057,8 @@ matches exist."
                   (setq determ (concat open-bracket "" close-bracket)))
                 (while (and comps (not limit))
                   (setq comp
-                        (if prefix-len (substring (car comps) prefix-len) (car comps))
+                        (let ((cur (completion-lazy-hilit (car comps))))
+                          (if prefix-len (substring cur prefix-len) cur))
                         comps (cdr comps))
                   (setq prospects-len
                         (+ (string-width comp)
@@ -1066,8 +1067,7 @@ matches exist."
                   (if (< prospects-len prospects-max)
                       (push comp prospects)
                     (setq limit t)))
-                (setq prospects
-                      (nreverse (mapcar #'completion-lazy-hilit prospects)))
+                (setq prospects (nreverse prospects))
                 ;; Decorate first of the prospects.
                 (when prospects
                   (let ((first (copy-sequence (pop prospects))))
