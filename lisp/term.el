@@ -1728,10 +1728,11 @@ from the same directory to a temporary location, and return the latter."
         (when (file-newer-than-file-p src-directory dst-directory)
           (message "Generating Terminfo database...")
           (with-demoted-errors "Generating Terminfo database: %s"
-            ;; Arrange that the directory be writable.
-            (dolist (x (directory-files-recursively parent "" t t))
-              (set-file-modes x #o700))
-            (delete-directory dst-directory t)
+            (when (file-exists-p dst-directory)
+              ;; Arrange that the directory be writable.
+              (dolist (x (directory-files-recursively parent "" t t))
+                (set-file-modes x #o700))
+              (delete-directory dst-directory t))
             (copy-directory src-directory dst-directory nil t t)))
         parent))))
 
