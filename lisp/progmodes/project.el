@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
-;; Version: 0.11.0
+;; Version: 0.11.1
 ;; Package-Requires: ((emacs "26.1") (xref "1.7.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
