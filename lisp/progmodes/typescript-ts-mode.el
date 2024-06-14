@@ -125,6 +125,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "switch_case") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "switch_default") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "type_arguments") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "type_parameters") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is ,(rx (or "variable" "lexical") "_" (or "declaration" "declarator")))
       typescript-ts-mode--anchor-decl 1)
      ((parent-is "arguments") parent-bol typescript-ts-mode-indent-offset)
