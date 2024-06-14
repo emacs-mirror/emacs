@@ -98,6 +98,7 @@ libegnu_a_OBJECTS = $(patsubst %.o,e-%.o,$(for_emacs_OBJECTS))
 
 $(libegnu_a_OBJECTS) $(libgnu_a_OBJECTS): $(BUILT_SOURCES)
 
+.SUFFIXES: .c
 .c.o:
 	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) -o $@ $<
 e-%.o: %.c

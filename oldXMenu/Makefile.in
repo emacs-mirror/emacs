@@ -112,6 +112,7 @@ ALL_CFLAGS=$(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
   $(CPPFLAGS) $(CFLAGS) -DEMACS_BITMAP_FILES \
   -I../src -I../lib -I${srcdir} -I${srcdir}/../src -I${srcdir}/../lib
 
+.SUFFIXES: .c
 .c.o:
 	$(AM_V_CC)$(CC) -c ${ALL_CFLAGS} $<
 
