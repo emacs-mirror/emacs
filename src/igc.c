@@ -790,24 +790,6 @@ fix_symbol (mps_ss_t ss, struct Lisp_Symbol *sym)
   return MPS_RES_OK;
 }
 
-/* This exists because we need access to a threads' current specpdl
-   pointer, which means we need access to the thread_state, which can
-   move in memory. */
-
-static mps_res_t
-scan_igc (mps_ss_t ss, void *start, void *end, void *closure)
-{
-  igc_assert (start == (void *) global_igc);
-  MPS_SCAN_BEGIN (ss)
-  {
-    struct igc *gc = start;
-    for (struct igc_thread_list *t = gc->threads; t; t = t->next)
-      IGC_FIX12_RAW (ss, &t->d.ts);
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
 static mps_res_t
 scan_lispsym (mps_ss_t ss, void *start, void *end, void *closure)
 {
@@ -2114,12 +2096,6 @@ root_create_bc (struct igc_thread_list *t)
 }
 
 static void
-root_create_igc (struct igc *gc)
-{
-  root_create (gc, gc, gc + 1, mps_rank_exact (), scan_igc, NULL, false);
-}
-
-static void
 root_create_charset_table (struct igc *gc)
 {
   root_create_ambig (gc, charset_table_init,
@@ -3105,8 +3081,18 @@ struct Lisp_Vector *
 igc_alloc_pseudovector (size_t nwords_mem, size_t nwords_lisp,
 			size_t nwords_zero, enum pvec_type tag)
 {
-  struct Lisp_Vector *v
-    = alloc (header_size + nwords_mem * word_size, IGC_OBJ_VECTOR);
+  /* header_size comes from lisp.h. */
+  size_t client_size = header_size + nwords_mem * sizeof (Lisp_Object);
+  struct Lisp_Vector *v;
+  if (tag == PVEC_THREAD)
+    {
+      /* Alloc thread_state immovable because we need access to it for
+	 scanning the bytecode stack (scan_bc), and making thread_state
+	 immovable simplifies the code. */
+      v = alloc_immovable (client_size, IGC_OBJ_VECTOR);
+    }
+  else
+    v = alloc (client_size, IGC_OBJ_VECTOR);
   XSETPVECTYPESIZE (v, tag, nwords_lisp, nwords_mem - nwords_lisp);
   maybe_finalize (v, tag);
   return v;
@@ -3540,7 +3526,6 @@ make_igc (void)
   gc->ams_fmt = make_dflt_fmt (gc);
   gc->ams_pool = make_pool_ams (gc, gc->ams_fmt);
 
-  root_create_igc (gc);
 #ifndef IN_MY_FORK
   root_create_pure (gc);
 #endif
