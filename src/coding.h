@@ -428,8 +428,9 @@ struct coding_system
   /* Set to true if charbuf contains an annotation.  */
   bool_bf annotated : 1;
 
-  /* True to insert before markers in the output buffer,
-     if `dst_object' is a buffer.  */
+  /* True if the decoded text should be inserted before markers in the
+     output buffer, if `dst_object' is a buffer.  Currently used only
+     when reading output from subprocesses.  */
   bool_bf insert_before_markers : 1;
 
   /* Used internally in coding.c.  See the comment of detect_ascii.  */

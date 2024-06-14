@@ -1131,9 +1131,8 @@ insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
    starting at GAP_END_ADDR - NBYTES (if text_at_gap_tail) and at
    GPT_ADDR (if not text_at_gap_tail).
 
-  If BEFORE_MARKERS is true, insert before markers.  At the moment the
-  only high-level callers of this functionality is
-  read_and_insert_process_output in process.c.  */
+  If BEFORE_MARKERS is true, insert before markers.  At the moment only
+  read_and_insert_process_output in process.c sets this to true.  */
 
 void
 insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail,

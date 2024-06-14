@@ -6418,6 +6418,7 @@ read_and_insert_process_output (struct Lisp_Process *p, char *buf,
       specpdl_ref count1 = SPECPDL_INDEX ();
 
       XSETBUFFER (curbuf, current_buffer);
+      /* See the comment above about inserting before markers.  */
       process_coding->insert_before_markers = true;
       /* We cannot allow after-change-functions be run
 	 during decoding, because that might modify the
