@@ -714,10 +714,16 @@ See `project-vc-extra-root-markers' for the marker value format.")
                 (mapcar
                  (lambda (module)
                    (when (file-directory-p module)
-                     (project--vc-list-files
-                      (concat default-directory module)
-                      backend
-                      extra-ignores)))
+                     (let ((sub-files
+                            (project--vc-list-files
+                             (concat default-directory module)
+                             backend
+                             extra-ignores)))
+                       (if project-files-relative-names
+                           (mapcar (lambda (file)
+                                     (concat (file-name-as-directory module) file))
+                                   sub-files)
+                         sub-files))))
                  submodules)))
            (setq files
                  (apply #'nconc files sub-files))))
