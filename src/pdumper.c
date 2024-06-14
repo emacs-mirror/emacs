@@ -2873,7 +2873,7 @@ dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_obarray_buckets (struct dump_context *ctx, const struct Lisp_Obarray *o)
 {
-  return dump_object_array (ctx, o->buckets, obarray_size (o));
+  return dump_hash_vec (ctx, o->buckets, obarray_size (o));
 }
 
 static dump_off
@@ -3167,7 +3167,7 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_pvec_type_6604A61AFB
+#if CHECK_STRUCTS && !defined HASH_pvec_type_A883D76F88
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);
