@@ -251,6 +251,7 @@ define org_template
 	$${AM_V_GEN}cd "$${srcdir}" && $${emacs} -l ox-texinfo \
 	  --eval '(setq gc-cons-threshold 50000000)' \
 	  --eval '(setq org-confirm-babel-evaluate nil)' \
+	  --eval '(setq org-id-track-globally nil)' \
 	  -f org-texinfo-export-to-texinfo-batch $$(notdir $$<) $$(notdir $$@)
 endef
 
