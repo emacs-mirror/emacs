@@ -4595,8 +4595,6 @@ syms_of_igc (void)
   defsubr (&Sigc__collect);
   DEFSYM (Qambig, "ambig");
   DEFSYM (Qexact, "exact");
-  DEFSYM (Qweak_ref_p, "weak-ref-p");
-  DEFSYM (Qweak_ref, "weak-ref");
   Fprovide (intern_c_string ("mps"), Qnil);
 
   DEFVAR_LISP ("igc-step-interval", Vigc_step_interval,
