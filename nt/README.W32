@@ -55,7 +55,7 @@ See the end of the file for license conditions.
 
 * Prerequisites for Windows 9X
 
-  The 32-bit build supports MS-Windows 9X (Windows 95/98/Me).  To run
+  The 32-bit build supports MS-Windows 9X (Windows 98/Me).  To run
   Emacs on these versions of Windows, you will need to have the
   Microsoft Layer for Unicode (MSLU) installed.  It can be downloaded
   from the Microsoft site, and comes in a form of a single dynamic
