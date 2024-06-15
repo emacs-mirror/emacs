@@ -76,6 +76,9 @@
 (declare-function treesit-parser-included-ranges "treesit.c")
 (declare-function treesit-parser-list "treesit.c")
 (declare-function treesit-parser-language "treesit.c")
+(declare-function treesit-search-forward "treesit.c")
+(declare-function treesit-node-prev-sibling "treesit.c")
+(declare-function treesit-node-first-child-for-pos "treesit.c")
 
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
