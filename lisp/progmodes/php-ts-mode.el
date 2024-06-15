@@ -130,7 +130,7 @@ If nil the default one is used to run the embedded webserver or
 inferior PHP process."
   :tag "PHP Init file"
   :version "30.1"
-  :type 'file)
+  :type '(choice (const :tag "Default init file" nil) file))
 
 (defcustom php-ts-mode-ws-hostname "localhost"
   "The hostname that will be served by the PHP built-in webserver.
@@ -146,23 +146,23 @@ See `https://www.php.net/manual/en/features.commandline.webserver.php'."
 If nil `php-ts-mode-run-php-webserver' will ask you for the port number."
   :tag "PHP built-in web server port"
   :version "30.1"
-  :type 'integer
-  :safe 'integerp)
+  :type '(choice (const :tag "Ask which port to use" nil) integer)
+  :safe 'integer-or-null-p)
 
 (defcustom php-ts-mode-ws-document-root nil
   "The root of the documents that the PHP built-in webserver will serve.
 If nil `php-ts-mode-run-php-webserver' will ask you for the document root."
   :tag "PHP built-in web server document root"
   :version "30.1"
-  :type 'directory)
+  :type '(choice (const :tag "Ask for document root" nil) directory))
 
 (defcustom php-ts-mode-ws-workers nil
   "The number of workers the PHP built-in webserver will fork.
 Useful for testing code against multiple simultaneous requests."
   :tag "PHP built-in number of workers"
   :version "30.1"
-  :type 'integer
-  :safe 'integerp)
+  :type '(choice (const :tag "No workers" nil) integer)
+  :safe 'integer-or-null-p)
 
 (defcustom php-ts-mode-inferior-php-buffer "*PHP*"
   "Name of the inferior PHP buffer."

@@ -4460,6 +4460,12 @@ or byte-code."
   (or (and (subrp object) (not (eq 'unevalled (cdr (subr-arity object)))))
       (byte-code-function-p object)))
 
+(defun integer-or-null-p (object)
+  "Return non-nil if OBJECT is either an integer or nil.
+Otherwise, return nil."
+  (declare (pure t) (side-effect-free error-free))
+  (or (integerp object) (null object)))
+
 (defun field-at-pos (pos)
   "Return the field at position POS, taking stickiness etc into account."
   (declare (important-return-value t))
