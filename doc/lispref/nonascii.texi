@@ -1135,7 +1135,10 @@ conversion happens, but different in that the result is multibyte
 data.  The name @code{emacs-internal} is an alias for
 @code{utf-8-emacs-unix} (so it forces no conversion of end-of-line,
 unlike @code{utf-8-emacs}, which can decode all 3 kinds of
-end-of-line conventions).
+end-of-line conventions).  Since this coding system can represent all
+the characters supported by Emacs in its buffers and strings, we
+recommend using it whenever saving text for internal purposes, such as
+caching.
 
 @defun coding-system-get coding-system property
 This function returns the specified property of the coding system
