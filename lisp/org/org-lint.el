@@ -388,14 +388,24 @@ called with one argument, the key used for comparison."
     (dolist (e originals reports) (funcall make-report (cdr e) (car e)))))
 
 (defun org-lint-misplaced-heading (ast)
-  "Check for accidentally misplaced heading lines."
+  "Check for accidentally misplaced heading lines.
+Example:
+** Heading 1
+** Heading 2** Oops heading 3
+** Heading 4"
   (org-with-point-at ast
     (goto-char (point-min))
     (let (result)
       ;; Heuristics for 2+ level heading not at bol.
       (while (re-search-forward (rx (not (any "*\n\r ,")) ;; Not a bol; not escaped ,** heading; not " *** words"
                                     "*" (1+ "*") " ") nil t)
-        (unless (org-at-block-p) ; Inside a block, where the chances to have heading a slim.
+        ;; Limit false-positive rate by only complaining about
+        ;; ** Heading** Heading and
+        ;; ** Oops heading
+        ;; Paragraph** Oops heading
+        (when (org-element-type-p
+               (org-element-at-point)
+               '(paragraph headline))
           (push (list (match-beginning 0) "Possibly misplaced heading line") result)))
       result)))
 

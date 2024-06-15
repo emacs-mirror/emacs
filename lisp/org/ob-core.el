@@ -855,8 +855,9 @@ guess will be made."
 	    (forward-line)
 	    (skip-chars-forward " \t")
 	    (let ((result (org-babel-read-result)))
-	      (message (format "Cached: %s"
-                               (replace-regexp-in-string "%" "%%" (format "%S" result))))
+              (unless noninteractive
+	        (message (format "Cached: %s"
+                                 (replace-regexp-in-string "%" "%%" (format "%S" result)))))
 	      result)))
 	 ((org-babel-confirm-evaluate info)
 	  (let* ((lang (nth 0 info))
@@ -879,21 +880,26 @@ guess will be made."
 		 result exec-start-time)
 	    (unless (fboundp cmd)
 	      (error "No org-babel-execute function for %s!" lang))
-	    (message "Executing %s %s %s..."
-		     (capitalize lang)
-                     (pcase executor-type
-                       ('src-block "code block")
-                       ('inline-src-block "inline code block")
-                       ('babel-call "call")
-                       ('inline-babel-call "inline call")
-                       (e (symbol-name e)))
-		     (let ((name (nth 4 info)))
-		       (if name
-                           (format "(%s)" name)
-                         (format "at position %S" (nth 5 info)))))
+            (unless noninteractive
+	      (message "Executing %s %s %s..."
+		       (capitalize lang)
+                       (pcase executor-type
+                         ('src-block "code block")
+                         ('inline-src-block "inline code block")
+                         ('babel-call "call")
+                         ('inline-babel-call "inline call")
+                         (e (symbol-name e)))
+		       (let ((name (nth 4 info)))
+		         (if name
+                             (format "(%s)" name)
+                           (format "at position %S" (nth 5 info))))))
 	    (setq exec-start-time (current-time)
                   result
-		  (let ((r (save-current-buffer (funcall cmd body params))))
+		  (let ((r
+                         ;; Code block may move point in the buffer.
+                         ;; Make sure that the point remains on the
+                         ;; code block.
+                         (save-excursion (funcall cmd body params))))
 		    (if (and (eq (cdr (assq :result-type params)) 'value)
 			     (or (member "vector" result-params)
 				 (member "table" result-params))
@@ -2758,18 +2764,19 @@ INFO may provide the values of these header arguments (in the
 			   (not (and (listp result)
 				     (member "append" result-params))))
 		  (indent-rigidly beg end indent))
-                (let ((time-info
-                       ;; Only show the time when something other than
-                       ;; 0s will be shown, i.e. check if the time is at
-                       ;; least half of the displayed precision.
-                       (if (and exec-time (> (float-time exec-time) 0.05))
-                           (format " (took %.1fs)" (float-time exec-time))
-                         "")))
-                  (if (null result)
-                      (if (member "value" result-params)
-                          (message "Code block returned no value%s." time-info)
-                        (message "Code block produced no output%s." time-info))
-                    (message "Code block evaluation complete%s." time-info))))
+                (unless noninteractive
+                  (let ((time-info
+                         ;; Only show the time when something other than
+                         ;; 0s will be shown, i.e. check if the time is at
+                         ;; least half of the displayed precision.
+                         (if (and exec-time (> (float-time exec-time) 0.05))
+                             (format " (took %.1fs)" (float-time exec-time))
+                           "")))
+                    (if (null result)
+                        (if (member "value" result-params)
+                            (message "Code block returned no value%s." time-info)
+                          (message "Code block produced no output%s." time-info))
+                      (message "Code block evaluation complete%s." time-info)))))
 	    (when end (set-marker end nil))
 	    (when outside-scope (narrow-to-region visible-beg visible-end))
 	    (set-marker visible-beg nil)

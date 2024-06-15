@@ -482,7 +482,7 @@ int get_column_num (int nbcols, const char** header, const char* column)
 (defun org-babel-C-header-to-C (head type)
   "Convert an elisp list of header table into a C or D vector
 specifying a variable with the name of the table."
-  (message "%S" type)
+  (unless noninteractive (message "%S" type))
   (let ((table (car head))
         (headers (cdr head))
         (typename (pcase type

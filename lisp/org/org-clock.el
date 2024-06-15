@@ -2048,28 +2048,31 @@ PROPNAME lets you set a custom text property instead of :org-clock-minutes."
 	    (cond
 	     ((and (eq element-type 'clock) (match-end 2))
 	      ;; Two time stamps.
-	      (let* ((timestamp (org-element-property :value element))
-		     (ts (float-time
-                          (org-encode-time
-                           (list 0
-                                 (org-element-property :minute-start timestamp)
-                                 (org-element-property :hour-start timestamp)
-                                 (org-element-property :day-start timestamp)
-                                 (org-element-property :month-start timestamp)
-                                 (org-element-property :year-start timestamp)
-                                 nil -1 nil))))
-		     (te (float-time
-                          (org-encode-time
-                           (list 0
-                                 (org-element-property :minute-end timestamp)
-                                 (org-element-property :hour-end timestamp)
-                                 (org-element-property :day-end timestamp)
-                                 (org-element-property :month-end timestamp)
-                                 (org-element-property :year-end timestamp)
-                                 nil -1 nil))))
-		     (dt (- (if tend (min te tend) te)
-			    (if tstart (max ts tstart) ts))))
-	        (when (> dt 0) (cl-incf t1 (floor dt 60)))))
+              (condition-case nil
+	          (let* ((timestamp (org-element-property :value element))
+		         (ts (float-time
+                              (org-encode-time
+                               (list 0
+                                     (org-element-property :minute-start timestamp)
+                                     (org-element-property :hour-start timestamp)
+                                     (org-element-property :day-start timestamp)
+                                     (org-element-property :month-start timestamp)
+                                     (org-element-property :year-start timestamp)
+                                     nil -1 nil))))
+		         (te (float-time
+                              (org-encode-time
+                               (list 0
+                                     (org-element-property :minute-end timestamp)
+                                     (org-element-property :hour-end timestamp)
+                                     (org-element-property :day-end timestamp)
+                                     (org-element-property :month-end timestamp)
+                                     (org-element-property :year-end timestamp)
+                                     nil -1 nil))))
+		         (dt (- (if tend (min te tend) te)
+			        (if tstart (max ts tstart) ts))))
+	            (when (> dt 0) (cl-incf t1 (floor dt 60))))
+                (error
+                 (org-display-warning (format "org-clock-sum: Ignoring invalid %s" (org-current-line-string))))))
 	     ((match-end 4)
 	      ;; A naked time.
 	      (setq t1 (+ t1 (string-to-number (match-string 5))

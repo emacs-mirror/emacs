@@ -1398,8 +1398,7 @@ external parameters overriding Org default settings, but still
 inferior to file-local settings."
   ;; First install #+BIND variables since these must be set before
   ;; global options are read.
-  (dolist (pair (org-export--list-bound-variables))
-    (set (make-local-variable (car pair)) (nth 1 pair)))
+  (org-export--set-variables (org-export--list-bound-variables))
   ;; Get and prioritize export options...
   (org-combine-plists
    ;; ... from global variables...
@@ -2585,7 +2584,7 @@ Return the updated communication channel."
 (defun org-export--set-variables (variable-alist)
   "Set buffer-local variables according to VARIABLE-ALIST in current buffer."
   (pcase-dolist (`(,var . ,val) variable-alist)
-    (set (make-local-variable var) val)))
+    (set (make-local-variable var) (car val))))
 
 (cl-defun org-export-copy-buffer (&key to-buffer drop-visibility
                                        drop-narrowing drop-contents
@@ -6672,7 +6671,7 @@ and `org-export-to-file' for more specialized functions."
   (with-temp-message "Initializing asynchronous export process"
     (let ((copy-fun (org-element--generate-copy-script (current-buffer)))
           (temp-file (make-temp-file "org-export-process")))
-      (let ((coding-system-for-write 'utf-8-emacs-unix))
+      (let ((coding-system-for-write 'emacs-internal))
         (write-region
          ;; Null characters (from variable values) are inserted
          ;; within the file.  As a consequence, coding system for

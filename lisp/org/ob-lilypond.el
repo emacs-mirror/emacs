@@ -41,7 +41,7 @@
 (declare-function org-fold-show-all "org-fold" (&optional types))
 
 (add-to-list 'org-babel-tangle-lang-exts '("LilyPond" . "ly"))
-(add-to-list 'org-src-lang-modes '("lilypond" . "LilyPond"))
+(add-to-list 'org-src-lang-modes '("lilypond" . LilyPond))
 
 (defvar org-babel-default-header-args:lilypond '()
   "Default header arguments for lilypond code blocks.

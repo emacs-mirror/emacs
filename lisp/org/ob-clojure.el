@@ -130,7 +130,7 @@
 (defcustom ob-clojure-cli-command (when-let (cmd (executable-find "clojure"))
                                     (concat cmd " -M"))
   "Clojure CLI command used by the Clojure `clojure-cli' backend."
-  :type 'string
+  :type '(choice string (const nil))
   :group 'org-babel
   :package-version '(Org . "9.7"))
 

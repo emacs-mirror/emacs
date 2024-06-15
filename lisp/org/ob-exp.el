@@ -265,8 +265,9 @@ this template."
 				   (if (not (eq type 'babel-call))
 				       (progn (skip-chars-forward " \t")
 					      (point))
-				     (skip-chars-forward " \r\t\n")
-				     (line-beginning-position)))))
+                                     (unless (eobp)
+				       (skip-chars-forward " \r\t\n")
+				       (line-beginning-position))))))
                           ((not rep)
                            ;; Replacement code cannot be determined.
                            ;; Leave the code block as is.
@@ -291,8 +292,9 @@ this template."
 			   (cond ((not replacement) (goto-char end))
 				 ((equal replacement "")
 				  (goto-char end)
-				  (skip-chars-forward " \r\t\n")
-				  (forward-line 0)
+                                  (unless (eobp)
+				    (skip-chars-forward " \r\t\n")
+				    (forward-line 0))
 				  (delete-region begin (point)))
 				 (t
 				  (if (org-src-preserve-indentation-p element)

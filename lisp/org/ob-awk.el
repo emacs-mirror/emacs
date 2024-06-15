@@ -61,7 +61,7 @@
   "Execute a block of Awk code BODY with org-babel.
 PARAMS is a plist of src block parameters .
 This function is called by `org-babel-execute-src-block'."
-  (message "Executing Awk source code block")
+  (unless noninteractive (message "Executing Awk source code block"))
   (let* ((result-params (cdr (assq :result-params params)))
          (cmd-line (cdr (assq :cmd-line params)))
          (in-file (cdr (assq :in-file params)))

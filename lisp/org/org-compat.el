@@ -251,6 +251,17 @@ removed."
                     default)))
      ": ")))
 
+(if (fboundp 'list-of-strings-p)
+    (defalias 'org-list-of-strings-p #'list-of-strings-p)
+  ;; From Emacs subr.el.
+;;;###autoload
+  (defun org-list-of-strings-p (object)
+    "Return t if OBJECT is nil or a list of strings."
+    (declare (pure t) (side-effect-free error-free))
+    (while (and (consp object) (stringp (car object)))
+      (setq object (cdr object)))
+    (null object)))
+
 
 ;;; Emacs < 27.1 compatibility
 

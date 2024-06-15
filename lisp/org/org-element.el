@@ -1188,7 +1188,7 @@ parse properties for property drawer at point."
                    (property-name-symbol (intern property-name))
                    (property-value
                     (org-element-deferred-create
-                     nil #'org-element--substring
+                     t #'org-element--substring
                      (- (match-beginning 3) begin)
                      (- (match-end 3) begin))))
               (cond
@@ -1355,7 +1355,7 @@ Throw `:org-element-deferred-retry' signal at the end."
 	     (title-end (point))
 	     (raw-value
               (org-element-deferred-create
-               nil #'org-element--headline-raw-value
+               t #'org-element--headline-raw-value
                (- title-start begin) (- title-end begin))))
         (org-element-put-property headline :raw-value raw-value)
         (org-element-put-property headline :level level)
@@ -1386,12 +1386,12 @@ Throw `:org-element-deferred-retry' signal at the end."
 
 (defconst org-element--headline-parse-title-raw
   (org-element-deferred-create
-   nil #'org-element--headline-parse-title t)
+   t #'org-element--headline-parse-title t)
   "Constant holding deferred value for raw headline `:title' property.")
 
 (defconst org-element--headline-parse-title-parse
   (org-element-deferred-create
-   nil #'org-element--headline-parse-title nil)
+   t #'org-element--headline-parse-title nil)
   "Constant holding deferred value for parsed headline `:title' property.")
 
 (defconst org-element--headline-deferred
@@ -2414,7 +2414,7 @@ Assume point is at comment block beginning."
 			     (if (eobp) (point) (line-beginning-position))))
 		 (value
                   (org-element-deferred-create
-                   nil #'org-element--substring
+                   t #'org-element--substring
                    (- contents-begin begin)
                    (- contents-end begin))))
 	    (org-element-create
@@ -2532,7 +2532,7 @@ Return a new syntax node of `example-block' type containing `:begin',
 		 (contents-begin (line-beginning-position 2))
 		 (value
                   (org-element-deferred-create
-                   nil #'org-element--unescape-substring
+                   t #'org-element--unescape-substring
                    (- contents-begin begin)
                    (- contents-end begin)))
 		 (pos-before-blank (progn (goto-char contents-end)
@@ -2612,7 +2612,7 @@ Assume point is at export-block beginning."
 			   (if (eobp) (point) (line-beginning-position))))
 	       (value
                 (org-element-deferred-create
-                 nil #'org-element--unescape-substring
+                 t #'org-element--unescape-substring
                  (- contents-begin begin)
                  (- contents-end begin))))
 	  (org-element-create
@@ -2800,7 +2800,7 @@ Assume point is at the beginning of the latex environment."
 	       (begin (car affiliated))
 	       (value
                 (org-element-deferred-create
-                 nil #'org-element--substring
+                 t #'org-element--substring
                  (- code-begin begin)
                  (- code-end begin)))
 	       (end (progn (skip-chars-forward " \r\t\n" limit)
@@ -3059,7 +3059,7 @@ Assume point is at the beginning of the block."
 		 ;; Retrieve code.
 		 (value
                   (org-element-deferred-create
-                   nil #'org-element--unescape-substring
+                   t #'org-element--unescape-substring
                    (- (line-beginning-position 2) begin)
                    (- contents-end begin)))
 		 (pos-before-blank (progn (goto-char contents-end)
@@ -3159,7 +3159,7 @@ Assume point is at the beginning of the table."
 	      :contents-end (and (eq type 'org) table-end)
 	      :value (and (eq type 'table.el)
                           (org-element-deferred-create
-                           nil #'org-element--substring
+                           t #'org-element--substring
                            (- table-begin begin)
                            (- table-end begin)))
 	      :post-blank (count-lines pos-before-blank end)
@@ -3322,7 +3322,7 @@ Assume point is at first MARK."
                         (list :value
                               (and (memq type '(code verbatim))
                                    (org-element-deferred-create
-                                    nil #'org-element--substring
+                                    t #'org-element--substring
                                     (- contents-begin origin)
                                     (- contents-end origin))))
                       (list :contents-begin contents-begin
@@ -3572,7 +3572,7 @@ Assume point is at the beginning of the snippet."
 	     (value
               (when contents-end
                 (org-element-deferred-create
-                 nil #'org-element--substring
+                 t #'org-element--substring
                  (- contents-begin begin)
                  (- contents-end begin))))
 	     (post-blank (skip-chars-forward " \t"))
@@ -3667,7 +3667,7 @@ Assume point is at the beginning of the babel call."
 		       (replace-regexp-in-string "\n[ \t]*" " " (org-trim p)))))
 	       (value
                 (org-element-deferred-create
-                 nil #'org-element--substring
+                 t #'org-element--substring
                  0 (- (point) begin)))
 	       (post-blank (skip-chars-forward " \t"))
 	       (end (point)))
@@ -3801,7 +3801,7 @@ Assume point is at the beginning of the LaTeX fragment."
          'latex-fragment
 	 (list :value
                (org-element-deferred-create
-                nil #'org-element--substring
+                t #'org-element--substring
                 0 (- after-fragment begin))
 	       :begin begin
 	       :end end

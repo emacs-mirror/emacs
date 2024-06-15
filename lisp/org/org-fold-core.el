@@ -641,13 +641,14 @@ This function is mostly intended to be used in
 `clone-indirect-buffer-hook'."
   ;; Add current buffer to the list of indirect buffers in the base buffer.
   (when (buffer-base-buffer)
-    (with-current-buffer (buffer-base-buffer)
-      (setq-local org-fold-core--indirect-buffers
-                  (let (bufs)
-                    (org-fold-core-cycle-over-indirect-buffers
-                      (push (current-buffer) bufs))
-                    (push (current-buffer) bufs)
-                    (delete-dups bufs)))))
+    (let ((new-buffer (current-buffer)))
+      (with-current-buffer (buffer-base-buffer)
+        (setq-local org-fold-core--indirect-buffers
+                    (let (bufs)
+                      (org-fold-core-cycle-over-indirect-buffers
+                        (push (current-buffer) bufs))
+                      (push new-buffer bufs)
+                      (delete-dups bufs))))))
   (when (and (buffer-base-buffer)
              (eq org-fold-core-style 'text-properties)
              (not (memql 'ignore-indirect org-fold-core--optimise-for-huge-buffers)))

@@ -28,6 +28,15 @@ constant.
 If you still want to use python-mode with ob-python, you might
 consider [[https://gitlab.com/jackkamm/ob-python-mode-mode][ob-python-mode-mode]], where the code to support python-mode
 has been ported to.
+*** It is no longer possible to reveal hidden parts of the links during isearch
+
+Org 9.6 introduced support for searching hidden parts of the links.
+
+Unfortunately, we had to drop this support because its implementation
+turned out to be unreliable for many users. Proper implementation
+would require patching =isearch.el= and possibly a number of external
+libraries implementing isearch equivalents. It cannot be done on Org
+side alone.
 
 *** =ox-latex=: ~org-latex-line-break-safe~ is deprecated
 
@@ -1718,6 +1727,9 @@ features will become available and several notable changes will happen
 to the Org behavior.  The new features and changes are listed below.
 
 **** Hidden parts of the links can now be searched and revealed during isearch
+
+[2024-06-09 Sun] Since Org 9.7, this is no longer working.  See
+changes for Org 9.7.
 
 In the past, hidden parts of the links could not be searched using
 isearch (=C-s=).  Now, they are searchable by default.  The hidden

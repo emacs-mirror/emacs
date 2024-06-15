@@ -241,8 +241,8 @@ but the mode to use is `tuareg-mode'."
   :package-version '(Org . "9.7")
   :type '(repeat
 	  (cons
-	   (string "Language name")
-	   (symbol "Major mode"))))
+	   (string :tag "Language name")
+	   (symbol :tag "Major mode"))))
 
 (defcustom org-src-block-faces nil
   "Alist of faces to be used for source-block.

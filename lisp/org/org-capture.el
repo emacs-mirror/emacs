@@ -408,8 +408,7 @@ you can escape ambiguous cases with a backward slash, e.g., \\%i."
   (let ((file-variants '(choice :tag "Filename       "
 				(file :tag "Literal")
 				(function :tag "Function")
-				(variable :tag "Variable")
-				(sexp :tag "Form"))))
+				(variable :tag "Variable"))))
     `(repeat
       (choice :value ("" "" entry (file "~/org/notes.org") "")
 	      (list :tag "Multikey description"
@@ -452,12 +451,12 @@ you can escape ambiguous cases with a backward slash, e.g., \\%i."
 			    (list :tag "File & function"
 				  (const :format "" file+function)
 				  ,file-variants
-				  (sexp :tag "  Function"))
+				  (function :tag "  Function"))
 			    (list :tag "Current clocking task"
 				  (const :format "" clock))
 			    (list :tag "Function"
 				  (const :format "" function)
-				  (sexp :tag "  Function")))
+				  (function :tag "  Function")))
 		    (choice :tag "Template       "
 			    (string)
 			    (list :tag "File"

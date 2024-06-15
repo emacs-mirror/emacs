@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.7.3
+;; Version: 9.7.4
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -16981,10 +16981,11 @@ buffer boundaries with possible narrowing."
      (t nil))))
 
 (defun org-image--align (link)
-  "Determine the alignment of the image link.
+  "Determine the alignment of the image LINK.
+LINK is a link object.
 
 In decreasing order of priority, this is controlled:
-- Per image by the value of `:center' or ``:align' in the
+- Per image by the value of `:center' or `:align' in the
 affiliated keyword `#+attr_org'.
 - By the `#+attr_html' or `#+attr_latex` keywords with valid
   `:center' or `:align' values.
@@ -16998,15 +16999,16 @@ will cause it to be right-aligned.  A value of \"left\" or nil
 implies no special alignment."
   (let ((par (org-element-lineage link 'paragraph)))
     ;; Only align when image is not surrounded by paragraph text:
-    (when (and (= (org-element-begin link)
+    (when (and par ; when image is not in paragraph, but in table/headline/etc, do not align
+               (= (org-element-begin link)
                   (save-excursion
                     (goto-char (org-element-contents-begin par))
                     (skip-chars-forward "\t ")
                     (point)))           ;account for leading space
                                         ;before link
                (<= (- (org-element-contents-end par)
-                      (org-element-end link))
-                   1))                  ;account for trailing newline
+                     (org-element-end link))
+                  1))                  ;account for trailing newline
                                         ;at end of paragraph
       (save-match-data
         ;; Look for a valid ":center t" or ":align left|center|right"
@@ -20871,11 +20873,25 @@ When nil, use `org-attach-method'."
 (defvar org-attach-method)
 
 (defun org--dnd-rmc (prompt choices)
+  "Display a menu or dialog and select with PROMPT among CHOICES.
+PROMPT is the prompt string.  CHOICES is a list of choices.  Each
+choice is a list of (key description value).  VALUE from the selected
+choice is returned."
   (if (null (and
              ;; Emacs <=28 does not have `use-dialog-box-p'.
              (fboundp 'use-dialog-box-p)
              (use-dialog-box-p)))
-      (caddr (read-multiple-choice prompt choices))
+      (progn
+        (setq choices
+              (mapcar
+               (pcase-lambda (`(,key ,message ,val))
+                 ;; `read-multiple-choice' expects VAL to be a long
+                 ;; description of the choice - string or nil.  Move VAL
+                 ;; further, so that it is not seen by the extended
+                 ;; help in `read-multiple-choice'.
+                 (list key message nil val))
+               choices))
+        (nth 3 (read-multiple-choice prompt choices)))
     (setq choices
           (mapcar
            (pcase-lambda (`(_key ,message ,val))
@@ -20939,15 +20955,18 @@ SEPARATOR is the string to insert after each link."
                    ('private (or org-yank-dnd-default-attach-method
                                  org-attach-method)))))
     (if separatep
-        (funcall
-         (pcase method
-           ('cp #'copy-file)
-           ('mv #'rename-file)
-           ('ln #'add-name-to-file)
-           ('lns #'make-symbolic-link))
-         filename
-         (expand-file-name (file-name-nondirectory filename)
-                           org-yank-image-save-method))
+        (progn
+          (unless (file-directory-p org-yank-image-save-method)
+            (make-directory org-yank-image-save-method t))
+          (funcall
+           (pcase method
+             ('cp #'copy-file)
+             ('mv #'rename-file)
+             ('ln #'add-name-to-file)
+             ('lns #'make-symbolic-link))
+           filename
+           (expand-file-name (file-name-nondirectory filename)
+                             org-yank-image-save-method)))
       (org-attach-attach filename nil method))
     (insert
      (org-link-make-string

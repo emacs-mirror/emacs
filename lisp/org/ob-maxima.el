@@ -131,7 +131,7 @@ Return nil if LINE is zero-length or it matches a regexp in
 (defun org-babel-execute:maxima (body params)
   "Execute Maxima BODY according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
-  (message "Executing Maxima source code block")
+  (unless noninteractive (message "Executing Maxima source code block"))
   (let ((result-params (split-string (or (cdr (assq :results params)) "")))
 	(result
 	 (let* ((cmdline (or (cdr (assq :cmdline params)) ""))
@@ -151,7 +151,7 @@ This function is called by `org-babel-execute-src-block'."
                               (format "(linenum:0, %s(%S))$" batch/load in-file))
                              cmdline)))
 	   (with-temp-file in-file (insert (org-babel-maxima-expand body params)))
-	   (message cmd)
+	   (unless noninteractive (message cmd))
            ;; " | grep -v batch | grep -v 'replaced' | sed '/^$/d' "
 	   (let ((raw (org-babel-eval cmd "")))
              (mapconcat

@@ -144,7 +144,7 @@ control tag inheritance."
   :group 'org-appearance
   :package-version '(Org . "9.3")
   :type '(repeat (string :tag "Tag"))
-  :safe (lambda (val) (and (listp val) (cl-every #'stringp val))))
+  :safe #'org-list-of-strings-p)
 
 ;;;###autoload
 (defcustom org-num-skip-unnumbered nil
