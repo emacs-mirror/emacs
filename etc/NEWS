@@ -1002,9 +1002,16 @@ more information on this notation.
 ---
 *** Performance improvements for interactive output in Eshell.
 Interactive output in Eshell should now be significantly faster,
-especially for built-in commands that can print large amounts of output
-(e.g. "cat").  In addition, these commands can now update the display
-periodically to show their progress.
+especially for commands that can print large amounts of output
+(e.g. "cat").  For external commands, Eshell saves time by only looking
+for password prompts in the last 256 characters of each block of output.
+To restore the previous behavior when checking for password prompts, set
+'eshell-password-prompt-max-length' to 'most-positive-fixnum'.
+
+---
+*** Eshell built-in commands can now display progress.
+Eshell built-in commands like "cat" and "ls" now update the display
+periodically while running to show their progress.
 
 +++
 *** New special reference type '#<marker POSITION BUFFER>'.
@@ -1159,6 +1166,14 @@ of the shell history file to be read.  A nil value triggers reading the
 environment variable 'HISTFILE'.
 
 In a 'shell' buffer, this user option is connection-local.
+
+---
+*** Performance improvements for interactive output.
+Interactive output in Shell mode now scans more selectively for password
+prompts by only examining the last 256 characters of each block of
+output, reducing the time spent when printing large amounts of output.
+To restore the old behavior, set 'comint-password-prompt-max-length' to
+'most-positive-fixnum'.
 
 ** Make mode
 

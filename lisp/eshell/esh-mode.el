@@ -198,6 +198,11 @@ This is used by `eshell-watch-for-password-prompt'."
   :type 'directory
   :group 'eshell)
 
+(defvar eshell-password-prompt-max-length 256
+  "The maximum amount of text to examine when matching password prompts.
+This is used by `eshell-watch-for-password-prompt' to reduce the amount
+of time spent searching for password prompts.")
+
 (defvar eshell-first-time-p t
   "A variable which is non-nil the first time Eshell is loaded.")
 
@@ -949,19 +954,20 @@ buffer's process if STRING contains a password prompt defined by
 This function could be in the list `eshell-output-filter-functions'."
   (when (eshell-head-process)
     (save-excursion
-      (let ((case-fold-search t))
-	(goto-char eshell-last-output-block-begin)
-	(beginning-of-line)
-	(if (re-search-forward eshell-password-prompt-regexp
-			       eshell-last-output-end t)
-            ;; Use `run-at-time' in order not to pause execution of
-            ;; the process filter with a minibuffer
-	    (run-at-time
-             0 nil
-             (lambda (current-buf)
-               (with-current-buffer current-buf
-                 (eshell-send-invisible)))
-             (current-buffer)))))))
+      (goto-char (max eshell-last-output-block-begin
+                      (- eshell-last-output-end
+                         eshell-password-prompt-max-length)))
+      (when (let ((case-fold-search t))
+              (re-search-forward eshell-password-prompt-regexp
+                                 eshell-last-output-end t))
+        ;; Use `run-at-time' in order not to pause execution of the
+        ;; process filter with a minibuffer.
+        (run-at-time
+         0 nil
+         (lambda (current-buf)
+           (with-current-buffer current-buf
+             (eshell-send-invisible)))
+         (current-buffer))))))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-watch-for-password-prompt)

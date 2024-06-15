@@ -426,6 +426,11 @@ This is used by `comint-watch-for-password-prompt'."
   :type 'regexp
   :group 'comint)
 
+(defvar comint-password-prompt-max-length 256
+  "The maximum amount of text to examine when matching password prompts.
+This is used by `comint-watch-for-password-prompt' to reduce the amount
+of time spent searching for password prompts.")
+
 ;; Here are the per-interpreter hooks.
 (defvar comint-get-old-input (function comint-get-old-input-default)
   "Function that returns old text in Comint mode.
@@ -2563,23 +2568,26 @@ to detect the need to (prompt and) send a password.  Ignores any
 carriage returns (\\r) in STRING.
 
 This function could be in the list `comint-output-filter-functions'."
-  (when (let ((case-fold-search t))
-	  (string-match comint-password-prompt-regexp
-                        (string-replace "\r" "" string)))
-    ;; Use `run-at-time' in order not to pause execution of the
-    ;; process filter with a minibuffer
-    (run-at-time
-     0 nil
-     (lambda (current-buf)
-       (with-current-buffer current-buf
-         (let ((comint--prompt-recursion-depth
-                (1+ comint--prompt-recursion-depth)))
-           (if (> comint--prompt-recursion-depth 10)
-               (message "Password prompt recursion too deep")
-             (when (get-buffer-process (current-buffer))
-               (comint-send-invisible
-                (string-trim string "[ \n\r\t\v\f\b\a]+" "\n+")))))))
-     (current-buffer))))
+  (let ((string (string-limit string comint-password-prompt-max-length t))
+        prompt)
+    (when (let ((case-fold-search t))
+            (string-match comint-password-prompt-regexp
+                          (string-replace "\r" "" string)))
+      (setq prompt (string-trim (match-string 0 string)
+                                "[ \n\r\t\v\f\b\a]+" "\n+"))
+      ;; Use `run-at-time' in order not to pause execution of the
+      ;; process filter with a minibuffer
+      (run-at-time
+       0 nil
+       (lambda (current-buf)
+         (with-current-buffer current-buf
+           (let ((comint--prompt-recursion-depth
+                  (1+ comint--prompt-recursion-depth)))
+             (if (> comint--prompt-recursion-depth 10)
+                 (message "Password prompt recursion too deep")
+               (when (get-buffer-process (current-buffer))
+                 (comint-send-invisible prompt))))))
+       (current-buffer)))))
 
 ;; Low-level process communication
 
