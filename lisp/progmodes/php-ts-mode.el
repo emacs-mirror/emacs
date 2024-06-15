@@ -1467,7 +1467,7 @@ for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT."
 (derived-mode-add-parents 'php-ts-mode '(php-mode))
 
 (defun php-ts-mode--webserver-read-args (&optional type)
-  "Helper for php-ts-mode-run-php-webserver.
+  "Helper for `php-ts-mode-run-php-webserver'.
 The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\" or
 \"router-script\", otherwise it requires all of them."
   (let ((ask-port (lambda ()
@@ -1477,11 +1477,15 @@ The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\" or
         (ask-document-root (lambda ()
                              (expand-file-name
                               (read-directory-name "Document root: "
-                                                   (file-name-directory (buffer-file-name))))))
+                                                   (file-name-directory
+                                                    (or (buffer-file-name)
+                                                        default-directory))))))
         (ask-router-script (lambda ()
                              (expand-file-name
                               (read-file-name "Router script: "
-                                              (file-name-directory (buffer-file-name)))))))
+                                              (file-name-directory
+                                               (or (buffer-file-name)
+                                                   default-directory)))))))
     (cl-case type
       (port (funcall ask-port))
       (hostname (funcall ask-hostname))
