@@ -566,7 +566,7 @@ the command @kbd{M-x package-install-file}.
 @vindex package-user-dir
   Once installed, the contents of a package are placed in a
 subdirectory of @file{~/.emacs.d/elpa/} (you can change the name of
-that directory by changing the variable @code{package-user-dir}).  The
+that directory by customizing the variable @code{package-user-dir}).  The
 package subdirectory is named @file{@var{name}-@var{version}}, where
 @var{name} is the package name and @var{version} is its version
 string.
