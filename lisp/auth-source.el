@@ -869,9 +869,9 @@ while \(:host t) would find all host entries."
 (defun auth-info-password (auth-info)
   "Return the :secret password from the AUTH-INFO."
   (let ((secret (plist-get auth-info :secret)))
-    (if (functionp secret)
-        (funcall secret)
-      secret)))
+    (while (functionp secret)
+      (setq secret (funcall secret)))
+    secret))
 
 (defun auth-source-pick-first-password (&rest spec)
   "Pick the first secret found by applying `auth-source-search' to SPEC."
