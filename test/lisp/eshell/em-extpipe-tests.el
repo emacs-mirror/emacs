@@ -181,7 +181,11 @@
   (skip-unless (executable-find "tac"))
   (should-parse '(eshell-named-command "sh" (list "-c" "tac <temp")))
   (with-substitute-for-temp
-   (with-temp-buffer (insert "bar\nbaz\n") (write-file temp))
+   (with-temp-buffer
+     (insert "bar\nbaz\n")
+     ;; Some versions of 'tac' on MS-Windows need Unix EOLs...
+     (let ((coding-system-for-write 'unix))
+       (write-file temp)))
    (eshell-match-command-output input "baz\nbar")))
 
 (em-extpipe-tests--deftest em-extpipe-test-15 "echo \"bar\" *| cat"
