@@ -61,6 +61,18 @@ necessary.  To restore the previous behavior, set this option to
 'confirm-kill-process'.
 
 +++
+*** 'eshell-execute-file' is now an interactive command.
+Interactively, this now prompts for a script file to execute. With the
+prefix argument, it will also insert any output into the current buffer
+at point.
+
++++
+*** 'eshell-command' and 'eshell-execute-file' can now set where stderr goes.
+These functions now take an optional ERROR-TARGET argument to control
+where to send the standard error output.  See the "(eshell) Entry
+Points" node in the Eshell manual for more details.
+
++++
 *** Eshell's built-in "wait" command now accepts a timeout.
 By passing "-t" or "--timeout", you can specify a maximum time to wait
 for the processes to exit.  Additionally, you can now wait for external

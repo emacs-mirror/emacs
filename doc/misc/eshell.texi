@@ -235,11 +235,19 @@ Start a new Eshell session, no matter if another one already exists.
 
 You can also run individual Eshell commands from anywhere within Emacs:
 
-@deffn Command eshell-command command &optional to-current-buffer
+@deffn Command eshell-command command &optional output-target error-target
 Execute the Eshell command string @var{command} and show the output in a
-buffer.  If @var{to-current-buffer} is non-@code{nil} (interactively,
-with the prefix argument), then insert output into the current buffer at
-point.
+buffer.  If @var{output-target} is @code{t} (interactively, with the
+prefix argument), write the command's standard output to the current
+buffer at point.  If @code{nil}, write the output to a new output
+buffer.  For any other value, output to that Eshell target
+(@pxref{Redirection}).
+
+@var{error-target} is similar to @var{output-target}, except that it
+controls where to write standard error, and a @code{nil} value means to
+write standard error to the same place as standard output.  (To suppress
+standard error, you can write to the Eshell virtual target
+@file{/dev/null}.)
 
 When the command ends with @kbd{&}, Eshell will evaluate the command
 asynchronously.  Otherwise, it will wait until the command has finished
@@ -275,13 +283,20 @@ the special variables @code{$0}, @code{$1}, @dots{}, @code{$9}, and
 
 You can also invoke Eshell scripts from outside of Eshell:
 
-@defun eshell-execute-file file &optional args destination
+@deffn Command eshell-execute-file file &optional args output-target error-target
 Execute the Eshell commands contained in @var{file}, passing an optional
-list of @var{args} to the script.  If @var{destination} is @code{t},
-write the command output to the current buffer.  If @code{nil}, don't
-write the output anywhere.  For any other value, output to the
-corresponding Eshell target (@pxref{Redirection}).
-@end defun
+list of @var{args} to the script.  If @var{output-target} is @code{t}
+(interactively, with the prefix argument), write the command output to
+the current buffer.  If @code{nil}, don't write the output anywhere.
+For any other value, output to the corresponding Eshell target
+(@pxref{Redirection}).
+
+@var{error-target} is similar to @var{output-target}, except that it
+controls where to write standard error, and a @code{nil} value means to
+write standard error to the same place as standard output.  (To suppress
+standard error, you can write to the Eshell virtual target
+@file{/dev/null\}.)
+@end deffn
 
 @cindex batch scripts
 @defun eshell-batch-file
