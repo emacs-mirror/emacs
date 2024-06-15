@@ -4535,15 +4535,6 @@ redirect_roots (struct igc_mirror *m)
   record_time (m, "Redirect roots");
 }
 
-/* Discard the dump [START, END). */
-
-static void
-discard_dump (void *start, void *end)
-{
-  size_t n = (char *) end - (char *) start;
-  dump_discard_mem (start, n);
-}
-
 /* Copy the dump [START, END) to MPS, and discard it. */
 
 static void
@@ -4556,7 +4547,6 @@ mirror_dump (void *start, void *end)
       copy_dump (&m);
       mirror_references (&m);
       redirect_roots (&m);
-      discard_dump (start, end);
 
       if (getenv ("IGC_MIRROR_STATS"))
 	print_mirror_stats (&m);
