@@ -23,6 +23,7 @@
 (require 'ert)
 (require 'esh-mode)
 (require 'eshell)
+(require 'em-prompt)                    ; For `eshell-previous-prompt'
 
 (require 'eshell-tests-helpers
          (expand-file-name "eshell-tests-helpers"
@@ -297,11 +298,17 @@ prompt.  See bug#54136."
       (let ((output-start (eshell-beginning-of-output)))
         (eshell-kill-process)
         (eshell-wait-for-subprocess t)
+        ;; We expect at most one exit message here (from the tail
+        ;; process).  If the tail process has time to exit normally
+        ;; after we kill the head, then we'll see no exit message.
         (should (string-match-p
-                 ;; "interrupt" is for MS-Windows.
-                 (rx bos (or "interrupt" "killed" "killed: 9" "") eol)
+                 (rx bos (? (or "interrupt" (seq "killed" (* nonl))) "\n") eos)
                  (buffer-substring-no-properties
-                  output-start (eshell-end-of-output))))))))
+                  output-start (eshell-end-of-output))))
+        ;; Make sure Eshell only emitted one prompt by going back one
+        ;; prompt and checking the command input.
+        (eshell-previous-prompt)
+        (should (string-prefix-p "sh -c" (field-string)))))))
 
 (ert-deftest esh-proc-test/kill-pipeline-head ()
   "Test that killing the first process in a pipeline doesn't
