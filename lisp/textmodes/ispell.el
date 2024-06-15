@@ -859,9 +859,9 @@ Assumes that value contains no whitespace."
     (car (split-string (buffer-string)))))
 
 (defun ispell-aspell-find-dictionary (dict-name)
-  "For Aspell dictionary DICT-NAME, return a list of parameters.
+  "Return the list of parameters for an Aspell dictionary DICT-NAME.
 List format is that of `ispell-dictionary-base-alist' elements.  Return
-nil if no associated data file is found."
+nil if no associated data file is found for the dictionary."
   ;; Make sure `ispell-aspell-dict-dir' is defined
   (or ispell-aspell-dict-dir
       (setq ispell-aspell-dict-dir
