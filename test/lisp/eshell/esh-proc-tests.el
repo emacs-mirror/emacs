@@ -290,17 +290,18 @@ prompt.  See bug#54136."
   ;; fine elsewhere.
   (skip-when (getenv "EMACS_EMBA_CI"))
   (with-temp-eshell
-   (eshell-insert-command
-    (concat "sh -c 'while true; do echo y; sleep 1; done' | "
-            "sh -c 'while true; do read NAME; done'"))
-   (let ((output-start (eshell-beginning-of-output)))
-     (eshell-kill-process)
-     (eshell-wait-for-subprocess t)
-     (should (string-match-p
-              ;; "interrupt\n" is for MS-Windows.
-              (rx (or "interrupt\n" "killed\n" "killed: 9\n" ""))
-              (buffer-substring-no-properties
-               output-start (eshell-end-of-output)))))))
+    (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
+      (eshell-insert-command
+       (concat "sh -c 'while true; do echo y; sleep 1; done' | "
+               "sh -c 'while true; do read NAME; done'"))
+      (let ((output-start (eshell-beginning-of-output)))
+        (eshell-kill-process)
+        (eshell-wait-for-subprocess t)
+        (should (string-match-p
+                 ;; "interrupt" is for MS-Windows.
+                 (rx bos (or "interrupt" "killed" "killed: 9" "") eol)
+                 (buffer-substring-no-properties
+                  output-start (eshell-end-of-output))))))))
 
 (ert-deftest esh-proc-test/kill-pipeline-head ()
   "Test that killing the first process in a pipeline doesn't
@@ -309,15 +310,16 @@ write the exit status to the pipe.  See bug#54136."
                     (executable-find "echo")
                     (executable-find "sleep")))
   (with-temp-eshell
-   (eshell-insert-command
-    (concat "sh -c 'while true; do sleep 1; done' | "
-            "sh -c 'while read NAME; do echo =${NAME}=; done'"))
-   (let ((output-start (eshell-beginning-of-output)))
-     (kill-process (eshell-head-process))
-     (eshell-wait-for-subprocess t)
-     (should (equal (buffer-substring-no-properties
-                     output-start (eshell-end-of-output))
-                    "")))))
+    (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
+      (eshell-insert-command
+       (concat "sh -c 'while true; do sleep 1; done' | "
+               "sh -c 'while read NAME; do echo =${NAME}=; done'"))
+      (let ((output-start (eshell-beginning-of-output)))
+        (kill-process (eshell-head-process))
+        (eshell-wait-for-subprocess t)
+        (should (equal (buffer-substring-no-properties
+                        output-start (eshell-end-of-output))
+                       ""))))))
 
 
 ;; Remote processes
