@@ -50,7 +50,7 @@
 ;;; Options
 
 (defgroup which-key nil
-  "Customization options for which-key-mode."
+  "Customization options for `which-key-mode'."
   :group 'help
   :prefix "which-key-")
 
@@ -67,7 +67,7 @@ recommended
 (defcustom which-key-idle-secondary-delay nil
   "Seconds to wait for which-key to pop up after initial display.
 This makes it possible to shorten the delay for subsequent popups
-in the same key sequence. The default is for this value to be
+in the same key sequence.  The default is for this value to be
 nil, which disables this behavior."
   :type '(choice float (const :tag "Disabled" nil))
   :version "1.0")
@@ -173,15 +173,15 @@ Each element of the list is a nested cons cell with the format
 \(MATCH CONS . REPLACEMENT\).
 
 The MATCH CONS determines when a replacement should occur and
-REPLACEMENT determines how the replacement should occur. Each may
-have the format \(KEY REGEXP . BINDING REGEXP\). For the
+REPLACEMENT determines how the replacement should occur.  Each may
+have the format \(KEY REGEXP . BINDING REGEXP\).  For the
 replacement to apply the key binding must match both the KEY
-REGEXP and the BINDING REGEXP. A value of nil in either position
-can be used to match every possibility. The replacement is
+REGEXP and the BINDING REGEXP.  A value of nil in either position
+can be used to match every possibility.  The replacement is
 performed by using `replace-regexp-in-string' on the KEY REGEXP
 from the MATCH CONS and REPLACEMENT when it is a cons cell, and
-then similarly for the BINDING REGEXP. A nil value in the BINDING
-REGEXP position cancels the replacement. For example, the entry
+then similarly for the BINDING REGEXP.  A nil value in the BINDING
+REGEXP position cancels the replacement.  For example, the entry
 
 \(\(nil . \"Prefix Command\"\) . \(nil . \"prefix\"\)\)
 
@@ -207,7 +207,7 @@ non-nil value."
 (defcustom which-key-allow-multiple-replacements nil
   "Allow a key binding to be modified by multiple elements.
 When non-nil, this allows a single key binding to match multiple
-patterns in `which-key-replacement-alist'. When nil, only the
+patterns in `which-key-replacement-alist'.  When nil, only the
 first match is used to perform replacements from
 `which-key-replacement-alist'."
   :type 'boolean
@@ -216,8 +216,8 @@ first match is used to perform replacements from
 (defcustom which-key-show-docstrings nil
   "If non-nil, show each command's docstring in the which-key popup.
 This will only display the docstring up to the first line
-break. If you set this variable to the symbol docstring-only,
-then the command's name with be omitted. You probably also want
+break.  If you set this variable to the symbol docstring-only,
+then the command's name with be omitted.  You probably also want
 to adjust `which-key-max-description-length' at the same time if
 you use this feature."
   :type '(radio
@@ -230,7 +230,7 @@ you use this feature."
   "Rules used to highlight certain commands.
 If the element is a string, assume it is a regexp pattern for
 matching command names and use
-`which-key-highlighted-command-face' for any matching names. If
+`which-key-highlighted-command-face' for any matching names.  If
 the element is a cons cell, it should take the form (regexp .
 face to apply)."
   :type  '(repeat (choice string (cons regexp face)))
@@ -253,7 +253,7 @@ is disabled by default. An example configuration is
 (defcustom which-key-show-prefix 'echo
   "Whether to and where to display the current prefix sequence.
 Possible choices are echo for echo area (the default), left, top
-and nil. Nil turns the feature off."
+and nil.  nil turns the feature off."
   :type '(radio (const :tag "Left of the keys" left)
                 (const :tag "In the first line" top)
                 (const :tag "In the last line" bottom)
@@ -352,8 +352,7 @@ and https://github.com/justbur/emacs-which-key/issues/225."
 (defcustom which-key-sort-order #'which-key-key-order
   "Order in which the key bindings are sorted.
 If nil, do not resort the output from `describe-buffer-bindings'
-which groups by mode. Ordering options
-are
+which groups by mode.  Ordering options are:
 
 1. `which-key-key-order': by key (default)
 2. `which-key-key-order-alpha': by key using alphabetical order
@@ -373,7 +372,7 @@ information."
 (defcustom which-key-sort-uppercase-first t
   "If non-nil, uppercase comes before lowercase in sorting.
 This applies to the function chosen in
-`which-key-sort-order'. Otherwise, the order is reversed."
+`which-key-sort-order'.  Otherwise, the order is reversed."
   :type 'boolean
   :version "1.0")
 
@@ -400,20 +399,20 @@ Bound after each of the prefixes in `which-key-paging-prefixes'"
 ;;   :type '(repeat symbol))
 
 (defcustom which-key-use-C-h-commands t
-  "Use C-h (`help-char') for paging if non-nil.
+  "Use \\`C-h' (`help-char') for paging if non-nil.
 Normally `help-char' after a prefix calls
-`describe-prefix-bindings'. This changes that command to a
-which-key paging command when which-key-mode is active."
+`describe-prefix-bindings'.  This changes that command to a
+which-key paging command when `which-key-mode' is active."
   :type 'boolean
   :version "1.0")
 
 (defcustom which-key-show-early-on-C-h nil
-  "Allow C-h (`help-char') to trigger which-key popup before timer.
+  "Allow \\`C-h' (`help-char') to trigger which-key popup before timer.
 Show the which-key buffer if `help-char' is pressed in the middle
 of a prefix before the which-key buffer would normally be
-triggered by the time. If combined with the following settings,
+triggered by the time.  If combined with the following settings,
 which-key will effectively only show when triggered \"manually\"
-using C-h.
+using \\`C-h'.
 
 \(setq `which-key-idle-delay' 10000)
 \(setq `which-key-idle-secondary-delay' 0.05)
@@ -431,7 +430,7 @@ Note that `which-key-idle-delay' should be set before turning on
 (defcustom which-key-preserve-window-configuration nil
   "Save and restore window configuration around which-key popup display.
 If non-nil, save window configuration before which-key buffer is
-shown and restore it after which-key buffer is hidden. It
+shown and restore it after which-key buffer is hidden.  It
 prevents which-key from changing window position of visible
 buffers.  Only takken into account when popup type is
 side-window."
@@ -482,7 +481,7 @@ This string is fed into `substitute-command-keys'")
                     ("9" . which-key-digit-argument)))
       (define-key map (car bind) (cdr bind)))
     map)
-  "Keymap for C-h commands.")
+  "Keymap for \\`C-h' commands.")
 
 (defvar which-key--paging-functions
   (list #'which-key-C-h-dispatch
@@ -510,11 +509,11 @@ See Info node `(emacs)Modifier Keys'."
   "List of functions that may delay the which-key popup.
 A list of functions that may decide whether to delay the
 which-key popup based on the current incomplete key
-sequence. Each function in the list is run with two arguments,
+sequence.  Each function in the list is run with two arguments,
 the current key sequence as produced by `key-description' and the
-length of the key sequence. If the popup should be delayed based
+length of the key sequence.  If the popup should be delayed based
 on that key sequence, the function should return the delay time
-in seconds. Returning nil means no delay. The first function in
+in seconds.  Returning nil means no delay.  The first function in
 this list to return a value is the value that is used.
 
 The delay time is effectively added to the normal
@@ -533,7 +532,7 @@ key sequences is what is produced by `key-description'."
 (defcustom which-key-inhibit-regexps nil
   "A list of regexp strings to use to filter key sequences.
 When non-nil, for a key sequence to trigger the which-key popup
-it cannot match one of the regexps in this list. The format of
+it cannot match one of the regexps in this list.  The format of
 the key sequences is what is produced by `key-description'."
   :type '(repeat regexp)
   :version "1.0")
@@ -561,37 +560,37 @@ it."
 ;;;; Faces
 
 (defgroup which-key-faces nil
-  "Faces for which-key-mode"
+  "Faces for `which-key-mode'."
   :group 'which-key
   :prefix "which-key-")
 
 (defface which-key-key-face
   '((t . (:inherit font-lock-constant-face)))
-  "Face for which-key keys"
+  "Face for which-key keys."
   :group 'which-key-faces
   :version "1.0")
 
 (defface which-key-separator-face
   '((t . (:inherit font-lock-comment-face)))
-  "Face for the separator (default separator is an arrow)"
+  "Face for the separator (default separator is an arrow)."
   :group 'which-key-faces
   :version "1.0")
 
 (defface which-key-note-face
   '((t . (:inherit which-key-separator-face)))
-  "Face for notes or hints occasionally provided"
+  "Face for notes or hints occasionally provided."
   :group 'which-key-faces
   :version "1.0")
 
 (defface which-key-command-description-face
   '((t . (:inherit font-lock-function-name-face)))
-  "Face for the key description when it is a command"
+  "Face for the key description when it is a command."
   :group 'which-key-faces
   :version "1.0")
 
 (defface which-key-local-map-description-face
   '((t . (:inherit which-key-command-description-face)))
-  "Face for the key description when it is found in `current-local-map'"
+  "Face for the key description when it is found in `current-local-map'."
   :group 'which-key-faces
   :version "1.0")
 
@@ -610,7 +609,7 @@ and it matches a string in `which-key-highlighted-command-list'."
 
 (defface which-key-special-key-face
   '((t . (:inherit which-key-key-face :inverse-video t :weight bold)))
-  "Face for special keys (SPC, TAB, RET)"
+  "Face for special keys (\\`SPC', \\`TAB', \\`RET')."
   :group 'which-key-faces
   :version "1.0")
 
@@ -664,7 +663,7 @@ execution of a command, as in
 (defcustom which-key-inhibit-display-hook nil
   "Hook run before display of which-key popup.
 Each function in the hook is run before displaying the which-key
-popup. If any function returns a non-nil value, the popup will
+popup.  If any function returns a non-nil value, the popup will
 not display."
   :group 'which-key
   :type 'hook
@@ -796,7 +795,7 @@ should be formatted as an input for `kbd'."
   "Function used to retrieve current key sequence.
 The purpose of allowing this variable to be customized is to
 allow which-key to support packages that insert non-standard
-`keys' into the key sequence being read by emacs."
+`keys' into the key sequence being read by Emacs."
   :group 'which-key
   :type 'function
   :version "1.0")
@@ -888,7 +887,7 @@ disable support."
 
 ;;;###autoload
 (define-minor-mode which-key-mode
-  "Toggle which-key-mode."
+  "Toggle `which-key-mode'."
   :global t
   :group 'which-key
   :lighter which-key-lighter
@@ -928,7 +927,7 @@ disable support."
     (which-key--stop-timer)))
 
 (defun which-key--init-buffer ()
-  "Initialize which-key buffer"
+  "Initialize which-key buffer."
   (unless (buffer-live-p which-key--buffer)
     (setq which-key--buffer (get-buffer-create which-key-buffer-name))
     (with-current-buffer which-key--buffer
@@ -1857,7 +1856,7 @@ Requires `which-key-compute-remaps' to be non-nil."
                       binding))))
 
 (defun which-key--get-menu-item-binding (def)
-  "Retrieve binding for menu-item"
+  "Retrieve binding for menu-item."
   ;; see `keymap--menu-item-binding'
   (let* ((binding (nth 2 def))
          (plist (nthcdr 3 def))
@@ -1925,7 +1924,7 @@ Requires `which-key-compute-remaps' to be non-nil."
   "Retrieve top-level bindings from KEYMAP.
 PREFIX limits bindings to those starting with this key
 sequence.  START is a list of existing bindings to add to.  If ALL
-is non-nil, recursively retrieve all bindings below PREFIX. If
+is non-nil, recursively retrieve all bindings below PREFIX.  If
 EVIL is non-nil, extract active evil bidings."
   (let ((bindings start)
         (ignore '(self-insert-command ignore ignore-event company-ignore))
@@ -2329,7 +2328,7 @@ enough space based on your settings and frame size." prefix-keys)
   "Simulate entering the key sequence KEY-SEQ.
 KEY-SEQ should be a list of events as produced by
 `listify-key-sequence'.  If nil, KEY-SEQ defaults to
-`which-key--current-key-list'. Any prefix arguments that were
+`which-key--current-key-list'.  Any prefix arguments that were
 used are reapplied to the new key sequence."
   (let* ((key-seq (or key-seq (which-key--current-key-list)))
          (next-event (mapcar (lambda (ev) (cons t ev)) key-seq)))
@@ -2408,7 +2407,7 @@ Usually this is `describe-prefix-bindings'."
   "Show top-level bindings in the map of the current major mode.
 This function will also detect evil bindings made using
 `evil-define-key' in this map. These bindings will depend on the
-current evil state. "
+current evil state."
   (interactive "P")
   (let ((map-sym (intern (format "%s-map" major-mode))))
     (if (and (boundp map-sym) (keymapp (symbol-value map-sym)))
@@ -2423,8 +2422,8 @@ current evil state. "
 (defun which-key-show-full-major-mode ()
   "Show all bindings in the map of the current major mode.
 This function will also detect evil bindings made using
-`evil-define-key' in this map. These bindings will depend on the
-current evil state. "
+`evil-define-key' in this map.  These bindings will depend on the
+current evil state."
   (interactive)
   (which-key-show-major-mode t))
 
@@ -2485,7 +2484,7 @@ PREFIX should be a string suitable for `kbd'."
 
 ;;;###autoload
 (defun which-key-C-h-dispatch ()
-  "Dispatch C-h commands by looking up key in `which-key-C-h-map'.
+  "Dispatch \\`C-h' commands by looking up key in `which-key-C-h-map'.
 This command is always accessible (from any prefix) if
 `which-key-use-C-h-commands' is non nil."
   (interactive)
