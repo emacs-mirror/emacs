@@ -1982,6 +1982,11 @@ To revert to the previous behavior, set the (also new) variable
 'async-shell-command-mode' to 'shell-mode'.  Any hooks or mode-specific
 variables used should be adapted appropriately.
 
+** New package Which-Key
+The 'which-key' package from GNU ELPA is now included in Emacs.  It
+implements the 'which-key-mode' that displays a table of key bindings
+upon entering a partial key chord and waiting for a moment.
+
 
 * Incompatible Lisp Changes in Emacs 30.1
 
