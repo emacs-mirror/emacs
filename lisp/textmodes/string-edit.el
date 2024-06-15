@@ -58,7 +58,8 @@ Also see `read-string-from-buffer'."
                              (list 'intangible t
                                    'face 'string-edit-prompt
                                    'read-only t))
-        (insert (propertize (make-separator-line) 'rear-nonsticky t))
+        (insert (propertize (make-separator-line)
+                            'read-only t 'rear-nonsticky t))
         (add-text-properties (point-min) (point)
                              (list 'string-edit--prompt t))))
     (let ((start (point)))
