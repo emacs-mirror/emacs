@@ -5230,11 +5230,11 @@ android_text_to_string (JNIEnv *env, char *buffer, ptrdiff_t n,
          surrogate pairs.
 
          The hack used by Emacs is to simply replace each multibyte
-         character that doesn't fit in a jchar with the NULL
-         character.  */
+         character that doesn't fit in a jchar with the Unicode
+         replacement character.  */
 
       if (encoded >= 65536)
-	encoded = 0;
+	encoded = 0xfffd;
 
       utf16[index++] = encoded;
       buffer += BYTES_BY_CHAR_HEAD (*buffer);
