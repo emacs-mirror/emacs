@@ -238,8 +238,8 @@ face to apply)."
 
 (defcustom which-key-special-keys '()
   "These keys will automatically be truncated to one character.
-They also have `which-key-special-key-face' applied to them. This
-is disabled by default. An example configuration is
+They also have `which-key-special-key-face' applied to them.  This
+is disabled by default.  An example configuration is
 
 \(setq which-key-special-keys \\='(\"SPC\" \"TAB\" \"RET\" \"ESC\" \"DEL\")\)"
   :type '(repeat string)
@@ -596,8 +596,9 @@ it."
 
 (defface which-key-highlighted-command-face
   '((t . (:inherit which-key-command-description-face :underline t)))
-  "Default face for the command description when it is a command
-and it matches a string in `which-key-highlighted-command-list'."
+  "Default face for command description.
+To be highlighted, it must be a command and match a string in
+`which-key-highlighted-command-list'."
   :group 'which-key-faces
   :package-version "1.0" :version "30.1")
 
@@ -762,8 +763,8 @@ Used when `which-key-popup-type' is frame.")
 
 (defsubst which-key--safe-lookup-key (keymap key)
   "Version of `lookup-key' that allows KEYMAP to be nil.
-Also convert numeric results of `lookup-key' to nil. KEY is not
-checked."
+Also convert numeric results of `lookup-key' to nil.
+KEY is not checked."
   (when (keymapp keymap)
     (let ((result (lookup-key keymap key)))
       (when (and result (not (numberp result)))
@@ -771,8 +772,8 @@ checked."
 
 (defsubst which-key--safe-lookup-key-description (keymap key)
   "Version of `lookup-key' that allows KEYMAP to be nil.
-Also convert numeric results of `lookup-key' to nil. KEY
-should be formatted as an input for `kbd'."
+Also convert numeric results of `lookup-key' to nil.
+KEY should be formatted as an input for `kbd'."
   (let ((key (ignore-errors (kbd key))))
     (when (and key (keymapp keymap))
       (let ((result (lookup-key keymap key)))
@@ -1006,12 +1007,12 @@ but more functional."
 ;;;###autoload
 (defun which-key-add-keymap-based-replacements (keymap key replacement &rest more)
   "Replace the description of KEY using REPLACEMENT in KEYMAP.
-KEY should take a format suitable for use in `kbd'. REPLACEMENT
+KEY should take a format suitable for use in `kbd'.  REPLACEMENT
 should be a cons cell of the form \(STRING . COMMAND\) for each
 REPLACEMENT, where STRING is the replacement string and COMMAND
 is a symbol corresponding to the intended command to be
-replaced. COMMAND can be nil if the binding corresponds to a key
-prefix. An example is
+replaced.  COMMAND can be nil if the binding corresponds to a key
+prefix.  An example is
 
 \(which-key-add-keymap-based-replacements global-map
   \"C-x w\" \\='\(\"Save as\" . write-file\)\).
@@ -1038,8 +1039,8 @@ for REPLACEMENT will eventually be removed."
 (defun which-key-add-key-based-replacements
     (key-sequence replacement &rest more)
   "Replace the description of KEY-SEQUENCE with REPLACEMENT.
-KEY-SEQUENCE is a string suitable for use in `kbd'. REPLACEMENT
-may either be a string, as in
+KEY-SEQUENCE is a string suitable for use in `kbd'.
+REPLACEMENT may either be a string, as in
 
 \(which-key-add-key-based-replacements \"C-x 1\" \"maximize\"\)
 
@@ -1260,7 +1261,7 @@ is shown, or if there is no need to start the closing timer."
     (&optional window &rest params)
   "Slightly modified version of `fit-buffer-to-window'.
 Use &rest params because `fit-buffer-to-window' has a different
-call signature in different emacs versions"
+call signature in different Emacs versions"
   (let ((fit-window-to-buffer-horizontally t)
         (window-min-height 1))
     (apply #'fit-window-to-buffer window params)))
@@ -1364,7 +1365,7 @@ Display window alist: %s"
 (defun which-key--popup-max-dimensions ()
   "Return maximum dimension available for popup.
 Dimension functions should return the maximum possible (height
-. width) of the intended popup. SELECTED-WINDOW-WIDTH is the
+. width) of the intended popup.  SELECTED-WINDOW-WIDTH is the
 width of currently active window, not the which-key buffer
 window."
   (cl-ecase which-key-popup-type
@@ -1738,7 +1739,7 @@ cell" el)))))
     (description group local hl-face &optional original-description)
   "Add face to DESCRIPTION.
 The face chosen depends on whether the description represents a
-group or a command. Also make some minor adjustments to the
+group or a command.  Also make some minor adjustments to the
 description string, like removing a \"group:\" prefix.
 
 ORIGINAL-DESCRIPTION is the description given by
@@ -1813,7 +1814,7 @@ return the docstring."
   "Make list of key bindings with separators and descriptions.
 Take a list of (key . desc) cons cells in UNFORMATTED, add
 faces and perform replacements according to the three replacement
-alists. Returns a list (key separator description)."
+alists.  Return a list (key separator description)."
   (let ((sep-w-face
          (which-key--propertize which-key-separator
                                 'face 'which-key-separator-face))
@@ -1949,8 +1950,8 @@ EVIL is non-nil, extract active evil bidings."
 (defun which-key--get-bindings (&optional prefix keymap filter recursive)
   "Collect key bindings.
 If KEYMAP is nil, collect from current buffer using the current
-key sequence as a prefix. Otherwise, collect from KEYMAP. FILTER
-is a function to use to filter the bindings. If RECURSIVE is
+key sequence as a prefix.  Otherwise, collect from KEYMAP.  FILTER
+is a function to use to filter the bindings.  If RECURSIVE is
 non-nil, then bindings are collected recursively for all prefixes."
   (let* ((unformatted
           (cond ((keymapp keymap)
@@ -2020,7 +2021,7 @@ that width."
 
 (defun which-key--list-to-pages (keys avl-lines avl-width)
   "Convert list of KEYS to columns based on dimensions AVL-LINES and AVL-WIDTH.
-Returns a `which-key--pages' object that holds the page strings,
+Return a `which-key--pages' object that holds the page strings,
 as well as metadata."
   (let ((cols-w-widths (mapcar (lambda (c) (which-key--pad-column c avl-width))
 			       (which-key--partition-list avl-lines keys)))
@@ -2063,7 +2064,7 @@ as well as metadata."
     (keys available-lines available-width &optional min-lines vertical)
   "Create page strings using `which-key--list-to-pages'.
 Will try to find the best number of rows and columns using the
-given dimensions and the length and widths of ITEMS. Use VERTICAL
+given dimensions and the length and widths of ITEMS.  Use VERTICAL
 if the ITEMS are laid out vertically and the number of columns
 should be minimized."
   (let ((result (which-key--list-to-pages
@@ -2088,7 +2089,7 @@ should be minimized."
 (defun which-key--create-pages (keys &optional prefix-keys prefix-title)
   "Create page strings using `which-key--list-to-pages'.
 Will try to find the best number of rows and columns using the
-given dimensions and the length and wdiths of KEYS. SEL-WIN-WIDTH
+given dimensions and the length and wdiths of KEYS.  SEL-WIN-WIDTH
 is the width of the live window."
   (let* ((max-dims (which-key--popup-max-dimensions))
          (max-lines (car max-dims))
@@ -2209,7 +2210,7 @@ Include prefix arguments."
               (which-key--propertize dash 'face 'which-key-key-face)))))
 
 (defun which-key--get-popup-map ()
-  "Generate transient-map for use in the top level binding display."
+  "Generate transient map for use in the top level binding display."
   (unless which-key--automatic-display
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd which-key-paging-key) #'which-key-C-h-dispatch)
@@ -2406,7 +2407,7 @@ Usually this is `describe-prefix-bindings'."
 (defun which-key-show-major-mode (&optional all)
   "Show top-level bindings in the map of the current major mode.
 This function will also detect evil bindings made using
-`evil-define-key' in this map. These bindings will depend on the
+`evil-define-key' in this map.  These bindings will depend on the
 current evil state."
   (interactive "P")
   (let ((map-sym (intern (format "%s-map" major-mode))))
