@@ -49,11 +49,13 @@ import java.util.Arrays;
 
 /* This is an Android view which has a back and front buffer.  When
    swapBuffers is called, the back buffer is swapped to the front
-   buffer, and any damage is invalidated.  frontBitmap and backBitmap
-   are modified and used both from the UI and the Emacs thread.  As a
-   result, there is a lock held during all drawing operations.
+   buffer, and any damage is invalidated.  A front buffer bitmap defined
+   in EmacsSurfaceView, and the write buffer in this file, are modified
+   and used both from the UI and the Emacs thread.  As a result, there
+   is a lock held during all drawing operations.
 
-   It is also a ViewGroup, as it also lays out children.  */
+   It is also a ViewGroup, so that it may also manage the layout of its
+   children.  */
 
 public final class EmacsView extends ViewGroup
   implements ViewTreeObserver.OnGlobalLayoutListener
@@ -204,19 +206,19 @@ public final class EmacsView extends ViewGroup
        rectangle ID.  */
     lastClipSerial = 0;
 
-    /* Copy over the contents of the old bitmap.  */
-    if (oldBitmap != null)
-      canvas.drawBitmap (oldBitmap, 0f, 0f, new Paint ());
-
+    /* Clear the bitmap reallocation flag.  */
     bitmapDirty = false;
 
-    /* Explicitly free the old bitmap's memory.  */
-
+    /* Explicitly free the old bitmap's memory.  The bitmap might
+       continue to be referenced by canvas or JNI objects returned by
+       getBitmap or getCanvas, but the underlying storage will not be
+       released until such references disappear.  See
+       BitmapWrapper::freePixels in hwui/jni/Bitmap.cpp.  */
     if (oldBitmap != null)
       oldBitmap.recycle ();
 
-    /* Some Android versions still don't free the bitmap until the
-       next GC.  */
+    /* Some Android versions still refuse to release the bitmap until
+       the next GC.  */
     Runtime.getRuntime ().gc ();
   }
 
@@ -367,13 +369,10 @@ public final class EmacsView extends ViewGroup
 
     if (changed)
       {
+	/* Expose the window upon a change in the view's size that
+	   prompts the creation of a new bitmap.  */
 	explicitlyDirtyBitmap ();
-
-	/* Expose the window upon a change in the view's size.  */
-
-	if (right - left > oldMeasuredWidth
-	    || bottom - top > oldMeasuredHeight)
-	  needExpose = true;
+	needExpose = true;
 
 	/* This might return NULL if this view is not attached.  */
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
