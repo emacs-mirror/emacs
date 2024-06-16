@@ -5547,6 +5547,18 @@ as follows:
 
 
 @item
+@value{tramp} does not show directories or files although they are
+readable
+
+@vindex tramp-use-file-attributes
+Internally, @value{tramp} uses commands like @command{ls} or
+@command{stat} in order to determine file permissions.  On some file
+systems, like @acronym{GPFS}, they don't report proper information.
+Set the user option @code{tramp-use-file-attributes} to @code{nil} in
+such a case.
+
+
+@item
 Where are remote files trashed to?
 
 @vindex remote-file-name-inhibit-delete-by-moving-to-trash

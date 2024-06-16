@@ -1770,7 +1770,7 @@ ID-FORMAT valid values are `string' and `integer'."
 	  (tramp-set-file-property v localname "file-acl" acl-string)
 	  t)
       ;; In case of errors, we return nil.
-      (tramp-flush-file-property v localname "file-acl-string")
+      (tramp-flush-file-property v localname "file-acl")
       nil)))
 
 ;; Simple functions using the `test' command.
@@ -1781,7 +1781,7 @@ ID-FORMAT valid values are `string' and `integer'."
     (with-tramp-file-property v localname "file-executable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-file-property-p v localname "file-attributes")
+      (if (tramp-use-file-attributes v)
 	  (or (tramp-check-cached-permissions v ?x)
 	      (tramp-check-cached-permissions v ?s))
 	(tramp-run-test v "-x" localname)))))
@@ -1792,7 +1792,7 @@ ID-FORMAT valid values are `string' and `integer'."
     (with-tramp-file-property v localname "file-readable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-file-property-p v localname "file-attributes")
+      (if (tramp-use-file-attributes v)
 	  (tramp-handle-file-readable-p filename)
 	(tramp-run-test v "-r" localname)))))
 
@@ -1824,7 +1824,7 @@ ID-FORMAT valid values are `string' and `integer'."
       (if (file-exists-p filename)
 	  ;; Examine `file-attributes' cache to see if request can be
 	  ;; satisfied without remote operation.
-	  (if (tramp-file-property-p v localname "file-attributes")
+	  (if (tramp-use-file-attributes v)
 	      (tramp-check-cached-permissions v ?w)
 	    (tramp-run-test v "-w" localname))
 	;; If file doesn't exist, check if directory is writable.

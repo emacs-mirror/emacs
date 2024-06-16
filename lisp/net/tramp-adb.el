@@ -480,7 +480,7 @@ Emacs dired can't find files."
     (with-tramp-file-property v localname "file-executable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-file-property-p v localname "file-attributes")
+      (if (tramp-use-file-attributes v)
 	  (or (tramp-check-cached-permissions v ?x)
 	      (tramp-check-cached-permissions v ?s))
 	(tramp-adb-send-command-and-check
@@ -498,7 +498,7 @@ Emacs dired can't find files."
     (with-tramp-file-property v localname "file-readable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-file-property-p v localname "file-attributes")
+      (if (tramp-use-file-attributes v)
 	  (tramp-handle-file-readable-p filename)
 	(tramp-adb-send-command-and-check
 	 v (format "test -r %s" (tramp-shell-quote-argument localname)))))))
