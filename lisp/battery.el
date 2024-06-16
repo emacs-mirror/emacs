@@ -33,7 +33,7 @@
 ;; - BSD by using the `apm' program.
 ;; - Darwin (macOS) by using the `pmset' program.
 ;; - Windows via the GetSystemPowerStatus API call.
-;; - Android 5 or later via the BatteryManager APIs.
+;; - Android via the BatteryManager APIs.
 
 ;;; Code:
 
@@ -112,7 +112,7 @@ Value does not include \".\" or \"..\"."
         ;; Note that even though the Linux kernel APIs are sometimes
         ;; available on Android, they are badly implemented by Android
         ;; kernels, so avoid using those.
-        ((eq system-type 'android)
+        ((fboundp 'android-query-battery)
          #'battery-android)
 	((and (eq system-type 'berkeley-unix)
 	      (file-executable-p "/usr/sbin/apm"))
@@ -1107,7 +1107,8 @@ The following %-sequences are provided:
            (rate nil)
            (remaining nil)
            (hours nil)
-           (minutes nil))
+           (minutes nil)
+           (temperature nil))
       ;; Figure out the percentage.
       (setq percentage (number-to-string (car status)))
       ;; Figure out the capacity
@@ -1133,6 +1134,12 @@ The following %-sequences are provided:
           (setq remaining (format "%d:%d" hours-left mins)
                 hours (number-to-string hours-left)
                 minutes (number-to-string mins))))
+      ;; Return the temperature, so long as its value is not downright
+      ;; absurd (as when the sensor is faulty or the battery controller
+      ;; driver does not provide temperature readouts).
+      (unless (or (< (nth 7 status) -1000)
+                  (> (nth 7 status) 1000))
+        (setq temperature (/ (nth 7 status) 10.0)))
       ;; Return results.
       (list (cons ?c capacity)
             (cons ?p percentage)
@@ -1145,11 +1152,12 @@ The following %-sequences are provided:
             (cons ?L (cl-case (nth 6 status)
                        (0 "off-line")
                        (1 "on-line")
-                       (2 "on-line (dock)")
-                       (3 "on-line (USB)")
-                       (4 "on-line (wireless)")
+                       (2 "on-line (USB)")
+                       (4 "on-line (dock)")
+                       (8 "on-line (wireless)")
                        (t "unknown")))
-            (cons ?t (/ (or (nth 7 status) 0) 10.0))))))
+            (cons ?t (/ (or (nth 7 status) 0) 10.0))
+            (cons ?d temperature)))))
 
 
 ;;; Private functions.

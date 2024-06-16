@@ -1212,7 +1212,7 @@ public final class EmacsService extends Service
     temp = battery.getIntExtra (BatteryManager.EXTRA_TEMPERATURE, 0);
 
     return new long[] { capacity, chargeCounter, currentAvg,
-			currentNow, remaining, status, plugged,
+			currentNow, status, remaining, plugged,
 			temp, };
   }
 
@@ -1289,7 +1289,7 @@ public final class EmacsService extends Service
       }
 
     return new long[] { capacity, chargeCounter, currentAvg,
-			currentNow, remaining, status, plugged,
+			currentNow, status, remaining, plugged,
 			temp, };
   }
 
