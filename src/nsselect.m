@@ -205,6 +205,14 @@ ns_get_local_selection (Lisp_Object selection_name,
                         Lisp_Object target_type)
 {
   Lisp_Object local_value;
+  /* `yank-media' uses this combination to figure out what the
+     available types of the selection are.  Return nil here so that
+     ns_get_foreign_selection ends up being called to do that
+     (Bug#71377).  */
+  if (EQ (selection_name, QCLIPBOARD)
+      && EQ (target_type, QTARGETS))
+    return Qnil;
+
   local_value = assq_no_quit (selection_name, Vselection_alist);
   return local_value;
 }
