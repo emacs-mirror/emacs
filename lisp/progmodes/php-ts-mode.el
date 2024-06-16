@@ -774,7 +774,7 @@ characters of the current line."
               @font-lock-builtin-face))
      ;; user defined constant
      ((name) @font-lock-constant-face
-      (:match "_?[A-Z][0-9A-Z_]+" @font-lock-constant-face))
+      (:match "\\`_?[A-Z][0-9A-Z_]+\\'" @font-lock-constant-face))
      (const_declaration
       (const_element (name) @font-lock-constant-face))
      (relative_scope "self") @font-lock-builtin-face
