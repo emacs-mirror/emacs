@@ -51,6 +51,11 @@ enum igc_obj_type
   IGC_OBJ_BUILTIN_SYMBOL,
   IGC_OBJ_BUILTIN_THREAD,
   IGC_OBJ_BUILTIN_SUBR,
+  IGC_OBJ_DUMPED_FWD,
+  IGC_OBJ_DUMPED_CHARSET_TABLE,
+  IGC_OBJ_DUMPED_CODE_SPACE_MASKS,
+  IGC_OBJ_DUMPED_BUFFER_TEXT,
+  IGC_OBJ_DUMPED_BYTES,
   IGC_OBJ_NUM_TYPES
 };
 
@@ -65,7 +70,11 @@ void syms_of_igc (void);
 void *igc_thread_add (struct thread_state *ts);
 void igc_thread_remove (void *info);
 void igc_on_idle (void);
-void igc_on_pdump_loaded (void *start, void *end);
+void igc_on_pdump_loaded (void *dump_base,
+			  void *hot_start, void *hot_end,
+			  void *cold_start, void *cold_end,
+			  void *cold_user_data_start,
+			  void *heap_end);
 void igc_on_face_cache_change (void *face_cache);
 
 void igc_process_messages (void);
@@ -146,6 +155,7 @@ void *igc_root_create_n (Lisp_Object start[], size_t n);
 size_t igc_header_size (void);
 char *igc_dump_finish_obj (void *client, enum igc_obj_type type,
 			   char *base, char *end);
+void *igc_alloc_dump (size_t nbytes);
 
 # define eassert_not_mps() eassert (false)
 #else

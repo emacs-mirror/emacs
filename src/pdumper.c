@@ -373,6 +373,9 @@ struct dump_header
 
 # ifdef HAVE_MPS
   struct dump_table_locator igc_object_starts;
+  dump_off code_space_masks;
+  dump_off cold_user_data_start;
+  dump_off heap_end;
 # endif
 
   /* Relocation table for Emacs; each entry is a struct
@@ -2360,71 +2363,82 @@ dump_fwd_int (struct dump_context *ctx, const struct Lisp_Intfwd *intfwd)
 #endif
   dump_emacs_reloc_immediate_intmax_t (ctx, intfwd->intvar, *intfwd->intvar);
   struct Lisp_Intfwd out;
-  dump_object_start_1 (ctx, &out, sizeof (out));
+  //dump_object_start_1 (ctx, &out, sizeof (out));
+  dump_object_start (ctx, intfwd, IGC_OBJ_DUMPED_FWD, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, intfwd, type);
   dump_field_emacs_ptr (ctx, &out, intfwd, &intfwd->intvar);
-  return dump_object_finish_1 (ctx, &out, sizeof (out));
+  //return dump_object_finish_1 (ctx, &out, sizeof (out));
+  return dump_object_finish (ctx, &out, sizeof (out));
 }
 
 static dump_off
 dump_fwd_bool (struct dump_context *ctx, const struct Lisp_Boolfwd *boolfwd)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Boolfwd_0EA1C7ADCC)
-# error "Lisp_Boolfwd changed. See CHECK_STRUCTS comment in config.h."
+#if CHECK_STRUCTS && !defined(HASH_Lisp_Boolfwd_0EA1C7ADCC)
+#error "Lisp_Boolfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
   dump_emacs_reloc_immediate_bool (ctx, boolfwd->boolvar, *boolfwd->boolvar);
   struct Lisp_Boolfwd out;
-  dump_object_start_1 (ctx, &out, sizeof (out));
+  // dump_object_start_1 (ctx, &out, sizeof (out));
+  dump_object_start (ctx, boolfwd, IGC_OBJ_DUMPED_FWD, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, boolfwd, type);
   dump_field_emacs_ptr (ctx, &out, boolfwd, &boolfwd->boolvar);
-  return dump_object_finish_1 (ctx, &out, sizeof (out));
+  // return dump_object_finish_1 (ctx, &out, sizeof (out));
+  return dump_object_finish (ctx, &out, sizeof (out));
 }
 
 static dump_off
 dump_fwd_obj (struct dump_context *ctx, const struct Lisp_Objfwd *objfwd)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Objfwd_45D3E513DC)
-# error "Lisp_Objfwd changed. See CHECK_STRUCTS comment in config.h."
+#if CHECK_STRUCTS && !defined(HASH_Lisp_Objfwd_45D3E513DC)
+#error "Lisp_Objfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
   if (NILP (Fgethash (dump_off_to_lisp (emacs_offset (objfwd->objvar)),
-                      ctx->staticpro_table,
-                      Qnil)))
+		      ctx->staticpro_table, Qnil)))
     dump_emacs_reloc_to_lv (ctx, objfwd->objvar, *objfwd->objvar);
   struct Lisp_Objfwd out;
-  dump_object_start_1 (ctx, &out, sizeof (out));
+  // dump_object_start_1 (ctx, &out, sizeof (out));
+  dump_object_start (ctx, objfwd, IGC_OBJ_DUMPED_FWD, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, objfwd, type);
   dump_field_emacs_ptr (ctx, &out, objfwd, &objfwd->objvar);
-  return dump_object_finish_1 (ctx, &out, sizeof (out));
+  // return dump_object_finish_1 (ctx, &out, sizeof (out));
+  return dump_object_finish (ctx, &out, sizeof (out));
 }
 
 static dump_off
 dump_fwd_buffer_obj (struct dump_context *ctx,
-                     const struct Lisp_Buffer_Objfwd *buffer_objfwd)
+		     const struct Lisp_Buffer_Objfwd *buffer_objfwd)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Buffer_Objfwd_611EBD13FF)
-# error "Lisp_Buffer_Objfwd changed. See CHECK_STRUCTS comment in config.h."
+#if CHECK_STRUCTS && !defined(HASH_Lisp_Buffer_Objfwd_611EBD13FF)
+#error "Lisp_Buffer_Objfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Buffer_Objfwd out;
-  dump_object_start_1 (ctx, &out, sizeof (out));
+  // dump_object_start_1 (ctx, &out, sizeof (out));
+  dump_object_start (ctx, buffer_objfwd, IGC_OBJ_DUMPED_FWD, &out,
+		     sizeof (out));
   DUMP_FIELD_COPY (&out, buffer_objfwd, type);
   DUMP_FIELD_COPY (&out, buffer_objfwd, offset);
   dump_field_lv (ctx, &out, buffer_objfwd, &buffer_objfwd->predicate,
-                 WEIGHT_NORMAL);
-  return dump_object_finish_1 (ctx, &out, sizeof (out));
+		 WEIGHT_NORMAL);
+  //return dump_object_finish_1 (ctx, &out, sizeof (out));
+  return dump_object_finish (ctx, &out, sizeof (out));
 }
 
 static dump_off
 dump_fwd_kboard_obj (struct dump_context *ctx,
-                     const struct Lisp_Kboard_Objfwd *kboard_objfwd)
+		     const struct Lisp_Kboard_Objfwd *kboard_objfwd)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Kboard_Objfwd_CAA7E71069)
-# error "Lisp_Intfwd changed. See CHECK_STRUCTS comment in config.h."
+#if CHECK_STRUCTS && !defined(HASH_Lisp_Kboard_Objfwd_CAA7E71069)
+#error "Lisp_Intfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Kboard_Objfwd out;
-  dump_object_start_1 (ctx, &out, sizeof (out));
+  // dump_object_start_1 (ctx, &out, sizeof (out));
+  dump_object_start (ctx, kboard_objfwd, IGC_OBJ_DUMPED_FWD, &out,
+		     sizeof (out));
   DUMP_FIELD_COPY (&out, kboard_objfwd, type);
   DUMP_FIELD_COPY (&out, kboard_objfwd, offset);
-  return dump_object_finish_1 (ctx, &out, sizeof (out));
+  // return dump_object_finish_1 (ctx, &out, sizeof (out));
+  return dump_object_finish (ctx, &out, sizeof (out));
 }
 
 static dump_off
@@ -3425,6 +3439,9 @@ dump_charset_table (struct dump_context *ctx)
   struct dump_flags old_flags = ctx->flags;
   ctx->flags.pack_objects = true;
   dump_align_output (ctx, alignof (struct charset));
+# ifdef HAVE_MPS
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_CHARSET_TABLE, charset_table);
+# endif
   dump_off offset = ctx->offset;
   if (dump_set_referrer (ctx))
     ctx->current_referrer = build_string ("charset_table");
@@ -3437,6 +3454,9 @@ dump_charset_table (struct dump_context *ctx)
   dump_clear_referrer (ctx);
   dump_emacs_reloc_to_dump_ptr_raw (ctx, &charset_table, offset);
   ctx->flags = old_flags;
+# ifdef HAVE_MPS
+  dump_igc_finish_obj (ctx);
+# endif
   return offset;
 }
 
@@ -3591,6 +3611,32 @@ dump_cold_charset (struct dump_context *ctx, Lisp_Object data)
   dump_write (ctx, cs->code_space_mask, 256);
 }
 
+#ifdef HAVE_MPS
+/* The charsets come all from the charset_table. Combine them to
+   a single IGC_OBJ_DUMPED_CODE_SPACE_MASKS object.
+ */
+static void
+dump_cold_charsets (struct dump_context *ctx, Lisp_Object *cold_queue,
+		    Lisp_Object data)
+{
+  dump_align_output (ctx, DUMP_ALIGNMENT);
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_CODE_SPACE_MASKS, charset_table);
+  eassert (!ctx->header.code_space_masks);
+  ctx->header.code_space_masks = ctx->offset;
+  for (;;)
+    {
+      dump_cold_charset (ctx, data);
+      Lisp_Object next = XCAR (*cold_queue);
+      enum cold_op op = (enum cold_op)XFIXNUM (XCAR (next));
+      if (op != COLD_OP_CHARSET)
+	break;
+      data = XCDR (next);
+      *cold_queue = XCDR (*cold_queue);
+    }
+  dump_igc_finish_obj (ctx);
+}
+#endif
+
 static void
 dump_cold_buffer (struct dump_context *ctx, Lisp_Object data)
 {
@@ -3609,11 +3655,17 @@ dump_cold_buffer (struct dump_context *ctx, Lisp_Object data)
     + 1;
   if (nbytes > DUMP_OFF_MAX)
     error ("buffer too large");
+# ifdef HAVE_MPS
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BUFFER_TEXT, b->own_text.beg);
+# endif
   dump_remember_fixup_ptr_raw
     (ctx,
      buffer_offset + dump_offsetof (struct buffer, own_text.beg),
      ctx->offset);
   dump_write (ctx, b->own_text.beg, ptrdiff_t_to_dump_off (nbytes));
+# ifdef HAVE_MPS
+  dump_igc_finish_obj (ctx);
+# endif
 }
 
 static void
@@ -3685,7 +3737,11 @@ dump_drain_cold_data (struct dump_context *ctx)
           dump_cold_string (ctx, data);
           break;
         case COLD_OP_CHARSET:
+#ifdef HAVE_MPS
+	  dump_cold_charsets (ctx, &cold_queue, data);
+#else
           dump_cold_charset (ctx, data);
+#endif
           break;
         case COLD_OP_BUFFER:
           dump_cold_buffer (ctx, data);
@@ -4479,6 +4535,13 @@ types.  */)
      never change and so can be direct-mapped from the dump without
      special processing.  */
   dump_drain_cold_data (ctx);
+# ifdef HAVE_MPS
+  dump_align_output (ctx, DUMP_ALIGNMENT);
+  fprintf (stderr, "cold user data: %x\n", (unsigned)ctx->offset);
+  ctx->header.cold_user_data_start = ctx->offset;
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, &discardable_end);
+# endif
+
    /* dump_drain_user_remembered_data_cold needs to be after
       dump_drain_cold_data in case dump_drain_cold_data dumps a lisp
       object to which C code points.
@@ -4486,9 +4549,19 @@ types.  */)
       objects have been dumped.  */
   dump_drain_user_remembered_data_cold (ctx);
 
+# ifdef HAVE_MPS
+  dump_align_output (ctx, DUMP_ALIGNMENT);
+  dump_igc_finish_obj (ctx);
+  fprintf (stderr, "heap end: %x\n", (unsigned)ctx->offset);
+# endif
   /* After this point, the dump file contains no data that can be part
      of the Lisp heap.  */
   ctx->end_heap = ctx->offset;
+
+# ifdef HAVE_MPS
+  ctx->header.heap_end = ctx->offset;
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, &discardable_end);
+# endif
 
   /* Make remembered modifications to the dump file itself.  */
   dump_do_fixups (ctx);
@@ -4520,6 +4593,10 @@ types.  */)
   drain_reloc_list (ctx, dump_emit_emacs_reloc, dump_merge_emacs_relocs,
 		    &ctx->emacs_relocs, &ctx->header.emacs_relocs);
 
+# ifdef HAVE_MPS
+  fprintf (stderr, "cold end: %x\n", (unsigned)ctx->offset);
+  dump_igc_finish_obj (ctx);
+# endif
   const dump_off cold_end = ctx->offset;
 
   eassert (dump_queue_empty_p (&ctx->dump_queue));
@@ -5072,6 +5149,49 @@ dump_mmap_contiguous_heap (struct dump_memory_map *maps, int nr_maps,
   return ret;
 }
 
+#ifdef HAVE_MPS
+
+static void
+dump_mmap_release_mps (struct dump_memory_map *map)
+{
+  emacs_abort ();
+}
+
+/* Implement dump_mmap using mps_reserve and read.  */
+static bool
+dump_mmap_contiguous_mps (struct dump_memory_map *maps, int nr_maps,
+			  size_t total_size)
+{
+  uint8_t *p = igc_alloc_dump (igc_header_size () + total_size);
+  for (size_t i = 0; i < nr_maps; ++i)
+    {
+      struct dump_memory_map *map = &maps[i];
+      const struct dump_memory_map_spec spec = map->spec;
+      if (!spec.size)
+	continue;
+      map->mapping = p;
+      map->release = dump_mmap_release_mps;
+      map->private = NULL;
+      if (spec.fd < 0)
+	memset (map->mapping, 0, spec.size);
+      else
+	{
+	  if (lseek (spec.fd, spec.offset, SEEK_SET) < 0)
+	    return false;
+	  ssize_t nb = dump_read_all (spec.fd, map->mapping, spec.size);
+	  if (nb != spec.size)
+	    {
+	      if (nb >= 0)
+		errno = EIO;
+	      return false;
+	    }
+	}
+      p += spec.size;
+    }
+  return true;
+}
+#endif
+
 static void
 dump_mmap_release_vm (struct dump_memory_map *map)
 {
@@ -5206,12 +5326,17 @@ dump_mmap_contiguous (struct dump_memory_map *maps, int nr_maps)
       eassert (maps[i].release == NULL);
       eassert (maps[i].private == NULL);
       if (i != nr_maps - 1)
-        eassert (maps[i].spec.size % worst_case_page_size == 0);
+	eassert (maps[i].spec.size % worst_case_page_size == 0);
       total_size += maps[i].spec.size;
     }
 
-  return (VM_SUPPORTED ? dump_mmap_contiguous_vm : dump_mmap_contiguous_heap)
-    (maps, nr_maps, total_size);
+#ifdef HAVE_MPS
+  return dump_mmap_contiguous_mps (maps, nr_maps, total_size);
+#else
+  return (VM_SUPPORTED
+	      ? dump_mmap_contiguous_vm
+	      : dump_mmap_contiguous_heap) (maps, nr_maps, total_size);
+#endif
 }
 
 typedef uint_fast32_t dump_bitset_word;
@@ -5953,14 +6078,6 @@ pdumper_load (const char *dump_filename, char *argv0)
   dump_public.start = dump_base;
   dump_public.end = dump_public.start + dump_size;
 
-#ifdef HAVE_MPS
-  size_t aligned_header_size
-    = ((sizeof (struct dump_header) + DUMP_ALIGNMENT - 1)
-       & ~(DUMP_ALIGNMENT - 1));
-  void *hot_start = (void *) (dump_base + aligned_header_size);
-  void *hot_end = (void *) (dump_base + header->discardable_start);
-#endif
-
   dump_do_all_dump_reloc_for_phase (header, dump_base, EARLY_RELOCS);
   dump_do_all_emacs_relocations (header, dump_base);
 
@@ -5991,8 +6108,24 @@ pdumper_load (const char *dump_filename, char *argv0)
   dump_do_all_dump_reloc_for_phase (header, dump_base, LATE_RELOCS);
   dump_do_all_dump_reloc_for_phase (header, dump_base, VERY_LATE_RELOCS);
 
+#ifdef HAVE_MPS
+  size_t aligned_header_size
+    = ((sizeof (struct dump_header) + DUMP_ALIGNMENT - 1)
+       & ~(DUMP_ALIGNMENT - 1));
+  void *hot_start = (void *) (dump_base + aligned_header_size);
+  void *hot_end = (void *) (dump_base + header->discardable_start);
+  void *cold_start = (void *) (dump_base + header->cold_start);
+  void *cold_end = (void *) (dump_base + dump_size);
+  void *cold_user_data_start = (void *) (dump_base +
+					 header->cold_user_data_start);
+  void *heap_end = (void *) (dump_base + header->heap_end);
+#endif
+
 # ifdef HAVE_MPS
-  igc_on_pdump_loaded (hot_start, hot_end);
+  igc_on_pdump_loaded ((void *)dump_base,
+		       hot_start, hot_end,
+		       cold_start, cold_end,
+		       cold_user_data_start, heap_end);
 # endif
 
   /* Run the functions Emacs registered for doing post-dump-load

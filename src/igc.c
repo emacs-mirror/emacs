@@ -205,6 +205,11 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_BUILTIN_SYMBOL",
   "IGC_OBJ_BUILTIN_THREAD",
   "IGC_OBJ_BUILTIN_SUBR",
+  "IGC_OBJ_DUMPED_FWD",
+  "IGC_OBJ_DUMPED_CHARSET_TABLE",
+  "IGC_OBJ_DUMPED_CODE_SPACE_MASKS",
+  "IGC_OBJ_DUMPED_BUFFER_TEXT",
+  "IGC_OBJ_DUMPED_BYTES",
 };
 
 igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_NUM_TYPES);
@@ -1280,6 +1285,22 @@ fix_handler (mps_ss_t ss, struct handler *h)
   return MPS_RES_OK;
 }
 
+static mps_res_t
+fix_charset_table (mps_ss_t ss, struct charset *table, size_t nbytes)
+{
+  igc_assert (table == charset_table);
+  igc_assert (nbytes
+	      == (charset_table_size * sizeof (struct charset)
+		  + sizeof (struct igc_header)));
+  MPS_SCAN_BEGIN (ss)
+  {
+    for (size_t i = 0, len = nbytes / sizeof (struct charset); i < len; i++)
+      IGC_FIX12_OBJ (ss, &table[i].attributes);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 static mps_res_t fix_vector (mps_ss_t ss, struct Lisp_Vector *v);
 
 static mps_res_t
@@ -1341,6 +1362,9 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
       case IGC_OBJ_STRING_DATA:
       case IGC_OBJ_FLOAT:
       case IGC_OBJ_BYTES:
+      case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
+      case IGC_OBJ_DUMPED_BUFFER_TEXT:
+      case IGC_OBJ_DUMPED_BYTES:
 	/* Can occur in the dump. */
 	break;
 
@@ -1391,6 +1415,15 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
       case IGC_OBJ_BLV:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Buffer_Local_Value, client,
 			 fix_blv);
+	break;
+
+      case IGC_OBJ_DUMPED_FWD:
+	IGC_FIX_CALL (ss, fix_fwd (ss, (lispfwd){ client }));
+	break;
+
+      case IGC_OBJ_DUMPED_CHARSET_TABLE:
+	IGC_FIX_CALL (ss, fix_charset_table (ss, (struct charset *)client,
+					     obj_size (header)));
 	break;
       }
   }
@@ -2646,6 +2679,11 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_BUILTIN_SYMBOL:
     case IGC_OBJ_BUILTIN_THREAD:
     case IGC_OBJ_BUILTIN_SUBR:
+    case IGC_OBJ_DUMPED_FWD:
+    case IGC_OBJ_DUMPED_CHARSET_TABLE:
+    case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
+    case IGC_OBJ_DUMPED_BUFFER_TEXT:
+    case IGC_OBJ_DUMPED_BYTES:
     case IGC_OBJ_BYTES:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
@@ -2813,6 +2851,11 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_BUILTIN_SYMBOL:
     case IGC_OBJ_BUILTIN_THREAD:
     case IGC_OBJ_BUILTIN_SUBR:
+    case IGC_OBJ_DUMPED_FWD:
+    case IGC_OBJ_DUMPED_CHARSET_TABLE:
+    case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
+    case IGC_OBJ_DUMPED_BUFFER_TEXT:
+    case IGC_OBJ_DUMPED_BYTES:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
 
@@ -3600,6 +3643,17 @@ builtin_obj_type_and_hash (size_t *hash, enum igc_obj_type type, void *client)
       return IGC_OBJ_BUILTIN_SUBR;
     }
 
+  if (type == IGC_OBJ_DUMPED_FWD
+      || type == IGC_OBJ_DUMPED_CHARSET_TABLE
+      || type == IGC_OBJ_DUMPED_CODE_SPACE_MASKS
+      || type == IGC_OBJ_DUMPED_BUFFER_TEXT
+      || type == IGC_OBJ_DUMPED_BYTES
+      )
+    {
+      *hash = 0;
+      return type;
+    }
+
   emacs_abort ();
 }
 
@@ -3860,6 +3914,12 @@ copy_dump (struct igc_mirror *m)
 	case IGC_OBJ_BUILTIN_THREAD:
 	case IGC_OBJ_BUILTIN_SUBR:
 	  break;
+	case IGC_OBJ_DUMPED_FWD:
+	case IGC_OBJ_DUMPED_CHARSET_TABLE:
+	case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
+	case IGC_OBJ_DUMPED_BUFFER_TEXT:
+	case IGC_OBJ_DUMPED_BYTES:
+	  emacs_abort ();
 	}
     }
   record_time (m, "Copy objects to MPS");
@@ -4415,6 +4475,11 @@ mirror (struct igc_mirror *m, void *org_base, void *copy_base)
     case IGC_OBJ_PAD:
     case IGC_OBJ_FWD:
     case IGC_OBJ_INVALID:
+    case IGC_OBJ_DUMPED_FWD:
+    case IGC_OBJ_DUMPED_CHARSET_TABLE:
+    case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
+    case IGC_OBJ_DUMPED_BUFFER_TEXT:
+    case IGC_OBJ_DUMPED_BYTES:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
 
@@ -4549,19 +4614,144 @@ mirror_dump (void *start, void *end)
       redirect_roots (&m);
 
       if (getenv ("IGC_MIRROR_STATS"))
-	print_mirror_stats (&m);
+        print_mirror_stats (&m);
     }
 }
+
+static mps_addr_t pinned_objects_in_dump[3];
 
 /* Called from pdumper_load. [START, END) is the hot section of the
    dump. Copy objects from the dump to MPS, and discard the dump. */
 
 void
-igc_on_pdump_loaded (void *start, void *end)
+igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
+		     void *cold_start, void *cold_end,
+		     void *cold_user_data_start, void *heap_end)
 {
-  mirror_dump (start, end);
+  // mirror_dump (start, end);
+  igc_assert (global_igc->park_count > 0);
+  eassert (base_to_client (hot_start) == charset_table);
+  eassert (((struct igc_header *)cold_start)->obj_type
+	   == IGC_OBJ_DUMPED_CODE_SPACE_MASKS);
+  eassert (((struct igc_header *)cold_user_data_start)->obj_type
+	   == IGC_OBJ_DUMPED_BYTES);
+  eassert (((struct igc_header *)heap_end)->obj_type == IGC_OBJ_DUMPED_BYTES);
+
+  size_t discardable_size = (uint8_t *)cold_start - (uint8_t *)hot_end;
+  size_t dump_size = (uint8_t *)cold_end - (uint8_t *)dump_base;
+  // size_t cold_size = (uint8_t *)cold_end - (uint8_t *)cold_start;
+  size_t dump_header_size = (uint8_t *)hot_start - (uint8_t *)dump_base;
+  size_t relocs_size = (uint8_t *)cold_end - (uint8_t *)heap_end;
+  struct igc_header *h = client_to_base (dump_base);
+  igc_assert (h->obj_type == IGC_OBJ_INVALID);
+  igc_assert (obj_size (h) == sizeof *h + dump_size);
+  igc_assert (discardable_size > 2 * sizeof *h);
+  /* Ignore dump_header */
+  set_header (h, IGC_OBJ_PAD, sizeof *h + dump_header_size, 0);
+  /* Ignore discardable section */
+  set_header (hot_end, IGC_OBJ_PAD, discardable_size, 0);
+  /* Ignore relocs */
+  set_header (heap_end, IGC_OBJ_PAD, relocs_size, 0);
+
+  /* Pin some stuff in the dump  */
+  mps_addr_t pinned_roots[] = {
+    charset_table,
+    base_to_client (cold_start), /* code_space_masks */
+    base_to_client (cold_user_data_start),
+  };
+  igc_static_assert (sizeof pinned_roots == sizeof pinned_objects_in_dump);
+  memcpy (pinned_objects_in_dump, pinned_roots, sizeof pinned_roots);
+  igc_root_create_ambig (pinned_objects_in_dump,
+			 (uint8_t *)pinned_objects_in_dump
+			     + sizeof pinned_objects_in_dump);
+
+  /* Copy to buffer text to out of pdump */
+  for (Lisp_Object l = Vbuffer_alist; !NILP (l); l = XCDR (l))
+    {
+      struct buffer *buf = XBUFFER (XCDR (XCAR (l)));
+      eassert (pdumper_object_p (buf->text->beg));
+      enlarge_buffer_text (buf, 0);
+      eassert (!pdumper_object_p (buf->text->beg));
+    }
 }
 
+void *
+igc_alloc_dump (size_t nbytes)
+{
+  igc_assert (global_igc->park_count > 0);
+  mps_ap_t ap = thread_ap (IGC_OBJ_CONS);
+  mps_addr_t block;
+  do
+    {
+      mps_res_t res = mps_reserve (&block, ap, nbytes);
+      if (res != MPS_RES_OK)
+	memory_full (0);
+    }
+  while (!mps_commit (ap, block, nbytes));
+  set_header (block, IGC_OBJ_INVALID, nbytes, 0);
+  return base_to_client (block);
+}
+
+struct gap_it
+{
+  void *last_end;
+  struct pdumper_object_it it;
+};
+
+static void *
+gap_it_next (void **gap_end, struct gap_it *it)
+{
+  if (!it->last_end)
+    {
+      it->last_end = (void *)dump_public.start;
+      return gap_it_next (gap_end, it);
+    }
+  else
+    {
+      for (;;)
+	{
+	  struct igc_header *h = pdumper_next_object (&it->it);
+	  if (!h)
+	    {
+	      if (it->last_end == (void *)dump_public.end)
+		return NULL;
+	      else
+		{
+		  void *gap_start = it->last_end;
+		  it->last_end = *gap_end = (void *)dump_public.end;
+		  return gap_start;
+		}
+	    }
+	  void *end = dflt_skip (h);
+	  if (it->last_end == h)
+	    {
+	      it->last_end = end;
+	      continue;
+	    }
+	  void *gap_start = it->last_end;
+	  *gap_end = h;
+	  it->last_end = end;
+	  return gap_start;
+	}
+    }
+}
+
+void
+print_gaps (size_t start, size_t len)
+{
+  struct gap_it it = { 0 };
+  for (size_t i = start; i < start + len; i++)
+    {
+      void *gap_end;
+      void *gap_start = gap_it_next (&gap_end, &it);
+      if (!gap_start)
+	return;
+      size_t offset = (size_t)gap_start - dump_public.start;
+      size_t len = (size_t)gap_end - (size_t)gap_start;
+      fprintf (stderr, "%p: %p %p %zu\n", (void *)offset, gap_start, gap_end,
+	       len);
+    }
+}
 
 
 /***********************************************************************
