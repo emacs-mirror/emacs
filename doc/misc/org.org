@@ -16408,7 +16408,7 @@ The iCalendar format standard requires globally unique identifier---or
 UID---for each entry.  The iCalendar export backend creates UIDs
 during export.  To save a copy of the UID in the Org file set the
 variable ~org-icalendar-store-UID~.  The backend looks for the =ID=
-property of the entry for re-using the same UID for subsequent
+property of the entry for reusing the same UID for subsequent
 exports.
 
 Since a single Org entry can result in multiple iCalendar

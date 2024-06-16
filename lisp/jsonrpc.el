@@ -448,7 +448,7 @@ ignored."
               ;; ...finally, whatever may have happened to this sync
               ;; request, it might have been holding up any outer
               ;; "anxious" continuations.  The following ensures we
-              ;; cll them.
+              ;; call them.
               (jsonrpc--continue connection id)))))
     (when (eq 'error (car retval))
       (signal 'jsonrpc-error

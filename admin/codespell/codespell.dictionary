@@ -1,6 +1,5 @@
 alis->alist, alias, alas, axis, alms,
 boostrap-clean->bootstrap-clean
-brunches->branches
 defalis->defalias
 defalises->defaliases
 ecmacs->emacs
@@ -8,10 +7,6 @@ ehsell->eshell
 emcs->emacs
 file-writeable-p->file-writable-p
 finis->finish
-firs->first
-hep->help
 least-favourite->least-favorite
-lien->line
-liens->lines
 mecas->emacs
 sehell->eshell, shell,

@@ -1611,3 +1611,76 @@ Optional DETECTIN is an autoload cons from `ede-detect-directory-for-project'
   '("\\(?:Entering\\|Leavin\\(g\\)\\) directory [`']\\(.+\\)'$" (2 . 1))
     "dropping" "fillin" "from" "granularity" "hppp" "inwindow"
     (".G1" . ".G2")			; grap
+  (let ((tagret nil)
+		(setq tagret (cons ans tagret))
+	      (setq tagret (append ans tagret)))
+    tagret))
+	    (setq tagret ans)
+	  (setq tagret (car ans)))
+    (cons objret tagret)))
+            (prevend (track-changes--state-end state))
+              (setq end prevend)
+            (when (< endb prevend)
+              (let ((new-end (+ end (- prevend endb))))
+                (cl-assert (= prevend (+ beg lenbefore)))
+            (cl-assert (<= beg prevbeg prevend endb))
+                         (- endb prevend)))
+                                                 (- endb prevend)))))
+ ;; etc... whereas "real" declmods are valid for all types, buildin
+              outin = ina | inb | \\=`constant;
+              out = outin;
+	comin comstart)
+	(setq comin (point))
+                                (buffer-substring comstart comin))))
+	      (comment-string-strip (buffer-substring comstart comin) nil t))
+		     (buffer-substring (point) comin))
+		  (buffer-substring (line-beginning-position) comin))))
+;; designate them are: eqn (e), grap (g), pic (p), tbl (t), vgrind
+	FLUSHO and PENDIN.
+      fo: { [x: any]: any } = {
+                           "\\<\\(?:\\(?:fals\\|tru\\)e\\)\\>")
+    (search-forward "tru")
+    (search-forward "Tru")
+    ("  fo.ba@example.com" 6 email "fo.ba@example.com")
+               "t" "tr" "tru" "truE" "truee"
+               "f" "fa" "fal" "fals" "falsE" "falsee"))
+    int eventState, notIn;
+    notIn = (down ? eventState & ~lastButtonState
+    if ((notIn & (MotionEvent.BUTTON_PRIMARY
+    if ((notIn & MotionEvent.BUTTON_PRIMARY) != 0)
+    if ((notIn & MotionEvent.BUTTON_SECONDARY) != 0)
+    if ((notIn & MotionEvent.BUTTON_TERTIARY) != 0)
+    if ((notIn & MotionEvent.BUTTON_BACK) != 0)
+    if ((notIn & MotionEvent.BUTTON_FORWARD) != 0)
+    if ((notIn & MotionEvent.BUTTON_STYLUS_PRIMARY) != 0)
+    if ((notIn & MotionEvent.BUTTON_STYLUS_SECONDARY) != 0)
+argument \\='general-category, is Decimal_Numbers (Nd).  It returns
+  (let (compos comin)
+			  (setq comin (point))))))
+	    (setq comin (point))))
+	  (let* ((comstart (buffer-substring compos comin))
+		         (te (float-time
+		         (dt (- (if tend (min te tend) te)
+2022-04-20  Jean Abou Samra  <jean@abou-samra.fr>  (tiny change)
+(string< "abc" "abd")
+(string< "abd" "abc")
+;; 	  ("a") ("ab") ("abc") ("abd") ("abf") ("zab") ("acb")
+;; `«(my-face)U:abd»'.
+;; `«(my-fibonacci-property):(1 1 2 3 5 8):abd»'.
+   :eval (string-collate-lessp "abc" "abd"))
+   :eval (string-lessp "abc" "abd")
+   :eval (string-greaterp "abd" "abc")
+   :eval (string-collate-lessp "abc" "abd")))
+  `(("abc" < "abd")
+    (abc < "abd")
+    (abc < abd)
+    ("abc" < ,(string-to-multibyte "abd"))
+    (,(string-to-multibyte "abc") < "abd")
+    (,(string-to-multibyte "abc") < ,(string-to-multibyte "abd"))
+                   ("" . "a") ("a" . "b") ("A" . "a") ("abc" . "abd")
+2004-05-05  Stephen Eglen  <stephen@anc.ed.ac.uk>
+;; location: http://www.anc.ed.ac.uk/~stephen/emacs/
+  :link '(url-link "https://www.anc.ed.ac.uk/~stephen/emacs/")
+              ((or (string-equal tag "anc") (string-equal tag "ancestor"))
+     ("ro" :default "Continuare de pe pagina precedentă")
+     ("ro" :default "Continuare pe pagina următoare")

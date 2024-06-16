@@ -913,7 +913,7 @@ tags.")
    (cache :initform nil
 	  :type (or null semanticdb-find-result-with-nil)
 	  :documentation "Cache of tags.
-These tags are re-used during a completion session.
+These tags are reused during a completion session.
 Sometimes these tags are cached between completion sessions.")
    (last-all-completions :initarg nil
 			 :type semanticdb-find-result-with-nil

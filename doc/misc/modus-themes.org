@@ -486,7 +486,7 @@ The reason we recommend ~load-theme~ instead of the other option of
 ~enable-theme~ is that the former does a kind of "reset" on the face
 specs.  It quite literally loads (or reloads) the theme.  Whereas the
 ~enable-theme~ function simply puts an already loaded theme to the top
-of the list of enabled items, re-using whatever state was last loaded.
+of the list of enabled items, reusing whatever state was last loaded.
 
 As such, ~load-theme~ reads all customizations that may happen during
 any given Emacs session: even after the initial setup of a theme.
@@ -2821,7 +2821,7 @@ Reload the theme for changes to take effect.
 #+cindex: Remapping faces
 
 There are cases where we need to change the buffer-local attributes of a
-face.  This might be because we have our own minor mode that re-uses a
+face.  This might be because we have our own minor mode that reuses a
 face for a particular purpose, such as a line selection tool that
 activates ~hl-line-mode~, but we wish to keep it distinct from other
 buffers.  This is where ~face-remap-add-relative~ can be applied and may

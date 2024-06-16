@@ -1877,7 +1877,7 @@ fontset_from_font (Lisp_Object font_object)
 
 /* Update auto_fontset_alist for FONTSET.  When an ASCII font of
    FONTSET is changed, we delete an entry of FONTSET if any from
-   auto_fontset_alist so that FONTSET is not re-used by
+   auto_fontset_alist so that FONTSET is not reused by
    fontset_from_font.  */
 
 static void

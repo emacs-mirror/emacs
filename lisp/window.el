@@ -7744,7 +7744,7 @@ to an expression containing one of these \"action\" functions:
  `display-buffer-in-previous-window' -- Use a window that did
     show the buffer before.
  `display-buffer-use-some-window' -- Use some existing window.
- `display-buffer-use-least-recent-window' -- Try to avoid re-using
+ `display-buffer-use-least-recent-window' -- Try to avoid reusing
     windows that have recently been switched to.
  `display-buffer-pop-up-window' -- Pop up a new window.
  `display-buffer-full-frame' -- Delete other windows and use the full frame.

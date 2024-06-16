@@ -205,7 +205,7 @@ symbol."
 (defcustom php-ts-mode-indent-style 'psr2
   "Style used for indentation.
 The selected style could be one of:
-`PSR-2/PSR-12' - use PSR standards (PSR-2, PSR-12), thi is the default.
+`PSR-2/PSR-12' - use PSR standards (PSR-2, PSR-12), this is the default.
 `PEAR' - use coding styles preferred for PEAR code and modules.
 `Drupal' - use coding styles preferred for working with Drupal projects.
 `WordPress' - use coding styles preferred for working with WordPress projects.
@@ -242,7 +242,7 @@ Calls REPORT-FN directly."
     (kill-process php-ts-mode--flymake-process))
   (let ((source (current-buffer))
         (diagnostics-pattern (eval-when-compile
-                               (rx bol (? "PHP ") ;; every dignostic line start with PHP
+                               (rx bol (? "PHP ") ;; every diagnostic line start with PHP
                                    (group (or "Fatal" "Parse")) ;; 1: type
                                    " error:" (+ (syntax whitespace))
                                    (group (+? nonl)) ;; 2: msg
@@ -372,7 +372,7 @@ To set the default indent style globally, use
 
 `php-ts-mode' use five parsers, this function returns, for the
 current buffer, the ranges covered by each parser.
-Usefull for debugging."
+Useful for debugging."
   (let ((ranges)
         (parsers (treesit-parser-list nil nil t)))
     (if (not parsers)
@@ -444,7 +444,7 @@ PARENT is its parent."
               (line-end-position))))))
 
 (defun php-ts-mode--js-css-tag-bol (node _parent &rest _)
-  "Find the first non-space caracters of html tags <script> or <style>.
+  "Find the first non-space characters of html tags <script> or <style>.
 
 If NODE is nil return `line-beginning-position'.  PARENT is ignored.
 NODE is the node to match and PARENT is its parent."
@@ -455,7 +455,7 @@ NODE is the node to match and PARENT is its parent."
       (re-search-backward "<script>\\|<style>" nil t))))
 
 (defun php-ts-mode--parent-eol (_node parent &rest _)
-  "Find the last non-space caracters of the PARENT of the current NODE.
+  "Find the last non-space characters of the PARENT of the current NODE.
 
 NODE is the node to match and PARENT is its parent."
   (save-excursion
@@ -526,7 +526,7 @@ characters of the current line."
   "Return the start of the first child of a sibling of PARENT.
 
 If the fist sibling of PARENT and the first child of the sibling are
-on the same line return the start position of the firt child of the
+on the same line return the start position of the first child of the
 sibling.  Otherwise return the start of the first sibling.
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters of the current line."
@@ -1271,7 +1271,7 @@ Depends on `c-ts-common-comment-setup'."
     (require 'html-ts-mode)
     ;; For embed html
 
-    ;; phpdoc is a local parser, don't create a parser fot it
+    ;; phpdoc is a local parser, don't create a parser for it
     (treesit-parser-create 'html)
     (treesit-parser-create 'css)
     (treesit-parser-create 'javascript)
@@ -1517,7 +1517,7 @@ The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\" or
 (defun run-php (&optional cmd config)
   "Run an PHP interpreter as a inferior process.
 
-Argumens CMD an CONFIG, default to `php-ts-mode-php-executable'
+Arguments CMD an CONFIG, default to `php-ts-mode-php-executable'
 and `php-ts-mode-php-config' respectively, control which PHP interpreter is run.
 Prompt for CMD if `php-ts-mode-php-executable' is nil.
 Optional CONFIG, if supplied, is the php.ini file to use."

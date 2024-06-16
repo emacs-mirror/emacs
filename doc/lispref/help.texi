@@ -334,7 +334,7 @@ stands for a key sequence that will invoke @var{command}, or @samp{M-x
 @item \@{@var{mapvar}@}
 stands for a summary of the keymap which is the value of the variable
 @var{mapvar}.  The summary is made using @code{describe-bindings}.
-The summary will normally exclude meny bindings, but if the
+The summary will normally exclude menu bindings, but if the
 @var{include-menus} argument to @code{substitute-command-keys} is
 non-@code{nil}, the menu bindings will be included.
 

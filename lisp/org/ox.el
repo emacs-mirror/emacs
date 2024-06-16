@@ -4738,7 +4738,7 @@ matching DATUM before creating a new reference."
 	       ;; unique, e.g., there might be duplicate custom ID or
 	       ;; two headings with the same title in the file.
 	       ;;
-	       ;; As a consequence, before re-using any reference to
+	       ;; As a consequence, before reusing any reference to
 	       ;; an element or object, we check that it doesn't refer
 	       ;; to a previous element or object.
 	       (new (or (cl-some

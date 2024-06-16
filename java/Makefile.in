@@ -261,8 +261,8 @@ install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)	\
 	$(AM_V_SILENT) $(libsrc)/asset-directory-tool 		\
 	  install_temp/assets install_temp/assets/directory-tree\
 	  $(if $(ANDROID_SDK_8_OR_EARLIER),--api-8)
-# If the package targets Android 2.2, move compressable and
-# non-compressable assets to separate directories.
+# If the package targets Android 2.2, move compressible and
+# non-compressible assets to separate directories.
 	$(AM_V_SILENT)						\
 	if [ -z "${ANDROID_SDK_8_OR_EARLIER}" ]; then :; else	\
 	  echo "Moving large and gzipped files to separate directories...">&2;\

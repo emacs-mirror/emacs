@@ -723,7 +723,7 @@ It is the default value of the variable `top-level'."
             (set 'native-comp-eln-load-path
                  (mapcar (lambda (dir)
                            ;; Call expand-file-name to remove all the
-                           ;; pesky ".." from the directyory names in
+                           ;; pesky ".." from the directory names in
                            ;; native-comp-eln-load-path.
                            (expand-file-name
                             (decode-coding-string dir coding t)))

@@ -18973,7 +18973,7 @@ number between zero and one.  It is equivalent to @samp{random(1.0)}.
 @kindex k a
 @pindex calc-random-again
 The @kbd{k a} (@code{calc-random-again}) command produces another random
-number, re-using the most recent value of @expr{M}.  With a numeric
+number, reusing the most recent value of @expr{M}.  With a numeric
 prefix argument @var{n}, it produces @var{n} more random numbers using
 that value of @expr{M}.
 

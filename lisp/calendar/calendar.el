@@ -2497,7 +2497,7 @@ ATTRLIST is a list with elements of the form :face face :foreground color."
     (if (not faceinfo)
         ;; No attributes to apply, so just use an existing-face.
         face
-      ;; FIXME should we be using numbered temp-faces, re-using where poss?
+      ;; FIXME should we be using numbered temp-faces, reusing where poss?
       (setq temp-face
             (make-symbol
              (concat ":caltemp"
