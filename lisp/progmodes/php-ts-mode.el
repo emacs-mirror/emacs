@@ -497,7 +497,7 @@ characters of the current line."
             (if (search-forward "</html>" end-html t 1)
                 0
               (+ (point) php-ts-mode-indent-offset))))
-      ;; forse è meglio usare bol, leggi la documentazione!!!
+      ;; Maybe it's better to use bol, read the documentation!!!
       (treesit-node-start parent))))
 
 (defun php-ts-mode--array-element-heuristic (_node parent _bol &rest _)
