@@ -1699,7 +1699,7 @@ LEVEL, decides of subtree visibility according to
      (point-min) (point-max)))
   (run-hooks 'outline-view-change-hook))
 
-(defun outline-hidden-headings-paths ()
+(defun outline--hidden-headings-paths ()
   "Return a hash with headings of currently hidden outlines.
 Every hash key is a list whose elements compose a complete path
 of headings descending from the top level down to the bottom level.
@@ -1729,10 +1729,10 @@ was located before reverting the buffer."
      (point-min) (point-max))
     (list paths current-path)))
 
-(defun outline-hidden-headings-restore-paths (paths current-path)
+(defun outline--hidden-headings-restore-paths (paths current-path)
   "Restore hidden outlines from a hash of hidden headings.
 This is useful after reverting the buffer to restore the outlines
-hidden by `outline-hidden-headings-paths'.  Also restore point
+hidden by `outline--hidden-headings-paths'.  Also restore point
 on the same outline where point was before reverting the buffer."
   (let (path current-point outline-view-change-hook)
     (outline-map-region
@@ -1753,11 +1753,11 @@ on the same outline where point was before reverting the buffer."
   "Preserve visibility when reverting buffer under `outline-minor-mode'.
 This function restores the visibility of outlines after the buffer
 under `outline-minor-mode' is reverted by `revert-buffer'."
-  (let ((paths (outline-hidden-headings-paths)))
+  (let ((paths (outline--hidden-headings-paths)))
     (unless (and (hash-table-empty-p (nth 0 paths))
                  (null (nth 1 paths)))
       (lambda ()
-        (outline-hidden-headings-restore-paths
+        (outline--hidden-headings-restore-paths
          (nth 0 paths) (nth 1 paths))))))
 
 (defun outline-revert-buffer-rehighlight ()
