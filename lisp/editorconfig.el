@@ -191,24 +191,6 @@ This hook will be run even when there are no matching sections in
   "Alist of indentation setting methods by modes."
   :risky t)
 
-(defcustom editorconfig-exclude-modes ()
-  "Modes in which `editorconfig-mode-apply' will not run."
-  :type '(repeat (symbol :tag "Major Mode"))
-  :group 'editorconfig)
-
-(defcustom editorconfig-exclude-regexps ()
-  "List of regexp for buffer filenames `editorconfig-mode-apply' will not run.
-
-When variable `buffer-file-name' matches any of the regexps, then
-`editorconfig-mode-apply' will not do its work."
-  :type '(repeat string)
-  :group 'editorconfig)
-(with-eval-after-load 'recentf
-  (add-to-list 'editorconfig-exclude-regexps
-               (rx-to-string '(seq string-start
-                                   (eval (expand-file-name recentf-save-file)))
-                             t)))
-
 (defcustom editorconfig-trim-whitespaces-mode nil
   "Buffer local minor-mode to use to trim trailing whitespaces.
 
@@ -244,23 +226,6 @@ number - `lisp-indent-offset' is not set only if indent_size is
   "Signal an `editorconfig-error'.
 Make a message by passing ARGS to `format-message'."
   (signal 'editorconfig-error (list (apply #'format-message args))))
-
-(defun editorconfig--disabled-for-filename (filename)
-  "Return non-nil when EditorConfig is disabled for FILENAME."
-  (cl-assert (stringp filename))
-  (cl-loop for regexp in editorconfig-exclude-regexps
-           if (string-match regexp filename) return t
-           finally return nil))
-
-(defun editorconfig--disabled-for-majormode (majormode)
-  "Return non-nil when Editorconfig is disabled for MAJORMODE."
-  (cl-assert majormode)
-  (or (provided-mode-derived-p majormode 'special-mode)
-      ;; Some special modes (like `archive-mode') are not derived from
-      ;; `special-mode'
-      (eq (get majormode 'mode-class) 'special)
-      (memq majormode
-            editorconfig-exclude-modes)))
 
 (defun editorconfig-string-integer-p (string)
   "Return non-nil if STRING represents integer."
@@ -495,8 +460,7 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
         (coding-system nil)
         (ret nil))
     (condition-case err
-        (when (and (stringp filename)
-                   (not (editorconfig--disabled-for-filename filename)))
+        (when (stringp filename)
           (setq props (editorconfig-call-get-properties-function filename))
           (setq coding-system
                 (editorconfig-merge-coding-systems (gethash 'end_of_line props)
@@ -515,9 +479,7 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
 
     (condition-case err
         (with-current-buffer ret
-          (when (and props
-                     ;; filename has already been checked
-                     (not (editorconfig--disabled-for-majormode major-mode)))
+          (when props
 
             ;; When file path indicates it is a remote file and it actually
             ;; does not exists, `buffer-file-coding-system' will not be set.
@@ -561,10 +523,7 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
 
 ;;;###autoload
 (define-minor-mode editorconfig-mode
-  "Toggle EditorConfig feature.
-
-To disable EditorConfig in some buffers, modify
-`editorconfig-exclude-modes' or `editorconfig-exclude-regexps'."
+  "Toggle EditorConfig feature."
   :global t
   :lighter editorconfig-mode-lighter
   (let ((modehooks '(prog-mode-hook

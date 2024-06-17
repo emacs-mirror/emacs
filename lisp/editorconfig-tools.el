@@ -80,10 +80,7 @@ This function does nothing when the major mode is listed in
 `editorconfig-exclude-modes', or variable `buffer-file-name' matches
 any of regexps in `editorconfig-exclude-regexps'."
   (interactive)
-  (when (and major-mode
-             (not (editorconfig--disabled-for-majormode major-mode))
-             buffer-file-name
-             (not (editorconfig--disabled-for-filename buffer-file-name)))
+  (when (and major-mode buffer-file-name)
     (editorconfig-apply)))
 
 
