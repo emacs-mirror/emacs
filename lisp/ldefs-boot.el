@@ -4899,6 +4899,7 @@ function symbol or a form, if the compilation was successful
 return the compiled function.
 
 (fn FUNCTION-OR-FILE &optional OUTPUT)")
+(function-put 'native-compile 'function-type '(function ((or string symbol) &optional string) (or native-comp-function string)))
 (autoload 'batch-native-compile "comp" "\
 Perform batch native compilation of remaining command-line arguments.
 
@@ -5003,7 +5004,7 @@ The variable `native-comp-async-jobs-number' specifies the number
 of (commands) to run simultaneously.
 
 (fn FILES &optional RECURSIVELY LOAD SELECTOR)")
-(register-definition-prefixes "comp-run" '("comp-" "native-comp"))
+(register-definition-prefixes "comp-run" '("comp-" "native-"))
 
 
 ;;; Generated autoloads from vc/compare-w.el
@@ -9808,16 +9809,6 @@ displayed." t)
 
 ;;; Generated autoloads from eshell/em-extpipe.el
 
-(defgroup eshell-extpipe nil "\
-Native shell pipelines.
-
-This module lets you construct pipelines that use your operating
-system's shell instead of Eshell's own pipelining support.  This
-is especially relevant when executing commands on a remote
-machine using Eshell's Tramp integration: using the remote
-shell's pipelining avoids copying the data which will flow
-through the pipeline to local Emacs buffers and then right back
-again." :tag "External pipelines" :group 'eshell-module)
 (register-definition-prefixes "em-extpipe" '("eshell-"))
 
 
@@ -9853,6 +9844,21 @@ again." :tag "External pipelines" :group 'eshell-module)
 
 ;;; Generated autoloads from eshell/em-script.el
 
+(autoload 'eshell-execute-file "em-script" "\
+Execute a series of Eshell commands in FILE, passing ARGS.
+If DESTINATION is t, write the command output to the current buffer.  If
+nil, don't write the output anywhere.  For any other value, output to
+the corresponding Eshell target (see `eshell-get-target').
+
+Comments begin with `#'.
+
+(fn FILE &optional ARGS DESTINATION)")
+(autoload 'eshell-batch-file "em-script" "\
+Execute an Eshell script as a batch script from the command line.
+Inside your Eshell script file, you can add the following at the
+top in order to make it into an executable script:
+
+  #!/usr/bin/env -S emacs --batch -f eshell-batch-file")
 (register-definition-prefixes "em-script" '("eshell"))
 
 
@@ -10415,7 +10421,7 @@ Look at CONFIG and try to expand GROUP.
 
 ;;; Generated autoloads from erc/erc.el
 
-(push (purecopy '(erc 5 6 -4)) package--builtin-versions)
+(push (purecopy '(erc 5 6)) package--builtin-versions)
 (dolist (symbol '( erc-sasl erc-spelling ; 29
                   erc-imenu erc-nicks)) ; 30
  (custom-add-load symbol symbol))
@@ -17700,7 +17706,7 @@ where FILE is the file from which to load the image, and DATA is a
 string containing the actual image data.  If the property `:type TYPE'
 is omitted or nil, try to determine the image type from its first few
 bytes of image data.  If that doesn't work, and the property `:file
-FILE' provide a file name, use its file extension as idication of the
+FILE' provide a file name, use its file extension as indication of the
 image type. If `:type TYPE' is provided, it must match the actual type
 determined for FILE or DATA by `create-image'.
 
@@ -18868,6 +18874,7 @@ resume interrupted spell-checking of a buffer or region.
 
 Interactively, in Transient Mark mode when the mark is active, call
 `ispell-region' to check the active region for spelling errors.
+Non-interactively, this happens if REGION is non-nil.
 
 Word syntax is controlled by the definition of the chosen dictionary,
 which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'.
@@ -18886,6 +18893,10 @@ quit          spell session exited.
 (autoload 'ispell-pdict-save "ispell" "\
 Check to see if the personal dictionary has been modified.
 If so, ask if it needs to be saved.
+If NO-QUERY is non-nil, save the personal dictionary without asking.
+Interactively, if `ispell-silently-savep' is non-nil, don't ask.
+If FORCE-SAVE is non-nil, suggest to save the personal dictionary even
+if not modified; this always happens interactively.
 
 (fn &optional NO-QUERY FORCE-SAVE)" t)
 (autoload 'ispell-help "ispell" "\
@@ -18894,23 +18905,23 @@ Display a list of the options available when a misspelling is encountered.
 Selections are:
 
 \\`0'..\\`9'  Replace the word with a digit offered in the *Choices* buffer.
-\\`SPC'   Accept word this time.
-\\`i'     Accept word and insert into private dictionary.
-\\`a'     Accept word for this session.
-\\`A'     Accept word and place in `buffer-local dictionary'.
-\\`r'     Replace word with typed-in value.  Rechecked.
-\\`R'     Replace word with typed-in value.  Query-replaced in buffer.  Rechecked.
-\\`?'     Show these commands.
-\\`x'     Exit spelling buffer.  Move cursor to original point.
-\\`X'     Exit spelling buffer.  Leaves cursor at the current point, and permits
-        the aborted check to be completed later.
-\\`q'     Quit spelling session (Kills ispell process).
-\\`l'     Look up typed-in replacement in alternate dictionary.  Wildcards okay.
-\\`u'     Like \\`i', but the word is lower-cased first.
-\\`m'     Place typed-in value in personal dictionary, then recheck current word.
-\\`C-l'   Redraw screen.
-\\`C-r'   Recursive edit.
-\\`C-z'   Suspend Emacs or iconify frame.")
+\\`SPC' Accept word this time.
+\\`i'   Accept word and insert into private dictionary.
+\\`a'   Accept word for this session.
+\\`A'   Accept word and place in `buffer-local dictionary'.
+\\`r'   Replace word with typed-in value.  Rechecked.
+\\`R'   Replace word with typed-in value.  Query-replaced in buffer.  Rechecked.
+\\`?'   Show these commands.
+\\`x'   Exit spelling buffer.  Move cursor to original point.
+\\`X'   Exit spelling buffer.  Leaves cursor at the current point, and permits
+         the aborted check to be completed later.
+\\`q'   Quit spelling session (Kills ispell process).
+\\`l'   Look up typed-in replacement in alternate dictionary.  Wildcards okay.
+\\`u'   Like \\`i', but the word is lower-cased first.
+\\`m'   Place typed-in value in personal dictionary, then recheck current word.
+\\`C-l' Redraw screen.
+\\`C-r' Recursive edit.
+\\`C-z' Suspend Emacs or iconify frame.")
 (autoload 'ispell-kill-ispell "ispell" "\
 Kill current Ispell process (so that you may start a fresh one).
 With NO-ERROR, just return non-nil if there was no Ispell running.
@@ -18919,14 +18930,14 @@ With CLEAR, buffer session localwords are cleaned.
 (fn &optional NO-ERROR CLEAR)" t)
 (autoload 'ispell-change-dictionary "ispell" "\
 Change to dictionary DICT for Ispell.
-With a prefix arg, set it \"globally\", for all buffers.
-Without a prefix arg, set it \"locally\", just for this buffer.
+If ARG is non-nil (interactively, the prefix arg), set it \"globally\",
+for all buffers.  Otherwise, set it \"locally\", just for this buffer.
 
-By just answering RET you can find out what the current dictionary is.
+By just answering RET you can find out the name of the current dictionary.
 
 (fn DICT &optional ARG)" t)
 (autoload 'ispell-region "ispell" "\
-Interactively check a region for spelling errors.
+Interactively check region between REG-START and REG-END for spelling errors.
 Leave the mark at the last misspelled word that the user was queried about.
 
 Return nil if spell session was terminated, otherwise returns shift offset
@@ -19024,7 +19035,7 @@ in your init file:
    (add-hook \\='mail-send-hook  #\\='ispell-message)
    (add-hook \\='mh-before-send-letter-hook #\\='ispell-message)
 
-You can bind this to the key C-c i in GNUS or mail by adding to
+You can bind this to a key in GNUS or mail by adding to
 `news-reply-mode-hook' or `mail-mode-hook' the following lambda expression:
    (lambda () (local-set-key \"\\C-ci\" \\='ispell-message))" t)
 (register-definition-prefixes "ispell" '("check-ispell-version" "ispell-"))
@@ -22631,7 +22642,7 @@ Many aspects this mode can be customized using
 
 ;;; Generated autoloads from org/ob-lilypond.el
 
-(register-definition-prefixes "ob-lilypond" '("lilypond-mode" "ob-lilypond-header-args" "org-babel-"))
+(register-definition-prefixes "ob-lilypond" '("ob-lilypond-header-args" "org-babel-"))
 
 
 ;;; Generated autoloads from org/ob-lisp.el
@@ -22726,7 +22737,7 @@ Many aspects this mode can be customized using
 
 ;;; Generated autoloads from org/ob-shell.el
 
-(register-definition-prefixes "ob-shell" '("org-babel-"))
+(register-definition-prefixes "ob-shell" '("ob-shell-async-" "org-babel-"))
 
 
 ;;; Generated autoloads from org/ob-sql.el
@@ -22933,7 +22944,7 @@ Coloring:
 
 ;;; Generated autoloads from org/org.el
 
-(push (purecopy '(org 9 6 15)) package--builtin-versions)
+(push (purecopy '(org 9 7 4)) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
 
@@ -23011,10 +23022,10 @@ If the file does not exist, throw an error.
 
 (fn PATH &optional IN-EMACS LINE SEARCH)")
 (autoload 'org-open-at-point-global "org" "\
-Follow a link or a time-stamp like Org mode does.
+Follow a link or a timestamp like Org mode does.
 Also follow links and emails as seen by `thing-at-point'.
 This command can be called in any mode to follow an external
-link or a time-stamp that has Org mode syntax.  Its behavior
+link or a timestamp that has Org mode syntax.  Its behavior
 is undefined when called on internal links like fuzzy links.
 Raise a user error when there is nothing to follow." t)
 (autoload 'org-offer-links-in-entry "org" "\
@@ -23463,7 +23474,7 @@ With `\\[universal-argument]' prefix ARG, switch to startup visibility.
 With a numeric prefix, show all headlines up to that level.
 
 (fn &optional ARG)" t)
-(register-definition-prefixes "org-cycle" '("org-cycle-"))
+(register-definition-prefixes "org-cycle" '("org-"))
 
 
 ;;; Generated autoloads from org/org-datetree.el
@@ -23479,6 +23490,11 @@ With a numeric prefix, show all headlines up to that level.
 ;;; Generated autoloads from org/org-element.el
 
 (register-definition-prefixes "org-element" '("org-element-"))
+
+
+;;; Generated autoloads from org/org-element-ast.el
+
+(register-definition-prefixes "org-element-ast" '("org-element-"))
 
 
 ;;; Generated autoloads from org/org-entities.el
@@ -23697,7 +23713,7 @@ This function is intended to be used in `outline-search-function'.
 
 ;;; Generated autoloads from org/ox-ascii.el
 
-(register-definition-prefixes "ox-ascii" '("org-ascii-"))
+(register-definition-prefixes "ox-ascii" '("org-"))
 
 
 ;;; Generated autoloads from org/ox-beamer.el
@@ -23707,7 +23723,7 @@ This function is intended to be used in `outline-search-function'.
 
 ;;; Generated autoloads from org/ox-html.el
 
-(register-definition-prefixes "ox-html" '("org-html-"))
+(register-definition-prefixes "ox-html" '("org-"))
 
 
 ;;; Generated autoloads from org/ox-icalendar.el
@@ -23824,7 +23840,7 @@ Return PDF file's name.
 
 ;;; Generated autoloads from org/ox-md.el
 
-(register-definition-prefixes "ox-md" '("org-md-"))
+(register-definition-prefixes "ox-md" '("org-"))
 
 
 ;;; Generated autoloads from org/ox-odt.el
@@ -23844,7 +23860,7 @@ Return PDF file's name.
 
 ;;; Generated autoloads from org/ox-texinfo.el
 
-(register-definition-prefixes "ox-texinfo" '("org-texinfo-"))
+(register-definition-prefixes "ox-texinfo" '("org-"))
 
 
 ;;; Generated autoloads from emacs-lisp/package.el
@@ -24881,6 +24897,44 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'.
 (register-definition-prefixes "pgtk-dnd" '("pgtk-dnd-"))
 
 
+;;; Generated autoloads from progmodes/php-ts-mode.el
+
+(autoload 'php-ts-mode "php-ts-mode" "\
+Major mode for editing PHP, powered by tree-sitter.
+
+(fn)" t)
+(autoload 'php-ts-mode-run-php-webserver "php-ts-mode" "\
+Run PHP built-in web server.
+
+PORT: Port number of built-in web server, default `php-ts-mode-ws-port'.
+Prompt for the port if the default value is nil.
+HOSTNAME: Hostname or IP address of Built-in web server,
+default `php-ts-mode-ws-hostname'.  Prompt for the hostname if the
+default value is nil.
+DOCUMENT-ROOT: Path to Document root, default `php-ts-mode-ws-document-root'.
+Prompt for the document-root if the default value is nil.
+ROUTER-SCRIPT: Path of the router PHP script,
+see `https://www.php.net/manual/en/features.commandline.webserver.php'
+NUM-OF-WORKERS: Before run the web server set the
+PHP_CLI_SERVER_WORKERS env variable useful for testing code against
+multiple simultaneous requests.
+
+Interactively, when invoked with prefix argument, always prompt
+for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT.
+
+(fn &optional PORT HOSTNAME DOCUMENT-ROOT ROUTER-SCRIPT NUM-OF-WORKERS)" t)
+(autoload 'run-php "php-ts-mode" "\
+Run an PHP interpreter as a inferior process.
+
+Arguments CMD an CONFIG, default to `php-ts-mode-php-executable'
+and `php-ts-mode-php-config' respectively, control which PHP interpreter is run.
+Prompt for CMD if `php-ts-mode-php-executable' is nil.
+Optional CONFIG, if supplied, is the php.ini file to use.
+
+(fn &optional CMD CONFIG)" t)
+(register-definition-prefixes "php-ts-mode" '("inferior-php-ts-mode" "php-ts-"))
+
+
 ;;; Generated autoloads from textmodes/picture.el
 
 (autoload 'picture-mode "picture" "\
@@ -25728,7 +25782,7 @@ Open profile FILENAME.
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push (purecopy '(project 0 11 0)) package--builtin-versions)
+(push (purecopy '(project 0 11 1)) package--builtin-versions)
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -33201,6 +33255,54 @@ Ding and select the window at EVENT, then activate the mark.  If
 word around EVENT; otherwise, set point to the location of EVENT.
 
 (fn EVENT)" t)
+(autoload 'touch-screen-translate-touch "touch-screen" "\
+Translate touch screen events into a sequence of mouse events.
+PROMPT is the prompt string given to `read-key-sequence', or nil
+if this function is being called from the keyboard command loop.
+Value is a new key sequence.
+
+Read the touch screen event within `current-key-remap-sequence'
+and give it to `touch-screen-handle-touch'.  Return any key
+sequence signaled.
+
+If `touch-screen-handle-touch' does not signal for an event to be
+returned after the last element of the key sequence is read,
+continue reading touch screen events until
+`touch-screen-handle-touch' signals.  Return a sequence
+consisting of the first event encountered that is not a touch
+screen event.
+
+In addition to non-touchscreen events read, key sequences
+returned may contain any one of the following events:
+
+  (touchscreen-scroll WINDOW DX DY)
+
+where WINDOW specifies a window to scroll, and DX and DY are
+integers describing how many pixels to be scrolled horizontally
+and vertically,
+
+  (touchscreen-hold POSN)
+  (touchscreen-drag POSN)
+
+where POSN is the position of the long-press or touchpoint
+motion,
+
+  (touchscreen-restart-drag POSN)
+
+where POSN is the position of the tap,
+
+  (down-mouse-1 POSN)
+  (drag-mouse-1 POSN)
+
+where POSN is the position of the mouse button press or click,
+
+  (mouse-1 POSN)
+  (mouse-2 POSN)
+
+where POSN is the position of the mouse click, either `mouse-2'
+if POSN is on a link or a button, or `mouse-1' otherwise.
+
+(fn PROMPT)")
 (autoload 'touch-screen-track-tap "touch-screen" "\
 Track a single tap starting from EVENT.
 EVENT should be a `touchscreen-begin' event.
@@ -37465,7 +37567,7 @@ Default value of MODIFIERS is `shift-super'.
 
 ;;; Generated autoloads from window-tool-bar.el
 
-(push (purecopy '(window-tool-bar 0 2)) package--builtin-versions)
+(push (purecopy '(window-tool-bar 0 2 1)) package--builtin-versions)
 (autoload 'window-tool-bar-string "window-tool-bar" "\
 Return a (propertized) string for the tool bar.
 
@@ -37979,9 +38081,9 @@ run a specific program.  The program must be a member of
 (provide 'loaddefs)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; version-control: never
 ;; no-update-autoloads: t
-;; no-byte-compile: t
 ;; no-native-compile: t
 ;; coding: utf-8-emacs-unix
 ;; End:
