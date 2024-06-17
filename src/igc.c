@@ -412,6 +412,15 @@ alloc_size (size_t nbytes)
   return nbytes;
 }
 
+/* Value is a hash to use for a newly allocated object. */
+
+static unsigned
+alloc_hash (void)
+{
+  static unsigned count = 0;
+  return count++;
+}
+
 /* This runs in various places for --enable-checking=igc_check_fwd.  See
    lisp.h, like XSYMBOL, XSTRING and alike. */
 
@@ -2919,15 +2928,6 @@ DEFUN ("igc--collect", Figc__collect, Sigc__collect, 0, 0, 0, doc
   return Qnil;
 }
 
-static unsigned
-obj_hash (void)
-{
-  static unsigned obj_count = 0;
-  if (obj_count == (1 << IGC_HASH_BITS))
-    obj_count = 0;
-  return obj_count++;
-}
-
 size_t
 igc_hash (Lisp_Object key)
 {
@@ -2974,31 +2974,41 @@ igc_hash (Lisp_Object key)
   return word & IGC_HASH_MASK;
 }
 
+/* Allocate an object of client size SIZE and of type TYPE from
+   allocation point AP. Value is a pointer to the client area of the new
+   object. */
+
 static mps_addr_t
 alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
 {
-  mps_addr_t p, obj;
+  mps_addr_t p;
   size = alloc_size (size);
   do
     {
       mps_res_t res = mps_reserve (&p, ap, size);
-      if (res)
+      if (res != MPS_RES_OK)
 	memory_full (0);
-      // Object _must_ have valid contents before commit
+      /* Object _must_ have valid contents before commit. */
       memclear (p, size);
-      struct igc_header *h = p;
-      set_header (h, type, size, obj_hash ());
-      obj = base_to_client (p);
+      set_header (p, type, size, alloc_hash ());
     }
   while (!mps_commit (ap, p, size));
-  return obj;
+  return base_to_client (p);
 }
+
+/* Allocate an object of client size SIZE and of type TYPE from a
+   type-dependent allocation point. Value is a pointer to the client
+   area of the new object. */
 
 static mps_addr_t
 alloc (size_t size, enum igc_obj_type type)
 {
   return alloc_impl (size, type, thread_ap (type));
 }
+
+/* Allocate an object of client size SIZE and of type TYPE from MPS in a
+   way tnat ensure that the object will not move in memory. Value is a
+   pointer to the client area of the new object. */
 
 static mps_addr_t
 alloc_immovable (size_t size, enum igc_obj_type type)
