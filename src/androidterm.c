@@ -926,11 +926,11 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	    XSETFRAME (inev.ie.frame_or_window, f);
 	  }
 
-      if (f && FRAME_OUTPUT_DATA (f)->need_cursor_updates)
-	{
-	  w = XWINDOW (f->selected_window);
-	  android_set_preeditarea (w, w->cursor.x, w->cursor.y);
-	}
+	if (f && FRAME_OUTPUT_DATA (f)->need_cursor_updates)
+	  {
+	    w = XWINDOW (f->selected_window);
+	    android_set_preeditarea (w, w->cursor.x, w->cursor.y);
+	  }
       }
 
       goto OTHER;
