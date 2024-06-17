@@ -1751,6 +1751,7 @@ functions undertaking event management themselves to call
 
 (put 'mouse-drag-region 'ignored-mouse-command t)
 
+;;;###autoload
 (defun touch-screen-translate-touch (prompt)
   "Translate touch screen events into a sequence of mouse events.
 PROMPT is the prompt string given to `read-key-sequence', or nil
