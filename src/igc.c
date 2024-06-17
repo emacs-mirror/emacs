@@ -3710,14 +3710,29 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
   if (client == NULL)
     return end;
 
+  bool is_in_dump;
+  switch (type)
+    {
+    case IGC_OBJ_DUMPED_FWD:
+    case IGC_OBJ_DUMPED_CHARSET_TABLE:
+    case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
+    case IGC_OBJ_DUMPED_BUFFER_TEXT:
+    case IGC_OBJ_DUMPED_BYTES:
+      is_in_dump = true;
+      break;
+
+    default:
+      is_in_dump = false;
+      break;
+    }
+
   struct igc_header *out = (struct igc_header *) base;
-  if (is_mps (client))
+  if (is_mps (client) && !is_in_dump)
     {
       struct igc_header *h = client_to_base (client);
       if (h->obj_type == IGC_OBJ_VECTOR_WEAK)
-	igc_assert (
-	  (type == IGC_OBJ_VECTOR && h->obj_type == IGC_OBJ_VECTOR_WEAK)
-	  || h->obj_type == type);
+	igc_assert ((type == IGC_OBJ_VECTOR && h->obj_type == IGC_OBJ_VECTOR_WEAK)
+		    || h->obj_type == type);
       igc_assert (base + obj_size (h) >= end);
       *out = *h;
       return base + obj_size (h);
