@@ -522,7 +522,6 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
 (define-minor-mode editorconfig-mode
   "Toggle EditorConfig feature."
   :global t
-  :lighter editorconfig-mode-lighter
   (let ((modehooks '(prog-mode-hook
                      text-mode-hook
                      read-only-mode-hook
