@@ -36,6 +36,7 @@
 
 (eval-when-compile (require 'subr-x))
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'autorevert))
 ;; When bootstrapping dired-loaddefs has not been generated.
 (require 'dired-loaddefs nil t)
 (require 'dnd)
@@ -4015,7 +4016,11 @@ non-empty directories is allowed."
               (dired-move-to-filename)
 	      (let ((inhibit-read-only t))
 		(condition-case err
-		    (let ((fn (car (car l))))
+		    (let ((fn (car (car l)))
+                          ;; Temporarily prevent auto-revert while
+                          ;; deleting entry in the dired buffer
+                          ;; (bug#71264).
+                          (auto-revert-mode nil))
 		      (dired-delete-file fn dired-recursive-deletes trash)
 		      ;; if we get here, removing worked
 		      (setq succ (1+ succ))
