@@ -65,52 +65,6 @@ coding styles between different editors and IDEs."
   :group 'tools)
 
 (define-obsolete-variable-alias
-  'edconf-exec-path
-  'editorconfig-exec-path
-  "0.5")
-(defcustom editorconfig-exec-path
-  "editorconfig"
-  "Path to EditorConfig executable.
-
-Used by `editorconfig--execute-editorconfig-exec'."
-  :type 'string
-  :group 'editorconfig)
-
-(define-obsolete-variable-alias
-  'edconf-get-properties-function
-  'editorconfig-get-properties-function
-  "0.5")
-(defcustom editorconfig-get-properties-function
-  'editorconfig-core-get-properties-hash
-  "A function which gets EditorConfig properties for specified file.
-
-This function will be called with one argument, full path of the target file,
-and should return a hash object containing properties, or nil if any core
-program is not available.  Keys of this hash should be symbols of properties,
-and values should be strings of their values.
-
-
-For example, if you always want to use built-in core library instead
-of any EditorConfig executable to get properties, add following to
-your init.el:
-
-  (set-variable \\='editorconfig-get-properties-function
-                #\\='editorconfig-core-get-properties-hash)
-
-Possible known values are:
-
-* `editorconfig-core-get-properties-hash' (default)
-  * Always use built-in Emacs-Lisp implementation to get properties
-* `editorconfig-get-properties'
-  * Use `editorconfig-get-properties-from-exec' when
-    `editorconfig-exec-path' executable is found, otherwise
-    use `editorconfig-core-get-properties-hash'
-* `editorconfig-get-properties-from-exec'
-  * Get properties by executing EditorConfig executable"
-  :type 'function
-  :group 'editorconfig)
-
-(define-obsolete-variable-alias
   'edconf-custom-hooks
   'editorconfig-after-apply-functions
   "0.5")
@@ -462,76 +416,19 @@ to non-nil when FINAL-NEWLINE is true."
              (> (string-to-number length) 0))
     (setq fill-column (string-to-number length))))
 
-
-(defun editorconfig--execute-editorconfig-exec (filename)
-  "Execute EditorConfig core with FILENAME and return output."
-  (if filename
-      (with-temp-buffer
-        (let ((remote (file-remote-p filename))
-              (remote-localname (file-remote-p filename
-                                               'localname)))
-          (display-warning '(editorconfig editorconfig--execute-editorconfig-exec)
-                           (format "editorconfig--execute-editorconfig-exec: filename: %S | remote: %S | remote-localname: %S"
-                                   filename
-                                   remote
-                                   remote-localname)
-                           :debug)
-          (if remote
-              (progn
-                (cd (concat remote "/"))
-                (setq filename remote-localname))
-            (cd "/")))
-        (display-warning '(editorconfig editorconfig--execute-editorconfig-exec)
-                         (format "editorconfig--execute-editorconfig-exec: default-directory: %S | filename: %S"
-                                 default-directory
-                                 filename
-                                 )
-                         :debug)
-        (if (eq 0
-                (process-file editorconfig-exec-path nil t nil filename))
-            (buffer-string)
-          (editorconfig-error (buffer-string))))
-    ""))
-
-(defun editorconfig--parse-properties (props-string)
-  )
-
-(defun editorconfig-get-properties-from-exec (filename)
-  "Get EditorConfig properties of file FILENAME.
-
-This function uses value of `editorconfig-exec-path' to get properties."
-  (if (executable-find editorconfig-exec-path)
-      (editorconfig--parse-properties (editorconfig--execute-editorconfig-exec filename))
-    (editorconfig-error "Unable to find editorconfig executable")))
-
-(defun editorconfig-get-properties (filename)
-  "Get EditorConfig properties for file FILENAME.
-
-It calls `editorconfig-get-properties-from-exec' if
-`editorconfig-exec-path' is found, otherwise
-`editorconfig-core-get-properties-hash'."
-  (if (and (executable-find editorconfig-exec-path)
-           (not (file-remote-p filename)))
-      (editorconfig-get-properties-from-exec filename)
-    (require 'editorconfig-core)
-    (editorconfig-core-get-properties-hash filename)))
-
 (defun editorconfig-call-get-properties-function (filename)
-  "Call `editorconfig-get-properties-function' with FILENAME and return result.
+  "Call `editorconfig-core-get-properties-hash' with FILENAME and return result.
 
 This function also removes `unset' properties and calls
 `editorconfig-hack-properties-functions'."
-  (unless (functionp editorconfig-get-properties-function)
-    (editorconfig-error "Invalid editorconfig-get-properties-function value"))
   (if (stringp filename)
       (setq filename (expand-file-name filename))
     (editorconfig-error "Invalid argument: %S" filename))
   (let ((props nil))
     (condition-case err
-        (setq props (funcall editorconfig-get-properties-function
-                             filename))
+        (setq props (editorconfig-core-get-properties-hash filename))
       (error
-       (editorconfig-error "Error from editorconfig-get-properties-function: %S"
+       (editorconfig-error "Error from editorconfig-core-get-properties-hash: %S"
                            err)))
     (cl-loop for k being the hash-keys of props using (hash-values v)
              when (equal v "unset") do (remhash k props))
