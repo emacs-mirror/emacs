@@ -1265,10 +1265,12 @@ After calling DISPLAY-FUNCTION, set window point to the point specified
 by BOOKMARK-NAME-OR-RECORD, if necessary, run `bookmark-after-jump-hook',
 and then show any annotations for this bookmark."
   (bookmark-handle-bookmark bookmark-name-or-record)
-  (save-current-buffer
-    (funcall display-function (current-buffer)))
-  (let ((win (get-buffer-window (current-buffer) 0)))
-    (if win (set-window-point win (point))))
+  ;; Store `point' now, because `display-function' might change it.
+  (let ((point (point)))
+    (save-current-buffer
+      (funcall display-function (current-buffer)))
+    (let ((win (get-buffer-window (current-buffer) 0)))
+      (if win (set-window-point win point))))
   ;; FIXME: we used to only run bookmark-after-jump-hook in
   ;; `bookmark-jump' itself, but in none of the other commands.
   (when bookmark-fringe-mark
