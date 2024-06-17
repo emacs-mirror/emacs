@@ -4633,6 +4633,8 @@ redirect_roots (struct igc_mirror *m)
 
 /* Copy the dump [START, END) to MPS, and discard it. */
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static void
 mirror_dump (void *start, void *end)
 {
@@ -4767,6 +4769,7 @@ gap_it_next (void **gap_end, struct gap_it *it)
     }
 }
 
+#if 0
 void
 print_gaps (size_t start, size_t len)
 {
@@ -4783,6 +4786,7 @@ print_gaps (size_t start, size_t len)
 	       len);
     }
 }
+#endif
 
 
 /***********************************************************************
