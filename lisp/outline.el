@@ -1704,49 +1704,61 @@ LEVEL, decides of subtree visibility according to
 Every hash key is a list whose elements compose a complete path
 of headings descending from the top level down to the bottom level.
 This is useful to save the hidden outlines and restore them later
-after reverting the buffer."
-  (let ((paths (make-hash-table :test #'equal))
-        current-path)
+after reverting the buffer.  Also return the outline where point
+was located before reverting the buffer."
+  (let* ((paths (make-hash-table :test #'equal))
+         path current-path
+         (current-heading-p (outline-on-heading-p))
+         (current-beg (when current-heading-p (pos-bol)))
+         (current-end (when current-heading-p (pos-eol))))
     (outline-map-region
      (lambda ()
        (let* ((level (funcall outline-level))
               (heading (buffer-substring-no-properties (pos-bol) (pos-eol))))
-         (while (and current-path (>= (cdar current-path) level))
-           (pop current-path))
-         (push (cons heading level) current-path)
+         (while (and path (>= (cdar path) level))
+           (pop path))
+         (push (cons heading level) path)
          (when (save-excursion
                  (outline-end-of-heading)
                  (seq-some (lambda (o) (eq (overlay-get o 'invisible)
                                            'outline))
                            (overlays-at (point))))
-           (setf (gethash (mapcar #'car current-path) paths) t))))
+           (setf (gethash (mapcar #'car path) paths) t))
+         (when (and current-heading-p (<= current-beg (point) current-end))
+           (setq current-path (mapcar #'car path)))))
      (point-min) (point-max))
-    paths))
+    (list paths current-path)))
 
-(defun outline-hidden-headings-restore-paths (paths)
+(defun outline-hidden-headings-restore-paths (paths current-path)
   "Restore hidden outlines from a hash of hidden headings.
 This is useful after reverting the buffer to restore the outlines
-hidden by `outline-hidden-headings-paths'."
-  (let (current-path outline-view-change-hook)
+hidden by `outline-hidden-headings-paths'.  Also restore point
+on the same outline where point was before reverting the buffer."
+  (let (path current-point outline-view-change-hook)
     (outline-map-region
      (lambda ()
        (let* ((level (funcall outline-level))
               (heading (buffer-substring (pos-bol) (pos-eol))))
-         (while (and current-path (>= (cdar current-path) level))
-           (pop current-path))
-         (push (cons heading level) current-path)
-         (when (gethash (mapcar #'car current-path) paths)
-           (outline-hide-subtree))))
-     (point-min) (point-max))))
+         (while (and path (>= (cdar path) level))
+           (pop path))
+         (push (cons heading level) path)
+         (when (gethash (mapcar #'car path) paths)
+           (outline-hide-subtree))
+         (when (and current-path (equal current-path (mapcar #'car path)))
+           (setq current-point (point)))))
+     (point-min) (point-max))
+    (when current-point (goto-char current-point))))
 
 (defun outline-revert-buffer-restore-visibility ()
   "Preserve visibility when reverting buffer under `outline-minor-mode'.
 This function restores the visibility of outlines after the buffer
 under `outline-minor-mode' is reverted by `revert-buffer'."
   (let ((paths (outline-hidden-headings-paths)))
-    (unless (hash-table-empty-p paths)
+    (unless (and (hash-table-empty-p (nth 0 paths))
+                 (null (nth 1 paths)))
       (lambda ()
-        (outline-hidden-headings-restore-paths paths)))))
+        (outline-hidden-headings-restore-paths
+         (nth 0 paths) (nth 1 paths))))))
 
 (defun outline-revert-buffer-rehighlight ()
   "Rehighlight outlines when reverting buffer under `outline-minor-mode'.
