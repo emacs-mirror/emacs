@@ -2383,6 +2383,51 @@ dump_fwd (struct dump_context *ctx, lispfwd fwd)
     }
 }
 
+static void
+dump_field_fwd (struct dump_context *ctx, void *out, const void *in_start,
+		const lispfwd *in_field)
+{
+  dump_field_emacs_ptr (ctx, out, in_start, in_field);
+  switch (XFWDTYPE (*in_field))
+    {
+    case Lisp_Fwd_Int:
+      {
+	const struct Lisp_Intfwd *fwd = in_field->fwdptr;
+	dump_emacs_reloc_immediate_intmax_t (ctx, fwd->intvar, *fwd->intvar);
+      }
+      break;
+    case Lisp_Fwd_Bool:
+      {
+	const struct Lisp_Boolfwd *fwd = in_field->fwdptr;
+	dump_emacs_reloc_immediate_bool (ctx, fwd->boolvar, *fwd->boolvar);
+      }
+      break;
+    case Lisp_Fwd_Obj:
+      {
+	const struct Lisp_Objfwd *fwd = in_field->fwdptr;
+	if (NILP (Fgethash (dump_off_to_lisp (emacs_offset (fwd->objvar)),
+			    ctx->staticpro_table, Qnil)))
+	  dump_emacs_reloc_to_lv (ctx, fwd->objvar, *fwd->objvar);
+      }
+      break;
+    case Lisp_Fwd_Kboard_Obj:
+      break;
+    case Lisp_Fwd_Buffer_Obj:
+      {
+	const struct Lisp_Buffer_Objfwd *fwd = in_field->fwdptr;
+	dump_emacs_reloc_immediate (ctx, &fwd->type, &fwd->type,
+				    sizeof fwd->type);
+	dump_emacs_reloc_immediate (ctx, &fwd->offset, &fwd->offset,
+				    sizeof fwd->offset);
+	eassert (SYMBOLP (fwd->predicate));
+	/* FIXME: assumes symbols are represented as offsets from lispsym */
+	dump_emacs_reloc_immediate (ctx, &fwd->predicate, &fwd->predicate,
+				    sizeof fwd->predicate);
+      }
+      break;
+    }
+}
+
 static dump_off
 dump_blv (struct dump_context *ctx,
           const struct Lisp_Buffer_Local_Value *blv)
@@ -2397,14 +2442,12 @@ dump_blv (struct dump_context *ctx,
   if (blv->fwd.fwdptr)
     {
       eassert (XFWDTYPE (blv->fwd) != Lisp_Fwd_Buffer_Obj);
-      dump_field_emacs_ptr (ctx, &out, blv, &blv->fwd.fwdptr);
+      dump_field_fwd (ctx, &out, blv, &blv->fwd);
     }
   dump_field_lv (ctx, &out, blv, &blv->where, WEIGHT_NORMAL);
   dump_field_lv (ctx, &out, blv, &blv->defcell, WEIGHT_STRONG);
   dump_field_lv (ctx, &out, blv, &blv->valcell, WEIGHT_STRONG);
   dump_off offset = dump_object_finish (ctx, &out, sizeof (out));
-  if (blv->fwd.fwdptr)
-    dump_fwd (ctx, blv->fwd);
   return offset;
 }
 
@@ -2445,11 +2488,6 @@ dump_pre_dump_symbol (struct dump_context *ctx, struct Lisp_Symbol *symbol)
     case SYMBOL_LOCALIZED:
       dump_remember_symbol_aux (ctx, symbol_lv,
 				dump_blv (ctx, symbol->u.s.val.blv));
-      break;
-    case SYMBOL_FORWARDED:
-      dump_fwd (ctx, symbol->u.s.val.fwd);
-      dump_remember_symbol_aux (ctx, symbol_lv,
-				emacs_offset (symbol->u.s.val.fwd.fwdptr));
       break;
     default:
       break;
@@ -2515,11 +2553,7 @@ dump_symbol (struct dump_context *ctx, Lisp_Object object,
       dump_field_fixup_later (ctx, &out, symbol, &symbol->u.s.val.blv);
       break;
     case SYMBOL_FORWARDED:
-      /* This forwarding descriptor is in Emacs's core, but the symbol
-	 is initialized at runtime.  The next switch statement might
-	 dump this value if it hasn't already been dumped by
-	 dump_pre_dump_symbol.  */
-      dump_field_emacs_ptr (ctx, &out, symbol, &symbol->u.s.val.fwd.fwdptr);
+      dump_field_fwd (ctx, &out, symbol, &symbol->u.s.val.fwd);
       break;
 
     default:
@@ -2540,15 +2574,6 @@ dump_symbol (struct dump_context *ctx, Lisp_Object object,
 				   (aux_offset
 				    ? aux_offset
 				    : dump_blv (ctx, symbol->u.s.val.blv)));
-      break;
-    case SYMBOL_FORWARDED:
-      aux_offset = dump_recall_symbol_aux (ctx, make_lisp_symbol (symbol));
-      /* Symbols interned by a defvar are not copied objects.  */
-      if (!aux_offset)
-	dump_fwd (ctx, symbol->u.s.val.fwd);
-      if (aux_offset && (aux_offset
-			 != emacs_offset (symbol->u.s.val.fwd.fwdptr)))
-	emacs_abort ();
       break;
     default:
       break;
