@@ -2355,125 +2355,6 @@ dump_float (struct dump_context *ctx, const struct Lisp_Float *lfloat)
   return dump_object_finish (ctx, &out, sizeof (out));
 }
 
-static dump_off
-dump_fwd_int (struct dump_context *ctx, const struct Lisp_Intfwd *intfwd)
-{
-#if CHECK_STRUCTS && !defined HASH_Lisp_Intfwd_4D887A7387
-# error "Lisp_Intfwd changed. See CHECK_STRUCTS comment in config.h."
-#endif
-  dump_emacs_reloc_immediate_intmax_t (ctx, intfwd->intvar, *intfwd->intvar);
-  struct Lisp_Intfwd out;
-  //dump_object_start_1 (ctx, &out, sizeof (out));
-  dump_object_start (ctx, intfwd, IGC_OBJ_DUMPED_FWD, &out, sizeof (out));
-  DUMP_FIELD_COPY (&out, intfwd, type);
-  dump_field_emacs_ptr (ctx, &out, intfwd, &intfwd->intvar);
-  //return dump_object_finish_1 (ctx, &out, sizeof (out));
-  return dump_object_finish (ctx, &out, sizeof (out));
-}
-
-static dump_off
-dump_fwd_bool (struct dump_context *ctx, const struct Lisp_Boolfwd *boolfwd)
-{
-#if CHECK_STRUCTS && !defined(HASH_Lisp_Boolfwd_0EA1C7ADCC)
-#error "Lisp_Boolfwd changed. See CHECK_STRUCTS comment in config.h."
-#endif
-  dump_emacs_reloc_immediate_bool (ctx, boolfwd->boolvar, *boolfwd->boolvar);
-  struct Lisp_Boolfwd out;
-  // dump_object_start_1 (ctx, &out, sizeof (out));
-  dump_object_start (ctx, boolfwd, IGC_OBJ_DUMPED_FWD, &out, sizeof (out));
-  DUMP_FIELD_COPY (&out, boolfwd, type);
-  dump_field_emacs_ptr (ctx, &out, boolfwd, &boolfwd->boolvar);
-  // return dump_object_finish_1 (ctx, &out, sizeof (out));
-  return dump_object_finish (ctx, &out, sizeof (out));
-}
-
-static dump_off
-dump_fwd_obj (struct dump_context *ctx, const struct Lisp_Objfwd *objfwd)
-{
-#if CHECK_STRUCTS && !defined(HASH_Lisp_Objfwd_45D3E513DC)
-#error "Lisp_Objfwd changed. See CHECK_STRUCTS comment in config.h."
-#endif
-  if (NILP (Fgethash (dump_off_to_lisp (emacs_offset (objfwd->objvar)),
-		      ctx->staticpro_table, Qnil)))
-    dump_emacs_reloc_to_lv (ctx, objfwd->objvar, *objfwd->objvar);
-  struct Lisp_Objfwd out;
-  // dump_object_start_1 (ctx, &out, sizeof (out));
-  dump_object_start (ctx, objfwd, IGC_OBJ_DUMPED_FWD, &out, sizeof (out));
-  DUMP_FIELD_COPY (&out, objfwd, type);
-  dump_field_emacs_ptr (ctx, &out, objfwd, &objfwd->objvar);
-  // return dump_object_finish_1 (ctx, &out, sizeof (out));
-  return dump_object_finish (ctx, &out, sizeof (out));
-}
-
-static dump_off
-dump_fwd_buffer_obj (struct dump_context *ctx,
-		     const struct Lisp_Buffer_Objfwd *buffer_objfwd)
-{
-#if CHECK_STRUCTS && !defined(HASH_Lisp_Buffer_Objfwd_611EBD13FF)
-#error "Lisp_Buffer_Objfwd changed. See CHECK_STRUCTS comment in config.h."
-#endif
-  struct Lisp_Buffer_Objfwd out;
-  // dump_object_start_1 (ctx, &out, sizeof (out));
-  dump_object_start (ctx, buffer_objfwd, IGC_OBJ_DUMPED_FWD, &out,
-		     sizeof (out));
-  DUMP_FIELD_COPY (&out, buffer_objfwd, type);
-  DUMP_FIELD_COPY (&out, buffer_objfwd, offset);
-  dump_field_lv (ctx, &out, buffer_objfwd, &buffer_objfwd->predicate,
-		 WEIGHT_NORMAL);
-  //return dump_object_finish_1 (ctx, &out, sizeof (out));
-  return dump_object_finish (ctx, &out, sizeof (out));
-}
-
-static dump_off
-dump_fwd_kboard_obj (struct dump_context *ctx,
-		     const struct Lisp_Kboard_Objfwd *kboard_objfwd)
-{
-#if CHECK_STRUCTS && !defined(HASH_Lisp_Kboard_Objfwd_CAA7E71069)
-#error "Lisp_Intfwd changed. See CHECK_STRUCTS comment in config.h."
-#endif
-  struct Lisp_Kboard_Objfwd out;
-  // dump_object_start_1 (ctx, &out, sizeof (out));
-  dump_object_start (ctx, kboard_objfwd, IGC_OBJ_DUMPED_FWD, &out,
-		     sizeof (out));
-  DUMP_FIELD_COPY (&out, kboard_objfwd, type);
-  DUMP_FIELD_COPY (&out, kboard_objfwd, offset);
-  // return dump_object_finish_1 (ctx, &out, sizeof (out));
-  return dump_object_finish (ctx, &out, sizeof (out));
-}
-
-static dump_off
-dump_fwd (struct dump_context *ctx, lispfwd fwd)
-{
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Fwd_Type_9CBA6EE55E)
-# error "Lisp_Fwd_Type changed. See CHECK_STRUCTS comment in config.h."
-#endif
-  void const *p = fwd.fwdptr;
-  dump_off offset;
-
-  switch (XFWDTYPE (fwd))
-    {
-    case Lisp_Fwd_Int:
-      offset = dump_fwd_int (ctx, p);
-      break;
-    case Lisp_Fwd_Bool:
-      offset = dump_fwd_bool (ctx, p);
-      break;
-    case Lisp_Fwd_Obj:
-      offset = dump_fwd_obj (ctx, p);
-      break;
-    case Lisp_Fwd_Buffer_Obj:
-      offset = dump_fwd_buffer_obj (ctx, p);
-      break;
-    case Lisp_Fwd_Kboard_Obj:
-      offset = dump_fwd_kboard_obj (ctx, p);
-      break;
-    default:
-      emacs_abort ();
-    }
-
-  return offset;
-}
-
 static void
 dump_field_fwd (struct dump_context *ctx, void *out, const void *in_start,
 		const lispfwd *in_field)
@@ -4798,6 +4679,7 @@ dump_anonymous_allocate_w32 (void *base,
 #  define MAP_ANONYMOUS MAP_ANON
 # endif
 
+#ifndef HAVE_MPS
 static void *
 dump_anonymous_allocate_posix (void *base,
                                size_t size,
@@ -4849,8 +4731,10 @@ dump_anonymous_allocate_posix (void *base,
   return ret;
 }
 #endif
+#endif
 
 /* Perform anonymous memory allocation.  */
+#ifndef HAVE_MPS
 static void *
 dump_anonymous_allocate (void *base,
                          const size_t size,
@@ -4884,6 +4768,8 @@ dump_anonymous_release (void *addr, size_t size)
   emacs_abort ();
 #endif
 }
+
+#endif /* no HAVE_MPS */
 
 #if VM_SUPPORTED == VM_MS_WINDOWS
 static void *
@@ -4960,7 +4846,7 @@ dump_map_file_w32 (void *base, int fd, off_t offset, size_t size,
 }
 #endif
 
-#if VM_SUPPORTED == VM_POSIX
+#if VM_SUPPORTED == VM_POSIX && !defined HAVE_MPS
 static void *
 dump_map_file_posix (void *base, int fd, off_t offset, size_t size,
 		     enum dump_memory_protection protection)
@@ -4998,6 +4884,7 @@ dump_map_file_posix (void *base, int fd, off_t offset, size_t size,
 #endif
 
 /* Map a file into memory.  */
+#ifndef HAVE_MPS
 static void *
 dump_map_file (void *base, int fd, off_t offset, size_t size,
 	       enum dump_memory_protection protection)
@@ -5033,6 +4920,8 @@ dump_unmap_file (void *addr, size_t size)
     emacs_abort ();
 #endif
 }
+
+# endif /* not HAVE_MPS */
 
 struct dump_memory_map_spec
 {
@@ -5103,6 +4992,7 @@ struct dump_memory_map_heap_control_block
   void *mem;
 };
 
+#ifndef HAVE_MPS
 static void
 dump_mm_heap_cb_release (struct dump_memory_map_heap_control_block *cb)
 {
@@ -5175,6 +5065,7 @@ dump_mmap_contiguous_heap (struct dump_memory_map *maps, int nr_maps,
       dump_mmap_release (&maps[i]);
   return ret;
 }
+#endif
 
 #ifdef HAVE_MPS
 
@@ -5217,7 +5108,8 @@ dump_mmap_contiguous_mps (struct dump_memory_map *maps, int nr_maps,
     }
   return true;
 }
-#endif
+
+#else /* not HAVE_MPS */
 
 static void
 dump_mmap_release_vm (struct dump_memory_map *map)
@@ -5324,7 +5216,8 @@ dump_mmap_contiguous_vm (struct dump_memory_map *maps, int nr_maps,
 	}
     }
   return ret;
-}
+ }
+#endif
 
 /* Map a range of addresses into a chunk of contiguous memory.
 
