@@ -74,8 +74,7 @@ Slots:
   Last modified time of .editorconfig file.
 
 `path'
-  Absolute path to .editorconfig file.'
-"
+  Absolute path to .editorconfig file."
   (top-props nil)
   (sections nil)
   (mtime nil)

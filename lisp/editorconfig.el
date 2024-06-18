@@ -1,4 +1,4 @@
-;;; editorconfig.el --- EditorConfig Emacs Plugin  -*- lexical-binding: t -*-
+;;; editorconfig.el --- EditorConfig Plugin  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2024  Free Software Foundation, Inc.
 
@@ -182,7 +182,7 @@ This hook will be run even when there are no matching sections in
     (web-mode . editorconfig--get-indentation-web-mode)
     (zig-mode zig-indent-offset)
     )
-  "Alist of indentation setting methods by modes
+  "Alist of indentation setting methods by modes.
 
 This is a fallback used for those modes which don't set
 `editorconfig-indent-size-vars'.
