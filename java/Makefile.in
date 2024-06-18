@@ -345,7 +345,7 @@ emacs.apk-in: install_temp AndroidManifest.xml classes.dex
 	    | xargs $(ZIP) ../$@ &> /dev/null;			\
 	  echo "Packaging files already compressed...">&2;	\
 	  cd assets_gz; find assets -type f			\
-	    | xargs $(ZIP) ../../$@ &> /dev/null;		\
+	    | xargs $(ZIP) -0 ../../$@ &> /dev/null;		\
 	  echo "Packaging shared libraries and code..." >&2;	\
 	  cd ..; $(ZIP) ../$@ `find lib -type f`;		\
 	fi
