@@ -124,7 +124,7 @@ of the which-key popup."
   :type 'integer
   :package-version "1.0" :version "30.1")
 
-(defcustom which-key-dont-use-unicode nil
+(defcustom which-key-dont-use-unicode t
   "If non-nil, don't use any unicode characters in default setup.
 For affected settings, see `which-key-replacement-alist', `which-key-ellipsis'
 `which-key-separator'."
@@ -137,6 +137,7 @@ For affected settings, see `which-key-replacement-alist', `which-key-ellipsis'
 Default is \" → \", unless `which-key-dont-use-unicode' is non
 nil, in which case the default is \" : \"."
   :type 'string
+  :set-after '(which-key-dont-use-unicode)
   :package-version "1.0" :version "30.1")
 
 (defcustom which-key-ellipsis
@@ -146,6 +147,7 @@ Default is \"…\", unless `which-key-dont-use-unicode' is non nil,
 in which case the default is \"..\".  This can also be the empty
 string to truncate without using any ellipsis."
   :type 'string
+  :set-after '(which-key-dont-use-unicode)
   :package-version "1.0" :version "30.1")
 
 (defcustom which-key-prefix-prefix "+"
