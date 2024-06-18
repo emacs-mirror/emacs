@@ -127,7 +127,6 @@ static bool
 is_mps (const mps_addr_t addr)
 {
   return addr >= min_addr && addr < max_addr
-    //&& !pdumper_object_p (addr)
     && !c_symbol_p (addr) && !is_pure (addr);
 }
 
@@ -2395,9 +2394,10 @@ igc_realloc_ambig (void *block, size_t size)
 void
 igc_xfree (void *p)
 {
-  if (p == NULL
-      // || pdumper_object_p (p)
-      )
+  /* Check for pdumper_object_p here because xfree does the same.  Means
+     that freeing something that is actually in the dump is not an
+     error. Make the same true if the dump is loaded into MPS memory. */
+  if (p == NULL || pdumper_object_p (p))
     return;
   struct igc_root_list *r = root_find (p);
   igc_assert (r != NULL);
@@ -2959,9 +2959,7 @@ igc_hash (Lisp_Object key)
     }
 
   /* Objects in the The dump have igc_headers, too. */
-  if (is_mps (client)
-      //|| pdumper_object_p (client)
-      )
+  if (is_mps (client))
     {
       // The following assertion is very expensive.
       // igc_assert (mps_arena_has_addr (global_igc->arena, client));
