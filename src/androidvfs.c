@@ -458,7 +458,7 @@ static char *
 android_vfs_canonicalize_name (char *name, size_t *length)
 {
   size_t nellipsis, i;
-  char *last_component, *prev_component, *fill, *orig_name;
+  char *last_component, *prec_component, *fill, *orig_name;
   size_t size;
 
   /* Special case described in the last paragraph of the comment
@@ -474,8 +474,8 @@ android_vfs_canonicalize_name (char *name, size_t *length)
 
   nellipsis = 0; /* Number of ellipsis encountered within the current
 		    file name component, or -1.  */
-  prev_component = NULL; /* Pointer to the separator character of
-			    the component immediately before the
+  prec_component = NULL; /* Pointer to the separator character of the
+			    component immediately preceding the
 			    component currently being written.  */
   last_component = name; /* Pointer to the separator character of
 			    the component currently being read.  */
@@ -502,31 +502,36 @@ android_vfs_canonicalize_name (char *name, size_t *length)
 	    {
 	      /* .. */
 
-	      if (!prev_component)
-		goto parent_vnode;
+	      if (!prec_component)
+		{
+		  /* Return the content of the component, i.e. the text
+		     _after_ this separator.  */
+		  i++;
+		  goto parent_vnode;
+		}
 
 	      /* Return to the last component.  */
-	      fill = prev_component;
+	      fill = prec_component;
 
-	      /* Restore last_component to prev_component, and
-		 prev_component back to the component before that.  */
-	      last_component = prev_component;
+	      /* Restore last_component to prec_component, and
+		 prec_component back to the component before that.  */
+	      last_component = prec_component;
 
-	      if (last_component != name)
-		prev_component = memrchr (name, '/',
-					  last_component - name - 1);
+	      if (last_component != orig_name)
+		prec_component = memrchr (orig_name, '/',
+					  last_component - orig_name - 1);
 	      else
-		prev_component = NULL;
+		prec_component = NULL;
 
-	      /* prev_component may now be NULL.  If last_component is
-		 the same as NAME, then fill has really been returned
-		 to the beginning of the string, so leave it be.  But
-		 if it's something else, then it must be the first
-		 separator character in the string, so set
-		 prev_component to NAME itself.  */
+	      /* prec_component may now be NULL.  If last_component is
+		 identical to the initial value of NAME, then fill has
+		 really been returned to the beginning of the string, so
+		 leave it be.  But if it's something else, then it must
+		 be the first separator character in the string, so set
+		 prec_component to this initial value itself.  */
 
-	      if (!prev_component && last_component != name)
-		prev_component = name;
+	      if (!prec_component && last_component != orig_name)
+		prec_component = orig_name;
 	    }
 	  else if (nellipsis == 1)
 	    /* If it's ., return to this component.  */
@@ -536,7 +541,7 @@ android_vfs_canonicalize_name (char *name, size_t *length)
 	      /* Record the position of the last directory separator,
 		 so NAME can be overwritten from there onwards if `..'
 		 or `.' are encountered.  */
-	      prev_component = last_component;
+	      prec_component = last_component;
 	      last_component = fill;
 	    }
 
@@ -568,12 +573,12 @@ android_vfs_canonicalize_name (char *name, size_t *length)
     {
       /* .. */
 
-      if (!prev_component)
+      if (!prec_component)
 	/* Look up the rest of the vnode in its parent.  */
 	goto parent_vnode;
 
       /* Return to the last component.  */
-      fill = prev_component;
+      fill = prec_component;
       nellipsis = -2;
     }
   else if (nellipsis == 1)
@@ -684,19 +689,20 @@ android_unix_name (struct android_vnode *vnode, char *name,
   input = (struct android_unix_vnode *) vnode;
   remainder = android_vfs_canonicalize_name (name, &length);
 
-  /* If remainder is set, it's a name relative to the parent
-     vnode.  */
+  /* If remainder is set, it's a name relative to the parent vnode.  */
   if (remainder)
     goto parent_vnode;
 
   /* Create a new unix vnode.  */
   vp = xmalloc (sizeof *vp);
 
-  /* If name is empty, duplicate the current vnode.  */
+  /* If name is empty, duplicate the current vnode, but reset its file
+     operation vector to that for Unix vnodes.  */
 
   if (length < 1)
     {
       memcpy (vp, vnode, sizeof *vp);
+      vp->vnode.ops = &unix_vfs_ops;
       vp->name = xstrdup (vp->name);
       return &vp->vnode;
     }
@@ -748,7 +754,7 @@ android_unix_name (struct android_vnode *vnode, char *name,
     vnode = &root_vnode.vnode;
   else
     {
-      /* Create a temporary asset vnode within the parent and use it
+      /* Create a temporary unix vnode within the parent and use it
          instead.  First, establish the length of vp->name before its
          last component.  */
 
@@ -783,7 +789,9 @@ android_unix_name (struct android_vnode *vnode, char *name,
       return vnode;
     }
 
-  return (*vnode->ops->name) (vnode, remainder, strlen (remainder));
+  /* Virtual directories must be ignored in accessing the root directory
+     through a Unix subdirectory of the root, as, `/../' */
+  return android_unix_name (vnode, remainder, strlen (remainder));
 }
 
 /* Create a Unix vnode representing the given file NAME.  Use this
@@ -6624,6 +6632,7 @@ android_root_name (struct android_vnode *vnode, char *name,
   size_t i;
   Lisp_Object file_name;
   struct android_vnode *vp;
+  struct android_unix_vnode *unix_vp;
 
   /* Skip any leading separator in NAME.  */
 
@@ -6706,7 +6715,18 @@ android_root_name (struct android_vnode *vnode, char *name,
 	}
     }
 
-  /* Otherwise, continue searching for a vnode normally.  */
+  /* Otherwise, continue searching for a vnode normally, but duplicate
+     the vnode manually if length is 0, as `android_unix_name' resets
+     the vnode operation vector in copies.  */
+
+  if (!length)
+    {
+      unix_vp = xmalloc (sizeof *unix_vp);
+      memcpy (unix_vp, vnode, sizeof *unix_vp);
+      unix_vp->name = xstrdup (unix_vp->name);
+      return &unix_vp->vnode;
+    }
+
   return android_unix_name (vnode, name, length);
 }
 
