@@ -234,7 +234,7 @@ translation is found for PATTERN."
                            (number-end (string-to-number (match-string 2
                                                                        pattern-sub))))
                        (setq result `(,@result ,(concat "\\(?:"
-                                                        (mapconcat 'number-to-string
+                                                        (mapconcat #'number-to-string
                                                                    (cl-loop for i from number-start to number-end
                                                                             collect i)
                                                                    "\\|")

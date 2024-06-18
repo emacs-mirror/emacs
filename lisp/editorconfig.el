@@ -92,8 +92,7 @@ show line numbers on the left:
 
 This hook will be run even when there are no matching sections in
 \".editorconfig\", or no \".editorconfig\" file was found at all."
-  :type 'hook
-  :group 'editorconfig)
+  :type 'hook)
 
 (defcustom editorconfig-hack-properties-functions ()
   "A list of function to alter property values before applying them.
@@ -115,8 +114,7 @@ overwrite \"indent_style\" property when current `major-mode' is a
 
 This hook will be run even when there are no matching sections in
 \".editorconfig\", or no \".editorconfig\" file was found at all."
-  :type 'hook
-  :group 'editorconfig)
+  :type 'hook)
 (make-obsolete-variable 'editorconfig-hack-properties-functions
                         "Using `editorconfig-after-apply-functions' instead is recommended,
     because since 2021/08/30 (v0.9.0) this variable cannot support all properties:
@@ -196,8 +194,7 @@ This hook will be run even when there are no matching sections in
 
 If set, enable that mode when `trim_trailing_whitespace` is set to true.
 Otherwise, use `delete-trailing-whitespace'."
-  :type 'symbol
-  :group 'editorconfig)
+  :type 'symbol)
 
 (defvar editorconfig-properties-hash nil
   "Hash object of EditorConfig properties that was enabled for current buffer.
@@ -378,7 +375,7 @@ This function also removes `unset' properties and calls
       (setq filename (expand-file-name filename))
     (editorconfig-error "Invalid argument: %S" filename))
   (let ((props nil))
-    (condition-case err
+    (condition-case-unless-debug err
         (setq props (editorconfig-core-get-properties-hash filename))
       (error
        (editorconfig-error "Error from editorconfig-core-get-properties-hash: %S"
@@ -585,7 +582,3 @@ version in the echo area and the messages buffer."
 
 (provide 'editorconfig)
 ;;; editorconfig.el ends here
-
-;; Local Variables:
-;; sentence-end-double-space: t
-;; End:

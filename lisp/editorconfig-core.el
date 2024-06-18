@@ -85,7 +85,7 @@ RESULT is used internally and normally should not be used."
         (parent (file-name-directory (directory-file-name dir))))
     (if (or (string= parent dir)
             (and handle (editorconfig-core-handle-root-p handle)))
-        (cl-remove-if-not 'identity (cons handle result))
+        (cl-remove-if-not #'identity (cons handle result))
       (editorconfig-core--get-handles parent
                                       confname
                                       (cons handle result)))))
