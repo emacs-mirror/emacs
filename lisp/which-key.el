@@ -595,9 +595,9 @@ it."
   :package-version "1.0" :version "30.1")
 
 (defface which-key-highlighted-command-face
-  '((t . (:inherit which-key-command-description-face :underline t)))
-  "Default face for command description.
-To be highlighted, it must be a command and match a string in
+  '((t . (:inherit (which-key-command-description-face highlight))))
+  "Default face for highlighted command descriptions.
+A command is highlighted, when it matches a string in
 `which-key-highlighted-command-list'."
   :group 'which-key-faces
   :package-version "1.0" :version "30.1")
