@@ -2005,10 +2005,12 @@ that width."
                                col-keys 2
                                which-key-min-column-description-width)))
          (col-width      (+ col-key-width col-sep-width col-desc-width))
-         (col-format     (concat "%" (int-to-string col-key-width)
-                                 "s%s%-" (int-to-string col-desc-width) "s")))
+         (col-format     (concat "%" (int-to-string col-key-width) "s%s%s")))
     (cons col-width
-          (mapcar (lambda (k) (apply #'format col-format k))
+          (mapcar (pcase-lambda (`(,key ,sep ,desc ,_doc))
+                    (concat
+                     (format col-format key sep desc)
+                     (make-string (- col-desc-width (length desc)) ?\s)))
                   col-keys))))
 
 (defun which-key--partition-list (n list)
