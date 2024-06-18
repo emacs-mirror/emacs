@@ -376,16 +376,16 @@ Major modes are expected to set this buffer-locally.")
   (let ((eol (cond
               ((equal end-of-line "lf") 'undecided-unix)
               ((equal end-of-line "cr") 'undecided-mac)
-              ((equal end-of-line "crlf") 'undecided-dos)
-              (t 'undecided)))
+              ((equal end-of-line "crlf") 'undecided-dos)))
         (cs (cond
              ((equal charset "latin1") 'iso-latin-1)
              ((equal charset "utf-8") 'utf-8)
              ((equal charset "utf-8-bom") 'utf-8-with-signature)
              ((equal charset "utf-16be") 'utf-16be-with-signature)
-             ((equal charset "utf-16le") 'utf-16le-with-signature)
-             (t 'undecided))))
-    (merge-coding-systems cs eol)))
+             ((equal charset "utf-16le") 'utf-16le-with-signature))))
+    (if (and eol cs)
+        (merge-coding-systems cs eol)
+      (or eol cs))))
 
 (cl-defun editorconfig-set-coding-system-revert (end-of-line charset)
   "Set buffer coding system by END-OF-LINE and CHARSET.
@@ -401,7 +401,7 @@ This function will revert buffer when the coding-system has been changed."
                              coding-system
                              editorconfig--apply-coding-system-currently)
                      :debug)
-    (when (eq coding-system 'undecided)
+    (when (memq coding-system '(nil undecided))
       (cl-return-from editorconfig-set-coding-system-revert))
     (when (and buffer-file-coding-system
                (memq buffer-file-coding-system
@@ -413,7 +413,9 @@ This function will revert buffer when the coding-system has been changed."
       (cl-return-from editorconfig-set-coding-system-revert))
     (unless (memq coding-system
                   (coding-system-aliases editorconfig--apply-coding-system-currently))
-      ;; Revert functions might call editorconfig-apply again
+      ;; Revert functions might call `editorconfig-apply' again
+      ;; FIXME: I suspect `editorconfig--apply-coding-system-currently'
+      ;; gymnastics is not needed now that we hook into `find-auto-coding'.
       (unwind-protect
           (progn
             (setq editorconfig--apply-coding-system-currently coding-system)
@@ -542,35 +544,11 @@ This function also executes `editorconfig-after-apply-functions' functions."
                         (format "Error while running `editorconfig-after-apply-functions': %S"
                                 err))))))
 
-(defvar editorconfig--filename-codingsystem-hash (make-hash-table :test 'equal)
-  "Used interally.
-
-`editorconfig--advice-find-file-noselect' will put value to this hash, and
-`editorconfig--advice-insert-file-contents' will use the value to set
-`coding-system-for-read' value.")
-
-(defun editorconfig--advice-insert-file-contents (f filename &rest args)
-  "Set `coding-system-for-read'.
-
-This function should be added as an advice function to `insert-file-contents'.
-F is that function, and FILENAME and ARGS are arguments passed to F."
-  ;; This function uses `editorconfig--filename-codingsystem-hash' to decide what coding-system
-  ;; should be used, which will be set by `editorconfig--advice-find-file-noselect'.
-  (display-warning '(editorconfig editorconfig--advice-insert-file-contents)
-                   (format "editorconfig--advice-insert-file-contents: filename: %S args: %S codingsystem: %S bufferfilename: %S"
-                           filename args
-                           editorconfig--filename-codingsystem-hash
-                           buffer-file-name)
-                   :debug)
-  (let ((coding-system (and (stringp filename)
-                            (gethash (expand-file-name filename)
-                                     editorconfig--filename-codingsystem-hash))))
-    (if (and coding-system
-             (not (eq coding-system
-                      'undecided)))
-        (let ((coding-system-for-read coding-system))
-          (apply f filename args))
-      (apply f filename args))))
+(defun editorconfig--advice-find-auto-coding (filename &rest _args)
+  "Consult `charset' setting of EditorConfig."
+  (let ((cs (dlet ((auto-coding-file-name filename))
+              (editorconfig--get-coding-system))))
+    (when cs (cons cs 'EditorConfig))))
 
 (defun editorconfig--advice-find-file-noselect (f filename &rest args)
   "Get EditorConfig properties and apply them to buffer to be visited.
@@ -578,17 +556,10 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
 This function should be added as an advice function to `find-file-noselect'.
 F is that function, and FILENAME and ARGS are arguments passed to F."
   (let ((props nil)
-        (coding-system nil)
         (ret nil))
     (condition-case err
         (when (stringp filename)
-          (setq props (editorconfig-call-get-properties-function filename))
-          (setq coding-system
-                (editorconfig-merge-coding-systems (gethash 'end_of_line props)
-                                                   (gethash 'charset props)))
-          (puthash (expand-file-name filename)
-                   coding-system
-                   editorconfig--filename-codingsystem-hash))
+          (setq props (editorconfig-call-get-properties-function filename)))
       (error
        (display-warning '(editorconfig editorconfig--advice-find-file-noselect)
                         (format "Failed to get properties, styles will not be applied: %S"
@@ -596,24 +567,10 @@ F is that function, and FILENAME and ARGS are arguments passed to F."
                         :warning)))
 
     (setq ret (apply f filename args))
-    (clrhash editorconfig--filename-codingsystem-hash)
 
     (condition-case err
         (with-current-buffer ret
           (when props
-
-            ;; When file path indicates it is a remote file and it actually
-            ;; does not exists, `buffer-file-coding-system' will not be set.
-            ;; (Seems `insert-file-contents' will not be called)
-            ;; For this case, explicitly set this value so that saving will be done
-            ;; with expected coding system.
-            (when (and (file-remote-p filename)
-                       (not (local-variable-p 'buffer-file-coding-system))
-                       (not (file-exists-p filename))
-                       coding-system
-                       (not (eq coding-system
-                                'undecided)))
-              (set-buffer-file-coding-system coding-system))
 
             ;; NOTE: hack-properties-functions cannot affect coding-system value,
             ;; because it has to be set before initializing buffers.
@@ -709,13 +666,15 @@ Meant to be used on `hack-dir-local-get-variables-functions'."
       (if editorconfig-mode
           (progn
             (advice-add 'find-file-noselect :around #'editorconfig--advice-find-file-noselect)
-            (advice-add 'insert-file-contents :around #'editorconfig--advice-insert-file-contents)
+            (advice-add 'find-auto-coding :after-until
+                        #'editorconfig--advice-find-auto-coding)
             (dolist (hook modehooks)
               (add-hook hook
                         #'editorconfig-major-mode-hook
                         t)))
         (advice-remove 'find-file-noselect #'editorconfig--advice-find-file-noselect)
-        (advice-remove 'insert-file-contents #'editorconfig--advice-insert-file-contents)
+        (advice-remove 'find-auto-coding
+                       #'editorconfig--advice-find-auto-coding)
         (dolist (hook modehooks)
           (remove-hook hook #'editorconfig-major-mode-hook))))))
 
