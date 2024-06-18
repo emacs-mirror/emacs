@@ -1,0 +1,297 @@
+@dircategory Emacs
+@direntry
+* EditorConfig: (editorconfig). EditorConfig Emacs Plugin.
+@end direntry
+
+@node Top
+@chapter EditorConfig Emacs Plugin
+@anchor{#editorconfig-emacs-plugin}
+This is an @uref{https://editorconfig.org,EditorConfig} plugin for
+@uref{https://www.gnu.org/software/emacs/,Emacs}.
+
+@menu
+* Getting Started::
+* Supported properties::
+* Customize::
+* Troubleshooting::
+* Submitting Bugs and Feature Requests::
+* License::
+@end menu
+
+@node Getting Started
+@section Getting Started
+@anchor{#getting-started}
+
+@menu
+* packageel::
+* use-package::
+* Manual installation::
+@end menu
+
+@node packageel
+@subsection package.el
+@anchor{#package.el}
+This package is available from
+@uref{https://melpa.org/#/editorconfig,MELPA},
+@uref{https://stable.melpa.org/#/editorconfig,MELPA Stable} and
+@uref{http://elpa.nongnu.org/nongnu/editorconfig.html,NonGNU ELPA}.
+Install from these repositories and enable global minor-mode
+@code{editorconfig-mode}:
+
+@verbatim
+(editorconfig-mode 1)
+@end verbatim
+
+Normally, enabling @code{editorconfig-mode} should be enough for this
+plugin to work: all other configurations are optional. This mode sets up
+hooks so that EditorConfig properties will be loaded and applied to the
+new buffers automatically when visiting files.
+
+@node use-package
+@subsection use-package
+@anchor{#use-package}
+If you use
+@uref{https://www.emacswiki.org/emacs/UsePackage,@strong{use-package}},
+add the following to your @code{init.el} file:
+
+@verbatim
+(use-package editorconfig
+  :ensure t
+  :config
+  (editorconfig-mode 1))
+@end verbatim
+
+@node Manual installation
+@subsection Manual installation
+@anchor{#manual-installation}
+Copy all @code{.el} files in this repository to @code{~/.emacs.d/lisp}
+and add the following:
+
+@verbatim
+(add-to-list 'load-path "~/.emacs.d/lisp")
+(require 'editorconfig)
+(editorconfig-mode 1)
+@end verbatim
+
+@node Supported properties
+@section Supported properties
+@anchor{#supported-properties}
+Current Emacs plugin coverage for EditorConfig's
+@uref{https://editorconfig.org/#supported-properties,properties}:
+
+@itemize
+@item
+@code{indent_style}
+@item
+@code{indent_size}
+@item
+@code{tab_width}
+@item
+@code{end_of_line}
+@item
+@code{charset}
+@item
+@code{trim_trailing_whitespace}
+@item
+@code{insert_final_newline = true} is supported
+@item
+@code{insert_final_newline = false}
+is not enforced (as in trailing newlines actually being removed
+automagically), we just buffer-locally override any preferences that
+would auto-add them to files @code{.editorconfig} marks as
+trailing-newline-free
+@item
+@code{max_line_length}
+@item
+@code{file_type_ext} (Experimental)
+(See below)
+@item
+@code{file_type_emacs} (Experimental)
+(See below)
+@item
+@code{root} (only used by EditorConfig core)
+@end itemize
+
+Not yet covered properties marked with over-strike -- pull requests
+implementing missing features warmly welcomed! Typically, you will want
+to tie these to native functionality, or the configuration of existing
+packages handling the feature.
+
+As several packages have their own handling of, say, indentation, we
+might not yet cover some mode you use, but we try to add the ones that
+show up on our radar.
+
+@menu
+* File Type file_type_ext file_type_emacs::
+@end menu
+
+@node File Type file_type_ext file_type_emacs
+@subsection File Type (file_type_ext, file_type_emacs)
+@anchor{#file-type-file_type_ext-file_type_emacs}
+File-type feature is currently disabled, because this package is now
+undergoing big internal refactoring. For those who want this
+functionality, please consider using
+@uref{https://github.com/10sr/editorconfig-custom-majormode-el,editorconfig-custom-majormode}.
+
+@node Customize
+@section Customize
+@anchor{#customize}
+@code{editorconfig-emacs} provides some customize variables.
+
+Here are some of these variables: for the full list of available
+variables, type M-x customize-group [RET] editorconfig [RET].
+
+@menu
+* editorconfig-trim-whitespaces-mode::
+* editorconfig-after-apply-functions::
+* editorconfig-hack-properties-functions::
+@end menu
+
+@node editorconfig-trim-whitespaces-mode
+@subsection @code{editorconfig-trim-whitespaces-mode}
+@anchor{#editorconfig-trim-whitespaces-mode}
+Buffer local minor-mode to use to trim trailing whitespaces.
+
+If set, editorconfig will enable/disable this mode in accord with
+@code{trim_trailing_whitespace} property in @code{.editorconfig}.
+Otherwise, use Emacs built-in @code{delete-trailing-whitespace}
+function.
+
+One possible value is
+@uref{https://github.com/lewang/ws-butler,@code{ws-butler-mode}}, with
+which only lines touched get trimmed. To use it, add following to your
+init.el:
+
+@verbatim
+(setq editorconfig-trim-whitespaces-mode
+      'ws-butler-mode)
+@end verbatim
+
+@node editorconfig-after-apply-functions
+@subsection @code{editorconfig-after-apply-functions}
+@anchor{#editorconfig-after-apply-functions}
+(Formerly @code{editorconfig-custom-hooks})
+
+A list of functions which will be called after loading common
+EditorConfig settings, when you can set some custom variables.
+
+For example, @code{web-mode} has several variables for indentation
+offset size and EditorConfig sets them at once by @code{indent_size}.
+You can stop indenting only blocks of @code{web-mode} by adding
+following to your init.el:
+
+@verbatim
+(add-hook 'editorconfig-after-apply-functions
+  (lambda (props) (setq web-mode-block-padding 0)))
+@end verbatim
+
+@node editorconfig-hack-properties-functions
+@subsection @code{editorconfig-hack-properties-functions}
+@anchor{#editorconfig-hack-properties-functions}
+A list of functions to alter property values before applying them.
+
+These functions will be run after loading ".editorconfig" files and
+before applying them to current buffer, so that you can alter some
+properties from ".editorconfig" before they take effect.
+
+For example, Makefile files always use tab characters for indentation:
+you can overwrite "indent_style" property when current @code{major-mode}
+is @code{makefile-mode}:
+
+@verbatim
+(add-hook 'editorconfig-hack-properties-functions
+          '(lambda (props)
+             (when (derived-mode-p 'makefile-mode)
+               (puthash 'indent_style "tab" props))))
+@end verbatim
+
+@node Troubleshooting
+@section Troubleshooting
+@anchor{#troubleshooting}
+Enabling @code{editorconfig-mode} should be enough for normal cases.
+
+When EditorConfig properties are not effective for unknown reason, we
+recommend first trying
+@code{M-x editorconfig-display-current-properties}.
+
+This command will open a new buffer and display the EditorConfig
+properties loaded for current buffer. You can check if EditorConfig
+properties were not read for buffers at all, or they were loaded but did
+not take effect for some other reasons.
+
+@menu
+* Indentation for new major-modes::
+* Not work at all for FOO-mode!::
+@end menu
+
+@node Indentation for new major-modes
+@subsection Indentation for new major-modes
+@anchor{#indentation-for-new-major-modes}
+Because most Emacs major-modes have their own indentation settings, this
+plugin requires explicit support for each major-mode for
+@code{indent_size} property.
+
+By default this plugin ships with settings for many major-modes, but,
+sorry to say, it cannot be perfect. Especially it is difficult to
+support brand-new major-modes. Please feel free to submit issue or
+pull-request for such major-mode!
+
+Supported major-modes and their indentation configs are defined in the
+variable @code{editorconfig-indentation-alist}.
+
+@node Not work at all for FOO-mode!
+@subsection Not work at all for FOO-mode!
+@anchor{#not-work-at-all-for-foo-mode}
+Most cases properties are loaded just after visiting files when
+@code{editorconfig-mode} is enabled. But it is known that there are
+major-modes that this mechanism does not work for and require explicit
+call of @code{editorconfig-apply}.
+
+Typically it will occur when the major-mode is not defined using
+@code{define-derived-mode} (@code{rpm-spec-mode} is an example for
+this). Please feel free to submit issues if you find such modes!
+
+@node Submitting Bugs and Feature Requests
+@section Submitting Bugs and Feature Requests
+@anchor{#submitting-bugs-and-feature-requests}
+Bugs, feature requests, and other issues should be submitted to the
+issue tracker: https://github.com/editorconfig/editorconfig-emacs/issues
+
+@menu
+* Development::
+@end menu
+
+@node Development
+@subsection Development
+@anchor{#development}
+Make and @uref{https://cmake.org,CMake} must be installed to run the
+tests locally:
+
+@verbatim
+$ make check
+@end verbatim
+
+To start a new Emacs process with current @code{*.el} and without
+loading user init file, run:
+
+@verbatim
+$ make sandbox
+@end verbatim
+
+@node License
+@section License
+@anchor{#license}
+EditorConfig Emacs Plugin is free software: you can redistribute it
+and/or modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program. If not, see @url{https://www.gnu.org/licenses/}.
+
+@bye
