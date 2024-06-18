@@ -2063,6 +2063,13 @@ mode is enabled, a tool bar is displayed at the top of a window.  To
 conserve space, no tool bar is shown if 'tool-bar-map' is nil.  The
 global minor mode 'global-window-tool-bar-mode' enables this minor mode
 in all buffers.
+
++++
+** New package Which-Key
+The 'which-key' package from GNU ELPA is now included in Emacs.  It
+implements the 'which-key-mode' that displays a table of key bindings
+upon entering a partial key chord and waiting for a moment.
+
 
 * Incompatible Lisp Changes in Emacs 30.1
 
