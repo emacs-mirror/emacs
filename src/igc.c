@@ -205,7 +205,6 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_BUILTIN_SYMBOL",
   "IGC_OBJ_BUILTIN_THREAD",
   "IGC_OBJ_BUILTIN_SUBR",
-  "IGC_OBJ_DUMPED_FWD",
   "IGC_OBJ_DUMPED_CHARSET_TABLE",
   "IGC_OBJ_DUMPED_CODE_SPACE_MASKS",
   "IGC_OBJ_DUMPED_BUFFER_TEXT",
@@ -1425,10 +1424,6 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
       case IGC_OBJ_BLV:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Buffer_Local_Value, client,
 			 fix_blv);
-	break;
-
-      case IGC_OBJ_DUMPED_FWD:
-	IGC_FIX_CALL (ss, fix_fwd (ss, (lispfwd){ client }));
 	break;
 
       case IGC_OBJ_DUMPED_CHARSET_TABLE:
@@ -2692,7 +2687,6 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_BUILTIN_SYMBOL:
     case IGC_OBJ_BUILTIN_THREAD:
     case IGC_OBJ_BUILTIN_SUBR:
-    case IGC_OBJ_DUMPED_FWD:
     case IGC_OBJ_DUMPED_CHARSET_TABLE:
     case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
     case IGC_OBJ_DUMPED_BUFFER_TEXT:
@@ -2864,7 +2858,6 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_BUILTIN_SYMBOL:
     case IGC_OBJ_BUILTIN_THREAD:
     case IGC_OBJ_BUILTIN_SUBR:
-    case IGC_OBJ_DUMPED_FWD:
     case IGC_OBJ_DUMPED_CHARSET_TABLE:
     case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
     case IGC_OBJ_DUMPED_BUFFER_TEXT:
@@ -3657,12 +3650,10 @@ builtin_obj_type_and_hash (size_t *hash, enum igc_obj_type type, void *client)
       return IGC_OBJ_BUILTIN_SUBR;
     }
 
-  if (type == IGC_OBJ_DUMPED_FWD
-      || type == IGC_OBJ_DUMPED_CHARSET_TABLE
+  if (type == IGC_OBJ_DUMPED_CHARSET_TABLE
       || type == IGC_OBJ_DUMPED_CODE_SPACE_MASKS
       || type == IGC_OBJ_DUMPED_BUFFER_TEXT
-      || type == IGC_OBJ_DUMPED_BYTES
-      )
+      || type == IGC_OBJ_DUMPED_BYTES)
     {
       *hash = 0;
       return type;
@@ -3721,7 +3712,6 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
   bool is_in_dump;
   switch (type)
     {
-    case IGC_OBJ_DUMPED_FWD:
     case IGC_OBJ_DUMPED_CHARSET_TABLE:
     case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
     case IGC_OBJ_DUMPED_BUFFER_TEXT:
