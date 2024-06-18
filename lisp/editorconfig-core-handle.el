@@ -51,13 +51,14 @@ Slots:
   (name nil)
   (props nil))
 
-(defun editorconfig-core-handle-section-get-properties (section file dir)
+(defun editorconfig-core-handle-section-get-properties (section file)
   "Return properties alist when SECTION name match FILE.
 
-DIR should be the directory where .editorconfig file which has SECTION lives.
-IF not match, return nil."
+FILE should be a relative file name, relative to the directory where
+the `.editorconfig' file which has SECTION lives.
+If not match, return nil."
   (when (editorconfig-core-handle--fnmatch-p
-         file (editorconfig-core-handle-section-name section) dir)
+         file (editorconfig-core-handle-section-name section))
     (editorconfig-core-handle-section-props section)))
 
 (cl-defstruct editorconfig-core-handle
@@ -114,16 +115,14 @@ If HANDLE is nil return nil."
 The list returned will be ordered by the lines they appear.
 
 If HANDLE is nil return nil."
+  (declare (obsolete editorconfig-core-handle-get-properties-hash "0.8.0"))
   (when handle
-    (let ((dir (file-name-directory (editorconfig-core-handle-path handle))))
+    (let* ((dir (file-name-directory (editorconfig-core-handle-path handle)))
+           (file (file-relative-name file dir)))
       (cl-loop for section in (editorconfig-core-handle-sections handle)
-               for props = (editorconfig-core-handle-section-get-properties section
-                                                                            file
-                                                                            dir)
+               for props = (editorconfig-core-handle-section-get-properties
+                            section file)
                when props collect (copy-alist props)))))
-(make-obsolete 'editorconfig-core-handle-get-properties
-               'editorconfig-core-handle-get-properties-hash
-               "0.8.0")
 
 
 (defun editorconfig-core-handle-get-properties-hash (handle file)
@@ -132,23 +131,22 @@ If HANDLE is nil return nil."
 If HANDLE is nil return nil."
   (when handle
     (let ((hash (make-hash-table))
-          (dir (file-name-directory (editorconfig-core-handle-path
-                                     handle))))
+          (file (file-relative-name file (editorconfig-core-handle-path
+                                          handle))))
       (dolist (section (editorconfig-core-handle-sections handle))
-        (cl-loop for (key . value) in (editorconfig-core-handle-section-get-properties section file dir)
+        (cl-loop for (key . value) in (editorconfig-core-handle-section-get-properties section file)
                  do (puthash (intern key) value hash)))
       hash)))
 
-(defun editorconfig-core-handle--fnmatch-p (name pattern dir)
+(defun editorconfig-core-handle--fnmatch-p (name pattern)
   "Return non-nil if NAME match PATTERN.
 If pattern has slash, pattern should be relative to DIR.
 
 This function is a fnmatch with a few modification for EditorConfig usage."
   (if (string-match-p "/" pattern)
-      (let ((pattern (replace-regexp-in-string "^/" "" pattern))
-            (dir (file-name-as-directory dir)))
-        (editorconfig-fnmatch-p name (concat dir pattern)))
-    (editorconfig-fnmatch-p name (concat "**/" pattern))))
+      (let ((pattern (replace-regexp-in-string "\\`/" "" pattern)))
+        (editorconfig-fnmatch-p name pattern))
+    (editorconfig-fnmatch-p (file-name-nondirectory name) pattern)))
 
 (defsubst editorconfig-core-handle--string-trim (str)
   "Remove leading and trailing whitespaces from STR."
