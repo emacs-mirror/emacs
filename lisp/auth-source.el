@@ -874,9 +874,9 @@ while \(:host t) would find all host entries."
 (defun auth-info-password (auth-info)
   "Return the :secret password from the AUTH-INFO."
   (let ((secret (plist-get auth-info :secret)))
-    (while (functionp secret)
-      (setq secret (funcall secret)))
-    secret))
+    (if (functionp secret)
+        (funcall secret)
+      secret)))
 
 (defun auth-source-pick-first-password (&rest spec)
   "Pick the first secret found by applying `auth-source-search' to SPEC."
@@ -1698,7 +1698,7 @@ authentication tokens:
     items))
 
 (cl-defun auth-source-secrets-create (&rest spec
-                                      &key backend host port create
+                                      &key backend host port create user
                                       &allow-other-keys)
   (let* ((base-required '(host user port secret label))
          ;; we know (because of an assertion in auth-source-search) that the
@@ -1706,6 +1706,7 @@ authentication tokens:
          (create-extra (if (eq t create) nil create))
          (current-data (car (auth-source-search :max 1
                                                 :host host
+                                                :user user
                                                 :port port)))
          (required (append base-required create-extra))
          (collection (oref backend source))
@@ -2160,7 +2161,7 @@ entries for git.gnus.org:
     items))
 
 (cl-defun auth-source-plstore-create (&rest spec
-                                      &key backend host port create
+                                      &key backend host port create user
                                       &allow-other-keys)
   (let* ((base-required '(host user port secret))
          (base-secret '(secret))
@@ -2170,9 +2171,11 @@ entries for git.gnus.org:
          (create-extra-secret (plist-get create :encrypted))
          (create-extra (if (eq t create) nil
                          (or (append (plist-get create :unencrypted)
-                                     create-extra-secret) create)))
+                                     create-extra-secret)
+                             create)))
          (current-data (car (auth-source-search :max 1
                                                 :host host
+                                                :user user
                                                 :port port)))
          (required (append base-required create-extra))
          (required-secret (append base-secret create-extra-secret))
