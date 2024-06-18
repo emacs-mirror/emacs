@@ -61,9 +61,6 @@ enum igc_obj_type
 
 #ifdef HAVE_MPS
 
-/* Assertions.  */
-# define IGC_DEBUG 1
-
 void igc_break (void);
 void init_igc (void);
 void syms_of_igc (void);
