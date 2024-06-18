@@ -2420,24 +2420,26 @@ You could define your own search directories like this:
 
 @lisp
 @group
-(connection-local-set-profile-variables 'remote-path-with-bin
-   '((tramp-remote-path . ("~/bin" tramp-default-remote-path))))
+(connection-local-set-profile-variables
+ 'remote-path-with-bin
+ '((tramp-remote-path . ("~/bin" tramp-default-remote-path))))
 @end group
 
 @group
-(connection-local-set-profile-variables 'remote-path-with-apply-pub-bin
-   '((tramp-remote-path . ("/appli/pub/bin" tramp-default-remote-path))))
+(connection-local-set-profile-variables
+ 'remote-path-with-apply-pub-bin
+ '((tramp-remote-path . ("/appli/pub/bin" tramp-default-remote-path))))
 @end group
 
 @group
 (connection-local-set-profiles
-   '(:application tramp :machine "randomhost") 'remote-path-with-bin)
+ '(:application tramp :machine "randomhost") 'remote-path-with-bin)
 @end group
 
 @group
 (connection-local-set-profiles
-   '(:application tramp :user "anotheruser" :machine "anotherhost")
-     'remote-path-with-apply-pub-bin)
+ '(:application tramp :user "anotheruser" :machine "anotherhost")
+ 'remote-path-with-apply-pub-bin)
 @end group
 @end lisp
 
@@ -2554,18 +2556,18 @@ example below:
 @group
 (customize-set-variable
  'tramp-password-prompt-regexp
-  (concat
-   "^.*"
-   (regexp-opt
-    '("passphrase" "Passphrase"
-      ;; English
-      "password" "Password"
-      ;; Deutsch
-      "passwort" "Passwort"
-      ;; Français
-      "mot de passe" "Mot de passe")
-    t)
-   ".*:\0? *"))
+ (concat
+  "^.*"
+  (regexp-opt
+   '("passphrase" "Passphrase"
+     ;; English
+     "password" "Password"
+     ;; Deutsch
+     "passwort" "Passwort"
+     ;; Français
+     "mot de passe" "Mot de passe")
+   t)
+  ".*:\0? *"))
 @end group
 @end lisp
 
@@ -2872,8 +2874,8 @@ allows you to set the @option{ControlPath} provided the variable
 (customize-set-variable
  'tramp-ssh-controlmaster-options
  (concat
-   "-o ControlPath=/tmp/ssh-ControlPath-%%r@@%%h:%%p "
-   "-o ControlMaster=auto -o ControlPersist=yes"))
+  "-o ControlPath=/tmp/ssh-ControlPath-%%r@@%%h:%%p "
+  "-o ControlMaster=auto -o ControlPersist=yes"))
 @end group
 @end lisp
 
@@ -4155,29 +4157,29 @@ of @code{explicit-shell-file-name} for different remote hosts.
 @lisp
 @group
 (connection-local-set-profile-variables
-  'remote-bash
-  '((explicit-shell-file-name . "/bin/bash")
-    (explicit-bash-args . ("-i"))))
+ 'remote-bash
+ '((explicit-shell-file-name . "/bin/bash")
+   (explicit-bash-args . ("-i"))))
 @end group
 
 @group
 (connection-local-set-profile-variables
-  'remote-ksh
-  '((explicit-shell-file-name . "/bin/ksh")
-    (explicit-ksh-args . ("-i"))))
+ 'remote-ksh
+ '((explicit-shell-file-name . "/bin/ksh")
+   (explicit-ksh-args . ("-i"))))
 @end group
 
 @group
 (connection-local-set-profiles
-  '(:application tramp :protocol "ssh" :machine "localhost")
-  'remote-bash)
+ '(:application tramp :protocol "ssh" :machine "localhost")
+ 'remote-bash)
 @end group
 
 @group
 (connection-local-set-profiles
-  `(:application tramp :protocol "sudo"
-    :user "root" :machine ,(system-name))
-  'remote-ksh)
+ `(:application tramp :protocol "sudo"
+   :user "root" :machine ,(system-name))
+ 'remote-ksh)
 @end group
 @end lisp
 
@@ -4536,8 +4538,8 @@ which must be set to a non-@code{nil} value.  Example:
 @lisp
 @group
 (connection-local-set-profile-variables
-  'remote-direct-async-process
-  '((tramp-direct-async-process . t)))
+ 'remote-direct-async-process
+ '((tramp-direct-async-process . t)))
 @end group
 
 @group
@@ -5047,6 +5049,9 @@ To subscribe to the mailing list, visit:
 @uref{https://lists.gnu.org/mailman/listinfo/tramp-devel/, the
 @value{tramp} Mail Subscription Page}.
 
+There is also a @acronym{Gmane} group, mirroring the mailing list.
+Its name is @samp{gmane.emacs.tramp}.
+
 @ifset installchapter
 Before sending a bug report, run the test suite first @ref{Testing}.
 @end ifset
@@ -5222,8 +5227,8 @@ connections, apply the following code.
 @lisp
 @group
 (connection-local-set-profile-variables
-  'my-auto-save-profile
-  '((buffer-auto-save-file-name . nil)))
+ 'my-auto-save-profile
+ '((buffer-auto-save-file-name . nil)))
 @end group
 
 @group
@@ -5519,8 +5524,8 @@ Since @w{Emacs 30}, these options can be set connection-local.
 @lisp
 @group
 (connection-local-set-profile-variables
-  'my-dired-profile
-  '((dired-listing-switches . "-ahl")))
+ 'my-dired-profile
+ '((dired-listing-switches . "-ahl")))
 @end group
 
 @group
@@ -5552,10 +5557,26 @@ readable
 
 @vindex tramp-use-file-attributes
 Internally, @value{tramp} uses commands like @command{ls} or
-@command{stat} in order to determine file permissions.  On some file
-systems, like @acronym{GPFS}, they don't report proper information.
-Set the user option @code{tramp-use-file-attributes} to @code{nil} in
-such a case.
+@command{stat} in order to determine file permissions.  When
+@acronym{NFS4_ACL} is enabled on the remote host, more fine-grained
+information is used which cannot be reflected by the permission string
+returned from those commands.  Set the user option
+@code{tramp-use-file-attributes} to @code{nil} in such a case.  This
+can also be set host-wise, like in:
+
+@lisp
+@group
+(connection-local-set-profile-variables
+ 'my-file-attributes-profile
+ '((tramp-use-file-attributes . nil)))
+@end group
+
+@group
+(connection-local-set-profiles
+ '(:application tramp :machine "remotehost")
+ 'my-file-attributes-profile)
+@end group
+@end lisp
 
 
 @item

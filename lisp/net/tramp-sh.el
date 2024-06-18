@@ -4455,6 +4455,12 @@ process to set up.  VEC specifies the connection."
       (tramp-cleanup-connection vec t t)
       (throw 'uname-changed (tramp-maybe-open-connection vec)))
 
+    ;; Dump /etc/os-release in the traces.
+    (when (>= tramp-verbose 9)
+      (tramp-send-command
+       vec (format "cat /etc/os-release 2>%s" (tramp-get-remote-null-device vec))
+       t))
+
     ;; Try to set up the coding system correctly.
     ;; CCC this can't be the right way to do it.  Hm.
     (tramp-message vec 5 "Determining coding system")

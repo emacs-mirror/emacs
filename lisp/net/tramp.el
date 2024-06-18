@@ -3446,15 +3446,18 @@ BODY is the backend specific code."
 
 (defcustom tramp-use-file-attributes t
   "Whether to use \"file-attributes\" file property for check.
-This is relevant for `file-directory-p', `file-executable-p',
-`file-exists-p', and `file-readable-p'.  On some file systems, like
-GPFS, the permission string is not trustworthy."
+This is relevant for read, write, and execute permissions.  On some file
+systems using NFS4_ACL, the permission string as returned from `stat' or
+`ls', is not sufficient to provide more fine-grained information.
+This variable is intended as connection-local variable."
   :version "30.1"
   :type 'boolean)
 
 (defsubst tramp-use-file-attributes (vec)
   "Whether to use \"file-attributes\" file property for check."
-  (and tramp-use-file-attributes
+  (and ;; We assume, that connection-local variables are set in this buffer.
+       (with-current-buffer (tramp-get-connection-buffer vec)
+	 tramp-use-file-attributes)
        (tramp-file-property-p
 	vec (tramp-file-name-localname vec) "file-attributes")))
 
