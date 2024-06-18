@@ -5,7 +5,7 @@
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 ;; Version: 0.11.0
 ;; URL: https://github.com/editorconfig/editorconfig-emacs#readme
-;; Package-Requires: ((emacs "26.1") (nadvice "0.3"))
+;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: convenience editorconfig
 
 ;; See
@@ -49,17 +49,8 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'pcase)
 
-(require 'nadvice)
-
-(eval-when-compile
-  (require 'rx)
-  (require 'subr-x)
-  (defvar tex-indent-basic)
-  (defvar tex-indent-item)
-  (defvar tex-indent-arg)
-  (defvar evil-shift-width))
+(eval-when-compile (require 'subr-x))
 
 (require 'editorconfig-core)
 
@@ -686,9 +677,6 @@ Meant to be used on `hack-dir-local-get-variables-functions'."
 ;;     (lm-version))
 ;;   "EditorConfig version.")
 
-(declare-function find-library-name "find-func" (library))
-(declare-function lm-version "lisp-mnt" nil)
-
 ;;;###autoload
 (defun editorconfig-version (&optional show-version)
   "Get EditorConfig version as string.
@@ -696,20 +684,26 @@ Meant to be used on `hack-dir-local-get-variables-functions'."
 If called interactively or if SHOW-VERSION is non-nil, show the
 version in the echo area and the messages buffer."
   (interactive (list t))
-  (let* ((version (with-temp-buffer
-                    (require 'find-func)
-                    (insert-file-contents (find-library-name "editorconfig"))
-                    (require 'lisp-mnt)
-                    (lm-version)))
-         (pkg (and (eval-and-compile (require 'package nil t))
-                   (cadr (assq 'editorconfig
-                               package-alist))))
-         (pkg-version (and pkg
-                           (package-version-join (package-desc-version pkg))))
-         (version-full (if (and pkg-version
-                                (not (string= version pkg-version)))
-                           (concat version "-" pkg-version)
-                         version)))
+  (let ((version-full
+         (if (fboundp 'package-get-version)
+             (package-get-version)
+           (let* ((version
+                   (with-temp-buffer
+                     (require 'find-func)
+                     (declare-function find-library-name "find-func" (library))
+                     (insert-file-contents (find-library-name "editorconfig"))
+                     (require 'lisp-mnt)
+                     (declare-function lm-version "lisp-mnt" nil)
+                     (lm-version)))
+                  (pkg (and (eval-and-compile (require 'package nil t))
+                            (cadr (assq 'editorconfig
+                                        package-alist))))
+                  (pkg-version (and pkg (package-version-join
+                                         (package-desc-version pkg)))))
+             (if (and pkg-version
+                      (not (string= version pkg-version)))
+                 (concat version "-" pkg-version)
+               version)))))
     (when show-version
       (message "EditorConfig Emacs v%s" version-full))
     version-full))

@@ -90,7 +90,6 @@ RESULT is used internally and normally should not be used."
                                       confname
                                       (cons handle result)))))
 
-;;;###autoload
 (defun editorconfig-core-get-nearest-editorconfig (directory)
   "Return path to .editorconfig file that is closest to DIRECTORY."
   (when-let* ((handle (car (last
@@ -98,7 +97,6 @@ RESULT is used internally and normally should not be used."
                                                            ".editorconfig")))))
     (editorconfig-core-handle-path handle)))
 
-;;;###autoload
 (defun editorconfig-core-get-properties (&optional file confname confversion)
   "Get EditorConfig properties for FILE.
 If FILE is not given, use currently visiting file.
@@ -122,7 +120,6 @@ When the same key exists in both two hashes, values of UPDATE takes precedence."
   (maphash (lambda (key value) (puthash key value into)) update)
   into)
 
-;;;###autoload
 (defun editorconfig-core-get-properties-hash (&optional file confname confversion)
   "Get EditorConfig properties for FILE.
 If FILE is not given, use currently visiting file.

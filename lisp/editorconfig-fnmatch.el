@@ -83,7 +83,6 @@
             string (substring string (match-end 0))))
     num))
 
-;;;###autoload
 (defun editorconfig-fnmatch-p (string pattern)
   "Test whether STRING match PATTERN.
 
