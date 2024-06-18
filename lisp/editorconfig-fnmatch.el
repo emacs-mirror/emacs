@@ -127,7 +127,7 @@ translation is found for PATTERN."
         (length (length pattern))
         (brace-level 0)
         (in-brackets nil)
-        ;; List of strings of resulting regexp
+        ;; List of strings of resulting regexp, in reverse order.
         (result ())
         (is-escaped nil)
         (matching-braces (= (editorconfig-fnmatch--match-num
@@ -150,9 +150,10 @@ translation is found for PATTERN."
                              pattern
                              index)
                (eq index (match-beginning 0)))
-          (setq result `(,@result ,(regexp-quote (match-string 0 pattern)))
-                index (match-end 0)
-                is-escaped nil)
+          (progn
+            (push (regexp-quote (match-string 0 pattern)) result)
+            (setq index (match-end 0)
+                  is-escaped nil))
 
         (setq current-char (aref pattern index)
               index (1+ index))
@@ -162,19 +163,20 @@ translation is found for PATTERN."
            (setq pos index)
            (if (and (< pos length)
                     (= (aref pattern pos) ?*))
-               (setq result `(,@result ".*"))
-             (setq result `(,@result "[^/]*"))))
+               (push ".*" result)
+             (push "[^/]*" result)))
 
           (??
-           (setq result `(,@result "[^/]")))
+           (push "[^/]" result))
 
           (?\[
            (if in-brackets
-               (setq result `(,@result "\\["))
+               (push "\\[" result)
              (if (= (aref pattern index) ?/)
                  ;; Slash after an half-open bracket
-                 (setq result `(,@result "\\[/")
-                       index (+ index 1))
+                 (progn
+                   (push "\\[/" result)
+                   (setq index (+ index 1)))
                (setq pos index
                      has-slash nil)
                (while (and (< pos length)
@@ -185,28 +187,31 @@ translation is found for PATTERN."
                      (setq has-slash t)
                    (setq pos (1+ pos))))
                (if has-slash
-                   (setq result `(,@result ,(concat "\\["
-                                                    (substring pattern
-                                                               index
-                                                               (1+ pos))
-                                                    "\\]"))
-                         index (+ pos 2))
+                   (progn
+                     (push (concat "\\["
+                                   (substring pattern
+                                              index
+                                              (1+ pos))
+                                   "\\]")
+                           result)
+                     (setq index (+ pos 2)))
                  (if (and (< index length)
                           (memq (aref pattern index)
                                 '(?! ?^)))
-                     (setq index (1+ index)
-                           result `(,@result "[^"))
-                   (setq result `(,@result "[")))
+                     (progn
+                       (setq index (1+ index))
+                       (push "[^" result))
+                   (push "[" result))
                  (setq in-brackets t)))))
 
           (?-
            (if in-brackets
-               (setq result `(,@result "-"))
-             (setq result `(,@result "\\-"))))
+               (push "-" result)
+             (push "\\-" result)))
 
           (?\]
-           (setq result `(,@result "]")
-                 in-brackets nil))
+           (push "]" result)
+           (setq in-brackets nil))
 
           (?{
            (setq pos index
@@ -232,52 +237,56 @@ translation is found for PATTERN."
                                                                          pattern-sub)))
                            (number-end (string-to-number (match-string 2
                                                                        pattern-sub))))
-                       (setq result `(,@result ,(concat "\\(?:"
-                                                        (mapconcat #'number-to-string
-                                                                   (cl-loop for i from number-start to number-end
-                                                                            collect i)
-                                                                   "\\|")
-                                                        "\\)"))))
+                       (push (concat "\\(?:"
+                                     (mapconcat #'number-to-string
+                                                (cl-loop for i from number-start to number-end
+                                                         collect i)
+                                                "\\|")
+                                     "\\)")
+                             result))
                    (let ((inner (editorconfig-fnmatch--do-translate pattern-sub t)))
-                     (setq result `(,@result ,(format "{%s}" inner)))))
+                     (push (format "{%s}" inner) result)))
                  (setq index (1+ pos)))
              (if matching-braces
-                 (setq result `(,@result "\\(?:")
-                       brace-level (1+ brace-level))
-               (setq result `(,@result "{")))))
+                 (progn
+                   (push "\\(?:" result)
+                   (setq brace-level (1+ brace-level)))
+               (push "{" result))))
 
           (?,
            (if (and (> brace-level 0)
                     (not is-escaped))
-               (setq result `(,@result "\\|"))
-             (setq result `(,@result "\\,"))))
+               (push "\\|" result)
+             (push "\\," result)))
 
           (?}
            (if (and (> brace-level 0)
                     (not is-escaped))
-               (setq result `(,@result "\\)")
-                     brace-level (- brace-level 1))
-             (setq result `(,@result "}"))))
+               (progn
+                 (push "\\)" result)
+                 (setq brace-level (- brace-level 1)))
+             (push "}" result)))
 
           (?/
            (if (and (<= (+ index 3) (length pattern))
                     (string= (substring pattern index (+ index 3)) "**/"))
-               (setq result `(,@result "\\(?:/\\|/.*/\\)")
-                     index (+ index 3))
-             (setq result `(,@result "/"))))
+               (progn
+                 (push "\\(?:/\\|/.*/\\)" result)
+                 (setq index (+ index 3)))
+             (push "/" result)))
 
           (t
            (unless (= current-char ?\\)
-             (setq result `(,@result ,(regexp-quote (char-to-string current-char)))))))
+             (push (regexp-quote (char-to-string current-char)) result))))
 
         (if (= current-char ?\\)
             (progn (when is-escaped
-                     (setq result `(,@result "\\\\")))
+                     (push "\\\\" result))
                    (setq is-escaped (not is-escaped)))
           (setq is-escaped nil))))
     (unless nested
-      (setq result `("^" ,@result "\\'")))
-    (apply #'concat result)))
+      (setq result `("\\'" ,@result "\\`")))
+    (apply #'concat (reverse result))))
 
 (provide 'editorconfig-fnmatch)
 ;;; editorconfig-fnmatch.el ends here
