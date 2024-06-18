@@ -430,6 +430,7 @@ igc_check_fwd (void *client)
     {
       struct igc_header *h = client_to_base (client);
       igc_assert (h->obj_type != IGC_OBJ_FWD);
+      igc_assert (obj_size (h) >= sizeof (struct igc_fwd));
     }
 }
 #endif
@@ -3771,9 +3772,9 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   size_t relocs_size = (uint8_t *)cold_end - (uint8_t *)heap_end;
   struct igc_header *h = client_to_base (dump_base);
   igc_assert (h->obj_type == IGC_OBJ_INVALID);
-  igc_assert (obj_size (h) == sizeof *h + dump_size);
 #ifdef IGC_DEBUG
   size_t dump_size = (uint8_t *)cold_end - (uint8_t *)dump_base;
+  igc_assert (obj_size (h) == sizeof *h + dump_size);
   igc_assert (discardable_size > 2 * sizeof *h);
 #endif
   /* Ignore dump_header */
