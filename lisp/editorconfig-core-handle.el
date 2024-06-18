@@ -93,12 +93,7 @@ If CONF does not exist return nil."
                (equal (editorconfig-core-handle-mtime cached) mtime))
           cached
         (let ((parsed (editorconfig-core-handle--parse-file conf)))
-          (puthash conf
-                   (make-editorconfig-core-handle :top-props (plist-get parsed :top-props)
-                                                  :sections (plist-get parsed :sections)
-                                                  :mtime mtime
-                                                  :path conf)
-                   editorconfig-core-handle--cache-hash))))))
+          (puthash conf parsed editorconfig-core-handle--cache-hash))))))
 
 (defun editorconfig-core-handle-root-p (handle)
   "Return non-nil if HANDLE represent root EditorConfig file.
@@ -148,21 +143,10 @@ This function is a fnmatch with a few modification for EditorConfig usage."
         (editorconfig-fnmatch-p name pattern))
     (editorconfig-fnmatch-p (file-name-nondirectory name) pattern)))
 
-(defsubst editorconfig-core-handle--string-trim (str)
-  "Remove leading and trailing whitespaces from STR."
-  (replace-regexp-in-string "[[:space:]]+\\'"
-                            ""
-                            (replace-regexp-in-string "\\`[[:space:]]+"
-                                                      ""
-                                                      str)))
-
 (defun editorconfig-core-handle--parse-file (conf)
   "Parse EditorConfig file CONF.
 
-This function returns cons of its top properties alist and
-alist of patterns and its properties alist.
-The list returned will be ordered by the lines they appear.
-
+This function returns a `editorconfig-core-handle'.
 If CONF is not found return nil."
   (when (file-readable-p conf)
     (with-temp-buffer
@@ -170,12 +154,9 @@ If CONF is not found return nil."
       ;; code conversion
       (insert-file-contents conf)
       (goto-char (point-min))
-      (let ((point-max (point-max))
-            (sections ())
+      (let ((sections ())
             (top-props nil)
 
-            ;; String of current line
-            (line "")
             ;; nil when pattern not appeared yet, "" when pattern is empty ("[]")
             (pattern nil)
             ;; Alist of properties for current PATTERN
@@ -183,58 +164,52 @@ If CONF is not found return nil."
 
             ;; Current line num
             (current-line-number 1))
-        (while (not (eq (point) point-max))
-          (setq line
-                (buffer-substring-no-properties (line-beginning-position)
-                                                (line-end-position)))
-          (setq line
-                (replace-regexp-in-string "\\(^\\| \\)\\(#\\|;\\).*$"
-                                          ""
-                                          (editorconfig-core-handle--string-trim line)))
-
+        (while (not (eobp))
+          (skip-chars-forward " \t\f")
           (cond
-           ((string-equal "" line)
+           ((looking-at "\\(?:[#;].*\\)?$")
             nil)
 
            ;; Start of section
-           ((string-match "^\\[\\(.*\\)\\]$"
-                          line)
-            (when pattern
-              (setq sections
-                    `(,@sections ,(make-editorconfig-core-handle-section
-                                   :name pattern
-                                   :props props)))
-              (setq pattern nil)
-              (setq props nil))
-            (setq pattern (match-string 1 line)))
+           ((looking-at "\\[\\(.*\\)\\][ \t]*$")
+            (let ((newpattern (match-string 1)))
+              (when pattern
+                (push (make-editorconfig-core-handle-section
+                       :name pattern
+                       :props (nreverse props))
+                      sections))
+              (setq props nil)
+              (setq pattern newpattern)))
 
-           (t
-            (let ((idx (string-match "=\\|:" line)))
-              (unless idx
-                (error "Error while reading config file: %s:%d:\n    %s\n"
-                       conf current-line-number line))
-              (let ((key (downcase (editorconfig-core-handle--string-trim
-                                    (substring line 0 idx))))
-                    (value (editorconfig-core-handle--string-trim
-                            (substring line (1+ idx)))))
-                (when (and (< (length key) 51)
-                           (< (length value) 256))
-                  (if pattern
-                      (when (< (length pattern) 4097)
-                        (setq props
-                              `(,@props (,key . ,value))))
-                    (setq top-props
-                          `(,@top-props (,key . ,value)))))))))
+           ((looking-at "\\([^=: \t]+\\)[ \t]*[=:][ \t]*\\(.*?\\)[ \t]*$")
+            (let ((key (downcase (match-string 1)))
+                  (value (match-string 2)))
+              (when (and (< (length key) 51)
+                         (< (length value) 256))
+                (if pattern
+                    (when (< (length pattern) 4097) ;;FIXME: 4097?
+                      (push `(,key . ,value)
+                            props))
+                  (push `(,key . ,value)
+                        top-props)))))
+
+           (t (error "Error while reading config file: %s:%d:\n    %s\n"
+                     conf current-line-number
+                     (buffer-substring-no-properties (line-beginning-position)
+                                                     (line-end-position)))))
           (setq current-line-number (1+ current-line-number))
           (goto-char (point-min))
           (forward-line (1- current-line-number)))
         (when pattern
-          (setq sections
-                `(,@sections ,(make-editorconfig-core-handle-section
-                               :name pattern
-                               :props props))))
-        (list :top-props top-props
-              :sections sections)))))
+          (push (make-editorconfig-core-handle-section
+                 :name pattern
+                 :props (nreverse props))
+                sections))
+        (make-editorconfig-core-handle
+         :top-props (nreverse top-props)
+         :sections (nreverse sections)
+         :mtime (nth 5 (file-attributes conf))
+         :path conf)))))
 
 (provide 'editorconfig-core-handle)
 ;;; editorconfig-core-handle.el ends here
