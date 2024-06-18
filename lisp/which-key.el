@@ -2251,13 +2251,13 @@ prefix, and a page count."
                             (format
                              (concat "%-" (int-to-string first-col-width) "s")
                              page-cnt)
-                          (make-string first-col-width 32)))
+                          (make-string first-col-width ?\s)))
               lines first-line new-end)
          (if (= 1 height)
              (cons (concat prefix page) nil)
            (setq lines (split-string page "\n")
                  first-line (concat prefix (car lines) "\n" page-cnt)
-                 new-end (concat "\n" (make-string first-col-width 32)))
+                 new-end (concat "\n" (make-string first-col-width ?\s)))
            (cons
             (concat first-line (mapconcat #'identity (cdr lines) new-end))
             nil))))
