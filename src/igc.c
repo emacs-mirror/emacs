@@ -208,6 +208,7 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_DUMPED_CHARSET_TABLE",
   "IGC_OBJ_DUMPED_CODE_SPACE_MASKS",
   "IGC_OBJ_DUMPED_BUFFER_TEXT",
+  "IGC_OBJ_DUMPED_BIGNUM_DATA",
   "IGC_OBJ_DUMPED_BYTES",
 };
 
@@ -1374,6 +1375,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
       case IGC_OBJ_BYTES:
       case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
       case IGC_OBJ_DUMPED_BUFFER_TEXT:
+      case IGC_OBJ_DUMPED_BIGNUM_DATA:
       case IGC_OBJ_DUMPED_BYTES:
 	/* Can occur in the dump. */
 	break;
@@ -2691,6 +2693,7 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_DUMPED_CHARSET_TABLE:
     case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
     case IGC_OBJ_DUMPED_BUFFER_TEXT:
+    case IGC_OBJ_DUMPED_BIGNUM_DATA:
     case IGC_OBJ_DUMPED_BYTES:
     case IGC_OBJ_BYTES:
     case IGC_OBJ_NUM_TYPES:
@@ -2862,6 +2865,7 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_DUMPED_CHARSET_TABLE:
     case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
     case IGC_OBJ_DUMPED_BUFFER_TEXT:
+    case IGC_OBJ_DUMPED_BIGNUM_DATA:
     case IGC_OBJ_DUMPED_BYTES:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
@@ -3654,6 +3658,7 @@ builtin_obj_type_and_hash (size_t *hash, enum igc_obj_type type, void *client)
   if (type == IGC_OBJ_DUMPED_CHARSET_TABLE
       || type == IGC_OBJ_DUMPED_CODE_SPACE_MASKS
       || type == IGC_OBJ_DUMPED_BUFFER_TEXT
+      || type == IGC_OBJ_DUMPED_BIGNUM_DATA
       || type == IGC_OBJ_DUMPED_BYTES)
     {
       *hash = 0;
@@ -3716,6 +3721,7 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
     case IGC_OBJ_DUMPED_CHARSET_TABLE:
     case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
     case IGC_OBJ_DUMPED_BUFFER_TEXT:
+    case IGC_OBJ_DUMPED_BIGNUM_DATA:
     case IGC_OBJ_DUMPED_BYTES:
       is_in_dump = true;
       break;

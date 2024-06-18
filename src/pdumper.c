@@ -3584,6 +3584,9 @@ dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
   eassert (sz_nlimbs < DUMP_OFF_MAX);
   dump_align_output (ctx, alignof (mp_limb_t));
   dump_off nlimbs = (dump_off) sz_nlimbs;
+# ifdef HAVE_MPS
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BIGNUM_DATA, n);
+# endif
   Lisp_Object descriptor
     = list2 (dump_off_to_lisp (ctx->offset),
 	     dump_off_to_lisp (mpz_sgn (*n) < 0 ? -nlimbs : nlimbs));
@@ -3593,6 +3596,9 @@ dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
       mp_limb_t limb = mpz_getlimbn (*n, i);
       dump_write (ctx, &limb, sizeof (limb));
     }
+# ifdef HAVE_MPS
+  dump_igc_finish_obj (ctx);
+# endif
 }
 
 #ifdef HAVE_NATIVE_COMP
