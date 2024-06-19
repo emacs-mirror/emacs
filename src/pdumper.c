@@ -4640,7 +4640,7 @@ enum dump_memory_protection
   DUMP_MEMORY_ACCESS_READWRITE = 3,
 };
 
-#if VM_SUPPORTED == VM_MS_WINDOWS
+#if VM_SUPPORTED == VM_MS_WINDOWS && !defined HAVE_MPS
 static void *
 dump_anonymous_allocate_w32 (void *base,
                              size_t size,
@@ -4777,7 +4777,7 @@ dump_anonymous_release (void *addr, size_t size)
 
 #endif /* no HAVE_MPS */
 
-#if VM_SUPPORTED == VM_MS_WINDOWS
+#if VM_SUPPORTED == VM_MS_WINDOWS && !defined HAVE_MPS
 static void *
 dump_map_file_w32 (void *base, int fd, off_t offset, size_t size,
 		   enum dump_memory_protection protection)
@@ -4950,14 +4950,16 @@ struct dump_memory_map
 void
 dump_discard_mem (void *mem, size_t size)
 {
+      int err = 0;
 #if VM_SUPPORTED == VM_MS_WINDOWS
       /* Discard COWed pages.  */
-      (void) VirtualFree (mem, size, MEM_DECOMMIT);
+      err = (VirtualFree (mem, size, MEM_DECOMMIT) == 0);
+      if (err)
+	emacs_abort ();
       /* Release the commit charge for the mapping.  */
       DWORD old_prot;
-      (void) VirtualProtect (mem, size, PAGE_NOACCESS, &old_prot);
+      err = (VirtualProtect (mem, size, PAGE_NOACCESS, &old_prot) == 0);
 #elif VM_SUPPORTED == VM_POSIX
-      int err = 0;
 # ifdef HAVE_POSIX_MADVISE
       /* Discard COWed pages.  */
       err = posix_madvise (mem, size, POSIX_MADV_DONTNEED);
@@ -4968,9 +4970,9 @@ dump_discard_mem (void *mem, size_t size)
 	emacs_abort ();
       /* Release the commit charge for the mapping.  */
       err = mprotect (mem, size, PROT_NONE);
+#endif
       if (err)
 	emacs_abort ();
-#endif
 }
 
 static void
