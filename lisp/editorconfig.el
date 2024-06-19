@@ -126,53 +126,128 @@ This hook will be run even when there are no matching sections in
   "0.5")
 (defcustom editorconfig-indentation-alist
   ;; For contributors: Sort modes in alphabetical order
-  `((apache-mode apache-indent-level)
-    (bash-ts-mode sh-basic-offset
-                  sh-indentation)
+  '((apache-mode apache-indent-level)
+    (awk-mode c-basic-offset)
+    (bash-ts-mode sh-basic-offset)
     (bpftrace-mode c-basic-offset)
+    (c++-mode c-basic-offset)
     (c++-ts-mode c-basic-offset
                  c-ts-mode-indent-offset)
+    (c-mode c-basic-offset)
     (c-ts-mode c-basic-offset
                c-ts-mode-indent-offset)
     (cmake-mode cmake-tab-width)
     (cmake-ts-mode cmake-tab-width
                    cmake-ts-mode-indent-offset)
+    (coffee-mode coffee-tab-width)
+    (cperl-mode cperl-indent-level)
+    (crystal-mode crystal-indent-level)
     (csharp-mode c-basic-offset)
     (csharp-ts-mode c-basic-offset
                     csharp-ts-mode-indent-offset)
+    (css-mode css-indent-offset)
+    (css-ts-mode css-indent-offset)
+    (d-mode c-basic-offset)
+    (elixir-ts-mode elixir-ts-indent-offset)
     (emacs-lisp-mode . editorconfig--get-indentation-lisp-mode)
+    (enh-ruby-mode enh-ruby-indent-level)
+    (erlang-mode erlang-indent-level)
     (ess-mode ess-indent-offset)
+    (f90-mode f90-associate-indent
+              f90-continuation-indent
+              f90-critical-indent
+              f90-do-indent
+              f90-if-indent
+              f90-program-indent
+              f90-type-indent)
     (feature-mode feature-indent-offset
                   feature-indent-level)
+    (fsharp-mode fsharp-continuation-offset
+                 fsharp-indent-level
+                 fsharp-indent-offset)
     (gdscript-mode gdscript-indent-offset)
     (go-ts-mode go-ts-mode-indent-offset)
+    (graphql-mode graphql-indent-level)
+    (groovy-mode groovy-indent-offset)
+    (haskell-mode haskell-indent-spaces
+                  haskell-indent-offset
+                  haskell-indentation-layout-offset
+                  haskell-indentation-left-offset
+                  haskell-indentation-starter-offset
+                  haskell-indentation-where-post-offset
+                  haskell-indentation-where-pre-offset
+                  shm-indent-spaces)
+    (haxor-mode haxor-tab-width)
     (hcl-mode hcl-indent-level)
     (html-ts-mode html-ts-mode-indent-offset)
+    (idl-mode c-basic-offset)
+    (jade-mode jade-tab-width)
+    (java-mode c-basic-offset)
     (java-ts-mode c-basic-offset
                   java-ts-mode-indent-offset)
     (js-mode js-indent-level)
+    (js-ts-mode js-indent-level)
+    (js-jsx-mode js-indent-level sgml-basic-offset)
+    (js2-mode js2-basic-offset)
+    (js2-jsx-mode js2-basic-offset sgml-basic-offset)
+    (js3-mode js3-indent-level)
+    (json-mode js-indent-level)
+    (json-ts-mode json-ts-mode-indent-offset)
     (jsonian-mode jsonian-default-indentation)
+    (julia-mode julia-indent-offset)
+    (kotlin-mode kotlin-tab-width)
+    (kotlin-ts-mode kotlin-ts-mode-indent-offset)
     (latex-mode . editorconfig--get-indentation-latex-mode)
     (lisp-mode . editorconfig--get-indentation-lisp-mode)
+    (livescript-mode livescript-tab-width)
+    (lua-mode lua-indent-level)
+    (lua-ts-mode lua-ts-indent-offset)
+    (magik-mode magik-indent-level)
+    (magik-ts-mode magik-indent-level)
     (matlab-mode matlab-indent-level)
+    (meson-mode meson-indent-basic)
+    (mips-mode mips-tab-width)
+    (mustache-mode mustache-basic-offset)
+    (nasm-mode nasm-basic-offset)
+    (nginx-mode nginx-indent-level)
+    (nxml-mode nxml-child-indent (nxml-attribute-indent . 2))
+    (objc-mode c-basic-offset)
     (octave-mode octave-block-offset)
+    (perl-mode perl-indent-level)
     ;; No need to change `php-mode-coding-style' value for php-mode
     ;; since we run editorconfig later than it resets `c-basic-offset'.
     ;; See https://github.com/editorconfig/editorconfig-emacs/issues/116
     ;; for details.
     (php-mode c-basic-offset)
     (php-ts-mode php-ts-mode-indent-offset)
+    (pike-mode c-basic-offset)
+    (protobuf-mode c-basic-offset)
     (ps-mode ps-mode-tab)
+    (pug-mode pug-tab-width)
+    (puppet-mode puppet-indent-level)
+    (python-mode . editorconfig-set-indentation-python-mode)
+    (python-ts-mode . editorconfig-set-indentation-python-mode)
+    (rjsx-mode js-indent-level sgml-basic-offset)
     (ruby-mode ruby-indent-level)
+    (ruby-ts-mode ruby-indent-level)
+    (rust-mode rust-indent-offset)
     (rust-ts-mode rust-indent-offset
                   rust-ts-mode-indent-offset)
+    (rustic-mode rustic-indent-offset)
+    (scala-mode scala-indent:step)
     (scss-mode css-indent-offset)
     (sgml-mode sgml-basic-offset)
-    (sh-mode sh-indentation)
+    (sh-mode sh-basic-offset)
+    (slim-mode slim-indent-offset)
+    (sml-mode sml-indent-level)
     (svelte-mode svelte-basic-offset)
+    (swift-mode swift-mode:basic-offset)
+    (terra-mode terra-indent-level)
     (tcl-mode tcl-indent-level
               tcl-continued-indent-level)
     (toml-ts-mode toml-ts-mode-indent-offset)
+    (typescript-mode typescript-indent-level)
+    (typescript-ts-base-mode typescript-ts-mode-indent-offset)
     (verilog-mode verilog-indent-level
                   verilog-indent-level-behavioral
                   verilog-indent-level-declaration
@@ -180,6 +255,8 @@ This hook will be run even when there are no matching sections in
                   verilog-cexp-indent
                   verilog-case-indent)
     (web-mode . editorconfig--get-indentation-web-mode)
+    (yaml-mode yaml-indent-offset)
+    (yaml-ts-mode yaml-indent-offset)
     (zig-mode zig-indent-offset)
     )
   "Alist of indentation setting methods by modes.
@@ -235,9 +312,15 @@ Make a message by passing ARGS to `format-message'."
 
 (defun editorconfig--get-indentation-web-mode (size)
   `((web-mode-indent-style . 2)
-    (web-mode-markup-indent-offset . ,size)
-    (web-mode-css-indent-offset . ,size)
-    (web-mode-code-indent-offset . ,size)))
+    (web-mode-attr-indent-offset       . ,size)
+    (web-mode-attr-value-indent-offset . ,size)
+    (web-mode-code-indent-offset       . ,size)
+    (web-mode-css-indent-offset        . ,size)
+    (web-mode-markup-indent-offset     . ,size)
+    (web-mode-sql-indent-offset        . ,size)
+    (web-mode-block-padding            . ,size)
+    (web-mode-script-padding           . ,size)
+    (web-mode-style-padding            . ,size)))
 
 (defun editorconfig--get-indentation-latex-mode (size)
   "Vars to set `latex-mode' indent size to SIZE."
