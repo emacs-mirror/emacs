@@ -2856,38 +2856,57 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
     }
 }
 
+struct igc_clock
+{
+  mps_clock_t expire;
+};
+
+static bool
+clock_has_expired (struct igc_clock *clock)
+{
+  return mps_clock () > clock->expire;
+}
+
+static struct igc_clock
+make_clock (double secs)
+{
+  /* FIXME: what does this do on 32-bit systems? */
+  mps_clock_t per_sec = mps_clocks_per_sec ();
+  mps_clock_t expire = mps_clock () + secs * per_sec;
+  return (struct igc_clock) { .expire = expire };
+}
+
+#define WITH_CLOCK(c, duration)							\
+  for (struct igc_clock c = make_clock (duration); !clock_has_expired (&c);)
+
 /* Process MPS messages. This should be extended to handle messages only
    for a certain amount of time. See mps_clock_t, mps_clock, and
    mps_clocks_per_sec functions.  */
 
-static void
-process_messages (struct igc *gc)
+static bool
+process_one_message (struct igc *gc)
 {
-  mps_message_type_t type;
-  while (mps_message_queue_type (&type, gc->arena))
+  mps_message_t msg;
+  if (mps_message_get (&msg, gc->arena, mps_message_type_finalization ()))
     {
-      mps_message_t msg;
-      if (!mps_message_get (&msg, gc->arena, type))
-	continue;
-
-      if (type == mps_message_type_finalization ())
-	{
-	  mps_addr_t base_addr;
-	  mps_message_finalization_ref (&base_addr, gc->arena, msg);
-	  finalize (gc, base_addr);
-	}
-      else if (type == mps_message_type_gc_start ())
-	{
-	  if (garbage_collection_messages)
-	    {
-	      message1 ("Garbage collecting...");
-	      const char *why = mps_message_gc_start_why (gc->arena, msg);
-	      message1 (why);
-	    }
-	}
-
-      mps_message_discard (gc->arena, msg);
+      mps_addr_t base_addr;
+      mps_message_finalization_ref (&base_addr, gc->arena, msg);
+      finalize (gc, base_addr);
     }
+  else if (mps_message_get (&msg, gc->arena, mps_message_type_gc_start ()))
+    {
+      if (garbage_collection_messages)
+	{
+	  message1 ("Garbage collecting...");
+	  const char *why = mps_message_gc_start_why (gc->arena, msg);
+	  message1 (why);
+	}
+    }
+  else
+    return false;
+
+  mps_message_discard (gc->arena, msg);
+  return true;
 }
 
 static void
@@ -2902,27 +2921,84 @@ enable_messages (struct igc *gc, bool enable)
 void
 igc_process_messages (void)
 {
-  process_messages (global_igc);
+  WITH_CLOCK (clock, 0.1)
+  {
+    if (!process_one_message (global_igc))
+      break;
+  }
+}
+
+struct igc_buffer_it
+{
+  Lisp_Object alist;
+  Lisp_Object buf;
+};
+
+static struct igc_buffer_it
+make_buffer_it (void)
+{
+  return (struct igc_buffer_it) { .alist = Vbuffer_alist, .buf = Qnil };
+}
+
+static bool
+is_buffer_it_valid (struct igc_buffer_it *it)
+{
+  if (!CONSP (it->alist))
+    return false;
+  Lisp_Object elt = XCAR (it->alist);
+  igc_assert (CONSP (elt));
+  it->buf = XCDR (elt);
+  return true;
+}
+
+static void
+buffer_it_next (struct igc_buffer_it *it)
+{
+  igc_assert (CONSP (it->alist));
+  it->alist = XCDR (it->alist);
+  it->buf = Qnil;
 }
 
 void
 igc_on_idle (void)
 {
-  process_messages (global_igc);
+  struct igc_buffer_it buffer_it = make_buffer_it ();
+  WITH_CLOCK (clock, 0.1)
+  {
+    bool work_done = process_one_message (global_igc);
 
-  /* mps_arena_step does not guarantee to return swiftly. And it seems
-     that it sometimes does an opportunistic full collection. */
-  if (!FIXNUMP (Vigc_step_interval) || XFIXNUM (Vigc_step_interval) != 0)
-    {
-      double interval = 0;
-      if (NUMBERP (Vigc_step_interval))
-	{
-	  interval = XFLOATINT (Vigc_step_interval);
-	  if (interval < 0)
-	    interval = 0.05;
-	}
-      mps_arena_step (global_igc->arena, interval, 0);
-    }
+    if (is_buffer_it_valid (&buffer_it))
+      {
+	Lisp_Object buf = buffer_it.buf;
+	buffer_it_next (&buffer_it);
+	compact_buffer (XBUFFER (buf));
+	/* Always set work_done to increase the chance to process all
+	   buffers.  FIXME: can this be done better? */
+	work_done = true;
+      }
+
+    /* mps_arena_step does not guarantee to return swiftly. And it seems
+       that it sometimes does an opportunistic full collection alledging
+       the client predicted lots of idle time. But it doesn't tell how
+       it comes to that conclusioin. */
+    if (!FIXNUMP (Vigc_step_interval) || XFIXNUM (Vigc_step_interval) != 0)
+      {
+	double interval = 0;
+	if (NUMBERP (Vigc_step_interval))
+	  {
+	    interval = XFLOATINT (Vigc_step_interval);
+	    if (interval < 0)
+	      interval = 0.05;
+	  }
+
+	if (mps_arena_step (global_igc->arena, interval, 0))
+	  work_done = true;
+      }
+
+    /* Don't always exhaust the max time we want to spend here. */
+    if (!work_done)
+      break;
+  }
 }
 
 static mps_ap_t
