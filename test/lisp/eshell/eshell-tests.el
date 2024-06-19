@@ -117,6 +117,27 @@ This test uses a pipeline for the command."
         (forward-line)
         (should (looking-at "hi\n"))))))
 
+(ert-deftest eshell-test/eshell-command/output-buffer/async-kill ()
+  "Test that the `eshell-command' function kills the old process when told to."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((orig-processes (process-list))
+          (eshell-history-file-name nil)
+          (eshell-command-async-buffer 'confirm-kill-process))
+      (eshell-command "sleep 5 | *echo hi &")
+      (cl-letf* ((result t)
+                 ;; Say "yes" only once: for the `confirm-kill-process'
+                 ;; prompt.  If there are any other prompts (e.g. from
+                 ;; `kill-buffer'), say "no" to make the test fail.
+                 ((symbol-function 'yes-or-no-p)
+                  (lambda (_prompt) (prog1 result (setq result nil)))))
+        (eshell-command "*echo bye &"))
+      (eshell-wait-for (lambda () (equal (process-list) orig-processes)))
+      (with-current-buffer "*Eshell Async Command Output*"
+        (goto-char (point-min))
+        (forward-line)
+        (should (looking-at "bye\n"))))))
+
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"
   (with-temp-eshell

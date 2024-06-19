@@ -43,6 +43,17 @@ applies, and please also update docstrings as needed.
 If 'whitespace-style' includes 'missing-newline-at-eof (which is the
 default), the 'whitespace-cleanup' function will now add the newline.
 
+** Eshell
+
+---
+*** New option 'eshell-command-async-buffer'.
+This option lets you tell 'eshell-command' how to respond if its output
+buffer is already in use by another invocation of 'eshell-command', much
+like 'async-shell-command-buffer' does for 'shell-command'.  By default,
+this will prompt for confirmation before creating a new buffer when
+necessary.  To restore the previous behavior, set this option to
+'confirm-kill-process'.
+
 ** SHR
 
 +++
