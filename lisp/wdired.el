@@ -2,7 +2,6 @@
 
 ;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
 
-;; Filename: wdired.el
 ;; Author: Juan León Lahoz García <juanleon1@gmail.com>
 ;; Old-Version: 2.0
 ;; Keywords: dired, environment, files, renaming

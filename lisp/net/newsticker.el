@@ -3,7 +3,6 @@
 ;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
-;; Filename:    newsticker.el
 ;; URL:         https://www.nongnu.org/newsticker
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS, Atom

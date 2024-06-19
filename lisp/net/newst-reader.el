@@ -3,7 +3,6 @@
 ;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
-;; Filename:    newst-reader.el
 ;; URL:         https://www.nongnu.org/newsticker
 ;; Package:     newsticker
 
