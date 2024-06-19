@@ -3959,15 +3959,16 @@ igc_alloc_dump (size_t nbytes)
 {
   igc_assert (global_igc->park_count > 0);
   mps_ap_t ap = thread_ap (IGC_OBJ_CONS);
+  size_t block_size = igc_header_size () + nbytes;
   mps_addr_t block;
   do
     {
-      mps_res_t res = mps_reserve (&block, ap, nbytes);
+      mps_res_t res = mps_reserve (&block, ap, block_size);
       if (res != MPS_RES_OK)
 	memory_full (0);
+      set_header (block, IGC_OBJ_INVALID, block_size, 0);
     }
-  while (!mps_commit (ap, block, nbytes));
-  set_header (block, IGC_OBJ_INVALID, nbytes, 0);
+  while (!mps_commit (ap, block, block_size));
   return base_to_client (block);
 }
 

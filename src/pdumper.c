@@ -2362,7 +2362,7 @@ static void
 dump_field_fwd (struct dump_context *ctx, void *out, const void *in_start,
 		const lispfwd *in_field)
 {
-  dump_field_emacs_ptr (ctx, out, in_start, in_field);
+  dump_field_emacs_ptr (ctx, out, in_start, &in_field->fwdptr);
   switch (XFWDTYPE (*in_field))
     {
     case Lisp_Fwd_Int:
@@ -5101,7 +5101,7 @@ static bool
 dump_mmap_contiguous_mps (struct dump_memory_map *maps, int nr_maps,
 			  size_t total_size)
 {
-  uint8_t *p = igc_alloc_dump (igc_header_size () + total_size);
+  uint8_t *p = igc_alloc_dump (total_size);
   for (size_t i = 0; i < nr_maps; ++i)
     {
       struct dump_memory_map *map = &maps[i];
