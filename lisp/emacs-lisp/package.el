@@ -837,11 +837,15 @@ PKG-DESC is a `package-desc' object."
         (unless (equal file result)
           (throw 'done result))))))
 
-(defun package--reload-previously-loaded (pkg-desc)
+(defun package--reload-previously-loaded (pkg-desc &optional warn)
   "Force reimportation of files in PKG-DESC already present in `load-history'.
 New editions of files contain macro definitions and
 redefinitions, the overlooking of which would cause
-byte-compilation of the new package to fail."
+byte-compilation of the new package to fail.
+If WARN is a string, display a warning (using WARN as a format string)
+before reloading the files.  WARN must have two %-sequences
+corresponding to package name (a symbol) and a list of files loaded (as
+sexps)."
   (with-demoted-errors "Error in package--load-files-for-activation: %s"
     (let* (result
            (dir (package-desc-dir pkg-desc))
@@ -877,6 +881,10 @@ byte-compilation of the new package to fail."
           (unless (equal (file-name-base library)
                          (format "%s-autoloads" (package-desc-name pkg-desc)))
             (push (cons (expand-file-name library dir) recent-index) result))))
+      (when (and result warn)
+        (display-warning 'package
+                         (format warn (package-desc-name pkg-desc)
+                                 (mapcar #'car result))))
       (mapc (lambda (c) (load (car c) nil t))
             (sort result (lambda (x y) (< (cdr x) (cdr y))))))))
 
@@ -904,8 +912,11 @@ correspond to previously loaded files."
       (if (listp package--quickstart-pkgs)
           ;; We're only collecting the set of packages to activate!
           (push pkg-desc package--quickstart-pkgs)
-        (when reload
-          (package--reload-previously-loaded pkg-desc))
+        (when (or reload (assq name package--builtin-versions))
+          (package--reload-previously-loaded
+           pkg-desc (unless reload
+                      "Package %S is activated too late.
+The following files have already been loaded: %S")))
         (with-demoted-errors "Error loading autoloads: %s"
           (load (package--autoloads-file-name pkg-desc) nil t)))
       ;; Add info node.
