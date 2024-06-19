@@ -3952,15 +3952,6 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   igc_root_create_ambig (pinned_objects_in_dump,
 			 (uint8_t *)pinned_objects_in_dump
 			     + sizeof pinned_objects_in_dump);
-
-  /* Copy to buffer text to out of pdump */
-  for (Lisp_Object l = Vbuffer_alist; !NILP (l); l = XCDR (l))
-    {
-      struct buffer *buf = XBUFFER (XCDR (XCAR (l)));
-      eassert (pdumper_object_p (buf->text->beg));
-      enlarge_buffer_text (buf, 0);
-      eassert (!pdumper_object_p (buf->text->beg));
-    }
 }
 
 void *

@@ -181,6 +181,9 @@ enum dump_reloc_type
     RELOC_NATIVE_COMP_UNIT,
     RELOC_NATIVE_SUBR,
     RELOC_BIGNUM,
+#ifdef HAVE_MPS
+    RELOC_BUFFER,
+#endif
     /* dump_lv = make_lisp_ptr (dump_lv + dump_base,
 				type - RELOC_DUMP_TO_DUMP_LV)
        (Special case for symbols: make_lisp_symbol)
@@ -2870,6 +2873,11 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 	  dump_remember_cold_op (ctx, COLD_OP_BUFFER,
 				 make_lisp_ptr ((void *) in_buffer,
 						Lisp_Vectorlike));
+#ifdef HAVE_MPS
+	  dump_push (&ctx->dump_relocs[LATE_RELOCS],
+		     list2 (make_fixnum (RELOC_BUFFER),
+			    dump_off_to_lisp (ctx->obj_offset)));
+#endif
         }
       else
         eassert (buffer->own_text.beg == NULL);
@@ -5759,6 +5767,18 @@ dump_do_dump_relocation (const uintptr_t dump_base,
         mpz_roinit_n (bignum->value, limbs, reload_info.nlimbs);
         break;
       }
+#ifdef HAVE_MPS
+    case RELOC_BUFFER:
+      {
+	/* When resurrecting, copy the text out of the dump so that we
+	   can collect the dumped text. */
+        struct buffer *b = dump_ptr (dump_base, reloc_offset);
+	eassert (pdumper_object_p (b->text->beg));
+	enlarge_buffer_text (b, 0);
+	eassert (!pdumper_object_p (b->text->beg));
+      }
+      break;
+#endif
     default: /* Lisp_Object in the dump; precise type in reloc.type */
       {
         Lisp_Object lv = dump_make_lv_from_reloc (dump_base, reloc);
