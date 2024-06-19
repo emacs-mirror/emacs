@@ -203,9 +203,10 @@ struct android_vops
      Value is otherwise the same as `rename'.  */
   int (*rename) (struct android_vnode *, struct android_vnode *, bool);
 
-  /* Return statistics for the specified VNODE.
-     Value and errno are the same as with Unix `stat'.  */
-  int (*stat) (struct android_vnode *, struct stat *);
+  /* Return statistics for the specified VNODE, and FLAGS, as in a call
+     to `fstatat'.  Value and errno are the same as with Unix
+     `stat'.  */
+  int (*stat) (struct android_vnode *, struct stat *, int);
 
   /* Return whether or not VNODE is accessible.
      Value, errno and MODE are the same as with Unix `access'.  */
@@ -649,7 +650,7 @@ static int android_unix_symlink (const char *, struct android_vnode *);
 static int android_unix_rmdir (struct android_vnode *);
 static int android_unix_rename (struct android_vnode *,
 				struct android_vnode *, bool);
-static int android_unix_stat (struct android_vnode *, struct stat *);
+static int android_unix_stat (struct android_vnode *, struct stat *, int);
 static int android_unix_access (struct android_vnode *, int);
 static int android_unix_mkdir (struct android_vnode *, mode_t);
 static int android_unix_chmod (struct android_vnode *, mode_t, int);
@@ -896,12 +897,13 @@ android_unix_rename (struct android_vnode *src,
 }
 
 static int
-android_unix_stat (struct android_vnode *vnode, struct stat *statb)
+android_unix_stat (struct android_vnode *vnode, struct stat *statb,
+		   int flags)
 {
   struct android_unix_vnode *vp;
 
   vp = (struct android_unix_vnode *) vnode;
-  return stat (vp->name, statb);
+  return fstatat (AT_FDCWD, vp->name, statb, flags);
 }
 
 static int
@@ -1669,7 +1671,7 @@ static int android_afs_symlink (const char *, struct android_vnode *);
 static int android_afs_rmdir (struct android_vnode *);
 static int android_afs_rename (struct android_vnode *,
 			       struct android_vnode *, bool);
-static int android_afs_stat (struct android_vnode *, struct stat *);
+static int android_afs_stat (struct android_vnode *, struct stat *, int);
 static int android_afs_access (struct android_vnode *, int);
 static int android_afs_mkdir (struct android_vnode *, mode_t);
 static int android_afs_chmod (struct android_vnode *, mode_t, int);
@@ -2090,7 +2092,8 @@ android_afs_rename (struct android_vnode *src, struct android_vnode *dst,
 }
 
 static int
-android_afs_stat (struct android_vnode *vnode, struct stat *statb)
+android_afs_stat (struct android_vnode *vnode, struct stat *statb,
+		  int flags)
 {
   const char *dir;
   struct android_afs_vnode *vp;
@@ -2506,7 +2509,7 @@ static int android_content_symlink (const char *, struct android_vnode *);
 static int android_content_rmdir (struct android_vnode *);
 static int android_content_rename (struct android_vnode *,
 				   struct android_vnode *, bool);
-static int android_content_stat (struct android_vnode *, struct stat *);
+static int android_content_stat (struct android_vnode *, struct stat *, int);
 static int android_content_access (struct android_vnode *, int);
 static int android_content_mkdir (struct android_vnode *, mode_t);
 static int android_content_chmod (struct android_vnode *, mode_t, int);
@@ -2696,7 +2699,7 @@ android_content_rename (struct android_vnode *src,
 
 static int
 android_content_stat (struct android_vnode *vnode,
-		      struct stat *statb)
+		      struct stat *statb, int flags)
 {
   memset (statb, 0, sizeof *statb);
 
@@ -3190,7 +3193,7 @@ static int android_authority_symlink (const char *, struct android_vnode *);
 static int android_authority_rmdir (struct android_vnode *);
 static int android_authority_rename (struct android_vnode *,
 				     struct android_vnode *, bool);
-static int android_authority_stat (struct android_vnode *, struct stat *);
+static int android_authority_stat (struct android_vnode *, struct stat *, int);
 static int android_authority_access (struct android_vnode *, int);
 static int android_authority_mkdir (struct android_vnode *, mode_t);
 static int android_authority_chmod (struct android_vnode *, mode_t, int);
@@ -3415,7 +3418,7 @@ android_authority_rename (struct android_vnode *src,
 
 static int
 android_authority_stat (struct android_vnode *vnode,
-			struct stat *statb)
+			struct stat *statb, int flags)
 {
   int rc, fd, save_errno;
   struct android_authority_vnode *vp;
@@ -3642,7 +3645,7 @@ static int android_saf_root_symlink (const char *, struct android_vnode *);
 static int android_saf_root_rmdir (struct android_vnode *);
 static int android_saf_root_rename (struct android_vnode *,
 				    struct android_vnode *, bool);
-static int android_saf_root_stat (struct android_vnode *, struct stat *);
+static int android_saf_root_stat (struct android_vnode *, struct stat *, int);
 static int android_saf_root_access (struct android_vnode *, int);
 static int android_saf_root_mkdir (struct android_vnode *, mode_t);
 static int android_saf_root_chmod (struct android_vnode *, mode_t, int);
@@ -3870,7 +3873,7 @@ android_saf_root_rename (struct android_vnode *src,
 
 static int
 android_saf_root_stat (struct android_vnode *vnode,
-		       struct stat *statb)
+		       struct stat *statb, int flags)
 {
   struct android_saf_root_vnode *vp;
 
@@ -4706,7 +4709,7 @@ static int android_saf_tree_symlink (const char *, struct android_vnode *);
 static int android_saf_tree_rmdir (struct android_vnode *);
 static int android_saf_tree_rename (struct android_vnode *,
 				    struct android_vnode *, bool);
-static int android_saf_tree_stat (struct android_vnode *, struct stat *);
+static int android_saf_tree_stat (struct android_vnode *, struct stat *, int);
 static int android_saf_tree_access (struct android_vnode *, int);
 static int android_saf_tree_mkdir (struct android_vnode *, mode_t);
 static int android_saf_tree_chmod (struct android_vnode *, mode_t, int);
@@ -5369,7 +5372,7 @@ android_saf_tree_rename (struct android_vnode *src,
 
 static int
 android_saf_tree_stat (struct android_vnode *vnode,
-		       struct stat *statb)
+		       struct stat *statb, int flags)
 {
   struct android_saf_tree_vnode *vp;
 
@@ -6156,7 +6159,7 @@ static int android_saf_new_symlink (const char *, struct android_vnode *);
 static int android_saf_new_rmdir (struct android_vnode *);
 static int android_saf_new_rename (struct android_vnode *,
 				   struct android_vnode *, bool);
-static int android_saf_new_stat (struct android_vnode *, struct stat *);
+static int android_saf_new_stat (struct android_vnode *, struct stat *, int);
 static int android_saf_new_access (struct android_vnode *, int);
 static int android_saf_new_mkdir (struct android_vnode *, mode_t);
 static int android_saf_new_chmod (struct android_vnode *, mode_t, int);
@@ -6335,7 +6338,7 @@ android_saf_new_rename (struct android_vnode *src,
 
 static int
 android_saf_new_stat (struct android_vnode *vnode,
-		      struct stat *statb)
+		      struct stat *statb, int flags)
 {
   errno = ENOENT;
   return -1;
@@ -7418,7 +7421,7 @@ android_fstatat (int dirfd, const char *restrict pathname,
   if (!vp)
     return -1;
 
-  rc = (*vp->ops->stat) (vp, statbuf);
+  rc = (*vp->ops->stat) (vp, statbuf, flags);
   (*vp->ops->close) (vp);
   return rc;
 }
