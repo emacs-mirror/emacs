@@ -65,6 +65,82 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # error "HAVE_PDUMPER required"
 #endif
 
+#ifdef CHECK_STRUCTS
+# include "dmpstruct.h"
+
+/* If one of these fires, check what has changed, fix uses of the type
+   in this file, and copy the new hash code from src/dmpstruct.h here. */
+# ifndef HASH_Lisp_Cons_00EEE63F67
+#  error "struct Lisp_Cons changed"
+# endif
+# ifndef HASH_interval_1B38941C37
+#  error "struct interval changed"
+# endif
+# ifndef HASH_Lisp_String_03B2DF1C8E
+#  error "struct Lisp_String changed"
+# endif
+# ifndef HASH_Lisp_Marker_B6F52B2098
+#  error "struct Lisp_Marker changed"
+# endif
+# ifndef HASH_itree_node_50DE304F13
+#  error "struct itree_node changed"
+# endif
+# ifndef HASH_Lisp_Overlay_5F9D7E02FC
+#  error "struct Lisp_Overlay changed"
+# endif
+# ifndef HASH_Lisp_Finalizer_D58E647CB8
+#  error "struct Lisp_Finalizer changed"
+# endif
+# ifndef HASH_Lisp_Bignum_661945DE2B
+#  error "struct Lisp_Bignum changed"
+# endif
+# ifndef HASH_Lisp_Float_9CA83A9083
+#  error "struct Lisp_Float changed"
+# endif
+# ifndef HASH_Lisp_Buffer_Local_Value_3C363FAC3C
+#  error "struct Lisp_Buffer_Local_Value changed"
+# endif
+# ifndef HASH_Lisp_Symbol_C3C2929454
+#  error "struct Lisp_Symbol changed"
+# endif
+# ifndef HASH_symbol_redirect_EA72E4BFF5
+#  error "enum symbol_redirect changed"
+# endif
+# ifndef HASH_vectorlike_header_785E52047B
+#  error "struct vectorlike_header changed"
+# endif
+# ifndef HASH_Lisp_Hash_Table_AAA2B44B06
+#  error "struct Lisp_Hash_Table changed"
+# endif
+# ifndef HASH_buffer_B02F648B82
+#  error "struct buffer changed"
+# endif
+# ifndef HASH_Lisp_Vector_3091289B35
+#  error "struct Lisp_Vector changed"
+# endif
+# ifndef HASH_Lisp_Subr_20B7443AD7
+#  error "struct Lisp_Subr changed"
+# endif
+# ifndef HASH_pvec_type_6604A61AFB
+#  error "enum pvec_type changed"
+# endif
+# ifndef HASH_Lisp_Type_45F0582FD7
+#  error "enum Lisp_Type changed"
+# endif
+# ifndef HASH_charset_E31F4B5D96
+#  error "struct charset changed"
+# endif
+# ifndef HASH_itree_tree_86CA0F8AEE
+#  error "struct itree_tree changed"
+# endif
+# ifndef HASH_itree_tree_86CA0F8AEE
+#  error "struct itree_tree changed"
+# endif
+
+/* Still missing; face, font, frame, thread, and probably a lot of
+   others. */
+#endif /* CHECK_STRUCTS */
+
 /* Note: Emacs will call allocation functions while aborting. This leads
    to all sorts of interesting phenomena when an assertion fails inside
    a function called from MPS.
