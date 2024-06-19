@@ -6,7 +6,6 @@
 ;; Keywords: convenience, tools, extensions
 ;; URL: https://github.com/waymondo/use-package-ensure-system-package
 ;; Package-Requires: ((use-package "2.1") (system-packages "1.0.4"))
-;; Filename: use-package-ensure-system-package.el
 
 ;; This file is part of GNU Emacs.
 

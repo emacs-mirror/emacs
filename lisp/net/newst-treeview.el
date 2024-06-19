@@ -3,7 +3,6 @@
 ;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
-;; Filename:    newst-treeview.el
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
 ;; Package:     newsticker

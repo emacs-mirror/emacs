@@ -2,7 +2,6 @@
 
 ;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
 
-;; Filename: erc-backend.el
 ;; Author: Lawrence Mitchell <wence@gmx.li>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; Created: 2004-05-7

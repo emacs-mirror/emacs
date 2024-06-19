@@ -2,14 +2,11 @@
 
 ;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 
-;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
-;; Filename: htmlfontify.el
 ;; Old-Version: 0.21
 ;; Keywords: html, hypermedia, markup, etags
 ;; Author: Vivek Dasmohapatra <vivek@etla.org>
 ;; Created: 2002-01-05
-;; Description: htmlize a buffer/source tree with optional hyperlinks
 ;; URL: http://rtfm.etla.org/emacs/htmlfontify/
 
 ;; This file is part of GNU Emacs.
