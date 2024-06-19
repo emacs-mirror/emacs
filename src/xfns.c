@@ -9299,9 +9299,19 @@ Text larger than the specified size is clipped.  */)
   x_cr_update_surface_desired_size (tip_f, width, height);
 #endif	/* USE_CAIRO */
 
+  /* Garbage the tip frame too.  */
+  SET_FRAME_GARBAGED (tip_f);
+
+  /* Block input around `update_single_window' and `flush_frame', lest a
+     ConfigureNotify and Expose event arrive during the update, and set
+     flags, e.g. garbaged_p, that are cleared once the update completes,
+     leaving the requested exposure or configuration outstanding.  */
+  block_input ();
   w->must_be_updated_p = true;
   update_single_window (w);
   flush_frame (tip_f);
+  unblock_input ();
+
   set_buffer_internal_1 (old_buffer);
   unbind_to (count_1, Qnil);
   windows_or_buffers_changed = old_windows_or_buffers_changed;

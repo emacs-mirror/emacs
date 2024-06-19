@@ -425,7 +425,7 @@ public final class EmacsView extends ViewGroup
 	window.viewLayout (left, top, right, bottom);
       }
 
-    if (needExpose)
+    if (needExpose && isAttachedToWindow)
       EmacsNative.sendExpose (this.window.handle, 0, 0,
 			      right - left, bottom - top);
   }
