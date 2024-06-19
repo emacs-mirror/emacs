@@ -1554,19 +1554,22 @@ as Dired buffers (@pxref{Dired}).
 @subsubsection Per-Directory Variables via EditorConfig
 @cindex EditorConfig support
 
-The EditorConfig standard is an alternative to the @code{.dir-locals.el}
+The EditorConfig standard is an alternative to the @file{.dir-locals.el}
 files, which can control only a very small number of variables, but
 has the advantage of being editor-neutral.  Those settings are stored in
-files named @code{.editorconfig}.
+files named @file{.editorconfig}.
 
 If you want Emacs to obey those settings, you need to enable
 the @code{editorconfig-mode} minor mode.  This is usually all that is
-needed: when the mode is activated, Emacs will look for @code{.editorconfig}
-files whenever a file is visited, just as it does for @code{.dir-locals.el}.
-
-When both @code{.editorconfig} and @code{.dir-locals.el} files are
-encountered, the corresponding settings are combined, and in case there
-is overlap, the settings coming from the nearest file take precedence.
+needed: when the mode is activated, Emacs will look for @file{.editorconfig}
+files whenever a file is visited, just as it does for @file{.dir-locals.el}.
+When both @file{.editorconfig} and @file{.dir-locals.el} files are
+found, their settings are combined, and in case of a conflict, the
+setting coming from the closest file takes precedence.
+If they are equally close, @file{.dir-locals.el} takes precedence.
+In terms of security, those settings are subject to the same checks
+as those coming from @file{.dir-locals.el} (and also honor
+@code{enable-local-variables}).
 
 The @code{indent_size} setting of the EditorConfig standard does not
 correspond to a fixed variable in Emacs, but instead needs to set
@@ -1577,7 +1580,7 @@ effect because the major mode does not yet support it, you can customize
 the @code{editorconfig-indentation-alist} variable to tell Emacs which
 variables need to be set in that major mode.
 
-Similarly, there are several different ways to ``trim whitespace'' at
+Similarly, there are several different ways to trim whitespace at
 the end of lines.  When the EditorConfig @code{trim_trailing_whitespace}
 setting is used, by default @code{editorconfig-mode} simply calls
 @code{delete-trailing-whitespace} every time you save your file.

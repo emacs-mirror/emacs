@@ -5,8 +5,9 @@
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 
 ;; See
-;; https://github.com/editorconfig/editorconfig-emacs/graphs/contributors
-;; or the CONTRIBUTORS file for the list of contributors.
+;; https://github.com/editorconfig/editorconfig-emacs/graphs/contributors or
+;; https://github.com/editorconfig/editorconfig-emacs/blob/master/CONTRIBUTORS
+;; for the list of contributors.
 
 ;; This file is part of GNU Emacs.
 
