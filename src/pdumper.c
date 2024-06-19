@@ -6086,6 +6086,11 @@ pdumper_load (const char *dump_filename, char *argv0)
   for (int i = 0; i < nr_dump_late_hooks; ++i)
     dump_late_hooks[i] ();
 
+#ifdef HAVE_MPS
+  dump_public.start = (uintptr_t)cold_user_data_start;
+  dump_public.end = (uintptr_t)heap_end;
+#endif
+
   initialized = true;
 
   struct timespec load_timespec =
