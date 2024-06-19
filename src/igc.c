@@ -797,7 +797,6 @@ fix_symbol (mps_ss_t ss, struct Lisp_Symbol *sym)
 	break;
 
       case SYMBOL_FORWARDED:
-	IGC_FIX12_RAW (ss, &sym->u.s.val.fwd); /* for IGC_OBJ_DUMPED_FWD */
 	IGC_FIX_CALL (ss, fix_fwd (ss, sym->u.s.val.fwd));
 	break;
       }
