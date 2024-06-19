@@ -9305,6 +9305,9 @@ to deactivate this overriding action."
     (when echofun
       (add-hook 'prefix-command-echo-keystrokes-functions echofun))
     (setq switch-to-buffer-obey-display-actions t)
+    (unless (listp (car display-buffer-overriding-action))
+      (setcar display-buffer-overriding-action
+              (list (car display-buffer-overriding-action))))
     (push action (car display-buffer-overriding-action))
     exitfun))
 
