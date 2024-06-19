@@ -424,11 +424,6 @@ Note that `which-key-idle-delay' should be set before turning on
   :type 'boolean
   :package-version "1.0" :version "30.1")
 
-(defcustom which-key-is-verbose nil
-  "Whether to warn about potential mistakes in configuration."
-  :type 'boolean
-  :package-version "1.0" :version "30.1")
-
 (defcustom which-key-preserve-window-configuration nil
   "Save and restore window configuration around which-key popup display.
 If non-nil, save window configuration before which-key buffer is
