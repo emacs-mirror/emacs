@@ -4838,6 +4838,7 @@ gui_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 	     new image cache with IWIDTH.  */
 	  FRAME_IMAGE_CACHE (f)->refcount--;
 	  FRAME_IMAGE_CACHE (f) = share_image_cache (f);
+	  FRAME_IMAGE_CACHE (f)->refcount++;
 	}
     }
 
