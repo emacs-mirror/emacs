@@ -581,10 +581,16 @@ arena_release (struct igc *gc)
 
 static struct igc_root_list *
 register_root (struct igc *gc, mps_root_t root, void *start, void *end,
-	       bool ambig)
+	       bool ambig, const char *debug_name)
 {
-  struct igc_root r
-    = { .gc = gc, .root = root, .start = start, .end = end, .ambig = ambig };
+  if (debug_name && (mps_telemetry_get () & (1 << 6)))
+    {
+      mps_label_t label = mps_telemetry_intern (debug_name);
+      mps_telemetry_label (root, label);
+    }
+  struct igc_root r = {
+    .gc = gc, .root = root, .start = start, .end = end, .ambig = ambig
+  };
   return igc_root_list_push (&gc->roots, &r);
 }
 
@@ -2101,48 +2107,52 @@ scan_cell_callback (struct igc_opaque *op, Lisp_Object *addr)
 
 static igc_root_list *
 root_create (struct igc *gc, void *start, void *end, mps_rank_t rank,
-	     mps_area_scan_t scan, void *closure, bool ambig)
+	     mps_area_scan_t scan, void *closure, bool ambig,
+	     const char *debug_name)
 {
   mps_root_t root;
   mps_res_t res
     = mps_root_create_area (&root, gc->arena, rank, 0, start, end, scan,
 			    closure);
   IGC_CHECK_RES (res);
-  return register_root (gc, root, start, end, ambig);
+  return register_root (gc, root, start, end, ambig, debug_name);
 }
 
 static igc_root_list *
-root_create_ambig (struct igc *gc, void *start, void *end)
+root_create_ambig (struct igc *gc, void *start, void *end,
+		   const char *debug_name)
 {
   return root_create (gc, start, end, mps_rank_ambig (), scan_ambig, NULL,
-		      true);
+		      true, debug_name ? debug_name : "ambig");
 }
 
 static igc_root_list *
 root_create_exact (struct igc *gc, void *start, void *end,
-		   mps_area_scan_t scan)
+		   mps_area_scan_t scan, const char *debug_name)
 {
-  return root_create (gc, start, end, mps_rank_exact (), scan, NULL, false);
+  return root_create (gc, start, end, mps_rank_exact (), scan, NULL, false,
+		      debug_name);
 }
 
 static void
 root_create_staticvec (struct igc *gc)
 {
   root_create_exact (gc, staticvec, staticvec + ARRAYELTS (staticvec),
-		     scan_staticvec);
+		     scan_staticvec, "staticvec");
 }
 
 static void
 root_create_lispsym (struct igc *gc)
 {
-  root_create_exact (gc, lispsym, lispsym + ARRAYELTS (lispsym), scan_lispsym);
+  root_create_exact (gc, lispsym, lispsym + ARRAYELTS (lispsym),
+		     scan_lispsym, "lispsym");
 }
 
 static void
 root_create_buffer (struct igc *gc, struct buffer *b)
 {
   void *start = &b->name_, *end = &b->own_text;
-  root_create_ambig (gc, start, end);
+  root_create_ambig (gc, start, end, "buffer");
 }
 
 static void
@@ -2150,7 +2160,7 @@ root_create_terminal_list (struct igc *gc)
 {
   void *start = &terminal_list;
   void *end = (char *) start + sizeof (terminal_list);
-  root_create_ambig (gc, start, end);
+  root_create_ambig (gc, start, end, "terminal-list");
 }
 
 static void
@@ -2158,19 +2168,19 @@ root_create_main_thread (struct igc *gc)
 {
   void *start = &main_thread;
   void *end = (char *) &main_thread + sizeof (main_thread);
-  root_create_exact (gc, start, end, scan_main_thread);
+  root_create_exact (gc, start, end, scan_main_thread, "main-thread");
 }
 
 void
-igc_root_create_ambig (void *start, void *end)
+igc_root_create_ambig (void *start, void *end, const char* debug_name)
 {
-  root_create_ambig (global_igc, start, end);
+  root_create_ambig (global_igc, start, end, debug_name);
 }
 
 void
 igc_root_create_exact (Lisp_Object *start, Lisp_Object *end)
 {
-  root_create_exact (global_igc, start, end, scan_exact);
+  root_create_exact (global_igc, start, end, scan_exact, "exact");
 }
 
 void
@@ -2178,7 +2188,7 @@ igc_root_create_exact_ptr (void *var_addr)
 {
   void *start = var_addr;
   void *end = (char *) start + sizeof (void *);
-  root_create_exact (global_igc, start, end, scan_ptr_exact);
+  root_create_exact (global_igc, start, end, scan_ptr_exact, "exact-ptr");
 }
 
 static void
@@ -2194,7 +2204,8 @@ root_create_specpdl (struct igc_thread_list *t)
 			    ts->m_specpdl, ts->m_specpdl_end, scan_specpdl, t);
   IGC_CHECK_RES (res);
   t->d.specpdl_root
-    = register_root (gc, root, ts->m_specpdl, ts->m_specpdl_end, false);
+    = register_root (gc, root, ts->m_specpdl, ts->m_specpdl_end, false,
+		     "specpdl");
 }
 
 static void
@@ -2208,14 +2219,16 @@ root_create_bc (struct igc_thread_list *t)
 					bc->stack, bc->stack_end, scan_bc, t);
   IGC_CHECK_RES (res);
   igc_assert (t->d.bc_root == NULL);
-  t->d.bc_root = register_root (gc, root, bc->stack, bc->stack_end, true);
+  t->d.bc_root = register_root (gc, root, bc->stack, bc->stack_end, true,
+				"bc-stack");
 }
 
 static void
 root_create_charset_table (struct igc *gc)
 {
   root_create_ambig (gc, charset_table_init,
-		     charset_table_init + ARRAYELTS (charset_table_init));
+		     charset_table_init + ARRAYELTS (charset_table_init),
+		     "charset-table");
 }
 
 #ifndef IN_MY_FORK
@@ -2224,7 +2237,8 @@ root_create_pure (struct igc *gc)
 {
   void *start = &pure[0];
   void *end = &pure[PURESIZE];
-  root_create (gc, start, end, mps_rank_ambig (), scan_pure, NULL, true);
+  root_create (gc, start, end, mps_rank_ambig (), scan_pure, NULL, true,
+	       "pure");
 }
 #endif
 
@@ -2238,7 +2252,7 @@ root_create_thread (struct igc_thread_list *t)
     = mps_root_create_thread_scanned (&root, gc->arena, mps_rank_ambig (), 0,
 				      t->d.thr, scan_ambig, 0, cold);
   IGC_CHECK_RES (res);
-  register_root (gc, root, cold, NULL, true);
+  register_root (gc, root, cold, NULL, true, "create-thread");
 }
 
 void
@@ -2269,7 +2283,8 @@ igc_grow_rdstack (struct read_stack *rs)
     for (ptrdiff_t i = old_nitems; i < rs->size; ++i)
       rs->stack[i].type = RE_free;
     gc->rdstack_root
-      = root_create_exact (gc, rs->stack, rs->stack + rs->size, scan_rdstack);
+      = root_create_exact (gc, rs->stack, rs->stack + rs->size, scan_rdstack,
+			   "rdstack");
   }
 }
 
@@ -2278,7 +2293,8 @@ root_create_exact_n (Lisp_Object *start, size_t n)
 {
   igc_assert (start != NULL);
   igc_assert (n > 0);
-  return root_create_exact (global_igc, start, start + n, scan_exact);
+  return root_create_exact (global_igc, start, start + n, scan_exact,
+			    "exact-n");
 }
 
 void *
@@ -2424,7 +2440,8 @@ igc_xalloc_lisp_objs_exact (size_t n)
 {
   size_t size = n * sizeof (Lisp_Object);
   void *p = xzalloc (size);
-  root_create_exact (global_igc, p, (char *) p + size, scan_exact);
+  root_create_exact (global_igc, p, (char *) p + size, scan_exact,
+		     "xalloc-exact");
   return p;
 }
 
@@ -2443,7 +2460,7 @@ igc_xzalloc_ambig (size_t size)
   void *end = (char *) p + size;
   if (end == p)
     end = (char *) p + IGC_ALIGN_DFLT;
-  root_create_ambig (global_igc, p, end);
+  root_create_ambig (global_igc, p, end, "xzalloc-ambig");
   return p;
 }
 
@@ -2459,7 +2476,7 @@ igc_realloc_ambig (void *block, size_t size)
   size_t new_size = (size == 0 ? IGC_ALIGN_DFLT : size);
   void *p = xrealloc (block, new_size);
   void *end = (char *)p + new_size;
-  root_create_ambig (global_igc, p, end);
+  root_create_ambig (global_igc, p, end, "realloc-ambig");
   return p;
 }
 
@@ -2492,7 +2509,7 @@ igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
       }
     pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
     char *end = (char *) pa + *nitems * item_size;
-    root_create_ambig (global_igc, pa, end);
+    root_create_ambig (global_igc, pa, end, "xpalloc-ambig");
   }
   return pa;
 }
@@ -2522,7 +2539,7 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
     pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
     char *end = (char *)pa + *nitems * item_size;
     root_create (global_igc, pa, end, mps_rank_exact (),
-		 scan_xpalloced, scan_area, false);
+		 scan_xpalloced, scan_area, false, "xpalloc-exact");
     *pa_cell = pa;
   }
 }
@@ -2540,7 +2557,7 @@ igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
       }
     pa = xnrealloc (pa, nitems, item_size);
     char *end = (char *) pa + nitems * item_size;
-    root_create_ambig (global_igc, pa, end);
+    root_create_ambig (global_igc, pa, end, "xnrealloc-ambig");
   }
   return pa;
 }
@@ -3522,6 +3539,37 @@ igc_remove_all_markers (struct buffer *b)
     }
 }
 
+#ifdef IGC_DEBUG
+static bool
+weak_vector_p (Lisp_Object x)
+{
+  if (VECTORP (x))
+    {
+      struct igc *igc = global_igc;
+      mps_pool_t pool = NULL;
+      mps_addr_pool (&pool, igc->arena, XVECTOR (x));
+      return pool == igc->weak_pool;
+    }
+  else
+    return false;
+}
+#endif
+
+void
+igc_resurrect_markers (struct buffer *b)
+{
+  Lisp_Object old = BUF_MARKERS (b);
+  if (NILP (old))
+    return;
+  igc_assert (!weak_vector_p (old));
+  size_t len = ASIZE (old);
+  Lisp_Object new = alloc_vector_weak (len, Qnil);
+  memcpy (XVECTOR (new)->contents, XVECTOR (old)->contents,
+	  len * sizeof (Lisp_Object));
+  BUF_MARKERS (b) = new;
+  igc_assert (weak_vector_p (BUF_MARKERS (b)));
+}
+
 DEFUN ("igc-make-weak-vector", Figc_make_weak_vector, Sigc_make_weak_vector, 2, 2, 0,
        doc: /* Return a new weak vector of length LENGTH, with each element being INIT.
 See also the function `vector'.  */)
@@ -3916,24 +3964,24 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 		     void *cold_user_data_start, void *heap_end)
 {
   igc_assert (global_igc->park_count > 0);
-  eassert (base_to_client (hot_start) == charset_table);
-  eassert (((struct igc_header *)cold_start)->obj_type
-	   == IGC_OBJ_DUMPED_CODE_SPACE_MASKS);
-  eassert (((struct igc_header *)cold_user_data_start)->obj_type
-	   == IGC_OBJ_DUMPED_BYTES);
-  eassert (((struct igc_header *)heap_end)->obj_type == IGC_OBJ_DUMPED_BYTES);
-
+  igc_assert (base_to_client (hot_start) == charset_table);
+  igc_assert (((struct igc_header *)hot_start)->obj_type
+	      == IGC_OBJ_DUMPED_CHARSET_TABLE);
+  igc_assert (((struct igc_header *)cold_start)->obj_type
+	      == IGC_OBJ_DUMPED_CODE_SPACE_MASKS);
+  igc_assert (((struct igc_header *)cold_user_data_start)->obj_type
+	      == IGC_OBJ_DUMPED_BYTES);
+  igc_assert (((struct igc_header *)heap_end)->obj_type
+	      == IGC_OBJ_DUMPED_BYTES);
   size_t discardable_size = (uint8_t *)cold_start - (uint8_t *)hot_end;
   // size_t cold_size = (uint8_t *)cold_end - (uint8_t *)cold_start;
   size_t dump_header_size = (uint8_t *)hot_start - (uint8_t *)dump_base;
   size_t relocs_size = (uint8_t *)cold_end - (uint8_t *)heap_end;
   struct igc_header *h = client_to_base (dump_base);
   igc_assert (h->obj_type == IGC_OBJ_INVALID);
-#ifdef IGC_DEBUG
-  size_t dump_size = (uint8_t *)cold_end - (uint8_t *)dump_base;
-  igc_assert (obj_size (h) == sizeof *h + dump_size);
+  igc_assert (obj_size (h)
+	      == sizeof *h + (uint8_t *)cold_end - (uint8_t *)dump_base);
   igc_assert (discardable_size > 2 * sizeof *h);
-#endif
   /* Ignore dump_header */
   set_header (h, IGC_OBJ_PAD, sizeof *h + dump_header_size, 0);
   /* Ignore discardable section */
@@ -3951,16 +3999,8 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   memcpy (pinned_objects_in_dump, pinned_roots, sizeof pinned_roots);
   igc_root_create_ambig (pinned_objects_in_dump,
 			 (uint8_t *)pinned_objects_in_dump
-			     + sizeof pinned_objects_in_dump);
-
-  /* Copy to buffer text to out of pdump */
-  for (Lisp_Object l = Vbuffer_alist; !NILP (l); l = XCDR (l))
-    {
-      struct buffer *buf = XBUFFER (XCDR (XCAR (l)));
-      eassert (pdumper_object_p (buf->text->beg));
-      enlarge_buffer_text (buf, 0);
-      eassert (!pdumper_object_p (buf->text->beg));
-    }
+			 + sizeof pinned_objects_in_dump,
+			 "dump-pins");
 }
 
 void *
@@ -3968,15 +4008,16 @@ igc_alloc_dump (size_t nbytes)
 {
   igc_assert (global_igc->park_count > 0);
   mps_ap_t ap = thread_ap (IGC_OBJ_CONS);
+  size_t block_size = igc_header_size () + nbytes;
   mps_addr_t block;
   do
     {
-      mps_res_t res = mps_reserve (&block, ap, nbytes);
+      mps_res_t res = mps_reserve (&block, ap, block_size);
       if (res != MPS_RES_OK)
 	memory_full (0);
+      set_header (block, IGC_OBJ_INVALID, block_size, 0);
     }
-  while (!mps_commit (ap, block, nbytes));
-  set_header (block, IGC_OBJ_INVALID, nbytes, 0);
+  while (!mps_commit (ap, block, block_size));
   return base_to_client (block);
 }
 
