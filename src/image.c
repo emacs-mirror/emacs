@@ -2195,6 +2195,8 @@ make_image_cache (void)
   c->used = c->refcount = 0;
   c->images = xmalloc (c->size * sizeof *c->images);
   c->buckets = xzalloc (IMAGE_CACHE_BUCKETS_SIZE * sizeof *c->buckets);
+  /* This value should never be encountered.  */
+  c->scaling_col_width = -1;
   return c;
 }
 
@@ -3620,7 +3622,10 @@ cache_image (struct frame *f, struct image *img)
   ptrdiff_t i;
 
   if (!c)
-    c = FRAME_IMAGE_CACHE (f) = make_image_cache ();
+    {
+      c = FRAME_IMAGE_CACHE (f) = share_image_cache (f);
+      c->refcount++;
+    }
 
   /* Find a free slot in c->images.  */
   for (i = 0; i < c->used; ++i)

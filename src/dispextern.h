@@ -3292,6 +3292,11 @@ struct image_cache
 
   /* Reference count (number of frames sharing this cache).  */
   ptrdiff_t refcount;
+
+  /* Column width by which images whose QCscale property is Qdefault
+     will be scaled, which is 10 or FRAME_COLUMN_WIDTH of each frame
+     assigned this image cache, whichever is greater.  */
+  int scaling_col_width;
 };
 
 /* Size of bucket vector of image caches.  Should be prime.  */
@@ -3708,6 +3713,9 @@ int smaller_face (struct frame *, int, int);
 int face_with_height (struct frame *, int, int);
 int lookup_derived_face (struct window *, struct frame *,
                          Lisp_Object, int, bool);
+#ifdef HAVE_WINDOW_SYSTEM
+extern struct image_cache *share_image_cache (struct frame *f);
+#endif /* HAVE_WINDOW_SYSTEM */
 void init_frame_faces (struct frame *);
 void free_frame_faces (struct frame *);
 void recompute_basic_faces (struct frame *);
