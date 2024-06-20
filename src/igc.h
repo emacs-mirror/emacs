@@ -79,6 +79,7 @@ Lisp_Object igc_make_cons (Lisp_Object car, Lisp_Object cdr);
 void igc_add_marker (struct buffer *b, struct Lisp_Marker *m);
 void igc_remove_marker (struct buffer *b, struct Lisp_Marker *m);
 void igc_remove_all_markers (struct buffer *b);
+void igc_resurrect_markers (struct buffer *b);
 Lisp_Object igc_alloc_symbol (void);
 void *igc_alloc_global_ref (void);
 

@@ -3522,6 +3522,35 @@ igc_remove_all_markers (struct buffer *b)
     }
 }
 
+static bool
+weak_vector_p (Lisp_Object x)
+{
+  if (VECTORP (x))
+    {
+      struct igc *igc = global_igc;
+      mps_pool_t pool = NULL;
+      mps_addr_pool (&pool, igc->arena, XVECTOR (x));
+      return pool == igc->weak_pool;
+    }
+  else
+    return false;
+}
+
+void
+igc_resurrect_markers (struct buffer *b)
+{
+  Lisp_Object old = BUF_MARKERS (b);
+  if (NILP (old))
+    return;
+  igc_assert (!weak_vector_p (old));
+  size_t len = ASIZE (old);
+  Lisp_Object new = alloc_vector_weak (len, Qnil);
+  memcpy (XVECTOR (new)->contents, XVECTOR (old)->contents,
+	  len * sizeof (Lisp_Object));
+  BUF_MARKERS (b) = new;
+  igc_assert (weak_vector_p (BUF_MARKERS (b)));
+}
+
 DEFUN ("igc-make-weak-vector", Figc_make_weak_vector, Sigc_make_weak_vector, 2, 2, 0,
        doc: /* Return a new weak vector of length LENGTH, with each element being INIT.
 See also the function `vector'.  */)

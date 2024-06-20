@@ -5776,6 +5776,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	eassert (pdumper_object_p (b->text->beg));
 	enlarge_buffer_text (b, 0);
 	eassert (!pdumper_object_p (b->text->beg));
+	igc_resurrect_markers (b);
       }
       break;
 #endif
