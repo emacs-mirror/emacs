@@ -24494,6 +24494,11 @@ handle_line_prefix (struct it *it)
       prefix = get_line_prefix_it_property (it, Qwrap_prefix);
       if (NILP (prefix))
 	prefix = Vwrap_prefix;
+      /* Interpreting :align-to relative to the beginning of the logical
+         line effectively renders this feature unusable, so we make an
+         exception for this use of :align-to.  */
+      if (!NILP (prefix))
+	it->align_visually_p = true;
     }
   else
     {
@@ -31972,7 +31977,9 @@ produce_stretch_glyph (struct it *it)
 	   && calc_pixel_width_or_height (&tem, it, prop, font, true,
 					  &align_to))
     {
-      int x = it->current_x + it->continuation_lines_width;
+      int x = it->current_x + (it->align_visually_p
+			       ? 0
+			       : it->continuation_lines_width);
       int x0 = x;
       /* Adjust for line numbers, if needed.   */
       if (!NILP (Vdisplay_line_numbers) && it->line_number_produced_p)

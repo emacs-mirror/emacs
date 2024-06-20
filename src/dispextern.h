@@ -2629,6 +2629,11 @@ struct it
      the current row.  */
   bool_bf line_number_produced_p : 1;
 
+  /* If true, the :align-to argument should be counted relative to the
+     beginning of the screen line, not the logical line.  Used by
+     'wrap-prefix'.  */
+  bool_bf align_visually_p : 1;
+
   enum line_wrap_method line_wrap;
 
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,

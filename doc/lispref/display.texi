@@ -192,7 +192,9 @@ never used.)  Its value may be a string or an image (@pxref{Other
 Display Specs}), or a stretch of whitespace such as specified by the
 @code{:width} or @code{:align-to} display properties (@pxref{Specified
 Space}).  The value is interpreted in the same way as a @code{display}
-text property.  @xref{Display Property}.
+text property, with one important difference: the horizontal position
+specified by @code{:align-to} is measured from the visual beginning of
+the screen line.  @xref{Display Property}.
 
 A wrap prefix may also be specified for regions of text, using the
 @code{wrap-prefix} text or overlay property.  This takes precedence
@@ -5354,7 +5356,9 @@ Scrolling}), @var{hpos} is measured from the beginning of the logical
 line, not from the visual beginning of the screen line.  This way,
 alignment produced by @code{:align-to} is consistent with functions
 that count columns, such as @code{current-column} and
-@code{move-to-column} (@pxref{Columns}).
+@code{move-to-column} (@pxref{Columns}).  (There's a single exception
+from this rule: when @code{:align-to} is used to specify whitespace of
+the @code{wrap-prefix} variable or text property, @pxref{Truncation}.)
 @end table
 
   You should use one and only one of the above properties.  You can
