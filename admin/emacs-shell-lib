@@ -49,6 +49,9 @@ emacs_tempfiles=()
 
 emacs_tempfiles_cleanup ()
 {
+    # This is needed on Bash 4.4 or older.
+    [ ${#emacs_tempfiles[@]} -eq 0 ] && return
+
     for file in ${emacs_tempfiles[@]}; do
         rm -f "${file}" 2> /dev/null
     done
