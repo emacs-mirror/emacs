@@ -3539,6 +3539,7 @@ igc_remove_all_markers (struct buffer *b)
     }
 }
 
+#ifdef IGC_DEBUG
 static bool
 weak_vector_p (Lisp_Object x)
 {
@@ -3552,6 +3553,7 @@ weak_vector_p (Lisp_Object x)
   else
     return false;
 }
+#endif
 
 void
 igc_resurrect_markers (struct buffer *b)
