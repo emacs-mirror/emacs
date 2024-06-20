@@ -1877,7 +1877,7 @@ Customize interface instead of using @code{setq} directly.)
 This variable specifies the coding system to use when reading the output
 that the programs @code{diff3} and @code{diff} send to Emacs. The default
 is @code{raw-text}, and this should work fine in Unix and in most
-cases under Windows NT/95/98/2000. There are @code{diff} programs
+cases under Windows NT/98/2000. There are @code{diff} programs
 for which the default option doesn't work under Windows. In such cases,
 @code{raw-text-dos} might work. If not, you will have to experiment with
 other coding systems or use GNU diff.

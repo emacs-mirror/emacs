@@ -4343,14 +4343,14 @@ for menus.  Help text is only available in later versions of Windows.
 This character seems to be trapped by the kernel in Windows 95.
 You can enter M-f6 by typing ESC f6.
 
-*** MS-Windows 95/98/ME: subprocesses do not terminate properly.
+*** MS-Windows 98/ME: subprocesses do not terminate properly.
 
 This is a limitation of the Operating System, and can cause problems
 when shutting down Windows.  Ensure that all subprocesses are exited
 cleanly before exiting Emacs.  For more details, see the Emacs on MS
 Windows FAQ (info manual "efaq-w32").
 
-*** MS-Windows 95/98/ME: crashes when Emacs invokes non-existent programs.
+*** MS-Windows 98/ME: crashes when Emacs invokes non-existent programs.
 
 When a program you are trying to run is not found on the PATH,
 Windows might respond by crashing or locking up your system.  In

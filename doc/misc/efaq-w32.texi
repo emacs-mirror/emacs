@@ -630,7 +630,7 @@ REGEDIT4
 @end itemize
 
 @node Swap Caps 98
-@subsubsection Windows 95/98/ME
+@subsubsection Windows 98/ME
 
 Microsoft has a tool called keyremap that is part of their Kernel Toys add-ons
 for Windows 95.  The tool has also been confirmed to work on Windows 98.
@@ -1078,7 +1078,7 @@ mirrors}.
 @vindex w32-enable-unicode-output
 
 You probably only need to do this on the non-Unicode versions of Windows
-(95, 98 and ME), and even then, various Windows and Internet Explorer
+(98 and ME), and even then, various Windows and Internet Explorer
 updates have made third party software unnecessary in most cases.
 If you are having trouble displaying text, try defining a fontset
 with the font for the languages that the third party software handles
@@ -1321,9 +1321,9 @@ floppy in the drive, check to see if your virus software is causing
 the problem.
 
 @node Killing subprocesses
-@section Killing subprocesses on Windows 95/98/Me
-@cindex subprocess, killing on Windows 95/98/ME
-@cindex killing subprocesses, Windows 95/98/ME
+@section Killing subprocesses on Windows 98/Me
+@cindex subprocess, killing on Windows 98/ME
+@cindex killing subprocesses, Windows 98/ME
 @cindex shutdown, complaints about cmdproxy.exe running
 
 Emacs cannot guarantee that a subprocess gets killed on Windows 95 and
