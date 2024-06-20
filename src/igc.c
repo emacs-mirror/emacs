@@ -3962,24 +3962,24 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 		     void *cold_user_data_start, void *heap_end)
 {
   igc_assert (global_igc->park_count > 0);
-  eassert (base_to_client (hot_start) == charset_table);
-  eassert (((struct igc_header *)cold_start)->obj_type
-	   == IGC_OBJ_DUMPED_CODE_SPACE_MASKS);
-  eassert (((struct igc_header *)cold_user_data_start)->obj_type
-	   == IGC_OBJ_DUMPED_BYTES);
-  eassert (((struct igc_header *)heap_end)->obj_type == IGC_OBJ_DUMPED_BYTES);
-
+  igc_assert (base_to_client (hot_start) == charset_table);
+  igc_assert (((struct igc_header *)hot_start)->obj_type
+	      == IGC_OBJ_DUMPED_CHARSET_TABLE);
+  igc_assert (((struct igc_header *)cold_start)->obj_type
+	      == IGC_OBJ_DUMPED_CODE_SPACE_MASKS);
+  igc_assert (((struct igc_header *)cold_user_data_start)->obj_type
+	      == IGC_OBJ_DUMPED_BYTES);
+  igc_assert (((struct igc_header *)heap_end)->obj_type
+	      == IGC_OBJ_DUMPED_BYTES);
   size_t discardable_size = (uint8_t *)cold_start - (uint8_t *)hot_end;
   // size_t cold_size = (uint8_t *)cold_end - (uint8_t *)cold_start;
   size_t dump_header_size = (uint8_t *)hot_start - (uint8_t *)dump_base;
   size_t relocs_size = (uint8_t *)cold_end - (uint8_t *)heap_end;
   struct igc_header *h = client_to_base (dump_base);
   igc_assert (h->obj_type == IGC_OBJ_INVALID);
-#ifdef IGC_DEBUG
-  size_t dump_size = (uint8_t *)cold_end - (uint8_t *)dump_base;
-  igc_assert (obj_size (h) == sizeof *h + dump_size);
+  igc_assert (obj_size (h)
+	      == sizeof *h + (uint8_t *)cold_end - (uint8_t *)dump_base);
   igc_assert (discardable_size > 2 * sizeof *h);
-#endif
   /* Ignore dump_header */
   set_header (h, IGC_OBJ_PAD, sizeof *h + dump_header_size, 0);
   /* Ignore discardable section */
