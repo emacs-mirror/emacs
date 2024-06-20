@@ -983,7 +983,7 @@ make_frame (bool mini_p)
   f->tooltip = false;
   f->was_invisible = false;
   f->child_frame_border_width = -1;
-  f->face_caches = NULL;
+  f->face_cache = NULL;
   f->image_cache = NULL;
   f->last_tab_bar_item = -1;
 #ifndef HAVE_EXT_TOOL_BAR
