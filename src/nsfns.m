@@ -1312,13 +1312,10 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   block_input ();
 
 #ifdef NS_IMPL_COCOA
-    mac_register_font_driver (f);
+  mac_register_font_driver (f);
 #else
-    register_font_driver (&nsfont_driver, f);
+  register_font_driver (&nsfont_driver, f);
 #endif
-
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
 
   gui_default_parameter (f, parms, Qfont_backend, Qnil,
                          "fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -3021,9 +3018,6 @@ ns_create_tip_frame (struct ns_display_info *dpyinfo, Lisp_Object parms)
   register_font_driver (&nsfont_driver, f);
 #endif
   unblock_input ();
-
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
 
   gui_default_parameter (f, parms, Qfont_backend, Qnil,
                          "fontBackend", "FontBackend", RES_TYPE_STRING);
