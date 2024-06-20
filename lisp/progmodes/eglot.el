@@ -624,6 +624,7 @@ This can be useful when using docker to run a language server.")
                              :command :data :tags))
       (Diagnostic (:range :message) (:severity :code :source :relatedInformation :codeDescription :tags))
       (DocumentHighlight (:range) (:kind))
+      (ExecuteCommandParams ((:command . string)) (:arguments))
       (FileSystemWatcher (:globPattern) (:kind))
       (Hover (:contents) (:range))
       (InitializeResult (:capabilities) (:serverInfo))
@@ -884,17 +885,25 @@ treated as in `eglot--dbind'."
 
 (cl-defgeneric eglot-execute (server action)
   "Ask SERVER to execute ACTION.
-ACTION is an LSP object of either `CodeAction' or `Command' type."
+ACTION is an LSP `CodeAction', `Command' or `ExecuteCommandParams'
+object."
   (:method
    (server action) "Default implementation."
    (eglot--dcase action
-     (((Command)) (eglot--request server :workspace/executeCommand action))
+     (((Command))
+      ;; Convert to ExecuteCommandParams and recurse (bug#71642)
+      (cl-remf action :title)
+      (eglot-execute server action))
+     (((ExecuteCommandParams))
+      (eglot--request server :workspace/executeCommand action))
      (((CodeAction) edit command data)
       (if (and (null edit) (null command) data
                (eglot-server-capable :codeActionProvider :resolveProvider))
           (eglot-execute server (eglot--request server :codeAction/resolve action))
         (when edit (eglot--apply-workspace-edit edit this-command))
-        (when command (eglot--request server :workspace/executeCommand command)))))))
+        (when command
+          ;; Recursive call with what must be a Command object (bug#71642)
+          (eglot-execute server command)))))))
 
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'."
