@@ -868,11 +868,10 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
 Apply the previous patterns after reverting the buffer."
   (when-let ((patterns hi-lock-interactive-lighters))
     (lambda ()
-      (setq hi-lock-interactive-lighters nil
-            hi-lock-interactive-patterns nil)
-      (let ((hi-lock-auto-select-face t))
-        (dolist (pattern (reverse patterns))
-          (highlight-regexp (car pattern) (hi-lock-read-face-name)))))))
+      (when hi-lock-interactive-lighters
+        (hi-lock-unface-buffer t))
+      (dolist (pattern (reverse patterns))
+        (highlight-regexp (car pattern) (cadr (nth 1 (caddr pattern))))))))
 
 (defvar hi-lock--hashcons-hash
   (make-hash-table :test 'equal :weakness t)
