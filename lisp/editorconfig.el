@@ -761,36 +761,36 @@ Meant to be used on `hack-dir-local-get-variables-functions'."
 ;;     (lm-version))
 ;;   "EditorConfig version.")
 
-;;;###autoload
-(defun editorconfig-version (&optional show-version)
-  "Get EditorConfig version as string.
-
-If called interactively or if SHOW-VERSION is non-nil, show the
-version in the echo area and the messages buffer."
-  (interactive (list t))
-  (let ((version-full
-         (if (fboundp 'package-get-version)
-             (package-get-version)
-           (let* ((version
-                   (with-temp-buffer
-                     (require 'find-func)
-                     (declare-function find-library-name "find-func" (library))
-                     (insert-file-contents (find-library-name "editorconfig"))
-                     (require 'lisp-mnt)
-                     (declare-function lm-version "lisp-mnt" nil)
-                     (lm-version)))
-                  (pkg (and (eval-and-compile (require 'package nil t))
-                            (cadr (assq 'editorconfig
-                                        package-alist))))
-                  (pkg-version (and pkg (package-version-join
-                                         (package-desc-version pkg)))))
-             (if (and pkg-version
-                      (not (string= version pkg-version)))
-                 (concat version "-" pkg-version)
-               version)))))
-    (when show-version
-      (message "EditorConfig Emacs v%s" version-full))
-    version-full))
+;; ;;;###autoload
+;; (defun editorconfig-version (&optional show-version)
+;;   "Get EditorConfig version as string.
+;;
+;; If called interactively or if SHOW-VERSION is non-nil, show the
+;; version in the echo area and the messages buffer."
+;;   (interactive (list t))
+;;   (let ((version-full
+;;          (if (fboundp 'package-get-version)
+;;              (package-get-version)
+;;            (let* ((version
+;;                    (with-temp-buffer
+;;                      (require 'find-func)
+;;                      (declare-function find-library-name "find-func" (library))
+;;                      (insert-file-contents (find-library-name "editorconfig"))
+;;                      (require 'lisp-mnt)
+;;                      (declare-function lm-version "lisp-mnt" nil)
+;;                      (lm-version)))
+;;                   (pkg (and (eval-and-compile (require 'package nil t))
+;;                             (cadr (assq 'editorconfig
+;;                                         package-alist))))
+;;                   (pkg-version (and pkg (package-version-join
+;;                                          (package-desc-version pkg)))))
+;;              (if (and pkg-version
+;;                       (not (string= version pkg-version)))
+;;                  (concat version "-" pkg-version)
+;;                version)))))
+;;     (when show-version
+;;       (message "EditorConfig Emacs v%s" version-full))
+;;     version-full))
 
 (provide 'editorconfig)
 ;;; editorconfig.el ends here
