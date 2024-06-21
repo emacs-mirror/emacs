@@ -1554,7 +1554,8 @@ as Dired buffers (@pxref{Dired}).
 @subsubsection Per-Directory Variables via EditorConfig
 @cindex EditorConfig support
 
-The EditorConfig standard is an alternative to the @file{.dir-locals.el}
+The @uref{https://editorconfig.org/, EditorConfig standard}
+is an alternative to the @file{.dir-locals.el}
 files, which can control only a very small number of variables, but
 has the advantage of being editor-neutral.  Those settings are stored in
 files named @file{.editorconfig}.
