@@ -3138,7 +3138,7 @@ read_char (int commandflag, Lisp_Object map,
 	  /* Should a command call `sit-for', or another command that
 	     provides a timespec to Fread_event and co., the original
 	     event will not subsequently be entered into
-	     this_command_keys unless Qno_record be specified below.
+	     this_command_keys unless Qt be specified below.
 
 	     The same is the case in a number of other scenarios where
 	     reread is true, but if so, event recording is to be
