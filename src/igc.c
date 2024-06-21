@@ -1769,6 +1769,7 @@ fix_thread (mps_ss_t ss, struct thread_state *s)
     IGC_FIX12_RAW (ss, &s->m_current_buffer);
     IGC_FIX12_RAW (ss, &s->next_thread);
     IGC_FIX12_RAW (ss, &s->m_handlerlist);
+    IGC_FIX12_RAW (ss, &s->m_handlerlist_sentinel);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2183,12 +2184,18 @@ igc_root_create_exact (Lisp_Object *start, Lisp_Object *end)
   root_create_exact (global_igc, start, end, scan_exact, "exact");
 }
 
+static void
+root_create_exact_ptr (struct igc *gc, void *var_addr)
+{
+  char *start = var_addr;
+  char *end = start + sizeof (void *);
+  root_create_exact (gc, start, end, scan_ptr_exact, "exact-ptr");
+}
+
 void
 igc_root_create_exact_ptr (void *var_addr)
 {
-  void *start = var_addr;
-  void *end = (char *) start + sizeof (void *);
-  root_create_exact (global_igc, start, end, scan_ptr_exact, "exact-ptr");
+  root_create_exact_ptr (global_igc, var_addr);
 }
 
 static void
@@ -3790,6 +3797,8 @@ make_igc (void)
   root_create_lispsym (gc);
   root_create_terminal_list (gc);
   root_create_main_thread (gc);
+  root_create_exact_ptr (gc, &current_thread);
+  root_create_exact_ptr (gc, &all_threads);
 
   enable_messages (gc, true);
   return gc;
