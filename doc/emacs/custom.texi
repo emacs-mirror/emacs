@@ -1550,6 +1550,10 @@ variables are handled in the same way as unsafe file-local variables
 do not visit a file directly but perform work within a directory, such
 as Dired buffers (@pxref{Dired}).
 
+@menu
+* EditorConfig support::  Per-Directory Variables via EditorConfig
+@end menu
+
 @node EditorConfig support
 @subsubsection Per-Directory Variables via EditorConfig
 @cindex EditorConfig support
