@@ -260,7 +260,7 @@ and VALUE is the value which is given to that frame parameter
     ("--reverse-video" 0 x-handle-switch reverse t)
     ("--font" 1 x-handle-switch font)
     ("--internal-border" 1 x-handle-numeric-switch internal-border-width)
-    ;; ("--geometry" 1 ns-handle-geometry)
+    ("--geometry" 1 x-handle-geometry)
     ("--foreground-color" 1 x-handle-switch foreground-color)
     ("--background-color" 1 x-handle-switch background-color)
     ("--mouse-color" 1 x-handle-switch mouse-color)
