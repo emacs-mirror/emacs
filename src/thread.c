@@ -799,16 +799,17 @@ run_thread (void *state)
   /* Put a dummy catcher at top-level so that handlerlist is never NULL.
      This is important since handlerlist->nextfree holds the freelist
      which would otherwise leak every time we unwind back to top-level.   */
+#ifdef HAVE_MPS
+  self->gc_info = igc_thread_add (self);
+  handlerlist_sentinel = igc_alloc_handler ();
+#else
   handlerlist_sentinel = xzalloc (sizeof (struct handler));
+#endif
   handlerlist = handlerlist_sentinel->nextfree = handlerlist_sentinel;
   struct handler *c = push_handler (Qunbound, CATCHER);
   eassert (c == handlerlist_sentinel);
   handlerlist_sentinel->nextfree = NULL;
   handlerlist_sentinel->next = NULL;
-
-#ifdef HAVE_MPS
-  self->gc_info = igc_thread_add (self);
-#endif
 
   /* It might be nice to do something with errors here.  */
   internal_condition_case (invoke_thread_function, Qt, record_thread_error);
@@ -820,14 +821,13 @@ run_thread (void *state)
   self->m_specpdl_ptr = NULL;
   self->m_specpdl_end = NULL;
 
-  {
-    struct handler *c, *c_next;
-    for (c = handlerlist_sentinel; c; c = c_next)
-      {
-	c_next = c->nextfree;
-	xfree (c);
-      }
-  }
+#ifndef HAVE_MPS
+   for (struct handler *c = handlerlist_sentinel, *c_bext; c; c = c_next)
+     {
+       c_next = c->nextfree;
+       xfree (c);
+     }
+#endif
 
   xfree (self->thread_name);
 
