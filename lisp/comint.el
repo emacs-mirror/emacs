@@ -105,7 +105,7 @@
 (require 'ansi-color)
 (require 'ansi-osc)
 (require 'regexp-opt)                   ;For regexp-opt-charset.
-(eval-when-compile (require 'subr-x))
+(require 'subr-x)
 
 ;;; Buffer Local Variables:
 ;;============================================================================
