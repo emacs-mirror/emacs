@@ -651,6 +651,12 @@ characters of the current line."
 
            ;; These rules are for cases where the body is bracketless.
            ((match "while" "do_statement") parent-bol 0)
+           ;; rule for PHP alternative syntax
+           ((or (node-is "else_if_clause")
+                (node-is "endif")
+                (node-is "endforeach")
+                (node-is "endwhile"))
+            parent-bol 0)
            ((or (parent-is "if_statement")
                 (parent-is "else_clause")
                 (parent-is "for_statement")
