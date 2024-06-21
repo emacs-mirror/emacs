@@ -4021,6 +4021,12 @@ igc_alloc_dump (size_t nbytes)
   return base_to_client (block);
 }
 
+bool
+igc_busy_p (void)
+{
+  return mps_arena_busy (global_igc->arena);
+}
+
 /***********************************************************************
 				  Init
  ***********************************************************************/
