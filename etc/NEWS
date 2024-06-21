@@ -1984,6 +1984,14 @@ to give to "ping".
 
 * New Modes and Packages in Emacs 30.1
 
+** New package EditorConfig.
+This package provides support for the EditorConfig standard,
+an editor-neutral way to provide directory local (project-wide) settings.
+It is enabled via a new global minor mode 'editorconfig-mode'
+which makes Emacs obey the '.editorconfig' files.
+There is also a new major mode 'editorconfig-conf-mode'
+to edit those configuration files.
+
 +++
 ** New package Track-Changes.
 This library is a layer of abstraction above 'before-change-functions'
