@@ -448,17 +448,26 @@ set_header (struct igc_header *h, enum igc_obj_type type,
   h->hash = hash;
 }
 
+/* Given a pointer to the client area of an object, CLIENT, return
+   the base address of the object in MPS. */
+
 static mps_addr_t
 client_to_base (mps_addr_t client_addr)
 {
   return (char *) client_addr - sizeof (struct igc_header);
 }
 
+/* Given a pointer to the start of an object in MPS, BASE, return a
+   pointer to its client area. */
+
 static mps_addr_t
 base_to_client (mps_addr_t base_addr)
 {
   return (char *) base_addr + sizeof (struct igc_header);
 }
+
+/* Given a client pointer CLIENT to an object, return how many
+   elements of size ELEM_SIZE can fit into the client area. */
 
 static size_t
 object_nelems (void *client, size_t elem_size)
