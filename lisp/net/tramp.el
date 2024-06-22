@@ -3477,7 +3477,7 @@ BODY is the backend specific code."
 	   (with-tramp-file-property v localname "file-exists-p"
 	     ;; Examine `file-attributes' cache to see if request can
 	     ;; be satisfied without remote operation.
-	     (if (tramp-use-file-attributes v)
+	     (if (tramp-file-property-p v localname "file-attributes")
 		 (not
 		  (null (tramp-get-file-property v localname "file-attributes")))
 	       ,@body))))))
@@ -3594,8 +3594,7 @@ that a stederr file is supported.  BODY is the backend specific code."
 		    (not (tramp-equal-remote default-directory stderr)))
 	   (signal 'file-error (list "Wrong stderr" stderr)))
 
-	 (let ((default-directory tramp-compat-temporary-file-directory)
-	       (name (tramp-get-unique-process-name name))
+	 (let ((name (tramp-get-unique-process-name name))
 	       (buffer
 		(if buffer
 		    (get-buffer-create buffer)
@@ -5058,7 +5057,8 @@ should be set connection-local.")
     ;; Check for `tramp-sh-file-name-handler' and
     ;; `adb-file-name-handler-p', because something is different
     ;; between tramp-sh.el, and tramp-adb.el or tramp-sshfs.el.
-    (let* ((sh-file-name-handler-p (tramp-sh-file-name-handler-p v))
+    (let* ((default-directory tramp-compat-temporary-file-directory)
+	   (sh-file-name-handler-p (tramp-sh-file-name-handler-p v))
 	   (adb-file-name-handler-p (tramp-adb-file-name-p v))
 	   (env (mapcar
 		 (lambda (elt)
@@ -5896,6 +5896,7 @@ Mostly useful to protect BODY from being interrupted by timers."
        ;; Be kind for old versions of Emacs.
        (if (member 'remote-file-error debug-ignored-errors)
 	   (throw 'non-essential 'non-essential)
+	 ;(tramp-backtrace ,proc 'force)
 	 (tramp-error
 	  ,proc 'remote-file-error "Forbidden reentrant call of Tramp"))
      (with-tramp-suspended-timers
