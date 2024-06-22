@@ -2894,7 +2894,7 @@ make_clock (double secs)
   return (struct igc_clock) { .expire = expire };
 }
 
-#define WITH_CLOCK(c, duration)							\
+#define IGC_WITH_CLOCK(c, duration)							\
   for (struct igc_clock c = make_clock (duration); !clock_has_expired (&c);)
 
 /* Process MPS messages. This should be extended to handle messages only
@@ -2939,7 +2939,7 @@ enable_messages (struct igc *gc, bool enable)
 void
 igc_process_messages (void)
 {
-  WITH_CLOCK (clock, 0.1)
+  IGC_WITH_CLOCK (clock, 0.1)
   {
     if (!process_one_message (global_igc))
       break;
@@ -3001,7 +3001,7 @@ void
 igc_on_idle (void)
 {
   struct igc_buffer_it buffer_it = make_buffer_it ();
-  WITH_CLOCK (clock, 0.1)
+  IGC_WITH_CLOCK (clock, 0.1)
   {
     bool work_done = process_one_message (global_igc);
 
