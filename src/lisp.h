@@ -3588,12 +3588,21 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd const *, char const *);
       = {Lisp_Fwd_Obj, &globals.f_##vname};	\
     defvar_lisp (&o_fwd, lname);		\
   } while (false)
+#ifdef HAVE_MPS
 #define DEFVAR_LISP_NOPRO(lname, vname, doc)	\
   do {						\
     static struct Lisp_Objfwd const o_fwd	\
       = {Lisp_Fwd_Obj, &globals.f_##vname};	\
+    defvar_lisp (&o_fwd, lname);		\
+  } while (false)
+#else
+#define DEFVAR_LISP_NOPRO(lname, vname, doc)	\
+  do {						\
+  static struct Lisp_Objfwd const o_fwd		\
+    = {Lisp_Fwd_Obj, &globals.f_##vname};	\
     defvar_lisp_nopro (&o_fwd, lname);		\
   } while (false)
+#endif
 #define DEFVAR_BOOL(lname, vname, doc)		\
   do {						\
     static struct Lisp_Boolfwd const b_fwd	\

@@ -141,6 +141,29 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
    others. */
 #endif /* CHECK_STRUCTS */
 
+/* An enum for telemetry event categories seems to be missing from MOS.
+   The docs only mention the bare numbers. */
+
+enum igc_event_category
+{
+  IGC_EVC_ARENA,
+  IGC_EVC_POOL,
+  IGC_EVC_TRACE,
+  IGC_EVC_SEG,
+  IGC_EVC_REF,
+  IGC_EVC_OBJECT,
+  IGC_EVC_USER,
+};
+
+/* Return true if the current MPS telemetry event filter has the bit set
+   for the given event category C. */
+
+static bool
+is_in_telemetry_filter (enum igc_event_category c)
+{
+  return (mps_telemetry_get () & (1 << c)) != 0;
+}
+
 /* Note: Emacs will call allocation functions while aborting. This leads
    to all sorts of interesting phenomena when an assertion fails inside
    a function called from MPS.
@@ -521,6 +544,13 @@ igc_check_fwd (void *client)
 }
 #endif
 
+
+/************************************************************************
+                        Registry of MPS objects
+ ************************************************************************/
+
+/* Registry entry for an MPS root mps_root_t. */
+
 struct igc_root
 {
   struct igc *gc;
@@ -532,42 +562,67 @@ struct igc_root
 typedef struct igc_root igc_root;
 IGC_DEFINE_LIST (igc_root);
 
+/* Registry entry for an MPS thread mps_thr_t. */
+
 struct igc_thread
 {
   struct igc *gc;
   mps_thr_t thr;
+
+  /* Allocation points for the thread. */
   mps_ap_t dflt_ap;
   mps_ap_t leaf_ap;
   mps_ap_t weak_strong_ap;
   mps_ap_t weak_weak_ap;
-  mps_ap_t ams_ap;
+  mps_ap_t immovable_ap;
+
+  /* Quick access to the roots used for specpdl, and bytecode stack. */
   igc_root_list *specpdl_root;
   igc_root_list *bc_root;
+
+  /* Back pointer to Emacs' thread object. Allocated so that it doesn't
+     move in memory. */
   struct thread_state *ts;
 };
 
 typedef struct igc_thread igc_thread;
 IGC_DEFINE_LIST (igc_thread);
 
+/* The registry for an MPS arena. There is only one arena used. */
+
 struct igc
 {
-  int park_count;
+  /* The MPS arena. */
   mps_arena_t arena;
+
+  /* Used to allow nested parking/releasing of the arena. */
+  int park_count;
+
+  /* The MPS generation chain. */
   mps_chain_t chain;
+
+  /* Object formats and pools used. */
   mps_fmt_t dflt_fmt;
   mps_pool_t dflt_pool;
   mps_fmt_t leaf_fmt;
   mps_pool_t leaf_pool;
   mps_fmt_t weak_fmt;
   mps_pool_t weak_pool;
-  mps_fmt_t ams_fmt;
-  mps_pool_t ams_pool;
-  igc_root_list *rdstack_root;
+  mps_fmt_t immovable_fmt;
+  mps_pool_t immovable_pool;
+
+  /* Registered roots. */
   struct igc_root_list *roots;
+
+  /* Gives quick access to the root used for rdstack.
+     FIXME: not strictly needed, maybe get rid of it. */
+  igc_root_list *rdstack_root;
+
+  /* Registered threads. */
   struct igc_thread_list *threads;
-  Lisp_Object *cu;
-  ptrdiff_t cu_capacity, ncu;
 };
+
+/* The global registry. */
 
 static struct igc *global_igc;
 
@@ -588,11 +643,20 @@ arena_release (struct igc *gc)
     mps_arena_release (gc->arena);
 }
 
+/* Register the root ROOT in registry GC with additional info.  START
+   and END are the area of memory covered by the root. END being NULL
+   means not known. AMBIG true means the root is scanned ambigously, as
+   opposed to being scanned exactly.
+
+   DEBUG_NAME if non-null is a namer under which the root appears on the
+   MPS telemetry stream, if user events are in the telemetry
+   filter. This allows mapping roots to useful names. */
+
 static struct igc_root_list *
 register_root (struct igc *gc, mps_root_t root, void *start, void *end,
 	       bool ambig, const char *debug_name)
 {
-  if (debug_name && (mps_telemetry_get () & (1 << 6)))
+  if (debug_name && is_in_telemetry_filter (IGC_EVC_USER))
     {
       mps_label_t label = mps_telemetry_intern (debug_name);
       mps_telemetry_label (root, label);
@@ -603,6 +667,9 @@ register_root (struct igc *gc, mps_root_t root, void *start, void *end,
   return igc_root_list_push (&gc->roots, &r);
 }
 
+/* Remove the root described by R from the list of known roots
+   of its registry. Value is the MPS root. */
+
 static mps_root_t
 deregister_root (struct igc_root_list *r)
 {
@@ -610,6 +677,9 @@ deregister_root (struct igc_root_list *r)
   igc_root_list_remove (&root, &r->d.gc->roots, r);
   return root.root;
 }
+
+/* Destroy the root described by *R and remove it from its registry.
+   Set *R to NULL when done so that it cannot be destroyed twice. */
 
 static void
 destroy_root (struct igc_root_list **r)
@@ -828,39 +898,6 @@ scan_staticvec (mps_ss_t ss, void *start, void *end, void *closure)
 }
 
 static mps_res_t
-fix_fwd (mps_ss_t ss, lispfwd fwd)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    switch (XFWDTYPE (fwd))
-      {
-      case Lisp_Fwd_Int:
-      case Lisp_Fwd_Bool:
-      case Lisp_Fwd_Kboard_Obj:
-	break;
-
-      case Lisp_Fwd_Obj:
-	{
-	  /* It is not guaranteed that we see all of these when
-	     scanning staticvec because of DEFVAR_LISP_NOPRO.  */
-	  struct Lisp_Objfwd *o = (void *) fwd.fwdptr;
-	  IGC_FIX12_OBJ (ss, o->objvar);
-	}
-	break;
-
-      case Lisp_Fwd_Buffer_Obj:
-	{
-	  struct Lisp_Buffer_Objfwd *b = (void *) fwd.fwdptr;
-	  IGC_FIX12_OBJ (ss, &b->predicate);
-	}
-	break;
-      }
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-static mps_res_t
 fix_symbol (mps_ss_t ss, struct Lisp_Symbol *sym)
 {
   MPS_SCAN_BEGIN (ss)
@@ -888,7 +925,6 @@ fix_symbol (mps_ss_t ss, struct Lisp_Symbol *sym)
 	break;
 
       case SYMBOL_FORWARDED:
-	IGC_FIX_CALL (ss, fix_fwd (ss, sym->u.s.val.fwd));
 	break;
       }
   }
@@ -2358,7 +2394,7 @@ create_thread_aps (struct igc_thread *t)
   IGC_CHECK_RES (res);
   res = mps_ap_create_k (&t->leaf_ap, gc->leaf_pool, mps_args_none);
   IGC_CHECK_RES (res);
-  res = mps_ap_create_k (&t->ams_ap, gc->ams_pool, mps_args_none);
+  res = mps_ap_create_k (&t->immovable_ap, gc->immovable_pool, mps_args_none);
   IGC_CHECK_RES (res);
   res = create_weak_ap (&t->weak_strong_ap, t, false);
   IGC_CHECK_RES (res);
@@ -3208,7 +3244,7 @@ static mps_addr_t
 alloc_immovable (size_t size, enum igc_obj_type type)
 {
   struct igc_thread_list *t = current_thread->gc_info;
-  return alloc_impl (size, type, t->d.ams_ap);
+  return alloc_impl (size, type, t->d.immovable_ap);
 }
 
 void *
@@ -3807,8 +3843,8 @@ make_igc (void)
   gc->leaf_pool = make_pool_amcz (gc, gc->leaf_fmt);
   gc->weak_fmt = make_dflt_fmt (gc);
   gc->weak_pool = make_pool_awl (gc, gc->weak_fmt);
-  gc->ams_fmt = make_dflt_fmt (gc);
-  gc->ams_pool = make_pool_ams (gc, gc->ams_fmt);
+  gc->immovable_fmt = make_dflt_fmt (gc);
+  gc->immovable_pool = make_pool_ams (gc, gc->immovable_fmt);
 
 #ifndef IN_MY_FORK
   root_create_pure (gc);
