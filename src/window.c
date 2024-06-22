@@ -2321,7 +2321,7 @@ window for that buffer, and POS is a window-specific point value.  */)
 {
 #ifdef HAVE_MPS
   struct window *w = decode_live_window (window);
-  return igc_discard_killed_buffers (w->prev_buffers);
+  return w->prev_buffers = igc_discard_killed_buffers (w->prev_buffers);
 #else
   return decode_live_window (window)->prev_buffers;
 #endif
@@ -2349,7 +2349,7 @@ WINDOW must be a live window and defaults to the selected one.  */)
 {
 #ifdef HAVE_MPS
   struct window *w = decode_live_window (window);
-  return igc_discard_killed_buffers (w->next_buffers);
+  return w->next_buffers = igc_discard_killed_buffers (w->next_buffers);
 #else
   return decode_live_window (window)->next_buffers;
 #endif
