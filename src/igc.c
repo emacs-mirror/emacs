@@ -1657,12 +1657,6 @@ fix_window (mps_ss_t ss, struct window *w)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->current_matrix));
     if (w->desired_matrix)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->desired_matrix));
-
-    /* FIXME: The following two are handled specially in the old GC:
-       Both are lists from which entries for non-live buffers are
-       removed (mark_window -> mark_discard_killed_buffers).
-       So, they are kind of weak lists. I think this could be done
-       from a timer. */
     IGC_FIX12_OBJ (ss, &w->prev_buffers);
     IGC_FIX12_OBJ (ss, &w->next_buffers);
 
@@ -2950,6 +2944,26 @@ igc_process_messages (void)
     if (!process_one_message (global_igc))
       break;
   }
+}
+
+/* Discard entries for killed buffers from LIST and return the resulting
+   list. Used in window-{next,prev}-buffers. */
+
+Lisp_Object
+igc_discard_killed_buffers (Lisp_Object list)
+{
+  Lisp_Object *prev = &list;
+  for (Lisp_Object tail = list; CONSP (tail); tail = XCDR (tail))
+    {
+      Lisp_Object buf = XCAR (tail);
+      if (CONSP (buf))
+	buf = XCAR (buf);
+      if (BUFFERP (buf) && !BUFFER_LIVE_P (XBUFFER (buf)))
+	*prev = XCDR (tail);
+      else
+	prev = xcdr_addr (tail);
+    }
+  return list;
 }
 
 struct igc_buffer_it

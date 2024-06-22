@@ -46,6 +46,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #endif
 #include "pdumper.h"
+#include "igc.h"
 
 static ptrdiff_t count_windows (struct window *);
 static ptrdiff_t get_leaf_windows (struct window *, struct window **,
@@ -2318,7 +2319,12 @@ where BUFFER is a buffer, WINDOW-START is the start position of the
 window for that buffer, and POS is a window-specific point value.  */)
   (Lisp_Object window)
 {
+#ifdef HAVE_MPS
+  struct window *w = decode_live_window (window);
+  return igc_discard_killed_buffers (w->prev_buffers);
+#else
   return decode_live_window (window)->prev_buffers;
+#endif
 }
 
 DEFUN ("set-window-prev-buffers", Fset_window_prev_buffers,
@@ -2339,9 +2345,14 @@ DEFUN ("window-next-buffers", Fwindow_next_buffers, Swindow_next_buffers,
        0, 1, 0,
        doc:  /* Return list of buffers recently re-shown in WINDOW.
 WINDOW must be a live window and defaults to the selected one.  */)
-     (Lisp_Object window)
+  (Lisp_Object window)
 {
+#ifdef HAVE_MPS
+  struct window *w = decode_live_window (window);
+  return igc_discard_killed_buffers (w->next_buffers);
+#else
   return decode_live_window (window)->next_buffers;
+#endif
 }
 
 DEFUN ("set-window-next-buffers", Fset_window_next_buffers,
