@@ -2370,13 +2370,13 @@ dump_field_fwd (struct dump_context *ctx, void *out, const void *in_start,
 	const struct Lisp_Intfwd *fwd = in_field->fwdptr;
 	dump_emacs_reloc_immediate_intmax_t (ctx, fwd->intvar, *fwd->intvar);
       }
-      break;
+      return;
     case Lisp_Fwd_Bool:
       {
 	const struct Lisp_Boolfwd *fwd = in_field->fwdptr;
 	dump_emacs_reloc_immediate_bool (ctx, fwd->boolvar, *fwd->boolvar);
       }
-      break;
+      return;
     case Lisp_Fwd_Obj:
       {
 	const struct Lisp_Objfwd *fwd = in_field->fwdptr;
@@ -2384,23 +2384,12 @@ dump_field_fwd (struct dump_context *ctx, void *out, const void *in_start,
 			    ctx->staticpro_table, Qnil)))
 	  dump_emacs_reloc_to_lv (ctx, fwd->objvar, *fwd->objvar);
       }
-      break;
+      return;
     case Lisp_Fwd_Kboard_Obj:
-      break;
     case Lisp_Fwd_Buffer_Obj:
-      {
-	const struct Lisp_Buffer_Objfwd *fwd = in_field->fwdptr;
-	dump_emacs_reloc_immediate (ctx, &fwd->type, &fwd->type,
-				    sizeof fwd->type);
-	dump_emacs_reloc_immediate (ctx, &fwd->offset, &fwd->offset,
-				    sizeof fwd->offset);
-	eassert (SYMBOLP (fwd->predicate));
-	/* FIXME: assumes symbols are represented as offsets from lispsym */
-	dump_emacs_reloc_immediate (ctx, &fwd->predicate, &fwd->predicate,
-				    sizeof fwd->predicate);
-      }
-      break;
+      return;
     }
+  emacs_abort ();
 }
 
 static dump_off
