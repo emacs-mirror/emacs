@@ -2135,6 +2135,14 @@ with a different toolkit.  For example:
 This produces a build which uses Athena toolkit, and disables toolkit
 scroll bars which could sometimes be slow.
 
+* Runtime problems specific to PGTK build
+
+** SECONDARY selections don't work on Wayland.
+
+This is because the SECONDARY selection is not implemented by the
+Wayland compositor being used.  A workaround is to use other kinds of
+selections.
+
 * Runtime problems on character terminals
 
 ** The meta key does not work on xterm.
