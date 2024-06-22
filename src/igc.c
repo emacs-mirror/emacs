@@ -141,6 +141,29 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
    others. */
 #endif /* CHECK_STRUCTS */
 
+/* An enum for telemetry event categories seems to be missing from MOS.
+   The docs only mention the bare numbers. */
+
+enum igc_event_category
+{
+  IGC_EVC_ARENA,
+  IGC_EVC_POOL,
+  IGC_EVC_TRACE,
+  IGC_EVC_SEG,
+  IGC_EVC_REF,
+  IGC_EVC_OBJECT,
+  IGC_EVC_USER,
+};
+
+/* Return true if the current MPS telemetry event filter has the bit set
+   for the given event category C. */
+
+static bool
+is_in_telemetry_filter (enum igc_event_category c)
+{
+  return (mps_telemetry_get () & (1 << c)) != 0;
+}
+
 /* Note: Emacs will call allocation functions while aborting. This leads
    to all sorts of interesting phenomena when an assertion fails inside
    a function called from MPS.
@@ -618,23 +641,6 @@ arena_release (struct igc *gc)
   igc_assert (gc->park_count >= 0);
   if (gc->park_count == 0)
     mps_arena_release (gc->arena);
-}
-
-enum igc_event_category
-{
-  IGC_EVC_ARENA,
-  IGC_EVC_POOL,
-  IGC_EVC_TRACE,
-  IGC_EVC_SEG,
-  IGC_EVC_REF,
-  IGC_EVC_OBJECT,
-  IGC_EVC_USER,
-};
-
-static bool
-is_in_telemetry_filter (enum igc_event_category c)
-{
-  return (mps_telemetry_get () & (1 << c)) != 0;
 }
 
 /* Register the root ROOT in registry GC with additional info.  START
