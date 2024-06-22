@@ -521,6 +521,13 @@ igc_check_fwd (void *client)
 }
 #endif
 
+
+/************************************************************************
+                        Registry of MPS objects
+ ************************************************************************/
+
+/* Registry entry for an MPS root mps_root_t. */
+
 struct igc_root
 {
   struct igc *gc;
@@ -532,42 +539,67 @@ struct igc_root
 typedef struct igc_root igc_root;
 IGC_DEFINE_LIST (igc_root);
 
+/* Registry entry for an MPS thread mps_thr_t. */
+
 struct igc_thread
 {
   struct igc *gc;
   mps_thr_t thr;
+
+  /* Allocation points for the thread. */
   mps_ap_t dflt_ap;
   mps_ap_t leaf_ap;
   mps_ap_t weak_strong_ap;
   mps_ap_t weak_weak_ap;
-  mps_ap_t ams_ap;
+  mps_ap_t immovable_ap;
+
+  /* Quick access to the roots used for specpdl, and bytecode stack. */
   igc_root_list *specpdl_root;
   igc_root_list *bc_root;
+
+  /* Back pointer to Emacs' thread object. Allocated so that it doesn't
+     move in memory. */
   struct thread_state *ts;
 };
 
 typedef struct igc_thread igc_thread;
 IGC_DEFINE_LIST (igc_thread);
 
+/* The registry for an MPS arena. There is only one arena used. */
+
 struct igc
 {
-  int park_count;
+  /* The MPS arena. */
   mps_arena_t arena;
+
+  /* Used to allow nested parking/releasing of the arena. */
+  int park_count;
+
+  /* The MPS generation chain. */
   mps_chain_t chain;
+
+  /* Object formats and pools used. */
   mps_fmt_t dflt_fmt;
   mps_pool_t dflt_pool;
   mps_fmt_t leaf_fmt;
   mps_pool_t leaf_pool;
   mps_fmt_t weak_fmt;
   mps_pool_t weak_pool;
-  mps_fmt_t ams_fmt;
-  mps_pool_t ams_pool;
-  igc_root_list *rdstack_root;
+  mps_fmt_t immovable_fmt;
+  mps_pool_t immovable_pool;
+
+  /* Registered roots. */
   struct igc_root_list *roots;
+
+  /* Gives quick access to the root used for rdstack.
+     FIXME: not strictly needed, maybe get rid of it. */
+  igc_root_list *rdstack_root;
+
+  /* Registered threads. */
   struct igc_thread_list *threads;
-  Lisp_Object *cu;
-  ptrdiff_t cu_capacity, ncu;
 };
+
+/* The global registry. */
 
 static struct igc *global_igc;
 
@@ -2358,7 +2390,7 @@ create_thread_aps (struct igc_thread *t)
   IGC_CHECK_RES (res);
   res = mps_ap_create_k (&t->leaf_ap, gc->leaf_pool, mps_args_none);
   IGC_CHECK_RES (res);
-  res = mps_ap_create_k (&t->ams_ap, gc->ams_pool, mps_args_none);
+  res = mps_ap_create_k (&t->immovable_ap, gc->immovable_pool, mps_args_none);
   IGC_CHECK_RES (res);
   res = create_weak_ap (&t->weak_strong_ap, t, false);
   IGC_CHECK_RES (res);
@@ -3208,7 +3240,7 @@ static mps_addr_t
 alloc_immovable (size_t size, enum igc_obj_type type)
 {
   struct igc_thread_list *t = current_thread->gc_info;
-  return alloc_impl (size, type, t->d.ams_ap);
+  return alloc_impl (size, type, t->d.immovable_ap);
 }
 
 void *
@@ -3807,8 +3839,8 @@ make_igc (void)
   gc->leaf_pool = make_pool_amcz (gc, gc->leaf_fmt);
   gc->weak_fmt = make_dflt_fmt (gc);
   gc->weak_pool = make_pool_awl (gc, gc->weak_fmt);
-  gc->ams_fmt = make_dflt_fmt (gc);
-  gc->ams_pool = make_pool_ams (gc, gc->ams_fmt);
+  gc->immovable_fmt = make_dflt_fmt (gc);
+  gc->immovable_pool = make_pool_ams (gc, gc->immovable_fmt);
 
 #ifndef IN_MY_FORK
   root_create_pure (gc);
