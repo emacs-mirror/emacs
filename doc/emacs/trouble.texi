@@ -1540,10 +1540,11 @@ to the FSF@.  For the reasons behind this, see
 @url{https://www.gnu.org/licenses/why-assign.html}.
 
 Copyright assignment is a simple process.  Residents of many countries
-can do it entirely electronically.  We can help you get started,
-including sending you the forms you should fill, and answer any
-questions you may have (or point you to the people with the answers),
-at the @email{emacs-devel@@gnu.org} mailing list.
+can do it entirely electronically.  To get started, follow the
+instructions in the file @file{etc/copyright-assign.txt} in the Emacs
+distribution.  We can answer any questions you may have (or point you to
+the people with the answers) at the @email{emacs-devel@@gnu.org} mailing
+list.
 
 (Please note: general discussion about why some GNU projects ask
 for a copyright assignment is off-topic for emacs-devel.
