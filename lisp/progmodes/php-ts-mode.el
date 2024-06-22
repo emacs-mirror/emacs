@@ -1232,7 +1232,7 @@ Depends on `c-ts-common-comment-setup'."
     ["Start built-in webserver" php-ts-mode-run-php-webserver
      :help "Run the built-in PHP webserver"]
     "--"
-    ["Customize" (lambda () (interactive) (customize-group "php-ts"))]))
+    ["Customize" (lambda () (interactive) (customize-group "php-ts-mode"))]))
 
 (defvar php-ts-mode--feature-list
   '((;; common
