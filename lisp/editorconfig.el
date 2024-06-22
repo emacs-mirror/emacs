@@ -226,8 +226,8 @@ This hook will be run even when there are no matching sections in
     (ps-mode ps-mode-tab)
     (pug-mode pug-tab-width)
     (puppet-mode puppet-indent-level)
-    (python-mode . editorconfig-set-indentation-python-mode)
-    (python-ts-mode . editorconfig-set-indentation-python-mode)
+    (python-mode . editorconfig--get-indentation-python-mode)
+    (python-ts-mode . editorconfig--get-indentation-python-mode)
     (rjsx-mode js-indent-level sgml-basic-offset)
     (ruby-mode ruby-indent-level)
     (ruby-ts-mode ruby-indent-level)
@@ -323,6 +323,11 @@ Make a message by passing ARGS to `format-message'."
     (web-mode-script-padding           . ,size)
     (web-mode-style-padding            . ,size)))
 
+(defun editorconfig--get-indentation-python-mode (size)
+  "Vars to set `python-mode' indent size to SIZE."
+  `((python-indent-offset . ,size)      ;For python.el
+    (py-indent-offset . ,size)))        ;For python-mode.el
+
 (defun editorconfig--get-indentation-latex-mode (size)
   "Vars to set `latex-mode' indent size to SIZE."
   `((tex-indent-basic . ,size)
@@ -361,12 +366,19 @@ Make a message by passing ARGS to `format-message'."
 (defvar editorconfig-indent-size-vars
   #'editorconfig--default-indent-size-function
   "Rule to use to set a given `indent_size'.
-Can take the form of a function, in which case we call it with a single SIZE
-argument (an integer) and it should return a list of (VAR . VAL) pairs.
-Otherwise it can be a list of symbols (those which should be set to SIZE).
+This should hold the list of variables that need to be set to SIZE
+to tell the indentation code of the current major mode to use a basic
+indentation step of size SIZE.
+It can also take the form of a function, in which case we call it with
+a single SIZE argument (an integer) and it should return a list
+of (VAR . VAL) pairs indicating the variables to set and the values to
+set them to.
 Major modes are expected to set this buffer-locally.")
 
 (defun editorconfig--default-indent-size-function (size)
+ "Guess which variables to set to for the indentation step to have size SIZE.
+This relies on `editorconfig-indentation-alist' supplemented with a crude
+heuristic for those modes not found there."
   (let ((parents (if (fboundp 'derived-mode-all-parents) ;Emacs-30
                      (derived-mode-all-parents major-mode)
                    (let ((modes nil)
