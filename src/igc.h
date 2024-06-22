@@ -155,6 +155,7 @@ char *igc_dump_finish_obj (void *client, enum igc_obj_type type,
 			   char *base, char *end);
 void *igc_alloc_dump (size_t nbytes);
 bool igc_busy_p (void);
+Lisp_Object igc_discard_killed_buffers (Lisp_Object list);
 
 # define eassert_not_mps() eassert (false)
 #else

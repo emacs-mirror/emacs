@@ -448,17 +448,26 @@ set_header (struct igc_header *h, enum igc_obj_type type,
   h->hash = hash;
 }
 
+/* Given a pointer to the client area of an object, CLIENT, return
+   the base address of the object in MPS. */
+
 static mps_addr_t
 client_to_base (mps_addr_t client_addr)
 {
   return (char *) client_addr - sizeof (struct igc_header);
 }
 
+/* Given a pointer to the start of an object in MPS, BASE, return a
+   pointer to its client area. */
+
 static mps_addr_t
 base_to_client (mps_addr_t base_addr)
 {
   return (char *) base_addr + sizeof (struct igc_header);
 }
+
+/* Given a client pointer CLIENT to an object, return how many
+   elements of size ELEM_SIZE can fit into the client area. */
 
 static size_t
 object_nelems (void *client, size_t elem_size)
@@ -1657,12 +1666,6 @@ fix_window (mps_ss_t ss, struct window *w)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->current_matrix));
     if (w->desired_matrix)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->desired_matrix));
-
-    /* FIXME: The following two are handled specially in the old GC:
-       Both are lists from which entries for non-live buffers are
-       removed (mark_window -> mark_discard_killed_buffers).
-       So, they are kind of weak lists. I think this could be done
-       from a timer. */
     IGC_FIX12_OBJ (ss, &w->prev_buffers);
     IGC_FIX12_OBJ (ss, &w->next_buffers);
 
@@ -2900,7 +2903,7 @@ make_clock (double secs)
   return (struct igc_clock) { .expire = expire };
 }
 
-#define WITH_CLOCK(c, duration)							\
+#define IGC_WITH_CLOCK(c, duration)							\
   for (struct igc_clock c = make_clock (duration); !clock_has_expired (&c);)
 
 /* Process MPS messages. This should be extended to handle messages only
@@ -2945,11 +2948,31 @@ enable_messages (struct igc *gc, bool enable)
 void
 igc_process_messages (void)
 {
-  WITH_CLOCK (clock, 0.1)
+  IGC_WITH_CLOCK (clock, 0.1)
   {
     if (!process_one_message (global_igc))
       break;
   }
+}
+
+/* Discard entries for killed buffers from LIST and return the resulting
+   list. Used in window-{next,prev}-buffers. */
+
+Lisp_Object
+igc_discard_killed_buffers (Lisp_Object list)
+{
+  Lisp_Object *prev = &list;
+  for (Lisp_Object tail = list; CONSP (tail); tail = XCDR (tail))
+    {
+      Lisp_Object buf = XCAR (tail);
+      if (CONSP (buf))
+	buf = XCAR (buf);
+      if (BUFFERP (buf) && !BUFFER_LIVE_P (XBUFFER (buf)))
+	*prev = XCDR (tail);
+      else
+	prev = xcdr_addr (tail);
+    }
+  return list;
 }
 
 struct igc_buffer_it
@@ -2987,7 +3010,7 @@ void
 igc_on_idle (void)
 {
   struct igc_buffer_it buffer_it = make_buffer_it ();
-  WITH_CLOCK (clock, 0.1)
+  IGC_WITH_CLOCK (clock, 0.1)
   {
     bool work_done = process_one_message (global_igc);
 
