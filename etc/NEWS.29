@@ -39,9 +39,6 @@ To get back previous insecure behavior, set the variable
 Remote files are recognized by calling 'file-remote-p'.
 
 
-* Installation Changes in Emacs 29.2
-
-
 * Startup Changes in Emacs 29.2
 
 ** On GNU/Linux, Emacs is now the default application for 'org-protocol'.
