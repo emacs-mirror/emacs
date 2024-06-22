@@ -268,7 +268,10 @@ This is a fallback used for those modes which don't set
 Each element should look like (MODE . SETTING) where SETTING
 should obey the same rules as `editorconfig-indent-size-vars'."
   :type '(alist :key-type symbol
-                :value-type (choice function (repeat symbol)))
+                :value-type (choice function
+                                    (repeat
+                                     (choice symbol
+                                             (cons symbol integer)))))
   :risky t)
 
 (defcustom editorconfig-trim-whitespaces-mode nil
