@@ -898,39 +898,6 @@ scan_staticvec (mps_ss_t ss, void *start, void *end, void *closure)
 }
 
 static mps_res_t
-fix_fwd (mps_ss_t ss, lispfwd fwd)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    switch (XFWDTYPE (fwd))
-      {
-      case Lisp_Fwd_Int:
-      case Lisp_Fwd_Bool:
-      case Lisp_Fwd_Kboard_Obj:
-	break;
-
-      case Lisp_Fwd_Obj:
-	{
-	  /* It is not guaranteed that we see all of these when
-	     scanning staticvec because of DEFVAR_LISP_NOPRO.  */
-	  struct Lisp_Objfwd *o = (void *) fwd.fwdptr;
-	  IGC_FIX12_OBJ (ss, o->objvar);
-	}
-	break;
-
-      case Lisp_Fwd_Buffer_Obj:
-	{
-	  struct Lisp_Buffer_Objfwd *b = (void *) fwd.fwdptr;
-	  IGC_FIX12_OBJ (ss, &b->predicate);
-	}
-	break;
-      }
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-static mps_res_t
 fix_symbol (mps_ss_t ss, struct Lisp_Symbol *sym)
 {
   MPS_SCAN_BEGIN (ss)
@@ -958,7 +925,6 @@ fix_symbol (mps_ss_t ss, struct Lisp_Symbol *sym)
 	break;
 
       case SYMBOL_FORWARDED:
-	IGC_FIX_CALL (ss, fix_fwd (ss, sym->u.s.val.fwd));
 	break;
       }
   }
