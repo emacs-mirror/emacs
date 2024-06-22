@@ -620,11 +620,37 @@ arena_release (struct igc *gc)
     mps_arena_release (gc->arena);
 }
 
+enum igc_event_category
+{
+  IGC_EVC_ARENA,
+  IGC_EVC_POOL,
+  IGC_EVC_TRACE,
+  IGC_EVC_SEG,
+  IGC_EVC_REF,
+  IGC_EVC_OBJECT,
+  IGC_EVC_USER,
+};
+
+static bool
+is_in_telemetry_filter (enum igc_event_category c)
+{
+  return (mps_telemetry_get () & (1 << c)) != 0;
+}
+
+/* Register the root ROOT in registry GC with additional info.  START
+   and END are the area of memory covered by the root. END being NULL
+   means not known. AMBIG true means the root is scanned ambigously, as
+   opposed to being scanned exactly.
+
+   DEBUG_NAME if non-null is a namer under which the root appears on the
+   MPS telemetry stream, if user events are in the telemetry
+   filter. This allows mapping roots to useful names. */
+
 static struct igc_root_list *
 register_root (struct igc *gc, mps_root_t root, void *start, void *end,
 	       bool ambig, const char *debug_name)
 {
-  if (debug_name && (mps_telemetry_get () & (1 << 6)))
+  if (debug_name && is_in_telemetry_filter (IGC_EVC_USER))
     {
       mps_label_t label = mps_telemetry_intern (debug_name);
       mps_telemetry_label (root, label);
@@ -635,6 +661,9 @@ register_root (struct igc *gc, mps_root_t root, void *start, void *end,
   return igc_root_list_push (&gc->roots, &r);
 }
 
+/* Remove the root described by R from the list of known roots
+   of its registry. Value is the MPS root. */
+
 static mps_root_t
 deregister_root (struct igc_root_list *r)
 {
@@ -642,6 +671,9 @@ deregister_root (struct igc_root_list *r)
   igc_root_list_remove (&root, &r->d.gc->roots, r);
   return root.root;
 }
+
+/* Destroy the root described by *R and remove it from its registry.
+   Set *R to NULL when done so that it cannot be destroyed twice. */
 
 static void
 destroy_root (struct igc_root_list **r)
