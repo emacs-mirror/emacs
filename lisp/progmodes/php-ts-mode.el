@@ -121,6 +121,16 @@ By default should have same value as `html-ts-mode-indent-offset'."
   :type 'integer
   :safe 'integerp)
 
+(defcustom php-ts-mode-css-fontify-colors t
+  "Whether CSS colors should be fontified using the color as the background.
+When non-nil, a text representing CSS color will be fontified
+such that its background is the color itself.
+Works like `css--fontify-region'."
+  :tag "PHP colors the CSS properties values."
+  :version "30.1"
+  :type 'boolean
+  :safe 'booleanp)
+
 (defcustom php-ts-mode-php-executable (or (executable-find "php") "/usr/bin/php")
   "The location of PHP executable."
   :tag "PHP Executable"
@@ -999,6 +1009,26 @@ characters of the current line."
    '((variable_name (name) @font-lock-variable-name-face)))
   "Tree-sitter font-lock settings for phpdoc.")
 
+(defun php-ts-mode--colorize-css-value (node override start end &rest _)
+  "Colorize CSS property value like `css--fontify-region'.
+For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
+  (if (and php-ts-mode-css-fontify-colors
+           (string-equal "plain_value" (treesit-node-type node)))
+      (let ((color (css--compute-color start (treesit-node-text node t))))
+        (when color
+          (treesit-fontify-with-override
+           (treesit-node-start node) (treesit-node-end node)
+           (list 'face
+                 (list :background color
+                       :foreground (readable-foreground-color
+                                    color)
+                       :box '(:line-width -1)))
+           override start end)))
+    (treesit-fontify-with-override
+     (treesit-node-start node) (treesit-node-end node)
+     'font-lock-variable-name-face
+     override start end)))
+
 (defun php-ts-mode--fontify-error (node override start end &rest _)
   "Fontify the error nodes.
 For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
@@ -1393,12 +1423,20 @@ Depends on `c-ts-common-comment-setup'."
                   ("Constant" "\\`const_element\\'" nil nil)))
 
     ;; Font-lock.
-    (setq-local treesit-font-lock-settings (php-ts-mode--font-lock-settings))
     (setq-local treesit-font-lock-settings
-                (append treesit-font-lock-settings
+                (append (php-ts-mode--font-lock-settings)
                         php-ts-mode--custom-html-font-lock-settings
                         js--treesit-font-lock-settings
-                        css--treesit-settings
+                        (append
+                         ;; Rule for coloring CSS property values.
+                         ;; Placed before `css--treesit-settings'
+                         ;; to win against the same rule contained therein.
+                         (treesit-font-lock-rules
+                          :language 'css
+                          :override t
+                          :feature 'variable
+                          '((plain_value) @php-ts-mode--colorize-css-value))
+                         css--treesit-settings)
                         php-ts-mode--phpdoc-font-lock-settings))
 
     (setq-local treesit-font-lock-feature-list php-ts-mode--feature-list)
