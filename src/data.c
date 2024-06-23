@@ -1342,7 +1342,7 @@ do_symval_forwarding (lispfwd valcontents)
 
     case Lisp_Fwd_Buffer_Obj:
       return per_buffer_value (current_buffer,
-			       XBUFFER_OBJFWD (valcontents)->offset);
+			       XBUFFER_OFFSET (valcontents));
 
     case Lisp_Fwd_Kboard_Obj:
       return *(Lisp_Object *) (XKBOARD_OFFSET (valcontents)
@@ -1457,9 +1457,8 @@ store_symval_forwarding (lispfwd valcontents, Lisp_Object newval,
 
     case Lisp_Fwd_Buffer_Obj:
       {
-	const struct Lisp_Buffer_Objfwd *fwd = XBUFFER_OBJFWD (valcontents);
-	int offset = fwd->offset;
-	Lisp_Object predicate = fwd->predicate;
+	int offset = XBUFFER_OFFSET (valcontents);
+	Lisp_Object predicate = valcontents->u.bufpredicate;
 
 	if (!NILP (newval) && !NILP (predicate))
 	  {
@@ -1774,7 +1773,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 
 	if (BUFFER_OBJFWDP (innercontents))
 	  {
-	    int offset = XBUFFER_OBJFWD (innercontents)->offset;
+	    int offset = XBUFFER_OFFSET (innercontents);
 	    int idx = PER_BUFFER_IDX (offset);
 	    if (idx > 0 && bindflag == SET_INTERNAL_SET
 	        && !PER_BUFFER_VALUE_P (buf, idx))
@@ -1956,7 +1955,7 @@ default_value (Lisp_Object symbol)
 	   rather than letting do_symval_forwarding get the current value.  */
 	if (BUFFER_OBJFWDP (valcontents))
 	  {
-	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
+	    int offset = XBUFFER_OFFSET (valcontents);
 	    if (PER_BUFFER_IDX (offset) != 0)
 	      return per_buffer_default (offset);
 	  }
@@ -2051,7 +2050,7 @@ set_default_internal (Lisp_Object symbol, Lisp_Object value,
 	   Make them work apparently like Lisp_Buffer_Local_Value variables.  */
 	if (BUFFER_OBJFWDP (valcontents))
 	  {
-	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
+	    int offset = XBUFFER_OFFSET (valcontents);
 	    int idx = PER_BUFFER_IDX (offset);
 
 	    set_per_buffer_default (offset, value);
@@ -2263,7 +2262,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
     {
       if (forwarded && BUFFER_OBJFWDP (valcontents.fwd))
         {
-          int offset = XBUFFER_OBJFWD (valcontents.fwd)->offset;
+          int offset = XBUFFER_OFFSET (valcontents.fwd);
           int idx = PER_BUFFER_IDX (offset);
           eassert (idx);
           if (idx > 0)
@@ -2335,7 +2334,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
 	lispfwd valcontents = SYMBOL_FWD (sym);
 	if (BUFFER_OBJFWDP (valcontents))
 	  {
-	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
+	    int offset = XBUFFER_OFFSET (valcontents);
 	    int idx = PER_BUFFER_IDX (offset);
 
 	    if (idx > 0)
@@ -2416,7 +2415,7 @@ Also see `buffer-local-boundp'.*/)
 	lispfwd valcontents = SYMBOL_FWD (sym);
 	if (BUFFER_OBJFWDP (valcontents))
 	  {
-	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
+	    int offset = XBUFFER_OFFSET (valcontents);
 	    int idx = PER_BUFFER_IDX (offset);
 	    if (idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
 	      return Qt;

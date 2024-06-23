@@ -3053,15 +3053,6 @@ make_uint (uintmax_t n)
   (EXPR_SIGNED (expr) ? make_int (expr) : make_uint (expr))
 
 
-/* Like Lisp_Objfwd except that value lives in a slot in the
-   current buffer.  Value is byte index of slot within buffer.  */
-struct Lisp_Buffer_Objfwd
-  {
-    int offset;
-    /* One of Qnil, Qintegerp, Qsymbolp, Qstringp, Qfloatp or Qnumberp.  */
-    Lisp_Object predicate;
-  };
-
 /* struct Lisp_Buffer_Local_Value is used in a symbol value cell when
    the symbol has buffer-local bindings.  (Exception:
    some buffer-local variables are built-in, with their values stored
@@ -3105,15 +3096,26 @@ struct Lisp_Buffer_Local_Value
     Lisp_Object valcell;
   };
 
+/* A struct Lisp_Fwd is used to locate a variable.  See Lisp_Fwd_Type
+   for the various types of variables.
+
+   Lisp_Fwd structs are created by macros like DEFVAR_INT, DEFVAR_BOOL etc.
+   and are always kept in static variables.  They are never allocated
+   dynamically. */
+
 struct Lisp_Fwd
 {
-  enum Lisp_Fwd_Type type;
+  enum Lisp_Fwd_Type type : 8;
+  uint16_t bufoffset;	       /* used if type == Lisp_Fwd_Buffer_Obj */
   union
   {
     intmax_t *intvar;
     bool *boolvar;
     Lisp_Object *objvar;
-    struct Lisp_Buffer_Objfwd bufobjfwd;
+    /* One of Qnil, Qintegerp, Qsymbolp, Qstringp, Qfloatp, Qnumberp,
+       Qfraction, Qvertical_scroll_bar, or Qoverwrite_mode.
+     */
+    Lisp_Object bufpredicate;
     int kbdoffset;
   } u;
 };
@@ -3130,11 +3132,11 @@ BUFFER_OBJFWDP (lispfwd a)
   return XFWDTYPE (a) == Lisp_Fwd_Buffer_Obj;
 }
 
-INLINE struct Lisp_Buffer_Objfwd const *
-XBUFFER_OBJFWD (lispfwd a)
+INLINE int
+XBUFFER_OFFSET (lispfwd a)
 {
   eassert (BUFFER_OBJFWDP (a));
-  return &a->u.bufobjfwd;
+  return a->bufoffset;
 }
 
 INLINE bool
