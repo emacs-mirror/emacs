@@ -58,6 +58,20 @@ fit these criteria."
   :version "24.1"
   :type 'float)
 
+(defcustom shr-sliced-image-height 0.9
+  "How tall images can be before slicing in relation to the window they're in.
+A value of 0.7 means that images are allowed to take up 70% of the
+height of the window before being sliced by `insert-sliced-image'.  If
+nil, never slice images.
+
+Sliced images allow for more intuitive scrolling up/down by letting you
+scroll past each slice, instead of jumping past the entire image.
+Alternately, you can use `pixel-scroll-precision-mode' to scroll
+pixel-wise past images, in which case you can set this option to nil."
+  :version "31.1"
+  :type '(choice (const :tag "Never slice images")
+                 float))
+
 (defcustom shr-allowed-images nil
   "If non-nil, only images that match this regexp are displayed.
 If nil, all URLs are allowed.  Also see `shr-blocked-images'."
@@ -1157,14 +1171,22 @@ element is the data blob and the second element is the content-type."
 	    (when (and (> (current-column) 0)
 		     (not inline))
 		(insert "\n"))
-	    (let ((image-pos (point)))
-	      (if (eq size 'original)
+	    (let ((image-pos (point))
+                  image-height body-height)
+	      (if (and shr-sliced-image-height
+                       (setq image-height (cdr (image-size image t))
+                             body-height (window-body-height
+                                          (get-buffer-window (current-buffer))
+                                          t))
+                       (> (/ image-height body-height 1.0)
+                          shr-sliced-image-height))
                   ;; Normally, we try to keep the buffer text the same
                   ;; by preserving ALT.  With a sliced image, we have to
                   ;; repeat the text for each line, so we can't do that.
                   ;; Just use "*" for the string to insert instead.
                   (progn
-                    (insert-sliced-image image "*" nil 20 1)
+                    (insert-sliced-image
+                     image "*" nil (/ image-height (default-line-height)) 1)
                     (let ((overlay (make-overlay start (point))))
                       ;; Avoid displaying unsightly decorations on the
                       ;; image slices.

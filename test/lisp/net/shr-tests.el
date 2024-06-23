@@ -158,6 +158,7 @@ settings, then once more for each (OPTION . VALUE) pair.")
                      (shr-width 80)
                      (shr-use-fonts nil)
                      (shr-image-animate nil)
+                     (shr-sliced-image-height nil)
                      (inhibit-message t)
                      (dom (libxml-parse-html-region (point-min) (point-max))))
             ;; Render the document.
@@ -170,19 +171,15 @@ settings, then once more for each (OPTION . VALUE) pair.")
             (shr-zoom-image)
             (shr-test-wait-for (lambda () (= put-image-calls 2))
                                "Timed out waiting to zoom image")
-            ;; Check that we got a sliced image.
-            (let ((slice-count 0))
+            ;; Check that we have a single image at original size.
+            (let (image-sizes)
               (goto-char (point-min))
               (while (< (point) (point-max))
-                (when-let ((display (get-text-property (point) 'display)))
-                  ;; If this is nil, we found a non-sliced image, but we
-                  ;; should have replaced that!
-                  (should (assq 'slice display))
-                  (cl-incf slice-count))
+                (when (get-text-property (point) 'display)
+                  (push (get-text-property (point) 'image-size) image-sizes))
                 (goto-char (or (next-single-property-change (point) 'display)
                                (point-max))))
-              ;; Make sure we actually saw a slice.
-              (should (> slice-count 1)))))))))
+              (should (equal image-sizes '(original))))))))))
 
 (require 'shr)
 
