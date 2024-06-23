@@ -44,9 +44,19 @@ ANDROID_JAR = @ANDROID_JAR@
 ANDROID_ABI = @ANDROID_ABI@
 ANDROID_SDK_18_OR_EARLIER = @ANDROID_SDK_18_OR_EARLIER@
 ANDROID_SDK_8_OR_EARLIER = @ANDROID_SDK_8_OR_EARLIER@
+ZIP = @ZIP@
 WARN_JAVAFLAGS = @WARN_JAVAFLAGS@
 JAVAFLAGS = $(WARN_JAVAFLAGS) -classpath "$(ANDROID_JAR):$(srcdir)"
 FIND_DELETE = @FIND_DELETE@
+
+ifneq (,$(ANDROID_SDK_8_OR_EARLIER))
+# gzip is invoked to compress installed .el and some .txt files, on SDK
+# 8 and earlier, where ZIP compression is unavailable.
+GZIP_PROG = @GZIP_PROG@
+else
+GZIP_PROG =
+endif
+
 
 # Android 4.3 and earlier require Emacs to be signed with a different
 # digital signature algorithm.
@@ -188,8 +198,9 @@ $(libsrc)/asset-directory-tool:
 # There is no need to depend on NDK_BUILD_SHARED as libemacs.so
 # does already.
 
-.PHONY: install_temp install_temp/assets/directory-tree
-install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)
+.PHONY: install_temp
+install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)	\
+  $(libsrc)/asset-directory-tool
 	$(AM_V_GEN)
 # Make the working directory for this stuff
 	$(AM_V_SILENT) rm -rf install_temp
@@ -223,6 +234,56 @@ install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)
 	  rm -rf $${subdir}/[mM]akefile*[.-]in ;		\
 	  rm -rf $${subdir}/Makefile;				\
 	done
+# Compress files if AAPT otherwise will not.
+	$(AM_V_SILENT)						\
+	[ -z "${GZIP_PROG}" ] || {				\
+	  echo "Compressing large *.el *.info etc. ..." &&	\
+	  cd "install_temp/assets/lisp" &&			\
+	  for f in `find . -name "*.elc" \( -size +1536 -o 	\
+		      -size 1536 \) -print 			\
+		    | sed 's/.elc$$/.el/'`; do			\
+	    ${GZIP_PROG} -9n "$$f";				\
+	  done;							\
+	  ${GZIP_PROG} -9n "../etc/publicsuffix.txt";		\
+	  find ../info -name "*.elc" -size 1536 -o -size +1536	\
+	   | xargs ${GZIP_PROG} -9n ;				\
+	}
+# Produce metadata files providing build information and suchlike.
+	$(AM_V_SILENT)						\
+	{ (cd $(top_srcdir)					\
+	   && git rev-parse HEAD || echo "Unknown")		\
+	   && (git rev-parse --abbrev-ref HEAD 			\
+	       || echo "Unknown") } 2> /dev/null >		\
+	  install_temp/assets/version
+	$(AM_V_SILENT)						\
+	{ hostname; date +%s; } > install_temp/assets/build_info
+# Produce the file index.
+	$(AM_V_SILENT) $(libsrc)/asset-directory-tool 		\
+	  install_temp/assets install_temp/assets/directory-tree\
+	  $(if $(ANDROID_SDK_8_OR_EARLIER),--api-8)
+# If the package targets Android 2.2, move compressible and
+# non-compressible assets to separate directories.
+	$(AM_V_SILENT)						\
+	if [ -z "${ANDROID_SDK_8_OR_EARLIER}" ]; then :; else	\
+	  echo "Moving large and gzipped files to separate directories...">&2;\
+	  mkdir -p install_temp/assets_raw;			\
+	  cd install_temp/assets;				\
+	  mv directory-tree ../assets_raw;			\
+	  find . \( -size +1536 -o -size 1536 \)		\
+	    \( \! -name '*.gz' \) -type f > files.txt;		\
+	  tar cf ../assets_raw/largefiles.tar -T files.txt;	\
+	  cat files.txt | xargs rm;				\
+	  cd ../assets_raw && tar xf largefiles.tar		\
+	    && rm largefiles.tar;				\
+	  cd ..;						\
+	  mkdir -p assets_gz;					\
+	  find assets -name '*.gz' -type f > files.txt;		\
+	  tar cf assets_gz/gzfiles.tar -T files.txt;		\
+	  cat files.txt | xargs rm;				\
+	  cd assets_gz && tar xf gzfiles.tar			\
+	    && rm gzfiles.tar;					\
+	  rm ../assets/files.txt;				\
+	fi
 # Generate the directory tree for those directories.
 # Install architecture dependents to lib/$(ANDROID_ABI).  This
 # perculiar naming scheme is required to make Android preserve these
@@ -252,35 +313,43 @@ ifneq ($(NDK_BUILD_SHARED),)
 	  install_temp/lib/$(ANDROID_ABI)
 endif
 
-install_temp/assets/directory-tree: $(libsrc)/asset-directory-tool \
-  install_temp install_temp/assets/version 			   \
-  install_temp/assets/build_info
-	$(AM_V_GEN) $(libsrc)/asset-directory-tool install_temp/assets \
-	  install_temp/assets/directory-tree
-
-install_temp/assets/version: install_temp
-	$(AM_V_GEN) { (cd $(top_srcdir)					\
-			&& git rev-parse HEAD || echo "Unknown")	\
-			&& (git rev-parse --abbrev-ref HEAD 		\
-			    || echo "Unknown") } 2> /dev/null > $@
-
-install_temp/assets/build_info: install_temp
-	$(AM_V_GEN) { hostname; date +%s; } > $@
-
-emacs.apk-in: install_temp install_temp/assets/directory-tree  \
-  AndroidManifest.xml install_temp/assets/version	       \
-  install_temp/assets/build_info classes.dex
+emacs.apk-in: install_temp AndroidManifest.xml classes.dex
 # Package everything.  Redirect the generated R.java to install_temp, as
 # it must already have been generated as a prerequisite of
-# classes.dex's.
-	$(AM_V_AAPT) $(AAPT) p -I "$(ANDROID_JAR)" -F $@   \
-	  -f -M AndroidManifest.xml $(AAPT_ASSET_ARGS)	   \
-	  -A install_temp/assets			   \
-	  -S $(top_srcdir)/java/res -J install_temp
+# classes.dex's.  If ANDROID_SDK_8_OR_EARLIER, compress those files
+# which are smaller than 1536 blocks (i.e. 768 kib), the maximum the
+# asset manager on such old systems can decompress.
+#
+# The elaborate dance with zip serves to disable the automatic
+# decompression of *.gz files in aapt.
+#
+# One more consideration is that timestamps should be preserved in
+# packaged libraries, as on Android 2.2 the package manager retains
+# existing libraries from previous installations if a new package's
+# libraries are not more recent.
+	$(AM_V_AAPT)						\
+	if [ -z "$(ANDROID_SDK_8_OR_EARLIER)" ]; then		\
+	  $(AAPT) p -I "$(ANDROID_JAR)" -F $@			\
+	    -f -M AndroidManifest.xml $(AAPT_ASSET_ARGS)	\
+	    -A install_temp/assets			   	\
+	    -S $(top_srcdir)/java/res -J install_temp;		\
+	  cd install_temp;					\
+	    $(AAPT) add ../$@ `find lib -type f`;		\
+	else							\
+	  echo "Packaging files not eligible for compression...">&2;\
+	  $(AAPT) p -I "$(ANDROID_JAR)" -F $@			\
+	    -f -M AndroidManifest.xml -A install_temp/assets_raw\
+	    -S $(top_srcdir)/java/res -J install_temp -0 "";	\
+	  echo "Packaging files eligible for compression...">&2;\
+	  cd install_temp; find assets -type f 			\
+	    | xargs $(ZIP) ../$@ &> /dev/null;			\
+	  echo "Packaging files already compressed...">&2;	\
+	  cd assets_gz; find assets -type f			\
+	    | xargs $(ZIP) -0 ../../$@ &> /dev/null;		\
+	  echo "Packaging shared libraries and code..." >&2;	\
+	  cd ..; $(ZIP) ../$@ `find lib -type f`;		\
+	fi
 	$(AM_V_SILENT) $(AAPT) a $@ classes.dex
-	$(AM_V_SILENT) pushd install_temp &> /dev/null;	\
-	  $(AAPT) add ../$@ `find lib -type f`;		\
-	popd &> /dev/null
 	$(AM_V_SILENT) rm -rf install_temp
 
 # Makefile itself.
@@ -359,7 +428,11 @@ public static final String[] EMACS_SHARED_LIBRARIES\
 # all shared libraries are compiled, because the computation of
 # ALL_DEPENDENCIES in this instance of Make cannot be postponed until
 # that stage.
-cf-stamp: $(NDK_BUILD_SHARED) $(CROSS_LIBS)
+#
+# This recipe needs no dependency on $(NDK_BUILD_LIBS), since
+# $(CROSS_LIBS) is a phony target that itself guarantees that they are
+# up to date.
+cf-stamp: $(CROSS_LIBS)
 	$(AM_V_EMACSCONFIG) $(MAKE) cf-stamp-1
 	$(AM_V_at) touch $@
 $(CONFIG_FILE): cf-stamp; @true
@@ -433,4 +506,4 @@ clean:
 	find . -name '*.class' $(FIND_DELETE)
 
 maintainer-clean distclean bootstrap-clean: clean
-	rm -f Makefile ndk-build.mk
+	rm -f Makefile

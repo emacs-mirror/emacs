@@ -120,6 +120,44 @@ BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 /* PlgBlt is available since Windows 2000.  */
 BOOL (WINAPI *pfnPlgBlt) (HDC, const POINT *, HDC, int, int, int, int, HBITMAP, int, int);
 
+/* Define required types and constants on systems with older headers
+   lest they be absent.  */
+
+#if _WIN32_WINNT < 0x0601
+#define TOUCHEVENTF_DOWN			       0x0001
+#define TOUCHEVENTF_UP				       0x0004
+
+/* These are currently unused; prevent compiler warnings.  */
+#if 0
+#define TOUCHEVENTF_MOVE			       0x0002
+#define TOUCHEVENTMASKF_CONTACTAREA		       0x0004
+#define TOUCHEVENTMASKF_EXTRAINFO		       0x0002
+#define TOUCHEVENTMASKF_TIMEFROMSYSTEM		       0x0001
+#endif	/* 0 */
+
+#define WM_TOUCHMOVE					  576
+
+typedef struct _TOUCHINPUT
+{
+  LONG x;
+  LONG y;
+  HANDLE hSource;
+  DWORD dwID;
+  DWORD dwFlags;
+  DWORD dwMask;
+  DWORD dwTime;
+  ULONG_PTR dwExtraInfo;
+  DWORD cxContact;
+  DWORD cyContact;
+} TOUCHINPUT, *PTOUCHINPUT;
+#endif /* _WIN32_WINNT < 0x0601 */
+
+/* Functions that extract data from touch-screen events.  */
+typedef BOOL (WINAPI * CloseTouchInputHandle_proc) (HANDLE);
+typedef BOOL (WINAPI * GetTouchInputInfo_proc) (HANDLE, UINT, PTOUCHINPUT, int);
+
+CloseTouchInputHandle_proc pfnCloseTouchInputHandle;
+GetTouchInputInfo_proc pfnGetTouchInputInfo;
 
 #ifndef LWA_ALPHA
 #define LWA_ALPHA 0x02
@@ -1248,6 +1286,34 @@ w32_clear_glyph_string_rect (struct glyph_string *s,
                  real_w, real_h);
 }
 
+/* Fill background with bitmap pattern from S at specified position
+   given by X and Y.  WIDTH and HEIGHT specifies bitmap size, GC is
+   used to get foreground and background color context and HDC where
+   fill it.  */
+
+static void
+w32_fill_stipple_pattern (HDC hdc, struct glyph_string *s, Emacs_GC *gc,
+			  int x, int y, unsigned int width, unsigned int height)
+{
+  SetTextColor (hdc, gc->foreground);
+  SetBkColor (hdc, gc->background);
+
+  RECT r;
+  Emacs_Pixmap bm;
+  HBRUSH hb;
+
+  r.left = x;
+  r.top = y;
+  r.right = x + width;
+  r.bottom = y + height;
+
+  bm = FRAME_DISPLAY_INFO (s->f)->bitmaps[s->face->stipple - 1].stipple;
+
+  hb = CreatePatternBrush (bm);
+  FillRect (hdc, &r, hb);
+
+  DeleteObject (hb);
+}
 
 /* Draw the background of glyph_string S.  If S->background_filled_p
    is non-zero don't draw it.  FORCE_P non-zero means draw the
@@ -1264,21 +1330,16 @@ w32_draw_glyph_string_background (struct glyph_string *s, bool force_p)
     {
       int box_line_width = max (s->face->box_horizontal_line_width, 0);
 
-#if 0 /* TODO: stipple */
       if (s->stippled_p)
 	{
 	  /* Fill background with a stipple pattern.  */
-	  XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
-	  XFillRectangle (s->display, FRAME_W32_WINDOW (s->f), s->gc, s->x,
-			  s->y + box_line_width,
-			  s->background_width,
-			  s->height - 2 * box_line_width);
-	  XSetFillStyle (s->display, s->gc, FillSolid);
+	  w32_fill_stipple_pattern (s->hdc, s, s->gc, s->x,
+				    s->y + box_line_width,
+				    s->background_width,
+				    s->height - 2 * box_line_width);
 	  s->background_filled_p = true;
 	}
-      else
-#endif
-           if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
+      else if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       /* When xdisp.c ignores FONT_HEIGHT, we cannot trust
 		  font dimensions, since the actual glyphs might be
 		  much smaller.  So in that case we always clear the
@@ -2286,16 +2347,12 @@ w32_draw_image_foreground_1 (struct glyph_string *s, HBITMAP pixmap)
 static void
 w32_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w, int h)
 {
-#if 0 /* TODO: stipple */
   if (s->stippled_p)
     {
       /* Fill background with a stipple pattern.  */
-      XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
-      XFillRectangle (s->display, FRAME_W32_WINDOW (s->f), s->gc, x, y, w, h);
-      XSetFillStyle (s->display, s->gc, FillSolid);
+      w32_fill_stipple_pattern (s->hdc, s, s->gc, x, y, w, h);
     }
   else
-#endif
     w32_clear_glyph_string_rect (s, x, y, w, h);
 }
 
@@ -2500,16 +2557,12 @@ w32_draw_stretch_glyph_string (struct glyph_string *s)
 	  get_glyph_string_clip_rect (s, &r);
 	  w32_set_clip_rectangle (hdc, &r);
 
-#if 0 /* TODO: stipple */
 	  if (s->face->stipple)
 	    {
 	      /* Fill background with a stipple pattern.  */
-	      XSetFillStyle (s->display, gc, FillOpaqueStippled);
-	      XFillRectangle (s->display, FRAME_W32_WINDOW (s->f), gc, x, y, w, h);
-	      XSetFillStyle (s->display, gc, FillSolid);
+	      w32_fill_stipple_pattern (s->hdc, s, gc, x, y, w, h);
 	    }
 	  else
-#endif
             {
               w32_fill_area (s->f, s->hdc, gc->background, x, y, w, h);
             }
@@ -6041,6 +6094,237 @@ w32_read_socket (struct terminal *terminal,
 	  break;
 #endif
 
+#if 0
+	  /* These messages existed in prerelease versions of Windows 7,
+	     yet, though superseded by just WM_TOUCHMOVE (renamed
+	     WM_TOUCH) in the release, are still defined by MinGW's
+	     winuser.h.  */
+	case WM_TOUCHDOWN:
+	case WM_TOUCHUP:
+#endif /* 0 */
+#ifdef WM_TOUCHMOVE
+	case WM_TOUCHMOVE:
+#else /* not WM_TOUCHMOVE */
+	case WM_TOUCH:
+#endif /* not WM_TOUCHMOVE */
+	  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
+
+	  /* WM_TOUCH should never be received when touch input
+	     functions are unavailable.  */
+	  if (!pfnGetTouchInputInfo)
+	    break;
+
+	  if (f)
+	    {
+	      TOUCHINPUT *points;
+	      int i, x UNINIT, px, py;
+	      POINT pt;
+
+	      points = alloca (sizeof *points * LOWORD (msg.msg.wParam));
+	      if ((*pfnGetTouchInputInfo) ((HANDLE) msg.msg.lParam,
+					   LOWORD (msg.msg.wParam),
+					   points, sizeof (TOUCHINPUT)))
+		{
+		  bool movement_p = false;
+		  EMACS_INT base = FRAME_OUTPUT_DATA (f)->touch_base;
+
+		  /* Iterate over the list of touch points in the
+		     structure, and for each, enter or remove
+		     information into and from F->touch_ids, and
+		     generate events correspondingly.  */
+		  for (i = 0; i < LOWORD (msg.msg.wParam); ++i)
+		    {
+		      if (!points[i].dwID)
+			continue;
+
+		      /* Skip to `touch_located' if the point is
+			 reserved for the tool bar, and hasn't just been
+			 placed.  */
+		      if (points[i].dwID
+			  == FRAME_OUTPUT_DATA (f)->tool_bar_dwID)
+			{
+			  if (points[i].dwFlags & TOUCHEVENTF_UP)
+			    goto touch_located;
+
+			  /* Other like events should be simply
+			     discarded.  */
+			  continue;
+			}
+
+		      /* Search for a slot in touch_ids that is either
+			 empty or matches dwID.  */
+		      for (x = 0; x < MAX_TOUCH_POINTS; x++)
+			{
+			  if (FRAME_OUTPUT_DATA (f)->touch_ids[x]
+			      == points[i].dwID)
+			    break;
+			}
+
+		      if (x < MAX_TOUCH_POINTS)
+			goto touch_located;
+
+		      for (x = 0; x < MAX_TOUCH_POINTS; x++)
+			{
+			  if (FRAME_OUTPUT_DATA (f)->touch_ids[x] == -1)
+			    break;
+			}
+
+		      if (x == MAX_TOUCH_POINTS)
+			continue;
+
+		    touch_located:
+		      /* X and Y are fractional values.  */
+		      pt.x = points[i].x / 100;
+		      pt.y = points[i].y / 100;
+
+		      /* Convert them from screen values to client
+			 values.  */
+		      ScreenToClient (msg.msg.hwnd, &pt);
+		      px = pt.x;
+		      py = pt.y;
+
+		      if (points[i].dwFlags & TOUCHEVENTF_UP)
+			{
+			  if (points[i].dwID
+			      == FRAME_OUTPUT_DATA (f)->tool_bar_dwID)
+			    {
+			      FRAME_OUTPUT_DATA (f)->tool_bar_dwID = -1;
+			      if (f->last_tool_bar_item != -1)
+				handle_tool_bar_click (f, px, py, false, 0);
+
+			      /* Cancel any outstanding mouse highlight.  */
+			      note_mouse_highlight (f, -1, -1);
+			      continue;
+			    }
+
+			  /* Clear the entry in touch_ids and report the
+			     change.  Unless, of course, the entry be
+			     empty.  */
+			  if (FRAME_OUTPUT_DATA (f)->touch_ids[x] == -1)
+			    continue;
+			  FRAME_OUTPUT_DATA (f)->touch_ids[x] = -1;
+
+			  inev.kind = TOUCHSCREEN_END_EVENT;
+			  inev.timestamp = msg.msg.time;
+			  XSETFRAME (inev.frame_or_window, f);
+			  XSETINT (inev.x, px);
+			  XSETINT (inev.y, py);
+			  XSETINT (inev.arg, x + base);
+			  kbd_buffer_store_event (&inev);
+			  EVENT_INIT (inev);
+			}
+		      else if (points[i].dwFlags & TOUCHEVENTF_DOWN)
+			{
+			  bool recorded_p;
+			  Lisp_Object window;
+
+			  recorded_p
+			    = FRAME_OUTPUT_DATA (f)->touch_ids[x] != -1;
+
+			  /* Update the local record of its
+			     position.  */
+			  FRAME_OUTPUT_DATA (f)->touch_x[x] = px;
+			  FRAME_OUTPUT_DATA (f)->touch_y[x] = py;
+
+			  if (recorded_p)
+			    {
+			      movement_p = true;
+			      continue;
+			    }
+
+			  /* This event might have landed above the tool
+			     bar, which if true its dwID should be
+			     reserved for manipulation of the tool bar.  */
+			  window = window_from_coordinates (f, px, py, 0,
+							    true, true, true);
+			  if (EQ (window, f->tool_bar_window))
+			    {
+			      if (!NILP (Vmouse_highlight))
+				{
+				  note_mouse_highlight (f, px, py);
+
+				  /* Always allow future mouse motion to
+				     update the mouse highlight, no matter
+				     where it is.  */
+				  memset (&dpyinfo->last_mouse_glyph, 0,
+					  sizeof dpyinfo->last_mouse_glyph);
+				  dpyinfo->last_mouse_glyph_frame = f;
+				}
+
+			      handle_tool_bar_click (f, px, py, true, 0);
+			      FRAME_OUTPUT_DATA (f)->tool_bar_dwID
+				= points[i].dwID;
+			      continue;
+			    }
+
+			  /* Report and record (if not already recorded)
+			     the addition.  */
+			  FRAME_OUTPUT_DATA (f)->touch_ids[x] = points[i].dwID;
+
+			  inev.kind = TOUCHSCREEN_BEGIN_EVENT;
+			  inev.timestamp = msg.msg.time;
+			  XSETFRAME (inev.frame_or_window, f);
+			  XSETINT (inev.x, px);
+			  XSETINT (inev.y, py);
+			  XSETINT (inev.arg, x + base);
+			  kbd_buffer_store_event (&inev);
+			  EVENT_INIT (inev);
+			}
+		      else
+			{
+			  bool recorded_p
+			    = FRAME_OUTPUT_DATA (f)->touch_ids[x] != -1;
+
+			  if (!recorded_p)
+			    continue;
+
+			  if (FRAME_OUTPUT_DATA (f)->touch_x[x] != px
+			      || FRAME_OUTPUT_DATA (f)->touch_y[x] != py)
+			    {
+			      movement_p = true;
+			      FRAME_OUTPUT_DATA (f)->touch_ids[x]
+				= points[i].dwID;
+			      FRAME_OUTPUT_DATA (f)->touch_x[x] = px;
+			      FRAME_OUTPUT_DATA (f)->touch_y[x] = py;
+			    }
+			}
+		    }
+
+		  /* Report updated positions of touchpoints if some
+		     changed.  */
+		  if (movement_p)
+		    {
+		      Lisp_Object arg;
+
+		      inev.kind = TOUCHSCREEN_UPDATE_EVENT;
+		      inev.timestamp = msg.msg.time;
+		      XSETFRAME (inev.frame_or_window, f);
+		      arg = Qnil;
+
+		      for (i = 0; i < MAX_TOUCH_POINTS; ++i)
+			{
+			  if (FRAME_OUTPUT_DATA (f)->touch_ids[i] == -1)
+			    continue;
+
+			  arg
+			    = Fcons (list3i (FRAME_OUTPUT_DATA (f)->touch_x[i],
+					     FRAME_OUTPUT_DATA (f)->touch_y[i],
+					     i + base),
+				     arg);
+			}
+
+		      inev.arg = arg;
+
+		      /* Don't generate events if they would be empty.  */
+		      if (NILP (arg))
+			EVENT_INIT (inev);
+		    }
+		}
+	    }
+
+	  (*pfnCloseTouchInputHandle) ((HANDLE) msg.msg.lParam);
+	  break;
+
 	default:
 	  /* Check for messages registered at runtime.  */
 	  if (msg.msg.message == msh_mousewheel)
@@ -7878,12 +8162,13 @@ w32_initialize (void)
 #define LOAD_PROC(lib, fn) pfn##fn = (void *) GetProcAddress (lib, #fn)
 
     LOAD_PROC (user_lib, SetLayeredWindowAttributes);
+    LOAD_PROC (user_lib, CloseTouchInputHandle);
+    LOAD_PROC (user_lib, GetTouchInputInfo);
 
     /* PlgBlt is not available on Windows 9X.  */
     HMODULE hgdi = LoadLibrary ("gdi32.dll");
     if (hgdi)
       LOAD_PROC (hgdi, PlgBlt);
-
 #undef LOAD_PROC
 
     /* Ensure scrollbar handles are at least 5 pixels.  */

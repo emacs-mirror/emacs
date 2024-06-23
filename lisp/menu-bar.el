@@ -2238,8 +2238,10 @@ updating the menu."
 When called in the minibuffer, get out of the minibuffer
 using `abort-recursive-edit'.
 
-This command can be reliably invoked only from the menu bar,
-otherwise it could decide to silently do nothing."
+This command must be bound to a mouse event, and can be reliably
+invoked only from the menu bar, otherwise it could decide to silently
+do nothing or signal an error.  Use `kill-current-buffer' if you
+need to invoke a similar command from keyboard."
   (interactive "e")
   ;; This colossus of a conditional is necessary to account for the wide
   ;; variety of this command's callers.

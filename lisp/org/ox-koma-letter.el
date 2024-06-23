@@ -1,4 +1,4 @@
-;;; ox-koma-letter.el --- KOMA Scrlttr2 Back-End for Org Export Engine  -*- lexical-binding: t; -*-
+;;; ox-koma-letter.el --- KOMA Scrlttr2 Backend for Org Export Engine  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 ;;
-;; This library implements a KOMA Scrlttr2 back-end, derived from the
+;; This library implements a KOMA Scrlttr2 backend, derived from the
 ;; LaTeX one.
 ;;
 ;; Depending on the desired output format, three commands are provided
@@ -34,8 +34,8 @@
 ;; `org-koma-letter-export-to-latex' ("tex" file) and
 ;; `org-koma-letter-export-to-pdf' ("pdf" file).
 ;;
-;; On top of buffer keywords supported by `latex' back-end (see
-;; `org-latex-packages-alist'), this back-end introduces the following
+;; On top of buffer keywords supported by `latex' backend (see
+;; `org-latex-packages-alist'), this backend introduces the following
 ;; keywords:
 ;;   - CLOSING: see `org-koma-letter-closing',
 ;;   - FROM_ADDRESS: see `org-koma-letter-from-address',
@@ -374,7 +374,7 @@ following ones:
   `p'  Deactivate punch or center mark on left paper edge
 
   `T'  Activate lower horizontal mark on left paper edge
-  `t'  Deactivate lower horizontal mark on left paper edge
+   t   Deactivate lower horizontal mark on left paper edge
 
   `V'  Activate all vertical marks on upper paper edge
   `v'  Deactivate all vertical marks on upper paper edge
@@ -466,7 +466,7 @@ e.g. \"title-subject:t\"."
   "Holds special content temporarily.")
 
 
-;;; Define Back-End
+;;; Define Backend
 
 (org-export-define-derived-backend 'koma-letter 'latex
   :options-alist
@@ -571,6 +571,9 @@ return a string or nil."
 KEYWORDS is a list of symbols.  Return them as a string to be
 formatted.
 
+INFO is the information plist possibly holding :special-tags-as-macro
+property.  See `org-koma-letter-special-tags-as-macro'.
+
 The function is used for inserting content of special headings
 such as the one tagged with PS."
   (mapconcat
@@ -586,7 +589,8 @@ such as the one tagged with PS."
 
 
 (defun org-koma-letter--add-latex-newlines (string)
-  "Replace regular newlines with LaTeX newlines (i.e. `\\\\')."
+  "Replace regular newlines with LaTeX newlines (i.e. `\\\\') in STRING.
+Return a new string."
   (let ((str (org-trim string)))
     (when (org-string-nw-p str)
       (replace-regexp-in-string "\n" "\\\\\\\\\n" str))))
@@ -623,7 +627,7 @@ channel."
   (let ((key (org-element-property :key keyword))
         (value (org-element-property :value keyword)))
     ;; Handle specifically KOMA-LETTER keywords.  Otherwise, fallback
-    ;; to `latex' back-end.
+    ;; to `latex' backend.
     (if (equal key "KOMA-LETTER") value
       (org-export-with-backend 'latex keyword contents info))))
 
@@ -682,7 +686,7 @@ PLIST-KEY."
 CONTENTS is the transcoded contents string.  INFO is a plist
 holding export options."
   (concat
-   ;; Time-stamp.
+   ;; Timestamp.
    (and (plist-get info :time-stamp-file)
         (format-time-string "%% Created %Y-%m-%d %a %H:%M\n"))
    ;; LaTeX compiler

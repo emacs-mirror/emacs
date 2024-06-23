@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.6.0
+@subtitle for version 0.7.0
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.6.0.
+This manual is for Transient version 0.7.0.
 
 @insertcopying
 @end ifnottex
@@ -1112,7 +1112,8 @@ Transients}) and adds the transient's infix and suffix bindings, as
 described below.
 
 Users and third-party packages can add additional bindings using
-functions such as @code{transient-insert-suffix} (@pxref{Modifying Existing Transients}).  These functions take a ``suffix specification'' as one of
+functions such as @code{transient-insert-suffix} (@pxref{Modifying Existing Transients}).
+These functions take a ``suffix specification'' as one of
 their arguments, which has the same form as the specifications used in
 @code{transient-define-prefix}.
 
@@ -1210,7 +1211,7 @@ described below.  If you use the latter approach, you can use the
 transform them from the convenient to the expected form.
 
 If you explicitly specify children and then transform them using
-@code{:setup-chilren}, then the class of the group is determined as usual,
+@code{:setup-children}, then the class of the group is determined as usual,
 based on explicitly specified children.
 
 If you do not explicitly specify children and thus rely solely on
@@ -1380,16 +1381,12 @@ This macro defines @var{NAME} as a transient infix command.
 reserved for future use.  @var{DOCSTRING} is the documentation string and
 is optional.
 
-The keyword-value pairs are mandatory.  All transient infix commands
-are @code{equal} to each other (but not @code{eq}), so it is meaningless to define
-an infix command without also setting at least @code{:class} and one other
-keyword (which it is depends on the used class, usually @code{:argument} or
-@code{:variable}).
-
-Each keyword has to be a keyword symbol, either @code{:class} or a keyword
-argument supported by the constructor of that class.  The
-@code{transient-switch} class is used if the class is not specified
-explicitly.
+At least one key-value pair is required.  All transient infix
+commands are @code{equal} to each other (but not @code{eq}).  It is meaningless
+to define an infix command, without providing at least one keyword
+argument (usually @code{:argument} or @code{:variable}, depending on the class).
+The suffix class defaults to @code{transient-switch} and can be set using
+the @code{:class} keyword.
 
 The function definition is always:
 
@@ -2370,6 +2367,20 @@ the transient popup, you will be able to yank it in another buffer.
 (keymap-set transient-predicate-map
             "<mouse-set-region>"
             #'transient--do-stay)
+@end lisp
+
+@anchor{How can I autoload prefix and suffix commands?}
+@appendixsec How can I autoload prefix and suffix commands?
+
+If your package only supports Emacs 30, just prefix the definition
+with @code{;;;###autoload}.  If your package supports released versions of
+Emacs, you unfortunately have to use a long form autoload comment
+as described in @ref{Autoload,,,elisp,}.
+
+@lisp
+;;;###autoload (autoload 'magit-dispatch "magit" nil t)
+(transient-define-prefix magit-dispatch ()
+  ...)
 @end lisp
 
 @anchor{How does Transient compare to prefix keys and universal arguments?}

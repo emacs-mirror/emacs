@@ -203,6 +203,7 @@ from entering them and instead jump over them."
     (dolist (var '(erc-timestamp-last-inserted
                    erc-timestamp-last-inserted-left
                    erc-timestamp-last-inserted-right
+                   erc-stamp--deferred-date-stamp
                    erc-stamp--date-stamps))
       (when-let (existing (alist-get var priors))
         (set var existing)))))
@@ -668,7 +669,9 @@ value of t means the option's value doesn't require trimming.")
     :documentation "Time recorded by `erc-insert-timestamp-left-and-right'.")
   ( str (error "Missing `str' field") :type string
     :documentation "Stamp rendered by `erc-insert-timestamp-left-and-right'.")
-  ( fn nil :type (or null function)
+  ( fn #'ignore :type (or null function)
+    ;; Use `ignore' as a third state to mean the creation of a bespoke
+    ;; date-insertion function has been requested but not completed.
     :documentation "Deferred insertion function created by post-modify hook.")
   ( marker (make-marker) :type marker
     :documentation "Insertion marker."))
@@ -701,6 +704,9 @@ Non-nil between insertion-modification and \"done\" (or timer) hook.")
 (defun erc-stamp--find-insertion-point (p target-time)
   "Scan buffer backwards from P looking for TARGET-TIME.
 Return P or, if found, a position less than P."
+  ;; Continue searching after encountering a message without a
+  ;; timestamp because date stamps must be unique, and
+  ;; "Re-establishing connection" messages should have stamps.
   (while-let ((q (previous-single-property-change (1- p) 'erc--ts))
               (qq (erc--get-inserted-msg-beg q))
               (ts (get-text-property qq 'erc--ts))
@@ -720,7 +726,7 @@ inserted is a date stamp."
 Do so when `erc-stamp--deferred-date-stamp' and its `fn' slot are
 non-nil."
   (when-let ((data erc-stamp--deferred-date-stamp)
-             ((null (erc-stamp--date-fn data)))
+             ((eq (erc-stamp--date-fn data) #'ignore))
              (ct (erc-stamp--date-ts data))
              (rendered (erc-stamp--date-str data))
              (buffer (current-buffer))
@@ -730,7 +736,7 @@ non-nil."
     (fset symbol
           (lambda (&rest _)
             (remove-hook hook-var symbol)
-            (setf (erc-stamp--date-fn data) #'ignore)
+            (setf (erc-stamp--date-fn data) nil)
             (when (buffer-live-p buffer)
               (with-current-buffer buffer
                 (setq erc-stamp--date-stamps
@@ -770,7 +776,21 @@ non-nil."
 ;; a standalone module to allow completely decoupling from and
 ;; possibly deprecating `erc-insert-timestamp-left-and-right'.
 (define-minor-mode erc-stamp--date-mode
-  "Insert date stamps as standalone messages."
+  "When enabled, insert date stamps as standalone messages.
+Only do so when `erc-insert-timestamp-function' is set to
+`erc-insert-timestamp-left-and-right'.  On `erc-insert-modify-hook',
+hold off on inserting a date stamp immediately because that would force
+other members of the hook to rely on heuristics and implementation
+details to detect a prepended stamp's presence, not to mention
+compromise the integrity of the `erc-parsed' text property.  Instead,
+tell `erc-insert-post-hook', via `erc-stamp--deferred-date-stamp', to
+schedule a date stamp for insertion on the next go around of
+`erc-timer-hook', which only runs on server-sent messages.  Expect users
+to know that non-server-sent messages, such as local informational
+messages, won't induce a date stamp's insertion but will instead defer
+it until the next arrival, which can include \"PING\"s or messages that
+otherwise don't insert anything, such as those skipped on account of
+`erc-ignore'."
   :interactive nil
   (if erc-stamp--date-mode
       (progn

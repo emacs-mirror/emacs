@@ -1038,6 +1038,10 @@ Display the change history for the current fileset
 Display the change history for the current repository
 (@code{vc-print-root-log}).
 
+@item C-u 1 C-x v L @var{revision} @key{RET}
+Display the log entry and changes (diffs) of a single @var{revision}
+(@code{vc-print-root-log}).
+
 @item C-x v b l
 Display the change history for another branch
 (@code{vc-print-branch-log}).
@@ -1065,10 +1069,10 @@ Search the change history for a specified pattern.
 current fileset in the long form, including who made the changes, the
 dates, and the log entry for each change (these are the same log
 entries you would enter via the @file{*vc-log*} buffer; @pxref{Log
-Buffer}).  When invoked from a buffer visiting a file, the current
+Buffer}).  If invoked from a buffer visiting a file, the current
 fileset consists of that single file, and point in the displayed
 @file{*vc-change-log*} buffer is centered at the revision of that
-file.  When invoked from a VC Directory buffer (@pxref{VC Directory
+file.  If invoked from a VC Directory buffer (@pxref{VC Directory
 Mode}) or from a Dired buffer (@pxref{Dired}), the fileset consists of
 all the marked files, defaulting to the file shown on the current line
 in the directory buffer if no file is marked.
@@ -1091,7 +1095,8 @@ version-controlled directory tree (RCS, SCCS, CVS, and SRC do not
 support this feature).  With a prefix argument, the command prompts
 for the maximum number of revisions to display.  A numeric prefix
 argument specifies the maximum number of revisions without prompting.
-When the numeric prefix argument is 1, as in @w{@kbd{C-1 C-x v L}} or
+
+  If the numeric prefix argument is 1, as in @w{@kbd{C-1 C-x v L}} or
 @w{@kbd{C-u 1 C-x v L}}, the command prompts for the revision ID, and
 displays the log entry of that revision together with the changes
 (diffs) it introduced.  (Some less capable version control systems,

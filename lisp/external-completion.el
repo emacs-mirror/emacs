@@ -126,7 +126,7 @@ EXPANDED-PATTERN."
         (pcase action
           (`metadata
            `(metadata (category . ,category) . ,metadata))
-          ;; Note: the `--tryc' `--allc' suffixes are made akward on
+          ;; Note: the `--tryc' `--allc' suffixes are made awkward on
           ;; purpose, so it's easy to pick them apart from the jungle
           ;; of combinations of "try" and "all" and "completion" that
           ;; inhabit Emacs's completion logic.

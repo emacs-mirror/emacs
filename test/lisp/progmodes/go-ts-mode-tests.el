@@ -27,5 +27,10 @@
   (skip-unless (treesit-ready-p 'go))
   (ert-test-erts-file (ert-resource-file "indent.erts")))
 
+(ert-deftest go-ts-test-font-lock ()
+  (skip-unless (treesit-ready-p 'go))
+  (let ((treesit-font-lock-level 4))
+    (ert-font-lock-test-file (ert-resource-file "font-lock.go") 'go-ts-mode)))
+
 (provide 'go-ts-mode-tests)
 ;;; go-ts-mode-tests.el ends here

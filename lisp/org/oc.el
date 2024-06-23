@@ -46,8 +46,8 @@
 ;; The "export" capability is slightly more involved as one need to
 ;; select the processor providing it, but may also provide a default
 ;; style for citations and bibliography.  Also, the choice of an
-;; export processor may depend of the current export back-end.  The
-;; association between export back-ends and triplets of parameters can
+;; export processor may depend of the current export backend.  The
+;; association between export backends and triplets of parameters can
 ;; be set in `org-cite-export-processors' variable, or in a document,
 ;; through the "cite_export" keyword.
 
@@ -71,25 +71,33 @@
 (declare-function org-at-heading-p "org" (&optional _))
 (declare-function org-collect-keywords "org" (keywords &optional unique directory))
 
-(declare-function org-element-adopt-elements "org-element" (parent &rest children))
+(declare-function org-element-adopt "org-element-ast" (parent &rest children))
 (declare-function org-element-citation-parser "org-element" ())
 (declare-function org-element-citation-reference-parser "org-element" ())
 (declare-function org-element-class "org-element" (datum &optional parent))
-(declare-function org-element-contents "org-element" (element))
-(declare-function org-element-create "org-element" (type &optional props &rest children))
-(declare-function org-element-extract-element "org-element" (element))
-(declare-function org-element-insert-before "org-element" (element location))
-(declare-function org-element-lineage "org-element" (datum &optional types with-self))
+(declare-function org-element-contents "org-element-ast" (node))
+(declare-function org-element-create "org-element-ast" (type &optional props &rest children))
+(declare-function org-element-extract "org-element-ast" (node))
+(declare-function org-element-insert-before "org-element-ast" (node location))
+(declare-function org-element-lineage "org-element-ast" (datum &optional types with-self))
 (declare-function org-element-map "org-element" (data types fun &optional info first-match no-recursion with-affiliated))
 (declare-function org-element-normalize-string "org-element" (s))
-(declare-function org-element-parse-buffer "org-element" (&optional granularity visible-only))
+(declare-function org-element-parse-buffer "org-element" (&optional granularity visible-only keep-deferred))
 (declare-function org-element-parse-secondary-string "org-element" (string restriction &optional parent))
 (declare-function org-element-context "org-element" (&optional element))
-(declare-function org-element-property "org-element" (property element))
-(declare-function org-element-put-property "org-element" (element property value))
+(declare-function org-element-property "org-element-ast" (property node))
+(declare-function org-element-begin "org-element" (node))
+(declare-function org-element-end "org-element" (node))
+(declare-function org-element-post-affiliated "org-element" (node))
+(declare-function org-element-post-blank "org-element" (node))
+(declare-function org-element-contents-begin "org-element" (node))
+(declare-function org-element-contents-end "org-element" (node))
+(declare-function org-element-parent "org-element-ast" (node))
+(declare-function org-element-put-property "org-element-ast" (node property value))
 (declare-function org-element-restriction "org-element" (element))
-(declare-function org-element-set-element "org-element" (old new))
-(declare-function org-element-type "org-element" (element))
+(declare-function org-element-set "org-element-ast" (old new))
+(declare-function org-element-type "org-element-ast" (node &optional anonymous))
+(declare-function org-element-type-p "org-element-ast" (node types))
 
 (declare-function org-export-derived-backend-p "org-export" (backend &rest backends))
 (declare-function org-export-get-next-element "org-export" (blob info &optional n))
@@ -143,12 +151,12 @@ File names must be absolute."
 
 When nil, citations and bibliography are not exported.
 
-When non-nil, the value is an association list between export back-ends and
+When non-nil, the value is an association list between export backends and
 citation export processors:
 
-  (BACK-END . PROCESSOR)
+  (BACKEND . PROCESSOR)
 
-where BACK-END is the name of an export back-end or t, and PROCESSOR is a
+where BACKEND is the name of an export backend or t, and PROCESSOR is a
 triplet following the pattern
 
   (NAME BIBLIOGRAPHY-STYLE CITATION-STYLE)
@@ -160,7 +168,7 @@ exporting a citation), as a string or nil.  Both BIBLIOGRAPHY-STYLE and
 CITATION-STYLE are optional.  NAME is mandatory.
 
 The export process selects the citation processor associated to the current
-export back-end, or the most specific back-end the current one is derived from,
+export backend, or the most specific backend the current one is derived from,
 or, if all are inadequate, to the processor associated to t.  For example, with
 the following value
 
@@ -168,9 +176,9 @@ the following value
    (latex biblatex)
    (t csl))
 
-exporting with `beamer' or any back-end derived from it will use `natbib',
-whereas exporting with `latex' or any back-end derived from it but different
-from `beamer' will use `biblatex' processor.  Any other back-end, such as
+exporting with `beamer' or any backend derived from it will use `natbib',
+whereas exporting with `latex' or any backend derived from it but different
+from `beamer' will use `biblatex' processor.  Any other backend, such as
 `html', will use `csl' processor.
 
 CITATION-STYLE is overridden by adding a style to any citation object.  A nil
@@ -187,7 +195,7 @@ or
   #+CITE_EXPORT: basic
 
 In that case, `basic' processor is used on every export, independently on the
-back-end."
+backend."
   :group 'org-cite
   :package-version '(Org . "9.5")
   :type '(choice (const :tag "No export" nil)
@@ -345,7 +353,7 @@ optional keys can be set:
     arguments: the list of citation keys used in the document, as
     strings, a list of bibliography files, the style, as a string
     or nil, the local properties, as a property list, the export
-    back-end, as a symbol, and the communication channel, as a
+    backend, as a symbol, and the communication channel, as a
     property list.
 
     It is called at each \"print_bibliography\" keyword in the
@@ -358,7 +366,7 @@ optional keys can be set:
 
     Function rendering citations.  It is called with four
     arguments: a citation object, the style, as a pair, the
-    export back-end, as a symbol, and the communication channel,
+    export backend, as a symbol, and the communication channel,
     as a property list.
 
     It is called on each citation object in the parse tree.  It
@@ -373,7 +381,7 @@ optional keys can be set:
     six arguments: the output, as a string, a list of citation
     keys used in the document, a list of bibliography files, the
     expected bibliography style, as a string or nil, the export
-    back-end, as a symbol, and the communication channel, as a
+    backend, as a symbol, and the communication channel, as a
     property list.
 
     It must return a string, which will become the final output
@@ -468,11 +476,11 @@ PROCESSOR is the name of a cite processor, as a symbol.  CAPABILITY is
   "Set `:post-blank' property from element or object before DATUM to BLANKS.
 DATUM is an element or object.  BLANKS is an integer.  DATUM is modified
 by side-effect."
-  (if (not (eq 'plain-text (org-element-type datum)))
+  (if (not (org-element-type-p datum 'plain-text))
       (org-element-put-property datum :post-blank blanks)
     ;; Remove any blank from string before DATUM so it is exported
     ;; with exactly BLANKS white spaces.
-    (org-element-set-element
+    (org-element-set
      datum
      (replace-regexp-in-string
       "[ \t\n]*\\'" (make-string blanks ?\s) datum))))
@@ -492,11 +500,11 @@ S is split at beginning of match group N upon matching REGEXP against it.
 This function assumes S precedes CITATION."
   ;; When extracting the citation, remove white spaces before it, but
   ;; preserve those after it.
-  (let ((post-blank (org-element-property :post-blank citation)))
+  (let ((post-blank (org-element-post-blank citation)))
     (when (and post-blank (> post-blank 0))
       (org-element-insert-before (make-string post-blank ?\s) citation)))
   (org-element-insert-before
-   (org-element-put-property (org-element-extract-element citation)
+   (org-element-put-property (org-element-extract citation)
                              :post-blank 0)
    s)
   (string-match regexp s)
@@ -510,21 +518,21 @@ This function assumes S precedes CITATION."
                                     (substring s split))))
     (when (org-string-nw-p first-part)
       (org-element-insert-before first-part citation))
-    (org-element-set-element s last-part)))
+    (org-element-set s last-part)))
 
 (defun org-cite--move-punct-before (punct citation s info)
   "Move punctuation PUNCT before CITATION object.
 String S contains PUNCT.  INFO is the export state, as a property list.
 The function assumes S follows CITATION.  Parse tree is modified by side-effect."
   (if (equal s punct)
-      (org-element-extract-element s)   ;it would be empty anyway
-    (org-element-set-element s (substring s (length punct))))
+      (org-element-extract s)   ;it would be empty anyway
+    (org-element-set s (substring s (length punct))))
   ;; Remove blanks before citation.
   (org-cite--set-previous-post-blank citation 0 info)
   (org-element-insert-before
    ;; Blanks between citation and punct are now before punct and
    ;; citation.
-   (concat (make-string (or (org-element-property :post-blank citation) 0) ?\s)
+   (concat (make-string (or (org-element-post-blank citation) 0) ?\s)
            punct)
    citation))
 
@@ -602,7 +610,18 @@ to (adaptive outside after)."
    (append (mapcar (lambda (value)
 		     (pcase value
 		       (`(,f . ,d)
-                        (expand-file-name (org-strip-quotes f) d))))
+                        (setq f (org-strip-quotes f))
+                        (if (or (file-name-absolute-p f)
+                                (file-remote-p f)
+                                (equal d default-directory))
+                            ;; Keep absolute paths, remote paths, and
+                            ;; local relative paths.
+                            f
+                          ;; Adjust relative bibliography path for
+                          ;; #+SETUP files located in other directory.
+                          ;; Also, see `org-export--update-included-link'.
+                          (file-relative-name
+                           (expand-file-name f d) default-directory)))))
 		   (pcase (org-collect-keywords
                            '("BIBLIOGRAPHY") nil '("BIBLIOGRAPHY"))
 		     (`(("BIBLIOGRAPHY" . ,pairs)) pairs)))
@@ -619,12 +638,12 @@ or from the current buffer."
   (let ((contents (org-element-contents citation)))
     (cond
      ((null contents)
-      (org-with-point-at (org-element-property :contents-begin citation)
-        (narrow-to-region (point) (org-element-property :contents-end citation))
+      (org-with-point-at (org-element-contents-begin citation)
+        (narrow-to-region (point) (org-element-contents-end citation))
         (let ((references nil))
           (while (not (eobp))
             (let ((reference (org-element-citation-reference-parser)))
-              (goto-char (org-element-property :end reference))
+              (goto-char (org-element-end reference))
               (push (if keys-only
                         (org-element-property :key reference)
                       reference)
@@ -636,8 +655,8 @@ or from the current buffer."
 (defun org-cite-boundaries (citation)
   "Return the beginning and end strict position of CITATION.
 Returns a (BEG . END) pair."
-  (let ((beg (org-element-property :begin citation))
-	(end (org-with-point-at (org-element-property :end citation)
+  (let ((beg (org-element-begin citation))
+	(end (org-with-point-at (org-element-end citation)
 	       (skip-chars-backward " \t")
 	       (point))))
     (cons beg end)))
@@ -646,15 +665,15 @@ Returns a (BEG . END) pair."
   "Return citation REFERENCE's key boundaries as buffer positions.
 The function returns a pair (START . END) where START and END denote positions
 in the current buffer.  Positions include leading \"@\" character."
-  (org-with-point-at (org-element-property :begin reference)
-    (let ((end (org-element-property :end reference)))
+  (org-with-point-at (org-element-begin reference)
+    (let ((end (org-element-end reference)))
       (re-search-forward org-element-citation-key-re end t)
       (cons (match-beginning 0) (match-end 0)))))
 
 (defun org-cite-main-affixes (citation)
   "Return main affixes for CITATION object.
 
-Some export back-ends only support a single pair of affixes per
+Some export backends only support a single pair of affixes per
 citation, even if it contains multiple keys.  This function
 decides what affixes are the most appropriate.
 
@@ -730,7 +749,7 @@ When removing the last reference, also remove the whole citation."
                    (org-with-point-at begin
                      (skip-chars-backward " \t")
                      (point)))
-                  (pos-after-blank (org-element-property :end datum))
+                  (pos-after-blank (org-element-end datum))
                   (first-on-line?
                    (= pos-before-blank (line-beginning-position)))
                   (last-on-line?
@@ -753,22 +772,22 @@ When removing the last reference, also remove the whole citation."
          (when (= pos-after-blank end)
            (org-with-point-at pos-before-blank (insert " ")))))))
     ('citation-reference
-     (let* ((citation (org-element-property :parent datum))
+     (let* ((citation (org-element-parent datum))
             (references (org-cite-get-references citation))
-            (begin (org-element-property :begin datum))
-            (end (org-element-property :end datum)))
+            (begin (org-element-begin datum))
+            (end (org-element-end datum)))
        (cond
         ;; Single reference.
         ((= 1 (length references))
          (org-cite-delete-citation citation))
         ;; First reference, no prefix.
-        ((and (= begin (org-element-property :contents-begin citation))
+        ((and (= begin (org-element-contents-begin citation))
               (not (org-element-property :prefix citation)))
-         (org-with-point-at (org-element-property :begin datum)
+         (org-with-point-at (org-element-begin datum)
            (skip-chars-backward " \t")
            (delete-region (point) end)))
         ;; Last reference, no suffix.
-        ((and (= end (org-element-property :contents-end citation))
+        ((and (= end (org-element-contents-end citation))
               (not (org-element-property :suffix citation)))
          (delete-region (1- begin) (1- (cdr (org-cite-boundaries citation)))))
         ;; Somewhere in-between.
@@ -837,6 +856,11 @@ tokens.  Spurious spaces are ignored."
         (error "Trailing garbage following cite export processor declaration %S"
                s))
       (nreverse result))))
+
+(defun org-cite-processor (info)
+  "Return expected citation/bibliography processor.
+INFO is a plist used as a communication channel."
+  (car (plist-get info :cite-export)))
 
 (defun org-cite-bibliography-style (info)
   "Return expected bibliography style.
@@ -937,11 +961,12 @@ the sole contents of the footnote, e.g., after calling `org-cite-wrap-citation'.
 
 When non-nil, the return value if the footnote container."
   (let ((footnote
-         (org-element-lineage citation
-                              '(footnote-definition footnote-reference))))
+         (org-element-lineage
+          citation
+          '(footnote-definition footnote-reference))))
     (and footnote
          (or (not strict)
-             (equal (org-element-contents (org-element-property :parent citation))
+             (equal (org-element-contents (org-element-parent citation))
                     (list citation)))
          ;; Return value.
          footnote)))
@@ -959,15 +984,15 @@ Return newly created footnote object."
          (list 'footnote-reference
                (list :label nil
                      :type 'inline
-                     :contents-begin (org-element-property :begin citation)
-                     :contents-end (org-element-property :end citation)
-                     :post-blank (org-element-property :post-blank citation)))))
+                     :contents-begin (org-element-begin citation)
+                     :contents-end (org-element-end citation)
+                     :post-blank (org-element-post-blank citation)))))
     ;; Remove any white space before citation.
     (org-cite--set-previous-post-blank citation 0 info)
     ;; Footnote swallows citation.
     (org-element-insert-before footnote citation)
-    (org-element-adopt-elements footnote
-      (org-element-extract-element citation))))
+    (org-element-adopt footnote
+      (org-element-extract citation))))
 
 (defun org-cite-adjust-note (citation info &optional rule punct)
   "Adjust note number location for CITATION object, and punctuation around it.
@@ -1046,8 +1071,8 @@ the same object, call `org-cite-adjust-note' first."
                      ;; as an argument is not available.
                      (rx-to-string `(seq string-start ,final-punct) t)
                      "" next)))
-               (org-element-set-element previous new-prev)
-               (org-element-set-element next new-next)
+               (org-element-set previous new-prev)
+               (org-element-set next new-next)
                (setq previous new-prev)
                (setq next new-next)
                (setq punct final-punct)
@@ -1066,15 +1091,15 @@ the same object, call `org-cite-adjust-note' first."
                     (replace-regexp-in-string
                      previous-punct-re "" previous nil nil 1))
                    (new-next (if (stringp next) (concat punct next) punct)))
-               (org-element-set-element previous new-prev)
+               (org-element-set previous new-prev)
                (cond
                 ((stringp next)
-                 (org-element-set-element next new-next))
+                 (org-element-set next new-next))
                 (next
                  (org-element-insert-before new-next next))
                 (t
-                 (org-element-adopt-elements
-                     (org-element-property :parent citation)
+                 (org-element-adopt
+                     (org-element-parent citation)
                    new-next)))
                (setq previous new-prev)
                (setq next new-next)
@@ -1141,7 +1166,7 @@ raises an error if S contains a headline."
     (insert s)
     (pcase (org-element-contents (org-element-parse-buffer))
       ('nil nil)
-      (`(,(and section (guard (eq 'section (org-element-type section)))))
+      (`(,(and section (guard (org-element-type-p section 'section))))
        (org-element-contents section))
       (_
        (error "Headlines cannot replace a keyword")))))
@@ -1201,14 +1226,23 @@ and must return either a string, an object, or a secondary string."
                  (org-cite-concat result separator (funcall function datum))))
          result)))
 
+(defun org-cite-capitalize (str)
+  "Capitalize string of raw string object STR."
+  (cond
+   ((stringp str) (capitalize str))
+   ((org-element-type-p str 'raw)
+    (org-export-raw-string
+     (capitalize (mapconcat #'identity (org-element-contents str) ""))))
+   (t (error "%S must be either a string or raw string object" str))))
+
 
 ;;; Internal interface with fontification (activate capability)
 (defun org-cite-fontify-default (cite)
   "Fontify CITE with `org-cite' and `org-cite-key' faces.
 CITE is a citation object.  The function applies `org-cite' face
 on the whole citation, and `org-cite-key' face on each key."
-  (let ((beg (org-element-property :begin cite))
-        (end (org-with-point-at (org-element-property :end cite)
+  (let ((beg (org-element-begin cite))
+        (end (org-with-point-at (org-element-end cite)
                (skip-chars-backward " \t")
                (point))))
     (add-text-properties beg end '(font-lock-multiline t))
@@ -1237,7 +1271,7 @@ from the processor set in `org-cite-activate-processor'."
           (save-match-data (funcall activate cite))
           ;; Move after cite object and make sure to return
           ;; a non-nil value.
-          (goto-char (org-element-property :end cite)))))))
+          (goto-char (org-element-end cite)))))))
 
 
 ;;; Internal interface with Org Export library (export capability)
@@ -1274,12 +1308,12 @@ side-effect."
             ;; Value is an alist.  It must come from
             ;; `org-cite-export-processors' variable.  Find the most
             ;; appropriate processor according to current export
-            ;; back-end.
+            ;; backend.
             ((and (pred consp) alist)
              (let* ((backend (plist-get info :back-end))
                     (candidates
                      ;; Limit candidates to processors associated to
-                     ;; back-ends derived from or equal to the current
+                     ;; backends derived from or equal to the current
                      ;; one.
                      (sort (seq-filter
                             (pcase-lambda (`(,key . ,_))
@@ -1331,7 +1365,7 @@ selected citation processor."
 
 (defun org-cite-export-bibliography (keyword _ info)
   "Return bibliography associated to \"print_bibliography\" KEYWORD.
-BACKEND is the export back-end, as a symbol.  INFO is a plist
+BACKEND is the export backend, as a symbol.  INFO is a plist
 used as a communication channel."
   (pcase (plist-get info :cite-export)
     ('nil nil)
@@ -1355,7 +1389,7 @@ INFO is the communication channel, as a plist.  Parse tree is modified
 by side-effect."
   (dolist (cite (org-cite-list-citations info))
     (let ((replacement (org-cite-export-citation cite nil info))
-          (blanks (or (org-element-property :post-blank cite) 0)))
+          (blanks (or (org-element-post-blank cite) 0)))
       (if (null replacement)
           ;; Before removing the citation, transfer its `:post-blank'
           ;; property to the object before, if any.
@@ -1389,7 +1423,7 @@ by side-effect."
           (_
            (error "Invalid return value from citation export processor: %S"
                   replacement))))
-      (org-element-extract-element cite))))
+      (org-element-extract cite))))
 
 (defun org-cite-process-bibliography (info)
   "Replace all \"print_bibliography\" keywords in the parse tree.
@@ -1400,18 +1434,18 @@ by side effect."
     (lambda (keyword)
       (when (equal "PRINT_BIBLIOGRAPHY" (org-element-property :key keyword))
         (let ((replacement (org-cite-export-bibliography keyword nil info))
-              (blanks (or (org-element-property :post-blank keyword) 0)))
+              (blanks (or (org-element-post-blank keyword) 0)))
           (pcase replacement
             ;; Before removing the citation, transfer its
             ;; `:post-blank' property to the element before, if any.
             ('nil
              (org-cite--set-previous-post-blank keyword blanks info)
-             (org-element-extract-element keyword))
+             (org-element-extract keyword))
             ;; Handle `:post-blank' before replacing keyword with string.
             ((pred stringp)
              (let ((output (concat (org-element-normalize-string replacement)
                                    (make-string blanks ?\n))))
-               (org-element-set-element keyword (org-export-raw-string output))))
+               (org-element-set keyword (org-export-raw-string output))))
             ;; List of elements: splice contents before keyword and
             ;; remove the latter.  Transfer `:post-blank' to last
             ;; element.
@@ -1421,11 +1455,11 @@ by side effect."
                  (setq last datum)
                  (org-element-insert-before datum keyword))
                (org-cite--set-post-blank last blanks)
-               (org-element-extract-element keyword)))
+               (org-element-extract keyword)))
             ;; Single element: replace the keyword.
             (`(,(pred symbolp) . ,_)
              (org-cite--set-post-blank replacement blanks)
-             (org-element-set-element keyword replacement))
+             (org-element-set keyword replacement))
             (_
              (error "Invalid return value from citation export processor: %S"
                     replacement))))))
@@ -1481,7 +1515,7 @@ CONTEXT is the element or object at point, as returned by `org-element-context'.
      ;;
      ;; XXX: Inserting citation in a secondary value is not allowed
      ;; yet.  Is it useful?
-     ((let ((post (org-element-property :post-affiliated context)))
+     ((let ((post (org-element-post-affiliated context)))
 	(and post (< (point) post)))
       (let ((case-fold-search t))
         (looking-back
@@ -1497,14 +1531,14 @@ CONTEXT is the element or object at point, as returned by `org-element-context'.
      ((memq type '(nil paragraph)))
      ;; So are contents of verse blocks.
      ((eq type 'verse-block)
-      (and (>= (point) (org-element-property :contents-begin context))
-	   (< (point) (org-element-property :contents-end context))))
+      (and (>= (point) (org-element-contents-begin context))
+	   (< (point) (org-element-contents-end context))))
      ;; In an headline or inlinetask, point must be either on the
      ;; heading itself or on the blank lines below.
      ((memq type '(headline inlinetask))
       (or (not (org-at-heading-p))
 	  (and (save-excursion
-		 (beginning-of-line)
+		 (forward-line 0)
 		 (and (let ((case-fold-search t))
 			(not (looking-at-p "\\*+ END[ \t]*$")))
 		      (let ((case-fold-search nil))
@@ -1523,43 +1557,43 @@ CONTEXT is the element or object at point, as returned by `org-element-context'.
      ;; White spaces after an object or blank lines after an element
      ;; are OK.
      ((>= (point)
-	  (save-excursion (goto-char (org-element-property :end context))
-			  (skip-chars-backward " \r\t\n")
-			  (if (eq (org-element-class context) 'object) (point)
-			    (line-beginning-position 2)))))
+	 (save-excursion (goto-char (org-element-end context))
+			 (skip-chars-backward " \r\t\n")
+			 (if (eq (org-element-class context) 'object) (point)
+			   (line-beginning-position 2)))))
      ;; At the beginning of a footnote definition, right after the
      ;; label, is OK.
      ((eq type 'footnote-definition) (looking-at (rx space)))
      ;; At the start of a list item is fine, as long as the bullet is
      ;; unaffected.
      ((eq type 'item)
-      (> (point) (+ (org-element-property :begin context)
+      (> (point) (+ (org-element-begin context)
                     (org-current-text-indentation)
                     (if (org-element-property :checkbox context)
                         5 1))))
      ;; Other elements are invalid.
      ((eq (org-element-class context) 'element) nil)
      ;; Just before object is fine.
-     ((= (point) (org-element-property :begin context)))
+     ((= (point) (org-element-begin context)))
      ;; Within recursive object too, but not in a link.
      ((eq type 'link) nil)
      ((eq type 'table-cell)
       ;; :contents-begin is not reliable on empty cells, so special
       ;; case it.
       (<= (save-excursion (skip-chars-backward " \t") (point))
-          (org-element-property :contents-end context)))
-     ((let ((cbeg (org-element-property :contents-begin context))
-	    (cend (org-element-property :contents-end context)))
+          (org-element-contents-end context)))
+     ((let ((cbeg (org-element-contents-begin context))
+	    (cend (org-element-contents-end context)))
 	(and cbeg (>= (point) cbeg) (<= (point) cend)))))))
 
 (defun org-cite--insert-string-before (string reference)
   "Insert STRING before citation REFERENCE object."
-  (org-with-point-at (org-element-property :begin reference)
+  (org-with-point-at (org-element-begin reference)
     (insert string ";")))
 
 (defun org-cite--insert-string-after (string reference)
   "Insert STRING after citation REFERENCE object."
-  (org-with-point-at (org-element-property :end reference)
+  (org-with-point-at (org-element-end reference)
     ;; Make sure to move forward when we're inserting at point, so the
     ;; insertion can happen multiple times.
     (if (char-equal ?\; (char-before))
@@ -1630,7 +1664,7 @@ More specifically,
        ;; action depends on the point.
        (if arg
            (org-cite-delete-citation context)
-         (let* ((begin (org-element-property :begin context))
+         (let* ((begin (org-element-begin context))
                 (style-end (1- (org-with-point-at begin (search-forward ":")))))
            (if (>= style-end (point))
                ;; On style part, edit the style.
@@ -1644,7 +1678,7 @@ More specifically,
              ;; point.
              (let* ((references (org-cite-get-references context))
                     (key (concat "@" (funcall select-key nil))))
-               (if (< (point) (org-element-property :contents-begin context))
+               (if (< (point) (org-element-contents-begin context))
                    (org-cite--insert-string-before key (car references))
                  (org-cite--insert-string-after key (org-last references))))))))
       ;; On a citation reference.  If ARG is not nil, remove the
@@ -1699,7 +1733,7 @@ ARG is the prefix argument received when calling interactively the function."
       (let ((context (org-element-context))
             (insert (org-cite-processor-insert (org-cite-get-processor name))))
         (cond
-         ((memq (org-element-type context) '(citation citation-reference))
+         ((org-element-type-p context '(citation citation-reference))
           (funcall insert context arg))
          ((org-cite--allowed-p context)
           (funcall insert nil arg))

@@ -164,15 +164,6 @@
 
     (advice-remove 'buffer-local-value 'erc-with-server-buffer)))
 
-(ert-deftest erc--with-dependent-type-match ()
-  (should (equal (macroexpand-1
-                  '(erc--with-dependent-type-match (repeat face) erc-match))
-                 '(backquote-list*
-                   'repeat :match (lambda (w v)
-                                    (require 'erc-match)
-                                    (widget-editable-list-match w v))
-                   '(face)))))
-
 (ert-deftest erc--doarray ()
   (let ((array "abcdefg")
         out)
@@ -330,6 +321,7 @@
                                (cl-incf counter))))
          erc-accidental-paste-threshold-seconds
          erc-insert-modify-hook
+         erc-send-modify-hook
          (erc-last-input-time 0)
          (erc-modules (remq 'stamp erc-modules))
          (erc-send-input-line-function #'ignore)
@@ -1267,22 +1259,6 @@
       (puthash 'CHANTYPES  '("&#") erc--isupport-params)
       (should-not (erc--valid-local-channel-p "#chan"))
       (should (erc--valid-local-channel-p "&local")))))
-
-(ert-deftest erc--restore-initialize-priors ()
-  (unless (>= emacs-major-version 28)
-    (ert-skip "Lisp nesting exceeds `max-lisp-eval-depth'"))
-  (should (pcase (macroexpand-1 '(erc--restore-initialize-priors erc-my-mode
-                                   foo (ignore 1 2 3)
-                                   bar #'spam
-                                   baz nil))
-            (`(let* ((,p (or erc--server-reconnecting erc--target-priors))
-                     (,q (and ,p (alist-get 'erc-my-mode ,p))))
-                (unless (local-variable-if-set-p 'erc-my-mode)
-                  (error "Not a local minor mode var: %s" 'erc-my-mode))
-                (setq foo (if ,q (alist-get 'foo ,p) (ignore 1 2 3))
-                      bar (if ,q (alist-get 'bar ,p) #'spam)
-                      baz (if ,q (alist-get 'baz ,p) nil)))
-             t))))
 
 (ert-deftest erc--target-from-string ()
   (should (equal (erc--target-from-string "#chan")
@@ -2533,7 +2509,7 @@
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
     (cl-letf (((symbol-function 'erc-display-message)
                (lambda (_ _ _ msg &rest args)
-                 (push (apply #'erc-format-message msg args) calls)))
+                 (ignore (push (apply #'erc-format-message msg args) calls))))
               ((symbol-function 'erc-server-send)
                (lambda (line _) (push line calls)))
               ((symbol-function 'erc-server-buffer)
@@ -3665,9 +3641,9 @@
 
                       (define-minor-mode erc-mname-mode
                         "Toggle ERC mname mode.
-With a prefix argument ARG, enable mname if ARG is positive, and
-disable it otherwise.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+If called interactively, enable `erc-mname-mode' if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 Some docstring."
                         :global t
@@ -3722,10 +3698,10 @@ Some docstring."
     (should (equal got
                    `(progn
                       (define-minor-mode erc-mname-mode
-                        "Toggle ERC mname mode.
-With a prefix argument ARG, enable mname if ARG is positive, and
-disable it otherwise.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+                        "Toggle ERC mname mode locally.
+If called interactively, enable `erc-mname-mode' if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 Some docstring."
                         :global nil
@@ -3736,7 +3712,7 @@ Some docstring."
                             (erc-mname-disable))))
 
                       (defun erc-mname-enable (&optional ,arg-en)
-                        "Enable ERC mname mode.
+                        "Enable ERC mname mode locally.
 When called interactively, do so in all buffers for the current
 connection."
                         (interactive "p")
@@ -3749,7 +3725,7 @@ connection."
                             (ignore a) (ignore b))))
 
                       (defun erc-mname-disable (&optional ,arg-dis)
-                        "Disable ERC mname mode.
+                        "Disable ERC mname mode locally.
 When called interactively, do so in all buffers for the current
 connection."
                         (interactive "p")

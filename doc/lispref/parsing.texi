@@ -540,26 +540,6 @@ symbol, rather than a lambda function.
 This function returns the list of @var{parser}'s notifier functions.
 @end defun
 
-Sometimes a Lisp program might need to synchronously get the changed
-ranges of the last reparse.  The function
-@code{treesit-parser-changed-ranges} exists for this purpose.  It
-returns the ranges which were passed to the notifier functions.
-
-@defun treesit-parser-changed-ranges parser &optional quiet
-This function returns the ranges that has been changed since last
-reparse.  It returns a list of cons cells of the form
-@w{@code{(@var{start} . @var{end})}}, where @var{start} and @var{end}
-mark the start and the end positions of a range.
-
-This function should almost always be called immediately after
-reparsing.  If it's called when there are new buffer edits that hasn't
-been reparsed, Emacs signals the @code{treesit-unparsed-edits} error,
-unless the optional argument @var{quiet} is non-nil.
-
-Calling this function multiple times consecutively doesn't change its
-return value; it always returns the ranges affected by the last reparse.
-@end defun
-
 @node Retrieving Nodes
 @section Retrieving Nodes
 @cindex retrieve node, tree-sitter
@@ -952,7 +932,7 @@ This function repeatedly finds the parents of @var{node}, and returns
 the parent that satisfies @var{predicate}.  @var{predicate} can be
 either a function that takes a node as argument and returns @code{t}
 or @code{nil}, or a regexp matching node type names, or other valid
-predicates described in @var{treesit-thing-settings}.  If no parent
+predicates described in @code{treesit-thing-settings}.  If no parent
 satisfies @var{predicates}, this function returns @code{nil}.
 
 Normally this function only looks at the parents of @var{node} but not
@@ -1556,7 +1536,7 @@ The ``things'' feature in Emacs is independent of the pattern matching
 feature of tree-sitter, and comparatively less powerful, but more
 suitable for navigation and traversing the parse tree.
 
-You can define things with @var{treesit-thing-settings}.
+You can define things with @code{treesit-thing-settings}.
 
 @defvar treesit-thing-settings
 This is an alist of thing definitions for each language.  The key of
@@ -1584,7 +1564,7 @@ list.  For example, @w{@code{(or sexp sentence)}} defines something
 that's either a @code{sexp} thing or a @code{sentence} thing, as defined
 by some other rule in the alist.
 
-Here's an example @var{treesit-thing-settings} for C and C++:
+Here's an example @code{treesit-thing-settings} for C and C++:
 
 @example
 @group
@@ -1602,7 +1582,7 @@ Here's an example @var{treesit-thing-settings} for C and C++:
 @end example
 
 @noindent
-Note that this example is modified for didactical purposes, and isn't
+Note that this example is modified for didactic purposes, and isn't
 exactly how C and C@t{++} modes define things.
 @end defvar
 
@@ -1644,7 +1624,7 @@ A positive @var{arg} means moving forward that many instances of
 @code{end}, stop at the end of @var{thing}.
 
 Like in @code{treesit-thing-prev}, @var{thing} can be a thing symbol
-defined in @var{treesit-thing-settings}, or a thing definition.
+defined in @code{treesit-thing-settings}, or a thing definition.
 
 @var{tactic} determines how this function moves between things.  It can
 be @code{nested}, @code{top-level}, @code{restricted}, or @code{nil}.
@@ -1671,7 +1651,7 @@ i.e., start position must be strictly greater than @var{position}, and end
 position must be strictly less than @var{position}.
 
 @var{thing} can be either a thing symbol defined in
-@var{treesit-thing-settings}, or a thing definition.
+@code{treesit-thing-settings}, or a thing definition.
 @end defun
 
 @findex treesit-beginning-of-thing
@@ -1683,11 +1663,12 @@ thing, @code{treesit-end-of-thing} moves to the end of a thing, and
 @code{treesit-thing-at-point} returns the thing at point.
 
 There are also defun commands that specifically use the @code{defun}
-definition (as a fallback of @var{treesit-defun-type-regexp}), like
+definition (as a fallback of @code{treesit-defun-type-regexp}), like
 @code{treesit-beginning-of-defun}, @code{treesit-end-of-defun}, and
 @code{treesit-defun-at-point}.  In addition, these functions use
-@var{treesit-defun-tactic} as the navigation tactic.  They are described
-in more detail in other sections (@pxref{Tree-sitter Major Modes}).
+@code{treesit-defun-tactic} as the navigation tactic.  They are
+described in more detail in other sections (@pxref{Tree-sitter Major
+Modes}).
 
 @node Multiple Languages
 @section Parsing Text in Multiple Languages
@@ -1703,15 +1684,32 @@ instead to specify regions of buffer text (i.e., ranges) in which a
 parser will operate.  This section describes functions for setting and
 getting ranges for a parser.
 
-Lisp programs should call @code{treesit-update-ranges} to make sure
-the ranges for each parser are correct before using parsers in a
-buffer, and call @code{treesit-language-at} to figure out the language
-responsible for the text at some position.  These two functions don't
-work by themselves, they need major modes to set
-@code{treesit-range-settings} and
-@code{treesit-language-at-point-function}, which do the actual work.
+@cindex primary parser
+Generally when there are multiple languages at play, there is a
+``primary'', or ``host'' language.  The parser for this language---the
+@dfn{primary parser}, parses the entire buffer.  Parsers for other
+languages are ``embedded'' or ``guest'' parsers, which only work on part
+of the buffer.  The parse tree of the primary parser is usually used to
+determine the ranges in which the embedded parsers operate.
+
+@vindex treesit-primary-parser
+Major modes should set @code{treesit-primary-parser} to the primary
+parser before calling @code{treesit-major-mode-setup}, so that Emacs can
+configure the primary parser correctly for font-lock and other features.
+
+Lisp programs should call @code{treesit-update-ranges} to make sure the
+ranges for each parser are correct before using parsers in a buffer, and
+call @code{treesit-language-at} to figure out the language responsible
+for the text at some position.  These two functions don't work by
+themselves; they need major modes to set @code{treesit-range-settings}
+and @code{treesit-language-at-point-function}, which do the actual work.
 These functions and variables are explained in more detail towards the
 end of the section.
+
+In short, multi-language major modes should set
+@code{treesit-primary-parser}, @code{treesit-range-settings}, and
+@code{treesit-language-at-point-function} before calling
+@code{treesit-major-mode-setup}.
 
 @heading Getting and setting ranges
 

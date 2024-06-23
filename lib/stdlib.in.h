@@ -26,6 +26,10 @@
 
 #@INCLUDE_NEXT@ @NEXT_STDLIB_H@
 
+/* Make sure that the macros that indicate the special invocation convention
+   get undefined.  This is needed at least on CentOS 7.  */
+#undef __need_malloc_and_calloc
+
 #else
 /* Normal invocation convention.  */
 

@@ -183,7 +183,8 @@
                        parser))
       (should (equal t (treesit-node-check root-node 'live)))
       (kill-buffer)
-      (should (equal nil (treesit-node-check root-node 'live))))))
+      (should-error (treesit-node-check root-node 'live)
+                    :type 'treesit-node-buffer-killed))))
 
 ;;; Indirect buffer
 

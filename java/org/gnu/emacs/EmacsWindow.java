@@ -396,7 +396,7 @@ public final class EmacsWindow extends EmacsHandleObject
     rect = getGeometry ();
     flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
     flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
-    type = WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG;
+    type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL;
 
     params
       = new WindowManager.LayoutParams (rect.width (), rect.height (),

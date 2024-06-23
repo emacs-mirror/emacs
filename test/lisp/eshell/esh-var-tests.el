@@ -855,26 +855,31 @@ the value of the $PAGER env var."
   (let* ((path-to-set-list '("/some/path" "/other/path"))
          (path-to-set (string-join path-to-set-list (path-separator))))
     (with-temp-eshell
-     (eshell-match-command-output (concat "set PATH " path-to-set)
-                                  (concat path-to-set "\n"))
-     (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
-     (should (equal (eshell-get-path t) path-to-set-list)))))
+      ;; Quote PATH value, because on Windows path-separator is ';'.
+      (eshell-match-command-output
+       (concat "set PATH " (eshell-quote-argument path-to-set) "")
+       (concat path-to-set "\n"))
+      (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
+      (should (equal (eshell-get-path t) path-to-set-list)))))
 
 (ert-deftest esh-var-test/path-var/set-locally ()
   "Test setting $PATH temporarily for a single command."
   (let* ((path-to-set-list '("/some/path" "/other/path"))
          (path-to-set (string-join path-to-set-list (path-separator))))
     (with-temp-eshell
-     (eshell-match-command-output (concat "set PATH " path-to-set)
-                                  (concat path-to-set "\n"))
-     (eshell-match-command-output "PATH=/local/path env"
-                                  "PATH=/local/path\n")
-     ;; After the last command, the previous $PATH value should be restored.
-     (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
-     (should (equal (eshell-get-path t) path-to-set-list)))))
+      ;; As above, quote PATH value.
+      (eshell-match-command-output
+       (concat "set PATH " (eshell-quote-argument path-to-set) "")
+       (concat path-to-set "\n"))
+      (eshell-match-command-output "PATH=/local/path env"
+                                   "PATH=/local/path\n")
+      ;; After the last command, the previous $PATH value should be restored.
+      (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
+      (should (equal (eshell-get-path t) path-to-set-list)))))
 
 (ert-deftest esh-var-test/path-var/preserve-across-hosts ()
   "Test that $PATH can be set independently on multiple hosts."
+  (skip-unless (not (eq system-type 'windows-nt)))
   (let ((local-directory default-directory)
         local-path remote-path)
     (with-temp-eshell

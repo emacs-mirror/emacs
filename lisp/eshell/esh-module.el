@@ -38,7 +38,7 @@ customizing the variable `eshell-modules-list'."
 ;; `eshell-modules-list'.  We use "(progn (defgroup ..." in each file
 ;; to force the autoloader into including the entire defgroup, rather
 ;; than an abbreviated version.
-(load "esh-groups" nil 'nomessage)
+(load "esh-module-loaddefs" nil 'nomessage)
 
 ;;; User Variables:
 
@@ -48,6 +48,12 @@ customizing the variable `eshell-modules-list'."
   :type 'hook
   :group 'eshell-module)
 (make-obsolete-variable 'eshell-module-unload-hook nil "30.1")
+
+(defcustom eshell-module-loading-messages t
+  "If non-nil, display messages when loading/unloading Eshell modules."
+  :type 'boolean
+  :group 'eshell-module
+  :version "30.1")
 
 (defcustom eshell-modules-list
   '(eshell-alias
@@ -87,7 +93,9 @@ Changes will only take effect in future Eshell buffers."
 ;;; Code:
 
 (defsubst eshell-module--feature-name (module &optional kind)
-  "Get the feature name for the specified Eshell MODULE."
+  "Get the feature name for the specified Eshell MODULE.
+KIND can be either `core' for a core module or `extension' for an
+extension module; if nil, KIND defaults to `extension'."
   (let ((module-name (symbol-name module))
         (prefix (cond ((eq kind 'core) "esh-")
                       ((memq kind '(extension nil)) "em-")
@@ -102,17 +110,57 @@ The MODULE should be a symbol corresponding to that module's
 customization group.  Example: `eshell-cmpl' for that module."
   (memq module eshell-modules-list))
 
-(defun eshell-unload-modules (modules &optional kind)
-  "Try to unload the specified Eshell MODULES."
+(defun eshell-load-modules (modules)
+  "Load Eshell MODULES into memory.
+This will cause any global variables they define to be visible so
+that other modules can take advantage of their functionality if
+desired."
+  (let ((verbose eshell-module-loading-messages))
+    (dolist (module modules)
+      (let ((module-feature-name (eshell-module--feature-name module)))
+        (unless (featurep (intern module-feature-name))
+          (when verbose (message "Loading %s..." module))
+          (condition-case-unless-debug nil
+              (progn
+                (load module-feature-name nil t)
+                (when verbose (message "Loading %s...done" module)))
+            (error (when verbose (message "Loading %s...failed" module))
+                   (lwarn 'eshell :error
+                          "Unable to load Eshell module `%s'"
+                          module))))))))
+
+(defun eshell-initialize-modules (modules)
+  "Initialize Eshell MODULES.
+This calls `MODULE-load-hook' and `MODULE-initialize' for each
+MODULE, if they're defined."
   (dolist (module modules)
-    (let ((module-feature (intern (eshell-module--feature-name module kind))))
-      (when (featurep module-feature)
-	(message "Unloading %s..." (symbol-name module))
-        (condition-case-unless-debug _
-            (progn
-              (unload-feature module-feature)
-              (message "Unloading %s...done" (symbol-name module)))
-          (error (message "Unloading %s...failed" (symbol-name module))))))))
+    (let ((load-hook (intern-soft (format "%s-load-hook" module)))
+          (initfunc (intern-soft (format "%s-initialize" module))))
+      (when (and load-hook (boundp load-hook))
+        (if (memq initfunc (symbol-value load-hook)) (setq initfunc nil))
+        (run-hooks load-hook))
+      ;; So we don't need the -initialize functions on the hooks (bug#5375).
+      (and initfunc (fboundp initfunc) (funcall initfunc)))))
+
+(defun eshell-unload-modules (modules &optional kind)
+  "Try to unload the specified Eshell MODULES.
+KIND can be either `core' for core modules or `extension' for
+extension modules; if nil, KIND defaults to `extension'."
+  ;; We're about to unload this module, but we need to remember whether
+  ;; to print messages.
+  (let ((verbose eshell-module-loading-messages))
+    (dolist (module modules)
+      (let ((module-feature (intern (eshell-module--feature-name module kind))))
+        (when (featurep module-feature)
+          (when verbose (message "Unloading %s..." module))
+          (condition-case-unless-debug nil
+              (progn
+                (unload-feature module-feature)
+                (when verbose (message "Unloading %s...done" module)))
+            (error (when verbose (message "Unloading %s...failed" module))
+                   (lwarn 'eshell :error
+                          "Unable to unload Eshell module `%s'"
+                          module))))))))
 
 (defun eshell-unload-extension-modules ()
   "Try to unload all currently-loaded Eshell extension modules."

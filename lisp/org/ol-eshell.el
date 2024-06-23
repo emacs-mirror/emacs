@@ -37,8 +37,8 @@
 			 :store #'org-eshell-store-link)
 
 (defun org-eshell-open (link _)
-  "Switch to an eshell buffer and execute a command line.
-The link can be just a command line (executed in the default
+  "Switch to an eshell buffer and execute a command line for LINK.
+The LINK can be just a command line (executed in the default
 eshell buffer) or a command line prefixed by a buffer name
 followed by a colon."
   (let* ((buffer-and-command
@@ -60,9 +60,10 @@ followed by a colon."
     (insert command)
     (eshell-send-input)))
 
-(defun org-eshell-store-link ()
-  "Store a link that, when opened, switches back to the current eshell buffer
-and the current working directory."
+(defun org-eshell-store-link (&optional _interactive?)
+  "Store eshell link.
+When opened, the link switches back to the current eshell buffer and
+the current working directory."
   (when (eq major-mode 'eshell-mode)
     (let* ((command (concat "cd " (eshell/pwd)))
            (link  (concat (buffer-name) ":" command)))

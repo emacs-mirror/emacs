@@ -194,6 +194,11 @@ and a string describing how the process finished.")
 
 (defvar compilation-error-regexp-alist-alist
  (eval-when-compile
+   ;; The order of this list is the default order of items in
+   ;; `compilation-error-regexp-alist' which is also the matching order,
+   ;; so don't add things in alphabetic order just out of habit.
+   ;; FIXME: We should sort it by frequency (less often used ones in the back),
+   ;; but individual patterns also have their own partial order.
   `((absoft
      "^\\(?:[Ee]rror on \\|[Ww]arning on\\( \\)\\)?[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
 of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
@@ -223,13 +228,6 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "^[ \t]*File \\(\"?\\)\\([^,\" \n\t<>]+\\)\\1, lines? \\([0-9]+\\)-?\\([0-9]+\\)?\\(?:$\\|,\
 \\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\\([ \n]Warning\\(?: [0-9]+\\)?:\\)?\\)"
      2 (3 . 4) (5 . 6) (7))
-
-    (cargo
-     "\\(?:\\(?4:error\\)\\|\\(?5:warning\\)\\):[^\0]+?--> \\(?1:[^:]+\\):\\(?2:[[:digit:]]+\\):\\(?3:[[:digit:]]+\\)"
-     1 2 3 (5)
-     nil
-     (5 compilation-warning-face)
-     (4 compilation-error-face))
 
     (cmake
      "^CMake \\(?:Error\\|\\(Warning\\)\\) at \\(.*\\):\\([1-9][0-9]*\\) ([^)]+):$"
@@ -265,10 +263,28 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "\\(^Warning .*\\)? line[ \n]\\([0-9]+\\)[ \n]\\(?:col \\([0-9]+\\)[ \n]\\)?file \\([^ :;\n]+\\)"
      4 2 3 (1))
 
-    ;; Gradle with kotlin-gradle-plugin (see
-    ;; GradleStyleMessagerRenderer.kt in kotlin sources, see
-    ;; https://youtrack.jetbrains.com/issue/KT-34683).
+    ;; Introduced in Kotlin 1.8 and current as of Kotlin 2.0.
+    ;; Emitted by `GradleStyleMessagerRenderer' in Kotlin sources.
     (gradle-kotlin
+     ,(rx bol
+          (| (group "w")                ; 1: warning
+             (group (in "iv"))          ; 2: info
+             "e")                       ; error
+          ": "
+          "file://"
+          (group                        ; 3: file
+           (? (in "A-Za-z") ":")
+           (+ (not (in "\n:"))))
+          ":"
+          (group (+ digit))             ; 4: line
+          ":"
+          (group (+ digit))             ; 5: column
+          " ")
+     3 4 5 (1 . 2))
+
+    ;; Obsoleted in Kotlin 1.8 Beta, released on Nov 15, 2022.
+    ;; See commit `93a0cdbf973' in Kotlin Git repository.
+    (gradle-kotlin-legacy
      ,(rx bol
           (| (group "w")                ; 1: warning
              (group (in "iv"))          ; 2: info
@@ -2276,6 +2292,9 @@ Returns the compilation buffer created."
     (define-key map [mouse-2] 'compile-goto-error)
     (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-m" 'compile-goto-error)
+    (define-key map "\M-\C-m" 'push-button)
+    (define-key map [M-down-mouse-2] 'push-button)
+    (define-key map [M-mouse-2] 'push-button)
     map)
   "Keymap for compilation-message buttons.")
 (fset 'compilation-button-map compilation-button-map)

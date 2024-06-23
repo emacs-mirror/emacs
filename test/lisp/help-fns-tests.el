@@ -67,7 +67,7 @@ Return first line of the output of (describe-function-1 FUNC)."
         (result (help-fns-tests--describe-function 'last)))
     (should (string-match regexp result))
     (should (member (match-string 1 result)
-                    '("subr-native-elisp" "byte-code-function")))))
+                    '("native-comp-function" "byte-code-function")))))
 
 (ert-deftest help-fns-test-lisp-defsubst ()
   (let ((regexp "a byte-code-function in .+subr\\.el")

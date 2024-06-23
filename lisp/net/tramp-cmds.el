@@ -585,7 +585,7 @@ An alternative method could be chosen with `tramp-file-name-with-method'."
 	  (tramp-make-tramp-file-name
 	   (make-tramp-file-name
 	    :method tramp-file-name-with-method :localname localname)))
-	 ;; Remote file with multi-hop capable method..
+	 ;; Remote file with multi-hop capable method.
 	 ((tramp-multi-hop-p v)
 	  (tramp-make-tramp-file-name
 	   (make-tramp-file-name

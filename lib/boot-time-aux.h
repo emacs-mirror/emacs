@@ -108,8 +108,16 @@ get_linux_boot_time_fallback (struct timespec *p_boot_time)
       struct stat statbuf;
       if (stat (filename, &statbuf) >= 0)
         {
-          *p_boot_time = get_stat_mtime (&statbuf);
-          return 0;
+          struct timespec boot_time = get_stat_mtime (&statbuf);
+          /* On Alpine 3.20.0_rc2 /var/run/utmp was observed with bogus
+             timestamps of ~10 s.  Reject timestamps before
+             2005-07-25 23:34:15 UTC (1122334455), as neither Alpine
+             nor Devuan existed then.  */
+          if (boot_time.tv_sec >= 1122334455)
+            {
+              *p_boot_time = boot_time;
+              return 0;
+            }
         }
     }
   return -1;
@@ -337,4 +345,78 @@ get_windows_boot_time (struct timespec *p_boot_time)
   return -1;
 }
 
+# ifndef __CYGWIN__
+#  if !(_WIN32_WINNT >= _WIN32_WINNT_VISTA)
+
+/* Don't assume that UNICODE is not defined.  */
+#   undef LoadLibrary
+#   define LoadLibrary LoadLibraryA
+
+/* Avoid warnings from gcc -Wcast-function-type.  */
+#   define GetProcAddress \
+     (void *) GetProcAddress
+
+/* GetTickCount64 is only available on Windows Vista and later.  */
+typedef ULONGLONG (WINAPI * GetTickCount64FuncType) (void);
+
+static GetTickCount64FuncType GetTickCount64Func = NULL;
+static BOOL initialized = FALSE;
+
+static void
+initialize (void)
+{
+  HMODULE kernel32 = LoadLibrary ("kernel32.dll");
+  if (kernel32 != NULL)
+    {
+      GetTickCount64Func =
+        (GetTickCount64FuncType) GetProcAddress (kernel32, "GetTickCount64");
+    }
+  initialized = TRUE;
+}
+
+#  else
+
+#   define GetTickCount64Func GetTickCount64
+
+#  endif
+
+/* Fallback for Windows in the form:
+     boot time = current time - uptime
+   This uses the GetTickCount64 function which is only available on Windows
+   Vista and later. See:
+   <https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-gettickcount64>.  */
+static int
+get_windows_boot_time_fallback (struct timespec *p_boot_time)
+{
+#  if !(_WIN32_WINNT >= _WIN32_WINNT_VISTA)
+  if (! initialized)
+    initialize ();
+#  endif
+  if (GetTickCount64Func != NULL)
+    {
+      ULONGLONG uptime_ms = GetTickCount64Func ();
+      struct timespec uptime;
+      struct timespec result;
+      struct timeval tv;
+      if (gettimeofday (&tv, NULL) >= 0)
+        {
+          uptime.tv_sec = uptime_ms / 1000;
+          uptime.tv_nsec = (uptime_ms % 1000) * 1000000;
+          result.tv_sec = tv.tv_sec;
+          result.tv_nsec = tv.tv_usec * 1000;
+          if (result.tv_nsec < uptime.tv_nsec)
+            {
+              result.tv_nsec += 1000000000;
+              result.tv_sec -= 1;
+            }
+          result.tv_sec -= uptime.tv_sec;
+          result.tv_nsec -= uptime.tv_nsec;
+          *p_boot_time = result;
+          return 0;
+        }
+    }
+  return -1;
+}
+
+# endif
 #endif

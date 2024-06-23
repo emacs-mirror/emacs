@@ -45,22 +45,27 @@ window displaying the @samp{*Help*} buffer will be reused instead.
 @cindex searching documentation efficiently
 @cindex looking for a subject in documentation
   If you are looking for a certain feature, but don't know what it is
-called or where to look, we recommend three methods.  First, try an
-apropos command, then try searching the manual index, then look in the
+called or where to look, we recommend three methods.  First, try
+apropos commands, then try searching the manual index, then look in the
 FAQ and the package keywords, and finally try listing external packages.
 
 @table @kbd
 @item C-h a @var{topics} @key{RET}
 This searches for commands whose names match the argument
-@var{topics}.  The argument can be a keyword, a list of keywords, or a
-regular expression (@pxref{Regexps}).  @xref{Apropos}.
+@var{topics}.  The argument can be a keyword, a list of keywords
+separated by whitespace, or a regular expression (@pxref{Regexps}).
+@xref{Apropos}.
 
-@item C-h i d m emacs @key{RET} i @var{topic} @key{RET}
+@item C-h d @var{topics} @key{RET}
+Similar, but searches the @emph{text} of the documentation strings
+rather than the names of commands and functions.
+
+@item C-h r i @var{topic} @key{RET}
 This searches for @var{topic} in the indices of the Emacs Info manual,
 displaying the first match found.  Press @kbd{,} to see subsequent
 matches.  You can use a regular expression as @var{topic}.
 
-@item C-h i d m emacs @key{RET} s @var{topic} @key{RET}
+@item C-h r s @var{topic} @key{RET}
 Similar, but searches the @emph{text} of the manual rather than the
 indices.
 
@@ -367,6 +372,11 @@ variable, or a face.  If the symbol has more than one definition, like
 it has both definition as a function and as a variable, this command
 will show the documentation of all of them, one after the other.
 
+@kindex C-h 4 s
+@findex help-find-source
+  @kbd{C-h 4 s} (@code{help-find-source}) switch to a buffer visiting
+the source definition of what is being described in the help buffer.
+
 @vindex completions-detailed
   If the @code{completions-detailed} user option is non-@code{nil},
 some commands provide details about the possible values when
@@ -379,10 +389,12 @@ are included varies depending on the command used.
 @section Apropos
 @cindex apropos
 
+@cindex apropos pattern
+@cindex apropos commands, list of keywords
   The @dfn{apropos} commands answer questions like, ``What are the
 commands for working with files?''  More precisely, you specify your
 query as an @dfn{apropos pattern}, which is either a word, a list of
-words, or a regular expression.
+words separated by whitespace, or a regular expression.
 
   Each of the following apropos commands reads an apropos pattern in
 the minibuffer, searches for items that match the pattern, and

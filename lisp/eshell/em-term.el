@@ -36,7 +36,7 @@
 (require 'esh-ext)
 (require 'term)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-term nil
   "This module causes visual commands (e.g., `vi') to be executed by
@@ -330,9 +330,4 @@ the buffer."
 ;  (use-local-map term-old-mode-map))
 
 (provide 'em-term)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-term.el ends here

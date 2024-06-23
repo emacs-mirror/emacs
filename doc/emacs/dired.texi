@@ -1680,6 +1680,45 @@ directory, and displays them all in the thumbnail buffer.  The
 thumbnails are generated in the background and are loaded as they
 become available.
 
+@vindex image-dired-thumbnail-storage
+  Image-Dired supports three methods of generating and storing
+thumbnails, controlled by the value of the option
+@code{image-dired-thumbnail-storage}:
+
+@table @code
+@vindex image-dired-dir
+@vindex image-dired-thumb-naming
+@item image-dired
+This method stores thumbnails as JPEG images in a single directory
+specified by the variable @code{image-dired-dir}.  This is the default.
+The names of the thumbnail files are in this case constructed according
+to the value of @code{image-dired-thumb-naming}.
+@item standard
+@itemx standard-large
+@itemx standard-x-large
+@itemx standard-xx-large
+These methods, mandated by the
+@url{https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html,
+Thumbnail Managing Standard}, store thumbnails as @acronym{PNG} images
+under the @file{thumbnails} subdirectory of the directory specified by
+the environment variable @env{XDG_CACHE_HOME} (which defaults to
+@file{~/.cache}).
+@item per-directory
+This method stores the thumbnails of each directory in a
+@file{.image-dired} subdirectory of that directory, as @acronym{jpeg}
+images.
+@end table
+
+@vindex image-dired-thumb-size
+  You can control the size of the thumbnail images by customizing the
+variable @code{image-dired-thumb-size}.  The default is 128 pixels.
+This variable is in effect only for the first and the third method of
+thumbnail storage described above; the Thumbnail Managing Standard uses
+fixed sizes determined by the method: @code{standard} uses 128 pixels,
+@code{standard-large} 256 pixels, etc.  If you change the size after
+some thumbnails were already created, you need to erase the thumbnail
+files from their directory to have the new size take effect.
+
 @findex image-dired-display-this
 @findex image-dired-display-next
 @findex image-dired-display-previous
@@ -1736,6 +1775,13 @@ the image.  You comment a file from the thumbnail buffer by typing
 a comment from Dired (@code{image-dired-dired-comment-files}).
 @kbd{C-t e} will bring a buffer to edit comment and tags
 (@code{image-dired-dired-edit-comment-and-tags}).
+
+@findex image-dired-thumbnail-set-image-description
+  If you have the @command{exiftool} program installed, you can set the
+@acronym{EXIF} @samp{ImageDescription} tag of an image file by invoking
+the @code{image-dired-thumbnail-set-image-description} command with
+point at the thumbnail of the image file.  This command prompts for the
+description of the image, and adds the @acronym{EXIF} tag to it.
 
 @vindex image-dired-thumb-visible-marks
   Files that are marked in Dired will also be marked in Image-Dired if

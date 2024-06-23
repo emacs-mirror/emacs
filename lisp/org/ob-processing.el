@@ -78,7 +78,7 @@
 (defun org-babel-processing-view-sketch ()
   "Show the sketch of the Processing block under point in an external viewer."
   (interactive)
-  (require 'processing-mode)
+  (org-require-package 'processing-mode)
   (let ((info (org-babel-get-src-block-info)))
     (if (string= (nth 0 info) "processing")
 	(let* ((body (nth 1 info))
@@ -118,7 +118,7 @@
       (message "Not inside a Processing source block."))))
 
 (defun org-babel-execute:processing (body params)
-  "Execute a block of Processing code.
+  "Execute Processing code BODY according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
   (let ((sketch-code
 	 (org-babel-expand-body:generic
@@ -144,7 +144,8 @@ Processing does not support sessions."
   (error "Processing does not support sessions"))
 
 (defun org-babel-variable-assignments:processing (params)
-  "Return list of processing statements assigning the block's variables."
+  "Return list of processing statements assigning the block's variables.
+The variable assignments are defined in PARAMS."
   (mapcar #'org-babel-processing-var-to-processing
 	  (org-babel--get-vars params)))
 

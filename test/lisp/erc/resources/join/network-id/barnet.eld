@@ -1,5 +1,5 @@
 ;; -*- mode: lisp-data; -*-
-((pass 2 "PASS :barnet:changeme"))
+((pass 10 "PASS :barnet:changeme"))
 ((nick 2 "NICK tester"))
 ((user 1 "USER user 0 * :tester")
  (0 ":irc.barnet.org 001 tester :Welcome to the barnet IRC Network tester")

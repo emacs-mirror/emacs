@@ -2074,14 +2074,14 @@ their previous values/states (using the companion function
 line at the bottom, which displays status information about the buffer
 displayed in the window.  The mode line contains information about the
 buffer, such as its name, associated file, depth of recursive editing,
-and major and minor modes.  A window can also have a @dfn{header
-line}, which is much like the mode line but appears at the top of the
-window.
+and major and minor modes.  A window can also have a @dfn{header line}
+and a @dfn{tab line}, which are much like the mode line but they appear
+at the top of the window.
 
-  This section describes how to control the contents of the mode line
-and header line.  We include it in this chapter because much of the
-information displayed in the mode line relates to the enabled major and
-minor modes.
+  This section describes how to control the contents of the mode line,
+header line, and tab line.  We include it in this chapter because much
+of the information displayed in the mode line relates to the enabled
+major and minor modes.
 
 @menu
 * Base: Mode Line Basics.       Basic ideas of mode line control.
@@ -2091,6 +2091,7 @@ minor modes.
 * %-Constructs::                Putting information into a mode line.
 * Properties in Mode::          Using text properties in the mode line.
 * Header Lines::                Like a mode line, but at the top.
+* Tab Lines::                   A line that is above the header line.
 * Emulating Mode Line::         Formatting text as the mode line would.
 @end menu
 
@@ -2101,11 +2102,13 @@ minor modes.
 variable @code{mode-line-format} (@pxref{Mode Line Top}).  This variable
 holds a @dfn{mode line construct}: a template that controls what is
 displayed on the buffer's mode line.  The value of
-@code{header-line-format} specifies the buffer's header line in the same
-way.  All windows for the same buffer use the same
-@code{mode-line-format} and @code{header-line-format} unless a
-@code{mode-line-format} or @code{header-line-format} parameter has been
-specified for that window (@pxref{Window Parameters}).
+@code{header-line-format} and @code{tab-line-format} specifies the
+buffer's header line and tab line in the same way.  All windows for the
+same buffer use the same @code{mode-line-format},
+@code{header-line-format}, and @code{tab-line-format} unless a
+@code{mode-line-format}, @code{header-line-format}, or
+@code{tab-line-format} parameter has been specified for that window
+(@pxref{Window Parameters}).
 
   For efficiency, Emacs does not continuously recompute each window's
 mode line and header line.  It does so when circumstances appear to call
@@ -2167,8 +2170,8 @@ buffers.
 @dfn{mode line construct}, made up of lists, strings, symbols, and
 numbers kept in buffer-local variables.  Each data type has a specific
 meaning for the mode line appearance, as described below.  The same data
-structure is used for constructing frame titles (@pxref{Frame Titles})
-and header lines (@pxref{Header Lines}).
+structure is used for constructing frame titles (@pxref{Frame Titles}),
+header lines (@pxref{Header Lines}), and tab lines (@pxref{Tab Lines}).
 
   A mode line construct may be as simple as a fixed string of text,
 but it usually specifies how to combine fixed strings with variables'
@@ -2815,6 +2818,31 @@ selected window.
 window that is two lines tall cannot display both a mode line and a
 header line at once; if it has a mode line, then it does not display a
 header line.
+
+@node Tab Lines
+@subsection Window Tab Lines
+@cindex tab line (of a window)
+@cindex window tab line
+
+  A window can have a @dfn{tab line} at the top.  If both the tab line
+and header line are visible, the tab line appears above the header line.
+The tab line feature is controlled like the mode line feature, except
+that it's controlled by @code{tab-line-format}.  Unlike the mode line,
+the tab line is only expected to be used to display a list of tabs
+(@pxref{Tab Line,,, emacs, The GNU Emacs Manual}) or the window
+tool bar (@pxref{Window Tool Bar,,, emacs, The GNU Emacs Manual}):
+
+@defvar tab-line-format
+This variable, local in every buffer, specifies how to display the tab
+line, for windows displaying the buffer.  The format of the value is the
+same as for @code{mode-line-format} (@pxref{Mode Line Data}).  It is
+normally @code{nil}, so that ordinary buffers have no tab line.
+@end defvar
+
+@defun window-tab-line-height &optional window
+This function returns the height in pixels of @var{window}'s tab line.
+@var{window} must be a live window, and defaults to the selected window.
+@end defun
 
 @node Emulating Mode Line
 @subsection Emulating Mode Line Formatting

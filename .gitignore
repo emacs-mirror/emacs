@@ -78,6 +78,7 @@ lib/alloca.h
 lib/assert.h
 lib/byteswap.h
 lib/dirent.h
+lib/endian.h
 lib/errno.h
 lib/execinfo.h
 lib/fcntl.h
@@ -128,7 +129,7 @@ lisp/cedet/semantic/wisent/js-wy.el
 lisp/cedet/semantic/wisent/python-wy.el
 lisp/cedet/srecode/srt-wy.el
 lisp/cedet/semantic/grammar-wy.el
-lisp/eshell/esh-groups.el
+lisp/eshell/esh-module-loaddefs.el
 lisp/finder-inf.el
 lisp/leim/ja-dic/
 leim/small-ja-dic-option

@@ -173,6 +173,7 @@ static struct option const longopts[] =
   { "version",	no_argument,	   NULL, 'V' },
   { "tty",	no_argument,       NULL, 't' },
   { "nw",	no_argument,       NULL, 't' },
+  { "no-window-system",	no_argument, NULL, 't' },
   { "create-frame", no_argument,   NULL, 'c' },
   { "reuse-frame", no_argument,   NULL, 'r' },
   { "alternate-editor", required_argument, NULL, 'a' },
@@ -690,7 +691,8 @@ Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
 The following OPTIONS are accepted:\n\
 -V, --version		Just print version info and return\n\
 -H, --help    		Print this usage information message\n\
--nw, -t, --tty 		Open a new Emacs frame on the current terminal\n\
+-nw, -t, --tty, --no-window-system\n\
+			Open a new Emacs frame on the current terminal\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
 -r, --reuse-frame	Create a new frame if none exists, otherwise\n\

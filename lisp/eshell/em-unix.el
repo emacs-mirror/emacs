@@ -38,7 +38,7 @@
 (require 'esh-mode)
 (require 'pcomplete)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-unix nil
   "This module defines many of the more common UNIX utilities as
@@ -654,12 +654,10 @@ symlink, then revert to the system's definition of cat."
 		(throw 'special t)))))
       (let ((ext-cat (eshell-search-path "cat")))
 	(if ext-cat
-	    (throw 'eshell-replace-command
-		   (eshell-parse-command (eshell-quote-argument ext-cat) args))
+	    (throw 'eshell-external (eshell-external-command ext-cat args))
 	  (if eshell-in-pipeline-p
 	      (error "Eshell's `cat' does not work in pipelines")
 	    (error "Eshell's `cat' cannot display one of the files given"))))
-    (eshell-init-print-buffer)
     (eshell-eval-using-options
      "cat" args
      '((?h "help" nil nil "show this usage screen")
@@ -672,20 +670,18 @@ Concatenate FILE(s), or standard input, to standard output.")
 	   (throw 'eshell-external
 		  (eshell-external-command "cat" args))))
      (let ((curbuf (current-buffer)))
-       (dolist (file args)
-	 (with-temp-buffer
-	   (insert-file-contents file)
-	   (goto-char (point-min))
-	   (while (not (eobp))
-	     (let ((str (buffer-substring
-			 (point) (min (1+ (line-end-position))
-				      (point-max)))))
-	       (with-current-buffer curbuf
-		 (eshell-buffered-print str)))
-	     (forward-line)))))
-     (eshell-flush)
-     ;; if the file does not end in a newline, do not emit one
-     (setq eshell-ensure-newline-p nil))))
+       (eshell-with-buffered-print
+         (dolist (file args)
+	   (with-temp-buffer
+	     (insert-file-contents file)
+	     (goto-char (point-min))
+             (while (not (eobp))
+               (let* ((pos (min (+ (point) eshell-buffered-print-size)
+                                (point-max)))
+                      (str (buffer-substring (point) pos)))
+                 (with-current-buffer curbuf
+                   (eshell-buffered-print str))
+                 (goto-char pos))))))))))
 
 (put 'eshell/cat 'eshell-no-numeric-conversions t)
 (put 'eshell/cat 'eshell-filename-arguments t)
@@ -924,8 +920,7 @@ external command."
 		      (if (string-equal
 			   (file-remote-p (expand-file-name arg) 'method) "ftp")
 			  (throw 'have-ange-path t))))))
-	(throw 'eshell-replace-command
-	       (eshell-parse-command (eshell-quote-argument ext-du) args))
+	(throw 'eshell-external (eshell-external-command ext-du args))
       (eshell-eval-using-options
        "du" args
        '((?a "all" nil show-all
@@ -1096,9 +1091,4 @@ Show wall-clock time elapsed during execution of COMMAND.")
 (define-obsolete-function-alias 'eshell-diff-quit #'ignore "30.1")
 
 (provide 'em-unix)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-unix.el ends here

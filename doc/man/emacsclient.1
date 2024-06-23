@@ -1,5 +1,5 @@
 .\" See section COPYING for conditions for redistribution.
-.TH EMACSCLIENT 1 "2023-12-23" "GNU Emacs" "GNU"
+.TH EMACSCLIENT 1 "2024-06-13" "GNU Emacs" "GNU"
 .\" NAME should be all caps, SECTION should be 1-8, maybe w/ subsection
 .\" other params are allowed: see man(7), man(1)
 .SH NAME
@@ -125,7 +125,7 @@ Relative filenames are relative to "$XDG_RUNTIME_DIR/emacs/" or "$TMPDIR/".
 See also the EMACS_SOCKET_NAME environment variable, over which this
 option takes precedence.
 .TP
-.B \-nw, \-t, \-\-tty
+.B \-nw, \-t, \-\-tty, \-\-no-window-system
 Open a new Emacs frame on the current terminal.
 .TP
 .B \-T, \-\-tramp=PREFIX
@@ -193,5 +193,7 @@ specific to that system.
 This manual page is in the public domain.
 
 .\" Local Variables:
+.\" eval: (add-hook 'before-save-hook 'time-stamp nil t)
 .\" time-stamp-pattern: "3/.TH EMACSCLIENT 1 \"%Y-%02m-%02d\" \"GNU Emacs\" \"GNU\"$"
+.\" time-stamp-time-zone: "UTC0"
 .\" End:

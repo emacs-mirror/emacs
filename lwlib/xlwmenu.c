@@ -248,7 +248,7 @@ XlwMenuClassRec xlwMenuClassRec =
 
 WidgetClass xlwMenuWidgetClass = (WidgetClass) &xlwMenuClassRec;
 
-int submenu_destroyed;
+static int submenu_destroyed;
 
 static int next_release_must_exit;
 

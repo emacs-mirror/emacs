@@ -36,6 +36,7 @@
 
 (eval-when-compile (require 'subr-x))
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'autorevert))
 ;; When bootstrapping dired-loaddefs has not been generated.
 (require 'dired-loaddefs nil t)
 (require 'dnd)
@@ -1710,9 +1711,10 @@ see `dired-use-ls-dired' for more details.")
       (cond ((and dir-wildcard (files--use-insert-directory-program-p))
              (setq switches (concat "-d " switches))
              (let* ((default-directory (car dir-wildcard))
+                    (ls (or (and remotep "ls")
+                            insert-directory-program))
                     (script (format "%s %s %s"
-                                    insert-directory-program
-                                    switches (cdr dir-wildcard)))
+                                    ls switches (cdr dir-wildcard)))
                     (sh (or (and remotep "/bin/sh")
                             (executable-find shell-file-name)
                             (executable-find "sh")))
@@ -4014,7 +4016,11 @@ non-empty directories is allowed."
               (dired-move-to-filename)
 	      (let ((inhibit-read-only t))
 		(condition-case err
-		    (let ((fn (car (car l))))
+		    (let ((fn (car (car l)))
+                          ;; Temporarily prevent auto-revert while
+                          ;; deleting entry in the dired buffer
+                          ;; (bug#71264).
+                          (auto-revert-mode nil))
 		      (dired-delete-file fn dired-recursive-deletes trash)
 		      ;; if we get here, removing worked
 		      (setq succ (1+ succ))

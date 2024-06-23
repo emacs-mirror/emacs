@@ -61,7 +61,7 @@
 
 (defvar org-babel-haskell-lhs2tex-command "lhs2tex")
 
-(defvar org-babel-haskell-eoe "\"org-babel-haskell-eoe\"")
+(defvar org-babel-haskell-eoe "org-babel-haskell-eoe")
 
 (defvar haskell-prompt-regexp)
 
@@ -77,8 +77,35 @@ a parameter, such as \"ghc -v\"."
 (defconst org-babel-header-args:haskell '((compile . :any))
   "Haskell-specific header arguments.")
 
+
+(defun org-babel-haskell-with-session--worker (params todo)
+  "See `org-babel-haskell-with-session'."
+  (let* ((sn (cdr (assq :session params)))
+         (session (org-babel-haskell-initiate-session sn params))
+         (one-shot (equal sn "none")))
+    (unwind-protect
+        (funcall todo session)
+      (when (and one-shot (buffer-live-p session))
+        ;; As we don't control how the session temporary buffer is
+        ;; created, we need to explicitly work around the hooks and
+        ;; query functions.
+        (with-current-buffer session
+          (let ((kill-buffer-query-functions nil)
+                (kill-buffer-hook nil))
+            (kill-buffer session)))))))
+
+(defmacro org-babel-haskell-with-session (session-symbol params &rest body)
+  "Get the session identified by PARAMS and run BODY with it.
+
+Get or create a session, as needed to match PARAMS.  Assign the session to
+SESSION-SYMBOL.  Execute BODY.  Destroy the session if needed.
+Return the value of the last form of BODY."
+  (declare (indent 2) (debug (symbolp form body)))
+  `(org-babel-haskell-with-session--worker ,params (lambda (,session-symbol) ,@body)))
+
 (defun org-babel-haskell-execute (body params)
-  "This function should only be called by `org-babel-execute:haskell'."
+  "Execute Haskell BODY according to PARAMS.
+This function should only be called by `org-babel-execute:haskell'."
   (let* ((tmp-src-file (org-babel-temp-file "Haskell-src-" ".hs"))
          (tmp-bin-file
           (org-babel-process-file-name
@@ -122,39 +149,63 @@ a parameter, such as \"ghc -v\"."
 	  (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))))))
 
 (defun org-babel-interpret-haskell (body params)
-  (require 'inf-haskell)
+  (org-require-package 'inf-haskell "haskell-mode")
   (add-hook 'inferior-haskell-hook
             (lambda ()
-              (setq-local comint-prompt-regexp
-                          (concat haskell-prompt-regexp "\\|^λ?> "))))
-  (let* ((session (cdr (assq :session params)))
-         (result-type (cdr (assq :result-type params)))
-         (full-body (org-babel-expand-body:generic
-		     body params
-		     (org-babel-variable-assignments:haskell params)))
-         (session (org-babel-haskell-initiate-session session params))
-	 (comint-preoutput-filter-functions
-	  (cons 'ansi-color-filter-apply comint-preoutput-filter-functions))
-         (raw (org-babel-comint-with-output
-		  (session org-babel-haskell-eoe nil full-body)
-                (insert (org-trim full-body))
-                (comint-send-input nil t)
-                (insert org-babel-haskell-eoe)
-                (comint-send-input nil t)))
-         (results (mapcar #'org-strip-quotes
-			  (cdr (member org-babel-haskell-eoe
-                                       (reverse (mapcar #'org-trim raw)))))))
-    (org-babel-reassemble-table
-     (let ((result
-            (pcase result-type
-              (`output (mapconcat #'identity (reverse results) "\n"))
-              (`value (car results)))))
-       (org-babel-result-cond (cdr (assq :result-params params))
-	 result (when result (org-babel-script-escape result))))
-     (org-babel-pick-name (cdr (assq :colname-names params))
-			  (cdr (assq :colname-names params)))
-     (org-babel-pick-name (cdr (assq :rowname-names params))
-			  (cdr (assq :rowname-names params))))))
+              (setq-local
+               org-babel-comint-prompt-regexp-old comint-prompt-regexp
+               comint-prompt-regexp
+               (concat haskell-prompt-regexp "\\|^λ?> "))))
+  (org-babel-haskell-with-session session params
+    (cl-labels
+        ((send-txt-to-ghci (txt)
+           (insert txt) (comint-send-input nil t))
+         (send-eoe ()
+           (send-txt-to-ghci (concat "putStrLn \"" org-babel-haskell-eoe "\"\n")))
+         (comint-with-output (todo)
+           (let ((comint-preoutput-filter-functions
+                  (cons 'ansi-color-filter-apply
+                        comint-preoutput-filter-functions)))
+             (org-babel-comint-with-output
+                 (session org-babel-haskell-eoe nil nil)
+               (funcall todo)))))
+      (let* ((result-type (cdr (assq :result-type params)))
+             (full-body (org-babel-expand-body:generic
+                         body params
+                         (org-babel-variable-assignments:haskell params)))
+             (raw (pcase result-type
+                    (`output
+                     (comint-with-output
+                      (lambda () (send-txt-to-ghci (org-trim full-body)) (send-eoe))))
+                    (`value
+                      ;; We first compute the value and store it,
+                      ;; ignoring any output.
+                     (comint-with-output
+                      (lambda ()
+                        (send-txt-to-ghci "__LAST_VALUE_IMPROBABLE_NAME__=()::()\n")
+                        (send-txt-to-ghci (org-trim full-body))
+                        (send-txt-to-ghci "__LAST_VALUE_IMPROBABLE_NAME__=it\n")
+                        (send-eoe)))
+                      ;; We now display and capture the value.
+                     (comint-with-output
+                      (lambda()
+                        (send-txt-to-ghci "__LAST_VALUE_IMPROBABLE_NAME__\n")
+                        (send-eoe))))))
+             (results (mapcar #'org-strip-quotes
+                              (cdr (member org-babel-haskell-eoe
+                                           (reverse (mapcar #'org-trim raw)))))))
+        (org-babel-reassemble-table
+         (let ((result
+                (pcase result-type
+                  (`output (mapconcat #'identity (reverse results) "\n"))
+                  (`value (car results)))))
+           (org-babel-result-cond (cdr (assq :result-params params))
+	     result (when result (org-babel-script-escape result))))
+         (org-babel-pick-name (cdr (assq :colname-names params))
+			      (cdr (assq :colname-names params)))
+         (org-babel-pick-name (cdr (assq :rowname-names params))
+			      (cdr (assq :rowname-names params))))))))
+
 
 (defun org-babel-execute:haskell (body params)
   "Execute a block of Haskell code."
@@ -163,13 +214,65 @@ a parameter, such as \"ghc -v\"."
 	(org-babel-interpret-haskell body params)
       (org-babel-haskell-execute body params))))
 
-(defun org-babel-haskell-initiate-session (&optional _session _params)
+
+
+
+;; Variable defined in inf-haskell (haskell-mode package).
+(defvar inferior-haskell-buffer)
+(defvar inferior-haskell-root-dir)
+
+(defun org-babel-haskell-initiate-session (&optional session-name _params)
   "Initiate a haskell session.
-If there is not a current inferior-process-buffer in SESSION
-then create one.  Return the initialized session."
-  (require 'inf-haskell)
-  (or (get-buffer "*haskell*")
-      (save-window-excursion (run-haskell) (sleep-for 0.25) (current-buffer))))
+Return the initialized session, i.e. the buffer for this session.
+When SESSION-NAME is nil, use a global session named
+\"*ob-haskell*\".  When SESSION-NAME is the string \"none\", use
+a temporary buffer.  Else, (re)use the session named
+SESSION-NAME.  The buffer name is the session name.  See also
+`org-babel-haskell-with-session'."
+  (org-require-package 'inf-haskell "haskell-mode")
+  (cond
+   ((equal "none" session-name)
+    ;; Temporary buffer name.
+    (setq session-name (generate-new-buffer-name " *ob-haskell-tmp*")))
+   ((eq nil session-name)
+    ;; The global default session. As haskell-mode is using the buffer
+    ;; named "*haskell*", we stay away from it.
+    (setq session-name "*ob-haskell*"))
+   ((not (stringp session-name))
+    (error "session-name must be a string")))
+  (let ((session (get-buffer session-name)))
+    ;; NOTE: By construction, as SESSION-NAME is a string, session is
+    ;; either nil or a live buffer.
+    (save-window-excursion
+      (or (org-babel-comint-buffer-livep session)
+          (let ((inferior-haskell-buffer session))
+            ;; As inferior-haskell expects the buffer to be named
+            ;; "*haskell*", we temporarily rename it while executing
+            ;; `run-haskell' (unless the user explicitly requested to
+            ;; use the name "*haskell*").
+            (when (not (equal "*haskell*" session-name))
+              (when (bufferp session)
+                (when (bufferp "*haskell*")
+                  (user-error "Conflicting buffer '*haskell*', rename it or kill it"))
+                (with-current-buffer session (rename-buffer "*haskell*"))))
+            (unwind-protect
+                (let ((inferior-haskell-root-dir default-directory))
+                  (run-haskell)
+                  (sleep-for 0.25)
+                  (setq session inferior-haskell-buffer))
+              (when (and (not (equal "*haskell*" session-name))
+                         (bufferp session))
+                (with-current-buffer session (rename-buffer session-name))))
+            ;; Disable secondary prompt: If we do not do this,
+            ;; org-comint may treat secondary prompts as a part of
+            ;; output.
+            (org-babel-comint-input-command
+             session
+             ":set prompt-cont \"\"")
+            session)
+          ))
+    session))
+
 
 (defun org-babel-load-session:haskell (session body params)
   "Load BODY into SESSION."
@@ -226,7 +329,7 @@ constructs (header arguments, no-web syntax etc...) are ignored."
   (let* ((contents (buffer-string))
          (haskell-regexp
           (concat "^\\([ \t]*\\)#\\+begin_src[ \t]haskell*\\(.*\\)[\r\n]"
-                  "\\([^\000]*?\\)[\r\n][ \t]*#\\+end_src.*"))
+                  "\\(\\(?:.\\|\n\\)*?\\)[\r\n][ \t]*#\\+end_src.*"))
          (base-name (file-name-sans-extension (buffer-file-name)))
          (tmp-file (org-babel-temp-file "haskell-"))
          (tmp-org-file (concat tmp-file ".org"))
@@ -255,26 +358,27 @@ constructs (header arguments, no-web syntax etc...) are ignored."
                        t t)
         (indent-code-rigidly (match-beginning 0) (match-end 0) indentation)))
     (save-excursion
-      ;; export to latex w/org and save as .lhs
-      (require 'ox-latex)
-      (find-file tmp-org-file)
-      ;; Ensure we do not clutter kill ring with incomplete results.
-      (let (org-export-copy-to-kill-ring)
-	(org-export-to-file 'latex tmp-tex-file))
-      (kill-buffer nil)
-      (delete-file tmp-org-file)
-      (find-file tmp-tex-file)
-      (goto-char (point-min)) (forward-line 2)
-      (insert "%include polycode.fmt\n")
-      ;; ensure all \begin/end{code} statements start at the first column
-      (while (re-search-forward "^[ \t]+\\\\begin{code}[^\000]+\\\\end{code}" nil t)
-        (replace-match (save-match-data (org-remove-indentation (match-string 0)))
-                       t t))
-      (setq contents (buffer-string))
-      (save-buffer) (kill-buffer nil))
-    (delete-file tmp-tex-file)
-    ;; save org exported latex to a .lhs file
-    (with-temp-file lhs-file (insert contents))
+      (unwind-protect
+          (with-temp-buffer
+            ;; Export to latex w/org and save as .lhs
+            (require 'ox-latex)
+            (insert-file-contents tmp-org-file)
+            ;; Ensure we do not clutter kill ring with incomplete results.
+            (let (org-export-copy-to-kill-ring)
+	      (org-export-to-file 'latex tmp-tex-file)))
+        (delete-file tmp-org-file))
+      (unwind-protect
+          (with-temp-buffer
+            (insert-file-contents tmp-tex-file)
+            (goto-char (point-min)) (forward-line 2)
+            (insert "%include polycode.fmt\n")
+            ;; ensure all \begin/end{code} statements start at the first column
+            (while (re-search-forward "^[ \t]+\\\\begin{code}\\(?:.\\|\n\\)+\\\\end{code}" nil t)
+              (replace-match (save-match-data (org-remove-indentation (match-string 0)))
+                             t t))
+            ;; save org exported latex to a .lhs file
+            (write-region nil nil lhs-file))
+        (delete-file tmp-tex-file)))
     (if (not arg)
         (find-file lhs-file)
       ;; process .lhs file with lhs2tex

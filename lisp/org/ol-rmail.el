@@ -51,7 +51,7 @@
 			 :store #'org-rmail-store-link)
 
 ;; Implementation
-(defun org-rmail-store-link ()
+(defun org-rmail-store-link (&optional _interactive?)
   "Store a link to an Rmail folder or message."
   (when (or (eq major-mode 'rmail-mode)
 	    (eq major-mode 'rmail-summary-mode))

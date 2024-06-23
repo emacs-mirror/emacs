@@ -86,7 +86,7 @@ exec "${AWK-awk}" '
       for (dircat = 0; dircat < ntopics && topic[dircat] != $0; dircat++)
         continue;
     }
-    if (tolower($0) ~ /^#\+texinfo_dir_title/) {
+    if (tolower($0) ~ /^#\+(texinfo_dir_title|texinfo_dir_name)/) {
       sub(/^#[^:]*: /, "")
       ## Note this does not fill any long descriptions.
       data[dircat] = data[dircat] sprintf("* %-30s", ($0 ". "))

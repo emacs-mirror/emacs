@@ -92,7 +92,7 @@
 
 (require 'esh-mode)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-alias nil
   "Command aliases allow for easy definition of alternate commands."
@@ -107,7 +107,9 @@ it will be written to this file.  Thus, alias definitions (and
 deletions) are always permanent.  This approach was chosen for the
 sake of simplicity, since that's pretty much the only benefit to be
 gained by using this module."
-  :type 'file
+  :version "30.1"
+  :type '(choice (const :tag "Don't save aliases" nil)
+                 file)
   :group 'eshell-alias)
 
 (defcustom eshell-bad-command-tolerance 3
@@ -186,29 +188,30 @@ file named by `eshell-aliases-file'.")
   "Read in an aliases list from `eshell-aliases-file'.
 This is useful after manually editing the contents of the file."
   (interactive)
-  (let ((file eshell-aliases-file))
-    (when (file-readable-p file)
-      (setq eshell-command-aliases-list
-	    (with-temp-buffer
-	      (let (eshell-command-aliases-list)
-		(insert-file-contents file)
-		(while (not (eobp))
-		  (if (re-search-forward
-		       "^alias\\s-+\\(\\S-+\\)\\s-+\\(.+\\)")
-		      (setq eshell-command-aliases-list
-			    (cons (list (match-string 1)
-					(match-string 2))
-				  eshell-command-aliases-list)))
-		  (forward-line 1))
-		eshell-command-aliases-list))))))
+  (when (and eshell-aliases-file
+             (file-readable-p eshell-aliases-file))
+    (setq eshell-command-aliases-list
+          (with-temp-buffer
+            (let (eshell-command-aliases-list)
+              (insert-file-contents eshell-aliases-file)
+              (while (not (eobp))
+                (if (re-search-forward
+                     "^alias\\s-+\\(\\S-+\\)\\s-+\\(.+\\)")
+                    (setq eshell-command-aliases-list
+                          (cons (list (match-string 1)
+                                      (match-string 2))
+                                eshell-command-aliases-list)))
+                (forward-line 1))
+              eshell-command-aliases-list)))))
 
 (defun eshell-write-aliases-list ()
   "Write out the current aliases into `eshell-aliases-file'."
-  (if (file-writable-p (file-name-directory eshell-aliases-file))
-      (let ((eshell-current-handles
-	     (eshell-create-handles eshell-aliases-file 'overwrite)))
-	(eshell/alias)
-	(eshell-close-handles 0 'nil))))
+  (when (and eshell-aliases-file
+             (file-writable-p (file-name-directory eshell-aliases-file)))
+    (let ((eshell-current-handles
+           (eshell-create-handles eshell-aliases-file 'overwrite)))
+      (eshell/alias)
+      (eshell-close-handles 0 'nil))))
 
 (defsubst eshell-lookup-alias (name)
   "Check whether NAME is aliased.  Return the alias if there is one."
@@ -216,18 +219,26 @@ This is useful after manually editing the contents of the file."
 
 (defvar eshell-prevent-alias-expansion nil)
 
+(defun eshell-maybe-replace-by-alias--which (command)
+  (unless (and eshell-prevent-alias-expansion
+               (member command eshell-prevent-alias-expansion))
+    (when-let ((alias (eshell-lookup-alias command)))
+      (concat command " is an alias, defined as \"" (cadr alias) "\""))))
+
 (defun eshell-maybe-replace-by-alias (command _args)
   "Call COMMAND's alias definition, if it exists."
   (unless (and eshell-prevent-alias-expansion
 	       (member command eshell-prevent-alias-expansion))
-    (let ((alias (eshell-lookup-alias command)))
-      (if alias
-	  (throw 'eshell-replace-command
-		 `(let ((eshell-command-name ',eshell-last-command-name)
-                        (eshell-command-arguments ',eshell-last-arguments)
-                        (eshell-prevent-alias-expansion
-                         ',(cons command eshell-prevent-alias-expansion)))
-                    ,(eshell-parse-command (nth 1 alias))))))))
+    (when-let ((alias (eshell-lookup-alias command)))
+      (throw 'eshell-replace-command
+             `(let ((eshell-command-name ',eshell-last-command-name)
+                    (eshell-command-arguments ',eshell-last-arguments)
+                    (eshell-prevent-alias-expansion
+                     ',(cons command eshell-prevent-alias-expansion)))
+                ,(eshell-parse-command (nth 1 alias)))))))
+
+(put 'eshell-maybe-replace-by-alias 'eshell-which-function
+     #'eshell-maybe-replace-by-alias--which)
 
 (defun eshell-alias-completions (name)
   "Find all possible completions for NAME.
@@ -268,9 +279,4 @@ These are all the command aliases which begin with NAME."
 		     (eshell-parse-command alias))))))))))
 
 (provide 'em-alias)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-alias.el ends here

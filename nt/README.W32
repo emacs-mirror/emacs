@@ -1,7 +1,7 @@
 Copyright (C) 2001-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
-		Emacs version 30.0.50 for MS-Windows
+		Emacs version 31.0.50 for MS-Windows
 
   This README file describes how to set up and run a precompiled
   distribution of the latest version of GNU Emacs for MS-Windows.  You
@@ -55,7 +55,7 @@ See the end of the file for license conditions.
 
 * Prerequisites for Windows 9X
 
-  The 32-bit build supports MS-Windows 9X (Windows 95/98/Me).  To run
+  The 32-bit build supports MS-Windows 9X (Windows 98/Me).  To run
   Emacs on these versions of Windows, you will need to have the
   Microsoft Layer for Unicode (MSLU) installed.  It can be downloaded
   from the Microsoft site, and comes in a form of a single dynamic

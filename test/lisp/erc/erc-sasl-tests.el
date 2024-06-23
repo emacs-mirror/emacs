@@ -319,16 +319,27 @@ IRX9cyi2wdYg9mUUYyh9GKdBCYHGUJAiCA==
   :tags '(:unstable)
   ;; This is currently useless because it just roundtrips shelling out
   ;; to pkeyutl.
-  (ert-skip "Placeholder")
+  (ert-skip "Placeholder for manual debugging")
   (unless (executable-find "openssl")
     (ert-skip "System lacks openssl"))
+
   (ert-with-temp-file keyfile
     :prefix "ecdsa_key"
     :suffix ".pem"
     :text erc-sasl-tests-ecdsa-key-file
-    (let* ((erc-server-current-nick "jilles")
-           (erc-sasl--options `((password . ,keyfile)))
-           (client (erc-sasl--create-client 'ecdsa-nist256p-challenge))
+
+    (erc-mode)
+    (erc--initialize-markers (point) nil)
+    (setq erc-server-process (make-process :name "sleep"
+                                           :buffer (current-buffer)
+                                           :command '("sleep" "1")
+                                           :noquery t)
+          erc-session-username "jilles")
+    (let ((erc-sasl-mechanism 'ecdsa-nist256p-challenge)
+          (erc-sasl-password keyfile))
+      (erc-sasl-mode +1))
+
+    (let* ((client (erc-sasl--state-client erc-sasl--state))
            (step (sasl-next-step client nil)))
       (ert-info ("Client's initial request")
         (should (equal (format "%S" [erc-sasl--ecdsa-first "jilles"])

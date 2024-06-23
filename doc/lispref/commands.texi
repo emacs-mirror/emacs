@@ -2354,7 +2354,7 @@ window within a frame can also switch the selected window.  @xref{Mouse
 Window Auto-selection}, which describes the behavior for different
 values.  When the mouse is moved over a new window, a focus event for
 switching windows is generated.  Focus events for windows are
-reperesented in Lisp as lists that look like this:
+represented in Lisp as lists that look like this:
 
 @example
 (select-window @var{new-window})

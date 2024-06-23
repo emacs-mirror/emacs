@@ -79,15 +79,14 @@ similar to command shells such as @command{bash}, @command{zsh},
 * Commands::
 * Expansion::
 * Input/Output::
+* Interaction::
 * Extension modules::
 * Bugs and ideas::              Known problems, and future ideas.
 * GNU Free Documentation License:: The license for this documentation.
 * Concept Index::
 * Function and Variable Index::
 * Command Index::
-@ignore
 * Key Index::
-@end ignore
 @end menu
 
 @node Introduction
@@ -208,8 +207,6 @@ that will be invoked, type this as the Eshell prompt:
 * Variables::
 * Aliases::
 * Remote Access::
-* History::
-* Completion::
 * Control Flow::
 * Scripts::
 @end menu
@@ -1552,95 +1549,9 @@ also specify the absolute path to the program, e.g.@:
 program whose file name would be interpreted as an explicitly-remote
 command, you can use @kbd{/:} to quote the name, e.g.@:
 @samp{/:/ssh:user@@remote:whoami} (@pxref{Quoted File Names,,, emacs,
-The GNU Emacs Manual}).  To disable explicity-remote commands entirely,
+The GNU Emacs Manual}).  To disable explicitly-remote commands entirely,
 you can set the option @code{eshell-explicit-remote-commands} to
 @code{nil}.
-
-@node History
-@section History
-@cmindex history
-@vindex eshell-history-size
-The @samp{history} command shows all commands kept in the history ring
-as numbered list.  If the history ring contains
-@code{eshell-history-size} commands, those numbers change after every
-command invocation, therefore the @samp{history} command shall be
-applied before using the expansion mechanism with history numbers.
-
-The n-th entry of the history ring can be applied with the @samp{!n}
-command.  If @code{n} is negative, the entry is counted from the end
-of the history ring.
-
-@cindex event designators
-@findex eshell-expand-history-references
-When history event designators are enabled (by adding
-@code{eshell-expand-history-references} to
-@code{eshell-expand-input-functions}), @samp{!foo} expands to the last
-command beginning with @code{foo}, and @samp{!?foo} to the last
-command containing @code{foo}.  The n-th argument of the last command
-beginning with @code{foo} is accessible by @code{!foo:n}.
-
-@vindex eshell-history-file-name
-@vindex eshell-history-append
-The history is loaded to the history ring from the file
-@code{eshell-history-file-name} at the start of every session, and
-saved to that file at the end of every session.  The default history
-saving behavior is to overwrite the history file with the whole
-history ring of the session.  If @code{eshell-history-append} is
-non-@code{nil}, the history will instead be saved by appending new
-entries from the session to the history file, which could prevent
-potential history loss with multiple Eshell sessions.  Unlike other
-shells, such as Bash, Eshell cannot currently be configured to control
-the size of the history file.  In particular, when
-@code{eshell-history-append} is non-@code{nil}, the size of the file
-will keep increasing, and the recommended way to truncate the file is
-to run the @samp{history -w} command in an Eshell session.
-
-Since the default buffer navigation and searching key-bindings are
-still present in the Eshell buffer, the commands for history
-navigation and searching are bound to different keys:
-
-@table @kbd
-@item M-r
-@itemx M-s
-History I-search.
-
-@item M-p
-@itemx M-n
-Previous and next history line.  If there is anything on the input
-line when you run these commands, they will instead jump to the
-previous or next line that begins with that string.
-@end table
-
-@node Completion
-@section Completion
-Eshell uses the pcomplete package for programmable completion, similar
-to that of other command shells.  Argument completion differs depending
-on the preceding command: for example, possible completions for
-@command{rmdir} are only directories, while @command{rm} completions can
-be directories @emph{and} files.  Eshell provides predefined completions
-for the built-in functions and some common external commands, and you
-can define your own for any command.
-
-Eshell completion also works for Lisp forms and glob patterns. If the
-point is on a Lisp form, then @key{TAB} will behave similarly to
-completion in @code{elisp-mode} and @code{lisp-interaction-mode}.  For
-glob patterns, the pattern will be removed from the input line, and
-replaced by the completion.
-
-If you want to see the entire list of possible completions (e.g. when it's
-below the @code{completion-cycle-threshold}), press @kbd{M-?}.
-
-@subsection pcomplete
-Pcomplete, short for programmable completion, is the completion
-library originally written for Eshell, but usable for command
-completion@footnote{Command completion, as opposed to code completion,
-which is beyond the scope of pcomplete.} in other modes.
-
-Completions are defined as functions (with @code{defun}) named
-@code{pcomplete/COMMAND}, where @code{COMMAND} is the name of the
-command for which this function provides completions; you can also name
-the function @code{pcomplete/MAJOR-MODE/COMMAND} to define completions
-for a specific major mode.
 
 @node Control Flow
 @section Control Flow
@@ -1686,13 +1597,20 @@ treat it as a list of one element.  If you specify multiple
 @node Scripts
 @section Scripts
 @cmindex source
-@fnindex eshell-source-file
+@fnindex eshell-execute-file
+@fnindex eshell-batch-file
 You can run Eshell scripts much like scripts for other shells; the main
 difference is that since Eshell is not a system command, you have to run
 it from within Emacs.  An Eshell script is simply a file containing a
-sequence of commands, as with almost any other shell script.  Scripts
-are invoked from Eshell with @command{source}, or from anywhere in Emacs
-with @code{eshell-source-file}.
+sequence of commands, as with almost any other shell script.  You can
+invoke scripts from within Eshell with @command{source}, or from
+anywhere in Emacs with @code{eshell-execute-file}.  Additionally, you
+can make an Eshell script file executable by calling
+@code{eshell-batch-file} in the interpreter directive:
+
+@example
+#!/usr/bin/env -S emacs --batch -f eshell-batch-file
+@end example
 
 Like with aliases (@pxref{Aliases}), Eshell scripts can accept any
 number of arguments.  Within the script, you can refer to these with
@@ -2392,18 +2310,35 @@ Adds the text passed to it to the clipboard.
 @end table
 
 @vindex eshell-virtual-targets
-You can, of course, define your own virtual targets.  They are defined
-by adding a list of the form @samp{("/dev/name" @var{function}
-@var{mode})} to @code{eshell-virtual-targets}.  The first element is
-the device name; @var{function} may be either a lambda or a function
-name.  If @var{mode} is @code{nil}, then the function is the output
-function; if it is non-@code{nil}, then the function is passed the
-redirection mode as a symbol--@code{overwrite} for @code{>},
-@code{append} for @code{>>}, or @code{insert} for @code{>>>}--and the
-function is expected to return the output function.
+@vindex eshell-generic-target
+@findex eshell-output-object-to-target
+@findex eshell-close-target
+You can, of course, define your own virtual targets.  These are entries
+in @code{eshell-virtual-targets} with the form @samp{(@var{filename}
+@var{output-function} @var{pass-mode})}. The first element,
+@var{filename}, is the device name, usually of the form
+@samp{"/dev/@var{name}"}. The second, @var{output-function}, should be a
+function: Eshell will repeatedly call it with the redirected output.
+This argument can also be an @code{eshell-generic-target} instance.  In
+this case, Eshell will repeatedly call the generic function
+@code{eshell-output-object-to-target} with the output; once the
+redirection has completed, Eshell will then call the generic function
+@code{eshell-close-target}, passing non-@code{nil} if the redirected
+command succeeded.
 
-The output function is called once on each line of output until
-@code{nil} is passed, indicating end of output.
+If @var{pass-mode} is non-@code{nil}, then Eshell will pass the
+redirection mode as an argument to @code{output-function} as a
+symbol: @code{overwrite} for @code{>}, @code{append} for @code{>>}, or
+@code{insert} for @code{>>>}.  In this case, @code{output-function}
+should return the real output function (either an ordinary function or
+an @code{eshell-generic-target} as described above).
+
+@defun eshell-function-target-create output-function &optional close-function
+Create a new virtual target for Eshell that repeatedly calls
+@var{output-function} with the redirected output, as described above.
+If @var{close-function} is non-nil, Eshell will call it when closing the
+target, passing non-@code{nil} if the redirected command succeeded.
+@end defun
 
 @node Pipelines
 @section Pipelines
@@ -2462,6 +2397,135 @@ at the end of the command are excluded.  This allows input like this:
  sh -c "foo | baz" >#<buffer quux>
 @end example
 
+@node Interaction
+@chapter Interaction
+
+As an interactive shell, Eshell contains many features for helping to
+interact with your command environment.  In addition, since Eshell is a
+part of Emacs, all of the usual Emacs commands work within Eshell as
+well.
+
+@menu
+* Navigation::
+* Completion::
+* History::
+@end menu
+
+@node Navigation
+@section Navigation
+
+@table @kbd
+
+@kindex C-c C-n
+@kindex C-c C-p
+@item C-c C-n
+@itemx C-c C-p
+Move point to the beginning of the input for the next or previous
+prompt.  With a prefix argument, move to the n-th next or previous
+prompt.
+
+@kindex C-c C-r
+@kindex C-M-l
+@item C-c C-r
+@itemx C-M-l
+Move point to the start of the previous command's output and display it
+at the top of the window.  With a prefix argument, this also narrows the
+region to the last command's output.
+
+@end table
+
+@node Completion
+@section Completion
+Eshell uses the pcomplete package for programmable completion, similar
+to that of other command shells.  Argument completion differs depending
+on the preceding command: for example, possible completions for
+@command{rmdir} are only directories, while @command{rm} completions can
+be directories @emph{and} files.  Eshell provides predefined completions
+for the built-in functions and some common external commands, and you
+can define your own for any command.
+
+@kindex TAB
+Eshell completion also works for Lisp forms and glob patterns. If the
+point is on a Lisp form, then @key{TAB} will behave similarly to
+completion in @code{elisp-mode} and @code{lisp-interaction-mode}.  For
+glob patterns, the pattern will be removed from the input line, and
+replaced by the completion.
+
+@kindex M-?
+If you want to see the entire list of possible completions (e.g. when it's
+below the @code{completion-cycle-threshold}), press @kbd{M-?}.
+
+@subsection pcomplete
+Pcomplete, short for programmable completion, is the completion
+library originally written for Eshell, but usable for command
+completion@footnote{Command completion, as opposed to code completion,
+which is beyond the scope of pcomplete.} in other modes.
+
+Completions are defined as functions (with @code{defun}) named
+@code{pcomplete/COMMAND}, where @code{COMMAND} is the name of the
+command for which this function provides completions; you can also name
+the function @code{pcomplete/MAJOR-MODE/COMMAND} to define completions
+for a specific major mode.
+
+@node History
+@section History
+@cmindex history
+@vindex eshell-history-size
+The @samp{history} command shows all commands kept in the history ring
+as numbered list.  If the history ring contains
+@code{eshell-history-size} commands, those numbers change after every
+command invocation, therefore the @samp{history} command shall be
+applied before using the expansion mechanism with history numbers.
+
+The n-th entry of the history ring can be applied with the @samp{!n}
+command.  If @code{n} is negative, the entry is counted from the end
+of the history ring.
+
+@cindex event designators
+@findex eshell-expand-history-references
+When history event designators are enabled (by adding
+@code{eshell-expand-history-references} to
+@code{eshell-expand-input-functions}), @samp{!foo} expands to the last
+command beginning with @code{foo}, and @samp{!?foo} to the last
+command containing @code{foo}.  The n-th argument of the last command
+beginning with @code{foo} is accessible by @code{!foo:n}.
+
+@vindex eshell-history-file-name
+@vindex eshell-history-append
+The history is loaded to the history ring from the file
+@code{eshell-history-file-name} at the start of every session, and
+saved to that file at the end of every session.  The default history
+saving behavior is to overwrite the history file with the whole
+history ring of the session.  If @code{eshell-history-append} is
+non-@code{nil}, the history will instead be saved by appending new
+entries from the session to the history file, which could prevent
+potential history loss with multiple Eshell sessions.  Unlike other
+shells, such as Bash, Eshell cannot currently be configured to control
+the size of the history file.  In particular, when
+@code{eshell-history-append} is non-@code{nil}, the size of the file
+will keep increasing, and the recommended way to truncate the file is
+to run the @samp{history -w} command in an Eshell session.
+
+Since the default buffer navigation and searching key-bindings are
+still present in the Eshell buffer, the commands for history
+navigation and searching are bound to different keys:
+
+@table @kbd
+@kindex M-r
+@kindex M-s
+@item M-r
+@itemx M-s
+History I-search.
+
+@kindex M-p
+@kindex M-n
+@item M-p
+@itemx M-n
+Previous and next history line.  If there is anything on the input
+line when you run these commands, they will instead jump to the
+previous or next line that begins with that string.
+@end table
+
 @node Extension modules
 @chapter Extension modules
 Eshell provides a facility for defining extension modules so that they
@@ -2500,6 +2564,10 @@ mimic the bindings used in other shells when the user is editing new
 input text.  To enable this module, add @code{eshell-rebind} to
 @code{eshell-modules-list}.
 
+@kindex C-u
+@kindex C-w
+@kindex C-p
+@kindex C-n
 For example, it binds @kbd{C-u} to kill the current input text and
 @kbd{C-w} to @code{backward-kill-word}.  If the history module is
 enabled, it also binds @kbd{C-p} and @kbd{C-n} to move through the
@@ -3150,13 +3218,9 @@ Since it keeps the cursor up where the command was invoked.
 
 @printindex cm
 
-@c There are no @kindex entries in this manual; avoid generating an
-@c empty menu.
-@ignore
 @node Key Index
 @unnumbered Key Index
 
 @printindex ky
-@end ignore
 
 @bye

@@ -219,6 +219,7 @@ s/@PACKAGE@/emacs/
 /^HAVE_DECL_STRTOUMAX *=/s/@HAVE_DECL_STRTOUMAX@/1/
 /^HAVE_DIRENT_H *=/s/@HAVE_DIRENT_H@/1/
 /^HAVE_DUP2 *=/s/@HAVE_DUP2@/1/
+/^HAVE_ENDIAN_H *=/s/@HAVE_ENDIAN_H@/1/
 /^HAVE_FSYNC *=/s/@HAVE_FSYNC@/1/
 /^HAVE_FTRUNCATE *=/s/@HAVE_FTRUNCATE@/1/
 /^HAVE_GETHOSTNAME *=/s/@HAVE_GETHOSTNAME@/1/
@@ -288,6 +289,7 @@ s/@PACKAGE@/emacs/
 /^MKDIR_P *=/s/@MKDIR_P@/echo/
 /^NEXT_AS_FIRST_DIRECTIVE_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_ERRNO_H *=/s/@[^@\n]*@//
+/^NEXT_AS_FIRST_DIRECTIVE_ENDIAN_H *=/s/@[^@\n]*@/<machine/endian.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_LIMITS_H *=/s/@[^@\n]*@/<limits.h>/
@@ -306,6 +308,7 @@ s/@PACKAGE@/emacs/
 /^NEXT_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
 /^NEXT_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
 /^NEXT_ERRNO_H *=/s/@[^@\n]*@//
+/^NEXT_ENDIAN_H *=/s/@[^@\n]*@/<machine/endian.h>/
 /^NEXT_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
 /^NEXT_FLOAT_H *=/s/@[^@\n]*@//
 /^NEXT_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
@@ -342,6 +345,8 @@ s/@PACKAGE@/emacs/
 /^ALLOCA_H *=/s/@[^@\n]*@/alloca.h/
 /^BYTESWAP_H *=/s/@[^@\n]*@/byteswap.h/
 /^DIRENT_H *=/s/@[^@\n]*@//
+/^ENDIAN_H *=/s/@[^@\n]*@/endian.h/
+/^ENDIAN_H_JUST_MISSING_STDINT *=/s/@[^@\n]*@/1/
 /^ERRNO_H *=/s/@[^@\n]*@//
 /^EXECINFO_H *=/s/@[^@\n]*@/execinfo.h/
 /^FLOAT_H *=/s/@[^@\n]*@//
@@ -436,6 +441,7 @@ s/@echo /@djecho /
 s/= @GL_GENERATE_ASSERT_H_CONDITION@/= 1/
 s/= @GL_GENERATE_ALLOCA_H_CONDITION@/= 1/
 s/= @GL_GENERATE_BYTESWAP_H_CONDITION@/= 1/
+s/= @GL_GENERATE_ENDIAN_H_CONDITION@/= 1/
 s/= @GL_GENERATE_EXECINFO_H_CONDITION@/= 1/
 s/= @GL_GENERATE_IEEE754_H_CONDITION@/= 1/
 s/= @GL_GENERATE_STDALIGN_H_CONDITION@/= 1/

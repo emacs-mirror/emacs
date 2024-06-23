@@ -1483,11 +1483,15 @@ term_get_fkeys_1 (void)
 
 
 
-#ifndef HAVE_ANDROID
-
 /***********************************************************************
 		       Character Display Information
  ***********************************************************************/
+
+/* Glyph production must be enabled on Android despite there being no
+   TTY frames on that platform, as certain packages (and now, through
+   Org, the bootstrap) require that window text measurements be
+   available from the initial frame as in batch mode.  */
+
 static void append_glyph (struct it *);
 static void append_composite_glyph (struct it *);
 static void produce_composite_glyph (struct it *);
@@ -1561,15 +1565,11 @@ append_glyph (struct it *it)
     }
 }
 
-#endif
-
 /* For external use.  */
 void
 tty_append_glyph (struct it *it)
 {
-#ifndef HAVE_ANDROID
   append_glyph (it);
-#endif
 }
 
 /* Produce glyphs for the display element described by IT.  *IT
@@ -1594,7 +1594,6 @@ tty_append_glyph (struct it *it)
 void
 produce_glyphs (struct it *it)
 {
-#ifndef HAVE_ANDROID
   /* If a hook is installed, let it do the work.  */
 
   /* Nothing but characters are supported on terminal frames.  */
@@ -1724,10 +1723,7 @@ produce_glyphs (struct it *it)
     }
   it->ascent = it->max_ascent = it->phys_ascent = it->max_phys_ascent = 0;
   it->descent = it->max_descent = it->phys_descent = it->max_phys_descent = 1;
-#endif
 }
-
-#ifndef HAVE_ANDROID
 
 /* Append glyphs to IT's glyph_row for the composition IT->cmp_id.
    Called from produce_composite_glyph for terminal frames if
@@ -1966,8 +1962,9 @@ produce_glyphless_glyph (struct it *it, Lisp_Object acronym)
 }
 
 
+#ifndef HAVE_ANDROID
 /***********************************************************************
-				Faces
+				TTY Faces
  ***********************************************************************/
 
 /* Value is non-zero if attribute ATTR may be used.  ATTR should be

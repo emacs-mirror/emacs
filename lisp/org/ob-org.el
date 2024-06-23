@@ -45,15 +45,25 @@
   "Default header inserted during export of org blocks.")
 
 (defun org-babel-expand-body:org (body params)
+  "Expand Org BODY according to PARAMS.
+$VAR instances are replaced by VAR values defined in PARAMS."
   (dolist (var (org-babel--get-vars params))
     (setq body (replace-regexp-in-string
 		(regexp-quote (format "$%s" (car var)))
 		(format "%s" (cdr var))
-		body nil 'literal)))
-  body)
+		body 'fixedcase 'literal)))
+
+  (let ((prologue (cdr (assq :prologue params)))
+        (epilogue (cdr (assq :epilogue params))))
+    (concat
+     (and prologue (concat prologue "\n"))
+     body
+     (and epilogue (concat "\n" epilogue "\n")))))
 
 (defun org-babel-execute:org (body params)
-  "Execute a block of Org code with.
+  "Execute a Org BODY according to PARAMS.
+The BODY is returned expanded as is or exported, if PARAMS define
+latex/html/ascii result type.
 This function is called by `org-babel-execute-src-block'."
   (let ((result-params (split-string (or (cdr (assq :results params)) "")))
 	(body (org-babel-expand-body:org

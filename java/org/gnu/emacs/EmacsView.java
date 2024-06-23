@@ -49,11 +49,13 @@ import java.util.Arrays;
 
 /* This is an Android view which has a back and front buffer.  When
    swapBuffers is called, the back buffer is swapped to the front
-   buffer, and any damage is invalidated.  frontBitmap and backBitmap
-   are modified and used both from the UI and the Emacs thread.  As a
-   result, there is a lock held during all drawing operations.
+   buffer, and any damage is invalidated.  A front buffer bitmap defined
+   in EmacsSurfaceView, and the write buffer in this file, are modified
+   and used both from the UI and the Emacs thread.  As a result, there
+   is a lock held during all drawing operations.
 
-   It is also a ViewGroup, as it also lays out children.  */
+   It is also a ViewGroup, so that it may also manage the layout of its
+   children.  */
 
 public final class EmacsView extends ViewGroup
   implements ViewTreeObserver.OnGlobalLayoutListener
@@ -86,14 +88,14 @@ public final class EmacsView extends ViewGroup
   /* Whether or not a popup is active.  */
   private boolean popupActive;
 
+  /* Whether the back buffer has been updated since the last swap.  */
+  private boolean unswapped;
+
   /* The current context menu.  */
   private EmacsContextMenu contextMenu;
 
   /* The last measured width and height.  */
   private int measuredWidth, measuredHeight;
-
-  /* Object acting as a lock for those values.  */
-  private Object dimensionsLock;
 
   /* The serial of the last clip rectangle change.  */
   private long lastClipSerial;
@@ -151,9 +153,6 @@ public final class EmacsView extends ViewGroup
 
     /* Add this view as its own global layout listener.  */
     getViewTreeObserver ().addOnGlobalLayoutListener (this);
-
-    /* Create an object used as a lock.  */
-    this.dimensionsLock = new Object ();
   }
 
   private void
@@ -162,12 +161,9 @@ public final class EmacsView extends ViewGroup
     Bitmap oldBitmap;
     int measuredWidth, measuredHeight;
 
-    synchronized (dimensionsLock)
-      {
-	/* Load measuredWidth and measuredHeight.  */
-	measuredWidth = this.measuredWidth;
-	measuredHeight = this.measuredHeight;
-      }
+    /* Load measuredWidth and measuredHeight.  */
+    measuredWidth = this.measuredWidth;
+    measuredHeight = this.measuredHeight;
 
     if (measuredWidth == 0 || measuredHeight == 0)
       return;
@@ -204,19 +200,19 @@ public final class EmacsView extends ViewGroup
        rectangle ID.  */
     lastClipSerial = 0;
 
-    /* Copy over the contents of the old bitmap.  */
-    if (oldBitmap != null)
-      canvas.drawBitmap (oldBitmap, 0f, 0f, new Paint ());
-
+    /* Clear the bitmap reallocation flag.  */
     bitmapDirty = false;
 
-    /* Explicitly free the old bitmap's memory.  */
-
+    /* Explicitly free the old bitmap's memory.  The bitmap might
+       continue to be referenced by canvas or JNI objects returned by
+       getBitmap or getCanvas, but the underlying storage will not be
+       released until such references disappear.  See
+       BitmapWrapper::freePixels in hwui/jni/Bitmap.cpp.  */
     if (oldBitmap != null)
       oldBitmap.recycle ();
 
-    /* Some Android versions still don't free the bitmap until the
-       next GC.  */
+    /* Some Android versions still refuse to release the bitmap until
+       the next GC.  */
     Runtime.getRuntime ().gc ();
   }
 
@@ -229,8 +225,14 @@ public final class EmacsView extends ViewGroup
   public synchronized Bitmap
   getBitmap ()
   {
-    if (bitmapDirty || bitmap == null)
+    /* Never alter the bitmap if modifications have been received that
+       are still to be copied to the front buffer, as this indicates
+       that redisplay is in the process of copying matrix contents to
+       the glass, and such events as generally prompt a complete
+       regeneration of the frame's contents might not be processed.  */
+    if (!unswapped && (bitmapDirty || bitmap == null))
       handleDirtyBitmap ();
+    unswapped = true;
 
     return bitmap;
   }
@@ -240,11 +242,12 @@ public final class EmacsView extends ViewGroup
   {
     int i;
 
-    if (bitmapDirty || bitmap == null)
+    if (!unswapped && (bitmapDirty || bitmap == null))
       handleDirtyBitmap ();
 
     if (canvas == null)
       return null;
+    unswapped = true;
 
     /* Update clip rectangles if necessary.  */
     if (gc.clipRectID != lastClipSerial)
@@ -264,14 +267,11 @@ public final class EmacsView extends ViewGroup
     return canvas;
   }
 
-  public void
+  public synchronized void
   prepareForLayout (int wantedWidth, int wantedHeight)
   {
-    synchronized (dimensionsLock)
-      {
-	measuredWidth = wantedWidth;
-	measuredHeight = wantedWidth;
-      }
+    measuredWidth = wantedWidth;
+    measuredHeight = wantedWidth;
   }
 
   @Override
@@ -327,8 +327,8 @@ public final class EmacsView extends ViewGroup
   }
 
   /* Note that the monitor lock for the window must never be held from
-     within the lock for the view, because the window also locks the
-     other way around.  */
+     within that for the view, because the window acquires locks in the
+     opposite direction.  */
 
   @Override
   protected void
@@ -344,7 +344,7 @@ public final class EmacsView extends ViewGroup
     count = getChildCount ();
     needExpose = false;
 
-    synchronized (dimensionsLock)
+    synchronized (this)
       {
 	/* Load measuredWidth and measuredHeight.  */
 	oldMeasuredWidth = measuredWidth;
@@ -353,51 +353,48 @@ public final class EmacsView extends ViewGroup
 	/* Set measuredWidth and measuredHeight.  */
 	measuredWidth = right - left;
 	measuredHeight = bottom - top;
-      }
 
-    /* If oldMeasuredHeight or oldMeasuredWidth are wrong, set changed
-       to true as well.  */
+	/* If oldMeasuredHeight or oldMeasuredWidth are wrong, set
+	   changed to true as well.  */
 
-    if (right - left != oldMeasuredWidth
-	|| bottom - top != oldMeasuredHeight)
-      changed = true;
+	if (right - left != oldMeasuredWidth
+	    || bottom - top != oldMeasuredHeight)
+	  changed = true;
 
-    /* Dirty the back buffer if the layout change resulted in the view
-       being resized.  */
+	/* Dirty the back buffer if the layout change resulted in the view
+	   being resized.  */
 
-    if (changed)
-      {
-	explicitlyDirtyBitmap ();
-
-	/* Expose the window upon a change in the view's size.  */
-
-	if (right - left > oldMeasuredWidth
-	    || bottom - top > oldMeasuredHeight)
-	  needExpose = true;
-
-	/* This might return NULL if this view is not attached.  */
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+	if (changed)
 	  {
-	    /* If a toplevel view is focused and isCurrentlyTextEditor
-	       is enabled when the IME is hidden, clear
-	       isCurrentlyTextEditor so it isn't shown again if the
-	       user dismisses Emacs before returning.  */
-	    rootWindowInsets = getRootWindowInsets ();
+	    /* Expose the window upon a change in the view's size that
+	       prompts the creation of a new bitmap.  */
+	    bitmapDirty = needExpose = true;
 
-	    if (isCurrentlyTextEditor
-		&& rootWindowInsets != null
-		&& isAttachedToWindow
-		&& !rootWindowInsets.isVisible (WindowInsets.Type.ime ())
-		/* N.B. that the keyboard is dismissed during gesture
-		   navigation under Android 30, but the system is
-		   quite temperamental regarding whether the window is
-		   focused at that point.  Ideally
-		   isCurrentlyTextEditor shouldn't be reset in that
-		   case, but detecting that situation appears to be
-		   impossible.  Sigh.  */
-		&& (window == EmacsActivity.focusedWindow
-		    && hasWindowFocus ()))
-	      isCurrentlyTextEditor = false;
+	    /* This might return NULL if this view is not attached.  */
+	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+	      {
+		/* If a toplevel view is focused and
+		   isCurrentlyTextEditor is enabled when the IME is
+		   hidden, clear isCurrentlyTextEditor so it isn't shown
+		   again if the user dismisses Emacs before
+		   returning.  */
+		rootWindowInsets = getRootWindowInsets ();
+
+		if (isCurrentlyTextEditor
+		    && rootWindowInsets != null
+		    && isAttachedToWindow
+		    && !rootWindowInsets.isVisible (WindowInsets.Type.ime ())
+		    /* N.B. that the keyboard is dismissed during
+		       gesture navigation under Android 30, but the
+		       system is quite temperamental regarding whether
+		       the window is focused at that point.  Ideally
+		       isCurrentlyTextEditor shouldn't be reset in that
+		       case, but detecting that situation appears to be
+		       impossible.  Sigh.  */
+		    && (window == EmacsActivity.focusedWindow
+			&& hasWindowFocus ()))
+		  isCurrentlyTextEditor = false;
+	      }
 	  }
       }
 
@@ -428,7 +425,7 @@ public final class EmacsView extends ViewGroup
 	window.viewLayout (left, top, right, bottom);
       }
 
-    if (needExpose)
+    if (needExpose && isAttachedToWindow)
       EmacsNative.sendExpose (this.window.handle, 0, 0,
 			      right - left, bottom - top);
   }
@@ -450,6 +447,33 @@ public final class EmacsView extends ViewGroup
     damageRegion.op (left, top, right, bottom, Region.Op.UNION);
   }
 
+  /* Complete deferred reconfiguration of the front buffer after a
+     buffer swap completes, and generate Expose events for the same.  */
+
+  private void
+  postSwapBuffers ()
+  {
+    if (!unswapped)
+      return;
+
+    unswapped = false;
+
+    /* If the bitmap is dirty, reconfigure the bitmap and
+       generate an Expose event to produce its contents.  */
+
+    if ((bitmapDirty || bitmap == null)
+	/* Do not generate Expose events if handleDirtyBitmap will
+	   not create a valid bitmap, or the consequent buffer swap
+	   will produce another event, ad infinitum.  */
+	&& isAttachedToWindow && measuredWidth != 0
+	&& measuredHeight != 0)
+      {
+	handleDirtyBitmap ();
+	EmacsNative.sendExpose (this.window.handle, 0, 0,
+				measuredWidth, measuredHeight);
+      }
+  }
+
   /* This method is called from both the UI thread and the Emacs
      thread.  */
 
@@ -468,7 +492,10 @@ public final class EmacsView extends ViewGroup
     /* Now see if there is a damage region.  */
 
     if (damageRegion.isEmpty ())
-      return;
+      {
+	postSwapBuffers ();
+	return;
+      }
 
     /* And extract and clear the damage region.  */
 
@@ -480,6 +507,7 @@ public final class EmacsView extends ViewGroup
 	/* Transfer the bitmap to the surface view, then invalidate
 	   it.  */
 	surfaceView.setBitmap (bitmap, damageRect);
+	postSwapBuffers ();
       }
   }
 
@@ -759,13 +787,9 @@ public final class EmacsView extends ViewGroup
        was called.  */
     bitmapDirty = true;
 
-    synchronized (dimensionsLock)
-      {
-	/* Now expose the view contents again.  */
-	EmacsNative.sendExpose (this.window.handle, 0, 0,
-				measuredWidth, measuredHeight);
-      }
-
+    /* Now expose the view contents again.  */
+    EmacsNative.sendExpose (this.window.handle, 0, 0,
+			    measuredWidth, measuredHeight);
     super.onAttachedToWindow ();
   }
 
@@ -891,13 +915,13 @@ public final class EmacsView extends ViewGroup
     return true;
   }
 
-  public synchronized void
+  public void
   setICMode (int icMode)
   {
     this.icMode = icMode;
   }
 
-  public synchronized int
+  public int
   getICMode ()
   {
     return icMode;

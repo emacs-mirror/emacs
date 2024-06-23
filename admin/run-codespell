@@ -43,6 +43,7 @@ emacs_run_codespell ()
         grep -v -E -e '^(lib|m4)/.*' |\
         grep -v -E -e '^admin/(charsets|codespell|unidata)/.*' |\
         grep -v -E -e '^doc/misc/texinfo.tex$' |\
+        grep -v -E -e '^doc/translations/.*' |\
         grep -v -E -e '^etc/(AUTHORS|HELLO|publicsuffix.txt)$' |\
         grep -v -E -e '^etc/refcards/(cs|de|fr|pl|pt|sk)-.+.tex$' |\
         grep -v -E -e '^etc/tutorials/TUTORIAL\..+' |\
@@ -50,6 +51,7 @@ emacs_run_codespell ()
         grep -v -E -e '^lisp/language/ethio-util.el' |\
         grep -v -E -e '^lisp/ldefs-boot.el' |\
         grep -v -E -e '^lisp/leim/.*' |\
+        grep -v -E -e '^test/lisp/erc/resources/.*' |\
         grep -v -E -e '^test/lisp/net/puny-resources/IdnaTestV2.txt' |\
         grep -v -E -e '^test/manual/(etags|indent)/.*' |\
         grep -v -E -e '^test/src/regex-resources/.*' |\

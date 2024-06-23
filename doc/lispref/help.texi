@@ -334,6 +334,9 @@ stands for a key sequence that will invoke @var{command}, or @samp{M-x
 @item \@{@var{mapvar}@}
 stands for a summary of the keymap which is the value of the variable
 @var{mapvar}.  The summary is made using @code{describe-bindings}.
+The summary will normally exclude menu bindings, but if the
+@var{include-menus} argument to @code{substitute-command-keys} is
+non-@code{nil}, the menu bindings will be included.
 
 @item \<@var{mapvar}>
 stands for no text itself.  It is used only for a side effect: it
@@ -368,7 +371,7 @@ and @samp{\=\=} puts @samp{\=} into the output.
 
 @item \+
 This indicates that the symbol directly following should not be marked
-as link in the @file{*Help*} buffer.
+as a link in the @file{*Help*} buffer.
 @end table
 
 @strong{Please note:} Each @samp{\} must be doubled when written in a
@@ -383,11 +386,6 @@ user's own customized key bindings.  By default, the key bindings are
 given a special face @code{help-key-binding}, but if the optional
 argument @var{no-face} is non-@code{nil}, the function doesn't add
 this face to the produced string.
-
-@defun substitute-quotes string
-This function works like @code{substitute-command-keys}, but only
-replaces quote characters.
-@end defun
 
 @cindex advertised binding
 If a command has multiple bindings, this function normally uses the
@@ -439,6 +437,11 @@ The keymap description will normally exclude menu items, but if
 @result{} "To abort a recursive edit from the minibuffer, type ‘C-g’."
 @end group
 @end smallexample
+
+@defun substitute-quotes string
+This function works like @code{substitute-command-keys}, but only
+replaces quote characters.
+@end defun
 
   There are other special conventions for the text in documentation
 strings---for instance, you can refer to functions, variables, and

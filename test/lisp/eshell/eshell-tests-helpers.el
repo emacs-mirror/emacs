@@ -30,6 +30,8 @@
 (require 'esh-mode)
 (require 'eshell)
 
+(defvar eshell-aliases-file nil)
+(defvar eshell-command-aliases-list nil)
 (defvar eshell-history-file-name nil)
 (defvar eshell-last-dir-ring-file-name nil)
 
@@ -47,23 +49,32 @@ beginning of the test file."
      (file-directory-p ert-remote-temporary-file-directory)
      (file-writable-p ert-remote-temporary-file-directory))))
 
+(defmacro with-temp-eshell-settings (&rest body)
+  "Configure Eshell to leave no trace behind, and then evaluate BODY."
+  (declare (indent 0))
+  `(ert-with-temp-directory eshell-directory-name
+     (let (;; We want no history file, so prevent Eshell from falling
+           ;; back on $HISTFILE.
+           (process-environment (cons "HISTFILE" process-environment))
+           ;; Enable process debug instrumentation.  We may be able to
+           ;; remove this eventually once we're confident that all the
+           ;; process bugs have been worked out.  (At that point, we can
+           ;; just enable this selectively when needed.)  See also
+           ;; `eshell-test-command-result' below.
+           (eshell-debug-command (cons 'process eshell-debug-command))
+           (eshell-aliases-file nil)
+           (eshell-command-aliases-list nil)
+           (eshell-history-file-name nil)
+           (eshell-last-dir-ring-file-name nil)
+           (eshell-module-loading-messages nil))
+       ,@body)))
+
 (defmacro with-temp-eshell (&rest body)
   "Evaluate BODY in a temporary Eshell buffer."
+  (declare (indent 0))
   `(save-current-buffer
-     (ert-with-temp-directory eshell-directory-name
-       (let* (;; We want no history file, so prevent Eshell from falling
-              ;; back on $HISTFILE.
-              (process-environment (cons "HISTFILE" process-environment))
-              ;; Enable process debug instrumentation.  We may be able
-              ;; to remove this eventually once we're confident that
-              ;; all the process bugs have been worked out.  (At that
-              ;; point, we can just enable this selectively when
-              ;; needed.)  See also `eshell-test-command-result'
-              ;; below.
-              (eshell-debug-command (cons 'process eshell-debug-command))
-              (eshell-history-file-name nil)
-              (eshell-last-dir-ring-file-name nil)
-              (eshell-buffer (eshell t)))
+     (with-temp-eshell-settings
+       (let ((eshell-buffer (eshell t)))
          (unwind-protect
              (with-current-buffer eshell-buffer
                ,@body)
@@ -183,10 +194,33 @@ inserting the command."
 (defun eshell-command-result-equal (command result)
   "Execute COMMAND non-interactively and compare it to RESULT."
   (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
-    (should (eshell-command-result--equal
-             command
-             (eshell-test-command-result command)
-             result))))
+    (let ((eshell-module-loading-messages nil))
+      (should (eshell-command-result--equal
+               command
+               (eshell-test-command-result command)
+               result)))))
+
+(defun eshell-command-result--match (_command regexp actual)
+  "Compare the ACTUAL result of a COMMAND with REGEXP."
+  (string-match regexp actual))
+
+(defun eshell-command-result--match-explainer (command regexp actual)
+  "Explain the result of `eshell-command-result--match'."
+  `(mismatched-result
+    (command ,command)
+    (result ,actual)
+    (regexp ,regexp)))
+
+(put 'eshell-command-result--match 'ert-explainer
+     #'eshell-command-result--match-explainer)
+
+(defun eshell-command-result-match (command regexp)
+  "Execute COMMAND non-interactively and compare it to REGEXP."
+  (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
+    (let ((eshell-module-loading-messages nil))
+      (should (eshell-command-result--match
+               command regexp
+               (eshell-test-command-result command))))))
 
 (provide 'eshell-tests-helpers)
 

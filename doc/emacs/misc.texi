@@ -1331,16 +1331,18 @@ buffer, or even killing large parts of it, does not affect the history
 that these commands access.
 
 @vindex comint-input-ring-file-name
+@vindex shell-history-file-name
+@cindex @env{HISTFILE} environment variable
   Some shells store their command histories in files so that you can
-refer to commands from previous shell sessions.  Emacs reads
-the command history file for your chosen shell, to initialize its own
-command history.  The file name is @file{~/.bash_history} for bash,
-@file{~/.sh_history} for ksh, and @file{~/.history} for other shells.
-
-@vindex tramp-histfile-override
-  If you run the shell on a remote host, this setting might be
-overwritten by the variable @code{tramp-histfile-override}.  It is
-recommended to set this variable to @code{nil}.
+refer to commands from previous shell sessions.  Emacs reads the command
+history file for your chosen shell, to initialize its own command
+history.  The history file name is the string specified in
+@code{shell-history-file-name}.  If that user option is @code{t}, the
+command history is not read.  If the value is @code{nil}, the command
+history is read from the file specified in environment variable
+@env{HISTFILE}, or from @file{~/.bash_history} for bash,
+@file{~/.sh_history} for ksh, @file{~/.zsh_history"} for zsh, or
+@file{~/.history} for other shells.
 
 @node Shell History Copying
 @subsubsection Shell History Copying
@@ -2155,6 +2157,7 @@ overrides the environment variable.)
 @item -t
 @itemx --tty
 @itemx -nw
+@itemx --no-window-system
 Create a new client frame on the current text terminal, instead of
 using an existing Emacs frame.  This behaves just like the @samp{-c}
 option, described above, except that it creates a text terminal frame
@@ -2209,6 +2212,14 @@ remote$ export EMACSCLIENT_TRAMP=/ssh:remote:
 remote$ export EDITOR=emacsclient
 remote$ $EDITOR /tmp/foo.txt #Should open in local emacs.
 @end example
+
+@item -V
+@itemx --version
+Print version information and exit.
+
+@item -H
+@itemx --help
+Print usage information message and exit.
 
 @end table
 

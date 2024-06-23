@@ -58,6 +58,7 @@ struct w32_bitmap_record
 {
   Emacs_Pixmap pixmap;
   char *file;
+  Emacs_Pixmap stipple;
   HINSTANCE hinst; /* Used to load the file */
   int refcount;
   /* Record some info about this pixmap.  */
@@ -433,6 +434,22 @@ struct w32_output
 
   /* Whether or not this frame should be double buffered.  */
   unsigned want_paint_buffer : 1;
+
+#define MAX_TOUCH_POINTS 10
+  /* Array of dwIDs of presently active touch points, or -1 when
+     unpopulated.  */
+  int touch_ids[MAX_TOUCH_POINTS];
+
+  /* X and Y coordinates of active touchpoints.  */
+  LONG touch_x[MAX_TOUCH_POINTS], touch_y[MAX_TOUCH_POINTS];
+
+  /* Base value for touch point identifiers registered by this
+     frame.  */
+  EMACS_INT touch_base;
+
+  /* Windows identifier of any touch point reserved for the tool bar, or
+     -1.  */
+  DWORD tool_bar_dwID;
 };
 
 extern struct w32_output w32term_display;
@@ -908,6 +925,9 @@ extern void syms_of_w32fns (void);
 extern void globals_of_w32menu (void);
 extern void globals_of_w32fns (void);
 extern void globals_of_w32notify (void);
+
+extern void syms_of_w32image (void);
+extern void globals_of_w32image (void);
 
 extern void w32_init_main_thread (void);
 

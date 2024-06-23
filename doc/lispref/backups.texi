@@ -777,6 +777,16 @@ after inserting the modified contents.  A custom @code{revert-buffer-function}
 may or may not run this hook.
 @end defvar
 
+@defvar revert-buffer-restore-functions
+The value of this variable specifies a list of functions that preserve
+the state of the buffer.  Before the revert operation each function from
+this list is called without arguments, and it should return a lambda
+that preserves some particular state (for example, the read-only state).
+After the revert operation each lambda will be called one by one in the
+order of the list, and it should restore the saved state in the reverted
+buffer.
+@end defvar
+
 Emacs can revert buffers automatically.  It does that by default for
 buffers visiting files.  The following describes how to add support
 for auto-reverting new types of buffers.

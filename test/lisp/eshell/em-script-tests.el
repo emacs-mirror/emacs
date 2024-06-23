@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'esh-mode)
 (require 'eshell)
 (require 'em-script)
@@ -93,5 +94,47 @@
                                   "a\n")
      (eshell-match-command-output (format "source %s a b c" temp-file)
                                   "a\nb\nc\n"))))
+
+(ert-deftest em-script-test/execute-file ()
+  "Test running an Eshell script file via `eshell-execute-file'."
+  (ert-with-temp-file temp-file
+    :text "echo hi\necho bye"
+    (with-temp-buffer
+      (with-temp-eshell-settings
+        (eshell-execute-file temp-file nil t))
+      (should (equal (buffer-string) "hibye")))))
+
+(ert-deftest em-script-test/execute-file/args ()
+  "Test running an Eshell script file with args via `eshell-execute-file'."
+  (ert-with-temp-file temp-file
+    :text "+ $@*"
+    (with-temp-buffer
+      (with-temp-eshell-settings
+        (eshell-execute-file temp-file '(1 2 3) t))
+      (should (equal (buffer-string) "6")))))
+
+(ert-deftest em-script-test/batch-file ()
+  "Test running an Eshell script file as a batch script."
+  (ert-with-temp-file temp-file
+    :text "echo hi"
+    (with-temp-buffer
+      (with-temp-eshell-settings
+       (call-process (expand-file-name invocation-name invocation-directory)
+                     nil '(t nil) nil
+                     "--batch" "-f" "eshell-batch-file" temp-file))
+      (should (equal (buffer-string) "hi\n")))))
+
+(ert-deftest em-script-test/batch-file/shebang ()
+  "Test running an Eshell script file as a batch script via a shebang."
+  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (ert-with-temp-file temp-file
+    :text (format
+           "#!/usr/bin/env -S %s --batch -f eshell-batch-file\necho hi"
+           (expand-file-name invocation-name invocation-directory))
+    (set-file-modes temp-file #o744)
+    (with-temp-buffer
+      (with-temp-eshell-settings
+        (call-process temp-file nil '(t nil)))
+      (should (equal (buffer-string) "hi\n")))))
 
 ;; em-script-tests.el ends here

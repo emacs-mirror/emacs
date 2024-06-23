@@ -1,6 +1,6 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{9.6.15}
-\def\versionyear{2023}          % latest update
+\def\orgversionnumber{9.7.4}
+\def\versionyear{2024}          % latest update
 \input emacsver.tex
 
 %**start of header
@@ -11,10 +11,14 @@
 % Specify how many you want here.
 \columnsperpage=3
 
+% Set letterpaper to 0 for A4 paper, 1 for letter (US) paper.  Useful
+% only when columnsperpage is 2 or 3.
+\letterpaper=1
+
 % PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
 % a landscape layout.
 \input pdflayout.sty
-\pdflayout=(0l)
+\pdflayout=(1l)
 
 % Nothing else needs to be changed below this line.
 % Copyright (C) 1987, 1993, 1996--1997, 2001--2024 Free Software
@@ -113,17 +117,14 @@
   \footline{\hss\folio}
   \def\makefootline{\baselineskip10pt\hsize6.5in\line{\the\footline}}
 \else				%2 or 3 columns uses prereduced size
+  \hsize 3.2in
   \if 1\the\letterpaper
-     \hsize 3.2in
      \vsize 7.95in
-     \hoffset -.75in
-     \voffset -.745in
   \else
-     \hsize 3.2in
      \vsize 7.65in
-     \hoffset -.25in
-     \voffset -.745in
   \fi
+  \hoffset -.75in
+  \voffset -.745in
   \font\titlefont=cmbx10 \scaledmag2
   \font\headingfont=cmbx10 \scaledmag1
   \font\smallfont=cmr6
@@ -280,7 +281,7 @@
 %**end of header
 
 
-\title{Org-Mode Reference Card (1/2)}
+\title{Org-Mode Reference Card}
 
 \centerline{(for version \orgversionnumber)}
 
@@ -482,7 +483,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 
 \newcolumn
-\title{Org-Mode Reference Card (2/2)}
+\title{Org-Mode Reference Card}
 
 \centerline{(for version \orgversionnumber)}
 

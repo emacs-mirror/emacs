@@ -139,10 +139,10 @@ compiler.  For example:
 
   ./configure [...] \
      ANDROID_CC="i686-linux-android-gcc \
-		 --sysroot=/path/to/ndk/platforms/android-14/arch-x86/"
-     ANDROID_CFLAGS="-isystem /path/to/ndk/sysroot/usr/include \
-		     -isystem /path/to/ndk/sysroot/usr/include/i686-linux-android \
-		     -D__ANDROID_API__=14"
+		 --sysroot=/path/to/ndk/platforms/android-14/arch-x86/
+		 -isystem /path/to/ndk/sysroot/usr/include \
+		 -isystem /path/to/ndk/sysroot/usr/include/i686-linux-android \
+		 -D__ANDROID_API__=14"
 
 Where __ANDROID_API__ and the version identifier in
 "platforms/android-14" defines the version of Android you are building
@@ -158,10 +158,13 @@ the NDK r10b or later.  We wanted to make Emacs work on even older
 versions of Android, but they are missing the required JNI graphics
 library that allows Emacs to display text from C code.
 
-Due to an extremely nasty bug in the Android 2.2 system, the generated
-Emacs package cannot be compressed in builds for Android 2.2.  As a
-result, the Emacs package will be approximately 100 megabytes larger
-than a compressed package for a newer version of Android.
+There is an extremely nasty bug in the Android 2.2 system, the upshot of
+which is that large files within the generated Emacs package cannot be
+compressed in builds for Android 2.2, so that the Emacs package will be
+approximately 15 megabytes larger than a compressed package for a newer
+version of Android.  For such systems the `zip' utility is also required
+to produce packages that will not be misinterpreted by the package
+manager.
 
 
 BUILDING C++ DEPENDENCIES
@@ -170,7 +173,7 @@ In normal circumstances, Emacs should automatically detect and configure
 one of the C++ standard libraries part of the NDK when such a library is
 required to build a dependency specified under `--with-ndk-path'.
 
-Nevertheless, this process is not infalliable, and with certain versions
+Nevertheless, this process is not infallible, and with certain versions
 of the NDK is liable to fail to locate a C++ compiler, requiring that
 you run the `make_standalone_toolchain.py' script in the NDK
 distribution to create a ``standalone toolchain'' and substitute the
@@ -391,7 +394,7 @@ provided as:
   giflib-5.2.1-emacs.tar.gz
   libjpeg-turbo-3.0.2-emacs.tar.gz
   libpng-1.6.41-emacs.tar.gz
-  tiff-4.5.0-emacs.tar.gz
+  tiff-4.5.1-emacs.tar.gz
 
 Of which all but libjpeg-turbo-3.0.2-emacs.tar.gz should compile on
 every supported Android system and toolchain; where the latter does not
@@ -400,14 +403,46 @@ substitute.
 
 Of the three remaining image-related dependencies, libwebp provides
 upstream support for ndk-build, ImageMagick has been ported by
-interested third-party developers, while librsvg2, with its numerous and
-unnavigable web of dependencies and toolchains for non-C languages,
-would be such a great undertaking to port that we do not anticipate its
-ever becoming available.
+interested third-party developers, and librsvg is addressed below.
 
-We are actively searching for alternatives to librsvg2 that are feasible
-to port, or better yet, natively support Android.  Please send
-suggestions or patches to emacs-devel@gnu.org.
+
+LIBRSVG
+
+Librsvg 2.40.21, the final release in the librsvg 2.40.x series, the
+last to be implemented in C, is provided as:
+
+  librsvg-2.40.21-emacs.tar.gz
+
+and has been lightly edited for compatibility with environments where
+Pango cannot provide fonts, with the obvious caveat that text cannot be
+displayed with the resulting librsvg binary.  Among numerous
+dependencies are PCRE, and:
+
+  libiconv-1.17-emacs.tar.gz
+  libffi-3.4.5-emacs.tar.gz
+  pango-1.38.1-emacs.tar.gz
+  glib-2.33.14-emacs.tar.gz
+  libcroco-0.6.13-emacs.tar.gz
+  pixman-0.38.4-emacs.tar.gz
+  libxml2-2.12.4-emacs.tar.gz
+  gdk-pixbuf-2.22.1-emacs.tar.gz
+  giflib-5.2.1-emacs.tar.gz
+  libjpeg-turbo-3.0.2-emacs.tar.gz
+  libpng-1.6.41-emacs.tar.gz
+  tiff-4.5.1-emacs.tar.gz
+  cairo-1.16.0-emacs.tar.gz
+
+which must be individually unpacked and their contents provided on the
+command line, as with other dependencies.  They will introduce
+approximately 8 MiB's worth of shared libraries into the finished
+application package.  It is unlikely that later releases of librsvg will
+ever be ported, as they have migrated to a different implementation
+language.
+
+No effort has been expended on providing the latest and greatest of
+these dependencies either; rather, the versions chosen are often the
+earliest versions required by their dependents, these being the smaller
+of all available versions, and generally more straightforward to port.
 
 
 SELINUX

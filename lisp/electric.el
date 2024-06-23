@@ -506,12 +506,64 @@ The variable `electric-layout-rules' says when and how to insert newlines."
   :version "25.1"
   :type 'boolean :safe 'booleanp :group 'electricity)
 
+;; The default :value-create produces "list of numbers" when given "list
+;; of characters", this prints them as characters.
+(defun electric--print-list-of-chars (widget)
+  (let ((print-integers-as-characters t))
+    (princ (widget-get widget :value) (current-buffer))))
+
+;; This is just so we can make pairs print as characters.
+(define-widget 'electric-char-pair 'const
+  "Electric quote character pair."
+  :group 'electricity
+  :format "%t: %v\n"
+  :inline t
+  :value-create #'electric--print-list-of-chars
+  :type '(list character character))
+
+(define-widget 'electric-quote-chars-pairs 'lazy
+  "Choose pair of electric quote chars."
+  :group 'electricity
+  :type '(radio
+          (electric-char-pair :tag "Single" (?‘ ?’))
+          (electric-char-pair :tag "Double" (?“ ?”))
+          (electric-char-pair :tag "Guillemets" (?« ?»))
+          (electric-char-pair :tag "Single guillemets" (?‹ ?›))
+          (electric-char-pair :tag "Corners" (?「 ?」))
+          (electric-char-pair :tag "Double corners" (?『 ?』))
+          (electric-char-pair :tag "Low/high single left" (?‚ ?‘))
+          (electric-char-pair :tag "Low/high double left" (?„  ?“))
+          (electric-char-pair :tag "Low/high single right" (?‚ ?’))
+          (electric-char-pair :tag "Low/high double right" (?„  ?”))
+          (electric-char-pair :tag "Single inverted" (?’ ?‘))
+          (electric-char-pair :tag "Right single only" (?’ ?’))
+          (electric-char-pair :tag "Right double only" (?” ?”))
+          (electric-char-pair :tag "Guillemets inverted" (?» ?«))
+          (electric-char-pair :tag "Guillemets right only" (?» ?»))
+          (electric-char-pair :tag "Single guillemets inverted" (?› ?‹))
+          (electric-char-pair :tag "Mathematical double angle" (?⟪ ?⟫))
+          (electric-char-pair :tag "Mathematical single angle" (?⟨ ?⟩))
+          (electric-char-pair :tag "Double angle" (?《 ?》))
+          (electric-char-pair :tag "Single angle" (?〈 ?〉))))
+
 (defcustom electric-quote-chars '(?‘ ?’ ?“ ?”)
   "Curved quote characters for `electric-quote-mode'.
 This list's members correspond to left single quote, right single
-quote, left double quote, and right double quote, respectively."
+quote, left double quote, and right double quote, respectively.
+
+Commonly used pairs are predefined, or you can define your own
+completely custom style."
   :version "26.1"
-  :type '(list character character character character)
+  :type '(choice
+          (const :format "%t: %v\n" :tag "Default"
+                 :value-create electric--print-list-of-chars
+                 (?‘ ?’ ?“ ?”))
+          (list :tag "Predefined pairs"
+                (electric-quote-chars-pairs :tag "Single quotes")
+                (electric-quote-chars-pairs :tag "Double quotes"))
+          (list :tag "Custom"
+                (character ?‘) (character ?’)
+                (character ?“) (character ?”)))
   :safe (lambda (x)
           (pcase x
             (`(,(pred characterp) ,(pred characterp)

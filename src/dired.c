@@ -126,6 +126,10 @@ open_directory (Lisp_Object dirname, Lisp_Object encoded_dirname, int *fdp)
   else if (errno == EINTR)
     {
       maybe_quit ();
+
+      /* Reload the address of DIRNAME's data, as it might have been
+	 relocated by GC.  */
+      name = SSDATA (dirname);
       goto again;
     }
 #endif

@@ -381,4 +381,19 @@ stdout originally pointed (the terminal)."
    (eshell-insert-command "echo three >> /dev/kill")
    (should (equal (car kill-ring) "twothree"))))
 
+(ert-deftest esh-io-test/virtual/device-close ()
+  "Check that the close function for `eshell-function-target' works."
+  (let* ((data nil)
+         (status nil)
+         (eshell-virtual-targets
+          `(("/dev/virtual"
+             ,(eshell-function-target-create
+               (lambda (d) (setq data d))
+               (lambda (s) (setq status s)))
+             nil))))
+    (with-temp-eshell
+     (eshell-insert-command "echo hello > /dev/virtual")
+     (should (equal data "hello"))
+     (should (equal status t)))))
+
 ;;; esh-io-tests.el ends here

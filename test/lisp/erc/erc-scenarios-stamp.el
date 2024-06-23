@@ -180,4 +180,50 @@
 
         (funcall expect 5 "This server is in debug mode")))))
 
+;; Assert that only one date stamp per day appears in the server
+;; buffer when reconnecting.
+(ert-deftest erc-scenarios-stamp--date-mode/reconnect ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "base/reconnect")
+       (erc-server-flood-penalty 0.1)
+       (erc-stamp--tz t)
+       (erc-server-auto-reconnect t)
+       ;; Start close to midnight: 2024-06-02T23:58:11.055Z
+       (erc-stamp--current-time (if (< emacs-major-version 29)
+                                    '(26205 1811 55000 0)
+                                  '(1717372691055 . 1000)))
+       (erc-insert-post-hook (cons (lambda ()
+                                     (setq erc-stamp--current-time
+                                           (time-add erc-stamp--current-time 0.1)))
+                                   erc-insert-post-hook))
+       (dumb-server (erc-d-run "localhost" t
+                               'unexpected-disconnect 'unexpected-disconnect))
+       ;; Define overriding formatting function for catalog entry
+       ;; `disconnected' to spoof time progressing past midnight.
+       (erc-message-english-disconnected
+        (let ((orig erc-message-english-disconnected))
+          (lambda (&rest _)
+            (setq erc-stamp--current-time
+                  (time-add erc-stamp--current-time 120))
+            orig)))
+       (port (process-contact dumb-server :service))
+       (expect (erc-d-t-make-expecter)))
+
+    (ert-info ("Connect")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "tester"
+                                :full-name "tester")
+        (funcall expect 10 "debug mode")))
+
+    ;; Ensure date stamps are unique per server buffer.
+    (with-current-buffer "FooNet"
+      (funcall expect 10 "[Mon Jun  3 2024]")
+      (funcall expect -0.1 "[Mon Jun  3 2024]") ; no duplicates
+      (funcall expect 10 "[00:00]")
+      (funcall expect -0.1 "[00:00]")
+      (funcall expect 10 "Welcome to the foonet")
+      (delete-process erc-server-process))))
+
 ;;; erc-scenarios-stamp.el ends here

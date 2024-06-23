@@ -6574,8 +6574,8 @@ android_query_battery (struct android_battery_state *status)
   status->charge_counter = longs[1];
   status->current_average = longs[2];
   status->current_now = longs[3];
-  status->remaining = longs[4];
-  status->status = longs[5];
+  status->status = longs[4];
+  status->remaining = longs[5];
   status->plugged = longs[6];
   status->temperature = longs[7];
 

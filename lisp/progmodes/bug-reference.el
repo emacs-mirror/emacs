@@ -712,7 +712,7 @@ set already.  This function sets the latter to nil
 buffer-locally, so that the auto-setup will always run.
 
 This is mostly intended for MUA modes like `rmail-mode' where the
-same buffer is re-used for different contexts."
+same buffer is reused for different contexts."
   (setq-local bug-reference-url-format nil)
   (bug-reference-mode))
 

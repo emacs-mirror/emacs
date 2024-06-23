@@ -45,7 +45,7 @@
   "Default header arguments for forth code blocks.")
 
 (defun org-babel-execute:forth (body params)
-  "Execute a block of Forth code with org-babel.
+  "Execute Forth BODY according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
   (if (string= "none" (cdr (assq :session params)))
       (error "Non-session evaluation not supported for Forth code blocks")
@@ -55,7 +55,8 @@ This function is called by `org-babel-execute-src-block'."
 	(car (last all-results))))))
 
 (defun org-babel-forth-session-execute (body params)
-  (require 'forth-mode)
+  "Execute Forth BODY in session defined via PARAMS."
+  (org-require-package 'forth-mode)
   (let ((proc (forth-proc))
 	(rx " \\(\n:\\|compiled\n\\|ok\n\\)")
 	(result-start))

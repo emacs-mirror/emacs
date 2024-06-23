@@ -438,7 +438,8 @@ If CLIENT is non-nil, add a description of it to the logged message."
        (ignore-errors
 	 (delete-file (process-get proc :server-file))))
   (server-log (format "Status changed to %s: %s"
-                      (process-status proc) msg) proc)
+                      (process-status proc) msg)
+              proc)
   (server-delete-client proc))
 
 (defun server--on-display-p (frame display)
@@ -1046,7 +1047,13 @@ This handles splitting the command if it would be bigger than
     (process-put proc 'continuation nil)
     (if continuation (ignore-errors (funcall continuation)))))
 
-(cl-defun server-process-filter (proc string)
+(defvar server--process-filter-pending nil
+  "List of process filter calls still to be processed.
+Kept in the order in which the calls occurred (and hence need to be processed).")
+(defvar server--process-filter-active nil
+  "Non-nil if we're currently running our process filter.")
+
+(defun server-process-filter (proc string)
   "Process a request from the server to edit some files.
 PROC is the server process.  STRING consists of a sequence of
 commands prefixed by a dash.  Some commands have arguments;
@@ -1145,6 +1152,44 @@ The following commands are accepted by the client:
 `-suspend'
   Suspend this terminal, i.e., stop the client process.
   Sent when the user presses \\[suspend-frame]."
+  ;; Push this to the end of the list, so the list is in the order in which
+  ;; we need to process it.
+  ;; This implies an O(N²) worst-case, which is not good:
+  ;; we should arguably use a "true" O(N) queue, but N is bounded by
+  ;; the number of concurrent emacsclient requests, so we should hopefully
+  ;; never see really large values of N.
+  (setq server--process-filter-pending
+        (nconc server--process-filter-pending (list (cons proc string))))
+  ;; Since our process filter sometimes needs to wait with `sit-for',
+  ;; we need to be careful to try and avoid nested process filters
+  ;; eating up the stack, so we use `server--process-filter-active&pending'
+  ;; to make sure our process filters are run in sequence rather than in
+  ;; a nested way. (bug#71223)
+  (unless server--process-filter-active
+    (server--process-filter-all-pending)))
+
+(defun server--process-filter-all-pending ()
+  (let ((server--process-filter-active t))
+    (unwind-protect
+        (while server--process-filter-pending
+          (let* ((oldest (pop server--process-filter-pending)))
+            (server--process-filter-1 (car oldest) (cdr oldest))))
+      ;; In case we're exiting early (e.g. for `server-goto-toplevel'),
+      ;; make sure we continue running the other pending filters.
+      (when server--process-filter-pending
+        (run-with-timer 0 nil #'server--process-filter-all-pending)))))
+
+(defun server--message-sit-for (time &rest args)
+  ;; FIXME: Ideally we should not need `sit-for' here and instead use
+  ;; some `message-sit-for' call which returns immediately while making sure
+  ;; the message is visible for TIME seconds.
+  (apply #'message args)
+  ;; If there's already another process-filter pending, skip `sit-for',
+  ;; just as it does when there's pending user input.
+  (unless (consp server--process-filter-pending)
+    (sit-for time)))
+
+(cl-defun server--process-filter-1 (proc string)
   (server-log (concat "Received " string) proc)
   ;; First things first: let's check the authentication
   (unless (process-get proc :authenticated)
@@ -1158,8 +1203,7 @@ The following commands are accepted by the client:
       ;; Display the error as a message and give the user time to see
       ;; it, in case the error written by emacsclient to stderr is not
       ;; visible for some reason.
-      (message "Authentication failed")
-      (sit-for 2)
+      (server--message-sit-for 2 "Authentication failed")
       (server-send-string
        proc (concat "-error " (server-quote-arg "Authentication failed")))
       (unless (eq system-type 'windows-nt)
@@ -1169,10 +1213,10 @@ The following commands are accepted by the client:
 	    (delete-terminal terminal))))
       ;; Before calling `delete-process', give emacsclient time to
       ;; receive the error string and shut down on its own.
-      (sit-for 1)
-      (delete-process proc)
+      ;; FIXME: Why do we wait 1s here but 5s in the other one?
+      (run-with-timer 1 nil #'delete-process proc)
       ;; We return immediately.
-      (cl-return-from server-process-filter)))
+      (cl-return-from server--process-filter)))
   (let ((prev (process-get proc 'previous-string)))
     (when prev
       (setq string (concat prev string))
@@ -1507,8 +1551,7 @@ invocations of \"emacs\".")
     ;; Display the error as a message and give the user time to see
     ;; it, in case the error written by emacsclient to stderr is not
     ;; visible for some reason.
-    (message (error-message-string err))
-    (sit-for 2)
+    (server--message-sit-for 2 (error-message-string err))
     (server-send-string
      proc (concat "-error " (server-quote-arg
                              (error-message-string err))))
@@ -1520,8 +1563,8 @@ invocations of \"emacs\".")
 	  (delete-terminal terminal))))
     ;; Before calling `delete-process', give emacsclient time to
     ;; receive the error string and shut down on its own.
-    (sit-for 5)
-    (delete-process proc)))
+    ;; FIXME: Why do we wait 5s here but 1s in the other one?
+    (run-with-timer 5 nil #'delete-process proc)))
 
 (defun server-goto-line-column (line-col)
   "Move point to the position indicated in LINE-COL.

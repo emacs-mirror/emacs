@@ -1,3 +1,483 @@
+2024-06-22  Stefan Kangas  <stefankangas@gmail.com>
+
+	* Version 29.4 released.
+
+2024-06-22  Stefan Kangas  <stefankangas@gmail.com>
+
+	Bump Emacs version to 29.4
+
+2024-06-22  Stefan Kangas  <stefankangas@gmail.com>
+
+	Update files for Emacs 29.4
+
+	* ChangeLog.4:
+	* etc/AUTHORS: Update for Emacs 29.4.
+
+2024-06-22  Stefan Kangas  <stefankangas@gmail.com>
+
+	* admin/authors.el: Update for Emacs 29.4
+
+2024-06-22  Stefan Kangas  <stefankangas@gmail.com>
+
+	* etc/NEWS: Update for Emacs 29.4
+
+2024-06-22  Ihor Radchenko  <yantar92@posteo.net>
+
+	org-link-expand-abbrev: Do not evaluate arbitrary unsafe Elisp code
+
+	* lisp/org/ol.el (org-link-expand-abbrev): Refuse expanding %(...)
+	link abbrevs that specify unsafe function.  Instead, display a
+	warning, and do not expand the abbrev.  Clear all the text properties
+	from the returned link, to avoid any potential vulnerabilities caused
+	by properties that may contain arbitrary Elisp.
+
+2024-06-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	Update Tramp version (don't merge to master)
+
+	* lisp/net/trampver.el (customize-package-emacs-version-alist):
+	Adapt Tramp version integrated in Emacs 29.4.
+
+2024-06-20  Stefan Kangas  <stefankangas@gmail.com>
+
+	* admin/emacs-shell-lib: Backport to Bash 4.4 or older.
+
+2024-06-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix bug#49289 also for other auth-source backends
+
+	* lisp/auth-source.el (auth-info-password): Revert commit 59261e6f4fe.
+	(auth-source-secrets-create, auth-source-plstore-create):
+	Search also for :user.  (Bug#49289)
+
+2024-06-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix auth-info-password
+
+	* lisp/auth-source.el (auth-info-password): :secret can be a
+	cascaded function.
+
+2024-06-01  Yuan Fu  <casouri@gmail.com>
+
+	Fix treesit-parse-string crash (bug#71012)
+
+	Parsing a large file with treesit-parse-string and then printing the
+	returned node crashes Emacs, because with-temp-buffer kills the temp
+	buffer when treesit-parse-string returns, and print.c tries to access
+	the node's position in the killed buffer.
+
+	* lisp/treesit.el (treesit-parse-string): Don't use with-temp-buffer.
+
+2024-06-01  Yuan Fu  <casouri@gmail.com>
+
+	Check for buffer liveness when accessing tree-sitter node (bug#71012)
+
+	* src/treesit.h (treesit_node_buffer_live_p): Declare function.
+	* src/print.c (print_vectorlike): Print node without position if
+	buffer is killed.
+	* src/treesit.c (treesit_node_buffer_live_p): New function.
+	(treesit_check_node): Add buffer liveness check.
+	(syms_of_treesit): New error treesit-node-buffer-killed.
+
+2024-05-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of case-conversion commands
+
+	* doc/emacs/text.texi (Case): Include the commands with negative
+	arguments.  (Bug#71220)
+
+2024-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid assertion violations in displaying under 'outline-minor-mode'
+
+	* src/xdisp.c (init_from_display_pos): Initialize BYTEPOS
+	correctly, since 'init_iterator' no longer computes it from
+	CHARPOS as needed.  This fixes a change made on Mar 13, 2013.
+	(Bug#71194)
+
+2024-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of 'no-special-glyphs' frame parameter
+
+	* doc/lispref/frames.texi (Layout Parameters): Document
+	limitations of support for 'no-special-glyphs' frame parameter.
+	(Bug#71163)
+	* doc/lispref/display.texi (Truncation): Update for when
+	'fringe-mode' is off.
+
+2024-05-24  kobarity  <kobarity@gmail.com>
+
+	Fix Python font lock of chained assignment statement
+
+	* lisp/progmodes/python.el
+	(python-font-lock-keywords-maximum-decoration): Allow chaining
+	of single assignment statements.
+	* test/lisp/progmodes/python-tests.el
+	(python-font-lock-assignment-statement-20): New test.
+	(Bug#71093)
+
+2024-05-24  Brad Knotwell  <bknotwell@yahoo.com>  (tiny change)
+
+	Fix example in Calc manual
+
+	* doc/misc/calc.texi (Defining Simple Commands): Fix typo in
+	command names.  (Bug#71166)
+
+2024-05-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid crashes on MS-Windows due to invalid UNC file names
+
+	* src/w32.c (parse_root): Avoid crashes due to invalid (too short)
+	UNC names, such as "\\".  (Bug#70914)
+
+	* test/src/fileio-tests.el (fileio-tests-invalid-UNC): New test.
+
+2024-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Document :box attribute caveats when used on display strings
+
+	* doc/lispref/display.texi (Replacing Specs, Face Attributes):
+	Mention special considerations when a display string has a
+	':box' face attribute identical to the surrounding buffer text.
+	Suggested by JD Smith <jdtsmith@gmail.com>.  (Bug#70637)
+
+2024-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of 'movemail'
+
+	* doc/emacs/rmail.texi (Movemail): Fix the name of the Mailutils
+	manual in the printed version.  Add index entries.  Move the
+	description of remote mailboxes to...
+	(Remote Mailboxes): ...here, to avoid duplication.
+
+2024-05-18  Jakub Ječmínek  <kuba@kubajecminek.cz>
+
+	Replace incorrect link in Rmail chapter of Emacs manual
+
+	* doc/emacs/rmail.texi (Movemail): Fix cross-reference to a node
+	in the Mailutils manual.  (Bug#71018)
+
+2024-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid errors in 'image-dired-tag-thumbnail'
+
+	* lisp/image/image-dired.el (image-dired-tag-thumbnail)
+	(image-dired-tag-thumbnail-remove): Move here from
+	image-dired-tags.el.  (Bug#70821)
+
+2024-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix last change
+
+	* test/lisp/progmodes/csharp-mode-tests.el
+	(csharp-ts-mode-test-indentation): If need to skip the tree-sitter
+	test, do so silently.  (Bug#70345)
+
+2024-04-27  Brad Howes  <bradhowes@mac.com>  (tiny change)
+
+	Fix a typo in Introduction to Emacs Lisp (bug#70571).
+
+2024-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix last change
+
+	* test/lisp/progmodes/csharp-mode-tests.el
+	(csharp-ts-mode-test-indentation): Move the test to here.
+	* test/lisp/progmodes/csharp-ts-mode-tests.el: Remove file.
+	* test/lisp/progmodes/csharp-ts-mode-resources/indent.erts: Move
+	to test/lisp/progmodes/csharp-mode-resources/indent-ts.erts.
+
+2024-04-25  Jacob Leeming  <jacobtophatleeming@gmail.com>  (tiny change)
+
+	Fix indentation of if/else in 'csharp-ts-mode' (bug#70345)
+
+	* lisp/progmodes/csharp-mode.el (csharp-ts-mode--indent-rules):
+	Fix indentation rules for 'if' and 'else'.
+
+	* test/lisp/progmodes/csharp-ts-mode-tests.el:
+	* test/lisp/progmodes/csharp-ts-mode-resources/indent.erts: New
+	test files.
+
+2024-04-23  Ulrich Müller  <ulm@gentoo.org>
+
+	* build-aux/make-info-dir: Avoid bashism (bug#70484).
+
+2024-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of selection and navigation in *xref* buffers
+
+	* doc/emacs/maintaining.texi (Looking Up Identifiers): More
+	detailed description of 'xref-auto-jump-to-first-definition'.
+	Improve indexing.  Describe the use of 'next-error' and
+	'previous-error' in conjunction with the *xref* buffer.
+	(Identifier Search): More detailed description of
+	'xref-auto-jump-to-first-xref'.  Describe the use of 'next-error'
+	and 'previous-error'.
+
+2024-04-22  Stephen Berman  <stephen.berman@gmx.net>
+
+	Fix Widget manual typos, markup and omissions (bug#70502)
+
+	* doc/misc/widget.texi (Widgets and the Buffer): Correct typos and
+	texinfo markup, add equivalent key bindings and make minor changes
+	in wording.
+	(Customization): Correct names of two faces and add documentation
+	of remaining widget faces.
+
+2024-04-22  Prateek Sharma  <ps.prateek.sharma143@gmail.com>
+
+	Fix python-ts-mode built-in functions and attributes (bug#70478)
+
+	* lisp/progmodes/python.el (python--treesit-settings): Change the
+	treesitter query to fetch the correct type of node for built-in
+	functions and attributes and highlight them with corresponding
+	font-lock face.
+
+2024-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix markup and indexing in the Calendar chapter of user manual
+
+	* doc/emacs/calendar.texi (Calendar Unit Motion)
+	(Scroll Calendar, Writing Calendar Files, Holidays)
+	(Sunrise/Sunset, Lunar Phases, Calendar Systems)
+	(To Other Calendar, Displaying the Diary, Date Formats)
+	(Adding to Diary, Special Diary Entries): Fix markup, style, and
+	indexing.
+
+2024-04-21  Gautier Ponsinet  <gautier@gautierponsinet.xyz>
+
+	Fix the user manual for `calendar-time-zone-style'
+
+	* doc/emacs/calendar.texi (Sunrise/Sunset): Refer to the
+	variable `calendar-time-zone-style' explicitly.  (Bug#70498)
+
+2024-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid assertion violations in 'push_prefix_prop'
+
+	* src/xdisp.c (push_prefix_prop): Set the
+	'string_from_prefix_prop_p' flag for any valid value of the
+	'line-prefix' or 'wrap-prefix' property/variable.  (Bug#70495)
+
+2024-04-20  Basil L. Contovounesios  <basil@contovou.net>
+
+	Remove ert-equal-including-properties from manual
+
+	* doc/misc/ert.texi (Useful Techniques): Mention only
+	equal-including-properties in place of the now obsolete
+	ert-equal-including-properties.
+
+2024-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/dnd.el (dnd-handle-movement): Avoid errors (bug#70311).
+
+2024-04-13  Stefan Kangas  <stefankangas@gmail.com>
+
+	* doc/misc/calc.texi: Improve indexing.
+
+2024-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix display of vscrolled windows
+
+	* src/xdisp.c (redisplay_window): Fix condition for resetting the
+	window's vscroll.  (Bug#70038)
+
+2024-04-10  Peter Oliver  <git@mavit.org.uk>
+
+	* doc/emacs/misc.texi (emacsclient Options): Suggest forwarding sockets.
+
+	(Bug#66667)
+
+2024-04-10  Yuan Fu  <casouri@gmail.com>
+
+	Update go-ts-mode to support latest tree-sitter-go grammar
+
+	tree-sitter-go changed method_spec to method_elem in
+	https://github.com/tree-sitter/tree-sitter-go/commit/b82ab803d887002a0af11f6ce63d72884580bf33
+
+	* lisp/progmodes/go-ts-mode.el:
+	(go-ts-mode--method-elem-supported-p): New function.
+	(go-ts-mode--font-lock-settings): Conditionally use method_elem or
+	method_spec in the query.
+
+2024-04-09  Yuan Fu  <casouri@gmail.com>
+
+	Fix c++-ts-mode defun navigation (bug#65885)
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-base-mode): Add BOL and EOL marker
+	in the regexp.
+
+2024-03-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	Adapt Tramp versio (don't merge)
+
+	* doc/misc/trampver.texi:
+	* lisp/net/trampver.el: Change version to "2.6.3".
+	(customize-package-emacs-version-alist):
+	Adapt Tramp version integrated in Emacs 29.3.
+
+2024-03-31  Xuan Wang  <code@wangxuan.name>  (tiny change)
+
+	Fix warning-suppress for list type "warning type"
+
+	Per the documentation of 'warning-suppress-types' and the
+	implementation of 'warning-suppress-p', a warning type can
+	be either a symbol or a list of symbols.  The previous
+	implementation could generate wrong 'warning-suppress-types':
+
+	  old behavior:
+	  type              warning-suppress-types
+	  pkg           ->    '((pkg))                  Correct
+	  (pkg subtype) ->    '(((pkg subtype)))        Incorrect
+
+	Now we check whether type is a cons cell first.  (Should not
+	use listp here, as listp returns t for nil.)
+
+	  new behavior:
+	  type              warning-suppress-types
+	  pkg           ->    '((pkg))                Correct
+	  (pkg subtype) ->    '((pkg subtype))        Correct
+
+	* lisp/emacs-lisp/warnings.el (warnings-suppress): Fix saving
+	warning types in 'warning-suppress-types'.  (Bug#70063)
+
+2024-03-31  Theodor Thornhill  <theo@thornhill.no>
+
+	Make object init more robust (bug#69571)
+
+	* lisp/progmodes/csharp-mode.el (csharp-guess-basic-syntax): Make the
+	regex same as before, but conditionally check other heuristics rather
+	than crazy regex shenanigans.
+
+2024-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid errors in Info-search-case-sensitively in DIR buffers
+
+	* lisp/info.el (Info-search): Don't run the "try other subfiles"
+	code if there are no subfiles.  This happens, for example, in DIR
+	files.  (Bug#70058)
+
+2024-03-28  Theodor Thornhill  <theo@thornhill.no>
+
+	Add test for previous change (bug#70023)
+
+	* test/lisp/progmodes/typescript-ts-mode-resources/indent.erts: Add
+	test.
+
+2024-03-28  Noah Peart  <noah.v.peart@gmail.com>
+
+	Add typescript-ts-mode indentation for interface bodies (bug#70023)
+
+	* lisp/progmodes/typescript-ts-mode.el
+	(typescript-ts-mode--indent-rules): Add indentation rule for
+	interface bodies.
+
+2024-03-26  Andrea Corallo  <acorallo@gnu.org>
+
+	* Don't install unnecessary trampolines (bug#69573) (don't merge)
+
+	* lisp/emacs-lisp/comp.el (comp-subr-trampoline-install):
+	Check that subr-name actually matches the target subr.
+
+2024-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of <Delete> in user manual
+
+	* doc/emacs/basic.texi (Erasing): Document that <Delete> deletes
+	entire grapheme clusters.
+
+2024-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix documentation of 'other-window-for-scrolling'
+
+	* src/window.c (Fother_window_for_scrolling): More accurate
+	documentation of how "the other" window is looked for.  Suggested
+	by Karthik Chikmagalur <karthikchikmagalur@gmail.com>.
+
+2024-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Bump Emacs version to 29.3.50
+
+	* README:
+	* configure.ac:
+	* nt/README.W32:
+	* msdos/sed2v2.inp:
+	* etc/NEWS: Bump Emacs version to 29.3.50.
+
+2024-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Update files for Emacs 29.3
+
+	* ChangeLog.4:
+	* etc/AUTHORS:
+	* etc/HISTORY: Update for Emacs 29.3.
+
+2024-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/ldefs-boot.el: Regenerate.
+
+2024-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Bump Emacs version to 29.3
+
+	* README:
+	* configure.ac:
+	* nt/README.W32:
+	* msdos/sed2v2.inp: Bump Emacs version to 29.3.
+
+2024-03-24  Ihor Radchenko  <yantar92@posteo.net>
+
+	org--confirm-resource-safe: Fix prompt when prompting in non-file Org buffers
+
+	* lisp/org/org.el (org--confirm-resource-safe): When called from
+	non-file buffer, do not put stray "f" in the prompt.
+
+2024-03-24  Ihor Radchenko  <yantar92@posteo.net>
+
+	org-file-contents: Consider all remote files unsafe
+
+	* lisp/org/org.el (org-file-contents): When loading files, consider all
+	remote files (like TRAMP-fetched files) unsafe, in addition to URLs.
+
+2024-03-24  Ihor Radchenko  <yantar92@posteo.net>
+
+	org-latex-preview: Add protection when `untrusted-content' is non-nil
+
+	* lisp/org/org.el (org--latex-preview-when-risky): New variable
+	controlling how to handle LaTeX previews in Org files from untrusted
+	origin.
+	(org-latex-preview): Consult `org--latex-preview-when-risky' before
+	generating previews.
+
+	This patch adds a layer of protection when LaTeX preview is requested
+	for an email attachment, where `untrusted-content' is set to non-nil.
+
+2024-03-24  Ihor Radchenko  <yantar92@posteo.net>
+
+	* lisp/gnus/mm-view.el (mm-display-inline-fontify): Mark contents untrusted.
+
+2024-03-24  Ihor Radchenko  <yantar92@posteo.net>
+
+	* lisp/files.el (untrusted-content): New variable.
+
+	The new variable is to be used when buffer contents comes from untrusted
+	source.
+
+2024-03-24  Ihor Radchenko  <yantar92@posteo.net>
+
+	org-macro--set-templates: Prevent code evaluation
+
+	* lisp/org/org-macro.el (org-macro--set-templates): Get rid of any
+	risk to evaluate code when `org-macro--set-templates' is called as a
+	part of major mode initialization.  This way, no code evaluation is
+	ever triggered when user merely opens the file or when
+	`mm-display-org-inline' invokes Org major mode to fontify mime part
+	preview in email messages.
+
+2024-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* admin/authors.el (authors-aliases): Add ignored authors.
+
 2024-03-24  Ihor Radchenko  <yantar92@posteo.net>
 
 	org--confirm-resource-safe: Fix prompt when prompting in non-file Org buffers
@@ -1319,7 +1799,7 @@
 
 	Fix c-ts-mode indentation (bug#67357)
 
-	1. In a compund_statement, we indent the first sibling against the
+	1. In a compound_statement, we indent the first sibling against the
 	parent, and the rest siblings against their previous sibling.  But
 	this strategy falls apart when the first sibling is not on its own
 	line.  We should regard the first sibling that is on its own line as
@@ -4268,7 +4748,7 @@
 
 2023-07-20  Po Lu  <luangruo@yahoo.com>
 
-	Fix typos and ommissions in cus-edit.el
+	Fix typos and omissions in cus-edit.el
 
 	* lisp/cus-edit.el (custom-display): Add missing display types.
 
@@ -7999,7 +8479,7 @@
 	Given an inlay hints at position POS, its attached to [POS, POS+1] if
 	it's kind=1 (usually type hints) and [POS-1, POS] otherwise.  For
 	kind=1 hints, the 'cursor position of the first such overlay is also
-	tweaked, so that's it's less akward to edit around it.
+	tweaked, so that's it's less awkward to edit around it.
 
 	* lisp/progmodes/eglot.el (eglot--before-change): Don't delete hints
 	  here.
@@ -11284,7 +11764,7 @@
 
 	Add array_initializer to java-ts-mode
 
-	Indent strings inside arrray_initializer one step:
+	Indent strings inside array_initializer one step:
 
 	public class Java {
 	    void foo() {
@@ -16406,7 +16886,7 @@
 	config-format[1] through a new major-mode: toml-ts-mode.
 
 	I've read through the full spec[2], and from what I can see this
-	major-mode should provide correct syntax-highligting for every sort of
+	major-mode should provide correct syntax highlighting for every sort of
 	config-declaration which adheres to the specification.
 
 	Besides that it also adds support for imenu and basic tree-sitter
@@ -26568,7 +27048,7 @@
 	option.
 	(package-vc-archive-spec-alist): Add new variable to store the
 	contents of 'elpa-packages' for each archive.
-	(pacakge-vc-desc->spec): Add function to query package specifications.
+	(package-vc-desc->spec): Add function to query package specifications.
 	(package-vc--read-archive-data): Add a 'package-read-archive-hook'
 	implementation.
 	(package-vc--download-and-read-archives): Add a
@@ -34210,7 +34690,7 @@
 
 2022-09-15  Mattias Engdegård  <mattiase@acm.org>
 
-	Include nil as valid wallpaper-commmand
+	Include nil as valid wallpaper-command
 
 	* lisp/image/wallpaper.el (wallpaper-command):
 	Include nil in the type since that is a valid value for the variable,
@@ -35893,7 +36373,7 @@
 	Merge from origin/emacs-28
 
 	395760dcd3 Update ChangeLog and AUTHORS for Emacs 28.2
-	ddabb03a01 * doc/misc/idlwave.texi (Troubleshooting): Don't say "Emac...
+	ddabb03a01 * doc/misc/idlwave.texi (Troubleshooting): Don't say "Emacs...
 	724444f3d5 ; * doc/emacs/misc.texi (emacsclient Options): Fix typo.
 	b96257162d Don't mention very old Emacs versions in docs
 
@@ -44103,7 +44583,7 @@
 
 	* src/bytecode.c (exec_byte_code):
 	* lisp/emacs-lisp/comp.el (comp-limplify-lap-inst):
-	* lisp/emacs-lisp/bytecomp.el: Restore the statu quo ante.
+	* lisp/emacs-lisp/bytecomp.el: Restore the status quo ante.
 
 	* etc/NEWS: Remove the entry about the new optional argument.
 
@@ -52809,7 +53289,7 @@
 	  /emacs/configure: line 18002: syntax error near unexpected token `;;'
 	  /emacs/configure: line 18002: `  ;;'
 	That is due to under-quoting of AC_CHECK_LIB's second argument, which led to
-	the comma in an embedded string being interpreted as paramater-delimiting.
+	the comma in an embedded string being interpreted as parameter-delimiting.
 	* configure.ac: Quote the second arg of each AC_CHECK_LIB invocation.
 	(Bug#56272)
 
@@ -56282,7 +56762,7 @@
 
 2022-06-14  Mattias Engdegård  <mattiase@acm.org>
 
-	Simplify byte-compiler assuming cconv normalisations
+	Simplify byte-compiler assuming cconv normalizations
 
 	* lisp/emacs-lisp/byte-opt.el (byte-optimize-form-code-walker)
 	(byte-optimize-let-form, byte-optimize-letX):
@@ -56296,7 +56776,7 @@
 
 	Make cconv work for dynamically bound code and always run it.
 	This allows later stages to benefit from transformations and
-	normalisations in cconv.
+	normalizations in cconv.
 
 	* lisp/emacs-lisp/bytecomp.el (byte-compile-preprocess): Always run
 	cconv.
@@ -62459,7 +62939,7 @@
 	up-to-date) until the next invocation of 'eglot-flymake-backend'.
 
 	For now, this doesn't affect Flymake "list-only" diagnostics.  Those
-	are reported via the 'flymake-list-only-diagonstics' variable and
+	are reported via the 'flymake-list-only-diagnostics' variable and
 	are always communicated immediately to it.
 
 	* eglot.el: (eglot-handle-notification
@@ -66876,7 +67356,7 @@
 	(eshell-get-delimited-modifier-argument): New functions...
 	(eshell-pred-user-or-group, eshell-pred-file-time)
 	(eshell-pred-file-links, eshell-pred-file-size)
-	(eshell-pred-substitute, eshell-join-memebers, eshell-split-members):
+	(eshell-pred-substitute, eshell-join-members, eshell-split-members):
 	... and use them here.
 	(eshell-include-members): Pass 'mod-char' and use
 	'eshell-get-delimited-modifier-argument'.
@@ -74587,7 +75067,7 @@
 
 2022-03-24  Jimmy Aguilar Mena  <spacibba@aol.com>
 
-	Merge 'completion-auto-select new value secont-tab'
+	Merge 'completion-auto-select new value second-tab'
 
 	This includes the second-tab value for completion-auto-select and
 	documentation related.
@@ -76460,7 +76940,7 @@
 
 	Extract `gnus-collect-urls-from-article' from `gnus-summary-browse-url'
 
-	* lisp/gnus-sum.el (gnus-collect-urls-from-article):
+	* lisp/gnus/gnus-sum.el (gnus-collect-urls-from-article):
 	New function, extracted from `gnus-summary-browse-url'.
 	(gnus-summary-browse-url): Use it.
 
@@ -76577,7 +77057,7 @@
 
 	New command `gnus-summary-browse-all-urls' bound to "v"
 
-	* lisp/gnus-sum.el (gnus-collect-urls-from-article): New function,
+	* lisp/gnus/gnus-sum.el (gnus-collect-urls-from-article): New function,
 	  extracted from `gnus-summary-browse-url'.
 	(gnus-summary-browse-url): Use it; also use `browse-url-button-open-url'
 	  to handle the prefix argument.
@@ -81723,7 +82203,7 @@
 
 	* src/xfns.c (x_make_gc): Don't set FillOpaqueStippled on cursor
 	GC.  The reason is that some X servers break on such a fill
-	style if the operation being performed is not a stiple
+	style if the operation being performed is not a stipple
 	operation.
 
 2022-02-09  Po Lu  <luangruo@yahoo.com>
@@ -82366,7 +82846,7 @@
 
 2022-02-06  Wang Chunye  <chunywan@xilinx.com>  (tiny change)
 
-	optimization: constand folding for read-kbd-macro
+	optimization: constant folding for read-kbd-macro
 
 	to boost startup performance, it is better to avoid invoking
 	`read-kbd-macro` at run time which requires 'cl-lib.
@@ -83611,7 +84091,7 @@
 	symbols since the rest is now available from `function-history`.
 	* src/eval.c (un_autoload): Adjust accordingly.
 
-	* src/lread.c (load-history): Udate docstring.
+	* src/lread.c (load-history): Update docstring.
 
 	* lisp/loadhist.el (loadhist-unload-filename): New var.
 	(unload-feature): Bind it.
@@ -102240,7 +102720,7 @@
 
 2021-11-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	Remove too-agressive window refresh in the hourglass code
+	Remove too aggressive window refresh in the hourglass code
 
 	* src/xterm.c (x_show_hourglass): Don't force a spurious refresh
 	(bug#51649).
@@ -104223,7 +104703,7 @@
 	Merge from origin/emacs-28
 
 	f1c9286 ; * doc/misc/org.org: fix capture context example
-	af67ce6 Merge branch 'emacs-28' of git.savannah.gnu.org:/srv/git/emac...
+	af67ce6 Merge branch 'emacs-28' of git.savannah.gnu.org:/srv/git/emacs...
 	610680a Fix rendering of title-less <abbr> tags in shr
 	2ba4ccf ; * lisp/files.el (make-nearby-temp-file): Doc fix.
 
@@ -110715,7 +111195,7 @@
 
 2020-11-21  Yuuki Harano  <masm+github@masm11.me>
 
-	Implement Scroll-bar-forground and scroll-bar-background
+	Implement scroll-bar-foreground and scroll-bar-background
 
 	* src/pgtkterm.h (struct pgtk_output):
 
@@ -112654,7 +113134,7 @@
 	Rework and correct major part of xref glue code
 
 	See comments of https://github.com/joaotavora/eglot/pull/314.  Up to
-	now, xref-backend-indentifier-completion-table was a gross hack that
+	now, xref-backend-identifier-completion-table was a gross hack that
 	only worked sometimes.  It relied on some fugly gymnastics to cache a
 	response from :textDocument/documentSymbol and somehow used that
 	information to build a completion table.  But it doesn't work well.
@@ -113087,12 +113567,12 @@
 
 	Merge pull request from stribb/master
 
-	Add a line of documentation for (use-pacakage ... :hook).
+	Add a line of documentation for (use-package ... :hook).
 	GitHub-reference: https://github.com/jwiegley/use-package/issues/759
 
 2019-04-04  Andrew Stribblehill  <stribb@gmail.com>  (tiny change)
 
-	Add a line of documentation for (use-pacakage ... :hook)
+	Add a line of documentation for (use-package ... :hook)
 
 2019-02-13  João Távora  <joaotavora@gmail.com>
 
@@ -113770,7 +114250,7 @@
 
 	Fix potential security issue fontifying lsp doc
 
-	Previously, a server could mistankely or maliciously call *-mode
+	Previously, a server could mistakenly or maliciously call *-mode
 	functions by in the response to a completion or hover request,
 	specifically in the :documentation field of the response.
 
@@ -115537,7 +116017,7 @@
 	Also cquery sometimes send 0-length ranges upon which we now fallback
 	to flymake-diag-region.
 
-	Finally, in eglot-eldoc-funciton, the previous hack of calling the
+	Finally, in eglot-eldoc-function, the previous hack of calling the
 	eglot--hover-info outside of the when-buffer-window macrolet contained
 	a bug. It must be called in the correct buffer. Revert the hack and do
 	it by querying from eglot.el if ert is running tests.
@@ -119347,7 +119827,7 @@
 
 	    (use-package foopkg :bind "<some-key>")
 
-	intendes to bind <some-key> to 'foopkg command.
+	intends to bind <some-key> to 'foopkg command.
 
 2016-10-31  Noam Postavsky  <npostavs@gmail.com>
 
@@ -121506,14 +121986,14 @@
 
 This file records repository revisions from
 commit f2ae39829812098d8269eafbc0fcb98959ee5bb7 (exclusive) to
-commit 8d8253f89915f1d9b45791d46cf974c6bdcc1457 (inclusive).
+commit 959eacc2a705caf067442a96ac17dcb8616f6d96 (inclusive).
 See ChangeLog.3 for earlier changes.
 
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2022, 2024 Free Software Foundation, Inc.
+  Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

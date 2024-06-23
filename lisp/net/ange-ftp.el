@@ -781,7 +781,7 @@ If nil, the value of `ange-ftp-netrc-default-user' is used.
 If that is nil too, then your login name is used.
 
 Once a connection to a given host has been initiated, the user name
-and password information for that host are cached and re-used by
+and password information for that host are cached and reused by
 ange-ftp.  Use \\[ange-ftp-set-user] to change the cached values,
 since setting `ange-ftp-default-user' directly does not affect
 the cached information."

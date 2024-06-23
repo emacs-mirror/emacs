@@ -52,9 +52,15 @@
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-at-point-no-context "org-element" (&optional pom))
 (declare-function org-element-context "org-element" (&optional element))
-(declare-function org-element-lineage "org-element" (blob &optional types with-self))
-(declare-function org-element-type "org-element" (element))
-(declare-function org-element-property "org-element" (property element))
+(declare-function org-element-lineage "org-element-ast" (blob &optional types with-self))
+(declare-function org-element-type "org-element-ast" (node &optional anonymous))
+(declare-function org-element-type-p "org-element-ast" (node types))
+(declare-function org-element-property "org-element-ast" (property node))
+(declare-function org-element-begin "org-element" (node))
+(declare-function org-element-end "org-element" (node))
+(declare-function org-element-contents-begin "org-element" (node))
+(declare-function org-element-contents-end "org-element" (node))
+(declare-function org-element-post-affiliated "org-element" (node))
 (declare-function org-end-of-subtree "org" (&optional invisible-ok to-heading))
 (declare-function org-get-heading "org" (&optional no-tags no-todo no-priority no-comment))
 (declare-function org-get-tags "org" (&optional pos local))
@@ -71,6 +77,7 @@
 (declare-function outline-next-heading "outline" ())
 (declare-function speedbar-line-directory "speedbar" (&optional depth))
 (declare-function table--at-cell-p "table" (position &optional object at-column))
+(declare-function ob-clojure-eval-with-cmd "ob-clojure" (cmd expanded))
 (declare-function org-fold-folded-p "org-fold" (&optional pos spec-or-alias))
 (declare-function org-fold-hide-sublevels "org-fold" (levels))
 (declare-function org-fold-hide-subtree "org-fold" ())
@@ -95,6 +102,25 @@
 
 
 ;;; Emacs < 29 compatibility
+
+(if (fboundp 'display-buffer-full-frame)
+    (defalias 'org-display-buffer-full-frame #'display-buffer-full-frame)
+  (defun org-display-buffer-full-frame (buffer alist)
+    "Display BUFFER in the current frame, taking the entire frame.
+ALIST is an association list of action symbols and values.  See
+Info node `(elisp) Buffer Display Action Alists' for details of
+such alists.
+
+This is an action function for buffer display, see Info
+node `(elisp) Buffer Display Action Functions'.  It should be
+called only by `display-buffer' or a function directly or
+indirectly called by the latter."
+    (when-let ((window (or (display-buffer-reuse-window buffer alist)
+                           (display-buffer-same-window buffer alist)
+                           (display-buffer-pop-up-window buffer alist)
+                           (display-buffer-use-some-window buffer alist))))
+      (delete-other-windows window)
+      window)))
 
 (defvar org-file-has-changed-p--hash-table (make-hash-table :test #'equal)
   "Internal variable used by `org-file-has-changed-p'.")
@@ -130,8 +156,40 @@ Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison."
     (eq t (compare-strings string1 0 nil string2 0 nil t))))
 
+(defun org-buffer-text-pixel-width ()
+  "Return pixel width of text in current buffer.
+This function uses `buffer-text-pixel-size', when available, and falls
+back to `window-text-pixel-size' otherwise."
+  (if (fboundp 'buffer-text-pixel-size)
+      (car (buffer-text-pixel-size nil nil t))
+    (if (get-buffer-window (current-buffer))
+        ;; FIXME: 10000 because `most-positive-fixnum' ain't working
+        ;; (tests failing) and this call will be removed after we drop
+        ;; Emacs 28 support anyway.
+        (car (window-text-pixel-size
+              nil (point-min) (point-max) 10000))
+      (let ((dedicatedp (window-dedicated-p))
+            (oldbuffer (window-buffer)))
+        (unwind-protect
+            (progn
+              ;; Do not throw error in dedicated windows.
+              (set-window-dedicated-p nil nil)
+              (set-window-buffer nil (current-buffer))
+              (car (window-text-pixel-size
+                    nil (point-min) (point-max) 10000)))
+          (set-window-buffer nil oldbuffer)
+          (set-window-dedicated-p nil dedicatedp))))))
+
 
 ;;; Emacs < 28.1 compatibility
+
+(if (= 2 (cdr (subr-arity (symbol-function 'get-buffer-create))))
+    ;; Emacs >27.
+    (defalias 'org-get-buffer-create #'get-buffer-create)
+  (defun org-get-buffer-create (buffer-or-name &optional _)
+    "Call `get-buffer-create' with BUFFER-OR-NAME argument.
+Ignore optional argument."
+    (get-buffer-create buffer-or-name)))
 
 (if (fboundp 'file-name-concat)
     (defalias 'org-file-name-concat #'file-name-concat)
@@ -193,6 +251,17 @@ removed."
                     default)))
      ": ")))
 
+(if (fboundp 'list-of-strings-p)
+    (defalias 'org-list-of-strings-p #'list-of-strings-p)
+  ;; From Emacs subr.el.
+;;;###autoload
+  (defun org-list-of-strings-p (object)
+    "Return t if OBJECT is nil or a list of strings."
+    (declare (pure t) (side-effect-free error-free))
+    (while (and (consp object) (stringp (car object)))
+      (setq object (cdr object)))
+    (null object)))
+
 
 ;;; Emacs < 27.1 compatibility
 
@@ -203,6 +272,25 @@ removed."
       (declare (debug (form form def-body)) (indent 2))
       `(progn ,@body))
   (defalias 'org-combine-change-calls 'combine-change-calls))
+
+;; `flatten-tree' was added in Emacs 27.1.
+(if (fboundp 'flatten-tree)
+    (defalias 'org--flatten-tree #'flatten-tree)
+  ;; The implementation is taken from Emacs subr.el 8664ba18c7c5.
+  (defun org--flatten-tree (tree)
+    "Return a \"flattened\" copy of TREE.
+
+A `flatten-tree' polyfill for compatibility with Emacs versions
+older than 27.1"
+    (let (elems)
+      (while (consp tree)
+        (let ((elem (pop tree)))
+          (while (consp elem)
+            (push (cdr elem) tree)
+            (setq elem (car elem)))
+          (if elem (push elem elems))))
+      (if tree (push tree elems))
+      (nreverse elems))))
 
 (if (version< emacs-version "27.1")
     (defsubst org-replace-buffer-contents (source &optional _max-secs _max-costs)
@@ -289,6 +377,24 @@ Execute BODY, and unwind connection-local variables."
     (declare (debug t))
     `(with-connection-local-profiles (connection-local-get-profiles nil)
        ,@body)))
+
+;; assoc-delete-all missing from 26.1
+(if (fboundp 'assoc-delete-all)
+    (defalias 'org-assoc-delete-all 'assoc-delete-all)
+  ;; from compat/compat-27.el
+  (defun org-assoc-delete-all (key alist &optional test)
+    "Delete all matching key from alist, default test equal"
+    (unless test (setq test #'equal))
+    (while (and (consp (car alist))
+		(funcall test (caar alist) key))
+      (setq alist (cdr alist)))
+    (let ((tail alist) tail-cdr)
+      (while (setq tail-cdr (cdr tail))
+	(if (and (consp (car tail-cdr))
+		 (funcall test (caar tail-cdr) key))
+            (setcdr tail (cdr tail-cdr))
+          (setq tail tail-cdr))))
+    alist))
 
 
 ;;; Emacs < 26.1 compatibility
@@ -386,6 +492,10 @@ Counting starts at 1."
 (define-obsolete-function-alias 'org-string-match-p 'string-match-p "9.0")
 
 ;;;; Functions and variables from previous releases now obsolete.
+(define-obsolete-variable-alias 'org-export-ignored-local-variables
+  'org-element-ignored-local-variables "Org 9.7")
+(define-obsolete-function-alias 'org-habit-get-priority
+  'org-habit-get-urgency "Org 9.7")
 (define-obsolete-function-alias 'org-timestamp-format
   'org-format-timestamp "Org 9.6")
 (define-obsolete-variable-alias 'org-export-before-processing-hook
@@ -411,7 +521,7 @@ Counting starts at 1."
   'completing-read "9.0")
 (define-obsolete-function-alias 'org-iread-file-name 'read-file-name "9.0")
 (define-obsolete-function-alias 'org-days-to-time
-  'org-time-stamp-to-now "8.2")
+  'org-timestamp-to-now "8.2")
 (define-obsolete-variable-alias 'org-agenda-ignore-drawer-properties
   'org-agenda-ignore-properties "9.0")
 (define-obsolete-function-alias 'org-preview-latex-fragment
@@ -549,10 +659,51 @@ Counting starts at 1."
 (define-obsolete-function-alias 'org-file-url-p 'org-url-p "9.6")
 (define-obsolete-variable-alias 'org-plantuml-executable-args 'org-plantuml-args
   "Org 9.6")
+
+(defvar org-cached-props nil)
+(defvar org-use-property-inheritance)
+(declare-function org-entry-get "org" (epom property &optional inherit literal-nil))
+(declare-function org-entry-properties "org" (&optional epom which))
+(defun org-cached-entry-get (pom property)
+  (if (or (eq t org-use-property-inheritance)
+	  (and (stringp org-use-property-inheritance)
+	       (let ((case-fold-search t))
+		 (string-match-p org-use-property-inheritance property)))
+	  (and (listp org-use-property-inheritance)
+	       (member-ignore-case property org-use-property-inheritance)))
+      ;; Caching is not possible, check it directly.
+      (org-entry-get pom property 'inherit)
+    ;; Get all properties, so we can do complicated checks easily.
+    (cdr (assoc-string property
+		       (or org-cached-props
+			   (setq org-cached-props (org-entry-properties pom)))
+		       t))))
+
+(make-obsolete 'org-cached-entry-get
+               "Performs badly.  Instead use `org-entry-get' with the argument INHERIT set to `selective'"
+               "9.7")
+
+(defconst org-latex-line-break-safe "\\\\[0pt]"
+  "Linebreak protecting the following [...].
+
+Without \"[0pt]\" it would be interpreted as an optional argument to
+the \\\\.
+
+This constant, for example, makes the below code not err:
+
+\\begin{tabular}{c|c}
+    [t] & s\\\\[0pt]
+    [I] & A\\\\[0pt]
+    [m] & kg
+\\end{tabular}")
+(make-obsolete 'org-latex-line-break-safe
+               "should not be used - it is not safe in all the scenarios."
+               "9.7")
+
 (defun org-in-fixed-width-region-p ()
   "Non-nil if point in a fixed-width region."
   (save-match-data
-    (eq 'fixed-width (org-element-type (org-element-at-point)))))
+    (org-element-type-p (org-element-at-point) 'fixed-width)))
 (make-obsolete 'org-in-fixed-width-region-p
                "use `org-element' library"
                "9.0")
@@ -569,6 +720,26 @@ Counting starts at 1."
 
 (make-obsolete 'org-let "to be removed" "9.6")
 (make-obsolete 'org-let2 "to be removed" "9.6")
+
+(define-obsolete-function-alias 'org--math-always-on
+  'org--math-p "9.7")
+
+(defmacro org-no-popups (&rest body)
+  "Suppress popup windows and evaluate BODY."
+  `(let (pop-up-frames pop-up-windows)
+     ,@body))
+(make-obsolete 'org-no-popups "no longer used" "9.7")
+
+(defun org-switch-to-buffer-other-window (&rest args)
+  "Switch to buffer in a second window on the current frame.
+In particular, do not allow pop-up frames.
+Returns the newly created buffer."
+  (let (pop-up-frames pop-up-windows)
+    (apply #'switch-to-buffer-other-window args)))
+  (make-obsolete 'org-switch-to-buffer-other-window "no longer used" "9.7")
+
+(make-obsolete 'org-refresh-category-properties "no longer used" "9.7")
+(make-obsolete 'org-refresh-effort-properties "no longer used" "9.7")
 
 (defun org-compatible-face (inherits specs)
   "Make a compatible face specification.
@@ -616,7 +787,7 @@ See `org-link-parameters' for documentation on the other parameters."
 (defun org-table-recognize-table.el ()
   "If there is a table.el table nearby, recognize it and move into it."
   (when (org-at-table.el-p)
-    (beginning-of-line)
+    (forward-line 0)
     (unless (or (looking-at org-table-dataline-regexp)
                 (not (looking-at org-table1-hline-regexp)))
       (forward-line)
@@ -658,13 +829,23 @@ See `org-link-parameters' for documentation on the other parameters."
   (org-unbracket-string "<" ">" s))
 (make-obsolete 'org-remove-angle-brackets 'org-unbracket-string "9.0")
 
+(defcustom org-capture-bookmark t
+  "When non-nil, add bookmark pointing at the last stored position when capturing."
+  :group 'org-capture
+  :version "24.3"
+  :type 'boolean)
+(make-obsolete-variable
+ 'org-capture-bookmark
+ "use `org-bookmark-names-plist' instead."
+ "9.7")
+
 (defcustom org-publish-sitemap-file-entry-format "%t"
   "Format string for site-map file entry.
 You could use brackets to delimit on what part the link will be.
 
 %t is the title.
 %a is the author.
-%d is the date formatted using `org-publish-sitemap-date-format'."
+%d is the date."
   :group 'org-export-publish
   :type 'string)
 (make-obsolete-variable
@@ -881,21 +1062,21 @@ When optional argument ELEMENT is a parsed drawer, as returned by
 When buffer positions BEG and END are provided, hide or show that
 region as a drawer without further ado."
   (declare (obsolete "use `org-hide-drawer-toggle' instead." "9.4"))
-  (if (and beg end) (org-fold-region beg end flag (if (eq org-fold-core-style 'text-properties) 'drawer 'outline))
+  (if (and beg end) (org-fold-region beg end flag 'drawer)
     (let ((drawer
 	   (or element
 	       (and (save-excursion
-		      (beginning-of-line)
+		      (forward-line 0)
 		      (looking-at-p "^[ \t]*:\\(\\(?:\\w\\|[-_]\\)+\\):[ \t]*$"))
 		    (org-element-at-point)))))
-      (when (memq (org-element-type drawer) '(drawer property-drawer))
-	(let ((post (org-element-property :post-affiliated drawer)))
+      (when (org-element-type-p drawer '(drawer property-drawer))
+	(let ((post (org-element-post-affiliated drawer)))
 	  (org-fold-region
 	   (save-excursion (goto-char post) (line-end-position))
-	   (save-excursion (goto-char (org-element-property :end drawer))
+	   (save-excursion (goto-char (org-element-end drawer))
 			   (skip-chars-backward " \t\n")
 			   (line-end-position))
-	   flag (if (eq org-fold-core-style 'text-properties) 'drawer 'outline))
+	   flag 'drawer)
 	  ;; When the drawer is hidden away, make sure point lies in
 	  ;; a visible part of the buffer.
 	  (when (invisible-p (max (1- (point)) (point-min)))
@@ -919,7 +1100,7 @@ an error.  Return a non-nil value when toggling is successful."
       (goto-char start)
       (while (and (< (point) end)
 		  (re-search-forward "^[ \t]*#\\+begin_?\
-\\([^ \n]+\\)\\(\\([^\n]+\\)\\)?\n\\([^\000]+?\\)#\\+end_?\\1[ \t]*$" end t))
+\\([^ \n]+\\)\\(\\([^\n]+\\)\\)?\n\\(\\(?:.\\|\n\\)+?\\)#\\+end_?\\1[ \t]*$" end t))
 	(save-excursion
 	  (save-match-data
             (goto-char (match-beginning 0))
@@ -1115,6 +1296,26 @@ context.  See the individual commands for more information."
 
 (make-obsolete-variable 'org-latex-polyglossia-language-alist
                         "set `org-latex-language-alist' instead." "9.6")
+
+(defconst org-babel-python-mode 'python
+  "Python mode for use in running python interactively.")
+
+(make-obsolete-variable
+ 'org-babel-python-mode
+ "Only the built-in Python mode is supported in ob-python now."
+ "9.7")
+
+(define-obsolete-function-alias 'ob-clojure-eval-with-babashka
+  #'ob-clojure-eval-with-cmd "9.7")
+
+(define-obsolete-function-alias 'org-export-get-parent
+  'org-element-parent "9.7")
+(define-obsolete-function-alias 'org-export-get-parent-element
+  'org-element-parent-element "9.7")
+
+(define-obsolete-function-alias 'org-print-speed-command
+  'org--print-speed-command "9.7"
+  "Internal function.  Subject of unannounced changes.")
 
 ;;;; Obsolete link types
 
@@ -1366,7 +1567,7 @@ ELEMENT is the element at point."
        ;; Only in inline footnotes, within the definition.
        (and (eq (org-element-property :type object) 'inline)
 	    (< (save-excursion
-		 (goto-char (org-element-property :begin object))
+		 (goto-char (org-element-begin object))
 		 (search-forward ":" nil t 2))
 	       (point))))
       (otherwise t))))
@@ -1375,7 +1576,7 @@ ELEMENT is the element at point."
   "Function used for `flyspell-generic-check-word-predicate'."
   (if (org-at-heading-p)
       ;; At a headline or an inlinetask, check title only.
-      (and (save-excursion (beginning-of-line)
+      (and (save-excursion (forward-line 0)
 			   (and (let ((case-fold-search t))
 				  (not (looking-at-p "\\*+ END[ \t]*$")))
 				(let ((case-fold-search nil))
@@ -1387,19 +1588,19 @@ ELEMENT is the element at point."
            ;; Ignore checks in code, verbatim and others.
            (org--flyspell-object-check-p (org-element-at-point-no-context)))
     (let* ((element (org-element-at-point-no-context))
-	   (post-affiliated (org-element-property :post-affiliated element)))
+	   (post-affiliated (org-element-post-affiliated element)))
       (cond
        ;; Ignore checks in all affiliated keywords but captions.
        ((< (point) post-affiliated)
 	(and (save-excursion
-	       (beginning-of-line)
+	       (forward-line 0)
 	       (let ((case-fold-search t)) (looking-at "[ \t]*#\\+CAPTION:")))
 	     (> (point) (match-end 0))
 	     (org--flyspell-object-check-p element)))
        ;; Ignore checks in LOGBOOK (or equivalent) drawer.
        ((let ((log (org-log-into-drawer)))
 	  (and log
-	       (let ((drawer (org-element-lineage element '(drawer))))
+	       (let ((drawer (org-element-lineage element 'drawer)))
 		 (and drawer
 		      (org-string-equal-ignore-case
 		       log (org-element-property :drawer-name drawer))))))
@@ -1413,7 +1614,7 @@ ELEMENT is the element at point."
 		(save-excursion
 		  (end-of-line)
 		  (skip-chars-forward " \r\t\n")
-		  (< (point) (org-element-property :end element)))))
+		  (< (point) (org-element-end element)))))
 	  ;; Arbitrary list of keywords where checks are meaningful.
 	  ;; Make sure point is on the value part of the element.
 	  (keyword
@@ -1425,8 +1626,8 @@ ELEMENT is the element at point."
 	  ;; table rows (after affiliated keywords) but some objects
 	  ;; must not be affected.
 	  ((paragraph table-row verse-block)
-	   (let ((cbeg (org-element-property :contents-begin element))
-		 (cend (org-element-property :contents-end element)))
+	   (let ((cbeg (org-element-contents-begin element))
+		 (cend (org-element-contents-end element)))
 	     (and cbeg (>= (point) cbeg) (< (point) cend)
 		  (org--flyspell-object-check-p element))))))))))
 (put 'org-mode 'flyspell-mode-predicate 'org-mode-flyspell-verify)
@@ -1561,7 +1762,7 @@ key."
   "Run `org-back-to-heading' when in org-mode."
   (if (derived-mode-p 'org-mode)
       (progn
-        (beginning-of-line)
+        (forward-line 0)
         (or (org-at-heading-p (not invisible-ok))
             (let (found)
 	      (save-excursion

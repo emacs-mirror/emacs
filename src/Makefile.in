@@ -425,7 +425,7 @@ endif
 
 # Flags that might be in WARN_CFLAGS but are not valid for Objective C.
 NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd \
-  -Wnested-externs -Wstrict-flex-arrays
+  -Wnested-externs -Wstrict-flex-arrays -Wflex-array-member-not-at-end
 # Ditto, but for C++.
 NON_CXX_CFLAGS = -Wmissing-prototypes -Wnested-externs -Wold-style-definition \
   -Wstrict-prototypes -Wno-override-init
@@ -454,7 +454,7 @@ ALL_OBJC_CFLAGS = $(EMACS_CFLAGS) \
 ALL_CXX_CFLAGS = $(EMACS_CFLAGS) \
   $(filter-out $(NON_CXX_CFLAGS),$(WARN_CFLAGS)) $(CXXFLAGS)
 
-.SUFFIXES: .m .cc
+.SUFFIXES: .c .m .cc
 .c.o:
 	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $(PROFILING_CFLAGS) $<
 .m.o:

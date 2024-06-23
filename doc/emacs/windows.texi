@@ -22,6 +22,7 @@ one frame.
 * Displaying Buffers::  How Emacs picks a window for displaying a buffer.
 * Window Convenience::  Convenience functions for window handling.
 * Tab Line::            Window tab line.
+* Window Tool Bar::     A tool bar that is attached to windows.
 @end menu
 
 @node Basic Window
@@ -689,3 +690,45 @@ Whereas tabs on the Tab Bar at the top of each frame are used to
 switch between window configurations containing several windows with buffers,
 tabs on the Tab Line at the top of each window are used to switch
 between buffers in the window.
+
+Also note that the tab line displays in the same space as the window
+tool bar, so only one of them can be displayed at any given time, unless
+you customize the value of @code{tab-line-format} in Lisp to add
+@w{@code{(:eval (tab-line-format))}} to @code{tab-line-format}.
+@xref{Mode Line Format,,, elisp, The Emacs Lisp Reference Manual}.
+
+
+@node Window Tool Bar
+@section Window Tool Bar
+
+@cindex window tool bar
+@cindex mode, window tool bar
+@cindex tool bar, attached to window
+
+@findex global-window-tool-bar-mode
+  The command @code{global-window-tool-bar-mode} toggles the display of
+a tool bar at the top of each window.  When enabled, multiple windows
+can display their own tool bar simultaneously.  To conserve space, a
+window tool bar is hidden if there are no buttons to show, i.e. if
+@code{tool-bar-map} is @code{nil}.
+
+@findex window-tool-bar-mode
+If you want to toggle the display of a window tool bar for only some
+buffers, run the command @code{window-tool-bar-mode} in those buffers.
+This is useful to put in a mode hook.  For example, if you want the window
+tool bar to appear only for buffers that do not represent files and have
+a custom tool bar, you could add the following code to your init file
+(@pxref{Init File}):
+
+@example
+(add-hook 'special-mode-hook 'window-tool-bar-mode)
+@end example
+
+Emacs can also display a single tool bar at the top of frames
+(@pxref{Tool Bars}).
+
+Note that the window tool bar displays in the same space as the tab
+line, so only one of them can be displayed at any given time, unless you
+customize the value of @code{tab-line-format} to add @w{@code{(:eval
+(window-tool-bar-string))}} to @code{tab-line-format}.  @xref{Mode Line
+Format,,, elisp, The Emacs Lisp Reference Manual}.

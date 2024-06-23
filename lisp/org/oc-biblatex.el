@@ -70,7 +70,8 @@
 (require 'org-macs)
 (require 'oc)
 
-(declare-function org-element-property "org-element" (property element))
+(declare-function org-element-property "org-element-ast" (property node))
+(declare-function org-element-parent "org-element-ast" (node))
 (declare-function org-export-data "org-export" (data info))
 
 
@@ -189,20 +190,23 @@ INITIAL is an initial style of comma-separated options, as a string or nil.
 STYLE is the style definition as a string or nil.
 
 Return a string."
-  (let ((options-no-style
-         (and initial
-              (let ((re (rx string-start (or "bibstyle" "citestyle" "style"))))
-                (seq-filter
-                 (lambda (option) (not (string-match re option)))
-                 (split-string (org-unbracket-string "[" "]" initial)
-                               "," t " \t")))))
-        (style-options
-         (cond
-          ((null style) nil)
-          ((not (string-match "/" style)) (list (concat "style=" style)))
-          (t
-           (list (concat "bibstyle=" (substring style nil (match-beginning 0)))
-                 (concat "citestyle=" (substring style (match-end 0))))))))
+  (let* ((options-no-style
+          (and initial
+               (let ((re (rx string-start (or "bibstyle" "citestyle" "style"))))
+                 (seq-filter
+                  (lambda (option) (not (string-match re option)))
+                  (split-string (org-unbracket-string "[" "]" initial)
+                                "," t " \t")))))
+         ;; Check whether the string is in key=val,...
+         (biblatex-options-p (and (stringp style) (string-match-p "\\`[^,=]+=[^,]+\\(,[^=]+=[^,]+\\)\\'" style)))
+         (style-options
+          (cond
+           ((null style) nil)
+           ;; Assume it is a valid options string for biblatex if it is in key=val,... format
+           ((not (string-match "/" style)) (list (if biblatex-options-p style (concat "style=" style))))
+           (t
+            (list (concat "bibstyle=" (substring style nil (match-beginning 0)))
+                  (concat "citestyle=" (substring style (match-end 0))))))))
     (if (or options-no-style style-options)
         (format "[%s]"
                 (mapconcat #'identity
@@ -231,7 +235,7 @@ When NO-OPT argument is non-nil, only provide mandatory arguments."
       (let* ((origin (pcase references
                        (`(,reference) reference)
                        (`(,reference . ,_)
-                        (org-element-property :parent reference))))
+                        (org-element-parent reference))))
              (suffix (org-element-property :suffix origin))
              (prefix (org-element-property :prefix origin)))
         (concat (and prefix

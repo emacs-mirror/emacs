@@ -402,15 +402,22 @@ There should be no more than seven characters after the final `/'."
          (setq buffer-file-name filename))
 
         (unwind-protect               ; to make sure local-copy gets deleted
-
             (progn
-
               (and
                uncompress-message
 	       jka-compr-verbose
                (message "%s %s..." uncompress-message base-name))
-
-              (if (and (not (executable-find uncompress-program))
+              (if (and (or (not (executable-find uncompress-program))
+                           ;; Android ships a bespoke version of gzip
+                           ;; that is absolutely useless for Emacs's
+                           ;; purposes, not supporting decompression or
+                           ;; reading input from elsewhere than stdin.
+                           ;;
+                           ;; This is only true of early releases of the
+                           ;; OS, but, since zlib is always available on
+                           ;; Android, simply unconditionally prefer the
+                           ;; built-in decompression function.
+                           (eq system-type 'android))
                        uncompress-function
                        (fboundp uncompress-function))
                   ;; If we don't have the uncompression program, then use the

@@ -2931,7 +2931,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.emacs-places\\'" . lisp-data-mode)
      ("\\.el\\'" . emacs-lisp-mode)
      ("Project\\.ede\\'" . emacs-lisp-mode)
-     ("\\.\\(scm\\|sls\\|sld\\|stk\\|ss\\|sch\\)\\'" . scheme-mode)
+     ("\\(?:\\.\\(?:scm\\|sls\\|sld\\|stk\\|ss\\|sch\\)\\|/\\.guile\\)\\'" . scheme-mode)
      ("\\.l\\'" . lisp-mode)
      ("\\.li?sp\\'" . lisp-mode)
      ("\\.[fF]\\'" . fortran-mode)
@@ -3494,6 +3494,8 @@ we don't actually set it to the same mode the buffer already has."
      ;; Check for auto-mode-alist entry in dir-locals.
      (with-demoted-errors "Directory-local variables error: %s"
        ;; Note this is a no-op if enable-local-variables is nil.
+       ;; We don't use `hack-dir-local-get-variables-functions' here, because
+       ;; modes are specific to Emacs.
        (let* ((mode-alist (cdr (hack-dir-local--get-variables
                                 (lambda (key) (eq key 'auto-mode-alist))))))
          (set-auto-mode--apply-alist mode-alist keep-mode-if-same t)))
@@ -3570,17 +3572,18 @@ we don't actually set it to the same mode the buffer already has."
   "Remember the mode we have set via `set-auto-mode-0'.")
 
 (defcustom major-mode-remap-alist nil
-  "Alist mapping file-specified mode to actual mode.
-Every entry is of the form (MODE . FUNCTION) which means that in order
-to activate the major mode MODE (specified via something like
-`auto-mode-alist', file-local variables, ...) we should actually call
-FUNCTION instead.
-FUNCTION can be nil to hide other entries (either in this var or in
-`major-mode-remap-defaults') and means that we should call MODE."
+  "Alist mapping file-specified modes to alternative modes.
+Each entry is of the form (MODE . FUNCTION) which means that in place
+of activating the major mode MODE (specified via something like
+`auto-mode-alist', file-local variables, ...) we actually call FUNCTION
+instead.
+FUNCTION is typically a major mode which \"does the same thing\" as
+MODE, but can also be nil to hide other entries (either in this var or
+in `major-mode-remap-defaults') and means that we should call MODE."
   :type '(alist (symbol) (function)))
 
 (defvar major-mode-remap-defaults nil
-  "Alist mapping file-specified mode to actual mode.
+  "Alist mapping file-specified modes to alternative modes.
 This works like `major-mode-remap-alist' except it has lower priority
 and it is meant to be modified by packages rather than users.")
 
@@ -4768,7 +4771,7 @@ Return the new class name, which is a symbol named DIR."
 
 (defvar hack-dir-local-variables--warned-coding nil)
 
-(defun hack-dir-local--get-variables (predicate)
+(defun hack-dir-local--get-variables (&optional predicate)
   "Read per-directory local variables for the current buffer.
 Return a cons of the form (DIR . ALIST), where DIR is the
 directory name (maybe nil) and ALIST is an alist of all variables
@@ -4798,6 +4801,16 @@ PREDICATE is passed to `dir-locals-collect-variables'."
                (dir-locals-get-class-variables class)
                dir-name nil predicate))))))
 
+(defvar hack-dir-local-get-variables-functions
+  (list #'hack-dir-local--get-variables)
+  "Special hook to compute the set of dir-local variables.
+Every function is called without arguments and should return either
+a cons of the form (DIR . ALIST) or a (possibly empty) list of such conses,
+where ALIST is an alist of (VAR . VAL) settings.
+DIR should be a string (a directory name) and is used to obey
+`safe-local-variable-directories'.
+This hook is run after the major mode has been setup.")
+
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.
 Store the directory-local variables in `dir-local-variables-alist'
@@ -4805,21 +4818,54 @@ and `file-local-variables-alist', without applying them.
 
 This does nothing if either `enable-local-variables' or
 `enable-dir-local-variables' are nil."
-  (let* ((items (hack-dir-local--get-variables nil))
-         (dir-name (car items))
-         (variables (cdr items)))
-    (when variables
-      (dolist (elt variables)
-        (if (eq (car elt) 'coding)
-            (unless hack-dir-local-variables--warned-coding
-              (setq hack-dir-local-variables--warned-coding t)
-              (display-warning 'files
-                               "Coding cannot be specified by dir-locals"))
-          (unless (memq (car elt) '(eval mode))
-            (setq dir-local-variables-alist
-                  (assq-delete-all (car elt) dir-local-variables-alist)))
-          (push elt dir-local-variables-alist)))
-      (hack-local-variables-filter variables dir-name))))
+  (let (items)
+    (when (and enable-local-variables
+	       enable-dir-local-variables
+	       (or enable-remote-dir-locals
+		   (not (file-remote-p (or (buffer-file-name)
+					   default-directory)))))
+      (run-hook-wrapped 'hack-dir-local-get-variables-functions
+                        (lambda (fun)
+                          (let ((res (funcall fun)))
+                            (cond
+                             ((null res))
+                             ((consp (car-safe res))
+                              (setq items (append res items)))
+                             (t (push res items))))
+			  nil)))
+    ;; Sort the entries from nearest dir to furthest dir.
+    (setq items (sort (nreverse items)
+                      :key (lambda (x) (length (car-safe x))) :reverse t))
+    ;; Filter out duplicates, preferring the settings from the nearest dir
+    ;; and from the first hook function.
+    (let ((seen nil))
+      (dolist (item items)
+        (when seen ;; Special case seen=nil since it's the most common case.
+          (setcdr item (seq-filter (lambda (vv) (not (memq (car-safe vv) seen)))
+                                   (cdr item))))
+        (setq seen (nconc (seq-difference (mapcar #'car (cdr item))
+                                          '(eval mode))
+                          seen))))
+    ;; Rather than a loop, maybe we should handle all the dirs
+    ;; "together", e.g.  prompting the user only once.  But if so, we'd
+    ;; probably want to also merge the prompt for file-local vars,
+    ;; which comes from the call to `hack-local-variables-filter' in
+    ;; `hack-local-variables'.
+    (dolist (item items)
+      (let ((dir-name (car item))
+            (variables (cdr item)))
+        (when variables
+          (dolist (elt variables)
+            (if (eq (car elt) 'coding)
+                (unless hack-dir-local-variables--warned-coding
+                  (setq hack-dir-local-variables--warned-coding t)
+                  (display-warning 'files
+                                   "Coding cannot be specified by dir-locals"))
+              (unless (memq (car elt) '(eval mode))
+                (setq dir-local-variables-alist
+                      (assq-delete-all (car elt) dir-local-variables-alist)))
+              (push elt dir-local-variables-alist)))
+          (hack-local-variables-filter variables dir-name))))))
 
 (defun hack-dir-local-variables-non-file-buffer ()
   "Apply directory-local variables to a non-file buffer.
@@ -6847,6 +6893,24 @@ A customized `revert-buffer-function' need not run this hook.")
 ;; `preserve-modes' argument of `revert-buffer'.
 (defvar revert-buffer-preserve-modes)
 
+(defvar revert-buffer-restore-functions '(revert-buffer-restore-read-only)
+  "Functions to preserve any state during `revert-buffer'.
+The value of this variable is a list of functions that are called before
+reverting the buffer.  Each of these functions are called without
+arguments and should return a lambda that can restore a previous state
+of the buffer.  Then after reverting the buffer each of these lambdas
+will be called one by one in the order of the list to restore previous
+states of the buffer.  An example of the buffer state is keeping the
+buffer read-only, or keeping minor modes, etc.")
+
+(defun revert-buffer-restore-read-only ()
+  "Preserve read-only state for `revert-buffer'."
+  (when-let ((state (and (boundp 'read-only-mode--state)
+                         (list read-only-mode--state))))
+    (lambda ()
+      (setq buffer-read-only (car state))
+      (setq-local read-only-mode--state (car state)))))
+
 (defun revert-buffer (&optional ignore-auto noconfirm preserve-modes)
   "Replace current buffer text with the text of the visited file on disk.
 This undoes all changes since the file was visited or saved.
@@ -6896,14 +6960,13 @@ preserve markers and overlays, at the price of being slower."
   (interactive (list (not current-prefix-arg)))
   (let ((revert-buffer-in-progress-p t)
         (revert-buffer-preserve-modes preserve-modes)
-        (state (and (boundp 'read-only-mode--state)
-                    (list read-only-mode--state))))
+        restore-functions)
+    (run-hook-wrapped 'revert-buffer-restore-functions
+                      (lambda (f) (push (funcall f) restore-functions) nil))
     ;; Return whatever 'revert-buffer-function' returns.
     (prog1 (funcall (or revert-buffer-function #'revert-buffer--default)
                     ignore-auto noconfirm)
-      (when state
-        (setq buffer-read-only (car state))
-        (setq-local read-only-mode--state (car state))))))
+      (mapc #'funcall (delq nil restore-functions)))))
 
 (defun revert-buffer--default (ignore-auto noconfirm)
   "Default function for `revert-buffer'.

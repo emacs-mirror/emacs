@@ -977,6 +977,8 @@ to take advantage of.
 
 ** Some fonts are detected but not usable under Xft.
 
+We understand that these issues were resolved in Xft release 2.3.6.
+
 Some fonts might not be usable under Emacs even though they show up in
 the font family list when Emacs is built with Xft.  This is because
 Emacs prevents fonts that have color glyphs (such as color Emoji) from
@@ -2132,6 +2134,14 @@ with a different toolkit.  For example:
 
 This produces a build which uses Athena toolkit, and disables toolkit
 scroll bars which could sometimes be slow.
+
+* Runtime problems specific to PGTK build
+
+** SECONDARY selections don't work on Wayland.
+
+This is because the SECONDARY selection is not implemented by the
+Wayland compositor being used.  A workaround is to use other kinds of
+selections.
 
 * Runtime problems on character terminals
 
@@ -3512,6 +3522,22 @@ Compose key to stop working.
 On X Windows, users should not use Emacs configured with PGTK, since
 this and many other problems do not exist on the regular X builds.
 
+** On occasion, menus cannot be activated by touch screen events.
+
+Menus might not be displayed after a mode-line item, or another command
+that produces a menu, is activated by touch screen events.  This is the
+product of several bugs or misdesigns in the GDK Wayland backend which
+cannot be circumvented by Emacs.  Specifically, Wayland denies clients
+that cannot provide a sufficiently recent event serial number the
+ability to display pop-up windows, but GDK only considers the serial
+numbers of touch screen events when their touch sequences remain active,
+and, as touch screen activity is not registered by Emacs until after the
+toolkit's delivery of touch sequences completes, by the time
+`x-popup-menu' is called, the only eligible event serials are those of
+the last keyboard event and the last mouse event, which will not suffice
+if Wayland has received pop-up or drag-and-drop requests from other
+clients since their generation.
+
 * Runtime problems specific to Android
 
 ** Text displayed in the default monospace font looks horrible.
@@ -3650,7 +3676,7 @@ result that the next redisplay recenters the window around this outdated
 position.  There is no solution but installing a more
 cooperative--and preferably free--input method.
 
-** The default input method sometimes performs edits out of place in large buffers.
+** The default input method performs edits elsewhere than point in large buffers.
 
 When first reactivated in a window after having been dismissed, certain
 heuristics applied by the "Android Keyboard (AOSP)" input method to
@@ -3663,6 +3689,14 @@ might be wildly removed from the current insertion point.  This is a bug
 in the input method that can be easily reproduced by inserting lengthy
 documents into any text editor, with no real solution except avoiding
 edit suggestions from recently-reactivated input methods.
+
+** The F3 key appears to be spontaneously activated.
+
+It is possible that this is a product of your inadvertently contacting
+the back-facing fingerprint sensor, which generates F3 key events on
+devices manufactured by OnePlus and possibly others.  Sadly, to the best
+of our knowledge such events cannot be distinguished from legitimate
+keypresses.
 
 * Build-time problems
 
@@ -4317,14 +4351,14 @@ for menus.  Help text is only available in later versions of Windows.
 This character seems to be trapped by the kernel in Windows 95.
 You can enter M-f6 by typing ESC f6.
 
-*** MS-Windows 95/98/ME: subprocesses do not terminate properly.
+*** MS-Windows 98/ME: subprocesses do not terminate properly.
 
 This is a limitation of the Operating System, and can cause problems
 when shutting down Windows.  Ensure that all subprocesses are exited
 cleanly before exiting Emacs.  For more details, see the Emacs on MS
 Windows FAQ (info manual "efaq-w32").
 
-*** MS-Windows 95/98/ME: crashes when Emacs invokes non-existent programs.
+*** MS-Windows 98/ME: crashes when Emacs invokes non-existent programs.
 
 When a program you are trying to run is not found on the PATH,
 Windows might respond by crashing or locking up your system.  In

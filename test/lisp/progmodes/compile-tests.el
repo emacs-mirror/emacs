@@ -270,20 +270,24 @@
      1 nil 27041 "{standard input}")
     (gnu "boost/container/detail/flat_tree.hpp:589:25:   [ skipping 5 instantiation contexts, use -ftemplate-backtrace-limit=0 to disable ]"
      1 25 589 "boost/container/detail/flat_tree.hpp" 0)
-    ;; gradle-kotlin
+    ;; Gradle/Kotlin
     (gradle-kotlin
+     "e: file:///src/Test.kt:267:5 foo: bar" 4 5 267 "/src/Test.kt" 2)
+    (gradle-kotlin
+     "w: file:///src/Test.kt:267:5 foo: bar" 4 5 267 "/src/Test.kt" 1)
+    (gradle-kotlin-legacy
      "e: /src/Test.kt: (34, 15): foo: bar" 4 15 34 "/src/Test.kt" 2)
-    (gradle-kotlin
+    (gradle-kotlin-legacy
      "w: /src/Test.kt: (11, 98): foo: bar" 4 98 11 "/src/Test.kt" 1)
-    (gradle-kotlin
+    (gradle-kotlin-legacy
      "e: e:/cygwin/src/Test.kt: (34, 15): foo: bar"
      4 15 34 "e:/cygwin/src/Test.kt" 2)
-    (gradle-kotlin
+    (gradle-kotlin-legacy
      "w: e:/cygwin/src/Test.kt: (11, 98): foo: bar"
      4 98 11 "e:/cygwin/src/Test.kt" 1)
-    (gradle-kotlin
+    (gradle-kotlin-legacy
      "e: e:\\src\\Test.kt: (34, 15): foo: bar" 4 15 34 "e:\\src\\Test.kt" 2)
-    (gradle-kotlin
+    (gradle-kotlin-legacy
      "w: e:\\src\\Test.kt: (11, 98): foo: bar" 4 98 11 "e:\\src\\Test.kt" 1)
     (gradle-android
      "     ERROR:/Users/salutis/src/AndroidSchemeExperiment/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item.xml:3: AAPT: error: '16dpw' is incompatible with attribute padding (attr) dimension."
@@ -534,8 +538,8 @@ The test data is in `compile-tests--test-regexps-data'."
                    1 15 5 "alpha.c")))
         (compile--test-error-line test))
 
-      (should (eq compilation-num-errors-found 106))
-      (should (eq compilation-num-warnings-found 35))
+      (should (eq compilation-num-errors-found 107))
+      (should (eq compilation-num-warnings-found 36))
       (should (eq compilation-num-infos-found 35)))))
 
 (ert-deftest compile-test-grep-regexps ()

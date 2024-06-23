@@ -62,6 +62,37 @@ const foo = (x: string) => {
 };
 =-=-=
 
+Name: Lexical and variable declarations
+
+=-=
+const foo = () => {
+  let x = 1,
+      yyyy: {
+        [k: string | number]: string,
+      } = {
+        "foo": "foo",
+        "bar": "bar",
+      };
+  var obar = 1,
+      fo: { [x: any]: any } = {
+        "a": 1,
+        "b": 2,
+      };
+  const cccc = 1,
+        bbb = {
+          "x": 0
+        },
+        ddddd = 0;
+  // First decls with value starting on same line
+  const a = (x: string): string => {
+    return x + x;
+  };
+  var bbb = {
+    "x": 0
+  };
+};
+=-=-=
+
 Code:
   (lambda ()
     (setq indent-tabs-mode nil)

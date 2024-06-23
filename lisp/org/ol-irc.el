@@ -103,7 +103,7 @@ attributes that are found."
     parts))
 
 ;;;###autoload
-(defun org-irc-store-link ()
+(defun org-irc-store-link (&optional _interactive?)
   "Dispatch to the appropriate function to store a link to an IRC session."
   (cond
    ((eq major-mode 'erc-mode)

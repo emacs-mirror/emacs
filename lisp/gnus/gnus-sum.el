@@ -8958,7 +8958,7 @@ The difference between N and the number of articles fetched is returned."
 	    (widen))
 	(setq ref
               ;; It's not the current article, or we altered the header,
-              ;; so we use whats in the header vector.
+              ;; so we use what's in the header vector.
 	      (mail-header-references header)))
       (if (and ref
 	       (not (equal ref "")))

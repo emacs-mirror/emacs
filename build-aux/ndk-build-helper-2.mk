@@ -31,14 +31,14 @@ $(info Building $(build_kind))
 $(info $(LOCAL_MODULE))
 $(info $(addprefix $(LOCAL_PATH)/,$(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES$(EMACS_ABI))))
 
-ifeq ($(findstring lib,$(LOCAL_MODULE)),lib)
+ifeq ($(filter-out lib%,$(LOCAL_MODULE)),)
 NDK_A_NAMES = $(LOCAL_MODULE).a
 else
 NDK_A_NAMES = lib$(LOCAL_MODULE).a
 endif
 
 define add-a-name
-ifeq ($(findstring lib,$(1)),lib)
+ifeq ($(filter-out lib%,$(1)),)
 NDK_A_NAME = $(1).a
 else
 NDK_A_NAME = lib$(1).a
@@ -58,7 +58,7 @@ endif
 endef
 
 define add-so-name
-ifeq ($(findstring lib,$(1)),lib)
+ifeq ($(filter-out lib%,$(1)),)
 NDK_SO_NAME = $(1)_emacs.so
 else
 NDK_SO_NAME = lib$(1)_emacs.so

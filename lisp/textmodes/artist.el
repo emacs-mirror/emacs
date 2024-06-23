@@ -589,13 +589,13 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
 	("Pen" (("Pen" pen-char "pen-c"
 		 artist-no-arrows nil
 		 nil nil nil
-		 artist-do-continously
+                 artist-do-continuously
 		 artist-pen
 		 (nil))
 		("Pen Line" pen-line "pen-l"
 		 artist-arrows artist-pen-set-arrow-points
 		 artist-pen-reset-last-xy nil nil
-		 artist-do-continously
+                 artist-do-continuously
 		 artist-pen-line
 		 (nil)))))
 
@@ -681,7 +681,7 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
 	("Spray-can" (("spray-can" spray-can "spray-can"
 		       artist-no-arrows nil
 		       nil nil nil
-		       artist-do-continously
+                       artist-do-continuously
 		       artist-spray
 		       (artist-spray-get-interval))
 		      ("spray set size" spray-get-size "spray-size"
@@ -696,7 +696,7 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
 	("Erase" (("erase char" erase-char "erase-c"
 		   artist-no-arrows nil
 		   nil nil nil
-		   artist-do-continously
+                   artist-do-continuously
 		   artist-erase-char
 		   (nil))
 		  ("erase rectangle" erase-rect "erase-r"
@@ -879,7 +879,7 @@ EXIT-FN is, if non-nil, a function that is called after filling
   is done.  Arguments and return values for this function are
   described below.
 DRAW-HOW defines the kind of shape.  The kinds of shapes are:
-  `artist-do-continously'  -- Do drawing operation continuously,
+  `artist-do-continuously'  -- Do drawing operation continuously,
                               as long as the mouse button is held down.
   `artist-do-poly'         -- Do drawing operation many times.
   1                        -- Do drawing operation only once.
@@ -887,7 +887,7 @@ DRAW-HOW defines the kind of shape.  The kinds of shapes are:
 DRAW-FN is the function to call for drawing.  Arguments and
   return values for this function are described below.
 EXTRA-DRAW-INFO the layout of this depends on the value of DRAW-HOW:
-  If DRAW-HOW is `artist-do-continously':
+  If DRAW-HOW is `artist-do-continuously':
 
     (INTERVAL-FN)
 
@@ -922,7 +922,7 @@ Note! All symbols and keywords (both in the `function-call' INFO-PART
 The following table describe function arguments and return value
 for different functions and DRAW-HOWs.
 
-If DRAW-HOW is either `artist-do-continously' or 1:
+If DRAW-HOW is either `artist-do-continuously' or 1:
 
   INIT-FN       X Y ==> ignored
   PREP-FILL-FN  X Y ==> ignored
@@ -1042,28 +1042,28 @@ An INFO-VARIANT-PART is the shifted or unshifted info from an info-part."
   "Retrieve the undraw function component from an INFO-VARIANT-PART.
 An INFO-VARIANT-PART is the shifted or unshifted info from an info-part.
 This interval function component is available only if the `draw-how'
-component is other than `artist-do-continously' or 1."
+component is other than `artist-do-continuously' or 1."
   (elt (elt info-variant-part 10) 0))
 
 (defsubst artist-go-get-interval-fn (info-variant-part)
   "Retrieve the interval function component from an INFO-VARIANT-PART.
 An INFO-VARIANT-PART is the shifted or unshifted info from an info-part.
 This interval function component is available only if the `draw-how'
-component is `artist-do-continously'."
+component is `artist-do-continuously'."
   (elt (elt info-variant-part 10) 0))
 
 (defsubst artist-go-get-fill-pred (info-variant-part)
   "Retrieve the fill predicate component from an INFO-VARIANT-PART.
 An INFO-VARIANT-PART is the shifted or unshifted info from an info-part.
 This interval function component is available only if the `draw-how'
-component is other than `artist-do-continously' or 1."
+component is other than `artist-do-continuously' or 1."
   (elt (elt info-variant-part 10) 1))
 
 (defsubst artist-go-get-fill-fn (info-variant-part)
   "Retrieve the fill function component from an INFO-VARIANT-PART.
 An INFO-VARIANT-PART is the shifted or unshifted info from an info-part.
 This interval function component is available only if the `draw-how'
-component is other than `artist-do-continously' or 1."
+component is other than `artist-do-continuously' or 1."
   (elt (elt info-variant-part 10) 2))
 
 ;; For the 'function-call info-parts
@@ -3859,7 +3859,7 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 ;; on the draw-how
 ;;
 
-(defun artist-key-undraw-continously (_x _y)
+(defun artist-key-undraw-continuously (_x _y)
   "Undraw current continuous shape with point at X, Y."
   ;; No undraw-info for continuous shapes
   nil)
@@ -3888,8 +3888,10 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
     ;; Depending on what we are currently drawing, call other routines
     ;; that knows how to do the job
     ;;
-    (cond ((eq draw-how 'artist-do-continously)
-	   (artist-key-undraw-continously col row))
+    (cond ((or (eq draw-how 'artist-do-continuously)
+               ;; Typo in Emacs 29 or earlier.
+               (eq draw-how 'artist-do-continously))
+           (artist-key-undraw-continuously col row))
 	  ((eq draw-how 'artist-do-poly)
 	   (artist-key-undraw-poly col row))
 	  ((and (numberp draw-how) (= draw-how 1))
@@ -3910,10 +3912,10 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 ;; to be canceled and reinstalled whenever the user moves the cursor.
 ;; This could be done, but what if the user suddenly switches to another
 ;; drawing mode, or even kills the buffer! In the mouse case, it is much
-;; simpler: when at the end of `artist-mouse-draw-continously', the
+;; simpler: when at the end of `artist-mouse-draw-continuously', the
 ;; user has released the button, so the timer will always be canceled
 ;; at that point.
-(defun artist-key-draw-continously (x y)
+(defun artist-key-draw-continuously (x y)
   "Draw current continuous shape at X,Y."
   (let ((draw-fn   (artist-go-get-draw-fn-from-symbol artist-curr-go)))
     (setq artist-key-shape (artist-funcall draw-fn x y))))
@@ -3947,8 +3949,10 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
     ;; Depending on what we are currently drawing, call other routines
     ;; that knows how to do the job
     ;;
-    (cond ((eq draw-how 'artist-do-continously)
-	   (artist-key-draw-continously col row))
+    (cond ((or (eq draw-how 'artist-do-continuously)
+               ;; Typo in Emacs 29 or earlier.
+               (eq draw-how 'artist-do-continously))
+           (artist-key-draw-continuously col row))
 	  ((eq draw-how 'artist-do-poly)
 	   (artist-key-draw-poly col row))
 	  ((and (numberp draw-how) (= draw-how 1))
@@ -3994,13 +3998,13 @@ Trimming here means removing white space at end of a line."
 ;; Drawing shapes by using keys
 ;;
 
-(defun artist-key-do-continously-continously (x y)
+(defun artist-key-do-continuously-continuously (x y)
   "Update current continuous shape at X,Y."
   (let ((draw-fn   (artist-go-get-draw-fn-from-symbol artist-curr-go)))
     (artist-funcall draw-fn x y)))
 
 
-(defun artist-key-do-continously-poly (x y)
+(defun artist-key-do-continuously-poly (x y)
   "Update current poly-point shape with nth point at X,Y."
   (let ((draw-fn   (artist-go-get-draw-fn-from-symbol artist-curr-go))
 	(undraw-fn (artist-go-get-undraw-fn-from-symbol artist-curr-go))
@@ -4020,13 +4024,13 @@ Trimming here means removing white space at end of a line."
 	(setq artist-key-shape (artist-funcall draw-fn x1 y1 x2 y2))))))
 
 
-(defun artist-key-do-continously-1point (_x _y)
+(defun artist-key-do-continuously-1point (_x _y)
   "Update current 1-point shape at X,Y."
   ;; Nothing to do continuously for operations
   ;; where we have only one input point
   nil)
 
-(defun artist-key-do-continously-2points (x y)
+(defun artist-key-do-continuously-2points (x y)
   "Update current 2-point shape with 2nd point at X,Y."
   (let ((draw-fn   (artist-go-get-draw-fn-from-symbol artist-curr-go))
 	(undraw-fn (artist-go-get-undraw-fn-from-symbol artist-curr-go))
@@ -4046,7 +4050,7 @@ Trimming here means removing white space at end of a line."
 	(setq artist-key-shape (artist-funcall draw-fn x1 y1 x2 y2))))))
 
 
-(defun artist-key-do-continously-common ()
+(defun artist-key-do-continuously-common ()
   "Common routine for updating current shape."
   (let ((draw-how (artist-go-get-draw-how-from-symbol artist-curr-go))
 	(col      (artist-current-column))
@@ -4055,14 +4059,16 @@ Trimming here means removing white space at end of a line."
     ;; Depending on what we are currently drawing, call other routines
     ;; that knows how to do the job
     ;;
-    (cond ((eq draw-how 'artist-do-continously)
-	   (artist-key-do-continously-continously col row))
+    (cond ((or (eq draw-how 'artist-do-continuously)
+               ;; Typo in Emacs 29 or earlier.
+               (eq draw-how 'artist-do-continously))
+           (artist-key-do-continuously-continuously col row))
 	  ((eq draw-how 'artist-do-poly)
-	   (artist-key-do-continously-poly col row))
+           (artist-key-do-continuously-poly col row))
 	  ((and (numberp draw-how) (= draw-how 1))
-	   (artist-key-do-continously-1point col row))
+           (artist-key-do-continuously-1point col row))
 	  ((and (numberp draw-how) (= draw-how 2))
-	   (artist-key-do-continously-2points col row))
+           (artist-key-do-continuously-2points col row))
 	  (t (message "Drawing \"%s\"s is not yet implemented" draw-how)))
 
     ;; Now restore the old position
@@ -4070,7 +4076,7 @@ Trimming here means removing white space at end of a line."
     (artist-move-to-xy col row)))
 
 
-(defun artist-key-set-point-continously (x y)
+(defun artist-key-set-point-continuously (x y)
   "Set point for current continuous shape at X,Y."
   ;; Maybe set arrow-points for continuous shapes
   (let ((arrow-pred   (artist-go-get-arrow-pred-from-symbol artist-curr-go))
@@ -4152,7 +4158,7 @@ If optional argument THIS-IS-LAST-POINT is non-nil, this point is the last."
 
 	;; If not rubber-banding, undraw the 1's and 2's, then
 	;; draw the shape (if we were rubber-banding, then the
-	;; shape is already drawn in artist-key-do-continously-2points.)
+        ;; shape is already drawn in artist-key-do-continuously-2points.)
 	;;
 	(if (not artist-rubber-banding)
 	    (progn
@@ -4279,7 +4285,7 @@ If optional argument THIS-IS-LAST-POINT is non-nil, this point is the last."
 
 	;; If not rubber-banding, undraw the 1's and 2's, then
 	;; draw the shape (if we were rubber-banding, then the
-	;; shape is already drawn in artist-key-do-continously-2points.)
+        ;; shape is already drawn in artist-key-do-continuously-2points.)
 	;;
 	(if (not artist-rubber-banding)
 	    (progn
@@ -4320,10 +4326,12 @@ With non-nil ARG, set the last point."
     ;; Depending on what we are currently drawing, call other routines
     ;; that knows how to do the job
     ;;
-    (cond ((eq draw-how 'artist-do-continously)
-	   (artist-key-set-point-continously col row)
+    (cond ((or (eq draw-how 'artist-do-continuously)
+               ;; Typo in Emacs 29 or earlier.
+               (eq draw-how 'artist-do-continously))
+           (artist-key-set-point-continuously col row)
 	   ;; Do this now, otherwise nothing will happen until we move.
-	   (artist-key-do-continously-continously col row))
+           (artist-key-do-continuously-continuously col row))
 	  ((eq draw-how 'artist-do-poly)
 	   (artist-key-set-point-poly col row arg))
 	  ((and (numberp draw-how) (= draw-how 1))
@@ -4356,7 +4364,7 @@ If N is negative, move cursor down."
     (forward-line (- n))
     (move-to-column col t))
   (when artist-key-is-drawing
-    (artist-key-do-continously-common)))
+    (artist-key-do-continuously-common)))
 
 
 (defun artist-next-line (&optional n)
@@ -4367,7 +4375,7 @@ If N is negative, move cursor up."
     (forward-line n)
     (move-to-column col t))
   (when artist-key-is-drawing
-    (artist-key-do-continously-common)))
+    (artist-key-do-continuously-common)))
 
 (defun artist-backward-char (&optional n)
   "Move cursor backward N chars (default is 1), updating current shape.
@@ -4388,7 +4396,7 @@ If N is negative, move backward."
     (if (not artist-key-is-drawing)
 	  (move-to-column new-col t)
       (move-to-column new-col t)
-      (artist-key-do-continously-common))))
+      (artist-key-do-continuously-common))))
 
 
 (defun artist-key-set-point (&optional arg)
@@ -4416,7 +4424,7 @@ If N is negative, move backward."
 		    (setq artist-line-char c)
 		    (message "Line drawn with \"%c\"" c)))
   (if artist-key-is-drawing
-      (artist-key-do-continously-common)))
+      (artist-key-do-continuously-common)))
 
 
 (defun artist-select-erase-char (c)
@@ -4427,7 +4435,7 @@ If N is negative, move backward."
 	(t	    (setq artist-erase-char c)
 		    (message "Erasing with \"%c\"" c)))
   (if artist-key-is-drawing
-      (artist-key-do-continously-common)))
+      (artist-key-do-continuously-common)))
 
 (defun artist-charlist-to-string (char-list)
   "Convert a list of characters, CHAR-LIST, to a string."
@@ -4786,8 +4794,10 @@ If optional argument STATE is positive, turn borders on."
 
 	  (artist-mode-line-show-curr-operation t)
 
-	  (cond ((eq draw-how 'artist-do-continously)
-		 (artist-mouse-draw-continously ev))
+          (cond ((or (eq draw-how 'artist-do-continuously)
+                     ;; Typo in Emacs 29 or earlier.
+                     (eq draw-how 'artist-do-continously))
+                 (artist-mouse-draw-continuously ev))
 		((eq draw-how 'artist-do-poly)
 		 (artist-mouse-draw-poly ev))
 		((and (numberp draw-how) (= draw-how 1))
@@ -4898,7 +4908,7 @@ If optional argument STATE is positive, turn borders on."
         x
       (- x adjust 2))))
 
-(defun artist-mouse-draw-continously (ev)
+(defun artist-mouse-draw-continuously (ev)
   "Generic function for shapes that require 1 point as input.
 Operation is done continuously while the mouse button is hold down.
 The event, EV, is the mouse event."
@@ -5371,6 +5381,26 @@ The event, EV, is the mouse event."
 (defconst artist-version "1.2.6")
 (make-obsolete-variable 'artist-version 'emacs-version "29.1")
 
+(define-obsolete-function-alias 'artist-key-undraw-continously
+  #'artist-key-undraw-continuously "30.1")
+(define-obsolete-function-alias 'artist-key-draw-continously
+  #'artist-key-draw-continuously "30.1")
+(define-obsolete-function-alias 'artist-key-do-continously-continously
+  #'artist-key-do-continuously-continuously "30.1")
+(define-obsolete-function-alias 'artist-key-do-continously-poly
+  #'artist-key-do-continuously-poly "30.1")
+(define-obsolete-function-alias 'artist-key-do-continously-1point
+  #'artist-key-do-continuously-1point "30.1")
+(define-obsolete-function-alias 'artist-key-do-continously-2points
+  #'artist-key-do-continuously-2points "30.1")
+(define-obsolete-function-alias 'artist-key-do-continously-common
+  #'artist-key-do-continuously-common "30.1")
+(define-obsolete-function-alias 'artist-key-set-point-continously
+  #'artist-key-set-point-continuously "30.1")
+(define-obsolete-function-alias 'artist-mouse-draw-continously
+  #'artist-mouse-draw-continuously "30.1")
+
+
 (provide 'artist)
 
 
@@ -5526,8 +5556,8 @@ The event, EV, is the mouse event."
 ;;         - artist-key-set-point-xxx for setting a point in the
 ;;           mode, to be called from `artist-key-set-point-common'.
 ;;
-;;         - artist-key-do-continously-xxx to be called from
-;;           `artist-key-do-continously-common' whenever the user
+;;         - artist-key-do-continuously-xxx to be called from
+;;           `artist-key-do-continuously-common' whenever the user
 ;;           moves around.
 ;;
 ;;         As for the artist-mouse-draw-xxx, these two functions must

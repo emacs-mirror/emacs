@@ -3136,8 +3136,23 @@ read_char (int commandflag, Lisp_Object map,
 	  /* Change menu-bar to (menu-bar) as the event "position".  */
 	  POSN_SET_POSN (xevent_start (c), list1 (posn));
 
-	  also_record = c;
-	  Vunread_command_events = Fcons (c, Vunread_command_events);
+	  /* Should a command call `sit-for', or another command that
+	     provides a timespec to Fread_event and co., the original
+	     event will not subsequently be entered into
+	     this_command_keys unless Qt be specified below.
+
+	     The same is the case in a number of other scenarios where
+	     reread is true, but if so, event recording is to be
+	     suppressed anyway.  */
+
+	  if (end_time)
+	    Vunread_command_events = Fcons (Fcons (Qt, c),
+					    Vunread_command_events);
+	  else
+	    {
+	      also_record = c;
+	      Vunread_command_events = Fcons (c, Vunread_command_events);
+	    }
 	  c = posn;
 	}
     }

@@ -377,7 +377,7 @@ These characters are specified in RFC 3986, Appendix A.")
     (aset vec ?& nil)
     (aset vec ?\; nil)
     vec)
-  "Allowed-charcter byte mask for keys and values in the query segment of a URI.
+  "Allowed-character byte mask for keys and values in the query segment of a URI.
 url-query-allowed-chars minus '=', '&', and ';'.")
 
 ;;;###autoload

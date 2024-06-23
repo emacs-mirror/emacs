@@ -189,7 +189,7 @@ Usage example:
            "%s (%s): "
            prompt
            (mapconcat (lambda (e) (cdr e)) altered-names ", ")))
-         tchar buf wrong-char answer)
+         tchar buf wrong-char answer command)
     (save-window-excursion
       (save-excursion
         (if show-help
@@ -216,40 +216,76 @@ Usage example:
                       (let ((cursor-in-echo-area t))
                         (read-event))
                     (error nil))))
-          (setq answer (lookup-key query-replace-map (vector tchar) t))
-          (setq tchar
-                (cond
-                 ((eq answer 'recenter)
-                  (recenter) t)
-                 ((eq answer 'scroll-up)
-                  (ignore-errors (scroll-up-command)) t)
-                 ((eq answer 'scroll-down)
-                  (ignore-errors (scroll-down-command)) t)
-                 ((eq answer 'scroll-other-window)
-                  (ignore-errors (scroll-other-window)) t)
-                 ((eq answer 'scroll-other-window-down)
-                  (ignore-errors (scroll-other-window-down)) t)
-                 ((eq answer 'edit)
-                  (save-match-data
-                    (save-excursion
-                      (message "%s"
-                               (substitute-command-keys
-                                "Recursive edit; type \\[exit-recursive-edit] to return to help screen"))
-                      (recursive-edit))))
-                 (t tchar)))
-          (when (eq tchar t)
-            (setq wrong-char nil
-                  tchar nil))
-          ;; The user has entered an invalid choice, so display the
-          ;; help messages.
-          (when (and (not (eq tchar nil))
-                     (not (assq tchar choices)))
-	    (setq wrong-char (not (memq tchar `(?? ,help-char)))
-                  tchar nil)
-            (when wrong-char
-              (ding))
-            (setq buf (rmc--show-help prompt help-string show-help
-                                      choices altered-names))))))
+          (if (memq (car-safe tchar) '(touchscreen-begin
+                                       touchscreen-end
+                                       touchscreen-update))
+              ;; Execute commands generally bound to certain touchscreen
+              ;; events.
+              (progn
+                (when (setq command
+                            (let ((current-key-remap-sequence
+                                   (vector tchar)))
+                              (touch-screen-translate-touch nil)))
+                  (setq command (if (> (length command) 0)
+                                    (aref command 0)
+                                  nil))
+                  (setq tchar nil)
+                  (cond
+                   ((null command)) ; Read another event.
+                   ((memq (car-safe command) '(mouse-1 mouse-2))
+                    ;; Display the on-screen keyboard if a tap should be
+                    ;; registered.
+                    (frame-toggle-on-screen-keyboard (selected-frame)
+                                                     nil))
+                   ;; Respond to scroll and pinch events as if RMC were
+                   ;; not in progress.
+                   ((eq (car-safe command) 'touchscreen-scroll)
+                    (funcall #'touch-screen-scroll command))
+                   ((eq (car-safe command) 'touchscreen-pinch)
+                    (funcall #'touch-screen-pinch command))
+                   ;; Prevent other touchscreen-generated events from
+                   ;; reaching the default conditional.
+                   ((memq (or (and (symbolp command) command)
+                              (car-safe command))
+                          '(touchscreen-hold touchscreen-drag
+                                             touchscreen-restart-drag))
+                    nil)
+                   (t (setq tchar command)))))
+            (setq answer (lookup-key query-replace-map (vector tchar) t))
+            (setq tchar
+                  (cond
+                   ((eq answer 'recenter)
+                    (recenter) t)
+                   ((eq answer 'scroll-up)
+                    (ignore-errors (scroll-up-command)) t)
+                   ((eq answer 'scroll-down)
+                    (ignore-errors (scroll-down-command)) t)
+                   ((eq answer 'scroll-other-window)
+                    (ignore-errors (scroll-other-window)) t)
+                   ((eq answer 'scroll-other-window-down)
+                    (ignore-errors (scroll-other-window-down)) t)
+                   ((eq answer 'edit)
+                    (save-match-data
+                      (save-excursion
+                        (message
+                         "%s"
+                         (substitute-command-keys
+                          "Recursive edit; type \\[exit-recursive-edit] to return to help screen"))
+                        (recursive-edit))))
+                   (t tchar)))
+            (when (eq tchar t)
+              (setq wrong-char nil
+                    tchar nil))
+            ;; The user has entered an invalid choice, so display the
+            ;; help messages.
+            (when (and (not (eq tchar nil))
+                       (not (assq tchar choices)))
+	      (setq wrong-char (not (memq tchar `(?? ,help-char)))
+                    tchar nil)
+              (when wrong-char
+                (ding))
+              (setq buf (rmc--show-help prompt help-string show-help
+                                        choices altered-names)))))))
     (when (buffer-live-p buf)
       (kill-buffer buf))
     (assq tchar choices)))

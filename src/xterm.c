@@ -5828,37 +5828,50 @@ xi_device_from_id (struct x_display_info *dpyinfo, int deviceid)
 #ifdef HAVE_XINPUT2_2
 
 /* Record a touch sequence with the identifier DETAIL from the given
-   FRAME on the specified DEVICE.  Round X and Y and record them as
-   its current position.  */
+   FRAME on the specified DEVICE.  Round X and Y and record them as its
+   current position, assign an identifier to the touch sequence suitable
+   for reporting to Lisp, and return the same.  */
 
-static void
+static EMACS_INT
 xi_link_touch_point (struct xi_device_t *device,
 		     int detail, double x, double y,
 		     struct frame *frame)
 {
   struct xi_touch_point_t *touchpoint;
+  static EMACS_INT local_detail;
+
+  /* Assign an identifier suitable for reporting to Lisp.  On builds
+     with 64-bit Lisp_Object, this is largely a theoretical problem, but
+     CARD32s easily overflow 32-bit systems, as they are not specific to
+     X clients (e.g. Emacs) but grow uniformly across all of them.  */
+
+  if (FIXNUM_OVERFLOW_P (local_detail))
+    local_detail = 0;
 
   touchpoint = xmalloc (sizeof *touchpoint);
   touchpoint->next = device->touchpoints;
   touchpoint->x = lrint (x);
   touchpoint->y = lrint (y);
   touchpoint->number = detail;
+  touchpoint->local_detail = local_detail++;
   touchpoint->frame = frame;
   touchpoint->ownership = TOUCH_OWNERSHIP_NONE;
-
   device->touchpoints = touchpoint;
+  return touchpoint->local_detail;
 }
 
 /* Free and remove the touch sequence with the identifier DETAIL.
    DEVICE is the device in which the touch sequence should be
-   recorded.
+   recorded.  If such a touch sequence exists, return its local
+   identifier in *LOCAL_DETAIL.
 
    Value is 0 if no touch sequence by that identifier exists inside
    DEVICE, 1 if a touch sequence has been found but is not owned by
    Emacs, and 2 otherwise.  */
 
 static int
-xi_unlink_touch_point (int detail, struct xi_device_t *device)
+xi_unlink_touch_point (int detail, struct xi_device_t *device,
+		       EMACS_INT *local_detail)
 {
   struct xi_touch_point_t *last, *tem;
   enum xi_touch_ownership ownership;
@@ -5874,6 +5887,7 @@ xi_unlink_touch_point (int detail, struct xi_device_t *device)
 	    last->next = tem->next;
 
 	  ownership = tem->ownership;
+	  *local_detail = tem->local_detail;
 	  xfree (tem);
 
 	  if (ownership == TOUCH_OWNERSHIP_SELF)
@@ -24814,6 +24828,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_GTK3
 	      GdkRectangle test_rect;
 #endif
+	      EMACS_INT local_detail;
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 	      x_display_set_last_user_time (dpyinfo, xev->time,
@@ -24938,16 +24953,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		      if (!x_had_errors_p (dpyinfo->display))
 			{
-			  xi_link_touch_point (device, xev->detail,
-					       xev->event_x,
-					       xev->event_y, f);
+			  local_detail
+			    = xi_link_touch_point (device, xev->detail,
+						   xev->event_x,
+						   xev->event_y, f);
 
 			  inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
 			  inev.ie.timestamp = xev->time;
 			  XSETFRAME (inev.ie.frame_or_window, f);
 			  XSETINT (inev.ie.x, lrint (xev->event_x));
 			  XSETINT (inev.ie.y, lrint (xev->event_y));
-			  XSETINT (inev.ie.arg, xev->detail);
+			  XSETINT (inev.ie.arg, local_detail);
 
 			  if (source)
 			    inev.ie.device = source->name;
@@ -25065,7 +25081,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      if (touchpoint->frame == f)
 			arg = Fcons (list3i (touchpoint->x, touchpoint->y,
-					     lrint (touchpoint->number)),
+					     touchpoint->local_detail),
 				     arg);
 		    }
 
@@ -25082,6 +25098,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 	      struct xi_device_t *device, *source;
 	      int state;
+	      EMACS_INT local_detail;
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
@@ -25097,7 +25114,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (!device || device->use == XIMasterPointer)
 		goto XI_OTHER;
 
-	      state = xi_unlink_touch_point (xev->detail, device);
+	      state = xi_unlink_touch_point (xev->detail, device,
+					     &local_detail);
 
 	      if (state)
 		{
@@ -25112,7 +25130,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      XSETFRAME (inev.ie.frame_or_window, f);
 		      XSETINT (inev.ie.x, lrint (xev->event_x));
 		      XSETINT (inev.ie.y, lrint (xev->event_y));
-		      XSETINT (inev.ie.arg, xev->detail);
+		      XSETINT (inev.ie.arg, local_detail);
 
 		      if (source)
 			inev.ie.device = source->name;
@@ -32724,7 +32742,7 @@ Android does not support scroll bars at all.  */);
   DEFSYM (Qfile_name_sans_extension, "file-name-sans-extension");
 
   DEFVAR_LISP ("x-ctrl-keysym", Vx_ctrl_keysym,
-    doc: /* Which modifer value Emacs reports when Ctrl is depressed.
+    doc: /* Which modifier value Emacs reports when Ctrl is depressed.
 This should be one of the symbols `ctrl', `alt', `hyper', `meta', or
 `super', representing a modifier to be reported for key events with the
 Ctrl modifier (i.e. the keysym Ctrl_L or Ctrl_R) depressed, with nil or
@@ -32732,7 +32750,7 @@ any other value equivalent to `ctrl'.  */);
   Vx_ctrl_keysym = Qnil;
 
   DEFVAR_LISP ("x-alt-keysym", Vx_alt_keysym,
-    doc: /* Which modifer value Emacs reports when Alt is depressed.
+    doc: /* Which modifier value Emacs reports when Alt is depressed.
 This should be one of the symbols `ctrl', `alt', `hyper', `meta', or
 `super', representing a modifier to be reported for key events with the
 Alt modifier (e.g. the keysym Alt_L or Alt_R, if the keyboard features a
@@ -32741,7 +32759,7 @@ equivalent to `alt'.  */);
   Vx_alt_keysym = Qnil;
 
   DEFVAR_LISP ("x-hyper-keysym", Vx_hyper_keysym,
-    doc: /* Which modifer value Emacs reports when Hyper is depressed.
+    doc: /* Which modifier value Emacs reports when Hyper is depressed.
 This should be one of the symbols `ctrl', `alt', `hyper', `meta', or
 `super', representing a modifier to be reported for key events with the
 Hyper modifier (i.e. the keysym Hyper_L or Hyper_R) depressed, with nil
@@ -32749,7 +32767,7 @@ or any other value equivalent to `hyper'.  */);
   Vx_hyper_keysym = Qnil;
 
   DEFVAR_LISP ("x-meta-keysym", Vx_meta_keysym,
-    doc: /* Which modifer value Emacs reports when Meta is depressed.
+    doc: /* Which modifier value Emacs reports when Meta is depressed.
 This should be one of the symbols `ctrl', `alt', `hyper', `meta', or
 `super', representing a modifier to be reported for key events with the
 Meta modifier (e.g. the keysym Alt_L or Alt_R, when the keyboard does
@@ -32758,7 +32776,7 @@ value equivalent to `meta'.  */);
   Vx_meta_keysym = Qnil;
 
   DEFVAR_LISP ("x-super-keysym", Vx_super_keysym,
-    doc: /* Which modifer value Emacs reports when Super is depressed.
+    doc: /* Which modifier value Emacs reports when Super is depressed.
 This should be one of the symbols `ctrl', `alt', `hyper', `meta', or
 `super', representing a modifier to be reported for key events with the
 Super modifier (i.e. the keysym Super_L or Super_R) depressed, with nil

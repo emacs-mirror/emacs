@@ -278,6 +278,9 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    (ert-test (ert-get-test ',test))
             vc-handled-backends)
        (skip-unless (file-notify--test-remote-enabled))
+       ;; These tests do not work for remote gio/GInotifyFileMonitor.
+       ;; Needs further investigation.
+       (skip-when (string-equal (file-notify--test-library) "gio"))
        (tramp-cleanup-connection
 	(tramp-dissect-file-name temporary-file-directory) nil 'keep-password)
        (funcall (ert-test-body ert-test)))))

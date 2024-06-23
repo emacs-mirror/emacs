@@ -435,6 +435,11 @@ This function returns @code{nil} if @var{string} does not name a character.
 @end example
 @end defun
 
+@defun char-to-name char
+This function returns the Unicode name of @var{char}.  It returns
+@code{nil} if @var{char} is not a character or has no Unicode name.
+@end defun
+
 @defun get-byte &optional pos string
 This function returns the byte at character position @var{pos} in the
 current buffer.  If the current buffer is unibyte, this is literally
@@ -1130,7 +1135,10 @@ conversion happens, but different in that the result is multibyte
 data.  The name @code{emacs-internal} is an alias for
 @code{utf-8-emacs-unix} (so it forces no conversion of end-of-line,
 unlike @code{utf-8-emacs}, which can decode all 3 kinds of
-end-of-line conventions).
+end-of-line conventions).  Since this coding system can represent all
+the characters supported by Emacs in its buffers and strings, we
+recommend using it whenever saving text for internal purposes, such as
+caching.
 
 @defun coding-system-get coding-system property
 This function returns the specified property of the coding system
@@ -1654,6 +1662,9 @@ argument, @var{size}, which tells it how many characters to look at,
 starting from point.  If the function succeeds in determining a coding
 system for the file, it should return that coding system.  Otherwise,
 it should return @code{nil}.
+Each function can also find the name of the file to which
+the buffer's content belong in the variable
+@code{auto-coding-file-name}.
 
 The functions in this list could be called either when the file is
 visited and Emacs wants to decode its contents, and/or when the file's

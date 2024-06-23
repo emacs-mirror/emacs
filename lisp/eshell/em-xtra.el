@@ -28,7 +28,7 @@
 
 ;; There are no items in this custom group, but eshell modules (ab)use
 ;; custom groups.
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-xtra nil
   "This module defines some extra alias functions which are entirely
@@ -85,9 +85,4 @@ naturally accessible within Emacs."
 (defalias 'eshell/gf #'find-grep-dired)
 
 (provide 'em-xtra)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-xtra.el ends here

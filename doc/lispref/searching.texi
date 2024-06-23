@@ -2216,7 +2216,11 @@ this regular expression.  However, spaces inside of constructs such as
 
 Since this variable affects all regular expression search and match
 constructs, you should bind it temporarily for as small as possible
-a part of the code.
+a part of the code, and only where the Lisp code affected by the
+binding performs searches whose regexp was produced from interactive
+user input.  In other words, this variable should only be used to tell
+regexp search primitives how to interpret whitespace typed by the
+user.
 @end defvar
 
 @node Longest Match

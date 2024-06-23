@@ -1197,7 +1197,7 @@ bent, contributed ideas and algorithms for a number of Calc features
 including modulo forms, primality testing, and float-to-fraction conversion.
 
 Units were added at the eager insistence of Mass Sivilotti.  Later,
-Ulrich Müller at CERN and Przemek Klosowski at NIST provided invaluable
+Ulrich M@"{u}ller at CERN and Przemek Klosowski at NIST provided invaluable
 expert assistance with the units table.  As far as I can remember, the
 idea of using algebraic formulas and variables to represent units dates
 back to an ancient article in Byte magazine about muMath, an early
@@ -18973,7 +18973,7 @@ number between zero and one.  It is equivalent to @samp{random(1.0)}.
 @kindex k a
 @pindex calc-random-again
 The @kbd{k a} (@code{calc-random-again}) command produces another random
-number, re-using the most recent value of @expr{M}.  With a numeric
+number, reusing the most recent value of @expr{M}.  With a numeric
 prefix argument @var{n}, it produces @var{n} more random numbers using
 that value of @expr{M}.
 
@@ -28492,12 +28492,25 @@ B and
 the octave numbered 0 was chosen to correspond to the lowest
 audible frequency.  Using this system, middle C (about 261.625 Hz)
 corresponds to the note @slanted{C} in octave 4 and is denoted
-@slanted{C4}.  Any frequency can be described by giving a note plus an
+@iftex
+@slanted{C@sub{4}}.
+@end iftex
+@ifnottex
+@slanted{C} with subscript @slanted{4}.
+@end ifnottex
+Any frequency can be described by giving a note plus an
 offset in cents (where a cent is a ratio of frequencies so that a
 semitone consists of 100 cents).
 
 The midi note number system assigns numbers to notes so that
-@slanted{C-1} corresponds to the midi note number 0 and @slanted{G9}
+@iftex
+@slanted{C@sub{-1}} corresponds to the midi note number 0, and
+@slanted{G@sub{9}}
+@end iftex
+@ifnottex
+@slanted{C} with subscript @slanted{-1} corresponds to the midi note
+number 0, and @slanted{G} with subscript @slanted{9}
+@end ifnottex
 corresponds to the midi note number 127.   A midi controller can have
 up to 128 keys and each midi note number from  0 to 127 corresponds to
 a possible key.

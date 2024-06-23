@@ -44,13 +44,19 @@
 (defvar org-babel-default-header-args:calc nil
   "Default arguments for evaluating a calc source block.")
 
-(defun org-babel-expand-body:calc (body _params)
-  "Expand BODY according to PARAMS, return the expanded body." body)
+(defun org-babel-expand-body:calc (body params)
+  "Expand BODY according to PARAMS, return the expanded body."
+  (let ((prologue (cdr (assq :prologue params)))
+        (epilogue (cdr (assq :epilogue params))))
+    (concat
+     (and prologue (concat prologue "\n"))
+     body
+     (and epilogue (concat "\n" epilogue "\n")))))
 
 (defvar org--var-syms) ; Dynamically scoped from org-babel-execute:calc
 
 (defun org-babel-execute:calc (body params)
-  "Execute a block of calc code with Babel."
+  "Execute BODY of calc code with Babel using PARAMS."
   (unless (get-buffer "*Calculator*")
     (save-window-excursion (calc) (calc-quit)))
   (let* ((vars (org-babel--get-vars params))
@@ -58,7 +64,23 @@
 	 (var-names (mapcar #'symbol-name org--var-syms)))
     (mapc
      (lambda (pair)
-       (calc-push-list (list (cdr pair)))
+       (let ((val (cdr pair)))
+         (calc-push-list
+          (list
+           (cond
+            ;; For a vector, Calc follows the format (vec 1 2 3 ...)  so
+            ;; a matrix becomes (vec (vec 1 2 3) (vec 4 5 6) ...).  See
+            ;; the comments in "Arithmetic routines." section of
+            ;; calc.el.
+            ((listp val)
+             (cons 'vec
+                   (if (null (cdr val))
+                       (car val)
+                     (mapcar (lambda (x) (if (listp x) (cons 'vec x) x))
+                             val))))
+            ((numberp val)
+             (math-read-number (number-to-string val)))
+            (t val)))))
        (calc-store-into (car pair)))
      vars)
     (mapc
@@ -99,6 +121,8 @@
         (calc-pop 1)))))
 
 (defun org-babel-calc-maybe-resolve-var (el)
+"Resolve user variables in EL.
+EL is taken from the output of `math-read-exprs'."
   (if (consp el)
       (if (and (eq 'var (car el)) (member (cadr el) org--var-syms))
 	  (progn

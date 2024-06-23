@@ -4,9 +4,9 @@
 
 ;; Author: Jared Finder <jared@finder.org>
 ;; Created: Nov 21, 2023
-;; Version: 0.2
+;; Version: 0.2.1
 ;; Keywords: mouse
-;; Package-Requires: ((emacs "29.1"))
+;; Package-Requires: ((emacs "27.1") (compat "29.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality that
 ;; is not available in the version of Emacs recorded above or any of
@@ -35,11 +35,11 @@
 ;; generally have sensible tool bars, for example: *info*, *help*, and
 ;; *eww* have them.
 ;;
-;; It does this while being mindful of screen real estate.  Most modes
-;; do not provide a custom tool bar, and this package does not show the
-;; default tool bar.  This means that for most buffers there will be no
-;; space taken up.  Furthermore, you can put this tool bar in the mode
-;; line or tab line if you want to share it with existing content.
+;; It does this while being mindful of screen real estate.  If
+;; `tool-bar-map' is nil, then this package will not take up any space
+;; for an empty tool bar.  Most modes do not define a custom tool bar,
+;; so calling (setq tool-bar-map nil) in your init file will make most
+;; buffers not take up space for a tool bar.
 ;;
 ;; To get the default behavior, run (global-window-tool-bar-mode 1) or
 ;; enable via M-x customize-group RET window-tool-bar RET.  This uses
@@ -48,6 +48,9 @@
 ;; If you want to share space with an existing tab line, mode line, or
 ;; header line, add (:eval (window-tool-bar-string)) to
 ;; `tab-line-format', `mode-line-format', or `header-line-format'.
+;;
+;; For additional documentation, see info node `(emacs)Window Tool
+;; Bar'
 
 ;;; Known issues:
 ;;
@@ -66,7 +69,7 @@
 ;; like to also generally make tool bars better.
 ;;
 ;; Targeting 0.3:
-;; * Properly support reamining less frequently used tool bar item specs.  From
+;; * Properly support remaining less frequently used tool bar item specs.  From
 ;;   `parse_tool_bar_item':
 ;;     * :visible
 ;;     * :filter
@@ -92,6 +95,7 @@
 
 ;;; Code:
 
+(require 'compat)
 (require 'mwheel)
 (require 'tab-line)
 (require 'tool-bar)
@@ -102,7 +106,7 @@
 ;; lot of garbage.  So this benchmarking focuses on garbage
 ;; generation.  Since it has to run after most commands, generating
 ;; significantly more garbage will cause noticeable performance
-;; degration.
+;; degradation.
 ;;
 ;; The refresh has two steps:
 ;;
@@ -111,7 +115,7 @@
 ;; bar string.
 ;;
 ;; Additionally, we keep track of the percentage of commands that
-;; acutally created a refresh.
+;; actually created a refresh.
 (defvar window-tool-bar--memory-use-delta-step1 (make-list 7 0)
   "Absolute delta of memory use counters during step 1.
 This is a list in the same structure as `memory-use-counts'.")
@@ -271,7 +275,7 @@ This is for when you want more customizations than
 (defun window-tool-bar--keymap-entry-to-string (menu-item)
   "Convert MENU-ITEM into a (propertized) string representation.
 
-MENU-ITEM is a menu item to convert.  See info node (elisp)Tool Bar."
+MENU-ITEM is a menu item to convert.  See info node `(elisp)Tool Bar'."
   (pcase-exhaustive menu-item
     ;; Separators
     ((or `(,_ "--")
@@ -394,8 +398,7 @@ enclosed in a `progn' form.  ELSE-FORMS may be empty."
   "Toggle display of the tool bar in the tab line of the current buffer."
   :global nil
   (let ((should-display (and window-tool-bar-mode
-                             (not (eq tool-bar-map
-                                      (default-value 'tool-bar-map)))))
+                             tool-bar-map))
         (default-value '(:eval (window-tool-bar-string))))
 
     ;; Preserve existing tab-line set outside of this mode
@@ -465,6 +468,10 @@ capabilities."
   :group 'window-tool-bar)
 
 ;;; Workaround for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=68334.
+
+;; This special variable is added in Emacs 30.1.
+(defvar tool-bar-always-show-default)
+
 (defun window-tool-bar--get-keymap ()
   "Return the tool bar keymap."
   (let ((tool-bar-always-show-default nil))

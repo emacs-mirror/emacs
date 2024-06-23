@@ -50,9 +50,9 @@ parameters may be used, like groovy -v"
   :type 'string)
 
 (defun org-babel-execute:groovy (body params)
-  "Execute a block of Groovy code with org-babel.
+  "Execute Groovy BODY according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
-  (message "Executing Groovy source code block")
+  (unless noninteractive (message "Executing Groovy source code block"))
   (let* ((processed-params (org-babel-process-params params))
          (session (org-babel-groovy-initiate-session (nth 0 processed-params)))
          (result-params (nth 2 processed-params))
@@ -81,6 +81,7 @@ println(new Runner().run())
 (defun org-babel-groovy-evaluate
     (session body &optional result-type result-params)
   "Evaluate BODY in external Groovy process.
+SESSION must be nil as sessions are not yet supported.
 If RESULT-TYPE equals `output' then return standard output as a string.
 If RESULT-TYPE equals `value' then return the value of the last statement
 in BODY as elisp."
@@ -107,9 +108,8 @@ in BODY as elisp."
   (error "Sessions are not (yet) supported for Groovy"))
 
 (defun org-babel-groovy-initiate-session (&optional _session)
-  "If there is not a current inferior-process-buffer in SESSION
-then create.  Return the initialized session.  Sessions are not
-supported in Groovy."
+  "Do nothing.
+Sessions are not supported in Groovy."
   nil)
 
 (provide 'ob-groovy)

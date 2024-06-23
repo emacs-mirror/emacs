@@ -1,8 +1,8 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
-;; Version: 0.10.0
-;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
+;; Version: 0.11.1
+;; Package-Requires: ((emacs "26.1") (xref "1.7.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
 ;; compatible with the version of Emacs recorded above.
@@ -714,10 +714,16 @@ See `project-vc-extra-root-markers' for the marker value format.")
                 (mapcar
                  (lambda (module)
                    (when (file-directory-p module)
-                     (project--vc-list-files
-                      (concat default-directory module)
-                      backend
-                      extra-ignores)))
+                     (let ((sub-files
+                            (project--vc-list-files
+                             (concat default-directory module)
+                             backend
+                             extra-ignores)))
+                       (if project-files-relative-names
+                           (mapcar (lambda (file)
+                                     (concat (file-name-as-directory module) file))
+                                   sub-files)
+                         sub-files))))
                  submodules)))
            (setq files
                  (apply #'nconc files sub-files))))
@@ -1080,8 +1086,9 @@ for VCS directories listed in `vc-directory-exclusion-list'."
          (dirs (list root))
          (project-files-relative-names t))
     (project-find-file-in
-     (or (thing-at-point 'filename)
-         (and buffer-file-name (project--find-default-from buffer-file-name pr)))
+     (delq nil (list (and buffer-file-name (project--find-default-from
+                                            buffer-file-name pr))
+                     (thing-at-point 'filename)))
      dirs pr include-all)))
 
 ;;;###autoload
@@ -1103,8 +1110,9 @@ for VCS directories listed in `vc-directory-exclusion-list'."
                 (project-external-roots pr)))
          (project-file-history-behavior t))
     (project-find-file-in
-     (or (thing-at-point 'filename)
-         (and buffer-file-name (project--find-default-from buffer-file-name pr)))
+     (delq nil (list (and buffer-file-name (project--find-default-from
+                                            buffer-file-name pr))
+                     (thing-at-point 'filename)))
      dirs pr include-all)))
 
 (defcustom project-read-file-name-function #'project--read-file-cpd-relative
@@ -1166,11 +1174,14 @@ by the user at will."
                          (setq all-files
                                (delete common-parent-directory all-files))
                          t))
-         (mb-default (if (and common-parent-directory
-                              mb-default
-                              (file-name-absolute-p mb-default))
-                         (file-relative-name mb-default common-parent-directory)
-                       mb-default))
+         (mb-default (mapcar (lambda (mb-default)
+                               (if (and common-parent-directory
+                                        mb-default
+                                        (file-name-absolute-p mb-default))
+                                   (file-relative-name
+                                    mb-default common-parent-directory)
+                                 mb-default))
+                             (if (listp mb-default) mb-default (list mb-default))))
          (substrings (mapcar (lambda (s) (substring s cpd-length)) all-files))
          (_ (when included-cpd
               (setq substrings (cons "./" substrings))))
@@ -1539,6 +1550,16 @@ displayed."
   (interactive (list (project--read-project-buffer)))
   (display-buffer-other-frame buffer-or-name))
 
+(defcustom project-buffers-viewer 'project-list-buffers-buffer-menu
+  "Function to use in `project-list-buffers' to render the list.
+
+It should accept two arguments: PROJECT and FILES-ONLY.  The latter
+means that only file-visiting buffers should be displayed."
+  :group 'project
+  :version "30.1"
+  :type '(radio (function-item project-list-buffers-buffer-menu)
+                (function-item project-list-buffers-ibuffer)))
+
 ;;;###autoload
 (defun project-list-buffers (&optional arg)
   "Display a list of project buffers.
@@ -1548,27 +1569,32 @@ By default, all project buffers are listed except those whose names
 start with a space (which are for internal use).  With prefix argument
 ARG, show only buffers that are visiting files."
   (interactive "P")
-  (let* ((pr (project-current t))
-         (buffer-list-function
-          (lambda ()
-            (seq-filter
-             (lambda (buffer)
-               (let ((name (buffer-name buffer))
-                     (file (buffer-file-name buffer)))
-                 (and (or Buffer-menu-show-internal
-                          (not (string= (substring name 0 1) " "))
-                          file)
-                      (not (eq buffer (current-buffer)))
-                      (or file (not Buffer-menu-files-only)))))
-             (project-buffers pr)))))
+  (let ((pr (project-current t)))
+    (funcall project-buffers-viewer pr arg)))
+
+(defun project-list-buffers-buffer-menu (project &optional files-only)
+  "List buffers for PROJECT in Buffer-menu mode.
+If FILES-ONLY is non-nil, only show the file-visiting buffers."
+  (let ((buffer-list-function
+         (lambda ()
+           (seq-filter
+            (lambda (buffer)
+              (let ((name (buffer-name buffer))
+                    (file (buffer-file-name buffer)))
+                (and (or Buffer-menu-show-internal
+                         (not (string= (substring name 0 1) " "))
+                         file)
+                     (not (eq buffer (current-buffer)))
+                     (or file (not Buffer-menu-files-only)))))
+            (project-buffers project)))))
     (display-buffer
      (if (version< emacs-version "29.0.50")
          (let ((buf (list-buffers-noselect
-                     arg (with-current-buffer
-                             (get-buffer-create "*Buffer List*")
-                           (setq-local Buffer-menu-show-internal nil)
-                           (let ((Buffer-menu-files-only arg))
-                             (funcall buffer-list-function))))))
+                     files-only (with-current-buffer
+                                    (get-buffer-create "*Buffer List*")
+                                  (setq-local Buffer-menu-show-internal nil)
+                                  (let ((Buffer-menu-files-only files-only))
+                                    (funcall buffer-list-function))))))
            (with-current-buffer buf
              (setq-local revert-buffer-function
                          (lambda (&rest _ignored)
@@ -1576,7 +1602,16 @@ ARG, show only buffers that are visiting files."
                             (funcall buffer-list-function))
                            (tabulated-list-print t))))
            buf)
-       (list-buffers-noselect arg buffer-list-function)))))
+       (list-buffers-noselect files-only buffer-list-function)))))
+
+(defun project-list-buffers-ibuffer (project &optional files-only)
+  "List buffers for PROJECT using Ibuffer.
+If FILES-ONLY is non-nil, only show the file-visiting buffers."
+  (ibuffer t (format "*Ibuffer-%s*" (project-name project))
+           `((predicate . (and
+                           (or ,(not files-only) buffer-file-name)
+                           (member (current-buffer)
+                                   (project-buffers ',project)))))))
 
 (defcustom project-kill-buffer-conditions
   '(buffer-file-name    ; All file-visiting buffers are included.

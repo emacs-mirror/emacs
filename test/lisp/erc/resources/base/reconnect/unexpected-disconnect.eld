@@ -1,4 +1,8 @@
 ;; -*- mode: lisp-data; -*-
+
+((~eof 60 EOF))
+((~ping 60 "PING"))
+
 ((nick 10 "NICK tester"))
 ((user 10 "USER user 0 * :tester")
  (0 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")

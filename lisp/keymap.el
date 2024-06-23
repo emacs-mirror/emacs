@@ -84,6 +84,10 @@ as its DEFINITION argument.
 If COMMAND is a string (which can only happen when this function is
 called from Lisp), it must satisfy `key-valid-p'.
 
+The `key-description' convenience function converts a simple
+string of characters to an equivalent form that is acceptable for
+COMMAND.
+
 Note that if KEY has a local binding in the current buffer,
 that local binding will continue to shadow any global binding
 that you make with this function."
@@ -107,6 +111,10 @@ as its DEFINITION argument.
 
 If COMMAND is a string (which can only happen when this function is
 called from Lisp), it must satisfy `key-valid-p'.
+
+The `key-description' convenience function converts a simple
+string of characters to an equivalent form that is acceptable for
+COMMAND.
 
 The binding goes in the current buffer's local keymap, which in most
 cases is shared with all other buffers in the same major mode."

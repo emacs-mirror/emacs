@@ -1410,13 +1410,14 @@ See Info node `(elisp) Integer Basics'."
       form)))
 
 (defun byte-optimize-not (form)
-  (and (= (length form) 2)
-       (let ((arg (nth 1 form)))
-         (cond ((null arg) t)
-               ((macroexp-const-p arg) nil)
-               ((byte-compile-nilconstp arg) `(progn ,arg t))
-               ((byte-compile-trueconstp arg) `(progn ,arg nil))
-               (t form)))))
+  (if (= (length form) 2)
+      (let ((arg (nth 1 form)))
+        (cond ((null arg) t)
+              ((macroexp-const-p arg) nil)
+              ((byte-compile-nilconstp arg) `(progn ,arg t))
+              ((byte-compile-trueconstp arg) `(progn ,arg nil))
+              (t form)))
+    form))
 
 (put 'and   'byte-optimizer #'byte-optimize-and)
 (put 'or    'byte-optimizer #'byte-optimize-or)
@@ -1876,9 +1877,10 @@ See Info node `(elisp) Integer Basics'."
          byteorder car-safe cdr-safe char-or-string-p char-table-p
          condition-variable-p consp eq floatp indirect-function
          integer-or-marker-p integerp keywordp listp markerp
-         module-function-p multibyte-string-p mutexp natnump nlistp null
+         module-function-p multibyte-string-p mutexp native-comp-function-p
+         natnump nlistp null
          number-or-marker-p numberp recordp remove-pos-from-symbol
-         sequencep stringp subr-native-elisp-p subrp symbol-with-pos-p symbolp
+         sequencep stringp subrp symbol-with-pos-p symbolp
          threadp type-of user-ptrp vector-or-char-table-p vectorp wholenump
          ;; editfns.c
          bobp bolp buffer-size buffer-string current-message emacs-pid

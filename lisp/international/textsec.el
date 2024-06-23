@@ -296,7 +296,7 @@ or use certain other unusual mixtures of characters."
                             ""
                           (concat ": " (string char)))
                         char
-                        (get-char-code-property char 'name)))))
+                        (char-to-name char)))))
      domain)
     ;; Does IDNA allow it?
     (unless (puny-highly-restrictive-domain-p domain)

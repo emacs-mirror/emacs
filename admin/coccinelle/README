@@ -1,3 +1,5 @@
 This directory contains semantic patches for Coccinelle, a program matching
-and transformation tool for programs written in C.  For more details, see
-http://coccinelle.lip6.fr.
+and transformation tool for programs written in C.
+
+For more information, see:
+https://coccinelle.gitlabpages.inria.fr/website

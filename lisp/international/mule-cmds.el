@@ -3183,6 +3183,13 @@ on encoding."
            (script (and char (aref char-script-table char))))
       (if script (symbol-name script) "ungrouped"))))
 
+(defun char-to-name (char)
+  "Return the Unicode name for CHAR, if it has one, else nil.
+Return nil if CHAR is not a character."
+  (and (characterp char)
+       (or (get-char-code-property char 'name)
+           (get-char-code-property char 'old-name))))
+
 (defun char-from-name (string &optional ignore-case)
   "Return a character as a number from its Unicode name STRING.
 If optional IGNORE-CASE is non-nil, ignore case in STRING.

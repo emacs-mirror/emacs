@@ -3061,7 +3061,7 @@ value_cmp (Lisp_Object a, Lisp_Object b, int maxdepth)
       goto type_mismatch;
 
     case Lisp_Cons:
-      /* FIXME: Optimise for difference in the first element? */
+      /* FIXME: Optimize for difference in the first element? */
       FOR_EACH_TAIL (b)
 	{
 	  int cmp = value_cmp (XCAR (a), XCAR (b), maxdepth - 1);
@@ -5437,7 +5437,7 @@ hash_string (char const *ptr, ptrdiff_t len)
 	  hash = sxhash_combine (hash, c);
 	}
       while (p + sizeof hash <= end);
-      /* Hash the last wordful of bytes in the string, because that is
+      /* Hash the last word's worth of bytes in the string, because that is
          is often the part where strings differ.  This may cause some
          bytes to be hashed twice but we assume that's not a big problem.  */
       EMACS_UINT c;
@@ -6435,7 +6435,7 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
   else
     error ("Invalid algorithm arg: %s", SDATA (Fsymbol_name (algorithm)));
 
-  /* allocate 2 x digest_size so that it can be re-used to hold the
+  /* allocate 2 x digest_size so that it can be reused to hold the
      hexified value */
   digest = make_uninit_string (digest_size * 2);
 

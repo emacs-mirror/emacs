@@ -138,7 +138,7 @@ if `confirm-kill-processes' is non-nil."
 (declare-function comp-el-to-eln-filename "comp.c")
 (declare-function native-elisp-load "comp.c")
 
-(defun native-compile-async-skip-p (file load selector)
+(defun native--compile-async-skip-p (file load selector)
   "Return non-nil if FILE's compilation should be skipped.
 
 LOAD and SELECTOR work as described in `native--compile-async'."
@@ -164,7 +164,7 @@ LOAD and SELECTOR work as described in `native--compile-async'."
 (defvar comp-async-compilations (make-hash-table :test #'equal)
   "Hash table file-name -> async compilation process.")
 
-(defun comp-async-runnings ()
+(defun comp--async-runnings ()
   "Return the number of async compilations currently running.
 This function has the side effect of cleaning-up finished
 processes from `comp-async-compilations'"
@@ -178,7 +178,7 @@ processes from `comp-async-compilations'"
   (hash-table-count comp-async-compilations))
 
 (defvar comp-num-cpus nil)
-(defun comp-effective-async-max-jobs ()
+(defun comp--effective-async-max-jobs ()
   "Compute the effective number of async jobs."
   (if (zerop native-comp-async-jobs-number)
       (or comp-num-cpus
@@ -190,7 +190,7 @@ processes from `comp-async-compilations'"
 (make-variable-buffer-local 'comp-last-scanned-async-output)
 ;; From warnings.el
 (defvar warning-suppress-types)
-(defun comp-accept-and-process-async-output (process)
+(defun comp--accept-and-process-async-output (process)
   "Accept PROCESS output and check for diagnostic messages."
   (if native-comp-async-report-warnings-errors
       (let ((warning-suppress-types
@@ -218,14 +218,14 @@ processes from `comp-async-compilations'"
 (defconst comp-valid-source-re (rx ".el" (? ".gz") eos)
   "Regexp to match filename of valid input source files.")
 
-(defun comp-run-async-workers ()
+(defun comp--run-async-workers ()
   "Start compiling files from `comp-files-queue' asynchronously.
 When compilation is finished, run `native-comp-async-all-done-hook' and
 display a message."
   (cl-assert (null comp-no-spawn))
   (if (or comp-files-queue
-          (> (comp-async-runnings) 0))
-      (unless (>= (comp-async-runnings) (comp-effective-async-max-jobs))
+          (> (comp--async-runnings) 0))
+      (unless (>= (comp--async-runnings) (comp--effective-async-max-jobs))
         (cl-loop
          for (source-file . load) = (pop comp-files-queue)
          while source-file
@@ -312,7 +312,7 @@ display a message."
                                (run-hook-with-args
                                 'native-comp-async-cu-done-functions
                                 source-file)
-                               (comp-accept-and-process-async-output process)
+                               (comp--accept-and-process-async-output process)
                                (ignore-errors (delete-file temp-file))
                                (let ((eln-file (comp-el-to-eln-filename
                                                 source-file1)))
@@ -322,10 +322,10 @@ display a message."
                                             (file-exists-p eln-file))
                                    (native-elisp-load eln-file
                                                       (eq load1 'late))))
-                               (comp-run-async-workers))
+                               (comp--run-async-workers))
                              :noquery (not native-comp-async-query-on-exit))))
               (puthash source-file process comp-async-compilations))
-         when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
+         when (>= (comp--async-runnings) (comp--effective-async-max-jobs))
          do (cl-return)))
     ;; No files left to compile and all processes finished.
     (run-hooks 'native-comp-async-all-done-hook)
@@ -341,14 +341,14 @@ display a message."
     (clrhash comp-deferred-pending-h)))
 
 (defconst comp-warn-primitives
-  '(null memq gethash and subrp not subr-native-elisp-p
+  '(null memq gethash and subrp not native-comp-function-p
          comp--install-trampoline concat if symbolp symbol-name make-string
          length aset aref length> mapcar expand-file-name
          file-name-as-directory file-exists-p native-elisp-load)
   "List of primitives we want to warn about in case of redefinition.
 This are essential for the trampoline machinery to work properly.")
 
-(defun comp-trampoline-search (subr-name)
+(defun comp--trampoline-search (subr-name)
   "Search a trampoline file for SUBR-NAME.
 Return the trampoline if found or nil otherwise."
   (cl-loop
@@ -371,7 +371,7 @@ Return the trampoline if found or nil otherwise."
                 (memq subr-name native-comp-never-optimize-functions)
                 (gethash subr-name comp-installed-trampolines-h))
       (cl-assert (subr-primitive-p subr))
-      (when-let ((trampoline (or (comp-trampoline-search subr-name)
+      (when-let ((trampoline (or (comp--trampoline-search subr-name)
                                  (comp-trampoline-compile subr-name))))
         (comp--install-trampoline subr-name trampoline)))))
 
@@ -437,7 +437,7 @@ bytecode definition was not changed in the meantime)."
                            else
                              collect i)))
 
-        (unless (native-compile-async-skip-p file load selector)
+        (unless (native--compile-async-skip-p file load selector)
           (let* ((out-filename (comp-el-to-eln-filename file))
                  (out-dir (file-name-directory out-filename)))
             (unless (file-exists-p out-dir)
@@ -449,11 +449,11 @@ bytecode definition was not changed in the meantime)."
               (display-warning 'comp
                                (format "No write access for %s skipping."
                                        out-filename)))))))
-    ;; Perhaps nothing passed `native-compile-async-skip-p'?
+    ;; Perhaps nothing passed `native--compile-async-skip-p'?
     (when (and added-something
                ;; Don't start if there's one already running.
-               (zerop (comp-async-runnings)))
-      (comp-run-async-workers))))
+               (zerop (comp--async-runnings)))
+      (comp--run-async-workers))))
 
 ;;;###autoload
 (defun native-compile-async (files &optional recursively load selector)

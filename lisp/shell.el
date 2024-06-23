@@ -37,7 +37,7 @@
 ;; the hooks available for customizing it, see the file comint.el.
 ;; For further information on shell mode, see the comments below.
 
-;; Needs fixin:
+;; Needs fixing:
 ;; When sending text from a source file to a subprocess, the process-mark can
 ;; move off the window, so you can lose sight of the process interactions.
 ;; Maybe I should ensure the process mark is in the window when I send
@@ -419,6 +419,22 @@ Useful for shells like zsh that has this feature."
   "Shell file name started in `shell'.")
 (put 'shell--start-prog 'permanent-local t)
 
+(defcustom shell-history-file-name nil
+  "The history file name used in `shell-mode'.
+When it is a string, this file name will be used.
+When it is nil, the environment variable HISTFILE is used.
+When it is t, no history file name is used in `shell-mode'.
+
+The settings obey whether `shell-mode' is invoked in a remote buffer.
+In that case, HISTFILE is taken from the remote host, and the string is
+interpreted as local file name on the remote host.
+
+If `shell-mode' is invoked in a local buffer, and no history file name
+can be determined, a default according to the shell type is used."
+  :type '(choice (const :tag "Default" nil) (const :tag "Suppress" t) file)
+  :version "30.1")
+(put 'shell-history-file-name 'permanent-local t)
+
 ;;; Basic Procedures
 
 (defun shell--unquote&requote-argument (qstr &optional upos)
@@ -721,27 +737,33 @@ command."
   (setq list-buffers-directory (expand-file-name default-directory))
   ;; shell-dependent assignments.
   (when (ring-empty-p comint-input-ring)
-    (let ((remote (file-remote-p default-directory))
-          (shell (or shell--start-prog ""))
-          (hsize (getenv "HISTSIZE"))
-          (hfile (getenv "HISTFILE")))
-      (when remote
-        ;; `shell-snarf-envar' does not work trustworthy.
-        (setq hsize (shell-command-to-string "echo -n $HISTSIZE")
-              hfile (shell-command-to-string "echo -n $HISTFILE")))
+    (let* ((remote (file-remote-p default-directory))
+           (shell (or shell--start-prog ""))
+           (hfile (cond ((stringp shell-history-file-name)
+                         shell-history-file-name)
+                        ((null shell-history-file-name)
+                         (if remote
+                             (shell-command-to-string "echo -n $HISTFILE")
+                           (getenv "HISTFILE")))))
+           hsize)
       (and (string-equal hfile "") (setq hfile nil))
-      (and (stringp hsize)
-	   (integerp (setq hsize (string-to-number hsize)))
-	   (> hsize 0)
-           (setq-local comint-input-ring-size hsize))
-      (setq comint-input-ring-file-name
-            (concat
-             remote
-	     (or hfile
-		 (cond ((string-equal shell "bash") "~/.bash_history")
-		       ((string-equal shell "ksh") "~/.sh_history")
-		       ((string-equal shell "zsh") "~/.zsh_history")
-		       (t "~/.history")))))
+      (when (and (not remote) (not hfile))
+        (setq hfile
+              (cond ((string-equal shell "bash") "~/.bash_history")
+		    ((string-equal shell "ksh") "~/.sh_history")
+		    ((string-equal shell "zsh") "~/.zsh_history")
+		    (t "~/.history"))))
+      (when (stringp hfile)
+        (setq hsize
+              (if remote
+                  (shell-command-to-string "echo -n $HISTSIZE")
+                (getenv "HISTSIZE")))
+        (and (stringp hsize)
+	     (integerp (setq hsize (string-to-number hsize)))
+	     (> hsize 0)
+             (setq-local comint-input-ring-size hsize))
+        (setq comint-input-ring-file-name
+              (concat remote hfile)))
       (if (or (equal comint-input-ring-file-name "")
 	      (equal (file-truename comint-input-ring-file-name)
 		     (file-truename null-device)))
@@ -837,6 +859,13 @@ Sentinels will always get the two parameters PROCESS and EVENT."
     (when (buffer-live-p buf)
       (with-current-buffer buf
         (insert (format "\nProcess %s %s\n" process event))))))
+
+(define-derived-mode shell-command-mode comint-mode "Shell"
+  "Major mode for the output of asynchronous `shell-command'."
+  (setq-local font-lock-defaults '(shell-font-lock-keywords t))
+  ;; See comments in `shell-mode'.
+  (setq-local ansi-color-apply-face-function #'shell-apply-ansi-color)
+  (setq list-buffers-directory (expand-file-name default-directory)))
 
 ;;;###autoload
 (defun shell (&optional buffer file-name)

@@ -48,14 +48,20 @@
 (defvar org-babel-awk-command "awk"
   "Name of the awk executable command.")
 
-(defun org-babel-expand-body:awk (body _params)
+(defun org-babel-expand-body:awk (body params)
   "Expand BODY according to PARAMS, return the expanded body."
-  body)
+  (let ((prologue (cdr (assq :prologue params)))
+        (epilogue (cdr (assq :epilogue params))))
+    (concat
+     (and prologue (concat prologue "\n"))
+     body
+     (and epilogue (concat "\n" epilogue "\n")))))
 
 (defun org-babel-execute:awk (body params)
-  "Execute a block of Awk code with org-babel.
+  "Execute a block of Awk code BODY with org-babel.
+PARAMS is a plist of src block parameters .
 This function is called by `org-babel-execute-src-block'."
-  (message "Executing Awk source code block")
+  (unless noninteractive (message "Executing Awk source code block"))
   (let* ((result-params (cdr (assq :result-params params)))
          (cmd-line (cdr (assq :cmd-line params)))
          (in-file (cdr (assq :in-file params)))
@@ -100,7 +106,9 @@ This function is called by `org-babel-execute-src-block'."
       (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))))
 
 (defun org-babel-awk-var-to-awk (var &optional sep)
-  "Return a printed value of VAR suitable for parsing with awk."
+  "Return a printed value of VAR suitable for parsing with awk.
+SEP, when non-nil is a separator used when converting list values to awk
+table."
   (let ((echo-var (lambda (v) (if (stringp v) v (format "%S" v)))))
     (cond
      ((and (listp var) (listp (car var)))

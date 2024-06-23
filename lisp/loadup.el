@@ -344,7 +344,8 @@
       (when (eq system-type 'windows-nt)
         (load "w32-fns")
         (load "ls-lisp")
-        (load "dos-w32"))))
+        (load "dos-w32"))
+      (load "touch-screen")))
 (if (eq system-type 'ms-dos)
     (progn
       (load "dos-w32")
@@ -369,6 +370,7 @@
 (if (featurep 'pgtk)
     (progn
       (load "pgtk-dnd")
+      (load "touch-screen")
       (load "term/common-win")
       (load "term/pgtk-win")))
 (if (fboundp 'x-create-frame)

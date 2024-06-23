@@ -36,7 +36,8 @@
 (defvar org-babel-default-header-args:makefile '())
 
 (defun org-babel-execute:makefile (body _params)
-  "Execute a block of makefile code.
+  "Execute makefile BODY.
+Second function argument is ignored.
 This function is called by `org-babel-execute-src-block'."
   body)
 

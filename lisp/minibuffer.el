@@ -3816,7 +3816,9 @@ Return the new suffix."
                             'point
                             (substring afterpoint 0 (cdr bounds)))))
          (all (completion-pcm--all-completions prefix pattern table pred)))
-    (completion-hilit-commonality all point (car bounds))))
+    (when all
+      (nconc (completion-pcm--hilit-commonality pattern all)
+             (car bounds)))))
 
 ;;; Partial-completion-mode style completion.
 

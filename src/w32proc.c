@@ -2676,6 +2676,19 @@ count_children:
   return nr;
 }
 
+/* This is called from filelock.c:current_lock_owner to validate a PID.
+   Return true if PID could identify a process on the current host,
+   false otherwise.  */
+bool
+w32_valid_process_id (intmax_t id)
+{
+  if (id == -1 || id == 0	/* always invalid */
+      || id > UINT32_MAX 	/* PID is actually a DWORD */
+      || id < INT32_MIN)	/* Windows 9X can report negative PIDs */
+    return false;
+  return true;
+}
+
 /* Substitute for certain kill () operations */
 
 static BOOL CALLBACK
@@ -2714,6 +2727,7 @@ sys_kill (pid_t pid, int sig)
   HANDLE proc_hand;
   int need_to_free = 0;
   int rc = 0;
+  pid_t orig_pid = pid;
 
   /* Each process is in its own process group.  */
   if (pid < 0)
@@ -2721,7 +2735,8 @@ sys_kill (pid_t pid, int sig)
 
   /* Only handle signals that can be mapped to a similar behavior on Windows */
   if (sig != 0
-      && sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP && sig != SIGTRAP)
+      && sig != SIGINT && sig != SIGKILL && sig != SIGQUIT
+      && sig != SIGHUP && sig != SIGTRAP)
     {
       errno = EINVAL;
       return -1;
@@ -2747,11 +2762,34 @@ sys_kill (pid_t pid, int sig)
 	      errno = EPERM;
 	      return -1;
 	    case ERROR_INVALID_PARAMETER: /* process PID does not exist */
-	      errno = ESRCH;
-	      return -1;
+	      {
+		if (orig_pid == pid)
+		  {
+		    errno = ESRCH;
+		    return -1;
+		  }
+		/* If we received a negative value, try again with the
+                   original one we received.  */
+		proc_hand = OpenProcess (PROCESS_QUERY_INFORMATION,
+					 0, orig_pid);
+		if (proc_hand == NULL)
+		  {
+		    err = GetLastError ();
+		    switch (err)
+		      {
+		      case ERROR_ACCESS_DENIED:
+			errno = EPERM;
+			return -1;
+		      case ERROR_INVALID_PARAMETER:
+			errno = ESRCH;
+			return -1;
+		      }
+		  }
+		break;
+	      }
 	    }
 	}
-      else
+      if (proc_hand != NULL)
 	CloseHandle (proc_hand);
       return 0;
     }

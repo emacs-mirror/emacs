@@ -32,7 +32,7 @@
 (require 'esh-proc)
 (require 'esh-cmd)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-ls nil
   "This module implements the \"ls\" utility fully in Lisp.
@@ -229,7 +229,6 @@ scope during the evaluation of TEST-SEXP."
 (defvar dereference-links)
 (defvar dir-literal)
 (defvar error-func)
-(defvar flush-func)
 (defvar human-readable)
 (defvar ignore-pattern)
 (defvar insert-func)
@@ -278,7 +277,6 @@ instead."
           (require 'em-glob)
           (let* ((insert-func 'insert)
                  (error-func 'insert)
-                 (flush-func 'ignore)
                  (eshell-error-if-no-glob t)
                  (target ; Expand the shell wildcards if any.
                   (if (and (atom file)
@@ -324,10 +322,10 @@ instead."
 
 (defsubst eshell/ls (&rest args)
   "An alias version of `eshell-do-ls'."
-  (let ((insert-func 'eshell-buffered-print)
-	(error-func 'eshell-error)
-	(flush-func 'eshell-flush))
-    (apply 'eshell-do-ls args)))
+  (eshell-with-buffered-print
+    (let ((insert-func #'eshell-buffered-print)
+          (error-func #'eshell-error))
+      (apply 'eshell-do-ls args))))
 
 (put 'eshell/ls 'eshell-no-numeric-conversions t)
 (put 'eshell/ls 'eshell-filename-arguments t)
@@ -336,7 +334,6 @@ instead."
 
 (defun eshell-do-ls (&rest args)
   "Implementation of \"ls\" in Lisp, passing ARGS."
-  (funcall flush-func -1)
   ;; Process the command arguments, and begin listing files.
   (eshell-eval-using-options
    "ls" (if eshell-ls-initial-args
@@ -422,8 +419,7 @@ Sort entries alphabetically across.")
 		      (eshell-file-attributes
 		       arg (if numeric-uid-gid 'integer 'string))))
 	      args)
-      t (expand-file-name default-directory)))
-   (funcall flush-func)))
+      t (expand-file-name default-directory)))))
 
 (defsubst eshell-ls-printable-size (filesize &optional by-blocksize)
   "Return a printable FILESIZE."
@@ -956,9 +952,4 @@ to use, and each member of which is the width of that column
   (eshell-ls-disable-in-dired))
 
 (provide 'em-ls)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-ls.el ends here

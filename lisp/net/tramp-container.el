@@ -3,6 +3,7 @@
 ;; Copyright © 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Brian Cully <bjc@kublai.com>
+;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
 
@@ -73,6 +74,17 @@
 ;;
 ;; If the container is not running, it is started.  If no container is
 ;; specified, the default Toolbox container is used.
+;;
+;;
+;;
+;; Open a file on an existing Distrobox container:
+;;
+;;     C-x C-f /distrobox:CONTAINER:/path/to/file
+;;
+;; Where:
+;;     CONTAINER     is the container to connect to.
+;;
+;; If the container is not running, it is started.
 ;;
 ;;
 ;;
@@ -154,6 +166,14 @@ If it is nil, the default context will be used."
                  (string)))
 
 ;;;###tramp-autoload
+(defcustom tramp-distrobox-program "distrobox"
+  "Name of the Distrobox client program."
+  :group 'tramp
+  :version "30.1"
+  :type '(choice (const "distrobox")
+                 (string)))
+
+;;;###tramp-autoload
 (defcustom tramp-flatpak-program "flatpak"
   "Name of the Flatpak client program."
   :group 'tramp
@@ -178,41 +198,54 @@ If it is nil, the default context will be used."
 
 ;;;###tramp-autoload
 (defconst tramp-docker-method "docker"
-  "Tramp method name to use to connect to Docker containers.")
+  "Tramp method name to connect to Docker containers.")
 
 ;;;###tramp-autoload
 (defconst tramp-dockercp-method "dockercp"
-  "Tramp method name to use to connect to Docker containers.
+  "Tramp method name to connect to Docker containers.
 This is for out-of-band connections.")
 
 ;;;###tramp-autoload
 (defconst tramp-podman-method "podman"
-  "Tramp method name to use to connect to Podman containers.")
+  "Tramp method name to connect to Podman containers.")
 
 ;;;###tramp-autoload
 (defconst tramp-podmancp-method "podmancp"
-  "Tramp method name to use to connect to Podman containers.
+  "Tramp method name to connect to Podman containers.
 This is for out-of-band connections.")
 
 ;;;###tramp-autoload
 (defconst tramp-kubernetes-method "kubernetes"
-  "Tramp method name to use to connect to Kubernetes containers.")
+  "Tramp method name to connect to Kubernetes containers.")
 
 ;;;###tramp-autoload
 (defconst tramp-toolbox-method "toolbox"
-  "Tramp method name to use to connect to Toolbox containers.")
+  "Tramp method name to connect to Toolbox containers.")
+
+;;;###tramp-autoload
+(defconst tramp-distrobox-method "distrobox"
+  "Tramp method name to connect to Distrobox containers.")
 
 ;;;###tramp-autoload
 (defconst tramp-flatpak-method "flatpak"
-  "Tramp method name to use to connect to Flatpak sandboxes.")
+  "Tramp method name to connect to Flatpak sandboxes.")
 
 ;;;###tramp-autoload
 (defconst tramp-apptainer-method "apptainer"
-  "Tramp method name to use to connect to Apptainer instances.")
+  "Tramp method name to connect to Apptainer instances.")
 
 ;;;###tramp-autoload
 (defconst tramp-nspawn-method "nspawn"
-  "Tramp method name to use to connect to systemd-nspawn containers.")
+  "Tramp method name to connect to systemd-nspawn containers.")
+
+(defcustom tramp-distrobox-no-container-regexp
+  (rx bol "Error:" (1+ nonl) "no such container" (0+ nonl) "\n"
+      "Create it now, out of image " (+ (not blank)) "? [Y/n]:" (* blank))
+  "Regexp matching missing distrobox error message.
+The regexp should match at end of buffer."
+  :group 'tramp
+  :version "30.1"
+  :type 'regexp)
 
 ;;;###tramp-autoload
 (defmacro tramp-skeleton-completion-function (method &rest body)
@@ -381,11 +414,34 @@ see its function help for a description of the format."
     (when-let ((raw-list (shell-command-to-string (concat program " list -c")))
 	       ;; Ignore header line.
                (lines (cdr (split-string raw-list "\n" 'omit)))
+	       ;; We do not show container IDs.
                (names (tramp-compat-seq-keep
 		       (lambda (line)
 			 (when (string-match
 				(rx bol (1+ (not space))
 				    (1+ space) (group (1+ (not space))) space)
+				line)
+			   (match-string 1 line)))
+                       lines)))
+      (mapcar (lambda (name) (list nil name)) names))))
+
+;;;###tramp-autoload
+(defun tramp-distrobox--completion-function (method)
+  "List Distrobox containers available for connection.
+
+This function is used by `tramp-set-completion-function', please
+see its function help for a description of the format."
+  (tramp-skeleton-completion-function method
+    (when-let ((raw-list (shell-command-to-string (concat program " list")))
+	       ;; Ignore header line.
+               (lines (cdr (split-string raw-list "\n" 'omit)))
+	       ;; We do not show container IDs.
+               (names (tramp-compat-seq-keep
+		       (lambda (line)
+			 (when (string-match
+				(rx bol (1+ (not space))
+				    (1+ space) "|" (1+ space)
+				    (group (1+ (not space))) space)
 				line)
 			   (match-string 1 line)))
                        lines)))
@@ -594,6 +650,30 @@ see its function help for a description of the format."
   (tramp-set-completion-function
    tramp-toolbox-method
    `((tramp-toolbox--completion-function ,tramp-toolbox-method))))
+
+;;;###tramp-autoload
+(defun tramp-enable-distrobox-method ()
+  "Enable connection to Distrobox containers."
+  (add-to-list 'tramp-methods
+	       `(,tramp-distrobox-method
+		 (tramp-login-program ,tramp-distrobox-program)
+		 (tramp-login-args (("enter")
+				    ("-n" "%h")
+				    ("--" "%l")))
+		 ;(tramp-direct-async (,tramp-default-remote-shell "-c"))
+		 (tramp-remote-shell ,tramp-default-remote-shell)
+		 (tramp-remote-shell-login ("-l"))
+		 (tramp-remote-shell-args ("-c"))))
+
+  (add-to-list 'tramp-completion-multi-hop-methods tramp-distrobox-method)
+
+  (tramp-set-completion-function
+   tramp-distrobox-method
+   `((tramp-distrobox--completion-function ,tramp-distrobox-method)))
+
+  (add-to-list
+   'tramp-actions-before-shell
+   '(tramp-distrobox-no-container-regexp tramp-action-permission-denied)))
 
 ;;;###tramp-autoload
 (defun tramp-enable-flatpak-method ()

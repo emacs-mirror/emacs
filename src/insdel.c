@@ -283,7 +283,7 @@ adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
    we advance it if either its insertion-type is t
    or BEFORE_MARKERS is true.  */
 
-static void
+void
 adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 			   ptrdiff_t to, ptrdiff_t to_byte, bool before_markers)
 {
@@ -1090,7 +1090,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
    GPT_ADDR (if not text_at_gap_tail).
    Contrary to insert_from_gap, this does not invalidate any cache,
    nor update any markers, nor record any buffer modification information
-   of any sort.  */
+   of any sort, with the single exception of notifying tree-sitter.  */
 void
 insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 {
@@ -1125,10 +1125,14 @@ insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
    starting at GAP_END_ADDR - NBYTES (if text_at_gap_tail) and at
-   GPT_ADDR (if not text_at_gap_tail).  */
+   GPT_ADDR (if not text_at_gap_tail).
+
+  If BEFORE_MARKERS is true, insert before markers.  At the moment only
+  read_and_insert_process_output in process.c sets this to true.  */
 
 void
-insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
+insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail,
+		 bool before_markers)
 {
   ptrdiff_t ins_charpos = GPT, ins_bytepos = GPT_BYTE;
 
@@ -1147,7 +1151,8 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
   insert_from_gap_1 (nchars, nbytes, text_at_gap_tail);
 
   adjust_markers_for_insert (ins_charpos, ins_bytepos,
-			     ins_charpos + nchars, ins_bytepos + nbytes, false);
+			     ins_charpos + nchars, ins_bytepos + nbytes,
+			     before_markers);
 
   if (buffer_intervals (current_buffer))
     {

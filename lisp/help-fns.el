@@ -299,6 +299,15 @@ handling of autoloaded functions."
           (buffer-string))))))
 
 ;;;###autoload
+(defun help-find-source ()
+  "Switch to a buffer visiting the source of what is being described in *Help*."
+  (interactive)
+  (if-let ((help-buffer (get-buffer "*Help*")))
+      (with-current-buffer help-buffer
+          (help-view-source))
+    (error "No *Help* buffer found")))
+
+;;;###autoload
 (defun describe-command (command)
   "Display the full documentation of COMMAND (a symbol).
 When called from Lisp, COMMAND may also be a function object."
@@ -478,7 +487,7 @@ the C sources, too."
     (cond
      ((and (not file-name)
            (subrp type)
-           (not (subr-native-elisp-p type)))
+           (not (native-comp-function-p type)))
       ;; A built-in function.  The form is from `describe-function-1'.
       (if (or (get-buffer " *DOC*")
               (and also-c-source

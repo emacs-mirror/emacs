@@ -245,7 +245,7 @@ the name is not known."
 
 (defun emoji--name (glyph)
   (or (gethash glyph emoji--names)
-      (get-char-code-property (aref glyph 0) 'name)))
+      (char-to-name (aref glyph 0))))
 
 (defvar-keymap emoji-list-mode-map
   "RET" #'emoji-list-select

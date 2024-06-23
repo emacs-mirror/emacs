@@ -207,7 +207,7 @@ Useful to hook into pass checkers.")
 ;; cl-macs.el. We can't use `cl-deftype-satisfies' directly as the
 ;; relation type <-> predicate is not bijective (bug#45576).
 (defconst comp-known-predicates
-  ;; FIXME: Auto-generate (most of) it from `cl-deftype-satifies'?
+  ;; FIXME: Auto-generate (most of) it from `cl-deftype-satisfies'?
   '((arrayp              array)
     (atom		 atom)
     (bool-vector-p       bool-vector)
@@ -2847,7 +2847,7 @@ FUNCTION can be a function-name or byte compiled function."
              (subrp (subrp f))
              (comp-func-callee (comp--func-in-unit callee)))
         (cond
-         ((and subrp (not (subr-native-elisp-p f)))
+         ((and subrp (not (native-comp-function-p f)))
           ;; Trampoline removal.
           (let* ((callee (intern (subr-name f))) ; Fix aliased names.
                  (maxarg (cdr (subr-arity f)))
@@ -3583,6 +3583,8 @@ is a filename, if the compilation was successful return the
 filename of the compiled object.  If FUNCTION-OR-FILE is a
 function symbol or a form, if the compilation was successful
 return the compiled function."
+  (declare (ftype (function ((or string symbol) &optional string)
+                            (or native-comp-function string))))
   (comp--native-compile function-or-file nil output))
 
 (defun batch-native-compile-1 (&optional for-tarball)

@@ -102,7 +102,11 @@ When nil, you can use these keybindings to navigate the buffer:
 					mouse-drag-region universal-argument org-occur)))
 	    (dolist (cmd cmds)
 	      (substitute-key-definition cmd cmd map global-map)))
-	  (suppress-keymap map)
+	  (if org-goto-auto-isearch
+              ;; Suppress 0-9 interpreted as digital arguments.
+              ;; Make them initiate isearch instead.
+              (suppress-keymap map t)
+            (suppress-keymap map))
 	  (org-defkey map "\C-m"     'org-goto-ret)
 	  (org-defkey map [(return)] 'org-goto-ret)
 	  (org-defkey map [(left)]   'org-goto-left)
@@ -145,7 +149,7 @@ When nil, you can use these keybindings to navigate the buffer:
              (search-backward string bound noerror))
       (when (save-match-data
 	      (and (save-excursion
-		     (beginning-of-line)
+		     (forward-line 0)
 		     (looking-at org-complex-heading-regexp))
 		   (or (not (match-beginning 5))
 		       (< (point) (match-beginning 5)))))
@@ -172,7 +176,7 @@ When nil, you can use these keybindings to navigate the buffer:
   (interactive)
   (if (org-at-heading-p)
       (progn
-	(beginning-of-line 1)
+	(forward-line 0)
 	(setq org-goto-selected-point (point)
 	      org-goto-exit-command 'left)
 	(throw 'exit nil))
@@ -211,12 +215,12 @@ position or nil."
 	(help (or help org-goto-help)))
     (save-excursion
       (save-window-excursion
-	(delete-other-windows)
 	(and (get-buffer "*org-goto*") (kill-buffer "*org-goto*"))
-	(pop-to-buffer-same-window
-	 (condition-case nil
+        (pop-to-buffer
+         (condition-case nil
 	     (make-indirect-buffer (current-buffer) "*org-goto*" t)
-	   (error (make-indirect-buffer (current-buffer) "*org-goto*" t))))
+	   (error (make-indirect-buffer (current-buffer) "*org-goto*" t)))
+         '(org-display-buffer-full-frame))
 	(let (temp-buffer-show-function temp-buffer-show-hook)
 	  (with-output-to-temp-buffer "*Org Help*"
 	    (princ (format help (if org-goto-auto-isearch
@@ -234,8 +238,10 @@ position or nil."
 	(let (org-special-ctrl-a/e) (org-beginning-of-line))
 	(message "Select location and press RET")
 	(use-local-map org-goto-map)
-	(recursive-edit)))
-    (kill-buffer "*org-goto*")
+	(unwind-protect (recursive-edit)
+          (when-let ((window (get-buffer-window "*Org Help*" t)))
+            (quit-window 'kill window)))))
+    (when (get-buffer "*org-goto*") (kill-buffer "*org-goto*"))
     (cons org-goto-selected-point org-goto-exit-command)))
 
 ;;;###autoload

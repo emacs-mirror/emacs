@@ -12,8 +12,8 @@
 ;;               David Edmondson (dme@dme.org)
 ;;               Michael Olson (mwolson@gnu.org)
 ;;               Kelvin White (kwhite@gnu.org)
-;; Version: 5.6-git
-;; Package-Requires: ((emacs "27.1") (compat "29.1.4.4"))
+;; Version: 5.6
+;; Package-Requires: ((emacs "27.1") (compat "29.1.4.5"))
 ;; Keywords: IRC, chat, client, Internet
 ;; URL: https://www.gnu.org/software/emacs/erc.html
 
@@ -70,7 +70,7 @@
 (require 'auth-source)
 (eval-when-compile (require 'subr-x))
 
-(defconst erc-version "5.6-git"
+(defconst erc-version "5.6"
   "This version of ERC.")
 
 (defvar erc-official-location
@@ -509,7 +509,7 @@ Functions are passed a buffer as the first argument."
 
 (defvaralias 'erc-channel-users 'erc-channel-members)
 (defvar-local erc-channel-members nil
-  "Hash table of members in the current channel.
+  "Hash table of members in the current channel or query buffer.
 It associates nicknames with cons cells of the form
 \(SERVER-USER . MEMBER-DATA), where SERVER-USER is a
 `erc-server-user' object and MEMBER-DATA is a `erc-channel-user'
@@ -549,14 +549,44 @@ Adds USER with nickname NICK to the `erc-server-users' hash table."
   (erc-with-server-buffer
     (puthash (erc-downcase nick) user erc-server-users)))
 
+(defvar erc--decouple-query-and-channel-membership-p nil
+  "When non-nil, don't tether query participation to channel membership.
+Specifically, add users to query tables when they speak, don't remove
+them when they leave all channels, and allow removing the client's own
+user from `erc-server-users'.  Note that enabling this compatibility
+flag degrades the user experience and isn't guaranteed to correctly
+restore the described historical behavior.")
+
+(cl-defmethod erc--queries-current-p ()
+  "Return non-nil if ERC actively updates query manifests."
+  (and (not erc--decouple-query-and-channel-membership-p)
+       (erc-query-buffer-p) (erc-get-channel-member (erc-target))))
+
+(defun erc--ensure-query-member (nick)
+  "Populate membership table in query buffer for online NICK."
+  (erc-with-buffer (nick)
+    (when-let (((not erc--decouple-query-and-channel-membership-p))
+               ((zerop (hash-table-count erc-channel-users)))
+               (user (erc-get-server-user nick)))
+      (erc-update-current-channel-member nick nil t)
+      (erc--unhide-prompt)
+      t)))
+
+(defun erc--ensure-query-members ()
+  "Update membership tables in all query buffers.
+Ensure targets with an entry in `erc-server-users' are present in
+`erc-channel-members'."
+  (erc-with-all-buffers-of-server erc-server-process #'erc-query-buffer-p
+    (when-let (((not erc--decouple-query-and-channel-membership-p))
+               ((zerop (hash-table-count erc-channel-users)))
+               (target (erc-target))
+               ((erc-get-server-user target)))
+      (erc-update-current-channel-member target nil t)
+      (erc--unhide-prompt))
+    erc-server-process))
+
 (defun erc-remove-server-user (nick)
-  "This function is for internal use only.
-
-Removes the user with nickname NICK from the `erc-server-users'
-hash table.  This user is not removed from the
-`erc-channel-users' lists of other buffers.
-
-See also: `erc-remove-user'."
+  "Remove NICK from the session's `erc-server-users' table."
   (erc-with-server-buffer
     (remhash (erc-downcase nick) erc-server-users)))
 
@@ -579,15 +609,29 @@ other buffers are also changed."
               (puthash (erc-downcase new-nick) cdata
                        erc-channel-users)))))))
 
+(defvar erc--forget-server-user-function
+  #'erc--forget-server-user-ignoring-queries
+  "Function to conditionally remove a user from `erc-server-users'.
+Called with a nick and its `erc-server-user' object.")
+
+(defun erc--forget-server-user (nick user)
+  "Remove NICK's USER from server table if they're not in any target buffers."
+  (unless (erc-server-user-buffers user)
+    (erc-remove-server-user nick)))
+
+(defun erc--forget-server-user-ignoring-queries (nick user)
+  "Remove NICK's USER from `erc-server-users' if they've parted all channels."
+  (let ((buffers (erc-server-user-buffers user)))
+    (when (or (null buffers)
+              (and (not erc--decouple-query-and-channel-membership-p)
+                   (cl-every #'erc-query-buffer-p buffers)))
+      (when buffers
+        (erc--remove-user-from-targets (erc-downcase nick) buffers))
+      (erc-remove-server-user nick))))
+
 (defun erc-remove-channel-user (nick)
-  "This function is for internal use only.
-
-Removes the user with nickname NICK from the `erc-channel-users'
-list for this channel.  If this user is not in the
-`erc-channel-users' list of any other buffers, the user is also
-removed from the server's `erc-server-users' list.
-
-See also: `erc-remove-server-user' and `erc-remove-user'."
+  "Remove NICK from the current target buffer's `erc-channel-members'.
+If this was their only target, also remove them from `erc-server-users'."
   (let ((channel-data (erc-get-channel-user nick)))
     (when channel-data
       (let ((user (car channel-data)))
@@ -595,32 +639,19 @@ See also: `erc-remove-server-user' and `erc-remove-user'."
               (delq (current-buffer)
                     (erc-server-user-buffers user)))
         (remhash (erc-downcase nick) erc-channel-users)
-        (if (null (erc-server-user-buffers user))
-            (erc-remove-server-user nick))))))
+        (funcall erc--forget-server-user-function nick user)))))
 
 (defun erc-remove-user (nick)
-  "This function is for internal use only.
-
-Removes the user with nickname NICK from the `erc-server-users'
-list as well as from all `erc-channel-users' lists.
-
-See also: `erc-remove-server-user' and
-`erc-remove-channel-user'."
+  "Remove NICK from the server and all relevant channels tables."
   (let ((user (erc-get-server-user nick)))
     (when user
-      (let ((buffers (erc-server-user-buffers user)))
-        (dolist (buf buffers)
-          (if (buffer-live-p buf)
-              (with-current-buffer buf
-                (remhash (erc-downcase nick) erc-channel-users)
-                (run-hooks 'erc-channel-members-changed-hook)))))
+      (erc--remove-user-from-targets (erc-downcase nick)
+                                     (erc-server-user-buffers user))
       (erc-remove-server-user nick))))
 
 (defun erc-remove-channel-users ()
-  "This function is for internal use only.
-
-Removes all users in the current channel.  This is called by
-`erc-server-PART' and `erc-server-QUIT'."
+  "Drain current buffer's `erc-channel-members' table.
+Also remove members from the server table if this was their only buffer."
   (when (erc--target-channel-p erc--target)
     (setf (erc--target-channel-joined-p erc--target) nil))
   (when (and erc-server-connected
@@ -631,11 +662,25 @@ Removes all users in the current channel.  This is called by
              erc-channel-users)
     (clrhash erc-channel-users)))
 
+(defun erc--remove-channel-users-but (nick)
+  "Drain channel users and remove from server, sparing NICK."
+  (when-let ((users (erc-with-server-buffer erc-server-users))
+             (my-user (gethash (erc-downcase nick) users))
+             (original-function erc--forget-server-user-function)
+             (erc--forget-server-user-function
+              (if erc--decouple-query-and-channel-membership-p
+                  erc--forget-server-user-function
+                (lambda (nick user)
+                  (unless (eq user my-user)
+                    (funcall original-function nick user))))))
+    (erc-remove-channel-users)))
+
 (defmacro erc--define-channel-user-status-compat-getter (name c d)
-  "Define a gv getter for historical `erc-channel-user' status slot NAME.
-Expect NAME to be a string, C to be its traditionally associated
-letter, and D to be its fallback power-of-2 integer for non-ERC
-buffers."
+  "Define accessor with gv getter for historical `erc-channel-user' slot NAME.
+Expect NAME to be a string, C to be its traditionally associated letter,
+and D to be its fallback power-of-2 integer for non-ERC buffers.  Unlike
+pre-ERC-5.6 accessors, do not bother generating a compiler macro for
+inlining calls to these adapters."
   `(defun ,(intern (concat "erc-channel-user-" name)) (u)
      ,(format "Get equivalent of pre-5.6 `%s' slot for `erc-channel-user'."
               name)
@@ -1990,7 +2035,7 @@ either SERVER or PORT (but not both) to be nil to accommodate oddball
 `erc-server-connect-function's.
 
 When TGT-INFO is non-nil, expect its string field to match the redundant
-param TARGET (retained for compatibility).  Whenever possibly, prefer
+param TARGET (retained for compatibility).  Whenever possible, prefer
 returning TGT-INFO's string unmodified.  But when a case-insensitive
 collision prevents that, return target@ID when ID is non-nil or
 target@network otherwise after renaming the conflicting buffer in the
@@ -2150,6 +2195,10 @@ all channel buffers on all servers."
       (if user
           (erc-server-user-buffers user)
         nil))))
+
+(defun erc--query-list ()
+  "Return all query buffers for the current connection."
+  (erc-buffer-list #'erc-query-buffer-p erc-server-process))
 
 ;; Some local variables
 
@@ -2903,15 +2952,16 @@ PARAMETERS should be a sequence of keywords and values, per
 
 (defun erc-open-socks-tls-stream (name buffer host service &rest parameters)
   "Connect to an IRC server via SOCKS proxy over TLS.
-Defer to the `socks' and `gnutls' libraries to make the actual
-connection and perform TLS negotiation.  Expect SERVICE to be a
-TLS port number and that the plist PARAMETERS contains a
-`:client-certificate' pair when necessary.  Otherwise, assume the
-arguments NAME, BUFFER, and HOST to be acceptable to
-`open-network-stream' and that users know to check out
-`erc-server-connect-function' and Info node `(erc) SOCKS' for
-more info, including an important example of how to \"wrap\" this
-function with SOCKS credentials."
+Perform the duties required of an `erc-server-connect-function'
+implementer, and return a network process.  Defer to the `socks'
+and `gnutls' libraries to make the connection and handle TLS
+negotiation.  Expect SERVICE to be a TLS port number and
+PARAMETERS to be a possibly empty plist containing items like a
+`:client-certificate' pair.  Pass NAME, BUFFER, and HOST directly
+to `open-network-stream'.  Beyond that, operate as described in
+Info node `(erc) SOCKS', and expect users to \"wrap\" this
+function with `let'-bound credentials when necessary, as shown in
+the example."
   (require 'gnutls)
   (require 'socks)
   (let ((proc (socks-open-network-stream name buffer host service))
@@ -3987,7 +4037,9 @@ As of ERC 5.6, assume third-party code will use this function
 instead of lower-level ones, like `erc-insert-line', to insert
 arbitrary informative messages as if sent by the server.  That
 is, tell modules to treat a \"local\" message for which PARSED is
-nil like any other server-sent message."
+nil like any other server-sent message.  Finally, expect users to
+treat the return value of this function as undefined even though
+various default response handlers may appear to presume nil."
   (let* ((erc--msg-props
           (or erc--msg-props
               (let ((table (make-hash-table))
@@ -5149,8 +5201,7 @@ just as you provided it.  Use this command with care!"
 
 (defun erc-cmd-QUERY (&optional user)
   "Open a query with USER.
-How the query is displayed (in a new window, frame, etc.) depends
-on the value of `erc-interactive-display'."
+Display the query buffer in accordance with `erc-interactive-display'."
   ;; FIXME: The doc string used to say at the end:
   ;; "If USER is omitted, close the current query buffer if one exists
   ;; - except this is broken now ;-)"
@@ -5166,7 +5217,11 @@ on the value of `erc-interactive-display'."
         (erc--display-context `((erc-interactive-display . /QUERY)
                                 ,@erc--display-context)))
     (erc-with-server-buffer
-     (erc--open-target user))))
+      (if-let ((buffer (erc-get-buffer user erc-server-process)))
+          (prog1 buffer
+            (erc-setup-buffer buffer))
+        (prog1 (erc--open-target user) ; becomes current buffer
+          (erc--ensure-query-member user))))))
 
 (defalias 'erc-cmd-Q #'erc-cmd-QUERY)
 
@@ -6133,7 +6188,15 @@ NUH, and the current `erc-response' object.")
   (and erc-channel-users (gethash downcased erc-channel-users)))
 
 (defun erc-format-privmessage (nick msg privp msgp)
-  "Format a PRIVMSG in an insertable fashion."
+  "Format a PRIVMSG in an insertable fashion.
+
+Note that as of version 5.6, the default client no longer calls this
+function.  It instead defers to the `format-spec'-based message-catalog
+system to handle all message formatting.  Anyone needing to influence
+such formatting should describe their use case via \\[erc-bug] or
+similar.  Please do this instead of resorting to things like modifying
+formatting templates to remove speaker brackets (because many modules
+rely on their presence, and cleaner ways exist)."
   (let* ((mark-s (if msgp (if privp "*" "<") "-"))
          (mark-e (if msgp (if privp "*" ">") "-"))
          (str    (format "%s%s%s %s" mark-s nick mark-e msg))
@@ -9519,6 +9582,7 @@ SOFTP, only do so when defined as a variable."
    (s333   . "%c: topic set by %n, %t")
    (s341   . "Inviting %n to channel %c")
    (s352   . "%-11c %-10n %-4a %u@%h (%f)")
+   (s352-you . "%n %a %u@%h (%f)")
    (s353   . "Users on %c: %u")
    (s367   . "Ban for %b on %c")
    (s367-set-by . "Ban for %b on %c set by %s on %t")
@@ -9626,7 +9690,7 @@ See also `format-spec'."
     erc-networks-shrink-ids-and-buffer-names
     erc-networks-rename-surviving-target-buffer)
   "Invoked whenever a channel-buffer is killed via `kill-buffer'."
-  :package-version '(ERC . "5.5")
+  :package-version '(ERC . "5.6")
   :group 'erc-hooks
   :type 'hook)
 
@@ -9650,7 +9714,9 @@ one of the following hooks:
 `erc-kill-channel-hook' if a channel buffer was killed,
 or `erc-kill-buffer-hook' if any other buffer."
   (when (eq major-mode 'erc-mode)
-    (erc-remove-channel-users)
+    (when-let ((erc--target)
+               (nick (erc-current-nick)))
+      (erc--remove-channel-users-but nick))
     (cond
      ((eq (erc-server-buffer) (current-buffer))
       (run-hooks 'erc-kill-server-hook))

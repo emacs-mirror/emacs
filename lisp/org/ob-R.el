@@ -64,6 +64,7 @@
     (colormodel		 . :any)
     (useDingbats	 . :any)
     (horizontal		 . :any)
+    (async               . ((yes no)))
     (results             . ((file list vector table scalar verbatim)
 			    (raw html latex org code pp drawer)
 			    (replace silent none append prepend)
@@ -90,15 +91,6 @@ this variable.")
   :group 'org-babel
   :version "24.1"
   :type 'string)
-
-(defvar ess-current-process-name) ; dynamically scoped
-(defvar ess-local-process-name)   ; dynamically scoped
-(defun org-babel-edit-prep:R (info)
-  (let ((session (cdr (assq :session (nth 2 info)))))
-    (when (and session
-	       (string-prefix-p "*"  session)
-	       (string-suffix-p "*" session))
-      (org-babel-R-initiate-session session nil))))
 
 ;; The usage of utils::read.table() ensures that the command
 ;; read.table() can be found even in circumstances when the utils
@@ -156,7 +148,7 @@ This function is used when the table does not contain a header.")
 	     "\n"))
 
 (defun org-babel-execute:R (body params)
-  "Execute a block of R code.
+  "Execute a block of R code BODY according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
   (save-excursion
     (let* ((result-params (cdr (assq :result-params params)))
@@ -215,7 +207,8 @@ This function is called by `org-babel-execute-src-block'."
 ;; helper functions
 
 (defun org-babel-variable-assignments:R (params)
-  "Return list of R statements assigning the block's variables."
+  "Return list of R statements assigning the block's variables.
+Retrieve variables from PARAMS."
   (let ((vars (org-babel--get-vars params)))
     (mapcar
      (lambda (pair)
@@ -261,42 +254,44 @@ This function is called by `org-babel-execute-src-block'."
 	  (t                (format "%s <- %S" name (prin1-to-string value))))))
 
 
+(defvar ess-current-process-name) ; dynamically scoped
+(defvar ess-local-process-name)   ; dynamically scoped
 (defvar ess-ask-for-ess-directory) ; dynamically scoped
+(defvar ess-gen-proc-buffer-name-function) ; defined in ess-inf.el
 (defun org-babel-R-initiate-session (session params)
-  "If there is not a current R process then create one."
+  "Create or return the current R SESSION buffer.
+Use PARAMS to set default directory when creating a new session."
   (unless (string= session "none")
-    (let ((session (or session "*R*"))
-	  (ess-ask-for-ess-directory
-	   (and (boundp 'ess-ask-for-ess-directory)
-		ess-ask-for-ess-directory
-		(not (cdr (assq :dir params))))))
+    (let* ((session (or session "*R*"))
+	   (ess-ask-for-ess-directory
+	    (and (boundp 'ess-ask-for-ess-directory)
+		 ess-ask-for-ess-directory
+		 (not (cdr (assq :dir params)))))
+           ;; Make ESS name the process buffer as SESSION.
+           (ess-gen-proc-buffer-name-function
+            (lambda (_) session)))
       (if (org-babel-comint-buffer-livep session)
 	  session
 	(save-window-excursion
 	  (when (get-buffer session)
 	    ;; Session buffer exists, but with dead process
 	    (set-buffer session))
-          (require 'ess-r-mode)
+          (org-require-package 'ess-r-mode "ESS")
           (set-buffer (run-ess-r))
 	  (let ((R-proc (get-process (or ess-local-process-name
 					 ess-current-process-name))))
 	    (while (process-get R-proc 'callbacks)
 	      (ess-wait-for-process R-proc)))
-	  (rename-buffer
-	   (if (bufferp session)
-	       (buffer-name session)
-	     (if (stringp session)
-		 session
-	       (buffer-name))))
 	  (current-buffer))))))
 
 (defun org-babel-R-associate-session (session)
   "Associate R code buffer with an R session.
 Make SESSION be the inferior ESS process associated with the
 current code buffer."
-  (setq ess-local-process-name
-	(process-name (get-buffer-process session)))
-  (ess-make-buffer-current))
+  (when-let ((process (get-buffer-process session)))
+    (setq ess-local-process-name (process-name process))
+    (ess-make-buffer-current))
+  (setq-local ess-gen-proc-buffer-name-function (lambda (_) session)))
 
 (defvar org-babel-R-graphics-devices
   '((:bmp "bmp" "filename")
@@ -520,7 +515,7 @@ by `org-babel-comint-async-filter'."
 	   (ess-eval-buffer nil)))
        tmp-file))
     (output
-     (let ((uuid (md5 (number-to-string (random 100000000))))
+     (let ((uuid (org-id-uuid))
            (ess-local-process-name
             (process-name (get-buffer-process session)))
            (ess-eval-visibly-p nil))

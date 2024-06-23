@@ -4652,6 +4652,14 @@ sys_open (const char * path, int oflag, int mode)
 	res = _wopen (mpath_w, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
       if (res < 0)
 	res = _wopen (mpath_w, oflag | _O_NOINHERIT, mode);
+      if (res < 0 && errno == EACCES)
+	{
+	  DWORD attributes = GetFileAttributesW (mpath_w);
+
+	  if (attributes != INVALID_FILE_ATTRIBUTES
+	      && (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+	    errno = EISDIR;
+	}
     }
   else
     {
@@ -4662,6 +4670,14 @@ sys_open (const char * path, int oflag, int mode)
 	res = _open (mpath_a, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
       if (res < 0)
 	res = _open (mpath_a, oflag | _O_NOINHERIT, mode);
+      if (res < 0 && errno == EACCES)
+	{
+	  DWORD attributes = GetFileAttributesA (mpath_a);
+
+	  if (attributes != INVALID_FILE_ATTRIBUTES
+	      && (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+	    errno = EISDIR;
+	}
     }
 
   return res;
@@ -4724,10 +4740,11 @@ int
 sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 {
   BOOL result;
-  char temp[MAX_UTF8_PATH], temp_a[MAX_PATH];;
+  char temp[MAX_UTF8_PATH], temp_a[MAX_PATH];
   int newname_dev;
   int oldname_dev;
   bool have_temp_a = false;
+  char oldname_a[MAX_PATH];
 
   /* MoveFile on Windows 95 doesn't correctly change the short file name
      alias in a number of circumstances (it is not easy to predict when
@@ -4752,7 +4769,6 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
       char * o;
       char * p;
       int    i = 0;
-      char oldname_a[MAX_PATH];
 
       oldname = map_w32_filename (oldname, NULL);
       filename_to_ansi (oldname, oldname_a);
@@ -4828,7 +4844,7 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 	      DWORD attributes_new;
 
 	      if (_wchmod (newname_w, 0666) != 0)
-		return result;
+		goto return_result;
 	      attributes_old = GetFileAttributesW (temp_w);
 	      attributes_new = GetFileAttributesW (newname_w);
 	      if (attributes_old != -1 && attributes_new != -1
@@ -4839,15 +4855,16 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 		    errno = ENOTDIR;
 		  else
 		    errno = EISDIR;
-		  return -1;
+		  result = -1;
+		  goto return_result;
 		}
 	      if ((attributes_new & FILE_ATTRIBUTE_DIRECTORY) != 0)
 		{
 		  if (_wrmdir (newname_w) != 0)
-		    return result;
+		    goto return_result;
 		}
 	      else if (_wunlink (newname_w) != 0)
-		return result;
+		goto return_result;
 	      result = _wrename (temp_w, newname_w);
 	    }
 	  else if (w32err == ERROR_PRIVILEGE_NOT_HELD
@@ -4886,7 +4903,7 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 	      DWORD attributes_new;
 
 	      if (_chmod (newname_a, 0666) != 0)
-		return result;
+		goto return_result;
 	      attributes_old = GetFileAttributesA (temp_a);
 	      attributes_new = GetFileAttributesA (newname_a);
 	      if (attributes_old != -1 && attributes_new != -1
@@ -4897,21 +4914,39 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 		    errno = ENOTDIR;
 		  else
 		    errno = EISDIR;
-		  return -1;
+		  result = -1;
+		  goto return_result;
 		}
 	      if ((attributes_new & FILE_ATTRIBUTE_DIRECTORY) != 0)
 		{
 		  if (_rmdir (newname_a) != 0)
-		    return result;
+		    goto return_result;
 		}
 	      else if (_unlink (newname_a) != 0)
-		return result;
+		goto return_result;
 	      result = rename (temp_a, newname_a);
 	    }
 	  else if (w32err == ERROR_PRIVILEGE_NOT_HELD
 		   && is_symlink (temp))
 	    errno = EPERM;
 	}
+    }
+
+ return_result:
+  /* This label is also invoked on failure, and on Windows 9X, restores
+     the initial name of files that will have been renamed in
+     preparation for being moved.  It ought to be valid to rename temp_a
+     to its previous name, just as it would, but for the failure, have
+     been renamed to the target.  */
+
+  if (have_temp_a && result)
+    {
+      int save_errno = errno;
+
+      /* XXX: what if a new file has replaced oldname_a in the
+	 meantime?  */
+      rename (temp_a, oldname_a);
+      errno = save_errno;
     }
 
   return result;

@@ -945,7 +945,7 @@ keywords is understood:
 		No more than three actions defined here will be
 		displayed, not counting any with "default" as its
 		key.
-  :timeout	Number of miliseconds from the display of the
+  :timeout	Number of milliseconds from the display of the
 		notification at which it will be automatically
 		dismissed, or a value of zero or smaller if it
 		is to remain until user action is taken to dismiss

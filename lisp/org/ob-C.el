@@ -93,44 +93,45 @@ parameter may be used, like rdmd --chatty"
 is currently being evaluated.")
 
 (defun org-babel-execute:cpp (body params)
-  "Execute BODY according to PARAMS.
+  "Execute BODY according to its header arguments PARAMS.
 This function calls `org-babel-execute:C++'."
   (org-babel-execute:C++ body params))
 
 (defun org-babel-expand-body:cpp (body params)
-  "Expand a block of C++ code with org-babel according to its header arguments."
+  "Expand C++ BODY with org-babel according to its header arguments PARAMS."
   (org-babel-expand-body:C++ body params))
 
 (defun org-babel-execute:C++ (body params)
-  "Execute a block of C++ code with org-babel.
+  "Execute C++ BODY with org-babel according to its header arguments PARAMS.
 This function is called by `org-babel-execute-src-block'."
   (let ((org-babel-c-variant 'cpp)) (org-babel-C-execute body params)))
 
 (defun org-babel-expand-body:C++ (body params)
-  "Expand a block of C++ code with org-babel according to its header arguments."
+  "Expand C++ BODY with org-babel according to its header arguments PARAMS."
   (let ((org-babel-c-variant 'cpp)) (org-babel-C-expand-C++ body params)))
 
 (defun org-babel-execute:D (body params)
-  "Execute a block of D code with org-babel.
+  "Execute D BODY with org-babel according to its header arguments PARAMS.
 This function is called by `org-babel-execute-src-block'."
   (let ((org-babel-c-variant 'd)) (org-babel-C-execute body params)))
 
 (defun org-babel-expand-body:D (body params)
-  "Expand a block of D code with org-babel according to its header arguments."
+  "Expand D BODY with org-babel according to its header arguments PARAMS."
   (let ((org-babel-c-variant 'd)) (org-babel-C-expand-D body params)))
 
 (defun org-babel-execute:C (body params)
-  "Execute a block of C code with org-babel.
+  "Execute a C BODY according to its header arguments PARAMS.
 This function is called by `org-babel-execute-src-block'."
   (let ((org-babel-c-variant 'c)) (org-babel-C-execute body params)))
 
 (defun org-babel-expand-body:C (body params)
-  "Expand a block of C code with org-babel according to its header arguments."
+  "Expand C BODY according to its header arguments PARAMS."
   (let ((org-babel-c-variant 'c)) (org-babel-C-expand-C body params)))
 
 (defun org-babel-C-execute (body params)
-  "This function should only be called by `org-babel-execute:C'
-or `org-babel-execute:C++' or `org-babel-execute:D'."
+  "Execute C/C++/D BODY according to its header arguments PARAMS.
+This function should only be called by `org-babel-execute:C' or
+`org-babel-execute:C++' or `org-babel-execute:D'."
   (let* ((tmp-src-file (org-babel-temp-file
 			"C-src-"
 			(pcase org-babel-c-variant
@@ -196,11 +197,11 @@ or `org-babel-execute:C++' or `org-babel-execute:D'."
       )))
 
 (defun org-babel-C-expand-C++ (body params)
-  "Expand a block of C/C++ code with org-babel according to its header arguments."
+  "Expand C/C++ BODY with according to its header arguments PARAMS."
   (org-babel-C-expand-C body params))
 
 (defun org-babel-C-expand-C (body params)
-  "Expand a block of C/C++ code with org-babel according to its header arguments."
+  "Expand C/C++ BODY according to its header arguments PARAMS."
   (let ((vars (org-babel--get-vars params))
 	(colnames (cdr (assq :colname-names params)))
 	(main-p (not (string= (cdr (assq :main params)) "no")))
@@ -212,7 +213,9 @@ or `org-babel-execute:C++' or `org-babel-execute:D'."
 		  nil))
 	(namespaces (org-babel-read
 		     (cdr (assq :namespaces params))
-		     nil)))
+		     nil))
+        (prologue (cdr (assq :prologue params)))
+        (epilogue (cdr (assq :epilogue params))))
     (when (stringp includes)
       (setq includes (split-string includes)))
     (when (stringp namespaces)
@@ -226,6 +229,11 @@ or `org-babel-execute:C++' or `org-babel-execute:D'."
 	    (nconc result (list (concat y " " x)))
 	    (setq y nil)))
 	(setq defines (cdr result))))
+    (setq body
+          (concat
+           (and prologue (concat prologue "\n"))
+           body
+           (and epilogue (concat "\n" epilogue "\n"))))
     (mapconcat 'identity
 	       (list
 		;; includes
@@ -269,7 +277,7 @@ or `org-babel-execute:C++' or `org-babel-execute:D'."
 		  body) "\n") "\n")))
 
 (defun org-babel-C-expand-D (body params)
-  "Expand a block of D code with org-babel according to its header arguments."
+  "Expand D BODY according to its header arguments PARAMS."
   (let ((vars (org-babel--get-vars params))
 	(colnames (cdr (assq :colname-names params)))
 	(main-p (not (string= (cdr (assq :main params)) "no")))
@@ -313,13 +321,15 @@ or `org-babel-execute:C++' or `org-babel-execute:D'."
     (format "int main() {\n%s\nreturn 0;\n}\n" body)))
 
 (defun org-babel-prep-session:C (_session _params)
-  "This function does nothing as C is a compiled language with no
-support for sessions."
+  "Throw and error that sessions are not supported.
+This function does nothing as C is a compiled language with no support
+for sessions."
   (error "C is a compiled language -- no support for sessions"))
 
 (defun org-babel-load-session:C (_session _body _params)
-  "This function does nothing as C is a compiled language with no
-support for sessions."
+  "Throw and error that sessions are not supported.
+This function does nothing as C is a compiled language with no support
+for sessions."
   (error "C is a compiled language -- no support for sessions"))
 
 ;; helper functions
@@ -379,10 +389,11 @@ FORMAT can be either a format string or a function which is called with VAL."
       type))))
 
 (defun org-babel-C-val-to-base-type (val)
-  "Determine the base type of VAL which may be
-`integerp' if all base values are integers
-`floatp' if all base values are either floating points or integers
-`stringp' otherwise."
+  "Determine the base type of VAL.
+The type is:
+- `integerp' if all base values are integers;
+- `floatp' if all base values are either floating points or integers;
+- `stringp' otherwise."
   (cond
    ((integerp val) 'integerp)
    ((floatp val) 'floatp)
@@ -401,7 +412,7 @@ FORMAT can be either a format string or a function which is called with VAL."
    (t 'stringp)))
 
 (defun org-babel-C-var-to-C (pair)
-  "Convert an elisp val into a string of C code specifying a var of the same value."
+  "Convert PAIR of (var . val) C variable assignment."
   ;; TODO list support
   (let ((var (car pair))
 	(val (cdr pair)))
@@ -471,7 +482,7 @@ int get_column_num (int nbcols, const char** header, const char* column)
 (defun org-babel-C-header-to-C (head type)
   "Convert an elisp list of header table into a C or D vector
 specifying a variable with the name of the table."
-  (message "%S" type)
+  (unless noninteractive (message "%S" type))
   (let ((table (car head))
         (headers (cdr head))
         (typename (pcase type

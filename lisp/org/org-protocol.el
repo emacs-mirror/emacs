@@ -329,7 +329,7 @@ results of that splitting are returned as a list."
 Greedy handlers might receive a list like this from emacsclient:
 \((\"/dir/org-protocol:/greedy:/~/path1\" (23 . 12)) (\"/dir/param\"))
 where \"/dir/\" is the absolute path to emacsclient's working directory.  This
-function transforms it into a flat list using `org-protocol-flatten' and
+function transforms it into a flat list using `flatten-tree' and
 transforms the elements of that list as follows:
 
 If STRIP-PATH is non-nil, remove the \"/dir/\" prefix from all members of
@@ -344,9 +344,9 @@ Note, that this function will always behave as if
 `org-protocol-reverse-list-of-files' was set to t and the returned list will
 reflect that.  emacsclient's first parameter will be the first one in the
 returned list."
-  (let* ((l (org-protocol-flatten (if org-protocol-reverse-list-of-files
-				      param-list
-				    (reverse param-list))))
+  (let* ((l (org--flatten-tree (if org-protocol-reverse-list-of-files
+                              param-list
+                            (reverse param-list))))
 	 (trigger (car l))
 	 (len 0)
 	 dir
@@ -369,21 +369,15 @@ returned list."
 	  ret)
       l)))
 
-;; `flatten-tree' was added in Emacs 27.1.
-(defalias 'org-protocol-flatten
-  (if (fboundp 'flatten-tree) 'flatten-tree
-    (lambda (list)
-      "Transform LIST into a flat list.
+(define-obsolete-function-alias 'org-protocol-flatten
+  (if (fboundp 'flatten-tree) 'flatten-tree 'org--flatten-tree)
+  "9.7"
+  "Transform LIST into a flat list.
 
 Greedy handlers might receive a list like this from emacsclient:
 \((\"/dir/org-protocol:/greedy:/~/path1\" (23 . 12)) (\"/dir/param\"))
 where \"/dir/\" is the absolute path to emacsclients working directory.
-This function transforms it into a flat list."
-      (if list
-	  (if (consp list)
-	      (append (org-protocol-flatten (car list))
-		      (org-protocol-flatten (cdr list)))
-	    (list list))))))
+This function transforms it into a flat list.")
 
 (defun org-protocol-parse-parameters (info &optional new-style default-order)
   "Return a property list of parameters from INFO.
@@ -689,7 +683,8 @@ to deal with new-style links.")
 
 (advice-add 'server-visit-files :around #'org--protocol-detect-protocol-server)
 (defun org--protocol-detect-protocol-server (orig-fun files client &rest args)
-  "Advice server-visit-flist to call `org-protocol-check-filename-for-protocol'."
+  "Advice `server-visit-files' to call `org-protocol-check-filename-for-protocol'.
+This function is indented to be used as :around advice for `server-visit-files'."
   (let ((flist (if org-protocol-reverse-list-of-files
                    (reverse files)
                  files)))

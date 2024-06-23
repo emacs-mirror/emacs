@@ -1277,7 +1277,8 @@ Forward propagate immediate involed in assignments." ; FIXME: Typo.  Involved or
 		     (dt (- (if tend (min te tend) te)
                 te (match-string 3))
           (setq s (- (org-time-string-to-seconds te)
-    ("te"  :babel-ini-only "telugu" :polyglossia "telugu" :lang-name "Telugu")
+      ("te" :babel-ini-only "telugu" :polyglossia "telugu" :lang-name "Telugu" :script "telugu" :script-tag "telu")
+      ("bn"  :babel-ini-only "bengali" :polyglossia "bengali" :lang-name "Bengali" :script "bengali" :script-tag: "beng")
 2016-09-10  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
 	Reported by Toke Høiland-Jørgensen <toke@toke.dk>.
 2012-07-17  Toke Høiland-Jørgensen  <toke@toke.dk>  (tiny change)
@@ -1585,3 +1586,101 @@ VERY VERY LONG STRIN | VERY VERY LONG STRIN
 .UE .
  (0.03 ":bob!~u@euegh6mj3y8r2.irc PRIVMSG #chan :alice: See, by good hap, yonder's my lord; I have sweat to see his honour.")
  (0.05 ":bob!~u@euegh6mj3y8r2.irc PRIVMSG #chan :alice: But, in defence, by mercy, 'tis most just.")
+               "n" "nu" "nul" "nulL" "nulll"
+	rin=\E[%p1%dT, rmacs=\E[10m, rmso=\E[m, rmul=\E[m,
+	(ede-load-project-file): Add new input DETECTIN.
+(defun ede-load-project-file (dir &optional detectin rootreturn)
+Optional DETECTIN is an autoload cons from `ede-detect-directory-for-project'
+	   (detect (or detectin (ede-directory-project-cons path)))
+				;; Postpone readin hook till we map
+	      ;; Don't make undo entries for readin.
+  :nicky!uhuser@host212223.dialin.fnordisp.net PRIVMSG #lazybastards :Hello!
+         (skipp (or (bound-and-true-p erc-stamp--display-margin-mode)
+         (erc--msg-prop-overrides `(,@(and skipp `((erc--skip stamp)))
+    ("\\.\\(flc\\|fli\\|rle\\|iff\\|pfx\\|avi\\|sme\\|rpza\\|dl\\|qt\\|rsrc\\|mov\\)$" "xanim")
+    ("\\.sme$" "video/sme")
+     ("pl" :default "Indeks tabel")
+    ("nn" "Fil"      "N" "Tidspunkt" "Overskrift" "Tid" "ALLE" "Total tid" "Filtid" "Tidsoversyn")
+            (setq te (org-insert-timestamp (or at-time now) 'with-hm 'inactive))
+		     (te (float-time
+     ("notin" "\\notin" t "&notin;" "[not an element of]" "[not an element of]" "∉")
+     ("nn" :default "Held fram frå førre side")
+     ("nn" :default "Held fram på neste side")
+     ("pl" :default "Spis treści" :html "Spis tre&#x015b;ci")
+    ("sme" . "UTF-8") ; MS-Windows Northern Sami (Norway)
+  '("\\(?:Entering\\|Leavin\\(g\\)\\) directory [`']\\(.+\\)'$" (2 . 1))
+    "dropping" "fillin" "from" "granularity" "hppp" "inwindow"
+    (".G1" . ".G2")			; grap
+  (let ((tagret nil)
+		(setq tagret (cons ans tagret))
+	      (setq tagret (append ans tagret)))
+    tagret))
+	    (setq tagret ans)
+	  (setq tagret (car ans)))
+    (cons objret tagret)))
+            (prevend (track-changes--state-end state))
+              (setq end prevend)
+            (when (< endb prevend)
+              (let ((new-end (+ end (- prevend endb))))
+                (cl-assert (= prevend (+ beg lenbefore)))
+            (cl-assert (<= beg prevbeg prevend endb))
+                         (- endb prevend)))
+                                                 (- endb prevend)))))
+ ;; etc... whereas "real" declmods are valid for all types, buildin
+              outin = ina | inb | \\=`constant;
+              out = outin;
+	comin comstart)
+	(setq comin (point))
+                                (buffer-substring comstart comin))))
+	      (comment-string-strip (buffer-substring comstart comin) nil t))
+		     (buffer-substring (point) comin))
+		  (buffer-substring (line-beginning-position) comin))))
+;; designate them are: eqn (e), grap (g), pic (p), tbl (t), vgrind
+	FLUSHO and PENDIN.
+      fo: { [x: any]: any } = {
+                           "\\<\\(?:\\(?:fals\\|tru\\)e\\)\\>")
+    (search-forward "tru")
+    (search-forward "Tru")
+    ("  fo.ba@example.com" 6 email "fo.ba@example.com")
+               "t" "tr" "tru" "truE" "truee"
+               "f" "fa" "fal" "fals" "falsE" "falsee"))
+    int eventState, notIn;
+    notIn = (down ? eventState & ~lastButtonState
+    if ((notIn & (MotionEvent.BUTTON_PRIMARY
+    if ((notIn & MotionEvent.BUTTON_PRIMARY) != 0)
+    if ((notIn & MotionEvent.BUTTON_SECONDARY) != 0)
+    if ((notIn & MotionEvent.BUTTON_TERTIARY) != 0)
+    if ((notIn & MotionEvent.BUTTON_BACK) != 0)
+    if ((notIn & MotionEvent.BUTTON_FORWARD) != 0)
+    if ((notIn & MotionEvent.BUTTON_STYLUS_PRIMARY) != 0)
+    if ((notIn & MotionEvent.BUTTON_STYLUS_SECONDARY) != 0)
+argument \\='general-category, is Decimal_Numbers (Nd).  It returns
+  (let (compos comin)
+			  (setq comin (point))))))
+	    (setq comin (point))))
+	  (let* ((comstart (buffer-substring compos comin))
+		         (te (float-time
+		         (dt (- (if tend (min te tend) te)
+2022-04-20  Jean Abou Samra  <jean@abou-samra.fr>  (tiny change)
+(string< "abc" "abd")
+(string< "abd" "abc")
+;; 	  ("a") ("ab") ("abc") ("abd") ("abf") ("zab") ("acb")
+;; `«(my-face)U:abd»'.
+;; `«(my-fibonacci-property):(1 1 2 3 5 8):abd»'.
+   :eval (string-collate-lessp "abc" "abd"))
+   :eval (string-lessp "abc" "abd")
+   :eval (string-greaterp "abd" "abc")
+   :eval (string-collate-lessp "abc" "abd")))
+  `(("abc" < "abd")
+    (abc < "abd")
+    (abc < abd)
+    ("abc" < ,(string-to-multibyte "abd"))
+    (,(string-to-multibyte "abc") < "abd")
+    (,(string-to-multibyte "abc") < ,(string-to-multibyte "abd"))
+                   ("" . "a") ("a" . "b") ("A" . "a") ("abc" . "abd")
+2004-05-05  Stephen Eglen  <stephen@anc.ed.ac.uk>
+;; location: http://www.anc.ed.ac.uk/~stephen/emacs/
+  :link '(url-link "https://www.anc.ed.ac.uk/~stephen/emacs/")
+              ((or (string-equal tag "anc") (string-equal tag "ancestor"))
+     ("ro" :default "Continuare de pe pagina precedentă")
+     ("ro" :default "Continuare pe pagina următoare")

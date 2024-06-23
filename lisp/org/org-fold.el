@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 ;;
-;; Author: Ihor Radchenko <yantar92 at gmail dot com>
+;; Author: Ihor Radchenko <yantar92 at posteo dot net>
 ;; Keywords: folding, invisible text
 ;; URL: https://orgmode.org
 ;;
@@ -49,8 +49,6 @@
 (require 'org-fold-core)
 
 (defvar org-inlinetask-min-level)
-(defvar org-link--link-folding-spec)
-(defvar org-link--description-folding-spec)
 (defvar org-odd-levels-only)
 (defvar org-drawer-regexp)
 (defvar org-property-end-re)
@@ -61,11 +59,12 @@
 (defvar org-element-headline-re)
 
 (declare-function isearch-filter-visible "isearch" (beg end))
-(declare-function org-element-type "org-element" (element))
+(declare-function org-element-type "org-element-ast" (node &optional anonymous))
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
-(declare-function org-element-property "org-element" (property element))
+(declare-function org-element-property "org-element-ast" (property node))
+(declare-function org-element-end "org-element" (node))
+(declare-function org-element-post-affiliated "org-element" (node))
 (declare-function org-element--current-element "org-element" (limit &optional granularity mode structure))
-(declare-function org-element--cache-active-p "org-element" ())
 (declare-function org-toggle-custom-properties-visibility "org" ())
 (declare-function org-item-re "org-list" ())
 (declare-function org-up-heading-safe "org" ())
@@ -189,7 +188,10 @@ smart            Make point visible, and do insertion/deletion if it is
                  Never delete a previously invisible character or add in the
                  middle or right after an invisible region.  Basically, this
                  allows insertion and backward-delete right before ellipses.
-                 FIXME: maybe in this case we should not even show?"
+                 FIXME: maybe in this case we should not even show?
+
+This variable only affects commands listed in
+`org-fold-catch-invisible-edits-commands'."
   :group 'org-edit-structure
   :version "24.1"
   :type '(choice
@@ -198,6 +200,33 @@ smart            Make point visible, and do insertion/deletion if it is
 	  (const :tag "Unhide, but do not do the edit" show-and-error)
 	  (const :tag "Show invisible part and do the edit" show)
 	  (const :tag "Be smart and do the right thing" smart)))
+
+(defcustom org-fold-catch-invisible-edits-commands
+  ;; We do not add non-Org commands here by default to avoid advising
+  ;; globally.  See `org-fold--advice-edit-commands'.
+  '((org-self-insert-command . insert)
+    (org-delete-backward-char . delete-backward)
+    (org-delete-char . delete)
+    (org-meta-return . insert)
+    (org-return . insert))
+  "Alist of commands where Org checks for invisible edits.
+Each element is (COMMAND . KIND), where COMMAND is symbol representing
+command as stored in `this-command' and KIND is symbol `insert',
+symbol `delete', or symbol `delete-backward'.
+
+The checks are performed around `point'.
+
+This variable must be set before loading Org in order to take effect.
+
+Also, see `org-fold-catch-invisible-edits'."
+  :group 'org-edit-structure
+  :package-version '("Org" . "9.7")
+  :type '(alist
+          :key-type symbol
+          :value-type (choice
+                       (const insert)
+                       (const delete)
+                       (const delete-backward))))
 
 ;;; Core functionality
 
@@ -224,6 +253,7 @@ smart            Make point visible, and do insertion/deletion if it is
       (:ellipsis . ,ellipsis)
       (:fragile . ,#'org-fold--reveal-outline-maybe)
       (:isearch-open . t)
+      (:font-lock . t)
       ;; This is needed to make sure that inserting a
       ;; new planning line in folded heading is not
       ;; revealed.  Also, the below combination of :front-sticky and
@@ -236,6 +266,7 @@ smart            Make point visible, and do insertion/deletion if it is
       (:ellipsis . ,ellipsis)
       (:fragile . ,#'org-fold--reveal-drawer-or-block-maybe)
       (:isearch-open . t)
+      (:font-lock . t)
       (:front-sticky . t)
       (:alias . ( block center-block comment-block
                   dynamic-block example-block export-block
@@ -245,10 +276,9 @@ smart            Make point visible, and do insertion/deletion if it is
       (:ellipsis . ,ellipsis)
       (:fragile . ,#'org-fold--reveal-drawer-or-block-maybe)
       (:isearch-open . t)
+      (:font-lock . t)
       (:front-sticky . t)
-      (:alias . (drawer property-drawer)))
-     ,org-link--description-folding-spec
-     ,org-link--link-folding-spec)))
+      (:alias . (drawer property-drawer))))))
 
 ;;;; Searching and examining folded text
 
@@ -358,7 +388,7 @@ of the current heading, or to 1 if the current line is not a heading."
   (interactive (list
 		(cond
 		 (current-prefix-arg (prefix-numeric-value current-prefix-arg))
-		 ((save-excursion (beginning-of-line)
+		 ((save-excursion (forward-line 0)
 				  (looking-at outline-regexp))
 		  (funcall outline-level))
 		 (t 1))))
@@ -419,20 +449,21 @@ Show the heading too, if it is currently invisible."
 
 (defun org-fold-show-children (&optional level)
   "Show all direct subheadings of this heading.
-Prefix arg LEVEL is how many levels below the current level
-should be shown.  Default is enough to cause the following
-heading to appear."
+Prefix arg LEVEL is how many levels below the current level should be
+shown.  If direct subheadings are deeper than LEVEL, they are still
+displayed."
   (interactive "p")
   (unless (org-before-first-heading-p)
     (save-excursion
       (org-with-limited-levels (org-back-to-heading t))
       (let* ((current-level (funcall outline-level))
+             (parent-level current-level)
              (max-level (org-get-valid-level
-                         current-level
+                         parent-level
                          (if level (prefix-numeric-value level) 1)))
+             (min-level-direct-child most-positive-fixnum)
              (end (save-excursion (org-end-of-subtree t t)))
              (regexp-fmt "^\\*\\{%d,%s\\}\\(?: \\|$\\)")
-             (past-first-child nil)
              ;; Make sure to skip inlinetasks.
              (re (format regexp-fmt
                          current-level
@@ -448,11 +479,12 @@ heading to appear."
         ;; MAX-LEVEL.  Since we want to display it anyway, adjust
         ;; MAX-LEVEL accordingly.
         (while (re-search-forward re end t)
-          (unless past-first-child
-            (setq re (format regexp-fmt
-                             current-level
-                             (max (funcall outline-level) max-level)))
-            (setq past-first-child t))
+          (setq current-level (funcall outline-level))
+          (when (< current-level min-level-direct-child)
+            (setq min-level-direct-child current-level
+                  re (format regexp-fmt
+                             parent-level
+                             (max min-level-direct-child max-level))))
           (org-fold-heading nil))))))
 
 (defun org-fold-show-subtree ()
@@ -496,12 +528,12 @@ Return a non-nil value when toggling is successful."
                         comment-block dynamic-block example-block export-block
                         quote-block special-block src-block verse-block))
               (_ (error "Unknown category: %S" category))))
-      (let* ((post (org-element-property :post-affiliated element))
+      (let* ((post (org-element-post-affiliated element))
              (start (save-excursion
                       (goto-char post)
                       (line-end-position)))
              (end (save-excursion
-                    (goto-char (org-element-property :end element))
+                    (goto-char (org-element-end element))
                     (skip-chars-backward " \t\n")
                     (line-end-position))))
         ;; Do nothing when not before or at the block opening line or
@@ -560,10 +592,12 @@ Return a non-nil value when toggling is successful."
   (interactive)
   (org-block-map (apply-partially #'org-fold-hide-block-toggle 'hide)))
 
-(defun org-fold-hide-drawer-all ()
-  "Fold all drawers in the current buffer."
-  (let ((begin (point-min))
-        (end (point-max)))
+(defun org-fold-hide-drawer-all (&optional begin end)
+  "Fold all drawers in the current buffer or active region BEGIN..END."
+  (interactive (list (and (use-region-p) (region-beginning))
+                     (and (use-region-p) (region-end))))
+  (let ((begin (or begin (point-min)))
+        (end (or end (point-max))))
     (org-fold--hide-drawers begin end)))
 
 (defun org-fold--hide-drawers (begin end)
@@ -582,7 +616,7 @@ Return a non-nil value when toggling is successful."
             ;; Make sure to skip drawer entirely or we might flag it
             ;; another time when matching its ending line with
             ;; `org-drawer-regexp'.
-            (goto-char (org-element-property :end drawer))))))))
+            (goto-char (org-element-end drawer))))))))
 
 (defun org-fold-hide-archived-subtrees (beg end)
   "Re-hide all archived subtrees after a visibility state change."
@@ -591,7 +625,7 @@ Return a non-nil value when toggling is successful."
 	 (re (concat org-outline-regexp-bol ".*:" org-archive-tag ":")))
      (goto-char beg)
      ;; Include headline point is currently on.
-     (beginning-of-line)
+     (forward-line 0)
      (while (and (< (point) end) (re-search-forward re end t))
        (when (member org-archive-tag (org-get-tags nil t))
 	 (org-fold-subtree t)
@@ -626,33 +660,27 @@ DETAIL is either nil, `minimal', `local', `ancestors',
     (when (org-invisible-p)
       ;; FIXME: No clue why, but otherwise the following might not work.
       (redisplay)
-      (let ((region (org-fold-get-region-at-point)))
-        ;; Reveal emphasis markers.
-        (when (eq detail 'local)
-          (let (org-hide-emphasis-markers
-                org-link-descriptive
-                org-pretty-entities
-                (org-hide-macro-markers nil)
-                (region (or (org-find-text-property-region (point) 'org-emphasis)
-                            (org-find-text-property-region (point) 'org-macro)
-                            (org-find-text-property-region (point) 'invisible)
-                            region)))
-            ;; Silence byte-compiler.
-            (ignore org-hide-macro-markers)
-            (when region
-              (org-with-point-at (car region)
-                (beginning-of-line)
-                (let (font-lock-extend-region-functions)
-                  (font-lock-fontify-region (max (point-min) (1- (car region))) (cdr region))))))
-          ;; Unfold links.
+      ;; Reveal emphasis markers.
+      (when (eq detail 'local)
+        (let (org-hide-emphasis-markers
+              org-link-descriptive
+              org-pretty-entities
+              (org-hide-macro-markers nil)
+              (region (or (org-find-text-property-region (point) 'org-emphasis)
+                          (org-find-text-property-region (point) 'org-macro)
+                          (org-find-text-property-region (point) 'invisible))))
+          ;; Silence byte-compiler.
+          (ignore org-hide-macro-markers)
           (when region
-            (dolist (spec '(org-link org-link-description))
-              (org-fold-region (car region) (cdr region) nil spec))))
-        (when region
-          (dolist (spec (org-fold-core-folding-spec-list))
-            ;; Links are taken care by above.
-            (unless (memq spec '(org-link org-link-description))
-              (org-fold-region (car region) (cdr region) nil spec))))))
+            (org-with-point-at (car region)
+              (forward-line 0)
+              (let (font-lock-extend-region-functions)
+                (font-lock-fontify-region (max (point-min) (1- (car region))) (cdr region)))))))
+      (let (region)
+        (dolist (spec (org-fold-core-folding-spec-list))
+          (setq region (org-fold-get-region-at-point spec))
+          (when region
+            (org-fold-region (car region) (cdr region) nil spec)))))
     (unless (org-before-first-heading-p)
       (org-with-limited-levels
        (cl-case detail
@@ -697,9 +725,10 @@ go to the parent and show the entire tree."
 
 ;;; Make isearch search in some text hidden via text properties.
 
-(defun org-fold--isearch-reveal (&rest _)
+(defun org-fold--isearch-reveal (pos)
   "Reveal text at POS found by isearch."
-  (org-fold-show-context 'isearch))
+  (org-with-point-at pos
+    (org-fold-show-context 'isearch)))
 
 ;;; Handling changes in folded elements
 
@@ -724,7 +753,7 @@ the contents consists of blank lines.
 
 Assume that point is located at the header line."
   (org-with-wide-buffer
-   (beginning-of-line)
+   (forward-line 0)
    (org-fold-region
     (max (point-min) (1- (point)))
     (let ((endl (line-end-position)))
@@ -735,7 +764,7 @@ Assume that point is located at the header line."
         (if (equal (point)
                    (save-excursion
                      (goto-char endl)
-                     (org-end-of-subtree)
+                     (org-end-of-subtree t)
                      (skip-chars-forward "\n\t\r ")))
             (point)
           endl)))
@@ -752,7 +781,7 @@ This function is intended to be used as :fragile property of
      ;; The line before beginning of the fold should be either a
      ;; headline or a list item.
      (backward-char)
-     (beginning-of-line)
+     (forward-line 0)
      ;; Make sure that headline is not partially hidden.
      (unless (org-fold-folded-p nil 'headline)
        (org-fold--reveal-headline-at-point))
@@ -764,14 +793,14 @@ This function is intended to be used as :fragile property of
            (org-fold--reveal-headline-at-point))))
      ;; Make sure that headline after is not partially hidden.
      (goto-char (cdr region))
-     (beginning-of-line)
+     (forward-line 0)
      (unless (org-fold-folded-p nil 'headline)
        (when (looking-at-p org-element-headline-re)
          (org-fold--reveal-headline-at-point)))
      ;; Check the validity of headline
      (goto-char (car region))
      (backward-char)
-     (beginning-of-line)
+     (forward-line 0)
      (unless (let ((case-fold-search t))
 	       (looking-at (rx-to-string
                             `(or (regex ,(org-item-re))
@@ -807,7 +836,7 @@ This function is intended to be used as :fragile property of
 	      ;; The line before beginning of the fold should be the
 	      ;; first line of the drawer/block.
 	      (backward-char)
-	      (beginning-of-line)
+	      (forward-line 0)
 	      (unless (let ((case-fold-search t))
 			(looking-at begin-re)) ; the match-data will be used later
 		(throw :exit (setq unfold? t))))
@@ -827,7 +856,7 @@ This function is intended to be used as :fragile property of
 	    ;; The last line of the folded text should match `end-re'.
 	    (save-excursion
 	      (goto-char fold-end)
-	      (beginning-of-line)
+	      (forward-line 0)
 	      (unless (let ((case-fold-search t))
 			(looking-at end-re))
 		(throw :exit (setq unfold? t))))
@@ -900,6 +929,19 @@ The detailed reaction depends on the user option
 	   (t
 	    ;; Don't do the edit, make the user repeat it in full visibility
 	    (user-error "Edit in invisible region aborted, repeat to confirm with text visible"))))))))
+
+(defun org-fold-check-before-invisible-edit-maybe (&rest _)
+  "Check before invisible command by `this-command'."
+  (when (derived-mode-p 'org-mode)
+    (pcase (alist-get this-command org-fold-catch-invisible-edits-commands)
+      ((pred null) nil)
+      (kind (org-fold-check-before-invisible-edit kind)))))
+
+(defun org-fold--advice-edit-commands ()
+  "Advice editing commands according to `org-fold-catch-invisible-edits-commands'.
+The advices are installed in current buffer."
+  (dolist (command (mapcar #'car org-fold-catch-invisible-edits-commands))
+    (advice-add command :before #'org-fold-check-before-invisible-edit-maybe)))
 
 (provide 'org-fold)
 

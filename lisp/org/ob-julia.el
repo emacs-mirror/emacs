@@ -70,12 +70,15 @@
 (defvar ess-local-process-name)   ; dynamically scoped
 (defvar ess-eval-visibly-p)       ; dynamically scoped
 (defvar ess-local-customize-alist); dynamically scoped
-(defun org-babel-edit-prep:julia (info)
-  (let ((session (cdr (assq :session (nth 2 info)))))
-    (when (and session
-	       (string-prefix-p "*"  session)
-	       (string-suffix-p "*" session))
-      (org-babel-julia-initiate-session session nil))))
+(defvar ess-gen-proc-buffer-name-function) ; defined in ess-inf.el
+(defun org-babel-julia-associate-session (session)
+  "Associate R code buffer with an R session.
+Make SESSION be the inferior ESS process associated with the
+current code buffer."
+  (when-let ((process (get-buffer-process session)))
+    (setq ess-local-process-name (process-name process))
+    (ess-make-buffer-current))
+  (setq-local ess-gen-proc-buffer-name-function (lambda (_) session)))
 
 (defun org-babel-expand-body:julia (body params &optional _graphics-file)
   "Expand BODY according to PARAMS, return the expanded body."
@@ -181,10 +184,13 @@ end"
 (defun org-babel-julia-initiate-session (session params)
   "If there is not a current julia process then create one."
   (unless (string= session "none")
-    (let ((session (or session "*Julia*"))
-	  (ess-ask-for-ess-directory
-	   (and (bound-and-true-p ess-ask-for-ess-directory)
-                (not (cdr (assq :dir params))))))
+    (let* ((session (or session "*Julia*"))
+	   (ess-ask-for-ess-directory
+	    (and (bound-and-true-p ess-ask-for-ess-directory)
+                 (not (cdr (assq :dir params)))))
+           ;; Make ESS name the process buffer as SESSION.
+           (ess-gen-proc-buffer-name-function
+            (lambda (_) session)))
       (if (org-babel-comint-buffer-livep session)
 	  session
 	;; FIXME: Depending on `display-buffer-alist', (julia) may end up
@@ -196,13 +202,8 @@ end"
 	  (when (get-buffer session)
 	    ;; Session buffer exists, but with dead process
 	    (set-buffer session))
-          (require 'ess) (set-buffer (julia))
-	  (rename-buffer
-	   (if (bufferp session)
-	       (buffer-name session)
-	     (if (stringp session)
-		 session
-	       (buffer-name))))
+          (org-require-package 'ess "ESS")
+          (set-buffer (julia))
 	  (current-buffer))))))
 
 (defun org-babel-julia-graphical-output-file (params)

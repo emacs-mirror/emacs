@@ -25,7 +25,7 @@
 
 (require 'esh-mode)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-rebind nil
   "This module allows for special keybindings that only take effect
@@ -250,9 +250,4 @@ input."
       (eshell-delete-backward-char (- arg)))))
 
 (provide 'em-rebind)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-rebind.el ends here

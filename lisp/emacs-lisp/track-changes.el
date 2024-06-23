@@ -177,7 +177,7 @@ This is used to try and detect cases where buffer modifications are \"lost\".")
   ;; presume that these might be too old to receive fixes, so better not
   ;; annoy the user too much about errors.
   (string-match "\\..*\\." emacs-version)
-  "If non-nil, keep track of errors in `before/after-chage-functions' calls.
+  "If non-nil, keep track of errors in `before/after-change-functions' calls.
 The errors are kept in `track-changes--error-log'.")
 
 (cl-defun track-changes-register ( signal &key nobefore disjoint immediate)
@@ -272,7 +272,8 @@ returns nil, otherwise it returns the value returned by FUNC
 and re-enable the TRACKER corresponding to ID."
   (cl-assert (memq id track-changes--trackers))
   (unless (equal track-changes--buffer-size (buffer-size))
-    (track-changes--recover-from-error))
+    (track-changes--recover-from-error
+     `(buffer-size ,track-changes--buffer-size ,(buffer-size))))
   (let ((beg nil)
         (end nil)
         (before t)
@@ -443,7 +444,7 @@ returned to a consistent state."
   "List of errors encountered.
 Each element is a triplet (BUFFER-NAME BACKTRACE RECENT-KEYS).")
 
-(defun track-changes--recover-from-error ()
+(defun track-changes--recover-from-error (&optional info)
   ;; We somehow got out of sync.  This is usually the result of a bug
   ;; elsewhere that causes the before-c-f and after-c-f to be improperly
   ;; paired, or to be skipped altogether.
@@ -452,7 +453,7 @@ Each element is a triplet (BUFFER-NAME BACKTRACE RECENT-KEYS).")
       (message "Recovering from confusing calls to `before/after-change-functions'!")
     (warn "Missing/incorrect calls to `before/after-change-functions'!!
 Details logged to `track-changes--error-log'")
-    (push (list (buffer-name)
+    (push (list (buffer-name) info
                 (let* ((bf (backtrace-frames
                             #'track-changes--recover-from-error))
                        (tail (nthcdr 50 bf)))
@@ -499,9 +500,9 @@ Details logged to `track-changes--error-log'")
 
     (if track-changes--before-clean
         (progn
-          ;; Detect disjointness with previous changes here as well,
+          ;; Detect disjointedness with previous changes here as well,
           ;; so that if a client calls `track-changes-fetch' all the time,
-          ;; it doesn't prevent others from getting a disjointness signal.
+          ;; it doesn't prevent others from getting a disjointedness signal.
           (when (and track-changes--before-beg
                      (let ((found nil))
                        (dolist (tracker track-changes--disjoint-trackers)
@@ -573,7 +574,7 @@ Details logged to `track-changes--error-log'")
                        track-changes--before-end
                        (point-max)))))
         ;; BEG..END is not covered by previous `before-change-functions'!!
-        (track-changes--recover-from-error)
+        (track-changes--recover-from-error `(unexpected-after ,beg ,end ,len))
       ;; Note the new changes.
       (when (< beg (track-changes--state-beg track-changes--state))
         (setf (track-changes--state-beg track-changes--state) beg))

@@ -261,4 +261,30 @@
 		        '("Joe" "Doe"))
         '((1 "Joe")))))))
 
+(ert-deftest sqlite-multiple-statements ()
+  (skip-unless (sqlite-available-p))
+  (let ((db (sqlite-open nil))
+        (query (with-temp-buffer
+                 (insert "-- -*- sql-product: sqlite -*-
+
+-- I 💘 emojis
+
+CREATE TABLE settings (
+  name TEXT NOT NULL,
+  value TEXT,
+  section TEXT NOT NULL,
+  PRIMARY KEY (section, name)
+);
+
+CREATE TABLE tags📎 (
+  name TEXT PRIMARY KEY NOT NULL
+);
+
+-- CREATE TABLE todo_states (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
+")
+                 (buffer-string))))
+    (sqlite-execute-batch db query)
+    (should (equal '(("settings") ("tags📎"))
+                   (sqlite-select db "select name from sqlite_master where type = 'table' and name not like 'sqlite_%' order by name")))))
+
 ;;; sqlite-tests.el ends here
