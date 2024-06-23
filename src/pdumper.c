@@ -2367,8 +2367,8 @@ dump_field_fwd (struct dump_context *ctx, void *out, const void *in_start,
     {
     case Lisp_Fwd_Int:
       {
-	const struct Lisp_Intfwd *fwd = &(*in_field)->u.intfwd;
-	dump_emacs_reloc_immediate_intmax_t (ctx, fwd->intvar, *fwd->intvar);
+	const intmax_t *intvar = (*in_field)->u.intvar;
+	dump_emacs_reloc_immediate_intmax_t (ctx, intvar, *intvar);
       }
       return;
     case Lisp_Fwd_Bool:
