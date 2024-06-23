@@ -63,9 +63,8 @@ Return first line of the output of (describe-function-1 FUNC)."
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-defun ()
-  (let ((regexp (if (featurep 'native-compile)
-                    "a native-compiled Lisp function in .+subr\\.el"
-                  "a byte-compiled Lisp function in .+subr\\.el"))
+  (let ((regexp (rx "a " (or "byte-compiled" "native-compiled")
+                    " Lisp function in " nonl "subr.el" nonl))
         (result (help-fns-tests--describe-function 'last)))
     (should (string-match regexp result))))
 
