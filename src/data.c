@@ -59,11 +59,11 @@ XBOOLVAR (lispfwd a)
   eassert (BOOLFWDP (a));
   return a->u.boolvar;
 }
-static struct Lisp_Kboard_Objfwd const *
-XKBOARD_OBJFWD (lispfwd a)
+static int
+XKBOARD_OFFSET (lispfwd a)
 {
   eassert (KBOARD_OBJFWDP (a));
-  return &a->u.kboardobjfwd;
+  return a->u.kbdoffset;
 }
 static intmax_t *
 XINTVAR (lispfwd a)
@@ -1345,7 +1345,7 @@ do_symval_forwarding (lispfwd valcontents)
 			       XBUFFER_OBJFWD (valcontents)->offset);
 
     case Lisp_Fwd_Kboard_Obj:
-      return *(Lisp_Object *) (XKBOARD_OBJFWD (valcontents)->offset
+      return *(Lisp_Object *) (XKBOARD_OFFSET (valcontents)
 			       + (char *) kboard_for_bindings ());
     default: emacs_abort ();
     }
@@ -1496,7 +1496,7 @@ store_symval_forwarding (lispfwd valcontents, Lisp_Object newval,
     case Lisp_Fwd_Kboard_Obj:
       {
 	char *base = (char *) kboard_for_bindings ();
-	char *p = base + XKBOARD_OBJFWD (valcontents)->offset;
+	char *p = base + XKBOARD_OFFSET (valcontents);
 	*(Lisp_Object *) p = newval;
       }
       break;
@@ -2081,7 +2081,7 @@ set_default_internal (Lisp_Object symbol, Lisp_Object value,
 	  {
 	    char *base = (char *) (where ? where
 				   : kboard_for_bindings ());
-	    char *p = base + XKBOARD_OBJFWD (valcontents)->offset;
+	    char *p = base + XKBOARD_OFFSET (valcontents);
 	    *(Lisp_Object *) p = value;
 	  }
 	else

@@ -3105,13 +3105,6 @@ struct Lisp_Buffer_Local_Value
     Lisp_Object valcell;
   };
 
-/* Like Lisp_Objfwd except that value lives in a slot in the
-   current kboard.  */
-struct Lisp_Kboard_Objfwd
-  {
-    int offset;
-  };
-
 struct Lisp_Fwd
 {
   enum Lisp_Fwd_Type type;
@@ -3121,7 +3114,7 @@ struct Lisp_Fwd
     bool *boolvar;
     Lisp_Object *objvar;
     struct Lisp_Buffer_Objfwd bufobjfwd;
-    struct Lisp_Kboard_Objfwd kboardobjfwd;
+    int kbdoffset;
   } u;
 };
 
@@ -3510,14 +3503,12 @@ extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
     defvar_int (&i_fwd, lname);				\
   } while (false)
 #define DEFVAR_KBOARD(lname, vname, doc)			\
-do								\
-  {								\
+  do {								\
     static struct Lisp_Fwd const ko_fwd				\
 	= { Lisp_Fwd_Kboard_Obj,				\
-	    .u.kboardobjfwd = {offsetof (KBOARD, vname##_)}};	\
+	    .u.kbdoffset = offsetof (KBOARD, vname##_)};	\
     defvar_kboard (&ko_fwd, lname);				\
-  }								\
-while (false)
+  } while (false)
 
 
 /* Elisp uses multiple stacks:
