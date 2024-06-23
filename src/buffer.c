@@ -5017,19 +5017,15 @@ init_buffer (void)
    that nil is allowed too).  DOC is a dummy where you write the doc
    string as a comment.  */
 
-/* FIXME: use LISPSYM_INITIALLY instead of TAG_PTR_INITIALLY */
-#define DEFVAR_PER_BUFFER(lname, vname, predicate_, doc)		\
-  do {									\
-    const Lisp_Object sym						\
-      = TAG_PTR_INITIALLY (Lisp_Symbol, (intptr_t)((i##predicate_)	\
-						   * sizeof *lispsym));	\
-    static const struct Lisp_Fwd bo_fwd					\
-	= { .type = Lisp_Fwd_Buffer_Obj,				\
-	    .bufoffset = offsetof (struct buffer, vname##_),		\
-	    .u.bufpredicate = sym };					\
-    static_assert (offsetof (struct buffer, vname##_)			\
-		   < (1 << 8 * sizeof bo_fwd.bufoffset));		\
-    defvar_per_buffer (&bo_fwd, lname);					\
+#define DEFVAR_PER_BUFFER(lname, vname, predicate, doc)		\
+  do {								\
+    static const struct Lisp_Fwd bo_fwd				\
+	= { .type = Lisp_Fwd_Buffer_Obj,			\
+	    .bufoffset = offsetof (struct buffer, vname##_),	\
+	    .u.bufpredicate = FWDPRED_##predicate };		\
+    static_assert (offsetof (struct buffer, vname##_)		\
+		   < (1 << 8 * sizeof bo_fwd.bufoffset));	\
+    defvar_per_buffer (&bo_fwd, lname);				\
   } while (0)
 
 static void
