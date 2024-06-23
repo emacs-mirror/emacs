@@ -1398,6 +1398,59 @@ wrong_range (Lisp_Object min, Lisp_Object max, Lisp_Object wrong)
 	    wrong);
 }
 
+static void
+check_choice (Lisp_Object choice, Lisp_Object val)
+{
+  eassert (CONSP (choice));
+  if (NILP (Fmemq (val, choice)))
+    wrong_choice (choice, val);
+}
+
+static void
+check_fwd_predicate (enum Lisp_Fwd_Predicate p, Lisp_Object val)
+{
+  switch (p)
+    {
+    case FWDPRED_Qnil:
+      return;
+    case FWDPRED_Qstringp:
+      if (!STRINGP (val))
+	wrong_type_argument (Qstringp, val);
+      return;
+    case FWDPRED_Qsymbolp:
+      if (!SYMBOLP (val))
+	wrong_type_argument (Qsymbolp, val);
+      return;
+    case FWDPRED_Qintegerp:
+      if (!INTEGERP (val))
+	wrong_type_argument (Qintegerp, val);
+      return;
+    case FWDPRED_Qnumberp:
+      if (!NUMBERP (val))
+	wrong_type_argument (Qnumberp, val);
+      return;
+    case FWDPRED_Qfraction:
+      {
+	if (!NUMBERP (val))
+	  wrong_type_argument (Qnumberp, val);
+	Lisp_Object range = Fget (Qfraction, Qrange);
+	eassert (CONSP (range));
+	Lisp_Object min = XCAR (range);
+	Lisp_Object max = XCDR (range);
+	if (NILP (CALLN (Fleq, min, val, max)))
+	  wrong_range (min, max, val);
+      }
+      return;
+    case FWDPRED_Qvertical_scroll_bar:
+      check_choice (Fget (Qvertical_scroll_bar, Qchoice), val);
+      return;
+    case FWDPRED_Qoverwrite_mode:
+      check_choice (Fget (Qoverwrite_mode, Qchoice), val);
+      return;
+    }
+  emacs_abort ();
+}
+
 /* Store NEWVAL into SYMBOL, where VALCONTENTS is found in the value cell
    of SYMBOL.  If SYMBOL is buffer-local, VALCONTENTS should be the
    buffer-independent contents of the value cell: forwarded just one
@@ -1458,34 +1511,8 @@ store_symval_forwarding (lispfwd valcontents, Lisp_Object newval,
     case Lisp_Fwd_Buffer_Obj:
       {
 	int offset = XBUFFER_OFFSET (valcontents);
-	Lisp_Object predicate = valcontents->u.bufpredicate;
-
-	if (!NILP (newval) && !NILP (predicate))
-	  {
-	    eassert (SYMBOLP (predicate));
-	    Lisp_Object choiceprop = Fget (predicate, Qchoice);
-	    if (!NILP (choiceprop))
-	      {
-		if (NILP (Fmemq (newval, choiceprop)))
-		  wrong_choice (choiceprop, newval);
-	      }
-	    else
-	      {
-		Lisp_Object rangeprop = Fget (predicate, Qrange);
-		if (CONSP (rangeprop))
-		  {
-		    Lisp_Object min = XCAR (rangeprop), max = XCDR (rangeprop);
-		    if (! NUMBERP (newval)
-			|| NILP (CALLN (Fleq, min, newval, max)))
-		      wrong_range (min, max, newval);
-		  }
-		else if (FUNCTIONP (predicate))
-		  {
-		    if (NILP (calln (predicate, newval)))
-		      wrong_type_argument (predicate, newval);
-		  }
-	      }
-	  }
+	if (!NILP (newval))
+	  check_fwd_predicate (valcontents->u.bufpredicate, newval);
 	if (buf == NULL)
 	  buf = current_buffer;
 	set_per_buffer_value (buf, offset, newval);

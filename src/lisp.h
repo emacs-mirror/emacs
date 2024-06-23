@@ -3096,6 +3096,18 @@ struct Lisp_Buffer_Local_Value
     Lisp_Object valcell;
   };
 
+enum Lisp_Fwd_Predicate
+{
+  FWDPRED_Qnil,
+  FWDPRED_Qintegerp,
+  FWDPRED_Qsymbolp,
+  FWDPRED_Qstringp,
+  FWDPRED_Qnumberp,
+  FWDPRED_Qfraction,
+  FWDPRED_Qvertical_scroll_bar,
+  FWDPRED_Qoverwrite_mode,
+};
+
 /* A struct Lisp_Fwd is used to locate a variable.  See Lisp_Fwd_Type
    for the various types of variables.
 
@@ -3112,10 +3124,7 @@ struct Lisp_Fwd
     intmax_t *intvar;
     bool *boolvar;
     Lisp_Object *objvar;
-    /* One of Qnil, Qintegerp, Qsymbolp, Qstringp, Qfloatp, Qnumberp,
-       Qfraction, Qvertical_scroll_bar, or Qoverwrite_mode.
-     */
-    Lisp_Object bufpredicate;
+    enum Lisp_Fwd_Predicate bufpredicate;
     int kbdoffset;
   } u;
 };
