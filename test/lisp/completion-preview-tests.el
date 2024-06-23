@@ -228,7 +228,6 @@ instead."
       (insert "foo")
       (let ((this-command 'self-insert-command))
         (completion-preview--post-command))
-      (message "here")
 
       (completion-preview-tests--check-preview "bar" 'completion-preview-common)
 
