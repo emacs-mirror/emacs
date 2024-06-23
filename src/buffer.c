@@ -1389,7 +1389,7 @@ buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
       {
 	lispfwd fwd = SYMBOL_FWD (sym);
 	if (BUFFER_OBJFWDP (fwd))
-	  result = per_buffer_value (buf, XBUFFER_OBJFWD (fwd)->offset);
+	  result = per_buffer_value (buf, XBUFFER_OFFSET (fwd));
 	else
 	  result = Fdefault_value (variable);
 	break;
@@ -5019,32 +5019,31 @@ init_buffer (void)
 
 /* FIXME: use LISPSYM_INITIALLY instead of TAG_PTR_INITIALLY */
 #define DEFVAR_PER_BUFFER(lname, vname, predicate_, doc)		\
-do									\
-  {									\
-    const Lisp_Object sym = TAG_PTR_INITIALLY (				\
-	Lisp_Symbol, (intptr_t)((i##predicate_) * sizeof *lispsym));	\
-    static const struct Lisp_Fwd bo_fwd = {				\
-      .type = Lisp_Fwd_Buffer_Obj,					\
-      .u.bufobjfwd = { .offset = offsetof (struct buffer, vname##_),	\
-		       .predicate = sym },				\
-    };									\
+  do {									\
+    const Lisp_Object sym						\
+      = TAG_PTR_INITIALLY (Lisp_Symbol, (intptr_t)((i##predicate_)	\
+						   * sizeof *lispsym));	\
+    static const struct Lisp_Fwd bo_fwd					\
+	= { .type = Lisp_Fwd_Buffer_Obj,				\
+	    .bufoffset = offsetof (struct buffer, vname##_),		\
+	    .u.bufpredicate = sym };					\
+    static_assert (offsetof (struct buffer, vname##_)			\
+		   < (1 << 8 * sizeof bo_fwd.bufoffset));		\
     defvar_per_buffer (&bo_fwd, lname);					\
-  }									\
-while (0)
+  } while (0)
 
 static void
 defvar_per_buffer (const struct Lisp_Fwd *fwd, const char *namestring)
 {
   eassert (fwd->type == Lisp_Fwd_Buffer_Obj);
-  const struct Lisp_Buffer_Objfwd *bo_fwd = XBUFFER_OBJFWD (fwd);
   struct Lisp_Symbol *sym = XSYMBOL (intern (namestring));
 
   sym->u.s.declared_special = true;
   sym->u.s.redirect = SYMBOL_FORWARDED;
   SET_SYMBOL_FWD (sym, fwd);
-  XSETSYMBOL (PER_BUFFER_SYMBOL (bo_fwd->offset), sym);
+  XSETSYMBOL (PER_BUFFER_SYMBOL (XBUFFER_OFFSET (fwd)), sym);
 
-  if (PER_BUFFER_IDX (bo_fwd->offset) == 0)
+  if (PER_BUFFER_IDX (XBUFFER_OFFSET (fwd)) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding
        slot of buffer_local_flags.  */
     emacs_abort ();
