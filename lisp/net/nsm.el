@@ -826,7 +826,10 @@ protocol."
            (?n "next" "Next certificate")
            (?p "previous" "Previous certificate")
            (?q "quit" "Quit details view")))
-        (done nil))
+        (done nil)
+	(old-use-dialog-box use-dialog-box)
+	(use-dialog-box use-dialog-box)
+	(use-dialog-box-override use-dialog-box-override))
     (save-window-excursion
       ;; First format the certificate and warnings.
       (pop-to-buffer buffer)
@@ -859,14 +862,18 @@ protocol."
                              (read-multiple-choice "Continue connecting?"
                                                    accept-choices)))
               (setq buf (if show-details cert-buffer buffer))
-
               (cl-case (car answer)
                 (?q
+		 (setq use-dialog-box old-use-dialog-box)
                  ;; Exit the details window.
                  (set-window-buffer (get-buffer-window cert-buffer) buffer)
                  (setq show-details nil))
 
                 (?d
+		 ;; Dialog boxes should be suppressed, as they
+		 ;; obstruct the certificate details buffer.
+		 (setq use-dialog-box nil
+		       use-dialog-box-override nil)
                  ;; Enter the details window.
                  (set-window-buffer (get-buffer-window buffer) cert-buffer)
                  (with-current-buffer cert-buffer

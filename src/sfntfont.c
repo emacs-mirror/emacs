@@ -563,7 +563,7 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
       for (x = 0; x < SBYTES (desc->adstyle); ++x)
 	{
 	  c = SREF (desc->adstyle, x);
-	  if (c == '-' || c == '*' || c == '?' && c == '"')
+	  if (c == '-' || c == '*' || c == '?' || c == '"')
 	    SSET (desc->adstyle, x, ' ');
 	}
 

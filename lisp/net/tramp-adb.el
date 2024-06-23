@@ -3,6 +3,7 @@
 ;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
 ;; Author: Jürgen Hötzel <juergen@archlinux.org>
+;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
 
@@ -479,7 +480,7 @@ Emacs dired can't find files."
     (with-tramp-file-property v localname "file-executable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-file-property-p v localname "file-attributes")
+      (if (tramp-use-file-attributes v)
 	  (or (tramp-check-cached-permissions v ?x)
 	      (tramp-check-cached-permissions v ?s))
 	(tramp-adb-send-command-and-check
@@ -497,7 +498,7 @@ Emacs dired can't find files."
     (with-tramp-file-property v localname "file-readable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-file-property-p v localname "file-attributes")
+      (if (tramp-use-file-attributes v)
 	  (tramp-handle-file-readable-p filename)
 	(tramp-adb-send-command-and-check
 	 v (format "test -r %s" (tramp-shell-quote-argument localname)))))))
@@ -728,63 +729,11 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 (defun tramp-adb-handle-process-file
   (program &optional infile destination display &rest args)
   "Like `process-file' for Tramp files."
-  ;; The implementation is not complete yet.
-  (when (and (numberp destination) (zerop destination))
-    (error "Implementation does not handle immediate return"))
-
-  (with-parsed-tramp-file-name (expand-file-name default-directory) nil
-    (let (command input tmpinput stderr tmpstderr outbuf ret)
+  (tramp-skeleton-process-file program infile destination display args
       ;; Compute command.
       (setq command (mapconcat #'tramp-shell-quote-argument
 			       (cons program args) " "))
-      ;; Determine input.
-      (if (null infile)
-	  (setq input (tramp-get-remote-null-device v))
-	(setq infile (file-name-unquote (expand-file-name infile)))
-	(if (tramp-equal-remote default-directory infile)
-	    ;; INFILE is on the same remote host.
-	    (setq input (tramp-unquote-file-local-name infile))
-	  ;; INFILE must be copied to remote host.
-	  (setq input (tramp-make-tramp-temp-file v)
-		tmpinput (tramp-make-tramp-file-name v input))
-	  (copy-file infile tmpinput t)))
       (when input (setq command (format "%s <%s" command input)))
-
-      ;; Determine output.
-      (cond
-       ;; Just a buffer.
-       ((bufferp destination)
-	(setq outbuf destination))
-       ;; A buffer name.
-       ((stringp destination)
-	(setq outbuf (get-buffer-create destination)))
-       ;; (REAL-DESTINATION ERROR-DESTINATION)
-       ((consp destination)
-	;; output.
-	(cond
-	 ((bufferp (car destination))
-	  (setq outbuf (car destination)))
-	 ((stringp (car destination))
-	  (setq outbuf (get-buffer-create (car destination))))
-	 ((car destination)
-	  (setq outbuf (current-buffer))))
-	;; stderr.
-	(cond
-	 ((stringp (cadr destination))
-	  (setcar (cdr destination) (expand-file-name (cadr destination)))
-	  (if (tramp-equal-remote default-directory (cadr destination))
-	      ;; stderr is on the same remote host.
-	      (setq stderr (tramp-unquote-file-local-name (cadr destination)))
-	    ;; stderr must be copied to remote host.  The temporary
-	    ;; file must be deleted after execution.
-	    (setq stderr (tramp-make-tramp-temp-file v)
-		  tmpstderr (tramp-make-tramp-file-name v stderr))))
-	 ;; stderr to be discarded.
-	 ((null (cadr destination))
-	  (setq stderr (tramp-get-remote-null-device v)))))
-       ;; 't
-       (destination
-	(setq outbuf (current-buffer))))
       (when stderr (setq command (format "%s 2>%s" command stderr)))
 
       ;; Send the command.  It might not return in time, so we protect
@@ -818,21 +767,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; since Emacs 28.1.
       (when (and (bound-and-true-p process-file-return-signal-string)
 		 (natnump ret) (> ret 128))
-	(setq ret (nth (- ret 128) (tramp-adb-get-signal-strings v))))
-
-      ;; Provide error file.
-      (when tmpstderr (rename-file tmpstderr (cadr destination) t))
-
-      ;; Cleanup.  We remove all file cache values for the connection,
-      ;; because the remote process could have changed them.
-      (when tmpinput (delete-file tmpinput))
-      (when process-file-side-effects
-        (tramp-flush-directory-properties v "/"))
-
-      ;; Return exit status.
-      (if (equal ret -1)
-	  (keyboard-quit)
-	ret))))
+	(setq ret (nth (- ret 128) (tramp-adb-get-signal-strings v))))))
 
 ;; We use BUFFER also as connection buffer during setup.  Because of
 ;; this, its original contents must be saved, and restored once
@@ -841,187 +776,131 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 ;; terminated.
 (defun tramp-adb-handle-make-process (&rest args)
   "Like `make-process' for Tramp files.
-If method parameter `tramp-direct-async' and connection property
-\"direct-async-process\" are non-nil, an alternative
-implementation will be used."
+STDERR can also be a remote file name.  If method parameter
+`tramp-direct-async' and connection-local variable
+`tramp-direct-async-process' are non-nil, an alternative implementation
+will be used."
   (if (tramp-direct-async-process-p args)
       (apply #'tramp-handle-make-process args)
-    (when args
-      (with-parsed-tramp-file-name (expand-file-name default-directory) nil
-	(let ((name (plist-get args :name))
-	      (buffer (plist-get args :buffer))
-	      (command (plist-get args :command))
-	      (coding (plist-get args :coding))
-	      (noquery (plist-get args :noquery))
-	      (connection-type
-	       (or (plist-get args :connection-type) process-connection-type))
-	      (filter (plist-get args :filter))
-	      (sentinel (plist-get args :sentinel))
-	      (stderr (plist-get args :stderr)))
-	  (unless (stringp name)
-	    (signal 'wrong-type-argument (list #'stringp name)))
-	  (unless (or (bufferp buffer) (string-or-null-p buffer))
-	    (signal 'wrong-type-argument (list #'bufferp buffer)))
-	  (unless (consp command)
-	    (signal 'wrong-type-argument (list #'consp command)))
-	  (unless (or (null coding)
-		      (and (symbolp coding) (memq coding coding-system-list))
-		      (and (consp coding)
-			   (memq (car coding) coding-system-list)
-			   (memq (cdr coding) coding-system-list)))
-	    (signal 'wrong-type-argument (list #'symbolp coding)))
-	  (when (eq connection-type t)
-	    (setq connection-type 'pty))
-	  (unless (or (and (consp connection-type)
-			   (memq (car connection-type) '(nil pipe pty))
-			   (memq (cdr connection-type) '(nil pipe pty)))
-		      (memq connection-type '(nil pipe pty)))
-	    (signal 'wrong-type-argument (list #'symbolp connection-type)))
-	  (unless (or (null filter) (eq filter t) (functionp filter))
-	    (signal 'wrong-type-argument (list #'functionp filter)))
-	  (unless (or (null sentinel) (functionp sentinel))
-	    (signal 'wrong-type-argument (list #'functionp sentinel)))
-	  (unless (or (bufferp stderr) (string-or-null-p stderr))
-	    (signal 'wrong-type-argument (list #'bufferp stderr)))
-	  (when (and (stringp stderr) (tramp-tramp-file-p stderr)
-		     (not (tramp-equal-remote default-directory stderr)))
-	    (signal 'file-error (list "Wrong stderr" stderr)))
+    (tramp-skeleton-make-process args nil t
+      (let* ((program (car command))
+	     (args (cdr command))
+	     ;; STDERR can also be a file name.
+	     (tmpstderr
+	      (and stderr
+		   (if (and (stringp stderr) (tramp-tramp-file-p stderr))
+		       (tramp-unquote-file-local-name stderr)
+		     (tramp-make-tramp-temp-file v))))
+	     (remote-tmpstderr
+	      (and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
+	     (command
+	      (format "cd %s && exec %s %s"
+		      (tramp-shell-quote-argument localname)
+		      (if tmpstderr (format "2>'%s'" tmpstderr) "")
+		      (mapconcat #'tramp-shell-quote-argument
+				 (cons program args) " ")))
+	     (tramp-process-connection-type
+	      (or (null program) tramp-process-connection-type))
+	     (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
+	     p)
 
-	  (let* ((buffer
-		  (if buffer
-		      (get-buffer-create buffer)
-		    ;; BUFFER can be nil.  We use a temporary buffer.
-		    (generate-new-buffer tramp-temp-buffer-name)))
-		 ;; STDERR can also be a file name.
-		 (tmpstderr
-		  (and stderr
-		       (if (and (stringp stderr) (tramp-tramp-file-p stderr))
-			   (tramp-unquote-file-local-name stderr)
-			 (tramp-make-tramp-temp-file v))))
-		 (remote-tmpstderr
-		  (and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
-		 (orig-command command)
-		 (program (car command))
-		 (args (cdr command))
-		 (command
-		  (format "cd %s && exec %s %s"
-			  (tramp-shell-quote-argument localname)
-			  (if tmpstderr (format "2>'%s'" tmpstderr) "")
-			  (mapconcat #'tramp-shell-quote-argument
-				     (cons program args) " ")))
-		 (tramp-process-connection-type
-		  (or (null program) tramp-process-connection-type))
-		 (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
-		 (name1 name)
-		 (i 0)
-		 p)
+	(when (string-match-p (rx multibyte) command)
+	  (tramp-error
+	   v 'file-error "Cannot apply multibyte command `%s'" command))
 
-	    (when (string-match-p (rx multibyte) command)
-	      (tramp-error
-	       v 'file-error "Cannot apply multibyte command `%s'" command))
-
-	    (while (get-process name1)
-	      ;; NAME must be unique as process name.
-	      (setq i (1+ i)
-		    name1 (format "%s<%d>" name i)))
-	    (setq name name1)
-
-	    (with-tramp-saved-connection-properties
-		v '("process-name" "process-buffer")
-	      ;; Set the new process properties.
-	      (tramp-set-connection-property v "process-name" name)
-	      (tramp-set-connection-property v "process-buffer" buffer)
-	      (with-current-buffer (tramp-get-connection-buffer v)
-	        (unwind-protect
-		    ;; We catch this event.  Otherwise, `make-process'
-		    ;; could be called on the local host.
-		    (save-excursion
-		      (save-restriction
-			;; Activate narrowing in order to save BUFFER
-			;; contents.  Clear also the modification
-			;; time; otherwise we might be interrupted by
-			;; `verify-visited-file-modtime'.
-			(let ((buffer-undo-list t)
-			      (inhibit-read-only t)
-			      (coding-system-for-write
-			       (if (symbolp coding) coding (car coding)))
-			      (coding-system-for-read
-			       (if (symbolp coding) coding (cdr coding))))
-			  (clear-visited-file-modtime)
-			  (narrow-to-region (point-max) (point-max))
-			  ;; We call `tramp-adb-maybe-open-connection',
-			  ;; in order to cleanup the prompt afterwards.
-			  (tramp-adb-maybe-open-connection v)
-			  (delete-region (point-min) (point-max))
-			  ;; Send the command.
-			  (setq p (tramp-get-connection-process v))
-                          (tramp-adb-send-command v command nil t) ; nooutput
-			  ;; Set sentinel and filter.
-			  (when sentinel
-			    (set-process-sentinel p sentinel))
-			  (when filter
-			    (set-process-filter p filter))
-			  (process-put p 'remote-command orig-command)
-			  (tramp-set-connection-property
-			   p "remote-command" orig-command)
-			  ;; Set query flag and process marker for
-			  ;; this process.  We ignore errors, because
-			  ;; the process could have finished already.
-			  (ignore-errors
-			    (set-process-query-on-exit-flag p (null noquery))
-			    (set-marker (process-mark p) (point))
-			    ;; We must flush them here already;
-			    ;; otherwise `rename-file', `delete-file'
-			    ;; or `insert-file-contents' will fail.
-			    (tramp-flush-connection-property v "process-name")
-			    (tramp-flush-connection-property
-			     v "process-buffer")
-			    ;; Copy tmpstderr file.
-			    (when (and (stringp stderr)
-				       (not (tramp-tramp-file-p stderr)))
-			      (add-function
-			       :after (process-sentinel p)
-			       (lambda (_proc _msg)
-			         (rename-file remote-tmpstderr stderr))))
-			    ;; Read initial output.  Remove the first
-			    ;; line, which is the command echo.
-			    (unless (eq filter t)
-			      (while
-				  (progn
-				    (goto-char (point-min))
-				    (not (search-forward "\n" nil t)))
-			        (tramp-accept-process-output p))
-			      (delete-region (point-min) (point)))
-			    ;; Provide error buffer.  This shows only
-			    ;; initial error messages; messages
-			    ;; arriving later on will be inserted when
-			    ;; the process is deleted.  The temporary
-			    ;; file will exist until the process is
-			    ;; deleted.
-			    (when (bufferp stderr)
-			      (ignore-errors
-				(tramp-taint-remote-process-buffer stderr)
-				(with-current-buffer stderr
-			          (insert-file-contents-literally
-			           remote-tmpstderr 'visit)))
-			      ;; Delete tmpstderr file.
-			      (add-function
-			       :after (process-sentinel p)
-			       (lambda (_proc _msg)
-				 (ignore-errors
-			           (with-current-buffer stderr
-				     (insert-file-contents-literally
-				      remote-tmpstderr 'visit nil nil 'replace))
-			           (delete-file remote-tmpstderr)))))
-			    ;; Return process.
-			    p))))
-
-		  ;; Save exit.
-		  (if (string-prefix-p tramp-temp-buffer-name (buffer-name))
+	(with-tramp-saved-connection-properties
+	    v '("process-name" "process-buffer")
+	  ;; Set the new process properties.
+	  (tramp-set-connection-property v "process-name" name)
+	  (tramp-set-connection-property v "process-buffer" buffer)
+	  (with-current-buffer (tramp-get-connection-buffer v)
+	    (unwind-protect
+		;; We catch this event.  Otherwise, `make-process'
+		;; could be called on the local host.
+		(save-excursion
+		  (save-restriction
+		    ;; Activate narrowing in order to save BUFFER
+		    ;; contents.  Clear also the modification time;
+		    ;; otherwise we might be interrupted by
+		    ;; `verify-visited-file-modtime'.
+		    (let ((buffer-undo-list t)
+			  (inhibit-read-only t)
+			  (coding-system-for-write
+			   (if (symbolp coding) coding (car coding)))
+			  (coding-system-for-read
+			   (if (symbolp coding) coding (cdr coding))))
+		      (clear-visited-file-modtime)
+		      (narrow-to-region (point-max) (point-max))
+		      ;; We call `tramp-adb-maybe-open-connection', in
+		      ;; order to cleanup the prompt afterwards.
+		      (tramp-adb-maybe-open-connection v)
+		      (delete-region (point-min) (point-max))
+		      ;; Send the command.
+		      (setq p (tramp-get-connection-process v))
+                      (tramp-adb-send-command v command nil t) ; nooutput
+		      ;; Set sentinel and filter.
+		      (when sentinel
+			(set-process-sentinel p sentinel))
+		      (when filter
+			(set-process-filter p filter))
+		      (process-put p 'remote-command orig-command)
+		      (tramp-set-connection-property
+		       p "remote-command" orig-command)
+		      ;; Set query flag and process marker for this
+		      ;; process.  We ignore errors, because the
+		      ;; process could have finished already.
 		      (ignore-errors
-		        (set-process-buffer p nil)
-		        (kill-buffer (current-buffer)))
-		    (set-buffer-modified-p bmp)))))))))))
+			(set-process-query-on-exit-flag p (null noquery))
+			(set-marker (process-mark p) (point))
+			;; We must flush them here already;
+			;; otherwise `rename-file', `delete-file'
+			;; or `insert-file-contents' will fail.
+			(tramp-flush-connection-property v "process-name")
+			(tramp-flush-connection-property v "process-buffer")
+			;; Copy tmpstderr file.
+			(when (and (stringp stderr)
+				   (not (tramp-tramp-file-p stderr)))
+			  (add-function
+			   :after (process-sentinel p)
+			   (lambda (_proc _msg)
+			     (rename-file remote-tmpstderr stderr))))
+			;; Read initial output.  Remove the first
+			;; line, which is the command echo.
+			(unless (eq filter t)
+			  (while (progn
+				   (goto-char (point-min))
+				   (not (search-forward "\n" nil t)))
+			    (tramp-accept-process-output p))
+			  (delete-region (point-min) (point)))
+			;; Provide error buffer.  This shows only
+			;; initial error messages; messages arriving
+			;; later on will be inserted when the process
+			;; is deleted.  The temporary file will exist
+			;; until the process is deleted.
+			(when (bufferp stderr)
+			  (ignore-errors
+			    (tramp-taint-remote-process-buffer stderr)
+			    (with-current-buffer stderr
+			      (insert-file-contents-literally
+			       remote-tmpstderr 'visit)))
+			  ;; Delete tmpstderr file.
+			  (add-function
+			   :after (process-sentinel p)
+			   (lambda (_proc _msg)
+			     (ignore-errors
+			       (with-current-buffer stderr
+				 (insert-file-contents-literally
+				  remote-tmpstderr 'visit nil nil 'replace))
+			       (delete-file remote-tmpstderr)))))
+			;; Return process.
+			p))))
+
+	      ;; Save exit.
+	      (if (string-prefix-p tramp-temp-buffer-name (buffer-name))
+		  (ignore-errors
+		    (set-process-buffer p nil)
+		    (kill-buffer (current-buffer)))
+		(set-buffer-modified-p bmp)))))))))
 
 (defun tramp-adb-handle-exec-path ()
   "Like `exec-path' for Tramp files."

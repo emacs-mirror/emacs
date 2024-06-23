@@ -425,22 +425,35 @@ This variable is only used if the variable
      options)))
 
 ;;;###autoload
-(defun ping (host)
-  "Ping HOST.
-If your system's ping continues until interrupted, you can try setting
-`ping-program-options'."
+(defun ping (host &optional flags)
+  "Ping HOST using `ping-program'.
+
+The user option `ping-program-options' is passed as flags to
+`ping-program'.  With a \\[universal-argument] prefix arg, prompt the
+user for the flags to pass.
+
+When called from Lisp, the optional argument FLAGS, if non-nil, is a
+list of strings that will be passed as flags for the `ping-program'.  If
+FLAGS is nil, `ping-program-options' will be used.
+
+If your system's ping continues until interrupted, you can try using a
+prefix argument or setting `ping-program-options'."
   (interactive
    (list (let ((default (ffap-machine-at-point)))
-           (read-string (format-prompt "Ping host" default) nil nil default))))
-  (let ((options
-	 (if ping-program-options
+           (read-string (format-prompt "Ping host" default) nil nil default))
+         (when current-prefix-arg
+           (split-string
+            (read-string (format-prompt "Ping options" ping-program-options)
+                         nil nil ping-program-options)))))
+  (let ((full-command
+	 (if (or (equal flags (list "")) (not flags))
 	     (append ping-program-options (list host))
-	   (list host))))
+	   (append flags (list host)))))
     (net-utils-run-program
      (concat "Ping" " " host)
      (concat "** Ping ** " ping-program " ** " host)
      ping-program
-     options)))
+     full-command)))
 
 ;;;###autoload
 (defun nslookup-host (host &optional name-server)

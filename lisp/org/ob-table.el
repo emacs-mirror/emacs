@@ -87,18 +87,20 @@ is the equivalent of the following source code block:
  results
  #+end_src
 
-NOTE: The quotation marks around the function name,
-`source-block', are optional.
+The quotation marks around the function name, `source-block', are
+optional.
 
-NOTE: By default, string variable names are interpreted as
-references to source-code blocks, to force interpretation of a
-cell's value as a string, prefix the identifier a \"$\" (e.g.,
-\"$$2\" instead of \"$2\" or \"$@2$2\" instead of \"@2$2\").
+By default, string variable names are interpreted as references to
+source-code blocks, to force interpretation of a cell's value as a
+string, prefix the identifier a \"$\" (e.g., \"$$2\" instead of \"$2\"
+or \"$@2$2\" instead of \"@2$2\").  \"$\" will also force interpreting
+string value literally: $\"value\" will refer to a string, not a
+source block name.
 
-NOTE: It is also possible to pass header arguments to the code
-block.  In this case a table cell should hold the string value of
-the header argument which can then be passed before all variables
-as shown in the example below.
+It is also possible to pass header arguments to the code block.  In
+this case a table cell should hold the string value of the header
+argument which can then be passed before all variables as shown in the
+example below.
 
 | 1 | 2 | :file nothing.png | nothing.png |
 #+TBLFM: @1$4=\\='(org-sbe test-sbe $3 (x $1) (y $2))"
@@ -117,7 +119,7 @@ as shown in the example below.
 				    (prog1 nil (setq quote t))
 				  (prog1
 				      (cond
-				       (quote (format "\"%s\"" el))
+				       (quote (format "%S" el))
 				       ((stringp el) (org-no-properties el))
 				       (t el))
 				    (setq quote nil))))

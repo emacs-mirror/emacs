@@ -235,7 +235,8 @@ If INHIBIT-COOKIES is non-nil, refuse to store cookies.  If
 TIMEOUT is passed, it should be a number that says (in seconds)
 how long to wait for a response before giving up."
   (url-do-setup)
-  (let* (url-asynchronous
+  (let* (;; Ensure we can stop during connection setup (bug#71295).
+         (url-asynchronous (not (null timeout)))
          data-buffer
          (callback (lambda (&rest _args)
                      (setq data-buffer (current-buffer))

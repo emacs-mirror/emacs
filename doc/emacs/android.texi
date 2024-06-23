@@ -1038,10 +1038,10 @@ home directory.  Emacs assumes there will always be a font named
 ``Droid Sans Mono'', and then defaults to using this font.  These
 fonts are then displayed by the @code{sfnt-android} font driver.
 
-  This font driver is presently without support for OpenType fonts;
-hence, only a subset of the fonts installed on any given system are
-available to Emacs.  If you are interested in lifting this limitation,
-please contact @email{emacs-devel@@gnu.org}.
+  This font driver is presently without support for OpenType or color
+fonts; hence, only a subset of the fonts installed on any given system
+are available to Emacs.  If you are interested in lifting this
+limitation, please contact @email{emacs-devel@@gnu.org}.
 
   If the @code{sfnt-android} font driver fails to find any fonts at
 all, Emacs falls back to the @code{android} font driver.  This is a

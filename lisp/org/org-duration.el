@@ -324,109 +324,110 @@ When optional argument CANONICAL is non-nil, ignore
 `org-duration-units' and use standard time units value.
 
 Raise an error if expected format is unknown."
-  (pcase (or fmt org-duration-format)
-    (`h:mm
-     (format "%d:%02d" (/ minutes 60) (mod minutes 60)))
-    (`h:mm:ss
-     (let* ((whole-minutes (floor minutes))
-	    (seconds (mod (* 60 minutes) 60)))
-       (format "%s:%02d"
-	       (org-duration-from-minutes whole-minutes 'h:mm)
-	       seconds)))
-    ((pred atom) (error "Invalid duration format specification: %S" fmt))
-    ;; Mixed format.  Call recursively the function on both parts.
-    ((and duration-format
-	  (let `(special . ,(and mode (or `h:mm:ss `h:mm)))
-	    (assq 'special duration-format)))
-     (let* ((truncated-format
-	     ;; Remove "special" mode from duration format in order to
-	     ;; recurse properly.  Also remove units smaller or equal
-	     ;; to an hour since H:MM part takes care of it.
-	     (cl-remove-if-not
-	      (lambda (pair)
-		(pcase pair
-		  (`(,(and unit (pred stringp)) . ,_)
-		   (> (org-duration--modifier unit canonical) 60))
-		  (_ nil)))
-	      duration-format))
-	    (min-modifier		;smallest modifier above hour
-	     (and truncated-format
-		  (apply #'min
-			 (mapcar (lambda (p)
-				   (org-duration--modifier (car p) canonical))
-				 truncated-format)))))
-       (if (or (null min-modifier) (< minutes min-modifier))
-	   ;; There is not unit above the hour or the smallest unit
-	   ;; above the hour is too large for the number of minutes we
-	   ;; need to represent.  Use H:MM or H:MM:SS syntax.
-	   (org-duration-from-minutes minutes mode canonical)
-	 ;; Represent minutes above hour using provided units and H:MM
-	 ;; or H:MM:SS below.
-	 (let* ((units-part (* min-modifier (/ (floor minutes) min-modifier)))
-		(minutes-part (- minutes units-part))
-		(compact (memq 'compact duration-format)))
-	   (concat
-	    (org-duration-from-minutes units-part truncated-format canonical)
-	    (and (not compact) " ")
-	    (org-duration-from-minutes minutes-part mode))))))
-    ;; Units format.
-    (duration-format
-     (let* ((fractional
-	     (let ((digits (cdr (assq 'special duration-format))))
-	       (and digits
-		    (or (wholenump digits)
-			(error "Unknown formatting directive: %S" digits))
-		    (format "%%.%df" digits))))
-	    (selected-units
-	     (sort (cl-remove-if
-		    ;; Ignore special format cells and compact option.
-		    (lambda (pair)
-		      (pcase pair
-			((or `compact `(special . ,_)) t)
-			(_ nil)))
-		    duration-format)
-		   (lambda (a b)
-		     (> (org-duration--modifier (car a) canonical)
-			(org-duration--modifier (car b) canonical)))))
-	    (separator (if (memq 'compact duration-format) "" " ")))
-       (cond
-	;; Fractional duration: use first unit that is either required
-	;; or smaller than MINUTES.
-	(fractional
-	 (let* ((unit (car
-		       (or (cl-find-if
-			    (lambda (pair)
-			      (pcase pair
-				(`(,u . ,req?)
-				 (or req?
-				     (<= (org-duration--modifier u canonical)
-					 minutes)))))
-			    selected-units)
-			   ;; Fall back to smallest unit.
-			   (org-last selected-units))))
-		(modifier (org-duration--modifier unit canonical)))
-	   (concat (format fractional (/ (float minutes) modifier)) unit)))
-	;; Otherwise build duration string according to available
-	;; units.
-	((org-string-nw-p
-	  (org-trim
-	   (mapconcat
-	    (lambda (units)
-	      (pcase-let* ((`(,unit . ,required?) units)
-			   (modifier (org-duration--modifier unit canonical)))
-		(cond ((<= modifier minutes)
-		       (let ((value (floor minutes modifier)))
-			 (cl-decf minutes (* value modifier))
-			 (format "%s%d%s" separator value unit)))
-		      (required? (concat separator "0" unit))
-		      (t ""))))
-	    selected-units
-	    ""))))
-	;; No unit can properly represent MINUTES.  Use the smallest
-	;; one anyway.
-	(t
-	 (pcase-let ((`((,unit . ,_)) (last selected-units)))
-	   (concat "0" unit))))))))
+  (if (< minutes 0) (concat "-" (org-duration-from-minutes (abs minutes) fmt canonical))
+    (pcase (or fmt org-duration-format)
+      (`h:mm
+       (format "%d:%02d" (/ minutes 60) (mod minutes 60)))
+      (`h:mm:ss
+       (let* ((whole-minutes (floor minutes))
+	      (seconds (mod (* 60 minutes) 60)))
+         (format "%s:%02d"
+	         (org-duration-from-minutes whole-minutes 'h:mm)
+	         seconds)))
+      ((pred atom) (error "Invalid duration format specification: %S" fmt))
+      ;; Mixed format.  Call recursively the function on both parts.
+      ((and duration-format
+	    (let `(special . ,(and mode (or `h:mm:ss `h:mm)))
+	      (assq 'special duration-format)))
+       (let* ((truncated-format
+	       ;; Remove "special" mode from duration format in order to
+	       ;; recurse properly.  Also remove units smaller or equal
+	       ;; to an hour since H:MM part takes care of it.
+	       (cl-remove-if-not
+	        (lambda (pair)
+		  (pcase pair
+		    (`(,(and unit (pred stringp)) . ,_)
+		     (> (org-duration--modifier unit canonical) 60))
+		    (_ nil)))
+	        duration-format))
+	      (min-modifier		;smallest modifier above hour
+	       (and truncated-format
+		    (apply #'min
+			   (mapcar (lambda (p)
+				     (org-duration--modifier (car p) canonical))
+				   truncated-format)))))
+         (if (or (null min-modifier) (< minutes min-modifier))
+	     ;; There is not unit above the hour or the smallest unit
+	     ;; above the hour is too large for the number of minutes we
+	     ;; need to represent.  Use H:MM or H:MM:SS syntax.
+	     (org-duration-from-minutes minutes mode canonical)
+	   ;; Represent minutes above hour using provided units and H:MM
+	   ;; or H:MM:SS below.
+	   (let* ((units-part (* min-modifier (/ (floor minutes) min-modifier)))
+		  (minutes-part (- minutes units-part))
+		  (compact (memq 'compact duration-format)))
+	     (concat
+	      (org-duration-from-minutes units-part truncated-format canonical)
+	      (and (not compact) " ")
+	      (org-duration-from-minutes minutes-part mode))))))
+      ;; Units format.
+      (duration-format
+       (let* ((fractional
+	       (let ((digits (cdr (assq 'special duration-format))))
+	         (and digits
+		      (or (wholenump digits)
+			  (error "Unknown formatting directive: %S" digits))
+		      (format "%%.%df" digits))))
+	      (selected-units
+	       (sort (cl-remove-if
+		      ;; Ignore special format cells and compact option.
+		      (lambda (pair)
+		        (pcase pair
+			  ((or `compact `(special . ,_)) t)
+			  (_ nil)))
+		      duration-format)
+		     (lambda (a b)
+		       (> (org-duration--modifier (car a) canonical)
+			  (org-duration--modifier (car b) canonical)))))
+	      (separator (if (memq 'compact duration-format) "" " ")))
+         (cond
+	  ;; Fractional duration: use first unit that is either required
+	  ;; or smaller than MINUTES.
+	  (fractional
+	   (let* ((unit (car
+		         (or (cl-find-if
+			      (lambda (pair)
+			        (pcase pair
+				  (`(,u . ,req?)
+				   (or req?
+				       (<= (org-duration--modifier u canonical)
+					  minutes)))))
+			      selected-units)
+			     ;; Fall back to smallest unit.
+			     (org-last selected-units))))
+		  (modifier (org-duration--modifier unit canonical)))
+	     (concat (format fractional (/ (float minutes) modifier)) unit)))
+	  ;; Otherwise build duration string according to available
+	  ;; units.
+	  ((org-string-nw-p
+	    (org-trim
+	     (mapconcat
+	      (lambda (units)
+	        (pcase-let* ((`(,unit . ,required?) units)
+			     (modifier (org-duration--modifier unit canonical)))
+		  (cond ((<= modifier minutes)
+		         (let ((value (floor minutes modifier)))
+			   (cl-decf minutes (* value modifier))
+			   (format "%s%d%s" separator value unit)))
+		        (required? (concat separator "0" unit))
+		        (t ""))))
+	      selected-units
+	      ""))))
+	  ;; No unit can properly represent MINUTES.  Use the smallest
+	  ;; one anyway.
+	  (t
+	   (pcase-let ((`((,unit . ,_)) (last selected-units)))
+	     (concat "0" unit)))))))))
 
 ;;;###autoload
 (defun org-duration-h:mm-only-p (times)

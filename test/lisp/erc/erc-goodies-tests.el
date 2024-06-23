@@ -157,7 +157,7 @@
         (search-forward "BlackOn")
         (should (eq (get-text-property (point) 'mouse-face)
                     'erc-spoiler-face)))
-      ;; Start wtih ERC default face.
+      ;; Start with ERC default face.
       (erc-goodies-tests--assert-face
        0 "BEGIN " 'erc-default-face
        '(fg:erc-color-face0 bg:erc-color-face0))
@@ -168,7 +168,7 @@
       ;; Masked in all black.
       (erc-goodies-tests--assert-face
        20 "BlackOnBlack" '(fg:erc-color-face1 bg:erc-color-face1) nil)
-      ;; Explicit "default" code ignoerd.
+      ;; Explicit "default" code ignored.
       (erc-goodies-tests--assert-face
        34 "Default" '(erc-default-face)
        '(fg:erc-color-face1 bg:erc-color-face1))
@@ -608,5 +608,62 @@
    (lambda (arg)
      (should (equal '(3 . 11) (erc--get-inserted-msg-bounds arg))))))
 
+
+;;;; querypoll
+
+(ert-deftest erc--querypoll-compute-period ()
+  (should (equal (mapcar (lambda (i)
+                           (/ (round (* 100 (erc--querypoll-compute-period i)))
+                              100.0))
+                         (number-sequence 0 10))
+                 '(11.0 10.05 9.19 8.41 7.7 7.07 6.49 5.97 5.49 5.07 4.68))))
+
+(declare-function ring-insert "ring" (ring item))
+
+(ert-deftest erc--querypoll-target-in-chan-p ()
+  (erc-tests-common-make-server-buf)
+  (with-current-buffer (erc--open-target "#chan")
+    (erc-update-current-channel-member "bob" "bob" 'addp))
+
+  (with-current-buffer (erc--open-target "bob")
+    (should (erc--querypoll-target-in-chan-p (current-buffer))))
+
+  (with-current-buffer (erc--open-target "alice")
+    (should-not (erc--querypoll-target-in-chan-p (current-buffer))))
+
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
+
+(ert-deftest erc--querypoll-get-length ()
+  (erc-tests-common-make-server-buf)
+  (with-current-buffer (erc--open-target "#chan")
+    (erc-update-current-channel-member "bob" "bob" 'addp))
+
+  (let ((ring (make-ring 5)))
+    (ring-insert ring (with-current-buffer (erc--open-target "bob")))
+    (should (= 0 (erc--querypoll-get-length ring)))
+    (ring-insert ring (with-current-buffer (erc--open-target "alice")))
+    (should (= 1 (erc--querypoll-get-length ring))))
+
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
+
+(ert-deftest erc--querypoll-get-next ()
+  (erc-tests-common-make-server-buf)
+  (with-current-buffer (erc--open-target "#chan")
+    (erc-update-current-channel-member "bob" "bob" 'addp)
+    (erc-update-current-channel-member "alice" "alice" 'addp))
+
+  (let ((ring (make-ring 5)))
+    (ring-insert ring (with-current-buffer (erc--open-target "bob")))
+    (ring-insert ring (with-current-buffer (erc--open-target "dummy")))
+    (ring-insert ring (with-current-buffer (erc--open-target "alice")))
+    (ring-insert ring (with-current-buffer (erc--open-target "tester")))
+    (kill-buffer (get-buffer "dummy"))
+
+    (should (eq (get-buffer "tester") (erc--querypoll-get-next ring))))
+
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
 
 ;;; erc-goodies-tests.el ends here

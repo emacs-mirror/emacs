@@ -134,11 +134,12 @@
 (declare-function citeproc-render-bib "ext:citeproc")
 (declare-function citeproc-hash-itemgetter-from-any "ext:citeproc")
 (declare-function citeproc-add-subbib-filters "ext:citeproc")
+(declare-function citeproc-style-cite-superscript-p "ext:citeproc")
 
 (declare-function org-element-interpret-data "org-element" (data))
 (declare-function org-element-map "org-element" (data types fun &optional info first-match no-recursion with-affiliated))
-(declare-function org-element-property "org-element" (property element))
-(declare-function org-element-put-property "org-element" (element property value))
+(declare-function org-element-property "org-element-ast" (property node))
+(declare-function org-element-put-property "org-element-ast" (node property value))
 
 (declare-function org-export-data "org-export" (data info))
 (declare-function org-export-derived-backend-p "org-export" (backend &rest backends))
@@ -184,8 +185,8 @@ looks for style files in this directory, too."
   :safe #'booleanp)
 
 (defcustom org-cite-csl-no-citelinks-backends '(ascii)
-  "List of export back-ends for which cite linking is disabled.
-Cite linking for export back-ends derived from any of the back-ends listed here,
+  "List of export backends for which cite linking is disabled.
+Cite linking for export backends derived from any of the backends listed here,
 is also disabled."
   :group 'org-cite
   :package-version '(Org . "9.5")
@@ -213,6 +214,112 @@ Used only when `second-field-align' is activated by the used CSL style."
   :package-version '(Org . "9.5")
   :type 'string
   :safe #'stringp)
+
+(defcustom org-cite-csl-latex-label-separator "0.6em"
+  "Distance between citation label and bibliography item for LaTeX output.
+The value is a string representing the distance in valid LaTeX units.
+Used only when `second-field-align' is activated by the used CSL
+style.
+
+The indentation length in these cases is computed as the sum of
+`org-cite-csl-latex-label-separator' and the maximal label width, for
+example,
+
+    indentation length
+<------------------------->
+max.  label width  separator
+<---------------><-------->
+[Doe22]                    John Doe.  A title...
+[DoeSmithJones19]          John Doe, Jane Smith and...
+[SmithDoe02]               Jane Smith and John Doe...
+
+The maximal label width, in turn, is calculated as the product of
+`org-cite-csl-latex-label-width-per-char' and the maximal label
+length measured in characters."
+  :group 'org-cite
+  :package-version '(Org . "9.7")
+  :type 'string
+  :safe #'stringp)
+
+(defcustom org-cite-csl-latex-label-width-per-char "0.45em"
+  "Character width in LaTeX units for calculating entry label widths.
+Used only when `second-field-align' is activated by the used CSL
+style.
+
+See the documentation of `org-cite-csl-latex-label-separator' for
+details."
+  :group 'org-cite
+  :package-version '(Org . "9.7")
+  :type 'string
+  :safe #'stringp)
+
+;; The following was inspired by and in many details follows how
+;; Pandoc's (<https://github.com/jgm/pandoc>) default LaTeX template
+;; handles CSL output.  Many thanks to the author, John MacFarlane!
+(defcustom org-cite-csl-latex-preamble
+  "\\usepackage{calc}
+\\newlength{\\cslhangindent}
+\\setlength{\\cslhangindent}{[CSL-HANGINDENT]}
+\\newlength{\\csllabelsep}
+\\setlength{\\csllabelsep}{[CSL-LABELSEP]}
+\\newlength{\\csllabelwidth}
+\\setlength{\\csllabelwidth}{[CSL-LABELWIDTH-PER-CHAR] * [CSL-MAXLABEL-CHARS]}
+\\newenvironment{cslbibliography}[2] % 1st arg. is hanging-indent, 2nd entry spacing.
+ {% By default, paragraphs are not indented.
+  \\setlength{\\parindent}{0pt}
+  % Hanging indent is turned on when first argument is 1.
+  \\ifodd #1
+  \\let\\oldpar\\par
+  \\def\\par{\\hangindent=\\cslhangindent\\oldpar}
+  \\fi
+  % Set entry spacing based on the second argument.
+  \\setlength{\\parskip}{\\parskip +  #2\\baselineskip}
+ }%
+ {}
+\\newcommand{\\cslblock}[1]{#1\\hfill\\break}
+\\newcommand{\\cslleftmargin}[1]{\\parbox[t]{\\csllabelsep + \\csllabelwidth}{#1}}
+\\newcommand{\\cslrightinline}[1]
+  {\\parbox[t]{\\linewidth - \\csllabelsep - \\csllabelwidth}{#1}\\break}
+\\newcommand{\\cslindent}[1]{\\hspace{\\cslhangindent}#1}
+\\newcommand{\\cslbibitem}[2]
+  {\\leavevmode\\vadjust pre{\\hypertarget{citeproc_bib_item_#1}{}}#2}
+\\makeatletter
+\\newcommand{\\cslcitation}[2]
+ {\\protect\\hyper@linkstart{cite}{citeproc_bib_item_#1}#2\\hyper@linkend}
+\\makeatother"
+  "LaTeX preamble content inserted by the `csl' citation processor.
+
+This preamble can be anything as long as it provides definitions
+for the environment and commands that Citeproc's `org-latex'
+formatter uses for formatting citations and bibliographies.  In
+particular, it has to define
+- the commands \\cslblock{<text>}, \\cslleftmargin{<text>},
+  \\cslrightinline{<text>} and \\cslindent{<text>} for formatting
+  text that have, respectively, the CSL display attributes
+  `block', `left-margin', `right-inline' and `indent';
+- the commands \\cslcitation{<item_no>}{<item_text>} and
+  \\cslbibitem{<item_no>}{<item_text>}, which are used to
+  format individual citations and bibliography items, including
+  hyperlinking citations to the corresponding bibliography entry
+  using their numerical id, which is passed as the first,
+  <item_no> argument;
+- and the environment \\cslbibliography{<hanging-indent>}{<entry-spacing>},
+  in which bibliographies are wrapped; the value of the
+  <hanging-indent> argument is 1 if hanging indent should be
+  applied and 0 if not, while the <entry-spacing> argument is an
+  integer specifying the number of extra line-heights
+  required between bibliography entries in addition to normal
+  line spacing.
+
+When present, the placeholders [CSL-HANGINDENT], [CSL-LABELSEP],
+[CSL-LABELWIDTH-PER-CHAR] and [CSL-MAXLABEL-CHARS] are replaced,
+respectively, by the contents of the customizable variables
+`org-cite-csl-latex-hanging-indent', `org-cite-csl-latex-label-separator',
+`org-cite-csl-latex-label-width-per-char', and the maximal label length
+in the bibliography measured in characters."
+  :group 'org-cite
+  :type 'string
+  :package-version '(Org . "9.7"))
 
 
 ;;; Internal variables
@@ -277,13 +384,17 @@ If nil then the Chicago author-date style is used as a fallback.")
     ("paragraph" . "paragraph")
     ("para."     . "paragraph")
     ("paras."    . "paragraph")
+    ("\\P"       . "paragraph")
     ("¶"         . "paragraph")
+    ("\\P\\P"    . "paragraph")
     ("¶¶"        . "paragraph")
     ("part"      . "part")
     ("pt."       . "part")
     ("pts."      . "part")
     ("§"         . "section")
+    ("\\S"       . "section")
     ("§§"        . "section")
+    ("\\S\\S"    . "section")
     ("section"   . "section")
     ("sec."      . "section")
     ("secs."     . "section")
@@ -312,15 +423,18 @@ Label is in match group 1.")
 
 
 ;;; Internal functions
-(defun org-cite-csl--barf-without-citeproc ()
-  "Raise an error if Citeproc library is not loaded."
-  (unless (featurep 'citeproc)
-    (error "Citeproc library is not loaded")))
 
 (defun org-cite-csl--note-style-p (info)
   "Non-nil when bibliography style implies wrapping citations in footnotes.
 INFO is the export state, as a property list."
   (citeproc-style-cite-note
+   (citeproc-proc-style
+    (org-cite-csl--processor info))))
+
+(defun org-cite-csl--style-cite-superscript-p (info)
+  "Non-nil when bibliography style produces citations in superscript.
+INFO is the export state, as a property list."
+  (citeproc-style-cite-superscript-p
    (citeproc-proc-style
     (org-cite-csl--processor info))))
 
@@ -332,8 +446,8 @@ INFO is the export state, as a property list."
 
 (defun org-cite-csl--create-structure-params (citation info)
   "Return citeproc structure creation params for CITATION object.
-STYLE is the citation style, as a string or nil. INFO is the export state, as
-a property list."
+STYLE is the citation style, as a string or nil.  INFO is the export
+state, as a property list."
   (let ((style (org-cite-citation-style citation info)))
     (pcase style
       ;; "author" style.
@@ -393,7 +507,8 @@ a property list."
       (_ (error "Invalid style: %S" style)))))
 
 (defun org-cite-csl--no-citelinks-p (info)
-  "Non-nil when export BACKEND should not create cite-reference links."
+  "Non-nil when export backend should not create cite-reference links.
+INFO is the info channel plist."
   (or (not org-cite-csl-link-cites)
       (and org-cite-csl-no-citelinks-backends
            (apply #'org-export-derived-backend-p
@@ -413,7 +528,7 @@ corresponding to one of the output formats supported by Citeproc: `html',
   (let ((backend (plist-get info :back-end)))
     (cond
      ((org-export-derived-backend-p backend 'html) 'html)
-     ((org-export-derived-backend-p backend 'latex) 'latex)
+     ((org-export-derived-backend-p backend 'latex) 'org-latex)
      (t 'org))))
 
 (defun org-cite-csl--style-file (info)
@@ -569,6 +684,9 @@ INFO is the export state, as a property list."
     (when (and (not footnote) (org-cite-csl--note-style-p info))
       (org-cite-adjust-note citation info)
       (setq footnote (org-cite-wrap-citation citation info)))
+    ;; Remove white space before CITATION when it is in superscript.
+    (when (org-cite-csl--style-cite-superscript-p info)
+      (org-cite--set-previous-post-blank citation 0 info))
     ;; Return structure.
     (apply #'citeproc-citation-create
            `(:note-index
@@ -670,12 +788,27 @@ value is the bibliography as rendered by Citeproc."
             (plist-put info :cite-citeproc-rendered-bibliographies result)
             result)))))
 
+(defun org-cite-csl--generate-latex-preamble (info)
+  "Generate the CSL-related part of the LaTeX preamble.
+INFO is the export state, as a property list."
+  (let* ((parameters (cadr (org-cite-csl--rendered-bibliographies info)))
+         (max-offset (cdr (assq 'max-offset parameters)))
+         (result org-cite-csl-latex-preamble))
+    (map-do (lambda (placeholder replacement)
+              (when (string-match placeholder result)
+                (setq result (replace-match replacement t t result))))
+            `("\\[CSL-HANGINDENT\\]" ,org-cite-csl-latex-hanging-indent
+              "\\[CSL-LABELSEP\\]" ,org-cite-csl-latex-label-separator
+              "\\[CSL-LABELWIDTH-PER-CHAR\\]" ,org-cite-csl-latex-label-width-per-char
+              "\\[CSL-MAXLABEL-CHARS\\]" ,(number-to-string max-offset)))
+    result))
+
 
 ;;; Export capability
 (defun org-cite-csl-render-citation (citation _style _backend info)
   "Export CITATION object.
 INFO is the export state, as a property list."
-  (org-cite-csl--barf-without-citeproc)
+  (org-require-package 'citeproc)
   (let ((output (cdr (assq citation (org-cite-csl--rendered-citations info)))))
     (if (not (eq 'org (org-cite-csl--output-format info)))
         output
@@ -686,10 +819,10 @@ INFO is the export state, as a property list."
 (defun org-cite-csl-render-bibliography (_keys _files _style props _backend info)
   "Export bibliography.
 INFO is the export state, as a property list."
-  (org-cite-csl--barf-without-citeproc)
+  (org-require-package 'citeproc)
   (pcase-let*  ((format (org-cite-csl--output-format info))
-		(`(,outputs ,parameters) (org-cite-csl--rendered-bibliographies info))
-		(output (cdr (assoc props outputs))))
+                (`(,outputs ,parameters) (org-cite-csl--rendered-bibliographies info))
+                (output (cdr (assoc props outputs))))
     (pcase format
       ('html
        (concat
@@ -714,12 +847,7 @@ INFO is the export state, as a property list."
               org-cite-csl-html-hanging-indent
               org-cite-csl-html-hanging-indent))
         output))
-      ('latex
-       (if (cdr (assq 'hanging-indent parameters))
-           (format "\\begin{hangparas}{%s}{1}\n%s\n\\end{hangparas}"
-                   org-cite-csl-latex-hanging-indent
-                   output)
-         output))
+      ('org-latex output)
       (_
        ;; Parse Org output to re-export it during the regular export
        ;; process.
@@ -729,19 +857,15 @@ INFO is the export state, as a property list."
   "Add \"hanging\" package if missing from LaTeX output.
 OUTPUT is the export document, as a string.  INFO is the export state, as a
 property list."
-  (org-cite-csl--barf-without-citeproc)
-  (if (not (eq 'latex (org-cite-csl--output-format info)))
+  (org-require-package 'citeproc)
+  (if (not (eq 'org-latex (org-cite-csl--output-format info)))
       output
     (with-temp-buffer
       (save-excursion (insert output))
       (when (search-forward "\\begin{document}" nil t)
-        (goto-char (match-beginning 0))
-        ;; Ensure that \citeprocitem is defined for citeproc-el.
-        (insert "\\makeatletter\n\\newcommand{\\citeprocitem}[2]{\\hyper@linkstart{cite}{citeproc_bib_item_#1}#2\\hyper@linkend}\n\\makeatother\n\n")
-        ;; Ensure there is a \usepackage{hanging} somewhere or add one.
-        (let ((re (rx "\\usepackage" (opt "[" (*? nonl) "]") "{hanging}")))
-          (unless (re-search-backward re nil t)
-            (insert "\\usepackage[notquote]{hanging}\n"))))
+	(goto-char (match-beginning 0))
+	;; Insert the CSL-specific parts of the LaTeX preamble.
+	(insert (org-cite-csl--generate-latex-preamble info)))
       (buffer-string))))
 
 

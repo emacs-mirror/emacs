@@ -800,8 +800,7 @@ sign in chained assignment."
     ;;   c: Collection = {1, 2, 3}
     ;;   d: Mapping[int, str] = {1: 'bar', 2: 'baz'}
     (,(python-font-lock-assignment-matcher
-       (python-rx (or line-start ?\;) (* space)
-                  grouped-assignment-target (* space)
+       (python-rx grouped-assignment-target (* space)
                   (? ?: (* space) (group (+ not-simple-operator)) (* space))
                   (group assignment-operator)))
      (1 font-lock-variable-name-face)
@@ -845,17 +844,6 @@ sign in chained assignment."
         (match-beginning 2))            ; limit the search until the assignment
       nil
       (1 font-lock-variable-name-face)))
-    ;; single assignment with type hints, e.g.
-    ;;   a: int = 5
-    ;;   b: Tuple[Optional[int], Union[Sequence[str], str]] = (None, 'foo')
-    ;;   c: Collection = {1, 2, 3}
-    ;;   d: Mapping[int, str] = {1: 'bar', 2: 'baz'}
-    (,(python-font-lock-assignment-matcher
-       (python-rx grouped-assignment-target (* space)
-                  (? ?: (* space) (+ not-simple-operator) (* space))
-                  (group assignment-operator)))
-     (1 font-lock-variable-name-face)
-     (2 'font-lock-operator-face))
     ;; special cases
     ;;   (a) = 5
     ;;   [a] = 5,
@@ -1831,7 +1819,7 @@ possibilities can be narrowed to specific indentation points."
         (`(:after-block-end . ,start)
          ;; Subtract one indentation level.
          (goto-char start)
-         (- (current-indentation) python-indent-offset))
+         (max 0 (- (current-indentation) python-indent-offset)))
         (`(:at-dedenter-block-start . ,_)
          ;; List all possible indentation levels from opening blocks.
          (let ((opening-block-start-points
@@ -3116,8 +3104,13 @@ detection and just returns nil."
       (let* ((code (concat
                     "import sys\n"
                     "ps = [getattr(sys, 'ps%s' % i, '') for i in range(1,4)]\n"
+                    "try:\n"
+                    "    import json\n"
+                    "    ps_json = '\\n' + json.dumps(ps)\n"
+                    "except ImportError:\n"
                     ;; JSON is built manually for compatibility
-                    "ps_json = '\\n[\"%s\", \"%s\", \"%s\"]\\n' % tuple(ps)\n"
+                    "    ps_json = '\\n[\"%s\", \"%s\", \"%s\"]\\n' % tuple(ps)\n"
+                    "\n"
                     "print (ps_json)\n"
                     "sys.exit(0)\n"))
              (interpreter python-shell-interpreter)
@@ -3180,7 +3173,7 @@ detection and just returns nil."
             "Or alternatively in:\n"
             "  + `python-shell-prompt-input-regexps'\n"
             "  + `python-shell-prompt-output-regexps'")))
-        prompts))))
+        (mapcar #'ansi-color-filter-apply prompts)))))
 
 (defun python-shell-prompt-validate-regexps ()
   "Validate all user provided regexps for prompts.
@@ -4168,14 +4161,14 @@ interactively."
   "Send the block at point to inferior Python process.
 The block is delimited by `python-nav-beginning-of-block' and
 `python-nav-end-of-block'.  If optional argument ARG is non-nil
-(interactively, the prefix argument), send the block body without
+\(interactively, the prefix argument), send the block body with
 its header.  If optional argument MSG is non-nil, force display
 of a user-friendly message if there's no process running; this
 always happens interactively."
   (interactive (list current-prefix-arg t))
   (let ((beg (save-excursion
                (when (python-nav-beginning-of-block)
-                 (if (null arg)
+                 (if arg
                      (beginning-of-line)
                    (python-nav-end-of-statement)
                    (beginning-of-line 2)))
@@ -4184,7 +4177,7 @@ always happens interactively."
         (python-indent-guess-indent-offset-verbose nil))
     (if (and beg end)
         (python-shell-send-region beg end nil msg t)
-      (user-error "Can't get code block from current position."))))
+      (user-error "Can't get code block from current position"))))
 
 (defun python-shell-send-buffer (&optional send-main msg)
   "Send the entire buffer to inferior Python process.
@@ -5734,7 +5727,8 @@ Interactively, prompt for symbol."
 (defun python-hideshow-forward-sexp-function (_arg)
   "Python specific `forward-sexp' function for `hs-minor-mode'.
 Argument ARG is ignored."
-  (python-nav-end-of-block))
+  (python-nav-end-of-block)
+  (end-of-line))
 
 (defun python-hideshow-find-next-block (regexp maxp comments)
   "Python specific `hs-find-next-block' function for `hs-minor-mode'.

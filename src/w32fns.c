@@ -216,6 +216,21 @@ typedef BOOL (WINAPI * WTSRegisterSessionNotification_Proc)
   (HWND hwnd, DWORD dwFlags);
 typedef BOOL (WINAPI * WTSUnRegisterSessionNotification_Proc) (HWND hwnd);
 
+typedef BOOL (WINAPI * RegisterTouchWindow_proc) (HWND, ULONG);
+
+/* Types for gesture recognition are documented by Microsoft but appear
+   not to be defined anywhere in MinGW's includes.  */
+
+typedef struct Emacs_GESTURECONFIG
+{
+  DWORD dwID;
+  DWORD dwWant;
+  DWORD dwBlock;
+} Emacs_GESTURECONFIG, *Emacs_PGESTURECONFIG;
+
+typedef BOOL (WINAPI * SetGestureConfig_proc) (HWND, DWORD, UINT,
+					       Emacs_PGESTURECONFIG, UINT);
+
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ImmGetCompositionString_Proc get_composition_string_fn = NULL;
 ImmGetContext_Proc get_ime_context_fn = NULL;
@@ -234,6 +249,8 @@ SetWindowTheme_Proc SetWindowTheme_fn = NULL;
 DwmSetWindowAttribute_Proc DwmSetWindowAttribute_fn = NULL;
 WTSUnRegisterSessionNotification_Proc WTSUnRegisterSessionNotification_fn = NULL;
 WTSRegisterSessionNotification_Proc WTSRegisterSessionNotification_fn = NULL;
+RegisterTouchWindow_proc RegisterTouchWindow_fn = NULL;
+SetGestureConfig_proc SetGestureConfig_fn = NULL;
 
 extern AppendMenuW_Proc unicode_append_menu;
 
@@ -253,7 +270,6 @@ unsigned int msh_mousewheel = 0;
 static unsigned menu_free_timer = 0;
 
 #ifdef GLYPH_DEBUG
-static ptrdiff_t image_cache_refcount;
 static int dpyinfo_refcount;
 #endif
 
@@ -2455,6 +2471,7 @@ w32_createwindow (struct frame *f, int *coords)
   RECT rect;
   int top, left;
   Lisp_Object border_width = Fcdr (Fassq (Qborder_width, f->param_alist));
+  static EMACS_INT touch_base;
 
   if (FRAME_PARENT_FRAME (f) && FRAME_W32_P (FRAME_PARENT_FRAME (f)))
     {
@@ -2517,6 +2534,8 @@ w32_createwindow (struct frame *f, int *coords)
 
   if (hwnd)
     {
+      int i;
+
       if (FRAME_SKIP_TASKBAR (f))
 	SetWindowLong (hwnd, GWL_EXSTYLE,
 		       GetWindowLong (hwnd, GWL_EXSTYLE) | WS_EX_NOACTIVATE);
@@ -2544,6 +2563,36 @@ w32_createwindow (struct frame *f, int *coords)
 	/* For a child window we have to get its coordinates wrt its
 	   parent.  */
 	MapWindowPoints (HWND_DESKTOP, parent_hwnd, (LPPOINT) &rect, 2);
+
+      /* Enable touch-screen input.  */
+      if (RegisterTouchWindow_fn)
+	{
+	  Emacs_GESTURECONFIG cfg;
+
+	  (*RegisterTouchWindow_fn) (hwnd, 0);
+
+	  /* Disable Window's emulation of mouse events.  */
+	  cfg.dwID = 0;
+	  cfg.dwWant = 0;
+#ifndef GC_ALLGESTURES
+#define GC_ALLGESTURES 0x00000001
+#endif /* GC_ALLGESTURES */
+	  cfg.dwBlock = GC_ALLGESTURES;
+	  (*SetGestureConfig_fn) (hwnd, 0, 1, &cfg, sizeof cfg);
+	}
+
+      /* Reset F's touch point array.  */
+      for (i = 0; i < ARRAYELTS (f->output_data.w32->touch_ids); ++i)
+	f->output_data.w32->touch_ids[i] = -1;
+
+      /* Assign an offset for touch points reported to F.  */
+      if (FIXNUM_OVERFLOW_P (touch_base + MAX_TOUCH_POINTS - 1))
+	touch_base = 0;
+      f->output_data.w32->touch_base = touch_base;
+      touch_base += MAX_TOUCH_POINTS;
+
+      /* Reset the tool bar touch sequence identifier slot.  */
+      f->output_data.w32->tool_bar_dwID = -1;
 
       f->left_pos = rect.left;
       f->top_pos = rect.top;
@@ -4783,6 +4832,14 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	 are used together, but only if user has two button mouse. */
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
+
+      /* Ignore mouse events produced by a touch screen.  */
+#ifndef MOUSEEVENTF_FROMTOUCH
+#define MOUSEEVENTF_FROMTOUCH 0xFF515700
+#endif /* MOUSEEVENTF_FROMTOUCH */
+      if (GetMessageExtraInfo () & MOUSEEVENTF_FROMTOUCH)
+	goto dflt;
+
       if (w32_num_mouse_buttons > 2)
 	goto handle_plain_button;
 
@@ -4848,6 +4905,13 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
+      /* Ignore mouse events produced by a touch screen.  */
+#ifndef MOUSEEVENTF_FROMTOUCH
+#define MOUSEEVENTF_FROMTOUCH 0xFF515700
+#endif /* MOUSEEVENTF_FROMTOUCH */
+      if (GetMessageExtraInfo () & MOUSEEVENTF_FROMTOUCH)
+	goto dflt;
+
       if (w32_num_mouse_buttons > 2)
 	goto handle_plain_button;
 
@@ -5370,6 +5434,19 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       goto dflt;
 
+#ifdef WM_TOUCHMOVE
+    case WM_TOUCHMOVE:
+#else /* not WM_TOUCHMOVE */
+#ifndef WM_TOUCH
+#define WM_TOUCH 576
+#endif /* WM_TOUCH */
+    case WM_TOUCH:
+#endif /* not WM_TOUCHMOVE */
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      /* It is said that DefWindowProc will release the touch
+	 information in the event.  */
+      return 0;
+
 #ifdef WINDOWSNT
     case WM_CREATE:
       setup_w32_kbdhook (hwnd);
@@ -5840,17 +5917,6 @@ unwind_create_frame (Lisp_Object frame)
     {
 #ifdef GLYPH_DEBUG
       struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-
-      /* If the frame's image cache refcount is still the same as our
-	 private shadow variable, it means we are unwinding a frame
-	 for which we didn't yet call init_frame_faces, where the
-	 refcount is incremented.  Therefore, we increment it here, so
-	 that free_frame_faces, called in w32_free_frame_resources
-	 below, will not mistakenly decrement the counter that was not
-	 incremented yet to account for this new frame.  */
-      if (FRAME_IMAGE_CACHE (f) != NULL
-	  && FRAME_IMAGE_CACHE (f)->refcount == image_cache_refcount)
-	FRAME_IMAGE_CACHE (f)->refcount++;
 #endif
 
       w32_free_frame_resources (f);
@@ -5859,10 +5925,6 @@ unwind_create_frame (Lisp_Object frame)
 #ifdef GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
       eassert (dpyinfo->reference_count == dpyinfo_refcount);
-      eassert ((dpyinfo->terminal->image_cache == NULL
-		&& image_cache_refcount == 0)
-	       || (dpyinfo->terminal->image_cache != NULL
-		   && dpyinfo->terminal->image_cache->refcount == image_cache_refcount));
 #endif
       return Qt;
     }
@@ -6050,8 +6112,6 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   record_unwind_protect (do_unwind_create_frame, frame);
 
 #ifdef GLYPH_DEBUG
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
 
@@ -7144,8 +7204,6 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
   f->tooltip = true;
 
 #ifdef GLYPH_DEBUG
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
   FRAME_KBOARD (f) = kb;
@@ -11405,6 +11463,12 @@ globals_of_w32fns (void)
   system_parameters_info_w_fn = (SystemParametersInfoW_Proc)
     get_proc_addr (user32_lib, "SystemParametersInfoW");
 #endif
+  RegisterTouchWindow_fn
+    = (RegisterTouchWindow_proc) get_proc_addr (user32_lib,
+						"RegisterTouchWindow");
+  SetGestureConfig_fn
+    = (SetGestureConfig_proc) get_proc_addr (user32_lib,
+					     "SetGestureConfig");
 
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");

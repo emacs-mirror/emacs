@@ -17,17 +17,23 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 
-<!-- targetSandboxVersion must be 1.  Otherwise, fascist security
-     restrictions prevent Emacs from making HTTP connections.  -->
+<!-- targetSandboxVersion must be 1, for otherwise fascist security
+     restrictions prevent Emacs from making HTTP connections.
+
+     Furthermore, versionCode should remain constant, rather than increase
+     with each major release, because it is impossible to downgrade an
+     installation with a greater value to an older version of Emacs.  -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	  package="org.gnu.emacs"
 	  android:targetSandboxVersion="1"
 	  android:installLocation="auto"
 	  android:requestLegacyExternalStorage="true"
+	  android:hasFragileUserData="true"
+	  android:appCategory="productivity"
 	  @ANDROID_SHARED_USER_ID@
 	  @ANDROID_SHARED_USER_NAME@
-	  android:versionCode="@emacs_major_version@"
+	  android:versionCode="30"
 	  android:versionName="@version@">
 
   <!-- Paste in every permission in existence so Emacs can do
@@ -274,6 +280,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	      android:taskAffinity="emacs.secondary_frame"
 	      android:windowSoftInputMode="adjustResize"
 	      android:exported="true"
+	      android:maxRecents="50"
 	      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|locale|fontScale"/>
 
     <activity android:autoRemoveFromRecents="true"
@@ -286,9 +293,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
       </intent-filter>
     </activity>
 
-    <!-- Android 6 and earlier don't display ``application
-         preferences'' activities in Settings, so display the
-         preferences activity as a launcher icon instead.  -->
+    <!-- Android 6 and earlier don't display ``application preferences''
+         activities in Settings, so display the preferences activity as
+         a launcher icon instead.  -->
 
     <activity android:autoRemoveFromRecents="true"
               android:label="Emacs options"

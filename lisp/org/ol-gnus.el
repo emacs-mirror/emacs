@@ -123,7 +123,7 @@ If `org-store-link' was called with a prefix arg the meaning of
 	      (url-encode-url message-id))
     (concat "gnus:" group "#" message-id)))
 
-(defun org-gnus-store-link ()
+(defun org-gnus-store-link (&optional _interactive?)
   "Store a link to a Gnus folder or message."
   (pcase major-mode
     (`gnus-group-mode
@@ -137,27 +137,23 @@ If `org-store-link' was called with a prefix arg the meaning of
      (let* ((group
 	     (pcase (gnus-find-method-for-group gnus-newsgroup-name)
 	       (`(nnvirtual . ,_)
-		(save-excursion
-		  (car (nnvirtual-map-article (gnus-summary-article-number)))))
+		(with-current-buffer gnus-summary-buffer
+		  (save-excursion
+		    (car (nnvirtual-map-article (gnus-summary-article-number))))))
 	       (`(,(or `nnselect `nnir) . ,_)  ; nnir is for Emacs < 28.
-		(save-excursion
-		  (cond
-		   ((fboundp 'nnselect-article-group)
-		    (nnselect-article-group (gnus-summary-article-number)))
-		   ((fboundp 'nnir-article-group)
-		    (nnir-article-group (gnus-summary-article-number)))
-		   (t
-		    (error "No article-group variant bound")))))
+		(with-current-buffer gnus-summary-buffer
+		  (save-excursion
+		    (cond
+		     ((fboundp 'nnselect-article-group)
+		      (nnselect-article-group (gnus-summary-article-number)))
+		     ((fboundp 'nnir-article-group)
+		      (nnir-article-group (gnus-summary-article-number)))
+		     (t
+		      (error "No article-group variant bound"))))))
 	       (_ gnus-newsgroup-name)))
-	    (header (if (eq major-mode 'gnus-article-mode)
-			;; When in an article, first move to summary
-			;; buffer, with point on the summary of the
-			;; current article before extracting headers.
-			(save-window-excursion
-			  (save-excursion
-			    (gnus-article-show-summary)
-			    (gnus-summary-article-header)))
-		      (gnus-summary-article-header)))
+	    (header (with-current-buffer gnus-summary-buffer
+		      (save-excursion
+			(gnus-summary-article-header))))
 	    (from (mail-header-from header))
 	    (message-id (org-unbracket-string "<" ">" (mail-header-id header)))
 	    (date (org-trim (mail-header-date header)))

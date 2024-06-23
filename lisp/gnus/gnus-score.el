@@ -593,18 +593,18 @@ current score file."
 	    (?d "date" nil nil date)
 	    (?f "followup" nil nil string)
 	    (?t "thread" "message-id" nil string)))
-	 (char-to-type
+	 (char-to-types
 	  '((?s s "substring" string)
 	    (?e e "exact string" string)
 	    (?f f "fuzzy string" string)
-	    (?r r "regexp string" string)
+	    (?r r "regexp string" string date)
 	    (?z s "substring" body-string)
 	    (?p r "regexp string" body-string)
 	    (?b before "before date" date)
 	    (?a after "after date" date)
 	    (?n at "this date" date)
-	    (?< < "less than number" number)
-	    (?> > "greater than number" number)
+	    (?< < "less than number" number date)
+	    (?> > "greater than number" number date)
 	    (?= = "equal to number" number)))
 	 (current-score-file gnus-current-score-file)
 	 (char-to-perm
@@ -652,10 +652,9 @@ current score file."
 	  (let ((legal-types
 		 (delq nil
 		       (mapcar (lambda (s)
-				 (if (eq (nth 4 entry)
-					 (nth 3 s))
+				 (if (member (nth 4 entry) (nthcdr 3 s))
 				     s nil))
-			       char-to-type))))
+			       char-to-types))))
             (setq header-string
                   (format "%s header `%s' with match type (%s?): "
 			  (if increase "Increase" "Lower")
@@ -894,12 +893,16 @@ If optional argument `EXTRA' is non-nil, it's a non-standard overview header."
 			   header
 			   (if (< score 0) "lower" "raise"))
                    (cond ((numberp match) (int-to-string match))
+                         ;; Provide better defaults if we're scoring on date header
                          ((string= header "date")
-                          (int-to-string
-                           (-
-                            (/ (car (time-convert (current-time) 1)) 86400)
-                            (/ (car (time-convert (gnus-date-get-time match) 1))
-                               86400))))
+                          (if (or (eq type '<) (eq type '>))
+                              ;; Determine the time difference in days between today
+                              ;; and the article's date
+                              (format-seconds "%d"
+                                              (time-subtract
+                                               (current-time)
+                                               (gnus-date-get-time match)))
+                            (gnus-date-iso8601 match)))
                          (t match)))))
 
     ;; If this is an integer comparison, we transform from string to int.
@@ -909,16 +912,13 @@ If optional argument `EXTRA' is non-nil, it's a non-standard overview header."
       (set-text-properties 0 (length match) nil match))
 
     ;; Modify match and type for article age scoring.
-    (if (string= "date" (nth 0 (assoc header gnus-header-index)))
-	(let ((age (string-to-number match)))
-	  (if (or (< age 0)
-		  (string= "0" match))
-	      (user-error "Article age must be a positive number"))
-	  (setq match age
-		type (cond ((eq type 'after)
-			    '<)
-			   ((eq type 'before)
-			    '>)))))
+    (when (and (string= header "date")
+               (or (eq type '<) (eq type '>)))
+      (let ((age (string-to-number match)))
+        (if (or (< age 0)
+                (string= "0" match))
+            (user-error "Article age must be a positive number"))
+        (setq match age)))
 
     (unless (eq date 'now)
       ;; Add the score entry to the score file.
@@ -1806,7 +1806,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	   ((eq type 'at)
 	    (setq match-func 'string=
 		  match (gnus-date-iso8601 (nth 0 kill))))
-	   ((eq type 'regexp)
+	   ((or (eq type 'regexp) (eq type 'r))
 	    (setq match-func 'string-match
 		  match (nth 0 kill)))
 	   (t (error "Invalid match type: %s" type)))
@@ -1833,6 +1833,8 @@ score in `gnus-newsgroup-scored' by SCORE."
 		 (gnus-score-set 'touched '(t) alist)
 		 (setcdr entries (cdr rest))
 		 (setq rest entries)))
+          (when (stringp (nth 0 kill))
+            (set-text-properties 0 1 nil (nth 0 kill)))
 	  (setq entries rest)))))
   nil)
 

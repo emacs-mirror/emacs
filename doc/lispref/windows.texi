@@ -2805,6 +2805,21 @@ If no less recently used window is found, this function will try to use
 some other window, preferably a large window on some visible frame.  It
 can fail if all windows are dedicated to other buffers (@pxref{Dedicated
 Windows}).
+
+The above describes the behavior when the @code{some-window} @var{alist}
+entry is @code{lru} or @code{nil} which is the default.  Another
+possible value is @code{mru}.  If, for example,
+@code{display-buffer-base-action} is customized to @w{@code{(nil
+. ((some-window . mru)))}}, then this function will prefer the most
+recently used window.  This will try to display several buffers from
+consecutive calls of @code{display-buffer} in the same window.  Consider
+a configuration of three or more windows where a user wants to consult,
+in a non-selected window, one after the other, the results of a query
+spread among several buffers.  With the @code{lru} strategy, Emacs may
+continuously choose another window because the least recently used
+window changes with every call of @code{display-buffer-use-some-window}.
+With the @code{mru} strategy, the window chosen would always remain the
+same, resulting in a predictable user experience.
 @end defun
 
 @defun display-buffer-use-least-recent-window buffer alist
@@ -3357,6 +3372,16 @@ since there is no guarantee that an arbitrary caller of
 @code{display-buffer} will be able to handle the case that no window
 will display the buffer.  @code{display-buffer-no-window} is the only
 action function that cares about this entry.
+
+@vindex some-window@r{, a buffer display action alist entry}
+@item some-window
+If the value is @code{nil} or @code{lru}, @code{display-buffer-use-some-window}
+prefers the least recently used window while avoiding selecting windows
+that are not full-width and windows on another frame.  If the value is
+@code{mru}, it prefers the most recently used window not considering the
+selected window and windows on any frame but the selected one.  If the
+value is a function, it is called with two arguments: a buffer and an
+alist, and should return the window where to display the buffer.
 
 @vindex body-function@r{, a buffer display action alist entry}
 @item body-function

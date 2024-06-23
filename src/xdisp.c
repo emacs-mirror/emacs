@@ -7291,6 +7291,7 @@ pop_it (struct it *it)
   it->bidi_p = p->bidi_p;
   it->paragraph_embedding = p->paragraph_embedding;
   it->from_disp_prop_p = p->from_disp_prop_p;
+  it->align_visually_p = false;
   if (it->bidi_p)
     {
       bidi_pop_it (&it->bidi_it);
@@ -13380,8 +13381,10 @@ echo_area_display (bool update_frame_p)
   w = XWINDOW (mini_window);
   f = XFRAME (WINDOW_FRAME (w));
 
-  /* Don't display if frame is invisible or not yet initialized.  */
-  if (!FRAME_REDISPLAY_P (f) || !f->glyphs_initialized_p)
+  /* Don't display if frame is invisible or not yet initialized or
+     if redisplay is inhibited.  */
+  if (!FRAME_REDISPLAY_P (f) || !f->glyphs_initialized_p
+      || !NILP (Vinhibit_redisplay))
     return;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -17361,10 +17364,13 @@ redisplay_internal (void)
 		= f->redisplay || !REDISPLAY_SOME_P ();
 	      bool f_redisplay_flag = f->redisplay;
 
-	      /* The X error handler may have deleted that frame
-		 before we went back to retry_frame.  This must come
+	      /* The X error handler may have deleted that frame before
+		 we went back to retry_frame.  Or this could be a TTY
+		 frame that is not completely made, in which case we
+		 cannot safely redisplay its windows.  This must come
 		 before any accesses to f->terminal.  */
-	      if (!FRAME_LIVE_P (f))
+	      if (!FRAME_LIVE_P (f)
+		  || (FRAME_TERMCAP_P (f) && !f->after_make_frame))
 		continue;
 
 	      /* Mark all the scroll bars to be removed; we'll redeem
@@ -19174,7 +19180,7 @@ try_scrolling (Lisp_Object window, bool just_this_one_p,
       /* Maybe forget recorded base line for line number display.  */
       /* FIXME: Why do we need this?  `try_scrolling` can only be called from
          `redisplay_window` which should have flushed this cache already when
-         eeded.  */
+         needed.  */
       if (!BASE_LINE_NUMBER_VALID_P (w))
 	w->base_line_number = 0;
 
@@ -22338,6 +22344,13 @@ try_window_id (struct window *w)
       start_pos = it.current.pos;
     }
 
+  /* init_to_row_end and start_display above could have caused the
+     window's window_end_valid flag to be reset (e.g., if init_iterator
+     decides to free all realized faces).  We cannot continue if that
+     happens.  */
+  if (!w->window_end_valid)
+    GIVE_UP (108);
+
   /* Find the first row that is not affected by changes at the end of
      the buffer.  Value will be null if there is no unchanged row, in
      which case we must redisplay to the end of the window.  delta
@@ -24479,12 +24492,14 @@ static void
 handle_line_prefix (struct it *it)
 {
   Lisp_Object prefix;
+  bool wrap_prop = false;
 
   if (it->continuation_lines_width > 0)
     {
       prefix = get_line_prefix_it_property (it, Qwrap_prefix);
       if (NILP (prefix))
 	prefix = Vwrap_prefix;
+      wrap_prop = true;
     }
   else
     {
@@ -24499,6 +24514,11 @@ handle_line_prefix (struct it *it)
 	 iterator stack overflows.  So, don't wrap the prefix.  */
       it->line_wrap = TRUNCATE;
       it->avoid_cursor_p = true;
+      /* Interpreting :align-to relative to the beginning of the logical
+         line effectively renders this feature unusable, so we make an
+         exception for this use of :align-to.  */
+      if (wrap_prop && CONSP (prefix) && EQ (XCAR (prefix), Qspace))
+	it->align_visually_p = true;
     }
 }
 
@@ -31963,7 +31983,9 @@ produce_stretch_glyph (struct it *it)
 	   && calc_pixel_width_or_height (&tem, it, prop, font, true,
 					  &align_to))
     {
-      int x = it->current_x + it->continuation_lines_width;
+      int x = it->current_x + (it->align_visually_p
+			       ? 0
+			       : it->continuation_lines_width);
       int x0 = x;
       /* Adjust for line numbers, if needed.   */
       if (!NILP (Vdisplay_line_numbers) && it->line_number_produced_p)
@@ -35804,7 +35826,7 @@ note_fringe_highlight (struct frame *f, Lisp_Object window, int x, int y,
 
   /* NOTE: iterating over glyphs can only find text properties coming
      from visible text.  This means that zero-length overlays and
-     invisibile text are NOT inspected.  */
+     invisible text are NOT inspected.  */
   for (; glyph_num; glyph_num--, glyph++)
     {
       Lisp_Object pos = make_fixnum (glyph->charpos);

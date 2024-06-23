@@ -5066,10 +5066,13 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (defun tramp--test-shell-file-name ()
   "Return default remote shell."
-  (if (file-exists-p
-       (concat
-	(file-remote-p ert-remote-temporary-file-directory) "/system/bin/sh"))
-      "/system/bin/sh" "/bin/sh"))
+  (let ((default-directory ert-remote-temporary-file-directory))
+    (tramp-compat-connection-local-value shell-file-name)))
+
+(defun tramp--test-shell-command-switch ()
+  "Return default remote shell command switch."
+  (let ((default-directory ert-remote-temporary-file-directory))
+    (tramp-compat-connection-local-value shell-command-switch)))
 
 (ert-deftest tramp-test28-process-file ()
   "Check `process-file'."
@@ -5086,14 +5089,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
       (unwind-protect
 	  (progn
 	    ;; We cannot use "/bin/true" and "/bin/false"; those paths
-	    ;; do not exist on hydra.
+	    ;; do not exist on hydra and on MS Windows.
 	    (should (zerop (process-file "true")))
 	    (should-not (zerop (process-file "false")))
 	    (should-not (zerop (process-file "binary-does-not-exist")))
 	    ;; Return exit code.
 	    (should (= 42 (process-file
-			   (tramp--test-shell-file-name)
-			   nil nil nil "-c" "exit 42")))
+			   (tramp--test-shell-file-name) nil nil nil
+			   (tramp--test-shell-command-switch) "exit 42")))
 	    ;; Return exit code in case the process is interrupted,
 	    ;; and there's no indication for a signal describing string.
 	    (unless (tramp--test-sshfs-p)
@@ -5101,8 +5104,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(should
 		 (= (+ 128 2)
 		    (process-file
-		     (tramp--test-shell-file-name)
-		     nil nil nil "-c" "kill -2 $$")))))
+		     (tramp--test-shell-file-name) nil nil nil
+		     (tramp--test-shell-command-switch) "kill -2 $$")))))
 	    ;; Return string in case the process is interrupted and
 	    ;; there's an indication for a signal describing string.
 	    (unless (tramp--test-sshfs-p)
@@ -5111,8 +5114,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		 (string-match-p
 		  (rx (| "Interrupt" "Signal 2"))
 		  (process-file
-		   (tramp--test-shell-file-name)
-		   nil nil nil "-c" "kill -2 $$")))))
+		   (tramp--test-shell-file-name) nil nil nil
+		   (tramp--test-shell-command-switch) "kill -2 $$")))))
 
 	    ;; Check DESTINATION.
 	    (dolist (destination `(nil t ,buffer))
@@ -6292,7 +6295,8 @@ INPUT, if non-nil, is a string sent to the process."
 	  (connection-local-set-profile-variables
 	   'remote-sh
 	   `((explicit-shell-file-name . ,(tramp--test-shell-file-name))
-	     (explicit-sh-args . ("-c" "echo foo"))))
+	     (explicit-sh-args
+	      . (,(tramp--test-shell-command-switch) "echo foo"))))
 	  (connection-local-set-profiles
 	   `(:application tramp
 	     :protocol ,(file-remote-p default-directory 'method)
@@ -7071,6 +7075,13 @@ This is used in tests which we don't want to tag
    (not (and (tramp--test-adb-p)
 	     (string-match-p (rx multibyte) default-directory)))))
 
+(defun tramp--test-box-p ()
+  "Check, whether the toolbox or distrobox method is used.
+This does not support `tramp-test45-asynchronous-requests'."
+  (string-match-p
+   (rx bol (| "toolbox" "distrobox") eol)
+   (file-remote-p ert-remote-temporary-file-directory 'method)))
+
 (defun tramp--test-container-p ()
   "Check, whether a container method is used.
 This does not support some special file names."
@@ -7221,12 +7232,6 @@ This does not support special file names."
   (string-equal
    "telnet" (file-remote-p ert-remote-temporary-file-directory 'method)))
 
-(defun tramp--test-toolbox-p ()
-  "Check, whether the toolbox method is used.
-This does not support `tramp-test45-asynchronous-requests'."
-  (string-equal
-   "toolbox" (file-remote-p ert-remote-temporary-file-directory 'method)))
-
 (defun tramp--test-windows-nt-p ()
   "Check, whether the locale host runs MS Windows."
   (eq system-type 'windows-nt))
@@ -7250,14 +7255,14 @@ This requires restrictions of file name syntax."
 
 (defun tramp--test-supports-processes-p ()
   "Return whether the method under test supports external processes."
-  ;; We use it to enable/disable tests in a given test run, for
-  ;; example for remote processes on MS Windows.
-  (if (tramp-connection-property-p
-       tramp-test-vec "tramp--test-supports-processes-p")
-      (tramp-get-connection-property
-       tramp-test-vec "tramp--test-supports-processes-p")
-    (and (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sshfs-p))
-	 (not (tramp--test-crypt-p)))))
+  (unless (tramp--test-crypt-p)
+    ;; We use it to enable/disable tests in a given test run, for
+    ;; example for remote processes on MS Windows.
+    (if (tramp-connection-property-p
+         tramp-test-vec "tramp--test-supports-processes-p")
+	(tramp-get-connection-property
+	 tramp-test-vec "tramp--test-supports-processes-p")
+      (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sshfs-p)))))
 
 (defun tramp--test-supports-set-file-modes-p ()
   "Return whether the method under test supports setting file modes."
@@ -7282,8 +7287,8 @@ This requires restrictions of file name syntax."
 	   (tmp-name1 (tramp--test-make-temp-name nil quoted))
 	   (tmp-name2 (tramp--test-make-temp-name 'local quoted))
 	   (files
-            (delq
-             nil (mapcar (lambda (x) (unless (string-empty-p x) x)) files)))
+            (tramp-compat-seq-keep
+	     (lambda (x) (unless (string-empty-p x) x)) files))
 	   (process-environment process-environment)
 	   (sorted-files (sort (copy-sequence files) #'string-lessp))
 	   buffer)
@@ -7715,7 +7720,7 @@ process sentinels.  They shall not disturb each other."
   (skip-unless (not (tramp--test-container-p)))
   (skip-unless (not (tramp--test-sshfs-p)))
   (skip-unless (not (tramp--test-telnet-p)))
-  (skip-unless (not (tramp--test-toolbox-p)))
+  (skip-unless (not (tramp--test-box-p)))
   (skip-unless (not (tramp--test-windows-nt-p)))
 
   (with-timeout
@@ -7723,7 +7728,6 @@ process sentinels.  They shall not disturb each other."
     (define-key special-event-map [sigusr1] #'tramp--test-timeout-handler)
     (let* (;; For the watchdog.
 	   (default-directory (expand-file-name temporary-file-directory))
-	   (shell-file-name (tramp--test-shell-file-name))
 	   ;; It doesn't work on w32 systems.
 	   (watchdog
             (start-process-shell-command
@@ -7793,7 +7797,7 @@ process sentinels.  They shall not disturb each other."
                        "Stop timer %s %s" file (current-time-string))
                       ;; Adjust timer if it takes too much time.
                       (when (> (- (float-time) time) timer-repeat)
-                        (setq timer-repeat (* 1.1 timer-repeat))
+                        (setq timer-repeat (* 1.1 (- (float-time) time)))
                         (setf (timer--repeat-delay timer) timer-repeat)
                         (tramp--test-message
                          "Increase timer %s" timer-repeat))))))))
@@ -7839,7 +7843,8 @@ process sentinels.  They shall not disturb each other."
                  (lambda (proc _state)
 		   (tramp--test-with-proper-process-name-and-buffer proc
                      (tramp--test-message
-                      "Process sentinel %s %s" proc (current-time-string)))))))
+                      "Process sentinel %s %s" proc (current-time-string)))))
+		(tramp--test-message "Process started %s" proc)))
 
             ;; Send a string to the processes.  Use a random order of
             ;; the buffers.  Mix with regular operation.
@@ -8299,6 +8304,8 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Implement `tramp-test31-interrupt-process' and
 ;;   `tramp-test31-signal-process' for "adb", "sshfs" and for direct
 ;;   async processes.  Check, why they don't run stable.
+;; * Check, why `tramp-test45-asynchronous-requests' often fails.  The
+;;   famous reentrant error?
 ;; * Check, why direct async processes do not work for
 ;;   `tramp-test45-asynchronous-requests'.
 

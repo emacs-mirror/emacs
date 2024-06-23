@@ -187,7 +187,7 @@ If the value is a function, call it with no arguments."
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         (force-mode-line-update))
+         (force-mode-line-update t))
   :group 'tab-line
   :version "27.1")
 
@@ -228,7 +228,7 @@ If nil, don't show it at all."
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         (force-mode-line-update))
+         (force-mode-line-update t))
   :group 'tab-line
   :version "27.1")
 
@@ -295,7 +295,8 @@ If nil, don't show it at all."
   "Function to get a tab name.
 The function is called with one or two arguments: the buffer or
 another object whose tab's name is requested, and, optionally,
-the list of all tabs."
+the list of all tabs.  The result of this function is cached
+using `tab-line-cache-key-function'."
   :type '(choice (const :tag "Buffer name"
                         tab-line-tab-name-buffer)
                  (const :tag "Truncated buffer name"
@@ -304,7 +305,7 @@ the list of all tabs."
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         (force-mode-line-update))
+         (tab-line-force-update t))
   :group 'tab-line
   :version "27.1")
 
@@ -348,7 +349,9 @@ buffers always keep the original order after switching buffers.
 When `tab-line-tabs-mode-buffers', return a list of buffers
 with the same major mode as the current buffer.
 When `tab-line-tabs-buffer-groups', return a list of buffers
-grouped by `tab-line-tabs-buffer-group-function'."
+grouped by `tab-line-tabs-buffer-group-function'.
+The result of this function is cached using
+`tab-line-cache-key-function'."
   :type '(choice (const :tag "Window buffers"
                         tab-line-tabs-window-buffers)
                  (const :tag "Window buffers with fixed order"
@@ -361,7 +364,7 @@ grouped by `tab-line-tabs-buffer-group-function'."
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         (force-mode-line-update))
+         (tab-line-force-update t))
   :group 'tab-line
   :version "27.1")
 
@@ -404,7 +407,7 @@ as a group name."
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         (force-mode-line-update))
+         (tab-line-force-update t))
   :group 'tab-line
   :version "30.1")
 
@@ -418,7 +421,7 @@ as a group name."
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         (force-mode-line-update))
+         (tab-line-force-update t))
   :group 'tab-line
   :version "30.1")
 
@@ -433,7 +436,7 @@ as a group name."
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         (force-mode-line-update))
+         (tab-line-force-update t))
   :group 'tab-line
   :version "30.1")
 
@@ -568,12 +571,13 @@ The function will be called two arguments: the tab whose name to format,
 and the list of all the tabs; it should return the formatted tab name
 to display in the tab line.
 The first argument could also be a different object, for example the buffer
-which the tab will represent."
+which the tab will represent.  The result of this function is cached
+using `tab-line-cache-key-function'."
   :type 'function
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         (force-mode-line-update))
+         (tab-line-force-update t))
   :group 'tab-line
   :version "28.1")
 
@@ -689,6 +693,18 @@ For use in `tab-line-tab-face-functions'."
 
 (defvar tab-line-auto-hscroll)
 
+(defun tab-line-force-update (all)
+  "Force redisplay of the current buffer’s tab line.
+This function also clears the tab-line cache.  With optional non-nil ALL,
+it clears the tab-line cache of all tab lines and forces their redisplay."
+  (if all
+      (walk-windows
+       (lambda (window)
+         (set-window-parameter window 'tab-line-cache nil))
+       'no-mini t)
+    (set-window-parameter nil 'tab-line-cache nil))
+  (force-mode-line-update all))
+
 (defun tab-line-cache-key-default (tabs)
   "Return default list of cache keys."
   (list
@@ -708,7 +724,8 @@ For use in `tab-line-tab-face-functions'."
 (defvar tab-line-cache-key-function #'tab-line-cache-key-default
   "Function that adds more cache keys.
 It is called with one argument, a list of tabs, and should return a list
-of cache keys.  You can use `add-function' to add more cache keys.")
+of cache keys.  You can use `add-function' to add more cache keys.
+Also there is the function `tab-line-force-update' that clears the cache.")
 
 (defun tab-line-format ()
   "Format for displaying the tab line of the selected window."

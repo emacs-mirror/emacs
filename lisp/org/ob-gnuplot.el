@@ -3,7 +3,7 @@
 ;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
-;; Maintainer: Ihor Radchenko <yantar92@gmail.com>
+;; Maintainer: Ihor Radchenko <yantar92 at posteo dot net>
 ;; Keywords: literate programming, reproducible research
 ;; URL: https://orgmode.org
 
@@ -45,6 +45,7 @@
 
 (require 'ob)
 (require 'org-macs)
+(require 'ox-ascii)
 
 (declare-function org-time-string-to-time "org" (s))
 (declare-function orgtbl-to-generic "org-table" (table params))
@@ -186,7 +187,7 @@ code."
       ;; value of the variable
       (mapc (lambda (pair)
 	      (setq body (replace-regexp-in-string
-			  (format "\\$%s" (car pair)) (cdr pair) body)))
+			  (format "\\$%s" (car pair)) (cdr pair) body t t)))
 	    vars)
       (when prologue (funcall add-to-body prologue))
       (when epilogue (setq body (concat body "\n" epilogue)))
@@ -196,9 +197,9 @@ code."
     body))
 
 (defun org-babel-execute:gnuplot (body params)
-  "Execute a block of Gnuplot code.
+  "Execute Gnuplot BODY according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
-  (require 'gnuplot)
+  (org-require-package 'gnuplot)
   (let ((session (cdr (assq :session params)))
         (result-type (cdr (assq :results params)))
         (body (org-babel-expand-body:gnuplot body params))
@@ -209,7 +210,7 @@ This function is called by `org-babel-execute-src-block'."
           (let ((script-file (org-babel-temp-file "gnuplot-script-")))
             (with-temp-file script-file
               (insert (concat body "\n")))
-            (message "gnuplot \"%s\"" script-file)
+            (unless noninteractive (message "gnuplot \"%s\"" script-file))
             (setq output
                   (shell-command-to-string
 		   (format
@@ -218,7 +219,7 @@ This function is called by `org-babel-execute-src-block'."
 		     script-file
 		     (if (member system-type '(cygwin windows-nt ms-dos))
 			 t nil)))))
-            (message "%s" output))
+            (unless noninteractive (message "%s" output)))
         (with-temp-buffer
           (insert (concat body "\n"))
           (gnuplot-mode)
@@ -231,7 +232,7 @@ This function is called by `org-babel-execute-src-block'."
   "Prepare SESSION according to the header arguments in PARAMS."
   (let* ((session (org-babel-gnuplot-initiate-session session))
          (var-lines (org-babel-variable-assignments:gnuplot params)))
-    (message "%S" session)
+    (unless noninteractive (message "%S" session))
     (org-babel-comint-in-buffer session
       (dolist (var-line  var-lines)
 	(insert var-line)
@@ -251,7 +252,8 @@ This function is called by `org-babel-execute-src-block'."
       buffer)))
 
 (defun org-babel-variable-assignments:gnuplot (params)
-  "Return list of gnuplot statements assigning the block's variables."
+  "Return list of gnuplot statements assigning the block's variables.
+PARAMS is src block parameters alist defining variable assignments."
   (mapcar
    (lambda (pair) (format "%s = \"%s\"" (car pair) (cdr pair)))
    (org-babel-gnuplot-process-vars params)))
@@ -262,7 +264,7 @@ This function is called by `org-babel-execute-src-block'."
 If there is not a current inferior-process-buffer in SESSION
 then create one.  Return the initialized session.  The current
 `gnuplot-mode' doesn't provide support for multiple sessions."
-  (require 'gnuplot)
+  (org-require-package 'gnuplot)
   (unless (string= session "none")
     (save-window-excursion
       (gnuplot-send-string-to-gnuplot "" "line")
@@ -295,14 +297,29 @@ Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
   (require 'ox-org)
   (with-temp-file data-file
     (insert (let ((org-babel-gnuplot-timestamp-fmt
-		   (or (plist-get params :timefmt) "%Y-%m-%d-%H:%M:%S")))
+		   (or (plist-get params :timefmt) "%Y-%m-%d-%H:%M:%S"))
+                  ;; Create custom limited backend that will disable
+                  ;; advanced ASCII export features that may alter the
+                  ;; original data.
+                  (ob-gnuplot-data
+                   (org-export-create-backend
+                    :parent 'ascii
+                    :transcoders
+                    `(;; Do not try to resolve links.  Export them verbatim.
+                      (link . (lambda (link _ _) (org-element-interpret-data link)))
+                      ;; Drop emphasis markers from verbatim and code.
+                      ;; This way, data can use verbatim when escaping
+                      ;; is necessary and yet be readable by Gnuplot,
+                      ;; which is not aware about Org's markup.
+                      (verbatim . (lambda (verbatim _ _) (org-element-property :value verbatim)))
+                      (code . (lambda (code _ _) (org-element-property :value code)))))))
 	      (orgtbl-to-generic
 	       table
 	       (org-combine-plists
-		'( :sep "\t" :fmt org-babel-gnuplot-quote-tsv-field
+		`( :sep "\t" :fmt org-babel-gnuplot-quote-tsv-field
                    ;; Two setting below are needed to make :fmt work.
                    :raw t
-                   :backend ascii)
+                   :backend ,ob-gnuplot-data)
 		params)))))
   data-file)
 

@@ -48,6 +48,7 @@
 
 (ert-deftest tar-mode-test-tar-extract-zip-and-gz ()
   (skip-unless (executable-find "gzip"))
+  (skip-unless (executable-find "unzip"))
   (require 'arc-mode)
   (let* ((tar-file (expand-file-name "tzg.tar.gz" tar-mode-tests-data-directory))
          tar-buffer zip-buffer gz-buffer)

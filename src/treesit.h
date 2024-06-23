@@ -49,9 +49,6 @@ struct Lisp_TS_Parser
      ranges the users wants to set, and avoid reparse if the new
      ranges is the same as the last set one.  */
   Lisp_Object last_set_ranges;
-  /* The range of buffer content that was affected by the last
-     re-parse.  */
-  Lisp_Object last_changed_ranges;
   /* The buffer associated with this parser.  */
   Lisp_Object buffer;
   /* The pointer to the tree-sitter parser.  Never NULL.  */
@@ -197,6 +194,7 @@ extern Lisp_Object make_treesit_parser (Lisp_Object, TSParser *, TSTree *,
 extern Lisp_Object make_treesit_node (Lisp_Object, TSNode);
 
 extern bool treesit_node_uptodate_p (Lisp_Object);
+extern bool treesit_node_buffer_live_p (Lisp_Object);
 
 extern void treesit_delete_parser (struct Lisp_TS_Parser *);
 extern void treesit_delete_query (struct Lisp_TS_Query *);

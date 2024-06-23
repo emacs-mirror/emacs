@@ -984,6 +984,8 @@ make_frame (bool mini_p)
   f->tooltip = false;
   f->was_invisible = false;
   f->child_frame_border_width = -1;
+  f->face_cache = NULL;
+  f->image_cache = NULL;
   f->last_tab_bar_item = -1;
 #ifndef HAVE_EXT_TOOL_BAR
   f->last_tool_bar_item = -1;
@@ -4733,7 +4735,7 @@ void
 gui_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   Lisp_Object font_object;
-  int fontset = -1;
+  int fontset = -1, iwidth;
 
   /* Set the frame parameter back to the old value because we may
      fail to use ARG as the new parameter value.  */
@@ -4811,6 +4813,35 @@ gui_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   f->n_tab_bar_rows = 0;
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;
+
+  /* Re-initialize F's image cache.  Since `set_new_font_hook' might
+     have changed the frame's column width, by which images are scaled,
+     it might likewise need to be assigned a different image cache, or
+     have its existing cache adjusted, if by coincidence it is its sole
+     user.  */
+
+  iwidth = max (10, FRAME_COLUMN_WIDTH (f));
+  if (FRAME_IMAGE_CACHE (f)
+      && (iwidth != FRAME_IMAGE_CACHE (f)->scaling_col_width))
+    {
+      eassert (FRAME_IMAGE_CACHE (f)->refcount >= 1);
+      if (FRAME_IMAGE_CACHE (f)->refcount == 1)
+	{
+	  /* This frame is the only user of this image cache.  */
+	  FRAME_IMAGE_CACHE (f)->scaling_col_width = iwidth;
+	  /* Clean F's image cache of images whose values are derived
+	     from the font width.  */
+	  clear_image_cache (f, Qauto);
+	}
+      else
+	{
+	  /* Release the current image cache, and reuse or allocate a
+	     new image cache with IWIDTH.  */
+	  FRAME_IMAGE_CACHE (f)->refcount--;
+	  FRAME_IMAGE_CACHE (f) = share_image_cache (f);
+	  FRAME_IMAGE_CACHE (f)->refcount++;
+	}
+    }
 
   /* Ensure we redraw it.  */
   clear_current_matrices (f);

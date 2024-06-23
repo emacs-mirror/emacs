@@ -48,7 +48,7 @@
 
 (require 'esh-mode)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-pred nil
   "This module allows for predicates to be applied to globbing
@@ -576,9 +576,4 @@ If INVERT-P is non-nil, include only members not matching a regexp."
        lst))))
 
 (provide 'em-pred)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-pred.el ends here

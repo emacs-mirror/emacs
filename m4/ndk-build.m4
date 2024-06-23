@@ -178,6 +178,7 @@ but a working C++ compiler was not found.])])
   AC_MSG_RESULT([yes])
 
   # Make sure the module is prepended.
+  ndk_MODULES="$ndk_MODULES $module_target"
   ndk_MAKEFILES="$ndk_android_mk $ndk_MAKEFILES"
   ndk_import_includes="$module_includes $ndk_import_includes"
 

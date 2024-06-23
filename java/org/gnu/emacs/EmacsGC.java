@@ -55,7 +55,7 @@ public final class EmacsGC extends EmacsHandleObject
   public EmacsPixmap clip_mask, stipple;
   public Paint gcPaint;
 
-  /* Drawable object for rendering the stiple bitmap.  */
+  /* Drawable object for rendering the stipple bitmap.  */
   public EmacsTileObject tileObject;
 
   /* ID incremented every time the clipping rectangles of any GC

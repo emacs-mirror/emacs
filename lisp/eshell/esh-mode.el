@@ -198,6 +198,11 @@ This is used by `eshell-watch-for-password-prompt'."
   :type 'directory
   :group 'eshell)
 
+(defvar eshell-password-prompt-max-length 256
+  "The maximum amount of text to examine when matching password prompts.
+This is used by `eshell-watch-for-password-prompt' to reduce the amount
+of time spent searching for password prompts.")
+
 (defvar eshell-first-time-p t
   "A variable which is non-nil the first time Eshell is loaded.")
 
@@ -372,36 +377,16 @@ and the hook `eshell-exit-hook'."
   ;; strong R2L character.
   (setq bidi-paragraph-direction 'left-to-right)
 
-  ;; load extension modules into memory.  This will cause any global
-  ;; variables they define to be visible, since some of the core
-  ;; modules sometimes take advantage of their functionality if used.
-  (dolist (module eshell-modules-list)
-    (let ((module-fullname (symbol-name module))
-	  module-shortname)
-      (if (string-match "^eshell-\\(.*\\)" module-fullname)
-	  (setq module-shortname
-		(concat "em-" (match-string 1 module-fullname))))
-      (unless module-shortname
-	(error "Invalid Eshell module name: %s" module-fullname))
-      (unless (featurep (intern module-shortname))
-        (condition-case nil
-            (load module-shortname)
-          (error (lwarn 'eshell :error
-                        "Unable to load module `%s' (defined in `eshell-modules-list')"
-                        module-fullname))))))
+  ;; Load extension modules into memory.
+  (eshell-load-modules eshell-modules-list)
 
   (unless (file-exists-p eshell-directory-name)
-    (eshell-make-private-directory eshell-directory-name t))
+    (with-demoted-errors "Error creating Eshell directory: %s"
+      (eshell-make-private-directory eshell-directory-name t)))
 
-  ;; Load core Eshell modules, then extension modules, for this session.
-  (dolist (module (append (eshell-subgroups 'eshell) eshell-modules-list))
-    (let ((load-hook (intern-soft (format "%s-load-hook" module)))
-          (initfunc (intern-soft (format "%s-initialize" module))))
-      (when (and load-hook (boundp load-hook))
-        (if (memq initfunc (symbol-value load-hook)) (setq initfunc nil))
-        (run-hooks load-hook))
-      ;; So we don't need the -initialize functions on the hooks (bug#5375).
-      (and initfunc (fboundp initfunc) (funcall initfunc))))
+  ;; Initialize core Eshell modules, then extension modules, for this session.
+  (eshell-initialize-modules (eshell-subgroups 'eshell))
+  (eshell-initialize-modules eshell-modules-list)
 
   (if eshell-send-direct-to-subprocesses
       (add-hook 'pre-command-hook #'eshell-intercept-commands t t))
@@ -622,8 +607,7 @@ newline."
   (interactive "P")
   ;; Note that the input string does not include its terminal newline.
   (let* ((proc-running-p (eshell-head-process))
-         (send-to-process-p (and proc-running-p (not queue-p)))
-         (inhibit-modification-hooks t))
+         (send-to-process-p (and proc-running-p (not queue-p))))
     (unless (and send-to-process-p
 		 (not (eq (process-status
 			   (eshell-head-process))
@@ -680,15 +664,11 @@ newline."
 				  (eval cmd)
 				(eshell-eval-command cmd input))))
 			   (eshell-life-is-too-much)))))
-	      (quit
-	       (eshell-reset t)
-	       (run-hooks 'eshell-post-command-hook)
-	       (signal 'quit nil))
 	      (error
 	       (eshell-reset t)
 	       (eshell-interactive-print
 		(concat (error-message-string err) "\n"))
-	       (run-hooks 'eshell-post-command-hook)
+               (run-hooks 'eshell-post-command-hook)
 	       (insert-and-inherit input)))))))))
 
 (defun eshell-send-eof-to-process ()
@@ -710,41 +690,40 @@ This is done after all necessary filtering has been done."
   (unless buffer
     (setq buffer (current-buffer)))
   (when (and string (buffer-live-p buffer))
-    (let ((inhibit-modification-hooks t))
-      (with-current-buffer buffer
-        (let ((functions eshell-preoutput-filter-functions))
-          (while (and functions string)
-            (setq string (funcall (car functions) string))
-            (setq functions (cdr functions))))
-        (when string
-          (let (opoint obeg oend)
-            (setq opoint (point))
-            (setq obeg (point-min))
-            (setq oend (point-max))
-            (let ((buffer-read-only nil)
-                  (nchars (length string))
-                  (ostart nil))
-              (widen)
-              (goto-char eshell-last-output-end)
-              (setq ostart (point))
-              (if (<= (point) opoint)
-                  (setq opoint (+ opoint nchars)))
-              (if (< (point) obeg)
-                  (setq obeg (+ obeg nchars)))
-              (if (<= (point) oend)
-                  (setq oend (+ oend nchars)))
-              ;; Let the ansi-color overlay hooks run.
-              (let ((inhibit-modification-hooks nil))
-                (insert string))
-              (if (= (window-start) (point))
-                  (set-window-start (selected-window)
-                                    (- (point) nchars)))
-              (set-marker eshell-last-output-start ostart)
-              (set-marker eshell-last-output-end (point))
-              (force-mode-line-update))
-            (narrow-to-region obeg oend)
-            (goto-char opoint)
-            (eshell-run-output-filters)))))))
+    (with-current-buffer buffer
+      (let ((functions eshell-preoutput-filter-functions))
+        (while (and functions string)
+          (setq string (funcall (car functions) string))
+          (setq functions (cdr functions))))
+      (when string
+        (let (opoint obeg oend)
+          (setq opoint (point))
+          (setq obeg (point-min))
+          (setq oend (point-max))
+          (let ((buffer-read-only nil)
+                (nchars (length string))
+                (ostart nil))
+            (widen)
+            (goto-char eshell-last-output-end)
+            (setq ostart (point))
+            (if (<= (point) opoint)
+                (setq opoint (+ opoint nchars)))
+            (if (< (point) obeg)
+                (setq obeg (+ obeg nchars)))
+            (if (<= (point) oend)
+                (setq oend (+ oend nchars)))
+            ;; Let the ansi-color overlay hooks run.
+            (let ((inhibit-modification-hooks nil))
+              (insert string))
+            (if (= (window-start) (point))
+                (set-window-start (selected-window)
+                                  (- (point) nchars)))
+            (set-marker eshell-last-output-start ostart)
+            (set-marker eshell-last-output-end (point))
+            (force-mode-line-update))
+          (narrow-to-region obeg oend)
+          (goto-char opoint)
+          (eshell-run-output-filters))))))
 
 (defun eshell-run-output-filters ()
   "Run the `eshell-output-filter-functions' on the current output."
@@ -791,30 +770,25 @@ This function should be in the list `eshell-output-filter-functions'."
 	 (current (current-buffer))
 	 (scroll eshell-scroll-to-bottom-on-output))
     (unwind-protect
-	(walk-windows
-         (lambda (window)
-           (if (eq (window-buffer window) current)
-               (progn
-                 (select-window window)
-                 (if (and (< (point) eshell-last-output-end)
-                          (or (eq scroll t) (eq scroll 'all)
-                              ;; Maybe user wants point to jump to end.
-                              (and (eq scroll 'this)
-                                   (eq selected window))
-                              (and (eq scroll 'others)
-                                   (not (eq selected window)))
-                              ;; If point was at the end, keep it at end.
-                              (>= (point) eshell-last-output-start)))
-                     (goto-char eshell-last-output-end))
-                 ;; Optionally scroll so that the text
-                 ;; ends at the bottom of the window.
-                 (if (and eshell-scroll-show-maximum-output
-                          (>= (point) eshell-last-output-end))
-                     (save-excursion
-                       (goto-char (point-max))
-                       (recenter -1)))
-                 (select-window selected))))
-	 nil t)
+        (dolist (window (get-buffer-window-list current nil t))
+          (with-selected-window window
+            (when (and (< (point) eshell-last-output-end)
+                       (or (eq scroll t) (eq scroll 'all)
+                           ;; Maybe user wants point to jump to end.
+                           (and (eq scroll 'this)
+                                (eq selected window))
+                           (and (eq scroll 'others)
+                                (not (eq selected window)))
+                           ;; If point was at the end, keep it at end.
+                           (>= (point) eshell-last-output-start)))
+              (goto-char eshell-last-output-end))
+            ;; Optionally scroll so that the text ends at the bottom of
+            ;; the window.
+            (when (and eshell-scroll-show-maximum-output
+                       (>= (point) eshell-last-output-end))
+              (save-excursion
+                (goto-char (point-max))
+                (recenter -1)))))
       (set-buffer current))))
 
 (defun eshell-beginning-of-input ()
@@ -978,21 +952,22 @@ buffer's process if STRING contains a password prompt defined by
 `eshell-password-prompt-regexp'.
 
 This function could be in the list `eshell-output-filter-functions'."
-  (when eshell-foreground-command
+  (when (eshell-head-process)
     (save-excursion
-      (let ((case-fold-search t))
-	(goto-char eshell-last-output-block-begin)
-	(beginning-of-line)
-	(if (re-search-forward eshell-password-prompt-regexp
-			       eshell-last-output-end t)
-            ;; Use `run-at-time' in order not to pause execution of
-            ;; the process filter with a minibuffer
-	    (run-at-time
-             0 nil
-             (lambda (current-buf)
-               (with-current-buffer current-buf
-                 (eshell-send-invisible)))
-             (current-buffer)))))))
+      (goto-char (max eshell-last-output-block-begin
+                      (- eshell-last-output-end
+                         eshell-password-prompt-max-length)))
+      (when (let ((case-fold-search t))
+              (re-search-forward eshell-password-prompt-regexp
+                                 eshell-last-output-end t))
+        ;; Use `run-at-time' in order not to pause execution of the
+        ;; process filter with a minibuffer.
+        (run-at-time
+         0 nil
+         (lambda (current-buf)
+           (with-current-buffer current-buf
+             (eshell-send-invisible)))
+         (current-buffer))))))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-watch-for-password-prompt)
@@ -1003,27 +978,24 @@ This function could be in the list `eshell-output-filter-functions'."
     (goto-char eshell-last-output-block-begin)
     (unless (eolp)
       (beginning-of-line))
-    (while (< (point) eshell-last-output-end)
-      (let ((char (char-after)))
+    (while (re-search-forward (rx (any ?\r ?\a ?\C-h))
+                              eshell-last-output-end t)
+      (let ((char (char-before)))
         (cond
          ((eq char ?\r)
-          (if (< (1+ (point)) eshell-last-output-end)
-              (if (memq (char-after (1+ (point)))
-                        '(?\n ?\r))
-                  (delete-char 1)
-                (let ((end (1+ (point))))
+          (if (< (point) eshell-last-output-end)
+              (if (memq (char-after (point)) '(?\n ?\r))
+                  (delete-char -1)
+                (let ((end (point)))
                   (beginning-of-line)
                   (delete-region (point) end)))
-            (add-text-properties (point) (1+ (point))
-                                 '(invisible t))
-            (forward-char)))
+            (add-text-properties (1- (point)) (point)
+                                 '(invisible t))))
          ((eq char ?\a)
-          (delete-char 1)
+          (delete-char -1)
           (beep))
          ((eq char ?\C-h)
-          (delete-region (1- (point)) (1+ (point))))
-         (t
-          (forward-char)))))))
+          (delete-region (- (point) 2) (point))))))))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-handle-control-codes)

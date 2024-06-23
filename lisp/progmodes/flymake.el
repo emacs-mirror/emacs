@@ -188,7 +188,7 @@ See `flymake-error-bitmap' and `flymake-warning-bitmap'."
 The value can be nil (don't indicate errors but just highlight them),
 fringes (use fringes) or margins (use margins)
 
-Difference between fringes and margin is that fringes support diplaying
+Difference between fringes and margin is that fringes support displaying
 bitmaps on graphical displays and margins display text in a blank area
 from current buffer that works in both graphical and text displays.
 
@@ -788,7 +788,7 @@ Return to original margin width if ORIG-WIDTH is non-nil."
                       left-margin-width 2)
         (setq-local flymake--original-margin-width right-margin-width
                     right-margin-width 2))))
-    ;; Apply margin to all windows avalaibles
+    ;; Apply margin to all windows available.
     (mapc (lambda (x)
             (set-window-buffer x (window-buffer x)))
           (get-buffer-window-list nil nil 'visible))))

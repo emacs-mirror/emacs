@@ -58,7 +58,7 @@
 (require 'esh-opt)
 (require 'esh-util)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-basic nil
   "The \"basic\" code provides a set of convenience functions which
@@ -225,9 +225,4 @@ are:
   (while (pcomplete-here '("error" "form" "process"))))
 
 (provide 'em-basic)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-basic.el ends here

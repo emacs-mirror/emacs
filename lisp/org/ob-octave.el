@@ -70,11 +70,12 @@ end")
 (defvar org-babel-octave-eoe-output "ans = org_babel_eoe")
 
 (defun org-babel-execute:matlab (body params)
-  "Execute a block of matlab code with Babel."
+  "Execute Matlab BODY according to PARAMS."
   (org-babel-execute:octave body params 'matlab))
 
 (defun org-babel-execute:octave (body params &optional matlabp)
-  "Execute a block of octave code with Babel."
+  "Execute Octave or Matlab BODY according to PARAMS.
+When MATLABP is non-nil, execute Matlab.  Otherwise, execute Octave."
   (let* ((session
 	  (funcall (intern (format "org-babel-%s-initiate-session"
 				   (if matlabp "matlab" "octave")))
@@ -109,7 +110,8 @@ end")
   (org-babel-prep-session:octave session params 'matlab))
 
 (defun org-babel-variable-assignments:octave (params)
-  "Return list of octave statements assigning the block's variables."
+  "Return list of octave statements assigning the block's variables.
+The variables are taken from PARAMS."
   (mapcar
    (lambda (pair)
      (format "%s=%s;"
@@ -120,21 +122,22 @@ end")
 (defalias 'org-babel-variable-assignments:matlab
   'org-babel-variable-assignments:octave)
 
-(defun org-babel-octave-var-to-octave (var)
-  "Convert an emacs-lisp value into an octave variable.
+(defun org-babel-octave-var-to-octave (value)
+  "Convert an emacs-lisp VALUE into an octave variable.
 Converts an emacs-lisp variable into a string of octave code
 specifying a variable of the same value."
-  (if (listp var)
-      (concat "[" (mapconcat #'org-babel-octave-var-to-octave var
-			     (if (listp (car var)) "; " ",")) "]")
+  (if (listp value)
+      (concat "[" (mapconcat #'org-babel-octave-var-to-octave value
+			     (if (listp (car value)) "; " ",")) "]")
     (cond
-     ((stringp var)
-      (format "'%s'" var))
+     ((stringp value)
+      (format "'%s'" value))
      (t
-      (format "%s" var)))))
+      (format "%s" value)))))
 
 (defun org-babel-prep-session:octave (session params &optional matlabp)
-  "Prepare SESSION according to the header arguments specified in PARAMS."
+  "Prepare SESSION according to the header arguments specified in PARAMS.
+The session will be an Octave session, unless MATLABP is non-nil."
   (let* ((session (org-babel-octave-initiate-session session params matlabp))
 	 (var-lines (org-babel-variable-assignments:octave params)))
     (org-babel-comint-in-buffer session
@@ -147,15 +150,18 @@ specifying a variable of the same value."
 (defun org-babel-matlab-initiate-session (&optional session params)
   "Create a matlab inferior process buffer.
 If there is not a current inferior-process-buffer in SESSION then
-create.  Return the initialized session."
+create.  Return the initialized session.  PARAMS are src block parameters."
   (org-babel-octave-initiate-session session params 'matlab))
 
 (defun org-babel-octave-initiate-session (&optional session _params matlabp)
   "Create an octave inferior process buffer.
 If there is not a current inferior-process-buffer in SESSION then
-create.  Return the initialized session."
-  (if matlabp (require 'matlab) (or (require 'octave-inf nil 'noerror)
-				    (require 'octave)))
+create.  Return the initialized session.  The session will be an
+Octave session, unless MATLABP is non-nil."
+  (if matlabp
+      (org-require-package 'matlab "matlab-mode")
+    (or (require 'octave-inf nil 'noerror)
+	(require 'octave)))
   (unless (string= session "none")
     (let ((session (or session
 		       (if matlabp "*Inferior Matlab*" "*Inferior Octave*"))))
@@ -178,7 +184,8 @@ value of the last statement in BODY, as elisp."
     (org-babel-octave-evaluate-external-process body result-type matlabp)))
 
 (defun org-babel-octave-evaluate-external-process (body result-type matlabp)
-  "Evaluate BODY in an external octave process."
+  "Evaluate BODY in an external Octave or Matalab process.
+Process the result as RESULT-TYPE.  Use Octave, unless MATLABP is non-nil."
   (let ((cmd (if matlabp
 		 org-babel-matlab-shell-command
 	       org-babel-octave-shell-command)))

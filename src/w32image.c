@@ -65,6 +65,16 @@ typedef GpStatus (WINGDIPAPI *GdipCreateHBITMAPFromBitmap_Proc)
 typedef GpStatus (WINGDIPAPI *GdipDisposeImage_Proc) (GpImage *);
 typedef GpStatus (WINGDIPAPI *GdipGetImageHeight_Proc) (GpImage *, UINT *);
 typedef GpStatus (WINGDIPAPI *GdipGetImageWidth_Proc) (GpImage *, UINT *);
+typedef GpStatus (WINGDIPAPI *GdipGetImageEncodersSize_Proc) (UINT *, UINT *);
+typedef GpStatus (WINGDIPAPI *GdipGetImageEncoders_Proc)
+ (UINT, UINT, ImageCodecInfo *);
+typedef GpStatus (WINGDIPAPI *GdipLoadImageFromFile_Proc)
+ (GDIPCONST WCHAR *,GpImage **);
+typedef GpStatus (WINGDIPAPI *GdipGetImageThumbnail_Proc)
+ (GpImage *, UINT, UINT, GpImage**, GetThumbnailImageAbort, VOID *);
+typedef GpStatus (WINGDIPAPI *GdipSaveImageToFile_Proc)
+ (GpImage *, GDIPCONST WCHAR *, GDIPCONST CLSID *,
+ GDIPCONST EncoderParameters *);
 
 GdiplusStartup_Proc fn_GdiplusStartup;
 GdiplusShutdown_Proc fn_GdiplusShutdown;
@@ -81,6 +91,11 @@ GdipCreateHBITMAPFromBitmap_Proc fn_GdipCreateHBITMAPFromBitmap;
 GdipDisposeImage_Proc fn_GdipDisposeImage;
 GdipGetImageHeight_Proc fn_GdipGetImageHeight;
 GdipGetImageWidth_Proc fn_GdipGetImageWidth;
+GdipGetImageEncodersSize_Proc fn_GdipGetImageEncodersSize;
+GdipGetImageEncoders_Proc fn_GdipGetImageEncoders;
+GdipLoadImageFromFile_Proc fn_GdipLoadImageFromFile;
+GdipGetImageThumbnail_Proc fn_GdipGetImageThumbnail;
+GdipSaveImageToFile_Proc fn_GdipSaveImageToFile;
 
 static bool
 gdiplus_init (void)
@@ -161,6 +176,26 @@ gdiplus_init (void)
       if (!fn_SHCreateMemStream)
 	return false;
     }
+  fn_GdipGetImageEncodersSize = (GdipGetImageEncodersSize_Proc)
+    get_proc_addr (gdiplus_lib, "GdipGetImageEncodersSize");
+  if (!fn_GdipGetImageEncodersSize)
+    return false;
+  fn_GdipGetImageEncoders = (GdipGetImageEncoders_Proc)
+    get_proc_addr (gdiplus_lib, "GdipGetImageEncoders");
+  if (!fn_GdipGetImageEncoders)
+    return false;
+  fn_GdipLoadImageFromFile = (GdipLoadImageFromFile_Proc)
+    get_proc_addr (gdiplus_lib, "GdipLoadImageFromFile");
+  if (!fn_GdipLoadImageFromFile)
+    return false;
+  fn_GdipGetImageThumbnail = (GdipGetImageThumbnail_Proc)
+    get_proc_addr (gdiplus_lib, "GdipGetImageThumbnail");
+  if (!fn_GdipGetImageThumbnail)
+    return false;
+  fn_GdipSaveImageToFile = (GdipSaveImageToFile_Proc)
+    get_proc_addr (gdiplus_lib, "GdipSaveImageToFile");
+  if (!fn_GdipSaveImageToFile)
+    return false;
 
   return true;
 }
@@ -180,6 +215,11 @@ gdiplus_init (void)
 # undef GdipDisposeImage
 # undef GdipGetImageHeight
 # undef GdipGetImageWidth
+# undef GdipGetImageEncodersSize
+# undef GdipGetImageEncoders
+# undef GdipLoadImageFromFile
+# undef GdipGetImageThumbnail
+# undef GdipSaveImageToFile
 
 # define GdiplusStartup fn_GdiplusStartup
 # define GdiplusShutdown fn_GdiplusShutdown
@@ -196,6 +236,11 @@ gdiplus_init (void)
 # define GdipDisposeImage fn_GdipDisposeImage
 # define GdipGetImageHeight fn_GdipGetImageHeight
 # define GdipGetImageWidth fn_GdipGetImageWidth
+# define GdipGetImageEncodersSize fn_GdipGetImageEncodersSize
+# define GdipGetImageEncoders fn_GdipGetImageEncoders
+# define GdipLoadImageFromFile fn_GdipLoadImageFromFile
+# define GdipGetImageThumbnail fn_GdipGetImageThumbnail
+# define GdipSaveImageToFile fn_GdipSaveImageToFile
 
 #endif	/* WINDOWSNT */
 
@@ -475,4 +520,163 @@ w32_load_image (struct frame *f, struct image *img,
       return 0;
     }
   return 1;
+}
+
+struct cached_encoder {
+  int num;
+  char *type;
+  CLSID clsid;
+};
+
+static struct cached_encoder last_encoder;
+
+struct thumb_type_data {
+  const char *ext;
+  const wchar_t *mime;
+};
+
+static struct thumb_type_data thumb_types [] =
+  {
+    /* jpg and png are at the front because 'image-dired-thumb-name'
+       uses them in most cases. */
+    {"jpg", L"image/jpeg"},
+    {"png", L"image/png"},
+    {"bmp", L"image/bmp"},
+    {"jpeg", L"image/jpeg"},
+    {"gif", L"image/gif"},
+    {"tiff", L"image/tiff"},
+    {NULL, NULL}
+  };
+
+
+static int
+get_encoder_clsid (const char *type, CLSID *clsid)
+{
+  /* A simple cache based on the assumptions that many thumbnails will
+     be generated using the same TYPE.  */
+  if (last_encoder.type && stricmp (type, last_encoder.type) == 0)
+    {
+      *clsid = last_encoder.clsid;
+      return last_encoder.num;
+    }
+
+  const wchar_t *format = NULL;
+  struct thumb_type_data *tp = thumb_types;
+  for ( ; tp->ext; tp++)
+    {
+      if (stricmp (type, tp->ext) == 0)
+	{
+	  format = tp->mime;
+	  break;
+	}
+    }
+  if (!format)
+    return -1;
+
+  unsigned num = 0;
+  unsigned size = 0;
+  ImageCodecInfo *image_codec_info = NULL;
+
+  GdipGetImageEncodersSize (&num, &size);
+  if(size == 0)
+    return -1;
+
+  image_codec_info = xmalloc (size);
+  GdipGetImageEncoders (num, size, image_codec_info);
+
+  for (int j = 0; j < num; ++j)
+    {
+      if (wcscmp (image_codec_info[j].MimeType, format) == 0 )
+	{
+	  if (last_encoder.type)
+	    xfree (last_encoder.type);
+	  last_encoder.type = xstrdup (tp->ext);
+	  last_encoder.clsid = image_codec_info[j].Clsid;
+	  last_encoder.num = j;
+          *clsid = image_codec_info[j].Clsid;
+          xfree (image_codec_info);
+          return j;
+	}
+    }
+
+  xfree (image_codec_info);
+  return -1;
+}
+
+DEFUN ("w32image-create-thumbnail", Fw32image_create_thumbnail,
+       Sw32image_create_thumbnail, 5, 5, 0,
+       doc: /* Create a HEIGHT by WIDTH thumnail file THUMB-FILE for image INPUT-FILE.
+TYPE is the image type to use for the thumbnail file, a string.  It is
+usually identical to the file-name extension of THUMB-FILE, but without
+the leading period, and both "jpeg" and "jpg" can be used for JPEG.
+TYPE is matched case-insensitively against supported types.  Currently,
+the supported TYPEs are BMP, JPEG, GIF, TIFF, and PNG; any other type
+will cause the function to fail.
+Return non-nil if thumbnail creation succeeds, nil otherwise.  */)
+  (Lisp_Object input_file, Lisp_Object thumb_file, Lisp_Object type,
+   Lisp_Object height, Lisp_Object width)
+{
+  /* Sanity checks.  */
+  CHECK_STRING (input_file);
+  CHECK_STRING (thumb_file);
+  CHECK_STRING (type);
+  CHECK_FIXNAT (height);
+  CHECK_FIXNAT (width);
+
+  if (!gdiplus_started)
+    {
+      if (!gdiplus_startup ())
+	return Qnil;
+    }
+
+  /* Create an image by reading from INPUT_FILE.  */
+  wchar_t input_file_w[MAX_PATH];
+  input_file
+    = ENCODE_FILE (Fexpand_file_name (Fcopy_sequence (input_file), Qnil));
+  unixtodos_filename (SSDATA (input_file));
+  filename_to_utf16 (SSDATA (input_file), input_file_w);
+  GpImage *file_image;
+  GpStatus status = GdipLoadImageFromFile (input_file_w, &file_image);
+
+  if (status == Ok)
+    {
+      /* Create a thumbnail for the image.  */
+      GpImage *thumb_image;
+      status = GdipGetImageThumbnail (file_image,
+				      XFIXNAT (width), XFIXNAT (height),
+				      &thumb_image, NULL, NULL);
+      GdipDisposeImage (file_image);
+      CLSID thumb_clsid;
+      if (status == Ok
+	  /* Get the GUID of the TYPE's encoder. */
+	  && get_encoder_clsid (SSDATA (type), &thumb_clsid) >= 0)
+	{
+	  /* Save the thumbnail image to a file of specified TYPE.  */
+	  wchar_t thumb_file_w[MAX_PATH];
+	  thumb_file
+	    = ENCODE_FILE (Fexpand_file_name (Fcopy_sequence (thumb_file),
+					      Qnil));
+	  unixtodos_filename (SSDATA (thumb_file));
+	  filename_to_utf16 (SSDATA (thumb_file), thumb_file_w);
+	  status = GdipSaveImageToFile (thumb_image, thumb_file_w,
+					&thumb_clsid, NULL);
+	  GdipDisposeImage (thumb_image);
+	}
+      else if (status == Ok)	/* no valid encoder */
+	status = InvalidParameter;
+    }
+  return (status == Ok) ? Qt : Qnil;
+}
+
+void
+syms_of_w32image (void)
+{
+  defsubr (&Sw32image_create_thumbnail);
+}
+
+void
+globals_of_w32image (void)
+{
+  /* This is only needed in an unexec build.  */
+  memset (&last_encoder, 0, sizeof last_encoder);
 }

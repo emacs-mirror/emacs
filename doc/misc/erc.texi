@@ -518,6 +518,10 @@ or your nickname is mentioned
 @item page
 Process CTCP PAGE requests from IRC
 
+@cindex modules, querypoll
+@item querypoll
+Update query participant data by continually polling the server
+
 @cindex modules, readonly
 @item readonly
 Make displayed lines read-only

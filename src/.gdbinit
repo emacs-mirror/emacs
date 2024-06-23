@@ -926,6 +926,36 @@ Set $ as a hash table pointer.
 This command assumes that $ is an Emacs Lisp hash table value.
 end
 
+define xtsparser
+  xgetptr $
+  print (struct Lisp_TS_Parser *) $ptr
+  output *$
+  echo \n
+end
+document xtsparser
+Print the address of the treesit-parser which the Lisp_Object $ points to.
+end
+
+define xtsnode
+  xgetptr $
+  print (struct Lisp_TS_Node *) $ptr
+  output *$
+  echo \n
+end
+document xtsnode
+Print the address of the treesit-node which the Lisp_Object $ points to.
+end
+
+define xtsquery
+  xgetptr $
+  print (struct Lisp_TS_Query *) $ptr
+  output *$
+  echo \n
+end
+document xtsquery
+Print the address of the treesit-query which the Lisp_Object $ points to.
+end
+
 define xcons
   xgetptr $
   print (struct Lisp_Cons *) $ptr
@@ -1068,6 +1098,15 @@ define xpr
       end
       if $vec == PVEC_HASH_TABLE
 	xhashtable
+      end
+      if $vec == PVEC_TS_PARSER
+	xtsparser
+      end
+      if $vec == PVEC_TS_NODE
+	xtsnode
+      end
+      if $vec == PVEC_TS_QUERY
+	xtsquery
       end
     else
       xvector

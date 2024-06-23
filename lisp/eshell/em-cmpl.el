@@ -76,7 +76,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-cmpl nil
   "This module provides a programmable completion function bound to
@@ -518,9 +518,4 @@ to writing a completion function."
 (define-obsolete-function-alias 'eshell-pcomplete #'completion-at-point "27.1")
 
 (provide 'em-cmpl)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-cmpl.el ends here

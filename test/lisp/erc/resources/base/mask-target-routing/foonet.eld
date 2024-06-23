@@ -17,7 +17,7 @@
  (0 ":irc.foonet.org 266 tester 4 4 :Current global users 4, max 4")
  (0 ":irc.foonet.org 422 tester :MOTD File is missing"))
 
-((mode-user 1.2 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  ;; No mode answer
  (0 ":irc.znc.in 306 tester :You have been marked as being away")
  (0 ":tester!~u@gq7yjr7gsu7nn.irc JOIN #foo")

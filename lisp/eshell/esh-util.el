@@ -337,7 +337,7 @@ doubling it up."
 
 (defun eshell-convertible-to-number-p (string)
   "Return non-nil if STRING can be converted to a number.
-If `eshell-convert-numeric-aguments', always return nil."
+If `eshell-convert-numeric-arguments', always return nil."
   (and eshell-convert-numeric-arguments
        (string-match
         (concat "\\`\\s-*" eshell-number-regexp "\\s-*\\'")
@@ -346,7 +346,7 @@ If `eshell-convert-numeric-aguments', always return nil."
 (defun eshell-convert-to-number (string)
   "Try to convert STRING to a number.
 If STRING doesn't look like a number (or
-`eshell-convert-numeric-aguments' is nil), just return STRING
+`eshell-convert-numeric-arguments' is nil), just return STRING
 unchanged."
   (if (eshell-convertible-to-number-p string)
       (string-to-number string)
@@ -361,7 +361,7 @@ trailing newlines removed.  Otherwise, this behaves as follows:
 
 * Split multiline strings by line.
 
-* If `eshell-convert-numeric-aguments' is non-nil and every line
+* If `eshell-convert-numeric-arguments' is non-nil and every line
   of output looks like a number, convert them to numbers."
   (cond
    ((not (stringp string))
@@ -417,7 +417,8 @@ as the $PATH was actually specified."
                                       (butlast (exec-path))))))
       (when (and (not literal-p)
                  (not remote)
-                 (eshell-under-windows-p))
+                 (eshell-under-windows-p)
+                 (not (member "." path)))
         (push "." path))
       (if (and remote (not literal-p))
           (mapcar (lambda (x) (concat remote x)) path)

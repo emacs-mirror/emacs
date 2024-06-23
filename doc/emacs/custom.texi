@@ -1550,6 +1550,62 @@ variables are handled in the same way as unsafe file-local variables
 do not visit a file directly but perform work within a directory, such
 as Dired buffers (@pxref{Dired}).
 
+@menu
+* EditorConfig support::  Per-Directory Variables via EditorConfig
+@end menu
+
+@node EditorConfig support
+@subsubsection Per-Directory Variables via EditorConfig
+@cindex EditorConfig support
+@cindex directory-local variables, via EditorConfig
+@cindex per-directory local variables, via EditorConfig
+
+The @uref{https://editorconfig.org/, EditorConfig standard}
+is an alternative to the @file{.dir-locals.el}
+files, which can control only a very small number of variables, but
+has the advantage of being editor-neutral, not specific to Emacs.  Those
+settings are stored in files named @file{.editorconfig}, and affect the
+files in that directory and its subdirectories.
+
+@findex editorconfig-mode
+@vindex enable-local-variables@r{, and EditorConfig settings}
+If you want Emacs to obey the settings from @file{.editorconfig} files,
+you need to enable the @code{editorconfig-mode} global minor mode.  This
+is usually all that is needed: when the mode is activated, whenever a
+file is visited, Emacs will look for @file{.editorconfig} in the file's
+directory and its parent directories, just as it does for
+@file{.dir-locals.el}.  When both @file{.editorconfig} and
+@file{.dir-locals.el} files are found, their settings are combined, and
+in case of a conflict, the setting coming from the file closest in the
+directory hierarchy takes precedence.  If they are equally close,
+@file{.dir-locals.el} takes precedence.  In terms of security, the
+@file{.editorconfig} settings are subject to the same checks as those
+coming from @file{.dir-locals.el} and from file-local variables (and
+also honor @code{enable-local-variables}).  @xref{Safe File Variables}.
+
+@cindex @code{indent_size} setting of EditorConfig
+@vindex editorconfig-indent-size-vars
+@vindex editorconfig-indentation-alist
+The @code{indent_size} setting of the EditorConfig standard does not
+correspond to a fixed variable in Emacs, but instead needs to set
+different variables depending on the major mode.  Ideally all major
+modes should set the corresponding @code{editorconfig-indent-size-vars},
+but if you use a major mode in which @code{indent_size} does not take
+effect because the major mode does not yet support it, you can customize
+the @code{editorconfig-indentation-alist} variable to tell Emacs which
+variables need to be set in that major mode.
+
+@cindex @code{trim_trailing_whitespace} setting of EditorConfig
+@vindex editorconfig-trim-whitespaces-mode
+@findex delete-trailing-whitespace, and EditorConfig settings
+Similarly, there are several different ways to trim whitespace at
+the end of lines.  When the EditorConfig @code{trim_trailing_whitespace}
+setting is used, by default @code{editorconfig-mode} simply calls
+@code{delete-trailing-whitespace} (@pxref{Useless Whitespace}) every
+time you save your file.  If you prefer some other behavior, you can
+customize @code{editorconfig-trim-whitespaces-mode} to the minor mode of
+your preference, such as @code{ws-butler-mode}.
+
 @node Connection Variables
 @subsection Per-Connection Local Variables
 @cindex local variables, for all remote connections
@@ -1606,6 +1662,13 @@ matches all buffers with a remote default directory.
   Be careful when declaring different profiles with the same variable,
 and setting these profiles to criteria which could match in parallel.
 It is unspecified which variable value is used then.
+
+  Be also careful when setting connection-local variables in a buffer,
+which changes its major mode afterwards.  Because all buffer-local
+variables will be killed when changing the major mode, the
+connection-local variable's value would be lost.  You can prevent this
+by setting the respective variable's @code{permanent-local} symbol
+property to non-@code{nil}.
 
 @node Key Bindings
 @section Customizing Key Bindings
@@ -1963,8 +2026,39 @@ and mouse events:
 (keymap-global-set "<mouse-2>" 'mouse-save-then-kill)
 @end example
 
-  Language and coding systems may cause problems with key bindings for
-non-@acronym{ASCII} characters.  @xref{Init Non-ASCII}.
+@cindex binding key to string
+  Key sequences can also be bound directly to Lisp strings rather than
+commands.  Such strings are written using the same syntax as key
+sequences.  For example, to bind @kbd{C-c h} to the string
+@samp{hello}:
+
+@example
+(keymap-global-set "C-c h" "h e l l o")
+@end example
+
+  Since this is somewhat cumbersome to write, the convenience function
+@code{key-description} can be used instead:
+
+@example
+(keymap-global-set "C-c h" (key-description "hello"))
+@end example
+
+  Non-@acronym{ASCII} characters can be specified directly in the
+string. To bind to  e.g. @samp{ol@'a}, use:
+
+@example
+(keymap-global-set "C-c h" (key-description "ol@'a"))
+@end example
+
+  However, be aware that language and coding systems may cause problems
+with key bindings for non-@acronym{ASCII} characters (@pxref{Init
+Non-ASCII}).  Writing the binding directly with the Unicode codepoint
+avoids these problems (@pxref{International Chars} for how to determine
+the codepoint of a character from within Emacs):
+
+@example
+(keymap-global-set "C-c h" (key-description "ol\u00E1"))
+@end example
 
 @findex global-set-key
 @findex define-key

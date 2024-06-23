@@ -2646,7 +2646,7 @@ will be deleted."
         (message "Nothing to autoremove")))))
 
 (defun package-isolate (packages &optional temp-init)
-  "Start an uncustomised Emacs and only load a set of PACKAGES.
+  "Start an uncustomized Emacs and only load a set of PACKAGES.
 If TEMP-INIT is non-nil, or when invoked with a prefix argument,
 the Emacs user directory is set to a temporary directory."
   (interactive

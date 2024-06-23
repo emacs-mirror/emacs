@@ -16,6 +16,14 @@ You can narrow news to a specific version by calling 'view-emacs-news'
 with a prefix argument or by typing 'C-u C-h C-n'.
 
 
+* Changes in Emacs 29.4
+Emacs 29.4 is an emergency bugfix release intended to fix the
+security vulnerability described below.
+
+** Arbitrary shell commands are no longer run when turning on Org mode.
+This is for security reasons, to avoid running malicious commands.
+
+
 * Changes in Emacs 29.3
 Emacs 29.3 is an emergency bugfix release intended to fix several
 security vulnerabilities described below.
@@ -37,9 +45,6 @@ To get back previous insecure behavior, set the variable
 
 ** Org mode now considers contents of remote files to be untrusted.
 Remote files are recognized by calling 'file-remote-p'.
-
-
-* Installation Changes in Emacs 29.2
 
 
 * Startup Changes in Emacs 29.2

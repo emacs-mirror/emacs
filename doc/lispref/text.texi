@@ -5414,6 +5414,14 @@ called @var{gif}, you have to mark it specially to let
 
 @end defun
 
+@defun sqlite-execute-batch db statements
+Execute the @acronym{SQL} @var{statements}.  @var{statements} is a
+string containing 0 or more @acronym{SQL} statements.  This command
+might be useful when a Lisp program needs to execute multiple Data
+Definition Language (@acronym{DDL}) statements in one go.
+
+@end defun
+
 @defun sqlite-select db query &optional values return-type
 Select some data from @var{db} and return them.  For instance:
 

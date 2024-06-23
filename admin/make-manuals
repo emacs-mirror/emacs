@@ -95,7 +95,7 @@ tempfile="$(emacs_mktemp)"
 
 if [ -e $outdir ]; then
     ## Speed up repeat invocation.
-    echo "Re-using existing $outdir/ directory"
+    echo "Reusing existing $outdir/ directory"
 
 else
 

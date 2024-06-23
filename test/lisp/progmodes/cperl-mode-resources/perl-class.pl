@@ -16,4 +16,8 @@ class C
   }
 }
 
+class D {
+  field $decorated :param :reader(get_decoration);
+  field $no_attributes = not_an(attribute)
+}
 say "done!";

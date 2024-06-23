@@ -310,7 +310,7 @@ This function can be called only in unibyte buffers.  */)
       inflate_status = inflate (&stream, Z_NO_FLUSH);
       pos_byte += avail_in - stream.avail_in;
       decompressed = avail_out - stream.avail_out;
-      insert_from_gap (decompressed, decompressed, 0);
+      insert_from_gap (decompressed, decompressed, 0, false);
       unwind_data.nbytes += decompressed;
       maybe_quit ();
     }

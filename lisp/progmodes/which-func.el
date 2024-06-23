@@ -107,6 +107,18 @@ long time to send the information, you can use this option to delay
 activation of Which Function until Imenu is used for the first time."
   :type 'integer)
 
+(defcustom which-func-update-delay
+  ;; Backwards-compatibility: if users had changed this before
+  ;; `idle-update-delay' was declared obsolete, let's respect that.
+  (with-suppressed-warnings ((obsolete idle-update-delay))
+    idle-update-delay) ; 0.5
+  "Idle time delay before `which-function-mode` updates its display.
+When point moves, wait this many seconds after Emacs becomes idle before
+doing an update."
+  :type 'number
+  :group 'display
+  :version "30.1")
+
 (defvar which-func-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-1] 'beginning-of-defun)
@@ -293,9 +305,9 @@ in certain major modes."
     (cancel-timer which-func-update-timer))
   (setq which-func-update-timer nil)
   (when which-function-mode
-    ;;Turn it on.
+    ;; Turn it on.
     (setq which-func-update-timer
-          (run-with-idle-timer idle-update-delay t #'which-func-update)))
+          (run-with-idle-timer which-func-update-delay t #'which-func-update)))
   (dolist (buf (buffer-list))
     (with-current-buffer buf
       (which-func--header-line-remove)

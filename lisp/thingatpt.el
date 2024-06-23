@@ -792,7 +792,7 @@ Signal an error if the entire string was not used."
 
 (defvar thing-at-point-hexadecimal-regexp
   "\\(0x\\|#x\\)\\([a-fA-F0-9]+\\)"
-  "A regexp matchin a hexadecimal number.")
+  "A regexp matching a hexadecimal number.")
 
 ;;;###autoload
 (defun number-at-point ()

@@ -250,96 +250,34 @@ arguments to pass to the OPERATION."
 (defun tramp-sshfs-handle-process-file
   (program &optional infile destination display &rest args)
   "Like `process-file' for Tramp files."
-  ;; The implementation is not complete yet.
-  (when (and (numberp destination) (zerop destination))
-    (error "Implementation does not handle immediate return"))
+  (tramp-skeleton-process-file program infile destination display args
+    (let ((coding-system-for-read 'utf-8-dos)) ; Is this correct?
 
-  (with-parsed-tramp-file-name (expand-file-name default-directory) nil
-    (let ((coding-system-for-read 'utf-8-dos) ; Is this correct?
-	  (command
+      (setq command
 	   (format
 	    "cd %s && exec %s"
 	    (tramp-unquote-shell-quote-argument localname)
 	    (mapconcat #'tramp-shell-quote-argument (cons program args) " ")))
-	  input tmpinput stderr tmpstderr outbuf)
-
-      ;; Determine input.
-      (if (null infile)
-	  (setq input (tramp-get-remote-null-device v))
-	(setq infile (file-name-unquote (expand-file-name infile)))
-	(if (tramp-equal-remote default-directory infile)
-	    ;; INFILE is on the same remote host.
-	    (setq input (tramp-unquote-file-local-name infile))
-	  ;; INFILE must be copied to remote host.
-	  (setq input (tramp-make-tramp-temp-file v)
-		tmpinput (tramp-make-tramp-file-name v input))
-	  (copy-file infile tmpinput t)))
       (when input (setq command (format "%s <%s" command input)))
-
-      ;; Determine output.
-      (cond
-       ;; Just a buffer.
-       ((bufferp destination)
-	(setq outbuf destination))
-       ;; A buffer name.
-       ((stringp destination)
-	(setq outbuf (get-buffer-create destination)))
-       ;; (REAL-DESTINATION ERROR-DESTINATION)
-       ((consp destination)
-	;; output.
-	(cond
-	 ((bufferp (car destination))
-	  (setq outbuf (car destination)))
-	 ((stringp (car destination))
-	  (setq outbuf (get-buffer-create (car destination))))
-	 ((car destination)
-	  (setq outbuf (current-buffer))))
-	;; stderr.
-	(cond
-	 ((stringp (cadr destination))
-	  (setcar (cdr destination) (expand-file-name (cadr destination)))
-	  (if (tramp-equal-remote default-directory (cadr destination))
-	      ;; stderr is on the same remote host.
-	      (setq stderr (tramp-unquote-file-local-name (cadr destination)))
-	    ;; stderr must be copied to remote host.  The temporary
-	    ;; file must be deleted after execution.
-	    (setq stderr (tramp-make-tramp-temp-file v)
-		  tmpstderr (tramp-make-tramp-file-name v stderr))))
-	 ;; stderr to be discarded.
-	 ((null (cadr destination))
-	  (setq stderr (tramp-get-remote-null-device v)))))
-       ;; 't
-       (destination
-	(setq outbuf (current-buffer))))
       (when stderr (setq command (format "%s 2>%s" command stderr)))
 
       (unwind-protect
-	  (apply
-	   #'tramp-call-process
-	   v (tramp-get-method-parameter v 'tramp-login-program)
-	   nil outbuf display
-	   (tramp-expand-args
-	    v 'tramp-login-args nil
-	    ?h (or (tramp-file-name-host v) "")
-	    ?u (or (tramp-file-name-user v) "")
-	    ?p (or (tramp-file-name-port v) "")
-            ?a "-t" ?l command))
+	  (setq ret
+		(apply
+		 #'tramp-call-process
+		 v (tramp-get-method-parameter v 'tramp-login-program)
+		 nil outbuf display
+		 (tramp-expand-args
+		  v 'tramp-login-args nil
+		  ?h (or (tramp-file-name-host v) "")
+		  ?u (or (tramp-file-name-user v) "")
+		  ?p (or (tramp-file-name-port v) "")
+		  ?a "-t" ?l command)))
 
 	;; Synchronize stderr.
 	(when tmpstderr
 	  (tramp-cleanup-connection v 'keep-debug 'keep-password)
-	  (tramp-fuse-unmount v))
-
-	;; Provide error file.
-	(when tmpstderr
-	  (rename-file tmpstderr (cadr destination) t))
-
-	;; Cleanup.  We remove all file cache values for the
-	;; connection, because the remote process could have changed
-	;; them.
-	(when tmpinput (delete-file tmpinput))
-	(when process-file-side-effects
-          (tramp-flush-directory-properties v "/"))))))
+	  (tramp-fuse-unmount v))))))
 
 (defun tramp-sshfs-handle-rename-file
     (filename newname &optional ok-if-already-exists)

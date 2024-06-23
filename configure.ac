@@ -23,7 +23,7 @@ dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.65])
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
-AC_INIT([GNU Emacs], [30.0.50], [bug-gnu-emacs@gnu.org], [],
+AC_INIT([GNU Emacs], [31.0.50], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
 if test "$XCONFIGURE" = "android"; then
@@ -891,6 +891,7 @@ AC_ARG_VAR([JAVAC], [Java compiler path.  Used for Android.])
 AC_ARG_VAR([JARSIGNER], [Java package signer path.  Used for Android.])
 AC_ARG_VAR([APKSIGNER], [Android package signer path.  Used for Android.])
 AC_ARG_VAR([SDK_BUILD_TOOLS], [Path to the Android SDK build tools.])
+AC_ARG_VAR([ZIP], [Path to the `zip' utility.])
 
 if test "$with_android" = "yes"; then
    AC_MSG_ERROR([Please specify the path to the Android.jar file, like so:
@@ -1236,8 +1237,13 @@ package will likely install on older systems but crash on startup.])
   ANDROID_SDK_8_OR_EARLIER=
   if test "$android_sdk" -le "8"; then
      ANDROID_SDK_8_OR_EARLIER=yes
+     AC_CHECK_PROGS([ZIP], [zip])
+     AS_IF([test -z "$ZIP"],
+       [AC_MSG_ERROR([The `zip' utility is required for generating \
+packages targeting Android 2.2.])])
   fi
   AC_SUBST([ANDROID_SDK_8_OR_EARLIER])
+  AC_SUBST([ZIP])
 
   # Save confdefs.h and config.log for now.
   mv -f confdefs.h _confdefs.h
@@ -1264,6 +1270,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-pop=$with_pop"
   passthrough="$passthrough --with-harfbuzz=$with_harfbuzz"
   passthrough="$passthrough --with-threads=$with_threads"
+  passthrough="$passthrough --with-rsvg=$with_rsvg"
 
   # Now pass through some checking-related options.
   emacs_val="--enable-check-lisp-object-type=$enable_check_lisp_object_type"
@@ -1354,9 +1361,9 @@ if test "$ANDROID" = "yes"; then
     with_harfbuzz=no
     with_native_compilation=no
     with_threads=no
+    with_rsvg=no
   fi
 
-  with_rsvg=no
   with_libsystemd=no
   with_cairo=no
   with_xft=no
@@ -3572,10 +3579,13 @@ fi
 HAVE_RSVG=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" \
    || test "${opsys}" = "mingw32" || test "${HAVE_BE_APP}" = "yes" \
-   || test "${window_system}" = "pgtk"; then
+   || test "${window_system}" = "pgtk" \
+   || test "${REALLY_ANDROID}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.14.0
-    RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
+    AS_IF([test "${REALLY_ANDROID}" = "yes"],
+      [RSVG_MODULE="librsvg"],
+      [RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"])
 
     EMACS_CHECK_MODULES([RSVG], [$RSVG_MODULE])
     AC_SUBST([RSVG_CFLAGS])
@@ -4132,26 +4142,28 @@ case $with_file_notification,$NOTIFY_OBJ in
     fi ;;
 esac
 
-dnl kqueue is available on BSD-like systems.
-case $with_file_notification,$NOTIFY_OBJ in
-  kqueue,* | yes,)
-    EMACS_CHECK_MODULES([KQUEUE], [libkqueue])
-    if test "$HAVE_KQUEUE" = "yes"; then
-       AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
-       CPPFLAGS="$CPPFLAGS -I/usr/include/kqueue"
-       NOTIFY_CFLAGS=$KQUEUE_CFLAGS
-       NOTIFY_LIBS=$KQUEUE_LIBS
-       NOTIFY_OBJ=kqueue.o
-       NOTIFY_SUMMARY="yes -lkqueue"
-    else
-       AC_SEARCH_LIBS([kqueue], [])
-       if test "$ac_cv_search_kqueue" != no; then
-	 AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
-	 NOTIFY_OBJ=kqueue.o
-	 NOTIFY_SUMMARY="yes (kqueue)"
-       fi
-    fi ;;
-esac
+AS_IF([test "$opsys" != "haiku"], [
+ dnl kqueue is available on BSD-like systems and Haiku, but Haiku's
+ dnl implementation cannot monitor filesystem activity.
+ case $with_file_notification,$NOTIFY_OBJ in
+   kqueue,* | yes,)
+     EMACS_CHECK_MODULES([KQUEUE], [libkqueue])
+     if test "$HAVE_KQUEUE" = "yes"; then
+	AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
+	CPPFLAGS="$CPPFLAGS -I/usr/include/kqueue"
+	NOTIFY_CFLAGS=$KQUEUE_CFLAGS
+	NOTIFY_LIBS=$KQUEUE_LIBS
+	NOTIFY_OBJ=kqueue.o
+	NOTIFY_SUMMARY="yes -lkqueue"
+     else
+	AC_SEARCH_LIBS([kqueue], [])
+	if test "$ac_cv_search_kqueue" != no; then
+	  AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
+	  NOTIFY_OBJ=kqueue.o
+	  NOTIFY_SUMMARY="yes (kqueue)"
+	fi
+     fi ;;
+ esac])
 
 dnl g_file_monitor exists since glib 2.18.  G_FILE_MONITOR_EVENT_MOVED
 dnl has been added in glib 2.24.  It has been tested under
@@ -5060,12 +5072,14 @@ AC_SUBST_FILE([module_env_snippet_27])
 AC_SUBST_FILE([module_env_snippet_28])
 AC_SUBST_FILE([module_env_snippet_29])
 AC_SUBST_FILE([module_env_snippet_30])
+AC_SUBST_FILE([module_env_snippet_31])
 module_env_snippet_25="$srcdir/src/module-env-25.h"
 module_env_snippet_26="$srcdir/src/module-env-26.h"
 module_env_snippet_27="$srcdir/src/module-env-27.h"
 module_env_snippet_28="$srcdir/src/module-env-28.h"
 module_env_snippet_29="$srcdir/src/module-env-29.h"
 module_env_snippet_30="$srcdir/src/module-env-30.h"
+module_env_snippet_31="$srcdir/src/module-env-31.h"
 emacs_major_version=`AS_ECHO([$PACKAGE_VERSION]) | sed 's/[[.]].*//'`
 AC_SUBST([emacs_major_version])
 

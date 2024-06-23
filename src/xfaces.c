@@ -630,6 +630,37 @@ x_free_gc (struct frame *f, struct android_gc *gc)
 			   Frames and faces
  ***********************************************************************/
 
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* Find an existing image cache registered for a frame on F's display
+   and with a `scaling_col_width' of F's FRAME_COLUMN_WIDTH, or, in the
+   absence of an eligible image cache, allocate an image cache with the
+   same width value.  */
+
+struct image_cache *
+share_image_cache (struct frame *f)
+{
+  int width = max (10, FRAME_COLUMN_WIDTH (f));
+  Lisp_Object tail, frame;
+  struct image_cache *cache;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      struct frame *x = XFRAME (frame);
+
+      if (FRAME_TERMINAL (x) == FRAME_TERMINAL (f)
+	  && FRAME_IMAGE_CACHE (x)
+	  && FRAME_IMAGE_CACHE (x)->scaling_col_width == width)
+	return FRAME_IMAGE_CACHE (x);
+    }
+
+  cache = make_image_cache ();
+  cache->scaling_col_width = width;
+  return cache;
+}
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 /* Initialize face cache and basic faces for frame F.  */
 
 void
@@ -640,14 +671,10 @@ init_frame_faces (struct frame *f)
     FRAME_FACE_CACHE (f) = make_face_cache (f);
 
 #ifdef HAVE_WINDOW_SYSTEM
-  /* Make the image cache.  */
+  /* Make or share an image cache.  */
   if (FRAME_WINDOW_P (f))
     {
-      /* We initialize the image cache when creating the first frame
-	 on a terminal, and not during terminal creation.  This way,
-	 `x-open-connection' on a tty won't create an image cache.  */
-      if (FRAME_IMAGE_CACHE (f) == NULL)
-	FRAME_IMAGE_CACHE (f) = make_image_cache ();
+      FRAME_IMAGE_CACHE (f) = share_image_cache (f);
       ++FRAME_IMAGE_CACHE (f)->refcount;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -4242,6 +4269,12 @@ Default face attributes override any local face attributes.  */)
       /* This can be NULL (e.g., in batch mode).  */
       if (oldface)
 	{
+	  /* In some cases, realize_face below can call Lisp, which could
+             trigger redisplay.  But we are in the process of realizing
+             the default face, and therefore are not ready to do display.  */
+	  specpdl_ref count = SPECPDL_INDEX ();
+	  specbind (Qinhibit_redisplay, Qt);
+
 	  /* Ensure that the face vector is fully specified by merging
 	     the previously-cached vector.  */
 	  memcpy (attrs, oldface->lface, sizeof attrs);
@@ -4287,6 +4320,8 @@ Default face attributes override any local face attributes.  */)
 			      gvec[LFACE_BACKGROUND_INDEX]);
 	      Fmodify_frame_parameters (frame, arg);
 	    }
+
+	  unbind_to (count, Qnil);
 	}
     }
 
@@ -5989,7 +6024,13 @@ realize_default_face (struct frame *f)
   eassert (lface_fully_specified_p (XVECTOR (lface)->contents));
   check_lface (lface);
   memcpy (attrs, xvector_contents (lface), sizeof attrs);
+  /* In some cases, realize_face below can call Lisp, which could
+     trigger redisplay.  But we are in the process of realizing
+     the default face, and therefore are not ready to do display.  */
+  specpdl_ref count = SPECPDL_INDEX ();
+  specbind (Qinhibit_redisplay, Qt);
   struct face *face = realize_face (c, attrs, DEFAULT_FACE_ID);
+  unbind_to (count, Qnil);
 
 #ifndef HAVE_WINDOW_SYSTEM
   (void) face;
@@ -6073,7 +6114,8 @@ realize_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE],
     {
       /* Remove the former face.  */
       struct face *former_face = cache->faces_by_id[former_face_id];
-      uncache_face (cache, former_face);
+      if (former_face)
+	uncache_face (cache, former_face);
       free_realized_face (cache->f, former_face);
       SET_FRAME_GARBAGED (cache->f);
     }

@@ -58,7 +58,8 @@ Also see `read-string-from-buffer'."
                              (list 'intangible t
                                    'face 'string-edit-prompt
                                    'read-only t))
-        (insert (propertize (make-separator-line) 'rear-nonsticky t))
+        (insert (propertize (make-separator-line)
+                            'read-only t 'rear-nonsticky t))
         (add-text-properties (point-min) (point)
                              (list 'string-edit--prompt t))))
     (let ((start (point)))
@@ -75,8 +76,7 @@ Also see `read-string-from-buffer'."
     (setq buffer-undo-list nil)
     (string-edit-mode)
     (setq-local string-edit--success-callback success-callback)
-    (when abort-callback
-      (setq-local string-edit--abort-callback abort-callback))
+    (setq-local string-edit--abort-callback abort-callback)
     (setq-local header-line-format
                 (substitute-command-keys
                  "Type \\<string-edit-mode-map>\\[string-edit-done] when you've finished editing or \\[string-edit-abort] to abort"))

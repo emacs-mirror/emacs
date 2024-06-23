@@ -77,7 +77,7 @@ rpl_utimensat (int fd, char const *file, struct timespec const times[2],
                int flag)
 #  undef utimensat
 {
-#  if defined __linux__ || defined __sun
+#  if defined __linux__ || defined __sun || defined __NetBSD__
   struct timespec ts[2];
 #  endif
 
@@ -86,7 +86,7 @@ rpl_utimensat (int fd, char const *file, struct timespec const times[2],
   if (0 <= utimensat_works_really)
     {
       int result;
-#  if defined __linux__ || defined __sun
+#  if defined __linux__ || defined __sun || defined __NetBSD__
       struct stat st;
       /* As recently as Linux kernel 2.6.32 (Dec 2009), several file
          systems (xfs, ntfs-3g) have bugs with a single UTIME_OMIT,
@@ -97,6 +97,7 @@ rpl_utimensat (int fd, char const *file, struct timespec const times[2],
          UTIME_OMIT would have worked.
 
          The same bug occurs in Solaris 11.1 (Apr 2013).
+         The same bug occurs in NetBSD 10.0 (May 2024).
 
          FIXME: Simplify this in 2024, when these file system bugs are
          no longer common on Gnulib target platforms.  */
@@ -117,9 +118,11 @@ rpl_utimensat (int fd, char const *file, struct timespec const times[2],
             ts[1] = times[1];
           times = ts;
         }
-#   ifdef __hppa__
+#   if defined __hppa__ || defined __NetBSD__
       /* Linux kernel 2.6.22.19 on hppa does not reject invalid tv_nsec
-         values.  */
+         values.
+
+         The same bug occurs in NetBSD 10.0 (May 2024).  */
       else if (times
                && ((times[0].tv_nsec != UTIME_NOW
                     && ! (0 <= times[0].tv_nsec

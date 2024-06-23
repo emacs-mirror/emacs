@@ -187,6 +187,14 @@ macro to be executed before appending to it."
   "C-c"  #'kmacro-set-counter
   "C-i"  #'kmacro-insert-counter
   "C-a"  #'kmacro-add-counter
+  "C-r l"   #'kmacro-reg-load-counter
+  "C-r s"   #'kmacro-reg-save-counter
+  "C-r a =" #'kmacro-reg-add-counter-equal
+  "C-r a <" #'kmacro-reg-add-counter-less
+  "C-r a >" #'kmacro-reg-add-counter-greater
+  "C-q ="   #'kmacro-quit-counter-equal
+  "C-q <"   #'kmacro-quit-counter-less
+  "C-q >"   #'kmacro-quit-counter-greater
 
   ;; macro editing
   "C-e"  #'kmacro-edit-macro-repeat
@@ -346,6 +354,85 @@ information."
   (unless executing-kbd-macro
     (kmacro-display-counter)))
 
+(defun kmacro-reg-load-counter (register)
+  "Load the value of a REGISTER into `kmacro-counter'."
+  (interactive
+   (list (register-read-with-preview "Load register to counter: ")))
+  (let ((register-val (get-register register)))
+    (when (numberp register-val)
+      (setq kmacro-counter register-val))))
+
+(defun kmacro-reg-save-counter (register)
+  "Save the value of `kmacro-counter' to a REGISTER."
+  (interactive
+   (list (register-read-with-preview "Save counter to register: ")))
+  (set-register register kmacro-counter))
+
+(defun kmacro-reg-add-counter-equal (&optional arg)
+  "Increment counter by one if it is equal to register value.
+Prompt for the register to compare.
+Optional non-nil ARG specifies the increment."
+  (interactive "p")
+  (let
+      ((register (register-read-with-preview "Compare counter to register: ")))
+    (kmacro-reg-add-counter #'= register arg)))
+
+(defun kmacro-reg-add-counter-less (&optional arg)
+  "Increment counter by one if it is less than register value.
+Prompt for the register to compare.
+Optional non-nil ARG specifies increment."
+  (interactive "p")
+  (let
+      ((register (register-read-with-preview "Compare counter to register: ")))
+    (kmacro-reg-add-counter #'< register arg)))
+
+
+(defun kmacro-reg-add-counter-greater (&optional arg)
+  "Increment counter by one if it is greater than register value.
+Prompt for the register to compare.
+Optional non-nil ARG specifies increment."
+  (interactive "p")
+  (let
+      ((register (register-read-with-preview "Compare counter to register: ")))
+    (kmacro-reg-add-counter #'> register arg)))
+
+(defun kmacro-reg-add-counter (pred register arg)
+  "Increment `kmacro-counter' by ARG if PRED returns non-nil.
+PRED is called with two arguments: `kmacro-counter' and REGISTER."
+  (let ((register-val (get-register register)))
+    (when (funcall pred kmacro-counter register-val)
+      (setq current-prefix-arg nil)
+      (kmacro-add-counter arg))))
+
+(defun kmacro-quit-counter-equal (&optional arg)
+  "Quit the keyboard macro if the counter is equal to ARG.
+ARG defaults to zero if nil or omitted."
+  (interactive "p")
+  (kmacro-quit-counter #'= arg))
+
+(defun kmacro-quit-counter-less (&optional arg)
+  "Quit the keyboard macro if the counter is less than ARGS.
+ARG defaults to zero if nil or omitted."
+  (interactive "p")
+  (kmacro-quit-counter #'< arg))
+
+(defun kmacro-quit-counter-greater (&optional arg)
+  "Quit the keyboard macro if the counter is greater than ARG.
+ARG defaults to zero if nil or omitted."
+  (interactive "p")
+  (kmacro-quit-counter #'> arg))
+
+(defun kmacro-quit-counter (pred arg)
+  "Quit the keyboard macro if PRED returns non-nil.
+PRED is called with two arguments: `kmacro-counter' and ARG.
+ARG defaults to zero if it is nil."
+  (when kmacro-initial-counter-value
+    (setq kmacro-counter kmacro-initial-counter-value
+          kmacro-initial-counter-value nil))
+  (let ((arg (if (null current-prefix-arg)
+                 0 arg)))
+    (when (funcall pred kmacro-counter arg)
+      (keyboard-quit))))
 
 (defun kmacro-loop-setup-function ()
   "Function called prior to each iteration of macro."

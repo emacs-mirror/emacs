@@ -3959,7 +3959,7 @@ so they have been disabled."))
 deb = lldb.debugger
 inst = deb.GetInstanceName()
 ff = deb.GetInternalVariableValue('frame-format', inst).GetStringAtIndex(0)
-ff = ff[:-1] + '!gud ${line.number}:${line.column}:${line.file.fullpath}\\\\n\"'
+ff = ff[:-1] + '!gud ${line.number}:{${line.column}}:${line.file.fullpath}\\\\n\"'
 _ = deb.SetInternalVariable('frame-format', ff, inst)
 def gud_complete(s, max):
     interpreter = lldb.debugger.GetCommandInterpreter()

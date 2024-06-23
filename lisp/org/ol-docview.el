@@ -57,20 +57,21 @@
 			 :export #'org-docview-export
 			 :store #'org-docview-store-link)
 
-(defun org-docview-export (link description format)
-  "Export a docview link from Org files."
+(defun org-docview-export (link description backend _info)
+  "Export a docview LINK with DESCRIPTION for BACKEND."
   (let ((path (if (string-match "\\(.+\\)::.+" link) (match-string 1 link)
 		link))
         (desc (or description link)))
     (when (stringp path)
       (setq path (expand-file-name path))
       (cond
-       ((eq format 'html) (format "<a href=\"%s\">%s</a>" path desc))
-       ((eq format 'latex) (format "\\href{%s}{%s}" path desc))
-       ((eq format 'ascii) (format "%s (%s)" desc path))
+       ((eq backend 'html) (format "<a href=\"%s\">%s</a>" path desc))
+       ((eq backend 'latex) (format "\\href{%s}{%s}" path desc))
+       ((eq backend 'ascii) (format "[%s] (<%s>)" desc path))
        (t path)))))
 
 (defun org-docview-open (link _)
+  "Open docview: LINK."
   (string-match "\\(.*?\\)\\(?:::\\([0-9]+\\)\\)?$" link)
   (let ((path (match-string 1 link))
 	(page (and (match-beginning 2)
@@ -82,7 +83,7 @@
       (error "No such file: %s" path))
     (when page (doc-view-goto-page page))))
 
-(defun org-docview-store-link ()
+(defun org-docview-store-link (&optional _interactive?)
   "Store a link to a docview buffer."
   (when (eq major-mode 'doc-view-mode)
     ;; This buffer is in doc-view-mode

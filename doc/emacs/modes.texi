@@ -296,6 +296,9 @@ but the tool bar is only displayed on graphical terminals.  @xref{Tool
 Bars}.
 
 @item
+Window Tool Bar mode gives windows a tool bar.  @xref{Window Tool Bar}.
+
+@item
 Tab Bar mode gives each frame a tab bar.  @xref{Tab Bars}.
 
 @item

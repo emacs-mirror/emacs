@@ -252,10 +252,12 @@ Also see `ignore'."
       (tramp-error vec tramp-permission-denied file)
     (tramp-error vec tramp-permission-denied "Permission denied: %s" file)))
 
-;; Function `auth-info-password' is new in Emacs 29.1.
+;; Function `auth-info-password' is new in Emacs 29.1.  Finally,
+;; Bug#49289 is fixed in Emacs 30.1 for the `secrets' and `plstore'
+;; auth-sources backends.
 (defalias 'tramp-compat-auth-info-password
-  (if (fboundp 'auth-info-password)
-      #'auth-info-password
+  (if (>= emacs-major-version 30)
+      'auth-info-password
     (lambda (auth-info)
       (let ((secret (plist-get auth-info :secret)))
 	(while (functionp secret)
@@ -304,6 +306,12 @@ Also see `ignore'."
     (lambda (function sequence)
       (delq nil (seq-map function sequence)))))
 
+;; User option `connection-local-default-application' is new in Emacs 29.1.
+(unless (boundp 'connection-local-default-application)
+  (defvar connection-local-default-application 'tramp
+    "Default application in connection-local functions, a symbol.
+This variable must not be changed globally."))
+
 ;; User option `password-colon-equivalents' is new in Emacs 30.1.
 (if (boundp 'password-colon-equivalents)
     (defvaralias
@@ -329,9 +337,10 @@ If APPLICATION is nil, the value of
     (declare (debug (symbolp &optional form)))
     (unless (symbolp variable)
       (signal 'wrong-type-argument (list 'symbolp variable)))
-    `(let ((criteria
-            (connection-local-criteria-for-default-directory ,application))
-           connection-local-variables-alist file-local-variables-alist)
+    `(let* ((connection-local-default-application
+	     (or ,application connection-local-default-application))
+	    (criteria (connection-local-criteria-for-default-directory))
+            connection-local-variables-alist file-local-variables-alist)
        (when criteria
 	 (hack-connection-local-variables criteria)
 	 (and (assq ',variable connection-local-variables-alist) t)))))
@@ -348,9 +357,10 @@ value is the default binding of the variable."
     (declare (debug (symbolp &optional form)))
     (unless (symbolp variable)
       (signal 'wrong-type-argument (list 'symbolp variable)))
-    `(let ((criteria
-            (connection-local-criteria-for-default-directory ,application))
-           connection-local-variables-alist file-local-variables-alist)
+    `(let* ((connection-local-default-application
+	     (or ,application connection-local-default-application))
+	    (criteria (connection-local-criteria-for-default-directory))
+            connection-local-variables-alist file-local-variables-alist)
        (if (not criteria)
            ,variable
 	 (hack-connection-local-variables criteria)

@@ -311,7 +311,7 @@ EXPS is a list of rules/expressions that failed.")
     `(lambda ,args . ,body)))
 
 ;; Sometimes (with-peg-rules ... (peg-run (peg ...))) is too
-;; longwinded for the task at hand, so `peg-parse' comes in handy.
+;; long-winded for the task at hand, so `peg-parse' comes in handy.
 (defmacro peg-parse (&rest pexs)
   "Match PEXS at point.
 PEXS is a sequence of PEG expressions, implicitly combined with `and'.

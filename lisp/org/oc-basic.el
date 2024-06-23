@@ -1,4 +1,4 @@
-;;; oc-basic.el --- basic back-end for citations  -*- lexical-binding: t; -*-
+;;; oc-basic.el --- basic backend for citations  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
@@ -24,7 +24,7 @@
 ;; The `basic' citation processor provides "activate", "follow", "export" and
 ;; "insert" capabilities.
 
-;; "activate" capability re-uses default fontification, but provides additional
+;; "activate" capability reuses default fontification, but provides additional
 ;; features on both correct and wrong keys according to the bibliography
 ;; defined in the document.
 
@@ -78,9 +78,19 @@
 (declare-function org-open-at-point "org" (&optional arg))
 (declare-function org-open-file "org" (path &optional in-emacs line search))
 
+(declare-function org-element-create "org-element-ast" (type &optional props &rest children))
+(declare-function org-element-set "org-element-ast" (old new &optional keep-props))
+
 (declare-function org-element-interpret-data "org-element" (data))
-(declare-function org-element-property "org-element" (property element))
-(declare-function org-element-type "org-element" (element))
+(declare-function org-element-parse-secondary-string "org-element" (string restriction &optional parent))
+(declare-function org-element-map "org-element"
+                  ( data types fun
+                    &optional
+                    info first-match no-recursion
+                    with-affiliated no-undefer))
+(declare-function org-element-property "org-element-ast" (property node))
+(declare-function org-element-type-p "org-element-ast" (node types))
+(declare-function org-element-contents "org-element-ast" (node))
 
 (declare-function org-export-data "org-export" (data info))
 (declare-function org-export-derived-backend-p "org-export" (backend &rest backends))
@@ -272,6 +282,9 @@ Optional argument INFO is the export state, as a property list."
       (plist-get info :cite-basic/bibliography)
     (let ((results nil))
       (dolist (file (org-cite-list-bibliography-files))
+        ;; Follow symlinks, to look into modification time of the
+        ;; actual file, not its symlink.
+        (setq file (file-truename file))
         (when (file-readable-p file)
           (with-temp-buffer
             (when (or (org-file-has-changed-p file)
@@ -330,9 +343,11 @@ FIELD is a symbol.  ENTRY-OR-KEY is either an association list, as returned by
 
 Optional argument INFO is the export state, as a property list.
 
-Return value may be nil or a string.  If current export back-end is derived
-from `latex', return a raw string instead, unless optional argument RAW is
-non-nil."
+Return value may be nil or a string.  If current export backend is derived
+from `latex', return a raw string object instead, unless optional
+argument RAW is non-nil.
+
+Throw an error if the field value is non-string and non-nil."
   (let ((value
          (cdr
           (assq field
@@ -343,6 +358,8 @@ non-nil."
                    entry-or-key)
                   (_
                    (error "Wrong value for ENTRY-OR-KEY: %S" entry-or-key)))))))
+    (when (and value (not (stringp value)))
+      (error "Non-string bibliography field value: %S" value))
     (if (and value
              (not raw)
              (org-export-derived-backend-p (plist-get info :back-end) 'latex))
@@ -351,17 +368,27 @@ non-nil."
 
 (defun org-cite-basic--shorten-names (names)
   "Return a list of family names from a list of full NAMES.
+NAMES can be a string or raw string object.
 
 To better accomomodate corporate names, this will only shorten
 personal names of the form \"family, given\"."
-  (when (stringp names)
-    (mapconcat
-     (lambda (name)
-       (if (eq 1 (length name))
-           (cdr (split-string name))
-         (car (split-string name ", "))))
-     (split-string names " and ")
-     ", ")))
+  (let (names-string raw-p)
+    (cond
+     ((stringp names) (setq names-string names))
+     ((org-element-type-p names 'raw)
+      (setq names-string (mapconcat #'identity (org-element-contents names) "")
+            raw-p t)))
+    (when names-string
+      (setq names-string
+            (mapconcat
+             (lambda (name)
+               (if (eq 1 (length name))
+                   (cdr (split-string name))
+                 (car (split-string name ", "))))
+             (split-string names-string " and ")
+             ", "))
+      (if raw-p (org-export-raw-string names-string)
+        names-string))))
 
 (defun org-cite-basic--number-to-suffix (n)
   "Compute suffix associated to number N.
@@ -417,7 +444,7 @@ necessary, unless optional argument NO-SUFFIX is non-nil."
          (year
           (or (org-cite-basic--get-field 'year entry-or-key info 'raw)
               (let ((date
-                     (org-cite-basic--get-field 'date entry-or-key info t)))
+                     (org-cite-basic--get-field 'date entry-or-key info 'raw)))
                 (and (stringp date)
                      (string-match (rx string-start
                                        (group (= 4 digit))
@@ -445,6 +472,38 @@ necessary, unless optional argument NO-SUFFIX is non-nil."
                     new))))
          (if no-suffix year (concat year suffix)))))))
 
+(defun org-cite-basic--print-bibtex-string (element &optional info)
+  "Print Bibtex formatted string ELEMENT, according to Bibtex syntax.
+Remove all the {...} that are not a part of LaTeX macros and parse the
+LaTeX fragments.  Do nothing when current backend is derived from
+LaTeX, according to INFO.
+
+Return updated ELEMENT."
+  (if (org-export-derived-backend-p (plist-get info :back-end) 'latex)
+      ;; Derived from LaTeX, no need to use manual ad-hoc LaTeX
+      ;; parser.
+      element
+    ;; Convert ELEMENT to anonymous when ELEMENT is string.
+    ;; Otherwise, we cannot modify ELEMENT by side effect.
+    (when (org-element-type-p element 'plain-text)
+      (setq element (org-element-create 'anonymous nil element)))
+    ;; Approximately parse LaTeX fragments, assuming Org mode syntax
+    ;; (it is close to original LaTeX, and we do not want to
+    ;; re-implement complete LaTeX parser here))
+    (org-element-map element t
+      (lambda (str)
+        (when (stringp str)
+          (org-element-set
+           str
+           (org-element-parse-secondary-string
+            str '(latex-fragment entity))))))
+    ;; Strip the remaining { and }.
+    (org-element-map element t
+      (lambda (str)
+        (when (stringp str)
+          (org-element-set str (replace-regexp-in-string "[{}]" "" str)))))
+    element))
+
 (defun org-cite-basic--print-entry (entry style &optional info)
   "Format ENTRY according to STYLE string.
 ENTRY is an alist, as returned by `org-cite-basic--get-entry'.
@@ -456,27 +515,29 @@ Optional argument INFO is the export state, as a property list."
              (org-cite-basic--get-field 'journal entry info)
              (org-cite-basic--get-field 'institution entry info)
              (org-cite-basic--get-field 'school entry info))))
-    (pcase style
-      ("plain"
-       (let ((year (org-cite-basic--get-year entry info 'no-suffix)))
-         (org-cite-concat
-          (org-cite-basic--shorten-names author) ". "
-          title (and from (list ", " from)) ", " year ".")))
-      ("numeric"
-       (let ((n (org-cite-basic--key-number (cdr (assq 'id entry)) info))
-             (year (org-cite-basic--get-year entry info 'no-suffix)))
-         (org-cite-concat
-          (format "[%d] " n) author ", "
-          (org-cite-emphasize 'italic title)
-          (and from (list ", " from)) ", "
-          year ".")))
-      ;; Default to author-year.  Use year disambiguation there.
-      (_
-       (let ((year (org-cite-basic--get-year entry info)))
-         (org-cite-concat
-          author " (" year "). "
-          (org-cite-emphasize 'italic title)
-          (and from (list ", " from)) "."))))))
+    (org-cite-basic--print-bibtex-string
+     (pcase style
+       ("plain"
+        (let ((year (org-cite-basic--get-year entry info 'no-suffix)))
+          (org-cite-concat
+           (org-cite-basic--shorten-names author) ". "
+           title (and from (list ", " from)) ", " year ".")))
+       ("numeric"
+        (let ((n (org-cite-basic--key-number (cdr (assq 'id entry)) info))
+              (year (org-cite-basic--get-year entry info 'no-suffix)))
+          (org-cite-concat
+           (format "[%d] " n) author ", "
+           (org-cite-emphasize 'italic title)
+           (and from (list ", " from)) ", "
+           year ".")))
+       ;; Default to author-year.  Use year disambiguation there.
+       (_
+        (let ((year (org-cite-basic--get-year entry info)))
+          (org-cite-concat
+           author " (" year "). "
+           (org-cite-emphasize 'italic title)
+           (and from (list ", " from)) "."))))
+     info)))
 
 
 ;;; "Activate" capability
@@ -580,8 +641,8 @@ INFO is the export state, as a property list."
                      (suffix (org-element-property :suffix ref)))
                  (funcall format-ref
                           prefix
-                          (org-cite-basic--get-author k info)
-                          (org-cite-basic--get-year k info)
+                          (or (org-cite-basic--get-author k info) "??")
+                          (or (org-cite-basic--get-year k info) "????")
                           suffix)))
              (org-cite-get-references citation)
              org-cite-basic-author-year-separator)
@@ -619,7 +680,7 @@ INFO is the export state as a property list."
 INFO is the export state, as a property list."
   (and field
        (lambda (a b)
-         (string-collate-lessp
+         (org-string<
           (org-cite-basic--get-field field a info 'raw)
           (org-cite-basic--get-field field b info 'raw)
           nil t))))
@@ -649,20 +710,30 @@ export communication channel, as a property list."
       ;; "author" style.
       (`(,(or "author" "a") . ,variant)
        (let ((caps (member variant '("caps" "c"))))
-         (org-export-data
-          (mapconcat
-           (lambda (key)
-             (let ((author (org-cite-basic--get-author key info)))
-               (if caps (capitalize author) author)))
-           (org-cite-get-references citation t)
-           org-cite-basic-author-year-separator)
+         (org-cite-basic--format-author-year
+          citation
+          (lambda (p c s) (org-cite-concat p c s))
+          (lambda (prefix author _ suffix)
+            (org-cite-concat
+             prefix
+             (if caps (org-cite-capitalize author) author)
+             suffix))
           info)))
       ;; "noauthor" style.
       (`(,(or "noauthor" "na") . ,variant)
-       (format (if (funcall has-variant-p variant 'bare) "%s" "(%s)")
-               (mapconcat (lambda (key) (org-cite-basic--get-year key info))
-                          (org-cite-get-references citation t)
-                          org-cite-basic-author-year-separator)))
+       (let ((bare? (funcall has-variant-p variant 'bare)))
+         (org-cite-basic--format-author-year
+          citation
+          (lambda (prefix contents suffix)
+            (org-cite-concat
+             (unless bare? "(")
+             prefix
+             contents
+             suffix
+             (unless bare? ")")))
+          (lambda (prefix _ year suffix)
+            (org-cite-concat prefix year suffix))
+          info)))
       ;; "nocite" style.
       (`(,(or "nocite" "n") . ,_) nil)
       ;; "text" and "note" styles.
@@ -678,10 +749,11 @@ export communication channel, as a property list."
           (lambda (p c s) (org-cite-concat p c s))
           (lambda (p a y s)
             (org-cite-concat p
-                             (if caps (capitalize a) a)
+                             (if caps (org-cite-capitalize a) a)
                              (if bare " " " (")
-                             y s
-                             (and (not bare) ")")))
+                             y
+                             (and (not bare) ")")
+                             s))
           info)))
       ;; "numeric" style.
       ;;
@@ -702,7 +774,7 @@ export communication channel, as a property list."
           (lambda (p c s)
             (org-cite-concat (and (not bare) "(") p c s (and (not bare) ")")))
           (lambda (p a y s)
-            (org-cite-concat p (if caps (capitalize a) a) ", " y s))
+            (org-cite-concat p (if caps (org-cite-capitalize a) a) ", " y s))
           info)))
       ;; This should not happen.
       (_ (error "Invalid style: %S" style)))))
@@ -710,7 +782,7 @@ export communication channel, as a property list."
 (defun org-cite-basic-export-bibliography (keys _files style _props backend info)
   "Generate bibliography.
 KEYS is the list of cited keys, as strings.  STYLE is the expected bibliography
-style, as a string.  BACKEND is the export back-end, as a symbol.  INFO is the
+style, as a string.  BACKEND is the export backend, as a symbol.  INFO is the
 export state, as a property list."
   (mapconcat
    (lambda (entry)
@@ -734,7 +806,7 @@ When DATUM is a citation reference, open bibliography entry referencing
 the citation key.  Otherwise, select which key to follow among all keys
 present in the citation."
   (let* ((key
-          (if (eq 'citation-reference (org-element-type datum))
+          (if (org-element-type-p datum 'citation-reference)
               (org-element-property :key datum)
             (pcase (org-cite-get-references datum t)
               (`(,key) key)
@@ -806,7 +878,7 @@ Return nil if there are no bibliography files or no entries."
                  (let ((date (org-cite-basic--get-year entry nil 'no-suffix)))
                    (format "%4s" (or date "")))
                  org-cite-basic-column-separator
-                 (org-cite-basic--get-field 'title entry nil t))))
+                 (org-cite-basic--get-field 'title entry nil 'raw))))
           (puthash completion key org-cite-basic--completion-cache)))
       (unless (map-empty-p org-cite-basic--completion-cache) ;no key
         (puthash entries t org-cite-basic--completion-cache)

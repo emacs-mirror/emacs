@@ -137,7 +137,7 @@ public final class EmacsWindowManager
 	    /* Don't attach this window to CONSUMER if incompatible.  */
 	    && isWindowEligible (consumer, window))
 	  {
-	    /* Permantly bind this window to the consumer.  */
+	    /* Permanently bind this window to the consumer.  */
 	    window.attachmentToken = consumer.getAttachmentToken ();
 	    window.previouslyAttached = true;
 	    consumer.attachWindow (window);
@@ -166,7 +166,7 @@ public final class EmacsWindowManager
 	if (consumer.getAttachedWindow () == null
 	    && isWindowEligible (consumer, window))
 	  {
-	    /* Permantly bind this window to the consumer.  */
+	    /* Permanently bind this window to the consumer.  */
 	    window.attachmentToken = consumer.getAttachmentToken ();
 	    window.previouslyAttached = true;
 	    consumer.attachWindow (window);
@@ -186,7 +186,7 @@ public final class EmacsWindowManager
     intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
 
     /* Intent.FLAG_ACTIVITY_NEW_DOCUMENT is lamentably unavailable on
-       older systems than Lolipop.  */
+       older systems than Lollipop.  */
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
       {
 	intent.addFlags (Intent.FLAG_ACTIVITY_NEW_DOCUMENT

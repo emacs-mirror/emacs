@@ -1199,7 +1199,7 @@
       (erc-mode)
 
       (cl-letf (((symbol-function 'erc--route-insertion)
-                 (lambda (&rest r) (push r calls))))
+                 (lambda (&rest r) (ignore (push r calls)))))
 
         (ert-info ("Signals when `erc-server-announced-name' unset")
           (should-error (erc-networks--set-name nil (make-erc-response)))

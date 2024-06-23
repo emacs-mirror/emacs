@@ -36,7 +36,7 @@
 (defvar org-babel-default-header-args:css '())
 
 (defun org-babel-execute:css (body _params)
-  "Execute a block of CSS code.
+  "Execute BODY of CSS code.
 This function is called by `org-babel-execute-src-block'."
   body)
 

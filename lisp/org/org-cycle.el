@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 ;;
-;; Maintainer: Ihor Radchenko <yantar92 at gmail dot com>
+;; Maintainer: Ihor Radchenko <yantar92 at posteo dot net>
 ;; Keywords: folding, visibility cycling, invisible text
 ;; URL: https://orgmode.org
 ;;
@@ -35,9 +35,10 @@
 (require 'org-macs)
 (require 'org-fold)
 
-(declare-function org-element-type "org-element" (element))
-(declare-function org-element-property "org-element" (property element))
-(declare-function org-element-lineage "org-element" (datum &optional types with-self))
+(declare-function org-element-type-p "org-element-ast" (node types))
+(declare-function org-element-property "org-element-ast" (property node))
+(declare-function org-element-post-affiliated "org-element" (node))
+(declare-function org-element-lineage "org-element-ast" (datum &optional types with-self))
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-display-inline-images "org" (&optional include-linked refresh beg end))
 (declare-function org-get-tags "org" (&optional pos local fontify))
@@ -115,6 +116,7 @@ than its value."
 	  (const :tag "No limit" nil)
 	  (integer :tag "Maximum level")))
 
+(defvaralias 'org-hide-block-startup 'org-cycle-hide-block-startup)
 (defcustom org-cycle-hide-block-startup nil
   "Non-nil means entering Org mode will fold all blocks.
 This can also be set in on a per-file basis with
@@ -125,6 +127,7 @@ This can also be set in on a per-file basis with
   :group 'org-cycle
   :type 'boolean)
 
+(defvaralias 'org-hide-drawer-startup 'org-cycle-hide-drawer-startup)
 (defcustom org-cycle-hide-drawer-startup t
   "Non-nil means entering Org mode will fold all drawers.
 This can also be set in on a per-file basis with
@@ -200,6 +203,7 @@ Special case: when 0, never leave empty lines in collapsed view."
   :type 'integer)
 (put 'org-cycle-separator-lines 'safe-local-variable 'integerp)
 
+(defvaralias 'org-pre-cycle-hook 'org-cycle-pre-hook)
 (defcustom org-cycle-pre-hook nil
   "Hook that is run before visibility cycling is happening.
 The function(s) in this hook must accept a single argument which indicates
@@ -240,6 +244,7 @@ normal outline commands like `show-all', but not with the cycling commands."
   :package-version '(Org . "9.6")
   :type 'boolean)
 
+(defvaralias 'org-tab-first-hook 'org-cycle-tab-first-hook)
 (defvar org-cycle-tab-first-hook nil
   "Hook for functions to attach themselves to TAB.
 See `org-ctrl-c-ctrl-c-hook' for more information.
@@ -335,6 +340,10 @@ same as `S-TAB') also when called without prefix argument."
 	      (and org-cycle-level-after-item/entry-creation
 		   (or (org-cycle-level)
 		       (org-cycle-item-indentation))))
+    (when (and org-cycle-max-level
+               (or (not (integerp org-cycle-max-level))
+                   (< org-cycle-max-level 1)))
+      (user-error "`org-cycle-max-level' must be a positive integer"))
     (let* ((limit-level
 	    (or org-cycle-max-level
 		(and (boundp 'org-inlinetask-min-level)
@@ -388,8 +397,8 @@ same as `S-TAB') also when called without prefix argument."
 	   ((org-fold-hide-drawer-toggle nil t element))
 	   ;; Table: enter it or move to the next field.
 	   ((and (org-match-line "[ \t]*[|+]")
-		 (org-element-lineage element '(table) t))
-	    (if (and (eq 'table (org-element-type element))
+		 (org-element-lineage element 'table t))
+	    (if (and (org-element-type-p element 'table)
 		     (eq 'table.el (org-element-property :type element)))
 		(message (substitute-command-keys "\\<org-mode-map>\
 Use `\\[org-edit-special]' to edit table.el tables"))
@@ -404,8 +413,8 @@ Use `\\[org-edit-special]' to edit table.el tables"))
 							   t)))
 			    (and item
 				 (= (line-beginning-position)
-				    (org-element-property :post-affiliated
-							  item)))))
+				    (org-element-post-affiliated
+				     item)))))
 		     (org-match-line org-outline-regexp))
 		 (or (bolp) (not (eq org-cycle-emulate-tab 'exc-hl-bol))))
 	    (org-cycle-internal-local))
@@ -421,7 +430,7 @@ Use `\\[org-edit-special]' to edit table.el tables"))
 	    (call-interactively (global-key-binding (kbd "TAB"))))
 	   ((or (eq org-cycle-emulate-tab t)
 		(and (memq org-cycle-emulate-tab '(white whitestart))
-		     (save-excursion (beginning-of-line 1) (looking-at "[ \t]*"))
+		     (save-excursion (forward-line 0) (looking-at "[ \t]*"))
 		     (or (and (eq org-cycle-emulate-tab 'white)
 			      (= (match-end 0) (line-end-position)))
 			 (and (eq org-cycle-emulate-tab 'whitestart)
@@ -480,7 +489,7 @@ Use `\\[org-edit-special]' to edit table.el tables"))
     (save-excursion
       (if (org-at-item-p)
 	  (progn
-	    (beginning-of-line)
+	    (forward-line 0)
 	    (setq struct (org-list-struct))
 	    (setq eoh (line-end-position))
 	    (setq eos (org-list-get-item-end-before-blank (point) struct))
@@ -502,16 +511,16 @@ Use `\\[org-edit-special]' to edit table.el tables"))
 		    (save-excursion
 		      (org-list-search-forward (org-item-beginning-re) eos t))))))
       ;; Determine end invisible part of buffer (EOL)
-      (beginning-of-line 2)
+      (forward-line 1)
       (if (eq org-fold-core-style 'text-properties)
           (while (and (not (eobp))		;this is like `next-line'
 		      (org-fold-folded-p (1- (point))))
 	    (goto-char (org-fold-next-visibility-change nil nil t))
-	    (and (eolp) (beginning-of-line 2)))
+	    (and (eolp) (forward-line 1)))
         (while (and (not (eobp))		;this is like `next-line'
 		    (get-char-property (1- (point)) 'invisible))
 	  (goto-char (next-single-char-property-change (point) 'invisible))
-	  (and (eolp) (beginning-of-line 2))))
+	  (and (eolp) (forward-line 1))))
       (setq eol (point)))
     ;; Find out what to do next and set `this-command'
     (cond
@@ -545,7 +554,7 @@ Use `\\[org-edit-special]' to edit table.el tables"))
 	  (save-excursion
 	    (org-back-to-heading)
 	    (while (org-list-search-forward (org-item-beginning-re) eos t)
-	      (beginning-of-line 1)
+	      (forward-line 0)
 	      (let* ((struct (org-list-struct))
 		     (prevs (org-list-prevs-alist struct))
 		     (end (org-list-get-bottom-point struct)))
@@ -608,7 +617,9 @@ With a numeric prefix, show all headlines up to that level."
 (defun org-cycle-set-startup-visibility ()
   "Set the visibility required by startup options and properties."
   (cond
-   ((eq org-startup-folded t)
+   ;; `fold' is technically not allowed value, but it is often
+   ;; intuitively tried by users by analogy with #+STARTUP: fold.
+   ((memq org-startup-folded '(t fold overview))
     (org-cycle-overview))
    ((eq org-startup-folded 'content)
     (org-cycle-content))
@@ -620,8 +631,10 @@ With a numeric prefix, show all headlines up to that level."
     (org-cycle-content 4))
    ((eq org-startup-folded 'show5levels)
     (org-cycle-content 5))
-   ((or (eq org-startup-folded 'showeverything)
-	(eq org-startup-folded nil))
+   ;; `nofold' and `showall' are technically not allowed values, but
+   ;; they are often intuitively tried by users by analogy with
+   ;; #+STARTUP: nofold or #STARTUP: showall.
+   ((memq org-startup-folded '(showeverything nil nofold showall))
     (org-fold-show-all)))
   (unless (eq org-startup-folded 'showeverything)
     (when org-cycle-hide-block-startup (org-fold-hide-block-all))
@@ -634,20 +647,21 @@ With a numeric prefix, show all headlines up to that level."
   "Switch subtree visibility according to VISIBILITY property."
   (interactive)
   (let ((regexp (org-re-property "VISIBILITY")))
-    (org-with-point-at 1
+    (save-excursion
+      (goto-char (point-min))
       (while (re-search-forward regexp nil t)
-	(let ((state (match-string 3)))
+        (let ((state (match-string 3)))
 	  (if (not (org-at-property-p)) (outline-next-heading)
 	    (save-excursion
 	      (org-back-to-heading t)
 	      (org-fold-subtree t)
 	      (pcase state
-		("folded"
+	        ("folded"
 		 (org-fold-subtree t))
-		("children"
+	        ("children"
 		 (org-fold-show-hidden-entry)
 		 (org-fold-show-children))
-		("content"
+	        ("content"
                  ;; Newline before heading will be outside the
                  ;; narrowing.  Make sure that it is revealed.
                  (org-fold-heading nil)
@@ -655,10 +669,9 @@ With a numeric prefix, show all headlines up to that level."
 		   (save-restriction
 		     (org-narrow-to-subtree)
 		     (org-cycle-content))))
-		((or "all" "showall")
+	        ((or "all" "showall")
 		 (org-fold-show-subtree))
-		(_ nil)))
-	    (org-end-of-subtree)))))))
+	        (_ nil)))))))))
 
 (defun org-cycle-overview ()
   "Switch to overview mode, showing only top-level headlines."
@@ -683,7 +696,7 @@ With a numeric prefix, show all headlines up to that level."
 
 (defun org-cycle-content (&optional arg)
   "Show all headlines in the buffer, like a table of contents.
-With numerical argument N, show content up to level N."
+With numerical argument ARG, show content up to level ARG."
   (interactive "p")
   (org-fold-show-all '(headings))
   (save-excursion
@@ -705,7 +718,9 @@ With numerical argument N, show content up to level N."
   "Temporarily store scroll position to restore.")
 (defun org-cycle-optimize-window-after-visibility-change (state)
   "Adjust the window after a change in outline visibility.
-This function is the default value of the hook `org-cycle-hook'."
+This function is the default value of the hook `org-cycle-hook'.
+STATE is the current outline visibility state.  It should be one of
+symbols `content', `all', `folded', `children', or `subtree'."
   (when (get-buffer-window (current-buffer))
     (let ((repeat (eq last-command this-command)))
       (unless repeat
@@ -791,7 +806,9 @@ STATE should be one of the symbols listed in the docstring of
 
 (defun org-cycle-display-inline-images (state)
   "Auto display inline images under subtree when cycling.
-It works when `org-cycle-inline-images-display' is non-nil."
+It works when `org-cycle-inline-images-display' is non-nil.
+STATE is the current outline visibility state.  It should be one of
+symbols `content', `all', `folded', `children', or `subtree'."
   (when org-cycle-inline-images-display
     (pcase state
       ('children

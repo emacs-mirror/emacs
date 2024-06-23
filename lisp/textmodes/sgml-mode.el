@@ -2470,10 +2470,10 @@ To work around that, do:
 (defun html-mode--image-yank-handler (type image)
   (let ((file (read-file-name (format "Save %s image to: " type))))
     (when (file-directory-p file)
-      (user-error "%s is a directory"))
+      (user-error "%s is a directory" file))
     (when (and (file-exists-p file)
                (not (yes-or-no-p (format "%s exists; overwrite?" file))))
-      (user-error "%s exists"))
+      (user-error "%s exists" file))
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (insert image)

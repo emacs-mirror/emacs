@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "frame.h"
 #include "termchar.h"
+#include "blockinput.h"
 #include "termhooks.h"
 #include "keyboard.h"
 #ifdef HAVE_MPS
@@ -324,6 +325,9 @@ delete_terminal (struct terminal *terminal)
      delete_terminal_hook when we delete our last frame.  */
   if (!terminal->name)
     return;
+
+  /* Protection while we are in inconsistent state.  */
+  block_input ();
   xfree (terminal->name);
   terminal->name = NULL;
 
@@ -339,6 +343,7 @@ delete_terminal (struct terminal *terminal)
     }
 
   delete_terminal_internal (terminal);
+  unblock_input ();
 }
 
 void

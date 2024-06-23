@@ -1712,6 +1712,30 @@ Nil if unknown.")
                   "case $BASH_VERSION in [0123].*|4.[0123].*) exit 43;; esac")
                (error 0)))))))
 
+(defun term-generate-db-directory ()
+  "Return the name of a directory holding Emacs's terminfo files.
+If `data-directory' is accessible to subprocesses, as on systems besides
+Android, return the same and no more.  Otherwise, copy terminfo files
+from the same directory to a temporary location, and return the latter."
+  (if (not (featurep 'android))
+      data-directory
+    (progn
+      (let* ((dst-directory (expand-file-name "eterm-db/e"
+                                              temporary-file-directory))
+             (parent (directory-file-name
+                      (file-name-directory dst-directory)))
+             (src-directory (expand-file-name "e" data-directory)))
+        (when (file-newer-than-file-p src-directory dst-directory)
+          (message "Generating Terminfo database...")
+          (with-demoted-errors "Generating Terminfo database: %s"
+            (when (file-exists-p dst-directory)
+              ;; Arrange that the directory be writable.
+              (dolist (x (directory-files-recursively parent "" t t))
+                (set-file-modes x #o700))
+              (delete-directory dst-directory t))
+            (copy-directory src-directory dst-directory nil t t)))
+        parent))))
+
 ;; This auxiliary function cranks up the process for term-exec in
 ;; the appropriate environment.
 
@@ -1725,7 +1749,8 @@ Nil if unknown.")
 	 (nconc
 	  (list
 	   (format "TERM=%s" term-term-name)
-	   (format "TERMINFO=%s" data-directory)
+	   (format "TERMINFO=%s"
+                   (term-generate-db-directory))
 	   (format term-termcap-format "TERMCAP="
 		   term-term-name term-height term-width)
 

@@ -260,7 +260,7 @@ and VALUE is the value which is given to that frame parameter
     ("--reverse-video" 0 x-handle-switch reverse t)
     ("--font" 1 x-handle-switch font)
     ("--internal-border" 1 x-handle-numeric-switch internal-border-width)
-    ;; ("--geometry" 1 ns-handle-geometry)
+    ("--geometry" 1 x-handle-geometry)
     ("--foreground-color" 1 x-handle-switch foreground-color)
     ("--background-color" 1 x-handle-switch background-color)
     ("--mouse-color" 1 x-handle-switch mouse-color)
@@ -723,7 +723,7 @@ It is the default value of the variable `top-level'."
             (set 'native-comp-eln-load-path
                  (mapcar (lambda (dir)
                            ;; Call expand-file-name to remove all the
-                           ;; pesky ".." from the directyory names in
+                           ;; pesky ".." from the directory names in
                            ;; native-comp-eln-load-path.
                            (expand-file-name
                             (decode-coding-string dir coding t)))

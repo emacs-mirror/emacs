@@ -144,6 +144,7 @@
                          (quit . ,(erc-quit/part-reason-default))
                          (erc-version . ,erc-version)))
       (erc-modules (copy-sequence erc-modules))
+      (debug-on-error t)
       (inhibit-interaction noninteractive)
       (auth-source-do-cache nil)
       (timer-list (copy-sequence timer-list))

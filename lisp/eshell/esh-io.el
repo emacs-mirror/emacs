@@ -112,10 +112,30 @@ other buffers)."
 
 (defcustom eshell-print-queue-size 5
   "The size of the print queue, for doing buffered printing.
-This is basically a speed enhancement, to avoid blocking the Lisp code
-from executing while Emacs is redisplaying."
+This variable is obsolete.  You should use `eshell-buffered-print-size'
+instead."
   :type 'integer
   :group 'eshell-io)
+(make-obsolete-variable 'eshell-print-queue-size
+                        'eshell-buffered-print-size "30.1")
+
+(defcustom eshell-buffered-print-size 2048
+  "The size of the print queue in characters, for doing buffered printing.
+Larger values for this option will generally result in faster execution
+by reducing the overhead associated with each print operation, but will
+increase the time it takes to see any progress in the output; smaller
+values will do the reverse."
+  :type 'integer
+  :group 'eshell-io
+  :version "30.1")
+
+(defcustom eshell-buffered-print-redisplay-throttle 0.025
+  "The minimum time in seconds between redisplays when using buffered printing.
+If nil, don't redisplay while printing."
+  :type '(choice number
+                 (const :tag "Don't redisplay" nil))
+  :group 'eshell-io
+  :version "30.1")
 
 (defcustom eshell-virtual-targets
   '(;; The literal string "/dev/null" is intentional here.  It just
@@ -135,18 +155,22 @@ from executing while Emacs is redisplaying."
                    #'eshell-clipboard-append)
      t))
   "Map virtual devices name to Emacs Lisp functions.
-If the user specifies any of the filenames above as a redirection
-target, the function in the second element will be called.
+Each member is of the following form:
 
-If the third element is non-nil, the redirection mode is passed as an
-argument (which is the symbol `overwrite', `append' or `insert'), and
-the function is expected to return another function -- which is the
-output function.  Otherwise, the second element itself is the output
-function.
+  (FILENAME OUTPUT-FUNCTION [PASS-MODE])
 
-The output function is then called repeatedly with single strings,
-which represents successive pieces of the output of the command, until nil
-is passed, meaning EOF."
+When the user specifies FILENAME as a redirection target, Eshell will
+repeatedly call the OUTPUT-FUNCTION with the redirected output as
+strings.  OUTPUT-FUNCTION can also be an `eshell-generic-target'
+instance.  In this case, Eshell will repeatedly call the function in the
+`output-function' slot with the string output; once the redirection has
+completed, Eshell will then call the function in the `close-function'
+slot, passing the exit status of the redirected command.
+
+If PASS-MODE is non-nil, Eshell will pass the redirection mode as an
+argument (which is the symbol `overwrite', `append' or `insert') to
+OUTPUT-FUNCTION, which should return the real output function (either an
+ordinary function or `eshell-generic-target' as described above)."
   :version "30.1"
   :type '(repeat
 	  (list (string :tag "Target")
@@ -157,6 +181,12 @@ is passed, meaning EOF."
   :group 'eshell-io)
 
 (define-error 'eshell-pipe-broken "Pipe broken")
+
+(defvar eshell-ensure-newline-p nil
+  "If non-nil, ensure that a newline is emitted after a Lisp form.
+This can be changed by Lisp forms that are evaluated from the
+Eshell command line.  This behavior only applies to line-oriented
+output targets (see `eshell-target-line-oriented-p'.")
 
 ;;; Internal Variables:
 
@@ -450,60 +480,123 @@ INDEX is the handle index to check.  If nil, check
              (equal (caar (aref handles eshell-error-handle)) '(t)))
       (equal (caar (aref handles index)) '(t)))))
 
+(defvar eshell--buffered-print-queue nil)
+(defvar eshell--buffered-print-current-size nil)
+(defvar eshell--buffered-print-next-redisplay nil)
+
 (defvar eshell-print-queue nil)
+(make-obsolete-variable 'eshell-print-queue
+                        'eshell--buffered-print-queue "30.1")
 (defvar eshell-print-queue-count -1)
+(make-obsolete-variable 'eshell-print-queue-count
+                        'eshell--buffered-print-current-size "30.1")
 
 (defsubst eshell-print (object)
   "Output OBJECT to the standard output handle."
   (eshell-output-object object eshell-output-handle))
 
-(defun eshell-flush (&optional reset-p)
-  "Flush out any lines that have been queued for printing.
-Must be called before printing begins with -1 as its argument, and
-after all printing is over with no argument."
-  (ignore
-   (if reset-p
-       (setq eshell-print-queue nil
-	     eshell-print-queue-count reset-p)
-     (if eshell-print-queue
-	 (eshell-print eshell-print-queue))
-     (eshell-flush 0))))
-
 (defun eshell-init-print-buffer ()
   "Initialize the buffered printing queue."
-  (eshell-flush -1))
+  (declare (obsolete #'eshell-with-buffered-print "30.1"))
+  (setq eshell--buffered-print-queue nil
+        eshell--buffered-print-current-size 0))
+
+(defun eshell-flush (&optional redisplay-now)
+  "Flush out any text that has been queued for printing.
+When printing interactively, this will call `redisplay' every
+`eshell-buffered-print-redisplay-throttle' seconds so that the user can
+see the progress.  If REDISPLAY-NOW is non-nil, call `redisplay' for
+interactive output even if the throttle would otherwise prevent it."
+  (ignore
+   (when eshell--buffered-print-queue
+     (eshell-print (apply #'concat eshell--buffered-print-queue))
+     ;; When printing interactively (see `eshell-with-buffered-print'),
+     ;; periodically redisplay so the user can see some progress.
+     (when (and eshell--buffered-print-next-redisplay
+                (or redisplay-now
+                    (time-less-p eshell--buffered-print-next-redisplay
+                                 (current-time))))
+       (redisplay)
+       (setq eshell--buffered-print-next-redisplay
+             (time-add eshell--buffered-print-next-redisplay
+                       eshell-buffered-print-redisplay-throttle)))
+     (setq eshell--buffered-print-queue nil
+           eshell--buffered-print-current-size 0))))
 
 (defun eshell-buffered-print (&rest strings)
-  "A buffered print -- *for strings only*."
-  (if (< eshell-print-queue-count 0)
-      (progn
-	(eshell-print (apply 'concat strings))
-	(setq eshell-print-queue-count 0))
-    (if (= eshell-print-queue-count eshell-print-queue-size)
-	(eshell-flush))
-    (setq eshell-print-queue
-	  (concat eshell-print-queue (apply 'concat strings))
-	  eshell-print-queue-count (1+ eshell-print-queue-count))))
+  "A buffered print -- *for strings only*.
+When the buffer exceeds `eshell-buffered-print-size' in characters, this
+will flush it using `eshell-flush' (which see)."
+  (setq eshell--buffered-print-queue
+        (nconc eshell--buffered-print-queue strings))
+  (cl-incf eshell--buffered-print-current-size
+           (apply #'+ (mapcar #'length strings)))
+  (when (> eshell--buffered-print-current-size eshell-buffered-print-size)
+    (eshell-flush)))
+
+(defmacro eshell-with-buffered-print (&rest body)
+  "Initialize buffered printing for Eshell, and then evaluate BODY.
+Within BODY, call `eshell-buffered-print' to perform output."
+  (declare (indent 0))
+  `(let ((eshell--buffered-print-queue nil)
+         (eshell--buffered-print-current-size 0)
+         (eshell--buffered-print-next-redisplay
+          (when (and eshell-buffered-print-redisplay-throttle
+                     (eshell-interactive-output-p))
+            (time-add (current-time)
+                      eshell-buffered-print-redisplay-throttle))))
+     (unwind-protect
+         ,@body
+       (eshell-flush))))
 
 (defsubst eshell-error (object)
   "Output OBJECT to the standard error handle."
   (eshell-output-object object eshell-error-handle))
-
-(defsubst eshell-errorn (object)
-  "Output OBJECT followed by a newline to the standard error handle."
-  (eshell-error object)
-  (eshell-error "\n"))
 
 (defsubst eshell-printn (object)
   "Output OBJECT followed by a newline to the standard output handle."
   (eshell-print object)
   (eshell-print "\n"))
 
-(cl-defstruct (eshell-virtual-target
+(defsubst eshell-errorn (object)
+  "Output OBJECT followed by a newline to the standard error handle."
+  (eshell-error object)
+  (eshell-error "\n"))
+
+(defun eshell--output-maybe-n (object handle)
+  "Output OBJECT to HANDLE.
+For any line-oriented output targets on HANDLE, ensure the output
+ends in a newline."
+  (eshell-output-object object handle)
+  (when (and eshell-ensure-newline-p
+             (not (and (stringp object)
+                       (string-suffix-p object "\n"))))
+    (eshell-maybe-output-newline handle)))
+
+(defsubst eshell-print-maybe-n (object)
+  "Output OBJECT to the standard output handle.
+For any line-oriented output targets, ensure the output ends in a
+newline."
+  (eshell--output-maybe-n object eshell-output-handle))
+
+(defsubst eshell-error-maybe-n (object)
+  "Output OBJECT to the standard error handle.
+For any line-oriented output targets, ensure the output ends in a
+newline."
+  (eshell--output-maybe-n object eshell-error-handle))
+
+(cl-defstruct (eshell-generic-target (:constructor nil))
+  "An Eshell target.
+This is mainly useful for creating virtual targets (see
+`eshell-virtual-targets').")
+
+(cl-defstruct (eshell-function-target
+               (:include eshell-generic-target)
                (:constructor nil)
-               (:constructor eshell-virtual-target-create (output-function)))
-  "A virtual target (see `eshell-virtual-targets')."
-  output-function)
+               (:constructor eshell-function-target-create
+                             (output-function &optional close-function)))
+  "An Eshell target that calls an OUTPUT-FUNCTION."
+  output-function close-function)
 
 (cl-defgeneric eshell-get-target (raw-target &optional _mode)
   "Convert RAW-TARGET, which is a raw argument, into a valid output target.
@@ -514,14 +607,16 @@ it defaults to `insert'."
 (cl-defmethod eshell-get-target ((raw-target string) &optional mode)
   "Convert a string RAW-TARGET into a valid output target using MODE.
 If TARGET is a virtual target (see `eshell-virtual-targets'),
-return an `eshell-virtual-target' instance; otherwise, return a
+return an `eshell-generic-target' instance; otherwise, return a
 marker for a file named TARGET."
   (setq mode (or mode 'insert))
   (if-let ((redir (assoc raw-target eshell-virtual-targets)))
-      (eshell-virtual-target-create
-       (if (nth 2 redir)
-           (funcall (nth 1 redir) mode)
-         (nth 1 redir)))
+      (let ((target (if (nth 2 redir)
+                        (funcall (nth 1 redir) mode)
+                      (nth 1 redir))))
+        (unless (eshell-generic-target-p target)
+          (setq target (eshell-function-target-create target)))
+        target)
     (let ((exists (get-file-buffer raw-target))
           (buf (find-file-noselect raw-target t)))
       (with-current-buffer buf
@@ -602,9 +697,10 @@ If status is nil, prompt before killing."
         (throw 'done nil))
       (process-send-eof target))))
 
-(cl-defmethod eshell-close-target ((_target eshell-virtual-target) _status)
-  "Close a virtual TARGET."
-  nil)
+(cl-defmethod eshell-close-target ((target eshell-function-target) status)
+  "Close an Eshell function TARGET."
+  (when-let ((close-function (eshell-function-target-close-function target)))
+    (funcall close-function status)))
 
 (cl-defgeneric eshell-output-object-to-target (object target)
   "Output OBJECT to TARGET.
@@ -660,9 +756,19 @@ Returns what was actually sent, or nil if nothing was sent.")
   object)
 
 (cl-defmethod eshell-output-object-to-target (object
-                                              (target eshell-virtual-target))
-  "Output OBJECT to the virtual TARGET."
-  (funcall (eshell-virtual-target-output-function target) object))
+                                              (target eshell-function-target))
+  "Output OBJECT to the Eshell function TARGET."
+  (funcall (eshell-function-target-output-function target) object))
+
+(cl-defgeneric eshell-target-line-oriented-p (_target)
+  "Return non-nil if the specified TARGET is line-oriented.
+Line-oriented targets are those that expect a newline after
+command output when `eshell-ensure-newline-p' is non-nil."
+  nil)
+
+(cl-defmethod eshell-target-line-oriented-p ((_target (eql t)))
+  "Return non-nil to indicate that the display is line-oriented."
+  t)
 
 (defun eshell-output-object (object &optional handle-index handles)
   "Insert OBJECT, using HANDLE-INDEX specifically.
@@ -673,6 +779,19 @@ HANDLES is the set of file handles to use; if nil, use
                              (or handle-index eshell-output-handle)))))
     (dolist (target targets)
       (eshell-output-object-to-target object target))))
+
+(defun eshell-maybe-output-newline (&optional handle-index handles)
+  "Maybe insert a newline, using HANDLE-INDEX specifically.
+This inserts a newline for all line-oriented output targets.
+
+If HANDLE-INDEX is nil, output to `eshell-output-handle'.
+HANDLES is the set of file handles to use; if nil, use
+`eshell-current-handles'."
+  (let ((targets (caar (aref (or handles eshell-current-handles)
+                             (or handle-index eshell-output-handle)))))
+    (dolist (target targets)
+      (when (eshell-target-line-oriented-p target)
+        (eshell-output-object-to-target "\n" target)))))
 
 (provide 'esh-io)
 ;;; esh-io.el ends here

@@ -1,5 +1,5 @@
 ;; -*- mode: lisp-data; -*-
-((pass 1 "PASS :foonet:changeme"))
+((pass 10 "PASS :foonet:changeme"))
 ((nick 1 "NICK tester"))
 ((user 1 "USER user 0 * :tester")
  (0 ":irc.foonet.org 001 tester :Welcome to the FooNet Internet Relay Chat Network tester")
@@ -24,7 +24,7 @@
  (0 ":irc.foonet.org 372 tester :- Please visit us in #libera for questions and support.")
  (0 ":irc.foonet.org 376 tester :End of /MOTD command."))
 
-((mode-user 1.2 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  (0 ":tester!~u@gq7yjr7gsu7nn.irc MODE tester :+RZi")
  (0 ":irc.znc.in 306 tester :You have been marked as being away")
  (0 ":tester!~u@gq7yjr7gsu7nn.irc JOIN #foo")
@@ -38,13 +38,13 @@
  (0 ":irc.foonet.org NOTICE tester :[09:56:57] This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect.")
  (0 ":irc.foonet.org 305 tester :You are no longer marked as being away"))
 
-((mode 1 "MODE #foo")
+((mode-foo 10 "MODE #foo")
  (0 ":irc.foonet.org 324 tester #foo +nt")
  (0 ":irc.foonet.org 329 tester #foo 1622454985")
  (0.1 ":alice!~u@gq7yjr7gsu7nn.irc PRIVMSG #foo :bob: Farewell, pretty lady: you must hold the credit of your father.")
  (0.1 ":bob!~u@gq7yjr7gsu7nn.irc PRIVMSG #foo :alice: On Thursday, sir ? the time is very short."))
 
-((nick 2 "NICK dummy")
+((nick 10 "NICK dummy")
  (0 ":tester!~u@gq7yjr7gsu7nn.irc NICK :dummy")
  (0.1 ":dummy!~u@gq7yjr7gsu7nn.irc MODE dummy :+RZi")
  (0.1 ":bob!~u@gq7yjr7gsu7nn.irc PRIVMSG #foo :dummy: Hi."))

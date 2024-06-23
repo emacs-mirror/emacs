@@ -94,14 +94,15 @@ mode for the C programming language is @code{c-mode}.
 @cindex TOML mode
   Emacs has programming language modes for Lisp, Scheme, the
 Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++, C#,
-Fortran, Icon, IDL (CORBA), IDLWAVE, Java, Javascript, M4, Makefiles,
-Metafont (@TeX{}'s companion for font creation), Modula2, Object
-Pascal, Objective-C, Octave, Pascal, Perl, Pike, PostScript, Prolog,
-Python, Ruby, Simula, SQL, Tcl, TypeScript, Verilog, and VHDL@.  An
-alternative mode for Perl is called CPerl mode.  Modes are also
-available for the scripting languages of the common GNU and Unix
-shells, and MS-DOS/MS-Windows @samp{BAT} files, JSON, DNS master
-files, CSS (Cascading Style Sheets), Dockerfiles, CMake files, and various sorts of configuration files.
+Elixir, Fortran, Icon, IDL (CORBA), HEEx, IDLWAVE, Java, Javascript,
+Lua, M4, Makefiles, Metafont (@TeX{}'s companion for font creation),
+Modula2, Object Pascal, Objective-C, Octave, Pascal, Perl, PHP, Pike,
+PostScript, Prolog, Python, Ruby, Simula, SQL, Tcl, TypeScript, Verilog,
+and VHDL@.  The recommended mode for Perl is called CPerl mode.  Modes
+are also available for the scripting languages of the common GNU and
+Unix shells, and MS-DOS/MS-Windows @samp{BAT} files, JSON, DNS master
+files, CSS (Cascading Style Sheets), Dockerfiles, CMake files, and
+various sorts of configuration files.
 
   Ideally, Emacs should have a major mode for each programming
 language that you might want to edit.  If it doesn't have a mode for
@@ -331,20 +332,43 @@ a negative argument moves back to the start of a sentence.
 @cindex index of buffer definitions
 @cindex buffer definitions index
 
-  The Imenu facility offers a way to find the major definitions in
-a file by name.  It is also useful in text formatter major modes,
-where it treats each chapter, section, etc., as a definition.
-(@xref{Xref}, for a more powerful feature that handles multiple files
-together.)
+  The Imenu facility offers a way to find the major definitions in a
+file by name.  It is useful both in programming-language major modes,
+where the definitions are variables, functions, etc., and in text
+formatter major modes, where it treats each chapter, section, etc., as a
+definition.  (@xref{Xref}, for a more powerful feature that handles
+multiple files together.)
 
 @findex imenu
 @vindex imenu-flatten
   If you type @kbd{M-g i} (@code{imenu}), it reads the name of a
 definition using the minibuffer, then moves point to that definition.
-You can use completion to specify the name; the command always
-displays the whole list of valid names.  If you set @code{imenu-flatten}
-to a non-@code{nil} value, then instead of the nested menu
-you can select a completion candidate from the flat list.
+You can use completion to specify the name; the command displays the
+list of matching valid names in the completions buffer.  If the index is
+hierarchical, then by default the completion candidates are also shown
+hierarchically, as a nested list: first you need to choose a section,
+then a subsection, etc., and finally the name of the definition.
+However, if you set @code{imenu-flatten} to a non-@code{nil} value, then
+instead of the nested menu you can select a completion candidate from a
+flattened list of definitions.  How the sections and subsections are
+shown in the flattened list of completion candidates depends on the
+value of @code{imenu-flatten}, which can be one of the following:
+
+@table @code
+@vindex imenu-level-separator
+@item prefix
+This shows each candidate prefixed by names of its section, subsection,
+subsubsection, etc., with each level separated from the next by the
+string that is the value of @code{imenu-level-separator}, by default
+@samp{:}.
+
+@item annotation
+This shows the section names as annotations, following each definition
+name.
+
+@item group
+This shows the completion candidates grouped by their sections.
+@end table
 
 @findex imenu-add-menubar-index
   Alternatively, you can bind the command @code{imenu} to a mouse

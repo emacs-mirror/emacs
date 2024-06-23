@@ -3687,7 +3687,9 @@ negative, shrink selected window by -DELTA lines or columns."
 	  (if horizontal 'enlarge-window-horizontally 'enlarge-window))
       ;; For backward compatibility don't signal an error unless this
       ;; command is `enlarge-window(-horizontally)'.
-      (user-error "Cannot enlarge selected window"))
+      (if horizontal
+          (user-error "Cannot enlarge selected window horizontally")
+        (user-error "Cannot enlarge selected window vertically")))
      (t
       (window-resize
        nil (if (> delta 0)
@@ -3730,7 +3732,9 @@ negative, enlarge selected window by -DELTA lines or columns."
 	  (if horizontal 'shrink-window-horizontally 'shrink-window))
       ;; For backward compatibility don't signal an error unless this
       ;; command is `shrink-window(-horizontally)'.
-      (user-error "Cannot shrink selected window"))
+      (if horizontal
+          (user-error "Cannot shrink selected window horizontally")
+        (user-error "Cannot shrink selected window vertically")))
      (t
       (window-resize
        nil (if (> delta 0)
@@ -7740,7 +7744,7 @@ to an expression containing one of these \"action\" functions:
  `display-buffer-in-previous-window' -- Use a window that did
     show the buffer before.
  `display-buffer-use-some-window' -- Use some existing window.
- `display-buffer-use-least-recent-window' -- Try to avoid re-using
+ `display-buffer-use-least-recent-window' -- Try to avoid reusing
     windows that have recently been switched to.
  `display-buffer-pop-up-window' -- Pop up a new window.
  `display-buffer-full-frame' -- Delete other windows and use the full frame.
@@ -7845,6 +7849,18 @@ Action alist entries are:
     parameters to give the chosen window.
  `allow-no-window' -- A non-nil value means that `display-buffer'
     may not display the buffer and return nil immediately.
+ `some-window' -- This entry defines which window
+    `display-buffer-use-some-window' should choose.  The possible choices
+    are `lru' or nil (the default) to select the least recently used window,
+    and `mru' to select the most recently used window.  It can also be a
+    function that takes two arguments: a buffer and an alist, and should
+    return the window in which to display the buffer.  If the value is
+    `lru', it avoids selecting windows that are not full-width and windows
+    on another frame.  If the value is `mru', it does not consider the
+    selected window and windows on any frame but the selected one.  It's
+    useful to customize `display-buffer-base-action' to
+    `(nil . ((some-window . mru)))' when you want to display buffers in the
+    same non-selected window in a configuration with more than two windows.
  `body-function' -- A function called with one argument - the
     displayed window.  It is called after the buffer is
     displayed, and before `window-height', `window-width'
@@ -8734,20 +8750,33 @@ If ALIST has a non-nil `inhibit-switch-frame' entry, then in the
 event that a window on another frame is chosen, avoid raising
 that frame.
 
+If ALIST contains a non-nil `some-window' entry, then prefer the least
+recently used window if the entry's value is `lru' or nil, or the most
+recently used window if it's `mru'.  If the value is a function, it is
+called with two arguments: a buffer and an alist, and should return
+the window where to display the buffer.
+
 This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
 called only by `display-buffer' or a function directly or
 indirectly called by the latter."
   (let* ((not-this-window (cdr (assq 'inhibit-same-window alist)))
+	 (some-window-method (cdr (assq 'some-window alist)))
 	 (frame (or (window--frame-usable-p (selected-frame))
 		    (window--frame-usable-p (last-nonminibuffer-frame))))
 	 (window
 	  ;; Reuse an existing window.
-	  (or (display-buffer--lru-window
-               ;; If ALIST specifies 'lru-frames' or 'window-min-width'
-               ;; let them prevail.
-               (append alist `((lru-frames . ,frame)
-                               (window-min-width . full-width))))
+	  (or (cond
+	       ((memq some-window-method '(nil lru))
+		(display-buffer--lru-window
+		 ;; If ALIST specifies 'lru-frames' or 'window-min-width'
+		 ;; let them prevail.
+		 (append alist `((lru-frames . ,frame)
+				 (window-min-width . full-width)))))
+	       ((eq some-window-method 'mru)
+		(get-mru-window nil nil t))
+	       ((functionp some-window-method)
+		(funcall some-window-method buffer alist)))
 	      (let ((window (get-buffer-window buffer 'visible)))
 		(unless (and not-this-window
 			     (eq window (selected-window)))
@@ -9142,9 +9171,14 @@ Return the buffer switched to."
         (pop-to-buffer buffer norecord)))
      (t
       (when switch-to-buffer-obey-display-actions
-        (let ((selected-window (selected-window)))
+        (let* ((selected-window (selected-window))
+	       (old-window-buffer (window-buffer selected-window)))
           (pop-to-buffer-same-window buffer norecord)
-          (when (eq (selected-window) selected-window)
+	  ;; Do not ask for setting start and point when showing the
+	  ;; same buffer in the old selected window (Bug#71616).
+          (when (and (eq (selected-window) selected-window)
+		     (not (eq (window-buffer selected-window)
+			      old-window-buffer)))
             (setq set-window-start-and-point t))))
 
       (when set-window-start-and-point
@@ -9276,6 +9310,9 @@ to deactivate this overriding action."
     (when echofun
       (add-hook 'prefix-command-echo-keystrokes-functions echofun))
     (setq switch-to-buffer-obey-display-actions t)
+    (unless (listp (car display-buffer-overriding-action))
+      (setcar display-buffer-overriding-action
+              (list (car display-buffer-overriding-action))))
     (push action (car display-buffer-overriding-action))
     exitfun))
 

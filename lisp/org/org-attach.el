@@ -44,8 +44,12 @@
 
 (declare-function dired-dwim-target-directory "dired-aux")
 (declare-function dired-get-marked-files "dired" (&optional localp arg filter distinguish-one-marked error))
-(declare-function org-element-property "org-element" (property element))
-(declare-function org-element-type "org-element" (element))
+(declare-function org-element-property "org-element-ast" (property node))
+(declare-function org-element-begin "org-element" (node))
+(declare-function org-element-end "org-element" (node))
+(declare-function org-element-contents-begin "org-element" (node))
+(declare-function org-element-contents-end "org-element" (node))
+(declare-function org-element-type-p "org-element-ast" (node types))
 (declare-function org-inlinetask-goto-beginning "org-inlinetask" ())
 (declare-function org-inlinetask-in-task-p "org-inlinetask" ())
 
@@ -138,13 +142,13 @@ Selective means to respect the inheritance setting in
 	  (const :tag "Inherit parent node attachments" t)
 	  (const :tag "Respect org-use-property-inheritance" selective)))
 
-(defcustom org-attach-store-link-p nil
+(defcustom org-attach-store-link-p 'attached
   "Non-nil means store a link to a file when attaching it.
 When t, store the link to original file location.
 When `file', store link to the attached file location.
 When `attached', store attach: link to the attached file."
   :group 'org-attach
-  :version "24.1"
+  :package-version '(Org . "9.7")
   :type '(choice
 	  (const :tag "Don't store link" nil)
 	  (const :tag "Link to origin location" t)
@@ -297,67 +301,71 @@ ask the user instead, else remove without asking."
   "The dispatcher for attachment commands.
 Shows a list of commands and prompts for another key to execute a command."
   (interactive)
-  (let ((dir (org-attach-dir nil 'no-fs-check))
-	c marker)
+  (let (c marker)
     (when (eq major-mode 'org-agenda-mode)
       (setq marker (or (get-text-property (point) 'org-hd-marker)
 		       (get-text-property (point) 'org-marker)))
       (unless marker
 	(error "No item in current line")))
     (org-with-point-at marker
-      (if (and (featurep 'org-inlinetask)
-	       (not (org-inlinetask-in-task-p)))
-	  (org-with-limited-levels
-	   (org-back-to-heading-or-point-min t))
+      (let ((dir (org-attach-dir nil 'no-fs-check)))
         (if (and (featurep 'org-inlinetask)
-		 (org-inlinetask-in-task-p))
-            (org-inlinetask-goto-beginning)
-          (org-back-to-heading-or-point-min t)))
-      (save-excursion
-	(save-window-excursion
-	  (unless org-attach-expert
-	    (org-switch-to-buffer-other-window "*Org Attach*")
-	    (erase-buffer)
-	    (setq cursor-type nil
-	          header-line-format "Use C-v, M-v, C-n or C-p to navigate.")
-	    (insert
-             (concat "Attachment folder:\n"
-		     (or dir
-			 "Can't find an existing attachment-folder")
-		     (unless (and dir (file-directory-p dir))
-		       "\n(Not yet created)")
-		     "\n\n"
-	             (format "Select an Attachment Command:\n\n%s"
-		             (mapconcat
-		              (lambda (entry)
-		                (pcase entry
-		                  (`((,key . ,_) ,_ ,docstring)
-		                   (format "%c       %s"
-			                   key
-			                   (replace-regexp-in-string "\n\\([\t ]*\\)"
-							             "        "
-							             docstring
-							             nil nil 1)))
-		                  (_
-		                   (user-error
-			            "Invalid `org-attach-commands' item: %S"
-			            entry))))
-		              org-attach-commands
-		              "\n")))))
-	  (org-fit-window-to-buffer (get-buffer-window "*Org Attach*"))
-	  (let ((msg (format "Select command: [%s]"
-			     (concat (mapcar #'caar org-attach-commands)))))
-	    (message msg)
-	    (while (and (setq c (read-char-exclusive))
-                        (memq c '(?\C-n ?\C-p ?\C-v ?\M-v)))
-	      (org-scroll c t)))
-	  (and (get-buffer "*Org Attach*") (kill-buffer "*Org Attach*"))))
-      (let ((command (cl-some (lambda (entry)
-				(and (memq c (nth 0 entry)) (nth 1 entry)))
-			      org-attach-commands)))
-	(if (commandp command)
-	    (command-execute command)
-	  (error "No such attachment command: %c" c))))))
+	         (not (org-inlinetask-in-task-p)))
+	    (org-with-limited-levels
+	     (org-back-to-heading-or-point-min t))
+          (if (and (featurep 'org-inlinetask)
+		   (org-inlinetask-in-task-p))
+              (org-inlinetask-goto-beginning)
+            (org-back-to-heading-or-point-min t)))
+        (save-excursion
+	  (save-window-excursion
+	    (unless org-attach-expert
+	      (switch-to-buffer-other-window "*Org Attach*")
+	      (erase-buffer)
+	      (setq cursor-type nil
+	            header-line-format "Use C-v, M-v, C-n or C-p to navigate.")
+	      (insert
+               (concat "Attachment folder:\n"
+		       (or dir
+			   "Can't find an existing attachment-folder")
+		       (unless (and dir (file-directory-p dir))
+		         "\n(Not yet created)")
+		       "\n\n"
+	               (format "Select an Attachment Command:\n\n%s"
+		               (mapconcat
+		                (lambda (entry)
+		                  (pcase entry
+		                    (`((,key . ,_) ,_ ,docstring)
+		                     (format "%c       %s"
+			                     key
+			                     (replace-regexp-in-string "\n\\([\t ]*\\)"
+							               "        "
+							               docstring
+							               nil nil 1)))
+		                    (_
+		                     (user-error
+			              "Invalid `org-attach-commands' item: %S"
+			              entry))))
+		                org-attach-commands
+		                "\n"))))
+              (goto-char (point-min)))
+	    (org-fit-window-to-buffer (get-buffer-window "*Org Attach*"))
+            (unwind-protect
+	        (let ((msg (format "Select command: [%s]"
+			           (concat (mapcar #'caar org-attach-commands)))))
+	          (message msg)
+	          (while (and (setq c (read-char-exclusive))
+                              (memq c '(?\C-n ?\C-p ?\C-v ?\M-v)))
+	            (org-scroll c t)))
+              (when-let ((window (get-buffer-window "*Org Attach*" t)))
+                (quit-window 'kill window))
+	      (and (get-buffer "*Org Attach*") (kill-buffer "*Org Attach*")))))
+        (let ((command (cl-some (lambda (entry)
+				  (and (memq c (nth 0 entry)) (nth 1 entry)))
+			        org-attach-commands)))
+	  (if (commandp command)
+	      (command-execute command)
+	    (error "No such attachment command: %c" c)))))))
 
 ;;;###autoload
 (defun org-attach-dir (&optional create-if-not-exists-p no-fs-check)
@@ -432,17 +440,26 @@ ignoring nils.  If EXISTING is non-nil, then return the first path
 found in the filesystem.  Otherwise return the first non-nil value."
   (let ((fun-list org-attach-id-to-path-function-list)
         (base-dir (expand-file-name org-attach-id-dir))
+        (default-base-dir (expand-file-name "data/"))
         preferred first)
     (while (and fun-list
                 (not preferred))
       (let* ((name (funcall (car fun-list) id))
-             (candidate (and name (expand-file-name name base-dir))))
+             (candidate (and name (expand-file-name name base-dir)))
+             ;; Try the default value `org-attach-id-dir' as a fallback.
+             (candidate2 (and name (not (equal base-dir default-base-dir))
+                              (expand-file-name name default-base-dir))))
         (setq fun-list (cdr fun-list))
         (when candidate
           (if (or (not existing) (file-directory-p candidate))
               (setq preferred candidate)
             (unless first
-              (setq first candidate))))))
+              (setq first candidate)))
+          (when (and existing
+                     candidate2
+                     (not (file-directory-p candidate))
+                     (file-directory-p candidate2))
+            (setq preferred candidate2)))))
     (or preferred first)))
 
 (defun org-attach-check-absolute-path (dir)
@@ -512,9 +529,13 @@ DIR-property exists (that is different from the unset one)."
 (defun org-attach-tag (&optional off)
   "Turn the autotag on or (if OFF is set) off."
   (when org-attach-auto-tag
-    (save-excursion
-      (org-back-to-heading t)
-      (org-toggle-tag org-attach-auto-tag (if off 'off 'on)))))
+    ;; FIXME: There is currently no way to set #+FILETAGS
+    ;; programmatically.  Do nothing when before first heading
+    ;; (attaching to file) to avoid blocking error.
+    (unless (org-before-first-heading-p)
+      (save-excursion
+        (org-back-to-heading t)
+        (org-toggle-tag org-attach-auto-tag (if off 'off 'on))))))
 
 (defun org-attach-untag ()
   "Turn the autotag off."
@@ -573,7 +594,7 @@ METHOD may be `cp', `mv', `ln', `lns' or `url' default taken from
        ((eq method 'url)
         (if (org--should-fetch-remote-resource-p file)
             (url-copy-file file attach-file)
-          (error "The remote resource %S is considered unsafe, and will not be downloaded."
+          (error "The remote resource %S is considered unsafe, and will not be downloaded"
                  file))))
       (run-hook-with-args 'org-attach-after-change-hook attach-dir)
       (org-attach-tag)
@@ -736,20 +757,20 @@ It is meant to be added to `org-export-before-parsing-hook'."
   (save-excursion
     (while (re-search-forward "attachment:" nil t)
       (let ((link (org-element-context)))
-	(when (and (eq 'link (org-element-type link))
+	(when (and (org-element-type-p link 'link)
 		   (string-equal "attachment"
 				 (org-element-property :type link)))
-	  (let* ((description (and (org-element-property :contents-begin link)
+	  (let* ((description (and (org-element-contents-begin link)
 				   (buffer-substring-no-properties
-				    (org-element-property :contents-begin link)
-				    (org-element-property :contents-end link))))
+				    (org-element-contents-begin link)
+				    (org-element-contents-end link))))
 		 (file (org-element-property :path link))
 		 (new-link (org-link-make-string
 			    (concat "file:" (org-attach-expand file))
 			    description)))
-	    (goto-char (org-element-property :end link))
+	    (goto-char (org-element-end link))
 	    (skip-chars-backward " \t")
-	    (delete-region (org-element-property :begin link) (point))
+	    (delete-region (org-element-begin link) (point))
 	    (insert new-link)))))))
 
 (defun org-attach-follow (file arg)

@@ -287,7 +287,8 @@ automatically)."
             '("language_server.bat")
           (eglot-alternatives
            '("language_server.sh" "start_lexical.sh"))))
-    (ada-mode . ("ada_language_server"))
+    ((ada-mode ada-ts-mode) . ("ada_language_server"))
+    ((gpr-mode gpr-ts-mode) . ("ada_language_server" "--language-gpr"))
     (scala-mode . ,(eglot-alternatives
                     '("metals" "metals-emacs")))
     (racket-mode . ("racket" "-l" "racket-langserver"))
@@ -623,6 +624,7 @@ This can be useful when using docker to run a language server.")
                              :command :data :tags))
       (Diagnostic (:range :message) (:severity :code :source :relatedInformation :codeDescription :tags))
       (DocumentHighlight (:range) (:kind))
+      (ExecuteCommandParams ((:command . string)) (:arguments))
       (FileSystemWatcher (:globPattern) (:kind))
       (Hover (:contents) (:range))
       (InitializeResult (:capabilities) (:serverInfo))
@@ -883,17 +885,25 @@ treated as in `eglot--dbind'."
 
 (cl-defgeneric eglot-execute (server action)
   "Ask SERVER to execute ACTION.
-ACTION is an LSP object of either `CodeAction' or `Command' type."
+ACTION is an LSP `CodeAction', `Command' or `ExecuteCommandParams'
+object."
   (:method
    (server action) "Default implementation."
    (eglot--dcase action
-     (((Command)) (eglot--request server :workspace/executeCommand action))
+     (((Command))
+      ;; Convert to ExecuteCommandParams and recurse (bug#71642)
+      (cl-remf action :title)
+      (eglot-execute server action))
+     (((ExecuteCommandParams))
+      (eglot--request server :workspace/executeCommand action))
      (((CodeAction) edit command data)
       (if (and (null edit) (null command) data
                (eglot-server-capable :codeActionProvider :resolveProvider))
           (eglot-execute server (eglot--request server :codeAction/resolve action))
         (when edit (eglot--apply-workspace-edit edit this-command))
-        (when command (eglot--request server :workspace/executeCommand command)))))))
+        (when command
+          ;; Recursive call with what must be a Command object (bug#71642)
+          (eglot-execute server command)))))))
 
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'."
@@ -1513,7 +1523,12 @@ Each function is passed the server as an argument")
 This docstring appeases checkdoc, that's all."
   (let* ((default-directory (project-root project))
          (nickname (project-name project))
-         (readable-name (format "EGLOT (%s/%s)" nickname managed-modes))
+         (readable-name
+          (progn
+            (unless (file-exists-p default-directory)
+              ;; could happen because of bug#70724 or just because
+              (eglot--error "Project '%s' is gone!" nickname))
+            (format "EGLOT (%s/%s)" nickname managed-modes)))
          server-info
          (contact (if (functionp contact) (funcall contact) contact))
          (initargs
@@ -2044,6 +2059,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (when eglot--current-flymake-report-fn
       (eglot--report-to-flymake nil)
       (setq eglot--current-flymake-report-fn nil))
+    (run-hooks 'eglot-managed-mode-hook)
     (let ((server eglot--cached-server))
       (setq eglot--cached-server nil)
       (when server

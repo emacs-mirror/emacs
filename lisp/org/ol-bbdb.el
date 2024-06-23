@@ -226,7 +226,7 @@ date year)."
 
 ;;; Implementation
 
-(defun org-bbdb-store-link ()
+(defun org-bbdb-store-link (&optional _interactive?)
   "Store a link to a BBDB database entry."
   (when (eq major-mode 'bbdb-mode)
     ;; This is BBDB, we make this link!
@@ -255,7 +255,7 @@ italicized, in all other cases it is left unchanged."
 
 (defun org-bbdb-open (name _)
   "Follow a BBDB link to NAME."
-  (require 'bbdb-com)
+  (org-require-package 'bbdb-com "bbdb")
   (let ((inhibit-redisplay (not debug-on-error)))
     (if (fboundp 'bbdb-name)
 	(org-bbdb-open-old name)
@@ -369,7 +369,7 @@ This is used by Org to re-create the anniversary hash table."
   "Extract anniversaries from BBDB for display in the agenda.
 When called programmatically, this function expects the `date'
 variable to be globally bound."
-  (require 'bbdb)
+  (org-require-package 'bbdb)
   (require 'diary-lib)
   (unless (hash-table-p org-bbdb-anniv-hash)
     (setq org-bbdb-anniv-hash
@@ -500,7 +500,7 @@ must be positive"))
 
 (defun org-bbdb-complete-link ()
   "Read a bbdb link with name completion."
-  (require 'bbdb-com)
+  (org-require-package 'bbdb-com "bbdb")
   (let ((rec (bbdb-completing-read-record "Name: ")))
     (concat "bbdb:"
 	    (bbdb-record-name (if (listp rec)
@@ -509,7 +509,7 @@ must be positive"))
 
 (defun org-bbdb-anniv-export-ical ()
   "Extract anniversaries from BBDB and convert them to icalendar format."
-  (require 'bbdb)
+  (org-require-package 'bbdb)
   (require 'diary-lib)
   (unless (hash-table-p org-bbdb-anniv-hash)
     (setq org-bbdb-anniv-hash

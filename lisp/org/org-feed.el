@@ -475,7 +475,7 @@ This will find DRAWER and extract the alist."
     (goto-char pos)
     (let ((end (save-excursion (org-end-of-subtree t t))))
       (if (re-search-forward
-	   (concat "^[ \t]*:" drawer ":[ \t]*\n\\([^\000]*?\\)\n[ \t]*:END:")
+	   (concat "^[ \t]*:" drawer ":[ \t]*\n\\(\\(?:.\\|\n\\)*?\\)\n[ \t]*:END:")
 	   end t)
 	  (read (match-string 1))
 	nil))))
@@ -495,7 +495,7 @@ This will find DRAWER and extract the alist."
 				  (match-beginning 0)))))
 	(outline-next-heading)
 	(insert "  :" drawer ":\n  :END:\n")
-	(beginning-of-line 0))
+	(forward-line -1))
       (insert (pp-to-string status)))))
 
 (defun org-feed-add-items (pos entries)
@@ -508,7 +508,7 @@ This will find DRAWER and extract the alist."
       (setq level (org-get-valid-level (length (match-string 1)) 1))
       (org-end-of-subtree t t)
       (skip-chars-backward " \t\n")
-      (beginning-of-line 2)
+      (forward-line 1)
       (setq pos (point))
       (while (setq entry (pop entries))
 	(org-paste-subtree level entry 'yank))
@@ -565,7 +565,7 @@ If that property is already present, nothing changes."
 			(let ((v (plist-get entry (intern (concat ":" name)))))
 			  (save-excursion
 			    (save-match-data
-			      (beginning-of-line)
+			      (forward-line 0)
 			      (if (looking-at
 				   (concat "^\\([ \t]*\\)%" name "[ \t]*$"))
 				  (org-feed-make-indented-block
@@ -633,7 +633,7 @@ containing the properties `:guid' and `:item-full-text'."
 	      end (and (re-search-forward "</item>" nil t)
 		       (match-beginning 0)))
 	(setq item (buffer-substring beg end)
-	      guid (if (string-match "<guid\\>.*?>\\([^\000]*?\\)</guid>" item)
+	      guid (if (string-match "<guid\\>.*?>\\(\\(?:.\\|\n\\)*?\\)</guid>" item)
 		       (xml-substitute-special (match-string-no-properties 1 item))))
 	(setq entry (list :guid guid :item-full-text item))
 	(push entry entries)
@@ -647,7 +647,7 @@ containing the properties `:guid' and `:item-full-text'."
   (with-temp-buffer
     (insert (plist-get entry :item-full-text))
     (goto-char (point-min))
-    (while (re-search-forward "<\\([a-zA-Z]+\\>\\).*?>\\([^\000]*?\\)</\\1>"
+    (while (re-search-forward "<\\([a-zA-Z]+\\>\\).*?>\\(\\(?:.\\|\n\\)*?\\)</\\1>"
 			      nil t)
       (setq entry (plist-put entry
 			     (intern (concat ":" (match-string 1)))

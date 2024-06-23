@@ -70,7 +70,7 @@
 (defun erc-services-tests--auth-source-standard (search)
   (setq search (erc-services-tests--wrap-search search))
 
-  (ert-info ("Session wins")
+  (ert-info ("Session ID wins")
     (let ((erc-session-server "irc.gnu.org")
           (erc-server-announced-name "my.gnu.org")
           (erc-session-port 6697)
@@ -92,9 +92,14 @@
     (let ((erc-session-server "irc.gnu.org")
           (erc-server-announced-name "my.gnu.org")
           (erc-session-port 6697)
-          erc-network
           (erc-networks--id (erc-networks--id-create nil)))
-      (should (string= (funcall search :user "#chan") "baz")))))
+      (should (string= (funcall search :user "#chan") "baz"))))
+
+  (ert-info ("Dialed wins")
+    (let ((erc-session-server "irc.gnu.org")
+          (erc-session-port 6697)
+          (erc-networks--id (erc-networks--id-create nil)))
+      (should (string= (funcall search :user "#chan") "bar")))))
 
 (defun erc-services-tests--auth-source-announced (search)
   (setq search (erc-services-tests--wrap-search search))
@@ -102,7 +107,8 @@
          (erc-server-parameters '(("CHANTYPES" . "&#")))
          (erc--target (erc--target-from-string "&chan")))
 
-    (ert-info ("Announced prioritized")
+    ;; Pretend #chan is just some account name and not a channel.
+    (ert-info ("Host priorities reversed when target is local")
 
       (ert-info ("Announced wins")
         (let* ((erc-session-server "irc.gnu.org")
@@ -113,7 +119,7 @@
                (erc-networks--id (erc-networks--id-create nil)))
           (should (string= (funcall search :user "#chan") "baz"))))
 
-      (ert-info ("Peer next")
+      (ert-info ("Dialed next")
         (let* ((erc-server-announced-name "irc.gnu.org")
                (erc-session-port 6697)
                (erc-network 'GNU.chat)

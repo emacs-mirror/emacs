@@ -1252,6 +1252,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           cpy (am_len, a_month);
           break;
 #else
+# if defined _WIN32 && !defined __CYGWIN__
+          format_char = L_('b');
+# endif
           goto underlying_strftime;
 #endif
 
@@ -1287,6 +1290,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                      != '\0')))
             subfmt = (const CHAR_T *) _NL_CURRENT (LC_TIME, NLW(D_T_FMT));
 #elif USE_C_LOCALE && !HAVE_STRFTIME_L
+          subfmt = L_("%a %b %e %H:%M:%S %Y");
+#elif defined _WIN32 && !defined __CYGWIN__
+          /* On native Windows, "%c" is "%d/%m/%Y %H:%M:%S" by default.  */
           subfmt = L_("%a %b %e %H:%M:%S %Y");
 #else
           goto underlying_strftime;
@@ -1709,8 +1715,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #elif USE_C_LOCALE && !HAVE_STRFTIME_L
           subfmt = L_("%I:%M:%S %p");
           goto subformat;
-#elif (defined __APPLE__ && defined __MACH__) || defined __FreeBSD__
-          /* macOS, FreeBSD strftime() may produce empty output for "%r".  */
+#elif (defined __APPLE__ && defined __MACH__) || defined __FreeBSD__ || (defined _WIN32 && !defined __CYGWIN__)
+          /* macOS, FreeBSD, native Windows strftime() may produce empty output
+             for "%r".  */
           subfmt = L_("%I:%M:%S %p");
           goto subformat;
 #else

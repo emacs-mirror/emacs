@@ -73,9 +73,6 @@ static Lisp_Object tip_last_parms;
 static void haiku_explicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 static void haiku_set_title (struct frame *, Lisp_Object, Lisp_Object);
 
-/* The number of references to an image cache.  */
-static ptrdiff_t image_cache_refcount;
-
 static Lisp_Object
 get_geometry_from_preferences (struct haiku_display_info *dpyinfo,
                                Lisp_Object parms)
@@ -627,29 +624,8 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (NILP (Fmemq (frame, Vframe_list)))
     {
-#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
-      struct haiku_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-#endif
-
-      /* If the frame's image cache refcount is still the same as our
-	 private shadow variable, it means we are unwinding a frame
-	 for which we didn't yet call init_frame_faces, where the
-	 refcount is incremented.  Therefore, we increment it here, so
-	 that free_frame_faces, called in free_frame_resources later,
-	 will not mistakenly decrement the counter that was not
-	 incremented yet to account for this new frame.  */
-      if (FRAME_IMAGE_CACHE (f) != NULL
-	  && FRAME_IMAGE_CACHE (f)->refcount == image_cache_refcount)
-	FRAME_IMAGE_CACHE (f)->refcount++;
-
       haiku_free_frame_resources (f);
       free_glyphs (f);
-
-#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
-      /* Check that reference counts are indeed correct.  */
-      if (dpyinfo->terminal->image_cache)
-	eassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
-#endif
     }
 }
 
@@ -806,9 +782,6 @@ haiku_create_frame (Lisp_Object parms)
 #endif
 #endif
   register_font_driver (&haikufont_driver, f);
-
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
 
   gui_default_parameter (f, parms, Qfont_backend, Qnil,
                          "fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -1097,9 +1070,6 @@ haiku_create_tip_frame (Lisp_Object parms)
 #endif
 #endif
   register_font_driver (&haikufont_driver, f);
-
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
 
   gui_default_parameter (f, parms, Qfont_backend, Qnil,
                          "fontBackend", "FontBackend", RES_TYPE_STRING);

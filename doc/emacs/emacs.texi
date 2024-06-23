@@ -529,6 +529,7 @@ Multiple Windows
 * Temporary Displays::  Displaying non-editable buffers.
 * Window Convenience::  Convenience functions for window handling.
 * Tab Line::            Window tab line.
+* Window Tool Bar::     A tool bar that is attached to windows.
 
 Displaying a Buffer in a Window
 
@@ -1167,6 +1168,10 @@ Local Variables in Files
 
 * Specifying File Variables:: Specifying file local variables.
 * Safe File Variables::       Making sure file local variables are safe.
+
+Local Variables in Directories
+
+* EditorConfig support::  Per-Directory Variables via EditorConfig
 
 Customizing Key Bindings
 

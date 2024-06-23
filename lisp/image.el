@@ -136,18 +136,6 @@ Subdirectories are not automatically included in the search."
   :type '(repeat (choice directory variable))
   :initialize #'custom-initialize-delay)
 
-(defcustom image-scaling-factor 'auto
-  "When displaying images, apply this scaling factor before displaying.
-This is not supported for all image types, and is mostly useful
-when you have a high-resolution monitor.
-The value is either a floating point number (where numbers higher
-than 1 means to increase the size and lower means to shrink the
-size), or the symbol `auto', which will compute a scaling factor
-based on the font pixel size."
-  :type '(choice number
-                 (const :tag "Automatically compute" auto))
-  :version "26.1")
-
 (defcustom image-transform-smoothing #'image--default-smoothing
   "Whether to do smoothing when applying transforms to images.
 Common transforms are rescaling and rotation.
@@ -532,7 +520,7 @@ Images should not be larger than specified by `max-image-size'."
   (let ((data-format
          ;; Pass the image format, if any, if this is data.
          (and data-p (or (plist-get props :format) t))))
-    ;; It is x_find_image_file in image.c that sets the search path.
+    ;; It is `x_find_image_fd' in image.c that sets the search path.
     (setq type (ignore-error unknown-image-type
                  (image-type file-or-data type data-format)))
     ;; If we have external image conversion switched on (for exotic,
@@ -548,18 +536,17 @@ Images should not be larger than specified by `max-image-size'."
                          file-or-data)
                    (and (not (plist-get props :scale))
                         ;; Add default scaling.
-                        (list :scale
-                              (image-compute-scaling-factor
-                               image-scaling-factor)))
+                        (list :scale 'default))
 	           props)))
       ;; Add default smoothing.
       (unless (plist-member props :transform-smoothing)
-        (setq image (nconc image
-                           (list :transform-smoothing
-                                 (pcase image-transform-smoothing
-                                   ('t t)
-                                   ('nil nil)
-                                   (func (funcall func image)))))))
+        (let* ((func image-transform-smoothing)
+               (value (or (eq func t)
+                          (and func (funcall func image)))))
+          (unless (eq value 'lambda)
+            (setq image (nconc image
+                               (list :transform-smoothing
+                                     value))))))
       ;; Add original map from map.
       (when (and (plist-get props :map)
                  (not (plist-get props :original-map)))
@@ -573,11 +560,16 @@ Images should not be larger than specified by `max-image-size'."
       image)))
 
 (defun image--default-smoothing (image)
-  "Say whether IMAGE should be smoothed when transformed."
+  "Say whether IMAGE should be smoothed when transformed.
+Return `lambda' if the decision should be deferred to the time IMAGE is
+loaded."
   (let* ((props (nthcdr 5 image))
          (scaling (plist-get props :scale))
          (rotation (plist-get props :rotation)))
     (cond
+     ;; The scale of the image won't be available until
+     ;; `image_set_transform', and as such, defer to its judgment.
+     ((eq scaling 'default) 'lambda)
      ;; We always smooth when scaling down and small upwards scaling.
      ((and scaling (< scaling 2))
       t)
@@ -619,7 +611,11 @@ properties specific to certain image types."
 (defun image-compute-scaling-factor (&optional scaling)
   "Compute the scaling factor based on SCALING.
 If a number, use that.  If it's `auto', compute the factor.
-If nil, use the `image-scaling-factor' variable."
+If nil, use the `image-scaling-factor' variable.
+
+This function is provided for the benefit of Lisp code that
+must compute this factor; it does not affect Emacs's scaling
+of images."
   (unless scaling
     (setq scaling image-scaling-factor))
   (cond
@@ -816,7 +812,7 @@ where FILE is the file from which to load the image, and DATA is a
 string containing the actual image data.  If the property `:type TYPE'
 is omitted or nil, try to determine the image type from its first few
 bytes of image data.  If that doesn't work, and the property `:file
-FILE' provide a file name, use its file extension as idication of the
+FILE' provide a file name, use its file extension as indication of the
 image type. If `:type TYPE' is provided, it must match the actual type
 determined for FILE or DATA by `create-image'.
 

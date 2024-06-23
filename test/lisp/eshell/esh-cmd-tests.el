@@ -505,6 +505,17 @@ NAME is the name of the test case."
 
 ;; Error handling
 
+(ert-deftest esh-cmd-test/empty-background-command ()
+  "Test that Eshell reports an error when trying to background a nil command."
+  (let ((text-quoting-style 'grave))
+    (with-temp-eshell
+     (eshell-match-command-output "echo hi & &"
+                                  "\\`Empty command before `&'\n")
+     ;; Make sure the next Eshell prompt has the original input so the
+     ;; user can fix it.
+     (should (equal (buffer-substring eshell-last-output-end (point))
+                    "echo hi & &")))))
+
 (ert-deftest esh-cmd-test/throw ()
   "Test that calling `throw' as an Eshell command unwinds everything properly."
   (with-temp-eshell
@@ -516,5 +527,59 @@ NAME is the name of the test case."
    (should-not eshell-foreground-command)
    ;; Make sure we can call another command after throwing.
    (eshell-match-command-output "echo again" "\\`again\n")))
+
+
+;; `which' command
+
+(ert-deftest esh-cmd-test/which/plain/eshell-builtin ()
+  "Check that `which' finds Eshell built-in functions."
+  (eshell-command-result-match "which cat" "\\`eshell/cat"))
+
+(ert-deftest esh-cmd-test/which/plain/external-program ()
+  "Check that `which' finds external programs."
+  (skip-unless (executable-find "sh"))
+  (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
+    (let ((actual (eshell-test-command-result "which sh"))
+          (expected (concat (executable-find "sh") "\n")))
+      ;; Eshell handles the casing of the PATH differently from
+      ;; `executable-find'.  This means that the results may not match
+      ;; exactly on case-insensitive file systems (e.g. when using
+      ;; MS-Windows), so compare case-insensitively there.
+      (should (if (file-name-case-insensitive-p actual)
+                  (string-equal-ignore-case actual expected)
+                (string-equal actual expected))))))
+
+(ert-deftest esh-cmd-test/which/plain/not-found ()
+  "Check that `which' reports an error for not-found commands."
+  (skip-when (executable-find "nonexist"))
+  (eshell-command-result-match "which nonexist" "\\`which: no nonexist in"))
+
+(ert-deftest esh-cmd-test/which/alias ()
+  "Check that `which' finds aliases."
+  (with-temp-eshell
+    (eshell-insert-command "alias cat '*cat $@*'")
+    (eshell-match-command-output "which cat" "\\`cat is an alias")))
+
+(ert-deftest esh-cmd-test/which/explicit ()
+  "Check that `which' finds explicitly-external programs."
+  (skip-unless (executable-find "cat"))
+  (eshell-command-result-match "which *cat"
+                               (concat (executable-find "cat") "\n")))
+
+(ert-deftest esh-cmd-test/which/explicit/not-found ()
+  "Check that `which' reports an error for not-found explicit commands."
+  (skip-when (executable-find "nonexist"))
+  (eshell-command-result-match "which *nonexist" "\\`which: no nonexist in"))
+
+(ert-deftest esh-cmd-test/which/quoted-file ()
+  "Check that `which' finds programs with quoted file names."
+  (skip-unless (executable-find "cat"))
+  (eshell-command-result-match "which /:cat"
+                               (concat (executable-find "cat") "\n")))
+
+(ert-deftest esh-cmd-test/which/quoted-file/not-found ()
+  "Check that `which' reports an error for not-found quoted commands."
+  (skip-when (executable-find "nonexist"))
+  (eshell-command-result-match "which /:nonexist" "\\`which: no nonexist in"))
 
 ;; esh-cmd-tests.el ends here

@@ -630,5 +630,18 @@
       (previous-line-completion 7)
       (should (equal "aa1" (get-text-property (point) 'completion--string))))))
 
+(ert-deftest completion-cycle ()
+  (completing-read-with-minibuffer-setup '("aaa" "bbb" "ccc")
+    (let ((completion-cycle-threshold t))
+      (execute-kbd-macro (kbd "TAB TAB TAB"))
+      (should (equal (minibuffer-contents) "ccc")))))
+
+(ert-deftest minibuffer-next-completion ()
+  (let ((default-directory (ert-resource-directory)))
+    (completing-read-with-minibuffer-setup #'read-file-name-internal
+      (insert "d/")
+      (execute-kbd-macro (kbd "M-<down> M-<down> M-<down>"))
+      (should (equal "data/minibuffer-test-cttq$$tion" (minibuffer-contents))))))
+
 (provide 'minibuffer-tests)
 ;;; minibuffer-tests.el ends here

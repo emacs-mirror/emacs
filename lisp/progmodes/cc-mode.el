@@ -3327,6 +3327,22 @@ Key bindings:
 			style c-features)))))))
 
 
+;; Make entries in `major-mode-remap-defaults' to ensure that when CC
+;; Mode has been loaded, the symbols `c-mode' etc., will call CC Mode's
+;; modes rather than c-ts-mode etc..
+(when (boundp 'major-mode-remap-defaults)
+  (add-to-list 'major-mode-remap-defaults '(c++-mode . c++-ts-mode))
+  (add-to-list 'major-mode-remap-defaults '(c-mode . c-ts-mode))
+  (add-to-list 'major-mode-remap-defaults '(c-or-c++-mode . c-or-c++-ts-mode))
+  (let (entry)
+    (dolist (mode '(c-mode c++-mode c-or-c++-mode))
+      (if (and (setq entry (assq mode major-mode-remap-defaults))
+	       (null (cdr entry)))
+	  (setq major-mode-remap-defaults
+		(delq entry major-mode-remap-defaults)))
+      (push (cons mode nil) major-mode-remap-defaults))))
+
+
 (cc-provide 'cc-mode)
 
 ;; Local Variables:

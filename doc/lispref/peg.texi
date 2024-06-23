@@ -14,7 +14,7 @@ from regular expressions (@pxref{Regular Expressions}) to full
 left-to-right (a.k.a.@: @acronym{LL}) grammar parsers (@pxref{Top,,
 Bovine parser development,bovine}).  @dfn{Parsing Expression Grammars}
 (@acronym{PEG}) are another approach to text parsing that offer more
-structure and composibility than regular expressions, but less
+structure and composability than regular expressions, but less
 complexity than context-free grammars.
 
 A Parsing Expression Grammar (@acronym{PEG}) describes a formal language

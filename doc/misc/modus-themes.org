@@ -88,7 +88,7 @@ The Modus themes consist of eight themes, divided into four subgroups.
   are variants of the two main themes.  They slightly tone down the
   intensity of the background and provide a bit more color variety.
   ~modus-operandi-tinted~ has a set of base tones that are shades of
-  light ochre (earthly colors), while ~modus-vivendi-tinted~ gives a
+  light ocher (earthly colors), while ~modus-vivendi-tinted~ gives a
   night sky impression.
 
 - Deuteranopia themes :: ~modus-operandi-deuteranopia~ and its
@@ -486,7 +486,7 @@ The reason we recommend ~load-theme~ instead of the other option of
 ~enable-theme~ is that the former does a kind of "reset" on the face
 specs.  It quite literally loads (or reloads) the theme.  Whereas the
 ~enable-theme~ function simply puts an already loaded theme to the top
-of the list of enabled items, re-using whatever state was last loaded.
+of the list of enabled items, reusing whatever state was last loaded.
 
 As such, ~load-theme~ reads all customizations that may happen during
 any given Emacs session: even after the initial setup of a theme.
@@ -1251,7 +1251,7 @@ value in some other application.
 :END:
 
 #+findex: modus-themes-get-color-value
-The fuction ~modus-themes-get-color-value~ can be called from Lisp to
+The function ~modus-themes-get-color-value~ can be called from Lisp to
 return the value of a color from the active Modus theme palette. It
 takea a =COLOR= argument and an optional =OVERRIDES=. It also accepts
 a third =THEME= argument, to get the color from the given theme.
@@ -2162,7 +2162,7 @@ until version 4.3.0.
 ;; was the default in versions of the Modus themes before 4.4.0
 (setq modus-themes-common-palette-overrides
       '((bg-prose-block-contents unspecified)
-        (bg-prose-block-delimiter unspeficied)
+        (bg-prose-block-delimiter unspecified)
         (fg-prose-block-delimiter fg-dim)))
 #+end_src
 
@@ -2806,7 +2806,7 @@ above:
 The reason we no longer provide this option is because it depends on a
 non-~nil~ value for ~x-underline-at-descent-line~.  That variable
 affects ALL underlines, including those of links.  The effect is
-intrusive and looks awkard in prose.
+intrusive and looks awkward in prose.
 
 As such, the Modus themes no longer provide that option but instead
 offer this piece of documentation to make the user fully aware of the
@@ -2821,7 +2821,7 @@ Reload the theme for changes to take effect.
 #+cindex: Remapping faces
 
 There are cases where we need to change the buffer-local attributes of a
-face.  This might be because we have our own minor mode that re-uses a
+face.  This might be because we have our own minor mode that reuses a
 face for a particular purpose, such as a line selection tool that
 activates ~hl-line-mode~, but we wish to keep it distinct from other
 buffers.  This is where ~face-remap-add-relative~ can be applied and may
@@ -3160,7 +3160,7 @@ specification of that variable looks like this:
 
 With the exception of ~org-verbatim~ and ~org-code~ faces, everything else
 uses the corresponding type of emphasis: a bold typographic weight, or
-italicised, underlined, and struck through text.
+italicized, underlined, and struck through text.
 
 The best way for users to add some extra attributes, such as a
 foreground color, is to define their own faces and assign them to the
@@ -4442,7 +4442,7 @@ advanced customization options of the themes.
 [[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]].
 
 In the following example, we are assuming that the user wants to (i)
-re-use color variables provided by the themes, (ii) be able to retain
+reuse color variables provided by the themes, (ii) be able to retain
 their tweaks while switching between ~modus-operandi~ and ~modus-vivendi~,
 and (iii) have the option to highlight either the foreground of the
 parentheses or the background as well.
@@ -4462,7 +4462,7 @@ Then we can update our preference with this:
 (setq my-highlight-parentheses-use-background nil)
 #+end_src
 
-To re-use colors from the themes, we must wrap our code in the
+To reuse colors from the themes, we must wrap our code in the
 ~modus-themes-with-colors~ macro.  Our implementation must interface with
 the variables ~highlight-parentheses-background-colors~ and/or
 ~highlight-parentheses-colors~.
@@ -5074,7 +5074,7 @@ more effective than trying to do the same with either red or blue (the
 latter is the least effective in that regard).
 
 When we need to work with several colors, it is always better to have
-sufficient manoeuvring space, especially since we cannot pick arbitrary
+sufficient maneuvering space, especially since we cannot pick arbitrary
 colors but only those that satisfy the accessibility objectives of the
 themes.
 
@@ -5128,7 +5128,7 @@ each of the three channels of light (red, green, blue).  For example:
 : xrandr --output LVDS1 --brightness 1.0 --gamma 0.76:0.75:0.68
 
 Typography is another variable.  Some font families are blurry at small
-point sizes.  Others may have a regular weight that is lighter (thiner)
+point sizes.  Others may have a regular weight that is lighter (thinner)
 than that of their peers which may, under certain circumstances, cause a
 halo effect around each glyph.
 
@@ -5180,7 +5180,7 @@ it is already understood that one must follow the indicator or headline
 to view its contents and (ii) underlining everything would make the
 interface virtually unusable.
 
-Again, one must exercise judgement in order to avoid discrimination,
+Again, one must exercise judgment in order to avoid discrimination,
 where "discrimination" refers to:
 
 + The treatment of substantially different magnitudes as if they were of
@@ -5254,7 +5254,7 @@ the themes, which is partially fleshed out in this manual.
 
 With regard to the artistic aspect (where "art" qua skill may amount to
 an imprecise science), there is no hard-and-fast rule in effect as it
-requires one to exercize discretion and make decisions based on
+requires one to exercise discretion and make decisions based on
 context-dependent information or constraints.  As is true with most
 things in life, when in doubt, do not cling on to the letter of the law
 but try to understand its spirit.

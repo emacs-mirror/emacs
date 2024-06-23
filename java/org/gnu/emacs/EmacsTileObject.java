@@ -27,15 +27,12 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Shader.TileMode;
 
-/* This is a crude facsimilie of the BitmapDrawable class implementing
+/* This is a crude facsimile of the BitmapDrawable class implementing
    just enough of its functionality to support displaying stipples in
    EmacsGC.  */
 
 public final class EmacsTileObject
 {
-  /* Color filter object set by EmacsGC.  */
-  private ColorFilter colorFilter;
-
   /* Bitmap object set by EmacsGC.  */
   private Bitmap bitmap;
 
@@ -46,7 +43,7 @@ public final class EmacsTileObject
   private Rect boundsRect;
 
   /* Paint providing graphics properties for drawBitmap.  */
-  private Paint paint;
+  private final Paint paint;
 
 
 

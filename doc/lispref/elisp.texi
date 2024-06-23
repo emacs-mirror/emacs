@@ -925,6 +925,7 @@ Mode Line Format
 * %-Constructs::            Putting information into a mode line.
 * Properties in Mode::      Using text properties in the mode line.
 * Header Lines::            Like a mode line, but at the top.
+* Tab Lines::               A line that is above the header line.
 * Emulating Mode Line::     Formatting text as the mode line would.
 
 Font Lock Mode

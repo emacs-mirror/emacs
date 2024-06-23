@@ -37,6 +37,11 @@
 
 (require 'ob)
 
+(defconst org-babel-header-args:maxima
+  '((batch               . ((batchload batch load)))
+    (graphics-pkg        . ((plot draw))))
+  "Maxima-specific header arguments.")
+
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("maxima" . "max"))
 
@@ -48,57 +53,111 @@
   :group 'org-babel
   :type 'string)
 
+(defvar org-babel-maxima--command-arguments-default
+  "--very-quiet"
+  "Command-line arguments sent to Maxima by default.
+If the `:batch' header argument is set to `batchload' or unset,
+then the `:cmdline' header argument is appended to this default;
+otherwise, if the `:cmdline' argument is set, it over-rides this
+default.  See `org-babel-maxima-command' and
+`org-babel-execute:maxima'.")
+
+(defvar org-babel-maxima--graphic-package-options
+  '((plot . "(set_plot_option ('[gnuplot_term, %s]), set_plot_option ('[gnuplot_out_file, %S]))$")
+    (draw . "(load(draw), set_draw_defaults(terminal='%s,file_name=%S))$"))
+  "An alist of graphics packages and Maxima code.
+Each element is a cons (PACKAGE-NAME . FORMAT-STRING).
+FORMAT-STRING contains Maxima code to configure the graphics
+package; it must contain `%s' to set the terminal and `%S' to set
+the filename, in that order.  The default graphics package is
+`plot'; `draw' is also supported.  See
+`org-babel-maxima-expand'.")
+
+(defvar org-babel-maxima--default-epilogue
+  '((graphical-output . "gnuplot_close ()$")
+    (non-graphical-output . ""))
+  "The final Maxima code executed in a source block.
+An alist with the epilogue for graphical and non-graphical
+output.  See `org-babel-maxima-expand'.")
+
 (defun org-babel-maxima-expand (body params)
-  "Expand a block of Maxima code according to its header arguments."
-  (let ((vars (org-babel--get-vars params))
-	(epilogue (cdr (assq :epilogue params)))
-	(prologue (cdr (assq :prologue params))))
+  "Expand Maxima BODY according to its header arguments from PARAMS."
+  (let* ((vars (org-babel--get-vars params))
+         (graphic-file (ignore-errors (org-babel-graphical-output-file params)))
+	 (epilogue (cdr (assq :epilogue params)))
+	 (prologue (cdr (assq :prologue params))))
     (mapconcat 'identity
-	       (list
-		;; Any code from the specified prologue at the start.
-		prologue
-		;; graphic output
-		(let ((graphic-file (ignore-errors (org-babel-graphical-output-file params))))
-		  (if graphic-file
-		      (format
-		       "set_plot_option ([gnuplot_term, png]); set_plot_option ([gnuplot_out_file, %S]);"
-		       graphic-file)
-		    ""))
-		;; variables
-		(mapconcat 'org-babel-maxima-var-to-maxima vars "\n")
-		;; body
-		body
-		;; Any code from the specified epilogue at the end.
-		epilogue
-		"gnuplot_close ()$")
+               (delq nil
+	             (list
+		      ;; Any code from the specified prologue at the start.
+		      prologue
+		      ;; graphic output
+		      (if graphic-file
+                          (let* ((graphics-pkg (intern (or (cdr (assq :graphics-pkg params)) "plot")))
+                                 (graphic-format-string (cdr (assq graphics-pkg org-babel-maxima--graphic-package-options)))
+                                 (graphic-terminal (file-name-extension graphic-file))
+                                 (graphic-file (if (eq graphics-pkg 'plot) graphic-file (file-name-sans-extension graphic-file))))
+                            (format graphic-format-string graphic-terminal graphic-file)))
+		      ;; variables
+		      (mapconcat 'org-babel-maxima-var-to-maxima vars "\n")
+		      ;; body
+		      body
+		      ;; Any code from the specified epilogue at the end.
+		      epilogue
+		      (if graphic-file
+                          (cdr (assq :graphical-output org-babel-maxima--default-epilogue))
+                        (cdr (assq :non-graphical-output org-babel-maxima--default-epilogue)))))
 	       "\n")))
 
+(defvar org-babel-maxima--output-filter-regexps
+  '("batch"                     ;; remove the `batch' or `batchload' line
+    "^rat: replaced .*$"        ;; remove notices from `rat'
+    "^;;; Loading #P"           ;; remove notices from the lisp implementation
+    "^read and interpret"       ;; remove notice from `batch'
+    "^(%\\([i]-?[0-9]+\\))[ ]$" ;; remove empty input lines from `batch'-ing
+    )
+  "Regexps to remove extraneous lines from Maxima's output.
+See `org-babel-maxima--output-filter'.")
+
+(defun org-babel-maxima--output-filter (line)
+  "Filter empty or undesired lines from Maxima output.
+Return nil if LINE is zero-length or it matches a regexp in
+`org-babel-maxima--output-filter'; otherwise, return LINE."
+  (unless (or (= 0 (length line))
+              (cl-some #'(lambda(r) (string-match r line))
+                       org-babel-maxima--output-filter-regexps))
+    line))
+
 (defun org-babel-execute:maxima (body params)
-  "Execute a block of Maxima entries with org-babel.
+  "Execute Maxima BODY according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
-  (message "Executing Maxima source code block")
+  (unless noninteractive (message "Executing Maxima source code block"))
   (let ((result-params (split-string (or (cdr (assq :results params)) "")))
 	(result
 	 (let* ((cmdline (or (cdr (assq :cmdline params)) ""))
+                (batch/load (or (cdr (assq :batch params)) "batchload"))
+                (cmdline (if (or (equal cmdline "") (equal batch/load "batchload"))
+                             ;; legacy behavior:
+                             ;; ensure that --very-quiet is on command-line by default
+                             (concat cmdline " " org-babel-maxima--command-arguments-default)
+                           ;; if using an alternate loader, :cmdline overwrites default
+                           cmdline))
 		(in-file (org-babel-temp-file "maxima-" ".max"))
-		(cmd (format "%s --very-quiet -r %s %s"
+                (cmd (format "%s -r %s %s"
 			     org-babel-maxima-command
                              (shell-quote-argument
-                              (format "batchload(%S)$" in-file))
+                              ;; bind linenum to 0 so the first line
+                              ;; of in-file has line number 1
+                              (format "(linenum:0, %s(%S))$" batch/load in-file))
                              cmdline)))
 	   (with-temp-file in-file (insert (org-babel-maxima-expand body params)))
-	   (message cmd)
+	   (unless noninteractive (message cmd))
            ;; " | grep -v batch | grep -v 'replaced' | sed '/^$/d' "
 	   (let ((raw (org-babel-eval cmd "")))
              (mapconcat
               #'identity
               (delq nil
-                    (mapcar (lambda (line)
-                              (unless (or (string-match "batch" line)
-                                          (string-match "^rat: replaced .*$" line)
-                                          (string-match "^;;; Loading #P" line)
-                                          (= 0 (length line)))
-                                line))
+                    (mapcar #'org-babel-maxima--output-filter
                             (split-string raw "[\r\n]"))) "\n")))))
     (if (ignore-errors (org-babel-graphical-output-file params))
 	nil
@@ -110,11 +169,11 @@ This function is called by `org-babel-execute-src-block'."
 
 
 (defun org-babel-prep-session:maxima (_session _params)
+"Throw an error.  Maxima does not support sessions."
   (error "Maxima does not support sessions"))
 
 (defun org-babel-maxima-var-to-maxima (pair)
-  "Convert an elisp val into a string of maxima code specifying a var
-of the same value."
+  "Convert an elisp variable-value PAIR to maxima code."
   (let ((var (car pair))
         (val (cdr pair)))
     (when (symbolp val)

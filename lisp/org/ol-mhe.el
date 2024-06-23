@@ -80,7 +80,7 @@ supported by MH-E."
 (org-link-set-parameters "mhe" :follow #'org-mhe-open :store #'org-mhe-store-link)
 
 ;; Implementation
-(defun org-mhe-store-link ()
+(defun org-mhe-store-link (&optional _interactive?)
   "Store a link to an MH-E folder or message."
   (when (or (eq major-mode 'mh-folder-mode)
 	    (eq major-mode 'mh-show-mode))

@@ -50,7 +50,7 @@
                          :insert-description #'org-info-description-as-command)
 
 ;; Implementation
-(defun org-info-store-link ()
+(defun org-info-store-link (&optional _interactive?)
   "Store a link to an Info file and node."
   (when (eq major-mode 'Info-mode)
     (let ((link (concat "info:"
@@ -139,13 +139,17 @@ If LINK is not an info link then DESC is returned."
   "List of Emacs documents available.
 Taken from <https://www.gnu.org/software/emacs/manual/html_mono/.>")
 
-(defconst org-info-other-documents
+(defcustom org-info-other-documents
   '(("dir" . "https://www.gnu.org/manual/manual.html") ; index
     ("libc" . "https://www.gnu.org/software/libc/manual/html_mono/libc.html")
     ("make" . "https://www.gnu.org/software/make/manual/make.html"))
   "Alist of documents generated from Texinfo source.
 When converting info links to HTML, links to any one of these manuals are
-converted to use these URL.")
+converted to use these URL."
+  :group 'org-link
+  :type '(alist :key-type string :value-type string)
+  :package-version '(Org . "9.7")
+  :safe t)
 
 (defun org-info-map-html-url (filename)
   "Return URL or HTML file associated to Info FILENAME.
@@ -153,11 +157,11 @@ If FILENAME refers to an official GNU document, return a URL pointing to
 the official page for that document, e.g., use \"gnu.org\" for all Emacs
 related documents.  Otherwise, append \".html\" extension to FILENAME.
 See `org-info-emacs-documents' and `org-info-other-documents' for details."
-  (cond ((member filename org-info-emacs-documents)
-	 (format "https://www.gnu.org/software/emacs/manual/html_mono/%s.html"
-		 filename))
-	((cdr (assoc filename org-info-other-documents)))
-	(t (concat filename ".html"))))
+  (cond ((cdr (assoc filename org-info-other-documents)))
+        ((member filename org-info-emacs-documents)
+         (format "https://www.gnu.org/software/emacs/manual/html_mono/%s.html"
+	         filename))
+        (t (concat filename ".html"))))
 
 (defun org-info--expand-node-name (node)
   "Expand Info NODE to HTML cross reference."

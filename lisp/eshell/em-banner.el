@@ -44,7 +44,7 @@
 (require 'esh-util)
 (require 'esh-mode)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-banner nil
   "This sample module displays a welcome banner at login.
@@ -82,9 +82,4 @@ This can be any sexp, and should end with at least two newlines."
       (eshell-interactive-print msg))))
 
 (provide 'em-banner)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-banner.el ends here

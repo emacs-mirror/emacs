@@ -389,6 +389,10 @@ changes."
   "Face used for tables."
   :group 'org-faces)
 
+(defface org-table-row '((t :inherit org-table))
+  "Face used to fontify whole table rows (including newlines and indentation)."
+  :group 'org-faces)
+
 (defface org-table-header '((t :inherit org-table
 			       :background "LightGray"
 			       :foreground "Black"))
@@ -660,6 +664,10 @@ month and 365.24 days for a year)."
   "Face used for agenda entries that come from the Emacs diary."
   :group 'org-faces)
 
+(defface org-agenda-calendar-daterange '((t :inherit default))
+  "Face used to show entries with a date range in the agenda."
+  :group 'org-faces)
+
 (defface org-agenda-calendar-event '((t :inherit default))
   "Face used to show events and appointments in the agenda."
   :group 'org-faces)
@@ -675,7 +683,7 @@ month and 365.24 days for a year)."
 (defcustom org-n-level-faces (length org-level-faces)
   "The number of different faces to be used for headlines.
 Org mode defines 8 different headline faces, so this can be at most 8.
-If it is less than 8, the level-1 face gets re-used for level N+1 etc."
+If it is less than 8, the level-1 face gets reused for level N+1 etc."
   :type 'integer
   :group 'org-faces)
 

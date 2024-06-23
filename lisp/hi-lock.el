@@ -376,7 +376,9 @@ use (hi-lock-mode 1) for individual buffers.")))
 	(hi-lock-find-patterns)
         (add-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook nil t)
         ;; Remove regexps from font-lock-keywords (bug#13891).
-	(add-hook 'change-major-mode-hook (lambda () (hi-lock-mode -1)) nil t))
+	(add-hook 'change-major-mode-hook (lambda () (hi-lock-mode -1)) nil t)
+	(add-hook 'revert-buffer-restore-functions
+		  #'hi-lock-revert-buffer-rehighlight nil t))
     ;; Turned off.
     (when (or hi-lock-interactive-patterns
 	      hi-lock-file-patterns)
@@ -390,7 +392,9 @@ use (hi-lock-mode 1) for individual buffers.")))
       (remove-overlays nil nil 'hi-lock-overlay t)
       (font-lock-flush))
     (define-key-after menu-bar-edit-menu [hi-lock] nil)
-    (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook t)))
+    (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook t)
+    (remove-hook 'revert-buffer-restore-functions
+		 #'hi-lock-revert-buffer-rehighlight t)))
 
 ;;;###autoload
 (define-globalized-minor-mode global-hi-lock-mode
@@ -858,6 +862,16 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
   (when font-lock-fontified
     (font-lock-add-keywords nil hi-lock-file-patterns t)
     (font-lock-add-keywords nil hi-lock-interactive-patterns t)))
+
+(defun hi-lock-revert-buffer-rehighlight ()
+  "Rehighlight hi-lock patterns after `revert-buffer'.
+Apply the previous patterns after reverting the buffer."
+  (when-let ((patterns hi-lock-interactive-lighters))
+    (lambda ()
+      (when hi-lock-interactive-lighters
+        (hi-lock-unface-buffer t))
+      (dolist (pattern (reverse patterns))
+        (highlight-regexp (car pattern) (cadr (nth 1 (caddr pattern))))))))
 
 (defvar hi-lock--hashcons-hash
   (make-hash-table :test 'equal :weakness t)

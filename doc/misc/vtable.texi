@@ -281,11 +281,19 @@ object), or a full @code{vtable-column} object.  A
 The name of the column.
 
 @item width
-The width of the column.  This is either a number (the width of that
-many @samp{x} characters in the table's face), or a string on the form
-@samp{Xe@var{x}}, where @var{x} is a number of @samp{x} characters, or a
-string on the form @samp{Xp@var{x}} (denoting a number of pixels), or a
-string on the form @samp{X%} (a percentage of the window's width).
+The width of the column.  This can be one of the following:
+
+@table @asis
+@item a number @var{n}
+@itemx a string of the form @samp{@var{n}ex}
+The width of @var{n} @samp{x} characters in the table's face.
+
+@item a string of the form @samp{@var{n}px}
+@var{n} pixels.
+
+@item a string of the form @samp{@var{n}%}
+@var{n} percent of the window's width.
+@end table
 
 @item min-width
 This uses the same format as @code{width}, but specifies the minimum

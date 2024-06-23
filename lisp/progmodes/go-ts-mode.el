@@ -175,12 +175,17 @@
       name: (field_identifier) @font-lock-property-name-face)
      (parameter_declaration
       name: (identifier) @font-lock-variable-name-face)
+     (variadic_parameter_declaration
+      name: (identifier) @font-lock-variable-name-face)
      (short_var_declaration
       left: (expression_list
              (identifier) @font-lock-variable-name-face
              ("," (identifier) @font-lock-variable-name-face)*))
      (var_spec name: (identifier) @font-lock-variable-name-face
-               ("," name: (identifier) @font-lock-variable-name-face)*))
+               ("," name: (identifier) @font-lock-variable-name-face)*)
+     (range_clause
+      left: (expression_list
+             (identifier) @font-lock-variable-name-face)))
 
    :language 'go
    :feature 'function

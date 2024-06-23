@@ -168,9 +168,10 @@ means of creating calendar-based reminders."
 			      ("m" . 30.4) ("y" . 365.25))))))
     (error "Invalid duration string: %s" ts)))
 
-(defun org-is-habit-p (&optional pom)
-  "Is the task at POM or point a habit?"
-  (string= "habit" (org-entry-get (or pom (point)) "STYLE")))
+(defun org-is-habit-p (&optional epom)
+  "Is the task at EPOM or point a habit?
+EPOM is an element, marker, or buffer position."
+  (string= "habit" (org-entry-get epom "STYLE" 'selective)))
 
 (defun org-habit-parse-todo (&optional pom)
   "Parse the TODO surrounding point for its habit-related data.
@@ -263,8 +264,8 @@ This list represents a \"habit\" for the rest of this module."
 (defsubst org-habit-repeat-type (habit)
   (nth 5 habit))
 
-(defsubst org-habit-get-priority (habit &optional moment)
-  "Determine the relative priority of a habit.
+(defsubst org-habit-get-urgency (habit &optional moment)
+  "Determine the relative urgency of a habit.
 This must take into account not just urgency, but consistency as well."
   (let ((pri 1000)
 	(now (if moment (time-to-days moment) (org-today)))

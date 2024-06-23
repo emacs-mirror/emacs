@@ -185,7 +185,8 @@ a starting position in the history list as well.  @xref{Minibuffer
 History}.
 
 If the variable @code{minibuffer-allow-text-properties} is
-non-@code{nil}, then the string that is returned includes whatever text
+non-@code{nil}, either let-bound or buffer-local in the minibuffer,
+then the string that is returned includes whatever text
 properties were present in the minibuffer.  Otherwise all the text
 properties are stripped when the value is returned.  (By default this
 variable is @code{nil}.)
@@ -352,28 +353,32 @@ See @code{read-regexp} above for details of how these values are used.
 
 @defvar minibuffer-allow-text-properties
 If this variable is @code{nil}, the default, then
-@code{read-from-minibuffer} and @code{read-string} strip all text
-properties from the minibuffer input before returning it.  However,
-@code{read-no-blanks-input} (see below), as well as
-@code{read-minibuffer} and related functions (@pxref{Object from
-Minibuffer,, Reading Lisp Objects With the Minibuffer}), and all
-functions that do minibuffer input with completion, remove the
-@code{face} property unconditionally, regardless of the value of this
+@code{read-from-minibuffer} and all functions that do minibuffer input
+strip all text properties from the minibuffer input before returning it.
+
+However, @code{read-minibuffer} and related functions (@pxref{Object
+from Minibuffer,, Reading Lisp Objects With the Minibuffer}), remove the
+text properties unconditionally, regardless of the value of this
 variable.
 
-If this variable is non-@code{nil}, most text properties on strings
-from the completion table are preserved---but only on the part of the
-strings that were completed.
+If this variable is non-@code{nil}, either let-bound or buffer-local in
+the minibuffer, then @code{read-from-minibuffer}, @code{read-string},
+and all related functions preserve text properties.  But functions that
+do minibuffer input with completion remove the @code{face} property
+while preserving other text properties.
 
 @lisp
-(let ((minibuffer-allow-text-properties t))
-  (completing-read "String: " (list (propertize "foobar" 'data 'zot))))
-=> #("foobar" 3 6 (data zot))
+(minibuffer-with-setup-hook
+    (lambda ()
+      (setq-local minibuffer-allow-text-properties t))
+  (completing-read
+   "String: " (list (propertize "foobar" 'face 'baz 'data 'zot))))
+=> #("foobar" 0 6 (data zot))
 @end lisp
 
 In this example, the user typed @samp{foo} and then hit the @kbd{TAB}
-key, so the text properties are only preserved on the last three
-characters.
+key, and all text properties are preserved except the @code{face}
+property.
 @end defvar
 
 @vindex minibuffer-mode-map
@@ -433,18 +438,6 @@ function, and passes the value of the @code{minibuffer-local-ns-map}
 keymap as the @var{keymap} argument for that function.  Since the keymap
 @code{minibuffer-local-ns-map} does not rebind @kbd{C-q}, it @emph{is}
 possible to put a space into the string, by quoting it.
-
-This function discards text properties, regardless of the value of
-@code{minibuffer-allow-text-properties}.
-
-@smallexample
-@group
-(read-no-blanks-input @var{prompt} @var{initial})
-@equiv{}
-(let (minibuffer-allow-text-properties)
-  (read-from-minibuffer @var{prompt} @var{initial} minibuffer-local-ns-map))
-@end group
-@end smallexample
 @end defun
 
 @c Slightly unfortunate name, suggesting it might be related to the

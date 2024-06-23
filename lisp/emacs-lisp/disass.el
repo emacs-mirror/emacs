@@ -91,8 +91,8 @@ redefine OBJECT if it is a symbol."
 	args)
     (setq obj (autoload-do-load obj name))
     (if (subrp obj)
-        (if (and (fboundp 'subr-native-elisp-p)
-                 (subr-native-elisp-p obj))
+        (if (and (fboundp 'native-comp-function-p)
+                 (native-comp-function-p obj))
             (progn
               (require 'comp)
               (let ((eln (native-comp-unit-file (subr-native-comp-unit obj))))

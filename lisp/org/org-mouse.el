@@ -185,8 +185,8 @@ Changing this variable requires a restart of Emacs to get activated."
 	      (const :tag "Activate checkboxes" activate-checkboxes)))
 
 (defun org-mouse-re-search-line (regexp)
-  "Search the current line for a given regular expression."
-  (beginning-of-line)
+  "Search the current line for a given regular expression REGEXP."
+  (forward-line 0)
   (re-search-forward regexp (line-end-position) t))
 
 (defun org-mouse-end-headline ()
@@ -242,13 +242,13 @@ return `:middle'."
 
 (defun org-mouse-empty-line ()
   "Return non-nil if the line contains only white space."
-  (save-excursion (beginning-of-line) (looking-at "[ \t]*$")))
+  (save-excursion (forward-line 0) (looking-at "[ \t]*$")))
 
 (defun org-mouse-next-heading ()
   "Go to the next heading.
 If there is none, ensure that the point is at the beginning of an empty line."
   (unless (outline-next-heading)
-    (beginning-of-line)
+    (forward-line 0)
     (unless (org-mouse-empty-line)
       (end-of-line)
       (newline))))
@@ -261,7 +261,7 @@ insert the new heading before the current line.  Otherwise, insert it
 after the current heading."
   (interactive)
   (cl-case (org-mouse-line-position)
-    (:beginning (beginning-of-line)
+    (:beginning (forward-line 0)
 		(org-insert-heading))
     (t (org-mouse-next-heading)
        (org-insert-heading))))
@@ -271,7 +271,7 @@ after the current heading."
 
 For the acceptable UNITS, see `org-timestamp-change'."
   (interactive)
-  (org-time-stamp nil)
+  (org-timestamp nil)
   (when shift (org-timestamp-change shift units)))
 
 (defun org-mouse-keyword-menu (keywords function &optional selected itemformat)
@@ -426,13 +426,14 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
   (append
    (let ((tags (org-get-tags nil t)))
      (org-mouse-keyword-menu
-      (sort (mapcar #'car (org-get-buffer-tags)) #'string-lessp)
+      (sort (mapcar #'car (org-get-buffer-tags))
+            (or org-tags-sort-function #'org-string<))
       (lambda (tag)
 	(org-mouse-set-tags
 	 (sort (if (member tag tags)
 		   (delete tag tags)
 		 (cons tag tags))
-	       #'string-lessp)))
+	       (or org-tags-sort-function #'org-string<))))
       (lambda (tag) (member tag tags))
       ))
    '("--"
@@ -473,7 +474,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 				    (sort (if (member ',name ',options)
 					      (delete ',name ',options)
 					    (cons ',name ',options))
-					  'string-lessp)
+					  #'org-string<)
 				    " ")
 			 nil nil nil 1)
 			(when (functionp ',function) (funcall ',function)))
@@ -502,7 +503,8 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ["Check TODOs" org-show-todo-tree t]
      ("Check Tags"
       ,@(org-mouse-keyword-menu
-	 (sort (mapcar #'car (org-get-buffer-tags)) #'string-lessp)
+	 (sort (mapcar #'car (org-get-buffer-tags))
+               (or org-tags-sort-function #'org-string<))
          (lambda (tag) (org-tags-sparse-tree nil tag)))
       "--"
       ["Custom Tag ..." org-tags-sparse-tree t])
@@ -512,7 +514,8 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ["Display TODO List" org-todo-list t]
      ("Display Tags"
       ,@(org-mouse-keyword-menu
-	 (sort (mapcar #'car (org-get-buffer-tags)) #'string-lessp)
+	 (sort (mapcar #'car (org-get-buffer-tags))
+               (or org-tags-sort-function #'org-string<))
          (lambda (tag) (org-tags-view nil tag)))
       "--"
       ["Custom Tag ..." org-tags-view t])
@@ -566,7 +569,7 @@ This means, between the beginning of line and the point."
 (defun org-mouse-insert-item (text)
   (cl-case (org-mouse-line-position)
     (:beginning				; insert before
-     (beginning-of-line)
+     (forward-line 0)
      (looking-at "[ \t]*")
      (open-line 1)
      (indent-to-column (- (match-end 0) (match-beginning 0)))
@@ -582,7 +585,7 @@ This means, between the beginning of line and the point."
      (unless (looking-back org-mouse-punctuation (line-beginning-position))
        (insert (concat org-mouse-punctuation " ")))))
   (insert text)
-  (beginning-of-line))
+  (forward-line 0))
 
 (advice-add 'dnd-insert-text :around #'org--mouse-dnd-insert-text)
 (defun org--mouse-dnd-insert-text (orig-fun window action text &rest args)
@@ -632,7 +635,7 @@ This means, between the beginning of line and the point."
 	    (progn (save-excursion (goto-char (region-beginning)) (insert "[["))
 		   (save-excursion (goto-char (region-end)) (insert "]]")))]
 	   ["Insert Link Here" (org-mouse-yank-link ',event)]))))
-     ((save-excursion (beginning-of-line) (looking-at "[ \t]*#\\+STARTUP: \\(.*\\)"))
+     ((save-excursion (forward-line 0) (looking-at "[ \t]*#\\+STARTUP: \\(.*\\)"))
       (popup-menu
        `(nil
 	 ,@(org-mouse-list-options-menu (mapcar #'car org-startup-options)
@@ -713,7 +716,7 @@ This means, between the beginning of line and the point."
       (popup-menu
        '(nil
 	 ["Show Day" org-open-at-point t]
-	 ["Change Timestamp" org-time-stamp t]
+	 ["Change Timestamp" org-timestamp t]
 	 ["Delete Timestamp" (org-mouse-delete-timestamp) t]
 	 ["Compute Time Range" org-evaluate-time-range (org-at-date-range-p)]
 	 "--"
@@ -823,8 +826,8 @@ This means, between the beginning of line and the point."
 	    :active (not (save-excursion
 			   (org-mouse-re-search-line org-scheduled-regexp)))]
 	   ["Insert Timestamp"
-	    (progn (org-mouse-end-headline) (insert " ") (org-time-stamp nil)) t]
-					;	 ["Timestamp (inactive)" org-time-stamp-inactive t]
+	    (progn (org-mouse-end-headline) (insert " ") (org-timestamp nil)) t]
+					;	 ["Timestamp (inactive)" org-timestamp-inactive t]
 	   "--"
 	   ["Archive Subtree" org-archive-subtree]
 	   ["Cut Subtree"  org-cut-special]
@@ -980,7 +983,7 @@ This means, between the beginning of line and the point."
   (org-back-to-heading)
   (let ((minlevel 1000)
 	(replace-text (concat (make-string (org-current-level) ?*) "* ")))
-    (beginning-of-line 2)
+    (forward-line 1)
     (save-excursion
       (while (not (or (eobp) (looking-at org-outline-regexp)))
 	(when (looking-at org-mouse-plain-list-regexp)
@@ -1028,7 +1031,7 @@ This means, between the beginning of line and the point."
 	      (unless (eq (marker-position marker) (marker-position endmarker))
 		(setq newhead (org-get-heading))))
 
-	    (beginning-of-line 1)
+	    (forward-line 1)
 	    (save-excursion
 	      (org-agenda-change-all-lines newhead hdmarker 'fixface))))
 	t))))

@@ -7300,6 +7300,13 @@ mark_frame (struct Lisp_Vector *ptr)
   for (tem = f->conversion.actions; tem; tem = tem->next)
     mark_object (tem->data);
 #endif
+
+#ifdef HAVE_WINDOW_SYSTEM
+  /* Mark this frame's image cache, though it might be common to several
+     frames with the same font size.  */
+  if (FRAME_IMAGE_CACHE (f))
+    mark_image_cache (FRAME_IMAGE_CACHE (f));
+#endif /* HAVE_WINDOW_SYSTEM */
 }
 
 static void
@@ -7597,7 +7604,7 @@ process_mark_stack (ptrdiff_t base_sp)
 
 	      case PVEC_SUBR:
 #ifdef HAVE_NATIVE_COMP
-		if (SUBR_NATIVE_COMPILEDP (obj))
+		if (NATIVE_COMP_FUNCTIONP (obj))
 		  {
 		    set_vector_marked (ptr);
 		    struct Lisp_Subr *subr = XSUBR (obj);
@@ -7763,12 +7770,6 @@ mark_terminals (void)
   for (t = terminal_list; t; t = t->next_terminal)
     {
       eassert (t->name != NULL);
-#ifdef HAVE_WINDOW_SYSTEM
-      /* If a terminal object is reachable from a stacpro'ed object,
-	 it might have been marked already.  Make sure the image cache
-	 gets marked.  */
-      mark_image_cache (t->image_cache);
-#endif /* HAVE_WINDOW_SYSTEM */
       if (!vectorlike_marked_p (&t->header))
 	mark_vectorlike (&t->header);
     }
@@ -7798,7 +7799,7 @@ survives_gc_p (Lisp_Object obj)
 
     case Lisp_Vectorlike:
       survives_p =
-	(SUBRP (obj) && !SUBR_NATIVE_COMPILEDP (obj)) ||
+	(SUBRP (obj) && !NATIVE_COMP_FUNCTIONP (obj)) ||
 	vector_marked_p (XVECTOR (obj));
       break;
 

@@ -275,6 +275,219 @@ cause the current test to fail."
     ;;  Verify that the recording state has changed.
     (should (equal defining-kbd-macro 'append))))
 
+
+(kmacro-tests-deftest kmacro-tests-test-reg-load ()
+  "`kmacro-reg-load-counter' loads the value of a register into the counter."
+  (set-register ?\C-r 4) ;; Should be safe as a register name
+  (kmacro-tests-simulate-command '(kmacro-set-counter 1))
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and increment counter
+                              "\C-x\C-k\C-i"
+                              "\C-x\C-k\C-i"
+                              ;; Load from register
+                              "\C-x\C-k\C-rl\C-r"
+                              ))
+  (kmacro-tests-should-insert "1245"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 2)))
+    (set-register ?\C-r nil))
+
+(kmacro-tests-deftest kmacro-tests-test-reg-save ()
+  "`kmacro-reg-save-counter' saves the counter to a register."
+  (set-register ?\C-r nil) ;; Should be safe as a register name
+  (kmacro-tests-simulate-command '(kmacro-set-counter 1))
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and increment counter
+                              "\C-x\C-k\C-i"
+                              ;; Save to register
+                              "\C-x\C-k\C-rs\C-r"
+                              ;; Add to counter
+                              "\C-u2\C-x\C-k\C-a"
+                              ;; Insert and increment counter
+                              "\C-x\C-k\C-i"
+                              ;; Insert register
+                              "\C-xri\C-r"
+                              ))
+  (kmacro-tests-should-insert "142586"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 2)))
+  (set-register ?\C-r nil))
+
+
+(kmacro-tests-deftest kmacro-tests-test-reg-add-counter-equal-01 ()
+  "`kmacro-reg-add-counter-equal' increments counter by one if equal to register."
+  (set-register ?\C-r 2) ;; Should be safe as a register name
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and increment counter
+                              "\C-x\C-k\C-i"
+                              ;; Increment counter if it matches
+                              "\C-x\C-k\C-ra=\C-r"
+                              ))
+  (kmacro-tests-should-insert "0134"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+  (set-register ?\C-r nil))
+
+(kmacro-tests-deftest kmacro-tests-test-reg-add-counter-equal-02 ()
+  "`kmacro-reg-add-counter-equal' increments counter by prefix if equal to register."
+  (set-register ?\C-r 2) ;; Should be safe as a register name
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and increment counter
+                              "\C-x\C-k\C-i"
+                              ;; Add two to counter if it matches
+                              "\C-u2\C-x\C-k\C-ra=\C-r"
+                              ))
+  (kmacro-tests-should-insert "0145"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+  (set-register ?\C-r nil))
+
+(kmacro-tests-deftest kmacro-tests-test-reg-add-counter-equal-03 ()
+  "`kmacro-reg-add-counter-equal' increments counter by universal arg if equal to register."
+  (set-register ?\C-r 2) ;; Should be safe as a register name
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and increment counter
+                              "\C-x\C-k\C-i"
+                              ;; Add four to counter if it matches
+                              "\C-u\C-x\C-k\C-ra=\C-r"
+                              ))
+  (kmacro-tests-should-insert "0167"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+  (set-register ?\C-r nil))
+
+(kmacro-tests-deftest kmacro-tests-test-reg-add-counter-equal-04 ()
+  "`kmacro-reg-add-counter-equal' decrements counter by one if equal to register."
+  (set-register ?\C-r 2) ;; Should be safe as a register name
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and increment counter
+                              "\C-x\C-k\C-i"
+                              ;; Decrement counter if it matches
+                              "\C-u-\C-x\C-k\C-ra=\C-r"
+                              ))
+  (kmacro-tests-should-insert "0111"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+  (set-register ?\C-r nil))
+
+(kmacro-tests-deftest kmacro-tests-test-reg-add-counter-less ()
+  "`kmacro-reg-add-counter-less' decrements counter if less than register."
+  (set-register ?\C-r 6) ;; Should be safe as a register name
+  (kmacro-tests-simulate-command '(kmacro-set-counter 7))
+  (kmacro-tests-define-macro (vconcat
+                              ;; Decrement counter if it's
+                              ;; less than the register
+                              "\C-u-\C-x\C-k\C-ra<\C-r"
+                              ;; Insert and decrement counter
+                              "\C-u-\C-x\C-k\C-i"
+                              ))
+  (kmacro-tests-should-insert "7642"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+    (set-register ?\C-r nil))
+
+(kmacro-tests-deftest kmacro-tests-test-reg-add-counter-greater ()
+  "`kmacro-reg-add-counter-greater' increments counter if greater than register."
+  (set-register ?\C-r 1) ;; Should be safe as a register name
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and increment counter
+                              "\C-x\C-k\C-i"
+                              ;; Increment counter if it's greater
+                              ;; than the register
+                              "\C-x\C-k\C-ra>\C-r"
+                              ))
+  (kmacro-tests-should-insert "0135"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+  (set-register ?\C-r nil))
+
+
+(kmacro-tests-deftest kmacro-tests-test-quit-counter-equal-01 ()
+  "`kmacro-quit-counter-equal' stops macro if counter is equal to positive prefix."
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and increment counter
+                              "\C-x\C-k\C-i"
+                              ;; Stop if the counter is at 5
+                              "\C-u5\C-x\C-k\C-q="
+                              ))
+  (kmacro-tests-should-insert "0123"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+  (should (= 4 kmacro-counter))
+  (should (condition-case abort
+            (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 1))
+            (quit abort))))
+
+(kmacro-tests-deftest kmacro-tests-test-quit-counter-equal-02 ()
+  "`kmacro-quit-counter-equal' stops macro if counter is equal to zero."
+  (kmacro-tests-simulate-command '(kmacro-set-counter 5))
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and decrement counter
+                              "\C-u-\C-x\C-k\C-i"
+                              ;; Stop if the counter is at 0
+                              "\C-x\C-k\C-q="
+                              ))
+  (kmacro-tests-should-insert "5432"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+  (should (= 1 kmacro-counter))
+  (should (condition-case abort
+              (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 1))
+            (quit abort))))
+
+(kmacro-tests-deftest kmacro-tests-test-quit-counter-equal-03 ()
+  "`kmacro-quit-counter-equal' stops macro if counter is equal to negative prefix."
+  (kmacro-tests-simulate-command '(kmacro-set-counter 4))
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and decrement counter
+                              "\C-u-\C-x\C-k\C-i"
+                              ;; Stop if the counter is at -1
+                              "\C-u-\C-x\C-k\C-q="
+                              ))
+  (kmacro-tests-should-insert "4321"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+  (should (= 0 kmacro-counter))
+  (should (condition-case abort
+              (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 1))
+            (quit abort))))
+
+(kmacro-tests-deftest kmacro-tests-test-quit-counter-equal-04 ()
+  "`kmacro-quit-counter-equal' doesn't stop macro if counter doesn't equal prefix."
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and increment counter
+                              "\C-u2\C-x\C-k\C-i"
+                              ;; Stop if the counter is at 7
+                              "\C-u7\C-x\C-k\C-q="
+                              ))
+  (kmacro-tests-should-insert "0246"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+  (should-not (condition-case abort
+              (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 1))
+              (quit abort)))
+  (should (= 10 kmacro-counter)))
+
+(kmacro-tests-deftest kmacro-tests-test-quit-counter-less ()
+  "`kmacro-quit-counter-less' stops macro if counter is less than prefix."
+  (kmacro-tests-simulate-command '(kmacro-set-counter 8))
+  (kmacro-tests-define-macro (vconcat
+                              ;; Stop if the counter is less than 5
+                              "\C-u5\C-x\C-k\C-q<"
+                              ;; Insert and decrement counter
+                              "\C-u-\C-x\C-k\C-i"
+                              ))
+  (kmacro-tests-should-insert "8765"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+  (should (condition-case abort
+              (should (= 4 kmacro-counter))
+              (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 1))
+            (quit abort))))
+
+(kmacro-tests-deftest kmacro-tests-test-quit-counter-greater ()
+  "`kmacro-quit-counter-greater' stops macro if counter is greater than prefix."
+  (kmacro-tests-define-macro (vconcat
+                              ;; Insert and increment counter
+                              "\C-x\C-k\C-i"
+                              ;; Stop if the counter is greater than 4
+                              "\C-u4\C-x\C-k\C-q>"
+                              ))
+  (kmacro-tests-should-insert "0123"
+    (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 4)))
+  (should (condition-case abort
+              (should (= 4 kmacro-counter))
+              (kmacro-tests-simulate-command '(kmacro-end-or-call-macro 1))
+            (quit abort))))
+
+
 (kmacro-tests-deftest kmacro-tests-end-call-macro-prefix-args ()
   "kmacro-end-call-macro changes behavior based on prefix arg."
   ;; "Record" two macros.

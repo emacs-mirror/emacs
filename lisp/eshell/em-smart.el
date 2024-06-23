@@ -70,7 +70,7 @@
 
 (require 'esh-mode)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-smart nil
   "This module combines the facility of normal, modern shells with
@@ -303,9 +303,4 @@ and the end of the buffer are still visible."
   (remove-hook 'window-configuration-change-hook #'eshell-smart-scroll))
 
 (provide 'em-smart)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-smart.el ends here

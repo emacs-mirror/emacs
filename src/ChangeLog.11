@@ -20180,7 +20180,7 @@
 	(CHECK_FONT_GET_OBJECT): Likewise.
 	(XFONT_SPEC, XFONT_ENTITY, XFONT_OBJECT, XSETFONT): New macros.
 	(PT_PER_INCH, POINT_TO_PIXEL, PIXEL_TO_POINT): Move from font.h.
-	(struct font_driver): New members case_sensitive anc check.
+	(struct font_driver): New members case_sensitive and check.
 	Type of the member list and open changed.
 	(enable_font_backend, font_symbolic_weight, font_symbolic_slant)
 	(font_symbolic_width, font_find_object, font_get_spec)

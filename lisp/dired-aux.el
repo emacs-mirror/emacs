@@ -84,7 +84,7 @@ considered \"isolated\" by `dired--star-or-qmark-p'."
         (isolated-char-positions nil)
         (confirm-positions nil)
         (regexp (regexp-quote string)))
-    ;; Collect all ? and * surrounded by spaces and `?`.
+    ;; Collect all ? and * surrounded by spaces and ? .
     (while (dired--star-or-qmark-p command string nil start)
       (push (cons (match-beginning 2) (match-end 2))
             isolated-char-positions)
@@ -782,9 +782,10 @@ of shell command."
 
 ;;;###autoload
 (defcustom dired-confirm-shell-command t
-  "Whether to prompt for confirmation for `dired-do-shell-command'.
-If non-nil, prompt for confirmation if the command contains potentially
-dangerous characters.  If nil, never prompt for confirmation."
+  "Whether `dired-do-shell-command' should prompt for confirmation.
+If non-nil, prompt for confirmation if the shell command contains
+potentially unsafe wildcard characters.  If nil, never prompt for
+confirmation."
   :type 'boolean
   :group 'dired
   :version "29.1")
@@ -1413,7 +1414,8 @@ This excludes `dired-guess-shell-alist-user' and
                       (shell-command-to-string
                        (concat "xdg-mime query filetype "
                                (shell-quote-argument (car files)))))))
-         (xdg-mime-apps (unless (string-empty-p xdg-mime)
+         (xdg-mime-apps (unless (or (null xdg-mime)
+                                    (string-empty-p xdg-mime))
                           (xdg-mime-apps xdg-mime)))
          (xdg-commands
           (mapcar (lambda (desktop)
@@ -2205,11 +2207,14 @@ See `dired-delete-file' in case you wish that."
 ;;; Copy, move/rename, making hard and symbolic links
 
 (defcustom dired-backup-overwrite nil
-  "Non-nil if Dired should ask about making backups before overwriting files.
-Special value `always' suppresses confirmation."
-  :type '(choice (const :tag "off" nil)
-		 (const :tag "suppress" always)
-		 (other :tag "ask" t))
+  "If non-nil, Dired makes backups of files before overwriting them.
+By default, Dired asks whether to make a backup file for a file that
+is about to be overwritten, but if this variable's value is `always',
+that suppresses the confirmation, and backup files are always created."
+  :type '(choice (const :tag "Do not backup files to be overwritten" nil)
+		 (const :tag "Always backup files to be overwritten" always)
+		 (other :tag
+                        "Ask whether to backup files to be overwritten" t))
   :group 'dired)
 
 ;; This is a fluid var used in dired-handle-overwrite.  It should be
@@ -2242,45 +2247,37 @@ Special value `always' suppresses confirmation."
 
 (defcustom dired-create-destination-dirs nil
   "Whether Dired should create destination dirs when copying/removing files.
-If nil, don't create them.
+If nil, don't create non-existent destination directories.
+If `ask', ask the user whether to create them.
 If `always', create them without asking.
-If `ask', ask for user confirmation.
 
 Also see `dired-create-destination-dirs-on-trailing-dirsep'."
   :type '(choice (const :tag "Never create non-existent dirs" nil)
 		 (const :tag "Always create non-existent dirs" always)
-		 (const :tag "Ask for user confirmation" ask))
+		 (const :tag "Ask whether to create non-existent dirs" ask))
   :group 'dired
   :version "27.1")
 
 (defcustom dired-create-destination-dirs-on-trailing-dirsep nil
-  "If non-nil, treat a trailing slash at queried destination dir specially.
+  "If non-nil, consider a file name ending in a slash as a directory to create.
 
-If this variable is non-nil and a single destination filename is
-queried which ends in a directory separator (/), it will be
-treated as a non-existent directory and acted on according to
-`dired-create-destination-dirs'.
-
-This option is only relevant if `dired-create-destination-dirs'
-is non-nil, too.
+If this variable is non-nil and a single destination file name of
+a Dired command ends in a directory separator (/), that file name
+will be treated as a non-existent directory, and that directory
+will be created if the variable `dired-create-destination-dirs'
+says so.
 
 For example, if both `dired-create-destination-dirs' and this
 option are non-nil, renaming a directory named `old_name' to
-`new_name/' (note the trailing directory separator) where
-`new_name' does not exists already, it will be created and
-`old_name' be moved into it.  If only `new_name' (without the
-trailing /) is given or this option or
+`new_name/' (note the trailing directory separator) will
+create `new_name' if it does not already exist, and will
+move `old_name' into it.  By contrast, if only `new_name'
+(without the trailing /) is given, or this option or
 `dired-create-destination-dirs' is nil, `old_name' will be
 renamed to `new_name'."
   :type '(choice
-          (const :tag
-                 (concat "Do not treat destination dirs with a "
-                         "trailing directory separator specially")
-                 nil)
-          (const :tag
-                 (concat "Treat destination dirs with trailing "
-                         "directory separator specially")
-                 t))
+          (const :tag "Create directories when destination ends in a slash" t)
+          (const :tag "Do not create destination directories" nil))
   :group 'dired
   :version "29.1")
 
@@ -2317,12 +2314,12 @@ renamed to `new_name'."
 	 (dired-log "Can't set date on %s:\n%s\n" from err))))))
 
 (defcustom dired-vc-rename-file nil
-  "Whether Dired should register file renaming in underlying vc system.
-If nil, use default `rename-file'.
-If non-nil and the renamed files are under version control,
-rename them using `vc-rename-file'."
-  :type '(choice (const :tag "Use rename-file" nil)
-                 (const :tag "Use vc-rename-file" t))
+  "Whether Dired should register file renaming in underlying VC system.
+If nil, Dired renames files using `rename-file'.
+If non-nil, and the renamed files are under version control,
+Dired renames them using `vc-rename-file'."
+  :type '(choice (const :tag "Rename all files directly" nil)
+                 (const :tag "Rename versioned files via version control" t))
   :group 'dired
   :version "27.1")
 
@@ -2584,11 +2581,12 @@ If the value is a function, it is called with the destination directory name
 as a single argument, and the buffer is reverted after Dired operations
 if the function returns non-nil."
   :type '(choice
-          (const :tag "Don't revert" nil)
-          (const :tag "Always revert destination directory" t)
-          (const :tag "Revert only local Dired buffers"
+          (const :tag "Don't revert Dired buffers of destination directories"
+                 nil)
+          (const :tag "Always revert buffers of destination directories" t)
+          (const :tag "Revert only Dired buffers showing local directories"
                  (lambda (dir) (not (file-remote-p dir))))
-          (function :tag "Predicate function"))
+          (function :tag "Predicate function to determine whether to revert"))
   :group 'dired
   :version "28.1")
 
@@ -3682,13 +3680,16 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 ;;; Search only in file names in the Dired buffer
 
 (defcustom dired-isearch-filenames nil
-  "Non-nil to Isearch in file names only.
+  "If non-nil, Isearch in Dired buffers matches only file names.
 If t, Isearch in Dired always matches only file names.
 If `dwim', Isearch matches file names when initial point position is on
-a file name.  Otherwise, it searches the whole buffer without restrictions."
-  :type '(choice (const :tag "No restrictions" nil)
-		 (const :tag "When point is on a file name initially, search file names" dwim)
-		 (const :tag "Always search in file names" t))
+a file name.  Otherwise, Isearch searches the whole buffer without
+restrictions."
+  :type '(choice (const :tag "Search entire Dired buffer" nil)
+		 (const :tag "Search only file names in Dired buffers" t)
+		 (const :tag
+                        "Search only file names if point starts on a file name"
+                        dwim))
   :group 'dired
   :version "23.1")
 

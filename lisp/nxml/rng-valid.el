@@ -444,8 +444,7 @@ The schema is set like `rng-auto-set-schema'."
       (condition-case-unless-debug err
 	  (and (rng-validate-prepare)
 	       (let ((rng-dt-namespace-context-getter '(nxml-ns-get-context)))
-		 (with-silent-modifications
-		   (rng-do-some-validation-1 continue-p-function))))
+		 (rng-do-some-validation-1 continue-p-function)))
 	;; errors signaled from a function run by an idle timer
 	;; are ignored; if we don't catch them, validation
 	;; will get mysteriously stuck at a single place
@@ -585,10 +584,8 @@ Return t if there is work to do, nil otherwise."
 
 (defun rng-cache-state (pos)
   "Save the current state in a text property on the character at pos."
-  (put-text-property pos
-		     (1+ pos)
-		     'rng-state
-		     (rng-get-state)))
+  (with-silent-modifications
+    (put-text-property pos (1+ pos) 'rng-state (rng-get-state))))
 
 (defun rng-state-matches-current (state)
   (and state

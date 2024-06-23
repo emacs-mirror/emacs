@@ -18,7 +18,7 @@
  (0 ":irc.foonet.org 266 tester 3 3 :Current global users 3, max 3")
  (0 ":irc.foonet.org 422 tester :MOTD File is missing"))
 
-((mode-user 3.2 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  (0 ":irc.foonet.org 221 tester +i")
  (0 ":irc.foonet.org NOTICE tester :This server is still in debug mode."))
 

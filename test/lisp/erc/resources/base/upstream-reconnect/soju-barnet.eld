@@ -10,13 +10,13 @@
  (0.22 ":soju.im 221 tester +Zi")
  (0.00 ":soju.im 422 tester :Use /motd to read the message of the day"))
 
-((mode 5 "MODE tester +i")
+((mode-tester 5 "MODE tester +i")
  (0.00 ":tester!tester@10.0.2.100 JOIN #chan")
  (0.06 ":soju.im 353 tester = #chan :tester @mike joe")
  (0.01 ":soju.im 366 tester #chan :End of /NAMES list")
  (0.23 ":irc.barnet.org 221 tester +Zi"))
 
-((mode 5 "MODE #chan")
+((mode-chan-a 5 "MODE #chan")
  (0.00 ":soju.im 324 tester #chan +tn")
  (0.01 ":soju.im 329 tester #chan 1652878846")
  (0.01 ":joe!~u@6d9pasqcqwb2s.irc PRIVMSG #chan :mike: There is five in the first show.")
@@ -49,7 +49,7 @@
  ;; Server-initialed join
  (0.01 ":tester!tester@10.0.2.100 JOIN #chan"))
 
-((mode 5 "MODE #chan")
+((mode-chan-b 5 "MODE #chan")
  (0.22 ":soju.im 353 tester = #chan :@mike joe tester")
  (0.00 ":soju.im 366 tester #chan :End of /NAMES list")
  (0.00 ":soju.im 324 tester #chan +nt")

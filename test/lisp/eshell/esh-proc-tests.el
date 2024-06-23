@@ -23,6 +23,7 @@
 (require 'ert)
 (require 'esh-mode)
 (require 'eshell)
+(require 'em-prompt)                    ; For `eshell-previous-prompt'
 
 (require 'eshell-tests-helpers
          (expand-file-name "eshell-tests-helpers"
@@ -136,7 +137,8 @@
   "Test that a SIGPIPE is properly sent to a process if a pipe closes"
   (skip-unless (and (executable-find "sh")
                     (executable-find "echo")
-                    (executable-find "sleep")))
+                    (executable-find "sleep")
+                    (not (eq system-type 'windows-nt))))
   (let ((starting-process-list (process-list)))
     (with-temp-eshell
      (eshell-match-command-output
@@ -197,7 +199,9 @@ pipeline."
 
 (defsubst esh-proc-test/emacs-command (command)
   "Evaluate COMMAND in a new Emacs batch instance."
-  (mapconcat #'shell-quote-argument
+  ;; Call `eshell-quote-argument' from within an Eshell buffer since its
+  ;; behavior depends on activating various Eshell modules.
+  (mapconcat (lambda (arg) (with-temp-eshell (eshell-quote-argument arg)))
              `(,(expand-file-name invocation-name invocation-directory)
                "-Q" "--batch" "--eval" ,(prin1-to-string command))
              " "))
@@ -268,6 +272,15 @@ prompt.  See bug#54136."
    (eshell-wait-for-subprocess)
    (should (eshell-match-output "\\[sh\\(\\.exe\\)?\\] [[:digit:]]+\n"))))
 
+(ert-deftest esh-proc-test/kill-process/redirect-message ()
+  "Test that killing a process with a redirected stderr omits the exit status."
+  (skip-unless (executable-find "sleep"))
+  (eshell-with-temp-buffer bufname ""
+    (with-temp-eshell
+     (eshell-insert-command (format "sleep 100 2> #<buffer %s>" bufname))
+     (kill-process (eshell-head-process)))
+    (should (equal (buffer-string) ""))))
+
 (ert-deftest esh-proc-test/kill-pipeline ()
   "Test that killing a pipeline of processes only emits a single
 prompt.  See bug#54136."
@@ -278,17 +291,24 @@ prompt.  See bug#54136."
   ;; fine elsewhere.
   (skip-when (getenv "EMACS_EMBA_CI"))
   (with-temp-eshell
-   (eshell-insert-command
-    (concat "sh -c 'while true; do echo y; sleep 1; done' | "
-            "sh -c 'while true; do read NAME; done'"))
-   (let ((output-start (eshell-beginning-of-output)))
-     (eshell-kill-process)
-     (eshell-wait-for-subprocess t)
-     (should (string-match-p
-              ;; "interrupt\n" is for MS-Windows.
-              (rx (or "interrupt\n" "killed\n" "killed: 9\n"))
-              (buffer-substring-no-properties
-               output-start (eshell-end-of-output)))))))
+    (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
+      (eshell-insert-command
+       (concat "sh -c 'while true; do echo y; sleep 1; done' | "
+               "sh -c 'while true; do read NAME; done'"))
+      (let ((output-start (eshell-beginning-of-output)))
+        (eshell-kill-process)
+        (eshell-wait-for-subprocess t)
+        ;; We expect at most one exit message here (from the tail
+        ;; process).  If the tail process has time to exit normally
+        ;; after we kill the head, then we'll see no exit message.
+        (should (string-match-p
+                 (rx bos (? (or "interrupt" (seq "killed" (* nonl))) "\n") eos)
+                 (buffer-substring-no-properties
+                  output-start (eshell-end-of-output))))
+        ;; Make sure Eshell only emitted one prompt by going back one
+        ;; prompt and checking the command input.
+        (eshell-previous-prompt)
+        (should (string-prefix-p "sh -c" (field-string)))))))
 
 (ert-deftest esh-proc-test/kill-pipeline-head ()
   "Test that killing the first process in a pipeline doesn't
@@ -297,29 +317,21 @@ write the exit status to the pipe.  See bug#54136."
                     (executable-find "echo")
                     (executable-find "sleep")))
   (with-temp-eshell
-   (eshell-insert-command
-    (concat "sh -c 'while true; do sleep 1; done' | "
-            "sh -c 'while read NAME; do echo =${NAME}=; done'"))
-   (let ((output-start (eshell-beginning-of-output)))
-     (kill-process (eshell-head-process))
-     (eshell-wait-for-subprocess t)
-     (should (equal (buffer-substring-no-properties
-                     output-start (eshell-end-of-output))
-                    "")))))
-
-(ert-deftest esh-proc-test/kill-process/redirect-message ()
-  "Test that killing a process with a redirected stderr omits the exit status."
-  (skip-unless (executable-find "sleep"))
-  (eshell-with-temp-buffer bufname ""
-    (with-temp-eshell
-     (eshell-insert-command (format "sleep 100 2> #<buffer %s>" bufname))
-     (kill-process (eshell-head-process)))
-    (should (equal (buffer-string) ""))))
+    (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
+      (eshell-insert-command
+       (concat "sh -c 'while true; do sleep 1; done' | "
+               "sh -c 'while read NAME; do echo =${NAME}=; done'"))
+      (let ((output-start (eshell-beginning-of-output)))
+        (kill-process (eshell-head-process))
+        (eshell-wait-for-subprocess t)
+        (should (equal (buffer-substring-no-properties
+                        output-start (eshell-end-of-output))
+                       ""))))))
 
 
 ;; Remote processes
 
-(ert-deftest esh-var-test/remote/remote-path ()
+(ert-deftest esh-proc-test/remote/remote-path ()
   "Ensure that setting the remote PATH in Eshell doesn't interfere with Tramp.
 See bug#65551."
   (skip-unless (and (eshell-tests-remote-accessible-p)

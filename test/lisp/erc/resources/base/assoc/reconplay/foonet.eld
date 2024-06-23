@@ -33,7 +33,7 @@
  (0.0 ":***!znc@znc.in PRIVMSG #chan :Playback Complete.")
  (0.0 ":irc.foonet.org 305 tester :You are no longer marked as being away"))
 
-((mode 3 "MODE #chan")
+((mode-chan 10 "MODE #chan")
  (1.0 ":irc.foonet.org 324 tester #chan +nt")
  (0.0 ":irc.foonet.org 329 tester #chan 1623816901")
  (0.1 ":alice!~u@mw6kegwt77kwe.irc PRIVMSG #chan :bob: At thy good heart's oppression.")

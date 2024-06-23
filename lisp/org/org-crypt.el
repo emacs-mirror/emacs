@@ -71,16 +71,18 @@
 (defvar epg-context)
 
 (declare-function org-back-over-empty-lines "org" ())
+(declare-function org-current-level "org" ())
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-before-first-heading-p "org" ())
 (declare-function org-end-of-meta-data "org" (&optional full))
-(declare-function org-end-of-subtree "org" (&optional invisible-ok to-heading))
+(declare-function org-end-of-subtree "org" (&optional invisible-ok to-heading element))
 (declare-function org-entry-get "org" (pom property &optional inherit literal-nil))
 (declare-function org-fold-subtree "org-fold" (flag))
-(declare-function org-make-tags-matcher "org" (match))
+(declare-function org-make-tags-matcher "org" (match &optional only-local-tags))
 (declare-function org-previous-visible-heading "org" (arg))
 (declare-function org-scan-tags "org" (action matcher todo-only &optional start-level))
 (declare-function org-set-property "org" (property value))
+(declare-function org-cycle-set-startup-visibility "org-cycle" ())
 
 (defgroup org-crypt nil
   "Org Crypt."
@@ -113,16 +115,16 @@ This setting can be overridden in the CRYPTKEY property."
 (defcustom org-crypt-disable-auto-save 'ask
   "What org-decrypt should do if `auto-save-mode' is enabled.
 
-t        : Disable auto-save-mode for the current buffer
+t        : Disable `auto-save-mode' for the current buffer
            prior to decrypting an entry.
 
-nil      : Leave auto-save-mode enabled.
+nil      : Leave `auto-save-mode' enabled.
            This may cause data to be written to disk unencrypted!
 
-`ask'    : Ask user whether or not to disable auto-save-mode
+`ask'    : Ask user whether or not to disable `auto-save-mode'
            for the current buffer.
 
-`encrypt': Leave auto-save-mode enabled for the current buffer,
+`encrypt': Leave `auto-save-mode' enabled for the current buffer,
            but automatically re-encrypt all decrypted entries
            *before* auto-saving.
            NOTE: This only works for entries which have a tag
@@ -165,7 +167,7 @@ and END are buffer positions delimiting the encrypted area."
 	     (cons start (line-beginning-position 2)))))))))
 
 (defun org-crypt-check-auto-save ()
-  "Check whether auto-save-mode is enabled for the current buffer.
+  "Check whether `auto-save-mode' is enabled for the current buffer.
 
 `auto-save-mode' may cause leakage when decrypting entries, so
 check whether it's enabled, and decide what to do about it.
@@ -177,7 +179,7 @@ See `org-crypt-disable-auto-save'."
        (eq org-crypt-disable-auto-save t)
        (and
 	(eq org-crypt-disable-auto-save 'ask)
-	(y-or-n-p "org-decrypt: auto-save-mode may cause leakage.  Disable it for current buffer? ")))
+	(y-or-n-p "`org-decrypt': auto-save-mode may cause leakage.  Disable it for current buffer? ")))
       (message "org-decrypt: Disabling auto-save-mode for %s"
                (or (buffer-file-name) (current-buffer)))
       ;; The argument to auto-save-mode has to be "-1", since
@@ -244,12 +246,13 @@ Assume `epg-context' is set."
 	     ;; contents in the buffer.
 	     (error
 	      (insert contents)
-	      (error (error-message-string err)))))
+	      (error "%s" (error-message-string err)))))
 	 (when folded-heading
 	   (goto-char folded-heading)
 	   (org-fold-subtree t))
 	 nil)))))
 
+(defvar org-outline-regexp-bol)
 ;;;###autoload
 (defun org-decrypt-entry ()
   "Decrypt the content of the current headline."
@@ -265,23 +268,44 @@ Assume `epg-context' is set."
 		    (save-excursion
 		      (org-previous-visible-heading 1)
 		      (point))))
+              (level (org-current-level))
 	      (encrypted-text (org-crypt--encrypted-text beg end))
 	      (decrypted-text
 	       (decode-coding-string
 		(epg-decrypt-string epg-context encrypted-text)
-		'utf-8)))
+		'utf-8))
+              origin-marker)
 	 ;; Delete region starting just before point, because the
 	 ;; outline property starts at the \n of the heading.
 	 (delete-region (1- (point)) end)
-	 ;; Store a checksum of the decrypted and the encrypted text
-	 ;; value.  This allows reusing the same encrypted text if the
-	 ;; text does not change, and therefore avoid a re-encryption
-	 ;; process.
-	 (insert "\n"
-		 (propertize decrypted-text
-			     'org-crypt-checksum (sha1 decrypted-text)
-			     'org-crypt-key (org-crypt-key-for-heading)
-			     'org-crypt-text encrypted-text))
+         (setq origin-marker (point-marker))
+         (if (string-match (org-headline-re level) decrypted-text)
+             ;; If decrypted text contains other headings with levels
+             ;; below LEVEL, adjust the subtree.
+             (let ((start 0) (min-level level))
+               (while (string-match (org-headline-re level) decrypted-text start)
+                 (setq min-level (min min-level (1- (length (match-string 0 decrypted-text))))
+                       start (match-end 0)))
+               (insert "\n"
+                       (replace-regexp-in-string
+                        org-outline-regexp-bol
+                        (concat (make-string (1+ (- level min-level)) ?*) "\\&")
+                        decrypted-text)))
+	   ;; Store a checksum of the decrypted and the encrypted text
+	   ;; value.  This allows reusing the same encrypted text if the
+	   ;; text does not change, and therefore avoid a re-encryption
+	   ;; process.
+	   (insert "\n"
+		   (propertize decrypted-text
+			       'org-crypt-checksum (sha1 decrypted-text)
+			       'org-crypt-key (org-crypt-key-for-heading)
+			       'org-crypt-text encrypted-text)))
+         ;; Apply initial visibility.
+         (save-restriction
+           (narrow-to-region origin-marker (point))
+           (set-marker origin-marker nil)
+           (org-cycle-set-startup-visibility))
+         ;; ... but keep the previous folded state.
 	 (when folded-heading
 	   (goto-char folded-heading)
 	   (org-fold-subtree t))

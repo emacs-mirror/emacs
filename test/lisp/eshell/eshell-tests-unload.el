@@ -33,6 +33,7 @@
 (defvar eshell-history-file-name)
 (defvar eshell-last-dir-ring-file-name)
 (defvar eshell-modules-list)
+(defvar eshell-module-loading-messages)
 
 (declare-function eshell-module--feature-name "esh-module"
                   (module &optional kind))
@@ -51,6 +52,7 @@ See `unload-eshell'.")
              (process-environment (cons "HISTFILE" process-environment))
              (eshell-history-file-name nil)
              (eshell-last-dir-ring-file-name nil)
+             (eshell-module-loading-messages nil)
              (eshell-buffer (eshell t)))
         (let (kill-buffer-query-functions)
           (kill-buffer eshell-buffer))))))

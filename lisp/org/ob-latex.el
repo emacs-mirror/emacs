@@ -52,6 +52,7 @@
 (defvar org-format-latex-options)	  ; From org.el
 (defvar org-latex-default-packages-alist) ; From org.el
 (defvar org-latex-packages-alist)	  ; From org.el
+(defvar org-preview-latex-process-alist)  ; From org.el
 
 (defvar org-babel-default-header-args:latex
   '((:results . "latex") (:exports . "results"))
@@ -128,6 +129,18 @@ exporting the literal LaTeX source."
   :group 'org-babel
   :type '(repeat (string)))
 
+(defcustom org-babel-latex-process-alist
+  `(,(cons 'png (alist-get 'dvipng org-preview-latex-process-alist)))
+  "Definitions of external processes for LaTeX result generation.
+See `org-preview-latex-process-alist' for more details.
+
+The following process symbols are recognized:
+- `png' :: Process used to produce .png output."
+  :group 'org-babel
+  :package-version '(Org . "9.7")
+  :type '(alist :tag "LaTeX to image backends"
+		:value-type (plist)))
+
 (defun org-babel-expand-body:latex (body params)
   "Expand BODY according to PARAMS, return the expanded body."
   (mapc (lambda (pair) ;; replace variables
@@ -136,12 +149,18 @@ exporting the literal LaTeX source."
                  (regexp-quote (format "%S" (car pair)))
                  (if (stringp (cdr pair))
                      (cdr pair) (format "%S" (cdr pair)))
-                 body)))
+                 body t t)))
 	(org-babel--get-vars params))
-  (org-trim body))
+  (let ((prologue (cdr (assq :prologue params)))
+        (epilogue (cdr (assq :epilogue params))))
+    (org-trim
+     (concat
+      (and prologue (concat prologue "\n"))
+      body
+      (and epilogue (concat "\n" epilogue "\n"))))))
 
 (defun org-babel-execute:latex (body params)
-  "Execute a block of LaTeX code with Babel.
+  "Execute LaTeX BODY according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
   (setq body (org-babel-expand-body:latex body params))
   (if (cdr (assq :file params))
@@ -163,9 +182,10 @@ This function is called by `org-babel-execute-src-block'."
          ((and (string-suffix-p ".png" out-file) (not imagemagick))
           (let ((org-format-latex-header
 		 (concat org-format-latex-header "\n"
-			 (mapconcat #'identity headers "\n"))))
+			 (mapconcat #'identity headers "\n")))
+                (org-preview-latex-process-alist org-babel-latex-process-alist))
 	    (org-create-formula-image
-             body out-file org-format-latex-options in-buffer)))
+             body out-file org-format-latex-options in-buffer 'png)))
 	 ((string= "svg" extension)
 	  (with-temp-file tex-file
 	    (insert (concat (funcall org-babel-latex-preamble params)
@@ -273,7 +293,9 @@ This function is called by `org-babel-execute-src-block'."
     body))
 
 (defun org-babel-latex-convert-pdf (pdffile out-file im-in-options im-out-options)
-  "Generate a file from a pdf file using imagemagick."
+  "Generate OUT-FILE from PDFFILE using imagemagick.
+IM-IN-OPTIONS are command line options for input file, as a string;
+and IM-OUT-OPTIONS are the output file options."
   (let ((cmd (concat "convert " im-in-options " " pdffile " "
 		     im-out-options " " out-file)))
     (message "Converting pdffile file %s..." cmd)

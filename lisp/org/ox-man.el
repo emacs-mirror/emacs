@@ -1,4 +1,4 @@
-;;; ox-man.el --- Man Back-End for Org Export Engine -*- lexical-binding: t; -*-
+;;; ox-man.el --- Man Backend for Org Export Engine -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 ;;
-;; This library implements a Man back-end for Org generic exporter.
+;; This library implements a Man backend for Org generic exporter.
 ;;
 ;; To test it, run
 ;;
@@ -51,7 +51,7 @@
 
 
 
-;;; Define Back-End
+;;; Define Backend
 
 (org-export-define-backend 'man
   '((babel-call . org-man-babel-call)
@@ -293,6 +293,13 @@ This function shouldn't be used for floats.  See
   "Protect minus and backslash characters in string TEXT."
   (replace-regexp-in-string "-" "\\-" text nil t))
 
+(defun org-man--protect-example (text)
+  "Escape necessary characters for verbatim TEXT."
+  ;; See man groff_man_style; \e must be used to render backslash.
+  ;; Note that groff's .eo (disable backslash) and .ec (re-enable
+  ;; backslash) cannot be used as per the same man page.
+  (replace-regexp-in-string "\\\\" "\\e" text nil t))
+
 
 
 ;;; Template
@@ -400,7 +407,7 @@ information."
   (org-man--wrap-label
    example-block
    (format ".RS\n.nf\n%s\n.fi\n.RE"
-           (org-export-format-code-default example-block info))))
+           (org-man--protect-example (org-export-format-code-default example-block info)))))
 
 
 ;;; Export Block
@@ -510,8 +517,9 @@ contextual information."
                         (expand-file-name "reshilite" tmpdir)))
              (org-lang (org-element-property :language inline-src-block))
              (lst-lang
-	      (cadr (assq (intern org-lang)
-			  (plist-get info :man-source-highlight-langs))))
+              (and org-lang
+	           (cadr (assq (intern org-lang)
+			       (plist-get info :man-source-highlight-langs)))))
 
              (cmd (concat (expand-file-name "source-highlight")
                           " -s " lst-lang
@@ -528,11 +536,11 @@ contextual information."
               (delete-file out-file)
               code-block)
           (format ".RS\n.nf\n\\fC\\m[black]%s\\m[]\\fP\n.fi\n.RE\n"
-                  code))))
+                  (org-man--protect-example code)))))
 
      ;; Do not use a special package: transcode it verbatim.
      (t
-      (concat ".RS\n.nf\n" "\\fC" "\n" code "\n"
+      (concat ".RS\n.nf\n" "\\fC" "\n" (org-man--protect-example code) "\n"
               "\\fP\n.fi\n.RE\n")))))
 
 
@@ -554,7 +562,7 @@ contextual information."
 CONTENTS holds the contents of the item.  INFO is a plist holding
 contextual information."
   (let* ((bullet (org-element-property :bullet item))
-         (type (org-element-property :type (org-element-property :parent item)))
+         (type (org-element-property :type (org-element-parent item)))
          (checkbox (pcase (org-element-property :checkbox item)
                      (`on "\\o'\\(sq\\(mu'")
                      (`off "\\(sq ")
@@ -614,10 +622,8 @@ INFO is a plist holding contextual information.  See
          ;; Ensure DESC really exists, or set it to nil.
          (desc (and (not (string= desc "")) desc))
          (path (pcase type
-                 ((or "http" "https" "ftp" "mailto")
-                  (concat type ":" raw-path))
                  ("file" (org-export-file-uri raw-path))
-                 (_ raw-path))))
+                 (_ (concat type ":" raw-path)))))
     (cond
      ;; Link type is handled by a special function.
      ((org-export-custom-protocol-maybe link desc 'man info))
@@ -645,19 +651,19 @@ information."
   "Transcode a PARAGRAPH element from Org to Man.
 CONTENTS is the contents of the paragraph, as a string.  INFO is
 the plist used as a communication channel."
-  (let ((parent (plist-get (nth 1 paragraph) :parent)))
+  (let ((parent (org-element-parent paragraph)))
     (when parent
-      (let ((parent-type (car parent))
+      (let ((parent-type (org-element-type parent))
             (fixed-paragraph ""))
         (cond ((and (eq parent-type 'item)
-                    (plist-get (nth 1 parent) :bullet ))
+                    (org-element-property :bullet parent))
                (setq fixed-paragraph (concat "" contents)))
               ((eq parent-type 'section)
                (setq fixed-paragraph (concat ".PP\n" contents)))
               ((eq parent-type 'footnote-definition)
                (setq fixed-paragraph contents))
               (t (setq fixed-paragraph (concat "" contents))))
-        fixed-paragraph ))))
+        fixed-paragraph))))
 
 
 ;;; Plain List
@@ -750,15 +756,16 @@ CONTENTS holds the contents of the item.  INFO is a plist holding
 contextual information."
   (if (not (plist-get info :man-source-highlight))
       (format ".RS\n.nf\n\\fC%s\\fP\n.fi\n.RE\n\n"
-	      (org-export-format-code-default src-block info))
+	      (org-man--protect-example (org-export-format-code-default src-block info)))
     (let* ((tmpdir temporary-file-directory)
 	   (in-file  (make-temp-name (expand-file-name "srchilite" tmpdir)))
 	   (out-file (make-temp-name (expand-file-name "reshilite" tmpdir)))
 	   (code (org-element-property :value src-block))
 	   (org-lang (org-element-property :language src-block))
 	   (lst-lang
-	    (cadr (assq (intern org-lang)
-			(plist-get info :man-source-highlight-langs))))
+            (and org-lang
+	         (cadr (assq (intern org-lang)
+			     (plist-get info :man-source-highlight-langs)))))
 	   (cmd (concat "source-highlight"
 			" -s " lst-lang
 			" -f groff_man "
@@ -772,7 +779,7 @@ contextual information."
 	    (delete-file in-file)
 	    (delete-file out-file)
 	    code-block)
-	(format ".RS\n.nf\n\\fC\\m[black]%s\\m[]\\fP\n.fi\n.RE" code)))))
+	(format ".RS\n.nf\n\\fC\\m[black]%s\\m[]\\fP\n.fi\n.RE" (org-man--protect-example code))))))
 
 
 ;;; Statistics Cookie
@@ -836,9 +843,10 @@ contextual information."
 
     (format ".nf\n\\fC%s\\fP\n.fi"
             ;; Re-create table, without affiliated keywords.
-            (org-trim
-             (org-element-interpret-data
-              `(table nil ,@(org-element-contents table))))))
+            (org-man--protect-example
+             (org-trim
+              (org-element-interpret-data
+               `(table nil ,@(org-element-contents table)))))))
    ;; Case 2: Standard table.
    (t (org-man-table--org-table table contents info))))
 
@@ -972,7 +980,7 @@ This function assumes TABLE has `org' as its `:type' attribute."
 ;;; Table Cell
 
 (defun org-man-table-cell (table-cell contents info)
-  "Transcode a TABLE-CELL element from Org to Man
+  "Transcode a TABLE-CELL element from Org to Man.
 CONTENTS is the cell contents.  INFO is a plist used as
 a communication channel."
   (concat

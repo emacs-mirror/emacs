@@ -83,7 +83,7 @@ public final class EmacsDesktopNotification
      notification.  */
   public final String[] actions, titles;
 
-  /* Delay in miliseconds after which this notification should be
+  /* Delay in milliseconds after which this notification should be
      automatically dismissed.  */
   public final long delay;
 

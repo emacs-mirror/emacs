@@ -45,9 +45,10 @@
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-class "org-element" (datum &optional parent))
 (declare-function org-element-context "org-element" (&optional element))
-(declare-function org-element-lineage "org-element" (blob &optional types with-self))
-(declare-function org-element-property "org-element" (property element))
-(declare-function org-element-type "org-element" (element))
+(declare-function org-element-lineage "org-element-ast" (blob &optional types with-self))
+(declare-function org-element-property "org-element-ast" (property node))
+(declare-function org-element-type "org-element-ast" (node &optional anonymous))
+(declare-function org-element-type-p "org-element-ast" (node types))
 (declare-function org-end-of-subtree "org"  (&optional invisible-ok to-heading))
 (declare-function org-fill-paragraph "org" (&optional justify region))
 (declare-function org-in-block-p "org" (names))
@@ -136,15 +137,18 @@ Possible values are:
 
 nil        Prompt the user for each label.
 t          Create unique labels of the form [fn:1], [fn:2], etc.
+anonymous  Create anonymous footnotes
 confirm    Like t, but let the user edit the created value.
            The label can be removed from the minibuffer to create
            an anonymous footnote.
 random	   Automatically generate a unique, random label."
   :group 'org-footnote
+  :package-version '(Org . "9.7")
   :type '(choice
 	  (const :tag "Prompt for label" nil)
 	  (const :tag "Create automatic [fn:N]" t)
 	  (const :tag "Offer automatic [fn:N] for editing" confirm)
+	  (const :tag "Create anonymous [fn::]" anonymous)
 	  (const :tag "Create a random label" random))
   :safe #'symbolp)
 
@@ -183,21 +187,21 @@ extracted will be filled again."
   "Is point in a context where footnotes are allowed?"
   (save-match-data
     (not (or (org-at-comment-p)
-	     (org-inside-LaTeX-fragment-p)
-	     ;; Avoid literal example.
-	     (org-in-verbatim-emphasis)
-	     (save-excursion
-	       (beginning-of-line)
-	       (looking-at "[ \t]*:[ \t]+"))
-	     ;; Avoid forbidden blocks.
-	     (org-in-block-p org-footnote-forbidden-blocks)))))
+	   (org-inside-LaTeX-fragment-p)
+	   ;; Avoid literal example.
+	   (org-in-verbatim-emphasis)
+	   (save-excursion
+	     (forward-line 0)
+	     (looking-at "[ \t]*:[ \t]+"))
+	   ;; Avoid forbidden blocks.
+	   (org-in-block-p org-footnote-forbidden-blocks)))))
 
 (defun org-footnote-at-reference-p ()
   "Non-nil if point is at a footnote reference.
 If so, return a list containing its label, beginning and ending
 positions, and the definition, when inline."
   (let ((reference (org-element-context)))
-    (when (eq 'footnote-reference (org-element-type reference))
+    (when (org-element-type-p reference 'footnote-reference)
       (let ((end (save-excursion
 		   (goto-char (org-element-property :end reference))
 		   (skip-chars-backward " \t")
@@ -223,7 +227,7 @@ defined locally.
 The return value is nil if not at a footnote definition, and
 a list with label, start, end and definition of the footnote
 otherwise."
-  (pcase (org-element-lineage (org-element-at-point) '(footnote-definition) t)
+  (pcase (org-element-lineage (org-element-at-point) 'footnote-definition t)
     (`nil nil)
     (definition
       (let* ((label (org-element-property :label definition))
@@ -269,7 +273,7 @@ otherwise."
        ((memq type '(headline inlinetask))
 	(or (not (org-at-heading-p))
 	    (and (save-excursion
-		   (beginning-of-line)
+		   (forward-line 0)
 		   (and (let ((case-fold-search t))
 			  (not (looking-at-p "\\*+ END[ \t]*$")))
 			(let ((case-fold-search nil))
@@ -281,10 +285,10 @@ otherwise."
        ;; White spaces after an object or blank lines after an element
        ;; are OK.
        ((>= (point)
-	    (save-excursion (goto-char (org-element-property :end context))
-			    (skip-chars-backward " \r\t\n")
-			    (if (eq (org-element-class context) 'object) (point)
-			      (line-beginning-position 2)))))
+	   (save-excursion (goto-char (org-element-property :end context))
+			   (skip-chars-backward " \r\t\n")
+			   (if (eq (org-element-class context) 'object) (point)
+			     (line-beginning-position 2)))))
        ;; At the beginning of a footnote definition, right after the
        ;; label, is OK.
        ((eq type 'footnote-definition) (looking-at (rx space)))
@@ -298,7 +302,7 @@ otherwise."
         ;; :contents-begin is not reliable on empty cells, so special
         ;; case it.
         (<= (save-excursion (skip-chars-backward " \t") (point))
-            (org-element-property :contents-end context)))
+           (org-element-property :contents-end context)))
        ((let ((cbeg (org-element-property :contents-begin context))
 	      (cend (org-element-property :contents-end context)))
 	  (and cbeg (>= (point) cbeg) (<= (point) cend))))))))
@@ -368,14 +372,14 @@ References are sorted according to a deep-reading order."
 	   ;; Ensure point is within the reference before parsing it.
 	   (backward-char)
 	   (let ((object (org-element-context)))
-	     (when (eq (org-element-type object) 'footnote-reference)
+	     (when (org-element-type-p object 'footnote-reference)
 	       (let* ((label (org-element-property :label object))
 		      (begin (org-element-property :begin object))
 		      (size
 		       (and (eq (org-element-property :type object) 'inline)
 			    (- (org-element-property :contents-end object)
 			       (org-element-property :contents-begin object)))))
-		 (let ((d (org-element-lineage object '(footnote-definition))))
+		 (let ((d (org-element-lineage object 'footnote-definition)))
 		   (push (list label (copy-marker begin) (not d) size)
 			 references)
 		   (when d
@@ -420,7 +424,7 @@ while collecting them."
        (backward-char)
        (let ((element (org-element-at-point)))
 	 (let ((label (org-element-property :label element)))
-	   (when (and (eq (org-element-type element) 'footnote-definition)
+	   (when (and (org-element-type-p element 'footnote-definition)
 		      (not (member label seen)))
 	     (push label seen)
 	     (let* ((beg (progn
@@ -516,7 +520,7 @@ This function is meant to be used for fontification only."
 	 ;; Definition: also grab the last square bracket, matched in
 	 ;; `org-footnote-re' for non-inline footnotes.
 	 ((and (save-excursion
-		 (beginning-of-line)
+		 (forward-line 0)
 		 (save-match-data (org-footnote-in-valid-context-p)))
 	       (save-excursion
 		 (end-of-line)
@@ -633,8 +637,8 @@ This function ignores narrowing, if any."
      (while (re-search-forward org-footnote-re nil t)
        (backward-char)
        (let ((context (org-element-context)))
-	 (when (memq (org-element-type context)
-		     '(footnote-definition footnote-reference))
+	 (when (org-element-type-p
+                context '(footnote-definition footnote-reference))
 	   (let ((label (org-element-property :label context)))
 	     (when label (cl-pushnew label all :test #'equal))))))
      all)))
@@ -665,15 +669,16 @@ or new, let the user edit the definition of the footnote."
     (user-error "Cannot insert a footnote here"))
   (let* ((all (org-footnote-all-labels))
 	 (label
-	  (if (eq org-footnote-auto-label 'random)
-	      (format "%x" (abs (random)))
-	    (org-footnote-normalize-label
-	     (let ((propose (org-footnote-unique-label all)))
-	       (if (eq org-footnote-auto-label t) propose
-		 (completing-read
-		  "Label (leave empty for anonymous): "
-		  (mapcar #'list all) nil nil
-		  (and (eq org-footnote-auto-label 'confirm) propose))))))))
+          (unless (eq org-footnote-auto-label 'anonymous)
+	    (if (eq org-footnote-auto-label 'random)
+	        (format "%x" (abs (random)))
+	      (org-footnote-normalize-label
+	       (let ((propose (org-footnote-unique-label all)))
+	         (if (eq org-footnote-auto-label t) propose
+		   (completing-read
+		    "Label (leave empty for anonymous): "
+		    (mapcar #'list all) nil nil
+		    (and (eq org-footnote-auto-label 'confirm) propose)))))))))
     (cond ((not label)
 	   (insert "[fn::]")
 	   (backward-char 1))

@@ -280,6 +280,7 @@ If Exist assert.in.h update assert.in.h assert.in-h
 If Exist byteswap.in.h update byteswap.in.h byteswap.in-h
 If Exist dirent.in.h update dirent.in.h dirent.in-h
 If Exist errno.in.h update errno.in.h errno.in-h
+If Exist endian.in.h update endian.in.h endian.in-h
 If Exist execinfo.in.h update execinfo.in.h execinfo.in-h
 If Exist fcntl.in.h update fcntl.in.h fcntl.in-h
 If Exist getopt.in.h update getopt.in.h getopt.in-h

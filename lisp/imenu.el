@@ -151,15 +151,22 @@ Used for flattening nested indexes with name concatenation."
 (defcustom imenu-flatten nil
   "Whether to flatten the list of sections in an imenu or show it nested.
 If nil, use nested indexes.
-If t, pop up the completion buffer with a flattened menu.
-If `annotation', use completion annotation as a suffix
-to append section names after the index names.
+If the value is `prefix', pop up the completion buffer with a
+flattened menu where section names are prepended to completion
+candidates as prefixes.
+If the value is `annotation', annotate each completion candidate
+with a suffix that is the section name to which it belongs.
+If the value is `group', split completion candidates into groups
+according to the sections.
+Any other value is treated as `prefix'.
 
-The string from `imenu-level-separator' is used to separate names of
-nested levels while flattening nested indexes with name concatenation."
-  :type '(choice (const :tag "Nested" nil)
-                 (const :tag "By prefix" t)
-                 (const :tag "By suffix" annotation))
+The value of `imenu-level-separator', a string, is used to separate
+names from different flattened levels, such as section names, from the
+names of completion candidates."
+  :type '(choice (const :tag "Show nested list" nil)
+                 (const :tag "Flat list with sections as prefix" prefix)
+                 (const :tag "Flat list annotated with sections" annotation)
+                 (const :tag "Flat list grouped by sections" group))
   :version "30.1")
 
 (defcustom imenu-generic-skip-comments-and-strings t
@@ -752,12 +759,19 @@ Return one of the entries in index-alist or nil."
     ;; Display the completion buffer.
     (minibuffer-with-setup-hook
         (lambda ()
+          (setq-local minibuffer-allow-text-properties t)
           (setq-local completion-extra-properties
                       `( :category imenu
                          ,@(when (eq imenu-flatten 'annotation)
                              `(:annotation-function
                                ,(lambda (s) (get-text-property
-                                             0 'imenu-section s))))))
+                                             0 'imenu-section s))))
+                         ,@(when (eq imenu-flatten 'group)
+                             `(:group-function
+                               ,(lambda (s transform)
+                                  (if transform s
+                                    (get-text-property
+                                     0 'imenu-section s)))))))
           (unless imenu-eager-completion-buffer
             (minibuffer-completion-help)))
       (setq name (completing-read prompt
@@ -765,10 +779,12 @@ Return one of the entries in index-alist or nil."
 				  nil t nil 'imenu--history-list name)))
 
     (when (stringp name)
-      (setq choice (assoc name prepared-index-alist))
-      (if (imenu--subalist-p choice)
-	  (imenu--completion-buffer (cdr choice) prompt)
-	choice))))
+      (or (get-text-property 0 'imenu-choice name)
+	  (progn
+	    (setq choice (assoc name prepared-index-alist))
+	    (if (imenu--subalist-p choice)
+		(imenu--completion-buffer (cdr choice) prompt)
+	      choice))))))
 
 (defun imenu--mouse-menu (index-alist event &optional title)
   "Let the user select from a buffer index from a mouse menu.
@@ -801,10 +817,17 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
 			       name))))
        (cond
 	((not (imenu--subalist-p item))
-	 (list (cons (if (and (eq imenu-flatten 'annotation) prefix)
-			 (propertize name 'imenu-section
-				     (format " (%s)" prefix))
-		       new-prefix)
+	 (list (cons (pcase imenu-flatten
+                       ('annotation
+                        (if prefix
+                            (propertize name
+                                        'imenu-section (format " (%s)" prefix)
+                                        'imenu-choice item)
+                          (propertize new-prefix 'imenu-choice item)))
+                       ('group (propertize name
+                                           'imenu-section (or prefix "*")
+                                           'imenu-choice item))
+                       (_ new-prefix))
 		     pos)))
 	(t
 	 (imenu--flatten-index-alist pos concat-names new-prefix)))))

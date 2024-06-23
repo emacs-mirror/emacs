@@ -1531,12 +1531,21 @@ _GL_CXXALIASWARN (getpid);
 
 
 #if @GNULIB_GETUSERSHELL@
+# if @REPLACE_GETUSERSHELL@
 /* Return the next valid login shell on the system, or NULL when the end of
    the list has been reached.  */
-# if !@HAVE_DECL_GETUSERSHELL@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    undef getusershell
+#    define getusershell rpl_getusershell
+#  endif
+_GL_FUNCDECL_RPL (getusershell, char *, (void));
+_GL_CXXALIAS_RPL (getusershell, char *, (void));
+# else
+#  if !@HAVE_DECL_GETUSERSHELL@
 _GL_FUNCDECL_SYS (getusershell, char *, (void));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (getusershell, char *, (void));
+# endif
 _GL_CXXALIASWARN (getusershell);
 #elif defined GNULIB_POSIXCHECK
 # undef getusershell
@@ -1548,10 +1557,19 @@ _GL_WARN_ON_USE (getusershell, "getusershell is unportable - "
 
 #if @GNULIB_GETUSERSHELL@
 /* Rewind to pointer that is advanced at each getusershell() call.  */
-# if !@HAVE_DECL_GETUSERSHELL@
+# if @REPLACE_GETUSERSHELL@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    undef setusershell
+#    define setusershell rpl_setusershell
+#  endif
+_GL_FUNCDECL_RPL (setusershell, void, (void));
+_GL_CXXALIAS_RPL (setusershell, void, (void));
+# else
+#  if !@HAVE_DECL_GETUSERSHELL@
 _GL_FUNCDECL_SYS (setusershell, void, (void));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (setusershell, void, (void));
+# endif
 _GL_CXXALIASWARN (setusershell);
 #elif defined GNULIB_POSIXCHECK
 # undef setusershell
@@ -1564,10 +1582,19 @@ _GL_WARN_ON_USE (setusershell, "setusershell is unportable - "
 #if @GNULIB_GETUSERSHELL@
 /* Free the pointer that is advanced at each getusershell() call and
    associated resources.  */
-# if !@HAVE_DECL_GETUSERSHELL@
+# if @REPLACE_GETUSERSHELL@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    undef endusershell
+#    define endusershell rpl_endusershell
+#  endif
+_GL_FUNCDECL_RPL (endusershell, void, (void));
+_GL_CXXALIAS_RPL (endusershell, void, (void));
+# else
+#  if !@HAVE_DECL_GETUSERSHELL@
 _GL_FUNCDECL_SYS (endusershell, void, (void));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (endusershell, void, (void));
+# endif
 _GL_CXXALIASWARN (endusershell);
 #elif defined GNULIB_POSIXCHECK
 # undef endusershell
