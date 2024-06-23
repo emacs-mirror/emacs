@@ -757,7 +757,7 @@ INLINE void
    union of the possible values (struct Lisp_Objfwd, struct
    Lisp_Intfwd, etc.).  The pointer is packaged inside a struct to
    help static checking.  */
-typedef struct { void const *fwdptr; } lispfwd;
+typedef const struct Lisp_Fwd *lispfwd;
 
 /* Interned state of a symbol.  */
 
@@ -2317,7 +2317,7 @@ SYMBOL_BLV (struct Lisp_Symbol *sym)
 INLINE lispfwd
 SYMBOL_FWD (struct Lisp_Symbol *sym)
 {
-  eassume (sym->u.s.redirect == SYMBOL_FORWARDED && sym->u.s.val.fwd.fwdptr);
+  eassume (sym->u.s.redirect == SYMBOL_FORWARDED && sym->u.s.val.fwd);
   return sym->u.s.val.fwd;
 }
 
@@ -2341,10 +2341,10 @@ SET_SYMBOL_BLV (struct Lisp_Symbol *sym, struct Lisp_Buffer_Local_Value *v)
   sym->u.s.val.blv = v;
 }
 INLINE void
-SET_SYMBOL_FWD (struct Lisp_Symbol *sym, void const *v)
+SET_SYMBOL_FWD (struct Lisp_Symbol *sym, lispfwd fwd)
 {
-  eassume (sym->u.s.redirect == SYMBOL_FORWARDED && v);
-  sym->u.s.val.fwd.fwdptr = v;
+  eassume (sym->u.s.redirect == SYMBOL_FORWARDED && fwd);
+  sym->u.s.val.fwd = fwd;
 }
 
 INLINE Lisp_Object
@@ -3059,7 +3059,6 @@ make_uint (uintmax_t n)
    specified int variable.  */
 struct Lisp_Intfwd
   {
-    enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Int */
     intmax_t *intvar;
   };
 
@@ -3069,7 +3068,6 @@ struct Lisp_Intfwd
    nil if it is false.  */
 struct Lisp_Boolfwd
   {
-    enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Bool */
     bool *boolvar;
   };
 
@@ -3079,7 +3077,6 @@ struct Lisp_Boolfwd
    specified variable.  */
 struct Lisp_Objfwd
   {
-    enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Obj */
     Lisp_Object *objvar;
   };
 
@@ -3087,7 +3084,6 @@ struct Lisp_Objfwd
    current buffer.  Value is byte index of slot within buffer.  */
 struct Lisp_Buffer_Objfwd
   {
-    enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Buffer_Obj */
     int offset;
     /* One of Qnil, Qintegerp, Qsymbolp, Qstringp, Qfloatp or Qnumberp.  */
     Lisp_Object predicate;
@@ -3140,15 +3136,26 @@ struct Lisp_Buffer_Local_Value
    current kboard.  */
 struct Lisp_Kboard_Objfwd
   {
-    enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Kboard_Obj */
     int offset;
   };
+
+struct Lisp_Fwd
+{
+  enum Lisp_Fwd_Type type;
+  union
+  {
+    struct Lisp_Intfwd intfwd;
+    struct Lisp_Boolfwd boolfwd;
+    struct Lisp_Objfwd objfwd;
+    struct Lisp_Buffer_Objfwd bufobjfwd;
+    struct Lisp_Kboard_Objfwd kboardobjfwd;
+  } u;
+};
 
 INLINE enum Lisp_Fwd_Type
 XFWDTYPE (lispfwd a)
 {
-  enum Lisp_Fwd_Type const *p = a.fwdptr;
-  return *p;
+  return a->type;
 }
 
 INLINE bool
@@ -3161,7 +3168,7 @@ INLINE struct Lisp_Buffer_Objfwd const *
 XBUFFER_OBJFWD (lispfwd a)
 {
   eassert (BUFFER_OBJFWDP (a));
-  return a.fwdptr;
+  return &a->u.bufobjfwd;
 }
 
 INLINE bool
@@ -3482,11 +3489,11 @@ call0 (Lisp_Object fn)
   return calln (fn);
 }
 
-extern void defvar_lisp (struct Lisp_Objfwd const *, char const *);
-extern void defvar_lisp_nopro (struct Lisp_Objfwd const *, char const *);
-extern void defvar_bool (struct Lisp_Boolfwd const *, char const *);
-extern void defvar_int (struct Lisp_Intfwd const *, char const *);
-extern void defvar_kboard (struct Lisp_Kboard_Objfwd const *, char const *);
+extern void defvar_lisp (struct Lisp_Fwd const *, char const *);
+extern void defvar_lisp_nopro (struct Lisp_Fwd const *, char const *);
+extern void defvar_bool (struct Lisp_Fwd const *, char const *);
+extern void defvar_int (struct Lisp_Fwd const *, char const *);
+extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
 
 /* Macros we use to define forwarded Lisp variables.
    These are used in the syms_of_FILENAME functions.
@@ -3505,37 +3512,40 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd const *, char const *);
    All C code uses the `cons_cells_consed' name.  This is all done
    this way to support indirection for multi-threaded Emacs.  */
 
-#define DEFVAR_LISP(lname, vname, doc)		\
-  do {						\
-    static struct Lisp_Objfwd const o_fwd	\
-      = {Lisp_Fwd_Obj, &globals.f_##vname};	\
-    defvar_lisp (&o_fwd, lname);		\
+#define DEFVAR_LISP(lname, vname, doc)				\
+  do {								\
+    static struct Lisp_Fwd const o_fwd				\
+      = {Lisp_Fwd_Obj, .u.objfwd = {&globals.f_##vname}};	\
+    defvar_lisp (&o_fwd, lname);				\
   } while (false)
-#define DEFVAR_LISP_NOPRO(lname, vname, doc)	\
-  do {						\
-    static struct Lisp_Objfwd const o_fwd	\
-      = {Lisp_Fwd_Obj, &globals.f_##vname};	\
-    defvar_lisp_nopro (&o_fwd, lname);		\
+#define DEFVAR_LISP_NOPRO(lname, vname, doc)		\
+  do {							\
+  static struct Lisp_Fwd const o_fwd			\
+    = {Lisp_Fwd_Obj, .u.objfwd = {&globals.f_##vname}};	\
+    defvar_lisp_nopro (&o_fwd, lname);			\
   } while (false)
-#define DEFVAR_BOOL(lname, vname, doc)		\
-  do {						\
-    static struct Lisp_Boolfwd const b_fwd	\
-      = {Lisp_Fwd_Bool, &globals.f_##vname};	\
-    defvar_bool (&b_fwd, lname);		\
+#define DEFVAR_BOOL(lname, vname, doc)				\
+  do {								\
+    static struct Lisp_Fwd const b_fwd				\
+      = {Lisp_Fwd_Bool, .u.boolfwd = {&globals.f_##vname}};	\
+    defvar_bool (&b_fwd, lname);				\
   } while (false)
-#define DEFVAR_INT(lname, vname, doc)		\
-  do {						\
-    static struct Lisp_Intfwd const i_fwd	\
-      = {Lisp_Fwd_Int, &globals.f_##vname};	\
-    defvar_int (&i_fwd, lname);			\
+#define DEFVAR_INT(lname, vname, doc)				\
+  do {								\
+    static struct Lisp_Fwd const i_fwd				\
+      = {Lisp_Fwd_Int, .u.intfwd = {&globals.f_##vname}};	\
+    defvar_int (&i_fwd, lname);					\
   } while (false)
 
 #define DEFVAR_KBOARD(lname, vname, doc)			\
-  do {								\
-    static struct Lisp_Kboard_Objfwd const ko_fwd		\
-      = {Lisp_Fwd_Kboard_Obj, offsetof (KBOARD, vname##_)};	\
+do								\
+  {								\
+    static struct Lisp_Fwd const ko_fwd				\
+	= { Lisp_Fwd_Kboard_Obj,				\
+	    .u.kboardobjfwd = {offsetof (KBOARD, vname##_)}};	\
     defvar_kboard (&ko_fwd, lname);				\
-  } while (false)
+  }								\
+while (false)
 
 
 /* Elisp uses multiple stacks:

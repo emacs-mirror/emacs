@@ -2301,89 +2301,6 @@ dump_float (struct dump_context *ctx, const struct Lisp_Float *lfloat)
 }
 
 static void
-dump_fwd_int (struct dump_context *ctx, const struct Lisp_Intfwd *intfwd)
-{
-#if CHECK_STRUCTS && !defined HASH_Lisp_Intfwd_4D887A7387
-# error "Lisp_Intfwd changed. See CHECK_STRUCTS comment in config.h."
-#endif
-  dump_emacs_reloc_immediate_intmax_t (ctx, intfwd->intvar, *intfwd->intvar);
-}
-
-static void
-dump_fwd_bool (struct dump_context *ctx, const struct Lisp_Boolfwd *boolfwd)
-{
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Boolfwd_0EA1C7ADCC)
-# error "Lisp_Boolfwd changed. See CHECK_STRUCTS comment in config.h."
-#endif
-  dump_emacs_reloc_immediate_bool (ctx, boolfwd->boolvar, *boolfwd->boolvar);
-}
-
-static void
-dump_fwd_obj (struct dump_context *ctx, const struct Lisp_Objfwd *objfwd)
-{
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Objfwd_45D3E513DC)
-# error "Lisp_Objfwd changed. See CHECK_STRUCTS comment in config.h."
-#endif
-  if (NILP (Fgethash (dump_off_to_lisp (emacs_offset (objfwd->objvar)),
-                      ctx->staticpro_table,
-                      Qnil)))
-    dump_emacs_reloc_to_lv (ctx, objfwd->objvar, *objfwd->objvar);
-}
-
-static void
-dump_fwd_buffer_obj (struct dump_context *ctx,
-                     const struct Lisp_Buffer_Objfwd *buffer_objfwd)
-{
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Buffer_Objfwd_611EBD13FF)
-# error "Lisp_Buffer_Objfwd changed. See CHECK_STRUCTS comment in config.h."
-#endif
-  struct Lisp_Buffer_Objfwd out;
-  dump_off off;
-
-  dump_object_start (ctx, &out, sizeof (out));
-  DUMP_FIELD_COPY (&out, buffer_objfwd, type);
-  DUMP_FIELD_COPY (&out, buffer_objfwd, offset);
-  dump_field_lv (ctx, &out, buffer_objfwd, &buffer_objfwd->predicate,
-                 WEIGHT_NORMAL);
-  off = dump_object_finish (ctx, &out, sizeof out);
-
-  /* Copy this fwd from the dump to the buffer fwd in Emacs.  */
-  dump_emacs_reloc_copy_from_dump (ctx, off, (void *) buffer_objfwd,
-				   sizeof out);
-}
-
-static void
-dump_fwd (struct dump_context *ctx, lispfwd fwd)
-{
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Fwd_Type_9CBA6EE55E)
-# error "Lisp_Fwd_Type changed. See CHECK_STRUCTS comment in config.h."
-#endif
-  void const *p = fwd.fwdptr;
-
-  switch (XFWDTYPE (fwd))
-    {
-    case Lisp_Fwd_Int:
-      dump_fwd_int (ctx, p);
-      break;
-    case Lisp_Fwd_Bool:
-      dump_fwd_bool (ctx, p);
-      break;
-    case Lisp_Fwd_Obj:
-      dump_fwd_obj (ctx, p);
-      break;
-    case Lisp_Fwd_Buffer_Obj:
-      dump_fwd_buffer_obj (ctx, p);
-      break;
-      /* The default kboard's contents are not meant to appear in the
-	 dump file.  */
-    case Lisp_Fwd_Kboard_Obj:
-      break;
-    default:
-      emacs_abort ();
-    }
-}
-
-static void
 dump_field_fwd (struct dump_context *ctx, void *out, const void *in_start,
 		const lispfwd *in_field)
 {
@@ -2392,19 +2309,19 @@ dump_field_fwd (struct dump_context *ctx, void *out, const void *in_start,
     {
     case Lisp_Fwd_Int:
       {
-	const struct Lisp_Intfwd *fwd = in_field->fwdptr;
+	const struct Lisp_Intfwd *fwd = &(*in_field)->u.intfwd;
 	dump_emacs_reloc_immediate_intmax_t (ctx, fwd->intvar, *fwd->intvar);
       }
       return;
     case Lisp_Fwd_Bool:
       {
-	const struct Lisp_Boolfwd *fwd = in_field->fwdptr;
+	const struct Lisp_Boolfwd *fwd = &(*in_field)->u.boolfwd;
 	dump_emacs_reloc_immediate_bool (ctx, fwd->boolvar, *fwd->boolvar);
       }
       return;
     case Lisp_Fwd_Obj:
       {
-	const struct Lisp_Objfwd *fwd = in_field->fwdptr;
+	const struct Lisp_Objfwd *fwd =  &(*in_field)->u.objfwd;
 	if (NILP (Fgethash (dump_off_to_lisp (emacs_offset (fwd->objvar)),
 			    ctx->staticpro_table, Qnil)))
 	  dump_emacs_reloc_to_lv (ctx, fwd->objvar, *fwd->objvar);
@@ -2428,7 +2345,7 @@ dump_blv (struct dump_context *ctx,
   dump_object_start (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, blv, local_if_set);
   DUMP_FIELD_COPY (&out, blv, found);
-  if (blv->fwd.fwdptr)
+  if (blv->fwd)
     {
       eassert (XFWDTYPE (blv->fwd) != Lisp_Fwd_Buffer_Obj);
       dump_field_fwd (ctx, &out, blv, &blv->fwd);

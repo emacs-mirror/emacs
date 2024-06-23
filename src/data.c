@@ -57,25 +57,25 @@ static struct Lisp_Boolfwd const *
 XBOOLFWD (lispfwd a)
 {
   eassert (BOOLFWDP (a));
-  return a.fwdptr;
+  return &a->u.boolfwd;
 }
 static struct Lisp_Kboard_Objfwd const *
 XKBOARD_OBJFWD (lispfwd a)
 {
   eassert (KBOARD_OBJFWDP (a));
-  return a.fwdptr;
+  return &a->u.kboardobjfwd;
 }
 static struct Lisp_Intfwd const *
 XFIXNUMFWD (lispfwd a)
 {
   eassert (INTFWDP (a));
-  return a.fwdptr;
+  return &a->u.intfwd;
 }
 static struct Lisp_Objfwd const *
 XOBJFWD (lispfwd a)
 {
   eassert (OBJFWDP (a));
-  return a.fwdptr;
+  return &a->u.objfwd;
 }
 
 static void
@@ -731,7 +731,7 @@ global value outside of any lexical scope.  */)
     case SYMBOL_LOCALIZED:
       {
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
-	if (blv->fwd.fwdptr)
+	if (blv->fwd)
 	  /* In set_internal, we un-forward vars when their value is
 	     set to Qunbound.  */
     	  return Qt;
@@ -1457,8 +1457,9 @@ store_symval_forwarding (lispfwd valcontents, Lisp_Object newval,
 
     case Lisp_Fwd_Buffer_Obj:
       {
-	int offset = XBUFFER_OBJFWD (valcontents)->offset;
-	Lisp_Object predicate = XBUFFER_OBJFWD (valcontents)->predicate;
+	const struct Lisp_Buffer_Objfwd *fwd = XBUFFER_OBJFWD (valcontents);
+	int offset = fwd->offset;
+	Lisp_Object predicate = fwd->predicate;
 
 	if (!NILP (newval) && !NILP (predicate))
 	  {
@@ -1516,12 +1517,12 @@ swap_in_global_binding (struct Lisp_Symbol *symbol)
   struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (symbol);
 
   /* Unload the previously loaded binding.  */
-  if (blv->fwd.fwdptr)
+  if (blv->fwd)
     set_blv_value (blv, do_symval_forwarding (blv->fwd));
 
   /* Select the global binding in the symbol.  */
   set_blv_valcell (blv, blv->defcell);
-  if (blv->fwd.fwdptr)
+  if (blv->fwd)
     store_symval_forwarding (blv->fwd, XCDR (blv->defcell), NULL);
 
   /* Indicate that the global binding is set up now.  */
@@ -1551,7 +1552,7 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
 
       /* Unload the previously loaded binding.  */
       tem1 = blv->valcell;
-      if (blv->fwd.fwdptr)
+      if (blv->fwd)
 	set_blv_value (blv, do_symval_forwarding (blv->fwd));
       /* Choose the new binding.  */
       {
@@ -1565,7 +1566,7 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
 
       /* Load the new binding.  */
       set_blv_valcell (blv, tem1);
-      if (blv->fwd.fwdptr)
+      if (blv->fwd)
 	store_symval_forwarding (blv->fwd, blv_value (blv), NULL);
     }
 }
@@ -1598,7 +1599,7 @@ find_symbol_value (Lisp_Object symbol)
       {
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	swap_in_symval_forwarding (sym, blv);
-	return (blv->fwd.fwdptr
+	return (blv->fwd
 		? do_symval_forwarding (blv->fwd)
 		: blv_value (blv));
       }
@@ -1688,7 +1689,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
       {
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 
-	if (unbinding_p && blv->fwd.fwdptr)
+	if (unbinding_p && blv->fwd)
 	  /* Forbid unbinding built-in variables.  */
 	  error ("Built-in variables may not be unbound");
 
@@ -1707,7 +1708,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	       We need to unload it, and choose a new binding.  */
 
 	    /* Write out `realvalue' to the old loaded binding.  */
-	    if (blv->fwd.fwdptr)
+	    if (blv->fwd)
 	      set_blv_value (blv, do_symval_forwarding (blv->fwd));
 
 	    /* Find the new binding.  */
@@ -1755,7 +1756,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	/* Store the new value in the cons cell.  */
 	set_blv_value (blv, newval);
 
-	if (blv->fwd.fwdptr)
+	if (blv->fwd)
 	  store_symval_forwarding (blv->fwd, newval, (BUFFERP (where)
 						      ? XBUFFER (where)
 						      : current_buffer));
@@ -1942,7 +1943,7 @@ default_value (Lisp_Object symbol)
 	   But the `realvalue' slot may be more up to date, since
 	   ordinary setq stores just that slot.  So use that.  */
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
-	if (blv->fwd.fwdptr && BASE_EQ (blv->valcell, blv->defcell))
+	if (blv->fwd && BASE_EQ (blv->valcell, blv->defcell))
 	  return do_symval_forwarding (blv->fwd);
 	else
 	  return XCDR (blv->defcell);
@@ -2037,7 +2038,7 @@ set_default_internal (Lisp_Object symbol, Lisp_Object value,
 	XSETCDR (blv->defcell, value);
 
 	/* If the default binding is now loaded, set the REALVALUE slot too.  */
-	if (blv->fwd.fwdptr && BASE_EQ (blv->defcell, blv->valcell))
+	if (blv->fwd && BASE_EQ (blv->defcell, blv->valcell))
 	  store_symval_forwarding (blv->fwd, value, NULL);
         return;
       }
@@ -2129,7 +2130,7 @@ make_blv (struct Lisp_Symbol *sym, bool forwarded,
   if (forwarded)
     blv->fwd = valcontents.fwd;
   else
-    blv->fwd.fwdptr = NULL;
+    blv->fwd = NULL;
   set_blv_where (blv, Qnil);
   blv->local_if_set = 0;
   set_blv_defcell (blv, tem);
@@ -2304,7 +2305,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
          Otherwise, if C code modifies the variable before we load the
          binding in, then that new value would clobber the default binding
          the next time we unload it.  See bug#34318.  */
-      if (blv->fwd.fwdptr)
+      if (blv->fwd)
         swap_in_symval_forwarding (sym, blv);
     }
 
