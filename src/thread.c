@@ -831,6 +831,10 @@ run_thread (void *state)
 
   xfree (self->thread_name);
 
+#ifdef HAVE_MPS
+  igc_thread_remove (&self->gc_info);
+#endif
+
   current_thread = NULL;
   sys_cond_broadcast (&self->thread_condvar);
 
@@ -853,10 +857,6 @@ run_thread (void *state)
   for (iter = &all_threads; *iter != self; iter = &(*iter)->next_thread)
     ;
   *iter = (*iter)->next_thread;
-
-#ifdef HAVE_MPS
-  igc_thread_remove (self->gc_info);
-#endif
 
   release_global_lock ();
 

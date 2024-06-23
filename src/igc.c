@@ -2447,17 +2447,18 @@ add_main_thread (void)
 }
 
 void
-igc_thread_remove (void *info)
+igc_thread_remove (void **pinfo)
 {
-  struct igc_thread_list *t = info;
+  struct igc_thread_list *t = *pinfo;
+  *pinfo = NULL;
   mps_ap_destroy (t->d.dflt_ap);
   mps_ap_destroy (t->d.leaf_ap);
   mps_ap_destroy (t->d.weak_strong_ap);
   mps_ap_destroy (t->d.weak_weak_ap);
-  mps_thread_dereg (t->d.thr);
+  mps_ap_destroy (t->d.immovable_ap);
   destroy_root (&t->d.specpdl_root);
   destroy_root (&t->d.bc_root);
-  deregister_thread (t);
+  mps_thread_dereg (deregister_thread (t));
 }
 
 static void
