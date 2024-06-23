@@ -65,6 +65,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # error "HAVE_PDUMPER required"
 #endif
 
+#if 0 /* Not yet because that amke transfer between GNU and my fork
+	 painful. */
 #ifdef CHECK_STRUCTS
 # include "dmpstruct.h"
 
@@ -136,6 +138,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_itree_tree_86CA0F8AEE
 #  error "struct itree_tree changed"
 # endif
+# endif // 0
 
 /* Still missing; face, font, frame, thread, and probably a lot of
    others. */
