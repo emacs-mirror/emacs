@@ -18,11 +18,6 @@
 # along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
-# Currently we assume only Git 1.7.1 (April 2010) or later, so this
-# file does not rely on "**" in patterns.  The "**" feature was added
-# in Git 1.8.2 (March 2013).
-
-
 # Personal customization.
 .dir-locals-2.el
 .no-advice-on-failure
@@ -119,8 +114,8 @@ cross/ndk-build/ndk-build.mk
 cross/ndk-build/*.o
 
 # Lisp-level sources built by 'make'.
-*cus-load.el
-*loaddefs.el
+lisp/**/*cus-load.el
+lisp/**/*loaddefs.el
 lisp/cedet/semantic/bovine/c-by.el
 lisp/cedet/semantic/bovine/make-by.el
 lisp/cedet/semantic/bovine/scm-by.el
