@@ -2379,10 +2379,10 @@ dump_field_fwd (struct dump_context *ctx, void *out, const void *in_start,
       return;
     case Lisp_Fwd_Obj:
       {
-	const struct Lisp_Objfwd *fwd =  &(*in_field)->u.objfwd;
-	if (NILP (Fgethash (dump_off_to_lisp (emacs_offset (fwd->objvar)),
+	const Lisp_Object *objvar =  (*in_field)->u.objvar;
+	if (NILP (Fgethash (dump_off_to_lisp (emacs_offset (objvar)),
 			    ctx->staticpro_table, Qnil)))
-	  dump_emacs_reloc_to_lv (ctx, fwd->objvar, *fwd->objvar);
+	  dump_emacs_reloc_to_lv (ctx, objvar, *objvar);
       }
       return;
     case Lisp_Fwd_Kboard_Obj:
