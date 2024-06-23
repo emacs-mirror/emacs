@@ -2362,24 +2362,24 @@ static void
 dump_field_fwd (struct dump_context *ctx, void *out, const void *in_start,
 		const lispfwd *in_field)
 {
-  dump_field_emacs_ptr (ctx, out, in_start, &in_field->fwdptr);
+  dump_field_emacs_ptr (ctx, out, in_start, in_field);
   switch (XFWDTYPE (*in_field))
     {
     case Lisp_Fwd_Int:
       {
-	const struct Lisp_Intfwd *fwd = in_field->fwdptr;
+	const struct Lisp_Intfwd *fwd = &(*in_field)->u.intfwd;
 	dump_emacs_reloc_immediate_intmax_t (ctx, fwd->intvar, *fwd->intvar);
       }
       return;
     case Lisp_Fwd_Bool:
       {
-	const struct Lisp_Boolfwd *fwd = in_field->fwdptr;
+	const struct Lisp_Boolfwd *fwd = &(*in_field)->u.boolfwd;
 	dump_emacs_reloc_immediate_bool (ctx, fwd->boolvar, *fwd->boolvar);
       }
       return;
     case Lisp_Fwd_Obj:
       {
-	const struct Lisp_Objfwd *fwd = in_field->fwdptr;
+	const struct Lisp_Objfwd *fwd =  &(*in_field)->u.objfwd;
 	if (NILP (Fgethash (dump_off_to_lisp (emacs_offset (fwd->objvar)),
 			    ctx->staticpro_table, Qnil)))
 	  dump_emacs_reloc_to_lv (ctx, fwd->objvar, *fwd->objvar);
@@ -2403,7 +2403,7 @@ dump_blv (struct dump_context *ctx,
   dump_object_start (ctx, blv, IGC_OBJ_BLV, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, blv, local_if_set);
   DUMP_FIELD_COPY (&out, blv, found);
-  if (blv->fwd.fwdptr)
+  if (blv->fwd)
     dump_field_fwd (ctx, &out, blv, &blv->fwd);
   dump_field_lv (ctx, &out, blv, &blv->where, WEIGHT_NORMAL);
   dump_field_lv (ctx, &out, blv, &blv->defcell, WEIGHT_STRONG);
