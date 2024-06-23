@@ -4129,26 +4129,28 @@ case $with_file_notification,$NOTIFY_OBJ in
     fi ;;
 esac
 
-dnl kqueue is available on BSD-like systems.
-case $with_file_notification,$NOTIFY_OBJ in
-  kqueue,* | yes,)
-    EMACS_CHECK_MODULES([KQUEUE], [libkqueue])
-    if test "$HAVE_KQUEUE" = "yes"; then
-       AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
-       CPPFLAGS="$CPPFLAGS -I/usr/include/kqueue"
-       NOTIFY_CFLAGS=$KQUEUE_CFLAGS
-       NOTIFY_LIBS=$KQUEUE_LIBS
-       NOTIFY_OBJ=kqueue.o
-       NOTIFY_SUMMARY="yes -lkqueue"
-    else
-       AC_SEARCH_LIBS([kqueue], [])
-       if test "$ac_cv_search_kqueue" != no; then
-	 AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
-	 NOTIFY_OBJ=kqueue.o
-	 NOTIFY_SUMMARY="yes (kqueue)"
-       fi
-    fi ;;
-esac
+AS_IF([test "$opsys" != "haiku"], [
+ dnl kqueue is available on BSD-like systems and Haiku, but Haiku's
+ dnl implementation cannot monitor filesystem activity.
+ case $with_file_notification,$NOTIFY_OBJ in
+   kqueue,* | yes,)
+     EMACS_CHECK_MODULES([KQUEUE], [libkqueue])
+     if test "$HAVE_KQUEUE" = "yes"; then
+	AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
+	CPPFLAGS="$CPPFLAGS -I/usr/include/kqueue"
+	NOTIFY_CFLAGS=$KQUEUE_CFLAGS
+	NOTIFY_LIBS=$KQUEUE_LIBS
+	NOTIFY_OBJ=kqueue.o
+	NOTIFY_SUMMARY="yes -lkqueue"
+     else
+	AC_SEARCH_LIBS([kqueue], [])
+	if test "$ac_cv_search_kqueue" != no; then
+	  AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
+	  NOTIFY_OBJ=kqueue.o
+	  NOTIFY_SUMMARY="yes (kqueue)"
+	fi
+     fi ;;
+ esac])
 
 dnl g_file_monitor exists since glib 2.18.  G_FILE_MONITOR_EVENT_MOVED
 dnl has been added in glib 2.24.  It has been tested under
