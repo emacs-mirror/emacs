@@ -2373,8 +2373,8 @@ dump_field_fwd (struct dump_context *ctx, void *out, const void *in_start,
       return;
     case Lisp_Fwd_Bool:
       {
-	const struct Lisp_Boolfwd *fwd = &(*in_field)->u.boolfwd;
-	dump_emacs_reloc_immediate_bool (ctx, fwd->boolvar, *fwd->boolvar);
+	const bool *boolvar = (*in_field)->u.boolvar;
+	dump_emacs_reloc_immediate_bool (ctx, boolvar, *boolvar);
       }
       return;
     case Lisp_Fwd_Obj:
