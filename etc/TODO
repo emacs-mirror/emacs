@@ -11,12 +11,16 @@ it best.  Also to check that it hasn't been done already, since we
 don't always remember to update this file!  It is best to consult
 the latest version of this file in the Emacs source code repository.
 
-Since Emacs is an FSF-copyrighted package, please be prepared to sign
-legal papers to transfer the copyright on your work to the FSF.
-Copyright assignment is a simple process.  Residents of some countries
-can do it entirely electronically.  We can help you get started, and
-answer any questions you may have (or point you to the people with the
-answers), at the emacs-devel@gnu.org mailing list.
+Generally speaking, for non-trivial contributions to GNU Emacs and
+packages stored in GNU ELPA, we require that the copyright be assigned
+to the FSF.  For the reasons behind this, see:
+https://www.gnu.org/licenses/why-assign.html
+
+Copyright assignment is a simple process.  Residents of many countries
+can do it entirely electronically.  To get started, follow the
+instructions in the file etc/copyright-assign.txt in the Emacs
+distribution.  We can answer any questions you may have (or point you to
+the people with the answers) at the emacs-devel@gnu.org mailing list.
 
 For more information about getting involved, see the CONTRIBUTE file.
 

@@ -444,23 +444,29 @@ only when the upper directory of the renamed file is watched.  */)
   if (! NILP (Fmember (Qrevoke, flags))) fflags |= NOTE_REVOKE;
 
   /* Register event.  */
-  EV_SET (&kev, fd, EVFILT_VNODE, EV_ADD | EV_ENABLE | EV_CLEAR,
+  EV_SET (&kev, fd, EVFILT_VNODE, (EV_ADD
+#ifdef EV_ENABLE
+				   | EV_ENABLE
+#endif /* EV_ENABLE */
+				   | EV_CLEAR),
 	  fflags, 0, NULL);
 
-  if (kevent (kqueuefd, &kev, 1, NULL, 0, NULL) < 0) {
-    emacs_close (fd);
-    report_file_error ("Cannot watch file", file);
-  }
+  if (kevent (kqueuefd, &kev, 1, NULL, 0, NULL) < 0)
+    {
+      emacs_close (fd);
+      report_file_error ("Cannot watch file", file);
+    }
 
   /* Store watch object in watch list.  */
   Lisp_Object watch_descriptor = make_fixnum (fd);
   if (NILP (Ffile_directory_p (file)))
     watch_object = list4 (watch_descriptor, file, flags, callback);
-  else {
-    dir_list = directory_files_internal (file, Qnil, Qnil, Qnil, true, Qnil,
-                                         Qnil);
-    watch_object = list5 (watch_descriptor, file, flags, callback, dir_list);
-  }
+  else
+    {
+      dir_list = directory_files_internal (file, Qnil, Qnil, Qnil, true, Qnil,
+					   Qnil);
+      watch_object = list5 (watch_descriptor, file, flags, callback, dir_list);
+    }
   watch_list = Fcons (watch_object, watch_list);
 
   return watch_descriptor;
@@ -486,11 +492,12 @@ WATCH-DESCRIPTOR should be an object returned by `kqueue-add-watch'.  */)
   /* Remove watch descriptor from watch list.  */
   watch_list = Fdelq (watch_object, watch_list);
 
-  if (NILP (watch_list) && (kqueuefd >= 0)) {
-    delete_read_fd (kqueuefd);
-    emacs_close (kqueuefd);
-    kqueuefd = -1;
-  }
+  if (NILP (watch_list) && (kqueuefd >= 0))
+    {
+      delete_read_fd (kqueuefd);
+      emacs_close (kqueuefd);
+      kqueuefd = -1;
+    }
 
   return Qt;
 }

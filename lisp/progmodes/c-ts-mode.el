@@ -572,7 +572,7 @@ MODE is either `c' or `cpp'."
                   "not" "not_eq" "operator" "or"
                   "or_eq" "override" "private" "protected"
                   "public" "requires" "template" "throw"
-                  "try" "typename" "using" "virtual"
+                  "try" "typename" "using"
                   "xor" "xor_eq"))
       (append '("auto") c-keywords))))
 
@@ -635,7 +635,8 @@ MODE is either `c' or `cpp'."
    `([,@(c-ts-mode--keywords mode)] @font-lock-keyword-face
      ,@(when (eq mode 'cpp)
          '((auto) @font-lock-keyword-face
-           (this) @font-lock-keyword-face)))
+           (this) @font-lock-keyword-face
+           (virtual) @font-lock-keyword-face)))
 
    :language mode
    :feature 'operator

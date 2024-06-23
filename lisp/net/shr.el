@@ -282,6 +282,14 @@ temporarily blinks with this face."
   "Face used for <mark> elements."
   :version "29.1")
 
+(defface shr-sliced-image
+  '((t :underline nil :overline nil))
+  "Face used for sliced images.
+This face should remove any unsightly decorations from sliced images.
+Otherwise, decorations like underlines from links would normally show on
+every slice."
+  :version "30.1")
+
 (defcustom shr-inhibit-images nil
   "If non-nil, inhibit loading images."
   :version "28.1"
@@ -600,38 +608,34 @@ the URL of the image to the kill buffer instead."
 		    t))))
 
 (defun shr-zoom-image ()
-  "Toggle the image size.
-The size will be rotated between the default size, the original
-size, and full-buffer size."
+  "Cycle the image size.
+The size will cycle through the default size, the original size, and
+full-buffer size."
   (interactive)
-  (let ((url (get-text-property (point) 'image-url))
-	(size (get-text-property (point) 'image-size))
-	(buffer-read-only nil))
+  (let ((url (get-text-property (point) 'image-url)))
     (if (not url)
 	(message "No image under point")
-      ;; Delete the old picture.
-      (while (get-text-property (point) 'image-url)
-	(forward-char -1))
-      (forward-char 1)
-      (let ((start (point)))
-	(while (get-text-property (point) 'image-url)
-	  (forward-char 1))
-	(forward-char -1)
-	(put-text-property start (point) 'display nil)
-	(when (> (- (point) start) 2)
-	  (delete-region start (1- (point)))))
-      (message "Inserting %s..." url)
-      (url-retrieve url #'shr-image-fetched
-		    (list (current-buffer) (1- (point)) (point-marker)
-			  (list (cons 'size
-				      (cond ((or (eq size 'default)
-						 (null size))
-					     'original)
-					    ((eq size 'original)
-					     'full)
-					    ((eq size 'full)
-					     'default)))))
-		    t))))
+      (let* ((end (or (next-single-property-change (point) 'image-url)
+                      (point-max)))
+             (start (or (previous-single-property-change end 'image-url)
+                        (point-min)))
+             (size (get-text-property (point) 'image-size))
+             (next-size (cond ((or (eq size 'default)
+                                   (null size))
+                               'original)
+                              ((eq size 'original)
+                               'full)
+                              ((eq size 'full)
+                               'default)))
+             (buffer-read-only nil))
+        ;; Delete the old picture.
+        (put-text-property start end 'display nil)
+        (message "Inserting %s..." url)
+        (url-retrieve url #'shr-image-fetched
+                      `(,(current-buffer) ,start
+                        ,(set-marker (make-marker) end)
+                        ((size . ,next-size)))
+                      t)))))
 
 ;;; Utility functions.
 
@@ -1070,6 +1074,7 @@ the mouse click event."
                       ;; We don't want to record these changes.
                       (buffer-undo-list t)
 		      (inhibit-read-only t))
+                  (remove-overlays start end)
 		  (delete-region start end)
 		  (goto-char start)
 		  (funcall shr-put-image-function data alt flags)
@@ -1144,7 +1149,8 @@ element is the data blob and the second element is the content-type."
           ;; putting any space after inline images.
           ;; ALT may be nil when visiting image URLs in eww
           ;; (bug#67764).
-	  (setq alt (if alt (string-trim alt) "*"))
+          (setq alt (string-trim (or alt "")))
+          (when (length= alt 0) (setq alt "*"))
 	  ;; When inserting big-ish pictures, put them at the
 	  ;; beginning of the line.
 	  (let ((inline (shr--inline-image-p image)))
@@ -1153,7 +1159,16 @@ element is the data blob and the second element is the content-type."
 		(insert "\n"))
 	    (let ((image-pos (point)))
 	      (if (eq size 'original)
-		  (insert-sliced-image image alt nil 20 1)
+                  ;; Normally, we try to keep the buffer text the same
+                  ;; by preserving ALT.  With a sliced image, we have to
+                  ;; repeat the text for each line, so we can't do that.
+                  ;; Just use "*" for the string to insert instead.
+                  (progn
+                    (insert-sliced-image image "*" nil 20 1)
+                    (let ((overlay (make-overlay start (point))))
+                      ;; Avoid displaying unsightly decorations on the
+                      ;; image slices.
+                      (overlay-put overlay 'face 'shr-sliced-image)))
 		(insert-image image alt))
 	      (put-text-property start (point) 'image-size size)
 	      (when (and (not inline) shr-max-inline-image-size)
@@ -1854,17 +1869,12 @@ The preference is a float determined from `shr-prefer-media-type'."
 	    (let ((file (url-cache-create-filename url)))
 	      (when (file-exists-p file)
 		(delete-file file))))
-          (when (image-type-available-p 'svg)
-            (insert-image
-             (shr-make-placeholder-image dom)
-             (or (string-trim alt) "")))
-	  ;; Paradoxically this space causes shr not to insert spaces after
-	  ;; inline images. Since the image is temporary it seem like there
-	  ;; should be no downside to not inserting it but since I don't
-	  ;; understand the code well and for the sake of backward compatibility
-	  ;; we preserve it unless user has set `shr-max-inline-image-size'.
-          (unless shr-max-inline-image-size
-	      (insert " "))
+          (if (image-type-available-p 'svg)
+              (insert-image
+               (shr-make-placeholder-image dom)
+               (or (string-trim alt) ""))
+            ;; No SVG support.  Just use a space as our placeholder.
+            (insert " "))
 	  (url-queue-retrieve
            url #'shr-image-fetched
 	   (list (current-buffer) start (set-marker (make-marker) (point))
