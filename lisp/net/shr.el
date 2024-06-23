@@ -633,13 +633,14 @@ full-buffer size."
                       (point-max)))
              (start (or (previous-single-property-change end 'image-url)
                         (point-min)))
-             (size (get-text-property (point) 'image-size))
-             (next-size (cond ((or (eq size 'default)
-                                   (null size))
+             (dom-size (get-text-property (point) 'image-dom-size))
+             (zoom (get-text-property (point) 'image-zoom))
+             (next-zoom (cond ((or (eq zoom 'default)
+                                   (null zoom))
                                'original)
-                              ((eq size 'original)
+                              ((eq zoom 'original)
                                'full)
-                              ((eq size 'full)
+                              ((eq zoom 'full)
                                'default)))
              (buffer-read-only nil))
         ;; Delete the old picture.
@@ -648,7 +649,9 @@ full-buffer size."
         (url-retrieve url #'shr-image-fetched
                       `(,(current-buffer) ,start
                         ,(set-marker (make-marker) end)
-                        ((size . ,next-size)))
+                        (:zoom   ,next-zoom
+                         :width  ,(car dom-size)
+                         :height ,(cdr dom-size)))
                       t)))))
 
 ;;; Utility functions.
@@ -1095,7 +1098,7 @@ the mouse click event."
 		  (while properties
 		    (let ((type (pop properties))
 			  (value (pop properties)))
-		      (unless (memq type '(display image-size))
+		      (unless (memq type '(display image-zoom))
 			(put-text-property start (point) type value)))))))))))
     (kill-buffer image-buffer)))
 
@@ -1132,9 +1135,19 @@ the mouse click event."
 (defun shr-put-image (spec alt &optional flags)
   "Insert image SPEC with a string ALT.  Return image.
 SPEC is either an image data blob, or a list where the first
-element is the data blob and the second element is the content-type."
+element is the data blob and the second element is the content-type.
+
+FLAGS is a property list specifying optional parameters for the image.
+You can specify the following optional properties:
+
+* `:zoom': The zoom level for the image.  One of `default', `original',
+  or `full'.
+* `:width': The width of the image as specified by the HTML \"width\"
+  attribute.
+* `:height': The height of the image as specified by the HTML
+  \"height\" attribute."
   (if (display-graphic-p)
-      (let* ((size (cdr (assq 'size flags)))
+      (let* ((zoom (plist-get flags :zoom))
 	     (data (if (consp spec)
 		       (car spec)
 		     spec))
@@ -1142,13 +1155,13 @@ element is the data blob and the second element is the content-type."
 				(cadr spec)))
 	     (start (point))
 	     (image (cond
-		     ((eq size 'original)
+		     ((eq zoom 'original)
 		      (create-image data nil t :ascent shr-image-ascent
 				    :format content-type))
 		     ((eq content-type 'image/svg+xml)
                       (when (image-type-available-p 'svg)
 		        (create-image data 'svg t :ascent shr-image-ascent)))
-		     ((eq size 'full)
+		     ((eq zoom 'full)
 		      (ignore-errors
 			(shr-rescale-image data content-type
                                            (plist-get flags :width)
@@ -1192,7 +1205,7 @@ element is the data blob and the second element is the content-type."
                       ;; image slices.
                       (overlay-put overlay 'face 'shr-sliced-image)))
 		(insert-image image alt))
-	      (put-text-property start (point) 'image-size size)
+	      (put-text-property start (point) 'image-zoom zoom)
 	      (when (and (not inline) shr-max-inline-image-size)
 		(insert "\n"))
 	      (when (and shr-image-animate
@@ -1907,6 +1920,7 @@ The preference is a float determined from `shr-prefer-media-type'."
 	  (put-text-property start (point) 'keymap shr-image-map)
 	  (put-text-property start (point) 'shr-alt alt)
 	  (put-text-property start (point) 'image-url url)
+	  (put-text-property start (point) 'image-dom-size (cons width height))
 	  (put-text-property start (point) 'image-displayer
 			     (shr-image-displayer shr-content-function))
 	  (put-text-property start (point) 'help-echo

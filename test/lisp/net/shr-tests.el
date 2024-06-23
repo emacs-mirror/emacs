@@ -172,14 +172,14 @@ settings, then once more for each (OPTION . VALUE) pair.")
             (shr-test-wait-for (lambda () (= put-image-calls 2))
                                "Timed out waiting to zoom image")
             ;; Check that we have a single image at original size.
-            (let (image-sizes)
+            (let (image-zooms)
               (goto-char (point-min))
               (while (< (point) (point-max))
                 (when (get-text-property (point) 'display)
-                  (push (get-text-property (point) 'image-size) image-sizes))
+                  (push (get-text-property (point) 'image-zoom) image-zooms))
                 (goto-char (or (next-single-property-change (point) 'display)
                                (point-max))))
-              (should (equal image-sizes '(original))))))))))
+              (should (equal image-zooms '(original))))))))))
 
 (require 'shr)
 
