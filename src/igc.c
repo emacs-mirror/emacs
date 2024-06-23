@@ -579,9 +579,11 @@ struct igc_thread
   mps_ap_t weak_weak_ap;
   mps_ap_t immovable_ap;
 
-  /* Quick access to the roots used for specpdl, and bytecode stack. */
+  /* Quick access to the roots used for specpdl, bytecode stack and
+     control stack. */
   igc_root_list *specpdl_root;
   igc_root_list *bc_root;
+  igc_root_list *stack_root;
 
   /* Back pointer to Emacs' thread object. Allocated so that it doesn't
      move in memory. */
@@ -2301,7 +2303,7 @@ root_create_thread (struct igc_thread_list *t)
     = mps_root_create_thread_scanned (&root, gc->arena, mps_rank_ambig (), 0,
 				      t->d.thr, scan_ambig, 0, cold);
   IGC_CHECK_RES (res);
-  register_root (gc, root, cold, NULL, true, "create-thread");
+  t->d.stack_root = register_root (gc, root, cold, NULL, true, "create-thread");
 }
 
 void
@@ -2441,9 +2443,12 @@ igc_on_alloc_main_thread_bc (void)
 static void
 add_main_thread (void)
 {
+  igc_assert (current_thread == &main_thread.s);
   igc_assert (current_thread->gc_info == NULL);
   igc_assert (current_thread->m_stack_bottom == stack_bottom);
-  current_thread->gc_info = thread_add (current_thread);
+  struct igc_thread_list *t = thread_add (current_thread);
+  current_thread->gc_info = t;
+  igc_assert (t->d.ts == current_thread);
 }
 
 void
@@ -2451,13 +2456,14 @@ igc_thread_remove (void **pinfo)
 {
   struct igc_thread_list *t = *pinfo;
   *pinfo = NULL;
+  destroy_root (&t->d.stack_root);
+  destroy_root (&t->d.specpdl_root);
+  destroy_root (&t->d.bc_root);
   mps_ap_destroy (t->d.dflt_ap);
   mps_ap_destroy (t->d.leaf_ap);
   mps_ap_destroy (t->d.weak_strong_ap);
   mps_ap_destroy (t->d.weak_weak_ap);
   mps_ap_destroy (t->d.immovable_ap);
-  destroy_root (&t->d.specpdl_root);
-  destroy_root (&t->d.bc_root);
   mps_thread_dereg (deregister_thread (t));
 }
 
