@@ -156,6 +156,7 @@ settings, then once more for each (OPTION . VALUE) pair.")
                      (shr-width 80)
                      (shr-use-fonts nil)
                      (shr-image-animate nil)
+                     (inhibit-message t)
                      (dom (libxml-parse-html-region (point-min) (point-max))))
             ;; Render the document.
             (erase-buffer)
