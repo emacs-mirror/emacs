@@ -219,6 +219,25 @@ interpreted as a multiple of the height of default font."
   :version "30.1"
   :type '(choice (const nil) (cons number number)))
 
+(defcustom shr-image-zoom-levels '(fit original fill-height)
+  "A list of image zoom levels to cycle through with `shr-zoom-image'.
+The first element in the list is the initial zoom level.  Each element
+can be one of the following symbols:
+
+* `fit': Display the image at its original size as requested by the
+  page, shrinking it to fit in the current window if necessary.
+* `original': Display the image at its original size as requested by the
+  page.
+* `image': Display the image at its full size (ignoring the width/height
+  specified by the HTML).
+* `fill-height': Display the image zoomed to fill the height of the
+current window."
+  :version "31.1"
+  :type '(set (choice (const :tag "Fit to window size" fit)
+                      (const :tag "Original size" original)
+                      (const :tag "Full image size" image)
+                      (const :tag "Fill window height" fill-height))))
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -621,35 +640,52 @@ the URL of the image to the kill buffer instead."
 		    (list (current-buffer) (1- (point)) (point-marker))
 		    t))))
 
-(defun shr-zoom-image ()
-  "Cycle the image size.
+(defvar shr-image-zoom-level-alist
+  `((fit         "Zoom to fit"                shr-rescale-image)
+    (original    "Zoom to original size"      shr--image-zoom-original-size)
+    (image       "Zoom to full image size"    shr--image-zoom-image-size)
+    (fill-height "Zoom to fill window height" shr--image-zoom-fill-height))
+  "An alist of possible image zoom levels.
+Each element is of the form (SYMBOL DESC FUNCTION).  SYMBOL is the
+symbol identifying this level, as used by `shr-image-zoom-levels' (which
+see).  DESC is a string describing the level.
+
+FUNCTION is a function that returns a properly-zoomed image; it takes
+the following arguments:
+
+* DATA: The image data in string form.
+* CONTENT-TYPE: The content-type of the image, if any.
+* WIDTH: The width as specified by the HTML \"width\" attribute, if any.
+* HEIGHT: The height as specified by the HTML \"height\" attribute, if
+  any.")
+
+(defun shr-zoom-image (&optional position zoom-level)
+  "Change the zoom level of the image at POSITION.
+
 The size will cycle through the default size, the original size, and
 full-buffer size."
-  (interactive)
-  (let ((url (get-text-property (point) 'image-url)))
+  (interactive "d")
+  (unless position (setq position (point)))
+  (let ((url (get-text-property position 'image-url)))
     (if (not url)
 	(message "No image under point")
-      (let* ((end (or (next-single-property-change (point) 'image-url)
+      (unless zoom-level
+        (let ((last-zoom (get-text-property position 'image-zoom)))
+          (setq zoom-level (or (cadr (memq last-zoom shr-image-zoom-levels))
+                               (car shr-image-zoom-levels)))))
+      (let* ((end (or (next-single-property-change position 'image-url)
                       (point-max)))
              (start (or (previous-single-property-change end 'image-url)
                         (point-min)))
-             (dom-size (get-text-property (point) 'image-dom-size))
-             (zoom (get-text-property (point) 'image-zoom))
-             (next-zoom (cond ((or (eq zoom 'default)
-                                   (null zoom))
-                               'original)
-                              ((eq zoom 'original)
-                               'full)
-                              ((eq zoom 'full)
-                               'default)))
+             (dom-size (get-text-property position 'image-dom-size))
              (buffer-read-only nil))
         ;; Delete the old picture.
         (put-text-property start end 'display nil)
-        (message "Inserting %s..." url)
+        (message "%s" (cadr (assq zoom-level shr-image-zoom-level-alist)))
         (url-retrieve url #'shr-image-fetched
                       `(,(current-buffer) ,start
                         ,(set-marker (make-marker) end)
-                        (:zoom   ,next-zoom
+                        (:zoom   ,zoom-level
                          :width  ,(car dom-size)
                          :height ,(cdr dom-size)))
                       t)))))
@@ -1147,7 +1183,9 @@ You can specify the following optional properties:
 * `:height': The height of the image as specified by the HTML
   \"height\" attribute."
   (if (display-graphic-p)
-      (let* ((zoom (plist-get flags :zoom))
+      (let* ((zoom (or (plist-get flags :zoom)
+                       (car shr-image-zoom-levels)))
+             (zoom-function (nth 2 (assq zoom shr-image-zoom-level-alist)))
 	     (data (if (consp spec)
 		       (car spec)
 		     spec))
@@ -1155,22 +1193,15 @@ You can specify the following optional properties:
 				(cadr spec)))
 	     (start (point))
 	     (image (cond
-		     ((eq zoom 'original)
-		      (create-image data nil t :ascent shr-image-ascent
-				    :format content-type))
 		     ((eq content-type 'image/svg+xml)
                       (when (image-type-available-p 'svg)
 		        (create-image data 'svg t :ascent shr-image-ascent)))
-		     ((eq zoom 'full)
-		      (ignore-errors
-			(shr-rescale-image data content-type
-                                           (plist-get flags :width)
-                                           (plist-get flags :height))))
-		     (t
-		      (ignore-errors
-			(shr-rescale-image data content-type
-                                           (plist-get flags :width)
-                                           (plist-get flags :height)))))))
+                     (zoom-function
+                      (ignore-errors
+                        (funcall zoom-function data content-type
+                                 (plist-get flags :width)
+                                 (plist-get flags :height))))
+                     (t (error "Unrecognized zoom level %s" zoom)))))
         (when image
           ;; The trailing space can confuse shr-insert into not
           ;; putting any space after inline images.
@@ -1243,27 +1274,33 @@ width/height instead."
                                     (or max-height
                                         (- (nth 3 edges) (nth 1 edges))))))
            (scaling (image-compute-scaling-factor image-scaling-factor)))
-      (when (or (and width
-                     (> width max-width))
-                (and height
-                     (> height max-height)))
-        (setq width nil
-              height nil))
-      (if (and width height
-               (< (* width scaling) max-width)
-               (< (* height scaling) max-height))
-          (create-image
-           data (shr--image-type) t
-           :ascent shr-image-ascent
-           :width width
-           :height height
-           :format content-type)
-        (create-image
-         data (shr--image-type) t
-         :ascent shr-image-ascent
-         :max-width max-width
-         :max-height max-height
-         :format content-type)))))
+      (when (and width (> (* width scaling) max-width))
+        (setq width nil))
+      (when (and height (> (* height scaling) max-height))
+        (setq height nil))
+      (create-image
+       data (shr--image-type) t
+       :ascent shr-image-ascent
+       :width width
+       :height height
+       :max-width max-width
+       :max-height max-height
+       :format content-type))))
+
+(defun shr--image-zoom-original-size (data content-type width height)
+  (create-image data (shr--image-type) t :ascent shr-image-ascent
+                :width width :height height :format content-type))
+
+(defun shr--image-zoom-image-size (data content-type _width _height)
+  (create-image data nil t :ascent shr-image-ascent :format content-type))
+
+(defun shr--image-zoom-fill-height (data content-type _width _height)
+  (let* ((edges (window-inside-pixel-edges
+                 (get-buffer-window (current-buffer))))
+         (height (truncate (* shr-max-image-proportion
+                              (- (nth 3 edges) (nth 1 edges))))))
+    (create-image data (shr--image-type) t :ascent shr-image-ascent
+                  :height height :format content-type)))
 
 ;; url-cache-extract autoloads url-cache.
 (declare-function url-cache-create-filename "url-cache" (url))

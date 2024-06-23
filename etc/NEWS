@@ -54,6 +54,11 @@ matter how large or small that was).  Now, SHR slices any images taller
 than 'shr-sliced-image-height'.  For more information, see the "(eww)
 Advanced" node in the EWW manual.
 
+---
+*** You can now customize the image zoom levels to cycle through.
+By customizing 'shr-image-zoom-levels', you can change the list of zoom
+levels that SHR cycles through when calling 'shr-zoom-image'.
+
 
 * New Modes and Packages in Emacs 31.1
 
