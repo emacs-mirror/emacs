@@ -252,8 +252,9 @@ Also see `ignore'."
       (tramp-error vec tramp-permission-denied file)
     (tramp-error vec tramp-permission-denied "Permission denied: %s" file)))
 
-;; Function `auth-info-password' is new in Emacs 29.1.  However, it
-;; doesn't obey cascaded functions, which is fixed in Emacs 30.1 only.
+;; Function `auth-info-password' is new in Emacs 29.1.  Finally,
+;; Bug#49289 is fixed in Emacs 30.1 for the `secrets' and `plstore'
+;; auth-sources backends.
 (defalias 'tramp-compat-auth-info-password
   (if (>= emacs-major-version 30)
       'auth-info-password

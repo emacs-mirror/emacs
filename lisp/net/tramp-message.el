@@ -357,7 +357,9 @@ This function is meant for debugging purposes."
   (let ((tramp-verbose (if force 10 tramp-verbose)))
     (when (>= tramp-verbose 10)
       (tramp-message
-       vec-or-proc 10 "\n%s" (with-output-to-string (backtrace))))))
+       ;; In batch-mode, we want to see it on stderr.
+       vec-or-proc (if (and force noninteractive) 1 10)
+       "\n%s" (with-output-to-string (backtrace))))))
 
 (defsubst tramp-error (vec-or-proc signal fmt-string &rest arguments)
   "Emit an error.
