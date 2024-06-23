@@ -1671,6 +1671,9 @@ fix_frame (mps_ss_t ss, struct frame *f)
     IGC_FIX12_RAW (ss, &f->face_cache);
     if (f->terminal)
       IGC_FIX12_RAW (ss, &f->terminal);
+    if (f->image_cache)
+      IGC_FIX12_RAW (ss, &f->image_cache);
+
 #ifdef HAVE_WINDOW_SYSTEM
     if (FRAME_WINDOW_P (f) && FRAME_OUTPUT_DATA (f))
       {
@@ -1869,9 +1872,6 @@ fix_terminal (mps_ss_t ss, struct terminal *t)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, t, fix_vectorlike);
     IGC_FIX12_RAW (ss, &t->next_terminal);
-#ifdef HAVE_WINDOW_SYSTEM
-    IGC_FIX12_RAW (ss, &t->image_cache);
-#endif
     // These are malloc'd, so they can be accessed.
     IGC_FIX_CALL_FN (ss, struct coding_system, t->keyboard_coding, fix_coding);
     IGC_FIX_CALL_FN (ss, struct coding_system, t->terminal_coding, fix_coding);
@@ -3906,7 +3906,7 @@ is_builtin_subr (enum igc_obj_type type, void *client)
   if (type == IGC_OBJ_VECTOR && pseudo_vector_type (client) == PVEC_SUBR)
     {
       Lisp_Object subr = make_lisp_ptr (client, Lisp_Vectorlike);
-      return !SUBR_NATIVE_COMPILEDP (subr);
+      return !NATIVE_COMP_FUNCTIONP (subr);
     }
   return false;
 }
