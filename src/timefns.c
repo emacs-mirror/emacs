@@ -414,9 +414,11 @@ decode_float_time (double t, struct lisp_time *result)
   else
     {
       int scale = double_integer_scale (t);
-      /* FIXME: `double_integer_scale` often returns values that are
-         "pessimistic" (i.e. larger than necessary), so 3.5 gets converted
-         to (7881299347898368 . 2251799813685248) rather than (7 . 2).
+      /* Because SCALE treats trailing zeros in T as significant,
+	 on typical platforms with IEEE floating point
+	 (time-convert 3.5 t) yields (7881299347898368 . 2251799813685248),
+	 a precision of 2**-51 s, not (7 . 2), a precision of 0.5 s.
+	 Although numerically correct, this generates largish integers.
          On 64bit systems, this should not matter very much, tho.  */
       eassume (scale < flt_radix_power_size);
 
