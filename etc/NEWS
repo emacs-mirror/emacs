@@ -1,0 +1,74 @@
+GNU Emacs NEWS -- history of user-visible changes.
+
+Copyright (C) 2022-2024 Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
+If possible, use 'M-x report-emacs-bug'.
+
+This file is about changes in Emacs version 31.
+
+See file HISTORY for a list of GNU Emacs versions and release dates.
+See files NEWS.30, NEWS.29, ..., NEWS.18, and NEWS.1-17 for changes
+in older Emacs versions.
+
+You can narrow news to a specific version by calling 'view-emacs-news'
+with a prefix argument or by typing 'C-u C-h C-n'.
+
+Temporary note:
++++ indicates that all relevant manuals in doc/ have been updated.
+--- means no change in the manuals is needed.
+When you add a new item, use the appropriate mark if you are sure it
+applies, and please also update docstrings as needed.
+
+
+* Installation Changes in Emacs 31.1
+
+
+* Startup Changes in Emacs 31.1
+
+
+* Changes in Emacs 31.1
+
+
+* Editing Changes in Emacs 31.1
+
+
+* Changes in Specialized Modes and Packages in Emacs 31.1
+
+
+* New Modes and Packages in Emacs 31.1
+
+
+* Incompatible Lisp Changes in Emacs 31.1
+
+
+* Lisp Changes in Emacs 31.1
+
+
+* Changes in Emacs 31.1 on Non-Free Operating Systems
+
+
+----------------------------------------------------------------------
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+
+Local variables:
+coding: utf-8
+mode: outline
+mode: emacs-news
+paragraph-separate: "[	 ]"
+end:
