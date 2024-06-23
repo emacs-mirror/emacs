@@ -678,17 +678,22 @@ full-buffer size."
              (start (or (previous-single-property-change end 'image-url)
                         (point-min)))
              (dom-size (get-text-property position 'image-dom-size))
+             (flags `( :zoom   ,zoom-level
+                       :width  ,(car dom-size)
+                       :height ,(cdr dom-size)))
              (buffer-read-only nil))
         ;; Delete the old picture.
         (put-text-property start end 'display nil)
         (message "%s" (cadr (assq zoom-level shr-image-zoom-level-alist)))
-        (url-retrieve url #'shr-image-fetched
-                      `(,(current-buffer) ,start
-                        ,(set-marker (make-marker) end)
-                        (:zoom   ,zoom-level
-                         :width  ,(car dom-size)
-                         :height ,(cdr dom-size)))
-                      t)))))
+        (if (and (not shr-ignore-cache)
+                 (url-is-cached url))
+            (shr-replace-image (shr-get-image-data url) start
+                               (set-marker (make-marker) end) flags)
+          (url-retrieve url #'shr-image-fetched
+                        `(,(current-buffer) ,start
+                          ,(set-marker (make-marker) end)
+                          ,flags)
+                        t))))))
 
 ;;; Utility functions.
 
@@ -1109,6 +1114,25 @@ the mouse click event."
 		    (expand-file-name (file-name-nondirectory url)
 				      directory)))))
 
+(defun shr-replace-image (data start end &optional flags)
+  (save-excursion
+    (save-restriction
+      (widen)
+      (let ((alt (buffer-substring start end))
+	    (properties (text-properties-at start))
+            ;; We don't want to record these changes.
+            (buffer-undo-list t)
+	    (inhibit-read-only t))
+        (remove-overlays start end)
+	(delete-region start end)
+	(goto-char start)
+	(funcall shr-put-image-function data alt flags)
+	(while properties
+	  (let ((type (pop properties))
+		(value (pop properties)))
+	    (unless (memq type '(display image-zoom))
+	      (put-text-property start (point) type value))))))))
+
 (defun shr-image-fetched (status buffer start end &optional flags)
   (let ((image-buffer (current-buffer)))
     (when (and (buffer-name buffer)
@@ -1119,23 +1143,7 @@ the mouse click event."
 		(search-forward "\r\n\r\n" nil t))
 	(let ((data (shr-parse-image-data)))
 	  (with-current-buffer buffer
-	    (save-excursion
-	      (save-restriction
-		(widen)
-		(let ((alt (buffer-substring start end))
-		      (properties (text-properties-at start))
-                      ;; We don't want to record these changes.
-                      (buffer-undo-list t)
-		      (inhibit-read-only t))
-                  (remove-overlays start end)
-		  (delete-region start end)
-		  (goto-char start)
-		  (funcall shr-put-image-function data alt flags)
-		  (while properties
-		    (let ((type (pop properties))
-			  (value (pop properties)))
-		      (unless (memq type '(display image-zoom))
-			(put-text-property start (point) type value)))))))))))
+	    (shr-replace-image data start end flags)))))
     (kill-buffer image-buffer)))
 
 (defun shr-image-from-data (data)
