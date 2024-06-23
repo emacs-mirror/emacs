@@ -1371,12 +1371,16 @@ within text input fields."
       (goto-char (point-min))
       (while-let ((match (text-property-search-forward
                           'display nil (lambda (_ value) (imagep value)))))
-        (let ((image (prop-match-value match)))
-          (unless (image-property image :original-scale)
-            (setf (image-property image :original-scale)
-                  (or (image-property image :scale) 1)))
+        (let* ((image (prop-match-value match))
+               (original-scale (or (image-property image :original-scale)
+                                   (setf (image-property image :original-scale)
+                                         (or (image-property image :scale)
+                                             'default)))))
+          (when (eq original-scale 'default)
+            (setq original-scale (image-compute-scaling-factor
+                                  image-scaling-factor)))
           (setf (image-property image :scale)
-                (* (image-property image :original-scale) scaling)))))))
+                (* original-scale scaling)))))))
 
 (defun eww--url-at-point ()
   "`thing-at-point' provider function."
