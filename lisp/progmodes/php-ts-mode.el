@@ -123,7 +123,7 @@ By default should have same value as `html-ts-mode-indent-offset'."
 
 (defcustom php-ts-mode-css-fontify-colors t
   "Whether CSS colors should be fontified using the color as the background.
-When non-nil, a text representing CSS color will be fontified
+If non-nil, text representing a CSS color will be fontified
 such that its background is the color itself.
 Works like `css--fontify-region'."
   :tag "PHP colors the CSS properties values."
