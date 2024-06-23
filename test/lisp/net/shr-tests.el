@@ -134,6 +134,7 @@ settings, then once more for each (OPTION . VALUE) pair.")
 
 (ert-deftest shr-test/zoom-image ()
   "Test that `shr-zoom-image' properly replaces the original image."
+  (skip-unless (bound-and-true-p image-types))
   (let ((image (expand-file-name "data/image/blank-100x200.png"
                                  (getenv "EMACS_TEST_DIRECTORY"))))
     (dolist (alt '(nil "" "nothing to see here"))
