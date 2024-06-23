@@ -1366,7 +1366,7 @@ buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
 	result = assq_no_quit (variable, BVAR (buf, local_var_alist));
 	if (!NILP (result))
 	  {
-	    if (blv->fwd.fwdptr)
+	    if (blv->fwd)
 	      { /* What binding is loaded right now?  */
 		Lisp_Object current_alist_element = blv->valcell;
 
@@ -1389,7 +1389,7 @@ buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
       {
 	lispfwd fwd = SYMBOL_FWD (sym);
 	if (BUFFER_OBJFWDP (fwd))
-	  result = per_buffer_value (buf, XBUFFER_OBJFWD (fwd)->offset);
+	  result = per_buffer_value (buf, XBUFFER_OFFSET (fwd));
 	else
 	  result = Fdefault_value (variable);
 	break;
@@ -2365,7 +2365,7 @@ void set_buffer_internal_2 (register struct buffer *b)
 	  Lisp_Object var = XCAR (XCAR (tail));
 	  struct Lisp_Symbol *sym = XSYMBOL (var);
 	  if (sym->u.s.redirect == SYMBOL_LOCALIZED /* Just to be sure.  */
-	      && SYMBOL_BLV (sym)->fwd.fwdptr)
+	      && SYMBOL_BLV (sym)->fwd)
 	    /* Just reference the variable
 	       to cause it to become set for this buffer.  */
 	    Fsymbol_value (var);
@@ -5019,31 +5019,31 @@ init_buffer (void)
 
 /* FIXME: use LISPSYM_INITIALLY instead of TAG_PTR_INITIALLY */
 #define DEFVAR_PER_BUFFER(lname, vname, predicate_, doc)		\
-do									\
-  {									\
-    const Lisp_Object sym = TAG_PTR_INITIALLY (				\
-	Lisp_Symbol, (intptr_t)((i##predicate_) * sizeof *lispsym));	\
-    static const struct Lisp_Buffer_Objfwd bo_fwd = {			\
-      .type = Lisp_Fwd_Buffer_Obj,					\
-      .offset = offsetof (struct buffer, vname##_),			\
-      .predicate = sym,							\
-    };									\
+  do {									\
+    const Lisp_Object sym						\
+      = TAG_PTR_INITIALLY (Lisp_Symbol, (intptr_t)((i##predicate_)	\
+						   * sizeof *lispsym));	\
+    static const struct Lisp_Fwd bo_fwd					\
+	= { .type = Lisp_Fwd_Buffer_Obj,				\
+	    .bufoffset = offsetof (struct buffer, vname##_),		\
+	    .u.bufpredicate = sym };					\
+    static_assert (offsetof (struct buffer, vname##_)			\
+		   < (1 << 8 * sizeof bo_fwd.bufoffset));		\
     defvar_per_buffer (&bo_fwd, lname);					\
-  }									\
-while (0)
+  } while (0)
 
 static void
-defvar_per_buffer (const struct Lisp_Buffer_Objfwd *bo_fwd,
-		   const char *namestring)
+defvar_per_buffer (const struct Lisp_Fwd *fwd, const char *namestring)
 {
+  eassert (fwd->type == Lisp_Fwd_Buffer_Obj);
   struct Lisp_Symbol *sym = XSYMBOL (intern (namestring));
 
   sym->u.s.declared_special = true;
   sym->u.s.redirect = SYMBOL_FORWARDED;
-  SET_SYMBOL_FWD (sym, bo_fwd);
-  XSETSYMBOL (PER_BUFFER_SYMBOL (bo_fwd->offset), sym);
+  SET_SYMBOL_FWD (sym, fwd);
+  XSETSYMBOL (PER_BUFFER_SYMBOL (XBUFFER_OFFSET (fwd)), sym);
 
-  if (PER_BUFFER_IDX (bo_fwd->offset) == 0)
+  if (PER_BUFFER_IDX (XBUFFER_OFFSET (fwd)) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding
        slot of buffer_local_flags.  */
     emacs_abort ();
