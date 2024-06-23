@@ -9171,9 +9171,14 @@ Return the buffer switched to."
         (pop-to-buffer buffer norecord)))
      (t
       (when switch-to-buffer-obey-display-actions
-        (let ((selected-window (selected-window)))
+        (let* ((selected-window (selected-window))
+	       (old-window-buffer (window-buffer selected-window)))
           (pop-to-buffer-same-window buffer norecord)
-          (when (eq (selected-window) selected-window)
+	  ;; Do not ask for setting start and point when showing the
+	  ;; same buffer in the old selected window (Bug#71616).
+          (when (and (eq (selected-window) selected-window)
+		     (not (eq (window-buffer selected-window)
+			      old-window-buffer)))
             (setq set-window-start-and-point t))))
 
       (when set-window-start-and-point
