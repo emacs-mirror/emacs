@@ -65,11 +65,11 @@ XKBOARD_OBJFWD (lispfwd a)
   eassert (KBOARD_OBJFWDP (a));
   return &a->u.kboardobjfwd;
 }
-static struct Lisp_Intfwd const *
-XFIXNUMFWD (lispfwd a)
+static intmax_t *
+XINTVAR (lispfwd a)
 {
   eassert (INTFWDP (a));
-  return &a->u.intfwd;
+  return a->u.intvar;
 }
 static struct Lisp_Objfwd const *
 XOBJFWD (lispfwd a)
@@ -1332,7 +1332,7 @@ do_symval_forwarding (lispfwd valcontents)
   switch (XFWDTYPE (valcontents))
     {
     case Lisp_Fwd_Int:
-      return make_int (*XFIXNUMFWD (valcontents)->intvar);
+      return make_int (*XINTVAR (valcontents));
 
     case Lisp_Fwd_Bool:
       return (*XBOOLFWD (valcontents)->boolvar ? Qt : Qnil);
@@ -1418,7 +1418,7 @@ store_symval_forwarding (lispfwd valcontents, Lisp_Object newval,
 	CHECK_INTEGER (newval);
 	if (! integer_to_intmax (newval, &i))
 	  xsignal1 (Qoverflow_error, newval);
-	*XFIXNUMFWD (valcontents)->intvar = i;
+	*XINTVAR (valcontents) = i;
       }
       break;
 
