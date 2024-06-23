@@ -1,6 +1,6 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2000, 2003-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2024 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -125,13 +125,13 @@ Press `?' for a summary of important key bindings.
 Here are all local bindings.
 
 \\{reftex-toc-mode-map}"
-  (set (make-local-variable 'transient-mark-mode) t)
-  (set (make-local-variable 'revert-buffer-function) #'reftex-toc-revert)
-  (set (make-local-variable 'reftex-toc-include-labels-indicator) "")
-  (set (make-local-variable 'reftex-toc-max-level-indicator)
-       (if (= reftex-toc-max-level 100)
-           "ALL"
-         (int-to-string reftex-toc-max-level)))
+  (setq-local transient-mark-mode t)
+  (setq-local revert-buffer-function #'reftex-toc-revert)
+  (setq-local reftex-toc-include-labels-indicator "")
+  (setq-local reftex-toc-max-level-indicator
+              (if (= reftex-toc-max-level 100)
+                  "ALL"
+                (int-to-string reftex-toc-max-level)))
   (setq mode-line-format
         (list "----  " 'mode-line-buffer-identification
               "  " 'global-mode-string "   (" mode-name ")"
@@ -241,7 +241,7 @@ When called with a raw \\[universal-argument] prefix, rescan the document first.
       (switch-to-buffer "*toc*"))
 
     (or (eq major-mode 'reftex-toc-mode) (reftex-toc-mode))
-    (set (make-local-variable 'reftex-docstruct-symbol) docstruct-symbol)
+    (setq-local reftex-docstruct-symbol docstruct-symbol)
     (setq reftex-toc-include-labels-indicator
           (if (eq reftex-toc-include-labels t)
               "ALL"
