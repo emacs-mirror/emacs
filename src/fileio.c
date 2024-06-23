@@ -6531,7 +6531,18 @@ If the underlying system call fails, value is nil.  */)
   || defined STAT_STATFS4 || defined STAT_STATVFS		\
   || defined STAT_STATVFS64
   struct fs_usage u;
-  if (get_fs_usage (SSDATA (ENCODE_FILE (filename)), NULL, &u) != 0)
+  const char *name;
+
+  name = SSDATA (ENCODE_FILE (filename));
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* With special directories, this information is unavailable.  */
+  if (android_is_special_directory (name, "/assets")
+      || android_is_special_directory (name, "/content"))
+    return Qnil;
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
+  if (get_fs_usage (name, NULL, &u) != 0)
     return errno == ENOSYS ? Qnil : file_attribute_errno (filename, errno);
   return list3 (blocks_to_bytes (u.fsu_blocksize, u.fsu_blocks, false),
 		blocks_to_bytes (u.fsu_blocksize, u.fsu_bfree, false),
