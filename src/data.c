@@ -53,11 +53,11 @@ OBJFWDP (lispfwd a)
   return XFWDTYPE (a) == Lisp_Fwd_Obj;
 }
 
-static struct Lisp_Boolfwd const *
-XBOOLFWD (lispfwd a)
+static bool *
+XBOOLVAR (lispfwd a)
 {
   eassert (BOOLFWDP (a));
-  return &a->u.boolfwd;
+  return a->u.boolvar;
 }
 static struct Lisp_Kboard_Objfwd const *
 XKBOARD_OBJFWD (lispfwd a)
@@ -1335,7 +1335,7 @@ do_symval_forwarding (lispfwd valcontents)
       return make_int (*XINTVAR (valcontents));
 
     case Lisp_Fwd_Bool:
-      return (*XBOOLFWD (valcontents)->boolvar ? Qt : Qnil);
+      return (*XBOOLVAR (valcontents) ? Qt : Qnil);
 
     case Lisp_Fwd_Obj:
       return *XOBJFWD (valcontents)->objvar;
@@ -1423,7 +1423,7 @@ store_symval_forwarding (lispfwd valcontents, Lisp_Object newval,
       break;
 
     case Lisp_Fwd_Bool:
-      *XBOOLFWD (valcontents)->boolvar = !NILP (newval);
+      *XBOOLVAR (valcontents) = !NILP (newval);
       break;
 
     case Lisp_Fwd_Obj:

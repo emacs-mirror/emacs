@@ -3053,15 +3053,6 @@ make_uint (uintmax_t n)
   (EXPR_SIGNED (expr) ? make_int (expr) : make_uint (expr))
 
 
-/* Boolean forwarding pointer to an int variable.
-   This is like Lisp_Intfwd except that the ostensible
-   "value" of the symbol is t if the bool variable is true,
-   nil if it is false.  */
-struct Lisp_Boolfwd
-  {
-    bool *boolvar;
-  };
-
 /* Forwarding pointer to a Lisp_Object variable.
    This is allowed only in the value cell of a symbol,
    and it means that the symbol's value really lives in the
@@ -3136,7 +3127,7 @@ struct Lisp_Fwd
   union
   {
     intmax_t *intvar;
-    struct Lisp_Boolfwd boolfwd;
+    bool *boolvar;
     struct Lisp_Objfwd objfwd;
     struct Lisp_Buffer_Objfwd bufobjfwd;
     struct Lisp_Kboard_Objfwd kboardobjfwd;
@@ -3518,7 +3509,7 @@ extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
 #define DEFVAR_BOOL(lname, vname, doc)				\
   do {								\
     static struct Lisp_Fwd const b_fwd				\
-      = {Lisp_Fwd_Bool, .u.boolfwd = {&globals.f_##vname}};	\
+      = {Lisp_Fwd_Bool, .u.boolvar = &globals.f_##vname};	\
     defvar_bool (&b_fwd, lname);				\
   } while (false)
 #define DEFVAR_INT(lname, vname, doc)			\
