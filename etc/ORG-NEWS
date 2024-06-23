@@ -177,7 +177,7 @@ Previously, when exporting to Org, all the citations and
 =print_bibliography= keywords, were transformed according to the
 chosen citation processor.
 
-This is no loner the case.  All the citation-related markup is now
+This is no longer the case.  All the citation-related markup is now
 exported as is.
 
 The previous behavior can be reverted by setting new custom option

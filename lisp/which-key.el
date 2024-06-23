@@ -1052,7 +1052,7 @@ replacement.
 In the second case, the second string is used to provide a longer
 name for the keys under a prefix.
 
-MORE allows you to specifcy additional KEY REPLACEMENT pairs.  All
+MORE allows you to specify additional KEY REPLACEMENT pairs.  All
 replacements are added to `which-key-replacement-alist'."
   ;; TODO: Make interactive
   (while key-sequence
@@ -1923,7 +1923,7 @@ Requires `which-key-compute-remaps' to be non-nil."
 PREFIX limits bindings to those starting with this key
 sequence.  START is a list of existing bindings to add to.  If ALL
 is non-nil, recursively retrieve all bindings below PREFIX.  If
-EVIL is non-nil, extract active evil bidings."
+EVIL is non-nil, extract active evil bindings."
   (let ((bindings start)
         (ignore '(self-insert-command ignore ignore-event company-ignore))
         (evil-map

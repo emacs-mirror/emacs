@@ -605,7 +605,7 @@ get_encoder_clsid (const char *type, CLSID *clsid)
 
 DEFUN ("w32image-create-thumbnail", Fw32image_create_thumbnail,
        Sw32image_create_thumbnail, 5, 5, 0,
-       doc: /* Create a HEIGHT by WIDTH thumnail file THUMB-FILE for image INPUT-FILE.
+       doc: /* Create a HEIGHT by WIDTH thumbnail file THUMB-FILE for image INPUT-FILE.
 TYPE is the image type to use for the thumbnail file, a string.  It is
 usually identical to the file-name extension of THUMB-FILE, but without
 the leading period, and both "jpeg" and "jpg" can be used for JPEG.

@@ -87,7 +87,7 @@ be shown.  On positions 3,4, and 7, the @samp{alog} function will be
 As is my wont, I started hacking on it almost immediately. I first
 The latter criterion is the "je ne sais quoi" of the artistic aspect of
 order but are now listed consecutively en bloc.
-      "mot de passe" "Mot de passe")
+     "mot de passe" "Mot de passe")
 	Reported by Mor Zahavi <morzahavi@me.com>.  (Bug#51271)
 	* etc/refcards/fr-refcard.tex (section{Formater}): Remove mention
 	Reported by Ture Pålsson.

@@ -1954,7 +1954,7 @@ ender."
 ;; The following is no longer used (2020-02-16).
 ;; (c-lang-defconst c-last-open-c-comment-start-on-line-re
 ;;   "Regexp which matches the last block comment start on the
-;; current ine, if any, or nil in those languages without block
+;; current one, if any, or nil in those languages without block
 ;; comments.  When a match is found, submatch 1 contains the comment
 ;; starter."
 ;;   t "\\(/\\*\\)\\([^*]\\|\\*+\\([^*/]\\|$\\)\\)*$"

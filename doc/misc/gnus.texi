@@ -20413,7 +20413,7 @@ Anyway, if you'd like to dig into it yourself, here's an example:
  (read-only nil)
  (orphan -10)
  (adapt t)
- (files "/hom/larsi/News/gnu.SCORE")
+ (files "/home/larsi/News/gnu.SCORE")
  (exclude-files "all.SCORE")
  (local (gnus-newsgroup-auto-expire t)
         (gnus-summary-make-false-root empty))

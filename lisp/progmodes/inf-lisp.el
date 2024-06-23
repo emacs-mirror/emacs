@@ -347,7 +347,7 @@ The actually processing is done by DO-STRING and DO-REGION
 DEFVAR forms reset the variables to the init values."
   (save-excursion
     ;; Find the end of the defun this way to avoid having the region
-    ;; possibly end with a comment (it there'a a comment after the
+    ;; possibly end with a comment (it there's a comment after the
     ;; final parenthesis).
     (beginning-of-defun)
     (forward-sexp)

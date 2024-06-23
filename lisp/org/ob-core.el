@@ -2861,7 +2861,7 @@ file's directory then expand relative links.
 
 If the optional TYPE is passed as `attachment' and the path is a
 descendant of the DEFAULT-DIRECTORY, the generated link will be
-specified as an an \"attachment:\" style link."
+specified as an \"attachment:\" style link."
   (when (stringp result)
     (let* ((result-file-name (expand-file-name result))
            (base-file-name (buffer-file-name (buffer-base-buffer)))

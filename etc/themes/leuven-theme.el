@@ -848,7 +848,7 @@ more..."
    `(org-example ((,class (:foreground "blue" :background "#EEFFEE"))))
    `(org-footnote ((,class (:underline t :foreground "#008ED1"))))
    `(org-formula ((,class (:foreground "chocolate1"))))
-   ;; org-habit colours are thanks to zenburn
+   ;; org-habit colors are thanks to zenburn
    `(org-habit-ready-face ((t :background "#7F9F7F"))) ; ,zenburn-green
    `(org-habit-alert-face ((t :background "#E0CF9F" :foreground "#3F3F3F"))) ; ,zenburn-yellow-1 fg ,zenburn-bg
    `(org-habit-clear-face ((t :background "#5C888B")))                       ; ,zenburn-blue-3

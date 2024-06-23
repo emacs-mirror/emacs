@@ -717,7 +717,7 @@ characters of the current line."
      (c-ts-common-comment-2nd-line-matcher
       c-ts-common-comment-2nd-line-anchor
       1)))
-  "Tree-sitter indentation rules for for `phpdoc'.")
+  "Tree-sitter indentation rules for `phpdoc'.")
 
 
 ;;; Font-lock
@@ -1561,7 +1561,7 @@ The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\" or
 (defun run-php (&optional cmd config)
   "Run an PHP interpreter as a inferior process.
 
-Arguments CMD an CONFIG, default to `php-ts-mode-php-executable'
+Arguments CMD and CONFIG, default to `php-ts-mode-php-executable'
 and `php-ts-mode-php-config' respectively, control which PHP interpreter is run.
 Prompt for CMD if `php-ts-mode-php-executable' is nil.
 Optional CONFIG, if supplied, is the php.ini file to use."

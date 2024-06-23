@@ -105,7 +105,7 @@ For details see the variable `org-adapt-indentation'."
 
 (defcustom org-indent-post-buffer-init-functions nil
   "Hook run after org-indent finishes initializing a buffer.
-The function(s) in in this hook must accept a single argument representing
+The function(s) in this hook must accept a single argument representing
 the initialized buffer."
   :group 'org-indent
   :package-version '(Org . "9.7")

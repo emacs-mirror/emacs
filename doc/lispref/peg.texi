@@ -29,7 +29,7 @@ current buffer, using a given set of rules.
 @cindex root, of parsing expression grammar
 @cindex entry-point, of parsing expression grammar
 Each rule in a @acronym{PEG} is referred to as a @dfn{parsing
-expression} (@acronym{PEX}), and can be specified a a literal string, a
+expression} (@acronym{PEX}), and can be specified a literal string, a
 regexp-like character range or set, a peg-specific construct resembling
 an Emacs Lisp function call, a reference to another rule, or a
 combination of any of these.  A grammar is expressed as a tree of rules

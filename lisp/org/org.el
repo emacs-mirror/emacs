@@ -15434,7 +15434,7 @@ When SUPPRESS-TMP-DELAY is non-nil, suppress delays like
 (defun org-modify-ts-extra (ts-string pos nincrements increment-step)
   "Change the lead-time/repeat fields at POS in timestamp string TS-STRING.
 POS is the position in the timestamp string to be changed.
-NINCREMENTS is the number of incremenets/decrements.
+NINCREMENTS is the number of increments/decrements.
 
 INCREMENT-STEP is step used for a single increment when POS in on
 minutes.  Before incrementing minutes, they are rounded to

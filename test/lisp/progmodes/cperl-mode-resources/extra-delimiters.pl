@@ -8,7 +8,7 @@ print $string_with_strange_delimiters;
 $printed = 1;
 
 # With cperl-extra-delimiters-mode=on the previous lines are a label
-# and a a print statement.  This line here is a comment.  Without
+# and a print statement.  This line here is a comment.  Without
 # cperl-extra-delimiters-mode, all this is part of the variable
 # declaration.
 
