@@ -3053,15 +3053,6 @@ make_uint (uintmax_t n)
   (EXPR_SIGNED (expr) ? make_int (expr) : make_uint (expr))
 
 
-/* Forwarding pointer to a Lisp_Object variable.
-   This is allowed only in the value cell of a symbol,
-   and it means that the symbol's value really lives in the
-   specified variable.  */
-struct Lisp_Objfwd
-  {
-    Lisp_Object *objvar;
-  };
-
 /* Like Lisp_Objfwd except that value lives in a slot in the
    current buffer.  Value is byte index of slot within buffer.  */
 struct Lisp_Buffer_Objfwd
@@ -3128,7 +3119,7 @@ struct Lisp_Fwd
   {
     intmax_t *intvar;
     bool *boolvar;
-    struct Lisp_Objfwd objfwd;
+    Lisp_Object *objvar;
     struct Lisp_Buffer_Objfwd bufobjfwd;
     struct Lisp_Kboard_Objfwd kboardobjfwd;
   } u;
@@ -3494,16 +3485,16 @@ extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
    All C code uses the `cons_cells_consed' name.  This is all done
    this way to support indirection for multi-threaded Emacs.  */
 
-#define DEFVAR_LISP(lname, vname, doc)				\
-  do {								\
-    static struct Lisp_Fwd const o_fwd				\
-      = {Lisp_Fwd_Obj, .u.objfwd = {&globals.f_##vname}};	\
-    defvar_lisp (&o_fwd, lname);				\
+#define DEFVAR_LISP(lname, vname, doc)			\
+  do {							\
+    static struct Lisp_Fwd const o_fwd			\
+      = {Lisp_Fwd_Obj, .u.objvar = &globals.f_##vname};	\
+    defvar_lisp (&o_fwd, lname);			\
   } while (false)
 #define DEFVAR_LISP_NOPRO(lname, vname, doc)		\
   do {							\
-  static struct Lisp_Fwd const o_fwd			\
-    = {Lisp_Fwd_Obj, .u.objfwd = {&globals.f_##vname}};	\
+    static struct Lisp_Fwd const o_fwd			\
+      = {Lisp_Fwd_Obj, .u.objvar = &globals.f_##vname};	\
     defvar_lisp_nopro (&o_fwd, lname);			\
   } while (false)
 #define DEFVAR_BOOL(lname, vname, doc)				\

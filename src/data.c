@@ -71,11 +71,11 @@ XINTVAR (lispfwd a)
   eassert (INTFWDP (a));
   return a->u.intvar;
 }
-static struct Lisp_Objfwd const *
-XOBJFWD (lispfwd a)
+static Lisp_Object *
+XOBJVAR (lispfwd a)
 {
   eassert (OBJFWDP (a));
-  return &a->u.objfwd;
+  return a->u.objvar;
 }
 
 static void
@@ -1338,7 +1338,7 @@ do_symval_forwarding (lispfwd valcontents)
       return (*XBOOLVAR (valcontents) ? Qt : Qnil);
 
     case Lisp_Fwd_Obj:
-      return *XOBJFWD (valcontents)->objvar;
+      return *XOBJVAR (valcontents);
 
     case Lisp_Fwd_Buffer_Obj:
       return per_buffer_value (current_buffer,
@@ -1427,16 +1427,16 @@ store_symval_forwarding (lispfwd valcontents, Lisp_Object newval,
       break;
 
     case Lisp_Fwd_Obj:
-      *XOBJFWD (valcontents)->objvar = newval;
+      *XOBJVAR (valcontents) = newval;
 
       /* If this variable is a default for something stored
 	 in the buffer itself, such as default-fill-column,
 	 find the buffers that don't have local values for it
 	 and update them.  */
-      if (XOBJFWD (valcontents)->objvar > (Lisp_Object *) &buffer_defaults
-	  && XOBJFWD (valcontents)->objvar < (Lisp_Object *) (&buffer_defaults + 1))
+      if (XOBJVAR (valcontents) > (Lisp_Object *) &buffer_defaults
+	  && XOBJVAR (valcontents) < (Lisp_Object *) (&buffer_defaults + 1))
 	{
-	  int offset = ((char *) XOBJFWD (valcontents)->objvar
+	  int offset = ((char *) XOBJVAR (valcontents)
 			- (char *) &buffer_defaults);
 	  int idx = PER_BUFFER_IDX (offset);
 

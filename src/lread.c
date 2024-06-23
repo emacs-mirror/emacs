@@ -5282,7 +5282,7 @@ defvar_lisp (struct Lisp_Fwd const *o_fwd, char const *namestring)
 {
   eassert (o_fwd->type == Lisp_Fwd_Obj);
   defvar_lisp_nopro (o_fwd, namestring);
-  staticpro (o_fwd->u.objfwd.objvar);
+  staticpro (o_fwd->u.objvar);
 }
 
 /* Similar but define a variable whose value is the Lisp Object stored
