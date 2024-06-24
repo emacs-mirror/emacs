@@ -1972,7 +1972,12 @@ fix_xwidget (mps_ss_t ss, struct xwidget *w)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, w, fix_vectorlike);
-    igc_assert (!"xwidget");
+# if defined (NS_IMPL_COCOA)
+    IGC_FIX12_RAW (ss, &w->xv);
+# elif defined USE_GTK
+    IGC_FIX12_RAW (ss, &w->embedder);
+    IGC_FIX12_RAW (ss, &w->embedder_view);
+# endif
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1984,7 +1989,9 @@ fix_xwidget_view (mps_ss_t ss, struct xwidget_view *v)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
-    igc_assert (!"xwidget_view");
+# ifdef USE_GTK
+    IGC_FIX12_RAW (ss, &v->frame);
+# endif
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
