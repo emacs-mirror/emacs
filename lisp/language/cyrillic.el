@@ -33,23 +33,12 @@
 ;; are converted to Unicode internally.  See
 ;; <URL:http://www.ecma.ch/ecma1/STAND/ECMA-113.HTM>.  For more info
 ;; on Cyrillic charsets, see
-;; <URL:https://czyborra.com/charsets/cyrillic.html>.  The KOI and
-;; Alternativnyj coding systems should live in code-pages.el, but
-;; they've always been preloaded and the coding system autoload
-;; mechanism didn't get accepted, so they have to stay here and
-;; duplicate code-pages stuff.
+;; <URL:https://czyborra.com/charsets/cyrillic.html>.
 
 ;; Note that 8859-5 maps directly onto the Unicode Cyrillic block,
 ;; apart from codepoints 160 (NBSP, c.f. U+0400), 173 (soft hyphen,
 ;; c.f. U+04OD) and 253 (section sign, c.f U+045D).  The KOI-8 and
 ;; Alternativnyj coding systems encode both 8859-5 and Unicode.
-;; ucs-tables.el provides unification for cyrillic-iso-8bit.
-
-;; Customizing `utf-fragment-on-decoding' allows decoding characters
-;; from KOI and Alternativnyj into 8859-5 where that's possible.
-;; cyrillic-iso8859-5 characters take half as much space in the buffer
-;; as the mule-unicode-0100-24ff equivalents, though that's probably
-;; not normally a big deal.
 
 ;;; Code:
 
