@@ -51,6 +51,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
+#ifdef HAVE_XWIDGETS
+# include "xwidget.h"
+#endif
 
 #ifndef USE_LSB_TAG
 # error "USE_LSB_TAG required"
@@ -2115,6 +2118,11 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_XWIDGET_VIEW:
 	IGC_FIX_CALL_FN (ss, struct xwidget_view, v, fix_xwidget_view);
 	break;
+#else
+      case PVEC_XWIDGET:
+      case PVEC_XWIDGET_VIEW:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
+	break;
 #endif
 
       case PVEC_THREAD:
@@ -2154,8 +2162,6 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_SYMBOL_WITH_POS:
       case PVEC_PROCESS:
       case PVEC_WINDOW_CONFIGURATION:
-      case PVEC_XWIDGET:
-      case PVEC_XWIDGET_VIEW:
       case PVEC_MODULE_FUNCTION:
       case PVEC_CONDVAR:
       case PVEC_TS_COMPILED_QUERY:
