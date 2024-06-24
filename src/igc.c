@@ -159,6 +159,12 @@ enum igc_state
 
 static enum igc_state igc_state = IGC_STATE_UNUSABLE;
 
+static bool
+is_igc_usable (void)
+{
+  return igc_state == IGC_STATE_USABLE;
+}
+
 static void
 make_igc_unusable (void)
 {
@@ -3257,16 +3263,24 @@ alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
 {
   mps_addr_t p;
   size = alloc_size (size);
-  do
+  if (is_igc_usable ())
     {
-      mps_res_t res = mps_reserve (&p, ap, size);
-      if (res != MPS_RES_OK)
-	memory_full (0);
-      /* Object _must_ have valid contents before commit. */
-      memclear (p, size);
+      do
+	{
+	  mps_res_t res = mps_reserve (&p, ap, size);
+	  if (res != MPS_RES_OK)
+	    memory_full (0);
+	  /* Object _must_ have valid contents before commit. */
+	  memclear (p, size);
+	  set_header (p, type, size, alloc_hash ());
+	}
+      while (!mps_commit (ap, p, size));
+    }
+  else
+    {
+      p = xzalloc (size);
       set_header (p, type, size, alloc_hash ());
     }
-  while (!mps_commit (ap, p, size));
   return base_to_client (p);
 }
 
