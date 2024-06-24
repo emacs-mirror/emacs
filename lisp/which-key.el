@@ -128,6 +128,11 @@ of the which-key popup."
   "If non-nil, don't use any unicode characters in default setup.
 For affected settings, see `which-key-replacement-alist', `which-key-ellipsis'
 `which-key-separator'."
+  :set (lambda (sym val)
+         (custom-set-default sym val)
+         (mapc #'custom-reevaluate-setting
+               '(which-key-separator
+                 which-key-ellipsis)))
   :type 'boolean
   :package-version "1.0" :version "30.1")
 
