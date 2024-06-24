@@ -267,13 +267,6 @@ public final class EmacsView extends ViewGroup
     return canvas;
   }
 
-  public synchronized void
-  prepareForLayout (int wantedWidth, int wantedHeight)
-  {
-    measuredWidth = wantedWidth;
-    measuredHeight = wantedWidth;
-  }
-
   @Override
   protected void
   onMeasure (int widthMeasureSpec, int heightMeasureSpec)
@@ -773,23 +766,30 @@ public final class EmacsView extends ViewGroup
 
     /* Collect the bitmap storage; it could be large.  */
     Runtime.getRuntime ().gc ();
-
     super.onDetachedFromWindow ();
   }
 
   @Override
-  public synchronized void
+  public void
   onAttachedToWindow ()
   {
-    isAttachedToWindow = true;
+    synchronized (this)
+      {
+	isAttachedToWindow = true;
 
-    /* Dirty the bitmap, as it was destroyed when onDetachedFromWindow
-       was called.  */
-    bitmapDirty = true;
+	/* Dirty the bitmap, as it was destroyed when
+	   onDetachedFromWindow was called.  */
+	bitmapDirty = true;
 
-    /* Now expose the view contents again.  */
-    EmacsNative.sendExpose (this.window.handle, 0, 0,
-			    measuredWidth, measuredHeight);
+	/* Rather than unconditionally generating an exposure event upon
+	   window attachment, avoid delivering successive Exposure
+	   events if the size of the window has changed but is still to
+	   be reported by clearing the measured width and height, and
+	   requesting another layout computation.  */
+	measuredWidth = measuredHeight = 0;
+      }
+
+    requestLayout ();
     super.onAttachedToWindow ();
   }
 
