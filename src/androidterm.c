@@ -1279,7 +1279,12 @@ handle_one_android_event (struct android_display_info *dpyinfo,
             {
               expose_frame (f, event->xexpose.x, event->xexpose.y,
 			    event->xexpose.width, event->xexpose.height);
-	      show_back_buffer (f);
+
+	      /* Do not display the back buffer if F is yet being
+		 updated, as this might trigger premature bitmap
+		 reconfiguration.  */
+	      if (FRAME_ANDROID_COMPLETE_P (f))
+		show_back_buffer (f);
 	    }
         }
 

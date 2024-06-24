@@ -492,7 +492,6 @@ public final class EmacsWindow extends EmacsHandleObject
 		  /* Attach the view.  */
 		  try
 		    {
-		      view.prepareForLayout (width, height);
 		      windowManager.addView (view, params);
 
 		      /* Record the window manager being used in the
@@ -517,11 +516,6 @@ public final class EmacsWindow extends EmacsHandleObject
 	    public void
 	    run ()
 	    {
-	      /* Prior to mapping the view, set its measuredWidth and
-		 measuredHeight to some reasonable value, in order to
-		 avoid excessive bitmap dirtying.  */
-
-	      view.prepareForLayout (width, height);
 	      view.setVisibility (View.VISIBLE);
 
 	      if (!getDontFocusOnMap ())
