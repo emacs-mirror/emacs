@@ -142,7 +142,57 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 /* Still missing; face, font, frame, thread, and probably a lot of
    others. */
-#endif /* CHECK_STRUCTS */
+#endif	/* CHECK_STRUCTS */
+
+/* If igc can currently can be used. Initial state is
+   IGC_STATE_UNUSABLE, until everything needed has been successfully
+   initiaöozed. It goes from usable to IGC_STATE_UNUSABLE if an error
+   happens or is detected that forces us to terminate the process. While
+   terinating in this state, some fallbacks are implemented that let
+   Emacs do its thing while terminating. */
+
+enum igc_state
+{
+  IGC_STATE_UNUSABLE,
+  IGC_STATE_USABLE,
+};
+
+static enum igc_state igc_state = IGC_STATE_UNUSABLE;
+
+static bool
+is_igc_usable (void)
+{
+  return igc_state == IGC_STATE_USABLE;
+}
+
+static void
+set_state (enum igc_state state)
+{
+  igc_state = state;
+  switch (state)
+    {
+    case IGC_STATE_UNUSABLE:
+      igc_postmortem ();
+      terminate_due_to_signal (SIGABRT, INT_MAX);
+      break;
+
+    case IGC_STATE_USABLE:
+      break;
+    }
+}
+
+static void
+check_res (const char *file, unsigned line, mps_res_t res)
+{
+  if (res != MPS_RES_OK)
+    {
+      fprintf (stderr, "\r\n%s:%u: Emacs fatal error: MPS error code %d\r\n",
+	       file, line, res);
+      set_state (IGC_STATE_UNUSABLE);
+    }
+}
+
+#define IGC_CHECK_RES(res) check_res (__FILE__, __LINE__, (res))
 
 /* An enum for telemetry event categories seems to be missing from MOS.
    The docs only mention the bare numbers. */
@@ -181,7 +231,7 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 {
   fprintf (stderr, "\r\n%s:%u: Emacs fatal error: assertion failed: %s\r\n",
 	   file, line, msg);
-  terminate_due_to_signal (SIGABRT, INT_MAX);
+  set_state (IGC_STATE_UNUSABLE);
 }
 
 #ifdef IGC_DEBUG
@@ -196,7 +246,6 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 # define igc_assert(expr) (void) 9
 #endif
 
-#define igc_static_assert(x) verify (x)
 #define igc_const_cast(type, expr) ((type) (expr))
 
 #define IGC_NOT_IMPLEMENTED() \
@@ -237,14 +286,6 @@ is_aligned (const mps_addr_t addr)
 {
   return ((mps_word_t) addr & IGC_TAG_MASK) == 0;
 }
-
-#define IGC_CHECK_RES(res)			\
-  do						\
-    {						\
-      if ((res) != MPS_RES_OK)			\
-	emacs_abort ();				\
-    }						\
-  while (0)					\
 
 #define IGC_WITH_PARKED(gc) \
   for (int i = (arena_park (gc), 1); i; i = (arena_release (gc), 0))
@@ -314,7 +355,7 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_DUMPED_BYTES",
 };
 
-igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_NUM_TYPES);
+static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_NUM_TYPES);
 
 static const char *
 obj_type_name (enum igc_obj_type type)
@@ -368,7 +409,7 @@ static const char *pvec_type_names[] = {
   "PVEC_FONT",
 };
 
-igc_static_assert (ARRAYELTS (pvec_type_names) == PVEC_TAG_MAX + 1);
+static_assert (ARRAYELTS (pvec_type_names) == PVEC_TAG_MAX + 1);
 
 static const char *
 pvec_type_name (enum pvec_type type)
@@ -406,7 +447,7 @@ enum
   IGC_HASH_MASK = (1 << IGC_HASH_BITS) - 1,
 };
 
-igc_static_assert (IGC_OBJ_NUM_TYPES - 1 < (1 << IGC_TYPE_BITS));
+static_assert (IGC_OBJ_NUM_TYPES - 1 < (1 << IGC_TYPE_BITS));
 
 struct igc_header
 {
@@ -421,7 +462,7 @@ struct igc_fwd
   mps_addr_t new_base_addr;
 };
 
-igc_static_assert (sizeof (struct igc_header) == 8);
+static_assert (sizeof (struct igc_header) == 8);
 
 static mps_word_t
 to_words (mps_word_t nbytes)
@@ -1237,6 +1278,7 @@ dflt_skip (mps_addr_t base_addr)
 {
   struct igc_header *h = base_addr;
   mps_addr_t next = (char *) base_addr + obj_size (h);
+  igc_assert (next > base_addr);
   return next;
 }
 
@@ -3223,16 +3265,24 @@ alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
 {
   mps_addr_t p;
   size = alloc_size (size);
-  do
+  if (is_igc_usable ())
     {
-      mps_res_t res = mps_reserve (&p, ap, size);
-      if (res != MPS_RES_OK)
-	memory_full (0);
-      /* Object _must_ have valid contents before commit. */
-      memclear (p, size);
+      do
+	{
+	  mps_res_t res = mps_reserve (&p, ap, size);
+	  if (res != MPS_RES_OK)
+	    memory_full (0);
+	  /* Object _must_ have valid contents before commit. */
+	  memclear (p, size);
+	  set_header (p, type, size, alloc_hash ());
+	}
+      while (!mps_commit (ap, p, size));
+    }
+  else
+    {
+      p = xzalloc (size);
       set_header (p, type, size, alloc_hash ());
     }
-  while (!mps_commit (ap, p, size));
   return base_to_client (p);
 }
 
@@ -3886,7 +3936,8 @@ igc_begin_collecting (void)
 void
 igc_postmortem (void)
 {
-  mps_arena_postmortem (global_igc->arena);
+  if (global_igc && global_igc->arena)
+    mps_arena_postmortem (global_igc->arena);
 }
 
 
@@ -4073,7 +4124,7 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
     base_to_client (cold_start), /* code_space_masks */
     base_to_client (cold_user_data_start),
   };
-  igc_static_assert (sizeof pinned_roots == sizeof pinned_objects_in_dump);
+  static_assert (sizeof pinned_roots == sizeof pinned_objects_in_dump);
   memcpy (pinned_objects_in_dump, pinned_roots, sizeof pinned_roots);
   igc_root_create_ambig (pinned_objects_in_dump,
 			 (uint8_t *)pinned_objects_in_dump
@@ -4115,6 +4166,7 @@ init_igc (void)
   mps_lib_assert_fail_install (igc_assert_fail);
   global_igc = make_igc ();
   add_main_thread ();
+  set_state (IGC_STATE_USABLE);
 }
 
 void
