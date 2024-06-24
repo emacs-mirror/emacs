@@ -1512,7 +1512,7 @@ store_symval_forwarding (lispfwd valcontents, Lisp_Object newval,
       {
 	int offset = XBUFFER_OFFSET (valcontents);
 	if (!NILP (newval))
-	  check_fwd_predicate (valcontents->u.bufpredicate, newval);
+	  check_fwd_predicate (valcontents->u.buf.predicate, newval);
 	if (buf == NULL)
 	  buf = current_buffer;
 	set_per_buffer_value (buf, offset, newval);
