@@ -5017,14 +5017,17 @@ init_buffer (void)
    that nil is allowed too).  DOC is a dummy where you write the doc
    string as a comment.  */
 
-#define DEFVAR_PER_BUFFER(lname, vname, predicate, doc)		\
+#define DEFVAR_PER_BUFFER(lname, vname, predicate_, doc)	\
   do {								\
-    static const struct Lisp_Fwd bo_fwd				\
-	= { .type = Lisp_Fwd_Buffer_Obj,			\
-	    .bufoffset = offsetof (struct buffer, vname##_),	\
-	    .u.bufpredicate = FWDPRED_##predicate };		\
+    static const struct Lisp_Fwd bo_fwd = {			\
+      .type = Lisp_Fwd_Buffer_Obj,				\
+      .u.buf = {						\
+	.offset = offsetof (struct buffer, vname##_),		\
+	.predicate = FWDPRED_##predicate_			\
+      }								\
+    };								\
     static_assert (offsetof (struct buffer, vname##_)		\
-		   < (1 << 8 * sizeof bo_fwd.bufoffset));	\
+		   < (1 << 8 * sizeof bo_fwd.u.buf.offset));	\
     defvar_per_buffer (&bo_fwd, lname);				\
   } while (0)
 
