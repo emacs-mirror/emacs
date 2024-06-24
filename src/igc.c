@@ -146,9 +146,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 /* If igc can currently can be used. Initial state is
    IGC_STATE_UNUSABLE, until everything needed has been successfully
-   initiaöozed. It goes from usable to IGC_STATE_UNUSABLE if an error
+   initialozed. It goes from usable to IGC_STATE_UNUSABLE if an error
    happens or is detected that forces us to terminate the process. While
-   terinating in this state, some fallbacks are implemented that let
+   terminating in this state, some fallbacks are implemented that let
    Emacs do its thing while terminating. */
 
 enum igc_state
@@ -217,13 +217,7 @@ is_in_telemetry_filter (enum igc_event_category c)
   return (mps_telemetry_get () & (1 << c)) != 0;
 }
 
-/* Note: Emacs will call allocation functions while aborting. This leads
-   to all sorts of interesting phenomena when an assertion fails inside
-   a function called from MPS.
-
-   Example: We assert while MPS holds a lock, and MPS finds that it
-   already holds the lock while Emacs is handling the assertion failure.
-
+/* Function called from MPS an dfrom igc on assert violations.
    The function signature must be that of mps_lib_assert_fail_t.  */
 
 static void
@@ -243,13 +237,17 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
     }							\
   while (0)
 #else
-# define igc_assert(expr) (void) 9
+# define igc_assert(expr) (void) 0
 #endif
-
-#define igc_const_cast(type, expr) ((type) (expr))
 
 #define IGC_NOT_IMPLEMENTED() \
   igc_assert_fail (__FILE__, __LINE__, "not implemented")
+
+#ifdef __cplusplus
+#define igc_const_cast(type, expr) const_cast<type>(expr))
+#else
+#define igc_const_cast(type, expr) ((type) (expr))
+#endif
 
 enum
 {
@@ -262,7 +260,7 @@ enum
 /* Using mps_arena_has_addr is expensive. so try to do something that is
    "good enough". This can return true for malloc'd memory. */
 
-static mps_addr_t min_addr, max_addr;
+static mps_addr_t arena_min_addr, arena_max_addr;
 
 static bool
 is_pure (const mps_addr_t addr)
@@ -277,7 +275,7 @@ is_pure (const mps_addr_t addr)
 static bool
 is_mps (const mps_addr_t addr)
 {
-  return addr >= min_addr && addr < max_addr
+  return addr >= arena_min_addr && addr < arena_max_addr
     && !c_symbol_p (addr) && !is_pure (addr);
 }
 
@@ -3782,11 +3780,11 @@ DEFUN ("igc-roots", Figc_roots, Sigc_roots, 0, 0, 0, doc : /* */)
 static void
 arena_extended (mps_arena_t arena, void *base, size_t size)
 {
-  if (min_addr == NULL || base < min_addr)
-    min_addr = base;
+  if (arena_min_addr == NULL || base < arena_min_addr)
+    arena_min_addr = base;
   mps_addr_t end = (char *) base + size;
-  if (max_addr == NULL || end > max_addr)
-    max_addr = end;
+  if (arena_max_addr == NULL || end > arena_max_addr)
+    arena_max_addr = end;
 }
 
 static void
@@ -3794,10 +3792,10 @@ arena_contracted (mps_arena_t arena, void *base, size_t size)
 {
   /* Can MPS free something that is in the middle? */
   mps_addr_t end = (char *) base + size;
-  if (end == max_addr)
-    max_addr = base;
-  if (base == min_addr)
-    min_addr = end;
+  if (end == arena_max_addr)
+    arena_max_addr = base;
+  if (base == arena_min_addr)
+    arena_min_addr = end;
 }
 
 static void
