@@ -1236,6 +1236,7 @@ dflt_skip (mps_addr_t base_addr)
 {
   struct igc_header *h = base_addr;
   mps_addr_t next = (char *) base_addr + obj_size (h);
+  igc_assert (next > base_addr);
   return next;
 }
 
