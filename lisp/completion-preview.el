@@ -49,6 +49,16 @@
 ;; prefix (so nothing is underlined in the preview), it displays a list
 ;; of all matching completion candidates.
 ;;
+;; You can also insert only the first word of the completion candidate
+;; with the command `completion-preview-insert-word'.  With a numeric
+;; prefix argument, it inserts that many words instead of just the one.
+;; This command is not bound by default, but you may want to bind it to
+;; M-f (or remap `forward-word') in `completion-preview-active-mode-map'
+;; since it's very much like a `forward-word' that also moves "into" the
+;; completion preview. A similar command,
+;; `completion-preview-insert-sexp', exists for the `forward-sexp'
+;; command.
+;;
 ;; If you set the user option `completion-preview-exact-match-only' to
 ;; non-nil, Completion Preview mode only suggests a completion
 ;; candidate when its the only possible completion for the (partial)
@@ -90,7 +100,9 @@ first candidate, and you can cycle between the candidates with
                                          delete-backward-char
                                          backward-delete-char-untabify
                                          analyze-text-conversion
-                                         completion-preview-complete)
+                                         completion-preview-complete
+                                         completion-preview-insert-word
+                                         completion-preview-insert-sexp)
   "List of commands that should trigger completion preview."
   :type '(repeat (function :tag "Command" :value self-insert-command))
   :version "30.1")
@@ -163,6 +175,8 @@ If this is nil, display the completion preview without delay."
   "M-i" #'completion-preview-complete
   ;; "M-n" #'completion-preview-next-candidate
   ;; "M-p" #'completion-preview-prev-candidate
+  ;; "<remap> <forward-word>" #'completion-preview-insert-word
+  ;; "<remap> <forward-sexp>" #'completion-preview-insert-sexp
   )
 
 (defun completion-preview--ignore ()
@@ -463,6 +477,70 @@ point, otherwise hide it."
         (when (functionp efn) (funcall efn str 'finished)))
     (user-error "No current completion preview")))
 
+(defun completion-preview-partial-insert (function &rest args)
+  "Insert part of the current completion preview candidate.
+This function calls FUN with arguments ARGS, after temporarily inserting
+the entire current completion preview candidate.  FUN should move point:
+if it moves point forward into the completion text, this function
+inserts the prefix of the completion candidate up to that point.  Beyond
+moving point, FUN should not modify the current buffer."
+  (if completion-preview-active-mode
+      (let* ((beg (completion-preview--get 'completion-preview-beg))
+             (end (completion-preview--get 'completion-preview-end))
+             (efn (plist-get (completion-preview--get 'completion-preview-props)
+                             :exit-function))
+             (aft (completion-preview--get 'after-string))
+             (suf))
+        ;; Perform the insertion
+        (atomic-change-group
+          (let ((change-group (prepare-change-group)))
+            ;; Insert full completion
+            (goto-char end)
+            (insert (substring-no-properties aft))
+            ;; Move forward within the completion
+            (goto-char end)
+            (apply function args)
+            (when (< (point) end)
+              ;; If the movement function brought us backwards lurch
+              ;; forward to the original end
+              (goto-char end))
+            ;; Delete.
+            (when (< (point) (+ end (length aft)))
+              (delete-region (+ end (length aft)) (point))
+              (setq suf (substring aft (- (point) (+ end (length aft))) nil)))
+            ;; Combine into one change group
+            (undo-amalgamate-change-group change-group)))
+        ;; Perform any cleanup actions
+        (if suf
+            ;; The movement function has not taken us to the end of the
+            ;; initial insertion this means that a partial completion
+            ;; occured.
+            (progn
+              (completion-preview--inhibit-update)
+              ;; If we are not inserting a full completion update the preview
+              (overlay-put (completion-preview--make-overlay
+                            (point) (propertize suf
+                                                'mouse-face 'completion-preview-highlight
+                                                'keymap completion-preview--mouse-map))
+                           'completion-preview-end (point)))
+          ;; The movement function has taken us to the end of the
+          ;; completion or past it which signifies a full completion.
+          (goto-char (+ end (length aft)))
+          (completion-preview-active-mode -1)
+          (when (functionp efn)
+            (funcall efn (buffer-substring-no-properties beg (point)) 'finished))))
+    (user-error "No current completion preview")))
+
+(defun completion-preview-insert-word (&optional arg)
+  "Insert the next word of the completion candidate that the preview is showing."
+  (interactive "^p")
+  (completion-preview-partial-insert #'forward-word arg))
+
+(defun completion-preview-insert-sexp (&optional arg interactive)
+  "Insert the next sexp of the completion candidate that the preview is showing."
+  (interactive "^p\nd")
+  (completion-preview-partial-insert #'forward-sexp arg interactive))
+
 (defun completion-preview-complete ()
   "Complete up to the longest common prefix of all completion candidates.
 
@@ -583,6 +661,8 @@ prefix argument and defaults to 1."
   (buffer-local-value 'completion-preview-active-mode buffer))
 
 (dolist (cmd '(completion-preview-insert
+               completion-preview-insert-word
+               completion-preview-insert-sexp
                completion-preview-complete
                completion-preview-prev-candidate
                completion-preview-next-candidate))
