@@ -142,7 +142,49 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 /* Still missing; face, font, frame, thread, and probably a lot of
    others. */
-#endif /* CHECK_STRUCTS */
+#endif	/* CHECK_STRUCTS */
+
+/* If igc can currently can be used. Initial state is
+   IGC_STATE_UNUSABLE, until everything needed has been successfully
+   initiaöozed. It goes from usable to IGC_STATE_UNUSABLE if an error
+   happens or is detected that forces us to terminate the process. While
+   terinating in this state, some fallbacks are implemented that let
+   Emacs do its thing while terminating. */
+
+enum igc_state
+{
+  IGC_STATE_UNUSABLE,
+  IGC_STATE_USABLE,
+};
+
+static enum igc_state igc_state = IGC_STATE_UNUSABLE;
+
+static void
+make_igc_unusable (void)
+{
+  igc_state = IGC_STATE_UNUSABLE;
+  igc_postmortem ();
+  terminate_due_to_signal (SIGABRT, INT_MAX);
+}
+
+static void
+mark_igc_usable (void)
+{
+  igc_state = IGC_STATE_USABLE;
+}
+
+static void
+check_res (const char *file, unsigned line, mps_res_t res)
+{
+  if (res != MPS_RES_OK)
+    {
+      fprintf (stderr, "\r\n%s:%u: Emacs fatal error: MPS error code %d\r\n",
+	       file, line, res);
+      make_igc_unusable ();
+    }
+}
+
+#define IGC_CHECK_RES(res) check_res (__FILE__, __LINE__, (res))
 
 /* An enum for telemetry event categories seems to be missing from MOS.
    The docs only mention the bare numbers. */
@@ -181,7 +223,7 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 {
   fprintf (stderr, "\r\n%s:%u: Emacs fatal error: assertion failed: %s\r\n",
 	   file, line, msg);
-  terminate_due_to_signal (SIGABRT, INT_MAX);
+  make_igc_unusable ();
 }
 
 #ifdef IGC_DEBUG
@@ -236,14 +278,6 @@ is_aligned (const mps_addr_t addr)
 {
   return ((mps_word_t) addr & IGC_TAG_MASK) == 0;
 }
-
-#define IGC_CHECK_RES(res)			\
-  do						\
-    {						\
-      if ((res) != MPS_RES_OK)			\
-	emacs_abort ();				\
-    }						\
-  while (0)					\
 
 #define IGC_WITH_PARKED(gc) \
   for (int i = (arena_park (gc), 1); i; i = (arena_release (gc), 0))
@@ -4115,6 +4149,7 @@ init_igc (void)
   mps_lib_assert_fail_install (igc_assert_fail);
   global_igc = make_igc ();
   add_main_thread ();
+  mark_igc_usable ();
 }
 
 void
