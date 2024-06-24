@@ -3,6 +3,7 @@
 ;; Copyright (C) 2011-2024  Free Software Foundation, Inc.
 
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
+;; Package: editorconfig
 
 ;; See
 ;; https://github.com/editorconfig/editorconfig-emacs/graphs/contributors or
