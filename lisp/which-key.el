@@ -133,6 +133,7 @@ For affected settings, see `which-key-replacement-alist', `which-key-ellipsis'
          (mapc #'custom-reevaluate-setting
                '(which-key-separator
                  which-key-ellipsis)))
+  :initialize #'custom-initialize-changed
   :type 'boolean
   :package-version "1.0" :version "30.1")
 
