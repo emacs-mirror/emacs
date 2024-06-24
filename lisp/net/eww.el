@@ -1370,8 +1370,13 @@ within text input fields."
     (save-excursion
       (goto-char (point-min))
       (while-let ((match (text-property-search-forward
-                          'display nil (lambda (_ value) (imagep value)))))
-        (let* ((image (prop-match-value match))
+                          'display nil
+                          (lambda (_ value)
+                            (and value (get-display-property
+                                        nil 'image nil value))))))
+        (let* ((image (cons 'image
+                            (get-display-property nil 'image nil
+                                                  (prop-match-value match))))
                (original-scale (or (image-property image :original-scale)
                                    (setf (image-property image :original-scale)
                                          (or (image-property image :scale)

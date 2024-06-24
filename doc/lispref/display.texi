@@ -5182,8 +5182,10 @@ specifications.
 This convenience function can be used to get a specific display
 property, no matter whether the @code{display} property is a vector, a
 list or a simple property.  This is like @code{get-text-property}
-(@pxref{Examining Properties}), but works on the @code{display}
-property only.
+(@pxref{Examining Properties}), but works on the @code{display} property
+only.  For properties with a single value (e.g.@: @code{height}, this
+returns the value itself; for properties with a list of values (e.g.@:
+@code{slice}), this returns the list of values.
 
 @var{position} is the position in the buffer or string to examine, and
 @var{prop} is the @code{display} property to return.  The optional

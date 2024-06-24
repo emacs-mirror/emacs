@@ -5549,6 +5549,7 @@ setup_for_ellipsis (struct it *it, int len)
 static Lisp_Object
 find_display_property (Lisp_Object disp, Lisp_Object prop)
 {
+  Lisp_Object elem;
   if (NILP (disp))
     return Qnil;
   /* We have a vector of display specs.  */
@@ -5556,11 +5557,11 @@ find_display_property (Lisp_Object disp, Lisp_Object prop)
     {
       for (ptrdiff_t i = 0; i < ASIZE (disp); i++)
 	{
-	  Lisp_Object elem = AREF (disp, i);
+	  elem = AREF (disp, i);
 	  if (CONSP (elem)
 	      && CONSP (XCDR (elem))
 	      && EQ (XCAR (elem), prop))
-	    return XCAR (XCDR (elem));
+	    goto found;
 	}
       return Qnil;
     }
@@ -5570,11 +5571,11 @@ find_display_property (Lisp_Object disp, Lisp_Object prop)
     {
       while (!NILP (disp))
 	{
-	  Lisp_Object elem = XCAR (disp);
+	  elem = XCAR (disp);
 	  if (CONSP (elem)
 	      && CONSP (XCDR (elem))
 	      && EQ (XCAR (elem), prop))
-	    return XCAR (XCDR (elem));
+	    goto found;
 
 	  /* Check that we have a proper list before going to the next
 	     element.  */
@@ -5589,9 +5590,20 @@ find_display_property (Lisp_Object disp, Lisp_Object prop)
   else if (CONSP (disp)
 	   && CONSP (XCDR (disp))
 	   && EQ (XCAR (disp), prop))
-    return XCAR (XCDR (disp));
+    {
+      elem = disp;
+      goto found;
+    }
+
+  return Qnil;
+
+ found:
+  /* If the property value is a list of one element, just return the
+     CAR. */
+  if (NILP (XCDR (XCDR (elem))))
+    return XCAR (XCDR (elem));
   else
-    return Qnil;
+    return XCDR (elem);
 }
 
 static Lisp_Object
