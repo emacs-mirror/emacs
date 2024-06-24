@@ -1281,7 +1281,14 @@ usage: (catch TAG BODY...)  */)
 void
 pop_handler (void)
 {
-  handlerlist = handlerlist->next;
+  struct handler *old = handlerlist;
+  struct handler *new = old->next;
+  handlerlist = new;
+#ifdef HAVE_MPS
+  eassert (new->nextfree == old);
+  old->val = Qnil;
+  old->tag_or_ch = Qnil;
+#endif
 }
 
 /* Set up a catch, then call C function FUNC on argument ARG.
