@@ -1418,7 +1418,7 @@ Leave point at the beginning of the tag."
 	(with-syntax-table sgml-tag-syntax-table
 	  (let ((pos (point)))
 	    (condition-case nil
-                ;; FIXME: This does not correctly skip over PI an CDATA tags.
+                ;; FIXME: This does not correctly skip over PI and CDATA tags.
 		(sgml-forward-sexp 1)
 	      (scan-error
 	       ;; This < seems to be just a spurious one, let's ignore it.

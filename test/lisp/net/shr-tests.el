@@ -51,7 +51,8 @@ Raise a test failure if the rendered buffer does not match NAME.txt.
 Append CONTEXT to the failure data, if non-nil."
   (let ((text-file (file-name-concat (ert-resource-directory) (concat name ".txt")))
         (html-file (file-name-concat (ert-resource-directory) (concat name ".html")))
-        (description (if context (format "%s (%s)" name context) name)))
+        (description (if context (format "%s (%s)" name context) name))
+        (coding-system-for-read 'utf-8))
     (with-temp-buffer
       (insert-file-contents html-file)
       (let ((dom (libxml-parse-html-region (point-min) (point-max)))
@@ -134,6 +135,7 @@ settings, then once more for each (OPTION . VALUE) pair.")
 
 (ert-deftest shr-test/zoom-image ()
   "Test that `shr-zoom-image' properly replaces the original image."
+  (skip-unless (bound-and-true-p image-types))
   (let ((image (expand-file-name "data/image/blank-100x200.png"
                                  (getenv "EMACS_TEST_DIRECTORY"))))
     (dolist (alt '(nil "" "nothing to see here"))

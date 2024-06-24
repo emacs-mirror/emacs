@@ -201,7 +201,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
 
 
 (ert-deftest ses-jump-B2-lowcase ()
-  "Test jumping to cell B2 by use of lowcase cell name string"
+  "Test jumping to cell B2 by use of lowercase cell name string"
     (let ((ses-initial-size '(3 . 3))
           ses-after-entry-functions)
       (with-temp-buffer
@@ -211,7 +211,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
         (should (eq (ses--cell-at-pos (point)) 'B2)))))
 
 (ert-deftest ses-jump-B2-lowcase-keys ()
-  "Test jumping to cell B2 by use of lowcase cell name string with simulating keys"
+  "Test jumping to cell B2 by use of lowercase cell name string with simulating keys"
     (let ((ses-initial-size '(3 . 3))
           ses-after-entry-functions)
       (with-temp-buffer

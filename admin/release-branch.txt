@@ -42,7 +42,8 @@ Instructions for cutting the Emacs release branch
 
      M-x set-version RET XY+1.0.50 RET
 
-    This creates a new file etc/NEWS.XY.  "git add" it.
+    This creates a new file etc/NEWS.  "git add" it.
+    (The original NEWS gets renamed into NEWS.XY.)
 
     Change the value of 'customize-changed-options-previous-release'
     in cus-edit.el to reference emacs-XY.1, the next version to be
@@ -60,7 +61,7 @@ Instructions for cutting the Emacs release branch
        module_env_snippet_XY+1="$srcdir/src/module-env-XY+1.h"
 
      . adding a new 'struct emacs_env_XY+1' to src/emacs-module.h.in,
-       with the contents identical to'struct emacs_env_XY', with one
+       with the contents identical to 'struct emacs_env_XY', with one
        line added:
 
          @module_env_snippet_XY+1@

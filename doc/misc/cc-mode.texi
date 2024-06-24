@@ -5128,7 +5128,7 @@ started on line 2.  Lines 4 and 5 get the syntaxes
 though part of a function.
 
 Note that the @code{requires} on Line 3 begins a @dfn{requires
-expression}, not a a requires clause, hence its components are not
+expression}, not a requires clause, hence its components are not
 assigned @code{constraint-cont}.  See
 @url{https://en.cppreference.com/w/cpp/language/requires}.
 

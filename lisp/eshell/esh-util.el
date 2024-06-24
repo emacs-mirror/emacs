@@ -256,7 +256,7 @@ specifying a region in the current buffer, or (:file . FILENAME)
 to temporarily insert the contents of FILENAME.
 
 Before executing BODY, narrow the buffer to the text for COMMAND
-and and set point to the beginning of the narrowed region.
+and set point to the beginning of the narrowed region.
 
 The value returned is the last form in BODY."
   (declare (indent 1))

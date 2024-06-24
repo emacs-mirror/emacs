@@ -622,7 +622,7 @@ Included databases are filtered based on `semanticdb-find-default-throttle'."
     ;; INCLUDETAG should have some way to reference where it came
     ;; from!  If not, TABLE should provide the way.  Each time we
     ;; look up a tag, we may need to find it in some relative way
-    ;; and must set our current buffer eto the origin of includetag
+    ;; and must set our current buffer to the origin of includetag
     ;; or nothing may work.
     (setq originfiledir
 	  (cond ((semantic-tag-file-name includetag)
