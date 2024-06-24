@@ -166,17 +166,19 @@ is_igc_usable (void)
 }
 
 static void
-make_igc_unusable (void)
+set_state (enum igc_state state)
 {
-  igc_state = IGC_STATE_UNUSABLE;
-  igc_postmortem ();
-  terminate_due_to_signal (SIGABRT, INT_MAX);
-}
+  igc_state = state;
+  switch (state)
+    {
+    case IGC_STATE_UNUSABLE:
+      igc_postmortem ();
+      terminate_due_to_signal (SIGABRT, INT_MAX);
+      break;
 
-static void
-mark_igc_usable (void)
-{
-  igc_state = IGC_STATE_USABLE;
+    case IGC_STATE_USABLE:
+      break;
+    }
 }
 
 static void
@@ -186,7 +188,7 @@ check_res (const char *file, unsigned line, mps_res_t res)
     {
       fprintf (stderr, "\r\n%s:%u: Emacs fatal error: MPS error code %d\r\n",
 	       file, line, res);
-      make_igc_unusable ();
+      set_state (IGC_STATE_UNUSABLE);
     }
 }
 
@@ -229,7 +231,7 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 {
   fprintf (stderr, "\r\n%s:%u: Emacs fatal error: assertion failed: %s\r\n",
 	   file, line, msg);
-  make_igc_unusable ();
+  set_state (IGC_STATE_UNUSABLE);
 }
 
 #ifdef IGC_DEBUG
@@ -3934,7 +3936,8 @@ igc_begin_collecting (void)
 void
 igc_postmortem (void)
 {
-  mps_arena_postmortem (global_igc->arena);
+  if (global_igc && global_igc->arena)
+    mps_arena_postmortem (global_igc->arena);
 }
 
 
@@ -4163,7 +4166,7 @@ init_igc (void)
   mps_lib_assert_fail_install (igc_assert_fail);
   global_igc = make_igc ();
   add_main_thread ();
-  mark_igc_usable ();
+  set_state (IGC_STATE_USABLE);
 }
 
 void
