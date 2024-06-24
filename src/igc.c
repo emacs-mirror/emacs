@@ -196,7 +196,6 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 # define igc_assert(expr) (void) 9
 #endif
 
-#define igc_static_assert(x) verify (x)
 #define igc_const_cast(type, expr) ((type) (expr))
 
 #define IGC_NOT_IMPLEMENTED() \
@@ -314,7 +313,7 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_DUMPED_BYTES",
 };
 
-igc_static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_NUM_TYPES);
+static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_NUM_TYPES);
 
 static const char *
 obj_type_name (enum igc_obj_type type)
@@ -368,7 +367,7 @@ static const char *pvec_type_names[] = {
   "PVEC_FONT",
 };
 
-igc_static_assert (ARRAYELTS (pvec_type_names) == PVEC_TAG_MAX + 1);
+static_assert (ARRAYELTS (pvec_type_names) == PVEC_TAG_MAX + 1);
 
 static const char *
 pvec_type_name (enum pvec_type type)
@@ -406,7 +405,7 @@ enum
   IGC_HASH_MASK = (1 << IGC_HASH_BITS) - 1,
 };
 
-igc_static_assert (IGC_OBJ_NUM_TYPES - 1 < (1 << IGC_TYPE_BITS));
+static_assert (IGC_OBJ_NUM_TYPES - 1 < (1 << IGC_TYPE_BITS));
 
 struct igc_header
 {
@@ -421,7 +420,7 @@ struct igc_fwd
   mps_addr_t new_base_addr;
 };
 
-igc_static_assert (sizeof (struct igc_header) == 8);
+static_assert (sizeof (struct igc_header) == 8);
 
 static mps_word_t
 to_words (mps_word_t nbytes)
@@ -4073,7 +4072,7 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
     base_to_client (cold_start), /* code_space_masks */
     base_to_client (cold_user_data_start),
   };
-  igc_static_assert (sizeof pinned_roots == sizeof pinned_objects_in_dump);
+  static_assert (sizeof pinned_roots == sizeof pinned_objects_in_dump);
   memcpy (pinned_objects_in_dump, pinned_roots, sizeof pinned_roots);
   igc_root_create_ambig (pinned_objects_in_dump,
 			 (uint8_t *)pinned_objects_in_dump
