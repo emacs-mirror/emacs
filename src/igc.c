@@ -1659,15 +1659,13 @@ fix_buffer (mps_ss_t ss, struct buffer *b)
     IGC_FIX12_RAW (ss, &b->own_text.intervals);
     IGC_FIX12_OBJ (ss, &b->own_text.markers);
     IGC_FIX12_RAW (ss, &b->overlays);
+    IGC_FIX12_OBJ (ss, &b->undo_list_);
 
     IGC_FIX12_RAW (ss, &b->base_buffer);
     if (b->base_buffer)
       b->text = &b->base_buffer->own_text;
     else
       b->text = &b->own_text;
-
-    // FIXME: special handling of undo_list?
-    IGC_FIX12_OBJ (ss, &b->undo_list_);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
