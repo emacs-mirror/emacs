@@ -2067,7 +2067,7 @@ Must be called from a command bound to a `touchscreen-hold' or
   (let* ((tool touch-screen-current-tool)
          (current-what (nth 3 tool)))
     ;; Signal an error if no hold and no drag is in progress.
-    (when (and (not (eq current-what 'hold))
+    (when (and (not (eq current-what 'held))
                (not (eq current-what 'drag)))
       (error "Calling `touch-screen-inhibit-drag' outside hold or drag"))
     ;; Now set the fourth element of tool to `command-inhibit'.
