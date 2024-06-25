@@ -147,20 +147,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
    others. */
 #endif	/* CHECK_STRUCTS */
 
-/* If igc can currently can be used. Initial state is
-   IGC_STATE_UNUSABLE, until everything needed has been successfully
-   initialozed. It goes from usable to IGC_STATE_UNUSABLE if an error
-   happens or is detected that forces us to terminate the process. While
-   terminating in this state, some fallbacks are implemented that let
-   Emacs do its thing while terminating. */
+/* If igc can currently can be used. Initial state is IGC_STATE_INITIAL,
+   until everything needed has been successfully initialized and state
+   becomes IGC_STATE_USABLE. It goes from usable to IGC_STATE_DEAD
+   if an error happens or something is detected that forces us to
+   terminate the process. While terminating in this state, fallbacks are
+   implemented that let Emacs do its thing while terminating. */
 
 enum igc_state
 {
-  IGC_STATE_UNUSABLE,
+  IGC_STATE_INITIAL,
   IGC_STATE_USABLE,
+  IGC_STATE_DEAD,
 };
 
-static enum igc_state igc_state = IGC_STATE_UNUSABLE;
+static enum igc_state igc_state = IGC_STATE_INITIAL;
 
 static bool
 is_igc_usable (void)
@@ -174,12 +175,15 @@ set_state (enum igc_state state)
   igc_state = state;
   switch (state)
     {
-    case IGC_STATE_UNUSABLE:
-      igc_postmortem ();
-      terminate_due_to_signal (SIGABRT, INT_MAX);
-      break;
+    case IGC_STATE_INITIAL:
+      emacs_abort ();
 
     case IGC_STATE_USABLE:
+      break;
+
+    case IGC_STATE_DEAD:
+      igc_postmortem ();
+      terminate_due_to_signal (SIGABRT, INT_MAX);
       break;
     }
 }
@@ -191,11 +195,37 @@ check_res (const char *file, unsigned line, mps_res_t res)
     {
       fprintf (stderr, "\r\n%s:%u: Emacs fatal error: MPS error code %d\r\n",
 	       file, line, res);
-      set_state (IGC_STATE_UNUSABLE);
+      set_state (IGC_STATE_DEAD);
     }
 }
 
 #define IGC_CHECK_RES(res) check_res (__FILE__, __LINE__, (res))
+
+/* Function called from MPS and from igc on assertion failures.
+   The function signature must be that of mps_lib_assert_fail_t.  */
+
+static void
+igc_assert_fail (const char *file, unsigned line, const char *msg)
+{
+  fprintf (stderr, "\r\n%s:%u: Emacs fatal error: assertion failed: %s\r\n",
+	   file, line, msg);
+  set_state (IGC_STATE_DEAD);
+}
+
+#ifdef IGC_DEBUG
+# define igc_assert(expr)				\
+  do							\
+    {							\
+      if (!(expr))					\
+	igc_assert_fail (__FILE__, __LINE__, #expr);	\
+    }							\
+  while (0)
+#else
+# define igc_assert(expr) (void) 0
+#endif
+
+#define IGC_NOT_IMPLEMENTED() \
+  igc_assert_fail (__FILE__, __LINE__, "not implemented")
 
 /* An enum for telemetry event categories seems to be missing from MOS.
    The docs only mention the bare numbers. */
@@ -219,32 +249,6 @@ is_in_telemetry_filter (enum igc_event_category c)
 {
   return (mps_telemetry_get () & (1 << c)) != 0;
 }
-
-/* Function called from MPS an dfrom igc on assert violations.
-   The function signature must be that of mps_lib_assert_fail_t.  */
-
-static void
-igc_assert_fail (const char *file, unsigned line, const char *msg)
-{
-  fprintf (stderr, "\r\n%s:%u: Emacs fatal error: assertion failed: %s\r\n",
-	   file, line, msg);
-  set_state (IGC_STATE_UNUSABLE);
-}
-
-#ifdef IGC_DEBUG
-# define igc_assert(expr)				\
-  do							\
-    {							\
-      if (!(expr))					\
-	igc_assert_fail (__FILE__, __LINE__, #expr);	\
-    }							\
-  while (0)
-#else
-# define igc_assert(expr) (void) 0
-#endif
-
-#define IGC_NOT_IMPLEMENTED() \
-  igc_assert_fail (__FILE__, __LINE__, "not implemented")
 
 #ifdef __cplusplus
 #define igc_const_cast(type, expr) const_cast<type>(expr))
