@@ -5183,7 +5183,7 @@ A string is printed verbatim in the mode line except for %-constructs:
   %P -- print percent of buffer above bottom of window, perhaps plus Top,
         or print Bottom or All.
   %q -- print percent of buffer above both the top and the bottom of the
-        window, separated by ‘-’, or ‘All’.
+        window, separated by `-', or `All'.
   %s -- print process status.
   %z -- print mnemonics of keyboard, terminal, and buffer coding systems.
   %Z -- like %z, but including the end-of-line format.
