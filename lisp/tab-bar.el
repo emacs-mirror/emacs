@@ -1023,7 +1023,11 @@ It should return the formatted tab group name to display in the tab bar."
 
 (defcustom tab-bar-tab-group-face-function #'tab-bar-tab-group-face-default
   "Function to define a tab group face.
-Function gets one argument: a tab."
+Function gets one argument: a tab.
+Please note that if you customized `tab-bar-tab-face-function'
+and want to use the same faces for non-group tabs with
+`tab-bar-format-tabs-groups' as well, then you can set this
+variable to the same function."
   :type 'function
   :group 'tab-bar
   :version "28.1")

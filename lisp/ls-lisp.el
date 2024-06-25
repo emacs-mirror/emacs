@@ -70,7 +70,10 @@
 (defun ls-lisp-set-options ()
   "Reset the ls-lisp options that depend on `ls-lisp-emulation'."
   (mapc 'custom-reevaluate-setting
-	'(ls-lisp-ignore-case ls-lisp-dirs-first ls-lisp-verbosity)))
+        '(ls-lisp-ignore-case
+          ls-lisp-dirs-first
+          ls-lisp-verbosity
+          ls-lisp-use-string-collate)))
 
 (defcustom ls-lisp-emulation
   (cond ;; ((eq system-type 'windows-nt) 'MS-Windows)

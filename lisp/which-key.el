@@ -233,6 +233,15 @@ you use this feature."
           (const :tag "Replace command name with docstring" docstring-only))
   :package-version "1.0" :version "30.1")
 
+(defcustom which-key-extra-keymaps '(key-translation-map)
+  "List of extra keymaps to show entries from.
+The default is to check `key-translation-map', which contains the
+\\='C-x 8' bindings for entering common characters."
+  :type '(choice (list :tag "Translation map" (const key-translation-map))
+                 (const :tag "None" nil)
+                 (repeat :tag "Custom" symbol))
+  :package-version "1.0" :version "30.1")
+
 (defcustom which-key-highlighted-command-list '()
   "Rules used to highlight certain commands.
 If the element is a string, assume it is a regexp pattern for
@@ -1942,8 +1951,10 @@ EVIL is non-nil, extract active evil bindings."
 
 (defun which-key--get-current-bindings (&optional prefix filter)
   "Generate a list of current active bindings."
-  (let (bindings)
-    (dolist (map (current-active-maps t) bindings)
+  (let (bindings
+        (maps (nconc (current-active-maps t)
+                     (mapcar #'symbol-value which-key-extra-keymaps))))
+    (dolist (map maps bindings)
       (when (cdr map)
         (setq bindings
               (which-key--get-keymap-bindings
