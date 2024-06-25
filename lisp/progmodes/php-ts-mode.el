@@ -36,6 +36,7 @@
 ;; * https://github.com/tree-sitter/tree-sitter-php
 ;; * https://github.com/tree-sitter/tree-sitter-html
 ;; * https://github.com/tree-sitter/tree-sitter-javascript
+;; * https://github.com/tree-sitter/tree-sitter-jsdoc
 ;; * https://github.com/tree-sitter/tree-sitter-css
 ;; * https://github.com/claytonrcarter/tree-sitter-phpdoc
 ;;
@@ -86,6 +87,7 @@
     (phpdoc . ("https://github.com/claytonrcarter/tree-sitter-phpdoc"))
     (html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.20.3"))
     (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.21.2"))
+    (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.21.0"))
     (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.21.0")))
   "Treesitter language parsers required by `php-ts-mode'.
 You can customize this variable if you want to stick to a specific
@@ -1296,6 +1298,7 @@ Depends on `c-ts-common-comment-setup'."
             (treesit-ready-p 'phpdoc)
             (treesit-ready-p 'html)
             (treesit-ready-p 'javascript)
+            (treesit-ready-p 'jsdoc)
             (treesit-ready-p 'css)))
       (error "Tree-sitter for PHP isn't
     available.  You can install the parsers with M-x
@@ -1333,6 +1336,12 @@ Depends on `c-ts-common-comment-setup'."
                  '((script_element
                     (start_tag (tag_name))
                     (raw_text) @cap))
+
+                 :embed 'jsdoc
+                 :host 'javascript
+                 :local t
+                 `(((comment) @cap
+                    (:match ,js--treesit-jsdoc-beginning-regexp @cap)))
 
                  :embed 'css
                  :host 'html
