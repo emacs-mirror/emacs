@@ -4115,6 +4115,62 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
   return base + nbytes;
 }
 
+void
+igc_dump_check_object_starts (Lisp_Object relocs, void *dump_base,
+			      void *hot_start, void *hot_end,
+			      void *cold_start, void *heap_end)
+{
+  eassert (is_aligned (dump_base));
+  eassert (is_aligned (hot_start));
+  eassert (is_aligned (hot_end));
+  eassert (is_aligned (cold_start));
+  eassert (is_aligned (hot_end));
+  struct region
+  {
+    mps_addr_t start, end;
+  } regions[] = {
+    {hot_start, hot_end},
+    {cold_start, heap_end},
+  };
+  for (size_t i = 0; i < ARRAYELTS (regions); i++)
+    {
+      struct region region = regions[i];
+      mps_addr_t p = region.start;
+      while (p != region.end)
+	{
+	  eassert (p < region.end);
+	  Lisp_Object r = XCAR (relocs);
+	  relocs = XCDR (relocs);
+	  EMACS_INT start_off = XFIXNUM (XCAR (r));
+	  EMACS_INT end_off = XFIXNUM (XCAR (XCDR (r)));
+	  mps_addr_t start = (uint8_t *) dump_base + start_off;
+	  mps_addr_t end = (uint8_t *) dump_base + end_off;
+	  eassert (start == p);
+	  p = dflt_skip (p);
+	  eassert (end == p);
+	}
+    }
+  eassert (NILP (relocs));
+}
+
+static bool
+check_dump (mps_addr_t start, mps_addr_t end)
+{
+  struct pdumper_object_it it = { 0 };
+  for (mps_addr_t p = start; p != end; p = dflt_skip (p))
+    {
+      eassert (p < end);
+      struct igc_header *h = p;
+      if (h->obj_type != IGC_OBJ_PAD)
+	{
+	  mps_addr_t obj = pdumper_next_object (&it);
+	  eassert (p == obj);
+	}
+    }
+  eassert (pdumper_next_object (&it) == NULL);
+  return true;
+}
+
 static mps_addr_t pinned_objects_in_dump[3];
 
 /* Called from pdumper_load. [START, END) is the hot section of the
@@ -4151,6 +4207,7 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   /* Ignore relocs */
   set_header (heap_end, IGC_OBJ_PAD, relocs_size, 0);
 
+  eassert (check_dump (h, cold_end));
   /* Pin some stuff in the dump  */
   mps_addr_t pinned_roots[] = {
     charset_table,

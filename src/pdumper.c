@@ -883,6 +883,21 @@ dump_align_output (struct dump_context *ctx, int alignment)
 
 # ifdef HAVE_MPS
 static void
+dump_igc_check_object_starts (struct dump_context *ctx)
+{
+  Lisp_Object relocs = CALLN (Fsort, Freverse (ctx->igc_object_starts),
+			      Qdump_emacs_portable__sort_predicate);
+  void *dump_base = (uint8_t *) ctx->buf;
+  size_t dump_header_size = ROUNDUP (sizeof ctx->header, sizeof (uintptr_t));
+  void *hot_start = (uint8_t *) dump_base + dump_header_size;
+  void *hot_end = (uint8_t *) dump_base + ctx->header.discardable_start;
+  void *cold_start = (uint8_t *) dump_base + ctx->header.cold_start;
+  void *heap_end = (uint8_t *) dump_base + ctx->header.heap_end;
+  igc_dump_check_object_starts (relocs, dump_base,
+				hot_start, hot_end, cold_start, heap_end);
+}
+
+static void
 dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
 		    const void *in)
 {
@@ -4471,6 +4486,7 @@ types.  */)
 
 # ifdef HAVE_MPS
   ctx->header.heap_end = ctx->offset;
+  dump_igc_check_object_starts (ctx);
   dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, &discardable_end);
 # endif
 
