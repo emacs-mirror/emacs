@@ -1710,10 +1710,10 @@ fix_frame (mps_ss_t ss, struct frame *f)
     IGC_FIX12_RAW (ss, &f->face_cache);
     if (f->terminal)
       IGC_FIX12_RAW (ss, &f->terminal);
-    if (f->image_cache)
-      IGC_FIX12_RAW (ss, &f->image_cache);
 
 #ifdef HAVE_WINDOW_SYSTEM
+    if (f->image_cache)
+      IGC_FIX12_RAW (ss, &f->image_cache);
     if (FRAME_WINDOW_P (f) && FRAME_OUTPUT_DATA (f))
       {
 	struct font **font_ptr = &FRAME_FONT (f);
