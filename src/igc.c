@@ -163,17 +163,11 @@ enum igc_state
 
 static enum igc_state igc_state = IGC_STATE_INITIAL;
 
-static bool
-is_igc_usable (void)
-{
-  return igc_state == IGC_STATE_USABLE;
-}
-
 static void
 set_state (enum igc_state state)
 {
   igc_state = state;
-  switch (state)
+  switch (igc_state)
     {
     case IGC_STATE_INITIAL:
       emacs_abort ();
@@ -3299,8 +3293,9 @@ alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
 {
   mps_addr_t p;
   size = alloc_size (size);
-  if (is_igc_usable ())
+  switch (igc_state)
     {
+    case IGC_STATE_USABLE:
       do
 	{
 	  mps_res_t res = mps_reserve (&p, ap, size);
@@ -3311,11 +3306,15 @@ alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
 	  set_header (p, type, size, alloc_hash ());
 	}
       while (!mps_commit (ap, p, size));
-    }
-  else
-    {
+      break;
+
+    case IGC_STATE_DEAD:
       p = xzalloc (size);
       set_header (p, type, size, alloc_hash ());
+      break;
+
+    case IGC_STATE_INITIAL:
+      emacs_abort ();
     }
   return base_to_client (p);
 }
