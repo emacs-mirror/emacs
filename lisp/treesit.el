@@ -1396,9 +1396,8 @@ non-nil, print debugging information."
   "If non-nil, next `syntax-propertize' should start at this position.
 
 When tree-sitter parser reparses, it calls
-`treesit--syntax-propertize-notifier' with the affected region,
-and that function sets this variable to the start of the affected
-region.")
+`treesit--font-lock-mark-ranges-to-fontify' with the changed ranges, and
+that function sets this variable to the start of the changed ranges.")
 
 (defvar-local treesit--pre-redisplay-tick nil
   "The last `buffer-chars-modified-tick' that we've processed.
