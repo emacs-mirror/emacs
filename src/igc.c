@@ -2053,6 +2053,20 @@ fix_font (mps_ss_t ss, struct Lisp_Vector *v)
   return MPS_RES_OK;
 }
 
+#ifdef HAVE_TREE_SITTER
+static mps_res_t
+fix_ts_parser (mps_ss_t ss, struct Lisp_TS_Parser *p)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, p, fix_vectorlike);
+    IGC_FIX12_RAW (ss, &p->input.payload);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+#endif
+
 /* Note that there is a small window after committing a vectorlike
    allocation where the object is zeroed, and so the vector header is
    also zero.  This doesn't have an adverse effect. */
@@ -2165,6 +2179,14 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_font);
 	break;
 
+      case PVEC_TS_PARSER:
+#ifdef HAVE_TREE_SITTER
+	IGC_FIX_CALL_FN (ss, struct Lisp_TS_Parser, v, fix_ts_parser);
+#else
+	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
+#endif
+	break;
+
       case PVEC_NORMAL_VECTOR:
       case PVEC_SYMBOL_WITH_POS:
       case PVEC_PROCESS:
@@ -2173,7 +2195,6 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_CONDVAR:
       case PVEC_TS_COMPILED_QUERY:
       case PVEC_TS_NODE:
-      case PVEC_TS_PARSER:
       case PVEC_SQLITE:
       case PVEC_CLOSURE:
       case PVEC_RECORD:
