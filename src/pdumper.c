@@ -903,6 +903,7 @@ dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
 {
   eassert (ctx->igc_type == IGC_OBJ_INVALID);
   eassert (ctx->igc_obj_dumped == NULL);
+  eassert (ctx->offset % igc_header_size () == 0);
   ctx->igc_obj_dumped = (void *) in;
   ctx->igc_type = type;
   ctx->igc_base_offset = ctx->offset;
@@ -3620,6 +3621,10 @@ dump_cold_native_subr (struct dump_context *ctx, Lisp_Object subr)
   /* Dump subr contents.  */
   dump_off subr_offset = dump_recall_object (ctx, subr);
   eassert (subr_offset > 0);
+# ifdef HAVE_MPS
+  /* FIXME: more descriptive name? but igc_obj_type has no more free bits */
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, (void *)~0);
+# endif
   dump_remember_fixup_ptr_raw
     (ctx,
      subr_offset + dump_offsetof (struct Lisp_Subr, symbol_name),
@@ -3633,6 +3638,9 @@ dump_cold_native_subr (struct dump_context *ctx, Lisp_Object subr)
      ctx->offset);
   const char *c_name = XSUBR (subr)->native_c_name;
   dump_write (ctx, c_name, 1 + strlen (c_name));
+# ifdef HAVE_MPS
+  dump_igc_finish_obj (ctx);
+# endif
 }
 #endif
 
@@ -5738,7 +5746,13 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  XNATIVE_COMP_UNIT (subr->native_comp_u);
 	if (!comp_u->handle)
 	  error ("NULL handle in compilation unit %s", SSDATA (comp_u->file));
+#ifdef HAVE_MPS
+	/* FIXME: needs finalization? */
+	subr->symbol_name = xstrdup (subr->symbol_name);
+	const char *c_name = xstrdup (subr->native_c_name);
+#else
 	const char *c_name = subr->native_c_name;
+#endif
 	eassert (c_name);
 	void *func = dynlib_sym (comp_u->handle, c_name);
 	if (!func)
