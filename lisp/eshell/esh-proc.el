@@ -530,28 +530,30 @@ PROC is the process that's exiting.  STRING is the exit message."
                                            (not (process-live-p proc))))
                      (finish-io
                       (lambda ()
-                        (if (or (process-get proc :eshell-busy)
-                                (and wait-for-stderr (car stderr-live)))
-                            (progn
-                              (eshell-debug-command 'process
-                                "i/o busy for process `%s'" proc)
-                              (run-at-time 0 nil finish-io))
-                          (when data
-                            (ignore-error eshell-pipe-broken
-                              (eshell-output-object
-                               data index handles)))
-                          (eshell-close-handles
-                           status
-                           (when status (list 'quote (= status 0)))
-                           handles)
-                          ;; Clear the handles to mark that we're 100%
-                          ;; finished with the I/O for this process.
-                          (process-put proc :eshell-handles nil)
-                          (eshell-debug-command 'process
-                            "finished external process `%s'" proc)
-                          (if primary
-                              (run-hook-with-args 'eshell-kill-hook proc string)
-                            (setcar stderr-live nil))))))
+                        (with-current-buffer (process-buffer proc)
+                          (if (or (process-get proc :eshell-busy)
+                                  (and wait-for-stderr (car stderr-live)))
+                              (progn
+                                (eshell-debug-command 'process
+                                  "i/o busy for process `%s'" proc)
+                                (run-at-time 0 nil finish-io))
+                            (when data
+                              (ignore-error eshell-pipe-broken
+                                (eshell-output-object
+                                 data index handles)))
+                            (eshell-close-handles
+                             status
+                             (when status (list 'quote (= status 0)))
+                             handles)
+                            ;; Clear the handles to mark that we're 100%
+                            ;; finished with the I/O for this process.
+                            (process-put proc :eshell-handles nil)
+                            (eshell-debug-command 'process
+                              "finished external process `%s'" proc)
+                            (if primary
+                                (run-hook-with-args 'eshell-kill-hook
+                                                    proc string)
+                              (setcar stderr-live nil)))))))
               (funcall finish-io)))
         (when-let ((entry (assq proc eshell-process-list)))
           (eshell-remove-process-entry entry))))))
