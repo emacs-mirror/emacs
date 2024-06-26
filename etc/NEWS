@@ -1916,6 +1916,13 @@ the 'widget-inactive' face).
 If non-nil, moving point forward or backward between widgets by typing
 'TAB' or 'S-TAB' skips over inactive widgets.  The default value is nil.
 
+** Xref
+
+*** 'xref-revert-buffer' is now an alias of 'revert-buffer'.
+The Xref buffer now sets up 'revert-buffer-function' such that
+'revert-buffer' behaves like 'xref-revert-buffer' did in previous Emacs
+versions, and the latter is now an alias of the former.
+
 ** Ruby mode
 
 *** New user option 'ruby-rubocop-use-bundler'.

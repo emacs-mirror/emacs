@@ -993,7 +993,6 @@ point."
     ;; suggested by Johan Claesson "to further reduce finger movement":
     (define-key map (kbd ".") #'xref-next-line)
     (define-key map (kbd ",") #'xref-prev-line)
-    (define-key map (kbd "g") #'xref-revert-buffer)
     (define-key map (kbd "M-,") #'xref-quit-and-pop-marker-stack)
     map))
 
@@ -1011,6 +1010,7 @@ point."
         #'xref--imenu-extract-index-name)
   (setq-local add-log-current-defun-function
               #'xref--add-log-current-defun)
+  (setq-local revert-buffer-function #'xref--revert-buffer)
   (setq-local outline-minor-mode-cycle t)
   (setq-local outline-minor-mode-use-buttons 'insert)
   (setq-local outline-search-function
@@ -1273,28 +1273,25 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
           xref--original-window-intent (assoc-default 'display-action alist))
     (setq xref--fetcher fetcher)))
 
-(defun xref-revert-buffer ()
+(defun xref--revert-buffer (&rest _)    ; Ignore `revert-buffer' args.
   "Refresh the search results in the current buffer."
-  (interactive)
   (let ((inhibit-read-only t)
-        (buffer-undo-list t)
-        restore-functions)
-    (when (boundp 'revert-buffer-restore-functions)
-      (run-hook-wrapped 'revert-buffer-restore-functions
-                        (lambda (f) (push (funcall f) restore-functions) nil)))
+        (buffer-undo-list t))
     (save-excursion
       (condition-case err
           (let ((alist (xref--analyze (funcall xref--fetcher)))
                 (inhibit-modification-hooks t))
             (erase-buffer)
-            (prog1 (xref--insert-xrefs alist)
-              (mapc #'funcall (delq nil restore-functions))))
+            (xref--insert-xrefs alist))
         (user-error
          (erase-buffer)
          (insert
           (propertize
            (error-message-string err)
            'face 'error)))))))
+
+;;; FIXME: Make this alias obsolete in future release.
+(defalias 'xref-revert-buffer #'revert-buffer)
 
 (defun xref--auto-jump-first (buf value)
   (when value
