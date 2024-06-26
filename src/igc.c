@@ -3122,40 +3122,62 @@ buffer_it_next (struct igc_buffer_it *it)
   it->buf = Qnil;
 }
 
+static bool
+arena_step (void)
+{
+  /* mps_arena_step does not guarantee to return swiftly. And it seems
+     that it sometimes does an opportunistic full collection alledging
+     the client predicted lots of idle time. But it doesn't tell how
+     it comes to that conclusioin. */
+  if (!FIXNUMP (Vigc_step_interval)
+      || XFIXNUM (Vigc_step_interval) != 0)
+    {
+      double interval = 0;
+      if (NUMBERP (Vigc_step_interval))
+	{
+	  interval = XFLOATINT (Vigc_step_interval);
+	  if (interval < 0)
+	    interval = 0.05;
+	}
+
+      if (mps_arena_step (global_igc->arena, interval, 0))
+	return true;
+    }
+
+  return false;
+}
+
+static bool
+buffer_step (struct igc_buffer_it *it)
+{
+  if (is_buffer_it_valid (it))
+    {
+      Lisp_Object buf = it->buf;
+      buffer_it_next (it);
+      compact_buffer (XBUFFER (buf));
+      return true;
+    }
+  return false;
+}
+
 void
 igc_on_idle (void)
 {
   struct igc_buffer_it buffer_it = make_buffer_it ();
   IGC_WITH_CLOCK (clock, 0.1)
   {
-    bool work_done = process_one_message (global_igc);
-
-    if (is_buffer_it_valid (&buffer_it))
+    bool work_done = false;
+    switch (igc_state)
       {
-	Lisp_Object buf = buffer_it.buf;
-	buffer_it_next (&buffer_it);
-	compact_buffer (XBUFFER (buf));
-	/* Always set work_done to increase the chance to process all
-	   buffers.  FIXME: can this be done better? */
-	work_done = true;
-      }
+      case IGC_STATE_INITIAL:
+      case IGC_STATE_DEAD:
+	return;
 
-    /* mps_arena_step does not guarantee to return swiftly. And it seems
-       that it sometimes does an opportunistic full collection alledging
-       the client predicted lots of idle time. But it doesn't tell how
-       it comes to that conclusioin. */
-    if (!FIXNUMP (Vigc_step_interval) || XFIXNUM (Vigc_step_interval) != 0)
-      {
-	double interval = 0;
-	if (NUMBERP (Vigc_step_interval))
-	  {
-	    interval = XFLOATINT (Vigc_step_interval);
-	    if (interval < 0)
-	      interval = 0.05;
-	  }
-
-	if (mps_arena_step (global_igc->arena, interval, 0))
-	  work_done = true;
+      case IGC_STATE_USABLE:
+	work_done |= process_one_message (global_igc);
+	work_done |= buffer_step (&buffer_it);
+	work_done |= arena_step ();
+	break;
       }
 
     /* Don't always exhaust the max time we want to spend here. */
