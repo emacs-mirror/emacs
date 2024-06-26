@@ -177,7 +177,7 @@ If this contains a %s, that will be replaced by the matching rule."
                                (when (string-match "-mode\\'" name)
                                  (push name modes)))))
                  (sort modes 'string<)))
-     (completing-read "Local variables for mode: " v1 nil t)
+     (completing-read "Local variables for mode: " v1 nil 'confirm)
      " . (("
      (let ((all-variables
             (apropos-internal ".*"
