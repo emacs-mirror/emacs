@@ -4571,16 +4571,16 @@ lface_same_font_attributes_p (Lisp_Object *lface1, Lisp_Object *lface2)
 static struct face *
 make_realized_face (Lisp_Object *attr)
 {
-  enum { off = offsetof (struct face, id) };
 #ifdef HAVE_MPS
   struct face *face = igc_make_face ();
+  memcpy (face->lface, attr, sizeof face->lface);
 #else
+  enum { off = offsetof (struct face, id) };
   struct face *face = xmalloc (sizeof *face);
-#endif
   memcpy (face->lface, attr, sizeof face->lface);
   memset (&face->id, 0, sizeof *face - off);
+#endif
   face->ascii_face = face;
-
   return face;
 }
 
