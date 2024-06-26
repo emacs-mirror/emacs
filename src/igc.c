@@ -4195,8 +4195,10 @@ check_dump (mps_addr_t start, mps_addr_t end)
 
 static mps_addr_t pinned_objects_in_dump[3];
 
-/* Called from pdumper_load. [START, END) is the hot section of the
-   dump. Copy objects from the dump to MPS, and discard the dump. */
+/* Called from pdumper_load. [HOT_START, HOT_END) is the hot section of
+   the dump. [COL_START, COLD_END) is the cold section of the
+   dump. COLD_USER_DATA_START is where actual object memory starts.
+   HEAP_END is the heap end as recorded in the dump header. */
 
 void
 igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
@@ -4205,13 +4207,13 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 {
   igc_assert (global_igc->park_count > 0);
   igc_assert (base_to_client (hot_start) == charset_table);
-  igc_assert (((struct igc_header *)hot_start)->obj_type
+  igc_assert (((struct igc_header *) hot_start)->obj_type
 	      == IGC_OBJ_DUMPED_CHARSET_TABLE);
-  igc_assert (((struct igc_header *)cold_start)->obj_type
+  igc_assert (((struct igc_header *) cold_start)->obj_type
 	      == IGC_OBJ_DUMPED_CODE_SPACE_MASKS);
-  igc_assert (((struct igc_header *)cold_user_data_start)->obj_type
+  igc_assert (((struct igc_header *) cold_user_data_start)->obj_type
 	      == IGC_OBJ_DUMPED_BYTES);
-  igc_assert (((struct igc_header *)heap_end)->obj_type
+  igc_assert (((struct igc_header *) heap_end)->obj_type
 	      == IGC_OBJ_DUMPED_BYTES);
   size_t discardable_size = (uint8_t *)cold_start - (uint8_t *)hot_end;
   // size_t cold_size = (uint8_t *)cold_end - (uint8_t *)cold_start;
