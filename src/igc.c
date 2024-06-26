@@ -3313,7 +3313,7 @@ igc_hash (Lisp_Object key)
 static mps_addr_t
 alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
 {
-  mps_addr_t p;
+  mps_addr_t p UNINIT;
   size = alloc_size (size);
   switch (igc_state)
     {
