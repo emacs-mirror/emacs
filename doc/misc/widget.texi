@@ -3287,6 +3287,16 @@ Face used for pressed buttons.
 Face used for inactive widgets.
 @end deffn
 
+@deffn Face widget-unselected
+Face used for unselected widgets.  This face is also used on the text
+labels of radio-button and checkbox widgets.
+
+The default value inherits from the @code{widget-inactive} face.  If you
+want to visually distinguish the labels of unselected active
+radio-button or checkbox widgets from the labels of unselected inactive
+widgets, customize this face to a non-default value.
+@end deffn
+
 @defopt widget-mouse-face
 Face used for highlighting a button when the mouse pointer moves
 across it.

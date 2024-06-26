@@ -1906,6 +1906,12 @@ options of GNU 'ls'.
 ** Widget
 
 +++
+*** New face 'widget-unselected'.
+Customize this face to a non-default value to visually distinguish the
+labels of unselected active radio-button or checkbox widgets from the
+labels of unselected inactive widgets (the default value inherits from
+the 'widget-inactive' face).
+
 *** New user option 'widget-skip-inactive'.
 If non-nil, moving point forward or backward between widgets by typing
 'TAB' or 'S-TAB' skips over inactive widgets.  The default value is nil.

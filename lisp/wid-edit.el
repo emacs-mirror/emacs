@@ -568,6 +568,29 @@ With CHECK-AFTER non-nil, considers also the content after point, if needed."
       (delete-overlay inactive)
       (widget-put widget :inactive nil))))
 
+(defface widget-unselected
+  '((t :inherit widget-inactive))
+  "Face used for unselected widgets."
+  :group 'widget-faces
+  :version "30.1")
+
+(defun widget-specify-unselected (widget from to)
+  "Fontify WIDGET as unselected."
+  (let ((overlay (make-overlay from to nil t nil)))
+    (overlay-put overlay 'face 'widget-unselected)
+    (overlay-put overlay 'evaporate t)
+    ;; The overlay priority here should be lower than the priority in
+    ;; `widget-specify-active' (bug#69942).
+    (overlay-put overlay 'priority 90)
+    (widget-put widget :unselected overlay)))
+
+(defun widget-specify-selected (widget)
+  "Remove fontification of WIDGET as unselected."
+  (let ((unselected (widget-get widget :unselected)))
+    (when unselected
+      (delete-overlay unselected)
+      (widget-put widget :unselected nil))))
+
 ;;; Widget Properties.
 
 (defsubst widget-type (widget)
@@ -2450,10 +2473,16 @@ when he invoked the menu."
 (defun widget-checkbox-action (widget &optional event)
   "Toggle checkbox, notify parent, and set active state of sibling."
   (widget-toggle-action widget event)
-  (let ((sibling (widget-get-sibling widget)))
+  (let* ((sibling (widget-get-sibling widget))
+         (from (widget-get sibling :from))
+	 (to (widget-get sibling :to)))
     (when sibling
-      (widget-apply sibling
-	            (if (widget-value widget) :activate :deactivate))
+      (if (widget-value widget)
+          (progn
+            (widget-apply sibling :activate)
+            (widget-specify-selected sibling))
+        :deactivate
+        (widget-specify-unselected sibling from to))
       (widget-clear-undo))))
 
 ;;; The `checklist' Widget.
@@ -2509,15 +2538,18 @@ If the item is checked, CHOSEN is a cons whose cdr is the value."
 	       ((eq escape ?v)
 		(setq child
 		      (cond ((not chosen)
-			     (let ((child (widget-create-child widget type)))
-			       (widget-apply child :deactivate)
+			     (let* ((child (widget-create-child widget type))
+                                    (from (widget-get child :from))
+			            (to (widget-get child :to)))
+                               (widget-specify-unselected child from to)
 			       child))
                             ((widget-inline-p type t)
 			     (widget-create-child-value
 			      widget type (cdr chosen)))
 			    (t
 			     (widget-create-child-value
-			      widget type (car (cdr chosen)))))))
+			      widget type (car (cdr chosen)))
+                             (widget-specify-selected child)))))
 	       (t
 		(error "Unknown escape `%c'" escape)))))
      ;; Update properties.
@@ -2688,8 +2720,11 @@ Return an alist of (TYPE MATCH)."
 				(widget-create-child-value
 				 widget type value)
 			      (widget-create-child widget type)))
-		(unless chosen
-		  (widget-apply child :deactivate)))
+                (if chosen
+                    (widget-specify-selected child)
+                  (let ((from (widget-get child :from))
+			(to (widget-get child :to)))
+                    (widget-specify-unselected child from to))))
 	       (t
 		(error "Unknown escape `%c'" escape)))))
      ;; Update properties.
@@ -2739,14 +2774,17 @@ Return an alist of (TYPE MATCH)."
     (dolist (current (widget-get widget :children))
       (let* ((button (widget-get current :button))
 	     (match (and (not found)
-			 (widget-apply current :match value))))
+			 (widget-apply current :match value)))
+             (from (widget-get current :from))
+	     (to (widget-get current :to)))
 	(widget-value-set button match)
 	(if match
-	    (progn
-	      (widget-value-set current value)
-	      (widget-apply current :activate))
-	  (widget-apply current :deactivate))
-	(setq found (or found match))))))
+            (progn
+              (widget-value-set current value)
+              (widget-apply current :activate)
+              (widget-specify-selected current))
+          (widget-specify-unselected current from to))
+        (setq found (or found match))))))
 
 (defun widget-radio-validate (widget)
   ;; Valid if we have made a valid choice.
@@ -2766,13 +2804,16 @@ Return an alist of (TYPE MATCH)."
   (let ((buttons (widget-get widget :buttons)))
     (when (memq child buttons)
       (dolist (current (widget-get widget :children))
-	(let* ((button (widget-get current :button)))
+	(let* ((button (widget-get current :button))
+               (from (widget-get current :from))
+	       (to (widget-get current :to)))
 	  (cond ((eq child button)
 		 (widget-value-set button t)
-		 (widget-apply current :activate))
+		 (widget-apply current :activate)
+                 (widget-specify-selected current))
 		((widget-value button)
 		 (widget-value-set button nil)
-		 (widget-apply current :deactivate)))))))
+                 (widget-specify-unselected current from to)))))))
   ;; Pass notification to parent.
   (widget-apply widget :notify child event))
 
