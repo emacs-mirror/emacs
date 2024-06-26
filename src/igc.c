@@ -1809,13 +1809,15 @@ fix_subr (mps_ss_t ss, struct Lisp_Subr *s)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_OBJ (ss, &s->command_modes);
 #ifdef HAVE_NATIVE_COMP
-    IGC_FIX12_OBJ (ss, &s->intspec.native);
-    IGC_FIX12_OBJ (ss, &s->command_modes);
-    IGC_FIX12_OBJ (ss, &s->native_comp_u);
-    IGC_FIX12_OBJ (ss, &s->lambda_list);
-    IGC_FIX12_OBJ (ss, &s->type);
+    if (!NILP (s->native_comp_u))
+      {
+	IGC_FIX12_OBJ (ss, &s->native_comp_u);
+	IGC_FIX12_OBJ (ss, &s->command_modes);
+	IGC_FIX12_OBJ (ss, &s->intspec.native);
+	IGC_FIX12_OBJ (ss, &s->lambda_list);
+	IGC_FIX12_OBJ (ss, &s->type);
+      }
 #endif
   }
   MPS_SCAN_END (ss);
