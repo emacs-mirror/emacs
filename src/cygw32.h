@@ -35,5 +35,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 extern void syms_of_cygw32 (void);
 extern char * w32_strerror (int error_no);
+extern LPBYTE w32_get_resource (const char * key, const char * name, LPDWORD type);
 
 #endif /* CYGW32_H */
