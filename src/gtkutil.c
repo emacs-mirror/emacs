@@ -4526,12 +4526,14 @@ xg_scroll_bar_size_allocate_cb (GtkWidget *widget,
 }
 #endif
 
+#ifdef HAVE_MPS
 static void
 xg_gtk_scroll_free_scroll_bar_cell (GtkWidget *widget, gpointer data)
 {
   struct scroll_bar **bar_cell = data;
   igc_xfree (bar_cell);
 }
+#endif
 
 static void
 xg_finish_scroll_bar_creation (struct frame *f,
