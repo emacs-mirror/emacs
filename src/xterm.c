@@ -32626,8 +32626,10 @@ syms_of_xterm (void)
   x_dnd_unsupported_drop_data = Qnil;
   staticpro (&x_dnd_unsupported_drop_data);
 
+#ifdef USE_TOOLKIT_SCROLL_BARS
   window_being_scrolled = Qnil;
   staticpro (&window_being_scrolled);
+#endif
 
   /* Used by x_cr_export_frames.  */
   DEFSYM (Qconcat, "concat");
