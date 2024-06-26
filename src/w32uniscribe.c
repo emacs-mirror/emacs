@@ -1527,12 +1527,17 @@ syms_of_w32uniscribe_for_pdumper (void)
     uniscribe_new_apis = false;
 
 #ifdef HAVE_HARFBUZZ
-  /* Currently, HarfBuzz DLLs are always named libharfbuzz-0.dll, as
+  /* Currently, HarfBuzz DLLs are always named libharfbuzz-0.dll on
+     MS-Windows and cygharfbuzz-0.dll on Cygwin, as
      the project keeps the ABI backward-compatible.  So we can
      hard-code the name of the library here, for now.  If they ever
      break ABI compatibility, we may need to load the DLL that
      corresponds to the HarfBuzz version for which Emacs was built.  */
+# ifdef WINDOWSNT
   HMODULE harfbuzz = LoadLibrary ("libharfbuzz-0.dll");
+# else	/* CYGWIN */
+  HMODULE harfbuzz = LoadLibrary ("cygharfbuzz-0.dll");
+# endif /* CYGWIN */
   /* Don't register if HarfBuzz is not available.  */
   if (!harfbuzz)
     return;
