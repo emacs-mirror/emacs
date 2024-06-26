@@ -4239,9 +4239,14 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   static_assert (sizeof pinned_roots == sizeof pinned_objects_in_dump);
   memcpy (pinned_objects_in_dump, pinned_roots, sizeof pinned_roots);
   igc_root_create_ambig (pinned_objects_in_dump,
-			 (uint8_t *)pinned_objects_in_dump
-			 + sizeof pinned_objects_in_dump,
+			 (uint8_t *) pinned_objects_in_dump
+			   + sizeof pinned_objects_in_dump,
 			 "dump-pins");
+#ifdef IGC_DEBUG
+  /* Walk over objects possibly tripping over ones that lead to an
+     assertion. */
+  Figc_info ();
+#endif
 }
 
 void *
