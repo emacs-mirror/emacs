@@ -1276,42 +1276,40 @@ This is much faster.")
 ARG may be negative to move backward.
 When the second optional argument is non-nil,
 nothing is shown in the echo area."
-  (let ((wrapped 0)
-	(number arg)
-	(old (widget-tabable-at)))
-    ;; Forward.
-    (while (> arg 0)
-      (cond ((eobp)
-	     (goto-char (point-min))
-	     (setq wrapped (1+ wrapped)))
-	    (widget-use-overlay-change
-	     (goto-char (next-overlay-change (point))))
-	    (t
-	     (forward-char 1)))
-      (and (= wrapped 2)
-	   (eq arg number)
-	   (error "No buttons or fields found"))
-      (let ((new (widget-tabable-at)))
-	(when new
-	  (unless (eq new old)
-	    (setq arg (1- arg))
-	    (setq old new)))))
-    ;; Backward.
-    (while (< arg 0)
-      (cond ((bobp)
-	     (goto-char (point-max))
-	     (setq wrapped (1+ wrapped)))
-	    (widget-use-overlay-change
-	     (goto-char (previous-overlay-change (point))))
-	    (t
-	     (backward-char 1)))
-      (and (= wrapped 2)
-	   (eq arg number)
-	   (error "No buttons or fields found"))
-      (let ((new (widget-tabable-at)))
-	(when new
-	  (unless (eq new old)
-	    (setq arg (1+ arg))))))
+  (let* ((wrapped 0)
+	 (number arg)
+         (fwd (> arg 0))                ; widget-forward is caller.
+         (bwd (< arg 0))                ; widget-backward is caller.
+	 (old (widget-tabable-at))
+         (tabable (if old 1 0))
+         pos)
+    (catch 'one
+      (while (> (abs arg) 0)
+        (cond ((or (and fwd (eobp)) (and bwd (bobp)))
+	       (goto-char (cond (fwd (point-min))
+                                (bwd (point-max))))
+	       (setq wrapped (1+ wrapped)))
+	      (widget-use-overlay-change
+	       (goto-char (cond (fwd (next-overlay-change (point)))
+                                (bwd (previous-overlay-change (point))))))
+	      (t
+	       (cond (fwd (forward-char 1))
+                     (bwd (backward-char 1)))))
+        (and (= wrapped 2)
+	     (eq arg number)
+             (if (= tabable 1)
+                 (progn
+                   (goto-char pos)
+                   (throw 'one (message "Only one tabable widget")))
+	       (error "No buttons or fields found")))
+        (let ((new (widget-tabable-at)))
+	  (when new
+	    (if (eq new old)
+                (setq pos (point))
+              (cl-incf tabable)
+	      (setq arg (cond (fwd (1- arg))
+                              (bwd (1+ arg))))
+	      (setq old new))))))
     (let ((new (widget-tabable-at)))
       (while (and (eq (widget-tabable-at) new) (not (bobp)))
 	(backward-char)))
