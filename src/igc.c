@@ -48,6 +48,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include "thread.h"
 #include "treesit.h"
 #include "puresize.h"
+#include "termchar.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -1236,6 +1237,24 @@ scan_ptr_exact (mps_ss_t ss, void *start, void *end, void *closure)
   return MPS_RES_OK;
 }
 
+static mps_res_t
+scan_tty_list (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  igc_assert (start == &tty_list);
+  igc_assert (end == (&tty_list) + 1);
+  MPS_SCAN_BEGIN (ss)
+  {
+    for (struct tty_display_info *tty = tty_list; tty; tty = tty->next)
+      {
+	IGC_FIX12_RAW (ss, &tty->terminal);
+	IGC_FIX12_OBJ (ss, &tty->top_frame);
+	IGC_FIX12_RAW (ss, &tty->previous_frame);
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 /***********************************************************************
 			 Default pad, fwd, ...
  ***********************************************************************/
@@ -2274,6 +2293,13 @@ root_create_terminal_list (struct igc *gc)
   void *start = &terminal_list;
   void *end = (char *) start + sizeof (terminal_list);
   root_create_ambig (gc, start, end, "terminal-list");
+}
+
+static void
+root_create_tty_list (struct igc *gc)
+{
+  root_create_exact (gc, &tty_list, (&tty_list) + 1,
+		     scan_tty_list, "tty-list");
 }
 
 static void
@@ -3959,6 +3985,7 @@ make_igc (void)
   root_create_staticvec (gc);
   root_create_lispsym (gc);
   root_create_terminal_list (gc);
+  root_create_tty_list (gc);
   root_create_main_thread (gc);
   root_create_exact_ptr (gc, &current_thread);
   root_create_exact_ptr (gc, &all_threads);
