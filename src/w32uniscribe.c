@@ -1540,11 +1540,12 @@ syms_of_w32uniscribe_for_pdumper (void)
 
   /* Don't register if Uniscribe is not available.  */
   HMODULE uniscribe;
-  if (!uniscribe)
-    return;
 
 #ifdef WINDOWSNT
   uniscribe = LoadLibrary ("usp10.dll");
+  if (!uniscribe)
+    return;
+
   pfnScriptItemize = (void *) get_proc_addr (uniscribe, "ScriptItemize");
   pfnScriptShape = (void *) get_proc_addr (uniscribe, "ScriptShape");
   pfnScriptPlace = (void *) get_proc_addr (uniscribe, "ScriptPlace");
@@ -1563,6 +1564,9 @@ syms_of_w32uniscribe_for_pdumper (void)
     }
 #else /* Cygwin */
   uniscribe = GetModuleHandle ("usp10.dll");
+  if (!uniscribe)
+    return;
+
   pfnScriptItemize = &ScriptItemize;
   pfnScriptShape = &ScriptShape;
   pfnScriptPlace = &ScriptPlace;
