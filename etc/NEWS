@@ -130,17 +130,16 @@ to your init:
 The round-trip through the Lisp function
 'internal-default-process-filter' is skipped when the process filter is
 the default one.  It's reimplemented in native code, reducing GC churn.
-
-To undo the change, set 'fast-read-process-output' to nil.
+To undo this change, set 'fast-read-process-output' to nil.
 
 
 * Changes in Emacs 30.1
 
 ** 'describe-function' now shows the type of the function object.
-The text used to say things like "car is is a built-in function"
-whereas it now says "car is a primitive-function" where "primitive-function"
-is the symbol returned by 'cl-type-of' and you can click on it to get
-information about that type.
+The text used to say things like "car is is a built-in function" whereas
+it now says "car is a primitive-function" where "primitive-function" is
+the symbol returned by 'cl-type-of'.  You can click on those words to
+get information about that type.
 
 ** 'advice-remove' is now an interactive command.
 When called interactively, 'advice-remove' now prompts for an advised
@@ -1863,7 +1862,7 @@ and keys.
 This command pops up a buffer to edit the settings in ".dir-locals.el".
 
 ---
-** New command 'customize-toggle-option'.
+*** New command 'customize-toggle-option'.
 This command can toggle boolean options for the duration of a session.
 
 ** Calc
@@ -1992,10 +1991,10 @@ The following new XML schemas are now supported:
 - Nuget package specification file
 - Nuget packages config file
 
-** color.el now supports the Oklab color representation.
+*** color.el now supports the Oklab color representation.
 
 ---
-** 'M-x ping' can now give "ping" additional flags.
+*** 'M-x ping' can now give "ping" additional flags.
 Typing 'C-u M-x ping' prompts first for the host, and then for the flags
 to give to "ping".
 
@@ -3033,7 +3032,7 @@ functionalities to operate correctly.
 ** MS-Windows
 
 +++
-*** You can now opt out of following the system's Dark mode.
+*** You can now opt out of following MS-Windows' Dark mode.
 By default, Emacs on MS-Windows follows the system's Dark mode for its
 title bars' and scroll bars' appearance.  If the new user option
 'w32-follow-system-dark-mode' is customized to the nil value, Emacs
