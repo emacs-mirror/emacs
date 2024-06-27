@@ -2440,6 +2440,12 @@ igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u)
   maybe_destroy_root (&u->comp_unit_root);
 }
 
+void
+igc_root_destroy_comp_unit_eph (struct Lisp_Native_Comp_Unit *u)
+{
+  maybe_destroy_root (&u->data_eph_relocs_root);
+}
+
 static mps_res_t
 create_weak_ap (mps_ap_t *ap, struct igc_thread *t, bool weak)
 {

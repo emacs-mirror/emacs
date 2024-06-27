@@ -5463,8 +5463,8 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 
 	  EMACS_INT d_vec_len = XFIXNUM (Flength (data_ephemeral_vec));
 # ifdef HAVE_MPS
-	  /* FIXME/igc: If we want to get rid of these objects, stop tracing
-	     these references at some point.  */
+	  /* The root is only needed until top_level_run below has
+	     completed.  Beware of recursice loads. */
 	  comp_u->data_eph_relocs = data_eph_relocs;
 	  comp_u->n_data_eph_relocs = d_vec_len;
 	  if (d_vec_len > 0)
@@ -5482,6 +5482,11 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	 Guard against sibling call optimization (or any other).  */
       data_ephemeral_vec = data_ephemeral_vec;
       eassert (check_comp_unit_relocs (comp_u));
+
+# ifdef HAVE_MPS
+      if (!recursive_load)
+	igc_root_destroy_comp_unit_eph (comp_u);
+# endif
     }
 
 
