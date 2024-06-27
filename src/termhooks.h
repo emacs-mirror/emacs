@@ -957,7 +957,12 @@ extern void delete_terminal_internal (struct terminal *);
 extern Lisp_Object terminal_glyph_code (struct terminal *, int);
 
 /* The initial terminal device, created by initial_term_init.  */
+#ifdef HAVE_MPS
+extern Lisp_Object initial_terminal_lisp;
+#define initial_terminal XUNTAG (initial_terminal_lisp, Lisp_Vectorlike, struct terminal)
+#else
 extern struct terminal *initial_terminal;
+#endif
 
 extern unsigned char *encode_terminal_code (struct glyph *, int,
 					    struct coding_system *);

@@ -42,7 +42,11 @@ struct terminal *terminal_list;
 static int next_terminal_id;
 
 /* The initial terminal device, created by initial_term_init.  */
+#ifndef HAVE_MPS
 struct terminal *initial_terminal;
+#else
+Lisp_Object initial_terminal_lisp;
+#endif
 
 static void delete_initial_terminal (struct terminal *);
 
@@ -636,7 +640,11 @@ init_initial_terminal (void)
   if (initialized || terminal_list || tty_list)
     emacs_abort ();
 
+#ifndef HAVE_MPS
   initial_terminal = create_terminal (output_initial, NULL);
+#else
+  initial_terminal_lisp = make_lisp_ptr (create_terminal (output_initial, NULL), Lisp_Vectorlike);
+#endif
   /* Note: menu-bar.el:menu-bar-update-buffers knows about this
      special name of the initial terminal.  */
   initial_terminal->name = xstrdup ("initial_terminal");
@@ -659,7 +667,11 @@ delete_initial_terminal (struct terminal *terminal)
     emacs_abort ();
 
   delete_terminal (terminal);
+#ifdef HAVE_MPS
+  initial_terminal_lisp = Qnil;
+#else
   initial_terminal = NULL;
+#endif
 }
 
 void
@@ -681,6 +693,7 @@ or some time later.  */);
   DEFSYM (Qdelete_terminal_functions, "delete-terminal-functions");
   DEFSYM (Qrun_hook_with_args, "run-hook-with-args");
 
+  staticpro (&initial_terminal_lisp);
   defsubr (&Sdelete_terminal);
   defsubr (&Sframe_terminal);
   defsubr (&Sterminal_live_p);
