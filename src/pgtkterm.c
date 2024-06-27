@@ -3953,7 +3953,12 @@ xg_scroll_callback (GtkRange * range,
 		    GtkScrollType scroll, gdouble value, gpointer user_data)
 {
   int whole = 0, portion = 0;
+#ifdef HAVE_MPS
+  struct scroll_bar **bar_cell = user_data;
+  struct scroll_bar *bar = *bar_cell;
+#else
   struct scroll_bar *bar = user_data;
+#endif
   enum scroll_bar_part part = scroll_bar_nowhere;
   GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (range));
 
@@ -4019,7 +4024,12 @@ static gboolean
 xg_end_scroll_callback (GtkWidget *widget,
 			GdkEventButton *event, gpointer user_data)
 {
+#ifdef HAVE_MPS
+  struct scroll_bar **bar_cell = user_data;
+  struct scroll_bar *bar = *bar_cell;
+#else
   struct scroll_bar *bar = user_data;
+#endif
   bar->dragging = -1;
   if (WINDOWP (window_being_scrolled))
     {
