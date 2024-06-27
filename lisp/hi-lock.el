@@ -780,7 +780,10 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
             (assoc (or lighter regexp) hi-lock-interactive-lighters))
         (add-to-list 'hi-lock--unused-faces (face-name face))
       (push pattern hi-lock-interactive-patterns)
-      (push (cons (or lighter regexp) pattern) hi-lock-interactive-lighters)
+      (push (cons (or (and lighter (propertize lighter 'regexp regexp))
+                      regexp)
+                  pattern)
+            hi-lock-interactive-lighters)
       (if (and font-lock-mode (font-lock-specified-p major-mode)
                (not hi-lock-use-overlays))
 	  (progn
@@ -888,7 +891,9 @@ Apply the previous patterns after reverting the buffer."
           (setq hi-lock--unused-faces hi-lock-face-defaults)
           (dolist (pattern (reverse patterns))
             (let ((face (hi-lock-keyword->face (cdr pattern))))
-              (highlight-regexp (car pattern) face)
+              (highlight-regexp (or (get-text-property 0 'regexp (car pattern))
+                                    (car pattern))
+                                face)
               (setq hi-lock--unused-faces
                     (remove (face-name face) hi-lock--unused-faces)))))))))
 
