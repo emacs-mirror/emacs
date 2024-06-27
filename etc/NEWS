@@ -1557,8 +1557,8 @@ and 'python-nav-end-of-block' to the inferior Python process.
 
 *** 'eldoc' no longer truncates to a single line by default.
 Previously, the entire docstring was not available to eldoc, which made
-'eldoc-echo-area-use-multiline-p' ineffective.  The old behaviour may be
-kept by setting that.
+'eldoc-echo-area-use-multiline-p' ineffective.  The old behavior may be
+kept by customizing 'eldoc-echo-area-use-multiline-p'.
 
 ** Inferior Python mode
 
