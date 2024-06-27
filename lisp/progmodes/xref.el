@@ -1017,7 +1017,9 @@ point."
               (lambda (&optional bound move backward looking-at)
                 (outline-search-text-property
                  'xref-group nil bound move backward looking-at)))
-  (setq-local outline-level (lambda () 1)))
+  (setq-local outline-level (lambda () 1))
+  (add-hook 'revert-buffer-restore-functions
+            #'xref-revert-buffer-restore-point nil t))
 
 (defvar xref--transient-buffer-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1292,6 +1294,25 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
 
 ;;; FIXME: Make this alias obsolete in future release.
 (defalias 'xref-revert-buffer #'revert-buffer)
+
+(defun xref-revert-buffer-restore-point ()
+  "Restore point on a previous item or group after reverting."
+  (let* ((item
+          (when (xref--item-at-point)
+            (buffer-substring-no-properties (pos-bol) (pos-eol))))
+         (group
+          (save-excursion
+            (when (or (get-text-property (point) 'xref-group)
+                      (and item (xref--search-property 'xref-group t)
+                           (get-text-property (point) 'xref-group)))
+              (buffer-substring-no-properties (pos-bol) (pos-eol))))))
+    (when (or item group)
+      (lambda ()
+        (goto-char (point-min))
+        (when (and group (search-forward (concat "\n" group "\n") nil t))
+          (goto-char (pos-bol 0)))
+        (when (and item (search-forward (concat "\n" item "\n") nil t))
+          (goto-char (pos-bol 0)))))))
 
 (defun xref--auto-jump-first (buf value)
   (when value
