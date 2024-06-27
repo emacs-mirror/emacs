@@ -126,7 +126,12 @@ mark there."
   (should (equal (execute-extended-command--shorter
                   "display-line-numbers-mode"
                   "display-line")
-                 "di-n")))
+                 ;; Depending on the tests performed and their order, we
+                 ;; could have loaded Dired, which defines commands
+                 ;; starting with "dir".
+                 (if (featurep 'dired)
+                     "dis-n"
+                   "di-n"))))
 
 (ert-deftest simple-execute-extended-command--describe-binding-msg ()
   (let ((text-quoting-style 'grave))
@@ -1093,6 +1098,7 @@ See Bug#21722."
 
 ;;; Tests for `kill-whole-line'
 
+(declare-function org-fold-hide-sublevels "org-fold" (levels))
 (ert-deftest kill-whole-line-invisible ()
   (cl-flet ((test (kill-whole-line-arg &rest expected-lines)
               (ert-info ((format "%s" kill-whole-line-arg) :prefix "Subtest: ")
