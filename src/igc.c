@@ -3,8 +3,6 @@
 
 This file is part of GNU Emacs.
 
-Author: Gerd Möllmann <gerd@gnu.org>
-
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or (at
@@ -4260,11 +4258,6 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 			 (uint8_t *) pinned_objects_in_dump
 			   + sizeof pinned_objects_in_dump,
 			 "dump-pins");
-#ifdef IGC_DEBUG
-  /* Walk over objects possibly tripping over ones that lead to an
-     assertion. */
-  Figc_info ();
-#endif
 }
 
 void *
