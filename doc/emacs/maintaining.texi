@@ -2466,10 +2466,10 @@ the match with @var{replacement}.  This command can only be used in
 @file{*xref*} buffers that show all the matches for an identifier in
 all the relevant files.  @xref{Identifier Search}.
 
+@cindex revert-buffer, in @file{*xref*} buffers
 @item g
-@findex xref-revert-buffer
-Refresh the contents of the @file{*xref*} buffer
-(@code{xref-revert-buffer}).
+Refresh the contents of the @file{*xref*} buffer (@code{revert-buffer}).
+@xref{Reverting}.
 
 @item M-,
 @findex xref-quit-and-pop-marker-stack

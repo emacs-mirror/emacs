@@ -1555,6 +1555,11 @@ interactive Python interpreter specified by 'python-interpreter'.
 It sends the python block delimited by 'python-nav-beginning-of-block'
 and 'python-nav-end-of-block' to the inferior Python process.
 
+*** 'eldoc' no longer truncates to a single line by default.
+Previously, the entire docstring was not available to eldoc, which made
+'eldoc-echo-area-use-multiline-p' ineffective.  The old behavior may be
+kept by customizing 'eldoc-echo-area-use-multiline-p'.
+
 ** Inferior Python mode
 
 ---
@@ -1915,6 +1920,13 @@ the 'widget-inactive' face).
 *** New user option 'widget-skip-inactive'.
 If non-nil, moving point forward or backward between widgets by typing
 'TAB' or 'S-TAB' skips over inactive widgets.  The default value is nil.
+
+** Xref
+
+*** 'xref-revert-buffer' is now an alias of 'revert-buffer'.
+The Xref buffer now sets up 'revert-buffer-function' such that
+'revert-buffer' behaves like 'xref-revert-buffer' did in previous Emacs
+versions, and the latter is now an alias of the former.
 
 ** Ruby mode
 

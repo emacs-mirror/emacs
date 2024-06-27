@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (eval-when-compile (require 'cl-lib))
 
 (defun simple-test--buffer-substrings ()
@@ -39,6 +40,49 @@
      (save-excursion (insert " c d)"))
      ,@body
      (with-no-warnings (simple-test--buffer-substrings))))
+
+(defconst simple-test-point-tag "<POINT>")
+(defconst simple-test-mark-tag "<MARK>")
+
+(defun simple-test--set-buffer-text-point-mark (description)
+  "Set the current buffer's text, point and mark according to
+DESCRIPTION.
+
+Erase current buffer and insert DESCRIPTION.  Set point to the
+first occurrence of `simple-test-point-tag' (\"<POINT>\") in the
+buffer, removing it.  If there is no `simple-test-point-tag', set
+point to the beginning of the buffer.  If there is a
+`simple-test-mark-tag' (\"<MARK>\"), remove it, and set an active
+mark there."
+  (erase-buffer)
+  (insert description)
+  (goto-char (point-min))
+  (when (search-forward simple-test-mark-tag nil t)
+    (delete-char (- (length simple-test-mark-tag)))
+    (push-mark (point) nil 'activate))
+  (goto-char (point-min))
+  (when (search-forward simple-test-point-tag nil t)
+    (delete-char (- (length simple-test-point-tag)))))
+
+(defun simple-test--get-buffer-text-point-mark ()
+  "Inverse of `simple-test--set-buffer-text-point-mark'."
+  (cond
+   ((not mark-active)
+    (concat (buffer-substring-no-properties (point-min) (point))
+            simple-test-point-tag
+            (buffer-substring-no-properties (point) (point-max))))
+   ((< (mark) (point))
+    (concat (buffer-substring-no-properties (point-min) (mark))
+            simple-test-mark-tag
+            (buffer-substring-no-properties (mark) (point))
+            simple-test-point-tag
+            (buffer-substring-no-properties (point) (point-max))))
+   (t
+    (concat (buffer-substring-no-properties (point-min) (point))
+            simple-test-point-tag
+            (buffer-substring-no-properties (point) (mark))
+            simple-test-mark-tag
+            (buffer-substring-no-properties (mark) (point-max))))))
 
 
 ;;; `count-words'
@@ -82,7 +126,12 @@
   (should (equal (execute-extended-command--shorter
                   "display-line-numbers-mode"
                   "display-line")
-                 "di-n")))
+                 ;; Depending on the tests performed and their order, we
+                 ;; could have loaded Dired, which defines commands
+                 ;; starting with "dir".
+                 (if (featurep 'dired)
+                     "dis-n"
+                   "di-n"))))
 
 (ert-deftest simple-execute-extended-command--describe-binding-msg ()
   (let ((text-quoting-style 'grave))
@@ -1045,6 +1094,190 @@ See Bug#21722."
       (zap-to-char 1 ?C))
     (with-zap-to-char-test "abcdeCXYZ" "XYZ"
       (zap-to-char 1 ?C 'interactive))))
+
+
+;;; Tests for `kill-whole-line'
+
+(declare-function org-fold-hide-sublevels "org-fold" (levels))
+(ert-deftest kill-whole-line-invisible ()
+  (cl-flet ((test (kill-whole-line-arg &rest expected-lines)
+              (ert-info ((format "%s" kill-whole-line-arg) :prefix "Subtest: ")
+                (ert-with-test-buffer-selected nil
+                  (simple-test--set-buffer-text-point-mark
+                   (string-join
+                    '("* -2" "hidden"
+                      "* -1" "hidden"
+                      "* A<POINT>B" "hidden"
+                      "* 1" "hidden"
+                      "* 2" "hidden"
+                      "")
+                    "\n"))
+                  (org-mode)
+                  (org-fold-hide-sublevels 1)
+                  (kill-whole-line kill-whole-line-arg)
+                  (should
+                   (equal (string-join expected-lines "\n")
+                          (simple-test--get-buffer-text-point-mark)))))))
+    (test 0
+          "* -2" "hidden"
+          "* -1" "hidden"
+          "<POINT>"
+          "* 1" "hidden"
+          "* 2" "hidden"
+          "")
+    (test 1
+          "* -2" "hidden"
+          "* -1" "hidden"
+          "<POINT>* 1" "hidden"
+          "* 2" "hidden"
+          "")
+    (test 2
+          "* -2" "hidden"
+          "* -1" "hidden"
+          "<POINT>* 2" "hidden"
+          "")
+    (test 3
+          "* -2" "hidden"
+          "* -1" "hidden"
+          "<POINT>")
+    (test 9
+          "* -2" "hidden"
+          "* -1" "hidden"
+          "<POINT>")
+    (test -1
+          "* -2" "hidden"
+          "* -1" "hidden<POINT>"
+          "* 1" "hidden"
+          "* 2" "hidden"
+          "")
+    (test -2
+          "* -2" "hidden<POINT>"
+          "* 1" "hidden"
+          "* 2" "hidden"
+          "")
+    (test -3
+          "<POINT>"
+          "* 1" "hidden"
+          "* 2" "hidden"
+          "")
+    (test -9
+          "<POINT>"
+          "* 1" "hidden"
+          "* 2" "hidden"
+          "")))
+
+(ert-deftest kill-whole-line-read-only ()
+  (cl-flet
+      ((test (kill-whole-line-arg expected-kill-lines expected-buffer-lines)
+         (ert-info ((format "%s" kill-whole-line-arg) :prefix "Subtest: ")
+           (ert-with-test-buffer-selected nil
+             (simple-test--set-buffer-text-point-mark
+              (string-join '("-2" "-1" "A<POINT>B" "1" "2" "") "\n"))
+             (read-only-mode 1)
+             (setq last-command #'ignore)
+             (should-error (kill-whole-line kill-whole-line-arg)
+                           :type 'buffer-read-only)
+             (should (equal (string-join expected-kill-lines "\n")
+                            (car kill-ring)))
+             (should (equal (string-join expected-buffer-lines "\n")
+                            (simple-test--get-buffer-text-point-mark)))))))
+    (test 0 '("AB") '("-2" "-1" "AB<POINT>" "1" "2" ""))
+    (test 1 '("AB" "") '("-2" "-1" "AB" "<POINT>1" "2" ""))
+    (test 2 '("AB" "1" "") '("-2" "-1" "AB" "1" "<POINT>2" ""))
+    (test 3 '("AB" "1" "2" "") '("-2" "-1" "AB" "1" "2" "<POINT>"))
+    (test 9 '("AB" "1" "2" "") '("-2" "-1" "AB" "1" "2" "<POINT>"))
+    (test -1 '("" "AB") '("-2" "-1<POINT>" "AB" "1" "2" ""))
+    (test -2 '("" "-1" "AB") '("-2<POINT>" "-1" "AB" "1" "2" ""))
+    (test -3 '("-2" "-1" "AB") '("<POINT>-2" "-1" "AB" "1" "2" ""))
+    (test -9 '("-2" "-1" "AB") '("<POINT>-2" "-1" "AB" "1" "2" ""))))
+
+(ert-deftest kill-whole-line-after-other-kill ()
+  (ert-with-test-buffer-selected nil
+    (simple-test--set-buffer-text-point-mark "A<POINT>X<MARK>B")
+    (setq last-command #'ignore)
+    (kill-region (point) (mark))
+    (deactivate-mark 'force)
+    (setq last-command #'kill-region)
+    (kill-whole-line)
+    (should (equal "AXB" (car kill-ring)))
+    (should (equal "<POINT>"
+                   (simple-test--get-buffer-text-point-mark)))))
+
+(ert-deftest kill-whole-line-buffer-boundaries ()
+  (ert-with-test-buffer-selected nil
+    (ert-info ("0" :prefix "Subtest: ")
+      (simple-test--set-buffer-text-point-mark "<POINT>")
+      (should-error (kill-whole-line -1)
+                    :type 'beginning-of-buffer)
+      (should-error (kill-whole-line 1)
+                    :type 'end-of-buffer))
+    (ert-info ("1a" :prefix "Subtest: ")
+      (simple-test--set-buffer-text-point-mark "-1\n<POINT>")
+      (should-error (kill-whole-line 1)
+                    :type 'end-of-buffer))
+    (ert-info ("1b" :prefix "Subtest: ")
+      (simple-test--set-buffer-text-point-mark "-1\nA<POINT>")
+      (setq last-command #'ignore)
+      (kill-whole-line 1)
+      (should (equal "-1\n<POINT>"
+                     (simple-test--get-buffer-text-point-mark)))
+      (should (equal "A" (car kill-ring))))
+    (ert-info ("2" :prefix "Subtest: ")
+      (simple-test--set-buffer-text-point-mark "<POINT>\n1")
+      (should-error (kill-whole-line -1)
+                    :type 'beginning-of-buffer))
+    (ert-info ("2b" :prefix "Subtest: ")
+      (simple-test--set-buffer-text-point-mark "<POINT>A\n1")
+      (setq last-command #'ignore)
+      (kill-whole-line 1)
+      (should (equal "<POINT>1"
+                     (simple-test--get-buffer-text-point-mark)))
+      (should (equal "A\n" (car kill-ring))))))
+
+(ert-deftest kill-whole-line-line-boundaries ()
+  (ert-with-test-buffer-selected nil
+    (ert-info ("1a" :prefix "Subtest: ")
+      (simple-test--set-buffer-text-point-mark "-1\n<POINT>\n1\n")
+      (setq last-command #'ignore)
+      (kill-whole-line 1)
+      (should (equal "-1\n<POINT>1\n"
+                     (simple-test--get-buffer-text-point-mark)))
+      (should (equal "\n" (car kill-ring))))
+    (ert-info ("1b" :prefix "Subtest: ")
+      (simple-test--set-buffer-text-point-mark "-1\n<POINT>\n1\n")
+      (setq last-command #'ignore)
+      (kill-whole-line -1)
+      (should (equal "-1<POINT>\n1\n"
+                     (simple-test--get-buffer-text-point-mark)))
+      (should (equal "\n" (car kill-ring))))
+    (ert-info ("2a" :prefix "Subtest: ")
+      (simple-test--set-buffer-text-point-mark "-1\nA<POINT>\n1\n")
+      (setq last-command #'ignore)
+      (kill-whole-line 1)
+      (should (equal "-1\n<POINT>1\n"
+                     (simple-test--get-buffer-text-point-mark)))
+      (should (equal "A\n" (car kill-ring))))
+    (ert-info ("2b" :prefix "Subtest: ")
+      (simple-test--set-buffer-text-point-mark "-1\nA<POINT>\n1\n")
+      (setq last-command #'ignore)
+      (kill-whole-line -1)
+      (should (equal "-1<POINT>\n1\n"
+                     (simple-test--get-buffer-text-point-mark)))
+      (should (equal "\nA" (car kill-ring))))
+    (ert-info ("3a" :prefix "Subtest: ")
+      (simple-test--set-buffer-text-point-mark "-1\n<POINT>A\n1\n")
+      (setq last-command #'ignore)
+      (kill-whole-line 1)
+      (should (equal "-1\n<POINT>1\n"
+                     (simple-test--get-buffer-text-point-mark)))
+      (should (equal "A\n" (car kill-ring))))
+    (ert-info ("3b" :prefix "Subtest: ")
+      (simple-test--set-buffer-text-point-mark "-1\n<POINT>A\n1\n")
+      (setq last-command #'ignore)
+      (kill-whole-line -1)
+      (should (equal "-1<POINT>\n1\n"
+                     (simple-test--get-buffer-text-point-mark)))
+      (should (equal "\nA" (car kill-ring))))))
 
 (provide 'simple-test)
 ;;; simple-tests.el ends here
