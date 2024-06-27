@@ -3636,10 +3636,16 @@ Check if a node type is available, then return the right indent rules."
    :override t
    '((escape_sequence) @font-lock-escape-face)
 
+   ;; "document" should be first, to avoid overlap.
+   :language 'jsdoc
+   :override t
+   :feature 'document
+   '((document) @font-lock-doc-face)
+
    :language 'jsdoc
    :override t
    :feature 'keyword
-   '((tag_name) @font-lock-keyword-face)
+   '((tag_name) @font-lock-constant-face)
 
    :language 'jsdoc
    :override t
@@ -3649,17 +3655,12 @@ Check if a node type is available, then return the right indent rules."
    :language 'jsdoc
    :override t
    :feature 'property
-   '((type) @font-lock-variable-use-face)
+   '((type) @font-lock-type-face)
 
    :language 'jsdoc
    :override t
    :feature 'definition
-   '((identifier) @font-lock-variable-name-face)
-
-   :language 'jsdoc
-   :override t
-   :feature 'comment
-   '((description) @font-lock-comment-face))
+   '((identifier) @font-lock-variable-name-face))
   "Tree-sitter font-lock settings.")
 
 (defun js--fontify-template-string (node override start end &rest _)
@@ -3933,7 +3934,7 @@ See `treesit-thing-settings' for more information.")
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '(( comment definition)
+                '(( comment document definition)
                   ( keyword string)
                   ( assignment constant escape-sequence jsx number
                     pattern string-interpolation)
@@ -3944,9 +3945,8 @@ See `treesit-thing-settings' for more information.")
                   (treesit-range-rules
                    :embed 'jsdoc
                    :host 'javascript
+                   :local t
                    `(((comment) @capture (:match ,js--treesit-jsdoc-beginning-regexp @capture))))))
-
-    (setq-local treesit-language-at-point-function #'js-ts-language-at-point)
 
     ;; Imenu
     (setq-local treesit-simple-imenu-settings
@@ -3988,17 +3988,6 @@ See `treesit-thing-settings' for more information.")
                         (string-to-syntax "|")))))
         (put-text-property ns (1+ ns) 'syntax-table syntax)
         (put-text-property (1- ne) ne 'syntax-table syntax)))))
-
-(defun js-ts-language-at-point (point)
-  "Return the language at POINT."
-  (let ((node (treesit-node-at point 'javascript)))
-    (if (and (treesit-ready-p 'jsdoc)
-             (equal (treesit-node-type node) "comment")
-             (string-match-p
-              js--treesit-jsdoc-beginning-regexp
-              (treesit-node-text node)))
-        'jsdoc
-      'javascript)))
 
 ;;;###autoload
 (define-derived-mode js-json-mode prog-mode "JSON"
