@@ -11843,7 +11843,7 @@ syms_of_coding (void)
   Vcoding_category_table = make_nil_vector (coding_category_max);
   staticpro (&Vcoding_category_table);
 #ifdef HAVE_MPS
-  /* FIXME: Do we really need this?  coding_categories[] are not real
+  /* FIXME/igc: Do we really need this?  coding_categories[] are not real
      coding-systems, and are not used for actual encoding/decoding of
      text.  They are coding categories; we use 'struct coding_system'
      here because it's convenient: it allows us to call

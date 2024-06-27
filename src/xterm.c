@@ -5743,7 +5743,7 @@ x_cache_xi_devices (struct x_display_info *dpyinfo)
     }
 
 #ifdef HAVE_MPS
-  // FIXME: use exact references
+  // FIXME/igc: use exact references
   dpyinfo->devices = igc_xzalloc_ambig (sizeof *dpyinfo->devices * ndevices);
 #else
   dpyinfo->devices = xzalloc (sizeof *dpyinfo->devices * ndevices);
@@ -13896,7 +13896,7 @@ xi_disable_devices (struct x_display_info *dpyinfo,
 
   ndevices = 0;
 #ifdef HAVE_MPS
-  // FIXME: use exact references
+  // FIXME/igc: use exact references
   devices = igc_xzalloc_ambig (sizeof *devices * dpyinfo->num_devices);
 #else
   devices = xzalloc (sizeof *devices * dpyinfo->num_devices);
@@ -30822,7 +30822,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   /* We have definitely succeeded.  Record the new connection.  */
 
 #ifdef HAVE_MPS
-  // FIXME: use exact references
+  // FIXME/igc: use exact references
   dpyinfo = igc_xzalloc_ambig (sizeof *dpyinfo);
 #else
   dpyinfo = xzalloc (sizeof *dpyinfo);

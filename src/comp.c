@@ -5463,7 +5463,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 
 	  EMACS_INT d_vec_len = XFIXNUM (Flength (data_ephemeral_vec));
 # ifdef HAVE_MPS
-	  /* FIXME: If we want to get rid of these objects, stop tracing
+	  /* FIXME/igc: If we want to get rid of these objects, stop tracing
 	     these references at some point.  */
 	  comp_u->data_eph_relocs = data_eph_relocs;
 	  comp_u->n_data_eph_relocs = d_vec_len;

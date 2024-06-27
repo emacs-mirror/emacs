@@ -3623,7 +3623,7 @@ dump_cold_native_subr (struct dump_context *ctx, Lisp_Object subr)
   dump_off subr_offset = dump_recall_object (ctx, subr);
   eassert (subr_offset > 0);
 # ifdef HAVE_MPS
-  /* FIXME: more descriptive name? but igc_obj_type has no more free bits */
+  /* FIXME/igc: more descriptive name? but igc_obj_type has no more free bits */
   dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, (void *)~0);
 # endif
   dump_remember_fixup_ptr_raw
@@ -5107,7 +5107,7 @@ dump_mmap_contiguous_heap (struct dump_memory_map *maps, int nr_maps,
 static void
 dump_mmap_release_mps (struct dump_memory_map *map)
 {
-  /* FIXME: igc_on_pdump_loaded "knows" that DS_DISCARDABLE is unused.
+  /* FIXME/igc: igc_on_pdump_loaded "knows" that DS_DISCARDABLE is unused.
      Maybe come up with a nicer API.
    */
 }
@@ -5748,7 +5748,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	if (!comp_u->handle)
 	  error ("NULL handle in compilation unit %s", SSDATA (comp_u->file));
 #ifdef HAVE_MPS
-	/* FIXME: needs finalization? */
+	/* FIXME/igc: needs finalization? */
 	subr->symbol_name = xstrdup (subr->symbol_name);
 	const char *c_name = xstrdup (subr->native_c_name);
 #else

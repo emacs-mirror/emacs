@@ -4571,7 +4571,7 @@ xg_finish_scroll_bar_creation (struct frame *f,
 #endif
 
 #ifdef HAVE_MPS
-  // FIXME: can use exact reference
+  // FIXME/igc: can use exact reference
   struct scroll_bar **bar_cell =
     igc_xzalloc_ambig (sizeof (struct scroll_bar*));
   bar_cell[0] = bar;
@@ -5499,7 +5499,7 @@ xg_create_tool_bar (struct frame *f)
   if (! tbinfo)
     {
 #ifdef HAVE_MPS
-      // FIXME: use exact references
+      // FIXME/igc: use exact references
       tbinfo = igc_xzalloc_ambig (sizeof (*tbinfo));
 #else
       tbinfo = xmalloc (sizeof (*tbinfo));
@@ -6490,7 +6490,7 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
     goto done;
 
 #ifndef HAVE_GTK3
-  /* FIXME: event->key.is_modifier is not accurate on GTK 2.  */
+  /* FIXME/igc: event->key.is_modifier is not accurate on GTK 2.  */
 
   if (keysym >= GDK_KEY_Shift_L && keysym <= GDK_KEY_Hyper_R)
     goto done;
