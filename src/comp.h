@@ -21,7 +21,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define COMP_H
 
 #include <dynlib.h>
-#include "lisp.h"
+# include "lisp.h"
+
+# ifdef HAVE_MPS
+struct igc_root_list;
+# endif
 
 struct Lisp_Native_Comp_Unit
 {
@@ -54,10 +58,10 @@ struct Lisp_Native_Comp_Unit
   Lisp_Object *data_eph_relocs;
   size_t n_data_eph_relocs;
   Lisp_Object *comp_unit;
-  void *data_relocs_root;
-  void *data_imp_relocs_root;
-  void *data_eph_relocs_root;
-  void *comp_unit_root;
+  struct igc_root_list *data_relocs_root;
+  struct igc_root_list *data_imp_relocs_root;
+  struct igc_root_list *data_eph_relocs_root;
+  struct igc_root_list *comp_unit_root;
 # endif
   bool loaded_once;
   bool load_ongoing;

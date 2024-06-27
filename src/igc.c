@@ -2424,19 +2424,19 @@ destroy_root_with_start (void *start)
 }
 
 static void
-maybe_destroy_root_list (void **root)
+maybe_destroy_root (struct igc_root_list **root)
 {
-  destroy_root_with_start (*root);
-  *root = NULL;
+  if (*root)
+    destroy_root (root);
 }
 
 void
 igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u)
 {
-  maybe_destroy_root_list (&u->data_relocs_root);
-  maybe_destroy_root_list (&u->data_imp_relocs_root);
-  maybe_destroy_root_list (&u->data_eph_relocs_root);
-  maybe_destroy_root_list (&u->comp_unit_root);
+  maybe_destroy_root (&u->data_relocs_root);
+  maybe_destroy_root (&u->data_imp_relocs_root);
+  maybe_destroy_root (&u->data_eph_relocs_root);
+  maybe_destroy_root (&u->comp_unit_root);
 }
 
 static mps_res_t
