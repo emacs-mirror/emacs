@@ -2222,9 +2222,9 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 }
 
 static igc_scan_result_t
-scan_cell_callback (struct igc_opaque *op, Lisp_Object *addr)
+fix12_obj_callback (struct igc_opaque *op, Lisp_Object *addr)
 {
-  mps_ss_t ss = (mps_ss_t)op;
+  mps_ss_t ss = (mps_ss_t) op;
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX12_OBJ (ss, addr);
@@ -2667,8 +2667,8 @@ static mps_res_t
 scan_xpalloced (mps_ss_t ss, void *start, void *end, void *closure)
 {
   igc_scan_area_t scan_area = closure;
-  igc_scan_cell_t scan_cell = (igc_scan_cell_t)scan_cell_callback;
-  return scan_area ((struct igc_opaque *)ss, start, end, scan_cell);
+  igc_fix12_obj_t fix12_obj = (igc_fix12_obj_t) fix12_obj_callback;
+  return scan_area ((struct igc_opaque *) ss, start, end, fix12_obj);
 }
 
 void

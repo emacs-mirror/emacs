@@ -1338,7 +1338,7 @@ static struct print_pp_stack ppstack = {NULL, 0, 0};
 #ifdef HAVE_MPS
 static igc_scan_result_t
 scan_ppstack (struct igc_opaque *op, void *start, void *end,
-	      igc_scan_cell_t scan1)
+	      igc_fix12_obj_t fix12_obj)
 {
   eassert (start == (void *)ppstack.stack);
   eassert (end == (void *)(ppstack.stack + ppstack.size));
@@ -1349,13 +1349,13 @@ scan_ppstack (struct igc_opaque *op, void *start, void *end,
       igc_scan_result_t err = 0;
       if (p->n == 0)
 	{
-	  if (err = scan1 (op, &p->u.value), err != 0)
+	  if (err = fix12_obj (op, &p->u.value), err != 0)
 	    return err;
 	}
       else
 	{
 	  eassert (p->n > 0);
-	  if (err = scan1 (op, &p->u.vectorlike), err != 0)
+	  if (err = fix12_obj (op, &p->u.vectorlike), err != 0)
 	    return err;
 	}
     }
@@ -2284,7 +2284,7 @@ static struct print_stack prstack = {NULL, 0, 0};
 #ifdef HAVE_MPS
 static igc_scan_result_t
 scan_prstack (struct igc_opaque *op, void *start, void *end,
-	      igc_scan_cell_t scan1)
+	      igc_fix12_obj_t fix12_obj)
 {
   eassert (start == (void *)prstack.stack);
   eassert (end == (void *)(prstack.stack + prstack.size));
@@ -2299,9 +2299,9 @@ scan_prstack (struct igc_opaque *op, void *start, void *end,
 	  emacs_abort ();
 
 	case PE_list:
-	  if (err = scan1 (op, &p->u.list.last), err != 0)
+	  if (err = fix12_obj (op, &p->u.list.last), err != 0)
 	    return err;
-	  if (err = scan1 (op, &p->u.list.tortoise), err != 0)
+	  if (err = fix12_obj (op, &p->u.list.tortoise), err != 0)
 	    return err;
 	  break;
 
@@ -2309,12 +2309,12 @@ scan_prstack (struct igc_opaque *op, void *start, void *end,
 	  break;
 
 	case PE_vector:
-	  if (err = scan1 (op, &p->u.vector.obj), err != 0)
+	  if (err = fix12_obj (op, &p->u.vector.obj), err != 0)
 	    return err;
 	  break;
 
 	case PE_hash:
-	  if (err = scan1 (op, &p->u.hash.obj), err != 0)
+	  if (err = fix12_obj (op, &p->u.hash.obj), err != 0)
 	    return err;
 	  break;
 	}
