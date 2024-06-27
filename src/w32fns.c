@@ -11284,7 +11284,7 @@ typedef USHORT (WINAPI * CaptureStackBackTrace_proc) (ULONG, ULONG, PVOID *,
    configure.ac.  */
 #if defined MINGW_W64 && EMACS_INT_MAX > LONG_MAX
 # define DEFAULT_IMAGE_BASE (ptrdiff_t)0x400000000
-#else	/* 32-bit MinGW build */
+#elif !defined CYGWIN	/* 32-bit MinGW build */
 # define DEFAULT_IMAGE_BASE (ptrdiff_t)0x01000000
 #endif
 

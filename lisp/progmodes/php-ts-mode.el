@@ -977,7 +977,8 @@ characters of the current line."
    :override t
    :feature 'property
    `((attribute_name) @font-lock-variable-name-face))
-  "Tree-sitter font-lock settings for `php-html-ts-mode'.")
+  "Tree-sitter Font-lock settings for HTML when embedded in PHP.
+Like `html-ts-mode--font-lock-settings' but adapted for `php-ts-mode'.")
 
 (defvar php-ts-mode--phpdoc-font-lock-settings
   (treesit-font-lock-rules
