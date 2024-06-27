@@ -26,9 +26,52 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #include "lisp.h"
+#include "marker.h"
 #include "character.h"
 #include "buffer.h"
 #include "window.h"
+#include "stdlib.h"
+
+#ifdef ABSTRACT_LISP_MARKER
+struct Lisp_Marker
+{
+  union vectorlike_header header;
+
+  /* This is the buffer that the marker points into, or 0 if it points nowhere.
+     Note: a chain of markers can contain markers pointing into different
+     buffers (the chain is per buffer_text rather than per buffer, so it's
+     shared between indirect buffers).  */
+  /* This is used for (other than NULL-checking):
+     - Fmarker_buffer
+     - Fset_marker: check eq(oldbuf, newbuf) to avoid unchain+rechain.
+     - unchain_marker: to find the list from which to unchain.
+     - Fkill_buffer: to only unchain the markers of current indirect buffer.
+     */
+  struct buffer *buffer;
+
+  /* This flag is temporarily used in the functions
+     decode/encode_coding_object to record that the marker position
+     must be adjusted after the conversion.  */
+  bool_bf need_adjustment : 1;
+  /* True means normal insertion at the marker's position
+     leaves the marker after the inserted text.  */
+  bool_bf insertion_type : 1;
+  /* True means that this is a chars<->bytes conversion cache entry
+     rather than a true marker.  */
+  bool_bf cache : 1;
+
+  /* The remaining fields are meaningless in a marker that
+     does not point anywhere.  */
+
+  /* This is the char position where the marker points.  */
+  ptrdiff_t charpos;
+  /* This is the byte position.
+     It's mostly used as a charpos<->bytepos cache (i.e. it's not directly
+     used to implement the functionality of markers, but rather to (ab)use
+     markers as a cache for char<->byte mappings).  */
+  ptrdiff_t bytepos;
+} GCALIGNED_STRUCT;
+#endif
 
 /* Record one cached position found recently by
    buf_charpos_to_bytepos or buf_bytepos_to_charpos.  */
@@ -37,6 +80,306 @@ static ptrdiff_t cached_charpos;
 static ptrdiff_t cached_bytepos;
 static struct buffer *cached_buffer;
 static modiff_count cached_modiff;
+
+/*****************************************************************/
+/* Set of markers represented as a sorted array-with-gap (AWG).  */
+/*****************************************************************/
+
+typedef unsigned int m_index_t;
+
+struct Lisp_Markers
+{
+  m_index_t size;
+  m_index_t gap_beg;
+  m_index_t gap_end;
+  struct Lisp_Marker *markers[FLEXIBLE_ARRAY_MEMBER];
+};
+
+static void
+markers_sanity_check (struct Lisp_Markers *t)
+{
+  eassert (t->markers);
+  eassert (t->size > 0);
+  eassert (t->gap_beg >= 0);
+  eassert (t->gap_beg <= t->gap_end);
+  eassert (t->gap_end <= t->size);
+
+  m_index_t i;
+  ptrdiff_t lastpos = BEG;
+  for (i = 0; i < t->size; i++)
+    {
+      if (i == t->gap_beg)
+	{
+	  for (; i < t->gap_end; i++)
+	    eassert (t->markers[i] == NULL);
+	  if (i == t->size)
+	    break;
+	}
+      eassert (t->markers[i]->buffer);
+      /* eassert (BUF_ALL_MARKERS (t->markers[i]->buffer) == t); */
+      eassert (t->markers[i]->charpos >= lastpos);
+      lastpos = t->markers[i]->charpos;
+    }
+}
+
+#define DEFINE_SEARCH_FUN(funname, thepos) 			       	     \
+  static m_index_t			   			       	     \
+  funname (struct Lisp_Markers *t, ptrdiff_t thepos) 	    	       	     \
+  {								       	     \
+    m_index_t bot, top;					       	     	     \
+    markers_sanity_check (t);						     \
+    /* See whether to search before or after the gap.  */		     \
+    if (t->gap_beg >= 1 && t->markers[t->gap_beg - 1]->thepos >= thepos)     \
+      (bot = 0, top = t->gap_beg);				       	     \
+    else							       	     \
+      (bot = t->gap_end, top = t->size);			       	     \
+									     \
+    /* Binary search.  */						     \
+    while (bot < top)						       	     \
+      {								       	     \
+	m_index_t mid = bot + ((top - bot) / 2);		       	     \
+	eassert (mid < top);					       	     \
+	if (t->markers[mid]->thepos >= thepos)			       	     \
+	  top = mid;						       	     \
+	else							       	     \
+	  bot = mid + 1;					       	     \
+      }								       	     \
+    eassert (bot == top);					       	     \
+    eassert (bot == t->size || t->markers[bot]->thepos >= thepos);     	     \
+    eassert ((bot == t->gap_end ? t->gap_beg : bot) == 0	 	     \
+	     || t->markers[(bot == t->gap_end ? t->gap_beg : bot)-1]->thepos \
+		< thepos); 						     \
+    return bot;							       	     \
+  }
+
+/* Return the best approximation of the index in the AWG
+   corresponding to a given charpos or bytepos.  */
+DEFINE_SEARCH_FUN (markers_search_charpos, charpos);
+DEFINE_SEARCH_FUN (markers_search_bytepos, bytepos);
+
+/* Return the index in the AWG where the marker M is found.
+   This function presumes that M is indeed in the AWG.  */
+static m_index_t
+markers_search_marker (struct Lisp_Markers *t, struct Lisp_Marker *m)
+{
+  m_index_t beg = markers_search_charpos (t, m->charpos);
+  eassert (t->markers[beg]->charpos == m->charpos);
+  while (t->markers[beg] != m)
+    {
+      beg = (beg == t->gap_beg - 1) ? t->gap_end : beg + 1;
+      eassert (t->markers[beg]->charpos == m->charpos);
+    }
+  return beg;
+}
+
+static void
+markers_move_gap (struct Lisp_Markers *t, m_index_t new_beg)
+{
+  m_index_t old_beg = t->gap_beg;
+  m_index_t old_end = t->gap_end;
+  eassert (new_beg <= t->gap_beg || new_beg >= t->gap_end);
+  if (new_beg > old_beg)
+    new_beg = old_beg + (new_beg - old_end);
+  if (old_beg == new_beg)
+    return;
+  else if (new_beg > old_beg)
+    memmove (&t->markers[old_beg], &t->markers[old_end],
+	     (new_beg - old_beg) * sizeof (struct Lisp_Marker *));
+  else
+    {
+      m_index_t size = old_beg - new_beg;
+      memmove (&t->markers[old_end - size], &t->markers[new_beg],
+	       size * sizeof (struct Lisp_Marker *));
+    }
+  t->gap_beg = new_beg;
+  t->gap_end = new_beg + (old_end - old_beg);
+  /* FIME: Get rid of it?  */
+  memset (&t->markers[new_beg], 0,
+	  (old_end - old_beg) * sizeof (struct Lisp_Marker *));
+  markers_sanity_check (t);
+}
+
+static void
+markers_move_gap_to_charpos (struct Lisp_Markers *t, ptrdiff_t charpos)
+{
+  m_index_t i = markers_search_charpos (t, charpos);
+  markers_move_gap (t, i);
+  eassert (t->gap_beg == 0
+	   || t->markers[t->gap_beg - 1]->charpos < charpos);
+  eassert (t->gap_end == t->size
+	   || t->markers[t->gap_end]->charpos >= charpos);
+}
+
+void
+markers_kill (struct Lisp_Markers *t, struct Lisp_Marker *m)
+{
+  m_index_t i = markers_search_marker (t, m);
+  if (i < t->gap_beg)
+    {
+      markers_move_gap (t, i + 1);
+      eassert (t->gap_beg == i + 1);
+      t->gap_beg = i;
+    }
+  else
+    {
+      markers_move_gap (t, i);
+      eassert (t->gap_end == i);
+      t->gap_end = i + 1;
+    }
+  eassert (t->markers[i] == m);
+  t->markers[i] = NULL;
+  markers_sanity_check (t);
+}
+
+static struct Lisp_Markers *
+markers_grow (struct Lisp_Markers *t)
+{
+  eassert (t->gap_beg == t->gap_end);
+  m_index_t oldsize = t->size;
+  m_index_t increment = max (2, oldsize / 2);
+  m_index_t newsize = oldsize + increment;
+  if (newsize < oldsize)	/* Overflow!  */
+    /* This can happen only if you have ~4G markers, in which case the
+       algorithmic complexity of the code in this file should make Emacs
+       unusable anyway.  */
+    error ("Table of markers full!");
+  struct Lisp_Marker **oldmarkers = t->markers;
+  struct Lisp_Markers *newt
+    = xmalloc (sizeof (struct Lisp_Markers)
+	       + newsize * sizeof (struct Lisp_Marker *));
+  struct Lisp_Marker **newmarkers = newt->markers;
+  memcpy (newmarkers, oldmarkers, oldsize * sizeof (struct Lisp_Marker *));
+  memset (&newmarkers[oldsize], 0, increment * sizeof (struct Lisp_Marker *));
+  xfree (t);
+  newt->size = newsize;
+  newt->gap_beg = oldsize;
+  newt->gap_end = newsize;
+  markers_sanity_check (newt);
+  return newt;
+}
+
+struct Lisp_Markers *
+markers_add (struct Lisp_Markers *t, struct Lisp_Marker *m)
+{
+  if (t->gap_beg == t->gap_end)
+    t = markers_grow (t);
+  markers_move_gap_to_charpos (t, m->charpos);
+  t->markers[t->gap_beg++] = m;
+  markers_sanity_check (t);
+  return t;
+}
+
+void
+markers_adjust_for_insert (struct Lisp_Markers *t,
+			   ptrdiff_t from, ptrdiff_t from_byte,
+			   ptrdiff_t to, ptrdiff_t to_byte,
+			   bool before_markers)
+{
+  markers_move_gap_to_charpos (t, from);
+  m_index_t i = t->gap_end;
+  m_index_t size = t->size;
+  ptrdiff_t charoffset = to - from;
+  ptrdiff_t byteoffset = to_byte - from_byte;
+  /* FIXME: This can mess up ordering because we move some but not
+     all markers at 'from'. */
+  for (; i < size && t->markers[i]->charpos == from; i++)
+    if (t->markers[i]->insertion_type)
+      {
+	t->markers[i]->charpos += charoffset;
+	t->markers[i]->bytepos += byteoffset;
+      }
+  for (; i < size; i++)
+    {
+      t->markers[i]->charpos += charoffset;
+      t->markers[i]->bytepos += byteoffset;
+    }
+  markers_sanity_check (t);
+}
+
+void
+markers_adjust_for_replace (struct Lisp_Markers *t,
+			    ptrdiff_t from, ptrdiff_t from_byte,
+			    ptrdiff_t old_chars, ptrdiff_t old_bytes,
+			    ptrdiff_t new_chars, ptrdiff_t new_bytes)
+{
+  eassert (old_chars > 0);
+  markers_move_gap_to_charpos (t, from);
+  m_index_t i = t->gap_end;
+  m_index_t size = t->size;
+  ptrdiff_t prev_to = from + old_chars;
+  for (; i < size && t->markers[i]->charpos < prev_to; i++)
+    {
+      t->markers[i]->charpos = from;
+      t->markers[i]->bytepos = from_byte;
+    }
+  ptrdiff_t charoffset = new_chars - old_chars;
+  ptrdiff_t byteoffset = new_bytes - old_bytes;
+  for (; i < size; i++)
+    {
+      t->markers[i]->charpos += charoffset;
+      t->markers[i]->bytepos += byteoffset;
+    }
+  markers_sanity_check (t);
+}
+
+void
+markers_adjust_for_delete (struct Lisp_Markers *t,
+			   ptrdiff_t from, ptrdiff_t from_byte,
+			   ptrdiff_t to, ptrdiff_t to_byte)
+{
+  eassert (to > from);
+  markers_adjust_for_replace (t, from, from_byte,
+			      to - from, to_byte - from_byte,
+			      0, 0);
+}
+
+bool
+markers_full_p (struct Lisp_Markers *t)
+{
+  return t->gap_beg == t->gap_end;
+}
+
+struct Lisp_Markers *
+markers_new (unsigned int size)
+{
+  struct Lisp_Markers *t = xmalloc (sizeof (struct Lisp_Markers)
+				    + size * sizeof (struct Lisp_Marker *));
+  t->size = size;
+  t->gap_beg = 0;
+  t->gap_end = size;
+  memset (t->markers, 0, size * sizeof (struct Lisp_Marker *));
+  return t;
+}
+
+struct markers__iterator
+{
+  struct Lisp_Markers *t;
+  m_index_t i;
+  ptrdiff_t to;
+};
+
+struct markers_iterator
+markers_iterator_all (struct Lisp_Markers *t)
+{
+  struct markers_iterator it = { .t = t, .i = t->gap_beg ? 0 : t->gap_end };
+  it.m = it.i < t->size ? t->markers[it.i] : NULL;
+  return it;
+}
+
+void
+markers_iterator_next (struct markers_iterator *it)
+{
+  it->i++;
+  if (it->i == it->t->gap_beg)
+    it->i = it->t->gap_end;
+  it->m = it->i < it->t->size ? it->t->markers[it->i] : NULL;
+}
+
+
+/***********************************************************/
+/* Older set of markers as an unsorted linked list         */
+/***********************************************************/
+
 
 /* Juanma Barranquero <lekktu@gmail.com> reported ~3x increased
    bootstrap time when byte_char_debug_check is enabled; so this
@@ -139,6 +482,13 @@ CHECK_MARKER (Lisp_Object x)
   CHECK_TYPE (MARKERP (x), Qmarkerp, x);
 }
 
+static void
+cache_bytechar (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
+{
+  Lisp_Object m = build_marker (buf, charpos, bytepos);
+  XMARKER (m)->cache = true;
+}
+
 /* When converting bytes from/to chars, we look through the list of
    markers to try and find a good starting point (since markers keep
    track of both bytepos and charpos at the same time).
@@ -159,14 +509,12 @@ CHECK_MARKER (Lisp_Object x)
    The asymptotic behavior is still poor, tho, so in largish buffers with many
    overlays (e.g. 300KB and 30K overlays), it can still be a bottleneck.  */
 #define BYTECHAR_DISTANCE_INITIAL 50
-#define BYTECHAR_DISTANCE_INCREMENT 50
 
 /* Return the byte position corresponding to CHARPOS in B.  */
 
 ptrdiff_t
 buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 {
-  struct Lisp_Marker *tail;
   ptrdiff_t best_above, best_above_byte;
   ptrdiff_t best_below, best_below_byte;
   ptrdiff_t distance = BYTECHAR_DISTANCE_INITIAL;
@@ -202,16 +550,24 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
   if (b == cached_buffer && BUF_MODIFF (b) == cached_modiff)
     CONSIDER (cached_charpos, cached_bytepos);
 
-  for (tail = BUF_MARKERS (b);
-       /* If we are down to a range of DISTANCE chars,
-          don't bother checking any other markers;
-          scan the intervening chars directly now.  */
-       tail && !(best_above - charpos < distance
-		 || charpos - best_below < distance);
-       tail = tail->next,
-       distance += BYTECHAR_DISTANCE_INCREMENT)
-    CONSIDER (tail->charpos, tail->bytepos);
-
+  if (!(best_above - charpos < distance
+	|| charpos - best_below < distance))
+    {
+      struct Lisp_Markers *t = BUF_ALL_MARKERS (b);
+      m_index_t i = markers_search_charpos (t, charpos);
+      if (i < t->size)
+	{
+	  struct Lisp_Marker *m = t->markers[i];
+	  CONSIDER (m->charpos, m->bytepos);
+	}
+      if (i == t->gap_end)
+	i = t->gap_beg;
+      if (i > 0)
+	{
+	  struct Lisp_Marker *m = t->markers[i - 1];
+	  CONSIDER (m->charpos, m->bytepos);
+	}
+    }
   /* We get here if we did not exactly hit one of the known places.
      We have one known above and one known below.
      Scan, counting characters, from whichever one is closer.  */
@@ -231,7 +587,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 	 cache the correspondence by creating a marker here.
 	 It will last until the next GC.  */
       if (record)
-	build_marker (b, best_below, best_below_byte);
+	cache_bytechar (b, best_below, best_below_byte);
 
       byte_char_debug_check (b, best_below, best_below_byte);
 
@@ -240,6 +596,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
       cached_charpos = best_below;
       cached_bytepos = best_below_byte;
 
+      eassert (best_below_byte >= charpos);
       return best_below_byte;
     }
   else
@@ -256,7 +613,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 	 cache the correspondence by creating a marker here.
 	 It will last until the next GC.  */
       if (record)
-	build_marker (b, best_above, best_above_byte);
+	cache_bytechar (b, best_above, best_above_byte);
 
       byte_char_debug_check (b, best_above, best_above_byte);
 
@@ -265,6 +622,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
       cached_charpos = best_above;
       cached_bytepos = best_above_byte;
 
+      eassert (best_above_byte >= charpos);
       return best_above_byte;
     }
 }
@@ -319,7 +677,6 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 ptrdiff_t
 buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 {
-  struct Lisp_Marker *tail;
   ptrdiff_t best_above, best_above_byte;
   ptrdiff_t best_below, best_below_byte;
   ptrdiff_t distance = BYTECHAR_DISTANCE_INITIAL;
@@ -350,15 +707,24 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
   if (b == cached_buffer && BUF_MODIFF (b) == cached_modiff)
     CONSIDER (cached_bytepos, cached_charpos);
 
-  for (tail = BUF_MARKERS (b);
-       /* If we are down to a range of DISTANCE bytes,
-          don't bother checking any other markers;
-          scan the intervening chars directly now.  */
-       tail && !(best_above_byte - bytepos < distance
-		 || bytepos - best_below_byte < distance);
-       tail = tail->next,
-       distance += BYTECHAR_DISTANCE_INCREMENT)
-    CONSIDER (tail->bytepos, tail->charpos);
+  if (!(best_above_byte - bytepos < distance
+        || bytepos - best_below_byte < distance))
+    {
+      struct Lisp_Markers *t = BUF_ALL_MARKERS (b);
+      m_index_t i = markers_search_bytepos (t, bytepos);
+      if (i < t->size)
+	{
+	  struct Lisp_Marker *m = t->markers[i];
+	  CONSIDER (m->bytepos, m->charpos);
+	}
+      if (i == t->gap_end)
+	i = t->gap_beg;
+      if (i > 0)
+	{
+	  struct Lisp_Marker *m = t->markers[i - 1];
+	  CONSIDER (m->bytepos, m->charpos);
+	}
+    }
 
   /* We get here if we did not exactly hit one of the known places.
      We have one known above and one known below.
@@ -379,8 +745,8 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 	 It will last until the next GC.
 	 But don't do it if BUF_MARKERS is nil;
 	 that is a signal from Fset_buffer_multibyte.  */
-      if (record && BUF_MARKERS (b))
-	build_marker (b, best_below, best_below_byte);
+      if (record && BUF_ALL_MARKERS (b))
+	cache_bytechar (b, best_below, best_below_byte);
 
       byte_char_debug_check (b, best_below, best_below_byte);
 
@@ -389,6 +755,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
       cached_charpos = best_below;
       cached_bytepos = best_below_byte;
 
+      eassert (best_below <= bytepos);
       return best_below;
     }
   else
@@ -406,8 +773,8 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 	 It will last until the next GC.
 	 But don't do it if BUF_MARKERS is nil;
 	 that is a signal from Fset_buffer_multibyte.  */
-      if (record && BUF_MARKERS (b))
-	build_marker (b, best_above, best_above_byte);
+      if (record && BUF_ALL_MARKERS (b))
+	cache_bytechar (b, best_above, best_above_byte);
 
       byte_char_debug_check (b, best_above, best_above_byte);
 
@@ -416,6 +783,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
       cached_charpos = best_above;
       cached_bytepos = best_above_byte;
 
+      eassert (best_above <= bytepos);
       return best_above;
     }
 }
@@ -480,16 +848,14 @@ attach_marker (struct Lisp_Marker *m, struct buffer *b,
   else
     eassert (charpos <= bytepos);
 
+  if (m->buffer)
+    markers_kill (BUF_ALL_MARKERS (m->buffer), m);
+
   m->charpos = charpos;
   m->bytepos = bytepos;
+  m->buffer = b;
 
-  if (m->buffer != b)
-    {
-      unchain_marker (m);
-      m->buffer = b;
-      m->next = BUF_MARKERS (b);
-      BUF_MARKERS (b) = m;
-    }
+  BUF_ALL_MARKERS (b) = markers_add (BUF_ALL_MARKERS (b), m);
 }
 
 /* If BUFFER is nil, return current buffer pointer.  Next, check
@@ -525,55 +891,19 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
 
   /* Optimize the special case where we are copying the position of
      an existing marker, and MARKER is already in the same buffer.  */
-  else if (MARKERP (position) && b == XMARKER (position)->buffer
-	   && b == m->buffer)
+  else if (MARKERP (position) && b == XMARKER (position)->buffer)
     {
-      m->bytepos = XMARKER (position)->bytepos;
-      m->charpos = XMARKER (position)->charpos;
+      attach_marker (m, b, XMARKER (position)->charpos,
+		     XMARKER (position)->bytepos);
     }
 
   else
     {
-      register ptrdiff_t charpos, bytepos;
-
-      /* Do not use CHECK_FIXNUM_COERCE_MARKER because we
-	 don't want to call buf_charpos_to_bytepos if POSITION
-	 is a marker and so we know the bytepos already.  */
-      if (FIXNUMP (position))
-	{
-#if EMACS_INT_MAX > PTRDIFF_MAX
-	  /* A --with-wide-int build.  */
-	  EMACS_INT cpos = XFIXNUM (position);
-	  if (cpos > PTRDIFF_MAX)
-	    cpos = PTRDIFF_MAX;
-	  charpos = cpos;
-	  bytepos = -1;
-#else
-	  charpos = XFIXNUM (position), bytepos = -1;
-#endif
-	}
-      else if (MARKERP (position))
-	{
-	  charpos = XMARKER (position)->charpos;
-	  bytepos = XMARKER (position)->bytepos;
-	}
-      else
-	wrong_type_argument (Qinteger_or_marker_p, position);
-
+      ptrdiff_t charpos = fix_position (position);
       charpos = clip_to_bounds
 	(restricted ? BUF_BEGV (b) : BUF_BEG (b), charpos,
 	 restricted ? BUF_ZV (b) : BUF_Z (b));
-      /* Don't believe BYTEPOS if it comes from a different buffer,
-	 since that buffer might have a very different correspondence
-	 between character and byte positions.  */
-      if (bytepos == -1
-	  || !(MARKERP (position) && XMARKER (position)->buffer == b))
-	bytepos = buf_charpos_to_bytepos (b, charpos);
-      else
-	bytepos = clip_to_bounds
-	  (restricted ? BUF_BEGV_BYTE (b) : BUF_BEG_BYTE (b),
-	   bytepos, restricted ? BUF_ZV_BYTE (b) : BUF_Z_BYTE (b));
-
+      ptrdiff_t bytepos = buf_charpos_to_bytepos (b, charpos);
       attach_marker (m, b, charpos, bytepos);
     }
 
@@ -674,6 +1004,7 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer,
 void
 detach_marker (Lisp_Object marker)
 {
+  /* FIXME: Roundabout way to call `unchain_marker`.  */
   Fset_marker (marker, Qnil, Qnil);
 }
 
@@ -687,34 +1018,11 @@ unchain_marker (register struct Lisp_Marker *marker)
 
   if (b)
     {
-      register struct Lisp_Marker *tail, **prev;
-
       /* No dead buffers here.  */
       eassert (BUFFER_LIVE_P (b));
 
+      markers_kill (BUF_ALL_MARKERS (b), marker);
       marker->buffer = NULL;
-      prev = &BUF_MARKERS (b);
-
-      for (tail = BUF_MARKERS (b); tail; prev = &tail->next, tail = *prev)
-	if (marker == tail)
-	  {
-	    if (*prev == BUF_MARKERS (b))
-	      {
-		/* Deleting first marker from the buffer's chain.  Crash
-		   if new first marker in chain does not say it belongs
-		   to the same buffer, or at least that they have the same
-		   base buffer.  */
-		if (tail->next && b->text != tail->next->buffer->text)
-		  emacs_abort ();
-	      }
-	    *prev = tail->next;
-	    /* We have removed the marker from the chain;
-	       no need to scan the rest of the chain.  */
-	    break;
-	  }
-
-      /* Error if marker was not in it's chain.  */
-      eassert (tail != NULL);
     }
 }
 
@@ -794,6 +1102,45 @@ If TYPE is nil, it means the marker stays behind when you insert text at it.  */
   return type;
 }
 
+DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
+       doc: /* Return a newly allocated marker which does not point at any place.  */)
+  (void)
+{
+  struct Lisp_Marker *p = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Marker,
+						       PVEC_MARKER);
+  p->buffer = 0;
+  p->bytepos = 0;
+  p->charpos = 0;
+  p->insertion_type = false;
+  p->need_adjustment = false;
+  p->cache = false;
+  return make_lisp_ptr (p, Lisp_Vectorlike);
+}
+
+/* Return a newly allocated marker which points into BUF
+   at character position CHARPOS and byte position BYTEPOS.  */
+
+Lisp_Object
+build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
+{
+  /* No dead buffers here.  */
+  eassert (BUFFER_LIVE_P (buf));
+
+  /* Every character is at least one byte.  */
+  eassert (charpos <= bytepos);
+
+  struct Lisp_Marker *m = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Marker,
+						       PVEC_MARKER);
+  m->buffer = buf;
+  m->charpos = charpos;
+  m->bytepos = bytepos;
+  m->insertion_type = false;
+  m->need_adjustment = false;
+  m->cache = false;
+  BUF_ALL_MARKERS (buf) = markers_add (BUF_ALL_MARKERS (buf), m);
+  return make_lisp_ptr (m, Lisp_Vectorlike);
+}
+
 #ifdef MARKER_DEBUG
 
 /* For debugging -- count the markers in buffer BUF.  */
@@ -801,13 +1148,8 @@ If TYPE is nil, it means the marker stays behind when you insert text at it.  */
 int
 count_markers (struct buffer *buf)
 {
-  int total = 0;
-  struct Lisp_Marker *tail;
-
-  for (tail = BUF_MARKERS (buf); tail; tail = tail->next)
-    total++;
-
-  return total;
+  struct Lisp_Markers *t = BUF_ALL_MARKERS (current_buffer);
+  return t->size - (t->gap_end - t->gap_beg);
 }
 
 /* For debugging -- recompute the bytepos corresponding
@@ -833,6 +1175,7 @@ verify_bytepos (ptrdiff_t charpos)
 void
 syms_of_marker (void)
 {
+  defsubr (&Smake_marker);
   defsubr (&Smarker_position);
   defsubr (&Smarker_last_position);
   defsubr (&Smarker_buffer);

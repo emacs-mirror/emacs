@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 
 #include "lisp.h"
+#include "marker.h"
 #include "bignum.h"
 #include "character.h"
 #include "coding.h"

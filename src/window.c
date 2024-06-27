@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #include "lisp.h"
+#include "marker.h"
 #include "buffer.h"
 #include "keyboard.h"
 #include "keymap.h"

@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 
 #include "lisp.h"
+#include "marker.h"
 
 /* Only MS-DOS does not define `subprocesses'.  */
 #ifdef subprocesses

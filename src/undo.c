@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "lisp.h"
+#include "marker.h"
 #include "buffer.h"
 #include "keyboard.h"
 
@@ -128,9 +129,9 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
 {
   prepare_record ();
 
-  for (struct Lisp_Marker *m = BUF_MARKERS (current_buffer); m; m = m->next)
+  MARKERS_DO_ALL (it, BUF_ALL_MARKERS (current_buffer))
     {
-      ptrdiff_t charpos = m->charpos;
+      ptrdiff_t charpos = it.m->charpos;
       eassert (charpos <= Z);
 
       if (from <= charpos && charpos <= to)
@@ -142,11 +143,11 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
              insertion_type t markers will automatically move forward
              upon re-inserting the deleted text, so we have to arrange
              for them to move backward to the correct position.  */
-	  ptrdiff_t adjustment = (m->insertion_type ? to : from) - charpos;
+	  ptrdiff_t adjustment = (it.m->insertion_type ? to : from) - charpos;
 
           if (adjustment)
             {
-	      Lisp_Object marker = make_lisp_ptr (m, Lisp_Vectorlike);
+	      Lisp_Object marker = make_lisp_ptr (it.m, Lisp_Vectorlike);
               bset_undo_list
                 (current_buffer,
                  Fcons (Fcons (marker, make_fixnum (adjustment)),

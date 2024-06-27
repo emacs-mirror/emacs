@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>
 
 #include "lisp.h"
+#include "marker.h"
 #include "coding.h"
 #include "termchar.h"
 #include "termopts.h"

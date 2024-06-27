@@ -2828,50 +2828,6 @@ knuth_hash (hash_hash_t hash, unsigned bits)
   return wide_product >> (32 - bits);
 }
 
-
-struct Lisp_Marker
-{
-  union vectorlike_header header;
-
-  /* This is the buffer that the marker points into, or 0 if it points nowhere.
-     Note: a chain of markers can contain markers pointing into different
-     buffers (the chain is per buffer_text rather than per buffer, so it's
-     shared between indirect buffers).  */
-  /* This is used for (other than NULL-checking):
-     - Fmarker_buffer
-     - Fset_marker: check eq(oldbuf, newbuf) to avoid unchain+rechain.
-     - unchain_marker: to find the list from which to unchain.
-     - Fkill_buffer: to only unchain the markers of current indirect buffer.
-     */
-  struct buffer *buffer;
-
-  /* This flag is temporarily used in the functions
-     decode/encode_coding_object to record that the marker position
-     must be adjusted after the conversion.  */
-  bool_bf need_adjustment : 1;
-  /* True means normal insertion at the marker's position
-     leaves the marker after the inserted text.  */
-  bool_bf insertion_type : 1;
-
-  /* The remaining fields are meaningless in a marker that
-     does not point anywhere.  */
-
-  /* For markers that point somewhere,
-     this is used to chain of all the markers in a given buffer.
-     The chain does not preserve markers from garbage collection;
-     instead, markers are removed from the chain when freed by GC.  */
-  /* We could remove it and use an array in buffer_text instead.
-     That would also allow us to preserve it ordered.  */
-  struct Lisp_Marker *next;
-  /* This is the char position where the marker points.  */
-  ptrdiff_t charpos;
-  /* This is the byte position.
-     It's mostly used as a charpos<->bytepos cache (i.e. it's not directly
-     used to implement the functionality of markers, but rather to (ab)use
-     markers as a cache for char<->byte mappings).  */
-  ptrdiff_t bytepos;
-} GCALIGNED_STRUCT;
-
 struct Lisp_Overlay
 /* An overlay's real data content is:
    - plist
@@ -4999,22 +4955,6 @@ extern Lisp_Object other_buffer_safely (Lisp_Object);
 extern void init_buffer_once (void);
 extern void init_buffer (void);
 extern void syms_of_buffer (void);
-
-/* Defined in marker.c.  */
-
-extern ptrdiff_t marker_position (Lisp_Object);
-extern ptrdiff_t marker_byte_position (Lisp_Object);
-extern void clear_charpos_cache (struct buffer *);
-extern ptrdiff_t buf_charpos_to_bytepos (struct buffer *, ptrdiff_t);
-extern ptrdiff_t buf_bytepos_to_charpos (struct buffer *, ptrdiff_t);
-extern void detach_marker (Lisp_Object);
-extern void unchain_marker (struct Lisp_Marker *);
-extern Lisp_Object set_marker_restricted (Lisp_Object, Lisp_Object, Lisp_Object);
-extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, ptrdiff_t, ptrdiff_t);
-extern Lisp_Object set_marker_restricted_both (Lisp_Object, Lisp_Object,
-                                               ptrdiff_t, ptrdiff_t);
-extern Lisp_Object build_marker (struct buffer *, ptrdiff_t, ptrdiff_t);
-extern void syms_of_marker (void);
 
 /* Defined in fileio.c.  */
 

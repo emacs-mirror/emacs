@@ -33,6 +33,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "textconv.h"
+#include "marker.h"
 #include "buffer.h"
 #include "syntax.h"
 #include "blockinput.h"

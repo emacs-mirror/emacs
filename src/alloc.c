@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #include "lisp.h"
+#include "marker.h"
 #include "bignum.h"
 #include "dispextern.h"
 #include "intervals.h"
@@ -4031,45 +4032,6 @@ build_overlay (bool front_advance, bool rear_advance,
   return overlay;
 }
 
-DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
-       doc: /* Return a newly allocated marker which does not point at any place.  */)
-  (void)
-{
-  struct Lisp_Marker *p = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Marker,
-						       PVEC_MARKER);
-  p->buffer = 0;
-  p->bytepos = 0;
-  p->charpos = 0;
-  p->next = NULL;
-  p->insertion_type = 0;
-  p->need_adjustment = 0;
-  return make_lisp_ptr (p, Lisp_Vectorlike);
-}
-
-/* Return a newly allocated marker which points into BUF
-   at character position CHARPOS and byte position BYTEPOS.  */
-
-Lisp_Object
-build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
-{
-  /* No dead buffers here.  */
-  eassert (BUFFER_LIVE_P (buf));
-
-  /* Every character is at least one byte.  */
-  eassert (charpos <= bytepos);
-
-  struct Lisp_Marker *m = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Marker,
-						       PVEC_MARKER);
-  m->buffer = buf;
-  m->charpos = charpos;
-  m->bytepos = bytepos;
-  m->insertion_type = 0;
-  m->need_adjustment = 0;
-  m->next = BUF_MARKERS (buf);
-  BUF_MARKERS (buf) = m;
-  return make_lisp_ptr (m, Lisp_Vectorlike);
-}
-
 
 /* Return a newly created vector or string with specified arguments as
    elements.  If all the arguments are characters that can fit
@@ -7836,15 +7798,11 @@ sweep_symbols (void)
 static void
 unchain_dead_markers (struct buffer *buffer)
 {
-  struct Lisp_Marker *this, **prev = &BUF_MARKERS (buffer);
-
-  while ((this = *prev))
-    if (vectorlike_marked_p (&this->header))
-      prev = &this->next;
-    else
+  MARKERS_DO_ALL (it, BUF_ALL_MARKERS (current_buffer))
+    if (!vectorlike_marked_p (&it.m->header))
       {
-        this->buffer = NULL;
-        *prev = this->next;
+        markers_kill (it.t, it.m);
+        it.m->buffer = NULL;
       }
 }
 
@@ -8287,7 +8245,6 @@ N should be nonnegative.  */);
   defsubr (&Smake_string);
   defsubr (&Smake_bool_vector);
   defsubr (&Smake_symbol);
-  defsubr (&Smake_marker);
   defsubr (&Smake_finalizer);
   defsubr (&Spurecopy);
   defsubr (&Sgarbage_collect);

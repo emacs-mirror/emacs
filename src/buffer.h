@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "character.h"
 #include "lisp.h"
+#include "marker.h"
 #include "itree.h"
 
 INLINE_HEADER_BEGIN
@@ -138,8 +139,8 @@ enum { BEG = 1, BEG_BYTE = BEG };
 /* Compaction count.  */
 #define BUF_COMPACT(buf) ((buf)->text->compact)
 
-/* Marker chain of buffer.  */
-#define BUF_MARKERS(buf) ((buf)->text->markers)
+/* Table of all markers of buffer.  */
+#define BUF_ALL_MARKERS(buf) ((buf)->text->all_markers)
 
 #define BUF_UNCHANGED_MODIFIED(buf) \
   ((buf)->text->unchanged_modified)
@@ -271,14 +272,8 @@ struct buffer_text
     /* Properties of this buffer's text.  */
     INTERVAL intervals;
 
-    /* The markers that refer to this buffer.
-       This is actually a single marker ---
-       successive elements in its marker `chain'
-       are the other markers referring to this buffer.
-       This is a singly linked unordered list, which means that it's
-       very cheap to add a marker to the list and it's also very cheap
-       to move a marker within a buffer.  */
-    struct Lisp_Marker *markers;
+    /* The table of all the markers that refer to this buffer.  */
+    struct Lisp_Markers *all_markers;
 
     /* Usually false.  Temporarily true in decode_coding_gap to
        prevent Fgarbage_collect from shrinking the gap and losing

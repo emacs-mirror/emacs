@@ -290,6 +290,7 @@ encode_coding_XXX (struct coding_system *coding)
 #endif /* HAVE_WCHAR_H */
 
 #include "lisp.h"
+#include "marker.h"
 #include "character.h"
 #include "buffer.h"
 #include "charset.h"
@@ -8114,13 +8115,11 @@ decode_coding_object (struct coding_system *coding,
 	move_gap_both (from, from_byte);
       if (BASE_EQ (src_object, dst_object))
 	{
-	  struct Lisp_Marker *tail;
-
-	  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
+	  MARKERS_DO_ALL (it, BUF_ALL_MARKERS (current_buffer))
 	    {
-	      tail->need_adjustment
-		= tail->charpos == (tail->insertion_type ? from : to);
-	      need_marker_adjustment |= tail->need_adjustment;
+	      it.m->need_adjustment
+		= it.m->charpos == (it.m->insertion_type ? from : to);
+	      need_marker_adjustment |= it.m->need_adjustment;
 	    }
 	  saved_pt = PT, saved_pt_byte = PT_BYTE;
 	  TEMP_SET_PT_BOTH (from, from_byte);
@@ -8246,23 +8245,21 @@ decode_coding_object (struct coding_system *coding,
 
       if (need_marker_adjustment)
 	{
-	  struct Lisp_Marker *tail;
-
-	  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
-	    if (tail->need_adjustment)
+	  MARKERS_DO_ALL (it, BUF_ALL_MARKERS (current_buffer))
+	    if (it.m->need_adjustment)
 	      {
-		tail->need_adjustment = 0;
-		if (tail->insertion_type)
+		it.m->need_adjustment = 0;
+		if (it.m->insertion_type)
 		  {
-		    tail->bytepos = from_byte;
-		    tail->charpos = from;
+		    it.m->bytepos = from_byte;
+		    it.m->charpos = from;
 		  }
 		else
 		  {
-		    tail->bytepos = from_byte + coding->produced;
-		    tail->charpos
+		    it.m->bytepos = from_byte + coding->produced;
+		    it.m->charpos
 		      = (NILP (BVAR (current_buffer, enable_multibyte_characters))
-			 ? tail->bytepos : from + coding->produced_char);
+			 ? it.m->bytepos : from + coding->produced_char);
 		  }
 	      }
 	}
@@ -8334,15 +8331,13 @@ encode_coding_object (struct coding_system *coding,
   bool same_buffer = false;
   if (BASE_EQ (src_object, dst_object) && BUFFERP (src_object))
     {
-      struct Lisp_Marker *tail;
-
       same_buffer = true;
 
-      for (tail = BUF_MARKERS (XBUFFER (src_object)); tail; tail = tail->next)
+      MARKERS_DO_ALL (it, BUF_ALL_MARKERS (XBUFFER (src_object)))
 	{
-	  tail->need_adjustment
-	    = tail->charpos == (tail->insertion_type ? from : to);
-	  need_marker_adjustment |= tail->need_adjustment;
+	  it.m->need_adjustment
+	    = it.m->charpos == (it.m->insertion_type ? from : to);
+	  need_marker_adjustment |= it.m->need_adjustment;
 	}
     }
 
@@ -8501,23 +8496,21 @@ encode_coding_object (struct coding_system *coding,
 
       if (need_marker_adjustment)
 	{
-	  struct Lisp_Marker *tail;
-
-	  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
-	    if (tail->need_adjustment)
+	  MARKERS_DO_ALL (it, BUF_ALL_MARKERS (current_buffer))
+	    if (it.m->need_adjustment)
 	      {
-		tail->need_adjustment = 0;
-		if (tail->insertion_type)
+		it.m->need_adjustment = 0;
+		if (it.m->insertion_type)
 		  {
-		    tail->bytepos = from_byte;
-		    tail->charpos = from;
+		    it.m->bytepos = from_byte;
+		    it.m->charpos = from;
 		  }
 		else
 		  {
-		    tail->bytepos = from_byte + coding->produced;
-		    tail->charpos
+		    it.m->bytepos = from_byte + coding->produced;
+		    it.m->charpos
 		      = (NILP (BVAR (current_buffer, enable_multibyte_characters))
-			 ? tail->bytepos : from + coding->produced_char);
+			 ? it.m->bytepos : from + coding->produced_char);
 		  }
 	      }
 	}

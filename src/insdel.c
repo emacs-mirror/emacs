@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <intprops.h>
 
 #include "lisp.h"
+#include "marker.h"
 #include "composite.h"
 #include "intervals.h"
 #include "character.h"
@@ -228,11 +229,12 @@ adjust_suspend_auto_hscroll (ptrdiff_t from, ptrdiff_t to)
   if (WINDOWP (selected_window))
     {
       struct window *w = XWINDOW (selected_window);
+      ptrdiff_t old_point;
 
       if (BUFFERP (w->contents)
 	  && XBUFFER (w->contents) == current_buffer
-	  && XMARKER (w->old_pointm)->charpos >= from
-	  && XMARKER (w->old_pointm)->charpos <= to)
+	  && (old_point = marker_position (w->old_pointm),
+	      from <= old_point && old_point <= to))
 	w->suspend_auto_hscroll = 0;
     }
 }
@@ -249,29 +251,9 @@ void
 adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
 			   ptrdiff_t to, ptrdiff_t to_byte)
 {
-  struct Lisp_Marker *m;
-  ptrdiff_t charpos;
-
   adjust_suspend_auto_hscroll (from, to);
-  for (m = BUF_MARKERS (current_buffer); m; m = m->next)
-    {
-      charpos = m->charpos;
-      eassert (charpos <= Z);
-
-      /* If the marker is after the deletion,
-	 relocate by number of chars / bytes deleted.  */
-      if (charpos > to)
-	{
-	  m->charpos -= to - from;
-	  m->bytepos -= to_byte - from_byte;
-	}
-      /* Here's the case where a marker is inside text being deleted.  */
-      else if (charpos > from)
-	{
-	  m->charpos = from;
-	  m->bytepos = from_byte;
-	}
-    }
+  markers_adjust_for_delete (BUF_ALL_MARKERS (current_buffer),
+			     from, from_byte, to, to_byte);
   adjust_overlays_for_delete (from, to - from);
 }
 
@@ -288,30 +270,9 @@ void
 adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 			   ptrdiff_t to, ptrdiff_t to_byte, bool before_markers)
 {
-  struct Lisp_Marker *m;
-  ptrdiff_t nchars = to - from;
-  ptrdiff_t nbytes = to_byte - from_byte;
-
   adjust_suspend_auto_hscroll (from, to);
-  for (m = BUF_MARKERS (current_buffer); m; m = m->next)
-    {
-      eassert (m->bytepos >= m->charpos
-	       && m->bytepos - m->charpos <= Z_BYTE - Z);
-
-      if (m->bytepos == from_byte)
-	{
-	  if (m->insertion_type || before_markers)
-	    {
-	      m->bytepos = to_byte;
-	      m->charpos = to;
-	    }
-	}
-      else if (m->bytepos > from_byte)
-	{
-	  m->bytepos += nbytes;
-	  m->charpos += nchars;
-	}
-    }
+  markers_adjust_for_insert (BUF_ALL_MARKERS (current_buffer),
+			     from, from_byte, to, to_byte, before_markers);
   adjust_overlays_for_insert (from, to - from, before_markers);
 }
 
@@ -343,31 +304,11 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
 			    ptrdiff_t old_chars, ptrdiff_t old_bytes,
 			    ptrdiff_t new_chars, ptrdiff_t new_bytes)
 {
-  register struct Lisp_Marker *m;
-  ptrdiff_t prev_to_byte = from_byte + old_bytes;
-  ptrdiff_t diff_chars = new_chars - old_chars;
-  ptrdiff_t diff_bytes = new_bytes - old_bytes;
-
   adjust_suspend_auto_hscroll (from, from + old_chars);
 
-  /* FIXME: When OLD_CHARS is 0, this "replacement" is really just an
-     insertion, but the behavior we provide here in that case is that of
-     `insert-before-markers` rather than that of `insert`.
-     Maybe not a bug, but not a feature either.  */
-  for (m = BUF_MARKERS (current_buffer); m; m = m->next)
-    {
-      if (m->bytepos >= prev_to_byte)
-	{
-	  m->charpos += diff_chars;
-	  m->bytepos += diff_bytes;
-	}
-      else if (m->bytepos > from_byte)
-	{
-	  m->charpos = from;
-	  m->bytepos = from_byte;
-	}
-    }
-
+  markers_adjust_for_replace (BUF_ALL_MARKERS (current_buffer),
+			      from, from_byte, old_chars, old_bytes,
+			      new_chars, new_bytes);
   check_markers ();
 
   adjust_overlays_for_insert (from + old_chars, new_chars, true);
@@ -415,36 +356,33 @@ adjust_markers_bytepos (ptrdiff_t from, ptrdiff_t from_byte,
     {
       /* Make sure each affected marker's bytepos is equal to
 	 its charpos.  */
-      for (m = BUF_MARKERS (current_buffer); m; m = m->next)
+      MARKERS_DO_ALL (it, BUF_ALL_MARKERS (current_buffer))
 	{
-	  if (m->bytepos > from_byte
-	      && (to_z || m->bytepos <= to_byte))
-	    m->bytepos = m->charpos;
+	  if (it.m->bytepos > from_byte
+	      && (to_z || it.m->bytepos <= to_byte))
+	    it.m->bytepos = it.m->charpos;
 	}
     }
   else
     {
-      for (m = BUF_MARKERS (current_buffer); m; m = m->next)
+      MARKERS_DO_ALL (it, BUF_ALL_MARKERS (current_buffer))
 	{
 	  /* Recompute each affected marker's bytepos.  */
-	  if (m->bytepos > from_byte
-	      && (to_z || m->bytepos <= to_byte))
+	  if (it.m->bytepos > from_byte
+	      && (to_z || it.m->bytepos <= to_byte))
 	    {
-	      if (m->charpos < beg
-		  && beg - m->charpos > m->charpos - from)
+	      if (it.m->charpos < beg
+		  && beg - it.m->charpos > it.m->charpos - from)
 		{
 		  beg = from;
 		  begbyte = from_byte;
 		}
-	      m->bytepos = count_bytes (beg, begbyte, m->charpos);
-	      beg = m->charpos;
-	      begbyte = m->bytepos;
+	      it.m->bytepos = count_bytes (beg, begbyte, it.m->charpos);
+	      beg = it.m->charpos;
+	      begbyte = it.m->bytepos;
 	    }
 	}
     }
-
-  /* Make sure cached charpos/bytepos is invalid.  */
-  clear_charpos_cache (current_buffer);
 }
 
 

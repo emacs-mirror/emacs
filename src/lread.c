@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <stat-time.h>
 #include "lisp.h"
+#include "marker.h"
 #include "dispextern.h"
 #include "intervals.h"
 #include "character.h"

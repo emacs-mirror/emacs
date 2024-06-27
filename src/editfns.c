@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #include "lisp.h"
+#include "marker.h"
 
 #include <float.h>
 #include <limits.h>
@@ -4384,7 +4385,6 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
 		   ptrdiff_t start2_byte, ptrdiff_t end2_byte)
 {
   register ptrdiff_t amt1, amt1_byte, amt2, amt2_byte, diff, diff_byte, mpos;
-  register struct Lisp_Marker *marker;
 
   /* Update point as if it were a marker.  */
   if (PT < start1)
@@ -4419,31 +4419,46 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
   amt1_byte = (end2_byte - start2_byte) + (start2_byte - end1_byte);
   amt2_byte = (end1_byte - start1_byte) + (start2_byte - end1_byte);
 
-  for (marker = BUF_MARKERS (current_buffer); marker; marker = marker->next)
+  /* We move markers around here in a way that affects their ordering.
+     We can't do that from within the MARKERS_DO_ALL, so we use an auxiliary
+     table 't' to record markers we need to reinsert later.  */
+  struct Lisp_Markers *t = BUF_ALL_MARKERS (current_buffer);
+  struct Lisp_Markers *taux = markers_new (4);
+  MARKERS_DO_ALL (it, t)
     {
-      mpos = marker->bytepos;
+      mpos = it.m->bytepos;
       if (mpos >= start1_byte && mpos < end2_byte)
 	{
+	  markers_kill (it.t, it.m);
 	  if (mpos < end1_byte)
 	    mpos += amt1_byte;
 	  else if (mpos < start2_byte)
 	    mpos += diff_byte;
 	  else
 	    mpos -= amt2_byte;
-	  marker->bytepos = mpos;
-	}
-      mpos = marker->charpos;
-      if (mpos >= start1 && mpos < end2)
-	{
+	  it.m->bytepos = mpos;
+
+	  mpos = it.m->charpos;
+	  eassert (mpos >= start1 && mpos < end2);
 	  if (mpos < end1)
 	    mpos += amt1;
 	  else if (mpos < start2)
 	    mpos += diff;
 	  else
 	    mpos -= amt2;
+	  it.m->charpos = mpos;
+
+	  markers_add (taux, it.m);
 	}
-      marker->charpos = mpos;
     }
+  MARKERS_DO_ALL (it, taux)
+    {
+      struct Lisp_Markers *tnew = markers_add (t, it.m);
+      /* There should always be enough space, so it should always
+	 return the same table.  */
+      eassert (tnew == t);
+    }
+  free (taux);
 }
 
 DEFUN ("transpose-regions", Ftranspose_regions, Stranspose_regions, 4, 5,
