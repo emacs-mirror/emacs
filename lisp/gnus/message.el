@@ -6252,8 +6252,7 @@ subscribed address (and not the additional To and Cc header contents)."
 	    (widen)))))))
 
 (defun message-idna-to-ascii-rhs ()
-  "Possibly IDNA encode non-ASCII domain names in From:, To: and Cc: headers.
-See `message-idna-encode'."
+  "Possibly IDNA encode non-ASCII domain names in From:, To: and Cc: headers."
   (interactive nil message-mode)
   (when message-use-idna
     (save-excursion
