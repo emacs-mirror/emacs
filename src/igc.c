@@ -659,10 +659,6 @@ struct igc
   /* Registered roots. */
   struct igc_root_list *roots;
 
-  /* Gives quick access to the root used for rdstack.
-     FIXME/igc: not strictly needed, maybe get rid of it. */
-  igc_root_list *rdstack_root;
-
   /* Registered threads. */
   struct igc_thread_list *threads;
 };
@@ -2392,24 +2388,6 @@ igc_on_grow_specpdl (void)
   }
 }
 
-void
-igc_grow_rdstack (struct read_stack *rs)
-{
-  struct igc *gc = global_igc;
-  IGC_WITH_PARKED (gc)
-  {
-    if (gc->rdstack_root)
-      destroy_root (&gc->rdstack_root);
-    ptrdiff_t old_nitems = rs->size;
-    rs->stack = xpalloc (rs->stack, &rs->size, 1, -1, sizeof *rs->stack);
-    for (ptrdiff_t i = old_nitems; i < rs->size; ++i)
-      rs->stack[i].type = RE_free;
-    gc->rdstack_root
-      = root_create_exact (gc, rs->stack, rs->stack + rs->size, scan_rdstack,
-			   "rdstack");
-  }
-}
-
 static igc_root_list *
 root_create_exact_n (Lisp_Object *start, size_t n)
 {
@@ -2560,6 +2538,27 @@ root_find (void *start)
     if (r->d.start == start)
       return r;
   return NULL;
+}
+
+void
+igc_grow_rdstack (struct read_stack *rs)
+{
+  struct igc *gc = global_igc;
+  IGC_WITH_PARKED (gc)
+  {
+    if (rs->stack)
+      {
+	struct igc_root_list *r = root_find (rs->stack);
+	igc_assert (r != NULL);
+	destroy_root (&r);
+      }
+    ptrdiff_t old_nitems = rs->size;
+    rs->stack = xpalloc (rs->stack, &rs->size, 1, -1, sizeof *rs->stack);
+    for (ptrdiff_t i = old_nitems; i < rs->size; ++i)
+      rs->stack[i].type = RE_free;
+    root_create_exact (gc, rs->stack, rs->stack + rs->size, scan_rdstack,
+		       "rdstack");
+  }
 }
 
 Lisp_Object *
