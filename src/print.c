@@ -1402,9 +1402,11 @@ pp_stack_push_values (Lisp_Object vectorlike, ptrdiff_t start, ptrdiff_t n)
     return;
   if (ppstack.sp >= ppstack.size)
     grow_pp_stack ();
-  ppstack.stack[ppstack.sp++] = (struct print_pp_entry){
-    .start = start, .n = n, .u.vectorlike = vectorlike
-  };
+  ppstack.stack[ppstack.sp++]
+    = (struct print_pp_entry){.start = start,
+			      .n = n,
+			      .u.vectorlike = vectorlike
+			     };
   ppstack.stack[ppstack.sp - 1].is_free = false;
 }
 #else
