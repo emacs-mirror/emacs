@@ -660,7 +660,7 @@ struct igc
   struct igc_root_list *roots;
 
   /* Gives quick access to the root used for rdstack.
-     FIXME: not strictly needed, maybe get rid of it. */
+     FIXME/igc: not strictly needed, maybe get rid of it. */
   igc_root_list *rdstack_root;
 
   /* Registered threads. */
@@ -1195,11 +1195,11 @@ scan_bc (mps_ss_t ss, void *start, void *end, void *closure)
     struct bc_thread_state *bc = &t->d.ts->bc;
     igc_assert (start == (void *) bc->stack);
     igc_assert (end == (void *) bc->stack_end);
-    /* FIXME: AFAIU the current top frame starts at bc->fp->next_stack
-       and has a maximum length that is given by the bytecode being
-       executed (COMPILED_STACK_DEPTH). So, we need to scan upto
-       bc->fo->next_stack + that max depth to be safe.  Since I don't
-       have that number ATM, I'm using an arbitrary estimate for
+    /* FIXME/igc: AFAIU the current top frame starts at
+       bc->fp->next_stack and has a maximum length that is given by the
+       bytecode being executed (COMPILED_STACK_DEPTH). So, we need to
+       scan upto bc->fo->next_stack + that max depth to be safe.  Since
+       I don't have that number ATM, I'm using an arbitrary estimate for
        now.
 
        This must be changed to something better. Note that Mattias said
@@ -1462,7 +1462,7 @@ fix_handler (mps_ss_t ss, struct handler *h)
     IGC_FIX12_OBJ (ss, &h->val);
     IGC_FIX12_RAW (ss, &h->next);
     IGC_FIX12_RAW (ss, &h->nextfree);
-    // FIXME: What about bytecode_top?
+    // FIXME/igc: What about bytecode_top?
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1699,7 +1699,7 @@ fix_frame (mps_ss_t ss, struct frame *f)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    // FIXME
+    // FIXME/igc: Check these
     // output_data;
     // terminal
     // glyph_pool
@@ -1768,7 +1768,7 @@ fix_hash_table (mps_ss_t ss, struct Lisp_Hash_Table *h)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    // FIXME: weak
+    // FIXME/igc: weak hash tables
     IGC_FIX12_RAW (ss, &h->key);
     IGC_FIX12_RAW (ss, &h->value);
     IGC_FIX12_RAW (ss, &h->hash);
@@ -1952,11 +1952,11 @@ fix_comp_unit (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, u, fix_vectorlike);
-    /* FIXME: Cannot scan things within the shared object because we
+    /* FIXME/igc: Cannot scan things within the shared object because we
        don't have exclusive (synchronized) access to them.  Instead of
        storing Lisp_Object references in vectors in the dylib data
-       segment it would be much nicer to store them in MPS and give
-       the dylib a pointer to them. */
+       segment it would be much nicer to store them in MPS and give the
+       dylib a pointer to them. */
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -3015,7 +3015,7 @@ clock_has_expired (struct igc_clock *clock)
 static struct igc_clock
 make_clock (double secs)
 {
-  /* FIXME: what does this do on 32-bit systems? */
+  /* FIXME/igc: what does this do on 32-bit systems? */
   mps_clock_t per_sec = mps_clocks_per_sec ();
   mps_clock_t expire = mps_clock () + secs * per_sec;
   return (struct igc_clock) { .expire = expire };
