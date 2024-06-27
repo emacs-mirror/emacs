@@ -547,7 +547,9 @@ FIND_DELETE=$exec_cv_find_delete
 AC_SUBST([FIND_DELETE])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile config-mips.m4])
+AC_CONFIG_FILES([Makefile])
+AS_IF([test "x$is_mips" = xyes],
+  [AC_CONFIG_FILES ([config-mips.m4])])
 
 AC_SUBST([AUTO_DEPEND])
 AC_SUBST([LOADERFLAGS])
@@ -556,5 +558,6 @@ AC_SUBST([ASFLAGS])
 AC_SUBST([exec_loader])
 AC_SUBST([MIPS_N32])
 AC_SUBST([OBJS])
+AC_SUBST([is_mips])
 
 AC_OUTPUT
