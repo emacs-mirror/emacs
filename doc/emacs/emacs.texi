@@ -220,7 +220,7 @@ Appendices
 * GNU Free Documentation License:: The license for this documentation.
 * Emacs Invocation::    Hairy startup options.
 * X Resources::         X resources for customizing Emacs.
-* Antinews::            Information about Emacs version 28.
+* Antinews::            Information about Emacs version 29.
 * Mac OS / GNUstep::     Using Emacs under macOS and GNUstep.
 * Haiku::               Using Emacs on Haiku.
 * Android::             Using Emacs on Android.
