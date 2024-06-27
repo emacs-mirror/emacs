@@ -11207,7 +11207,9 @@ respectively.  */);
 struct frame **
 ns_emacs_view_emacs_frame (struct frame *f)
 {
-  return &FRAME_NS_VIEW (f)->emacsframe;
+  if (FRAME_NS_VIEW (f))
+    return &FRAME_NS_VIEW (f)->emacsframe;
+  return NULL;
 }
 
 int
