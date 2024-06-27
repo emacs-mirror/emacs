@@ -903,7 +903,7 @@ dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
 {
   eassert (ctx->igc_type == IGC_OBJ_INVALID);
   eassert (ctx->igc_obj_dumped == NULL);
-  eassert (ctx->offset % igc_header_size () == 0);
+  eassert (ctx->offset % DUMP_ALIGNMENT == 0);
   ctx->igc_obj_dumped = (void *) in;
   ctx->igc_type = type;
   ctx->igc_base_offset = ctx->offset;
@@ -3033,7 +3033,8 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
     {
       dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
       dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec.string);
-      dump_field_emacs_ptr (ctx, &out, subr, &subr->command_modes);
+      eassert (NILP (subr->command_modes));
+      dump_field_lv (ctx, &out, subr, &subr->command_modes, WEIGHT_NORMAL);
     }
   DUMP_FIELD_COPY (&out, subr, doc);
 #ifdef HAVE_NATIVE_COMP
