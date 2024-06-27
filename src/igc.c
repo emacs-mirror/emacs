@@ -2403,24 +2403,40 @@ igc_root_create_n (Lisp_Object start[], size_t n)
   return root_create_exact_n (start, n);
 }
 
-static void
-maybe_destroy_root (void **root)
+static igc_root_list *
+root_find (void *start)
 {
-  if (*root)
+  for (igc_root_list *r = global_igc->roots; r; r = r->next)
+    if (r->d.start == start)
+      return r;
+  return NULL;
+}
+
+static void
+destroy_root_unless_null (void *start)
+{
+  if (start)
     {
-      struct igc_root_list *r = *root;
-      *root = NULL;
+      struct igc_root_list *r = root_find (start);
+      igc_assert (r != NULL);
       destroy_root (&r);
     }
+}
+
+static void
+maybe_destroy_root_list (void **root)
+{
+  destroy_root_unless_null (*root);
+  *root = NULL;
 }
 
 void
 igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u)
 {
-  maybe_destroy_root (&u->data_relocs_root);
-  maybe_destroy_root (&u->data_imp_relocs_root);
-  maybe_destroy_root (&u->data_eph_relocs_root);
-  maybe_destroy_root (&u->comp_unit_root);
+  maybe_destroy_root_list (&u->data_relocs_root);
+  maybe_destroy_root_list (&u->data_imp_relocs_root);
+  maybe_destroy_root_list (&u->data_eph_relocs_root);
+  maybe_destroy_root_list (&u->comp_unit_root);
 }
 
 static mps_res_t
@@ -2531,27 +2547,13 @@ igc_park_arena (void)
   return count;
 }
 
-static igc_root_list *
-root_find (void *start)
-{
-  for (igc_root_list *r = global_igc->roots; r; r = r->next)
-    if (r->d.start == start)
-      return r;
-  return NULL;
-}
-
 void
 igc_grow_rdstack (struct read_stack *rs)
 {
   struct igc *gc = global_igc;
   IGC_WITH_PARKED (gc)
   {
-    if (rs->stack)
-      {
-	struct igc_root_list *r = root_find (rs->stack);
-	igc_assert (r != NULL);
-	destroy_root (&r);
-      }
+    destroy_root_unless_null (rs->stack);
     ptrdiff_t old_nitems = rs->size;
     rs->stack = xpalloc (rs->stack, &rs->size, 1, -1, sizeof *rs->stack);
     for (ptrdiff_t i = old_nitems; i < rs->size; ++i)
@@ -2593,10 +2595,7 @@ igc_xzalloc_ambig (size_t size)
 void *
 igc_realloc_ambig (void *block, size_t size)
 {
-  struct igc_root_list *r = root_find (block);
-  igc_assert (r != NULL);
-  destroy_root (&r);
-
+  destroy_root_unless_null (block);
   /* Can't make a root that has zero length. Want one to be able to
      detect calling igc_free on something not having a root. */
   size_t new_size = (size == 0 ? IGC_ALIGN_DFLT : size);
@@ -2615,9 +2614,7 @@ igc_xfree (void *p)
      error. Make the same true if the dump is loaded into MPS memory. */
   if (p == NULL || pdumper_object_p (p))
     return;
-  struct igc_root_list *r = root_find (p);
-  igc_assert (r != NULL);
-  destroy_root (&r);
+  destroy_root_unless_null (p);
   xfree (p);
 }
 
@@ -2627,12 +2624,7 @@ igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
 {
   IGC_WITH_PARKED (global_igc)
   {
-    if (pa)
-      {
-	struct igc_root_list *r = root_find (pa);
-	igc_assert (r != NULL);
-	destroy_root (&r);
-      }
+    destroy_root_unless_null (pa);
     pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
     char *end = (char *) pa + *nitems * item_size;
     root_create_ambig (global_igc, pa, end, "xpalloc-ambig");
@@ -2656,12 +2648,7 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
   IGC_WITH_PARKED (global_igc)
   {
     void *pa = *pa_cell;
-    if (pa)
-      {
-	struct igc_root_list *r = root_find (pa);
-	igc_assert (r != NULL);
-	destroy_root (&r);
-      }
+    destroy_root_unless_null (pa);
     pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
     char *end = (char *)pa + *nitems * item_size;
     root_create (global_igc, pa, end, mps_rank_exact (),
@@ -2675,12 +2662,7 @@ igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
   IGC_WITH_PARKED (global_igc)
   {
-    if (pa)
-      {
-	struct igc_root_list *r = root_find (pa);
-	igc_assert (r != NULL);
-	destroy_root (&r);
-      }
+    destroy_root_unless_null (pa);
     pa = xnrealloc (pa, nitems, item_size);
     char *end = (char *) pa + nitems * item_size;
     root_create_ambig (global_igc, pa, end, "xnrealloc-ambig");
