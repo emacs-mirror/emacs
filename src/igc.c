@@ -1462,7 +1462,6 @@ fix_handler (mps_ss_t ss, struct handler *h)
     IGC_FIX12_OBJ (ss, &h->val);
     IGC_FIX12_RAW (ss, &h->next);
     IGC_FIX12_RAW (ss, &h->nextfree);
-    // FIXME/igc: What about bytecode_top?
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
