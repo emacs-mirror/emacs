@@ -879,12 +879,13 @@ Apply the previous patterns after reverting the buffer."
           (let ((hi-lock-file-patterns-policy policy))
             (hi-lock-mode 1))
           (setq rehighlight t))
-        ;; When hi-lock overlays were relocated to the top
-        (when (seq-some (lambda (o) (overlay-get o 'hi-lock-overlay))
-                        (overlays-in (point-min) (point-min)))
+        ;; When using hi-lock overlays, then need to update them
+        (unless (and font-lock-mode (font-lock-specified-p major-mode)
+                     (not hi-lock-use-overlays))
           (hi-lock-unface-buffer t)
           (setq rehighlight t))
         (when rehighlight
+          (setq hi-lock--unused-faces hi-lock-face-defaults)
           (dolist (pattern (reverse patterns))
             (let ((face (hi-lock-keyword->face (cdr pattern))))
               (highlight-regexp (car pattern) face)
