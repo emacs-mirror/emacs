@@ -1538,12 +1538,13 @@ syms_of_w32uniscribe_for_pdumper (void)
   if (!initialized)
     return;
 
-#ifdef WINDOWSNT
   /* Don't register if Uniscribe is not available.  */
-  HMODULE uniscribe = LoadLibrary ("usp10.dll");
+  HMODULE uniscribe;
   if (!uniscribe)
     return;
 
+#ifdef WINDOWSNT
+  uniscribe = LoadLibrary ("usp10.dll");
   pfnScriptItemize = (void *) get_proc_addr (uniscribe, "ScriptItemize");
   pfnScriptShape = (void *) get_proc_addr (uniscribe, "ScriptShape");
   pfnScriptPlace = (void *) get_proc_addr (uniscribe, "ScriptPlace");
@@ -1561,15 +1562,16 @@ syms_of_w32uniscribe_for_pdumper (void)
       return;
     }
 #else /* Cygwin */
+  uniscribe = GetModuleHandle ("usp10.dll");
   pfnScriptItemize = &ScriptItemize;
   pfnScriptShape = &ScriptShape;
   pfnScriptPlace = &ScriptPlace;
   pfnScriptGetGlyphABCWidth = &ScriptGetGlyphABCWidth;
   pfnScriptFreeCache = &ScriptFreeCache;
   pfnScriptGetCMap = &ScriptGetCMap;
-#endif /* Cygwin */
 
   uniscribe_available = 1;
+#endif /* Cygwin */
 
   register_font_driver (&uniscribe_font_driver, NULL);
 
