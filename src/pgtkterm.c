@@ -66,6 +66,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <gdk/gdkwayland.h>
 #endif
 
+#ifdef HAVE_MPS
+#include "igc.h"
+#endif
+
 #define FRAME_CR_CONTEXT(f)		((f)->output_data.pgtk->cr_context)
 #define FRAME_CR_ACTIVE_CONTEXT(f)	((f)->output_data.pgtk->cr_active)
 #define FRAME_CR_SURFACE(f)		(cairo_get_target (FRAME_CR_CONTEXT (f)))
@@ -7112,7 +7116,13 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
      that isn't supported.  */
   pgtk_display_x_warning (dpy);
 
+#ifdef HAVE_MPS
+  // FIXME/igc: use exact references
+  dpyinfo = igc_xzalloc_ambig (sizeof *dpyinfo);
+#else
   dpyinfo = xzalloc (sizeof *dpyinfo);
+#endif
+
   pgtk_initialize_display_info (dpyinfo);
   terminal = pgtk_create_terminal (dpyinfo);
 
