@@ -598,6 +598,7 @@ struct igc_root
   struct igc *gc;
   mps_root_t root;
   void *start, *end;
+  const char *label;
   bool ambig;
 };
 
@@ -694,15 +695,21 @@ arena_release (struct igc *gc)
 
 static struct igc_root_list *
 register_root (struct igc *gc, mps_root_t root, void *start, void *end,
-	       bool ambig, const char *debug_name)
+	       bool ambig, const char *label)
 {
-  if (debug_name && is_in_telemetry_filter (IGC_EVC_USER))
+  if (label && is_in_telemetry_filter (IGC_EVC_USER))
     {
-      mps_label_t label = mps_telemetry_intern (debug_name);
-      mps_telemetry_label (root, label);
+      mps_label_t l = mps_telemetry_intern (label);
+      mps_telemetry_label (root, l);
     }
-  struct igc_root r = {
-    .gc = gc, .root = root, .start = start, .end = end, .ambig = ambig
+  struct igc_root r =
+  {
+    .gc = gc,
+    .root = root,
+    .start = start,
+    .end = end,
+    .ambig = ambig,
+    .label = label,
   };
   return igc_root_list_push (&gc->roots, &r);
 }
@@ -3829,8 +3836,8 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   return result;
 }
 
-DEFUN ("igc-roots", Figc_roots, Sigc_roots, 0, 0, 0, doc : /* */)
-(void)
+DEFUN ("igc--roots", Figc__roots, Sigc__roots, 0, 0, 0, doc : /* */)
+  (void)
 {
   struct igc *gc = global_igc;
   Lisp_Object roots = Qnil;
@@ -3838,9 +3845,9 @@ DEFUN ("igc-roots", Figc_roots, Sigc_roots, 0, 0, 0, doc : /* */)
   for (igc_root_list *r = gc->roots; r; r = r->next)
     {
       Lisp_Object type = r->d.ambig ? Qambig : Qexact;
-      Lisp_Object e = list3 (type,
-			     make_int ((intmax_t) (ptrdiff_t) r->d.start),
-			     make_int ((intmax_t) (ptrdiff_t) r->d.end));
+      Lisp_Object e = list4 (build_string (r->d.label), type,
+			     make_int ((uintptr_t) r->d.start),
+			     make_int ((uintptr_t) r->d.end));
       roots = Fcons (e, roots);
     }
 
@@ -4302,7 +4309,7 @@ syms_of_igc (void)
 {
   defsubr (&Sigc_info);
   defsubr (&Sigc_make_weak_vector);
-  defsubr (&Sigc_roots);
+  defsubr (&Sigc__roots);
   defsubr (&Sigc__collect);
   DEFSYM (Qambig, "ambig");
   DEFSYM (Qexact, "exact");
