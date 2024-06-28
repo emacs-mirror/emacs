@@ -689,15 +689,16 @@ arena_release (struct igc *gc)
    means not known. AMBIG true means the root is scanned ambigously, as
    opposed to being scanned exactly.
 
-   DEBUG_NAME if non-null is a namer under which the root appears on the
-   MPS telemetry stream, if user events are in the telemetry
-   filter. This allows mapping roots to useful names. */
+   LABEL is a name under which the root appears on the MPS telemetry
+   stream, if user events are in the telemetry filter. This allows
+   mapping roots to useful names. */
 
 static struct igc_root_list *
 register_root (struct igc *gc, mps_root_t root, void *start, void *end,
 	       bool ambig, const char *label)
 {
-  if (label && is_in_telemetry_filter (IGC_EVC_USER))
+  igc_assert (label != NULL);
+  if (is_in_telemetry_filter (IGC_EVC_USER))
     {
       mps_label_t l = mps_telemetry_intern (label);
       mps_telemetry_label (root, l);
@@ -2246,30 +2247,30 @@ fix12_obj_callback (struct igc_opaque *op, Lisp_Object *addr)
 static igc_root_list *
 root_create (struct igc *gc, void *start, void *end, mps_rank_t rank,
 	     mps_area_scan_t scan, void *closure, bool ambig,
-	     const char *debug_name)
+	     const char *label)
 {
   mps_root_t root;
   mps_res_t res
     = mps_root_create_area (&root, gc->arena, rank, 0, start, end, scan,
 			    closure);
   IGC_CHECK_RES (res);
-  return register_root (gc, root, start, end, ambig, debug_name);
+  return register_root (gc, root, start, end, ambig, label);
 }
 
 static igc_root_list *
 root_create_ambig (struct igc *gc, void *start, void *end,
-		   const char *debug_name)
+		   const char *label)
 {
   return root_create (gc, start, end, mps_rank_ambig (), scan_ambig, NULL,
-		      true, debug_name ? debug_name : "ambig");
+		      true, label);
 }
 
 static igc_root_list *
 root_create_exact (struct igc *gc, void *start, void *end,
-		   mps_area_scan_t scan, const char *debug_name)
+		   mps_area_scan_t scan, const char *label)
 {
   return root_create (gc, start, end, mps_rank_exact (), scan, NULL, false,
-		      debug_name);
+		      label);
 }
 
 static void
@@ -2317,9 +2318,9 @@ root_create_main_thread (struct igc *gc)
 }
 
 void
-igc_root_create_ambig (void *start, void *end, const char* debug_name)
+igc_root_create_ambig (void *start, void *end, const char* label)
 {
-  root_create_ambig (global_igc, start, end, debug_name);
+  root_create_ambig (global_igc, start, end, label);
 }
 
 void
@@ -2403,7 +2404,7 @@ root_create_thread (struct igc_thread_list *t)
     = mps_root_create_thread_scanned (&root, gc->arena, mps_rank_ambig (), 0,
 				      t->d.thr, scan_ambig, 0, cold);
   IGC_CHECK_RES (res);
-  t->d.stack_root = register_root (gc, root, cold, NULL, true, "create-thread");
+  t->d.stack_root = register_root (gc, root, cold, NULL, true, "control stack");
 }
 
 void
