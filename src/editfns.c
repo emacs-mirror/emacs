@@ -4445,6 +4445,7 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
 	}
       marker->charpos = mpos;
     }
+  END_DO_MARKERS;
 }
 
 DEFUN ("transpose-regions", Ftranspose_regions, Stranspose_regions, 4, 5,

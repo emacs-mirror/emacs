@@ -2078,6 +2078,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	  if (m->buffer == b)
 	    igc_remove_marker (b, m);
 	}
+      END_DO_MARKERS;
 #else
       struct Lisp_Marker **mp = &BUF_MARKERS (b);
       struct Lisp_Marker *m;
@@ -2649,6 +2650,7 @@ results, see Info node `(elisp)Swapping Text'.  */)
 	     BUF_MARKERS(buf) should either be for `buf' or dead.  */
 	  eassert (!m->buffer);
       }
+    END_DO_MARKERS;
     DO_MARKERS (other_buffer, m)
       {
 	if (m->buffer == current_buffer)
@@ -2658,6 +2660,7 @@ results, see Info node `(elisp)Swapping Text'.  */)
 	     BUF_MARKERS(buf) should either be for `buf' or dead.  */
 	  eassert (!m->buffer);
       }
+    END_DO_MARKERS;
   }
   { /* Some of the C code expects that both window markers of a
        live window points to that window's buffer.  So since we
@@ -2775,6 +2778,7 @@ current buffer is cleared.  */)
 	{
 	  tail->charpos = tail->bytepos;
 	}
+      END_DO_MARKERS;
 
       /* Convert multibyte form of 8-bit characters to unibyte.  */
       pos = BEG;
@@ -2933,6 +2937,7 @@ current buffer is cleared.  */)
 	  tail->charpos = BYTE_TO_CHAR (tail->bytepos);
 	  BUF_MARKERS (current_buffer) = buf_markers;
 	}
+      END_DO_MARKERS;
 #else
       tail = markers = BUF_MARKERS (current_buffer);
 

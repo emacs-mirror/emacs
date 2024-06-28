@@ -154,6 +154,7 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
             }
         }
     }
+  END_DO_MARKERS;
 }
 
 /* Record that a deletion is about to take place, of the characters in

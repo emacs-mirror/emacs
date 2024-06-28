@@ -8120,6 +8120,7 @@ decode_coding_object (struct coding_system *coding,
 		= tail->charpos == (tail->insertion_type ? from : to);
 	      need_marker_adjustment |= tail->need_adjustment;
 	    }
+	  END_DO_MARKERS;
 	  saved_pt = PT, saved_pt_byte = PT_BYTE;
 	  TEMP_SET_PT_BOTH (from, from_byte);
 	  current_buffer->text->inhibit_shrinking = true;
@@ -8245,22 +8246,25 @@ decode_coding_object (struct coding_system *coding,
       if (need_marker_adjustment)
 	{
 	  DO_MARKERS (current_buffer, tail)
-	    if (tail->need_adjustment)
-	      {
-		tail->need_adjustment = 0;
-		if (tail->insertion_type)
-		  {
-		    tail->bytepos = from_byte;
-		    tail->charpos = from;
-		  }
-		else
-		  {
-		    tail->bytepos = from_byte + coding->produced;
-		    tail->charpos
-		      = (NILP (BVAR (current_buffer, enable_multibyte_characters))
-			 ? tail->bytepos : from + coding->produced_char);
-		  }
-	      }
+	    {
+	      if (tail->need_adjustment)
+		{
+		  tail->need_adjustment = 0;
+		  if (tail->insertion_type)
+		    {
+		      tail->bytepos = from_byte;
+		      tail->charpos = from;
+		    }
+		  else
+		    {
+		      tail->bytepos = from_byte + coding->produced;
+		      tail->charpos
+			= (NILP (BVAR (current_buffer, enable_multibyte_characters))
+			   ? tail->bytepos : from + coding->produced_char);
+		    }
+		}
+	    }
+	  END_DO_MARKERS;
 	}
     }
 
@@ -8337,6 +8341,7 @@ encode_coding_object (struct coding_system *coding,
 	    = tail->charpos == (tail->insertion_type ? from : to);
 	  need_marker_adjustment |= tail->need_adjustment;
 	}
+      END_DO_MARKERS;
     }
 
   if (! NILP (CODING_ATTR_PRE_WRITE (attrs)))
@@ -8495,22 +8500,25 @@ encode_coding_object (struct coding_system *coding,
       if (need_marker_adjustment)
 	{
 	  DO_MARKERS (current_buffer, tail)
-	    if (tail->need_adjustment)
-	      {
-		tail->need_adjustment = 0;
-		if (tail->insertion_type)
-		  {
-		    tail->bytepos = from_byte;
-		    tail->charpos = from;
-		  }
-		else
-		  {
-		    tail->bytepos = from_byte + coding->produced;
-		    tail->charpos
-		      = (NILP (BVAR (current_buffer, enable_multibyte_characters))
-			 ? tail->bytepos : from + coding->produced_char);
-		  }
-	      }
+	    {
+	      if (tail->need_adjustment)
+		{
+		  tail->need_adjustment = 0;
+		  if (tail->insertion_type)
+		    {
+		      tail->bytepos = from_byte;
+		      tail->charpos = from;
+		    }
+		  else
+		    {
+		      tail->bytepos = from_byte + coding->produced;
+		      tail->charpos
+			= (NILP (BVAR (current_buffer, enable_multibyte_characters))
+			   ? tail->bytepos : from + coding->produced_char);
+		    }
+		}
+	    }
+	  END_DO_MARKERS;
 	}
     }
 

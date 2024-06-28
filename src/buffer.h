@@ -792,10 +792,13 @@ marker_it_marker (struct marker_it *it)
 
 # endif
 
-# define DO_MARKERS(b, m)                                                  \
+# define DO_MARKERS(b, m)                                                 \
   for (struct marker_it it_ = marker_it_init (b); marker_it_valid (&it_); \
-       marker_it_next (&it_)) \
-    for (struct Lisp_Marker *m = marker_it_marker (&it_); m; m = NULL)
+       marker_it_next (&it_))                                             \
+    {									\
+       struct Lisp_Marker *m = marker_it_marker (&it_);
+
+# define END_DO_MARKERS }
 
 struct sortvec
 {
