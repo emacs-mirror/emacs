@@ -110,7 +110,7 @@
 ;; to current setup.
 
 (defconst org-element-archive-tag "ARCHIVE"
-  "Tag marking a substree as archived.")
+  "Tag marking a subtree as archived.")
 
 (defconst org-element-citation-key-re
   (rx "@" (group (one-or-more (any word "-.:?!`'/*@+|(){}<>&_^$#%~"))))
@@ -181,8 +181,7 @@ Drawer's name is located in match group 1.")
   (rx line-start (0+ (any ?\s ?\t))
       ":" (1+ (any ?- ?_ word)) ":"
       (0+ (any ?\s ?\t)) line-end)
-  "Regexp matching opening or closing line of a drawer.
-Drawer's name is located in match group 1.")
+  "Regexp matching opening or closing line of a drawer.")
 
 (defconst org-element-dynamic-block-open-re
   (rx line-start (0+ (any ?\s ?\t))
@@ -4679,7 +4678,7 @@ element it has to parse."
        ;;
        ;; In general, the checks below should be as efficient as
        ;; possible, especially early in the `cond' form.  (The
-       ;; early checks will contribute to al subsequent parsers as
+       ;; early checks will contribute to all subsequent parsers as
        ;; well).
        (cond
 	;; Item.
@@ -5956,7 +5955,7 @@ better to remove the commands advised in such a way from this list.")
 
 (defmacro org-element--cache-log-message (format-string &rest args)
   "Add a new log message for org-element-cache.
-FORMAT-STRING and ARGS are the same arguments as in `foramt'."
+FORMAT-STRING and ARGS are the same arguments as in `format'."
   `(when (or org-element--cache-diagnostics
              (eq org-element--cache-self-verify 'backtrace))
      (let* ((format-string (concat (format "org-element-cache diagnostics(%s): "
@@ -6226,7 +6225,7 @@ the cache."
                ;; children starting at the same pos.
                (not (org-element-type-p hashed '(section org-data table))))
           hashed
-        ;; No appriate HASHED.  Search the cache.
+        ;; No appropriate HASHED.  Search the cache.
         (while node
           (let* ((element (avl-tree--node-data node))
 	         (begin (org-element-begin element)))
@@ -8323,7 +8322,7 @@ the cache."
                                             limit-count))
                                 (cache-walk-abort))
                               ;; Make sure that we have a cached
-                              ;; element at the new STAR.
+                              ;; element at the new START.
                               (when start (element-match-at-point)))
                             ;; Check if the buffer or cache has been modified.
                             (unless (org-with-base-buffer nil

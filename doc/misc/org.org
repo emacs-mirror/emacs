@@ -23163,7 +23163,7 @@ specify a date December 1, 2005, the call might look like
 =(diary-date 12 1 2005)= or =(diary-date 1 12 2005)= or =(diary-date
 2005 12 1)=, depending on the settings.  This has been the source of
 much confusion.  Org mode users can resort to special versions of
-these functions, namely ~org-date~, ~org-anniversary~, ~org-cyclic, and
+these functions, namely ~org-date~, ~org-anniversary~, ~org-cyclic~, and
 ~org-block~.  These work just like the corresponding ~diary-~
 functions, but with stable ISO order of arguments (year, month, day)
 wherever applicable, independent of the value of
