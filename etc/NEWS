@@ -2112,8 +2112,11 @@ in all buffers.
 +++
 ** New package Which-Key
 The 'which-key' package from GNU ELPA is now included in Emacs.  It
-implements the 'which-key-mode' that displays a table of key bindings
-upon entering a partial key chord and waiting for a moment.
+implements the global minor mode 'which-key-mode' that displays a table
+of key bindings upon entering a partial key chord and waiting for a
+moment.  For example, after enabling the minor mode, if you enter 'C-x'
+and wait for one second, the minibuffer will expand with all available
+key bindings that follow 'C-x' (or as many as space allows).
 
 
 * Incompatible Lisp Changes in Emacs 30.1

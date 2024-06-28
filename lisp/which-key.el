@@ -900,7 +900,15 @@ disable support."
 
 ;;;###autoload
 (define-minor-mode which-key-mode
-  "Toggle `which-key-mode'."
+  "Toggle `which-key-mode'.
+
+`which-key' is a minor mode that displays the key bindings following
+your currently entered incomplete command (a prefix) in a popup.
+
+For example, after enabling the minor mode, if you enter \\`C-x' and
+wait for one second (by default), the minibuffer will expand with all
+available key bindings that follow \\`C-x' (or as many as space allows
+given your settings)."
   :global t
   :group 'which-key
   :lighter which-key-lighter
