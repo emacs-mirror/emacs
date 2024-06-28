@@ -1455,11 +1455,20 @@ and the newly selected tab."
 (defcustom tab-bar-select-restore-windows #'tab-bar-select-restore-windows
   "Function called when selecting a tab to handle windows whose buffer was killed.
 When a tab-bar tab displays a window whose buffer was killed since
-this tab was last selected, this function determines what to do with
-that window.  By default, either a random buffer is displayed instead of
-the killed buffer, or the window gets deleted.  However, with the help
-of `window-restore-killed-buffer-windows' it's possible to handle such
-situations better by displaying an information about the killed buffer."
+this tab was last selected, this variable determines what to do with
+that window.
+
+If this variable is nil, there is no special handling;
+`set-window-configuration' will decide what to do with the window,
+then either a random buffer is displayed instead of the killed buffer,
+or the window gets deleted.
+
+If this variable is a function, display another buffer in that window,
+and pass that buffer to the function.  See the variable
+`window-restore-killed-buffer-windows' for the calling convention.
+
+By default, `tab-bar-select-restore-windows' displays a placeholder buffer
+in the same window to give information about the killed buffer."
   :type '(choice (const :tag "No special handling" nil)
                  (const :tag "Show placeholder buffers"
                         tab-bar-select-restore-windows)

@@ -270,7 +270,7 @@ Return value is the containing property name, as a keyword, or nil."
   "Dynamically computed value.
 
 The value can be obtained by calling FUNCTION with containing syntax
-node as first argument and ARGS list as remainting arguments.
+node as first argument and ARGS list as remaining arguments.
 
 If the function throws `:org-element-deferred-retry' signal, assume
 that the syntax node has been modified by side effect and retry

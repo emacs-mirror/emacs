@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.7.4
+;; Version: 9.7.5
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -4541,6 +4541,7 @@ directory."
 			     ;; Fake Org mode: `org-element-at-point'
 			     ;; doesn't need full set-up.
 			     (let ((major-mode 'org-mode))
+                               (setq-local tab-width 8)
 			       (setq alist
 				     (org--collect-keywords-1
 				      keywords unique directory

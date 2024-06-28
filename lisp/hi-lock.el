@@ -769,6 +769,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
   ;; Hashcons the regexp, so it can be passed to remove-overlays later.
   (setq regexp (hi-lock--hashcons regexp))
   (setq subexp (or subexp 0))
+  (when lighter (setq lighter (propertize lighter 'regexp regexp)))
   (let ((pattern (list (lambda (limit)
                          (let ((case-fold-search case-fold)
                                (search-spaces-regexp spaces-regexp))
@@ -879,15 +880,18 @@ Apply the previous patterns after reverting the buffer."
           (let ((hi-lock-file-patterns-policy policy))
             (hi-lock-mode 1))
           (setq rehighlight t))
-        ;; When hi-lock overlays were relocated to the top
-        (when (seq-some (lambda (o) (overlay-get o 'hi-lock-overlay))
-                        (overlays-in (point-min) (point-min)))
+        ;; When using hi-lock overlays, then need to update them
+        (unless (and font-lock-mode (font-lock-specified-p major-mode)
+                     (not hi-lock-use-overlays))
           (hi-lock-unface-buffer t)
           (setq rehighlight t))
         (when rehighlight
+          (setq hi-lock--unused-faces hi-lock-face-defaults)
           (dolist (pattern (reverse patterns))
             (let ((face (hi-lock-keyword->face (cdr pattern))))
-              (highlight-regexp (car pattern) face)
+              (highlight-regexp (or (get-text-property 0 'regexp (car pattern))
+                                    (car pattern))
+                                face)
               (setq hi-lock--unused-faces
                     (remove (face-name face) hi-lock--unused-faces)))))))))
 

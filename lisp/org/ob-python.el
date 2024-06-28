@@ -537,7 +537,7 @@ Returns a placeholder string for insertion, to later be replaced
 by `org-babel-comint-async-filter'."
   (org-babel-comint-async-register
    session (current-buffer)
-   "ob_comint_async_python_\\(.+\\)_\\(.+\\)"
+   "ob_comint_async_python_\\(start\\|end\\|file\\)_\\(.+\\)"
    'org-babel-chomp 'org-babel-python-async-value-callback)
   (pcase result-type
     (`output
