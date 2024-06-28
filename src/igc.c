@@ -782,8 +782,13 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
   {
     mps_word_t *p = (mps_word_t *) pobj;
     mps_word_t word = *p;
-    mps_word_t tag = word & IGC_TAG_MASK;
 
+    /* Quickly rule out Qnil, and prevent subtraxting from a
+       null pointer. */
+    if (word == 0)
+      return MPS_RES_OK;
+
+    mps_word_t tag = word & IGC_TAG_MASK;
     if (tag == Lisp_Int0 || tag == Lisp_Int1)
       return MPS_RES_OK;
     else if (tag == Lisp_Type_Unused0)
@@ -793,22 +798,19 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
       {
 	ptrdiff_t off = word ^ tag;
 	mps_addr_t client = (mps_addr_t) ((char *) lispsym + off);
-	if (is_mps (client))
+	mps_addr_t base = client_to_base (client);
+	if (MPS_FIX1 (ss, base))
 	  {
-	    mps_addr_t base = client_to_base (client);
-	    if (MPS_FIX1 (ss, base))
+	    mps_res_t res = MPS_FIX2 (ss, &base);
+	    if (res != MPS_RES_OK)
+	      return res;
+	    if (base == NULL)
+	      *(Lisp_Object *) p = Qnil;
+	    else
 	      {
-		mps_res_t res = MPS_FIX2 (ss, &base);
-		if (res != MPS_RES_OK)
-		  return res;
-		if (base == NULL)
-		  *(Lisp_Object *) p = Qnil;
-		else
-		  {;
-		    client = base_to_client (base);
-		    ptrdiff_t new_off = (char *) client - (char *) lispsym;
-		    *p = new_off | tag;
-		  }
+		client = base_to_client (base);
+		ptrdiff_t new_off = (char *) client - (char *) lispsym;
+		*p = new_off | tag;
 	      }
 	  }
       }
@@ -819,21 +821,18 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
 	   IOW, MPS_FIX1 has undefined behavior if called on an address that
 	   is not in the arena.  */
 	mps_addr_t client = (mps_addr_t) (word ^ tag);
-	if (is_mps (client))
+	mps_addr_t base = client_to_base (client);
+	if (MPS_FIX1 (ss, base))
 	  {
-	    mps_addr_t base = client_to_base (client);
-	    if (MPS_FIX1 (ss, base))
-	      {
-		mps_res_t res = MPS_FIX2 (ss, &base);
-		if (res != MPS_RES_OK)
-		  return res;
-		if (base == NULL)
-		  *(Lisp_Object *) p = Qnil;
-		else
-		  {;
-		    client = base_to_client (base);
-		    *p = (mps_word_t) client | tag;
-		  }
+	    mps_res_t res = MPS_FIX2 (ss, &base);
+	    if (res != MPS_RES_OK)
+	      return res;
+	    if (base == NULL)
+	      *(Lisp_Object *) p = Qnil;
+	    else
+	      {;
+		client = base_to_client (base);
+		*p = (mps_word_t) client | tag;
 	      }
 	  }
       }
@@ -848,7 +847,9 @@ fix_raw (mps_ss_t ss, mps_addr_t *p)
   MPS_SCAN_BEGIN (ss)
   {
     mps_addr_t client = *p;
-    if (is_mps (client) && is_aligned (client))
+    if (client == NULL)
+      return MPS_RES_OK;
+    if (is_aligned (client))
       {
 	mps_addr_t base = client_to_base (client);
 	if (MPS_FIX1 (ss, base))
