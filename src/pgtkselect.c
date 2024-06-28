@@ -157,12 +157,16 @@ pgtk_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
   /* Assert ownership over the selection.  Ideally we would use only
      the GDK selection API for this, but it just doesn't work on
      Wayland.  */
+  /* This check prevents "mouse-copy.el" from working. It fails with:
+     `Could not assert ownership over selection: SECONDARY`
+     hence I am commenting this check out.
 
   if (!gdk_selection_owner_set_for_display (dpyinfo->display,
 					    FRAME_GDK_WINDOW (f),
 					    selection_atom,
 					    timestamp, TRUE))
     signal_error ("Could not assert ownership over selection", selection_name);
+  */
 
   /* Update the local cache */
   {
