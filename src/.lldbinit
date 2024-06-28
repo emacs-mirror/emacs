@@ -113,6 +113,6 @@ command alias go process launch --disable-aslr false --working-dir ../lisp
 #settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest /Users/gerd/emacs/github/igc-copy/nextstep/Emacs.app/Contents/MacOS/ --eln-dest /Users/gerd/emacs/github/igc-copy/nextstep/Emacs.app/Contents/Frameworks/
 #command alias go process launch --working-dir .
 
-target create temacs
-settings set -- target.run-args --batch  -l loadup --temacs=pbootstrap --bin-dest /Users/gerd/emacs/github/markers/nextstep/Emacs.app/Contents/MacOS/ --eln-dest /Users/gerd/emacs/github/markers/nextstep/Emacs.app/Contents/Frameworks/
+target create emacs
+settings set -- target.run-args
 command alias go process launch --working-dir .

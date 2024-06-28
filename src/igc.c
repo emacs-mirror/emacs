@@ -3845,9 +3845,9 @@ DEFUN ("igc--roots", Figc__roots, Sigc__roots, 0, 0, 0, doc : /* */)
   for (igc_root_list *r = gc->roots; r; r = r->next)
     {
       Lisp_Object type = r->d.ambig ? Qambig : Qexact;
-      Lisp_Object e = list4 (build_string (r->d.label), type,
-			     make_int ((uintptr_t) r->d.start),
-			     make_int ((uintptr_t) r->d.end));
+      Lisp_Object label = r->d.label ? build_string (r->d.label) : Qnil;
+      Lisp_Object e = list4 (label, type, make_int ((uintptr_t) r->d.start),
+			     r->d.end ? make_int ((uintptr_t) r->d.end) : Qnil);
       roots = Fcons (e, roots);
     }
 

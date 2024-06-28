@@ -156,10 +156,16 @@ the changes to snapshot A. See the modes's help."
 (defun igc--roots-info ()
   (let ((h (make-hash-table :test 'equal)))
     (cl-loop for (label type start end) in (igc--roots)
-             for (found _ n size) = (gethash label h)
-             if found do (puthash label (list label type (1+ n) (+ size (- end start))) h)
-             else do (puthash label (list label type 1 (- end start)) h)
-             end)
+             for (found _ n size) = (gethash label h) do
+             (if found
+                 (puthash label
+                          (list label type (1+ n)
+                                (and size
+                                     (+ size (- end start))) h)
+                          h)
+               (puthash label
+                        (list label type 1 (and end (- end start)))
+                        h)))
     (cl-loop for i being the hash-values of h collect i)))
 
 (defun igc--roots-snapshot ()
@@ -190,11 +196,10 @@ the changes to snapshot A. See the modes's help."
   (keymap-local-set "x" #'igc-roots-clear)
   (display-line-numbers-mode -1)
   (setq header-line-format
-	'((:eval (format " %-35s %10s %15s"
+	'((:eval (format " %-25s %10s %15s %15s"
 			 (concat "Display "
 				 (symbol-name igc--roots-display-mode))
-			 "Label"
-			 "Bytes"))))
+			 "Type" "N" "Bytes"))))
   (setq-local revert-buffer-function
 	      (lambda (&rest _)
 		(setq igc--roots-display-mode 'diff)
@@ -220,9 +225,9 @@ the changes to snapshot A. See the modes's help."
       (erase-buffer)
       (delete-all-overlays)
       (when info
-	(cl-loop for (label type start end) in info
-		 do (insert (format "%-35s %10s %15s\n" label type
-				    (- end start))))
+	(cl-loop for (label type n size) in info
+		 do (insert (format "%-25s %10s %15s %15s\n"
+                                    label type n size)))
 	(sort-lines nil (point-min) (point-max)))
       (goto-char (point-min))))
   (display-buffer "*igc roots*"))
