@@ -2359,8 +2359,8 @@ root_create_charset_table (struct igc *gc)
 static void
 root_create_pure (struct igc *gc)
 {
-  char *start = (char *) &pure[0];
-  char *end = start + PURESIZE;
+  void *start = &pure[0];
+  void *end = &pure[pure_dim];
   root_create (gc, start, end, mps_rank_ambig (), scan_pure, NULL, true,
 	       "pure");
 }

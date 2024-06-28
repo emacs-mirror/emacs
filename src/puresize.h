@@ -73,9 +73,11 @@ INLINE_HEADER_BEGIN
 #endif
 
 /* This is the actual size in bytes to allocate.  */
-#define PURESIZE  (BASE_PURESIZE * PURESIZE_RATIO * PURESIZE_CHECKING_RATIO)
 #ifndef PURESIZE
+#define PURESIZE  (BASE_PURESIZE * PURESIZE_RATIO * PURESIZE_CHECKING_RATIO)
 #endif
+
+#define pure_dim ((PURESIZE + sizeof (EMACS_INT) - 1) / sizeof (EMACS_INT))
 
 extern AVOID pure_write_error (Lisp_Object);
 

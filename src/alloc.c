@@ -394,7 +394,7 @@ static char *spare_memory[7];
    space (pure), on some systems.  We have not implemented the
    remapping on more recent systems because this is less important
    nowadays than in the days of small memories and timesharing.  */
-EMACS_INT pure[(PURESIZE + sizeof (EMACS_INT) - 1) / sizeof (EMACS_INT)] = {1,};
+EMACS_INT pure[pure_dim] = {1,};
 
 #define PUREBEG (char *) pure
 
