@@ -128,4 +128,103 @@ the changes to snapshot A. See the modes's help."
       (goto-char (point-min))))
   (display-buffer "*igc*"))
 
+(defun igc--roots-diff (i1 i2)
+  (cl-loop for (t1 n1 s1) in i1
+	   for (_t2 n2 s2) in i2
+	   unless (= n1 n2)
+	   collect (list t1 (- n1 n2) (and s1 (- s1 s2)))))
+
+(defvar igc--roots-a nil)
+(defvar igc--roots-b nil)
+(defvar igc--roots-display-mode 'a)
+
+(defun igc-roots-display-diff ()
+  (interactive)
+  (setq igc--roots-display-mode 'diff)
+  (igc-roots-stats))
+
+(defun igc-roots-display-a ()
+  (interactive)
+  (setq igc--roots-display-mode 'a)
+  (igc-roots-stats))
+
+(defun igc-roots-display-b ()
+  (interactive)
+  (setq igc--roots-display-mode 'b)
+  (igc-roots-stats))
+
+(defun igc--roots-info ()
+  (let ((h (make-hash-table :test 'equal)))
+    (cl-loop for (label type start end) in (igc--roots)
+             for (found _ n size) = (gethash label h)
+             if found do (puthash label (list label type (1+ n) (+ size (- end start))) h)
+             else do (puthash label (list label type 1 (- end start)) h)
+             end)
+    (cl-loop for i being the hash-values of h collect i)))
+
+(defun igc--roots-snapshot ()
+  (interactive)
+  (if (eq igc--roots-display-mode 'a)
+      (setq igc--roots-a (igc--roots-info))
+    (setq igc--roots-b (igc--roots-info)))
+  (igc-roots-stats))
+
+(defun igc--roots-info-to-display ()
+  (cl-ecase igc--roots-display-mode
+    (diff (igc--roots-diff igc--b igc--a))
+    (a igc--roots-a)
+    (b igc--roots-b)))
+
+(defun igc-roots-clear ()
+  "GC, then set snapsort B to current `igc-info'."
+  (interactive)
+  (setq igc--roots-a nil igc--roots-b nil)
+  (igc-roots-stats))
+
+(define-derived-mode igc-roots-mode special-mode "Roots"
+  (keymap-local-set "a" #'igc-roots-display-a)
+  (keymap-local-set "b" #'igc-roots-display-b)
+  (keymap-local-set "c" #'igc-collect)
+  (keymap-local-set "d" #'igc-roots-display-diff)
+  (keymap-local-set "s" #'igc--roots-snapshot)
+  (keymap-local-set "x" #'igc-roots-clear)
+  (display-line-numbers-mode -1)
+  (setq header-line-format
+	'((:eval (format " %-35s %10s %15s"
+			 (concat "Display "
+				 (symbol-name igc--roots-display-mode))
+			 "Label"
+			 "Bytes"))))
+  (setq-local revert-buffer-function
+	      (lambda (&rest _)
+		(setq igc--roots-display-mode 'diff)
+		(igc--roots-snapshot)
+		(igc-roots-stats))))
+
+;;;###autoload
+(defun igc-roots-stats ()
+  "Display root statistics from `igc--roots'.
+You can display two snapshots A nd B containing the info from `igc--roots'
+at different times. These can be displayed either as-is, or the
+difference between them. To take a snapshot, display it then take
+a snapshort. By reverting the buffer, take snapshot A, and display
+the changes to snapshot A. See the modes's help."
+  (interactive)
+  (with-current-buffer (get-buffer-create "*igc roots*")
+    (igc-roots-mode)
+    (setq buffer-read-only t buffer-file-name nil)
+    (let ((info (igc--roots-info-to-display))
+	  (inhibit-read-only t)
+	  (inhibit-modification-hooks t)
+	  (standard-output (current-buffer)))
+      (erase-buffer)
+      (delete-all-overlays)
+      (when info
+	(cl-loop for (label type start end) in info
+		 do (insert (format "%-35s %10s %15s\n" label type
+				    (- end start))))
+	(sort-lines nil (point-min) (point-max)))
+      (goto-char (point-min))))
+  (display-buffer "*igc roots*"))
+
 (provide 'igc)
