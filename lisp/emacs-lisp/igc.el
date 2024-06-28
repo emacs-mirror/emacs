@@ -86,7 +86,6 @@
   (keymap-local-set "b" #'igc-display-b)
   (keymap-local-set "c" #'igc-collect)
   (keymap-local-set "d" #'igc-display-diff)
-  (keymap-local-set "r" #'igc-roots)
   (keymap-local-set "s" #'igc-snapshot)
   (keymap-local-set "x" #'igc-clear)
   (display-line-numbers-mode -1)
