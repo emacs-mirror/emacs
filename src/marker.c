@@ -211,10 +211,11 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 	 scan the intervening chars directly now.  */
       if (best_above - charpos < distance
           || charpos - best_below < distance)
-	break;
-      else
-        distance += BYTECHAR_DISTANCE_INCREMENT;
+	goto out;
+
+      distance += BYTECHAR_DISTANCE_INCREMENT;
     }
+ out:;
 
   /* We get here if we did not exactly hit one of the known places.
      We have one known above and one known below.
