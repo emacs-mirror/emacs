@@ -769,6 +769,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
   ;; Hashcons the regexp, so it can be passed to remove-overlays later.
   (setq regexp (hi-lock--hashcons regexp))
   (setq subexp (or subexp 0))
+  (when lighter (setq lighter (propertize lighter 'regexp regexp)))
   (let ((pattern (list (lambda (limit)
                          (let ((case-fold-search case-fold)
                                (search-spaces-regexp spaces-regexp))
@@ -780,10 +781,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
             (assoc (or lighter regexp) hi-lock-interactive-lighters))
         (add-to-list 'hi-lock--unused-faces (face-name face))
       (push pattern hi-lock-interactive-patterns)
-      (push (cons (or (and lighter (propertize lighter 'regexp regexp))
-                      regexp)
-                  pattern)
-            hi-lock-interactive-lighters)
+      (push (cons (or lighter regexp) pattern) hi-lock-interactive-lighters)
       (if (and font-lock-mode (font-lock-specified-p major-mode)
                (not hi-lock-use-overlays))
 	  (progn
