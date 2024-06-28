@@ -2046,33 +2046,6 @@ fix_obarray (mps_ss_t ss, struct Lisp_Obarray *o)
 }
 #endif
 
-static mps_res_t
-fix_font (mps_ss_t ss, struct Lisp_Vector *v)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
-    /* See font.h for the magic numbers. */
-    switch (vector_size (v))
-      {
-      case FONT_SPEC_MAX:
-      case FONT_ENTITY_MAX:
-	break;
-      case FONT_OBJECT_MAX:
-	{
-	  struct font *f = (struct font *)v;
-	  const Lisp_Object *type = &f->driver->type;
-	  IGC_FIX12_OBJ (ss, igc_const_cast (Lisp_Object *, type));
-	}
-	break;
-      default:
-	emacs_abort ();
-      }
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
 #ifdef HAVE_TREE_SITTER
 static mps_res_t
 fix_ts_parser (mps_ss_t ss, struct Lisp_TS_Parser *p)
@@ -2195,10 +2168,6 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 #endif
 	break;
 
-      case PVEC_FONT:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_font);
-	break;
-
       case PVEC_TS_PARSER:
 #ifdef HAVE_TREE_SITTER
 	IGC_FIX_CALL_FN (ss, struct Lisp_TS_Parser, v, fix_ts_parser);
@@ -2207,6 +2176,7 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 #endif
 	break;
 
+      case PVEC_FONT:
       case PVEC_NORMAL_VECTOR:
       case PVEC_SYMBOL_WITH_POS:
       case PVEC_PROCESS:
