@@ -289,6 +289,7 @@ made in the style guide relating to order."
 Currently, all recognized keywords must be on `finder-known-keywords'."
   :version "25.1"
   :type 'boolean)
+;;;###autoload(put 'checkdoc-package-keywords-flag 'safe-local-variable #'booleanp)
 
 (defvar checkdoc-style-functions nil
   "Hook run after the standard style check is completed.
