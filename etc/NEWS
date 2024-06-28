@@ -515,6 +515,10 @@ frames with the previously mentioned capabilities.
 
 ** Miscellaneous
 
+*** New user option 'safe-local-variable-directories'.
+This user option names directories in which Emacs will treat all
+directory-local variables as safe.
+
 ---
 *** New face 'appt-notification' for 'appt-display-mode-line'.
 It can be used to customize the look of the appointment notification
@@ -527,12 +531,13 @@ its shebang line, Emacs will now skip over 'env -S' and deduce the
 major mode based on the interpreter after 'env -S'.
 
 +++
-** New function 'sqlite-execute-batch'.
+*** New function 'sqlite-execute-batch'.
 This function lets the user execute multiple SQL statements in one go.
 It is useful, for example, when a Lisp program needs to evaluate an
 entire SQL file.
 
-** The default value of 'read-process-output-max' was increased to 65536.
+*** The default value of 'read-process-output-max' was increased to 65536.
+
 
 * Editing Changes in Emacs 30.1
 
@@ -1080,7 +1085,7 @@ After manually editing 'eshell-aliases-file', you can use this command
 to load the edited aliases.
 
 +++
-*** 'rgrep' is now a builtin command.
+*** 'rgrep' is now a builtin Eshell command.
 Running 'rgrep' in Eshell now uses the Emacs grep facility instead of
 calling external rgrep.
 
@@ -2378,14 +2383,14 @@ the backtrace and other dynamic state at the point of the error.  See
 the Info node "(elisp) Handling Errors".
 
 +++
-** Tooltips on fringes.
+** New text properties add tooltips on fringes.
 It is now possible to provide tooltips on fringes by adding special text
 properties 'left-fringe-help' and 'right-fringe-help'.  See the "(elisp)
 Special Properties" Info node in the Emacs Lisp Reference Manual for
 more details.
 
 +++
-** New 'pop-up-frames' action alist entry for 'display-buffer'.
+** New 'display-buffer' action alist entry 'pop-up-frames'.
 This has the same effect as the variable of the same name and takes
 precedence over the variable when present.
 
@@ -2433,11 +2438,13 @@ its input in-place as before.
 
 ** New API for 'derived-mode-p' and control of the graph of major modes.
 
++++
 *** 'derived-mode-p' now takes the list of modes as a single argument.
 The same holds for 'provided-mode-derived-p'.
 The old calling convention where multiple modes are passed as
 separate arguments is deprecated.
 
++++
 *** New functions to access the graph of major modes.
 While 'define-derived-mode' still only supports single inheritance,
 modes can declare additional parents (for tests like 'derived-mode-p')
@@ -2453,18 +2460,17 @@ drops incorporating more than one URL.  Functions capable of this must
 set their 'dnd-multiple-handler' symbol properties to a non-nil value.
 See the Info node "(elisp) Drag and Drop".
 
-Incident to this change, the function 'dnd-handle-one-url' has been
-made obsolete, for it cannot take these new handlers into account.
+The function 'dnd-handle-one-url' has been made obsolete, since it
+cannot take these new handlers into account.
 
 ** New function 're-disassemble' to see the innards of a regexp.
-If you compiled with '--enable-checking', you can use this to help debug
-either your regexp performance problems or the regexp engine.
+If you built Emacs with '--enable-checking', you can use this to help
+debug either your regexp performance problems or the regexp engine.
 
 +++
 ** XLFDs are no longer restricted to 255 characters.
 'font-xlfd-name' now returns an XLFD even if it is greater than 255
 characters in length, provided that the LONG_XLFDs argument is true.
-
 Other features in Emacs which employ XLFDs have been modified to
 produce and understand XLFDs larger than 255 characters.
 
@@ -2479,8 +2485,7 @@ You may need to recompile our code if it was compiled with Emacs < 24.3.
 ** New macro 'static-if' for conditional evaluation of code.
 This macro hides a form from the evaluator or byte-compiler based on a
 compile-time condition.  This is handy for avoiding byte-compilation
-warnings about code that will never actually run under some
-conditions.
+warnings about code that will never actually run under some conditions.
 
 +++
 ** Desktop notifications are now supported on the Haiku operating system.
@@ -2488,10 +2493,10 @@ The new function 'haiku-notifications-notify' provides a subset of the
 capabilities of the 'notifications-notify' function in a manner
 analogous to 'w32-notification-notify'.
 
-** New variable 'haiku-pass-control-tab-to-system'.
+** New Haiku specific variable 'haiku-pass-control-tab-to-system'.
 This sets whether Emacs should pass 'C-TAB' on to the system instead of
 handling it, fixing a problem where window switching would not activate
-if an Emacs frame had focus on the Haiku operation system.
+if an Emacs frame had focus on the Haiku operating system.
 
 +++
 ** New value 'if-regular' for the REPLACE argument to 'insert-file-contents'.
@@ -2515,8 +2520,7 @@ The new variables 'ctags-program-name', 'ebrowse-program-name',
 'etags-program-name', 'hexl-program-name', 'emacsclient-program-name'
 'movemail-program-name', and 'rcs2log-program-name' should be used
 instead of "ctags", "ebrowse", "etags", "hexl", "emacsclient", and
-"rcs2log", when starting one of these built in programs in a
-subprocess.
+"rcs2log", when starting one of these built in programs in a subprocess.
 
 +++
 ** New variable 'case-symbols-as-words' affects case operations for symbols.
@@ -2526,23 +2530,21 @@ as a single word.  This is useful for programming languages and styles
 where only the first letter of a symbol's name is ever capitalized.
 The default value of this variable is nil.
 
+** Touch Screen support
+
 +++
-** 'x-popup-menu' now understands touch screen events.
+*** 'x-popup-menu' now understands touch screen events.
 When a 'touchscreen-begin' or 'touchscreen-end' event is passed as the
 POSITION argument, it will behave as if that event was a mouse event.
 
 +++
-** New functions for handling touch screen events.
+*** New functions for handling touch screen events.
 The new functions 'touch-screen-track-tap' and
 'touch-screen-track-drag' handle tracking common touch screen gestures
 from within a command.
 
-** New user option 'safe-local-variable-directories'.
-This user option names directories in which Emacs will treat all
-directory-local variables as safe.
-
 +++
-** New parameter to 'touchscreen-end' events.
+*** New parameter to 'touchscreen-end' events.
 CANCEL non-nil establishes that the touch sequence has been
 intercepted by programs such as window managers and should be ignored
 with Emacs.
