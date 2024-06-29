@@ -570,28 +570,6 @@ buffers.
 (This minor mode is the 'adaptive-wrap' ELPA package renamed and
 lightly edited for inclusion in Emacs.)
 
-** New command 'replace-regexp-as-diff'.
-It reads a regexp to search for and a string to replace with, then
-displays a buffer with replacements as diffs.  After reviewing the
-changes in the output buffer you can apply the replacements as
-a patch to the current file buffer.  There are also new commands
-'multi-file-replace-regexp-as-diff' that shows as diffs replacements
-in a list of specified files, and 'dired-do-replace-regexp-as-diff'
-that shows as diffs replacements in the marked files in Dired.
-
-+++
-** New mode of prompting for register names and showing preview.
-The new user option 'register-use-preview' can be customized to the
-value t or insist to request a different user interface of prompting for
-register names and previewing the registers: Emacs will require
-confirmation for overwriting the value of a register, and will show
-the preview of registers without delay.  You can also customize this
-new option to disable the preview completely.
-
-The default value of 'register-use-preview' preserves the behavior of
-Emacs 29 and before.  See the Info node "(emacs) Registers" for more
-details about the new UI and its variants.
-
 ---
 ** New global minor mode 'kill-ring-deindent-mode'.
 When enabled, text being saved to the kill ring will be de-indented by
@@ -615,29 +593,50 @@ to the kill ring, omitting the two columns of extra indentation that
 would otherwise be present in the second and third lines of the
 function call.
 
----
-** On X, Emacs now supports input methods which perform "string conversion".
-This means an input method can now ask Emacs to delete text
-surrounding point and replace it with something else, as well as query
-Emacs for surrounding text.  If your input method allows you to "undo"
-mistaken compositions, this will now work as well.
+** New command 'replace-regexp-as-diff'.
+It reads a regexp to search for and a string to replace with, then
+displays a buffer with replacements as diffs.  After reviewing the
+changes in the output buffer you can apply the replacements as
+a patch to the current file buffer.  There are also new commands
+'multi-file-replace-regexp-as-diff' that shows as diffs replacements
+in a list of specified files, and 'dired-do-replace-regexp-as-diff'
+that shows as diffs replacements in the marked files in Dired.
 
 +++
-** New Advanced Macro Counter functions.
+** New mode of prompting for register names and showing preview.
+The new user option 'register-use-preview' can be customized to the
+value t or insist to request a different user interface of prompting for
+register names and previewing the registers: Emacs will require
+confirmation for overwriting the value of a register, and will show
+the preview of registers without delay.  You can also customize this
+new option to disable the preview completely.
+
+The default value of 'register-use-preview' preserves the behavior of
+Emacs 29 and before.  See the Info node "(emacs) Registers" for more
+details about the new UI and its variants.
+
++++
+** New advanced macro counter commands.
 New commands have been added to implement advanced macro counter
 functions.
 
 The commands 'C-x C-k C-r l' and 'C-x C-k C-r s' load and save the
 macro counter from and to a number register, respectively.
 
-The commands 'C-x C-k C-r a =', 'C-x C-k C-r a <', and
-'C-x C-k C-r a >' compare the macro counter with the contents of a
-number register and increment the counter by an optional prefix if the
-comparison succeeds.
+The commands 'C-x C-k C-r a =', 'C-x C-k C-r a <', and 'C-x C-k C-r a >'
+compare the macro counter with the contents of a number register and
+increment the counter by an optional prefix if the comparison succeeds.
 
 The commands 'C-x C-k C-q =', 'C-x C-k C-q <', and 'C-x C-k C-q >'
 compare the macro counter with an optional prefix and terminate the
 macro if the comparison succeeds.
+
+---
+** On X, Emacs now supports input methods which perform "string conversion".
+This means an input method can now ask Emacs to delete text
+surrounding point and replace it with something else, as well as query
+Emacs for surrounding text.  If your input method allows you to "undo"
+mistaken compositions, this will now work as well.
 
 +++
 ** New mode 'kmacro-menu-mode' and new command 'list-keyboard-macros'.
