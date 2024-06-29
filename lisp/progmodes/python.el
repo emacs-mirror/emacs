@@ -7042,6 +7042,7 @@ Add import for undefined name `%s' (empty to skip): "
 
 (defvar electric-indent-inhibit)
 (defvar prettify-symbols-alist)
+(defvar python--installed-grep-hook nil)
 
 ;;;###autoload
 (define-derived-mode python-base-mode prog-mode "Python"
@@ -7125,6 +7126,15 @@ implementations: `python-mode' and `python-ts-mode'."
               (lambda ()
                 "`outline-level' function for Python mode."
                 (1+ (/ (current-indentation) python-indent-offset))))
+
+  (unless python--installed-grep-hook
+    (setq python--installed-grep-hook t)
+    (with-eval-after-load 'grep
+      (defvar grep-files-aliases)
+      (defvar grep-find-ignored-directories)
+      (cl-pushnew '("py" . "*.py") grep-files-aliases :test #'equal)
+      (dolist (dir '(".tox" ".venv" ".mypy_cache" ".ruff_cache"))
+        (cl-pushnew dir grep-find-ignored-directories))))
 
   (setq-local prettify-symbols-alist python-prettify-symbols-alist)
 
