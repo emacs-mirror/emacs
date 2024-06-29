@@ -4599,8 +4599,8 @@ free_realized_face (struct frame *f, struct face *face)
 	  /* This function might be called with the frame's display
 	     connection deleted, in which event the callbacks below
 	     should not be executed, as they generate X requests.  */
-	  if (FRAME_X_DISPLAY (f))
-	    return;
+	  if (!FRAME_X_DISPLAY (f))
+	    goto free_face;
 #endif /* HAVE_X_WINDOWS */
 
 	  if (face->gc)
@@ -4619,6 +4619,9 @@ free_realized_face (struct frame *f, struct face *face)
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
 
+#ifdef HAVE_X_WINDOWS
+    free_face:
+#endif /* HAVE_X_WINDOWS */
       xfree (face);
     }
 }
