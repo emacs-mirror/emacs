@@ -1014,6 +1014,9 @@ Here's a list of the most important changes in Emacs 29 as compared to
 Emacs 28 (the full list is too long, and can be read in the Emacs
 @file{NEWS} file by typing @kbd{C-h n} inside Emacs).
 
+Note that Emacs 29.3 and 29.4 both contained important security fixes.
+Upgrading is particularly important if you use Emacs as a mail client.
+
 @itemize
 @item
 Emacs can now be built with the
@@ -3660,6 +3663,21 @@ Any package you install into Emacs can run arbitrary code with the
 same privileges as the Emacs process itself.  Be aware of this when
 you use the package system (e.g. @code{M-x list-packages}) with third
 party archives.  Use only third parties that you can trust!
+
+@item
+Using an out-of-date Emacs version.
+
+For security purposes, we recommend always using the latest officially
+released version of Emacs.  Using old versions of Emacs might put your
+security at risk, as newer versions occasionally include important
+security fixes.  Please review the Emacs release notes and the
+@file{etc/NEWS} file for details.
+
+Upgrading to the most recent version is particularly important if you
+use Emacs as a mail client, or to edit files that come from untrusted
+sources.  You should be able to install the latest version of Emacs
+through your system's package manager, and it is always available at
+@uref{https://www.gnu.org/software/emacs/, the Emacs website}.
 
 @item
 The @code{file-local-variable} feature.  (Yes, a risk, but easy to
