@@ -216,6 +216,50 @@ such as 'image-increase-size', 'image-decrease-size', 'image-rotate',
 Set the new user option 'image-recompute-map-p' to nil to prevent Emacs
 from recomputing image maps.
 
+** Minibuffer and Completions
+
+*** New commands 'previous-line-completion' and 'next-line-completion'.
+Bound to '<up>' and '<down>' arrow keys, respectively, they navigate
+the "*Completions*" buffer vertically by lines, wrapping at the
+top/bottom when 'completion-auto-wrap' is non-nil.
+
+*** New user option 'minibuffer-visible-completions'.
+When customized to non-nil, you can use arrow keys in the minibuffer
+to navigate the completions displayed in the "*Completions*" window.
+Typing 'RET' selects the highlighted candidate.  'C-g' hides the
+completions window.  When the completions window is not visible,
+then all these keys have their usual meaning in the minibuffer.
+This option is supported for in-buffer completion as well.
+
+*** Selected completion candidates are deselected on typing.
+When you type at the minibuffer prompt, the current completion
+candidate will be un-highlighted, and point in the "*Completions*" window
+will be moved off that candidate.  'minibuffer-choose-completion'
+('M-RET') will still choose a previously-selected completion
+candidate, but the new command 'minibuffer-choose-completion-or-exit'
+(bound to 'RET' by 'minibuffer-visible-completions') will exit with
+the minibuffer contents instead.  This deselection behavior can be
+controlled with the new user option 'completion-auto-deselect', which
+is t by default.
+
+*** New value 'historical' for user option 'completions-sort'.
+When 'completions-sort' is set to 'historical', completion candidates
+will be first sorted alphabetically, and then re-sorted by their order
+in the minibuffer history, with more recent candidates appearing first.
+
++++
+*** 'completion-category-overrides' supports more metadata.
+The new supported completion properties are 'cycle-sort-function',
+'display-sort-function', 'annotation-function', 'affixation-function',
+and 'group-function'.  You can now customize them for any category in
+'completion-category-overrides' that will override the properties
+defined in completion metadata.
+
++++
+*** 'completion-extra-properties' supports more metadata.
+The new supported completion properties are 'category',
+'group-function', 'display-sort-function', and 'cycle-sort-function'.
+
 ** Windows
 
 +++
@@ -1138,50 +1182,6 @@ calling external rgrep.
 If non-nil, each Eshell session will save history by appending new
 entries of that session to the history file rather than overwriting
 the file with the whole history of the session.  The default is nil.
-
-** Minibuffer and Completions
-
-*** New commands 'previous-line-completion' and 'next-line-completion'.
-Bound to '<up>' and '<down>' arrow keys, respectively, they navigate
-the "*Completions*" buffer vertically by lines, wrapping at the
-top/bottom when 'completion-auto-wrap' is non-nil.
-
-*** New user option 'minibuffer-visible-completions'.
-When customized to non-nil, you can use arrow keys in the minibuffer
-to navigate the completions displayed in the "*Completions*" window.
-Typing 'RET' selects the highlighted candidate.  'C-g' hides the
-completions window.  When the completions window is not visible,
-then all these keys have their usual meaning in the minibuffer.
-This option is supported for in-buffer completion as well.
-
-*** Selected completion candidates are deselected on typing.
-When you type at the minibuffer prompt, the current completion
-candidate will be un-highlighted, and point in the "*Completions*" window
-will be moved off that candidate.  'minibuffer-choose-completion'
-('M-RET') will still choose a previously-selected completion
-candidate, but the new command 'minibuffer-choose-completion-or-exit'
-(bound to 'RET' by 'minibuffer-visible-completions') will exit with
-the minibuffer contents instead.  This deselection behavior can be
-controlled with the new user option 'completion-auto-deselect', which
-is t by default.
-
-*** New value 'historical' for user option 'completions-sort'.
-When 'completions-sort' is set to 'historical', completion candidates
-will be first sorted alphabetically, and then re-sorted by their order
-in the minibuffer history, with more recent candidates appearing first.
-
-+++
-*** 'completion-category-overrides' supports more metadata.
-The new supported completion properties are 'cycle-sort-function',
-'display-sort-function', 'annotation-function', 'affixation-function',
-and 'group-function'.  You can now customize them for any category in
-'completion-category-overrides' that will override the properties
-defined in completion metadata.
-
-+++
-*** 'completion-extra-properties' supports more metadata.
-The new supported completion properties are 'category',
-'group-function', 'display-sort-function', and 'cycle-sort-function'.
 
 ** Pcomplete
 
