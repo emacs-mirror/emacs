@@ -120,7 +120,7 @@ appear when using 'icomplete-in-buffer'.  Now the "*Completions*" buffer
 and Icomplete's in-buffer display of possible completions always
 appear together.  If you would prefer to see only Icomplete's
 in-buffer display, and not the "*Completions*" buffer, you can add this
-to your init:
+to your init file:
 
     (advice-add 'completion-at-point :after #'minibuffer-hide-completions)
 
@@ -169,8 +169,8 @@ See the file "etc/ORG-NEWS" for user-visible changes in Org.
 On systems that understand them (at present X, Android, PGTK, and
 MS-Windows), many touch screen gestures are now implemented and
 translated into mouse or gesture events, and support for tapping tool
-bar buttons and opening menus has been written.  Countless packages,
-such as Dired and Custom have been adjusted to better understand touch
+bar buttons and opening menus has been added.  Countless packages, such
+as Dired and Custom, have been adjusted to better understand touch
 screen input.
 
 +++
@@ -288,7 +288,7 @@ for which you can use '(category . tex-shell)'.
 +++
 *** Tool bars can now be placed on the bottom on more systems.
 The 'tool-bar-position' frame parameter can be set to 'bottom' on all
-window systems other than Nextstep.
+window systems other than Nextstep and macOS.
 
 +++
 *** New global minor mode 'modifier-bar-mode'.
@@ -828,8 +828,7 @@ default is t, to preserve previous behavior.
 When non-nil, the output of Grep is split into sections, one for each
 file, instead of having file names prefixed to each line.  It is
 equivalent to the "--heading" option of some tools such as 'git grep'
-and 'rg'.  The headings are displayed using the new 'grep-heading'
-face.
+and 'rg'.  The headings are displayed using the new 'grep-heading' face.
 
 ** Compilation mode
 
@@ -1226,9 +1225,9 @@ To restore the old behavior, set 'comint-password-prompt-max-length' to
 +++
 *** New command 'prog-fill-reindent-defun'.
 This command either fills a single paragraph in a defun, such as a
-docstring, or a comment, or (re)indents the surrounding defun if
-point is not in a comment or a string.  It is by default bound to
-'M-q' in 'prog-mode' and all its descendants.
+docstring, or a comment, or (re)indents the surrounding defun if point
+is not in a comment or a string.  By default, it is bound to 'M-q' in
+'prog-mode' and all its descendants.
 
 ** Imenu
 
