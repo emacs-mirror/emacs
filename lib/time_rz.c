@@ -44,11 +44,6 @@ enum { DEFAULT_MXFAST = 64 * sizeof (size_t) / 4 };
    used.  */
 enum { ABBR_SIZE_MIN = DEFAULT_MXFAST - offsetof (struct tm_zone, abbrs) };
 
-/* Magic cookie timezone_t value, for local time.  It differs from
-   NULL and from all other timezone_t values.  Only the address
-   matters; the pointer is never dereferenced.  */
-static timezone_t const local_tz = (timezone_t) 1;
-
 /* Copy to ABBRS the abbreviation at ABBR with size ABBR_SIZE (this
    includes its trailing null byte).  Append an extra null byte to
    mark the end of ABBRS.  */
@@ -70,9 +65,6 @@ tzalloc (char const *name)
   if (tz)
     {
       tz->next = NULL;
-#if HAVE_TZNAME && !HAVE_STRUCT_TM_TM_ZONE
-      tz->tzname_copy[0] = tz->tzname_copy[1] = NULL;
-#endif
       tz->tz_is_set = !!name;
       tz->abbrs[0] = '\0';
       if (name)
@@ -81,32 +73,15 @@ tzalloc (char const *name)
   return tz;
 }
 
-/* Save into TZ any nontrivial time zone abbreviation used by TM, and
-   update *TM (if HAVE_STRUCT_TM_TM_ZONE) or *TZ (if
-   !HAVE_STRUCT_TM_TM_ZONE && HAVE_TZNAME) if they use the abbreviation.
+/* If HAVE_STRUCT_TM_TM_ZONE, save into TZ any nontrivial time zone
+   abbreviation used by TM, and update *TM to contain the saved abbreviation.
    Return true if successful, false (setting errno) otherwise.  */
 static bool
 save_abbr (timezone_t tz, struct tm *tm)
 {
-#if HAVE_STRUCT_TM_TM_ZONE || HAVE_TZNAME
-  char const *zone = NULL;
+#if HAVE_STRUCT_TM_TM_ZONE
+  char const *zone = tm->tm_zone;
   char *zone_copy = (char *) "";
-
-# if HAVE_TZNAME
-  int tzname_index = -1;
-# endif
-
-# if HAVE_STRUCT_TM_TM_ZONE
-  zone = tm->tm_zone;
-# endif
-
-# if HAVE_TZNAME
-  if (! (zone && *zone) && 0 <= tm->tm_isdst)
-    {
-      tzname_index = tm->tm_isdst != 0;
-      zone = tzname[tzname_index];
-    }
-# endif
 
   /* No need to replace null zones, or zones within the struct tm.  */
   if (!zone || ((char *) tm <= zone && zone < (char *) (tm + 1)))
@@ -144,12 +119,7 @@ save_abbr (timezone_t tz, struct tm *tm)
     }
 
   /* Replace the zone name so that its lifetime matches that of TZ.  */
-# if HAVE_STRUCT_TM_TM_ZONE
   tm->tm_zone = zone_copy;
-# else
-  if (0 <= tzname_index)
-    tz->tzname_copy[tzname_index] = zone_copy;
-# endif
 #endif
 
   return true;
@@ -202,7 +172,7 @@ change_env (timezone_t tz)
    Return LOCAL_TZ if the time zone setting is already correct.
    Otherwise return a newly allocated time zone representing the old
    setting, or NULL (setting errno) on failure.  */
-static timezone_t
+timezone_t
 set_tz (timezone_t tz)
 {
   char *env_tz = getenv_TZ ();
@@ -229,7 +199,7 @@ set_tz (timezone_t tz)
 /* Restore an old setting returned by set_tz.  It must not be null.
    Return true (preserving errno) if successful, false (setting errno)
    otherwise.  */
-static bool
+bool
 revert_tz (timezone_t tz)
 {
   if (tz == local_tz)
@@ -302,9 +272,7 @@ mktime_z (timezone_t tz, struct tm *tm)
           tm_1.tm_isdst = tm->tm_isdst;
           time_t t = mktime (&tm_1);
           bool ok = 0 <= tm_1.tm_yday;
-#if HAVE_STRUCT_TM_TM_ZONE || HAVE_TZNAME
           ok = ok && save_abbr (tz, &tm_1);
-#endif
           if (revert_tz (old_tz) && ok)
             {
               *tm = tm_1;

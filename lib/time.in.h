@@ -122,6 +122,23 @@ struct __time_t_must_be_integral {
 #  endif
 # endif
 
+# if @GNULIB_TZNAME@
+/* tzname[0..1]: Abbreviated time zone names, set by the tzset() function.  */
+#  if NEED_DECL_TZNAME
+extern
+#   ifdef __cplusplus
+  "C"
+#   endif
+  char *tzname[];
+#  endif
+#  if defined _WIN32 && !defined __CYGWIN__
+/* On native Windows, map 'tzname' to '_tzname' etc., so that -loldnames is not
+   required.  */
+#   undef tzname
+#   define tzname _tzname
+#  endif
+# endif
+
 /* Set *TS to the current time, and return BASE.
    Upon failure, return 0.  */
 # if @GNULIB_TIMESPEC_GET@

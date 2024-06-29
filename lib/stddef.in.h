@@ -149,11 +149,6 @@ typedef long max_align_t;
 # endif
 #endif
 
-/* Some platforms lack wchar_t.  */
-#if !@HAVE_WCHAR_T@
-# define wchar_t int
-#endif
-
 /* Some platforms lack max_align_t.  The check for _GCC_MAX_ALIGN_T is
    a hack in case the configure-time test was done with g++ even though
    we are currently compiling with gcc.
