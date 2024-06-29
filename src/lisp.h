@@ -5146,7 +5146,7 @@ extern Lisp_Object set_marker_restricted (Lisp_Object, Lisp_Object, Lisp_Object)
 extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object set_marker_restricted_both (Lisp_Object, Lisp_Object,
                                                ptrdiff_t, ptrdiff_t);
-extern Lisp_Object build_marker (struct buffer *, ptrdiff_t, ptrdiff_t);
+extern Lisp_Object build_marker (struct buffer *, ptrdiff_t, ptrdiff_t, int);
 extern void syms_of_marker (void);
 
 /* Defined in fileio.c.  */

@@ -13621,7 +13621,7 @@ format_mode_line_unwind_data (struct frame *target_frame,
 	 unwinding (Bug#32777).  */
       ASET (vector, 10, buffer);
       current_buffer = b;
-      ASET (vector, 11, build_marker (current_buffer, PT, PT_BYTE));
+      ASET (vector, 11, build_marker (current_buffer, PT, PT_BYTE, 2));
       current_buffer = cb;
     }
 

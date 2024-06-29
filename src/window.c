@@ -7774,7 +7774,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, ptrdiff_t i)
 	  if (EQ (window, selected_window))
 	    p->pointm = build_marker (XBUFFER (w->contents),
 				      BUF_PT (XBUFFER (w->contents)),
-				      BUF_PT_BYTE (XBUFFER (w->contents)));
+				      BUF_PT_BYTE (XBUFFER (w->contents)), 1);
 	  else
 	    p->pointm = Fcopy_marker (w->pointm, Qnil);
 	  p->old_pointm = Fcopy_marker (w->old_pointm, Qnil);
