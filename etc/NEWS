@@ -1779,16 +1779,6 @@ Similarly to buffer restoration by Desktop, 'recentf-mode' checking
 of the accessibility of remote files can now time out if
 'remote-file-name-access-timeout' is set to a positive number.
 
-** Notifications
-
-+++
-*** Allow using Icon Naming Specification for ':app-icon'.
-You can use a symbol as the value for ':app-icon' to provide icon name
-without specifying a file, like this:
-
-    (notifications-notify
-      :title "I am playing music" :app-icon 'multimedia-player)
-
 ** Image Dired
 
 *** New user option 'image-dired-thumb-naming'.
@@ -2640,6 +2630,14 @@ See the Info node "(elisp) Drag and Drop".
 
 The function 'dnd-handle-one-url' has been made obsolete, since it
 cannot take these new handlers into account.
+
++++
+** 'notifications-notify' can use Icon Naming Specification for ':app-icon'.
+You can use a symbol as the value for ':app-icon' to provide icon name
+without specifying a file, like this:
+
+    (notifications-notify
+      :title "I am playing music" :app-icon 'multimedia-player)
 
 ** New function 're-disassemble' to see the innards of a regexp.
 If you built Emacs with '--enable-checking', you can use this to help
