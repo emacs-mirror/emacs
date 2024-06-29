@@ -155,6 +155,15 @@ see the variable 'url-request-extra-headers'.
 See the file "etc/ORG-NEWS" for user-visible changes in Org.
 
 +++
+** Improved support for touchscreen devices.
+On systems that understand them (at present X, Android, PGTK, and
+MS-Windows), many touch screen gestures are now implemented and
+translated into mouse or gesture events, and support for tapping tool
+bar buttons and opening menus has been written.  Countless packages,
+such as Dired and Custom have been adjusted to better understand touch
+screen input.
+
++++
 ** Support for styled underline face attributes.
 These are implemented as new values of the 'style' attribute in a face
 underline specification, 'double-line', 'dots', and 'dashes', and are
@@ -605,15 +614,6 @@ long_function_with_several_arguments (argument_1_compute (),
 to the kill ring, omitting the two columns of extra indentation that
 would otherwise be present in the second and third lines of the
 function call.
-
-+++
-** Emacs now has better support for touchscreen devices.
-On systems that understand them (at present X, Android, PGTK, and
-MS-Windows), many touch screen gestures are now implemented and
-translated into mouse or gesture events, and support for tapping tool
-bar buttons and opening menus has been written.  Countless packages,
-such as Dired and Custom have been adjusted to better understand touch
-screen input.
 
 ---
 ** On X, Emacs now supports input methods which perform "string conversion".
