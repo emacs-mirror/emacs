@@ -94,18 +94,6 @@ The old variables 'mouse-wheel-up-event', 'mouse-wheel-down-event',
 obsolete.
 
 +++
-** URL now never sends user email addresses in HTTP requests.
-Emacs never sent email addresses by default, but it used to be
-possible to customize 'url-privacy-level' so that the users email
-address was sent along in HTTP requests.  This feature has now been
-removed, as it was considered more dangerous than useful.  RFC 9110
-(§ 10.1.2) also recommends against it.  The user option
-'url-personal-mail-address' is now also obsolete.
-
-To send an email address in the header of individual HTTP requests,
-see the variable 'url-request-extra-headers'.
-
-+++
 ** 'completion-auto-help' now affects 'icomplete-in-buffer'.
 Previously, 'completion-auto-help' mostly affected only minibuffer
 completion.  Now, if 'completion-auto-help' has the value 'lazy', then
@@ -132,98 +120,59 @@ The round-trip through the Lisp function
 the default one.  It's reimplemented in native code, reducing GC churn.
 To undo this change, set 'fast-read-process-output' to nil.
 
-
-* Changes in Emacs 30.1
-
-** 'advice-remove' is now an interactive command.
-When called interactively, 'advice-remove' now prompts for an advised
-function to the advice to remove.
-
-** Emacs now supports Unicode Standard version 15.1.
-
-** New pre-defined values for 'electric-quote-chars'.
-The available customization options for 'electric-quote-chars' have been
-updated with common pairs of quotation characters, including "‘", "’",
-"“", "”", "«", "»", "‹", "›", "‚", "„", "「", "」", "『", and "』".
-The default is unchanged.
-
-** Network Security Manager
-
 +++
-*** The Network Security Manager now warns about 3DES by default.
+** The Network Security Manager now warns about 3DES by default.
 This cypher is no longer recommended owing to a major vulnerability
 disclosed in 2016, and its small 112 bit key size.  Emacs now warns
 about its use also when 'network-security-level' is set to 'medium'
 (the default).  See 'network-security-protocol-checks'.
 
 ---
-*** The Network Security Manager now warns about <2048 bits in DH key exchange.
+** The Network Security Manager now warns about <2048 bits in DH key exchange.
 Emacs used to warn for Diffie-Hellman key exchanges with prime numbers
 smaller than 1024 bits.  Since more servers now support it, this
 number has been bumped to 2048 bits.
 
-** Help
++++
+** URL now never sends user email addresses in HTTP requests.
+Emacs never sent email addresses by default, but it used to be
+possible to customize 'url-privacy-level' so that the users email
+address was sent along in HTTP requests.  This feature has now been
+removed, as it was considered more dangerous than useful.  RFC 9110
+(§ 10.1.2) also recommends against it.  The user option
+'url-personal-mail-address' is now also obsolete.
+
+To send an email address in the header of individual HTTP requests,
+see the variable 'url-request-extra-headers'.
+
+
+* Changes in Emacs 30.1
+
+** Emacs now supports Unicode Standard version 15.1.
 
 +++
-*** New command 'help-find-source'.
-Switch to a buffer visiting the source of what is being described in
-"*Help*".  It is bound to 'C-h 4 s' globally.
-
-*** 'describe-function' shows function inferred type when available.
-For native compiled Lisp functions 'describe-function' prints (after
-the signature) the automatically inferred function type as well.
-
-*** 'describe-function' now shows the type of the function object.
-The text used to say things like "car is is a built-in function" whereas
-it now says "car is a primitive-function" where "primitive-function" is
-the symbol returned by 'cl-type-of'.  You can click on those words to
-get information about that type.
-
----
-*** New user option 'describe-bindings-outline-rules'.
-This user option controls outline visibility in the output buffer of
-'describe-bindings' when 'describe-bindings-outline' is non-nil.
-
----
-*** 'C-h m' ('describe-mode') uses outlining by default.
-Set 'describe-mode-outline' to nil to get back the old behavior.
-
-*** 'C-h k' ('describe-key') shows Unicode name.
-For keybindings which produce single characters via translation or input
-methods, 'C-h k' now shows the Unicode name of the produced character in
-addition to the character itself, e.g.
-
-'C-h k C-x 8 E' =>
-
-    € 'EURO SIGN' (translated from C-x 8 E)
-
-*** 'C-h b' ('describe-bindings') shows Unicode names.
-For keybindings which produce single characters via translation (such as
-those using the 'C-x 8' or 'A-' prefix, or 'dead-acute', 'dead-grave',
-etc), the Unicode names will now be shown in addition to the character
-itself, i.e.
-
-    A-!			¡	INVERTED EXCLAMATION MARK
-    A-$			¤	CURRENCY SIGN
-
-and so on.
-
-+++
-*** Multi-character key echo now ends with a suggestion to use Help.
-Customize 'echo-keystrokes-help' to nil to prevent that.
-
-** Customize
-
-+++
-*** New command 'customize-dirlocals'.
-This command pops up a buffer to edit the settings in ".dir-locals.el".
-
----
-*** New command 'customize-toggle-option'.
-This command can toggle boolean options for the duration of a session.
-
 ** Emacs now comes with Org v9.7.
 See the file "etc/ORG-NEWS" for user-visible changes in Org.
+
++++
+** Support for styled underline face attributes.
+These are implemented as new values of the 'style' attribute in a face
+underline specification, 'double-line', 'dots', and 'dashes', and are
+available on GUI systems.  If your terminal's termcap or terminfo
+database entry defines the 'Su' or 'Smulx' capability, Emacs will also
+emit the prescribed escape sequence to render faces with such styles on
+TTY frames.
+
+---
+** Support for underline colors on TTY frames.
+Colors specified in face underlines will now also be displayed in TTY
+frames with the previously mentioned capabilities.
+
+** Modeline elements can now be right-aligned.
+Anything following the symbol 'mode-line-format-right-align' in
+'mode-line-format' will be right-aligned.  Exactly where it is
+right-aligned to is controlled by the new user option
+'mode-line-right-align-edge'.
 
 ** X selection requests are now handled much faster and asynchronously.
 This means it should be less necessary to disable the likes of
@@ -236,90 +185,17 @@ compositing manager, Emacs will now redisplay such a frame even though
 'frame-visible-p' returns nil or 'icon' for it.  This can happen, for
 example, as part of preview for iconified frames.
 
----
-** New user option 'menu-bar-close-window'.
-When non-nil, selecting "Close" from the "File" menu or clicking
-"Close" in the tool bar will result in the current window being
-closed, if possible.
++++
+** Most file notification backends detect unmounting of a watched filesystem.
+The only exception is w32notify.
 
 +++
-** New user option 'remote-file-name-inhibit-delete-by-moving-to-trash'.
-When non-nil, this option suppresses moving remote files to the local
-trash when deleting.  Default is nil.
-
----
-** New user option 'remote-file-name-inhibit-auto-save'.
-If this user option is non-nil, 'auto-save-mode' will not auto-save
-remote buffers.  The default is nil.
-
-+++
-** New user option 'remote-file-name-access-timeout'.
-When a positive number, this option limits the call of 'access-file'
-for remote files to this number of seconds.  Default is nil.
-
----
-** New icon images for general use.
-Several symbolic icons are added to "etc/images/symbols", including
-plus, minus, check-mark, star, etc.
-
-** Tool bars
-
-+++
-*** Tool bars can now be placed on the bottom on more systems.
-The 'tool-bar-position' frame parameter can be set to 'bottom' on all
-window systems other than Nextstep.
-
-+++
-*** New global minor mode 'modifier-bar-mode'.
-When this minor mode is enabled, buttons representing modifier keys
-are displayed along the tool bar.
-
-+++
-*** New user option 'tool-bar-always-show-default'.
-When non-nil, the tool bar at the top of a frame does not show buffer
-local customization of the tool bar.  The default value is nil.
-
----
-** New user option 'uniquify-dirname-transform'.
-This can be used to customize how buffer names are uniquified, by
-making arbitrary transforms on the buffer's directory name (whose
-components are used to uniquify buffer names when they clash).  You
-can use this to distinguish between buffers visiting files with the
-same base name that belong to different projects by using the provided
-transform function 'project-uniquify-dirname-transform'.
-
-+++
-** CL Print
-
-+++
-*** You can expand the "..." truncation everywhere.
-The code that allowed "..." to be expanded in the "*Backtrace*" buffer
-should now work anywhere the data is generated by 'cl-print'.
-
-+++
-*** The 'backtrace-ellipsis' button is replaced by 'cl-print-ellipsis'.
-
-+++
-*** hash-tables' contents can be expanded via the ellipsis.
-
-+++
-*** Modes can control the expansion via 'cl-print-expand-ellipsis-function'.
-
-+++
-*** New setting 'raw' for 'cl-print-compiled'.
-This setting causes byte-compiled functions to be printed in full by
-'prin1'.  A button on this output can be activated to disassemble the
-function.
-
-+++
-*** There is a new chapter in the CL manual documenting cl-print.el.
-See the Info node "(cl) Printing".
-
-** Modeline elements can now be right-aligned.
-Anything following the symbol 'mode-line-format-right-align' in
-'mode-line-format' will be right-aligned.  Exactly where it is
-right-aligned to is controlled by the new user option
-'mode-line-right-align-edge'.
+** Image ':map' property is now recomputed when image is transformed.
+Now images with clickable maps work as expected after you run commands
+such as 'image-increase-size', 'image-decrease-size', 'image-rotate',
+'image-flip-horizontally', and 'image-flip-vertically'.
+Set the new user option 'image-recompute-map-p' to nil to prevent Emacs
+from recomputing image maps.
 
 ** Windows
 
@@ -359,13 +235,6 @@ by adding '(category . symbol)' to the condition part of
 It specifies whether the window of the displayed buffer should be
 selected or deselected at the end of executing the current command.
 
----
-*** User option 'display-comint-buffer-action' is now obsolete.
-You can use a '(category . comint)' condition in 'display-buffer-alist'
-to match buffers displayed by comint-related commands.  Another
-user option 'display-tex-shell-buffer-action' is obsolete too
-for which you can use '(category . tex-shell)'.
-
 +++
 *** New variable 'window-restore-killed-buffer-windows'.
 It specifies how 'set-window-configuration' and 'window-state-put'
@@ -388,6 +257,30 @@ according to the context stored in a window parameter.
 are always created with a 'window-cursor-type' of t, which means to
 consult the variable 'cursor-type' as before.
 
+---
+*** The user option 'display-comint-buffer-action' is now obsolete.
+You can use a '(category . comint)' condition in 'display-buffer-alist'
+to match buffers displayed by comint-related commands.  Another
+user option 'display-tex-shell-buffer-action' is obsolete too
+for which you can use '(category . tex-shell)'.
+
+** Tool bars
+
++++
+*** Tool bars can now be placed on the bottom on more systems.
+The 'tool-bar-position' frame parameter can be set to 'bottom' on all
+window systems other than Nextstep.
+
++++
+*** New global minor mode 'modifier-bar-mode'.
+When this minor mode is enabled, buttons representing modifier keys
+are displayed along the tool bar.
+
++++
+*** New user option 'tool-bar-always-show-default'.
+When non-nil, the tool bar at the top of a frame does not show buffer
+local customization of the tool bar.  The default value is nil.
+
 ** Tab Bars and Tab Lines
 
 ---
@@ -408,6 +301,11 @@ the name of the killed buffer that was displayed in that window.
 *** New user option 'tab-bar-tab-name-format-functions'.
 It can be used to add, remove and reorder functions that change the
 appearance of every tab on the tab bar.
+
+---
+*** New user option 'tab-line-tabs-buffer-group-function'.
+It provides two choices to group tab buffers by major mode and by
+project name.
 
 ---
 *** New hook 'tab-bar-tab-post-select-functions'.
@@ -436,20 +334,79 @@ these buffers.  You can drag the tabs and release at a new position
 to manually reorder the buffers on the tab line.
 
 ---
-*** New user option 'tab-line-tabs-buffer-group-function'.
-It provides two choices to group tab buffers by major mode and by
-project name.
-
----
 *** Buffers on group tabs are now sorted alphabetically.
 This will keep the fixed order of tabs, even after switching between
 them.
 
+** Help
+
 +++
-** New prefix argument for modifying directory-local variables.
+*** New command 'help-find-source'.
+Switch to a buffer visiting the source of what is being described in
+"*Help*".  It is bound to 'C-h 4 s' globally.
+
+---
+*** New user option 'describe-bindings-outline-rules'.
+This user option controls outline visibility in the output buffer of
+'describe-bindings' when 'describe-bindings-outline' is non-nil.
+
+*** 'describe-function' shows function inferred type when available.
+For native compiled Lisp functions 'describe-function' prints (after
+the signature) the automatically inferred function type as well.
+
+*** 'describe-function' now shows the type of the function object.
+The text used to say things like "car is is a built-in function" whereas
+it now says "car is a primitive-function" where "primitive-function" is
+the symbol returned by 'cl-type-of'.  You can click on those words to
+get information about that type.
+
+---
+*** 'C-h m' ('describe-mode') uses outlining by default.
+Set 'describe-mode-outline' to nil to get back the old behavior.
+
+*** 'C-h k' ('describe-key') shows Unicode name.
+For keybindings which produce single characters via translation or input
+methods, 'C-h k' now shows the Unicode name of the produced character in
+addition to the character itself, e.g.
+
+'C-h k C-x 8 E' =>
+
+    € 'EURO SIGN' (translated from C-x 8 E)
+
+*** 'C-h b' ('describe-bindings') shows Unicode names.
+For keybindings which produce single characters via translation (such as
+those using the 'C-x 8' or 'A-' prefix, or 'dead-acute', 'dead-grave',
+etc), the Unicode names will now be shown in addition to the character
+itself, i.e.
+
+    A-!			¡	INVERTED EXCLAMATION MARK
+    A-$			¤	CURRENCY SIGN
+
+and so on.
+
++++
+*** Multi-character key echo now ends with a suggestion to use Help.
+Customize 'echo-keystrokes-help' to nil to prevent that.
+
+** Customize
+
++++
+*** New command 'customize-dirlocals'.
+This command pops up a buffer to edit the settings in ".dir-locals.el".
+
+---
+*** New command 'customize-toggle-option'.
+This command can toggle boolean options for the duration of a session.
+
++++
+*** New prefix argument for modifying directory-local variables.
 The commands 'add-dir-local-variable', 'delete-dir-local-variable' and
 'copy-file-locals-to-dir-locals' now take an optional prefix argument,
 to enter the file name you want to modify.
+
+*** New user option 'safe-local-variable-directories'.
+This user option names directories in which Emacs will treat all
+directory-local variables as safe.
 
 ** Emacs Server and Client
 
@@ -463,41 +420,31 @@ arguments contain arbitrary characters that otherwise might require
 elaborate and error-prone escaping (to protect them from the shell).
 
 +++
-** 'recover-file' can show diffs between auto save file and current file.
-When answering the prompt with "diff" or "=", it now shows the diffs
-between the auto save file and the current file.
+** CL Print
 
 +++
-** 'read-passwd' can toggle the visibility of passwords.
-Use 'TAB' in the minibuffer to show or hide the password.  Likewise,
-there is an icon on the mode-line, which toggles the visibility of the
-password when clicking with 'mouse-1'.
+*** You can expand the "..." truncation everywhere.
+The code that allowed "..." to be expanded in the "*Backtrace*" buffer
+should now work anywhere the data is generated by 'cl-print'.
 
 +++
-** Support for styled underline face attributes.
-These are implemented as new values of the 'style' attribute in a face
-underline specification, 'double-line', 'dots', and 'dashes', and are
-available on GUI systems.  If your terminal's termcap or terminfo
-database entry defines the 'Su' or 'Smulx' capability, Emacs will also
-emit the prescribed escape sequence to render faces with such styles on
-TTY frames.
-
----
-** Support for underline colors on TTY frames.
-Colors specified in face underlines will now also be displayed in TTY
-frames with the previously mentioned capabilities.
+*** The 'backtrace-ellipsis' button is replaced by 'cl-print-ellipsis'.
 
 +++
-** Image ':map' property is now recomputed when image is transformed.
-Now images with clickable maps work as expected after you run commands
-such as 'image-increase-size', 'image-decrease-size', 'image-rotate',
-'image-flip-horizontally', and 'image-flip-vertically'.
-Set the new user option 'image-recompute-map-p' to nil to prevent Emacs
-from recomputing image maps.
+*** hash-tables' contents can be expanded via the ellipsis.
 
 +++
-** Most file notification backends detect unmounting of a watched filesystem.
-The only exception is w32notify.
+*** Modes can control the expansion via 'cl-print-expand-ellipsis-function'.
+
++++
+*** New setting 'raw' for 'cl-print-compiled'.
+This setting causes byte-compiled functions to be printed in full by
+'prin1'.  A button on this output can be activated to disassemble the
+function.
+
++++
+*** There is a new chapter in the CL manual documenting cl-print.el.
+See the Info node "(cl) Printing".
 
 ** Miscellaneous
 
@@ -506,14 +453,44 @@ The only exception is w32notify.
 This works like 'kill-matching-buffers', but without asking for
 confirmation.
 
-*** New user option 'safe-local-variable-directories'.
-This user option names directories in which Emacs will treat all
-directory-local variables as safe.
++++
+*** 'recover-file' can show diffs between auto save file and current file.
+When answering the prompt with "diff" or "=", it now shows the diffs
+between the auto save file and the current file.
+
++++
+*** 'read-passwd' can toggle the visibility of passwords.
+Use 'TAB' in the minibuffer to show or hide the password.  Likewise,
+there is an icon on the mode-line, which toggles the visibility of the
+password when clicking with 'mouse-1'.
+
+*** 'advice-remove' is now an interactive command.
+When called interactively, 'advice-remove' now prompts for an advised
+function to the advice to remove.
 
 ---
-*** New face 'appt-notification' for 'appt-display-mode-line'.
-It can be used to customize the look of the appointment notification
-displayed on the mode line when 'appt-display-mode-line' is non-nil.
+*** New user option 'uniquify-dirname-transform'.
+This can be used to customize how buffer names are uniquified, by
+making arbitrary transforms on the buffer's directory name (whose
+components are used to uniquify buffer names when they clash).  You
+can use this to distinguish between buffers visiting files with the
+same base name that belong to different projects by using the provided
+transform function 'project-uniquify-dirname-transform'.
+
++++
+*** New user option 'remote-file-name-inhibit-delete-by-moving-to-trash'.
+When non-nil, this option suppresses moving remote files to the local
+trash when deleting.  Default is nil.
+
+---
+*** New user option 'remote-file-name-inhibit-auto-save'.
+If this user option is non-nil, 'auto-save-mode' will not auto-save
+remote buffers.  The default is nil.
+
++++
+*** New user option 'remote-file-name-access-timeout'.
+When a positive number, this option limits the call of 'access-file'
+for remote files to this number of seconds.  Default is nil.
 
 +++
 *** New user option 'yes-or-no-prompt'.
@@ -522,21 +499,31 @@ This allows the user to customize the prompt that is appended by
 "(yes or no) ".
 
 ---
+*** New user option 'menu-bar-close-window'.
+When non-nil, selecting "Close" from the "File" menu or clicking
+"Close" in the tool bar will result in the current window being
+closed, if possible.
+
+---
 *** New face 'display-time-date-and-time'.
 This is used for displaying the time and date components of
 'display-time-mode'.
+
+---
+*** New face 'appt-notification' for 'appt-display-mode-line'.
+It can be used to customize the look of the appointment notification
+displayed on the mode line when 'appt-display-mode-line' is non-nil.
+
+---
+*** New icon images for general use.
+Several symbolic icons have been added to "etc/images/symbols",
+including plus, minus, check-mark, star, etc.
 
 ---
 *** Emacs now recognizes shebang lines that pass '-S'/'--split-string' to 'env'.
 When visiting a script that invokes 'env -S INTERPRETER ARGS...' in
 its shebang line, Emacs will now skip over 'env -S' and deduce the
 major mode based on the interpreter after 'env -S'.
-
-+++
-*** New function 'sqlite-execute-batch'.
-This function lets the user execute multiple SQL statements in one go.
-It is useful, for example, when a Lisp program needs to evaluate an
-entire SQL file.
 
 *** 'insert-directory-program' is now a user option.
 On *BSD and macOS systems, this user option now defaults to the "gls"
@@ -676,6 +663,12 @@ point will be put after the buffer position corresponding to that glyph,
 whereas if the mouse pointer is in the left half of a glyph, point
 will be put in front the buffer position corresponding to that glyph.
 By default this is disabled.
+
+** New pre-defined values for 'electric-quote-chars'.
+The available customization options for 'electric-quote-chars' have been
+updated with common pairs of quotation characters, including "‘", "’",
+"“", "”", "«", "»", "‹", "›", "‚", "„", "「", "」", "『", and "』".
+The default is unchanged.
 
 ** Internationalization
 
@@ -2949,6 +2942,12 @@ it possible to insert a new object at the top of the table.  (Before,
 this was not possible.)  In addition, LOCATION can be an integer, a
 (zero-based) index into the table at which the new object is inserted
 (BEFORE is ignored in this case).
+
++++
+**** New function 'sqlite-execute-batch'.
+This function lets the user execute multiple SQL statements in one go.
+It is useful, for example, when a Lisp program needs to evaluate an
+entire SQL file.
 
 ** JSON
 
