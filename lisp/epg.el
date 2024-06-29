@@ -680,6 +680,9 @@ callback data (if any)."
 				    :filter #'epg--process-filter
 				    :stderr error-process
 				    :noquery t))))
+    ;; We encode and decode ourselves the text sent/received from gpg,
+    ;; so the below disables automatic encoding and decoding by
+    ;; subprocess communications routines.
     (set-process-coding-system process 'raw-text 'raw-text)
     (setf (epg-context-process context) process)))
 
