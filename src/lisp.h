@@ -3598,7 +3598,7 @@ extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
 #define DEFVAR_LISP_NOPROX(lname, vname, doc)		\
   do {							\
   static struct Lisp_Fwd const o_fwd			\
-    = {Lisp_Fwd_Obj, u.objvar = &globals.f_##vname};	\
+    = {Lisp_Fwd_Obj, .u.objvar = &globals.f_##vname};	\
     defvar_lisp_nopro (&o_fwd, lname);			\
   } while (false)
 #endif

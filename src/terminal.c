@@ -693,7 +693,9 @@ or some time later.  */);
   DEFSYM (Qdelete_terminal_functions, "delete-terminal-functions");
   DEFSYM (Qrun_hook_with_args, "run-hook-with-args");
 
+#ifdef HAVE_MPS
   staticpro (&initial_terminal_lisp);
+#endif
   defsubr (&Sdelete_terminal);
   defsubr (&Sframe_terminal);
   defsubr (&Sterminal_live_p);
