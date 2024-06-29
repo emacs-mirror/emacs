@@ -399,14 +399,6 @@ section of the Emacs manual or the file BUGS.\n"
 /* True if handling a fatal error already.  */
 bool fatal_error_in_progress;
 
-#if !HAVE_SETLOCALE
-static char *
-setlocale (int cat, char const *locale)
-{
-  return 0;
-}
-#endif
-
 /* True if the current system locale uses UTF-8 encoding.  */
 static bool
 using_utf8 (void)
@@ -3268,7 +3260,6 @@ You must run Emacs in batch mode in order to dump it.  */)
 #endif
 
 
-#if HAVE_SETLOCALE
 /* Recover from setlocale (LC_ALL, "").  */
 void
 fixup_locale (void)
@@ -3288,7 +3279,7 @@ synchronize_locale (int category, Lisp_Object *plocale, Lisp_Object desired_loca
       *plocale = desired_locale;
       char const *locale_string
 	= STRINGP (desired_locale) ? SSDATA (desired_locale) : "";
-# ifdef WINDOWSNT
+#ifdef WINDOWSNT
       /* Changing categories like LC_TIME usually requires specifying
 	 an encoding suitable for the new locale, but MS-Windows's
 	 'setlocale' will only switch the encoding when LC_ALL is
@@ -3297,9 +3288,9 @@ synchronize_locale (int category, Lisp_Object *plocale, Lisp_Object desired_loca
 	 numbers is unaffected.  */
       setlocale (LC_ALL, locale_string);
       fixup_locale ();
-# else	/* !WINDOWSNT */
+#else
       setlocale (category, locale_string);
-# endif	/* !WINDOWSNT */
+#endif
     }
 }
 
@@ -3313,21 +3304,20 @@ synchronize_system_time_locale (void)
 		      Vsystem_time_locale);
 }
 
-# ifdef LC_MESSAGES
+#ifdef LC_MESSAGES
 static Lisp_Object Vprevious_system_messages_locale;
-# endif
+#endif
 
 /* Set system messages locale to match Vsystem_messages_locale, if
    possible.  */
 void
 synchronize_system_messages_locale (void)
 {
-# ifdef LC_MESSAGES
+#ifdef LC_MESSAGES
   synchronize_locale (LC_MESSAGES, &Vprevious_system_messages_locale,
 		      Vsystem_messages_locale);
-# endif
+#endif
 }
-#endif /* HAVE_SETLOCALE */
 
 /* Return a diagnostic string for ERROR_NUMBER, in the wording
    and encoding appropriate for the current locale.  */

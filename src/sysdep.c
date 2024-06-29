@@ -4593,15 +4593,11 @@ freelocale (locale_t loc)
 static char *
 emacs_setlocale (int category, char const *locale)
 {
-#  ifdef HAVE_SETLOCALE
   errno = 0;
   char *loc = setlocale (category, locale);
   if (loc || errno)
     return loc;
   errno = EINVAL;
-#  else
-  errno = ENOTSUP;
-#  endif
   return 0;
 }
 

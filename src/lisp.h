@@ -5190,15 +5190,9 @@ extern AVOID terminate_due_to_signal (int, int);
 #ifdef WINDOWSNT
 extern Lisp_Object Vlibrary_cache;
 #endif
-#if HAVE_SETLOCALE
 void fixup_locale (void);
 void synchronize_system_messages_locale (void);
 void synchronize_system_time_locale (void);
-#else
-INLINE void fixup_locale (void) {}
-INLINE void synchronize_system_messages_locale (void) {}
-INLINE void synchronize_system_time_locale (void) {}
-#endif
 extern char *emacs_strerror (int) ATTRIBUTE_RETURNS_NONNULL;
 extern void shut_down_emacs (int, Lisp_Object);
 
