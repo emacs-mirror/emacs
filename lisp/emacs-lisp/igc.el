@@ -231,4 +231,35 @@ the changes to snapshot A. See the modes's help."
       (goto-char (point-min))))
   (display-buffer "*igc roots*"))
 
+(defvar igc--collect-timer nil)
+(defvar igc--collect-file nil)
+
+(defun igc-stop-collecting-stats ()
+  (interactive)
+  (when igc--collect-timer
+    (cancel-timer igc--collect-timer)
+    (setq igc--collect-timer nil)))
+
+(defun igc--collect-stats ()
+  (let ((buffer (get-file-buffer igc--collect-file)))
+    (when buffer
+      (with-current-buffer buffer
+        (goto-char (point-max))
+        (when (= (point-min) (point-max))
+          (insert (format "\"%s\",\"%s\",\"%s\",\"%s\"\n"
+                          "Time" "Type" "N" "Bytes")))
+        (cl-loop with time = (current-time-string)
+                 for (title n bytes) in (igc-info) do
+                 (insert (format "\"%s\",\"%s\",\"%s\",\"%s\"\n"
+                                 time title n bytes))))
+      (save-buffer))))
+
+(defun igc-start-collecting-stats (file secs)
+  "Start collecting statistics every SECS seconds."
+  (interactive "FOutput file: \nnInterval (seconds): ")
+  (igc-stop-collecting-stats)
+  (setq igc--collect-file file)
+  (find-file-noselect file)
+  (setq igc--collect-timer (run-at-time nil secs #'igc--collect-stats)))
+
 (provide 'igc)
