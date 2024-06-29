@@ -846,7 +846,6 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	  treesit_tree_edit_1 (tree, start_offset, old_end_offset,
 			       new_end_offset);
 	  XTS_PARSER (lisp_parser)->need_reparse = true;
-	  XTS_PARSER (lisp_parser)->timestamp++;
 
 	  /* VISIBLE_BEG/END records tree-sitter's range of view in
 	     the buffer.  We need to adjust them when tree-sitter's
@@ -948,10 +947,7 @@ treesit_sync_visible_region (Lisp_Object parser)
      this function is called), we need to reparse.  */
   if (visible_beg != BUF_BEGV_BYTE (buffer)
       || visible_end != BUF_ZV_BYTE (buffer))
-    {
-      XTS_PARSER (parser)->need_reparse = true;
-      XTS_PARSER (parser)->timestamp++;
-    }
+    XTS_PARSER (parser)->need_reparse = true;
 
   /* Before we parse or set ranges, catch up with the narrowing
      situation.  We change visible_beg and visible_end to match
@@ -1090,6 +1086,7 @@ treesit_ensure_parsed (Lisp_Object parser)
 
   XTS_PARSER (parser)->tree = new_tree;
   XTS_PARSER (parser)->need_reparse = false;
+  XTS_PARSER (parser)->timestamp++;
 
   /* After-change functions should run at the very end, most crucially
      after need_reparse is set to false, this way if the function
@@ -1725,7 +1722,6 @@ buffer.  */)
 	      ranges);
 
   XTS_PARSER (parser)->need_reparse = true;
-  XTS_PARSER (parser)->timestamp++;
   return Qnil;
 }
 
@@ -2923,11 +2919,10 @@ be completely in the region.
 
 If NODE-ONLY is non-nil, return a list of nodes.
 
-Besides a node, NODE can also be a parser, in which case the root node
-of that parser is used.
-NODE can also be a language symbol, in which case the root node of a
-parser for that language is used.  If such a parser doesn't exist, it
-is created.
+Besides a node, NODE can be a parser, in which case the root node of
+that parser is used.  NODE can also be a language symbol, in which case
+the root node of a parser for that language is used.  If such a parser
+doesn't exist, it is created.
 
 Signal `treesit-query-error' if QUERY is malformed or something else
 goes wrong.  You can use `treesit-query-validate' to validate and debug
@@ -2941,8 +2936,13 @@ the query.  */)
 
   treesit_initialize ();
 
-  /* Resolve NODE into an actual node.  */
+  /* Resolve NODE into an actual node, signals if node not
+     up-to-date.  */
   Lisp_Object lisp_node = treesit_resolve_node (node);
+  /* As of right now, the node returned by treesit_resolve_node always
+     passes treesit_check_node; but it might not be true in the future,
+     so adding the line below just to be safe.  */
+  treesit_check_node (node);
 
   /* Extract C values from Lisp objects.  */
   TSNode treesit_node = XTS_NODE (lisp_node)->node;
@@ -2970,8 +2970,8 @@ the query.  */)
 				 &signal_symbol, &signal_data))
     xsignal (signal_symbol, signal_data);
 
-  /* WARN: After this point, free TREESIT_QUERY and CURSOR before every
-     signal and return if NEEDS_TO_FREE_QUERY_AND_CURSOR is true.  */
+  /* WARN: After this point, if NEEDS_TO_FREE_QUERY_AND_CURSOR is true,
+     free TREESIT_QUERY and CURSOR before every signal and return.  */
 
   /* Set query range.  */
   if (!NILP (beg) && !NILP (end))
