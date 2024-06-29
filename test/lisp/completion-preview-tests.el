@@ -432,4 +432,17 @@ instead."
       (should-not exit-fn-called)
       (should-not exit-fn-args))))
 
+(ert-deftest completion-preview-insert-inherits-text-properties ()
+  "Test that `completion-preview-insert' inherits text properties."
+  (with-temp-buffer
+    (setq-local completion-at-point-functions
+                (list (completion-preview-tests--capf '("foobar" "foobaz"))))
+    (insert (propertize "foo" 'prop 'val))
+    (let ((this-command 'self-insert-command))
+      (completion-preview--post-command))
+    (completion-preview-tests--check-preview "bar" 'completion-preview-common)
+    (completion-preview-insert)
+    (should (string= (buffer-string) "foobar"))
+    (should (eq (get-text-property 6 'prop) 'val))))
+
 ;;; completion-preview-tests.el ends here

@@ -491,7 +491,7 @@ point, otherwise hide it."
          (str (concat pre com (nth ind all))))
     (completion-preview-active-mode -1)
     (goto-char end)
-    (insert (substring-no-properties aft))
+    (insert-and-inherit (substring-no-properties aft))
     (when (functionp efn) (funcall efn str 'finished))))
 
 (defun completion-preview-partial-insert (fun &rest args)
@@ -516,7 +516,7 @@ Beyond moving point, FUN should not modify the current buffer."
             (save-excursion
               (goto-char end)
               ;; Temporarily insert the full completion candidate.
-              (insert (substring-no-properties aft)))
+              (insert-and-inherit (substring-no-properties aft)))
             ;; Set point to the end of the prefix that we want to keep.
             (apply fun args)
             (unless (< end (point))
@@ -616,7 +616,7 @@ completions list."
           (completion-preview--inhibit-update)
           (completion-at-point))
       ;; Otherwise, insert the common prefix and update the preview.
-      (insert ins)
+      (insert-and-inherit ins)
       (let ((suf (nth cur all))
             (pos (point)))
         (if (or (string-empty-p suf) (null suf))
