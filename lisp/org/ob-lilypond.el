@@ -160,7 +160,7 @@ Otherwise, execute block according to header settings."
     (org-babel-lilypond-process-basic body params)))
 
 (defun org-babel-lilypond-tangle ()
-  "Tangle lilypond blocks, then `org-babel-liypond-execute-tangled-ly'."
+  "Tangle lilypond blocks, then `org-babel-lilypond-execute-tangled-ly'."
   (interactive)
   (if (org-babel-tangle nil "yes" "lilypond")
       (org-babel-lilypond-execute-tangled-ly) nil))

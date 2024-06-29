@@ -13864,7 +13864,7 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; This is true when point is at the last non syntactic WS position on the
   ;; line, there is a macro call last on the line, and this particular macro's
-  ;; name is defined by the regexp `c-vs-macro-regexp' as not needing a
+  ;; name is defined by the regexp `c-macro-with-semi-re' as not needing a
   ;; semicolon.
   (save-excursion
     (save-restriction

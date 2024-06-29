@@ -361,7 +361,7 @@
        2))
 
 (defun comp-test-copy-insn-f (insn)
-  ;; From `comp-copy-insn'.
+  ;; From `comp--copy-insn'.
   (if (consp insn)
       (let (result)
 	(while (consp insn)

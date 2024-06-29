@@ -200,7 +200,7 @@ Properties can be set with
 ;; - can be ignored by window managers (most positional args, like `height',
 ;;   `width', `left' and `top', and others, like `auto-raise', `auto-lower')
 ;; - can be set externally in X resources or Window registry (again, most
-;;   positional parameters, and also `toolbar-lines', `menu-bar-lines' etc.)
+;;   positional parameters, and also `tool-bar-lines', `menu-bar-lines' etc.)
 ;, - can contain references to live objects (`buffer-list', `minibuffer') or
 ;;   code (`buffer-predicate')
 ;; - are set automatically, and cannot be changed (`window-id', `parent-id'),

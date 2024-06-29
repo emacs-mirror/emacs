@@ -557,7 +557,7 @@ prefix argument (`C-u C-u C-u C-c C-w')."
             (let ((origin (point-marker)))
               ;; Handle special case when we refile to exactly same
               ;; location with tree promotion/demotion.  Point marker
-              ;; saved by `org-width-wide-buffer' (`save-excursion')
+              ;; saved by `org-with-wide-buffer' (`save-excursion')
               ;; will then remain before the inserted subtree in
               ;; unexpected location.
               (set-marker-insertion-type origin t)

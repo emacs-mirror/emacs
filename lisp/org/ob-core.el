@@ -1778,7 +1778,7 @@ shown below.
 
 #+PROPERTY: var foo=1, bar=2
 
-HEADER-ARGUMENTS is alist of all the arguments."
+HEADER-ARGUMENTS is an alist of all the arguments."
   (let (results)
     (mapc (lambda (pair)
 	    (if (eq (car pair) :var)
