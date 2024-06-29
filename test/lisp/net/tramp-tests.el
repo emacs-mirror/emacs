@@ -3904,11 +3904,43 @@ The test is derived from TEST and COMMAND."
 	   (funcall (ert-test-body ert-test)))
        (ert-skip (format "Test `%s' must run before" ',test)))))
 
+(defmacro tramp--test-deftest-without-file-attributes (test)
+  "Define ert `TEST-without-file-attributes'."
+  (declare (indent 1))
+  `(ert-deftest
+       ,(intern (concat (symbol-name test) "-without-file-attributes")) ()
+     :tags '(:expensive-test)
+     (let ((test-doc
+	    (split-string
+	     (ert-test-documentation (get ',test 'ert--test)) "\n")))
+       ;; The first line must be extended.
+       (setcar
+	test-doc
+	(format "%s  Don't Use the \"file-attributes\" cache." (car test-doc)))
+       (setf (ert-test-documentation
+	      (get
+	       (intern (format "%s-without-file-attributes" ',test))
+	       'ert--test))
+	     (string-join test-doc "\n")))
+     (skip-unless (tramp--test-enabled))
+     (skip-unless
+      (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sudoedit-p)))
+     (if-let ((default-directory ert-remote-temporary-file-directory)
+	      (ert-test (ert-get-test ',test))
+	      (result (ert-test-most-recent-result ert-test)))
+	 (progn
+	   (skip-unless (< (ert-test-result-duration result) 300))
+	   (let (tramp-use-file-attributes)
+	     (funcall (ert-test-body ert-test))))
+       (ert-skip (format "Test `%s' must run before" ',test)))))
+
 (tramp--test-deftest-with-stat tramp-test18-file-attributes)
 
 (tramp--test-deftest-with-perl tramp-test18-file-attributes)
 
 (tramp--test-deftest-with-ls tramp-test18-file-attributes)
+
+(tramp--test-deftest-without-file-attributes tramp-test18-file-attributes)
 
 (defvar tramp--test-start-time nil
   "Keep the start time of the current test, a float number.")
@@ -4033,6 +4065,9 @@ They might differ only in time attributes or directory size."
 (tramp--test-deftest-with-perl tramp-test19-directory-files-and-attributes)
 
 (tramp--test-deftest-with-ls tramp-test19-directory-files-and-attributes)
+
+(tramp--test-deftest-without-file-attributes
+ tramp-test19-directory-files-and-attributes)
 
 (ert-deftest tramp-test20-file-modes ()
   "Check `file-modes'.
@@ -6839,7 +6874,8 @@ INPUT, if non-nil, is a string sent to the process."
               (set-visited-file-name tmp-name1)
               (insert "foo")
 	      (should (buffer-modified-p))
-	      (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
+	      (tramp-cleanup-connection
+	       tramp-test-vec 'keep-debug 'keep-password)
 	      (cl-letf (((symbol-function #'read-from-minibuffer)
                          (lambda (&rest _args) "yes")))
                 (kill-buffer)))
@@ -7561,6 +7597,8 @@ This requires restrictions of file name syntax."
 
 (tramp--test-deftest-with-ls tramp-test41-special-characters)
 
+(tramp--test-deftest-without-file-attributes tramp-test41-special-characters)
+
 (ert-deftest tramp-test42-utf8 ()
   "Check UTF8 encoding in file names and file contents."
   (skip-unless (tramp--test-enabled))
@@ -7626,6 +7664,8 @@ This requires restrictions of file name syntax."
 (tramp--test-deftest-with-perl tramp-test42-utf8)
 
 (tramp--test-deftest-with-ls tramp-test42-utf8)
+
+(tramp--test-deftest-without-file-attributes tramp-test42-utf8)
 
 (ert-deftest tramp-test43-file-system-info ()
   "Check that `file-system-info' returns proper values."
@@ -7864,10 +7904,12 @@ process sentinels.  They shall not disturb each other."
 			  (should-not (file-attributes file))
 			(should (file-attributes file)))
                       ;; Send string to process.
-                      (process-send-string proc (format "%s\n" (buffer-name buf)))
+                      (process-send-string
+		       proc (format "%s\n" (buffer-name buf)))
                       (while (accept-process-output nil 0))
                       (tramp--test-message
-                       "Continue action %d %s %s" count buf (current-time-string))
+                       "Continue action %d %s %s"
+		       count buf (current-time-string))
                       ;; Regular operation post process action.
 		      (dired-uncache file)
                       (if (= count 2)

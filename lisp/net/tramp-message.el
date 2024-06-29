@@ -468,8 +468,7 @@ to `tramp-message'."
   (declare (tramp-suppress-trace t))
   (let (signal-hook-function)
     (apply 'tramp-message vec-or-proc 2 fmt-string arguments)
-    (display-warning
-     'tramp (apply #'format-message fmt-string arguments) :warning)))
+    (lwarn 'tramp :warning fmt-string arguments)))
 
 (defun tramp-test-message (fmt-string &rest arguments)
   "Emit a Tramp message according `default-directory'."
