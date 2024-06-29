@@ -668,6 +668,31 @@ updated with common pairs of quotation characters, including "‘", "’",
 "“", "”", "«", "»", "‹", "›", "‚", "„", "「", "」", "『", and "』".
 The default is unchanged.
 
++++
+** 'M-TAB' now invokes 'completion-at-point' also in Text mode.
+By default, Text mode no longer binds 'M-TAB' to 'ispell-complete-word'.
+Instead, this mode arranges for 'completion-at-point', globally bound to
+'M-TAB', to perform word completion as well.  You can have Text mode
+bind 'M-TAB' to 'ispell-complete-word' as it did in previous Emacs
+versions, or disable Ispell word completion in Text mode altogether, by
+customizing the new user option 'text-mode-ispell-word-completion'.
+
+---
+** Mode-line mnemonics for some coding-systems have changed.
+The mode-line mnemonic for 'utf-7' is now the lowercase 'u', to be
+consistent with the other encodings of this family.
+
+The mode-line mnemonic for 'koi8-u' is now 'У', U+0423 CYRILLIC
+CAPITAL LETTER U, to distinguish between this encoding and the
+UTF-8/UTF-16 family.
+
+If your terminal cannot display 'У', or if you want to get the old
+behavior back for any other reason, you can do that using the
+'coding-system-put' function.  For example, the following restores the
+previous behavior of showing 'U' in the mode line for 'koi8-u':
+
+    (coding-system-put 'koi8-u :mnemonic ?U)
+
 ** Internationalization
 
 ---
@@ -749,7 +774,6 @@ shows the matched outlines.
 *** 'outline-minor-mode' is supported in tree-sitter major modes.
 It can be used in all tree-sitter major modes that set either the
 variable 'treesit-simple-imenu-settings' or 'treesit-outline-predicate'.
-
 
 ** Info
 
@@ -1877,7 +1901,6 @@ will return the URL for that bug.
 
 ** Miscellaneous
 
----
 +++
 *** New user option 'rcirc-log-time-format'.
 This allows for rcirc logs to use a custom timestamp format, than the
@@ -1934,6 +1957,7 @@ options of GNU 'ls'.
 Typing 'C-u M-x ping' prompts first for the host, and then for the flags
 to give to "ping".
 
+---
 *** Webjump now assumes URIs are HTTPS instead of HTTP.
 For links in 'webjump-sites' without an explicit URI scheme, it was
 previously assumed that they should be prefixed with "http://".  Such
@@ -2075,10 +2099,6 @@ preventing the installation of Compat if unnecessary.
 
 * Incompatible Lisp Changes in Emacs 30.1
 
----
-** 'subr-native-elisp-p' is renamed to 'native-comp-function-p'.
-The previous name still exists but is marked as obsolete.
-
 +++
 ** Evaluating a 'lambda' returns an object of type 'interpreted-function'.
 Instead of representing interpreted functions as lists that start with
@@ -2096,6 +2116,16 @@ no longer work and will need to use 'aref' instead to extract its
 various subparts (when 'interactive-form', 'documentation', and
 'help-function-arglist' aren't adequate).
 
+---
+** The escape sequence '\x' not followed by hex digits is now an error.
+Previously, '\x' without at least one hex digit denoted character code
+zero (NUL) but as this was neither intended nor documented or even
+known by anyone, it is now treated as an error by the Lisp reader.
+
+---
+** 'subr-native-elisp-p' is renamed to 'native-comp-function-p'.
+The previous name still exists but is marked as obsolete.
+
 +++
 ** 'define-globalized-minor-mode' requires that modes use 'run-mode-hooks'.
 Minor modes defined with 'define-globalized-minor-mode', such as
@@ -2103,26 +2133,6 @@ Minor modes defined with 'define-globalized-minor-mode', such as
 whose major modes fail to use 'run-mode-hooks'.  Major modes defined
 with 'define-derived-mode' are not affected.  'run-mode-hooks' has been the
 recommended way to run major mode hooks since Emacs 22.
-
----
-** Old derived.el functions removed.
-The following functions have been deleted because they were only used
-by code compiled with Emacs<21:
-'derived-mode-init-mode-variables', 'derived-mode-merge-abbrev-tables',
-'derived-mode-merge-keymaps', 'derived-mode-merge-syntax-tables',
-'derived-mode-run-hooks', 'derived-mode-set-abbrev-table',
-'derived-mode-set-keymap', 'derived-mode-set-syntax-table',
-'derived-mode-setup-function-name'.
-
-+++
-** 'M-TAB' now invokes 'completion-at-point' also in Text mode.
-By default, Text mode no longer binds 'M-TAB' to
-'ispell-complete-word'.  Instead, this mode arranges for
-'completion-at-point', globally bound to 'M-TAB', to perform word
-completion as well.  You can have Text mode bind 'M-TAB' to
-'ispell-complete-word' as it did in previous Emacs versions, or
-disable Ispell word completion in Text mode altogether, by customizing
-the new user option 'text-mode-ispell-word-completion'.
 
 ** 'pp' and 'pp-to-string' now always include a terminating newline.
 In the past they included a terminating newline in most cases but not all.
@@ -2137,26 +2147,9 @@ supports it (with a warning) for backward compatibility.
 ** 'post-gc-hook' runs after updating 'gcs-done' and 'gcs-elapsed'.
 
 ---
-** The escape sequence '\x' not followed by hex digits is now an error.
-Previously, '\x' without at least one hex digit denoted character code
-zero (NUL) but as this was neither intended nor documented or even
-known by anyone, it is now treated as an error by the Lisp reader.
-
----
 ** Connection-local variables are applied in buffers visiting a remote file.
 This overrides possible directory-local or file-local variables with
 the same name.
-
----
-** User option 'tramp-completion-reread-directory-timeout' has been removed.
-This user option has been obsoleted in Emacs 27, use
-'remote-file-name-inhibit-cache' instead.
-
----
-** User options 'eshell-NAME-unload-hook' are now obsolete.
-These hooks were named incorrectly, and so they never actually ran
-when unloading the corresponding feature.  Instead, you should use
-hooks named after the feature name, like 'esh-mode-unload-hook'.
 
 +++
 ** 'copy-tree' now copies records when its optional 2nd argument is non-nil.
@@ -2168,22 +2161,6 @@ Now any operator following a zero-width assertion applies to that
 assertion only (which is useless).  For historical compatibility, an
 operator character following '^' or '\`' becomes literal, but we
 advise against relying on this.
-
----
-** Mode-line mnemonics for some coding-systems have changed.
-The mode-line mnemonic for 'utf-7' is now the lowercase 'u', to be
-consistent with the other encodings of this family.
-
-The mode-line mnemonic for 'koi8-u' is now 'У', U+0423 CYRILLIC
-CAPITAL LETTER U, to distinguish between this encoding and the
-UTF-8/UTF-16 family.
-
-If your terminal cannot display 'У', or if you want to get the old
-behavior back for any other reason, you can do that using the
-'coding-system-put' function.  For example, the following restores the
-previous behavior of showing 'U' in the mode line for 'koi8-u':
-
-    (coding-system-put 'koi8-u :mnemonic ?U)
 
 ---
 ** 'vietnamese-tcvn' is now a coding system alias for 'vietnamese-vscii'.
@@ -2201,25 +2178,6 @@ tokens like 0.0e+NaN and 1.0e+INF are no longer read as symbols.
 Instead, the Lisp reader approximates an infinity with the nearest
 finite value, and a NaN with some other non-numeric object that
 provokes an error if used numerically.
-
-+++
-** X color support compatibility aliases are now marked obsolete.
-The compatibility aliases 'x-defined-colors', 'x-color-defined-p',
-'x-color-values', and 'x-display-color-p' are now obsolete.
-
-+++
-** 'easy-mmode-define-{minor,global}-mode' aliases are now obsolete.
-Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
-
-** The obsolete calling convention of 'sit-for' has been removed.
-That convention was: '(sit-for SECONDS MILLISEC &optional NODISP)'.
-
-** The 'millisec' argument of 'sleep-for' has been declared obsolete.
-Use a float value for the first argument instead.
-
-** 'eshell-process-wait-{seconds,milliseconds}' options are now obsolete.
-Instead, use 'eshell-process-wait-time', which supports floating-point
-values.
 
 +++
 ** Conversion of strings to and from byte-arrays works with multibyte strings.
@@ -2242,6 +2200,46 @@ buffer-local value from the minibuffer.
 When it has a non-nil value, then completion functions like
 'completing-read' don't discard text properties from the returned
 completion candidate.
+
++++
+** X color support compatibility aliases are now obsolete.
+The compatibility aliases 'x-defined-colors', 'x-color-defined-p',
+'x-color-values', and 'x-display-color-p' are now obsolete.
+
++++
+** 'easy-mmode-define-{minor,global}-mode' aliases are now obsolete.
+Use 'define-minor-mode' and 'define-globalized-minor-mode' instead.
+
+** The 'millisec' argument of 'sleep-for' is now obsolete.
+Use a float value for the first argument instead.
+
+---
+** User options 'eshell-NAME-unload-hook' are now obsolete.
+These hooks were named incorrectly, and so they never actually ran
+when unloading the corresponding feature.  Instead, you should use
+hooks named after the feature name, like 'esh-mode-unload-hook'.
+
+** User options 'eshell-process-wait-{seconds,milliseconds}' are now obsolete.
+Instead, use 'eshell-process-wait-time', which supports floating-point
+values.
+
+---
+** User option 'tramp-completion-reread-directory-timeout' has been removed.
+This user option has been obsoleted in Emacs 27, use
+'remote-file-name-inhibit-cache' instead.
+
+** The obsolete calling convention of 'sit-for' has been removed.
+That convention was: '(sit-for SECONDS MILLISEC &optional NODISP)'.
+
+---
+** Old derived.el functions removed.
+The following functions have been deleted because they were only used
+by code compiled with Emacs<21:
+'derived-mode-init-mode-variables', 'derived-mode-merge-abbrev-tables',
+'derived-mode-merge-keymaps', 'derived-mode-merge-syntax-tables',
+'derived-mode-run-hooks', 'derived-mode-set-abbrev-table',
+'derived-mode-set-keymap', 'derived-mode-set-syntax-table',
+'derived-mode-setup-function-name'.
 
 
 * Lisp Changes in Emacs 30.1
