@@ -1984,26 +1984,6 @@ buffer.  We recommend using an alternative like 'imenu' instead.
 
 * New Modes and Packages in Emacs 30.1
 
-** New package EditorConfig.
-This package provides support for the EditorConfig standard,
-an editor-neutral way to provide directory local (project-wide) settings.
-It is enabled via a new global minor mode 'editorconfig-mode'
-which makes Emacs obey the '.editorconfig' files.
-There is also a new major mode 'editorconfig-conf-mode'
-to edit those configuration files.
-
-+++
-** New package Track-Changes.
-This library is a layer of abstraction above 'before-change-functions'
-and 'after-change-functions' which provides a superset of
-the functionality of 'after-change-functions':
-- It provides the actual previous text rather than only its length.
-- It takes care of accumulating and bundling changes until a time when
-  its client finds it convenient to react to them.
-- It detects most cases where some changes were not properly
-  reported (calls to 'before/after-change-functions' that are
-  incorrectly paired, missing, etc...) and reports them adequately.
-
 ** New major modes based on the tree-sitter library
 
 +++
@@ -2027,22 +2007,64 @@ A major mode based on the tree-sitter library for editing Lua files.
 *** New major mode 'php-ts-mode'.
 A major mode based on the tree-sitter library for editing PHP files.
 
-** Minibuffer and Completions
+** New package EditorConfig.
+This package provides support for the EditorConfig standard,
+an editor-neutral way to provide directory local (project-wide) settings.
+It is enabled via a new global minor mode 'editorconfig-mode'
+which makes Emacs obey the '.editorconfig' files.
+There is also a new major mode 'editorconfig-conf-mode'
+to edit those configuration files.
 
 +++
-*** New global minor mode 'minibuffer-regexp-mode'.
-This is a minor mode for editing regular expressions in the minibuffer.
-It highlights parens via ‘show-paren-mode’ and ‘blink-matching-paren’ in
-a user-friendly way, avoids reporting alleged paren mismatches and makes
-sexp navigation more intuitive.
+** New global minor mode 'etags-regen-mode'.
+This minor mode generates the tags table automatically based on the
+current project configuration, and later updates it as you edit the
+files and save the changes.
 
 +++
-*** New minor mode 'completion-preview-mode'.
+** New package Which-Key
+The 'which-key' package from GNU ELPA is now included in Emacs.  It
+implements the global minor mode 'which-key-mode' that displays a table
+of key bindings upon entering a partial key chord and waiting for a
+moment.  For example, after enabling the minor mode, if you enter 'C-x'
+and wait for one second, the minibuffer will expand with all available
+key bindings that follow 'C-x' (or as many as space allows).
+
++++
+** New minor mode 'completion-preview-mode'.
 This minor mode shows you symbol completion suggestions as you type,
 using an inline preview.  New user options in the 'completion-preview'
 customization group control exactly when Emacs displays this preview.
 'completion-preview-mode' is buffer-local, to enable it globally use
 'global-completion-preview-mode'.
+
++++
+** New package Window-Tool-Bar.
+This provides a new minor mode, 'window-tool-bar-mode'.  When this minor
+mode is enabled, a tool bar is displayed at the top of a window.  To
+conserve space, no tool bar is shown if 'tool-bar-map' is nil.  The
+global minor mode 'global-window-tool-bar-mode' enables this minor mode
+in all buffers.
+
++++
+** New package Track-Changes.
+This library is a layer of abstraction above 'before-change-functions'
+and 'after-change-functions' which provides a superset of
+the functionality of 'after-change-functions':
+- It provides the actual previous text rather than only its length.
+- It takes care of accumulating and bundling changes until a time when
+  its client finds it convenient to react to them.
+- It detects most cases where some changes were not properly
+  reported (calls to 'before/after-change-functions' that are
+  incorrectly paired, missing, etc...) and reports them adequately.
+
++++
+** New global minor mode 'minibuffer-regexp-mode'.
+This is a minor mode for editing regular expressions in the minibuffer,
+for example in 'query-replace-regexp'.  It correctly highlights parens
+via ‘show-paren-mode’ and ‘blink-matching-paren’ in a user-friendly way,
+avoids reporting alleged paren mismatches and makes sexp navigation more
+intuitive.
 
 ---
 ** The highly accessible Modus themes collection has eight items.
@@ -2055,19 +2077,6 @@ dark.  In addition to these, we now have 'modus-operandi-tinted' and
 the needs of users with red-green or blue-yellow color deficiency.
 The Info manual "(modus-themes) Top" describes the details and
 showcases all their customization options.
-
-+++
-** New global minor mode 'etags-regen-mode'.
-This minor mode generates the tags table automatically based on the
-current project configuration, and later updates it as you edit the
-files and save the changes.
-
-+++
-** New package Compat.
-Emacs now comes with a stub implementation of the
-forwards-compatibility Compat package from GNU ELPA.  This allows
-built-in packages to use the library more effectively, and helps
-preventing the installation of Compat if unnecessary.
 
 +++
 ** New package PEG.
@@ -2084,21 +2093,11 @@ To revert to the previous behavior, set the (also new) variable
 variables used should be adapted appropriately.
 
 +++
-** New package Window-Tool-Bar.
-This provides a new minor mode, 'window-tool-bar-mode'.  When this minor
-mode is enabled, a tool bar is displayed at the top of a window.  To
-conserve space, no tool bar is shown if 'tool-bar-map' is nil.  The
-global minor mode 'global-window-tool-bar-mode' enables this minor mode
-in all buffers.
-
-+++
-** New package Which-Key
-The 'which-key' package from GNU ELPA is now included in Emacs.  It
-implements the global minor mode 'which-key-mode' that displays a table
-of key bindings upon entering a partial key chord and waiting for a
-moment.  For example, after enabling the minor mode, if you enter 'C-x'
-and wait for one second, the minibuffer will expand with all available
-key bindings that follow 'C-x' (or as many as space allows).
+** New package Compat.
+Emacs now comes with a stub implementation of the
+forwards-compatibility Compat package from GNU ELPA.  This allows
+built-in packages to use the library more effectively, and helps
+preventing the installation of Compat if unnecessary.
 
 
 * Incompatible Lisp Changes in Emacs 30.1
