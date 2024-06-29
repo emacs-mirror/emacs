@@ -259,11 +259,6 @@ enum
   IGC_ALIGN_DFLT = IGC_ALIGN,
 };
 
-/* Using mps_arena_has_addr is expensive. so try to do something that is
-   "good enough". This can return true for malloc'd memory. */
-
-static mps_addr_t arena_min_addr, arena_max_addr;
-
 static bool
 is_pure (const mps_addr_t addr)
 {
@@ -274,11 +269,35 @@ is_pure (const mps_addr_t addr)
 #endif
 }
 
-static bool
-is_mps (const mps_addr_t addr)
+static enum pvec_type
+pseudo_vector_type (const struct Lisp_Vector *v)
 {
-  return addr >= arena_min_addr && addr < arena_max_addr
-    && !c_symbol_p (addr) && !is_pure (addr);
+  return PSEUDOVECTOR_TYPE (v);
+}
+
+static bool
+is_builtin_subr (enum igc_obj_type type, void *client)
+{
+  if (type == IGC_OBJ_VECTOR && pseudo_vector_type (client) == PVEC_SUBR)
+    {
+      Lisp_Object subr = make_lisp_ptr (client, Lisp_Vectorlike);
+      return !NATIVE_COMP_FUNCTIONP (subr);
+    }
+  return false;
+}
+
+static bool
+has_header (void *client, bool is_vector)
+{
+  if (is_vector && is_builtin_subr (IGC_OBJ_VECTOR, client))
+    return false;
+  if (c_symbol_p (client))
+    return false;
+  if (client == &main_thread.s)
+    return false;
+  if (is_pure (client))
+    return false;
+  return true;
 }
 
 static bool
@@ -579,7 +598,7 @@ alloc_hash (void)
 void
 igc_check_fwd (void *client)
 {
-  if (is_mps (client))
+  if (has_header (client))
     {
       struct igc_header *h = client_to_base (client);
       igc_assert (h->obj_type != IGC_OBJ_FWD);
@@ -755,12 +774,6 @@ deregister_thread (struct igc_thread_list *t)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
-
-static enum pvec_type
-pseudo_vector_type (const struct Lisp_Vector *v)
-{
-  return PSEUDOVECTOR_TYPE (v);
-}
 
 static size_t
 vector_size (const struct Lisp_Vector *v)
@@ -3287,7 +3300,7 @@ igc_hash (Lisp_Object key)
     }
 
   /* Objects in the The dump have igc_headers, too. */
-  if (is_mps (client))
+  if (has_header (client, tag == Lisp_Vectorlike))
     {
       // The following assertion is very expensive.
       // igc_assert (mps_arena_has_addr (global_igc->arena, client));
@@ -3829,35 +3842,11 @@ DEFUN ("igc--roots", Figc__roots, Sigc__roots, 0, 0, 0, doc : /* */)
 }
 
 static void
-arena_extended (mps_arena_t arena, void *base, size_t size)
-{
-  if (arena_min_addr == NULL || base < arena_min_addr)
-    arena_min_addr = base;
-  mps_addr_t end = (char *) base + size;
-  if (arena_max_addr == NULL || end > arena_max_addr)
-    arena_max_addr = end;
-}
-
-static void
-arena_contracted (mps_arena_t arena, void *base, size_t size)
-{
-  /* Can MPS free something that is in the middle? */
-  mps_addr_t end = (char *) base + size;
-  if (end == arena_max_addr)
-    arena_max_addr = base;
-  if (base == arena_min_addr)
-    arena_min_addr = end;
-}
-
-static void
 make_arena (struct igc *gc)
 {
   mps_res_t res;
   MPS_ARGS_BEGIN (args)
   {
-    MPS_ARGS_ADD (args, MPS_KEY_ARENA_EXTENDED, (mps_fun_t) &arena_extended);
-    MPS_ARGS_ADD (args, MPS_KEY_ARENA_CONTRACTED,
-		  (mps_fun_t) &arena_contracted);
     res = mps_arena_create_k (&gc->arena, mps_arena_class_vm (), args);
   }
   MPS_ARGS_END (args);
@@ -4001,17 +3990,6 @@ igc_header_size (void)
   return sizeof (struct igc_header);
 }
 
-static bool
-is_builtin_subr (enum igc_obj_type type, void *client)
-{
-  if (type == IGC_OBJ_VECTOR && pseudo_vector_type (client) == PVEC_SUBR)
-    {
-      Lisp_Object subr = make_lisp_ptr (client, Lisp_Vectorlike);
-      return !NATIVE_COMP_FUNCTIONP (subr);
-    }
-  return false;
-}
-
 static enum igc_obj_type
 builtin_obj_type_and_hash (size_t *hash, enum igc_obj_type type, void *client)
 {
@@ -4110,7 +4088,10 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
     }
 
   struct igc_header *out = (struct igc_header *) base;
-  if (is_mps (client) && !is_in_dump)
+
+  /* If the client object to be dumped has a header, copy that. */
+  if (has_header (client, type == IGC_OBJ_VECTOR)
+      && !is_in_dump)
     {
       struct igc_header *h = client_to_base (client);
       if (h->obj_type == IGC_OBJ_VECTOR_WEAK)
