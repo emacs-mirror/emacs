@@ -4551,9 +4551,7 @@ does the same thing as `current-time'.  */)
 # include <wchar.h>
 # include <wctype.h>
 
-# if defined HAVE_NEWLOCALE || defined HAVE_SETLOCALE
-#  include <locale.h>
-# endif
+# include <locale.h>
 # ifndef LC_COLLATE
 #  define LC_COLLATE 0
 # endif

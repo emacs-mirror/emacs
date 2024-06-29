@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
 #include <fcntl.h>
+#include <locale.h>
 #include <stdlib.h>
 
 #include <sys/file.h>
@@ -130,10 +131,6 @@ extern unsigned char etext asm ("etext");
 # else
 extern char etext;
 # endif
-#endif
-
-#ifdef HAVE_SETLOCALE
-#include <locale.h>
 #endif
 
 #if HAVE_WCHAR_H
