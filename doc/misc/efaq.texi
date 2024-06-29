@@ -959,8 +959,8 @@ library for editing Elixir, HTML, Lua, HEEx, and PHP.
 @item
 Support for the EditorConfig standard has been added, an editor-neutral
 way to provide directory local (project-wide) settings.  It is enabled
-via a new global minor mode 'editorconfig-mode' which makes Emacs obey
-the '.editorconfig' files.
+via a new global minor mode @code{editorconfig-mode} which makes Emacs
+obey the @file{.editorconfig} files.
 
 @item
 Support for touchscreens has been improved.  On systems that understand
@@ -970,10 +970,10 @@ events, and support for tapping tool bar buttons and opening menus has
 been added.
 
 @item
-Tool bar tweaks.  The new minor mode 'window-tool-bar-mode' provides a
-per-window toolbar.  Toolbars can be placed on the bottom of a frame by
-setting the @code{tool-bar-position} variable on all window systems but
-NextStep and macOS.
+Tool bar tweaks.  The new minor mode @code{window-tool-bar-mode}
+provides a per-window toolbar.  Toolbars can be placed on the bottom of
+a frame by setting the @code{tool-bar-position} variable on all window
+systems but NextStep and macOS.
 
 @item
 The @samp{which-key} package from GNU ELPA is now included in Emacs.
