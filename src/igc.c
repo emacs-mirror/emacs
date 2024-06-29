@@ -1893,7 +1893,7 @@ fix_thread (mps_ss_t ss, struct thread_state *s)
 static mps_res_t
 scan_main_thread (mps_ss_t ss, void *start, void *end, void *closure)
 {
-  igc_assert (start == (void *) &main_thread);
+  igc_assert (start == (void *) &main_thread.s);
   MPS_SCAN_BEGIN (ss)
   {
     struct thread_state *s = start;
@@ -2284,8 +2284,8 @@ root_create_tty_list (struct igc *gc)
 static void
 root_create_main_thread (struct igc *gc)
 {
-  void *start = &main_thread;
-  void *end = (char *) &main_thread + sizeof (main_thread);
+  void *start = &main_thread.s;
+  void *end = (char *) &main_thread.s + sizeof (main_thread.s);
   root_create_exact (gc, start, end, scan_main_thread, "main-thread");
 }
 
@@ -4021,7 +4021,7 @@ builtin_obj_type_and_hash (size_t *hash, enum igc_obj_type type, void *client)
       return IGC_OBJ_BUILTIN_SYMBOL;
     }
 
-  if (client == &main_thread)
+  if (client == &main_thread.s)
     {
       *hash = igc_hash (make_lisp_ptr (client, Lisp_Vectorlike));
       return IGC_OBJ_BUILTIN_THREAD;
