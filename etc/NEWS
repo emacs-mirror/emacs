@@ -630,13 +630,6 @@ The commands 'C-x C-k C-q =', 'C-x C-k C-q <', and 'C-x C-k C-q >'
 compare the macro counter with an optional prefix and terminate the
 macro if the comparison succeeds.
 
----
-** On X, Emacs now supports input methods which perform "string conversion".
-This means an input method can now ask Emacs to delete text
-surrounding point and replace it with something else, as well as query
-Emacs for surrounding text.  If your input method allows you to "undo"
-mistaken compositions, this will now work as well.
-
 +++
 ** New mode 'kmacro-menu-mode' and new command 'list-keyboard-macros'.
 The new command 'list-keyboard-macros' is the keyboard-macro version
@@ -645,6 +638,13 @@ of the currently existing keyboards macros using the new mode
 'kmacro-menu-mode'.  It allows rearranging the macros in the ring,
 duplicating them, deleting them, and editing their counters, formats,
 and keys.
+
+---
+** On X, Emacs now supports input methods which perform "string conversion".
+This means an input method can now ask Emacs to delete text
+surrounding point and replace it with something else, as well as query
+Emacs for surrounding text.  If your input method allows you to "undo"
+mistaken compositions, this will now work as well.
 
 ---
 ** New user option 'duplicate-region-final-position'.
