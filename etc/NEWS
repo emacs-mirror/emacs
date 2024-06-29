@@ -1987,17 +1987,17 @@ buffer.  We recommend using an alternative like 'imenu' instead.
 ** New major modes based on the tree-sitter library
 
 +++
-*** New major mode 'html-ts-mode'.
-An optional major mode based on the tree-sitter library for editing
-HTML files.
+*** New major mode 'elixir-ts-mode'.
+A major mode based on the tree-sitter library for editing Elixir files.
 
 +++
 *** New major mode 'heex-ts-mode'.
 A major mode based on the tree-sitter library for editing HEEx files.
 
 +++
-*** New major mode 'elixir-ts-mode'.
-A major mode based on the tree-sitter library for editing Elixir files.
+*** New major mode 'html-ts-mode'.
+An optional major mode based on the tree-sitter library for editing
+HTML files.
 
 +++
 *** New major mode 'lua-ts-mode'.
