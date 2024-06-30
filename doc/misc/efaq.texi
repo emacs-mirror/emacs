@@ -2932,8 +2932,9 @@ For instance, to write all these things to
 @file{~/.emacs.d/aux/}:
 
 @lisp
-(setq lock-file-name-transforms
-      '(("\\`/.*/\\([^/]+\\)\\'" "~/.emacs.d/aux/\\1" t)))
+(when (>= emacs-major-version 28)
+  (setq lock-file-name-transforms
+        '(("\\`/.*/\\([^/]+\\)\\'" "~/.emacs.d/aux/\\1" t))))
 (setq auto-save-file-name-transforms
       '(("\\`/.*/\\([^/]+\\)\\'" "~/.emacs.d/aux/\\1" t)))
 (setq backup-directory-alist
