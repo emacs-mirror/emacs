@@ -3138,7 +3138,7 @@ if test "${HAVE_W32}" = "yes"; then
       NATIVE_IMAGE_API="yes (w32)"
       W32_OBJ="$W32_OBJ w32image.o"
     fi
-    W32_LIBS="$W32_LIBS -lwinmm -lusp10 -lgdi32 -lcomdlg32"
+    W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32"
     W32_RES_LINK="\$(EMACSRES)"
     CLIENTRES="emacsclient.res"

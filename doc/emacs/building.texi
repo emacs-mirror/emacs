@@ -477,6 +477,14 @@ non-@code{nil} if the buffer is to be saved).  Any other
 non-@code{nil} value means that all buffers should be saved without
 asking.  The default is @code{ask}.
 
+@vindex grep-use-headings
+@vindex grep-heading@r{ face}
+  By default, grep matches are shown with the file names prefixed to
+each line.  But if the variable @code{grep-use-headings} is customized
+to a non-@code{nil} value, the matches are split into sections, one
+section for each file with matches, and the file names are shown in the
+section headings using a special face @code{grep-heading}.
+
 @findex grep-find
 @findex find-grep
   The command @kbd{M-x grep-find} (also available as @kbd{M-x
@@ -1313,6 +1321,10 @@ of output to its standard output, you may wish to separate its I/O
 from interaction with GDB.  Use the command @w{@kbd{M-x
 gdb-display-io-buffer}} to show a window with a buffer to which Emacs
 redirects the input and output from the program you are debugging.
+However, if the variable @code{gdb-display-io-buffer} is @code{nil},
+Emacs will not create nor display a separate I/O buffer, but will
+instead redirect the program's interaction to the GUD interaction
+buffer.
 
 @findex gdb-display-registers-buffer
 @item Registers Buffer

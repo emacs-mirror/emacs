@@ -792,6 +792,58 @@ is in progress."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
+(ert-deftest dbus-test05-register-signal-with-nils ()
+  "Check signal registration for an own service.
+SERVICE, PATH, INTERFACE and SIGNAL are ‘nil’.  This is interpreted as a
+wildcard for the respective argument."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+
+  (unwind-protect
+      (let ((member "Member")
+            (handler #'dbus--test-signal-handler)
+            registered)
+
+        ;; Register signal handler.
+        (should
+         (equal
+          (setq
+           registered
+           (dbus-register-signal
+            :session nil nil nil nil handler))
+          `((:signal :session nil nil)
+            (nil nil ,handler))))
+
+        (dbus-register-signal
+         :session nil dbus--test-path
+         dbus--test-interface member handler)
+        (dbus-register-signal
+         :session dbus--test-service nil
+         dbus--test-interface member handler)
+        (dbus-register-signal
+         :session dbus--test-service dbus--test-path
+         nil member handler)
+        (dbus-register-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface nil handler)
+
+        ;; Send one argument, basic type.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface member "foo")
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
+        (should (equal dbus--test-signal-received '("foo")))
+
+        ;; Unregister signal.
+        (should (dbus-unregister-object registered))
+        (should-not (dbus-unregister-object registered)))
+
+    ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
 (ert-deftest dbus-test06-register-property ()
   "Check property registration for an own service."
   (skip-unless dbus--test-enabled-session-bus)

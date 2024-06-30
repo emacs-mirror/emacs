@@ -452,6 +452,15 @@ While in the completion list buffer, kill it and delete the window
 showing it (@code{kill-current-buffer}).
 @end table
 
+@vindex minibuffer-visible-completions
+  If the variable @code{minibuffer-visible-completions} is customized to
+a non-@code{nil} value, it changes the commands bound to the arrow keys:
+instead of moving in the minibuffer, they move between completion
+candidates, like meta-arrow keys do by default.  Similarly,
+@kbd{@key{RET}} selects the current candidate, like @kbd{M-@key{RET}}
+does normally.  @code{C-g} hides the completion window, but leaves the
+minibuffer active, so you can continue typing at the prompt.
+
 @node Completion Exit
 @subsection Completion Exit
 
@@ -684,6 +693,17 @@ then move to a candidate by cursor motion commands and select it with
 @kbd{@key{RET}}.  If the value of @code{completion-auto-select} is
 @code{second-tab}, then the first @kbd{@key{TAB}} will pop up the
 completions list buffer, and the second one will switch to it.
+
+@findex previous-line-completion
+@findex next-line-completion
+@vindex completion-auto-wrap
+  When the window showing the completions is selected, either because
+you customized @code{completion-auto-select} or because you switched to
+it by typing @kbd{C-x o}, the @kbd{@key{UP}} and @kbd{@key{DOWN}} arrow
+keys move by lines between completion candidates; with a prefix numeric
+argument, they move that many lines.  If @code{completion-auto-wrap} is
+non-@code{nil}, these commands will wrap at bottom and top of the
+candidate list.
 
 @vindex completion-cycle-threshold
   If @code{completion-cycle-threshold} is non-@code{nil}, completion

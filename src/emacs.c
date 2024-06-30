@@ -1395,6 +1395,10 @@ main (int argc, char **argv)
      the additional call here is harmless.) */
   cache_system_info ();
 #ifdef WINDOWSNT
+  /* This must be called to initialize w32_unicode_filenames and
+     is_windows_9x prior to w32_init_current_directory.  */
+  globals_of_w32 ();
+
   /* On Windows 9X, we have to load UNICOWS.DLL as early as possible,
      to have non-stub implementations of APIs we need to convert file
      names between UTF-8 and the system's ANSI codepage.  */
@@ -1506,11 +1510,10 @@ main (int argc, char **argv)
         }
     }
 #endif
-
   emacs_wd = emacs_get_current_dir_name ();
 #ifdef WINDOWSNT
   initial_wd = emacs_wd;
-#endif
+#endif /* WINDOWSNT */
 #ifdef HAVE_PDUMPER
   if (dumped_with_pdumper_p ())
     pdumper_record_wd (emacs_wd);
@@ -2165,7 +2168,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_atimer ();
 
 #ifdef WINDOWSNT
-  globals_of_w32 ();
 #ifdef HAVE_W32NOTIFY
   globals_of_w32notify ();
 #endif

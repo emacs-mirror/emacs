@@ -1633,8 +1633,8 @@ commands to visit the corresponding source locations.
 manipulate and apply parts of patches:
 
 @table @kbd
-@item M-n
 @findex diff-hunk-next
+@item M-n
 Move to the next hunk-start (@code{diff-hunk-next}).  With prefix
 argument @var{n}, move forward to the @var{n}th next hunk.
 
@@ -1645,45 +1645,50 @@ you set @code{diff-refine} to the symbol @code{navigation}, Diff mode
 only refines the hunk you move to with this command or with
 @code{diff-hunk-prev}.
 
-@item M-p
 @findex diff-hunk-prev
+@item M-p
 Move to the previous hunk-start (@code{diff-hunk-prev}).  With prefix
 argument @var{n}, move back to the @var{n}th previous hunk.  Like
 @kbd{M-n}, this command refines the hunk you move to if you set
 @code{diff-refine} to the symbol @code{navigation}.
 
-@item M-@}
 @findex diff-file-next
+@item M-@}
 Move to the next file-start, in a multi-file patch
 (@code{diff-file-next}).  With prefix argument @var{n}, move forward
 to the start of the @var{n}th next file.
 
-@item M-@{
 @findex diff-file-prev
+@item M-@{
 Move to the previous file-start, in a multi-file patch
 (@code{diff-file-prev}).  With prefix argument @var{n}, move back to
 the start of the @var{n}th previous file.
 
-@item M-k
 @findex diff-hunk-kill
+@item M-k
 Kill the hunk at point (@code{diff-hunk-kill}).
 
-@item M-K
 @findex diff-file-kill
+@item M-K
 In a multi-file patch, kill the current file part.
 (@code{diff-file-kill}).
 
-@item C-c C-a
 @findex diff-apply-hunk
 @cindex patches, applying
+@item C-c C-a
 Apply this hunk to its target file (@code{diff-apply-hunk}).  With a
 prefix argument of @kbd{C-u}, revert this hunk, i.e.@: apply the
 reverse of the hunk, which changes the ``new'' version into the ``old''
 version.  If @code{diff-jump-to-old-file} is non-@code{nil}, apply the
 hunk to the ``old'' version of the file instead.
 
-@item C-c C-b
+@findex diff-apply-buffer
+@item C-c @key{RET} a
+Apply all the hunks in the buffer (@code{diff-apply-buffer}).  If the
+diffs were applied successfully, save the changed buffers.
+
 @findex diff-refine-hunk
+@item C-c C-b
 Highlight the changes of the hunk at point with a finer granularity
 (@code{diff-refine-hunk}).  This allows you to see exactly which parts
 of each changed line were actually changed.
@@ -1693,9 +1698,9 @@ By default, Diff mode refines hunks as Emacs displays them, so you may
 find this command useful if you customize @code{diff-refine} to a
 non-default value.
 
-@item C-c C-c
 @findex diff-goto-source
 @vindex diff-jump-to-old-file
+@item C-c C-c
 Go to the source file and line corresponding to this hunk
 (@code{diff-goto-source}).  By default, this jumps to the ``new''
 version of the file, the one shown first on the file header.
@@ -1710,20 +1715,20 @@ this jumps to the work file by default.  With a prefix argument, jump
 to the ``old'' revision of the file (@pxref{Old Revisions}), when
 point is on the old line, or otherwise jump to the ``new'' revision.
 
-@item C-c C-e
 @findex diff-ediff-patch
+@item C-c C-e
 Start an Ediff session with the patch (@code{diff-ediff-patch}).
 @xref{Top, Ediff, Ediff, ediff, The Ediff Manual}.
 
-@item C-c C-n
 @findex diff-restrict-view
+@item C-c C-n
 Restrict the view to the current hunk (@code{diff-restrict-view}).
 @xref{Narrowing}.  With a prefix argument, restrict the
 view to the current file of a multiple-file patch.  To widen again,
 use @kbd{C-x n w} (@code{widen}).
 
-@item C-c C-r
 @findex diff-reverse-direction
+@item C-c C-r
 Reverse the direction of comparison for the entire buffer
 (@code{diff-reverse-direction}).  With a prefix argument, reverse the
 direction only inside the current region (@pxref{Mark}).  Reversing
@@ -1731,8 +1736,8 @@ the direction means changing the hunks and the file-start headers to
 produce a patch that would change the ``new'' version into the ``old''
 one.
 
-@item C-c C-s
 @findex diff-split-hunk
+@item C-c C-s
 Split the hunk at point (@code{diff-split-hunk}) into two separate
 hunks.  This inserts a hunk header and modifies the header of the
 current hunk.  This command is useful for manually editing patches,
@@ -1743,35 +1748,35 @@ produced by the @option{-c} or @option{--context} options to
 @command{diff}, first convert the buffer to the unified diff format
 with @kbd{C-c C-u}.
 
-@item C-c C-d
 @findex diff-unified->context
+@item C-c C-d
 Convert the entire buffer to the @dfn{context diff format}
 (@code{diff-unified->context}).  With a prefix argument, convert only
 the hunks within the region.
 
-@item C-c C-u
 @findex diff-context->unified
+@item C-c C-u
 Convert the entire buffer to unified diff format
 (@code{diff-context->unified}).  With a prefix argument, convert
 unified format to context format.  When the mark is active, convert
 only the hunks within the region.
 
-@item C-c C-l
 @findex diff-refresh-hunk
+@item C-c C-l
 Re-generate the current hunk (@code{diff-refresh-hunk}).
 
-@item C-c C-w
 @vindex diff-ignore-whitespace-switches
 @findex diff-ignore-whitespace-hunk
+@item C-c C-w
 Re-generate the current hunk, disregarding changes in whitespace.
 With a non-@code{nil} prefix arg, re-generate all the hunks
 (@code{diff-ignore-whitespace-hunk}).  This calls @code{diff-command}
 with @code{diff-ignore-whitespace-switches}, which defaults to
 @samp{-b}, meaning ignore changes in whitespace only.
 
-@item C-x 4 A
 @findex diff-add-change-log-entries-other-window
 @findex add-change-log-entry-other-window@r{, in Diff mode}
+@item C-x 4 A
 Generate a ChangeLog entry, like @kbd{C-x 4 a} does (@pxref{Change
 Log}), for each one of the hunks
 (@code{diff-add-change-log-entries-other-window}).  This creates a

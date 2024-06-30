@@ -1157,6 +1157,12 @@ Please refer to the LLDB reference on the web for more information
 about LLDB.  If you already know GDB, you will also find a mapping
 from GDB commands to corresponding LLDB commands there.
 
+** Debugging Emacs on OpenBSD
+
+To debug Emacs on OpenBSD, use the 'egdb' command from the 'gdb'
+package.  This reportedly works both if Emacs was compiled with GCC and
+if it was compiled with clang.
+
 ** Debugging Emacs on Android.
 
 A script located in the java/ directory automates the procedures
@@ -1282,39 +1288,39 @@ the crash.
 The third form is printed when Emacs misuses the JVM in some fashion
 that is detected by the Android CheckJNI facility.  It looks like:
 
-A/art﹕ art/runtime/check_jni.cc:65] JNI DETECTED ERROR IN APPLICATION: ...
-A/art﹕ art/runtime/check_jni.cc:65]     in call to CallVoidMethodV
-A/art﹕ art/runtime/check_jni.cc:65]     from void android.os.MessageQueue.nativePollOnce(long, int)
-A/art﹕ art/runtime/check_jni.cc:65] "main" prio=5 tid=1 Runnable
-A/art﹕ art/runtime/check_jni.cc:65]   | group="main" sCount=0 dsCount=0 obj=0x87d30ef0 self=0xb4f07800
-A/art﹕ art/runtime/check_jni.cc:65]   | sysTid=18828 nice=-11 cgrp=apps sched=0/0 handle=0xb6fdeec8
-A/art﹕ art/runtime/check_jni.cc:65]   | state=R schedstat=( 2249126546 506089308 3210 ) utm=183 stm=41 core=3 HZ=100
-A/art﹕ art/runtime/check_jni.cc:65]   | stack=0xbe0c8000-0xbe0ca000 stackSize=8MB
-A/art﹕ art/runtime/check_jni.cc:65]   | held mutexes= "mutator lock"(shared held)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #00 pc 00004640  /system/lib/libbacktrace_libc++.so (UnwindCurrent::Unwind(unsigned int, ucontext*)+23)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #01 pc 00002e8d  /system/lib/libbacktrace_libc++.so (Backtrace::Unwind(unsigned int, ucontext*)+8)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #02 pc 00248381  /system/lib/libart.so (art::DumpNativeStack(std::__1::basic_ostream<char, std::__1::char_traits<char> >&, int, char const*, art::mirror::ArtMethod*)+68)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #03 pc 0022cd0b  /system/lib/libart.so (art::Thread::Dump(std::__1::basic_ostream<char, std::__1::char_traits<char> >&) const+146)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #04 pc 000b189b  /system/lib/libart.so (art::JniAbort(char const*, char const*)+582)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #05 pc 000b1fd5  /system/lib/libart.so (art::JniAbortF(char const*, char const*, ...)+60)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #06 pc 000b50e5  /system/lib/libart.so (art::ScopedCheck::ScopedCheck(_JNIEnv*, int, char const*)+1284)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #07 pc 000bc59f  /system/lib/libart.so (art::CheckJNI::CallVoidMethodV(_JNIEnv*, _jobject*, _jmethodID*, std::__va_list)+30)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #08 pc 00063803  /system/lib/libandroid_runtime.so (???)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #09 pc 000776bd  /system/lib/libandroid_runtime.so (android::NativeDisplayEventReceiver::dispatchVsync(long long, int, unsigned int)+40)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #10 pc 00077885  /system/lib/libandroid_runtime.so (android::NativeDisplayEventReceiver::handleEvent(int, int, void*)+80)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #11 pc 00010f6f  /system/lib/libutils.so (android::Looper::pollInner(int)+482)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #12 pc 00011019  /system/lib/libutils.so (android::Looper::pollOnce(int, int*, int*, void**)+92)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #13 pc 000830c1  /system/lib/libandroid_runtime.so (android::NativeMessageQueue::pollOnce(_JNIEnv*, int)+22)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #14 pc 000b22d7  /system/framework/arm/boot.oat (Java_android_os_MessageQueue_nativePollOnce__JI+102)
-A/art﹕ art/runtime/check_jni.cc:65]   at android.os.MessageQueue.nativePollOnce(Native method)
-A/art﹕ art/runtime/check_jni.cc:65]   at android.os.MessageQueue.next(MessageQueue.java:143)
-A/art﹕ art/runtime/check_jni.cc:65]   at android.os.Looper.loop(Looper.java:130)
-A/art﹕ art/runtime/check_jni.cc:65]   at android.app.ActivityThread.main(ActivityThread.java:5832)
-A/art﹕ art/runtime/check_jni.cc:65]   at java.lang.reflect.Method.invoke!(Native method)
-A/art﹕ art/runtime/check_jni.cc:65]   at java.lang.reflect.Method.invoke(Method.java:372)
-A/art﹕ art/runtime/check_jni.cc:65]   at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:1399)
-A/art﹕ art/runtime/check_jni.cc:65]   at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1194)
-A/art﹕ art/runtime/check_jni.cc:65]
+A/art: art/runtime/check_jni.cc:65] JNI DETECTED ERROR IN APPLICATION: ...
+A/art: art/runtime/check_jni.cc:65]     in call to CallVoidMethodV
+A/art: art/runtime/check_jni.cc:65]     from void android.os.MessageQueue.nativePollOnce(long, int)
+A/art: art/runtime/check_jni.cc:65] "main" prio=5 tid=1 Runnable
+A/art: art/runtime/check_jni.cc:65]   | group="main" sCount=0 dsCount=0 obj=0x87d30ef0 self=0xb4f07800
+A/art: art/runtime/check_jni.cc:65]   | sysTid=18828 nice=-11 cgrp=apps sched=0/0 handle=0xb6fdeec8
+A/art: art/runtime/check_jni.cc:65]   | state=R schedstat=( 2249126546 506089308 3210 ) utm=183 stm=41 core=3 HZ=100
+A/art: art/runtime/check_jni.cc:65]   | stack=0xbe0c8000-0xbe0ca000 stackSize=8MB
+A/art: art/runtime/check_jni.cc:65]   | held mutexes= "mutator lock"(shared held)
+A/art: art/runtime/check_jni.cc:65]   native: #00 pc 00004640  /system/lib/libbacktrace_libc++.so (UnwindCurrent::Unwind(unsigned int, ucontext*)+23)
+A/art: art/runtime/check_jni.cc:65]   native: #01 pc 00002e8d  /system/lib/libbacktrace_libc++.so (Backtrace::Unwind(unsigned int, ucontext*)+8)
+A/art: art/runtime/check_jni.cc:65]   native: #02 pc 00248381  /system/lib/libart.so (art::DumpNativeStack(std::__1::basic_ostream<char, std::__1::char_traits<char> >&, int, char const*, art::mirror::ArtMethod*)+68)
+A/art: art/runtime/check_jni.cc:65]   native: #03 pc 0022cd0b  /system/lib/libart.so (art::Thread::Dump(std::__1::basic_ostream<char, std::__1::char_traits<char> >&) const+146)
+A/art: art/runtime/check_jni.cc:65]   native: #04 pc 000b189b  /system/lib/libart.so (art::JniAbort(char const*, char const*)+582)
+A/art: art/runtime/check_jni.cc:65]   native: #05 pc 000b1fd5  /system/lib/libart.so (art::JniAbortF(char const*, char const*, ...)+60)
+A/art: art/runtime/check_jni.cc:65]   native: #06 pc 000b50e5  /system/lib/libart.so (art::ScopedCheck::ScopedCheck(_JNIEnv*, int, char const*)+1284)
+A/art: art/runtime/check_jni.cc:65]   native: #07 pc 000bc59f  /system/lib/libart.so (art::CheckJNI::CallVoidMethodV(_JNIEnv*, _jobject*, _jmethodID*, std::__va_list)+30)
+A/art: art/runtime/check_jni.cc:65]   native: #08 pc 00063803  /system/lib/libandroid_runtime.so (???)
+A/art: art/runtime/check_jni.cc:65]   native: #09 pc 000776bd  /system/lib/libandroid_runtime.so (android::NativeDisplayEventReceiver::dispatchVsync(long long, int, unsigned int)+40)
+A/art: art/runtime/check_jni.cc:65]   native: #10 pc 00077885  /system/lib/libandroid_runtime.so (android::NativeDisplayEventReceiver::handleEvent(int, int, void*)+80)
+A/art: art/runtime/check_jni.cc:65]   native: #11 pc 00010f6f  /system/lib/libutils.so (android::Looper::pollInner(int)+482)
+A/art: art/runtime/check_jni.cc:65]   native: #12 pc 00011019  /system/lib/libutils.so (android::Looper::pollOnce(int, int*, int*, void**)+92)
+A/art: art/runtime/check_jni.cc:65]   native: #13 pc 000830c1  /system/lib/libandroid_runtime.so (android::NativeMessageQueue::pollOnce(_JNIEnv*, int)+22)
+A/art: art/runtime/check_jni.cc:65]   native: #14 pc 000b22d7  /system/framework/arm/boot.oat (Java_android_os_MessageQueue_nativePollOnce__JI+102)
+A/art: art/runtime/check_jni.cc:65]   at android.os.MessageQueue.nativePollOnce(Native method)
+A/art: art/runtime/check_jni.cc:65]   at android.os.MessageQueue.next(MessageQueue.java:143)
+A/art: art/runtime/check_jni.cc:65]   at android.os.Looper.loop(Looper.java:130)
+A/art: art/runtime/check_jni.cc:65]   at android.app.ActivityThread.main(ActivityThread.java:5832)
+A/art: art/runtime/check_jni.cc:65]   at java.lang.reflect.Method.invoke!(Native method)
+A/art: art/runtime/check_jni.cc:65]   at java.lang.reflect.Method.invoke(Method.java:372)
+A/art: art/runtime/check_jni.cc:65]   at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:1399)
+A/art: art/runtime/check_jni.cc:65]   at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1194)
+A/art: art/runtime/check_jni.cc:65]
 
 In such situations, the first line explains what infraction Emacs
 committed, while the ensuing ones print backtraces for each running
