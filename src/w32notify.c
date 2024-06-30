@@ -120,6 +120,10 @@ struct notification {
 /* Used for communicating notifications to the main thread.  */
 struct notifications_set *notifications_set_head;
 
+/* Function pointers.  */
+static BOOL (WINAPI *pfnReadDirectoryChangesW) (HANDLE, PVOID, DWORD, BOOL,
+						DWORD, PDWORD, LPOVERLAPPED,
+						LPOVERLAPPED_COMPLETION_ROUTINE);
 static Lisp_Object watch_list;
 
 /* Signal to the main thread that we have file notifications for it to
@@ -252,10 +256,10 @@ watch_completion (DWORD status, DWORD bytes_ret, OVERLAPPED *io_info)
 
   /* Calling ReadDirectoryChangesW quickly to watch again for new
      notifications.  */
-  if (!ReadDirectoryChangesW (dirwatch->dir, dirwatch->buf,
-			      DIRWATCH_BUFFER_SIZE, dirwatch->subtree,
-			      dirwatch->filter, &_bytes, dirwatch->io_info,
-			      watch_completion))
+  if (!(*pfnReadDirectoryChangesW) (dirwatch->dir, dirwatch->buf,
+				    DIRWATCH_BUFFER_SIZE, dirwatch->subtree,
+				    dirwatch->filter, &_bytes,
+				    dirwatch->io_info, watch_completion))
     {
       DebPrint (("ReadDirectoryChangesW error: %lu\n", GetLastError ()));
       /* If this call fails, it means that the directory is not
@@ -270,7 +274,7 @@ watch_completion (DWORD status, DWORD bytes_ret, OVERLAPPED *io_info)
 
   /* If we were asked to terminate the thread, then fire the event. */
   if (terminate)
-    SetEvent(dirwatch->terminate);
+    SetEvent (dirwatch->terminate);
 }
 
 /* Worker routine for the watch thread.  */
@@ -284,10 +288,10 @@ watch_worker (LPVOID arg)
 
   if (dirwatch->dir)
     {
-      bErr = ReadDirectoryChangesW (dirwatch->dir, dirwatch->buf,
-				    DIRWATCH_BUFFER_SIZE, dirwatch->subtree,
-				    dirwatch->filter, &_bytes,
-				    dirwatch->io_info, watch_completion);
+      bErr = (*pfnReadDirectoryChangesW) (dirwatch->dir, dirwatch->buf,
+					  DIRWATCH_BUFFER_SIZE, dirwatch->subtree,
+					  dirwatch->filter, &_bytes,
+					  dirwatch->io_info, watch_completion);
       if (!bErr)
 	{
 	  DebPrint (("ReadDirectoryChangesW: %lu\n", GetLastError ()));
@@ -436,7 +440,7 @@ remove_watch (struct notification *dirwatch)
 	DebPrint (("QueueUserAPC failed (%lu)!\n", GetLastError ()));
 
       /* We also signal the thread that it can terminate.  */
-      SetEvent(dirwatch->terminate);
+      SetEvent (dirwatch->terminate);
 
       /* Wait for the thread to exit.  FIXME: is there a better method
 	 that is not overly complex?  */
@@ -466,7 +470,7 @@ remove_watch (struct notification *dirwatch)
 	  CloseHandle (dirwatch->thr);
 	  dirwatch->thr = NULL;
 	}
-      CloseHandle(dirwatch->terminate);
+      CloseHandle (dirwatch->terminate);
       xfree (dirwatch->buf);
       xfree (dirwatch->io_info);
       xfree (dirwatch->watchee);
@@ -575,6 +579,8 @@ generate notifications correctly, though.  */)
       report_file_notify_error ("Watching filesystem events is not supported",
 				Qnil);
     }
+  else
+    eassert (pfnReadDirectoryChangesW);
 
   /* filenotify.el always passes us a directory, either the parent
      directory of a file to be watched, or the directory to be
@@ -649,7 +655,7 @@ WATCH-DESCRIPTOR should be an object returned by `w32notify-add-watch'.  */)
   if (!NILP (watch_object))
     {
       watch_list = Fdelete (watch_object, watch_list);
-      dirwatch = (struct notification *)xmint_pointer (watch_descriptor);
+      dirwatch = (struct notification *) xmint_pointer (watch_descriptor);
       if (w32_valid_pointer_p (dirwatch, sizeof(struct notification)))
 	status = remove_watch (dirwatch);
     }
@@ -687,7 +693,7 @@ watch by calling `w32notify-rm-watch' also makes it invalid.  */)
   if (!NILP (watch_object))
     {
       struct notification *dirwatch =
-	(struct notification *)xmint_pointer (watch_descriptor);
+	(struct notification *) xmint_pointer (watch_descriptor);
       if (w32_valid_pointer_p (dirwatch, sizeof(struct notification))
 	  && dirwatch->dir != NULL)
 	return Qt;
@@ -699,6 +705,16 @@ watch by calling `w32notify-rm-watch' also makes it invalid.  */)
 void
 globals_of_w32notify (void)
 {
+  HANDLE kernel32 = GetModuleHandle ("kernel32");
+
+  /* Initialize pointers to IO functions that provide file
+     notifications.  In the event that these are absent, no harm will be
+     done, since their absence indicates that Emacs is running on
+     Windows 9X, where file notifications are unavailable at the
+     outset.  */
+  pfnReadDirectoryChangesW
+    = (void *) get_proc_addr (kernel32, "ReadDirectoryChangesW");
+
   watch_list = Qnil;
 }
 

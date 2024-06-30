@@ -170,6 +170,7 @@ extern void release_listen_threads (void);
 extern void init_ntproc (int);
 extern void term_ntproc (int);
 extern HANDLE maybe_load_unicows_dll (void);
+extern void load_unicows_dll_for_w32fns (HMODULE);
 extern void globals_of_w32 (void);
 
 extern void term_timers (void);
