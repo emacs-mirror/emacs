@@ -527,4 +527,20 @@ extern char const DEV_TTY[];
 
 INLINE_HEADER_END
 
+enum async_work_type
+{
+  ASYNCWORK_SIGCHLD
+};
+
+struct async_work_item
+{
+  enum async_work_type type;
+  union
+  {
+    int sigchld;
+  } u;
+};
+
+extern void enqueue_async_work (struct async_work_item item);
+
 #endif /* EMACS_KEYBOARD_H */

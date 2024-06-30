@@ -308,4 +308,6 @@ extern int open_channel_for_module (Lisp_Object);
 
 INLINE_HEADER_END
 
+extern void process_sigchld_async (int sig);
+
 #endif /* EMACS_PROCESS_H */
