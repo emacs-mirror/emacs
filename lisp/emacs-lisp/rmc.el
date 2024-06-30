@@ -228,10 +228,9 @@ Usage example:
                 (when (setq command
                             (let ((current-key-remap-sequence
                                    (vector tchar)))
-                              ;; Provide an empty prompt to `t-s-t-t' so
-                              ;; that it may not repeatedly display
-                              ;; and/or disable the on-screen keyboard,
-                              ;; or move point.
+                              ;; Provide an empty prompt so that it may
+                              ;; not repeatedly display and/or disable
+                              ;; the on-screen keyboard, or move point.
                               (touch-screen-translate-touch "")))
                   (setq command (if (> (length command) 0)
                                     (aref command 0)

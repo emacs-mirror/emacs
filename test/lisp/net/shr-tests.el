@@ -136,13 +136,15 @@ settings, then once more for each (OPTION . VALUE) pair.")
 (ert-deftest shr-test/zoom-image ()
   "Test that `shr-zoom-image' properly replaces the original image."
   (skip-unless (bound-and-true-p image-types))
-  (let ((image (expand-file-name "data/image/blank-100x200.png"
-                                 (getenv "EMACS_TEST_DIRECTORY"))))
+  (let* ((image (expand-file-name "data/image/blank-100x200.png"
+                                  (getenv "EMACS_TEST_DIRECTORY")))
+         (image-url (concat "file://" (if (string-prefix-p "/" image)
+                                          image (concat "/" image)))))
     (dolist (alt '(nil "" "nothing to see here"))
       (with-temp-buffer
         (ert-info ((format "image with alt=%S" alt))
           (let ((attrs (if alt (format " alt=\"%s\"" alt) "")))
-            (insert (format "<img src=\"file://%s\" %s" image attrs)))
+            (insert (format "<img src=\"%s\" %s" image-url attrs)))
           (cl-letf* (;; Pretend we're a graphical display.
                      ((symbol-function 'display-graphic-p) #'always)
                      ((symbol-function 'url-queue-retrieve)
@@ -161,11 +163,13 @@ settings, then once more for each (OPTION . VALUE) pair.")
             ;; Render the document.
             (erase-buffer)
             (shr-insert-document dom)
-            (shr-test-wait-for (lambda () (= put-image-calls 1)))
+            (shr-test-wait-for (lambda () (= put-image-calls 1))
+                               "Timed out waiting for initial load")
             ;; Now zoom the image.
             (goto-char (point-min))
             (shr-zoom-image)
-            (shr-test-wait-for (lambda () (= put-image-calls 2)))
+            (shr-test-wait-for (lambda () (= put-image-calls 2))
+                               "Timed out waiting to zoom image")
             ;; Check that we got a sliced image.
             (let ((slice-count 0))
               (goto-char (point-min))

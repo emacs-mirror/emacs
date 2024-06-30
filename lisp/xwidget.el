@@ -378,7 +378,7 @@ one char."
              (> (window-hscroll) 0))
         (set-window-hscroll nil (- (window-hscroll) n))
       (xwidget-webkit-execute-script session
-                                     (format "window.scrollBy(%-d, 0);"
+                                     (format "window.scrollBy(-%d, 0);"
                                              (* n (window-font-width)))))))
 
 (defun xwidget-webkit-scroll-top ()

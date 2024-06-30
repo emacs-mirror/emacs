@@ -2544,7 +2544,7 @@ THINGS are either registrations or unregisterations (sic)."
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer.
-Sets `eglot--TextDocumentIdentifier-uri' (which see) as a side effect."
+Sets `eglot--TextDocumentIdentifier-cache' (which see) as a side effect."
   (unless eglot--TextDocumentIdentifier-cache
     (let ((truename (file-truename (or buffer-file-name
                                        (ignore-errors

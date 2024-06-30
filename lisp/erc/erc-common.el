@@ -363,7 +363,7 @@ instead of a `set' state, which precludes any actual saving."
 Non-nil inside an ERC module's activation (or deactivation)
 command, such as `erc-spelling-enable', when it's been called
 indirectly via the module's minor-mode toggle, i.e.,
-`erc-spelling-mode'.  Nil otherwise.  Its value is either the
+`erc-spelling-mode'.  nil otherwise.  Its value is either the
 symbol `toggle' or an integer produced by `prefix-numeric-value'.
 See Info node `(elisp) Defining Minor Modes' for more.")
 

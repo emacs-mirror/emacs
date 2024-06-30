@@ -5122,7 +5122,7 @@ commands) or source buffers (that display program source code)."
 
 (defun gdb--buffer-type (buffer)
   "Return the type of BUFFER if it is a function buffer.
-Buffer type is like `gdb-registers-type', `gdb-stack-buffer'.
+Buffer type is like `gdb-registers-buffer', `gdb-stack-buffer'.
 These symbols are used by `gdb-get-buffer-create'.
 
 Return nil if BUFFER is not a GDB function buffer."

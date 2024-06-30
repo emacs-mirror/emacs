@@ -1614,7 +1614,7 @@ Within these categories order using `which-key-key-order'."
     (when found `(replaced . ,key-binding))))
 
 (defun which-key--maybe-replace (key-binding)
-  "Use `which-key--replacement-alist' to maybe replace KEY-BINDING.
+  "Use `which-key-replacement-alist' to maybe replace KEY-BINDING.
 KEY-BINDING is a cons cell of the form \(KEY . BINDING\) each of
 which are strings.  KEY is of the form produced by `key-binding'."
   (let* ((replacer (if which-key-allow-multiple-replacements

@@ -1320,7 +1320,7 @@ Return a list of results."
            (5 (message "five")))
          x)
        't
-       ;; FIXME improve `comp-cond-cstrs-target-mvar' to cross block
+       ;; FIXME improve `comp--cond-cstrs-target-mvar' to cross block
        ;; boundary if necessary as this should return:
        ;; (or (integer 1 1) (integer 5 5))
        )

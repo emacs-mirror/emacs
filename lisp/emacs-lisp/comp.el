@@ -1055,7 +1055,7 @@ If DST-N is specified, use it; otherwise assume it to be the current slot."
   "Set constant VAL to current slot."
   (comp--add-const-to-relocs val)
   ;; Leave relocation index nil on purpose, will be fixed-up in final
-  ;; by `comp-finalize-relocs'.
+  ;; by `comp--finalize-relocs'.
   (comp--emit `(setimm ,(comp--slot) ,val)))
 
 (defun comp--make-curr-block (block-name entry-sp &optional addr)
