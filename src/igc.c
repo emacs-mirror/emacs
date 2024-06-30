@@ -598,7 +598,7 @@ alloc_hash (void)
 void
 igc_check_fwd (void *client)
 {
-  if (has_header (client))
+  if (has_header (client, true))
     {
       struct igc_header *h = client_to_base (client);
       igc_assert (h->obj_type != IGC_OBJ_FWD);
