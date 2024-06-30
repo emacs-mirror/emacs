@@ -143,22 +143,35 @@ ndk_resolve_import_module () {
   ndk_module=[$]1
 
   AC_MSG_CHECKING([for imported $ndk_module])
+  AC_CACHE_VAL([AS_TR_SH([ndk_cv_commands_$ndk_module])],
+    [for ndk_android_mk in $ndk_module_files; do
+       # Read this Android.mk file.  Set NDK_ROOT to /tmp: the Android in
+       # tree build system sets it to a meaningful value, but build files
+       # just use it to test whether or not the NDK is being used.
+       ndk_commands=`ndk_run_test`
+       eval "$ndk_commands"
 
-  for ndk_android_mk in $ndk_module_files; do
-    # Read this Android.mk file.  Set NDK_ROOT to /tmp: the Android in
-    # tree build system sets it to a meaningful value, but build files
-    # just use it to test whether or not the NDK is being used.
-    ndk_commands=`ndk_run_test`
-    eval "$ndk_commands"
+       if test -n "$module_name"; then
+         # Guarantee that evaluation of the cached value will also set
+	 # `ndk_android_mk'.
+         ndk_commands="$ndk_commands ndk_android_mk=$ndk_android_mk"
+	 break;
+       fi
+     done
+     AS_IF([test -z "$module_name"],
+       [AS_VAR_SET([AS_TR_SH([ndk_cv_commands_$ndk_module])],
+	 [""])],
+       [AS_VAR_SET([AS_TR_SH([ndk_cv_commands_$ndk_module])],
+	 [$ndk_commands])])])
 
-    if test -n "$module_name"; then
-      break;
-    fi
-  done
+  # Copy the computed value into ndk_commands.
+  AS_VAR_COPY([ndk_commands], [AS_TR_SH([ndk_cv_commands_$ndk_module])])
+  eval "$ndk_commands"
 
-  AS_IF([test -z "$module_name"],
+  # Print the outcome of the test.
+  AS_IF([test -n "$module_name"], [AC_MSG_RESULT([yes])],
     [AC_MSG_RESULT([no])
-     AC_MSG_ERROR([The module currently being built depends on [$]1, but \
+     AC_MSG_ERROR([The module currently being built has imported [$]1, but \
 that could not be found in the list of directories specified in \
 `--with-ndk-path'.])])
 
@@ -174,8 +187,6 @@ but none were found.])])
   AS_IF([test "$module_cxx_deps" = "yes" && test "$ndk_working_cxx" != "yes"],
     [AC_MSG_ERROR([The module [$]1 requires the C++ standard library,
 but a working C++ compiler was not found.])])
-
-  AC_MSG_RESULT([yes])
 
   # Make sure the module is prepended.
   ndk_MODULES="$ndk_MODULES $module_target"
@@ -552,19 +563,28 @@ AC_DEFUN([ndk_SEARCH_MODULE],
 module_name=
 ndk_module=$1
 ndk_replace_pkg_config_package
-AC_MSG_CHECKING([for Android.mk that builds $ndk_module])
+AC_MSG_CHECKING([for Android.mk providing $ndk_module])
+AC_CACHE_VAL([AS_TR_SH([ndk_cv_commands_$ndk_module])],
+  [for ndk_android_mk in $ndk_module_files; do
+     # Read this Android.mk file.  Set NDK_ROOT to /tmp: the Android in
+     # tree build system sets it to a meaningful value, but build files
+     # just use it to test whether or not the NDK is being used.
+     ndk_commands=`ndk_run_test`
+     eval "$ndk_commands"
 
-for ndk_android_mk in $ndk_module_files; do
-  # Read this Android.mk file.  Set NDK_ROOT to /tmp: the Android in
-  # tree build system sets it to a meaning value, but build files just
-  # use it to test whether or not the NDK is being used.
-  ndk_commands=`ndk_run_test`
-
-  eval "$ndk_commands"
-  if test -n "$module_name"; then
-    break;
-  fi
-done
+     if test -n "$module_name"; then
+       # Guarantee that evaluation of the cached value will also set
+       # `ndk_android_mk'.
+       ndk_commands="$ndk_commands ndk_android_mk=$ndk_android_mk"
+       break;
+     fi
+   done
+   AS_IF([test -n "$module_name"],
+     [AS_VAR_SET([AS_TR_SH([ndk_cv_commands_$ndk_module])],
+       [$ndk_commands])],
+     [AS_VAR_SET([AS_TR_SH([ndk_cv_commands_$ndk_module])], [])])])
+AS_VAR_COPY([ndk_commands], [AS_TR_SH([ndk_cv_commands_$ndk_module])])
+eval "$ndk_commands"
 
 if test -z "$module_name"; then
   AC_MSG_RESULT([no])

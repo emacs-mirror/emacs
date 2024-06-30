@@ -1263,6 +1263,11 @@ packages targeting Android 2.2.])])
   emacs_val="--enable-check-lisp-object-type=$enable_check_lisp_object_type"
   passthrough="$passthrough $emacs_val"
 
+  # And derive a name for the recursive configure invocation's cache
+  # file if one should be specified for this.
+  AS_IF([test -n "$cache_file"],
+    [passthrough="$passthrough --cache-file=$cache_file.1"])
+
   AS_IF([test "x$with_mailutils" = "xyes"], [emacs_use_mailutils=yes])
   AC_SUBST([emacs_use_mailutils])
 
