@@ -1521,6 +1521,7 @@ fix_charset_table (mps_ss_t ss, struct charset *table, size_t nbytes)
 }
 
 static mps_res_t fix_vector (mps_ss_t ss, struct Lisp_Vector *v);
+static mps_res_t fix_vector_weak (mps_ss_t ss, struct Lisp_Vector *v);
 
 static mps_res_t
 dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
@@ -1604,8 +1605,11 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	break;
 
       case IGC_OBJ_VECTOR:
-      case IGC_OBJ_VECTOR_WEAK:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_vector);
+	break;
+
+      case IGC_OBJ_VECTOR_WEAK:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_vector_weak);
 	break;
 
       case IGC_OBJ_ITREE_TREE:
@@ -1679,6 +1683,27 @@ fix_vectorlike (mps_ss_t ss, struct Lisp_Vector *v)
   {
     size_t size = vector_size (v);
     IGC_FIX12_NOBJS (ss, v->contents, size);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
+fix_marker_vector (mps_ss_t ss, struct Lisp_Vector *v)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    for (size_t i = 0, n = vector_size (v); i < n; ++i)
+      {
+	Lisp_Object old = v->contents[i];
+	IGC_FIX12_OBJ (ss, &v->contents[i]);
+	/* FIXME/igc: this is right for marker vectors only. */
+	if (NILP (v->contents[i] && !NILP (old)))
+	  {
+	    v->contents[i] = v->contents[0];
+	    v->contents[0] = make_fixnum (i);
+	  }
+      }
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2208,6 +2233,65 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_PACKAGE:
 #endif
 	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
+	break;
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
+fix_vector_weak (mps_ss_t ss, struct Lisp_Vector *v)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    switch (pseudo_vector_type (v))
+      {
+      case PVEC_NORMAL_VECTOR:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_marker_vector);
+	break;
+
+#ifndef IN_MY_FORK
+      case PVEC_OBARRAY:
+#else
+      case PVEC_PACKAGE:
+#endif
+      case PVEC_BIGNUM:
+      case PVEC_BUFFER:
+      case PVEC_FRAME:
+      case PVEC_WINDOW:
+      case PVEC_HASH_TABLE:
+      case PVEC_CHAR_TABLE:
+      case PVEC_SUB_CHAR_TABLE:
+      case PVEC_BOOL_VECTOR:
+      case PVEC_OVERLAY:
+      case PVEC_SUBR:
+      case PVEC_FREE:
+      case PVEC_FINALIZER:
+      case PVEC_MISC_PTR:
+      case PVEC_USER_PTR:
+      case PVEC_XWIDGET:
+      case PVEC_XWIDGET_VIEW:
+      case PVEC_THREAD:
+      case PVEC_MUTEX:
+      case PVEC_TERMINAL:
+      case PVEC_MARKER:
+      case PVEC_NATIVE_COMP_UNIT:
+      case PVEC_MODULE_GLOBAL_REFERENCE:
+      case PVEC_TS_PARSER:
+      case PVEC_FONT:
+      case PVEC_SYMBOL_WITH_POS:
+      case PVEC_PROCESS:
+      case PVEC_WINDOW_CONFIGURATION:
+      case PVEC_MODULE_FUNCTION:
+      case PVEC_CONDVAR:
+      case PVEC_TS_COMPILED_QUERY:
+      case PVEC_TS_NODE:
+      case PVEC_SQLITE:
+      case PVEC_CLOSURE:
+      case PVEC_RECORD:
+      case PVEC_OTHER:
+	IGC_NOT_IMPLEMENTED ();
 	break;
       }
   }
@@ -3662,37 +3746,38 @@ alloc_vector_weak (ptrdiff_t len, Lisp_Object init)
 }
 
 static Lisp_Object
-larger_vector_weak (Lisp_Object v)
+larger_marker_vector (Lisp_Object v)
 {
-  ptrdiff_t new_len = 2 * ASIZE (v);
+  igc_assert (NILP (v) || (VECTORP (v) && XFIXNUM (AREF (v, 0)) < 0));
+  ptrdiff_t old_len = NILP (v) ? 0 : ASIZE (v);
+  ptrdiff_t new_len = max (2, 2 * old_len);
   Lisp_Object new_v = alloc_vector_weak (new_len, Qnil);
-  for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
-    ASET (new_v, i, AREF (v, i));
+  ptrdiff_t i = 0;
+  if (VECTORP (v))
+    for (i = 1; i < ASIZE (v); ++i)
+      ASET (new_v, i, AREF (v, i));
+  for (; i < ASIZE (new_v) - 1; ++i)
+    ASET (new_v, i, make_fixnum (i + 1));
+  ASET (new_v, i, make_fixnum (-1));
+  ASET (new_v, 0, make_fixnum (NILP (v) ? 1 : ASIZE (v)));
   return new_v;
-}
-
-static ptrdiff_t
-find_nil_index (Lisp_Object v)
-{
-  for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
-    if (NILP (AREF (v, i)))
-      return i;
-  return ASIZE (v);
 }
 
 void
 igc_add_marker (struct buffer *b, struct Lisp_Marker *m)
 {
   Lisp_Object v = BUF_MARKERS (b);
-  if (NILP (v))
-    v = BUF_MARKERS (b) = alloc_vector_weak (1, Qnil);
-
-  ptrdiff_t i = find_nil_index (v);
-  if (i == ASIZE (v))
-    v = BUF_MARKERS (b) = larger_vector_weak (v);
-  Lisp_Object marker = make_lisp_ptr (m, Lisp_Vectorlike);
-  ASET (v, i, marker);
-  m->index = i;
+  igc_assert (NILP (v) || VECTORP (v));
+  ptrdiff_t next_free = NILP (v) ? -1 : XFIXNUM (AREF (v, 0));
+  if (next_free < 0)
+    {
+      v = BUF_MARKERS (b) = larger_marker_vector (v);
+      next_free = XFIXNUM (AREF (v, 0));
+    }
+  ASET (v, 0, AREF (v, next_free));
+  ASET (v, next_free, make_lisp_ptr (m, Lisp_Vectorlike));
+  m->index = next_free;
+  m->buffer = b;
 }
 
 void
@@ -3700,10 +3785,12 @@ igc_remove_marker (struct buffer *b, struct Lisp_Marker *m)
 {
   Lisp_Object v = BUF_MARKERS (b);
   igc_assert (VECTORP (v));
-  igc_assert (m->index >= 0 && m->index < ASIZE (v));
-  ASET (v, m->index, Qnil);
-  m->buffer = NULL;
+  igc_assert (m->index >= 1 && m->index < ASIZE (v));
+  igc_assert (MARKERP (AREF (v, m->index)) && XMARKER (AREF (v, m->index)) == m);
+  ASET (v, m->index, AREF (v, 0));
+  ASET (v, 0, make_fixnum (m->index));
   m->index = -1;
+  m->buffer = NULL;
 }
 
 void
@@ -3712,15 +3799,10 @@ igc_remove_all_markers (struct buffer *b)
   Lisp_Object v = BUF_MARKERS (b);
   if (VECTORP (v))
     {
-      for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
-	{
-	  Lisp_Object m = AREF (v, i);
-	  if (MARKERP (m))
-	    {
-	      XMARKER (m)->buffer = NULL;
-	      ASET (v, i, Qnil);
-	    }
-	}
+      for (ptrdiff_t i = 1; i < ASIZE (v); ++i)
+	if (MARKERP (AREF (v, i)))
+	  XMARKER (AREF (v, i))->buffer = NULL;
+      BUF_MARKERS (b) = Qnil;
     }
 }
 

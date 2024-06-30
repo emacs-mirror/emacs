@@ -2204,7 +2204,7 @@ dump_string (struct dump_context *ctx, const struct Lisp_String *string)
 static dump_off
 dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Marker_B6F52B2098)
+#if CHECK_STRUCTS && !defined HASH_Lisp_Marker_DA32BA65BF
 # error "Lisp_Marker changed. See CHECK_STRUCTS comment in config.h."
 #endif
 

@@ -731,10 +731,10 @@ marker_it_init (struct buffer *b)
     return (struct marker_it){ .obj = Qnil };
 
   Lisp_Object obj = Qnil;
-  for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
+  for (ptrdiff_t i = 1; i < ASIZE (v); ++i)
     {
       obj = AREF (v, i);
-      if (!NILP (obj))
+      if (MARKERP (obj))
 	return (struct marker_it) { .i = i, .markers = v, .obj = obj };
     }
 
@@ -753,9 +753,12 @@ marker_it_next (struct marker_it *it)
   it->obj = Qnil;
   for (++it->i; it->i < ASIZE (it->markers); ++it->i)
     {
-      it->obj = AREF (it->markers, it->i);
-      if (!NILP (it->obj))
-	break;
+      Lisp_Object m = AREF (it->markers, it->i);
+      if (MARKERP (m))
+	{
+	  it->obj = m;
+	  break;
+	}
     }
 }
 
