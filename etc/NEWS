@@ -2343,7 +2343,7 @@ t only if the argument is a function rather than a special-form,
 and 'cl-functionp' is like 'functionp' except it returns nil
 for lists and symbols.
 
-** Built-in types have now corresponding classes.
+** Built-in types now have corresponding classes.
 At the Lisp level, this means that things like '(cl-find-class 'integer)'
 will now return a class object, and at the UI level it means that
 things like 'C-h o integer RET' will show some information about that type.
@@ -2485,7 +2485,7 @@ See the "(elisp) Porting Old Advice" Info node for help converting
 them to use 'advice-add' or 'define-advice' instead.
 
 ** 'cl-old-struct-compat-mode' is marked as obsolete.
-You may need to recompile our code if it was compiled with Emacs < 24.3.
+You may need to recompile code if it was compiled with Emacs < 24.3.
 
 +++
 ** New macro 'static-if' for conditional evaluation of code.
@@ -2982,7 +2982,7 @@ this was not possible.)  In addition, LOCATION can be an integer, a
 (BEFORE is ignored in this case).
 
 +++
-**** New function 'sqlite-execute-batch'.
+** New function 'sqlite-execute-batch'.
 This function lets the user execute multiple SQL statements in one go.
 It is useful, for example, when a Lisp program needs to evaluate an
 entire SQL file.
