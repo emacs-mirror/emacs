@@ -3768,24 +3768,25 @@ See also the function `vector'.  */)
   return alloc_vector_weak (XFIXNAT (length), init);
 }
 
+static void
+walk_pool (struct igc *gc, mps_pool_t p, struct igc_stats *st)
+{
+  mps_res_t res;
+  IGC_WITH_PARKED (gc)
+    res = mps_pool_walk (p, dflt_scanx, st);
+  if (res != MPS_RES_OK)
+    error ("Error %d walking memory", res);
+}
+
 DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   (void)
 {
   struct igc *gc = global_igc;
   struct igc_stats st = { 0 };
-  mps_res_t res;
-  IGC_WITH_PARKED (gc)
-  {
-    res = mps_pool_walk (gc->dflt_pool, dflt_scanx, &st);
-  }
-  if (res != MPS_RES_OK)
-    error ("Error %d walking memory", res);
-  IGC_WITH_PARKED (gc)
-  {
-    res = mps_pool_walk (gc->leaf_pool, dflt_scanx, &st);
-  }
-  if (res != MPS_RES_OK)
-    error ("Error %d walking memory", res);
+  walk_pool (gc, gc->dflt_pool, &st);
+  walk_pool (gc, gc->leaf_pool, &st);
+  walk_pool (gc, gc->weak_pool, &st);
+  walk_pool (gc, gc->immovable_pool, &st);
 
   Lisp_Object result = Qnil;
   for (int i = 0; i < IGC_OBJ_NUM_TYPES; ++i)
