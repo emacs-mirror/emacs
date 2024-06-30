@@ -1697,8 +1697,8 @@ fix_marker_vector (mps_ss_t ss, struct Lisp_Vector *v)
       {
 	Lisp_Object old = v->contents[i];
 	IGC_FIX12_OBJ (ss, &v->contents[i]);
-	/* FIXME/igc: this is right for marker vectors only. */
-	if (NILP (v->contents[i] && !NILP (old)))
+	/* FIXME/igc: this is right for marker vectors only.  */
+	if (NILP (v->contents[i]) && !NILP (old))
 	  {
 	    v->contents[i] = v->contents[0];
 	    v->contents[0] = make_fixnum (i);
