@@ -2906,6 +2906,12 @@ struct Lisp_Marker
      used to implement the functionality of markers, but rather to (ab)use
      markers as a cache for char<->byte mappings).  */
   ptrdiff_t bytepos;
+
+# ifdef HAVE_MPS
+  /* If in a buffer's marker vector, this is the index where it is
+     stored. */
+  ptrdiff_t index;
+# endif
 } GCALIGNED_STRUCT;
 
 struct Lisp_Overlay

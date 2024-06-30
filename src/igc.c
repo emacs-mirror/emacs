@@ -3692,21 +3692,18 @@ igc_add_marker (struct buffer *b, struct Lisp_Marker *m)
     v = BUF_MARKERS (b) = larger_vector_weak (v);
   Lisp_Object marker = make_lisp_ptr (m, Lisp_Vectorlike);
   ASET (v, i, marker);
+  m->index = i;
 }
 
 void
 igc_remove_marker (struct buffer *b, struct Lisp_Marker *m)
 {
-  m->buffer = NULL;
   Lisp_Object v = BUF_MARKERS (b);
   igc_assert (VECTORP (v));
-  Lisp_Object marker = make_lisp_ptr (m, Lisp_Vectorlike);
-  for (ptrdiff_t i = 0; i < ASIZE (v); ++i)
-    if (EQ (AREF (v, i), marker))
-      {
-	ASET (v, i, Qnil);
-	break;
-      }
+  igc_assert (m->index >= 0 && m->index < ASIZE (v));
+  ASET (v, m->index, Qnil);
+  m->buffer = NULL;
+  m->index = -1;
 }
 
 void
