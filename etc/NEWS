@@ -332,7 +332,7 @@ for which you can use '(category . tex-shell)'.
 +++
 *** Tool bars can now be placed on the bottom on more systems.
 The 'tool-bar-position' frame parameter can be set to 'bottom' on all
-window systems other than Nextstep and macOS.
+window systems other than macOS and GNUstep (Nextstep).
 
 +++
 *** New global minor mode 'modifier-bar-mode'.
