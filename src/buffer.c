@@ -736,7 +736,7 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 	{
 	  struct Lisp_Marker *m = XMARKER (obj);
 
-	  obj = build_marker (to, m->charpos, m->bytepos, 9);
+	  obj = build_marker (to, m->charpos, m->bytepos);
 	  XMARKER (obj)->insertion_type = m->insertion_type;
 	}
 
@@ -902,15 +902,15 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
 
       bset_pt_marker (b->base_buffer,
 		      build_marker (b->base_buffer, b->base_buffer->pt,
-				    b->base_buffer->pt_byte, 13));
+				    b->base_buffer->pt_byte));
 
       bset_begv_marker (b->base_buffer,
 			build_marker (b->base_buffer, b->base_buffer->begv,
-				      b->base_buffer->begv_byte, 14));
+				      b->base_buffer->begv_byte));
 
       bset_zv_marker (b->base_buffer,
 		      build_marker (b->base_buffer, b->base_buffer->zv,
-				    b->base_buffer->zv_byte, 15));
+				    b->base_buffer->zv_byte));
 
       XMARKER (BVAR (b->base_buffer, zv_marker))->insertion_type = 1;
     }
@@ -918,9 +918,9 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
   if (NILP (clone))
     {
       /* Give the indirect buffer markers for its narrowing.  */
-      bset_pt_marker (b, build_marker (b, b->pt, b->pt_byte, 17));
-      bset_begv_marker (b, build_marker (b, b->begv, b->begv_byte, 18));
-      bset_zv_marker (b, build_marker (b, b->zv, b->zv_byte, 19));
+      bset_pt_marker (b, build_marker (b, b->pt, b->pt_byte));
+      bset_begv_marker (b, build_marker (b, b->begv, b->begv_byte));
+      bset_zv_marker (b, build_marker (b, b->zv, b->zv_byte));
       XMARKER (BVAR (b, zv_marker))->insertion_type = 1;
     }
   else

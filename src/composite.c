@@ -982,7 +982,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
       /* Save point as marker before calling out to lisp.  */
       if (NILP (string))
 	record_unwind_protect (restore_point_unwind,
-			       build_marker (current_buffer, pt, pt_byte, 8));
+			       build_marker (current_buffer, pt, pt_byte));
       lgstring = safe_calln (Vauto_composition_function, AREF (rule, 2),
 			    pos, make_fixnum (to), font_object, string,
 			    direction);

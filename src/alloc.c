@@ -4167,14 +4167,11 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
 /* Return a newly allocated marker which points into BUF
    at character position CHARPOS and byte position BYTEPOS.  */
 
-static int build_marker_counts[100] = {0};
-
 Lisp_Object
-build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos, int where)
+build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
 {
   /* No dead buffers here.  */
   eassert (BUFFER_LIVE_P (buf));
-  build_marker_counts[where] += 1;
 
   /* Every character is at least one byte.  */
   eassert (charpos <= bytepos);
@@ -4372,16 +4369,6 @@ FUNCTION.  FUNCTION will be run once per finalizer object.  */)
   finalizer->prev = finalizer->next = NULL;
   finalizer_insert (&finalizers, finalizer);
   return make_lisp_ptr (finalizer, Lisp_Vectorlike);
-}
-
-DEFUN ("build-marker-counts", Fbuild_marker_counts, Sbuild_marker_counts, 0, 0,
-       0, doc: /* */)
-  (void)
-{
-  Lisp_Object v = Fmake_vector (make_fixnum (30), Qnil);
-  for (int i = 0; i < 30; ++i)
-    ASET (v, i, make_int (build_marker_counts[i]));
-  return v;
 }
 
 
@@ -8568,8 +8555,7 @@ N should be nonnegative.  */);
   defsubr (&Sgarbage_collect_maybe);
   defsubr (&Smemory_info);
   defsubr (&Smemory_use_counts);
-  defsubr (&Sbuild_marker_counts);
-#if defined GNU_LINUX && defined __GLIBC__ &&	\
+#if defined GNU_LINUX && defined __GLIBC__ && \
   (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 10)
 
   defsubr (&Smalloc_info);

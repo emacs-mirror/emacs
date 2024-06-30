@@ -199,7 +199,7 @@ DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
        doc: /* Return value of point, as a marker object.  */)
   (void)
 {
-  return build_marker (current_buffer, PT, PT_BYTE, 10);
+  return build_marker (current_buffer, PT, PT_BYTE);
 }
 
 DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1,
@@ -889,7 +889,7 @@ DEFUN ("point-min-marker", Fpoint_min_marker, Spoint_min_marker, 0, 0, 0,
 This is the beginning, unless narrowing (a buffer restriction) is in effect.  */)
   (void)
 {
-  return build_marker (current_buffer, BEGV, BEGV_BYTE, 11);
+  return build_marker (current_buffer, BEGV, BEGV_BYTE);
 }
 
 DEFUN ("point-max", Fpoint_max, Spoint_max, 0, 0, 0,
@@ -909,7 +909,7 @@ This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
 is in effect, in which case it is less.  */)
   (void)
 {
-  return build_marker (current_buffer, ZV, ZV_BYTE, 12);
+  return build_marker (current_buffer, ZV, ZV_BYTE);
 }
 
 DEFUN ("gap-position", Fgap_position, Sgap_position, 0, 0, 0,
@@ -3009,8 +3009,8 @@ save_restriction_save_1 (void)
     {
       Lisp_Object beg, end;
 
-      beg = build_marker (current_buffer, BEGV, BEGV_BYTE, 20);
-      end = build_marker (current_buffer, ZV, ZV_BYTE, 21);
+      beg = build_marker (current_buffer, BEGV, BEGV_BYTE);
+      end = build_marker (current_buffer, ZV, ZV_BYTE);
 
       /* END must move forward if text is inserted at its exact location.  */
       XMARKER (end)->insertion_type = 1;
