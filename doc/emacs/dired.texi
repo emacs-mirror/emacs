@@ -803,15 +803,22 @@ The @code{dired-keep-marker-copy} user option controls how this
 command handles file marking.  The default is to mark all new copies
 of files with a @samp{C} mark.
 
-@item D
 @findex dired-do-delete
 @kindex D @r{(Dired)}
+@item D
 Delete the specified files (@code{dired-do-delete}).  This is like the
 shell command @code{rm}.
 
 Like the other commands in this section, this command operates on the
 @emph{marked} files, or the next @var{n} files.  By contrast, @kbd{x}
 (@code{dired-do-flagged-delete}) deletes all @dfn{flagged} files.
+
+@findex dired-do-open
+@kindex E @r{(Dired)}
+@item E
+``Open'' the specified files using an external program.  The program is
+selected according to the system conventions, as determined by the
+variable @code{shell-command-guess-open}.
 
 @findex dired-do-rename
 @kindex R @r{(Dired)}

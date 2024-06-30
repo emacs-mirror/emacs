@@ -635,11 +635,11 @@ buffers.
 (This minor mode is the 'adaptive-wrap' ELPA package renamed and
 lightly edited for inclusion in Emacs.)
 
----
++++
 ** New global minor mode 'kill-ring-deindent-mode'.
 When enabled, text being saved to the kill ring will be de-indented by
 the column number at its start.  For example, saving the entire
-function call within:
+function call within an indented block:
 
 foo ()
 {
@@ -648,16 +648,16 @@ foo ()
 					argument_3_compute ());
 }
 
-will save:
+will save this to the kill ring:
 
 long_function_with_several_arguments (argument_1_compute (),
 				      argument_2_compute (),
 				      argument_3_compute ())
 
-to the kill ring, omitting the two columns of extra indentation that
-would otherwise be present in the second and third lines of the
-function call.
+This omits the two columns of extra indentation that would otherwise be
+copied from the second and third lines and saved to the kill ring.
 
+---
 ** New command 'replace-regexp-as-diff'.
 It reads a regexp to search for and a string to replace with, then
 displays a buffer with replacements as diffs.  After reviewing the
@@ -728,6 +728,7 @@ whereas if the mouse pointer is in the left half of a glyph, point
 will be put in front the buffer position corresponding to that glyph.
 By default this is disabled.
 
+---
 ** New pre-defined values for 'electric-quote-chars'.
 The available customization options for 'electric-quote-chars' have been
 updated with common pairs of quotation characters, including "‘", "’",
@@ -735,7 +736,7 @@ updated with common pairs of quotation characters, including "‘", "’",
 The default is unchanged.
 
 +++
-** 'M-TAB' now invokes 'completion-at-point' also in Text mode.
+** 'M-TAB' now invokes 'completion-at-point' in Text mode.
 By default, Text mode no longer binds 'M-TAB' to 'ispell-complete-word'.
 Instead, this mode arranges for 'completion-at-point', globally bound to
 'M-TAB', to perform word completion as well.  You can have Text mode
@@ -786,14 +787,17 @@ These languages are spoken in Pakistan and Afghanistan.
 *** New input method "english-colemak".
 This input method supports the Colemak keyboard layout.
 
+---
 *** Additional 'C-x 8' key translations for "æ" and "Æ".
 These characters can now be input with 'C-x 8 a e' and 'C-x 8 A E',
 respectively, in addition to the existing translations 'C-x 8 / e' and
 'C-x 8 / E'.
 
+---
 *** New 'C-x 8' key translations for "low" quotes "„", and "‚".
 These can now be entered with 'C-x , "' and 'C-x , ''.
 
+---
 *** New German language 'C-x 8' key translations for quotation marks.
 The characters "„", "“", and "”" can now be entered with 'C-x 8 v',
 'C-x 8 b' and 'C-x 8 n'.  The single versions "‚", "‘", and "’" can now
@@ -801,6 +805,7 @@ be entered with 'C-x 8 V', 'C-x 8 B' and 'C-x 8 N'.  These characters
 are used for the official German quoting style.  Using them requires
 activating German language support via 'iso-transl-set-language'.
 
+---
 *** "latin-prefix" and "latin-postfix" quotation marks additions.
 These input methods can now produce single, double and "low" left and
 right quotation marks:
@@ -810,17 +815,20 @@ right quotation marks:
 by using "[", "]", and "," for "left", "right", and "low" respectively
 to modify "'" and """.
 
+---
 *** "latin-prefix" and "latin-postfix" guillemets support.
 These input methods can now produce single guillemets "‹" and "›".  For
 "latin-prefix" use "~~<" and "~~>", for "latin-postfix" use "<~" and
 ">~".  Double guillemets ("«" and "»") were already supported.
 
+---
 *** New French language 'C-x 8' key translations for "‹" and "›".
 These characters can now be entered using 'C-x 8 ~ <' and 'C-x 8 ~ >'
 respectively, after activating French language support via
 'iso-transl-set-language'.  Double guillemets were already supported via
 'C-x 8 <' and 'C-x 8 >'
 
+---
 *** Additional 'C-x 8' key translation for Euro "€" currency symbol.
 This can now be entered using 'C-x 8 E' in addition to the existing
 'C-x 8 * E' translation.
@@ -830,11 +838,12 @@ This can now be entered using 'C-x 8 E' in addition to the existing
 
 ** Outline mode
 
++++
 *** New commands to show/hide outlines by regexp.
-'/ h' ('outline-hide-by-heading-regexp') asks for a regexp and then
+'C-c / h' ('outline-hide-by-heading-regexp') asks for a regexp and then
 hides the body lines of all outlines whose heading lines match the
-regexp.  '/ s' ('outline-show-by-heading-regexp') does the same but
-shows the matched outlines.
+regexp.  'C-c / s' ('outline-show-by-heading-regexp') does the inverse:
+it shows the bodies of outlines that matched a regexp.
 
 +++
 *** 'outline-minor-mode' is supported in tree-sitter major modes.
@@ -850,6 +859,7 @@ This user option associates manual names with URLs.  It affects the
 Emacs-included manuals are set.  Further associations can be added for
 arbitrary Info manuals.
 
+---
 *** Emacs can now display Info manuals compressed with 'lzip'.
 This requires the 'lzip' program to be installed on your system.
 
@@ -881,7 +891,7 @@ If you want to get back the old behavior, set the user option to the value
     (setopt gdb-locals-table-row-config
             `((type . 0) (name . 0) (value . ,gdb-locals-value-limit)))
 
----
++++
 *** New user option 'gdb-display-io-buffer'.
 If this is nil, 'M-x gdb' will neither create nor display a separate
 buffer for the I/O of the program being debugged, but will instead
@@ -890,11 +900,13 @@ default is t, to preserve previous behavior.
 
 ** Grep
 
++++
 *** New user option 'grep-use-headings'.
 When non-nil, the output of Grep is split into sections, one for each
 file, instead of having file names prefixed to each line.  It is
 equivalent to the "--heading" option of some tools such as 'git grep'
 and 'rg'.  The headings are displayed using the new 'grep-heading' face.
+The default is nil.
 
 ** Compilation mode
 
@@ -904,6 +916,7 @@ This is because it partly acts by modifying other rules which may
 occasionally be surprising.  It can be re-enabled by adding 'omake' to
 'compilation-error-regexp-alist'.
 
+---
 *** Lua errors and stack traces are now recognized.
 Compilation mode now recognizes Lua language errors and stack traces.
 Every Lua error is recognized as a compilation error, and every Lua
@@ -917,22 +930,26 @@ When non-nil, display the name of the current project on the mode
 line.  Clicking 'mouse-1' on the project name pops up the project
 menu.  The default value is nil.
 
+---
 *** New user option 'project-file-history-behavior'.
 Customizing it to 'relativize' makes commands like 'project-find-file'
 and 'project-find-dir' display previous history entries relative to
 the current project.
 
+--
 *** New user option 'project-key-prompt-style'.
 The look of the key prompt in the project switcher has been changed
 slightly.  To get the previous one, set this option to 'brackets'.
 
+---
 *** 'project-try-vc' tries harder to find the responsible VCS.
 When 'project-vc-extra-root-markers' is non-nil, and causes a
-subdirectory project to be detected which is not a VCS root, we now
-additionally traverse the parent directories until a VCS root is found
+subdirectory project to be detected which is not a VCS root, Project now
+additionally traverses the parent directories until a VCS root is found
 (if any), so that the ignore rules for that repository are used, and
 the file listing's performance is still optimized.
 
++++
 *** New commands 'project-any-command' and 'project-prefix-or-any-command'.
 The former is now bound to 'C-x p o' by default.
 The latter is designed primarily for use as a value of
@@ -970,15 +987,16 @@ With this value only the revision number is displayed on the mode-line.
 *** Obsolete command 'vc-switch-backend' re-added as 'vc-change-backend'.
 The command was previously obsoleted and unbound in Emacs 28.
 
+---
 *** Support for viewing VC change history across renames.
-When a fileset's VC change history ('C-x v l') ends at a rename, we
-now print the old name(s) and a button which jumps to their history.
-Git and Hg are supported.  Naturally, 'vc-git-print-log-follow' should
-be nil for this to work (or '--follow' should not be in
-'vc-hg-print-log-switches', in Hg's case).  Unlike when the '--follow'
-switch is used, commands to see the diff of the old revision ('d'),
-check out an old file version ('f') or annotate it right away ('a'),
-also work on revisions which precede renames.
+When a fileset's VC change history ends at a rename, ('C-x v l') now
+prints the old name(s) and shows a button which jumps to the history of
+the files under the old names.  This feature is supported for Git and
+Hg.  Naturally, 'vc-git-print-log-follow' should be nil for this to work
+(or '--follow' should not be in 'vc-hg-print-log-switches', in Hg's
+case).  Unlike when the '--follow' switch is used, commands to see the
+diff of the old revision ('d'), to check out an old file version ('f')
+or to annotate it ('a'), also work on revisions which precede renames.
 
 ---
 *** 'vc-annotate' now abbreviates the Git revision in the buffer name.
@@ -986,6 +1004,7 @@ When using the Git backend, 'vc-annotate' will use an abbreviated
 revision identifier in its buffer name.  To restore the previous
 behavior, set 'vc-annotate-use-short-revision' to nil.
 
+---
 *** New option 'vc-git-file-name-changes-switches'.
 It allows tweaking the thresholds for rename and copy detection.
 
@@ -1011,6 +1030,7 @@ This allows changing which type of whitespace changes are ignored when
 regenerating hunks with 'diff-ignore-whitespace-hunk'.  Defaults to
 the previously hard-coded "-b".
 
++++
 *** New command 'diff-apply-buffer' bound to 'C-c RET a'.
 It applies the diff in the entire diff buffer and
 saves all modified file buffers.
@@ -1025,6 +1045,7 @@ It also controls how to move point when encountering a boundary
 (e.g., if every line is visible, invoking 'dired-next-line' at
 the last line will move to the first line).  The default is nil.
 
+---
 *** New user option 'dired-filename-display-length'.
 It is an integer representing the maximum display length of filenames.
 The middle part of a filename whose length exceeds the restriction is
@@ -1032,6 +1053,7 @@ hidden and an ellipsis is displayed instead.  A value of 'window'
 means using the right edge of window as the display restriction.  The
 default is nil.
 
+---
 *** New user option 'shell-command-guess-functions'.
 It defines how to populate a list of commands available
 for 'M-!', 'M-&', '!', '&' and the context menu "Open With"
@@ -1040,16 +1062,19 @@ based on marked files in Dired.  Possible backends are
 and a universal command such as "open" or "start"
 that delegates to the OS.
 
++++
 *** New command 'dired-do-open'.
 This command is bound to 'E' (mnemonics "External").  Also it can be
 used by clicking "Open" in the context menu; it "opens" the marked or
 clicked on files according to the OS conventions.  For example, on
 systems supporting XDG, this runs 'xdg-open' on the files.
 
++++
 *** New variable 'dired-guess-shell-alist-optional'.
 It contains commands for external viewers and players for various media
 formats, moved to this list from 'dired-guess-shell-alist-default'.
 
+---
 *** The default value of 'dired-omit-size-limit' was increased.
 After performance improvements to omitting in large directories, the new
 default value is 300k, up from 100k.  This means 'dired-omit-mode' will

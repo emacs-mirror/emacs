@@ -1208,6 +1208,12 @@ Hide everything except the top @var{n} levels of heading lines
 Hide everything except for the heading or body that point is in, plus
 the headings leading up from there to the top level of the outline
 (@code{outline-hide-other}).
+@item C-c / h @var{regexp} @key{RET}
+Hide bodies of headings that match @var{regexp}
+(@code{outline-hide-by-heading-regexp}).
+@item C-c / s @var{regexp} @key{RET}
+Show bodies of headings that match @var{regexp}
+(@code{outline-show-by-heading-regexp}).
 @end table
 
 @findex outline-hide-entry
@@ -1252,6 +1258,16 @@ everything except the entry that point is in, plus its parents (the
 headers leading up from there to top level in the outline) and the top
 level headings.  It also reveals body lines preceding the first
 heading in the buffer.
+
+@findex outline-hide-by-heading-regexp
+@findex outline-show-by-heading-regexp
+@kindex C-c / h @r{(Outline mode)}
+@kindex C-c / s @r{(Outline mode)}
+  The command @kbd{C-c / h} (@code{outline-hide-by-heading-regexp})
+prompts for a regular expression, and hides all the body lines of
+headings which match the regular expression.  The command @kbd{C-c / s}
+likewise prompts for a regular expression, and reveals the bodies of
+matching headings.
 
 @findex outline-hide-body
 @findex outline-show-all
