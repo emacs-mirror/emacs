@@ -57,7 +57,6 @@ else
 GZIP_PROG =
 endif
 
-
 # Android 4.3 and earlier require Emacs to be signed with a different
 # digital signature algorithm.
 
@@ -76,6 +75,11 @@ AAPT_ASSET_ARGS = -0 ""
 else
 AAPT_ASSET_ARGS =
 endif
+
+# This will be replaced by `--no-build-details' if details of the build
+# system are not to be recorded in generated packages.
+BUILD_DETAILS = @BUILD_DETAILS@
+GEN_BUILD_DETAILS := $(if $(BUILD_DETAILS),true ||,)
 
 SIGN_EMACS = -keystore $(srcdir)/emacs.keystore -storepass	\
 	emacs1 $(JARSIGNER_FLAGS)
@@ -249,13 +253,13 @@ install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)	\
 	   | xargs ${GZIP_PROG} -9n ;				\
 	}
 # Produce metadata files providing build information and suchlike.
-	$(AM_V_SILENT)						\
+	-$(AM_V_SILENT) $(GEN_BUILD_DETAILS)			\
 	{ (cd $(top_srcdir)					\
 	   && git rev-parse HEAD || echo "Unknown")		\
 	   && (git rev-parse --abbrev-ref HEAD 			\
 	       || echo "Unknown") } 2> /dev/null >		\
 	  install_temp/assets/version
-	$(AM_V_SILENT)						\
+	-$(AM_V_SILENT) $(GEN_BUILD_DETAILS)			\
 	{ hostname; date +%s; } > install_temp/assets/build_info
 # Produce the file index.
 	$(AM_V_SILENT) $(libsrc)/asset-directory-tool 		\
