@@ -1157,6 +1157,12 @@ Please refer to the LLDB reference on the web for more information
 about LLDB.  If you already know GDB, you will also find a mapping
 from GDB commands to corresponding LLDB commands there.
 
+** Debugging Emacs on OpenBSD
+
+To debug Emacs on OpenBSD, use the 'egdb' command from the 'gdb'
+package.  This reportedly works both if Emacs was compiled with GCC and
+if it was compiled with clang.
+
 ** Debugging Emacs on Android.
 
 A script located in the java/ directory automates the procedures
