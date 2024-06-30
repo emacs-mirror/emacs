@@ -55,14 +55,14 @@
 /^End$/ {
   if (name == MODULE && (kind == "shared" || kind == "static"))
     {
-      printf "module_name=%s\n", name
-      printf "module_kind=%s\n", kind
-      printf "module_src=\"%s\"\n", src
-      printf "module_includes=\"%s\"\n", includes
-      printf "module_cflags=\"%s\"\n", cflags
-      printf "module_ldflags=\"%s\"\n", ldflags
-      printf "module_target=\"%s\"\n", target
-      printf "module_cxx_deps=\"%s\"\n", cxx_deps
+      printf "module_name=%s;", name
+      printf "module_kind=%s;", kind
+      printf "module_src=\"%s\";", src
+      printf "module_includes=\"%s\";", includes
+      printf "module_cflags=\"%s\";", cflags
+      printf "module_ldflags=\"%s\";", ldflags
+      printf "module_target=\"%s\";", target
+      printf "module_cxx_deps=\"%s\";", cxx_deps
     }
 
   src = ""
@@ -83,6 +83,6 @@
   imports = ""
   # Strip off leading whitespace.
   gsub (/^[ \t]+/, "", makefile_imports)
-  printf "module_imports=\"%s\"\n", makefile_imports
+  printf "module_imports=\"%s\";", makefile_imports
   makefile_imports = ""
 }
