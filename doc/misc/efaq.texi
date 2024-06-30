@@ -973,7 +973,7 @@ been added.
 Tool bar tweaks.  The new minor mode @code{window-tool-bar-mode}
 provides a per-window toolbar.  Toolbars can be placed on the bottom of
 a frame by setting the @code{tool-bar-position} variable on all window
-systems but NextStep and macOS.
+systems but GNUStep and macOS.
 
 @item
 The @samp{which-key} package from GNU ELPA is now included in Emacs.
