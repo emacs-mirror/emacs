@@ -21,22 +21,26 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	xmlns:aapt="http://schemas.android.com/aapt"
 	android:width="108dp"
 	android:height="108dp"
-	android:viewportWidth="512"
-	android:viewportHeight="512">
-  <path
-      android:pathData="M-4.99,-5.79h521.12v526.76h-521.12z"
-      android:strokeWidth="10.6667">
+	android:viewportWidth="108"
+	android:viewportHeight="108">
+  <path android:pathData="M0,0h108v108h-108z"
+	android:strokeWidth="0"
+	android:strokeColor="#00000000">
     <aapt:attr name="android:fillColor">
-      <gradient
-          android:startX="0"
-          android:startY="0"
-          android:endX="512"
-          android:endY="512"
-          android:type="linear">
+      <gradient android:startX="28.44"
+		android:startY="22.95"
+		android:endX="75.57"
+		android:endY="86.47"
+		android:type="linear">
         <item android:offset="0" android:color="#FF8381C5"/>
-        <item android:offset="0.64" android:color="#FE806BBC"/>
+        <item android:offset="0.64" android:color="#FE7E55B3"/>
         <item android:offset="1" android:color="#FDA52ECB"/>
       </gradient>
     </aapt:attr>
   </path>
+  <path
+      android:pathData="m0,0v108h108v-108zM54,21a33,33 0,0 1,33 33,33 33,0 0,1 -33,33 33,33 0,0 1,-33 -33,33 33,0 0,1 33,-33z"
+      android:strokeWidth="0"
+      android:fillColor="#ffffff"
+      android:strokeColor="#ffffff"/>
 </vector>
