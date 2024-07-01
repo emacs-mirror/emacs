@@ -974,6 +974,9 @@ exec_0 (char *name, struct exec_tracee *tracee,
 	  rewrite = buffer1 + link_size;
 	  remaining = buffer1 + sizeof buffer1 - rewrite - 1;
 	  memcpy (rewrite, name, strnlen (name, remaining));
+
+	  /* Replace name with buffer1.  */
+	  strcpy (name, buffer1);
 	}
     }
 
