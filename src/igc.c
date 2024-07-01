@@ -350,7 +350,7 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_STRING",
   "IGC_OBJ_STRING_DATA",
   "IGC_OBJ_VECTOR",
-  "IGC_OBJ_VECTOR_WEAK",
+  "IGC_OBJ_MARKER_VECTOR",
   "IGC_OBJ_ITREE_TREE",
   "IGC_OBJ_ITREE_NODE",
   "IGC_OBJ_IMAGE",
@@ -1521,7 +1521,7 @@ fix_charset_table (mps_ss_t ss, struct charset *table, size_t nbytes)
 }
 
 static mps_res_t fix_vector (mps_ss_t ss, struct Lisp_Vector *v);
-static mps_res_t fix_vector_weak (mps_ss_t ss, struct Lisp_Vector *v);
+static mps_res_t fix_marker_vector (mps_ss_t ss, struct Lisp_Vector *v);
 
 static mps_res_t
 dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
@@ -1608,8 +1608,8 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_vector);
 	break;
 
-      case IGC_OBJ_VECTOR_WEAK:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_vector_weak);
+      case IGC_OBJ_MARKER_VECTOR:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, client, fix_marker_vector);
 	break;
 
       case IGC_OBJ_ITREE_TREE:
@@ -2233,65 +2233,6 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       case PVEC_PACKAGE:
 #endif
 	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
-	break;
-      }
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-static mps_res_t
-fix_vector_weak (mps_ss_t ss, struct Lisp_Vector *v)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    switch (pseudo_vector_type (v))
-      {
-      case PVEC_NORMAL_VECTOR:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_marker_vector);
-	break;
-
-#ifndef IN_MY_FORK
-      case PVEC_OBARRAY:
-#else
-      case PVEC_PACKAGE:
-#endif
-      case PVEC_BIGNUM:
-      case PVEC_BUFFER:
-      case PVEC_FRAME:
-      case PVEC_WINDOW:
-      case PVEC_HASH_TABLE:
-      case PVEC_CHAR_TABLE:
-      case PVEC_SUB_CHAR_TABLE:
-      case PVEC_BOOL_VECTOR:
-      case PVEC_OVERLAY:
-      case PVEC_SUBR:
-      case PVEC_FREE:
-      case PVEC_FINALIZER:
-      case PVEC_MISC_PTR:
-      case PVEC_USER_PTR:
-      case PVEC_XWIDGET:
-      case PVEC_XWIDGET_VIEW:
-      case PVEC_THREAD:
-      case PVEC_MUTEX:
-      case PVEC_TERMINAL:
-      case PVEC_MARKER:
-      case PVEC_NATIVE_COMP_UNIT:
-      case PVEC_MODULE_GLOBAL_REFERENCE:
-      case PVEC_TS_PARSER:
-      case PVEC_FONT:
-      case PVEC_SYMBOL_WITH_POS:
-      case PVEC_PROCESS:
-      case PVEC_WINDOW_CONFIGURATION:
-      case PVEC_MODULE_FUNCTION:
-      case PVEC_CONDVAR:
-      case PVEC_TS_COMPILED_QUERY:
-      case PVEC_TS_NODE:
-      case PVEC_SQLITE:
-      case PVEC_CLOSURE:
-      case PVEC_RECORD:
-      case PVEC_OTHER:
-	IGC_NOT_IMPLEMENTED ();
 	break;
       }
   }
@@ -3025,11 +2966,11 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_OBJ_VEC:
     case IGC_OBJ_HASH_VEC:
     case IGC_OBJ_HANDLER:
+    case IGC_OBJ_MARKER_VECTOR:
       igc_assert (!"finalize not implemented");
       break;
 
     case IGC_OBJ_VECTOR:
-    case IGC_OBJ_VECTOR_WEAK:
       finalize_vector (client);
       break;
     }
@@ -3297,7 +3238,7 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
 
-    case IGC_OBJ_VECTOR_WEAK:
+    case IGC_OBJ_MARKER_VECTOR:
       return t->d.weak_weak_ap;
 
     case IGC_OBJ_VECTOR:
@@ -3735,10 +3676,10 @@ igc_valid_lisp_object_p (Lisp_Object obj)
 }
 
 static Lisp_Object
-alloc_vector_weak (ptrdiff_t len, Lisp_Object init)
+alloc_marker_vector (ptrdiff_t len, Lisp_Object init)
 {
   struct Lisp_Vector *v
-    = alloc (header_size + len * word_size, IGC_OBJ_VECTOR_WEAK);
+    = alloc (header_size + len * word_size, IGC_OBJ_MARKER_VECTOR);
   v->header.size = len;
   for (ptrdiff_t i = 0; i < len; ++i)
     v->contents[i] = init;
@@ -3751,7 +3692,7 @@ larger_marker_vector (Lisp_Object v)
   igc_assert (NILP (v) || (VECTORP (v) && XFIXNUM (AREF (v, 0)) < 0));
   ptrdiff_t old_len = NILP (v) ? 0 : ASIZE (v);
   ptrdiff_t new_len = max (2, 2 * old_len);
-  Lisp_Object new_v = alloc_vector_weak (new_len, Qnil);
+  Lisp_Object new_v = alloc_marker_vector (new_len, Qnil);
   ptrdiff_t i = 0;
   if (VECTORP (v))
     for (i = 1; i < ASIZE (v); ++i)
@@ -3830,21 +3771,11 @@ igc_resurrect_markers (struct buffer *b)
     return;
   igc_assert (!weak_vector_p (old));
   size_t len = ASIZE (old);
-  Lisp_Object new = alloc_vector_weak (len, Qnil);
+  Lisp_Object new = alloc_marker_vector (len, Qnil);
   memcpy (XVECTOR (new)->contents, XVECTOR (old)->contents,
 	  len * sizeof (Lisp_Object));
   BUF_MARKERS (b) = new;
   igc_assert (weak_vector_p (BUF_MARKERS (b)));
-}
-
-DEFUN ("igc-make-weak-vector", Figc_make_weak_vector, Sigc_make_weak_vector, 2, 2, 0,
-       doc: /* Return a new weak vector of length LENGTH, with each element being INIT.
-See also the function `vector'.  */)
-  (Lisp_Object length, Lisp_Object init)
-{
-  CHECK_TYPE (FIXNATP (length) && XFIXNAT (length) <= PTRDIFF_MAX,
-	      Qwholenump, length);
-  return alloc_vector_weak (XFIXNAT (length), init);
 }
 
 static void
@@ -4174,8 +4105,9 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
       && !is_in_dump)
     {
       struct igc_header *h = client_to_base (client);
-      if (h->obj_type == IGC_OBJ_VECTOR_WEAK)
-	igc_assert ((type == IGC_OBJ_VECTOR && h->obj_type == IGC_OBJ_VECTOR_WEAK)
+      if (h->obj_type == IGC_OBJ_MARKER_VECTOR)
+	igc_assert ((type == IGC_OBJ_VECTOR
+		     && h->obj_type == IGC_OBJ_MARKER_VECTOR)
 		    || h->obj_type == type);
       igc_assert (base + obj_size (h) >= end);
       *out = *h;
@@ -4343,7 +4275,6 @@ void
 syms_of_igc (void)
 {
   defsubr (&Sigc_info);
-  defsubr (&Sigc_make_weak_vector);
   defsubr (&Sigc__roots);
   defsubr (&Sigc__collect);
   DEFSYM (Qambig, "ambig");
