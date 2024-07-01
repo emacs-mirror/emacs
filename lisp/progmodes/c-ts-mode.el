@@ -674,7 +674,9 @@ MODE is either `c' or `cpp'."
    :language mode
    :feature 'definition
    ;; Highlights identifiers in declarations.
-   `((declaration
+   `(,@(when (eq mode 'cpp)
+         '((destructor_name (identifier) @font-lock-function-name-face)))
+     (declaration
       declarator: (_) @c-ts-mode--fontify-declarator)
 
      (field_declaration
