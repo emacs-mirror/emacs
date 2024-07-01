@@ -2726,8 +2726,8 @@ some obvious cases.  Examples:
     (aset "abc" 1 ?d)
 
 Such code may have unpredictable behavior because the constants are part
-of the program, not of the data structures generated afresh during
-execution, and the compiler does not expect them to change.
+of the program and are not data structures generated afresh during
+execution; the compiler does not expect them to change.
 
 To avoid the warning, operate on an object created by the program
 (maybe a copy of the constant), or use a non-destructive operation
