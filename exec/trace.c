@@ -1605,8 +1605,8 @@ seccomp_system_call (struct exec_tracee *tracee)
 
      In this context processes are resumed with PTRACE_CONT unless it is
      an `open' syscall that is being intercepted, which, if successfully
-     intercepted, must receive adjustments to their stack pointer upon
-     completion of said system call.  */
+     intercepted, they must receive adjustments to their stack pointer
+     upon completion of said system call.  */
   assert (!tracee->waiting_for_syscall);
 
   /* Save the stack pointer.  */
