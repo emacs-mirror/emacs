@@ -247,6 +247,8 @@ the changes to snapshot A. See the modes's help."
     (cancel-timer igc--collect-timer)
     (setq igc--collect-timer nil)))
 
+(defvar igc-stats-time-format "%T")
+
 (defun igc--collect-stats ()
   (let ((buffer (get-file-buffer igc--collect-file)))
     (when buffer
@@ -255,7 +257,7 @@ the changes to snapshot A. See the modes's help."
         (when (= (point-min) (point-max))
           (insert (format "\"%s\",\"%s\",\"%s\",\"%s\"\n"
                           "Time" "Type" "N" "Bytes")))
-        (cl-loop with time = (current-time-string)
+        (cl-loop with time = (format-time-string igc-stats-time-format)
                  for (title n bytes) in (igc-info) do
                  (insert (format "\"%s\",\"%s\",\"%s\",\"%s\"\n"
                                  time title n bytes))))
