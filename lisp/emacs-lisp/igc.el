@@ -90,11 +90,12 @@
   (keymap-local-set "x" #'igc-clear)
   (display-line-numbers-mode -1)
   (setq header-line-format
-	'((:eval (format " %-35s %10s %15s"
+	'((:eval (format " %-35s %10s %15s %10s"
 			 (concat "Display "
 				 (symbol-name igc--display-mode))
 			 "Objects"
-			 "Bytes"))))
+			 "Bytes"
+			 "Avg"))))
   (setq-local revert-buffer-function
 	      (lambda (&rest _)
 		(setq igc--display-mode 'diff)
@@ -120,9 +121,13 @@ the changes to snapshot A. See the modes's help."
       (erase-buffer)
       (delete-all-overlays)
       (when info
-	(cl-loop for (title n bytes) in info
-		 do (insert (format "%-35s %10s %15s\n" title n
-				    bytes)))
+	(cl-loop for (title n bytes) in info do
+                 (insert (format "%-35s %10s %15s %10s\n"
+                                 title n bytes
+                                 (and bytes n
+                                      (if (zerop n)
+                                          0
+                                        (abs (/ bytes n)))))))
 	(sort-lines nil (point-min) (point-max)))
       (goto-char (point-min))))
   (display-buffer "*igc*"))

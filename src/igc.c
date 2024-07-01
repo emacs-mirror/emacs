@@ -3813,22 +3813,22 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
 		   make_int (st.pvec[i].nobjs), make_int (st.pvec[i].nbytes));
       result = Fcons (e, result);
     }
-  result = Fcons (list2 (build_string ("pause-time"),
+  result = Fcons (list3 (build_string ("pause-time"), Qnil,
 			 make_float (mps_arena_pause_time (gc->arena))),
 		  result);
-  result = Fcons (list2 (build_string ("reserved"),
+  result = Fcons (list3 (build_string ("reserved"), make_int (1),
 			 make_int (mps_arena_reserved (gc->arena))),
 		  result);
-  result = Fcons (list2 (build_string ("spare"),
+  result = Fcons (list3 (build_string ("spare"), Qnil,
 			 make_float (mps_arena_spare (gc->arena))),
 		  result);
-  result = Fcons (list2 (build_string ("spare-committed"),
+  result = Fcons (list3 (build_string ("spare-committed"), make_int (1),
 			 make_int (mps_arena_spare_committed (gc->arena))),
 		  result);
-  result = Fcons (list2 (build_string ("commit-limit"),
+  result = Fcons (list3 (build_string ("commit-limit"), make_int (1),
 			 make_int (mps_arena_commit_limit (gc->arena))),
 		  result);
-  result = Fcons (list2 (build_string ("committed"),
+  result = Fcons (list3 (build_string ("committed"), make_int (1),
 			 make_int (mps_arena_committed (gc->arena))),
 		  result);
   return result;
