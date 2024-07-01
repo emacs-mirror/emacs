@@ -114,7 +114,8 @@ the changes to snapshot A. See the modes's help."
   (with-current-buffer (get-buffer-create "*igc*")
     (igc-stats-mode)
     (setq buffer-read-only t buffer-file-name nil)
-    (let ((info (igc--info-to-display))
+    (let ((old-line (line-number-at-pos))
+          (info (igc--info-to-display))
 	  (inhibit-read-only t)
 	  (inhibit-modification-hooks t)
 	  (standard-output (current-buffer)))
@@ -129,7 +130,7 @@ the changes to snapshot A. See the modes's help."
                                           0
                                         (abs (/ bytes n)))))))
 	(sort-lines nil (point-min) (point-max)))
-      (goto-char (point-min))))
+      (goto-line old-line)))
   (display-buffer "*igc*"))
 
 (defun igc--roots-diff (i1 i2)
