@@ -2942,7 +2942,7 @@ the query.  */)
   /* As of right now, the node returned by treesit_resolve_node always
      passes treesit_check_node; but it might not be true in the future,
      so adding the line below just to be safe.  */
-  treesit_check_node (node);
+  treesit_check_node (lisp_node);
 
   /* Extract C values from Lisp objects.  */
   TSNode treesit_node = XTS_NODE (lisp_node)->node;
