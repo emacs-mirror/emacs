@@ -1943,7 +1943,7 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 		  };
 		weak_hash_splat_from_table
 		  (&pseudo_h, ((t->weakness == Weak_Key_And_Value) ?
-			       (i % XFIXNUM (t->table_size)) : i);
+			       (i % XFIXNUM (t->table_size)) : i));
 	      }
 	  }
       }
