@@ -747,7 +747,7 @@ customizing the new user option 'text-mode-ispell-word-completion'.
 ** Internationalization
 
 ---
-** Mode-line mnemonics for some coding-systems have changed.
+*** Mode-line mnemonics for some coding-systems have changed.
 The mode-line mnemonic for 'utf-7' is now the lowercase 'u', to be
 consistent with the other encodings of this family.
 
@@ -763,7 +763,7 @@ previous behavior of showing 'U' in the mode line for 'koi8-u':
     (coding-system-put 'koi8-u :mnemonic ?U)
 
 ---
-** 'vietnamese-tcvn' is now a coding system alias for 'vietnamese-vscii'.
+*** 'vietnamese-tcvn' is now a coding system alias for 'vietnamese-vscii'.
 VSCII-1 and TCVN-5712 are different names for the same character
 encoding.  Therefore, the duplicate coding system definition has been
 dropped in favor of an alias.
