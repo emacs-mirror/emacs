@@ -55,6 +55,12 @@ default), the 'whitespace-cleanup' function will now add the newline.
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
+---
+** Process execution has been optimized on Android.
+The run-time performance of subprocesses on recent Android releases
+where a userspace executable loader is required has been optimized on
+systems featuring Linux 4.8.0 and above.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
