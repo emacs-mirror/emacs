@@ -3788,6 +3788,12 @@ walk_pool (struct igc *gc, mps_pool_t p, struct igc_stats *st)
     error ("Error %d walking memory", res);
 }
 
+static Lisp_Object
+make_entry (const char *s, intmax_t n, intmax_t bytes)
+{
+  return list3 (build_string (s), make_int (n), make_int (bytes));
+}
+
 DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   (void)
 {
@@ -3798,39 +3804,29 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   walk_pool (gc, gc->weak_pool, &st);
   walk_pool (gc, gc->immovable_pool, &st);
 
-  Lisp_Object result = Qnil;
+  Lisp_Object result = Qnil, e;
   for (int i = 0; i < IGC_OBJ_NUM_TYPES; ++i)
     {
-      Lisp_Object e
-	= list3 (build_string (obj_type_name (i)),
-		 make_int (st.obj[i].nobjs), make_int (st.obj[i].nbytes));
+      e = make_entry (obj_type_name (i), st.obj[i].nobjs, st.obj[i].nbytes);
       result = Fcons (e, result);
     }
-  for (enum pvec_type i = 0; i <= PVEC_TAG_MAX; i++)
+  for (enum pvec_type i = 0; i <= PVEC_TAG_MAX; ++i)
     {
-      Lisp_Object e
-	  = list3 (build_string (pvec_type_name (i)),
-		   make_int (st.pvec[i].nobjs), make_int (st.pvec[i].nbytes));
+      e = make_entry (pvec_type_name (i), st.obj[i].nobjs, st.obj[i].nbytes),
       result = Fcons (e, result);
     }
-  result = Fcons (list3 (build_string ("pause-time"), Qnil,
-			 make_float (mps_arena_pause_time (gc->arena))),
-		  result);
-  result = Fcons (list3 (build_string ("reserved"), make_int (1),
-			 make_int (mps_arena_reserved (gc->arena))),
-		  result);
-  result = Fcons (list3 (build_string ("spare"), Qnil,
-			 make_float (mps_arena_spare (gc->arena))),
-		  result);
-  result = Fcons (list3 (build_string ("spare-committed"), make_int (1),
-			 make_int (mps_arena_spare_committed (gc->arena))),
-		  result);
-  result = Fcons (list3 (build_string ("commit-limit"), make_int (1),
-			 make_int (mps_arena_commit_limit (gc->arena))),
-		  result);
-  result = Fcons (list3 (build_string ("committed"), make_int (1),
-			 make_int (mps_arena_committed (gc->arena))),
-		  result);
+  e = list3 (build_string ("pause-time"), Qnil, make_float (mps_arena_pause_time (gc->arena)));
+  result = Fcons (e, result);
+  e = list3 (build_string ("spare"), Qnil, make_float (mps_arena_spare (gc->arena)));
+  result = Fcons (e, result);
+  e = make_entry ("reserved", 1, mps_arena_reserved (gc->arena));
+  result = Fcons (e, result);
+  e = make_entry ("spare-committed", 1, mps_arena_spare_committed (gc->arena));
+  result = Fcons (e, result);
+  e = make_entry ("commit-limit", 1, mps_arena_commit_limit (gc->arena));
+  result = Fcons (e, result);
+  e = make_entry ("committed", 1, mps_arena_committed (gc->arena));
+  result = Fcons (e, result);
   return result;
 }
 
