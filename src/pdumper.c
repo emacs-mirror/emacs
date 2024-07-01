@@ -2233,6 +2233,7 @@ dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
 #ifndef HAVE_MPS
       dump_field_lv_rawptr (ctx, out, marker, &marker->next,
 			    Lisp_Vectorlike, WEIGHT_STRONG);
+#else
       DUMP_FIELD_COPY (out, marker, index);
 #endif
       DUMP_FIELD_COPY (out, marker, charpos);
