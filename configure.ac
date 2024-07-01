@@ -200,8 +200,9 @@ AS_IF([test "$XCONFIGURE" = "android"],[
   # Derive a name for a cache file for this configure script from the
   # current, if specified.
   exec_cache_file=
-  AS_IF([test -n "$cache_file"],
-    [exec_cache_file="--cache-file=$cache_file.2"])
+  AS_CASE([$cache_file], [/dev/null | ""], [],
+    [[[\\/]* | ?:[\\/]*]], [exec_cache_file="--cache-file=$cache_file.2"],
+    [*], [exec_cache_file="--cache-file=../$cache_file.2"])
   OLDCWD=`pwd`
   cd exec
   $CONFIG_SHELL $emacs_srcdir/exec/configure		\
@@ -1270,7 +1271,7 @@ packages targeting Android 2.2.])])
 
   # And derive a name for the recursive configure invocation's cache
   # file if one should be specified for this.
-  AS_IF([test -n "$cache_file"],
+  AS_IF([test -n "$cache_file" && test "$cache_file" != "/dev/null"],
     [passthrough="$passthrough --cache-file=$cache_file.1"])
 
   AS_IF([test "x$with_mailutils" = "xyes"], [emacs_use_mailutils=yes])
