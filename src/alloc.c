@@ -6230,6 +6230,18 @@ purecopy (Lisp_Object obj)
 
       obj = make_lisp_hash_table (purecopy_hash_table (table));
     }
+#ifdef HAVE_MPS
+  else if (WEAK_HASH_TABLE_P (obj))
+    {
+      /* Instead, add the hash table to the list of pinned objects,
+	 so that it will be marked during GC.  */
+      struct pinned_object *o = xmalloc (sizeof *o);
+      o->object = obj;
+      o->next = pinned_objects;
+      pinned_objects = o;
+      return obj; /* Don't hash cons it.  */
+    }
+#endif
   else if (CLOSUREP (obj) || VECTORP (obj) || RECORDP (obj))
     {
       struct Lisp_Vector *objp = XVECTOR (obj);

@@ -372,6 +372,8 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_DUMPED_BUFFER_TEXT",
   "IGC_OBJ_DUMPED_BIGNUM_DATA",
   "IGC_OBJ_DUMPED_BYTES",
+  "IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART",
+  "IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART",
 };
 
 static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_NUM_TYPES);
@@ -399,6 +401,7 @@ static const char *pvec_type_names[] = {
   "PVEC_BOOL_VECTOR",
   "PVEC_BUFFER",
   "PVEC_HASH_TABLE",
+  "PVEC_WEAK_HASH_TABLE",
 #ifndef IN_MY_FORK
   "PVEC_OBARRAY",
 #endif
@@ -460,8 +463,8 @@ struct igc_stats
 
 enum
 {
-  IGC_TYPE_BITS = 5,
-  IGC_HASH_BITS = 27,
+  IGC_TYPE_BITS = 6,
+  IGC_HASH_BITS = 26,
   IGC_SIZE_BITS = 32,
   IGC_HASH_MASK = (1 << IGC_HASH_BITS) - 1,
 };
@@ -638,6 +641,8 @@ struct igc_thread
   mps_ap_t leaf_ap;
   mps_ap_t weak_strong_ap;
   mps_ap_t weak_weak_ap;
+  mps_ap_t weak_hash_strong_ap;
+  mps_ap_t weak_hash_weak_ap;
   mps_ap_t immovable_ap;
 
   /* Quick access to the roots used for specpdl, bytecode stack and
@@ -674,6 +679,8 @@ struct igc
   mps_pool_t leaf_pool;
   mps_fmt_t weak_fmt;
   mps_pool_t weak_pool;
+  mps_fmt_t weak_hash_fmt;
+  mps_pool_t weak_hash_pool;
   mps_fmt_t immovable_fmt;
   mps_pool_t immovable_pool;
 
@@ -1522,6 +1529,8 @@ fix_charset_table (mps_ss_t ss, struct charset *table, size_t nbytes)
 
 static mps_res_t fix_vector (mps_ss_t ss, struct Lisp_Vector *v);
 static mps_res_t fix_marker_vector (mps_ss_t ss, struct Lisp_Vector *v);
+static mps_res_t fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong_Part *t);
+static mps_res_t fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Part *w);
 
 static mps_res_t
 dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
@@ -1644,6 +1653,15 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
       case IGC_OBJ_DUMPED_CHARSET_TABLE:
 	IGC_FIX_CALL (ss, fix_charset_table (ss, (struct charset *)client,
 					     obj_size (header)));
+	break;
+
+      case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Hash_Table_Strong_Part, client,
+			 fix_weak_hash_table_strong_part);
+	break;
+      case IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Hash_Table_Weak_Part, client,
+			 fix_weak_hash_table_weak_part);
 	break;
       }
   }
@@ -1836,6 +1854,60 @@ fix_hash_table (mps_ss_t ss, struct Lisp_Hash_Table *h)
     IGC_FIX12_RAW (ss, &h->hash);
     IGC_FIX12_RAW (ss, &h->next);
     IGC_FIX12_RAW (ss, &h->index);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
+fix_weak_hash_table (mps_ss_t ss, struct Lisp_Weak_Hash_Table *h)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    IGC_FIX12_RAW (ss, &h->strong);
+    IGC_FIX12_RAW (ss, &h->weak);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
+fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong_Part *t)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    for (ssize_t i = 0; i < 4 * XFIXNUM (t->table_size); i++)
+      {
+	IGC_FIX12_OBJ (ss, &t->entries[i].lisp_object);
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
+fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Part *w)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    IGC_FIX12_RAW (ss, &w->strong);
+    struct Lisp_Weak_Hash_Table_Strong_Part *t = w->strong;
+    for (ssize_t i = 0; i < 4 * XFIXNUM (t->table_size); i++)
+      {
+	bool was_nil = NILP (w->entries[i].lisp_object);
+	IGC_FIX12_OBJ (ss, &w->entries[i].lisp_object);
+	bool is_now_nil = NILP (w->entries[i].lisp_object);
+
+	if (is_now_nil && !was_nil)
+	  {
+	    struct Lisp_Weak_Hash_Table pseudo_h =
+	      {
+		.strong = t,
+		.weak = w,
+	      };
+	    weak_hash_splat_from_table (&pseudo_h, i);
+	  }
+      }
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2131,6 +2203,10 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 
       case PVEC_HASH_TABLE:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Hash_Table, v, fix_hash_table);
+	break;
+
+      case PVEC_WEAK_HASH_TABLE:
+	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Hash_Table, v, fix_weak_hash_table);
 	break;
 
       case PVEC_CHAR_TABLE:
@@ -2505,6 +2581,22 @@ create_weak_ap (mps_ap_t *ap, struct igc_thread *t, bool weak)
   return res;
 }
 
+static mps_res_t
+create_weak_hash_ap (mps_ap_t *ap, struct igc_thread *t, bool weak)
+{
+  struct igc *gc = t->gc;
+  mps_res_t res;
+  mps_pool_t pool = gc->weak_hash_pool;
+  MPS_ARGS_BEGIN (args)
+  {
+    MPS_ARGS_ADD (args, MPS_KEY_RANK,
+		  weak ? mps_rank_weak () : mps_rank_exact ());
+    res = mps_ap_create_k (ap, pool, args);
+  }
+  MPS_ARGS_END (args);
+  return res;
+}
+
 static void
 create_thread_aps (struct igc_thread *t)
 {
@@ -2517,8 +2609,10 @@ create_thread_aps (struct igc_thread *t)
   res = mps_ap_create_k (&t->immovable_ap, gc->immovable_pool, mps_args_none);
   IGC_CHECK_RES (res);
   res = create_weak_ap (&t->weak_strong_ap, t, false);
+  res = create_weak_hash_ap (&t->weak_hash_strong_ap, t, false);
   IGC_CHECK_RES (res);
   res = create_weak_ap (&t->weak_weak_ap, t, true);
+  res = create_weak_hash_ap (&t->weak_hash_weak_ap, t, true);
   IGC_CHECK_RES (res);
 }
 
@@ -2578,6 +2672,8 @@ igc_thread_remove (void **pinfo)
   mps_ap_destroy (t->d.leaf_ap);
   mps_ap_destroy (t->d.weak_strong_ap);
   mps_ap_destroy (t->d.weak_weak_ap);
+  mps_ap_destroy (t->d.weak_hash_strong_ap);
+  mps_ap_destroy (t->d.weak_hash_weak_ap);
   mps_ap_destroy (t->d.immovable_ap);
   mps_thread_dereg (deregister_thread (t));
 }
@@ -2897,6 +2993,7 @@ finalize_vector (mps_addr_t v)
     case PVEC_OBARRAY:
 #endif
     case PVEC_HASH_TABLE:
+    case PVEC_WEAK_HASH_TABLE:
     case PVEC_SYMBOL_WITH_POS:
     case PVEC_PROCESS:
     case PVEC_RECORD:
@@ -2946,6 +3043,8 @@ finalize (struct igc *gc, mps_addr_t base)
     case IGC_OBJ_DUMPED_BIGNUM_DATA:
     case IGC_OBJ_DUMPED_BYTES:
     case IGC_OBJ_BYTES:
+    case IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART:
+    case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
     case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
 
@@ -3001,6 +3100,7 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
     case PVEC_OBARRAY:
 #endif
     case PVEC_HASH_TABLE:
+    case PVEC_WEAK_HASH_TABLE:
     case PVEC_NORMAL_VECTOR:
     case PVEC_FREE:
     case PVEC_MARKER:
@@ -3240,6 +3340,12 @@ thread_ap (enum igc_obj_type type)
 
     case IGC_OBJ_MARKER_VECTOR:
       return t->d.weak_weak_ap;
+
+    case IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART:
+      return t->d.weak_hash_weak_ap;
+
+    case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
+      return t->d.weak_hash_strong_ap;
 
     case IGC_OBJ_VECTOR:
     case IGC_OBJ_CONS:
@@ -3605,10 +3711,49 @@ igc_alloc_lisp_obj_vec (size_t n)
   return alloc (n * sizeof (Lisp_Object), IGC_OBJ_OBJ_VEC);
 }
 
+static mps_addr_t
+weak_hash_find_dependent (mps_addr_t base)
+{
+  struct igc_header *h = base;
+  switch (h->obj_type)
+    {
+    case IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART:
+      {
+	mps_addr_t client = base_to_client (base);
+	struct Lisp_Weak_Hash_Table_Weak_Part *w = client;
+	return client_to_base (w->strong);
+      }
+    case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
+      {
+	mps_addr_t client = base_to_client (base);
+	struct Lisp_Weak_Hash_Table_Strong_Part *w = client;
+	return client_to_base (w->weak);
+      }
+    default:
+      emacs_abort ();
+    }
+
+  return 0;
+}
+
 Lisp_Object *
 igc_make_hash_table_vec (size_t n)
 {
   return alloc (n * sizeof (Lisp_Object), IGC_OBJ_HASH_VEC);
+}
+
+struct Lisp_Weak_Hash_Table_Strong_Part *
+igc_alloc_weak_hash_table_strong_part (hash_table_weakness_t weak, size_t size, size_t index_bits)
+{
+  return alloc (sizeof (struct Lisp_Weak_Hash_Table_Strong_Part) + 5 * size * sizeof (union Lisp_Weak_Hash_Table_Entry),
+		IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART);
+}
+
+struct Lisp_Weak_Hash_Table_Weak_Part *
+igc_alloc_weak_hash_table_weak_part (hash_table_weakness_t weak, size_t size, size_t index_bits)
+{
+  return alloc (sizeof (struct Lisp_Weak_Hash_Table_Weak_Part) + 5 * size * sizeof (union Lisp_Weak_Hash_Table_Entry),
+		IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART);
 }
 
 /* Like xpalloc, but uses 'alloc' instead of xrealloc, and should only
@@ -3805,6 +3950,7 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   walk_pool (gc, gc->dflt_pool, &st);
   walk_pool (gc, gc->leaf_pool, &st);
   walk_pool (gc, gc->weak_pool, &st);
+  walk_pool (gc, gc->weak_hash_pool, &st);
   walk_pool (gc, gc->immovable_pool, &st);
 
   Lisp_Object result = Qnil, e;
@@ -3896,7 +4042,7 @@ make_dflt_fmt (struct igc *gc)
 }
 
 static mps_pool_t
-make_pool_with_class (struct igc *gc, mps_fmt_t fmt, mps_class_t cls)
+make_pool_with_class (struct igc *gc, mps_fmt_t fmt, mps_class_t cls, mps_awl_find_dependent_t find_dependent)
 {
   mps_res_t res;
   mps_pool_t pool;
@@ -3905,6 +4051,8 @@ make_pool_with_class (struct igc *gc, mps_fmt_t fmt, mps_class_t cls)
     MPS_ARGS_ADD (args, MPS_KEY_FORMAT, fmt);
     MPS_ARGS_ADD (args, MPS_KEY_CHAIN, gc->chain);
     MPS_ARGS_ADD (args, MPS_KEY_INTERIOR, true);
+    if (find_dependent)
+      MPS_ARGS_ADD (args, MPS_KEY_AWL_FIND_DEPENDENT, find_dependent);
     res = mps_pool_create_k (&pool, gc->arena, cls, args);
   }
   MPS_ARGS_END (args);
@@ -3915,25 +4063,25 @@ make_pool_with_class (struct igc *gc, mps_fmt_t fmt, mps_class_t cls)
 static mps_pool_t
 make_pool_amc (struct igc *gc, mps_fmt_t fmt)
 {
-  return make_pool_with_class (gc, fmt, mps_class_amc ());
+  return make_pool_with_class (gc, fmt, mps_class_amc (), NULL);
 }
 
 static mps_pool_t
 make_pool_ams (struct igc *gc, mps_fmt_t fmt)
 {
-  return make_pool_with_class (gc, fmt, mps_class_ams ());
+  return make_pool_with_class (gc, fmt, mps_class_ams (), NULL);
 }
 
 static mps_pool_t
-make_pool_awl (struct igc *gc, mps_fmt_t fmt)
+make_pool_awl (struct igc *gc, mps_fmt_t fmt, mps_awl_find_dependent_t find_dependent)
 {
-  return make_pool_with_class (gc, fmt, mps_class_awl ());
+  return make_pool_with_class (gc, fmt, mps_class_awl (), find_dependent);
 }
 
 static mps_pool_t
 make_pool_amcz (struct igc *gc, mps_fmt_t fmt)
 {
-  return make_pool_with_class (gc, fmt, mps_class_amcz ());
+  return make_pool_with_class (gc, fmt, mps_class_amcz (), NULL);
 }
 
 static struct igc *
@@ -3952,7 +4100,9 @@ make_igc (void)
   gc->leaf_fmt = make_dflt_fmt (gc);
   gc->leaf_pool = make_pool_amcz (gc, gc->leaf_fmt);
   gc->weak_fmt = make_dflt_fmt (gc);
-  gc->weak_pool = make_pool_awl (gc, gc->weak_fmt);
+  gc->weak_pool = make_pool_awl (gc, gc->weak_fmt, NULL);
+  gc->weak_hash_fmt = make_dflt_fmt (gc);
+  gc->weak_hash_pool = make_pool_awl (gc, gc->weak_hash_fmt, weak_hash_find_dependent);
   gc->immovable_fmt = make_dflt_fmt (gc);
   gc->immovable_pool = make_pool_ams (gc, gc->immovable_fmt);
 

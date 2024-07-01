@@ -1441,6 +1441,13 @@ dump_enqueue_object (struct dump_context *ctx,
                      Lisp_Object object,
                      struct link_weight weight)
 {
+#ifdef HAVE_MPS
+  if (WEAK_HASH_TABLE_P (object))
+    {
+      strengthen_hash_table_for_dump (XWEAK_HASH_TABLE (object));
+      object = XWEAK_HASH_TABLE (object)->dump_replacement;
+    }
+#endif
   if (dump_object_needs_dumping_p (object))
     {
       dump_off state = dump_recall_object (ctx, object);
@@ -1940,6 +1947,13 @@ dump_field_lv_or_rawptr (struct dump_context *ctx,
     }
   else
     {
+#ifdef HAVE_MPS
+      if (WEAK_HASH_TABLE_P (value))
+	{
+	  strengthen_hash_table_for_dump (XWEAK_HASH_TABLE (value));
+	  value = XWEAK_HASH_TABLE (value)->dump_replacement;
+	}
+#endif
       /* We don't know about the target object yet, so add a fixup.
          When we process the fixup, we'll have dumped the target
          object.  */
@@ -3129,6 +3143,15 @@ dump_vectorlike (struct dump_context *ctx,
       return dump_vectorlike_generic (ctx, &v->header);
     case PVEC_BOOL_VECTOR:
       return dump_bool_vector(ctx, v);
+#ifdef HAVE_MPS
+    case PVEC_WEAK_HASH_TABLE:
+      if (WEAK_HASH_TABLE_P (lv))
+	{
+	  strengthen_hash_table_for_dump (XWEAK_HASH_TABLE (lv));
+	  lv = XWEAK_HASH_TABLE (lv)->dump_replacement;
+	}
+      return dump_hash_table (ctx, lv);
+#endif
     case PVEC_HASH_TABLE:
       return dump_hash_table (ctx, lv);
     case PVEC_OBARRAY:

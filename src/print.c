@@ -2188,6 +2188,9 @@ print_vectorlike_unreadable (Lisp_Object obj, Lisp_Object printcharfun,
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_HASH_TABLE:
+#ifdef HAVE_MPS
+    case PVEC_WEAK_HASH_TABLE:
+#endif
     case PVEC_BIGNUM:
     case PVEC_BOOL_VECTOR:
     /* Impossible cases.  */
@@ -2785,6 +2788,56 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	      }
 	    goto next_obj;
 	  }
+
+#ifdef HAVE_MPS
+	case PVEC_WEAK_HASH_TABLE:
+	  {
+	    struct Lisp_Weak_Hash_Table *h = XWEAK_HASH_TABLE (obj);
+	    /* Implement a readable output, e.g.:
+	       #s(hash-table test equal data (k1 v1 k2 v2)) */
+	    print_c_string ("#s(hash-table", printcharfun);
+
+	    if (!BASE_EQ (h->strong->test->name, Qeql))
+	      {
+		print_c_string (" test ", printcharfun);
+		print_object (h->strong->test->name, printcharfun, escapeflag);
+	      }
+
+	    if (h->strong->weakness != Weak_None)
+	      {
+		print_c_string (" weakness ", printcharfun);
+		print_object (hash_table_weakness_symbol (h->strong->weakness),
+			      printcharfun, escapeflag);
+	      }
+
+	    /* XXX: strengthen first, then count */
+	    ptrdiff_t size = XFIXNUM (h->strong->count);
+	    if (size > 0)
+	      {
+		print_c_string (" data (", printcharfun);
+
+		/* Don't print more elements than the specified maximum.  */
+		if (FIXNATP (Vprint_length) && XFIXNAT (Vprint_length) < size)
+		  size = XFIXNAT (Vprint_length);
+
+		print_stack_push ((struct print_stack_entry){
+		    .type = PE_hash,
+		    .u.hash.obj = strengthen_hash_table (obj),
+		    .u.hash.nobjs = size * 2,
+		    .u.hash.idx = 0,
+		    .u.hash.printed = 0,
+		    .u.hash.truncated = (size < XFIXNUM (h->strong->count)),
+		  });
+	      }
+	    else
+	      {
+		/* Empty table: we can omit the data entirely.  */
+		printchar (')', printcharfun);
+		--print_depth;   /* Done with this.  */
+	      }
+	    goto next_obj;
+	  }
+#endif
 
 	case PVEC_BIGNUM:
 	  print_bignum (obj, printcharfun);
