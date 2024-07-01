@@ -130,7 +130,8 @@ the changes to snapshot A. See the modes's help."
                                           0
                                         (abs (/ bytes n)))))))
 	(sort-lines nil (point-min) (point-max)))
-      (goto-line old-line)))
+      (goto-char (point-min))
+      (forward-line (1- old-line))))
   (display-buffer "*igc*"))
 
 (defun igc--roots-diff (i1 i2)

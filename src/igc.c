@@ -3794,6 +3794,9 @@ make_entry (const char *s, intmax_t n, intmax_t bytes)
   return list3 (build_string (s), make_int (n), make_int (bytes));
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsuggest-attribute=noreturn"
+
 DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   (void)
 {
@@ -3829,6 +3832,8 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
   result = Fcons (e, result);
   return result;
 }
+
+#pragma GCC diagnostic pop
 
 DEFUN ("igc--roots", Figc__roots, Sigc__roots, 0, 0, 0, doc : /* */)
   (void)
