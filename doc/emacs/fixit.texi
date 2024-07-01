@@ -473,6 +473,13 @@ it will slow down cursor motion and scrolling commands.  It also
 doesn't automatically check the text you didn't type or move across;
 use @code{flyspell-region} or @code{flyspell-buffer} for that.
 
+@vindex flyspell-check-changes
+  Normally, Flyspell mode highlights misspelled words that you typed or
+modified, but also words you move across without changing them.  But if
+you customize the variable @code{flyspell-check-changes} to a
+non-@code{nil} value, Flyspell mode will check only the words you typed
+or edited in some way.
+
 @findex flyspell-correct-word
 @findex flyspell-auto-correct-word
 @findex flyspell-correct-word-before-point

@@ -186,8 +186,8 @@ their code.
 @end defun
 
 @noindent
-Unlike @code{functionp}, the next three functions do @emph{not} treat
-a symbol as its function definition.
+Unlike @code{functionp}, the next functions do @emph{not} treat a symbol
+as its function definition.
 
 @defun subrp object
 This function returns @code{t} if @var{object} is a built-in function
@@ -242,6 +242,20 @@ This works like @code{func-arity}, but only for built-in functions and
 without symbol indirection.  It signals an error for non-built-in
 functions.  We recommend to use @code{func-arity} instead.
 @end defun
+
+@defun cl-functionp object
+This function is like @code{functionp}, except it returns @code{nil} for
+lists and symbols.
+@end defun
+
+@findex subr-primitive-p
+@defun primitive-function-p object
+This function returns @code{t} if @var{object} is a built-in primitive
+written in C (@pxref{Primitive Function Type}).  Note that special forms
+are explicitly excluded, as they are not functions.  Use
+@code{subr-primitive-p} if you need to recognize special forms as well.
+@end defun
+
 
 @node Lambda Expressions
 @section Lambda Expressions
