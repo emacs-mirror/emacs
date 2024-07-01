@@ -23,6 +23,9 @@
 
 ;;; Code:
 
+(declare-function touch-screen-pinch "touch-screen")
+(declare-function touch-screen-scroll "touch-screen")
+
 (defun rmc--add-key-description (elem)
   (let* ((char (car elem))
          (name (cadr elem))
