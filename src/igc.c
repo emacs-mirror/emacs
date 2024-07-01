@@ -1876,10 +1876,11 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
 {
   MPS_SCAN_BEGIN (ss)
   {
-    for (ssize_t i = 0; i < 4 * XFIXNUM (t->table_size); i++)
-      {
-	IGC_FIX12_OBJ (ss, &t->entries[i].lisp_object);
-      }
+    if (t->weak && t->weak->strong == t)
+      for (ssize_t i = 0; i < 4 * XFIXNUM (t->table_size); i++)
+	{
+	  IGC_FIX12_OBJ (ss, &t->entries[i].lisp_object);
+	}
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1892,22 +1893,23 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
   {
     IGC_FIX12_RAW (ss, &w->strong);
     struct Lisp_Weak_Hash_Table_Strong_Part *t = w->strong;
-    for (ssize_t i = 0; i < 4 * XFIXNUM (t->table_size); i++)
-      {
-	bool was_nil = NILP (w->entries[i].lisp_object);
-	IGC_FIX12_OBJ (ss, &w->entries[i].lisp_object);
-	bool is_now_nil = NILP (w->entries[i].lisp_object);
+    if (t && t->weak == w)
+      for (ssize_t i = 0; i < 4 * XFIXNUM (t->table_size); i++)
+	{
+	  bool was_nil = NILP (w->entries[i].lisp_object);
+	  IGC_FIX12_OBJ (ss, &w->entries[i].lisp_object);
+	  bool is_now_nil = NILP (w->entries[i].lisp_object);
 
-	if (is_now_nil && !was_nil)
-	  {
-	    struct Lisp_Weak_Hash_Table pseudo_h =
-	      {
-		.strong = t,
-		.weak = w,
-	      };
-	    weak_hash_splat_from_table (&pseudo_h, i);
-	  }
-      }
+	  if (is_now_nil && !was_nil)
+	    {
+	      struct Lisp_Weak_Hash_Table pseudo_h =
+		{
+		  .strong = t,
+		  .weak = w,
+		};
+	      weak_hash_splat_from_table (&pseudo_h, i);
+	    }
+	}
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;

@@ -5463,8 +5463,6 @@ allocate_weak_hash_table (hash_table_weakness_t weak, ssize_t size, ssize_t inde
   ret->strong->next = ret->strong->entries + 2 * size;
   ret->strong->index = ret->strong->entries + 3 * size;
   ret->weak = igc_alloc_weak_hash_table_weak_part (weak, size, index_bits);
-  ret->strong->weak = ret->weak;
-  ret->weak->strong = ret->strong;
   ret->strong->key = ret->weak->entries;
   return ret;
 }
@@ -5552,6 +5550,9 @@ make_weak_hash_table (const struct hash_table_test *test, EMACS_INT size,
 
   h->strong->purecopy = purecopy;
   h->strong->mutable = true;
+  /* Finally, mark the new hash table as scannable. */
+  h->strong->weak = h->weak;
+  h->weak->strong = h->strong;
   return make_lisp_weak_hash_table (h);
 }
 
@@ -5591,8 +5592,6 @@ maybe_resize_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
       strong->index = strong->entries + 3 * new_size;
       strong->key = weak->entries;
       strong->count = make_fixnum (0);
-      weak->strong = strong;
-      strong->weak = weak;
 
       for (ptrdiff_t i = 0; i < new_size - 1; i++)
 	strong->next[i].lisp_object = make_fixnum (i + 1);
@@ -5614,6 +5613,9 @@ maybe_resize_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
 
       struct Lisp_Weak_Hash_Table *pseudo =
 	ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Weak_Hash_Table, PVEC_WEAK_HASH_TABLE);
+      /* Mark the new hash table as ready for scanning */
+      weak->strong = strong;
+      strong->weak = weak;
       pseudo->strong = strong;
       pseudo->weak = weak;
       Lisp_Object k, v;
