@@ -348,6 +348,28 @@ and /* */ comments.  SOFT works the same as in
       (delete-region (line-beginning-position) (point))
       (insert whitespaces)))))
 
+;; Font locking using doxygen parser
+(defvar c-ts-mode-doxygen-comment-font-lock-settings
+  (treesit-font-lock-rules
+   :language 'doxygen
+   :feature 'document
+   :override t
+   '((document) @font-lock-doc-face)
+
+   :language 'doxygen
+   :override t
+   :feature 'keyword
+   '((tag_name) @font-lock-constant-face
+     (storageclass) @font-lock-constant-face)
+
+   :language 'doxygen
+   :override t
+   :feature 'definition
+   '((tag (identifier) @font-lock-variable-name-face)
+     (function (identifier) @font-lock-function-name-face)
+     (function_link) @font-lock-function-name-face))
+  "Tree-sitter font lock rules for doxygen like comment styles.")
+
 ;;; Statement indent
 
 (defvar c-ts-common-indent-offset nil
