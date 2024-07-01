@@ -5458,12 +5458,29 @@ allocate_weak_hash_table (hash_table_weakness_t weak, ssize_t size, ssize_t inde
   struct Lisp_Weak_Hash_Table *ret =
     ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Weak_Hash_Table, PVEC_WEAK_HASH_TABLE);
   ret->strong = igc_alloc_weak_hash_table_strong_part (weak, size, index_bits);
-  ret->strong->hash = ret->strong->entries + 0;
-  ret->strong->value = ret->strong->entries + 1 * size;
-  ret->strong->next = ret->strong->entries + 2 * size;
-  ret->strong->index = ret->strong->entries + 3 * size;
   ret->weak = igc_alloc_weak_hash_table_weak_part (weak, size, index_bits);
-  ret->strong->key = ret->weak->entries;
+  ret->strong->hash = ret->strong->entries + 0;
+  ret->strong->next = ret->strong->entries + 1 * size;
+  switch (weak)
+    {
+    case Weak_Key:
+      ret->strong->key = ret->weak->entries;
+      ret->strong->value = ret->strong->entries + 2 * size;
+      ret->strong->index = ret->strong->entries + 3 * size;
+      break;
+    case Weak_Value:
+      ret->strong->key = ret->strong->entries + 2 * size;
+      ret->strong->value = ret->weak->entries;
+      ret->strong->index = ret->strong->entries + 3 * size;
+      break;
+    case Weak_Key_And_Value:
+      ret->strong->key = ret->weak->entries;
+      ret->strong->value = ret->weak->entries + size;
+      ret->strong->index = ret->strong->entries + 2 * size;
+      break;
+    default:
+      emacs_abort ();
+    }
   return ret;
 }
 
@@ -5587,10 +5604,27 @@ maybe_resize_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
       memcpy (strong, h->strong, sizeof *strong);
 
       strong->hash = strong->entries + 0;
-      strong->value = strong->entries + 1 * new_size;
-      strong->next = strong->entries + 2 * new_size;
-      strong->index = strong->entries + 3 * new_size;
-      strong->key = weak->entries;
+      strong->next = strong->entries + 1 * new_size;
+      switch (h->strong->weakness)
+	{
+	case Weak_Key:
+	  strong->key = weak->entries;
+	  strong->value = strong->entries + 2 * new_size;
+	  strong->index = strong->entries + 3 * new_size;
+	  break;
+	case Weak_Value:
+	  strong->key = strong->entries + 2 * new_size;
+	  strong->value = weak->entries;
+	  strong->index = strong->entries + 3 * new_size;
+	  break;
+	case Weak_Key_And_Value:
+	  strong->key = weak->entries;
+	  strong->value = weak->entries + new_size;
+	  strong->index = strong->entries + 2 * new_size;
+	  break;
+	default:
+	  emacs_abort ();
+	}
       strong->count = make_fixnum (0);
 
       for (ptrdiff_t i = 0; i < new_size - 1; i++)
@@ -5624,7 +5658,6 @@ maybe_resize_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
 	  Fputhash (k, v, make_lisp_weak_hash_table (pseudo));
 	}
 
-      memset (h->weak->entries, 0, 4 * old_size * sizeof (h->weak->entries[0]));
       h->strong = strong;
       h->weak = weak;
     }

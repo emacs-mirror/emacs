@@ -1877,10 +1877,27 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
   MPS_SCAN_BEGIN (ss)
   {
     if (t->weak && t->weak->strong == t)
-      for (ssize_t i = 0; i < 4 * XFIXNUM (t->table_size); i++)
-	{
-	  IGC_FIX12_OBJ (ss, &t->entries[i].lisp_object);
-	}
+      {
+	ssize_t limit;
+	switch (t->weakness)
+	  {
+	  case Weak_Key:
+	    limit = 3 * XFIXNUM (t->table_size);
+	    break;
+	  case Weak_Value:
+	    limit = 3 * XFIXNUM (t->table_size);
+	    break;
+	  case Weak_Key_And_Value:
+	    limit = 2 * XFIXNUM (t->table_size);
+	    break;
+	  default:
+	    emacs_abort ();
+	  }
+	for (ssize_t i = 2 * XFIXNUM (t->table_size); i < limit; i++)
+	  {
+	    IGC_FIX12_OBJ (ss, &t->entries[i].lisp_object);
+	  }
+      }
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1894,22 +1911,42 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
     IGC_FIX12_RAW (ss, &w->strong);
     struct Lisp_Weak_Hash_Table_Strong_Part *t = w->strong;
     if (t && t->weak == w)
-      for (ssize_t i = 0; i < 4 * XFIXNUM (t->table_size); i++)
-	{
-	  bool was_nil = NILP (w->entries[i].lisp_object);
-	  IGC_FIX12_OBJ (ss, &w->entries[i].lisp_object);
-	  bool is_now_nil = NILP (w->entries[i].lisp_object);
+      {
+	ssize_t limit;
+	switch (t->weakness)
+	  {
+	  case Weak_Key:
+	    limit = XFIXNUM (t->table_size);
+	    break;
+	  case Weak_Value:
+	    limit = XFIXNUM (t->table_size);
+	    break;
+	  case Weak_Key_And_Value:
+	    limit = 2 * XFIXNUM (t->table_size);
+	    break;
+	  default:
+	    emacs_abort ();
+	  }
 
-	  if (is_now_nil && !was_nil)
-	    {
-	      struct Lisp_Weak_Hash_Table pseudo_h =
-		{
-		  .strong = t,
-		  .weak = w,
-		};
-	      weak_hash_splat_from_table (&pseudo_h, i);
-	    }
-	}
+	for (ssize_t i = 0; i < limit; i++)
+	  {
+	    bool was_nil = NILP (w->entries[i].lisp_object);
+	    IGC_FIX12_OBJ (ss, &w->entries[i].lisp_object);
+	    bool is_now_nil = NILP (w->entries[i].lisp_object);
+
+	    if (is_now_nil && !was_nil)
+	      {
+		struct Lisp_Weak_Hash_Table pseudo_h =
+		  {
+		    .strong = t,
+		    .weak = w,
+		  };
+		weak_hash_splat_from_table
+		  (&pseudo_h, ((t->weakness == Weak_Key_And_Value) ?
+			       (i % XFIXNUM (t->table_size)) : i);
+	      }
+	  }
+      }
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -3747,14 +3784,46 @@ igc_make_hash_table_vec (size_t n)
 struct Lisp_Weak_Hash_Table_Strong_Part *
 igc_alloc_weak_hash_table_strong_part (hash_table_weakness_t weak, size_t size, size_t index_bits)
 {
-  return alloc (sizeof (struct Lisp_Weak_Hash_Table_Strong_Part) + 5 * size * sizeof (union Lisp_Weak_Hash_Table_Entry),
+  size_t total_size;
+  switch (weak)
+    {
+    case Weak_Key:
+      total_size = 3 * size + ((ptrdiff_t)1 << index_bits);
+      break;
+    case Weak_Value:
+      total_size = 3 * size + ((ptrdiff_t)1 << index_bits);
+      break;
+    case Weak_Key_And_Value:
+      total_size = 2 * size + ((ptrdiff_t)1 << index_bits);
+      break;
+    default:
+      emacs_abort ();
+    }
+  return alloc (sizeof (struct Lisp_Weak_Hash_Table_Strong_Part) +
+		total_size * sizeof (union Lisp_Weak_Hash_Table_Entry),
 		IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART);
 }
 
 struct Lisp_Weak_Hash_Table_Weak_Part *
 igc_alloc_weak_hash_table_weak_part (hash_table_weakness_t weak, size_t size, size_t index_bits)
 {
-  return alloc (sizeof (struct Lisp_Weak_Hash_Table_Weak_Part) + 5 * size * sizeof (union Lisp_Weak_Hash_Table_Entry),
+  size_t total_size;
+  switch (weak)
+    {
+    case Weak_Key:
+      total_size = size;
+      break;
+    case Weak_Value:
+      total_size = size;
+      break;
+    case Weak_Key_And_Value:
+      total_size = 2 * size;
+      break;
+    default:
+      emacs_abort ();
+    }
+  return alloc (sizeof (struct Lisp_Weak_Hash_Table_Weak_Part) +
+		total_size * sizeof (union Lisp_Weak_Hash_Table_Entry),
 		IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART);
 }
 
