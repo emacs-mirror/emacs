@@ -59,7 +59,7 @@ default), the 'whitespace-cleanup' function will now add the newline.
 ** Process execution has been optimized on Android.
 The run-time performance of subprocesses on recent Android releases
 where a userspace executable loader is required has been optimized on
-systems featuring Linux 4.8.0 and above.
+systems featuring Linux 3.5.0 and above.
 
 
 ----------------------------------------------------------------------

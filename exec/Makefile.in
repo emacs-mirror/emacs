@@ -90,16 +90,16 @@ ifeq ($(is_mips),yes)
 .s.o:
 	$(M4) $< > $(notdir $<).s
 	$(AS) $(ASFLAGS) $(notdir $<).s -o $@
-else
-.s.o:
-	$(AS) $(ASFLAGS) $< -o $@
-endif
 
 # Set up dependencies for config-mips.m4.
 
 config-mips.m4: config-mips.m4.in
 	cd $(srcdir) && ./config.status $@
 $(LOADOBJS): config-mips.m4
+else
+.s.o:
+	$(AS) $(ASFLAGS) $< -o $@
+endif
 
 # Set up rules to build libexec.a.
 

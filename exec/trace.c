@@ -845,7 +845,12 @@ finish_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
 #else /* !__aarch64__ */
       ptrace (PTRACE_SETREGS, tracee->pid, NULL, regs);
 #endif /* __aarch64__ */
-      return;
+
+      /* Continue; not much in the way of remediation is available if
+	 either of PTRACE_SETREGS and this resumption fails.  */
+      ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+	      tracee->pid, 0, 0);
+      goto error;
     }
 
   /* Write the loader area to the stack, followed by its size and the
@@ -1858,6 +1863,10 @@ after_fork (pid_t pid)
 {
   int wstatus, rc, flags;
   struct exec_tracee *tracee;
+#if defined HAVE_SECCOMP && __ANDROID__
+  int statusarg;
+  USER_REGS_STRUCT regs;
+#endif /* defined HAVE_SECCOMP && __ANDROID__ */
 
   /* First, wait for something to happen to PID.  */
  again:
@@ -1897,14 +1906,86 @@ after_fork (pid_t pid)
       return 1;
     }
 
-  /* Request that the child stop upon the next system call, or the next
-     filter event.  */
-  rc = ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
-	       pid, 0, 0);
+#if defined HAVE_SECCOMP && __ANDROID__
+  /* Certain Android kernels have received backports of those new
+     PTRACE_EVENT_SECCOMP semantics which were introduced in kernel
+     version 4.8, so that it is necessary to actively establish which
+     variant is in place.  */
+
+  if (kernel_4_7_or_earlier && use_seccomp_p)
+    {
+      /* Request that the child stop upon the next `exec' system call,
+	 one of which is assumed to always be issued by the child, as
+	 below, but await the next stop, and examine its contents.
+	 Anciently, the syscall-stop preceeded events marked
+	 PTRACE_EVENT_SECCOMP, whereas this sequence is reversed in
+	 4.8+, and in releases with these changes backported.  */
+
+      rc = ptrace (PTRACE_SYSCALL, pid, 0, 0);
+      if (rc)
+	return 1;
+
+      while (true)
+	{
+	  rc = waitpid (pid, &wstatus, __WALL);
+	  if (rc != pid)
+	    return 1;
+
+	  if (WIFSTOPPED (wstatus))
+	    {
+	      /* Verify that this system call is `exec', not one issued
+		 between PTRACE_TRACEME and `exec' intercepted by
+		 PTRACE_SYSCALL.  */
+#ifdef __aarch64__
+	      rc = aarch64_get_regs (pid, &regs);
+#else /* !__aarch64__ */
+	      rc = ptrace (PTRACE_GETREGS, pid, NULL, &regs);
+#endif /* __aarch64__ */
+	      if (rc)
+		return 1;
+
+	      if (regs.SYSCALL_NUM_REG == EXEC_SYSCALL)
+		{
+		  statusarg = ((wstatus & 0xfff00) >> 8);
+
+		  if (statusarg == (SIGTRAP | (PTRACE_EVENT_SECCOMP << 8)))
+		    {
+		      /* The first event to be delivered is a seccomp
+			 stop, indicating that this is an unmodified
+			 <4.7 kernel.  Return to await the subsequent
+			 syscall-stop, which should be received and
+			 acted on by process_system_call.  */
+		      rc = ptrace (PTRACE_SYSCALL, pid, 0, 0);
+		      break;
+		    }
+		  else if (statusarg == (SIGTRAP | 0x80))
+		    {
+		      /* Syscall-traps take priority.  This is a
+			 doctored 4.7 kernel.  */
+		      kernel_4_7_or_earlier = false;
+		      rc = ptrace (PTRACE_CONT, pid, 0, 0);
+		      break;
+		    }
+		}
+
+	      rc = ptrace (PTRACE_SYSCALL, pid, 0, 0);
+	      if (rc)
+		return 1;
+	    }
+	  else
+	    return 1;
+	}
+    }
+  else
+#endif /* HAVE_SECCOMP && __ANDROID__ */
+    /* Request that the child stop upon the next system call, or the
+       next filter event.  */
+    rc = ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+		 pid, 0, 0);
   if (rc)
     return 1;
 
-  /* Enter the child in `tracing_processes'.  */
+  /* Enroll the child into `tracing_processes'.  */
 
   if (free_tracees)
     {
@@ -2064,8 +2145,9 @@ exec_waitpid (pid_t pid, int *wstatus, int options)
 #endif /* SIGSYS */
 
 	default:
-	  /* Continue the process until the next syscall.  */
-	  ptrace (PTRACE_SYSCALL, pid, 0, status);
+	  /* Resume the process as appropriate.  */
+	  ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+		  pid, 0, status);
 	  return -1;
 	}
     }
@@ -2117,20 +2199,7 @@ exec_init (const char *loader)
       else
 	{
 	  if (major < 4 || (major == 4 && minor <= 7))
-	    {
-#ifndef __ANDROID__
-	      kernel_4_7_or_earlier = true;
-#else /* __ANDROID __ */
-              /* Certain Android kernels have received backports of
-		 those new PTRACE_EVENT_SECCOMP semantics which were
-		 introduced in kernel version 4.8, so that it is
-		 necessary to actively establish which variant is in
-		 place.  This being much too involved for code I cannot
-		 test, simply disable seccomp on kernel releases subject
-		 to these uncertainties.  */
-	      use_seccomp_p = false;
-#endif /* !__ANDROID__ */
-	    }
+	    kernel_4_7_or_earlier = true;
 	}
     }
 #endif /* HAVE_SECCOMP */
