@@ -33,7 +33,7 @@
 (defun igc--diff (i1 i2)
   (cl-loop for (t1 n1 s1) in i1
 	   for (_t2 n2 s2) in i2
-	   unless (= n1 n2)
+	   when (and n1 n2 (/= n1 n2))
 	   collect (list t1 (- n1 n2) (and s1 (- s1 s2)))))
 
 (defvar igc--a nil)
