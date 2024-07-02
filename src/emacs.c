@@ -2643,7 +2643,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
      sure that these staticpros have run when things are assigned to the
      staticpro'd variables. So, let's begin collecting only when we know
      that it's safe. */
-  igc_begin_collecting ();
+  igc_on_staticpros_complete ();
 #endif
 
   /* Enter editor command loop.  This never returns.  */

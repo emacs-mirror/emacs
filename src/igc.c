@@ -4202,7 +4202,7 @@ make_igc (void)
 }
 
 void
-igc_begin_collecting (void)
+igc_on_staticpros_complete (void)
 {
   struct igc *gc = global_igc;
   arena_release (gc);

@@ -147,7 +147,7 @@ void igc_postmortem (void);
 void igc_on_grow_specpdl (void);
 void igc_on_alloc_main_thread_specpdl (void);
 void igc_on_alloc_main_thread_bc (void);
-void igc_begin_collecting (void);
+void igc_on_staticpros_complete (void);
 void igc_collect (void);
 void igc_root_create_ambig (void *start, void *end, const char *debug_name);
 void igc_root_create_exact (Lisp_Object *start, Lisp_Object *end);
