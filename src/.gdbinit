@@ -51,8 +51,8 @@ if defined_HAVE_PGTK
 end
 
 # Pass on signals used by MPS to suspend threads.
-handle SIGXFSZ noprint pass
-handle SIGXCPU noprint pass
+handle SIGXFSZ nostop noprint pass
+handle SIGXCPU nostop noprint pass
 
 # Use $bugfix so that the value isn't a constant.
 # Using a constant runs into GDB bugs sometimes.
