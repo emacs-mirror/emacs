@@ -2812,11 +2812,12 @@ match_limit (Lisp_Object num, bool beginningp)
 
 DEFUN ("match-beginning", Fmatch_beginning, Smatch_beginning, 1, 1, 0,
        doc: /* Return position of start of text matched by last search.
-SUBEXP, a number, specifies which parenthesized expression in the last
-  regexp.
-Value is nil if SUBEXPth pair didn't match, or there were less than
-  SUBEXP pairs.
-Zero means the entire text matched by the whole regexp or whole string.
+SUBEXP, a number, specifies the parenthesized subexpression in the last
+  regexp for which to return the start position.
+Value is nil if SUBEXPth subexpression didn't match, or there were fewer
+  than SUBEXP subexpressions.
+SUBEXP zero means the entire text matched by the whole regexp or whole
+  string.
 
 Return value is undefined if the last search failed.  */)
   (Lisp_Object subexp)
@@ -2826,11 +2827,12 @@ Return value is undefined if the last search failed.  */)
 
 DEFUN ("match-end", Fmatch_end, Smatch_end, 1, 1, 0,
        doc: /* Return position of end of text matched by last search.
-SUBEXP, a number, specifies which parenthesized expression in the last
-  regexp.
-Value is nil if SUBEXPth pair didn't match, or there were less than
-  SUBEXP pairs.
-Zero means the entire text matched by the whole regexp or whole string.
+SUBEXP, a number, specifies the parenthesized subexpression in the last
+  regexp for which to return the start position.
+Value is nil if SUBEXPth subexpression didn't match, or there were fewer
+  than SUBEXP subexpressions.
+SUBEXP zero means the entire text matched by the whole regexp or whole
+  string.
 
 Return value is undefined if the last search failed.  */)
   (Lisp_Object subexp)

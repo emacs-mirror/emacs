@@ -4396,10 +4396,9 @@ a label construct.  This catches C++'s inheritance construct \"class foo
 
 (c-lang-defconst c-opt-extra-label-key
   "Optional regexp matching labels.
-Normally, labels are detected according to `c-nonlabel-token-key',
-`c-decl-prefix-re' and `c-nonlabel-decl-prefix-re'.  This regexp can
-be used if there are additional labels that aren't recognized that
-way."
+Normally, labels are detected according to `c-nonlabel-token-key' and
+`c-decl-prefix-re'.  This regexp can be used if there are additional
+labels that aren't recognized that way."
   t    nil
   objc (c-make-keywords-re t (c-lang-const c-protection-kwds)))
 (c-lang-defvar c-opt-extra-label-key (c-lang-const c-opt-extra-label-key))

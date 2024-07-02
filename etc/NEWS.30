@@ -37,7 +37,7 @@ compilation, configure Emacs with the option:
 This requires Emacs to be compiled on another computer.  The Android
 NDK, SDK, and a suitable Java compiler must also be installed.
 
-See the file 'java/INSTALL' for more details.
+See the file "java/INSTALL" for more details.
 
 ---
 ** Native JSON support is now always available; libjansson is no longer used.
@@ -46,14 +46,14 @@ been removed.  'json-available-p' now always returns non-nil and is only
 kept for compatibility.
 
 ---
-** Emacs now defaults to ossaudio library for sound on NetBSD and OpenBSD.
-Previously configure used ALSA libraries if installed on the
-system when configured '--with-sound=yes' (which is the default), with
-fallback to libossaudio.  The libossaudio library included with the
-base system is now used even if ALSA is found to avoid relying on
-external packages and to resolve potential incompatibilities between
-Linux and BSD versions of ALSA.  Use '--with-sound=alsa' to build with
-ALSA on these operating systems instead.
+** Emacs now defaults to the ossaudio library for sound on NetBSD and OpenBSD.
+Previously, configure used ALSA libraries if installed on the system
+when configured '--with-sound=yes' (which is the default), with fallback
+to libossaudio.  The libossaudio library included with the base system
+is now used even if ALSA is found to avoid relying on external packages
+and to resolve potential incompatibilities between GNU/Linux and *BSD
+versions of ALSA.  Use '--with-sound=alsa' to build with ALSA on these
+operating systems instead.
 
 
 * Startup Changes in Emacs 30.1
@@ -101,7 +101,7 @@ configuration settings installed via mode hooks are not affected.
 At those places where the old 'mouse-4/5/6/7' events could still occur
 (i.e., X11 input in the absence of XInput2, and 'xterm-mouse-mode'),
 we remap them to the corresponding 'wheel-up/down/left/right' event,
-according to the new variable 'mouse-wheel-buttons'.
+according to the new user option 'mouse-wheel-buttons'.
 The old variables 'mouse-wheel-up-event', 'mouse-wheel-down-event',
 'mouse-wheel-left-event', and 'mouse-wheel-right-event' are thereby
 obsolete.
@@ -131,7 +131,7 @@ to your init file:
 ** The default process filter was rewritten in native code.
 The round-trip through the Lisp function
 'internal-default-process-filter' is skipped when the process filter is
-the default one.  It's reimplemented in native code, reducing GC churn.
+the default one.  It is reimplemented in native code, reducing GC churn.
 To undo this change, set 'fast-read-process-output' to nil.
 
 +++
@@ -428,16 +428,16 @@ This user option controls outline visibility in the output buffer of
 'describe-bindings' when 'describe-bindings-outline' is non-nil.
 
 ---
-*** 'describe-function' shows function inferred type when available.
-For native compiled Lisp functions 'describe-function' prints (after
+*** 'describe-function' shows the function inferred type when available.
+For native compiled Lisp functions, 'describe-function' prints (after
 the signature) the automatically inferred function type as well.
 
 ---
 *** 'describe-function' now shows the type of the function object.
-The text used to say things like "car is is a built-in function" whereas
-it now says "car is a primitive-function" where "primitive-function" is
-the symbol returned by 'cl-type-of'.  You can click on those words to
-get information about that type.
+The text used to say things like "car is a built-in function" whereas it
+now says "car is a primitive-function" where "primitive-function" is the
+the name of the symbol returned by 'cl-type-of'.  You can click on those
+words to get information about that type.
 
 ---
 *** 'C-h m' ('describe-mode') uses outlining by default.
@@ -605,8 +605,8 @@ value when installing GNU coreutils using something like ports or
 Homebrew.
 
 +++
-*** 'write-region-inhibit-fsync' now defaults to t in interactive mode,
-as it did in batch mode since Emacs 24.
+*** 'write-region-inhibit-fsync' now defaults to t in interactive mode.
+This is the default in batch mode since Emacs 24.
 
 ---
 *** The default value of 'read-process-output-max' was increased to 65536.
@@ -615,7 +615,7 @@ as it did in batch mode since Emacs 24.
 *** 'url-gateway-broken-resolution' is now obsolete.
 This option was intended for use on SunOS 4.x and Ultrix systems,
 neither of which have been supported by Emacs since version 23.1.
-The user option 'url-gateway-nslookup-program' and the function
+The user option 'url-gateway-nslookup-program' and the command
 'url-gateway-nslookup-host' are consequently also obsolete.
 
 
@@ -740,14 +740,14 @@ The default is unchanged.
 By default, Text mode no longer binds 'M-TAB' to 'ispell-complete-word'.
 Instead, this mode arranges for 'completion-at-point', globally bound to
 'M-TAB', to perform word completion as well.  You can have Text mode
-bind 'M-TAB' to 'ispell-complete-word' as it did in previous Emacs
+binding 'M-TAB' to 'ispell-complete-word' as it did in previous Emacs
 versions, or disable Ispell word completion in Text mode altogether, by
 customizing the new user option 'text-mode-ispell-word-completion'.
 
 ** Internationalization
 
 ---
-** Mode-line mnemonics for some coding-systems have changed.
+*** Mode-line mnemonics for some coding-systems have changed.
 The mode-line mnemonic for 'utf-7' is now the lowercase 'u', to be
 consistent with the other encodings of this family.
 
@@ -763,13 +763,13 @@ previous behavior of showing 'U' in the mode line for 'koi8-u':
     (coding-system-put 'koi8-u :mnemonic ?U)
 
 ---
-** 'vietnamese-tcvn' is now a coding system alias for 'vietnamese-vscii'.
+*** 'vietnamese-tcvn' is now a coding system alias for 'vietnamese-vscii'.
 VSCII-1 and TCVN-5712 are different names for the same character
 encoding.  Therefore, the duplicate coding system definition has been
 dropped in favor of an alias.
 
 The mode-line mnemonic for 'vietnamese-vscii' and its aliases is the
-lowercase letter 'v'.
+lowercase letter "v".
 
 ---
 *** Users in CJK locales can control width of some non-CJK characters.
@@ -832,7 +832,7 @@ These input methods can now produce single guillemets "‹" and "›".  For
 
 ---
 *** New French language 'C-x 8' key translations for "‹" and "›".
-These characters can now be entered using 'C-x 8 ~ <' and 'C-x 8 ~ >'
+These characters can now be entered using 'C-x 8 ~ <' and 'C-x 8 ~ >',
 respectively, after activating French language support via
 'iso-transl-set-language'.  Double guillemets were already supported via
 'C-x 8 <' and 'C-x 8 >'
@@ -876,8 +876,8 @@ This requires the 'lzip' program to be installed on your system.
 
 +++
 *** New user option 'gud-highlight-current-line'.
-When enabled, Gud will visually emphasize the line being executed upon
-pauses in the debugee's execution, such as those occasioned by
+When enabled, GUD will visually emphasize the line being executed upon
+pauses in the debuggee's execution, such as those occasioned by
 breakpoints being hit.
 
 +++
@@ -891,8 +891,8 @@ configure the order and max length of various properties in the local
 variables buffer when using 'gdb-many-windows'.
 
 By default, this user option is set to write the properties in the order:
-name, type and value, where the name and type are truncated to 20
-characters, and the value is truncated according to the value of
+'name', 'type' and 'value', where the 'name' and 'type' are truncated to 20
+characters, and the 'value' is truncated according to the value of
 'gdb-locals-value-limit'.
 
 If you want to get back the old behavior, set the user option to the value
@@ -902,7 +902,7 @@ If you want to get back the old behavior, set the user option to the value
 
 +++
 *** New user option 'gdb-display-io-buffer'.
-If this is nil, 'M-x gdb' will neither create nor display a separate
+If this is nil, command 'gdb' will neither create nor display a separate
 buffer for the I/O of the program being debugged, but will instead
 redirect the program's interaction to the GDB execution buffer.  The
 default is t, to preserve previous behavior.
@@ -913,7 +913,7 @@ default is t, to preserve previous behavior.
 *** New user option 'grep-use-headings'.
 When non-nil, the output of Grep is split into sections, one for each
 file, instead of having file names prefixed to each line.  It is
-equivalent to the "--heading" option of some tools such as 'git grep'
+equivalent to the '--heading' option of some tools such as 'git grep'
 and 'rg'.  The headings are displayed using the new 'grep-heading' face.
 The default is nil.
 
@@ -951,7 +951,7 @@ The look of the key prompt in the project switcher has been changed
 slightly.  To get the previous one, set this option to 'brackets'.
 
 ---
-*** 'project-try-vc' tries harder to find the responsible VCS.
+*** Function 'project-try-vc' tries harder to find the responsible VCS.
 When 'project-vc-extra-root-markers' is non-nil, and causes a
 subdirectory project to be detected which is not a VCS root, Project now
 additionally traverses the parent directories until a VCS root is found
@@ -971,7 +971,7 @@ you can add this to your init script:
 
 ---
 *** New variable 'project-files-relative-names'.
-If it's non-nil, 'project-files' can return file names relative to the
+If it is non-nil, 'project-files' can return file names relative to the
 project root.  Project backends can use this to improve the performance
 of their 'project-files' implementation.
 
@@ -998,32 +998,32 @@ The command was previously obsoleted and unbound in Emacs 28.
 
 ---
 *** Support for viewing VC change history across renames.
-When a fileset's VC change history ends at a rename, ('C-x v l') now
+When a fileset's VC change history ends at a rename, 'C-x v l' now
 prints the old name(s) and shows a button which jumps to the history of
 the files under the old names.  This feature is supported for Git and
 Hg.  Naturally, 'vc-git-print-log-follow' should be nil for this to work
-(or '--follow' should not be in 'vc-hg-print-log-switches', in Hg's
-case).  Unlike when the '--follow' switch is used, commands to see the
-diff of the old revision ('d'), to check out an old file version ('f')
-or to annotate it ('a'), also work on revisions which precede renames.
+(or '--follow' should not be in 'vc-hg-log-switches', in Hg's case).
+Unlike when the '--follow' switch is used, commands to see the diff of
+the old revision ('d'), to check out an old file version ('f') or to
+annotate it ('a'), also work on revisions which precede renames.
 
 ---
 *** 'vc-annotate' now abbreviates the Git revision in the buffer name.
 When using the Git backend, 'vc-annotate' will use an abbreviated
 revision identifier in its buffer name.  To restore the previous
-behavior, set 'vc-annotate-use-short-revision' to nil.
+behavior, set user option 'vc-annotate-use-short-revision' to nil.
 
 ---
-*** New option 'vc-git-file-name-changes-switches'.
+*** New user option 'vc-git-file-name-changes-switches'.
 It allows tweaking the thresholds for rename and copy detection.
 
 ** Diff mode
 
 ---
 *** New user option 'diff-refine-nonmodified'.
-When this is non-nil, 'diff-refine' will highlight lines that were added
-or removed in their entirety (as opposed to modified lines, where some
-parts of the line were modified), using the same faces as for
+When this is non-nil, 'diff-refine-hunk' will highlight lines that were
+added or removed in their entirety (as opposed to modified lines, where
+some parts of the line were modified), using the same faces as for
 highlighting the words added and removed within modified lines.  The
 default value is nil.
 
@@ -1056,8 +1056,8 @@ the last line will move to the first line).  The default is nil.
 
 ---
 *** New user option 'dired-filename-display-length'.
-It is an integer representing the maximum display length of filenames.
-The middle part of a filename whose length exceeds the restriction is
+It is an integer representing the maximum display length of file names.
+The middle part of a file name whose length exceeds the restriction is
 hidden and an ellipsis is displayed instead.  A value of 'window'
 means using the right edge of window as the display restriction.  The
 default is nil.
@@ -1289,12 +1289,12 @@ is not in a comment or a string.  By default, it is bound to 'M-q' in
 
 +++
 *** New user option 'imenu-flatten'.
-It controls  whether to flatten the list of sections in an imenu, and
+It controls whether to flatten the list of sections in an imenu, and
 how to display the sections in the flattened list.
 
 +++
 *** The sort order of Imenu completions can now be customized.
-You can customize the option 'completion-category-overrides'
+You can customize the user option 'completion-category-overrides'
 and set 'display-sort-function' for the category 'imenu'.
 
 ** Which Function mode
@@ -1475,13 +1475,13 @@ prefix argument, it always displays the readable parts, and with a zero
 or negative prefix, it always displays the full page.
 
 +++
-*** New option 'eww-readable-urls'.
+*** New user option 'eww-readable-urls'.
 This is a list of regular expressions matching the URLs where EWW should
 display only the readable parts by default.  For more details, see
 "(eww) Basics" in the EWW manual.
 
 ---
-*** New option 'eww-readable-adds-to-history'.
+*** New user option 'eww-readable-adds-to-history'.
 When non-nil (the default), calling 'eww-readable' adds a new entry to
 the EWW page history.
 
@@ -1654,7 +1654,7 @@ and 'python-nav-end-of-block' to the inferior Python process.
 ---
 *** Default value of 'python-shell-compilation-regexp-alist' is changed.
 Support for Python's ExceptionGroup has been added, so in the Python
-shell, the line indicating the source of error in the error messages
+shell, the line indicating the source of an error in the error messages
 from ExceptionGroup will be recognized as well.
 
 ** Eldoc
@@ -1666,16 +1666,16 @@ Previously, the entire docstring was not available to eldoc, which made
 kept by customizing 'eldoc-echo-area-use-multiline-p'.
 
 ---
-** Scheme mode
-Scheme mode now handles regular expression literal '#/regexp/' that is
-available in some Scheme implementations.
+** Scheme mode.
+Scheme mode now handles the regular expression literal '#/regexp/' that
+is available in some Scheme implementations.
 Also, it should now handle nested sexp-comments.
 
 ** Use package
 
 +++
 *** New ':vc' keyword.
-This keyword enables the user to install packages using 'package-vc'.
+This keyword enables the user to install packages using package-vc.el.
 
 +++
 *** New user option 'use-package-vc-prefer-newest'.
@@ -1697,7 +1697,7 @@ servers.
 *** The 'nnweb-type' option 'gmane' has been removed.
 The gmane.org website is, sadly, down since a number of years with no
 prospect of it coming back.  Therefore, it is no longer valid to set
-the user option 'nnweb-type' to 'gmane'.
+the server variable 'nnweb-type' to 'gmane'.
 
 ---
 *** New user option 'gnus-mode-line-logo'.
@@ -1823,7 +1823,7 @@ or use the command 'cperl-set-style'.
 ---
 *** New minor mode 'cperl-extra-paired-delimiters-mode'.
 Perl 5.36 and newer allows using more than 200 non-ASCII paired
-delimiters for quote-like constructs, eg. "q«text»".  Use this minor
+delimiters for quote-like constructs, e.g. "q«text»".  Use this minor
 mode in buffers where this feature is activated.
 
 ---
@@ -1866,7 +1866,7 @@ You can now configure how thumbnails are named using this option.
 
 +++
 *** New macro 'skip-when' to skip 'ert-deftest' tests.
-This can help avoid some awkward skip conditions.  For example
+This can help to avoid some awkward skip conditions.  For example
 '(skip-unless (not noninteractive))' can be changed to the easier
 to read '(skip-when noninteractive)'.
 
@@ -1972,7 +1972,7 @@ will return the URL for that bug.
 
 +++
 *** New user option 'rcirc-log-time-format'.
-This allows for rcirc logs to use a custom timestamp format, than the
+This allows for rcirc logs to use a custom timestamp format, which the
 chat buffers use by default.
 
 ---
@@ -2092,7 +2092,7 @@ current project configuration, and later updates it as you edit the
 files and save the changes.
 
 +++
-** New package Which-Key
+** New package 'which-key'.
 The 'which-key' package from GNU ELPA is now included in Emacs.  It
 implements the global minor mode 'which-key-mode' that displays a table
 of key bindings upon entering a partial key chord and waiting for a
@@ -2146,7 +2146,7 @@ dark.  In addition to these, we now have 'modus-operandi-tinted' and
 'modus-operandi-tritanopia', and 'modus-vivendi-tritanopia' to cover
 the needs of users with red-green or blue-yellow color deficiency.
 The Info manual "(modus-themes) Top" describes the details and
-showcases all their customization options.
+showcases all their user options.
 
 +++
 ** New library PEG.
@@ -2209,15 +2209,15 @@ with 'define-derived-mode' are not affected.  'run-mode-hooks' has been the
 recommended way to run major mode hooks since Emacs 22.
 
 +++
-** 'buffer-match-p' and 'match-buffers' take '&rest args'.
-They used to take a single '&optional arg' and were documented to use
+** 'buffer-match-p' and 'match-buffers' take '&rest ARGS'.
+They used to take a single '&optional ARG' and were documented to use
 an unreliable hack to try and support condition predicates that
-don't accept this optional arg.
+don't accept this optional ARG.
 The new semantics makes no such accommodation, but the code still
 supports it (with a warning) for backward compatibility.
 
 ---
-** 'post-gc-hook' runs after updating 'gcs-done' and 'gcs-elapsed'.
+** 'post-gc-hook' runs after updating 'gcs-done' and 'gc-elapsed'.
 
 ---
 ** Connection-local variables are applied in buffers visiting remote files.
@@ -2238,7 +2238,7 @@ advise against relying on this.
 +++
 ** Infinities and NaNs no longer act as symbols on non-IEEE platforms.
 On old platforms like the VAX that do not support IEEE floating-point,
-tokens like 0.0e+NaN and 1.0e+INF are no longer read as symbols.
+tokens like '0.0e+NaN' and '1.0e+INF' are no longer read as symbols.
 Instead, the Lisp reader approximates an infinity with the nearest
 finite value, and a NaN with some other non-numeric object that
 provokes an error if used numerically.
@@ -2309,7 +2309,7 @@ You may need to recompile your code if it was compiled with Emacs < 24.3.
 ---
 ** Old derived.el functions removed.
 The following functions have been deleted because they were only used
-by code compiled with Emacs<21:
+by code compiled with Emacs < 21:
 'derived-mode-init-mode-variables', 'derived-mode-merge-abbrev-tables',
 'derived-mode-merge-keymaps', 'derived-mode-merge-syntax-tables',
 'derived-mode-run-hooks', 'derived-mode-set-abbrev-table',
@@ -2338,7 +2338,7 @@ which wheel event (if any).
 +++
 ** New hook 'hack-dir-local-get-variables-functions'.
 This can be used to provide support for other directory-local settings
-beside '.dir-locals.el'.
+beside ".dir-locals.el".
 
 +++
 ** 'auto-coding-functions' can know the name of the file.
@@ -2347,7 +2347,7 @@ which the text belongs by consulting the variable 'auto-coding-file-name'.
 
 +++
 ** New user option 'compilation-safety' to control safety of native code.
-It's now possible to control how safe is the code generated by native
+It is now possible to control how safe is the code generated by native
 compilation, by customizing this user option.  It is also possible to
 control this at function granularity by using the new 'safety' parameter
 in the function's 'declare' form.
@@ -2593,8 +2593,8 @@ only return that string, and will not use it as a docstring.  Example:
     (defun sing-a-song ()
       "Sing a song.")
 
-The above function returns the string '"Sing a song."' and has no doc
-string.  Previously, that string was used as both the doc string and
+The above function returns the string "Sing a song." and has no
+docstring.  Previously, that string was used as both the docstring and
 return value, which was never what the programmer wanted.  If you want
 the string to be a docstring, add an explicit return value.
 
@@ -3015,7 +3015,7 @@ aforementioned functions:
 ** 'vtable-update-object' updates an existing object with just two arguments.
 It is now possible to update the representation of an object in a vtable
 by calling 'vtable-update-object' with just the vtable and the object as
-arguments.  (Previously the 'old-object' argument was required which, in
+arguments.  (Previously, the OLD-OBJECT argument was required which, in
 this case, would mean repeating the object in the argument list.)  When
 replacing an object with a different one, passing both the new and old
 objects is still necessary.
@@ -3108,9 +3108,9 @@ will disregard the system's Dark mode and will always use the default
 Light mode.
 
 ---
-*** You can now use Image-Dired even if 'convert' command is not installed.
+*** You can now use Image-Dired even if the 'convert' program is not installed.
 If you don't have GraphicsMagick or ImageMagick installed, and thus the
-'gm convert'/'convert' command is not available, Emacs on MS-Windows
+'gm convert'/'convert' program is not available, Emacs on MS-Windows
 will now use its own function 'w32image-create-thumbnail' to create
 thumbnail images and show them in the thumbnail buffer.  Unlike with
 using 'convert', this fallback method is synchronous, so Emacs will wait

@@ -1181,9 +1181,7 @@ REGEXP is used as a string in the prompt."
          (files (completing-read
                  (format-prompt "Search for \"%s\" in files matching wildcard"
                                 default regexp)
-                 (completion-table-merge
-                  (lambda (_string _pred _action) defaults)
-                  #'read-file-name-internal)
+                 (completion-table-merge defaults #'completion-file-name-table)
 		 nil nil nil 'grep-files-history defaults)))
     (and files
 	 (or (cdr (assoc files grep-files-aliases))
