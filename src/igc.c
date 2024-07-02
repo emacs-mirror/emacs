@@ -4059,7 +4059,7 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
     }
   for (enum pvec_type i = 0; i <= PVEC_TAG_MAX; ++i)
     {
-      e = make_entry (pvec_type_name (i), st.obj[i].nobjs, st.obj[i].nbytes),
+      e = make_entry (pvec_type_name (i), st.pvec[i].nobjs, st.pvec[i].nbytes),
       result = Fcons (e, result);
     }
   e = list3 (build_string ("pause-time"), Qnil, make_float (mps_arena_pause_time (gc->arena)));
