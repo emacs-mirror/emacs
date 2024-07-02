@@ -4015,6 +4015,15 @@ decode_emacs_reloc (struct dump_context *ctx, Lisp_Object lreloc)
           {
 	    eassume (ctx); /* Pacify GCC 9.2.1 -O3 -Wnull-dereference.  */
             eassert (!dump_object_emacs_ptr (target_value));
+#ifdef HAVE_MPS
+	    if (WEAK_HASH_TABLE_P (target_value))
+	      {
+		strengthen_hash_table_for_dump
+		  (XWEAK_HASH_TABLE (target_value));
+		target_value =
+		  XWEAK_HASH_TABLE (target_value)->dump_replacement;
+	      }
+#endif
             reloc.u.dump_offset = dump_recall_object (ctx, target_value);
             if (reloc.u.dump_offset <= 0)
               {
