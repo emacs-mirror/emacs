@@ -2125,8 +2125,7 @@ dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
 }
 
 static dump_off
-dump_interval_node (struct dump_context *ctx, struct itree_node *node,
-                    dump_off parent_offset)
+dump_interval_node (struct dump_context *ctx, struct itree_node *node)
 {
 #if CHECK_STRUCTS && !defined (HASH_itree_node_50DE304F13)
 # error "itree_node changed. See CHECK_STRUCTS comment in config.h."
@@ -2153,17 +2152,17 @@ dump_interval_node (struct dump_context *ctx, struct itree_node *node,
       dump_remember_fixup_ptr_raw
 	(ctx,
 	 offset + dump_offsetof (struct itree_node, parent),
-	 dump_interval_node (ctx, node->parent, offset));
+	 dump_interval_node (ctx, node->parent));
   if (node->left)
       dump_remember_fixup_ptr_raw
 	(ctx,
 	 offset + dump_offsetof (struct itree_node, left),
-	 dump_interval_node (ctx, node->left, offset));
+	 dump_interval_node (ctx, node->left));
   if (node->right)
       dump_remember_fixup_ptr_raw
 	(ctx,
 	 offset + dump_offsetof (struct itree_node, right),
-	 dump_interval_node (ctx, node->right, offset));
+	 dump_interval_node (ctx, node->right));
   return offset;
 }
 
@@ -2180,7 +2179,7 @@ dump_overlay (struct dump_context *ctx, const struct Lisp_Overlay *overlay)
   dump_remember_fixup_ptr_raw
     (ctx,
      offset + dump_offsetof (struct Lisp_Overlay, interval),
-     dump_interval_node (ctx, overlay->interval, offset));
+     dump_interval_node (ctx, overlay->interval));
   return offset;
 }
 
