@@ -1878,6 +1878,7 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
   {
     if (t->weak && t->weak->strong == t)
       {
+	igc_assert (FIXNUMP (t->table_size));
 	ssize_t limit;
 	switch (t->weakness)
 	  {
@@ -1912,6 +1913,7 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
     struct Lisp_Weak_Hash_Table_Strong_Part *t = w->strong;
     if (t && t->weak == w)
       {
+	igc_assert (FIXNUMP (t->table_size));
 	ssize_t limit;
 	switch (t->weakness)
 	  {
