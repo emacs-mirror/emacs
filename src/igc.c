@@ -146,40 +146,32 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
    others. */
 #endif	/* CHECK_STRUCTS */
 
-/* If igc can currently can be used. Initial state is IGC_STATE_INITIAL,
-   until everything needed has been successfully initialized and state
-   becomes IGC_STATE_USABLE. It goes from usable to IGC_STATE_DEAD
-   if an error happens or something is detected that forces us to
-   terminate the process. While terminating in this state, fallbacks are
-   implemented that let Emacs do its thing while terminating. */
+/* If igc can currently can be used.
+
+   Initial state is IGC_STATE_INITIAL, until everything needed has been
+   successfully initialized.
+
+   State does from IGC_STATE_INITIAL to IGC_STATE_USABLE_PARKED where
+   everything is usable, but GC is not done.
+
+   State then goes from there to IGC_STATE_USABLE when everything is
+   fully usable and GCs are done.
+
+   It goes from usable to IGC_STATE_DEAD if an error happens or
+   something is detected that forces us to terminate the process
+   early. While terminating in this state, fallbacks are implemented
+   that let Emacs do its thing while terminating. */
 
 enum igc_state
 {
   IGC_STATE_INITIAL,
+  IGC_STATE_USABLE_PARKED,
   IGC_STATE_USABLE,
   IGC_STATE_DEAD,
 };
 
 static enum igc_state igc_state = IGC_STATE_INITIAL;
-
-static void
-set_state (enum igc_state state)
-{
-  igc_state = state;
-  switch (igc_state)
-    {
-    case IGC_STATE_INITIAL:
-      emacs_abort ();
-
-    case IGC_STATE_USABLE:
-      break;
-
-    case IGC_STATE_DEAD:
-      igc_postmortem ();
-      terminate_due_to_signal (SIGABRT, INT_MAX);
-      break;
-    }
-}
+static void set_state (enum igc_state state);
 
 static void
 check_res (const char *file, unsigned line, mps_res_t res)
@@ -710,6 +702,35 @@ arena_release (struct igc *gc)
   igc_assert (gc->park_count >= 0);
   if (gc->park_count == 0)
     mps_arena_release (gc->arena);
+}
+
+static void
+set_state (enum igc_state state)
+{
+#ifdef IGC_DEBUG
+  enum igc_state old_state = igc_state;
+#endif
+  igc_state = state;
+  switch (igc_state)
+    {
+    case IGC_STATE_INITIAL:
+      emacs_abort ();
+
+    case IGC_STATE_USABLE_PARKED:
+      igc_assert (old_state == IGC_STATE_INITIAL);
+      break;
+
+    case IGC_STATE_USABLE:
+      igc_assert (old_state == IGC_STATE_USABLE_PARKED);
+      arena_release (global_igc);
+      igc_assert (global_igc->park_count == 0);
+      break;
+
+    case IGC_STATE_DEAD:
+      igc_postmortem ();
+      terminate_due_to_signal (SIGABRT, INT_MAX);
+      break;
+    }
 }
 
 /* Register the root ROOT in registry GC with additional info.  START
@@ -3343,6 +3364,7 @@ igc_on_idle (void)
     switch (igc_state)
       {
       case IGC_STATE_INITIAL:
+      case IGC_STATE_USABLE_PARKED:
       case IGC_STATE_DEAD:
 	return;
 
@@ -3496,6 +3518,7 @@ alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
   size = alloc_size (size);
   switch (igc_state)
     {
+    case IGC_STATE_USABLE_PARKED:
     case IGC_STATE_USABLE:
       do
 	{
@@ -4204,9 +4227,7 @@ make_igc (void)
 void
 igc_on_staticpros_complete (void)
 {
-  struct igc *gc = global_igc;
-  arena_release (gc);
-  igc_assert (gc->park_count == 0);
+  set_state (IGC_STATE_USABLE);
 }
 
 /* To call from LLDB. */
@@ -4496,7 +4517,7 @@ init_igc (void)
   mps_lib_assert_fail_install (igc_assert_fail);
   global_igc = make_igc ();
   add_main_thread ();
-  set_state (IGC_STATE_USABLE);
+  set_state (IGC_STATE_USABLE_PARKED);
 }
 
 void
