@@ -2870,11 +2870,11 @@ WEAK_HASH_VALUE (const struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx)
 }
 
 /* Value is the hash code computed for entry IDX in hash table H.  */
-INLINE hash_hash_t
+INLINE Lisp_Object
 WEAK_HASH_HASH (const struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx)
 {
   eassert (idx >= 0 && idx < XFIXNUM (h->strong->table_size));
-  return XFIXNUM (h->strong->hash[idx].lisp_object);
+  return h->strong->hash[idx].lisp_object;
 }
 
 /* Value is the size of hash table H.  */
@@ -2891,11 +2891,7 @@ weak_hash_table_index_size (const struct Lisp_Weak_Hash_Table *h)
 }
 
 /* Hash value for KEY in hash table H.  */
-INLINE hash_hash_t
-weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Object key)
-{
-  return h->strong->test->hashfn (key, NULL /* XXX */);
-}
+extern Lisp_Object weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Object key);
 #endif
 
 /* Iterate K and V as key and value of valid entries in hash table H.
@@ -4540,7 +4536,7 @@ Lisp_Object strengthen_hash_table (Lisp_Object weak);
 Lisp_Object strengthen_hash_table_for_dump (struct Lisp_Weak_Hash_Table *);
 ptrdiff_t weak_hash_lookup (struct Lisp_Weak_Hash_Table *, Lisp_Object);
 ptrdiff_t weak_hash_put (struct Lisp_Weak_Hash_Table *, Lisp_Object, Lisp_Object,
-			 hash_hash_t);
+			 Lisp_Object);
 void weak_hash_remove_from_table (struct Lisp_Weak_Hash_Table *, Lisp_Object);
 void weak_hash_splat_from_table (struct Lisp_Weak_Hash_Table *h, ptrdiff_t i0);
 #endif
