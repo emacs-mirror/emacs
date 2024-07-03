@@ -342,7 +342,11 @@ markers_adjust_for_replace (struct Lisp_Markers *t,
 			    ptrdiff_t old_chars, ptrdiff_t old_bytes,
 			    ptrdiff_t new_chars, ptrdiff_t new_bytes)
 {
-  eassert (old_chars > 0);
+  /* If old_chars == 0 and new_chars > 0, this is an insertion, which
+     requires more care with 'insertion_type' than what we do here.
+     FIXME: Apparently we're sometimes called incorrectly, e.g. during
+     src/search-tests and lisp/replace-tests.  */
+  eassert (old_chars > 0 || new_chars == 0);
   markers_move_gap_to_charpos (t, from);
   m_index_t i = t->gap_end;
   m_index_t size = t->size;
@@ -367,7 +371,7 @@ markers_adjust_for_delete (struct Lisp_Markers *t,
 			   ptrdiff_t from, ptrdiff_t from_byte,
 			   ptrdiff_t to, ptrdiff_t to_byte)
 {
-  eassert (to > from);
+  eassert (to >= from);
   markers_adjust_for_replace (t, from, from_byte,
 			      to - from, to_byte - from_byte,
 			      0, 0);

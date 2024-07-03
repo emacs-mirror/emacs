@@ -347,7 +347,6 @@ void
 adjust_markers_bytepos (ptrdiff_t from, ptrdiff_t from_byte,
 			ptrdiff_t to, ptrdiff_t to_byte, int to_z)
 {
-  register struct Lisp_Marker *m;
   ptrdiff_t beg = from, begbyte = from_byte;
 
   adjust_suspend_auto_hscroll (from, to);
