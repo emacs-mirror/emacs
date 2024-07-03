@@ -2763,9 +2763,9 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	      print_c_string (" purecopy t", printcharfun);
 
 	  hash_table_data:
-	    ptrdiff_t size = h->count;
-	    if (size > 0)
+	    if (h->count > 0)
 	      {
+		ptrdiff_t size = h->count;
 		print_c_string (" data (", printcharfun);
 
 		/* Don't print more elements than the specified maximum.  */
