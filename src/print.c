@@ -2788,7 +2788,9 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		--print_depth;   /* Done with this.  */
 	      }
 	    goto next_obj;
+#ifdef HAVE_MPS
 	  strong_hash_table:
+#endif
 	    h = XHASH_TABLE (obj);
 	    goto hash_table_data;
 	  }
