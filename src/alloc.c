@@ -7798,7 +7798,7 @@ sweep_symbols (void)
 static void
 unchain_dead_markers (struct buffer *buffer)
 {
-  MARKERS_DO_ALL (it, BUF_ALL_MARKERS (current_buffer))
+  MARKERS_DO_ALL (it, BUF_ALL_MARKERS (buffer))
     if (!vectorlike_marked_p (&it.m->header))
       {
         markers_kill (it.t, it.m);

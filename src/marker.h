@@ -65,7 +65,6 @@ extern void markers_adjust_for_delete (struct Lisp_Markers *t,
 				       ptrdiff_t to, ptrdiff_t to_byte);
 
 
-
 struct markers_iterator
 {
   struct Lisp_Markers *t;

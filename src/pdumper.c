@@ -2190,18 +2190,10 @@ dump_markers (struct dump_context *ctx, const struct Lisp_Markers *t)
   DUMP_FIELD_COPY (out, t, gap_end);
   for (m_index_t i = 0; i < t->size; i++)
     if (t->markers[i])
-      dump_field_fixup_later (ctx, out, t, &t->markers[i]);
+      dump_field_lv_rawptr (ctx, out, t, &t->markers[i],
+			    Lisp_Vectorlike, WEIGHT_NORMAL);
   dump_off offset = dump_object_finish (ctx, out, bytesize);
   free (out);
-  for (m_index_t i = 0; i < t->size; i++)
-    {
-      struct Lisp_Marker *m = t->markers[i];
-      if (m)
-	dump_remember_fixup_ptr_raw
-	  (ctx,
-	   offset + dump_offsetof (struct Lisp_Markers, markers[i]),
-	   dump_marker (ctx, m));
-    }
   return offset;
 }
 

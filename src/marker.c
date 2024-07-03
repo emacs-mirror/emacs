@@ -145,6 +145,7 @@ markers_sanity_check (struct Lisp_Markers *t)
 	  bot = mid + 1;					       	     \
       }								       	     \
     eassert (bot == top);					       	     \
+    eassert (bot <= t->size);					       	     \
     eassert (bot == t->size || t->markers[bot]->thepos >= thepos);     	     \
     eassert ((bot == t->gap_end ? t->gap_beg : bot) == 0	 	     \
 	     || t->markers[(bot == t->gap_end ? t->gap_beg : bot)-1]->thepos \
@@ -171,6 +172,21 @@ markers_search_marker (struct Lisp_Markers *t, struct Lisp_Marker *m)
     }
   return beg;
 }
+
+#ifdef MARKER_DEBUG
+/* Return the index in the AWG where the marker M is found.
+   This function presumes that M is indeed in the AWG.  */
+bool
+markers_member_p (struct Lisp_Markers *t, struct Lisp_Marker *m)
+{
+  m_index_t beg = markers_search_charpos (t, m->charpos);
+  while (beg < t->size
+	 && t->markers[beg] != m
+	 && t->markers[beg]->charpos == m->charpos)
+    beg = (beg == t->gap_beg - 1) ? t->gap_end : beg + 1;
+  return t->markers[beg] == m;
+}
+#endif
 
 static void
 markers_move_gap (struct Lisp_Markers *t, m_index_t new_beg)
@@ -280,14 +296,38 @@ markers_adjust_for_insert (struct Lisp_Markers *t,
   m_index_t size = t->size;
   ptrdiff_t charoffset = to - from;
   ptrdiff_t byteoffset = to_byte - from_byte;
-  /* FIXME: This can mess up ordering because we move some but not
-     all markers at 'from'. */
+  if (charoffset == 0)
+    /* return;  */ abort ();
+  eassert (charoffset > 0);
+  eassert (byteoffset >= charoffset);
+  /* Adjusting for markers can require changing the order of markers
+     because we move some but not all markers at 'from'. */
+  while (i < size && t->markers[i]->charpos == from
+	 && !t->markers[i]->insertion_type)
+    i++;
+  m_index_t first_that_moved = i;
   for (; i < size && t->markers[i]->charpos == from; i++)
-    if (t->markers[i]->insertion_type)
-      {
-	t->markers[i]->charpos += charoffset;
-	t->markers[i]->bytepos += byteoffset;
-      }
+    {
+      if (t->markers[i]->insertion_type)
+	{
+	  t->markers[i]->charpos += charoffset;
+	  t->markers[i]->bytepos += byteoffset;
+	}
+      else
+	{
+	  /* We've moved some previous marker but we won't move this one,
+	     so they would be out of order.  Swap them.  */
+	  eassert (first_that_moved < i);
+	  eassert (t->markers[first_that_moved]->charpos
+		   == t->markers[i]->charpos + charoffset);
+	  eassert (t->markers[i - 1]->charpos
+		   == t->markers[i]->charpos + charoffset);
+	  struct Lisp_Marker *m = t->markers[i];
+	  t->markers[i] = t->markers[first_that_moved];
+	  t->markers[first_that_moved] = m;
+	  first_that_moved++;
+	}
+    }
   for (; i < size; i++)
     {
       t->markers[i]->charpos += charoffset;
@@ -370,9 +410,10 @@ void
 markers_iterator_next (struct markers_iterator *it)
 {
   it->i++;
-  if (it->i == it->t->gap_beg)
+  if (it->i >= it->t->gap_beg && it->i < it->t->gap_end)
     it->i = it->t->gap_end;
   it->m = it->i < it->t->size ? it->t->markers[it->i] : NULL;
+  eassert (it->i == it->t->size || it->m);
 }
 
 
