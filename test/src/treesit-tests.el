@@ -842,6 +842,7 @@ visible_end.)"
                                 'missing))
     (goto-char (point-max))
     (insert "]")
+    (treesit-parser-root-node parser)
     (should (treesit-node-check array-node 'outdated))))
 
 ;;; Defun navigation
