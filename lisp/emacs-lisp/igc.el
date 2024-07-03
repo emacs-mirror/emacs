@@ -30,6 +30,10 @@
 
 (require 'cl-lib)
 
+(declare-function igc-info "igc.c")
+(declare-function igc--collect "igc.c")
+(declare-function igc--roots "igc.c")
+
 (defun igc--diff (i1 i2)
   (cl-loop for (t1 n1 s1) in i1
 	   for (_t2 n2 s2) in i2
