@@ -4250,6 +4250,8 @@ set_hash_value_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 }
 
 #ifdef HAVE_MPS
+void weak_hash_table_thaw (Lisp_Object hash_table);
+
 INLINE void
 set_weak_hash_key_slot (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {

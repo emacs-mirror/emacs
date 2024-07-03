@@ -573,6 +573,10 @@ struct dump_context
 
   /* List of hash tables that have been dumped.  */
   Lisp_Object hash_tables;
+#ifdef HAVE_MPS
+  /* List of weak hash tables that have been dumped.  */
+  Lisp_Object weak_hash_tables;
+#endif
 
   dump_off number_hot_relocations;
   dump_off number_discardable_relocations;
@@ -1441,13 +1445,6 @@ dump_enqueue_object (struct dump_context *ctx,
                      Lisp_Object object,
                      struct link_weight weight)
 {
-#ifdef HAVE_MPS
-  if (WEAK_HASH_TABLE_P (object))
-    {
-      strengthen_hash_table_for_dump (XWEAK_HASH_TABLE (object));
-      object = XWEAK_HASH_TABLE (object)->dump_replacement;
-    }
-#endif
   if (dump_object_needs_dumping_p (object))
     {
       dump_off state = dump_recall_object (ctx, object);
@@ -1947,13 +1944,6 @@ dump_field_lv_or_rawptr (struct dump_context *ctx,
     }
   else
     {
-#ifdef HAVE_MPS
-      if (WEAK_HASH_TABLE_P (value))
-	{
-	  strengthen_hash_table_for_dump (XWEAK_HASH_TABLE (value));
-	  value = XWEAK_HASH_TABLE (value)->dump_replacement;
-	}
-#endif
       /* We don't know about the target object yet, so add a fixup.
          When we process the fixup, we'll have dumped the target
          object.  */
@@ -2692,8 +2682,13 @@ static dump_off
 dump_hash_table_list (struct dump_context *ctx)
 {
   dump_off offset = ctx->offset;
+#ifdef HAVE_MPS
+  if (!NILP (ctx->hash_tables) || !NILP (ctx->weak_hash_tables))
+    offset = dump_object (ctx, CALLN (Fvconcat, ctx->hash_tables, ctx->weak_hash_tables));
+#else
   if (!NILP (ctx->hash_tables))
     offset = dump_object (ctx, CALLN (Fvconcat, ctx->hash_tables));
+#endif
   return offset;
 }
 
@@ -2815,6 +2810,23 @@ dump_hash_table (struct dump_context *ctx, Lisp_Object object)
        dump_hash_table_value (ctx, hash));
   return offset;
 }
+
+#ifdef HAVE_MPS
+static dump_off
+dump_weak_hash_table (struct dump_context *ctx, Lisp_Object object)
+{
+  struct Lisp_Weak_Hash_Table *wh_in = XWEAK_HASH_TABLE (object);
+  strengthen_hash_table_for_dump (wh_in);
+
+  START_DUMP_PVEC (ctx, &wh_in->header, struct Lisp_Weak_Hash_Table, out);
+  dump_push (&ctx->weak_hash_tables, object);
+
+  dump_field_lv (ctx, out, wh_in, &wh_in->dump_replacement,
+		 WEIGHT_NORMAL);
+  dump_off offset = finish_dump_pvec (ctx, &wh_in->header);
+  return offset;
+}
+#endif
 
 static dump_off
 dump_obarray_buckets (struct dump_context *ctx, const struct Lisp_Obarray *o)
@@ -3146,12 +3158,7 @@ dump_vectorlike (struct dump_context *ctx,
       return dump_bool_vector(ctx, v);
 #ifdef HAVE_MPS
     case PVEC_WEAK_HASH_TABLE:
-      if (WEAK_HASH_TABLE_P (lv))
-	{
-	  strengthen_hash_table_for_dump (XWEAK_HASH_TABLE (lv));
-	  lv = XWEAK_HASH_TABLE (lv)->dump_replacement;
-	}
-      return dump_hash_table (ctx, lv);
+      return dump_weak_hash_table (ctx, lv);
 #endif
     case PVEC_HASH_TABLE:
       return dump_hash_table (ctx, lv);
@@ -4015,15 +4022,6 @@ decode_emacs_reloc (struct dump_context *ctx, Lisp_Object lreloc)
           {
 	    eassume (ctx); /* Pacify GCC 9.2.1 -O3 -Wnull-dereference.  */
             eassert (!dump_object_emacs_ptr (target_value));
-#ifdef HAVE_MPS
-	    if (WEAK_HASH_TABLE_P (target_value))
-	      {
-		strengthen_hash_table_for_dump
-		  (XWEAK_HASH_TABLE (target_value));
-		target_value =
-		  XWEAK_HASH_TABLE (target_value)->dump_replacement;
-	      }
-#endif
             reloc.u.dump_offset = dump_recall_object (ctx, target_value);
             if (reloc.u.dump_offset <= 0)
               {
@@ -6217,7 +6215,17 @@ thaw_hash_tables (void)
 {
   Lisp_Object hash_tables = *pdumper_hashes;
   for (ptrdiff_t i = 0; i < ASIZE (hash_tables); i++)
-    hash_table_thaw (AREF (hash_tables, i));
+    {
+      Lisp_Object table = AREF (hash_tables, i);
+      if (HASH_TABLE_P (table))
+	hash_table_thaw (table);
+#ifdef HAVE_MPS
+      else if (WEAK_HASH_TABLE_P (table))
+	weak_hash_table_thaw (table);
+#endif
+      else
+	emacs_abort ();
+    }
 }
 
 #endif /* HAVE_PDUMPER */
