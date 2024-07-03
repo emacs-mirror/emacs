@@ -2985,9 +2985,14 @@ finalize_finalizer (struct Lisp_Finalizer *f)
     }
 }
 
+/* Turn an existing pseudovector into a PVEC_FREE, keeping its size. */
+#define SPLAT_PVEC(v)				 \
+  (((v)->header.size &= ~PVEC_TYPE_MASK), XSETPVECTYPE(v, PVEC_FREE))
+
 static void
 finalize_vector (mps_addr_t v)
 {
+  struct Lisp_Vector *vec = v;
   switch (pseudo_vector_type (v))
     {
     case PVEC_FREE:
@@ -3084,6 +3089,7 @@ finalize_vector (mps_addr_t v)
       igc_assert (!"finalization not implemented");
       break;
     }
+  SPLAT_PVEC (vec);
 }
 
 static void
@@ -3228,6 +3234,7 @@ process_one_message (struct igc *gc)
     {
       mps_addr_t base_addr;
       mps_message_finalization_ref (&base_addr, gc->arena, msg);
+      /* FIXME/igc: other threads should be suspended while finalizing objects. */
       finalize (gc, base_addr);
     }
   else if (mps_message_get (&msg, gc->arena, mps_message_type_gc_start ()))

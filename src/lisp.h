@@ -2619,7 +2619,6 @@ union Lisp_Weak_Hash_Table_Entry
 struct Lisp_Weak_Hash_Table_Strong_Part
 {
   Lisp_Object index_bits;
-  Lisp_Object count;
   Lisp_Object next_free;
   Lisp_Object table_size;
   struct Lisp_Weak_Hash_Table_Weak_Part *weak;
@@ -2941,6 +2940,8 @@ weak_hash_from_key (struct Lisp_Weak_Hash_Table *h, Lisp_Object key)
 		+ WEAK_HASH_TABLE_SIZE (h)),				\
 	 ++dohash_##k##_##v##_k, ++dohash_##k##_##v##_v)		\
     if (hash_unused_entry_key_p (k))					\
+      ;									\
+    else if (PSEUDOVECTORP (k, PVEC_FREE) || PSEUDOVECTORP (v, PVEC_FREE)) \
       ;									\
     else
 

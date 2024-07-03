@@ -5537,7 +5537,6 @@ make_weak_hash_table (const struct hash_table_test *test, EMACS_INT size,
 
   h->strong->test = test;
   h->strong->weakness = weak;
-  h->strong->count = make_fixnum (0);
   h->strong->table_size = make_fixnum (size);
 
   if (size == 0)
@@ -5625,7 +5624,6 @@ maybe_resize_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
 	default:
 	  emacs_abort ();
 	}
-      strong->count = make_fixnum (0);
 
       for (ptrdiff_t i = 0; i < new_size - 1; i++)
 	strong->next[i].lisp_object = make_fixnum (i + 1);
@@ -5698,7 +5696,6 @@ weak_hash_put (struct Lisp_Weak_Hash_Table *h, Lisp_Object key, Lisp_Object valu
   //eassert (!hash_unused_entry_key_p (key));
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_weak_hash_table (h);
-  h->strong->count = make_fixnum (XFIXNUM (h->strong->count) + 1);
 
   /* Store key/value in the key_and_value vector.  */
   ptrdiff_t i = XFIXNUM (h->strong->next_free);
@@ -5747,7 +5744,6 @@ weak_hash_remove_from_table (struct Lisp_Weak_Hash_Table *h, Lisp_Object key)
 	  set_weak_hash_value_slot (h, i, Qnil);
 	  set_weak_hash_next_slot (h, i, XFIXNUM (h->strong->next_free));
 	  h->strong->next_free = make_fixnum (i);
-	  h->strong->count = make_fixnum (XFIXNUM (h->strong->count) - 1);
 	  break;
 	}
 
@@ -5783,7 +5779,6 @@ weak_hash_splat_from_table (struct Lisp_Weak_Hash_Table *h, ptrdiff_t i0)
 	  set_weak_hash_value_slot (h, i, Qnil);
 	  set_weak_hash_next_slot (h, i, XFIXNUM (h->strong->next_free));
 	  h->strong->next_free = make_fixnum (i);
-	  h->strong->count = make_fixnum (XFIXNUM (h->strong->count) - 1);
 	  break;
 	}
 
@@ -5796,23 +5791,19 @@ weak_hash_splat_from_table (struct Lisp_Weak_Hash_Table *h, ptrdiff_t i0)
 static void
 weak_hash_clear (struct Lisp_Weak_Hash_Table *h)
 {
-  if (XFIXNUM (h->strong->count) > 0)
+  ptrdiff_t size = WEAK_HASH_TABLE_SIZE (h);
+  for (ptrdiff_t i = 0; i < size; i++)
     {
-      ptrdiff_t size = WEAK_HASH_TABLE_SIZE (h);
-      for (ptrdiff_t i = 0; i < size; i++)
-	{
-	  set_weak_hash_next_slot (h, i, i < size - 1 ? i + 1 : -1);
-	  set_weak_hash_key_slot (h, i, HASH_UNUSED_ENTRY_KEY);
-	  set_weak_hash_value_slot (h, i, Qnil);
-	}
-
-      ptrdiff_t index_size = weak_hash_table_index_size (h);
-      for (ptrdiff_t i = 0; i < index_size; i++)
-	h->strong->index[i].lisp_object = make_fixnum (-1);
-
-      h->strong->next_free = make_fixnum (0);
-      h->strong->count = make_fixnum (0);
+      set_weak_hash_next_slot (h, i, i < size - 1 ? i + 1 : -1);
+      set_weak_hash_key_slot (h, i, HASH_UNUSED_ENTRY_KEY);
+      set_weak_hash_value_slot (h, i, Qnil);
     }
+
+  ptrdiff_t index_size = weak_hash_table_index_size (h);
+  for (ptrdiff_t i = 0; i < index_size; i++)
+    h->strong->index[i].lisp_object = make_fixnum (-1);
+
+  h->strong->next_free = make_fixnum (0);
 }
 #endif
 
@@ -6341,7 +6332,7 @@ DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
   struct Lisp_Weak_Hash_Table *wh = check_maybe_weak_hash_table (table);
   if (wh)
     {
-      return wh->strong->count;
+      table = strengthen_hash_table (table);
     }
 #endif
   struct Lisp_Hash_Table *h = check_hash_table (table);
