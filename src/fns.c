@@ -5422,19 +5422,19 @@ static void
 set_weak_hash_next_slot (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx, ptrdiff_t val)
 {
   eassert (idx >= 0 && idx < XFIXNUM (h->strong->table_size));
-  h->strong->next[idx].lisp_object = make_fixnum (val);
+  h->strong->next[idx] = make_weak_hash_table_entry (make_fixnum (val));
 }
 static void
 set_weak_hash_hash_slot (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   eassert (idx >= 0 && idx < XFIXNUM (h->strong->table_size));
-  h->strong->hash[idx].lisp_object = val;
+  h->strong->hash[idx] = make_weak_hash_table_entry (val);
 }
 static void
 set_weak_hash_index_slot (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx, ptrdiff_t val)
 {
   eassert (idx >= 0 && idx < weak_hash_table_index_size (h));
-  h->strong->index[idx].lisp_object = make_fixnum (val);
+  h->strong->index[idx] = make_weak_hash_table_entry (make_fixnum (val));
 }
 
 static struct Lisp_Weak_Hash_Table *
@@ -5449,14 +5449,14 @@ static ptrdiff_t
 WEAK_HASH_NEXT (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx)
 {
   eassert (idx >= 0 && idx < XFIXNUM (h->strong->table_size));
-  return XFIXNUM (h->strong->next[idx].lisp_object);
+  return XFIXNUM (weak_hash_table_entry (h->strong->next[idx]));
 }
 
 static ptrdiff_t
 WEAK_HASH_INDEX (struct Lisp_Weak_Hash_Table *h, ptrdiff_t idx)
 {
   eassert (idx >= 0 && idx < weak_hash_table_index_size (h));
-  return XFIXNUM (h->strong->index[idx].lisp_object);
+  return XFIXNUM (weak_hash_table_entry (h->strong->index[idx]));
 }
 
 static struct Lisp_Weak_Hash_Table *
@@ -5554,19 +5554,22 @@ make_weak_hash_table (const struct hash_table_test *test, EMACS_INT size,
     {
       for (ptrdiff_t i = 0; i < size; i++)
 	{
-	  h->strong->key[i].lisp_object = HASH_UNUSED_ENTRY_KEY;
-	  h->strong->value[i].ptr = 0;
+	  h->strong->key[i] =
+	    make_weak_hash_table_entry (HASH_UNUSED_ENTRY_KEY);
+	  h->strong->value[i] =
+	    make_weak_hash_table_entry (Qnil);
 	}
 
       for (ptrdiff_t i = 0; i < size - 1; i++)
-	h->strong->next[i].lisp_object = make_fixnum(i + 1);
-      h->strong->next[size - 1].lisp_object = make_fixnum(-1);
+	h->strong->next[i] = make_weak_hash_table_entry (make_fixnum(i + 1));
+      h->strong->next[size - 1] =
+	make_weak_hash_table_entry (make_fixnum(-1));
 
       int index_bits = compute_hash_index_bits (size);
       h->strong->index_bits = make_fixnum (index_bits);
       ptrdiff_t index_size = weak_hash_table_index_size (h);
       for (ptrdiff_t i = 0; i < index_size; i++)
-	h->strong->index[i].lisp_object = make_fixnum (-1);
+	h->strong->index[i] = make_weak_hash_table_entry (make_fixnum (-1));
 
       h->strong->next_free = make_fixnum (0);
     }
@@ -5633,18 +5636,19 @@ maybe_resize_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
 	}
 
       for (ptrdiff_t i = 0; i < new_size - 1; i++)
-	strong->next[i].lisp_object = make_fixnum (i + 1);
-      strong->next[new_size - 1].lisp_object = make_fixnum (-1);
+	strong->next[i] = make_weak_hash_table_entry (make_fixnum (i + 1));
+      strong->next[new_size - 1] =
+	make_weak_hash_table_entry (make_fixnum (-1));
 
       for (ptrdiff_t i = 0; i < new_size; i++)
 	{
-	  strong->key[i].lisp_object = HASH_UNUSED_ENTRY_KEY;
-	  strong->value[i].lisp_object = Qnil;
+	  strong->key[i] = make_weak_hash_table_entry (HASH_UNUSED_ENTRY_KEY);
+	  strong->value[i] = make_weak_hash_table_entry (Qnil);
 	}
 
       ptrdiff_t index_size = (ptrdiff_t)1 << index_bits;
       for (ptrdiff_t i = 0; i < index_size; i++)
-	strong->index[i].lisp_object = make_fixnum (-1);
+	strong->index[i] = make_weak_hash_table_entry (make_fixnum (-1));
 
       strong->index_bits = make_fixnum (index_bits);
       strong->table_size = make_fixnum (new_size);
@@ -5808,7 +5812,7 @@ weak_hash_clear (struct Lisp_Weak_Hash_Table *h)
 
   ptrdiff_t index_size = weak_hash_table_index_size (h);
   for (ptrdiff_t i = 0; i < index_size; i++)
-    h->strong->index[i].lisp_object = make_fixnum (-1);
+    h->strong->index[i] = make_weak_hash_table_entry (make_fixnum (-1));
 
   h->strong->next_free = make_fixnum (0);
 }

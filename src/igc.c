@@ -281,6 +281,8 @@ is_builtin_subr (enum igc_obj_type type, void *client)
 static bool
 has_header (void *client, bool is_vector)
 {
+  if (client == NULL)
+    return false;
   if (is_vector && is_builtin_subr (IGC_OBJ_VECTOR, client))
     return false;
   if (c_symbol_p (client))
@@ -912,6 +914,28 @@ fix_raw (mps_ss_t ss, mps_addr_t *p)
   return MPS_RES_OK;
 }
 
+static mps_res_t
+fix_base (mps_ss_t ss, mps_addr_t *p)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    mps_addr_t base = *p;
+    if (base == NULL)
+      return MPS_RES_OK;
+    if (is_aligned (base))
+      {
+	if (MPS_FIX1 (ss, base))
+	  {
+	    mps_res_t res = MPS_FIX2 (ss, p);
+	    if (res != MPS_RES_OK)
+	      return res;
+	  }
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 #define IGC_FIX12_OBJ(ss, p)                           \
   do                                                   \
     {                                                  \
@@ -930,6 +954,16 @@ fix_raw (mps_ss_t ss, mps_addr_t *p)
       if (res != MPS_RES_OK)                                     \
 	return res;                                              \
     }                                                            \
+  while (0)
+
+#define IGC_FIX12_BASE(ss, p)						\
+  do									\
+    {									\
+      mps_res_t res;							\
+      MPS_FIX_CALL (ss, res = fix_base (ss, (mps_addr_t *) (p)));	\
+      if (res != MPS_RES_OK)						\
+	return res;							\
+    }									\
   while (0)
 
 #define IGC_FIX12_NOBJS(ss, a, n)                            \
@@ -1917,7 +1951,7 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
 	  }
 	for (ssize_t i = 2 * XFIXNUM (t->table_size); i < limit; i++)
 	  {
-	    IGC_FIX12_OBJ (ss, &t->entries[i].lisp_object);
+	    IGC_FIX12_BASE (ss, &t->entries[i].intptr);
 	  }
       }
   }
@@ -1953,9 +1987,9 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 
 	for (ssize_t i = 0; i < limit; i++)
 	  {
-	    bool was_nil = NILP (w->entries[i].lisp_object);
-	    IGC_FIX12_OBJ (ss, &w->entries[i].lisp_object);
-	    bool is_now_nil = NILP (w->entries[i].lisp_object);
+	    bool was_nil = w->entries[i].intptr == 0;
+	    IGC_FIX12_BASE (ss, &w->entries[i].intptr);
+	    bool is_now_nil = w->entries[i].intptr == 0;
 
 	    if (is_now_nil && !was_nil)
 	      {
@@ -3813,8 +3847,63 @@ igc_make_hash_table_vec (size_t n)
   return alloc (n * sizeof (Lisp_Object), IGC_OBJ_HASH_VEC);
 }
 
+Lisp_Object
+weak_hash_table_entry (struct Lisp_Weak_Hash_Table_Entry entry)
+{
+  intptr_t alignment = entry.intptr & 1;
+  mps_addr_t client;
+
+  if (alignment == 0)
+    {
+      client = base_to_client ((mps_addr_t)entry.intptr);
+    }
+  else
+    {
+      intptr_t real_ptr = entry.intptr ^ alignment;
+      client = (mps_addr_t)real_ptr;
+    }
+
+  switch (XFIXNUM (entry.fixnum))
+    {
+    case Lisp_Symbol:
+      return make_lisp_symbol (client);
+    case_Lisp_Int:
+      return make_fixnum (entry.intptr >> 1);
+    default:
+      return make_lisp_ptr (client, XFIXNUM (entry.fixnum));
+    }
+}
+
+struct Lisp_Weak_Hash_Table_Entry
+make_weak_hash_table_entry (Lisp_Object obj)
+{
+  struct Lisp_Weak_Hash_Table_Entry entry = { 0, };
+  mps_addr_t client;
+  entry.fixnum = make_fixnum (XTYPE (obj));
+
+  if (FIXNUMP (obj))
+    {
+      entry.intptr = (XFIXNUM (obj) << 1) + 1;
+      return entry;
+    }
+  else if (BARE_SYMBOL_P (obj))
+    client = XBARE_SYMBOL (obj);
+  else
+    client = XUNTAG (obj, XTYPE (obj), void);
+
+  if (has_header (client, VECTORLIKEP (obj)))
+    entry.intptr = (intptr_t)client_to_base (client);
+  else
+    {
+      entry.intptr = (intptr_t)client + 1;
+      eassert (entry.intptr & 1);
+    }
+  return entry;
+}
+
 struct Lisp_Weak_Hash_Table_Strong_Part *
-igc_alloc_weak_hash_table_strong_part (hash_table_weakness_t weak, size_t size, size_t index_bits)
+igc_alloc_weak_hash_table_strong_part (hash_table_weakness_t weak,
+				       size_t size, size_t index_bits)
 {
   size_t total_size;
   switch (weak)
@@ -3832,12 +3921,13 @@ igc_alloc_weak_hash_table_strong_part (hash_table_weakness_t weak, size_t size, 
       emacs_abort ();
     }
   return alloc (sizeof (struct Lisp_Weak_Hash_Table_Strong_Part) +
-		total_size * sizeof (union Lisp_Weak_Hash_Table_Entry),
+		total_size * sizeof (struct Lisp_Weak_Hash_Table_Entry),
 		IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART);
 }
 
 struct Lisp_Weak_Hash_Table_Weak_Part *
-igc_alloc_weak_hash_table_weak_part (hash_table_weakness_t weak, size_t size, size_t index_bits)
+igc_alloc_weak_hash_table_weak_part (hash_table_weakness_t weak,
+				     size_t size, size_t index_bits)
 {
   size_t total_size;
   switch (weak)
@@ -3855,7 +3945,7 @@ igc_alloc_weak_hash_table_weak_part (hash_table_weakness_t weak, size_t size, si
       emacs_abort ();
     }
   return alloc (sizeof (struct Lisp_Weak_Hash_Table_Weak_Part) +
-		total_size * sizeof (union Lisp_Weak_Hash_Table_Entry),
+		total_size * sizeof (struct Lisp_Weak_Hash_Table_Entry),
 		IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART);
 }
 
