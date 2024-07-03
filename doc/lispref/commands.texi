@@ -2128,7 +2128,7 @@ motion and mouse motion.
 However, some commands bound to
 @code{down-mouse-1}--@code{mouse-drag-region}, for example--either
 conflict with defined touch screen gestures (such as ``long-press to
-drag''), or with user expectations for touch input, and shouldn't
+drag''), or with user expectations for touch input, and should not
 subject the touch sequence to simple translation.  If a command whose
 name contains the property (@pxref{Symbol Properties})
 @code{ignored-mouse-command} is encountered or there is no command
@@ -2146,13 +2146,20 @@ compromise for packages which assume @code{mouse-drag-region} has
 already set point to the location of any mouse click and selected the
 window where it took place.
 
-To prevent unwanted @code{mouse-1} events arriving after a mouse menu
-is dismissed (@pxref{Mouse Menus}), Emacs also avoids simple
+To prevent unwanted @code{mouse-1} events from arriving after a mouse
+menu is dismissed (@pxref{Mouse Menus}), Emacs also disables simple
 translation if @code{down-mouse-1} is bound to a keymap, making it a
 prefix key.  In lieu of simple translation, it translates the closing
-@code{touchscreen-end} to a @code{down-mouse-1} event with the
-starting position of the touch sequence, consequently displaying
-the mouse menu.
+@code{touchscreen-end} to a @code{down-mouse-1} event with the starting
+position of the touch sequence, consequently displaying the mouse menu.
+
+@vindex @code{touch-screen-simple-mouse-conversion}
+Simple conversion will be enabled without regard to the existence of
+command or menu bindings if the variable
+@code{touch-screen-simple-mouse-conversion} is bound or set to a
+non-@code{nil} value, as, for example, it may be by a caller of
+@code{read-key} expecting to receive @code{mouse-movement} and
+@code{drag-mouse-1} events.
 
 @cindex @code{mouse-1-menu-command}, a symbol property
 Since certain commands are also bound to @code{down-mouse-1} for the
