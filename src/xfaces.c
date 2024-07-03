@@ -2970,9 +2970,16 @@ Value is a vector of face attributes.  */)
 	 The mapping from Lisp face to Lisp face id is given by the
 	 property `face' of the Lisp face name.  */
       if (next_lface_id == lface_id_to_name_size)
-	lface_id_to_name =
-	  xpalloc (lface_id_to_name, &lface_id_to_name_size, 1, MAX_FACE_ID,
-		   sizeof *lface_id_to_name);
+	{
+#ifdef HAVE_MPS
+	  lface_id_to_name
+	    = igc_xpalloc_ambig (lface_id_to_name, &lface_id_to_name_size,
+				 1, MAX_FACE_ID, sizeof *lface_id_to_name);
+#else
+	  lface_id_to_name = xpalloc (lface_id_to_name, &lface_id_to_name_size,
+				      1, MAX_FACE_ID, sizeof *lface_id_to_name);
+#endif
+	}
 
       Lisp_Object face_id = make_fixnum (next_lface_id);
       lface_id_to_name[next_lface_id] = face;
@@ -7326,8 +7333,12 @@ init_xfaces (void)
 	{
 	  /* Allocate the lface_id_to_name[] array.  */
 	  lface_id_to_name_size = next_lface_id = nfaces;
+#ifdef HAVE_MPS
+	  lface_id_to_name
+	    = igc_xzalloc_ambig (next_lface_id * sizeof *lface_id_to_name);
+#else
 	  lface_id_to_name = xnmalloc (next_lface_id, sizeof *lface_id_to_name);
-
+#endif
 	  /* Store the faces.  */
 	  struct Lisp_Hash_Table* table = XHASH_TABLE (Vface_new_frame_defaults);
 	  for (ptrdiff_t idx = 0; idx < nfaces; ++idx)
