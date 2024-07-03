@@ -2288,7 +2288,7 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 	break;
 
       case PVEC_FREE:
-	emacs_abort ();
+	break;
 
       case PVEC_FINALIZER:
 	IGC_FIX_CALL_FN (ss, struct Lisp_Finalizer, v, fix_finalizer);
