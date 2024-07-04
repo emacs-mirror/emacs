@@ -3012,16 +3012,18 @@ bool_vector_cmp (Lisp_Object a, Lisp_Object b)
   return (d & aw) ? 1 : -1;
 }
 
-/* Return -1 if a<b, 1 if a>b, 0 if a=b or if b is NaN.  */
+/* Return -1 if a<b, 1 if a>b, 0 if a=b or if b is NaN (a must be a fixnum).  */
 static inline int
 fixnum_float_cmp (EMACS_INT a, double b)
 {
   double fa = (double)a;
   if (fa == b)
     {
-      /* This doesn't mean that a=b because the conversion may have
-	 rounded, but b must be an integer that fits in an EMACS_INT
-	 and we can compare in the integer domain instead.  */
+      /* This doesn't mean that a=b because the conversion may have rounded.
+	 However, b must be an integer that fits in an EMACS_INT,
+	 because |b| ≤ 2|a| and EMACS_INT has at least one bit more than
+	 needed to represent any fixnum.
+	 Thus we can compare in the integer domain instead.  */
       EMACS_INT ib = b;		/* lossless conversion */
       return a < ib ? -1 : a > ib;
     }
