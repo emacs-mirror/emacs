@@ -793,7 +793,7 @@ static bool xg_crazy_callback_abort;
 static void
 menubar_selection_callback (GtkWidget *widget, gpointer client_data)
 {
-  xg_menu_item_cb_data *cb_data = client_data;
+  xg_menu_item_cb_data *cb_data = get_glib_user_data (client_data);
 
   if (xg_crazy_callback_abort)
     return;
@@ -1478,7 +1478,7 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
 static void
 popup_selection_callback (GtkWidget *widget, gpointer client_data)
 {
-  xg_menu_item_cb_data *cb_data = client_data;
+  xg_menu_item_cb_data *cb_data = get_glib_user_data (client_data);
 
   if (xg_crazy_callback_abort) return;
   if (cb_data) menu_item_selection = cb_data->call_data;

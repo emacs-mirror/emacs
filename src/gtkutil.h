@@ -33,6 +33,44 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define EVENT XEvent
 #endif
 
+#ifdef HAVE_MPS
+#include "igc.h"
+#endif
+
+/* Helper functions for glib callbacks.  On MPS builds, we need to pin
+   (pointers to) the objects, which requires an extra layer of
+   indirection. */
+
+#ifdef HAVE_MPS
+INLINE gpointer
+glib_user_data (void *o)
+{
+  gpointer p = igc_xzalloc_ambig (sizeof (o));
+  memcpy (p, &o, sizeof (o));
+  return p;
+}
+
+INLINE void *
+get_glib_user_data (gpointer p)
+{
+  return *(void **)p;
+}
+#else
+INLINE gpointer
+glib_user_data (void *o)
+{
+  return (gpointer)o;
+}
+
+INLINE void *
+get_glib_user_data (gpointer p)
+{
+  return (void *)p;
+}
+#endif
+
+extern void free_glib_user_data (gpointer data, GClosure *closure);
+
 /* Minimum and maximum values used for GTK scroll bars  */
 
 #define XG_SB_MIN 1
