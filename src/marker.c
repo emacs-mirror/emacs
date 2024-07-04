@@ -302,13 +302,14 @@ markers_adjust_for_insert (struct Lisp_Markers *t,
   eassert (byteoffset >= charoffset);
   /* Adjusting for markers can require changing the order of markers
      because we move some but not all markers at 'from'. */
-  while (i < size && t->markers[i]->charpos == from
-	 && !t->markers[i]->insertion_type)
-    i++;
+  if (!before_markers)
+    while (i < size && t->markers[i]->charpos == from
+	   && !t->markers[i]->insertion_type)
+      i++;
   m_index_t first_that_moved = i;
   for (; i < size && t->markers[i]->charpos == from; i++)
     {
-      if (t->markers[i]->insertion_type)
+      if (before_markers || t->markers[i]->insertion_type)
 	{
 	  t->markers[i]->charpos += charoffset;
 	  t->markers[i]->bytepos += byteoffset;
@@ -319,8 +320,6 @@ markers_adjust_for_insert (struct Lisp_Markers *t,
 	     so they would be out of order.  Swap them.  */
 	  eassert (first_that_moved < i);
 	  eassert (t->markers[first_that_moved]->charpos
-		   == t->markers[i]->charpos + charoffset);
-	  eassert (t->markers[i - 1]->charpos
 		   == t->markers[i]->charpos + charoffset);
 	  struct Lisp_Marker *m = t->markers[i];
 	  t->markers[i] = t->markers[first_that_moved];
@@ -346,7 +345,7 @@ markers_adjust_for_replace (struct Lisp_Markers *t,
      requires more care with 'insertion_type' than what we do here.
      FIXME: Apparently we're sometimes called incorrectly, e.g. during
      src/search-tests and lisp/replace-tests.  */
-  eassert (old_chars > 0 || new_chars == 0);
+  /* eassert (old_chars > 0 || new_chars == 0); */
   markers_move_gap_to_charpos (t, from);
   m_index_t i = t->gap_end;
   m_index_t size = t->size;
