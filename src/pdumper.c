@@ -2208,9 +2208,9 @@ dump_finalizer (struct dump_context *ctx,
   /* Do _not_ call dump_pseudovector_lisp_fields here: we dump the
      only Lisp field, finalizer->function, manually, so we can give it
      a low weight.  */
-  dump_field_lv (ctx, &out, finalizer, &finalizer->function, WEIGHT_NONE);
-  dump_field_finalizer_ref (ctx, &out, finalizer, &finalizer->prev);
-  dump_field_finalizer_ref (ctx, &out, finalizer, &finalizer->next);
+  dump_field_lv (ctx, out, finalizer, &finalizer->function, WEIGHT_NONE);
+  dump_field_finalizer_ref (ctx, out, finalizer, &finalizer->prev);
+  dump_field_finalizer_ref (ctx, out, finalizer, &finalizer->next);
   return finish_dump_pvec (ctx, &out->header);
 }
 
