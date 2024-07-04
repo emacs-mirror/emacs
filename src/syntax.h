@@ -85,6 +85,9 @@ struct gl_state_s
 					   and possibly at the
 					   intervals too, depending
 					   on:  */
+  /* Use only for regexp-search.  */
+  ptrdiff_t b_byte_property; /* First byte pos where c_s_t is valid.  */
+  ptrdiff_t e_byte_property; /* First byte pos where c_s_t is not valid.  */
 };
 
 extern struct gl_state_s gl_state;
@@ -145,29 +148,6 @@ extern bool syntax_prefix_flag_p (int c);
 
 extern unsigned char const syntax_spec_code[0400];
 
-/* Convert the regexp's BYTEOFFSET into a character position,
-   for the object recorded in gl_state with RE_SETUP_SYNTAX_TABLE_FOR_OBJECT.
-
-   The value is meant for use in code that does nothing when
-   parse_sexp_lookup_properties is false, so return 0 in that case,
-   for speed.  */
-
-INLINE ptrdiff_t
-RE_SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t byteoffset)
-{
-  return (! parse_sexp_lookup_properties
-	  ? 0
-	  : STRINGP (gl_state.object)
-	  ? string_byte_to_char (gl_state.object, byteoffset)
-	  : BUFFERP (gl_state.object)
-	  ? ((buf_bytepos_to_charpos
-	      (XBUFFER (gl_state.object),
-	       (byteoffset + BUF_BEGV_BYTE (XBUFFER (gl_state.object))))))
-	  : NILP (gl_state.object)
-	  ? BYTE_TO_CHAR (byteoffset + BEGV_BYTE)
-	  : byteoffset);
-}
-
 /* Make syntax table state (gl_state) good for CHARPOS, assuming it is
    currently good for a position before CHARPOS.  */
 
@@ -208,7 +188,6 @@ SETUP_BUFFER_SYNTAX_TABLE (void)
 }
 
 extern ptrdiff_t scan_words (ptrdiff_t, EMACS_INT);
-extern void RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object, ptrdiff_t);
 
 INLINE_HEADER_END
 

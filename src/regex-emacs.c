@@ -61,25 +61,27 @@
 
 #define RE_CHAR_TO_UNIBYTE(c) CHAR_TO_BYTE_SAFE (c)
 
-/* Set C a (possibly converted to multibyte) character before P.  P
-   points into a string which is the virtual concatenation of STR1
-   (which ends at END1) or STR2 (which ends at END2).  */
-#define GET_CHAR_BEFORE_2(c, p, str1, end1, str2, end2)			     \
-  do {									     \
-    if (target_multibyte)						     \
-      {									     \
-	re_char *dtemp = (p) == (str2) ? (end1) : (p);			     \
-	re_char *dlimit = (p) > (str2) && (p) <= (end2) ? (str2) : (str1);   \
-	while (dtemp-- > dlimit && !CHAR_HEAD_P (*dtemp))		     \
-	  continue;							     \
-	c = STRING_CHAR (dtemp);					     \
-      }									     \
-    else								     \
-      {									     \
-	(c = ((p) == (str2) ? (end1) : (p))[-1]);			     \
-	(c) = RE_CHAR_TO_MULTIBYTE (c);					     \
-      }									     \
-  } while (false)
+/* Type of source-pattern and string chars.  */
+typedef const unsigned char re_char;
+
+/* Return a pointer to the character before P.
+   P points into a string which is the virtual concatenation of STR1
+   (which ends at END1) and STR2 (which ends at END2).  */
+INLINE re_char *
+GET_POS_BEFORE (re_char *p, bool multibyte,
+		re_char *str1, re_char *end1, re_char *str2, re_char *end2)
+{
+  if (multibyte)
+    {
+      re_char *dtemp = p == str2 ? end1 : p;
+      re_char *dlimit = p > str2 && p <= end2 ? str2 : str1;
+      while (dtemp-- > dlimit && !CHAR_HEAD_P (*dtemp))
+	continue;
+      return dtemp;
+    }
+  else
+    return (p == str2 ? end1 : p) - 1;
+}
 
 /* Set C a (possibly converted to multibyte) character at P, and set
    LEN to the byte length of that character.  */
@@ -182,9 +184,6 @@ ptrdiff_t emacs_re_safe_alloca = MAX_ALLOCA;
   (size1 && string1 <= (ptr) && (ptr) <= string1 + size1)
 
 #define BYTEWIDTH 8 /* In bits.  */
-
-/* Type of source-pattern and string chars.  */
-typedef const unsigned char re_char;
 
 static void re_compile_fastmap (struct re_pattern_buffer *);
 static ptrdiff_t re_match_2_internal (struct re_pattern_buffer *bufp,
@@ -1507,6 +1506,115 @@ struct range_table_work_area
 	  }								\
       }									\
   } while (false)
+
+/* Convert the regexp's BYTEOFFSET into a character position,
+   for the object recorded in gl_state with RE_SETUP_SYNTAX_TABLE_FOR_OBJECT.
+
+   The function presumes that parse_sexp_lookup_properties is true.  */
+
+INLINE ptrdiff_t
+RE_SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t byteoffset)
+{
+  return (STRINGP (gl_state.object)
+	  ? string_byte_to_char (gl_state.object, byteoffset)
+	  : BUFFERP (gl_state.object)
+	  ? ((buf_bytepos_to_charpos
+	      (XBUFFER (gl_state.object),
+	       (byteoffset + BUF_BEGV_BYTE (XBUFFER (gl_state.object))))))
+	  : NILP (gl_state.object)
+	  ? BYTE_TO_CHAR (byteoffset + BEGV_BYTE)
+	  : byteoffset);
+}
+
+INLINE ptrdiff_t
+RE_CHAR_TO_BYTE (ptrdiff_t charpos)
+{
+  return (STRINGP (gl_state.object)
+	  ? string_char_to_byte (gl_state.object, charpos)
+	  : BUFFERP (gl_state.object)
+	  ? ((buf_charpos_to_bytepos (XBUFFER (gl_state.object), charpos)
+	      - BUF_BEGV_BYTE (XBUFFER (gl_state.object))))
+	  : NILP (gl_state.object)
+	  ? CHAR_TO_BYTE (charpos) - BEGV_BYTE
+	  : charpos);
+}
+
+/* Same as SETUP_SYNTAX_TABLE, but in OBJECT.
+   If OBJECT is nil, use current buffer.
+   If it is t (which is only used in fast_c_string_match_ignore_case),
+   ignore properties altogether.
+   FROMBYTE is an regexp-byteoffset.  */
+
+static void
+RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
+			          ptrdiff_t frombyte)
+{
+  SETUP_BUFFER_SYNTAX_TABLE ();
+  gl_state.object = object;
+  if (BUFFERP (gl_state.object))
+    {
+      struct buffer *buf = XBUFFER (gl_state.object);
+      gl_state.b_property = BEG;
+      gl_state.e_property = BUF_ZV (buf);
+    }
+  else if (NILP (gl_state.object))
+    {
+      gl_state.b_property = BEG;
+      gl_state.e_property = ZV; /* FIXME: Why not +1 like in SETUP_SYNTAX_TABLE? */
+    }
+  else if (EQ (gl_state.object, Qt))
+    {
+      gl_state.b_property = 0;
+      gl_state.e_property = PTRDIFF_MAX;
+    }
+  else
+    {
+      gl_state.b_property = 0;
+      gl_state.e_property = 1 + SCHARS (gl_state.object);
+    }
+  if (parse_sexp_lookup_properties)
+    update_syntax_table (RE_SYNTAX_TABLE_BYTE_TO_CHAR (frombyte),
+			 1, 1, gl_state.object);
+  gl_state.e_byte_property = RE_CHAR_TO_BYTE (gl_state.e_property);
+  gl_state.b_byte_property = RE_CHAR_TO_BYTE (gl_state.b_property);
+}
+
+/* These are like `UPDATE_SYNTAX_TABLE*` but take a byteoffset.  */
+
+INLINE void
+RE_UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t byteoffset)
+{ /* Performs just-in-time syntax-propertization.  */
+  if (parse_sexp_lookup_properties && byteoffset >= gl_state.e_byte_property)
+    {
+      update_syntax_table_forward (RE_SYNTAX_TABLE_BYTE_TO_CHAR (byteoffset),
+				   false, gl_state.object);
+      gl_state.e_byte_property = RE_CHAR_TO_BYTE (gl_state.e_property);
+      gl_state.b_byte_property = RE_CHAR_TO_BYTE (gl_state.b_property);
+    }
+}
+
+/* Make syntax table state (gl_state) good for CHARPOS, assuming it is
+   currently good for a position after CHARPOS.  */
+
+INLINE void
+RE_UPDATE_SYNTAX_TABLE_BACKWARD (ptrdiff_t byteoffset)
+{
+  if (parse_sexp_lookup_properties && byteoffset < gl_state.b_byte_property)
+    {
+      update_syntax_table (RE_SYNTAX_TABLE_BYTE_TO_CHAR (byteoffset),
+			   -1, false, gl_state.object);
+      gl_state.e_byte_property = RE_CHAR_TO_BYTE (gl_state.e_property);
+      gl_state.b_byte_property = RE_CHAR_TO_BYTE (gl_state.b_property);
+    }
+}
+
+INLINE void
+RE_UPDATE_SYNTAX_TABLE (ptrdiff_t byteoffset)
+{
+  RE_UPDATE_SYNTAX_TABLE_BACKWARD (byteoffset);
+  RE_UPDATE_SYNTAX_TABLE_FORWARD (byteoffset);
+}
+
 
 /* Parse a character class, i.e. string such as "[:name:]".  *strp
    points to the string to be parsed and limit is length, in bytes, of
@@ -4174,7 +4282,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
   /* Prevent shrinking and relocation of buffer text if GC happens
      while we are inside this function.  The calls to
-     UPDATE_SYNTAX_TABLE_* macros can call Lisp (via
+     RE_UPDATE_SYNTAX_TABLE_* macros can call Lisp (via
      `internal--syntax-propertize`); these calls are careful to defend against
      buffer modifications, but even with no modifications, the buffer text may
      be relocated during GC by `compact_buffer` which would invalidate
@@ -4716,8 +4824,10 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    break;
 	  else
 	    {
-	      unsigned c;
-	      GET_CHAR_BEFORE_2 (c, d, string1, end1, string2, end2);
+	      unsigned c, dummy;
+              re_char *d_prev = GET_POS_BEFORE (d, target_multibyte,
+        					string1, end1, string2, end2);
+	      GET_CHAR_AFTER (c, d_prev, dummy);
 	      if (c == '\n')
 		break;
 	    }
@@ -4979,13 +5089,13 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		int c1, c2;
 		int s1, s2;
 		int dummy;
-                ptrdiff_t offset = POINTER_TO_OFFSET (d);
-                ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
-		UPDATE_SYNTAX_TABLE (charpos);
-		GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+                re_char *d_prev = GET_POS_BEFORE (d, target_multibyte,
+                				  string1, end1, string2, end2);
+		RE_UPDATE_SYNTAX_TABLE (POINTER_TO_OFFSET (d_prev));
+		GET_CHAR_AFTER (c1, d_prev, dummy);
 		nchars++;
 		s1 = SYNTAX (c1);
-		UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
+		RE_UPDATE_SYNTAX_TABLE_FORWARD (POINTER_TO_OFFSET (d));
 		PREFETCH_NOLIMIT ();
 		GET_CHAR_AFTER (c2, d, dummy);
 		nchars++;
@@ -5019,9 +5129,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      int c1, c2;
 	      int s1, s2;
 	      int dummy;
-	      ptrdiff_t offset = POINTER_TO_OFFSET (d);
-	      ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset);
-	      UPDATE_SYNTAX_TABLE (charpos);
+	      RE_UPDATE_SYNTAX_TABLE (POINTER_TO_OFFSET (d));
 	      PREFETCH ();
 	      GET_CHAR_AFTER (c2, d, dummy);
 	      nchars++;
@@ -5034,9 +5142,11 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      /* Case 3: D is not at the beginning of string ... */
 	      if (!AT_STRINGS_BEG (d))
 		{
-		  GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 		  nchars++;
-		  UPDATE_SYNTAX_TABLE_BACKWARD (charpos - 1);
+                  re_char *d_prev = GET_POS_BEFORE (d, target_multibyte,
+                				    string1, end1, string2, end2);
+		  RE_UPDATE_SYNTAX_TABLE_BACKWARD (POINTER_TO_OFFSET (d_prev));
+		  GET_CHAR_AFTER (c1, d_prev, dummy);
 		  s1 = SYNTAX (c1);
 
 		  /* ... and S1 is Sword, and WORD_BOUNDARY_P (C1, C2)
@@ -5062,10 +5172,10 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      int c1, c2;
 	      int s1, s2;
 	      int dummy;
-              ptrdiff_t offset = POINTER_TO_OFFSET (d);
-              ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
-	      UPDATE_SYNTAX_TABLE (charpos);
-	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+              re_char *d_prev = GET_POS_BEFORE (d, target_multibyte,
+        					string1, end1, string2, end2);
+	      RE_UPDATE_SYNTAX_TABLE (POINTER_TO_OFFSET (d_prev));
+	      GET_CHAR_AFTER (c1, d_prev, dummy);
 	      nchars++;
 	      s1 = SYNTAX (c1);
 
@@ -5079,7 +5189,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		  PREFETCH_NOLIMIT ();
 		  GET_CHAR_AFTER (c2, d, dummy);
 		  nchars++;
-                  UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
+                  RE_UPDATE_SYNTAX_TABLE_FORWARD (POINTER_TO_OFFSET (d));
 		  s2 = SYNTAX (c2);
 
 		  /* ... and S2 is Sword, and WORD_BOUNDARY_P (C1, C2)
@@ -5104,9 +5214,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		 is the character at D, and S2 is the syntax of C2.  */
 	      int c1, c2;
 	      int s1, s2;
-	      ptrdiff_t offset = POINTER_TO_OFFSET (d);
-	      ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset);
-	      UPDATE_SYNTAX_TABLE (charpos);
+	      RE_UPDATE_SYNTAX_TABLE (POINTER_TO_OFFSET (d));
 	      PREFETCH ();
 	      c2 = RE_STRING_CHAR (d, target_multibyte);
 	      nchars++;
@@ -5119,9 +5227,12 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      /* Case 3: D is not at the beginning of string ... */
 	      if (!AT_STRINGS_BEG (d))
 		{
-		  GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 		  nchars++;
-		  UPDATE_SYNTAX_TABLE_BACKWARD (charpos - 1);
+		  int dummy;
+                  re_char *d_prev = GET_POS_BEFORE (d, target_multibyte,
+                				    string1, end1, string2, end2);
+		  RE_UPDATE_SYNTAX_TABLE_BACKWARD (POINTER_TO_OFFSET (d_prev));
+		  GET_CHAR_AFTER (c1, d_prev, dummy);
 		  s1 = SYNTAX (c1);
 
 		  /* ... and S1 is Sword or Ssymbol.  */
@@ -5145,10 +5256,11 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		 is the character at D, and S2 is the syntax of C2.  */
 	      int c1, c2;
 	      int s1, s2;
-              ptrdiff_t offset = POINTER_TO_OFFSET (d);
-              ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
-	      UPDATE_SYNTAX_TABLE (charpos);
-	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+	      int dummy;
+              re_char *d_prev = GET_POS_BEFORE (d, target_multibyte,
+        					string1, end1, string2, end2);
+	      RE_UPDATE_SYNTAX_TABLE (POINTER_TO_OFFSET (d_prev));
+	      GET_CHAR_AFTER (c1, d_prev, dummy);
 	      nchars++;
 	      s1 = SYNTAX (c1);
 
@@ -5162,7 +5274,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		  PREFETCH_NOLIMIT ();
 		  c2 = RE_STRING_CHAR (d, target_multibyte);
 		  nchars++;
-		  UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
+		  RE_UPDATE_SYNTAX_TABLE_FORWARD (POINTER_TO_OFFSET (d));
 		  s2 = SYNTAX (c2);
 
 		  /* ... and S2 is Sword or Ssymbol.  */
@@ -5180,11 +5292,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    DEBUG_PRINT ("EXECUTING %ssyntaxspec %d.\n", not ? "not" : "",
 			 mcnt);
 	    PREFETCH ();
-	    {
-	      ptrdiff_t offset = POINTER_TO_OFFSET (d);
-	      ptrdiff_t pos1 = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset);
-	      UPDATE_SYNTAX_TABLE (pos1);
-	    }
+	    RE_UPDATE_SYNTAX_TABLE (POINTER_TO_OFFSET (d));
 	    {
 	      int len;
 	      int c;

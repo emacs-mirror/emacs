@@ -262,43 +262,6 @@ SETUP_SYNTAX_TABLE (ptrdiff_t from, ptrdiff_t count)
     }
 }
 
-/* Same as above, but in OBJECT.  If OBJECT is nil, use current buffer.
-   If it is t (which is only used in fast_c_string_match_ignore_case),
-   ignore properties altogether.
-   FROMBYTE is an regexp-byteoffset.  */
-
-void
-RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
-			          ptrdiff_t frombyte)
-{
-  SETUP_BUFFER_SYNTAX_TABLE ();
-  gl_state.object = object;
-  if (BUFFERP (gl_state.object))
-    {
-      struct buffer *buf = XBUFFER (gl_state.object);
-      gl_state.b_property = BEG;
-      gl_state.e_property = BUF_ZV (buf);
-    }
-  else if (NILP (gl_state.object))
-    {
-      gl_state.b_property = BEG;
-      gl_state.e_property = ZV; /* FIXME: Why not +1 like in SETUP_SYNTAX_TABLE? */
-    }
-  else if (EQ (gl_state.object, Qt))
-    {
-      gl_state.b_property = 0;
-      gl_state.e_property = PTRDIFF_MAX;
-    }
-  else
-    {
-      gl_state.b_property = 0;
-      gl_state.e_property = 1 + SCHARS (gl_state.object);
-    }
-  if (parse_sexp_lookup_properties)
-    update_syntax_table (RE_SYNTAX_TABLE_BYTE_TO_CHAR (frombyte),
-			 1, 1, gl_state.object);
-}
-
 /* Update gl_state to an appropriate interval which contains CHARPOS.  The
    sign of COUNT gives the relative position of CHARPOS wrt the previously
    valid interval.  If INIT, only [be]_property fields of gl_state are
