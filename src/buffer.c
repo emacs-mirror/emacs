@@ -4898,10 +4898,6 @@ init_buffer_once (void)
   pdumper_remember_lv_ptr_raw (&current_buffer, Lisp_Vectorlike);
 
   QSFundamental = build_pure_c_string ("Fundamental");
-#if defined IN_MY_FORK && defined HAVE_MPS
-  /* No pure space if IN_MY_FORK. */
-  staticpro (&QSFundamental);
-#endif
 
   DEFSYM (Qfundamental_mode, "fundamental-mode");
   bset_major_mode (&buffer_defaults, Qfundamental_mode);
