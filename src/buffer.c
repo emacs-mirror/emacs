@@ -3900,7 +3900,11 @@ interest.  */)
 
   len = 10;
   /* We can't use alloca here because overlays_at can call xrealloc.  */
+#ifdef HAVE_MPS
+  overlay_vec = igc_xzalloc_ambig (len * sizeof *overlay_vec);
+#else
   overlay_vec = xmalloc (len * sizeof *overlay_vec);
+#endif
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
@@ -3919,7 +3923,11 @@ interest.  */)
   if (!NILP (sorted))
     result = Fnreverse (result);
 
+#ifdef HAVE_MPS
+  igc_xfree (overlay_vec);
+#else
   xfree (overlay_vec);
+#endif
   return result;
 }
 
