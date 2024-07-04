@@ -98,6 +98,7 @@ struct Lisp_Markers
 static void
 markers_sanity_check (struct Lisp_Markers *t)
 {
+#ifdef MARKER_DEBUG
   eassert (t->markers);
   eassert (t->size > 0);
   eassert (t->gap_beg >= 0);
@@ -120,6 +121,7 @@ markers_sanity_check (struct Lisp_Markers *t)
       eassert (t->markers[i]->charpos >= lastpos);
       lastpos = t->markers[i]->charpos;
     }
+#endif
 }
 
 #define DEFINE_SEARCH_FUN(funname, thepos) 			       	     \
