@@ -1672,7 +1672,11 @@
             (should (value< x y))
             (should-not (value< y x))
             (should-not (value< x x))
-            (should-not (value< y y))))
+            (should-not (value< y y))
+            (should (value< (vector x 2) (vector y 1)))
+            (should-not (value< (vector y 1) (vector x 2)))
+            (should (value< (vector x 1) (vector x 2)))
+            (should (value< (vector y 1) (vector y 2)))))
 
       (delete-process proc2)
       (delete-process proc1)
@@ -1707,7 +1711,9 @@
       (let ((x (car c))
             (y (cdr c)))
         (should-not (value< x y))
-        (should-not (value< y x))))))
+        (should-not (value< y x))
+        (should (value< (cons x 1) (cons y 2)))
+        (should-not (value< (cons x 2) (cons y 1)))))))
 
 (ert-deftest fns-value<-type-mismatch ()
   ;; values of disjoint (incomparable) types
