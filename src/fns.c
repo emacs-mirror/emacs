@@ -3012,6 +3012,23 @@ bool_vector_cmp (Lisp_Object a, Lisp_Object b)
   return (d & aw) ? 1 : -1;
 }
 
+/* Return -1 if a<b, 1 if a>b, 0 if a=b or if b is NaN.  */
+static inline int
+fixnum_float_cmp (EMACS_INT a, double b)
+{
+  double fa = (double)a;
+  if (fa == b)
+    {
+      /* This doesn't mean that a=b because the conversion may have
+	 rounded, but b must be an integer that fits in an EMACS_INT
+	 and we can compare in the integer domain instead.  */
+      EMACS_INT ib = b;		/* lossless conversion */
+      return a < ib ? -1 : a > ib;
+    }
+  else
+    return fa < b ? -1 : fa > b;   /* return 0 if b is NaN */
+}
+
 /* Return -1, 0 or 1 to indicate whether a<b, a=b or a>b in the sense of value<.
    In particular 0 does not mean equality in the sense of Fequal, only
    that the arguments cannot be ordered yet they can be compared (same
@@ -3035,7 +3052,7 @@ value_cmp (Lisp_Object a, Lisp_Object b, int maxdepth)
 	if (FIXNUMP (b))
 	  return ia < XFIXNUM (b) ? -1 : 1;   /* we know that a≠b */
 	if (FLOATP (b))
-	  return ia < XFLOAT_DATA (b) ? -1 : ia > XFLOAT_DATA (b);
+	  return fixnum_float_cmp (ia, XFLOAT_DATA (b));
 	if (BIGNUMP (b))
 	  return -mpz_sgn (*xbignum_val (b));
       }
@@ -3176,7 +3193,7 @@ value_cmp (Lisp_Object a, Lisp_Object b, int maxdepth)
 	if (FLOATP (b))
 	  return fa < XFLOAT_DATA (b) ? -1 : fa > XFLOAT_DATA (b);
 	if (FIXNUMP (b))
-	  return fa < XFIXNUM (b) ? -1 : fa > XFIXNUM (b);
+	  return -fixnum_float_cmp (XFIXNUM (b), fa);
 	if (BIGNUMP (b))
 	  {
 	    if (isnan (fa))
