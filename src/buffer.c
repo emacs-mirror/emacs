@@ -3114,8 +3114,13 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
 
       if (extend && idx == len)
         {
+#ifdef HAVE_MPS
+          vec = igc_xpalloc_ambig (vec, len_ptr, 1, OVERLAY_COUNT_MAX,
+				   sizeof *vec);
+#else
           vec = xpalloc (vec, len_ptr, 1, OVERLAY_COUNT_MAX,
                          sizeof *vec);
+#endif
           *vec_ptr = vec;
           len = *len_ptr;
         }
@@ -3954,7 +3959,11 @@ The resulting list of overlays is in an arbitrary unpredictable order.  */)
     return Qnil;
 
   len = 10;
+ #ifdef HAVE_MPS
+  overlay_vec = igc_xzalloc_ambig (len * sizeof *overlay_vec);
+#else
   overlay_vec = xmalloc (len * sizeof *overlay_vec);
+#endif
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
@@ -3964,7 +3973,11 @@ The resulting list of overlays is in an arbitrary unpredictable order.  */)
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);
 
+#ifdef HAVE_MPS
+  igc_xfree (overlay_vec);
+#else
   xfree (overlay_vec);
+#endif
   return result;
 }
 
