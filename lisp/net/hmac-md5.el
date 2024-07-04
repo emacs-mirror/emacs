@@ -29,7 +29,6 @@
 
 (eval-when-compile (require 'hmac-def))
 (require 'hex-util)			; (decode-hex-string STRING)
-(require 'md5)				; expects (md5 STRING)
 
 (defun md5-binary (string)
   "Return the MD5 of STRING in binary form."

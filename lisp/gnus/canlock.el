@@ -41,8 +41,6 @@
 
 ;;; Code:
 
-(require 'sha1)
-
 (defvar mail-header-separator)
 
 (defgroup canlock nil

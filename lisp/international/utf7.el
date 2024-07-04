@@ -63,7 +63,6 @@
 
 ;;; Code:
 
-(require 'base64)
 (require 'mm-util)
 
 (defconst utf7-direct-encoding-chars " -%'-*,-[]-}"

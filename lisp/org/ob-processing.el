@@ -56,7 +56,6 @@
 (org-assert-version)
 
 (require 'ob)
-(require 'sha1)
 
 (declare-function processing-sketch-run "ext:processing-mode" ())
 
