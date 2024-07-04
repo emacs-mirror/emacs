@@ -3396,7 +3396,15 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
   ptrdiff_t nbytes;
 
   if (ssl->used == ssl->size)
-    ssl->buf = xpalloc (ssl->buf, &ssl->size, 5, -1, sizeof *ssl->buf);
+    {
+#ifdef HAVE_MPS
+      /* Never freed. */
+      eassert (ssl == &overlay_heads || ssl == &overlay_tails);
+      ssl->buf = igc_xpalloc_ambig (ssl->buf, &ssl->size, 5, -1, sizeof *ssl->buf);
+#else
+      ssl->buf = xpalloc (ssl->buf, &ssl->size, 5, -1, sizeof *ssl->buf);
+#endif
+    }
   ssl->buf[ssl->used].string = str;
   ssl->buf[ssl->used].string2 = str2;
   ssl->buf[ssl->used].size = size;
