@@ -192,10 +192,11 @@ used as the long description.  (When displaying the description, Emacs
 omits the @samp{;;; Commentary:} line, as well as the leading comment
 characters in the commentary itself.)
 
-  If the file has a @samp{Package-Requires} header, that is used as
-the package dependencies.  In the above example, the package depends
-on the @samp{flange} package, version 1.0 or higher.  @xref{Library
-Headers}, for a description of the @samp{Package-Requires} header.  If
+  If the file has a @samp{Package-Requires} header, that is used as the
+package dependencies.  In the above example, the package depends on the
+@samp{flange} package, version 1.0 or higher.  @xref{Library Headers},
+for a description of the @samp{Package-Requires} header.  To depend on a
+specific version of Emacs, specify @samp{emacs} as the package name.  If
 the header is omitted, the package has no dependencies.
 
   The @samp{Keywords} and @samp{URL} headers are optional, but recommended.
@@ -247,9 +248,10 @@ is the brief description.
 
 @var{requirements} is a list of required packages and their versions.
 Each element in this list should have the form @code{(@var{dep-name}
-@var{dep-version})}, where @var{dep-name} is a symbol whose name is
-the dependency's package name, and @var{dep-version} is the
-dependency's version (a string).
+@var{dep-version})}, where @var{dep-name} is a symbol whose name is the
+dependency's package name, and @var{dep-version} is the dependency's
+version (a string).  The spacial value @samp{emacs} means that the
+package depends on the given version of Emacs.
 @end defun
 
   If the content directory contains a file named @file{README}, this
