@@ -2168,6 +2168,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_atimer ();
 
 #ifdef WINDOWSNT
+  /* We need to forget about libraries that were loaded during the
+     dumping process (e.g. libgccjit).  This must be done _after_
+     load_pdump.  */
+  Vlibrary_cache = Qnil;
 #ifdef HAVE_W32NOTIFY
   globals_of_w32notify ();
 #endif

@@ -4577,10 +4577,9 @@ With prefix argument, make it a temporary breakpoint."
 (add-hook 'called-interactively-p-functions
           #'edebug--called-interactively-skip)
 (defun edebug--called-interactively-skip (i frame1 frame2)
-  (when (and (memq (car-safe (nth 1 frame1)) '(lambda closure))
+  (when (and (interpreted-function-p (nth 1 frame1))
              ;; Lambda value with no arguments.
-             (null (nth (if (eq (car-safe (nth 1 frame1)) 'lambda) 1 2)
-                        (nth 1 frame1)))
+             (null (aref (nth 1 frame1) 0))
              (memq (nth 1 frame2) '(edebug-enter edebug-default-enter)))
     ;; `edebug-enter' calls itself on its first invocation.
     (let ((s 1))

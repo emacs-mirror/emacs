@@ -796,6 +796,7 @@ is in progress."
   "Check signal registration for an own service.
 SERVICE, PATH, INTERFACE and SIGNAL are ‘nil’.  This is interpreted as a
 wildcard for the respective argument."
+  :tags '(:unstable)
   (skip-unless dbus--test-enabled-session-bus)
   (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
 

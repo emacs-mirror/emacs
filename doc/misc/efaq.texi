@@ -1806,7 +1806,7 @@ is better to write ``Emacs and XEmacs.''
 * Deleting menus and menu options::
 * Turning on syntax highlighting::
 * Scrolling only one line::
-* Editing MS-DOS files::
+* Editing Windows files::
 * Filling paragraphs with a single space::
 * Escape sequences in shell output::
 * Start Emacs maximized::
@@ -1874,7 +1874,7 @@ customize, with completion.
 
 Colors and faces are supported in non-windowed mode, i.e., on Unix and
 GNU/Linux text-only terminals and consoles, and when invoked as
-@samp{emacs -nw} on X, MS-DOS and MS-Windows.  Emacs automatically
+@samp{emacs -nw} on X, MS-Windows and MS-DOS.  Emacs automatically
 detects color support at startup and uses it if available.  If you
 think that your terminal supports colors, but Emacs won't use them,
 check the @code{termcap} entry for your display type for color-related
@@ -3161,22 +3161,22 @@ Alternatively, use the following Lisp form in your init file
 (setq scroll-conservatively most-positive-fixnum)
 @end lisp
 
-@node Editing MS-DOS files
-@section How can I edit MS-DOS files using Emacs?
-@cindex Editing MS-DOS files
-@cindex MS-DOS files, editing
+@node Editing Windows files
+@section How can I edit Windows files using Emacs?
 @cindex Microsoft files, editing
 @cindex Windows files, editing
+@cindex Editing MS-DOS files
+@cindex MS-DOS files, editing
 
-Detection and handling of MS-DOS (and Windows) files is performed
-transparently.  You can open MS-DOS files on a Unix system, edit it,
+Detection and handling of Windows (and MS-DOS) files is performed
+transparently.  You can open Windows files on a Unix system, edit it,
 and save it without having to worry about the file format.
 
-When editing an MS-DOS style file, the mode line will indicate that it
-is a DOS file.  On Unix and GNU/Linux systems, and also on a Macintosh,
-the string @samp{(DOS)} will appear near the left edge of the mode line;
-on DOS and Windows, where the DOS end-of-line (EOL) format is the
-default, a backslash (@samp{\}) will appear in the mode line.
+When editing a Windows style file, the mode line will indicate that it
+is a Windows file.  On GNU/Linux, Unix and macOS systems, the string
+@samp{(DOS)} will appear near the left edge of the mode line; on Windows
+and MS-DOS, where the DOS end-of-line (EOL) format is the default, a
+backslash (@samp{\}) will appear in the mode line.
 
 @node Filling paragraphs with a single space
 @section How can I tell Emacs to fill paragraphs with a single space after each period?
@@ -4539,7 +4539,7 @@ display or is invoked with @samp{emacs -nw}, you typically need to use
 @code{set-terminal-coding-system} to tell Emacs what the terminal can
 display, even after setting the language environment; otherwise
 non-@acronym{ASCII} characters will display as @samp{?}.  On other operating
-systems, such as MS-DOS and MS-Windows, Emacs queries the OS about the
+systems, such as MS-Windows and MS-DOS, Emacs queries the OS about the
 character set supported by the display, and sets up the required
 terminal coding system automatically.
 

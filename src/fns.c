@@ -3052,7 +3052,7 @@ value_cmp (Lisp_Object a, Lisp_Object b, int maxdepth)
       {
 	EMACS_INT ia = XFIXNUM (a);
 	if (FIXNUMP (b))
-	  return ia < XFIXNUM (b) ? -1 : 1;   /* we know that a≠b */
+	  return ia < XFIXNUM (b) ? -1 : 1;   /* we know that a != b */
 	if (FLOATP (b))
 	  return fixnum_float_cmp (ia, XFLOAT_DATA (b));
 	if (BIGNUMP (b))

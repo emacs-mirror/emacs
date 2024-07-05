@@ -2705,6 +2705,7 @@ funhook (int code, WPARAM w, LPARAM l)
 		      inputs[1].ki.dwFlags
 			= KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP;
 		      inputs[1].ki.time = 0;
+		      SendInput (2, inputs, sizeof (INPUT));
 		    }
 		  else if (focus != NULL)
 		    {
