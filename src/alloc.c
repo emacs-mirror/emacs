@@ -6145,8 +6145,16 @@ purecopy_hash_table (struct Lisp_Hash_Table *table)
 
       ptrdiff_t nvalues = table->table_size;
       ptrdiff_t kv_bytes = nvalues * sizeof *table->key;
+#ifdef HAVE_MPS
+      /* These aren't really vectorlike, they're plain arrays of
+	 Lisp_Objects, but putting them in the Lisp section means MPS
+	 will pin the objects they might refer to. */
+      pure->key = pure_alloc (kv_bytes, Lisp_Vectorlike);
+      pure->value = pure_alloc (kv_bytes, Lisp_Vectorlike);
+#else
       pure->key = pure_alloc (kv_bytes, -(int)sizeof *table->key);
       pure->value = pure_alloc (kv_bytes, -(int)sizeof *table->value);
+#endif
       for (ptrdiff_t i = 0; i < nvalues; i++)
 	{
 	  pure->key[i] = purecopy (table->key[i]);
