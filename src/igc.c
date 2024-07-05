@@ -2844,13 +2844,18 @@ igc_xzalloc_ambig (size_t size)
 void *
 igc_realloc_ambig (void *block, size_t size)
 {
-  destroy_root_with_start (block);
-  /* Can't make a root that has zero length. Want one to be able to
-     detect calling igc_free on something not having a root. */
-  size_t new_size = (size == 0 ? IGC_ALIGN_DFLT : size);
-  void *p = xrealloc (block, new_size);
-  void *end = (char *)p + new_size;
-  root_create_ambig (global_igc, p, end, "realloc-ambig");
+  struct igc *gc = global_igc;
+  void *p;
+  IGC_WITH_PARKED (gc)
+  {
+    destroy_root_with_start (block);
+    /* Can't make a root that has zero length. Want one to be able to
+       detect calling igc_free on something not having a root. */
+    size_t new_size = (size == 0 ? IGC_ALIGN_DFLT : size);
+    p = xrealloc (block, new_size);
+    void *end = (char *)p + new_size;
+    root_create_ambig (global_igc, p, end, "realloc-ambig");
+  }
   return p;
 }
 
