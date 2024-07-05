@@ -28065,18 +28065,7 @@ store_mode_line_string (const char *string, Lisp_Object lisp_string,
 
   if (string != NULL)
     {
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY	\
-  && __ANDROID_API__ < 22
-      /* Circumvent a bug in memchr preventing strnlen from returning
-	 valid values when a large limit is specified.
-
-         https://issuetracker.google.com/issues/37020957 */
-      if (precision <= 0 || ((uintptr_t) string
-			     > (UINTPTR_MAX - precision)))
-	len = strlen (string);
-      else
-#endif /* HAVE_ANDROID && !ANDROID_STUBIFY && __ANDROID_API__ < 22 */
-	len = strnlen (string, precision <= 0 ? SIZE_MAX : precision);
+      len = strnlen (string, precision <= 0 ? SIZE_MAX : precision);
       lisp_string = make_string (string, len);
       if (NILP (props))
 	props = mode_line_string_face_prop;

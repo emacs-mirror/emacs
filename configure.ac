@@ -1611,6 +1611,30 @@ AC_DEFUN([gl_TYPE_OFF64_T],
   [HAVE_OFF64_T=1
    AC_SUBST([HAVE_OFF64_T])])
 
+# `strnlen' cannot accept nlen greater than the size of the object S
+# on Android 2.2 and earlier.
+m4_define([ORIGINAL_AC_FUNC_STRNLEN], m4_defn([AC_FUNC_STRNLEN]))
+AC_DEFUN([AC_FUNC_STRNLEN], [
+AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])dnl
+AC_REQUIRE([AC_CANONICAL_HOST])dnl
+AC_CACHE_CHECK([for strnlen capable of accepting large limits],
+  [emacs_cv_func_strnlen_working],
+  [AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT], [[
+  volatile size_t (*strnlen_pointer) (const char *s, size_t) = &strnlen;
+  if ((*strnlen_pointer) ("", -1) != 0)
+    return 1;
+  return 0;
+]])],[emacs_cv_func_strnlen_working=yes],
+     [emacs_cv_func_strnlen_working=no],
+     [# Guess no on Android 21 and earlier, yes elsewhere.
+      AS_IF([test -n "$ANDROID_SDK" && test "$ANDROID_SDK" -lt 22],
+        [emacs_cv_func_strnlen_working=no],
+	[emacs_cv_func_strnlen_working='guessing yes'])])])
+AS_IF([test "$emacs_cv_func_strnlen_working" != "no"],
+  [ORIGINAL_AC_FUNC_STRNLEN],
+  [ac_cv_func_strnlen_working=no
+   AC_LIBOBJ([strnlen])])])
+
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.
 gl_EARLY
