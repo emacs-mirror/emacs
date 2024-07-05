@@ -5756,7 +5756,7 @@ natively-compiled one.  */);
   DEFSYM (Qd_ephemeral, "d-ephemeral");
 
   /* Others.  */
-  DEFSYM (Qcomp, "comp");
+  DEFSYM (Qnative_compiler, "native-compiler");
   DEFSYM (Qfixnum, "fixnum");
   DEFSYM (Qscratch, "scratch");
   DEFSYM (Qlate, "late");
