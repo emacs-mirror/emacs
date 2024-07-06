@@ -1,7 +1,6 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1997, 2000-2024 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -106,8 +105,10 @@
 ;;    * Code line --- exists so Lisp can know where commentary and/or
 ;; change-log sections end.
 ;;
-;;    * Footer line --- marks end-of-file so it can be distinguished from
-;; an expanded formfeed or the results of truncation.
+;;    * Footer line --- marks end-of-file so it can be distinguished
+;; from an expanded formfeed or the results of truncation.  This is
+;; required for a package to be installable by package.el in Emacs 29.1
+;; or earlier, but is optional in later versions.
 
 ;;; Code:
 
@@ -467,6 +468,29 @@ package version (a string)."
       (lm--prepare-package-dependencies
        (package-read-from-string (mapconcat #'identity require-lines " "))))))
 
+(defun lm-package-needs-footer-line (&optional file)
+  "Return non-nil if package in current buffer needs a footer line.
+
+Footer lines (sometimes referred to as \"terminating comments\") look
+like this:
+
+    ;;; some-cool-package.el ends here
+
+Such lines are required for a package to be installable by package.el in
+Emacs 29.1 or earlier, but are optional in later versions.  If the
+package depends on a version of Emacs where package.el requires such
+comments, or if no version requirement is specified, return non-nil.
+
+If optional argument FILE is non-nil, use that file instead of the
+current buffer."
+  (lm-with-file file
+    ;; Starting in Emacs 30.1, avoid warning if the minimum Emacs
+    ;; version is specified as 30.1 or later.
+    (let ((min-emacs (cadar (seq-filter (lambda (x) (eq (car x) 'emacs))
+                                        (lm-package-requires)))))
+      (or (null min-emacs)
+          (version< min-emacs "30.1")))))
+
 (defun lm-keywords (&optional file)
   "Return the keywords given in file FILE, or current buffer if FILE is nil.
 The return is a `downcase'-ed string, or nil if no keywords
@@ -593,11 +617,12 @@ copyright notice is allowed."
                ((not (lm-code-start))
 		"Can't find a `Code' section marker")
 	       ((progn
-		  (goto-char (point-max))
-		  (not
-		   (re-search-backward
-                    (rx bol ";;; " (regexp name) " ends here")
-                    nil t)))
+                  (when (lm-package-needs-footer-line)
+                    (goto-char (point-max))
+                    (not
+                     (re-search-backward
+                      (rx bol ";;; " (regexp name) " ends here")
+                      nil t))))
 		"Can't find the footer line")
 	       ((not (and (lm-copyright-mark) (lm-crack-copyright)))
 		"Can't find a valid copyright notice")
