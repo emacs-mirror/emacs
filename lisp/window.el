@@ -5888,12 +5888,13 @@ is non-nil)."
 	      (setq sub (window-right sub))))))))
 
 (defun balance-windows (&optional window-or-frame)
-  "Balance the sizes of windows of WINDOW-OR-FRAME.
-WINDOW-OR-FRAME is optional and defaults to the selected frame.
+  "Balance the sizes of windows shown on the selected frame.
+When called from Lisp, WINDOW-OR-FRAME is optional and defaults to the
+selected frame.
 If WINDOW-OR-FRAME denotes a frame, balance the sizes of all
-windows of that frame.  If WINDOW-OR-FRAME denotes a window,
-recursively balance the sizes of all child windows of that
-window."
+windows of that frame's root window (which excludes the mini-window).
+If WINDOW-OR-FRAME denotes a window, recursively balance the sizes
+of all child windows of that window."
   (interactive)
   (let* ((window
 	  (cond
