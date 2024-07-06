@@ -3190,6 +3190,17 @@ finalize (struct igc *gc, mps_addr_t base)
 }
 
 static void
+maybe_process_messages (void)
+{
+  static int count = 0;
+  if (++count > 1000)
+    {
+      count = 0;
+      igc_process_messages ();
+    }
+}
+
+static void
 maybe_finalize (mps_addr_t client, enum pvec_type tag)
 {
   mps_addr_t ref = client_to_base (client);
@@ -3208,6 +3219,7 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
     case PVEC_SUBR:
     case PVEC_FINALIZER:
       mps_finalize (global_igc->arena, &ref);
+      maybe_process_messages ();
       break;
 
 #ifndef IN_MY_FORK
