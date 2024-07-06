@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "blockinput.h"
 #include "buffer.h"
+#include "igc.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
