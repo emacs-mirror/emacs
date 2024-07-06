@@ -8431,6 +8431,12 @@ init_alloc_once_for_pdumper (void)
 
   init_finalizer_list (&finalizers);
   init_finalizer_list (&doomed_finalizers);
+#ifdef HAVE_MPS
+  igc_root_create_exact_ptr (&finalizers.next);
+  igc_root_create_exact_ptr (&finalizers.prev);
+  igc_root_create_exact_ptr (&doomed_finalizers.next);
+  igc_root_create_exact_ptr (&doomed_finalizers.prev);
+#endif
   refill_memory_reserve ();
 }
 
