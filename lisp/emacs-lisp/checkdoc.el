@@ -2476,21 +2476,30 @@ Code:, and others referenced in the style guide."
         ;; * Library footer
 	(save-excursion
 	  (goto-char (point-max))
-	  (if (not (re-search-backward
-                    ;; This should match the requirement in
-                    ;; `package-buffer-info'.
-                    (concat "^;;; " (regexp-quote (concat fn fe)) " ends here")
-		    nil t))
-              (if (checkdoc-y-or-n-p "No identifiable footer!  Add one?")
-		  (progn
-		    (goto-char (point-max))
-		    (insert "\n(provide '" fn ")\n\n;;; " fn fe " ends here\n"))
-		(checkdoc-create-error
-		 (format "The footer should be: (provide '%s)\\n;;; %s%s ends here"
-			 fn fn fe)
-                 ;; The buffer may be empty.
-		 (max (point-min) (1- (point-max)))
-                 (point-max)))))
+          (let* ((footer-line (lm-package-needs-footer-line)))
+            (if (not (re-search-backward
+                      ;; This should match the requirement in
+                      ;; `package-buffer-info'.
+                      (if footer-line
+                          (concat "^;;; " (regexp-quote (concat fn fe)) " ends here")
+                        (concat "\n(provide '" fn ")\n"))
+                      nil t))
+                (if (checkdoc-y-or-n-p (if footer-line
+                                   "No identifiable footer!  Add one?"
+                                 "No `provide' statement!  Add one?"))
+                    (progn
+                      (goto-char (point-max))
+                      (insert (if footer-line
+                                  (concat "\n(provide '" fn ")\n\n;;; " fn fe " ends here\n")
+                                (concat "\n(provide '" fn ")\n"))))
+                  (checkdoc-create-error
+                   (if footer-line
+                       (format "The footer should be: (provide '%s)\\n;;; %s%s ends here"
+                               fn fn fe)
+                     (format "The footer should be: (provide '%s)\\n" fn))
+                   ;; The buffer may be empty.
+                   (max (point-min) (1- (point-max)))
+                   (point-max))))))
 	err))
       ;; The below checks will not return errors if the user says NO
 

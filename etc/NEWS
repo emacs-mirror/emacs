@@ -70,6 +70,26 @@ Advanced" node in the EWW manual.
 By customizing 'shr-image-zoom-levels', you can change the list of zoom
 levels that SHR cycles through when calling 'shr-zoom-image'.
 
+** Emacs Lisp mode
+
+---
+*** Checkdoc no longer warns about missing footer lines in some cases.
+Emacs Lisp libraries have traditionally ended with a footer line
+(sometimes referred to as "terminating comment").  Their purpose was to
+easily detect files that had been truncated in transit on ancient and
+less reliable connections:
+
+    ;; some-cool-package.el ends here
+
+'checkdoc' will no longer warn if that line is missing for packages that
+explicitly only support Emacs 30.1 or later, as specified in the
+"Package-Requires" header.  The reason for keeping the warning for
+packages that support earlier versions of Emacs is that package.el in
+those versions can't install packages where that line is missing.
+
+This change affects both 'M-x checkdoc' and the corresponding flymake
+backend.
+
 
 * New Modes and Packages in Emacs 31.1
 
