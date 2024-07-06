@@ -1174,6 +1174,7 @@ boundaries."
   (let ((file-name (match-string-no-properties 1))
         (desc      (match-string-no-properties 2))
         (start     (line-beginning-position)))
+    (require 'lisp-mnt)
     ;; This warning was added in Emacs 27.1, and should be removed at
     ;; the earliest in version 31.1.  The idea is to phase out the
     ;; requirement for a "footer line" without unduly impacting users
@@ -1190,7 +1191,6 @@ boundaries."
     ;; Try to include a trailing newline.
     (forward-line)
     (narrow-to-region start (point))
-    (require 'lisp-mnt)
     ;; Use some headers we've invented to drive the process.
     (let* (;; Prefer Package-Version; if defined, the package author
            ;; probably wants us to use it.  Otherwise try Version.
