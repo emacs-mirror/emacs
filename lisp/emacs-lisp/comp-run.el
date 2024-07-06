@@ -447,7 +447,7 @@ bytecode definition was not changed in the meantime)."
                       (append comp-files-queue `((,file . ,load)))
                       added-something t)
               (display-warning 'native-compiler
-                               (format "No write access for %s skipping."
+                               (format "Cannot write %s; skipping."
                                        out-filename)))))))
     ;; Perhaps nothing passed `native--compile-async-skip-p'?
     (when (and added-something
