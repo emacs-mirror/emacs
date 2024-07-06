@@ -1871,15 +1871,25 @@ Doubles as an indicator of snippet support."
            (unless (bound-and-true-p yas-minor-mode) (yas-minor-mode 1))
            (apply #'yas-expand-snippet args)))))
 
-(defun eglot--format-markup (markup)
-  "Format MARKUP according to LSP's spec."
-  (pcase-let ((`(,string ,mode)
-               (if (stringp markup) (list markup 'gfm-view-mode)
-                 (list (plist-get markup :value)
-                       (pcase (plist-get markup :kind)
-                         ("markdown" 'gfm-view-mode)
-                         ("plaintext" 'text-mode)
-                         (_ major-mode))))))
+ (defun eglot--format-markup (markup)
+  "Format MARKUP according to LSP's spec.
+MARKUP is either an LSP MarkedString or MarkupContent object."
+  (let (string mode language)
+    (cond ((stringp markup)
+           (setq string markup
+                 mode 'gfm-view-mode))
+          ((setq language (plist-get markup :language))
+           ;; Deprecated MarkedString
+           (setq string (concat "```" language "\n"
+                                (plist-get markup :value) "\n```")
+                 mode 'gfm-view-mode))
+          (t
+           ;; MarkupContent
+           (setq string (plist-get markup :value)
+                 mode (pcase (plist-get markup :kind)
+                        ("markdown" 'gfm-view-mode)
+                        ("plaintext" 'text-mode)
+                        (_ major-mode)))))
     (with-temp-buffer
       (setq-local markdown-fontify-code-blocks-natively t)
       (insert string)
