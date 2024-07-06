@@ -8087,8 +8087,8 @@ Valid wildcards are `*', `?', `[abc]' and `[a-z]'."
 		  (end (insert-directory-adj-pos
 			(+ beg (read (current-buffer)))
 			error-lines)))
-	      (if (memq (char-after end) '(?\n ?\s))
-		  ;; End is followed by \n or by " -> ".
+	      (if (memq (char-after end) '(?\n ?\s ?/ ?* ?@ ?% ?= ?|))
+		  ;; End is followed by \n or by output of -F.
 		  (put-text-property start end 'dired-filename t)
 		;; It seems that we can't trust ls's output as to
 		;; byte positions of filenames.

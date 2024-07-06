@@ -3686,7 +3686,12 @@ If BUFFER is not swapped, yank out of its message viewer buffer."
 				   other-headers)
   (let ((switch-function
 	 (cond (same-window nil)
-	       (rmail-mail-new-frame 'switch-to-buffer-other-frame)
+	       (rmail-mail-new-frame
+                (progn
+                  ;; Record the frame from which we invoked this command.
+                  (modify-frame-parameters (selected-frame)
+				           '((rmail-orig-frame . t)))
+                  'switch-to-buffer-other-frame))
 	       (t 'switch-to-buffer-other-window)))
 	yank-action)
     (if replybuffer
@@ -3715,6 +3720,11 @@ If BUFFER is not swapped, yank out of its message viewer buffer."
 	  ;; sendmail.el looks at it.
 	  (modify-frame-parameters (selected-frame)
 				   '((mail-dedicated-frame . t)))))))
+
+(defun rmail--find-orig-rmail-frame ()
+  (car (filtered-frame-list
+        (lambda (frame)
+          (eq (frame-parameter frame 'rmail-orig-frame) t)))))
 
 (defun rmail-mail-return (&optional newbuf)
   "Try to return to Rmail from the mail window.
@@ -3757,9 +3767,19 @@ to switch to."
    ;; probably wants to delete it now.
    ((display-multi-frame-p)
     (delete-frame))
-   ;; The previous frame is where normally they have the Rmail buffer
-   ;; displayed.
-   (t (other-frame -1))))
+   (t
+    ;; Try to find the original Rmail frame and make it the top frame.
+    (let ((fr (selected-frame))
+          (orig-fr (rmail--find-orig-rmail-frame)))
+      (if orig-fr
+          (progn
+            (modify-frame-parameters orig-fr '((rmail-orig-frame . nil)))
+            (select-frame-set-input-focus orig-fr))
+        ;; If we cannot find the frame from which we started, punt, and
+        ;; display the previous frame, which is where they normally have
+        ;; the Rmail buffer displayed.
+        (other-frame -1))
+      (delete-frame fr)))))
 
 (defun rmail-mail ()
   "Send mail in another window.

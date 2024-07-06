@@ -1883,7 +1883,7 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
 		return;
 	      Vdelayed_warnings_list
 		= Fcons (list2
-			 (Qcomp,
+			 (Qnative_compiler,
 			  CALLN (Fformat,
 				 build_string ("Cannot look up .eln file "
 					       "for %s because no source "

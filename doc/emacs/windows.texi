@@ -300,7 +300,8 @@ Make selected window narrower (@code{shrink-window-horizontally}).
 Shrink this window if its buffer doesn't need so many lines
 (@code{shrink-window-if-larger-than-buffer}).
 @item C-x +
-Make all windows the same height (@code{balance-windows}).
+Balance the sizes of all the windows of the selected frame
+(@code{balance-windows}).
 @end table
 
 @kindex C-x 0
@@ -373,8 +374,11 @@ lines to other windows in the frame.
 
 @kindex C-x +
 @findex balance-windows
-  You can also use @kbd{C-x +} (@code{balance-windows}) to even out the
-heights of all the windows in the selected frame.
+  You can also use @kbd{C-x +} (@code{balance-windows}) to balance the
+sizes of all the windows of the selected frame (with the exception of
+the minibuffer window, @pxref{Minibuffer}).  This command makes each
+horizontal pair of adjacent windows the same height, and each vertical
+pair of adjacent windows the same width.
 
 @node Displaying Buffers
 @section Displaying a Buffer in a Window
