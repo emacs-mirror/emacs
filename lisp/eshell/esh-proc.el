@@ -25,6 +25,7 @@
 
 (require 'esh-arg)
 (require 'esh-io)
+(require 'esh-opt)
 (require 'esh-util)
 
 (require 'pcomplete)
@@ -184,16 +185,46 @@ This is like `process-live-p', but additionally checks whether
       ;; cleared out the handles (see `eshell-sentinel').
       (process-get process :eshell-handles)))
 
-(defun eshell-wait-for-process (&rest procs)
-  "Wait until PROCS have successfully completed."
-  (dolist (proc procs)
-    (when (eshell-processp proc)
-      (while (eshell-process-active-p proc)
-        (when (input-pending-p)
-          (discard-input))
-        (sit-for eshell-process-wait-time)))))
+(defun eshell-wait-for-processes (&optional procs timeout)
+  "Wait until PROCS have completed execution.
+If TIMEOUT is non-nil, wait at most that many seconds.  Return non-nil
+if all the processes finished executing before the timeout expired."
+  (let ((expiration (when timeout (time-add (current-time) timeout))))
+    (catch 'timeout
+      (dolist (proc procs)
+        (while (if (processp proc)
+                   (eshell-process-active-p proc)
+                 (process-attributes proc))
+          (when (input-pending-p)
+            (discard-input))
+          (when (and expiration
+                     (not (time-less-p (current-time) expiration)))
+            (throw 'timeout nil))
+          (sit-for eshell-process-wait-time)))
+      t)))
 
-(defalias 'eshell/wait #'eshell-wait-for-process)
+(defun eshell-wait-for-process (&rest procs)
+  "Wait until PROCS have completed execution."
+  (declare (obsolete 'eshell-wait-for-processes "31.1"))
+  (eshell-wait-for-processes procs))
+
+(defun eshell/wait (&rest args)
+  "Wait until processes have completed execution."
+  (eshell-eval-using-options
+   "wait" args
+   '((?h "help" nil nil "show this usage screen")
+     (?t "timeout" t timeout "timeout in seconds")
+     :preserve-args
+     :show-usage
+     :usage "[OPTION] PROCESS...
+Wait until PROCESS(es) have completed execution.")
+   (when (stringp timeout)
+     (setq timeout (string-to-number timeout)))
+   (dolist (arg args)
+     (unless (or (processp arg) (natnump arg))
+       (error "wait: invalid argument type: %s" (type-of arg))))
+   (unless (eshell-wait-for-processes args timeout)
+     (error "wait: timed out after %s seconds" timeout))))
 
 (defun eshell/jobs ()
   "List processes, if there are any."
@@ -626,16 +657,14 @@ long to delay between signals."
 (defun eshell-round-robin-kill (&optional query)
   "Kill current process by trying various signals in sequence.
 See the variable `eshell-kill-processes-on-exit'."
-  (let ((sigs eshell-kill-process-signals))
-    (while sigs
+  (catch 'done
+    (dolist (sig eshell-kill-process-signals)
       (eshell-process-interact
-       (lambda (proc)
-         (signal-process (process-id proc) (car sigs))) t query)
-      (setq query nil)
-      (if (not eshell-process-list)
-	  (setq sigs nil)
-	(sleep-for eshell-kill-process-wait-time)
-	(setq sigs (cdr sigs))))))
+       (lambda (proc) (signal-process proc sig)) t query)
+      (when (eshell-wait-for-processes (mapcar #'car eshell-process-list)
+                                       eshell-kill-process-wait-time)
+        (throw 'done nil))
+      (setq query nil))))
 
 (defun eshell-query-kill-processes ()
   "Kill processes belonging to the current Eshell buffer, possibly with query."

@@ -54,6 +54,12 @@ this will prompt for confirmation before creating a new buffer when
 necessary.  To restore the previous behavior, set this option to
 'confirm-kill-process'.
 
++++
+*** Eshell's built-in "wait" command now accepts a timeout.
+By passing "-t" or "--timeout", you can specify a maximum time to wait
+for the processes to exit.  Additionally, you can now wait for external
+processes by passing their PIDs.
+
 ** SHR
 
 +++

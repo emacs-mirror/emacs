@@ -176,7 +176,7 @@
   (require 'cl-lib))
 (require 'esh-util)
 (require 'esh-module)                   ;For eshell-using-module
-(require 'esh-proc)                     ;For eshell-wait-for-process
+(require 'esh-proc)                     ;For eshell-wait-for-processes
 (require 'esh-io)                       ;For eshell-last-command-status
 (require 'esh-cmd)
 
@@ -357,8 +357,7 @@ buffer is already taken by another running shell command."
               (with-current-buffer bufname
                 ;; Stop all the processes in the old buffer (there may
                 ;; be several).
-                (eshell-process-interact #'interrupt-process t))
-              (accept-process-output)
+                (eshell-round-robin-kill))
               (kill-buffer bufname))
              ((eq eshell-command-async-buffer 'confirm-new-buffer)
               (shell-command--same-buffer-confirm "Use a new buffer")
@@ -377,7 +376,7 @@ buffer is already taken by another running shell command."
 	;; make the output as attractive as possible, with no
 	;; extraneous newlines
         (unless async
-	  (apply #'eshell-wait-for-process (cadr eshell-foreground-command))
+	  (funcall #'eshell-wait-for-processes (cadr eshell-foreground-command))
 	  (cl-assert (not eshell-foreground-command))
 	  (goto-char (point-max))
 	  (while (and (bolp) (not (bobp)))

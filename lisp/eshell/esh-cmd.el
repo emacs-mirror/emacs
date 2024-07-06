@@ -1299,7 +1299,7 @@ have been replaced by constants."
               (if-let (((memq (car form) eshell-deferrable-commands))
                        (procs (eshell-make-process-list result)))
                   (if synchronous-p
-		      (apply #'eshell/wait procs)
+		      (funcall #'eshell-wait-for-processes procs)
 		    (eshell-manipulate form "inserting ignore form"
 		      (setcar form 'ignore)
 		      (setcdr form nil))
