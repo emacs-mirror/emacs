@@ -557,7 +557,6 @@ absent, return nil."
     (if (and page (string-match (rx bol "<" (+ nonl) ">" eol) page))
         (substring page 1 -1)
       page)))
-(defalias 'lm-homepage #'lm-website) ; for backwards-compatibility
 
 ;;; Verification and synopses
 
@@ -688,6 +687,7 @@ Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
 (define-obsolete-function-alias 'lm-code-mark #'lm-code-start "30.1")
 (define-obsolete-function-alias 'lm-commentary-mark #'lm-commentary-start "30.1")
 (define-obsolete-function-alias 'lm-history-mark #'lm-history-start "30.1")
+(define-obsolete-function-alias 'lm-homepage #'lm-website "31.1")
 
 (provide 'lisp-mnt)
 
