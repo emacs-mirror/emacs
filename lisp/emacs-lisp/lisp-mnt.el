@@ -576,7 +576,7 @@ says display \"OK\" in temp buffer for files that have no problems.
 Optional argument VERBOSE specifies verbosity level.
 Optional argument NON-FSF-OK if non-nil means a non-FSF
 copyright notice is allowed."
-  ;; FIXME: Make obsolete in favor of checkdoc?
+  (declare (obsolete checkdoc "31.1"))
   (interactive (list nil nil t))
   (let* ((ret (and verbose "Ok"))
 	 name)

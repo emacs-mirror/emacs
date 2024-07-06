@@ -2473,8 +2473,7 @@ Code:, and others referenced in the style guide."
       (setq
        err
        (or
-	;; * A footer.  Not compartmentalized from lm-verify: too bad.
-	;;              The following is partially clipped from lm-verify
+        ;; * Library footer
 	(save-excursion
 	  (goto-char (point-max))
 	  (if (not (re-search-backward
