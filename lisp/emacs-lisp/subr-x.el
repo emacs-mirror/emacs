@@ -159,16 +159,16 @@ removed."
                  blank blank)))
 
 ;;;###autoload
-(defun string-fill (string length)
-  "Try to word-wrap STRING so that no lines are longer than LENGTH.
-Wrapping is done where there is whitespace.  If there are
-individual words in STRING that are longer than LENGTH, the
-result will have lines that are longer than LENGTH."
+(defun string-fill (string width)
+  "Try to word-wrap STRING so that it displays with lines no wider than WIDTH.
+STRING is wrapped where there is whitespace in it.  If there are
+individual words in STRING that are wider than WIDTH, the result
+will have lines that are wider than WIDTH."
   (declare (important-return-value t))
   (with-temp-buffer
     (insert string)
     (goto-char (point-min))
-    (let ((fill-column length)
+    (let ((fill-column width)
           (adaptive-fill-mode nil))
       (fill-region (point-min) (point-max)))
     (buffer-string)))
