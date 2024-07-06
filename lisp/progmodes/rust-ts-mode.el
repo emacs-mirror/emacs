@@ -267,7 +267,11 @@ to be checked as its standard input."
                    eos)
               @font-lock-type-face))
      ((scoped_identifier path: (identifier) @rust-ts-mode--fontify-scope))
-     ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope)))
+     ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope))
+     ;; Sometimes the parser can't determine if an identifier is a type,
+     ;; so we use this heuristic. See bug#69625 for the full discussion.
+     ((identifier) @font-lock-type-face
+      (:match ,(rx bos upper) @font-lock-type-face)))
 
    :language 'rust
    :feature 'property
