@@ -406,11 +406,12 @@ that matches @var{trim-right} from @var{string}.  Both regexps
 default to @samp{[ \t\n\r]+}.
 @end defun
 
-@defun string-fill string length
-Attempt to Word-wrap @var{string} so that no lines are longer than
-@var{length}.  Filling is done on whitespace boundaries only.  If
-there are individual words that are longer than @var{length}, these
-will not be shortened.
+@defun string-fill string width
+Attempt to Word-wrap @var{string} so that it displays with lines no
+wider than @var{width}.  Filling is done on whitespace boundaries only.
+If there are individual words that are longer than @var{width}, these
+will not be shortened, and therefore @var{string} might be shown with
+lines wider than @var{width} in that case.
 @end defun
 
 @defun string-limit string length &optional end coding-system
