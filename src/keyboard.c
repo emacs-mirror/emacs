@@ -4646,20 +4646,21 @@ timer_resume_idle (void)
    ...).  Each element has the form (FUN . ARGS).  */
 Lisp_Object pending_funcalls;
 
-/* Return true if TIMER is a valid timer, placing its value into *RESULT.  */
-static bool
-decode_timer (Lisp_Object timer, struct timespec *result)
+/* Return the value of TIMER if it is a valid timer, an invalid struct
+   timespec otherwise.  */
+static struct timespec
+decode_timer (Lisp_Object timer)
 {
   Lisp_Object *vec;
 
   if (! (VECTORP (timer) && ASIZE (timer) == 10))
-    return false;
+    return invalid_timespec ();
   vec = XVECTOR (timer)->contents;
   if (! NILP (vec[0]))
-    return false;
+    return invalid_timespec ();
   if (! FIXNUMP (vec[2]))
-    return false;
-  return list4_to_timespec (vec[1], vec[2], vec[3], vec[8], result);
+    return invalid_timespec ();
+  return list4_to_timespec (vec[1], vec[2], vec[3], vec[8]);
 }
 
 
@@ -4706,7 +4707,6 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
   while (CONSP (timers) || CONSP (idle_timers))
     {
       Lisp_Object timer = Qnil, idle_timer = Qnil;
-      struct timespec timer_time, idle_timer_time;
       struct timespec difference;
       struct timespec timer_difference = invalid_timespec ();
       struct timespec idle_timer_difference = invalid_timespec ();
@@ -4720,7 +4720,8 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
       if (CONSP (timers))
 	{
 	  timer = XCAR (timers);
-	  if (! decode_timer (timer, &timer_time))
+	  struct timespec timer_time = decode_timer (timer);
+	  if (! timespec_valid_p (timer_time))
 	    {
 	      timers = XCDR (timers);
 	      continue;
@@ -4737,7 +4738,8 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
       if (CONSP (idle_timers))
 	{
 	  idle_timer = XCAR (idle_timers);
-	  if (! decode_timer (idle_timer, &idle_timer_time))
+	  struct timespec idle_timer_time = decode_timer (idle_timer);
+	  if (! timespec_valid_p (idle_timer_time))
 	    {
 	      idle_timers = XCDR (idle_timers);
 	      continue;
