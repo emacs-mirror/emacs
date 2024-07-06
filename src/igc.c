@@ -687,6 +687,8 @@ struct igc
   struct igc_thread_list *threads;
 };
 
+static bool process_one_message (struct igc *gc);
+
 /* The global registry. */
 
 static struct igc *global_igc;
@@ -3196,7 +3198,13 @@ maybe_process_messages (void)
   if (++count > 1000)
     {
       count = 0;
-      igc_process_messages ();
+      if (noninteractive)
+	{
+	  while (process_one_message (global_igc))
+	    ;
+	}
+      else
+	igc_process_messages ();
     }
 }
 
