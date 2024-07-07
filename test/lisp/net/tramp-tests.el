@@ -330,6 +330,10 @@ is greater than 10.
 	  (should (tramp-tramp-file-p "/method:1.2.3.4:"))
 	  (should (tramp-tramp-file-p "/method:user@1.2.3.4:"))
 
+	  ;; Using an IPv4 address with port.
+	  (should (tramp-tramp-file-p "/method:1.2.3.4#1234:"))
+	  (should (tramp-tramp-file-p "/method:user@1.2.3.4#1234:"))
+
 	  ;; Using an IPv6 address.
 	  (should (tramp-tramp-file-p "/method:[::1]:"))
 	  (should (tramp-tramp-file-p "/method:user@[::1]:"))
@@ -337,6 +341,10 @@ is greater than 10.
 	  ;; Using an IPv4 mapped IPv6 address.
 	  (should (tramp-tramp-file-p "/method:[::ffff:1.2.3.4]:"))
 	  (should (tramp-tramp-file-p "/method:user@[::ffff:1.2.3.4]:"))
+
+	  ;; Using an IPv6 address with port.
+	  (should (tramp-tramp-file-p "/method:[::1]#1234:"))
+	  (should (tramp-tramp-file-p "/method:user@[::1]#1234:"))
 
 	  ;; Local file name part.
 	  (should (tramp-tramp-file-p "/method:::"))
@@ -418,6 +426,10 @@ is greater than 10.
 	  (should (tramp-tramp-file-p "/1.2.3.4:"))
 	  (should (tramp-tramp-file-p "/user@1.2.3.4:"))
 
+	  ;; Using an IPv4 address with port.
+	  (should (tramp-tramp-file-p "/1.2.3.4#1234:"))
+	  (should (tramp-tramp-file-p "/user@1.2.3.4#1234:"))
+
 	  ;; Using an IPv6 address.
 	  (should (tramp-tramp-file-p "/[::1]:"))
 	  (should (tramp-tramp-file-p "/user@[::1]:"))
@@ -425,6 +437,10 @@ is greater than 10.
 	  ;; Using an IPv4 mapped IPv6 address.
 	  (should (tramp-tramp-file-p "/[::ffff:1.2.3.4]:"))
 	  (should (tramp-tramp-file-p "/user@[::ffff:1.2.3.4]:"))
+
+	  ;; Using an IPv6 address with port.
+	  (should (tramp-tramp-file-p "/[::1]#1234:"))
+	  (should (tramp-tramp-file-p "/user@[::1]#1234:"))
 
 	  ;; Local file name part.
 	  (should (tramp-tramp-file-p "/host::"))
@@ -472,6 +488,10 @@ is greater than 10.
 	  (should (tramp-tramp-file-p "/[method/1.2.3.4]"))
 	  (should (tramp-tramp-file-p "/[method/user@1.2.3.4]"))
 
+	  ;; Using an IPv4 address with port.
+	  (should (tramp-tramp-file-p "/[method/1.2.3.4#1234]"))
+	  (should (tramp-tramp-file-p "/[method/user@1.2.3.4#1234]"))
+
 	  ;; Using an IPv6 address.
 	  (should (tramp-tramp-file-p "/[method/::1]"))
 	  (should (tramp-tramp-file-p "/[method/user@::1]"))
@@ -479,6 +499,10 @@ is greater than 10.
 	  ;; Using an IPv4 mapped IPv6 address.
 	  (should (tramp-tramp-file-p "/[method/::ffff:1.2.3.4]"))
 	  (should (tramp-tramp-file-p "/[method/user@::ffff:1.2.3.4]"))
+
+	  ;; Using an IPv6 address with port.
+	  (should (tramp-tramp-file-p "/[method/::1#1234]"))
+	  (should (tramp-tramp-file-p "/[method/user@::1#1234]"))
 
 	  ;; Local file name part.
 	  (should (tramp-tramp-file-p "/[method/]"))
