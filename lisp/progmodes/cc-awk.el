@@ -990,7 +990,7 @@
 		 "ERRNO" "FIELDWIDTHS" "FILENAME" "FNR" "FPAT" "FS" "FUNCTAB"
 		 "IGNORECASE" "LINT" "NF" "NR" "OFMT" "OFS" "ORS" "PREC"
 		 "PROCINFO" "RLENGTH" "ROUNDMODE" "RS" "RSTART" "RT" "SUBSEP"
-		 "SYNTAB" "TEXTDOMAIN") t) "\\>")
+		 "SYMTAB" "TEXTDOMAIN") t) "\\>")
       'font-lock-variable-name-face)
 
      ;; Special file names.  (acm, 2002/7/22)
