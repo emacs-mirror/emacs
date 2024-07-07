@@ -30,10 +30,24 @@
 
 ;; To add a new benchmark just depose the file into the benchmarks/
 ;; directory.  Every benchmark foo.el has to define as entry-point a
-;; function foo-entry.
+;; function `elb-FOO-entry'.
+
+;; Entry points can choose one of two calling conventions:
+;;
+;; - Take no argument (and the result value is ignored).
+;;   In this case the benchmark just measures the time it takes to run
+;;   that function.
+;; - Take one argument MEASURING-FUNCTION: in that case, the
+;;   entry point needs to call MEASURING-FUNCTION: once with
+;;   a function (of no argument) as argument and it should return
+;;   the value returned by MEASURING-FUNCTION.
+;;   The benchmark measures the time it takes to run that function
+;;   of no arguments.
+;;   This calling convention is used when the benchmark needs to set things
+;;   up before running the actual code that needs to be measured.
 
 ;; Tests are of an arbitrary length that on my machine is in the
-;; magnitude order of the 10 seconds for each single run
+;; order of magnitude of 10 seconds for each single run
 ;; byte-compiled.  Please consider this as relative measure when
 ;; adding new benchmarks.
 
@@ -85,6 +99,11 @@
     (sqrt (/ (cl-loop for x in list
 		   sum (expt (- x mean) 2))
 	  (1- n)))))
+
+(defalias 'elisp-benchmarks--call-benchmark
+  (if (fboundp 'benchmark-call)         ;Emacs-28
+      #'benchmark-call
+    (lambda (f) (benchmark-run nil (funcall f)))))
 
 ;;;###autoload
 (cl-defun elisp-benchmarks-run (&optional selector (recompile t) runs)
@@ -141,23 +160,36 @@ RECOMPILE all the benchmark folder when non nil."
 	       named test-loop
 	       do
 	       (message "Iteration number: %d" i)
-	       (cl-loop for test in tests
-		        for entry-point = (intern (concat "elb-" test "-entry"))
-		        do
-		        (garbage-collect)
-		        (message "Running %s..." test)
-		        (let ((time
-		               (with-demoted-errors "Error running: %S"
-			        (eval `(benchmark-run nil (,entry-point)) t))))
-		          (when time
-			    (push time (gethash test res)))))
+	       (cl-loop
+		for test in tests
+		for entry-point = (intern (concat "elb-" test "-entry"))
+		do
+		(garbage-collect)
+		(message "Running %s..." test)
+		(let ((time
+		       (with-demoted-errors "Error running: %S"
+			 ;; There are two calling conventions for the
+			 ;; benchmarks: either it's just a function
+			 ;; of no argument (old, simple convention), or
+                         ;; it's a function that takes our measuring function
+                         ;; as argument (and should return its value).
+                         ;; The more complex convention is used so the
+                         ;; benchmark can set things up before running the
+                         ;; code that we want to measure.
+			 (condition-case nil
+			     (funcall entry-point
+			              #'elisp-benchmarks--call-benchmark)
+			   (wrong-number-of-arguments
+			    (elisp-benchmarks--call-benchmark entry-point))))))
+		  (when time
+		    (push time (gethash test res)))))
 	       finally
 	       (setq debug-on-error t)
 
 	       (pop-to-buffer elb-result-buffer-name)
 	       (erase-buffer)
 	       (insert "* Results\n\n")
-	       (insert "  |test|non-gc avg (s)|gc avg (s)|gcs avg|tot avg (s)|tot avg err (s)\n")
+	       (insert "  |test|non-gc (s)|gc (s)|gcs|total (s)\n")
 	       (insert "|-\n")
 	       (cl-loop for test in tests
 		        for l = (gethash test res)
@@ -166,23 +198,23 @@ RECOMPILE all the benchmark folder when non nil."
 		        for test-gc-elapsed = (cl-loop for x in l sum (caddr x))
 		        for test-err = (elb-std-deviation (mapcar #'car l))
 		        do
-		        (insert (apply #'format "|%s|%.2f|%.2f|%d|%.2f" test
+		        (insert (apply #'format "|%s|%.2f|%.2f|%d|%.2f (" test
 				       (mapcar (lambda (x) (/ x runs))
 					       (list (- test-elapsed test-gc-elapsed)
 						     test-gc-elapsed test-gcs
 						     test-elapsed))))
-			(insert (format "|%.2f\n" test-err))
+			(insert (format "±%.2f)\n" test-err))
 			summing test-elapsed into elapsed
 			summing test-gcs into gcs
 			summing test-gc-elapsed into gc-elapsed
 			collect test-err into errs
 			finally
 			(insert "|-\n")
-			(insert (apply #'format "|total|%.2f|%.2f|%d|%.2f"
+			(insert (apply #'format "|total|%.2f|%.2f|%d|%.2f ("
 				       (mapcar (lambda (x) (/ x runs))
 					       (list (- elapsed gc-elapsed)
 						     gc-elapsed gcs elapsed))))
-			(insert (format "|%.2f\n"
+			(insert (format "±%.2f)\n"
 					(sqrt (apply #'+ (mapcar (lambda (x)
 							           (expt x 2))
 							         errs))))))
