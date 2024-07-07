@@ -1085,7 +1085,7 @@ Optional argument TAKE-NOTES causes all errors to be logged."
 Evaluation is done first so the form will be read before the
 documentation is checked.  If there is a documentation error, then the display
 of what was evaluated will be overwritten by the diagnostic message."
-  (interactive)
+  (interactive nil emacs-lisp-mode)
   (call-interactively #'eval-defun)
   (checkdoc-defun))
 
@@ -1096,7 +1096,7 @@ Call `error' if the doc string has problems.  If NO-ERROR is
 non-nil, then do not call error, but call `message' instead.
 If the doc string passes the test, then check the function for rogue white
 space at the end of each line."
-  (interactive)
+  (interactive nil emacs-lisp-mode)
   (save-excursion
     (beginning-of-defun)
     (when (checkdoc--next-docstring)
@@ -2836,7 +2836,7 @@ function called to create the messages."
 ;;;###autoload
 (defun checkdoc-package-keywords ()
   "Find package keywords that aren't in `finder-known-keywords'."
-  (interactive)
+  (interactive nil emacs-lisp-mode)
   (require 'finder)
   (let ((unrecognized-keys
          (cl-remove-if
