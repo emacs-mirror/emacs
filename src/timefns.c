@@ -606,9 +606,14 @@ union c_time
 static union c_time
 decode_ticks_hz (Lisp_Object ticks, Lisp_Object hz, enum cform cform)
 {
-  return (cform == CFORM_DOUBLE
-	  ? (union c_time) { .d = frac_to_double (ticks, hz) }
-	  : (union c_time) { .lt = { .ticks = ticks, .hz = hz } });
+  switch (cform)
+    {
+    case CFORM_DOUBLE:
+      return (union c_time) { .d = frac_to_double (ticks, hz) };
+
+    default:
+      return (union c_time) { .lt = { .ticks = ticks, .hz = hz } };
+    }
 }
 
 /* Convert the finite number T into an Emacs time, truncating
