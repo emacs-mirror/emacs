@@ -690,8 +690,8 @@ If it is less than 8, the level-1 face gets reused for level N+1 etc."
 (defcustom org-cycle-level-faces t
   "Non-nil means level styles cycle after level `org-n-level-faces'.
 Then so level org-n-level-faces+1 is styled like level 1.
-If nil, then all levels >= org-n-level-faces are styled like
-level org-n-level-faces."
+If nil, then all levels >= `org-n-level-faces' are styled like
+level `org-n-level-faces'."
   :group 'org-appearance
   :group 'org-faces
   :version "24.1"

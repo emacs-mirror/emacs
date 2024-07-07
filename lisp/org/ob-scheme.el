@@ -143,14 +143,14 @@ If the variables HOST and PORT are set, connect to the running Scheme REPL."
 	  (current-buffer)))))
 
 (defun org-babel-scheme-make-session-name (buffer name impl)
-  "Generate a name for the session buffer.
+  "Generate a NAME for the session BUFFER.
 
 For a named session, the buffer name will be the session name.
 
 If the session is unnamed (nil), generate a name.
 
 If the session is `none', use nil for the session name, and
-org-babel-scheme-execute-with-geiser will use a temporary session."
+`org-babel-scheme-execute-with-geiser' will use a temporary session."
   (cond ((not name) (concat buffer " " (symbol-name impl) " REPL"))
 	((string= name "none") nil)
 	(name)))

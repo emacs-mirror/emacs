@@ -88,7 +88,7 @@ cdr of each element is in one of the following forms:
 
      (:components (\"project-1\" \"project-2\" ...))
 
-When the CDR of an element of org-publish-project-alist is in
+When the CDR of an element of `org-publish-project-alist' is in
 this second form, the elements of the list after `:components'
 are taken to be components of the project, which group together
 files requiring different publishing options.  When you publish

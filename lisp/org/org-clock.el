@@ -3261,7 +3261,7 @@ The details of what will be saved are regulated by the variable
 		   (and (buffer-live-p b)
 			(buffer-file-name b)
 			(or (not org-clock-persist-query-save)
-			    (y-or-n-p (format "Save current clock (%s) "
+                            (y-or-n-p (format "Save current clock (%s)?"
 					      org-clock-heading))))))
 	(insert
 	 (format "(setq org-clock-stored-resume-clock '(%S . %d))\n"
@@ -3301,7 +3301,7 @@ The details of what will be saved are regulated by the variable
 	(`(,(and file (pred file-exists-p)) . ,position)
 	 (with-current-buffer (find-file-noselect file)
 	   (when (or (not org-clock-persist-query-resume)
-		     (y-or-n-p (format "Resume clock (%s) "
+                     (y-or-n-p (format "Resume clock (%s)?"
 				       (save-excursion
 					 (goto-char position)
 					 (org-get-heading t t)))))
