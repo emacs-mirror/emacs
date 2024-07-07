@@ -1514,10 +1514,6 @@ BYTEOFFSET_TO_CHARPOS (ptrdiff_t byteoffset)
 {
   return (STRINGP (gl_state.object)
 	  ? string_byte_to_char (gl_state.object, byteoffset)
-	  : BUFFERP (gl_state.object)
-	  ? ((buf_bytepos_to_charpos
-	      (XBUFFER (gl_state.object),
-	       (byteoffset + BUF_BEGV_BYTE (XBUFFER (gl_state.object))))))
 	  : NILP (gl_state.object)
 	  ? BYTE_TO_CHAR (byteoffset + BEGV_BYTE)
 	  : byteoffset);
@@ -1528,9 +1524,6 @@ CHARPOS_TO_BYTEOFFSET (ptrdiff_t charpos)
 {
   return (STRINGP (gl_state.object)
 	  ? string_char_to_byte (gl_state.object, charpos)
-	  : BUFFERP (gl_state.object)
-	  ? ((buf_charpos_to_bytepos (XBUFFER (gl_state.object), charpos)
-	      - BUF_BEGV_BYTE (XBUFFER (gl_state.object))))
 	  : NILP (gl_state.object)
 	  ? CHAR_TO_BYTE (charpos) - BEGV_BYTE
 	  : charpos);
@@ -1548,13 +1541,7 @@ RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
 {
   SETUP_BUFFER_SYNTAX_TABLE ();
   gl_state.object = object;
-  if (BUFFERP (gl_state.object))
-    {
-      struct buffer *buf = XBUFFER (gl_state.object);
-      gl_state.b_property = BEG;
-      gl_state.e_property = BUF_ZV (buf);
-    }
-  else if (NILP (gl_state.object))
+  if (NILP (gl_state.object))
     {
       gl_state.b_property = BEG;
       gl_state.e_property = ZV; /* FIXME: Why not +1 like in SETUP_SYNTAX_TABLE? */
@@ -1566,12 +1553,13 @@ RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
     }
   else
     {
+      eassert (STRINGP (object));
       gl_state.b_property = 0;
       gl_state.e_property = 1 + SCHARS (gl_state.object);
     }
   if (parse_sexp_lookup_properties)
     update_syntax_table (BYTEOFFSET_TO_CHARPOS (frombyte),
-			 1, 1, gl_state.object);
+			 1, true, gl_state.object);
   gl_state.e_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.e_property);
   gl_state.b_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.b_property);
 }
@@ -1583,10 +1571,14 @@ RE_UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t byteoffset)
 { /* Performs just-in-time syntax-propertization.  */
   if (parse_sexp_lookup_properties && byteoffset >= gl_state.e_byte_property)
     {
+      ptrdiff_t old_e = gl_state.e_property;
+      ptrdiff_t old_e_byte = gl_state.e_byte_property;
       update_syntax_table_forward (BYTEOFFSET_TO_CHARPOS (byteoffset),
 				   false, gl_state.object);
+      gl_state.b_byte_property
+	= old_e == gl_state.b_property ? old_e_byte
+	  : CHARPOS_TO_BYTEOFFSET (gl_state.b_property);
       gl_state.e_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.e_property);
-      gl_state.b_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.b_property);
     }
 }
 
@@ -1598,9 +1590,13 @@ RE_UPDATE_SYNTAX_TABLE_BACKWARD (ptrdiff_t byteoffset)
 {
   if (parse_sexp_lookup_properties && byteoffset < gl_state.b_byte_property)
     {
+      ptrdiff_t old_b = gl_state.b_property;
+      ptrdiff_t old_b_byte = gl_state.b_byte_property;
       update_syntax_table (BYTEOFFSET_TO_CHARPOS (byteoffset),
 			   -1, false, gl_state.object);
-      gl_state.e_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.e_property);
+      gl_state.e_byte_property
+	= old_b == gl_state.e_property ? old_b_byte
+	  : CHARPOS_TO_BYTEOFFSET (gl_state.e_property);
       gl_state.b_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.b_property);
     }
 }
@@ -4821,7 +4817,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    break;
 	  else
 	    {
-	      unsigned c, dummy;
+	      unsigned c;
+	      int dummy;
               re_char *d_prev = GET_POS_BEFORE (d, target_multibyte,
         					string1, end1, string2, end2);
 	      GET_CHAR_AFTER (c, d_prev, dummy);
