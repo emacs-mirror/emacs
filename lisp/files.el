@@ -8193,9 +8193,15 @@ normally equivalent short `-D' option is just passed on to
 				 "\\") ; Disregard Unix shell aliases!
 			       insert-directory-program
 			       " -d "
-			       (if (stringp switches)
-				   switches
-				 (mapconcat #'identity switches " "))
+			       ;; Quote switches that require quoting
+			       ;; such as "--block-size='1".  But don't
+			       ;; quote switches that use patterns
+			       ;; such as "--ignore=PATTERN" (bug#71935).
+			       (mapconcat #'shell-quote-wildcard-pattern
+					  (if (stringp switches)
+					      (split-string-and-unquote switches)
+					    switches)
+					  " ")
 			       " -- "
 			       ;; Quote some characters that have
 			       ;; special meanings in shells; but
