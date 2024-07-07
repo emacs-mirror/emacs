@@ -308,11 +308,12 @@ problem discovered.  This is useful for adding additional checks.")
 (defvar checkdoc-diagnostic-buffer "*Style Warnings*"
   "Name of warning message buffer.")
 
-(defcustom checkdoc-verb-check-experimental-flag t
+(defcustom checkdoc-verb-check-experimental-flag nil
   "Non-nil means to attempt to check the voice of the doc string.
 This check keys off some words which are commonly misused.  See the
 variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 ;;;###autoload(put 'checkdoc-verb-check-experimental-flag 'safe-local-variable #'booleanp)
 
 (defvar checkdoc-generate-compile-warnings-flag nil
@@ -346,6 +347,7 @@ See Info node `(elisp) Documentation Tips' for background."
 ;; (setq checkdoc--argument-missing-flag nil)      ; optional
 ;; (setq checkdoc--disambiguate-symbol-flag nil)   ; optional
 ;; (setq checkdoc--interactive-docstring-flag nil) ; optional
+;; (setq checkdoc-permit-comma-termination-flag t) ; optional
 ;; (setq checkdoc-verb-check-experimental-flag nil)
 ;; Then use `M-x find-dired' ("-name '*.el'") and `M-x checkdoc-dired'
 

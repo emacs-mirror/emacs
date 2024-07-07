@@ -95,6 +95,11 @@ backend.
 This affects calls to 'warn', 'lwarn', 'display-warning', and
 'message-box'.
 
+---
+*** The default of 'checkdoc-verb-check-experimental-flag' is now nil.
+In most cases, having it enabled leads to a large amount of false
+positives.
+
 
 * New Modes and Packages in Emacs 31.1
 
