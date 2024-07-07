@@ -400,6 +400,112 @@ enum { flt_radix_power_size = DBL_MANT_DIG - DBL_MIN_EXP + 1 };
    equals FLT_RADIX**P.  */
 static Lisp_Object flt_radix_power;
 
+/* Return NUMERATOR / DENOMINATOR, rounded to the nearest double.
+   Arguments must be Lisp integers, and DENOMINATOR must be positive.  */
+static double
+frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
+{
+  intmax_t intmax_numerator, intmax_denominator;
+  if (FASTER_TIMEFNS
+      && integer_to_intmax (numerator, &intmax_numerator)
+      && integer_to_intmax (denominator, &intmax_denominator)
+      && intmax_numerator % intmax_denominator == 0)
+    return intmax_numerator / intmax_denominator;
+
+  /* Compute number of base-FLT_RADIX digits in numerator and denominator.  */
+  mpz_t const *n = bignum_integer (&mpz[0], numerator);
+  mpz_t const *d = bignum_integer (&mpz[1], denominator);
+  ptrdiff_t ndig = mpz_sizeinbase (*n, FLT_RADIX);
+  ptrdiff_t ddig = mpz_sizeinbase (*d, FLT_RADIX);
+
+  /* Scale with SCALE when doing integer division.  That is, compute
+     (N * FLT_RADIX**SCALE) / D [or, if SCALE is negative, N / (D *
+     FLT_RADIX**-SCALE)] as a bignum, convert the bignum to double,
+     then divide the double by FLT_RADIX**SCALE.  First scale N
+     (or scale D, if SCALE is negative) ...  */
+  ptrdiff_t scale = ddig - ndig + DBL_MANT_DIG;
+  if (scale < 0)
+    {
+      mpz_mul_2exp (mpz[1], *d, - (scale * LOG2_FLT_RADIX));
+      d = &mpz[1];
+    }
+  else
+    {
+      /* min so we don't scale tiny numbers as if they were normalized.  */
+      scale = min (scale, flt_radix_power_size - 1);
+
+      mpz_mul_2exp (mpz[0], *n, scale * LOG2_FLT_RADIX);
+      n = &mpz[0];
+    }
+  /* ... and then divide, with quotient Q and remainder R.  */
+  mpz_t *q = &mpz[2];
+  mpz_t *r = &mpz[3];
+  mpz_tdiv_qr (*q, *r, *n, *d);
+
+  /* The amount to add to the absolute value of Q so that truncating
+     it to double will round correctly.  */
+  int incr;
+
+  /* Round the quotient before converting it to double.
+     If the quotient is less than FLT_RADIX ** DBL_MANT_DIG,
+     round to the nearest integer; otherwise, it is less than
+     FLT_RADIX ** (DBL_MANT_DIG + 1) and round it to the nearest
+     multiple of FLT_RADIX.  Break ties to even.  */
+  if (mpz_sizeinbase (*q, FLT_RADIX) <= DBL_MANT_DIG)
+    {
+      /* Converting to double will use the whole quotient so add 1 to
+	 its absolute value as per round-to-even; i.e., if the doubled
+	 remainder exceeds the denominator, or exactly equals the
+	 denominator and adding 1 would make the quotient even.  */
+      mpz_mul_2exp (*r, *r, 1);
+      int cmp = mpz_cmpabs (*r, *d);
+      incr = cmp > 0 || (cmp == 0 && (FASTER_TIMEFNS && FLT_RADIX == 2
+				      ? mpz_odd_p (*q)
+				      : mpz_tdiv_ui (*q, FLT_RADIX) & 1));
+    }
+  else
+    {
+      /* Converting to double will discard the quotient's low-order digit,
+	 so add FLT_RADIX to its absolute value as per round-to-even.  */
+      int lo_2digits = mpz_tdiv_ui (*q, FLT_RADIX * FLT_RADIX);
+      eassume (0 <= lo_2digits && lo_2digits < FLT_RADIX * FLT_RADIX);
+      int lo_digit = lo_2digits % FLT_RADIX;
+      incr = ((lo_digit > FLT_RADIX / 2
+	       || (lo_digit == FLT_RADIX / 2 && FLT_RADIX % 2 == 0
+		   && ((lo_2digits / FLT_RADIX) & 1
+		       || mpz_sgn (*r) != 0)))
+	      ? FLT_RADIX : 0);
+    }
+
+  /* Increment the absolute value of the quotient by INCR.  */
+  if (!FASTER_TIMEFNS || incr != 0)
+    (mpz_sgn (*n) < 0 ? mpz_sub_ui : mpz_add_ui) (*q, *q, incr);
+
+  /* Rescale the integer Q back to double.  This step does not round.  */
+  return scalbn (mpz_get_d (*q), -scale);
+}
+
+/* Convert Z to time_t, returning true if it fits.  */
+static bool
+mpz_time (mpz_t const z, time_t *t)
+{
+  if (TYPE_SIGNED (time_t))
+    {
+      intmax_t i;
+      if (! (mpz_to_intmax (z, &i) && TIME_T_MIN <= i && i <= TIME_T_MAX))
+	return false;
+      *t = i;
+    }
+  else
+    {
+      uintmax_t i;
+      if (! (mpz_to_uintmax (z, &i) && i <= TIME_T_MAX))
+	return false;
+      *t = i;
+    }
+  return true;
+}
+
 /* Components of a Lisp timestamp (TICKS . HZ).  Using this C struct can
    avoid the consing overhead of creating (TICKS . HZ).  */
 struct lisp_time
@@ -410,6 +516,100 @@ struct lisp_time
   /* Clock frequency (ticks per second) as a positive Lisp integer.  */
   Lisp_Object hz;
 };
+
+/* Convert T to struct timespec, returning an invalid timespec
+   if T does not fit.  */
+static struct timespec
+lisp_to_timespec (struct lisp_time t)
+{
+  struct timespec result = invalid_timespec ();
+  int ns;
+  mpz_t *q = &mpz[0];
+  mpz_t const *qt = q;
+
+  /* Floor-divide (T.ticks * TIMESPEC_HZ) by T.hz,
+     yielding quotient Q (tv_sec) and remainder NS (tv_nsec).
+     Return an invalid timespec if Q does not fit in time_t.
+     For speed, prefer fixnum arithmetic if it works.  */
+  if (FASTER_TIMEFNS && BASE_EQ (t.hz, timespec_hz))
+    {
+      if (FIXNUMP (t.ticks))
+	{
+	  EMACS_INT s = XFIXNUM (t.ticks) / TIMESPEC_HZ;
+	  ns = XFIXNUM (t.ticks) % TIMESPEC_HZ;
+	  if (ns < 0)
+	    s--, ns += TIMESPEC_HZ;
+	  if ((TYPE_SIGNED (time_t) ? TIME_T_MIN <= s : 0 <= s)
+	      && s <= TIME_T_MAX)
+	    {
+	      result.tv_sec = s;
+	      result.tv_nsec = ns;
+	    }
+	  return result;
+	}
+      else
+	ns = mpz_fdiv_q_ui (*q, *xbignum_val (t.ticks), TIMESPEC_HZ);
+    }
+  else if (FASTER_TIMEFNS && BASE_EQ (t.hz, make_fixnum (1)))
+    {
+      ns = 0;
+      if (FIXNUMP (t.ticks))
+	{
+	  EMACS_INT s = XFIXNUM (t.ticks);
+	  if ((TYPE_SIGNED (time_t) ? TIME_T_MIN <= s : 0 <= s)
+	      && s <= TIME_T_MAX)
+	    {
+	      result.tv_sec = s;
+	      result.tv_nsec = ns;
+	    }
+	  return result;
+	}
+      else
+	qt = xbignum_val (t.ticks);
+    }
+  else
+    {
+      mpz_mul_ui (*q, *bignum_integer (q, t.ticks), TIMESPEC_HZ);
+      mpz_fdiv_q (*q, *q, *bignum_integer (&mpz[1], t.hz));
+      ns = mpz_fdiv_q_ui (*q, *q, TIMESPEC_HZ);
+    }
+
+  /* Check that Q fits in time_t, not merely in T.tv_sec.  With some versions
+     of MinGW, tv_sec is a 64-bit type, whereas time_t is a 32-bit type.  */
+  time_t sec;
+  if (mpz_time (*qt, &sec))
+    {
+      result.tv_sec = sec;
+      result.tv_nsec = ns;
+    }
+  return result;
+}
+
+/* C timestamp forms.  This enum is passed to conversion functions to
+   specify the desired C timestamp form.  */
+enum cform
+  {
+    CFORM_TICKS_HZ, /* struct lisp_time */
+    CFORM_SECS_ONLY, /* struct lisp_time but HZ is 1 */
+    CFORM_DOUBLE /* double */
+  };
+
+/* A C timestamp in one of the forms specified by enum cform.  */
+union c_time
+{
+  struct lisp_time lt;
+  double d;
+};
+
+/* From a valid timestamp (TICKS . HZ), generate the corresponding
+   time value in CFORM form.  */
+static union c_time
+decode_ticks_hz (Lisp_Object ticks, Lisp_Object hz, enum cform cform)
+{
+  return (cform == CFORM_DOUBLE
+	  ? (union c_time) { .d = frac_to_double (ticks, hz) }
+	  : (union c_time) { .lt = { .ticks = ticks, .hz = hz } });
+}
 
 /* Convert the finite number T into an Emacs time, truncating
    toward minus infinity.  Signal an error if unsuccessful.  */
@@ -611,117 +811,6 @@ Lisp_Object
 timespec_to_lisp (struct timespec t)
 {
   return Fcons (timespec_ticks (t), timespec_hz);
-}
-
-/* Return NUMERATOR / DENOMINATOR, rounded to the nearest double.
-   Arguments must be Lisp integers, and DENOMINATOR must be positive.  */
-static double
-frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
-{
-  intmax_t intmax_numerator, intmax_denominator;
-  if (FASTER_TIMEFNS
-      && integer_to_intmax (numerator, &intmax_numerator)
-      && integer_to_intmax (denominator, &intmax_denominator)
-      && intmax_numerator % intmax_denominator == 0)
-    return intmax_numerator / intmax_denominator;
-
-  /* Compute number of base-FLT_RADIX digits in numerator and denominator.  */
-  mpz_t const *n = bignum_integer (&mpz[0], numerator);
-  mpz_t const *d = bignum_integer (&mpz[1], denominator);
-  ptrdiff_t ndig = mpz_sizeinbase (*n, FLT_RADIX);
-  ptrdiff_t ddig = mpz_sizeinbase (*d, FLT_RADIX);
-
-  /* Scale with SCALE when doing integer division.  That is, compute
-     (N * FLT_RADIX**SCALE) / D [or, if SCALE is negative, N / (D *
-     FLT_RADIX**-SCALE)] as a bignum, convert the bignum to double,
-     then divide the double by FLT_RADIX**SCALE.  First scale N
-     (or scale D, if SCALE is negative) ...  */
-  ptrdiff_t scale = ddig - ndig + DBL_MANT_DIG;
-  if (scale < 0)
-    {
-      mpz_mul_2exp (mpz[1], *d, - (scale * LOG2_FLT_RADIX));
-      d = &mpz[1];
-    }
-  else
-    {
-      /* min so we don't scale tiny numbers as if they were normalized.  */
-      scale = min (scale, flt_radix_power_size - 1);
-
-      mpz_mul_2exp (mpz[0], *n, scale * LOG2_FLT_RADIX);
-      n = &mpz[0];
-    }
-  /* ... and then divide, with quotient Q and remainder R.  */
-  mpz_t *q = &mpz[2];
-  mpz_t *r = &mpz[3];
-  mpz_tdiv_qr (*q, *r, *n, *d);
-
-  /* The amount to add to the absolute value of Q so that truncating
-     it to double will round correctly.  */
-  int incr;
-
-  /* Round the quotient before converting it to double.
-     If the quotient is less than FLT_RADIX ** DBL_MANT_DIG,
-     round to the nearest integer; otherwise, it is less than
-     FLT_RADIX ** (DBL_MANT_DIG + 1) and round it to the nearest
-     multiple of FLT_RADIX.  Break ties to even.  */
-  if (mpz_sizeinbase (*q, FLT_RADIX) <= DBL_MANT_DIG)
-    {
-      /* Converting to double will use the whole quotient so add 1 to
-	 its absolute value as per round-to-even; i.e., if the doubled
-	 remainder exceeds the denominator, or exactly equals the
-	 denominator and adding 1 would make the quotient even.  */
-      mpz_mul_2exp (*r, *r, 1);
-      int cmp = mpz_cmpabs (*r, *d);
-      incr = cmp > 0 || (cmp == 0 && (FASTER_TIMEFNS && FLT_RADIX == 2
-				      ? mpz_odd_p (*q)
-				      : mpz_tdiv_ui (*q, FLT_RADIX) & 1));
-    }
-  else
-    {
-      /* Converting to double will discard the quotient's low-order digit,
-	 so add FLT_RADIX to its absolute value as per round-to-even.  */
-      int lo_2digits = mpz_tdiv_ui (*q, FLT_RADIX * FLT_RADIX);
-      eassume (0 <= lo_2digits && lo_2digits < FLT_RADIX * FLT_RADIX);
-      int lo_digit = lo_2digits % FLT_RADIX;
-      incr = ((lo_digit > FLT_RADIX / 2
-	       || (lo_digit == FLT_RADIX / 2 && FLT_RADIX % 2 == 0
-		   && ((lo_2digits / FLT_RADIX) & 1
-		       || mpz_sgn (*r) != 0)))
-	      ? FLT_RADIX : 0);
-    }
-
-  /* Increment the absolute value of the quotient by INCR.  */
-  if (!FASTER_TIMEFNS || incr != 0)
-    (mpz_sgn (*n) < 0 ? mpz_sub_ui : mpz_add_ui) (*q, *q, incr);
-
-  /* Rescale the integer Q back to double.  This step does not round.  */
-  return scalbn (mpz_get_d (*q), -scale);
-}
-
-/* C timestamp forms.  This enum is passed to conversion functions to
-   specify the desired C timestamp form.  */
-enum cform
-  {
-    CFORM_TICKS_HZ, /* struct lisp_time */
-    CFORM_SECS_ONLY, /* struct lisp_time but HZ is 1 */
-    CFORM_DOUBLE /* double */
-  };
-
-/* A C timestamp in one of the forms specified by enum cform.  */
-union c_time
-{
-  struct lisp_time lt;
-  double d;
-};
-
-/* From a valid timestamp (TICKS . HZ), generate the corresponding
-   time value in CFORM form.  */
-static union c_time
-decode_ticks_hz (Lisp_Object ticks, Lisp_Object hz, enum cform cform)
-{
-  return (cform == CFORM_DOUBLE
-	  ? (union c_time) { .d = frac_to_double (ticks, hz) }
-	  : (union c_time) { .lt = { .ticks = ticks, .hz = hz } });
 }
 
 /* An (error number, C timestamp) pair.  */
@@ -937,95 +1026,6 @@ double
 float_time (Lisp_Object specified_time)
 {
   return decode_lisp_time (specified_time, CFORM_DOUBLE).time.d;
-}
-
-/* Convert Z to time_t, returning true if it fits.  */
-static bool
-mpz_time (mpz_t const z, time_t *t)
-{
-  if (TYPE_SIGNED (time_t))
-    {
-      intmax_t i;
-      if (! (mpz_to_intmax (z, &i) && TIME_T_MIN <= i && i <= TIME_T_MAX))
-	return false;
-      *t = i;
-    }
-  else
-    {
-      uintmax_t i;
-      if (! (mpz_to_uintmax (z, &i) && i <= TIME_T_MAX))
-	return false;
-      *t = i;
-    }
-  return true;
-}
-
-/* Convert T to struct timespec, returning an invalid timespec
-   if T does not fit.  */
-static struct timespec
-lisp_to_timespec (struct lisp_time t)
-{
-  struct timespec result = invalid_timespec ();
-  int ns;
-  mpz_t *q = &mpz[0];
-  mpz_t const *qt = q;
-
-  /* Floor-divide (T.ticks * TIMESPEC_HZ) by T.hz,
-     yielding quotient Q (tv_sec) and remainder NS (tv_nsec).
-     Return an invalid timespec if Q does not fit in time_t.
-     For speed, prefer fixnum arithmetic if it works.  */
-  if (FASTER_TIMEFNS && BASE_EQ (t.hz, timespec_hz))
-    {
-      if (FIXNUMP (t.ticks))
-	{
-	  EMACS_INT s = XFIXNUM (t.ticks) / TIMESPEC_HZ;
-	  ns = XFIXNUM (t.ticks) % TIMESPEC_HZ;
-	  if (ns < 0)
-	    s--, ns += TIMESPEC_HZ;
-	  if ((TYPE_SIGNED (time_t) ? TIME_T_MIN <= s : 0 <= s)
-	      && s <= TIME_T_MAX)
-	    {
-	      result.tv_sec = s;
-	      result.tv_nsec = ns;
-	    }
-	  return result;
-	}
-      else
-	ns = mpz_fdiv_q_ui (*q, *xbignum_val (t.ticks), TIMESPEC_HZ);
-    }
-  else if (FASTER_TIMEFNS && BASE_EQ (t.hz, make_fixnum (1)))
-    {
-      ns = 0;
-      if (FIXNUMP (t.ticks))
-	{
-	  EMACS_INT s = XFIXNUM (t.ticks);
-	  if ((TYPE_SIGNED (time_t) ? TIME_T_MIN <= s : 0 <= s)
-	      && s <= TIME_T_MAX)
-	    {
-	      result.tv_sec = s;
-	      result.tv_nsec = ns;
-	    }
-	  return result;
-	}
-      else
-	qt = xbignum_val (t.ticks);
-    }
-  else
-    {
-      mpz_mul_ui (*q, *bignum_integer (q, t.ticks), TIMESPEC_HZ);
-      mpz_fdiv_q (*q, *q, *bignum_integer (&mpz[1], t.hz));
-      ns = mpz_fdiv_q_ui (*q, *q, TIMESPEC_HZ);
-    }
-
-  /* Check that Q fits in time_t, not merely in T.tv_sec.  With some versions
-     of MinGW, tv_sec is a 64-bit type, whereas time_t is a 32-bit type.  */
-  time_t sec;
-  if (mpz_time (*qt, &sec))
-    {
-      result.tv_sec = sec;
-      result.tv_nsec = ns;
-    }
-  return result;
 }
 
 /* Convert (HIGH LOW USEC PSEC) to struct timespec.
