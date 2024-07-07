@@ -3796,7 +3796,7 @@ You need to reload Org or to restart Emacs after setting this.")
   "Alist of characters and faces to emphasize text.
 Text starting and ending with a special character will be emphasized,
 for example *bold*, _underlined_ and /italic/.  This variable sets the
-the face to be used by font-lock for highlighting in Org buffers.
+face to be used by font-lock for highlighting in Org buffers.
 Marker characters must be one of */_=~+.
 
 You need to reload Org or to restart Emacs after customizing this."

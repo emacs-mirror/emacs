@@ -250,7 +250,7 @@ is the brief description.
 Each element in this list should have the form @code{(@var{dep-name}
 @var{dep-version})}, where @var{dep-name} is a symbol whose name is the
 dependency's package name, and @var{dep-version} is the dependency's
-version (a string).  The spacial value @samp{emacs} means that the
+version (a string).  The special value @samp{emacs} means that the
 package depends on the given version of Emacs.
 @end defun
 

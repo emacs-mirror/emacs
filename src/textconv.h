@@ -100,7 +100,7 @@ struct textconv_callback_struct
      the end of the conversion.  */
   enum textconv_caret_direction direction;
 
-  /* The the number of times for which to repeat the scanning in order
+  /* The number of times for which to repeat the scanning in order
      to determine the starting position of the text to return.  */
   unsigned short factor;
 

@@ -1684,3 +1684,4 @@ argument \\='general-category, is Decimal_Numbers (Nd).  It returns
               ((or (string-equal tag "anc") (string-equal tag "ancestor"))
      ("ro" :default "Continuare de pe pagina precedentă")
      ("ro" :default "Continuare pe pagina următoare")
+;;            avk@rtsg.mot.com (Andrew V. Klein)     for a Dired tip.

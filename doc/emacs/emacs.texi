@@ -1351,7 +1351,7 @@ when and how to report Emacs bugs (@pxref{Bugs}).
 
   To find the documentation of a particular command, look in the index.
 Keys (character commands) and command names have separate indexes.
-There is also a glossary, with a cross reference for each term.
+There is also a glossary, with a cross-reference for each term.
 
   This manual is available as a printed book and also as an Info file.
 The Info file is for reading from Emacs itself, or with the Info program.

@@ -1944,7 +1944,7 @@ files needed by @TeX{} for cross-references; these commands are generally
 not suitable for running the final copy in which all of the cross-references
 need to be correct.
 
-  When you want the auxiliary files for cross references, use @kbd{C-c
+  When you want the auxiliary files for cross-references, use @kbd{C-c
 C-f} (@code{tex-file}) which runs @TeX{} on the current buffer's file,
 in that file's directory.  Before running @TeX{}, it offers to save any
 modified buffers.  Generally, you need to use (@code{tex-file}) twice to

@@ -39,7 +39,7 @@ tags 123 moreinfo|unreproducible|wontfix|patch|notabug
 
 For a list of all bugs, see https://debbugs.gnu.org/db/pa/lemacs.html
 This is a static page, updated once a day.  There is also a dynamic
-list, generated on request. This accepts various options, e.g., to see
+list, generated on request.  This accepts various options, e.g., to see
 the most recent bugs:
 
 https://debbugs.gnu.org/cgi/pkgreport.cgi?newest=100
@@ -183,7 +183,7 @@ emacs-bug-tracker mailing list, just pick one or the other.
 ** How to avoid multiple copies of mails.
 If you reply to reports in the normal way, this should work fine.
 Basically, reply only to the numbered bug address (and any individual
-people's addresses). Do not send mail direct to bug-gnu-emacs or
+people's addresses).  Do not send mail direct to bug-gnu-emacs or
 emacs-pretest-bug unless you are reporting a new bug.
 
 ** To close bug#123 (for example), send mail
@@ -212,7 +212,7 @@ that the bug has been closed.  This mail has a header:
 X-GNU-PR-Message: closed 123
 
 4) Send a copy of your mail to the bug-gnu-emacs list in exactly the
-same way as if you had sent mail to "123" (sans -done). This mail has
+same way as if you had sent mail to "123" (sans -done).  This mail has
 headers:
 
 X-GNU-PR-Message: cc-closed 123

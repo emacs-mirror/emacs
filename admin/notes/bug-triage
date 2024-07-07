@@ -54,7 +54,7 @@ the ones that are not reproducible on the current release.
 
          If you can reproduce, then reply on the thread (either on the
          original message, or anywhere you find appropriate) that you
-         can reproduce this on the current release. If your
+         can reproduce this on the current release.  If your
          reproduction gives additional info (such as a backtrace),
          then add that as well, since it will help whoever attempts to
          fix it.
@@ -79,7 +79,7 @@ the ones that are not reproducible on the current release.
   3. Your changes will take some time to take effect.  After a period of minutes
      to hours, you will get a mail telling you the control message has been
      processed.  At this point, if there were no errors detected, you and
-     everyone else can see your changes. If there are errors, read the error
+     everyone else can see your changes.  If there are errors, read the error
      text - if you need help, consulting the bugtracker documentation in this
      same directory.
 

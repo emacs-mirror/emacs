@@ -267,7 +267,7 @@ system.
 @cindex temp~unlinked.NNNN files, Android
   On Android devices running very old (2.6.29) versions of the Linux
 kernel, Emacs needs to create files named starting with
-@file{temp~unlinked} in the the temporary file directory in order to
+@file{temp~unlinked} in the temporary file directory in order to
 read from asset files.  Do not create files with such names yourself,
 or they may be overwritten or removed.
 

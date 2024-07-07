@@ -809,7 +809,7 @@ _XMRecomputeSelection(register Display *display, register XMenu *menu, register 
 /*
  * _XMTransToOrigin - Internal subroutine to translate the point at
  *		      the center of the current pane and selection to the
- *		      the menu origin.
+ *		      menu origin.
  *
  *	WARNING! ******	Be certain that all menu dependencies have been
  *			recomputed before calling this routine or

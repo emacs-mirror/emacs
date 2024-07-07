@@ -40,7 +40,7 @@ installer but as a zip file which some users may prefer.
 
 emacs-$VERSION-no-deps.zip
 
-Contains Emacs without any dependencies. This may be useful if you
+Contains Emacs without any dependencies.  This may be useful if you
 wish to install where the dependencies are already available, or if
 you want the small possible Emacs.
 
@@ -49,7 +49,7 @@ for most end-users.
 
 emacs-$VERSION-deps.zip
 
-The dependencies. Unzipping this file on top of
+The dependencies.  Unzipping this file on top of
 emacs-$VERSION-no-deps.zip should result in the same install as
 emacs-$VERSION.zip.
 

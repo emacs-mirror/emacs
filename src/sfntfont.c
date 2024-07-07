@@ -1630,7 +1630,7 @@ sfntfont_registries_compatible_p (Lisp_Object a, Lisp_Object b)
 
    Value is 0 if there is no match, -1 if there is a match against
    DESC itself, and the number of matching instances if the style
-   matches one or more instances defined in in DESC.  Return the index
+   matches one or more instances defined in DESC.  Return the index
    of each matching instance in INSTANCES; it should be SIZE big.  */
 
 static int

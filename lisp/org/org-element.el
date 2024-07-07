@@ -7981,7 +7981,7 @@ the cache."
     (unless (memq granularity '( headline headline+inlinetask
                                  greater-element element))
       (error "Unsupported granularity: %S" granularity))
-    ;; Make TO-POS marker.  Otherwise, buffer edits may garble the the
+    ;; Make TO-POS marker.  Otherwise, buffer edits may garble the
     ;; process.
     (unless (markerp to-pos)
       (let ((mk (make-marker)))

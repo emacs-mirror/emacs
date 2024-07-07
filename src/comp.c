@@ -2821,12 +2821,12 @@ emit_static_object (const char *name, Lisp_Object obj)
      <https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html>.
 
      Adjust if possible to reduce the number of function calls.  */
-  size_t chunck_size = NILP (Fcomp_libgccjit_version ()) ? 200 : 1024;
-  char *buff = xmalloc (chunck_size);
+  size_t chunk_size = NILP (Fcomp_libgccjit_version ()) ? 200 : 1024;
+  char *buff = xmalloc (chunk_size);
   for (ptrdiff_t i = 0; i < len;)
     {
-      strncpy (buff, p, chunck_size);
-      buff[chunck_size - 1] = 0;
+      strncpy (buff, p, chunk_size);
+      buff[chunk_size - 1] = 0;
       uintptr_t l = strlen (buff);
 
       if (l != 0)

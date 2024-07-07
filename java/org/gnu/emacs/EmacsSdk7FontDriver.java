@@ -354,7 +354,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
        rightwards from the origin to the left most pixel in the glyph
        raster.  rbearing is the distance between the origin and the
        rightmost pixel in the glyph raster.  ascent is the distance
-       counting upwards between the the topmost pixel in the glyph
+       counting upwards between the topmost pixel in the glyph
        raster.  descent is the distance (once again counting
        downwards) between the origin and the bottommost pixel in the
        glyph raster.

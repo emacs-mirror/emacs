@@ -709,7 +709,7 @@
 ;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
 (define-charset-alias 'cp866u 'cp1125)
 
-;; Fixme: C.f. iconv, https://czyborra.com/charsets/codepages.html
+;; FIXME: Cf. iconv, https://czyborra.com/charsets/codepages.html
 ;; shows this as not ASCII compatible, with various graphics in
 ;; 0x01-0x1F.
 (define-charset 'cp437

@@ -247,7 +247,7 @@ generating JSON files.
 @item
 Andrea Corallo was the Emacs (co-)maintainer from 29.3 onwards.
 He wrote the native compilation support in @file{comp.c} and
-and @file{comp.el}, for compiling Emacs Lisp to native code using
+@file{comp.el}, for compiling Emacs Lisp to native code using
 @samp{libgccjit}.
 
 @item

@@ -3638,7 +3638,7 @@ Add this to the `modus-themes-post-load-hook'."
 The above will work only for themes that belong to the Modus family.
 For users of Emacs version 29 or higher, there exists a theme-agnostic
 hook that takes a function with one argument---that of the theme---and
-calls in the the "post enable" phase of theme loading.  Here is the
+calls in the "post enable" phase of theme loading.  Here is the
 above snippet, with the necessary tweaks:
 
 #+begin_src emacs-lisp

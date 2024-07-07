@@ -133,7 +133,7 @@
 ;; Emacs's normal rectangle support is based on interpreting the region
 ;; between the mark and point as a "virtual rectangle", and using a
 ;; completely separate set of "rectangle commands" [C-x r ...] on the
-;; region to copy, kill, fill a.s.o. the virtual rectangle.
+;; region to copy, kill, fill, and so on the virtual rectangle.
 ;;
 ;; cua-mode's superior rectangle support uses a true visual
 ;; representation of the selected rectangle, i.e. it highlights the

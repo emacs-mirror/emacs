@@ -1448,7 +1448,7 @@ as a regex."
 
       ;; Example 3 and 4 can't be directly tested because jit-lock and
       ;; batch tests don't play together well.  But we can approximate
-      ;; the behavior by calling the the fontification for the same
+      ;; the behavior by calling the fontification for the same
       ;; region which would be used by jit-lock.
       ;; Example 3
       (search-forward "sub do_stuff")

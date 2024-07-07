@@ -117,7 +117,7 @@ with
 
 (Make sure both emacs and emacsclient are multi-tty versions.)
 You'll hopefully have two fully working, independent frames on
-separate terminals. The new frame is closed automatically when you
+separate terminals.  The new frame is closed automatically when you
 finish editing the specified files (C-x #), but delete-frame (C-x 5 0)
 also works.  Of course, you can create frames on more than two tty
 devices.
@@ -325,7 +325,7 @@ THINGS TO DO
    example, custom's buttons are broken on non-initial device types.
 
 ** Possibly turn off the double C-g feature when there is an X frame.
-   C.f. (emacs)Emergency Escape.
+   Cf. (emacs)Emergency Escape.
 
 ** frames-on-display-list should also accept frames.
 
@@ -773,7 +773,7 @@ DIARY OF CHANGES
    with it.
 
    (Done, there was a stupid mistake in
-   Ftty_supports_face_attributes_p. Colors are broken, though.)
+   Ftty_supports_face_attributes_p.  Colors are broken, though.)
 
 -- C-x 5 2, C-x 5 o, C-x 5 0 on an emacsclient frame unexpectedly
    exits emacsclient.  This is a result of trying to be clever with
@@ -1080,7 +1080,7 @@ DIARY OF CHANGES
    fine.  Sometimes faces on these screens become garbled.
 
    This only seems to affect displays that are of the same terminfo
-   type as the selected one. Interestingly, in screen Emacs normally
+   type as the selected one.  Interestingly, in screen Emacs normally
    reports the up arrow key as 'M-o A', but after the above SNAFU, it
    complains about 'M-[ a'.  UNIX ttys are a complete mystery to me,
    but it seems the reset-reinitialize cycle somehow leaves the
@@ -1232,7 +1232,7 @@ DIARY OF CHANGES
 -- Understand Emacs's low-level input system (it's black magic) :-)
    What exactly does interrupt_input do?  I tried to disable it for
    raw secondary tty support, but it does not seem to do anything
-   useful.  (Update: Look again. X unconditionally enables this, maybe
+   useful.  (Update: Look again.  X unconditionally enables this, maybe
    that's why raw terminal support is broken again.  I really do need
    to understand input.)
    (Update: I am starting to understand the read_key_sequence->read-char

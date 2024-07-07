@@ -47,7 +47,7 @@ EXCEPTIONS
 
 
 There are a couple of functions that replaces characters in-place
-rather than insert/delete. They are in casefiddle.c and editfns.c.
+rather than insert/delete.  They are in casefiddle.c and editfns.c.
 
 In casefiddle.c, do_casify_unibyte_region and
 do_casify_multibyte_region modifies buffer, but they are static
@@ -177,7 +177,7 @@ all safe.
 json.c:790:  signal_after_change (PT, 0, inserted);
 
 Called in json-insert, calls either decode_coding_gap or
-insert_from_gap_1, both are safe. Calls memmove but it’s for
+insert_from_gap_1, both are safe.  Calls memmove but it’s for
 decode_coding_gap.
 
 keymap.c:2873:	    /* Insert calls signal_after_change which may GC.  */

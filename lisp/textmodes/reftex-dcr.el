@@ -110,7 +110,7 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
       (if (and (eq arg 2) (windowp dw)) (select-window dw)))))
 
 (defun reftex-view-cr-cite (arg key how)
-  ;; View crossreference of a ref cite.  HOW can have the values
+  ;; View cross-reference of a ref cite.  HOW can have the values
   ;; nil:         Show in another window.
   ;; echo:        Show one-line info in echo area.
   ;; tmp-window:  Show in small window and arrange for window to disappear.
@@ -175,7 +175,7 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
         (select-window pop-win)))))
 
 (defun reftex-view-cr-ref (arg label how)
-  ;; View crossreference of a ref macro.  HOW can have the values
+  ;; View cross-reference of a ref macro.  HOW can have the values
   ;; nil:         Show in another window.
   ;; echo:        Show one-line info in echo area.
   ;; tmp-window:  Show in small window and arrange for window to disappear.

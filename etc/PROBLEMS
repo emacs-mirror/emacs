@@ -757,7 +757,7 @@ window sizes" (Lisp value 'ignore').
 
 This can happen if your Emacs is configured to convert PDF to SVG for
 display, and the version of the MuPDF package you have installed has a
-a known bug, whereby it sometimes produces invalid SVG images.
+known bug, whereby it sometimes produces invalid SVG images.
 Version 1.21 of MuPDF is known to be affected.
 
 The solution is either to upgrade or downgrade to a version of MuPDF

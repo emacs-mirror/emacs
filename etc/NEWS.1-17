@@ -1355,7 +1355,7 @@ This is because -batch (see above) is now used in building Emacs.
  There are probably some Mocklisp constructs that are not handled.
  If you encounter one, feel free to report the failure as a bug.
  The construct will be handled in a future Emacs release, if that is not
- not too hard to do.
+ too hard to do.
 
  Note that lisp code converted from Mocklisp code will not necessarily
  run as fast as code specifically written for GNU Emacs, nor will it use

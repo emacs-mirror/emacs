@@ -19776,7 +19776,7 @@
 
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 
-	* xdisp.c (x_intersect_rectangles): Fix typo "the the -> the".
+	* xdisp.c (x_intersect_rectangles): Fix typo.
 
 2011-05-10  Juanma Barranquero  <lekktu@gmail.com>
 
