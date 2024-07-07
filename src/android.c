@@ -2019,6 +2019,8 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
       c_argument
 	= (*env)->GetStringUTFChars (env, (jstring) dump_file_object,
 				     NULL);
+      if (!c_argument)
+	emacs_abort ();
 
       /* Copy the Java string data once.  */
       dump_file = strdup (c_argument);
@@ -6497,18 +6499,18 @@ android_browse_url (Lisp_Object url, Lisp_Object send)
   buffer = (*android_java_env)->GetStringUTFChars (android_java_env,
 						   (jstring) value,
 						   NULL);
-  android_exception_check_1 (value);
+  android_exception_check_nonnull ((void *) buffer, value);
 
   /* Otherwise, build the string describing the error.  */
-  tem = build_string_from_utf8 (buffer);
+  tem = build_unibyte_string (buffer);
 
   (*android_java_env)->ReleaseStringUTFChars (android_java_env,
 					      (jstring) value,
 					      buffer);
 
-  /* And return it.  */
+  /* And decode and return the same.  */
   ANDROID_DELETE_LOCAL_REF (value);
-  return tem;
+  return code_convert_string_norecord (tem, Qandroid_jni, false);
 }
 
 /* Tell the system to restart Emacs in a short amount of time, and

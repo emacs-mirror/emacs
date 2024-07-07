@@ -2342,8 +2342,9 @@ See `outline-search-function' for BOUND, MOVE, BACKWARD and LOOKING-AT."
 (defun shr--fix-tbody (tbody)
   (nconc (list 'tbody (dom-attributes tbody))
          (cl-loop for child in (dom-children tbody)
-                  collect (if (or (stringp child)
-                                  (not (eq (dom-tag child) 'tr)))
+		  for tag = (and (not (stringp child)) (dom-tag child))
+		  unless (or (eq tag 'thead) (eq tag 'tfoot))
+		  collect (if (not (eq tag 'tr))
                               (list 'tr nil (list 'td nil child))
                             child))))
 
