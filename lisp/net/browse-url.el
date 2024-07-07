@@ -683,6 +683,7 @@ websites are increasingly rare, but they do still exist."
   :type '(choice (const :tag "HTTP" "http")
                  (const :tag "HTTPS" "https")
                  (string :tag "Something else" "https"))
+  :risky t
   :version "29.1")
 
 (defun browse-url-url-at-point ()
