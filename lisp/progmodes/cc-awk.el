@@ -1011,9 +1011,11 @@ std\\(err\\|in\\|out\\)\\|user\\)\\)\\>\
      ;; Do the same (almost) with
      ;; (regexp-opt '("/inet/tcp/lport/rhost/rport" "/inet/udp/lport/rhost/rport"
      ;;                 "/inet/raw/lport/rhost/rport") 'words)
+     ;; , replacing "inet" with "inet[46]?"
+     ;; , replacing "lport", "rhost", and "rport" with "[[:alnum:]]+".
      ;; This cannot be combined with the above pattern, because the match number
      ;; for the (optional) closing \" would then exceed 9.
-     '("\\(\"/inet/\\(\\(raw\\|\\(tc\\|ud\\)p\\)/lport/rhost/rport\\)\\)\\>\
+     '("\\(\"/inet[46]?/\\(\\(raw\\|\\(tc\\|ud\\)p\\)/[[:alnum:]]+/[[:alnum:]]+/[[:alnum:]]+\\)\\)\\>\
 \\(\\(\"\\)\\|\\([^\"/\n\r][^\"\n\r]*\\)?$\\)"
        (1 font-lock-variable-name-face t)
        (6 font-lock-variable-name-face t t))
