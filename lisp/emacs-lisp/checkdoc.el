@@ -2540,11 +2540,10 @@ Code:, and others referenced in the style guide."
   "Search between BEG and END for a style error with message text.
 Optional arguments BEG and END represent the boundary of the check.
 The default boundary is the entire buffer."
-  (let ((e nil)
-	(type nil))
+  (let ((e nil))
     (if (not (or beg end)) (setq beg (point-min) end (point-max)))
     (goto-char beg)
-    (while (setq type (checkdoc-message-text-next-string end))
+    (while-let ((type (checkdoc-message-text-next-string end)))
       (setq e (checkdoc-message-text-engine type)))
     e))
 
@@ -2638,30 +2637,29 @@ should not end with a period, and should start with a capital letter.
 The function `y-or-n-p' has similar constraints.
 Argument TYPE specifies the type of question, such as `error' or `y-or-n-p'."
   ;; If type is nil, then attempt to derive it.
-  (if (not type)
-      (save-excursion
-	(up-list -1)
-	(if (looking-at "(format")
-	    (up-list -1))
-	(setq type
-	      (cond ((looking-at "(error")
-		     'error)
-		    (t 'y-or-n-p)))))
+  (unless type
+    (save-excursion
+      (up-list -1)
+      (when (looking-at "(format")
+        (up-list -1))
+      (setq type
+            (cond ((looking-at "(error")
+                   'error)
+                  (t 'y-or-n-p)))))
   (let ((case-fold-search nil))
     (or
      ;; From the documentation of the symbol `error':
      ;; In Emacs, the convention is that error messages start with a capital
      ;; letter but *do not* end with a period.  Please follow this convention
      ;; for the sake of consistency.
-     (if (and (checkdoc--error-bad-format-p)
-	      (not (checkdoc-autofix-ask-replace
-                    (match-beginning 1) (match-end 1)
-                    "Capitalize your message text?"
-                    (capitalize (match-string 1))
-		    t)))
-         (checkdoc-create-error "Messages should start with a capital letter"
-          (match-beginning 1) (match-end 1))
-       nil)
+     (when (and (checkdoc--error-bad-format-p)
+                (not (checkdoc-autofix-ask-replace
+                      (match-beginning 1) (match-end 1)
+                      "Capitalize your message text?"
+                      (capitalize (match-string 1))
+                      t)))
+       (checkdoc-create-error "Messages should start with a capital letter"
+                              (match-beginning 1) (match-end 1)))
      ;; In general, sentences should have two spaces after the period.
      (checkdoc-sentencespace-region-engine (point)
 					   (save-excursion (forward-sexp 1)
@@ -2671,19 +2669,18 @@ Argument TYPE specifies the type of question, such as `error' or `y-or-n-p'."
 					 (save-excursion (forward-sexp 1)
 							 (point)))
      ;; Here are message type specific questions.
-     (if (and (eq type 'error)
-	      (save-excursion (forward-sexp 1)
-			      (forward-char -2)
-			      (looking-at "\\."))
-	      (not (checkdoc-autofix-ask-replace (match-beginning 0)
-						 (match-end 0)
-                                                 "Remove period from error?"
-						 ""
-						 t)))
-	 (checkdoc-create-error
-	  "Error messages should *not* end with a period"
-	  (match-beginning 0) (match-end 0))
-       nil)
+     (when (and (eq type 'error)
+                (save-excursion (forward-sexp 1)
+                                (forward-char -2)
+                                (looking-at "\\."))
+                (not (checkdoc-autofix-ask-replace (match-beginning 0)
+                                                   (match-end 0)
+                                                   "Remove period from error?"
+                                                   ""
+                                                   t)))
+       (checkdoc-create-error
+        "Error messages should *not* end with a period"
+        (match-beginning 0) (match-end 0)))
      ;; From `(elisp) Programming Tips': "A question asked in the
      ;; minibuffer with `yes-or-no-p' or `y-or-n-p' should start with
      ;; a capital letter and end with '?'."
