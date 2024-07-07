@@ -517,26 +517,26 @@ struct lisp_time
   Lisp_Object hz;
 };
 
-/* Convert T to struct timespec, returning an invalid timespec
-   if T does not fit.  */
+/* Convert (TICKS . HZ) to struct timespec, returning an invalid
+   timespec if the result would not fit.  */
 static struct timespec
-lisp_to_timespec (struct lisp_time t)
+ticks_hz_to_timespec (Lisp_Object ticks, Lisp_Object hz)
 {
   struct timespec result = invalid_timespec ();
   int ns;
   mpz_t *q = &mpz[0];
   mpz_t const *qt = q;
 
-  /* Floor-divide (T.ticks * TIMESPEC_HZ) by T.hz,
+  /* Floor-divide (TICKS * TIMESPEC_HZ) by HZ,
      yielding quotient Q (tv_sec) and remainder NS (tv_nsec).
      Return an invalid timespec if Q does not fit in time_t.
      For speed, prefer fixnum arithmetic if it works.  */
-  if (FASTER_TIMEFNS && BASE_EQ (t.hz, timespec_hz))
+  if (FASTER_TIMEFNS && BASE_EQ (hz, timespec_hz))
     {
-      if (FIXNUMP (t.ticks))
+      if (FIXNUMP (ticks))
 	{
-	  EMACS_INT s = XFIXNUM (t.ticks) / TIMESPEC_HZ;
-	  ns = XFIXNUM (t.ticks) % TIMESPEC_HZ;
+	  EMACS_INT s = XFIXNUM (ticks) / TIMESPEC_HZ;
+	  ns = XFIXNUM (ticks) % TIMESPEC_HZ;
 	  if (ns < 0)
 	    s--, ns += TIMESPEC_HZ;
 	  if ((TYPE_SIGNED (time_t) ? TIME_T_MIN <= s : 0 <= s)
@@ -548,14 +548,14 @@ lisp_to_timespec (struct lisp_time t)
 	  return result;
 	}
       else
-	ns = mpz_fdiv_q_ui (*q, *xbignum_val (t.ticks), TIMESPEC_HZ);
+	ns = mpz_fdiv_q_ui (*q, *xbignum_val (ticks), TIMESPEC_HZ);
     }
-  else if (FASTER_TIMEFNS && BASE_EQ (t.hz, make_fixnum (1)))
+  else if (FASTER_TIMEFNS && BASE_EQ (hz, make_fixnum (1)))
     {
       ns = 0;
-      if (FIXNUMP (t.ticks))
+      if (FIXNUMP (ticks))
 	{
-	  EMACS_INT s = XFIXNUM (t.ticks);
+	  EMACS_INT s = XFIXNUM (ticks);
 	  if ((TYPE_SIGNED (time_t) ? TIME_T_MIN <= s : 0 <= s)
 	      && s <= TIME_T_MAX)
 	    {
@@ -565,17 +565,17 @@ lisp_to_timespec (struct lisp_time t)
 	  return result;
 	}
       else
-	qt = xbignum_val (t.ticks);
+	qt = xbignum_val (ticks);
     }
   else
     {
-      mpz_mul_ui (*q, *bignum_integer (q, t.ticks), TIMESPEC_HZ);
-      mpz_fdiv_q (*q, *q, *bignum_integer (&mpz[1], t.hz));
+      mpz_mul_ui (*q, *bignum_integer (q, ticks), TIMESPEC_HZ);
+      mpz_fdiv_q (*q, *q, *bignum_integer (&mpz[1], hz));
       ns = mpz_fdiv_q_ui (*q, *q, TIMESPEC_HZ);
     }
 
-  /* Check that Q fits in time_t, not merely in T.tv_sec.  With some versions
-     of MinGW, tv_sec is a 64-bit type, whereas time_t is a 32-bit type.  */
+  /* Check that Q fits in time_t, not merely in RESULT.tv_sec.  With some MinGW
+     versions, tv_sec is a 64-bit type, whereas time_t is a 32-bit type.  */
   time_t sec;
   if (mpz_time (*qt, &sec))
     {
@@ -583,6 +583,14 @@ lisp_to_timespec (struct lisp_time t)
       result.tv_nsec = ns;
     }
   return result;
+}
+
+/* Convert T to struct timespec, returning an invalid timespec
+   if T does not fit.  */
+static struct timespec
+lisp_to_timespec (struct lisp_time t)
+{
+  return ticks_hz_to_timespec (t.ticks, t.hz);
 }
 
 /* C timestamp forms.  This enum is passed to conversion functions to
