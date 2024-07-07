@@ -3168,7 +3168,7 @@ android_saf_exception_check (int n, ...)
    Value is 1 if it be NULL, 0 otherwise.  */
 
 static int
-android_saf_check_nonnull (jobject object, int n, ...)
+android_saf_check_nonnull (const void *object, int n, ...)
 {
   va_list ap;
 
