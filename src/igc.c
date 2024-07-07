@@ -3421,7 +3421,9 @@ buffer_step (struct igc_buffer_it *it)
     {
       Lisp_Object buf = it->buf;
       buffer_it_next (it);
-      compact_buffer (XBUFFER (buf));
+      struct buffer *b = XBUFFER (buf);
+      compact_buffer (b);
+      b->text->intervals = balance_intervals (b->text->intervals);
       return true;
     }
   return false;
