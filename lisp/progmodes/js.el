@@ -2493,7 +2493,7 @@ Returns t if successful, nil if no term was found."
       t)))
 
 (defun js--chained-expression-p ()
-  "A helper for js--proper-indentation that handles chained expressions.
+  "Helper for `js--proper-indentation' that handles chained expressions.
 A chained expression is when the current line starts with '.' and the
 previous line also has a '.' expression.
 This function returns the indentation for the current line if it is

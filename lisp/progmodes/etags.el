@@ -1364,7 +1364,7 @@ hits the start of file."
 	(cond (line (progn (goto-char (point-min))
 			   (forward-line (1- line))))
 	      (startpos (goto-char startpos))
-	      (t (error "etags.el BUG: bogus direct file tag")))
+              (t (error "etags.el: BUG: bogus direct file tag")))
       ;; This constant is 1/2 the initial search window.
       ;; There is no sense in making it too small,
       ;; since just going around the loop once probably
@@ -2182,7 +2182,7 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
        (when (symbolp symbs)
          (if (boundp symbs)
              (setq symbs (symbol-value symbs))
-           (warn "symbol `%s' has no value" symbs)
+           (warn "Symbol `%s' has no value" symbs)
            (setq symbs nil))
          (if (obarrayp symbs)
              (mapatoms add-xref symbs)

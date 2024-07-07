@@ -218,7 +218,7 @@ this is used."
                        (face :tag "Face"))))
 
 (defcustom flymake-autoresize-margins t
-  "If non-nil, automatically resize margin-width calling flymake--resize-margins.
+  "If non-nil, automatically resize margin-width calling `flymake--resize-margins'.
 
 Only relevant if `flymake-indicator-type' is set to margins."
   :version "30.1"

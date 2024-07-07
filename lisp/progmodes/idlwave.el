@@ -798,7 +798,7 @@ upper case, regardless of this variable."
 (defcustom idlwave-reserved-word-upcase nil
   "Non-nil means, reserved words will be made upper case via abbrev expansion.
 If nil case of reserved words is controlled by `idlwave-abbrev-change-case'.
-Has effect only if in abbrev-mode."
+Has effect only if in `abbrev-mode'."
   :group 'idlwave-abbrev-and-indent-action
   :type 'boolean)
 
