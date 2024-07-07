@@ -1035,8 +1035,8 @@ std\\(err\\|in\\|out\\)\\|user\\)\\)\\>\
 		  '("adump" "and" "asort" "asorti" "atan2" "bindtextdomain" "close"
 		    "compl" "cos" "dcgettext" "dcngettext" "exp" "extension" "fflush"
 		    "gensub" "gsub" "index" "int" "isarray" "length" "log" "lshift"
-		    "match" "mktime" "or" "patsplit" "print" "printf" "rand" "rshift"
-		    "sin" "split" "sprintf" "sqrt" "srand" "stopme"
+		    "match" "mkbool" "mktime" "or" "patsplit" "print" "printf" "rand"
+		    "rshift" "sin" "split" "sprintf" "sqrt" "srand" "stopme"
 		    "strftime" "strtonum" "sub" "substr"  "system"
 		    "systime" "tolower" "toupper" "typeof" "xor")
 		  t)
