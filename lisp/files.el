@@ -7263,7 +7263,7 @@ auto-save file, if that is more recent than the visited file."
 	   (after-find-file nil nil t))
 	  (t (user-error "Recover-file canceled")))))
 
-(defvar dired-mode-hook)
+(declare-function dired-omit-mode "dired-x" (&optional arg))
 
 (defun recover-session ()
   "Recover auto save files from a previous Emacs session.
@@ -7284,14 +7284,12 @@ Then you'll be asked about a number of files to recover."
                                (concat "\\`" (regexp-quote nd)))
 			     t)
       (error "No previous sessions to recover")))
-  (require 'dired)
-  (let ((ls-lisp-support-shell-wildcards t)
-        ;; Ensure that we don't omit the session files as the user may
-        ;; have (as suggested by the manual) `dired-omit-mode' in the
-        ;; hook.
-        (dired-mode-hook (delete 'dired-omit-mode dired-mode-hook)))
+  (let ((ls-lisp-support-shell-wildcards t))
     (dired (concat auto-save-list-file-prefix "*")
-	   (concat (connection-local-value dired-listing-switches) " -t")))
+	   (concat (connection-local-value dired-listing-switches) " -t"))
+    ;; Toggle omitting, if it is on.
+    (when (bound-and-true-p dired-omit-mode)
+      (dired-omit-mode -1)))
   (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
   (define-key (current-local-map) "\C-c\C-c" 'recover-session-finish)
   (save-excursion
