@@ -1507,13 +1507,10 @@ struct range_table_work_area
       }									\
   } while (false)
 
-/* Convert the regexp's BYTEOFFSET into a character position,
-   for the object recorded in gl_state with RE_SETUP_SYNTAX_TABLE_FOR_OBJECT.
-
-   The function presumes that parse_sexp_lookup_properties is true.  */
+/* Convert the regexp's BYTEOFFSET to/from character positions.  */
 
 INLINE ptrdiff_t
-RE_SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t byteoffset)
+BYTEOFFSET_TO_CHARPOS (ptrdiff_t byteoffset)
 {
   return (STRINGP (gl_state.object)
 	  ? string_byte_to_char (gl_state.object, byteoffset)
@@ -1527,7 +1524,7 @@ RE_SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t byteoffset)
 }
 
 INLINE ptrdiff_t
-RE_CHAR_TO_BYTE (ptrdiff_t charpos)
+CHARPOS_TO_BYTEOFFSET (ptrdiff_t charpos)
 {
   return (STRINGP (gl_state.object)
 	  ? string_char_to_byte (gl_state.object, charpos)
@@ -1573,10 +1570,10 @@ RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
       gl_state.e_property = 1 + SCHARS (gl_state.object);
     }
   if (parse_sexp_lookup_properties)
-    update_syntax_table (RE_SYNTAX_TABLE_BYTE_TO_CHAR (frombyte),
+    update_syntax_table (BYTEOFFSET_TO_CHARPOS (frombyte),
 			 1, 1, gl_state.object);
-  gl_state.e_byte_property = RE_CHAR_TO_BYTE (gl_state.e_property);
-  gl_state.b_byte_property = RE_CHAR_TO_BYTE (gl_state.b_property);
+  gl_state.e_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.e_property);
+  gl_state.b_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.b_property);
 }
 
 /* These are like `UPDATE_SYNTAX_TABLE*` but take a byteoffset.  */
@@ -1586,10 +1583,10 @@ RE_UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t byteoffset)
 { /* Performs just-in-time syntax-propertization.  */
   if (parse_sexp_lookup_properties && byteoffset >= gl_state.e_byte_property)
     {
-      update_syntax_table_forward (RE_SYNTAX_TABLE_BYTE_TO_CHAR (byteoffset),
+      update_syntax_table_forward (BYTEOFFSET_TO_CHARPOS (byteoffset),
 				   false, gl_state.object);
-      gl_state.e_byte_property = RE_CHAR_TO_BYTE (gl_state.e_property);
-      gl_state.b_byte_property = RE_CHAR_TO_BYTE (gl_state.b_property);
+      gl_state.e_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.e_property);
+      gl_state.b_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.b_property);
     }
 }
 
@@ -1601,10 +1598,10 @@ RE_UPDATE_SYNTAX_TABLE_BACKWARD (ptrdiff_t byteoffset)
 {
   if (parse_sexp_lookup_properties && byteoffset < gl_state.b_byte_property)
     {
-      update_syntax_table (RE_SYNTAX_TABLE_BYTE_TO_CHAR (byteoffset),
+      update_syntax_table (BYTEOFFSET_TO_CHARPOS (byteoffset),
 			   -1, false, gl_state.object);
-      gl_state.e_byte_property = RE_CHAR_TO_BYTE (gl_state.e_property);
-      gl_state.b_byte_property = RE_CHAR_TO_BYTE (gl_state.b_property);
+      gl_state.e_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.e_property);
+      gl_state.b_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.b_property);
     }
 }
 
