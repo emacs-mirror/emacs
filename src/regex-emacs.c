@@ -1579,6 +1579,7 @@ RE_UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t byteoffset)
 	= old_e == gl_state.b_property ? old_e_byte
 	  : CHARPOS_TO_BYTEOFFSET (gl_state.b_property);
       gl_state.e_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.e_property);
+      eassert (byteoffset >= gl_state.b_byte_property);
     }
 }
 
@@ -1598,6 +1599,7 @@ RE_UPDATE_SYNTAX_TABLE_BACKWARD (ptrdiff_t byteoffset)
 	= old_b == gl_state.e_property ? old_b_byte
 	  : CHARPOS_TO_BYTEOFFSET (gl_state.e_property);
       gl_state.b_byte_property = CHARPOS_TO_BYTEOFFSET (gl_state.b_property);
+      eassert (byteoffset < gl_state.e_byte_property);
     }
 }
 
