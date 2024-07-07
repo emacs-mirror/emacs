@@ -88,6 +88,15 @@ outside of the mode they were written for.
 Verify the conversion by comparing the value of the keymap before
 converting it and after (you can see the value in 'C-h v').
 
+** Change documentation examples to use 'setopt' instead of 'setq'
+User options are variables defined with 'defcustom', as opposed to
+'defvar' or 'defconst'.  It is preferable to use 'setopt' to set user
+options instead of 'setq', since it will execute any ‘custom-set’ form
+associated with that variable.  Pick a package and make sure that it
+uses 'setopt' in any examples in its documentation (doc strings, manual,
+Commentary section, etc.).  Note that 'setopt' is new in Emacs 29.1, so
+packages that need support for earlier versions should still use 'setq'.
+
 ** Write more tests
 Pick a fixed bug from the database, write a test case to make sure it
 stays fixed.  Or pick your favorite programming major-mode, and write
