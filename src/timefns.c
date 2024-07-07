@@ -1548,12 +1548,27 @@ SEC is always an integer between 0 and 59.)
 usage: (decode-time &optional TIME ZONE FORM)  */)
   (Lisp_Object specified_time, Lisp_Object zone, Lisp_Object form)
 {
-  /* Compute broken-down local time LOCAL_TM from SPECIFIED_TIME and ZONE.  */
-  struct lisp_time lt = lisp_time_struct (specified_time, CFORM_TICKS_HZ).lt;
-  struct timespec ts = ticks_hz_to_timespec (lt.ticks, lt.hz);
-  if (! timespec_valid_p (ts))
-    time_overflow ();
-  time_t time_spec = ts.tv_sec;
+  /* Convert SPECIFIED_TIME to TIME_SPEC and HZ;
+     if HZ != 1 also set LT.ticks.  */
+  time_t time_spec;
+  Lisp_Object hz;
+  struct lisp_time lt;
+  if (EQ (form, Qt))
+    {
+      lt = lisp_time_struct (specified_time, CFORM_TICKS_HZ).lt;
+      struct timespec ts = ticks_hz_to_timespec (lt.ticks, lt.hz);
+      if (! timespec_valid_p (ts))
+	time_overflow ();
+      time_spec = ts.tv_sec;
+      hz = lt.hz;
+    }
+  else
+    {
+      time_spec = lisp_seconds_argument (specified_time);
+      hz = make_fixnum (1);
+    }
+
+  /* Compute broken-down local time LOCAL_TM from TIME_SPEC and ZONE.  */
   struct tm local_tm, gmt_tm;
   timezone_t tz = tzlookup (zone, false);
   struct tm *tm = emacs_localtime_rz (tz, &time_spec, &local_tm);
@@ -1581,8 +1596,8 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
     }
 
   /* Compute SEC from LOCAL_TM.tm_sec and HZ.  */
-  Lisp_Object hz = lt.hz, sec;
-  if (BASE_EQ (hz, make_fixnum (1)) || !EQ (form, Qt))
+  Lisp_Object sec;
+  if (BASE_EQ (hz, make_fixnum (1)))
     sec = make_fixnum (local_tm.tm_sec);
   else
     {
