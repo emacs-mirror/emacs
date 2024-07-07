@@ -585,20 +585,13 @@ ticks_hz_to_timespec (Lisp_Object ticks, Lisp_Object hz)
   return result;
 }
 
-/* Convert T to struct timespec, returning an invalid timespec
-   if T does not fit.  */
-static struct timespec
-lisp_to_timespec (struct lisp_time t)
-{
-  return ticks_hz_to_timespec (t.ticks, t.hz);
-}
-
 /* C timestamp forms.  This enum is passed to conversion functions to
    specify the desired C timestamp form.  */
 enum cform
   {
     CFORM_TICKS_HZ, /* struct lisp_time */
-    CFORM_SECS_ONLY, /* struct lisp_time but HZ is 1 */
+    CFORM_TIMESPEC, /* struct timespec */
+    CFORM_SECS_ONLY, /* struct timespec but tv_nsec == 0 if timespec valid */
     CFORM_DOUBLE /* double */
   };
 
@@ -606,6 +599,7 @@ enum cform
 union c_time
 {
   struct lisp_time lt;
+  struct timespec ts;
   double d;
 };
 
@@ -619,16 +613,22 @@ decode_ticks_hz (Lisp_Object ticks, Lisp_Object hz, enum cform cform)
     case CFORM_DOUBLE:
       return (union c_time) { .d = frac_to_double (ticks, hz) };
 
-    default:
+    case CFORM_TICKS_HZ:
       return (union c_time) { .lt = { .ticks = ticks, .hz = hz } };
+
+    default:
+      return (union c_time) { .ts = ticks_hz_to_timespec (ticks, hz) };
     }
 }
 
-/* Convert the finite number T into an Emacs time, truncating
+/* Convert the finite number T into a C time of form CFORM, truncating
    toward minus infinity.  Signal an error if unsuccessful.  */
-static struct lisp_time
-decode_float_time (double t)
+static union c_time
+decode_float_time (double t, enum cform cform)
 {
+  if (FASTER_TIMEFNS && cform == CFORM_DOUBLE)
+    return (union c_time) { .d = t };
+
   Lisp_Object ticks, hz;
   if (t == 0)
     {
@@ -671,7 +671,7 @@ decode_float_time (double t)
 	  ASET (flt_radix_power, scale, hz);
 	}
     }
-  return (struct lisp_time) { .ticks = ticks, .hz = hz };
+  return decode_ticks_hz (ticks, hz, cform);
 }
 
 /* Make a 4-element timestamp (HI LO US PS) from TICKS and HZ.
@@ -1019,10 +1019,7 @@ decode_lisp_time (Lisp_Object specified_time, enum cform cform)
       return (struct form_time)
 	{
 	  .form = TIMEFORM_FLOAT,
-	  .time
-	    = (cform == CFORM_DOUBLE
-	       ? (union c_time) { .d = d }
-	       : (union c_time) { .lt = decode_float_time (d) })
+	  .time = decode_float_time (d, cform)
 	};
     }
 
@@ -1049,19 +1046,18 @@ list4_to_timespec (Lisp_Object high, Lisp_Object low,
 {
   struct err_time err_time
     = decode_time_components (TIMEFORM_HI_LO_US_PS, high, low, usec, psec,
-			      CFORM_TICKS_HZ);
-  return (err_time.err
-	  ? invalid_timespec ()
-	  : lisp_to_timespec (err_time.time.lt));
+			      CFORM_TIMESPEC);
+  return err_time.err ? invalid_timespec () : err_time.time.ts;
 }
 
 /* Decode a Lisp list SPECIFIED_TIME that represents a time.
    If SPECIFIED_TIME is nil, use the current time.
+   Decode to CFORM form.
    Signal an error if SPECIFIED_TIME does not represent a time.  */
-static struct lisp_time
-lisp_time_struct (Lisp_Object specified_time)
+static union c_time
+lisp_time_struct (Lisp_Object specified_time, enum cform cform)
 {
-  return decode_lisp_time (specified_time, CFORM_TICKS_HZ).time.lt;
+  return decode_lisp_time (specified_time, cform).time;
 }
 
 /* Decode a Lisp list SPECIFIED_TIME that represents a time.
@@ -1071,8 +1067,7 @@ lisp_time_struct (Lisp_Object specified_time)
 struct timespec
 lisp_time_argument (Lisp_Object specified_time)
 {
-  struct lisp_time lt = lisp_time_struct (specified_time);
-  struct timespec t = lisp_to_timespec (lt);
+  struct timespec t = lisp_time_struct (specified_time, CFORM_TIMESPEC).ts;
   if (! timespec_valid_p (t))
     time_overflow ();
   return t;
@@ -1083,8 +1078,8 @@ lisp_time_argument (Lisp_Object specified_time)
 static time_t
 lisp_seconds_argument (Lisp_Object specified_time)
 {
-  struct form_time ft = decode_lisp_time (specified_time, CFORM_SECS_ONLY);
-  struct timespec t = lisp_to_timespec (ft.time.lt);
+  struct timespec t
+    = decode_lisp_time (specified_time, CFORM_SECS_ONLY).time.ts;
   if (! timespec_valid_p (t))
     time_overflow ();
   return t.tv_sec;
@@ -1276,8 +1271,8 @@ time_cmp (Lisp_Object a, Lisp_Object b)
 
   /* Compare (ATICKS . AZ) to (BTICKS . BHZ) by comparing
      ATICKS * BHZ to BTICKS * AHZ.  */
-  struct lisp_time ta = lisp_time_struct (a);
-  struct lisp_time tb = lisp_time_struct (b);
+  struct lisp_time ta = lisp_time_struct (a, CFORM_TICKS_HZ).lt;
+  struct lisp_time tb = lisp_time_struct (b, CFORM_TICKS_HZ).lt;
   mpz_t const *za = bignum_integer (&mpz[0], ta.ticks);
   mpz_t const *zb = bignum_integer (&mpz[1], tb.ticks);
   if (! (FASTER_TIMEFNS && BASE_EQ (ta.hz, tb.hz)))
@@ -1554,8 +1549,8 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
   (Lisp_Object specified_time, Lisp_Object zone, Lisp_Object form)
 {
   /* Compute broken-down local time LOCAL_TM from SPECIFIED_TIME and ZONE.  */
-  struct lisp_time lt = lisp_time_struct (specified_time);
-  struct timespec ts = lisp_to_timespec (lt);
+  struct lisp_time lt = lisp_time_struct (specified_time, CFORM_TICKS_HZ).lt;
+  struct timespec ts = ticks_hz_to_timespec (lt.ticks, lt.hz);
   if (! timespec_valid_p (ts))
     time_overflow ();
   time_t time_spec = ts.tv_sec;
