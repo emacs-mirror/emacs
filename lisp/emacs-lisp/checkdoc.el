@@ -2547,6 +2547,11 @@ The default boundary is the entire buffer."
       (setq e (checkdoc-message-text-engine type)))
     e))
 
+(defvar checkdoc--warning-function-re
+  (rx (or "display-warning" "org-display-warning"
+          "warn" "lwarn"
+          "message-box")))
+
 (defun checkdoc-message-text-next-string (end)
   "Move cursor to the next checkable message string after point.
 Return the message classification.
@@ -2559,6 +2564,7 @@ Argument END is the maximum bounds to search in."
                      (group
                       (or (seq (* (or wordchar (syntax symbol)))
                                "error")
+                          (regexp checkdoc--warning-function-re)
                           (seq (* (or wordchar (syntax symbol)))
                                (or "y-or-n-p" "yes-or-no-p")
                                (? "-with-timeout"))
@@ -2566,8 +2572,13 @@ Argument END is the maximum bounds to search in."
                      (+ (any "\n\t ")))
                  end t))
       (let* ((fn (match-string 1))
-	     (type (cond ((string-match "error" fn)
-			  'error)
+             (type (cond ((string-match "error" fn)
+                          'error)
+                         ((string-match (rx bos
+                                            (regexp checkdoc--warning-function-re)
+                                            eos)
+                                        fn)
+                          'warning)
 			 (t 'y-or-n-p))))
 	(if (string-match "checkdoc-autofix-ask-replace" fn)
 	    (progn (forward-sexp 2)
@@ -2645,6 +2656,10 @@ Argument TYPE specifies the type of question, such as `error' or `y-or-n-p'."
       (setq type
             (cond ((looking-at "(error")
                    'error)
+                  ((looking-at
+                    (rx "(" (regexp checkdoc--warning-function-re)
+                        (syntax whitespace)))
+                   'warning)
                   (t 'y-or-n-p)))))
   (let ((case-fold-search nil))
     (or

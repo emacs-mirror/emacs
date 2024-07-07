@@ -90,6 +90,11 @@ those versions can't install packages where that line is missing.
 This change affects both 'M-x checkdoc' and the corresponding flymake
 backend.
 
+---
+*** Checkdoc will now flag incorrect formatting in warnings.
+This affects calls to 'warn', 'lwarn', 'display-warning', and
+'message-box'.
+
 
 * New Modes and Packages in Emacs 31.1
 
