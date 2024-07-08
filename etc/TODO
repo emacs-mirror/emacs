@@ -953,25 +953,6 @@ the tool bar is performed.
 Unfortunately, the tool bar (and possible other operations) always
 resize the frame.
 
-**** Support 'proced' (implement 'process-attributes')
-Unfortunately, a user-level process like Emacs does not have the
-privileges to get information about other processes under macOS.
-
-There are other ways to do this:
-
- 1) Spawn "ps" and parse the output ("ps" has superuser privileges).
-
- 2) Sign Emacs as part of the distribution process.
-
- 3) Ask the user to self-sign Emacs, if this feature is of interest.
-
-Anders Lindgren <andlind@gmail.com> has implemented
-'process-attributes' for macOS, which currently only work when
-running Emacs as root.
-
-See this article by Bozhidar Batsov for an overview of Proced:
-https://emacsredux.com/blog/2013/05/02/manage-processes-with-proced/
-
 **** Tooltip properties
 Tooltip properties like the background color and font are hard-wired,
 even though Emacs allows a user to customize such features.
