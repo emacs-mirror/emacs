@@ -86,7 +86,7 @@ code();
   "Regexp matching the prefix of buffer-locals we want to capture.")
 
 (defun mhtml--construct-submode (mode &rest args)
-  "A wrapper for make-mhtml--submode that computes the buffer-local variables."
+  "A wrapper for `make-mhtml--submode' that computes the buffer-local variables."
   (let ((captured-locals nil)
         (crucial-captured-locals nil)
         (submode (apply #'make-mhtml--submode args)))

@@ -270,13 +270,13 @@ This is in addition to the `r2b-capitalize-title-stop-words'.")
    (princ (apply (function format) args) r2b-out-buf))
 
 (defun r2b-get-field (var field &optional unique required capitalize)
-   "Set VAR to string value of FIELD, if any.  If none, VAR is set to
-nil.  If multiple fields appear, then separate values with the
-'\\nand\\t\\t', unless UNIQUE is non-nil, in which case log a warning
-and just concatenate the values.  Trim off leading blanks and tabs on
-first line, and trailing blanks and tabs of every line.  Log a warning
-and set VAR to the empty string if REQUIRED is true.  Capitalize as a
-title if CAPITALIZE is true.  Returns value of VAR."
+   "Set VAR to string value of FIELD, if any.
+If none, VAR is set to nil.  If multiple fields appear, then separate
+values with the '\\nand\\t\\t', unless UNIQUE is non-nil, in which case
+log a warning and just concatenate the values.  Trim off leading blanks
+and tabs on first line, and trailing blanks and tabs of every line.  Log
+a warning and set VAR to the empty string if REQUIRED is true.
+Capitalize as a title if CAPITALIZE is true.  Return value of VAR."
    (let (item val (not-past-end t))
       (r2b-trace "snarfing %s" field)
       (goto-char (point-min))
@@ -406,9 +406,10 @@ title if CAPITALIZE is true.  Returns value of VAR."
 
 
 (defun r2b-put-field (field data &optional abbrevs)
-  "Print bibtex FIELD = {DATA} if DATA not null; precede
-with a comma and newline; if ABBREVS list is given, then
-try to replace the {DATA} with an abbreviation."
+  "Print bibtex FIELD = {DATA} if DATA not null; precede with comma and newline.
+
+If ABBREVS list is given, then try to replace the {DATA} with an
+abbreviation."
   (if data
     (let (match nodelim index) ;; multi-line
       (cond
