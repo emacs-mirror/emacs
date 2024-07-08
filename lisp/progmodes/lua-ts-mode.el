@@ -720,14 +720,12 @@ Calls REPORT-FN directly."
               ((buffer-live-p (process-buffer process))))
     (with-current-buffer buffer (comint-write-input-ring))))
 
-(defvar lua-ts-mode-map
-  (let ((map (make-sparse-keymap "Lua")))
-    (keymap-set map "C-c C-n" 'lua-ts-inferior-lua)
-    (keymap-set map "C-c C-c" 'lua-ts-send-buffer)
-    (keymap-set map "C-c C-l" 'lua-ts-send-file)
-    (keymap-set map "C-c C-r" 'lua-ts-send-region)
-    map)
-  "Keymap for `lua-ts-mode' buffers.")
+(defvar-keymap lua-ts-mode-map
+  :doc "Keymap for `lua-ts-mode' buffers."
+  "C-c C-n" #'lua-ts-inferior-lua
+  "C-c C-c" #'lua-ts-send-buffer
+  "C-c C-l" #'lua-ts-send-file
+  "C-c C-r" #'lua-ts-send-region)
 
 (easy-menu-define lua-ts-mode-menu lua-ts-mode-map
   "Menu bar entry for `lua-ts-mode'."
