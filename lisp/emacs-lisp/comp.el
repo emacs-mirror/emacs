@@ -75,7 +75,9 @@ This is intended for debugging the compiler itself.
   1 emit debug symbols.
   2 emit debug symbols and dump pseudo C code.
   3 emit debug symbols and dump: pseudo C code, GCC intermediate
-  passes and libgccjit log file."
+  passes and libgccjit log file.
+When generated the pseudo C code is deposed in the .eln output
+directory."
   :type 'natnum
   :safe #'natnump
   :version "29.1")
