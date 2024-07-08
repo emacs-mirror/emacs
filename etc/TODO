@@ -727,10 +727,17 @@ bar.  In the mean time, it should process other messages.
 
 ** Get some major packages installed
 
+*** Magit
+This needs work on getting the relevant copyright assignments.  This
+task should be highly doable for anyone, but will likely require some
+patience.  For inspiration, see how this was done for 'use-package':
+https://github.com/jwiegley/use-package/issues/282
+
 *** PSGML, _possibly_ ECB
 https://lists.gnu.org/r/emacs-devel/2007-05/msg01493.html Check the
 assignments file for other packages which might go in and have been
-missed.
+missed.  (Not sure if this is still relevant in 2024.  For example, both
+packages seem to be unmaintained.)
 
 ** Make byte-compiler warnings smarter
 Byte-compiler warnings about functions that might be undefined at run
