@@ -462,7 +462,7 @@ documentation-displaying frontends.  For example, KEY can be:
 
 The additional KEY `:origin' is always added by ElDoc, its VALUE
 being the member of `eldoc-documentation-functions' where
-DOCSTRING originated. `eldoc-display-functions' may use this
+DOCSTRING originated.  `eldoc-display-functions' may use this
 information to organize display of multiple docstrings.
 
 Finally, major modes should modify this hook locally, for

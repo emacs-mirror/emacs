@@ -125,7 +125,7 @@ should insert the feature name."
 
 (defcustom find-ert-deftest-regexp
   "(ert-deftest +'%s"
-  "The regexp used to search for an ert-deftest definition.
+  "The regexp used to search for an `ert-deftest' definition.
 Note it must contain a `%s' at the place where `format'
 should insert the feature name."
   :type 'regexp

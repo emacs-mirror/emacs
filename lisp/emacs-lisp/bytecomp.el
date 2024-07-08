@@ -3832,7 +3832,7 @@ This assumes the function has the `important-return-value' property."
 (defun byte-compile-free-vars-warn (arg var &optional assignment)
   "Warn if symbol VAR refers to a free variable.
 VAR must not be lexically bound.
-ARG is a position argument, used by byte-compile-warn-x.
+ARG is a position argument, used by `byte-compile-warn-x'.
 If optional argument ASSIGNMENT is non-nil, this is treated as an
 assignment (i.e. `setq')."
   (unless (or (not (byte-compile-warning-enabled-p 'free-vars var))
@@ -5488,7 +5488,7 @@ OP and OPERAND are as passed to `byte-compile-out'."
 (defun byte-compile-out (op &optional operand)
   "Push the operation onto `byte-compile-output'.
 OP is an opcode, a symbol.  OPERAND is either nil or a number or
-a one-element list of a lisp form."
+a one-element list of a Lisp form."
   (when (and (consp operand) (null (cdr operand)))
     (setq operand (byte-run-strip-symbol-positions operand)))
   (push (cons op operand) byte-compile-output)
