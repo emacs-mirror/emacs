@@ -4434,6 +4434,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	rb.cur = rb.start;
 	bool quoted = false;
 	EMACS_INT start_position = readchar_offset - 1;
+	ptrdiff_t nchars = 0;
 
 	do
 	  {
@@ -4446,6 +4447,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	      }
 
 	    add_char_to_buffer (&rb, c, multibyte);
+	    nchars++;
 	    c = READCHAR;
 	  }
 	while (c > 32
@@ -4474,10 +4476,6 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	  }
 
 	/* symbol, possibly uninterned */
-	ptrdiff_t nchars
-	  = (multibyte
-	     ? multibyte_chars_in_text ((unsigned char *)rb.start, nbytes)
-	     : nbytes);
 	Lisp_Object result;
 	if (uninterned_symbol)
 	  {
