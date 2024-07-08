@@ -154,8 +154,7 @@ To prevent a command from executing at all, set
   :type 'hook)
 
 (defcustom eshell-named-command-hook nil
-  "A set of functions called before
-a named command is invoked.
+  "A set of functions called before a named command is invoked.
 Each function will be passed the command name and arguments that were
 passed to `eshell-named-command'.
 
@@ -816,7 +815,7 @@ current ones (see `eshell-duplicate-handles')."
 This changes COMMAND in-place by converting function calls listed
 in `eshell-deferrable-commands' to their non-deferrable forms so
 that Eshell doesn't erroneously allow deferring it.  For example,
-`eshell-named-command' becomes `eshell-named-command*', "
+`eshell-named-command' becomes `eshell-named-command*'."
   (let ((cmd command))
     (when (memq (car cmd) '(let progn))
       (setq cmd (car (last cmd))))

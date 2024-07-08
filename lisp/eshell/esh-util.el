@@ -288,7 +288,7 @@ The value returned is the last form in BODY."
 (defun eshell-find-delimiter
   (open close &optional bound reverse-p backslash-p)
   "From point, find the CLOSE delimiter corresponding to OPEN.
-The matching is bounded by BOUND. If REVERSE-P is non-nil,
+The matching is bounded by BOUND.  If REVERSE-P is non-nil,
 process the region backwards.
 
 If BACKSLASH-P is non-nil, or OPEN and CLOSE are different

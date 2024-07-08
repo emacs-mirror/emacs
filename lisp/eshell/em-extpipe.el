@@ -217,4 +217,4 @@ as though it were Eshell syntax."
   (error "Unhandled external pipeline in input text"))
 
 (provide 'em-extpipe)
-;;; esh-extpipe.el ends here
+;;; em-extpipe.el ends here

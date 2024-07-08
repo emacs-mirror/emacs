@@ -108,4 +108,4 @@ insertion."
         (insert "/")))))
 
 (provide 'em-elecslash)
-;;; esh-elecslash.el ends here
+;;; em-elecslash.el ends here
