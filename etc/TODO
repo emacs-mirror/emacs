@@ -1113,10 +1113,6 @@ corner and track mouse movements, but this did not work well, and was
 not scalable to the new Lion "resize on every window edge" behavior.
 [As of trunk r109635, 2012-08-15, the event loop no longer polls.]
 
-**** mouse-avoidance-mode
-(mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back
-up on top of all others (probably fixed in bug#17439).
-
 **** free_frame_resources, face colors
 
 **** Numeric keysetting bug.
