@@ -91,7 +91,7 @@ Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate the variable `%s'.
+evaluate `%s'.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.")
