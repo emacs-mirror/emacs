@@ -5508,6 +5508,7 @@ allocate_weak_hash_table (hash_table_weakness_t weak, ssize_t size, ssize_t inde
       ret->strong->index = ret->strong->entries + 3 * size;
       break;
     case Weak_Key_And_Value:
+    case Weak_Key_Or_Value:
       ret->strong->key = ret->weak->entries;
       ret->strong->value = ret->weak->entries + size;
       ret->strong->index = ret->strong->entries + 2 * size;
@@ -5661,6 +5662,7 @@ maybe_resize_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
 	  strong->index = strong->entries + 3 * new_size;
 	  break;
 	case Weak_Key_And_Value:
+	case Weak_Key_Or_Value:
 	  strong->key = weak->entries;
 	  strong->value = weak->entries + new_size;
 	  strong->index = strong->entries + 2 * new_size;
@@ -5742,6 +5744,12 @@ weak_hash_put (struct Lisp_Weak_Hash_Table *h, Lisp_Object key, Lisp_Object valu
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_weak_hash_table (h);
 
+  if (h->strong->weakness == Weak_Key_Or_Value)
+    {
+      /* This might add a key -> key dependency, which is fine.  */
+      Figc__add_extra_dependency (key, value, make_lisp_weak_hash_table (h));
+      Figc__add_extra_dependency (value, key, make_lisp_weak_hash_table (h));
+    }
   /* Store key/value in the key_and_value vector.  */
   ptrdiff_t i = XFIXNUM (h->strong->next_free);
   //eassert (hash_unused_entry_key_p (HASH_KEY (h, i)));
@@ -6546,7 +6554,19 @@ VALUE.  In any case, return VALUE.  */)
       Lisp_Object hash = weak_hash_from_key (wh, key);
       ptrdiff_t i = weak_hash_lookup_with_hash (wh, key, hash);
       if (i >= 0)
-	set_weak_hash_value_slot (wh, i, value);
+	{
+	  if (wh->strong->weakness == Weak_Key_Or_Value)
+	    {
+	      Figc__remove_extra_dependency (key, value, table);
+	      Figc__remove_extra_dependency (value, key, table);
+	    }
+	  set_weak_hash_value_slot (wh, i, value);
+	  if (wh->strong->weakness == Weak_Key_Or_Value)
+	    {
+	      Figc__add_extra_dependency (key, value, table);
+	      Figc__add_extra_dependency (value, key, table);
+	    }
+	}
       else
 	weak_hash_put (wh, key, value, hash);
       return value;
