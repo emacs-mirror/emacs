@@ -799,7 +799,7 @@ necessary after revealing previously hidden text with commands
 like `erc-match-toggle-hidden-fools'."
   (interactive "P")
   (unless erc-fill-wrap-mode
-    (user-error "Module `fill-wrap' not active in current buffer."))
+    (user-error "Module `fill-wrap' not active in current buffer"))
   (save-excursion
     (with-silent-modifications
       (let* ((rep (make-progress-reporter
