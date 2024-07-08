@@ -2137,7 +2137,7 @@ Examples of recognized abbreviations: \"e.g.\", \"i.e.\", \"cf.\"."
                   (seq (any "cC") "f")            ; cf.
                   (seq (any "eE") ".g")           ; e.g.
                   (seq (any "iI") "." (any "eE")) ; i.e.
-                  "a.k.a" "etc" "vs" "N.B"
+                  "a.k.a" "etc" "vs" "N.B" "U.S"
                   ;; Some non-standard or less common ones that we
                   ;; might as well accept.
                   "Inc" "Univ" "misc" "resp")
