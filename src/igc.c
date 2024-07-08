@@ -492,29 +492,46 @@ struct igc_header
 #define IGC_HEADER_NWORDS(h) ((h)->v >> IGC_HEADER_NWORDS_SHIFT)
 #define IGC_HEADER_HASH(h) (((h)->v >> IGC_HEADER_HASH_SHIFT) & IGC_HEADER_HASH_MASK)
 #define IGC_HEADER_TYPE(h) (((h)->v >> IGC_HEADER_TYPE_SHIFT) & IGC_HEADER_TYPE_MASK)
-/* #define IGC_HEADER_TAG(h) ((h)->v & IGC_HEADER_TAG_MASK) */
+#define IGC_HEADER_TAG(h) ((h)->v & IGC_HEADER_TAG_MASK)
+
+struct igc_exthdr
+{
+  EMACS_UINT nwords;
+  EMACS_UINT hash;
+  enum igc_obj_type obj_type;
+  Lisp_Object extra_dependency;
+};
+
+#define IGC_HEADER_EXTHDR(h) ((struct igc_exthdr *)(intptr_t)((h)->v & ~IGC_HEADER_TAG_MASK))
 
 enum igc_tag
 {
   IGC_TAG_NULL = 0, /* entire value must be 0 to avoid MPS issues */
   IGC_TAG_OBJ = 1, /* IGC object */
+  IGC_TAG_EXTHDR = 2, /* pointer to aligned external header */
 };
 
 static enum igc_obj_type
 igc_header_type (struct igc_header *h)
 {
+  if (IGC_HEADER_TAG (h) == IGC_TAG_EXTHDR)
+    return IGC_HEADER_EXTHDR (h)->obj_type;
   return IGC_HEADER_TYPE (h);
 }
 
 static unsigned
 igc_header_hash (struct igc_header *h)
 {
+  if (IGC_HEADER_TAG (h) == IGC_TAG_EXTHDR)
+    return IGC_HEADER_EXTHDR (h)->hash;
   return IGC_HEADER_HASH (h);
 }
 
 static size_t
 igc_header_nwords (const struct igc_header *h)
 {
+  if (IGC_HEADER_TAG (h) == IGC_TAG_EXTHDR)
+    return IGC_HEADER_EXTHDR (h)->nwords;
   return IGC_HEADER_NWORDS (h);
 }
 
@@ -537,6 +554,24 @@ static mps_word_t
 to_bytes (mps_word_t nwords)
 {
   return nwords * sizeof (mps_word_t);
+}
+
+static struct igc_exthdr *
+igc_external_header (struct igc_header *h)
+{
+  if (IGC_HEADER_TAG (h) != IGC_TAG_EXTHDR)
+    {
+      struct igc_exthdr *exthdr = xmalloc (sizeof *exthdr);
+      exthdr->nwords = IGC_HEADER_NWORDS (h);
+      exthdr->hash = IGC_HEADER_HASH (h);
+      exthdr->obj_type = IGC_HEADER_TYPE (h);
+      exthdr->extra_dependency = Qnil;
+      /* On IA-32, the upper 32-bit word is 0 after this, which is okay. */
+      h->v = (intptr_t)exthdr + IGC_TAG_EXTHDR;
+      return exthdr;
+    }
+
+  return IGC_HEADER_EXTHDR (h);
 }
 
 /* Value is the size in bytes of the object described by header H.
@@ -566,7 +601,7 @@ static void
 set_header (struct igc_header *h, enum igc_obj_type type,
 	    mps_word_t nbytes, mps_word_t hash)
 {
-#if IGC_NWORDS_BITS >= 32 && INTPTR_MAX > INT_MAX
+#if IGC_HEADER_NWORDS_BITS >= 32 && INTPTR_MAX > INT_MAX
   /* On 32-bit architecture the assertion below is redundant and
      causes compiler warnings.  */
   igc_assert (nbytes < ((size_t) 1 << IGC_HEADER_NWORDS_BITS));
@@ -576,7 +611,7 @@ set_header (struct igc_header *h, enum igc_obj_type type,
   /* Make sure upper 32-bit word is unaligned on IA-32. */
   if (INTPTR_MAX <= INT_MAX)
     tag += (1LL << 32);
-  h->v = ((to_words (nbytes) << IGC_HEADER_NWORDS_SHIFT) +
+  h->v = (((uint64_t) to_words (nbytes) << IGC_HEADER_NWORDS_SHIFT) +
 	  ((hash & IGC_HEADER_HASH_MASK) << (IGC_HEADER_HASH_SHIFT)) +
 	  (type << IGC_HEADER_TYPE_SHIFT) +
 	  tag);
@@ -1411,7 +1446,7 @@ dflt_fwd (mps_addr_t old_base_addr, mps_addr_t new_base_addr)
   igc_assert (obj_size (h) >= sizeof (struct igc_fwd));
   igc_assert (IGC_HEADER_TYPE (h) != IGC_OBJ_PAD);
   struct igc_fwd *f = old_base_addr;
-  set_header (&f->header, IGC_OBJ_FWD, to_bytes (IGC_HEADER_NWORDS (h)), 0);
+  set_header (&f->header, IGC_OBJ_FWD, to_bytes (igc_header_nwords (h)), 0);
   f->new_base_addr = new_base_addr;
 }
 
@@ -1670,6 +1705,12 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	    if (size > st->pvec[pvec_type].largest)
 	      st->pvec[pvec_type].largest = size;
 	  }
+      }
+
+    if (IGC_HEADER_TAG (header) == IGC_TAG_EXTHDR)
+      {
+	struct igc_exthdr *exthdr = IGC_HEADER_EXTHDR (header);
+	IGC_FIX12_OBJ (ss, &exthdr->extra_dependency);
       }
 
     switch (igc_header_type (header))
