@@ -556,24 +556,6 @@ to_bytes (mps_word_t nwords)
   return nwords * sizeof (mps_word_t);
 }
 
-static struct igc_exthdr *
-igc_external_header (struct igc_header *h)
-{
-  if (IGC_HEADER_TAG (h) != IGC_TAG_EXTHDR)
-    {
-      struct igc_exthdr *exthdr = xmalloc (sizeof *exthdr);
-      exthdr->nwords = IGC_HEADER_NWORDS (h);
-      exthdr->hash = IGC_HEADER_HASH (h);
-      exthdr->obj_type = IGC_HEADER_TYPE (h);
-      exthdr->extra_dependency = Qnil;
-      /* On IA-32, the upper 32-bit word is 0 after this, which is okay. */
-      h->v = (intptr_t)exthdr + IGC_TAG_EXTHDR;
-      return exthdr;
-    }
-
-  return IGC_HEADER_EXTHDR (h);
-}
-
 /* Value is the size in bytes of the object described by header H.
    This includes the header itself. */
 
@@ -3133,9 +3115,6 @@ finalize_vector (mps_addr_t v)
   struct Lisp_Vector *vec = v;
   switch (pseudo_vector_type (v))
     {
-    case PVEC_FREE:
-      emacs_abort ();
-
     case PVEC_BIGNUM:
       finalize_bignum (v);
       break;
@@ -3194,37 +3173,7 @@ finalize_vector (mps_addr_t v)
       finalize_finalizer (v);
       break;
 
-#ifndef IN_MY_FORK
-    case PVEC_OBARRAY:
-#endif
-    case PVEC_HASH_TABLE:
-    case PVEC_WEAK_HASH_TABLE:
-    case PVEC_SYMBOL_WITH_POS:
-    case PVEC_PROCESS:
-    case PVEC_RECORD:
-    case PVEC_CLOSURE:
-    case PVEC_SQLITE:
-    case PVEC_TS_NODE:
-    case PVEC_NORMAL_VECTOR:
-#ifdef IN_MY_FORK
-    case PVEC_PACKAGE:
-#endif
-    case PVEC_WINDOW_CONFIGURATION:
-    case PVEC_BUFFER:
-    case PVEC_FRAME:
-    case PVEC_WINDOW:
-    case PVEC_CHAR_TABLE:
-    case PVEC_SUB_CHAR_TABLE:
-    case PVEC_BOOL_VECTOR:
-    case PVEC_OVERLAY:
-    case PVEC_OTHER:
-    case PVEC_MISC_PTR:
-    case PVEC_XWIDGET:
-    case PVEC_XWIDGET_VIEW:
-    case PVEC_TERMINAL:
-    case PVEC_MARKER:
-    case PVEC_MODULE_GLOBAL_REFERENCE:
-      igc_assert (!"finalization not implemented");
+    default:
       break;
     }
   SPLAT_PVEC (vec);
@@ -3235,48 +3184,19 @@ finalize (struct igc *gc, mps_addr_t base)
 {
   mps_addr_t client = base_to_client (base);
   struct igc_header *h = base;
+  if (IGC_HEADER_TAG (h) == IGC_TAG_EXTHDR)
+    {
+      struct igc_exthdr *exthdr = IGC_HEADER_EXTHDR (h);
+      set_header (h, exthdr->obj_type, to_bytes (exthdr->nwords), exthdr->hash);
+      xfree (exthdr);
+    }
   switch (igc_header_type (h))
     {
-    case IGC_OBJ_INVALID:
-    case IGC_OBJ_PAD:
-    case IGC_OBJ_FWD:
-    case IGC_OBJ_BUILTIN_SYMBOL:
-    case IGC_OBJ_BUILTIN_THREAD:
-    case IGC_OBJ_BUILTIN_SUBR:
-    case IGC_OBJ_DUMPED_CHARSET_TABLE:
-    case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
-    case IGC_OBJ_DUMPED_BUFFER_TEXT:
-    case IGC_OBJ_DUMPED_BIGNUM_DATA:
-    case IGC_OBJ_DUMPED_BYTES:
-    case IGC_OBJ_BYTES:
-    case IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART:
-    case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
-    case IGC_OBJ_NUM_TYPES:
-      emacs_abort ();
-
-    case IGC_OBJ_CONS:
-    case IGC_OBJ_SYMBOL:
-    case IGC_OBJ_INTERVAL:
-    case IGC_OBJ_STRING:
-    case IGC_OBJ_STRING_DATA:
-    case IGC_OBJ_ITREE_TREE:
-    case IGC_OBJ_ITREE_NODE:
-    case IGC_OBJ_IMAGE:
-    case IGC_OBJ_IMAGE_CACHE:
-    case IGC_OBJ_FACE:
-    case IGC_OBJ_FACE_CACHE:
-    case IGC_OBJ_FLOAT:
-    case IGC_OBJ_BLV:
-    case IGC_OBJ_PTR_VEC:
-    case IGC_OBJ_OBJ_VEC:
-    case IGC_OBJ_HASH_VEC:
-    case IGC_OBJ_HANDLER:
-    case IGC_OBJ_MARKER_VECTOR:
-      igc_assert (!"finalize not implemented");
-      break;
-
     case IGC_OBJ_VECTOR:
       finalize_vector (client);
+      break;
+
+    default:
       break;
     }
 }
@@ -3302,6 +3222,12 @@ static void
 maybe_finalize (mps_addr_t client, enum pvec_type tag)
 {
   mps_addr_t ref = client_to_base (client);
+  struct igc_header *h = ref;
+  if (IGC_HEADER_TAG (h) == IGC_TAG_EXTHDR)
+    {
+      mps_finalize (global_igc->arena, &ref);
+      return;
+    }
   switch (tag)
     {
     case PVEC_BIGNUM:
@@ -4320,6 +4246,26 @@ DEFUN ("igc--roots", Figc__roots, Sigc__roots, 0, 0, 0, doc : /* */)
     }
 
   return roots;
+}
+
+static struct igc_exthdr *
+igc_external_header (struct igc_header *h)
+{
+  if (IGC_HEADER_TAG (h) != IGC_TAG_EXTHDR)
+    {
+      struct igc_exthdr *exthdr = xmalloc (sizeof *exthdr);
+      exthdr->nwords = IGC_HEADER_NWORDS (h);
+      exthdr->hash = IGC_HEADER_HASH (h);
+      exthdr->obj_type = IGC_HEADER_TYPE (h);
+      exthdr->extra_dependency = Qnil;
+      /* On IA-32, the upper 32-bit word is 0 after this, which is okay. */
+      h->v = (intptr_t)exthdr + IGC_TAG_EXTHDR;
+      mps_addr_t ref = (mps_addr_t) h;
+      mps_finalize (global_igc->arena, &ref);
+      return exthdr;
+    }
+
+  return IGC_HEADER_EXTHDR (h);
 }
 
 static void
