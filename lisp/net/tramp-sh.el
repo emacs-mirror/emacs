@@ -107,7 +107,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
 
 (defcustom tramp-use-connection-share (not (eq system-type 'windows-nt))
   "Whether to use connection share in ssh or PuTTY.
-Set it to t, if you want Tramp to apply respective options. These
+Set it to t, if you want Tramp to apply respective options.  These
 are `tramp-ssh-controlmaster-options' for ssh, and \"-share\" for PuTTY.
 Set it to nil, if you use Control* or Proxy* options in your ssh
 configuration.

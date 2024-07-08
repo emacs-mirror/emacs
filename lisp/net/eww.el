@@ -1306,7 +1306,7 @@ This consults the entries in `eww-readable-urls' (which see)."
   "Check if point is within a field and toggle text conversion.
 Set `text-conversion-style' to the value `action' if it isn't
 already and point is within the prompt field, or if
-`text-conversion-style' is `nil', so as to guarantee that
+`text-conversion-style' is nil, so as to guarantee that
 the input method functions properly for the purpose of typing
 within text input fields."
   (when (and (eq major-mode 'eww-mode)

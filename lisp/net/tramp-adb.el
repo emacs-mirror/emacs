@@ -919,7 +919,7 @@ will be used."
 
 (defun tramp-adb-handle-get-remote-uid (vec id-format)
   "Like `tramp-get-remote-uid' for Tramp files.
- ID-FORMAT valid values are `string' and `integer'."
+ID-FORMAT valid values are `string' and `integer'."
   (tramp-adb-send-command vec "id")
   (tramp-read-id-output vec)
   (tramp-get-connection-property vec (format "uid-%s" id-format)))

@@ -127,7 +127,7 @@ The outline level is equal to the verbosity of the Tramp message."
 ;; `command-completion-default-include-p'.
 (defun tramp-debug-buffer-command-completion-p (_symbol buffer)
   "A predicate for Tramp interactive commands.
-They are completed by \"M-x TAB\" only in Tramp debug buffers."
+They are completed by `M-x TAB' only in Tramp debug buffers."
   (declare (tramp-suppress-trace t))
   (with-current-buffer buffer
     (string-equal

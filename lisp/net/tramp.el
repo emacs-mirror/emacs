@@ -2699,7 +2699,7 @@ Run BODY."
 ;; `command-completion-default-include-p'.
 (defun tramp-command-completion-p (_symbol buffer)
   "A predicate for Tramp interactive commands.
-They are completed by \"M-x TAB\" only if the current buffer is remote."
+They are completed by `M-x TAB' only if the current buffer is remote."
   (tramp-tramp-file-p (tramp-get-default-directory buffer)))
 
 (defun tramp-connectable-p (vec-or-filename)
