@@ -1,0 +1,9 @@
+---
+Checks: "bugprone-*,
+	"-bugprone-sizeof-expression",
+	"-bugprone-branch-clone",
+	"-bugprone-easily-swappable-parameters",
+"
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+FormatStyle:     none
