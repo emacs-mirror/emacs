@@ -5890,6 +5890,9 @@ pure_alloc (size_t size, int type)
     {
       message ("Pure Lisp storage overflowed");
       pure_overflow_warned = true;
+#ifdef HAVE_MPS
+      error ("Cannot continue, pure space overflowed");
+#endif
     }
 
   /* Don't allocate a large amount here,
