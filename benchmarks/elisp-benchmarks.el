@@ -189,7 +189,10 @@ RECOMPILE all the benchmark folder when non nil."
 	       (pop-to-buffer elb-result-buffer-name)
 	       (erase-buffer)
 	       (insert "* Results\n\n")
-	       (insert "  |test|non-gc (s)|gc (s)|gcs|total (s)\n")
+	       ;; I tried to put the std-dev as a "(±N.NN)" in the
+               ;; same column as the total, to make it more compact,
+               ;; but Org doesn't know how to align that satisfactorily.
+	       (insert "  |test|non-gc (s)|gc (s)|gcs|total (s)|err (s)\n")
 	       (insert "|-\n")
 	       (cl-loop for test in tests
 		        for l = (gethash test res)
@@ -198,23 +201,23 @@ RECOMPILE all the benchmark folder when non nil."
 		        for test-gc-elapsed = (cl-loop for x in l sum (caddr x))
 		        for test-err = (elb-std-deviation (mapcar #'car l))
 		        do
-		        (insert (apply #'format "|%s|%.2f|%.2f|%d|%.2f (" test
+		        (insert (apply #'format "|%s|%.2f|%.2f|%d|%.2f" test
 				       (mapcar (lambda (x) (/ x runs))
 					       (list (- test-elapsed test-gc-elapsed)
 						     test-gc-elapsed test-gcs
 						     test-elapsed))))
-			(insert (format "±%.2f)\n" test-err))
+			(insert (format "|%.2f\n" test-err))
 			summing test-elapsed into elapsed
 			summing test-gcs into gcs
 			summing test-gc-elapsed into gc-elapsed
 			collect test-err into errs
 			finally
 			(insert "|-\n")
-			(insert (apply #'format "|total|%.2f|%.2f|%d|%.2f ("
+			(insert (apply #'format "|total|%.2f|%.2f|%d|%.2f"
 				       (mapcar (lambda (x) (/ x runs))
 					       (list (- elapsed gc-elapsed)
 						     gc-elapsed gcs elapsed))))
-			(insert (format "±%.2f)\n"
+			(insert (format "|%.2f\n"
 					(sqrt (apply #'+ (mapcar (lambda (x)
 							           (expt x 2))
 							         errs))))))
