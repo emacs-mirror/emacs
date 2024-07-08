@@ -508,7 +508,7 @@ mpz_time (mpz_t const z, time_t *t)
 
 /* Components of a Lisp timestamp (TICKS . HZ).  Using this C struct can
    avoid the consing overhead of creating (TICKS . HZ).  */
-struct lisp_time
+struct ticks_hz
 {
   /* Clock count as a Lisp integer.  */
   Lisp_Object ticks;
@@ -589,7 +589,7 @@ ticks_hz_to_timespec (Lisp_Object ticks, Lisp_Object hz)
    specify the desired C timestamp form.  */
 enum cform
   {
-    CFORM_TICKS_HZ, /* struct lisp_time */
+    CFORM_TICKS_HZ, /* struct ticks_hz */
     CFORM_TIMESPEC, /* struct timespec */
     CFORM_SECS_ONLY, /* struct timespec but tv_nsec == 0 if timespec valid */
     CFORM_DOUBLE /* double */
@@ -598,7 +598,7 @@ enum cform
 /* A C timestamp in one of the forms specified by enum cform.  */
 union c_time
 {
-  struct lisp_time lt;
+  struct ticks_hz th;
   struct timespec ts;
   double d;
 };
@@ -614,7 +614,7 @@ decode_ticks_hz (Lisp_Object ticks, Lisp_Object hz, enum cform cform)
       return (union c_time) { .d = frac_to_double (ticks, hz) };
 
     case CFORM_TICKS_HZ:
-      return (union c_time) { .lt = { .ticks = ticks, .hz = hz } };
+      return (union c_time) { .th = { .ticks = ticks, .hz = hz } };
 
     default:
       return (union c_time) { .ts = ticks_hz_to_timespec (ticks, hz) };
@@ -751,7 +751,7 @@ timespec_ticks (struct timespec t)
 /* Convert T to a Lisp integer counting HZ ticks, taking the floor.
    Assume T is valid, but check HZ.  */
 static Lisp_Object
-lisp_time_hz_ticks (struct lisp_time t, Lisp_Object hz)
+ticks_hz_hz_ticks (struct ticks_hz t, Lisp_Object hz)
 {
   /* The idea is to return the floor of ((T.ticks * HZ) / T.hz).  */
 
@@ -785,19 +785,19 @@ lisp_time_hz_ticks (struct lisp_time t, Lisp_Object hz)
 
 /* Convert T to a Lisp integer counting seconds, taking the floor.  */
 static Lisp_Object
-lisp_time_seconds (struct lisp_time t)
+ticks_hz_seconds (struct ticks_hz t)
 {
   /* The idea is to return the floor of T.ticks / T.hz.  */
 
   if (!FASTER_TIMEFNS)
-    return lisp_time_hz_ticks (t, make_fixnum (1));
+    return ticks_hz_hz_ticks (t, make_fixnum (1));
 
   /* For speed, use EMACS_INT arithmetic if it will do.  */
   if (FIXNUMP (t.ticks) && FIXNUMP (t.hz))
     return make_fixnum (XFIXNUM (t.ticks) / XFIXNUM (t.hz)
 			- (XFIXNUM (t.ticks) % XFIXNUM (t.hz) < 0));
 
-  /* For speed, inline what lisp_time_hz_ticks would do.  */
+  /* For speed, inline what ticks_hz_hz_ticks would do.  */
   mpz_fdiv_q (mpz[0],
 	      *bignum_integer (&mpz[0], t.ticks),
 	      *bignum_integer (&mpz[1], t.hz));
@@ -1130,7 +1130,7 @@ time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
     fta = decode_lisp_time (a, CFORM_TICKS_HZ),
     ftb = decode_lisp_time (b, CFORM_TICKS_HZ);
   enum timeform aform = fta.form, bform = ftb.form;
-  struct lisp_time ta = fta.time.lt, tb = ftb.time.lt;
+  struct ticks_hz ta = fta.time.th, tb = ftb.time.th;
   Lisp_Object ticks, hz;
 
   if (FASTER_TIMEFNS && BASE_EQ (ta.hz, tb.hz))
@@ -1271,8 +1271,8 @@ time_cmp (Lisp_Object a, Lisp_Object b)
 
   /* Compare (ATICKS . AZ) to (BTICKS . BHZ) by comparing
      ATICKS * BHZ to BTICKS * AHZ.  */
-  struct lisp_time ta = lisp_time_struct (a, CFORM_TICKS_HZ).lt;
-  struct lisp_time tb = lisp_time_struct (b, CFORM_TICKS_HZ).lt;
+  struct ticks_hz ta = lisp_time_struct (a, CFORM_TICKS_HZ).th;
+  struct ticks_hz tb = lisp_time_struct (b, CFORM_TICKS_HZ).th;
   mpz_t const *za = bignum_integer (&mpz[0], ta.ticks);
   mpz_t const *zb = bignum_integer (&mpz[1], tb.ticks);
   if (! (FASTER_TIMEFNS && BASE_EQ (ta.hz, tb.hz)))
@@ -1549,18 +1549,18 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
   (Lisp_Object specified_time, Lisp_Object zone, Lisp_Object form)
 {
   /* Convert SPECIFIED_TIME to TIME_SPEC and HZ;
-     if HZ != 1 also set LT.ticks.  */
+     if HZ != 1 also set TH.ticks.  */
   time_t time_spec;
   Lisp_Object hz;
-  struct lisp_time lt;
+  struct ticks_hz th;
   if (EQ (form, Qt))
     {
-      lt = lisp_time_struct (specified_time, CFORM_TICKS_HZ).lt;
-      struct timespec ts = ticks_hz_to_timespec (lt.ticks, lt.hz);
+      th = lisp_time_struct (specified_time, CFORM_TICKS_HZ).th;
+      struct timespec ts = ticks_hz_to_timespec (th.ticks, th.hz);
       if (! timespec_valid_p (ts))
 	time_overflow ();
       time_spec = ts.tv_sec;
-      hz = lt.hz;
+      hz = th.hz;
     }
   else
     {
@@ -1601,20 +1601,20 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
     sec = make_fixnum (local_tm.tm_sec);
   else
     {
-      /* Let TICKS = HZ * LOCAL_TM.tm_sec + mod (LT.ticks, HZ)
+      /* Let TICKS = HZ * LOCAL_TM.tm_sec + mod (TH.ticks, HZ)
 	 and SEC = (TICKS . HZ).  */
       Lisp_Object ticks;
       intmax_t n;
-      if (FASTER_TIMEFNS && FIXNUMP (lt.ticks) && FIXNUMP (hz)
+      if (FASTER_TIMEFNS && FIXNUMP (th.ticks) && FIXNUMP (hz)
 	  && !ckd_mul (&n, XFIXNUM (hz), local_tm.tm_sec)
-	  && !ckd_add (&n, n, (XFIXNUM (lt.ticks) % XFIXNUM (hz)
-			       + (XFIXNUM (lt.ticks) % XFIXNUM (hz) < 0
+	  && !ckd_add (&n, n, (XFIXNUM (th.ticks) % XFIXNUM (hz)
+			       + (XFIXNUM (th.ticks) % XFIXNUM (hz) < 0
 				  ? XFIXNUM (hz) : 0))))
 	ticks = make_int (n);
       else
 	{
 	  mpz_fdiv_r (mpz[0],
-		      *bignum_integer (&mpz[0], lt.ticks),
+		      *bignum_integer (&mpz[0], th.ticks),
 		      *bignum_integer (&mpz[1], hz));
 	  mpz_addmul_ui (mpz[0], *bignum_integer (&mpz[1], hz),
 			 local_tm.tm_sec);
@@ -1741,18 +1741,18 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
       yeararg = args[5];
     }
 
-  /* Let SEC = floor (LT.ticks / HZ), with SUBSECTICKS the remainder.  */
-  struct lisp_time lt = decode_lisp_time (secarg, CFORM_TICKS_HZ).time.lt;
-  Lisp_Object hz = lt.hz, sec, subsecticks;
+  /* Let SEC = floor (TH.ticks / HZ), with SUBSECTICKS the remainder.  */
+  struct ticks_hz th = decode_lisp_time (secarg, CFORM_TICKS_HZ).time.th;
+  Lisp_Object hz = th.hz, sec, subsecticks;
   if (FASTER_TIMEFNS && BASE_EQ (hz, make_fixnum (1)))
     {
-      sec = lt.ticks;
+      sec = th.ticks;
       subsecticks = make_fixnum (0);
     }
   else
     {
       mpz_fdiv_qr (mpz[0], mpz[1],
-		   *bignum_integer (&mpz[0], lt.ticks),
+		   *bignum_integer (&mpz[0], th.ticks),
 		   *bignum_integer (&mpz[1], hz));
       sec = make_integer_mpz ();
       mpz_swap (mpz[0], mpz[1]);
@@ -1780,8 +1780,8 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
 	    : INT_TO_INTEGER (value));
   else
     {
-      struct lisp_time val1 = { INT_TO_INTEGER (value), make_fixnum (1) };
-      Lisp_Object secticks = lisp_time_hz_ticks (val1, hz);
+      struct ticks_hz val1 = { INT_TO_INTEGER (value), make_fixnum (1) };
+      Lisp_Object secticks = ticks_hz_hz_ticks (val1, hz);
       Lisp_Object ticks = lispint_arith (secticks, subsecticks, false);
       return Fcons (ticks, hz);
     }
@@ -1812,19 +1812,19 @@ but new code should not rely on it.  */)
   /* FIXME: Any reason why we don't offer a `float` output format option as
      well, since we accept it as input?  */
   struct form_time form_time = decode_lisp_time (time, CFORM_TICKS_HZ);
-  struct lisp_time t = form_time.time.lt;
+  struct ticks_hz t = form_time.time.th;
   form = (!NILP (form) ? maybe_remove_pos_from_symbol (form)
 	  : current_time_list ? Qlist : Qt);
   if (BASE_EQ (form, Qlist))
     return ticks_hz_list4 (t.ticks, t.hz);
   if (BASE_EQ (form, Qinteger))
-    return FASTER_TIMEFNS && INTEGERP (time) ? time : lisp_time_seconds (t);
+    return FASTER_TIMEFNS && INTEGERP (time) ? time : ticks_hz_seconds (t);
   if (BASE_EQ (form, Qt))
     form = t.hz;
   if (FASTER_TIMEFNS
       && form_time.form == TIMEFORM_TICKS_HZ && BASE_EQ (form, XCDR (time)))
     return time;
-  return Fcons (lisp_time_hz_ticks (t, form), form);
+  return Fcons (ticks_hz_hz_ticks (t, form), form);
 }
 
 DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
