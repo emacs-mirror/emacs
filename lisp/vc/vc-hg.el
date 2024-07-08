@@ -1553,7 +1553,7 @@ This runs the command \"hg merge\"."
 
 (defun vc-hg-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-hg.el.
-This function differs from vc-do-command in that it invokes
+This function differs from `vc-do-command' in that it invokes
 `vc-hg-program', and passes `vc-hg-global-switches' to it before FLAGS."
   ;; Disable pager.
   (let ((process-environment (cons "HGPLAIN=1" process-environment))

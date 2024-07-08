@@ -128,14 +128,14 @@ copied to the designated output file."
   :type 'boolean)
 
 (defcustom emerge-before-flag "vvvvvvvvvvvvvvvvvvvv\n"
-  "Flag placed above the highlighted block of code.  Must end with newline.
-Must be set before Emerge is loaded, or  emerge-new-flags  must be run
-after setting."
+  "Flag placed above the highlighted block of code.
+Must end with newline.  Must be set before Emerge is loaded, or
+`emerge-new-flags' must be run after setting."
   :type 'string)
 (defcustom emerge-after-flag "^^^^^^^^^^^^^^^^^^^^\n"
-  "Flag placed below the highlighted block of code.  Must end with newline.
-Must be set before Emerge is loaded, or  emerge-new-flags  must be run
-after setting."
+  "Flag placed below the highlighted block of code.
+Must end with newline.  Must be set before Emerge is loaded, or
+`emerge-new-flags' must be run after setting."
   :type 'string)
 
 ;; Hook variables

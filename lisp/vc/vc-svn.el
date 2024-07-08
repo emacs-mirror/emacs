@@ -661,7 +661,7 @@ NAME is assumed to be a URL."
 
 (defun vc-svn-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.
-The difference to vc-do-command is that this function always invokes `svn',
+The difference to `vc-do-command' is that this function always invokes `svn',
 and that it passes `vc-svn-global-switches' to it before FLAGS."
   (apply #'vc-do-command (or buffer "*vc*") okstatus vc-svn-program file-or-list
          (if (stringp vc-svn-global-switches)

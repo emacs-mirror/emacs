@@ -1691,10 +1691,12 @@ Type \\[vc-next-action] to check in changes.")
       "Please explain why you stole the lock.  Type \\`C-c C-c' when done"))))
 
 (defun vc-checkin (files backend &optional comment initial-contents rev patch-string)
-  "Check in FILES. COMMENT is a comment string; if omitted, a
-buffer is popped up to accept a comment.  If INITIAL-CONTENTS is
-non-nil, then COMMENT is used as the initial contents of the log
-entry buffer.
+  "Check in FILES.
+
+COMMENT is a comment string; if omitted, a buffer is popped up to accept
+a comment.  If INITIAL-CONTENTS is non-nil, then COMMENT is used as the
+initial contents of the log entry buffer.
+
 The optional argument REV may be a string specifying the new revision
 level (only supported for some older VCSes, like RCS and CVS).
 The optional argument PATCH-STRING is a string to check in as a patch.

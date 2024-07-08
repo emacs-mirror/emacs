@@ -594,7 +594,7 @@ highlighted using ASCII flags."
 (ediff-defvar-local ediff-visible-bounds nil)
 
 (ediff-defvar-local ediff-start-narrowed t
-  "Non-nil means start narrowed, if doing ediff-windows-* or ediff-regions-*")
+  "Non-nil means start narrowed, if doing ediff-windows-* or ediff-regions-*.")
 (ediff-defvar-local ediff-quit-widened t
   "Non-nil means: when finished, Ediff widens buffers A/B.
 Actually, Ediff restores the scope of visibility that existed at startup.")
@@ -624,13 +624,13 @@ It's a number rather than string.")
 
 
 (ediff-defvar-local ediff-buffer-values-orig-A nil
-  "The original values of ediff-protected-variables for buffer A.")
+  "The original values of `ediff-protected-variables' for buffer A.")
 (ediff-defvar-local ediff-buffer-values-orig-B nil
-  "The original values of ediff-protected-variables for buffer B.")
+  "The original values of `ediff-protected-variables' for buffer B.")
 (ediff-defvar-local ediff-buffer-values-orig-C nil
-  "The original values of ediff-protected-variables for buffer C.")
+  "The original values of `ediff-protected-variables' for buffer C.")
 (ediff-defvar-local ediff-buffer-values-orig-Ancestor nil
-  "The original values of ediff-protected-variables for buffer Ancestor.")
+  "The original values of `ediff-protected-variables' for buffer Ancestor.")
 
 (defconst ediff-buffer-values-orig-alist
   '((A . ediff-buffer-values-orig-A)
