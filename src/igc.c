@@ -455,24 +455,68 @@ struct igc_stats
    address-independent hash, which is (a) much easier to handle than MPS
    location dependencies, and (b) makes it possible to implement sxhash
    variants in a way that works as expected even if GCs happen between
-   calls.  */
+   calls.
+
+   The reason for the strange layout of this header is that on IA-32,
+   MPS requires headers for objects with weak references to consist of
+   two unaligned 32-bit words.  It's easiest to implement that for all
+   objects. */
 
 enum
 {
-  IGC_TYPE_BITS = 6,
-  IGC_HASH_BITS = 26,
-  IGC_SIZE_BITS = 32,
-  IGC_HASH_MASK = (1 << IGC_HASH_BITS) - 1,
+  IGC_HEADER_TAG_BITS = 2,
+  IGC_HEADER_TYPE_BITS = 6,
+  IGC_HEADER_HASH_BITS = 24,
+#if INTPTR_MAX <= INT_MAX
+  IGC_HEADER_NWORDS_BITS = 31,
+#else
+  IGC_HEADER_NWORDS_BITS = 32,
+#endif
+  IGC_HEADER_TAG_MASK = (1 << IGC_HEADER_TAG_BITS) - 1,
+  IGC_HEADER_TYPE_MASK = (1 << IGC_HEADER_TYPE_BITS) - 1,
+  IGC_HEADER_HASH_MASK = (1 << IGC_HEADER_HASH_BITS) - 1,
+
+  IGC_HEADER_TAG_SHIFT = 0,
+  IGC_HEADER_TYPE_SHIFT = IGC_HEADER_TAG_SHIFT + IGC_HEADER_TAG_BITS,
+  IGC_HEADER_HASH_SHIFT = IGC_HEADER_TYPE_SHIFT + IGC_HEADER_TYPE_BITS,
+  IGC_HEADER_NWORDS_SHIFT = 64 - IGC_HEADER_NWORDS_BITS,
 };
 
-static_assert (IGC_OBJ_NUM_TYPES - 1 < (1 << IGC_TYPE_BITS));
+static_assert (IGC_OBJ_NUM_TYPES - 1 < (1 << IGC_HEADER_TYPE_BITS));
 
 struct igc_header
 {
-  enum igc_obj_type obj_type : IGC_TYPE_BITS;
-  mps_word_t hash : IGC_HASH_BITS;
-  mps_word_t nwords : IGC_SIZE_BITS;
+  uint64_t v;
 };
+
+#define IGC_HEADER_NWORDS(h) ((h)->v >> IGC_HEADER_NWORDS_SHIFT)
+#define IGC_HEADER_HASH(h) (((h)->v >> IGC_HEADER_HASH_SHIFT) & IGC_HEADER_HASH_MASK)
+#define IGC_HEADER_TYPE(h) (((h)->v >> IGC_HEADER_TYPE_SHIFT) & IGC_HEADER_TYPE_MASK)
+/* #define IGC_HEADER_TAG(h) ((h)->v & IGC_HEADER_TAG_MASK) */
+
+enum igc_tag
+{
+  IGC_TAG_NULL = 0, /* entire value must be 0 to avoid MPS issues */
+  IGC_TAG_OBJ = 1, /* IGC object */
+};
+
+static enum igc_obj_type
+igc_header_type (struct igc_header *h)
+{
+  return IGC_HEADER_TYPE (h);
+}
+
+static unsigned
+igc_header_hash (struct igc_header *h)
+{
+  return IGC_HEADER_HASH (h);
+}
+
+static size_t
+igc_header_nwords (const struct igc_header *h)
+{
+  return IGC_HEADER_NWORDS (h);
+}
 
 struct igc_fwd
 {
@@ -501,8 +545,8 @@ to_bytes (mps_word_t nwords)
 static mps_word_t
 obj_size (const struct igc_header *h)
 {
-  mps_word_t nbytes = to_bytes (h->nwords);
-  igc_assert (h->obj_type == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
+  mps_word_t nbytes = to_bytes (igc_header_nwords (h));
+  igc_assert (IGC_HEADER_TYPE (h) == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
   return nbytes;
 }
 
@@ -522,15 +566,20 @@ static void
 set_header (struct igc_header *h, enum igc_obj_type type,
 	    mps_word_t nbytes, mps_word_t hash)
 {
-#if IGC_SIZE_BITS >= 32 && INTPTR_MAX > INT_MAX
+#if IGC_NWORDS_BITS >= 32 && INTPTR_MAX > INT_MAX
   /* On 32-bit architecture the assertion below is redundant and
      causes compiler warnings.  */
-  igc_assert (nbytes < ((size_t) 1 << IGC_SIZE_BITS));
+  igc_assert (nbytes < ((size_t) 1 << IGC_HEADER_NWORDS_BITS));
 #endif
   igc_assert (type == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
-  h->obj_type = type;
-  h->nwords = to_words (nbytes);
-  h->hash = hash;
+  uint64_t tag = IGC_TAG_OBJ;
+  /* Make sure upper 32-bit word is unaligned on IA-32. */
+  if (INTPTR_MAX <= INT_MAX)
+    tag += (1LL << 32);
+  h->v = ((to_words (nbytes) << IGC_HEADER_NWORDS_SHIFT) +
+	  ((hash & IGC_HEADER_HASH_MASK) << (IGC_HEADER_HASH_SHIFT)) +
+	  (type << IGC_HEADER_TYPE_SHIFT) +
+	  tag);
 }
 
 /* Given a pointer to the client area of an object, CLIENT, return
@@ -587,7 +636,7 @@ static unsigned
 alloc_hash (void)
 {
   static unsigned count = 0;
-  return count++;
+  return count++ & IGC_HEADER_HASH_MASK;
 }
 
 /* This runs in various places for --enable-checking=igc_check_fwd.  See
@@ -600,7 +649,7 @@ igc_check_fwd (void *client)
   if (has_header (client, true))
     {
       struct igc_header *h = client_to_base (client);
-      igc_assert (h->obj_type != IGC_OBJ_FWD);
+      igc_assert (IGC_HEADER_TYPE (h) != IGC_OBJ_FWD);
       igc_assert (obj_size (h) >= sizeof (struct igc_fwd));
     }
 }
@@ -1360,9 +1409,9 @@ dflt_fwd (mps_addr_t old_base_addr, mps_addr_t new_base_addr)
 {
   struct igc_header *h = old_base_addr;
   igc_assert (obj_size (h) >= sizeof (struct igc_fwd));
-  igc_assert (h->obj_type != IGC_OBJ_PAD);
+  igc_assert (IGC_HEADER_TYPE (h) != IGC_OBJ_PAD);
   struct igc_fwd *f = old_base_addr;
-  f->header.obj_type = IGC_OBJ_FWD;
+  set_header (&f->header, IGC_OBJ_FWD, to_bytes (IGC_HEADER_NWORDS (h)), 0);
   f->new_base_addr = new_base_addr;
 }
 
@@ -1370,7 +1419,7 @@ static mps_addr_t
 is_dflt_fwd (mps_addr_t base_addr)
 {
   struct igc_fwd *f = base_addr;
-  if (f->header.obj_type == IGC_OBJ_FWD)
+  if (IGC_HEADER_TYPE (&f->header) == IGC_OBJ_FWD)
     return f->new_base_addr;
   return NULL;
 }
@@ -1604,7 +1653,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
     if (closure)
       {
 	struct igc_stats *st = closure;
-	mps_word_t obj_type = header->obj_type;
+	mps_word_t obj_type = igc_header_type (header);
 	igc_assert (obj_type < IGC_OBJ_NUM_TYPES);
 	size_t size = obj_size (header);
 	st->obj[obj_type].nbytes += size;
@@ -1623,7 +1672,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	  }
       }
 
-    switch (header->obj_type)
+    switch (igc_header_type (header))
       {
       case IGC_OBJ_INVALID:
       case IGC_OBJ_BUILTIN_SYMBOL:
@@ -3145,7 +3194,7 @@ finalize (struct igc *gc, mps_addr_t base)
 {
   mps_addr_t client = base_to_client (base);
   struct igc_header *h = base;
-  switch (h->obj_type)
+  switch (igc_header_type (h))
     {
     case IGC_OBJ_INVALID:
     case IGC_OBJ_PAD:
@@ -3574,12 +3623,12 @@ igc_hash (Lisp_Object key)
       // The following assertion is very expensive.
       // igc_assert (mps_arena_has_addr (global_igc->arena, client));
       struct igc_header *h = client_to_base (client);
-      return h->hash;
+      return igc_header_hash (h);
     }
 
   /* Use a hash that would fit into igc_header::hash so that we
      can keep the hash once a non-MPS object is copied to MPS. */
-  return word & IGC_HASH_MASK;
+  return word & IGC_HEADER_HASH_MASK;
 }
 
 /* Allocate an object of client size SIZE and of type TYPE from
@@ -3854,7 +3903,7 @@ static mps_addr_t
 weak_hash_find_dependent (mps_addr_t base)
 {
   struct igc_header *h = base;
-  switch (h->obj_type)
+  switch (igc_header_type (h))
     {
     case IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART:
       {
@@ -4435,7 +4484,7 @@ pure_obj_type_and_hash (size_t *hash_o, enum igc_obj_type type, void *client)
       return type;
 
     case IGC_OBJ_STRING_DATA:
-      *hash_o = (uintptr_t) client & IGC_HASH_MASK;
+      *hash_o = (uintptr_t) client & IGC_HEADER_HASH_MASK;
       return type;
 
     case IGC_OBJ_FLOAT:
@@ -4487,9 +4536,9 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
       && !is_in_dump)
     {
       struct igc_header *h = client_to_base (client);
-      if (h->obj_type == IGC_OBJ_MARKER_VECTOR)
+      if (igc_header_type (h) == IGC_OBJ_MARKER_VECTOR)
 	igc_assert ((type == IGC_OBJ_VECTOR
-		     && h->obj_type == IGC_OBJ_MARKER_VECTOR)
+		     && igc_header_type (h) == IGC_OBJ_MARKER_VECTOR)
 		    || h->obj_type == type);
       igc_assert (base + obj_size (h) >= end);
       *out = *h;
@@ -4553,7 +4602,7 @@ check_dump (mps_addr_t start, mps_addr_t end)
     {
       eassert (p < end);
       struct igc_header *h = p;
-      if (h->obj_type != IGC_OBJ_PAD)
+      if (IGC_HEADER_TYPE (h) != IGC_OBJ_PAD)
 	{
 	  mps_addr_t obj = pdumper_next_object (&it);
 	  eassert (p == obj);
