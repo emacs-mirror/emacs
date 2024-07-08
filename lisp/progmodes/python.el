@@ -1140,8 +1140,8 @@ fontified."
 For example, Lvl1 | Lvl2[Lvl3[Lvl4[Lvl5 | None]], Lvl2].  This
 structure is represented via nesting binary_operator and
 subscript nodes.  This function iterates over all levels and
-highlight identifier nodes. If TYPE-REGEX is not nil fontify type
-identifier only if it matches against TYPE-REGEX. NODE is the
+highlight identifier nodes.  If TYPE-REGEX is not nil fontify type
+identifier only if it matches against TYPE-REGEX.  NODE is the
 binary_operator node.  OVERRIDE is the override flag described in
 `treesit-font-lock-rules'.  START and END mark the region to be
 fontified."

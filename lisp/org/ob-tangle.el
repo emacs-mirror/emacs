@@ -184,8 +184,7 @@ replace contents otherwise."
   :safe t)
 
 (defun org-babel-find-file-noselect-refresh (file)
-  "Find file ensuring that the latest changes on disk are
-represented in the file."
+  "Find file ensuring that the latest changes on disk are represented in the file."
   (find-file-noselect file 'nowarn)
   (with-current-buffer (get-file-buffer file)
     (revert-buffer t t t)))
@@ -386,10 +385,10 @@ The following forms are currently recognized:
    ((integerp mode)
     (if (string-match-p "^[0-7][0-7][0-7]$" (format "%o" mode))
         mode
-      (user-error "%1$o is not a valid file mode octal. \
+      (user-error "%1$o is not a valid file mode octal.  \
 Did you give the decimal value %1$d by mistake?" mode)))
    ((not (stringp mode))
-    (error "File mode %S not recognized as a valid format." mode))
+    (error "File mode %S not recognized as a valid format" mode))
    ((string-match-p "^o0?[0-7][0-7][0-7]$" mode)
     (string-to-number (replace-regexp-in-string "^o" "" mode) 8))
    ((string-match-p "^[ugoa]*\\(?:[+=-][rwxXstugo]*\\)+\\(,[ugoa]*\\(?:[+=-][rwxXstugo]*\\)+\\)*$" mode)
@@ -400,7 +399,7 @@ Did you give the decimal value %1$d by mistake?" mode)))
                                            ",g=" (delete ?- (substring mode 3 6))
                                            ",o=" (delete ?- (substring mode 6 9)))
                                    0))
-   (t (error "File mode %S not recognized as a valid format. See `org-babel-interpret-file-mode'." mode))))
+   (t (error "File mode %S not recognized as a valid format.  See `org-babel-interpret-file-mode'" mode))))
 
 (defun org-babel-tangle-clean ()
   "Remove comments inserted by `org-babel-tangle'.

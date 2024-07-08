@@ -733,8 +733,7 @@ go to the parent and show the entire tree."
 ;;; Handling changes in folded elements
 
 (defun org-fold--extend-changed-region (from to)
-  "Consider folded regions in the next/previous line when fixing
-region visibility.
+  "Consider folded regions in the next/previous line when fixing region visibility.
 This function is intended to be used as a member of
 `org-fold-core-extend-changed-region-functions'."
   ;; If the edit is done in the first line of a folded drawer/block,

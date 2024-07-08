@@ -9950,7 +9950,7 @@ For example if declare A A (.B(SIG)) then B will be included in the list."
           (setq sig-list (cons (list (match-string-no-properties 1) nil nil) sig-list))))
       sig-list)))
 
-(defvar verilog-cache-has-lisp nil "True if any AUTO_LISP in buffer.")
+(defvar verilog-cache-has-lisp nil "Non-nil if any AUTO_LISP in buffer.")
 (make-variable-buffer-local 'verilog-cache-has-lisp)
 
 (defun verilog-read-auto-lisp-present ()
@@ -14043,7 +14043,7 @@ Typing \\[verilog-auto] will call my-verilog-insert-hello and
 expand the above into:
 
            /*AUTOINSERTLISP(my-verilog-insert-hello \"world\")*/
-           // Beginning of automatic insert lisp
+           // Beginning of automatic insert Lisp
            initial $write(\"hello world\");
            // End of automatics
 
@@ -15400,7 +15400,7 @@ and the case items."
 
 (defun verilog-highlight-region (beg end _old-len)
   "Colorize included files and modules in the (changed?) region.
-Clicking on the middle-mouse button loads them in a buffer (as in dired)."
+Clicking on the middle-mouse button loads them in a buffer (as in Dired)."
   (when (or verilog-highlight-includes
 	    verilog-highlight-modules)
     (save-excursion

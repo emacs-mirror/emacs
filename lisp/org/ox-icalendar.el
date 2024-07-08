@@ -932,14 +932,14 @@ Return VTODO component as a string."
                                               :repeater-unit dl)))))
               ;; TODO Implement via RDATE with changing DURATION
               (org-display-warning "Not yet implemented: \
-different repeaters on SCHEDULED and DEADLINE. Skipping.")
+different repeaters on SCHEDULED and DEADLINE.  Skipping.")
               nil)
              ;; DEADLINE has repeater but SCHEDULED doesn't
              ((and dl-repeat-p (and sc (not sc-repeat-p)))
               ;; TODO SCHEDULED should only apply to first instance;
               ;; use RDATE with custom DURATION to implement that
               (org-display-warning "Not yet implemented: \
-repeater on DEADLINE but not SCHEDULED. Skipping.")
+repeater on DEADLINE but not SCHEDULED.  Skipping.")
               nil)
              ((or sc-repeat-p dl-repeat-p)
               (concat

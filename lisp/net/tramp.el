@@ -78,6 +78,7 @@
 (defvar tramp-postfix-ipv6-regexp)
 (defvar tramp-postfix-host-format)
 (defvar tramp-postfix-host-regexp)
+(defvar tramp-host-with-port-regexp)
 (defvar tramp-remote-file-name-spec-regexp)
 (defvar tramp-file-name-structure)
 (defvar tramp-file-name-regexp)
@@ -878,6 +879,7 @@ to be set, depending on VALUE."
 	tramp-postfix-ipv6-regexp (tramp-build-postfix-ipv6-regexp)
 	tramp-postfix-host-format (tramp-build-postfix-host-format)
 	tramp-postfix-host-regexp (tramp-build-postfix-host-regexp)
+	tramp-host-with-port-regexp (tramp-build-host-with-port-regexp)
 	tramp-remote-file-name-spec-regexp
 	(tramp-build-remote-file-name-spec-regexp)
 	tramp-file-name-structure (tramp-build-file-name-structure)
@@ -955,7 +957,8 @@ The `ftp' syntax does not support methods.")
   "Return `tramp-postfix-method-format' according to `tramp-syntax'."
   (tramp-lookup-syntax tramp-postfix-method-format-alist))
 
-(defvar tramp-postfix-method-format nil ; Init'd when defining `tramp-syntax'!
+(defvar tramp-postfix-method-format
+  nil ; Initialized when defining `tramp-syntax'!
   "String matching delimiter between method and user or host names.
 The `ftp' syntax does not support methods.
 Used in `tramp-make-tramp-file-name'.")
@@ -964,7 +967,8 @@ Used in `tramp-make-tramp-file-name'.")
   "Return `tramp-postfix-method-regexp'."
   (rx (literal (tramp-build-postfix-method-format))))
 
-(defvar tramp-postfix-method-regexp nil ; Init'd when defining `tramp-syntax'!
+(defvar tramp-postfix-method-regexp
+  nil ; Initialized when defining `tramp-syntax'!
   "Regexp matching delimiter between method and user or host names.
 Derived from `tramp-postfix-method-format'.")
 
@@ -1059,11 +1063,18 @@ Derived from `tramp-prefix-port-format'.")
 (defconst tramp-port-regexp (rx (+ digit))
   "Regexp matching port numbers.")
 
-(defconst tramp-host-with-port-regexp
+(defun tramp-build-host-with-port-regexp ()
+  "Return `tramp-host-with-port-regexp'."
   (rx
-   (group (regexp tramp-host-regexp))
+   (group (| (regexp tramp-host-regexp)
+	     (: (regexp tramp-prefix-ipv6-regexp)
+		(? (regexp tramp-ipv6-regexp))
+		(regexp tramp-postfix-ipv6-regexp))))
    (regexp tramp-prefix-port-regexp)
-   (group (regexp tramp-port-regexp)))
+   (group (regexp tramp-port-regexp))))
+
+(defvar tramp-host-with-port-regexp
+  nil ; Initialized when defining `tramp-syntax'!
   "Regexp matching host names with port numbers.")
 
 (defconst tramp-postfix-hop-format "|"

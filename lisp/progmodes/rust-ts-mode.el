@@ -431,7 +431,7 @@ delimiters < and >'s."
                             (?> '(5 . ?<))))))))
 
 (defun rust-ts-mode--prettify-symbols-compose-p (start end match)
-  "Return true iff the symbol MATCH should be composed.
+  "Return non-nil if the symbol MATCH should be composed.
 See `prettify-symbols-compose-predicate'."
   (and (fboundp 'prettify-symbols-default-compose-p)
        (prettify-symbols-default-compose-p start end match)

@@ -487,7 +487,7 @@ Override existing value with NEW-VALUE if NEW-VALUE is set."
           (set-window-parameter w 'xref--history (xref--make-xref-history))))))
 
 (defun xref--get-history ()
-  "Return xref history using xref-history-storage."
+  "Return xref history using `xref-history-storage'."
   (funcall xref-history-storage))
 
 (defun xref--push-backward (m)

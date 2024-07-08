@@ -69,7 +69,7 @@ relative to the current effective date."
   :type 'boolean)
 
 (defcustom org-habit-show-all-today nil
-  "If non-nil, will show the consistency graph of all habits on
+  "If non-nil, show the consistency graph of all habits on
 today's agenda, even if they are not scheduled."
   :group 'org-habit
   :type 'boolean)

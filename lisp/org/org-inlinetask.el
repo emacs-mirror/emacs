@@ -172,7 +172,7 @@ The number of levels is controlled by `org-inlinetask-min-level'."
        (not (org-inlinetask-end-p))))
 
 (defun org-inlinetask-in-task-p ()
-  "Return true if point is inside an inline task."
+  "Return non-nil if point is inside an inline task."
   (save-excursion
     (forward-line 0)
     (let ((case-fold-search t))

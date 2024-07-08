@@ -160,7 +160,7 @@
 ;; If one wants to search invisible text without using the provided
 ;; functions, it is important to keep in mind that 'invisible text
 ;; property may have multiple possible values (not just nil and
-;; t). Hence, (next-single-char-property-change pos 'invisible) is not
+;; t).  Hence, (next-single-char-property-change pos 'invisible) is not
 ;; guaranteed to return the boundary of invisible/visible text.
 
 ;;; Interactive searching inside folded text (via isearch)
@@ -1172,7 +1172,7 @@ because otherwise all these markers will point to nowhere."
 This is used to allow searching in regions hidden via text properties.
 As for [2020-05-09 Sat], Isearch only has special handling of hidden overlays.
 Any text hidden via text properties is not revealed even if `search-invisible'
-is set to `t'.")
+is set to t.")
 
 (defvar-local org-fold-core--isearch-local-regions (make-hash-table :test 'equal)
   "Hash table storing temporarily shown folds from isearch matches.")

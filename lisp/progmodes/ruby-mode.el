@@ -336,7 +336,7 @@ Only has effect when `ruby-use-smie' is t."
   "If non-nil, align chained method calls.
 
 Each method call on a separate line will be aligned to the column
-of its parent. Example:
+of its parent.  Example:
 
   my_array.select { |str| str.size > 5 }
           .map    { |str| str.downcase }
@@ -386,7 +386,7 @@ Only has effect when `ruby-use-smie' is t."
   "Non-nil to align the body of a block to the statement's start.
 
 The body and the closer will be aligned to the column where the
-statement containing the block starts. Example:
+statement containing the block starts.  Example:
 
   foo.bar
     .each do
@@ -2557,7 +2557,7 @@ If there is no Rubocop config file, Rubocop will be passed a flag
   "Non-nil with allow `ruby-flymake-rubocop' to use `bundle exec'.
 When the value is `check', it will first see whether Gemfile exists in
 the same directory as the configuration file, and whether it mentions
-the gem \"rubocop\".  When t, it's used unconditionally.  "
+the gem \"rubocop\".  When t, it is used unconditionally."
   :type '(choice (const :tag "Always" t)
                  (const :tag "No" nil)
                  (const :tag "If rubocop is in Gemfile" check))

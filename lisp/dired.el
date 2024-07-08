@@ -5183,7 +5183,7 @@ Interactively with prefix argument, read FILE-NAME."
                   (dired-goto-file file))
                 ;; Toggle omitting, if it is on, and try again.
                 (when (bound-and-true-p dired-omit-mode)
-                  (dired-omit-mode)
+                  (dired-omit-mode -1)
                   (dired-goto-file file)))))))))
 
 ;;;###autoload

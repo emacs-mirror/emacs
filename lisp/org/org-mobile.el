@@ -392,7 +392,7 @@ agenda view showing the flagged items."
 	  (org-agenda nil "?"))))))
 
 (defun org-mobile-check-setup ()
-  "Check if org-mobile-directory has been set up."
+  "Check if `org-mobile-directory' has been set up."
   (org-mobile-cleanup-encryption-tempfile)
   (unless (and org-directory
 	       (stringp org-directory)

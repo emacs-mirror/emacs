@@ -155,8 +155,8 @@
   "Java operators for tree-sitter font-locking.")
 
 (defun java-ts-mode--string-highlight-helper ()
-"Returns, for strings, a query based on what is supported by
-the available version of Tree-sitter for java."
+  "Return, for strings, a query based on what is supported by
+the available version of Tree-sitter for Java."
   (condition-case nil
       (progn (treesit-query-capture 'java '((text_block) @font-lock-string-face))
 	     `((string_literal) @font-lock-string-face
