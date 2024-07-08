@@ -133,8 +133,7 @@ Return nil if no rule could be guessed."
 
 For example:
 \(gnus-sieve-string-list \\='(\"to\" \"cc\"))
-  => \"[\\\"to\\\", \\\"cc\\\"]\"
-"
+  => \"[\\\"to\\\", \\\"cc\\\"]\""
   (concat "[\"" (mapconcat #'identity list "\", \"") "\"]"))
 
 (defun gnus-sieve-test-list (list)

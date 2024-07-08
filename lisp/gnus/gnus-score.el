@@ -190,7 +190,7 @@ It can be:
    * `(regexp file-name ...)'
      If the `regexp' matches the group name, the first `file-name'
      will be used as the home score file.  (Multiple filenames are
-     allowed so that one may use gnus-score-file-single-match-alist to
+     allowed so that one may use `gnus-score-file-single-match-alist' to
      set this variable.)
 
    * A function.

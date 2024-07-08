@@ -2053,7 +2053,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
   (add-hook 'bbdb-change-hook #'spam-clear-cache-BBDB))
 
 (defun spam-enter-ham-BBDB (addresses &optional remove)
-  "Enter an address into the BBDB; implies ham (non-spam) sender"
+  "Enter an address into the BBDB; implies ham (non-spam) sender."
   (dolist (from addresses)
     (when (stringp from)
       (let* ((parsed-address (gnus-extract-address-components from))
@@ -2091,7 +2091,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
     (bbdb-gethash (downcase net))))
 
 (defun spam-check-BBDB ()
-  "Mail from people in the BBDB is classified as ham or non-spam"
+  "Mail from people in the BBDB is classified as ham or non-spam."
   (let ((net (message-fetch-field "from")))
     (when net
       (setq net (nth 1 (gnus-extract-address-components net)))

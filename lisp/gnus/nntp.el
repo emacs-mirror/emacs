@@ -300,9 +300,10 @@ backend doesn't catch this error.")
 (defvar nntp--report-1 nil)
 
 (defun nntp-report (&rest args)
-  "Report an error from the nntp backend.  The first string in ARGS
-can be a format string.  For some commands, the failed command may be
-retried once before actually displaying the error report."
+  "Report an error from the nntp backend.
+The first string in ARGS can be a format string.  For some commands, the
+failed command may be retried once before actually displaying the error
+report."
   (if nntp--report-1
       (progn
         ;; Throw out to nntp-with-open-group-error so that the connection may

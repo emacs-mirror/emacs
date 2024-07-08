@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 
-;; Some code is stolen from w3 and url packages. Some are moved from
+;; Some code is stolen from w3 and url packages.  Some are moved from
 ;; nnweb.
 
 ;; TODO: Support POST, cookie.
