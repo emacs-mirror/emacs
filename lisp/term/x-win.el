@@ -1523,7 +1523,7 @@ This uses `icon-map-list' to map icon file names to stock icon names."
 ;; time.  This pre-command-hook clears the overlay before any command
 ;; and should be set whenever a preedit overlay is visible.
 (defun x-clear-preedit-text ()
-  "Clear the pre-edit overlay and remove itself from pre-command-hook.
+  "Clear the pre-edit overlay and remove itself from `pre-command-hook'.
 This function should be installed in `pre-command-hook' whenever
 preedit text is displayed."
   (when x-preedit-overlay
