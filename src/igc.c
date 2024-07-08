@@ -4676,6 +4676,113 @@ igc_busy_p (void)
   return mps_arena_busy (global_igc->arena);
 }
 
+
+DEFUN ("igc--add-extra-dependency", Figc__add_extra_dependency,
+       Sigc__add_extra_dependency, 3, 3, 0, doc:
+       /* Add an extra DEPENDENCY to OBJECT.  This dependency is kept
+	  alive for as long as the object is. */)
+  (Lisp_Object obj, Lisp_Object dependency, Lisp_Object key)
+{
+  mps_word_t word = XLI (obj);
+  mps_word_t tag = word & IGC_TAG_MASK;
+  mps_addr_t client = NULL;
+  switch (tag)
+    {
+    case Lisp_Type_Unused0:
+      emacs_abort ();
+
+    case Lisp_Int0:
+    case Lisp_Int1:
+      return Qnil;
+
+    case Lisp_Symbol:
+      {
+	ptrdiff_t off = word ^ tag;
+	client = (mps_addr_t) ((char *) lispsym + off);
+      }
+      break;
+
+    case Lisp_String:
+    case Lisp_Vectorlike:
+    case Lisp_Cons:
+    case Lisp_Float:
+      client = (mps_addr_t) (word ^ tag);
+      break;
+    }
+
+  /* Objects in the dump have igc_headers, too. */
+  if (!has_header (client, tag == Lisp_Vectorlike))
+    {
+      return Qnil;
+    }
+
+  struct igc_header *h = client_to_base (client);
+  struct igc_exthdr *exthdr = igc_external_header (h);
+  Lisp_Object hash = exthdr->extra_dependency;
+  if (!WEAK_HASH_TABLE_P (hash))
+    {
+      hash = exthdr->extra_dependency =
+	CALLN (Fmake_hash_table, QCweakness, Qkey);
+    }
+
+  if (NILP (Fgethash (key, hash, Qnil)))
+    {
+      Fputhash (key, CALLN (Fmake_hash_table), hash);
+    }
+  Fputhash (dependency, Qt, Fgethash (key, hash, Qnil));
+  return Qt;
+}
+
+DEFUN ("igc--remove-extra-dependency", Figc__remove_extra_dependency,
+       Sigc__remove_extra_dependency, 3, 3, 0, doc : /* */)
+  (Lisp_Object obj, Lisp_Object dependency, Lisp_Object key)
+{
+  mps_word_t word = XLI (obj);
+  mps_word_t tag = word & IGC_TAG_MASK;
+  mps_addr_t client = NULL;
+  switch (tag)
+    {
+    case Lisp_Type_Unused0:
+      emacs_abort ();
+
+    case Lisp_Int0:
+    case Lisp_Int1:
+      return Qnil;
+
+    case Lisp_Symbol:
+      {
+	ptrdiff_t off = word ^ tag;
+	client = (mps_addr_t) ((char *) lispsym + off);
+      }
+      break;
+
+    case Lisp_String:
+    case Lisp_Vectorlike:
+    case Lisp_Cons:
+    case Lisp_Float:
+      client = (mps_addr_t) (word ^ tag);
+      break;
+    }
+
+  /* Objects in the the dump have igc_headers, too. */
+  if (!has_header (client, tag == Lisp_Vectorlike))
+    {
+      return Qnil;
+    }
+
+  struct igc_header *h = client_to_base (client);
+  struct igc_exthdr *exthdr = igc_external_header (h);
+  Lisp_Object hash = exthdr->extra_dependency;
+  if (!WEAK_HASH_TABLE_P (hash))
+    hash = exthdr->extra_dependency =
+      CALLN (Fmake_hash_table, QCweakness, Qkey);
+
+  /* This might throw.  */
+  Fremhash (dependency, Fgethash (key, hash, Qnil));
+
+  return Qt;
+}
+
 /***********************************************************************
 				  Init
  ***********************************************************************/
@@ -4695,6 +4802,8 @@ syms_of_igc (void)
   defsubr (&Sigc_info);
   defsubr (&Sigc__roots);
   defsubr (&Sigc__collect);
+  defsubr (&Sigc__add_extra_dependency);
+  defsubr (&Sigc__remove_extra_dependency);
   DEFSYM (Qambig, "ambig");
   DEFSYM (Qexact, "exact");
   Fprovide (intern_c_string ("mps"), Qnil);
