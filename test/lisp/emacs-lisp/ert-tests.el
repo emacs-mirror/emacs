@@ -594,9 +594,13 @@ This macro is used to test if macroexpansion in `should' works."
 			 :body (lambda () (should (equal complex-list 1))))))
     (let ((ert-debug-on-error nil)
           messages)
-      (cl-letf* (((symbol-function 'message)
+      (cl-letf* (((symbol-function 'cl-print-object) (symbol-function 'cl-print-object))
+                 ((symbol-function 'message)
                   (lambda (format-string &rest args)
                     (push (apply #'format format-string args) messages))))
+        ;; don't print the ert--stats-tests vector, which would run out of
+        ;; memory if previous tests have failed.
+        (cl-defmethod cl-print-object ((_object vector) _stream))
         (save-window-excursion
           (let ((case-fold-search nil)
                 (ert-batch-backtrace-right-margin nil)
@@ -611,7 +615,9 @@ This macro is used to test if macroexpansion in `should' works."
 		 do
 		 (unless found-frame
 		   (setq found-frame (cl-search frame msg :test 'equal))))
-        (should found-frame)))))
+        (should found-frame))))
+  ;; ensure our temporary binding was undone.
+  (should (equal (cl-prin1-to-string [a]) "[a]")))
 
 (ert-deftest ert-test-special-operator-p ()
   (should (ert--special-operator-p 'if))
