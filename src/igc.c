@@ -3240,7 +3240,8 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
   struct igc_header *h = ref;
   if (IGC_HEADER_TAG (h) == IGC_TAG_EXTHDR)
     {
-      mps_finalize (global_igc->arena, &ref);
+      mps_res_t res = mps_finalize (global_igc->arena, &ref);
+      IGC_CHECK_RES (res);
       return;
     }
   switch (tag)
@@ -4282,7 +4283,8 @@ igc_external_header (struct igc_header *h)
       /* On IA-32, the upper 32-bit word is 0 after this, which is okay. */
       h->v = (intptr_t)exthdr + IGC_TAG_EXTHDR;
       mps_addr_t ref = (mps_addr_t) h;
-      mps_finalize (global_igc->arena, &ref);
+      mps_res_t res = mps_finalize (global_igc->arena, &ref);
+      IGC_CHECK_RES (res);
       return exthdr;
     }
 
