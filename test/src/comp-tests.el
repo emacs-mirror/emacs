@@ -495,8 +495,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 (comp-deftest compile-forms ()
   "Verify lambda form native compilation."
   (should-error (native-compile '(+ 1 foo)))
-  (let ((lexical-binding t)
-        (f (native-compile '(lambda (x) (1+ x)))))
+  (let ((f (native-compile '(lambda (x) (1+ x)))))
     (should (native-comp-function-p f))
     (should (= (funcall f 2) 3)))
   (let* ((lexical-binding nil)
