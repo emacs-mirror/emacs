@@ -1523,7 +1523,7 @@ usage: (dbus-message-internal &rest REST)  */)
 
           CHECK_FIXNAT (args[count+1]);
           timeout = min (XFIXNAT (args[count+1]), INT_MAX);
-          count = count+2;
+          count = count + 2;
 	}
       /* Check for authorizable parameter.  */
       else if (EQ (args[count], QCauthorizable))
@@ -1540,7 +1540,7 @@ usage: (dbus-message-internal &rest REST)  */)
 	  XD_DEBUG_MESSAGE (":authorizable not supported");
 #endif
 
-          count = count+2;
+          count = count + 2;
 	}
       else break;
 
