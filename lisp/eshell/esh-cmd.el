@@ -1030,6 +1030,9 @@ process(es) in a cons cell like:
 PROC is the process that invoked this from its sentinel, and
 STATUS is its status."
   (when proc
+    ;; Iterate over all the commands associated with this process.  Each
+    ;; element is a list of the form (BACKGROUND FORM PROCESSES) (see
+    ;; `eshell-add-command').
     (dolist (command (eshell-commands-for-process proc))
       (unless (seq-some #'eshell-process-active-p (nth 2 command))
         (setf (nth 2 command) nil) ; Clear processes from command.
@@ -1040,8 +1043,12 @@ STATUS is its status."
                  (not (string-match eshell-reset-signals status)))
             (eshell-resume-eval command)
           (eshell-remove-command command)
-          (declare-function eshell-reset "esh-mode" (&optional no-hooks))
-          (eshell-reset))))))
+          ;; Check if the command we just aborted is marked as a
+          ;; background command.  If not, we need to reset the prompt so
+          ;; the user can enter another command.
+          (unless (car command)
+            (declare-function eshell-reset "esh-mode" (&optional no-hooks))
+            (eshell-reset)))))))
 
 (defun eshell-resume-eval (command)
   "Destructively evaluate a COMMAND which may need to be deferred.

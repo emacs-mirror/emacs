@@ -113,7 +113,7 @@ bug#59469."
     (with-temp-eshell
      (eshell-match-command-output
       (format "*echo hi > #<%s> &" bufname)
-      (rx "[echo" (? ".exe") "] " (+ digit) "\n"))
+      (rx bos "[echo" (? ".exe") "] " (+ digit) "\n"))
      (eshell-wait-for-subprocess t))
     (should (equal (buffer-string) "hi\n"))))
 
@@ -128,6 +128,18 @@ bug#59469."
       (rx "[echo" (? ".exe") "] " (+ digit) "\n"))
      (eshell-wait-for-subprocess t))
     (should (equal (buffer-string) "olleh\n"))))
+
+(ert-deftest esh-cmd-test/background/kill ()
+  "Make sure that a background command that gets killed doesn't emit a prompt."
+  (skip-unless (executable-find "sleep"))
+  (let ((background-message (rx bos "[sleep" (? ".exe") "] " (+ digit) "\n")))
+    (with-temp-eshell
+      (eshell-match-command-output "*sleep 10 &" background-message)
+      (kill-process (caar eshell-process-list))
+      (eshell-wait-for-subprocess t)
+      ;; Ensure we didn't emit another prompt after killing the
+      ;; background process.
+      (should (eshell-match-output background-message)))))
 
 
 ;; Lisp forms
