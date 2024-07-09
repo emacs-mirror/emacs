@@ -926,6 +926,12 @@ restore the redirection through funcall.
 
 *** Features to be improved or missing
 
+**** Make use of function type declaration
+
+The native compiler should make use of function type declarations (when
+available) to propagate parameter types inside the function for better
+value/type predictions.
+
 **** Fix portable dumping so that you can redump without using -batch
 
 ***** Redumps and native compiler "preloaded" sub-folder.
