@@ -1,9 +1,10 @@
 ---
-Checks: "bugprone-*,
-	"-bugprone-sizeof-expression",
-	"-bugprone-branch-clone",
-	"-bugprone-easily-swappable-parameters",
-"
-WarningsAsErrors: ''
+Checks:          'clang-diagnostic-*,clang-analyzer-*,bugprone-*'
+WarningsAsErrors: false
 HeaderFilterRegex: ''
-FormatStyle:     none
+AnalyzeTemporaryDtors: false
+FormatStyle:     ''
+CheckOptions:
+  - key:             bugprone-unused-return-value
+    value:           'mps_.*'
+...
