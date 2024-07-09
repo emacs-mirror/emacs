@@ -21,12 +21,24 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include <config.h>
 #include <limits.h>
 #include <signal.h>
+#ifdef __clang__
+/* You want to use this without -Wignored-attributes because it worns
+   that it cannot add the attribute to functions returning void.*/
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wignored-attributes"
+# pragma clang attribute push(__attribute__((warn_unused_result)), \
+			      apply_to = hasType(functionType))
+#endif
 #include <mps.h>
 #include <mpsavm.h>
 #include <mpscamc.h>
 #include "mpscams.h"
 #include <mpscawl.h>
 #include <mpslib.h>
+#ifdef __clang__
+#pragma clang attribute pop
+#pragma clang diagnostic pop
+#endif
 #include <stdlib.h>
 #include "lisp.h"
 #include "comp.h"
