@@ -792,21 +792,29 @@ clashes."
                                                   :byte-func byte-code)))
       (maphash #'comp--intern-func-in-ctxt byte-to-native-lambdas-h)))
 
-(cl-defmethod comp--spill-lap-function ((form list))
-  "Byte-compile FORM, spilling data from the byte compiler."
-  (unless (memq (car-safe form) '(lambda closure))
-    (signal 'native-compiler-error
-            '("Cannot native-compile, form is not a lambda or closure")))
+(defun comp--spill-lap-single-function (function)
+  "Byte-compile FUNCTION, spilling data from the byte compiler."
   (unless (comp-ctxt-output comp-ctxt)
     (setf (comp-ctxt-output comp-ctxt)
           (make-temp-file "comp-lambda-" nil ".eln")))
-  (let* ((byte-code (byte-compile form))
+  (let* ((byte-code (byte-compile function))
          (c-name (comp-c-func-name "anonymous-lambda" "F")))
-      (setf (comp-ctxt-top-level-forms comp-ctxt)
-            (list (make-byte-to-native-func-def :name '--anonymous-lambda
-                                                :c-name c-name
-                                                :byte-func byte-code)))
-      (maphash #'comp--intern-func-in-ctxt byte-to-native-lambdas-h)))
+    (setf (comp-ctxt-top-level-forms comp-ctxt)
+          (list (make-byte-to-native-func-def :name '--anonymous-lambda
+                                              :c-name c-name
+                                              :byte-func byte-code)))
+    (maphash #'comp--intern-func-in-ctxt byte-to-native-lambdas-h)))
+
+(cl-defmethod comp--spill-lap-function ((form list))
+  "Byte-compile FORM, spilling data from the byte compiler."
+  (unless (eq (car-safe form) 'lambda)
+    (signal 'native-compiler-error
+            '("Cannot native-compile, form is not a lambda")))
+  (comp--spill-lap-single-function form))
+
+(cl-defmethod comp--spill-lap-function ((fun interpreted-function))
+  "Spill data from the byte compiler for the interpreted-function FUN."
+  (comp--spill-lap-single-function fun))
 
 (defun comp--intern-func-in-ctxt (_ obj)
   "Given OBJ of type `byte-to-native-lambda', create a function in `comp-ctxt'."
@@ -3577,14 +3585,13 @@ Search happens in `native-comp-eln-load-path'."
 ;;;###autoload
 (defun native-compile (function-or-file &optional output)
   "Compile FUNCTION-OR-FILE into native code.
-This is the synchronous entry-point for the Emacs Lisp native
-compiler.  FUNCTION-OR-FILE is a function symbol, a form, or the
-filename of an Emacs Lisp source file.  If OUTPUT is non-nil, use
-it as the filename for the compiled object.  If FUNCTION-OR-FILE
-is a filename, if the compilation was successful return the
-filename of the compiled object.  If FUNCTION-OR-FILE is a
-function symbol or a form, if the compilation was successful
-return the compiled function."
+This is the synchronous entry-point for the Emacs Lisp native compiler.
+FUNCTION-OR-FILE is a function symbol, a form, an interpreted-function,
+or the filename of an Emacs Lisp source file.  If OUTPUT is non-nil, use
+it as the filename for the compiled object.  If FUNCTION-OR-FILE is a
+filename, if the compilation was successful return the filename of the
+compiled object.  If FUNCTION-OR-FILE is a function symbol or a form, if
+the compilation was successful return the compiled function."
   (declare (ftype (function ((or string symbol) &optional string)
                             (or native-comp-function string))))
   (comp--native-compile function-or-file nil output))

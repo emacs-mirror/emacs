@@ -504,6 +504,12 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
     (should (native-comp-function-p f))
     (should (= (funcall f 2) 3))))
 
+(comp-deftest compile-interpreted-functions ()
+  "Verify native compilation of interpreted functions."
+  (let ((f (native-compile (eval '(lambda (x) (1+ x))))))
+    (should (native-comp-function-p f))
+    (should (= (funcall f 2) 3))))
+
 (comp-deftest comp-test-defsubst ()
   ;; Bug#42664, Bug#43280, Bug#44209.
   (should-not (native-comp-function-p (symbol-function 'comp-test-defsubst-f))))
