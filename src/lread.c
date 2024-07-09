@@ -5025,8 +5025,8 @@ it defaults to the value of `obarray'.  */)
     {
       if (longhand)
 	{
-	  tem = intern_driver (make_specified_string (longhand, longhand_chars,
-						      longhand_bytes, true),
+	  tem = intern_driver (make_multibyte_string (longhand, longhand_chars,
+						      longhand_bytes),
 			       obarray, tem);
 	  xfree (longhand);
 	}
