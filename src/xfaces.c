@@ -712,6 +712,11 @@ free_frame_faces (struct frame *f)
 	  --image_cache->refcount;
 	  if (image_cache->refcount == 0)
 	    free_image_cache (f);
+
+	  /* The `image_cache' field must be emptied, in case references
+	     to this dead frame should remain and be scanned by GC.
+	     (bug#71929) */
+	  FRAME_IMAGE_CACHE (f) = NULL;
 	}
     }
 #endif /* HAVE_WINDOW_SYSTEM */

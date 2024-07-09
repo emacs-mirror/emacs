@@ -2304,22 +2304,17 @@ void
 free_image_cache (struct frame *f)
 {
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
-  if (c)
-    {
-      ptrdiff_t i;
+  ptrdiff_t i;
 
-      /* Cache should not be referenced by any frame when freed.  */
-      eassert (c->refcount == 0);
+  /* Cache should not be referenced by any frame when freed.  */
+  eassert (c->refcount == 0);
 
-      for (i = 0; i < c->used; ++i)
-	free_image (f, c->images[i]);
-      xfree (c->images);
-      xfree (c->buckets);
-      xfree (c);
-      FRAME_IMAGE_CACHE (f) = NULL;
-    }
+  for (i = 0; i < c->used; ++i)
+    free_image (f, c->images[i]);
+  xfree (c->images);
+  xfree (c->buckets);
+  xfree (c);
 }
-
 
 /* Clear image cache of frame F.  FILTER=t means free all images.
    FILTER=nil means clear only images that haven't been
