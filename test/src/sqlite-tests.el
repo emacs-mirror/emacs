@@ -37,6 +37,7 @@
 (declare-function sqlite-open "sqlite.c")
 (declare-function sqlite-load-extension "sqlite.c")
 (declare-function sqlite-version "sqlite.c")
+(declare-function sqlite-execute-batch "sqlite.c")
 
 (ert-deftest sqlite-select ()
   (skip-unless (sqlite-available-p))
