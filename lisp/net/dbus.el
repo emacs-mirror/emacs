@@ -297,6 +297,10 @@ TIMEOUT specifies the maximum number of milliseconds before the
 method call must return.  The default value is 25,000.  If the
 method call doesn't return in time, a D-Bus error is raised.
 
+If the parameter `:authorizable' is given and the following AUTH
+is non-nil, the invoked method may interactively prompt the user
+for authorization.  The default is nil.
+
 All other arguments ARGS are passed to METHOD as arguments.  They are
 converted into D-Bus types via the following rules:
 
@@ -426,6 +430,10 @@ If the parameter `:timeout' is given, the following integer
 TIMEOUT specifies the maximum number of milliseconds before the
 method call must return.  The default value is 25,000.  If the
 method call doesn't return in time, a D-Bus error is raised.
+
+If the parameter `:authorizable' is given and the following AUTH
+is non-nil, the invoked method may interactively prompt the user
+for authorization.  The default is nil.
 
 All other arguments ARGS are passed to METHOD as arguments.  They are
 converted into D-Bus types via the following rules:

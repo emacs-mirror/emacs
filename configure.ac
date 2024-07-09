@@ -3943,6 +3943,8 @@ if test "${with_dbus}" = "yes"; then
      dnl dbus_watch_get_unix_fd has been introduced in D-Bus 1.1.1.
      dnl dbus_type_is_valid and dbus_validate_* have been introduced in
      dnl D-Bus 1.5.12.
+     dnl dbus_message_set_allow_interactive_authorization was introduced
+     dnl in D-Bus 1.8.10.
      OLD_LIBS=$LIBS
      LIBS="$LIBS $DBUS_LIBS"
      AC_CHECK_FUNCS([dbus_watch_get_unix_fd \
@@ -3950,7 +3952,8 @@ if test "${with_dbus}" = "yes"; then
 		    dbus_validate_bus_name \
                     dbus_validate_path \
 		    dbus_validate_interface \
-		    dbus_validate_member])
+		    dbus_validate_member \
+                    dbus_message_set_allow_interactive_authorization])
      LIBS=$OLD_LIBS
      DBUS_OBJ=dbusbind.o
    fi

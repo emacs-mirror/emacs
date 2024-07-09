@@ -1208,7 +1208,7 @@ which carries the input parameters to the object owning the method to
 be called, and a reply message returning the resulting output
 parameters from the object.
 
-@defun dbus-call-method bus service path interface method &optional :timeout timeout &rest args
+@defun dbus-call-method bus service path interface method &optional :timeout timeout :authorizable auth &rest args
 @anchor{dbus-call-method}
 This function calls @var{method} on the D-Bus @var{bus}.  @var{bus} is
 either the keyword @code{:system} or the keyword @code{:session}.
@@ -1222,6 +1222,10 @@ If the parameter @code{:timeout} is given, the following integer
 method call must return.  The default value is 25,000.  If the method
 call doesn't return in time, a D-Bus error is raised (@pxref{Errors
 and Events}).
+
+If the parameter @code{:authorizable} is given and the following
+@var{auth} is non-@code{nil}, the invoked method may interactively
+prompt the user for authorization.  The default is @code{nil}.
 
 The remaining arguments @var{args} are passed to @var{method} as
 arguments.  They are converted into D-Bus types as described in
@@ -1302,7 +1306,7 @@ emulate the @code{lshal} command on GNU/Linux systems:
 @cindex method calls, asynchronous
 @cindex asynchronous method calls
 
-@defun dbus-call-method-asynchronously bus service path interface method handler &optional :timeout timeout &rest args
+@defun dbus-call-method-asynchronously bus service path interface method handler &optional :timeout timeout :authorizable auth &rest args
 This function calls @var{method} on the D-Bus @var{bus}
 asynchronously.  @var{bus} is either the keyword @code{:system} or the
 keyword @code{:session}.
@@ -1320,6 +1324,10 @@ If the parameter @code{:timeout} is given, the following integer
 reply message must arrive.  The default value is 25,000.  If there is
 no reply message in time, a D-Bus error is raised (@pxref{Errors and
 Events}).
+
+If the parameter @code{:authorizable} is given and the following
+@var{auth} is non-@code{nil}, the invoked method may interactively
+prompt the user for authorization.  The default is @code{nil}.
 
 The remaining arguments @var{args} are passed to @var{method} as
 arguments.  They are converted into D-Bus types as described in
