@@ -228,7 +228,7 @@ See also `imap-log'."
   :type 'boolean)
 
 (defcustom imap-shell-host "gateway"
-  "Hostname of rlogin proxy."
+  "Hostname of SSH proxy."
   :type 'string)
 
 (defcustom imap-default-user (user-login-name)
