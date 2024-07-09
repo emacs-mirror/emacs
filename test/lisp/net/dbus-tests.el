@@ -732,6 +732,38 @@ is in progress."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
+(ert-deftest dbus-test04-call-method-authorizable ()
+  "Verify `dbus-call-method' request authorizable."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-session-bus)
+  (skip-unless
+   (dbus-ignore-errors
+     (dbus-call-method
+      :session dbus-service-dbus dbus-path-dbus
+      dbus-interface-dbus "ListNames")))
+
+  (should
+   (dbus-call-method
+    :session dbus-service-dbus dbus-path-dbus
+    dbus-interface-dbus "ListNames" :authorizable t))
+
+  (should
+   (dbus-call-method
+    :session dbus-service-dbus dbus-path-dbus
+    dbus-interface-dbus "ListNames" :authorizable nil))
+
+  (should
+   (dbus-call-method
+    :session dbus-service-dbus dbus-path-dbus
+    dbus-interface-dbus "ListNames" :authorizable 'something))
+
+  ;; Only method calls are allowed for :authorizable.
+  (should-error
+   (dbus-send-signal
+    :session dbus--test-service dbus--test-path
+    dbus--test-interface "Foo" :authorizable t "foo")
+   :type 'dbus-error))
+
 (defvar dbus--test-event-expected nil
   "The expected event in `dbus--test-signal-handler'.")
 
@@ -741,7 +773,7 @@ is in progress."
 (defun dbus--test-signal-handler (&rest args)
   "Signal handler for `dbus-test*-signal' and `dbus-test08-register-monitor'."
   (ignore-error dbus-error
-    (message "%S" last-input-event)
+    ;; (message "%S" last-input-event)
     (let ((last-input-event last-input-event))
       (when (or (null dbus--test-event-expected)
                 (and (equal (dbus-event-bus-name last-input-event)
