@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; Search a database of files and use dired commands on the result.
+;; Search a database of files and use Dired commands on the result.
 ;;
 ;; Locate.el provides an interface to a program which searches a
 ;; database of file names.  By default, this program is the GNU locate
@@ -60,7 +60,7 @@
 ;; character in the file name and the last character in the file name.
 ;;
 ;; To use locate-mode, simply type M-x locate and then the string
-;; you wish to find.  You can use almost all of the dired commands in
+;; you wish to find.  You can use almost all of the Dired commands in
 ;; the resulting *Locate* buffer.  It is worth noting that your commands
 ;; do not, of course, affect the file database.  For example, if you
 ;; compress a file in the locate buffer, the actual file will be
@@ -90,7 +90,7 @@
 ;;
 ;;;;;;;; ADVICE For dired-make-relative: ;;;;;;;;;
 ;;
-;; For certain dired commands to work right, you should also include the
+;; For certain Dired commands to work right, you should also include the
 ;; following in your _emacs/.emacs:
 ;;
 ;; (defadvice dired-make-relative (before set-no-error activate)
@@ -439,7 +439,7 @@ file name or is inside a subdirectory."
 (define-derived-mode locate-mode special-mode "Locate"
   "Major mode for the `*Locate*' buffer made by \\[locate].
 \\<locate-mode-map>\
-In that buffer, you can use almost all the usual dired bindings.
+In that buffer, you can use almost all the usual Dired bindings.
 \\[locate-find-directory] visits the directory of the file on the current line.
 This function runs `locate-mode-hook' before returning.
 

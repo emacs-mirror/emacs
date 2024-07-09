@@ -92,7 +92,7 @@
 ;; (add-hook 'dired-mode-hook
 ;;          (lambda ()
 ;;            (define-key dired-mode-map "W" 'woman-dired-find-file)))
-;; and open the directory containing the man page file using dired,
+;; and open the directory containing the man page file using Dired,
 ;; put the cursor on the file, and press `W'.
 
 ;; In each case, the result should (!) be a buffer in Man mode showing
@@ -102,7 +102,7 @@
 ;; manual-browsing facility rather than `WoMan' -- this is
 ;; intentional!)
 
-;; (By default, WoMan will automatically define the dired keys "W" and
+;; (By default, WoMan will automatically define the Dired keys "W" and
 ;; "w" when it loads, but only if they are not already defined.  This
 ;; behavior is controlled by the user option `woman-dired-keys'.
 ;; Note that the `dired-x' (dired extra) package binds
@@ -1526,7 +1526,7 @@ Also make each path-info component into a list.
       (woman-dired-define-key key)))
 
 (defun woman-dired-define-keys ()
-  "Define dired keys to run WoMan according to `woman-dired-keys'."
+  "Define Dired keys to run WoMan according to `woman-dired-keys'."
   (if woman-dired-keys
       (if (listp woman-dired-keys)
 	  (mapc #'woman-dired-define-key woman-dired-keys)
@@ -1544,7 +1544,7 @@ Also make each path-info component into a list.
 
 ;;;###autoload
 (defun woman-dired-find-file ()
-  "In dired, run the WoMan man-page browser on this file."
+  "In Dired, run the WoMan man-page browser on this file."
   (interactive)
   (woman-find-file (dired-get-filename)))
 
