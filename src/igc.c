@@ -3257,8 +3257,11 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
     case PVEC_NATIVE_COMP_UNIT:
     case PVEC_SUBR:
     case PVEC_FINALIZER:
-      mps_finalize (global_igc->arena, &ref);
-      maybe_process_messages ();
+      {
+	mps_res_t res = mps_finalize (global_igc->arena, &ref);
+	IGC_CHECK_RES (res);
+	maybe_process_messages ();
+      }
       break;
 
 #ifndef IN_MY_FORK
@@ -3556,7 +3559,8 @@ igc_collect (void)
   struct igc *gc = global_igc;
   if (gc->park_count == 0)
     {
-      mps_arena_collect (gc->arena);
+      mps_res_t res = mps_arena_collect (gc->arena);
+      IGC_CHECK_RES (res);
       mps_arena_release (gc->arena);
     }
 }
@@ -4807,7 +4811,8 @@ DEFUN ("igc--remove-extra-dependency", Figc__remove_extra_dependency,
 void
 init_igc (void)
 {
-  mps_lib_assert_fail_install (igc_assert_fail);
+  /* Returns previous handler. */
+  (void) mps_lib_assert_fail_install (igc_assert_fail);
   global_igc = make_igc ();
   add_main_thread ();
   set_state (IGC_STATE_USABLE_PARKED);
