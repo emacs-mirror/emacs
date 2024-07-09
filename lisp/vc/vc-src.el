@@ -211,7 +211,7 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-src-command (buffer file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-src.el.
-This function differs from vc-do-command in that it invokes `vc-src-program'."
+This function differs from `vc-do-command' in that it invokes `vc-src-program'."
   (let (file-list)
     (cond ((stringp file-or-list)
 	   (setq file-list (list "--" file-or-list)))

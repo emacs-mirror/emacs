@@ -1024,6 +1024,9 @@ Like 1, and in addition dump pseudo-C code.
 Like 2, and in addition dump the GCC intermediate passes and
 @file{libgccjit} log file.
 @end table
+
+When generated, the pseudo-C code is deposited in the same directory
+as the corresponding @file{.eln} file.
 @end defopt
 
 @defopt native-comp-verbose

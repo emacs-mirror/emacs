@@ -223,7 +223,7 @@ VALUE should be something suitable for passing to
 ;; time.  This pre-command-hook clears the overlay before any command
 ;; and should be set whenever a preedit overlay is visible.
 (defun android-clear-preedit-text ()
-  "Clear the pre-edit overlay and remove itself from pre-command-hook.
+  "Clear the pre-edit overlay and remove itself from `pre-command-hook'.
 This function should be installed in `pre-command-hook' whenever
 preedit text is displayed."
   (when android-preedit-overlay
@@ -629,4 +629,4 @@ accessible to other programs."
 
 
 (provide 'android-win)
-;; android-win.el ends here.
+;;; android-win.el ends here

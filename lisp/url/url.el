@@ -227,7 +227,7 @@ URL-encoded before it's used."
 (defun url-retrieve-synchronously (url &optional silent inhibit-cookies timeout)
   "Retrieve URL synchronously.
 Return the buffer containing the data, or nil if there are no data
-associated with it (the case for dired, info, or mailto URLs that need
+associated with it (the case for Dired, info, or mailto URLs that need
 no further processing).  URL is either a string or a parsed URL.
 
 If SILENT is non-nil, don't do any messaging while retrieving.

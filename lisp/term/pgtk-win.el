@@ -27,7 +27,7 @@
 
 (eval-when-compile (require 'cl-lib))
 (unless (featurep 'pgtk)
-  (error "%s: Loading pgtk-win.el but not compiled with PGTK."
+  (error "%s: Loading pgtk-win.el but not compiled with PGTK"
          invocation-name))
 
 ;; Documentation-purposes only: actually loaded in loadup.el.

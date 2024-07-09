@@ -727,7 +727,7 @@ If optional ATTRIBS-P is non-nil, the key/value pair is placed in
 
 ;; mail header nuking
 (defvar sc-mail-last-header-nuked-p nil
-  "True if the last header was nuked.")
+  "Non-nil if the last header was nuked.")
 
 (defun sc-mail-nuke-line ()
   "Nuke the current mail header line."

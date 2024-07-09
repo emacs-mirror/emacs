@@ -486,7 +486,7 @@ contain matches to the regexp.)")
 
 (define-obsolete-function-alias 'set-page-delimiter #'pages-set-delimiter "27.1")
 (defun pages-set-delimiter (regexp reset-p &optional interactively)
-  "Set buffer local value of page-delimiter to REGEXP.
+  "Set buffer local value of `page-delimiter' to REGEXP.
 Called interactively with a prefix argument, reset `page-delimiter' to
 its original value.
 

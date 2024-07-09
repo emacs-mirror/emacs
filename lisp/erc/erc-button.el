@@ -815,7 +815,7 @@ and `apropos' for other symbols."
 
 (defun erc-button--display-error-with-buttons
     (from to fun nick-p &optional data regexp)
-  "Replace command in region with keys and return new bounds"
+  "Replace command in region with keys and return new bounds."
   (let* ((o (buffer-substring from to))
          (s (substitute-command-keys o))
          (erc-button-face (and (equal o s) erc-button-face)))

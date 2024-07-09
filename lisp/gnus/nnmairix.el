@@ -35,7 +35,7 @@
 
 ;; Commentary on the code: nnmairix sits between Gnus and the "real"
 ;; back end which handles the mail (currently nnml, nnimap and
-;; nnmaildir were tested). I know this is all a bit hacky, but so far
+;; nnmaildir were tested).  I know this is all a bit hacky, but so far
 ;; it works for me.  This is the first back end I've written for Gnus,
 ;; so I'd appreciate any comments, suggestions, bug reports (and, of
 ;; course, patches) for improving nnmairix.
@@ -368,8 +368,9 @@ wrong count of total articles shown by Gnus.")
 its maildir mail folders (e.g. the Dovecot IMAP server or mutt).")
 
 (defvoo nnmairix-default-group nil
-  "Default search group.  This is the group which is used for all
-temporary searches, e.g. nnmairix-search.")
+  "Default search group.
+This is the group which is used for all temporary searches,
+e.g. nnmairix-search.")
 
 ;;; === Internal variables
 

@@ -99,7 +99,7 @@ extension module; if nil, KIND defaults to `extension'."
   (let ((module-name (symbol-name module))
         (prefix (cond ((eq kind 'core) "esh-")
                       ((memq kind '(extension nil)) "em-")
-                      (t (error "unknown module kind %s" kind)))))
+                      (t (error "Unknown module kind %s" kind)))))
     (if (string-match "^eshell-\\(.*\\)" module-name)
 	(concat prefix (match-string 1 module-name))
       (error "Invalid Eshell module name: %s" module))))

@@ -417,7 +417,7 @@ delimiter.
 If CHAINED-P is true, then another delimited modifier argument
 will immediately follow this one.  In this case, when the opening
 and closing delimiters are the same, update point to be just
-before the closing delimiter. This allows modifiers like
+before the closing delimiter.  This allows modifiers like
 `:s/match/repl' to work as expected."
   (when-let* ((open (char-after))
               (close (cdr (assoc open eshell-pred-delimiter-pairs)))

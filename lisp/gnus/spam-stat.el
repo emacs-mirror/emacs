@@ -183,7 +183,7 @@ say, `with-spam-stat-max-buffer-size'."
   :type '(repeat sexp))
 
 (defcustom spam-stat-process-directory-age 90
-  "Max. age of files to be processed in directory, in days.
+  "Maximum age of files to be processed in directory, in days.
 When using `spam-stat-process-spam-directory' or
 `spam-stat-process-non-spam-directory', only files that have
 been touched in this many days will be considered.  Without
@@ -192,7 +192,7 @@ will start to take a very long time."
   :type 'integer)
 
 (defvar spam-stat-last-saved-at nil
-  "Time stamp of last change of spam-stat-file on this run")
+  "Time stamp of last change of `spam-stat-file' on this run.")
 
 (defvar spam-stat-syntax-table
   (let ((table (copy-syntax-table text-mode-syntax-table)))
@@ -394,7 +394,7 @@ Use `spam-stat-ngood', `spam-stat-nbad', `spam-stat-good',
 ;; Saving and Loading
 
 (defun spam-stat-save (&optional force)
-  "Save the `spam-stat' hash table as lisp file.
+  "Save the `spam-stat' hash table as Lisp file.
 With a prefix argument save unconditionally."
   (interactive "P")
   (when (or force spam-stat-dirty)

@@ -671,8 +671,8 @@ switching to, the `*mail*' buffer.  See also `mail-setup-hook'."
   "Major mode for editing mail to be sent.
 Like Text Mode but with these additional commands:
 
-\\[mail-send]  mail-send (send the message)
-\\[mail-send-and-exit]  mail-send-and-exit (send the message and exit)
+\\[mail-send]  `mail-send' (send the message)
+\\[mail-send-and-exit]  `mail-send-and-exit' (send the message and exit)
 
 Here are commands that move to a header field (and create it if there isn't):
 	 \\[mail-to]  move to To:	\\[mail-subject]  move to Subj:
@@ -681,9 +681,9 @@ Here are commands that move to a header field (and create it if there isn't):
          \\[mail-mail-reply-to]  move to Mail-Reply-To:
          \\[mail-mail-followup-to] move to Mail-Followup-To:
 \\[mail-text]  move to message text.
-\\[mail-signature]  mail-signature (insert `mail-signature-file' file).
-\\[mail-yank-original]  mail-yank-original (insert current message, in Rmail).
-\\[mail-fill-yanked-message]  mail-fill-yanked-message (fill what was yanked).
+\\[mail-signature]  `mail-signature' (insert `mail-signature-file' file).
+\\[mail-yank-original]  `mail-yank-original' (insert current message, in Rmail).
+\\[mail-fill-yanked-message]  `mail-fill-yanked-message' (fill what was yanked).
 \\[mail-insert-file] insert a text file into the message.
 \\[mail-add-attachment] attach to the message a file as binary attachment.
 Turning on Mail mode runs the normal hooks `text-mode-hook' and

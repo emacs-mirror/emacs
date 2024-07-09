@@ -760,7 +760,7 @@ the number of unread messages, according to variables
 `erc-track-showcount' and `erc-track-showcount-string'.
 
 If `erc-track-use-faces' is true and FACES are provided, format
-STRING with them. When the mouse hovers above the button, STRING
+STRING with them.  When the mouse hovers above the button, STRING
 is displayed according to `erc-track-mouse-face'."
   ;; We define a new sparse keymap every time, because 1. this data
   ;; structure is very small, the alternative would require us to

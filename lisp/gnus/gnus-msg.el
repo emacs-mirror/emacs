@@ -1918,7 +1918,7 @@ can be attached to them.  If not, a new Message buffer is
 created.
 
 This command uses the process/prefix convention, so if you
-process-mark several articles, they will all be attached."
+`process-mark' several articles, they will all be attached."
   (interactive "P" gnus-summary-mode)
   (let ((buffers (message-buffers))
 	destination)

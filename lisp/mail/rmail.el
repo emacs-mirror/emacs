@@ -519,8 +519,7 @@ For a given message, Rmail applies only the first matching directive.
 
 Examples:
   (\"/dev/null\" \"from\" \"@spam.com\") ; delete all mail from spam.com
-  (\"RMS\" \"from\" \"rms@\") ; save all mail from RMS.
-"
+  (\"RMS\" \"from\" \"rms@\") ; save all mail from RMS."
   :group 'rmail
   :version "21.1"
   :type '(repeat (sexp :tag "Directive")))
@@ -4315,7 +4314,7 @@ In fact, the non-nil value returned is the summary buffer itself."
        rmail-summary-buffer))
 
 (defun rmail-summary-displayed ()
-  "t if in RMAIL buffer and an associated summary buffer is displayed."
+  "Return t if in RMAIL buffer and an associated summary buffer is displayed."
   (and rmail-summary-buffer (get-buffer-window rmail-summary-buffer)))
 
 (defcustom rmail-redisplay-summary nil

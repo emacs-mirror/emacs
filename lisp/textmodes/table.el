@@ -1456,8 +1456,8 @@ first cell.
     |-!-  |     |     |
     +-----+-----+-----+
 
-Inside a table cell, there are special key bindings. \\<table-cell-map>
-
+Inside a table cell, there are special key bindings.
+\\<table-cell-map>
 M-9 \\[table-widen-cell] (or \\[universal-argument] 9 \\[table-widen-cell]) widens the first cell by 9 character
 width, which results as
 
@@ -1466,7 +1466,7 @@ width, which results as
     +--------------+-----+-----+
 
 Type TAB \\[table-widen-cell] then type TAB M-2 M-7 \\[table-widen-cell] (or \\[universal-argument] 2 7 \\[table-widen-cell]).  Typing
-TAB moves the point forward by a cell. The result now looks like this:
+TAB moves the point forward by a cell.  The result now looks like this:
 
     +--------------+------+--------------------------------+
     |              |      |-!-                             |
@@ -5301,8 +5301,8 @@ Current buffer must already be set to the cache buffer."
 
 (defun table--fill-region-strictly (beg end)
   "Fill region strictly so that no line exceeds `fill-column'.
-When a word exceeds fill-column the word is chopped into pieces.  The
-chopped location is indicated with table-word-continuation-char."
+When a word exceeds `fill-column' the word is chopped into pieces.  The
+chopped location is indicated with `table-word-continuation-char'."
   (or (and (markerp beg) (markerp end))
       (error "markerp"))
   (if (< fill-column 2)

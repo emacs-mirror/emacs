@@ -170,7 +170,7 @@ The value is usually nil, and bound to non-nil while inserting
 MIME entities.")
 
 (defvar rmail-mime-searching nil
-  "Bound to T inside `rmail-search-mime-message' to suppress expensive
+  "Bound to t inside `rmail-search-mime-message' to suppress expensive
 operations such as HTML decoding")
 
 ;;; MIME-entity object

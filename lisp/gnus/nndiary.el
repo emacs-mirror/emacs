@@ -30,7 +30,7 @@
 ;; ===========
 
 ;; nndiary is a mail back end designed to handle mails as diary event
-;; reminders. It is now fully documented in the Gnus manual.
+;; reminders.  It is now fully documented in the Gnus manual.
 
 
 ;; Bugs / Todo:
@@ -43,19 +43,19 @@
 ;; * We could allow a keyword like `ask' in X-Diary-* headers, that would mean
 ;;   "ask for value upon reception of the message".
 ;; * We could add an optional header X-Diary-Reminders to specify a special
-;;   reminders value for this message. Suggested by Jody Klymak.
+;;   reminders value for this message.  Suggested by Jody Klymak.
 ;; * We should check messages validity in other circumstances than just
-;;   moving an article from somewhere else (request-accept). For instance,
+;;   moving an article from somewhere else (request-accept).  For instance,
 ;;   when editing / saving and so on.
 
 
 ;; Remarks:
 ;; =======
 
-;; * nnoo. NNDiary is very similar to nnml. This makes the idea of using nnoo
-;;   (to derive nndiary from nnml) natural. However, my experience with nnoo
+;; * nnoo.  NNDiary is very similar to nnml.  This makes the idea of using nnoo
+;;   (to derive nndiary from nnml) natural.  However, my experience with nnoo
 ;;   is that for reasonably complex back ends like this one, nnoo is a burden
-;;   rather than an help. It's tricky to use, not everything can be inherited,
+;;   rather than an help.  It's tricky to use, not everything can be inherited,
 ;;   what can be inherited and when is not very clear, and you've got to be
 ;;   very careful because a little mistake can fuck up your other back ends,
 ;;   especially because their variables will be use instead of your real ones.
@@ -64,16 +64,16 @@
 
 ;;   IMHO, nnoo is actually badly designed.  A much simpler, and yet more
 ;;   powerful one would be to make *real* functions and variables for a new
-;;   back end based on another. Lisp is a reflexive language so that's a very
+;;   back end based on another.  Lisp is a reflexive language so that's a very
 ;;   easy thing to do: inspect the function's form, replace occurrences of
 ;;   <nnfrom> (even in strings) with <nnto>, and you're done.
 
 ;; * nndiary-get-new-mail, nndiary-mail-source and nndiary-split-methods:
 ;;   NNDiary has some experimental parts, in the sense Gnus normally uses only
-;;   one mail back ends for mail retrieval and splitting. This back end is
-;;   also an attempt to make it behave differently. For Gnus developers: as
+;;   one mail back ends for mail retrieval and splitting.  This back end is
+;;   also an attempt to make it behave differently.  For Gnus developers: as
 ;;   you can see if you snarf into the code, that was not a very difficult
-;;   thing to do. Something should be done about the respooling breakage
+;;   thing to do.  Something should be done about the respooling breakage
 ;;   though.
 
 

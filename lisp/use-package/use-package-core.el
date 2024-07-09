@@ -1669,8 +1669,8 @@ Also see the Info node `(use-package) Creating an extension'."
 (defconst use-package-vc-valid-keywords
   '( :url :branch :lisp-dir :main-file :vc-backend :rev
      :shell-command :make :ignored-files)
-  "Valid keywords for the `:vc' keyword, see the Info
-node `(emacs)Fetching Package Sources'.")
+  "Valid keywords for the `:vc' keyword.
+See Info node `(emacs)Fetching Package Sources'.")
 
 (defun use-package-normalize--vc-arg (arg)
   "Normalize possible arguments to the `:vc' keyword.
