@@ -4549,7 +4549,7 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
       if (igc_header_type (h) == IGC_OBJ_MARKER_VECTOR)
 	igc_assert ((type == IGC_OBJ_VECTOR
 		     && igc_header_type (h) == IGC_OBJ_MARKER_VECTOR)
-		    || h->obj_type == type);
+		    || IGC_HEADER_TYPE (h) == type);
       igc_assert (base + obj_size (h) >= end);
       *out = *h;
       return base + obj_size (h);
@@ -4636,20 +4636,22 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 {
   igc_assert (global_igc->park_count > 0);
   igc_assert (base_to_client (hot_start) == charset_table);
-  igc_assert (((struct igc_header *) hot_start)->obj_type
+  igc_assert (IGC_HEADER_TYPE ((struct igc_header *) hot_start)
 	      == IGC_OBJ_DUMPED_CHARSET_TABLE);
-  igc_assert (((struct igc_header *) cold_start)->obj_type
+  igc_assert (IGC_HEADER_TYPE ((struct igc_header *) cold_start)
 	      == IGC_OBJ_DUMPED_CODE_SPACE_MASKS);
-  igc_assert (((struct igc_header *) cold_user_data_start)->obj_type
+  igc_assert (IGC_HEADER_TYPE ((struct igc_header *) cold_user_data_start)
 	      == IGC_OBJ_DUMPED_BYTES);
-  igc_assert (((struct igc_header *) heap_end)->obj_type
+  igc_assert (IGC_HEADER_TYPE ((struct igc_header *) heap_end)
 	      == IGC_OBJ_DUMPED_BYTES);
+
   size_t discardable_size = (uint8_t *)cold_start - (uint8_t *)hot_end;
   // size_t cold_size = (uint8_t *)cold_end - (uint8_t *)cold_start;
   size_t dump_header_size = (uint8_t *)hot_start - (uint8_t *)dump_base;
   size_t relocs_size = (uint8_t *)cold_end - (uint8_t *)heap_end;
   struct igc_header *h = client_to_base (dump_base);
-  igc_assert (h->obj_type == IGC_OBJ_INVALID);
+
+  igc_assert (IGC_HEADER_TYPE (h) == IGC_OBJ_INVALID);
   igc_assert (obj_size (h)
 	      == sizeof *h + (uint8_t *)cold_end - (uint8_t *)dump_base);
   igc_assert (discardable_size > 2 * sizeof *h);
