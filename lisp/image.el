@@ -638,7 +638,9 @@ IMAGE must be an image created with `create-image' or `defimage'.
 IMAGE is displayed by putting an overlay into the current buffer with a
 `before-string' STRING that has a `display' property whose value is the
 image.  STRING defaults to \"x\" if it's nil or omitted.
-The overlay created by this function has the `put-image' property set to t.
+Upon success, this function returns the created overlay with its
+`put-image' property set to t.
+
 POS may be an integer or marker.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
