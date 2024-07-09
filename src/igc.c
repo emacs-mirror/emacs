@@ -4165,7 +4165,8 @@ weak_vector_p (Lisp_Object x)
     {
       struct igc *igc = global_igc;
       mps_pool_t pool = NULL;
-      mps_addr_pool (&pool, igc->arena, XVECTOR (x));
+      if (!mps_addr_pool (&pool, igc->arena, XVECTOR (x)))
+	return false;
       return pool == igc->weak_pool;
     }
   else
