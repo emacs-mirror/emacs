@@ -233,10 +233,10 @@ can be one of the following symbols:
 * `fill-height': Display the image zoomed to fill the height of the
 current window."
   :version "31.1"
-  :type '(set (choice (const :tag "Fit to window size" fit)
-                      (const :tag "Original size" original)
-                      (const :tag "Full image size" image)
-                      (const :tag "Fill window height" fill-height))))
+  :type '(set (const :tag "Fit to window size" fit)
+              (const :tag "Original size" original)
+              (const :tag "Full image size" image)
+              (const :tag "Fill window height" fill-height)))
 
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
