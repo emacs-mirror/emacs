@@ -341,7 +341,7 @@ See calc-embedded-open-plain."
 
 (defcustom calc-embedded-open-close-new-formula-alist
   nil
-  "Alist of major modes with pairs of new formula delimiters used by `calc-embedded'."
+  "Alist of major modes with pairs of new formula delimiters used by calc-embedded."
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (list (string :tag "Opening new formula delimiter")
                                   (string :tag "Closing new formula delimiter"))))
