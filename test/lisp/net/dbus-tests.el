@@ -791,10 +791,10 @@ Returns the respective error."
 
   ;; Check parsing.  "org.freedesktop.DBus.ListNames" is agnostic to
   ;; :authorizable, so we can use it as test method.
-  (unless (dbus-ignore-errors
-            (dbus-call-method
-             :session dbus-service-dbus dbus-path-dbus
-             dbus-interface-dbus "ListNames"))
+  (when (dbus-ignore-errors
+          (dbus-call-method
+           :session dbus-service-dbus dbus-path-dbus
+           dbus-interface-dbus "ListNames"))
     (should
      (dbus-call-method
       :session dbus-service-dbus dbus-path-dbus
