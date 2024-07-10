@@ -732,37 +732,90 @@ is in progress."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
+(defun dbus--test-method-authorizable-handler (&rest args)
+  "Method handler for `dbus-test04-call-method-authorizable'.
+Returns the respective error."
+  `(:error ,dbus-error-interactive-authorization-required
+           "Interactive authentication required."))
+
 (ert-deftest dbus-test04-call-method-authorizable ()
   "Verify `dbus-call-method' request authorizable."
   :tags '(:expensive-test)
   (skip-unless dbus--test-enabled-session-bus)
-  (skip-unless
-   (dbus-ignore-errors
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  (unwind-protect
+      (let ((method "Method")
+            (handler #'dbus--test-method-authorizable-handler)
+            registered)
+
+        ;; Register.
+        (should
+         (equal
+          (setq
+           registered
+           (dbus-register-method
+            :session dbus--test-service dbus--test-path
+            dbus--test-interface method handler))
+          `((:method :session ,dbus--test-interface ,method)
+            (,dbus--test-service ,dbus--test-path ,handler))))
+
+        ;; The error isn't seen, because it is transformed into a
+        ;; warning.  So we check, whether a warning has arrived in the
+        ;; respective buffer.
+        (ignore-errors (kill-buffer "*Warnings*"))
+        (should-not
+         (dbus-call-method
+          :session dbus--test-service dbus--test-path
+          dbus--test-interface method "foo"))
+        (should (get-buffer "*Warnings*"))
+
+        ;; The same for asynchronous calls.
+        (ignore-errors (kill-buffer "*Warnings*"))
+        (dbus-call-method-asynchronously
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface method #'ignore "foo")
+        (with-timeout (1 (dbus--test-timeout-handler))
+          (while (null (get-buffer "*Warnings*"))
+            (read-event nil nil 0.1)))
+        (should (get-buffer "*Warnings*"))
+
+        ;; Unregister method.
+        (should (dbus-unregister-object registered))
+        (should-not (dbus-unregister-object registered)))
+
+    ;; Cleanup.
+    (ignore-errors (kill-buffer "*Warnings*"))
+    (dbus-unregister-service :session dbus--test-service))
+
+  ;; Check parsing.  "org.freedesktop.DBus.ListNames" is agnostic to
+  ;; :authorizable, so we can use it as test method.
+  (unless (dbus-ignore-errors
+            (dbus-call-method
+             :session dbus-service-dbus dbus-path-dbus
+             dbus-interface-dbus "ListNames"))
+    (should
      (dbus-call-method
       :session dbus-service-dbus dbus-path-dbus
-      dbus-interface-dbus "ListNames")))
+      dbus-interface-dbus "ListNames" :authorizable t))
 
-  (should
-   (dbus-call-method
-    :session dbus-service-dbus dbus-path-dbus
-    dbus-interface-dbus "ListNames" :authorizable t))
+    (should
+     (dbus-call-method
+      :session dbus-service-dbus dbus-path-dbus
+      dbus-interface-dbus "ListNames" :authorizable nil))
 
-  (should
-   (dbus-call-method
-    :session dbus-service-dbus dbus-path-dbus
-    dbus-interface-dbus "ListNames" :authorizable nil))
+    (should
+     (dbus-call-method
+      :session dbus-service-dbus dbus-path-dbus
+      dbus-interface-dbus "ListNames" :authorizable 'something))
 
-  (should
-   (dbus-call-method
-    :session dbus-service-dbus dbus-path-dbus
-    dbus-interface-dbus "ListNames" :authorizable 'something))
-
-  ;; Only method calls are allowed for :authorizable.
-  (should-error
-   (dbus-send-signal
-    :session dbus--test-service dbus--test-path
-    dbus--test-interface "Foo" :authorizable t "foo")
-   :type 'dbus-error))
+    ;; Only method calls are allowed for :authorizable.
+    (should-error
+     (dbus-send-signal
+      :session dbus--test-service dbus--test-path
+      dbus--test-interface "Foo" :authorizable t "foo")
+     :type 'dbus-error)))
 
 (defvar dbus--test-event-expected nil
   "The expected event in `dbus--test-signal-handler'.")
