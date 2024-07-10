@@ -774,8 +774,8 @@ ticks_hz_hz_ticks (struct ticks_hz t, Lisp_Object hz)
       if (XFIXNUM (hz) <= 0)
 	invalid_hz (hz);
 
-      /* For speed, use intmax_t arithmetic if it will do.  */
-      if (FASTER_TIMEFNS && FIXNUMP (t.ticks) && FIXNUMP (t.hz))
+      /* Prefer non-bignum arithmetic to speed up common cases.  */
+      if (FASTER_TIMEFNS && FIXNUMP (t.hz))
 	{
 	  /* Reduce T.hz and HZ by their GCD, to avoid some intmax_t
 	     overflows that would occur in T.ticks * HZ.  */
@@ -784,9 +784,12 @@ ticks_hz_hz_ticks (struct ticks_hz t, Lisp_Object hz)
 	  ithz /= d;
 	  ihz /= d;
 
-	  intmax_t ticks;
-	  if (!ckd_mul (&ticks, XFIXNUM (t.ticks), ihz))
-	    return make_int (ticks / ithz - (ticks % ithz < 0));
+	  if (FIXNUMP (t.ticks))
+	    {
+	      intmax_t ticks;
+	      if (!ckd_mul (&ticks, XFIXNUM (t.ticks), ihz))
+		return make_int (ticks / ithz - (ticks % ithz < 0));
+	    }
 
 	  t.hz = make_fixnum (ithz);
 	  hz = make_fixnum (ihz);
