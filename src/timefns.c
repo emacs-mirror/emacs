@@ -748,6 +748,15 @@ timespec_ticks (struct timespec t)
   return make_integer_mpz ();
 }
 
+/* Return greatest common divisor of positive A and B.  */
+static EMACS_INT
+emacs_gcd (EMACS_INT a, EMACS_INT b)
+{
+  for (EMACS_INT r; (r = a % b) != 0; a = b, b = r)
+    continue;
+  return b;
+}
+
 /* Convert T to a Lisp integer counting HZ ticks, taking the floor.
    Assume T is valid, but check HZ.  */
 static Lisp_Object
@@ -766,11 +775,22 @@ ticks_hz_hz_ticks (struct ticks_hz t, Lisp_Object hz)
 	invalid_hz (hz);
 
       /* For speed, use intmax_t arithmetic if it will do.  */
-      intmax_t ticks;
-      if (FASTER_TIMEFNS && FIXNUMP (t.ticks) && FIXNUMP (t.hz)
-	  && !ckd_mul (&ticks, XFIXNUM (t.ticks), XFIXNUM (hz)))
-	return make_int (ticks / XFIXNUM (t.hz)
-			 - (ticks % XFIXNUM (t.hz) < 0));
+      if (FASTER_TIMEFNS && FIXNUMP (t.ticks) && FIXNUMP (t.hz))
+	{
+	  /* Reduce T.hz and HZ by their GCD, to avoid some intmax_t
+	     overflows that would occur in T.ticks * HZ.  */
+	  EMACS_INT ithz = XFIXNUM (t.hz), ihz = XFIXNUM (hz);
+	  EMACS_INT d = emacs_gcd (ithz, ihz);
+	  ithz /= d;
+	  ihz /= d;
+
+	  intmax_t ticks;
+	  if (!ckd_mul (&ticks, XFIXNUM (t.ticks), ihz))
+	    return make_int (ticks / ithz - (ticks % ithz < 0));
+
+	  t.hz = make_fixnum (ithz);
+	  hz = make_fixnum (ihz);
+	}
     }
   else if (! (BIGNUMP (hz) && 0 < mpz_sgn (*xbignum_val (hz))))
     invalid_hz (hz);
