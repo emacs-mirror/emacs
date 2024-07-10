@@ -892,9 +892,9 @@ a predefined timeout.
 @cindex method @option{run0}
 @cindex @option{run0} method
 
-This method is used on @code{systemd}-based hosts.  Internally, it
-uses the @code{systemd-run} command.  A @option{run0} connection is
-disabled after a predefined timeout as well.
+@c This requires systemd 256.  Check with 'systemd-run --version'.
+This method is used on @code{systemd}-based hosts.  A @option{run0}
+connection is disabled after a predefined timeout as well.
 
 This is an optional method, @pxref{Optional methods}.
 
