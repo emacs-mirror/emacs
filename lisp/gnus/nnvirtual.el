@@ -436,7 +436,8 @@ lines have the correct component server prefix."
 (defun nnvirtual-update-read-and-marked (read-p update-p)
   "Copy marks from the virtual group to the component groups.
 If READ-P is not nil, update the (un)read status of the components.
-If UPDATE-P is not nil, call gnus-group-update-group on the components."
+If UPDATE-P is not nil, call `gnus-group-update-group' on the
+components."
   (when nnvirtual-current-group
     (let ((unreads (and read-p
 			(nnvirtual-partition-sequence
@@ -642,7 +643,7 @@ then it is left out of the result."
 
 (defun nnvirtual-partition-sequence (articles)
   "Return an association list of component article numbers.
-These are indexed by elements of nnvirtual-component-groups, based on
+These are indexed by elements of `nnvirtual-component-groups', based on
 the sequence ARTICLES of virtual article numbers.  ARTICLES should be
 sorted, and can be a compressed sequence.  If any of the article
 numbers has no corresponding component article, then it is left out of

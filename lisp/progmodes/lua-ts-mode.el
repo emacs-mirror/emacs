@@ -58,7 +58,8 @@
 (defcustom lua-ts-mode-hook nil
   "Hook run after entering `lua-ts-mode'."
   :type 'hook
-  :options '(flymake-mode
+  :options '(eglot-ensure
+             flymake-mode
              hs-minor-mode
              outline-minor-mode)
   :version "30.1")
@@ -116,7 +117,7 @@
 (defcustom lua-ts-indent-continuation-lines t
   "Controls how multi-line if/else statements are aligned.
 
-If t, then continuation lines are indented by `lua-ts-indent-offset':
+If non-nil, then continuation lines are indented by `lua-ts-indent-offset':
 
   if a
       and b then
@@ -721,10 +722,10 @@ Calls REPORT-FN directly."
 
 (defvar lua-ts-mode-map
   (let ((map (make-sparse-keymap "Lua")))
-    (define-key map "\C-c\C-n" 'lua-ts-inferior-lua)
-    (define-key map "\C-c\C-c" 'lua-ts-send-buffer)
-    (define-key map "\C-c\C-l" 'lua-ts-send-file)
-    (define-key map "\C-c\C-r" 'lua-ts-send-region)
+    (keymap-set map "C-c C-n" 'lua-ts-inferior-lua)
+    (keymap-set map "C-c C-c" 'lua-ts-send-buffer)
+    (keymap-set map "C-c C-l" 'lua-ts-send-file)
+    (keymap-set map "C-c C-r" 'lua-ts-send-region)
     map)
   "Keymap for `lua-ts-mode' buffers.")
 

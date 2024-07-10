@@ -262,14 +262,15 @@ with these words enabled."
 ;;;###autoload(put 'checkdoc-ispell-list-words 'safe-local-variable #'list-of-strings-p)
 
 (defcustom checkdoc-max-keyref-before-warn nil
-  "If non-nil, number of \\\\=[command-to-keystroke] tokens allowed in a doc string.
-Any more than this and a warning is generated suggesting that the construct
-\\\\={mapvar} be used instead.  If the value is nil, never warn.
+  "Maximum number of \\\\=[command-to-keystroke] tokens allowed in a doc string.
 
-It used to not be practical to use `\\\\=[...]' very many times,
-because display of the documentation string would become slow.
-This is not an issue on modern machines, unless you have
-thousands of substitutions."
+Any more than this and a warning is generated suggesting that the
+construct \\\\={mapvar} be used instead.  If the value is nil, never
+warn.
+
+It used to be impractical to use `\\\\=[...]' very many times, because
+display of the documentation string would become slow.  This is not an
+issue on modern machines, unless you have thousands of substitutions."
   :type '(choice (const nil)
                  integer)
   :version "28.1")
@@ -289,6 +290,7 @@ made in the style guide relating to order."
 Currently, all recognized keywords must be on `finder-known-keywords'."
   :version "25.1"
   :type 'boolean)
+;;;###autoload(put 'checkdoc-package-keywords-flag 'safe-local-variable #'booleanp)
 
 (defvar checkdoc-style-functions nil
   "Hook run after the standard style check is completed.
@@ -307,11 +309,12 @@ problem discovered.  This is useful for adding additional checks.")
 (defvar checkdoc-diagnostic-buffer "*Style Warnings*"
   "Name of warning message buffer.")
 
-(defcustom checkdoc-verb-check-experimental-flag t
+(defcustom checkdoc-verb-check-experimental-flag nil
   "Non-nil means to attempt to check the voice of the doc string.
 This check keys off some words which are commonly misused.  See the
 variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 ;;;###autoload(put 'checkdoc-verb-check-experimental-flag 'safe-local-variable #'booleanp)
 
 (defvar checkdoc-generate-compile-warnings-flag nil
@@ -345,6 +348,7 @@ See Info node `(elisp) Documentation Tips' for background."
 ;; (setq checkdoc--argument-missing-flag nil)      ; optional
 ;; (setq checkdoc--disambiguate-symbol-flag nil)   ; optional
 ;; (setq checkdoc--interactive-docstring-flag nil) ; optional
+;; (setq checkdoc-permit-comma-termination-flag t) ; optional
 ;; (setq checkdoc-verb-check-experimental-flag nil)
 ;; Then use `M-x find-dired' ("-name '*.el'") and `M-x checkdoc-dired'
 
@@ -1084,7 +1088,7 @@ Optional argument TAKE-NOTES causes all errors to be logged."
 Evaluation is done first so the form will be read before the
 documentation is checked.  If there is a documentation error, then the display
 of what was evaluated will be overwritten by the diagnostic message."
-  (interactive)
+  (interactive nil emacs-lisp-mode)
   (call-interactively #'eval-defun)
   (checkdoc-defun))
 
@@ -1095,7 +1099,7 @@ Call `error' if the doc string has problems.  If NO-ERROR is
 non-nil, then do not call error, but call `message' instead.
 If the doc string passes the test, then check the function for rogue white
 space at the end of each line."
-  (interactive)
+  (interactive nil emacs-lisp-mode)
   (save-excursion
     (beginning-of-defun)
     (when (checkdoc--next-docstring)
@@ -2133,7 +2137,7 @@ Examples of recognized abbreviations: \"e.g.\", \"i.e.\", \"cf.\"."
                   (seq (any "cC") "f")            ; cf.
                   (seq (any "eE") ".g")           ; e.g.
                   (seq (any "iI") "." (any "eE")) ; i.e.
-                  "a.k.a" "etc" "vs" "N.B"
+                  "a.k.a" "etc" "vs" "N.B" "U.S"
                   ;; Some non-standard or less common ones that we
                   ;; might as well accept.
                   "Inc" "Univ" "misc" "resp")
@@ -2472,25 +2476,33 @@ Code:, and others referenced in the style guide."
       (setq
        err
        (or
-	;; * A footer.  Not compartmentalized from lm-verify: too bad.
-	;;              The following is partially clipped from lm-verify
+        ;; * Library footer
 	(save-excursion
 	  (goto-char (point-max))
-	  (if (not (re-search-backward
-                    ;; This should match the requirement in
-                    ;; `package-buffer-info'.
-                    (concat "^;;; " (regexp-quote (concat fn fe)) " ends here")
-		    nil t))
-              (if (checkdoc-y-or-n-p "No identifiable footer!  Add one?")
-		  (progn
-		    (goto-char (point-max))
-		    (insert "\n(provide '" fn ")\n\n;;; " fn fe " ends here\n"))
-		(checkdoc-create-error
-		 (format "The footer should be: (provide '%s)\\n;;; %s%s ends here"
-			 fn fn fe)
-                 ;; The buffer may be empty.
-		 (max (point-min) (1- (point-max)))
-                 (point-max)))))
+          (let* ((footer-line (lm-package-needs-footer-line)))
+            (if (not (re-search-backward
+                      ;; This should match the requirement in
+                      ;; `package-buffer-info'.
+                      (if footer-line
+                          (concat "^;;; " (regexp-quote (concat fn fe)) " ends here")
+                        (concat "\n(provide '" fn ")\n"))
+                      nil t))
+                (if (checkdoc-y-or-n-p (if footer-line
+                                   "No identifiable footer!  Add one?"
+                                 "No `provide' statement!  Add one?"))
+                    (progn
+                      (goto-char (point-max))
+                      (insert (if footer-line
+                                  (concat "\n(provide '" fn ")\n\n;;; " fn fe " ends here\n")
+                                (concat "\n(provide '" fn ")\n"))))
+                  (checkdoc-create-error
+                   (if footer-line
+                       (format "The footer should be: (provide '%s)\\n;;; %s%s ends here"
+                               fn fn fe)
+                     (format "The footer should be: (provide '%s)\\n" fn))
+                   ;; The buffer may be empty.
+                   (max (point-min) (1- (point-max)))
+                   (point-max))))))
 	err))
       ;; The below checks will not return errors if the user says NO
 
@@ -2531,13 +2543,17 @@ Code:, and others referenced in the style guide."
   "Search between BEG and END for a style error with message text.
 Optional arguments BEG and END represent the boundary of the check.
 The default boundary is the entire buffer."
-  (let ((e nil)
-	(type nil))
+  (let ((e nil))
     (if (not (or beg end)) (setq beg (point-min) end (point-max)))
     (goto-char beg)
-    (while (setq type (checkdoc-message-text-next-string end))
+    (while-let ((type (checkdoc-message-text-next-string end)))
       (setq e (checkdoc-message-text-engine type)))
     e))
+
+(defvar checkdoc--warning-function-re
+  (rx (or "display-warning" "org-display-warning"
+          "warn" "lwarn"
+          "message-box")))
 
 (defun checkdoc-message-text-next-string (end)
   "Move cursor to the next checkable message string after point.
@@ -2551,6 +2567,7 @@ Argument END is the maximum bounds to search in."
                      (group
                       (or (seq (* (or wordchar (syntax symbol)))
                                "error")
+                          (regexp checkdoc--warning-function-re)
                           (seq (* (or wordchar (syntax symbol)))
                                (or "y-or-n-p" "yes-or-no-p")
                                (? "-with-timeout"))
@@ -2558,8 +2575,13 @@ Argument END is the maximum bounds to search in."
                      (+ (any "\n\t ")))
                  end t))
       (let* ((fn (match-string 1))
-	     (type (cond ((string-match "error" fn)
-			  'error)
+             (type (cond ((string-match "error" fn)
+                          'error)
+                         ((string-match (rx bos
+                                            (regexp checkdoc--warning-function-re)
+                                            eos)
+                                        fn)
+                          'warning)
 			 (t 'y-or-n-p))))
 	(if (string-match "checkdoc-autofix-ask-replace" fn)
 	    (progn (forward-sexp 2)
@@ -2629,30 +2651,33 @@ should not end with a period, and should start with a capital letter.
 The function `y-or-n-p' has similar constraints.
 Argument TYPE specifies the type of question, such as `error' or `y-or-n-p'."
   ;; If type is nil, then attempt to derive it.
-  (if (not type)
-      (save-excursion
-	(up-list -1)
-	(if (looking-at "(format")
-	    (up-list -1))
-	(setq type
-	      (cond ((looking-at "(error")
-		     'error)
-		    (t 'y-or-n-p)))))
+  (unless type
+    (save-excursion
+      (up-list -1)
+      (when (looking-at "(format")
+        (up-list -1))
+      (setq type
+            (cond ((looking-at "(error")
+                   'error)
+                  ((looking-at
+                    (rx "(" (regexp checkdoc--warning-function-re)
+                        (syntax whitespace)))
+                   'warning)
+                  (t 'y-or-n-p)))))
   (let ((case-fold-search nil))
     (or
      ;; From the documentation of the symbol `error':
      ;; In Emacs, the convention is that error messages start with a capital
      ;; letter but *do not* end with a period.  Please follow this convention
      ;; for the sake of consistency.
-     (if (and (checkdoc--error-bad-format-p)
-	      (not (checkdoc-autofix-ask-replace
-                    (match-beginning 1) (match-end 1)
-                    "Capitalize your message text?"
-                    (capitalize (match-string 1))
-		    t)))
-         (checkdoc-create-error "Messages should start with a capital letter"
-          (match-beginning 1) (match-end 1))
-       nil)
+     (when (and (checkdoc--error-bad-format-p)
+                (not (checkdoc-autofix-ask-replace
+                      (match-beginning 1) (match-end 1)
+                      "Capitalize your message text?"
+                      (capitalize (match-string 1))
+                      t)))
+       (checkdoc-create-error "Messages should start with a capital letter"
+                              (match-beginning 1) (match-end 1)))
      ;; In general, sentences should have two spaces after the period.
      (checkdoc-sentencespace-region-engine (point)
 					   (save-excursion (forward-sexp 1)
@@ -2662,19 +2687,18 @@ Argument TYPE specifies the type of question, such as `error' or `y-or-n-p'."
 					 (save-excursion (forward-sexp 1)
 							 (point)))
      ;; Here are message type specific questions.
-     (if (and (eq type 'error)
-	      (save-excursion (forward-sexp 1)
-			      (forward-char -2)
-			      (looking-at "\\."))
-	      (not (checkdoc-autofix-ask-replace (match-beginning 0)
-						 (match-end 0)
-                                                 "Remove period from error?"
-						 ""
-						 t)))
-	 (checkdoc-create-error
-	  "Error messages should *not* end with a period"
-	  (match-beginning 0) (match-end 0))
-       nil)
+     (when (and (eq type 'error)
+                (save-excursion (forward-sexp 1)
+                                (forward-char -2)
+                                (looking-at "\\."))
+                (not (checkdoc-autofix-ask-replace (match-beginning 0)
+                                                   (match-end 0)
+                                                   "Remove period from error?"
+                                                   ""
+                                                   t)))
+       (checkdoc-create-error
+        "Error messages should *not* end with a period"
+        (match-beginning 0) (match-end 0)))
      ;; From `(elisp) Programming Tips': "A question asked in the
      ;; minibuffer with `yes-or-no-p' or `y-or-n-p' should start with
      ;; a capital letter and end with '?'."
@@ -2827,7 +2851,7 @@ function called to create the messages."
 ;;;###autoload
 (defun checkdoc-package-keywords ()
   "Find package keywords that aren't in `finder-known-keywords'."
-  (interactive)
+  (interactive nil emacs-lisp-mode)
   (require 'finder)
   (let ((unrecognized-keys
          (cl-remove-if

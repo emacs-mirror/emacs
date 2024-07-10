@@ -25,7 +25,7 @@
 (require 'ert-x)
 (require 'dbus)
 
-(defvar dbus-debug nil)
+(defvar dbus-debug)
 (declare-function dbus-get-unique-name "dbusbind.c" (bus))
 
 (defconst dbus--test-enabled-session-bus
@@ -732,12 +732,114 @@ is in progress."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
+(defun dbus--test-method-authorizable-handler (&rest args)
+  "Method handler for `dbus-test04-call-method-authorizable'.
+Returns the respective error."
+  `(:error ,dbus-error-interactive-authorization-required
+           "Interactive authentication required."))
+
+(ert-deftest dbus-test04-call-method-authorizable ()
+  "Verify `dbus-call-method' request authorizable."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  (unwind-protect
+      (let ((method "Method")
+            (handler #'dbus--test-method-authorizable-handler)
+            registered)
+
+        ;; Register.
+        (should
+         (equal
+          (setq
+           registered
+           (dbus-register-method
+            :session dbus--test-service dbus--test-path
+            dbus--test-interface method handler))
+          `((:method :session ,dbus--test-interface ,method)
+            (,dbus--test-service ,dbus--test-path ,handler))))
+
+        ;; The error isn't seen, because it is transformed into a
+        ;; warning.  So we check, whether a warning has arrived in the
+        ;; respective buffer.
+        (ignore-errors (kill-buffer "*Warnings*"))
+        (should-not
+         (dbus-call-method
+          :session dbus--test-service dbus--test-path
+          dbus--test-interface method "foo"))
+        (should (get-buffer "*Warnings*"))
+
+        ;; The same for asynchronous calls.
+        (ignore-errors (kill-buffer "*Warnings*"))
+        (dbus-call-method-asynchronously
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface method #'ignore "foo")
+        (with-timeout (1 (dbus--test-timeout-handler))
+          (while (null (get-buffer "*Warnings*"))
+            (read-event nil nil 0.1)))
+        (should (get-buffer "*Warnings*"))
+
+        ;; Unregister method.
+        (should (dbus-unregister-object registered))
+        (should-not (dbus-unregister-object registered)))
+
+    ;; Cleanup.
+    (ignore-errors (kill-buffer "*Warnings*"))
+    (dbus-unregister-service :session dbus--test-service))
+
+  ;; Check parsing.  "org.freedesktop.DBus.ListNames" is agnostic to
+  ;; :authorizable, so we can use it as test method.
+  (unless (dbus-ignore-errors
+            (dbus-call-method
+             :session dbus-service-dbus dbus-path-dbus
+             dbus-interface-dbus "ListNames"))
+    (should
+     (dbus-call-method
+      :session dbus-service-dbus dbus-path-dbus
+      dbus-interface-dbus "ListNames" :authorizable t))
+
+    (should
+     (dbus-call-method
+      :session dbus-service-dbus dbus-path-dbus
+      dbus-interface-dbus "ListNames" :authorizable nil))
+
+    (should
+     (dbus-call-method
+      :session dbus-service-dbus dbus-path-dbus
+      dbus-interface-dbus "ListNames" :authorizable 'something))
+
+    ;; Only method calls are allowed for :authorizable.
+    (should-error
+     (dbus-send-signal
+      :session dbus--test-service dbus--test-path
+      dbus--test-interface "Foo" :authorizable t "foo")
+     :type 'dbus-error)))
+
+(defvar dbus--test-event-expected nil
+  "The expected event in `dbus--test-signal-handler'.")
+
 (defvar dbus--test-signal-received nil
   "Received signal value in `dbus--test-signal-handler'.")
 
 (defun dbus--test-signal-handler (&rest args)
   "Signal handler for `dbus-test*-signal' and `dbus-test08-register-monitor'."
-  (setq dbus--test-signal-received args))
+  (ignore-error dbus-error
+    ;; (message "%S" last-input-event)
+    (let ((last-input-event last-input-event))
+      (when (or (null dbus--test-event-expected)
+                (and (equal (dbus-event-bus-name last-input-event)
+                            (dbus-event-bus-name dbus--test-event-expected))
+                     (equal (dbus-event-message-type last-input-event)
+                            (dbus-event-message-type dbus--test-event-expected))
+                     (equal (dbus-event-service-name last-input-event)
+                            (dbus-event-service-name dbus--test-event-expected))
+                     (equal (dbus-event-path-name last-input-event)
+                            (dbus-event-path-name dbus--test-event-expected))
+                     (equal (dbus-event-member-name last-input-event)
+                            (dbus-event-member-name dbus--test-event-expected))))
+        (setq dbus--test-signal-received args)))))
 
 (defun dbus--test-timeout-handler (&rest _ignore)
   "Timeout handler, reporting a failed test."
@@ -790,6 +892,67 @@ is in progress."
         (should-not (dbus-unregister-object registered)))
 
     ;; Cleanup.
+    (dbus-unregister-service :session dbus--test-service)))
+
+(ert-deftest dbus-test05-register-signal-with-nils ()
+  "Check signal registration for an own service.
+SERVICE, PATH, INTERFACE and SIGNAL are ‘nil’.  This is interpreted as a
+wildcard for the respective argument."
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+
+  (unwind-protect
+      (let ((member "Member")
+            (handler #'dbus--test-signal-handler)
+            registered)
+
+        ;; Filter received signals in signal handler.
+        (setq dbus--test-event-expected
+              `(dbus-event :session ,dbus-message-type-signal
+                0 ;; Serial number doesn't matter.
+	        ,(dbus-get-unique-name :session)
+                nil ;; Destination doesn't matter.
+	        ,dbus--test-path ,dbus--test-interface ,member ,handler))
+
+        ;; Register signal handler.
+        (should
+         (equal
+          (setq
+           registered
+           (dbus-register-signal
+            :session nil nil nil nil handler))
+          `((:signal :session nil nil)
+            (nil nil ,handler))))
+
+        (dbus-register-signal
+         :session nil dbus--test-path
+         dbus--test-interface member handler)
+        (dbus-register-signal
+         :session dbus--test-service nil
+         dbus--test-interface member handler)
+        (dbus-register-signal
+         :session dbus--test-service dbus--test-path
+         nil member handler)
+        (dbus-register-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface nil handler)
+
+        ;; Send one argument, basic type.
+        (setq dbus--test-signal-received nil)
+        (dbus-send-signal
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface member "foo")
+	(with-timeout (1 (dbus--test-timeout-handler))
+          (while (null dbus--test-signal-received)
+            (read-event nil nil 0.1)))
+        (should (equal dbus--test-signal-received '("foo")))
+
+        ;; Unregister signal.
+        (should (dbus-unregister-object registered))
+        (should-not (dbus-unregister-object registered)))
+
+    ;; Cleanup.
+    (setq dbus--test-event-expected nil)
     (dbus-unregister-service :session dbus--test-service)))
 
 (ert-deftest dbus-test06-register-property ()
@@ -1881,19 +2044,32 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
   (skip-unless dbus--test-enabled-session-bus)
 
   (unwind-protect
-      (let (registered)
+      (let ((member "Member")
+            (handler #'dbus--test-signal-handler)
+            registered)
+
+        ;; Filter received signals in signal handler.
+        (setq dbus--test-event-expected
+              `(dbus-event :session-private ,dbus-message-type-signal
+                0 ;; Serial number doesn't matter.
+	        ,(dbus-get-unique-name :session)
+                nil ;; Destination doesn't matter.
+	        ,dbus--test-path ,dbus--test-interface ,member ,handler))
+
+        ;; Register monitor.
         (should
          (equal
-          (setq registered
-                (dbus-register-monitor :session #'dbus--test-signal-handler))
-          '((:monitor :session-private)
-	    (nil nil dbus--test-signal-handler))))
+          (setq
+           registered
+           (dbus-register-monitor :session handler))
+          `((:monitor :session-private)
+	    (nil nil ,handler))))
 
         ;; Send a signal, shall be traced.
         (setq dbus--test-signal-received nil)
         (dbus-send-signal
          :session dbus--test-service dbus--test-path
-         dbus--test-interface "Foo" "foo")
+         dbus--test-interface member "foo")
 	(with-timeout (1 (dbus--test-timeout-handler))
           (while (null dbus--test-signal-received)
             (read-event nil nil 0.1)))
@@ -1906,13 +2082,18 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
         (setq dbus--test-signal-received nil)
         (dbus-send-signal
          :session dbus--test-service dbus--test-path
-         dbus--test-interface "Foo" "foo")
+         dbus--test-interface member "foo")
 	(with-timeout (1 (ignore))
           (while (null dbus--test-signal-received)
             (read-event nil nil 0.1)))
-        (should-not dbus--test-signal-received))
+        (should-not dbus--test-signal-received)
+
+        ;; Unregister monitor.
+        ;; TODO: This seems to be a noop.  And it returns nil.
+        (dbus-unregister-object registered))
 
     ;; Cleanup.
+    (setq dbus--test-event-expected nil)
     (dbus-unregister-service :session dbus--test-service)))
 
 (ert-deftest dbus-test09-get-managed-objects ()

@@ -1606,6 +1606,13 @@
                    (1.5 . 1.6) (-1.3 . -1.2) (-13.0 . 12.0)
                    ;; floats/fixnums
                    (1 . 1.1) (1.9 . 2) (-2.0 . 1) (-2 . 1.0)
+                   ;; fixnums that can't be represented as floats
+                   (72057594037927935 . 72057594037927936.0)
+                   (72057594037927936.0 . 72057594037927937)
+                   (-72057594037927936.0 . -72057594037927935)
+                   (-72057594037927937 . -72057594037927936.0)
+                   (2305843009213693951 . 2305843009213693952.0)
+
                    ;; floats/bignums
                    (,big . ,(float (* 2 big))) (,(float big) . ,(* 2 big))
                    ;; symbols
@@ -1665,7 +1672,11 @@
             (should (value< x y))
             (should-not (value< y x))
             (should-not (value< x x))
-            (should-not (value< y y))))
+            (should-not (value< y y))
+            (should (value< (vector x 2) (vector y 1)))
+            (should-not (value< (vector y 1) (vector x 2)))
+            (should (value< (vector x 1) (vector x 2)))
+            (should (value< (vector y 1) (vector y 2)))))
 
       (delete-process proc2)
       (delete-process proc1)
@@ -1683,6 +1694,9 @@
                  ;; numbers
                  (0 . 0.0) (0 . -0.0) (0.0 . -0.0)
 
+                 (72057594037927936 . 72057594037927936.0)
+                 (1 . 0.0e+NaN)
+
                  ;; symbols
                  (a . #:a)
 
@@ -1697,7 +1711,9 @@
       (let ((x (car c))
             (y (cdr c)))
         (should-not (value< x y))
-        (should-not (value< y x))))))
+        (should-not (value< y x))
+        (should (value< (cons x 1) (cons y 2)))
+        (should-not (value< (cons x 2) (cons y 1)))))))
 
 (ert-deftest fns-value<-type-mismatch ()
   ;; values of disjoint (incomparable) types

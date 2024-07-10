@@ -313,6 +313,8 @@ Kill buffer @var{buffer} (@code{kill-buffer}).
 Offer to kill each buffer, one by one.
 @item M-x kill-matching-buffers
 Offer to kill all buffers matching a regular expression.
+@item M-x kill-matching-buffers-no-ask
+Like @code{kill-matching-buffers}, but don't ask for confirmation.
 @end table
 
 @findex kill-buffer
@@ -334,13 +336,16 @@ by one.  An answer of @kbd{yes} means to kill the buffer, just like
 with a space, which are used internally by Emacs.
 
 @findex kill-matching-buffers
+@findex kill-matching-buffers-no-ask
   The command @kbd{M-x kill-matching-buffers} prompts for a regular
 expression and kills all buffers whose names match that expression.
-@xref{Regexps}.  Like @code{kill-some-buffers}, it asks for
-confirmation before each kill.  This command normally ignores buffers
-whose names begin with a space, which are used internally by Emacs.
-To kill internal buffers as well, call @code{kill-matching-buffers}
-with a prefix argument.
+@xref{Regexps}.  Like @code{kill-some-buffers}, it asks for confirmation
+before each kill.  This command normally ignores buffers whose names
+begin with a space, which are used internally by Emacs.  To kill
+internal buffers as well, call @code{kill-matching-buffers} with a
+prefix argument.  The command @w{@kbd{M-x kill-matching-buffers-no-ask}}
+works like @code{kill-matching-buffers}, but doesn't ask for
+confirmation before killing each matching buffer.
 
   The Buffer Menu feature is also convenient for killing various
 buffers.  @xref{Several Buffers}.

@@ -495,7 +495,7 @@ sub git_dir_option($)
 
   # Complain about any unused entry in the --amend=F specified file.
   my $fail = 0;
-  foreach my $sha (keys %$amend_code)
+  foreach my $sha (sort keys %$amend_code)
     {
       warn "$ME:$amend_file: unused entry: $sha\n";
       $fail = 1;

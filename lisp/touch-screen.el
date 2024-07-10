@@ -157,13 +157,22 @@ dragging.")
 ;; Should this variable be documented?
 (defvar-local touch-screen-keyboard-function nil
   "Function that decides whether to display the on screen keyboard.
-If set, this function is called with point set to the position of the
-tap involved when a command listed in `touch-screen-set-point-commands'
-is about to be invoked in response to a tap, the current buffer, or the
-text beneath point (in the case of an `inhibit-read-only' text
-property), is not read only, and `touch-screen-display-keyboard' is nil,
-and should return non-nil if it is appropriate to display the on-screen
-keyboard afterwards.")
+If set, this function is called with point set to the position
+of the tap involved when a command listed in
+`touch-screen-set-point-commands' is about to be invoked in
+response to a tap, the current buffer, or the text beneath
+point (in the case of an `inhibit-read-only' text property), is
+not read only, and `touch-screen-display-keyboard' is nil, and
+should return non-nil if it is appropriate to display the
+on-screen keyboard afterwards.")
+
+(defvar touch-screen-simple-mouse-conversion nil
+  "Whether to unconditionally enable simple mouse event translation.
+If non-nil, touch screen event conversion will always proceed as
+though a command was bound to `down-mouse-1' at the position of
+the initial tap.  That is to say, taps, mouse motion, and
+touchpoint removals will be unconditionally converted into
+mouse-down, mouse motion, mouse drag, and mouse button events.")
 
 
 
@@ -1418,36 +1427,27 @@ is not read-only."
                       (new-point (posn-point posn))
                       (old-posn (nth 4 touch-screen-current-tool))
                       (old-window (posn-window posn))
-                      (old-point (posn-point posn)))
+                      (old-point (posn-point posn))
+                      (new-relative-xy (touch-screen-relative-xy
+                                        posn new-window))
+                      (old-relative-xy (touch-screen-relative-xy
+                                        old-posn new-window)))
                  (throw 'input-event
-                        ;; If the position of the touch point hasn't
-                        ;; changed, or it doesn't start or end on a
-                        ;; window...
-                        (if (and (not old-point) (not new-point))
-                            ;; Should old-point and new-point both equal
-                            ;; nil, compare the posn areas and nominal
-                            ;; column position.  If either are
-                            ;; different, generate a drag event.
-                            (let ((new-col-row (posn-col-row posn))
-                                  (new-area (posn-area posn))
-                                  (old-col-row (posn-col-row old-posn))
-                                  (old-area (posn-area old-posn)))
-                              (if (and (equal new-col-row old-col-row)
-                                       (eq new-area old-area))
-                                  ;; ... generate a mouse-1 event...
-                                  (list 'mouse-1 posn)
-                                ;; ... otherwise, generate a
-                                ;; drag-mouse-1 event.
-                                (list 'drag-mouse-1 old-posn posn)))
-                          (if (and (eq new-window old-window)
-                                   (eq new-point old-point)
-                                   (windowp new-window)
-                                   (windowp old-window))
-                              ;; ... generate a mouse-1 event...
-                              (list 'mouse-1 posn)
-                            ;; ... otherwise, generate a drag-mouse-1
-                            ;; event.
-                            (list 'drag-mouse-1 old-posn posn)))))))
+                        ;; If the position of the touch point has
+                        ;; changed, or it has moved significantly, as
+                        ;; measured by reference to double-click-fuzz...
+                        (if (or (let ((xdiff (- (car new-relative-xy)
+                                                (car old-relative-xy)))
+                                      (ydiff (- (cdr new-relative-xy)
+                                                (cdr old-relative-xy))))
+                                  (and (>= (abs xdiff) double-click-fuzz)
+                                       (>= (abs ydiff) double-click-fuzz)))
+                                (not (eq old-window new-window))
+                                (not (eq old-point new-point)))
+                            ;; ... generate a drag-mouse-1 event...
+                            (list 'drag-mouse-1 old-posn posn)
+                          ;; ... otherwise, generate a mouse-1 event.
+                          (list 'mouse-1 posn))))))
             ((eq what 'mouse-1-menu)
              ;; Generate a `down-mouse-1' event at the position the tap
              ;; took place, unless the touch sequence was canceled.
@@ -1633,29 +1633,35 @@ functions undertaking event management themselves to call
                 ;; Generate the `restart-drag' event.
                 (throw 'input-event (list 'touchscreen-restart-drag
                                           position))))
-            ;; Determine if there is a command bound to `down-mouse-1'
-            ;; at the position of the tap and that command is not a
-            ;; command whose functionality is replaced by the
-            ;; long-press mechanism.  If so, set the fourth element of
-            ;; `touch-screen-current-tool' to `mouse-drag' and
-            ;; generate an emulated `mouse-1' event.
+            ;; Determine whether there is a command bound to
+            ;; `down-mouse-1' at the position of the tap and that
+            ;; command is not a command whose functionality is replaced
+            ;; by the long-press mechanism.  If so, set the fourth
+            ;; element of `touch-screen-current-tool' to `mouse-drag'
+            ;; and generate an emulated `mouse-1' event.  Likewise if
+            ;; touch event translation is being invoked by a caller of
+            ;; `read-key' that expects unprocessed mouse input,
             ;;
-            ;; If the command in question is a keymap, set that
-            ;; element to `mouse-1-menu' instead of `mouse-drag', and
-            ;; don't generate a `down-mouse-1' event immediately.
-            ;; Instead, wait for the touch point to be released.
+            ;; If the command in question is a keymap, set that element
+            ;; to `mouse-1-menu' instead of `mouse-drag', and don't
+            ;; generate a `down-mouse-1' event immediately, but wait for
+            ;; the touch point to be released, so that the menu bar may
+            ;; not be displayed before the user has released the touch
+            ;; point and the window system is ready to display a menu.
             (if (and tool-list
-                     (and (setq binding
-                                (key-binding (if prefix
-                                                 (vector prefix
-                                                         'down-mouse-1)
-                                               [down-mouse-1])
-                                             t nil position))
-                          (not (and (symbolp binding)
-                                    (get binding 'ignored-mouse-command)))))
-                (if (or (keymapp binding)
-                        (and (symbolp binding)
-                             (get binding 'mouse-1-menu-command)))
+                     (or (and (setq binding
+                                    (key-binding (if prefix
+                                                     (vector prefix
+                                                             'down-mouse-1)
+                                                   [down-mouse-1])
+                                                 t nil position))
+                              (not (and (symbolp binding)
+                                        (get binding 'ignored-mouse-command))))
+                         touch-screen-simple-mouse-conversion))
+                (if (and (not touch-screen-simple-mouse-conversion)
+                         (or (keymapp binding)
+                             (and (symbolp binding)
+                                  (get binding 'mouse-1-menu-command))))
                     ;; binding is a keymap, or a command that does
                     ;; almost the same thing.  If a `mouse-1' event is
                     ;; generated after the keyboard command loop
@@ -2065,9 +2071,9 @@ sent until the touch sequence currently being translated ends.
 Must be called from a command bound to a `touchscreen-hold' or
 `touchscreen-drag' event."
   (let* ((tool touch-screen-current-tool)
-         (current-what (nth 4 tool)))
+         (current-what (nth 3 tool)))
     ;; Signal an error if no hold and no drag is in progress.
-    (when (and (not (eq current-what 'hold))
+    (when (and (not (eq current-what 'held))
                (not (eq current-what 'drag)))
       (error "Calling `touch-screen-inhibit-drag' outside hold or drag"))
     ;; Now set the fourth element of tool to `command-inhibit'.

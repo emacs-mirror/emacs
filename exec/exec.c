@@ -292,7 +292,9 @@ write_load_command (program_header *header, bool use_alternate,
   struct exec_map_command command1;
   USER_WORD start, end;
   bool need_command1;
+#ifndef PAGE_MASK
   static long pagesize;
+#endif /* !PAGE_MASK */
 
   /* First, write the commands necessary to map the specified segment
      itself.
@@ -306,14 +308,14 @@ write_load_command (program_header *header, bool use_alternate,
 #ifdef HAVE_GETPAGESIZE
   if (!pagesize)
     pagesize = getpagesize ();
-#else /* HAVE_GETPAGESIZE */
+#else /* !HAVE_GETPAGESIZE */
   if (!pagesize)
     pagesize = sysconf (_SC_PAGESIZE);
-#endif /* HAVE_GETPAGESIZE */
+#endif /* !HAVE_GETPAGESIZE */
 
 #define PAGE_MASK (~(pagesize - 1))
 #define PAGE_SIZE (pagesize)
-#endif /* PAGE_MASK */
+#endif /* !PAGE_MASK */
 
   start = header->p_vaddr & PAGE_MASK;
   end = ((header->p_vaddr + header->p_filesz
@@ -895,10 +897,6 @@ format_pid (char *in, unsigned int pid)
    with #!; in that case, find the program to open and use that
    instead.
 
-   If REENTRANT is not defined, NAME is actually a buffer of size
-   PATH_MAX + 80.  In that case, copy over the file name actually
-   opened.
-
    Next, read the executable header, and add the necessary memory
    mappings for each file.  Finally, return the action data and its
    size in *SIZE.
@@ -978,9 +976,7 @@ exec_0 (char *name, struct exec_tracee *tracee,
 	  memcpy (rewrite, name, strnlen (name, remaining));
 
 	  /* Replace name with buffer1.  */
-#ifndef REENTRANT
 	  strcpy (name, buffer1);
-#endif /* REENTRANT */
 	}
     }
 

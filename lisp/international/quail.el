@@ -1334,9 +1334,13 @@ If STR has `advice' text property, append the following special event:
     (quail-setup-overlays (quail-conversion-keymap))
     (with-silent-modifications
       (unwind-protect
-	  (let ((input-string (if (quail-conversion-keymap)
+	  (let* (;; `with-silent-modifications' inhibits the modification
+                 ;; hooks, but that's a part of `with-silent-modifications'
+                 ;; we don't actually want here (bug#70541).
+		 (inhibit-modification-hooks nil)
+		 (input-string (if (quail-conversion-keymap)
 				  (quail-start-conversion key)
-				(quail-start-translation key))))
+				  (quail-start-translation key))))
 	    (setq quail-guidance-str "")
 	    (when (and (stringp input-string)
 		       (> (length input-string) 0))
@@ -1871,10 +1875,9 @@ sequence counting from the head."
 
 (defsubst quail-point-in-conversion-region ()
   "Return non-nil value if the point is in conversion region of Quail mode."
-  (let (start pos)
-    (and (setq start (overlay-start quail-conv-overlay))
-	 (>= (setq pos (point)) start)
-	 (<= pos (overlay-end quail-conv-overlay)))))
+  (let ((start (overlay-start quail-conv-overlay)))
+    (and start
+	 (<= start (point) (overlay-end quail-conv-overlay)))))
 
 (defun quail-conversion-backward-char ()
   (interactive)

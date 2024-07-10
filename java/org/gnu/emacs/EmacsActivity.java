@@ -78,7 +78,7 @@ public class EmacsActivity extends Activity
   public static EmacsWindow focusedWindow;
 
   /* Whether or not this activity is paused.  */
-  private boolean isPaused;
+  private boolean isStopped;
 
   /* Whether or not this activity is fullscreen.  */
   private boolean isFullscreen;
@@ -196,7 +196,7 @@ public class EmacsActivity extends Activity
       window.view.requestFocus ();
 
     /* If the activity is iconified, send that to the window.  */
-    if (isPaused)
+    if (isStopped)
       window.noticeIconified ();
 
     /* Invalidate the focus.  Since attachWindow may be called from
@@ -308,8 +308,13 @@ public class EmacsActivity extends Activity
   public final void
   onStop ()
   {
-    timeOfLastInteraction = SystemClock.elapsedRealtime ();
+    /* Iconification was previously reported in onPause, but that was
+       misinformed, as `onStop' is the actual callback activated upon
+       changes in an activity's visibility.  */
+    isStopped = true;
+    EmacsWindowManager.MANAGER.noticeIconified (this);
 
+    timeOfLastInteraction = SystemClock.elapsedRealtime ();
     super.onStop ();
   }
 
@@ -405,19 +410,9 @@ public class EmacsActivity extends Activity
 
   @Override
   public final void
-  onPause ()
-  {
-    isPaused = true;
-
-    EmacsWindowManager.MANAGER.noticeIconified (this);
-    super.onPause ();
-  }
-
-  @Override
-  public final void
   onResume ()
   {
-    isPaused = false;
+    isStopped = false;
     timeOfLastInteraction = 0;
 
     EmacsWindowManager.MANAGER.noticeDeiconified (this);

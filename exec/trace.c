@@ -49,11 +49,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef SYS_SECCOMP
 #define SYS_SECCOMP 1
-#endif /* SYS_SECCOMP */
+#endif /* !defined SYS_SECCOMP */
 
 #ifndef PTRACE_GETEVENTMSG
 #define PTRACE_GETEVENTMSG 0x4201
-#endif /* PTRACE_GETEVENTMSG */
+#endif /* !defined PTRACE_GETEVENTMSG */
+
+#ifdef HAVE_SECCOMP
+#include <linux/seccomp.h>
+#include <linux/filter.h>
+
+#include <sys/utsname.h>
+#include <sys/prctl.h>
+
+#include <stdio.h>
+#endif /* !defined HAVE_SECCOMP */
 
 
 
@@ -69,6 +79,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Number of tracees children are allowed to create.  */
 #define MAX_TRACEES 4096
+
+#ifdef HAVE_SECCOMP
+
+/* Whether to enable seccomp acceleration.  */
+static bool use_seccomp_p;
+
+#else /* !HAVE_SECCOMP */
+#define use_seccomp_p (false)
+#endif /* HAVE_SECCOMP */
 
 #ifdef __aarch64__
 
@@ -105,8 +124,7 @@ aarch64_set_regs (pid_t pid, USER_REGS_STRUCT *regs,
   iov.iov_base = regs;
   iov.iov_len = sizeof *regs;
 
-  rc = ptrace (PTRACE_SETREGSET, pid, NT_PRSTATUS,
-	       &iov);
+  rc = ptrace (PTRACE_SETREGSET, pid, NT_PRSTATUS, &iov);
   if (rc < 0)
     return 1;
 
@@ -367,14 +385,17 @@ remove_tracee (struct exec_tracee *tracee)
 	  /* Link the tracee onto the list of free tracees.  */
 	  tracee->next = free_tracees;
 
-#ifndef REENTRANT
 	  /* Free the exec file, if any.  */
 	  free (tracee->exec_file);
 	  tracee->exec_file = NULL;
-#endif /* REENTRANT */
 
+	  /* Likewise with any loader instructions that might be
+	     present.  */
+	  free (tracee->exec_data);
+	  tracee->exec_data = NULL;
+
+	  /* Return this tracee to the list of free ones.  */
 	  free_tracees = tracee;
-
 	  return;
 	}
       else
@@ -419,7 +440,6 @@ find_tracee (pid_t process)
 static void
 handle_clone_prepare (struct exec_tracee *parent)
 {
-#ifndef REENTRANT
   long rc;
   unsigned long pid;
   struct exec_tracee *tracee;
@@ -440,7 +460,8 @@ handle_clone_prepare (struct exec_tracee *parent)
       assert (tracee->new_child);
       tracee->new_child = false;
       tracee->exec_file = NULL;
-      ptrace (PTRACE_SYSCALL, tracee->pid, 0, 0);
+      ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+	      tracee->pid, 0, 0);
 
       if (parent->exec_file)
 	tracee->exec_file = strdup (parent->exec_file);
@@ -457,12 +478,9 @@ handle_clone_prepare (struct exec_tracee *parent)
       tracee = &static_tracees[tracees];
       tracees++;
     }
-#ifndef REENTRANT
-  /* Try to allocate a tracee using `malloc' if this library is
-     not being built to run inside a signal handler.  */
+  /* Try to allocate a tracee using `malloc'.  */
   else if ((tracee = malloc (sizeof *tracee)))
     ;
-#endif /* REENTRANT */
   else
     return;
 
@@ -477,7 +495,6 @@ handle_clone_prepare (struct exec_tracee *parent)
 
   if (parent->exec_file)
     tracee->exec_file = strdup (parent->exec_file);
-#endif /* REENTRANT */
 }
 
 /* Handle the completion of a `clone' or `clone3' system call,
@@ -513,21 +530,18 @@ handle_clone (struct exec_tracee *tracee, pid_t pid)
 	  tracee = &static_tracees[tracees];
 	  tracees++;
 	}
-#ifndef REENTRANT
-      /* Try to allocate a tracee using `malloc' if this library is
-	 not being built to run inside a signal handler.  */
+      /* Try to allocate a tracee using `malloc'.  */
       else if ((tracee = malloc (sizeof *tracee)))
 	;
-#endif /* REENTRANT */
       else
 	return 1;
 
       tracee->pid = pid;
       tracee->next = tracing_processes;
       tracee->waiting_for_syscall = false;
-#ifndef REENTRANT
       tracee->exec_file = NULL;
-#endif /* REENTRANT */
+      tracee->exec_data = NULL;
+      tracee->data_size = 0;
       tracing_processes = tracee;
       tracee->new_child = true;
 
@@ -549,6 +563,11 @@ handle_clone (struct exec_tracee *tracee, pid_t pid)
   flags |= PTRACE_O_TRACESYSGOOD;
   flags |= PTRACE_O_TRACEEXIT;
 
+#ifdef HAVE_SECCOMP
+  if (use_seccomp_p)
+    flags |= PTRACE_O_TRACESECCOMP;
+#endif /* HAVE_SECCOMP */
+
   rc = ptrace (PTRACE_SETOPTIONS, pid, 0, flags);
 
   if (rc)
@@ -559,7 +578,8 @@ handle_clone (struct exec_tracee *tracee, pid_t pid)
       /* The new tracee is currently stopped.  Continue it until the next
 	 system call.  */
 
-      rc = ptrace (PTRACE_SYSCALL, pid, 0, 0);
+      rc = ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+		   pid, 0, 0);
 
       if (rc)
 	goto bail;
@@ -618,9 +638,11 @@ check_signal (struct exec_tracee *tracee, int status)
 	{
 	  if (siginfo.si_code < 0)
 	    /* SIGTRAP delivered from userspace.  Pass it on.  */
-	    ptrace (PTRACE_SYSCALL, tracee->pid, 0, SIGTRAP);
+	    ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+		    tracee->pid, 0, SIGTRAP);
 	  else
-	    ptrace (PTRACE_SYSCALL, tracee->pid, 0, 0);
+	    ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+		    tracee->pid, 0, 0);
 
 	  return 1;
 	}
@@ -639,26 +661,28 @@ check_signal (struct exec_tracee *tracee, int status)
 	 it.  */
 #ifdef HAVE_SIGINFO_T_SI_SYSCALL
 #ifndef __arm__
-      ptrace (PTRACE_SYSCALL, tracee->pid,
+      ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL), tracee->pid,
 	      0, ((siginfo.si_code == SYS_SECCOMP
 		   && siginfo.si_syscall == -1)
 		  ? 0 : status));
 #else /* __arm__ */
-      ptrace (PTRACE_SYSCALL, tracee->pid,
+      ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL), tracee->pid,
 	      0, ((siginfo.si_code == SYS_SECCOMP
 		   && siginfo.si_syscall == 222)
 		  ? 0 : status));
 #endif /* !__arm__ */
 #else /* !HAVE_SIGINFO_T_SI_SYSCALL */
       /* Drop this signal, since what caused it is unknown.  */
-      ptrace (PTRACE_SYSCALL, tracee->pid, 0, 0);
+      ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL), tracee->pid,
+	      0, 0);
 #endif /* HAVE_SIGINFO_T_SI_SYSCALL */
       return 1;
 #endif /* SIGSYS */
 
     default:
       /* Continue the process until the next syscall.  */
-      ptrace (PTRACE_SYSCALL, tracee->pid, 0, status);
+      ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+	      tracee->pid, 0, status);
       return 1;
     }
 
@@ -667,17 +691,16 @@ check_signal (struct exec_tracee *tracee, int status)
 
 
 
-/* Handle an `exec' system call from the given TRACEE.  REGS are the
-   tracee's current user-mode registers.
+/* Handle the first stage of an `exec' system call from the given
+   TRACEE.  REGS are the tracee's current user-mode registers.
 
    Rewrite the system call arguments to use the loader binary.  Then,
-   continue the system call until the loader is loaded.  Write the
-   information necessary to load the original executable into the
-   loader's stack.
+   resume the process till the loader is loaded and about to begin
+   execution.  Save instructions to load the original executable into
+   TRACEE->exec_data.
 
    Value is 0 upon success, 1 upon a generic failure before the loader
-   is loaded, 2 if the process has stopped, and 3 if something failed,
-   but it is too late to handle it.
+   is loaded.
 
    Set errno appropriately upon returning a generic failure.  */
 
@@ -687,16 +710,10 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
   char buffer[PATH_MAX + 80], *area;
   USER_REGS_STRUCT original;
   size_t size, loader_size;
-  USER_WORD loader, size1, sp;
-  int rc, wstatus;
-  siginfo_t siginfo;
-
-  /* Save the old stack pointer.  */
-  sp = regs->STACK_POINTER;
+  USER_WORD loader;
 
   /* Read the file name.  */
-  read_memory (tracee, buffer, PATH_MAX,
-	       regs->SYSCALL_ARG_REG);
+  read_memory (tracee, buffer, PATH_MAX, regs->SYSCALL_ARG_REG);
 
   /* Make sure BUFFER is NULL terminated.  */
 
@@ -722,8 +739,18 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
       return 1;
     }
 
-  /* Rewrite the first argument to point to the loader.  */
+  /* Save this area in the tracee.  */
+  assert (!tracee->exec_data);
+  tracee->exec_data = malloc (size);
+  if (!tracee->exec_data)
+    {
+      errno = ENOMEM;
+      return 1;
+    }
+  memcpy (tracee->exec_data, area, size);
+  tracee->data_size = size;
 
+  /* Rewrite the first argument to point to the loader.  */
   loader_size = strlen (loader_name) + 1;
   loader = user_alloca (tracee, &original, regs,
 			loader_size);
@@ -731,14 +758,14 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
   if (!loader)
     {
       errno = ENOMEM;
-      return 1;
+      goto free_data_error;
     }
 
   if (user_copy (tracee, (unsigned char *) loader_name,
 		 loader, loader_size))
     {
       errno = EIO;
-      return 1;
+      goto free_data_error;
     }
 
   regs->SYSCALL_ARG_REG = loader;
@@ -748,151 +775,118 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
   if (aarch64_set_regs (tracee->pid, regs, false))
     {
       errno = EIO;
-      return 1;
+      goto free_data_error;
     }
 
 #else /* !__aarch64__ */
 
-  if (ptrace (PTRACE_SETREGS, tracee->pid, NULL,
-	      regs))
+  if (ptrace (PTRACE_SETREGS, tracee->pid, NULL, regs))
     {
       errno = EIO;
-      return 1;
+      goto free_data_error;
     }
 
 #endif /* __aarch64__ */
 
-  /* Continue the system call until loader starts.  */
+  /* Resume the process till the loader is executed.  */
 
   if (ptrace (PTRACE_SYSCALL, tracee->pid, NULL, NULL))
     {
       errno = EIO;
-      return 1;
+      goto free_data_error;
     }
 
-#ifndef REENTRANT
-  /* Now that the loader has started, record the value to use for
-     /proc/self/exe.  Don't give up just because strdup fails.
+  /* Now that the loader has been executed, record the value to
+     substitute for /proc/self/exe.  Don't give up just because strdup
+     fails.
 
      Note that exec_0 copies the absolute file name into buffer.  */
 
   if (tracee->exec_file)
     free (tracee->exec_file);
   tracee->exec_file = strdup (buffer);
-#endif /* REENTRANT */
+  return 0;
 
- again:
-  rc = waitpid (tracee->pid, &wstatus, __WALL);
-  if (rc == -1 && errno == EINTR)
-    goto again;
+ free_data_error:
+  free (tracee->exec_data);
+  tracee->exec_data = NULL;
+  return 1;
+}
 
-  if (rc < 0)
-    return 1;
+/* Complete an `exec' system call issued by TRACEE.  Write the
+   instructions stored in TRACEE->exec_data to an appropriate location
+   in TRACEE's stack, and resume TRACEE, releasing TRACEE->exec_data.
+   REGS should be the TRACEE's user registers.  If the reissued system
+   call did not succeed in starting the executable loader, restore
+   TRACEE->sp (recorded by process_system_call or seccomp_system_call),
+   and resume execution, so that the failure may be reported.  */
 
-  if (!WIFSTOPPED (wstatus))
-    /* The process has been killed in response to a signal.
-       In this case, simply return 2.  */
-    return 2;
-  else
-    {
-      /* Then, check if STATUS is not a syscall-stop, and try again if
-	 it isn't.  */
-      rc = check_signal (tracee, wstatus);
+static void
+finish_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
+{
+  USER_WORD size1, loader;
+  USER_REGS_STRUCT original;
 
-      if (rc == -1)
-	return 2;
-      else if (rc)
-	goto again;
+  size1 = tracee->data_size;
 
-      /* Retrieve the signal information and determine whether or not
-	 the system call has completed.  */
+  /* Record the registers' values as they originally were.  */
+  memcpy (&original, regs, sizeof *regs);
 
-      if (ptrace (PTRACE_GETSIGINFO, tracee->pid, 0,
-		  &siginfo))
-	return 3;
-
-      if (!syscall_trap_p (&siginfo))
-	{
-	  /* Continue.  */
-	  if (ptrace (PTRACE_SYSCALL, tracee->pid, 0, 0))
-	    return 3;
-
-	  goto again;
-	}
-    }
-
-#ifdef __aarch64__
-
-  if (aarch64_get_regs (tracee->pid, &original))
-    return 3;
-
-#else /* !__aarch64__ */
-
-  /* The system call has now completed.  Get the registers again.  */
-
-  if (ptrace (PTRACE_GETREGS, tracee->pid, NULL,
-	      &original))
-    return 3;
-
-#endif /* __aarch64__ */
-
-  *regs = original;
-
-  /* Upon failure, wait for the next system call and return
-     success.  */
+  /* Any non-zero value of `original.SYSCALL_RET_REG' indicates that the
+     reissued `exec' call was unsuccessful, and the loader is not
+     executing.  Restore the previous stack pointer and permit the
+     tracee to run to completion.  */
 
   if (original.SYSCALL_RET_REG)
     {
-      /* Restore the original stack pointer.  */
-      regs->STACK_POINTER = sp;
-
+      regs->STACK_POINTER = tracee->sp;
 #ifdef __aarch64__
       aarch64_set_regs (tracee->pid, regs, false);
 #else /* !__aarch64__ */
       ptrace (PTRACE_SETREGS, tracee->pid, NULL, regs);
 #endif /* __aarch64__ */
 
-      goto exec_failure;
+      /* Continue; not much in the way of remediation is available if
+	 either of PTRACE_SETREGS and this resumption fails.  */
+      ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+	      tracee->pid, 0, 0);
+      goto error;
     }
 
   /* Write the loader area to the stack, followed by its size and the
      original stack pointer.  */
 
   loader = user_alloca (tracee, &original, regs,
-			size + sizeof loader * 2);
+			size1 + sizeof loader * 2);
   if (!loader)
-    return 3;
-
-  size1 = size;
+    goto error;
 
 #ifndef STACK_GROWS_DOWNWARDS
-
-  NOT_IMPLEMENTED;
-
+  not implemented, you lose.
 #else /* STACK_GROWS_DOWNWARDS */
 
-  if (user_copy (tracee, (unsigned char *) area,
-		 loader + sizeof size1 * 2, size)
+  if (user_copy (tracee, (unsigned char *) tracee->exec_data,
+		 loader + sizeof size1 * 2, size1)
       || user_copy (tracee, (unsigned char *) &size1,
 		    loader + sizeof size1, sizeof size1))
-    return 3;
+    goto error;
 
   size1 = original.STACK_POINTER;
 
   if (user_copy (tracee, (unsigned char *) &size1,
 		 loader, sizeof size1))
-    return 3;
+    goto error;
 
 #endif /* STACK_GROWS_DOWNWARDS */
 
   /* Continue.  */
-  if (ptrace (PTRACE_SYSCALL, tracee->pid, 0, 0))
-    return 3;
+  if (ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+	      tracee->pid, 0, 0))
+    goto error;
 
-  return 0;
-
- exec_failure:
-  return 3;
+ error:
+  free (tracee->exec_data);
+  tracee->exec_data = NULL;
 }
 
 
@@ -1007,13 +1001,6 @@ static int
 handle_readlinkat (USER_WORD callno, USER_REGS_STRUCT *regs,
 		   struct exec_tracee *tracee, USER_WORD *result)
 {
-#ifdef REENTRANT
-  /* readlinkat cannot be handled specially when the library is built
-     to be reentrant, as the file name information cannot be
-     recorded.  */
-  return 0;
-#else /* !REENTRANT */
-
   char buffer[PATH_MAX + 1];
   USER_WORD address, return_buffer, size;
   size_t length;
@@ -1086,7 +1073,6 @@ handle_readlinkat (USER_WORD callno, USER_REGS_STRUCT *regs,
 
   *result = length;
   return 2;
-#endif /* REENTRANT */
 }
 
 /* Handle an `open' or `openat' system call.
@@ -1104,12 +1090,6 @@ static int
 handle_openat (USER_WORD callno, USER_REGS_STRUCT *regs,
 	       struct exec_tracee *tracee, USER_WORD *result)
 {
-#ifdef REENTRANT
-  /* readlinkat cannot be handled specially when the library is built
-     to be reentrant, as the file name information cannot be
-     recorded.  */
-  return 0;
-#else /* !REENTRANT */
   char buffer[PATH_MAX + 1];
   USER_WORD address;
   size_t length;
@@ -1199,7 +1179,6 @@ handle_openat (USER_WORD callno, USER_REGS_STRUCT *regs,
  fail:
   errno = EIO;
   return 1;
-#endif /* REENTRANT */
 }
 
 /* Process the system call at which TRACEE is stopped.  If the system
@@ -1229,30 +1208,43 @@ process_system_call (struct exec_tracee *tracee)
   /* Save the stack pointer.  */
   sp = regs.STACK_POINTER;
 
-  /* Now dispatch based on the system call.  */
-  callno = regs.SYSCALL_NUM_REG;
+  /* Now dispatch based on the system call.  If TRACEE->exec_data is
+     set, this must be exec, whatever the value of SYSCALL_NUM_REG,
+     which is erased when exec loads another image.  */
+
+  callno = (!tracee->exec_data ? regs.SYSCALL_NUM_REG : EXEC_SYSCALL);
   switch (callno)
     {
     case EXEC_SYSCALL:
 
-      /* exec system calls should be handled synchronously.  */
-      assert (!tracee->waiting_for_syscall);
-      rc = handle_exec (tracee, &regs);
-
-      switch (rc)
+      if (!tracee->waiting_for_syscall)
 	{
-	case 3:
-	  /* It's too late to do anything about this error,.  */
-	  break;
+	  /* The outstanding syscall flag must not be inconsistent with
+	     the presence of instructions for the loader.  */
+	  assert (!tracee->exec_data);
+	  rc = handle_exec (tracee, &regs);
 
-	case 2:
-	  /* The process has gone away.  */
-	  remove_tracee (tracee);
-	  break;
+	  if (rc)
+	    /* An error has occurred; errno is set to the error.  */
+	    goto report_syscall_error;
 
-	case 1:
-	  /* An error has occurred; errno is set to the error.  */
-	  goto report_syscall_error;
+	  /* The process has been resumed.  Assert that the instructions
+	     for loading this executable have been generated and
+	     recorded, and set waiting_for_syscall.  */
+	  tracee->waiting_for_syscall = true;
+	  assert (tracee->exec_data);
+
+	  /* Record the initial stack pointer also.  */
+	  tracee->sp = sp;
+	}
+      else
+	{
+	  assert (tracee->exec_data);
+	  finish_exec (tracee, &regs);
+
+	  /* The process has been resumed and has become capable of
+	     executing independently.  */
+	  tracee->waiting_for_syscall = false;
 	}
 
       break;
@@ -1311,7 +1303,7 @@ process_system_call (struct exec_tracee *tracee)
 	  regs.STACK_POINTER = tracee->sp;
 
 #ifdef __aarch64__
-	  if (aarch64_set_regs (tracee->pid, &regs, true))
+	  if (aarch64_set_regs (tracee->pid, &regs, false))
 	    return;
 #else /* !__aarch64__ */
 	  if (ptrace (PTRACE_SETREGS, tracee->pid, NULL, &regs))
@@ -1327,11 +1319,35 @@ process_system_call (struct exec_tracee *tracee)
 	 will DTRT upon the next call to PTRACE_SYSCALL after the
 	 syscall-trap signal is delivered.  */
 
-      rc = ptrace (PTRACE_SYSCALL, tracee->pid,
+      rc = ptrace (((use_seccomp_p
+		     /* open and openat are not processed synchronously,
+			nor can they afford to dispense with
+			post-syscall finalization.  */
+
+		     && ((callno != OPENAT_SYSCALL
+#ifdef OPEN_SYSCALL
+			  && callno != OPEN_SYSCALL
+#endif /* OPEN_SYSCALL */
+			  )
+			 /* Since syscall initialization should be
+			    reserved for seccomp_system_call, resume the
+			    process if this system call is already
+			    complete.  */
+			 || !tracee->waiting_for_syscall))
+		     ? PTRACE_CONT : PTRACE_SYSCALL), tracee->pid,
 		   NULL, NULL);
       if (rc < 0)
 	return;
 
+#ifdef HAVE_SECCOMP
+      if (!(use_seccomp_p
+	    && ((callno != OPENAT_SYSCALL
+#ifdef OPEN_SYSCALL
+		 && callno != OPEN_SYSCALL
+#endif /* OPEN_SYSCALL */
+		 )
+		|| !tracee->waiting_for_syscall)))
+#endif /* !HAVE_SECCOMP */
       tracee->waiting_for_syscall = !tracee->waiting_for_syscall;
     }
 
@@ -1345,9 +1361,10 @@ process_system_call (struct exec_tracee *tracee)
   reporting_error = false;
  common:
 
-  /* Reporting an error or emulating a system call works by setting
-     the system call number to -1, letting it continue, and then
-     substituting errno for ENOSYS in the case of an error.
+  /* Reporting an error or emulating a system call works by replacing
+     the system call number with -1 or another nonexistent syscall,
+     letting it continue, and then substituting errno for ENOSYS in the
+     case of an error.
 
      Make sure that the stack pointer is restored to its original
      position upon exit, or bad things can happen.  */
@@ -1426,7 +1443,347 @@ process_system_call (struct exec_tracee *tracee)
 #endif /* __aarch64__ */
 
       /* Now wait for the next system call to happen.  */
-      ptrace (PTRACE_SYSCALL, tracee->pid, NULL, NULL);
+      ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+	      tracee->pid, NULL, NULL);
+    }
+  else
+    {
+      /* No error is being reported.  Return the result in the
+	 appropriate registers.  */
+#ifdef __mips__
+      /* MIPS systems place errno in v0 and set a3 to 1.  */
+      regs.gregs[2] = result;
+      regs.gregs[7] = 0;
+#else /* !__mips__ */
+      regs.SYSCALL_RET_REG = result;
+#endif /* __mips__ */
+
+      /* Report errno.  */
+#ifdef __aarch64__
+      aarch64_set_regs (tracee->pid, &regs, false);
+#else /* !__aarch64__ */
+      ptrace (PTRACE_SETREGS, tracee->pid, NULL, &regs);
+#endif /* __aarch64__ */
+
+      /* Now wait for the next system call to happen.  */
+      ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+	      tracee->pid, NULL, NULL);
+    }
+}
+
+
+
+#ifdef HAVE_SECCOMP
+
+/* Seccomp acceleration.
+
+   Seccomp enables selectively filtering signals so that the tracing
+   process is only notified of such system calls as it is interested in
+   intercepting, i.e., exec and open*.  This improves performance
+   enormously over the traditional approach of pausing the tracee before
+   each system call.  */
+
+/* Whether the kernel's version is 4.7.x or earlier.  */
+static bool kernel_4_7_or_earlier;
+
+/* Array of system calls this module is interested in intercepting.  */
+static int interesting_syscalls[] =
+  {
+    EXEC_SYSCALL,
+#ifdef OPEN_SYSCALL
+    OPEN_SYSCALL,
+#endif /* OPEN_SYSCALL */
+    OPENAT_SYSCALL,
+#ifdef READLINK_SYSCALL
+    READLINK_SYSCALL,
+#endif /* READLINK_SYSCALL */
+    READLINKAT_SYSCALL,
+  };
+
+/* Number of elements in an array.  */
+#define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
+
+/* Install a secure computing filter that will notify attached tracers
+   when a system call of interest to this module is received.  Value is
+   0 if successful, 1 otherwise.  */
+
+static int
+establish_seccomp_filter (void)
+{
+  struct sock_filter statements[1 + ARRAYELTS (interesting_syscalls) + 2];
+  struct sock_fprog program;
+  int index, rc;
+
+  index = 0;
+
+  /* As the exec wrapper will reject executables for an inappropriate
+     architecture, verifying the same here would only be redundant.
+     Proceed to load the current system call number.  */
+
+  statements[index++] = ((struct sock_filter)
+			 BPF_STMT (BPF_LD + BPF_W + BPF_ABS,
+				   offsetof (struct seccomp_data, nr)));
+
+  /* Search for system calls of interest.  */
+
+  statements[index]
+    = ((struct sock_filter)
+       BPF_JUMP (BPF_JMP + BPF_JEQ + BPF_K, EXEC_SYSCALL,
+		 ARRAYELTS (interesting_syscalls), 0)); index++;
+#ifdef OPEN_SYSCALL
+  statements[index]
+    = ((struct sock_filter)
+       BPF_JUMP (BPF_JMP + BPF_JEQ + BPF_K, OPEN_SYSCALL,
+		 ARRAYELTS (interesting_syscalls) - index + 1, 0)); index++;
+#endif /* OPEN_SYSCALL */
+  statements[index]
+    = ((struct sock_filter)
+       BPF_JUMP (BPF_JMP + BPF_JEQ + BPF_K, OPENAT_SYSCALL,
+		 ARRAYELTS (interesting_syscalls) - index + 1, 0)); index++;
+#ifdef READLINK_SYSCALL
+  statements[index]
+    = ((struct sock_filter)
+       BPF_JUMP (BPF_JMP + BPF_JEQ + BPF_K, READLINK_SYSCALL,
+		 ARRAYELTS (interesting_syscalls) - index + 1, 0)); index++;
+#endif /* READLINK_SYSCALL */
+  statements[index]
+    = ((struct sock_filter)
+       BPF_JUMP (BPF_JMP + BPF_JEQ + BPF_K, READLINKAT_SYSCALL,
+		 ARRAYELTS (interesting_syscalls) - index + 1, 0)); index++;
+
+  /* If not intercepted above, permit this system call to execute as
+     normal.  */
+  statements[index++]
+    = (struct sock_filter) BPF_STMT (BPF_RET + BPF_K, SECCOMP_RET_ALLOW);
+  statements[index++]
+    = (struct sock_filter) BPF_STMT (BPF_RET + BPF_K, SECCOMP_RET_TRACE);
+
+  rc = prctl (PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+  if (rc)
+    return 1;
+
+  program.len = ARRAYELTS (statements);
+  program.filter = statements;
+  rc = prctl (PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &program);
+  if (rc)
+    return 1;
+
+  return 0;
+}
+
+/* Intercept or resume and dismiss the system call at which TRACEE is
+   paused, similarly to process_system_call.  */
+
+static void
+seccomp_system_call (struct exec_tracee *tracee)
+{
+  USER_REGS_STRUCT regs;
+  int rc, wstatus, save_errno;
+  USER_WORD callno, sp;
+  USER_WORD result;
+  bool reporting_error;
+
+  if (kernel_4_7_or_earlier)
+    {
+      /* On kernel 4.7 and earlier, following a PTRACE_EVENT_SECCOMP by
+	 a PTRACE_SYSCALL will give rise to a syscall-entry stop event,
+	 and seccomp filters will be suppressed till the system call
+	 runs its course.  */
+      ptrace (PTRACE_SYSCALL, tracee->pid, 0, 0);
+      return;
+    }
+
+#ifdef __aarch64__
+  rc = aarch64_get_regs (tracee->pid, &regs);
+#else /* !__aarch64__ */
+  rc = ptrace (PTRACE_GETREGS, tracee->pid, NULL,
+	       &regs);
+#endif /* __aarch64__ */
+
+  /* TODO: what to do if this fails? */
+  if (rc < 0)
+    return;
+
+  /* On kernel 4.8, processes resumed after being paused so as to
+     produce a PTRACE_EVENT_SECCOMP will execute till the system call
+     completes, or indefinitely if resumed with PTRACE_CONT.
+
+     In this context processes are resumed with PTRACE_CONT unless it is
+     an `open' syscall that is being intercepted, which, if successfully
+     intercepted, they must receive adjustments to their stack pointer
+     upon completion of said system call.  */
+  assert (!tracee->waiting_for_syscall);
+
+  /* Save the stack pointer.  */
+  sp = regs.STACK_POINTER;
+
+  /* Now dispatch based on the system call.  */
+  callno = regs.SYSCALL_NUM_REG;
+  switch (callno)
+    {
+    case EXEC_SYSCALL:
+      assert (!tracee->exec_data);
+      rc = handle_exec (tracee, &regs);
+
+      if (rc)
+	/* An error has occurred; errno is set to the error.  */
+	goto report_syscall_error;
+
+      /* The process has been resumed.  Assert that the instructions for
+	 loading this executable have been generated and recorded, and
+	 set waiting_for_syscall.  */
+      tracee->waiting_for_syscall = true;
+      assert (tracee->exec_data);
+
+      /* Record the initial stack pointer also.  */
+      tracee->sp = sp;
+      break;
+
+#ifdef READLINK_SYSCALL
+    case READLINK_SYSCALL:
+#endif /* READLINK_SYSCALL */
+    case READLINKAT_SYSCALL:
+      /* Handle this readlinkat system call.  */
+      rc = handle_readlinkat (callno, &regs, tracee,
+			      &result);
+
+      /* rc means the same as in `handle_exec'.  */
+
+      if (rc == 1)
+	goto report_syscall_error;
+      else if (rc == 2)
+	goto emulate_syscall;
+
+      goto continue_syscall;
+
+#ifdef OPEN_SYSCALL
+    case OPEN_SYSCALL:
+#endif /* OPEN_SYSCALL */
+    case OPENAT_SYSCALL:
+      /* Handle this open system call.  */
+      rc = handle_openat (callno, &regs, tracee, &result);
+
+      /* rc means the same as in `handle_exec', except that `open'
+	 is never emulated.  */
+
+      if (rc == 1)
+	goto report_syscall_error;
+
+      /* The stack pointer must be restored after it was modified
+	 by `user_alloca'; record sp in TRACEE, which will be
+	 restored after this system call completes.  */
+      tracee->sp = sp;
+
+      /* As such, arrange to enter `process_system_call' on its
+	 completion.  */
+      rc = ptrace (PTRACE_SYSCALL, tracee->pid,
+		   NULL, NULL);
+      if (rc < 0)
+	return;
+
+      tracee->waiting_for_syscall = !tracee->waiting_for_syscall;
+      break;
+
+    default:
+    continue_syscall:
+      rc = ptrace (PTRACE_CONT, tracee->pid, NULL, NULL);
+      if (rc < 0)
+	return;
+    }
+
+  return;
+
+ report_syscall_error:
+  reporting_error = true;
+  goto common;
+
+ emulate_syscall:
+  reporting_error = false;
+ common:
+
+  /* Reporting an error or emulating a system call works by replacing
+     the system call number with -1 or another nonexistent syscall,
+     letting it continue, and then substituting errno for ENOSYS in the
+     case of an error.
+
+     Make sure that the stack pointer is restored to its original
+     position upon exit, or bad things can happen.  */
+
+  /* First, save errno; system calls below will clobber it.  */
+  save_errno = errno;
+
+  regs.SYSCALL_NUM_REG = -1;
+  regs.STACK_POINTER   = sp;
+
+#ifdef __aarch64__
+  if (aarch64_set_regs (tracee->pid, &regs, true))
+    return;
+#else /* !__aarch64__ */
+
+#ifdef __arm__
+  /* On ARM systems, a special request is used to update the system
+     call number as known to the kernel.  In addition, the system call
+     number must be valid, so use `tuxcall'.  Hopefully, nobody will
+     run this on a kernel with Tux.  */
+
+  if (ptrace (PTRACE_SET_SYSCALL, tracee->pid, NULL, 222))
+    return;
+#endif /* __arm__ */
+
+  if (ptrace (PTRACE_SETREGS, tracee->pid, NULL, &regs))
+    return;
+#endif /* __aarch64__ */
+
+  /* Do this invalid system call.  */
+  if (ptrace (PTRACE_SYSCALL, tracee->pid, NULL, NULL))
+    return;
+
+ again1:
+  rc = waitpid (tracee->pid, &wstatus, __WALL);
+  if (rc == -1 && errno == EINTR)
+    goto again1;
+
+  /* Return if waitpid fails.  */
+
+  if (rc == -1)
+    return;
+
+  /* If the process received a signal, see if the signal is SIGSYS
+     and/or from seccomp.  If so, discard it.  */
+
+  if (WIFSTOPPED (wstatus))
+    {
+      rc = check_signal (tracee, wstatus);
+
+      if (rc == -1)
+	return;
+      else if (rc)
+	goto again1;
+    }
+
+  if (!WIFSTOPPED (wstatus))
+    /* The process has been killed in response to a signal.  In this
+       case, simply unlink the tracee and return.  */
+    remove_tracee (tracee);
+  else if (reporting_error)
+    {
+#ifdef __mips__
+      /* MIPS systems place errno in v0 and set a3 to 1.  */
+      regs.gregs[2] = save_errno;
+      regs.gregs[7] = 1;
+#else /* !__mips__ */
+      regs.SYSCALL_RET_REG = -save_errno;
+#endif /* __mips__ */
+
+      /* Report errno.  */
+#ifdef __aarch64__
+      aarch64_set_regs (tracee->pid, &regs, false);
+#else /* !__aarch64__ */
+      ptrace (PTRACE_SETREGS, tracee->pid, NULL, &regs);
+#endif /* __aarch64__ */
+
+      /* Resume the process till the next interception by its filter.  */
+      ptrace (PTRACE_CONT, tracee->pid, NULL, NULL);
     }
   else
     {
@@ -1448,15 +1805,28 @@ process_system_call (struct exec_tracee *tracee)
       ptrace (PTRACE_SETREGS, tracee->pid, NULL, &regs);
 #endif /* __aarch64__ */
 
-      /* Now wait for the next system call to happen.  */
-      ptrace (PTRACE_SYSCALL, tracee->pid, NULL, NULL);
+      /* Resume the process till the next interception by its filter.  */
+      ptrace (PTRACE_CONT, tracee->pid, NULL, NULL);
     }
 }
+
+#ifndef PTRACE_EVENT_SECCOMP
+#define PTRACE_EVENT_SECCOMP 7
+#endif /* !PTRACE_EVENT_SECCOMP */
+
+#ifndef PTRACE_O_TRACESECCOMP
+#define PTRACE_O_TRACESECCOMP (1 << PTRACE_EVENT_SECCOMP)
+#endif /* !PTRACE_O_TRACESECCOMP */
+
+#ifndef SIGSYS
+#define SIGSYS 31
+#endif /* !SIGSYS */
+#endif /* HAVE_SECCOMP */
 
 
 
 /* Like `execve', but asks the parent to begin tracing this thread.
-   Fail if tracing is unsuccessful.  */
+   Fail by returning a non-zero value if tracing is unsuccessful.  */
 
 int
 tracing_execve (const char *file, char *const *argv,
@@ -1471,6 +1841,13 @@ tracing_execve (const char *file, char *const *argv,
 
   /* Notify the parent to enter signal-delivery-stop.  */
   raise (SIGSTOP);
+
+#ifdef HAVE_SECCOMP
+  /* Install the seccomp filter.  */
+  if (use_seccomp_p && establish_seccomp_filter ())
+    return 1;
+#endif /* HAVE_SECCOMP */
+
   return execve (file, argv, envp);
 }
 
@@ -1486,6 +1863,10 @@ after_fork (pid_t pid)
 {
   int wstatus, rc, flags;
   struct exec_tracee *tracee;
+#if defined HAVE_SECCOMP && __ANDROID__
+  int statusarg;
+  USER_REGS_STRUCT regs;
+#endif /* defined HAVE_SECCOMP && __ANDROID__ */
 
   /* First, wait for something to happen to PID.  */
  again:
@@ -1510,6 +1891,10 @@ after_fork (pid_t pid)
   flags |= PTRACE_O_TRACEFORK;
   flags |= PTRACE_O_TRACESYSGOOD;
   flags |= PTRACE_O_TRACEEXIT;
+#ifdef HAVE_SECCOMP
+  if (use_seccomp_p)
+    flags |= PTRACE_O_TRACESECCOMP;
+#endif /* HAVE_SECCOMP */
 
   rc = ptrace (PTRACE_SETOPTIONS, pid, 0, flags);
 
@@ -1521,12 +1906,86 @@ after_fork (pid_t pid)
       return 1;
     }
 
-  /* Request that the child stop upon the next system call.  */
-  rc = ptrace (PTRACE_SYSCALL, pid, 0, 0);
+#if defined HAVE_SECCOMP && __ANDROID__
+  /* Certain Android kernels have received backports of those new
+     PTRACE_EVENT_SECCOMP semantics which were introduced in kernel
+     version 4.8, so that it is necessary to actively establish which
+     variant is in place.  */
+
+  if (kernel_4_7_or_earlier && use_seccomp_p)
+    {
+      /* Request that the child stop upon the next `exec' system call,
+	 one of which is assumed to always be issued by the child, as
+	 below, but await the next stop, and examine its contents.
+	 Anciently, the syscall-stop preceeded events marked
+	 PTRACE_EVENT_SECCOMP, whereas this sequence is reversed in
+	 4.8+, and in releases with these changes backported.  */
+
+      rc = ptrace (PTRACE_SYSCALL, pid, 0, 0);
+      if (rc)
+	return 1;
+
+      while (true)
+	{
+	  rc = waitpid (pid, &wstatus, __WALL);
+	  if (rc != pid)
+	    return 1;
+
+	  if (WIFSTOPPED (wstatus))
+	    {
+	      /* Verify that this system call is `exec', not one issued
+		 between PTRACE_TRACEME and `exec' intercepted by
+		 PTRACE_SYSCALL.  */
+#ifdef __aarch64__
+	      rc = aarch64_get_regs (pid, &regs);
+#else /* !__aarch64__ */
+	      rc = ptrace (PTRACE_GETREGS, pid, NULL, &regs);
+#endif /* __aarch64__ */
+	      if (rc)
+		return 1;
+
+	      if (regs.SYSCALL_NUM_REG == EXEC_SYSCALL)
+		{
+		  statusarg = ((wstatus & 0xfff00) >> 8);
+
+		  if (statusarg == (SIGTRAP | (PTRACE_EVENT_SECCOMP << 8)))
+		    {
+		      /* The first event to be delivered is a seccomp
+			 stop, indicating that this is an unmodified
+			 <4.7 kernel.  Return to await the subsequent
+			 syscall-stop, which should be received and
+			 acted on by process_system_call.  */
+		      rc = ptrace (PTRACE_SYSCALL, pid, 0, 0);
+		      break;
+		    }
+		  else if (statusarg == (SIGTRAP | 0x80))
+		    {
+		      /* Syscall-traps take priority.  This is a
+			 doctored 4.7 kernel.  */
+		      kernel_4_7_or_earlier = false;
+		      rc = ptrace (PTRACE_CONT, pid, 0, 0);
+		      break;
+		    }
+		}
+
+	      rc = ptrace (PTRACE_SYSCALL, pid, 0, 0);
+	      if (rc)
+		return 1;
+	    }
+	  else
+	    return 1;
+	}
+    }
+  else
+#endif /* HAVE_SECCOMP && __ANDROID__ */
+    /* Request that the child stop upon the next system call, or the
+       next filter event.  */
+    rc = ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+		 pid, 0, 0);
   if (rc)
     return 1;
 
-  /* Enter the child in `tracing_processes'.  */
+  /* Enroll the child into `tracing_processes'.  */
 
   if (free_tracees)
     {
@@ -1543,9 +2002,9 @@ after_fork (pid_t pid)
   tracee->next = tracing_processes;
   tracee->waiting_for_syscall = false;
   tracee->new_child = false;
-#ifndef REENTRANT
   tracee->exec_file = NULL;
-#endif /* REENTRANT */
+  tracee->exec_data = NULL;
+  tracee->data_size = 0;
   tracing_processes = tracee;
   return 0;
 }
@@ -1604,9 +2063,11 @@ exec_waitpid (pid_t pid, int *wstatus, int options)
 	    {
 	      if (siginfo.si_code < 0)
 		/* SIGTRAP delivered from userspace.  Pass it on.  */
-		ptrace (PTRACE_SYSCALL, pid, 0, SIGTRAP);
+		ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+			pid, 0, SIGTRAP);
 	      else
-		ptrace (PTRACE_SYSCALL, pid, 0, 0);
+		ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+			pid, 0, 0);
 
 	      return -1;
 	    }
@@ -1644,8 +2105,16 @@ exec_waitpid (pid_t pid, int *wstatus, int options)
 	  /* These events are handled by tracing SIGSTOP signals sent
 	     to unknown tracees.  Make sure not to pass through
 	     status, as there's no signal really being delivered.  */
-	  ptrace (PTRACE_SYSCALL, pid, 0, 0);
+	  ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL), pid, 0, 0);
 	  return -1;
+
+#ifdef HAVE_SECCOMP
+	case SIGTRAP | (PTRACE_EVENT_SECCOMP << 8):
+	  /* Intercept and process this system call if the event was
+	     produced by our filter.  */
+	  seccomp_system_call (tracee);
+	  return -1;
+#endif /* HAVE_SECCOMP */
 
 #ifdef SIGSYS
 	case SIGSYS:
@@ -1657,24 +2126,28 @@ exec_waitpid (pid_t pid, int *wstatus, int options)
 	     it.  */
 #ifdef HAVE_SIGINFO_T_SI_SYSCALL
 #ifndef __arm__
-	  ptrace (PTRACE_SYSCALL, pid, 0, ((siginfo.si_code == SYS_SECCOMP
-					    && siginfo.si_syscall == -1)
-					   ? 0 : status));
+	  ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+		  pid, 0, ((siginfo.si_code == SYS_SECCOMP
+			    && siginfo.si_syscall == -1)
+			   ? 0 : status));
 #else /* __arm__ */
-	  ptrace (PTRACE_SYSCALL, pid, 0, ((siginfo.si_code == SYS_SECCOMP
-					    && siginfo.si_syscall == 222)
-					   ? 0 : status));
+	  ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+		  pid, 0, ((siginfo.si_code == SYS_SECCOMP
+			    && siginfo.si_syscall == 222)
+			   ? 0 : status));
 #endif /* !__arm__ */
 #else /* !HAVE_SIGINFO_T_SI_SYSCALL */
 	  /* Drop this signal, since what caused it is unknown.  */
-	  ptrace (PTRACE_SYSCALL, pid, 0, 0);
+	  ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL), pid,
+		  0, 0);
 #endif /* HAVE_SIGINFO_T_SI_SYSCALL */
 	  return -1;
 #endif /* SIGSYS */
 
 	default:
-	  /* Continue the process until the next syscall.  */
-	  ptrace (PTRACE_SYSCALL, pid, 0, status);
+	  /* Resume the process as appropriate.  */
+	  ptrace ((use_seccomp_p ? PTRACE_CONT : PTRACE_SYSCALL),
+		  pid, 0, status);
 	  return -1;
 	}
     }
@@ -1698,5 +2171,36 @@ exec_waitpid (pid_t pid, int *wstatus, int options)
 void
 exec_init (const char *loader)
 {
+#ifdef HAVE_SECCOMP
+  struct utsname u;
+  int major, minor;
+#endif /* HAVE_SECCOMP */
+
   loader_name = loader;
+#ifdef HAVE_SECCOMP
+  errno = 0;
+  prctl (PR_GET_SECCOMP);
+
+  /* PR_GET_SECCOMP should not set errno if the kernel was configured
+     with support for seccomp.  */
+  if (!errno)
+    use_seccomp_p = true;
+  else
+    return;
+
+  /* Establish whether the kernel is 4.7.x or older.  */
+  uname (&u);
+  if ((sscanf (u.release, "%d.%d", &major, &minor) == 2))
+    {
+      /* Certain required ptrace features were introduced in kernel
+	 3.5.  */
+      if (major < 3 || (major == 3 && minor < 5))
+	use_seccomp_p = false;
+      else
+	{
+	  if (major < 4 || (major == 4 && minor <= 7))
+	    kernel_4_7_or_earlier = true;
+	}
+    }
+#endif /* HAVE_SECCOMP */
 }

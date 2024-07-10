@@ -108,15 +108,19 @@
 (defvoo nnatom-read-article-function #'nnatom--read-article
   nil nnfeed-read-article-function)
 
+(defun nnatom--dom-line (node)
+  "Return NODE's text as a single, whitespace-trimmed line."
+  (string-trim (replace-regexp-in-string "[\r\n]+" " " (dom-text node) t)))
+
 (defun nnatom--read-title (group)
   "Return the title of GROUP, or nil."
-  (dom-text (dom-child-by-tag group 'title)))
+  (nnatom--dom-line (dom-child-by-tag group 'title)))
 (defvoo nnatom-read-title-function #'nnatom--read-title
   nil nnfeed-read-title-function)
 
 (defun nnatom--read-description (group)
   "Return the description of GROUP, or nil."
-  (dom-text (dom-child-by-tag group 'subtitle)))
+  (nnatom--dom-line (dom-child-by-tag group 'subtitle)))
 (defvoo nnatom-read-description-function #'nnatom--read-description
   nil nnfeed-read-description-function)
 
@@ -125,9 +129,9 @@
   (when-let
       ((a (mapconcat
            (lambda (author)
-             (let* ((name (dom-text (dom-child-by-tag author 'name)))
+             (let* ((name (nnatom--dom-line (dom-child-by-tag author 'name)))
                     (name (unless (string-blank-p name) name))
-                    (email (dom-text (dom-child-by-tag author 'email)))
+                    (email (nnatom--dom-line (dom-child-by-tag author 'email)))
                     (email (unless (string-blank-p email) email)))
                (or (and name email (format "%s <%s>" name email)) name email)))
            (dom-children (dom-child-by-tag article-or-group 'authors))
@@ -142,7 +146,7 @@
 
 (defun nnatom--read-subject (article)
   "Return the subject of ARTICLE, or nil."
-  (dom-text (dom-child-by-tag article 'title)))
+  (nnatom--dom-line (dom-child-by-tag article 'title)))
 (defvoo nnatom-read-subject-function #'nnatom--read-subject
   nil nnfeed-read-subject-function)
 
@@ -150,7 +154,7 @@
   "Return the ID of ARTICLE.
 If the ARTICLE doesn't contain an ID but it does contain a subject,
 return the subject.  Otherwise, return nil."
-  (or (dom-text (dom-child-by-tag article 'id))
+  (or (nnatom--dom-line (dom-child-by-tag article 'id))
       (nnatom--read-subject article)))
 (defvoo nnatom-read-id-function #'nnatom--read-id
   nil nnfeed-read-id-function)
@@ -158,14 +162,14 @@ return the subject.  Otherwise, return nil."
 (defun nnatom--read-publish (article)
   "Return the date and time ARTICLE was published, or nil."
   (when-let (d (dom-child-by-tag article 'published))
-    (date-to-time (dom-text d))))
+    (date-to-time (nnatom--dom-line d))))
 (defvoo nnatom-read-publish-date-function #'nnatom--read-publish
   nil nnfeed-read-publish-date-function)
 
 (defun nnatom--read-update (article)
   "Return the date and time of the last update to ARTICLE, or nil."
   (when-let (d (dom-child-by-tag article 'updated))
-    (date-to-time (dom-text d))))
+    (date-to-time (nnatom--dom-line d))))
 (defvoo nnatom-read-update-date-function #'nnatom--read-update
   nil nnfeed-read-update-date-function)
 
@@ -185,13 +189,13 @@ return the subject.  Otherwise, return nil."
                (("text/html") . ,(format "<a href=\"%s\">[%s]</a> "
                                          src label)))))
           (when-let (((or (eq l 'author) (eq l 'contributor)))
-                     (name (dom-text (dom-child-by-tag link 'name)))
+                     (name (nnatom--dom-line (dom-child-by-tag link 'name)))
                      (name (if (string-blank-p name)
                                (concat "Author"
                                        (and (< 1 (cl-incf aut))
                                             (format " %s" aut)))
                              name))
-                     (uri (dom-text (dom-child-by-tag link 'uri)))
+                     (uri (nnatom--dom-line (dom-child-by-tag link 'uri)))
                      ((not (string-blank-p uri))))
             `(((("text/plain") . ,(format "%s: %s\n" name uri))
                (("text/html") . ,(format "<a href=\"%s\">[%s]</a> "

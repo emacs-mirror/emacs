@@ -511,7 +511,8 @@ Possible non-nil values:
  * `cycle':   when moving from the last/first visible line, cycle back
               to the first/last visible line.
  * `bounded': don't move up/down if the current line is the
-              first/last visible line."
+              first/last visible line.
+Any other non-nil value is treated as `bounded'."
   :type '(choice (const :tag "Move to any line" nil)
                  (const :tag "Cycle through non-empty lines" cycle)
                  (const :tag "Stop on last/first non-empty line" bounded))
@@ -2886,7 +2887,7 @@ is controlled by `dired-movement-style'."
                          (point-max))))
           (setq wrapped t))
          ;; `bounded': go back to the last non-empty line.
-         ((eq dired-movement-style 'bounded)
+         (dired-movement-style ; Either 'bounded or anything else non-nil.
           (while (and (dired-between-files) (not (zerop arg)))
             (funcall jumpfun (- moving-down))
             ;; Point not moving means infinite loop.
@@ -5182,7 +5183,7 @@ Interactively with prefix argument, read FILE-NAME."
                   (dired-goto-file file))
                 ;; Toggle omitting, if it is on, and try again.
                 (when (bound-and-true-p dired-omit-mode)
-                  (dired-omit-mode)
+                  (dired-omit-mode -1)
                   (dired-goto-file file)))))))))
 
 ;;;###autoload

@@ -2135,14 +2135,6 @@ with a different toolkit.  For example:
 This produces a build which uses Athena toolkit, and disables toolkit
 scroll bars which could sometimes be slow.
 
-* Runtime problems specific to PGTK build
-
-** SECONDARY selections don't work on Wayland.
-
-This is because the SECONDARY selection is not implemented by the
-Wayland compositor being used.  A workaround is to use other kinds of
-selections.
-
 * Runtime problems on character terminals
 
 ** The meta key does not work on xterm.
@@ -3478,7 +3470,13 @@ file; for example:
       "/usr/local/opt/libgccjit/lib/gcc/11"
       "/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin20/11.2.0") ":"))
 
-* Runtime problems specific to PGTK
+* Runtime problems specific to PGTK build
+
+** SECONDARY selections don't work on Wayland.
+
+This is because the SECONDARY selection is not implemented by the
+Wayland compositor being used.  A workaround is to use other kinds of
+selections.
 
 ** Giant tool bar icons are displayed in some cases
 

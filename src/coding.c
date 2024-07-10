@@ -6365,7 +6365,7 @@ make_string_from_utf8 (const char *text, ptrdiff_t nbytes)
   /* If TEXT is a valid UTF-8 string, we can convert it to a Lisp
      string directly.  Otherwise, we need to decode it.  */
   if (chars == nbytes || bytes == nbytes)
-    return make_specified_string (text, chars, nbytes, true);
+    return make_multibyte_string (text, chars, nbytes);
   else
     {
       struct coding_system coding;

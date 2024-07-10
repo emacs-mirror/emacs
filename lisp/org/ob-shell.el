@@ -92,10 +92,10 @@ variables."
 	      name))
     (funcall (if (fboundp 'defvar-1) #'defvar-1 #'set) ;Emacs-29
              (intern (concat "org-babel-default-header-args:" name))
-             nil)
+             org-babel-default-header-args:shell)
     (funcall (if (fboundp 'defvar-1) #'defvar-1 #'set) ;Emacs-29
              (intern (concat "org-babel-header-args:" name))
-             nil)))
+             org-babel-header-args:shell)))
 
 (defcustom org-babel-shell-names
   '("sh" "bash" "zsh" "fish" "csh" "ash" "dash" "ksh" "mksh" "posh")
@@ -338,7 +338,7 @@ return the value of the last statement in BODY."
                     (org-babel-comint-async-register
                      session
                      (current-buffer)
-                     "ob_comint_async_shell_\\(.+\\)_\\(.+\\)"
+                     "ob_comint_async_shell_\\(start\\|end\\|file\\)_\\(.+\\)"
                      'ob-shell-async-chunk-callback
                      nil)
                     (org-babel-comint-async-delete-dangling-and-eval

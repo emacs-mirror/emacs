@@ -548,7 +548,7 @@ associated with an ERC session."
   "Speedbar update period.")
 
 (defvar-local erc-speedbar--last-ran nil
-  "When non-nil, a lisp timestamp updated when the speedbar timer runs.")
+  "When non-nil, a Lisp timestamp updated when the speedbar timer runs.")
 
 (defun erc-speedbar--prod-dframe-timer (&rest _)
   "Refresh speedbar if dormant for `erc-speedbar--force-update-interval-secs'."

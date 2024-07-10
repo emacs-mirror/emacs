@@ -176,7 +176,7 @@
   (require 'cl-lib))
 (require 'esh-util)
 (require 'esh-module)                   ;For eshell-using-module
-(require 'esh-proc)                     ;For eshell-wait-for-process
+(require 'esh-proc)                     ;For eshell-wait-for-processes
 (require 'esh-io)                       ;For eshell-last-command-status
 (require 'esh-cmd)
 
@@ -215,6 +215,34 @@ example, with the numeric prefix argument 2, the buffer would be
 named \"*eshell*<2>\"."
   :type 'string
   :group 'eshell)
+
+(defcustom eshell-command-async-buffer 'confirm-new-buffer
+  "What to do when the output buffer is used by another shell command.
+This option specifies how to resolve the conflict where a new command
+wants to direct its output to the buffer whose name is stored
+in `eshell-command-buffer-name-async', but that buffer is already
+taken by another running shell command.
+
+The value `confirm-kill-process' is used to ask for confirmation before
+killing the already running process and running a new process in the
+same buffer, `confirm-new-buffer' for confirmation before running the
+command in a new buffer with a name other than the default buffer name,
+`new-buffer' for doing the same without confirmation,
+`confirm-rename-buffer' for confirmation before renaming the existing
+output buffer and running a new command in the default buffer,
+`rename-buffer' for doing the same without confirmation."
+  :type '(choice (const :tag "Confirm killing of running command"
+                        confirm-kill-process)
+                 (const :tag "Confirm creation of a new buffer"
+                        confirm-new-buffer)
+                 (const :tag "Create a new buffer"
+                        new-buffer)
+                 (const :tag "Confirm renaming of existing buffer"
+                        confirm-rename-buffer)
+                 (const :tag "Rename the existing buffer"
+                        rename-buffer))
+  :group 'eshell
+  :version "31.1")
 
 ;;;_* Running Eshell
 ;;
@@ -283,11 +311,19 @@ information on Eshell, see Info node `(eshell)Top'."
                                   (eshell-command-mode +1))
       (read-from-minibuffer prompt))))
 
+(defvar eshell-command-buffer-name-async "*Eshell Async Command Output*")
+(defvar eshell-command-buffer-name-sync "*Eshell Command Output*")
+
 ;;;###autoload
 (defun eshell-command (command &optional to-current-buffer)
   "Execute the Eshell command string COMMAND.
 If TO-CURRENT-BUFFER is non-nil (interactively, with the prefix
-argument), then insert output into the current buffer at point."
+argument), then insert output into the current buffer at point.
+
+When \"&\" is added at end of command, the command is async and its output
+appears in a specific buffer.  You can customize
+`eshell-command-async-buffer' to specify what to do when this output
+buffer is already taken by another running shell command."
   (interactive (list (eshell-read-command)
                      current-prefix-arg))
   (save-excursion
@@ -301,26 +337,53 @@ argument), then insert output into the current buffer at point."
                            (eshell-current-subjob-p))
 		       ,(eshell-parse-command command))
                     command))
-	     intr
-	     (bufname (if (eq (car-safe proc) :eshell-background)
-			  "*Eshell Async Command Output*"
-			(setq intr t)
-			"*Eshell Command Output*")))
-	(if (buffer-live-p (get-buffer bufname))
-	    (kill-buffer bufname))
-	(rename-buffer bufname)
+             (async (eq (car-safe proc) :eshell-background))
+             (bufname (cond
+                       (to-current-buffer nil)
+                       (async eshell-command-buffer-name-async)
+                       (t eshell-command-buffer-name-sync)))
+             unique)
+        (when bufname
+          (when (buffer-live-p (get-buffer bufname))
+            (cond
+             ((with-current-buffer bufname
+                (and (null eshell-foreground-command)
+                     (null eshell-background-commands)))
+              ;; The old buffer is done executing; kill it so we can
+              ;; take its place.
+              (kill-buffer bufname))
+             ((eq eshell-command-async-buffer 'confirm-kill-process)
+              (shell-command--same-buffer-confirm "Kill it")
+              (with-current-buffer bufname
+                ;; Stop all the processes in the old buffer (there may
+                ;; be several).
+                (eshell-round-robin-kill))
+              (kill-buffer bufname))
+             ((eq eshell-command-async-buffer 'confirm-new-buffer)
+              (shell-command--same-buffer-confirm "Use a new buffer")
+              (setq unique t))
+             ((eq eshell-command-async-buffer 'new-buffer)
+              (setq unique t))
+             ((eq eshell-command-async-buffer 'confirm-rename-buffer)
+              (shell-command--same-buffer-confirm "Rename it")
+              (with-current-buffer bufname
+                (rename-uniquely)))
+             ((eq eshell-command-async-buffer 'rename-buffer)
+              (with-current-buffer bufname
+                (rename-uniquely)))))
+          (rename-buffer bufname unique))
 	;; things get a little coarse here, since the desire is to
 	;; make the output as attractive as possible, with no
 	;; extraneous newlines
-	(when intr
-	  (apply #'eshell-wait-for-process (cadr eshell-foreground-command))
+        (unless async
+	  (funcall #'eshell-wait-for-processes (cadr eshell-foreground-command))
 	  (cl-assert (not eshell-foreground-command))
 	  (goto-char (point-max))
 	  (while (and (bolp) (not (bobp)))
 	    (delete-char -1)))
 	(cl-assert (and buf (buffer-live-p buf)))
 	(unless to-current-buffer
-	  (let ((len (if (not intr) 2
+          (let ((len (if async 2
 		       (count-lines (point-min) (point-max)))))
 	    (cond
 	     ((= len 0)
@@ -336,7 +399,7 @@ argument), then insert output into the current buffer at point."
 		;; cause the output buffer to take up as little screen
 		;; real-estate as possible, if temp buffer resizing is
 		;; enabled
-		(and intr temp-buffer-resize-mode
+                (and (not async) temp-buffer-resize-mode
 		     (resize-temp-buffer-window)))))))))))
 
 ;;;###autoload

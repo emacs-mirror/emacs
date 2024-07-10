@@ -231,7 +231,7 @@ when NODE is an anonymous node."
 
 (define-inline org-element-type-p (node types)
   "Return non-nil when NODE type is one of TYPES.
-      TYPES can be a type symbol or a list of symbols."
+TYPES can be a type symbol or a list of symbols."
   (inline-letevals (node types)
     (if (listp (inline-const-val types))
 	(inline-quote (memq (org-element-type ,node t) ,types))
@@ -270,7 +270,7 @@ Return value is the containing property name, as a keyword, or nil."
   "Dynamically computed value.
 
 The value can be obtained by calling FUNCTION with containing syntax
-node as first argument and ARGS list as remainting arguments.
+node as first argument and ARGS list as remaining arguments.
 
 If the function throws `:org-element-deferred-retry' signal, assume
 that the syntax node has been modified by side effect and retry

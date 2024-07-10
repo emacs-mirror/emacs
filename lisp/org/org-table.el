@@ -622,7 +622,7 @@ This variable is set by `org-before-change-function'.
 `org-table-align' sets it back to nil.")
 
 (defvar orgtbl-after-send-table-hook nil
-  "Hook for functions attaching to `C-c C-c', if the table is sent.
+  "Hook for functions attaching to \\`C-c C-c', if the table is sent.
 This can be used to add additional functionality after the table is sent
 to the receiver position, otherwise, if table is not sent, the functions
 are not run.")
@@ -5423,7 +5423,7 @@ conflicting binding to this key outside `orgtbl-mode'."
     (org-table-next-row)))
 
 (defun orgtbl-self-insert-command (N)
-  "Like `self-insert-command', use overwrite-mode for whitespace in tables.
+  "Like `self-insert-command', use `overwrite-mode' for whitespace in tables.
 If the cursor is in a table looking at whitespace, the whitespace is
 overwritten, and the table is not marked as requiring realignment."
   (interactive "p")
@@ -6156,7 +6156,7 @@ supported.  It is also possible to use the following one:
 
 ;;;###autoload
 (defun orgtbl-to-orgtbl (table params)
-  "Convert the `orgtbl-mode' TABLE into another orgtbl-mode table.
+  "Convert the `orgtbl-mode' TABLE into another `orgtbl-mode' table.
 
 TABLE is a list, each entry either the symbol `hline' for
 a horizontal separator line, or a list of fields for that line.

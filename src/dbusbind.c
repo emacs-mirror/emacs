@@ -1314,7 +1314,7 @@ The following usages are expected:
 `dbus-call-method', `dbus-call-method-asynchronously':
   (dbus-message-internal
     dbus-message-type-method-call BUS SERVICE PATH INTERFACE METHOD HANDLER
-    &optional :timeout TIMEOUT &rest ARGS)
+    &optional :timeout TIMEOUT :authorizable AUTH &rest ARGS)
 
 `dbus-send-signal':
   (dbus-message-internal
@@ -1512,12 +1512,38 @@ usage: (dbus-message-internal &rest REST)  */)
 	XD_SIGNAL1 (build_string ("Unable to create an error message"));
     }
 
-  /* Check for timeout parameter.  */
-  if ((count + 2 <= nargs) && EQ (args[count], QCtimeout))
+  while ((count + 2 <= nargs))
     {
-      CHECK_FIXNAT (args[count+1]);
-      timeout = min (XFIXNAT (args[count+1]), INT_MAX);
-      count = count+2;
+      /* Check for timeout parameter.  */
+      if (EQ (args[count], QCtimeout))
+        {
+	  if (mtype != DBUS_MESSAGE_TYPE_METHOD_CALL)
+	    XD_SIGNAL1
+	      (build_string (":timeout is only supported on method calls"));
+
+          CHECK_FIXNAT (args[count+1]);
+          timeout = min (XFIXNAT (args[count+1]), INT_MAX);
+          count = count + 2;
+	}
+      /* Check for authorizable parameter.  */
+      else if (EQ (args[count], QCauthorizable))
+        {
+	  if (mtype != DBUS_MESSAGE_TYPE_METHOD_CALL)
+	    XD_SIGNAL1
+	      (build_string (":authorizable is only supported on method calls"));
+
+	  /* Ignore this keyword if unsupported.  */
+#ifdef HAVE_DBUS_MESSAGE_SET_ALLOW_INTERACTIVE_AUTHORIZATION
+	  dbus_message_set_allow_interactive_authorization
+	    (dmessage, NILP (args[count+1]) ? FALSE : TRUE);
+#else
+	  XD_DEBUG_MESSAGE (":authorizable not supported");
+#endif
+
+          count = count + 2;
+	}
+      else break;
+
     }
 
   /* Initialize parameter list of message.  */
@@ -1894,6 +1920,9 @@ syms_of_dbusbind (void)
 
   /* Lisp symbol for method call timeout.  */
   DEFSYM (QCtimeout, ":timeout");
+
+  /* Lisp symbol for method interactive authorization.  */
+  DEFSYM (QCauthorizable, ":authorizable");
 
   /* Lisp symbols of D-Bus types.  */
   DEFSYM (QCbyte, ":byte");

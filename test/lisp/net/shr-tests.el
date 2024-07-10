@@ -51,7 +51,8 @@ Raise a test failure if the rendered buffer does not match NAME.txt.
 Append CONTEXT to the failure data, if non-nil."
   (let ((text-file (file-name-concat (ert-resource-directory) (concat name ".txt")))
         (html-file (file-name-concat (ert-resource-directory) (concat name ".html")))
-        (description (if context (format "%s (%s)" name context) name)))
+        (description (if context (format "%s (%s)" name context) name))
+        (coding-system-for-read 'utf-8))
     (with-temp-buffer
       (insert-file-contents html-file)
       (let ((dom (libxml-parse-html-region (point-min) (point-max)))
@@ -134,13 +135,16 @@ settings, then once more for each (OPTION . VALUE) pair.")
 
 (ert-deftest shr-test/zoom-image ()
   "Test that `shr-zoom-image' properly replaces the original image."
-  (let ((image (expand-file-name "data/image/blank-100x200.png"
-                                 (getenv "EMACS_TEST_DIRECTORY"))))
+  (skip-unless (bound-and-true-p image-types))
+  (let* ((image (expand-file-name "data/image/blank-100x200.png"
+                                  (getenv "EMACS_TEST_DIRECTORY")))
+         (image-url (concat "file://" (if (string-prefix-p "/" image)
+                                          image (concat "/" image)))))
     (dolist (alt '(nil "" "nothing to see here"))
       (with-temp-buffer
         (ert-info ((format "image with alt=%S" alt))
           (let ((attrs (if alt (format " alt=\"%s\"" alt) "")))
-            (insert (format "<img src=\"file://%s\" %s" image attrs)))
+            (insert (format "<img src=\"%s\" %s" image-url attrs)))
           (cl-letf* (;; Pretend we're a graphical display.
                      ((symbol-function 'display-graphic-p) #'always)
                      ((symbol-function 'url-queue-retrieve)
@@ -154,29 +158,28 @@ settings, then once more for each (OPTION . VALUE) pair.")
                      (shr-width 80)
                      (shr-use-fonts nil)
                      (shr-image-animate nil)
+                     (shr-sliced-image-height nil)
                      (inhibit-message t)
                      (dom (libxml-parse-html-region (point-min) (point-max))))
             ;; Render the document.
             (erase-buffer)
             (shr-insert-document dom)
-            (shr-test-wait-for (lambda () (= put-image-calls 1)))
+            (shr-test-wait-for (lambda () (= put-image-calls 1))
+                               "Timed out waiting for initial load")
             ;; Now zoom the image.
             (goto-char (point-min))
             (shr-zoom-image)
-            (shr-test-wait-for (lambda () (= put-image-calls 2)))
-            ;; Check that we got a sliced image.
-            (let ((slice-count 0))
+            (shr-test-wait-for (lambda () (= put-image-calls 2))
+                               "Timed out waiting to zoom image")
+            ;; Check that we have a single image at original size.
+            (let (image-zooms)
               (goto-char (point-min))
               (while (< (point) (point-max))
-                (when-let ((display (get-text-property (point) 'display)))
-                  ;; If this is nil, we found a non-sliced image, but we
-                  ;; should have replaced that!
-                  (should (assq 'slice display))
-                  (cl-incf slice-count))
+                (when (get-text-property (point) 'display)
+                  (push (get-text-property (point) 'image-zoom) image-zooms))
                 (goto-char (or (next-single-property-change (point) 'display)
                                (point-max))))
-              ;; Make sure we actually saw a slice.
-              (should (> slice-count 1)))))))))
+              (should (equal image-zooms '(original))))))))))
 
 (require 'shr)
 

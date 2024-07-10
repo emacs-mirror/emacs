@@ -495,12 +495,17 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 (comp-deftest compile-forms ()
   "Verify lambda form native compilation."
   (should-error (native-compile '(+ 1 foo)))
-  (let ((lexical-binding t)
-        (f (native-compile '(lambda (x) (1+ x)))))
+  (let ((f (native-compile '(lambda (x) (1+ x)))))
     (should (native-comp-function-p f))
     (should (= (funcall f 2) 3)))
   (let* ((lexical-binding nil)
          (f (native-compile '(lambda (x) (1+ x)))))
+    (should (native-comp-function-p f))
+    (should (= (funcall f 2) 3))))
+
+(comp-deftest compile-interpreted-functions ()
+  "Verify native compilation of interpreted functions."
+  (let ((f (native-compile (eval '(lambda (x) (1+ x))))))
     (should (native-comp-function-p f))
     (should (= (funcall f 2) 3))))
 
@@ -1320,7 +1325,7 @@ Return a list of results."
            (5 (message "five")))
          x)
        't
-       ;; FIXME improve `comp-cond-cstrs-target-mvar' to cross block
+       ;; FIXME improve `comp--cond-cstrs-target-mvar' to cross block
        ;; boundary if necessary as this should return:
        ;; (or (integer 1 1) (integer 5 5))
        )

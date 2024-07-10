@@ -79,7 +79,7 @@ local-makefile = $$(NDK_LAST_MAKEFILE)
 # my-dir is a function that returns the Android module directory.  If
 # no Android.mk has been loaded, use the directory of the Makefile
 # being included.
-my-dir = $$(or $$(and $$(local-makefile),$$(dir $$(local-makefile))),$(dir $(1)))
+my-dir = $$(patsubst %/,%,$$(or $$(and $$(local-makefile),$$(dir $$(local-makefile))),$(dir $(1))))
 
 # Return all Android.mk files under the first arg.
 all-makefiles-under = $$(wildcard $$(1)/*/Android.mk)

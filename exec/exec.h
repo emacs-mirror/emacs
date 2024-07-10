@@ -152,6 +152,16 @@ struct exec_tracee
      completion.  */
   USER_WORD sp;
 
+  /* Name of the executable being run.  */
+  char *exec_file;
+
+  /* Pointer to a storage area holding instructions for loading an
+     executable if an `exec' system call is outstanding, or NULL.  */
+  char *exec_data;
+
+  /* Number of bytes in exec_data.  */
+  size_t data_size;
+
   /* The thread ID of this process.  */
   pid_t pid;
 
@@ -162,11 +172,6 @@ struct exec_tracee
   /* Whether or not the tracee has been created but is not yet
      processed by `handle_clone'.  */
   bool new_child : 1;
-
-#ifndef REENTRANT
-  /* Name of the executable being run.  */
-  char *exec_file;
-#endif /* !REENTRANT */
 };
 
 

@@ -1285,8 +1285,8 @@ no input, and GDB is waiting for input."
 (defun gdb-mouse-until (event)
   "Continue running until a source line past the current line.
 The destination source line can be selected either by clicking
-with mouse-3 on the fringe/margin or dragging the arrow
-with mouse-1 (default bindings)."
+with \\`mouse-3' on the fringe/margin or dragging the arrow
+with \\`mouse-1' (default bindings)."
   (interactive "e")
   (let ((start (event-start event))
 	(end (event-end event)))
@@ -1302,8 +1302,8 @@ with mouse-1 (default bindings)."
 
 (defun gdb-mouse-jump (event)
   "Set execution address/line.
-The destination source line can be selected either by clicking with C-mouse-3
-on the fringe/margin or dragging the arrow with C-mouse-1 (default bindings).
+The destination source line can be selected either by clicking with \\`C-mouse-3'
+on the fringe/margin or dragging the arrow with \\`C-mouse-1' (default bindings).
 Unlike `gdb-mouse-until' the destination address can be before the current
 line, and no execution takes place."
   (interactive "e")
@@ -5122,7 +5122,7 @@ commands) or source buffers (that display program source code)."
 
 (defun gdb--buffer-type (buffer)
   "Return the type of BUFFER if it is a function buffer.
-Buffer type is like `gdb-registers-type', `gdb-stack-buffer'.
+Buffer type is like `gdb-registers-buffer', `gdb-stack-buffer'.
 These symbols are used by `gdb-get-buffer-create'.
 
 Return nil if BUFFER is not a GDB function buffer."

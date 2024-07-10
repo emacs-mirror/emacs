@@ -2612,6 +2612,7 @@ my_post_msg (W32Msg * wmsg, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 #ifdef WINDOWSNT
+
 /* The Windows keyboard hook callback.  */
 static LRESULT CALLBACK
 funhook (int code, WPARAM w, LPARAM l)
@@ -2688,8 +2689,8 @@ funhook (int code, WPARAM w, LPARAM l)
 		     can prevent this by setting the
 		     w32-pass-[lr]window-to-system variable to
 		     NIL.  */
-		  if ((hs->vkCode == VK_LWIN && !NILP (Vw32_pass_lwindow_to_system)) ||
-		      (hs->vkCode == VK_RWIN && !NILP (Vw32_pass_rwindow_to_system)))
+		  if ((hs->vkCode == VK_LWIN && !NILP (Vw32_pass_lwindow_to_system))
+		       || (hs->vkCode == VK_RWIN && !NILP (Vw32_pass_rwindow_to_system)))
 		    {
 		      /* Not prevented - Simulate the keypress to the system.  */
 		      memset (inputs, 0, sizeof (inputs));
@@ -6150,7 +6151,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   if (harfbuzz_available)
     register_font_driver (&harfbuzz_font_driver, f);
 #endif
-  register_font_driver (&uniscribe_font_driver, f);
+  if (uniscribe_available)
+    register_font_driver (&uniscribe_font_driver, f);
   register_font_driver (&w32font_driver, f);
 
   gui_default_parameter (f, parameters, Qfont_backend, Qnil,
@@ -7227,7 +7229,8 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
   if (harfbuzz_available)
     register_font_driver (&harfbuzz_font_driver, f);
 #endif
-  register_font_driver (&uniscribe_font_driver, f);
+  if (uniscribe_available)
+    register_font_driver (&uniscribe_font_driver, f);
   register_font_driver (&w32font_driver, f);
 
   gui_default_parameter (f, parms, Qfont_backend, Qnil,
@@ -8265,6 +8268,8 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
 
 
 #ifdef WINDOWSNT
+static int (WINAPI *pfnSHFileOperationW) (LPSHFILEOPSTRUCTW);
+
 /* Moving files to the system recycle bin.
    Used by `move-file-to-trash' instead of the default moving to ~/.Trash  */
 DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
@@ -8275,6 +8280,9 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
   Lisp_Object handler;
   Lisp_Object encoded_file;
   Lisp_Object operation;
+
+  /* Required on Windows 9X.  */
+  maybe_load_unicows_dll ();
 
   operation = Qdelete_file;
   if (!NILP (Ffile_directory_p (filename))
@@ -8324,7 +8332,10 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
 	    | FOF_NOERRORUI | FOF_NO_CONNECTED_ELEMENTS;
 	  file_op_w.fAnyOperationsAborted = FALSE;
 
-	  result = SHFileOperationW (&file_op_w);
+	  /* This is stated to exist on all versions of Windows NT Emacs
+	     supports.  */
+	  eassert (pfnSHFileOperationW);
+	  result = (*pfnSHFileOperationW) (&file_op_w);
 	}
       else
 	{
@@ -8388,6 +8399,10 @@ If optional parameter FRAME is not specified, use selected frame.  */)
 
   return Qnil;
 }
+
+#ifndef CYGWIN
+static BOOL (WINAPI *pfnShellExecuteExW) (LPSHELLEXECUTEINFOW);
+#endif /* !CYGWIN */
 
 DEFUN ("w32-shell-execute", Fw32_shell_execute, Sw32_shell_execute, 2, 4, 0,
        doc: /* Get Windows to perform OPERATION on DOCUMENT.
@@ -8539,6 +8554,9 @@ a ShowWindow flag:
   const int file_url_len = sizeof (file_url_str) - 1;
   int doclen;
 
+  /* Required on Windows 9X.  */
+  maybe_load_unicows_dll ();
+
   if (strncmp (SSDATA (document), file_url_str, file_url_len) == 0)
     {
       /* Passing "file:///" URLs to ShellExecute causes shlwapi.dll to
@@ -8598,7 +8616,7 @@ a ShowWindow flag:
   doc_w = xmalloc (doclen * sizeof (wchar_t));
   pMultiByteToWideChar (CP_UTF8, multiByteToWideCharFlags,
 			SSDATA (document), -1, doc_w, doclen);
-  if (use_unicode)
+  if (use_unicode && pfnShellExecuteExW)
     {
       wchar_t current_dir_w[MAX_PATH];
       SHELLEXECUTEINFOW shexinfo_w;
@@ -8650,7 +8668,7 @@ a ShowWindow flag:
       shexinfo_w.lpDirectory = current_dir_w;
       shexinfo_w.nShow =
 	(FIXNUMP (show_flag) ? XFIXNUM (show_flag) : SW_SHOWDEFAULT);
-      success = ShellExecuteExW (&shexinfo_w);
+      success = (*pfnShellExecuteExW) (&shexinfo_w);
       xfree (doc_w);
     }
   else
@@ -9121,6 +9139,7 @@ and width values are in pixels.
   menu_bar.cbSize = sizeof (menu_bar);
   menu_bar.rcBar.right = menu_bar.rcBar.left = 0;
   menu_bar.rcBar.top = menu_bar.rcBar.bottom = 0;
+
   GetMenuBarInfo (FRAME_W32_WINDOW (f), 0xFFFFFFFD, 0, &menu_bar);
   single_menu_bar_height = GetSystemMetrics (SM_CYMENU);
   wrapped_menu_bar_height = GetSystemMetrics (SM_CYMENUSIZE);
@@ -10007,6 +10026,8 @@ Internal use only.  */)
 
 #if defined WINDOWSNT && !defined HAVE_DBUS
 
+static BOOL (WINAPI *pfnShell_NotifyIconW) (DWORD, PNOTIFYICONDATAW);
+
 /***********************************************************************
 			  Tray notifications
  ***********************************************************************/
@@ -10273,7 +10294,7 @@ add_tray_notification (struct frame *f, const char *icon, const char *tip,
 	    }
 	}
 
-      if (!Shell_NotifyIconW (NIM_ADD, (PNOTIFYICONDATAW)&nidw))
+      if (!(*pfnShell_NotifyIconW) (NIM_ADD, (PNOTIFYICONDATAW)&nidw))
 	{
 	  /* GetLastError returns meaningless results when
 	     Shell_NotifyIcon fails.  */
@@ -10305,7 +10326,7 @@ delete_tray_notification (struct frame *f, int id)
       nidw.hWnd = FRAME_W32_WINDOW (f);
       nidw.uID = id;
 
-      if (!Shell_NotifyIconW (NIM_DELETE, (PNOTIFYICONDATAW)&nidw))
+      if (!(*pfnShell_NotifyIconW) (NIM_DELETE, (PNOTIFYICONDATAW)&nidw))
 	{
 	  /* GetLastError returns meaningless results when
 	     Shell_NotifyIcon fails.  */
@@ -10372,8 +10393,8 @@ The following parameters are supported:
                     characters long, and will be truncated if it's longer.
 
 Note that versions of Windows before W2K support only `:icon' and `:tip'.
-You can pass the other parameters, but they will be ignored on those
-old systems.
+You can pass the other parameters, but they will be ignored on
+those old systems.
 
 There can be at most one active notification at any given time.  An
 active notification must be removed by calling `w32-notification-close'
@@ -10389,7 +10410,10 @@ usage: (w32-notification-notify &rest PARAMS)  */)
   enum NI_Severity severity;
   unsigned timeout = 0;
 
-  if (nargs == 0)
+  /* Required on Windows 9X.  */
+  maybe_load_unicows_dll ();
+
+  if (nargs == 0 || !pfnShell_NotifyIconW)
     return Qnil;
 
   arg_plist = Flist (nargs, args);
@@ -10448,7 +10472,7 @@ DEFUN ("w32-notification-close",
 {
   struct frame *f = SELECTED_FRAME ();
 
-  if (FIXNUMP (id))
+  if (FIXNUMP (id) && !pfnShell_NotifyIconW)
     delete_tray_notification (f, XFIXNUM (id));
 
   return Qnil;
@@ -11284,7 +11308,7 @@ typedef USHORT (WINAPI * CaptureStackBackTrace_proc) (ULONG, ULONG, PVOID *,
    configure.ac.  */
 #if defined MINGW_W64 && EMACS_INT_MAX > LONG_MAX
 # define DEFAULT_IMAGE_BASE (ptrdiff_t)0x400000000
-#else	/* 32-bit MinGW build */
+#elif !defined CYGWIN	/* 32-bit MinGW build */
 # define DEFAULT_IMAGE_BASE (ptrdiff_t)0x01000000
 #endif
 
@@ -11499,7 +11523,7 @@ globals_of_w32fns (void)
     get_proc_addr (wtsapi32_lib, "WTSRegisterSessionNotification");
   WTSUnRegisterSessionNotification_fn = (WTSUnRegisterSessionNotification_Proc)
     get_proc_addr (wtsapi32_lib, "WTSUnRegisterSessionNotification");
-#endif
+#endif /* WINDOWSNT */
 
   /* Support OS dark mode on Windows 10 version 1809 and higher.
      See `w32_applytheme' which uses appropriate APIs per version of Windows.
@@ -11579,6 +11603,32 @@ Changing the value takes effect only for frames created after the change.  */);
 
   syms_of_w32uniscribe ();
 }
+
+#ifdef WINDOWSNT
+
+/* Initialize pointers to functions whose real implementations exist in
+   UNICOWS.DLL on Windows 9X.  UNICOWS should be a pointer to a loaded
+   handle referencing UNICOWS.DLL, or NULL on Windows NT systems.  */
+
+void
+load_unicows_dll_for_w32fns (HMODULE unicows)
+{
+  if (!unicows)
+    /* The functions following are defined by SHELL32.DLL onw Windows
+       NT.  */
+    unicows = GetModuleHandle ("shell32");
+
+  pfnSHFileOperationW
+    = (void *) get_proc_addr (unicows, "SHFileOperationW");
+  pfnShellExecuteExW
+    = (void *) get_proc_addr (unicows, "ShellExecuteExW");
+#ifndef HAVE_DBUS
+  pfnShell_NotifyIconW
+    = (void *) get_proc_addr (unicows, "Shell_NotifyIconW");
+#endif /* !HAVE_DBUS */
+}
+
+#endif /* WINDOWSNT */
 
 #ifdef NTGUI_UNICODE
 

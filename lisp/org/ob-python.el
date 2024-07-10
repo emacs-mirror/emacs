@@ -279,7 +279,7 @@ be removed after minimum supported version reaches emacs29."
 This checks `org-babel-python-command', and then
 `org-babel-python-command-session' (if IS-SESSION) or
 `org-babel-python-command-nonsession' (if not IS-SESSION).  If
-IS-SESSION, this might return `nil', which means to use
+IS-SESSION, this might return nil, which means to use
 `python-shell-calculate-command'."
   (or (unless (eq org-babel-python-command 'auto)
         org-babel-python-command)
@@ -300,7 +300,7 @@ unless the Python session was created outside Org."
 (defun org-babel-python-initiate-session-by-key (&optional session)
   "Initiate a python session.
 If there is not a current inferior-process-buffer matching
-SESSION then create it. If inferior process already
+SESSION then create it.  If inferior process already
 exists (e.g. if it was manually started with `run-python'), make
 sure it's configured to work with ob-python.  If session has
 already been configured as such, do nothing.  Return the
@@ -356,7 +356,7 @@ initialized session."
 (defun org-babel-python-initiate-session (&optional session _params)
   "Initiate Python session named SESSION according to PARAMS.
 If there is not a current inferior-process-buffer matching
-SESSION then create it. If inferior process already
+SESSION then create it.  If inferior process already
 exists (e.g. if it was manually started with `run-python'), make
 sure it's configured to work with ob-python.  If session has
 already been configured as such, do nothing."
@@ -537,7 +537,7 @@ Returns a placeholder string for insertion, to later be replaced
 by `org-babel-comint-async-filter'."
   (org-babel-comint-async-register
    session (current-buffer)
-   "ob_comint_async_python_\\(.+\\)_\\(.+\\)"
+   "ob_comint_async_python_\\(start\\|end\\|file\\)_\\(.+\\)"
    'org-babel-chomp 'org-babel-python-async-value-callback)
   (pcase result-type
     (`output

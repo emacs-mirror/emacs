@@ -1075,13 +1075,39 @@ _GL_CXXALIASWARN (getw);
 # endif
 #endif
 
+#if @GNULIB_OBSTACK_ZPRINTF@
+struct obstack;
+/* Grows an obstack with formatted output.  Returns the number of
+   bytes added to OBS.  No trailing nul byte is added, and the
+   object should be closed with obstack_finish before use.
+   Upon memory allocation error, calls obstack_alloc_failed_handler.
+   Upon other error, returns -1 with errno set.
+
+   Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure code is through
+   obstack_alloc_failed_handler.  */
+_GL_FUNCDECL_SYS (obstack_zprintf, ptrdiff_t,
+                  (struct obstack *obs, const char *format, ...)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_SYS (obstack_zprintf, ptrdiff_t,
+                  (struct obstack *obs, const char *format, ...));
+_GL_FUNCDECL_SYS (obstack_vzprintf, ptrdiff_t,
+                  (struct obstack *obs, const char *format, va_list args)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_SYS (obstack_vzprintf, ptrdiff_t,
+                  (struct obstack *obs, const char *format, va_list args));
+#endif
+
 #if @GNULIB_OBSTACK_PRINTF@ || @GNULIB_OBSTACK_PRINTF_POSIX@
 struct obstack;
-/* Grow an obstack with formatted output.  Return the number of
+/* Grows an obstack with formatted output.  Returns the number of
    bytes added to OBS.  No trailing nul byte is added, and the
-   object should be closed with obstack_finish before use.  Upon
-   memory allocation error, call obstack_alloc_failed_handler.  Upon
-   other error, return -1.  */
+   object should be closed with obstack_finish before use.
+   Upon memory allocation error, calls obstack_alloc_failed_handler.
+   Upon other error, returns -1.  */
 # if @REPLACE_OBSTACK_PRINTF@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define obstack_printf rpl_obstack_printf
@@ -1433,7 +1459,31 @@ _GL_CXXALIASWARN (scanf);
 # endif
 #endif
 
+#if @GNULIB_ZSNPRINTF@
+/* Prints formatted output to string STR.  Similar to sprintf, but the
+   additional parameter SIZE limits how much is written into STR.
+   STR may be NULL, in which case nothing will be written.
+   Returns the string length of the formatted string (which may be larger
+   than SIZE).  Upon failure, returns -1 with errno set.
+   Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure code is ENOMEM.  */
+_GL_FUNCDECL_SYS (zsnprintf, ptrdiff_t,
+                  (char *restrict str, size_t size,
+                   const char *restrict format, ...)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (3, 4)
+                  _GL_ARG_NONNULL ((3)));
+_GL_CXXALIAS_SYS (zsnprintf, ptrdiff_t,
+                  (char *restrict str, size_t size,
+                   const char *restrict format, ...));
+#endif
+
 #if @GNULIB_SNPRINTF@
+/* Prints formatted output to string STR.  Similar to sprintf, but the
+   additional parameter SIZE limits how much is written into STR.
+   STR may be NULL, in which case nothing will be written.
+   Returns the string length of the formatted string (which may be larger
+   than SIZE).  Upon failure, returns a negative value.  */
 # if @REPLACE_SNPRINTF@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define snprintf rpl_snprintf
@@ -1470,6 +1520,23 @@ _GL_WARN_ON_USE (snprintf, "snprintf is unportable - "
 # endif
 #endif
 
+#if @GNULIB_ZSPRINTF@
+/* Prints formatted output to string STR.
+   Returns the string length of the formatted string.  Upon failure,
+   returns -1 with errno set.
+   Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure code is ENOMEM.  */
+_GL_FUNCDECL_SYS (zsprintf, ptrdiff_t,
+                  (char *restrict str,
+                   const char *restrict format, ...)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_SYS (zsprintf, ptrdiff_t,
+                  (char *restrict str,
+                   const char *restrict format, ...));
+#endif
+
 /* Some people would argue that all sprintf uses should be warned about
    (for example, OpenBSD issues a link warning for it),
    since it can cause security holes due to buffer overruns.
@@ -1480,6 +1547,9 @@ _GL_WARN_ON_USE (snprintf, "snprintf is unportable - "
    GNULIB_POSIXCHECK is defined.  */
 
 #if @GNULIB_SPRINTF_POSIX@
+/* Prints formatted output to string STR.
+   Returns the string length of the formatted string.  Upon failure,
+   returns a negative value.  */
 # if @REPLACE_SPRINTF@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define sprintf rpl_sprintf
@@ -1557,6 +1627,29 @@ _GL_WARN_ON_USE (tmpfile, "tmpfile is not usable on mingw - "
                  "use gnulib module tmpfile for portability");
 #  endif
 # endif
+#endif
+
+#if @GNULIB_VAZSPRINTF@
+/* Prints formatted output to a string dynamically allocated with malloc().
+   If the memory allocation succeeds, it stores the address of the string in
+   *RESULT and returns the number of resulting bytes, excluding the trailing
+   NUL.  Upon memory allocation error, or some other error, it returns -1
+   with errno set.
+   Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure code is ENOMEM.  */
+_GL_FUNCDECL_SYS (azsprintf, ptrdiff_t,
+                  (char **result, const char *format, ...)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_SYS (azsprintf, ptrdiff_t,
+                  (char **result, const char *format, ...));
+_GL_FUNCDECL_SYS (vazsprintf, ptrdiff_t,
+                  (char **result, const char *format, va_list args)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_SYS (vazsprintf, ptrdiff_t,
+                  (char **result, const char *format, va_list args));
 #endif
 
 #if @GNULIB_VASPRINTF@
@@ -1769,7 +1862,31 @@ _GL_CXXALIASWARN (vscanf);
 # endif
 #endif
 
+#if @GNULIB_VZSNPRINTF@
+/* Prints formatted output to string STR.  Similar to sprintf, but the
+   additional parameter SIZE limits how much is written into STR.
+   STR may be NULL, in which case nothing will be written.
+   Returns the string length of the formatted string (which may be larger
+   than SIZE).  Upon failure, returns -1 with errno set.
+   Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure code is ENOMEM.  */
+_GL_FUNCDECL_SYS (vzsnprintf, ptrdiff_t,
+                  (char *restrict str, size_t size,
+                   const char *restrict format, va_list args)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (3, 0)
+                  _GL_ARG_NONNULL ((3)));
+_GL_CXXALIAS_SYS (vzsnprintf, ptrdiff_t,
+                  (char *restrict str, size_t size,
+                   const char *restrict format, va_list args));
+#endif
+
 #if @GNULIB_VSNPRINTF@
+/* Prints formatted output to string STR.  Similar to vsprintf, but the
+   additional parameter SIZE limits how much is written into STR.
+   STR may be NULL, in which case nothing will be written.
+   Returns the string length of the formatted string (which may be larger
+   than SIZE).  Upon failure, returns a negative value.  */
 # if @REPLACE_VSNPRINTF@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define vsnprintf rpl_vsnprintf
@@ -1806,7 +1923,27 @@ _GL_WARN_ON_USE (vsnprintf, "vsnprintf is unportable - "
 # endif
 #endif
 
+#if @GNULIB_VZSPRINTF@
+/* Prints formatted output to string STR.
+   Returns the string length of the formatted string.  Upon failure,
+   returns -1 with errno set.
+   Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure code is ENOMEM.  */
+_GL_FUNCDECL_SYS (vzsprintf, ptrdiff_t,
+                  (char *restrict str,
+                   const char *restrict format, va_list args)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_SYS (vzsprintf, ptrdiff_t,
+                  (char *restrict str,
+                   const char *restrict format, va_list args));
+#endif
+
 #if @GNULIB_VSPRINTF_POSIX@
+/* Prints formatted output to string STR.
+   Returns the string length of the formatted string.  Upon failure,
+   returns a negative value.  */
 # if @REPLACE_VSPRINTF@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define vsprintf rpl_vsprintf

@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.7.0
+@subtitle for version 0.7.2
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.7.0.
+This manual is for Transient version 0.7.2.
 
 @insertcopying
 @end ifnottex
@@ -1208,7 +1208,10 @@ prefix's @code{transient--layout} property, but it is often more convenient
 to use the same form as understood by @code{transient-define-prefix},
 described below.  If you use the latter approach, you can use the
 @code{transient-parse-suffixes} and @code{transient-parse-suffix} functions to
-transform them from the convenient to the expected form.
+transform them from the convenient to the expected form.  Depending
+on the used group class, @code{transient-parse-suffixes}'s SUFFIXES must be
+a list of group vectors (for @code{transient-columns}) or a list of suffix
+lists (for all other group classes).
 
 If you explicitly specify children and then transform them using
 @code{:setup-children}, then the class of the group is determined as usual,
@@ -1219,6 +1222,32 @@ If you do not explicitly specify children and thus rely solely on
 For backward compatibility, if you fail to do so, @code{transient-column}
 is used and a warning is displayed.  This warning will eventually
 be replaced with an error.
+
+@lisp
+(transient-define-prefix my-finder-by-keyword ()
+  "Select a keyword and list matching packages."
+  ;; The real `finder-by-keyword' is more convenient
+  ;; of course, but that is not the point here.
+  [:class transient-columns
+   :setup-children
+   (lambda (_)
+     (transient-parse-suffixes
+      'my-finder-by-keyword
+      (let ((char (1- ?A)))
+        (mapcar                  ; a list ...
+         (lambda (partition)
+           (vconcat              ; of group vectors ...
+            (mapcar (lambda (elt)
+                      (let ((keyword (symbol-name (car elt))))
+                                 ; ... where each suffix is a list
+                        (list (format "%c" (cl-incf char))
+                              keyword
+                              (lambda ()
+                                (interactive)
+                                (finder-list-matches keyword)))))
+                    partition)))
+         (seq-partition finder-known-keywords 7)))))])
+@end lisp
 
 @item
 The boolean @code{:pad-keys} argument controls whether keys of all suffixes

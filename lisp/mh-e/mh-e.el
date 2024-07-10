@@ -1104,7 +1104,7 @@ and GNU mailutils."
   :package-version '(MH-E . "8.0"))
 
 (defgroup mh-tool-bar nil
-  "The tool bar"
+  "The tool bar."
   :link '(custom-manual "(mh-e)Tool Bar")
   :prefix "mh-"
   :group 'mh-e

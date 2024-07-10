@@ -302,6 +302,13 @@ a pure white space string to the kill ring, you can say:
 non-@code{nil} value, identical subsequent kills yield a single
 kill-ring entry, without duplication.
 
+@findex kill-ring-deindent-mode
+  If you enable the minor mode @code{kill-ring-deindent-mode}, text
+saved to the kill-ring will have its indentation decreased by the amount
+of indentation of the first saved line.  That is, if the first line of
+the saved text was indented @var{n} columns, this mode will remove that
+number of columns from the indentation of each saved line.
+
 @node Yanking
 @section Yanking
 @cindex moving text

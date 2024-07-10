@@ -1161,6 +1161,7 @@ Signal an error if the entire string was not used."
 (declare-function lm-keywords-list "lisp-mnt" (&optional file))
 (declare-function lm-maintainers "lisp-mnt" (&optional file))
 (declare-function lm-authors "lisp-mnt" (&optional file))
+(declare-function lm-package-needs-footer-line "lisp-mnt" (&optional file))
 
 (defun package-buffer-info ()
   "Return a `package-desc' describing the package in the current buffer.
@@ -1174,23 +1175,18 @@ boundaries."
   (let ((file-name (match-string-no-properties 1))
         (desc      (match-string-no-properties 2))
         (start     (line-beginning-position)))
+    (require 'lisp-mnt)
     ;; This warning was added in Emacs 27.1, and should be removed at
     ;; the earliest in version 31.1.  The idea is to phase out the
     ;; requirement for a "footer line" without unduly impacting users
     ;; on earlier Emacs versions.  See Bug#26490 for more details.
     (unless (search-forward (concat ";;; " file-name ".el ends here") nil 'move)
-      ;; Starting in Emacs 30.1, avoid warning if the minimum Emacs
-      ;; version is specified as 30.1 or later.
-      (let ((min-emacs (cadar (seq-filter (lambda (x) (eq (car x) 'emacs))
-                                          (lm-package-requires)))))
-        (when (or (null min-emacs)
-                  (version< min-emacs "30.1"))
-          (lwarn '(package package-format) :warning
-                 "Package lacks a terminating comment"))))
+      (when (lm-package-needs-footer-line)
+        (lwarn '(package package-format) :warning
+               "Package lacks a terminating comment")))
     ;; Try to include a trailing newline.
     (forward-line)
     (narrow-to-region start (point))
-    (require 'lisp-mnt)
     ;; Use some headers we've invented to drive the process.
     (let* (;; Prefer Package-Version; if defined, the package author
            ;; probably wants us to use it.  Otherwise try Version.

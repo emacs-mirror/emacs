@@ -36,6 +36,76 @@ applies, and please also update docstrings as needed.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Whitespace
+
+---
+*** 'whitespace-cleanup' now adds missing newline at end of file.
+If 'whitespace-style' includes 'missing-newline-at-eof (which is the
+default), the 'whitespace-cleanup' function will now add the newline.
+
+** Eshell
+
+---
+*** New option 'eshell-command-async-buffer'.
+This option lets you tell 'eshell-command' how to respond if its output
+buffer is already in use by another invocation of 'eshell-command', much
+like 'async-shell-command-buffer' does for 'shell-command'.  By default,
+this will prompt for confirmation before creating a new buffer when
+necessary.  To restore the previous behavior, set this option to
+'confirm-kill-process'.
+
++++
+*** Eshell's built-in "wait" command now accepts a timeout.
+By passing "-t" or "--timeout", you can specify a maximum time to wait
+for the processes to exit.  Additionally, you can now wait for external
+processes by passing their PIDs.
+
+** SHR
+
++++
+*** SHR now slices large images into rows.
+Sliced images allow for more intuitive scrolling up/down by letting you
+scroll past each slice, instead of jumping past the entire image.
+Previously, SHR sliced images when zoomed to their original size, no
+matter how large or small that was).  Now, SHR slices any images taller
+than 'shr-sliced-image-height'.  For more information, see the "(eww)
+Advanced" node in the EWW manual.
+
+---
+*** You can now customize the image zoom levels to cycle through.
+By customizing 'shr-image-zoom-levels', you can change the list of zoom
+levels that SHR cycles through when calling 'shr-zoom-image'.
+
+** Emacs Lisp mode
+
+---
+*** Checkdoc no longer warns about missing footer lines in some cases.
+Emacs Lisp libraries have traditionally ended with a footer line
+(sometimes referred to as "terminating comment").  Their purpose was to
+easily detect files that had been truncated in transit on ancient and
+less reliable connections:
+
+    ;; some-cool-package.el ends here
+
+'checkdoc' will no longer warn if that line is missing for packages that
+explicitly only support Emacs 30.1 or later, as specified in the
+"Package-Requires" header.  The reason for keeping the warning for
+packages that support earlier versions of Emacs is that package.el in
+those versions can't install packages where that line is missing.
+
+This change affects both 'M-x checkdoc' and the corresponding flymake
+backend.
+
+---
+*** Checkdoc will now flag incorrect formatting in warnings.
+This affects calls to 'warn', 'lwarn', 'display-warning', and
+'message-box'.
+
+---
+*** The default of 'checkdoc-verb-check-experimental-flag' is now nil.
+In most cases, having it enabled leads to a large amount of false
+positives.
+
 
 * New Modes and Packages in Emacs 31.1
 
@@ -45,8 +115,20 @@ applies, and please also update docstrings as needed.
 
 * Lisp Changes in Emacs 31.1
 
++++
+*** Support interactive D-Bus authorization.
+A new ':authorizable t' parameter has been added to 'dbus-call-method'
+and 'dbus-call-method-asynchronously' to allow the user to interactively
+authorize the invoked D-Bus method (e.g., via polkit).
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
+
+---
+** Process execution has been optimized on Android.
+The run-time performance of subprocesses on recent Android releases
+where a userspace executable loader is required has been optimized on
+systems featuring Linux 3.5.0 and above.
 
 
 ----------------------------------------------------------------------

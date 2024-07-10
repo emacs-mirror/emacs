@@ -256,7 +256,7 @@ specifying a region in the current buffer, or (:file . FILENAME)
 to temporarily insert the contents of FILENAME.
 
 Before executing BODY, narrow the buffer to the text for COMMAND
-and and set point to the beginning of the narrowed region.
+and set point to the beginning of the narrowed region.
 
 The value returned is the last form in BODY."
   (declare (indent 1))
@@ -288,7 +288,7 @@ The value returned is the last form in BODY."
 (defun eshell-find-delimiter
   (open close &optional bound reverse-p backslash-p)
   "From point, find the CLOSE delimiter corresponding to OPEN.
-The matching is bounded by BOUND. If REVERSE-P is non-nil,
+The matching is bounded by BOUND.  If REVERSE-P is non-nil,
 process the region backwards.
 
 If BACKSLASH-P is non-nil, or OPEN and CLOSE are different

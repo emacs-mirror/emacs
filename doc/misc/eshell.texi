@@ -1201,8 +1201,11 @@ or a string, referring to an environment variable.
 
 @cmindex wait
 @cindex processes, waiting for
-@item wait [@var{process}]@dots{}
-Wait until each specified @var{process} has exited.
+@item wait [-t @var{timeout}] [@var{process}]@dots{}
+Wait until each specified @var{process} has exited.  Processes can
+either be process objects (@pxref{Processes, , , elisp, GNU Emacs Lisp
+Reference Manual}) or integer PIDs.  If you pass @code{-t} or
+@code{--timeout}, wait at most that many seconds before exiting.
 
 @cmindex which
 @item which @var{command}@dots{}

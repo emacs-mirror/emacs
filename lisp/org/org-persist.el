@@ -666,7 +666,14 @@ When INNER is non-nil, do not try to match as list of containers."
                                 (fboundp 'file-attribute-inode-number))
                        (file-attribute-inode-number
                         (file-attributes file))))
-         (setq hash (secure-hash 'md5 associated))
+         (setq hash
+               ;; `secure-hash' may trigger interactive dialog when it
+               ;; cannot determine the coding system automatically.
+               ;; Force coding system that works reliably for any text
+               ;; to avoid it.  The has will be consistent anyway, as
+               ;; long as we use the same coding system.
+               (let ((coding-system-for-write 'emacs-internal))
+                 (secure-hash 'md5 associated)))
          (puthash associated
                   (list (buffer-modified-tick associated)
                         file inode hash)

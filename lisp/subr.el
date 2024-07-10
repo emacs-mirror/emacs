@@ -3338,7 +3338,15 @@ only unbound fallback disabled is downcasing of the last event."
                       ;; though read-key-sequence thinks we should wait
                       ;; for more input to decide how to interpret the
                       ;; current input.
-                      (throw 'read-key keys)))))))
+		      ;;
+		      ;; As this treatment will completely defeat the
+		      ;; purpose of touch screen event conversion,
+		      ;; dispense with this timeout when the first
+		      ;; event in this vector is a touch-screen event.
+		      (unless (memq (car-safe (aref keys 0)) '(touchscreen-begin
+							       touchscreen-update
+							       touchscreen-end))
+			(throw 'read-key keys))))))))
     (unwind-protect
         (progn
 	  (use-global-map

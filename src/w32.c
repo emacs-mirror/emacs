@@ -10624,6 +10624,7 @@ maybe_load_unicows_dll (void)
 	  pWideCharToMultiByte = (WideCharToMultiByte_Proc)
             get_proc_addr (ret, "WideCharToMultiByte");
           multiByteToWideCharFlags = MB_ERR_INVALID_CHARS;
+	  load_unicows_dll_for_w32fns (ret);
 	  return ret;
 	}
       else
@@ -10658,6 +10659,7 @@ maybe_load_unicows_dll (void)
         multiByteToWideCharFlags = 0;
       else
         multiByteToWideCharFlags = MB_ERR_INVALID_CHARS;
+      load_unicows_dll_for_w32fns (NULL);
       return LoadLibrary ("Gdi32.dll");
     }
 }
@@ -10967,10 +10969,6 @@ globals_of_w32 (void)
 #endif
 
   w32_crypto_hprov = (HCRYPTPROV)0;
-
-  /* We need to forget about libraries that were loaded during the
-     dumping process (e.g. libgccjit) */
-  Vlibrary_cache = Qnil;
 }
 
 /* For make-serial-process  */

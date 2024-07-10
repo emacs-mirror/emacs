@@ -1,7 +1,6 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1997, 2000-2024 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -71,8 +70,8 @@
 ;; ;;	Eric S. Raymond <esr@thyrsus.com>
 ;;
 ;;    * Maintainer line --- should be a single name/address as in the Author
-;; line, or an address only.  If there is no maintainer
-;; line, the person(s) in the Author field are presumed to be it.
+;; line, or an address only.  If there is no maintainer line, the person(s) in
+;; the Author field are presumed to be it.
 ;;    The idea behind these two fields is to be able to write a Lisp function
 ;; that does "send mail to the author" without having to mine the name out by
 ;; hand.  Please be careful about surrounding the network address with <> if
@@ -106,8 +105,10 @@
 ;;    * Code line --- exists so Lisp can know where commentary and/or
 ;; change-log sections end.
 ;;
-;;    * Footer line --- marks end-of-file so it can be distinguished from
-;; an expanded formfeed or the results of truncation.
+;;    * Footer line --- marks end-of-file so it can be distinguished
+;; from an expanded formfeed or the results of truncation.  This is
+;; required for a package to be installable by package.el in Emacs 29.1
+;; or earlier, but is optional in later versions.
 
 ;;; Code:
 
@@ -467,6 +468,29 @@ package version (a string)."
       (lm--prepare-package-dependencies
        (package-read-from-string (mapconcat #'identity require-lines " "))))))
 
+(defun lm-package-needs-footer-line (&optional file)
+  "Return non-nil if package in current buffer needs a footer line.
+
+Footer lines (sometimes referred to as \"terminating comments\") look
+like this:
+
+    ;;; some-cool-package.el ends here
+
+Such lines are required for a package to be installable by package.el in
+Emacs 29.1 or earlier, but are optional in later versions.  If the
+package depends on a version of Emacs where package.el requires such
+comments, or if no version requirement is specified, return non-nil.
+
+If optional argument FILE is non-nil, use that file instead of the
+current buffer."
+  (lm-with-file file
+    ;; Starting in Emacs 30.1, avoid warning if the minimum Emacs
+    ;; version is specified as 30.1 or later.
+    (let ((min-emacs (cadar (seq-filter (lambda (x) (eq (car x) 'emacs))
+                                        (lm-package-requires)))))
+      (or (null min-emacs)
+          (version< min-emacs "30.1")))))
+
 (defun lm-keywords (&optional file)
   "Return the keywords given in file FILE, or current buffer if FILE is nil.
 The return is a `downcase'-ed string, or nil if no keywords
@@ -533,7 +557,6 @@ absent, return nil."
     (if (and page (string-match (rx bol "<" (+ nonl) ">" eol) page))
         (substring page 1 -1)
       page)))
-(defalias 'lm-homepage #'lm-website) ; for backwards-compatibility
 
 ;;; Verification and synopses
 
@@ -552,7 +575,7 @@ says display \"OK\" in temp buffer for files that have no problems.
 Optional argument VERBOSE specifies verbosity level.
 Optional argument NON-FSF-OK if non-nil means a non-FSF
 copyright notice is allowed."
-  ;; FIXME: Make obsolete in favor of checkdoc?
+  (declare (obsolete checkdoc "31.1"))
   (interactive (list nil nil t))
   (let* ((ret (and verbose "Ok"))
 	 name)
@@ -593,11 +616,12 @@ copyright notice is allowed."
                ((not (lm-code-start))
 		"Can't find a `Code' section marker")
 	       ((progn
-		  (goto-char (point-max))
-		  (not
-		   (re-search-backward
-                    (rx bol ";;; " (regexp name) " ends here")
-                    nil t)))
+                  (when (lm-package-needs-footer-line)
+                    (goto-char (point-max))
+                    (not
+                     (re-search-backward
+                      (rx bol ";;; " (regexp name) " ends here")
+                      nil t))))
 		"Can't find the footer line")
 	       ((not (and (lm-copyright-mark) (lm-crack-copyright)))
 		"Can't find a valid copyright notice")
@@ -663,6 +687,7 @@ Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
 (define-obsolete-function-alias 'lm-code-mark #'lm-code-start "30.1")
 (define-obsolete-function-alias 'lm-commentary-mark #'lm-commentary-start "30.1")
 (define-obsolete-function-alias 'lm-history-mark #'lm-history-start "30.1")
+(define-obsolete-function-alias 'lm-homepage #'lm-website "31.1")
 
 (provide 'lisp-mnt)
 

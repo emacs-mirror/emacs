@@ -708,6 +708,11 @@ free_frame_faces (struct frame *f)
 	  --image_cache->refcount;
 	  if (image_cache->refcount == 0)
 	    free_image_cache (f);
+
+	  /* The `image_cache' field must be emptied, in case references
+	     to this dead frame should remain and be scanned by GC.
+	     (bug#71929) */
+	  FRAME_IMAGE_CACHE (f) = NULL;
 	}
     }
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -4611,8 +4616,8 @@ free_realized_face (struct frame *f, struct face *face)
 	  /* This function might be called with the frame's display
 	     connection deleted, in which event the callbacks below
 	     should not be executed, as they generate X requests.  */
-	  if (FRAME_X_DISPLAY (f))
-	    return;
+	  if (!FRAME_X_DISPLAY (f))
+	    goto free_face;
 #endif /* HAVE_X_WINDOWS */
 
 	  if (face->gc)
@@ -4631,6 +4636,9 @@ free_realized_face (struct frame *f, struct face *face)
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
 
+#ifdef HAVE_X_WINDOWS
+    free_face:
+#endif /* HAVE_X_WINDOWS */
 #ifndef HAVE_MPS
       xfree (face);
 #endif

@@ -500,7 +500,6 @@ Variables controlling indentation style and extra features:
  dcl-imenu-label-call
     Change the text that is used as sub-listing labels in imenu.
 
-To run code after DCL mode has loaded, use `with-eval-after-load'.
 Turning on DCL mode calls the value of the variable `dcl-mode-hook'
 with no args, if that value is non-nil.
 

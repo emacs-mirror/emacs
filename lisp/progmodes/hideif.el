@@ -2407,7 +2407,7 @@ first arg will be `hif-etc'."
                       'c99 t)))
        ((eq token 'hif-comma)
         (if etc
-            (error "Syntax error: no comma allowed after `...'.")))
+            (error "Syntax error: no comma allowed after `...'")))
        (t
         (push token result))))
     (setq result (nreverse result))

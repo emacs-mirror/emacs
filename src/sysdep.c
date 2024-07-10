@@ -4551,17 +4551,9 @@ does the same thing as `current-time'.  */)
 # include <wchar.h>
 # include <wctype.h>
 
-# if defined HAVE_NEWLOCALE || defined HAVE_SETLOCALE
-#  include <locale.h>
-# endif
-# ifndef LC_COLLATE
-#  define LC_COLLATE 0
-# endif
+# include <locale.h>
 # ifndef LC_COLLATE_MASK
 #  define LC_COLLATE_MASK 0
-# endif
-# ifndef LC_CTYPE
-#  define LC_CTYPE 0
 # endif
 # ifndef LC_CTYPE_MASK
 #  define LC_CTYPE_MASK 0
@@ -4595,15 +4587,11 @@ freelocale (locale_t loc)
 static char *
 emacs_setlocale (int category, char const *locale)
 {
-#  ifdef HAVE_SETLOCALE
   errno = 0;
   char *loc = setlocale (category, locale);
   if (loc || errno)
     return loc;
   errno = EINVAL;
-#  else
-  errno = ENOTSUP;
-#  endif
   return 0;
 }
 

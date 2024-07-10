@@ -210,11 +210,11 @@ from entering them and instead jump over them."
 
 (defvar erc-stamp--current-time nil
   "The current time when calling `erc-insert-timestamp-function'.
-Specifically, this is the same lisp time object used to create
+Specifically, this is the same Lisp time object used to create
 the stamp passed to `erc-insert-timestamp-function'.")
 
 (cl-defgeneric erc-stamp--current-time ()
-  "Return a lisp time object to associate with an IRC message.
+  "Return a Lisp time object to associate with an IRC message.
 This becomes the message's `erc--ts' text property."
   (erc-compat--current-lisp-time))
 

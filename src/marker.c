@@ -206,7 +206,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
     {
       CONSIDER (tail->charpos, tail->bytepos);
 
-      /* If we are down to a range of 50 chars,
+      /* If we are down to a range of DISTANCE chars,
 	 don't bother checking any other markers;
 	 scan the intervening chars directly now.  */
       if (best_above - charpos < distance
@@ -361,8 +361,8 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
       /* If we are down to a range of 50 chars,
 	 don't bother checking any other markers;
 	 scan the intervening chars directly now.  */
-      if (best_above - bytepos < distance
-          || bytepos - best_below < distance)
+      if (best_above_byte - bytepos < distance
+          || bytepos - best_below_byte < distance)
 	break;
       else
         distance += BYTECHAR_DISTANCE_INCREMENT;

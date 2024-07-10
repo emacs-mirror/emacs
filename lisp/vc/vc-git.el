@@ -2177,7 +2177,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 (defun vc-git-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-git.el.
-The difference to vc-do-command is that this function always invokes
+The difference to `vc-do-command' is that this function always invokes
 `vc-git-program'."
   (let ((coding-system-for-read
          (or coding-system-for-read vc-git-log-output-coding-system))

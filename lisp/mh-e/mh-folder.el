@@ -520,8 +520,8 @@ font-lock is done highlighting.")
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
 (define-derived-mode mh-folder-mode fundamental-mode "MH-Folder"
-  "Major MH-E mode for \"editing\" an MH folder scan listing.\\<mh-folder-mode-map>
-
+  "Major MH-E mode for \"editing\" an MH folder scan listing.
+\\<mh-folder-mode-map>
 You can show the message the cursor is pointing to, and step through
 the messages. Messages can be marked for deletion or refiling into
 another folder; these commands are executed all at once with a

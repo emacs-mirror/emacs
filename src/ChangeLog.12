@@ -5956,7 +5956,7 @@
 	Assume C89 or later for math functions (Bug#12381).
 	This simplifies the code, and makes it a bit smaller and faster,
 	and (most important) makes it easier to clean up signal handling
-	since we can stop worring about floating-point exceptions in
+	since we can stop worrying about floating-point exceptions in
 	library code.  That was a problem before C89, but the problem
 	went away many years ago on all practical Emacs targets.
 	* data.c, image.c, lread.c, print.c:

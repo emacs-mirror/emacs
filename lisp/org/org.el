@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.7.4
+;; Version: 9.7.5
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -2670,7 +2670,7 @@ is non-nil."
 
 (defcustom org-read-date-popup-calendar t
   "Non-nil means pop up a calendar when prompting for a date.
-In the calendar, the date can be selected with mouse-1.  However, the
+In the calendar, the date can be selected with \\`mouse-1'.  However, the
 minibuffer will also be active, and you can simply enter the date as well.
 When nil, only the minibuffer will be available."
   :group 'org-time
@@ -4541,6 +4541,7 @@ directory."
 			     ;; Fake Org mode: `org-element-at-point'
 			     ;; doesn't need full set-up.
 			     (let ((major-mode 'org-mode))
+                               (setq-local tab-width 8)
 			       (setq alist
 				     (org--collect-keywords-1
 				      keywords unique directory
@@ -4854,7 +4855,7 @@ Respect keys that are already there."
 (defvar org-selected-window nil
   "Used in various places to store a window configuration.")
 (defvar org-finish-function nil
-  "Function to be called when `C-c C-c' is used.
+  "Function to be called when \\`C-c C-c' is used.
 This is for getting out of special buffers like capture.")
 (defvar org-last-state)
 
@@ -11007,7 +11008,7 @@ containing the regular expression and the callback, onto the list.
 The list can contain several entries if `org-occur' has been called
 several time with the KEEP-PREVIOUS argument.  Otherwise, this list
 will only contain one set of parameters.  When the highlights are
-removed (for example with `C-c C-c', or with the next edit (depending
+removed (for example with \\`C-c C-c', or with the next edit (depending
 on `org-remove-highlights-with-change'), this variable is emptied
 as well.")
 
@@ -15434,7 +15435,7 @@ When SUPPRESS-TMP-DELAY is non-nil, suppress delays like
 (defun org-modify-ts-extra (ts-string pos nincrements increment-step)
   "Change the lead-time/repeat fields at POS in timestamp string TS-STRING.
 POS is the position in the timestamp string to be changed.
-NINCREMENTS is the number of incremenets/decrements.
+NINCREMENTS is the number of increments/decrements.
 
 INCREMENT-STEP is step used for a single increment when POS in on
 minutes.  Before incrementing minutes, they are rounded to
@@ -17086,7 +17087,7 @@ Set `org-speed-command' to the appropriate command as a side effect."
 		(make-string 1 (aref kv (1- (length kv)))))))))
 
 (defun org-self-insert-command (N)
-  "Like `self-insert-command', use overwrite-mode for whitespace in tables.
+  "Like `self-insert-command', use `overwrite-mode' for whitespace in tables.
 If the cursor is in a table looking at whitespace, the whitespace is
 overwritten, and the table is not marked as requiring realignment."
   (interactive "p")
@@ -17235,9 +17236,9 @@ word constituents."
     (call-interactively 'transpose-words)))
 
 (defvar org-ctrl-c-ctrl-c-hook nil
-  "Hook for functions attaching themselves to `C-c C-c'.
+  "Hook for functions attaching themselves to \\`C-c C-c'.
 
-This can be used to add additional functionality to the `C-c C-c'
+This can be used to add additional functionality to the \\`C-c C-c'
 key which executes context-dependent commands.  This hook is run
 before any other test, while `org-ctrl-c-ctrl-c-final-hook' is
 run after the last test.
@@ -17248,9 +17249,9 @@ it should do its thing and then return a non-nil value.  If the
 context is wrong, just do nothing and return nil.")
 
 (defvar org-ctrl-c-ctrl-c-final-hook nil
-  "Hook for functions attaching themselves to `C-c C-c'.
+  "Hook for functions attaching themselves to \\`C-c C-c'.
 
-This can be used to add additional functionality to the `C-c C-c'
+This can be used to add additional functionality to the \\`C-c C-c'
 key which executes context-dependent commands.  This hook is run
 after any other test, while `org-ctrl-c-ctrl-c-hook' is run
 before the first test.
@@ -19064,7 +19065,7 @@ appear in the form of file names, tags, todo states or search strings.
 If you answer \"yes\" to the prompt, you might want to check and remove
 such private information before sending the email.")
 	 (add-text-properties (point-min) (point-max) '(face org-warning))
-	 (when (yes-or-no-p "Include your Org configuration and Org warning log ")
+         (when (yes-or-no-p "Include your Org configuration and Org warning log?")
 	   (mapatoms
 	    (lambda (v)
 	      (and (boundp v)
@@ -21802,7 +21803,7 @@ It also provides the following special moves for convenience:
     arg))
 
 (defvar org--single-lines-list-is-paragraph t
-  "Treat plain lists with single line items as a whole paragraph")
+  "Treat plain lists with single line items as a whole paragraph.")
 
 (defun org--paragraph-at-point ()
   "Return paragraph, or equivalent, element at point.

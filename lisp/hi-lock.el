@@ -122,9 +122,10 @@ calls."
   "Specify when hi-lock should use patterns found in file.
 If `ask', prompt when patterns found in buffer; if bound to a function,
 use patterns when function returns t (function is called with patterns
-as first argument); if nil or `never' or anything else, don't use file
-patterns."
+as first argument); if `always', use file patterns without prompt;
+if nil or `never' or anything else, don't use file patterns."
   :type '(choice (const :tag "Do not use file patterns" never)
+                 (const :tag "Always use file patterns" always)
                  (const :tag "Ask about file patterns" ask)
                  (function :tag "Function to check file patterns"))
   :group 'hi-lock
@@ -334,8 +335,8 @@ which can be called interactively, are:
   (See `font-lock-keywords'.)  They may be edited and re-loaded with \\[hi-lock-find-patterns],
   any valid `font-lock-keywords' form is acceptable.  When a file is
   loaded the patterns are read if `hi-lock-file-patterns-policy' is
-  `ask' and the user responds y to the prompt, or if
-  `hi-lock-file-patterns-policy' is bound to a function and that
+  `always', or if it's `ask' and the user responds y to the prompt,
+  or if `hi-lock-file-patterns-policy' is bound to a function and that
   function returns t.
 
 \\[hi-lock-find-patterns]
@@ -768,6 +769,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
   ;; Hashcons the regexp, so it can be passed to remove-overlays later.
   (setq regexp (hi-lock--hashcons regexp))
   (setq subexp (or subexp 0))
+  (when lighter (setq lighter (propertize lighter 'regexp regexp)))
   (let ((pattern (list (lambda (limit)
                          (let ((case-fold-search case-fold)
                                (search-spaces-regexp spaces-regexp))
@@ -852,6 +854,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
                    (funcall hi-lock-file-patterns-policy all-patterns))
                   ((eq hi-lock-file-patterns-policy 'ask)
                    (y-or-n-p "Add patterns from this buffer to hi-lock? "))
+                  ((eq hi-lock-file-patterns-policy 'always) t)
                   (t nil)))
         (hi-lock-set-file-patterns all-patterns)
         (if (called-interactively-p 'interactive)
@@ -866,12 +869,31 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
 (defun hi-lock-revert-buffer-rehighlight ()
   "Rehighlight hi-lock patterns after `revert-buffer'.
 Apply the previous patterns after reverting the buffer."
-  (when-let ((patterns hi-lock-interactive-lighters))
-    (lambda ()
-      (when hi-lock-interactive-lighters
-        (hi-lock-unface-buffer t))
-      (dolist (pattern (reverse patterns))
-        (highlight-regexp (car pattern) (cadr (nth 1 (caddr pattern))))))))
+  (when (or hi-lock-interactive-lighters hi-lock-file-patterns)
+    (let ((patterns hi-lock-interactive-lighters)
+          (policy (if hi-lock-file-patterns 'always 'never))
+          rehighlight)
+      (lambda ()
+        ;; When using revert-buffer without preserve-modes
+        (unless hi-lock-mode
+          ;; Don't ask about file patterns again
+          (let ((hi-lock-file-patterns-policy policy))
+            (hi-lock-mode 1))
+          (setq rehighlight t))
+        ;; When using hi-lock overlays, then need to update them
+        (unless (and font-lock-mode (font-lock-specified-p major-mode)
+                     (not hi-lock-use-overlays))
+          (hi-lock-unface-buffer t)
+          (setq rehighlight t))
+        (when rehighlight
+          (setq hi-lock--unused-faces hi-lock-face-defaults)
+          (dolist (pattern (reverse patterns))
+            (let ((face (hi-lock-keyword->face (cdr pattern))))
+              (highlight-regexp (or (get-text-property 0 'regexp (car pattern))
+                                    (car pattern))
+                                face)
+              (setq hi-lock--unused-faces
+                    (remove (face-name face) hi-lock--unused-faces)))))))))
 
 (defvar hi-lock--hashcons-hash
   (make-hash-table :test 'equal :weakness t)

@@ -1041,7 +1041,7 @@ headlines as the agenda display heavily relies on them."
   :type 'hook)
 
 (defcustom org-agenda-mouse-1-follows-link nil
-  "Non-nil means mouse-1 on a link will follow the link in the agenda.
+  "Non-nil means \\`mouse-1' on a link will follow the link in the agenda.
 A longer mouse click will still set point.  Needs to be set
 before org.el is loaded."
   :group 'org-agenda-startup
@@ -1100,7 +1100,7 @@ removed from entry text before it is shown in the agenda."
   :type 'string)
 
 (defcustom org-agenda-start-with-archives-mode nil
-  "Initial value of archive-mode in a newly created agenda window.
+  "Initial value of archive mode in a newly created agenda window.
 See `org-agenda-archives-mode' for acceptable values and their
 meaning."
   :group 'org-agenda-startup
@@ -9190,7 +9190,7 @@ When called with a prefix argument, include all archive files as well."
   (org-agenda-do-context-action))
 
 (defun org-agenda-previous-line ()
-  "Move cursor to the previous line, and show if follow-mode is active."
+  "Move cursor to the previous line, and show if follow mode is active."
   (interactive)
   (call-interactively 'previous-line)
   (org-agenda-do-context-action))

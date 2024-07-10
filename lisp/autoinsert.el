@@ -166,18 +166,18 @@ If this contains a %s, that will be replaced by the matching rule."
 	  (replace-match (capitalize (user-login-name)) t t))
      '(end-of-line 1) " <" (progn user-mail-address) ">\n")
 
-    (".dir-locals.el"
+    ((,(rx ".dir-locals" (? "-2") ".el") . "Directory Local Variables")
      nil
      ";;; Directory Local Variables         -*- no-byte-compile: t; -*-\n"
      ";;; For more information see (info \"(emacs) Directory Variables\")\n\n"
      "(("
-     '(setq v1 (let (modes)
+     '(setq v1 (let ((modes '("nil")))
                  (mapatoms (lambda (mode)
                              (let ((name (symbol-name mode)))
                                (when (string-match "-mode\\'" name)
                                  (push name modes)))))
                  (sort modes 'string<)))
-     (completing-read "Local variables for mode: " v1 nil t)
+     (completing-read "Local variables for mode: " v1 nil 'confirm)
      " . (("
      (let ((all-variables
             (apropos-internal ".*"

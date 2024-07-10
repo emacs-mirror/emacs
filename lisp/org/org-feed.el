@@ -92,7 +92,6 @@
 (org-assert-version)
 
 (require 'org)
-(require 'sha1)
 
 (declare-function url-retrieve-synchronously "url"
                   (url &optional silent inhibit-cookies timeout))

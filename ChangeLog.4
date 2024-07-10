@@ -309,7 +309,7 @@
 
 2024-03-31  Michael Albinus  <michael.albinus@gmx.de>
 
-	Adapt Tramp versio (don't merge)
+	Adapt Tramp version (don't merge)
 
 	* doc/misc/trampver.texi:
 	* lisp/net/trampver.el: Change version to "2.6.3".
@@ -8476,8 +8476,8 @@
 	changes, make hint overlays span one character (instead of being
 	length 0).  Give the overlays an "evaporate" property.
 
-	Given an inlay hints at position POS, its attached to [POS, POS+1] if
-	it's kind=1 (usually type hints) and [POS-1, POS] otherwise.  For
+	Given an inlay hints at position POS, it's attached to [POS, POS+1] if
+	its kind=1 (usually type hints) and [POS-1, POS] otherwise.  For
 	kind=1 hints, the 'cursor position of the first such overlay is also
 	tweaked, so that's it's less awkward to edit around it.
 
@@ -9313,7 +9313,7 @@
 	Not the subject of it, but mentioned in bug#61893.
 
 	* lisp/progmodes/c-ts-mode.el (c-ts-mode--anchor-prev-sibling): Skip
-	the sibling if it doesn't start on it's own line.
+	the sibling if it doesn't start on its own line.
 	* test/lisp/progmodes/c-ts-mode-resources/indent.erts: New test.
 
 2023-03-05  Kyle Meyer  <kyle@kyleam.com>
@@ -24470,7 +24470,7 @@
 	(treesit-major-mode-setup): Instead of binding
 	font-lock-fontify-region-function, now bind to
 	font-lock-fontify-syntactically-function.  And we can let font-lock do
-	it's thing.
+	its thing.
 
 2022-10-31  Yuan Fu  <casouri@gmail.com>
 
@@ -28715,7 +28715,7 @@
 	Fix Tramp completion on MS Windows
 
 	* lisp/net/tramp.el (tramp-build-remote-file-name-spec-regexp):
-	Revert previous change, it's too complicate.
+	Revert previous change, it's too complicated.
 	(tramp-build-completion-file-name-regexp):
 	Use `tramp-prefix-format' instead of `tramp-prefix-regexp'.  (Bug#558133)
 
@@ -37079,7 +37079,7 @@
 
 	* src/xselect.c (lisp_data_to_selection_data): Assume an empty
 	vector represents INTEGER data, instead of blindly trying to
-	aref it's first element.
+	aref its first element.
 
 2022-09-04  Jim Porter  <jporterbugs@gmail.com>
 
@@ -40542,7 +40542,7 @@
 
 	* doc/misc/gnus.texi (The problem of spam): Don't explain what
 	spam is; there is no need for that in 2022.  Don't explain
-	limitations of obsolete software TMDA; it's website has stopped
+	limitations of obsolete software TMDA; its website has stopped
 	working but seems to have been updated last in 2007.
 	(Thwarting Email Spam, Anti-Spam Basics)
 	(Spam Package Configuration Examples): Prefer "spam" to "UCE".
@@ -63333,7 +63333,7 @@
 	Correct indentation of opening brace in xdisp.c, which isn't at start of defun
 
 	* xdisp.c (calc_pixel_width_or_height): indent the opening brace of a
-	substatement correctly.  It's previous position, in column 0, caused
+	substatement correctly.  Its previous position, in column 0, caused
 	indentation errors in C Mode.
 
 2022-05-17  Po Lu  <luangruo@yahoo.com>

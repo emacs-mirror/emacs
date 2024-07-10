@@ -2374,7 +2374,8 @@ In Ibuffer, you can conveniently perform many operations on the
 currently open buffers, in addition to filtering your view to a
 particular subset of them, and sorting by various criteria.
 
-Operations on marked buffers:
+Operations on marked buffers (see \"Marking commands\" below
+ for how to mark buffers):
 \\<ibuffer-mode-map>
   \\[ibuffer-do-save] - Save the marked buffers.
   \\[ibuffer-do-view] - View the marked buffers in the selected frame.

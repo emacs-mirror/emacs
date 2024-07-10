@@ -113,10 +113,10 @@
 
 ;; Use the Emacs Web Wowser (EWW) when not running under X11:
 ;;	(or (eq window-system 'x)
-;;	    (setq browse-url-browser-function #'eww-browse-url))
+;;	    (setopt browse-url-browser-function #'eww-browse-url))
 
 ;; To always save modified buffers before displaying the file in a browser:
-;;	(setq browse-url-save-file t)
+;;	(setopt browse-url-save-file t)
 
 ;; To invoke different browsers/tools for different URLs, customize
 ;; `browse-url-handlers'.  In earlier versions of Emacs, the same
@@ -419,14 +419,14 @@ value converts ange-ftp-style file names into ftp URLs and prepends
 `file:' to any file name beginning with `/'.
 
 For example, adding to the default a specific translation of an ange-ftp
-address to an HTTP URL:
+address to an HTTPS URL:
 
-    (setq browse-url-filename-alist
-	  \\='((\"/webmaster@webserver:/home/www/html/\" .
-             \"https://www.example.org/\")
-            (\"^/\\(ftp@\\|anonymous@\\)?\\([^:/]+\\):/*\" . \"ftp://\\2/\")
-            (\"^/\\([^:@/]+@\\)?\\([^:/]+\\):/*\" . \"ftp://\\1\\2/\")
-	    (\"^/+\" . \"file:/\")))"
+    (setopt browse-url-filename-alist
+            \\='((\"/webmaster@webserver:/home/www/html/\" .
+               \"https://www.example.org/\")
+              (\"^/\\(ftp@\\|anonymous@\\)?\\([^:/]+\\):/*\" . \"ftp://\\2/\")
+              (\"^/\\([^:@/]+@\\)?\\([^:/]+\\):/*\" . \"ftp://\\1\\2/\")
+              (\"^/+\" . \"file:/\")))"
   :type '(repeat (cons :format "%v"
                        (regexp :tag "Regexp")
                        (string :tag "Replacement")))
@@ -683,6 +683,7 @@ websites are increasingly rare, but they do still exist."
   :type '(choice (const :tag "HTTP" "http")
                  (const :tag "HTTPS" "https")
                  (string :tag "Something else" "https"))
+  :risky t
   :version "29.1")
 
 (defun browse-url-url-at-point ()

@@ -1391,7 +1391,7 @@ default values of which are given by `org-latex-engraved-preamble' and
                         "\n"))
                (t (funcall gen-theme-spec engraved-theme))))
            (funcall gen-theme-spec engraved-theme))
-       (warn "Cannot engrave source blocks. Consider installing `engrave-faces'.")
+       (warn "Cannot engrave source blocks.  Consider installing `engrave-faces'.")
        "% WARNING syntax highlighting unavailable as engrave-faces-latex was missing.\n")
      "\n")))
 
@@ -3548,7 +3548,7 @@ and FLOAT are extracted from SRC-BLOCK and INFO in `org-latex-src-block'."
 When the THEME symbol is non-nil, that theme will be used.
 
 When INLINE is nil, a Verbatim environment wrapped in a Code
-environment will be used. When t, a Verb command will be used.
+environment will be used.  When t, a Verb command will be used.
 
 When OPTIONS is provided, as either a string or list of key-value
 pairs accepted by `org-latex--make-option-string', it is passed
@@ -3591,7 +3591,7 @@ to the Verbatim environment or Verb command."
                     engraved-wrapped
                     "}")
           engraved-wrapped))
-    (user-error "Cannot engrave code as `engrave-faces-latex' is unavailable.")))
+    (user-error "Cannot engrave code as `engrave-faces-latex' is unavailable")))
 
 (cl-defun org-latex-src-block--engraved
     (&key src-block info lang caption caption-above-p num-start retain-labels attributes float &allow-other-keys)

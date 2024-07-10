@@ -36,6 +36,7 @@
 ;; * https://github.com/tree-sitter/tree-sitter-php
 ;; * https://github.com/tree-sitter/tree-sitter-html
 ;; * https://github.com/tree-sitter/tree-sitter-javascript
+;; * https://github.com/tree-sitter/tree-sitter-jsdoc
 ;; * https://github.com/tree-sitter/tree-sitter-css
 ;; * https://github.com/claytonrcarter/tree-sitter-phpdoc
 ;;
@@ -86,6 +87,7 @@
     (phpdoc . ("https://github.com/claytonrcarter/tree-sitter-phpdoc"))
     (html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.20.3"))
     (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.21.2"))
+    (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.21.0"))
     (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.21.0")))
   "Treesitter language parsers required by `php-ts-mode'.
 You can customize this variable if you want to stick to a specific
@@ -717,7 +719,7 @@ characters of the current line."
      (c-ts-common-comment-2nd-line-matcher
       c-ts-common-comment-2nd-line-anchor
       1)))
-  "Tree-sitter indentation rules for for `phpdoc'.")
+  "Tree-sitter indentation rules for `phpdoc'.")
 
 
 ;;; Font-lock
@@ -977,7 +979,8 @@ characters of the current line."
    :override t
    :feature 'property
    `((attribute_name) @font-lock-variable-name-face))
-  "Tree-sitter font-lock settings for `php-html-ts-mode'.")
+  "Tree-sitter Font-lock settings for HTML when embedded in PHP.
+Like `html-ts-mode--font-lock-settings' but adapted for `php-ts-mode'.")
 
 (defvar php-ts-mode--phpdoc-font-lock-settings
   (treesit-font-lock-rules
@@ -1295,6 +1298,7 @@ Depends on `c-ts-common-comment-setup'."
             (treesit-ready-p 'phpdoc)
             (treesit-ready-p 'html)
             (treesit-ready-p 'javascript)
+            (treesit-ready-p 'jsdoc)
             (treesit-ready-p 'css)))
       (error "Tree-sitter for PHP isn't
     available.  You can install the parsers with M-x
@@ -1332,6 +1336,12 @@ Depends on `c-ts-common-comment-setup'."
                  '((script_element
                     (start_tag (tag_name))
                     (raw_text) @cap))
+
+                 :embed 'jsdoc
+                 :host 'javascript
+                 :local t
+                 `(((comment) @cap
+                    (:match ,js--treesit-jsdoc-beginning-regexp @cap)))
 
                  :embed 'css
                  :host 'html
@@ -1561,7 +1571,7 @@ The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\" or
 (defun run-php (&optional cmd config)
   "Run an PHP interpreter as a inferior process.
 
-Arguments CMD an CONFIG, default to `php-ts-mode-php-executable'
+Arguments CMD and CONFIG, default to `php-ts-mode-php-executable'
 and `php-ts-mode-php-config' respectively, control which PHP interpreter is run.
 Prompt for CMD if `php-ts-mode-php-executable' is nil.
 Optional CONFIG, if supplied, is the php.ini file to use."

@@ -269,7 +269,6 @@ s/@PACKAGE@/emacs/
 /^HAVE_UNSIGNED_LONG_LONG_INT *=/s/@HAVE_UNSIGNED_LONG_LONG_INT@/1/
 /^HAVE_USLEEP *=/s/@HAVE_USLEEP@/1/
 /^HAVE_WCHAR_H *=/s/@HAVE_WCHAR_H@/1/
-/^HAVE_WCHAR_T *=/s/@HAVE_WCHAR_T@/1/
 /^HAVE_LIBGMP *=/s/@HAVE_LIBGMP@/0/
 /^HAVE__BOOL *=/s/@HAVE__BOOL@/1/
 /^HAVE__EXIT *=/s/@HAVE__EXIT@/1/
@@ -289,7 +288,7 @@ s/@PACKAGE@/emacs/
 /^MKDIR_P *=/s/@MKDIR_P@/echo/
 /^NEXT_AS_FIRST_DIRECTIVE_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_ERRNO_H *=/s/@[^@\n]*@//
-/^NEXT_AS_FIRST_DIRECTIVE_ENDIAN_H *=/s/@[^@\n]*@/<machine/endian.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_ENDIAN_H *=/s|@[^@\n]*@|<machine/endian.h>|
 /^NEXT_AS_FIRST_DIRECTIVE_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_LIMITS_H *=/s/@[^@\n]*@/<limits.h>/
@@ -308,7 +307,7 @@ s/@PACKAGE@/emacs/
 /^NEXT_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
 /^NEXT_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
 /^NEXT_ERRNO_H *=/s/@[^@\n]*@//
-/^NEXT_ENDIAN_H *=/s/@[^@\n]*@/<machine/endian.h>/
+/^NEXT_ENDIAN_H *=/s|@[^@\n]*@|<machine/endian.h>|
 /^NEXT_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
 /^NEXT_FLOAT_H *=/s/@[^@\n]*@//
 /^NEXT_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/

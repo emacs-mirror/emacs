@@ -3,6 +3,7 @@
 ;; Copyright (C) 2011-2024  Free Software Foundation, Inc.
 
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
+;; Package: editorconfig
 
 ;; See
 ;; https://github.com/editorconfig/editorconfig-emacs/graphs/contributors or
@@ -126,9 +127,9 @@ If HANDLE is nil return nil."
 
 If HANDLE is nil return nil."
   (when handle
-    (let ((hash (make-hash-table))
-          (file (file-relative-name file (editorconfig-core-handle-path
-                                          handle))))
+    (let* ((hash (make-hash-table))
+           (dir (file-name-directory (editorconfig-core-handle-path handle)))
+           (file (file-relative-name file dir)))
       (dolist (section (editorconfig-core-handle-sections handle))
         (cl-loop for (key . value) in (editorconfig-core-handle-section-get-properties section file)
                  do (puthash (intern key) value hash)))
@@ -142,7 +143,11 @@ This function is a fnmatch with a few modification for EditorConfig usage."
   (if (string-match-p "/" pattern)
       (let ((pattern (replace-regexp-in-string "\\`/" "" pattern)))
         (editorconfig-fnmatch-p name pattern))
-    (editorconfig-fnmatch-p (file-name-nondirectory name) pattern)))
+    ;; The match is not "anchored" so it can be either in the current dir or
+    ;; in a subdir.  Contrary to Zsh patterns, editorconfig's `**/foo' does
+    ;; not match `foo', so we need to split the problem into two matches.
+    (or (editorconfig-fnmatch-p name pattern)
+        (editorconfig-fnmatch-p name (concat "**/" pattern)))))
 
 (defun editorconfig-core-handle--parse-file (conf)
   "Parse EditorConfig file CONF.

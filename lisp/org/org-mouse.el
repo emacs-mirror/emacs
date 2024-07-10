@@ -561,7 +561,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
       (save-excursion (org-apply-on-list wrap-fun nil)))))
 
 (defun org-mouse-bolp ()
-  "Return true if there only spaces, tabs, and `*' before point.
+  "Return non-nil if there only spaces, tabs, and `*' before point.
 This means, between the beginning of line and the point."
   (save-excursion
     (skip-chars-backward " \t*") (bolp)))

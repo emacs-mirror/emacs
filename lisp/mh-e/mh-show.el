@@ -818,8 +818,8 @@ operation."
 
 ;;;###mh-autoload
 (define-derived-mode mh-show-mode text-mode "MH-Show"
-  "Major mode for showing messages in MH-E.\\<mh-show-mode-map>
-
+  "Major mode for showing messages in MH-E.
+\\<mh-show-mode-map>
 Email addresses and URLs in the message are highlighted if the
 option `goto-address-highlight-p' is on, which it is by default.
 To view the web page for a highlighted URL or to send a message

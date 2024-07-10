@@ -1,5 +1,5 @@
 # time_h.m4
-# serial 25
+# serial 26
 dnl Copyright (C) 2000-2001, 2003-2007, 2009-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -145,6 +145,7 @@ AC_DEFUN([gl_TIME_H_REQUIRE_DEFAULTS],
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_TIMESPEC_GETRES])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_TIME_R])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_TIME_RZ])
+    gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_TZNAME])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_TZSET])
     dnl Support Microsoft deprecated alias function names by default.
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_MDA_TZSET], [1])

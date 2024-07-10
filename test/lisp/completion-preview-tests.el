@@ -228,7 +228,6 @@ instead."
       (insert "foo")
       (let ((this-command 'self-insert-command))
         (completion-preview--post-command))
-      (message "here")
 
       (completion-preview-tests--check-preview "bar" 'completion-preview-common)
 
@@ -292,7 +291,7 @@ instead."
       (setq-local completion-at-point-functions
                   (list
                    (completion-preview-tests--capf
-                    '("foobar" "foobaz")
+                    '("foobar-1 2" "foobarverylong")
                     :exit-function
                     (lambda (&rest args)
                       (setq exit-fn-called t
@@ -300,11 +299,150 @@ instead."
       (insert "foo")
       (let ((this-command 'self-insert-command))
         (completion-preview--post-command))
-      (completion-preview-tests--check-preview "bar" 'completion-preview-common)
+      (completion-preview-tests--check-preview "bar-1 2"
+                                               'completion-preview-common)
       (completion-preview-insert)
-      (should (string= (buffer-string) "foobar"))
+      (should (string= (buffer-string) "foobar-1 2"))
       (should-not completion-preview--overlay)
       (should exit-fn-called)
-      (should (equal exit-fn-args '("foobar" finished))))))
+      (should (equal exit-fn-args '("foobar-1 2" finished))))))
+
+(ert-deftest completion-preview-insert-word ()
+  "Test that `completion-preview-insert-word' properly inserts just a word."
+  (let ((exit-fn-called nil) (exit-fn-args nil))
+    (with-temp-buffer
+      (setq-local completion-at-point-functions
+                  (list
+                   (completion-preview-tests--capf
+                    '("foobar-1 2" "foobarverylong")
+                    :exit-function
+                    (lambda (&rest args)
+                      (setq exit-fn-called t
+                            exit-fn-args args)))))
+      (insert "foo")
+      (let ((this-command 'self-insert-command))
+        (completion-preview--post-command))
+      (completion-preview-tests--check-preview "bar-1 2"
+                                               'completion-preview-common)
+      (completion-preview-insert-word)
+      (should (string= (buffer-string) "foobar"))
+      (completion-preview-tests--check-preview "-1 2" 'completion-preview)
+      (should-not exit-fn-called)
+      (should-not exit-fn-args))))
+
+(ert-deftest completion-preview-insert-nonsubword ()
+  "Test that `completion-preview-insert-word' with `subword-mode' off."
+  (let ((exit-fn-called nil) (exit-fn-args nil))
+    (with-temp-buffer
+      (setq-local completion-at-point-functions
+                  (list
+                   (completion-preview-tests--capf
+                    '("foobarBar" "foobarverylong")
+                    :exit-function
+                    (lambda (&rest args)
+                      (setq exit-fn-called t
+                            exit-fn-args args)))))
+      (insert "foo")
+      (let ((this-command 'self-insert-command))
+        (completion-preview--post-command))
+      (completion-preview-tests--check-preview "barBar"
+                                               'completion-preview-common)
+      (completion-preview-insert-word)
+      (should (string= (buffer-string) "foobarBar"))
+      (should-not completion-preview--overlay)
+      (should exit-fn-called)
+      (should (equal exit-fn-args '("foobarBar" finished))))))
+
+(ert-deftest completion-preview-insert-subword ()
+  "Test that `completion-preview-insert-word' with `subword-mode' on."
+  (let ((exit-fn-called nil) (exit-fn-args nil))
+    (with-temp-buffer
+      (subword-mode)
+      (setq-local completion-at-point-functions
+                  (list
+                   (completion-preview-tests--capf
+                    '("foobarBar" "foobarverylong")
+                    :exit-function
+                    (lambda (&rest args)
+                      (setq exit-fn-called t
+                            exit-fn-args args)))))
+      (insert "foo")
+      (let ((this-command 'self-insert-command))
+        (completion-preview--post-command))
+      (completion-preview-tests--check-preview "barBar"
+                                               'completion-preview-common)
+      (completion-preview-insert-word)
+      (should (string= (buffer-string) "foobar"))
+      (completion-preview-tests--check-preview "Bar" 'completion-preview)
+      (should-not exit-fn-called)
+      (should-not exit-fn-args))))
+
+(ert-deftest completion-preview-insert-mid-symbol ()
+  "Test `completion-preview-insert-word' when point is in a mulit-word symbol."
+  (with-temp-buffer
+    (setq-local completion-at-point-functions
+                (list
+                 (completion-preview-tests--capf
+                  '("foo-bar-baz-spam"))))
+    (insert "foo-bar-baz-")
+    (goto-char 4)
+    (let ((this-command 'self-insert-command))
+      (completion-preview--post-command))
+    (completion-preview-tests--check-preview "spam"
+                                             'completion-preview-exact
+                                             'completion-preview-exact)
+    (completion-preview-insert-word 2)
+    (let ((this-command 'self-insert-command))
+      (completion-preview--post-command))
+    ;; Moving two words forward should land at the end of baz, without
+    ;; inserting anything from the completion candidate.
+    (completion-preview-tests--check-preview "spam"
+                                             'completion-preview-exact
+                                             'completion-preview-exact)
+    (should (= (point) 12))
+    (completion-preview-insert-word -2)
+    ;; Moving backward shouldn't change anything, either.
+    (let ((this-command 'self-insert-command))
+      (completion-preview--post-command))
+    (completion-preview-tests--check-preview "spam"
+                                             'completion-preview-exact
+                                             'completion-preview-exact)
+    (should (= (point) 5))))
+
+(ert-deftest completion-preview-insert-sexp ()
+  "Test that `completion-preview-insert-sexp' properly inserts just a sexp."
+  (let ((exit-fn-called nil) (exit-fn-args nil))
+    (with-temp-buffer
+      (setq-local completion-at-point-functions
+                  (list
+                   (completion-preview-tests--capf
+                    '("foobar-1 2" "foobarverylong")
+                    :exit-function
+                    (lambda (&rest args)
+                      (setq exit-fn-called t
+                            exit-fn-args args)))))
+      (insert "foo")
+      (let ((this-command 'self-insert-command))
+        (completion-preview--post-command))
+      (completion-preview-tests--check-preview "bar-1 2"
+                                               'completion-preview-common)
+      (completion-preview-insert-sexp)
+      (should (string= (buffer-string) "foobar-1"))
+      (completion-preview-tests--check-preview " 2" 'completion-preview)
+      (should-not exit-fn-called)
+      (should-not exit-fn-args))))
+
+(ert-deftest completion-preview-insert-inherits-text-properties ()
+  "Test that `completion-preview-insert' inherits text properties."
+  (with-temp-buffer
+    (setq-local completion-at-point-functions
+                (list (completion-preview-tests--capf '("foobar" "foobaz"))))
+    (insert (propertize "foo" 'prop 'val))
+    (let ((this-command 'self-insert-command))
+      (completion-preview--post-command))
+    (completion-preview-tests--check-preview "bar" 'completion-preview-common)
+    (completion-preview-insert)
+    (should (string= (buffer-string) "foobar"))
+    (should (eq (get-text-property 6 'prop) 'val))))
 
 ;;; completion-preview-tests.el ends here

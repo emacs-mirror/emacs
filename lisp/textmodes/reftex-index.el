@@ -387,9 +387,9 @@ Press `?' for a summary of important key bindings, or check the menu.
 Here are all local bindings.
 
 \\{reftex-index-mode-map}"
-  (set (make-local-variable 'revert-buffer-function) #'reftex-index-revert)
-  (set (make-local-variable 'reftex-index-restriction-data) nil)
-  (set (make-local-variable 'reftex-index-restriction-indicator) nil)
+  (setq-local revert-buffer-function #'reftex-index-revert)
+  (setq-local reftex-index-restriction-data nil)
+  (setq-local reftex-index-restriction-indicator nil)
   (setq mode-line-format
         (list "----  " 'mode-line-buffer-identification
               "   " 'global-mode-string
@@ -511,9 +511,9 @@ With prefix 3, restrict index to region."
     ;; If the buffer is currently restricted, empty it to force update.
     (when reftex-index-restriction-data
       (reftex-erase-buffer))
-    (set (make-local-variable 'reftex-last-index-file) calling-file)
-    (set (make-local-variable 'reftex-index-tag) index-tag)
-    (set (make-local-variable 'reftex-docstruct-symbol) docstruct-symbol)
+    (setq-local reftex-last-index-file calling-file)
+    (setq-local reftex-index-tag index-tag)
+    (setq-local reftex-docstruct-symbol docstruct-symbol)
     (if restriction
         (setq reftex-index-restriction-indicator (car restriction)
               reftex-index-restriction-data (cdr restriction))
@@ -1263,7 +1263,7 @@ This gets refreshed in every phrases command.")
 (defun reftex-index-phrase-selection-or-word (arg)
   "Add current selection or word at point to the phrases buffer.
 \\<reftex-index-phrases-mode-map>
-When you are in transient-mark-mode and the region is active, the
+When you are in `transient-mark-mode' and the region is active, the
 selection will be used - otherwise the word at point.
 You get a chance to edit the entry in the phrases buffer - finish with
 \\[reftex-index-phrases-save-and-return]."
@@ -1303,8 +1303,7 @@ If the buffer is non-empty, delete the old header first."
                 (lambda (a _b) (equal (car a) default-macro))))
          macro entry key repeat)
 
-    (if master (set (make-local-variable 'TeX-master)
-                    (file-name-nondirectory master)))
+    (when master (setq-local TeX-master (file-name-nondirectory master)))
 
     (when (> (buffer-size) 0)
       (goto-char 1)
@@ -1364,8 +1363,8 @@ If the buffer is non-empty, delete the old header first."
 ;;;###autoload
 (define-derived-mode reftex-index-phrases-mode fundamental-mode "Phrases"
   "Major mode for managing the Index phrases of a LaTeX document.
-This buffer was created with RefTeX. \\<reftex-index-phrases-mode-map>
-
+This buffer was created with RefTeX.
+\\<reftex-index-phrases-mode-map>
 To insert new phrases, use
  - `C-c \\' in the LaTeX document to copy selection or word
  - `\\[reftex-index-new-phrase]' in the phrases buffer.
@@ -1387,9 +1386,9 @@ Here are all local bindings.
 
 \\{reftex-index-phrases-mode-map}"
   :syntax-table reftex-index-phrases-syntax-table
-  (set (make-local-variable 'font-lock-defaults)
-       reftex-index-phrases-font-lock-defaults)
-  (set (make-local-variable 'reftex-index-phrases-marker) (make-marker)))
+  (setq-local font-lock-defaults
+              reftex-index-phrases-font-lock-defaults)
+  (setq-local reftex-index-phrases-marker (make-marker)))
 ;; (add-hook 'reftex-index-phrases-mode-hook #'turn-on-font-lock)
 
 (defun reftex-index-next-phrase (&optional arg)

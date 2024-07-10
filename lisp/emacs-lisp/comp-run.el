@@ -195,7 +195,7 @@ processes from `comp-async-compilations'"
   (if native-comp-async-report-warnings-errors
       (let ((warning-suppress-types
              (if (eq native-comp-async-report-warnings-errors 'silent)
-                 (cons '(comp) warning-suppress-types)
+                 (cons '(native-compiler) warning-suppress-types)
                warning-suppress-types))
             (regexp (if (eq native-comp-async-warnings-errors-kind 'all)
                         "^.*?\\(?:Error\\|Warning\\): .*$"
@@ -211,7 +211,7 @@ processes from `comp-async-compilations'"
             (accept-process-output process)
             (goto-char (or comp-last-scanned-async-output (point-min)))
             (while (re-search-forward regexp nil t)
-              (display-warning 'comp (match-string 0)))
+              (display-warning 'native-compiler (match-string 0)))
             (setq comp-last-scanned-async-output (point-max)))))
     (accept-process-output process)))
 
@@ -446,8 +446,8 @@ bytecode definition was not changed in the meantime)."
                 (setf comp-files-queue
                       (append comp-files-queue `((,file . ,load)))
                       added-something t)
-              (display-warning 'comp
-                               (format "No write access for %s skipping."
+              (display-warning 'native-compiler
+                               (format "Cannot write %s; skipping."
                                        out-filename)))))))
     ;; Perhaps nothing passed `native--compile-async-skip-p'?
     (when (and added-something

@@ -46,18 +46,22 @@
 
 (unless (= emacs-major-version
 	   (car (version-to-list tramp-compat-emacs-compiled-version)))
-  (warn "Tramp has been compiled with Emacs %s, this is Emacs %s"
+  (lwarn 'tramp :warning
+	 "Tramp has been compiled with Emacs %s, this is Emacs %s"
 	tramp-compat-emacs-compiled-version emacs-version))
 
 (with-eval-after-load 'docker-tramp
-  (warn (concat "Package `docker-tramp' has been obsoleted, "
-		"please use integrated package `tramp-container'")))
+  (lwarn 'tramp :warning
+	 (concat "Package `docker-tramp' has been obsoleted, "
+		 "please use integrated package `tramp-container'")))
 (with-eval-after-load 'kubernetes-tramp
-  (warn (concat "Package `kubernetes-tramp' has been obsoleted, "
-		"please use integrated package `tramp-container'")))
+  (lwarn 'tramp :warning
+	 (concat "Package `kubernetes-tramp' has been obsoleted, "
+		 "please use integrated package `tramp-container'")))
 (with-eval-after-load 'tramp-nspawn
-  (warn (concat "Package `tramp-nspawn' has been obsoleted, "
-		"please use integrated package `tramp-container'")))
+  (lwarn 'tramp :warning
+	 (concat "Package `tramp-nspawn' has been obsoleted, "
+		 "please use integrated package `tramp-container'")))
 
 ;; For not existing functions, obsolete functions, or functions with a
 ;; changed argument list, there are compiler warnings.  We want to

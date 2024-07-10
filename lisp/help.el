@@ -883,7 +883,8 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
       (let ((otherstring (help--key-description-fontified untranslated)))
 	(if (equal string otherstring)
 	    string
-          (if-let ((char-name (char-to-name (aref string 0))))
+          (if-let ((char-name (and (length= string 1)
+                                   (char-to-name (aref string 0)))))
               (format "%s '%s' (translated from %s)" string char-name otherstring)
             (format "%s (translated from %s)" string otherstring)))))))
 

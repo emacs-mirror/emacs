@@ -74,6 +74,9 @@ public final class EmacsWindow extends EmacsHandleObject
 {
   private static final String TAG = "EmacsWindow";
 
+  /* Whether any windows have yet been created in this session.  */
+  private static boolean initialWindowCreated;
+
   private static class Coordinate
   {
     /* Integral coordinate.  */
@@ -191,6 +194,14 @@ public final class EmacsWindow extends EmacsHandleObject
 					      parent == null);
     this.parent = parent;
     this.overrideRedirect = overrideRedirect;
+
+    /* The initial frame should always be bound to the startup
+       activity.  */
+    if (!initialWindowCreated)
+      {
+	this.attachmentToken = -1;
+        initialWindowCreated = true;
+      }
 
     /* Create the list of children.  */
     children = new ArrayList<EmacsWindow> ();
@@ -492,7 +503,6 @@ public final class EmacsWindow extends EmacsHandleObject
 		  /* Attach the view.  */
 		  try
 		    {
-		      view.prepareForLayout (width, height);
 		      windowManager.addView (view, params);
 
 		      /* Record the window manager being used in the
@@ -517,11 +527,6 @@ public final class EmacsWindow extends EmacsHandleObject
 	    public void
 	    run ()
 	    {
-	      /* Prior to mapping the view, set its measuredWidth and
-		 measuredHeight to some reasonable value, in order to
-		 avoid excessive bitmap dirtying.  */
-
-	      view.prepareForLayout (width, height);
 	      view.setVisibility (View.VISIBLE);
 
 	      if (!getDontFocusOnMap ())

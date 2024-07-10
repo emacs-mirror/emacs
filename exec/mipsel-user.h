@@ -24,10 +24,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <sys/user.h>
 
-#ifndef ELF_NGREG
-#define ELF_NGREG       45
-#endif /* ELF_NGREG */
-
 
 
 /* This file defines a structure containing user mode general purpose
@@ -36,7 +32,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 struct mipsel_regs
 {
   /* General purpose registers.  */
-  uint64_t gregs[ELF_NGREG];
+  uint64_t gregs[32];
+
+  /* Saved special registers. */
+  uint64_t lo;
+  uint64_t hi;
+  uint64_t cp0_epc;
+  uint64_t cp0_badvaddr;
+  uint64_t cp0_status;
+  uint64_t cp0_cause;
 };
 
 #endif /* _MIPSEL_USER_H_ */

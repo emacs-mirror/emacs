@@ -1659,15 +1659,47 @@ overlay.
 @end defun
 
 @defun remove-overlays &optional start end name value
-This function removes all the overlays between @var{start} and
-@var{end} whose property @var{name} has the specified @var{value}.  It
-can move the endpoints of the overlays in the region, or split them.
+This function clears the text in the region between @var{start} and
+@var{end} of any overlays whose property named @var{name} has the
+specified @var{value}, such that no such overlay will affect the text in
+the region.  To do this, the function can remove overlays in the region,
+or move their endpoints, or split them, or do some combination of these.
+Specifically:
 
-If @var{name} is omitted or @code{nil}, it means to delete all overlays in
-the specified region.  If @var{start} and/or @var{end} are omitted or
-@code{nil}, that means the beginning and end of the buffer respectively.
-Therefore, @code{(remove-overlays)} removes all the overlays in the
-current buffer.
+@itemize @bullet
+@item
+Overlays that start at or after @var{start} and end before @var{end}
+will be removed completely.
+
+@item
+Overlays that start before @var{start} and end after @var{start}, but
+before @var{end}, will be altered so that they end at @var{start}.
+
+@item
+Overlays that start at or after @var{start} and end after @var{end} will
+be altered so that they start at @var{end}.
+
+@item
+Overlays that start before @var{start} and end after @var{end} will be
+split into two overlays: one that ends at @var{start} and the other that
+begins at @var{end}.
+@end itemize
+
+If @var{name} is omitted or @code{nil}, it means to delete/modify all
+overlays that affect text in the specified region.  If @var{start}
+and/or @var{end} are omitted or @code{nil}, they default to the
+beginning and end of the buffer, respectively.  Therefore,
+@code{(remove-overlays)} removes all the overlays in the current buffer.
+
+Values of the named overlay property are compared using @code{eq}, which
+is important if the values are anything but symbols or fixnums
+(@pxref{Equality Predicates}).  It means the values passed to the
+function must be the same values used to set the overlay property, not
+their copies; objects which are different will not compare equal even if
+they have identical contents.
+
+The optional arguments @var{name} and @var{value} should either both be
+passed and non-@code{nil}, or both omitted or @code{nil}.
 @end defun
 
 @defun copy-overlay overlay
@@ -5182,8 +5214,10 @@ specifications.
 This convenience function can be used to get a specific display
 property, no matter whether the @code{display} property is a vector, a
 list or a simple property.  This is like @code{get-text-property}
-(@pxref{Examining Properties}), but works on the @code{display}
-property only.
+(@pxref{Examining Properties}), but works on the @code{display} property
+only.  For properties with a single value (e.g.@: @code{height}, this
+returns the value itself; for properties with a list of values (e.g.@:
+@code{slice}), this returns the list of values.
 
 @var{position} is the position in the buffer or string to examine, and
 @var{prop} is the @code{display} property to return.  The optional

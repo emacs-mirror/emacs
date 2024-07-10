@@ -267,7 +267,11 @@ to be checked as its standard input."
                    eos)
               @font-lock-type-face))
      ((scoped_identifier path: (identifier) @rust-ts-mode--fontify-scope))
-     ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope)))
+     ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope))
+     ;; Sometimes the parser can't determine if an identifier is a type,
+     ;; so we use this heuristic. See bug#69625 for the full discussion.
+     ((identifier) @font-lock-type-face
+      (:match ,(rx bos upper) @font-lock-type-face)))
 
    :language 'rust
    :feature 'property
@@ -427,7 +431,7 @@ delimiters < and >'s."
                             (?> '(5 . ?<))))))))
 
 (defun rust-ts-mode--prettify-symbols-compose-p (start end match)
-  "Return true iff the symbol MATCH should be composed.
+  "Return non-nil if the symbol MATCH should be composed.
 See `prettify-symbols-compose-predicate'."
   (and (fboundp 'prettify-symbols-default-compose-p)
        (prettify-symbols-default-compose-p start end match)

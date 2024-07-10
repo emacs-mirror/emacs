@@ -260,7 +260,7 @@ or
 where PARAMETER is a string and VALUE is a string or nil.  For
 compatibility, a raw parameter of the form \"FOO=\" becomes
 (\"FOO\" . \"\") even though it's equivalent to the preferred
-canonical form \"FOO\" and its lisp representation (\"FOO\").
+canonical form \"FOO\" and its Lisp representation (\"FOO\").
 
 Some examples of possible parameters sent by servers:
 CHANMODES=b,k,l,imnpst - list of supported channel modes
@@ -425,7 +425,7 @@ If this value is too low, servers may reject your initial nick
 request upon reconnecting because they haven't yet noticed that
 your previous connection is dead.  If this happens, try setting
 this value to 120 or greater and/or exploring the option
-`erc-regain-services-alist', which may provide a more proactive
+`erc-services-regain-alist', which may provide a more proactive
 means of handling this situation on some servers."
   :type 'number)
 

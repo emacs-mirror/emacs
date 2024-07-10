@@ -50,7 +50,6 @@ ifeq ($$(filter $(1)$(and $(3),whole),$$(NDK_RESOLVED_CFLAGS_$(LOCAL_MODULE))),)
 # Always mark this module's cflags as having been resolved, even if
 # this is a whole library.
 NDK_RESOLVED_CFLAGS_$(LOCAL_MODULE) += $(1)
-
 NDK_CFLAGS_$(LOCAL_MODULE) += $(NDK_LOCAL_EXPORT_CFLAGS_$(1))
 NDK_CFLAGS_$(LOCAL_MODULE) += $(addprefix -I,$(NDK_LOCAL_EXPORT_C_INCLUDES_$(1)))
 endif

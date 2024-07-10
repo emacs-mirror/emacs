@@ -3162,6 +3162,37 @@ android_saf_exception_check (int n, ...)
   return 1;
 }
 
+/* Verify that OBJECT is non-NULL.  If NULL, free each of the N local
+   references given as arguments, and clear exceptions.
+
+   Value is 1 if it be NULL, 0 otherwise.  */
+
+static int
+android_saf_check_nonnull (const void *object, int n, ...)
+{
+  va_list ap;
+
+  if (object)
+    return 0;
+
+  va_start (ap, n);
+
+  /* Clear the active exception, making it safe to subsequently call
+     other JNI functions.  */
+  (*android_java_env)->ExceptionClear (android_java_env);
+
+  /* Delete each of the N arguments.  */
+
+  while (n > 0)
+    {
+      ANDROID_DELETE_LOCAL_REF (va_arg (ap, jobject));
+      n--;
+    }
+
+  va_end (ap);
+  return 1;
+}
+
 
 
 /* Content authority-based vnode implementation.
@@ -6428,7 +6459,7 @@ android_saf_new_mkdir (struct android_vnode *vnode, mode_t mode)
   new_doc_id = (*android_java_env)->GetStringUTFChars (android_java_env,
 						       new_id, NULL);
 
-  if (android_saf_exception_check (3, name, id, uri))
+  if (android_saf_check_nonnull (new_doc_id, 3, name, id, uri))
     return -1;
 
   xfree (vp->document_id);

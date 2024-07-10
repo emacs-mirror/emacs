@@ -227,14 +227,14 @@
 
 ;; Tips for using ange-ftp:
 ;;
-;; 1. For dired to work on a host which marks symlinks with a trailing @ in
+;; 1. For Dired to work on a host which marks symlinks with a trailing @ in
 ;;    an ls -alF listing, you need to (setq dired-ls-F-marks-symlinks t).
 ;;    Most UNIX systems do not do this, but ULTRIX does.  If you think that
 ;;    there is a chance you might connect to an ULTRIX machine (such as
 ;;    prep.ai.mit.edu), then set this variable accordingly.  This will have
-;;    the side effect that dired will have problems with symlinks whose names
+;;    the side effect that Dired will have problems with symlinks whose names
 ;;    end in an @.  If you get yourself into this situation then editing
-;;    dired's ls-switches to remove "F", will temporarily fix things.
+;;    Dired's ls-switches to remove "F", will temporarily fix things.
 ;;
 ;; 2. If you know that you are connecting to a certain non-UNIX machine
 ;;    frequently, and ange-ftp seems to be unable to guess its host-type,
@@ -257,8 +257,8 @@
 ;;    moving them through the local machine.  Again, be careful when doing
 ;;    this with binary files on non-Unix machines.
 ;;
-;; 5. Beware that dired over ftp will use your setting of dired-no-confirm
-;;    (list of dired commands for which confirmation is not asked).  You
+;; 5. Beware that Dired over ftp will use your setting of dired-no-confirm
+;;    (list of Dired commands for which confirmation is not asked).  You
 ;;    might want to reconsider your setting of this variable, because you
 ;;    might want confirmation for more commands on remote direds than on
 ;;    local direds.  For example, I strongly recommend that you not include
@@ -266,7 +266,7 @@
 ;;    might be a good idea to have an alist ange-ftp-dired-no-confirm of
 ;;    pairs ( TYPE . LIST ), where TYPE is an operating system type and LIST
 ;;    is a list of commands for which confirmation would be suppressed.  Then
-;;    remote dired listings would take their (buffer-local) value of
+;;    remote Dired listings would take their (buffer-local) value of
 ;;    dired-no-confirm from this alist.  Who votes for this?
 
 ;; ---------------------------------------------------------------------
@@ -317,7 +317,7 @@
 ;;    overwrite FILE.TXT;3, but instead will want to create FILE.TXT;4, and
 ;;    attach the buffer to this file.  To get out of this situation, M-x
 ;;    write-file /ymir.claremont.edu:FILE.TXT will attach the buffer to
-;;    latest version of the file.  For this reason, in dired "f"
+;;    latest version of the file.  For this reason, in Dired "f"
 ;;    (dired-find-file), always loads the file sans version, whereas "v",
 ;;    (dired-view-file), always loads the explicit version number.  The
 ;;    reasoning being that it reasonable to view old versions of a file, but
@@ -514,7 +514,7 @@
 ;;     containing spaces, but beware that the remote ftpd may not like them
 ;;     much.
 ;;
-;; 12. The dired support for non-Unix-like systems does not currently work.
+;; 12. The Dired support for non-Unix-like systems does not currently work.
 ;;     It needs to be reimplemented by modifying the parse-...-listing
 ;;	functions to convert the directory listing to ls -l format.
 ;;
@@ -524,8 +524,8 @@
 ;;     parsing a listing with the F switch.  This will cause ange-ftp to
 ;;     incorrectly get the name of a symlink on a non-ULTRIX host if its name
 ;;     ends in an @.  ange-ftp will correct itself if you take F out of the
-;;     dired ls switches (C-u s will allow you to edit the switches).  The
-;;     dired buffer will be automatically reverted, which will allow ange-ftp
+;;     Dired ls switches (C-u s will allow you to edit the switches).  The
+;;     Dired buffer will be automatically reverted, which will allow ange-ftp
 ;;     to fix its files hashtable.  A cookie to anyone who can think of a
 ;;     fast, sure-fire way to recognize ULTRIX over ftp.
 
@@ -611,9 +611,9 @@
 ;; Thanks to Jamie Zawinski for bugfixes and for ideas such as gateways.
 ;;
 ;; Thanks to Ken Laprade for improved .netrc parsing, password reading, and
-;; dired / shell auto-loading.
+;; Dired / shell auto-loading.
 ;;
-;; Thanks to Sebastian Kremer for dired support and for many ideas and
+;; Thanks to Sebastian Kremer for Dired support and for many ideas and
 ;; bugfixes.
 ;;
 ;; Thanks to Joe Wells for bugfixes, the original non-UNIX system support,

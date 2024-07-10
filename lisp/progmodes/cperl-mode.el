@@ -161,13 +161,13 @@ for constructs with multiline if/unless/while/until/for/foreach condition."
   :group 'cperl-autoinsert-details)
 
 (defcustom cperl-file-style nil
-  "Indentation style to use in cperl-mode.
+  "Indentation style to use in `cperl-mode'.
 Setting this option will override options as given in
 `cperl-style-alist' for the keyword provided here.  If nil, then
 the individual options as customized are used.
 \"PBP\" is the style recommended in the Book \"Perl Best
 Practices\" by Damian Conway.  \"CPerl\" is the traditional style
-of cperl-mode, and \"PerlStyle\" follows the Perl documentation
+of `cperl-mode', and \"PerlStyle\" follows the Perl documentation
 in perlstyle.  The other styles have been developed for other
 programming languages, mostly C."
   :type '(choice (const "PBP")
@@ -232,7 +232,7 @@ to the right of the start of its line."
   :group 'cperl-indentation-details)
 (defcustom cperl-continued-brace-offset 0
   "Extra indent for substatements that start with open-braces.
-This is in addition to cperl-continued-statement-offset."
+This is in addition to `cperl-continued-statement-offset'."
   :type 'integer
   :group 'cperl-indentation-details)
 (defcustom cperl-close-paren-offset -1
@@ -819,7 +819,7 @@ B) Speed of editing operations.
     of, say, long POD sections.")
 
 (defvar cperl-tips-faces 'please-ignore-this-line
-  "CPerl mode uses following faces for highlighting:
+  "CPerl mode uses the following faces for highlighting:
 
   `cperl-array-face'			Array names
   `cperl-hash-face'			Hash names

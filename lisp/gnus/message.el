@@ -6252,8 +6252,7 @@ subscribed address (and not the additional To and Cc header contents)."
 	    (widen)))))))
 
 (defun message-idna-to-ascii-rhs ()
-  "Possibly IDNA encode non-ASCII domain names in From:, To: and Cc: headers.
-See `message-idna-encode'."
+  "Possibly IDNA encode non-ASCII domain names in From:, To: and Cc: headers."
   (interactive nil message-mode)
   (when message-use-idna
     (save-excursion
@@ -6606,8 +6605,7 @@ they are."
   (sit-for 0))
 
 (defcustom message-beginning-of-line t
-  "Whether \\<message-mode-map>\\[message-beginning-of-line]\
- goes to beginning of header values."
+  "Whether \\<message-mode-map>\\[message-beginning-of-line] goes to beginning of header values."
   :version "22.1"
   :group 'message-buffers
   :link '(custom-manual "(message)Movement")
@@ -6669,7 +6667,7 @@ beginning of line.
 When called without a prefix argument, header value spanning
 multiple lines is treated as a single line.  Otherwise, even if
 N is 1, when point is on a continuation header line, it will be
-moved to the beginning "
+moved to the beginning."
   (interactive "^p" message-mode)
   (cond
    ;; Go to beginning of header or beginning of line.

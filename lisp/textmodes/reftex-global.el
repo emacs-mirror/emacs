@@ -152,7 +152,7 @@ No active TAGS table is required."
     (setq dlist (reftex-uniquify-by-car dlist))
     (if (null dlist) (error "No duplicate labels in document"))
     (switch-to-buffer-other-window "*Duplicate Labels*")
-    (set (make-local-variable 'TeX-master) master)
+    (setq-local TeX-master master)
     (erase-buffer)
     (insert "                MULTIPLE LABELS IN CURRENT DOCUMENT:\n")
     (insert
@@ -492,17 +492,16 @@ With no argument, this command toggles
 	      (with-current-buffer crt-buf
 		(when reftex-mode
 		  (if (boundp 'multi-isearch-next-buffer-function)
-		      (set (make-local-variable
-			    'multi-isearch-next-buffer-function)
-			   #'reftex-isearch-switch-to-next-file)
-		    (set (make-local-variable 'isearch-wrap-function)
-			 #'reftex-isearch-wrap-function)
-		    (set (make-local-variable 'isearch-search-fun-function)
-			 (lambda () #'reftex-isearch-isearch-search))
-		    (set (make-local-variable 'isearch-push-state-function)
-			 #'reftex-isearch-push-state-function)
-		    (set (make-local-variable 'isearch-next-buffer-function)
-			 #'reftex-isearch-switch-to-next-file))
+                      (setq-local multi-isearch-next-buffer-function
+                                  #'reftex-isearch-switch-to-next-file)
+                    (setq-local isearch-wrap-function
+                                #'reftex-isearch-wrap-function)
+                    (setq-local isearch-search-fun-function
+                                (lambda () #'reftex-isearch-isearch-search))
+                    (setq-local isearch-push-state-function
+                                #'reftex-isearch-push-state-function)
+                    (setq-local isearch-next-buffer-function
+                                #'reftex-isearch-switch-to-next-file))
 		  (setq reftex-isearch-minor-mode t))))
 	    (add-hook 'reftex-mode-hook #'reftex-isearch-minor-mode))
 	(dolist (crt-buf (buffer-list))

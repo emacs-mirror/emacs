@@ -1197,7 +1197,7 @@ With no argument or nil as argument, use the current buffer."
   "Return PROCESS server name, given by the 001 response."
   (with-rcirc-process-buffer process
     (or rcirc-server-name
-        (warn "server name for process %S unknown" process))))
+        (warn "Server name for process %S unknown" process))))
 
 (defun rcirc-nick (process)
   "Return PROCESS nick."

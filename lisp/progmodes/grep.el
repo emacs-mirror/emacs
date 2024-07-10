@@ -827,15 +827,23 @@ The value depends on `grep-command', `grep-template',
 	(unless grep-find-use-xargs
 	  (setq grep-find-use-xargs
 		(cond
-		 ((grep-probe find-program
-			      `(nil nil nil ,(null-device) "-exec" "echo"
-				    "{}" "+"))
-		  'exec-plus)
+                 ;; For performance, we want:
+                 ;; A. Run grep on batches of files (instead of one grep per file)
+                 ;; B. If the directory is large and we need multiple batches,
+                 ;;    run find in parallel with a running grep.
+                 ;; "find | xargs grep" gives both A and B
 		 ((and
+                   (not (eq system-type 'windows-nt))
 		   (grep-probe
                     find-program `(nil nil nil ,(null-device) "-print0"))
 		   (grep-probe xargs-program '(nil nil nil "-0" "echo")))
 		  'gnu)
+                 ;; "find -exec {} +" gives A but not B
+		 ((grep-probe find-program
+			      `(nil nil nil ,(null-device) "-exec" "echo"
+				    "{}" "+"))
+		  'exec-plus)
+                 ;; "find -exec {} ;" gives neither A nor B.
 		 (t
 		  'exec))))
 	(unless grep-find-command
@@ -1181,9 +1189,7 @@ REGEXP is used as a string in the prompt."
          (files (completing-read
                  (format-prompt "Search for \"%s\" in files matching wildcard"
                                 default regexp)
-                 (completion-table-merge
-                  (lambda (_string _pred _action) defaults)
-                  #'read-file-name-internal)
+                 (completion-table-merge defaults #'completion-file-name-table)
 		 nil nil nil 'grep-files-history defaults)))
     (and files
 	 (or (cdr (assoc files grep-files-aliases))

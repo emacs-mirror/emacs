@@ -28,26 +28,31 @@
 
 
 
+;; If either of the files examined by the following two functions does
+;; not exist, Emacs was configured `--disable-build-details'.
+
 (defun android-read-build-system ()
   "Obtain the host name of the system on which Emacs was built.
 Use the data stored in the special file `/assets/build_info'.
 Value is the string ``Unknown'' upon failure, else the hostname
 of the build system."
-  (with-temp-buffer
-    (insert-file-contents "/assets/build_info")
-    (let ((string (buffer-substring 1 (line-end-position))))
-      (and (not (equal string "Unknown")) string))))
+  (when (file-exists-p "/assets/build_info")
+    (with-temp-buffer
+      (insert-file-contents "/assets/build_info")
+      (let ((string (buffer-substring 1 (line-end-position))))
+        (and (not (equal string "Unknown")) string)))))
 
 (defun android-read-build-time ()
   "Obtain the time at which Emacs was built.
 Use the data stored in the special file `/assets/build_info'.
 Value is nil upon failure, else the time in the same format as
 returned by `current-time'."
-  (with-temp-buffer
-    (insert-file-contents "/assets/build_info")
-    (end-of-line)
-    (let ((number (read (current-buffer))))
-      (time-convert number 'list))))
+  (when (file-exists-p "/assets/build_info")
+    (with-temp-buffer
+      (insert-file-contents "/assets/build_info")
+      (end-of-line)
+      (let ((number (read (current-buffer))))
+        (time-convert number 'list)))))
 
 
 

@@ -487,7 +487,7 @@ Override existing value with NEW-VALUE if NEW-VALUE is set."
           (set-window-parameter w 'xref--history (xref--make-xref-history))))))
 
 (defun xref--get-history ()
-  "Return xref history using xref-history-storage."
+  "Return xref history using `xref-history-storage'."
   (funcall xref-history-storage))
 
 (defun xref--push-backward (m)
@@ -993,7 +993,6 @@ point."
     ;; suggested by Johan Claesson "to further reduce finger movement":
     (define-key map (kbd ".") #'xref-next-line)
     (define-key map (kbd ",") #'xref-prev-line)
-    (define-key map (kbd "g") #'xref-revert-buffer)
     (define-key map (kbd "M-,") #'xref-quit-and-pop-marker-stack)
     map))
 
@@ -1011,13 +1010,16 @@ point."
         #'xref--imenu-extract-index-name)
   (setq-local add-log-current-defun-function
               #'xref--add-log-current-defun)
+  (setq-local revert-buffer-function #'xref--revert-buffer)
   (setq-local outline-minor-mode-cycle t)
   (setq-local outline-minor-mode-use-buttons 'insert)
   (setq-local outline-search-function
               (lambda (&optional bound move backward looking-at)
                 (outline-search-text-property
                  'xref-group nil bound move backward looking-at)))
-  (setq-local outline-level (lambda () 1)))
+  (setq-local outline-level (lambda () 1))
+  (add-hook 'revert-buffer-restore-functions
+            #'xref-revert-buffer-restore-point nil t))
 
 (defvar xref--transient-buffer-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1273,28 +1275,44 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
           xref--original-window-intent (assoc-default 'display-action alist))
     (setq xref--fetcher fetcher)))
 
-(defun xref-revert-buffer ()
+(defun xref--revert-buffer (&rest _)    ; Ignore `revert-buffer' args.
   "Refresh the search results in the current buffer."
-  (interactive)
   (let ((inhibit-read-only t)
-        (buffer-undo-list t)
-        restore-functions)
-    (when (boundp 'revert-buffer-restore-functions)
-      (run-hook-wrapped 'revert-buffer-restore-functions
-                        (lambda (f) (push (funcall f) restore-functions) nil)))
+        (buffer-undo-list t))
     (save-excursion
       (condition-case err
           (let ((alist (xref--analyze (funcall xref--fetcher)))
                 (inhibit-modification-hooks t))
             (erase-buffer)
-            (prog1 (xref--insert-xrefs alist)
-              (mapc #'funcall (delq nil restore-functions))))
+            (xref--insert-xrefs alist))
         (user-error
          (erase-buffer)
          (insert
           (propertize
            (error-message-string err)
            'face 'error)))))))
+
+;;; FIXME: Make this alias obsolete in future release.
+(defalias 'xref-revert-buffer #'revert-buffer)
+
+(defun xref-revert-buffer-restore-point ()
+  "Restore point on a previous item or group after reverting."
+  (let* ((item
+          (when (xref--item-at-point)
+            (buffer-substring-no-properties (pos-bol) (pos-eol))))
+         (group
+          (save-excursion
+            (when (or (get-text-property (point) 'xref-group)
+                      (and item (xref--search-property 'xref-group t)
+                           (get-text-property (point) 'xref-group)))
+              (buffer-substring-no-properties (pos-bol) (pos-eol))))))
+    (when (or item group)
+      (lambda ()
+        (goto-char (point-min))
+        (when (and group (search-forward (concat "\n" group "\n") nil t))
+          (goto-char (pos-bol 0)))
+        (when (and item (search-forward (concat "\n" item "\n") nil t))
+          (goto-char (pos-bol 0)))))))
 
 (defun xref--auto-jump-first (buf value)
   (when value

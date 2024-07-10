@@ -127,7 +127,7 @@ The outline level is equal to the verbosity of the Tramp message."
 ;; `command-completion-default-include-p'.
 (defun tramp-debug-buffer-command-completion-p (_symbol buffer)
   "A predicate for Tramp interactive commands.
-They are completed by \"M-x TAB\" only in Tramp debug buffers."
+They are completed by `M-x TAB' only in Tramp debug buffers."
   (declare (tramp-suppress-trace t))
   (with-current-buffer buffer
     (string-equal
@@ -468,8 +468,7 @@ to `tramp-message'."
   (declare (tramp-suppress-trace t))
   (let (signal-hook-function)
     (apply 'tramp-message vec-or-proc 2 fmt-string arguments)
-    (display-warning
-     'tramp (apply #'format-message fmt-string arguments) :warning)))
+    (lwarn 'tramp :warning fmt-string arguments)))
 
 (defun tramp-test-message (fmt-string &rest arguments)
   "Emit a Tramp message according `default-directory'."

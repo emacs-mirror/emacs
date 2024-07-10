@@ -153,7 +153,7 @@ this limit."
 When set to ENABLE, the default, `gnus-agent-expire' will expire old
 contents from a group's local storage.  This value may be overridden
 to disable expiration in specific categories, topics, and groups.  Of
-course, you could change gnus-agent-enable-expiration to DISABLE then
+course, you could change `gnus-agent-enable-expiration' to DISABLE then
 enable expiration per categories, topics, and groups."
   :version "22.1"
   :group 'gnus-agent
@@ -275,14 +275,14 @@ Actually a hash table holding subjects mapped to t.")
 ;;;
 
 (defmacro gnus-agent-with-refreshed-group (group &rest body)
-  "Performs the body then updates the group's line in the group
-buffer.  Automatically blocks multiple updates due to recursion."
+  "Perform the body then update the group's line in the group buffer.
+Automatically block multiple updates due to recursion."
   `(prog1 (let ((gnus-agent-inhibit-update-total-fetched-for t)) ,@body)
      (when (and gnus-agent-need-update-total-fetched-for
 		(not gnus-agent-inhibit-update-total-fetched-for))
-	(with-current-buffer gnus-group-buffer
-	  (setq gnus-agent-need-update-total-fetched-for nil)
-	  (gnus-group-update-group ,group t)))))
+       (with-current-buffer gnus-group-buffer
+         (setq gnus-agent-need-update-total-fetched-for nil)
+         (gnus-group-update-group ,group t)))))
 
 (defun gnus-agent-read-file (file)
   "Load FILE and do a `read' there."
@@ -618,8 +618,8 @@ manipulated as follows:
 (defun gnus-agentize ()
   "Allow Gnus to be an offline newsreader.
 
-The gnus-agentize function is now called internally by gnus when
-gnus-agent is set.  If you wish to avoid calling gnus-agentize,
+The `gnus-agentize' function is now called internally by gnus when
+`gnus-agent' is set.  If you wish to avoid calling `gnus-agentize',
 customize `gnus-agent' to nil.
 
 This will modify the `gnus-setup-news-hook', and
@@ -1785,9 +1785,9 @@ variables.  Returns the first non-nil value found."
                 (agent-predicate . gnus-agent-predicate)))))))
 
 (defun gnus-agent-fetch-headers (group)
-  "Fetch interesting headers into the agent.  The group's overview
-file will be updated to include the headers while a list of available
-article numbers will be returned."
+  "Fetch interesting headers into the agent.
+The group's overview file will be updated to include the headers while a
+list of available article numbers will be returned."
   (let* ((fetch-all (and gnus-agent-consider-all-articles
                          ;; Do not fetch all headers if the predicate
                          ;; implies that we only consider unread articles.
@@ -4059,8 +4059,7 @@ CLEAN is obsolete and ignored."
 
 (defun gnus-agent-update-files-total-fetched-for (group delta
 							&optional method path)
-  "Update, or set, the total disk space used by the articles that the
-agent has fetched."
+  "Update or set total disk space used by articles that the agent has fetched."
   (when gnus-agent-total-fetched-hashtb
     (gnus-agent-with-refreshed-group
      group
@@ -4099,9 +4098,8 @@ agent has fetched."
 
 (defun gnus-agent-update-view-total-fetched-for
     (group agent-over &optional method path)
-  "Update, or set, the total disk space used by the .agentview and
-.overview files.  These files are calculated separately as they can be
-modified."
+  "Update or set the total disk space used by the .agentview and .overview files.
+These files are calculated separately as they can be modified."
   (when gnus-agent-total-fetched-hashtb
     (gnus-agent-with-refreshed-group
      group

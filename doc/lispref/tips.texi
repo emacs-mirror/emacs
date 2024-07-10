@@ -611,7 +611,7 @@ little space in a running Emacs.
 @item
 Format the documentation string so that it fits in an Emacs window on an
 80-column screen.  It is a good idea for most lines to be no wider than
-60 characters.  The first line should not be wider than 67 characters
+60 characters.  The first line should not be wider than 74 characters,
 or it will look bad in the output of @code{apropos}.
 
 @vindex emacs-lisp-docstring-fill-column

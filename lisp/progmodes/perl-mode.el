@@ -1128,16 +1128,9 @@ Returns (parse-state) if line starts inside a string."
             ;; Move back over whitespace before the openbrace.
             ;; If openbrace is not first nonwhite thing on the line,
             ;; add the perl-brace-imaginary-offset.
-            (progn (skip-chars-backward " \t")
-                   (if (bolp) 0 perl-brace-imaginary-offset))
-            ;; If the openbrace is preceded by a parenthesized exp,
-            ;; move to the beginning of that;
-            ;; possibly a different line
-            (progn
-              (if (eq (preceding-char) ?\))
-                  (forward-sexp -1))
-              ;; Get initial indentation of the line we are on.
-              (current-indentation)))))))))
+            (save-excursion (skip-chars-backward " \t")
+                            (if (bolp) 0 perl-brace-imaginary-offset))
+            (perl-indent-new-calculate 'virtual))))))))
 
 (defun perl-backward-to-noncomment ()
   "Move point backward to after the first non-white-space, skipping comments."

@@ -523,7 +523,7 @@ file_name_directory (Lisp_Object filename)
   else
     {
       dostounix_filename (beg);
-      tem_fn = make_specified_string (beg, -1, p - beg, 0);
+      tem_fn = make_unibyte_string (beg, p - beg);
     }
   SAFE_FREE ();
   return tem_fn;

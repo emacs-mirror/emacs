@@ -102,7 +102,6 @@
 
 ;; FIXME: Embed complicated `defconst's in `eval-when-compile'.
 
-;; Common Lisp stuff
 (require 'cl-lib)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -3662,7 +3662,7 @@ extern void x_kill_gs_process (Pixmap, struct frame *);
 extern Lisp_Object image_find_image_file (Lisp_Object);
 
 struct image_cache *make_image_cache (void);
-void free_image_cache (struct frame *);
+extern void free_image_cache (struct frame *);
 void clear_image_caches (Lisp_Object);
 void mark_image_cache (struct image_cache *);
 void image_prune_animation_caches (bool);

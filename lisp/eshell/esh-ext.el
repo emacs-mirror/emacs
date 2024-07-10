@@ -301,7 +301,17 @@ Return nil, or a list of the form:
   (INTERPRETER [ARGS] FILE)"
   (let ((maxlen eshell-command-interpreter-max-length))
     (if (and (file-readable-p file)
-	     (file-regular-p file))
+	     (file-regular-p file)
+             ;; If the file is zero bytes, it can't possibly have a
+             ;; shebang.  This check may seem redundant, but we can
+             ;; encounter files that Emacs considers both readable and
+             ;; regular, but which aren't *actually* readable.  This can
+             ;; happen, for example, with certain kinds of reparse
+             ;; points like APPEXECLINK on NTFS filesystems (MS-Windows
+             ;; uses these for "app execution aliases").  In these
+             ;; cases, the file size is 0, so this check protects us
+             ;; from errors.
+             (> (file-attribute-size (file-attributes file)) 0))
 	(with-temp-buffer
 	  (insert-file-contents-literally file nil 0 maxlen)
 	  (if (looking-at "#![ \t]*\\([^ \r\t\n]+\\)\\([ \t]+\\(.+\\)\\)?")

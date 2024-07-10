@@ -23,8 +23,6 @@
 
 (require 'ert)
 (require 'rfc2104)
-(require 'sha1)
-(require 'md5)
 
 (ert-deftest dbus-test-sha1 ()
   (should

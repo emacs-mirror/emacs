@@ -764,9 +764,10 @@ command."
              (setq-local comint-input-ring-size hsize))
         (setq comint-input-ring-file-name
               (concat remote hfile)))
-      (if (or (equal comint-input-ring-file-name "")
-	      (equal (file-truename comint-input-ring-file-name)
-		     (file-truename null-device)))
+      (if (and comint-input-ring-file-name
+               (or (equal comint-input-ring-file-name "")
+	           (equal (file-truename comint-input-ring-file-name)
+		          (file-truename null-device))))
 	  (setq comint-input-ring-file-name nil))
       ;; Arrange to write out the input ring on exit, if the shell doesn't
       ;; do this itself.

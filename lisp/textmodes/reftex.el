@@ -1,6 +1,6 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2000, 2003-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2024 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -2036,8 +2036,8 @@ IGNORE-WORDS List of words which should be removed from the string."
           ;; of font-lock)
           (rename-buffer newname t)
           ;; Good: we have the indirection functions
-          (set (make-local-variable 'font-lock-fontify-region-function)
-               #'reftex-select-font-lock-fontify-region)
+          (setq-local font-lock-fontify-region-function
+                      #'reftex-select-font-lock-fontify-region)
           (let ((major-mode 'latex-mode))
             (font-lock-mode 1)))
       (rename-buffer oldname))))

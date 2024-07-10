@@ -1140,8 +1140,8 @@ fontified."
 For example, Lvl1 | Lvl2[Lvl3[Lvl4[Lvl5 | None]], Lvl2].  This
 structure is represented via nesting binary_operator and
 subscript nodes.  This function iterates over all levels and
-highlight identifier nodes. If TYPE-REGEX is not nil fontify type
-identifier only if it matches against TYPE-REGEX. NODE is the
+highlight identifier nodes.  If TYPE-REGEX is not nil fontify type
+identifier only if it matches against TYPE-REGEX.  NODE is the
 binary_operator node.  OVERRIDE is the override flag described in
 `treesit-font-lock-rules'.  START and END mark the region to be
 fontified."
@@ -5612,8 +5612,6 @@ See `python-check-command' for the default."
                 doc = '{objtype} {name}{args}'.format(
                     objtype=objtype, name=name, args=args
                 )
-        else:
-            doc = doc.splitlines()[0]
     except:
         doc = ''
     return doc"
@@ -7044,6 +7042,7 @@ Add import for undefined name `%s' (empty to skip): "
 
 (defvar electric-indent-inhibit)
 (defvar prettify-symbols-alist)
+(defvar python--installed-grep-hook nil)
 
 ;;;###autoload
 (define-derived-mode python-base-mode prog-mode "Python"
@@ -7127,6 +7126,15 @@ implementations: `python-mode' and `python-ts-mode'."
               (lambda ()
                 "`outline-level' function for Python mode."
                 (1+ (/ (current-indentation) python-indent-offset))))
+
+  (unless python--installed-grep-hook
+    (setq python--installed-grep-hook t)
+    (with-eval-after-load 'grep
+      (defvar grep-files-aliases)
+      (defvar grep-find-ignored-directories)
+      (cl-pushnew '("py" . "*.py") grep-files-aliases :test #'equal)
+      (dolist (dir '(".tox" ".venv" ".mypy_cache" ".ruff_cache"))
+        (cl-pushnew dir grep-find-ignored-directories))))
 
   (setq-local prettify-symbols-alist python-prettify-symbols-alist)
 

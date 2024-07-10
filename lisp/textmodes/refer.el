@@ -113,9 +113,9 @@ each time it is needed."
 
 (defcustom refer-cache-bib-files t
   "Variable determining whether the value of `refer-bib-files' should be cached.
-If t, initialize the value of refer-bib-files the first time it is used.  If
-nil, re-read the list of \\.bib files depending on the value of `refer-bib-files'
-each time it is needed."
+If t, initialize the value of refer-bib-files the first time it is used.
+If nil, re-read the list of \\.bib files depending on the value of
+`refer-bib-files' each time it is needed."
   :type 'boolean)
 
 (defcustom refer-bib-files-regexp "\\\\bibliography"

@@ -1511,15 +1511,18 @@ to do that.  To reset the slice use `doc-view-reset-slice'."
   ;; Redisplay
   (doc-view-goto-page (doc-view-current-page)))
 
+(defvar touch-screen-simple-mouse-conversion) ; Defined in touch-screen.el.
+
 (defun doc-view-set-slice-using-mouse ()
   "Set the slice of the images that should be displayed.
 You set the slice by pressing mouse-1 at its top-left corner and
 dragging it to its bottom-right corner.  See also
 `doc-view-set-slice' and `doc-view-reset-slice'."
   (interactive)
-  (let (x y w h done)
+  (let ((touch-screen-simple-mouse-conversion t)
+        x y w h done)
     (while (not done)
-      (let ((e (read-event
+      (let ((e (read-key
 		(concat "Press mouse-1 at the top-left corner and "
 			"drag it to the bottom-right corner!"))))
 	(when (eq (car e) 'drag-mouse-1)

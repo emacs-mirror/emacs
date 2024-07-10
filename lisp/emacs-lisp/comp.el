@@ -75,7 +75,9 @@ This is intended for debugging the compiler itself.
   1 emit debug symbols.
   2 emit debug symbols and dump pseudo C code.
   3 emit debug symbols and dump: pseudo C code, GCC intermediate
-  passes and libgccjit log file."
+  passes and libgccjit log file.
+When generated, the pseudo C code is deposited in the same directory
+as the corresponding .eln file."
   :type 'natnum
   :safe #'natnump
   :version "29.1")
@@ -790,21 +792,29 @@ clashes."
                                                   :byte-func byte-code)))
       (maphash #'comp--intern-func-in-ctxt byte-to-native-lambdas-h)))
 
-(cl-defmethod comp--spill-lap-function ((form list))
-  "Byte-compile FORM, spilling data from the byte compiler."
-  (unless (memq (car-safe form) '(lambda closure))
-    (signal 'native-compiler-error
-            '("Cannot native-compile, form is not a lambda or closure")))
+(defun comp--spill-lap-single-function (function)
+  "Byte-compile FUNCTION, spilling data from the byte compiler."
   (unless (comp-ctxt-output comp-ctxt)
     (setf (comp-ctxt-output comp-ctxt)
           (make-temp-file "comp-lambda-" nil ".eln")))
-  (let* ((byte-code (byte-compile form))
+  (let* ((byte-code (byte-compile function))
          (c-name (comp-c-func-name "anonymous-lambda" "F")))
-      (setf (comp-ctxt-top-level-forms comp-ctxt)
-            (list (make-byte-to-native-func-def :name '--anonymous-lambda
-                                                :c-name c-name
-                                                :byte-func byte-code)))
-      (maphash #'comp--intern-func-in-ctxt byte-to-native-lambdas-h)))
+    (setf (comp-ctxt-top-level-forms comp-ctxt)
+          (list (make-byte-to-native-func-def :name '--anonymous-lambda
+                                              :c-name c-name
+                                              :byte-func byte-code)))
+    (maphash #'comp--intern-func-in-ctxt byte-to-native-lambdas-h)))
+
+(cl-defmethod comp--spill-lap-function ((form list))
+  "Byte-compile FORM, spilling data from the byte compiler."
+  (unless (eq (car-safe form) 'lambda)
+    (signal 'native-compiler-error
+            '("Cannot native-compile, form is not a lambda")))
+  (comp--spill-lap-single-function form))
+
+(cl-defmethod comp--spill-lap-function ((fun interpreted-function))
+  "Spill data from the byte compiler for the interpreted-function FUN."
+  (comp--spill-lap-single-function fun))
 
 (defun comp--intern-func-in-ctxt (_ obj)
   "Given OBJ of type `byte-to-native-lambda', create a function in `comp-ctxt'."
@@ -1055,7 +1065,7 @@ If DST-N is specified, use it; otherwise assume it to be the current slot."
   "Set constant VAL to current slot."
   (comp--add-const-to-relocs val)
   ;; Leave relocation index nil on purpose, will be fixed-up in final
-  ;; by `comp-finalize-relocs'.
+  ;; by `comp--finalize-relocs'.
   (comp--emit `(setimm ,(comp--slot) ,val)))
 
 (defun comp--make-curr-block (block-name entry-sp &optional addr)
@@ -2792,7 +2802,7 @@ Return t if something was changed."
                   finally
                   (when (= i 100)
                     (display-warning
-                     'comp
+                     'native-compiler
                      (format "fwprop pass jammed into %s?" (comp-func-name f))))
                   (comp-log (format "Propagation run %d times\n" i) 2))
                  (comp--rewrite-non-locals)
@@ -3575,14 +3585,13 @@ Search happens in `native-comp-eln-load-path'."
 ;;;###autoload
 (defun native-compile (function-or-file &optional output)
   "Compile FUNCTION-OR-FILE into native code.
-This is the synchronous entry-point for the Emacs Lisp native
-compiler.  FUNCTION-OR-FILE is a function symbol, a form, or the
-filename of an Emacs Lisp source file.  If OUTPUT is non-nil, use
-it as the filename for the compiled object.  If FUNCTION-OR-FILE
-is a filename, if the compilation was successful return the
-filename of the compiled object.  If FUNCTION-OR-FILE is a
-function symbol or a form, if the compilation was successful
-return the compiled function."
+This is the synchronous entry-point for the Emacs Lisp native compiler.
+FUNCTION-OR-FILE is a function symbol, a form, an interpreted-function,
+or the filename of an Emacs Lisp source file.  If OUTPUT is non-nil, use
+it as the filename for the compiled object.  If FUNCTION-OR-FILE is a
+filename, if the compilation was successful return the filename of the
+compiled object.  If FUNCTION-OR-FILE is a function symbol or a form, if
+the compilation was successful return the compiled function."
   (declare (ftype (function ((or string symbol) &optional string)
                             (or native-comp-function string))))
   (comp--native-compile function-or-file nil output))

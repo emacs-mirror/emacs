@@ -851,7 +851,7 @@ Return the buffer created."
 For each member, a symbol is added to the table.  Members are
 extracted from the buffer-local tree `ebrowse--tree-table'.
 
-Each symbol has its property `ebrowse-info' set to a list (TREE MEMBER-LIST
+Each symbol has its property `ebrowse-tree' set to a list (TREE MEMBER-LIST
 MEMBER) where TREE is the tree in which the member is defined,
 MEMBER-LIST is a symbol describing the member list in which the member
 is found, and MEMBER is a MEMBER structure describing the member.

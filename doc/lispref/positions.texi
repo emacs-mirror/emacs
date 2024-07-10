@@ -875,14 +875,21 @@ nested defuns.
 @findex treesit-forward-sentence
 @findex forward-sentence
 @findex backward-sentence
-If Emacs is compiled with tree-sitter, it can use the tree-sitter
-parser information to move across syntax constructs.  Since what
-exactly is considered a sentence varies between languages, a major
-mode should set @code{treesit-thing-settings} to determine that.
-Then the mode can get navigation-by-sentence functionality for free,
-by using @code{forward-sentence} and
-@code{backward-sentence}(@pxref{Moving by Sentences,,, emacs, The
-extensible self-documenting text editor}).
+@vindex forward-sentence-function
+@cindex sentence, in program source files
+The function that is the value of the variable
+@code{forward-sentence-function} determines how to move across syntax
+constructs known as @dfn{sentences}.  Major modes can assign their own
+functions to this variable to customize the behavior of
+@code{forward-sentence} command.  If Emacs is compiled with tree-sitter,
+it can use the tree-sitter parser information to move across syntax
+constructs.  Since what exactly is considered a sentence varies between
+languages, a major mode should set @code{treesit-thing-settings} to
+determine that.  Then @code{forward-sentence-function} will be set to
+@code{treesit-forward-sentence}, and the mode will get
+navigation-by-sentence functionality for free, by using
+@code{forward-sentence} and @code{backward-sentence}(@pxref{Moving by
+Sentences,,, emacs, The extensible self-documenting text editor}).
 
 @findex treesit-forward-sexp
 @findex forward-sexp@r{, and tree-sitter}

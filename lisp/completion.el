@@ -992,7 +992,7 @@ Each symbol is bound to a single completion entry.")
 ;; Updating the database
 ;;-----------------------------------------------
 ;;
-;;   These are the internal functions used to update the datebase
+;;   These are the internal functions used to update the database
 ;;
 ;;
 (defvar completion-to-accept nil

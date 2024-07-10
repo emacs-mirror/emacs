@@ -847,6 +847,7 @@ in the Emacs development repository (@pxref{Latest version of Emacs}).
 @menu
 * Origin of the term Emacs::
 * Latest version of Emacs::
+* New in Emacs 30::
 * New in Emacs 29::
 * New in Emacs 28::
 * New in Emacs 27::
@@ -920,6 +921,90 @@ Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  You can give
 this command a prefix argument to read about which features were new
 in older versions.
 
+
+@node New in Emacs 30
+@section What is different about Emacs 30?
+@cindex Differences between Emacs 29 and Emacs 30
+@cindex Emacs 30, new features in
+
+Here's a list of the most important changes in Emacs 30 as compared to
+Emacs 29.  The full list is too long to fit here, but can be read in the
+Emacs @file{NEWS} file by typing @kbd{C-h n} inside Emacs.
+
+@itemize
+@item
+Native compilation is now enabled by default.  When Emacs is built on a
+machine with @samp{libgccjit}, this will improve Emacs performance in
+many typical workloads.
+
+@item
+Emacs has been ported to the Android operating system.  See the file
+@file{java/INSTALL} in the Emacs source distribution for details on how
+to build it.
+
+@item
+Numerous performance improvements, for example in parsing JSON, reading
+data from subprocesses, handling output from Eshell and in Shell mode, X
+selection requests, remote files, and so on.
+
+@item
+Native JSON support is now always available; libjansson is no longer
+used.
+
+@item
+New major modes based on the
+@uref{https://tree-sitter.github.io/tree-sitter/, tree-sitter library}
+library for editing Elixir, HTML, Lua, HEEx, and PHP.
+
+@item
+Support for the EditorConfig standard has been added, an editor-neutral
+way to provide directory local (project-wide) settings.  It is enabled
+via a new global minor mode @code{editorconfig-mode} which makes Emacs
+obey the @file{.editorconfig} files.
+
+@item
+Support for touchscreens has been improved.  On systems that understand
+them (at present X, Android, PGTK, and MS-Windows), many touch screen
+gestures are now implemented and translated into mouse or gesture
+events, and support for tapping tool bar buttons and opening menus has
+been added.
+
+@item
+Tool bar tweaks.  The new minor mode @code{window-tool-bar-mode}
+provides a per-window toolbar.  Toolbars can be placed on the bottom of
+a frame by setting the @code{tool-bar-position} variable on all window
+systems but GNUStep and macOS.
+
+@item
+The @samp{which-key} package from GNU ELPA is now included in Emacs.
+After enabling the minor mode mode @code{which-key-mode}, if you enter
+@kbd{C-x} and wait for one second, the minibuffer will expand with all
+available key bindings that follow @kbd{C-x} (or as many as space
+allows).
+
+@item
+New global minor mode @code{kill-ring-deindent-mode}.  When enabled,
+text being saved to the kill ring will be de-indented by the column
+number at its start.
+
+@item
+New minor mode @code{visual-wrap-prefix-mode}.  Unlike @kbd{M-q}, the
+indentation only happens on display, and doesn't change the buffer text
+in any way.
+
+@item
+Automatic regeneration of TAGS files using the new global minor mode
+@code{etags-regen-mode}.
+
+@item
+Improved warnings from the byte-code compiler to aid Lisp developers.
+
+@item
+Support for underline colors on TTY frames.
+
+@end itemize
+
+
 @node New in Emacs 29
 @section What is different about Emacs 29?
 @cindex Differences between Emacs 28 and Emacs 29
@@ -928,6 +1013,9 @@ in older versions.
 Here's a list of the most important changes in Emacs 29 as compared to
 Emacs 28 (the full list is too long, and can be read in the Emacs
 @file{NEWS} file by typing @kbd{C-h n} inside Emacs).
+
+Note that Emacs 29.3 and 29.4 both contained important security fixes.
+Upgrading is particularly important if you use Emacs as a mail client.
 
 @itemize
 @item
@@ -1718,7 +1806,7 @@ is better to write ``Emacs and XEmacs.''
 * Deleting menus and menu options::
 * Turning on syntax highlighting::
 * Scrolling only one line::
-* Editing MS-DOS files::
+* Editing Windows files::
 * Filling paragraphs with a single space::
 * Escape sequences in shell output::
 * Start Emacs maximized::
@@ -1786,7 +1874,7 @@ customize, with completion.
 
 Colors and faces are supported in non-windowed mode, i.e., on Unix and
 GNU/Linux text-only terminals and consoles, and when invoked as
-@samp{emacs -nw} on X, MS-DOS and MS-Windows.  Emacs automatically
+@samp{emacs -nw} on X, MS-Windows and MS-DOS.  Emacs automatically
 detects color support at startup and uses it if available.  If you
 think that your terminal supports colors, but Emacs won't use them,
 check the @code{termcap} entry for your display type for color-related
@@ -3073,22 +3161,22 @@ Alternatively, use the following Lisp form in your init file
 (setq scroll-conservatively most-positive-fixnum)
 @end lisp
 
-@node Editing MS-DOS files
-@section How can I edit MS-DOS files using Emacs?
-@cindex Editing MS-DOS files
-@cindex MS-DOS files, editing
+@node Editing Windows files
+@section How can I edit Windows files using Emacs?
 @cindex Microsoft files, editing
 @cindex Windows files, editing
+@cindex Editing MS-DOS files
+@cindex MS-DOS files, editing
 
-Detection and handling of MS-DOS (and Windows) files is performed
-transparently.  You can open MS-DOS files on a Unix system, edit it,
+Detection and handling of Windows (and MS-DOS) files is performed
+transparently.  You can open Windows files on a Unix system, edit it,
 and save it without having to worry about the file format.
 
-When editing an MS-DOS style file, the mode line will indicate that it
-is a DOS file.  On Unix and GNU/Linux systems, and also on a Macintosh,
-the string @samp{(DOS)} will appear near the left edge of the mode line;
-on DOS and Windows, where the DOS end-of-line (EOL) format is the
-default, a backslash (@samp{\}) will appear in the mode line.
+When editing a Windows style file, the mode line will indicate that it
+is a Windows file.  On GNU/Linux, Unix and macOS systems, the string
+@samp{(DOS)} will appear near the left edge of the mode line; on Windows
+and MS-DOS, where the DOS end-of-line (EOL) format is the default, a
+backslash (@samp{\}) will appear in the mode line.
 
 @node Filling paragraphs with a single space
 @section How can I tell Emacs to fill paragraphs with a single space after each period?
@@ -3575,6 +3663,21 @@ Any package you install into Emacs can run arbitrary code with the
 same privileges as the Emacs process itself.  Be aware of this when
 you use the package system (e.g. @code{M-x list-packages}) with third
 party archives.  Use only third parties that you can trust!
+
+@item
+Using an out-of-date Emacs version.
+
+For security purposes, we recommend always using the latest officially
+released version of Emacs.  Using old versions of Emacs might put your
+security at risk, as newer versions occasionally include important
+security fixes.  Please review the Emacs release notes and the
+@file{etc/NEWS} file for details.
+
+Upgrading to the most recent version is particularly important if you
+use Emacs as a mail client, or to edit files that come from untrusted
+sources.  You should be able to install the latest version of Emacs
+through your system's package manager, and it is always available at
+@uref{https://www.gnu.org/software/emacs/, the Emacs website}.
 
 @item
 The @code{file-local-variable} feature.  (Yes, a risk, but easy to
@@ -4436,7 +4539,7 @@ display or is invoked with @samp{emacs -nw}, you typically need to use
 @code{set-terminal-coding-system} to tell Emacs what the terminal can
 display, even after setting the language environment; otherwise
 non-@acronym{ASCII} characters will display as @samp{?}.  On other operating
-systems, such as MS-DOS and MS-Windows, Emacs queries the OS about the
+systems, such as MS-Windows and MS-DOS, Emacs queries the OS about the
 character set supported by the display, and sets up the required
 terminal coding system automatically.
 

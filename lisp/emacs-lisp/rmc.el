@@ -182,6 +182,9 @@ Usage example:
     (read-multiple-choice--short-answers
      prompt choices help-string show-help)))
 
+(declare-function touch-screen-scroll "touch-screen.el")
+(declare-function touch-screen-pinch "touch-screen.el")
+
 (defun read-multiple-choice--short-answers (prompt choices help-string show-help)
   (let* ((dialog-p (use-dialog-box-p))
          (prompt-choices
@@ -228,7 +231,10 @@ Usage example:
                 (when (setq command
                             (let ((current-key-remap-sequence
                                    (vector tchar)))
-                              (touch-screen-translate-touch nil)))
+                              ;; Provide an empty prompt so that it may
+                              ;; not repeatedly display and/or disable
+                              ;; the on-screen keyboard, or move point.
+                              (touch-screen-translate-touch "")))
                   (setq command (if (> (length command) 0)
                                     (aref command 0)
                                   nil))
@@ -243,9 +249,9 @@ Usage example:
                    ;; Respond to scroll and pinch events as if RMC were
                    ;; not in progress.
                    ((eq (car-safe command) 'touchscreen-scroll)
-                    (funcall #'touch-screen-scroll command))
+                    (touch-screen-scroll command))
                    ((eq (car-safe command) 'touchscreen-pinch)
-                    (funcall #'touch-screen-pinch command))
+                    (touch-screen-pinch command))
                    ;; Prevent other touchscreen-generated events from
                    ;; reaching the default conditional.
                    ((memq (or (and (symbolp command) command)

@@ -88,6 +88,15 @@ outside of the mode they were written for.
 Verify the conversion by comparing the value of the keymap before
 converting it and after (you can see the value in 'C-h v').
 
+** Change documentation examples to use 'setopt' instead of 'setq'
+User options are variables defined with 'defcustom', as opposed to
+'defvar' or 'defconst'.  It is preferable to use 'setopt' to set user
+options instead of 'setq', since it will execute any ‘custom-set’ form
+associated with that variable.  Pick a package and make sure that it
+uses 'setopt' in any examples in its documentation (doc strings, manual,
+Commentary section, etc.).  Note that 'setopt' is new in Emacs 29.1, so
+packages that need support for earlier versions should still use 'setq'.
+
 ** Write more tests
 Pick a fixed bug from the database, write a test case to make sure it
 stays fixed.  Or pick your favorite programming major-mode, and write
@@ -718,10 +727,17 @@ bar.  In the mean time, it should process other messages.
 
 ** Get some major packages installed
 
+*** Magit
+This needs work on getting the relevant copyright assignments.  This
+task should be highly doable for anyone, but will likely require some
+patience.  For inspiration, see how this was done for 'use-package':
+https://github.com/jwiegley/use-package/issues/282
+
 *** PSGML, _possibly_ ECB
 https://lists.gnu.org/r/emacs-devel/2007-05/msg01493.html Check the
 assignments file for other packages which might go in and have been
-missed.
+missed.  (Not sure if this is still relevant in 2024.  For example, both
+packages seem to be unmaintained.)
 
 ** Make byte-compiler warnings smarter
 Byte-compiler warnings about functions that might be undefined at run
@@ -910,6 +926,12 @@ restore the redirection through funcall.
 
 *** Features to be improved or missing
 
+**** Make use of function type declaration
+
+The native compiler should make use of function type declarations (when
+available) to propagate parameter types inside the function for better
+value/type predictions.
+
 **** Fix portable dumping so that you can redump without using -batch
 
 ***** Redumps and native compiler "preloaded" sub-folder.
@@ -943,25 +965,6 @@ the tool bar is performed.
 
 Unfortunately, the tool bar (and possible other operations) always
 resize the frame.
-
-**** Support 'proced' (implement 'process-attributes')
-Unfortunately, a user-level process like Emacs does not have the
-privileges to get information about other processes under macOS.
-
-There are other ways to do this:
-
- 1) Spawn "ps" and parse the output ("ps" has superuser privileges).
-
- 2) Sign Emacs as part of the distribution process.
-
- 3) Ask the user to self-sign Emacs, if this feature is of interest.
-
-Anders Lindgren <andlind@gmail.com> has implemented
-'process-attributes' for macOS, which currently only work when
-running Emacs as root.
-
-See this article by Bozhidar Batsov for an overview of Proced:
-https://emacsredux.com/blog/2013/05/02/manage-processes-with-proced/
 
 **** Tooltip properties
 Tooltip properties like the background color and font are hard-wired,
@@ -1103,10 +1106,6 @@ There was a special trick to detect mouse press in the lower right
 corner and track mouse movements, but this did not work well, and was
 not scalable to the new Lion "resize on every window edge" behavior.
 [As of trunk r109635, 2012-08-15, the event loop no longer polls.]
-
-**** mouse-avoidance-mode
-(mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back
-up on top of all others (probably fixed in bug#17439).
 
 **** free_frame_resources, face colors
 

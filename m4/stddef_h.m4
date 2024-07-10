@@ -1,5 +1,5 @@
 # stddef_h.m4
-# serial 16
+# serial 17
 dnl Copyright (C) 2009-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -10,7 +10,6 @@ dnl A placeholder for <stddef.h>, for platforms that have issues.
 AC_DEFUN_ONCE([gl_STDDEF_H],
 [
   AC_REQUIRE([gl_STDDEF_H_DEFAULTS])
-  AC_REQUIRE([gt_TYPE_WCHAR_T])
 
   dnl Persuade OpenBSD <stddef.h> to declare max_align_t.
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
@@ -49,11 +48,6 @@ AC_DEFUN_ONCE([gl_STDDEF_H],
     ])
   if test $gl_cv_type_max_align_t = no; then
     HAVE_MAX_ALIGN_T=0
-    GL_GENERATE_STDDEF_H=true
-  fi
-
-  if test $gt_cv_c_wchar_t = no; then
-    HAVE_WCHAR_T=0
     GL_GENERATE_STDDEF_H=true
   fi
 
@@ -148,5 +142,4 @@ AC_DEFUN([gl_STDDEF_H_DEFAULTS],
   STDDEF_NOT_IDEMPOTENT=0;       AC_SUBST([STDDEF_NOT_IDEMPOTENT])
   REPLACE_NULL=0;                AC_SUBST([REPLACE_NULL])
   HAVE_MAX_ALIGN_T=1;            AC_SUBST([HAVE_MAX_ALIGN_T])
-  HAVE_WCHAR_T=1;                AC_SUBST([HAVE_WCHAR_T])
 ])

@@ -456,7 +456,7 @@ bindings in the Viper manual."
 		   (if (eq 'up event-type)
 		       "mouse-3" "down-mouse-3"))
 		  (t (error
-		      "%S: invalid button number, %S" key-var key)))
+                      "%S: Invalid button number, %S" key-var key)))
 	    meta-spec
 	    (if (memq 'meta key) "M-" "")
 	    shift-spec

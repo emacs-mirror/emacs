@@ -42,7 +42,7 @@ EMACS_SRCDIR := $(absname $(EMACS_SRCDIR))
 
 # my-dir is a function that returns the Android module directory.  If
 # no Android.mk has been loaded, use ANDROID_MODULE_DIRECTORY.
-my-dir = $(or $(and $(local-makefile),$(dir $(local-makefile))),$(ANDROID_MODULE_DIRECTORY))
+my-dir = $(patsubst %/,%,$(or $(and $(local-makefile),$(dir $(local-makefile))),$(ANDROID_MODULE_DIRECTORY)))
 
 # Return all Android.mk files under the first arg.
 all-makefiles-under = $(wildcard $(1)/*/Android.mk)

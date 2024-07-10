@@ -8,7 +8,6 @@
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -94,6 +93,20 @@ buffer's content."
     (should (equal (whitespace-tests--cleanup-string "a  \n\t \n\n")
                    "a  \n"))))
 
+(ert-deftest whitespace-cleanup-missing-newline-at-eof ()
+  (let ((whitespace-style '(empty missing-newline-at-eof)))
+    (should (equal (whitespace-tests--cleanup-string "")
+                   ""))
+    (should (equal (whitespace-tests--cleanup-string "a")
+                   "a\n"))
+    (should (equal (whitespace-tests--cleanup-string "a\n\t")
+                   "a\n"))
+    (should (equal (whitespace-tests--cleanup-string "a\n\t ")
+                   "a\n"))
+    (should (equal (whitespace-tests--cleanup-string "a\n\t ")
+                   "a\n"))
+    (should (equal (whitespace-tests--cleanup-string "\n\t")
+                   ""))))
 
 ;; We cannot call whitespace-mode because it will do nothing in batch
 ;; mode.  So we call its innards instead.

@@ -17,18 +17,15 @@
 
 /* Written by Paul Eggert.  */
 
+/* This file is for Gnulib internal use only.
+   Applications should not use it.  */
+
 /* A time zone rule.  */
 struct tm_zone
 {
   /* More abbreviations, should they be needed.  Their TZ_IS_SET
      members are zero.  */
   struct tm_zone *next;
-
-#if HAVE_TZNAME && !HAVE_STRUCT_TM_TM_ZONE
-  /* Copies of recent strings taken from tzname[0] and tzname[1].
-     The copies are in ABBRS, so that they survive tzset.  Null if unknown.  */
-  char *tzname_copy[2];
-#endif
 
   /* If nonzero, the rule represents the TZ environment variable set
      to the first "abbreviation" (this may be the empty string).
@@ -41,9 +38,17 @@ struct tm_zone
      actually a TZ environment value) may be empty.  Otherwise all
      strings must be nonempty.
 
-     Abbreviations are stored here because otherwise the values of
-     tm_zone and/or tzname would be dead after changing TZ and calling
+     Abbreviations are stored here even on platforms with tm_zone, because
+     otherwise tm_zone values would be dead after changing TZ and calling
      tzset.  Abbreviations never move once allocated, and are live
      until tzfree is called.  */
   char abbrs[FLEXIBLE_ARRAY_MEMBER];
 };
+
+timezone_t set_tz (timezone_t);
+bool revert_tz (timezone_t);
+
+/* Magic cookie timezone_t value, for local time.  It differs from
+   NULL and from all other timezone_t values.  Only the address
+   matters; the pointer is never dereferenced.  */
+#define local_tz ((timezone_t) 1)

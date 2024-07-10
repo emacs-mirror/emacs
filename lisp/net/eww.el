@@ -1306,7 +1306,7 @@ This consults the entries in `eww-readable-urls' (which see)."
   "Check if point is within a field and toggle text conversion.
 Set `text-conversion-style' to the value `action' if it isn't
 already and point is within the prompt field, or if
-`text-conversion-style' is `nil', so as to guarantee that
+`text-conversion-style' is nil, so as to guarantee that
 the input method functions properly for the purpose of typing
 within text input fields."
   (when (and (eq major-mode 'eww-mode)
@@ -1370,13 +1370,22 @@ within text input fields."
     (save-excursion
       (goto-char (point-min))
       (while-let ((match (text-property-search-forward
-                          'display nil (lambda (_ value) (imagep value)))))
-        (let ((image (prop-match-value match)))
-          (unless (image-property image :original-scale)
-            (setf (image-property image :original-scale)
-                  (or (image-property image :scale) 1)))
+                          'display nil
+                          (lambda (_ value)
+                            (and value (get-display-property
+                                        nil 'image nil value))))))
+        (let* ((image (cons 'image
+                            (get-display-property nil 'image nil
+                                                  (prop-match-value match))))
+               (original-scale (or (image-property image :original-scale)
+                                   (setf (image-property image :original-scale)
+                                         (or (image-property image :scale)
+                                             'default)))))
+          (when (eq original-scale 'default)
+            (setq original-scale (image-compute-scaling-factor
+                                  image-scaling-factor)))
           (setf (image-property image :scale)
-                (* (image-property image :original-scale) scaling)))))))
+                (* original-scale scaling)))))))
 
 (defun eww--url-at-point ()
   "`thing-at-point' provider function."

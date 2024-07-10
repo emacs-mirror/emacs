@@ -7263,7 +7263,7 @@ auto-save file, if that is more recent than the visited file."
 	   (after-find-file nil nil t))
 	  (t (user-error "Recover-file canceled")))))
 
-(defvar dired-mode-hook)
+(declare-function dired-omit-mode "dired-x" (&optional arg))
 
 (defun recover-session ()
   "Recover auto save files from a previous Emacs session.
@@ -7284,14 +7284,12 @@ Then you'll be asked about a number of files to recover."
                                (concat "\\`" (regexp-quote nd)))
 			     t)
       (error "No previous sessions to recover")))
-  (require 'dired)
-  (let ((ls-lisp-support-shell-wildcards t)
-        ;; Ensure that we don't omit the session files as the user may
-        ;; have (as suggested by the manual) `dired-omit-mode' in the
-        ;; hook.
-        (dired-mode-hook (delete 'dired-omit-mode dired-mode-hook)))
+  (let ((ls-lisp-support-shell-wildcards t))
     (dired (concat auto-save-list-file-prefix "*")
-	   (concat (connection-local-value dired-listing-switches) " -t")))
+	   (concat (connection-local-value dired-listing-switches) " -t"))
+    ;; Toggle omitting, if it is on.
+    (when (bound-and-true-p dired-omit-mode)
+      (dired-omit-mode -1)))
   (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
   (define-key (current-local-map) "\C-c\C-c" 'recover-session-finish)
   (save-excursion
@@ -8087,8 +8085,8 @@ Valid wildcards are `*', `?', `[abc]' and `[a-z]'."
 		  (end (insert-directory-adj-pos
 			(+ beg (read (current-buffer)))
 			error-lines)))
-	      (if (memq (char-after end) '(?\n ?\s))
-		  ;; End is followed by \n or by " -> ".
+	      (if (memq (char-after end) '(?\n ?\s ?/ ?* ?@ ?% ?= ?|))
+		  ;; End is followed by \n or by output of -F.
 		  (put-text-property start end 'dired-filename t)
 		;; It seems that we can't trust ls's output as to
 		;; byte positions of filenames.
@@ -8195,9 +8193,15 @@ normally equivalent short `-D' option is just passed on to
 				 "\\") ; Disregard Unix shell aliases!
 			       insert-directory-program
 			       " -d "
-			       (if (stringp switches)
-				   switches
-				 (mapconcat #'identity switches " "))
+			       ;; Quote switches that require quoting
+			       ;; such as "--block-size='1".  But don't
+			       ;; quote switches that use patterns
+			       ;; such as "--ignore=PATTERN" (bug#71935).
+			       (mapconcat #'shell-quote-wildcard-pattern
+					  (if (stringp switches)
+					      (split-string-and-unquote switches)
+					    switches)
+					  " ")
 			       " -- "
 			       ;; Quote some characters that have
 			       ;; special meanings in shells; but

@@ -297,7 +297,8 @@ are handled in another way, and should not be added to this list."
 
 ;;;###autoload
 (define-derived-mode pascal-mode prog-mode "Pascal"
-  "Major mode for editing Pascal code.\\<pascal-mode-map>
+  "Major mode for editing Pascal code.
+\\<pascal-mode-map>
 TAB indents for Pascal code.  Delete converts tabs to spaces as it moves back.
 
 \\[completion-at-point] completes the word around current point with respect \
@@ -333,7 +334,7 @@ Variables controlling indentation/edit style:
     regardless of where in the line point is when the TAB command is used.
  `pascal-auto-endcomments' (default t)
     Non-nil means a comment { ... } is set after the ends which ends cases and
-    functions. The name of the function or case will be set between the braces.
+    functions.  The name of the function or case will be set between the braces.
  `pascal-auto-lineup' (default t)
     List of contexts where auto lineup of :'s or ='s should be done.
 
@@ -496,7 +497,8 @@ This puts the mark at the end, and point at the beginning."
   (pascal-beg-of-defun))
 
 (defun pascal-comment-area (start end)
-  "Put the region into a Pascal comment.\\<pascal-mode-map>
+  "Put the region into a Pascal comment.
+\\<pascal-mode-map>
 The comments that are in this area are \"deformed\":
 `*)' becomes `!(*' and `}' becomes `!{'.
 These deformed comments are returned to normal if you use

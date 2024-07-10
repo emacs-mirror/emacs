@@ -1954,7 +1954,7 @@ ender."
 ;; The following is no longer used (2020-02-16).
 ;; (c-lang-defconst c-last-open-c-comment-start-on-line-re
 ;;   "Regexp which matches the last block comment start on the
-;; current ine, if any, or nil in those languages without block
+;; current one, if any, or nil in those languages without block
 ;; comments.  When a match is found, submatch 1 contains the comment
 ;; starter."
 ;;   t "\\(/\\*\\)\\([^*]\\|\\*+\\([^*/]\\|$\\)\\)*$"
@@ -4396,10 +4396,9 @@ a label construct.  This catches C++'s inheritance construct \"class foo
 
 (c-lang-defconst c-opt-extra-label-key
   "Optional regexp matching labels.
-Normally, labels are detected according to `c-nonlabel-token-key',
-`c-decl-prefix-re' and `c-nonlabel-decl-prefix-re'.  This regexp can
-be used if there are additional labels that aren't recognized that
-way."
+Normally, labels are detected according to `c-nonlabel-token-key' and
+`c-decl-prefix-re'.  This regexp can be used if there are additional
+labels that aren't recognized that way."
   t    nil
   objc (c-make-keywords-re t (c-lang-const c-protection-kwds)))
 (c-lang-defvar c-opt-extra-label-key (c-lang-const c-opt-extra-label-key))

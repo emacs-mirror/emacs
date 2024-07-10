@@ -3596,20 +3596,7 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   pgtk_clip_to_row (w, row, ANY_AREA, cr);
 
   if (p->bx >= 0 && !p->overlay_p)
-    {
-      /* In case the same realized face is used for fringes and for
-         something displayed in the text (e.g. face `region' on
-         mono-displays, the fill style may have been changed to
-         FillSolid in pgtk_draw_glyph_string_background.  */
-      if (face->stipple)
-	fill_background_by_face (f, face, p->bx, p->by, p->nx, p->ny);
-      else
-	{
-	  pgtk_set_cr_source_with_color (f, face->background, true);
-	  cairo_rectangle (cr, p->bx, p->by, p->nx, p->ny);
-	  cairo_fill (cr);
-	}
-    }
+    fill_background_by_face (f, face, p->bx, p->by, p->nx, p->ny);
 
   if (p->which
       && p->which < max_fringe_bmp

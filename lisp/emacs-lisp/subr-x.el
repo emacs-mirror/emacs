@@ -158,20 +158,22 @@ removed."
     (string-trim (replace-regexp-in-string blank " " string t t)
                  blank blank)))
 
-(defun string-fill (string length)
-  "Try to word-wrap STRING so that no lines are longer than LENGTH.
-Wrapping is done where there is whitespace.  If there are
-individual words in STRING that are longer than LENGTH, the
-result will have lines that are longer than LENGTH."
+;;;###autoload
+(defun string-fill (string width)
+  "Try to word-wrap STRING so that it displays with lines no wider than WIDTH.
+STRING is wrapped where there is whitespace in it.  If there are
+individual words in STRING that are wider than WIDTH, the result
+will have lines that are wider than WIDTH."
   (declare (important-return-value t))
   (with-temp-buffer
     (insert string)
     (goto-char (point-min))
-    (let ((fill-column length)
+    (let ((fill-column width)
           (adaptive-fill-mode nil))
       (fill-region (point-min) (point-max)))
     (buffer-string)))
 
+;;;###autoload
 (defun string-limit (string length &optional end coding-system)
   "Return a substring of STRING that is (up to) LENGTH characters long.
 If STRING is shorter than or equal to LENGTH characters, return the
@@ -253,6 +255,7 @@ than this function."
      (end (substring string (- (length string) length)))
      (t (substring string 0 length)))))
 
+;;;###autoload
 (defun string-pad (string length &optional padding start)
   "Pad STRING to LENGTH using PADDING.
 If PADDING is nil, the space character is used.  If not nil, it
@@ -272,6 +275,7 @@ the string."
           (start (concat (make-string pad-length (or padding ?\s)) string))
           (t (concat string (make-string pad-length (or padding ?\s)))))))
 
+;;;###autoload
 (defun string-chop-newline (string)
   "Remove the final newline (if any) from STRING."
   (declare (pure t) (side-effect-free t))

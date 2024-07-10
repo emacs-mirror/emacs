@@ -1850,6 +1850,9 @@ Run shell command in the current project's root directory
 @item C-x p &
 Run shell command asynchronously in the current project's root
 directory (@code{project-async-shell-command}).
+@item C-x p o
+Run the next command in the current project
+(@code{project-any-command}).
 @end table
 
   Emacs provides commands for handling project files conveniently.
@@ -1946,6 +1949,11 @@ directory.  @xref{Top,Eshell,Eshell, eshell, Eshell: The Emacs Shell}.
   The command @kbd{C-x p &} (@code{project-async-shell-command}) runs
 @code{async-shell-command} in the current project's root directory.
 
+@findex project-any-command
+  Finally, the command @kbd{C-x p o} (@code{project-any-command}) will
+run the next command you type, whether related to files or not, in the
+current project.
+
 @node Project Buffer Commands
 @subsection Project Commands That Operate on Buffers
 
@@ -1958,6 +1966,9 @@ List the project buffers (@code{project-list-buffers}).
 @item C-x p k
 Kill all live buffers that belong to the current project
 (@code{project-kill-buffers}).
+@item C-x p o
+Run the next command in the current project
+(@code{project-any-command}).
 @end table
 
 @findex project-switch-to-buffer
@@ -1985,6 +1996,10 @@ accomplishes that: it kills all the buffers that belong to the current
 project that satisfy any of @code{project-kill-buffer-conditions}.  If
 @code{project-kill-buffers-display-buffer-list} is non-@code{nil}, the
 buffers to be killed will be displayed first.
+
+  Finally, the command @kbd{C-x p o} (@code{project-any-command}) will
+run the next command you type, whether related to buffers or not, in the
+current project.
 
 @node Switching Projects
 @subsection Switching Projects
@@ -2466,10 +2481,10 @@ the match with @var{replacement}.  This command can only be used in
 @file{*xref*} buffers that show all the matches for an identifier in
 all the relevant files.  @xref{Identifier Search}.
 
+@cindex revert-buffer, in @file{*xref*} buffers
 @item g
-@findex xref-revert-buffer
-Refresh the contents of the @file{*xref*} buffer
-(@code{xref-revert-buffer}).
+Refresh the contents of the @file{*xref*} buffer (@code{revert-buffer}).
+@xref{Reverting}.
 
 @item M-,
 @findex xref-quit-and-pop-marker-stack

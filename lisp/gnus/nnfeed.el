@@ -630,12 +630,21 @@ Only HEADERS of a type included in MIME are considered."
 (deffoo nnfeed-request-type (_group &optional _article)
   'unknown)
 
+;; FIXME: Works incorrectly when a group name contains spaces as Gnus actually
+;; separates the group name from the description with either a tab or a space.
+(defun nnfeed--group-description (name group)
+  "Return a description line for a GROUP called NAME."
+  (when-let ((desc (aref group 5))
+             ((not (string-blank-p desc))))
+    (insert name "\t" desc "\n")))
+
 (deffoo nnfeed-request-group-description (group &optional server)
   (when-let ((server (or server (nnfeed--current-server-no-prefix)))
              (g (nnfeed--group-data group server)))
     (with-current-buffer nntp-server-buffer
       (erase-buffer)
-      (insert group "	" (aref g 5) "\n"))))
+      (nnfeed--group-description group g)
+      t)))
 
 (deffoo nnfeed-request-list-newsgroups (&optional server)
   (when-let ((server (or server (nnfeed--current-server-no-prefix)))
@@ -643,9 +652,8 @@ Only HEADERS of a type included in MIME are considered."
              ((hash-table-p s)))
     (with-current-buffer nntp-server-buffer
       (erase-buffer)
-      (maphash (lambda (group g)
-                 (insert group "	" (aref g 5) "\n"))
-               s))))
+      (maphash #'nnfeed--group-description s)
+      t)))
 
 (deffoo nnfeed-request-rename-group (group new-name &optional server)
   (when-let ((server (or server (nnfeed--current-server-no-prefix)))

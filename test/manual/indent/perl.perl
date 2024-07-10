@@ -5,6 +5,10 @@ sub add_funds($) {
     return 0;
 }
 
+find ({ wanted => sub {
+            return;
+        }, follow => 1 }, '/tmp');
+
 # qw(...) is a quoted list of words, so we can and should indent its content!
 my @tutu = qw[
     tata

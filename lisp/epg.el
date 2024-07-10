@@ -676,10 +676,14 @@ callback data (if any)."
 				    :command (cons (epg-context-program context)
 						   args)
 				    :connection-type 'pipe
-				    :coding 'raw-text
+				    :coding '(raw-text . nil)
 				    :filter #'epg--process-filter
 				    :stderr error-process
 				    :noquery t))))
+    ;; We encode and decode ourselves the text sent/received from gpg,
+    ;; so the below disables automatic encoding and decoding by
+    ;; subprocess communications routines.
+    (set-process-coding-system process 'raw-text 'raw-text)
     (setf (epg-context-process context) process)))
 
 (defun epg--process-filter (process input)

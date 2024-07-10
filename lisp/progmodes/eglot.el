@@ -494,7 +494,7 @@ If this variable's value can also be an alist ((COMMAND . ACTION)
 ...) where COMMAND is a symbol designating a command, such as
 `eglot-rename', `eglot-code-actions',
 `eglot-code-action-quickfix', etc.  ACTION is one of the symbols
-described above.  The value `t' for COMMAND is accepted and its
+described above.  The value t for COMMAND is accepted and its
 ACTION is the default value for commands not in the alist."
   :type (let ((basic-choices
                '((const :tag "Use diff" diff)
@@ -1415,7 +1415,7 @@ INTERACTIVE is ignored and provided for backward compatibility."
      (unless (or (null current-server)
                  (y-or-n-p "\
 [eglot] Shut down current connection before attempting new one?"))
-       (user-error "[eglot] Connection attempt aborted by user."))
+       (user-error "[eglot] Connection attempt aborted by user"))
      (prog1 (append (eglot--guess-contact t) '(t))
        (when current-server (ignore-errors (eglot-shutdown current-server))))))
   (eglot--connect (eglot--ensure-list managed-major-modes)
@@ -1871,15 +1871,25 @@ Doubles as an indicator of snippet support."
            (unless (bound-and-true-p yas-minor-mode) (yas-minor-mode 1))
            (apply #'yas-expand-snippet args)))))
 
-(defun eglot--format-markup (markup)
-  "Format MARKUP according to LSP's spec."
-  (pcase-let ((`(,string ,mode)
-               (if (stringp markup) (list markup 'gfm-view-mode)
-                 (list (plist-get markup :value)
-                       (pcase (plist-get markup :kind)
-                         ("markdown" 'gfm-view-mode)
-                         ("plaintext" 'text-mode)
-                         (_ major-mode))))))
+ (defun eglot--format-markup (markup)
+  "Format MARKUP according to LSP's spec.
+MARKUP is either an LSP MarkedString or MarkupContent object."
+  (let (string mode language)
+    (cond ((stringp markup)
+           (setq string markup
+                 mode 'gfm-view-mode))
+          ((setq language (plist-get markup :language))
+           ;; Deprecated MarkedString
+           (setq string (concat "```" language "\n"
+                                (plist-get markup :value) "\n```")
+                 mode 'gfm-view-mode))
+          (t
+           ;; MarkupContent
+           (setq string (plist-get markup :value)
+                 mode (pcase (plist-get markup :kind)
+                        ("markdown" 'gfm-view-mode)
+                        ("plaintext" 'text-mode)
+                        (_ major-mode)))))
     (with-temp-buffer
       (setq-local markdown-fontify-code-blocks-natively t)
       (insert string)
@@ -2544,7 +2554,7 @@ THINGS are either registrations or unregisterations (sic)."
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer.
-Sets `eglot--TextDocumentIdentifier-uri' (which see) as a side effect."
+Sets `eglot--TextDocumentIdentifier-cache' (which see) as a side effect."
   (unless eglot--TextDocumentIdentifier-cache
     (let ((truename (file-truename (or buffer-file-name
                                        (ignore-errors
@@ -3925,7 +3935,7 @@ If NOERROR, return predicate, else erroring function."
 ;;; List connections mode
 
 (define-derived-mode eglot-list-connections-mode  tabulated-list-mode
-  "" "Eglot mode for listing server connections
+  "" "Eglot mode for listing server connections.
 \\{eglot-list-connections-mode-map}"
   :interactive nil
   (setq-local tabulated-list-format
@@ -3967,12 +3977,12 @@ If NOERROR, return predicate, else erroring function."
   "Face used for parameter inlay hint overlays.")
 
 (defvar-local eglot--outstanding-inlay-hints-region (cons nil nil)
-  "Jit-lock-calculated (FROM . TO) region with potentially outdated hints")
+  "Jit-lock-calculated (FROM . TO) region with potentially outdated hints.")
 
 (defvar-local eglot--outstanding-inlay-hints-last-region nil)
 
 (defvar-local eglot--outstanding-inlay-regions-timer nil
-  "Helper timer for `eglot--update-hints'")
+  "Helper timer for `eglot--update-hints'.")
 
 (defun eglot--update-hints (from to)
   "Jit-lock function for Eglot inlay hints."

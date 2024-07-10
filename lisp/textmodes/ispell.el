@@ -2416,7 +2416,7 @@ Global `ispell-quit' is set to start location to continue spell session."
 			    (progn
 			      (set-marker ispell-recursive-edit-marker nil)
 			      (error
-			       "Cannot continue ispell from this buffer.")))
+                               "Cannot continue ispell from this buffer")))
 			(set-marker ispell-recursive-edit-marker nil)))
 		    (list word nil))	; recheck starting at this word.
 		   ((= char ?\C-z)

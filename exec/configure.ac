@@ -42,11 +42,6 @@ General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */])
 
-AC_ARG_WITH([reentrancy],
-  [AS_HELP_STRING([--with-reentrancy],
-    [Generate library which can be used within a signal handler.])],
-  [AC_DEFINE([REENTRANT], [1])])
-
 AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
 AC_PROG_CPP
@@ -74,9 +69,9 @@ AC_CHECK_FUNC([process_vm_readv],
       ]])])])
 AC_CHECK_HEADERS([sys/param.h sys/uio.h])
 AC_CHECK_MEMBERS([siginfo_t.si_syscall], [], [],
-  [[
+[[
 #include <signal.h>
-  ]])
+]])
 
 AH_BOTTOM([
 #ifdef HAVE_STDBOOL_H
@@ -120,6 +115,7 @@ AH_TEMPLATE([SYSCALL_ARG2_REG], [Define to register holding arg2 to system calls
 AH_TEMPLATE([SYSCALL_ARG3_REG], [Define to register holding arg3 to system calls.])
 AH_TEMPLATE([SYSCALL_RET_REG], [Define to register holding value of system calls.])
 AH_TEMPLATE([STACK_POINTER], [Define to register holding the stack pointer.])
+AH_TEMPLATE([PROGRAM_COUNTER], [Define to register holding the program counter.])
 AH_TEMPLATE([EXEC_SYSCALL], [Define to number of the `exec' system call.])
 AH_TEMPLATE([USER_WORD], [Define to word type used by tracees.])
 AH_TEMPLATE([USER_SWORD], [Define to signed word type used by tracees.])
@@ -134,7 +130,8 @@ AH_TEMPLATE([READLINK_SYSCALL], [Define to number of the `readlink' system call.
 AH_TEMPLATE([READLINKAT_SYSCALL], [Define to number of the `readlinkat' system call.])
 AH_TEMPLATE([OPEN_SYSCALL], [Define to number of the `open' system call.])
 AH_TEMPLATE([OPENAT_SYSCALL], [Define to number of the `openat' system call.])
-AH_TEMPLATE([REENTRANT], [Define to 1 if the library is used within a signal handler.])
+AH_TEMPLATE([HAVE_SECCOMP], [Define to 1 if secure computing filters are available
+to accelerate interception of system calls.])
 
 AC_CANONICAL_HOST
 
@@ -250,6 +247,7 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_ARG2_REG], [rdx])
      AC_DEFINE([SYSCALL_ARG3_REG], [r10])
      AC_DEFINE([STACK_POINTER], [rsp])
+     AC_DEFINE([PROGRAM_COUNTER], [rip])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
      AC_DEFINE([USER_SWORD], [intptr_t])
@@ -283,6 +281,7 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_ARG2_REG], [edx])
      AC_DEFINE([SYSCALL_ARG3_REG], [esi])
      AC_DEFINE([STACK_POINTER], [esp])
+     AC_DEFINE([PROGRAM_COUNTER], [eip])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
      AC_DEFINE([USER_SWORD], [intptr_t])
@@ -314,6 +313,7 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_ARG2_REG], [[regs[2]]])
      AC_DEFINE([SYSCALL_ARG3_REG], [[regs[3]]])
      AC_DEFINE([STACK_POINTER], [sp])
+     AC_DEFINE([PROGRAM_COUNTER], [pc])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
      AC_DEFINE([USER_SWORD], [intptr_t])
@@ -346,6 +346,7 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_ARG2_REG], [[uregs[2]]])
      AC_DEFINE([SYSCALL_ARG3_REG], [[uregs[3]]])
      AC_DEFINE([STACK_POINTER], [[uregs[13]]])
+     AC_DEFINE([PROGRAM_COUNTER], [[uregs[15]]])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
      AC_DEFINE([USER_SWORD], [intptr_t])
@@ -371,6 +372,7 @@ AS_CASE([$host], [x86_64-*linux*],
        AC_DEFINE([SYSCALL_ARG2_REG], [[uregs[2]]])
        AC_DEFINE([SYSCALL_ARG3_REG], [[uregs[3]]])
        AC_DEFINE([STACK_POINTER], [[uregs[13]]])
+       AC_DEFINE([STACK_POINTER], [[uregs[15]]])
        AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
        AC_DEFINE([USER_WORD], [uintptr_t])
        AC_DEFINE([USER_SWORD], [intptr_t])
@@ -402,6 +404,7 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([SYSCALL_ARG2_REG], [[gregs[4]]]) # a2
    AC_DEFINE([SYSCALL_ARG3_REG], [[gregs[5]]]) # a3
    AC_DEFINE([STACK_POINTER], [[gregs[29]]]) # sp
+   AC_DEFINE([PROGRAM_COUNTER], [[cp0_epc]]) # pc
    AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
    AC_DEFINE([USER_WORD], [uintptr_t])
    AC_DEFINE([USER_SWORD], [intptr_t])
@@ -432,6 +435,7 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([SYSCALL_ARG2_REG], [[gregs[4]]]) # a2
    AC_DEFINE([SYSCALL_ARG3_REG], [[gregs[5]]]) # a3
    AC_DEFINE([STACK_POINTER], [[gregs[29]]]) # sp
+   AC_DEFINE([PROGRAM_COUNTER], [[cp0_epc]]) # pc
    AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
    AC_DEFINE([USER_WORD], [uintptr_t])
    AC_DEFINE([USER_SWORD], [intptr_t])
@@ -479,6 +483,12 @@ MIPS_N32=$exec_cv_mips_nabi
 AC_ARG_VAR([LOADERFLAGS], [Flags used to link the loader.])
 AC_ARG_VAR([ARFLAGS], [Flags for the archiver.])
 AC_ARG_VAR([ASFLAGS], [Flags for the assembler.])
+
+# Search for seccomp headers and declarations.
+AC_CHECK_HEADERS([linux/seccomp.h linux/filter.h],
+  [AC_CHECK_DECLS([SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC, SECCOMP_RET_TRACE],
+    [AC_DEFINE([HAVE_SECCOMP], [1])], [],
+    [[#include <linux/seccomp.h>]])])
 
 # Make the assembler optimize for code size.  Don't do this on MIPS,
 # as the assembler code manages branch delays manually.
@@ -547,7 +557,9 @@ FIND_DELETE=$exec_cv_find_delete
 AC_SUBST([FIND_DELETE])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile config-mips.m4])
+AC_CONFIG_FILES([Makefile])
+AS_IF([test "x$is_mips" = xyes],
+  [AC_CONFIG_FILES ([config-mips.m4])])
 
 AC_SUBST([AUTO_DEPEND])
 AC_SUBST([LOADERFLAGS])
@@ -556,5 +568,6 @@ AC_SUBST([ASFLAGS])
 AC_SUBST([exec_loader])
 AC_SUBST([MIPS_N32])
 AC_SUBST([OBJS])
+AC_SUBST([is_mips])
 
 AC_OUTPUT

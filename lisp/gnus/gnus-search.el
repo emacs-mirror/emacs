@@ -135,8 +135,7 @@ transformed."
   'gnus-search-ignored-newsgroups "28.1")
 
 (defcustom gnus-search-ignored-newsgroups ""
-  "A regexp to match newsgroups in the active file that should
-be skipped when searching."
+  "Regexp matching newsgroups in the active file to skip when searching."
   :version "24.1"
   :type 'regexp)
 
@@ -357,7 +356,7 @@ This can also be set per-server."
 
 (defcustom gnus-search-mu-switches nil
   "A list of strings, to be given as additional arguments to mu.
-Note that this should be a list. I.e., do NOT use the following:
+Note that this should be a list.  I.e., do NOT use the following:
     (setq gnus-search-mu-switches \"-u -r\")
 Instead, use this:
     (setq gnus-search-mu-switches \\='(\"-u\" \"-r\"))
@@ -367,7 +366,7 @@ This can also be set per-server."
 
 (defcustom gnus-search-mu-remove-prefix (expand-file-name "~/Mail/")
   "A prefix to remove from the mu results to get a group name.
-Usually this will be set to the path to your mail directory. This
+Usually this will be set to the path to your mail directory.  This
 can also be set per-server."
   :version "29.1"
   :type 'directory)
@@ -2186,7 +2185,7 @@ remaining string, then adds all that to the top-level spec."
 
 (defun gnus-search-thread (header &optional group server)
   "Find articles in the thread containing HEADER from GROUP on SERVER.
-If gnus-refer-thread-use-search is nil only the current group is
+If `gnus-refer-thread-use-search' is nil only the current group is
 checked for articles; if t all groups on the server containing
 the article's group will be searched; if a list then all servers
 in this list will be searched.  If possible the newly found

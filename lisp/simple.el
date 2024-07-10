@@ -4061,7 +4061,7 @@ REASON describes the reason that the boundary is being added; see
 (defun undo-auto--boundaries (cause)
   "Check recently changed buffers and add a boundary if necessary.
 REASON describes the reason that the boundary is being added; see
-`undo-last-boundary' for more information."
+`undo-auto--last-boundary-cause' for more information."
   ;; (Bug #23785) All commands should ensure that there is an undo
   ;; boundary whether they have changed the current buffer or not.
   (when (eq cause 'command)
@@ -6703,28 +6703,53 @@ If ARG is zero, kill current line but exclude the trailing newline."
   (unless (eq last-command 'kill-region)
     (kill-new "")
     (setq last-command 'kill-region))
-  (cond ((zerop arg)
-	 ;; We need to kill in two steps, because the previous command
-	 ;; could have been a kill command, in which case the text
-	 ;; before point needs to be prepended to the current kill
-	 ;; ring entry and the text after point appended.  Also, we
-	 ;; need to use save-excursion to avoid copying the same text
-	 ;; twice to the kill ring in read-only buffers.
-	 (save-excursion
-	   (kill-region (point) (progn (forward-visible-line 0) (point))))
-	 (kill-region (point) (progn (end-of-visible-line) (point))))
-	((< arg 0)
-	 (save-excursion
-	   (kill-region (point) (progn (end-of-visible-line) (point))))
-	 (kill-region (point)
-		      (progn (forward-visible-line (1+ arg))
-			     (unless (bobp) (backward-char))
-			     (point))))
-	(t
-	 (save-excursion
-	   (kill-region (point) (progn (forward-visible-line 0) (point))))
-	 (kill-region (point)
-		      (progn (forward-visible-line arg) (point))))))
+  ;; - We need to kill in two steps, because the previous command
+  ;;   could have been a kill command, in which case the text before
+  ;;   point needs to be prepended to the current kill ring entry and
+  ;;   the text after point appended.
+  ;; - We need to be careful to avoid copying text twice to the kill
+  ;;   ring in read-only buffers.
+  ;; - We need to determine the boundaries of visible lines before we
+  ;;   do the first kill.  Otherwise `after-change-functions' may
+  ;;   change visibility (bug#65734).
+  (let (;; The beginning of both regions to kill
+        (regions-begin (point-marker))
+        ;; The end of the first region to kill.  Moreover, after
+        ;; evaluation of the value form, (point) will be the end of
+        ;; the second region to kill.
+        (region1-end (cond ((zerop arg)
+                            (prog1 (save-excursion
+                                     (forward-visible-line 0)
+                                     (point-marker))
+                              (end-of-visible-line)))
+	                   ((< arg 0)
+	                    (prog1 (save-excursion
+                                     (end-of-visible-line)
+                                     (point-marker))
+                              (forward-visible-line (1+ arg))
+	                      (unless (bobp) (backward-char))))
+	                   (t
+	                    (prog1 (save-excursion
+                                     (forward-visible-line 0)
+                                     (point-marker))
+	                      (forward-visible-line arg))))))
+    ;; - Pass the marker positions and not the markers themselves.
+    ;;   kill-region determines whether to prepend or append to a
+    ;;   previous kill by checking the direction of the region.  But
+    ;;   it deletes the content and hence moves the markers before
+    ;;   that.  That effectively makes every region delimited by
+    ;;   markers an (empty) forward region.
+    ;; - Make the first kill-region emit a non-local exit only if the
+    ;;   second kill-region below would not operate on a non-empty
+    ;;   region.
+    (let ((kill-read-only-ok (or kill-read-only-ok
+                                 (/= regions-begin (point)))))
+      (kill-region (marker-position regions-begin)
+                   (marker-position region1-end)))
+    (kill-region (marker-position regions-begin)
+                 (point))
+    (set-marker regions-begin nil)
+    (set-marker region1-end nil)))
 
 (defun forward-visible-line (arg)
   "Move forward by ARG lines, ignoring currently invisible newlines only.

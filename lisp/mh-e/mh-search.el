@@ -539,7 +539,7 @@ group of results."
 ;;; Search Menu
 
 (easy-menu-define
-  mh-pick-menu mh-search-mode-map "Menu for MH-E Search"
+  mh-pick-menu mh-search-mode-map "Menu for MH-E Search."
   '("Search"
     ["Perform Search"       mh-index-do-search t]
     ["Search with pick"     mh-pick-do-search t]))
@@ -594,8 +594,8 @@ as well.")
 (put 'mh-search-mode 'mode-class 'special)
 
 (define-derived-mode mh-search-mode fundamental-mode "MH-Search"
-  "Mode for creating search templates in MH-E.\\<mh-search-mode-map>
-
+  "Mode for creating search templates in MH-E.
+\\<mh-search-mode-map>
 Edit this template by entering your search criteria in an
 appropriate header field that is already there, or create a new
 field yourself. If the string you're looking for could be

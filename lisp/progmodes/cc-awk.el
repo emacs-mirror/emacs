@@ -990,7 +990,7 @@
 		 "ERRNO" "FIELDWIDTHS" "FILENAME" "FNR" "FPAT" "FS" "FUNCTAB"
 		 "IGNORECASE" "LINT" "NF" "NR" "OFMT" "OFS" "ORS" "PREC"
 		 "PROCINFO" "RLENGTH" "ROUNDMODE" "RS" "RSTART" "RT" "SUBSEP"
-		 "SYNTAB" "TEXTDOMAIN") t) "\\>")
+		 "SYMTAB" "TEXTDOMAIN") t) "\\>")
       'font-lock-variable-name-face)
 
      ;; Special file names.  (acm, 2002/7/22)
@@ -1011,9 +1011,11 @@ std\\(err\\|in\\|out\\)\\|user\\)\\)\\>\
      ;; Do the same (almost) with
      ;; (regexp-opt '("/inet/tcp/lport/rhost/rport" "/inet/udp/lport/rhost/rport"
      ;;                 "/inet/raw/lport/rhost/rport") 'words)
+     ;; , replacing "inet" with "inet[46]?"
+     ;; , replacing "lport", "rhost", and "rport" with "[[:alnum:]]+".
      ;; This cannot be combined with the above pattern, because the match number
      ;; for the (optional) closing \" would then exceed 9.
-     '("\\(\"/inet/\\(\\(raw\\|\\(tc\\|ud\\)p\\)/lport/rhost/rport\\)\\)\\>\
+     '("\\(\"/inet[46]?/\\(\\(raw\\|\\(tc\\|ud\\)p\\)/[[:alnum:]]+/[[:alnum:]]+/[[:alnum:]]+\\)\\)\\>\
 \\(\\(\"\\)\\|\\([^\"/\n\r][^\"\n\r]*\\)?$\\)"
        (1 font-lock-variable-name-face t)
        (6 font-lock-variable-name-face t t))
@@ -1035,8 +1037,8 @@ std\\(err\\|in\\|out\\)\\|user\\)\\)\\>\
 		  '("adump" "and" "asort" "asorti" "atan2" "bindtextdomain" "close"
 		    "compl" "cos" "dcgettext" "dcngettext" "exp" "extension" "fflush"
 		    "gensub" "gsub" "index" "int" "isarray" "length" "log" "lshift"
-		    "match" "mktime" "or" "patsplit" "print" "printf" "rand" "rshift"
-		    "sin" "split" "sprintf" "sqrt" "srand" "stopme"
+		    "match" "mkbool" "mktime" "or" "patsplit" "print" "printf" "rand"
+		    "rshift" "sin" "split" "sprintf" "sqrt" "srand" "stopme"
 		    "strftime" "strtonum" "sub" "substr"  "system"
 		    "systime" "tolower" "toupper" "typeof" "xor")
 		  t)

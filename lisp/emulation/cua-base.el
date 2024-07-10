@@ -154,7 +154,7 @@
 ;;
 ;; To start a rectangle, use [C-return] and extend it using the normal
 ;; movement keys (up, down, left, right, home, end, C-home,
-;; C-end). Once the rectangle has the desired size, you can cut or
+;; C-end).  Once the rectangle has the desired size, you can cut or
 ;; copy it using C-x and C-c (or C-w and M-w), and you can
 ;; subsequently insert it - as a rectangle - using C-v (or C-y).  So
 ;; the only new command you need to know to work with cua-mode

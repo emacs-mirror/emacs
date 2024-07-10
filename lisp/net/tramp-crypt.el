@@ -117,7 +117,7 @@ initializing a new encrypted remote directory."
 ;; `command-completion-default-include-p'.
 (defun tramp-crypt-command-completion-p (symbol _buffer)
   "A predicate for Tramp interactive commands.
-They are completed by \"M-x TAB\" only when encryption support is enabled."
+They are completed by `M-x TAB' only when encryption support is enabled."
   (and tramp-crypt-enabled
        ;; `tramp-crypt-remove-directory' needs to be completed only in
        ;; case we have already encrypted directories.

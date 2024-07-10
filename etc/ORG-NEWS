@@ -18,6 +18,9 @@ Please send Org bug reports to mailto:emacs-orgmode@gnu.org.
 # Here, we list the *most important* changes and changes that _likely_
 # require user action for most Org mode users.
 # Sorted from most important to least important.
+*** Arbitrary shell commands may no longer run when turning on Org mode
+
+This is for security reasons, to avoid running malicious commands.
 
 *** =python-mode.el (MELPA)= support in =ob-python.el= is removed
 
@@ -177,7 +180,7 @@ Previously, when exporting to Org, all the citations and
 =print_bibliography= keywords, were transformed according to the
 chosen citation processor.
 
-This is no loner the case.  All the citation-related markup is now
+This is no longer the case.  All the citation-related markup is now
 exported as is.
 
 The previous behavior can be reverted by setting new custom option

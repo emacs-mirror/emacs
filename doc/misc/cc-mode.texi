@@ -835,12 +835,14 @@ Emacs Manual}, for fuller details.  @code{comment-region} isn't
 actually part of @ccmode{}; it is given a @ccmode{} binding for
 convenience.
 
-@item @kbd{M-;} (@code{comment-dwim} or @code{indent-for-comment} @footnote{The name of this command varies between (X)Emacs versions.})
+@item @kbd{M-;} (@code{comment-dwim} or @code{indent-for-comment})
 @kindex M-;
 @findex comment-dwim
 @findex indent-for-comment
 Insert a comment at the end of the current line, if none is there
-already.  Then reindent the comment according to @code{comment-column}
+already@footnote{The name of this command varies between (X)Emacs
+versions.}.  Then reindent the comment according to
+@code{comment-column}
 @ifclear XEMACS
 (@pxref{Options for Comments,,, emacs, GNU Emacs Manual})
 @end ifclear
@@ -1221,15 +1223,17 @@ also suppresses auto-newline mode.
 Toggle auto-newline minor mode.  When the command turns the mode on,
 it also enables electric minor mode.
 
-@item @kbd{M-x c-toggle-hungry-state}@footnote{Prior to @ccmode{} 5.31, this command was bound to @kbd{C-c C-d}.}
+@item @kbd{M-x c-toggle-hungry-state}
 @findex c-toggle-hungry-state
 @findex toggle-hungry-state @r{(c-)}
-Toggle hungry-delete minor mode.
+Toggle hungry-delete minor mode@footnote{Prior to @ccmode{} 5.31, this
+command was bound to @kbd{C-c C-d}.}.
 
-@item @kbd{M-x c-toggle-auto-hungry-state}@footnote{Prior to @ccmode{} 5.31, this command was bound to @kbd{C-c C-t}.}
+@item @kbd{M-x c-toggle-auto-hungry-state}
 @findex c-toggle-auto-hungry-state
 @findex toggle-auto-hungry-state @r{(c-)}
-Toggle both auto-newline and hungry delete minor modes.
+Toggle both auto-newline and hungry delete minor modes@footnote{Prior to
+@ccmode{} 5.31, this command was bound to @kbd{C-c C-t}.}.
 
 @item @kbd{C-c C-w} (@code{M-x subword-mode})
 @kindex C-c C-w
@@ -1569,7 +1573,7 @@ perform @code{c-hungry-delete-backwards} and
 rather than using the minor mode toggling.
 
 @table @asis
-@item @kbd{C-c C-@key{DEL}}, or @kbd{C-c @key{DEL}} (@code{c-hungry-delete-backwards})@footnote{This command was formerly known as @code{c-hungry-backspace}.}
+@item @kbd{C-c C-@key{DEL}}, or @kbd{C-c @key{DEL}} (@code{c-hungry-delete-backwards})
 @kindex C-c C-Backspace
 @kindex C-c Backspace
 @kindex C-c C-DEL
@@ -1580,7 +1584,8 @@ Delete any amount of whitespace in the backwards direction (regardless
 whether hungry-delete mode is enabled or not).  This command is bound
 to both @kbd{C-c C-@key{DEL}} and @kbd{C-c @key{DEL}}, since the more
 natural one, @kbd{C-c C-@key{DEL}}, is sometimes difficult to type at
-a character terminal.
+a character terminal@footnote{This command was formerly known as
+@code{c-hungry-backspace}.}.
 
 @item @kbd{C-c C-d}, @kbd{C-c C-@key{DELETE}}, or @kbd{C-c @key{DELETE}} (@code{c-hungry-delete-forward})
 @kindex C-c C-d
@@ -5128,7 +5133,7 @@ started on line 2.  Lines 4 and 5 get the syntaxes
 though part of a function.
 
 Note that the @code{requires} on Line 3 begins a @dfn{requires
-expression}, not a a requires clause, hence its components are not
+expression}, not a requires clause, hence its components are not
 assigned @code{constraint-cont}.  See
 @url{https://en.cppreference.com/w/cpp/language/requires}.
 

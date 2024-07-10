@@ -174,6 +174,27 @@ public final class EmacsWindowManager
 	  }
       }
 
+    /* Do not create a multitasking activity for the initial frame,
+       but arrange to start EmacsActivity.  */
+    if (window.attachmentToken == -1)
+      {
+	intent = new Intent (EmacsService.SERVICE,
+			     EmacsActivity.class);
+	intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
+
+	try
+	  {
+	    EmacsService.SERVICE.startActivity (intent);
+	  }
+	catch (Exception e)
+	  {
+	    Log.w (TAG, "an activity could not be started on behalf"
+		   + " of the mapped default window " + window.handle);
+	  }
+
+	return;
+      }
+
     intent = new Intent (EmacsService.SERVICE,
 			 EmacsMultitaskActivity.class);
 
@@ -205,14 +226,22 @@ public final class EmacsWindowManager
     window.attachmentToken = token;
     intent.putExtra (ACTIVITY_TOKEN, token);
 
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
-      EmacsService.SERVICE.startActivity (intent);
-    else
+    try
       {
-	/* Specify the desired window size.  */
-	options = ActivityOptions.makeBasic ();
-	options.setLaunchBounds (window.getGeometry ());
-	EmacsService.SERVICE.startActivity (intent, options.toBundle ());
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+	  EmacsService.SERVICE.startActivity (intent);
+	else
+	  {
+	    /* Specify the desired window size.  */
+	    options = ActivityOptions.makeBasic ();
+	    options.setLaunchBounds (window.getGeometry ());
+	    EmacsService.SERVICE.startActivity (intent, options.toBundle ());
+	  }
+      }
+    catch (Exception e)
+      {
+	Log.w (TAG, "an activity could not be started on behalf"
+	       + " of a mapped window, " + window.handle);
       }
 
     pruneWindows ();

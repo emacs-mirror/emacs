@@ -382,7 +382,7 @@ The translation is done according to
 
 When REVERSE is nil or omitted, the attribute names are
 translated from EUDC generic names to protocol-specific
-names. When REVERSE is non-nil, the translation is from
+names.  When REVERSE is non-nil, the translation is from
 protocol-specific names back to EUDC generic names."
   (if eudc-protocol-attributes-translation-alist
       (mapcar (lambda (attribute)
@@ -406,7 +406,7 @@ The translation is done according to
 
 When REVERSE is nil or omitted, the attribute names are
 translated from EUDC generic names to protocol-specific
-names. When REVERSE is non-nil, the translation is from
+names.  When REVERSE is non-nil, the translation is from
 protocol-specific names back to EUDC generic names."
   (if eudc-protocol-attributes-translation-alist
       (let (trans)
@@ -918,7 +918,7 @@ non-nil, collect results from all servers."
              (if valid-comment-given comment nil)))
         (progn
           (error "Error: the function referenced by \
-`eudc-inline-expansion-format' is expected to return a list.")
+`eudc-inline-expansion-format' is expected to return a list")
           nil))))
 
    ;; fallback behavior (nil function, or non-matching type)
@@ -1110,7 +1110,7 @@ queries the server for the existing fields and displays a corresponding form."
     (eudc-install-menu)
     (if eudc-ignore-options-file
 	(warn "Not saving bookmark due to `eudc-ignore-options-file'\
- customization. Instead, customize `eudc-server-hotlist' to include %s:%s"
+ customization.  Instead, customize `eudc-server-hotlist' to include %s:%s"
 	      protocol server)
       (eudc-save-options))))
 

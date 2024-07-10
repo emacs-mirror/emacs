@@ -12,7 +12,7 @@
 ;;               David Edmondson (dme@dme.org)
 ;;               Michael Olson (mwolson@gnu.org)
 ;;               Kelvin White (kwhite@gnu.org)
-;; Version: 5.6
+;; Version: 5.6.1-git
 ;; Package-Requires: ((emacs "27.1") (compat "29.1.4.5"))
 ;; Keywords: IRC, chat, client, Internet
 ;; URL: https://www.gnu.org/software/emacs/erc.html
@@ -70,7 +70,7 @@
 (require 'auth-source)
 (eval-when-compile (require 'subr-x))
 
-(defconst erc-version "5.6"
+(defconst erc-version "5.6.1-git"
   "This version of ERC.")
 
 (defvar erc-official-location
@@ -1868,7 +1868,7 @@ the value of this option is DISPLAY-FUNCTION."
   "How to display buffers as a result of user interaction.
 This affects commands like /QUERY and /JOIN when issued
 interactively at the prompt.  It does not apply when calling a
-handler for such a command, like `erc-cmd-JOIN', from lisp code.
+handler for such a command, like `erc-cmd-JOIN', from Lisp code.
 See `erc-buffer-display' for a full description of available
 values.
 
@@ -2269,7 +2269,7 @@ buffer rather than a server buffer.")
                           list match menu move-to-prompt netsplit
                           networks readonly ring stamp track)
   "Modules to enable while connecting.
-When modifying this option in lisp code, use a Custom-friendly
+When modifying this option in Lisp code, use a Custom-friendly
 facilitator, like `setopt', or call `erc-update-modules'
 afterward.  This ensures a consistent ordering and disables
 removed modules.  It also gives packages access to the hook
@@ -4476,7 +4476,7 @@ Called with position indicating boundary of interval to be excised.")
 (defun erc-cmd-CLEAR ()
   "Clear messages in current buffer after informing active modules.
 Expect modules to perform housekeeping tasks to withstand the
-disruption.  When called from lisp code, only clear messages up
+disruption.  When called from Lisp code, only clear messages up
 to but not including the one occupying the current line."
   (with-silent-modifications
     (let ((max (if (>= (point) erc-insert-marker)
@@ -7288,7 +7288,7 @@ status switches among VOICE, HALFOP, OP, ADMIN, and OWNER to be
 the symbol `on' or `off' when needing to influence a new or
 existing `erc-channel-user' object's `status' slot.  Likewise,
 when UPDATE-MESSAGE-TIME is non-nil, update or initialize the
-`last-message-time' slot to the current-time.  If changes occur,
+`last-message-time' slot to the `current-time'.  If changes occur,
 including creation, run `erc-channel-members-changed-hook'.
 Return non-nil when meaningful changes, including creation, have
 occurred.
@@ -9173,7 +9173,7 @@ Currently only used by the option `erc-prompt-format'.")
 ;; As of ERC 5.6, this is identical to the away variant aside from
 ;; the var names and `eq', which isn't important.
 (defun erc--format-user-modes ()
-  "Return server's user modes as a string"
+  "Return server's user modes as a string."
   (and-let* ((indicator (erc-with-server-buffer
                           (or erc--user-modes-indicator
                               (setq erc--user-modes-indicator (list "")))))
@@ -9730,7 +9730,7 @@ or `erc-kill-buffer-hook' if any other buffer."
 (defun erc-check-text-conversion ()
   "Check if point is within the ERC prompt and toggle text conversion.
 If `text-conversion-style' is not `action' if point is within the
-prompt or `nil' otherwise, set it to such a value, so as to
+prompt or nil otherwise, set it to such a value, so as to
 guarantee that the input method functions properly for the
 purpose of typing within the ERC prompt."
   (when (and (eq major-mode 'erc-mode)
