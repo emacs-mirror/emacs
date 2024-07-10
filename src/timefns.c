@@ -796,10 +796,15 @@ ticks_hz_hz_ticks (struct ticks_hz t, Lisp_Object hz)
     invalid_hz (hz);
 
   /* Fall back on bignum arithmetic.  */
-  mpz_mul (mpz[0],
-	   *bignum_integer (&mpz[0], t.ticks),
-	   *bignum_integer (&mpz[1], hz));
-  mpz_fdiv_q (mpz[0], mpz[0], *bignum_integer (&mpz[1], t.hz));
+  mpz_t const *zticks = bignum_integer (&mpz[0], t.ticks);
+  if (FASTER_TIMEFNS && FIXNUMP (hz) && XFIXNUM (hz) <= ULONG_MAX)
+    mpz_mul_ui (mpz[0], *zticks, XFIXNUM (hz));
+  else
+    mpz_mul (mpz[0], *zticks, *bignum_integer (&mpz[1], hz));
+  if (FASTER_TIMEFNS && FIXNUMP (t.hz) && XFIXNUM (t.hz) <= ULONG_MAX)
+    mpz_fdiv_q_ui (mpz[0], mpz[0], XFIXNUM (t.hz));
+  else
+    mpz_fdiv_q (mpz[0], mpz[0], *bignum_integer (&mpz[1], t.hz));
   return make_integer_mpz ();
 }
 
