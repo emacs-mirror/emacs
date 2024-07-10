@@ -1635,25 +1635,27 @@
   '("Stripping" "Padding"))
 
 (ert-deftest erc--check-prompt-input-for-multiline-blanks ()
-  (erc-tests-common-with-process-input-spy
-   (lambda (next)
-     (erc-tests-common-init-server-proc "sleep" "10")
-     (should-not erc-send-whitespace-lines)
-     (should erc-warn-about-blank-lines)
+  :tags '(:expensive-test)
+  (ert-with-message-capture messages
+    (erc-tests-common-with-process-input-spy
+     (lambda (next)
+       (erc-tests-common-init-server-proc "sleep" "300")
+       (should-not erc-send-whitespace-lines)
+       (should erc-warn-about-blank-lines)
 
-     (pcase-dolist (`((,wb ,sw) . ,ex) erc-tests--check-prompt-input--expect)
-       (let ((print-escape-newlines t)
-             (erc-warn-about-blank-lines (eq wb '+wb))
-             (erc-send-whitespace-lines (eq sw '+sw))
-             (samples '("" " " "\n" "\n " " \n" "\n\n"
-                        "a\n" "a\n " "a\n \nb")))
-         (setq ex `(,@ex (a) (a b)) ; baseline, same for all combos
-               samples `(,@samples "a" "a\nb"))
-         (dolist (input samples)
-           (insert input)
-           (ert-info ((format "Opts: %S, Input: %S, want: %S"
-                              (list wb sw) input (car ex)))
-             (ert-with-message-capture messages
+       (pcase-dolist (`((,wb ,sw) . ,ex) erc-tests--check-prompt-input--expect)
+         (let ((print-escape-newlines t)
+               (erc-warn-about-blank-lines (eq wb '+wb))
+               (erc-send-whitespace-lines (eq sw '+sw))
+               (samples '("" " " "\n" "\n " " \n" "\n\n"
+                          "a\n" "a\n " "a\n \nb")))
+           (setq ex `(,@ex (a) (a b)) ; baseline, same for all combos
+                 samples `(,@samples "a" "a\nb"))
+           (dolist (input samples)
+             (insert input)
+             (ert-info ((format "Opts: %S, Input: %S, want: %S"
+                                (list wb sw) input (car ex)))
+               (setq messages "")
                (pcase-exhaustive (pop ex)
                  ('err (let ((e (should-error (erc-send-current-line))))
                          (should (string-match (rx (| "trailing" "blank"))
@@ -1662,9 +1664,6 @@
                        (should-not (funcall next)))
                  ('nop (erc-send-current-line)
                        (should (equal (erc-user-input) input))
-                       (should-not (funcall next)))
-                 ('clr (erc-send-current-line)
-                       (should (string-empty-p (erc-user-input)))
                        (should-not (funcall next)))
                  ((and (pred consp) v)
                   (erc-send-current-line)
@@ -1679,8 +1678,8 @@
                       ('s (should (equal " \n" (car (funcall next)))))
                       ('a (should (equal "a\n" (car (funcall next)))))
                       ('b (should (equal "b\n" (car (funcall next)))))))
-                  (should-not (funcall next))))))
-           (delete-region erc-input-marker (point-max))))))))
+                  (should-not (funcall next)))))
+             (delete-region erc-input-marker (point-max)))))))))
 
 (ert-deftest erc--check-prompt-input-for-multiline-blanks/explanations ()
   (should erc-warn-about-blank-lines)
