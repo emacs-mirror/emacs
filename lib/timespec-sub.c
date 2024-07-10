@@ -31,7 +31,7 @@ struct timespec
 timespec_sub (struct timespec a, struct timespec b)
 {
   int nsdiff = a.tv_nsec - b.tv_nsec;
-  bool borrow = nsdiff < 0;
+  int borrow = nsdiff < 0;
   time_t rs;
   int rns;
   bool v = ckd_sub (&rs, a.tv_sec, b.tv_sec);
