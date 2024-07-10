@@ -1612,7 +1612,7 @@ AC_DEFUN([gl_TYPE_OFF64_T],
    AC_SUBST([HAVE_OFF64_T])])
 
 # `strnlen' cannot accept nlen greater than the size of the object S
-# on Android 2.2 and earlier.
+# on Android 5.0 and earlier.
 m4_define([ORIGINAL_AC_FUNC_STRNLEN], m4_defn([AC_FUNC_STRNLEN]))
 AC_DEFUN([AC_FUNC_STRNLEN], [
 AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])dnl
