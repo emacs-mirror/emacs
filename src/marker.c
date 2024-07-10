@@ -204,8 +204,6 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 
   DO_MARKERS (b, tail)
     {
-      CONSIDER (tail->charpos, tail->bytepos);
-
       /* If we are down to a range of DISTANCE chars,
 	 don't bother checking any other markers;
 	 scan the intervening chars directly now.  */
@@ -213,6 +211,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
           || charpos - best_below < distance)
 	break;
 
+      CONSIDER (tail->charpos, tail->bytepos);
       distance += BYTECHAR_DISTANCE_INCREMENT;
     }
   END_DO_MARKERS;
@@ -356,16 +355,15 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 
   DO_MARKERS (b, tail)
     {
-      CONSIDER (tail->bytepos, tail->charpos);
-
-      /* If we are down to a range of 50 chars,
+      /* If we are down to a range of DISTANCE chars,
 	 don't bother checking any other markers;
 	 scan the intervening chars directly now.  */
       if (best_above_byte - bytepos < distance
           || bytepos - best_below_byte < distance)
 	break;
-      else
-        distance += BYTECHAR_DISTANCE_INCREMENT;
+
+      CONSIDER (tail->bytepos, tail->charpos);
+      distance += BYTECHAR_DISTANCE_INCREMENT;
     }
   END_DO_MARKERS;
 
