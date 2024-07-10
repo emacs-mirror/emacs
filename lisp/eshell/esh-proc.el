@@ -206,6 +206,11 @@ This is like `process-live-p', but additionally checks whether
 Usage: kill [-<signal>] <pid>|<process> ...
 Accepts PIDs and process objects.  Optionally accept signals
 and signal names."
+  ;; The implementation below only supports local PIDs.  For remote
+  ;; connections, fall back to the external "kill" command.
+  (when (file-remote-p default-directory)
+    (declare-function eshell-external-command "esh-ext" (command args))
+    (throw 'eshell-external (eshell-external-command "kill" args)))
   ;; If the first argument starts with a dash, treat it as the signal
   ;; specifier.
   (let ((signum 'SIGINT))
