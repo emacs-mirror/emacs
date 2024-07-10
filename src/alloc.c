@@ -7153,10 +7153,8 @@ mark_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
 
 #ifndef HAVE_MPS
 #define SYMBOL_MARKED_P(x) symbol_marked_p (x)
-#define SET_SYMBOL_MARKED(x) set_symbol_marked (x)
 #else
 #define SYMBOL_MARKED_P(x) 1
-#define SET_SYMBOL_MARKED(x) (void) 0
 #endif
 
   eassert (!vector_marked_p (ptr));
