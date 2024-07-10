@@ -1570,4 +1570,28 @@ folded."
 (comp-deftest comp-tests-result-lambda ()
   (native-compile 'comp-tests-result-lambda)
   (should (eq (funcall (comp-tests-result-lambda) '(a . b)) 'a)))
+
+(defun comp-tests-type-branch-optim-checker (_)
+  "Check there's only a single call to `type-of'."
+  (should (= (cl-count t (comp-tests-map-checker
+                          #'comp-tests-type-branch-optim-1-f
+                          (lambda (insn)
+                            (pcase insn
+                              (`(set ,_mvar-1 (call type-of ,_mvar-2))
+                               t)))))
+             1)))
+
+(declare-function comp-tests-type-branch-optim-1-f nil)
+
+(comp-deftest comp-tests-type-branch-optim ()
+  (let ((native-comp-speed 2)
+        (comp-post-pass-hooks '((comp--final comp-tests-type-branch-optim-checker))))
+    (eval '(progn
+             (cl-defstruct type-branch-optim-struct a b c)
+             (defun comp-tests-type-branch-optim-1-f (x)
+               (setf (type-branch-optim-struct-a x) 3)
+               (+ (type-branch-optim-struct-b x) (type-branch-optim-struct-c x))))
+          t)
+    (native-compile #'comp-tests-type-branch-optim-1-f)))
+
 ;;; comp-tests.el ends here
