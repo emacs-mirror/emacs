@@ -5769,7 +5769,7 @@ We don't want excessive versions piling up, so there are variables
  `kept-old-versions', which tells Emacs how many oldest versions to keep,
  and `kept-new-versions', which tells how many newest versions to keep.
  Defaults are 2 old versions and 2 new.
-`dired-kept-versions' controls dired's clean-directory (.) command.
+`dired-kept-versions' controls Dired's clean-directory (.) command.
 If `delete-old-versions' is nil, system will query user
  before trimming versions.  Otherwise it does it silently.
 

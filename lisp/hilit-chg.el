@@ -100,7 +100,7 @@
 ;; * nil  -- then no buffers are suitable;
 ;; * a function -- this function is called and the result is used.  As
 ;;   an example, if the value is `buffer-file-name' then all buffers
-;;   who are visiting files are suitable, but others (like dired
+;;   who are visiting files are suitable, but others (like Dired
 ;;   buffers) are not;
 ;; * a list -- then the buffer is suitable if and only if its mode is in the
 ;;   list, except if the first element is `not', in which case the test

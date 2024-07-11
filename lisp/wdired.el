@@ -35,7 +35,7 @@
 ;; Dired buffer editable, by changing the buffer mode (which inhibits
 ;; all of the commands of Dired mode).  Here you can edit the names of
 ;; one or more files and directories, and when you press `C-c C-c',
-;; the renaming takes effect and you are back to dired mode.
+;; the renaming takes effect and you are back to Dired mode.
 ;;
 ;; Other things you can do with WDired:
 ;;
@@ -72,7 +72,7 @@
 (autoload 'dired-do-create-files-regexp "dired-aux")
 
 (defgroup wdired nil
-  "Mode to rename files by editing their names in dired buffers."
+  "Mode to rename files by editing their names in Dired buffers."
   :group 'dired)
 
 (defcustom wdired-use-interactive-rename nil
@@ -438,7 +438,7 @@ non-nil means return old filename."
              (concat (dired-current-directory) file))))))
 
 (defun wdired-change-to-dired-mode ()
-  "Change the mode back to dired."
+  "Change the mode back to Dired."
   (or (eq major-mode 'wdired-mode)
       (error "Not a Wdired buffer"))
   (let ((inhibit-read-only t))
@@ -677,8 +677,8 @@ non-nil means return old filename."
        (make-directory (file-name-directory file-new) t)))
 
 (defun wdired-exit ()
-  "Exit wdired and return to dired mode.
-Just return to dired mode if there are no changes.  Otherwise,
+  "Exit wdired and return to Dired mode.
+Just return to Dired mode if there are no changes.  Otherwise,
 ask a yes-or-no question whether to save or cancel changes,
 and proceed depending on the answer."
   (interactive)

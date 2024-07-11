@@ -28,7 +28,7 @@
 
 ;; Emacs's traditional method for making buffer names unique adds <2>, <3>,
 ;; etc. to the end of (all but one of) the buffers.  This file replaces
-;; that behavior, for buffers visiting files and dired buffers, with a
+;; that behavior, for buffers visiting files and Dired buffers, with a
 ;; uniquification that adds parts of the file name until the buffer names
 ;; are unique.  For instance, buffers visiting /u/mernst/tmp/Makefile and
 ;; /usr/projects/zaphod/Makefile would be named Makefile|tmp and
@@ -148,7 +148,7 @@ file name components (default \"\\\")."
   :type '(choice (const nil) string))
 
 (defcustom uniquify-trailing-separator-p nil
-  "If non-nil, add a file name separator to dired buffer names.
+  "If non-nil, add a file name separator to Dired buffer names.
 If `uniquify-buffer-name-style' is `forward', add the separator at the end;
 if it is `reverse', add the separator at the beginning; otherwise, this
 variable is ignored."

@@ -76,6 +76,7 @@ similar to command shells such as @command{bash}, @command{zsh},
 
 @menu
 * Introduction::             A brief introduction to the Emacs Shell.
+* Entry Points::
 * Commands::
 * Expansion::
 * Input/Output::
@@ -186,6 +187,116 @@ Apart from these, a lot of people have sent suggestions, ideas,
 requests, bug reports and encouragement.  Thanks a lot!  Without you
 there would be no new releases of Eshell.
 
+@node Entry Points
+@chapter Entry Points
+@cindex starting Eshell
+@cindex Eshell, starting
+
+Eshell provides several different ways to start it, depending on the
+situation.
+
+@menu
+* Interactive Shell::
+* One-Off Commands::
+* Scripts::
+@end menu
+
+@node Interactive Shell
+@section Interactive Shell
+@cindex interactive session
+
+The most common way to use Eshell is via an interactive shell.  You can
+start this via the @code{eshell} command:
+
+@deffn Command eshell &optional arg
+Start a new interactive Eshell session, or switch to an already active
+session.  The exact behavior depends on the value of @var{arg}
+(interactively, the prefix argument):
+
+@table @asis
+
+@item @code{nil} or omitted
+Start or switch to the default Eshell session.  This is the behavior
+when typing @kbd{M-x eshell @key{RET}}.
+
+@item a number
+Start or switch to the Eshell session with the specified number (e.g.@:
+@samp{*eshell*<2>}).
+
+@item anything else
+Start a new Eshell session, no matter if another one already exists.
+
+@end table
+@end deffn
+
+@node One-Off Commands
+@section One-Off Commands
+@cindex command invocation, from anywhere
+
+You can also run individual Eshell commands from anywhere within Emacs:
+
+@deffn Command eshell-command command &optional to-current-buffer
+Execute the Eshell command string @var{command} and show the output in a
+buffer.  If @var{to-current-buffer} is non-@code{nil} (interactively,
+with the prefix argument), then insert output into the current buffer at
+point.
+
+When the command ends with @kbd{&}, Eshell will evaluate the command
+asynchronously.  Otherwise, it will wait until the command has finished
+execution.
+@end deffn
+
+@defun eshell-command-result command &optional status-var
+Execute the Eshell command string @var{command} and return the result,
+like using the variable @code{$$} in an interactive session
+(@pxref{Variables}).  If @var{status-var} is a symbol, this function
+will set it to the exit status of the command (like using the variable
+@code{$?} in an interactive session).
+@end defun
+
+@node Scripts
+@section Scripts
+@cindex scripts
+
+@cmindex source
+@cmindex .
+Like other shells, you can create Eshell @dfn{scripts}.  An Eshell
+script is simply a file containing a sequence of commands that will be
+executed as though you entered them one at a time in an interactive
+Eshell session.  You can invoke these scripts from within Eshell with
+@command{source}, which will run the script in a subshell.  If you wish
+to run a script in your @emph{current} Eshell environment, use the
+@code{.} command instead.
+
+Like with aliases (@pxref{Aliases}), Eshell scripts can accept any
+number of arguments.  Within the script, you can refer to these with
+the special variables @code{$0}, @code{$1}, @dots{}, @code{$9}, and
+@code{$*}.
+
+You can also invoke Eshell scripts from outside of Eshell:
+
+@defun eshell-execute-file file &optional args destination
+Execute the Eshell commands contained in @var{file}, passing an optional
+list of @var{args} to the script.  If @var{destination} is @code{t},
+write the command output to the current buffer.  If @code{nil}, don't
+write the output anywhere.  For any other value, output to the
+corresponding Eshell target (@pxref{Redirection}).
+@end defun
+
+@cindex batch scripts
+@defun eshell-batch-file
+This function lets you make an Eshell script file executable from
+outside of Emacs by adding it to the script's interpreter directive like
+this:
+
+@example
+#!/usr/bin/env -S emacs --batch -f eshell-batch-file
+@end example
+
+As with other ways of invoking Eshell scripts, you can pass extra
+arguments to the script on the command line.
+@end defun
+
 @node Commands
 @chapter Commands
 
@@ -208,7 +319,6 @@ that will be invoked, type this as the Eshell prompt:
 * Aliases::
 * Remote Access::
 * Control Flow::
-* Scripts::
 @end menu
 
 @node Invocation
@@ -1596,33 +1706,6 @@ treat it as a list of one element.  If you specify multiple
 @var{lists}, this will iterate over each of them in turn.
 
 @end table
-
-@node Scripts
-@section Scripts
-@cmindex source
-@fnindex eshell-execute-file
-@fnindex eshell-batch-file
-You can run Eshell scripts much like scripts for other shells; the main
-difference is that since Eshell is not a system command, you have to run
-it from within Emacs.  An Eshell script is simply a file containing a
-sequence of commands, as with almost any other shell script.  You can
-invoke scripts from within Eshell with @command{source}, or from
-anywhere in Emacs with @code{eshell-execute-file}.  Additionally, you
-can make an Eshell script file executable by calling
-@code{eshell-batch-file} in the interpreter directive:
-
-@example
-#!/usr/bin/env -S emacs --batch -f eshell-batch-file
-@end example
-
-Like with aliases (@pxref{Aliases}), Eshell scripts can accept any
-number of arguments.  Within the script, you can refer to these with
-the special variables @code{$0}, @code{$1}, @dots{}, @code{$9}, and
-@code{$*}.
-
-@cmindex .
-If you wish to load a script into your @emph{current} environment,
-rather than in a subshell, use the @code{.} command.
 
 @node Expansion
 @chapter Expansion

@@ -1663,7 +1663,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 			(pr-gs-device . (my-gs-device t))
 
 This variable should be modified by customization engine.  If this variable is
-modified by other means (for example, a lisp function), use `pr-update-menus'
+modified by other means (for example, a Lisp function), use `pr-update-menus'
 function (see it for documentation) to update PostScript printer menu.
 
 Examples:
@@ -2335,7 +2335,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 
 		   (set VARIABLE (eval VALUE))
 
-		Note that VALUE can be any valid lisp expression.  So, don't
+                Note that VALUE can be any valid Lisp expression.  So, don't
 		forget to quote symbols and constant lists.
 		If VARIABLE is the special keyword `inherits-from:', VALUE must
 		be a symbol name setting defined in `pr-setting-database' from
@@ -2347,7 +2347,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 			(pr-gs-device . (my-gs-device t))
 
 This variable should be modified by customization engine.  If this variable is
-modified by other means (for example, a lisp function), use `pr-update-menus'
+modified by other means (for example, a Lisp function), use `pr-update-menus'
 function (see it for documentation) to update PostScript utility menu.
 
 NOTE: Don't forget to download and install the utilities declared on

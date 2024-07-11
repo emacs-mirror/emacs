@@ -509,8 +509,9 @@ The string is used in `tramp-methods'.")
   "Enable \"run0\" method."
  (add-to-list 'tramp-methods
               `("run0"
-                (tramp-login-program        "systemd-run")
-                (tramp-login-args           (("--uid" "%u") ("-t") ("%l")))
+                (tramp-login-program        "run0")
+                (tramp-login-args           (("--user" "%u")
+					     ("--background" "''") ("%l")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-connection-timeout   10)

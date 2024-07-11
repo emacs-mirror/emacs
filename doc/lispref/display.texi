@@ -7095,7 +7095,9 @@ buffer's text.
 
 Internally, this function creates an overlay, and gives it a
 @code{before-string} property containing text that has a @code{display}
-property whose value is the image.  (Whew! that was a mouthful@dots{})
+property whose value is the image.  (Whew! that was a mouthful@dots{}).
+It returns the created overlay upon success, and also sets its
+@code{put-image} property to @code{t}.
 @end defun
 
 @defun remove-images start end &optional buffer

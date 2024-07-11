@@ -122,7 +122,7 @@
 ;; things you did not mean to keep.  Use M-x desktop-clear RET.
 
 ;; Thanks to  hetrick@phys.uva.nl (Jim Hetrick)      for useful ideas.
-;;            avk@rtsg.mot.com (Andrew V. Klein)     for a dired tip.
+;;            avk@rtsg.mot.com (Andrew V. Klein)     for a Dired tip.
 ;;            chris@tecc.co.uk (Chris Boucher)       for a mark tip.
 ;;            f89-kam@nada.kth.se (Klas Mellbourn)   for a mh-e tip.
 ;;            kifer@cs.stonybrook.edu (M. Kifer)     for a bug hunt.
@@ -296,7 +296,7 @@ If nil, just print error messages in the message buffer."
 (defcustom desktop-no-desktop-file-hook nil
   "Normal hook run when `desktop-read' can't find a desktop file.
 Run in the directory in which the desktop file was sought.
-May be used to show a dired buffer."
+May be used to show a Dired buffer."
   :type 'hook
   :group 'desktop
   :version "22.1")
