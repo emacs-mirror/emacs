@@ -25,6 +25,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <gmp.h>
 #include "lisp.h"
 
+/* Compile with -DFASTER_BIGNUM=0 to disable common optimizations and
+   allow easier testing of some slow-path code.  */
+#ifndef FASTER_BIGNUM
+# define FASTER_BIGNUM 1
+#endif
+
 /* Number of data bits in a limb.  */
 #ifndef GMP_NUMB_BITS
 enum { GMP_NUMB_BITS = TYPE_WIDTH (mp_limb_t) };
@@ -68,16 +74,18 @@ mpz_set_intmax (mpz_t result, intmax_t v)
   /* mpz_set_si works in terms of long, but Emacs may use a wider
      integer type, and so sometimes will have to construct the mpz_t
      by hand.  */
-  if (LONG_MIN <= v && v <= LONG_MAX)
-    mpz_set_si (result, v);
+  long int i;
+  if (FASTER_BIGNUM && !ckd_add (&i, v, 0))
+    mpz_set_si (result, i);
   else
     mpz_set_intmax_slow (result, v);
 }
 INLINE void ARG_NONNULL ((1))
 mpz_set_uintmax (mpz_t result, uintmax_t v)
 {
-  if (v <= ULONG_MAX)
-    mpz_set_ui (result, v);
+  unsigned long int i;
+  if (FASTER_BIGNUM && !ckd_add (&i, v, 0))
+    mpz_set_ui (result, i);
   else
     mpz_set_uintmax_slow (result, v);
 }
