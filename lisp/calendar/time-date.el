@@ -403,11 +403,85 @@ right of \"%x\", trailing zero units are not output."
         (list (* 3600 24 400) "d" (* 3600.0 24.0))
         (list nil "y" (* 365.25 24 3600)))
   "Formatting used by the function `seconds-to-string'.")
+
+(defvar seconds-to-string-readable
+  `(("Y" "year"   "years"   ,(round (* 60 60 24 365.2425)))
+    ("M" "month"  "months"  ,(round (* 60 60 24 30.436875)))
+    ("w" "week"   "weeks"   ,(* 60 60 24 7))
+    ("d" "day"    "days"    ,(* 60 60 24))
+    ("h" "hour"   "hours"   ,(* 60 60))
+    ("m" "minute" "minutes" 60)
+    ("s" "second" "seconds" 1))
+  "Formatting used by the function `seconds-to-string' with READABLE set.
+The format is an alist, with string keys ABBREV-UNIT, and elements like:
+
+  (ABBREV-UNIT UNIT UNIT-PLURAL SECS)
+
+where UNIT is a unit of time, ABBREV-UNIT is the abreviated form of
+UNIT, UNIT-PLURAL is the plural form of UNIT, and SECS is the number of
+seconds per UNIT.")
+
 ;;;###autoload
-(defun seconds-to-string (delay)
-  ;; FIXME: There's a similar (tho fancier) function in mastodon.el!
-  "Convert the time interval in seconds to a short string."
-  (cond ((> 0 delay) (concat "-" (seconds-to-string (- delay))))
+(defun seconds-to-string (delay &optional readable abbrev precision)
+  "Convert time interval DELAY (in seconds) to a string.
+By default, the returned string is formatted as a float in the smallest
+unit from the variable `seconds-to-string' that is longer than DELAY,
+and a precision of two.  If READABLE is non-nil, convert DELAY into a
+readable string, using the information provided in the variable
+`seconds-to-string-readable'.  If it is the symbol `expanded', use two
+units to describe DELAY, if appropriate.  E.g. \"1 hour 32 minutes\".
+If ABBREV is non-nil, abbreviate the readable units.  If PRECISION is a
+whole number, round the value associated with the smallest displayed
+unit to that many digits after the decimal.  If it is a non-negative
+float less than 1.0, round to that value."
+  (cond ((< delay 0)
+	 (concat "-" (seconds-to-string (- delay) readable precision)))
+        (readable
+         (let* ((stsa seconds-to-string-readable)
+		(expanded (eq readable 'expanded))
+		digits
+		(round-to (cond ((wholenump precision)
+				 (setq digits precision)
+				 (expt 10 (- precision)))
+				((and (floatp precision) (< precision 1.))
+				 (setq digits (- (floor (log precision 10))))
+				 precision)
+				(t (setq digits 0) 1)))
+		(dformat (if (> digits 0) (format "%%0.%df" digits)))
+		(padding (if abbrev "" " "))
+		here cnt cnt-pre here-pre cnt-val isfloatp)
+	   (if (= (round delay round-to) 0)
+	       (format "0%s" (if abbrev "s" " seconds"))
+	     (while (and (setq here (pop stsa)) stsa
+			 (< (/ delay (nth 3 here)) 1)))
+	     (or (and
+		  expanded stsa 	; smaller unit remains
+		  (progn
+		    (setq
+		     here-pre here here (car stsa)
+		     cnt-pre (floor (/ (float delay) (nth 3 here-pre)))
+		     cnt (round
+			  (/ (- (float delay) (* cnt-pre (nth 3 here-pre)))
+			     (nth 3 here))
+			  round-to))
+		    (if (> cnt 0) t (setq cnt cnt-pre here here-pre here-pre nil))))
+		 (setq cnt (round (/ (float delay) (nth 3 here)) round-to)))
+	     (setq cnt-val (* cnt round-to)
+                   isfloatp (and (> digits 0)
+			            (> (- cnt-val (floor cnt-val)) 0.)))
+	     (cl-labels
+		 ((unit (val here &optional plural)
+		    (cond (abbrev (car here))
+			  ((and (not plural) (<= (floor val) 1)) (nth 1 here))
+			  (t (nth 2 here)))))
+	       (concat
+		(when here-pre
+		  (concat (number-to-string cnt-pre) padding
+			  (unit cnt-pre here-pre) " "))
+		(if isfloatp (format dformat cnt-val)
+                  (number-to-string (floor cnt-val)))
+                padding
+                (unit cnt-val here isfloatp)))))) ; float formats are always plural
         ((= 0 delay) "0s")
         (t (let ((sts seconds-to-string) here)
              (while (and (car (setq here (pop sts)))

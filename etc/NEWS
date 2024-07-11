@@ -883,6 +883,9 @@ destination window is chosen using 'display-buffer-alist'.  Example:
 
 ** Nested backquotes are not supported any more in Pcase patterns.
 
+---
+** The obsolete variable `redisplay-dont-pause' has been removed.
+
 ** The 'rx' category name 'chinese-two-byte' must now be spelled correctly.
 An old alternative name (without the first 'e') has been removed.
 
@@ -919,8 +922,13 @@ restore the old behavior, you can set 'eshell-pwd-convert-function' to
 
 * Lisp Changes in Emacs 31.1
 
----
-** The obsolete variable `redisplay-dont-pause' has been removed.
+** Time & Date
+
++++
+*** 'seconds-to-string' supports new formatting options.
+Optional arguments are provided to produce human-readable time-duration
+strings in a variety of formats, for example "6 months 3 weeks" or "5m
+52.5s".
 
 ** New function 'native-compile-directory'.
 This function natively-compiles all Lisp files in a directory and in its

@@ -2204,6 +2204,12 @@ Return the date of @var{ordinal} in @var{year} as a decoded time
 structure.  For instance, the 120th day in 2004 is April 29th.
 @end defun
 
+@defun seconds-to-string delay &optional readable abbrev precision
+Return a string describing a given @var{delay} (in seconds).  Optional
+arguments can be used to configure a human readable delay using various
+formats.  For example, a delay of 9861.5 seconds with @var{readable} set
+to the symbol @code{expanded} returns @samp{2 hours 44 minutes}.
+
 @node Timers
 @section Timers for Delayed Execution
 @cindex timers
