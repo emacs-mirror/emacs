@@ -294,7 +294,9 @@ File extensions to generate the tags for."
   (add-hook 'before-save-hook #'etags-regen--mark-as-new)
   (setq etags-regen--tags-file tags-file
         etags-regen--tags-root root)
-  (visit-tags-table etags-regen--tags-file))
+  (visit-tags-table etags-regen--tags-file)
+  (with-current-buffer (get-file-buffer tags-file)
+    (add-hook 'kill-buffer-hook #'etags-regen--tags-cleanup nil t)))
 
 (defun etags-regen--ctags-p ()
   (string-search "Ctags"
@@ -390,7 +392,8 @@ File extensions to generate the tags for."
 
 (defun etags-regen--tags-cleanup ()
   (when etags-regen--tags-file
-    (let ((buffer (get-file-buffer etags-regen--tags-file)))
+    (let ((buffer (get-file-buffer etags-regen--tags-file))
+          kill-buffer-hook)
       (and buffer
            (kill-buffer buffer)))
     (tags-reset-tags-tables)
