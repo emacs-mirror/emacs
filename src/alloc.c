@@ -1772,8 +1772,25 @@ static void
 init_strings (void)
 {
 #ifdef IN_MY_FORK
+#ifdef HAVE_MPS
   empty_multibyte_string = igc_make_multibyte_string (0, 0, false);
   empty_unibyte_string = igc_make_unibyte_string (0, 0, false);
+#else
+  /* String allocation code will return one of 'empty_*ibyte_string'
+     when asked to construct a new 0-length string, so in order to build
+     those special cases, we have to do it "by hand".  */
+  struct Lisp_String *ems = allocate_string ();
+  struct Lisp_String *eus = allocate_string ();
+  ems->u.s.intervals = NULL;
+  eus->u.s.intervals = NULL;
+  allocate_string_data (ems, 0, 0, false, false);
+  allocate_string_data (eus, 0, 0, false, false);
+  /* We can't use 'STRING_SET_UNIBYTE' because this one includes a hack
+   * to redirect its arg to 'empty_unibyte_string' when nbytes == 0. */
+  eus->u.s.size_byte = -1;
+  XSETSTRING (empty_multibyte_string, ems);
+  XSETSTRING (empty_unibyte_string, eus);
+#endif
 #else
   empty_unibyte_string = make_pure_string ("", 0, 0, 0);
   empty_multibyte_string = make_pure_string ("", 0, 0, 1);
