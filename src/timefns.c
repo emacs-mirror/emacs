@@ -60,13 +60,6 @@ enum { TM_YEAR_BASE = 1900 };
 # define HAVE_TM_GMTOFF false
 #endif
 
-#ifndef TIME_T_MIN
-# define TIME_T_MIN TYPE_MINIMUM (time_t)
-#endif
-#ifndef TIME_T_MAX
-# define TIME_T_MAX TYPE_MAXIMUM (time_t)
-#endif
-
 /* Compile with -DFASTER_TIMEFNS=0 to disable common optimizations and
    allow easier testing of some slow-path code.  */
 #ifndef FASTER_TIMEFNS
@@ -127,10 +120,14 @@ make_timeval (struct timespec t)
     {
       if (tv.tv_usec < 999999)
 	tv.tv_usec++;
-      else if (tv.tv_sec < TIME_T_MAX)
+      else
 	{
-	  tv.tv_sec++;
-	  tv.tv_usec = 0;
+	  time_t s1;
+	  if (!ckd_add (&s1, tv.tv_sec, 1))
+	    {
+	      tv.tv_sec = s1;
+	      tv.tv_usec = 0;
+	    }
 	}
     }
 
@@ -492,18 +489,23 @@ mpz_time (mpz_t const z, time_t *t)
   if (TYPE_SIGNED (time_t))
     {
       intmax_t i;
-      if (! (mpz_to_intmax (z, &i) && TIME_T_MIN <= i && i <= TIME_T_MAX))
-	return false;
-      *t = i;
+      return mpz_to_intmax (z, &i) && !ckd_add (t, i, 0);
     }
   else
     {
       uintmax_t i;
-      if (! (mpz_to_uintmax (z, &i) && i <= TIME_T_MAX))
-	return false;
-      *t = i;
+      return mpz_to_uintmax (z, &i) && !ckd_add (t, i, 0);
     }
-  return true;
+}
+
+/* Return a valid timespec (S, N) if S is in time_t range,
+   an invalid timespec otherwise.  */
+static struct timespec
+s_ns_to_timespec (intmax_t s, long int ns)
+{
+  time_t sec;
+  long int nsec = ckd_add (&sec, s, 0) ? -1 : ns;
+  return make_timespec (sec, nsec);
 }
 
 /* Components of a Lisp timestamp (TICKS . HZ).  Using this C struct can
@@ -522,7 +524,6 @@ struct ticks_hz
 static struct timespec
 ticks_hz_to_timespec (Lisp_Object ticks, Lisp_Object hz)
 {
-  struct timespec result = invalid_timespec ();
   int ns;
   mpz_t *q = &mpz[0];
   mpz_t const *qt = q;
@@ -539,33 +540,16 @@ ticks_hz_to_timespec (Lisp_Object ticks, Lisp_Object hz)
 	  ns = XFIXNUM (ticks) % TIMESPEC_HZ;
 	  if (ns < 0)
 	    s--, ns += TIMESPEC_HZ;
-	  if ((TYPE_SIGNED (time_t) ? TIME_T_MIN <= s : 0 <= s)
-	      && s <= TIME_T_MAX)
-	    {
-	      result.tv_sec = s;
-	      result.tv_nsec = ns;
-	    }
-	  return result;
+	  return s_ns_to_timespec (s, ns);
 	}
-      else
-	ns = mpz_fdiv_q_ui (*q, *xbignum_val (ticks), TIMESPEC_HZ);
+      ns = mpz_fdiv_q_ui (*q, *xbignum_val (ticks), TIMESPEC_HZ);
     }
   else if (FASTER_TIMEFNS && BASE_EQ (hz, make_fixnum (1)))
     {
       ns = 0;
       if (FIXNUMP (ticks))
-	{
-	  EMACS_INT s = XFIXNUM (ticks);
-	  if ((TYPE_SIGNED (time_t) ? TIME_T_MIN <= s : 0 <= s)
-	      && s <= TIME_T_MAX)
-	    {
-	      result.tv_sec = s;
-	      result.tv_nsec = ns;
-	    }
-	  return result;
-	}
-      else
-	qt = xbignum_val (ticks);
+	return s_ns_to_timespec (XFIXNUM (ticks), ns);
+      qt = xbignum_val (ticks);
     }
   else
     {
@@ -577,12 +561,7 @@ ticks_hz_to_timespec (Lisp_Object ticks, Lisp_Object hz)
   /* Check that Q fits in time_t, not merely in RESULT.tv_sec.  With some MinGW
      versions, tv_sec is a 64-bit type, whereas time_t is a 32-bit type.  */
   time_t sec;
-  if (mpz_time (*qt, &sec))
-    {
-      result.tv_sec = sec;
-      result.tv_nsec = ns;
-    }
-  return result;
+  return mpz_time (*qt, &sec) ? make_timespec (sec, ns) : invalid_timespec ();
 }
 
 /* C timestamp forms.  This enum is passed to conversion functions to
@@ -700,7 +679,7 @@ ticks_hz_list4 (Lisp_Object ticks, Lisp_Object hz)
   int us = mpz_get_ui (mpz[1]);
 #endif
 
-  /* mpz[0] = floor (mpz[0] / 1 << LO_TIME_BITS), with lo = remainder.  */
+  /* mpz[0] = floor (mpz[0] / (1 << LO_TIME_BITS)), with LO = remainder.  */
   unsigned long ulo = mpz_get_ui (mpz[0]);
   if (mpz_sgn (mpz[0]) < 0)
     ulo = -ulo;
@@ -1686,10 +1665,9 @@ check_tm_member (Lisp_Object obj, int offset)
     {
       CHECK_INTEGER (obj);
       mpz_sub_ui (mpz[0], *bignum_integer (&mpz[0], obj), offset);
-      intmax_t i;
-      if (! (mpz_to_intmax (mpz[0], &i) && INT_MIN <= i && i <= INT_MAX))
+      if (!mpz_fits_sint_p (mpz[0]))
 	time_overflow ();
-      return i;
+      return mpz_get_si (mpz[0]);
     }
 }
 
