@@ -1125,24 +1125,24 @@ list4_to_timespec (Lisp_Object high, Lisp_Object low,
   return err_time.err ? invalid_timespec () : err_time.time.ts;
 }
 
-/* Decode a Lisp list SPECIFIED_TIME that represents a time.
+/* Decode a Lisp time value SPECIFIED_TIME that represents a time.
    If SPECIFIED_TIME is nil, use the current time.
    Decode to CFORM form.
    Signal an error if SPECIFIED_TIME does not represent a time.  */
 static union c_time
-lisp_time_struct (Lisp_Object specified_time, enum cform cform)
+lisp_time_cform (Lisp_Object specified_time, enum cform cform)
 {
   return decode_lisp_time (specified_time, cform).time;
 }
 
-/* Decode a Lisp list SPECIFIED_TIME that represents a time.
+/* Decode a Lisp time value SPECIFIED_TIME that represents a time.
    Discard any low-order (sub-ns) resolution.
    If SPECIFIED_TIME is nil, use the current time.
    Signal an error if SPECIFIED_TIME does not represent a timespec.  */
 struct timespec
 lisp_time_argument (Lisp_Object specified_time)
 {
-  struct timespec t = lisp_time_struct (specified_time, CFORM_TIMESPEC).ts;
+  struct timespec t = lisp_time_cform (specified_time, CFORM_TIMESPEC).ts;
   if (! timespec_valid_p (t))
     time_overflow ();
   return t;
@@ -1346,8 +1346,8 @@ time_cmp (Lisp_Object a, Lisp_Object b)
 
   /* Compare (ATICKS . AZ) to (BTICKS . BHZ) by comparing
      ATICKS * BHZ to BTICKS * AHZ.  */
-  struct ticks_hz ta = lisp_time_struct (a, CFORM_TICKS_HZ).th;
-  struct ticks_hz tb = lisp_time_struct (b, CFORM_TICKS_HZ).th;
+  struct ticks_hz ta = lisp_time_cform (a, CFORM_TICKS_HZ).th;
+  struct ticks_hz tb = lisp_time_cform (b, CFORM_TICKS_HZ).th;
   mpz_t const *za = bignum_integer (&mpz[0], ta.ticks);
   mpz_t const *zb = bignum_integer (&mpz[1], tb.ticks);
   if (! (FASTER_TIMEFNS && BASE_EQ (ta.hz, tb.hz)))
@@ -1630,7 +1630,7 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
   struct ticks_hz th;
   if (EQ (form, Qt))
     {
-      th = lisp_time_struct (specified_time, CFORM_TICKS_HZ).th;
+      th = lisp_time_cform (specified_time, CFORM_TICKS_HZ).th;
       struct timespec ts = ticks_hz_to_timespec (th.ticks, th.hz);
       if (! timespec_valid_p (ts))
 	time_overflow ();
