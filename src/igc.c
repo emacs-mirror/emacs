@@ -501,10 +501,29 @@ struct igc_header
   uint64_t v;
 };
 
-#define IGC_HEADER_NWORDS(h) ((h)->v >> IGC_HEADER_NWORDS_SHIFT)
-#define IGC_HEADER_HASH(h) (((h)->v >> IGC_HEADER_HASH_SHIFT) & IGC_HEADER_HASH_MASK)
-#define IGC_HEADER_TYPE(h) (((h)->v >> IGC_HEADER_TYPE_SHIFT) & IGC_HEADER_TYPE_MASK)
-#define IGC_HEADER_TAG(h) ((h)->v & IGC_HEADER_TAG_MASK)
+static unsigned
+header_nwords (const struct igc_header *h)
+{
+  return h->v >> IGC_HEADER_NWORDS_SHIFT;
+}
+
+static unsigned
+header_hash (const struct igc_header *h)
+{
+  return (h->v >> IGC_HEADER_HASH_SHIFT) & IGC_HEADER_HASH_MASK;
+}
+
+static enum igc_obj_type
+header_type (const struct igc_header *h)
+{
+  return (h->v >> IGC_HEADER_TYPE_SHIFT) & IGC_HEADER_TYPE_MASK;
+}
+
+static uint64_t
+header_tag (const struct igc_header *h)
+{
+  return h->v & IGC_HEADER_TAG_MASK;
+}
 
 struct igc_exthdr
 {
@@ -514,7 +533,11 @@ struct igc_exthdr
   Lisp_Object extra_dependency;
 };
 
-#define IGC_HEADER_EXTHDR(h) ((struct igc_exthdr *)(intptr_t)((h)->v & ~IGC_HEADER_TAG_MASK))
+static struct igc_exthdr *
+header_exthdr (const struct igc_header *h)
+{
+  return ((struct igc_exthdr *)(intptr_t)(h->v & ~IGC_HEADER_TAG_MASK));
+}
 
 enum igc_tag
 {
@@ -526,25 +549,25 @@ enum igc_tag
 static enum igc_obj_type
 igc_header_type (struct igc_header *h)
 {
-  if (IGC_HEADER_TAG (h) == IGC_TAG_EXTHDR)
-    return IGC_HEADER_EXTHDR (h)->obj_type;
-  return IGC_HEADER_TYPE (h);
+  if (header_tag (h) == IGC_TAG_EXTHDR)
+    return header_exthdr (h)->obj_type;
+  return header_type (h);
 }
 
 static unsigned
 igc_header_hash (struct igc_header *h)
 {
-  if (IGC_HEADER_TAG (h) == IGC_TAG_EXTHDR)
-    return IGC_HEADER_EXTHDR (h)->hash;
-  return IGC_HEADER_HASH (h);
+  if (header_tag (h) == IGC_TAG_EXTHDR)
+    return header_exthdr (h)->hash;
+  return header_hash (h);
 }
 
 static size_t
 igc_header_nwords (const struct igc_header *h)
 {
-  if (IGC_HEADER_TAG (h) == IGC_TAG_EXTHDR)
-    return IGC_HEADER_EXTHDR (h)->nwords;
-  return IGC_HEADER_NWORDS (h);
+  if (header_tag (h) == IGC_TAG_EXTHDR)
+    return header_exthdr (h)->nwords;
+  return header_nwords (h);
 }
 
 struct igc_fwd
@@ -575,7 +598,7 @@ static mps_word_t
 obj_size (const struct igc_header *h)
 {
   mps_word_t nbytes = to_bytes (igc_header_nwords (h));
-  igc_assert (IGC_HEADER_TYPE (h) == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
+  igc_assert (header_type (h) == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
   return nbytes;
 }
 
@@ -595,10 +618,10 @@ static void
 set_header (struct igc_header *h, enum igc_obj_type type,
 	    mps_word_t nbytes, mps_word_t hash)
 {
-#if IGC_HEADER_NWORDS_BITS >= 32 && INTPTR_MAX > INT_MAX
+#if header_nwords_BITS >= 32 && INTPTR_MAX > INT_MAX
   /* On 32-bit architecture the assertion below is redundant and
      causes compiler warnings.  */
-  igc_assert (nbytes < ((size_t) 1 << IGC_HEADER_NWORDS_BITS));
+  igc_assert (nbytes < ((size_t) 1 << header_nwords_BITS));
 #endif
   igc_assert (type == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
   uint64_t tag = IGC_TAG_OBJ;
@@ -678,7 +701,7 @@ igc_check_fwd (void *client)
   if (has_header (client, true))
     {
       struct igc_header *h = client_to_base (client);
-      igc_assert (IGC_HEADER_TYPE (h) != IGC_OBJ_FWD);
+      igc_assert (header_type (h) != IGC_OBJ_FWD);
       igc_assert (obj_size (h) >= sizeof (struct igc_fwd));
     }
 }
@@ -1438,7 +1461,7 @@ dflt_fwd (mps_addr_t old_base_addr, mps_addr_t new_base_addr)
 {
   struct igc_header *h = old_base_addr;
   igc_assert (obj_size (h) >= sizeof (struct igc_fwd));
-  igc_assert (IGC_HEADER_TYPE (h) != IGC_OBJ_PAD);
+  igc_assert (header_type (h) != IGC_OBJ_PAD);
   struct igc_fwd *f = old_base_addr;
   set_header (&f->header, IGC_OBJ_FWD, to_bytes (igc_header_nwords (h)), 0);
   f->new_base_addr = new_base_addr;
@@ -1448,7 +1471,7 @@ static mps_addr_t
 is_dflt_fwd (mps_addr_t base_addr)
 {
   struct igc_fwd *f = base_addr;
-  if (IGC_HEADER_TYPE (&f->header) == IGC_OBJ_FWD)
+  if (header_type (&f->header) == IGC_OBJ_FWD)
     return f->new_base_addr;
   return NULL;
 }
@@ -1701,9 +1724,9 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	  }
       }
 
-    if (IGC_HEADER_TAG (header) == IGC_TAG_EXTHDR)
+    if (header_tag (header) == IGC_TAG_EXTHDR)
       {
-	struct igc_exthdr *exthdr = IGC_HEADER_EXTHDR (header);
+	struct igc_exthdr *exthdr = header_exthdr (header);
 	IGC_FIX12_OBJ (ss, &exthdr->extra_dependency);
       }
 
@@ -3199,9 +3222,9 @@ finalize (struct igc *gc, mps_addr_t base)
 {
   mps_addr_t client = base_to_client (base);
   struct igc_header *h = base;
-  if (IGC_HEADER_TAG (h) == IGC_TAG_EXTHDR)
+  if (header_tag (h) == IGC_TAG_EXTHDR)
     {
-      struct igc_exthdr *exthdr = IGC_HEADER_EXTHDR (h);
+      struct igc_exthdr *exthdr = header_exthdr (h);
       set_header (h, exthdr->obj_type, to_bytes (exthdr->nwords), exthdr->hash);
       xfree (exthdr);
     }
@@ -3238,7 +3261,7 @@ maybe_finalize (mps_addr_t client, enum pvec_type tag)
 {
   mps_addr_t ref = client_to_base (client);
   struct igc_header *h = ref;
-  if (IGC_HEADER_TAG (h) == IGC_TAG_EXTHDR)
+  if (header_tag (h) == IGC_TAG_EXTHDR)
     {
       mps_res_t res = mps_finalize (global_igc->arena, &ref);
       IGC_CHECK_RES (res);
@@ -4274,12 +4297,12 @@ DEFUN ("igc--roots", Figc__roots, Sigc__roots, 0, 0, 0, doc : /* */)
 static struct igc_exthdr *
 igc_external_header (struct igc_header *h)
 {
-  if (IGC_HEADER_TAG (h) != IGC_TAG_EXTHDR)
+  if (header_tag (h) != IGC_TAG_EXTHDR)
     {
       struct igc_exthdr *exthdr = xmalloc (sizeof *exthdr);
-      exthdr->nwords = IGC_HEADER_NWORDS (h);
-      exthdr->hash = IGC_HEADER_HASH (h);
-      exthdr->obj_type = IGC_HEADER_TYPE (h);
+      exthdr->nwords = header_nwords (h);
+      exthdr->hash = header_hash (h);
+      exthdr->obj_type = header_type (h);
       exthdr->extra_dependency = Qnil;
       /* On IA-32, the upper 32-bit word is 0 after this, which is okay. */
       h->v = (intptr_t)exthdr + IGC_TAG_EXTHDR;
@@ -4289,7 +4312,7 @@ igc_external_header (struct igc_header *h)
       return exthdr;
     }
 
-  return IGC_HEADER_EXTHDR (h);
+  return header_exthdr (h);
 }
 
 static void
@@ -4550,7 +4573,7 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
       if (igc_header_type (h) == IGC_OBJ_MARKER_VECTOR)
 	igc_assert ((type == IGC_OBJ_VECTOR
 		     && igc_header_type (h) == IGC_OBJ_MARKER_VECTOR)
-		    || IGC_HEADER_TYPE (h) == type);
+		    || header_type (h) == type);
       igc_assert (base + obj_size (h) >= end);
       *out = *h;
       return base + obj_size (h);
@@ -4613,7 +4636,7 @@ check_dump (mps_addr_t start, mps_addr_t end)
     {
       eassert (p < end);
       struct igc_header *h = p;
-      if (IGC_HEADER_TYPE (h) != IGC_OBJ_PAD)
+      if (header_type (h) != IGC_OBJ_PAD)
 	{
 	  mps_addr_t obj = pdumper_next_object (&it);
 	  eassert (p == obj);
@@ -4637,13 +4660,13 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 {
   igc_assert (global_igc->park_count > 0);
   igc_assert (base_to_client (hot_start) == charset_table);
-  igc_assert (IGC_HEADER_TYPE ((struct igc_header *) hot_start)
+  igc_assert (header_type ((struct igc_header *) hot_start)
 	      == IGC_OBJ_DUMPED_CHARSET_TABLE);
-  igc_assert (IGC_HEADER_TYPE ((struct igc_header *) cold_start)
+  igc_assert (header_type ((struct igc_header *) cold_start)
 	      == IGC_OBJ_DUMPED_CODE_SPACE_MASKS);
-  igc_assert (IGC_HEADER_TYPE ((struct igc_header *) cold_user_data_start)
+  igc_assert (header_type ((struct igc_header *) cold_user_data_start)
 	      == IGC_OBJ_DUMPED_BYTES);
-  igc_assert (IGC_HEADER_TYPE ((struct igc_header *) heap_end)
+  igc_assert (header_type ((struct igc_header *) heap_end)
 	      == IGC_OBJ_DUMPED_BYTES);
 
   size_t discardable_size = (uint8_t *)cold_start - (uint8_t *)hot_end;
@@ -4652,7 +4675,7 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   size_t relocs_size = (uint8_t *)cold_end - (uint8_t *)heap_end;
   struct igc_header *h = client_to_base (dump_base);
 
-  igc_assert (IGC_HEADER_TYPE (h) == IGC_OBJ_INVALID);
+  igc_assert (header_type (h) == IGC_OBJ_INVALID);
   igc_assert (obj_size (h)
 	      == sizeof *h + (uint8_t *)cold_end - (uint8_t *)dump_base);
   igc_assert (discardable_size > 2 * sizeof *h);
