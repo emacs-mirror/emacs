@@ -884,8 +884,14 @@ decode_time_components (enum timeform form,
       eassume (false);
 
     case TIMEFORM_NIL:
-      ticks = timespec_ticks (current_timespec ());
-      hz = timespec_hz;
+      {
+	struct timespec now = current_timespec ();
+	if (FASTER_TIMEFNS
+	    && (cform == CFORM_TIMESPEC || cform == CFORM_SECS_ONLY))
+	  return (struct err_time) { .time = { .ts = now } };
+	ticks = timespec_ticks (now);
+	hz = timespec_hz;
+      }
       break;
 
     default:
