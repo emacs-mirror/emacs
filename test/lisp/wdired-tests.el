@@ -114,7 +114,7 @@ wdired-mode."
     (setq test-dir (file-truename test-dir))
     (let* ((test-file (concat (file-name-as-directory test-dir) "foo.c"))
            (replace "bar")
-           (new-file (string-replace "foo" replace test-file)))
+           (new-file (string-replace "/foo" (concat "/" replace) test-file)))
       (write-region "" nil test-file nil 'silent)
       (let ((buf (find-file-noselect test-dir)))
         (unwind-protect
