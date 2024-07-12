@@ -6033,8 +6033,7 @@ manner implied above, which was lost sometime before ERC 5.4."
   :group 'erc-buffers
   :group 'erc-query
   :type '(choice boolean
-                 (choice :tag "Create pseudo queries for STATUSMSGs"
-                         status)))
+                 (const :tag "Create pseudo queries for STATUSMSGs" status)))
 
 (defcustom erc-format-query-as-channel-p t
   "If non-nil, format text from others in a query buffer like in a channel.
