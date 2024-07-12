@@ -358,13 +358,19 @@ time_overflow (void)
 }
 
 static AVOID
+time_spec_invalid (void)
+{
+  error ("Invalid time specification");
+}
+
+static AVOID
 time_error (int err)
 {
   switch (err)
     {
     case ENOMEM: memory_full (SIZE_MAX);
     case EOVERFLOW: time_overflow ();
-    default: error ("Invalid time specification");
+    default: time_spec_invalid ();
     }
 }
 
@@ -844,7 +850,6 @@ struct err_time
 /* Lisp timestamp classification.  */
 enum timeform
   {
-   TIMEFORM_INVALID = 0,
    TIMEFORM_HI_LO, /* seconds in the form (HI << LO_TIME_BITS) + LO.  */
    TIMEFORM_HI_LO_US, /* seconds plus microseconds (HI LO US) */
    TIMEFORM_NIL, /* current time in nanoseconds */
@@ -853,10 +858,8 @@ enum timeform
    TIMEFORM_TICKS_HZ /* fractional time: HI is ticks, LO is ticks per second */
   };
 
-/* From the non-float form FORM and the time components HIGH, LOW, USEC
-   and PSEC, generate the corresponding time value in CFORM form.  If LOW is
-   floating point, the other components should be zero and FORM should
-   not be TIMEFORM_TICKS_HZ.
+/* From the time components HIGH, LOW, USEC and PSEC,
+   generate the corresponding time value in CFORM form.
 
    Return a (0, valid timestamp) pair if successful, an (error number,
    unspecified timestamp) pair otherwise.  */
@@ -870,30 +873,10 @@ decode_time_components (enum timeform form,
 
   switch (form)
     {
-    case TIMEFORM_INVALID:
-      return (struct err_time) { .err = EINVAL };
-
     case TIMEFORM_TICKS_HZ:
-      if (! (INTEGERP (high)
-	     && (FIXNUMP (low) ? 0 < XFIXNUM (low) : !NILP (Fnatnump (low)))))
-	return (struct err_time) { .err = EINVAL };
-      ticks = high;
-      hz = low;
-      break;
-
     case TIMEFORM_FLOAT:
-      eassume (false);
-
     case TIMEFORM_NIL:
-      {
-	struct timespec now = current_timespec ();
-	if (FASTER_TIMEFNS
-	    && (cform == CFORM_TIMESPEC || cform == CFORM_SECS_ONLY))
-	  return (struct err_time) { .time = { .ts = now } };
-	ticks = timespec_ticks (now);
-	hz = timespec_hz;
-      }
-      break;
+      eassume (false);
 
     case TIMEFORM_HI_LO:
       hz = make_fixnum (1);
@@ -1022,6 +1005,17 @@ struct form_time
   union c_time time;
 };
 
+/* Current time (seconds since epoch) in form CFORM.  */
+static union c_time
+current_time_in_form (enum cform cform)
+{
+  struct timespec now = current_timespec ();
+  return ((FASTER_TIMEFNS
+	   && (cform == CFORM_TIMESPEC || cform == CFORM_SECS_ONLY))
+	  ? (union c_time) {.ts = now}
+	  : decode_ticks_hz (timespec_ticks (now), timespec_hz, cform));
+}
+
 /* Decode a Lisp timestamp SPECIFIED_TIME that represents a time.
 
    Return a (form, time) pair that is the form of SPECIFIED-TIME
@@ -1033,15 +1027,29 @@ struct form_time
 static struct form_time
 decode_lisp_time (Lisp_Object specified_time, enum cform cform)
 {
+  /* specified_time is one of:
+
+     nil
+       current time
+     NUMBER
+       that number of seconds
+     (A . B)    ; A, B : integer, B>0
+       A/B s
+     (A B C D)  ; A, B : integer, C, D : fixnum
+       (A * 2**16 + B + C / 10**6 + D / 10**12) s
+  */
+
+  if (NILP (specified_time))
+    return (struct form_time) {.form = TIMEFORM_NIL,
+			       .time = current_time_in_form (cform) };
+
   Lisp_Object high = make_fixnum (0);
   Lisp_Object low = specified_time;
   Lisp_Object usec = make_fixnum (0);
   Lisp_Object psec = make_fixnum (0);
   enum timeform form = TIMEFORM_HI_LO;
 
-  if (NILP (specified_time))
-    form = TIMEFORM_NIL;
-  else if (CONSP (specified_time))
+  if (CONSP (specified_time))
     {
       high = XCAR (specified_time);
       low = XCDR (specified_time);
@@ -1072,13 +1080,14 @@ decode_lisp_time (Lisp_Object specified_time, enum cform cform)
 	}
       else
 	{
-	  form = TIMEFORM_TICKS_HZ;
+	  /* (TICKS . HZ) */
+	  if (!(INTEGERP (high) && (FIXNUMP (low) ? XFIXNUM (low) > 0
+				    : !NILP (Fnatnump (low)))))
+	    time_spec_invalid ();
+	  return (struct form_time) { .form = TIMEFORM_TICKS_HZ,
+				      .time = decode_ticks_hz (high, low,
+							       cform) };
 	}
-
-      /* Require LOW to be an integer, as otherwise the computation
-	 would be considerably trickier.  */
-      if (! INTEGERP (low))
-	form = TIMEFORM_INVALID;
     }
   else if (FASTER_TIMEFNS && INTEGERP (specified_time))
     return (struct form_time)
