@@ -6857,7 +6857,7 @@ For historical reasons, a value of nil means to use the default function.
 This should not be relied upon.
 
 For more information on how this variable is used by Auto Revert mode,
-see Info node `(emacs)Supporting additional buffers'.")
+see Info node `(elisp)Reverting'.")
 
 (defvar-local buffer-auto-revert-by-notification nil
   "Whether a buffer can rely on notification in Auto-Revert mode.
