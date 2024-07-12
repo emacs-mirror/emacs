@@ -2306,6 +2306,9 @@ free_image_cache (struct frame *f)
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
   ptrdiff_t i;
 
+  /* This function assumes the caller already verified that the frame's
+     image cache is non-NULL.  */
+  eassert (c);
   /* Cache should not be referenced by any frame when freed.  */
   eassert (c->refcount == 0);
 
