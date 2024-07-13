@@ -41,6 +41,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* For FRAME_FONT.  */
 #include TERM_HEADER
 
+#include "igc.h"
+
 /* Generic font driver for sfnt-based fonts (currently TrueType, but
    it would be easy to add CFF support in the future with a PostScript
    renderer.)
@@ -989,7 +991,11 @@ sfnt_enum_font_1 (int fd, const char *file,
   char buffer[5];
 
   /* Create the font desc and copy in the file name.  */
+#ifdef HAVE_MPS
+  desc = igc_xzalloc_ambig (sizeof *desc + strlen (file) + 1);
+#else
   desc = xzalloc (sizeof *desc + strlen (file) + 1);
+#endif
   desc->path = (char *) (desc + 1);
   memcpy (desc->path, file, strlen (file) + 1);
   desc->offset = offset;
@@ -4196,6 +4202,7 @@ are slow.  */);
   sfnt_raster_glyphs_exactly = true;
 }
 
+#ifndef HAVE_MPS
 void
 mark_sfntfont (void)
 {
@@ -4214,6 +4221,7 @@ mark_sfntfont (void)
       mark_object (desc->designer);
     }
 }
+#endif
 
 void
 init_sfntfont (void)

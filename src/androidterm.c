@@ -35,6 +35,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "pdumper.h"
 #include "keymap.h"
 
+#include "igc.h"
+
 /* This is a chain of structures for all the X displays currently in
    use.  */
 
@@ -6613,14 +6615,19 @@ android_create_terminal (struct android_display_info *dpyinfo)
 /* Initialize the Android terminal interface.  The display connection
    has already been set up by the system at this point.  */
 
+static Lisp_Object color_map;
 void
 android_term_init (void)
 {
   struct terminal *terminal;
   struct android_display_info *dpyinfo;
-  Lisp_Object color_file, color_map;
+  Lisp_Object color_file;
 
+#ifdef HAVE_MPS
+  dpyinfo = igc_xzalloc_ambig (sizeof *dpyinfo);
+#else
   dpyinfo = xzalloc (sizeof *dpyinfo);
+#endif
   terminal = android_create_terminal (dpyinfo);
   terminal->kboard = allocate_kboard (Qandroid);
   terminal->kboard->reference_count++;
@@ -6642,6 +6649,7 @@ android_term_init (void)
     fatal ("Could not read %s.\n", SDATA (color_file));
 
   dpyinfo->color_map = color_map;
+  staticpro (&color_map);
 
 #ifndef ANDROID_STUBIFY
   dpyinfo->resx = android_pixel_density_x;
@@ -6926,9 +6934,11 @@ for instance, `early-init.el', or they will be of no effect.  */);
   DEFSYM (Qreturn, "return");
 }
 
+#ifndef HAVE_MPS
 void
 mark_androidterm (void)
 {
   if (x_display_list)
     mark_object (x_display_list->color_map);
 }
+#endif
