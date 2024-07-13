@@ -1351,7 +1351,7 @@ in your init files."
         (treesit-font-lock-recompute-features '(emacs-devel)))
 
       ;; Inject doxygen parser for comment.
-      (when (treesit-ready-p 'doxygen)
+      (when (treesit-ready-p 'doxygen t)
         (setq-local treesit-primary-parser primary-parser)
         (setq-local treesit-font-lock-settings
                     (append
@@ -1412,7 +1412,7 @@ recommended to enable `electric-pair-mode' with this mode."
                     #'c-ts-mode--emacs-current-defun-name))
 
       ;; Inject doxygen parser for comment.
-      (when (treesit-ready-p 'doxygen)
+      (when (treesit-ready-p 'doxygen t)
         (setq-local treesit-primary-parser primary-parser)
         (setq-local treesit-font-lock-settings
                     (append

@@ -401,7 +401,7 @@ Return nil if there is no name or if NODE is not a defun node."
                 java-ts-mode--font-lock-settings)
 
     ;; Inject doxygen parser for comment.
-    (when (treesit-ready-p 'doxygen)
+    (when (treesit-ready-p 'doxygen t)
       (setq-local treesit-primary-parser primary-parser)
       (setq-local treesit-font-lock-settings
                   (append treesit-font-lock-settings
