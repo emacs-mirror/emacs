@@ -1277,6 +1277,7 @@ packages targeting Android 2.2.])])
   passthrough="$passthrough --with-harfbuzz=$with_harfbuzz"
   passthrough="$passthrough --with-threads=$with_threads"
   passthrough="$passthrough --with-rsvg=$with_rsvg"
+  passthrough="$passthrough --with-mps=$with_mps"
 
   # Now pass through some checking-related options.
   emacs_val="--enable-check-lisp-object-type=$enable_check_lisp_object_type"
@@ -5602,6 +5603,25 @@ if test "${with_mps}" != "no"; then
     fi
   fi
 fi
+
+MPS_CFLAGS=
+if test "$REALLY_ANDROID" = "yes" && test "$with_mps" != "no"; then
+  HAVE_MPS=no
+  ndk_SEARCH_MODULE([mps], [MPS], [HAVE_MPS=yes])
+
+  if test "$HAVE_MPS" = "yes"; then
+    SAVE_CFLAGS="$CFLAGS"
+    CFLAGS="$CFLAGS $MPS_CFLAGS"
+    AC_CHECK_HEADERS([mps.h], [break])
+    CFLAGS="$SAVE_CFLAGS"
+    IGCOBJ="igc.o"
+    AC_DEFINE([HAVE_MPS], [1],
+       [Define to 1 if you have the mps library (-lmps).])
+    HAVE_MPS=yes
+    LIBMPS="$MPS_LIBS"
+  fi
+fi
+AC_SUBST([MPS_CFLAGS])
 AC_SUBST([LIBMPS])
 AC_SUBST([IGCOBJ])
 
