@@ -3226,6 +3226,16 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 				  font_entity, pixel_size);
   font_info = (struct sfnt_font_info *) XFONT_OBJECT (font_object);
 
+#ifdef HAVE_MPS
+  /* FIXME/igc: don't leak memory here. */
+  /* This unfortunate hack (which leaks memory) is necessary because the
+     font implementation utilizes internal pointers
+     (font_info->outline_cache.next, for example). When the font object
+     moves, those pointers become invalid and we infloop. */
+  struct sfnt_font_info **leak = igc_xzalloc_ambig (sizeof *leak);
+  *leak = font_info;
+#endif
+
   block_input ();
 
   /* Initialize all the font driver specific data.  */
