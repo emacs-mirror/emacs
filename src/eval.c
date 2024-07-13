@@ -242,7 +242,11 @@ init_eval (void)
   { /* Put a dummy catcher at top-level so that handlerlist is never NULL.
        This is important since handlerlist->nextfree holds the freelist
        which would otherwise leak every time we unwind back to top-level.   */
+#ifdef HAVE_MPS
+    handlerlist_sentinel = igc_alloc_handler ();
+#else
     handlerlist_sentinel = xzalloc (sizeof (struct handler));
+#endif
     handlerlist = handlerlist_sentinel->nextfree = handlerlist_sentinel;
     struct handler *c = push_handler (Qunbound, CATCHER);
     eassert (c == handlerlist_sentinel);
