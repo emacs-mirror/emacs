@@ -141,21 +141,27 @@ wdired-get-filename before and after editing."
   ;; FIXME: Add a test for a door (indicator ">") only under Solaris?
   (ert-with-temp-directory test-dir
     (let* ((dired-listing-switches "-Fl")
-           (dired-ls-F-marks-symlinks (eq system-type 'darwin))
+           (dired-ls-F-marks-symlinks
+            (or (eq system-type 'darwin)
+                (featurep 'ls-lisp)))
            (buf (find-file-noselect test-dir))
            proc)
       (unwind-protect
           (progn
             (with-current-buffer buf
-              (dired-create-empty-file "foo")
-              (set-file-modes "foo" (file-modes-symbolic-to-number "+x"))
+              ;; Create a .bat file so that MS-Windows, where the 'x'
+              ;; bit is not recorded in the filesystem, considers it an
+              ;; executable.
+              (dired-create-empty-file "foo.bat")
+              (set-file-modes "foo.bat" (file-modes-symbolic-to-number "+x"))
               (skip-unless
                ;; This check is for wdired, not symbolic links, so skip
                ;; it when make-symbolic-link fails for any reason (like
                ;; insufficient privileges).
-               (ignore-errors (make-symbolic-link "foo" "bar") t))
+               (ignore-errors (make-symbolic-link "foo.bat" "bar") t))
               (make-directory "foodir")
-              (dired-smart-shell-command "mkfifo foopipe")
+              (unless (memq system-type '(windows-nt ms-dos))
+                (dired-smart-shell-command "mkfifo foopipe"))
               (when (featurep 'make-network-process '(:family local))
                 (setq proc (make-network-process
                             :name "foo"
