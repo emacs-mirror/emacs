@@ -2241,7 +2241,7 @@ fix_mutex (mps_ss_t ss, struct Lisp_Mutex *m)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, m, fix_vectorlike);
-    IGC_FIX12_RAW (ss, &m->name);
+    IGC_FIX12_OBJ (ss, &m->name);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
