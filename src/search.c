@@ -2279,7 +2279,7 @@ The optional second argument BOUND is a buffer position that bounds
   value of nil means search to the end of the accessible portion of
   the buffer.
 The optional third argument NOERROR indicates how errors are handled
-  when the search fails.  If it is nil or omitted, emit an error; if
+  when the search fails: if it is nil or omitted, emit an error; if
   it is t, simply return nil and do nothing; if it is neither nil nor
   t, move to the limit of search and return nil.
 The optional fourth argument COUNT is a number that indicates the
