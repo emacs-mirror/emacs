@@ -3067,14 +3067,6 @@ finalize_font (struct font *font)
 	  drv->close_font (font);
 	}
     }
-
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-  /* The Android font driver needs the ability to associate extra
-     information with font entities.  */
-  if (vector_size (v) == FONT_ENTITY_MAX
-      && PSEUDOVEC_STRUCT (vector, font_entity)->is_android)
-    android_finalize_font_entity (PSEUDOVEC_STRUCT (vector, font_entity));
-#endif
 }
 
 static void
