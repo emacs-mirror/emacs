@@ -1985,6 +1985,13 @@ fix_frame (mps_ss_t ss, struct frame *f)
 #endif
       }
 #endif // HAVE_WINDOW_SYSTEM
+
+#ifdef HAVE_TEXT_CONVERSION
+    IGC_FIX12_OBJ (ss, &f->conversion.compose_region_start);
+    IGC_FIX12_OBJ (ss, &f->conversion.compose_region_end);
+    IGC_FIX12_OBJ (ss, &f->conversion.compose_region_overlay);
+    IGC_FIX12_OBJ (ss, &f->conversion.field);
+#endif
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
