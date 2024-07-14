@@ -998,6 +998,7 @@ record_xmalloc (size_t size)
    allocated memory block (for strings, for conses, ...).  */
 
 #if ! USE_LSB_TAG
+extern void *lisp_malloc_loser;
 void *lisp_malloc_loser EXTERNALLY_VISIBLE;
 #endif
 
