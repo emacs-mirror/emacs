@@ -378,20 +378,18 @@ definition documents, so your mileage may vary.
 
 @cindex EMACS_CLASS_PATH environment variable, Android
   Even when the location of the @command{libandroid-emacs.so} command is
-known in advance, special configuration is required to run Emacs from
+known in advance, special preparation is required to run Emacs from
 elsewhere than a subprocess of an existing Emacs session, as it must be
 made to understand the location of resources and shared libraries in or
 extracted from the installed application package.  The OS command
 @command{pm path org.gnu.emacs} will print the location of the
-application package, and the adjacent @file{lib} directory will hold
-shared libraries extracted from the same, though the said command must
-be invoked in a peculiar manner to satisfy system restrictions on
-communication between pseudoterminal devices created by user
-applications and system services such as the package manager, which is
-to say, with the standard IO streams redirected to a real file or a
-pipe.  Such values, once established, must be specified in the
-environment variables @code{EMACS_CLASS_PATH} and
-@code{EMACS_LD_LIBRARY_PATH}, so that this sample shell script may be
+application package, though the said command must be invoked in a
+peculiar manner to satisfy system restrictions on communication between
+pseudoterminal devices created by user applications and system services
+such as the package manager, which is to say, with the standard IO
+streams redirected to a real file or a pipe.  This value, once
+established, must be specified in the environment variables
+@code{EMACS_CLASS_PATH}, so that this sample shell script may be
 installed as @code{emacs} in any location that is accessible:
 
 @example
@@ -400,7 +398,6 @@ installed as @code{emacs} in any location that is accessible:
 package_name=`pm path org.gnu.emacs 2>/dev/null </dev/null \
                | sed 's/^package://'`
 emacs=
-ld_path=
 EMACS_CLASS_PATH=$package_name
 
 for libdir in `dirname $package_name`/lib/*; do
@@ -409,10 +406,7 @@ for libdir in `dirname $package_name`/lib/*; do
     && emacs="$libdir"/libandroid-emacs.so
 done
 
-EMACS_LD_LIBRARY_PATH=$ld_path
-
 export EMACS_CLASS_PATH
-export EMACS_LD_LIBRARY_PATH
 test -x "$emacs" || exit 1
 exec $emacs "$@@"
 @end example
