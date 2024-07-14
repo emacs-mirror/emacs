@@ -3538,14 +3538,22 @@ dump_cold_string (struct dump_context *ctx, Lisp_Object string)
   eassert (total_size > 0);
 
 # ifdef HAVE_MPS
+  struct Lisp_String_Data *data = (struct Lisp_String_Data *)
+    (XSTRING (string)->u.s.data - sizeof (*data));
   dump_align_output (ctx, DUMP_ALIGNMENT);
-  dump_igc_start_obj (ctx, IGC_OBJ_STRING_DATA, XSTRING (string)->u.s.data);
-# endif
+  dump_igc_start_obj (ctx, IGC_OBJ_STRING_DATA, data);
+  dump_remember_fixup_ptr_raw
+    (ctx,
+     string_offset + dump_offsetof (struct Lisp_String, u.s.data),
+     ctx->offset + sizeof (*data));
+  dump_write (ctx, data, sizeof (*data) + total_size);
+# else
   dump_remember_fixup_ptr_raw
     (ctx,
      string_offset + dump_offsetof (struct Lisp_String, u.s.data),
      ctx->offset);
   dump_write (ctx, XSTRING (string)->u.s.data, total_size);
+# endif
 # ifdef HAVE_MPS
   dump_igc_finish_obj (ctx);
 # endif

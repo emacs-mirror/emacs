@@ -1544,7 +1544,10 @@ fix_string (mps_ss_t ss, struct Lisp_String *s)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_RAW (ss, &s->u.s.data);
+    struct Lisp_String_Data *ptr =
+      (void *) (s->u.s.data - sizeof (*ptr));
+    IGC_FIX12_RAW (ss, &ptr);
+    s->u.s.data = ptr->data;
     IGC_FIX12_RAW (ss, &s->u.s.intervals);
   }
   MPS_SCAN_END (ss);
@@ -3814,9 +3817,10 @@ igc_make_float (double val)
 static unsigned char *
 alloc_string_data (size_t nbytes, bool clear)
 {
-  unsigned char *data = alloc (nbytes + 1, IGC_OBJ_STRING_DATA);
-  data[nbytes] = 0;
-  return data;
+  struct Lisp_String_Data *data =
+    alloc (sizeof (*data) + nbytes + 1, IGC_OBJ_STRING_DATA);
+  data->data[nbytes] = 0;
+  return data->data;
 }
 
 void *
