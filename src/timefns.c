@@ -73,20 +73,24 @@ enum { TM_YEAR_BASE = 1900 };
 enum { CURRENT_TIME_LIST = true };
 #endif
 
-#if FIXNUM_OVERFLOW_P (1000000000)
-static Lisp_Object timespec_hz;
-#else
+#if FASTER_TIMEFNS && !FIXNUM_OVERFLOW_P (1000000000)
 # define timespec_hz make_fixnum (TIMESPEC_HZ)
+#else
+static Lisp_Object timespec_hz;
 #endif
 
 #define TRILLION 1000000000000
-#if FIXNUM_OVERFLOW_P (TRILLION)
-static Lisp_Object trillion;
-# define ztrillion (*xbignum_val (trillion))
-#else
+#if FASTER_TIMEFNS && !FIXNUM_OVERFLOW_P (TRILLION)
 # define trillion make_fixnum (TRILLION)
-# if ULONG_MAX < TRILLION || !FASTER_TIMEFNS
+#else
+static Lisp_Object trillion;
+#endif
+#if ! (FASTER_TIMEFNS && TRILLION <= ULONG_MAX)
+# if FIXNUM_OVERFLOW_P (TRILLION)
+#  define ztrillion (*xbignum_val (trillion))
+# else
 static mpz_t ztrillion;
+#  define NEED_ZTRILLION_INIT
 # endif
 #endif
 
@@ -2136,10 +2140,6 @@ emacs_setenv_TZ (const char *tzstring)
 
   return 0;
 }
-
-#if (ULONG_MAX < TRILLION || !FASTER_TIMEFNS) && !defined ztrillion
-# define NEED_ZTRILLION_INIT 1
-#endif
 
 #ifdef NEED_ZTRILLION_INIT
 static void
