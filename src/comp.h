@@ -29,7 +29,7 @@ struct igc_root_list;
 
 struct Lisp_Native_Comp_Unit
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
   /* The original eln file loaded.  In the pdumper file this is stored
      as a cons cell of 2 alternative file names: the car is the
      filename relative to the directory of an installed binary, the

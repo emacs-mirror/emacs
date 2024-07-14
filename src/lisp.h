@@ -495,7 +495,7 @@ typedef EMACS_INT Lisp_Word;
    01........  ........10  fixnum      signed integer of FIXNUM_BITS
    110.......  .......011  cons        pointer to struct Lisp_Cons
    100.......  .......100  string      pointer to struct Lisp_String
-   101.......  .......101  vectorlike  pointer to union vectorlike_header
+   101.......  .......101  vectorlike  pointer to struct vectorlike_header
    111.......  .......111  float       pointer to struct Lisp_Float  */
 enum Lisp_Type
   {
@@ -960,13 +960,11 @@ typedef EMACS_UINT Lisp_Word_tag;
 /* Header of vector-like objects.  This documents the layout constraints on
    vectors and pseudovectors (objects of PVEC_xxx subtype).  It also prevents
    compilers from being fooled by Emacs's type punning: XSETPSEUDOVECTOR
-   and PSEUDOVECTORP cast their pointers to union vectorlike_header *,
+   and PSEUDOVECTORP cast their pointers to struct vectorlike_header *,
    because when two such pointers potentially alias, a compiler won't
    incorrectly reorder loads and stores to their size fields.  See
-   Bug#8546.  This union formerly contained more members, and there's
-   no compelling reason to change it to a struct merely because the
-   number of members has been reduced to one.  */
-union vectorlike_header
+   Bug#8546.   */
+struct vectorlike_header
   {
     /* The `size' header word, W bits wide, has one of two forms
        discriminated by the second-highest bit (PSEUDOVECTOR_FLAG):
@@ -1002,7 +1000,7 @@ union vectorlike_header
 
 struct Lisp_Symbol_With_Pos
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
   Lisp_Object sym;              /* A symbol */
   Lisp_Object pos;              /* A fixnum */
 } GCALIGNED_STRUCT;
@@ -1104,7 +1102,7 @@ INLINE bool
 PSEUDOVECTORP (Lisp_Object a, int code)
 {
   return (lisp_h_VECTORLIKEP (a)
-	  && ((XUNTAG (a, Lisp_Vectorlike, union vectorlike_header)->size
+	  && ((XUNTAG (a, Lisp_Vectorlike, struct vectorlike_header)->size
 	       & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))
 	      == (PSEUDOVECTOR_FLAG | (code << PSEUDOVECTOR_AREA_BITS))));
 }
@@ -1418,11 +1416,11 @@ dead_object (void)
 #define XSETPVECTYPESIZE(v, code, lispsize, restsize)		\
   ((v)->header.size = PVECHEADERSIZE (code, lispsize, restsize))
 
-/* The cast to union vectorlike_header * avoids aliasing issues.  */
+/* The cast to struct vectorlike_header * avoids aliasing issues.  */
 #define XSETPSEUDOVECTOR(a, b, code) \
   XSETTYPED_PSEUDOVECTOR (a, b,					\
 			  (XUNTAG (a, Lisp_Vectorlike,		\
-				   union vectorlike_header)	\
+				   struct vectorlike_header)	\
 			   ->size),				\
 			  code)
 #define XSETTYPED_PSEUDOVECTOR(a, b, size, code)			\
@@ -1781,7 +1779,7 @@ string_immovable_p (Lisp_Object str)
 
 struct Lisp_Vector
   {
-    union vectorlike_header header;
+    struct vectorlike_header header;
     Lisp_Object contents[FLEXIBLE_ARRAY_MEMBER];
   } GCALIGNED_STRUCT;
 
@@ -1847,7 +1845,7 @@ PSEUDOVECTOR_TYPE (const struct Lisp_Vector *v)
 
 /* Can't be used with PVEC_NORMAL_VECTOR.  */
 INLINE bool
-PSEUDOVECTOR_TYPEP (const union vectorlike_header *a, enum pvec_type code)
+PSEUDOVECTOR_TYPEP (const struct vectorlike_header *a, enum pvec_type code)
 {
   /* We don't use PSEUDOVECTOR_TYPE here so as to avoid a shift
    * operation when `code' is known.  */
@@ -1861,7 +1859,7 @@ struct Lisp_Bool_Vector
   {
     /* HEADER.SIZE is the vector's size field.  It doesn't have the real size,
        just the subtype information.  */
-    union vectorlike_header header;
+    struct vectorlike_header header;
     /* This is the size in bits.  */
     EMACS_INT size;
     /* The actual bits, packed into bytes.
@@ -1875,7 +1873,7 @@ struct Lisp_Bool_Vector
    and offsets, mostly of vectorlike objects.
 
    The garbage collector assumes that the initial part of any struct
-   that starts with a union vectorlike_header followed by N
+   that starts with a struct vectorlike_header followed by N
    Lisp_Objects (some possibly in arrays and/or a trailing flexible
    array) will be laid out like a struct Lisp_Vector with N
    Lisp_Objects.  This assumption is true in practice on known Emacs
@@ -2102,7 +2100,7 @@ struct Lisp_Char_Table
        pseudovector type information.  It holds the size, too.
        The size counts the defalt, parent, purpose, ascii,
        contents, and extras slots.  */
-    union vectorlike_header header;
+    struct vectorlike_header header;
 
     /* This holds the default value, which is used whenever the value
        for a specific character is nil.  */
@@ -2146,7 +2144,7 @@ struct Lisp_Sub_Char_Table
   {
     /* HEADER.SIZE is the vector's size field, which also holds the
        pseudovector type information.  It holds the size, too.  */
-    union vectorlike_header header;
+    struct vectorlike_header header;
 
     /* Depth of this sub char-table.  It should be 1, 2, or 3.  A sub
        char-table of depth 1 contains 16 elements, and each element
@@ -2221,7 +2219,7 @@ CHAR_TABLE_SET (Lisp_Object ct, int idx, Lisp_Object val)
 
 struct Lisp_Subr
   {
-    union vectorlike_header header;
+    struct vectorlike_header header;
     union {
       Lisp_Object (*a0) (void);
       Lisp_Object (*a1) (Lisp_Object);
@@ -2441,7 +2439,7 @@ INLINE int
 
 struct Lisp_Obarray
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
 
   /* Array of 2**size_bits values, each being either a (bare) symbol or
      the fixnum 0.  The symbols for each bucket are chained via
@@ -2653,7 +2651,7 @@ struct Lisp_Weak_Hash_Table_Weak_Part
 
 struct Lisp_Weak_Hash_Table
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
 
   struct Lisp_Weak_Hash_Table_Strong_Part *strong;
   struct Lisp_Weak_Hash_Table_Weak_Part *weak;
@@ -2662,7 +2660,7 @@ struct Lisp_Weak_Hash_Table
 
 struct Lisp_Hash_Table
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
 
   /* Hash table internal structure:
 
@@ -3020,7 +3018,7 @@ knuth_hash (hash_hash_t hash, unsigned bits)
 
 struct Lisp_Marker
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
 
   /* This is the buffer that the marker points into, or 0 if it points nowhere.
      Note: a chain of markers can contain markers pointing into different
@@ -3079,7 +3077,7 @@ struct Lisp_Overlay
    - end buffer position (field of the itree node)
    - insertion types of both ends (fields of the itree node).  */
   {
-    union vectorlike_header header;
+    struct vectorlike_header header;
     Lisp_Object plist;
     struct buffer *buffer;        /* eassert (live buffer || NULL). */
     struct itree_node *interval;
@@ -3087,7 +3085,7 @@ struct Lisp_Overlay
 
 struct Lisp_Misc_Ptr
   {
-    union vectorlike_header header;
+    struct vectorlike_header header;
     void *pointer;
   } GCALIGNED_STRUCT;
 
@@ -3132,7 +3130,7 @@ xmint_pointer (Lisp_Object a)
 
 struct Lisp_Sqlite
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
   void *db;
   void *stmt;
   char *name;
@@ -3143,7 +3141,7 @@ struct Lisp_Sqlite
 
 struct Lisp_User_Ptr
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
   void (*finalizer) (void *);
   void *p;
 } GCALIGNED_STRUCT;
@@ -3151,7 +3149,7 @@ struct Lisp_User_Ptr
 /* A finalizer sentinel.  */
 struct Lisp_Finalizer
   {
-    union vectorlike_header header;
+    struct vectorlike_header header;
 
     /* Call FUNCTION when the finalizer becomes unreachable, even if
        FUNCTION contains a reference to the finalizer; i.e., call
@@ -4835,7 +4833,7 @@ extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)
   ATTRIBUTE_FORMAT_PRINTF (2, 3);
 extern Lisp_Object make_unibyte_string (const char *, ptrdiff_t);
-extern ptrdiff_t vectorlike_nbytes (const union vectorlike_header *hdr);
+extern ptrdiff_t vectorlike_nbytes (const struct vectorlike_header *hdr);
 
 INLINE ptrdiff_t
 vector_nbytes (const struct Lisp_Vector *v)

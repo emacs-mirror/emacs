@@ -32,7 +32,7 @@ enum { GMP_NUMB_BITS = TYPE_WIDTH (mp_limb_t) };
 
 struct Lisp_Bignum
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
   mpz_t value;
 } GCALIGNED_STRUCT;
 

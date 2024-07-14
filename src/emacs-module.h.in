@@ -230,7 +230,7 @@ struct emacs_value_tag { Lisp_Object v; };
 
 struct module_global_reference {
   /* Pseudovector header, must come first. */
-  union vectorlike_header header;
+  struct vectorlike_header header;
 
   /* Holds the emacs_value for the object.  The Lisp_Object stored
      therein must be the same as the hash key.  */

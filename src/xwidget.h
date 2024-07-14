@@ -49,7 +49,7 @@ struct window;
 
 struct xwidget
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
 
   /* Auxiliary data.  */
   Lisp_Object plist;
@@ -101,7 +101,7 @@ struct xwidget
 
 struct xwidget_view
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
   Lisp_Object model;
   Lisp_Object w;
   /* Here ends the lisp part.  "w" is the marker field.  */

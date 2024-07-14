@@ -250,7 +250,7 @@ enum font_property_index
 
 struct font_spec
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
   Lisp_Object props[FONT_SPEC_MAX];
 };
 
@@ -258,7 +258,7 @@ struct font_spec
 
 struct font_entity
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
   Lisp_Object props[FONT_ENTITY_MAX];
 
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
@@ -276,7 +276,7 @@ struct font_entity
 
 struct font
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
 
   /* All Lisp_Object components must come first.
      That ensures they are all aligned normally.  */

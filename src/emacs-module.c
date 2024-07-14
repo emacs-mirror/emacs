@@ -534,7 +534,7 @@ module_non_local_exit_throw (emacs_env *env, emacs_value tag, emacs_value value)
 
 struct Lisp_Module_Function
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
 
   /* Fields traced by GC; these must come first.  */
   Lisp_Object documentation, interactive_form, command_modes;

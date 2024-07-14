@@ -338,7 +338,7 @@ enum
 struct scroll_bar
 {
   /* These fields are shared by all vectors.  */
-  union vectorlike_header header;
+  struct vectorlike_header header;
 
   /* The window we're a scroll bar for.  */
   Lisp_Object window;

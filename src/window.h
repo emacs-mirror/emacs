@@ -100,7 +100,7 @@ struct cursor_pos
 struct window
   {
     /* This is for Lisp; the terminal code does not refer to it.  */
-    union vectorlike_header header;
+    struct vectorlike_header header;
 
     /* The frame this window is on.  */
     Lisp_Object frame;

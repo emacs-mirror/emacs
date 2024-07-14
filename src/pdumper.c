@@ -2064,8 +2064,8 @@ dump_field_emacs_ptr (struct dump_context *ctx,
 
 static void
 _dump_object_start_pseudovector (struct dump_context *ctx,
-				 union vectorlike_header *out_hdr,
-				 const union vectorlike_header *in_hdr)
+				 struct vectorlike_header *out_hdr,
+				 const struct vectorlike_header *in_hdr)
 {
   eassert (in_hdr->size & PSEUDOVECTOR_FLAG);
   ptrdiff_t vec_size = vectorlike_nbytes (in_hdr);
@@ -2075,21 +2075,21 @@ _dump_object_start_pseudovector (struct dump_context *ctx,
 
 /* Need a macro for alloca.  */
 #define START_DUMP_PVEC(ctx, hdr, type, out)                  \
-  const union vectorlike_header *_in_hdr = (hdr);             \
+  const struct vectorlike_header *_in_hdr = (hdr);             \
   type *out = alloca (vectorlike_nbytes (_in_hdr));           \
   _dump_object_start_pseudovector (ctx, &out->header, _in_hdr)
 
 static dump_off
 finish_dump_pvec (struct dump_context *ctx,
-                  union vectorlike_header *out_hdr)
+                  struct vectorlike_header *out_hdr)
 {
   return dump_object_finish (ctx, out_hdr, vectorlike_nbytes (out_hdr));
 }
 
 static void
 dump_pseudovector_lisp_fields (struct dump_context *ctx,
-			       union vectorlike_header *out_hdr,
-			       const union vectorlike_header *in_hdr)
+			       struct vectorlike_header *out_hdr,
+			       const struct vectorlike_header *in_hdr)
 {
   const struct Lisp_Vector *in = (const struct Lisp_Vector *) in_hdr;
   struct Lisp_Vector *out = (struct Lisp_Vector *) out_hdr;
@@ -2562,7 +2562,7 @@ dump_symbol (struct dump_context *ctx,
 
 static dump_off
 dump_vectorlike_generic (struct dump_context *ctx,
-			 const union vectorlike_header *header)
+			 const struct vectorlike_header *header)
 {
 #if CHECK_STRUCTS && !defined (HASH_vectorlike_header_785E52047B)
 # error "vectorlike_header changed. See CHECK_STRUCTS comment in config.h."
@@ -2615,7 +2615,7 @@ dump_vectorlike_generic (struct dump_context *ctx,
     }
   else
     {
-      union vectorlike_header out;
+      struct vectorlike_header out;
       prefix_start_offset = dump_object_start (ctx, header, IGC_OBJ_VECTOR, &out, sizeof (out));
       DUMP_FIELD_COPY (&out, header, size);
       offset = dump_object_finish_1 (ctx, &out, sizeof (out));
@@ -3107,7 +3107,7 @@ dump_native_comp_unit (struct dump_context *ctx,
 #endif
 
 static void
-fill_pseudovec (union vectorlike_header *header, Lisp_Object item)
+fill_pseudovec (struct vectorlike_header *header, Lisp_Object item)
 {
   struct Lisp_Vector *v = (struct Lisp_Vector *) header;
   eassert (v->header.size & PSEUDOVECTOR_FLAG);
@@ -3118,7 +3118,7 @@ fill_pseudovec (union vectorlike_header *header, Lisp_Object item)
 
 static dump_off
 dump_nilled_pseudovec (struct dump_context *ctx,
-                       const union vectorlike_header *in)
+                       const struct vectorlike_header *in)
 {
   START_DUMP_PVEC (ctx, in, struct Lisp_Vector, out);
   fill_pseudovec (&out->header, Qnil);

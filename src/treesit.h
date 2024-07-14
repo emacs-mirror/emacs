@@ -33,7 +33,7 @@ INLINE_HEADER_BEGIN
    and other goodies for convenience.  */
 struct Lisp_TS_Parser
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
     /* A symbol representing the language this parser uses.  See the
      manual for more explanation.  */
   Lisp_Object language_symbol;
@@ -87,7 +87,7 @@ struct Lisp_TS_Parser
 /* A wrapper around a tree-sitter node.  */
 struct Lisp_TS_Node
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
   /* This prevents gc from collecting the tree before the node is done
      with it.  TSNode contains a pointer to the tree it belongs to,
      and the parser object, when collected by gc, will free that
@@ -114,7 +114,7 @@ struct Lisp_TS_Node
    building, so that breaks the build.  */
 struct Lisp_TS_Query
 {
-  union vectorlike_header header;
+  struct vectorlike_header header;
   /* Language symbol for the query.  */
   Lisp_Object language;
   /* Source lisp (sexp or string) query.  */
