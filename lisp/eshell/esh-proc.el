@@ -483,7 +483,7 @@ output."
                   ;; here.  However, remote processes don't currently
                   ;; support that, and not all systems have SIGPIPE in
                   ;; the first place (e.g. MS Windows).  In these
-                  ;; cases, just delete the process; this is
+                  ;; cases, just kill the process; this is
                   ;; reasonably close to the right behavior, since the
                   ;; default action for SIGPIPE is to terminate the
                   ;; process.  For use cases where SIGPIPE is truly
@@ -493,7 +493,7 @@ output."
                   (eshell-pipe-broken
                    (if (or (process-get proc 'remote-pid)
                            (eq system-type 'windows-nt))
-                       (delete-process proc)
+                       (kill-process proc)
                      (signal-process proc 'SIGPIPE))))))
                 (process-put proc :eshell-busy nil))))))
 
