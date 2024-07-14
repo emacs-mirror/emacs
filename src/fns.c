@@ -5664,7 +5664,10 @@ maybe_resize_weak_hash_table (struct Lisp_Weak_Hash_Table *h)
       struct Lisp_Weak_Hash_Table_Weak_Part *weak =
 	igc_alloc_weak_hash_table_weak_part (h->strong->weakness, new_size, index_bits);
 
-      memcpy (strong, h->strong, sizeof *strong);
+      /* Preserve the GC header, if any. */
+      memcpy ((char *)strong + sizeof (union gc_header),
+	      (char *)h->strong + sizeof (union gc_header),
+	      sizeof *strong - sizeof (union gc_header));
 
       strong->hash = strong->entries + 0;
       strong->next = strong->entries + 1 * new_size;

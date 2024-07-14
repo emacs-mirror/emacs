@@ -3393,6 +3393,7 @@ dump_charset_table (struct dump_context *ctx)
   ctx->flags.pack_objects = true;
   dump_align_output (ctx, alignof (struct charset));
 # ifdef HAVE_MPS
+  gc_init_header (&charset_table->gc_header, IGC_OBJ_DUMPED_CHARSET_TABLE);
   dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_CHARSET_TABLE, charset_table);
 # endif
   dump_off offset = ctx->offset;

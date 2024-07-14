@@ -634,6 +634,44 @@ set_header (struct igc_header *h, enum igc_obj_type type,
 	  tag);
 }
 
+static unsigned alloc_hash (void);
+
+/* Called throughout Emacs to initialize the GC header of an object
+   which does not live in GC-managed memory, such as pure objects and
+   builtin symbols.  */
+void gc_init_header (union gc_header *header, enum igc_obj_type type)
+{
+  struct igc_header *h = (struct igc_header *)header;
+  switch (type)
+    {
+    case IGC_OBJ_CONS:
+      set_header (h, IGC_OBJ_CONS, sizeof (struct Lisp_Cons), alloc_hash ());
+      break;
+    case IGC_OBJ_STRING:
+      set_header (h, IGC_OBJ_STRING, sizeof (struct Lisp_String), alloc_hash ());
+      break;
+    case IGC_OBJ_FLOAT:
+      set_header (h, IGC_OBJ_FLOAT, sizeof (struct Lisp_Float), alloc_hash ());
+      break;
+    case IGC_OBJ_SYMBOL:
+      set_header (h, IGC_OBJ_SYMBOL, sizeof (struct Lisp_Symbol), alloc_hash ());
+      break;
+    case IGC_OBJ_VECTOR:
+      {
+	ptrdiff_t size = ASIZE (make_lisp_ptr (header, Lisp_Vectorlike));
+	if (size & PSEUDOVECTOR_FLAG)
+	  size &= PSEUDOVECTOR_SIZE_MASK;
+	set_header (h, IGC_OBJ_VECTOR, sizeof (struct Lisp_Vector) +
+		    size * sizeof (Lisp_Object), alloc_hash ());
+	break;
+      }
+    case IGC_OBJ_DUMPED_CHARSET_TABLE:
+      break;
+    default:
+      emacs_abort ();
+    }
+}
+
 /* Given a pointer to the client area of an object, CLIENT, return
    the base address of the object in MPS. */
 
@@ -3736,6 +3774,7 @@ igc_make_cons (Lisp_Object car, Lisp_Object cdr)
   struct Lisp_Cons *cons = alloc (sizeof *cons, IGC_OBJ_CONS);
   cons->u.s.car = car;
   cons->u.s.u.cdr = cdr;
+  gc_init_header (&cons->gc_header, IGC_OBJ_CONS);
   return make_lisp_ptr (cons, Lisp_Cons);
 }
 
@@ -3743,6 +3782,7 @@ Lisp_Object
 igc_alloc_symbol (void)
 {
   struct Lisp_Symbol *sym = alloc (sizeof *sym, IGC_OBJ_SYMBOL);
+  gc_init_header (&sym->gc_header, IGC_OBJ_SYMBOL);
   return make_lisp_symbol (sym);
 }
 
@@ -3751,6 +3791,7 @@ igc_make_float (double val)
 {
   struct Lisp_Float *f = alloc (sizeof *f, IGC_OBJ_FLOAT);
   f->u.data = val;
+  gc_init_header (&f->gc_header, IGC_OBJ_FLOAT);
   return make_lisp_ptr (f, Lisp_Float);
 }
 
@@ -3818,6 +3859,7 @@ igc_make_string (size_t nchars, size_t nbytes, bool unibyte, bool clear)
   s->u.s.size = nchars;
   s->u.s.size_byte = unibyte ? -1 : nbytes;
   s->u.s.data = alloc_string_data (nbytes, clear);
+  gc_init_header (&s->gc_header, IGC_OBJ_STRING);
   return make_lisp_ptr (s, Lisp_String);
 }
 

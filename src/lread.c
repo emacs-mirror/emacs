@@ -4948,6 +4948,7 @@ intern_c_multibyte (const char *str, ptrdiff_t nchars, ptrdiff_t nbytes)
 static void
 define_symbol (Lisp_Object sym, char const *str)
 {
+  gc_init_header (&XBARE_SYMBOL (sym)->gc_header, IGC_OBJ_SYMBOL);
   ptrdiff_t len = strlen (str);
   Lisp_Object string = make_pure_c_string (str, len);
   init_symbol (sym, string);
@@ -5447,6 +5448,7 @@ void
 defsubr (union Aligned_Lisp_Subr *aname)
 {
   struct Lisp_Subr *sname = &aname->s;
+  gc_init_header (&sname->header.gc_header, IGC_OBJ_VECTOR);
   Lisp_Object sym, tem;
   sym = intern_c_string (sname->symbol_name);
   XSETPVECTYPE (sname, PVEC_SUBR);

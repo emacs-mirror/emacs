@@ -49,6 +49,16 @@ union gc_header { uint64_t v; };
 union gc_header { };
 #endif
 
+#ifdef HAVE_MPS
+enum igc_obj_type;
+extern void gc_init_header (union gc_header *header, enum igc_obj_type type);
+extern void gc_init_header_bytes (union gc_header *header, enum igc_obj_type type, size_t bytes);
+#else
+/* These are macros so they don't evaluate their `type' argument.  */
+#define gc_init_header(header, type) ((void)(header))
+#define gc_init_header_bytes(header, type, nbytes) ((void)(header))
+#endif
+
 #define GC_HEADER union gc_header gc_header;
 #define GC_HEADER_INIT {},
 

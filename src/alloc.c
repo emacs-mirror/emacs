@@ -6040,6 +6040,7 @@ make_pure_string (const char *data,
   Lisp_Object string;
   struct Lisp_String *s = pure_alloc (sizeof *s, Lisp_String);
   s->u.s.data = (unsigned char *) find_string_data_in_pure (data, nbytes);
+  gc_init_header (&s->gc_header, IGC_OBJ_STRING);
   if (s->u.s.data == NULL)
     {
       s->u.s.data = pure_alloc (nbytes + 1, -1);
@@ -6061,6 +6062,7 @@ make_pure_c_string (const char *data, ptrdiff_t nchars)
 {
   Lisp_Object string;
   struct Lisp_String *s = pure_alloc (sizeof *s, Lisp_String);
+  gc_init_header (&s->gc_header, IGC_OBJ_STRING);
   s->u.s.size = nchars;
   s->u.s.size_byte = -2;
   s->u.s.data = (unsigned char *) data;
@@ -6079,6 +6081,7 @@ pure_cons (Lisp_Object car, Lisp_Object cdr)
 {
   Lisp_Object new;
   struct Lisp_Cons *p = pure_alloc (sizeof *p, Lisp_Cons);
+  gc_init_header (&p->gc_header, IGC_OBJ_CONS);
   XSETCONS (new, p);
   XSETCAR (new, purecopy (car));
   XSETCDR (new, purecopy (cdr));
@@ -6093,6 +6096,7 @@ make_pure_float (double num)
 {
   Lisp_Object new;
   struct Lisp_Float *p = pure_alloc (sizeof *p, Lisp_Float);
+  gc_init_header (&p->gc_header, IGC_OBJ_FLOAT);
   XSETFLOAT (new, p);
   XFLOAT_INIT (new, num);
   return new;
@@ -6111,6 +6115,7 @@ make_pure_bignum (Lisp_Object value)
   mp_size_t new_size;
 
   struct Lisp_Bignum *b = pure_alloc (sizeof *b, Lisp_Vectorlike);
+  gc_init_header (&b->header.gc_header, IGC_OBJ_VECTOR);
   XSETPVECTYPESIZE (b, PVEC_BIGNUM, 0, VECSIZE (struct Lisp_Bignum));
 
   int limb_alignment = alignof (mp_limb_t);
@@ -6136,6 +6141,7 @@ make_pure_vector (ptrdiff_t len)
   Lisp_Object new;
   size_t size = header_size + len * word_size;
   struct Lisp_Vector *p = pure_alloc (size, Lisp_Vectorlike);
+  gc_init_header (&p->header.gc_header, IGC_OBJ_VECTOR);
   XSETVECTOR (new, p);
   XVECTOR (new)->header.size = len;
   return new;
@@ -6150,6 +6156,7 @@ purecopy_hash_table (struct Lisp_Hash_Table *table)
   eassert (table->purecopy);
 
   struct Lisp_Hash_Table *pure = pure_alloc (sizeof *pure, Lisp_Vectorlike);
+  gc_init_header (&pure->header.gc_header, IGC_OBJ_VECTOR);
   *pure = *table;
   pure->mutable = false;
 
@@ -6275,6 +6282,7 @@ purecopy (Lisp_Object obj)
       struct Lisp_Vector *objp = XVECTOR (obj);
       ptrdiff_t nbytes = vector_nbytes (objp);
       struct Lisp_Vector *vec = pure_alloc (nbytes, Lisp_Vectorlike);
+      gc_init_header (&vec->header.gc_header, IGC_OBJ_VECTOR);
       register ptrdiff_t i;
       ptrdiff_t size = ASIZE (obj);
       if (size & PSEUDOVECTOR_FLAG)
