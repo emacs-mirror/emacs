@@ -583,6 +583,10 @@ typedef struct {
   gcc_jit_type *size_t_type;
   gcc_jit_type *lisp_word_type;
   gcc_jit_type *lisp_word_tag_type;
+#ifdef HAVE_MPS
+  gcc_jit_field *gc_header_v;
+  gcc_jit_struct *gc_header_s;
+#endif
 #ifdef LISP_OBJECT_IS_STRUCT
   gcc_jit_field *lisp_obj_i;
   gcc_jit_struct *lisp_obj_s;
@@ -598,9 +602,15 @@ typedef struct {
   gcc_jit_field *lisp_cons_u_s_u_cdr;
   gcc_jit_type *lisp_cons_type;
   gcc_jit_type *lisp_cons_ptr_type;
+#ifdef HAVE_MPS
+  gcc_jit_field *lisp_cons_gc_header;
+#endif
   /* struct Lisp_Symbol_With_Position */
   gcc_jit_rvalue *f_symbols_with_pos_enabled_ref;
   gcc_jit_struct *lisp_symbol_with_position;
+#ifdef HAVE_MPS
+  gcc_jit_field *lisp_symbol_with_position_gc_header;
+#endif
   gcc_jit_field *lisp_symbol_with_position_header;
   gcc_jit_field *lisp_symbol_with_position_sym;
   gcc_jit_field *lisp_symbol_with_position_pos;
@@ -3177,6 +3187,15 @@ define_lisp_cons (void)
 						    NULL,
 						    cdr_u,
 						    "u");
+
+#ifdef HAVE_MPS
+  comp.lisp_cons_gc_header =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       gcc_jit_struct_as_type (comp.gc_header_s),
+			       "gc_header");
+#endif
+
   gcc_jit_field *cons_s_fields[] =
     { comp.lisp_cons_u_s_car,
       comp.lisp_cons_u_s_u };
@@ -3216,14 +3235,28 @@ define_lisp_cons (void)
 			       NULL,
 			       lisp_cons_u_type,
 			       "u");
+  gcc_jit_field *cons_fields[] =
+    {
+#ifdef HAVE_MPS
+      comp.lisp_cons_gc_header,
+#endif
+      comp.lisp_cons_u
+    };
   gcc_jit_struct_set_fields (comp.lisp_cons_s,
-			     NULL, 1, &comp.lisp_cons_u);
+			     NULL, ARRAYELTS (cons_fields), cons_fields);
 
 }
 
 static void
 define_lisp_symbol_with_position (void)
 {
+#ifdef HAVE_MPS
+  comp.lisp_symbol_with_position_gc_header =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       gcc_jit_struct_as_type (comp.gc_header_s),
+			       "gc_header");
+#endif
   comp.lisp_symbol_with_position_header =
     gcc_jit_context_new_field (comp.ctxt,
 			       NULL,
@@ -3239,14 +3272,20 @@ define_lisp_symbol_with_position (void)
 			       NULL,
 			       comp.lisp_obj_type,
 			       "pos");
-  gcc_jit_field *fields [3] = {comp.lisp_symbol_with_position_header,
-			       comp.lisp_symbol_with_position_sym,
-			       comp.lisp_symbol_with_position_pos};
+  gcc_jit_field *fields[] =
+    {
+#ifdef HAVE_MPS
+      comp.lisp_symbol_with_position_gc_header,
+#endif
+      comp.lisp_symbol_with_position_header,
+      comp.lisp_symbol_with_position_sym,
+      comp.lisp_symbol_with_position_pos
+    };
   comp.lisp_symbol_with_position =
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
 				     "comp_lisp_symbol_with_position",
-				     3,
+				     ARRAYELTS (fields),
 				     fields);
   comp.lisp_symbol_with_position_type =
     gcc_jit_struct_as_type (comp.lisp_symbol_with_position);
@@ -4684,6 +4723,17 @@ Return t on success.  */)
 #endif
   comp.lisp_word_tag_type
     = gcc_jit_context_get_int_type (comp.ctxt, sizeof (Lisp_Word_tag), false);
+#ifdef HAVE_MPS
+  comp.gc_header_v = gcc_jit_context_new_field (comp.ctxt,
+						NULL,
+						comp.unsigned_long_long_type,
+						"v");
+  comp.gc_header_s = gcc_jit_context_new_struct_type (comp.ctxt,
+						      NULL,
+						      "gc_header",
+						      1,
+						      &comp.gc_header_v);
+#endif
 #ifdef LISP_OBJECT_IS_STRUCT
   comp.lisp_obj_i = gcc_jit_context_new_field (comp.ctxt,
                                                NULL,
