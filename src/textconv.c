@@ -1741,7 +1741,7 @@ handle_pending_conversion_events (void)
 
 /* Return the confines of the field to which editing operations on frame
    F should be constrained in *BEG and *END.  Should no field be active,
-   set *END to MOST_POSITIVE_FIXNUM.  */
+   set *END to PTRDIFF_MAX.  */
 
 void
 get_conversion_field (struct frame *f, ptrdiff_t *beg, ptrdiff_t *end)
@@ -1769,7 +1769,7 @@ get_conversion_field (struct frame *f, ptrdiff_t *beg, ptrdiff_t *end)
     }
 
   *beg = 1;
-  *end = MOST_POSITIVE_FIXNUM;
+  *end = PTRDIFF_MAX;
 }
 
 /* Start a ``batch edit'' in frame F.  During a batch edit,
