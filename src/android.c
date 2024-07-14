@@ -1338,7 +1338,7 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 
   int pipefd[2];
   pthread_t thread;
-  const char *java_string, *tem;
+  const char *java_string;
   struct stat statb;
 
 #ifdef THREADS_ENABLED
