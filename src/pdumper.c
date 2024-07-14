@@ -2103,7 +2103,7 @@ dump_pseudovector_lisp_fields (struct dump_context *ctx,
 static dump_off
 dump_cons (struct dump_context *ctx, const struct Lisp_Cons *cons)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Cons_00EEE63F67)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Cons_8E09073155)
 # error "Lisp_Cons changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Cons out;
@@ -2118,7 +2118,7 @@ dump_interval_tree (struct dump_context *ctx,
                     INTERVAL tree,
                     dump_off parent_offset)
 {
-#if CHECK_STRUCTS && !defined (HASH_interval_1B38941C37)
+#if CHECK_STRUCTS && !defined (HASH_interval_DE36B11AE7)
 # error "interval changed. See CHECK_STRUCTS comment in config.h."
 #endif
   /* TODO: output tree breadth-first?  */
@@ -2162,7 +2162,7 @@ dump_interval_tree (struct dump_context *ctx,
 static dump_off
 dump_string (struct dump_context *ctx, const struct Lisp_String *string)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_String_03B2DF1C8E)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_String_39D7E563BF)
 # error "Lisp_String changed. See CHECK_STRUCTS comment in config.h."
 #endif
   /* If we have text properties, write them _after_ the string so that
@@ -2208,7 +2208,7 @@ dump_string (struct dump_context *ctx, const struct Lisp_String *string)
 static dump_off
 dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Marker_DA32BA65BF
+#if CHECK_STRUCTS && !defined HASH_Lisp_Marker_D850433F19
 # error "Lisp_Marker changed. See CHECK_STRUCTS comment in config.h."
 #endif
 
@@ -2235,7 +2235,7 @@ dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
 static dump_off
 dump_interval_node (struct dump_context *ctx, struct itree_node *node)
 {
-#if CHECK_STRUCTS && !defined (HASH_itree_node_50DE304F13)
+#if CHECK_STRUCTS && !defined (HASH_itree_node_1A87DF0C78)
 # error "itree_node changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct itree_node out;
@@ -2277,7 +2277,7 @@ dump_interval_node (struct dump_context *ctx, struct itree_node *node)
 static dump_off
 dump_overlay (struct dump_context *ctx, const struct Lisp_Overlay *overlay)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Overlay_5F9D7E02FC)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Overlay_AF021DC256)
 # error "Lisp_Overlay changed. See CHECK_STRUCTS comment in config.h."
 #endif
   START_DUMP_PVEC (ctx, &overlay->header, struct Lisp_Overlay, out);
@@ -2309,7 +2309,7 @@ static dump_off
 dump_finalizer (struct dump_context *ctx,
                 const struct Lisp_Finalizer *finalizer)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Finalizer_D58E647CB8)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Finalizer_7DACDD23C5)
 # error "Lisp_Finalizer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   START_DUMP_PVEC (ctx, &finalizer->header, struct Lisp_Finalizer, out);
@@ -2331,7 +2331,7 @@ struct bignum_reload_info
 static dump_off
 dump_bignum (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Bignum_661945DE2B)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Bignum_8732048B98)
 # error "Lisp_Bignum changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Bignum *bignum = XBIGNUM (object);
@@ -2369,7 +2369,7 @@ dump_bignum (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_float (struct dump_context *ctx, const struct Lisp_Float *lfloat)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Float_9CA83A9083)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Float_4F10F019A4)
 # error "Lisp_Float changed. See CHECK_STRUCTS comment in config.h."
 #endif
   eassert (ctx->header.cold_start);
@@ -2417,7 +2417,7 @@ static dump_off
 dump_blv (struct dump_context *ctx,
           const struct Lisp_Buffer_Local_Value *blv)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Buffer_Local_Value_3C363FAC3C
+#if CHECK_STRUCTS && !defined HASH_Lisp_Buffer_Local_Value_B1EFDA61AE
 # error "Lisp_Buffer_Local_Value changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Buffer_Local_Value out;
@@ -2474,7 +2474,7 @@ dump_symbol (struct dump_context *ctx,
              Lisp_Object object,
              dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_61B174C9F4
+#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_78773EECA2
 # error "Lisp_Symbol changed. See CHECK_STRUCTS comment in config.h."
 #endif
 #if CHECK_STRUCTS && !defined (HASH_symbol_redirect_EA72E4BFF5)
@@ -2564,7 +2564,7 @@ static dump_off
 dump_vectorlike_generic (struct dump_context *ctx,
 			 const struct vectorlike_header *header)
 {
-#if CHECK_STRUCTS && !defined (HASH_vectorlike_header_785E52047B)
+#if CHECK_STRUCTS && !defined (HASH_vectorlike_header_AF1B22D957)
 # error "vectorlike_header changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = (const struct Lisp_Vector *) header;
@@ -2767,7 +2767,7 @@ dump_hash_table_value (struct dump_context *ctx, struct Lisp_Hash_Table *h)
 static dump_off
 dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_AAA2B44B06
+#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_18BE341ECB
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);
@@ -2836,7 +2836,7 @@ dump_obarray_buckets (struct dump_context *ctx, const struct Lisp_Obarray *o)
 static dump_off
 dump_obarray (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_D2757E61AD
+#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_29CFFD1B74
 # error "Lisp_Obarray changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Obarray *in_oa = XOBARRAY (object);
@@ -2859,7 +2859,7 @@ dump_obarray (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_B02F648B82
+#if CHECK_STRUCTS && !defined HASH_buffer_text_07D802E2D4
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;
@@ -3007,7 +3007,7 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 static dump_off
 dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Vector_3091289B35)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Vector_64AF2E46CE)
 # error "Lisp_Vector changed. See CHECK_STRUCTS comment in config.h."
 #endif
   /* No relocation needed, so we don't need dump_object_start.  */
@@ -3030,7 +3030,7 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
 static dump_off
 dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_20B7443AD7)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_6FC9E39686)
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Subr out;
@@ -3342,7 +3342,7 @@ dump_object_for_offset (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_charset (struct dump_context *ctx, int cs_i)
 {
-#if CHECK_STRUCTS && !defined (HASH_charset_E31F4B5D96)
+#if CHECK_STRUCTS && !defined (HASH_charset_84DCEA663B)
 # error "charset changed. See CHECK_STRUCTS comment in config.h."
 #endif
   /* We can't change the alignment here, because ctx->offset is what
