@@ -1990,7 +1990,7 @@ sfntfont_compare_font_entities (Lisp_Object a, Lisp_Object b)
 static union Aligned_Lisp_Subr Scompare_font_entities =
   {
     {
-      { PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS), },
+      { GC_HEADER_INIT PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS), },
       { .a2 = sfntfont_compare_font_entities, },
       2, 2, "sfntfont_compare_font_entities", {0}, lisp_h_Qnil,
     },

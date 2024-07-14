@@ -40,6 +40,7 @@ INLINE_HEADER_BEGIN
 
 struct itree_node
 {
+  GC_HEADER
   /* The normal parent, left and right links found in binary trees.
      See also `red`, below, which completes the Red-Black tree
      representation.  */
@@ -96,6 +97,7 @@ struct itree_node
 
 struct itree_tree
 {
+  GC_HEADER
   struct itree_node *root;
   uintmax_t otick;              /* offset tick, compared with node's otick. */
   intmax_t size;                /* Number of nodes in the tree. */

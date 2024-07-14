@@ -49,6 +49,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 struct xftface_info
 {
+  GC_HEADER
   bool bg_allocated_p;
   bool fg_allocated_p;
   XftColor xft_fg;		/* color for face->foreground */

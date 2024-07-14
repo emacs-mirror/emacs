@@ -1721,6 +1721,7 @@ enum face_underline_type
 
 struct face
 {
+  GC_HEADER
   /* The Lisp face attributes this face realizes.  All attributes
      in this vector are non-nil.  */
   Lisp_Object lface[LFACE_VECTOR_SIZE];
@@ -1921,6 +1922,7 @@ enum face_id
 
 struct face_cache
 {
+  GC_HEADER
   /* Hash table of cached realized faces.  */
   struct face **buckets;
 
@@ -3146,6 +3148,7 @@ struct redisplay_interface
 
 struct image
 {
+  GC_HEADER
   /* The time in seconds at which the image was last displayed.  Set
      in prepare_image_for_display.  */
   struct timespec timestamp;
@@ -3292,6 +3295,7 @@ struct image
 
 struct image_cache
 {
+  GC_HEADER
   /* Hash table of images.  */
   struct image **buckets;
 

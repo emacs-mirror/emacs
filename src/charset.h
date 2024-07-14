@@ -147,6 +147,7 @@ enum charset_method
 
 struct charset
 {
+  GC_HEADER
   /* Index to charset_table.  */
   int id;
 
