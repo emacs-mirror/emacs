@@ -86,7 +86,7 @@ static Lisp_Object trillion;
 #else
 # define trillion make_fixnum (TRILLION)
 # if ULONG_MAX < TRILLION || !FASTER_TIMEFNS
-mpz_t ztrillion;
+static mpz_t ztrillion;
 # endif
 #endif
 
