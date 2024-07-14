@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; URL: https://github.com/magit/transient
 ;; Keywords: extensions
-;; Version: 0.7.2
+;; Version: 0.7.2.1
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 

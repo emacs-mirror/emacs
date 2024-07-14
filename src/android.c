@@ -1338,7 +1338,7 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 
   int pipefd[2];
   pthread_t thread;
-  const char *java_string;
+  const char *java_string, *tem;
   struct stat statb;
 
 #ifdef THREADS_ENABLED
@@ -1490,15 +1490,6 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
     /* Set EMACS_CLASS_PATH to the class path where
        EmacsNoninteractive can be found.  */
     setenv ("EMACS_CLASS_PATH", android_class_path, 1);
-
-  /* Set LD_LIBRARY_PATH to an appropriate value.  */
-  setenv ("LD_LIBRARY_PATH", android_lib_dir, 1);
-
-  /* EMACS_LD_LIBRARY_PATH records the location of the app library
-     directory.  android-emacs refers to this, since users have valid
-     reasons for changing LD_LIBRARY_PATH to a value that precludes
-     the possibility of Java locating libemacs later.  */
-  setenv ("EMACS_LD_LIBRARY_PATH", android_lib_dir, 1);
 
   /* If the system is Android 5.0 or later, set LANG to en_US.utf8,
      which is understood by the C library.  In other instances set it
