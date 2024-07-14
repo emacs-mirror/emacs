@@ -1404,8 +1404,8 @@ lmalloc (size_t size, bool clearit)
       if (laligned (p, size) && (MALLOC_0_IS_NONNULL || size || p))
 	return p;
       free (p);
-      size_t bigger = size + LISP_ALIGNMENT;
-      if (size < bigger)
+      size_t bigger;
+      if (!ckd_add (&bigger, size, LISP_ALIGNMENT))
 	size = bigger;
     }
 }
@@ -1418,8 +1418,8 @@ lrealloc (void *p, size_t size)
       p = realloc (p, size);
       if (laligned (p, size) && (size || p))
 	return p;
-      size_t bigger = size + LISP_ALIGNMENT;
-      if (size < bigger)
+      size_t bigger;
+      if (!ckd_add (&bigger, size, LISP_ALIGNMENT))
 	size = bigger;
     }
 }
