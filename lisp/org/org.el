@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.7.5
+;; Version: 9.7.7
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -6698,7 +6698,7 @@ The prefix argument ARG is passed to `org-insert-heading'.
 Unlike `org-insert-heading', when point is at the beginning of a
 heading, still insert the new sub-heading below."
   (interactive "P")
-  (when (bolp) (forward-char))
+  (when (and (bolp) (not (eobp)) (not (eolp))) (forward-char))
   (org-insert-heading arg)
   (cond
    ((org-at-heading-p) (org-do-demote))
@@ -19809,7 +19809,11 @@ Also align node properties according to `org-property-format'."
                         (+ (org-current-text-indentation)
                            org-edit-src-content-indentation)))))
                (ignore-errors ; do not err when there is no proper major mode
-                 (org-babel-do-in-edit-buffer (funcall indent-line-function)))
+                 ;; It is important to call `indent-according-to-mode'
+                 ;; rather than `indent-line-function' here or we may
+                 ;; sometimes break `electric-indent-mode'
+                 ;; https://orgmode.org/list/5O9VMGb6WRaqeHR5_NXTb832Z2Lek_5L40YPDA52-S3kPwGYJspI8kLWaGtuq3DXyhtHpj1J7jTIXb39RX9BtCa2ecrWHjijZqI8QAD742U=@proton.me
+                 (org-babel-do-in-edit-buffer (indent-according-to-mode)))
                (when (and block-content-ind (looking-at-p "^$"))
                  (indent-line-to block-content-ind))))
 	    (t

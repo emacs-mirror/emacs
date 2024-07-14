@@ -271,6 +271,10 @@ Image filename chosen can be customized by setting
 ~org-yank-image-file-name-function~ which by default autogenerates a
 filename based on the current time.
 
+Note that ~yank-media~, as of Emacs 30, does not yet support Windows
+(Emacs bug#71909) and may not be always reliable on Mac (Emacs
+bug#71731).
+
 *** Files and images can be attached by dropping onto Emacs
 
 By default, Org asks the user what to do with the dropped file like
