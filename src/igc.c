@@ -618,10 +618,10 @@ static void
 set_header (struct igc_header *h, enum igc_obj_type type,
 	    mps_word_t nbytes, mps_word_t hash)
 {
-#if header_nwords_BITS >= 32 && INTPTR_MAX > INT_MAX
+#if IGC_HEADER_NWORDS_BITS >= 32 && INTPTR_MAX > INT_MAX
   /* On 32-bit architecture the assertion below is redundant and
      causes compiler warnings.  */
-  igc_assert (nbytes < ((size_t) 1 << header_nwords_BITS));
+  igc_assert (nbytes < ((size_t) 1 << IGC_HEADER_NWORDS_BITS));
 #endif
   igc_assert (type == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
   uint64_t tag = IGC_TAG_OBJ;
