@@ -6986,8 +6986,13 @@ SIGCODE may be an integer, or a symbol whose name is a signal name."
       (setq pid process
             vec (and (stringp remote) (tramp-dissect-file-name remote))))
      (t (signal 'wrong-type-argument (list #'processp process))))
-    (unless (or (numberp sigcode) (symbolp sigcode))
-      (signal 'wrong-type-argument (list #'numberp sigcode)))
+    (cond
+     ((symbolp sigcode)
+      (setq sigcode (upcase (symbol-name sigcode)))
+      (when (string-prefix-p "SIG" sigcode)
+        (setq sigcode (substring sigcode 3))))
+     ((not (numberp sigcode))
+      (signal 'wrong-type-argument (list #'numberp sigcode))))
     ;; If it's a Tramp process, send SIGCODE remotely.
     (when (and pid vec)
       (tramp-message
