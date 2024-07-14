@@ -858,7 +858,9 @@ enum timeform
    TIMEFORM_TICKS_HZ /* fractional time: HI is ticks, LO is ticks per second */
   };
 
-/* From the time components HIGH, LOW, USEC and PSEC,
+/* Assuming the input form was FORM (which should be one of
+   TIMEFORM_HI_LO, TIMEFORM_HI_LO_US, TIMEFORM_HI_LO_US_PS),
+   and from the time components HIGH, LOW, USEC and PSEC,
    generate the corresponding time value in CFORM form.
 
    Return a (0, valid timestamp) pair if successful, an (error number,
@@ -1007,7 +1009,7 @@ struct form_time
 
 /* Current time (seconds since epoch) in form CFORM.  */
 static union c_time
-current_time_in_form (enum cform cform)
+current_time_in_cform (enum cform cform)
 {
   struct timespec now = current_timespec ();
   return ((FASTER_TIMEFNS
@@ -1037,11 +1039,21 @@ decode_lisp_time (Lisp_Object specified_time, enum cform cform)
        A/B s
      (A B C D)  ; A, B : integer, C, D : fixnum
        (A * 2**16 + B + C / 10**6 + D / 10**12) s
+
+     The following specified_time forms are also supported,
+     for compatibility with older Emacs versions:
+
+     (A B)
+       like (A B 0 0)
+     (A B . C)  ; C : fixnum
+       like (A B C 0)
+     (A B C)
+       like (A B C 0)
   */
 
   if (NILP (specified_time))
     return (struct form_time) {.form = TIMEFORM_NIL,
-			       .time = current_time_in_form (cform) };
+			       .time = current_time_in_cform (cform) };
 
   Lisp_Object high = make_fixnum (0);
   Lisp_Object low = specified_time;
