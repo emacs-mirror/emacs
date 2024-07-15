@@ -577,11 +577,10 @@ test-src-inotify:
     target: emacs-inotify
     make_params: -C test check-src
 
-# csharp-mode-tests.el, js-tests.el and python-tests.el don't follow
-# test file name convention.
 .tree-sitter-files:
   variables:
     tree_sitter_files: >-
+      lisp/align-tests.log
       lisp/progmodes/csharp-mode-tests.log
       lisp/progmodes/c-ts-mode-tests.log
       lisp/progmodes/elixir-ts-mode-tests.log
