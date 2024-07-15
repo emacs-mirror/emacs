@@ -2529,7 +2529,7 @@ any completion candidate highlighted in *Completions* window (to
 indicate that it is the selected candidate) will be un-highlighted,
 and point in the *Completions* window will be moved off such a candidate.
 This means that `RET' (`minibuffer-choose-completion-or-exit') will exit
-the minubuffer with the minibuffer's current contents, instead of the
+the minibuffer with the minibuffer's current contents, instead of the
 selected completion candidate."
   :type '(choice (const :tag "Candidates in *Completions* stay selected as you type" nil)
                  (const :tag "Typing deselects any completion candidate in *Completions*" t))
