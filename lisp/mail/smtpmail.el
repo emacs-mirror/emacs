@@ -182,7 +182,6 @@ These will then be used when sending the queue."
 
 ;;; Variables
 
-(defvar smtpmail-address-buffer)
 (defvar smtpmail-recipient-address-list nil)
 (defvar smtpmail--stored-queue-variables
   '(smtpmail-smtp-server
@@ -357,11 +356,9 @@ for `smtpmail-try-auth-method'.")
 		  (erase-buffer))))
 	  ;; Encode the header according to RFC2047.
 	  (mail-encode-header (point-min) delimline)
-	  ;;
-	  (setq smtpmail-address-buffer (generate-new-buffer "*smtp-mail*"))
+	  ;; Get recipients' adresses
 	  (setq smtpmail-recipient-address-list
                 (smtpmail-deduce-address-list tembuf (point-min) delimline))
-	  (kill-buffer smtpmail-address-buffer)
 
 	  (smtpmail-do-bcc delimline)
           ;; Send or queue
@@ -1064,8 +1061,7 @@ Returns an error if the server cannot be contacted."
 
 (defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)
   "Get address list suitable for smtp RCPT TO: <address>."
-  (with-current-buffer smtpmail-address-buffer
-    (erase-buffer)
+  (with-temp-buffer
     (let ((case-fold-search t)
           (simple-address-list "")
           this-line
@@ -1108,7 +1104,7 @@ Returns an error if the server cannot be contacted."
 	  (backward-char 1)
 	  (setq recipient-address-list (cons (buffer-substring (match-beginning 1) (match-end 1))
 					     recipient-address-list)))
-	(setq smtpmail-recipient-address-list recipient-address-list)))))
+        recipient-address-list))))
 
 (defun smtpmail-do-bcc (header-end)
   "Delete [Resent-]Bcc: and their continuation lines from the header area.
