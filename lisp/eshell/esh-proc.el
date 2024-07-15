@@ -515,23 +515,28 @@ output."
                   "forwarding output from process `%s'\n\n%s" proc data)
                 (condition-case nil
                     (eshell-output-object data index handles)
-                  ;; FIXME: We want to send SIGPIPE to the process
-                  ;; here.  However, remote processes don't currently
-                  ;; support that, and not all systems have SIGPIPE in
-                  ;; the first place (e.g. MS Windows).  In these
-                  ;; cases, just delete the process; this is
-                  ;; reasonably close to the right behavior, since the
-                  ;; default action for SIGPIPE is to terminate the
-                  ;; process.  For use cases where SIGPIPE is truly
-                  ;; needed, using an external pipe operator (`*|')
-                  ;; may work instead (e.g. when working with remote
-                  ;; processes).
                   (eshell-pipe-broken
-                   (if (or (process-get proc 'remote-pid)
-                           (eq system-type 'windows-nt))
-                       (delete-process proc)
-                     (signal-process proc 'SIGPIPE))))))
-                (process-put proc :eshell-busy nil))))))
+                   ;; The output pipe broke, so send SIGPIPE to the
+                   ;; process.  NOTE: Due to the additional indirection
+                   ;; of Emacs process filters, the process will likely
+                   ;; see the SIGPIPE later than it would in a regular
+                   ;; shell, which could cause problems.  For cases
+                   ;; where this matters, using an external pipe
+                   ;; operator (`*|') may work instead.
+                   (cond
+                    ;; Delay signalling remote processes to prevent
+                    ;; "Forbidden reentrant call of Tramp".
+                    ((process-get proc 'remote-pid)
+                     (run-at-time 0 nil #'signal-process proc 'SIGPIPE))
+                    ;; MS-Windows doesn't support SIGPIPE, so send
+                    ;; SIGTERM there instead; this is reasonably close
+                    ;; to the right behavior, since the default action
+                    ;; for SIGPIPE is to terminate the process.
+                    ((eq system-type 'windows-nt)
+                     (signal-process proc 'SIGTERM))
+                    (t
+                     (signal-process proc 'SIGPIPE)))))))
+          (process-put proc :eshell-busy nil))))))
 
 (defun eshell-sentinel (proc string)
   "Generic sentinel for command processes.  Reports only signals.
