@@ -2565,8 +2565,8 @@ into the message headers as the SMTP Method.  If @var{cond} is a
 function, it will be called in the message buffer without any
 arguments, and the corresponding @var{method} will be inserted into
 the message headers as the SMTP Method if the function returns a
-non-@code{nil} value; if @var{method} is nil, the value returned by
-the function @code{cond} is used instead.
+non-@code{nil} value; if @var{method} is @code{nil}, the value
+returned by the function @code{cond} is used instead.
 
 @end table
 

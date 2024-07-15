@@ -2603,10 +2603,10 @@ operates on menu data structures, so you should write it so it can
 safely be called at any time.
 
 @item :wrap @var{wrap-p}
-If @var{wrap-p} is non-nil inside a tool bar, the menu item is not
-displayed, but instead causes subsequent items to be displayed on a
-new line.  This is not supported when Emacs uses the GTK+ or Nextstep
-toolkits.
+If @var{wrap-p} is non-@code{nil} inside a tool bar, the menu item is
+not displayed, but instead causes subsequent items to be displayed on
+a new line.  This is not supported when Emacs uses the GTK+ or
+Nextstep toolkits.
 @end table
 
 @node Menu Separators
