@@ -1032,7 +1032,7 @@ Please verify that the path to the SDK build tools you specified is correct])
   fi
 
   AC_PATH_PROGS([D8], [d8], [], "${SDK_BUILD_TOOLS}:$PATH")
-  if test "D8" = ""; then
+  if test "$D8" = ""; then
     AC_MSG_ERROR([The Android dexer was not found.
 Please verify that the path to the SDK build tools you specified is correct])
   fi

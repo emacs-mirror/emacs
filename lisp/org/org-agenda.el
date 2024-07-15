@@ -2048,6 +2048,9 @@ the normal rules apply."
 (defcustom org-agenda-category-icon-alist nil
   "Alist of category icon to be displayed in agenda views.
 
+The icons are displayed in place of the %i placeholders in
+`org-agenda-prefix-format', which see.
+
 Each entry should have the following format:
 
   (CATEGORY-REGEXP FILE-OR-DATA TYPE DATA-P PROPS)
