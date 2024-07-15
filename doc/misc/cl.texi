@@ -391,7 +391,8 @@ property will contain state (including @var{start}) in order to print
 the elided part of @var{object} later.  @var{start} should be
 @code{nil} if the whole @var{object} is being elided, otherwise it
 should be an index or other pointer into the internals of @var{object}
-which can be passed to `cl-print-object-contents' at a later time.
+which can be passed to @code{cl-print-object-contents} at a later
+time.
 @end defun
 
 @defvar cl-print-expand-ellipsis-function

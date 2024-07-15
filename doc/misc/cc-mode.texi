@@ -6283,8 +6283,8 @@ returned if there's no template argument on the first line.
 
 @defun c-lineup-template-args-indented-from-margin
 @findex lineup-template-args-indented-from-margin (c-)
-Indent a template argument line `c-basic-offset' from the left-hand
-margin of the line with the containing <.
+Indent a template argument line @code{c-basic-offset} from the
+left-hand margin of the line with the containing <.
 
 @workswith @code{template-args-cont}.
 @end defun
