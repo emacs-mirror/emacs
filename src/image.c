@@ -3525,8 +3525,9 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
       img->face_font_size = font_size;
       img->face_font_height = face->font->height;
       img->face_font_width = face->font->average_width;
-      img->face_font_family = xmalloc (strlen (font_family) + 1);
-      strcpy (img->face_font_family, font_family);
+      size_t len = strlen (font_family) + 1;
+      img->face_font_family = xmalloc (len);
+      memcpy (img->face_font_family, font_family, len);
       img->load_failed_p = ! img->type->load_img (f, img);
 
       /* If we can't load the image, and we don't have a width and
@@ -5544,15 +5545,13 @@ xpm_color_bucket (char *color_name)
 static struct xpm_cached_color *
 xpm_cache_color (struct frame *f, char *color_name, XColor *color, int bucket)
 {
-  size_t nbytes;
-  struct xpm_cached_color *p;
-
   if (bucket < 0)
     bucket = xpm_color_bucket (color_name);
 
-  nbytes = FLEXSIZEOF (struct xpm_cached_color, name, strlen (color_name) + 1);
-  p = xmalloc (nbytes);
-  strcpy (p->name, color_name);
+  size_t len = strlen (color_name) + 1;
+  size_t nbytes = FLEXSIZEOF (struct xpm_cached_color, name, len);
+  struct xpm_cached_color *p = xmalloc (nbytes);
+  memcpy (p->name, color_name, len);
   p->color = *color;
   p->next = xpm_color_cache[bucket];
   xpm_color_cache[bucket] = p;
@@ -10867,13 +10866,13 @@ static struct animation_cache *animation_cache = NULL;
 static struct animation_cache *
 imagemagick_create_cache (char *signature)
 {
+  size_t len = strlen (signature) + 1;
   struct animation_cache *cache
-    = xmalloc (FLEXSIZEOF (struct animation_cache, signature,
-			   strlen (signature) + 1));
+    = xmalloc (FLEXSIZEOF (struct animation_cache, signature, len));
   cache->wand = 0;
   cache->index = 0;
   cache->next = 0;
-  strcpy (cache->signature, signature);
+  memcpy (cache->signature, signature, len);
   return cache;
 }
 
