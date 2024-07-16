@@ -190,7 +190,6 @@
   "Test for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27243#28 ."
   (ert-with-temp-directory test-dir
     (let ((dired-auto-revert-buffer t)
-          (dired-free-space nil)
           buffers)
       ;; On MS-Windows, get rid of 8+3 short names in test-dir, if the
       ;; corresponding long file names exist, otherwise such names trip
@@ -216,7 +215,9 @@
             ;; Sanity check: point should now be back on the subdirectory.
             (should (eq (point) pt1))
             (push (dired test-dir) buffers)
-            (should (eq (point) pt1)))
+            (should (equal (dired-file-name-at-point)
+                           (concat (file-name-as-directory test-dir)
+                                   (file-name-as-directory "test-subdir")))))
         (dolist (buf buffers)
           (when (buffer-live-p buf) (kill-buffer buf)))))))
 
