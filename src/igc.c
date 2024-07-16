@@ -3014,8 +3014,8 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
     destroy_root_with_start (pa);
     pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
     char *end = (char *)pa + *nitems * item_size;
-    root_create (global_igc, pa, end, mps_rank_exact (), scan_area, closure,
-		 false, "xpalloc-exact");
+    root_create (global_igc, pa, end, mps_rank_exact (), (mps_area_scan_t) scan_area,
+		 closure, false, "xpalloc-exact");
     *pa_cell = pa;
   }
 }
