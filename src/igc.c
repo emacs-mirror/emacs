@@ -3578,8 +3578,8 @@ igc_collect (void)
     }
 }
 
-DEFUN ("igc--collect", Figc__collect, Sigc__collect, 0, 0, 0, doc
-       : /* */)
+DEFUN ("igc--collect", Figc__collect, Sigc__collect, 0, 0, 0,
+       doc: /* Force an immediate arena garbage collection. */)
   (void)
 {
   igc_collect ();
@@ -4220,7 +4220,25 @@ make_entry (const char *s, intmax_t n, intmax_t bytes, intmax_t largest)
 #pragma GCC diagnostic ignored "-Wsuggest-attribute=noreturn"
 #endif
 
-DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
+DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0,
+       doc: /* Return information about incremental GC.
+The return value is a list of elements describing the various
+statistics of the incremental GC.  The elements are of the
+form (NAME NOBJECTS NBYTES LARGEST), where:
+- NAME is a string describing the kind of objects this entry represents,
+- NOBJECTS is the number of objects of this type,
+- NBYTES is the number of bytes used by objects of this type,
+- LARGEST is the largest object of this type.
+
+In addition, there are several pseudo-objects which provide overall
+IGC statistics:
+ - committed       -- the amount of committed memory in bytes
+ - commit-limit    -- max amount of memory the arena is allowed to commit
+ - spare-committed -- memory which remains committed and which the
+     arena is managing as free memory
+ - reserved        -- total address space reserved by the arena
+ - spare           -- spare commit limit fraction
+ - pause-time      -- max amount of time GC operations may pause Emacs.  */)
   (void)
 {
   struct igc *gc = global_igc;
@@ -4263,7 +4281,14 @@ DEFUN ("igc-info", Figc_info, Sigc_info, 0, 0, 0, doc : /* */)
 #pragma GCC diagnostic pop
 #endif
 
-DEFUN ("igc--roots", Figc__roots, Sigc__roots, 0, 0, 0, doc : /* */)
+DEFUN ("igc--roots", Figc__roots, Sigc__roots, 0, 0, 0,
+       doc: /* Return the list of IGC roots.
+The return value is a list of elements, one each for every
+root.  Each element has the form (LABEL TYPE START END), where
+ LABEL is the label of the root
+ TYPE is either 'ambig' or 'exact'
+ START is the start address
+ END is either the end address or nil.  */)
   (void)
 {
   struct igc *gc = global_igc;
@@ -4318,10 +4343,13 @@ mps_res_to_string (mps_res_t res)
 }
 
 DEFUN ("igc--set-commit-limit", Figc__set_commit_limit,
-       Sigc__set_commit_limit, 1, 1, 0, doc
-       : /* Set the arena commit limit to LIMIT.
-LIMIT can be an integer (number of bytes) or nil (no limit). */)
-(Lisp_Object limit)
+       Sigc__set_commit_limit, 1, 1, 0,
+       doc: /* Set the arena commit limit to LIMIT.
+LIMIT can be an integer (number of bytes) or nil (no limit).
+
+Do NOT use this for anything but testing, unless you
+really know what you are doing!  */)
+  (Lisp_Object limit)
 {
   size_t nbytes
       = NILP (limit) ? ~0 : check_uinteger_max (limit, SIZE_MAX - 1);
@@ -4748,9 +4776,10 @@ igc_busy_p (void)
 
 
 DEFUN ("igc--add-extra-dependency", Figc__add_extra_dependency,
-       Sigc__add_extra_dependency, 3, 3, 0, doc:
-       /* Add an extra DEPENDENCY to OBJECT.  This dependency is kept
-	  alive for as long as the object is. */)
+       Sigc__add_extra_dependency, 3, 3, 0,
+       doc: /* Add an extra DEPENDENCY to object OBJ, associate it with KEY.
+This dependency is kept alive for as long as the object is alive.
+KEY is the key to associate with DEPENDENCY in a hash table.  */)
   (Lisp_Object obj, Lisp_Object dependency, Lisp_Object key)
 {
   mps_word_t word = XLI (obj);
@@ -4804,7 +4833,9 @@ DEFUN ("igc--add-extra-dependency", Figc__add_extra_dependency,
 }
 
 DEFUN ("igc--remove-extra-dependency", Figc__remove_extra_dependency,
-       Sigc__remove_extra_dependency, 3, 3, 0, doc : /* */)
+       Sigc__remove_extra_dependency, 3, 3, 0,
+       doc: /* Remove DEPENDENCY associated with KEY from object OBJ.
+KEY is the key associated with DEPENDENCY in a hash table.  */)
   (Lisp_Object obj, Lisp_Object dependency, Lisp_Object key)
 {
   mps_word_t word = XLI (obj);
