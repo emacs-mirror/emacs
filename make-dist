@@ -464,7 +464,7 @@ if [ "${newer}" ]; then
   ## up an incremental distribution already has a running Emacs to byte-compile
   ## them with.
   find ${tempdir} \( -name '*.elc' -o ! -newer "${newer}" \) \
-    -exec rm -f {} \; || exit
+    -exec rm -f {} + || exit
 fi
 
 if [ "${make_tar}" = yes ]; then
