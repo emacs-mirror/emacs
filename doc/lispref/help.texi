@@ -375,7 +375,7 @@ as a link in the @file{*Help*} buffer.
 @end table
 
 @strong{Please note:} Each @samp{\} must be doubled when written in a
-string in Emacs Lisp.
+string in Emacs Lisp (@pxref{Syntax for Strings}).
 
 @defun substitute-command-keys string &optional no-face include-menus
 @vindex help-key-binding@r{ (face)}
