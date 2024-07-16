@@ -1337,11 +1337,11 @@ static struct print_pp_stack ppstack = {NULL, 0, 0};
 
 #ifdef HAVE_MPS
 static igc_scan_result_t
-scan_ppstack (struct igc_opaque *op, void *start, void *end,
-	      igc_fix12_obj_t fix12_obj)
+scan_ppstack (struct igc_ss *ss, void *start, void *end, void *closure)
 {
   eassert (start == (void *)ppstack.stack);
   eassert (end == (void *)(ppstack.stack + ppstack.size));
+  eassert (closure == NULL);
   for (struct print_pp_entry *p = start; (void *) p < end; ++p)
     {
       if (p->is_free)
@@ -1349,13 +1349,13 @@ scan_ppstack (struct igc_opaque *op, void *start, void *end,
       igc_scan_result_t err = 0;
       if (p->n == 0)
 	{
-	  if (err = fix12_obj (op, &p->u.value), err != 0)
+	  if (err = igc_fix12_obj (ss, &p->u.value), err != 0)
 	    return err;
 	}
       else
 	{
 	  eassert (p->n > 0);
-	  if (err = fix12_obj (op, &p->u.vectorlike), err != 0)
+	  if (err = igc_fix12_obj (ss, &p->u.vectorlike), err != 0)
 	    return err;
 	}
     }
@@ -1371,7 +1371,7 @@ grow_pp_stack (void)
 #ifdef HAVE_MPS
   ptrdiff_t old_size = ps->size;
   igc_xpalloc_exact ((void **) &ppstack.stack, &ps->size, 1, -1,
-		     sizeof *ps->stack, scan_ppstack);
+		     sizeof *ps->stack, scan_ppstack, NULL);
   for (ptrdiff_t i = old_size; i < ps->size; ++i)
     ppstack.stack[i].is_free = true;
 #else
@@ -2286,12 +2286,12 @@ static struct print_stack prstack = {NULL, 0, 0};
 
 #ifdef HAVE_MPS
 static igc_scan_result_t
-scan_prstack (struct igc_opaque *op, void *start, void *end,
-	      igc_fix12_obj_t fix12_obj)
+scan_prstack (struct igc_ss *ss, void *start, void *end, void *closure)
 {
   eassert (start == (void *)prstack.stack);
   eassert (end == (void *)(prstack.stack + prstack.size));
-  for (struct print_stack_entry *p = start; (void *) p < end; p++)
+  eassert (closure == NULL);
+  for (struct print_stack_entry *p = start; (void *)p < end; p++)
     {
       igc_scan_result_t err = 0;
       if (p->type == PE_free)
@@ -2302,9 +2302,9 @@ scan_prstack (struct igc_opaque *op, void *start, void *end,
 	  emacs_abort ();
 
 	case PE_list:
-	  if (err = fix12_obj (op, &p->u.list.last), err != 0)
+	  if (err = igc_fix12_obj (ss, &p->u.list.last), err != 0)
 	    return err;
-	  if (err = fix12_obj (op, &p->u.list.tortoise), err != 0)
+	  if (err = igc_fix12_obj (ss, &p->u.list.tortoise), err != 0)
 	    return err;
 	  break;
 
@@ -2312,12 +2312,12 @@ scan_prstack (struct igc_opaque *op, void *start, void *end,
 	  break;
 
 	case PE_vector:
-	  if (err = fix12_obj (op, &p->u.vector.obj), err != 0)
+	  if (err = igc_fix12_obj (ss, &p->u.vector.obj), err != 0)
 	    return err;
 	  break;
 
 	case PE_hash:
-	  if (err = fix12_obj (op, &p->u.hash.obj), err != 0)
+	  if (err = igc_fix12_obj (ss, &p->u.hash.obj), err != 0)
 	    return err;
 	  break;
 	}
@@ -2334,7 +2334,7 @@ grow_print_stack (void)
 #ifdef HAVE_MPS
   ptrdiff_t old_size = ps->size;
   igc_xpalloc_exact ((void **) &prstack.stack, &ps->size, 1, -1,
-		     sizeof *ps->stack, scan_prstack);
+		     sizeof *ps->stack, scan_prstack, NULL);
   for (ptrdiff_t i = old_size; i < ps->size; ++i)
     ps->stack[i].type = PE_free;
 #else

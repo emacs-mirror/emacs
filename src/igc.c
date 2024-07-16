@@ -2538,14 +2538,11 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
   return MPS_RES_OK;
 }
 
-static igc_scan_result_t
-fix12_obj_callback (struct igc_opaque *op, Lisp_Object *addr)
+igc_scan_result_t
+igc_fix12_obj (struct igc_ss *ssp, Lisp_Object *addr)
 {
-  mps_ss_t ss = (mps_ss_t) op;
-  MPS_SCAN_BEGIN (ss)
-  {
-    IGC_FIX12_OBJ (ss, addr);
-  }
+  mps_ss_t ss = (mps_ss_t)ssp;
+  MPS_SCAN_BEGIN (ss) { IGC_FIX12_OBJ (ss, addr); }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
 }
@@ -3007,18 +3004,11 @@ igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
   return pa;
 }
 
-static mps_res_t
-scan_xpalloced (mps_ss_t ss, void *start, void *end, void *closure)
-{
-  igc_scan_area_t scan_area = closure;
-  igc_fix12_obj_t fix12_obj = (igc_fix12_obj_t) fix12_obj_callback;
-  return scan_area ((struct igc_opaque *) ss, start, end, fix12_obj);
-}
-
 void
 igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
 		   ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
-		   ptrdiff_t item_size, igc_scan_area_t scan_area)
+		   ptrdiff_t item_size, igc_scan_area_t scan_area,
+		   void *closure)
 {
   IGC_WITH_PARKED (global_igc)
   {
@@ -3026,8 +3016,8 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
     destroy_root_with_start (pa);
     pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
     char *end = (char *)pa + *nitems * item_size;
-    root_create (global_igc, pa, end, mps_rank_exact (),
-		 scan_xpalloced, scan_area, false, "xpalloc-exact");
+    root_create (global_igc, pa, end, mps_rank_exact (), scan_area, closure,
+		 false, "xpalloc-exact");
     *pa_cell = pa;
   }
 }
