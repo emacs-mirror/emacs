@@ -1857,14 +1857,6 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
   if (gc_in_progress || waiting_for_input)
     emacs_abort ();
 
-#if 0 /* rms: I don't know why this was here,
-	 but it is surely wrong for an error that is handled.  */
-#ifdef HAVE_WINDOW_SYSTEM
-  if (display_hourglass_p)
-    cancel_hourglass ();
-#endif
-#endif
-
   /* This hook is used by edebug.  */
   if (! NILP (Vsignal_hook_function)
       && !oom)
