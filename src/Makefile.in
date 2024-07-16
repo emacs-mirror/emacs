@@ -682,7 +682,7 @@ endif
 ifeq ($(DUMPING),pdumper)
 $(pdmp): emacs$(EXEEXT) $(lispsource)/loaddefs.el $(lispsource)/loaddefs.elc
 	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
-		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
+		--bin-dest '$(BIN_DESTDIR)' --eln-dest '$(ELN_DESTDIR)'
 	cp -f $@ $(bootstrap_pdmp)
 endif
 
@@ -975,7 +975,7 @@ NATIVE_COMPILATION_AOT = @NATIVE_COMPILATION_AOT@
 	    find $@ -name '*.eln' | rebase -v -O -T -; \
 	  fi; \
 	  LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
-		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR) \
+		--bin-dest '$(BIN_DESTDIR)' --eln-dest '$(ELN_DESTDIR)' \
 	  && cp -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT) \
 	  && cp -f $(pdmp) $(bootstrap_pdmp); \
 	  if test $(NATIVE_COMPILATION_AOT) = yes; then \
@@ -1014,7 +1014,7 @@ ifeq ($(DUMPING),pdumper)
 $(bootstrap_pdmp): bootstrap-emacs$(EXEEXT)
 	rm -f $@
 	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=pbootstrap \
-		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
+		--bin-dest '$(BIN_DESTDIR)' --eln-dest '$(ELN_DESTDIR)'
 	@: Compile some files earlier to speed up further compilation.
 	@: First, byte compile these files, ....
 	ANCIENT=yes $(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
