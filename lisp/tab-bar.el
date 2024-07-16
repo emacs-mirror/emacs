@@ -1244,6 +1244,18 @@ tab bar might wrap to the second line when it shouldn't.")
      tab-bar-tab-group-inactive)
   "Resize tabs only with these faces.")
 
+(defun tab-bar-auto-width-predicate-default (item)
+  "Accepts tab ITEM and returns non-nil for tabs and tab groups."
+  (string-match-p
+   ;; (rx bos (or "current-tab" "current-group" "tab-" "group-"))
+   "\\`\\(?:current-\\(?:group\\|tab\\)\\|\\(?:group\\|tab\\)-\\)"
+   (symbol-name (nth 0 item))))
+
+(defvar tab-bar-auto-width-functions '(tab-bar-auto-width-predicate-default)
+  "List of functions for `tab-bar-auto-width' to call with a tab ITEM.
+If any of these functions returns non-nil for a given tab ITEM, that
+tab's width will be auto-sized.")
+
 (defvar tab-bar--auto-width-hash nil
   "Memoization table for `tab-bar-auto-width'.")
 
@@ -1272,8 +1284,7 @@ be scaled for display on the current frame."
         (width 0))    ;; resize tab names to this width
     (dolist (item items)
       (when (and (eq (nth 1 item) 'menu-item) (stringp (nth 2 item)))
-        (if (memq (get-text-property 0 'face (nth 2 item))
-                  tab-bar-auto-width-faces)
+        (if (run-hook-with-args-until-success 'tab-bar-auto-width-functions item)
             (push item tabs)
           (unless (eq (nth 0 item) 'align-right)
             (setq non-tabs (concat non-tabs (nth 2 item)))))))

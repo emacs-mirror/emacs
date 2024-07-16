@@ -74,6 +74,12 @@ that the actual killing or burying of the buffer is done by the caller.
 With this option set, 'quit-restore-window' will delete its window more
 aggressively rather than switching to some other buffer in it.
 
+** Tab Bars and Tab Lines
+
+---
+*** New abnormal hook 'tab-bar-auto-width-functions'.
+This hook allows you to control which tab-bar tabs are auto-resized.
+
 
 * Editing Changes in Emacs 31.1
 
