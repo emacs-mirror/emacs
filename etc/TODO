@@ -730,8 +730,7 @@ bar.  In the mean time, it should process other messages.
 *** Magit
 This needs work on getting the relevant copyright assignments.  This
 task should be highly doable for anyone, but will likely require some
-patience.  For inspiration, see how this was done for 'use-package':
-https://github.com/jwiegley/use-package/issues/282
+patience.  See <https://debbugs.gnu.org/72127>.
 
 *** PSGML, _possibly_ ECB
 https://lists.gnu.org/r/emacs-devel/2007-05/msg01493.html Check the
