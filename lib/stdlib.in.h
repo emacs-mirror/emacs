@@ -20,9 +20,18 @@
 #endif
 @PRAGMA_COLUMNS@
 
-#if defined __need_system_stdlib_h || defined __need_malloc_and_calloc
+#if (defined __need_system_stdlib_h && !defined _GLIBCXX_STDLIB_H) || defined __need_malloc_and_calloc
 /* Special invocation conventions inside some gnulib header files,
-   and inside some glibc header files, respectively.  */
+   and inside some glibc header files, respectively.
+   Do not recognize this special invocation convention when GCC's
+   c++/11/stdlib.h is being included or has been included. This is needed
+   to support the use of clang+llvm binaries on Ubuntu 22.04 with
+   CXX="$clangdir/bin/clang++ -I/usr/include/c++/11 \
+                              -I/usr/include/x86_64-linux-gnu/c++/11
+                              -L/usr/lib/gcc/x86_64-linux-gnu/11
+                              -Wl,-rpath,$clangdir/lib"
+   because in this case /usr/include/c++/11/stdlib.h (which does not support
+   the convention) is seen before the gnulib-generated stdlib.h.  */
 
 #@INCLUDE_NEXT@ @NEXT_STDLIB_H@
 
@@ -106,6 +115,17 @@ struct random_data
 /* On Cygwin 1.7.1, only <unistd.h> declares getsubopt.  */
 /* But avoid namespace pollution on glibc systems and native Windows.  */
 # include <unistd.h>
+#endif
+
+#if ((@GNULIB_STRTOL@ && @REPLACE_STRTOL@) || (@GNULIB_STRTOLL@ && @REPLACE_STRTOLL@) || (@GNULIB_STRTOUL@ && @REPLACE_STRTOUL@) || (@GNULIB_STRTOULL@ && @REPLACE_STRTOULL@)) && defined __cplusplus && !defined GNULIB_NAMESPACE && defined __GNUG__ && !defined __clang__ && defined __sun
+/* When strtol, strtoll, strtoul, or strtoull is going to be defined as a macro
+   below, this may cause compilation errors later in the libstdc++ header files
+   (that are part of GCC), such as:
+     error: 'rpl_strtol' is not a member of 'std'
+   To avoid this, include the relevant header files here, before these symbols
+   get defined as macros.  But do so only on Solaris 11 (where it is needed),
+   not on mingw (where it would cause other compilation errors).  */
+# include <string>
 #endif
 
 /* _GL_ATTRIBUTE_DEALLOC (F, I) declares that the function returns pointers

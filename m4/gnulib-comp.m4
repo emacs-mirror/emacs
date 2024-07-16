@@ -478,14 +478,7 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_PTHREAD_SIGMASK
   ])
   gl_SIGNAL_MODULE_INDICATOR([pthread_sigmask])
-  gl_FUNC_XATTR
-  AC_REQUIRE([gl_FUNC_ACL])
-  if test "$use_xattr" = yes; then
-    QCOPY_ACL_LIB="$LIB_XATTR"
-  else
-    QCOPY_ACL_LIB="$LIB_ACL"
-  fi
-  AC_SUBST([QCOPY_ACL_LIB])
+  gl_QCOPY_ACL
   gl_FUNC_READLINK
   gl_CONDITIONAL([GL_COND_OBJ_READLINK],
                  [test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1])

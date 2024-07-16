@@ -1,5 +1,5 @@
 # memmem.m4
-# serial 29
+# serial 30
 dnl Copyright (C) 2002-2004, 2007-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -102,7 +102,7 @@ static void quit (int sig) { _exit (sig + 128); }
     char *haystack = (char *) malloc (2 * m + 1);
     char *needle = (char *) malloc (m + 1);
     /* Failure to compile this test due to missing alarm is okay,
-       since all such platforms (mingw) also lack memmem.  */
+       since all such platforms (mingw, MSVC) also lack memmem.  */
     signal (SIGALRM, quit);
     alarm (5);
     /* Check for quadratic performance.  */
