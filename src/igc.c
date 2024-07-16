@@ -4316,6 +4316,40 @@ igc_external_header (struct igc_header *h)
   return header_exthdr (h);
 }
 
+static const char *
+mps_res_to_string (mps_res_t res)
+{
+  switch (res)
+    {
+#define RES_CASE(prefix, id, doc)                                            \
+  case prefix##id:                                                           \
+    return #prefix #id " " doc;
+      _mps_RES_ENUM (RES_CASE, MPS_RES_);
+#undef RES_CASE
+    default:
+      return NULL;
+    }
+}
+
+DEFUN ("igc--set-commit-limit", Figc__set_commit_limit,
+       Sigc__set_commit_limit, 1, 1, 0, doc
+       : /* Set the arena commit limit to LIMIT.
+LIMIT can be an integer (number of bytes) or nil (no limit). */)
+(Lisp_Object limit)
+{
+  size_t nbytes
+      = NILP (limit) ? ~0 : check_uinteger_max (limit, SIZE_MAX - 1);
+  mps_res_t err = mps_arena_commit_limit_set (global_igc->arena, nbytes);
+  if (err != MPS_RES_OK)
+    {
+      const char *msg = mps_res_to_string (err);
+      xsignal3 (Qerror,
+		intern_c_string (Sigc__set_commit_limit.s.symbol_name),
+		make_fixnum (err), msg ? build_string (msg) : Qnil);
+    }
+  return Qnil;
+}
+
 static void
 make_arena (struct igc *gc)
 {
@@ -4853,6 +4887,7 @@ syms_of_igc (void)
   defsubr (&Sigc_info);
   defsubr (&Sigc__roots);
   defsubr (&Sigc__collect);
+  defsubr (&Sigc__set_commit_limit);
   defsubr (&Sigc__add_extra_dependency);
   defsubr (&Sigc__remove_extra_dependency);
   DEFSYM (Qambig, "ambig");
