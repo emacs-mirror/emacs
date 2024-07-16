@@ -218,7 +218,7 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
     }							\
   while (0)
 #else
-# define igc_assert(expr) (void) 0
+# define igc_assert(expr) ((void) (true || (expr)))
 #endif
 
 #define IGC_NOT_IMPLEMENTED() \
@@ -814,9 +814,7 @@ arena_release (struct igc *gc)
 static void
 set_state (enum igc_state state)
 {
-#ifdef IGC_DEBUG
   enum igc_state old_state = igc_state;
-#endif
   igc_state = state;
   switch (igc_state)
     {
@@ -4171,7 +4169,6 @@ igc_remove_all_markers (struct buffer *b)
     }
 }
 
-#ifdef IGC_DEBUG
 static bool
 weak_vector_p (Lisp_Object x)
 {
@@ -4186,7 +4183,6 @@ weak_vector_p (Lisp_Object x)
   else
     return false;
 }
-#endif
 
 void
 igc_resurrect_markers (struct buffer *b)
