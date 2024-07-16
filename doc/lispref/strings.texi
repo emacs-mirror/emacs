@@ -1499,7 +1499,7 @@ case.
 The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax
 table (@pxref{Syntax Class Table}); if @code{case-symbols-as-words}
-is non-nil, characters assigned to the symbol constituent syntax
+is non-@code{nil}, characters assigned to the symbol constituent syntax
 class are also considered as word constituent.
 
 When @var{string-or-char} is a character, this function does the same

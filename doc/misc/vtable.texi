@@ -559,9 +559,9 @@ table.
 @defun vtable-insert-object table object &optional location before
 Insert @var{object} into @var{table}.  @var{location} should be an
 object in the table, the new object is inserted after this object, or
-before it if @var{before} is non-nil.  If @var{location} is @code{nil},
-@var{object} is appended to @var{table}, or prepended if @var{before} is
-non-@code{nil}.
+before it if @var{before} is non-@code{nil}.  If @var{location} is
+@code{nil}, @var{object} is appended to @var{table}, or prepended if
+@var{before} is non-@code{nil}.
 
 @var{location} can also be an integer, a zero-based index into the
 table.  In this case, @var{object} is inserted at that index.  If the

@@ -1060,9 +1060,10 @@ as a single argument, since you'll probably use it with @code{ses-range}.
 
 Special cell values:
 @itemize
-@item nil prints typically the same as "", but allows previous cell to spill over.
-@item '*skip* replaces nil when the previous cell actually does spill over;
-nothing is printed for it.
+@item @code{nil} prints typically the same as "", but allows previous
+cell to spill over.
+@item '*skip* replaces @code{nil} when the previous cell actually does
+spill over; nothing is printed for it.
 @item '*error* indicates that the formula signaled an error instead of
 producing a value: the print cell is filled with hash marks (#).
 @end itemize

@@ -1761,8 +1761,8 @@ shells, there are also many differences.  Don't let these similarities
 lull you into a false sense of familiarity.
 
 When using command form (@pxref{Invocation}), Eshell will ignore any
-leading nil values, so if @var{foo} is @code{nil}, @samp{$@var{foo}
-echo hello} is equivalent to @samp{echo hello}.
+leading @code{nil} values, so if @var{foo} is @code{nil},
+@samp{$@var{foo} echo hello} is equivalent to @samp{echo hello}.
 
 @table @code
 
@@ -2422,8 +2422,9 @@ an @code{eshell-generic-target} as described above).
 @defun eshell-function-target-create output-function &optional close-function
 Create a new virtual target for Eshell that repeatedly calls
 @var{output-function} with the redirected output, as described above.
-If @var{close-function} is non-nil, Eshell will call it when closing the
-target, passing non-@code{nil} if the redirected command succeeded.
+If @var{close-function} is non-@code{nil}, Eshell will call it when
+closing the target, passing non-@code{nil} if the redirected command
+succeeded.
 @end defun
 
 @node Pipelines

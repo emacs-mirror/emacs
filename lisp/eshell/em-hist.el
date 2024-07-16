@@ -295,12 +295,8 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
   (setq-local eshell-hist--new-items 0)
 
   (setq-local eshell-history-ring nil)
-  (if (minibuffer-window-active-p (selected-window))
-      (progn
-        (setq-local eshell-history-append t)
-        (add-hook 'minibuffer-exit-hook #'eshell-add-command-to-history nil t))
-    (if eshell-history-file-name
-	(eshell-read-history nil t)))
+  (when eshell-history-file-name
+    (eshell-read-history nil t))
 
   (unless eshell-history-ring
     (setq eshell-history-ring (make-ring eshell-history-size)))
@@ -410,18 +406,6 @@ input."
     (eshell-put-history input))
   (setq eshell-save-history-index eshell-history-index)
   (setq eshell-history-index nil))
-
-(defun eshell-add-command-to-history ()
-  "Add the command entered at `eshell-command's prompt to the history ring.
-The command is added to the input history ring, if the value of
-variable `eshell-input-filter' returns non-nil when called on the
-command.
-
-This function is supposed to be called from the minibuffer, presumably
-as a `minibuffer-exit-hook'."
-  (eshell-add-input-to-history
-   (buffer-substring (minibuffer-prompt-end) (point-max)))
-  (eshell--save-history))
 
 (defun eshell-add-to-history ()
   "Add last Eshell command to the history ring.
