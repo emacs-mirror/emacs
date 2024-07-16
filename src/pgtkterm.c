@@ -928,7 +928,7 @@ pgtk_set_parent_frame (struct frame *f, Lisp_Object new_value,
       if (p != NULL)
 	{
 	  if (FRAME_DISPLAY_INFO (f) != FRAME_DISPLAY_INFO (p))
-	    error ("Cross display reparent.");
+	    error ("Cross display reparent");
 	}
 
       GtkWidget *fixed = FRAME_GTK_WIDGET (f);

@@ -4471,7 +4471,7 @@ network_interface_info (Lisp_Object ifname)
   CHECK_STRING (ifname);
 
   if (sizeof rq.ifr_name <= SBYTES (ifname))
-    error ("interface name too long");
+    error ("Interface name too long");
   lispstpcpy (rq.ifr_name, ifname);
 
   s = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
@@ -6853,7 +6853,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 		  pset_status (p, list2 (Qexit, make_fixnum (256)));
 		  p->tick = ++process_tick;
 		  deactivate_process (proc);
-		  error ("process %s no longer connected to pipe; closed it",
+		  error ("Process %s no longer connected to pipe; closed it",
 			 SDATA (p->name));
 		}
 	      else

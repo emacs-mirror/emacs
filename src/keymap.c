@@ -749,7 +749,7 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx,
     def = Fcons (XCAR (def), XCDR (def));
 
   if (!CONSP (keymap) || !EQ (XCAR (keymap), Qkeymap))
-    error ("attempt to define a key in a non-keymap");
+    error ("Attempt to define a key in a non-keymap");
 
   /* If idx is a cons, and the car part is a character, idx must be of
      the form (FROM-CHAR . TO-CHAR).  */

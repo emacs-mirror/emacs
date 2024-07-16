@@ -6711,7 +6711,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
      https://lists.gnu.org/r/emacs-devel/2014-06/msg00053.html,
      https://lists.gnu.org/r/emacs-devel/2014-06/msg00094.html.  */
   if (buf != current_buffer)
-    error ("`recenter'ing a window that does not display current-buffer.");
+    error ("`recenter'ing a window that does not display current-buffer");
 
   /* If redisplay is suppressed due to an error, try again.  */
   buf->display_error_modiff = 0;
