@@ -6320,7 +6320,7 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
   const char *input = extract_data_from_object (spec, &start_byte, &end_byte);
 
   if (input == NULL)
-    error ("secure_hash: failed to extract data from object, aborting!");
+    error ("secure_hash: Failed to extract data from object, aborting!");
 
   if (EQ (algorithm, Qmd5))
     {

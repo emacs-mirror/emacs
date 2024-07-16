@@ -7714,7 +7714,7 @@ This function potentially generates an artificial switch-frame event.  */)
   if (!EQ (CAR_SAFE (event), Qfocus_in) ||
       !CONSP (XCDR (event)) ||
       !FRAMEP ((frame = XCAR (XCDR (event)))))
-    error ("invalid focus-in event");
+    error ("Invalid focus-in event");
 
   /* Conceptually, the concept of window manager focus on a particular
      frame and the Emacs selected frame shouldn't be related, but for

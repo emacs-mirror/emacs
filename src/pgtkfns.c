@@ -71,7 +71,7 @@ pgtk_get_monitor_scale_factor (const char *model)
   else if (FLOATP (cdr))
     return XFLOAT_DATA (cdr);
   else
-    error ("unknown type of scale-factor");
+    error ("Unknown type of scale-factor");
 }
 
 struct pgtk_display_info *
@@ -826,7 +826,7 @@ pgtk_set_scroll_bar_foreground (struct frame *f, Lisp_Object new_value,
       Emacs_Color rgb;
 
       if (!pgtk_parse_color (f, SSDATA (new_value), &rgb))
-	error ("Unknown color.");
+	error ("Unknown color");
 
       char css[64];
       sprintf (css, "scrollbar slider { background-color: #%06x; }",
@@ -836,7 +836,7 @@ pgtk_set_scroll_bar_foreground (struct frame *f, Lisp_Object new_value,
 
     }
   else
-    error ("Invalid scroll-bar-foreground.");
+    error ("Invalid scroll-bar-foreground");
 }
 
 static void
@@ -856,7 +856,7 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value,
       Emacs_Color rgb;
 
       if (!pgtk_parse_color (f, SSDATA (new_value), &rgb))
-	error ("Unknown color.");
+	error ("Unknown color");
 
       /* On pgtk, this frame parameter should be ignored, and honor
 	 gtk theme.  (It honors the GTK theme if not explicitly set, so
@@ -869,7 +869,7 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value,
 
     }
   else
-    error ("Invalid scroll-bar-background.");
+    error ("Invalid scroll-bar-background");
 }
 
 
@@ -904,7 +904,7 @@ unless TYPE is `png'.  */)
 
       XSETFRAME (frame, f);
       if (!FRAME_VISIBLE_P (f))
-	error ("Frames to be exported must be visible.");
+	error ("Frames to be exported must be visible");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);
@@ -918,7 +918,7 @@ unless TYPE is `png'.  */)
   if (EQ (type, Qpng))
     {
       if (!NILP (XCDR (frames)))
-	error ("PNG export cannot handle multiple frames.");
+	error ("PNG export cannot handle multiple frames");
       surface_type = CAIRO_SURFACE_TYPE_IMAGE;
     }
   else
@@ -933,7 +933,7 @@ unless TYPE is `png'.  */)
     {
       /* For now, we stick to SVG 1.1.  */
       if (!NILP (XCDR (frames)))
-	error ("SVG export cannot handle multiple frames.");
+	error ("SVG export cannot handle multiple frames");
       surface_type = CAIRO_SURFACE_TYPE_SVG;
     }
   else
@@ -1153,15 +1153,15 @@ scale factor.  */)
       if (FIXNUMP (scale_factor))
 	{
 	  if (XFIXNUM (scale_factor) <= 0)
-	    error ("scale factor must be > 0.");
+	    error ("Scale factor must be > 0");
 	}
       else if (FLOATP (scale_factor))
 	{
 	  if (XFLOAT_DATA (scale_factor) <= 0.0)
-	    error ("scale factor must be > 0.");
+	    error ("Scale factor must be > 0");
 	}
       else
-	error ("unknown type of scale-factor");
+	error ("Unknown type of scale-factor");
     }
 
   Lisp_Object tem = Fassoc (monitor_model, monitor_scale_factor_alist, Qnil);
@@ -1907,7 +1907,7 @@ pgtk_get_defaults_value (const char *key)
   char skey[(RESOURCE_KEY_MAX_LEN + 1) * 2];
 
   if (strlen (key) >= RESOURCE_KEY_MAX_LEN)
-    error ("resource key too long.");
+    error ("Resource key too long");
 
   GSettings *gs = parse_resource_key (key, skey);
   if (gs == NULL)
@@ -1937,11 +1937,11 @@ pgtk_set_defaults_value (const char *key, const char *value)
   char skey[(RESOURCE_KEY_MAX_LEN + 1) * 2];
 
   if (strlen (key) >= RESOURCE_KEY_MAX_LEN)
-    error ("resource key too long.");
+    error ("Resource key too long");
 
   GSettings *gs = parse_resource_key (key, skey);
   if (gs == NULL)
-    error ("unknown resource key.");
+    error ("Unknown resource key");
 
   if (value != NULL)
     {
@@ -1971,7 +1971,7 @@ pgtk_get_defaults_value (const char *key)
 static void
 pgtk_set_defaults_value (const char *key, const char *value)
 {
-  error ("gsettings not supported.");
+  error ("gsettings not supported");
 }
 
 #endif
@@ -3659,7 +3659,7 @@ visible.  */)
 
       XSETFRAME (frame, f);
       if (!FRAME_VISIBLE_P (f))
-	error ("Frames to be printed must be visible.");
+	error ("Frames to be printed must be visible");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);

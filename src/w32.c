@@ -10221,7 +10221,7 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
 	retval = Fnreverse (val);
 	break;
       default:
-	error ("unsupported registry data type: %d", (int)vtype);
+	error ("Unsupported registry data type: %d", (int)vtype);
     }
 
   xfree (pvalue);
