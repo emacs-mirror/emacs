@@ -1901,13 +1901,19 @@ parse_resource_key (const char *res_key, char *setting_key)
   return gs;
 }
 
+static void
+pgtk_check_resource_key_length (const char *key)
+{
+  if (strnlen (key, RESOURCE_KEY_MAX_LEN) >= RESOURCE_KEY_MAX_LEN)
+    error ("Resource key too long");
+}
+
 const char *
 pgtk_get_defaults_value (const char *key)
 {
   char skey[(RESOURCE_KEY_MAX_LEN + 1) * 2];
 
-  if (strlen (key) >= RESOURCE_KEY_MAX_LEN)
-    error ("Resource key too long");
+  pgtk_check_resource_key_length (key);
 
   GSettings *gs = parse_resource_key (key, skey);
   if (gs == NULL)
@@ -1936,8 +1942,7 @@ pgtk_set_defaults_value (const char *key, const char *value)
 {
   char skey[(RESOURCE_KEY_MAX_LEN + 1) * 2];
 
-  if (strlen (key) >= RESOURCE_KEY_MAX_LEN)
-    error ("Resource key too long");
+  pgtk_check_resource_key_length (key);
 
   GSettings *gs = parse_resource_key (key, skey);
   if (gs == NULL)
