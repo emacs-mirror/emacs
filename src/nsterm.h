@@ -482,7 +482,7 @@ enum ns_return_frame_mode
   EmacsWindow *nonfs_window;
   BOOL fs_is_native;
 @public
-  struct frame *emacsframe;
+  struct frame **emacsframe;
   int scrollbarsNeedingUpdate;
   NSRect ns_userRect;
 }
@@ -1399,7 +1399,6 @@ enum NSWindowTabbingMode
 #endif
 
 extern void mark_nsterm (void);
-struct frame **ns_emacs_view_emacs_frame (struct frame *f);
 int ns_emacs_scroller_refs (struct window *w, void **refs, size_t n);
 
 #endif	/* HAVE_NS */

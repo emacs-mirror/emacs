@@ -1969,12 +1969,6 @@ fix_frame (mps_ss_t ss, struct frame *f)
 	  IGC_FIX12_RAW (ss, font_ptr);
 	Lisp_Object *nle = &FRAME_DISPLAY_INFO (f)->name_list_element;
 	IGC_FIX12_OBJ (ss, nle);
-
-#ifdef HAVE_NS
-	struct frame **pf = ns_emacs_view_emacs_frame (f);
-	if (pf)
-	  IGC_FIX12_RAW (ss, pf);
-#endif
       }
 #endif // HAVE_WINDOW_SYSTEM
 
