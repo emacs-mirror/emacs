@@ -1045,8 +1045,8 @@ default_pixels_per_inch_y (void)
 /* True if frame F contains it's own minibuffer window.  Frame always has
    minibuffer window, but it could use minibuffer window of another frame.  */
 #define FRAME_HAS_MINIBUF_P(f)					\
-  (WINDOWP (f->minibuffer_window)				\
-   && XFRAME (XWINDOW (f->minibuffer_window)->frame) == f)
+  (WINDOWP ((f)->minibuffer_window)				\
+   && XFRAME (XWINDOW ((f)->minibuffer_window)->frame) == f)
 
 /* Scale factor of frame F.  */
 #if defined HAVE_NS
@@ -1184,7 +1184,7 @@ default_pixels_per_inch_y (void)
 
 /* Mark frame F as currently garbaged.  */
 #define SET_FRAME_GARBAGED(f)				\
-  (frame_garbaged = true, fset_redisplay (f), f->garbaged = true)
+  (frame_garbaged = true, fset_redisplay (f), (f)->garbaged = true)
 
 /* True if frame F is currently garbaged.  */
 #define FRAME_GARBAGED_P(f) (f)->garbaged
@@ -1208,21 +1208,21 @@ default_pixels_per_inch_y (void)
 #define FRAME_WINDOW_STATE_CHANGE(f) (f)->window_state_change
 
 /* The minibuffer window of frame F, if it has one; otherwise nil.  */
-#define FRAME_MINIBUF_WINDOW(f) f->minibuffer_window
+#define FRAME_MINIBUF_WINDOW(f) (f)->minibuffer_window
 
 /* The root window of the window tree of frame F.  */
-#define FRAME_ROOT_WINDOW(f) f->root_window
+#define FRAME_ROOT_WINDOW(f) (f)->root_window
 
 /* The currently selected window of frame F.  */
-#define FRAME_SELECTED_WINDOW(f) f->selected_window
+#define FRAME_SELECTED_WINDOW(f) (f)->selected_window
 /* The old selected window of frame F.  */
-#define FRAME_OLD_SELECTED_WINDOW(f) f->old_selected_window
+#define FRAME_OLD_SELECTED_WINDOW(f) (f)->old_selected_window
 
 #define FRAME_INSERT_COST(f) (f)->insert_line_cost
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
 #define FRAME_INSERTN_COST(f) (f)->insert_n_lines_cost
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
-#define FRAME_FOCUS_FRAME(f) f->focus_frame
+#define FRAME_FOCUS_FRAME(f) (f)->focus_frame
 
 #ifdef HAVE_WINDOW_SYSTEM
 /* This frame slot says whether scroll bars are currently enabled for frame F,
@@ -1373,10 +1373,10 @@ default_pixels_per_inch_y (void)
   (FRAME_COLS (f) + FRAME_LEFT_SCROLL_BAR_COLS (f))
 
 /* Nonzero if frame F has scroll bars.  */
-#define FRAME_SCROLL_BARS(f) (f->scroll_bars)
-#define FRAME_CONDEMNED_SCROLL_BARS(f) (f->condemned_scroll_bars)
+#define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
+#define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
 
-#define FRAME_MENU_BAR_ITEMS(f) (f->menu_bar_items)
+#define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
 #define FRAME_COST_BAUD_RATE(f) ((f)->cost_calculation_baud_rate)
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->desired_cursor)
