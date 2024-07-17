@@ -434,9 +434,9 @@ you dedicate a window to that buffer, the command (through
 
 @kindex C-x w d
 @findex toggle-window-dedicated
-  You can use the command @code{toggle-window-dedicated} to toggle
-whether the selected window is dedicated to the current buffer.  With a
-prefix argument, make the window strongly dedicated instead.
+  You can use the command @kbd{C-x w d} (@code{toggle-window-dedicated})
+to toggle whether the selected window is dedicated to the current
+buffer.  With a prefix argument, it makes the window strongly dedicated.
 
 @menu
 * Window Choice::   How @code{display-buffer} works.
