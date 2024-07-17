@@ -3801,9 +3801,10 @@ Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit the query-replace loop (\\[keyboard-quit], RET or q), you can
 resume the query replace with the command \\[fileloop-continue]."
   (interactive
-   (let ((common
-	  (query-replace-read-args
-	   "Query replace regexp in marked files" t t)))
+   (let* ((query-replace-lazy-highlight)
+          (common
+	   (query-replace-read-args
+	    "Query replace regexp in marked files" t t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)))
    dired-mode)
   (dolist (file (dired-get-marked-files nil nil #'dired-nondirectory-p nil t))
@@ -3825,9 +3826,10 @@ Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 The replacements are displayed in the buffer *replace-diff* that
 you can later apply as a patch after reviewing the changes."
   (interactive
-   (let ((common
-          (query-replace-read-args
-           "Replace regexp as diff in marked files" t t)))
+   (let* ((query-replace-lazy-highlight)
+          (common
+           (query-replace-read-args
+            "Replace regexp as diff in marked files" t t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common))))
   (dired-post-do-command)
   (multi-file-replace-regexp-as-diff
@@ -3901,7 +3903,8 @@ REGEXP should use constructs supported by your local `grep' command.
 Also see `query-replace' for user options that affect how this
 function works."
   (interactive
-   (let ((common
+   (let* ((query-replace-lazy-highlight)
+          (common
           (query-replace-read-args
            "Query replace regexp in marked files" t t)))
      (list (nth 0 common) (nth 1 common)))
