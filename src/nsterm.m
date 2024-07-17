@@ -43,6 +43,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <ftoastr.h>
 
 #include "lisp.h"
+#include "igc.h"
 #include "blockinput.h"
 #include "sysselect.h"
 #include "nsterm.h"
@@ -5665,7 +5666,11 @@ ns_term_init (Lisp_Object display_name)
                                          selector: @selector (logNotification:)
                                              name: nil object: nil]; */
 
+#ifdef HAVE_MPS
+  dpyinfo = igc_xzalloc_ambig (sizeof *dpyinfo);
+#else
   dpyinfo = xzalloc (sizeof *dpyinfo);
+#endif
 
   ns_initialize_display_info (dpyinfo);
   terminal = ns_create_terminal (dpyinfo);

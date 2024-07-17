@@ -1971,12 +1971,6 @@ fix_frame (mps_ss_t ss, struct frame *f)
 	IGC_FIX12_OBJ (ss, nle);
 
 #ifdef HAVE_NS
-	struct ns_display_info *i = FRAME_DISPLAY_INFO (f);
-	IGC_FIX12_RAW (ss, &i->terminal);
-	IGC_FIX12_OBJ (ss, &i->rdb);
-	IGC_FIX12_RAW (ss, &i->highlight_frame);
-	IGC_FIX12_RAW (ss, &i->ns_focus_frame);
-	IGC_FIX12_RAW (ss, &i->last_mouse_motion_frame);
 	struct frame **pf = ns_emacs_view_emacs_frame (f);
 	if (pf)
 	  IGC_FIX12_RAW (ss, pf);
