@@ -251,19 +251,31 @@ Set up:
               (concat (rx (* (syntax whitespace))
                           (group (or (seq "/" (+ "/")) (* "*"))))
                       adaptive-fill-regexp))
-  ;; Note the missing * comparing to `adaptive-fill-regexp'.  The
-  ;; reason for its absence is a bit convoluted to explain.  Suffice
-  ;; to say that without it, filling a single line paragraph that
-  ;; starts with /* doesn't insert * at the beginning of each
-  ;; following line, and filling a multi-line paragraph whose first
-  ;; two lines start with * does insert * at the beginning of each
-  ;; following line.  If you know how does adaptive filling works, you
-  ;; know what I mean.
+  ;; For (1): Note the missing * comparing to `adaptive-fill-regexp'.
+  ;; The reason for its absence is a bit convoluted to explain.  Suffice
+  ;; to say that without it, filling a single line paragraph that starts
+  ;; with /* doesn't insert * at the beginning of each following line,
+  ;; and filling a multi-line paragraph whose first two lines start with
+  ;; * does insert * at the beginning of each following line.  If you
+  ;; know how does adaptive filling work, you know what I mean.
+  ;;
+  ;; For (2): If we only have (1), filling a single line that starts
+  ;; with a single * (and not /*) in a block comment doesn't work as
+  ;; expected: the following lines won't be prefixed with *.  So we add
+  ;; another rule to cover this case too. (See bug#72116.)  I
+  ;; intentionally made the matching strict (it only matches if there
+  ;; are only a single * at the BOL) because I want to minimize the
+  ;; possibility of this new rule matching in unintended situations.
   (setq-local adaptive-fill-first-line-regexp
               (rx bos
-                  (seq (* (syntax whitespace))
-                       (group (seq "/" (+ "/")))
-                       (* (syntax whitespace)))
+                  ;; (1)
+                  (or (seq (* (syntax whitespace))
+                           (group (seq "/" (+ "/")))
+                           (* (syntax whitespace)))
+                      ;; (2)
+                      (seq (* (syntax whitespace))
+                           (group "*")
+                           (* (syntax whitespace))))
                   eos))
   ;; Same as `adaptive-fill-regexp'.
   (setq-local paragraph-start
