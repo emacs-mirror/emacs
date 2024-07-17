@@ -4450,6 +4450,7 @@ selected window.
 @defun set-window-dedicated-p window flag
 This function marks @var{window} as dedicated to its buffer if
 @var{flag} is non-@code{nil}, and non-dedicated otherwise.
+Interactively you can use the @code{toggle-window-dedicated} command.
 
 As a special case, if @var{flag} is @code{t}, @var{window} becomes
 @dfn{strongly} dedicated to its buffer.  @code{set-window-buffer}
