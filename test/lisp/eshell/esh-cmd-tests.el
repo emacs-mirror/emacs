@@ -34,6 +34,10 @@
 
 (defvar eshell-test-value nil)
 
+(defun eshell-test-replace-command (command &rest args)
+  "Run COMMAND with ARGS by throwing `eshell-replace-command'."
+  (throw 'eshell-replace-command `(eshell-named-command ,command ',args)))
+
 ;;; Tests:
 
 
@@ -264,6 +268,20 @@ This should also wait for the subcommand."
     (eshell-command-result-equal
      (format template "format \"%s\" eshell-in-pipeline-p")
      "nil")))
+
+(ert-deftest esh-cmd-test/pipeline/replace-command ()
+  "Ensure that `eshell-replace-command' doesn't affect Eshell deferral.
+Pipelines want to defer (yield) execution after starting all the
+processes in the pipeline, not before.  This lets us track all the
+processes correctly."
+  (skip-unless (and (executable-find "sleep")
+                    (executable-find "cat")))
+  (with-temp-eshell
+    (eshell-insert-command "eshell-test-replace-command *sleep 1 | cat")
+    ;; Make sure both processes are in `eshell-foreground-command'; this
+    ;; makes sure that the first command (which was replaced via
+    ;; `eshell-replace-command' isn't deferred by `eshell-do-eval'.
+    (should (= (length (cadr eshell-foreground-command)) 2))))
 
 
 ;; Control flow statements
