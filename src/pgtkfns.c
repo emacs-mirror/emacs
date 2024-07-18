@@ -1803,7 +1803,7 @@ pgtk_is_numeric_char (int c)
 static GSettings *
 parse_resource_key (const char *res_key, char *setting_key)
 {
-  char path[32 + RESOURCE_KEY_MAX_LEN];
+  char path[33 + RESOURCE_KEY_MAX_LEN];
   const char *sp = res_key;
   char *dp;
 
