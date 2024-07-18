@@ -1781,6 +1781,9 @@ Some window managers may refuse to restack windows.  */)
 #define SCHEMA_ID "org.gnu.emacs.defaults"
 #define PATH_FOR_CLASS_TYPE "/org/gnu/emacs/defaults-by-class/"
 #define PATH_PREFIX_FOR_NAME_TYPE "/org/gnu/emacs/defaults-by-name/"
+#define PATH_MAX_LEN \
+  (sizeof PATH_FOR_CLASS_TYPE > sizeof PATH_PREFIX_FOR_NAME_TYPE ? \
+   sizeof PATH_FOR_CLASS_TYPE : sizeof PATH_PREFIX_FOR_NAME_TYPE)
 
 static inline int
 pgtk_is_lower_char (int c)
@@ -1803,7 +1806,7 @@ pgtk_is_numeric_char (int c)
 static GSettings *
 parse_resource_key (const char *res_key, char *setting_key)
 {
-  char path[32 + RESOURCE_KEY_MAX_LEN];
+  char path[PATH_MAX_LEN + RESOURCE_KEY_MAX_LEN];
   const char *sp = res_key;
   char *dp;
 
@@ -1822,7 +1825,7 @@ parse_resource_key (const char *res_key, char *setting_key)
   /* generate path */
   if (pgtk_is_upper_char (*sp))
     {
-      /* First letter is upper case. It should be "Emacs",
+      /* First letter is upper case.  It should be "Emacs",
        * but don't care.
        */
       strcpy (path, PATH_FOR_CLASS_TYPE);
@@ -1964,6 +1967,7 @@ pgtk_set_defaults_value (const char *key, const char *value)
 #undef SCHEMA_ID
 #undef PATH_FOR_CLASS_TYPE
 #undef PATH_PREFIX_FOR_NAME_TYPE
+#undef PATH_MAX_LEN
 
 #else /* not HAVE_GSETTINGS */
 
