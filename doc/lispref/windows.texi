@@ -4447,9 +4447,12 @@ the value assigned by the last call of @code{set-window-dedicated-p} for
 selected window.
 @end defun
 
+@findex toggle-window-dedicated
 @defun set-window-dedicated-p window flag
 This function marks @var{window} as dedicated to its buffer if
 @var{flag} is non-@code{nil}, and non-dedicated otherwise.
+Interactively you can use the @kbd{C-x w d}
+(@code{toggle-window-dedicated}) command to do the same.
 
 As a special case, if @var{flag} is @code{t}, @var{window} becomes
 @dfn{strongly} dedicated to its buffer.  @code{set-window-buffer}

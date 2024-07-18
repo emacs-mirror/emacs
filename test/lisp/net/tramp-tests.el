@@ -7623,6 +7623,8 @@ This requires restrictions of file name syntax."
 
 (tramp--test-deftest-without-file-attributes tramp-test41-special-characters)
 
+(tramp--test-deftest-direct-async-process tramp-test41-special-characters)
+
 (ert-deftest tramp-test42-utf8 ()
   "Check UTF8 encoding in file names and file contents."
   (skip-unless (tramp--test-enabled))
@@ -7690,6 +7692,8 @@ This requires restrictions of file name syntax."
 (tramp--test-deftest-with-ls tramp-test42-utf8)
 
 (tramp--test-deftest-without-file-attributes tramp-test42-utf8)
+
+(tramp--test-deftest-direct-async-process tramp-test42-utf8)
 
 (ert-deftest tramp-test43-file-system-info ()
   "Check that `file-system-info' returns proper values."

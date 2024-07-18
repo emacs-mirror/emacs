@@ -274,7 +274,7 @@
   "Actions collected along the current parse.
 Used at runtime for backtracking.  It's a list ((POS . THUNK)...).
 Each THUNK is executed at the corresponding POS.  Thunks are
-executed in a postprocessing step, not during parsing.")
+executed in a post-processing step, not during parsing.")
 
 (defvar peg--errors nil
   "Data keeping track of the rightmost parse failure location.

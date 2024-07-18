@@ -4001,9 +4001,9 @@ and its value is returned to the caller."
                         set " ")))))
 
 (cl-defmethod transient-format-description ((obj transient-group))
-  "Format the description by calling the next method.  If the result
-doesn't use the `face' property at all, then apply the face
-`transient-heading' to the complete string."
+  "Format the description by calling the next method.
+If the result doesn't use the `face' property at all, then apply the
+face `transient-heading' to the complete string."
   (and-let* ((desc (transient--get-description obj)))
     (cond ((oref obj inapt)
            (propertize desc 'face 'transient-inapt-suffix))
@@ -4012,8 +4012,9 @@ doesn't use the `face' property at all, then apply the face
           ((propertize desc 'face 'transient-heading)))))
 
 (cl-defmethod transient-format-description :around ((obj transient-suffix))
-  "Format the description by calling the next method.  If the result
-is nil, then use \"(BUG: no description)\" as the description.
+  "Format the description by calling the next method.
+If the result is nil, then use \"(BUG: no description)\" as the
+description.
 If the OBJ's `key' is currently unreachable, then apply the face
 `transient-unreachable' to the complete string."
   (let ((desc (or (cl-call-next-method obj)

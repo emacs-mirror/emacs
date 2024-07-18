@@ -209,7 +209,7 @@ symbol."
         (when (derived-mode-p 'php-ts-mode)
           (php-ts-mode-set-style val)))))
 
-;; teken from c-ts-mode
+;; taken from c-ts-mode
 (defun php-ts-indent-style-safep (style)
   "Non-nil if STYLE's value is safe for file-local variables."
   (and (symbolp style) (not (functionp style))))

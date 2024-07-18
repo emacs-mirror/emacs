@@ -3590,7 +3590,7 @@ Special values:
   `windows-nt'   compiled as a native W32 application.
   `cygwin'       compiled using the Cygwin library.
   `haiku'        compiled for a Haiku system.
-  `android'	 compiled for Android.
+  `android'      compiled for Android.
 Anything else (in Emacs 26, the possibilities are: aix, berkeley-unix,
 hpux, usg-unix-v) indicates some sort of Unix system.  */);
   Vsystem_type = intern_c_string (SYSTEM_TYPE);

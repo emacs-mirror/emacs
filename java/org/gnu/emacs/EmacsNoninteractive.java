@@ -120,11 +120,11 @@ public final class EmacsNoninteractive
 	  }
 
 	/* Get a LoadedApk or ActivityThread.PackageInfo.  How to do
-	   this varies by Android version.  On Android 2.3.3 and
-	   earlier, there is no ``compatibilityInfo'' argument to
+	   this varies by Android version.  On Android 3.0 and earlier,
+	   there is no ``compatibilityInfo'' argument to
 	   getPackageInfo.  */
 
-	if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1)
+	try
 	  {
 	    method
 	      = activityThreadClass.getMethod ("getPackageInfo",
@@ -134,7 +134,7 @@ public final class EmacsNoninteractive
 				       (Context.CONTEXT_INCLUDE_CODE
 					| Context.CONTEXT_IGNORE_SECURITY));
 	  }
-	else
+	catch (NoSuchMethodException exception)
 	  {
 	    compatibilityInfoClass
 	      = Class.forName ("android.content.res.CompatibilityInfo");
