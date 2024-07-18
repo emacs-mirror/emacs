@@ -1490,9 +1490,9 @@ If INTERACTIVE, execute the command associated with any event
 generated instead of throwing `input-event'.  Otherwise, throw
 `input-event' with a single input event if that event should take
 the place of EVENT within the key sequence being translated, or
-`nil' if all tools have been released.
+nil if all tools have been released.
 
-Set `touch-screen-events-received' to `t' to indicate that touch
+Set `touch-screen-events-received' to t to indicate that touch
 screen events have been received, and thus by extension require
 functions undertaking event management themselves to call
 `read-key' rather than `read-event'."
@@ -2077,4 +2077,4 @@ Must be called from a command bound to a `touchscreen-hold' or
 
 (provide 'touch-screen)
 
-;;; touch-screen ends here
+;;; touch-screen.el ends here
