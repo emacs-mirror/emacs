@@ -8023,7 +8023,7 @@ ns_in_echo_area (void)
   NSTRACE_MSG ("cols:%d lines:%d", f->text_cols, f->text_lines);
 
 #ifdef HAVE_MPS
-  emacsframe = igc_xzalloc_ambig (sizeof *emacsframe);
+  emacsframe = igc_xalloc_raw_exact (1);
 #else
   emacsframe = xzalloc (sizeof *emacsframe);
 #endif
