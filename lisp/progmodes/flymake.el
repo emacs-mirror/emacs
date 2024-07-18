@@ -1262,6 +1262,37 @@ with a report function."
   "Recent changes collected by `flymake-after-change-function'.")
 (defvar flymake-mode)
 
+(defun flymake--import-foreign-diagnostics ()
+  ;; Other diagnostic sources may already target this buffer's file
+  ;; before we turned on: these sources may be of two types...
+  (let ((source (current-buffer))
+        (bfn buffer-file-name))
+    ;; 1. For `flymake-list-only-diagnostics': here, we do nothing.
+    ;; FIXME: We could remove the corresponding entry from that
+    ;; variable, as we assume that new diagnostics will come in soon
+    ;; via the brand new `flymake-mode' setup.  For simplicity's
+    ;; sake, we have opted to leave the backend for now.
+    nil
+    ;; 2. other buffers where a backend has created "foreign
+    ;; diagnostics" and pointed them here.  We must highlight them in
+    ;; this buffer, i.e. create overlays for them.  Those other
+    ;; buffers and backends are still responsible for them, i.e. the
+    ;; current buffer does not "own" these foreign diags.
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when flymake-mode
+          (maphash (lambda (_backend state)
+                     (maphash (lambda (file diags)
+                                (when (or (eq file source)
+                                          (string= bfn (expand-file-name file)))
+                                  (with-current-buffer source
+                                    (mapc (lambda (diag)
+                                            (flymake--highlight-line diag
+                                                                     'foreign))
+                                          diags))))
+                              (flymake--state-foreign-diags state)))
+                   flymake--state))))))
+
 (defun flymake-start (&optional deferred force)
   "Start a syntax check for the current buffer.
 DEFERRED is a list of symbols designating conditions to wait for
@@ -1335,7 +1366,8 @@ Interactively, with a prefix arg, FORCE is t."
                                  backend))
                    (t
                     (flymake--run-backend backend backend-args)))
-                  nil))))))))
+                  nil)))
+             (flymake--import-foreign-diagnostics))))))
 
 (defvar flymake-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1401,49 +1433,8 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     ;; already active.  I.e. `flymake-mode' function should be as
     ;; idempotent as possible.  See bug#69809.
     (unless flymake--state (setq flymake--state (make-hash-table)))
-
-    ;; On a related note to bug#69809, deleting all Flymake overlays is
-    ;; a violation of that idempotence.  This could be addressed in the
-    ;; future.  However, there is at least one known reason for doing so
-    ;; currently: since "foreign diagnostics" are created here, we opt
-    ;; to delete everything to avoid duplicating overlays.  In
-    ;; principle, the next `flymake-start' should re-synch everything
-    ;; (and with high likelyhood that is right around the corner if
-    ;; `flymake-start-on-flymake-mode' is t).
-    (mapc #'flymake--delete-overlay (flymake--really-all-overlays))
     (setq flymake--recent-changes nil)
-
-    (when flymake-start-on-flymake-mode (flymake-start t))
-
-    ;; Other diagnostic sources may already target this buffer's file
-    ;; before we turned on: these sources may be of two types...
-    (let ((source (current-buffer))
-          (bfn buffer-file-name))
-      ;; 1. For `flymake-list-only-diagnostics': here, we do nothing.
-      ;; FIXME: We could remove the corresponding entry from that
-      ;; variable, as we assume that new diagnostics will come in soon
-      ;; via the brand new `flymake-mode' setup.  For simplicity's
-      ;; sake, we have opted to leave the backend for now.
-      nil
-      ;; 2. other buffers where a backend has created "foreign
-      ;; diagnostics" and pointed them here.  We must highlight them in
-      ;; this buffer, i.e. create overlays for them.  Those other
-      ;; buffers and backends are still responsible for them, i.e. the
-      ;; current buffer does not "own" these foreign diags.
-      (dolist (buffer (buffer-list))
-        (with-current-buffer buffer
-          (when flymake-mode
-            (maphash (lambda (_backend state)
-                       (maphash (lambda (file diags)
-                                  (when (or (eq file source)
-                                            (string= bfn (expand-file-name file)))
-                                    (with-current-buffer source
-                                      (mapc (lambda (diag)
-                                              (flymake--highlight-line diag
-                                                                       'foreign))
-                                            diags))))
-                                (flymake--state-foreign-diags state)))
-                     flymake--state))))))
+    (when flymake-start-on-flymake-mode (flymake-start t)))
 
    ;; Turning the mode OFF.
    (t
