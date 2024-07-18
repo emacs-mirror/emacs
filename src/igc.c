@@ -698,7 +698,9 @@ alloc_hash (void)
 void
 igc_check_fwd (void *client)
 {
-  if (has_header (client, true))
+  /* We can't tell the type of object CLIENT points to which prevents
+     checking for built-in subrs but that's good enough. */
+  if (has_header (client, false))
     {
       struct igc_header *h = client_to_base (client);
       igc_assert (header_type (h) != IGC_OBJ_FWD);
