@@ -3054,8 +3054,6 @@ current interactive process.
 
 @item Display file and line number if an error occurs in a script
 
-@item @command{wait} doesn't work with process ids at the moment
-
 @item Enable the direct-to-process input code in @file{em-term.el}
 
 @item Problem with repeating @samp{echo $@{find /tmp@}}
