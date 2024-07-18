@@ -1648,8 +1648,9 @@ Frames are listed from topmost (first) to bottommost (last).  */)
       /* Check against [win parentWindow] so that it doesn't match itself. */
       if ([[win delegate] isKindOfClass:[EmacsView class]]
           && (parent == nil || ns_window_is_ancestor (parent, [win parentWindow])))
-        {
-          XSETFRAME (frame, ((EmacsView *)[win delegate])->emacsframe);
+	{
+	  struct frame *f = *((EmacsView *)[win delegate])->emacsframe;
+          XSETFRAME (frame, f);
           frames = Fcons(frame, frames);
         }
     }

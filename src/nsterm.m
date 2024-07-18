@@ -440,10 +440,11 @@ ev_modifiers_helper (unsigned int flags, unsigned int left_mask,
 
 /* This is a piece of code which is common to all the event handling
    methods.  Maybe it should even be a function.  */
-#define EV_TRAILER(e)						\
-  {								\
-    XSETFRAME (emacs_event->frame_or_window, emacsframe);	\
-    EV_TRAILER2 (e);						\
+#define EV_TRAILER(e, fr)				\
+  {							\
+    struct frame *f = fr;				\
+    XSETFRAME (emacs_event->frame_or_window, f);	\
+    EV_TRAILER2 (e);					\
   }
 
 #define EV_TRAILER2(e)                                                  \
@@ -6081,7 +6082,6 @@ ns_term_shutdown (int sig)
 
 - (void)showPreferencesWindow: (id)sender
 {
-  struct frame *emacsframe = SELECTED_FRAME ();
   NSEvent *theEvent = [NSApp currentEvent];
 
   if (!emacs_event)
@@ -6089,7 +6089,7 @@ ns_term_shutdown (int sig)
   emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_SHOW_PREFS;
   emacs_event->modifiers = 0;
-  EV_TRAILER (theEvent);
+  EV_TRAILER (theEvent, SELECTED_FRAME ());
 }
 
 
@@ -6097,7 +6097,6 @@ ns_term_shutdown (int sig)
 {
   NSTRACE ("[EmacsApp newFrame:]");
 
-  struct frame *emacsframe = SELECTED_FRAME ();
   NSEvent *theEvent = [NSApp currentEvent];
 
   if (!emacs_event)
@@ -6105,7 +6104,7 @@ ns_term_shutdown (int sig)
   emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_NEW_FRAME;
   emacs_event->modifiers = 0;
-  EV_TRAILER (theEvent);
+  EV_TRAILER (theEvent, SELECTED_FRAME ());
 }
 
 
@@ -6114,7 +6113,6 @@ ns_term_shutdown (int sig)
 {
   NSTRACE ("[EmacsApp openFile:]");
 
-  struct frame *emacsframe = SELECTED_FRAME ();
   NSEvent *theEvent = [NSApp currentEvent];
 
   if (!emacs_event)
@@ -6125,7 +6123,7 @@ ns_term_shutdown (int sig)
   ns_input_file = append2 (ns_input_file, [fileName lispString]);
   ns_input_line = Qnil; /* can be start or cons start,end */
   emacs_event->modifiers =0;
-  EV_TRAILER (theEvent);
+  EV_TRAILER (theEvent, SELECTED_FRAME ());
 
   return YES;
 }
@@ -6531,7 +6529,6 @@ not_in_argv (NSString *arg)
 /* Called from ns_read_socket to clear queue.  */
 - (BOOL)fulfillService: (NSString *)name withArg: (NSString *)arg
 {
-  struct frame *emacsframe = SELECTED_FRAME ();
   NSEvent *theEvent = [NSApp currentEvent];
 
   NSTRACE ("[EmacsApp fulfillService:withArg:]");
@@ -6544,7 +6541,7 @@ not_in_argv (NSString *arg)
   ns_input_spi_name = [name lispString];
   ns_input_spi_arg = [arg lispString];
   emacs_event->modifiers = EV_MODIFIERS (theEvent);
-  EV_TRAILER (theEvent);
+  EV_TRAILER (theEvent, SELECTED_FRAME ());
 
   return YES;
 }
@@ -7011,7 +7008,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
             }
 
           emacs_event->code = code;
-          EV_TRAILER (theEvent);
+          EV_TRAILER (theEvent, *emacsframe);
           processingCompose = NO;
           return;
         }
@@ -7106,7 +7103,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
       emacs_event->kind
 	= code > 0xFF ? MULTIBYTE_CHAR_KEYSTROKE_EVENT : ASCII_KEYSTROKE_EVENT;
       emacs_event->code = code;
-      EV_TRAILER ((id)nil);
+      EV_TRAILER ((id)nil, *emacsframe);
     }
 }
 
@@ -7141,7 +7138,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
   emacs_event->kind = NS_TEXT_EVENT;
   emacs_event->code = KEY_NS_PUT_WORKING_TEXT;
-  EV_TRAILER ((id)nil);
+  EV_TRAILER ((id)nil, *emacsframe);
 }
 
 
@@ -7163,7 +7160,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
   emacs_event->kind = NS_TEXT_EVENT;
   emacs_event->code = KEY_NS_UNPUT_WORKING_TEXT;
-  EV_TRAILER ((id)nil);
+  EV_TRAILER ((id)nil, *emacsframe);
 }
 
 
@@ -7295,7 +7292,7 @@ ns_in_echo_area (void)
         return;
       emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
       emacs_event->code = 0xFF08;
-      EV_TRAILER ((id)nil);
+      EV_TRAILER ((id)nil, *emacsframe);
     }
 }
 
@@ -7395,7 +7392,7 @@ ns_in_echo_area (void)
 	      end_flag = [theEvent momentumPhase] != NSEventPhaseNone;
 	      XSETINT (emacs_event->x, lrint (p.x));
 	      XSETINT (emacs_event->y, lrint (p.y));
-	      EV_TRAILER (theEvent);
+	      EV_TRAILER (theEvent, *emacsframe);
 	      return;
 	    }
 
@@ -7574,7 +7571,7 @@ ns_in_echo_area (void)
 
   XSETINT (emacs_event->x, lrint (p.x));
   XSETINT (emacs_event->y, lrint (p.y));
-  EV_TRAILER (theEvent);
+  EV_TRAILER (theEvent, *emacsframe);
   return;
 }
 
@@ -7679,7 +7676,8 @@ ns_in_echo_area (void)
   if (!ns_note_mouse_movement (*emacsframe, pt.x, pt.y, dragging))
     help_echo_string = previous_help_echo_string;
 
-  XSETFRAME (frame, emacsframe);
+  struct frame *f = *emacsframe;
+  XSETFRAME (frame, f);
   if (!NILP (help_echo_string) || !NILP (previous_help_echo_string))
     {
       /* NOTE: help_echo_{window,pos,object} are set in xdisp.c
@@ -7728,7 +7726,8 @@ ns_in_echo_area (void)
       emacs_event->modifiers = EV_MODIFIERS (event);
       XSETINT (emacs_event->x, lrint (pt.x));
       XSETINT (emacs_event->y, lrint (pt.y));
-      XSETFRAME (emacs_event->frame_or_window, emacsframe);
+      struct frame *f = *emacsframe;
+      XSETFRAME (emacs_event->frame_or_window, f);
 
       if ([event phase] == NSEventPhaseBegan)
 	{
@@ -7747,7 +7746,7 @@ ns_in_echo_area (void)
 				  make_float (0.0),
 				  make_float (last_scale += [event magnification]),
 				  make_float (0.0));
-      EV_TRAILER (event);
+      EV_TRAILER (event, *emacsframe);
     }
 }
 #endif
@@ -7763,7 +7762,7 @@ ns_in_echo_area (void)
   emacs_event->kind = DELETE_WINDOW_EVENT;
   emacs_event->modifiers = 0;
   emacs_event->code = 0;
-  EV_TRAILER (e);
+  EV_TRAILER (e, *emacsframe);
   /* Don't close this window, let this be done from lisp code.  */
   return NO;
 }
@@ -7976,7 +7975,8 @@ ns_in_echo_area (void)
   if (any_help_event_p)
     {
       Lisp_Object frame;
-      XSETFRAME (frame, emacsframe);
+      struct frame *f = *emacsframe;
+      XSETFRAME (frame, f);
       help_echo_string = Qnil;
       gen_help_event (Qnil, frame, Qnil, Qnil, 0);
       any_help_event_p = NO;
@@ -7985,7 +7985,7 @@ ns_in_echo_area (void)
   if (emacs_event && is_focus_frame)
     {
       emacs_event->kind = FOCUS_OUT_EVENT;
-      EV_TRAILER ((id)nil);
+      EV_TRAILER ((id)nil, *emacsframe);
     }
 }
 
@@ -8022,6 +8022,11 @@ ns_in_echo_area (void)
   NSTRACE ("[EmacsView initFrameFromEmacs:]");
   NSTRACE_MSG ("cols:%d lines:%d", f->text_cols, f->text_lines);
 
+#ifdef HAVE_MPS
+  emacsframe = igc_xzalloc_ambig (sizeof *emacsframe);
+#else
+  emacsframe = xzalloc (sizeof *emacsframe);
+#endif
   windowClosing = NO;
   processingCompose = NO;
   scrollbarsNeedingUpdate = 0;
@@ -8046,11 +8051,6 @@ ns_in_echo_area (void)
   [self setAutoresizingMask: NSViewWidthSizable | NSViewHeightSizable];
 
   FRAME_NS_VIEW (f) = self;
-#ifdef HAVE_MPS
-  emacsframe = igc_xzalloc_ambig (sizeof *emacsframe);
-#else
-  emacsframe = xzalloc (sizeof *emacsframe);
-#endif
   *emacsframe = f;
 #ifdef NS_IMPL_COCOA
   old_title = 0;
@@ -8121,9 +8121,10 @@ ns_in_echo_area (void)
 	  struct input_event ie;
 	  EVENT_INIT (ie);
 	  ie.kind = MOVE_FRAME_EVENT;
-	  XSETFRAME (ie.frame_or_window, emacsframe);
-	  XSETINT (ie.x, (*emacsframe)->left_pos);
-	  XSETINT (ie.y, (*emacsframe)->top_pos);
+	  struct frame *f = *emacsframe;
+	  XSETFRAME (ie.frame_or_window, f);
+	  XSETINT (ie.x, f->left_pos);
+	  XSETINT (ie.y, f->top_pos);
 	  kbd_buffer_store_event (&ie);
 	}
     }
@@ -8278,7 +8279,7 @@ ns_in_echo_area (void)
   if (emacs_event)
     {
       emacs_event->kind = DEICONIFY_EVENT;
-      EV_TRAILER ((id)nil);
+      EV_TRAILER ((id)nil, *emacsframe);
     }
 }
 
@@ -8309,7 +8310,7 @@ ns_in_echo_area (void)
   if (emacs_event)
     {
       emacs_event->kind = ICONIFY_EVENT;
-      EV_TRAILER ((id)nil);
+      EV_TRAILER ((id)nil, *emacsframe);
     }
 }
 
@@ -8720,7 +8721,7 @@ ns_in_echo_area (void)
   emacs_event->arg = AREF ((*emacsframe)->tool_bar_items,
 			   idx + TOOL_BAR_ITEM_KEY);
   emacs_event->modifiers = EV_MODIFIERS (theEvent);
-  EV_TRAILER (theEvent);
+  EV_TRAILER (theEvent, *emacsframe);
   return self;
 }
 
@@ -8738,7 +8739,7 @@ ns_in_echo_area (void)
 
   emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_TOGGLE_TOOLBAR;
-  EV_TRAILER ((id)nil);
+  EV_TRAILER ((id)nil, *emacsframe);
   return self;
 }
 
@@ -8962,7 +8963,7 @@ ns_in_echo_area (void)
 #ifdef NS_IMPL_GNUSTEP
   XSETINT (ie.x, x);
   XSETINT (ie.y, y);
-  XSETFRAME (ie.frame_or_window, emacsframe);
+  XSETFRAME (ie.frame_or_window, *emacsframe);
   ie.arg = Qlambda;
   ie.modifiers = 0;
 
@@ -8970,7 +8971,7 @@ ns_in_echo_area (void)
 #else
   /* Input events won't be processed until the drop happens on macOS,
      so call this function instead.  */
-  XSETFRAME (frame, emacsframe);
+  XSETFRAME (frame, *emacsframe);
 
   safe_calln (Vns_drag_motion_function, frame,
 	      make_fixnum (x), make_fixnum (y));
@@ -9093,7 +9094,7 @@ ns_in_echo_area (void)
 				   strings));
   XSETINT (ie.x, x);
   XSETINT (ie.y, y);
-  XSETFRAME (ie.frame_or_window, emacsframe);
+  XSETFRAME (ie.frame_or_window, *emacsframe);
 
   kbd_buffer_store_event (&ie);
   return YES;
