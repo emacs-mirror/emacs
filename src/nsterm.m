@@ -8483,7 +8483,7 @@ ns_in_echo_area (void)
   BOOL onFirstScreen;
   struct frame *f;
   NSRect r;
-  NSColor *col;
+   NSColor *col;
 
   NSTRACE ("[EmacsView toggleFullScreen:]");
 
@@ -10076,9 +10076,24 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   return r;
 }
 
+- (struct window *)lispWindow
+{
+  return *m_lisp_window;
+}
+
+- (struct frame *)lispFrame
+{
+  return XFRAME ((*m_lisp_window)->frame);
+}
+
 - (instancetype)initFrame: (NSRect )r window: (Lisp_Object)nwin
 {
   NSTRACE ("[EmacsScroller initFrame: window:]");
+#ifdef HAVE_MPS
+  m_lisp_window = igc_xalloc_raw_exact (1);
+#else
+  m_lisp_window = xzalloc (sizeof *m_lisp_window);
+#endif
 
   if (r.size.width > r.size.height)
       horizontal = YES;
@@ -10098,7 +10113,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   [self setAutoresizingMask: NSViewMinXMargin | NSViewHeightSizable];
 #endif
 
-  window = XWINDOW (nwin);
+  *m_lisp_window = XWINDOW (nwin);
   condemned = NO;
   if (horizontal)
     pixel_length = NSWidth (r);
@@ -10107,11 +10122,11 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   if (pixel_length == 0) pixel_length = 1;
   min_portion = 20 / pixel_length;
 
-  frame = XFRAME (window->frame);
-  if (FRAME_LIVE_P (frame))
+  struct frame *f = [self lispFrame];
+  if (FRAME_LIVE_P (f))
     {
       int i;
-      EmacsView *view = FRAME_NS_VIEW (frame);
+      EmacsView *view = FRAME_NS_VIEW (f);
       NSView *sview = [[view window] contentView];
       NSArray *subs = [sview subviews];
 
@@ -10148,14 +10163,20 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 - (void)dealloc
 {
   NSTRACE ("[EmacsScroller dealloc]");
-  if (window)
+  struct window *w = [self lispWindow];
+  if (w)
     {
       if (horizontal)
-        wset_horizontal_scroll_bar (window, Qnil);
+        wset_horizontal_scroll_bar (w, Qnil);
       else
-        wset_vertical_scroll_bar (window, Qnil);
+        wset_vertical_scroll_bar (w, Qnil);
     }
-  window = 0;
+  *m_lisp_window = NULL;
+#ifdef HAVE_MPS
+  igc_xfree (m_lisp_window);
+#else
+  xfree (m_lisp_window);
+#endif
   [super dealloc];
 }
 
@@ -10185,17 +10206,18 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
       EmacsView *view;
       block_input ();
       /* Ensure other scrollbar updates after deletion.  */
-      view = (EmacsView *)FRAME_NS_VIEW (frame);
+      struct frame *f = [self lispFrame];
+      view = (EmacsView *)FRAME_NS_VIEW (f);
       if (view != nil)
         view->scrollbarsNeedingUpdate++;
-      if (window)
+      if (*m_lisp_window)
         {
           if (horizontal)
-            wset_horizontal_scroll_bar (window, Qnil);
+            wset_horizontal_scroll_bar (*m_lisp_window, Qnil);
           else
-            wset_vertical_scroll_bar (window, Qnil);
+            wset_vertical_scroll_bar (*m_lisp_window, Qnil);
         }
-      window = 0;
+      *m_lisp_window = NULL;
       [self removeFromSuperview];
       [self release];
       unblock_input ();
@@ -10290,7 +10312,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   emacs_event->part = last_hit_part;
   emacs_event->code = 0;
   emacs_event->modifiers = EV_MODIFIERS (e) | down_modifier;
-  XSETWINDOW (win, window);
+  XSETWINDOW (win, m_lisp_window);
   emacs_event->frame_or_window = win;
   emacs_event->timestamp = EV_TIMESTAMP (e);
   emacs_event->arg = Qnil;
@@ -10541,7 +10563,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 {
   NSTRACE ("[EmacsScroller scrollWheel:]");
 
-  EmacsView *view = (EmacsView *)FRAME_NS_VIEW (frame);
+  EmacsView *view = (EmacsView *)FRAME_NS_VIEW ([self lispFrame]);
   [view mouseDown: theEvent];
 }
 
@@ -11220,28 +11242,4 @@ respectively.  */);
 
   last_known_monitors = Qnil;
   staticpro (&last_known_monitors);
-}
-
-int
-ns_emacs_scroller_refs (struct window *w, void **refs, size_t n)
-{
-  eassert (n >= 4);
-  int i = 0;
-  if (!NILP (w->vertical_scroll_bar)
-      && WINDOW_HAS_VERTICAL_SCROLL_BAR (w))
-    {
-      EmacsScroller *bar = XNS_SCROLL_BAR (w->vertical_scroll_bar);
-      refs[i++] = &bar->window;
-      refs[i++] = &bar->frame;
-    }
-
-  if (!NILP (w->horizontal_scroll_bar)
-      && WINDOW_HAS_HORIZONTAL_SCROLL_BAR (w))
-    {
-      EmacsScroller *bar = XNS_SCROLL_BAR (w->horizontal_scroll_bar);
-      refs[i++] = &bar->window;
-      refs[i++] = &bar->frame;
-    }
-
-  return i;
 }

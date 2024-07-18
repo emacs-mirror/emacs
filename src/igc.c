@@ -2009,13 +2009,6 @@ fix_window (mps_ss_t ss, struct window *w)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->desired_matrix));
     IGC_FIX12_OBJ (ss, &w->prev_buffers);
     IGC_FIX12_OBJ (ss, &w->next_buffers);
-
-#ifdef HAVE_NS
-    void *pr[4];
-    int n = ns_emacs_scroller_refs (w, pr, ARRAYELTS (pr));
-    for (int i = 0; i < n; ++i)
-      IGC_FIX12_RAW (ss, pr[i]);
-#endif
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
