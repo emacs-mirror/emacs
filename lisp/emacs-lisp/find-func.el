@@ -354,13 +354,13 @@ if non-nil)."
             (setq def nil))
           (completing-read (format-prompt "Library name" def)
                            table nil nil nil
-                           find-function--read-history-library def))
+                           'find-function--read-history-library def))
       (let ((files (read-library-name--find-files dirs suffixes)))
         (when (and def (not (member def files)))
           (setq def nil))
         (completing-read (format-prompt "Library name" def)
                          files nil t nil
-                         find-function--read-history-library def)))))
+                         'find-function--read-history-library def)))))
 
 (defun read-library-name--find-files (dirs suffixes)
   "Return a list of all files in DIRS that match SUFFIXES."
