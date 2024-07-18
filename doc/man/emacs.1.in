@@ -144,7 +144,7 @@ Display
 version information and exit.
 .TP
 .B \-\-help
-Display this help and exit.
+Display help and exit.
 .RE
 .PP
 The following options are Lisp-oriented
