@@ -91,6 +91,7 @@ void *igc_xzalloc_ambig (size_t size);
 void *igc_realloc_ambig (void *block, size_t size);
 void igc_xfree (void *p);
 Lisp_Object *igc_xalloc_lisp_objs_exact (size_t n);
+void * igc_xalloc_raw_exact (size_t n);
 
 void *igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems,
 			 ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
