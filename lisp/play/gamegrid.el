@@ -639,27 +639,31 @@ FILE is created there."
 
 (defun gamegrid-add-score-insecure (file score &optional directory reverse)
   (save-excursion
-    (setq file (expand-file-name file (or directory
-					  temporary-file-directory)))
-    (unless (file-exists-p (file-name-directory file))
-      (make-directory (file-name-directory file) t))
-    (find-file-other-window file)
-    (setq buffer-read-only nil)
-    (goto-char (point-max))
-    (insert (format "%05d\t%s\t%s <%s>\n"
-		    score
-		    (current-time-string)
-		    (user-full-name)
-		    user-mail-address))
-    (sort-fields 1 (point-min) (point-max))
-    (unless reverse
-      (reverse-region (point-min) (point-max)))
-    (goto-char (point-min))
-    (forward-line gamegrid-score-file-length)
-    (delete-region (point) (point-max))
-    (setq buffer-read-only t)
-    (save-buffer)
-    (view-mode)))
+    (let ((score-line (format "%05d\t%s\t%s <%s>\n"
+                              score
+                              (current-time-string)
+                              (user-full-name)
+                              user-mail-address)))
+      (setq file (expand-file-name file (or directory
+                                            temporary-file-directory)))
+      (unless (file-exists-p (file-name-directory file))
+        (make-directory (file-name-directory file) t))
+      (find-file-other-window file)
+      (setq buffer-read-only nil)
+      (goto-char (point-max))
+      (insert score-line)
+      (sort-fields 1 (point-min) (point-max))
+      (unless reverse
+        (reverse-region (point-min) (point-max)))
+      (goto-char (point-min))
+      (forward-line gamegrid-score-file-length)
+      (delete-region (point) (point-max))
+      (setq buffer-read-only t)
+      (save-buffer)
+      (view-mode)
+      (goto-char (point-min))
+      (when (search-forward score-line nil 'end)
+        (forward-line -1)))))
 
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
