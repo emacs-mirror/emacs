@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH EMACS 1 "2022-06-07" "GNU Emacs @version@" "GNU"
+.TH EMACS 1 "2024-07-18" "GNU Emacs @version@" "GNU"
 .
 .
 .SH NAME
@@ -115,7 +115,7 @@ This is useful for debugging problems in the init file.
 .BI \-u " user\fR,\fP " \-\-user= "user"
 Load
 .IR user 's
-init file.
+init file instead of your own.
 .TP
 .BI \-\-init\-directory= "directory"
 Start emacs with user-emacs-directory set to
@@ -664,7 +664,7 @@ For detailed credits and acknowledgments, see the GNU Emacs manual.
 .
 .
 .SH COPYING
-Copyright 1995, 1999-2024 Free Software Foundation, Inc.
+Copyright 1995-2024 Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are
