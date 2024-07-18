@@ -1920,9 +1920,7 @@ pgtk_get_defaults_value (const char *key)
 
   GSettings *gs = parse_resource_key (key, skey);
   if (gs == NULL)
-    {
-      return NULL;
-    }
+    return NULL;
 
   gchar *str = g_settings_get_string (gs, skey);
 
@@ -1952,13 +1950,9 @@ pgtk_set_defaults_value (const char *key, const char *value)
     error ("Unknown resource key");
 
   if (value != NULL)
-    {
-      g_settings_set_string (gs, skey, value);
-    }
+    g_settings_set_string (gs, skey, value);
   else
-    {
-      g_settings_reset (gs, skey);
-    }
+    g_settings_reset (gs, skey);
 
   g_object_unref (gs);
 }
