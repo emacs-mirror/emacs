@@ -1414,18 +1414,6 @@ scan_exact (mps_ss_t ss, void *start, void *end, void *closure)
 }
 
 static mps_res_t
-scan_exact_raw (mps_ss_t ss, void *start, void *end, void *closure)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    for (mps_addr_t *p = start; (void *) p < end; ++p)
-      IGC_FIX12_RAW (ss, p);
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-static mps_res_t
 scan_ptr_exact (mps_ss_t ss, void *start, void *end, void *closure)
 {
   MPS_SCAN_BEGIN (ss)
@@ -2936,7 +2924,7 @@ igc_xalloc_raw_exact (size_t n)
 {
   size_t size = n * sizeof (void *);
   void *p = xzalloc (size);
-  root_create_exact (global_igc, p, (char *) p + size, scan_exact_raw,
+  root_create_exact (global_igc, p, (char *) p + size, scan_ptr_exact,
 		     "xalloc-raw-exact");
   return p;
 }
