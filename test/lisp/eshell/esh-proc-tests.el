@@ -344,6 +344,30 @@ write the exit status to the pipe.  See bug#54136."
                         output-start (eshell-end-of-output))
                        ""))))))
 
+(ert-deftest esh-proc-test/kill/process-id ()
+  "Test killing processes with the \"kill\" built-in using PIDs."
+  (skip-unless (executable-find "sleep"))
+  (with-temp-eshell
+    (eshell-insert-command "sleep 100 &")
+    (string-match (rx (group (+ digit)) eol) (eshell-last-output))
+    (let ((pid (match-string 1 (eshell-last-output))))
+      (should (= (length eshell-process-list) 1))
+      (eshell-insert-command (format "kill %s" pid))
+      (should (= eshell-last-command-status 0))
+      (eshell-wait-for-subprocess t)
+      (should (= (length eshell-process-list) 0)))))
+
+(ert-deftest esh-proc-test/kill/process-object ()
+  "Test killing processes with the \"kill\" built-in using process objects."
+  (skip-unless (executable-find "sleep"))
+  (with-temp-eshell
+    (eshell-insert-command "sleep 100 &")
+    (should (= (length eshell-process-list) 1))
+    (eshell-insert-command "kill (caar eshell-process-list)")
+    (should (= eshell-last-command-status 0))
+    (eshell-wait-for-subprocess t)
+    (should (= (length eshell-process-list) 0))))
+
 
 ;; Remote processes
 

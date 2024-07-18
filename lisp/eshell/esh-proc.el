@@ -237,40 +237,34 @@ Wait until PROCESS(es) have completed execution.")
 Usage: kill [-<signal>] <pid>|<process> ...
 Accepts PIDs and process objects.  Optionally accept signals
 and signal names."
-  ;; The implementation below only supports local PIDs.  For remote
-  ;; connections, fall back to the external "kill" command.
-  (when (file-remote-p default-directory)
-    (declare-function eshell-external-command "esh-ext" (command args))
-    (throw 'eshell-external (eshell-external-command "kill" args)))
-  ;; If the first argument starts with a dash, treat it as the signal
-  ;; specifier.
   (let ((signum 'SIGINT))
     (let ((arg (car args))
           (case-fold-search nil))
       (when (stringp arg)
+        ;; If the first argument starts with a dash, treat it as the
+        ;; signal specifier.
         (cond
          ((string-match "\\`-[[:digit:]]+\\'" arg)
-          (setq signum (abs (string-to-number arg))))
+          (setq signum (abs (string-to-number arg)))
+          (pop args))
          ((string-match "\\`-\\([[:upper:]]+\\|[[:lower:]]+\\)\\'" arg)
-          (setq signum (intern (substring arg 1)))))
-        (setq args (cdr args))))
-    (while args
-      (let ((arg (if (eshell-processp (car args))
-                     (process-id (car args))
-                   (string-to-number (car args)))))
-        (when arg
-          (cond
-           ((null arg)
-            (error "kill: null pid.  Process may actually be a network connection."))
-           ((not (numberp arg))
-            (error "kill: invalid argument type: %s" (type-of arg)))
-           ((and (numberp arg)
-                 (<= arg 0))
-            (error "kill: bad pid: %d" arg))
-           (t
-            (signal-process arg signum)))))
-      (setq args (cdr args))))
-  nil)
+          (setq signum (intern (substring arg 1)))
+          (pop args)))))
+    (dolist (proc args)
+      (when (stringp proc)
+        (setq proc (string-to-number proc)))
+      (let ((result
+             (cond
+              ((numberp proc)
+               (when (<= proc 0)
+                 (error "kill: bad pid: %d" proc))
+               (signal-process proc signum (file-remote-p default-directory)))
+              ((eshell-processp proc)
+               (signal-process proc signum))
+              (t
+               (error "kill: invalid argument type: %s" (type-of proc))))))
+        (when (= result -1)
+          (error "kill: failed to kill process %s" proc))))))
 
 (put 'eshell/kill 'eshell-no-numeric-conversions t)
 
