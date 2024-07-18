@@ -727,11 +727,6 @@ bar.  In the mean time, it should process other messages.
 
 ** Get some major packages installed
 
-*** Magit
-This needs work on getting the relevant copyright assignments.  This
-task should be highly doable for anyone, but will likely require some
-patience.  See <https://debbugs.gnu.org/72127>.
-
 *** PSGML, _possibly_ ECB
 https://lists.gnu.org/r/emacs-devel/2007-05/msg01493.html Check the
 assignments file for other packages which might go in and have been
