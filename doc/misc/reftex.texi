@@ -4823,7 +4823,7 @@ Macros which can be used for the display of cross references.
 This is used when @code{reftex-view-crossref} is called with point in an
 argument of a macro.  Note that crossref viewing for citations,
 references (both ways) and index entries is hard-coded.  This variable
-is only to configure additional structures for which crossreference
+is only to configure additional structures for which cross-reference
 viewing can be useful.  Each entry has the structure
 @example
 (@var{macro-re} @var{search-re} @var{highlight}).

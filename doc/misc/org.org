@@ -11766,7 +11766,7 @@ example
 : ./img/cat.jpg
 
 If you wish to define a caption for the image (see [[*Captions]]) and
-maybe a label for internal cross references (see [[*Internal Links]]),
+maybe a label for internal cross-references (see [[*Internal Links]]),
 make sure that the link is on a line by itself and precede it with
 =CAPTION= and =NAME= keywords as follows:
 

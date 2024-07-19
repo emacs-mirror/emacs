@@ -9166,7 +9166,7 @@ sfnt_interpret_alignrp (struct sfnt_interpreter *interpreter)
    ZP1.
 
    Move both points along the freedom vector by half the magnitude of
-   the the projection of a vector formed by P1.x - P2.x, P1.y - P2.y,
+   the projection of a vector formed by P1.x - P2.x, P1.y - P2.y,
    upon the projection vector.  */
 
 static void

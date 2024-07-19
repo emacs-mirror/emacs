@@ -560,7 +560,7 @@ The old name is obsolete.
 
 ** New and changed options
 
-# Chanes deadling with changing default values of customizations,
+# Changes dealing with changing default values of customizations,
 # adding new customizations, or changing the interpretation of the
 # existing customizations.
 
@@ -623,7 +623,7 @@ This new hook runs when a note has been stored.
 Sorting of agenda items, tables, menus, headlines, etc can now be
 controlled using a new custom option ~org-sort-function~.
 
-By default, Org mode sorts things according to the operation system
+By default, Org mode sorts things according to the operating system
 language.  However, language sorting rules may or may not produce good
 results depending on the use case.  For example, multi-language
 documents may be sorted weirdly when sorting rules for system language

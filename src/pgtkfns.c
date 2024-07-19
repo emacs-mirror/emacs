@@ -1856,7 +1856,7 @@ parse_resource_key (const char *res_key, char *setting_key)
 	  *dp++ = c;
 	  sp++;
 	}
-      *dp++ = '/';		/* must ends with '/' */
+      *dp++ = '/';		/* must end with '/' */
       *dp = '\0';
     }
 

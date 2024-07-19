@@ -2833,12 +2833,12 @@ An implementation of @command{expr} using the Calc package.
 
 @cmindex ff
 @item ff @var{directory} @var{pattern}
-Shorthand for the the function @code{find-name-dired} (@pxref{Dired
+Shorthand for the function @code{find-name-dired} (@pxref{Dired
 and Find, , , emacs, The Emacs Editor}).
 
 @cmindex gf
 @item gf @var{directory} @var{regexp}
-Shorthand for the the function @code{find-grep-dired} (@pxref{Dired
+Shorthand for the function @code{find-grep-dired} (@pxref{Dired
 and Find, , , emacs, The Emacs Editor}).
 
 @cmindex intersection

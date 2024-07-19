@@ -436,7 +436,7 @@ the signature) the automatically inferred function type as well.
 *** 'describe-function' now shows the type of the function object.
 The text used to say things like "car is a built-in function" whereas it
 now says "car is a primitive-function" where "primitive-function" is the
-the name of the symbol returned by 'cl-type-of'.  You can click on those
+name of the symbol returned by 'cl-type-of'.  You can click on those
 words to get information about that type.
 
 ---

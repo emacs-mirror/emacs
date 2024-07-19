@@ -2112,7 +2112,7 @@ deletion) now accept a prefix argument which serves as a repeat count.
 
 *** Reference keys can now be entered with TAB completion.  All
 reference keys defined in that buffer and all labels that appear in
-crossreference entries are object to completion.
+cross-reference entries are object to completion.
 
 *** Braces are supported as field delimiters in addition to quotes.
 BibTeX entries may have brace-delimited and quote-delimited fields

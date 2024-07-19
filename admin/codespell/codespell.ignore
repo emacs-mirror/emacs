@@ -9,18 +9,14 @@ blocs
 callint
 checkin
 clen
-crossreference
-crossreferences
 debbugs
 dedented
 dependant
-doas
 ede
 grey
 gud
 ifset
 inout
-keypair
 keyserver
 keyservers
 lightening
@@ -28,7 +24,6 @@ mapp
 master
 mimicks
 mitre
-msdos
 ot
 parm
 parms
@@ -37,8 +32,6 @@ reenable
 reenabled
 requestor
 sie
-spawnve
 statics
-stdio
 texline
 typdef

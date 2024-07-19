@@ -751,7 +751,7 @@ should do this.
 (hfy-face-to-css @var{fn})
 @end lisp
 
-Take @var{fn}, a font or @code{defface} specification (c.f.
+Take @var{fn}, a font or @code{defface} specification (cf.
 @code{face-attr-construct}) and return a CSS style specification.
 
 See also: @ref{hfy-face-to-style}

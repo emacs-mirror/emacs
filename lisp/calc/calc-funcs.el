@@ -897,7 +897,7 @@
 ;;;   Bn = n! bn
 ;;;   bn = - sum_k=0^n-1 bk / (n-k+1)!
 
-;;; A faster method would be to use "tangent numbers", c.f., Concrete
+;;; A faster method would be to use "tangent numbers", cf., Concrete
 ;;; Mathematics pg. 273.
 
 

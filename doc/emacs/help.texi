@@ -519,7 +519,7 @@ backward.  It also provides a few special commands:
 
 @table @kbd
 @item @key{RET}
-Follow a cross reference at point (@code{help-follow}).
+Follow a cross-reference at point (@code{help-follow}).
 @item @key{TAB}
 Move point forward to the next hyperlink (@code{forward-button}).
 @item S-@key{TAB}

@@ -4678,7 +4678,7 @@ A unibyte string containing data in a certain MIME type.
 @end table
 @end defvar
 
-  A call to @code{gui-get-selection} generally returns the the data
+  A call to @code{gui-get-selection} generally returns the data
 named @var{data-type} within the selection message, albeit with
 @var{data-type} replaced by an alternative name should it be one of
 the following X selection targets:

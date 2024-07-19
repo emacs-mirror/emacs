@@ -5341,7 +5341,7 @@ android_wc_lookup_string (android_key_pressed_event *event,
       characters = (*env)->GetStringChars (env, string, NULL);
       android_exception_check_nonnull ((void *) characters, string);
 
-      /* Establish the size of the the string.  */
+      /* Establish the size of the string.  */
       size = (*env)->GetStringLength (env, string);
 
       /* Copy over the string data.  */

@@ -3624,10 +3624,18 @@ ensure this principle is valid.
 
 @var{identification} specifies which part of the identifier shall be
 returned as string.  @var{identification} can be the symbol
-@code{method}, @code{user} or @code{host}; any other value is handled
-like @code{nil} and means to return the complete identifier string.
-In the example above, the remote @code{user} identifier string would
-be @code{root}.
+@code{method}, @code{user}, @code{host} or @code{localname}; any other
+value is handled like @code{nil} and means to return the complete
+identifier string.  In the example above, the remote @code{user}
+identifier string would be @code{root}.
+
+If the remote @var{file} does not contain a method, a user name, or a
+host name, the respective default value is returned.  The string
+returned for @var{identification} @code{localname} can differ depending
+on whether there is an existing connection.  File name handler specific
+implementations could support further @var{identification} symbols;
+@xref{Top, Tramp, Tramp, tramp}, for example, knows also the @code{hop}
+symbol.
 
 If @var{connected} is non-@code{nil}, this function returns @code{nil}
 even if @var{filename} is remote, if Emacs has no network connection

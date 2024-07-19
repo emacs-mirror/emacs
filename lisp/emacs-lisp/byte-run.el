@@ -334,7 +334,7 @@ This is used by `declare'.")
                       (f (apply (car f) name arglist (cdr x)))
                       ;; Yuck!!
                       ((and (featurep 'cl)
-                            (memq (car x)  ;C.f. cl--do-proclaim.
+                            (memq (car x)  ;Cf. cl--do-proclaim.
                                   '(special inline notinline optimize warn)))
                        (push (list 'declare x) cl-decls)
                        nil)

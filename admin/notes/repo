@@ -113,8 +113,8 @@ pre-commit state.
 
 If you have pushed  commit, resetting will be ineffective because it
 will only vanish the commit in your local copy.  Instead, use 'git
-revert', giving it the commit ID as argument. This will create a
-new commit that backs out the change. Then push that.
+revert', giving it the commit ID as argument.  This will create a
+new commit that backs out the change.  Then push that.
 
 Note that git will generate a log message for the revert that includes
 a git hash.  Please edit this to refer to the commit by the first line

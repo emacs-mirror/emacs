@@ -8915,7 +8915,7 @@
 	Return the previous char.
 	(perl-calculate-indent): Use syntax-ppss instead of parse-start
 	and update callers accordingly.  For continuation lines, check the
-	the case of array hashes.
+	case of array hashes.
 	(perl-backward-to-noncomment): Make it non-interactive.
 	(perl-backward-to-start-of-continued-exp): Rewrite.
 

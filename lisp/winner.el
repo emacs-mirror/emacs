@@ -261,7 +261,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 ;; Make sure point does not end up in the minibuffer and delete
 ;; windows displaying dead or boring buffers
-;; (c.f. `winner-boring-buffers') and `winner-boring-buffers-regexp'.
+;; (cf. `winner-boring-buffers') and `winner-boring-buffers-regexp'.
 ;; Return nil if all the windows should be deleted.  Preserve correct
 ;; points and marks.
 (defun winner-set (conf)

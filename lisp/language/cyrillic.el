@@ -36,8 +36,8 @@
 ;; <URL:https://czyborra.com/charsets/cyrillic.html>.
 
 ;; Note that 8859-5 maps directly onto the Unicode Cyrillic block,
-;; apart from codepoints 160 (NBSP, c.f. U+0400), 173 (soft hyphen,
-;; c.f. U+04OD) and 253 (section sign, c.f U+045D).  The KOI-8 and
+;; apart from codepoints 160 (NBSP, cf. U+0400), 173 (soft hyphen,
+;; cf. U+04OD) and 253 (section sign, cf. U+045D).  The KOI-8 and
 ;; Alternativnyj coding systems encode both 8859-5 and Unicode.
 
 ;;; Code:

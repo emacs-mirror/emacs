@@ -15827,7 +15827,7 @@
 
 	* progmodes/cc-cmds.el (c-hungry-delete): New function to fix
 	<delete> key behavior in XEmacs according to `delete-forward-p'.
-	C.f. `c-electric-delete'.
+	Cf. `c-electric-delete'.
 
 2005-12-08  Alan Mackenzie  <acm@muc.de>
 

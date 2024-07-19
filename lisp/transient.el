@@ -82,17 +82,6 @@ similar defect.") :emergency))
 (defvar Man-notify-method)
 (defvar pp-default-function) ; since Emacs 29.1
 
-(defmacro static-if (condition then-form &rest else-forms)
-  "A conditional compilation macro.
-Evaluate CONDITION at macro-expansion time.  If it is non-nil,
-expand the macro to THEN-FORM.  Otherwise expand it to ELSE-FORMS
-enclosed in a `progn' form.  ELSE-FORMS may be empty."
-  (declare (indent 2)
-           (debug (sexp sexp &rest sexp)))
-  (if (eval condition lexical-binding)
-      then-form
-    (cons 'progn else-forms)))
-
 (defmacro transient--with-emergency-exit (id &rest body)
   (declare (indent defun))
   (unless (keywordp id)

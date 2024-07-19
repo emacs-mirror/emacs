@@ -7114,7 +7114,7 @@ comment at the start of cc-engine.el for more info."
 	       "\\(?:\\\\\\(?:.\\|\n\\)\\|[^\"\n\\]\\)*[\"\n]" nil 'stay)))
 	 ((memq lit-type '(c c++))
 	  ;; To work around a bug in parse-partial-sexp, where effect is given
-	  ;; to the syntax of a backslash, even the the scan starts with point
+	  ;; to the syntax of a backslash, even the scan starts with point
 	  ;; just after it.
 	  (if (and (eq (char-before pt-search) ?\\)
 		   (eq (char-after pt-search) ?\n))

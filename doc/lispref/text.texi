@@ -6009,7 +6009,7 @@ This API has mandatory and optional parts.
 To allow its users to initiate JSONRPC contacts (notifications or
 requests) or reply to endpoint requests, the new transport
 implementation must equip the @code{jsonrpc-connection-send} generic
-function with a specialization for the the new subclass
+function with a specialization for the new subclass
 (@pxref{Generic Functions}).  This generic function is called
 automatically by primitives such as @code{jsonrpc-request} and
 @code{jsonrpc-notify}.  The specialization should ensure that the
