@@ -167,7 +167,10 @@ See bug#71778."
               "sh -c 'read NAME; echo ${NAME}'")
       "y\n")
      (eshell-wait-for-subprocess t)
-     (should (equal (process-list) starting-process-list)))))
+     (should (equal (process-list) starting-process-list))
+     ;; Make sure the exit status is from the last command in the
+     ;; pipeline.
+     (should (= eshell-last-command-status 0)))))
 
 (ert-deftest esh-proc-test/pipeline-connection-type/no-pipeline ()
   "Test that all streams are PTYs when a command is not in a pipeline."

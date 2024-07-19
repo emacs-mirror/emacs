@@ -1425,10 +1425,12 @@ case."
      ;; command status to some non-zero value to indicate an error; to
      ;; match GNU/Linux, we use 141, which the numeric value of
      ;; SIGPIPE on GNU/Linux (13) with the high bit (2^7) set.
-     (eshell-set-exit-info 141)
+     (when (memq eshell-in-pipeline-p '(nil last))
+       (eshell-set-exit-info 141))
      nil)
     (error
-     (eshell-set-exit-info 1)
+     (when (memq eshell-in-pipeline-p '(nil last))
+       (eshell-set-exit-info 1))
      (let ((msg (error-message-string err)))
        (if (and (not form-p)
                 (string-match "^Wrong number of arguments" msg)
@@ -1507,7 +1509,8 @@ a string naming a Lisp function."
   (unless eshell-allow-commands
     (signal 'eshell-commands-forbidden '(lisp)))
   (catch 'eshell-external               ; deferred to an external command
-    (eshell-set-exit-info 0)
+    (when (memq eshell-in-pipeline-p '(nil last))
+      (eshell-set-exit-info 0))
     (setq eshell-last-arguments args)
     (let* ((eshell-ensure-newline-p t)
            (command-form-p (functionp object))
@@ -1543,16 +1546,17 @@ a string naming a Lisp function."
               (eshell-eval* #'eshell-print-maybe-n
                             #'eshell-error-maybe-n
                             object))))
-      (eshell-set-exit-info
-       ;; If `eshell-lisp-form-nil-is-failure' is non-nil, Lisp forms
-       ;; that succeeded but have a nil result should have an exit
-       ;; status of 2.
-       (when (and eshell-lisp-form-nil-is-failure
-                  (not command-form-p)
-                  (= eshell-last-command-status 0)
-                  (not result))
-         2)
-       result)
+      (when (memq eshell-in-pipeline-p '(nil last))
+        (eshell-set-exit-info
+         ;; If `eshell-lisp-form-nil-is-failure' is non-nil, Lisp forms
+         ;; that succeeded but have a nil result should have an exit
+         ;; status of 2.
+         (when (and eshell-lisp-form-nil-is-failure
+                    (not command-form-p)
+                    (= eshell-last-command-status 0)
+                    (not result))
+           2)
+         result))
       (eshell-close-handles))))
 
 (define-obsolete-function-alias 'eshell-lisp-command* #'eshell-lisp-command

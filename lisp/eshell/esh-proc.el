@@ -394,6 +394,9 @@ Used only on systems which do not support async subprocesses.")
         (mapconcat #'shell-quote-argument (process-command proc) " "))
       (eshell-record-process-object proc)
       (eshell-record-process-properties proc)
+      ;; Don't set exit info for processes being piped elsewhere.
+      (when (memq (bound-and-true-p eshell-in-pipeline-p) '(nil last))
+        (process-put proc :eshell-set-exit-info t))
       (when stderr-proc
         ;; Provide a shared flag between the primary and stderr
         ;; processes.  This lets the primary process wait to clean up
@@ -546,6 +549,7 @@ PROC is the process that's exiting.  STRING is the exit message."
           (let* ((handles (process-get proc :eshell-handles))
                  (index (process-get proc :eshell-handle-index))
                  (primary (= index eshell-output-handle))
+                 (set-exit-info (process-get proc :eshell-set-exit-info))
                  (data (process-get proc :eshell-pending))
                  (stderr-live (process-get proc :eshell-stderr-live)))
             ;; Write the exit message for the last process in the
@@ -576,7 +580,7 @@ PROC is the process that's exiting.  STRING is the exit message."
                                   (ignore-error eshell-pipe-broken
                                     (eshell-output-object
                                      data index handles)))
-                                (when primary
+                                (when set-exit-info
                                   (let ((status (process-exit-status proc)))
                                     (eshell-set-exit-info status (= status 0))))
                                 (eshell-close-handles handles)
