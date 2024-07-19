@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; Maintainer: Justin Burkett <justin@burkett.cc>
-;; Version: 3.6.0
+;; Version: 3.6.1
 ;; Package-Requires: ((emacs "25.1"))
 
 ;; This file is part of GNU Emacs.
