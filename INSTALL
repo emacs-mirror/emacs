@@ -517,12 +517,8 @@ Some tests might fail because the compiler should look in special
 directories for some header files, or link against optional
 libraries, or use special compilation options.  You can force
 'configure' and the build process which follows it to do that by
-setting the variables CPPFLAGS, CFLAGS, LDFLAGS, LIBS, CPP and CC
-before running 'configure'.  CPP is the command which invokes the
-preprocessor, CPPFLAGS lists the options passed to it, CFLAGS are
-compilation options, LDFLAGS are options used when linking, LIBS are
-libraries to link against, and CC is the command which invokes the
-compiler.  By default, gcc is used if available.
+setting the variables CC, CFLAGS, CPP, CPPFLAGS, LDFLAGS, and LIBS in
+the 'configure' command.
 
 Here's an example of a 'configure' invocation, assuming a Bourne-like
 shell such as Bash, which uses these variables:
@@ -689,8 +685,9 @@ configuration), type 'make distclean'.
 MAKE VARIABLES
 
 You can change where the build process installs Emacs and its data
-files by specifying values for 'make' variables as part of the 'make'
-command line.  For example, if you type
+files, and what programs and options the build process uses, by
+specifying values for 'make' variables as part of the 'make' command
+line.  For example, if you type
 
     make install bindir=/usr/local/gnubin
 
@@ -759,6 +756,19 @@ Here is a complete list of the variables you may want to set.
 'exec_prefix' serves the same purpose as 'prefix', but instead
 	determines the default values for the architecture-dependent
 	path variables - 'bindir' and 'libexecdir'.
+
+'CC' is the command which invokes the compiler.  By default, gcc is used
+	if available.
+
+'CFLAGS' are compilation options.
+
+'CPP' is the command which invokes the preprocessor.
+
+'CPPFLAGS' lists the options passed to CPP.
+
+'LDFLAGS' are options used when linking.
+
+'LIBS' are libraries to link against.
 
 The above variables serve analogous purposes in the makefiles for all
 GNU software; the following variables are specific to Emacs.
