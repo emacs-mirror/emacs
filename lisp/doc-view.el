@@ -2148,6 +2148,8 @@ GOTO-PAGE-FN other than `doc-view-goto-page'."
   (pcase-let ((`(,conv-function ,type ,extension)
                (pcase doc-view-doc-type
                  ('djvu (list #'doc-view-djvu->tiff-converter-ddjvu 'tiff "tif"))
+                 ((or 'ps 'postscript 'eps)
+                  (list #'doc-view-ps->png-converter-ghostscript 'png "png"))
                  (_ (if (and (eq doc-view-pdf->png-converter-function
                                  #'doc-view-pdf->png-converter-mupdf)
                              doc-view-mupdf-use-svg)
