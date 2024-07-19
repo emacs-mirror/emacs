@@ -26,6 +26,7 @@
 (require 'dbus)
 
 (defvar dbus-debug)
+(defvar dbus-message-type-signal)
 (declare-function dbus-get-unique-name "dbusbind.c" (bus))
 
 (defconst dbus--test-enabled-session-bus
@@ -732,7 +733,7 @@ is in progress."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
-(defun dbus--test-method-authorizable-handler (&rest args)
+(defun dbus--test-method-authorizable-handler (&rest _args)
   "Method handler for `dbus-test04-call-method-authorizable'.
 Returns the respective error."
   `(:error ,dbus-error-interactive-authorization-required
