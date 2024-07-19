@@ -1298,9 +1298,14 @@ any that are missing.
 IDENTIFICATION can specify which part of the identification to
 return.  IDENTIFICATION can be the symbol `method', `user',
 `host', or `localname'.  Any other value is handled like nil and
-means to return the complete identification.  The string returned
-for IDENTIFICATION `localname' can differ depending on whether
-there is an existing connection.
+means to return the complete identification.
+
+If the remote FILE does not contain a method, a user name, or a host
+name, the respective default value is returned.  The string returned for
+IDENTIFICATION `localname' can differ depending on whether there is an
+existing connection.  File name handler specific implementations could
+support further IDENTIFICATION symbols; Tramp, for example, knows also
+the `hop' symbol.
 
 If CONNECTED is non-nil, return an identification only if FILE is
 located on a remote system and a connection is established to
