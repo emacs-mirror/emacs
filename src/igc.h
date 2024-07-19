@@ -142,7 +142,6 @@ unsigned char *igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
 				 ptrdiff_t new_char_len);
 size_t igc_hash (Lisp_Object key);
 specpdl_ref igc_park_arena (void);
-void igc_check_vector (const struct Lisp_Vector *v);
 void igc_postmortem (void);
 void igc_on_grow_specpdl (void);
 void igc_on_alloc_main_thread_specpdl (void);

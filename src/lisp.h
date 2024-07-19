@@ -45,9 +45,9 @@ INLINE_HEADER_BEGIN
 
 /* Enable this with --enable-checking=igc_check_fwd. */
 # if defined HAVE_MPS && defined IGC_CHECK_FWD
-void igc_check_fwd (void *);
+void igc_check_fwd (void *client, bool is_vector);
 # else
-#define igc_check_fwd(x) ((void) 0)
+#define igc_check_fwd(c, v) ((void) 0)
 # endif
 
 /* Define a TYPE constant ID as an externally visible name.  Use like this:
@@ -1135,7 +1135,7 @@ XSYMBOL_WITH_POS (Lisp_Object a)
 
   struct Lisp_Symbol_With_Pos *s
     = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos);
-  igc_check_fwd (s);
+  igc_check_fwd (s, false);
   return s;
 }
 
@@ -1166,7 +1166,7 @@ XBARE_SYMBOL (Lisp_Object a)
   eassert (BARE_SYMBOL_P (a));
   intptr_t i = (intptr_t) XUNTAG (a, Lisp_Symbol, struct Lisp_Symbol);
   void *p = (char *) lispsym + i;
-  igc_check_fwd (p);
+  igc_check_fwd (p, false);
   return p;
 }
 
@@ -1521,7 +1521,7 @@ XCONS (Lisp_Object a)
 {
   eassert (CONSP (a));
   struct Lisp_Cons *c = XUNTAG (a, Lisp_Cons, struct Lisp_Cons);
-  igc_check_fwd (c);
+  igc_check_fwd (c, false);
   return c;
 }
 
@@ -1647,7 +1647,7 @@ XSTRING (Lisp_Object a)
 {
   eassert (STRINGP (a));
   struct Lisp_String *s = XUNTAG (a, Lisp_String, struct Lisp_String);
-  igc_check_fwd (s);
+  igc_check_fwd (s, false);
   return s;
 }
 
@@ -1796,7 +1796,7 @@ XVECTOR (Lisp_Object a)
 {
   eassert (VECTORLIKEP (a));
   struct Lisp_Vector *v = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Vector);
-  igc_check_fwd (v);
+  igc_check_fwd (v, true);
   return v;
 }
 
@@ -1948,7 +1948,7 @@ XBOOL_VECTOR (Lisp_Object a)
   eassert (BOOL_VECTOR_P (a));
   struct Lisp_Bool_Vector *v
     = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Bool_Vector);
-  igc_check_fwd (v);
+  igc_check_fwd (v, true);
   return v;
 }
 
@@ -2138,7 +2138,7 @@ XCHAR_TABLE (Lisp_Object a)
 {
   eassert (CHAR_TABLE_P (a));
   struct Lisp_Char_Table *t = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Char_Table);
-  igc_check_fwd (t);
+  igc_check_fwd (t, true);
   return t;
 }
 
@@ -2776,7 +2776,7 @@ XHASH_TABLE (Lisp_Object a)
   eassert (HASH_TABLE_P (a));
   struct Lisp_Hash_Table *h
     = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Hash_Table);
-  igc_check_fwd (h);
+  igc_check_fwd (h, true);
   return h;
 }
 
@@ -2793,7 +2793,7 @@ XWEAK_HASH_TABLE (Lisp_Object a)
   eassert (WEAK_HASH_TABLE_P (a));
   struct Lisp_Weak_Hash_Table *h
     = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Weak_Hash_Table);
-  igc_check_fwd (h);
+  igc_check_fwd (h, true);
   return h;
 }
 #endif
@@ -3191,7 +3191,7 @@ XMARKER (Lisp_Object a)
 {
   eassert (MARKERP (a));
   struct Lisp_Marker *m = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Marker);
-  igc_check_fwd (m);
+  igc_check_fwd (m, true);
   return m;
 }
 
@@ -3206,7 +3206,7 @@ XOVERLAY (Lisp_Object a)
 {
   eassert (OVERLAYP (a));
   struct Lisp_Overlay *o = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Overlay);
-  igc_check_fwd (o);
+  igc_check_fwd (o, true);
   return o;
 }
 
@@ -3406,7 +3406,7 @@ XFLOAT (Lisp_Object a)
 {
   eassert (FLOATP (a));
   struct Lisp_Float *f = XUNTAG (a, Lisp_Float, struct Lisp_Float);
-  igc_check_fwd (f);
+  igc_check_fwd (f, false);
   return f;
 }
 
@@ -5252,7 +5252,7 @@ XMODULE_FUNCTION (Lisp_Object o)
   eassert (MODULE_FUNCTIONP (o));
   struct Lisp_Module_Function *f
     = XUNTAG (o, Lisp_Vectorlike, struct Lisp_Module_Function);
-  igc_check_fwd (f);
+  igc_check_fwd (f, true);
   return f;
 }
 
