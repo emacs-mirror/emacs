@@ -698,7 +698,7 @@ rulesets defined previously with `define-peg-ruleset'."
 (cl-defmethod peg--translate ((_ (eql guard)) exp) exp)
 
 (defvar peg-syntax-classes
-  '((whitespace ?-) (word ?w) (symbol ?s) (punctuation ?.)
+  '((whitespace ?-) (word ?w) (symbol ?_) (punctuation ?.)
     (open ?\() (close ?\)) (string ?\") (escape ?\\) (charquote ?/)
     (math ?$) (prefix ?') (comment ?<) (endcomment ?>)
     (comment-fence ?!) (string-fence ?|)))
