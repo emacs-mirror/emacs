@@ -1363,6 +1363,7 @@ scan_stack (mps_ss_t ss, void *start, void *end, void *closure)
   {
 #ifdef HAVE___BUILTIN_UNWIND_INIT
     __builtin_unwind_init ();
+    asm ("");
     void *p;
     start = min (start, (void *) &p);
     end = max (end, (void *) &p);
