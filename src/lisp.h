@@ -4578,6 +4578,7 @@ list4i (intmax_t a, intmax_t b, intmax_t c, intmax_t d)
   return list4 (make_int (a), make_int (b), make_int (c), make_int (d));
 }
 
+extern Lisp_Object make_clear_bool_vector (EMACS_INT, bool);
 extern Lisp_Object make_uninit_bool_vector (EMACS_INT);
 extern Lisp_Object bool_vector_fill (Lisp_Object, Lisp_Object);
 extern AVOID string_overflow (void);

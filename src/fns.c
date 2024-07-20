@@ -2309,12 +2309,12 @@ See also the function `nreverse', which is used more often.  */)
     }
   else if (BOOL_VECTOR_P (seq))
     {
-      ptrdiff_t i;
       EMACS_INT nbits = bool_vector_size (seq);
 
-      new = make_uninit_bool_vector (nbits);
-      for (i = 0; i < nbits; i++)
-	bool_vector_set (new, i, bool_vector_bitref (seq, nbits - i - 1));
+      new = make_clear_bool_vector (nbits, true);
+      for (ptrdiff_t i = 0; i < nbits; i++)
+	if (bool_vector_bitref (seq, nbits - i - 1))
+	  bool_vector_set (new, i, true);
     }
   else if (STRINGP (seq))
     {
