@@ -2413,14 +2413,13 @@ bool_vector_fill (Lisp_Object a, Lisp_Object init)
 Lisp_Object
 make_clear_bool_vector (EMACS_INT nbits, bool clearit)
 {
+  eassert (0 <= nbits && nbits <= BOOL_VECTOR_LENGTH_MAX);
   Lisp_Object val;
-  EMACS_INT words = bool_vector_words (nbits);
-  EMACS_INT word_bytes = words * sizeof (bits_word);
-  EMACS_INT needed_elements = ((bool_header_size - header_size + word_bytes
+  ptrdiff_t words = bool_vector_words (nbits);
+  ptrdiff_t word_bytes = words * sizeof (bits_word);
+  ptrdiff_t needed_elements = ((bool_header_size - header_size + word_bytes
 				+ word_size - 1)
 			       / word_size);
-  if (PTRDIFF_MAX < needed_elements)
-    memory_full (SIZE_MAX);
   struct Lisp_Bool_Vector *p
     = (struct Lisp_Bool_Vector *) allocate_clear_vector (needed_elements,
 							 clearit);
@@ -2449,7 +2448,10 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   (Lisp_Object length, Lisp_Object init)
 {
   CHECK_FIXNAT (length);
-  Lisp_Object val = make_clear_bool_vector (XFIXNAT (length), NILP (init));
+  EMACS_INT len = XFIXNAT (length);
+  if (BOOL_VECTOR_LENGTH_MAX < len)
+    memory_full (SIZE_MAX);
+  Lisp_Object val = make_clear_bool_vector (len, NILP (init));
   return NILP (init) ? val : bool_vector_fill (val, init);
 }
 
@@ -2459,6 +2461,8 @@ Allows any number of arguments, including zero.
 usage: (bool-vector &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
+  if (BOOL_VECTOR_LENGTH_MAX < nargs)
+    memory_full (SIZE_MAX);
   Lisp_Object vector = make_clear_bool_vector (nargs, true);
   for (ptrdiff_t i = 0; i < nargs; i++)
     if (!NILP (args[i]))

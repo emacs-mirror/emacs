@@ -3568,7 +3568,7 @@ string_props_from_rev_list (Lisp_Object elems, Lisp_Object readcharfun)
 static Lisp_Object
 read_bool_vector (Lisp_Object readcharfun)
 {
-  ptrdiff_t length = 0;
+  EMACS_INT length = 0;
   for (;;)
     {
       int c = READCHAR;
@@ -3582,6 +3582,8 @@ read_bool_vector (Lisp_Object readcharfun)
 	  || ckd_add (&length, length, c - '0'))
 	invalid_syntax ("#&", readcharfun);
     }
+  if (BOOL_VECTOR_LENGTH_MAX < length)
+    invalid_syntax ("#&", readcharfun);
 
   ptrdiff_t size_in_chars = bool_vector_bytes (length);
   Lisp_Object str = read_string_literal (readcharfun);
