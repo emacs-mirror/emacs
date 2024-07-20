@@ -3126,13 +3126,19 @@ finalize_finalizer (struct Lisp_Finalizer *f)
 }
 
 /* Turn an existing pseudovector into a PVEC_FREE, keeping its size. */
-#define SPLAT_PVEC(v)				 \
-  (((v)->header.size &= ~PVEC_TYPE_MASK), XSETPVECTYPE(v, PVEC_FREE))
+
+static void
+splat_pvec (struct Lisp_Vector *v)
+{
+  v->header.size &= ~PVEC_TYPE_MASK;
+  XSETPVECTYPE (v, PVEC_FREE);
+}
 
 static void
 finalize_vector (mps_addr_t v)
 {
   struct Lisp_Vector *vec = v;
+  /* Please use exhaustive switches, just to do me a favour :-). */
   switch (pseudo_vector_type (v))
     {
     case PVEC_BIGNUM:
@@ -3193,10 +3199,44 @@ finalize_vector (mps_addr_t v)
       finalize_finalizer (v);
       break;
 
-    default:
+#ifndef IN_MY_FORK
+    case PVEC_OBARRAY:
+#endif
+    case PVEC_HASH_TABLE:
+    case PVEC_WEAK_HASH_TABLE:
+    case PVEC_SYMBOL_WITH_POS:
+    case PVEC_PROCESS:
+    case PVEC_RECORD:
+    case PVEC_CLOSURE:
+    case PVEC_SQLITE:
+    case PVEC_TS_NODE:
+    case PVEC_NORMAL_VECTOR:
+#ifdef IN_MY_FORK
+    case PVEC_PACKAGE:
+#endif
+    case PVEC_WINDOW_CONFIGURATION:
+    case PVEC_BUFFER:
+    case PVEC_FRAME:
+    case PVEC_WINDOW:
+    case PVEC_CHAR_TABLE:
+    case PVEC_SUB_CHAR_TABLE:
+    case PVEC_BOOL_VECTOR:
+    case PVEC_OVERLAY:
+    case PVEC_OTHER:
+    case PVEC_MISC_PTR:
+    case PVEC_XWIDGET:
+    case PVEC_XWIDGET_VIEW:
+    case PVEC_TERMINAL:
+    case PVEC_MARKER:
+    case PVEC_MODULE_GLOBAL_REFERENCE:
+      igc_assert (!"finalization not implemented");
+      break;
+
+    case PVEC_FREE:
       break;
     }
-  SPLAT_PVEC (vec);
+
+  splat_pvec (vec);
 }
 
 static void
