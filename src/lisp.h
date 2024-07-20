@@ -2464,7 +2464,7 @@ XOBARRAY (Lisp_Object a)
   eassert (OBARRAYP (a));
   struct Lisp_Obarray *o = XUNTAG (a, Lisp_Vectorlike, struct Lisp_Obarray);
 # if defined HAVE_MPS && defined ENABLE_CHECKING
-  igc_check_fwd (o);
+  igc_check_fwd (o, true);
 # endif
   return o;
 }
