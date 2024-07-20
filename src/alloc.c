@@ -5948,6 +5948,7 @@ check_pure_size (void)
    the non-Lisp data pool of the pure storage, and return its start
    address.  Return NULL if not found.  */
 
+#ifndef HAVE_MPS
 static char *
 find_string_data_in_pure (const char *data, ptrdiff_t nbytes)
 {
@@ -6024,6 +6025,7 @@ find_string_data_in_pure (const char *data, ptrdiff_t nbytes)
 
   return NULL;
 }
+#endif
 
 /* Return a string allocated in pure space.  DATA is a buffer holding
    NCHARS characters, and NBYTES bytes of string data.  MULTIBYTE
@@ -6039,11 +6041,22 @@ make_pure_string (const char *data,
 {
   Lisp_Object string;
   struct Lisp_String *s = pure_alloc (sizeof *s, Lisp_String);
-  s->u.s.data = (unsigned char *) find_string_data_in_pure (data, nbytes);
+#ifdef HAVE_MPS
   gc_init_header (&s->gc_header, IGC_OBJ_STRING);
+  s->u.s.data = NULL;
+#else
+  s->u.s.data = (unsigned char *) find_string_data_in_pure (data, nbytes);
+#endif
   if (s->u.s.data == NULL)
     {
+#ifdef HAVE_MPS
+      struct Lisp_String_Data *ptr =
+	pure_alloc (nbytes + 1 + sizeof (union gc_header), -GCALIGNMENT);
+      gc_init_header_bytes (&ptr->gc_header, IGC_OBJ_STRING_DATA, nbytes + 1);
+      s->u.s.data = ptr->data;
+#else
       s->u.s.data = pure_alloc (nbytes + 1, -1);
+#endif
       memcpy (s->u.s.data, data, nbytes);
       s->u.s.data[nbytes] = '\0';
     }
