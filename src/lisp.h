@@ -1624,6 +1624,16 @@ CDR_SAFE (Lisp_Object c)
   return CONSP (c) ? XCDR (c) : Qnil;
 }
 
+#ifdef HAVE_MPS
+/* When using MPS, Lisp_String data is actually a pointer to the
+   flexible "data" array in this struct. */
+struct Lisp_String_Data
+{
+  GC_HEADER
+  unsigned char data[FLEXIBLE_ARRAY_MEMBER];
+};
+#endif
+
 /* In a string or vector, the sign bit of u.s.size is the gc mark bit.  */
 
 struct Lisp_String
