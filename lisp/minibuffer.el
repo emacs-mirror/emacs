@@ -4051,24 +4051,26 @@ details."
 
 (defun completion--hilit-from-re (string regexp &optional point-idx)
   "Fontify STRING using REGEXP POINT-IDX.
-`completions-common-part' and `completions-first-difference' are
-used.  POINT-IDX is the position of point in the presumed \"PCM\"
-pattern that was used to generate derive REGEXP from."
-(let* ((md (and regexp (string-match regexp string) (cddr (match-data t))))
-       (pos (if point-idx (match-beginning point-idx) (match-end 0)))
-       (me (and md (match-end 0)))
-       (from 0))
-  (while md
-    (add-face-text-property from (pop md) 'completions-common-part nil string)
-    (setq from (pop md)))
-  (if (> (length string) pos)
-      (add-face-text-property
-       pos (1+ pos)
-       'completions-first-difference
-       nil string))
-  (unless (or (not me) (= from me))
-    (add-face-text-property from me 'completions-common-part nil string))
-  string))
+Uses `completions-common-part' and `completions-first-difference'
+faces to fontify STRING.
+POINT-IDX is the position of point in the presumed \"PCM\" pattern
+from which REGEXP was generated."
+  (let* ((md (and regexp (string-match regexp string) (cddr (match-data t))))
+         (pos (if point-idx (match-beginning point-idx) (match-end 0)))
+         (me (and md (match-end 0)))
+         (from 0))
+    (while md
+      (add-face-text-property from (pop md)
+                              'completions-common-part nil string)
+      (setq from (pop md)))
+    (if (and (numberp pos) (> (length string) pos))
+        (add-face-text-property
+         pos (1+ pos)
+         'completions-first-difference
+         nil string))
+    (unless (or (not me) (= from me))
+      (add-face-text-property from me 'completions-common-part nil string))
+    string))
 
 (defun completion--flex-score-1 (md-groups match-end len)
   "Compute matching score of completion.
