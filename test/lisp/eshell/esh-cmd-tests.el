@@ -558,6 +558,17 @@ NAME is the name of the test case."
    ;; Make sure we can call another command after throwing.
    (eshell-match-command-output "echo again" "\\`again\n")))
 
+(ert-deftest esh-cmd-test/command-not-found/pipeline ()
+  "Ensure that processes are stopped if a command in a pipeline is not found."
+  (skip-when (or (not (executable-find "cat"))
+                 (executable-find "nonexist")))
+  (with-temp-eshell
+    (let ((starting-process-list (process-list)))
+      (eshell-match-command-output "nonexist | *cat"
+                                   "\\`nonexist: command not found\n")
+      (eshell-wait-for-subprocess t)
+      (should (equal (process-list) starting-process-list)))))
+
 
 ;; `which' command
 

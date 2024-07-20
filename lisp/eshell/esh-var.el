@@ -553,24 +553,22 @@ Possible variable references are:
              (subcmd (or (eshell-unescape-inner-double-quote end)
                          (cons (point) end))))
         (prog1
-            `(let ((eshell-current-handles
-                    (eshell-create-handles ,temp 'overwrite)))
-               (progn
-                 (eshell-as-subcommand
-                  ,(let ((eshell-current-quoted nil))
-                     (eshell-parse-command subcmd)))
-                 (ignore
-                  (nconc eshell-this-command-hook
-                         ;; Quote this lambda; it will be evaluated by
-                         ;; `eshell-do-eval', which requires very
-                         ;; particular forms in order to work
-                         ;; properly.  See bug#54190.
-                         (list (function
-                                (lambda ()
-                                  (delete-file ,temp)
-                                  (when-let ((buffer (get-file-buffer ,temp)))
-                                    (kill-buffer buffer)))))))
-                 (eshell-apply-indices ,temp indices ,eshell-current-quoted)))
+            `(eshell-with-handles (,temp 'overwrite)
+               (eshell-as-subcommand
+                ,(let ((eshell-current-quoted nil))
+                   (eshell-parse-command subcmd)))
+               (ignore
+                (nconc eshell-this-command-hook
+                       ;; Quote this lambda; it will be evaluated by
+                       ;; `eshell-do-eval', which requires very
+                       ;; particular forms in order to work
+                       ;; properly.  See bug#54190.
+                       (list (function
+                              (lambda ()
+                                (delete-file ,temp)
+                                (when-let ((buffer (get-file-buffer ,temp)))
+                                  (kill-buffer buffer)))))))
+               (eshell-apply-indices ,temp indices ,eshell-current-quoted))
           (goto-char (1+ end))))))
    ((eq (char-after) ?\()
     (condition-case nil

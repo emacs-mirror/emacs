@@ -29,8 +29,7 @@
   `(should (equal
             (catch 'eshell-replace-command ,form)
             (list 'eshell-with-copied-handles
-                  (list 'eshell-do-command ,replacement)
-                  t))))
+                  (list 'eshell-do-command ,replacement)))))
 
 (ert-deftest em-tramp-test/su-default ()
   "Test Eshell `su' command with no arguments."

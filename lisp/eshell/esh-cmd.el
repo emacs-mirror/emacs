@@ -415,7 +415,6 @@ command hooks should be run before and after the command."
      ;; The last command (first in our reversed list) is implicitly
      ;; terminated by ";".
      (sep-terms (cons ";" sep-terms))
-     (steal-handles t)
      (commands
       (nreverse
        (mapcan
@@ -428,11 +427,8 @@ command hooks should be run before and after the command."
               (unless eshell-in-pipeline-p
                 (setq cmd `(eshell-do-command ,cmd)))
               ;; Copy I/O handles so each full statement can manipulate
-              ;; them if they like.  Steal the handles for the last
-              ;; command (first in our reversed list); we won't use the
-              ;; originals again anyway.
-              (setq cmd `(eshell-with-copied-handles ,cmd ,steal-handles)
-                    steal-handles nil)
+              ;; them if they like.
+              (setq cmd `(eshell-with-copied-handles ,cmd))
               (when (equal sep "&")
                 (setq cmd `(eshell-do-subjob ,cmd)))
               (list cmd))))
@@ -547,10 +543,8 @@ implemented via rewriting, rather than as a function."
              (let ((,(intern (cadr terms)) (car ,for-items))
 		   (eshell--local-vars (cons ',(intern (cadr terms))
                                              eshell--local-vars)))
-	       (eshell-protect
-	   	,(eshell-invokify-arg body t)))
-             (setq ,for-items (cdr ,for-items)))
-           (eshell-close-handles)))))
+	       ,(eshell-invokify-arg body t))
+             (setq ,for-items (cdr ,for-items)))))))
 
 (defun eshell-structure-basic-command (func names keyword test body
 					    &optional else)
@@ -577,11 +571,8 @@ function."
 	       (string= keyword (cadr names))))
       (setq test `(not ,test)))
 
-  ;; finally, create the form that represents this structured
-  ;; command
-  `(progn
-     (,func ,test ,body ,else)
-     (eshell-close-handles)))
+  ;; Finally, create the form that represents this structured command.
+  `(,func ,test ,body ,else))
 
 (defun eshell-rewrite-while-command (terms)
   "Rewrite a `while' command into its equivalent Eshell command form.
@@ -593,8 +584,7 @@ must be implemented via rewriting, rather than as a function."
       (eshell-structure-basic-command
        'while '("while" "until") (car terms)
        (eshell-invokify-arg (cadr terms) nil t)
-       `(eshell-protect
-         ,(eshell-invokify-arg (car (last terms)) t)))))
+       (eshell-invokify-arg (car (last terms)) t))))
 
 (defun eshell-rewrite-if-command (terms)
   "Rewrite an `if' command into its equivalent Eshell command form.
@@ -606,12 +596,9 @@ must be implemented via rewriting, rather than as a function."
       (eshell-structure-basic-command
        'if '("if" "unless") (car terms)
        (eshell-invokify-arg (cadr terms) nil t)
-       `(eshell-protect
-         ,(eshell-invokify-arg (car (last terms (if (= (length terms) 4) 2)))
-                               t))
-       (if (= (length terms) 4)
-	   `(eshell-protect
-             ,(eshell-invokify-arg (car (last terms)) t))))))
+       (eshell-invokify-arg (car (last terms (if (= (length terms) 4) 2))) t)
+       (when (= (length terms) 4)
+         (eshell-invokify-arg (car (last terms)) t)))))
 
 (defun eshell-set-exit-info (status &optional result)
   "Set the exit status and result for the last command.
@@ -662,8 +649,7 @@ This means an exit code of 0."
       (cl-assert (car sep-terms))
       (setq final (eshell-structure-basic-command
                    'if (string= (pop sep-terms) "&&") "if"
-                   `(eshell-protect ,(pop results))
-                   `(eshell-protect ,final))))
+                   (pop results) final)))
     final))
 
 (defun eshell-parse-subcommand-argument ()
@@ -762,6 +748,28 @@ if none)."
 ;; that `eshell-do-eval' will evaluated, such as command rewriting
 ;; hooks (see `eshell-rewrite-command-hook' and friends).
 
+(defmacro eshell-with-handles (handle-args &rest body)
+  "Create a new set of I/O handles and evaluate BODY.
+HANDLE-ARGS is a list of arguments to pass to `eshell-create-handles'.
+After evaluating BODY, automatically release the handles, allowing them
+to close."
+  (declare (indent 1))
+  `(let ((eshell-current-handles (eshell-create-handles ,@handle-args)))
+     (unwind-protect
+         ,(if (length= body 1) (car body) `(progn ,@body))
+       (eshell-close-handles))))
+
+(defmacro eshell-with-copied-handles (&rest body)
+  "Copy the current I/O handles and evaluate BODY.
+After evaluating BODY, automatically release the handles, allowing them
+to close."
+  (declare (indent 0))
+  `(let ((eshell-current-handles
+          (eshell-duplicate-handles eshell-current-handles)))
+     (unwind-protect
+         ,(if (length= body 1) (car body) `(progn ,@body))
+       (eshell-close-handles))))
+
 (defmacro eshell-do-subjob (object)
   "Evaluate a command OBJECT as a subjob.
 We indicate that the process was run in the background by
@@ -774,10 +782,9 @@ returning it as (:eshell-background . PROCESSES)."
 
 (defmacro eshell-commands (object &optional silent)
   "Place a valid set of handles, and context, around command OBJECT."
-  `(let ((eshell-current-handles
-	  (eshell-create-handles ,(not silent) 'append))
-	 eshell-current-subjob-p)
-     ,object))
+  `(let (eshell-current-subjob-p)
+     (eshell-with-handles (,(not silent) 'append)
+       ,object)))
 
 (defvar eshell-this-command-hook nil)
 
@@ -796,8 +803,7 @@ this grossness will be made to disappear by using `call/cc'..."
            (mapc #'funcall eshell-this-command-hook)))
      (error
       (eshell-errorn (error-message-string err))
-      (eshell-set-exit-info 1)
-      (eshell-close-handles))))
+      (eshell-set-exit-info 1))))
 
 (define-obsolete-function-alias 'eshell-trap-errors #'eshell-do-command "31.1")
 
@@ -806,19 +812,12 @@ this grossness will be made to disappear by using `call/cc'..."
 If the wrapped form returns a process (or list thereof), Eshell will
 wait for completion in the background for the process(es) to complete.")
 
-(defmacro eshell-with-copied-handles (object &optional steal-p)
-  "Duplicate current I/O handles, so OBJECT works with its own copy.
-If STEAL-P is non-nil, these new handles will be stolen from the
-current ones (see `eshell-duplicate-handles')."
-  `(let ((eshell-current-handles
-          (eshell-duplicate-handles eshell-current-handles ,steal-p)))
-     ,object))
-
 (define-obsolete-function-alias 'eshell-copy-handles
   #'eshell-with-copied-handles "30.1")
 
 (defmacro eshell-protect (object)
   "Protect I/O handles, so they aren't get closed after eval'ing OBJECT."
+  (declare (obsolete nil "31.1"))
   `(progn
      (eshell-protect-handles eshell-current-handles)
      ,object))
@@ -845,9 +844,7 @@ This macro calls itself recursively, with NOTFIRST non-nil."
            `(eshell-set-output-handle ,eshell-output-handle
                                       'append (car next-procs)))
         (let ((proc ,(car pipeline)))
-          (cons proc next-procs)))
-      ;; Steal handles if this is the last item in the pipeline.
-      ,(null (cdr pipeline)))))
+          (cons proc next-procs))))))
 
 (defmacro eshell-do-pipelines-synchronously (pipeline)
   "Execute the commands in PIPELINE in sequence synchronously.
@@ -869,9 +866,7 @@ supported."
                   ;; meaning for synchronous processes: it's non-nil
                   ;; only when piping *to* a process.
                   (eshell-in-pipeline-p ,(and (cdr pipeline) t)))
-              ,(car pipeline)))
-          ;; Steal handles if this is the last item in the pipeline.
-          ,(null (cdr pipeline)))
+              ,(car pipeline))))
        ,(when (cdr pipeline)
           `(eshell-do-pipelines-synchronously (quote ,(cdr pipeline)))))))
 
@@ -946,7 +941,7 @@ A command can be invoked directly if all of the following are true:
 
 * The command is of the form
   (eshell-with-copied-handles
-   (eshell-do-command (eshell-named-command NAME [ARGS])) _).
+   (eshell-do-command (eshell-named-command NAME [ARGS]))).
 
 * NAME is a string referring to an alias function and isn't a
   complex command (see `eshell-complex-commands').
@@ -954,8 +949,7 @@ A command can be invoked directly if all of the following are true:
 * Any subcommands in ARGS can also be invoked directly."
   (pcase command
     (`(eshell-with-copied-handles
-       (eshell-do-command (eshell-named-command ,name . ,args))
-       ,_)
+       (eshell-do-command (eshell-named-command ,name . ,args)))
      (and name (stringp name)
 	  (not (member name eshell-complex-commands))
 	  (catch 'simple
@@ -1557,7 +1551,7 @@ a string naming a Lisp function."
                     (not result))
            2)
          result))
-      (eshell-close-handles))))
+      nil)))
 
 (define-obsolete-function-alias 'eshell-lisp-command* #'eshell-lisp-command
   "31.1")

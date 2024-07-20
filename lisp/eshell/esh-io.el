@@ -353,14 +353,14 @@ calling this function)."
 (defun eshell-duplicate-handles (handles &optional steal-p)
   "Create a duplicate of the file handles in HANDLES.
 This uses the targets of each handle in HANDLES, incrementing its
-reference count by one (unless STEAL-P is non-nil).  These
-targets are shared between the original set of handles and the
-new one, so the targets are only closed when the reference count
-drops to 0 (see `eshell-close-handles').
+reference count by one.  These targets are shared between the original
+set of handles and the new one, so the targets are only closed when the
+reference count drops to 0 (see `eshell-close-handles').
 
 This function also sets the DEFAULT field for each handle to
 t (see `eshell-create-handles').  Unlike the targets, this value
 is not shared with the original handles."
+  (declare (advertised-calling-convention (handles) "31.1"))
   (let ((dup-handles (make-vector eshell-number-of-handles nil)))
     (dotimes (idx eshell-number-of-handles)
       (when-let ((handle (aref handles idx)))
