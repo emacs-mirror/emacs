@@ -1356,24 +1356,6 @@ scan_ambig (mps_ss_t ss, void *start, void *end, void *closure)
   return MPS_RES_OK;
 }
 
-static mps_res_t
-scan_stack (mps_ss_t ss, void *start, void *end, void *closure)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-#ifdef HAVE___BUILTIN_UNWIND_INIT
-    __builtin_unwind_init ();
-    asm ("");
-    void *p;
-    start = min (start, (void *) &p);
-    end = max (end, (void *) &p);
-#endif
-    IGC_FIX_CALL (ss, scan_ambig (ss, start, end, closure));
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
 #ifndef IN_MY_FORK
 static mps_res_t
 scan_pure (mps_ss_t ss, void *start, void *end, void *closure)
@@ -2706,7 +2688,7 @@ root_create_thread (struct igc_thread_list *t)
   void *cold = (void *) t->d.ts->m_stack_bottom;
   mps_res_t res
     = mps_root_create_thread_scanned (&root, gc->arena, mps_rank_ambig (), 0,
-				      t->d.thr, scan_stack, 0, cold);
+				      t->d.thr, scan_ambig, 0, cold);
   IGC_CHECK_RES (res);
   t->d.stack_root = register_root (gc, root, cold, NULL, true, "control stack");
 }
