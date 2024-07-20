@@ -1159,7 +1159,7 @@ have been replaced by constants."
                   (t
                    (caddr args)))))        ; Zero or one ELSE forms
             (unless (consp new-form)
-              (setq new-form (cons 'progn new-form)))
+              (setq new-form `(progn ,new-form)))
             (setcar form (car new-form))
             (setcdr form (cdr new-form))))
         (eshell-do-eval form synchronous-p))
@@ -1261,7 +1261,7 @@ have been replaced by constants."
 		(setq args (cdr args)))))
 	(cond
 	 ((eq (car form) 'progn)
-	  (car (last form)))
+	  (car (last (cdr form))))
 	 ((eq (car form) 'prog1)
 	  (cadr form))
 	 (t
