@@ -381,7 +381,7 @@ is not shared with the original handles."
 (defun eshell-close-handles (&optional handles obsolete-1 obsolete-2)
   "Close all of the current HANDLES, taking refcounts into account.
 If HANDLES is nil, use `eshell-current-handles'."
-  (declare (advertised-calling-convention (&optional handles) "30.1"))
+  (declare (advertised-calling-convention (&optional handles) "31.1"))
   (when (or obsolete-1 obsolete-2 (numberp handles))
     (declare-function eshell-set-exit-info "esh-cmd"
                       (&optional exit-code result))
