@@ -1902,10 +1902,8 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 
   USE_SAFE_ALLOCA;
 
-  submenu_stack = SAFE_ALLOCA (menu_items_used
-			       * sizeof *submenu_stack);
-  subprefix_stack = SAFE_ALLOCA (menu_items_used
-				 * sizeof *subprefix_stack);
+  SAFE_NALLOCA (submenu_stack, 1, menu_items_used);
+  SAFE_NALLOCA (subprefix_stack, 1, menu_items_used);
 
   specpdl_count = SPECPDL_INDEX ();
 

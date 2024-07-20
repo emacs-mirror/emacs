@@ -1009,7 +1009,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
     }
   else if (!types)
     {
-      types = SAFE_ALLOCA (nargs * sizeof (* types));
+      SAFE_NALLOCA (types, 1, nargs);
       for (ptrdiff_t i = 0; i < nargs; i++)
 	types[i] = comp.lisp_obj_type;
     }
@@ -2096,16 +2096,17 @@ static gcc_jit_rvalue *
 emit_simple_limple_call (Lisp_Object args, gcc_jit_type *ret_type, bool direct)
 {
   USE_SAFE_ALLOCA;
-  int i = 0;
   Lisp_Object callee = FIRST (args);
   args = XCDR (args);
-  ptrdiff_t nargs = list_length (args);
-  gcc_jit_rvalue **gcc_args = SAFE_ALLOCA (nargs * sizeof (*gcc_args));
+  ptrdiff_t i = 0, nargs = list_length (args);
+  gcc_jit_rvalue **gcc_args;
+  SAFE_NALLOCA (gcc_args, 1, nargs);
   FOR_EACH_TAIL (args)
     gcc_args[i++] = emit_mvar_rval (XCAR (args));
 
+  gcc_jit_rvalue *res = emit_call (callee, ret_type, nargs, gcc_args, direct);
   SAFE_FREE ();
-  return emit_call (callee, ret_type, nargs, gcc_args, direct);
+  return res;
 }
 
 static gcc_jit_rvalue *
@@ -4213,11 +4214,13 @@ declare_lex_function (Lisp_Object func)
     {
       EMACS_INT max_args = XFIXNUM (CALL1I (comp-args-max, args));
       eassert (max_args < INT_MAX);
-      gcc_jit_type **type = SAFE_ALLOCA (max_args * sizeof (*type));
+      gcc_jit_type **type;
+      SAFE_NALLOCA (type, 1, max_args);
       for (ptrdiff_t i = 0; i < max_args; i++)
 	type[i] = comp.lisp_obj_type;
 
-      gcc_jit_param **params = SAFE_ALLOCA (max_args * sizeof (*params));
+      gcc_jit_param **params;
+      SAFE_NALLOCA (params, 1, max_args);
       for (int i = 0; i < max_args; ++i)
 	params[i] = gcc_jit_context_new_param (comp.ctxt,
 					      NULL,
@@ -4293,7 +4296,7 @@ compile_function (Lisp_Object func)
 				comp.func_relocs_ptr_type,
 				"freloc");
 
-  comp.frame = SAFE_ALLOCA (comp.frame_size * sizeof (*comp.frame));
+  SAFE_NALLOCA (comp.frame, 1, comp.frame_size);
   if (comp.func_has_non_local || !comp.func_speed)
     {
       /* FIXME: See bug#42360.  */

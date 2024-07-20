@@ -292,7 +292,8 @@ Letter-case is significant, but text properties are ignored. */)
   ptrdiff_t x, y, lastdiag, olddiag;
 
   USE_SAFE_ALLOCA;
-  ptrdiff_t *column = SAFE_ALLOCA ((len1 + 1) * sizeof (ptrdiff_t));
+  ptrdiff_t *column;
+  SAFE_NALLOCA (column, 1, len1 + 1);
   for (y = 0; y <= len1; y++)
     column[y] = y;
 

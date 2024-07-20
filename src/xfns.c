@@ -7361,7 +7361,7 @@ that mouse buttons are being held down, such as immediately after a
   else
     signal_error ("Invalid drag-and-drop action", action);
 
-  target_atoms = SAFE_ALLOCA (ntargets * sizeof *target_atoms);
+  SAFE_NALLOCA (target_atoms, 1, ntargets);
 
   /* Catch errors since interning lots of targets can potentially
      generate a BadAlloc error.  */

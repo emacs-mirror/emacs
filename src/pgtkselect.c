@@ -1808,7 +1808,7 @@ targets) that can be dropped on top of FRAME.  */)
   CHECK_LIST (targets);
   length = list_length (targets);
   n = 0;
-  entries = SAFE_ALLOCA (sizeof *entries * length);
+  SAFE_NALLOCA (entries, 1, length);
   memset (entries, 0, sizeof *entries * length);
   tem = targets;
 

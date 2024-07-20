@@ -2230,7 +2230,7 @@ font_sort_entities (Lisp_Object list, Lisp_Object prefer,
       maxlen = ASIZE (vec);
     }
 
-  data = SAFE_ALLOCA (maxlen * sizeof *data);
+  SAFE_NALLOCA (data, 1, maxlen);
   best_score = 0xFFFFFFFF;
   best_entity = Qnil;
 

@@ -38,8 +38,6 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
 		   bool is_menu_bar)
 {
   void **menus, **panes;
-  ssize_t menu_len;
-  ssize_t pane_len;
   int i, menu_depth;
   void *menu, *window, *view;
   Lisp_Object pane_name, prefix;
@@ -48,18 +46,18 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
 
   USE_SAFE_ALLOCA;
 
-  menu_len = (menu_items_used + 1 - start) * sizeof *menus;
-  pane_len = (menu_items_used + 1 - start) * sizeof *panes;
+  int menu_len = menu_items_used - start + 1;
+  int pane_len = menu_items_used - start + 1;
   menu = first_menu;
 
   i = start;
   menu_depth = 0;
 
-  menus = SAFE_ALLOCA (menu_len);
-  panes = SAFE_ALLOCA (pane_len);
-  memset (menus, 0, menu_len);
-  memset (panes, 0, pane_len);
+  SAFE_NALLOCA (menus, 1, menu_len);
+  SAFE_NALLOCA (panes, 1, pane_len);
+  memset (menus, 0, menu_len * sizeof *menus);
   menus[0] = first_menu;
+  memset (panes, 0, pane_len * sizeof *panes);
 
   window = NULL;
   view = NULL;
@@ -393,8 +391,7 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
   view = FRAME_HAIKU_VIEW (f);
   i = 0;
   submenu_depth = 0;
-  subprefix_stack
-    = SAFE_ALLOCA (menu_items_used * sizeof (Lisp_Object));
+  SAFE_NALLOCA (subprefix_stack, 1, menu_items_used);
 
   eassert (FRAME_HAIKU_P (f));
 
