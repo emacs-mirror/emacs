@@ -649,8 +649,8 @@ for safety.  This is a macro to prevent propagate-on-load viruses."
   t)
 
 (defmacro ses-header-row (row)
-  "Load the header row from the spreadsheet file and check it
-for safety.  This is a macro to prevent propagate-on-load viruses."
+  "Load the header row from the spreadsheet file and check it for safety.
+This is a macro to prevent propagate-on-load viruses."
   (or (and (wholenump row) (or (zerop ses--numrows) (< row ses--numrows)))
       (error "Bad header-row"))
   (setq ses--header-row row)

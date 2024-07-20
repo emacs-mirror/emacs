@@ -42,7 +42,7 @@
   "DEL" #'sqlite-mode-delete)
 
 (define-derived-mode sqlite-mode special-mode "Sqlite"
-  "This mode lists the contents of an .sqlite3 file"
+  "This mode lists the contents of an .sqlite3 file."
   :interactive nil
   (buffer-disable-undo)
   (setq-local buffer-read-only t

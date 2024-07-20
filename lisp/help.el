@@ -1205,7 +1205,7 @@ current buffer."
 	    (describe-function-1 defn)))))))
 
 (defun search-forward-help-for-help ()
-  "Search forward in the help-for-help window.
+  "Search forward in the `help-for-help' window.
 This command is meant to be used after issuing the \\[help-for-help] command."
   (interactive)
   (unless (get-buffer help-for-help-buffer-name)

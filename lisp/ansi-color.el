@@ -565,12 +565,11 @@ This function can be added to `comint-preoutput-filter-functions'."
 
 (defun ansi-color--ensure-context (context-sym position)
   "Return CONTEXT-SYM's value as a valid context.
-If it is nil, set CONTEXT-SYM's value to a new context and return
-it. Context is a list of the form as described in
-`ansi-color-context' if POSITION is nil, or
-`ansi-color-context-region' if POSITION is non-nil.
+If it is nil, set CONTEXT-SYM's value to a new context and return it.
+Context is a list of the form as described in `ansi-color-context' if
+POSITION is nil, or `ansi-color-context-region' if POSITION is non-nil.
 
-If CONTEXT-SYM's value is already non-nil, return it. If its
+If CONTEXT-SYM's value is already non-nil, return it.  If its
 marker doesn't point anywhere yet, position it before character
 number POSITION, if non-nil."
   (let ((context (symbol-value context-sym)))

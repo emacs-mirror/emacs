@@ -184,10 +184,9 @@ put the point at one place, then click and drag over some other region."
 
 This command is like \\[mouse-kill-secondary] (that is, the secondary
 selection is deleted and placed in the kill ring), except that it also
-leaves the secondary buffer active on exit.
-
-This command was derived from mouse-kill-secondary in emacs-19.28
-by johnh@ficus.cs.ucla.edu."
+leaves the secondary buffer active on exit."
+  ;; This command was derived from mouse-kill-secondary in emacs-19.28
+  ;; by johnh@ficus.cs.ucla.edu.
   (interactive)
   (let* ((keys (this-command-keys))
 	 (click (elt keys (1- (length keys)))))
@@ -202,7 +201,7 @@ by johnh@ficus.cs.ucla.edu."
   ;; (delete-overlay mouse-secondary-overlay)
   ;; (gui-set-selection 'SECONDARY nil)
   ;; (setq mouse-secondary-overlay nil)
-)
+  )
 
 (defun mouse-drag-secondary-moving (start-event)
   "Sweep out a secondary selection, then move it to the current point."

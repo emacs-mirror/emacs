@@ -153,7 +153,7 @@ systems that support it, save the selection timestamp too."
 (defun gui--clipboard-selection-unchanged-p (text)
   "Check whether the clipboard selection has changed.
 Compare the selection text, passed as argument, with the text
-from the last saved selection. For window systems that support
+from the last saved selection.  For window systems that support
 it, compare the selection timestamp too."
   (and
    (equal text gui--last-selected-text-clipboard)

@@ -658,8 +658,8 @@ executed once, when the buffer is created."
         ["Forward Output Group" term-next-prompt t]
         ["Kill Current Output Group" term-kill-output t]))
     map)
-  "Keymap for \"line mode\" in Term mode.  For custom keybindings purposes
-please note there is also `term-raw-map'")
+  "Keymap for \"line mode\" in Term mode.
+For custom keybindings purposes please note there is also `term-raw-map'")
 
 (defvar term-escape-char nil
   "Escape character for char sub-mode of term mode.
@@ -1097,7 +1097,7 @@ The interpreter name is same as buffer name, sans the asterisks.
 There are two submodes: line mode and char mode.  By default, you are
 in char mode.  In char sub-mode, each character (except
 `term-escape-char') is sent immediately to the subprocess.
-The escape character is equivalent to the usual meaning of C-x.
+The escape character is equivalent to the usual meaning of \\`C-x'.
 
 In line mode, you send a line of input at a time; use
 \\[term-send-input] to send.
@@ -1459,7 +1459,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 (defun term-char-mode ()
   "Switch to char (\"raw\") sub-mode of term mode.
 Each character you type is sent directly to the inferior without
-intervention from Emacs, except for the escape character (usually C-c)."
+intervention from Emacs, except for the escape character (usually \\`C-c')."
   (interactive)
   ;; FIXME: Emit message? Cfr ilisp-raw-message
   (when (term-in-line-mode)

@@ -751,7 +751,7 @@ with completion and history."
 
 (defvar hi-lock-use-overlays nil
   "Whether to always use overlays instead of font-lock rules.
-When font-lock-mode is enabled and the buffer specifies font-lock rules,
+When `font-lock-mode' is enabled and the buffer specifies font-lock rules,
 highlighting is performed by adding new font-lock rules to the existing ones,
 so when new matching strings are added, they are highlighted by font-lock.
 Otherwise, overlays are used, but new highlighting overlays are not added
