@@ -216,8 +216,6 @@ struct android_swap_info
 };
 
 #define NativeRectangle			Emacs_Rectangle
-#define CONVERT_TO_NATIVE_RECT(xr, nr)	((xr) = (nr))
-#define CONVERT_FROM_EMACS_RECT(xr, nr) ((nr) = (xr))
 
 #define STORE_NATIVE_RECT(nr, rx, ry, rwidth, rheight)	\
   ((nr).x = (rx), (nr).y = (ry),			\

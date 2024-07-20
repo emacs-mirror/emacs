@@ -3017,12 +3017,20 @@ point of FRAME.  */)
   (Lisp_Object frame, Lisp_Object x, Lisp_Object y)
 {
   struct frame *f = decode_window_system_frame (frame);
-  NativeRectangle r;
+  NativeRectangle rect;
+#ifdef CONVERT_TO_EMACS_RECT
+  Emacs_Rectangle xrect;
+#endif /* CONVERT_TO_EMACS_RECT */
 
   CHECK_FIXNUM (x);
   CHECK_FIXNUM (y);
-  remember_mouse_glyph (f, XFIXNUM (x), XFIXNUM (y), &r);
-  return list4i (r.x, r.y, r.width, r.height);
+  remember_mouse_glyph (f, XFIXNUM (x), XFIXNUM (y), &rect);
+#ifdef CONVERT_TO_EMACS_RECT
+  CONVERT_TO_EMACS_RECT (xrect, rect);
+  return list4i (xrect.x, xrect.y, xrect.width, xrect.height);
+#else /* !defined CONVERT_TO_EMACS_RECT */
+  return list4i (rect.x, rect.y, rect.width, rect.height);
+#endif /* !defined CONVERT_TO_EMACS_RECT */
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
