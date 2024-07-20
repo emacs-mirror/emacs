@@ -635,6 +635,7 @@ set_header (struct igc_header *h, enum igc_obj_type type,
 }
 
 static unsigned alloc_hash (void);
+static size_t igc_round (size_t nbytes, size_t align);
 
 /* Called throughout Emacs to initialize the GC header of an object
    which does not live in GC-managed memory, such as pure objects and
@@ -666,6 +667,21 @@ void gc_init_header (union gc_header *header, enum igc_obj_type type)
 	break;
       }
     case IGC_OBJ_DUMPED_CHARSET_TABLE:
+      break;
+    default:
+      emacs_abort ();
+    }
+}
+
+void gc_init_header_bytes (union gc_header *header, enum igc_obj_type type,
+			   size_t nbytes)
+{
+  struct igc_header *h = (struct igc_header *)header;
+  switch (type)
+    {
+    case IGC_OBJ_STRING_DATA:
+      set_header (h, IGC_OBJ_STRING_DATA, sizeof (struct Lisp_String_Data) +
+		  igc_round (nbytes, IGC_ALIGN), alloc_hash());
       break;
     default:
       emacs_abort ();
