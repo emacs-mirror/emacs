@@ -33,13 +33,35 @@
 
 (defvar touch-screen-current-tool nil
   "The touch point currently being tracked, or nil.
-If non-nil, this is a list of ten elements: the ID of the touch
-point being tracked, the window where the touch began, a cons
-holding the last registered position of the touch point, relative
-to that window, a field used to store data while tracking the
-touch point, the initial position of the touchpoint, another four
-fields to used store data while tracking the touch point, and the
-last known position of the touch point.
+If non-nil, this is a list of ten elements, which might be
+accessed as follows:
+
+  (nth 0 touch-screen-current-tool)
+  The ID of the touch point being tracked.
+
+  (nth 1 touch-screen-current-tool)
+  The window where the touch sequence being monitored commenced.
+
+  (nth 2 touch-screen-current-tool)
+  A cons holding the last registered position of the touch
+  point, relative to that window.
+
+  (nth 3 touch-screen-current-tool)
+  A field holding a symbol identifying the gesture being
+  observed while tracking the said touch point.
+
+  (nth 4 touch-screen-current-tool)
+  The initial position of the touchpoint.
+
+  (nth 5 touch-screen-current-tool)
+  (nth 6 touch-screen-current-tool)
+  (nth 7 touch-screen-current-tool)
+  (nth 8 touch-screen-current-tool)
+  A further four fields to used store data while tracking the
+  touch point.
+
+  (nth 9 touch-screen-current-tool)
+  The last known position of the touch point.
 
 See `touch-screen-handle-point-update' and
 `touch-screen-handle-point-up' for the meanings of the fourth
@@ -1027,6 +1049,8 @@ When ARG is t, set the fourth element of
       (let ((posn (nth 4 touch-screen-current-tool)))
         (throw 'input-event (list 'touchscreen-hold posn))))))
 
+(declare-function remember-mouse-glyph "xdisp.c")
+
 (defun touch-screen-handle-point-update (point)
   "Notice that the touch point POINT has changed position.
 Perform the editing operations or throw to the input translation
@@ -1077,8 +1101,7 @@ then move point to the position of POINT."
          (what (nth 3 touch-screen-current-tool))
          (posn (cdr point))
          ;; Now get the position of X and Y relative to WINDOW.
-         (relative-xy
-         (touch-screen-relative-xy posn window)))
+         (relative-xy (touch-screen-relative-xy posn window)))
     ;; Update the 10th field of the tool list with RELATIVE-XY.
     (setcar (nthcdr 9 touch-screen-current-tool) relative-xy)
     (cond ((or (null what)
@@ -1128,8 +1151,43 @@ then move point to the position of POINT."
            ;; point of the event.  Generate a mouse-motion event if
            ;; mouse movement is being tracked.
            (when track-mouse
-             (throw 'input-event (list 'mouse-movement
-                                       (cdr point)))))
+             (let ((mouse-rect (nth 5 touch-screen-current-tool))
+                   (edges (window-inside-pixel-edges window)))
+               ;; If fine-grained tracking is enabled, disregard the
+               ;; mouse rect.  Apply the same criteria as
+               ;; `remember_mouse_glyph', which see.
+               (if (or mouse-fine-grained-tracking
+                       window-resize-pixelwise)
+                   (throw 'input-event (list 'mouse-movement posn))
+                 ;; Otherwise, generate an event only if POINT falls
+                 ;; outside the extents of the mouse rect, and record
+                 ;; the extents of the glyph beneath point as the next
+                 ;; mouse rect.
+                 (let ((point relative-xy)
+                       (frame-offsets (if (framep window)
+                                          '(0 . 0)
+                                        (cons (car edges) (cadr edges)))))
+                   (when (or (not mouse-rect)
+                             (< (car point) (- (car mouse-rect)
+                                               (car frame-offsets)))
+                             (> (car point) (+ (- (car mouse-rect) 1
+                                                  (car frame-offsets))
+                                               (caddr mouse-rect)))
+                             (< (cdr point) (- (cadr mouse-rect)
+                                               (cdr frame-offsets)))
+                             (> (cdr point) (+ (- (cadr mouse-rect) 1
+                                                  (cdr frame-offsets))
+                                               (cadddr mouse-rect))))
+                     ;; Record the extents of this glyph.
+                     (setcar (nthcdr 5 touch-screen-current-tool)
+                             (remember-mouse-glyph (or (and (framep window) window)
+                                                       (window-frame window))
+                                                   (+ (car point)
+                                                      (car frame-offsets))
+                                                   (+ (cdr point)
+                                                      (cdr frame-offsets))))
+                     ;; Generate the movement.
+                     (throw 'input-event (list 'mouse-movement posn))))))))
           ((eq what 'held)
            (let* ((posn (cdr point)))
              ;; Now start dragging.
