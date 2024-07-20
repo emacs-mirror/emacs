@@ -44,9 +44,9 @@
 ;;; Code:
 
 (defvar flow-control-c-s-replacement ?\034
-  "Character that replaces C-s, when flow control handling is enabled.")
+  "Character that replaces \\`C-s', when flow control handling is enabled.")
 (defvar flow-control-c-q-replacement ?\036
-  "Character that replaces C-q, when flow control handling is enabled.")
+  "Character that replaces \\`C-q', when flow control handling is enabled.")
 
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
 

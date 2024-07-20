@@ -119,7 +119,7 @@ user for text to insert in the templates."
   :type 'boolean)
 
 (defcustom tempo-insert-region nil
-  "Automatically insert current region when there is a `r' in the template
+  "Automatically insert current region when there is a `r' in the template.
 If this variable is nil, `r' elements will be treated just like `p'
 elements, unless the template function is given a prefix (or a non-nil
 argument).  If this variable is non-nil, the behavior is reversed.

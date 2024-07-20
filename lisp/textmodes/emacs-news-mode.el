@@ -107,12 +107,21 @@
   (emacs-news--mode-common))
 
 ;;;###autoload
-(define-derived-mode emacs-news-view-mode special-mode "NEWS"
+(define-derived-mode emacs-news-view-mode emacs-news-mode "NEWS"
   "Major mode for viewing the Emacs NEWS file."
   (setq buffer-read-only t)
   (emacs-news--buttonize)
   (button-mode)
-  (emacs-news--mode-common))
+  ;; Bind useful browsing keys.
+  (keymap-local-set "q" 'quit-window)
+  (keymap-local-set "SPC" 'scroll-up-command)
+  (keymap-local-set "S-SPC" 'scroll-down-command)
+  (keymap-local-set "DEL" 'scroll-down-command)
+  (keymap-local-set "?" 'describe-mode)
+  (keymap-local-set "h" 'describe-mode)
+  (keymap-local-set ">" 'end-of-buffer)
+  (keymap-local-set "<" 'beginning-of-buffer)
+  (keymap-local-set "g" 'revert-buffer))
 
 (defun emacs-news--fill-paragraph (&optional justify)
   (cond

@@ -815,7 +815,7 @@ string containing the actual image data.  If the property `:type TYPE'
 is omitted or nil, try to determine the image type from its first few
 bytes of image data.  If that doesn't work, and the property `:file
 FILE' provide a file name, use its file extension as indication of the
-image type. If `:type TYPE' is provided, it must match the actual type
+image type.  If `:type TYPE' is provided, it must match the actual type
 determined for FILE or DATA by `create-image'.
 
 The function returns the image specification for the first specification

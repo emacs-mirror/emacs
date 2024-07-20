@@ -19842,7 +19842,8 @@ may ask:
 @table @dfn
 @item If I read an article while plugged, do they get entered into the Agent?
 
-@strong{No}.  If you want this behavior, add
+Yes, because of the default value of
+@code{gnus-agent-eagerly-store-articles}.  An alternative is to add
 @code{gnus-agent-fetch-selected-article} to
 @code{gnus-select-article-hook}.
 
