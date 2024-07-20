@@ -2682,26 +2682,13 @@ check_number_coerce_marker (Lisp_Object x)
   return x;
 }
 
-Lisp_Object
-arithcompare (Lisp_Object num1, Lisp_Object num2,
-	      enum Arith_Comparison comparison)
+cmp_bits_t
+arithcompare (Lisp_Object num1, Lisp_Object num2)
 {
-  EMACS_INT i1 = 0, i2 = 0;
-  bool lt, eq = true, gt;
-  bool test;
-
   num1 = check_number_coerce_marker (num1);
   num2 = check_number_coerce_marker (num2);
 
-  /* If the comparison is mostly done by comparing two doubles,
-     set LT, EQ, and GT to the <, ==, > results of that comparison,
-     respectively, taking care to avoid problems if either is a NaN,
-     and trying to avoid problems on platforms where variables (in
-     violation of the C standard) can contain excess precision.
-     Regardless, set I1 and I2 to integers that break ties if the
-     two-double comparison is either not done or reports
-     equality.  */
-
+  bool lt, eq, gt;
   if (FLOATP (num1))
     {
       double f1 = XFLOAT_DATA (num1);
@@ -2723,16 +2710,30 @@ arithcompare (Lisp_Object num1, Lisp_Object num2,
 	     (exactly) so I1 - I2 = NUM1 - NUM2 (exactly), so comparing I1
 	     to I2 will break the tie correctly.  */
 	  double f2 = XFIXNUM (num2);
-	  lt = f1 < f2;
-	  eq = f1 == f2;
-	  gt = f1 > f2;
-	  i1 = f2;
-	  i2 = XFIXNUM (num2);
+	  if (f1 == f2)
+	    {
+	      EMACS_INT i1 = f2;
+	      EMACS_INT i2 = XFIXNUM (num2);
+	      eq = i1 == i2;
+	      lt = i1 < i2;
+	      gt = i1 > i2;
+	    }
+	  else
+	    {
+	      eq = false;
+	      lt = f1 < f2;
+	      gt = f1 > f2;
+	    }
 	}
       else if (isnan (f1))
 	lt = eq = gt = false;
       else
-	i2 = mpz_cmp_d (*xbignum_val (num2), f1);
+	{
+	  int cmp = mpz_cmp_d (*xbignum_val (num2), f1);
+	  eq = cmp == 0;
+	  lt = cmp > 0;
+	  gt = cmp < 0;
+	}
     }
   else if (FIXNUMP (num1))
     {
@@ -2741,19 +2742,36 @@ arithcompare (Lisp_Object num1, Lisp_Object num2,
 	  /* Compare an integer NUM1 to a float NUM2.  This is the
 	     converse of comparing float to integer (see above).  */
 	  double f1 = XFIXNUM (num1), f2 = XFLOAT_DATA (num2);
-	  lt = f1 < f2;
-	  eq = f1 == f2;
-	  gt = f1 > f2;
-	  i1 = XFIXNUM (num1);
-	  i2 = f1;
+	  if (f1 == f2)
+	    {
+	      EMACS_INT i1 = XFIXNUM (num1);
+	      EMACS_INT i2 = f1;
+	      eq = i1 == i2;
+	      lt = i1 < i2;
+	      gt = i1 > i2;
+	    }
+	  else
+	    {
+	      eq = false;
+	      lt = f1 < f2;
+	      gt = f1 > f2;
+	    }
 	}
       else if (FIXNUMP (num2))
 	{
-	  i1 = XFIXNUM (num1);
-	  i2 = XFIXNUM (num2);
+	  EMACS_INT i1 = XFIXNUM (num1);
+	  EMACS_INT i2 = XFIXNUM (num2);
+	  eq = i1 == i2;
+	  lt = i1 < i2;
+	  gt = i1 > i2;
 	}
       else
-	i2 = mpz_sgn (*xbignum_val (num2));
+	{
+	  int sgn = mpz_sgn (*xbignum_val (num2));
+	  eq = sgn == 0;
+	  lt = sgn > 0;
+	  gt = sgn < 0;
+	}
     }
   else if (FLOATP (num2))
     {
@@ -2761,61 +2779,36 @@ arithcompare (Lisp_Object num1, Lisp_Object num2,
       if (isnan (f2))
 	lt = eq = gt = false;
       else
-	i1 = mpz_cmp_d (*xbignum_val (num1), f2);
+	{
+	  int cmp = mpz_cmp_d (*xbignum_val (num1), f2);
+	  eq = cmp == 0;
+	  lt = cmp < 0;
+	  gt = cmp > 0;
+	}
     }
   else if (FIXNUMP (num2))
-    i1 = mpz_sgn (*xbignum_val (num1));
+    {
+      int sgn = mpz_sgn (*xbignum_val (num1));
+      eq = sgn == 0;
+      lt = sgn < 0;
+      gt = sgn > 0;
+    }
   else
-    i1 = mpz_cmp (*xbignum_val (num1), *xbignum_val (num2));
-
-  if (eq)
     {
-      /* The two-double comparison either reported equality, or was not done.
-	 Break the tie by comparing the integers.  */
-      lt = i1 < i2;
-      eq = i1 == i2;
-      gt = i1 > i2;
+      int cmp = mpz_cmp (*xbignum_val (num1), *xbignum_val (num2));
+      eq = cmp == 0;
+      lt = cmp < 0;
+      gt = cmp > 0;
     }
 
-  switch (comparison)
-    {
-    case ARITH_EQUAL:
-      test = eq;
-      break;
-
-    case ARITH_NOTEQUAL:
-      test = !eq;
-      break;
-
-    case ARITH_LESS:
-      test = lt;
-      break;
-
-    case ARITH_LESS_OR_EQUAL:
-      test = lt | eq;
-      break;
-
-    case ARITH_GRTR:
-      test = gt;
-      break;
-
-    case ARITH_GRTR_OR_EQUAL:
-      test = gt | eq;
-      break;
-
-    default:
-      eassume (false);
-    }
-
-  return test ? Qt : Qnil;
+  return lt << Cmp_Bit_LT | gt << Cmp_Bit_GT | eq << Cmp_Bit_EQ;
 }
 
 static Lisp_Object
-arithcompare_driver (ptrdiff_t nargs, Lisp_Object *args,
-                     enum Arith_Comparison comparison)
+arithcompare_driver (ptrdiff_t nargs, Lisp_Object *args, cmp_bits_t cmpmask)
 {
   for (ptrdiff_t i = 1; i < nargs; i++)
-    if (NILP (arithcompare (args[i - 1], args[i], comparison)))
+    if (!(arithcompare (args[i - 1], args[i]) & cmpmask))
       return Qnil;
   return Qt;
 }
@@ -2825,7 +2818,7 @@ DEFUN ("=", Feqlsign, Seqlsign, 1, MANY, 0,
 usage: (= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return arithcompare_driver (nargs, args, ARITH_EQUAL);
+  return arithcompare_driver (nargs, args, Cmp_EQ);
 }
 
 DEFUN ("<", Flss, Slss, 1, MANY, 0,
@@ -2836,7 +2829,7 @@ usage: (< NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
     return XFIXNUM (args[0]) < XFIXNUM (args[1]) ? Qt : Qnil;
 
-  return arithcompare_driver (nargs, args, ARITH_LESS);
+  return arithcompare_driver (nargs, args, Cmp_LT);
 }
 
 DEFUN (">", Fgtr, Sgtr, 1, MANY, 0,
@@ -2847,7 +2840,7 @@ usage: (> NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
     return XFIXNUM (args[0]) > XFIXNUM (args[1]) ? Qt : Qnil;
 
-  return arithcompare_driver (nargs, args, ARITH_GRTR);
+  return arithcompare_driver (nargs, args, Cmp_GT);
 }
 
 DEFUN ("<=", Fleq, Sleq, 1, MANY, 0,
@@ -2858,7 +2851,7 @@ usage: (<= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
     return XFIXNUM (args[0]) <= XFIXNUM (args[1]) ? Qt : Qnil;
 
-  return arithcompare_driver (nargs, args, ARITH_LESS_OR_EQUAL);
+  return arithcompare_driver (nargs, args, Cmp_LT | Cmp_EQ);
 }
 
 DEFUN (">=", Fgeq, Sgeq, 1, MANY, 0,
@@ -2869,14 +2862,14 @@ usage: (>= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
     return XFIXNUM (args[0]) >= XFIXNUM (args[1]) ? Qt : Qnil;
 
-  return arithcompare_driver (nargs, args, ARITH_GRTR_OR_EQUAL);
+  return arithcompare_driver (nargs, args, Cmp_GT | Cmp_EQ);
 }
 
 DEFUN ("/=", Fneq, Sneq, 2, 2, 0,
        doc: /* Return t if first arg is not equal to second arg.  Both must be numbers or markers.  */)
   (register Lisp_Object num1, Lisp_Object num2)
 {
-  return arithcompare (num1, num2, ARITH_NOTEQUAL);
+  return arithcompare (num1, num2) & Cmp_EQ ? Qnil : Qt;
 }
 
 /* Convert the cons-of-integers, integer, or float value C to an
@@ -3418,14 +3411,13 @@ Both X and Y must be numbers or markers.  */)
 }
 
 static Lisp_Object
-minmax_driver (ptrdiff_t nargs, Lisp_Object *args,
-	       enum Arith_Comparison comparison)
+minmax_driver (ptrdiff_t nargs, Lisp_Object *args, cmp_bits_t cmpmask)
 {
   Lisp_Object accum = check_number_coerce_marker (args[0]);
   for (ptrdiff_t argnum = 1; argnum < nargs; argnum++)
     {
       Lisp_Object val = check_number_coerce_marker (args[argnum]);
-      if (!NILP (arithcompare (val, accum, comparison)))
+      if (arithcompare (val, accum) & cmpmask)
 	accum = val;
       else if (FLOATP (val) && isnan (XFLOAT_DATA (val)))
 	return val;
@@ -3439,7 +3431,7 @@ The value is always a number; markers are converted to numbers.
 usage: (max NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return minmax_driver (nargs, args, ARITH_GRTR);
+  return minmax_driver (nargs, args, Cmp_GT);
 }
 
 DEFUN ("min", Fmin, Smin, 1, MANY, 0,
@@ -3448,7 +3440,7 @@ The value is always a number; markers are converted to numbers.
 usage: (min NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return minmax_driver (nargs, args, ARITH_LESS);
+  return minmax_driver (nargs, args, Cmp_LT);
 }
 
 DEFUN ("logand", Flogand, Slogand, 0, MANY, 0,

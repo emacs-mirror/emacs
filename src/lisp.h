@@ -4224,16 +4224,21 @@ extern void notify_variable_watchers (Lisp_Object, Lisp_Object,
 				      Lisp_Object, Lisp_Object);
 extern Lisp_Object indirect_function (Lisp_Object);
 extern Lisp_Object find_symbol_value (Lisp_Object);
-enum Arith_Comparison {
-  ARITH_EQUAL,
-  ARITH_NOTEQUAL,
-  ARITH_LESS,
-  ARITH_GRTR,
-  ARITH_LESS_OR_EQUAL,
-  ARITH_GRTR_OR_EQUAL
+
+enum {
+  Cmp_Bit_EQ,
+  Cmp_Bit_LT,
+  Cmp_Bit_GT
 };
-extern Lisp_Object arithcompare (Lisp_Object num1, Lisp_Object num2,
-                                 enum Arith_Comparison comparison);
+
+/* code indicating a comparison outcome */
+typedef enum {
+  Cmp_EQ = 1 << Cmp_Bit_EQ,	/* = */
+  Cmp_LT = 1 << Cmp_Bit_LT,	/* < */
+  Cmp_GT = 1 << Cmp_Bit_GT	/* > */
+} cmp_bits_t;
+
+extern cmp_bits_t arithcompare (Lisp_Object num1, Lisp_Object num2);
 
 /* Convert the Emacs representation CONS back to an integer of type
    TYPE, storing the result the variable VAR.  Signal an error if CONS

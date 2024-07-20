@@ -5741,7 +5741,7 @@ DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
   Lisp_Object ca = Fcar (a), cb = Fcar (b);
   if (FIXNUMP (ca) && FIXNUMP (cb))
     return XFIXNUM (ca) < XFIXNUM (cb) ? Qt : Qnil;
-  return arithcompare (ca, cb, ARITH_LESS);
+  return arithcompare (ca, cb) & Cmp_LT ? Qt : Qnil;
 }
 
 /* Build the complete list of annotations appropriate for writing out
