@@ -1201,7 +1201,6 @@ make_treesit_node (Lisp_Object parser, TSNode node)
 static Lisp_Object
 make_treesit_query (Lisp_Object query, Lisp_Object language)
 {
-  TSQueryCursor *treesit_cursor = ts_query_cursor_new ();
   struct Lisp_TS_Query *lisp_query;
 
   lisp_query = ALLOCATE_PSEUDOVECTOR (struct Lisp_TS_Query,
@@ -1210,7 +1209,7 @@ make_treesit_query (Lisp_Object query, Lisp_Object language)
   lisp_query->language = language;
   lisp_query->source = query;
   lisp_query->query = NULL;
-  lisp_query->cursor = treesit_cursor;
+  lisp_query->cursor = NULL;
   return make_lisp_ptr (lisp_query, Lisp_Vectorlike);
 }
 
@@ -1267,6 +1266,16 @@ treesit_compose_query_signal_data (uint32_t error_offset,
 		make_fixnum (error_offset + 1),
 		query_source,
 		build_string ("Debug the query with `treesit-query-validate'"));
+}
+
+/* Ensure QUERY has a non-NULL cursor, and return it.  */
+static TSQueryCursor *
+treesit_ensure_query_cursor (Lisp_Object query)
+{
+  if (!XTS_COMPILED_QUERY (query)->cursor)
+    XTS_COMPILED_QUERY (query)->cursor = ts_query_cursor_new ();
+
+  return XTS_COMPILED_QUERY (query)->cursor;
 }
 
 /* Ensure the QUERY is compiled.  Return the TSQuery.  It could be
@@ -2865,7 +2874,7 @@ treesit_initialize_query (Lisp_Object query, const TSLanguage *lang,
     {
       *ts_query = treesit_ensure_query_compiled (query, signal_symbol,
 						 signal_data);
-      *cursor = XTS_COMPILED_QUERY (query)->cursor;
+      *cursor = treesit_ensure_query_cursor (query);
       /* We don't need to free ts_query and cursor because they
 	 are stored in a lisp object, which is tracked by gc.  */
       *need_free = false;

@@ -119,12 +119,15 @@ struct Lisp_TS_Query
   Lisp_Object language;
   /* Source lisp (sexp or string) query.  */
   Lisp_Object source;
-  /* Pointer to the query object.  This can be NULL, meaning this
-     query is not initialized/compiled.  We compile the query when
-     it is used the first time (in treesit-query-capture).  */
+  /* Pointer to the query object.  This can be NULL, meaning this query
+     is not initialized/compiled.  We compile the query when it is used
+     the first time.  (See treesit_ensure_query_compiled.)  */
   TSQuery *query;
-  /* Pointer to a cursor.  If we are storing the query object, we
-     might as well store a cursor, too.  */
+  /* Pointer to a cursor.  If we are storing the query object, we might
+     as well store a cursor, too.  This can be NULL; caller should use
+     treesit_ensure_query_cursor to access the cursor.  We made cursor
+     to be NULL-able because it makes dumping and loading queries
+     easy.  */
   TSQueryCursor *cursor;
 };
 
