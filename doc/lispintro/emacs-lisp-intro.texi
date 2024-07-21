@@ -130,7 +130,7 @@ Boston, MA 02110-1301 USA
 @end iftex
 
 @ifnottex
-Printed copies available from @uref{https://shop.fsf.org/}. Published by:
+Printed copies available from @uref{https://shop.fsf.org/}.  Published by:
 
 @example
 GNU Press,                        https://www.fsf.org/licensing/gnu-press/
@@ -1969,7 +1969,7 @@ argument is the string of characters, the second and third arguments
 are numbers that indicate the beginning (inclusive) and end
 (exclusive) of the substring.  The numbers are a count of the number
 of characters (including spaces and punctuation) from the beginning of
-the string. Note that the characters in a string are numbered from
+the string.  Note that the characters in a string are numbered from
 zero, not one.
 
 @need 800
@@ -5314,7 +5314,7 @@ Looking at the @code{let*} expression in @code{append-to-buffer}:
 
 @noindent
 we see that @code{append-to} is bound to the value returned by the
-@w{@code{(get-buffer-create buffer)}}. On the next line,
+@w{@code{(get-buffer-create buffer)}}.  On the next line,
 @code{append-to} is used as an argument to
 @code{get-buffer-window-list}; this would not be possible with the
 @code{let} expression.  Note that @code{point} is automatically bound
@@ -16099,7 +16099,7 @@ placing point somewhere in the buffer, typing @kbd{M-:}, typing the
 and then typing @key{RET}.  This causes Emacs to evaluate the
 expression in the minibuffer, but to use as the value of point the
 position of point in the @file{*scratch*} buffer.  (@kbd{M-:}  is the
-key binding for @code{eval-expression}. Also, @code{nil} does not
+key binding for @code{eval-expression}.  Also, @code{nil} does not
 appear in the @file{*scratch*} buffer since the expression is
 evaluated in the minibuffer.)
 

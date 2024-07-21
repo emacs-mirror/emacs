@@ -1612,8 +1612,8 @@ You can override the above setting for a single package by adding
 
 @findex :vc
 The @code{:vc} keyword can be used to control how packages are
-downloaded and/or installed. More specifically, it allows one to fetch
-and update packages directly from a version control system. This is
+downloaded and/or installed.  More specifically, it allows one to fetch
+and update packages directly from a version control system.  This is
 especially convenient when wanting to install a package that is not on
 any package archive.
 

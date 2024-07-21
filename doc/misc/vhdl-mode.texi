@@ -79,7 +79,7 @@ modify this GNU manual.''
 @chapter  Introduction
 @cindex   Introduction
 
-Welcome to VHDL Mode. This is a GNU Emacs mode for editing files
+Welcome to VHDL Mode.  This is a GNU Emacs mode for editing files
 containing VHDL code.
 
 This manual will describe the following:
@@ -99,18 +99,18 @@ How to customize the indentation engine.
 @findex vhdl-version
 The major version number was incremented to 3 with the addition of
 many new features for editing VHDL code to the new indentation engine,
-which was introduced in major version 2. To find the minor revision
+which was introduced in major version 2.  To find the minor revision
 number of this release, use @kbd{M-x vhdl-version @key{RET}}.
 
 A special word of thanks goes to Rod Whitby, who wrote the
 VHDL Mode indentation engine, and to Barry Warsaw, who wrote
 the CC Mode indentation engine that formed the basis
-thereof. Their manuals were also the basis for this manual.
+thereof.  Their manuals were also the basis for this manual.
 
-This manual is not very up-to-date. It basically contains the
+This manual is not very up-to-date.  It basically contains the
 indentation machine documentation by Rod Whitby with only minor
-adaptions. A short documentation of the entire VHDL Mode is available
-within the mode itself by typing @kbd{C-c C-h}. Also, all commands and
+adaptions.  A short documentation of the entire VHDL Mode is available
+within the mode itself by typing @kbd{C-c C-h}.  Also, all commands and
 customization of most variables are available through the menu, which
 makes everything highly self-explaining.
 
@@ -126,14 +126,14 @@ To get started, simply visit a @file{.vhd} file in Emacs; or type
 @cindex   New Indentation Engine
 
 VHDL Mode has a new indentation engine, providing a simplified, yet
-flexible and general mechanism for customizing indentation. It breaks
-indentation calculation into two steps. First for the line of code being
+flexible and general mechanism for customizing indentation.  It breaks
+indentation calculation into two steps.  First for the line of code being
 indented, VHDL Mode analyzes what kind of language construct it's
 looking at, then it applies user defined offsets to the current line
 based on this analysis.
 
 This section will briefly cover how indentation is calculated in
-VHDL Mode. It is important to understand the indentation model
+VHDL Mode.  It is important to understand the indentation model
 being used so that you will know how to customize VHDL Mode for
 your personal coding style.
 
@@ -169,7 +169,7 @@ Conceptually, a line of VHDL code is always indented relative to the
 indentation of some line higher up in the buffer.  This is represented
 by the relative buffer position in the syntactic component.
 
-It might help to see an example. Suppose we had the following code as
+It might help to see an example.  Suppose we had the following code as
 the only thing in a VHDL Mode buffer @footnote{The line numbers
 in this and future examples don't actually appear in the buffer.}:
 @example
@@ -652,7 +652,7 @@ one of the syntactic symbol offsets will need to be tweaked slightly, or
 perhaps @code{vhdl-basic-offset} will need to be changed.  However, some
 styles require a more advanced ability for customization, and one of the
 real strengths of VHDL Mode is that the syntactic analysis model
-provides a very flexible framework for customizing indentation. This
+provides a very flexible framework for customizing indentation.  This
 allows you to perform special indentation calculations for situations
 not handled by the mode directly.
 
@@ -833,13 +833,13 @@ symbol currently recognized}
 @strong{Q.} @emph{How do I re-indent the whole file?}
 
 @strong{A.} Visit the file and hit @kbd{C-x h} to mark the whole
-buffer. Then hit @kbd{@key{ESC} C-\} to re-indent the entire region
-which you've just marked. Or just enter @kbd{M-x vhdl-indent-buffer}.
+buffer.  Then hit @kbd{@key{ESC} C-\} to re-indent the entire region
+which you've just marked.  Or just enter @kbd{M-x vhdl-indent-buffer}.
 @sp 2
 
 @strong{Q.} @emph{How do I re-indent the entire function?}
 
-@strong{A.} Hit @kbd{@key{ESC} C-h} to mark the entire function. Then
+@strong{A.} Hit @kbd{@key{ESC} C-h} to mark the entire function.  Then
 hit @kbd{@key{ESC} C-\} to re-indent the entire region which you've just
 marked.
 @sp 2

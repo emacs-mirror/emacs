@@ -1741,7 +1741,7 @@ this is @code{nil}.
 @item @var{dx}, @var{dy}
 These are the pixel offsets of the click relative to the top left
 corner of the @var{object}'s glyph that is the nearest one to the
-click. The relevant @var{object}s can be either a buffer, or a string,
+click.  The relevant @var{object}s can be either a buffer, or a string,
 or an image, see above.  If @var{object} is @code{nil} or a string,
 the coordinates are relative to the top left corner of the character
 glyph clicked on.  Note that the offsets are always zero on text-mode

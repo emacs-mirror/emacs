@@ -203,11 +203,11 @@ different Emacs versions.
 @cindex interactive testing
 
 @findex ert
-You can run the tests that are currently defined in your Emacs with
-the command @kbd{M-x ert @key{RET} t @key{RET}}.  (For an
-explanation of the @code{t} argument, @pxref{Test Selectors}.) ERT will pop
-up a new buffer, the ERT results buffer, showing the results of the
-tests run.  It looks like this:
+You can run the tests that are currently defined in your Emacs with the
+command @kbd{M-x ert @key{RET} t @key{RET}}.  (For an explanation of the
+@code{t} argument, @pxref{Test Selectors}.)  ERT will pop up a new
+buffer, the ERT results buffer, showing the results of the tests run.
+It looks like this:
 
 @example
 Selector: t

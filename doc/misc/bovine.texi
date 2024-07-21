@@ -346,7 +346,7 @@ semantic list.
 @item (EXPANDFULL @var{$1} @var{nonterminal} @var{depth})
 Is like @code{EXPAND}, except that the parser will iterate over
 @var{nonterminal} until there are no more matches.  (The same way the
-parser iterates over the starting rule (@pxref{Starting Rules}). This
+parser iterates over the starting rule (@pxref{Starting Rules}).  This
 lets you have much simpler rules in this specific case, and also lets
 you have positional information in the returned tokens, and error
 skipping.

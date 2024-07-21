@@ -1488,7 +1488,7 @@ the Emacs Lisp Reference Manual
 @cindex coding standards for Emacs submissions
 
 Contributed code should follow the GNU Coding Standards
-@url{https://www.gnu.org/prep/standards/}. This may also be available
+@url{https://www.gnu.org/prep/standards/}.  This may also be available
 in info on your system.
 
 If it doesn't, we'll need to find someone to fix the code before we

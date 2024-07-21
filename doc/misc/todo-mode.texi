@@ -812,7 +812,7 @@ or by removing it if present.
 
 @samp{nonmarking} (@kbd{k}): Change the current item's calendar
 marking status by adding @code{diary-nonmarking-symbol} if the item
-lacks this, or by removing it if present. Since this symbol only
+lacks this, or by removing it if present.  Since this symbol only
 applies to diary items, the item is automatically marked as such,
 i.e., if @code{todo-nondiary-marker} is present, it is removed.
 
@@ -1799,7 +1799,7 @@ current file:
 Hide the item headers if visible, or show them if they are hidden.
 With done items, only the done header (i.e., the done tag and date-time
 string inserted when the item was marked done) is hidden, the original
-date-time string is not. With filtered items, the category (or
+date-time string is not.  With filtered items, the category (or
 category-file) tag is not hidden.
 
 @item F H

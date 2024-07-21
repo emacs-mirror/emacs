@@ -189,7 +189,7 @@ IDLWAVE consists of two main parts: a major mode for editing IDL
 source files (@code{idlwave-mode}) and a mode for running the IDL
 program as an inferior shell (@code{idlwave-shell-mode}).  Although
 one mode can be used without the other, both work together closely to
-form a complete development environment. Here is a brief summary of
+form a complete development environment.  Here is a brief summary of
 what IDLWAVE does:
 
 @itemize @bullet
@@ -504,7 +504,7 @@ keywords again?  Go back to the source window and put the cursor into
 the ``plot'' line and press @kbd{C-c ?}.  This shows the routine info
 window for the plot routine, which contains a list of keywords, along
 with the argument list.  Oh, we wanted @code{YTITLE}.  Fix that up.
-Recompile with @kbd{C-c C-d C-c}. Jump back into the shell with
+Recompile with @kbd{C-c C-d C-c}.  Jump back into the shell with
 @kbd{C-c C-s}, press the @key{UP} arrow to recall the previous command
 and execute again.
 
@@ -566,7 +566,7 @@ directory---but do not be dismayed; for the most part, you can just
 copy and work from the examples given here.
 
 Let's first use a boolean variable.  These are variables which you turn
-on or off, much like a checkbox. A value of @samp{t} means on, a value
+on or off, much like a checkbox.  A value of @samp{t} means on, a value
 of @samp{nil} means off.  Copy the following line into your
 @file{.emacs} file, exit and restart Emacs.
 
@@ -604,7 +604,7 @@ If you cannot seem to master this Lisp customization in @file{.emacs},
 there is another, more user-friendly way to customize all the IDLWAVE
 variables.  You can access it through the IDLWAVE menu in one of the
 @file{.pro} buffers, menu item @code{Customize->Browse IDLWAVE
-Group}. Here you'll be presented with all the various variables grouped
+Group}.  Here you'll be presented with all the various variables grouped
 into categories.  You can navigate the hierarchy (e.g., @samp{IDLWAVE
 Code Formatting->Idlwave Abbrev And Indent Action->Idlwave Expand
 Generic End} to turn on @code{END} expansion), read about the variables,
@@ -1899,7 +1899,7 @@ commands.  Emacs abbreviations are expanded by typing text into the
 buffer and pressing @key{SPC} or @key{RET}.  The special abbreviations
 used to insert code templates all start with a @samp{\} (the backslash),
 or, optionally, any other character set in
-@code{idlwave-abbrev-start-char}. IDLWAVE ensures that abbreviations are
+@code{idlwave-abbrev-start-char}.  IDLWAVE ensures that abbreviations are
 only expanded where they should be (i.e., not in a string or comment),
 and permits the point to be moved after an abbreviation expansion:
 very useful for positioning the mark inside of parentheses, etc.
@@ -2659,7 +2659,7 @@ setting and clearing commands, and @code{debug} for other debug,
 stepping, and continue commands.  In addition, if the variable is set to
 the single symbol @code{'everything}, all the copious shell input is
 displayed (which is probably only useful for debugging purposes).
-N.B. For hidden commands which produce output by side-effect, that
+N.B.  For hidden commands which produce output by side-effect, that
 output remains hidden (e.g., stepping through a @code{print} command).
 As a special case, any error message in the output will be displayed
 (e.g., stepping to an error).
@@ -3429,7 +3429,7 @@ the file @file{idlw-rinfo.el}.
 IDLWAVE @emph{scans} all its @emph{buffers} in the current Emacs session
 for routine definitions.  This is done automatically when routine
 information or completion is first requested by the user.  Each new
-buffer and each buffer saved after making changes is also scanned. The
+buffer and each buffer saved after making changes is also scanned.  The
 command @kbd{C-c C-i} (@code{idlwave-update-routine-info}) can be used
 at any time to rescan all buffers.
 
@@ -3786,7 +3786,7 @@ itself.
 
 There are a wide variety of possible browsers to use for displaying
 the online HTML help available with IDLWAVE (starting with version
-5.0). Since IDL v6.2, a single cross-platform HTML help browser, the
+5.0).  Since IDL v6.2, a single cross-platform HTML help browser, the
 @emph{IDL Assistant} is distributed with IDL@.  If this help browser is
 available, it is the preferred choice, and the default.  The variable
 @code{idlwave-help-use-assistant}, enabled by default, controls

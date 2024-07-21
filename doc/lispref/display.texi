@@ -2771,7 +2771,7 @@ width of the vertical and horizontal lines to draw; they default to (1
 . 1).  A negative horizontal or vertical width @minus{}@var{n} means
 to draw a line of width @var{n} that occupies the space of the
 underlying text, thus avoiding any increase in the character height or
-width. For simplification the width could be specified with only a
+width.  For simplification the width could be specified with only a
 single number @var{n} instead of a list, such case is equivalent to
 @code{((abs @var{n}) . @var{n})}.
 

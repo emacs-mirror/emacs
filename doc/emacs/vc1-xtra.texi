@@ -177,7 +177,7 @@ current directory as a tag named @var{name}
 @findex vc-retrieve-tag
 @item C-x v r @var{name} @key{RET}
 For all registered files at or below the current directory level,
-retrieve the tagged revision @var{name}. This command will switch to a
+retrieve the tagged revision @var{name}.  This command will switch to a
 branch if @var{name} is a branch name and your VCS distinguishes
 branches from tags.  (@code{vc-retrieve-tag}).
 

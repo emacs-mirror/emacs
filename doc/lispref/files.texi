@@ -2708,7 +2708,7 @@ file names (@pxref{Magic File Names}).
 
 @defmac file-name-unquote name
 This macro removes the quotation prefix @samp{/:} from the file
-@var{name}, if any. If @var{name} is a remote file name, the local
+@var{name}, if any.  If @var{name} is a remote file name, the local
 part of @var{name} is unquoted.
 @end defmac
 
@@ -2740,7 +2740,7 @@ This function creates a temporary file and returns its name.  Emacs
 creates the temporary file's name by adding to @var{prefix} some
 random characters that are different in each Emacs job.  The result is
 guaranteed to be a newly created file, containing @var{text} if that's
-given as a string and empty otherwise. On MS-DOS, this function can
+given as a string and empty otherwise.  On MS-DOS, this function can
 truncate @var{prefix} to fit into the 8+3 file-name limits.  If
 @var{prefix} is a relative file name, it is expanded against
 @code{temporary-file-directory}.

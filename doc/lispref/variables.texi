@@ -2613,7 +2613,7 @@ compatibility.  You can do this with @code{defvaralias}.
 
 @defun defvaralias new-alias base-variable &optional docstring
 This function defines the symbol @var{new-alias} as a variable alias
-for symbol @var{base-variable}. This means that retrieving the value
+for symbol @var{base-variable}.  This means that retrieving the value
 of @var{new-alias} returns the value of @var{base-variable}, and
 changing the value of @var{new-alias} changes the value of
 @var{base-variable}.  The two aliased variable names always share the

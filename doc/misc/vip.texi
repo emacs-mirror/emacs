@@ -190,7 +190,7 @@ M-x vip-mode
 @kindex 0301 C-x C-z @r{(}@code{suspend-emacs}@r{)}
 
 Loading VIP has the effect of globally binding @kbd{C-z} (@kbd{Control-z})
-to the function @code{vip-change-mode-to-vi}. The default binding of @kbd{C-z}
+to the function @code{vip-change-mode-to-vi}.  The default binding of @kbd{C-z}
 in GNU Emacs is @code{suspend-emacs}, but, you can also call
 @code{suspend-emacs} by typing @kbd{C-x C-z}.  Other than this, all the
 key bindings of Emacs remain the same after loading VIP.
@@ -400,7 +400,7 @@ Given counts, text will be yanked (in Vi's sense) that many times.  Thus
 @itemx O
 @kindex 157 o @r{(}@code{vip-open-line}@r{)}
 @kindex 117 O @r{(}@code{vip-Open-line}@r{)}
-Given counts, that many copies of text will be inserted. Thus
+Given counts, that many copies of text will be inserted.  Thus
 @kbd{o a b c @key{ESC}} will insert 3 lines of @samp{abc} below the current
 line.
 @item /
@@ -474,7 +474,7 @@ Forward incremental search.
 @kindex 033 ESC @r{(}@code{vip-ESC}@r{)}
 These keys will exit from vi mode and return to emacs mode temporarily.  If
 you hit one of these keys, Emacs will be in emacs mode and will believe
-that you hit that key in emacs mode. For example, if you hit @kbd{C-x}
+that you hit that key in emacs mode.  For example, if you hit @kbd{C-x}
 followed by @kbd{2}, then the current window will be split into 2 and you
 will be in vi mode again.
 @item \
@@ -517,7 +517,7 @@ Change upper-case characters in the region to lower case
 (@code{downcase-region}).
 @item # C
 @kindex 0431 # C @r{(}@code{upcase-region}@r{)}
-Change lower-case characters in the region to upper case. For instance,
+Change lower-case characters in the region to upper case.  For instance,
 @kbd{# C 3 w} will capitalize 3 words from the current point
 (@code{upcase-region}).
 @item # g
@@ -574,14 +574,14 @@ in the current window, while @kbd{S} selects buffer in another window.
 @kindex 1300 X @r{(}@code{vip-ctl-x-equivalent}@r{)}
 These keys will exit from vi mode and return to emacs mode temporarily.
 If you type @kbd{C} (@kbd{X}), Emacs will be in emacs mode and will believe
-that you have typed @kbd{C-c} (@kbd{C-x}) in emacs mode. Moreover,
+that you have typed @kbd{C-c} (@kbd{C-x}) in emacs mode.  Moreover,
 if the following character you type is an upper-case letter, then Emacs
 will believe that you have typed the corresponding control character.
 You will be in vi mode again after the command is executed.  For example,
 typing @kbd{X S} in vi mode is the same as typing @kbd{C-x C-s} in emacs
 mode.  You get the same effect by typing @kbd{C-x C-s} in vi mode, but
 the idea here is that you can execute useful Emacs commands without typing
-control characters. For example, if you hit @kbd{X} (or @kbd{C-x}) followed
+control characters.  For example, if you hit @kbd{X} (or @kbd{C-x}) followed
 by @kbd{2}, then the current window will be split into 2 and you will be in
 vi mode again.
 @end table
@@ -1307,7 +1307,7 @@ The line commands are as follows:
 @cindex expanding (region)
 If a point command is given as an argument to a modifying command, the
 region determined by the point command will be affected by the modifying
-command. On the other hand, if a line command is given as an argument to a
+command.  On the other hand, if a line command is given as an argument to a
 modifying command, the region determined by the line command will be
 enlarged so that it will become the smallest region properly containing the
 region and consisting of whole lines (we call this process @dfn{expanding
@@ -1418,9 +1418,9 @@ below.
 @item p
 @kindex 160 p @r{(}@code{vip-put-back}@r{)}
 Insert, after the character point is looking at, most recently
-deleted/yanked text from anonymous register. Given a register name
+deleted/yanked text from anonymous register.  Given a register name
 argument, the content of the named register will be put back.  Given a
-count, the command will be repeated that many times. This command also
+count, the command will be repeated that many times.  This command also
 checks if the text to put back ends with a new line character, and if so
 the text will be put below the current line (@code{vip-put-back}).
 @item P

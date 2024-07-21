@@ -135,10 +135,10 @@ The architecture and the interface are, of course, drastically different.
 
 When Ediff starts up, it displays a small control window, which accepts the
 Ediff commands, and two or three windows displaying the files to be compared
-or merged. The control window can be in its own small frame or it can be
-part of a bigger frame that displays other buffers. In any case, it is
+or merged.  The control window can be in its own small frame or it can be
+part of a bigger frame that displays other buffers.  In any case, it is
 important that the control window be active (i.e., be the one receiving the
-keystrokes) when you use Ediff. You can switch to other Emacs buffers at
+keystrokes) when you use Ediff.  You can switch to other Emacs buffers at
 will and even edit the files currently being compared with Ediff and then
 switch back to Ediff at any time by activating the appropriate Emacs windows.
 
@@ -156,13 +156,13 @@ Compare two files.
 
 @item ediff-backup
 @findex ediff-backup
-Compare a file with its backup. If there are several numerical backups, use
-the latest. If the file is itself a backup, then compare it with its
+Compare a file with its backup.  If there are several numerical backups, use
+the latest.  If the file is itself a backup, then compare it with its
 original.
 
 @item ediff-current-file
 @findex ediff-current-file
-Compare the buffer with its file on disk. This function can be used as a
+Compare the buffer with its file on disk.  This function can be used as a
 safe version of @code{revert-buffer}.
 
 @item ediff-buffers
@@ -220,14 +220,14 @@ Compare text visible in 2 windows line-by-line.
 @findex ediff-regions-wordwise
 Compare regions word-by-word.  The regions can come from the same buffer
 and they can even overlap.  You will be asked to specify the buffers that
-contain the regions, which you want to compare. For each buffer, you will
-also be asked to mark the regions to be compared. Pay attention to the
+contain the regions, which you want to compare.  For each buffer, you will
+also be asked to mark the regions to be compared.  Pay attention to the
 messages that appear in the minibuffer.
 
 @item ediff-regions-linewise
 @findex ediff-regions-linewise
 Similar to @code{ediff-windows-linewise}, but compares the regions
-line-by-line. See @code{ediff-windows-linewise} for more details.
+line-by-line.  See @code{ediff-windows-linewise} for more details.
 
 @item ediff-revision
 @findex ediff-revision
@@ -246,7 +246,7 @@ will be able to patch the files selectively.  @xref{Session Groups}, for
 more details.
 
 Since the patch might be in a buffer or a file, you will be asked which is
-the case. To avoid this extra prompt, you can invoke this command with a
+the case.  To avoid this extra prompt, you can invoke this command with a
 prefix argument.  With an odd prefix argument, Ediff assumes the patch
 is in a file; with an even argument, a buffer is assumed.
 
@@ -280,7 +280,7 @@ This function would refuse to apply a multifile patch to a buffer.  Use
 modified by the @code{patch} utility).
 
 Since the patch might be in a buffer or a file, you will be asked which is
-the case. To avoid this extra prompt, you can invoke this command with a
+the case.  To avoid this extra prompt, you can invoke this command with a
 prefix argument.  With an odd prefix argument, Ediff assumes the patch
 is in a file; with an even argument, a buffer is assumed.
 
@@ -683,7 +683,7 @@ again puts Ediff back in the original state.
 @vindex ediff-ignore-case-option
 @vindex ediff-ignore-case-option3
 @vindex ediff-ignore-case
-Toggle case sensitivity in the diff program. All diffs are recomputed.
+Toggle case sensitivity in the diff program.  All diffs are recomputed.
 Case sensitivity is controlled by the variables
 @code{ediff-ignore-case-option}, @code{ediff-ignore-case-option3},
 and @code{ediff-ignore-case}, which are explained elsewhere.
@@ -814,7 +814,7 @@ it.  Typing @kbd{$$} again undoes this setting.
 @kindex $*
 When merging files with large number of differences, it is sometimes
 convenient to be able to skip the difference regions for which you already
-decided which variant is most appropriate. Typing @kbd{$*} will accomplish
+decided which variant is most appropriate.  Typing @kbd{$*} will accomplish
 precisely this.
 
 To be more precise, this toggles the check for whether the current merge is
@@ -898,9 +898,9 @@ child Ediff session for comparing regions in buffers A, B, or
 C as follows.
 
 First, you will be asked whether you want to compare the fine differences
-between the currently highlighted buffers on a word-by-word basis. If you
+between the currently highlighted buffers on a word-by-word basis.  If you
 accept, a child Ediff session will start using the currently highlighted
-regions. Ediff will let you step over the differences word-wise.
+regions.  Ediff will let you step over the differences word-wise.
 
 If you reject the offer, you will be asked to select regions of your choice.
 
@@ -1054,9 +1054,9 @@ directories.
 
 @cindex Directory difference buffer
 Sometimes it is desirable to copy some files from one directory to another
-without exiting Ediff. The @emph{directory difference buffer}, which is
+without exiting Ediff.  The @emph{directory difference buffer}, which is
 displayed by typing @kbd{D} as discussed above, can be used for this
-purpose. If a file is, say, in Ediff's Directory A, but is missing in
+purpose.  If a file is, say, in Ediff's Directory A, but is missing in
 Ediff's Directory B (Ediff will refuse to override existing files), then
 typing @kbd{C} or clicking mouse button 2 over that file (which must be
 displayed in directory difference buffer) will copy that file from
@@ -1130,7 +1130,7 @@ for hiding or, with @kbd{=m}, for further operations.
 
 The comparison operations @kbd{==}, @kbd{=h}, and @kbd{=m} can recurse into
 subdirectories to see if they have identical contents (so the user will not
-need to descend into those subdirectories manually). These commands ask the
+need to descend into those subdirectories manually).  These commands ask the
 user whether or not to do a recursive descent.
 
 
@@ -1221,7 +1221,7 @@ of Ediff.
 @vindex ediff-after-setup-windows-hook
 These two hooks are called before and after Ediff sets up its window
 configuration.  These hooks are run each time Ediff rearranges windows to
-its liking. This happens whenever it detects that the user changed the
+its liking.  This happens whenever it detects that the user changed the
 windows setup.
 
 @item ediff-suspend-hook
@@ -1323,7 +1323,7 @@ Hooks run after setting up the registry for all active Ediff session.
 @item ediff-before-session-group-setup-hook
 @vindex ediff-before-session-group-setup-hook
 Hooks run before setting up a control panel for a group of related Ediff
-sessions. Can be used, for example, to save window configuration to restore
+sessions.  Can be used, for example, to save window configuration to restore
 later.
 @item ediff-after-session-group-setup-hook
 @vindex ediff-after-session-group-setup-hook
@@ -1598,21 +1598,21 @@ problem.
 @vindex ediff-ignore-case-option
 @vindex ediff-ignore-case-option3
 @vindex ediff-ignore-case
-Finally, Ediff can be told to ignore the case of the letters. This behavior
+Finally, Ediff can be told to ignore the case of the letters.  This behavior
 can be toggled with @kbd{#c} and it is controlled with three variables:
 @code{ediff-ignore-case-option}, @code{ediff-ignore-case-option3}, and
 @code{ediff-ignore-case}.
 
 The variable @code{ediff-ignore-case-option} specifies the option to pass
-to the diff program for comparing two files or buffers. For GNU
-@code{diff}, this option is @code{"-i"}. The variable
+to the diff program for comparing two files or buffers.  For GNU
+@code{diff}, this option is @code{"-i"}.  The variable
 @code{ediff-ignore-case-option3} specifies the option to pass to the
-@code{diff3} program in order to make it case-insensitive. GNU @code{diff3}
+@code{diff3} program in order to make it case-insensitive.  GNU @code{diff3}
 does not have such an option, so when merging or comparing three files with
 this program, ignoring the letter case is not supported.
 
 The variable @code{ediff-ignore-case} controls whether Ediff starts out by
-ignoring letter case or not. It can be set in @file{.emacs} using
+ignoring letter case or not.  It can be set in @file{.emacs} using
 @code{setq-default}.
 
 When case sensitivity is toggled, all difference
@@ -1875,11 +1875,11 @@ Customize interface instead of using @code{setq} directly.)
 @item ediff-coding-system-for-read
 @vindex ediff-coding-system-for-read
 This variable specifies the coding system to use when reading the output
-that the programs @code{diff3} and @code{diff} send to Emacs. The default
+that the programs @code{diff3} and @code{diff} send to Emacs.  The default
 is @code{raw-text}, and this should work fine in Unix and in most
-cases under Windows NT/98/2000. There are @code{diff} programs
-for which the default option doesn't work under Windows. In such cases,
-@code{raw-text-dos} might work. If not, you will have to experiment with
+cases under Windows NT/98/2000.  There are @code{diff} programs
+for which the default option doesn't work under Windows.  In such cases,
+@code{raw-text-dos} might work.  If not, you will have to experiment with
 other coding systems or use GNU diff.
 
 @item ediff-patch-program
@@ -1992,7 +1992,7 @@ the difference region from the ancestor buffer, if available
 ======= end
 @end example
 
-The above is the default template for the combined region. The user can
+The above is the default template for the combined region.  The user can
 customize this template using the variable
 @code{ediff-combination-pattern}.
 
@@ -2000,11 +2000,11 @@ customize this template using the variable
 The variable @code{ediff-combination-pattern} specifies the template that
 determines how the combined merged region looks like.  The template is
 represented as a list of the form @code{(STRING1 Symbol1 STRING2 Symbol2
-STRING3 Symbol3 STRING4)}. The symbols here must be atoms of the form
-@code{A}, @code{B}, or @code{Ancestor}. They determine the order in which
+STRING3 Symbol3 STRING4)}.  The symbols here must be atoms of the form
+@code{A}, @code{B}, or @code{Ancestor}.  They determine the order in which
 the corresponding difference regions (from buffers A, B, and the ancestor
 buffer) are displayed in the merged region of buffer C@.  The strings in the
-template determine the text that separates the aforesaid regions. The
+template determine the text that separates the aforesaid regions.  The
 default template is
 
 @smallexample
@@ -2014,8 +2014,8 @@ default template is
 
 @noindent
 (this is one long line) and the corresponding combined region is shown
-above. The order in which the regions are shown (and the separator
-strings) can be changed by changing the above template. It is even
+above.  The order in which the regions are shown (and the separator
+strings) can be changed by changing the above template.  It is even
 possible to add or delete region specifiers in this template (although
 the only possibly useful such modification seems to be the deletion of
 the ancestor).
@@ -2154,7 +2154,7 @@ change this variable.
 @vindex ediff-merge-filename-prefix
 When merge buffers are saved automatically as directed by
 @code{ediff-autostore-merges}, Ediff attaches a prefix to each file, as
-specified by the variable @code{ediff-merge-filename-prefix}. The default
+specified by the variable @code{ediff-merge-filename-prefix}.  The default
 is @code{merge_}, but this can be changed by the user.
 
 @node Support for Version Control
@@ -2318,9 +2318,9 @@ unconditionally (e.g., by making @code{ediff-janitor} into one of these hooks).
 
 @item ediff-keep-tmp-versions
 @vindex ediff-keep-tmp-versions
-Default is @code{nil}. If @code{t}, the versions of the files being
+Default is @code{nil}.  If @code{t}, the versions of the files being
 compared or merged using operations such as @code{ediff-revision} or
-@code{ediff-merge-revisions} are not deleted on exit. The normal action is
+@code{ediff-merge-revisions} are not deleted on exit.  The normal action is
 to clean up and delete these version files.
 
 @item ediff-grab-mouse
