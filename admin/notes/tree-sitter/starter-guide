@@ -48,7 +48,7 @@ C++, Rust, JSON, Go, HTML, JavaScript, CSS, Python, Typescript,
 C#, etc.  Better yet, I pre-built these language definitions for
 GNU/Linux and macOS, they can be downloaded here:
 
-    https://github.com/casouri/tree-sitter-module/releases/tag/v2.1
+    https://github.com/casouri/tree-sitter-module/releases/tag/v2.4
 
 To build them yourself, run
 
