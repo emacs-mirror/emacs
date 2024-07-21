@@ -2137,7 +2137,7 @@ nil.  If NODE is nil, return nil.  */)
 DEFUN ("treesit-node-child-by-field-name",
        Ftreesit_node_child_by_field_name,
        Streesit_node_child_by_field_name, 2, 2, 0,
-       doc: /* Return the child of NODE with FIELD-NAME.
+       doc: /* Return the child of NODE with FIELD-NAME (a string).
 Return nil if there is no such child.  If NODE is nil, return nil.  */)
   (Lisp_Object node, Lisp_Object field_name)
 {
