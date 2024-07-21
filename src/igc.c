@@ -694,7 +694,7 @@ void gc_init_header_bytes (union gc_header *header, enum igc_obj_type type,
 static mps_addr_t
 client_to_base (mps_addr_t client_addr)
 {
-  return (char *) client_addr - sizeof (struct igc_header);
+  return (char *) client_addr;
 }
 
 /* Given a pointer to the start of an object in MPS, BASE, return a
@@ -703,7 +703,7 @@ client_to_base (mps_addr_t client_addr)
 static mps_addr_t
 base_to_client (mps_addr_t base_addr)
 {
-  return (char *) base_addr + sizeof (struct igc_header);
+  return (char *) base_addr;
 }
 
 /* Given a client pointer CLIENT to an object, return how many
