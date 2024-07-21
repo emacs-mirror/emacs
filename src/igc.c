@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include <signal.h>
 #ifdef __clang__
 /* You want to use this without -Wignored-attributes because it worns
-   that it cannot add the attribute to functions returning void.*/
+   that it cannot add the attribute to functions returning void.  */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wignored-attributes"
 # pragma clang attribute push(__attribute__((warn_unused_result)), \
@@ -80,12 +80,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #endif
 
 #if 0 /* Not yet because that amke transfer between GNU and my fork
-	 painful. */
+	 painful.  */
 #ifdef CHECK_STRUCTS
 # include "dmpstruct.h"
 
 /* If one of these fires, check what has changed, fix uses of the type
-   in this file, and copy the new hash code from src/dmpstruct.h here. */
+   in this file, and copy the new hash code from src/dmpstruct.h here.  */
 # ifndef HASH_Lisp_Cons_00EEE63F67
 #  error "struct Lisp_Cons changed"
 # endif
@@ -155,7 +155,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # endif // 0
 
 /* Still missing; face, font, frame, thread, and probably a lot of
-   others. */
+   others.  */
 #endif	/* CHECK_STRUCTS */
 
 /* If igc can currently can be used.
@@ -172,7 +172,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
    It goes from usable to IGC_STATE_DEAD if an error happens or
    something is detected that forces us to terminate the process
    early. While terminating in this state, fallbacks are implemented
-   that let Emacs do its thing while terminating. */
+   that let Emacs do its thing while terminating.  */
 
 enum igc_state
 {
@@ -225,7 +225,7 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
   igc_assert_fail (__FILE__, __LINE__, "not implemented")
 
 /* An enum for telemetry event categories seems to be missing from MOS.
-   The docs only mention the bare numbers. */
+   The docs only mention the bare numbers.  */
 
 enum igc_event_category
 {
@@ -239,7 +239,7 @@ enum igc_event_category
 };
 
 /* Return true if the current MPS telemetry event filter has the bit set
-   for the given event category C. */
+   for the given event category C.  */
 
 static bool
 is_in_telemetry_filter (enum igc_event_category c)
@@ -454,7 +454,7 @@ struct igc_stats
    The reason for the strange layout of this header is that on IA-32,
    MPS requires headers for objects with weak references to consist of
    two unaligned 32-bit words.  It's easiest to implement that for all
-   objects. */
+   objects.  */
 
 enum
 {
@@ -574,7 +574,7 @@ to_bytes (mps_word_t nwords)
 }
 
 /* Value is the size in bytes of the object described by header H.
-   This includes the header itself. */
+   This includes the header itself.  */
 
 static mps_word_t
 obj_size (const struct igc_header *h)
@@ -585,7 +585,7 @@ obj_size (const struct igc_header *h)
 }
 
 /* Value is the size in bytes of the client area of the object described
-   by header H. */
+   by header H.  */
 
 static mps_word_t
 obj_client_size (const struct igc_header *h)
@@ -594,7 +594,7 @@ obj_client_size (const struct igc_header *h)
 }
 
 /* Set the fields of header H to the given values. Use this instead of
-   setting the fields directly to make it easy to add assertions. */
+   setting the fields directly to make it easy to add assertions.  */
 
 static void
 set_header (struct igc_header *h, enum igc_obj_type type,
@@ -607,7 +607,7 @@ set_header (struct igc_header *h, enum igc_obj_type type,
 #endif
   igc_assert (type == IGC_OBJ_PAD || nbytes >= sizeof (struct igc_fwd));
   uint64_t tag = IGC_TAG_OBJ;
-  /* Make sure upper 32-bit word is unaligned on IA-32. */
+  /* Make sure upper 32-bit word is unaligned on IA-32.  */
   if (INTPTR_MAX <= INT_MAX)
     tag += (1LL << 32);
   h->v = (((uint64_t) to_words (nbytes) << IGC_HEADER_NWORDS_SHIFT) +
@@ -671,7 +671,7 @@ void gc_init_header_bytes (union gc_header *header, enum igc_obj_type type,
 }
 
 /* Given a client pointer CLIENT to an object, return how many
-   elements of size ELEM_SIZE can fit into the client area. */
+   elements of size ELEM_SIZE can fit into the client area.  */
 
 static size_t
 object_nelems (struct igc_header *h, size_t elem_size)
@@ -679,7 +679,7 @@ object_nelems (struct igc_header *h, size_t elem_size)
   return (obj_client_size (h) - sizeof *h) / elem_size;
 }
 
-/* Round NBYTES to the next multiple of ALIGN. */
+/* Round NBYTES to the next multiple of ALIGN.  */
 
 static size_t
 igc_round (size_t nbytes, size_t align)
@@ -688,7 +688,7 @@ igc_round (size_t nbytes, size_t align)
 }
 
 /* Value is the size in bytes that we need to allocate from MPS
-   for a client object of size NBYTES. */
+   for a client object of size NBYTES.  */
 
 static size_t
 alloc_size (size_t nbytes)
@@ -698,7 +698,7 @@ alloc_size (size_t nbytes)
   return nbytes;
 }
 
-/* Value is a hash to use for a newly allocated object. */
+/* Value is a hash to use for a newly allocated object.  */
 
 static unsigned
 alloc_hash (void)
@@ -708,7 +708,7 @@ alloc_hash (void)
 }
 
 /* This runs in various places for --enable-checking=igc_check_fwd.  See
-   lisp.h, like XSYMBOL, XSTRING and alike. */
+   lisp.h, like XSYMBOL, XSTRING and alike.  */
 
 #ifdef IGC_CHECK_FWD
 void
@@ -724,7 +724,7 @@ igc_check_fwd (void *client, bool is_vector)
                         Registry of MPS objects
  ************************************************************************/
 
-/* Registry entry for an MPS root mps_root_t. */
+/* Registry entry for an MPS root mps_root_t.  */
 
 struct igc_root
 {
@@ -738,14 +738,14 @@ struct igc_root
 typedef struct igc_root igc_root;
 IGC_DEFINE_LIST (igc_root);
 
-/* Registry entry for an MPS thread mps_thr_t. */
+/* Registry entry for an MPS thread mps_thr_t.  */
 
 struct igc_thread
 {
   struct igc *gc;
   mps_thr_t thr;
 
-  /* Allocation points for the thread. */
+  /* Allocation points for the thread.  */
   mps_ap_t dflt_ap;
   mps_ap_t leaf_ap;
   mps_ap_t weak_strong_ap;
@@ -755,33 +755,33 @@ struct igc_thread
   mps_ap_t immovable_ap;
 
   /* Quick access to the roots used for specpdl, bytecode stack and
-     control stack. */
+     control stack.  */
   igc_root_list *specpdl_root;
   igc_root_list *bc_root;
   igc_root_list *stack_root;
 
   /* Back pointer to Emacs' thread object. Allocated so that it doesn't
-     move in memory. */
+     move in memory.  */
   struct thread_state *ts;
 };
 
 typedef struct igc_thread igc_thread;
 IGC_DEFINE_LIST (igc_thread);
 
-/* The registry for an MPS arena. There is only one arena used. */
+/* The registry for an MPS arena. There is only one arena used.  */
 
 struct igc
 {
-  /* The MPS arena. */
+  /* The MPS arena.  */
   mps_arena_t arena;
 
-  /* Used to allow nested parking/releasing of the arena. */
+  /* Used to allow nested parking/releasing of the arena.  */
   int park_count;
 
-  /* The MPS generation chain. */
+  /* The MPS generation chain.  */
   mps_chain_t chain;
 
-  /* Object formats and pools used. */
+  /* Object formats and pools used.  */
   mps_fmt_t dflt_fmt;
   mps_pool_t dflt_pool;
   mps_fmt_t leaf_fmt;
@@ -793,16 +793,16 @@ struct igc
   mps_fmt_t immovable_fmt;
   mps_pool_t immovable_pool;
 
-  /* Registered roots. */
+  /* Registered roots.  */
   struct igc_root_list *roots;
 
-  /* Registered threads. */
+  /* Registered threads.  */
   struct igc_thread_list *threads;
 };
 
 static bool process_one_message (struct igc *gc);
 
-/* The global registry. */
+/* The global registry.  */
 
 static struct igc *global_igc;
 
@@ -857,7 +857,7 @@ set_state (enum igc_state state)
 
    LABEL is a name under which the root appears on the MPS telemetry
    stream, if user events are in the telemetry filter. This allows
-   mapping roots to useful names. */
+   mapping roots to useful names.  */
 
 static struct igc_root_list *
 register_root (struct igc *gc, mps_root_t root, void *start, void *end,
@@ -882,7 +882,7 @@ register_root (struct igc *gc, mps_root_t root, void *start, void *end,
 }
 
 /* Remove the root described by R from the list of known roots
-   of its registry. Value is the MPS root. */
+   of its registry. Value is the MPS root.  */
 
 static mps_root_t
 deregister_root (struct igc_root_list *r)
@@ -893,7 +893,7 @@ deregister_root (struct igc_root_list *r)
 }
 
 /* Destroy the root described by *R and remove it from its registry.
-   Set *R to NULL when done so that it cannot be destroyed twice. */
+   Set *R to NULL when done so that it cannot be destroyed twice.  */
 
 static void
 destroy_root (struct igc_root_list **r)
@@ -945,7 +945,7 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
     mps_word_t word = *p;
 
     /* Quickly rule out Qnil, and prevent subtraxting from a
-       null pointer. */
+       null pointer.  */
     if (word == 0)
       return MPS_RES_OK;
 
@@ -1342,7 +1342,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
     /* MPS docs say that root scanning functions have exclusive access
        to what is being scanned, the same way format scanning functions
        do. That does not mean one can rely on the thread's specpdl_ptr
-       here because it may be updated after this function runs. */
+       here because it may be updated after this function runs.  */
     struct igc_thread_list *t = closure;
     igc_assert (start == (void *) t->d.ts->m_specpdl);
     igc_assert (end == (void *) t->d.ts->m_specpdl_end);
@@ -1359,7 +1359,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 	    IGC_FIX12_OBJ (ss, &pdl->unwind.arg);
 	    break;
 
-	    /* This is used by SAFE_ALLOCA/malloc. */
+	    /* This is used by SAFE_ALLOCA/malloc.  */
 	  case SPECPDL_UNWIND_ARRAY:
 	    IGC_FIX12_WRAPPED_VEC (ss, &pdl->unwind_array.array);
 	    break;
@@ -1398,7 +1398,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 
 	  case SPECPDL_UNWIND_PTR:
 	    /* This can contain a mark function of its own, which is of
-	       no use to us.  Only user is sort.c. */
+	       no use to us.  Only user is sort.c.  */
 	    break;
 
 	  case SPECPDL_UNWIND_INT:
@@ -1415,7 +1415,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 
 /* Scan the area of memory [START, END) ambiguously. In general,
    references may be either tagged words or pointers. This is used for
-   blocks allocated with malloc and thread stacks. */
+   blocks allocated with malloc and thread stacks.  */
 
 static mps_res_t
 scan_ambig (mps_ss_t ss, void *start, void *end, void *closure)
@@ -1432,7 +1432,7 @@ scan_ambig (mps_ss_t ss, void *start, void *end, void *closure)
 	   reference (because it can't know if it's a
 	   genuine reference). The MPS handles an ambiguous
 	   reference by pinning the block pointed to so that
-	   it cannot move. */
+	   it cannot move.  */
 	mps_addr_t ref = (mps_addr_t) word;
 	mps_res_t res = MPS_FIX12 (ss, &ref);
 	if (res != MPS_RES_OK)
@@ -1862,7 +1862,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
       case IGC_OBJ_DUMPED_BUFFER_TEXT:
       case IGC_OBJ_DUMPED_BIGNUM_DATA:
       case IGC_OBJ_DUMPED_BYTES:
-	/* Can occur in the dump. */
+	/* Can occur in the dump.  */
 	break;
 
       case IGC_OBJ_NUM_TYPES:
@@ -2297,7 +2297,7 @@ fix_thread (mps_ss_t ss, struct thread_state *s)
 }
 
 /* This is here because main_thread is, for some reason, a variable in
-   the data segment, and not like other threads. */
+   the data segment, and not like other threads.  */
 
 static mps_res_t
 scan_main_thread (mps_ss_t ss, void *start, void *end, void *closure)
@@ -2389,7 +2389,7 @@ fix_comp_unit (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
        don't have exclusive (synchronized) access to them.  Instead of
        storing Lisp_Object references in vectors in the dylib data
        segment it would be much nicer to store them in MPS and give the
-       dylib a pointer to them. */
+       dylib a pointer to them.  */
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2473,7 +2473,7 @@ fix_ts_parser (mps_ss_t ss, struct Lisp_TS_Parser *p)
 
 /* Note that there is a small window after committing a vectorlike
    allocation where the object is zeroed, and so the vector header is
-   also zero.  This doesn't have an adverse effect. */
+   also zero.  This doesn't have an adverse effect.  */
 
 static mps_res_t
 fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
@@ -2795,7 +2795,7 @@ igc_on_grow_specpdl (void)
   /* Note that no two roots may overlap, so we have to temporarily
      stop the collector while replacing one root with another (xpalloc
      may realloc). Alternatives: (1) don't realloc, (2) alloc specpdl
-     from MPS pool that is scanned. */
+     from MPS pool that is scanned.  */
   struct igc_thread_list *t = current_thread->gc_info;
   IGC_WITH_PARKED (t->d.gc)
   {
@@ -3030,7 +3030,7 @@ igc_xzalloc_ambig (size_t size)
 {
   /* Not sure if xzalloc can ever return NULL here, depending on all the
      config options involved. Also not sure when it returns non-null for
-     size 0. It does for me on macOS. */
+     size 0. It does for me on macOS.  */
   while (size % IGC_ALIGN_DFLT)
     size++;
   void *p = xzalloc (size);
@@ -3038,7 +3038,7 @@ igc_xzalloc_ambig (size_t size)
     return NULL;
 
   /* Can't make a root that has zero length. Want one to be able to
-     detect calling igc_free on something not having a root. */
+     detect calling igc_free on something not having a root.  */
   void *end = (char *) p + size;
   if (end == p)
     end = (char *) p + IGC_ALIGN_DFLT;
@@ -3055,7 +3055,7 @@ igc_realloc_ambig (void *block, size_t size)
   {
     destroy_root_with_start (block);
     /* Can't make a root that has zero length. Want one to be able to
-       detect calling igc_free on something not having a root. */
+       detect calling igc_free on something not having a root.  */
     size_t new_size = (size == 0 ? IGC_ALIGN_DFLT : size);
     p = xrealloc (block, new_size);
     void *end = (char *)p + new_size;
@@ -3070,7 +3070,7 @@ igc_xfree (void *p)
 {
   /* Check for pdumper_object_p here because xfree does the same.  Means
      that freeing something that is actually in the dump is not an
-     error. Make the same true if the dump is loaded into MPS memory. */
+     error. Make the same true if the dump is loaded into MPS memory.  */
   if (p == NULL || pdumper_object_p (p))
     return;
   destroy_root_with_start (p);
@@ -3221,7 +3221,7 @@ finalize_finalizer (struct Lisp_Finalizer *f)
     }
 }
 
-/* Turn an existing pseudovector into a PVEC_FREE, keeping its size. */
+/* Turn an existing pseudovector into a PVEC_FREE, keeping its size.  */
 
 static void
 splat_pvec (struct Lisp_Vector *v)
@@ -3234,7 +3234,7 @@ static void
 finalize_vector (mps_addr_t v)
 {
   struct Lisp_Vector *vec = v;
-  /* Please use exhaustive switches, just to do me a favour :-). */
+  /* Please use exhaustive switches, just to do me a favour :-).  */
   switch (pseudo_vector_type (v))
     {
     case PVEC_BIGNUM:
@@ -3476,7 +3476,7 @@ process_one_message (struct igc *gc)
     {
       mps_addr_t base_addr;
       mps_message_finalization_ref (&base_addr, gc->arena, msg);
-      /* FIXME/igc: other threads should be suspended while finalizing objects. */
+      /* FIXME/igc: other threads should be suspended while finalizing objects.  */
       finalize (gc, base_addr);
     }
   else if (mps_message_get (&msg, gc->arena, mps_message_type_gc_start ()))
@@ -3515,7 +3515,7 @@ igc_process_messages (void)
 }
 
 /* Discard entries for killed buffers from LIST and return the resulting
-   list. Used in window-{next,prev}-buffers. */
+   list. Used in window-{next,prev}-buffers.  */
 
 Lisp_Object
 igc_discard_killed_buffers (Lisp_Object list)
@@ -3571,7 +3571,7 @@ arena_step (void)
   /* mps_arena_step does not guarantee to return swiftly. And it seems
      that it sometimes does an opportunistic full collection alledging
      the client predicted lots of idle time. But it doesn't tell how
-     it comes to that conclusioin. */
+     it comes to that conclusioin.  */
   if (!FIXNUMP (Vigc_step_interval)
       || XFIXNUM (Vigc_step_interval) != 0)
     {
@@ -3626,7 +3626,7 @@ igc_on_idle (void)
 	break;
       }
 
-    /* Don't always exhaust the max time we want to spend here. */
+    /* Don't always exhaust the max time we want to spend here.  */
     if (!work_done)
       break;
   }
@@ -3686,7 +3686,7 @@ thread_ap (enum igc_obj_type type)
 }
 
 /* Conditional breakpoints can be so slow that it is often more
-   effective to instrument code. This function is for such cases. */
+   effective to instrument code. This function is for such cases.  */
 
 void
 igc_break (void)
@@ -3706,7 +3706,7 @@ igc_collect (void)
 }
 
 DEFUN ("igc--collect", Figc__collect, Sigc__collect, 0, 0, 0,
-       doc: /* Force an immediate arena garbage collection. */)
+       doc: /* Force an immediate arena garbage collection.  */)
   (void)
 {
   igc_collect ();
@@ -3749,7 +3749,7 @@ igc_hash (Lisp_Object key)
 
 /* Allocate an object of client size SIZE and of type TYPE from
    allocation point AP. Value is a pointer to the client area of the new
-   object. */
+   object.  */
 
 static mps_addr_t
 alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
@@ -3765,7 +3765,7 @@ alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
 	  mps_res_t res = mps_reserve (&p, ap, size);
 	  if (res != MPS_RES_OK)
 	    memory_full (0);
-	  /* Object _must_ have valid contents before commit. */
+	  /* Object _must_ have valid contents before commit.  */
 	  memclear (p, size);
 	  set_header (p, type, size, alloc_hash ());
 	}
@@ -3785,7 +3785,7 @@ alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
 
 /* Allocate an object of client size SIZE and of type TYPE from a
    type-dependent allocation point. Value is a pointer to the client
-   area of the new object. */
+   area of the new object.  */
 
 static mps_addr_t
 alloc (size_t size, enum igc_obj_type type)
@@ -3795,7 +3795,7 @@ alloc (size_t size, enum igc_obj_type type)
 
 /* Allocate an object of client size SIZE and of type TYPE from MPS in a
    way tnat ensure that the object will not move in memory. Value is a
-   pointer to the client area of the new object. */
+   pointer to the client area of the new object.  */
 
 static mps_addr_t
 alloc_immovable (size_t size, enum igc_obj_type type)
@@ -3881,7 +3881,7 @@ igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
 
   /* The capacity is the number of bytes the client has available,
      including the terminating NUL byte. Sizes computed from Lisp
-     strings don't include the NUL. That's the 1 in the if. */
+     strings don't include the NUL. That's the 1 in the if.  */
   ptrdiff_t capacity = obj_client_size (old_header);
   if (capacity < nbytes_needed + 1)
     {
@@ -3890,12 +3890,12 @@ igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
       s->u.s.data = new_data;
     }
 
-  /* Set up string as if the character had been inserted. */
+  /* Set up string as if the character had been inserted.  */
   s->u.s.size_byte = nbytes_needed;
   unsigned char *insertion_addr = s->u.s.data + at_byte_pos;
   /* Need to move the rest of the string after the insertion point
      (old_nbytes - at_bytespos), but not the old char itself (-
-     old_char_len), but do include the NUL at the end (+ 1). */
+     old_char_len), but do include the NUL at the end (+ 1).  */
   ptrdiff_t nbytes_to_move = old_nbytes - at_byte_pos - old_char_len + 1;
   memmove (insertion_addr + new_char_len, insertion_addr + old_char_len,
 	   nbytes_to_move);
@@ -3935,14 +3935,14 @@ struct Lisp_Vector *
 igc_alloc_pseudovector (size_t nwords_mem, size_t nwords_lisp,
 			size_t nwords_zero, enum pvec_type tag)
 {
-  /* header_size comes from lisp.h. */
+  /* header_size comes from lisp.h.  */
   size_t client_size = header_size + nwords_mem * sizeof (Lisp_Object);
   struct Lisp_Vector *v;
   if (tag == PVEC_THREAD)
     {
       /* Alloc thread_state immovable because we need access to it for
 	 scanning the bytecode stack (scan_bc), and making thread_state
-	 immovable simplifies the code. */
+	 immovable simplifies the code.  */
       v = alloc_immovable (client_size, IGC_OBJ_VECTOR);
     }
   else
@@ -4017,7 +4017,7 @@ igc_make_ptr_vec (size_t n)
 }
 
 /* Allocate a Lisp_Object vector with N elements.
-   Currently only used by SAFE_ALLOCA_LISP. */
+   Currently only used by SAFE_ALLOCA_LISP.  */
 
 Lisp_Object *
 igc_alloc_lisp_obj_vec (size_t n)
@@ -4439,7 +4439,7 @@ igc_external_header (struct igc_header *h)
       exthdr->hash = header_hash (h);
       exthdr->obj_type = header_type (h);
       exthdr->extra_dependency = Qnil;
-      /* On IA-32, the upper 32-bit word is 0 after this, which is okay. */
+      /* On IA-32, the upper 32-bit word is 0 after this, which is okay.  */
       h->v = (intptr_t)exthdr + IGC_TAG_EXTHDR;
       mps_addr_t ref = (mps_addr_t) h;
       mps_res_t res = mps_finalize (global_igc->arena, &ref);
@@ -4515,7 +4515,7 @@ make_dflt_fmt (struct igc *gc)
        specifically amcSegScanNailedRange calls NailboardGet with a
        client address, which calls NailboardGet, and one can see that
        the the board contains base addresses which leads to an assertion
-       failure. */
+       failure.  */
     MPS_ARGS_ADD (args, MPS_KEY_FMT_HEADER_SIZE, 0);
     MPS_ARGS_ADD (args, MPS_KEY_FMT_SCAN, dflt_scan);
     MPS_ARGS_ADD (args, MPS_KEY_FMT_SKIP, dflt_skip);
@@ -4580,7 +4580,7 @@ make_igc (void)
 
   /* We cannot let the GC run until at least all staticpros haven been
      processed. Otherwise we might allocate objects that are not
-     protected by anything. */
+     protected by anything.  */
   arena_park (gc);
 
   gc->dflt_fmt = make_dflt_fmt (gc);
@@ -4618,7 +4618,7 @@ igc_on_staticpros_complete (void)
   set_state (IGC_STATE_USABLE);
 }
 
-/* To call from LLDB. */
+/* To call from LLDB.  */
 
 void
 igc_postmortem (void)
@@ -4703,14 +4703,14 @@ pure_obj_type_and_hash (size_t *hash_o, enum igc_obj_type type, void *client)
     }
 }
 
-/* Called from the dumper at the end of dumping an object. This function
-   is responsible for filling out the igc_header of the dumped object.
-   CLIENT points to the object being dumped. TYPE is the type of objcect
-   the pdumper intends to write. BASE points to where in the dump CLIENT
-   has been written, i.e. it is a pointer to its header in the dump.
-   END is the current end of the object whose start is BASE. Value is
-   the address in the dump where the object should end which can be >=
-   end for alignment purposes. */
+/* Called from the dumper at the end of dumping an object.  This
+   function is responsible for filling out the igc_header of the dumped
+   object.  CLIENT points to the object being dumped.  TYPE is the type
+   of object the pdumper intends to write.  BASE points to where in the
+   dump CLIENT has been written, i.e. it is a pointer to its header in
+   the dump.  END is the current end of the object whose start is BASE.
+   Value is the address in the dump where the object should end which
+   can be >= end for alignment purposes.  */
 
 char *
 igc_dump_finish_obj (void *client, enum igc_obj_type type,
@@ -4737,7 +4737,7 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
 
   struct igc_header *out = (struct igc_header *) base;
 
-  /* If the client object to be dumped has a header, copy that. */
+  /* If the client object to be dumped has a header, copy that.  */
   if (type != IGC_OBJ_DUMPED_BYTES && type != IGC_OBJ_DUMPED_CODE_SPACE_MASKS
       && type != IGC_OBJ_DUMPED_BUFFER_TEXT)
     if (!is_in_dump)
@@ -4757,7 +4757,7 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
 	return base + obj_size (h);
       }
 
-  /* We are dumping some non-MPS object, e.g. a built-in symbol. */
+  /* We are dumping some non-MPS object, e.g. a built-in symbol.  */
   size_t client_size = end - base;
   size_t nbytes = alloc_size (client_size);
   size_t hash;
@@ -4830,7 +4830,7 @@ static mps_addr_t pinned_objects_in_dump[3];
 /* Called from pdumper_load. [HOT_START, HOT_END) is the hot section of
    the dump. [COL_START, COLD_END) is the cold section of the
    dump. COLD_USER_DATA_START is where actual object memory starts.
-   HEAP_END is the heap end as recorded in the dump header. */
+   HEAP_END is the heap end as recorded in the dump header.  */
 
 void
 igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
@@ -5010,7 +5010,7 @@ KEY is the key associated with DEPENDENCY in a hash table.  */)
 void
 init_igc (void)
 {
-  /* Returns previous handler. */
+  /* Returns previous handler.  */
   (void) mps_lib_assert_fail_install (igc_assert_fail);
   global_igc = make_igc ();
   add_main_thread ();
