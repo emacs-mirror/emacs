@@ -3946,7 +3946,9 @@ See `treesit-thing-settings' for more information.")
                    :embed 'jsdoc
                    :host 'javascript
                    :local t
-                   `(((comment) @capture (:match ,js--treesit-jsdoc-beginning-regexp @capture))))))
+                   `(((comment) @capture (:match ,js--treesit-jsdoc-beginning-regexp @capture)))))
+
+      (setq c-ts-common--comment-regexp (rx (or "comment" "line_comment" "block_comment" "description"))))
 
     ;; Imenu
     (setq-local treesit-simple-imenu-settings
