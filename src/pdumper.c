@@ -2223,7 +2223,7 @@ dump_treesit_compiled_query (struct dump_context *ctx,
   START_DUMP_PVEC (ctx, &query->header, struct Lisp_TS_Query, out);
   dump_field_lv (ctx, &out->language, query, &query->language, WEIGHT_STRONG);
   dump_field_lv (ctx, &out->source, query, &query->source, WEIGHT_STRONG);
-  /* Recompile these after load */
+  /* These will be recompiled after load from dump.  */
   out->query = NULL;
   out->cursor = NULL;
   return finish_dump_pvec (ctx, &out->header);
@@ -3123,11 +3123,9 @@ dump_vectorlike (struct dump_context *ctx,
           return DUMP_OBJECT_IS_RUNTIME_MAGIC;
         }
       break;
+    case PVEC_TS_COMPILED_QUERY:
 #ifdef HAVE_TREE_SITTER
-    case PVEC_TS_COMPILED_QUERY:
       return dump_treesit_compiled_query (ctx, XTS_COMPILED_QUERY (lv));
-#else
-    case PVEC_TS_COMPILED_QUERY:
 #endif
     case PVEC_WINDOW_CONFIGURATION:
     case PVEC_OTHER:
