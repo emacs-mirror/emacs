@@ -151,7 +151,9 @@ comment."
          (orig-point (point-marker))
          (start-marker (point-marker))
          (end-marker nil)
-         (end-len 0))
+         (end-len 0)
+         (start-mask-done nil)
+         (end-mask-done nil))
     (move-marker start-marker start)
     ;; We mask "/*" and the space before "*/" like
     ;; `c-fill-paragraph' does.
@@ -162,6 +164,7 @@ comment."
                             (group "/") "*"))
         (goto-char (match-beginning 1))
         (move-marker start-marker (point))
+        (setq start-mask-done t)
         (replace-match " " nil nil nil 1))
 
       ;; Include whitespaces before /*.
@@ -179,6 +182,7 @@ comment."
         (goto-char (match-beginning 1))
         (setq end-marker (point-marker))
         (setq end-len (- (match-end 1) (match-beginning 1)))
+        (setq end-mask-done t)
         (replace-match (make-string end-len ?x)
                        nil nil nil 1))
 
@@ -206,11 +210,11 @@ comment."
         (fill-region (max start-marker para-start) (min end para-end) arg))
 
       ;; Unmask.
-      (when start-marker
+      (when (and start-mask-done start-marker)
         (goto-char start-marker)
         (delete-char 1)
         (insert "/"))
-      (when end-marker
+      (when (and end-mask-done start-marker)
         (goto-char end-marker)
         (delete-region (point) (+ end-len (point)))
         (insert (make-string end-len ?\s)))
