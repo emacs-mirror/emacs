@@ -48,7 +48,7 @@
 
 (defcustom go-ts-mode-build-tags nil
   "List of Go build tags for the test commands."
-  :version "30.1"
+  :version "31.1"
   :type '(repeat string)
   :group 'go)
 
