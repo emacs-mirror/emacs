@@ -4948,7 +4948,6 @@ intern_c_multibyte (const char *str, ptrdiff_t nchars, ptrdiff_t nbytes)
 static void
 define_symbol (Lisp_Object sym, char const *str)
 {
-  gc_init_header (&XBARE_SYMBOL (sym)->gc_header, IGC_OBJ_SYMBOL);
   ptrdiff_t len = strlen (str);
   Lisp_Object string = make_pure_c_string (str, len);
   init_symbol (sym, string);
@@ -5423,7 +5422,10 @@ init_obarray_once (void)
   staticpro (&initial_obarray);
 
   for (int i = 0; i < ARRAYELTS (lispsym); i++)
-    define_symbol (builtin_lisp_symbol (i), defsym_name[i]);
+    {
+      gc_init_header (&lispsym[i].gc_header, IGC_OBJ_SYMBOL);
+      define_symbol (builtin_lisp_symbol (i), defsym_name[i]);
+    }
 
   DEFSYM (Qunbound, "unbound");
 

@@ -1218,6 +1218,7 @@ syms_of_threads (void)
 
   DEFVAR_LISP ("main-thread", Vmain_thread,
     doc: /* The main thread of Emacs.  */);
+  gc_init_header (&main_thread.s.header.gc_header, IGC_OBJ_VECTOR);
 #ifdef THREADS_ENABLED
   XSETTHREAD (Vmain_thread, &main_thread.s);
 #else

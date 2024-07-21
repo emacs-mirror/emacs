@@ -641,7 +641,7 @@ void gc_init_header (union gc_header *header, enum igc_obj_type type)
       break;
     case IGC_OBJ_VECTOR:
       {
-	ptrdiff_t size = ASIZE (make_lisp_ptr (header, Lisp_Vectorlike));
+	ptrdiff_t size = ((struct Lisp_Vector *)header)->header.size;
 	if (size & PSEUDOVECTOR_FLAG)
 	  size &= PSEUDOVECTOR_SIZE_MASK;
 	set_header (h, IGC_OBJ_VECTOR, sizeof (struct Lisp_Vector) +
