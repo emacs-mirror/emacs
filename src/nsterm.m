@@ -494,10 +494,14 @@ hold_event (struct input_event *event)
 {
   if (hold_event_q.nr == hold_event_q.cap)
     {
-      if (hold_event_q.cap == 0) hold_event_q.cap = 10;
-      else hold_event_q.cap *= 2;
-      hold_event_q.q =
-        xrealloc (hold_event_q.q, hold_event_q.cap * sizeof *hold_event_q.q);
+      hold_event_q.cap = max (10, 2 * hold_event_q.cap);
+      size_t nbytes = hold_event_q.cap * sizeof *event;
+      /* Never freed. */
+#ifdef HAVE_MPS
+      hold_event_q.q = igc_realloc_ambig (hold_event_q.q, nbytes);
+#else
+      hold_event_q.q = xrealloc (hold_event_q.q, nbytes);
+#endif
     }
 
   hold_event_q.q[hold_event_q.nr++] = *event;
