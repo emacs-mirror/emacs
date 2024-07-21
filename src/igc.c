@@ -291,22 +291,6 @@ is_builtin_subr (enum igc_obj_type type, void *client)
 }
 
 static bool
-has_header (void *client, bool is_vector)
-{
-  if (client == NULL)
-    return false;
-  if (is_vector && is_builtin_subr (IGC_OBJ_VECTOR, client))
-    return false;
-  if (c_symbol_p (client))
-    return false;
-  if (client == &main_thread.s)
-    return false;
-  if (is_pure (client))
-    return false;
-  return true;
-}
-
-static bool
 is_aligned (const mps_addr_t addr)
 {
   return ((mps_word_t) addr & IGC_TAG_MASK) == 0;
@@ -366,8 +350,6 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_FLOAT",
   "IGC_OBJ_BLV",
   "IGC_OBJ_PTR_VEC",
-  "IGC_OBJ_OBJ_VEC",
-  "IGC_OBJ_HASH_VEC",
   "IGC_OBJ_HANDLER",
   "IGC_OBJ_BYTES",
   "IGC_OBJ_BUILTIN_SYMBOL",
@@ -688,32 +670,13 @@ void gc_init_header_bytes (union gc_header *header, enum igc_obj_type type,
     }
 }
 
-/* Given a pointer to the client area of an object, CLIENT, return
-   the base address of the object in MPS. */
-
-static mps_addr_t
-client_to_base (mps_addr_t client_addr)
-{
-  return (char *) client_addr;
-}
-
-/* Given a pointer to the start of an object in MPS, BASE, return a
-   pointer to its client area. */
-
-static mps_addr_t
-base_to_client (mps_addr_t base_addr)
-{
-  return (char *) base_addr;
-}
-
 /* Given a client pointer CLIENT to an object, return how many
    elements of size ELEM_SIZE can fit into the client area. */
 
 static size_t
-object_nelems (void *client, size_t elem_size)
+object_nelems (struct igc_header *h, size_t elem_size)
 {
-  struct igc_header *h = client_to_base (client);
-  return obj_client_size (h) / elem_size;
+  return (obj_client_size (h) - sizeof *h) / elem_size;
 }
 
 /* Round NBYTES to the next multiple of ALIGN. */
@@ -730,7 +693,6 @@ igc_round (size_t nbytes, size_t align)
 static size_t
 alloc_size (size_t nbytes)
 {
-  nbytes += sizeof (struct igc_header);
   nbytes = max (nbytes, sizeof (struct igc_fwd));
   nbytes = igc_round (nbytes, IGC_ALIGN_DFLT);
   return nbytes;
@@ -752,17 +714,11 @@ alloc_hash (void)
 void
 igc_check_fwd (void *client, bool is_vector)
 {
-  /* We can't tell the type of object CLIENT points to which prevents
-     checking for built-in subrs but that's good enough. */
-  if (has_header (client, is_vector))
-    {
-      struct igc_header *h = client_to_base (client);
-      igc_assert (header_type (h) != IGC_OBJ_FWD);
-      igc_assert (obj_size (h) >= sizeof (struct igc_fwd));
-    }
+  struct igc_header *h = client;
+  igc_assert (header_type (h) != IGC_OBJ_FWD);
+  igc_assert (obj_size (h) >= sizeof (struct igc_fwd));
 }
 #endif
-
 
 /************************************************************************
                         Registry of MPS objects
@@ -1003,7 +959,7 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
       {
 	ptrdiff_t off = word ^ tag;
 	mps_addr_t client = (mps_addr_t) ((char *) lispsym + off);
-	mps_addr_t base = client_to_base (client);
+	mps_addr_t base = client;
 	if (MPS_FIX1 (ss, base))
 	  {
 	    mps_res_t res = MPS_FIX2 (ss, &base);
@@ -1013,7 +969,7 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
 	      *(Lisp_Object *) p = Qnil;
 	    else
 	      {
-		client = base_to_client (base);
+		client = base;
 		ptrdiff_t new_off = (char *) client - (char *) lispsym;
 		*p = new_off | tag;
 	      }
@@ -1026,7 +982,7 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
 	   IOW, MPS_FIX1 has undefined behavior if called on an address that
 	   is not in the arena.  */
 	mps_addr_t client = (mps_addr_t) (word ^ tag);
-	mps_addr_t base = client_to_base (client);
+	mps_addr_t base = client;
 	if (MPS_FIX1 (ss, base))
 	  {
 	    mps_res_t res = MPS_FIX2 (ss, &base);
@@ -1036,7 +992,7 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
 	      *(Lisp_Object *) p = Qnil;
 	    else
 	      {;
-		client = base_to_client (base);
+		client = base;
 		*p = (mps_word_t) client | tag;
 	      }
 	  }
@@ -1056,7 +1012,7 @@ fix_raw (mps_ss_t ss, mps_addr_t *p)
       return MPS_RES_OK;
     if (is_aligned (client))
       {
-	mps_addr_t base = client_to_base (client);
+	mps_addr_t base = client;
 	if (MPS_FIX1 (ss, base))
 	  {
 	    mps_res_t res = MPS_FIX2 (ss, &base);
@@ -1065,7 +1021,7 @@ fix_raw (mps_ss_t ss, mps_addr_t *p)
 	    if (base == NULL)
 	      *p = NULL;
 	    else
-	      *p = base_to_client (base);
+	      *p = base;
 	  }
       }
   }
@@ -1086,7 +1042,7 @@ fix_wrapped_vec (mps_ss_t ss, mps_addr_t *p)
     if (is_aligned (client))
       {
 	client = (char *)client - sizeof (struct Lisp_Vector);
-	mps_addr_t base = client_to_base (client);
+	mps_addr_t base = client;
 	if (MPS_FIX1 (ss, base))
 	  {
 	    mps_res_t res = MPS_FIX2 (ss, &base);
@@ -1095,7 +1051,7 @@ fix_wrapped_vec (mps_ss_t ss, mps_addr_t *p)
 	    if (base == NULL)
 	      *p = NULL;
 	    else
-	      *p = (char *)base_to_client (base) + sizeof (struct Lisp_Vector);
+	      *p = (char *)base + sizeof (struct Lisp_Vector);
 	  }
       }
   }
@@ -1116,7 +1072,7 @@ fix_wrapped_bytes (mps_ss_t ss, mps_addr_t *p)
     if (is_aligned (client))
       {
 	client = (char *)client - sizeof (struct Lisp_String_Data);
-	mps_addr_t base = client_to_base (client);
+	mps_addr_t base = client;
 	if (MPS_FIX1 (ss, base))
 	  {
 	    mps_res_t res = MPS_FIX2 (ss, &base);
@@ -1125,7 +1081,7 @@ fix_wrapped_bytes (mps_ss_t ss, mps_addr_t *p)
 	    if (base == NULL)
 	      *p = NULL;
 	    else
-	      *p = (char *)base_to_client (base) + sizeof (struct Lisp_String_Data);
+	      *p = (char *)base + sizeof (struct Lisp_String_Data);
 	  }
       }
   }
@@ -1766,27 +1722,14 @@ fix_face_cache (mps_ss_t ss, struct face_cache *c)
 }
 
 static mps_res_t
-fix_ptr_vec (mps_ss_t ss, void *client)
+fix_ptr_vec (mps_ss_t ss, struct igc_header *h)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    void **v = client;
-    size_t n = object_nelems (client, sizeof *v);
+    struct igc_header **v = (void *)(h + 1);
+    size_t n = object_nelems (h, sizeof *v);
     for (size_t i = 0; i < n; ++i)
       IGC_FIX12_RAW (ss, &v[i]);
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-static mps_res_t
-fix_obj_vec (mps_ss_t ss, Lisp_Object *v)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    size_t n = object_nelems (v, sizeof *v);
-    for (size_t i = 0; i < n; ++i)
-      IGC_FIX12_OBJ (ss, &v[i]);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1857,7 +1800,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
   MPS_SCAN_BEGIN (ss)
   {
     mps_addr_t base = base_start;
-    mps_addr_t client = base_to_client (base);
+    mps_addr_t client = base;
     struct igc_header *header = base;
 
     if (closure)
@@ -1905,12 +1848,7 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 	break;
 
       case IGC_OBJ_PTR_VEC:
-	IGC_FIX_CALL_FN (ss, mps_word_t, client, fix_ptr_vec);
-	break;
-
-      case IGC_OBJ_OBJ_VEC:
-      case IGC_OBJ_HASH_VEC:
-	IGC_FIX_CALL_FN (ss, Lisp_Object, client, fix_obj_vec);
+	IGC_FIX_CALL_FN (ss, struct igc_header, header, fix_ptr_vec);
 	break;
 
       case IGC_OBJ_CONS:
@@ -3400,7 +3338,7 @@ finalize_vector (mps_addr_t v)
 static void
 finalize (struct igc *gc, mps_addr_t base)
 {
-  mps_addr_t client = base_to_client (base);
+  mps_addr_t client = base;
   struct igc_header *h = base;
   if (header_tag (h) == IGC_TAG_EXTHDR)
     {
@@ -3439,7 +3377,7 @@ maybe_process_messages (void)
 static void
 maybe_finalize (mps_addr_t client, enum pvec_type tag)
 {
-  mps_addr_t ref = client_to_base (client);
+  mps_addr_t ref = client;
   struct igc_header *h = ref;
   if (header_tag (h) == IGC_TAG_EXTHDR)
     {
@@ -3736,8 +3674,6 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_FACE_CACHE:
     case IGC_OBJ_BLV:
     case IGC_OBJ_PTR_VEC:
-    case IGC_OBJ_OBJ_VEC:
-    case IGC_OBJ_HASH_VEC:
     case IGC_OBJ_HANDLER:
       return t->d.dflt_ap;
 
@@ -3807,18 +3743,8 @@ igc_hash (Lisp_Object key)
       break;
     }
 
-  /* Objects in the The dump have igc_headers, too. */
-  if (has_header (client, tag == Lisp_Vectorlike))
-    {
-      // The following assertion is very expensive.
-      // igc_assert (mps_arena_has_addr (global_igc->arena, client));
-      struct igc_header *h = client_to_base (client);
-      return igc_header_hash (h);
-    }
-
-  /* Use a hash that would fit into igc_header::hash so that we
-     can keep the hash once a non-MPS object is copied to MPS. */
-  return word & IGC_HEADER_HASH_MASK;
+  struct igc_header *h = client;
+  return igc_header_hash (h);
 }
 
 /* Allocate an object of client size SIZE and of type TYPE from
@@ -3854,7 +3780,7 @@ alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
     case IGC_STATE_INITIAL:
       emacs_abort ();
     }
-  return base_to_client (p);
+  return p;
 }
 
 /* Allocate an object of client size SIZE and of type TYPE from a
@@ -3950,7 +3876,8 @@ igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
 
   ptrdiff_t old_nbytes = SBYTES (string);
   ptrdiff_t nbytes_needed = old_nbytes + (new_char_len - old_char_len);
-  struct igc_header *old_header = client_to_base (s->u.s.data);
+  struct igc_header *old_header =
+    (struct igc_header *)(s->u.s.data - sizeof (struct igc_header));
 
   /* The capacity is the number of bytes the client has available,
      including the terminating NUL byte. Sizes computed from Lisp
@@ -4084,7 +4011,9 @@ igc_make_face_cache (void)
 void *
 igc_make_ptr_vec (size_t n)
 {
-  return alloc (n * sizeof (void *), IGC_OBJ_PTR_VEC);
+  struct igc_header *ret =
+    alloc (sizeof (struct igc_header) + n * sizeof (void *), IGC_OBJ_PTR_VEC);
+  return ret + 1;
 }
 
 /* Allocate a Lisp_Object vector with N elements.
@@ -4105,15 +4034,15 @@ weak_hash_find_dependent (mps_addr_t base)
     {
     case IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART:
       {
-	mps_addr_t client = base_to_client (base);
+	mps_addr_t client = base;
 	struct Lisp_Weak_Hash_Table_Weak_Part *w = client;
-	return client_to_base (w->strong);
+	return w->strong;
       }
     case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
       {
-	mps_addr_t client = base_to_client (base);
+	mps_addr_t client = base;
 	struct Lisp_Weak_Hash_Table_Strong_Part *w = client;
-	return client_to_base (w->weak);
+	return w->weak;
       }
     default:
       emacs_abort ();
@@ -4136,7 +4065,7 @@ weak_hash_table_entry (struct Lisp_Weak_Hash_Table_Entry entry)
 
   if (alignment == 0)
     {
-      client = base_to_client ((mps_addr_t)entry.intptr);
+      client = (mps_addr_t)entry.intptr;
     }
   else
     {
@@ -4172,13 +4101,8 @@ make_weak_hash_table_entry (Lisp_Object obj)
   else
     client = XUNTAG (obj, XTYPE (obj), void);
 
-  if (has_header (client, VECTORLIKEP (obj)))
-    entry.intptr = (intptr_t)client_to_base (client);
-  else
-    {
-      entry.intptr = (intptr_t)client + 1;
-      eassert (entry.intptr & 1);
-    }
+  entry.intptr = (intptr_t)client;
+
   return entry;
 }
 
@@ -4814,18 +4738,24 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
   struct igc_header *out = (struct igc_header *) base;
 
   /* If the client object to be dumped has a header, copy that. */
-  if (has_header (client, type == IGC_OBJ_VECTOR)
-      && !is_in_dump)
-    {
-      struct igc_header *h = client_to_base (client);
-      if (igc_header_type (h) == IGC_OBJ_MARKER_VECTOR)
-	igc_assert ((type == IGC_OBJ_VECTOR
-		     && igc_header_type (h) == IGC_OBJ_MARKER_VECTOR)
-		    || header_type (h) == type);
-      igc_assert (base + obj_size (h) >= end);
-      *out = *h;
-      return base + obj_size (h);
-    }
+  if (type != IGC_OBJ_DUMPED_BYTES && type != IGC_OBJ_DUMPED_CODE_SPACE_MASKS
+      && type != IGC_OBJ_DUMPED_BUFFER_TEXT)
+    if (!is_in_dump)
+      {
+	struct igc_header *h = client;
+	if (igc_header_type (h) == IGC_OBJ_MARKER_VECTOR)
+	  igc_assert ((type == IGC_OBJ_VECTOR
+		       && igc_header_type (h) == IGC_OBJ_MARKER_VECTOR)
+		      || header_type (h) == type);
+	igc_assert (base + obj_size (h) >= end);
+	if (type != IGC_OBJ_DUMPED_BYTES &&
+	    type != IGC_OBJ_DUMPED_CODE_SPACE_MASKS &&
+	    type != IGC_OBJ_DUMPED_BUFFER_TEXT &&
+	    type != IGC_OBJ_DUMPED_BIGNUM_DATA)
+	  *out = *h;
+	igc_assert (header_nwords (out) > 0);
+	return base + obj_size (h);
+      }
 
   /* We are dumping some non-MPS object, e.g. a built-in symbol. */
   size_t client_size = end - base;
@@ -4909,7 +4839,7 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 {
   dump_base = (char *)dump_base - igc_header_size ();
   igc_assert (global_igc->park_count > 0);
-  igc_assert (base_to_client (hot_start) == charset_table);
+  igc_assert (hot_start == charset_table);
   igc_assert (header_type ((struct igc_header *) hot_start)
 	      == IGC_OBJ_DUMPED_CHARSET_TABLE);
   igc_assert (header_type ((struct igc_header *) cold_start)
@@ -4923,7 +4853,7 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   // size_t cold_size = (uint8_t *)cold_end - (uint8_t *)cold_start;
   size_t dump_header_size = (uint8_t *)hot_start - (uint8_t *)dump_base;
   size_t relocs_size = (uint8_t *)cold_end - (uint8_t *)heap_end;
-  struct igc_header *h = client_to_base (dump_base);
+  struct igc_header *h = dump_base;
 
   igc_assert (header_type (h) == IGC_OBJ_INVALID);
   igc_assert (obj_size (h)
@@ -4940,8 +4870,8 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
   /* Pin some stuff in the dump  */
   mps_addr_t pinned_roots[] = {
     charset_table,
-    base_to_client (cold_start), /* code_space_masks */
-    base_to_client (cold_user_data_start),
+    cold_start, /* code_space_masks */
+    cold_user_data_start,
   };
   static_assert (sizeof pinned_roots == sizeof pinned_objects_in_dump);
   memcpy (pinned_objects_in_dump, pinned_roots, sizeof pinned_roots);
@@ -5010,13 +4940,7 @@ KEY is the key to associate with DEPENDENCY in a hash table.  */)
       break;
     }
 
-  /* Objects in the dump have igc_headers, too. */
-  if (!has_header (client, tag == Lisp_Vectorlike))
-    {
-      return Qnil;
-    }
-
-  struct igc_header *h = client_to_base (client);
+  struct igc_header *h = client;
   struct igc_exthdr *exthdr = igc_external_header (h);
   Lisp_Object hash = exthdr->extra_dependency;
   if (!WEAK_HASH_TABLE_P (hash))
@@ -5066,13 +4990,7 @@ KEY is the key associated with DEPENDENCY in a hash table.  */)
       break;
     }
 
-  /* Objects in the the dump have igc_headers, too. */
-  if (!has_header (client, tag == Lisp_Vectorlike))
-    {
-      return Qnil;
-    }
-
-  struct igc_header *h = client_to_base (client);
+  struct igc_header *h = client;
   struct igc_exthdr *exthdr = igc_external_header (h);
   Lisp_Object hash = exthdr->extra_dependency;
   if (!WEAK_HASH_TABLE_P (hash))
