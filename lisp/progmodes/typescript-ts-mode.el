@@ -92,7 +92,7 @@
 (defun tsx-ts-mode--indent-compatibility-b893426 ()
   "Indent rules helper, to handle different releases of tree-sitter-tsx.
 Check if a node type is available, then return the right indent rules."
-  ;; handle commit b893426
+  ;; handle https://github.com/tree-sitter/tree-sitter-typescript/commit/b893426b82492e59388a326b824a346d829487e8
   (condition-case nil
       (progn (treesit-query-capture 'tsx '((jsx_fragment) @capture))
              `(((match "<" "jsx_fragment") parent 0)
