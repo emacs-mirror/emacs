@@ -2727,13 +2727,14 @@ static dump_off
 dump_hash_vec (struct dump_context *ctx,
 	       const Lisp_Object array[], size_t len)
 {
+#ifdef HAVE_MPS
+  struct Lisp_Vector *v = (struct Lisp_Vector *)((char *)array - sizeof (*v));
+  return dump_vectorlike_generic (ctx, &v->header) + sizeof (*v);
+#endif
   dump_align_output (ctx, DUMP_ALIGNMENT);
   struct dump_flags old_flags = ctx->flags;
   ctx->flags.pack_objects = true;
 
-#ifdef HAVE_MPS
-  dump_igc_start_obj (ctx, IGC_OBJ_HASH_VEC, array);
-#endif
   dump_off start_offset = ctx->offset;
 
   for (size_t i = 0; i < len; i++)
@@ -2746,9 +2747,6 @@ dump_hash_vec (struct dump_context *ctx,
     }
 
   ctx->flags = old_flags;
-#ifdef HAVE_MPS
-  dump_igc_finish_obj (ctx);
-#endif
   return start_offset;
 }
 

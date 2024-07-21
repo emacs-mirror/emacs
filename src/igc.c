@@ -3992,7 +3992,8 @@ igc_make_ptr_vec (size_t n)
 Lisp_Object *
 igc_alloc_lisp_obj_vec (size_t n)
 {
-  return alloc (n * sizeof (Lisp_Object), IGC_OBJ_OBJ_VEC);
+  Lisp_Object v = make_vector (n, Qnil);
+  return XVECTOR (v)->contents;
 }
 
 static mps_addr_t
@@ -4023,7 +4024,7 @@ weak_hash_find_dependent (mps_addr_t base)
 Lisp_Object *
 igc_make_hash_table_vec (size_t n)
 {
-  return alloc (n * sizeof (Lisp_Object), IGC_OBJ_HASH_VEC);
+  return XVECTOR (make_vector (n, Qnil))->contents;
 }
 
 Lisp_Object
