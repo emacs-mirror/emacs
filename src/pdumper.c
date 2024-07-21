@@ -911,7 +911,9 @@ dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
   ctx->igc_obj_dumped = (void *) in;
   ctx->igc_type = type;
   ctx->igc_base_offset = ctx->offset;
-  if (ctx->flags.dump_object_contents)
+  if (ctx->flags.dump_object_contents &&
+      (type == IGC_OBJ_DUMPED_BYTES ||
+       type == IGC_OBJ_DUMPED_CODE_SPACE_MASKS))
     {
       /* This saving of obj_offset is Because of an assertion in
 	 dump_write. */
@@ -4512,7 +4514,8 @@ types.  */)
   dump_align_output (ctx, DUMP_ALIGNMENT);
   fprintf (stderr, "cold user data: %x\n", (unsigned)ctx->offset);
   ctx->header.cold_user_data_start = ctx->offset;
-  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, &discardable_end);
+  union gc_header header = { 0 };
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, &header);
 # endif
 
    /* dump_drain_user_remembered_data_cold needs to be after
@@ -4534,7 +4537,7 @@ types.  */)
 # ifdef HAVE_MPS
   ctx->header.heap_end = ctx->offset;
   dump_igc_check_object_starts (ctx);
-  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, &discardable_end);
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, &header);
 # endif
 
   /* Make remembered modifications to the dump file itself.  */

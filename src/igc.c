@@ -1732,9 +1732,7 @@ static mps_res_t
 fix_charset_table (mps_ss_t ss, struct charset *table, size_t nbytes)
 {
   igc_assert (table == charset_table);
-  igc_assert (nbytes
-	      == (charset_table_size * sizeof (struct charset)
-		  + sizeof (struct igc_header)));
+  igc_assert (nbytes == (charset_table_size * sizeof (struct charset)));
   MPS_SCAN_BEGIN (ss)
   {
     for (size_t i = 0, len = nbytes / sizeof (struct charset); i < len; i++)
@@ -4727,13 +4725,14 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
     }
 
   /* We are dumping some non-MPS object, e.g. a built-in symbol. */
-  size_t client_size = end - base - sizeof *out;
+  size_t client_size = end - base;
   size_t nbytes = alloc_size (client_size);
   size_t hash;
   type = (is_pure (client)
 	  ? pure_obj_type_and_hash (&hash, type, client)
 	  : builtin_obj_type_and_hash (&hash, type, client));
-  set_header (out, type, nbytes, hash);
+  if (type != IGC_OBJ_DUMPED_BIGNUM_DATA)
+    set_header (out, type, nbytes, hash);
   return base + nbytes;
 }
 
@@ -4805,6 +4804,7 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 		     void *cold_start, void *cold_end,
 		     void *cold_user_data_start, void *heap_end)
 {
+  dump_base = (char *)dump_base - igc_header_size ();
   igc_assert (global_igc->park_count > 0);
   igc_assert (base_to_client (hot_start) == charset_table);
   igc_assert (header_type ((struct igc_header *) hot_start)
@@ -4824,10 +4824,10 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 
   igc_assert (header_type (h) == IGC_OBJ_INVALID);
   igc_assert (obj_size (h)
-	      == sizeof *h + (uint8_t *)cold_end - (uint8_t *)dump_base);
+	      == (uint8_t *)cold_end - (uint8_t *)dump_base);
   igc_assert (discardable_size > 2 * sizeof *h);
   /* Ignore dump_header */
-  set_header (h, IGC_OBJ_PAD, sizeof *h + dump_header_size, 0);
+  set_header (h, IGC_OBJ_PAD, dump_header_size, 0);
   /* Ignore discardable section */
   set_header (hot_end, IGC_OBJ_PAD, discardable_size, 0);
   /* Ignore relocs */
@@ -4863,7 +4863,7 @@ igc_alloc_dump (size_t nbytes)
       set_header (block, IGC_OBJ_INVALID, block_size, 0);
     }
   while (!mps_commit (ap, block, block_size));
-  return base_to_client (block);
+  return (char *) block + igc_header_size ();
 }
 
 bool
