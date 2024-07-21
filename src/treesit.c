@@ -1224,8 +1224,10 @@ treesit_delete_parser (struct Lisp_TS_Parser *lisp_parser)
 void
 treesit_delete_query (struct Lisp_TS_Query *lisp_query)
 {
-  ts_query_delete (lisp_query->query);
-  ts_query_cursor_delete (lisp_query->cursor);
+  if (lisp_query->query)
+    ts_query_delete (lisp_query->query);
+  if (lisp_query->cursor)
+    ts_query_cursor_delete (lisp_query->cursor);
 }
 
 /* The following function is called from print.c:print_vectorlike.  */
