@@ -393,7 +393,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      :language language
      :feature 'jsx
      (append (tsx-ts-mode--font-lock-compatibility-bb1f97b language)
-	     `((jsx_attribute (property_identifier) @typescript-ts-jsx-attribute-face)))
+             `((jsx_attribute (property_identifier) @typescript-ts-jsx-attribute-face)))
 
      :language language
      :feature 'number
