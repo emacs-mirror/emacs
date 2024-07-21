@@ -3826,7 +3826,9 @@ alloc_string_data (size_t nbytes, bool clear)
 void *
 igc_alloc_bytes (size_t nbytes)
 {
-  return alloc (nbytes, IGC_OBJ_BYTES);
+  struct Lisp_String_Data *data =
+    alloc (sizeof (*data) + nbytes, IGC_OBJ_STRING_DATA);
+  return data->data;
 }
 
 /* Reallocate multibyte STRING data when a single character is
