@@ -404,7 +404,7 @@ init_treesit_functions (void)
    buffer's parser list.  The discussion can be found in bug#59693.  */
 
 
-/*** Initialization */
+/*** Initialization  */
 
 static Lisp_Object Vtreesit_str_libtree_sitter;
 static Lisp_Object Vtreesit_str_tree_sitter;
@@ -431,7 +431,7 @@ static Lisp_Object Vtreesit_str_pred;
    functions.  Remember to update docstrings when changing this value.
 
    If we think of programs and AST, it is very rare for any program to
-   have a very deep AST. For example, you would need 1000+ levels of
+   have a very deep AST.  For example, you would need 1000+ levels of
    nested if-statements, or a struct somehow nested for 1000+ levels.
    It's hard for me to imagine any hand-written or machine generated
    program to be like that.  So I think 1000 is already generous.  If
@@ -485,10 +485,9 @@ treesit_initialize (void)
 }
 
 
-/*** Loading language library */
+/*** Loading language library  */
 
-/* Translates a symbol treesit-<lang> to a C name
-   treesit_<lang>.  */
+/* Translate a symbol treesit-<lang> to a C name treesit_<lang>.  */
 static void
 treesit_symbol_to_c_name (char *symbol_name)
 {
@@ -758,7 +757,7 @@ Return nil if a grammar library for LANGUAGE is not available.  */)
 }
 
 
-/*** Parsing functions */
+/*** Parsing functions  */
 
 static void
 treesit_check_parser (Lisp_Object obj)
@@ -873,7 +872,7 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
     }
 }
 
-/* Comment (ref:visible-beg-null) The purpose of visible_beg/end is to
+/* Comment (ref:visible-beg-null)  The purpose of visible_beg/end is to
    keep track of "which part of the buffer does the tree-sitter tree
    see", in order to update the tree correctly.  Visible_beg/end have
    two purposes: they "clip" buffer changes within them, and they
@@ -1150,7 +1149,7 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
 }
 
 
-/*** Functions for parser and node object */
+/*** Functions for parser and node object  */
 
 /* Wrap the parser in a Lisp_Object to be used in the Lisp
    machine.  */
@@ -1566,7 +1565,7 @@ treesit_parser_live_p (Lisp_Object parser)
 }
 
 
-/*** Parser API */
+/*** Parser API  */
 
 DEFUN ("treesit-parser-root-node",
        Ftreesit_parser_root_node, Streesit_parser_root_node,
@@ -1739,7 +1738,7 @@ See also `treesit-parser-set-included-ranges'.  */)
 
   /* When the parser doesn't have a range set and we call
      ts_parser_included_ranges on it, it doesn't return an empty list,
-     but rather return DEFAULT_RANGE. (A single range where start_byte
+     but rather return DEFAULT_RANGE.  (A single range where start_byte
      = 0, end_byte = UINT32_MAX).  So we need to track whether the
      parser is ranged ourselves.  */
   if (NILP (XTS_PARSER (parser)->last_set_ranges))
@@ -1842,8 +1841,8 @@ treesit_check_node (Lisp_Object obj)
     xsignal1 (Qtreesit_node_buffer_killed, obj);
 }
 
-/* Checks that OBJ is a positive integer and it is within the visible
-   portion of BUF. */
+/* Check that OBJ is a positive integer and it is within the visible
+   portion of BUF.  */
 static void
 treesit_check_position (Lisp_Object obj, struct buffer *buf)
 {
@@ -2360,7 +2359,7 @@ produced by tree-sitter.  */)
 }
 
 
-/*** Query functions */
+/*** Query functions  */
 
 /* Convert a Lisp string to its printed representation in the tree-sitter
    query syntax.  */
@@ -2998,7 +2997,7 @@ the query.  */)
      test for predicates.  If predicates pass, then all good, if
      predicates don't pass, revert the result back to the result
      before this loop (PREV_RESULT).  (Predicates control the entire
-     match.) This way we don't need to create a list of captures in
+     match.)  This way we don't need to create a list of captures in
      every for loop and nconc it to RESULT every time.  That is indeed
      the initial implementation in which Yoav found nconc being the
      bottleneck (98.4% of the running time spent on nconc).  */
@@ -3076,7 +3075,7 @@ the query.  */)
 }
 
 
-/*** Navigation */
+/*** Navigation  */
 
 static inline void
 treesit_assume_true (bool val)
@@ -3193,7 +3192,7 @@ treesit_traverse_sibling_helper (TSTreeCursor *cursor,
       if (ts_node_eq (first_child, start))
 	return false;
 
-      /* PROBE is always DELTA siblings ahead of CURSOR. */
+      /* PROBE is always DELTA siblings ahead of CURSOR.  */
       TSTreeCursor probe = ts_tree_cursor_copy (cursor);
       /* This is position of PROBE minus position of CURSOR.  */
       ptrdiff_t delta = 0;
@@ -3477,7 +3476,7 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
 	  return true;
 	}
     }
-  /* Returning false is better than UB. */
+  /* Returning false is better than UB.  */
   return false;
 }
 
@@ -3990,7 +3989,7 @@ DEFUN ("treesit-available-p", Ftreesit_available_p,
 }
 
 
-/*** Initialization */
+/*** Initialization  */
 
 /* Initialize the tree-sitter routines.  */
 void
