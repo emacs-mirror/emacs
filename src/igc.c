@@ -1073,6 +1073,66 @@ fix_raw (mps_ss_t ss, mps_addr_t *p)
   return MPS_RES_OK;
 }
 
+/* Fix an object that's actually just a Lisp_Vector, but where P points
+   to the data contents rather than the header.  */
+static mps_res_t
+fix_wrapped_vec (mps_ss_t ss, mps_addr_t *p)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    mps_addr_t client = *p;
+    if (client == NULL)
+      return MPS_RES_OK;
+    if (is_aligned (client))
+      {
+	client = (char *)client - sizeof (struct Lisp_Vector);
+	mps_addr_t base = client_to_base (client);
+	if (MPS_FIX1 (ss, base))
+	  {
+	    mps_res_t res = MPS_FIX2 (ss, &base);
+	    if (res != MPS_RES_OK)
+	      return res;
+	    if (base == NULL)
+	      *p = NULL;
+	    else
+	      *p = (char *)base_to_client (base) + sizeof (struct Lisp_Vector);
+	  }
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+/* Fix an object of type struct Lisp_String_Data specified by a pointer
+   P to its data contents.  */
+static mps_res_t
+fix_wrapped_bytes (mps_ss_t ss, mps_addr_t *p)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    mps_addr_t client = *p;
+    if (client == NULL)
+      return MPS_RES_OK;
+    if (is_aligned (client))
+      {
+	client = (char *)client - sizeof (struct Lisp_String_Data);
+	mps_addr_t base = client_to_base (client);
+	if (MPS_FIX1 (ss, base))
+	  {
+	    mps_res_t res = MPS_FIX2 (ss, &base);
+	    if (res != MPS_RES_OK)
+	      return res;
+	    if (base == NULL)
+	      *p = NULL;
+	    else
+	      *p = (char *)base_to_client (base) + sizeof (struct Lisp_String_Data);
+	  }
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
 static mps_res_t
 fix_base (mps_ss_t ss, mps_addr_t *p)
 {
@@ -1105,14 +1165,56 @@ fix_base (mps_ss_t ss, mps_addr_t *p)
     }                                                  \
   while (0)
 
-#define IGC_FIX12_RAW(ss, p)                                     \
-  do                                                             \
-    {                                                            \
-      mps_res_t res;                                             \
-      MPS_FIX_CALL (ss, res = fix_raw (ss, (mps_addr_t *) (p))); \
-      if (res != MPS_RES_OK)                                     \
-	return res;                                              \
-    }                                                            \
+#define IGC_FIX12_HEADER(ss, p)						\
+  do									\
+    {									\
+      mps_res_t res;							\
+      igc_assert ((mps_addr_t) (*p) == (mps_addr_t) & (*p)->gc_header);	\
+      MPS_FIX_CALL (ss, res = fix_raw (ss, (mps_addr_t *) (p)));	\
+      if (res != MPS_RES_OK)						\
+	return res;							\
+    }									\
+  while (0)
+
+#define IGC_FIX12_PVEC(ss, p)						\
+  do									\
+    {									\
+      mps_res_t res;							\
+      igc_assert ((mps_addr_t) (*p) == (mps_addr_t) & (*p)->header.gc_header); \
+      MPS_FIX_CALL (ss, res = fix_raw (ss, (mps_addr_t *) (p)));	\
+      if (res != MPS_RES_OK)						\
+	return res;							\
+    }									\
+  while (0)
+
+#define IGC_FIX12_RAW(ss, p)						\
+  do									\
+    {									\
+      mps_res_t res;							\
+      MPS_FIX_CALL (ss, res = fix_raw (ss, (mps_addr_t *) (p)));	\
+      if (res != MPS_RES_OK)						\
+	return res;							\
+    }									\
+  while (0)
+
+#define IGC_FIX12_WRAPPED_VEC(ss, p)					\
+  do									\
+    {									\
+      mps_res_t res;							\
+      MPS_FIX_CALL (ss, res = fix_wrapped_vec (ss, (mps_addr_t *) (p))); \
+      if (res != MPS_RES_OK)						\
+	return res;							\
+    }									\
+  while (0)
+
+#define IGC_FIX12_WRAPPED_BYTES(ss, p)					\
+  do									\
+    {									\
+      mps_res_t res;							\
+      MPS_FIX_CALL (ss, res = fix_wrapped_bytes (ss, (mps_addr_t *) (p))); \
+      if (res != MPS_RES_OK)						\
+	return res;							\
+    }									\
   while (0)
 
 #define IGC_FIX12_BASE(ss, p)						\
@@ -1193,7 +1295,7 @@ fix_symbol (mps_ss_t ss, struct Lisp_Symbol *sym)
 #ifdef IN_MY_FORK
     IGC_FIX12_OBJ (ss, &sym->u.s.package);
 #else
-    IGC_FIX12_RAW (ss, &sym->u.s.next);
+    IGC_FIX12_HEADER (ss, &sym->u.s.next);
 #endif
     switch (sym->u.s.redirect)
       {
@@ -1202,11 +1304,11 @@ fix_symbol (mps_ss_t ss, struct Lisp_Symbol *sym)
 	break;
 
       case SYMBOL_VARALIAS:
-	IGC_FIX12_RAW (ss, &sym->u.s.val.alias);
+	IGC_FIX12_HEADER (ss, &sym->u.s.val.alias);
 	break;
 
       case SYMBOL_LOCALIZED:
-	IGC_FIX12_RAW (ss, &sym->u.s.val.blv);
+	IGC_FIX12_HEADER (ss, &sym->u.s.val.blv);
 	break;
 
       case SYMBOL_FORWARDED:
@@ -1303,7 +1405,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 
 	    /* This is used by SAFE_ALLOCA/malloc. */
 	  case SPECPDL_UNWIND_ARRAY:
-	    IGC_FIX12_RAW (ss, &pdl->unwind_array.array);
+	    IGC_FIX12_WRAPPED_VEC (ss, &pdl->unwind_array.array);
 	    break;
 
 	  case SPECPDL_UNWIND_EXCURSION:
@@ -1489,9 +1591,9 @@ scan_tty_list (mps_ss_t ss, void *start, void *end, void *closure)
   {
     for (struct tty_display_info *tty = tty_list; tty; tty = tty->next)
       {
-	IGC_FIX12_RAW (ss, &tty->terminal);
+	IGC_FIX12_PVEC (ss, &tty->terminal);
 	IGC_FIX12_OBJ (ss, &tty->top_frame);
-	IGC_FIX12_RAW (ss, &tty->previous_frame);
+	IGC_FIX12_PVEC (ss, &tty->previous_frame);
       }
   }
   MPS_SCAN_END (ss);
@@ -1546,9 +1648,9 @@ fix_string (mps_ss_t ss, struct Lisp_String *s)
   {
     struct Lisp_String_Data *ptr =
       (void *) (s->u.s.data - sizeof (*ptr));
-    IGC_FIX12_RAW (ss, &ptr);
+    IGC_FIX12_HEADER (ss, &ptr);
     s->u.s.data = ptr->data;
-    IGC_FIX12_RAW (ss, &s->u.s.intervals);
+    IGC_FIX12_HEADER (ss, &s->u.s.intervals);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1559,12 +1661,12 @@ fix_interval (mps_ss_t ss, struct interval *iv)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_RAW (ss, &iv->left);
-    IGC_FIX12_RAW (ss, &iv->right);
+    IGC_FIX12_HEADER (ss, &iv->left);
+    IGC_FIX12_HEADER (ss, &iv->right);
     if (iv->up_obj)
       IGC_FIX12_OBJ (ss, &iv->up.obj);
     else if (iv->up.interval)
-      IGC_FIX12_RAW (ss, &iv->up.interval);
+      IGC_FIX12_HEADER (ss, &iv->up.interval);
     IGC_FIX12_OBJ (ss, &iv->plist);
   }
   MPS_SCAN_END (ss);
@@ -1577,7 +1679,7 @@ fix_itree_tree (mps_ss_t ss, struct itree_tree *t)
   MPS_SCAN_BEGIN (ss)
   {
     if (t->root)
-      IGC_FIX12_RAW (ss, &t->root);
+      IGC_FIX12_HEADER (ss, &t->root);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1589,11 +1691,11 @@ fix_itree_node (mps_ss_t ss, struct itree_node *n)
   MPS_SCAN_BEGIN (ss)
   {
     if (n->parent)
-      IGC_FIX12_RAW (ss, &n->parent);
+      IGC_FIX12_HEADER (ss, &n->parent);
     if (n->left)
-      IGC_FIX12_RAW (ss, &n->left);
+      IGC_FIX12_HEADER (ss, &n->left);
     if (n->right)
-      IGC_FIX12_RAW (ss, &n->right);
+      IGC_FIX12_HEADER (ss, &n->right);
     IGC_FIX12_OBJ (ss, &n->data);
   }
   MPS_SCAN_END (ss);
@@ -1609,8 +1711,8 @@ fix_image (mps_ss_t ss, struct image *i)
     IGC_FIX12_OBJ (ss, &i->spec);
     IGC_FIX12_OBJ (ss, &i->dependencies);
     IGC_FIX12_OBJ (ss, &i->lisp_data);
-    IGC_FIX12_RAW (ss, &i->next);
-    IGC_FIX12_RAW (ss, &i->prev);
+    IGC_FIX12_HEADER (ss, &i->next);
+    IGC_FIX12_HEADER (ss, &i->prev);
 #endif
   }
   MPS_SCAN_END (ss);
@@ -1623,8 +1725,9 @@ fix_image_cache (mps_ss_t ss, struct image_cache *c)
   MPS_SCAN_BEGIN (ss)
   {
 #ifdef HAVE_WINDOW_SYSTEM
-    IGC_FIX12_RAW (ss, &c->images);
-    IGC_FIX12_RAW (ss, &c->buckets);
+
+    IGC_FIX12_WRAPPED_BYTES (ss, &c->images);
+    IGC_FIX12_WRAPPED_BYTES (ss, &c->buckets);
 #endif
   }
   MPS_SCAN_END (ss);
@@ -1637,12 +1740,12 @@ fix_face (mps_ss_t ss, struct face *f)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX12_NOBJS (ss, f->lface, ARRAYELTS (f->lface));
-    IGC_FIX12_RAW (ss, &f->font);
-    IGC_FIX12_RAW (ss, &f->next);
-    IGC_FIX12_RAW (ss, &f->prev);
-    IGC_FIX12_RAW (ss, &f->ascii_face);
+    IGC_FIX12_PVEC (ss, &f->font);
+    IGC_FIX12_HEADER (ss, &f->next);
+    IGC_FIX12_HEADER (ss, &f->prev);
+    IGC_FIX12_HEADER (ss, &f->ascii_face);
 #if defined HAVE_XFT || defined HAVE_FREETYPE
-    IGC_FIX12_RAW (ss, &f->extra);
+    IGC_FIX12_HEADER (ss, (struct vectorlike_header **)&f->extra);
 #endif
   }
   MPS_SCAN_END (ss);
@@ -1654,9 +1757,9 @@ fix_face_cache (mps_ss_t ss, struct face_cache *c)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_RAW (ss, &c->f);
-    IGC_FIX12_RAW (ss, &c->faces_by_id);
-    IGC_FIX12_RAW (ss, &c->buckets);
+    IGC_FIX12_PVEC (ss, &c->f);
+    IGC_FIX12_WRAPPED_BYTES (ss, &c->faces_by_id);
+    IGC_FIX12_WRAPPED_BYTES (ss, &c->buckets);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1721,8 +1824,8 @@ fix_handler (mps_ss_t ss, struct handler *h)
   {
     IGC_FIX12_OBJ (ss, &h->tag_or_ch);
     IGC_FIX12_OBJ (ss, &h->val);
-    IGC_FIX12_RAW (ss, &h->next);
-    IGC_FIX12_RAW (ss, &h->nextfree);
+    IGC_FIX12_HEADER (ss, &h->next);
+    IGC_FIX12_HEADER (ss, &h->nextfree);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1959,12 +2062,12 @@ fix_buffer (mps_ss_t ss, struct buffer *b)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, b, fix_vectorlike);
-    IGC_FIX12_RAW (ss, &b->own_text.intervals);
+    IGC_FIX12_HEADER (ss, &b->own_text.intervals);
     IGC_FIX12_OBJ (ss, &b->own_text.markers);
-    IGC_FIX12_RAW (ss, &b->overlays);
+    IGC_FIX12_HEADER (ss, &b->overlays);
     IGC_FIX12_OBJ (ss, &b->undo_list_);
 
-    IGC_FIX12_RAW (ss, &b->base_buffer);
+    IGC_FIX12_PVEC (ss, &b->base_buffer);
     if (b->base_buffer)
       b->text = &b->base_buffer->own_text;
     else
@@ -1993,7 +2096,7 @@ fix_glyph_matrix (mps_ss_t ss, struct glyph_matrix *matrix)
 		IGC_FIX12_OBJ (ss, &glyph->object);
 	    }
 	}
-    IGC_FIX12_RAW (ss, &matrix->buffer);
+    IGC_FIX12_PVEC (ss, &matrix->buffer);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2012,9 +2115,9 @@ fix_frame (mps_ss_t ss, struct frame *f)
     // struct font_driver_list *font_driver_list;
     // struct text_conversion_state conversion;
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, f, fix_vectorlike);
-    IGC_FIX12_RAW (ss, &f->face_cache);
+    IGC_FIX12_HEADER (ss, &f->face_cache);
     if (f->terminal)
-      IGC_FIX12_RAW (ss, &f->terminal);
+      IGC_FIX12_PVEC (ss, &f->terminal);
 
 #ifdef HAVE_WINDOW_SYSTEM
     if (f->image_cache)
@@ -2023,7 +2126,7 @@ fix_frame (mps_ss_t ss, struct frame *f)
       {
 	struct font **font_ptr = &FRAME_FONT (f);
 	if (*font_ptr)
-	  IGC_FIX12_RAW (ss, font_ptr);
+	  IGC_FIX12_PVEC (ss, font_ptr);
 	Lisp_Object *nle = &FRAME_DISPLAY_INFO (f)->name_list_element;
 	IGC_FIX12_OBJ (ss, nle);
       }
@@ -2063,11 +2166,11 @@ fix_hash_table (mps_ss_t ss, struct Lisp_Hash_Table *h)
   MPS_SCAN_BEGIN (ss)
   {
     // FIXME/igc: weak hash tables
-    IGC_FIX12_RAW (ss, &h->key);
-    IGC_FIX12_RAW (ss, &h->value);
-    IGC_FIX12_RAW (ss, &h->hash);
-    IGC_FIX12_RAW (ss, &h->next);
-    IGC_FIX12_RAW (ss, &h->index);
+    IGC_FIX12_WRAPPED_VEC (ss, &h->key);
+    IGC_FIX12_WRAPPED_VEC (ss, &h->value);
+    IGC_FIX12_WRAPPED_BYTES (ss, &h->hash);
+    IGC_FIX12_WRAPPED_BYTES (ss, &h->next);
+    IGC_FIX12_WRAPPED_BYTES (ss, &h->index);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2078,8 +2181,8 @@ fix_weak_hash_table (mps_ss_t ss, struct Lisp_Weak_Hash_Table *h)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_RAW (ss, &h->strong);
-    IGC_FIX12_RAW (ss, &h->weak);
+    IGC_FIX12_HEADER (ss, &h->strong);
+    IGC_FIX12_HEADER (ss, &h->weak);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2124,7 +2227,7 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_RAW (ss, &w->strong);
+    IGC_FIX12_HEADER (ss, &w->strong);
     struct Lisp_Weak_Hash_Table_Strong_Part *t = w->strong;
     if (t && t->weak == w)
       {
@@ -2188,9 +2291,9 @@ fix_overlay (mps_ss_t ss, struct Lisp_Overlay *o)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_RAW (ss, &o->buffer);
+    IGC_FIX12_PVEC (ss, &o->buffer);
     IGC_FIX12_OBJ (ss, &o->plist);
-    IGC_FIX12_RAW (ss, &o->interval);
+    IGC_FIX12_HEADER (ss, &o->interval);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2246,10 +2349,10 @@ fix_thread (mps_ss_t ss, struct thread_state *s)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, s, fix_vectorlike);
-    IGC_FIX12_RAW (ss, &s->m_current_buffer);
-    IGC_FIX12_RAW (ss, &s->next_thread);
-    IGC_FIX12_RAW (ss, &s->m_handlerlist);
-    IGC_FIX12_RAW (ss, &s->m_handlerlist_sentinel);
+    IGC_FIX12_PVEC (ss, &s->m_current_buffer);
+    IGC_FIX12_PVEC (ss, &s->next_thread);
+    IGC_FIX12_HEADER (ss, &s->m_handlerlist);
+    IGC_FIX12_HEADER (ss, &s->m_handlerlist_sentinel);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2304,7 +2407,7 @@ fix_terminal (mps_ss_t ss, struct terminal *t)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, t, fix_vectorlike);
-    IGC_FIX12_RAW (ss, &t->next_terminal);
+    IGC_FIX12_PVEC (ss, &t->next_terminal);
     // These are malloc'd, so they can be accessed.
     IGC_FIX_CALL_FN (ss, struct coding_system, t->keyboard_coding, fix_coding);
     IGC_FIX_CALL_FN (ss, struct coding_system, t->terminal_coding, fix_coding);
@@ -2319,7 +2422,7 @@ fix_marker (mps_ss_t ss, struct Lisp_Marker *m)
   MPS_SCAN_BEGIN (ss)
   {
     if (m->buffer)
-      IGC_FIX12_RAW (ss, &m->buffer);
+      IGC_FIX12_PVEC (ss, &m->buffer);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2331,8 +2434,8 @@ fix_finalizer (mps_ss_t ss, struct Lisp_Finalizer *f)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, f, fix_vectorlike);
-    IGC_FIX12_RAW (ss, &f->next);
-    IGC_FIX12_RAW (ss, &f->prev);
+    IGC_FIX12_PVEC (ss, &f->next);
+    IGC_FIX12_PVEC (ss, &f->prev);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2363,10 +2466,10 @@ fix_xwidget (mps_ss_t ss, struct xwidget *w)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, w, fix_vectorlike);
 # if defined (NS_IMPL_COCOA)
-    IGC_FIX12_RAW (ss, &w->xv);
+    IGC_FIX12_HEADER (ss, &w->xv);
 # elif defined USE_GTK
-    IGC_FIX12_RAW (ss, &w->embedder);
-    IGC_FIX12_RAW (ss, &w->embedder_view);
+    IGC_FIX12_HEADER (ss, &w->embedder);
+    IGC_FIX12_HEADER (ss, &w->embedder_view);
 # endif
   }
   MPS_SCAN_END (ss);
@@ -2380,7 +2483,7 @@ fix_xwidget_view (mps_ss_t ss, struct xwidget_view *v)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
 # ifdef USE_GTK
-    IGC_FIX12_RAW (ss, &v->frame);
+    IGC_FIX12_HEADER (ss, &v->frame);
 # endif
   }
   MPS_SCAN_END (ss);
@@ -2409,7 +2512,7 @@ fix_obarray (mps_ss_t ss, struct Lisp_Obarray *o)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_RAW (ss, &o->buckets);
+    IGC_FIX12_WRAPPED_VEC (ss, &o->buckets);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
