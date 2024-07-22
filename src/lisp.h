@@ -1,3 +1,4 @@
+
 /* Fundamental definitions for GNU Emacs Lisp interpreter. -*- coding: utf-8 -*-
 
 Copyright (C) 1985-2024 Free Software Foundation, Inc.
@@ -3696,13 +3697,24 @@ CHECK_SUBR (Lisp_Object x)
 
 /* This version of DEFUN declares a function prototype with the right
    arguments, so we can catch errors with maxargs at compile-time.  */
+#ifdef HAVE_MPS
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
   SUBR_SECTION_ATTRIBUTE						\
   static union Aligned_Lisp_Subr sname =				\
-    { {	{ GC_HEADER_INIT PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },	\
+    { {	{ GC_HEADER_INIT						\
+	  (PSEUDOVECTOR_FLAG | PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) },	\
         { .a ## maxargs = fnname },					\
 	minargs, maxargs, lname, {intspec}, lisp_h_Qnil}};		\
    Lisp_Object fnname
+#else
+#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
+  SUBR_SECTION_ATTRIBUTE						\
+  static union Aligned_Lisp_Subr sname =				\
+    { {	{ GC_HEADER_INIT PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },		\
+        { .a ## maxargs = fnname },					\
+	minargs, maxargs, lname, {intspec}, lisp_h_Qnil}};		\
+   Lisp_Object fnname
+#endif
 
 /* defsubr (Sname);
    is how we define the symbol for function `name' at start-up time.  */

@@ -641,11 +641,27 @@ void gc_init_header (union gc_header *header, enum igc_obj_type type)
       break;
     case IGC_OBJ_VECTOR:
       {
+	ssize_t nbytes;
 	ptrdiff_t size = ((struct Lisp_Vector *)header)->header.size;
 	if (size & PSEUDOVECTOR_FLAG)
-	  size &= PSEUDOVECTOR_SIZE_MASK;
-	set_header (h, IGC_OBJ_VECTOR, sizeof (struct Lisp_Vector) +
-		    size * sizeof (Lisp_Object), alloc_hash ());
+	  {
+	    /* Correct some incorrect pseudovector headers:
+	     * - lisp.h sets the pseudovector tag of builtin subrs to
+	     *   PVEC_SUBR, but doesn't set the pseudovector flag or the
+	     *   lispsize/restsize fields.
+	     * - thread.c uses VECSIZE (struct thread_state) for the
+	     *   restsize without subtracting the lispsize.
+	     */
+	    if (PSEUDOVECTOR_TYPE ((struct Lisp_Vector *)header) == PVEC_SUBR)
+	      nbytes = sizeof (struct Lisp_Subr);
+	    else if (PSEUDOVECTOR_TYPE ((struct Lisp_Vector *)header) == PVEC_THREAD)
+	      nbytes = sizeof (struct thread_state);
+	    else
+	      nbytes = vectorlike_nbytes (&((struct Lisp_Vector *)header)->header);
+	  }
+	else
+	  nbytes = size * sizeof (Lisp_Object) + header_size;
+	set_header (h, IGC_OBJ_VECTOR, nbytes, alloc_hash ());
 	break;
       }
     case IGC_OBJ_DUMPED_CHARSET_TABLE:

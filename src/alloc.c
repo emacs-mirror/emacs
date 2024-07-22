@@ -6128,8 +6128,8 @@ make_pure_bignum (Lisp_Object value)
   mp_size_t new_size;
 
   struct Lisp_Bignum *b = pure_alloc (sizeof *b, Lisp_Vectorlike);
-  gc_init_header (&b->header.gc_header, IGC_OBJ_VECTOR);
   XSETPVECTYPESIZE (b, PVEC_BIGNUM, 0, VECSIZE (struct Lisp_Bignum));
+  gc_init_header (&b->header.gc_header, IGC_OBJ_VECTOR);
 
   int limb_alignment = alignof (mp_limb_t);
   pure_limbs = pure_alloc (nbytes, - limb_alignment);
