@@ -1310,9 +1310,7 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
   /* Create TSQuery.  */
   uint32_t error_offset;
   TSQueryError error_type;
-  char *treesit_source = SSDATA (source);
-  treesit_query = ts_query_new (treesit_lang, treesit_source,
-				strlen (treesit_source),
+  treesit_query = ts_query_new (treesit_lang, SSDATA (source), SBYTES (source),
 				&error_offset, &error_type);
   if (treesit_query == NULL)
     {
@@ -2159,11 +2157,10 @@ Return nil if there is no such child.  If NODE is nil, return nil.  */)
   CHECK_STRING (field_name);
   treesit_initialize ();
 
-  char *name_str = SSDATA (field_name);
   TSNode treesit_node = XTS_NODE (node)->node;
   TSNode child
-    = ts_node_child_by_field_name (treesit_node, name_str,
-				   strlen (name_str));
+    = ts_node_child_by_field_name (treesit_node, SSDATA (field_name),
+				   SBYTES (field_name));
 
   if (ts_node_is_null (child))
     return Qnil;
@@ -2888,10 +2885,9 @@ treesit_initialize_query (Lisp_Object query, const TSLanguage *lang,
 	 or a cons.  */
       if (CONSP (query))
 	query = Ftreesit_query_expand (query);
-      char *query_string = SSDATA (query);
       uint32_t error_offset;
       TSQueryError error_type;
-      *ts_query = ts_query_new (lang, query_string, strlen (query_string),
+      *ts_query = ts_query_new (lang, SSDATA (query), SBYTES (query),
 				&error_offset, &error_type);
       if (*ts_query == NULL)
 	{
