@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <math.h>
 #include <unistd.h>
@@ -6244,6 +6245,26 @@ xpm_str_to_color_key (const char *s)
   return -1;
 }
 
+static int
+xpm_str_to_int (char **buf)
+{
+  char *p;
+
+  errno = 0;
+  long result = strtol (*buf, &p, 10);
+  if (errno || p == *buf || result < INT_MIN || result > INT_MAX)
+    return -1;
+
+  /* Error out if we see something like "12x3xyz".  */
+  if (!c_isspace (*p) && *p != '\0')
+    return -1;
+
+  /* Update position to read next integer.  */
+  *buf = p;
+
+  return result;
+}
+
 static bool
 xpm_load_image (struct frame *f,
                 struct image *img,
@@ -6301,10 +6322,14 @@ xpm_load_image (struct frame *f,
     goto failure;
   memcpy (buffer, beg, len);
   buffer[len] = '\0';
-  if (sscanf (buffer, "%d %d %d %d", &width, &height,
-	      &num_colors, &chars_per_pixel) != 4
-      || width <= 0 || height <= 0
-      || num_colors <= 0 || chars_per_pixel <= 0)
+  char *next_int = buffer;
+  if ((width = xpm_str_to_int (&next_int)) <= 0)
+    goto failure;
+  if ((height = xpm_str_to_int (&next_int)) <= 0)
+    goto failure;
+  if ((num_colors = xpm_str_to_int (&next_int)) <= 0)
+    goto failure;
+  if ((chars_per_pixel = xpm_str_to_int (&next_int)) <= 0)
     goto failure;
 
   if (!check_image_size (f, width, height))
