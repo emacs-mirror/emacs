@@ -1642,7 +1642,7 @@ void
 set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
               enum Set_Internal_Bind bindflag)
 {
-  bool voide = BASE_EQ (newval, Qunbound);
+  bool unbinding_p = BASE_EQ (newval, Qunbound);
 
   /* If restoring in a dead buffer, do nothing.  */
 
@@ -1661,10 +1661,13 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
     case SYMBOL_TRAPPED_WRITE:
       /* Setting due to thread-switching doesn't count.  */
       if (bindflag != SET_INTERNAL_THREAD_SWITCH)
-        notify_variable_watchers (symbol, voide? Qnil : newval,
-                                  (bindflag == SET_INTERNAL_BIND? Qlet :
-                                   bindflag == SET_INTERNAL_UNBIND? Qunlet :
-                                   voide? Qmakunbound : Qset),
+        notify_variable_watchers (symbol, (unbinding_p ? Qnil : newval),
+                                  (bindflag == SET_INTERNAL_BIND
+				   ? Qlet
+				   : (bindflag == SET_INTERNAL_UNBIND
+				      ? Qunlet
+				      : (unbinding_p
+					 ? Qmakunbound : Qset))),
                                   where);
       break;
 
@@ -1682,6 +1685,11 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
     case SYMBOL_LOCALIZED:
       {
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
+
+	if (unbinding_p && blv->fwd.fwdptr)
+	  /* Forbid unbinding built-in variables.  */
+	  error ("Built-in variables may not be unbound");
+
 	if (NILP (where))
 	  XSETBUFFER (where, current_buffer);
 
@@ -1746,16 +1754,9 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	set_blv_value (blv, newval);
 
 	if (blv->fwd.fwdptr)
-	  {
-	    if (voide)
-	      /* If storing void (making the symbol void), forward only through
-		 buffer-local indicator, not through Lisp_Objfwd, etc.  */
-	      blv->fwd.fwdptr = NULL;
-	    else
-	      store_symval_forwarding (blv->fwd, newval,
-				       BUFFERP (where)
-				       ? XBUFFER (where) : current_buffer);
-	  }
+	  store_symval_forwarding (blv->fwd, newval, (BUFFERP (where)
+						      ? XBUFFER (where)
+						      : current_buffer));
 	break;
       }
     case SYMBOL_FORWARDED:
@@ -1763,6 +1764,11 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	struct buffer *buf
 	  = BUFFERP (where) ? XBUFFER (where) : current_buffer;
 	lispfwd innercontents = SYMBOL_FWD (sym);
+
+	if (unbinding_p)
+	  /* Forbid unbinding built-in variables.  */
+	  error ("Built-in variables may not be unbound");
+
 	if (BUFFER_OBJFWDP (innercontents))
 	  {
 	    int offset = XBUFFER_OBJFWD (innercontents)->offset;
@@ -1778,14 +1784,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	      }
 	  }
 
-	if (voide)
-	  { /* If storing void (making the symbol void), forward only through
-	       buffer-local indicator, not through Lisp_Objfwd, etc.  */
-	    sym->u.s.redirect = SYMBOL_PLAINVAL;
-	    SET_SYMBOL_VAL (sym, newval);
-	  }
-	else
-	  store_symval_forwarding (/* sym, */ innercontents, newval, buf);
+	store_symval_forwarding (/* sym, */ innercontents, newval, buf);
 	break;
       }
     default: emacs_abort ();

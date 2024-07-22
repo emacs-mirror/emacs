@@ -219,6 +219,16 @@ comparing the subr with a much slower Lisp implementation."
          do (error "FAILED testcase %S %3S %3S %3S"
                    pos lf cnt rcnt)))))
 
+(ert-deftest binding-test-makunbound-built-in ()
+  "Verify that attempts to `makunbound' built-in symbols are rejected."
+  (should-error (makunbound 'initial-window-system))
+  (let ((initial-window-system 'x))
+    (should-error (makunbound 'initial-window-system)))
+  (should-error
+   (makunbound (make-local-variable 'initial-window-system)))
+  (let ((initial-window-system 'x))
+    (should-error (makunbound 'initial-window-system))))
+
 (defconst bool-vector-test-vectors
 '(""
   "0"
@@ -873,6 +883,5 @@ comparing the subr with a much slower Lisp implementation."
             (cond
              ((eq subtype 'function) (cl-functionp val))
              (t (should-not (cl-typep val subtype))))))))))
-
 
 ;;; data-tests.el ends here
