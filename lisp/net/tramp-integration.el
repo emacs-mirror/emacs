@@ -275,9 +275,14 @@ NAME must be equal to `tramp-current-connection'."
 ;;; Integration of shortdoc.el:
 
 (with-eval-after-load 'shortdoc
-  (dolist (elem '((file-remote-p
+  (dolist (elem `((file-remote-p
 		   :eval (file-remote-p "/ssh:user@host:/tmp/foo")
-		   :eval (file-remote-p "/ssh:user@host:/tmp/foo" 'method))
+		   :eval (file-remote-p "/ssh:user@host:/tmp/foo" 'method)
+		   :eval (file-remote-p "/ssh:user@[::1]#1234:/tmp/foo" 'host)
+		   ;; We don't want to see the text properties.
+		   :no-eval (file-remote-p "/sudo::/tmp/foo" 'user)
+		   :result ,(substring-no-properties
+			     (file-remote-p "/sudo::/tmp/foo" 'user)))
 		  (file-local-name
 		   :eval (file-local-name "/ssh:user@host:/tmp/foo"))
 		  (file-local-copy

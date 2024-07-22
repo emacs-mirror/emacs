@@ -5289,7 +5289,7 @@ connection if a previous connection has died for some reason."
 				    "" (concat " " process-name))
 				(if (tramp-string-empty-or-nil-p l-user)
 				    "" (concat l-user "@"))
-				l-host l-method)
+				(tramp-file-name-host-port hop) l-method)
 		      (tramp-send-command vec command t t)
 		      (tramp-process-actions
 		       p vec
@@ -5317,7 +5317,7 @@ connection if a previous connection has died for some reason."
 			    (if (tramp-string-empty-or-nil-p
 				 (tramp-file-name-user vec))
 				"" (concat (tramp-file-name-user vec) "@"))
-			    (tramp-file-name-host vec)
+			    (tramp-file-name-host-port vec)
 			    (tramp-file-name-method vec))
 		  (tramp-open-connection-setup-interactive-shell p vec))
 
