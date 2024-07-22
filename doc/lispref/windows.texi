@@ -3312,12 +3312,11 @@ only addressee.
 
 @vindex pop-up-frames@r{, a buffer display action alist entry}
 @item pop-up-frames
-The value controls whether @code{display-buffer} may display buffers
-by making new frames.  It has the same meaning as the
-@code{pop-up-frames} variable and takes precedence over it when present.
-Its main intended purpose is to override a non-nil value of the
-variable for particular buffers which the user prefers to keep
-in the selected frame.
+The value controls whether @code{display-buffer} may display buffers by
+making new frames.  It has the same meaning as the @code{pop-up-frames}
+variable and takes precedence over it when present.  Its main intended
+purpose is to override a non-@code{nil} value of the variable for
+particular buffers which the user prefers to keep in the selected frame.
 
 @vindex parent-frame@r{, a buffer display action alist entry}
 @item parent-frame

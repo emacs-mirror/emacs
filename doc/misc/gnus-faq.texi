@@ -1173,12 +1173,11 @@ to postings you send to the gmane hierarchy, use
 send to groups containing the string binaries in their
 name etc.
 
-You can instead of specifying a regexp specify a function
-which is evaluated, only if it returns true, the
-corresponding settings take effect.  Two interesting
-candidates for this are message-news-p which returns t if
-the current Group is a newsgroup and the corresponding
-message-mail-p.
+You can instead of specifying a regexp specify a function which is
+evaluated, only if it returns true, the corresponding settings take
+effect.  Two interesting candidates for this are @code{message-news-p}
+which returns @code{t} if the current Group is a newsgroup and the
+corresponding @code{message-mail-p}.
 
 Note that all forms that match are applied, that means in
 the example below, when I post to
