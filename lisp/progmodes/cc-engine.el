@@ -8771,6 +8771,7 @@ multi-line strings (but not C++, for example)."
   ;; This function might do hidden buffer changes.
 
   (let ((start (point))
+	(old-record-type-identifiers c-record-type-identifiers)
 	(old-found-types (copy-hash-table c-found-types))
 	;; If `c-record-type-identifiers' is set then activate
 	;; recording of any found types that constitute an argument in
@@ -8807,7 +8808,8 @@ multi-line strings (but not C++, for example)."
 		    (nconc c-record-found-types c-record-type-identifiers)))
 	    t)
 
-	(setq c-found-types old-found-types)
+	(setq c-record-type-identifiers old-record-type-identifiers
+	      c-found-types old-found-types)
 	(goto-char start)
 	nil))))
 
