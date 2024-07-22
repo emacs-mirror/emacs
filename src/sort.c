@@ -630,7 +630,11 @@ merge_getmem (merge_state *ms, const ptrdiff_t need)
          what's in the block we don't use realloc which would waste
          cycles copying the old data.  We just free and alloc
          again.  */
+#ifdef HAVE_MPS
+      igc_xfree (ms->a.keys);
+#else
       xfree (ms->a.keys);
+#endif
     }
   ptrdiff_t bytes = (need * word_size) << (ms->a.values != NULL ? 1 : 0);
 # ifdef HAVE_MPS
