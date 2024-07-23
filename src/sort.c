@@ -1113,7 +1113,7 @@ tim_sort (Lisp_Object predicate, Lisp_Object keyfunc,
 	{
 	  /* Fill with valid Lisp values in case a GC occurs before all
 	     keys have been computed.  */
-	  verify (NIL_IS_ZERO);
+	  static_assert (NIL_IS_ZERO);
 	  keys = allocated_keys = xzalloc (length * word_size);
 	}
 

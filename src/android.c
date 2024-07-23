@@ -2969,7 +2969,7 @@ android_globalize_reference (jobject handle)
   (*android_java_env)->SetLongField (android_java_env, global,
 				     handle_class.handle,
 				     (jlong) global);
-  verify (sizeof (jlong) >= sizeof (intptr_t));
+  static_assert (sizeof (jlong) >= sizeof (intptr_t));
   return (intptr_t) global;
 }
 
@@ -3521,7 +3521,7 @@ android_set_dashes (struct android_gc *gc, int dash_offset,
       /* Copy the list of segments into both arrays.  */
       for (i = 0; i < n; ++i)
 	gc->dashes[i] = dash_list[i];
-      verify (sizeof (int) == sizeof (jint));
+      static_assert (sizeof (int) == sizeof (jint));
       (*android_java_env)->SetIntArrayRegion (android_java_env,
 					      array, 0, n,
 					      (jint *) dash_list);

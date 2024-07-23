@@ -709,7 +709,7 @@ buffer_memory_full (ptrdiff_t nbytes)
    where Emacs would crash if malloc returned a non-GCALIGNED pointer.  */
 enum { LISP_ALIGNMENT = alignof (union { union emacs_align_type x;
 					 GCALIGNED_UNION_MEMBER }) };
-verify (LISP_ALIGNMENT % GCALIGNMENT == 0);
+static_assert (LISP_ALIGNMENT % GCALIGNMENT == 0);
 
 /* True if malloc (N) is known to return storage suitably aligned for
    Lisp objects whenever N is a multiple of LISP_ALIGNMENT.  In
@@ -839,7 +839,7 @@ xfree (void *block)
 /* Other parts of Emacs pass large int values to allocator functions
    expecting ptrdiff_t.  This is portable in practice, but check it to
    be safe.  */
-verify (INT_MAX <= PTRDIFF_MAX);
+static_assert (INT_MAX <= PTRDIFF_MAX);
 
 
 /* Allocate an array of NITEMS items, each of size ITEM_SIZE.
@@ -1076,7 +1076,7 @@ lisp_free (void *block)
 #else  /* !HAVE_UNEXEC */
 # define BLOCK_ALIGN (1 << 15)
 #endif
-verify (POWER_OF_2 (BLOCK_ALIGN));
+static_assert (POWER_OF_2 (BLOCK_ALIGN));
 
 /* Use aligned_alloc if it or a simple substitute is available.
    Aligned allocation is incompatible with unexmacosx.c, so don't use
@@ -1096,11 +1096,11 @@ aligned_alloc (size_t alignment, size_t size)
 {
   /* POSIX says the alignment must be a power-of-2 multiple of sizeof (void *).
      Verify this for all arguments this function is given.  */
-  verify (BLOCK_ALIGN % sizeof (void *) == 0
-	  && POWER_OF_2 (BLOCK_ALIGN / sizeof (void *)));
-  verify (MALLOC_IS_LISP_ALIGNED
-	  || (LISP_ALIGNMENT % sizeof (void *) == 0
-	      && POWER_OF_2 (LISP_ALIGNMENT / sizeof (void *))));
+  static_assert (BLOCK_ALIGN % sizeof (void *) == 0
+		 && POWER_OF_2 (BLOCK_ALIGN / sizeof (void *)));
+  static_assert (MALLOC_IS_LISP_ALIGNED
+		 || (LISP_ALIGNMENT % sizeof (void *) == 0
+		     && POWER_OF_2 (LISP_ALIGNMENT / sizeof (void *))));
   eassert (alignment == BLOCK_ALIGN
 	   || (!MALLOC_IS_LISP_ALIGNED && alignment == LISP_ALIGNMENT));
 
@@ -1221,7 +1221,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 #endif
 
 #ifdef USE_ALIGNED_ALLOC
-      verify (ABLOCKS_BYTES % BLOCK_ALIGN == 0);
+      static_assert (ABLOCKS_BYTES % BLOCK_ALIGN == 0);
       abase = base = aligned_alloc (BLOCK_ALIGN, ABLOCKS_BYTES);
 #else
       base = malloc (ABLOCKS_BYTES);
@@ -3048,7 +3048,7 @@ enum { VECTOR_BLOCK_SIZE = 4096 };
 enum { roundup_size = COMMON_MULTIPLE (LISP_ALIGNMENT, word_size) };
 
 /* Verify assumption described above.  */
-verify (VECTOR_BLOCK_SIZE % roundup_size == 0);
+static_assert (VECTOR_BLOCK_SIZE % roundup_size == 0);
 
 /* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at compile time.  */
 #define vroundup_ct(x) ROUNDUP (x, roundup_size)
@@ -3062,7 +3062,7 @@ enum {VECTOR_BLOCK_BYTES = VECTOR_BLOCK_SIZE - vroundup_ct (sizeof (void *))};
 /* The current code expects to be able to represent an unused block by
    a single PVEC_FREE object, whose size is limited by the header word.
    (Of course we could use multiple such objects.)  */
-verify (VECTOR_BLOCK_BYTES <= (word_size << PSEUDOVECTOR_REST_BITS));
+static_assert (VECTOR_BLOCK_BYTES <= (word_size << PSEUDOVECTOR_REST_BITS));
 
 /* Size of the minimal vector allocated from block.  */
 
@@ -3319,7 +3319,7 @@ vectorlike_nbytes (const union vectorlike_header *hdr)
 	  ptrdiff_t word_bytes = (bool_vector_words (bv->size)
 				  * sizeof (bits_word));
 	  ptrdiff_t boolvec_bytes = bool_header_size + word_bytes;
-	  verify (header_size <= bool_header_size);
+	  static_assert (header_size <= bool_header_size);
 	  nwords = (boolvec_bytes - header_size + word_size - 1) / word_size;
         }
       else
@@ -3699,7 +3699,7 @@ allocate_pseudovector (int memlen, int lisplen,
   /* Catch bogus values.  */
   enum { size_max = (1 << PSEUDOVECTOR_SIZE_BITS) - 1 };
   enum { rest_max = (1 << PSEUDOVECTOR_REST_BITS) - 1 };
-  verify (size_max + rest_max <= VECTOR_ELTS_MAX);
+  static_assert (size_max + rest_max <= VECTOR_ELTS_MAX);
   eassert (0 <= tag && tag <= PVEC_TAG_MAX);
   eassert (0 <= lisplen && lisplen <= zerolen && zerolen <= memlen);
   eassert (lisplen <= size_max);

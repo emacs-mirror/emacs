@@ -99,11 +99,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    are the same size and have the same layout, and where bytes have
    eight bits --- that is, a general-purpose computer made after 1990.
    Also require Lisp_Object to be at least as wide as pointers.  */
-verify (sizeof (ptrdiff_t) == sizeof (void *));
-verify (sizeof (intptr_t) == sizeof (ptrdiff_t));
-verify (sizeof (void (*) (void)) == sizeof (void *));
-verify (sizeof (ptrdiff_t) <= sizeof (Lisp_Object));
-verify (sizeof (ptrdiff_t) <= sizeof (EMACS_INT));
+static_assert (sizeof (ptrdiff_t) == sizeof (void *));
+static_assert (sizeof (intptr_t) == sizeof (ptrdiff_t));
+static_assert (sizeof (void (*) (void)) == sizeof (void *));
+static_assert (sizeof (ptrdiff_t) <= sizeof (Lisp_Object));
+static_assert (sizeof (ptrdiff_t) <= sizeof (EMACS_INT));
 
 static size_t
 divide_round_up (size_t x, size_t y)
@@ -276,15 +276,15 @@ enum
    DUMP_RELOC_OFFSET_BITS = DUMP_OFF_WIDTH - DUMP_RELOC_TYPE_BITS
   };
 
-verify (RELOC_DUMP_TO_EMACS_LV + 8 < (1 << DUMP_RELOC_TYPE_BITS));
-verify (DUMP_ALIGNMENT >= GCALIGNMENT);
+static_assert (RELOC_DUMP_TO_EMACS_LV + 8 < (1 << DUMP_RELOC_TYPE_BITS));
+static_assert (DUMP_ALIGNMENT >= GCALIGNMENT);
 
 struct dump_reloc
 {
   unsigned int raw_offset : DUMP_RELOC_OFFSET_BITS;
   ENUM_BF (dump_reloc_type) type : DUMP_RELOC_TYPE_BITS;
 };
-verify (sizeof (struct dump_reloc) == sizeof (dump_off));
+static_assert (sizeof (struct dump_reloc) == sizeof (dump_off));
 
 /* Set the type of a dump relocation.
 
@@ -2244,7 +2244,7 @@ dump_bignum (struct dump_context *ctx, Lisp_Object object)
 #endif
   const struct Lisp_Bignum *bignum = XBIGNUM (object);
   START_DUMP_PVEC (ctx, &bignum->header, struct Lisp_Bignum, out);
-  verify (sizeof (out->value) >= sizeof (struct bignum_reload_info));
+  static_assert (sizeof (out->value) >= sizeof (struct bignum_reload_info));
   dump_field_fixup_later (ctx, out, bignum, xbignum_val (object));
   dump_off bignum_offset = finish_dump_pvec (ctx, &out->header);
   if (ctx->flags.dump_object_contents)
@@ -4248,11 +4248,11 @@ types.  */)
                         O_RDWR | O_TRUNC | O_CREAT, 0666);
   if (ctx->fd < 0)
     report_file_error ("Opening dump output", filename);
-  verify (sizeof (ctx->header.magic) == sizeof (dump_magic));
+  static_assert (sizeof (ctx->header.magic) == sizeof (dump_magic));
   memcpy (&ctx->header.magic, dump_magic, sizeof (dump_magic));
   ctx->header.magic[0] = '!'; /* Note that dump is incomplete.  */
 
-  verify (sizeof (fingerprint) == sizeof (ctx->header.fingerprint));
+  static_assert (sizeof (fingerprint) == sizeof (ctx->header.fingerprint));
   for (int i = 0; i < sizeof fingerprint; i++)
     ctx->header.fingerprint[i] = fingerprint[i];
 
@@ -5522,7 +5522,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
       {
         struct Lisp_Bignum *bignum = dump_ptr (dump_base, reloc_offset);
         struct bignum_reload_info reload_info;
-        verify (sizeof (reload_info) <= sizeof (*bignum_val (bignum)));
+	static_assert (sizeof (reload_info) <= sizeof (*bignum_val (bignum)));
         memcpy (&reload_info, bignum_val (bignum), sizeof (reload_info));
         const mp_limb_t *limbs =
           dump_ptr (dump_base, reload_info.data_location);
@@ -5713,7 +5713,7 @@ pdumper_load (const char *dump_filename, char *argv0)
     }
 
   err = PDUMPER_LOAD_VERSION_MISMATCH;
-  verify (sizeof (header->fingerprint) == sizeof (fingerprint));
+  static_assert (sizeof (header->fingerprint) == sizeof (fingerprint));
   unsigned char desired[sizeof fingerprint];
   for (int i = 0; i < sizeof fingerprint; i++)
     desired[i] = fingerprint[i];

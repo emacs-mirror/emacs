@@ -2248,7 +2248,7 @@ init_random (void)
   /* FIXME: Perhaps getrandom can be used here too?  */
   success = w32_init_random (&v, sizeof v) == 0;
 #else
-  verify (sizeof v <= 256);
+  static_assert (sizeof v <= 256);
   success = getrandom (&v, sizeof v, 0) == sizeof v;
 #endif
 
@@ -2742,16 +2742,16 @@ emacs_fchmodat (int fd, const char *path, mode_t mode, int flags)
 #ifndef SSIZE_MAX
 # define SSIZE_MAX TYPE_MAXIMUM (ssize_t)
 #endif
-verify (MAX_RW_COUNT <= PTRDIFF_MAX);
-verify (MAX_RW_COUNT <= SIZE_MAX);
-verify (MAX_RW_COUNT <= SSIZE_MAX);
+static_assert (MAX_RW_COUNT <= PTRDIFF_MAX);
+static_assert (MAX_RW_COUNT <= SIZE_MAX);
+static_assert (MAX_RW_COUNT <= SSIZE_MAX);
 
 #ifdef WINDOWSNT
 /* Verify that Emacs read requests cannot cause trouble, even in
    64-bit builds.  The last argument of 'read' is 'unsigned int', and
    the return value's type (see 'sys_read') is 'int'.  */
-verify (MAX_RW_COUNT <= INT_MAX);
-verify (MAX_RW_COUNT <= UINT_MAX);
+static_assert (MAX_RW_COUNT <= INT_MAX);
+static_assert (MAX_RW_COUNT <= UINT_MAX);
 #endif
 
 /* Read from FD to a buffer BUF with size NBYTE.

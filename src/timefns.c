@@ -105,7 +105,7 @@ trillion_factor (Lisp_Object hz)
       if (!FIXNUM_OVERFLOW_P (TRILLION))
 	return false;
     }
-  verify (TRILLION <= INTMAX_MAX);
+  static_assert (TRILLION <= INTMAX_MAX);
   intmax_t ihz;
   return integer_to_intmax (hz, &ihz) && TRILLION % ihz == 0;
 }

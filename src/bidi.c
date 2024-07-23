@@ -566,7 +566,7 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
    RTL characters in the offending line of text.  */
 /* Do we need to allow customization of this limit?  */
 #define BIDI_CACHE_MAX_ELTS_PER_SLOT 50000
-verify (BIDI_CACHE_CHUNK < BIDI_CACHE_MAX_ELTS_PER_SLOT);
+static_assert (BIDI_CACHE_CHUNK < BIDI_CACHE_MAX_ELTS_PER_SLOT);
 static ptrdiff_t bidi_cache_max_elts = BIDI_CACHE_MAX_ELTS_PER_SLOT;
 static struct bidi_it *bidi_cache;
 static ptrdiff_t bidi_cache_size = 0;
@@ -2626,7 +2626,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
       ptrdiff_t pairing_pos;
       int idx_at_entry = bidi_cache_idx;
 
-      verify (MAX_BPA_STACK >= 100);
+      static_assert (MAX_BPA_STACK >= 100);
       bidi_copy_it (&saved_it, bidi_it);
       /* bidi_cache_iterator_state refuses to cache on backward scans,
 	 and bidi_cache_fetch_state doesn't bring scan_dir from the

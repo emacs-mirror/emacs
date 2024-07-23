@@ -1252,7 +1252,7 @@ usage: (catch TAG BODY...)  */)
    eassert (E) when E contains variables that might be clobbered by a
    longjmp.  */
 
-#define clobbered_eassert(E) verify (sizeof (E) != 0)
+#define clobbered_eassert(E) static_assert (sizeof (E) != 0)
 
 void
 pop_handler (void)

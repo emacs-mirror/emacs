@@ -4667,7 +4667,7 @@ scrolling_window (struct window *w, int tab_line_p)
      13, then next_almost_prime_increment_max would be 14, e.g.,
      because next_almost_prime (113) would be 127.  */
   {
-    verify (NEXT_ALMOST_PRIME_LIMIT == 11);
+    static_assert (NEXT_ALMOST_PRIME_LIMIT == 11);
     enum { next_almost_prime_increment_max = 10 };
     ptrdiff_t row_table_max =
       (min (PTRDIFF_MAX, SIZE_MAX) / (3 * sizeof *row_table)
@@ -5118,8 +5118,8 @@ scrolling (struct frame *frame)
   int free_at_end_vpos = height;
   struct glyph_matrix *current_matrix = frame->current_matrix;
   struct glyph_matrix *desired_matrix = frame->desired_matrix;
-  verify (sizeof (int) <= sizeof (unsigned));
-  verify (alignof (unsigned) % alignof (int) == 0);
+  static_assert (sizeof (int) <= sizeof (unsigned));
+  static_assert (alignof (unsigned) % alignof (int) == 0);
   unsigned *old_hash;
   USE_SAFE_ALLOCA;
   SAFE_NALLOCA (old_hash, 4, height);

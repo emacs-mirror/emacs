@@ -1290,7 +1290,7 @@ typedef int regnum_t;
 /* Macros for the compile stack.  */
 
 typedef long pattern_offset_t;
-verify (LONG_MIN <= -(MAX_BUF_SIZE - 1) && MAX_BUF_SIZE - 1 <= LONG_MAX);
+static_assert (LONG_MIN <= -(MAX_BUF_SIZE - 1) && MAX_BUF_SIZE - 1 <= LONG_MAX);
 
 typedef struct
 {

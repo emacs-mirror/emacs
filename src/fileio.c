@@ -3906,7 +3906,7 @@ union read_non_regular
   } s;
   GCALIGNED_UNION_MEMBER
 };
-verify (GCALIGNED (union read_non_regular));
+static_assert (GCALIGNED (union read_non_regular));
 
 static Lisp_Object
 read_non_regular (Lisp_Object state)
@@ -6316,7 +6316,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	      continue;
 
 	    enum { growth_factor = 4 };
-	    verify (BUF_BYTES_MAX <= EMACS_INT_MAX / growth_factor);
+	    static_assert (BUF_BYTES_MAX <= EMACS_INT_MAX / growth_factor);
 
 	    set_buffer_internal (b);
 	    if (NILP (Vauto_save_include_big_deletions)

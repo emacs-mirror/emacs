@@ -46,7 +46,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <c-ctype.h>
 #include <intprops.h>
 #include <stdlib.h>
-#include <verify.h>
 
 #include "composite.h"
 #include "intervals.h"
@@ -3408,7 +3407,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
    SPRINTF_BUFSIZE = (sizeof "-." + (LDBL_MAX_10_EXP + 1)
 		      + USEFUL_PRECISION_MAX)
   };
-  verify (USEFUL_PRECISION_MAX > 0);
+  static_assert (USEFUL_PRECISION_MAX > 0);
 
   ptrdiff_t n;		/* The number of the next arg to substitute.  */
   char initial_buffer[1000 + SPRINTF_BUFSIZE];

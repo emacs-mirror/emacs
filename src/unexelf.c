@@ -181,10 +181,9 @@ typedef struct {
 /* The code often converts ElfW (Half) values like e_shentsize to ptrdiff_t;
    check that this doesn't lose information.  */
 #include <intprops.h>
-#include <verify.h>
-verify ((! TYPE_SIGNED (ElfW (Half))
-	 || PTRDIFF_MIN <= TYPE_MINIMUM (ElfW (Half)))
-	&& TYPE_MAXIMUM (ElfW (Half)) <= PTRDIFF_MAX);
+static_assert ((! TYPE_SIGNED (ElfW (Half))
+		|| PTRDIFF_MIN <= TYPE_MINIMUM (ElfW (Half)))
+	       && TYPE_MAXIMUM (ElfW (Half)) <= PTRDIFF_MAX);
 
 #ifdef UNEXELF_DEBUG
 # define DEBUG_LOG(expr) fprintf (stderr, #expr " 0x%"PRIxMAX"\n", \

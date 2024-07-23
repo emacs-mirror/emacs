@@ -3649,7 +3649,7 @@ skip_lazy_string (Lisp_Object readcharfun)
 	 and record where in the file it comes from.  */
 
       /* First exchange the two saved_strings.  */
-      verify (ARRAYELTS (saved_strings) == 2);
+      static_assert (ARRAYELTS (saved_strings) == 2);
       struct saved_string t = saved_strings[0];
       saved_strings[0] = saved_strings[1];
       saved_strings[1] = t;

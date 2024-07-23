@@ -654,7 +654,7 @@ androidfont_draw (struct glyph_string *s, int from, int to,
   /* Maybe initialize the font driver.  */
   androidfont_check_init ();
 
-  verify (sizeof (unsigned int) == sizeof (jint));
+  static_assert (sizeof (unsigned int) == sizeof (jint));
   info = (struct androidfont_info *) s->font;
 
   gcontext = android_resolve_handle (s->gc->gcontext);
@@ -932,7 +932,7 @@ androidfont_text_extents (struct font *font, const unsigned int *code,
       memory_full (0);
     }
 
-  verify (sizeof (unsigned int) == sizeof (jint));
+  static_assert (sizeof (unsigned int) == sizeof (jint));
 
   /* Always true on every Android device.  */
   (*android_java_env)->SetIntArrayRegion (android_java_env,

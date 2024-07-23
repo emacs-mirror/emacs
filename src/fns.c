@@ -4631,7 +4631,7 @@ check_hash_table (Lisp_Object obj)
 EMACS_INT
 next_almost_prime (EMACS_INT n)
 {
-  verify (NEXT_ALMOST_PRIME_LIMIT == 11);
+  static_assert (NEXT_ALMOST_PRIME_LIMIT == 11);
   for (n |= 1; ; n += 2)
     if (n % 3 != 0 && n % 5 != 0 && n % 7 != 0)
       return n;
@@ -5367,7 +5367,7 @@ hash_string (char const *ptr, ptrdiff_t len)
       /* String is shorter than an EMACS_UINT.  Use smaller loads.  */
       eassume (p <= end && end - p < sizeof (EMACS_UINT));
       EMACS_UINT tail = 0;
-      verify (sizeof tail <= 8);
+      static_assert (sizeof tail <= 8);
 #if EMACS_INT_MAX > INT32_MAX
       if (end - p >= 4)
 	{

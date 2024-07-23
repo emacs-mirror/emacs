@@ -27,8 +27,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <verify.h>
-
 #include "lisp.h"
 #include "intervals.h"
 #include "process.h"
@@ -4860,7 +4858,7 @@ init_buffer_once (void)
      The local flag bits are in the local_var_flags slot of the buffer.  */
 
   /* Nothing can work if this isn't true.  */
-  { verify (sizeof (EMACS_INT) == word_size); }
+  { static_assert (sizeof (EMACS_INT) == word_size); }
 
   Vbuffer_alist = Qnil;
   current_buffer = 0;

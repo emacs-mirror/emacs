@@ -259,7 +259,7 @@ struct android_special_vnode
   Lisp_Object special_coding_system;
 };
 
-verify (NIL_IS_ZERO); /* special_coding_system above.  */
+static_assert (NIL_IS_ZERO); /* special_coding_system above.  */
 
 enum android_vnode_type
   {

@@ -285,7 +285,7 @@ do_casify_multibyte_string (struct casing_context *ctx, Lisp_Object obj)
      representation of the character is at the beginning of the
      buffer.  This is why we don’t need a separate struct
      casing_str_buf object, and can write directly to the destination.  */
-  verify (offsetof (struct casing_str_buf, data) == 0);
+  static_assert (offsetof (struct casing_str_buf, data) == 0);
 
   ptrdiff_t size = SCHARS (obj), n;
   USE_SAFE_ALLOCA;
