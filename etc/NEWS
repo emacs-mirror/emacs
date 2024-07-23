@@ -149,6 +149,13 @@ This affects calls to 'warn', 'lwarn', 'display-warning', and
 In most cases, having it enabled leads to a large amount of false
 positives.
 
+** DocView
+
+---
+*** Dedicated buffer for plain text contents.
+When switching to the plain text contents with 'doc-view-open-text',
+DocView now creates a dedicated buffer to display it. 'C-c C-c' gets you
+back to real DocView buffer if it still exists.
 
 * New Modes and Packages in Emacs 31.1
 
