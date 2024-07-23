@@ -1728,8 +1728,26 @@ functions undertaking event management themselves to call
                     ;; `mouse-1-menu' instead and wait for the up
                     ;; event to display the menu.
                     (setcar (nthcdr 3 tool-list) 'mouse-1-menu)
-                  (progn (setcar (nthcdr 3 tool-list) 'mouse-drag)
-                         (throw 'input-event (list 'down-mouse-1 position))))
+                  (progn
+                    (setcar (nthcdr 3 tool-list) 'mouse-drag)
+                    ;; Record the extents of the glyph beneath this
+                    ;; touch point to avoid generating extraneous events
+                    ;; when it next moves.
+                    (setcar
+                     (nthcdr 5 touch-screen-current-tool)
+                     (let* ((edges (window-inside-pixel-edges window))
+                            (point (posn-x-y position))
+                            (frame-offsets (if (framep window)
+                                               '(0 . 0)
+                                             (cons (car edges)
+                                                   (cadr edges)))))
+                       (remember-mouse-glyph (or (and (framep window) window)
+                                                 (window-frame window))
+                                             (+ (car point)
+                                                (car frame-offsets))
+                                             (+ (cdr point)
+                                                (cdr frame-offsets)))))
+                    (throw 'input-event (list 'down-mouse-1 position))))
               (and point
                    ;; Start the long-press timer.
                    (touch-screen-handle-timeout nil)))))))
