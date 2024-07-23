@@ -972,6 +972,7 @@ Each element is an `isearch--state' struct where the slots are
 ;; The value of input-method-function when isearch is invoked.
 (defvar isearch-input-method-function nil)
 
+(defvar isearch--saved-local-map nil)
 (defvar isearch--saved-overriding-local-map nil)
 
 ;; Minor-mode-alist changes - kind of redundant with the
@@ -1321,6 +1322,7 @@ used to set the value of `isearch-regexp-function'."
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
   (force-mode-line-update)
 
+  (setq isearch--saved-local-map overriding-terminal-local-map)
   (setq overriding-terminal-local-map isearch-mode-map)
   (run-hooks 'isearch-mode-hook)
   ;; Remember the initial map possibly modified
@@ -1439,10 +1441,12 @@ The last thing is to trigger a new round of lazy highlighting."
 
 (defun isearch-done (&optional nopush edit)
   "Exit Isearch mode.
+Called by all commands that terminate isearch-mode.
 For successful search, pass no args.
 For a failing search, NOPUSH is t.
 For going to the minibuffer to edit the search string,
-NOPUSH is t and EDIT is t."
+NOPUSH is t and EDIT is t.
+If NOPUSH is non-nil, we don't push the string on the search ring."
 
   (when isearch-resume-in-command-history
     (add-to-history 'command-history
@@ -1460,9 +1464,7 @@ NOPUSH is t and EDIT is t."
       (setq isearch--current-buffer nil)
       (setq cursor-sensor-inhibit (delq 'isearch cursor-sensor-inhibit))))
 
-  ;; Called by all commands that terminate isearch-mode.
-  ;; If NOPUSH is non-nil, we don't push the string on the search ring.
-  (setq overriding-terminal-local-map nil)
+  (setq overriding-terminal-local-map isearch--saved-local-map)
   ;; (setq pre-command-hook isearch-old-pre-command-hook) ; for lemacs
   (setq minibuffer-message-timeout isearch-original-minibuffer-message-timeout)
   (isearch-dehighlight)
@@ -2676,7 +2678,7 @@ Otherwise invoke whatever the calling mouse-2 command sequence
 is bound to outside of Isearch."
   (interactive "e")
   (let ((w (posn-window (event-start click)))
-        (binding (let ((overriding-terminal-local-map nil)
+        (binding (let ((overriding-terminal-local-map isearch--saved-local-map)
                        ;; Key search depends on mode (bug#47755)
                        (isearch-mode nil))
                    (key-binding (this-command-keys-vector) t))))
