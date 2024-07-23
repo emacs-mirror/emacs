@@ -10232,6 +10232,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 - (void) mark
 {
 #ifndef HAVE_MPS
+  struct window *window = [self lispWindow];
   if (window)
     {
       Lisp_Object win;
