@@ -3320,9 +3320,7 @@ Generated from `ispell-tex-skip-alists'."
    "\\|"
    ;; keys wrapped in begin{}
    (mapconcat (lambda (lst)
-                (concat "\\\\begin[ \t\n]*{[ \t\n]*"
-                        (car lst)
-                        "[ \t\n]*}"))
+                (concat "\\\\begin[ \t\n]*{" (car lst) "}"))
 	      (car (cdr ispell-tex-skip-alists))
 	      "\\|")))
 
