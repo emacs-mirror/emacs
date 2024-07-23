@@ -956,7 +956,7 @@ obj_to_reloc (Lisp_Object obj)
 
   xsignal1 (Qnative_ice,
 	    build_string ("can't find data in relocation containers"));
-  assume (false);
+  eassume (false);
 
  found:
   eassert (XFIXNUM (idx) < reloc.array.len);
