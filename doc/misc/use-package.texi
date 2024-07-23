@@ -252,6 +252,7 @@ on Emacs start.  @xref{Installing packages}, for details.
 * Forcing loading::             Loading packages immediately.
 * Conditional loading::         Loading packages conditionally.
 * Loading sequentially::        Loading packages in sequence.
+* The @code{emacs} package::    Customizing built-in variables.
 * Load dependencies::           Don't load without dependencies.
 * Manual installation::         Loading manually installed packages.
 @end menu
@@ -566,6 +567,34 @@ registers autoloads, such as @code{:bind} or @code{:hook}
 (@pxref{Hooks}), and your package manager does not provide autoloads,
 it is possible that your package will never be loaded if you do not
 add @code{:demand t} to those declarations.
+
+@node The @code{emacs} package
+@section Customizing built-in variables
+@cindex customizing built-in variables
+
+Some users want to put all their customizations in use-package
+declarations, even for variables, hooks, and options that are always
+available, without loading any package.@footnote{In other words, they
+are either preloaded in Emacs or defined in Emacs' C sources.}
+
+For that purpose, you can use the no-op @samp{emacs} package:
+
+@lisp
+@group
+(use-package emacs
+  :init
+  (setq custom-file "~/.emacs.d/emacs-custom.el")
+  (load custom-file)
+  (setq frame-title-format "%b")
+  :custom
+  (use-short-answers t))
+@end group
+@end lisp
+
+This declaration takes advantage of the fact that @w{@code{(featurep
+'emacs)}} always returns true, and has no special meaning beyond that.
+It simply provides a way to organize your customizations, without
+loading anything.
 
 @node Load dependencies
 @section Prevent loading if dependencies are missing
