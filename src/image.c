@@ -6508,7 +6508,8 @@ xpm_load_image (struct frame *f,
   if (ximg)
     {
       image_destroy_x_image (ximg);
-      image_destroy_x_image (mask_img);
+      if (mask_img)
+	image_destroy_x_image (mask_img);
       image_clear_image (f, img);
     }
   return 0;
