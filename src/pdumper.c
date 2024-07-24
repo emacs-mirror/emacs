@@ -913,7 +913,8 @@ dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
   ctx->igc_base_offset = ctx->offset;
   if (ctx->flags.dump_object_contents &&
       (type == IGC_OBJ_DUMPED_BYTES ||
-       type == IGC_OBJ_DUMPED_CODE_SPACE_MASKS))
+       type == IGC_OBJ_DUMPED_CODE_SPACE_MASKS ||
+       type == IGC_OBJ_DUMPED_BIGNUM_DATA))
     {
       /* This saving of obj_offset is Because of an assertion in
 	 dump_write. */
@@ -3639,7 +3640,8 @@ dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
   dump_align_output (ctx, alignof (mp_limb_t));
   dump_off nlimbs = (dump_off) sz_nlimbs;
 # ifdef HAVE_MPS
-  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BIGNUM_DATA, n);
+  char *dummy = (void *)igc_alloc_bytes (nlimbs * sizeof (mp_limb_t));
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BIGNUM_DATA, dummy - sizeof (uint64_t));
 # endif
   Lisp_Object descriptor
     = list2 (dump_off_to_lisp (ctx->offset),

@@ -45,7 +45,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 INLINE_HEADER_BEGIN
 
 #ifdef HAVE_MPS
-union gc_header { uint64_t v; };
+union gc_header;
 #else
 union gc_header { };
 #endif
@@ -324,6 +324,14 @@ DEFINE_GDB_SYMBOL_END (VALMASK)
 # define GCALIGNED_STRUCT
 #endif
 #define GCALIGNED(type) (alignof (type) % GCALIGNMENT == 0)
+
+#ifdef HAVE_MPS
+union gc_header
+{
+  uint64_t v;
+  GCALIGNED_UNION_MEMBER
+};
+#endif
 
 /* Lisp_Word is a scalar word suitable for holding a tagged pointer or
    integer.  Usually it is a pointer to a deliberately-incomplete type

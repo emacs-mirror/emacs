@@ -4766,8 +4766,7 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
 	igc_assert (base + obj_size (h) >= end);
 	if (type != IGC_OBJ_DUMPED_BYTES &&
 	    type != IGC_OBJ_DUMPED_CODE_SPACE_MASKS &&
-	    type != IGC_OBJ_DUMPED_BUFFER_TEXT &&
-	    type != IGC_OBJ_DUMPED_BIGNUM_DATA)
+	    type != IGC_OBJ_DUMPED_BUFFER_TEXT)
 	  *out = *h;
 	igc_assert (header_nwords (out) > 0);
 	return base + obj_size (h);
@@ -4780,8 +4779,7 @@ igc_dump_finish_obj (void *client, enum igc_obj_type type,
   type = (is_pure (client)
 	  ? pure_obj_type_and_hash (&hash, type, client)
 	  : builtin_obj_type_and_hash (&hash, type, client));
-  if (type != IGC_OBJ_DUMPED_BIGNUM_DATA)
-    set_header (out, type, nbytes, hash);
+  set_header (out, type, nbytes, hash);
   return base + nbytes;
 }
 
