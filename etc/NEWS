@@ -162,10 +162,10 @@ That convention was: '(error &rest ARGS)'.
 * Lisp Changes in Emacs 31.1
 
 +++
-*** Support interactive D-Bus authorization.
+** Support interactive D-Bus authorization.
 A new ':authorizable t' parameter has been added to 'dbus-call-method'
 and 'dbus-call-method-asynchronously' to allow the user to interactively
-authorize the invoked D-Bus method (e.g., via polkit).
+authorize the invoked D-Bus method (for example via polkit).
 
 ** The customization group 'wp' has been removed.
 It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
