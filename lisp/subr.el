@@ -463,8 +463,7 @@ Also see `ignore'."
   (declare (pure t) (side-effect-free error-free))
   t)
 
-;; Signal a compile-error if the first arg is missing.
-(defun error (&rest args)
+(defun error (string &rest args)
   "Signal an error, making a message by passing ARGS to `format-message'.
 Errors cause entry to the debugger when `debug-on-error' is non-nil.
 This can be overridden by `debug-ignored-errors'.
@@ -481,9 +480,8 @@ for the sake of consistency.
 
 To alter the look of the displayed error messages, you can use
 the `command-error-function' variable."
-  (declare (ftype (function (&rest t) nil))
-           (advertised-calling-convention (string &rest args) "23.1"))
-  (signal 'error (list (apply #'format-message args))))
+  (declare (ftype (function (string &rest t) nil)))
+  (signal 'error (list (apply #'format-message string args))))
 
 (defun user-error (format &rest args)
   "Signal a user error, making a message by passing ARGS to `format-message'.
