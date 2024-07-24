@@ -3886,7 +3886,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
 static void
 x_destroy_x_image (XImage *ximg)
 {
-  if (ximg)
+  if (ximg->data)
     {
       xfree (ximg->data);
       ximg->data = NULL;
@@ -6505,9 +6505,12 @@ xpm_load_image (struct frame *f,
 
  failure:
   image_error ("Invalid XPM3 file (%s)", img->spec);
-  image_destroy_x_image (ximg);
-  image_destroy_x_image (mask_img);
-  image_clear_image (f, img);
+  if (ximg)
+    {
+      image_destroy_x_image (ximg);
+      image_destroy_x_image (mask_img);
+      image_clear_image (f, img);
+    }
   return 0;
 
 #undef match
