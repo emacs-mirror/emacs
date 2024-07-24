@@ -3692,7 +3692,7 @@ feature.
 
 Emacs has a list of local variables that are known to be safe to set.
 If a file tries to set any variable outside this list, it asks the
-user to confirm whether the variables should be set. You can also tell
+user to confirm whether the variables should be set.  You can also tell
 Emacs whether to allow the evaluation of Emacs Lisp code found at the
 bottom of files by setting the variable @code{enable-local-eval}.
 
@@ -3835,7 +3835,7 @@ in the distribution.
 To build Emacs from source for MS-DOS, see the instructions in the file
 @file{msdos/INSTALL} in the distribution.  The DOS port builds and runs
 on plain DOS, and also on all versions of MS-Windows from version 3.X
-onwards, including Windows XP and Vista. Pre-built binaries may be
+onwards, including Windows XP and Vista.  Pre-built binaries may be
 available at
 @uref{https://www.delorie.com/pub/djgpp/current/v2gnu/emacs.README}
 
@@ -4761,14 +4761,14 @@ these systems, you should configure @code{movemail} to use @code{flock}.
 Ron Isaacson says: When you hit
 @kbd{r} to reply in Rmail, by default it Ccs all of the original
 recipients (everyone on the original @samp{To} and @samp{CC}
-lists). With a prefix argument (i.e., typing @kbd{C-u} before @kbd{r}),
+lists).  With a prefix argument (i.e., typing @kbd{C-u} before @kbd{r}),
 it replies only to the sender.  However, going through the whole
 @kbd{C-u} business every time you want to reply is a pain.  This is the
 best fix I've been able to come up with:
 
 @lisp
 (defun rmail-reply-t ()
-  "Reply only to the sender of the current message. (See rmail-reply.)"
+  "Reply only to the sender of the current message.  (See rmail-reply.)"
   (interactive)
   (rmail-reply t))
 

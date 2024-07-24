@@ -194,7 +194,7 @@ The following statuses are defined:
 @item [@var{nerrors} @var{nwarnings} ...]
 @tab Normal operation. @var{nerrors} and @var{nwarnings} are, respectively,
 the total number of errors and warnings found during the last buffer
-check, for all backends. They may be followed by other totals for
+check, for all backends.  They may be followed by other totals for
 other types of diagnostics (@pxref{Flymake error types}).
 
 @item @code{Wait}

@@ -379,7 +379,7 @@ This variable is @code{resize} by default, which means that images
 that are bigger than the Emacs window are resized so that they fit.
 If you set this to @code{nil}, large images are not displayed in
 Emacs, but can instead be displayed externally (e.g., with
-@samp{ImageMagick} or @samp{xv}). Setting this variable to @code{t}
+@samp{ImageMagick} or @samp{xv}).  Setting this variable to @code{t}
 disables this check and makes the library display all inline images as
 inline, regardless of their size.
 

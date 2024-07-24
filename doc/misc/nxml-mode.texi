@@ -134,8 +134,8 @@ type @kbd{C-M-i} or @kbd{@key{ESC} @key{TAB}} for completion, or bind
 the following, I will assume that you type @kbd{C-M-i}.
 
 nXML mode completion works by examining the symbol preceding point.
-This is the symbol to be completed. The symbol to be completed may be
-the empty. Completion considers what symbols starting with the symbol
+This is the symbol to be completed.  The symbol to be completed may be
+the empty.  Completion considers what symbols starting with the symbol
 to be completed would be valid replacements for the symbol to be
 completed, given the schema and the contents of the buffer before
 point.  These symbols are the possible completions.  An example may
@@ -182,7 +182,7 @@ happens.
 @item
 If there is one possible completion, then that completion is
 inserted, together with any following characters that are
-required. For example, in this case:
+required.  For example, in this case:
 
 @example
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -199,14 +199,14 @@ required. For example, in this case:
 @item
 If there is more than one possible completion, but all
 possible completions share a common non-empty prefix, then that prefix
-is inserted. For example, suppose the buffer is:
+is inserted.  For example, suppose the buffer is:
 
 @example
 <html x@point{}
 @end example
 
 @noindent
-The symbol to be completed is @samp{x}. The possible completions are
+The symbol to be completed is @samp{x}.  The possible completions are
 @samp{xmlns} and @samp{xml:lang}.  These share a common prefix of
 @samp{xml}.  Thus, @kbd{C-M-i} will yield:
 
@@ -255,7 +255,7 @@ If you input @kbd{xmlns}, the result will be:
 
 @noindent
 (If you do @kbd{C-M-i} again, the namespace URI will be
-inserted. Should that happen automatically?)
+inserted.  Should that happen automatically?)
 @end itemize
 
 @node Inserting end-tags
@@ -269,17 +269,17 @@ You can use @kbd{C-M-i} after @samp{</} to complete the rest of the
 end-tag.
 
 @kbd{C-c C-f} inserts an end-tag for the element containing
-point. This command is useful when you want to input the start-tag,
-then input the content and finally input the end-tag. The @samp{f}
+point.  This command is useful when you want to input the start-tag,
+then input the content and finally input the end-tag.  The @samp{f}
 is mnemonic for finish.
 
 If you want to keep tags balanced and input the end-tag at the
 same time as the start-tag, before inputting the content, then you can
-use @kbd{C-c C-i}. This inserts a @samp{>}, then inserts
+use @kbd{C-c C-i}.  This inserts a @samp{>}, then inserts
 the end-tag and leaves point before the end-tag.  @kbd{C-c C-b}
 is similar but more convenient for block-level elements: it puts the
 start-tag, point and the end-tag on successive lines, appropriately
-indented. The @samp{i} is mnemonic for inline and the
+indented.  The @samp{i} is mnemonic for inline and the
 @samp{b} is mnemonic for block.
 
 Finally, you can customize nXML mode so that @kbd{/} automatically
@@ -312,7 +312,7 @@ then those lines will not be included in any paragraph.
 
 A start-tag at the beginning of the line (possibly indented) may
 be treated as starting a paragraph.  Similarly, an end-tag at the end
-of the line may be treated as ending a paragraph. The following rules
+of the line may be treated as ending a paragraph.  The following rules
 are used to determine whether such a tag is in fact treated as a
 paragraph boundary:
 
@@ -324,7 +324,7 @@ is a paragraph boundary.
 If the end-tag corresponding to the start-tag is not at
 the end of its line, or the start-tag corresponding to the end-tag is
 not at the beginning of its line, then it is not a paragraph
-boundary. For example, in
+boundary.  For example, in
 
 @example
 <p>This is a paragraph with an
@@ -374,9 +374,9 @@ in a future version.
 
 The variable @code{nxml-section-element-name-regexp} gives
 a regexp for the local names (i.e., the part of the name following any
-prefix) of section elements. The variable
+prefix) of section elements.  The variable
 @code{nxml-heading-element-name-regexp} gives a regexp for the
-local names of heading elements. For an element to be recognized
+local names of heading elements.  For an element to be recognized
 as a section
 
 @itemize @bullet
@@ -415,7 +415,7 @@ that subsection.
 @end itemize
 
 In the last two states, where the text content is hidden, the
-heading is displayed specially, in an abbreviated form. An element
+heading is displayed specially, in an abbreviated form.  An element
 like this:
 
 @example
@@ -515,7 +515,7 @@ displayed start-tag toggles the display of subheadings on and
 off.
 
 The outline state for each section is stored with the first
-character of the section (as a text property). Every command that
+character of the section (as a text property).  Every command that
 changes the outline state of any section updates the display of the
 buffer so that each section is displayed correctly according to its
 outline state.  If the section structure is subsequently changed, then
@@ -536,10 +536,10 @@ should use.  The order of the list is significant: when file
 @var{x} occurs in the list before file @var{y} then rules
 from file @var{x} have precedence over rules from file
 @var{y}.  A filename specified in
-@samp{rng-schema-locating-files} may be relative. If so, it will
+@samp{rng-schema-locating-files} may be relative.  If so, it will
 be resolved relative to the document for which a schema is being
-located. It is not an error if relative file-names in
-@samp{rng-schema-locating-files} do not exist. You can use
+located.  It is not an error if relative file-names in
+@samp{rng-schema-locating-files} do not exist.  You can use
 @kbd{M-x customize-variable @key{RET} rng-schema-locating-files
 @key{RET}} to customize the list of schema locating
 files.
@@ -548,7 +548,7 @@ By default, @samp{rng-schema-locating-files} list has two
 members: @samp{schemas.xml}, and
 @samp{@var{dist-dir}/schema/schemas.xml} where
 @samp{@var{dist-dir}} is the directory containing the nXML
-distribution. The first member will cause nXML mode to use a file
+distribution.  The first member will cause nXML mode to use a file
 @samp{schemas.xml} in the same directory as the document being
 edited if such a file exist.  The second member contains rules for the
 schemas that are included with the nXML distribution.
@@ -565,7 +565,7 @@ The command @kbd{C-c C-s C-w} will tell you what schema
 is currently being used.
 
 The rules for locating a schema are applied automatically when
-you visit a file in nXML mode. However, if you have just created a new
+you visit a file in nXML mode.  However, if you have just created a new
 file and the schema cannot be inferred from the file-name, then this
 will not locate the right schema.  In this case, you should insert the
 start-tag of the root element and then use the command @kbd{C-c C-s
@@ -578,12 +578,12 @@ If you want to use a schema that has not yet been added to the
 schema locating files, you can use the command @kbd{C-c C-s C-f}
 to manually select the file containing the schema for the document in
 current buffer.  Emacs will read the file-name of the schema from the
-minibuffer. After reading the file-name, Emacs will ask whether you
+minibuffer.  After reading the file-name, Emacs will ask whether you
 wish to add a rule to a schema locating file that persistently
 associates the document with the selected schema.  The rule will be
 added to the first file in the list specified
 @samp{rng-schema-locating-files}; it will create the file if
-necessary, but will not create a directory. If the variable
+necessary, but will not create a directory.  If the variable
 @samp{rng-schema-locating-files} has not been customized, this
 means that the rule will be added to the file @samp{schemas.xml}
 in the same directory as the document being edited.
@@ -591,14 +591,14 @@ in the same directory as the document being edited.
 The command @kbd{C-c C-s C-t} allows you to select a schema by
 specifying an identifier for the type of the document.  The schema
 locating files determine the available type identifiers and what
-schema is used for each type identifier. This is useful when it is
+schema is used for each type identifier.  This is useful when it is
 impossible to infer the right schema from either the file-name or the
 content of the document, even though the schema is already in the
 schema locating file.  A situation in which this can occur is when
 there are multiple variants of a schema where all valid documents have
 the same document element.  For example, XHTML has Strict and
 Transitional variants.  In a situation like this, a schema locating file
-can define a type identifier for each variant. As with @kbd{C-c
+can define a type identifier for each variant.  As with @kbd{C-c
 C-s C-f}, Emacs will ask whether you wish to add a rule to a schema
 locating file that persistently associates the document with the
 specified type identifier.
@@ -611,12 +611,12 @@ the schema that is currently being used.
 @section Schema locating files
 
 Each schema locating file specifies a list of rules.  The rules
-from each file are appended in order. To locate a schema each rule is
+from each file are appended in order.  To locate a schema each rule is
 applied in turn until a rule matches.  The first matching rule is then
 used to determine the schema.
 
 Schema locating files are designed to be useful for other
-applications that need to locate a schema for a document. In fact,
+applications that need to locate a schema for a document.  In fact,
 there is nothing specific to locating schemas in the design; it could
 equally well be used for locating a stylesheet.
 
@@ -638,7 +638,7 @@ files must be valid with respect to this schema.
 The document element of a schema locating file must be
 @samp{locatingRules} and the namespace URI must be
 @samp{http://thaiopensource.com/ns/locating-rules/1.0}.  The
-children of the document element specify rules. The order of the
+children of the document element specify rules.  The order of the
 children is the same as the order of the rules.  Here's a complete
 example of a schema locating file:
 
@@ -665,7 +665,7 @@ As usual with XML-related technologies, resources are identified
 by URIs.  The @samp{uri} attribute identifies the schema by
 specifying the URI@.  The URI may be relative.  If so, it is resolved
 relative to the URI of the schema locating file that contains
-attribute. This means that if the value of @samp{uri} attribute
+attribute.  This means that if the value of @samp{uri} attribute
 does not contain a @samp{/}, then it will refer to a filename in
 the same directory as the schema locating file.
 
@@ -696,7 +696,7 @@ relative URI in the @samp{resource} attribute is resolved into a
 particular absolute URI using the base URI of the schema locating
 file, a relative URI pattern matches if it matches some number of
 complete path segments of the document's URI ending with the last path
-segment of the document's URI@. For example,
+segment of the document's URI@.  For example,
 
 @example
 <uri pattern="*.xsl" uri="xslt.rnc"/>
@@ -707,7 +707,7 @@ specifies that the schema for documents with a URI whose path ends
 with @samp{.xsl} is @samp{xslt.rnc}.
 
 A @samp{transformURI} rule locates a schema by
-transforming the URI of the document. The @samp{fromPattern}
+transforming the URI of the document.  The @samp{fromPattern}
 attribute specifies a URI pattern with the same meaning as the
 @samp{pattern} attribute of the @samp{uri} element.  The
 @samp{toPattern} attribute is a URI pattern that is used to
@@ -736,7 +736,7 @@ schema.
 @subsection Using the document element to locate a schema
 
 A @samp{documentElement} rule locates a schema based on
-the local name and prefix of the document element. For example, a rule
+the local name and prefix of the document element.  For example, a rule
 
 @example
 <documentElement prefix="xsl" localName="stylesheet" uri="xslt.rnc"/>
@@ -745,12 +745,12 @@ the local name and prefix of the document element. For example, a rule
 @noindent
 specifies that when the name of the document element is
 @samp{xsl:stylesheet}, then @samp{xslt.rnc} should be used
-as the schema. Either the @samp{prefix} or
+as the schema.  Either the @samp{prefix} or
 @samp{localName} attribute may be omitted to allow any prefix or
 local name.
 
 A @samp{namespace} rule locates a schema based on the
-namespace URI of the document element. For example, a rule
+namespace URI of the document element.  For example, a rule
 
 @example
 <namespace ns="http://www.w3.org/1999/XSL/Transform" uri="xslt.rnc"/>
@@ -780,7 +780,7 @@ Each of the rules described in previous sections that uses a
 @samp{uri} attribute to specify a schema, can instead use a
 @samp{typeId} attribute to specify a type identifier.  The type
 identifier can be associated with a URI using a @samp{typeId}
-element. For example,
+element.  For example,
 
 @example
 <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
@@ -805,7 +805,7 @@ more flexible than a schema locating file that simply specified
 
 @noindent
 A user can easily use @kbd{C-c C-s C-t} to select between XHTML
-Strict and XHTML Transitional. Also, a user can easily add a catalog
+Strict and XHTML Transitional.  Also, a user can easily add a catalog
 
 @example
 <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
@@ -823,7 +823,7 @@ The @samp{include} element includes rules from another
 schema locating file.  The behavior is exactly as if the rules from
 that file were included in place of the @samp{include} element.
 Relative URIs are resolved into absolute URIs before the inclusion is
-performed. For example,
+performed.  For example,
 
 @example
 <include rules="../rules.xml"/>
@@ -875,7 +875,7 @@ nXML mode is designed to support the creation of standalone XML
 documents that do not depend on a DTD@.  Although it is common practice
 to insert a DOCTYPE declaration referencing an external DTD, this has
 undesirable side-effects.  It means that the document is no longer
-self-contained. It also means that different XML parsers may interpret
+self-contained.  It also means that different XML parsers may interpret
 the document in different ways, since the XML Recommendation does not
 require XML parsers to read the DTD@.  With DTDs, it was impractical to
 get validation without using an external DTD or reference to an
@@ -884,9 +884,9 @@ simultaneously get the benefits of validation and standalone XML
 documents.  Therefore, I recommend that you do not reference an
 external DOCTYPE in your XML documents.
 
-One problem is entities for characters. Typically, as well as
+One problem is entities for characters.  Typically, as well as
 providing validation, DTDs also provide a set of character entities
-for documents to use. Schemas cannot provide this functionality,
+for documents to use.  Schemas cannot provide this functionality,
 because schema validation happens after XML parsing.  The recommended
 solution is to either use the Unicode characters directly, or, if this
 is impractical, use character references.  nXML mode supports this by
@@ -903,7 +903,7 @@ nXML mode has some limitations:
 @item
 DTD support is limited.  Internal parsed general entities declared
 in the internal subset are supported provided they do not contain
-elements. Other usage of DTDs is ignored.
+elements.  Other usage of DTDs is ignored.
 @item
 The restrictions on RELAX NG schemas in section 7 of the RELAX NG
 specification are not enforced.

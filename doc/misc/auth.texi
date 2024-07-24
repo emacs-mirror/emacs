@@ -136,12 +136,12 @@ You can use spaces inside a password or other token by surrounding the
 token with either single or double quotes.
 
 You can use apostrophes inside a password or other token by
-surrounding it with double quotes, e.g., @code{"he'llo"}. Similarly you
+surrounding it with double quotes, e.g., @code{"he'llo"}.  Similarly you
 can use double quotes inside a password or other token by surrounding
-it with apostrophes, e.g., @code{'he"llo'}. You can't mix both (so a
+it with apostrophes, e.g., @code{'he"llo'}.  You can't mix both (so a
 password or other token can't have both apostrophes and double quotes).
 
-All this is optional. You could just say (but we don't recommend it,
+All this is optional.  You could just say (but we don't recommend it,
 we're just showing that it's possible)
 
 @example
@@ -267,7 +267,7 @@ earlier.  Since Tramp has about 88 connection methods, this may be
 necessary if you have an unusual (see earlier comment on those) setup.
 
 The netrc format is directly translated into JSON, if you are into
-that sort of thing. Just point to a JSON file with entries like this:
+that sort of thing.  Just point to a JSON file with entries like this:
 
 @example
 [
@@ -501,7 +501,9 @@ The username can also be expressed as a prefix, separated from the
 host with an at-sign (@code{@@}).
 
 @item gnu.org:22.gpg
-The port (aka. service) to match can only be expressed after the host and separated with a colon (@code{:}).  The separator can be changed through the @code{auth-source-pass-port-separator} variable.
+The port (aka. service) to match can only be expressed after the host
+and separated with a colon (@code{:}).  The separator can be changed
+through the @code{auth-source-pass-port-separator} variable.
 
 @item gnu.org:22/rms.gpg
 

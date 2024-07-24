@@ -1313,7 +1313,7 @@ based on compile-time information.
 
 The language server reports the regions by periodically sending a
 @code{textDocument/inactiveRegions} notification for each managed
-buffer (@pxref{Eglot and Buffers}). Normally, unknown server
+buffer (@pxref{Eglot and Buffers}).  Normally, unknown server
 notifications are ignored by Eglot, but we're going change that.
 
 Both the announcement of the client capability and the handling of the
@@ -1353,7 +1353,7 @@ called @code{eglot-clangd}, so that the method would be simplified:
 However, this would require that users tweak
 @code{eglot-server-program} to tell Eglot instantiate such sub-classes
 instead of the generic @code{eglot-lsp-server} (@pxref{Setting Up LSP
-Servers}). For the purposes of this particular demonstration, we're
+Servers}).  For the purposes of this particular demonstration, we're
 going to use the more hacky regexp route which doesn't require that.
 
 Note, however, that detecting server versions before announcing new

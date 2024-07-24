@@ -970,7 +970,7 @@ you can use, see the variable's documentation string.
 @defvar print-integers-as-characters
 When this variable is non-@code{nil}, integers that represent
 graphic base characters will be printed using Lisp character syntax
-(@pxref{Basic Char Syntax}). Other numbers are printed the usual way.
+(@pxref{Basic Char Syntax}).  Other numbers are printed the usual way.
 For example, the list @code{(4 65 -1 10)} would be printed as
 @samp{(4 ?A -1 ?\n)}.
 

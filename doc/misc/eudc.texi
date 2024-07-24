@@ -131,7 +131,7 @@ Quoted from RFC 1777:
 @quotation
 [LDAP] is designed to provide access to the X.500 Directory while not
 incurring the resource requirements of the Directory Access Protocol
-(DAP). This protocol is specifically targeted at simple management
+(DAP).  This protocol is specifically targeted at simple management
 applications and browser applications that provide simple read/write
 interactive access to the X.500 Directory, and is intended to be a
 complement to the DAP itself.
@@ -564,7 +564,7 @@ to customize in this process.
 
 Before doing any query you will need to set the directory server.  You
 need to specify the name of the host machine running the server software
-and the protocol to use. If you do not set the server in any fashion,
+and the protocol to use.  If you do not set the server in any fashion,
 EUDC will ask you for one when you make your first query.
 
 You can set the server by selecting one from your hotlist of servers
@@ -579,9 +579,9 @@ buffer will be displayed where you can edit the search base and other
 parameters for the server.
 
 @defvar eudc-server
-The name or IP address of the remote directory server. A TCP port number
+The name or IP address of the remote directory server.  A TCP port number
 may be specified by appending a colon and a number to the name of the
-server. You will not need this unless your server runs on a port other
+server.  You will not need this unless your server runs on a port other
 than the default (which depends on the protocol).
 If the directory server resides on your own computer (which is the case
 if you use the BBDB back end) then @samp{localhost} is a reasonable value but
@@ -609,12 +609,12 @@ attributes you want to see, if different from the server defaults.
 @defvar eudc-default-return-attributes
 A list of the default attributes to extract from directory entries.  If
 set to the symbol @code{all} then all available attributes are
-returned. A value of @code{nil}, the default, means to return the
+returned.  A value of @code{nil}, the default, means to return the
 default attributes as configured in the server.
 @end defvar
 
-The server may return several matching records to a query. Some of the
-records may however not contain all the attributes you requested. You can
+The server may return several matching records to a query.  Some of the
+records may however not contain all the attributes you requested.  You can
 discard those records.
 
 @defopt eudc-strict-return-matches
@@ -626,32 +626,32 @@ attributes are ignored.  Default is @code{t}.
 @subsection Duplicate Attributes
 
 Directory standards may authorize different instances of the same
-attribute in a record. For instance the record of a person may contain
+attribute in a record.  For instance the record of a person may contain
 several email fields containing different email addresses, in which
 case EUDC will consider the attribute duplicated.
 
-EUDC has several methods to deal with duplicated attributes. The
+EUDC has several methods to deal with duplicated attributes.  The
 available methods are:
 
 @table @code
 @item list
-Makes a list with the different values of the duplicate attribute. The
+Makes a list with the different values of the duplicate attribute.  The
 record is returned with only one instance of the attribute with a list
-of all the different values as a value. This is the default method that
+of all the different values as a value.  This is the default method that
 is used to handle duplicate fields for which no other method has been
 specified.
 @item first
 Discards all the duplicate values of the field keeping only the first
 one.
 @item concat
-Concatenates the different values using a newline as a separator. The
+Concatenates the different values using a newline as a separator.  The
 record keeps only one instance of the field the value of which is a
 single multi-line string.
 @item duplicate
 Duplicates the whole record into as many instances as there are different
-values for the field. This is the default for the email field. Thus a
+values for the field.  This is the default for the email field.  Thus a
 record containing 3 different email addresses is duplicated into three
-different records each having a single email address. This is
+different records each having a single email address.  This is
 particularly useful in combination with @code{select} as the method to
 handle multiple matches in inline expansion queries (@pxref{Inline Query
 Expansion}) because you are presented with the 3 addresses in a
@@ -667,7 +667,7 @@ A method to handle entries containing duplicate attributes.  This is
 either an alist of elements @code{(@var{attr} . @var{method})}, or a symbol
 @var{method}.  The alist form of the variable associates a method to an
 individual attribute name; the second form specifies a method applicable
-to all attribute names. Available methods are: @code{list},
+to all attribute names.  Available methods are: @code{list},
 @code{first}, @code{concat}, and @code{duplicate} (see above).  The default is
 @code{list}.
 @end defvar
@@ -678,8 +678,8 @@ to all attribute names. Available methods are: @code{list},
 @section Query Form
 
 The simplest way to query your directory server is to use the query
-form. You display the query form with the @samp{Query with Form} menu
-item or by invoking the command @kbd{M-x eudc-query-form}. The attribute
+form.  You display the query form with the @samp{Query with Form} menu
+item or by invoking the command @kbd{M-x eudc-query-form}.  The attribute
 names presented in this form are defined by the
 @code{eudc-query-form-attributes} variable (unless a non-@code{nil}
 argument is supplied to @code{eudc-query-form}).
@@ -717,7 +717,7 @@ names for directory attribute names.  This variable is ignored if
 
 @defvar eudc-user-attribute-names-alist
 This is an alist of user-defined names for the directory attributes used in
-query/response forms. Prompt strings for attributes that are not in this
+query/response forms.  Prompt strings for attributes that are not in this
 alist are derived by splitting the attribute name at underscores and
 capitalizing the individual words.
 @end defvar
@@ -893,7 +893,7 @@ against the @code{cn} attribute of LDAP servers:
 
 @defvar eudc-inline-expansion-format
 This variable lets you control exactly what is inserted into the
-buffer upon an inline expansion request. It can be set to @code{nil},
+buffer upon an inline expansion request.  It can be set to @code{nil},
 to a function, or to a list.  Default is @code{nil}.
 
 When the value is a list, the first element is a string passed to
@@ -926,7 +926,7 @@ any of the formats:
 
 Email address specifications, as are generated by inline expansion,
 need to comply with RFC 5322 in order to be useful in email
-messages. When an invalid address specification is present in an email
+messages.  When an invalid address specification is present in an email
 message header, the message is likely to be rejected by a receiving
 MTA.  It is hence recommended to switch old configurations, which use
 a list value, to the new @code{nil}, or function value type since it

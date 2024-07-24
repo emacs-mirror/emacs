@@ -344,7 +344,7 @@ form} or in @dfn{Lisp form}.
 
 You can use the semicolon (@code{;}) to separate multiple command
 invocations on a single line, executing each in turn.  You can also
-separate commands with @code{&&} or @code{||}. When using @code{&&},
+separate commands with @code{&&} or @code{||}.  When using @code{&&},
 Eshell will execute the second command only if the first succeeds
 (i.e.@: has an exit status of 0); with @code{||}, Eshell will execute
 the second command only if the first fails.
@@ -1995,7 +1995,7 @@ Matches one or more copies of the glob pattern @var{x}.  Thus,
 etc.
 
 @item @var{x}~@var{y}
-Matches anything that matches the pattern @var{x} but not @var{y}. For
+Matches anything that matches the pattern @var{x} but not @var{y}.  For
 example, @samp{[[:digit:]]#~4?} matches @file{1} and @file{12}, but
 not @file{42}.  Note that unlike in Zsh, only a single @samp{~}
 operator can be used in a pattern, and it cannot be inside of a group
@@ -2416,9 +2416,9 @@ Adds the text passed to it to the clipboard.
 @findex eshell-close-target
 You can, of course, define your own virtual targets.  These are entries
 in @code{eshell-virtual-targets} with the form @samp{(@var{filename}
-@var{output-function} @var{pass-mode})}. The first element,
+@var{output-function} @var{pass-mode})}.  The first element,
 @var{filename}, is the device name, usually of the form
-@samp{"/dev/@var{name}"}. The second, @var{output-function}, should be a
+@samp{"/dev/@var{name}"}.  The second, @var{output-function}, should be a
 function: Eshell will repeatedly call it with the redirected output.
 This argument can also be an @code{eshell-generic-target} instance.  In
 this case, Eshell will repeatedly call the generic function
@@ -2547,7 +2547,7 @@ for the built-in functions and some common external commands, and you
 can define your own for any command.
 
 @kindex TAB
-Eshell completion also works for Lisp forms and glob patterns. If the
+Eshell completion also works for Lisp forms and glob patterns.  If the
 point is on a Lisp form, then @key{TAB} will behave similarly to
 completion in @code{elisp-mode} and @code{lisp-interaction-mode}.  For
 glob patterns, the pattern will be removed from the input line, and
@@ -2985,7 +2985,7 @@ Also a new @command{less} buffer was created with nothing in it@dots{}
 If @command{less.exe} is invoked from the Eshell command line, the
 expected output is written to the buffer.
 
-Note that this happens on NT-Emacs 20.6.1 on Windows 2000. The term.el
+Note that this happens on NT-Emacs 20.6.1 on Windows 2000.  The term.el
 package and the supplied shell both use the @command{cmdproxy} program
 for running shells.
 

@@ -48,7 +48,7 @@ packages, and web browsers.
 
 Speedbar displays a narrow frame in which a tree view is shown.  This
 tree view defaults to containing a list of files and directories.  Files
-can be ``expanded'' to list tags inside. Directories can be expanded to
+can be ``expanded'' to list tags inside.  Directories can be expanded to
 list the files within them.  Each file or tag can be jumped to
 immediately.
 

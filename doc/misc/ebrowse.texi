@@ -513,8 +513,8 @@ practical than to clutter up the buffer list with dozens of member
 buffers.
 
 If you want to display more than one member list at a time you can
-@dfn{freeze} its member buffer. Freezing a member buffer prevents it
-from being overwritten the next time you display a member list. You can
+@dfn{freeze} its member buffer.  Freezing a member buffer prevents it
+from being overwritten the next time you display a member list.  You can
 toggle this buffer status at any time.
 
 Every member list display command in the tree buffer can be used with a
@@ -747,7 +747,7 @@ menu.
 @cindex unmark all
 @item M a
 Unmark all classes.  With prefix argument @kbd{C-u}, mark all classes in
-the tree. Since this command operates on the whole buffer, it can also be
+the tree.  Since this command operates on the whole buffer, it can also be
 found in the buffer's object menu.
 @end table
 

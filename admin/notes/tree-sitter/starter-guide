@@ -34,10 +34,9 @@ merged) and rebuild Emacs.
 
 * Install language definitions
 
-Tree-sitter by itself doesn’t know how to parse any particular
-language.  We need to install language definitions (or “grammars”) for
-a language to be able to parse it.  There are a couple of ways to get
-them.
+Tree-sitter by itself doesn’t know how to parse any particular language.
+We need to install language definitions (or “grammars”) for a language
+to be able to parse it.  There are a couple of ways to get them.
 
 You can use this script that I put together here:
 
@@ -48,9 +47,9 @@ C++, Rust, JSON, Go, HTML, JavaScript, CSS, Python, Typescript,
 C#, etc.  Better yet, I pre-built these language definitions for
 GNU/Linux and macOS, they can be downloaded here:
 
-    https://github.com/casouri/tree-sitter-module/releases/tag/v2.1
+    https://github.com/casouri/tree-sitter-module/releases/tag/v2.4
 
-To build them yourself, run
+To build them yourself, run:
 
     git clone git@github.com:casouri/tree-sitter-module.git
     cd tree-sitter-module
@@ -73,26 +72,25 @@ automatically download and compile the language grammar for you.
 
 * Setting up for adding major mode features
 
-Start Emacs and load tree-sitter with
+Start Emacs and load tree-sitter with:
 
     (require 'treesit)
 
-Now check if Emacs is built with tree-sitter library
+Now check if Emacs is built with tree-sitter library:
 
     (treesit-available-p)
 
-Make sure Emacs can find the language grammar you want to use
+Make sure Emacs can find the language grammar you want to use:
 
     (treesit-language-available-p 'lang)
 
 * Tree-sitter major modes
 
 Tree-sitter modes should be separate major modes, so other modes
-inheriting from the original mode don't break if tree-sitter is
-enabled.  For example js2-mode inherits js-mode, we can't enable
-tree-sitter in js-mode, lest js-mode would not setup things that
-js2-mode expects to inherit from.  So it's best to use separate major
-modes.
+inheriting from the original mode don't break if tree-sitter is enabled.
+For example js2-mode inherits js-mode, we can't enable tree-sitter in
+js-mode, lest js-mode would not setup things that js2-mode expects to
+inherit from.  So it's best to use separate major modes.
 
 If the tree-sitter variant and the "native" variant could share some
 setup, you can create a "base mode", which only contains the common
@@ -119,19 +117,18 @@ you.  The query function returns a list of (capture-name . node).  For
 font-lock, we use face names as capture names.  And the captured node
 will be fontified in their capture name.
 
-The capture name could also be a function, in which case (NODE
-OVERRIDE START END) is passed to the function for fontification.  START
-and END are the start and end of the region to be fontified.  The
-function should only fontify within that region.  The function should
-also allow more optional arguments with (&rest _), for future
-extensibility.  For OVERRIDE check out the docstring of
-treesit-font-lock-rules.
+The capture name could also be a function, in which case (NODE OVERRIDE
+START END) is passed to the function for fontification.  START and END
+are the start and end of the region to be fontified.  The function
+should only fontify within that region.  The function should also allow
+more optional arguments with (&rest _), for future extensibility.  For
+OVERRIDE check out the docstring of treesit-font-lock-rules.
 
 ** Query syntax
 
 There are two types of nodes, named, like (identifier),
 (function_definition), and anonymous, like "return", "def", "(",
-"}".  Parent-child relationship is expressed as
+"}".  Parent-child relationship is expressed as:
 
    (parent (child) (child) (child (grand_child)))
 
@@ -155,8 +152,7 @@ The query above captures both parent and child.
 
    ["return" "continue" "break"] @keyword
 
-The query above captures all the keywords with capture name
-"keyword".
+The query above captures all the keywords with capture name "keyword".
 
 These are the common syntax, see all of them in the manual
 ("Parsing Program Source" section).
@@ -168,7 +164,7 @@ open any python source file, type M-x treesit-explore-mode RET.  Now
 you should see the parse-tree in a separate window, automatically
 updated as you select text or edit the buffer.  Besides this, you can
 consult the grammar of the language definition.  For example, Python’s
-grammar file is at
+grammar file is at:
 
     https://github.com/tree-sitter/tree-sitter-python/blob/master/grammar.js
 
@@ -262,7 +258,7 @@ Concretely, something like this:
 
 * Indent
 
-Indent works like this: We have a bunch of rules that look like
+Indent works like this: We have a bunch of rules that look like:
 
    (MATCHER ANCHOR OFFSET)
 
@@ -354,9 +350,8 @@ Set ‘treesit-simple-imenu-settings’ and call
 
 * Navigation
 
-Set ‘treesit-defun-type-regexp’ and call
-‘treesit-major-mode-setup’.  You can additionally set
-‘treesit-defun-name-function’.
+Set ‘treesit-defun-type-regexp’ and call ‘treesit-major-mode-setup’.
+You can additionally set ‘treesit-defun-name-function’.
 
 * Which-func
 
@@ -404,13 +399,12 @@ BTW ‘treesit-node-string’ does different things.
 * Manual
 
 I suggest you read the manual section for tree-sitter in Info.  The
-section is Parsing Program Source.  Typing
+section is Parsing Program Source.  Typing:
 
     C-h i d m elisp RET g Parsing Program Source RET
 
 will bring you to that section.  You don’t need to read through every
-sentence, just read the text paragraphs and glance over function
-names.
+sentence, just read the text paragraphs and glance over function names.
 
 * Appendix 1
 

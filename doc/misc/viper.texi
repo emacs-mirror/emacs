@@ -163,10 +163,10 @@ some incompatibilities.
 
 This manual is written with the assumption that you are an experienced Vi
 user who wants to switch to Emacs while retaining the ability to edit files
-Vi style. Incredible as it might seem, there are experienced Emacs users
+Vi style.  Incredible as it might seem, there are experienced Emacs users
 who use Viper as a backdoor into the superior (as every Vi user already knows)
-world of Vi! These users are well familiar with Emacs bindings and prefer them
-in some cases, especially in the Vi Insert state. John Hawkins
+world of Vi!  These users are well familiar with Emacs bindings and prefer them
+in some cases, especially in the Vi Insert state.  John Hawkins
 <jshawkin@@eecs.umich.edu> has provided a set of customizations, which
 enables additional Emacs bindings under Viper.  These customizations can be
 included in your @file{~/.emacs.d/viper} file and are found at the
@@ -335,7 +335,7 @@ Viper.
 
 The latest versions of Emacs have an interactive customization facility,
 which allows you to (mostly) bypass the use of the @file{.emacs} and
-@code{viper-custom-file-name} files. You can reach this customization
+@code{viper-custom-file-name} files.  You can reach this customization
 facility from within Viper's VI state by executing the Ex command
 @kbd{:customize}.
 
@@ -1589,10 +1589,10 @@ you are doing.  Only two variables, @code{viper-mode} and
 prior to loading Viper (i.e., prior to @code{(require 'viper)} command.
 @item
 @cindex Ex customize
-By executing the @kbd{:customize} Ex command. This takes you to the Emacs
+By executing the @kbd{:customize} Ex command.  This takes you to the Emacs
 customization widget, which lets you change the values of Viper
-customizable variables easily. This method is good for novice and
-experts alike. The customization code in the form of Lisp commands will be
+customizable variables easily.  This method is good for novice and
+experts alike.  The customization code in the form of Lisp commands will be
 placed in @file{~/.emacs} or some other customization file depending on the
 version of Emacs that you use.  Still, it is recommended to separate
 Viper-related customization produced by the Emacs customization widget
@@ -1766,7 +1766,7 @@ have to set it as a string inside double quotes.
 Function used by the command @kbd{#c<move>} to spell.
 @item viper-glob-function
 The value of this variable is the function symbol used to expand wildcard
-symbols. This is platform-dependent. The default tries to set this variable
+symbols.  This is platform-dependent.  The default tries to set this variable
 to work with most shells, MS Windows, etc.  However, if it
 doesn't work the way you expect, you should write your own.
 Use @code{viper-glob-unix-files} and @code{viper-glob-mswindows-files} in
@@ -2298,7 +2298,7 @@ suspicion is wrong, no harm is done if you harness a minor mode that
 doesn't need to be harnessed.
 
 It is recommended to harness even those minor modes that don't override
-Viper keys, but still have their own keymaps. A general way to
+Viper keys, but still have their own keymaps.  A general way to
 make a minor mode, @code{my-mode},
 compatible with Viper is to have the file @file{my-mode.el} include the following code:
 
@@ -3099,7 +3099,7 @@ lines.
 @cindex % (Current file)
 Note that @samp{%} is used in Ex commands @kbd{:e} and @kbd{:r <shell-cmd>}
 to mean current file.  If you want a @samp{%} in your command, it must be
-escaped as @samp{\%}. Note that @kbd{:w} and the regular @kbd{:r <file>}
+escaped as @samp{\%}.  Note that @kbd{:w} and the regular @kbd{:r <file>}
 command doesn't support the meta symbols @samp{%} and @samp{#}, because
 file history is a better mechanism.
 @cindex # (Previous file)
@@ -3452,7 +3452,7 @@ Mark the current file and position with the specified letter.
 Set the Emacs mark (@pxref{Emacs Preliminaries}) at point.
 @item m ^
 Set the Emacs mark (@pxref{Emacs Preliminaries}) back to where it was last
-set with the @kbd{m.} command. This is useful when you set the mark with
+set with the @kbd{m.} command.  This is useful when you set the mark with
 @kbd{m.}, but then some other command (such as @kbd{L} or @kbd{G}) changes
 it in a way that you didn't like.
 @item m <
@@ -3701,9 +3701,9 @@ Repeat latest Ex substitute command, e.g.,
 @itemx :g/Pat/p
 @itemx :v/Pat/p
 The above commands display certain buffer lines in a
-temporary buffer. The first form above displays the buffer lines between
-@kbd{x} and @kbd{y}. The second displays the lines of the buffer, which
-match a given pattern. The third form displays the lines that do @emph{not}
+temporary buffer.  The first form above displays the buffer lines between
+@kbd{x} and @kbd{y}.  The second displays the lines of the buffer, which
+match a given pattern.  The third form displays the lines that do @emph{not}
 match the given pattern.
 @item #c<move>
 Change upper-case characters in the region to lower-case.
@@ -3765,7 +3765,7 @@ found there (e.g., @samp{~} is not expanded to the result of the previous
 substitution).
 
 After typing @kbd{/} or @kbd{?} all the usual Emacs minibuffer commands, such as
-@kbd{M-p} and @kbd{M-n} are available. In addition, typing @kbd{C-s} will
+@kbd{M-p} and @kbd{M-n} are available.  In addition, typing @kbd{C-s} will
 insert the last search string used by the Emacs incremental search command
 (which is bound to @kbd{C-s} everywhere except in this case).
 
@@ -3970,8 +3970,8 @@ In all file handling commands, space should be typed before entering the file
 name.  If you need to type a modifier, such as @kbd{>>} or @kbd{!}, don't
 put any space between the command and the modifier.
 
-Note that many Ex commands, e.g., @kbd{:w}, accept command arguments. The
-effect is that the command would start acting on the current region. For
+Note that many Ex commands, e.g., @kbd{:w}, accept command arguments.  The
+effect is that the command would start acting on the current region.  For
 instance, if the current region spans the lines 11 through 22, then if you
 type @kbd{1:w} you would see @samp{:11,22w} in the minibuffer.
 
@@ -4028,7 +4028,7 @@ Preserve the file---autosave buffers.
 Recover file from autosave.
 @item :f [<file>]
 without the argument, prints file name and character/line information afout
-the currently visited file. With an argument, sets the currently visited
+the currently visited file.  With an argument, sets the currently visited
 filename to @file{file}.
 @item :cd [<dir>]
 Set the working directory to <dir> (default home directory).
@@ -4062,7 +4062,7 @@ Like @kbd{:n}, but the meaning of the variable
 Switch to another buffer.  If @code{ex-cycle-other-window} is @code{t},
 switch in another window.  Buffer completion is supported.
 The variable @code{viper-read-buffer-function} controls which function is
-actually used to read the buffer name. The default is @code{read-buffer},
+actually used to read the buffer name.  The default is @code{read-buffer},
 but better alternatives are also available in Emacs (e.g.,
 @code{ido-read-buffer}).
 @vindex viper-read-buffer-function
@@ -4459,7 +4459,7 @@ VIP 4.4, by Aamod Sane.  This manual is an adaptation of the manual for VIP
 4.4, which, in turn, was based on Sato's manual for VIP 3.5.
 
 Many contributors on the Net pointed out bugs and suggested a number of
-useful features. Scott Bronson and Samuel Padgett contributed patches that
+useful features.  Scott Bronson and Samuel Padgett contributed patches that
 were incorporated in this code.  Here is a hopefully complete list of
 contributors:
 

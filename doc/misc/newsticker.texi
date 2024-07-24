@@ -73,12 +73,12 @@ modify this GNU manual.''
 
 Newsticker provides a @b{Feed Reader} for Emacs.  It retrieves
 headlines from a list of news sites, processes them, and provides
-frontends for reading and managing them. (Standard headline formats
+frontends for reading and managing them.  (Standard headline formats
 are RSS and Atom which makes Newsticker an ``RSS Reader'', ``Atom
 Reader'' or ``Feed Aggregator''.)
 
 Headlines (or news items) consist of a title, (mostly) a description,
-and a link to the full story. The description may be a brief summary
+and a link to the full story.  The description may be a brief summary
 in plain text or a full HTML-formatted article.  A headline may carry
 enclosed data such as images, audio or video files, typically in the
 case of so ``podcast feeds''.
@@ -95,7 +95,7 @@ customized to your liking.
 As Newsticker is part of GNU Emacs there is no need to perform any
 installation steps in order to use it.
 
-Newsticker is highly customizable. All options have reasonable default
+Newsticker is highly customizable.  All options have reasonable default
 values, so that (in most cases) it is not necessary to customize
 anything before you start Newsticker for the first time.
 
@@ -186,7 +186,7 @@ it is retrieved a second time.
 @chapter Reading News
 
 @findex newsticker-show-news
-Start Newsticker with the command @kbd{M-x newsticker-show-news}. This
+Start Newsticker with the command @kbd{M-x newsticker-show-news}.  This
 will start the asynchronous news download and displays all available
 headlines.
 
@@ -224,13 +224,13 @@ subtree.  The following commands allow for managing groups.
 @item M-a
 @kindex M-a
 @findex newsticker-group-add-group
-Add a new feed group. Name of the new group and of the parent group
+Add a new feed group.  Name of the new group and of the parent group
 must be entered.  If The name of the parent group is the new group
 becomes a top-level group. (@code{newsticker-group-add-group})
 @item M-m
 @kindex M-m
 @findex newsticker-group-move-feed
-Moves a feed into a group. The name of the group must be
+Moves a feed into a group.  The name of the group must be
 entered. (@code{newsticker-group-move-feed})
 @end table
 
@@ -269,18 +269,18 @@ The Treeview is updated automatically as soon as new headlines have
 arrived.
 
 The Treeview is used when the variable @code{newsticker-frontend} is
-set to the value @code{newsticker-treeview}. (Alternatively it can be
+set to the value @code{newsticker-treeview}.  (Alternatively it can be
 started with the command @code{newsticker-treeview}.)
 
 @subheading Plainview
 @cindex Plainview
 
 In this view all headlines of all feeds are displayed in a single
-buffer (@file{*newsticker*}). The modeline in the @file{*newsticker*}
+buffer (@file{*newsticker*}).  The modeline in the @file{*newsticker*}
 buffer informs you whenever new headlines have arrived.
 
 You may want to use imenu with Plainview, which allows for navigating
-with the help of a menu. In this case add the following to your Emacs
+with the help of a menu.  In this case add the following to your Emacs
 startup file (@file{~/.emacs}).
 
 @lisp
@@ -296,7 +296,7 @@ subscribed to a large amount of feeds you may want to give the
 Treeview a try.)
 
 The Plainview is used when the variable @code{newsticker-frontend} is
-set to the value @code{newsticker-plainview}. (Alternatively it can be
+set to the value @code{newsticker-plainview}.  (Alternatively it can be
 started with the command @code{newsticker-plainview}.)
 
 @subheading Ticker

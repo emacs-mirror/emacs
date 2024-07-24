@@ -1543,7 +1543,7 @@ After customizing the variable @code{tab-bar-select-tab-modifiers} to
 specify one or more @var{modifier} keys, you can select a tab by its
 ordinal number using one of the specified modifiers in combination
 with the tab number to select.  The number 9 can be used to select the
-last tab. You can select any modifiers supported by Emacs,
+last tab.  You can select any modifiers supported by Emacs,
 @pxref{Modifier Keys}.  To display the tab number alongside the tab
 name, you can customize another variable @code{tab-bar-tab-hints}.
 This will help you decide which numerical key to press to select the

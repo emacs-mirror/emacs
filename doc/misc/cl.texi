@@ -860,7 +860,7 @@ Thus @code{(cl-typep @var{object} 'null)} is equivalent to
 
 @item
 The type symbol @code{atom} represents all objects that are not cons
-cells. Thus @code{(cl-typep @var{object} 'atom)} is equivalent to
+cells.  Thus @code{(cl-typep @var{object} 'atom)} is equivalent to
 @code{(atom @var{object})}.
 
 @item
@@ -2191,7 +2191,7 @@ term restricts the search to just the specified property.  The
 Properties,,,elisp}.
 
 @item for @var{var} being the frames
-This clause iterates over all Emacs frames. The clause @code{screens} is
+This clause iterates over all Emacs frames.  The clause @code{screens} is
 a synonym for @code{frames}.  The frames are visited in
 @code{next-frame} order starting from @code{selected-frame}.
 

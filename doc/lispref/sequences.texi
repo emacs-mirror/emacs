@@ -937,7 +937,7 @@ use instead of the default @code{equal}.
 
 @defun seq-set-equal-p sequence1 sequence2 &optional testfn
 This function checks whether @var{sequence1} and @var{sequence2}
-contain the same elements, regardless of the order. If the optional
+contain the same elements, regardless of the order.  If the optional
 argument @var{testfn} is non-@code{nil}, it is a function of two
 arguments to use instead of the default @code{equal}.
 
