@@ -271,8 +271,7 @@ Remove also properties of all files in subdirectories."
     (dolist (key (hash-table-keys tramp-cache-data))
       (when (and (tramp-file-name-p key)
 		 (stringp (tramp-file-name-localname key))
-		 (tramp-compat-string-search
-		  directory (tramp-file-name-localname key)))
+		 (string-search directory (tramp-file-name-localname key)))
 	(remhash key tramp-cache-data)))
     ;; Remove file properties of symlinks.
     (when (and (stringp truename)

@@ -287,7 +287,7 @@ non-nil."
 (defun tramp-cleanup-all-buffers ()
   "Kill all remote buffers."
   (interactive)
-  (let ((tramp-cleanup-some-buffers-hook '(tramp-compat-always)))
+  (let ((tramp-cleanup-some-buffers-hook '(always)))
     (tramp-cleanup-some-buffers)))
 
 ;;; Rename
@@ -472,8 +472,7 @@ ESC or `q' to quit without changing further buffers,
 	(dolist (buffer (tramp-list-remote-buffers))
           (switch-to-buffer buffer)
 	  (let* ((bfn (buffer-file-name))
-		 (new-bfn (and (stringp bfn)
-			       (tramp-compat-string-replace source target bfn)))
+		 (new-bfn (and (stringp bfn) (string-replace source target bfn)))
 		 (prompt (format-message
 			  "Set visited file name to `%s' [Type yn!eq or %s] "
 			  new-bfn (key-description (vector help-char)))))
@@ -827,7 +826,7 @@ buffer in your bug report.
   (insert "\nload-path shadows:\n==================\n")
   (ignore-errors
     (mapc
-     (lambda (x) (when (tramp-compat-string-search "tramp" x) (insert x "\n")))
+     (lambda (x) (when (string-search "tramp" x) (insert x "\n")))
      (split-string (list-load-path-shadows t) "\n")))
 
   ;; Append buffers only when we are in message mode.

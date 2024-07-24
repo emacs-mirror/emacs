@@ -3361,11 +3361,10 @@ files, set user option
 @code{remote-file-name-inhibit-auto-save-visited} to non-@code{nil}.
 
 @vindex lock-file-name-transforms
-And still more issues to handle.  Since @w{Emacs 28}, file locks use a
-similar user option as auto-save files, called
-@code{lock-file-name-transforms}.  By default this user option is
-@code{nil}, meaning to keep file locks in the same directory as the
-original file.
+And still more issues to handle.  File locks use a similar user option
+as auto-save files, called @code{lock-file-name-transforms}.  By
+default this user option is @code{nil}, meaning to keep file locks in
+the same directory as the original file.
 
 If you change @code{lock-file-name-transforms} in order to keep file
 locks for remote files somewhere else, you will lose Emacs's feature
@@ -5154,8 +5153,8 @@ Where is the latest @value{tramp}?
 @item
 Which systems does it work on?
 
-The package works successfully on @w{Emacs 27}, @w{Emacs 28}, @w{Emacs
-29}, and @w{Emacs 30}.
+The package works successfully on @w{Emacs 28}, @w{Emacs 29}, @w{Emacs
+30}, and @w{Emacs 31}.
 
 While Unix and Unix-like systems are the primary remote targets,
 @value{tramp} has equal success connecting to other platforms, such as

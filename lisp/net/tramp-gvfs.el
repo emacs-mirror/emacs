@@ -1169,7 +1169,7 @@ file names."
 		  (delete-file file)))
 	      (directory-files
 	       directory 'full directory-files-no-dot-files-regexp))
-      (unless (tramp-compat-directory-empty-p directory)
+      (unless (directory-empty-p directory)
 	(tramp-error
 	 v 'file-error "Couldn't delete non-empty %s" directory)))
 
@@ -1203,7 +1203,7 @@ file names."
     (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
-    (setq name (tramp-compat-file-name-concat dir name)))
+    (setq name (file-name-concat dir name)))
   ;; If NAME is not a Tramp file, run the real handler.
   (if (not (tramp-tramp-file-p name))
       (tramp-run-real-handler #'expand-file-name (list name))
@@ -1465,7 +1465,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 (defun tramp-gvfs-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
   (tramp-skeleton-file-name-all-completions filename directory
-    (unless (tramp-compat-string-search "/" filename)
+    (unless (string-search "/" filename)
       (all-completions
        filename
        (with-parsed-tramp-file-name (expand-file-name directory) nil
@@ -1533,12 +1533,9 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (tramp-message proc 6 "%S\n%s" proc string)
     (setq string (concat rest-string string)
           ;; Fix action names.
-          string (tramp-compat-string-replace
-	          "attributes changed" "attribute-changed" string)
-          string (tramp-compat-string-replace
-	          "changes done" "changes-done-hint" string)
-          string (tramp-compat-string-replace
-	          "renamed to" "moved" string))
+          string (string-replace "attributes changed" "attribute-changed" string)
+          string (string-replace "changes done" "changes-done-hint" string)
+          string (string-replace "renamed to" "moved" string))
     ;; https://bugs.launchpad.net/bugs/1742946
     (when
 	(string-match-p
@@ -2145,7 +2142,7 @@ Their full names are
 	   (vec (make-tramp-file-name
 		 :method "mtp"
 		 ;; A host name cannot contain spaces.
-		 :host (tramp-compat-string-replace " " "_" (nth 1 volume))))
+		 :host (string-replace " " "_" (nth 1 volume))))
 	   (media (make-tramp-media-device
 		   :method method
 		   :host (tramp-gvfs-url-host (nth 5 volume))
@@ -2462,7 +2459,7 @@ VEC is used only for traces."
 	       (vec (make-tramp-file-name
 		     :method "mtp"
 		     ;; A host name cannot contain spaces.
-		     :host (tramp-compat-string-replace " " "_" (nth 1 volume))))
+		     :host (string-replace " " "_" (nth 1 volume))))
 	       (media (make-tramp-media-device
 		       :method method
 		       :host (tramp-gvfs-url-host (nth 5 volume))
@@ -2476,7 +2473,7 @@ VEC is used only for traces."
     ;; Adapt default host name, supporting /mtp:: when possible.
     (setq tramp-default-host-alist
 	  (append
-	   `(("mtp" nil ,(if (tramp-compat-length= devices 1) (car devices) "")))
+	   `(("mtp" nil ,(if (length= devices 1) (car devices) "")))
 	   (delete
 	    (assoc "mtp" tramp-default-host-alist)
 	    tramp-default-host-alist)))))

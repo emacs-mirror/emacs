@@ -1909,9 +1909,9 @@ ID-FORMAT valid values are `string' and `integer'."
   "Like `file-name-all-completions' for Tramp files."
   (tramp-skeleton-file-name-all-completions filename directory
     (with-parsed-tramp-file-name (expand-file-name directory) nil
-      (when (and (not (tramp-compat-string-search "/" filename))
+      (when (and (not (string-search "/" filename))
 		 (tramp-connectable-p v))
-	(unless (tramp-compat-string-search "/" filename)
+	(unless (string-search "/" filename)
 	  (all-completions
 	   filename
 	   (with-tramp-file-property v localname "file-name-all-completions"
@@ -2228,7 +2228,7 @@ file names."
 
             ;; KEEP-DATE handling.
             (when (and keep-date (not copy-keep-date))
-              (tramp-compat-set-file-times
+              (set-file-times
                newname file-times (unless ok-if-already-exists 'nofollow)))
 
             ;; Set the mode.
@@ -2505,8 +2505,7 @@ The method used must be an out-of-band method."
 	    copy-args
 	    (flatten-tree
 	     (mapcar
-	      (lambda (x) (if (tramp-compat-string-search " " x)
-                              (split-string x) x))
+	      (lambda (x) (if (string-search " " x) (split-string x) x))
 	      copy-args))
 	    copy-env (apply #'tramp-expand-args v 'tramp-copy-env nil spec)
 	    remote-copy-program
@@ -2805,7 +2804,7 @@ The method used must be an out-of-band method."
 	(save-restriction
 	  (narrow-to-region beg-marker end-marker)
 	  ;; Some busyboxes are reluctant to discard colors.
-	  (unless (tramp-compat-string-search
+	  (unless (string-search
 		   "color" (tramp-get-connection-property v "ls" ""))
 	    (goto-char (point-min))
 	    (while (search-forward-regexp ansi-color-control-seq-regexp nil t)
@@ -2892,7 +2891,7 @@ the result will be a local, non-Tramp, file name."
       (tramp-run-real-handler #'expand-file-name (list name dir))
     ;; Unless NAME is absolute, concat DIR and NAME.
     (unless (file-name-absolute-p name)
-      (setq name (tramp-compat-file-name-concat dir name)))
+      (setq name (file-name-concat dir name)))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
       ;; If connection is not established yet, run the real handler.
@@ -2983,7 +2982,7 @@ will be used."
 	     (heredoc (and (not (bufferp stderr))
 			   (stringp program)
 			   (string-match-p (rx "sh" eol) program)
-			   (tramp-compat-length= args 2)
+			   (length= args 2)
 			   (string-equal "-c" (car args))
 			   ;; Don't if there is a quoted string.
 			   (not (string-match-p (rx (any "'\"")) (cadr args)))
@@ -2992,7 +2991,7 @@ will be used."
 	     ;; When PROGRAM is nil, we just provide a tty.
 	     (args (if (not heredoc) args
 		     (let ((i 250))
-		       (while (and (not (tramp-compat-length< (cadr args) i))
+		       (while (and (not (length< (cadr args) i))
 				   (string-match " " (cadr args) i))
 			 (setcdr
 			  args
@@ -3011,7 +3010,7 @@ will be used."
 	     (env (dolist (elt (cons prompt process-environment) env)
 		    (or (member
 			 elt (default-toplevel-value 'process-environment))
-			(if (tramp-compat-string-search "=" elt)
+			(if (string-search "=" elt)
 			    (setq env (append env `(,elt)))
 			  (setq uenv (cons elt uenv))))))
 	     (env (setenv-internal
@@ -3244,7 +3243,7 @@ will be used."
       ;; We use as environment the difference to toplevel `process-environment'.
       (dolist (elt process-environment)
         (or (member elt (default-toplevel-value 'process-environment))
-            (if (tramp-compat-string-search "=" elt)
+            (if (string-search "=" elt)
                 (setq env (append env `(,elt)))
               (setq uenv (cons elt uenv)))))
       (setq env (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
@@ -3773,7 +3772,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      ;; Make events a list of symbols.
 	      events
 	      (mapcar
-	       (lambda (x) (intern-soft (tramp-compat-string-replace "_" "-" x)))
+	       (lambda (x) (intern-soft (string-replace "_" "-" x)))
 	       (split-string events "," 'omit))))
        ;; "gio monitor".
        ((setq command (tramp-get-remote-gio-monitor v))
@@ -3831,12 +3830,9 @@ Fall back to normal file name handler if no Tramp handler exists."
     (tramp-message proc 6 "%S\n%s" proc string)
     (setq string (concat rest-string string)
           ;; Fix action names.
-          string (tramp-compat-string-replace
-	          "attributes changed" "attribute-changed" string)
-          string (tramp-compat-string-replace
-	          "changes done" "changes-done-hint" string)
-          string (tramp-compat-string-replace
-	          "renamed to" "moved" string))
+          string (string-replace "attributes changed" "attribute-changed" string)
+          string (string-replace "changes done" "changes-done-hint" string)
+          string (string-replace "renamed to" "moved" string))
 
     (catch 'doesnt-work
       ;; https://bugs.launchpad.net/bugs/1742946
@@ -3871,7 +3867,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	(setq string (substring string pos)))
 
       ;; Delete empty lines.
-      (setq string (tramp-compat-string-replace "\n\n" "\n" string))
+      (setq string (string-replace "\n\n" "\n" string))
 
       (while (string-match
 	      (rx
@@ -3924,9 +3920,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	     (list
 	      proc
 	      (mapcar
-	       (lambda (x)
-		 (intern-soft
-		  (tramp-compat-string-replace "_" "-" (downcase x))))
+	       (lambda (x) (intern-soft (string-replace "_" "-" (downcase x))))
 	       (split-string (match-string 1 line) "," 'omit))
 	      (or (match-string 2 line)
 		  (file-name-nondirectory
@@ -4050,8 +4044,8 @@ Only send the definition if it has not already been done."
 	  vec 5 (format-message "Sending script `%s'" name)
 	;; In bash, leading TABs like in `tramp-bundle-read-file-names'
 	;; could result in unwanted command expansion.  Avoid this.
-	(setq script (tramp-compat-string-replace
-		      (make-string 1 ?\t) (make-string 8 ? ) script))
+	(setq script
+	      (string-replace (make-string 1 ?\t) (make-string 8 ? ) script))
 	;; Expand format specifiers.
 	(unless (setq script (tramp-expand-script vec script))
 	  (tramp-error
@@ -4141,7 +4135,7 @@ variable PATH."
 	(pipe-buf (tramp-get-remote-pipe-buf vec))
 	tmpfile chunk chunksize)
     (tramp-message vec 5 "Setting $PATH environment variable")
-    (if (tramp-compat-length< command pipe-buf)
+    (if (length< command pipe-buf)
 	(tramp-send-command vec command)
       ;; Use a temporary file.  We cannot use `write-region' because
       ;; setting the remote path happens in the early connection
@@ -4793,12 +4787,12 @@ means standard output and thus the current buffer), or nil (which
 means discard it)."
   (tramp-call-process
    nil tramp-encoding-shell
-   (when (and input (not (tramp-compat-string-search "%s" cmd))) input)
+   (when (and input (not (string-search "%s" cmd))) input)
    (if (eq output t) t nil)
    nil
    tramp-encoding-command-switch
    (concat
-    (if (tramp-compat-string-search "%s" cmd) (format cmd input) cmd)
+    (if (string-search "%s" cmd) (format cmd input) cmd)
     (if (stringp output) (concat " >" output) ""))))
 
 (defconst tramp-inline-compress-commands
@@ -6003,13 +5997,12 @@ function cell is returned to be applied on a buffer."
 	   (with-tramp-connection-property (tramp-get-process vec) prop
 	     (tramp-find-inline-encoding vec)
 	     (tramp-get-connection-property (tramp-get-process vec) prop)))
-	  (prop1 (if (tramp-compat-string-search "encoding" prop)
+	  (prop1 (if (string-search "encoding" prop)
 		     "inline-compress" "inline-decompress"))
 	  compress)
       ;; The connection property might have been cached.  So we must
       ;; send the script to the remote side - maybe.
-      (when (and coding (symbolp coding)
-		 (tramp-compat-string-search "remote" prop))
+      (when (and coding (symbolp coding) (string-search "remote" prop))
 	(let ((name (symbol-name coding)))
 	  (while (string-match "-" name)
 	    (setq name (replace-match "_" nil t name)))
@@ -6021,7 +6014,7 @@ function cell is returned to be applied on a buffer."
 	;; Return the value.
 	(cond
 	 ((and compress (symbolp coding))
-	  (if (tramp-compat-string-search "decompress" prop1)
+	  (if (string-search "decompress" prop1)
 	      `(lambda (beg end)
 		 (,coding beg end)
 		 (let ((coding-system-for-write 'binary)
@@ -6040,16 +6033,15 @@ function cell is returned to be applied on a buffer."
 	       (,coding (point-min) (point-max)))))
 	 ((symbolp coding)
 	  coding)
-	 ((and compress (tramp-compat-string-search "decoding" prop))
+	 ((and compress (string-search "decoding" prop))
 	  (format
 	   ;; Windows shells need the program file name after
 	   ;; the pipe symbol be quoted if they use forward
 	   ;; slashes as directory separators.
 	   (cond
-	    ((and (tramp-compat-string-search "local" prop)
-		  (eq system-type 'windows-nt))
-	       "(%s | \"%s\")")
-	    ((tramp-compat-string-search "local" prop) "(%s | %s)")
+	    ((and (string-search "local" prop) (eq system-type 'windows-nt))
+	     "(%s | \"%s\")")
+	    ((string-search "local" prop) "(%s | %s)")
 	    (t "(%s | %s >%%s)"))
 	   coding compress))
 	 (compress
@@ -6057,14 +6049,13 @@ function cell is returned to be applied on a buffer."
 	   ;; Windows shells need the program file name after
 	   ;; the pipe symbol be quoted if they use forward
 	   ;; slashes as directory separators.
-	   (if (and (tramp-compat-string-search "local" prop)
-		    (eq system-type 'windows-nt))
+	   (if (and (string-search "local" prop) (eq system-type 'windows-nt))
 	       "(%s <%%s | \"%s\")"
 	     "(%s <%%s | %s)")
 	   compress coding))
-	 ((tramp-compat-string-search "decoding" prop)
+	 ((string-search "decoding" prop)
 	  (cond
-	   ((tramp-compat-string-search "local" prop) (format "%s" coding))
+	   ((string-search "local" prop) (format "%s" coding))
 	   (t (format "%s >%%s" coding))))
 	 (t
 	  (format "%s <%%s" coding)))))))

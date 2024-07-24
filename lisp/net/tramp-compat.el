@@ -24,8 +24,8 @@
 ;;; Commentary:
 
 ;; Tramp's main Emacs version for development is Emacs 30.  This
-;; package provides compatibility functions for Emacs 27, Emacs 28 and
-;; Emacs 29.
+;; package provides compatibility functions for Emacs 28, Emacs 29 and
+;; Emacs 30.
 
 ;;; Code:
 
@@ -79,8 +79,7 @@
    (if-let ((xdg (xdg-cache-home))
 	    ((file-directory-p xdg))
 	    ((file-writable-p xdg)))
-       ;; We can use `file-name-concat' starting with Emacs 28.1.
-       (prog1 (setq xdg (concat (file-name-as-directory xdg) "emacs"))
+       (prog1 (setq xdg (file-name-concat xdg "emacs"))
 	 (make-directory xdg t))
      (eval (car (get 'temporary-file-directory 'standard-value)) t)))
   "The default value of `temporary-file-directory' for Tramp.")
@@ -98,152 +97,6 @@ Add the extension of F, if existing."
    (expand-file-name
     tramp-temp-name-prefix tramp-compat-temporary-file-directory)
    dir-flag (file-name-extension f t)))
-
-;; `file-modes', `set-file-modes' and `set-file-times' got argument
-;; FLAG in Emacs 28.1.
-(defalias 'tramp-compat-file-modes
-  (if (equal (func-arity #'file-modes) '(1 . 2))
-      #'file-modes
-    (lambda (filename &optional _flag)
-      (file-modes filename))))
-
-(defalias 'tramp-compat-set-file-modes
-  (if (equal (func-arity #'set-file-modes) '(2 . 3))
-      #'set-file-modes
-    (lambda (filename mode &optional _flag)
-      (set-file-modes filename mode))))
-
-(defalias 'tramp-compat-set-file-times
-  (if (equal (func-arity #'set-file-times) '(1 . 3))
-      #'set-file-times
-    (lambda (filename &optional timestamp _flag)
-      (set-file-times filename timestamp))))
-
-;; `directory-files' and `directory-files-and-attributes' got argument
-;; COUNT in Emacs 28.1.
-(defalias 'tramp-compat-directory-files
-  (if (equal (func-arity #'directory-files) '(1 . 5))
-      #'directory-files
-    (lambda (directory &optional full match nosort _count)
-      (directory-files directory full match nosort))))
-
-(defalias 'tramp-compat-directory-files-and-attributes
-  (if (equal (func-arity #'directory-files-and-attributes) '(1 . 6))
-      #'directory-files-and-attributes
-    (lambda (directory &optional full match nosort id-format _count)
-      (directory-files-and-attributes directory full match nosort id-format))))
-
-;; `directory-empty-p' is new in Emacs 28.1.
-(defalias 'tramp-compat-directory-empty-p
-  (if (fboundp 'directory-empty-p)
-      #'directory-empty-p
-    (lambda (dir)
-      (and (file-directory-p dir)
-	   (null (tramp-compat-directory-files
-		  dir nil directory-files-no-dot-files-regexp t 1))))))
-
-;; Function `null-device' is new in Emacs 28.1.
-(defalias 'tramp-compat-null-device
-  (if (fboundp 'null-device)
-      #'null-device
-    (lambda ()
-      (if (tramp-tramp-file-p default-directory) "/dev/null" null-device))))
-
-;; Function `string-replace' is new in Emacs 28.1.
-(defalias 'tramp-compat-string-replace
-  (if (fboundp 'string-replace)
-      #'string-replace
-    (lambda (from-string to-string in-string)
-      (let (case-fold-search)
-        (replace-regexp-in-string
-         (regexp-quote from-string) to-string in-string t t)))))
-
-;; Function `string-search' is new in Emacs 28.1.
-(defalias 'tramp-compat-string-search
-  (if (fboundp 'string-search)
-      #'string-search
-    (lambda (needle haystack &optional start-pos)
-      (let (case-fold-search)
-        (string-match-p (regexp-quote needle) haystack start-pos)))))
-
-;; Function `make-lock-file-name' is new in Emacs 28.1.
-(defalias 'tramp-compat-make-lock-file-name
-  (if (fboundp 'make-lock-file-name)
-      #'make-lock-file-name
-    (lambda (filename)
-      (expand-file-name
-       (concat
-        ".#" (file-name-nondirectory filename))
-       (file-name-directory filename)))))
-
-;; Function `file-name-concat' is new in Emacs 28.1.
-(defalias 'tramp-compat-file-name-concat
-  (if (fboundp 'file-name-concat)
-      #'file-name-concat
-    (lambda (directory &rest components)
-      (let ((components (cl-remove-if (lambda (el)
-                                        (or (null el) (equal "" el)))
-                                      components))
-	    file-name-handler-alist)
-        (if (null components)
-	    directory
-          (apply #'tramp-compat-file-name-concat
-	         (concat (unless (or (equal "" directory) (null directory))
-                           (file-name-as-directory directory))
-                         (car components))
-	         (cdr components)))))))
-
-;; Function `replace-regexp-in-region' is new in Emacs 28.1.
-(defalias 'tramp-compat-replace-regexp-in-region
-  (if (fboundp 'replace-regexp-in-region)
-      #'replace-regexp-in-region
-    (lambda (regexp replacement &optional start end)
-      (if start
-	  (when (< start (point-min))
-            (error "Start before start of buffer"))
-	(setq start (point)))
-      (if end
-	  (when (> end (point-max))
-            (error "End after end of buffer"))
-	(setq end (point-max)))
-      (save-excursion
-	(let ((matches 0)
-              (case-fold-search nil))
-	  (goto-char start)
-	  (while (search-forward-regexp regexp end t)
-            (replace-match replacement t)
-            (setq matches (1+ matches)))
-	  (and (not (zerop matches))
-               matches))))))
-
-;; `length<', `length>' and `length=' are added to Emacs 28.1.
-(defalias 'tramp-compat-length<
-  (if (fboundp 'length<)
-      #'length<
-    (lambda (sequence length)
-      (< (length sequence) length))))
-
-(defalias 'tramp-compat-length>
-  (if (fboundp 'length>)
-      #'length>
-    (lambda (sequence length)
-      (> (length sequence) length))))
-
-(defalias 'tramp-compat-length=
-  (if (fboundp 'length=)
-      #'length=
-    (lambda (sequence length)
-      (= (length sequence) length))))
-
-;; `always' is introduced with Emacs 28.1.
-(defalias 'tramp-compat-always
-  (if (fboundp 'always)
-      #'always
-    (lambda (&rest _arguments)
-      "Do nothing and return t.
-This function accepts any number of ARGUMENTS, but ignores them.
-Also see `ignore'."
-      t)))
 
 ;; `permission-denied' is introduced in Emacs 29.1.
 (defconst tramp-permission-denied
@@ -274,7 +127,7 @@ Also see `ignore'."
       #'take
     (lambda (n list)
       (when (and (natnump n) (> n 0))
-	(if (tramp-compat-length< list n)
+	(if (length< list n)
 	    list (butlast list (- (length list) n)))))))
 
 ;; Function `ntake' is new in Emacs 29.1.
@@ -283,7 +136,7 @@ Also see `ignore'."
       #'ntake
     (lambda (n list)
       (when (and (natnump n) (> n 0))
-	(if (tramp-compat-length< list n)
+	(if (length< list n)
 	    list (nbutlast list (- (length list) n)))))))
 
 ;; Function `string-equal-ignore-case' is new in Emacs 29.1.
