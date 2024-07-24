@@ -2217,8 +2217,8 @@ connection if a previous connection has died for some reason."
 
     (unless (tramp-gvfs-connection-mounted-p vec)
       (let ((method (tramp-file-name-method vec))
-	    (user (tramp-file-name-user vec))
-	    (host (tramp-file-name-host vec))
+	    (user-domain (tramp-file-name-user-domain vec))
+	    (host-port (tramp-file-name-host-port vec))
 	    (localname (tramp-file-name-unquote-localname vec))
 	    (object-path
 	     (tramp-gvfs-object-path (tramp-make-tramp-file-name vec 'noloc))))
@@ -2246,9 +2246,9 @@ connection if a previous connection has died for some reason."
 
 	(with-tramp-progress-reporter
 	    vec 3 (format "Opening connection for %s%s using %s"
-			  (if (tramp-string-empty-or-nil-p user)
-			      "" (concat user "@"))
-			  host method)
+			  (if (tramp-string-empty-or-nil-p user-domain)
+			      "" (concat user-domain "@"))
+			  host-port method)
 
 	  ;; Enable `auth-source'.
 	  (tramp-set-connection-property
@@ -2296,13 +2296,14 @@ connection if a previous connection has died for some reason."
 	  (with-timeout
 	      ((tramp-get-method-parameter
 		vec 'tramp-connection-timeout tramp-connection-timeout)
-	       (if (tramp-string-empty-or-nil-p (tramp-file-name-user vec))
+	       (if (tramp-string-empty-or-nil-p user-domain)
 		   (tramp-error
 		    vec 'file-error
-		    "Timeout reached mounting %s using %s" host method)
+		    "Timeout reached mounting %s using %s" host-port method)
 		 (tramp-error
 		  vec 'file-error
-		  "Timeout reached mounting %s@%s using %s" user host method)))
+		  "Timeout reached mounting %s@%s using %s"
+		  user-domain host-port method)))
 	    (while (not (tramp-get-file-property vec "/" "fuse-mountpoint"))
 	      (read-event nil nil 0.1)))
 

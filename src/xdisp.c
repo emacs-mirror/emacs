@@ -28160,7 +28160,7 @@ store_mode_line_string (const char *string, Lisp_Object lisp_string,
 
 DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
        1, 4, 0,
-       doc: /* Format a string out of a mode line format specification.
+       doc: /* Return a string formatted according to mode-line format specification.
 First arg FORMAT specifies the mode line format (see `mode-line-format'
 for details) to use.
 

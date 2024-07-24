@@ -1328,11 +1328,11 @@ struct image_type
      image type.  Value is true if SPEC is valid.  */
   bool (*valid_p) (Lisp_Object spec);
 
-  /* Load IMG which is used on frame F from information contained in
-     IMG->spec.  Value is true if successful.  */
+  /* Load IMG which is to be used on frame F from information contained
+     in IMG->spec.  Value is true if successful.  */
   bool (*load_img) (struct frame *f, struct image *img);
 
-  /* Free resources of image IMG which is used on frame F.  */
+  /* Free such resources of image IMG as are used on frame F.  */
   void (*free_img) (struct frame *f, struct image *img);
 
 #ifdef WINDOWSNT
@@ -4154,16 +4154,16 @@ image_destroy_x_image (Emacs_Pix_Container pimg)
   eassert (input_blocked_p ());
   if (pimg)
     {
-#ifdef USE_CAIRO
-#endif	/* USE_CAIRO */
+#if defined USE_CAIRO || defined HAVE_HAIKU || defined HAVE_NS
+      /* On these systems, Emacs_Pix_Containers always point to the same
+	 data as pixmaps in `struct image', and therefore must never be
+	 freed separately.  */
+#endif	/* USE_CAIRO || HAVE_HAIKU || HAVE_NS */
 #ifdef HAVE_NTGUI
       /* Data will be freed by DestroyObject.  */
       pimg->data = NULL;
       xfree (pimg);
 #endif /* HAVE_NTGUI */
-#ifdef HAVE_NS
-      ns_release_object (pimg);
-#endif /* HAVE_NS */
     }
 #endif
 }

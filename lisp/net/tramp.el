@@ -4290,7 +4290,10 @@ Let-bind it when necessary.")
 	     (file-regular-p (file-truename filename))))))))
 
 (defun tramp-handle-file-remote-p (filename &optional identification connected)
-  "Like `file-remote-p' for Tramp files."
+  "Like `file-remote-p' for Tramp files.
+It supports the additional IDENTIFICATION `hop'.
+For the `host' IDENTIFICATION, both host name and port number (if
+existing) are returned."
   ;; We do not want traces in the debug buffer.
   (let ((tramp-verbose (min tramp-verbose 3)))
     (when (tramp-tramp-file-p filename)
@@ -6793,9 +6796,9 @@ Consults the auth-source package."
 	       proc "password-vector" (process-get proc 'tramp-vector)))
 	 (key (tramp-make-tramp-file-name vec 'noloc))
 	 (method (tramp-file-name-method vec))
-	 (user (or (tramp-file-name-user-domain vec)
-		   (tramp-get-connection-property key "login-as")))
-	 (host (tramp-file-name-host-port vec))
+	 (user-domain (or (tramp-file-name-user-domain vec)
+			  (tramp-get-connection-property key "login-as")))
+	 (host-port (tramp-file-name-host-port vec))
 	 (pw-prompt
 	  (string-trim-left
 	   (or prompt
@@ -6823,9 +6826,9 @@ Consults the auth-source package."
 		(setq auth-info
 		      (car
 		       (auth-source-search
-			:max 1 :user user :host host :port method
-			:require (cons :secret (and user '(:user)))
-			:create (and user t)))
+			:max 1 :user user-domain :host host-port :port method
+			:require (cons :secret (and user-domain '(:user)))
+			:create (and user-domain t)))
 		      tramp-password-save-function
 		      (plist-get auth-info :save-function)
 		      auth-passwd

@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.7.7
+;; Version: 9.7.8
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -19620,7 +19620,7 @@ ELEMENT."
 	      (if level (1+ level) 0))))
 	 ((item plain-list) (org-list-item-body-column post-affiliated))
 	 (t
-	  (goto-char start)
+	  (when start (goto-char start))
 	  (current-indentation))))
       ((memq type '(headline inlinetask nil))
        (if (org-match-line "[ \t]*$")
@@ -19629,14 +19629,14 @@ ELEMENT."
       ((memq type '(diary-sexp footnote-definition)) 0)
       ;; First paragraph of a footnote definition or an item.
       ;; Indent like parent.
-      ((< (line-beginning-position) start)
+      ((and start (< (line-beginning-position) start))
        (org--get-expected-indentation
 	(org-element-parent element) t))
       ;; At first line: indent according to previous sibling, if any,
       ;; ignoring footnote definitions and inline tasks, or parent's
       ;; contents.  If `org-adapt-indentation' is `headline-data', ignore
       ;; previous headline data siblings.
-      ((= (line-beginning-position) start)
+      ((and start (= (line-beginning-position) start))
        (catch 'exit
 	 (while t
 	   (if (= (point-min) start) (throw 'exit 0)
@@ -19686,13 +19686,13 @@ ELEMENT."
 	  ;; Line above is the first one of a paragraph at the
 	  ;; beginning of an item or a footnote definition.  Indent
 	  ;; like parent.
-	  ((< (line-beginning-position) start)
+	  ((and start (< (line-beginning-position) start))
 	   (org--get-expected-indentation
 	    (org-element-parent element) t))
 	  ;; Line above is the beginning of an element, i.e., point
 	  ;; was originally on the blank lines between element's start
 	  ;; and contents.
-	  ((= (line-beginning-position) post-affiliated)
+	  ((and post-affiliated (= (line-beginning-position) post-affiliated))
 	   (org--get-expected-indentation element t))
 	  ;; POS is after contents in a greater element.  Indent like
 	  ;; the beginning of the element.
@@ -19780,10 +19780,11 @@ Also align node properties according to `org-property-format'."
                      (not (org--at-headline-data-p nil element))
                      ;; Not at headline data and previous is headline data/headline.
                      (or (memq type '(headline inlinetask)) ; blank lines after heading
-                         (save-excursion
-                           (goto-char (1- (org-element-begin element)))
-                           (or (org-at-heading-p)
-                               (org--at-headline-data-p))))))
+                         (and element
+                              (save-excursion
+                                (goto-char (1- (org-element-begin element)))
+                                (or (org-at-heading-p)
+                                    (org--at-headline-data-p)))))))
       (cond ((and (memq type '(plain-list item))
 		  (= (line-beginning-position)
 		     (org-element-post-affiliated element)))

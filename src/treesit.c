@@ -1457,7 +1457,9 @@ an indirect buffer.  */)
   ts_parser_set_language (parser, lang);
 
   /* Create parser.  */
-  Lisp_Object lisp_parser = make_treesit_parser (Fcurrent_buffer (),
+  Lisp_Object lisp_buf;
+  XSETBUFFER (lisp_buf, buf);
+  Lisp_Object lisp_parser = make_treesit_parser (lisp_buf,
 						 parser, NULL,
 						 language, tag);
 

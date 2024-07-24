@@ -6179,7 +6179,7 @@ or @code{:flip} is changed.
 If @code{:original-map} is not specified when creating an image with
 @code{create-image}, it will be computed based on the supplied
 @code{:map}, as well as any of @code{:scale}, @code{:rotation}, or
-@code{:flip} which are non-nil.
+@code{:flip} which are non-@code{nil}.
 
 Conversely, if @code{:original-map} is specified but @code{:map} is not,
 @code{:map} will be computed based on @code{:original-map},
