@@ -175,16 +175,9 @@
   "Support for editing files."
   :group 'emacs)
 
-(defgroup wp nil
-  "Support for editing text files.
-Use group `text' for this instead.  This group is obsolete."
-  :group 'emacs)
-
 (defgroup text nil
   "Support for editing text files."
-  :group 'emacs
-  ;; Inherit from deprecated `wp' for compatibility, for now.
-  :group 'wp)
+  :group 'emacs)
 
 (defgroup data nil
   "Support for editing binary data files."
