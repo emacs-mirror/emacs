@@ -180,8 +180,8 @@ loading actually occurs.  As you might expect, you can use
 The above declarations will load the @samp{foo} package immediately.  In
 most cases, this is not necessary or desirable, as that will slow down
 Emacs startup.  Instead, you should try to set things up so that
-packages are only loaded when they are actually needed
-(``autoloading'').  If you have installed a package from @acronym{GNU}
+packages are only loaded when they are actually needed (this is known as
+``autoloading'').  If you have installed a package from @acronym{GNU}
 @acronym{ELPA} that provides its own autoloads, it is often enough to
 say:
 
