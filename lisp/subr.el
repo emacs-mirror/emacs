@@ -481,7 +481,7 @@ for the sake of consistency.
 
 To alter the look of the displayed error messages, you can use
 the `command-error-function' variable."
-  (declare (ftype (function (string &rest t) nil))
+  (declare (ftype (function (&rest t) nil))
            (advertised-calling-convention (string &rest args) "23.1"))
   (signal 'error (list (apply #'format-message args))))
 
