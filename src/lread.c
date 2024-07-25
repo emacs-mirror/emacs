@@ -3635,9 +3635,9 @@ read_bool_vector (Lisp_Object readcharfun)
   Lisp_Object str = read_string_literal (readcharfun);
   if (STRING_MULTIBYTE (str)
       || !(size_in_chars == SCHARS (str)
-	   /* We used to print 1 char too many when the number of bits
+	   /* Emacs 19 printed 1 char too many when the number of bits
 	      was a multiple of 8.  Accept such input in case it came
-	      from an old version.  */
+	      from that old version.  */
 	   || length == (SCHARS (str) - 1) * BOOL_VECTOR_BITS_PER_CHAR))
     invalid_syntax ("#&...", readcharfun);
 
