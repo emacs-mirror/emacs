@@ -1274,6 +1274,27 @@ Emacs will select some other font instead.
 The only workaround is not to choose such font variants as the default
 font when running Emacs on MS-Windows.
 
+** On OpenBSD, color Emoji are not supported by default.
+
+The system's FreeType library is not built with libpng support, so it
+can't display color emoji.  This is due to the fact that, on OpenBSD,
+libpng is provided through ports and that a base component cannot depend
+on that.
+
+However, you can add support for PNG in the system's FreeType library by
+following those steps:
+	1. Install the 'png' package.
+	2. Read the release(8) man page for how to get Xenocara sources.
+	3. Patch the file
+	   "/usr/xenocara/lib/freetype/include/freetype/config/ftoption.h"
+	   by uncommenting the "#define FT_CONFIG_OPTION_USE_PNG" line.
+	4. Patch the file "/usr/xenocara/lib/freetype/Makefile" by
+	   appending "-L/usr/local/lib -lpng" to LDADD and appending
+	   "-I/usr/local/include" to CPPFLAGS.
+	5. Build and install Xenocara (also, see release(8)).
+
+Note that this support will be gone after each OpenBSD's system upgrade.
+
 * Internationalization problems
 
 ** M-{ does not work on a Spanish PC keyboard.
