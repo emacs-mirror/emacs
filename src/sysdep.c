@@ -3548,6 +3548,7 @@ procfs_ttyname (int rdev)
 }
 # endif	/* GNU_LINUX || __ANDROID__ */
 
+/* Total usable RAM in KiB.  */
 static uintmax_t
 procfs_get_total_memory (void)
 {
@@ -3737,8 +3738,13 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qnice, make_fixnum (niceness)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, INT_TO_INTEGER (thcount)), attrs);
 	  attrs = Fcons (Fcons (Qvsize, INT_TO_INTEGER (vsize / 1024)), attrs);
-	  attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (4 * rss)), attrs);
-	  pmem = 4.0 * 100 * rss / procfs_get_total_memory ();
+
+	  /* RSS in KiB.  */
+	  uintmax_t rssk = rss;
+	  rssk *= getpagesize () >> 10;
+
+	  attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (rssk)), attrs);
+	  pmem = 100.0 * rssk / procfs_get_total_memory ();
 	  if (pmem > 100)
 	    pmem = 100;
 	  attrs = Fcons (Fcons (Qpmem, make_float (pmem)), attrs);
