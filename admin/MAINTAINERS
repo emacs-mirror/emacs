@@ -84,14 +84,6 @@ Michael Albinus
 Simen Heggestøyl
 	lisp/textmodes/css-mode.el
 
-Nicolas Petton
-	lisp/emacs-lisp/map.el
-	test/lisp/emac-lisp/map-tests.el
-	lisp/emacs-lisp/seq.el
-	test/lisp/emac-lisp/seq-tests.el
-	lisp/emacs-lisp/thunk.el
-	test/lisp/emac-lisp/thunk-tests.el
-
 The GNU AUCTeX maintainers (auctex-devel@gnu.org)
 	RefTeX
 	    lisp/textmodes/reftex-auc.el
@@ -333,10 +325,6 @@ Michael Albinus
 	    lisp/auth-source.el
 	    doc/misc/auth.texi
 	    test/lisp/auth-source-tests.el
-
-Nicolas Petton
-	lisp/emacs-lisp/subr-x.el
-	lisp/arc-mode.el
 
 Tassilo Horn
 	lisp/doc-view.el
