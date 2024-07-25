@@ -225,6 +225,10 @@ Jim Porter
 	    test/lisp/eshell/*
 	    doc/misc/eshell.texi
 
+Juri Linkov
+	lisp/tab-bar.el
+	lisp/tab-line.el
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.
@@ -351,6 +355,17 @@ Po Lu
 
 Daniel Pettersson
 	lisp/jsonrpc.el
+
+Juri Linkov
+	Isearch and Replace
+	    lisp/isearch.el
+	    lisp/replace.el
+	    lisp/misearch.el
+	    lisp/hi-lock.el
+	Outline minor mode
+	    lisp/outline.el
+	Repeat mode
+	    lisp/repeat.el
 
 ==============================================================================
 3. Externally maintained packages.
