@@ -493,11 +493,7 @@ convert to an Emacs image-spec instead")
 
 (defun gamegrid-set-timer (delay)
   (if gamegrid-timer
-      (timer-set-time gamegrid-timer
-		      (list (aref gamegrid-timer 1)
-			    (aref gamegrid-timer 2)
-			    (aref gamegrid-timer 3))
-		      delay)))
+      (timer-set-time gamegrid-timer (timer--time gamegrid-timer) delay)))
 
 (defun gamegrid-kill-timer ()
   (if gamegrid-timer

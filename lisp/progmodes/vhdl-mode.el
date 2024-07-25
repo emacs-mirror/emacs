@@ -2341,7 +2341,7 @@ Ignore byte-compiler warnings you might see."
   (if (fboundp 'start-itimer)
       (start-itimer "vhdl-mode" function secs repeat t)
     ;; explicitly activate timer (necessary when Emacs is already idle)
-    (aset (run-with-idle-timer secs repeat function) 0 nil)))
+    (setf (timer--triggered (run-with-idle-timer secs repeat function)) nil)))
 
 (defun vhdl-warning-when-idle (&rest args)
   "Wait until idle, then print out warning STRING and beep."

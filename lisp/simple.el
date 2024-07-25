@@ -11354,8 +11354,7 @@ seconds."
         (if timer
             ;; The timer is already running.  See if it's due to expire
             ;; within the next five seconds.
-            (let ((time (list (aref timer 1) (aref timer 2)
-                              (aref timer 3))))
+            (let ((time (timer--time timer)))
               (unless (<= (time-convert (time-subtract time nil)
                                         'integer)
                           5)
