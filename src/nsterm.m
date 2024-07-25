@@ -8318,6 +8318,15 @@ ns_in_echo_area (void)
   [self windowDidEnterFullScreen];
 }
 
+- (void)adjustEmacsFrameRect
+{
+  struct frame *f = emacsframe;
+  NSWindow *frame_window = [FRAME_NS_VIEW (f) window];
+  NSRect r = [frame_window frame];
+  f->left_pos = NSMinX (r) - NS_PARENT_WINDOW_LEFT_POS (f);
+  f->top_pos = NS_PARENT_WINDOW_TOP_POS (f) - NSMaxY (r);
+}
+
 - (void)windowDidEnterFullScreen /* provided for direct calls */
 {
   NSTRACE ("[EmacsView windowDidEnterFullScreen]");
@@ -8347,6 +8356,10 @@ ns_in_echo_area (void)
         }
 #endif
     }
+
+  /* Do what windowDidMove does which isn't called when entering/exiting
+     fullscreen mode.  */
+  [self adjustEmacsFrameRect];
 }
 
 - (void)windowWillExitFullScreen:(NSNotification *)notification
@@ -8389,6 +8402,10 @@ ns_in_echo_area (void)
 
   if (next_maximized != -1)
     [[self window] performZoom:self];
+
+  /* Do what windowDidMove does which isn't called when entering/exiting
+     fullscreen mode.  */
+  [self adjustEmacsFrameRect];
 }
 
 - (BOOL)fsIsNative
