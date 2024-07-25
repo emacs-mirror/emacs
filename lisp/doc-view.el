@@ -1779,6 +1779,8 @@ For now these keys are useful:
                 (insert-file-contents txt)
                 (doc-view--text-view-mode)
                 (setq-local doc-view--buffer-file-name dv-bfn)
+                ;; Pages are separated by form feed characters.
+                (setq-local page-delimiter "")
                 (set-buffer-modified-p nil)
                 (doc-view-minor-mode)
                 (goto-char (point-min))
