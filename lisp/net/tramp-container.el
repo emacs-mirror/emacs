@@ -50,18 +50,14 @@
 ;;
 ;; Open file in a Kubernetes container:
 ;;
-;;     C-x C-f /kubernetes:[CONTAINER.]POD:/path/to/file
+;;     C-x C-f /kubernetes:[CONTAINER.]POD[%NAMESPACE]:/path/to/file
 ;;
 ;; Where:
 ;;     POD           is the pod to connect to.
 ;;     CONTAINER     is the container to connect to (optional).
 ;;		     By default, the first container in that pod will
 ;;		     be used.
-;;
-;; Completion for POD and accessing it operate in the current
-;; namespace, use this command to change it:
-;;
-;; "kubectl config set-context --current --namespace=<name>"
+;;     NAMESPACE     is the namespace to be used (optional).
 ;;
 ;;
 ;;
@@ -151,11 +147,14 @@ If it is nil, the default context will be used."
   :type '(choice (const :tag "Use default" nil)
                  (string)))
 
-(defcustom tramp-kubernetes-namespace "default"
-  "Namespace of Kubernetes."
+(defcustom tramp-kubernetes-namespace nil
+  "Namespace of Kubernetes.
+If it is nil, the current namespace will be used.  An explicit NAMESPACE
+in the remote file name host part will override it."
   :group 'tramp
-  :version "30.1"
-  :type 'string)
+  :version "31.1"
+  :type '(choice (const :tag "Use default" nil)
+                 (string)))
 
 ;;;###tramp-autoload
 (defcustom tramp-toolbox-program "toolbox"
@@ -324,10 +323,18 @@ see its function help for a description of the format."
 	    (push (concat elt "." (car line)) names)))
 	(mapcar (lambda (name) (list nil name)) (delq nil names))))))
 
+;; <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/>
+;; `lower' could also match non-ascii letters.  But since this regexp
+;; is only used for strings matching `tramp-host-regexp', this doesn't
+;; hurt.
+(defconst tramp-kubernetes--name-regexp (rx (** 1 63 (any lower digit "-")))
+  "Regexp matching kubernetes names.")
+
 (defconst tramp-kubernetes--host-name-regexp
-  (rx (? (group (regexp tramp-host-regexp)) ".")
-      (group (regexp tramp-host-regexp)))
-  "The CONTAINER.POD syntax of kubernetes host names in Tramp.")
+  (rx bos (? (group (regexp tramp-kubernetes--name-regexp)) ".")
+      (group (regexp tramp-kubernetes--name-regexp))
+      (? "%" (group (regexp tramp-kubernetes--name-regexp))) eos)
+  "The CONTAINER.POD%NAMESPACE syntax of kubernetes host names in Tramp.")
 
 ;;;###tramp-autoload
 (defun tramp-kubernetes--container (vec)
@@ -345,6 +352,16 @@ see its function help for a description of the format."
 	     (match-string 2 host)))
       ""))
 
+;;;###tramp-autoload
+(defun tramp-kubernetes--namespace (vec)
+  "Extract the namespace from a kubernetes host name in VEC.
+Use `tramp-kubernetes-namespace' otherwise."
+  (or (when-let ((_ vec)
+		 (host (tramp-file-name-host vec)))
+	(and (string-match tramp-kubernetes--host-name-regexp host)
+	     (match-string 3 host)))
+      tramp-kubernetes-namespace))
+
 ;; We must change `vec' and `default-directory' to the previous hop,
 ;; in order to run `process-file' in a proper environment.
 (defmacro tramp-skeleton-kubernetes-vector (vec &rest body)
@@ -355,6 +372,11 @@ BODY is the backend specific code."
 	   (cond
 	    ((null ,vec) tramp-null-hop)
 	    ((equal (tramp-file-name-method ,vec) tramp-kubernetes-method)
+	     ;; Sanity check.  We don't support `user' or `port' in
+	     ;; Kubernetes file names.
+	     (when (or (tramp-file-name-user-domain ,vec)
+		       (tramp-file-name-port ,vec))
+	       (tramp-user-error ,vec "Wrong kubernetes file name syntax"))
 	     (if (tramp-file-name-hop ,vec)
 		 (tramp-dissect-hop-name (tramp-file-name-hop ,vec))
 	       tramp-null-hop))
@@ -400,8 +422,8 @@ Obey `tramp-kubernetes-context'"
    #'identity
    `(,(when-let ((context (tramp-kubernetes--current-context vec)))
 	(format "--context=%s" context))
-     ,(when tramp-kubernetes-namespace
-	(format "--namespace=%s" tramp-kubernetes-namespace)))
+     ,(when-let ((namespace (tramp-kubernetes--namespace vec)))
+	(format "--namespace=%s" namespace)))
    " "))
 
 ;;;###tramp-autoload
@@ -617,9 +639,9 @@ see its function help for a description of the format."
      ;; This variable will be eval'ed in `tramp-expand-args'.
      (tramp-extra-expand-args
       . (?a (tramp-kubernetes--container (car tramp-current-connection))
-	    ?h (tramp-kubernetes--pod (car tramp-current-connection))
-	    ?x (tramp-kubernetes--context-namespace
-		(car tramp-current-connection)))))
+	 ?h (tramp-kubernetes--pod (car tramp-current-connection))
+	 ?x (tramp-kubernetes--context-namespace
+	     (car tramp-current-connection)))))
    "Default connection-local variables for remote kubernetes connections.")
 
  (connection-local-set-profile-variables

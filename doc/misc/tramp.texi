@@ -999,9 +999,11 @@ if desired.
 @cindex @option{kubernetes} method
 
 Integration for containers in Kubernetes pods.  The host name is
-@samp{@var{pod}}, or @samp{@var{container}.@var{pod}} if an
-explicit container name shall be used.  Otherwise, the first container
-in a pod is used.
+@samp{@var{pod}}, or @samp{@var{container}.@var{pod}} if an explicit
+container name shall be used.  Otherwise, the first container in a pod
+is used.  @samp{@var{pod}%@var{namespace}} as host name allows to use
+another namespace but the default one.  This can also be combined with
+the @samp{@var{container}.} prefix.
 
 This method does not support user names.
 
@@ -3246,7 +3248,9 @@ by setting the pod annotation
 @vindex tramp-kubernetes-namespace
 @value{tramp} uses the default Kubernetes context and namespace.  If
 another context or namespace shall be used, configure the user options
-@code{tramp-kubernetes-context} and @code{tramp-kubernetes-namespace}.
+@code{tramp-kubernetes-context} or @code{tramp-kubernetes-namespace},
+respectively.  An explicit @samp{%@var{namespace}} postfix in the host
+name takes precedence.
 
 
 @node Auto-save File Lock and Backup

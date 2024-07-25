@@ -24,11 +24,12 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 31.1
 
-** When using GCC 4 or later to build Emacs on 32-bit x86 systems,
-'configure' now defaults to using the GCC options -mfpmath=sse (if the
-host system supports SSE2) or -fno-tree-sra (if not).  These GCC options
-work around GCC bug 58416, which can cause Emacs to behave incorrectly
-in rare cases.
+** Changed GCC default options on 32-bit x86 systems.
+When using GCC 4 or later to build Emacs on 32-bit x86 systems,
+'configure' now defaults to using the GCC options '-mfpmath=sse' (if the
+host system supports SSE2) or '-fno-tree-sra' (if not).  These GCC
+options work around GCC bug 58416, which can cause Emacs to behave
+incorrectly in rare cases.
 
 
 * Startup Changes in Emacs 31.1
@@ -37,7 +38,7 @@ in rare cases.
 * Changes in Emacs 31.1
 
 ---
-** "find-func.el" commands now have history enabled.
+** find-func.el commands now have history enabled.
 The 'find-function', 'find-library', 'find-face-definition', and
 'find-variable' commands now allow retrieving previous input using the
 usual minibuffer history commands.  Each command has a separate history.
@@ -52,13 +53,13 @@ usual minibuffer history commands.  Each command has a separate history.
 
 ---
 *** 'whitespace-cleanup' now adds missing newline at end of file.
-If 'whitespace-style' includes 'missing-newline-at-eof (which is the
+If 'whitespace-style' includes 'missing-newline-at-eof' (which is the
 default), the 'whitespace-cleanup' function will now add the newline.
 
 ** Eshell
 
 ---
-*** New option 'eshell-command-async-buffer'.
+*** New user option 'eshell-command-async-buffer'.
 This option lets you tell 'eshell-command' how to respond if its output
 buffer is already in use by another invocation of 'eshell-command', much
 like 'async-shell-command-buffer' does for 'shell-command'.  By default,
@@ -68,7 +69,7 @@ necessary.  To restore the previous behavior, set this option to
 
 +++
 *** 'eshell-execute-file' is now an interactive command.
-Interactively, this now prompts for a script file to execute. With the
+Interactively, this now prompts for a script file to execute.  With the
 prefix argument, it will also insert any output into the current buffer
 at point.
 
@@ -79,8 +80,8 @@ where to send the standard error output.  See the "(eshell) Entry
 Points" node in the Eshell manual for more details.
 
 +++
-*** Eshell's built-in "wait" command now accepts a timeout.
-By passing "-t" or "--timeout", you can specify a maximum time to wait
+*** Eshell's built-in 'wait' command now accepts a timeout.
+By passing '-t' or '--timeout', you can specify a maximum time to wait
 for the processes to exit.  Additionally, you can now wait for external
 processes by passing their PIDs.
 
@@ -91,7 +92,7 @@ processes by passing their PIDs.
 Sliced images allow for more intuitive scrolling up/down by letting you
 scroll past each slice, instead of jumping past the entire image.
 Previously, SHR sliced images when zoomed to their original size, no
-matter how large or small that was).  Now, SHR slices any images taller
+matter how large or small that was.  Now, SHR slices any images taller
 than 'shr-sliced-image-height'.  For more information, see the "(eww)
 Advanced" node in the EWW manual.
 
@@ -111,13 +112,13 @@ point.  If a region is active, it runs all the unit tests under the
 region.  It is bound to 'C-c C-t t' in 'go-ts-mode'.
 
 The 'go-ts-mode-test-this-file' command runs all unit tests in the current
-file. It is bound to 'C-c C-t f' in 'go-ts-mode'.
+file.  It is bound to 'C-c C-t f' in 'go-ts-mode'.
 
 The 'go-ts-mode-test-this-package' command runs all unit tests under the
 package of the current buffer.  It is bound to 'C-c C-t p' in 'go-ts-mode'.
 
-The 'go-ts-mode-build-tags' variable is available to set a list of build
-tags for the test commands.
+The 'go-ts-mode-build-tags' user option is available to set a list of
+build tags for the test commands.
 
 ** Emacs Lisp mode
 
@@ -154,8 +155,18 @@ positives.
 ---
 *** Dedicated buffer for plain text contents.
 When switching to the plain text contents with 'doc-view-open-text',
-DocView now creates a dedicated buffer to display it. 'C-c C-c' gets you
+DocView now creates a dedicated buffer to display it.  'C-c C-c' gets you
 back to real DocView buffer if it still exists.
+
+** Tramp
+
++++
+*** Connection method "kubernetes" supports now optional namespace.
+The host name for Kubernetes connections can be of kind
+[CONTAINER.]POD[%NAMESPACE], in order to specify the namespace to be
+used.  This overrides the setiing in 'tramp-kubernetes-namespace', if
+any.
+
 
 * New Modes and Packages in Emacs 31.1
 
@@ -182,9 +193,9 @@ It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
 
 ---
 ** Process execution has been optimized on Android.
-The run-time performance of subprocesses on recent Android releases
-where a userspace executable loader is required has been optimized on
-systems featuring Linux 3.5.0 and above.
+The run-time performance of subprocesses on recent Android releases,
+where a userspace executable loader is required, has been optimized on
+systems featuring GNU/Linux 3.5.0 and above.
 
 
 ----------------------------------------------------------------------
