@@ -179,7 +179,7 @@ Properties can be set with
 
 ;; What's the deal with these "filter alists"?
 ;;
-;; Let's say that Emacs' frame parameters were never designed as a tool to
+;; Let's say that Emacs's frame parameters were never designed as a tool to
 ;; precisely record (or restore) a frame's state.  They grew organically,
 ;; and their uses and behaviors reflect their history.  In using them to
 ;; implement framesets, the unwary implementer, or the prospective package
@@ -277,7 +277,7 @@ Properties can be set with
 ;;   display they do no harm, but they clutter the parameter alist.
 ;;
 ;; - `minibuffer': It can contain a reference to a live window, which cannot
-;;   be serialized.  Because of Emacs' idiosyncratic treatment of this
+;;   be serialized.  Because of Emacs's idiosyncratic treatment of this
 ;;   parameter, frames created with (minibuffer . t) have a parameter
 ;;   (minibuffer . #<window...>), while frames created with
 ;;   (minibuffer . #<window...>) have (minibuffer . nil), which is madness

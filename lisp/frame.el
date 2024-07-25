@@ -2021,7 +2021,7 @@ workarea attribute."
 (declare-function android-frame-list-z-order "androidfns.c" (&optional display))
 
 (defun frame-list-z-order (&optional display)
-  "Return list of Emacs' frames, in Z (stacking) order.
+  "Return list of Emacs's frames, in Z (stacking) order.
 The optional argument DISPLAY specifies which display to poll.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.

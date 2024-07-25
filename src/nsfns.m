@@ -1628,7 +1628,7 @@ ns_window_is_ancestor (NSWindow *win, NSWindow *candidate)
 
 DEFUN ("ns-frame-list-z-order", Fns_frame_list_z_order,
        Sns_frame_list_z_order, 0, 1, 0,
-       doc: /* Return list of Emacs' frames, in Z (stacking) order.
+       doc: /* Return list of Emacs's frames, in Z (stacking) order.
 If TERMINAL is non-nil and specifies a live frame, return the child
 frames of that frame in Z (stacking) order.
 

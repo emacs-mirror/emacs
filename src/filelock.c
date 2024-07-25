@@ -73,7 +73,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    theoretically be updated by daemons running separately -- but this
    whole idea is unimplemented; in practice, at least in our
    environment, it seems such stale locks arise fairly infrequently, and
-   Emacs' standard methods of dealing with clashes suffice.
+   Emacs's standard methods of dealing with clashes suffice.
 
    We use symlinks instead of normal files because (1) they can be
    stored more efficiently on the filesystem, since the kernel knows

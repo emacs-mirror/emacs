@@ -2159,7 +2159,7 @@ node is a defun node but doesn't have a name, or the node is
 @node Tree-sitter C API
 @section Tree-sitter C API Correspondence
 
-Emacs' tree-sitter integration doesn't expose every feature
+Emacs's tree-sitter integration doesn't expose every feature
 provided by tree-sitter's C API@.  Missing features include:
 
 @itemize

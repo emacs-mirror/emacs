@@ -459,7 +459,7 @@ FORMAT and ARGS are passed to `message'."
   ;; With all this in mind, we ensure `write-region-inhibit-fsync' is
   ;; set.
   ;;
-  ;; To read more about this, see the comments in Emacs' fileio.c, in
+  ;; To read more about this, see the comments in Emacs's fileio.c, in
   ;; particular the large comment block in init_fileio.
   (let ((write-region-inhibit-fsync t)
         ;; We set UTF-8 here and in `org-persist--read-elisp-file'

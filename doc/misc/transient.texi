@@ -1458,7 +1458,7 @@ When returning to the command-loop after calling the suffix command,
 the arguments are reset to @code{nil} (which causes the function to return
 @code{nil} too).
 
-Like for Emacs' prefix arguments, it is advisable, but not mandatory,
+Like for Emacs's prefix arguments, it is advisable, but not mandatory,
 to access the infix arguments inside the command's @code{interactive} form.
 The preferred way of doing that is to call the @code{transient-args}
 function, which for infix arguments serves about the same purpose as

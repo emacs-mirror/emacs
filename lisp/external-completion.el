@@ -40,7 +40,7 @@
 ;; other in `completion-styles' are ignored.
 ;;
 ;; This compromise is for speed: all other styles need the full data
-;; set to be available in Emacs' addressing space, which is often slow
+;; set to be available in Emacs's addressing space, which is often slow
 ;; if not completely unfeasible.
 ;;
 ;; To make use of the `external' style the function

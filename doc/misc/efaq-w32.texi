@@ -2218,7 +2218,7 @@ outdated.  Tools available here that are useful for Emacs include:
 @item OpenSSL - used by @code{gnus} to talk to servers over SSL.
 @item Patch - used by @code{ediff-patch-file} and others to apply patches.
 @item Tar - used by @code{tar-mode} to edit tar files.
-@item TexInfo - used to build Emacs' manuals.
+@item TexInfo - used to build Emacs's manuals.
 @item Unzip - used by @code{archive-mode} for extracting zip files.
 @item Xpm - library to support XPM images (bundled with Emacs binaries)
 @item Zip - used by @code{archive-mode} for editing zip files.
@@ -2245,7 +2245,7 @@ image libraries that it provides, even if they are not on the
 @findex man
 
 Man pages for Emacs and other ported programs that you have can be
-read using Emacs' built-in manual reader @code{woman}.  This
+read using Emacs's built-in manual reader @code{woman}.  This
 requires no external programs, but if you do have a port of
 @command{man}, there is also an Emacs wrapper @code{man} that
 which may be slightly faster.  A Windows version of @command{man} is

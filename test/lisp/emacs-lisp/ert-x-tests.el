@@ -308,7 +308,7 @@ desired effect."
                 (cl-loop for i below 3 do
                          (message "%s" i)))
               ;; Uses the implicit messages buffer truncation implemented
-              ;; in Emacs' C core.
+              ;; in Emacs's C core.
               (c (x)
                 (ert-with-buffer-renamed ("*Messages*")
                   (let ((message-log-max x))

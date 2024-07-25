@@ -1800,7 +1800,7 @@ But @samp{rules} part is parsed in Bison style!  Why?
 Rule delimiters are the colon (@code{:}), that follows the nonterminal
 name, and a final semicolon (@code{;}).  Unfortunately these
 delimiters are not @code{open-paren}/@code{close-paren} type, and the
-Emacs' syntactic analyzer can't easily isolate data between them to
+Emacs syntactic analyzer can't easily isolate data between them to
 produce a @samp{RULES_PART} parenthesis-block-like lexical token.
 Consequently it is not possible to use @code{EXPANDFULL} to iterate in
 @samp{RULES_PART}, like this:

@@ -1103,7 +1103,7 @@ The manual also describes many other Emacs features.
 ---------------------
 
 There's a rich set of packages for Emacs written by the community,
-which extend Emacs' capabilities.  These packages include support for
+which extend Emacs's capabilities.  These packages include support for
 new languages, additional themes, plugins for integrating with
 external applications, and much, much more.
 

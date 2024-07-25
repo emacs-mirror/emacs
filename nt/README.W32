@@ -233,7 +233,7 @@ See the end of the file for license conditions.
 
   Virus scanners
 
-  Some virus scanners interfere with Emacs' use of subprocesses.  If you
+  Some virus scanners interfere with Emacs's use of subprocesses.  If you
   are unable to use subprocesses and you use Dr. Solomon's WinGuard or
   McAfee's Vshield, turn off "Scan all files" (WinGuard) or "boot sector
   scanning" (McAfee exclusion properties).

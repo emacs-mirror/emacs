@@ -39,7 +39,7 @@
 ;;	C-v	-> paste
 ;;
 ;; The tricky part is the handling of the C-x and C-c keys which
-;; are normally used as prefix keys for most of Emacs' built-in
+;; are normally used as prefix keys for most of Emacs's built-in
 ;; commands.  With CUA they still do!!!
 ;;
 ;; Only when the region is currently active (and highlighted since
@@ -138,7 +138,7 @@
 ;; cua-mode's superior rectangle support uses a true visual
 ;; representation of the selected rectangle, i.e. it highlights the
 ;; actual part of the buffer that is currently selected as part of the
-;; rectangle.  Unlike Emacs' traditional rectangle commands, the
+;; rectangle.  Unlike Emacs's traditional rectangle commands, the
 ;; selected rectangle always as straight left and right edges, even
 ;; when those are in the middle of a TAB character or beyond the end
 ;; of the current line.  And it does this without actually modifying

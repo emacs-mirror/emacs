@@ -2943,7 +2943,7 @@ It can later be retrieved with `x-get-resource'.  */)
 
 DEFUN ("haiku-frame-list-z-order", Fhaiku_frame_list_z_order,
        Shaiku_frame_list_z_order, 0, 1, 0,
-       doc: /* Return list of Emacs' frames, in Z (stacking) order.
+       doc: /* Return list of Emacs's frames, in Z (stacking) order.
 If TERMINAL is non-nil and specifies a live frame, return the child
 frames of that frame in Z (stacking) order.
 

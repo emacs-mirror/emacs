@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; The kmacro package provides the user interface to Emacs' basic
+;; The kmacro package provides the user interface to Emacs's basic
 ;; keyboard macro functionality.  With kmacro, two function keys are
 ;; dedicated to keyboard macros, by default F3 and F4.
 

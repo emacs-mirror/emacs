@@ -12075,7 +12075,7 @@ article buffer.  There are many methods for doing that, but two of
 them are kind of default methods.
 
 If your Emacs copy has been built with libxml2 support, then Gnus uses
-Emacs' built-in, plain elisp Simple HTML Renderer @code{shr}
+Emacs's built-in, plain elisp Simple HTML Renderer @code{shr}
 @footnote{@code{shr} displays colors as declared in the @acronym{HTML}
 article but tries to adjust them in order to be readable.  If you
 prefer more contrast, @xref{FAQ 4-16}.} which is also used by Emacs'
