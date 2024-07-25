@@ -3343,7 +3343,7 @@ same as `substitute-in-file-name'."
     (file-error nil)))               ;PCM often calls with invalid directories.
 
 (defun completion--sifn-requote (upos qstr)
-  ;; We're looking for `qpos' such that:
+  ;; We're looking for (the largest) `qpos' such that:
   ;; (equal (substring (substitute-in-file-name qstr) 0 upos)
   ;;        (substitute-in-file-name (substring qstr 0 qpos)))
   ;; Big problem here: we have to reverse engineer substitute-in-file-name to
@@ -3373,11 +3373,13 @@ same as `substitute-in-file-name'."
       ;; Main assumption: nothing after qpos should affect the text before upos,
       ;; so we can work our way backward from the end of qstr, one character
       ;; at a time.
-      ;; Second assumptions: If qpos is far from the end this can be a bit slow,
+      ;; Second assumption: If qpos is far from the end this can be a bit slow,
       ;; so we speed it up by doing a first loop that skips a word at a time.
       ;; This word-sized loop is careful not to cut in the middle of env-vars.
       (while (let ((boundary (string-match "\\(\\$+{?\\)?\\w+\\W*\\'" qstr)))
                (and boundary
+                    ;; Try and make sure we keep the largest `qpos' (bug#72176).
+                    (not (string-match-p "/[/~]" qstr boundary))
                     (progn
                       (setq qprefix (substring qstr 0 boundary))
                       (string-prefix-p uprefix
