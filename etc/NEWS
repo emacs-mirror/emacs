@@ -1705,6 +1705,11 @@ This allows the user to either disable the display of any logo or
 specify which logo will be displayed as part of the
 buffer-identification in the mode-line of Gnus buffers.
 
+---
+*** 'gnus-summary-limit-to-age' now counts days since midnight.
+"Less than 1 day" now means "since last midnight", rather than "less
+than 24 hours old".
+
 ** Rmail
 
 ---
