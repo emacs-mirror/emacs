@@ -1407,7 +1407,7 @@ ns_raise_frame (struct frame *f, BOOL make_key)
   block_input ();
   if (FRAME_VISIBLE_P (f))
     {
-      if (make_key)
+      if (make_key && !f->no_accept_focus)
         [[view window] makeKeyAndOrderFront: NSApp];
       else
         [[view window] orderFront: NSApp];
