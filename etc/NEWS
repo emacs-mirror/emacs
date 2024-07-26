@@ -46,6 +46,12 @@ usual minibuffer history commands.  Each command has a separate history.
 
 * Editing Changes in Emacs 31.1
 
+** Internationalization
+
+---
+*** New language-environment and input method for Tifinagh.
+The Tifinagh script is used to write the Berber languages.
+
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
