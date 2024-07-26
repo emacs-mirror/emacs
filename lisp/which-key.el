@@ -130,9 +130,10 @@ For affected settings, see `which-key-replacement-alist', `which-key-ellipsis'
 `which-key-separator'."
   :set (lambda (sym val)
          (custom-set-default sym val)
-         (mapc #'custom-reevaluate-setting
-               '(which-key-separator
-                 which-key-ellipsis)))
+         (dolist (sym '(which-key-separator
+                        which-key-ellipsis))
+           (when (get sym 'standard-value)
+             (custom-reevaluate-setting sym))))
   :initialize #'custom-initialize-changed
   :type 'boolean
   :package-version "1.0" :version "30.1")
