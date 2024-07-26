@@ -537,7 +537,7 @@ use the local Emacs to edit remote files via Tramp.  See the node
 "(emacs) emacsclient Options" in the user manual for the details.
 
 *** Emacsclient now accepts command-line options in ALTERNATE_EDITOR
-and '--alternate-editor'. For example, ALTERNATE_EDITOR="emacs -Q -nw".
+and '--alternate-editor'.  For example, ALTERNATE_EDITOR="emacs -Q -nw".
 Arguments may be quoted "like this", so that for example an absolute
 path containing a space may be specified; quote escaping is not
 supported.

@@ -380,7 +380,7 @@ mismatch.
 ** Changes to RefTeX mode
 
 *** The table of contents buffer can now also display labels and
-file boundaries in addition to sections. Use 'l', 'i', and 'c' keys.
+file boundaries in addition to sections.  Use 'l', 'i', and 'c' keys.
 
 *** Labels derived from context (the section heading) are now
 lowercase by default.  To make the label legal in LaTeX, latin-1
@@ -1140,20 +1140,20 @@ variable 'c-initialize-on-load' controls this and is t by default.
 
 ** Changes to 'hippie-expand'.
 
-*** New customization variable 'hippie-expand-dabbrev-skip-space'. If
+*** New customization variable 'hippie-expand-dabbrev-skip-space'.  If
 non-nil, trailing spaces may be included in the abbreviation to search for,
 which then gives the same behavior as the original 'dabbrev-expand'.
 
-*** New customization variable 'hippie-expand-dabbrev-as-symbol'. If
+*** New customization variable 'hippie-expand-dabbrev-as-symbol'.  If
 non-nil, characters of syntax '_' is considered part of the word when
 expanding dynamically.
 
-*** New customization variable 'hippie-expand-no-restriction'. If
+*** New customization variable 'hippie-expand-no-restriction'.  If
 non-nil, narrowed buffers are widened before they are searched.
 
-*** New customization variable 'hippie-expand-only-buffers'. If
+*** New customization variable 'hippie-expand-only-buffers'.  If
 non-empty, buffers searched are restricted to the types specified in
-this list. Useful for example when constructing new special-purpose
+this list.  Useful for example when constructing new special-purpose
 expansion functions with 'make-hippie-expand-function'.
 
 *** Text properties of the expansion are no longer copied.
@@ -1288,7 +1288,7 @@ The 'v' key in the label selection buffer toggles \ref versus \vref.
 *** New hooks
 
 Three new hooks can be used to redefine the way labels, references,
-and citations are created. These hooks are
+and citations are created.  These hooks are
 'reftex-format-label-function', 'reftex-format-ref-function',
 'reftex-format-cite-function'.
 
@@ -1446,7 +1446,7 @@ default value changed.  For example,
      :version "20.3")
 
 If an entire new group is added or the variables in it have the
-default values changed, then just add a ':version' to that group. It
+default values changed, then just add a ':version' to that group.  It
 is recommended that new packages added to the distribution contain a
 ':version' in the top level group.
 
@@ -1596,7 +1596,7 @@ then the calculation is done only if you use the menu bar.
 
 In a keymap, a key binding that has the format
  (STRING . REAL-BINDING) or (STRING HELP-STRING . REAL-BINDING)
-defines a menu item. Now a menu item definition may also be a list that
+defines a menu item.  Now a menu item definition may also be a list that
 starts with the symbol 'menu-item'.
 
 The format is:
@@ -2335,7 +2335,7 @@ Do H in view mode for a list of commands.
 *** Exiting View mode does a better job of restoring windows to their
 previous state.
 
-*** New customization variable 'view-scroll-auto-exit'. If non-nil,
+*** New customization variable 'view-scroll-auto-exit'.  If non-nil,
 scrolling past end of buffer makes view mode exit.
 
 *** New customization variable 'view-exits-all-viewing-windows'.  If
@@ -2347,7 +2347,7 @@ read-only file automatically enters View mode, and 'toggle-read-only'
 turns View mode on or off.
 
 *** New customization variable 'view-remove-frame-by-deleting' controls
-how to remove a not needed frame at view mode exit. If non-nil,
+how to remove a not needed frame at view mode exit.  If non-nil,
 delete the frame, if nil make an icon of it.
 
 ** C-x v l, the command to print a file's version control log,
@@ -3362,9 +3362,9 @@ entries to the BibTeX kill ring, from where they can be yanked back by
 appropriate functions.
 
 *** New interactive functions for repositioning and marking of
-entries. They are bound by default to C-M-l and C-M-h.
+entries.  They are bound by default to C-M-l and C-M-h.
 
-*** New hook 'bibtex-clean-entry-hook'. It is called after entry has
+*** New hook 'bibtex-clean-entry-hook'.  It is called after entry has
 been cleaned.
 
 *** New variable 'bibtex-field-delimiters', which replaces variables
@@ -3373,12 +3373,12 @@ bibtex-field-{left|right}-delimiter.
 *** New variable 'bibtex-entry-delimiters' to determine how entries
 shall be delimited.
 
-*** Allow preinitialization of fields. See documentation of
+*** Allow preinitialization of fields.  See documentation of
 bibtex-user-optional-fields, bibtex-entry-field-alist, and
 bibtex-include-OPTkey for details.
 
 *** Book and InBook entries require either an author or an editor
-field. This is now supported by bibtex.el. Alternative fields are
+field.  This is now supported by bibtex.el.  Alternative fields are
 prefixed with 'ALT'.
 
 *** New variable 'bibtex-entry-format', which replaces variable
@@ -3386,8 +3386,8 @@ bibtex-clean-entry-zap-empty-opts and allows specification of many
 formatting options performed on cleaning an entry (see variable
 documentation).
 
-*** Even more control on how automatic keys are generated. See
-documentation of bibtex-generate-autokey for details. Transcriptions
+*** Even more control on how automatic keys are generated.  See
+documentation of bibtex-generate-autokey for details.  Transcriptions
 for foreign languages other than German are now handled, too.
 
 *** New boolean user option 'bibtex-comma-after-last-field' to decide if
@@ -3395,7 +3395,7 @@ comma should be inserted at end of last field.
 
 *** New boolean user option 'bibtex-align-at-equal-sign' to determine if
 alignment should be made at left side of field contents or at equal
-signs. New user options to control entry layout (e.g. indentation).
+signs.  New user options to control entry layout (e.g. indentation).
 
 *** New function 'bibtex-fill-entry' to realign entries.
 
@@ -3405,7 +3405,7 @@ signs. New user options to control entry layout (e.g. indentation).
 from alien sources.
 
 *** New function 'bibtex-complete-key' (similar to bibtex-complete-string)
-to complete prefix to a key defined in buffer. Mainly useful in
+to complete prefix to a key defined in buffer.  Mainly useful in
 crossref entries.
 
 *** New function 'bibtex-count-entries' to count entries in buffer or
@@ -3414,8 +3414,8 @@ region.
 *** Added support for imenu.
 
 *** The function 'bibtex-validate' now checks current region instead
-of buffer if mark is active. Now it shows all errors of buffer in a
-`compilation mode' buffer. You can use the normal commands (e.g.
+of buffer if mark is active.  Now it shows all errors of buffer in a
+`compilation mode' buffer.  You can use the normal commands (e.g.
 'next-error') for compilation modes to jump to errors.
 
 *** New variable 'bibtex-string-file-path' to determine where the files
@@ -3453,7 +3453,7 @@ lines.  Browsing methods can be associated with URL regexps
 pops up the Info file for this command.
 
 *** There is now a variable, ediff-autostore-merges, which controls whether
-the result of a merge is saved in a file. By default, this is done only when
+the result of a merge is saved in a file.  By default, this is done only when
 merge is done from a session group (eg, when merging files in two different
 directories).
 
@@ -3472,13 +3472,13 @@ related to the GNU format has now been fixed.)
     instead of vip-.
 *** C-\ now simulates the meta-key in all Viper states.
 *** C-z in Insert state now escapes to Vi for the duration of the next
-Viper command. In Vi and Insert states, C-z behaves as before.
+Viper command.  In Vi and Insert states, C-z behaves as before.
 *** C-c \ escapes to Vi for one command if Viper is in Insert or Emacs states.
 *** _ is no longer the meta-key in Vi state.
 *** The variable viper-insert-state-cursor-color can be used to change cursor
 color when Viper is in insert state.
 *** If search lands the cursor near the top or the bottom of the window,
-Viper pulls the window up or down to expose more context. The variable
+Viper pulls the window up or down to expose more context.  The variable
 viper-adjust-window-after-search controls this behavior.
 
 ** Etags changes.

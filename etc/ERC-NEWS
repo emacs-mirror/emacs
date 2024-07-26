@@ -1345,7 +1345,7 @@ easily enabled.
 
 ** M-x erc RET now starts ERC.
 `erc-select' has been changed to `erc'.  `erc-select' still remains as
-an alias of `erc'. Likewise, `erc-select-ssl' has been renamed to
+an alias of `erc'.  Likewise, `erc-select-ssl' has been renamed to
 `erc-ssl' with `erc-select-ssl' as its alias.  The function that was
 known as `erc' is now `erc-open'.
 
@@ -2221,13 +2221,13 @@ have been split into more groups for better organization.
     in the mode-line when you are away.
 
   o `erc-header-line-uses-help-echo-p' - The header-line now uses the
-    help-echo property. You can set this to nil to disable it.
+    help-echo property.  You can set this to nil to disable it.
 
   o `erc-format-query-as-channel-p' - Set this to nil to have messages
     in the query buffer formatted like private messages.
 
   o `erc-show-channel-key-p' - The channel key is now shown with the
-    other channel modes in the header line. Set this to nil if you
+    other channel modes in the header line.  Set this to nil if you
     want it hidden.
 
   o `erc-prompt-for-channel-key' - Set this if you want to be prompted
@@ -2241,7 +2241,7 @@ have been split into more groups for better organization.
 
   o `erc-join-hook' - Called when you join a channel.
 
-  o `erc-kick-hook' - Called when you are kicked from a channel. The
+  o `erc-kick-hook' - Called when you are kicked from a channel.  The
     channel's buffer is sent as an argument to functions called from
     this hook.
 
@@ -2409,7 +2409,7 @@ in XEmacs.
 
 This finally implements DCC.  It requires server sockets to fully work
 in both directions.  This feature is currently only available in Emacs
-21.3.50 (CVS). Here is a short list of what should work though.
+21.3.50 (CVS).  Here is a short list of what should work though.
 
 ** Compatibility:
   * Emacs 21.2, DCC get, and accepting DCC chat offers.

@@ -1040,7 +1040,7 @@ When compiled with address sanitization, Emacs will also try to mark
 dead/free lisp objects as poisoned, forbidding them from being
 accessed without being unpoisoned first.  This adds an extra layer
 of checking with objects in internal free lists, which may otherwise
-evade traditional use-after-free checks. To disable this, add
+evade traditional use-after-free checks.  To disable this, add
 'allow_user_poisoning=0' to ASAN_OPTIONS, or build Emacs with
 '-DGC_ASAN_POISON_OBJECTS=0' in CFLAGS.
 

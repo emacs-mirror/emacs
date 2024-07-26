@@ -21,17 +21,17 @@
 
 ;;; Commentary:
 
-;; This file provides tests for various features of Emacs. It is
+;; This file provides tests for various features of Emacs.  It is
 ;; designed to check whether bundled binary distributions of Emacs on
 ;; windows are fully functional.
 
 ;; By default is checks whether the features that we are expect to be
-;; available on Emacs for Windows are reported to be available. It
+;; available on Emacs for Windows are reported to be available.  It
 ;; should be possible to run these tests from a distributed version of
 ;; Emacs.
 
 ;; In addition, it provides a single command
-;; `w32-feature-load-tests'. If the full source repository of Emacs is
+;; `w32-feature-load-tests'.  If the full source repository of Emacs is
 ;; available, this will load selected files from the repository which
 ;; test these features.
 

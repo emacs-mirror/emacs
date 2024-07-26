@@ -120,13 +120,13 @@ the documentation for the two variables icon-map-list and x-gtk-stock-map.
 
 ** Scrollbars follow the system theme on Windows XP and later.
 Windows XP introduced themed scrollbars, but applications have to take
-special steps to use them. Emacs now has the appropriate resources linked
+special steps to use them.  Emacs now has the appropriate resources linked
 in to make it use the scrollbars from the system theme.
 
 ** focus-follows-mouse defaults to nil on MS Windows.
 Previously this variable was incorrectly documented as having no effect
 on MS Windows, and the default was inappropriate for the majority of
-Windows installations. Users of software which modifies the behavior of
+Windows installations.  Users of software which modifies the behavior of
 Windows to cause focus to follow the mouse will now need to explicitly set
 this variable.
 
@@ -160,7 +160,7 @@ displays with fewer than 16 colors and dark background (e.g. older
 xterms and the Linux console).  On such displays, only the comment
 delimiters will appear to be fontified (in the new face
 'font-lock-comment-delimiter-face').  To restore the old appearance,
-customize 'font-lock-comment-face'. Another alternative is to use a
+customize 'font-lock-comment-face'.  Another alternative is to use a
 newer terminal emulator that supports more colors (256 is now common).
 For example, for xterm compatible emulators that support 256 colors,
 you can run emacs like this:
@@ -1702,7 +1702,7 @@ region (like 'delete-selection-mode').  Do not enable these modes with
 cua-mode.  Customize the variable 'cua-mode' to enable cua.
 
 The 'cua-selection-mode' enables the CUA keybindings for the region but
-does not change the bindings for C-z/C-x/C-c/C-v. It can be used as a
+does not change the bindings for C-z/C-x/C-c/C-v.  It can be used as a
 replacement for pc-selection-mode.
 
 In addition, cua provides unified rectangle support with visible
@@ -2112,18 +2112,18 @@ idle).
 - 'desktop-lazy-abort' aborts lazy loading of the desktop.
 
 *** New customizable variables:
-- 'desktop-save'. Determines whether the desktop should be saved when it is
+- 'desktop-save'.  Determines whether the desktop should be saved when it is
   killed.
-- 'desktop-file-name-format'. Format in which desktop file names should be saved.
-- 'desktop-path'. List of directories in which to lookup the desktop file.
-- 'desktop-locals-to-save'. List of local variables to save.
-- 'desktop-globals-to-clear'. List of global variables that 'desktop-clear' will clear.
-- 'desktop-clear-preserve-buffers-regexp'. Regexp identifying buffers that 'desktop-clear'
+- 'desktop-file-name-format'.  Format in which desktop file names should be saved.
+- 'desktop-path'.  List of directories in which to lookup the desktop file.
+- 'desktop-locals-to-save'.  List of local variables to save.
+- 'desktop-globals-to-clear'.  List of global variables that 'desktop-clear' will clear.
+- 'desktop-clear-preserve-buffers-regexp'.  Regexp identifying buffers that 'desktop-clear'
   should not delete.
-- 'desktop-restore-eager'. Number of buffers to restore immediately. Remaining buffers are
+- 'desktop-restore-eager'.  Number of buffers to restore immediately.  Remaining buffers are
   restored lazily (when Emacs is idle).
-- 'desktop-lazy-verbose'. Verbose reporting of lazily created buffers.
-- 'desktop-lazy-idle-delay'. Idle delay before starting to create buffers.
+- 'desktop-lazy-verbose'.  Verbose reporting of lazily created buffers.
+- 'desktop-lazy-idle-delay'.  Idle delay before starting to create buffers.
 
 *** New hooks:
 - 'desktop-after-read-hook' run after a desktop is loaded.
@@ -3603,8 +3603,8 @@ The mouse pointer changes shape depending on what is under the pointer.
 This enables Emacs to work better with programs that need to track the
 cursor, for example screen magnifiers and text to speech programs.
 When such a program is in use, the system caret is made visible
-instead of Emacs drawing its own cursor. This seems to be required by
-some programs. The new variable w32-use-visible-system-caret allows
+instead of Emacs drawing its own cursor.  This seems to be required by
+some programs.  The new variable w32-use-visible-system-caret allows
 the caret visibility to be manually toggled.
 
 ** On MS Windows NT/W2K/XP, Emacs uses Unicode for clipboard operations.
@@ -5017,7 +5017,7 @@ Note that all images formerly located in the lisp directory have been
 moved to etc/images.
 
 *** New function 'image-load-path-for-library' returns a suitable
-search path for images relative to library. This function is useful in
+search path for images relative to library.  This function is useful in
 external packages to save users from having to update
 'image-load-path'.
 

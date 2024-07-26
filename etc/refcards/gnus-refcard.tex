@@ -135,18 +135,18 @@
 \newcommand{\Notes}{%
   \subsection*{Notes}
   {\esamepage
-    Gnus is complex. Currently it has some 876 interactive (user-callable)
-    functions. Of these 618 are in the two major modes (Group and
-    Summary/Article). Many of these functions have more than one binding, some
-    have 3 or even 4 bindings. The total number of keybindings is 677. So in
+    Gnus is complex.  Currently it has some 876 interactive (user-callable)
+    functions.  Of these 618 are in the two major modes (Group and
+    Summary/Article).  Many of these functions have more than one binding, some
+    have 3 or even 4 bindings.  The total number of keybindings is 677.  So in
     order to save 40\% space, every function is listed only once on this
-    \guide, under the ``more logical'' binding. Alternative bindings are given
+    \guide, under the ``more logical'' binding.  Alternative bindings are given
     in parentheses in the beginning of the description.
 
-    Many Gnus commands are affected by the numeric prefix. Normally you enter a
+    Many Gnus commands are affected by the numeric prefix.  Normally you enter a
     prefix by holding the Meta key and typing a number, but in most Gnus modes
-    you don't need to use Meta since the digits are not self-inserting. The
-    prefixed behavior of commands is given in [brackets]. Often the prefix is
+    you don't need to use Meta since the digits are not self-inserting.  The
+    prefixed behavior of commands is given in [brackets].  Often the prefix is
     used to specify:
 
     \quad [distance] How many objects to move the point over.
@@ -154,17 +154,17 @@
     \quad [scope] How many objects to operate on (including current one).
 
     \quad [p/p] The ``Process/Prefix Convention'': If a prefix is given then it
-    determines how many objects to operate on. Else if there are some objects
-    marked with the process mark \#, these are operated on. Else only the
+    determines how many objects to operate on.  Else if there are some objects
+    marked with the process mark \#, these are operated on.  Else only the
     current object is affected.
 
-    \quad [level] A group subscribedness level. Only groups with a lower or
-    equal level will be affected by the operation. If no prefix is given,
+    \quad [level] A group subscribedness level.  Only groups with a lower or
+    equal level will be affected by the operation.  If no prefix is given,
     `gnus-group-default-list-level' is used.  If
     `gnus-group-use-permanent-levels', then a prefix to the `g' and `l'
     commands will also set the default level.
 
-    \quad [score] An article score. If no prefix is given,
+    \quad [score] An article score.  If no prefix is given,
     `gnus-summary-default-score' is used. \\*[\baselineskip]
                                 % some keys
     Gnus startup-commands:\\*
@@ -176,7 +176,7 @@
     Additionally, there are two commands \texttt{gnus-plugged} and
     \texttt{gnus-unplugged}, which are only used if you want to download
     news and/or read previously downloaded news offline (see C-c C-i g Gnus
-    Unplugged RET). Note: \texttt{gnus-no-server} ignores the stuff in
+    Unplugged RET).  Note: \texttt{gnus-no-server} ignores the stuff in
     \texttt{gnus-agent-directory}, and thus does not allow you to use Gnus
     Unplugged.\\
                                 %
@@ -226,7 +226,7 @@
       ` ' & (M-u, M SPC, M c) Not read.\\
       !   & (!, M !, M t) Ticked (interesting).\\
       ?   & (?, M ?) Dormant (only followups are interesting).\\
-      E   & (E, M e, M x) {\bf Expirable}. Only has effect in mail groups.\\
+      E   & (E, M e, M x) {\bf Expirable}.  Only has effect in mail groups.\\
       G   & (C, B DEL) Canceled article (or deleted in mailgroups).\\
       \$  & (M-d, M s x, S x).  Marked as spam.\\
       \hline\hline
@@ -238,7 +238,7 @@
       \hline
       r   & (d, M d, M r) Deleted (marked as {\bf read}).\\
       C   & (M C; M C-c; M H; c, Z c; Z n; Z C) Killed by {\bf catch-up}.\\
-      F   & SOUPed article. See the manual.\\
+      F   & SOUPed article.  See the manual.\\
       O   & {\bf Old} (read in a previous session).\\
       K   & (k, M k; C-k, M K) {\bf Killed}.\\
       M   & Article marked as read by duplicate suppression.\\
@@ -261,7 +261,7 @@
       .   & Unseen. [2]\\
       +   & Over default score. [3]\\
       $-$ & Under default score. [3]\\
-      $=$ & Has children (thread underneath it). Add `\%e' to
+      $=$ & Has children (thread underneath it).  Add `\%e' to
       `gnus-summary-line-format'. [3]\\
       \hline
     \end{tabular}
@@ -388,7 +388,7 @@
       \end{keys}
       You can also create mail-groups and read your mail with Gnus (very useful
       if you are subscribed to mailing lists), using one of the methods
-      nnmbox, nnbabyl, nnml, nnmh, or nnfolder. Read about it in the online info
+      nnmbox, nnbabyl, nnml, nnmh, or nnfolder.  Read about it in the online info
       (C-c C-i g Reading Mail RET).
       }}
 
@@ -415,7 +415,7 @@
 
   \newcommand{\GroupTopicsGeneral}{%
     {\esamepage
-      Topics are ``categories'' for groups. Press t in the group-buffer to
+      Topics are ``categories'' for groups.  Press t in the group-buffer to
       toggle gnus-topic-mode (C-c C-i g Group Topics RET).\\*
       \begin{keys}{C-c C-x}
         T n     & Prompt for topic {\bf name} and create it.\\
@@ -541,7 +541,7 @@
   \newcommand{\MIMESummary}{%
     {\esamepage
       For the commands operating on one MIME part (a subset of gnus-article-*), a
-      prefix selects which part to operate on. If the point is placed over a
+      prefix selects which part to operate on.  If the point is placed over a
       MIME button in the article buffer, use the corresponding bindings for the
       article buffer instead.
 
@@ -622,7 +622,7 @@
 
   \newcommand{\SelectArticles}{% formerly \Gsubmap
     {\esamepage
-      These commands select the target article. They do not use the prefix.\\*
+      These commands select the target article.  They do not use the prefix.\\*
       \begin{keys}{G C-n}
         h       & Enter article-buffer.\\
         G b     & (,) Go to the {\bf best} article (the one with highest score).\\
@@ -647,7 +647,7 @@
 
   \newcommand{\ArticleModeGeneral}{%
     {\esamepage
-      The normal navigation keys work in Article mode. Some additional keys are:\\
+      The normal navigation keys work in Article mode.  Some additional keys are:\\
       \begin{keys}{C-c RET}
         C-c \^{} & Get the article with the Message-ID near point.\\
         C-c RET & Send reply to address near point.\\
@@ -750,7 +750,7 @@
   \newcommand{\HideHighlightArticle}{%
     {\esamepage
       \begin{keys}{W W C-c}
-        W W a   & Hide {\bf all} unwanted parts. Calls W W h, W W s, W W C-c.\\
+        W W a   & Hide {\bf all} unwanted parts.  Calls W W h, W W s, W W C-c.\\
         W W h   & Hide article {\bf headers}.\\
         W W b   & Hide {\bf boring} headers.\\
         W W s   & Hide {\bf signature}.\\
@@ -760,7 +760,7 @@
         W W c   & Hide {\bf citation}.\\
         W W C-c & Hide {\bf citation} using a more intelligent algorithm.\\
         W W C   & Hide cited text in articles that aren't roots.\\
-        W H a   & Highlight {\bf all} parts. Calls W b, W H c, W H h, W H s.\\
+        W H a   & Highlight {\bf all} parts.  Calls W b, W H c, W H h, W H s.\\
         W H c   & Highlight article {\bf citations}.\\
         W H h   & Highlight article {\bf headers}.\\
         W H s   & Highlight article {\bf signature}.\\
@@ -846,8 +846,8 @@
 
 \newcommand{\ProcessMark}{%
   {\esamepage
-    These commands set and remove the process mark (\#). You only need to use
-    it if the set of articles you want to operate on is non-contiguous. Else
+    These commands set and remove the process mark (\#).  You only need to use
+    it if the set of articles you want to operate on is non-contiguous.  Else
     use a numeric prefix.\\*
     \begin{keys}{M P R}
       M P p   & (\#, M \#) Mark this article.\\
@@ -927,7 +927,7 @@
 
 \newcommand{\PostReplyetc}{% formerly \Ssubmap
   {\esamepage
-    These commands put you in a separate news or mail buffer. See the section
+    These commands put you in a separate news or mail buffer.  See the section
     about composing messages for more information.\\*
                                 %After
                                 %editing the article, send it by pressing C-c C-c.  If you are in a
@@ -1055,8 +1055,8 @@
   {\esamepage
     Gnus recognizes if the current article is part of a series (multipart
     posting whose parts are identified by numbers in their subjects, e.g.{}
-    1/10\dots10/10) and processes the series accordingly. You can mark and
-    process more than one series at a time. If the posting contains any
+    1/10\dots10/10) and processes the series accordingly.  You can mark and
+    process more than one series at a time.  If the posting contains any
     archives, they are expanded and gathered in a new group.\\*
     \begin{keys}{X p}
       X b     & Un-{\bf binhex} these series. [p/p]\\

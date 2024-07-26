@@ -8,7 +8,7 @@ For more recent changes, see the main Emacs NEWS file.
 20041004
 --------
 
-Support for outlining has been added. See the manual for more details.
+Support for outlining has been added.  See the manual for more details.
 
 C-u C-c C-n goes to the first error.
 
@@ -30,7 +30,7 @@ Syntax highlighting with a dark background should now work.
 --------
 
 The attribute pathSuffix on the uri element in schema locating files
-has been replaced by a more general pattern attribute. The
+has been replaced by a more general pattern attribute.  The
 transformURI element now has required fromPattern and toPattern
 attributes.
 
@@ -68,15 +68,15 @@ customize `nxml-enabled-unicode-blocks' to control what Unicode blocks
 are used for completing names.
 
 Extra information is displayed for character references.  The Unicode
-name is displayed in a tooltip. A glyph for the referenced character
+name is displayed in a tooltip.  A glyph for the referenced character
 is displayed in a distinguished face following the character
 reference; this can be disabled by customizing
 `nxml-char-ref-display-glyph-flag'.  The command
 `nxml-toggle-char-ref-extra-display' dynamically toggles the display
 of extra information for character references for a particular buffer.
 This can be used if the display of extra information is causing
-performance problems. nXML mode tries to figure out which glyphs can
-be displayed. Unfortunately Emacs doesn't provide the primitives
+performance problems.  nXML mode tries to figure out which glyphs can
+be displayed.  Unfortunately Emacs doesn't provide the primitives
 necessary to do this properly, so nXML mode has to guess and will
 sometimes guess wrong.  The hook `nxml-glyph-set-hook' can be used to
 change nXML mode's guess.
@@ -92,7 +92,7 @@ M-q has been implemented so that it works reasonably with XML.  Other
 paragraph-related commands (M-{, M-}, M-h) have also been implemented.
 
 New command M-x rng-auto-set-schema to set the schema based on the
-buffer's current contents and file-name. This is called automatically
+buffer's current contents and file-name.  This is called automatically
 when rng-validate-mode is first enabled.
 
 There's now a C-M-d to go with C-M-u.  C-M-d moves forward down into
@@ -115,7 +115,7 @@ nxml-mode arranges to use the encoding declared in the XML
 declaration.  If there is no encoding declared, then nxml-mode will
 use utf-8 or utf-16 according to the user options
 `nxml-prefer-utf-16-to-utf-8-flag' and
-`nxml-prefer-utf-16-little-to-big-endian-flag'. If the chosen encoding
+`nxml-prefer-utf-16-little-to-big-endian-flag'.  If the chosen encoding
 cannot encode all the characters in the buffer, nxml-mode will
 complain and give the user an opportunity to use an encoding that can.
 
@@ -146,21 +146,21 @@ You can do
 and then follow the instructions displayed in the buffer to get the
 old behavior.
 
-Completion after </ will complete the rest of the end-tag. Completion
+Completion after </ will complete the rest of the end-tag.  Completion
 after < will include the end-tag in the possibilities if allowed by
 the schema.
 
 You can use C-c C-i instead of > to close the start-tag of an
 inline-level element.  After inserting the >, it will insert the
-end-tag and leave point before the end-tag. The `i' is supposed to be
-mnemonic for `inline'. C-c C-b is similar, but for block elements: the
+end-tag and leave point before the end-tag.  The `i' is supposed to be
+mnemonic for `inline'.  C-c C-b is similar, but for block elements: the
 start-tag, point and the end-tag will all be on separate lines.
 
 The binding for inserting an end-tag has changed from C-c / to C-c C-f
 to comply with Emacs guidelines about what keys major modes should
 bind.  The `f' is supposed to be mnemonic for `finish'.
 
-Completion always puts point after all the characters it inserts. It
+Completion always puts point after all the characters it inserts.  It
 doesn't insert a `>' after completing a start-tag name.
 
 Completion no longer completes CDATA section and comment delimiters.

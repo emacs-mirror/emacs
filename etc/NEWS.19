@@ -2118,7 +2118,7 @@ cross-reference entries are object to completion.
 BibTeX entries may have brace-delimited and quote-delimited fields
 intermixed.  The delimiters generated for new entries are specified by
 the variables 'bibtex-field-left-delimiter' and
-'bibtex-field-right-delimiter' on a buffer-local basis. Those variables
+'bibtex-field-right-delimiter' on a buffer-local basis.  Those variables
 default to braces, since it is easier to put quote accented characters
 (as the german umlauts) into a brace-delimited entry.
 

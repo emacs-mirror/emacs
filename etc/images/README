@@ -1,5 +1,5 @@
 * The default GTK icons were not overridden by the GNOME theme due to
-  a bug which was fixed in GNOME 2.15. Once GNOME 2.16 is in wide
+  a bug which was fixed in GNOME 2.15.  Once GNOME 2.16 is in wide
   circulation, the GTK icons should be replaced with the equivalent
   GNOME icons.
 
@@ -42,7 +42,7 @@ Files: checked.xpm, unchecked.xpm
   Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 
-* The following icons are from GTK+ 2.x. They are not part of Emacs, but
+* The following icons are from GTK+ 2.x.  They are not part of Emacs, but
 are distributed and used by Emacs.  They are licensed under the
 GNU Library General Public License version 2 or later.  See the source
 of the gtk+ package for more information.
@@ -57,7 +57,7 @@ of the gtk+ package for more information.
   diropen.xpm is file-manager.png from Gnome hicolor theme.
 
 
-* The following icons are from GNOME 2.x. They are not part of Emacs,
+* The following icons are from GNOME 2.x.  They are not part of Emacs,
 but are distributed and used by Emacs.  They are licensed under the
 GNU General Public License version 2 or later.  See the source of
 the gnome-icons-theme package for more information.
