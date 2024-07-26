@@ -6708,7 +6708,7 @@ Draw vertical lines.
 @end deffn
 
 @deffn Command curveto coordinate-sets
-Using the first element in @var{coordinate-sets}, draw a cubic Bézier
+Using the first element in @var{coordinate-sets}, draw a cubic B@'ezier
 curve from the current point.  If there are multiple coordinate sets,
 draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x1} @var{y1} @var{x2} @var{y2} @var{x} @var{y})}, where
@@ -6725,7 +6725,7 @@ beginning and at the end, respectively.
 @end deffn
 
 @deffn Command smooth-curveto coordinate-sets
-Using the first element in @var{coordinate-sets}, draw a cubic Bézier
+Using the first element in @var{coordinate-sets}, draw a cubic B@'ezier
 curve from the current point.  If there are multiple coordinate sets,
 draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x2} @var{y2} @var{x} @var{y})}, where @w{(@var{x},
@@ -6746,7 +6746,7 @@ coincides with the current point.
 
 @deffn Command quadratic-bezier-curveto coordinate-sets
 Using the first element in @var{coordinate-sets}, draw a quadratic
-Bézier curve from the current point.  If there are multiple coordinate
+B@'ezier curve from the current point.  If there are multiple coordinate
 sets, draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x1} @var{y1} @var{x} @var{y})}, where @w{(@var{x},
 @var{y})} is the curve's end point and @w{(@var{x1}, @var{y1})} is the
@@ -6764,7 +6764,7 @@ control point.
 
 @deffn Command smooth-quadratic-bezier-curveto coordinate-sets
 Using the first element in @var{coordinate-sets}, draw a quadratic
-Bézier curve from the current point.  If there are multiple coordinate
+B@'ezier curve from the current point.  If there are multiple coordinate
 sets, draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x} @var{y})}, where @w{(@var{x}, @var{y})} is the curve's
 end point.  The control point is the reflection of the control point

@@ -1,4 +1,3 @@
-@c -*-coding: utf-8-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990--1994, 2001--2024 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
@@ -571,9 +570,9 @@ Eirik Fuller, Stephen Gildea, Bob Glickstein, Eric Hanchrow, Jesper
 Harder, George Hartzell, Nathan Hess, Masayuki Ida, Dan Jacobson, Jak
 Kirman, Bob Knighten, Frederick M. Korz, Joe Lammens, Glenn M. Lewis,
 K. Richard Magill, Brian Marick, Roland McGrath, Stefan Monnier, Skip
-Montanaro, John Gardiner Myers, Thomas A. Peterson, Francesco Potortì,
+Montanaro, John Gardiner Myers, Thomas A. Peterson, Francesco Potort@`i,
 Friedrich Pukelsheim, Arnold D. Robbins, Raul Rockwell, Jason Rumney,
-Per Starbäck, Shinichirou Sugou, Kimmo Suominen, Edward Tharp, Bill
+Per Starb@"ack, Shinichirou Sugou, Kimmo Suominen, Edward Tharp, Bill
 Trost, Rickard Westman, Jean White, Eduard Wiebe, Matthew Wilding,
 Carl Witty, Dale Worley, Rusty Wright, and David D. Zuhn.
 
