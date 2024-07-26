@@ -2958,8 +2958,14 @@ Note also that if neither the XDG location nor @file{~/.emacs.d}
 exist, then Emacs will create @file{~/.emacs.d} (and therefore use it
 during subsequent invocations).
 
+@vindex user-emacs-directory
 Emacs will set @code{user-emacs-directory} to the directory it decides
-to use.
+to use.  This directory is subsequently used to look for your other
+user-specific Emacs files, such as @code{custom-file} (@pxref{Saving
+Customizations}), the saved desktop (@pxref{Saving Emacs Sessions}) and
+others.  The @code{--init-directory} command-line option (@pxref{Initial
+Options}) overrides the value of @code{user-emacs-directory} determined
+as side effect of the search for your user init file described above.
 
 Although this is backward-compatible with older Emacs versions, modern
 POSIX platforms prefer putting your initialization files under
