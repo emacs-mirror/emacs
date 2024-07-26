@@ -1770,17 +1770,23 @@ default values are used."
 	(unless nodefault
 	  (when hop
 	    (setq v (tramp-dissect-hop-name hop)
-		  hop (and hop (tramp-make-tramp-hop-name v))))
+		  hop (tramp-make-tramp-hop-name v)))
 	  (let ((tramp-default-host
 		 (or (and v (not (string-search "%h" (tramp-file-name-host v)))
 			  (tramp-file-name-host v))
 		     tramp-default-host)))
 	    (setq method (tramp-find-method method user host)
 		  user (tramp-find-user method user host)
-		  host (tramp-find-host method user host)
-		  hop
-		  (and hop
-		       (format-spec hop (format-spec-make ?h host ?u user))))))
+		  host (tramp-find-host method user host))
+	    (when hop
+	      ;; Replace placeholders.  The hop could contain "%"
+	      ;; which is not intended as format character, for
+	      ;; example in USER%DOMAIN or POD%NAMESPACE.
+	      (setq hop
+		    (replace-regexp-in-string
+		     (rx "%" (group (= 2 alnum))) "%%\\1" hop)
+		    hop
+		    (format-spec hop (format-spec-make ?h host ?u user))))))
 
 	;; Return result.
 	(prog1
@@ -4930,8 +4936,13 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	(if (null proxy)
 	    ;; No more hops needed.
 	    (setq choices nil)
-	  ;; Replace placeholders.
+	  ;; Replace placeholders.  The proxy could contain "%" which
+	  ;; is not intended as format character, for example in
+	  ;; USER%DOMAIN or POD%NAMESPACE.
 	  (setq proxy
+		(replace-regexp-in-string
+		 (rx "%" (group (= 2 alnum))) "%%\\1" proxy)
+		proxy
 		(format-spec
 		 proxy
 		 (format-spec-make
