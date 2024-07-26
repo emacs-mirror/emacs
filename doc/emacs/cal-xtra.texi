@@ -1,4 +1,4 @@
-@c This is part of the Emacs manual.  -*- coding: utf-8 -*-
+@c This is part of the Emacs manual.
 @c Copyright (C) 2004--2024 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
@@ -202,7 +202,7 @@ the month (1 specifies the first occurrence, 2 the second occurrence,
 @minus{}1 the last occurrence, @minus{}2 the second-to-last occurrence, and
 so on).
 
-  You can specify holidays that occur on fixed days of the Bahá'í,
+  You can specify holidays that occur on fixed days of the Bah@'a'@'i,
 Chinese, Hebrew, Islamic, and Julian calendars too.  For example,
 
 @smallexample
@@ -513,7 +513,7 @@ the fourth pattern.
 @subsection Diary Entries Using non-Gregorian Calendars
 
   As well as entries based on the standard Gregorian calendar, your
-diary can have entries based on Bahá'í, Chinese, Hebrew, or Islamic dates.
+diary can have entries based on Bah@'a'@'i, Chinese, Hebrew, or Islamic dates.
 Recognition of such entries can be time-consuming, however, and since
 most people don't use them, you must explicitly enable their use.  If
 you want the diary to recognize Hebrew-date diary entries, for example,
@@ -535,7 +535,7 @@ you must do this:
 @end smallexample
 
 @noindent
-Similarly, for Islamic, Bahá'í and Chinese entries, add
+Similarly, for Islamic, Bah@'a'@'i and Chinese entries, add
 @code{diary-islamic-list-entries} and @code{diary-islamic-mark-entries},
 @code{diary-bahai-list-entries} and @code{diary-bahai-mark-entries},
 or @code{diary-chinese-list-entries} and @code{diary-chinese-mark-entries}.
@@ -546,7 +546,7 @@ or @code{diary-chinese-list-entries} and @code{diary-chinese-mark-entries}.
 @vindex diary-islamic-entry-symbol
   These diary entries have the same formats as Gregorian-date diary
 entries; except that @code{diary-bahai-entry-symbol} (default @samp{B})
-must precede a Bahá'í date, @code{diary-chinese-entry-symbol} (default
+must precede a Bah@'a'@'i date, @code{diary-chinese-entry-symbol} (default
 @samp{C}) a Chinese date, @code{diary-hebrew-entry-symbol} (default
 @samp{H}) a Hebrew date, and @code{diary-islamic-entry-symbol} (default
 @samp{I}) an Islamic date.  Moreover, non-Gregorian month names may not
@@ -574,7 +574,7 @@ nonmarking if preceded by @code{diary-nonmarking-symbol} (default
 
   Here is a table of commands used in the calendar to create diary
 entries that match the selected date and other dates that are similar in
-the Bahá'í, Chinese, Hebrew, or Islamic calendars:
+the Bah@'a'@'i, Chinese, Hebrew, or Islamic calendars:
 
 @table @kbd
 @item i h d
@@ -962,7 +962,7 @@ Make a diary entry with today's equivalent Julian calendar date.
 @item %%(diary-astro-day-number)
 Make a diary entry with today's equivalent astronomical (Julian) day number.
 @item %%(diary-bahai-date)
-Make a diary entry with today's equivalent Bahá'í calendar date.
+Make a diary entry with today's equivalent Bah@'a'@'i calendar date.
 @item %%(diary-chinese-date)
 Make a diary entry with today's equivalent Chinese calendar date.
 @item %%(diary-coptic-date)
