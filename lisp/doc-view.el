@@ -1798,7 +1798,7 @@ For now these keys are useful:
   (if doc-view--current-converter-processes
       (message "DocView: please wait till conversion finished.")
     (let ((txt (expand-file-name "doc.txt" (doc-view--current-cache-dir)))
-          (page (doc-view-current-page)))
+          (page (or (doc-view-current-page) 1)))
       (if (file-readable-p txt)
           (let ((dv-bfn doc-view--buffer-file-name)
                 (dv-text-buffer-name (format "%s/text" (buffer-name))))
