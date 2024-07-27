@@ -760,7 +760,7 @@ for details on preparing Emacs for automatic allout activation.
 
 (push (purecopy '(allout-widgets 1 0)) package--builtin-versions)
 (autoload 'allout-widgets-setup "allout-widgets" "\
-Commission or decommission allout-widgets-mode along with allout-mode.
+Commission or decommission `allout-widgets-mode' along with `allout-mode'.
 
 Meant to be used by customization of `allout-widgets-auto-activation'.
 
@@ -1554,7 +1554,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value \\='auto-insert-mode)'.
+evaluate the variable `(default-value \\='auto-insert-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -2949,7 +2949,7 @@ and corresponding effects.
 
 ;;; Generated autoloads from progmodes/c-ts-common.el
 
-(register-definition-prefixes "c-ts-common" '("c-ts-common-"))
+(register-definition-prefixes "c-ts-common" '("c-ts-"))
 
 
 ;;; Generated autoloads from progmodes/c-ts-mode.el
@@ -4247,6 +4247,7 @@ Returns non-nil if any false statements are found.
 (put 'checkdoc-spellcheck-documentation-flag 'safe-local-variable #'booleanp)
 (put 'checkdoc-ispell-list-words 'safe-local-variable #'list-of-strings-p)
 (put 'checkdoc-arguments-in-order-flag 'safe-local-variable #'booleanp)
+(put 'checkdoc-package-keywords-flag 'safe-local-variable #'booleanp)
 (put 'checkdoc-verb-check-experimental-flag 'safe-local-variable #'booleanp)
 (put 'checkdoc-symbol-words 'safe-local-variable #'list-of-strings-p)
 (put 'checkdoc-proper-noun-regexp 'safe-local-variable 'stringp)
@@ -4329,7 +4330,7 @@ Optional argument TAKE-NOTES causes all errors to be logged.
 Evaluate the current form with `eval-defun' and check its documentation.
 Evaluation is done first so the form will be read before the
 documentation is checked.  If there is a documentation error, then the display
-of what was evaluated will be overwritten by the diagnostic message." t)
+of what was evaluated will be overwritten by the diagnostic message." '(emacs-lisp-mode))
 (autoload 'checkdoc-defun "checkdoc" "\
 Examine the doc string of the function or variable under point.
 Call `error' if the doc string has problems.  If NO-ERROR is
@@ -4337,7 +4338,7 @@ non-nil, then do not call error, but call `message' instead.
 If the doc string passes the test, then check the function for rogue white
 space at the end of each line.
 
-(fn &optional NO-ERROR)" t)
+(fn &optional NO-ERROR)" '(emacs-lisp-mode))
 (autoload 'checkdoc-dired "checkdoc" "\
 In Dired, run `checkdoc' on marked files.
 Skip anything that doesn't have the Emacs Lisp library file
@@ -4399,14 +4400,14 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `checkdoc-minor-mode'.
+evaluate the variable `checkdoc-minor-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
 (fn &optional ARG)" t)
 (autoload 'checkdoc-package-keywords "checkdoc" "\
-Find package keywords that aren't in `finder-known-keywords'." t)
+Find package keywords that aren't in `finder-known-keywords'." '(emacs-lisp-mode))
 (register-definition-prefixes "checkdoc" '("checkdoc-"))
 
 
@@ -4889,14 +4890,13 @@ Search happens in `native-comp-eln-load-path'.
 (fn FILENAME)")
 (autoload 'native-compile "comp" "\
 Compile FUNCTION-OR-FILE into native code.
-This is the synchronous entry-point for the Emacs Lisp native
-compiler.  FUNCTION-OR-FILE is a function symbol, a form, or the
-filename of an Emacs Lisp source file.  If OUTPUT is non-nil, use
-it as the filename for the compiled object.  If FUNCTION-OR-FILE
-is a filename, if the compilation was successful return the
-filename of the compiled object.  If FUNCTION-OR-FILE is a
-function symbol or a form, if the compilation was successful
-return the compiled function.
+This is the synchronous entry-point for the Emacs Lisp native compiler.
+FUNCTION-OR-FILE is a function symbol, a form, an interpreted-function,
+or the filename of an Emacs Lisp source file.  If OUTPUT is non-nil, use
+it as the filename for the compiled object.  If FUNCTION-OR-FILE is a
+filename, if the compilation was successful return the filename of the
+compiled object.  If FUNCTION-OR-FILE is a function symbol or a form, if
+the compilation was successful return the compiled function.
 
 (fn FUNCTION-OR-FILE &optional OUTPUT)")
 (function-put 'native-compile 'function-type '(function ((or string symbol) &optional string) (or native-comp-function string)))
@@ -6716,7 +6716,6 @@ Variables controlling indentation style and extra features:
  dcl-imenu-label-call
     Change the text that is used as sub-listing labels in imenu.
 
-To run code after DCL mode has loaded, use `with-eval-after-load'.
 Turning on DCL mode calls the value of the variable `dcl-mode-hook'
 with no args, if that value is non-nil.
 
@@ -7130,7 +7129,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value \\='desktop-save-mode)'.
+evaluate the variable `(default-value \\='desktop-save-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -7744,7 +7743,7 @@ move to that file's line in the directory listing.
 If the current buffer isn't visiting a file, Dired `default-directory'.
 
 If in Dired already, pop up a level and goto old directory's line.
-In case the proper Dired file line cannot be found, refresh the dired
+In case the proper Dired file line cannot be found, refresh the Dired
 buffer and try again.
 
 When OTHER-WINDOW is non-nil, jump to Dired buffer in other window.
@@ -9846,13 +9845,19 @@ displayed." t)
 
 (autoload 'eshell-execute-file "em-script" "\
 Execute a series of Eshell commands in FILE, passing ARGS.
-If DESTINATION is t, write the command output to the current buffer.  If
-nil, don't write the output anywhere.  For any other value, output to
-the corresponding Eshell target (see `eshell-get-target').
+If OUTPUT-TARGET is t (interactively, with the prefix argument), write
+the command's standard output to the current buffer at point.  If nil,
+don't write the output anywhere.  For any other value, output to that
+Eshell target (see `eshell-get-target').
+
+ERROR-TARGET is similar to OUTPUT-TARGET, except that it controls where
+to write standard error, and a nil value means to write standard error
+to the same place as standard output.  (To suppress standard error, you
+can write to the Eshell virtual target \"/dev/null\".)
 
 Comments begin with `#'.
 
-(fn FILE &optional ARGS DESTINATION)")
+(fn FILE &optional ARGS OUTPUT-TARGET ERROR-TARGET)" t)
 (autoload 'eshell-batch-file "em-script" "\
 Execute an Eshell script as a batch script from the command line.
 Inside your Eshell script file, you can add the following at the
@@ -10421,7 +10426,7 @@ Look at CONFIG and try to expand GROUP.
 
 ;;; Generated autoloads from erc/erc.el
 
-(push (purecopy '(erc 5 6)) package--builtin-versions)
+(push (purecopy '(erc 5 6 1 -4)) package--builtin-versions)
 (dolist (symbol '( erc-sasl erc-spelling ; 29
                   erc-imenu erc-nicks)) ; 30
  (custom-add-load symbol symbol))
@@ -10901,10 +10906,22 @@ information on Eshell, see Info node `(eshell)Top'.
 (fn &optional ARG)" t)
 (autoload 'eshell-command "eshell" "\
 Execute the Eshell command string COMMAND.
-If TO-CURRENT-BUFFER is non-nil (interactively, with the prefix
-argument), then insert output into the current buffer at point.
+If OUTPUT-TARGET is t (interactively, with the prefix argument), write
+the command's standard output to the current buffer at point.  If nil,
+write the output to a new output buffer.  For any other value, output to
+that Eshell target (see `eshell-get-target').
 
-(fn COMMAND &optional TO-CURRENT-BUFFER)" t)
+ERROR-TARGET is similar to OUTPUT-TARGET, except that it controls where
+to write standard error, and a nil value means to write standard error
+to the same place as standard output.  (To suppress standard error, you
+can write to the Eshell virtual target \"/dev/null\".)
+
+When \"&\" is added at end of command, the command is async and its
+output appears in a specific buffer.  You can customize
+`eshell-command-async-buffer' to specify what to do when this output
+buffer is already taken by another running shell command.
+
+(fn COMMAND &optional OUTPUT-TARGET ERROR-TARGET)" t)
 (autoload 'eshell-command-result "eshell" "\
 Execute the given Eshell COMMAND, and return the result.
 The result might be any Lisp object.
@@ -11220,7 +11237,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value \\='etags-regen-mode)'.
+evaluate the variable `(default-value \\='etags-regen-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -13054,7 +13071,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `flymake-mode'.
+evaluate the variable `flymake-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -13771,7 +13788,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value \\='gdb-enable-debug)'.
+evaluate the variable `(default-value \\='gdb-enable-debug)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -14105,8 +14122,8 @@ Read news as a child unplugged.
 (autoload 'gnus-agentize "gnus-agent" "\
 Allow Gnus to be an offline newsreader.
 
-The gnus-agentize function is now called internally by gnus when
-gnus-agent is set.  If you wish to avoid calling gnus-agentize,
+The `gnus-agentize' function is now called internally by gnus when
+`gnus-agent' is set.  If you wish to avoid calling `gnus-agentize',
 customize `gnus-agent' to nil.
 
 This will modify the `gnus-setup-news-hook', and
@@ -16050,8 +16067,8 @@ which can be called interactively, are:
   (See `font-lock-keywords'.)  They may be edited and re-loaded with \\[hi-lock-find-patterns],
   any valid `font-lock-keywords' form is acceptable.  When a file is
   loaded the patterns are read if `hi-lock-file-patterns-policy' is
-  `ask' and the user responds y to the prompt, or if
-  `hi-lock-file-patterns-policy' is bound to a function and that
+  `always', or if it's `ask' and the user responds y to the prompt,
+  or if `hi-lock-file-patterns-policy' is bound to a function and that
   function returns t.
 
 \\[hi-lock-find-patterns]
@@ -16253,7 +16270,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `hide-ifdef-mode'.
+evaluate the variable `hide-ifdef-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16375,7 +16392,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `highlight-changes-mode'.
+evaluate the variable `highlight-changes-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16403,7 +16420,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `highlight-changes-visible-mode'.
+evaluate the variable `highlight-changes-visible-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -16693,7 +16710,6 @@ Major mode for editing Html, powered by tree-sitter.
 
 ;;; Generated autoloads from htmlfontify.el
 
-(push (purecopy '(htmlfontify 0 21)) package--builtin-versions)
 (autoload 'htmlfontify-buffer "htmlfontify" "\
 Create a new buffer, named for the current buffer + a .html extension,
 containing an inline CSS-stylesheet and formatted CSS-markup HTML
@@ -17643,7 +17659,9 @@ IMAGE must be an image created with `create-image' or `defimage'.
 IMAGE is displayed by putting an overlay into the current buffer with a
 `before-string' STRING that has a `display' property whose value is the
 image.  STRING defaults to \"x\" if it's nil or omitted.
-The overlay created by this function has the `put-image' property set to t.
+Upon success, this function returns the created overlay with its
+`put-image' property set to t.
+
 POS may be an integer or marker.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
@@ -17707,7 +17725,7 @@ string containing the actual image data.  If the property `:type TYPE'
 is omitted or nil, try to determine the image type from its first few
 bytes of image data.  If that doesn't work, and the property `:file
 FILE' provide a file name, use its file extension as indication of the
-image type. If `:type TYPE' is provided, it must match the actual type
+image type.  If `:type TYPE' is provided, it must match the actual type
 determined for FILE or DATA by `create-image'.
 
 The function returns the image specification for the first specification
@@ -19013,7 +19031,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `ispell-minor-mode'.
+evaluate the variable `ispell-minor-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -20855,8 +20873,8 @@ the MH mail system.
 
 (fn &optional ARG)" t)
 (autoload 'mh-folder-mode "mh-folder" "\
-Major MH-E mode for \"editing\" an MH folder scan listing.\\<mh-folder-mode-map>
-
+Major MH-E mode for \"editing\" an MH folder scan listing.
+\\<mh-folder-mode-map>
 You can show the message the cursor is pointing to, and step through
 the messages. Messages can be marked for deletion or refiling into
 another folder; these commands are executed all at once with a
@@ -21620,7 +21638,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value \\='msb-mode)'.
+evaluate the variable `(default-value \\='msb-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -21951,11 +21969,20 @@ Run `traceroute-program' for TARGET.
 
 (fn TARGET)" t)
 (autoload 'ping "net-utils" "\
-Ping HOST.
-If your system's ping continues until interrupted, you can try setting
-`ping-program-options'.
+Ping HOST using `ping-program'.
 
-(fn HOST)" t)
+The user option `ping-program-options' is passed as flags to
+`ping-program'.  With a \\[universal-argument] prefix arg, prompt the
+user for the flags to pass.
+
+When called from Lisp, the optional argument FLAGS, if non-nil, is a
+list of strings that will be passed as flags for the `ping-program'.  If
+FLAGS is nil, `ping-program-options' will be used.
+
+If your system's ping continues until interrupted, you can try using a
+prefix argument or setting `ping-program-options'.
+
+(fn HOST &optional FLAGS)" t)
 (autoload 'nslookup-host "net-utils" "\
 Look up the DNS information for HOST (name or IP address).
 Optional argument NAME-SERVER says which server to use for
@@ -22944,7 +22971,7 @@ Coloring:
 
 ;;; Generated autoloads from org/org.el
 
-(push (purecopy '(org 9 7 4)) package--builtin-versions)
+(push (purecopy '(org 9 7 9)) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
 
@@ -23490,11 +23517,6 @@ With a numeric prefix, show all headlines up to that level.
 ;;; Generated autoloads from org/org-element.el
 
 (register-definition-prefixes "org-element" '("org-element-"))
-
-
-;;; Generated autoloads from org/org-element-ast.el
-
-(register-definition-prefixes "org-element-ast" '("org-element-"))
 
 
 ;;; Generated autoloads from org/org-entities.el
@@ -24216,7 +24238,8 @@ See `decode-time' for the meaning of FORM.
 ;;; Generated autoloads from progmodes/pascal.el
 
 (autoload 'pascal-mode "pascal" "\
-Major mode for editing Pascal code.\\<pascal-mode-map>
+Major mode for editing Pascal code.
+\\<pascal-mode-map>
 TAB indents for Pascal code.  Delete converts tabs to spaces as it moves back.
 
 \\[completion-at-point] completes the word around current point with respect to position in code
@@ -24250,7 +24273,7 @@ Variables controlling indentation/edit style:
     regardless of where in the line point is when the TAB command is used.
  `pascal-auto-endcomments' (default t)
     Non-nil means a comment { ... } is set after the ends which ends cases and
-    functions. The name of the function or case will be set between the braces.
+    functions.  The name of the function or case will be set between the braces.
  `pascal-auto-lineup' (default t)
     List of contexts where auto lineup of :'s or ='s should be done.
 
@@ -24895,44 +24918,6 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'.
 ;;; Generated autoloads from pgtk-dnd.el
 
 (register-definition-prefixes "pgtk-dnd" '("pgtk-dnd-"))
-
-
-;;; Generated autoloads from progmodes/php-ts-mode.el
-
-(autoload 'php-ts-mode "php-ts-mode" "\
-Major mode for editing PHP, powered by tree-sitter.
-
-(fn)" t)
-(autoload 'php-ts-mode-run-php-webserver "php-ts-mode" "\
-Run PHP built-in web server.
-
-PORT: Port number of built-in web server, default `php-ts-mode-ws-port'.
-Prompt for the port if the default value is nil.
-HOSTNAME: Hostname or IP address of Built-in web server,
-default `php-ts-mode-ws-hostname'.  Prompt for the hostname if the
-default value is nil.
-DOCUMENT-ROOT: Path to Document root, default `php-ts-mode-ws-document-root'.
-Prompt for the document-root if the default value is nil.
-ROUTER-SCRIPT: Path of the router PHP script,
-see `https://www.php.net/manual/en/features.commandline.webserver.php'
-NUM-OF-WORKERS: Before run the web server set the
-PHP_CLI_SERVER_WORKERS env variable useful for testing code against
-multiple simultaneous requests.
-
-Interactively, when invoked with prefix argument, always prompt
-for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT.
-
-(fn &optional PORT HOSTNAME DOCUMENT-ROOT ROUTER-SCRIPT NUM-OF-WORKERS)" t)
-(autoload 'run-php "php-ts-mode" "\
-Run an PHP interpreter as a inferior process.
-
-Arguments CMD an CONFIG, default to `php-ts-mode-php-executable'
-and `php-ts-mode-php-config' respectively, control which PHP interpreter is run.
-Prompt for CMD if `php-ts-mode-php-executable' is nil.
-Optional CONFIG, if supplied, is the php.ini file to use.
-
-(fn &optional CMD CONFIG)" t)
-(register-definition-prefixes "php-ts-mode" '("inferior-php-ts-mode" "php-ts-"))
 
 
 ;;; Generated autoloads from textmodes/picture.el
@@ -25971,9 +25956,11 @@ is non-nil, the command will not ask the user for confirmation.
 NO-CONFIRM is always nil when the command is invoked
 interactively.
 
+If PROJECT is non-nil, kill buffers for that project instead.
+
 Also see the `project-kill-buffers-display-buffer-list' variable.
 
-(fn &optional NO-CONFIRM)" t)
+(fn &optional NO-CONFIRM PROJECT)" t)
 (autoload 'project-remember-project "project" "\
 Add project PR to the front of the project list.
 Save the result in `project-list-file' if the list of projects
@@ -26690,7 +26677,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value \\='rcirc-track-minor-mode)'.
+evaluate the variable `(default-value \\='rcirc-track-minor-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -28830,8 +28817,8 @@ This also saves the value of `send-mail-function' via Customize.")
 Major mode for editing mail to be sent.
 Like Text Mode but with these additional commands:
 
-\\[mail-send]  mail-send (send the message)
-\\[mail-send-and-exit]  mail-send-and-exit (send the message and exit)
+\\[mail-send]  `mail-send' (send the message)
+\\[mail-send-and-exit]  `mail-send-and-exit' (send the message and exit)
 
 Here are commands that move to a header field (and create it if there isn't):
 	 \\[mail-to]  move to To:	\\[mail-subject]  move to Subj:
@@ -28840,9 +28827,9 @@ Here are commands that move to a header field (and create it if there isn't):
          \\[mail-mail-reply-to]  move to Mail-Reply-To:
          \\[mail-mail-followup-to] move to Mail-Followup-To:
 \\[mail-text]  move to message text.
-\\[mail-signature]  mail-signature (insert `mail-signature-file' file).
-\\[mail-yank-original]  mail-yank-original (insert current message, in Rmail).
-\\[mail-fill-yanked-message]  mail-fill-yanked-message (fill what was yanked).
+\\[mail-signature]  `mail-signature' (insert `mail-signature-file' file).
+\\[mail-yank-original]  `mail-yank-original' (insert current message, in Rmail).
+\\[mail-fill-yanked-message]  `mail-fill-yanked-message' (fill what was yanked).
 \\[mail-insert-file] insert a text file into the message.
 \\[mail-add-attachment] attach to the message a file as binary attachment.
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
@@ -30969,6 +30956,61 @@ removed.
 
 (fn STRING)")
 (function-put 'string-clean-whitespace 'important-return-value 't)
+(autoload 'string-fill "subr-x" "\
+Try to word-wrap STRING so that it displays with lines no wider than WIDTH.
+STRING is wrapped where there is whitespace in it.  If there are
+individual words in STRING that are wider than WIDTH, the result
+will have lines that are wider than WIDTH.
+
+(fn STRING WIDTH)")
+(function-put 'string-fill 'important-return-value 't)
+(autoload 'string-limit "subr-x" "\
+Return a substring of STRING that is (up to) LENGTH characters long.
+If STRING is shorter than or equal to LENGTH characters, return the
+entire string unchanged.
+
+If STRING is longer than LENGTH characters, return a substring
+consisting of the first LENGTH characters of STRING.  If END is
+non-nil, return the last LENGTH characters instead.
+
+If CODING-SYSTEM is non-nil, STRING will be encoded before
+limiting, and LENGTH is interpreted as the number of bytes to
+limit the string to.  The result will be a unibyte string that is
+shorter than LENGTH, but will not contain \"partial\"
+characters (or glyphs), even if CODING-SYSTEM encodes characters
+with several bytes per character.  If the coding system specifies
+prefix like the byte order mark (aka \"BOM\") or a shift-in sequence,
+their bytes will be normally counted as part of LENGTH.  This is
+the case, for instance, with `utf-16'.  If this isn't desired, use a
+coding system that doesn't specify a BOM, like `utf-16le' or `utf-16be'.
+
+When shortening strings for display purposes,
+`truncate-string-to-width' is almost always a better alternative
+than this function.
+
+(fn STRING LENGTH &optional END CODING-SYSTEM)")
+(function-put 'string-limit 'important-return-value 't)
+(autoload 'string-pad "subr-x" "\
+Pad STRING to LENGTH using PADDING.
+If PADDING is nil, the space character is used.  If not nil, it
+should be a character.
+
+If STRING is longer than the absolute value of LENGTH, no padding
+is done.
+
+If START is nil (or not present), the padding is done to the end
+of the string, and if non-nil, padding is done to the start of
+the string.
+
+(fn STRING LENGTH &optional PADDING START)")
+(function-put 'string-pad 'pure 't)
+(function-put 'string-pad 'side-effect-free 't)
+(autoload 'string-chop-newline "subr-x" "\
+Remove the final newline (if any) from STRING.
+
+(fn STRING)")
+(function-put 'string-chop-newline 'pure 't)
+(function-put 'string-chop-newline 'side-effect-free 't)
 (autoload 'named-let "subr-x" "\
 Looping construct taken from Scheme.
 Like `let', bind variables in BINDINGS and then evaluate BODY,
@@ -31007,7 +31049,7 @@ this defaults to the current buffer.
 Query the user for a process and return the process object.
 
 (fn PROMPT)")
-(register-definition-prefixes "subr-x" '("emacs-etc--hide-local-variables" "hash-table-" "internal--thread-argument" "replace-region-contents" "string-" "thread-" "with-buffer-unmodified-if-unchanged"))
+(register-definition-prefixes "subr-x" '("emacs-etc--hide-local-variables" "hash-table-" "internal--thread-argument" "replace-region-contents" "string-remove-" "thread-" "with-buffer-unmodified-if-unchanged"))
 
 
 ;;; Generated autoloads from progmodes/subword.el
@@ -31218,7 +31260,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `tab-line-mode'.
+evaluate the variable `tab-line-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -31301,7 +31343,7 @@ mode if ARG is nil, omitted, or is a positive number.  Disable the mode
 if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `table-fixed-width-mode'.
+evaluate the variable `table-fixed-width-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -31336,8 +31378,8 @@ first cell.
     |-!-  |     |     |
     +-----+-----+-----+
 
-Inside a table cell, there are special key bindings. \\<table-cell-map>
-
+Inside a table cell, there are special key bindings.
+\\<table-cell-map>
 M-9 \\[table-widen-cell] (or \\[universal-argument] 9 \\[table-widen-cell]) widens the first cell by 9 character
 width, which results as
 
@@ -31346,7 +31388,7 @@ width, which results as
     +--------------+-----+-----+
 
 Type TAB \\[table-widen-cell] then type TAB M-2 M-7 \\[table-widen-cell] (or \\[universal-argument] 2 7 \\[table-widen-cell]).  Typing
-TAB moves the point forward by a cell. The result now looks like this:
+TAB moves the point forward by a cell.  The result now looks like this:
 
     +--------------+------+--------------------------------+
     |              |      |-!-                             |
@@ -32557,7 +32599,10 @@ where the mouse button is clicked to find the thing nearby.
 
 (fn EVENT THING &optional NO-PROPERTIES)")
 (autoload 'sexp-at-point "thingatpt" "\
-Return the sexp at point, or nil if none is found.")
+Return the sexp at point, or nil if none is found.
+This is for returning the Lisp object represented by text at point;
+use (thing-at-point \\='sexp) instead if you rather want the balanced
+expression at point regardless of Lisp syntax.")
 (autoload 'symbol-at-point "thingatpt" "\
 Return the symbol at point, or nil if none is found.")
 (autoload 'number-at-point "thingatpt" "\
@@ -33571,13 +33616,13 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;; Generated autoloads from net/trampver.el
 
-(push (purecopy '(tramp 2 7 1 -1)) package--builtin-versions)
+(push (purecopy '(tramp 2 8 0 -1)) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
 ;;; Generated autoloads from transient.el
 
-(push (purecopy '(transient 0 6 0)) package--builtin-versions)
+(push (purecopy '(transient 0 7 2 1)) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient" "\
 Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -33628,7 +33673,7 @@ See info node `(transient)Modifying Existing Transients'.
 
 (fn PREFIX LOC)")
 (function-put 'transient-remove-suffix 'lisp-indent-function 'defun)
-(register-definition-prefixes "transient" '("static-if" "transient"))
+(register-definition-prefixes "transient" '("find-function-advised-original" "transient"))
 
 
 ;;; Generated autoloads from tree-widget.el
@@ -34034,7 +34079,7 @@ URL-encoded before it's used.
 (autoload 'url-retrieve-synchronously "url" "\
 Retrieve URL synchronously.
 Return the buffer containing the data, or nil if there are no data
-associated with it (the case for dired, info, or mailto URLs that need
+associated with it (the case for Dired, info, or mailto URLs that need
 no further processing).  URL is either a string or a parsed URL.
 
 If SILENT is non-nil, don't do any messaging while retrieving.
@@ -37264,6 +37309,11 @@ The problems cleaned up are:
    If `whitespace-style' includes the value
    `space-after-tab::space', replace TABs by SPACEs.
 
+5. missing newline at end of file.
+   If `whitespace-style' includes the value `missing-newline-at-eof',
+   and the cleanup region includes the end of file, add a final newline
+   if it is not there already.
+
 See `whitespace-style', `indent-tabs-mode' and `tab-width' for
 documentation.
 
@@ -37694,7 +37744,7 @@ available on your system.
 
 (fn &optional TOPIC RE-CACHE)" t)
 (autoload 'woman-dired-find-file "woman" "\
-In dired, run the WoMan man-page browser on this file." t)
+In Dired, run the WoMan man-page browser on this file." t)
 (autoload 'woman-find-file "woman" "\
 Find, decode and browse a specific UN*X man-page source file FILE-NAME.
 Use existing buffer if possible; reformat only if prefix arg given.
@@ -38075,16 +38125,310 @@ run a specific program.  The program must be a member of
 
 (fn &optional PGM)" t)
 (register-definition-prefixes "zone" '("zone-"))
+
+
+;;; Generated autoloads from org/org-element-ast.el
+
+(register-definition-prefixes "org-element-ast" '("org-element-"))
+
+
+;;; Generated autoloads from progmodes/php-ts-mode.el
+
+(autoload 'php-ts-mode "php-ts-mode" "\
+Major mode for editing PHP, powered by tree-sitter.
+
+(fn)" t)
+(autoload 'php-ts-mode-run-php-webserver "php-ts-mode" "\
+Run PHP built-in web server.
+
+PORT: Port number of built-in web server, default `php-ts-mode-ws-port'.
+Prompt for the port if the default value is nil.
+HOSTNAME: Hostname or IP address of Built-in web server,
+default `php-ts-mode-ws-hostname'.  Prompt for the hostname if the
+default value is nil.
+DOCUMENT-ROOT: Path to Document root, default `php-ts-mode-ws-document-root'.
+Prompt for the document-root if the default value is nil.
+ROUTER-SCRIPT: Path of the router PHP script,
+see `https://www.php.net/manual/en/features.commandline.webserver.php'
+NUM-OF-WORKERS: Before run the web server set the
+PHP_CLI_SERVER_WORKERS env variable useful for testing code against
+multiple simultaneous requests.
+
+Interactively, when invoked with prefix argument, always prompt
+for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT.
+
+(fn &optional PORT HOSTNAME DOCUMENT-ROOT ROUTER-SCRIPT NUM-OF-WORKERS)" t)
+(autoload 'run-php "php-ts-mode" "\
+Run an PHP interpreter as a inferior process.
+
+Arguments CMD and CONFIG, default to `php-ts-mode-php-executable'
+and `php-ts-mode-php-config' respectively, control which PHP interpreter is run.
+Prompt for CMD if `php-ts-mode-php-executable' is nil.
+Optional CONFIG, if supplied, is the php.ini file to use.
+
+(fn &optional CMD CONFIG)" t)
+(register-definition-prefixes "php-ts-mode" '("inferior-php-ts-mode" "php-ts-"))
+
+
+;;; Generated autoloads from editorconfig.el
+
+(push (purecopy '(editorconfig 0 11 0)) package--builtin-versions)
+(defvar editorconfig-mode nil "\
+Non-nil if Editorconfig mode is enabled.
+See the `editorconfig-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `editorconfig-mode'.")
+(custom-autoload 'editorconfig-mode "editorconfig" nil)
+(autoload 'editorconfig-mode "editorconfig" "\
+Toggle EditorConfig feature.
+
+This is a global minor mode.  If called interactively, toggle the
+`Editorconfig mode' mode.  If the prefix argument is positive, enable
+the mode, and if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the mode
+if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `(default-value \\='editorconfig-mode)'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+(fn &optional ARG)" t)
+(register-definition-prefixes "editorconfig" '("editorconfig-"))
+
+
+;;; Generated autoloads from editorconfig-conf-mode.el
+
+(autoload 'editorconfig-conf-mode "editorconfig-conf-mode" "\
+Major mode for editing .editorconfig files.
+
+(fn)" t)
+(add-to-list 'auto-mode-alist '("\\.editorconfig\\'" . editorconfig-conf-mode))
+(register-definition-prefixes "editorconfig-conf-mode" '("editorconfig-conf-mode-"))
+
+
+;;; Generated autoloads from editorconfig-core.el
+
+(register-definition-prefixes "editorconfig-core" '("editorconfig-core-"))
+
+
+;;; Generated autoloads from editorconfig-core-handle.el
+
+(register-definition-prefixes "editorconfig-core-handle" '("editorconfig-core-handle"))
+
+
+;;; Generated autoloads from editorconfig-fnmatch.el
+
+(register-definition-prefixes "editorconfig-fnmatch" '("editorconfig-fnmatch-"))
+
+
+;;; Generated autoloads from editorconfig-tools.el
+
+(autoload 'editorconfig-apply "editorconfig-tools" "\
+Get and apply EditorConfig properties to current buffer.
+
+This function does not respect the values of `editorconfig-exclude-modes' and
+`editorconfig-exclude-regexps' and always applies available properties.
+Use `editorconfig-mode-apply' instead to make use of these variables." t)
+(autoload 'editorconfig-find-current-editorconfig "editorconfig-tools" "\
+Find the closest .editorconfig file for current file." t)
+(autoload 'editorconfig-display-current-properties "editorconfig-tools" "\
+Display EditorConfig properties extracted for current buffer." t)
+(defalias 'describe-editorconfig-properties #'editorconfig-display-current-properties)
+(register-definition-prefixes "editorconfig-tools" '("editorconfig-mode-apply"))
+
+
+;;; Generated autoloads from which-key.el
+
+(push (purecopy '(which-key 3 6 1)) package--builtin-versions)
+(defvar which-key-mode nil "\
+Non-nil if Which-Key mode is enabled.
+See the `which-key-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `which-key-mode'.")
+(custom-autoload 'which-key-mode "which-key" nil)
+(autoload 'which-key-mode "which-key" "\
+Toggle `which-key-mode'.
+
+`which-key' is a minor mode that displays the key bindings following
+your currently entered incomplete command (a prefix) in a popup.
+
+For example, after enabling the minor mode, if you enter \\`C-x' and
+wait for one second (by default), the minibuffer will expand with all
+available key bindings that follow \\`C-x' (or as many as space allows
+given your settings).
+
+This is a global minor mode.  If called interactively, toggle the
+`Which-Key mode' mode.  If the prefix argument is positive, enable the
+mode, and if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the mode
+if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `(default-value \\='which-key-mode)'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+(fn &optional ARG)" t)
+(autoload 'which-key-setup-side-window-right "which-key" "\
+Set up side-window on right." t)
+(autoload 'which-key-setup-side-window-right-bottom "which-key" "\
+Set up side-window on right if space allows.
+Otherwise, use bottom." t)
+(autoload 'which-key-setup-side-window-bottom "which-key" "\
+Set up side-window that opens on bottom." t)
+(autoload 'which-key-setup-minibuffer "which-key" "\
+Set up minibuffer display.
+Do not use this setup if you use the paging commands.  Instead use
+`which-key-setup-side-window-bottom', which is nearly identical
+but more functional." t)
+(autoload 'which-key-add-keymap-based-replacements "which-key" "\
+Replace the description of KEY using REPLACEMENT in KEYMAP.
+KEY should take a format suitable for use in `kbd'.  REPLACEMENT
+should be a cons cell of the form (STRING . COMMAND) for each
+REPLACEMENT, where STRING is the replacement string and COMMAND
+is a symbol corresponding to the intended command to be
+replaced.  COMMAND can be nil if the binding corresponds to a key
+prefix.  An example is
+
+(which-key-add-keymap-based-replacements global-map
+  \"C-x w\" \\='(\"Save as\" . write-file)).
+
+For backwards compatibility, REPLACEMENT can also be a string,
+but the above format is preferred, and the option to use a string
+for REPLACEMENT will eventually be removed.
+
+(fn KEYMAP KEY REPLACEMENT &rest MORE)")
+(function-put 'which-key-add-keymap-based-replacements 'lisp-indent-function 'defun)
+(autoload 'which-key-add-key-based-replacements "which-key" "\
+Replace the description of KEY-SEQUENCE with REPLACEMENT.
+KEY-SEQUENCE is a string suitable for use in `kbd'.
+REPLACEMENT may either be a string, as in
+
+(which-key-add-key-based-replacements \"C-x 1\" \"maximize\")
+
+a cons of two strings as in
+
+(which-key-add-key-based-replacements \"C-x 8\"
+                                        \\='(\"unicode\" . \"Unicode keys\"))
+
+or a function that takes a (KEY . BINDING) cons and returns a
+replacement.
+
+In the second case, the second string is used to provide a longer
+name for the keys under a prefix.
+
+MORE allows you to specify additional KEY REPLACEMENT pairs.  All
+replacements are added to `which-key-replacement-alist'.
+
+(fn KEY-SEQUENCE REPLACEMENT &rest MORE)")
+(autoload 'which-key-add-major-mode-key-based-replacements "which-key" "\
+Functions like `which-key-add-key-based-replacements'.
+The difference is that MODE specifies the `major-mode' that must
+be active for KEY-SEQUENCE and REPLACEMENT (MORE contains
+addition KEY-SEQUENCE REPLACEMENT pairs) to apply.
+
+(fn MODE KEY-SEQUENCE REPLACEMENT &rest MORE)")
+(function-put 'which-key-add-major-mode-key-based-replacements 'lisp-indent-function 'defun)
+(autoload 'which-key-reload-key-sequence "which-key" "\
+Simulate entering the key sequence KEY-SEQ.
+KEY-SEQ should be a list of events as produced by
+`listify-key-sequence'.  If nil, KEY-SEQ defaults to
+`which-key--current-key-list'.  Any prefix arguments that were
+used are reapplied to the new key sequence.
+
+(fn &optional KEY-SEQ)")
+(autoload 'which-key-show-standard-help "which-key" "\
+Call the command in `which-key--prefix-help-cmd-backup'.
+Usually this is `describe-prefix-bindings'.
+
+(fn &optional _)" t)
+(autoload 'which-key-show-next-page-no-cycle "which-key" "\
+Show next page of keys or `which-key-show-standard-help'." t)
+(autoload 'which-key-show-previous-page-no-cycle "which-key" "\
+Show previous page of keys if one exists." t)
+(autoload 'which-key-show-next-page-cycle "which-key" "\
+Show the next page of keys, cycling from end to beginning.
+
+(fn &optional _)" t)
+(autoload 'which-key-show-previous-page-cycle "which-key" "\
+Show the previous page of keys, cycling from beginning to end.
+
+(fn &optional _)" t)
+(autoload 'which-key-show-top-level "which-key" "\
+Show top-level bindings.
+
+(fn &optional _)" t)
+(autoload 'which-key-show-major-mode "which-key" "\
+Show top-level bindings in the map of the current major mode.
+This function will also detect evil bindings made using
+`evil-define-key' in this map.  These bindings will depend on the
+current evil state.
+
+(fn &optional ALL)" t)
+(autoload 'which-key-show-full-major-mode "which-key" "\
+Show all bindings in the map of the current major mode.
+This function will also detect evil bindings made using
+`evil-define-key' in this map.  These bindings will depend on the
+current evil state." t)
+(autoload 'which-key-dump-bindings "which-key" "\
+Dump bindings from PREFIX into buffer named BUFFER-NAME.
+PREFIX should be a string suitable for `kbd'.
+
+(fn PREFIX BUFFER-NAME)" t)
+(autoload 'which-key-undo-key "which-key" "\
+Undo last keypress and force which-key update.
+
+(fn &optional _)" t)
+(autoload 'which-key-C-h-dispatch "which-key" "\
+Dispatch \\`C-h' commands by looking up key in `which-key-C-h-map'.
+This command is always accessible (from any prefix) if
+`which-key-use-C-h-commands' is non nil." t)
+(autoload 'which-key-show-keymap "which-key" "\
+Show the top-level bindings in KEYMAP using which-key.
+KEYMAP is selected interactively from all available keymaps.
+
+If NO-PAGING is non-nil, which-key will not intercept subsequent
+keypresses for the paging functionality.
+
+(fn KEYMAP &optional NO-PAGING)" t)
+(autoload 'which-key-show-full-keymap "which-key" "\
+Show all bindings in KEYMAP using which-key.
+KEYMAP is selected interactively from all available keymaps.
+
+(fn KEYMAP)" t)
+(autoload 'which-key-show-minor-mode-keymap "which-key" "\
+Show the top-level bindings in KEYMAP using which-key.
+KEYMAP is selected interactively by mode in
+`minor-mode-map-alist'.
+
+(fn &optional ALL)" t)
+(autoload 'which-key-show-full-minor-mode-keymap "which-key" "\
+Show all bindings in KEYMAP using which-key.
+KEYMAP is selected interactively by mode in
+`minor-mode-map-alist'." t)
+(register-definition-prefixes "which-key" '("evil-state" "which-key-"))
+
 
 ;;; End of scraped data
 
 (provide 'loaddefs)
 
 ;; Local Variables:
-;; no-byte-compile: t
 ;; version-control: never
 ;; no-update-autoloads: t
 ;; no-native-compile: t
+;; no-byte-compile: t
 ;; coding: utf-8-emacs-unix
 ;; End:
 
