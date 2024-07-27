@@ -47,7 +47,6 @@
 (defconst tramp-bug-report-address "tramp-devel@gnu.org"
   "Email address to send bug reports to.")
 
-;;;###tramp-autoload
 (defconst tramp-repository-branch
   (ignore-errors
     ;; Suppress message from `emacs-repository-get-branch'.  We must
@@ -61,7 +60,6 @@
 	   (emacs-repository-get-branch dir))))
   "The repository branch of the Tramp sources.")
 
-;;;###tramp-autoload
 (defconst tramp-repository-version
   (ignore-errors
     ;; Suppress message from `emacs-repository-get-version'.  We must
