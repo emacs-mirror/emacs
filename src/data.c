@@ -2682,11 +2682,23 @@ check_number_coerce_marker (Lisp_Object x)
   return x;
 }
 
+static Lisp_Object
+coerce_marker (Lisp_Object x)
+{
+  return MARKERP (x) ? make_fixnum (marker_position (x)) : x;
+}
+
+static AVOID
+not_number_or_marker (Lisp_Object x)
+{
+  wrong_type_argument (Qnumber_or_marker_p, x);
+}
+
 cmp_bits_t
 arithcompare (Lisp_Object num1, Lisp_Object num2)
 {
-  num1 = check_number_coerce_marker (num1);
-  num2 = check_number_coerce_marker (num2);
+  num1 = coerce_marker (num1);
+  num2 = coerce_marker (num2);
 
   bool lt, eq, gt;
   if (FLOATP (num1))
@@ -2725,15 +2737,20 @@ arithcompare (Lisp_Object num1, Lisp_Object num2)
 	      gt = f1 > f2;
 	    }
 	}
-      else if (isnan (f1))
-	lt = eq = gt = false;
-      else
+      else if (BIGNUMP (num2))
 	{
-	  int cmp = mpz_cmp_d (*xbignum_val (num2), f1);
-	  eq = cmp == 0;
-	  lt = cmp > 0;
-	  gt = cmp < 0;
+	  if (isnan (f1))
+	    lt = eq = gt = false;
+	  else
+	    {
+	      int cmp = mpz_cmp_d (*xbignum_val (num2), f1);
+	      eq = cmp == 0;
+	      lt = cmp > 0;
+	      gt = cmp < 0;
+	    }
 	}
+      else
+	not_number_or_marker (num2);
     }
   else if (FIXNUMP (num1))
     {
@@ -2765,7 +2782,7 @@ arithcompare (Lisp_Object num1, Lisp_Object num2)
 	  lt = i1 < i2;
 	  gt = i1 > i2;
 	}
-      else
+      else if (BIGNUMP (num2))
 	{
 	  int sgn = mpz_sgn (*xbignum_val (num2));
 	  eassume (sgn != 0);
@@ -2773,35 +2790,44 @@ arithcompare (Lisp_Object num1, Lisp_Object num2)
 	  lt = sgn > 0;
 	  gt = sgn < 0;
 	}
-    }
-  else if (FLOATP (num2))
-    {
-      double f2 = XFLOAT_DATA (num2);
-      if (isnan (f2))
-	lt = eq = gt = false;
       else
+	not_number_or_marker (num2);
+    }
+  else if (BIGNUMP (num1))
+    {
+      if (FLOATP (num2))
 	{
-	  int cmp = mpz_cmp_d (*xbignum_val (num1), f2);
+	  double f2 = XFLOAT_DATA (num2);
+	  if (isnan (f2))
+	    lt = eq = gt = false;
+	  else
+	    {
+	      int cmp = mpz_cmp_d (*xbignum_val (num1), f2);
+	      eq = cmp == 0;
+	      lt = cmp < 0;
+	      gt = cmp > 0;
+	    }
+	}
+      else if (FIXNUMP (num2))
+	{
+	  int sgn = mpz_sgn (*xbignum_val (num1));
+	  eassume (sgn != 0);
+	  eq = false;
+	  lt = sgn < 0;
+	  gt = sgn > 0;
+	}
+      else if (BIGNUMP (num2))
+	{
+	  int cmp = mpz_cmp (*xbignum_val (num1), *xbignum_val (num2));
 	  eq = cmp == 0;
 	  lt = cmp < 0;
 	  gt = cmp > 0;
 	}
-    }
-  else if (FIXNUMP (num2))
-    {
-      int sgn = mpz_sgn (*xbignum_val (num1));
-      eassume (sgn != 0);
-      eq = false;
-      lt = sgn < 0;
-      gt = sgn > 0;
+      else
+	not_number_or_marker (num2);
     }
   else
-    {
-      int cmp = mpz_cmp (*xbignum_val (num1), *xbignum_val (num2));
-      eq = cmp == 0;
-      lt = cmp < 0;
-      gt = cmp > 0;
-    }
+    not_number_or_marker (num1);
 
   return lt << Cmp_Bit_LT | gt << Cmp_Bit_GT | eq << Cmp_Bit_EQ;
 }
