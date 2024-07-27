@@ -3,6 +3,7 @@
 ;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>
+;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; Keywords: tools
 
 ;; This file is part of GNU Emacs.

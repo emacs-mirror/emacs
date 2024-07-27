@@ -229,6 +229,12 @@ Juri Linkov
 	lisp/tab-bar.el
 	lisp/tab-line.el
 
+Philip Kaludercic
+       lisp/emacs-lisp/package.el
+       lisp/emacs-lisp/package-vc.el
+       lisp/emacs-lisp/compat.el
+       lisp/net/rcirc.el
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.
@@ -366,6 +372,9 @@ Juri Linkov
 	    lisp/outline.el
 	Repeat mode
 	    lisp/repeat.el
+
+Philip Kaludercic
+	lisp/epa-ks.el
 
 ==============================================================================
 3. Externally maintained packages.
