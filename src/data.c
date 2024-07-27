@@ -2768,7 +2768,8 @@ arithcompare (Lisp_Object num1, Lisp_Object num2)
       else
 	{
 	  int sgn = mpz_sgn (*xbignum_val (num2));
-	  eq = sgn == 0;
+	  eassume (sgn != 0);
+	  eq = false;
 	  lt = sgn > 0;
 	  gt = sgn < 0;
 	}
@@ -2789,7 +2790,8 @@ arithcompare (Lisp_Object num1, Lisp_Object num2)
   else if (FIXNUMP (num2))
     {
       int sgn = mpz_sgn (*xbignum_val (num1));
-      eq = sgn == 0;
+      eassume (sgn != 0);
+      eq = false;
       lt = sgn < 0;
       gt = sgn > 0;
     }
