@@ -101,7 +101,7 @@ Lisp_Object Vemacs_mule_charset_list;
 int emacs_mule_charset[256];
 
 /* Mapping table from ISO2022's charset (specified by DIMENSION,
-   CHARS, and FINAL-CHAR) to Emacs' charset.  */
+   CHARS, and FINAL-CHAR) to Emacs's charset.  */
 int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
 #define CODE_POINT_TO_INDEX(charset, code)				\

@@ -8,4 +8,10 @@ Re "behavior" vs "behaviour", etc.
 - It's probably (IMHO --ttn, 2017-10-13) not a high priority to
   change existing text; use your best judgment (ask if unsure).
 
+- The admin/run-codespell script treats many non-US spellings as
+  typos and fixes them.  It does not consider Lisp symbols.
+
+- Consider renaming especially commands and user options for
+  consistency.  Leave obsolete aliases, as always.
+
 - https://lists.gnu.org/r/emacs-devel/2005-06/msg00489.html

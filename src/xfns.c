@@ -7060,7 +7060,7 @@ x_frame_list_z_order (struct x_display_info *dpyinfo, Window window)
 
 DEFUN ("x-frame-list-z-order", Fx_frame_list_z_order,
        Sx_frame_list_z_order, 0, 1, 0,
-       doc: /* Return list of Emacs' frames, in Z (stacking) order.
+       doc: /* Return list of Emacs's frames, in Z (stacking) order.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be either a frame or a display name (a string).  If
 omitted or nil, that stands for the selected frame's display.  Return

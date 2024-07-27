@@ -3472,6 +3472,22 @@ file; for example:
 
 * Runtime problems specific to PGTK build
 
+** Whether a display server is available cannot be automatically detected.
+
+When started with no arguments from a text terminal and in an
+environment where no display server is specified, Emacs will print:
+
+  $ emacs
+  (emacs:3988): Gtk-WARNING **: 19:19:10.887: cannot open display:
+
+and exit.  This is a byproduct of GTK's not providing any means of
+probing for a display connection before committing to opening one, and
+cannot be addressed by Emacs.  Rather, users must expressly request a
+text mode session:
+
+  $ emacs -nw
+  [...]
+
 ** SECONDARY selections don't work on Wayland.
 
 This is because the SECONDARY selection is not implemented by the

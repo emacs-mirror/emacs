@@ -577,7 +577,7 @@ ns_init_locale (void)
     }
 
   /* Check if LANG can be used for initializing the locale.  If not,
-     use a default setting.  Note that Emacs' main will undo the
+     use a default setting.  Note that Emacs's main will undo the
      setlocale below, initializing the locale from the
      environment.  */
   if (setlocale (LC_ALL, lang) == NULL)
@@ -1407,7 +1407,7 @@ ns_raise_frame (struct frame *f, BOOL make_key)
   block_input ();
   if (FRAME_VISIBLE_P (f))
     {
-      if (make_key)
+      if (make_key && !f->no_accept_focus)
         [[view window] makeKeyAndOrderFront: NSApp];
       else
         [[view window] orderFront: NSApp];

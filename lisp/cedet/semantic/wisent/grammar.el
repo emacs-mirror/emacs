@@ -518,7 +518,7 @@ Menu items are appended to the common grammar menu.")
 	  (delete-trailing-whitespace))))))
 
 (defun wisent-make-parsers ()
-  "Generate Emacs' built-in Wisent-based parser files."
+  "Generate Emacs's built-in Wisent-based parser files."
   (interactive)
   (semantic-mode 1)
   ;; Loop through each .wy file in current directory, and run

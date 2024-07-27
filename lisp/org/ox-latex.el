@@ -993,7 +993,7 @@ The most comprehensive option can be set with,
 
 which causes source code to be run through
 `engrave-faces-latex-buffer', which generates colorings using
-Emacs' font-lock information.  This requires the Emacs package
+Emacs's font-lock information.  This requires the Emacs package
 engrave-faces (available from GNU ELPA), and the LaTeX package
 fvextra be installed.
 

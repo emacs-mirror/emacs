@@ -3359,7 +3359,7 @@ Here is the full set of built-in link types:
 
 - =gnus=, =rmail=, =mhe= ::
 
-  Link to messages or folders from a given Emacs' MUA.
+  Link to messages or folders from a given Emacs MUA.
 
 - =help= ::
 
@@ -23201,7 +23201,7 @@ than 30 stars.  This is a hard-coded limitation of ~lmax~ in
 2003, not the beginning of time.
 
 [fn:29] On computers using macOS, idleness is based on actual user
-idleness, not just Emacs' idle time.  For X11, you can install a
+idleness, not just Emacs's idle time.  For X11, you can install a
 utility program =x11idle.c=, available in the =org-contrib/=
 repository, or install the xprintidle package and set it to the
 variable ~org-clock-x11idle-program-name~ if you are running Debian,

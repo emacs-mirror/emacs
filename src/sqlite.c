@@ -700,7 +700,7 @@ MODULE should be the name of an SQlite module's file, a
 shared library in the system-dependent format and having a
 system-dependent file-name extension.
 
-Only modules on Emacs' list of allowed modules can be loaded.  */)
+Only modules on Emacs's list of allowed modules can be loaded.  */)
   (Lisp_Object db, Lisp_Object module)
 {
   check_sqlite (db, false);

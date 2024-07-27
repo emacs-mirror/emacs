@@ -133,7 +133,7 @@ file (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
 @end defun
 
 @deffn Command package-initialize &optional no-activate
-This function initializes Emacs' internal record of which packages are
+This function initializes Emacs's internal record of which packages are
 installed, and then calls @code{package-activate-all}.
 
 The optional argument @var{no-activate}, if non-@code{nil}, causes

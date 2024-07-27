@@ -59,7 +59,7 @@
                     ;; On MS-Windows, "nul.FOO" resolves to the null
                     ;; device, and thus acts like an always-empty
                     ;; file, for any FOO, in any directory.  So
-                    ;; c:/null.exe passes Emacs' test for the file's
+                    ;; c:/null.exe passes Emacs's test for the file's
                     ;; existence, and ensures we hit an error in the
                     ;; w32 process spawn code.
                     (call-process "c:/nul.exe")

@@ -45,7 +45,7 @@
 (unless (fboundp 'seq-keep)
   (display-warning 'transient (substitute-command-keys "\
 Transient requires `seq' >= 2.24,
-but due to bad defaults, Emacs' package manager, refuses to
+but due to bad defaults, Emacs's package manager, refuses to
 upgrade this and other built-in packages to higher releases
 from GNU Elpa, when a package specifies that this is needed.
 

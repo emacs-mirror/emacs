@@ -351,6 +351,16 @@ Do not include the @file{site-lisp} directories in @code{load-path}
 @item --init-directory
 @opindex --init-directory
 Specify the directory to use when looking for the Emacs init files.
+Note that this merely overrides the value of
+@file{user-emacs-directory}, the directory which Emacs usually
+determines as side effect of searching for your init file (@pxref{Find
+Init}), but does not change the search for the @file{~/.emacs} init
+file.  In particular, if there's no @file{init.el} file in the directory
+named by this option, Emacs will find and use @file{init.el} it would
+have used without this option (but will search for your other per-user
+Emacs files in the directory specified by this option).  If you want to
+force Emacs to use @file{init.el} file in this directory, make sure it
+exists there before starting Emacs with this option.
 
 @item --no-splash
 @opindex --no-splash

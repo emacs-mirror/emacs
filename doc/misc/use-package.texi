@@ -575,7 +575,7 @@ add @code{:demand t} to those declarations.
 Some users want to put all their customizations in use-package
 declarations, even for variables, hooks, and options that are always
 available, without loading any package.@footnote{In other words, they
-are either preloaded in Emacs or defined in Emacs' C sources.}
+are either preloaded in Emacs or defined in Emacs's C sources.}
 
 For that purpose, you can use the no-op @samp{emacs} package:
 
@@ -640,7 +640,7 @@ simply use @code{:if} and the appropriate Lisp expression.
 @node Manual installation
 @section Manually installed package
 
-When installing packages manually, without Emacs' built-in package
+When installing packages manually, without Emacs's built-in package
 manager (@file{package.el}), it will obviously not help you set up
 autoloads or add it to your @code{load-path}.  You must do it
 yourself.  However, use-package makes this more convenient.

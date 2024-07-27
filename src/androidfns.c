@@ -1740,7 +1740,7 @@ android_frame_list_z_order (struct android_display_info *dpyinfo,
 
 DEFUN ("android-frame-list-z-order", Fandroid_frame_list_z_order,
        Sandroid_frame_list_z_order, 0, 1, 0,
-       doc: /* Return list of Emacs' frames, in Z (stacking) order.
+       doc: /* Return list of Emacs's frames, in Z (stacking) order.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be either a frame or a display name (a string).  If
 omitted or nil, that stands for the selected frame's display.  Return

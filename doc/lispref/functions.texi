@@ -2059,7 +2059,7 @@ is the better way to modify a named function because it keeps track of
 the modifications, so they can be listed and undone.
 
   Modifying a named function should be reserved for
-the cases where you cannot modify Emacs' behavior in any other way.
+the cases where you cannot modify Emacs's behavior in any other way.
 If it is possible to do the same thing via a hook, that is preferable
 (@pxref{Hooks}).  If you simply want to change what a particular key
 does, it may be better to write a new command, and remap the old

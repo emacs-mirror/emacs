@@ -5437,7 +5437,7 @@ static const struct image_keyword xpm_format[XPM_LAST] =
 
 #if defined HAVE_X_WINDOWS && !defined USE_CAIRO
 
-/* Define ALLOC_XPM_COLORS if we can use Emacs' own color allocation
+/* Define ALLOC_XPM_COLORS if we can use Emacs's own color allocation
    functions for allocating image colors.  Our own functions handle
    color allocation failures more gracefully than the ones on the XPM
    lib.  */

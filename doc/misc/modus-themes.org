@@ -144,7 +144,7 @@ and covers everything that goes into every tagged release of the themes.
 :end:
 
 The Modus themes are distributed with Emacs starting with version 28.1.
-On older versions of Emacs, they can be installed using Emacs' package
+On older versions of Emacs, they can be installed using Emacs's package
 manager or manually from their code repository.  There also exist
 packages for distributions of GNU/Linux.
 
@@ -4769,7 +4769,7 @@ and/or mode line setup.
 :custom_id: h:4cc767dc-ffef-4c5c-9f10-82eb7b8921bf
 :end:
 
-Emacs' HTML rendering library ({{{file(shr.el)}}}) may need explicit
+Emacs's HTML rendering library ({{{file(shr.el)}}}) may need explicit
 configuration to respect the theme's colors instead of whatever
 specifications the webpage provides.
 

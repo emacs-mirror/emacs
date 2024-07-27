@@ -32235,7 +32235,7 @@ x_initialize (void)
   Xt_app_con = XtCreateApplicationContext ();
 
   /* Register a converter from strings to pixels, which uses
-     Emacs' color allocation infrastructure.  */
+     Emacs's color allocation infrastructure.  */
   XtAppSetTypeConverter (Xt_app_con,
 			 XtRString, XtRPixel, cvt_string_to_pixel,
 			 cvt_string_to_pixel_args,

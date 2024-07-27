@@ -4651,7 +4651,7 @@ recursive calls in starting lines of here-documents."
 				    (and (eq (preceding-char) ?\})
 					 (cperl-after-block-p (point-min)))
 				    (and (eq (char-syntax (preceding-char)) ?w)
-					 (progn
+					 (save-excursion
 					   (forward-sexp -1)
                                            ;; After these keywords `/'
                                            ;; starts a RE.  One should
