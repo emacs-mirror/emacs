@@ -100,21 +100,20 @@ This means that no queries should be performed.")
 (defun nsm-verify-connection (process host port &optional
 				      save-fingerprint warn-unencrypted)
   "Verify the security status of PROCESS that's connected to HOST:PORT.
-If PROCESS is a gnutls connection, the certificate validity will
-be examined.  If it's a non-TLS connection, it may be compared
-against previous connections.  If the function determines that
-there is something odd about the connection, the user will be
-queried about what to do about it.
+If PROCESS is a GnuTLS connection, the certificate validity will be
+examined.  If it's a non-TLS connection, it may be compared against
+previous connections.  If the function determines that there is
+something odd about the connection, the user will be queried about what
+to do about it.
 
-The process is returned if everything is OK, and otherwise, the
-process will be deleted and nil is returned.
+Return the process if all the checks pass.  Otherwise, delete the
+process and return nil.
 
-If SAVE-FINGERPRINT, always save the fingerprint of the
-server (if the connection is a TLS connection).  This is useful
-to keep track of the TLS status of STARTTLS servers.
+If SAVE-FINGERPRINT, always save the fingerprint of the server (if the
+connection is a TLS connection).  This is useful to keep track of the
+TLS status of STARTTLS servers.
 
-If WARN-UNENCRYPTED, query the user if the connection is
-unencrypted."
+If WARN-UNENCRYPTED, query the user if the connection is unencrypted."
   (let* ((status (gnutls-peer-status process))
          (id (nsm-id host port))
          (settings (nsm-host-settings id)))
