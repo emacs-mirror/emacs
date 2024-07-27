@@ -6,6 +6,52 @@ Code:
 
 Point-Char: |
 
+Name: Single line
+
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy */
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy */
+=-=-=
+
+Name: Two lines
+
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy */
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+   woooomy */
+=-=-=
+
+Name: Two lines with star
+
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ */
+=-=
+/* woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy
+ */
+=-=-=
+
+Name: First line empty (bug#72116)
+
+=-=
+/**
+ * rsite nrsoti ernsto ierntires ntoritsen roitsenrsoit enrstoi ensrotie nrsit ensroit enrsoi ensrien
+ */
+=-=
+/**
+ * rsite nrsoti ernsto ierntires ntoritsen roitsenrsoit enrstoi
+ * ensrotie nrsit ensroit enrsoi ensrien
+ */
+=-=-=
+
 Name: Type 1
 
 =-=

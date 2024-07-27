@@ -153,16 +153,16 @@ comment."
          (end-marker nil)
          (end-len 0))
     (move-marker start-marker start)
-    ;; We mask "/*" and the space before "*/" like
-    ;; `c-fill-paragraph' does.
+    ;; If the first line is /* followed by non-text, exclude this line
+    ;; from filling.
     (atomic-change-group
-      ;; Mask "/*".
       (goto-char start)
       (when (looking-at (rx (* (syntax whitespace))
-                            (group "/") "*"))
-        (goto-char (match-beginning 1))
-        (move-marker start-marker (point))
-        (replace-match " " nil nil nil 1))
+                            (group "/") "*"
+                            (* (or "*" "=" "-" "/" (syntax whitespace)))
+                            eol))
+        (forward-line)
+        (move-marker start-marker (point)))
 
       ;; Include whitespaces before /*.
       (goto-char start)
@@ -206,15 +206,62 @@ comment."
         (fill-region (max start-marker para-start) (min end para-end) arg))
 
       ;; Unmask.
-      (when start-marker
-        (goto-char start-marker)
-        (delete-char 1)
-        (insert "/"))
       (when end-marker
         (goto-char end-marker)
         (delete-region (point) (+ end-len (point)))
         (insert (make-string end-len ?\s)))
       (goto-char orig-point))))
+
+(defun c-ts-common--adaptive-fill-prefix ()
+  "Returns the appropriate fill-prefix for this paragraph.
+
+This function should be called at BOL.  Used by
+`adaptive-fill-function'."
+  (cond
+   ;; (1)
+   ;; If current line is /* and next line is * -> prefix is *.
+   ;; Eg:
+   ;; /* xxx       =>   /* xxx
+   ;;  * xxx xxx         * xxx
+   ;;                    * xxx
+   ;; If current line is /* and next line isn't * or doesn't exist ->
+   ;; prefix is whitespace.
+   ;; Eg:
+   ;; /* xxx xxx */  =>  /* xxx
+   ;;                       xxx */
+   ((and (looking-at (rx (* (syntax whitespace))
+                         "/*"
+                         (* "*")
+                         (* (syntax whitespace))))
+         (let ((whitespaces (make-string (length (match-string 0)) ?\s)))
+           (save-excursion
+             (if (and (eq (forward-line) 0)
+                      (looking-at (rx (* (syntax whitespace))
+                                      "*"
+                                      (* (syntax whitespace)))))
+                 (match-string 0)
+               whitespaces)))))
+   ;; (2)
+   ;; Current line: //, ///, ////...
+   ;; Prefix: same.
+   ((looking-at (rx (* (syntax whitespace))
+                    "//"
+                    (* "/")
+                    (* (syntax whitespace))))
+    (match-string 0))
+   ;; (3)
+   ;; Current line: *, |, -
+   ;; Prefix: same.
+   ;; This branch must return the same prefix as branch (1), as the
+   ;; second line in the paragraph; then the whole paragraph will use *
+   ;; as the prefix.
+   ((looking-at (rx (* (syntax whitespace))
+                    (or "*" "|" "-")
+                    (* (syntax whitespace))))
+    (match-string 0))
+   ;; Other: let `adaptive-fill-regexp' and
+   ;; `adaptive-fill-first-line-regexp' decide.
+   (t nil)))
 
 (defun c-ts-common-comment-setup ()
   "Set up local variables for C-like comment.
@@ -241,43 +288,15 @@ Set up:
                   (group (or (syntax comment-end)
                              (seq (+ "*") "/")))))
   (setq-local adaptive-fill-mode t)
-  ;; This matches (1) empty spaces (the default), (2) "//", (3) "*",
-  ;; but do not match "/*", because we don't want to use "/*" as
-  ;; prefix when filling.  (Actually, it doesn't matter, because
-  ;; `comment-start-skip' matches "/*" which will cause
-  ;; `fill-context-prefix' to use "/*" as a prefix for filling, that's
-  ;; why we mask the "/*" in `c-ts-common--fill-paragraph'.)
-  (setq-local adaptive-fill-regexp
-              (concat (rx (* (syntax whitespace))
-                          (group (or (seq "/" (+ "/")) (* "*"))))
-                      adaptive-fill-regexp))
-  ;; For (1): Note the missing * comparing to `adaptive-fill-regexp'.
-  ;; The reason for its absence is a bit convoluted to explain.  Suffice
-  ;; to say that without it, filling a single line paragraph that starts
-  ;; with /* doesn't insert * at the beginning of each following line,
-  ;; and filling a multi-line paragraph whose first two lines start with
-  ;; * does insert * at the beginning of each following line.  If you
-  ;; know how does adaptive filling work, you know what I mean.
-  ;;
-  ;; For (2): If we only have (1), filling a single line that starts
-  ;; with a single * (and not /*) in a block comment doesn't work as
-  ;; expected: the following lines won't be prefixed with *.  So we add
-  ;; another rule to cover this case too. (See bug#72116.)  I
-  ;; intentionally made the matching strict (it only matches if there
-  ;; are only a single * at the BOL) because I want to minimize the
-  ;; possibility of this new rule matching in unintended situations.
+  (setq-local adaptive-fill-function #'c-ts-common--adaptive-fill-prefix)
+  ;; Always accept * or | as prefix, even if there's only one line in
+  ;; the paragraph.
   (setq-local adaptive-fill-first-line-regexp
               (rx bos
-                  ;; (1)
-                  (or (seq (* (syntax whitespace))
-                           (group (seq "/" (+ "/")))
-                           (* (syntax whitespace)))
-                      ;; (2)
-                      (seq (* (syntax whitespace))
-                           (group "*")
-                           (* (syntax whitespace))))
+                  (* (syntax whitespace))
+                  (or "*" "|")
+                  (* (syntax whitespace))
                   eos))
-  ;; Same as `adaptive-fill-regexp'.
   (setq-local paragraph-start
               (rx (or (seq (* (syntax whitespace))
                            (group (or (seq "/" (+ "/")) (* "*")))
