@@ -1326,6 +1326,17 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
   return treesit_query;
 }
 
+/* Resolve language symbol LANG according to
+   treesit-language-remap-alist.  */
+static
+Lisp_Object resolve_language_symbol (Lisp_Object lang)
+{
+  Lisp_Object res = Fassoc (lang, Vtreesit_language_remap_alist, Qeq);
+  if (NILP (res))
+    return lang;
+  return Fcdr (res);
+}
+
 
 /* Lisp definitions.  */
 
@@ -1442,6 +1453,9 @@ an indirect buffer.  */)
 
   treesit_check_buffer_size (buf);
 
+  language = resolve_language_symbol (language);
+  CHECK_SYMBOL (language);
+
   /* See if we can reuse a parser.  */
   if (NILP (no_reuse))
     {
@@ -1530,6 +1544,8 @@ tag.  */)
 
   if (buf->base_buffer)
     buf = buf->base_buffer;
+
+  language = resolve_language_symbol (language);
 
   /* Return a fresh list so messing with that list doesn't affect our
      internal data.  */
@@ -4156,6 +4172,19 @@ PRED), meaning not satisfying the inner PRED qualifies the node.
 Finally, PRED can refer to other THINGs defined in this list by using
 the symbol of that THING.  For example, (or sexp sentence).  */);
   Vtreesit_thing_settings = Qnil;
+
+  DEFVAR_LISP ("treesit-language-remap-alist",
+	       Vtreesit_language_remap_alist,
+	       doc:
+	       /* An alist remapping language symbols.
+
+The value should be an alist of (LANGUAGE-A . LANGUAGE-B).  When such
+pair exists in the alist, creating a parser for LANGUAGE-A actually
+creates a parser for LANGUAGE-B.  Basically, anything that requires or
+applies to LANGUAGE-A will be redirected to LANGUAGE-B instead.  */);
+  Vtreesit_language_remap_alist = Qnil;
+  DEFSYM (Qtreesit_language_remap_alist, "treesit-language-remap-alist");
+  Fmake_variable_buffer_local (Qtreesit_language_remap_alist);
 
   staticpro (&Vtreesit_str_libtree_sitter);
   Vtreesit_str_libtree_sitter = build_pure_c_string ("libtree-sitter-");
