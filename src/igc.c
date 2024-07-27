@@ -2844,8 +2844,8 @@ root_find (void *start)
   return NULL;
 }
 
-static void
-destroy_root_with_start (void *start)
+void
+igc_destroy_root_with_start (void *start)
 {
   if (start)
     {
@@ -3011,7 +3011,7 @@ igc_grow_rdstack (struct read_stack *rs)
   struct igc *gc = global_igc;
   IGC_WITH_PARKED (gc)
   {
-    destroy_root_with_start (rs->stack);
+    igc_destroy_root_with_start (rs->stack);
     ptrdiff_t old_nitems = rs->size;
     rs->stack = xpalloc (rs->stack, &rs->size, 1, -1, sizeof *rs->stack);
     for (ptrdiff_t i = old_nitems; i < rs->size; ++i)
@@ -3069,7 +3069,7 @@ igc_realloc_ambig (void *block, size_t size)
   void *p;
   IGC_WITH_PARKED (gc)
   {
-    destroy_root_with_start (block);
+    igc_destroy_root_with_start (block);
     /* Can't make a root that has zero length. Want one to be able to
        detect calling igc_free on something not having a root.  */
     size_t new_size = (size == 0 ? IGC_ALIGN_DFLT : size);
@@ -3089,7 +3089,7 @@ igc_xfree (void *p)
      error. Make the same true if the dump is loaded into MPS memory.  */
   if (p == NULL || pdumper_object_p (p))
     return;
-  destroy_root_with_start (p);
+  igc_destroy_root_with_start (p);
   xfree (p);
 }
 
@@ -3099,7 +3099,7 @@ igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
 {
   IGC_WITH_PARKED (global_igc)
   {
-    destroy_root_with_start (pa);
+    igc_destroy_root_with_start (pa);
     pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
     char *end = (char *) pa + *nitems * item_size;
     root_create_ambig (global_igc, pa, end, "xpalloc-ambig");
@@ -3116,7 +3116,7 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
   IGC_WITH_PARKED (global_igc)
   {
     void *pa = *pa_cell;
-    destroy_root_with_start (pa);
+    igc_destroy_root_with_start (pa);
     pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
     char *end = (char *)pa + *nitems * item_size;
     root_create (global_igc, pa, end, mps_rank_exact (), (mps_area_scan_t) scan_area,
@@ -3130,7 +3130,7 @@ igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
   IGC_WITH_PARKED (global_igc)
   {
-    destroy_root_with_start (pa);
+    igc_destroy_root_with_start (pa);
     pa = xnrealloc (pa, nitems, item_size);
     char *end = (char *) pa + nitems * item_size;
     root_create_ambig (global_igc, pa, end, "xnrealloc-ambig");

@@ -1470,6 +1470,9 @@ finalize_storage (struct emacs_value_storage *storage)
     {
       struct emacs_value_frame *current = next;
       next = current->next;
+#ifdef HAVE_MPS
+      igc_destroy_root_with_start (current);
+#endif
       free (current);
     }
 }
@@ -1491,6 +1494,13 @@ allocate_emacs_value (emacs_env *env, Lisp_Object obj)
           module_out_of_memory (env);
           return NULL;
         }
+#ifdef HAVE_MPS
+      {
+	char *start = (char *) storage->current->next;
+	char *end = start + sizeof *storage->current->next;
+	igc_root_create_ambig (start, end, "emacs_value_frame");
+      }
+#endif
       initialize_frame (storage->current->next);
       storage->current = storage->current->next;
     }

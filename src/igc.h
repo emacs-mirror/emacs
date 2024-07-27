@@ -152,6 +152,7 @@ void igc_root_create_exact_ptr (void *var_addr);
 void igc_root_destroy_comp_unit (struct Lisp_Native_Comp_Unit *u);
 void igc_root_destroy_comp_unit_eph (struct Lisp_Native_Comp_Unit *u);
 void *igc_root_create_n (Lisp_Object start[], size_t n);
+void igc_destroy_root_with_start (void *start);
 size_t igc_header_size (void);
 char *igc_dump_finish_obj (void *client, enum igc_obj_type type,
 			   char *base, char *end);
