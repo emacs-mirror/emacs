@@ -2259,7 +2259,7 @@ space filled on the right if its width is less than @var{width}.  When
 @minus{}@var{width} columns if its width exceeds @minus{}@var{width}.
 
 For example, the usual way to show what percentage of a buffer is above
-the top of the window is to use a list like this: @code{(-3 "%p")}.
+the top of the window is to use a list like this: @w{@code{(-3 "%p")}}.
 @end table
 
 @node Mode Line Top
