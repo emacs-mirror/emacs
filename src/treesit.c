@@ -392,16 +392,20 @@ init_treesit_functions (void)
    These are all imaginary scenarios but they are not impossible
    :-)
 
-   Parsers in indirect buffers: We make indirect buffers to share the
-   parser of its base buffer.  Indirect buffers and their base buffer
+   Parsers in indirect buffers: We make indirect buffers share the
+   parser of their base buffer.  Indirect buffers and their base buffer
    share the same buffer content but not other buffer attributes.  If
    they have separate parser lists, changes made in an indirect buffer
-   will only update parsers of that indirect buffer, and not parsers
-   in the base buffer or other indirect buffers, and vice versa.  We
-   could keep track of all the base and indirect buffers, and update
-   all of their parsers, but ultimately decide to take a simpler
-   approach, which is to make indirect buffers share their base
-   buffer's parser list.  The discussion can be found in bug#59693.  */
+   will only update parsers of that indirect buffer, and not parsers in
+   the base buffer or other indirect buffers, and vice versa.  For that
+   reason, the base buffer and all ot its indirect buffers share a
+   single parser list.  But each parser in this shared parser list still
+   points to their own buffer.  On top of that, treesit-parser-list only
+   return parsers that belongs to the calling buffer.  So ultimately,
+   from the user's POV, each buffer, regardless of indirect or not,
+   appears to have their own parser list.  A discussion can be found in
+   bug#59693.  Note that that discussion led to an earlier design, which
+   is different from the current one.  */
 
 
 /*** Initialization  */
@@ -1416,13 +1420,20 @@ an indirect buffer.  */)
   CHECK_SYMBOL (language);
   CHECK_SYMBOL (tag);
   struct buffer *buf;
+  Lisp_Object buf_orig;
+
   if (NILP (buffer))
-    buf = current_buffer;
+    {
+      buf = current_buffer;
+      XSETBUFFER (buf_orig, current_buffer);
+    }
   else
     {
       CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
+      buf_orig = buffer;
     }
+
   if (buf->base_buffer)
     buf = buf->base_buffer;
 
@@ -1457,9 +1468,7 @@ an indirect buffer.  */)
   ts_parser_set_language (parser, lang);
 
   /* Create parser.  */
-  Lisp_Object lisp_buf;
-  XSETBUFFER (lisp_buf, buf);
-  Lisp_Object lisp_parser = make_treesit_parser (lisp_buf,
+  Lisp_Object lisp_parser = make_treesit_parser (buf_orig,
 						 parser, NULL,
 						 language, tag);
 
@@ -1505,13 +1514,20 @@ tag.  */)
   (Lisp_Object buffer, Lisp_Object language, Lisp_Object tag)
 {
   struct buffer *buf;
+  Lisp_Object buf_orig;
+
   if (NILP (buffer))
-    buf = current_buffer;
+    {
+      buf = current_buffer;
+      XSETBUFFER (buf_orig, current_buffer);
+    }
   else
     {
       CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
+      buf_orig = buffer;
     }
+
   if (buf->base_buffer)
     buf = buf->base_buffer;
 
@@ -1526,7 +1542,10 @@ tag.  */)
     {
       struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
       if ((NILP (language) || EQ (language, parser->language_symbol))
-	  && (EQ (tag, Qt) || EQ (tag, parser->tag)))
+	  && (EQ (tag, Qt) || EQ (tag, parser->tag))
+	  /* Indirect buffers and base buffer shares the same parser
+	   * list, so we need the filtering here.  */
+	  && (EQ (parser->buffer, buf_orig)))
 	return_list = Fcons (XCAR (tail), return_list);
     }
 

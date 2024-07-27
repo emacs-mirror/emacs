@@ -194,6 +194,23 @@ authorize the invoked D-Bus method (for example via polkit).
 ** The customization group 'wp' has been removed.
 It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
 
+** Tree-sitter changes
+
++++
+*** Indirect buffers can have their own parser list.
+Before, indirect buffers share their base buffer’s parser list and
+parsers.  Now they can have their own parser list.
+
++++
+*** New variable 'treesit-language-remap-alist'.
+This variable allows a user to remap one language into another, such
+that creating a parser for language A actually creates a parser for
+language B.  By extension, any font-lock rules or indentation rules for
+language A will be applied to language B instead.
+
+This is useful for reusing font-lock rules and indentation rules of
+language A for language B, when language B is a strict superset of
+language A.
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
