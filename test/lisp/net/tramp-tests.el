@@ -7600,8 +7600,9 @@ This requires restrictions of file name syntax."
 	  ;; Use all available language specific snippets.
 	  (lambda (x)
 	    (and
-	     ;; Some languages use problematic composition characters.
-	     (not (member (car x) '("Oriya" "Odia" "Tifinagh")))
+	     ;; The "Oriya" and "Odia" languages use some problematic
+	     ;; composition characters.
+	     (not (member (car x) '("Oriya" "Odia")))
              (stringp (setq x (eval (get-language-info (car x) 'sample-text) t)))
 	     ;; Filter out strings which use unencodable characters.
 	     (not (and (or (tramp--test-gvfs-p) (tramp--test-smb-p))
