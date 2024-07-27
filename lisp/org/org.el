@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.7.8
+;; Version: 9.7.9
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -20818,8 +20818,11 @@ end."
     (when (and (not (eq org-yank-image-save-method 'attach))
                (not (file-directory-p org-yank-image-save-method)))
       (make-directory org-yank-image-save-method t))
-    (with-temp-file absname
-      (insert data))
+    ;; DATA is a raw image.  Tell Emacs to write it raw, without
+    ;; trying to auto-detect the coding system.
+    (let ((coding-system-for-write 'emacs-internal))
+      (with-temp-file absname
+        (insert data)))
     (if (null (eq org-yank-image-save-method 'attach))
         (setq link (org-link-make-string (concat "file:" (file-relative-name absname))))
       (require 'org-attach)
