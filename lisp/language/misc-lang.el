@@ -373,7 +373,7 @@ language environment."))
    (coding-system utf-8)
    (coding-priority utf-8)
    (input-method "tifinagh")
-   (sample-text "Tifinagh	ⴰⵣⵓⵍ")
+   (sample-text . "Tifinagh	ⴰⵣⵓⵍ")
    (documentation "Tifinagh a script used to write the Berber languages."))
  '("Misc"))
 
