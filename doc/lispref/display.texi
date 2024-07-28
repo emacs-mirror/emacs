@@ -2385,9 +2385,11 @@ The optional arguments @var{x-limit} and @var{y-limit} have the same
 meaning as with @code{window-text-pixel-size}.
 @end defun
 
-@defun string-pixel-width string
+@defun string-pixel-width string &optional buffer
 This is a convenience function that uses @code{window-text-pixel-size}
-to compute the width of @var{string} (in pixels).
+to compute the width of @var{string} (in pixels).  If @var{buffer} is
+non-@code{nil}, use any face remappings (@pxref{Face Remapping}) from
+that buffer when computing the width of @var{string}.
 @end defun
 
 @defun line-pixel-height

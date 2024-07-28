@@ -83,6 +83,12 @@ aggressively rather than switching to some other buffer in it.
 *** New language-environment and input method for Tifinagh.
 The Tifinagh script is used to write the Berber languages.
 
+---
+** 'visual-wrap-prefix-mode' now supports variable-pitch fonts.
+When using 'visual-wrap-prefix-mode' in buffers with variable-pitch
+fonts, the wrapped text will now be lined up correctly so that it's
+exactly below the text after the prefix on the first line.
+
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
@@ -245,6 +251,12 @@ language A will be applied to language B instead.
 This is useful for reusing font-lock rules and indentation rules of
 language A for language B, when language B is a strict superset of
 language A.
+
++++
+** New optional BUFFER argument for 'string-pixel-width'.
+If supplied, 'string-pixel-width' will use any face remappings from
+BUFFER when computing the string's width.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
