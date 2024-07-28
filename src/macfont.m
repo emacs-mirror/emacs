@@ -22,6 +22,7 @@ Original author: YAMAMOTO Mitsuharu
 #include <config.h>
 
 #include "lisp.h"
+#include "igc.h"
 #include "dispextern.h"
 #include "frame.h"
 #include "blockinput.h"
@@ -1884,13 +1885,15 @@ struct OpenTypeSpec
 static struct OpenTypeSpec *
 macfont_get_open_type_spec (Lisp_Object otf_spec)
 {
+#ifdef HAVE_MPS
+  struct OpenTypeSpec *spec = igc_xzalloc_ambig (sizeof *spec);
+#else
   struct OpenTypeSpec *spec = xmalloc (sizeof *spec);
+#endif
   Lisp_Object val;
   int i, j;
   bool negative;
 
-  if (! spec)
-    return NULL;
   spec->script = XCAR (otf_spec);
   if (! NILP (spec->script))
     {
@@ -1927,7 +1930,11 @@ macfont_get_open_type_spec (Lisp_Object otf_spec)
         {
           if (i > 0 && spec->features[0])
             free (spec->features[0]);
-          free (spec);
+#ifdef HAVE_MPS
+          igc_xfree (spec);
+#else
+          xfree (spec);
+#endif
           return NULL;
         }
       for (j = 0, negative = 0; CONSP (val); val = XCDR (val))
@@ -2180,7 +2187,11 @@ macfont_create_attributes_with_spec (Lisp_Object spec)
         free (otspec->features[0]);
       if (otspec->nfeatures[1] > 0)
         free (otspec->features[1]);
-      free (otspec);
+#ifdef HAVE_MPS
+      igc_xfree (otspec);
+#else
+      xfree (otspec);
+#endif
     }
 
   return attributes;
