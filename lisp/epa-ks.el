@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
-;; Author: Philip K. <philipk@posteo.net>
+;; Author: Philip Kaludercic <philipk@posteo.net>
+;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; Keywords: PGP, GnuPG
 ;; Package: epa
 
