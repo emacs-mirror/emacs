@@ -2032,31 +2032,6 @@ fix_buffer (mps_ss_t ss, struct buffer *b)
 }
 
 static mps_res_t
-fix_glyph_matrix (mps_ss_t ss, struct glyph_matrix *matrix)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    struct glyph_row *row = matrix->rows;
-    struct glyph_row *end = row + matrix->nrows;
-
-    for (; row < end; ++row)
-      if (row->enabled_p)
-	{
-	  for (int area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
-	    {
-	      struct glyph *glyph = row->glyphs[area];
-	      struct glyph *end_glyph = glyph + row->used[area];
-	      for (; glyph < end_glyph; ++glyph)
-		IGC_FIX12_OBJ (ss, &glyph->object);
-	    }
-	}
-    IGC_FIX12_PVEC (ss, &matrix->buffer);
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-static mps_res_t
 fix_frame (mps_ss_t ss, struct frame *f)
 {
   MPS_SCAN_BEGIN (ss)
@@ -2064,8 +2039,6 @@ fix_frame (mps_ss_t ss, struct frame *f)
     // FIXME/igc: Check these
     // output_data;
     // terminal
-    // glyph_pool
-    // glyph matrices
     // struct font_driver_list *font_driver_list;
     // struct text_conversion_state conversion;
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, f, fix_vectorlike);
@@ -2103,10 +2076,6 @@ fix_window (mps_ss_t ss, struct window *w)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, w, fix_vectorlike);
-    if (w->current_matrix)
-      IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->current_matrix));
-    if (w->desired_matrix)
-      IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->desired_matrix));
     IGC_FIX12_OBJ (ss, &w->prev_buffers);
     IGC_FIX12_OBJ (ss, &w->next_buffers);
   }
