@@ -482,6 +482,10 @@ struct igc_header
   uint64_t v;
 };
 
+unsigned igc_header_hash (struct igc_header *h);
+size_t igc_header_nwords (const struct igc_header *h);
+enum igc_obj_type igc_header_type (struct igc_header *h);
+
 static unsigned
 header_nwords (const struct igc_header *h)
 {
@@ -527,7 +531,7 @@ enum igc_tag
   IGC_TAG_EXTHDR = 2, /* pointer to aligned external header */
 };
 
-static enum igc_obj_type
+enum igc_obj_type
 igc_header_type (struct igc_header *h)
 {
   if (header_tag (h) == IGC_TAG_EXTHDR)
@@ -535,7 +539,7 @@ igc_header_type (struct igc_header *h)
   return header_type (h);
 }
 
-static unsigned
+unsigned
 igc_header_hash (struct igc_header *h)
 {
   if (header_tag (h) == IGC_TAG_EXTHDR)
@@ -543,7 +547,7 @@ igc_header_hash (struct igc_header *h)
   return header_hash (h);
 }
 
-static size_t
+size_t
 igc_header_nwords (const struct igc_header *h)
 {
   if (header_tag (h) == IGC_TAG_EXTHDR)
