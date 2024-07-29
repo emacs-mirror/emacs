@@ -432,6 +432,15 @@ of the page moves to the previous page."
 
 (defun doc-view-new-window-function (winprops)
   ;; (message "New window %s for buf %s" (car winprops) (current-buffer))
+  ;;
+  ;; If the window configuration changed, `image-mode-reapply-winprops'
+  ;; will have erased any previous property list for this window, but
+  ;; without removing existing overlays for the same, so that they must
+  ;; be located and erased before a new overlay is created.
+  (dolist (tem (car (overlay-lists)))
+    (when (and (eq (overlay-get tem 'window) (car winprops))
+               (overlay-get tem 'doc-view))
+      (delete-overlay tem)))
   (cl-assert (or (eq t (car winprops))
                  (eq (window-buffer (car winprops)) (current-buffer))))
   (let ((ol (image-mode-window-get 'overlay winprops)))
