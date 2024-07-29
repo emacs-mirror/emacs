@@ -349,7 +349,6 @@ static const char *obj_type_names[] = {
   "IGC_OBJ_FACE_CACHE",
   "IGC_OBJ_FLOAT",
   "IGC_OBJ_BLV",
-  "IGC_OBJ_PTR_VEC",
   "IGC_OBJ_HANDLER",
   "IGC_OBJ_BYTES",
   "IGC_OBJ_BUILTIN_SYMBOL",
@@ -684,15 +683,6 @@ void gc_init_header_bytes (union gc_header *header, enum igc_obj_type type,
     default:
       emacs_abort ();
     }
-}
-
-/* Given a client pointer CLIENT to an object, return how many
-   elements of size ELEM_SIZE can fit into the client area.  */
-
-static size_t
-object_nelems (struct igc_header *h, size_t elem_size)
-{
-  return (obj_client_size (h) - sizeof *h) / elem_size;
 }
 
 /* Round NBYTES to the next multiple of ALIGN.  */
@@ -1697,9 +1687,14 @@ fix_image_cache (mps_ss_t ss, struct image_cache *c)
   MPS_SCAN_BEGIN (ss)
   {
 #ifdef HAVE_WINDOW_SYSTEM
+    if (c->images)
+      for (ptrdiff_t i = 0; i < c->used; ++i)
+	IGC_FIX12_RAW (ss, &c->images[i]);
 
-    IGC_FIX12_WRAPPED_BYTES (ss, &c->images);
-    IGC_FIX12_WRAPPED_BYTES (ss, &c->buckets);
+    if (c->buckets)
+      for (ptrdiff_t i = 0; i < IMAGE_CACHE_BUCKETS_SIZE; ++i)
+	if (c->buckets[i])
+	  IGC_FIX12_RAW (ss, &c->buckets[i]);
 #endif
   }
   MPS_SCAN_END (ss);
@@ -1730,22 +1725,15 @@ fix_face_cache (mps_ss_t ss, struct face_cache *c)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX12_PVEC (ss, &c->f);
-    IGC_FIX12_WRAPPED_BYTES (ss, &c->faces_by_id);
-    IGC_FIX12_WRAPPED_BYTES (ss, &c->buckets);
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
 
-static mps_res_t
-fix_ptr_vec (mps_ss_t ss, struct igc_header *h)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    struct igc_header **v = (void *)(h + 1);
-    size_t n = object_nelems (h, sizeof *v);
-    for (size_t i = 0; i < n; ++i)
-      IGC_FIX12_RAW (ss, &v[i]);
+    if (c->faces_by_id)
+      for (ptrdiff_t i = 0; i < c->used; ++i)
+	IGC_FIX12_RAW (ss, &c->faces_by_id[i]);
+
+    if (c->buckets)
+      for (ptrdiff_t i = 0; i < FACE_CACHE_BUCKETS_SIZE; ++i)
+	if (c->buckets[i])
+	  IGC_FIX12_RAW (ss, &c->buckets[i]);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -1861,10 +1849,6 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t base_start, mps_addr_t base_limit,
 
       case IGC_OBJ_HANDLER:
 	IGC_FIX_CALL_FN (ss, struct handler, client, fix_handler);
-	break;
-
-      case IGC_OBJ_PTR_VEC:
-	IGC_FIX_CALL_FN (ss, struct igc_header, header, fix_ptr_vec);
 	break;
 
       case IGC_OBJ_CONS:
@@ -3689,7 +3673,6 @@ thread_ap (enum igc_obj_type type)
     case IGC_OBJ_FACE:
     case IGC_OBJ_FACE_CACHE:
     case IGC_OBJ_BLV:
-    case IGC_OBJ_PTR_VEC:
     case IGC_OBJ_HANDLER:
       return t->d.dflt_ap;
 
@@ -4024,14 +4007,6 @@ igc_make_face_cache (void)
   return c;
 }
 
-void *
-igc_make_ptr_vec (size_t n)
-{
-  struct igc_header *ret =
-    alloc (sizeof (struct igc_header) + n * sizeof (void *), IGC_OBJ_PTR_VEC);
-  return ret + 1;
-}
-
 /* Allocate a Lisp_Object vector with N elements.
    Currently only used by SAFE_ALLOCA_LISP.  */
 
@@ -4170,40 +4145,6 @@ igc_alloc_weak_hash_table_weak_part (hash_table_weakness_t weak,
   return alloc (sizeof (struct Lisp_Weak_Hash_Table_Weak_Part) +
 		total_size * sizeof (struct Lisp_Weak_Hash_Table_Entry),
 		IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART);
-}
-
-/* Like xpalloc, but uses 'alloc' instead of xrealloc, and should only
-   be used for growing a vector of pointers whose current size is N
-   pointers.  */
-
-void *
-igc_grow_ptr_vec (void *v, ptrdiff_t *n, ptrdiff_t n_incr_min, ptrdiff_t n_max)
-{
-  const ptrdiff_t min_items = 16;
-  ptrdiff_t nitems0 = *n;
-  ptrdiff_t half_nitems0 = nitems0 / 2;
-  ptrdiff_t max_items = n_max < 0 ? PTRDIFF_MAX : n_max;
-  ptrdiff_t new_nitems;
-
-  if (half_nitems0 < n_incr_min)
-    half_nitems0 = n_incr_min;
-
-  if (nitems0 < min_items)
-    new_nitems = min_items;
-  else if (nitems0 < max_items - half_nitems0)
-    new_nitems = nitems0 + half_nitems0;
-  else
-    new_nitems = max_items;
-
-  if (new_nitems <= nitems0)
-    memory_full (0);
-
-  void *new_vec = igc_make_ptr_vec (new_nitems);
-  igc_assert (*n <= new_nitems);
-  igc_assert (new_nitems < PTRDIFF_MAX);
-  memcpy (new_vec, v, *n * sizeof (void *));
-  *n = new_nitems;
-  return new_vec;
 }
 
 #ifdef HAVE_WINDOW_SYSTEM

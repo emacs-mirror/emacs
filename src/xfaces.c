@@ -4785,13 +4785,8 @@ make_face_cache (struct frame *f)
   c->f = f;
   c->size = 50;
   c->used = 0;
-#ifdef HAVE_MPS
-  c->buckets = igc_make_ptr_vec (FACE_CACHE_BUCKETS_SIZE);
-  c->faces_by_id = igc_make_ptr_vec (c->size);
-#else
   c->buckets = xzalloc (FACE_CACHE_BUCKETS_SIZE * sizeof *c->buckets);
   c->faces_by_id = xzalloc (c->size * sizeof *c->faces_by_id);
-#endif
   c->menu_face_changed_p = menu_face_changed_default;
   return c;
 }
@@ -4898,13 +4893,13 @@ free_face_cache (struct face_cache *c)
   if (c)
     {
       free_realized_faces (c);
-#ifndef HAVE_MPS
       struct face **p = c->buckets;
       c->buckets = NULL;
       xfree (p);
       p = c->faces_by_id;
       c->faces_by_id = NULL;
       xfree (p);
+#ifndef HAVE_MPS
       xfree (c);
 #endif
     }
@@ -4978,13 +4973,9 @@ cache_face (struct face_cache *c, struct face *face, uintptr_t hash)
     {
       if (c->used == c->size)
 	{
-#ifdef HAVE_MPS
-	  c->faces_by_id = igc_grow_ptr_vec (c->faces_by_id, &c->size, 1, MAX_FACE_ID);
-#else
 	  c->faces_by_id
 	    = xpalloc (c->faces_by_id, &c->size, 1, MAX_FACE_ID,
 		       sizeof *c->faces_by_id);
-#endif
 	}
       c->used++;
     }

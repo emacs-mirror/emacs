@@ -43,7 +43,6 @@ enum igc_obj_type
   IGC_OBJ_FACE_CACHE,
   IGC_OBJ_FLOAT,
   IGC_OBJ_BLV,
-  IGC_OBJ_PTR_VEC,
   IGC_OBJ_HANDLER,
   IGC_OBJ_BYTES,
   IGC_OBJ_BUILTIN_SYMBOL,
@@ -118,8 +117,6 @@ struct itree_tree *igc_make_itree_tree (void);
 struct image *igc_make_image (void);
 struct face *igc_make_face (void);
 struct face_cache *igc_make_face_cache (void);
-void *igc_make_ptr_vec (size_t n);
-void *igc_grow_ptr_vec (void *v, ptrdiff_t *n, ptrdiff_t n_incr_min, ptrdiff_t n_max);
 void igc_grow_rdstack (struct read_stack *rs);
 Lisp_Object *igc_make_hash_table_vec (size_t n);
 struct Lisp_Weak_Hash_Table_Strong_Part *igc_alloc_weak_hash_table_strong_part(hash_table_weakness_t, size_t, size_t);
