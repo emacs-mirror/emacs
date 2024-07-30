@@ -7032,9 +7032,48 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   [nsEvArray removeObject: theEvent];
 }
 
+/***********************************************************************
+			   NSTextInputClient
+ ***********************************************************************/
+
+#ifdef NS_IMPL_COCOA
+
+- (void) insertText: (id) string
+   replacementRange: (NSRange) replacementRange
+{
+  if ([string isKindOfClass:[NSAttributedString class]])
+    string = [string string];
+  [self unmarkText];
+  [self insertText:string];
+}
+
+- (void) setMarkedText: (id) string
+	 selectedRange: (NSRange) selectedRange
+      replacementRange: (NSRange) replacementRange
+{
+  [self setMarkedText: string selectedRange: selectedRange];
+}
+
+- (nullable NSAttributedString *)
+  attributedSubstringForProposedRange: (NSRange) range
+			  actualRange: (nullable NSRangePointer) actualRange
+{
+  return nil;
+}
+
+- (NSRect) firstRectForCharacterRange: (NSRange) range
+			  actualRange: (nullable NSRangePointer) actualRange
+{
+  return NSZeroRect;
+}
+
+#endif /* NS_IMPL_COCOA */
+
+/***********************************************************************
+			      NSTextInput
+ ***********************************************************************/
 
 /* <NSTextInput> implementation (called through [super interpretKeyEvents:]).  */
-
 
 /* <NSTextInput>: called when done composing;
    NOTE: also called when we delete over working text, followed

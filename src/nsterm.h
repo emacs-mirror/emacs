@@ -463,7 +463,7 @@ enum ns_return_frame_mode
 @class EmacsLayer;
 
 #ifdef NS_IMPL_COCOA
-@interface EmacsView : NSView <NSTextInput, NSWindowDelegate>
+@interface EmacsView : NSView <NSTextInput, NSTextInputClient, NSWindowDelegate>
 #else
 @interface EmacsView : NSView <NSTextInput>
 #endif
