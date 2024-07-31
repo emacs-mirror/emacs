@@ -3807,6 +3807,7 @@ alloc_immovable (size_t size, enum igc_obj_type type)
   return alloc_impl (size, type, t->d.immovable_ap);
 }
 
+#ifdef HAVE_MODULES
 void *
 igc_alloc_global_ref (void)
 {
@@ -3816,6 +3817,7 @@ igc_alloc_global_ref (void)
   XSETPVECTYPESIZE (v, PVEC_MODULE_GLOBAL_REFERENCE, 0, nwords_mem);
   return v;
 }
+#endif
 
 Lisp_Object
 igc_make_cons (Lisp_Object car, Lisp_Object cdr)
