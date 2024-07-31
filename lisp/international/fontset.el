@@ -209,7 +209,8 @@
 	(bopomofo #x3105)
 	(kanbun #x319D)
 	(han #x2e90 #x2f00 #x3010 #x3200 #x3300 #x3400 #x31c0 #x4e10
-             #x5B57 #xfe30 #xf900)
+             #x5B57 #xfe30 #xf900
+             #x1f210 #x20000 #x2a700 #x2b740 #x2b820 #x2ceb0 #x2f804)
 	(yi #xA288)
         (syloti-nagri #xA807 #xA823 #xA82C)
         (rejang #xA930 #xA947 #xA95F)
