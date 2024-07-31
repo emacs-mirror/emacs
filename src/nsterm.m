@@ -71,6 +71,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "macfont.h"
 #include <Carbon/Carbon.h>
 #include <IOSurface/IOSurface.h>
+#include <QuartzCore/QuartzCore.h>
 #endif
 
 static EmacsMenu *dockMenu;
@@ -3064,6 +3065,9 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       return;
     }
 
+  if (!active_p)
+    return;
+
   get_phys_cursor_geometry (w, glyph_row, phys_cursor_glyph, &fx, &fy, &h);
 
   /* The above get_phys_cursor_geometry call set w->phys_cursor_width
@@ -3101,44 +3105,23 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   /* Prevent the cursor from being drawn outside the text area.  */
   r = NSIntersectionRect (r, ns_row_rect (w, glyph_row, TEXT_AREA));
 
-  ns_focus (f, NULL, 0);
-
-  NSGraphicsContext *ctx = [NSGraphicsContext currentContext];
-  [ctx saveGraphicsState];
-#ifdef NS_IMPL_GNUSTEP
-  GSRectClipList (ctx, &r, 1);
-#else
-  NSRectClip (r);
-#endif
-
-  [FRAME_CURSOR_COLOR (f) set];
-
-  switch (cursor_type)
+  /* the CA cursor doesn't need a drawing context: we directly set its color. */
+  EmacsView *view = FRAME_NS_VIEW (f);
+  CALayer *cursor_layer = view->cursor_layer;
+  if (! cursor_layer)
+    return;
+  r.origin.y = [view bounds].size.height - r.size.height - r.origin.y;
+  [CATransaction begin];
+  [CATransaction setAnimationDuration:0.1];
+  cursor_layer.backgroundColor = FRAME_CURSOR_COLOR (f).CGColor;
+  if (cursor_type == BAR_CURSOR)
     {
-    case DEFAULT_CURSOR:
-    case NO_CURSOR:
-      break;
-    case FILLED_BOX_CURSOR:
-      /* The call to draw_phys_cursor_glyph can end up undoing the
-	 ns_focus, so unfocus here and regain focus later.  */
-      [ctx restoreGraphicsState];
-      ns_unfocus (f);
-      draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
-      ns_focus (f, &r, 1);
-      break;
-    case HOLLOW_BOX_CURSOR:
-      /* This works like it does in PostScript, not X Windows.  */
-      [NSBezierPath strokeRect: NSInsetRect (r, 0.5, 0.5)];
-      [ctx restoreGraphicsState];
-      break;
-    case HBAR_CURSOR:
-    case BAR_CURSOR:
-      NSRectFill (r);
-      [ctx restoreGraphicsState];
-      break;
+      cursor_glyph = get_phys_cursor_glyph (w);
+      if ((cursor_glyph->resolved_level & 1) != 0)
+        r.origin.x += cursor_glyph->pixel_width - r.size.width;
     }
-
-  ns_unfocus (f);
+  cursor_layer.frame = r;
+  [CATransaction commit];
 }
 
 
@@ -9233,6 +9216,17 @@ ns_in_echo_area (void)
       [self setDelegate:view];
       [[self contentView] addSubview:view];
       [self makeFirstResponder:view];
+
+      /* Overlay a canvas view on top of EmacsView.  */
+      NSView *canvasView = [[NSView alloc] initWithFrame:view.bounds];
+      canvasView.wantsLayer = YES;
+      canvasView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+      [view addSubview:canvasView positioned:NSWindowAbove relativeTo:nil];
+
+      /* Create a cursor layer on the canvas.  */
+      view->cursor_layer = [CALayer layer];
+      [canvasView.layer addSublayer: view->cursor_layer];
+      view->cursor_layer.frame = CGRectMake(0, 0, 0, 0);
 
 #if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MIN_REQUIRED <= 1090
 #if MAC_OS_X_VERSION_MAX_ALLOWED > 1090

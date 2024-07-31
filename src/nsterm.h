@@ -485,6 +485,7 @@ enum ns_return_frame_mode
   struct frame *emacsframe;
   int scrollbarsNeedingUpdate;
   NSRect ns_userRect;
+  CALayer *cursor_layer;
 }
 
 /* AppKit-side interface */
