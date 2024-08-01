@@ -4799,9 +4799,10 @@ This function is called by `previous-buffer'."
     (if bury-or-kill
 	(let ((entry (and (eq bury-or-kill 'append)
 			  (assq old-buffer (window-prev-buffers window)))))
-	  ;; Remove `old-buffer' from WINDOW's previous and (restored list
-	  ;; of) next buffers.
-	  (unrecord-window-buffer window old-buffer)
+	  ;; Remove `old-buffer' from WINDOW's previous and (restored
+	  ;; list of) next buffers and also from its 'quit-restore' and
+	  ;; 'quit-restore-prev' parameters.
+	  (unrecord-window-buffer window old-buffer t)
 	  (when entry
 	    ;; Append old-buffer's entry to list of WINDOW's previous
 	    ;; buffers so it's less likely to get switched to soon but
