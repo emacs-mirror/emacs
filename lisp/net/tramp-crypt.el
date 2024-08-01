@@ -231,7 +231,7 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (set-file-modes . tramp-crypt-handle-set-file-modes)
     (set-file-selinux-context . ignore)
     (set-file-times . tramp-crypt-handle-set-file-times)
-    (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
+    (set-visited-file-modtime . tramp-crypt-handle-set-visited-file-modtime)
     (shell-command . ignore)
     (start-file-process . ignore)
     ;; `substitute-in-file-name' performed by default handler.
@@ -244,7 +244,8 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (unhandled-file-name-directory . ignore)
     (unlock-file . tramp-crypt-handle-unlock-file)
     (vc-registered . ignore)
-    (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
+    (verify-visited-file-modtime
+     . tramp-crypt-handle-verify-visited-file-modtime)
     (write-region . tramp-handle-write-region))
   "Alist of handler functions for crypt method.
 Operations not mentioned here will be handled by the default Emacs primitives.")
@@ -802,10 +803,11 @@ WILDCARD is not supported."
 
 (defun tramp-crypt-handle-lock-file (filename)
   "Like `lock-file' for Tramp files."
-  (let (tramp-crypt-enabled)
-    ;; `lock-file' exists since Emacs 28.1.
-    (tramp-compat-funcall
-     'lock-file (tramp-crypt-encrypt-file-name filename))))
+  ;; `tramp-handle-lock-file' calls `verify-visited-file-modtime', so
+  ;; we must care `buffer-file-name'.
+  (let (tramp-crypt-enabled
+	(buffer-file-name (tramp-crypt-encrypt-file-name (buffer-file-name))))
+    (lock-file (tramp-crypt-encrypt-file-name filename))))
 
 (defun tramp-crypt-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -846,12 +848,27 @@ WILDCARD is not supported."
       (tramp-set-file-uid-gid
        (tramp-crypt-encrypt-file-name filename) uid gid))))
 
+(defun tramp-crypt-handle-set-visited-file-modtime (&optional time-list)
+  "Like `set-visited-file-modtime' for Tramp files."
+  (unless (buffer-file-name)
+    (error "Can't set-visited-file-modtime: buffer `%s' not visiting a file"
+	   (buffer-name)))
+  (let (tramp-crypt-enabled
+	(buffer-file-name (tramp-crypt-encrypt-file-name (buffer-file-name))))
+    (set-visited-file-modtime time-list)))
+
 (defun tramp-crypt-handle-unlock-file (filename)
   "Like `unlock-file' for Tramp files."
   (let (tramp-crypt-enabled)
-    ;; `unlock-file' exists since Emacs 28.1.
-    (tramp-compat-funcall
-     'unlock-file (tramp-crypt-encrypt-file-name filename))))
+    (unlock-file (tramp-crypt-encrypt-file-name filename))))
+
+(defun tramp-crypt-handle-verify-visited-file-modtime (&optional buf)
+  "Like `verify-visited-file-modtime' for Tramp files."
+  (with-current-buffer (or buf (current-buffer))
+    (let (tramp-crypt-enabled
+	  (buffer-file-name
+	   (tramp-crypt-encrypt-file-name (buffer-file-name buf))))
+      (verify-visited-file-modtime buf))))
 
 (defun tramp-crypt-cleanup-connection (vec)
   "Cleanup crypt resources determined by VEC."
