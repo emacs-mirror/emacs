@@ -2977,7 +2977,7 @@ instead of emitting a warning."
     (catch 'term
       (when (not (treesit-available-p))
         (setq msg (if (fboundp 'treesit-node-p)
-                      ;; Windows loads tree-sitter dynakically.
+                      ;; Windows loads tree-sitter dynamically.
                       "tree-sitter library is not available or failed to load"
                     "Emacs is not compiled with tree-sitter library"))
         (throw 'term nil))
