@@ -7009,33 +7009,6 @@ mark_face_cache (struct face_cache *c)
     }
 }
 
-/* Remove killed buffers or items whose car is a killed buffer from
-   LIST, and mark other items.  Return changed LIST, which is marked.  */
-
-static Lisp_Object
-mark_discard_killed_buffers (Lisp_Object list)
-{
-  Lisp_Object tail, *prev = &list;
-
-  for (tail = list; CONSP (tail) && !cons_marked_p (XCONS (tail));
-       tail = XCDR (tail))
-    {
-      Lisp_Object tem = XCAR (tail);
-      if (CONSP (tem))
-	tem = XCAR (tem);
-      if (BUFFERP (tem) && !BUFFER_LIVE_P (XBUFFER (tem)))
-	*prev = XCDR (tail);
-      else
-	{
-	  set_cons_marked (XCONS (tail));
-	  mark_object (XCAR (tail));
-	  prev = xcdr_addr (tail);
-	}
-    }
-  mark_object (tail);
-  return list;
-}
-
 static void
 mark_frame (struct Lisp_Vector *ptr)
 {
@@ -7090,15 +7063,6 @@ mark_window (struct Lisp_Vector *ptr)
       mark_glyph_matrix (w->current_matrix);
       mark_glyph_matrix (w->desired_matrix);
     }
-
-  /* Filter out killed buffers from both buffer lists
-     in attempt to help GC to reclaim killed buffers faster.
-     We can do it elsewhere for live windows, but this is the
-     best place to do it for dead windows.  */
-  wset_prev_buffers
-    (w, mark_discard_killed_buffers (w->prev_buffers));
-  wset_next_buffers
-    (w, mark_discard_killed_buffers (w->next_buffers));
 }
 
 /* Entry of the mark stack.  */

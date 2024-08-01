@@ -3277,6 +3277,113 @@ window_pixel_to_total (Lisp_Object frame, Lisp_Object horizontal)
 }
 
 
+/** Remove all occurrences of element whose car is BUFFER from ALIST.
+    Return changed ALIST.  */
+static Lisp_Object
+window_discard_buffer_from_alist (Lisp_Object buffer, Lisp_Object alist)
+{
+  Lisp_Object tail, *prev = &alist;
+
+  for (tail = alist; CONSP (tail); tail = XCDR (tail))
+    {
+      Lisp_Object tem = XCAR (tail);
+
+      tem = XCAR (tem);
+
+      if (EQ (tem, buffer))
+	*prev = XCDR (tail);
+      else
+	prev = xcdr_addr (tail);
+    }
+
+  return alist;
+}
+
+/** Remove all occurrences of BUFFER from LIST.  Return changed
+    LIST.  */
+static Lisp_Object
+window_discard_buffer_from_list (Lisp_Object buffer, Lisp_Object list)
+{
+  Lisp_Object tail, *prev = &list;
+
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
+    if (EQ (XCAR (tail), buffer))
+      *prev = XCDR (tail);
+    else
+      prev = xcdr_addr (tail);
+
+  return list;
+}
+
+/** Remove BUFFER from the lists of previous and next buffers of object
+    WINDOW.  ALL true means remove any `quit-restore' and
+    `quit-restore-prev' parameter of WINDOW referencing BUFFER too.  */
+static void
+window_discard_buffer_from_window (Lisp_Object buffer, Lisp_Object window, bool all)
+{
+  struct window *w = XWINDOW (window);
+
+  wset_prev_buffers
+    (w, window_discard_buffer_from_alist (buffer, w->prev_buffers));
+  wset_next_buffers
+    (w, window_discard_buffer_from_list (buffer, w->next_buffers));
+
+  if (all)
+    {
+      Lisp_Object quit_restore = window_parameter (w, Qquit_restore);
+      Lisp_Object quit_restore_prev = window_parameter (w, Qquit_restore_prev);
+      Lisp_Object quad;
+
+      if (EQ (buffer, Fnth (make_fixnum (3), quit_restore_prev))
+	  || (CONSP (quad = Fcar (Fcdr (quit_restore_prev)))
+	      && EQ (Fcar (quad), buffer)))
+	Fset_window_parameter (window, Qquit_restore_prev, Qnil);
+
+      if (EQ (buffer, Fnth (make_fixnum (3), quit_restore))
+	  || (CONSP (quad = Fcar (Fcdr (quit_restore)))
+	      && EQ (Fcar (quad), buffer)))
+	{
+	  Fset_window_parameter (window, Qquit_restore,
+				 window_parameter (w, Qquit_restore_prev));
+	  Fset_window_parameter (window, Qquit_restore_prev, Qnil);
+	}
+    }
+}
+
+/** Remove BUFFER from the lists of previous and next buffers and the
+    `quit-restore' and `quit-restore-prev' parameters of any dead
+    WINDOW.  */
+void
+window_discard_buffer_from_dead_windows (Lisp_Object buffer)
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (window_dead_windows_table);
+
+  DOHASH (h, k, v)
+    window_discard_buffer_from_window (buffer, v, true);
+}
+
+DEFUN ("window-discard-buffer-from-window", Fwindow_discard_buffer,
+       Swindow_discard_buffer, 2, 3, 0,
+       doc: /* Discard BUFFER from WINDOW.
+Discard specified live BUFFER from the lists of previous and next
+buffers of specified live WINDOW.
+
+Optional argument ALL non-nil means discard any `quit-restore' and
+`quit-restore-prev' parameters of WINDOW referencing BUFFER too.  */)
+  (Lisp_Object buffer, Lisp_Object window, Lisp_Object all)
+{
+  if (!BUFFER_LIVE_P (XBUFFER (buffer)))
+    error ("Not a live buffer");
+
+  if (!WINDOW_LIVE_P (window))
+    error ("Not a live window");
+
+  window_discard_buffer_from_window (buffer, window, !NILP (all));
+
+  return Qnil;
+}
+
+
 DEFUN ("delete-other-windows-internal", Fdelete_other_windows_internal,
        Sdelete_other_windows_internal, 0, 2, "",
        doc: /* Make WINDOW fill its frame.
@@ -4140,6 +4247,9 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
   w->window_end_vpos = 0;
   w->last_cursor_vpos = 0;
 
+  /* Discard BUFFER from WINDOW's previous and next buffers.  */
+  window_discard_buffer_from_window (buffer, window, false);
+
   if (!(keep_margins_p && samebuf))
     { /* If we're not actually changing the buffer, don't reset hscroll
 	 and vscroll.  Resetting hscroll and vscroll here is problematic
@@ -4402,6 +4512,10 @@ make_parent_window (Lisp_Object window, bool horflag)
   wset_buffer (p, Qnil);
   wset_combination (p, horflag, window);
   wset_combination_limit (p, Qnil);
+  /* Reset any previous and next buffers of p which have been installed
+     by the memcpy above.  */
+  wset_prev_buffers (p, Qnil);
+  wset_next_buffers (p, Qnil);
   wset_window_parameters (p, Qnil);
 }
 
@@ -4426,10 +4540,6 @@ make_window (void)
   wset_vertical_scroll_bar_type (w, Qt);
   wset_horizontal_scroll_bar_type (w, Qt);
   wset_cursor_type (w, Qt);
-  /* These Lisp fields are marked specially so they're not set to nil by
-     allocate_window.  */
-  wset_prev_buffers (w, Qnil);
-  wset_next_buffers (w, Qnil);
 
   /* Initialize non-Lisp data.  Note that allocate_window zeroes out all
      non-Lisp data, so do it only for slots which should not be zero.  */
@@ -5252,6 +5362,11 @@ Signal an error when WINDOW is the only window on its frame.  */)
 	  unchain_marker (XMARKER (w->old_pointm));
 	  unchain_marker (XMARKER (w->start));
 	  wset_buffer (w, Qnil);
+	  /* Add WINDOW to table of dead windows so when killing a buffer
+	     WINDOW mentions, all references to that buffer can be removed
+	     and the buffer be collected.  */
+	  Fputhash (make_fixnum (w->sequence_number),
+		    window, window_dead_windows_table);
 	}
 
       if (NILP (s->prev) && NILP (s->next))
@@ -7356,12 +7471,21 @@ the return value is nil.  Otherwise the value is t.  */)
 		}
 	    }
 
+	  /* Remove window from the table of dead windows.  */
+	  Fremhash (make_fixnum (w->sequence_number),
+		    window_dead_windows_table);
+
 	  if ((NILP (dont_set_miniwindow) || !MINI_WINDOW_P (w))
 	      && BUFFERP (p->buffer) && BUFFER_LIVE_P (XBUFFER (p->buffer)))
 	    /* If saved buffer is alive, install it, unless it's a
 	       minibuffer we explicitly prohibit.  */
 	    {
-	      wset_buffer (w, p->buffer);
+	      if (!EQ (w->contents, p->buffer))
+		{
+		  wset_buffer (w, p->buffer);
+		  window_discard_buffer_from_window (w->contents, window, false);
+		}
+
 	      w->start_at_line_beg = !NILP (p->start_at_line_beg);
 	      set_marker_restricted (w->start, p->start, w->contents);
 	      set_marker_restricted (w->pointm, p->pointm, w->contents);
@@ -7406,6 +7530,7 @@ the return value is nil.  Otherwise the value is t.  */)
 		 recreate *scratch* in the course (part of Juanma's bs-show
 		 scenario from March 2011).  */
 	      wset_buffer (w, other_buffer_safely (Fcurrent_buffer ()));
+	      window_discard_buffer_from_window (w->contents, window, false);
 	      /* This will set the markers to beginning of visible
 		 range.  */
 	      set_marker_restricted_both (w->start, w->contents, 0, 0);
@@ -7585,6 +7710,11 @@ delete_all_child_windows (Lisp_Object window)
 	 possible resurrection in Fset_window_configuration.  */
       wset_combination_limit (w, w->contents);
       wset_buffer (w, Qnil);
+      /* Add WINDOW to table of dead windows so when killing a buffer
+	 WINDOW mentions, all references to that buffer can be removed
+	 and the buffer be collected.  */
+      Fputhash (make_fixnum (w->sequence_number),
+		window, window_dead_windows_table);
     }
 
   Vwindow_list = Qnil;
@@ -8594,6 +8724,8 @@ syms_of_window (void)
   DEFSYM (Qconfiguration, "configuration");
   DEFSYM (Qdelete, "delete");
   DEFSYM (Qdedicated, "dedicated");
+  DEFSYM (Qquit_restore, "quit-restore");
+  DEFSYM (Qquit_restore_prev, "quit-restore-prev");
 
   DEFVAR_LISP ("temp-buffer-show-function", Vtemp_buffer_show_function,
 	       doc: /* Non-nil means call as function to display a help buffer.
@@ -8917,6 +9049,17 @@ Note that this optimization can cause the portion of the buffer
 displayed after a scrolling operation to be somewhat inaccurate.  */);
   fast_but_imprecise_scrolling = false;
 
+  DEFVAR_LISP ("window-dead-windows-table", window_dead_windows_table,
+    doc: /* Hash table of dead windows.
+Each entry in this table maps a window number to a window object.
+Entries are added by `delete-window-internal' and are removed by the
+garbage collector.
+
+This table is maintained by code in window.c and is made visible in
+Elisp for testing purposes only.  */);
+  window_dead_windows_table
+    = CALLN (Fmake_hash_table, QCweakness, Qt);
+
   defsubr (&Sselected_window);
   defsubr (&Sold_selected_window);
   defsubr (&Sminibuffer_window);
@@ -9032,6 +9175,7 @@ displayed after a scrolling operation to be somewhat inaccurate.  */);
   defsubr (&Swindow_parameters);
   defsubr (&Swindow_parameter);
   defsubr (&Sset_window_parameter);
+  defsubr (&Swindow_discard_buffer);
   defsubr (&Swindow_cursor_type);
   defsubr (&Sset_window_cursor_type);
 }

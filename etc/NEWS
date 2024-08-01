@@ -44,6 +44,37 @@ The 'find-function', 'find-library', 'find-face-definition', and
 usual minibuffer history commands.  Each command has a separate history.
 
 
+** Windows
+
++++
+*** New hook 'window-deletable-functions'.
+This abnormal hook gives its client a way to save a window from getting
+deleted implicitly by functions like 'kill-buffer', 'bury-buffer' and
+'quit-restore-window',
+
++++
+*** New option 'kill-buffer-quit-windows'.
+This option has 'kill-buffer' call 'quit-restore-window' to handle the
+further destiny of any window showing the buffer to be killed.
+
++++
+*** New window parameter 'quit-restore-prev'.
+This parameter is set up by 'display-buffer' when it detects that the
+window used already has a 'quit-restore' parameter.  Its presence gives
+'quit-restore-window' a way to undo a sequence of buffer display
+operations more intuitively.
+
++++
+*** 'quit-restore-window' now handles the values 'killing' and 'burying'
+for its BURY-OR-KILL argument just like 'kill' and 'bury' but assumes
+that the actual killing or burying of the buffer is done by the caller.
+
++++
+*** New option 'quit-restore-window-no-switch'.
+With this option set, 'quit-restore-window' will delete its window more
+aggressively rather than switching to some other buffer in it.
+
+
 * Editing Changes in Emacs 31.1
 
 ** Internationalization
