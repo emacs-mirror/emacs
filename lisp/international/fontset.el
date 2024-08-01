@@ -700,10 +700,11 @@
 	  (nil . "JISX0213.2004-1")
 	  ,(font-spec :registry "iso10646-1" :lang 'ja)
 	  ,(font-spec :registry "iso10646-1" :lang 'zh)
-          ;; This is required, as otherwise many TrueType fonts with
-          ;; CJK characters but no corresponding ``design language''
-          ;; declaration can't be found.
-          ,(font-spec :registry "iso10646-1" :script 'han))
+          ;; This is required on Android, as otherwise many TrueType
+          ;; fonts with CJK characters but no corresponding ``design
+          ;; language'' declaration can't be found.
+          ,@(and (featurep 'android)
+                 (list (font-spec :registry "iso10646-1" :script 'han))))
 
      (cjk-misc (nil . "GB2312.1980-0")
 	       (nil . "JISX0208*")

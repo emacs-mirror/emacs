@@ -2248,14 +2248,16 @@ function `tab-bar-tab-name-function'."
                 (seq-position (nthcdr beg tabs) group
                               (lambda (tb gr)
                                 (not (equal (alist-get 'group tb) gr))))))
-         (pos (when beg
-                (cond
-                 ;; Don't move tab when it's already inside group bounds
-                 ((and len (>= tab-index beg) (<= tab-index (+ beg len))) nil)
-                 ;; Move tab from the right to the group end
-                 ((and len (> tab-index (+ beg len))) (+ beg len 1))
-                 ;; Move tab from the left to the group beginning
-                 ((< tab-index beg) beg)))))
+         (pos (if beg
+                  (cond
+                   ;; Don't move tab when it's already inside group bounds
+                   ((and len (>= tab-index beg) (<= tab-index (+ beg len))) nil)
+                   ;; Move tab from the right to the group end
+                   ((and len (> tab-index (+ beg len))) (+ beg len 1))
+                   ;; Move tab from the left to the group beginning
+                   ((< tab-index beg) beg))
+                ;; Move tab with a new group to the end
+                -1)))
     (when pos
       (tab-bar-move-tab-to pos (1+ tab-index)))))
 

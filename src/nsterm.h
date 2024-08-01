@@ -463,7 +463,7 @@ enum ns_return_frame_mode
 @class EmacsLayer;
 
 #ifdef NS_IMPL_COCOA
-@interface EmacsView : NSView <NSTextInput, NSWindowDelegate>
+@interface EmacsView : NSView <NSTextInput, NSTextInputClient, NSWindowDelegate>
 #else
 @interface EmacsView : NSView <NSTextInput>
 #endif
@@ -522,6 +522,7 @@ enum ns_return_frame_mode
 - (void)copyRect:(NSRect)srcRect to:(NSPoint)dest;
 
 /* Non-notification versions of NSView methods. Used for direct calls.  */
+- (void)adjustEmacsFrameRect;
 - (void)windowWillEnterFullScreen;
 - (void)windowDidEnterFullScreen;
 - (void)windowWillExitFullScreen;
