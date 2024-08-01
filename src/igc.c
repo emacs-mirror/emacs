@@ -3612,6 +3612,8 @@ buffer_step (struct igc_buffer_it *it)
 void
 igc_on_idle (void)
 {
+  shrink_regexp_cache ();
+
   struct igc_buffer_it buffer_it = make_buffer_it ();
   IGC_WITH_CLOCK (clock, 0.1)
   {
