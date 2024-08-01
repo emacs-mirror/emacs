@@ -427,8 +427,7 @@ in the minibuffer:
           (let ((eshell-last-command-name)
                 (eshell-last-command-status)
                 (eshell-last-arguments))
-            (eshell-protect
-             (eshell-plain-command "ls" (cdr args)))))
+            (eshell-plain-command "ls" (cdr args))))
 	nil))))
 
 (put 'eshell/cd 'eshell-no-numeric-conversions t)
