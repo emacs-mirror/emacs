@@ -25961,6 +25961,18 @@ display_line (struct it *it, int cursor_vpos)
 		    }
 		  it->hpos = hpos_before;
 		}
+	      /* If the default face is remapped, and the window has
+                 display margins, and no glyphs were written yet to the
+                 margins on this screen line, we must add one space
+                 glyph to the margin area to make sure the margins use
+                 the background of the remapped default face.  */
+	      if (lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID)
+		  != DEFAULT_FACE_ID /* default face is remapped */
+		  && ((WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
+		       && it->glyph_row->used[LEFT_MARGIN_AREA] == 0)
+		      || (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
+			  && it->glyph_row->used[RIGHT_MARGIN_AREA] == 0)))
+		extend_face_to_end_of_line (it);
 	    }
 	  else if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
@@ -32179,6 +32191,8 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
   struct it temp_it;
   Lisp_Object gc;
   GLYPH glyph;
+  /* Take face-remapping into consideration.  */
+  int face_id = lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID);
 
   temp_it = *it;
   temp_it.object = Qnil;
@@ -32188,27 +32202,27 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
     {
       /* Continuation glyph.  For R2L lines, we mirror it by hand.  */
       if (it->bidi_it.paragraph_dir == R2L)
-	SET_GLYPH_FROM_CHAR (glyph, '/');
+	SET_GLYPH (glyph, '/', face_id);
       else
-	SET_GLYPH_FROM_CHAR (glyph, '\\');
+	SET_GLYPH (glyph, '\\', face_id);
       if (it->dp
 	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
 	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
-	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
+	  spec_glyph_lookup_face (it->w, &glyph);
 	}
     }
   else if (what == IT_TRUNCATION)
     {
       /* Truncation glyph.  */
-      SET_GLYPH_FROM_CHAR (glyph, '$');
+      SET_GLYPH (glyph, '$', face_id);
       if (it->dp
 	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
 	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
-	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
+	  spec_glyph_lookup_face (it->w, &glyph);
 	}
     }
   else
