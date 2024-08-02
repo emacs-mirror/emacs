@@ -3948,7 +3948,7 @@ or a symbol, see `completion-pcm--merge-completions'."
                      (t
                       (let ((re (if (eq x 'any-delim)
                                     (concat completion-pcm--delim-wild-regex "*?")
-                                  ".*?")))
+                                  "[^z-a]*?")))
                         (if (if (consp group) (memq x group) group)
                             (concat "\\(" re "\\)")
                           re)))))
