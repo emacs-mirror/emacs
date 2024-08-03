@@ -23,8 +23,8 @@
 ;;; Commentary:
 
 ;; This file provides code to recognize simple touch screen gestures.
-;; It is used on X, PGTK, and Android, currently the only systems where
-;; Emacs supports touch input.
+;; It is used on X, PGTK, Android, and MS-Windows, currently the only
+;; systems where Emacs supports touch input.
 ;;
 ;; See (elisp)Touchscreen Events for a description of the details of
 ;; touch events.
