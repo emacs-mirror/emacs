@@ -174,11 +174,11 @@ get_adstyle_property (FcPattern *p)
   USE_SAFE_ALLOCA;
   tmp = SAFE_ALLOCA (end - str);
   for (i = 0; i < end - str; ++i)
-    tmp[i] = ((end[i] != '?'
-	       && end[i] != '*'
-	       && end[i] != '"'
-	       && end[i] != '-')
-	      ? end[i] : ' ');
+    tmp[i] = ((str[i] != '?'
+	       && str[i] != '*'
+	       && str[i] != '"'
+	       && str[i] != '-')
+	      ? str[i] : ' ');
   adstyle = font_intern_prop (tmp, end - str, 1);
   SAFE_FREE ();
   if (font_style_to_value (FONT_WIDTH_INDEX, adstyle, 0) >= 0)
