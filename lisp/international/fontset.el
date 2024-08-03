@@ -88,6 +88,7 @@
 	("iso10646-1$" . (unicode-bmp . nil))
 	("iso10646.indian-1" . (unicode-bmp . nil))
 	("unicode-bmp" . (unicode-bmp . nil))
+        ("unicode-sip" . (unicode-sip . nil)) ; used by w32font.c
 	("abobe-symbol" . symbol)
 	("sisheng_cwnn" . chinese-sisheng)
 	("mulearabic-0" . arabic-digit)

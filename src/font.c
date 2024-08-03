@@ -1627,15 +1627,30 @@ font_parse_fcname (char *name, ptrdiff_t len, Lisp_Object font)
 	{
 	  bool decimal = 0, size_found = 1;
 	  for (q = p + 1; *q && *q != ':'; q++)
-	    if (! c_isdigit (*q))
-	      {
-		if (*q != '.' || decimal)
-		  {
-		    size_found = 0;
-		    break;
-		  }
-		decimal = 1;
-	      }
+	    {
+#ifdef HAVE_NTGUI
+	      /* MS-Windows has several CJK fonts whose name ends in
+                 "-ExtB".  It also has fonts whose names end in "-R" or
+                 "-B", and one font whose name ends in "-SB".  */
+	      if (q == p + 1 && (strncmp (q, "ExtB", 4) == 0
+				 || strncmp (q, "R", 1) == 0
+				 || strncmp (q, "B", 1) == 0
+				 || strncmp (q, "SB", 2) == 0))
+		{
+		  size_found = 0;
+		  break;
+		}
+#endif
+	      if (! c_isdigit (*q))
+		{
+		  if (*q != '.' || decimal)
+		    {
+		      size_found = 0;
+		      break;
+		    }
+		  decimal = 1;
+		}
+	    }
 	  if (size_found)
 	    {
 	      family_end = p;
@@ -2000,6 +2015,15 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
       len = SBYTES (family);
       p0 = SSDATA (family);
       p1 = strchr (p0, '-');
+#ifdef HAVE_NTGUI
+      /* MS-Windows has fonts whose family name ends in "-ExtB" and
+         other suffixes which include a hyphen.  */
+      if (p1 && (strcmp (p1, "-ExtB") == 0
+		 || strcmp (p1, "-R") == 0
+		 || strcmp (p1, "-B") == 0
+		 || strcmp (p1, "-SB") == 0))
+	p1 = NULL;
+#endif
       if (p1)
 	{
 	  if ((*p0 != '*' && p1 - p0 > 0)
