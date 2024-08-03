@@ -7064,7 +7064,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 - (NSRect) firstRectForCharacterRange: (NSRange) range
 			  actualRange: (nullable NSRangePointer) actualRange
 {
-  return NSZeroRect;
+  return [self firstRectForCharacterRange: range];
 }
 
 #endif /* NS_IMPL_COCOA */
