@@ -466,7 +466,8 @@ MODE is either `c' or `cpp'."
            ,@(when (eq mode 'cpp)
                '(((node-is "access_specifier") parent-bol 0)
                  ;; Indent the body of namespace definitions.
-                 ((parent-is "declaration_list") parent-bol c-ts-mode-indent-offset)))
+                 ((parent-is "declaration_list") parent-bol c-ts-mode-indent-offset)
+                 ((parent-is "template_declaration") parent-bol 0)))
 
 
            ;; int[5] a = { 0, 0, 0, 0 };
