@@ -38,9 +38,6 @@
 (declare-function dired-compress-file "dired-aux")
 (declare-function dired-remove-file "dired-aux")
 (defvar dired-compress-file-suffixes)
-;; Added in Emacs 28.1.
-(defvar process-file-return-signal-string)
-(defvar vc-handled-backends)
 (defvar vc-bzr-program)
 (defvar vc-git-program)
 (defvar vc-hg-program)
@@ -2026,8 +2023,7 @@ ID-FORMAT valid values are `string' and `integer'."
 	(unless (file-exists-p dirname)
 	  (tramp-error v 'file-missing dirname))
 
-	;; `copy-directory-create-symlink' exists since Emacs 28.1.
-	(if (and (bound-and-true-p copy-directory-create-symlink)
+	(if (and copy-directory-create-symlink
 		 (setq target (file-symlink-p dirname))
 		 (tramp-equal-remote dirname newname))
 	    (make-symbolic-link
@@ -3288,9 +3284,8 @@ will be used."
 	 (kill-buffer (tramp-get-connection-buffer v))
 	 (setq ret 1)))
 
-      ;; Handle signals.  `process-file-return-signal-string' exists
-      ;; since Emacs 28.1.
-      (when (and (bound-and-true-p process-file-return-signal-string)
+      ;; Handle signals.
+      (when (and process-file-return-signal-string
 		 (natnump ret) (>= ret 128))
 	(setq ret (nth (- ret 128) (tramp-sh-get-signal-strings v)))))))
 

@@ -108,6 +108,7 @@
 (require 'url-util)
 
 ;; Pacify byte-compiler.
+(declare-function file-notify-callback "filenotify")
 (declare-function zeroconf-init "zeroconf")
 (declare-function zeroconf-list-service-types "zeroconf")
 (declare-function zeroconf-list-services "zeroconf")
@@ -1571,8 +1572,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	;; `unread-command-events' does not accept several events at
 	;; once.  Therefore, we apply the callback directly.
 	(when (member action events)
-	  (tramp-compat-funcall
-           'file-notify-callback (list proc action file file1)))))
+	  (file-notify-callback (list proc action file file1)))))
 
     ;; Save rest of the string.
     (when (string-empty-p string) (setq string nil))

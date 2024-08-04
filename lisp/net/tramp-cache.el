@@ -584,8 +584,7 @@ PROPERTIES is a list of file properties (strings)."
 	;; Dump it.
 	(with-temp-file tramp-persistency-file-name
 	  (insert
-	   ;; Starting with Emacs 28, we could use `lisp-data'.
-	   (format ";; -*- emacs-lisp -*- <%s %s>\n"
+	   (format ";; -*- lisp-data -*- <%s %s>\n"
 		   (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
 		   tramp-persistency-file-name)
 	   ";; Tramp connection history.  Don't change this file.\n"

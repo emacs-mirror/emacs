@@ -124,9 +124,8 @@ The outline level is equal to the verbosity of the Tramp message."
   (declare (tramp-suppress-trace t))
   (1+ (string-to-number (match-string 3))))
 
-;; This function takes action since Emacs 28.1, when
-;; `read-extended-command-predicate' is set to
-;; `command-completion-default-include-p'.
+;; This function takes action, when `read-extended-command-predicate'
+;; is set to `command-completion-default-include-p'.
 (defun tramp-debug-buffer-command-completion-p (_symbol buffer)
   "A predicate for Tramp interactive commands.
 They are completed by `M-x TAB' only in Tramp debug buffers."

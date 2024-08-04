@@ -763,9 +763,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	 (kill-buffer (tramp-get-connection-buffer v))
 	 (setq ret 1)))
 
-      ;; Handle signals.  `process-file-return-signal-string' exists
-      ;; since Emacs 28.1.
-      (when (and (bound-and-true-p process-file-return-signal-string)
+      (when (and process-file-return-signal-string
 		 (natnump ret) (> ret 128))
 	(setq ret (nth (- ret 128) (tramp-adb-get-signal-strings v))))))
 

@@ -339,27 +339,26 @@ see its function help for a description of the format."
 ;;;###tramp-autoload
 (defun tramp-kubernetes--container (vec)
   "Extract the container name from a kubernetes host name in VEC."
-  (or (let ((host (tramp-file-name-host vec)))
-	(and (string-match tramp-kubernetes--host-name-regexp host)
-	     (match-string 1 host)))
+  (or (when-let ((host (and vec (tramp-file-name-host vec)))
+		 ((string-match tramp-kubernetes--host-name-regexp host)))
+	(match-string 1 host))
       ""))
 
 ;;;###tramp-autoload
 (defun tramp-kubernetes--pod (vec)
   "Extract the pod name from a kubernetes host name in VEC."
-  (or (let ((host (tramp-file-name-host vec)))
-	(and (string-match tramp-kubernetes--host-name-regexp host)
-	     (match-string 2 host)))
+  (or (when-let ((host (and vec (tramp-file-name-host vec)))
+		 ((string-match tramp-kubernetes--host-name-regexp host)))
+	(match-string 2 host))
       ""))
 
 ;;;###tramp-autoload
 (defun tramp-kubernetes--namespace (vec)
   "Extract the namespace from a kubernetes host name in VEC.
 Use `tramp-kubernetes-namespace' otherwise."
-  (or (when-let ((_ vec)
-		 (host (tramp-file-name-host vec)))
-	(and (string-match tramp-kubernetes--host-name-regexp host)
-	     (match-string 3 host)))
+  (or (when-let ((host (and vec (tramp-file-name-host vec)))
+		 ((string-match tramp-kubernetes--host-name-regexp host)))
+	(match-string 3 host))
       tramp-kubernetes-namespace))
 
 ;; We must change `vec' and `default-directory' to the previous hop,

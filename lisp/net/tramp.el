@@ -2335,26 +2335,22 @@ Must be handled by the callers."
    ((member operation
 	    '(access-file byte-compiler-base-file-name delete-directory
 	      delete-file diff-latest-backup-file directory-file-name
-	      directory-files directory-files-and-attributes
-	      dired-compress-file dired-uncache file-acl
-	      file-accessible-directory-p file-attributes
-	      file-directory-p file-executable-p file-exists-p
-	      file-local-copy file-modes file-name-as-directory
+	      directory-files directory-files-and-attributes dired-compress-file
+	      dired-uncache file-acl file-accessible-directory-p file-attributes
+	      file-directory-p file-executable-p file-exists-p file-local-copy
+	      file-locked-p file-modes file-name-as-directory
 	      file-name-case-insensitive-p file-name-directory
 	      file-name-nondirectory file-name-sans-versions
-	      file-notify-add-watch file-ownership-preserved-p
-	      file-readable-p file-regular-p file-remote-p
-	      file-selinux-context file-symlink-p file-system-info
-	      file-truename file-writable-p find-backup-file-name
-	      get-file-buffer insert-directory insert-file-contents
-	      load make-directory set-file-acl set-file-modes
-	      set-file-selinux-context set-file-times
-	      substitute-in-file-name unhandled-file-name-directory
-	      vc-registered
+	      file-notify-add-watch file-ownership-preserved-p file-readable-p
+	      file-regular-p file-remote-p file-selinux-context file-symlink-p
+	      file-system-info file-truename file-writable-p
+	      find-backup-file-name get-file-buffer
+	      insert-directory insert-file-contents load lock-file make-directory
+	      make-lock-file-name set-file-acl set-file-modes
+	      set-file-selinux-context set-file-times substitute-in-file-name
+	      unhandled-file-name-directory unlock-file vc-registered
 	      ;; Emacs 28- only.
 	      make-directory-internal
-	      ;; Emacs 28+ only.
-	      file-locked-p lock-file make-lock-file-name unlock-file
 	      ;; Emacs 29+ only.
 	      abbreviate-file-name
 	      ;; Tramp internal magic file name function.
@@ -2699,9 +2695,8 @@ Run BODY."
 
 ;;; File name handler functions for completion mode:
 
-;; This function takes action since Emacs 28.1, when
-;; `read-extended-command-predicate' is set to
-;; `command-completion-default-include-p'.
+;; This function takes action, when `read-extended-command-predicate'
+;; is set to `command-completion-default-include-p'.
 (defun tramp-command-completion-p (_symbol buffer)
   "A predicate for Tramp interactive commands.
 They are completed by `M-x TAB' only if the current buffer is remote."
@@ -3823,8 +3818,7 @@ BODY is the backend specific code."
 		      (tramp-tramp-file-p lockname)
 		      (not file-locked))
 	     (setq file-locked t)
-	     ;; `lock-file' exists since Emacs 28.1.
-	     (tramp-compat-funcall 'lock-file lockname))
+	     (lock-file lockname))
 
 	   ;; The body.
 	   ,@body
@@ -3862,8 +3856,7 @@ BODY is the backend specific code."
 
 	     ;; Unlock file.
 	     (when file-locked
-	       ;; `unlock-file' exists since Emacs 28.1.
-	       (tramp-compat-funcall 'unlock-file lockname))
+	       (unlock-file lockname))
 
 	     ;; Sanity check.
 	     (unless (equal curbuf (current-buffer))
@@ -4825,8 +4818,7 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 (defun tramp-handle-make-lock-file-name (file)
   "Like `make-lock-file-name' for Tramp files."
   (and create-lockfiles
-       ;; This variable has been introduced with Emacs 28.1.
-       (not (bound-and-true-p remote-file-name-inhibit-locks))
+       (not remote-file-name-inhibit-locks)
        (tramp-run-real-handler 'make-lock-file-name (list file))))
 
 (defun tramp-handle-unlock-file (file)
@@ -4844,12 +4836,10 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	(unless (or (not create-lockfiles)
 		    (bound-and-true-p remote-file-name-inhibit-locks))
 	  (signal 'file-error `("Cannot remove lock file for" ,file))))
-    ;; `userlock--handle-unlock-error' exists since Emacs 28.1.  It
-    ;; checks for `create-lockfiles' since Emacs 30.1, we don't need
-    ;; this check here, then.
-    (error (unless (or (not create-lockfiles)
-                       (bound-and-true-p remote-file-name-inhibit-locks))
-             (tramp-compat-funcall 'userlock--handle-unlock-error err)))))
+    ;; `userlock--handle-unlock-error' checks for `create-lockfiles'
+    ;; since Emacs 30.1, we don't need this check here, then.
+    (error (unless (or (not create-lockfiles) remote-file-name-inhibit-locks)
+             (userlock--handle-unlock-error err)))))
 
 (defun tramp-handle-load (file &optional noerror nomessage nosuffix must-suffix)
   "Like `load' for Tramp files."
@@ -5312,12 +5302,9 @@ support symbolic links."
 	    (setq current-buffer-p t)
 	    (current-buffer))
 	   (t (get-buffer-create
-	       ;; These variables have been introduced with Emacs 28.1.
 	       (if asynchronous
-		   (or (bound-and-true-p shell-command-buffer-name-async)
-		       "*Async Shell Command*")
-		 (or (bound-and-true-p shell-command-buffer-name)
-		     "*Shell Command Output*"))))))
+		   (or shell-command-buffer-name-async "*Async Shell Command*")
+		 (or shell-command-buffer-name "*Shell Command Output*"))))))
 	 (error-buffer
 	  (cond
 	   ((bufferp error-buffer) error-buffer)
@@ -6849,10 +6836,6 @@ Consults the auth-source package."
 		 (lambda () (password-cache-add key auth-passwd)))
 	   auth-passwd))
 
-      ;; Workaround.  Prior Emacs 28.1, auth-source has saved empty
-      ;; passwords.  See discussion in Bug#50399.
-      (when (tramp-string-empty-or-nil-p auth-passwd)
-	(setq tramp-password-save-function nil))
       (tramp-set-connection-property vec "first-password-request" nil))))
 
 (defun tramp-read-passwd-without-cache (proc &optional prompt)
