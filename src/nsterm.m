@@ -10317,7 +10317,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   emacs_event->part = last_hit_part;
   emacs_event->code = 0;
   emacs_event->modifiers = EV_MODIFIERS (e) | down_modifier;
-  XSETWINDOW (win, m_lisp_window);
+  XSETWINDOW (win, *m_lisp_window);
   emacs_event->frame_or_window = win;
   emacs_event->timestamp = EV_TIMESTAMP (e);
   emacs_event->arg = Qnil;
