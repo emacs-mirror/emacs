@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.7.2.1
+@subtitle for version 0.7.4
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.7.2.1.
+This manual is for Transient version 0.7.4.
 
 @insertcopying
 @end ifnottex
@@ -1497,15 +1497,31 @@ values.  In complex cases it might be necessary to use this variable
 instead, i.e., if you need access to information beside the value.
 @end defvar
 
+@defvar transient-current-command
+The transient from which this suffix command was invoked.  The
+returned value is a symbol, the transient prefix command.
+@end defvar
+
 @defvar transient-current-prefix
 The transient from which this suffix command was invoked.  The
 returned value is a @code{transient-prefix} object, which holds information
 associated with the transient prefix command.
 @end defvar
 
-@defvar transient-current-command
-The transient from which this suffix command was invoked.  The
-returned value is a symbol, the transient prefix command.
+@defvar transient-active-prefix
+This function returns the active transient object.  Return @code{nil} if
+there is no active transient, if the transient buffer isn't shown,
+and while the active transient is suspended (e.g., while the
+minibuffer is in use).
+
+Unlike @code{transient-current-prefix}, which is only ever non-@code{nil} in code
+that is run directly by a command that is invoked while a transient
+is current, this function is also suitable for use in asynchronous
+code, such as timers and callbacks (this function's main use-case).
+
+If optional PREFIXES is non-@code{nil}, it must be a list of prefix command
+symbols, in which case the active transient object is only returned
+if it matches one of the PREFIXES."
 @end defvar
 
 @node Transient State
