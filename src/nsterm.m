@@ -8073,6 +8073,9 @@ ns_in_echo_area (void)
 #ifdef NS_IMPL_COCOA
   old_title = 0;
   maximizing_resize = NO;
+  /* Restore to default before macOS 14 (bug#72440).  */
+  if (NSAppKitVersionNumber >= NSAppKitVersionNumber14_0)
+    [self setClipsToBounds: YES];
 #endif
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
