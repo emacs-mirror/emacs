@@ -1193,23 +1193,18 @@ You can specify the following optional properties:
   (if (display-graphic-p)
       (let* ((zoom (or (plist-get flags :zoom)
                        (car shr-image-zoom-levels)))
-             (zoom-function (nth 2 (assq zoom shr-image-zoom-level-alist)))
+             (zoom-function (or (nth 2 (assq zoom shr-image-zoom-level-alist))
+                                (error "Unrecognized zoom level %s" zoom)))
 	     (data (if (consp spec)
 		       (car spec)
 		     spec))
 	     (content-type (and (consp spec)
 				(cadr spec)))
 	     (start (point))
-	     (image (cond
-		     ((eq content-type 'image/svg+xml)
-                      (when (image-type-available-p 'svg)
-		        (create-image data 'svg t :ascent shr-image-ascent)))
-                     (zoom-function
-                      (ignore-errors
-                        (funcall zoom-function data content-type
-                                 (plist-get flags :width)
-                                 (plist-get flags :height))))
-                     (t (error "Unrecognized zoom level %s" zoom)))))
+	     (image (ignore-errors
+                      (funcall zoom-function data content-type
+                               (plist-get flags :width)
+                               (plist-get flags :height)))))
         (when image
           ;; The trailing space can confuse shr-insert into not
           ;; putting any space after inline images.

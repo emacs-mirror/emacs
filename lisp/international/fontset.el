@@ -88,6 +88,7 @@
 	("iso10646-1$" . (unicode-bmp . nil))
 	("iso10646.indian-1" . (unicode-bmp . nil))
 	("unicode-bmp" . (unicode-bmp . nil))
+        ("unicode-sip" . (unicode-sip . nil)) ; used by w32font.c
 	("abobe-symbol" . symbol)
 	("sisheng_cwnn" . chinese-sisheng)
 	("mulearabic-0" . arabic-digit)
@@ -199,6 +200,7 @@
         (tai-tham #x1A20 #x1A55 #x1A61 #x1A80)
 	(symbol . [#x201C #x2200 #x2500])
 	(braille #x2800)
+        (tifinagh #x2D30 #x2D60)
 	(ideographic-description #x2FF0)
         ;; Noto Sans Phags Pa is broken and reuses the CJK misc code
         ;; points for some of its own characters.  Add one actual CJK
@@ -207,7 +209,7 @@
 	(kana #x304B)
 	(bopomofo #x3105)
 	(kanbun #x319D)
-	(han #x5B57)
+	(han #x2e90 #x2f00 #x3200 #x3300 #x3400 #x4e10 #x5B57 #xfe30 #xf900)
 	(yi #xA288)
         (syloti-nagri #xA807 #xA823 #xA82C)
         (rejang #xA930 #xA947 #xA95F)
@@ -697,10 +699,11 @@
 	  (nil . "JISX0213.2004-1")
 	  ,(font-spec :registry "iso10646-1" :lang 'ja)
 	  ,(font-spec :registry "iso10646-1" :lang 'zh)
-          ;; This is required, as otherwise many TrueType fonts with
-          ;; CJK characters but no corresponding ``design language''
-          ;; declaration can't be found.
-          ,(font-spec :registry "iso10646-1" :script 'han))
+          ;; This is required on Android, as otherwise many TrueType
+          ;; fonts with CJK characters but no corresponding ``design
+          ;; language'' declaration can't be found.
+          ,@(and (featurep 'android)
+                 (list (font-spec :registry "iso10646-1" :script 'han))))
 
      (cjk-misc (nil . "GB2312.1980-0")
 	       (nil . "JISX0208*")
@@ -860,6 +863,7 @@
                     nag-mundari
                     mende-kikakui
 		    adlam
+                    tifinagh
                     tai-tham
                     indic-siyaq-number
                     ottoman-siyaq-number

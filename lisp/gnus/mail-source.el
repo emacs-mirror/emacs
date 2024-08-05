@@ -954,9 +954,8 @@ See the Gnus manual for details."
     ;; Since idle timers created when Emacs is already in the idle
     ;; state don't get activated until Emacs _next_ becomes idle, we
     ;; need to force our timer to be considered active now.  We do
-    ;; this by being naughty and poking the timer internals directly
-    ;; (element 0 of the vector is nil if the timer is active).
-    (aset mail-source-report-new-mail-idle-timer 0 nil)))
+    ;; this by being naughty and poking the timer internals directly.
+    (setf (timer--triggered mail-source-report-new-mail-idle-timer) nil)))
 
 (declare-function display-time-event-handler "time" ())
 

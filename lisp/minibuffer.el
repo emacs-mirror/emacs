@@ -2529,7 +2529,7 @@ any completion candidate highlighted in *Completions* window (to
 indicate that it is the selected candidate) will be un-highlighted,
 and point in the *Completions* window will be moved off such a candidate.
 This means that `RET' (`minibuffer-choose-completion-or-exit') will exit
-the minubuffer with the minibuffer's current contents, instead of the
+the minibuffer with the minibuffer's current contents, instead of the
 selected completion candidate."
   :type '(choice (const :tag "Candidates in *Completions* stay selected as you type" nil)
                  (const :tag "Typing deselects any completion candidate in *Completions*" t))
@@ -3343,7 +3343,7 @@ same as `substitute-in-file-name'."
     (file-error nil)))               ;PCM often calls with invalid directories.
 
 (defun completion--sifn-requote (upos qstr)
-  ;; We're looking for `qpos' such that:
+  ;; We're looking for (the largest) `qpos' such that:
   ;; (equal (substring (substitute-in-file-name qstr) 0 upos)
   ;;        (substitute-in-file-name (substring qstr 0 qpos)))
   ;; Big problem here: we have to reverse engineer substitute-in-file-name to
@@ -3373,11 +3373,13 @@ same as `substitute-in-file-name'."
       ;; Main assumption: nothing after qpos should affect the text before upos,
       ;; so we can work our way backward from the end of qstr, one character
       ;; at a time.
-      ;; Second assumptions: If qpos is far from the end this can be a bit slow,
+      ;; Second assumption: If qpos is far from the end this can be a bit slow,
       ;; so we speed it up by doing a first loop that skips a word at a time.
       ;; This word-sized loop is careful not to cut in the middle of env-vars.
       (while (let ((boundary (string-match "\\(\\$+{?\\)?\\w+\\W*\\'" qstr)))
                (and boundary
+                    ;; Try and make sure we keep the largest `qpos' (bug#72176).
+                    (not (string-match-p "/[/~]" qstr boundary))
                     (progn
                       (setq qprefix (substring qstr 0 boundary))
                       (string-prefix-p uprefix
@@ -4051,24 +4053,26 @@ details."
 
 (defun completion--hilit-from-re (string regexp &optional point-idx)
   "Fontify STRING using REGEXP POINT-IDX.
-`completions-common-part' and `completions-first-difference' are
-used.  POINT-IDX is the position of point in the presumed \"PCM\"
-pattern that was used to generate derive REGEXP from."
-(let* ((md (and regexp (string-match regexp string) (cddr (match-data t))))
-       (pos (if point-idx (match-beginning point-idx) (match-end 0)))
-       (me (and md (match-end 0)))
-       (from 0))
-  (while md
-    (add-face-text-property from (pop md) 'completions-common-part nil string)
-    (setq from (pop md)))
-  (if (> (length string) pos)
-      (add-face-text-property
-       pos (1+ pos)
-       'completions-first-difference
-       nil string))
-  (unless (or (not me) (= from me))
-    (add-face-text-property from me 'completions-common-part nil string))
-  string))
+Uses `completions-common-part' and `completions-first-difference'
+faces to fontify STRING.
+POINT-IDX is the position of point in the presumed \"PCM\" pattern
+from which REGEXP was generated."
+  (let* ((md (and regexp (string-match regexp string) (cddr (match-data t))))
+         (pos (if point-idx (match-beginning point-idx) (match-end 0)))
+         (me (and md (match-end 0)))
+         (from 0))
+    (while md
+      (add-face-text-property from (pop md)
+                              'completions-common-part nil string)
+      (setq from (pop md)))
+    (if (and (numberp pos) (> (length string) pos))
+        (add-face-text-property
+         pos (1+ pos)
+         'completions-first-difference
+         nil string))
+    (unless (or (not me) (= from me))
+      (add-face-text-property from me 'completions-common-part nil string))
+    string))
 
 (defun completion--flex-score-1 (md-groups match-end len)
   "Compute matching score of completion.

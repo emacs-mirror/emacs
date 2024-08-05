@@ -9166,7 +9166,7 @@ sfnt_interpret_alignrp (struct sfnt_interpreter *interpreter)
    ZP1.
 
    Move both points along the freedom vector by half the magnitude of
-   the the projection of a vector formed by P1.x - P2.x, P1.y - P2.y,
+   the projection of a vector formed by P1.x - P2.x, P1.y - P2.y,
    upon the projection vector.  */
 
 static void
@@ -16606,10 +16606,10 @@ sfnt_read_OS_2_table (int fd, struct sfnt_offset_subtable *subtable)
 
   OS_2 = xmalloc (sizeof *OS_2);
 
-  /* Read data into the structure.  */
+  /* Read data up to the end of `panose'.  */
 
-  wanted = SFNT_ENDOF (struct sfnt_OS_2_table, fs_last_char_index,
-		       uint16_t);
+  wanted = SFNT_ENDOF (struct sfnt_OS_2_table, panose,
+		       unsigned char[10]);
   rc = read (fd, OS_2, wanted);
 
   if (rc == -1 || rc != wanted)
@@ -16636,6 +16636,20 @@ sfnt_read_OS_2_table (int fd, struct sfnt_offset_subtable *subtable)
   sfnt_swap16 (&OS_2->y_strikeout_size);
   sfnt_swap16 (&OS_2->y_strikeout_position);
   sfnt_swap16 (&OS_2->s_family_class);
+
+  /* Read fields between ul_unicode_range and fs_last_char_index.  */
+  wanted = (SFNT_ENDOF (struct sfnt_OS_2_table, fs_last_char_index,
+			uint16_t)
+	    - offsetof (struct sfnt_OS_2_table, ul_unicode_range));
+  rc = read (fd, &OS_2->ul_unicode_range, wanted);
+
+  if (rc == -1 || rc != wanted)
+    {
+      xfree (OS_2);
+      return NULL;
+    }
+
+  /* Swap the remainder and return the table.  */
   sfnt_swap32 (&OS_2->ul_unicode_range[0]);
   sfnt_swap32 (&OS_2->ul_unicode_range[1]);
   sfnt_swap32 (&OS_2->ul_unicode_range[2]);

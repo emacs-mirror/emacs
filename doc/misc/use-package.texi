@@ -177,13 +177,13 @@ loading actually occurs.  As you might expect, you can use
 @end group
 @end lisp
 
-The above declarations will load the @samp{foo} package
-immediately.  In most cases, this is not necessary or desirable, as
-that will slow down Emacs startup.  Instead, you should try to set
-things up so that packages are only loaded when they are actually
-needed (a.k.a. ``autoloading'').  If you have installed a package from
-@acronym{GNU} @acronym{ELPA} that provides it's own autoloads, it is often
-enough to say:
+The above declarations will load the @samp{foo} package immediately.  In
+most cases, this is not necessary or desirable, as that will slow down
+Emacs startup.  Instead, you should try to set things up so that
+packages are only loaded when they are actually needed (this is known as
+``autoloading'').  If you have installed a package from @acronym{GNU}
+@acronym{ELPA} that provides its own autoloads, it is often enough to
+say:
 
 @lisp
 @group
@@ -252,6 +252,7 @@ on Emacs start.  @xref{Installing packages}, for details.
 * Forcing loading::             Loading packages immediately.
 * Conditional loading::         Loading packages conditionally.
 * Loading sequentially::        Loading packages in sequence.
+* The @code{emacs} package::    Customizing built-in variables.
 * Load dependencies::           Don't load without dependencies.
 * Manual installation::         Loading manually installed packages.
 @end menu
@@ -567,6 +568,34 @@ registers autoloads, such as @code{:bind} or @code{:hook}
 it is possible that your package will never be loaded if you do not
 add @code{:demand t} to those declarations.
 
+@node The @code{emacs} package
+@section Customizing built-in variables
+@cindex customizing built-in variables
+
+Some users want to put all their customizations in use-package
+declarations, even for variables, hooks, and options that are always
+available, without loading any package.@footnote{In other words, they
+are either preloaded in Emacs or defined in Emacs's C sources.}
+
+For that purpose, you can use the no-op @samp{emacs} package:
+
+@lisp
+@group
+(use-package emacs
+  :init
+  (setq custom-file "~/.emacs.d/emacs-custom.el")
+  (load custom-file)
+  (setq frame-title-format "%b")
+  :custom
+  (use-short-answers t))
+@end group
+@end lisp
+
+This declaration takes advantage of the fact that @w{@code{(featurep
+'emacs)}} always returns true, and has no special meaning beyond that.
+It simply provides a way to organize your customizations, without
+loading anything.
+
 @node Load dependencies
 @section Prevent loading if dependencies are missing
 @cindex prevent loading package if dependencies are missing
@@ -611,7 +640,7 @@ simply use @code{:if} and the appropriate Lisp expression.
 @node Manual installation
 @section Manually installed package
 
-When installing packages manually, without Emacs' built-in package
+When installing packages manually, without Emacs's built-in package
 manager (@file{package.el}), it will obviously not help you set up
 autoloads or add it to your @code{load-path}.  You must do it
 yourself.  However, use-package makes this more convenient.
@@ -1612,8 +1641,8 @@ You can override the above setting for a single package by adding
 
 @findex :vc
 The @code{:vc} keyword can be used to control how packages are
-downloaded and/or installed. More specifically, it allows one to fetch
-and update packages directly from a version control system. This is
+downloaded and/or installed.  More specifically, it allows one to fetch
+and update packages directly from a version control system.  This is
 especially convenient when wanting to install a package that is not on
 any package archive.
 

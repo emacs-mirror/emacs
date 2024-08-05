@@ -398,7 +398,7 @@ Optional second argument MAXBUF is completely ignored."
 		(buffer-name)))))
 
 (defun msb-dired-item-handler (_buffer &optional _maxbuf)
-  "Create one string item, concerning a dired BUFFER, for the buffer menu.
+  "Create one string item, concerning a Dired BUFFER, for the buffer menu.
 The item looks like:
 *% <buffer-name>
 The `*' appears only if the buffer is marked as modified.
@@ -434,7 +434,7 @@ An item looks like (NAME . BUFFER)."
 
 
 (defun msb-sort-by-directory (item1 item2)
-  "Sort the items ITEM1 and ITEM2 by directory name.  Made for dired.
+  "Sort the items ITEM1 and ITEM2 by directory name.  Made for Dired.
 An item look like (NAME . BUFFER)."
   (string-lessp (with-current-buffer (cdr item1)
                   (msb--dired-directory))

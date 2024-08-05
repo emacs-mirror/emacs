@@ -1636,7 +1636,7 @@ sfntfont_registries_compatible_p (Lisp_Object a, Lisp_Object b)
 
    Value is 0 if there is no match, -1 if there is a match against
    DESC itself, and the number of matching instances if the style
-   matches one or more instances defined in in DESC.  Return the index
+   matches one or more instances defined in DESC.  Return the index
    of each matching instance in INSTANCES; it should be SIZE big.  */
 
 static int
@@ -1649,6 +1649,7 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec,
   struct sfnt_cmap_encoding_subtable subtable;
   int instance, num_instance;
   Lisp_Object item;
+  bool matching;
 
   /* cmap and subtable are caches for sfntfont_lookup_char.  */
 
@@ -1794,19 +1795,21 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec,
 
 	  /* The vector contains characters, of which one must be
 	     present in the font.  */
+	  matching = false;
 	  for (i = 0; i < ASIZE (tem); ++i)
 	    {
 	      if (FIXNUMP (AREF (tem, i)))
 		{
-		  if (!sfntfont_lookup_char (desc, AREF (tem, i),
-					     &cmap, &subtable))
-		    goto fail;
-
-		  /* One character is enough to pass a font.  Don't
-		     look at too many.  */
-		  break;
+		  if (sfntfont_lookup_char (desc, AREF (tem, i),
+					    &cmap, &subtable))
+		    {
+		      matching = true;
+		      break;
+		    }
 		}
 	    }
+	  if (!matching)
+	    goto fail;
 	}
       else if (CONSP (tem) && CONSP (XCDR (tem)))
 	{

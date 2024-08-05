@@ -304,15 +304,14 @@ FUNCTION."
   "Like `tramp-handle-make-process', but modified for Android."
   (tramp-skeleton-make-process args nil nil
     (let* ((env (mapcar
-		 (lambda (elt)
-		   (when (tramp-compat-string-search "=" elt) elt))
+		 (lambda (elt) (when (string-search "=" elt) elt))
 		 tramp-remote-process-environment))
 	   ;; We use as environment the difference to toplevel
 	   ;; `process-environment'.
 	   (env (dolist (elt process-environment env)
 		  (when
 		      (and
-		       (tramp-compat-string-search "=" elt)
+		       (string-search "=" elt)
 		       (not
 			(member
 			 elt (default-toplevel-value 'process-environment))))

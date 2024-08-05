@@ -164,6 +164,7 @@ Can be one of: `d-default', `d-impure' or `d-ephemeral'.  See `comp-ctxt'.")
                         comp--ipa-pure
                         comp--add-cstrs
                         comp--fwprop
+                        comp--type-check-optim
                         comp--tco
                         comp--fwprop
                         comp--remove-type-hints
@@ -2548,26 +2549,29 @@ Return t when one or more block was removed, nil otherwise."
               ret t)
    finally return ret))
 
+(defun comp--ssa-function (function)
+  "Port into minimal SSA FUNCTION."
+  (let* ((comp-func function)
+         (ssa-status (comp-func-ssa-status function)))
+    (unless (eq ssa-status t)
+      (cl-loop
+       when (eq ssa-status 'dirty)
+         do (comp--clean-ssa function)
+       do (comp--compute-edges)
+          (comp--compute-dominator-tree)
+       until (null (comp--remove-unreachable-blocks)))
+      (comp--compute-dominator-frontiers)
+      (comp--log-block-info)
+      (comp--place-phis)
+      (comp--ssa-rename)
+      (comp--finalize-phis)
+      (comp--log-func comp-func 3)
+      (setf (comp-func-ssa-status function) t))))
+
 (defun comp--ssa ()
-  "Port all functions into minimal SSA form."
-  (maphash (lambda (_ f)
-             (let* ((comp-func f)
-                    (ssa-status (comp-func-ssa-status f)))
-               (unless (eq ssa-status t)
-                 (cl-loop
-                  when (eq ssa-status 'dirty)
-                    do (comp--clean-ssa f)
-                  do (comp--compute-edges)
-                     (comp--compute-dominator-tree)
-                 until (null (comp--remove-unreachable-blocks)))
-                 (comp--compute-dominator-frontiers)
-                 (comp--log-block-info)
-                 (comp--place-phis)
-                 (comp--ssa-rename)
-                 (comp--finalize-phis)
-                 (comp--log-func comp-func 3)
-                 (setf (comp-func-ssa-status f) t))))
-           (comp-ctxt-funcs-h comp-ctxt)))
+  "Port all functions into minimal SSA all functions."
+  (cl-loop for f being the hash-value in (comp-ctxt-funcs-h comp-ctxt)
+           do (comp--ssa-function f)))
 
 
 ;;; propagate pass specific code.
@@ -2808,6 +2812,68 @@ Return t if something was changed."
                  (comp--rewrite-non-locals)
                  (comp--log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
+
+
+;;; Type check optimizer pass specific code.
+
+;; This pass optimize-out unnecessary type checks, that is calls to
+;; `type-of' and corresponding conditional branches.
+;;
+;; This is often advantageous in cases where a function manipulates an
+;; object with several slot accesses like:
+;;
+;; (cl-defstruct foo a b c)
+;; (defun bar (x)
+;;   (setf (foo-a x) 3)
+;;   (+ (foo-b x) (foo-c x)))
+;;
+;; After x is accessed and type checked once, it's proved to be of type
+;; foo, and no other type checks are required.
+
+;; At present running this pass over the whole Emacs codebase triggers
+;; the optimization of 1972 type checks.
+
+(defun comp--type-check-optim-block (block)
+  "Optimize conditional branches in BLOCK when possible."
+  (cl-loop
+   named in-the-basic-block
+   for insns-seq on (comp-block-insns block)
+   do (pcase insns-seq
+        (`((set ,(and (pred comp-mvar-p) mvar-tested-copy)
+                ,(and (pred comp-mvar-p) mvar-tested))
+           (set ,(and (pred comp-mvar-p) mvar-1)
+                (call type-of ,(and (pred comp-mvar-p) mvar-tested-copy)))
+           (set ,(and (pred comp-mvar-p) mvar-2)
+                (call symbol-value ,(and (pred comp-cstr-cl-tag-p) mvar-tag)))
+           (set ,(and (pred comp-mvar-p) mvar-3)
+                (call memq ,(and (pred comp-mvar-p) mvar-1) ,(and (pred comp-mvar-p) mvar-2)))
+           (cond-jump ,(and (pred comp-mvar-p) mvar-3) ,(pred comp-mvar-p) ,_bb1 ,bb2))
+         (cl-assert (comp-cstr-imm-vld-p mvar-tag))
+         (when (comp-cstr-type-p mvar-tested (comp-cstr-cl-tag mvar-tag))
+           (comp-log (format "Optimizing conditional branch in function: %s"
+                             (comp-func-name comp-func))
+                     3)
+           (setf (car insns-seq) '(comment "optimized by comp--type-check-optim")
+                 (cdr insns-seq) `((jump ,bb2))
+                 ;; Set the SSA status as dirty so
+                 ;; `comp--ssa-function' will remove the unreachable
+                 ;; branches later.
+                 (comp-func-ssa-status comp-func) 'dirty))))))
+
+(defun comp--type-check-optim (_)
+  "Optimize conditional branches when possible."
+  (cl-loop
+   for f being each hash-value of (comp-ctxt-funcs-h comp-ctxt)
+   for comp-func = f
+   when (>= (comp-func-speed f) 2)
+   do (cl-loop
+       for b being each hash-value of (comp-func-blocks f)
+       do (comp--type-check-optim-block b)
+       finally
+       (progn
+         (when (eq (comp-func-ssa-status f) 'dirty)
+           (comp--ssa-function f))
+         (comp--log-func comp-func 3)))))
 
 
 ;;; Call optimizer pass specific code.

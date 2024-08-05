@@ -4761,6 +4761,15 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 
   strcpy (temp, map_w32_filename (oldname, NULL));
 
+  /* 'rename' (which calls MoveFileW) renames the _target_ of the
+     symlink, which is different from Posix behavior and not what we
+     want here.  So in that case we pretend this is a cross-device move,
+     for which Frename_file already has a workaround.  */
+  if (is_symlink (temp))
+    {
+      errno = EXDEV;
+      return -1;
+    }
   /* volume_info is set indirectly by map_w32_filename.  */
   oldname_dev = volume_info.serialnum;
 
@@ -10212,7 +10221,7 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
 	retval = Fnreverse (val);
 	break;
       default:
-	error ("unsupported registry data type: %d", (int)vtype);
+	error ("Unsupported registry data type: %d", (int)vtype);
     }
 
   xfree (pvalue);

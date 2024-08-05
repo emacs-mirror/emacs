@@ -6250,7 +6250,7 @@
 
 2014-06-22  Mario Lang  <mlang@delysid.org>
 
-	* w32fns.c (Fw32_shell_execute): The the -> the.
+	* w32fns.c (Fw32_shell_execute): Fix typo.
 
 2014-06-22  Dmitry Antipov  <dmantipov@yandex.ru>
 

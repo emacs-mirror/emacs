@@ -120,7 +120,7 @@ See Info node `(elisp)Random Numbers' for more details.  */)
 ptrdiff_t
 list_length (Lisp_Object list)
 {
-  intptr_t i = 0;
+  ptrdiff_t i = 0;
   FOR_EACH_TAIL (list)
     i++;
   CHECK_LIST_END (list, list);
@@ -170,7 +170,7 @@ it returns 0.  If LIST is circular, it returns an integer that is at
 least the number of distinct elements.  */)
   (Lisp_Object list)
 {
-  intptr_t len = 0;
+  ptrdiff_t len = 0;
   FOR_EACH_TAIL_SAFE (list)
     len++;
   return make_fixnum (len);
@@ -251,7 +251,7 @@ A proper list is neither circular nor dotted (i.e., its last cdr is nil).  */
        attributes: const)
   (Lisp_Object object)
 {
-  intptr_t len = 0;
+  ptrdiff_t len = 0;
   Lisp_Object last_tail = object;
   Lisp_Object tail = object;
   FOR_EACH_TAIL_SAFE (tail)
@@ -295,7 +295,8 @@ Letter-case is significant, but text properties are ignored. */)
   ptrdiff_t x, y, lastdiag, olddiag;
 
   USE_SAFE_ALLOCA;
-  ptrdiff_t *column = SAFE_ALLOCA ((len1 + 1) * sizeof (ptrdiff_t));
+  ptrdiff_t *column;
+  SAFE_NALLOCA (column, 1, len1 + 1);
   for (y = 0; y <= len1; y++)
     column[y] = y;
 
@@ -2312,12 +2313,12 @@ See also the function `nreverse', which is used more often.  */)
     }
   else if (BOOL_VECTOR_P (seq))
     {
-      ptrdiff_t i;
       EMACS_INT nbits = bool_vector_size (seq);
 
-      new = make_uninit_bool_vector (nbits);
-      for (i = 0; i < nbits; i++)
-	bool_vector_set (new, i, bool_vector_bitref (seq, nbits - i - 1));
+      new = make_clear_bool_vector (nbits, true);
+      for (ptrdiff_t i = 0; i < nbits; i++)
+	if (bool_vector_bitref (seq, nbits - i - 1))
+	  bool_vector_set (new, i, true);
     }
   else if (STRINGP (seq))
     {
@@ -6986,7 +6987,7 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
   const char *input = extract_data_from_object (spec, &start_byte, &end_byte);
 
   if (input == NULL)
-    error ("secure_hash: failed to extract data from object, aborting!");
+    error ("secure_hash: Failed to extract data from object, aborting!");
 
   if (EQ (algorithm, Qmd5))
     {

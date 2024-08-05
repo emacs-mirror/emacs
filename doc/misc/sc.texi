@@ -620,7 +620,7 @@ time, it just goes ahead and inserts the reference header indexed by
 different reference headers based on the type of reply or forwarding
 you are doing.  You may also want to preview the reference header
 before deciding whether to insert it into the reply buffer or
-not. Supercite provides an optional @dfn{electric reference} mode
+not.  Supercite provides an optional @dfn{electric reference} mode
 which you can drop into to give you this functionality.
 
 @vindex sc-electric-references-p

@@ -274,7 +274,7 @@
   "Actions collected along the current parse.
 Used at runtime for backtracking.  It's a list ((POS . THUNK)...).
 Each THUNK is executed at the corresponding POS.  Thunks are
-executed in a postprocessing step, not during parsing.")
+executed in a post-processing step, not during parsing.")
 
 (defvar peg--errors nil
   "Data keeping track of the rightmost parse failure location.
@@ -698,7 +698,7 @@ rulesets defined previously with `define-peg-ruleset'."
 (cl-defmethod peg--translate ((_ (eql guard)) exp) exp)
 
 (defvar peg-syntax-classes
-  '((whitespace ?-) (word ?w) (symbol ?s) (punctuation ?.)
+  '((whitespace ?-) (word ?w) (symbol ?_) (punctuation ?.)
     (open ?\() (close ?\)) (string ?\") (escape ?\\) (charquote ?/)
     (math ?$) (prefix ?') (comment ?<) (endcomment ?>)
     (comment-fence ?!) (string-fence ?|)))

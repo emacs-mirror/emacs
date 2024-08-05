@@ -323,6 +323,8 @@ customizing the candidate completions."
       (switch-to-buffer (find-file-noselect (find-library-name library)))
     (run-hooks 'find-function-after-hook)))
 
+(defvar find-function--read-history-library nil)
+
 ;;;###autoload
 (defun read-library-name ()
   "Read and return a library name, defaulting to the one near point.
@@ -351,12 +353,14 @@ if non-nil)."
           (when (and def (not (test-completion def table)))
             (setq def nil))
           (completing-read (format-prompt "Library name" def)
-                           table nil nil nil nil def))
+                           table nil nil nil
+                           'find-function--read-history-library def))
       (let ((files (read-library-name--find-files dirs suffixes)))
         (when (and def (not (member def files)))
           (setq def nil))
         (completing-read (format-prompt "Library name" def)
-                         files nil t nil nil def)))))
+                         files nil t nil
+                         'find-function--read-history-library def)))))
 
 (defun read-library-name--find-files (dirs suffixes)
   "Return a list of all files in DIRS that match SUFFIXES."
@@ -575,6 +579,10 @@ is non-nil, signal an error instead."
   (let ((func-lib (find-function-library function lisp-only t)))
     (find-function-search-for-symbol (car func-lib) nil (cdr func-lib))))
 
+(defvar find-function--read-history-function nil)
+(defvar find-function--read-history-variable nil)
+(defvar find-function--read-history-face nil)
+
 (defun find-function-read (&optional type)
   "Read and return an interned symbol, defaulting to the one near point.
 
@@ -597,7 +605,9 @@ otherwise uses `variable-at-point'."
     (list (intern (completing-read
                    (format-prompt "Find %s" symb prompt-type)
                    obarray predicate
-                   'lambda nil nil (and symb (symbol-name symb)))))))
+                   'lambda nil
+                   (intern (format "find-function--read-history-%s" prompt-type))
+                   (and symb (symbol-name symb)))))))
 
 (defun find-function-do-it (symbol type switch-fn)
   "Find Emacs Lisp SYMBOL in a buffer and display it.

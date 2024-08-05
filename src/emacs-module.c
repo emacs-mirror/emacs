@@ -1251,7 +1251,15 @@ funcall_module (Lisp_Object function, ptrdiff_t nargs, Lisp_Object *arglist)
   record_unwind_protect_module (SPECPDL_MODULE_ENVIRONMENT, env);
 
   USE_SAFE_ALLOCA;
-  emacs_value *args = nargs > 0 ? SAFE_ALLOCA (nargs * sizeof *args) : NULL;
+  emacs_value *args;
+  /* FIXME: Is this (nargs <= 0) test needed?  Either omit it and call
+     SAFE_NALLOCA unconditionally, or fix this comment to explain why
+     the test is needed.  */
+  if (nargs <= 0)
+    args = NULL;
+  else
+    SAFE_NALLOCA (args, 1, nargs);
+
   for (ptrdiff_t i = 0; i < nargs; ++i)
     {
       args[i] = lisp_to_value (env, arglist[i]);

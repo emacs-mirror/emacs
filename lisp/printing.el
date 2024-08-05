@@ -1663,7 +1663,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 			(pr-gs-device . (my-gs-device t))
 
 This variable should be modified by customization engine.  If this variable is
-modified by other means (for example, a lisp function), use `pr-update-menus'
+modified by other means (for example, a Lisp function), use `pr-update-menus'
 function (see it for documentation) to update PostScript printer menu.
 
 Examples:
@@ -1858,8 +1858,7 @@ Useful links:
   `http://pages.cs.wisc.edu/~ghost/gv/gv_doc/gv.html'
 
 * MacGSView (Mac OS)
-  `http://pages.cs.wisc.edu/~ghost/macos/index.htm'
-"
+  `http://pages.cs.wisc.edu/~ghost/macos/index.htm'"
   :type '(string :tag "Ghostview Utility"))
 
 
@@ -1883,8 +1882,7 @@ Useful links:
   `https://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
 
 * Printer compatibility
-  `https://www.cs.wisc.edu/~ghost/doc/printer.htm'
-"
+  `https://www.cs.wisc.edu/~ghost/doc/printer.htm'"
   :type '(string :tag "Ghostscript Utility"))
 
 
@@ -1924,8 +1922,7 @@ Useful links:
   `https://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
 
 * Printer compatibility
-  `https://www.cs.wisc.edu/~ghost/doc/printer.htm'
-"
+  `https://www.cs.wisc.edu/~ghost/doc/printer.htm'"
   :type '(repeat (string :tag "Ghostscript Switch")))
 
 
@@ -2335,7 +2332,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 
 		   (set VARIABLE (eval VALUE))
 
-		Note that VALUE can be any valid lisp expression.  So, don't
+                Note that VALUE can be any valid Lisp expression.  So, don't
 		forget to quote symbols and constant lists.
 		If VARIABLE is the special keyword `inherits-from:', VALUE must
 		be a symbol name setting defined in `pr-setting-database' from
@@ -2347,7 +2344,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 			(pr-gs-device . (my-gs-device t))
 
 This variable should be modified by customization engine.  If this variable is
-modified by other means (for example, a lisp function), use `pr-update-menus'
+modified by other means (for example, a Lisp function), use `pr-update-menus'
 function (see it for documentation) to update PostScript utility menu.
 
 NOTE: Don't forget to download and install the utilities declared on

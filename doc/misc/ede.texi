@@ -1120,7 +1120,7 @@ number.  It also holds a list of @code{ede-target} objects and a list
 of sub projects, or more @code{ede-project} objects.
 
 New project types must subclass @code{ede-project} to add special
-behavior. New project types also need to subclass @code{ede-target} to
+behavior.  New project types also need to subclass @code{ede-target} to
 add specialty behavior.
 
 In this way, the common @ede{} interface is designed to work against

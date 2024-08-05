@@ -3901,7 +3901,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
      most probably, not needed -- and harms a lot).
 
      So, with the usual message pump, the following call to TranslateMessage()
-     is not needed (and is going to be VERY harmful).  With Emacs' message
+     is not needed (and is going to be VERY harmful).  With Emacs's message
      pump, the call is needed.  */
   if (do_translate)
     {
@@ -9321,7 +9321,7 @@ w32_frame_list_z_order (struct w32_display_info *dpyinfo, HWND window)
 
 DEFUN ("w32-frame-list-z-order", Fw32_frame_list_z_order,
        Sw32_frame_list_z_order, 0, 1, 0,
-       doc: /* Return list of Emacs' frames, in Z (stacking) order.
+       doc: /* Return list of Emacs's frames, in Z (stacking) order.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).  If
 omitted or nil, that stands for the selected frame's display.
@@ -10472,7 +10472,7 @@ DEFUN ("w32-notification-close",
 {
   struct frame *f = SELECTED_FRAME ();
 
-  if (FIXNUMP (id) && !pfnShell_NotifyIconW)
+  if (FIXNUMP (id) && pfnShell_NotifyIconW)
     delete_tray_notification (f, XFIXNUM (id));
 
   return Qnil;
@@ -10583,7 +10583,7 @@ to be converted to forward slashes by the caller.  */)
   else if (EQ (root, QHKCC))
     rootkey = HKEY_CURRENT_CONFIG;
   else if (!NILP (root))
-    error ("unknown root key: %s", SDATA (SYMBOL_NAME (root)));
+    error ("Unknown root key: %s", SDATA (SYMBOL_NAME (root)));
 
   Lisp_Object val = w32_read_registry (rootkey, key, name);
   if (NILP (val) && NILP (root))
@@ -11614,7 +11614,7 @@ void
 load_unicows_dll_for_w32fns (HMODULE unicows)
 {
   if (!unicows)
-    /* The functions following are defined by SHELL32.DLL onw Windows
+    /* The functions following are defined by SHELL32.DLL on Windows
        NT.  */
     unicows = GetModuleHandle ("shell32");
 

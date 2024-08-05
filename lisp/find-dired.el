@@ -76,7 +76,7 @@ than the latter."
 This is a cons of two strings (FIND-OPTION . LS-SWITCHES).
 FIND-OPTION is the option (or options) passed to `find' to produce
 a file listing in the desired format.  LS-SWITCHES is a set of
-`ls' switches that tell dired how to parse the output of `find'.
+`ls' switches that tell Dired how to parse the output of `find'.
 
 The two options must be set to compatible values.
 For example, to use human-readable file sizes with GNU ls:

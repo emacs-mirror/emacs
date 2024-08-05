@@ -276,9 +276,9 @@ static int read_process_output (Lisp_Object, int);
 static void create_pty (Lisp_Object);
 static void exec_sentinel (Lisp_Object, Lisp_Object);
 
-static Lisp_Object
-network_lookup_address_info_1 (Lisp_Object host, const char *service,
-                               struct addrinfo *hints, struct addrinfo **res);
+static Lisp_Object network_lookup_address_info_1 (Lisp_Object, const char *,
+						  struct addrinfo *,
+						  struct addrinfo **);
 
 /* Number of bits set in connect_wait_mask.  */
 static int num_pending_connects;
@@ -4472,7 +4472,7 @@ network_interface_info (Lisp_Object ifname)
   CHECK_STRING (ifname);
 
   if (sizeof rq.ifr_name <= SBYTES (ifname))
-    error ("interface name too long");
+    error ("Interface name too long");
   lispstpcpy (rq.ifr_name, ifname);
 
   s = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
@@ -5351,7 +5351,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	struct Lisp_Process *p;
 
 	retry_for_async = false;
-	FOR_EACH_PROCESS(process_list_head, aproc)
+	FOR_EACH_PROCESS (process_list_head, aproc)
 	  {
 	    p = XPROCESS (aproc);
 
@@ -5707,9 +5707,9 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  /* If wait_proc is somebody else, we have to wait in select
 	     as usual.  Otherwise, clobber the timeout. */
 	  if (tls_nfds > 0
-	      && (!wait_proc ||
-		  (wait_proc->infd >= 0
-		   && FD_ISSET (wait_proc->infd, &tls_available))))
+	      && (!wait_proc
+		  || (wait_proc->infd >= 0
+		      && FD_ISSET (wait_proc->infd, &tls_available))))
 	    timeout = make_timespec (0, 0);
 #endif
 
@@ -5770,8 +5770,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		/* Slow path, merge one by one.  Note: nfds does not need
 		   to be accurate, just positive is enough. */
 		for (channel = 0; channel < FD_SETSIZE; ++channel)
-		  if (FD_ISSET(channel, &tls_available))
-		    FD_SET(channel, &Available);
+		  if (FD_ISSET (channel, &tls_available))
+		    FD_SET (channel, &Available);
 	    }
 #endif
 	}
@@ -6854,7 +6854,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 		  pset_status (p, list2 (Qexit, make_fixnum (256)));
 		  p->tick = ++process_tick;
 		  deactivate_process (proc);
-		  error ("process %s no longer connected to pipe; closed it",
+		  error ("Process %s no longer connected to pipe; closed it",
 			 SDATA (p->name));
 		}
 	      else
@@ -8624,6 +8624,14 @@ init_process_emacs (int sockfd)
   int i;
 
   inhibit_sentinels = 0;
+
+#ifdef HAVE_UNEXEC
+  /* Clear child_signal_read_fd and child_signal_write_fd after dumping,
+     lest wait_reading_process_output should select on nonexistent file
+     descriptors which existed in the build process.  */
+  child_signal_read_fd = -1;
+  child_signal_write_fd = -1;
+#endif /* HAVE_UNEXEC */
 
   if (!will_dump_with_unexec_p ())
     {

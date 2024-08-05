@@ -350,7 +350,7 @@ with the buffer narrowed to the listing."
 ;; functions probably depend on the dired-subdir-alist to be OK.
 
 (defcustom dired-make-directory-clickable t
-  "When non-nil, make the directory at the start of the dired buffer clickable."
+  "When non-nil, make the directory at the start of the Dired buffer clickable."
   :version "29.1"
   :group 'dired
   :type 'boolean)
@@ -941,7 +941,7 @@ If ARG is `marked', don't return the current file if nothing else
 is marked.
 
 If optional third arg SHOW-PROGRESS evaluates to non-nil,
-redisplay the dired buffer after each file is processed.
+redisplay the Dired buffer after each file is processed.
 
 No guarantee is made about the position on the marked line.
 BODY must ensure this itself if it depends on this.
@@ -1145,7 +1145,7 @@ ERROR can be a string with the error message."
 ;;                             nil default-directory nil))))))))
 
 (defun dired-file-name-at-point ()
-  "Try to get a file name at point in the current dired buffer.
+  "Try to get a file name at point in the current Dired buffer.
 This hook is intended to be put in `file-name-at-point-functions'.
 Note that it returns an abbreviated name that can't be used
 as an argument to `dired-goto-file'."
@@ -2133,7 +2133,7 @@ BUFFER-POSITION is the point position in the current Dired buffer.
 It has the form (BUFFER DIRED-FILENAME BUFFER-LINE-NUMBER).
 
 WINDOW-POSITIONS are current positions in all windows displaying
-this dired buffer.  The window positions have the form (WINDOW
+this Dired buffer.  The window positions have the form (WINDOW
 DIRED-FILENAME WINDOW-LINE-NUMBER).
 
 We store line numbers instead of point positions because the header
@@ -3465,7 +3465,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 If FILE is non-nil, include only those whose wildcard pattern (if any)
 matches FILE.
 The list is in reverse order of buffer creation, most recent last.
-As a side effect, killed dired buffers for DIR are removed from
+As a side effect, killed Dired buffers for DIR are removed from
 `dired-buffers'."
   (setq dir (file-name-as-directory (expand-file-name dir)))
   (let (result buf)
@@ -3492,7 +3492,7 @@ As a side effect, killed dired buffers for DIR are removed from
 
 (defun dired-buffers-for-dir-or-subdir (dir)
   "Return a list of buffers for DIR or a subdirectory thereof.
-As a side effect, killed dired buffers for DIR are removed from
+As a side effect, killed Dired buffers for DIR are removed from
 `dired-buffers'."
   (setq dir (file-name-as-directory dir))
   (let (result buf)
@@ -4049,7 +4049,7 @@ non-empty directories is allowed."
   (dired-move-to-filename))
 
 (defun dired-fun-in-all-buffers (directory file fun &rest args)
-  "In all buffers dired'ing DIRECTORY, run FUN with ARGS.
+  "In all buffers Dired'ing DIRECTORY, run FUN with ARGS.
 If the buffer has a wildcard pattern, check that it matches FILE.
 \(FILE does not include a directory component.)
 FILE may be nil, in which case ignore it.
@@ -4064,7 +4064,7 @@ Return list of buffers where FUN succeeded (i.e., returned non-nil)."
 
 ;; Delete the entry for FILE from
 (defun dired-remove-entry (file)
-  "Remove entry FILE in the current dired buffer.
+  "Remove entry FILE in the current Dired buffer.
 Note this doesn't delete FILE in the file system.
 See `dired-delete-file' in case you wish that."
   (save-excursion
@@ -4074,7 +4074,7 @@ See `dired-delete-file' in case you wish that."
 			  (line-beginning-position 2))))))
 
 (defun dired-delete-entry (file)
-  "Remove entry FILE in the current dired buffer.
+  "Remove entry FILE in the current Dired buffer.
 Like `dired-remove-entry' followed by `dired-clean-up-after-deletion'.
 Note this doesn't delete FILE in the file system.
 See `dired-delete-file' in case you wish that."
@@ -5139,7 +5139,7 @@ move to that file's line in the directory listing.
 If the current buffer isn't visiting a file, Dired `default-directory'.
 
 If in Dired already, pop up a level and goto old directory's line.
-In case the proper Dired file line cannot be found, refresh the dired
+In case the proper Dired file line cannot be found, refresh the Dired
 buffer and try again.
 
 When OTHER-WINDOW is non-nil, jump to Dired buffer in other window.

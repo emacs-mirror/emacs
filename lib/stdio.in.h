@@ -280,7 +280,26 @@
 #endif
 
 
+#if @GNULIB_DZPRINTF@
+/* Prints formatted output to file descriptor FD.
+   Returns the number of bytes written to the file descriptor.  Upon
+   failure, returns -1 with errno set.
+   Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure codes are ENOMEM
+   and the possible failure codes from write(), excluding EINTR.  */
+_GL_FUNCDECL_SYS (dzprintf, off64_t,
+                  (int fd, const char *restrict format, ...)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
+                  _GL_ARG_NONNULL ((2)));
+_GL_CXXALIAS_SYS (dzprintf, off64_t,
+                  (int fd, const char *restrict format, ...));
+#endif
+
 #if @GNULIB_DPRINTF@
+/* Prints formatted output to file descriptor FD.
+   Returns the number of bytes written to the file descriptor.  Upon
+   failure, returns a negative value.  */
 # if @REPLACE_DPRINTF@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define dprintf rpl_dprintf
@@ -547,7 +566,26 @@ _GL_WARN_ON_USE (fopen, "fopen on native Windows platforms is not POSIX complian
 # endif
 #endif
 
+#if @GNULIB_FZPRINTF@
+/* Prints formatted output to stream FP.
+   Returns the number of bytes written to the stream.  Upon failure,
+   returns -1 with the stream's error indicator set.
+   Failure cause EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure causes are ENOMEM
+   and the possible failure causes from fwrite().  */
+_GL_FUNCDECL_SYS (fzprintf, off64_t,
+                  (FILE *restrict fp, const char *restrict format, ...)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_SYS (fzprintf, off64_t,
+                  (FILE *restrict fp, const char *restrict format, ...));
+#endif
+
 #if @GNULIB_FPRINTF_POSIX@ || @GNULIB_FPRINTF@
+/* Prints formatted output to stream FP.
+   Returns the number of bytes written to the stream.  Upon failure,
+   returns a negative value with the stream's error indicator set.  */
 # if (@GNULIB_FPRINTF_POSIX@ && @REPLACE_FPRINTF@) \
      || (@GNULIB_FPRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@))
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -1227,7 +1265,24 @@ _GL_WARN_ON_USE (popen, "popen is buggy on some platforms - "
 # endif
 #endif
 
+#if @GNULIB_ZPRINTF@
+/* Prints formatted output to standard output.
+   Returns the number of bytes written to standard output.  Upon failure,
+   returns -1 with stdout's error indicator set.
+   Failure cause EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure causes are ENOMEM
+   and the possible failure causes from fwrite().  */
+_GL_FUNCDECL_SYS (zprintf, off64_t, (const char *restrict format, ...)
+                                    _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 2)
+                                    _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_SYS (zprintf, off64_t, (const char *restrict format, ...));
+#endif
+
 #if @GNULIB_PRINTF_POSIX@ || @GNULIB_PRINTF@
+/* Prints formatted output to standard output.
+   Returns the number of bytes written to standard output.  Upon failure,
+   returns a negative value with stdout's error indicator set.  */
 # if (@GNULIB_PRINTF_POSIX@ && @REPLACE_PRINTF@) \
      || (@GNULIB_PRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@))
 #  if defined __GNUC__ || defined __clang__
@@ -1459,7 +1514,7 @@ _GL_CXXALIASWARN (scanf);
 # endif
 #endif
 
-#if @GNULIB_ZSNPRINTF@
+#if @GNULIB_SNZPRINTF@
 /* Prints formatted output to string STR.  Similar to sprintf, but the
    additional parameter SIZE limits how much is written into STR.
    STR may be NULL, in which case nothing will be written.
@@ -1468,12 +1523,12 @@ _GL_CXXALIASWARN (scanf);
    Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
    Therefore, if the format string is valid and does not use %ls/%lc
    directives nor widths, the only possible failure code is ENOMEM.  */
-_GL_FUNCDECL_SYS (zsnprintf, ptrdiff_t,
+_GL_FUNCDECL_SYS (snzprintf, ptrdiff_t,
                   (char *restrict str, size_t size,
                    const char *restrict format, ...)
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (3, 4)
                   _GL_ARG_NONNULL ((3)));
-_GL_CXXALIAS_SYS (zsnprintf, ptrdiff_t,
+_GL_CXXALIAS_SYS (snzprintf, ptrdiff_t,
                   (char *restrict str, size_t size,
                    const char *restrict format, ...));
 #endif
@@ -1520,19 +1575,19 @@ _GL_WARN_ON_USE (snprintf, "snprintf is unportable - "
 # endif
 #endif
 
-#if @GNULIB_ZSPRINTF@
+#if @GNULIB_SZPRINTF@
 /* Prints formatted output to string STR.
    Returns the string length of the formatted string.  Upon failure,
    returns -1 with errno set.
    Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
    Therefore, if the format string is valid and does not use %ls/%lc
    directives nor widths, the only possible failure code is ENOMEM.  */
-_GL_FUNCDECL_SYS (zsprintf, ptrdiff_t,
+_GL_FUNCDECL_SYS (szprintf, ptrdiff_t,
                   (char *restrict str,
                    const char *restrict format, ...)
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                   _GL_ARG_NONNULL ((1, 2)));
-_GL_CXXALIAS_SYS (zsprintf, ptrdiff_t,
+_GL_CXXALIAS_SYS (szprintf, ptrdiff_t,
                   (char *restrict str,
                    const char *restrict format, ...));
 #endif
@@ -1629,7 +1684,7 @@ _GL_WARN_ON_USE (tmpfile, "tmpfile is not usable on mingw - "
 # endif
 #endif
 
-#if @GNULIB_VAZSPRINTF@
+#if @GNULIB_VASZPRINTF@
 /* Prints formatted output to a string dynamically allocated with malloc().
    If the memory allocation succeeds, it stores the address of the string in
    *RESULT and returns the number of resulting bytes, excluding the trailing
@@ -1638,17 +1693,17 @@ _GL_WARN_ON_USE (tmpfile, "tmpfile is not usable on mingw - "
    Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
    Therefore, if the format string is valid and does not use %ls/%lc
    directives nor widths, the only possible failure code is ENOMEM.  */
-_GL_FUNCDECL_SYS (azsprintf, ptrdiff_t,
+_GL_FUNCDECL_SYS (aszprintf, ptrdiff_t,
                   (char **result, const char *format, ...)
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                   _GL_ARG_NONNULL ((1, 2)));
-_GL_CXXALIAS_SYS (azsprintf, ptrdiff_t,
+_GL_CXXALIAS_SYS (aszprintf, ptrdiff_t,
                   (char **result, const char *format, ...));
-_GL_FUNCDECL_SYS (vazsprintf, ptrdiff_t,
+_GL_FUNCDECL_SYS (vaszprintf, ptrdiff_t,
                   (char **result, const char *format, va_list args)
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((1, 2)));
-_GL_CXXALIAS_SYS (vazsprintf, ptrdiff_t,
+_GL_CXXALIAS_SYS (vaszprintf, ptrdiff_t,
                   (char **result, const char *format, va_list args));
 #endif
 
@@ -1703,7 +1758,26 @@ _GL_CXXALIAS_SYS (vasprintf, int,
 _GL_CXXALIASWARN (vasprintf);
 #endif
 
+#if @GNULIB_VDZPRINTF@
+/* Prints formatted output to file descriptor FD.
+   Returns the number of bytes written to the file descriptor.  Upon
+   failure, returns -1 with errno set.
+   Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure codes are ENOMEM
+   and the possible failure codes from write(), excluding EINTR.  */
+_GL_FUNCDECL_SYS (vdzprintf, off64_t,
+                  (int fd, const char *restrict format, va_list args)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
+                  _GL_ARG_NONNULL ((2)));
+_GL_CXXALIAS_SYS (vdzprintf, off64_t,
+                  (int fd, const char *restrict format, va_list args));
+#endif
+
 #if @GNULIB_VDPRINTF@
+/* Prints formatted output to file descriptor FD.
+   Returns the number of bytes written to the file descriptor.  Upon
+   failure, returns a negative value.  */
 # if @REPLACE_VDPRINTF@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define vdprintf rpl_vdprintf
@@ -1737,7 +1811,28 @@ _GL_WARN_ON_USE (vdprintf, "vdprintf is unportable - "
 # endif
 #endif
 
+#if @GNULIB_VFZPRINTF@
+/* Prints formatted output to stream FP.
+   Returns the number of bytes written to the stream.  Upon failure,
+   returns -1 with the stream's error indicator set.
+   Failure cause EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure causes are ENOMEM
+   and the possible failure causes from fwrite().  */
+_GL_FUNCDECL_SYS (vfzprintf, off64_t,
+                  (FILE *restrict fp,
+                   const char *restrict format, va_list args)
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_SYS (vfzprintf, off64_t,
+                  (FILE *restrict fp,
+                   const char *restrict format, va_list args));
+#endif
+
 #if @GNULIB_VFPRINTF_POSIX@ || @GNULIB_VFPRINTF@
+/* Prints formatted output to stream FP.
+   Returns the number of bytes written to the stream.  Upon failure,
+   returns a negative value with the stream's error indicator set.  */
 # if (@GNULIB_VFPRINTF_POSIX@ && @REPLACE_VFPRINTF@) \
      || (@GNULIB_VFPRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@))
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -1806,7 +1901,25 @@ _GL_CXXALIASWARN (vfscanf);
 # endif
 #endif
 
+#if @GNULIB_VZPRINTF@
+/* Prints formatted output to standard output.
+   Returns the number of bytes written to standard output.  Upon failure,
+   returns -1 with stdout's error indicator set.
+   Failure cause EOVERFLOW can only occur when a width > INT_MAX is used.
+   Therefore, if the format string is valid and does not use %ls/%lc
+   directives nor widths, the only possible failure causes are ENOMEM
+   and the possible failure causes from fwrite().  */
+_GL_FUNCDECL_SYS (vzprintf, off64_t, (const char *restrict format, va_list args)
+                                     _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 0)
+                                     _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_SYS (vzprintf, off64_t,
+                  (const char *restrict format, va_list args));
+#endif
+
 #if @GNULIB_VPRINTF_POSIX@ || @GNULIB_VPRINTF@
+/* Prints formatted output to standard output.
+   Returns the number of bytes written to standard output.  Upon failure,
+   returns a negative value with stdout's error indicator set.  */
 # if (@GNULIB_VPRINTF_POSIX@ && @REPLACE_VPRINTF@) \
      || (@GNULIB_VPRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@))
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -1862,7 +1975,7 @@ _GL_CXXALIASWARN (vscanf);
 # endif
 #endif
 
-#if @GNULIB_VZSNPRINTF@
+#if @GNULIB_VSNZPRINTF@
 /* Prints formatted output to string STR.  Similar to sprintf, but the
    additional parameter SIZE limits how much is written into STR.
    STR may be NULL, in which case nothing will be written.
@@ -1871,12 +1984,12 @@ _GL_CXXALIASWARN (vscanf);
    Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
    Therefore, if the format string is valid and does not use %ls/%lc
    directives nor widths, the only possible failure code is ENOMEM.  */
-_GL_FUNCDECL_SYS (vzsnprintf, ptrdiff_t,
+_GL_FUNCDECL_SYS (vsnzprintf, ptrdiff_t,
                   (char *restrict str, size_t size,
                    const char *restrict format, va_list args)
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (3, 0)
                   _GL_ARG_NONNULL ((3)));
-_GL_CXXALIAS_SYS (vzsnprintf, ptrdiff_t,
+_GL_CXXALIAS_SYS (vsnzprintf, ptrdiff_t,
                   (char *restrict str, size_t size,
                    const char *restrict format, va_list args));
 #endif
@@ -1923,19 +2036,19 @@ _GL_WARN_ON_USE (vsnprintf, "vsnprintf is unportable - "
 # endif
 #endif
 
-#if @GNULIB_VZSPRINTF@
+#if @GNULIB_VSZPRINTF@
 /* Prints formatted output to string STR.
    Returns the string length of the formatted string.  Upon failure,
    returns -1 with errno set.
    Failure code EOVERFLOW can only occur when a width > INT_MAX is used.
    Therefore, if the format string is valid and does not use %ls/%lc
    directives nor widths, the only possible failure code is ENOMEM.  */
-_GL_FUNCDECL_SYS (vzsprintf, ptrdiff_t,
+_GL_FUNCDECL_SYS (vszprintf, ptrdiff_t,
                   (char *restrict str,
                    const char *restrict format, va_list args)
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((1, 2)));
-_GL_CXXALIAS_SYS (vzsprintf, ptrdiff_t,
+_GL_CXXALIAS_SYS (vszprintf, ptrdiff_t,
                   (char *restrict str,
                    const char *restrict format, va_list args));
 #endif

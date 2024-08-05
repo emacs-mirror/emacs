@@ -599,7 +599,7 @@ dos_set_window_size (int *rows, int *cols)
   *rows = ScreenRows ();
   *cols = ScreenCols ();
 
-  /* Update Emacs' notion of screen dimensions.  */
+  /* Update Emacs's notion of screen dimensions.  */
   screen_size_X = *cols;
   screen_size_Y = *rows;
   screen_size = *cols * *rows;

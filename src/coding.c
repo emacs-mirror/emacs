@@ -27,11 +27,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
   0. General comments
   1. Preamble
-  2. Emacs' internal format (emacs-utf-8) handlers
+  2. Emacs's internal format (emacs-utf-8) handlers
   3. UTF-8 handlers
   4. UTF-16 handlers
   5. Charset-base coding systems handlers
-  6. emacs-mule (old Emacs' internal format) handlers
+  6. emacs-mule (old Emacs's internal format) handlers
   7. ISO2022 handlers
   8. Shift-JIS and BIG5 handlers
   9. CCL handlers
@@ -50,7 +50,7 @@ CODING SYSTEM
   information about how to convert byte sequences to character
   sequences and vice versa.  When we say "decode", it means converting
   a byte sequence of a specific coding system into a character
-  sequence that is represented by Emacs' internal coding system
+  sequence that is represented by Emacs's internal coding system
   `emacs-utf-8', and when we say "encode", it means converting a
   character sequence of emacs-utf-8 to a byte sequence of a specific
   coding system.
@@ -1104,7 +1104,7 @@ alloc_destination (struct coding_system *coding, ptrdiff_t nbytes,
 #define EOL_SEEN_CRLF	4
 
 
-/*** 2. Emacs' internal format (emacs-utf-8) ***/
+/*** 2. Emacs's internal format (emacs-utf-8) ***/
 
 
 
@@ -1757,9 +1757,9 @@ encode_coding_utf_16 (struct coding_system *coding)
 }
 
 
-/*** 6. Old Emacs' internal format (emacs-mule) ***/
+/*** 6. Old Emacs's internal format (emacs-mule) ***/
 
-/* Emacs' internal format for representation of multiple character
+/* Emacs's internal format for representation of multiple character
    sets is a kind of multi-byte encoding, i.e. characters are
    represented by variable-length sequences of one-byte codes.
 
@@ -1782,7 +1782,7 @@ encode_coding_utf_16 (struct coding_system *coding)
    through 0xFF.  See `charset.h' for more details about leading-code
    and position-code.
 
-   --- CODE RANGE of Emacs' internal format ---
+   --- CODE RANGE of Emacs's internal format ---
    character set	range
    -------------	-----
    ascii		0x00..0x7F
@@ -2812,7 +2812,7 @@ encode_coding_emacs_mule (struct coding_system *coding)
    localized platforms), and all of these are variants of ISO2022.
 
    In addition to the above, Emacs handles two more kinds of escape
-   sequences: ISO6429's direction specification and Emacs' private
+   sequences: ISO6429's direction specification and Emacs's private
    sequence for specifying character composition.
 
    ISO6429's direction specification takes the following form:
@@ -6045,7 +6045,7 @@ complement_process_encoding_system (Lisp_Object coding_system)
 
 
 /* Emacs has a mechanism to automatically detect a coding system if it
-   is one of Emacs' internal format, ISO2022, SJIS, and BIG5.  But,
+   is one of Emacs's internal format, ISO2022, SJIS, and BIG5.  But,
    it's impossible to distinguish some coding systems accurately
    because they use the same range of codes.  So, at first, coding
    systems are categorized into 7, those are:
@@ -6053,7 +6053,7 @@ complement_process_encoding_system (Lisp_Object coding_system)
    o coding-category-emacs-mule
 
    	The category for a coding system which has the same code range
-	as Emacs' internal format.  Assigned the coding-system (Lisp
+	as Emacs's internal format.  Assigned the coding-system (Lisp
 	symbol) `emacs-mule' by default.
 
    o coding-category-sjis
@@ -10051,7 +10051,7 @@ encode_string_utf_8 (Lisp_Object string, Lisp_Object buffer,
    Emacs decoding does.
 
    If HANDLE-OVER-UNI is Qt, decode a 4 or 5-byte overlong sequence
-   that follows Emacs' internal representation for a character beyond
+   that follows Emacs's internal representation for a character beyond
    Unicode range into the corresponding character, like the usual
    Emacs decoding does.
 

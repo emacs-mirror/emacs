@@ -284,14 +284,26 @@ information on Eshell, see Info node `(eshell)Top'."
       (eshell-mode))
     buf))
 
+(declare-function eshell-add-input-to-history "em-hist" (input))
+(declare-function eshell--save-history "em-hist" ())
+
+(defun eshell-command-mode-exit ()
+  "Exit the `eshell-commad-mode' minibuffer and save Eshell history."
+  (interactive)
+  (when (eshell-using-module 'eshell-hist)
+    (eshell-add-input-to-history
+     (buffer-substring (minibuffer-prompt-end) (point-max)))
+    (eshell--save-history))
+  (exit-minibuffer))
+
 (define-minor-mode eshell-command-mode
   "Minor mode for `eshell-command' input.
 \\{eshell-command-mode-map}"
   :keymap (let ((map (make-sparse-keymap)))
-            (define-key map [(control ?g)] 'abort-recursive-edit)
-            (define-key map [(control ?m)] 'exit-minibuffer)
-            (define-key map [(control ?j)] 'exit-minibuffer)
-            (define-key map [(meta control ?m)] 'exit-minibuffer)
+            (define-key map [(control ?g)] #'abort-recursive-edit)
+            (define-key map [(control ?m)] #'eshell-command-mode-exit)
+            (define-key map [(control ?j)] #'eshell-command-mode-exit)
+            (define-key map [(meta control ?m)] #'eshell-command-mode-exit)
             map))
 
 (define-obsolete-function-alias 'eshell-return-exits-minibuffer
@@ -315,31 +327,42 @@ information on Eshell, see Info node `(eshell)Top'."
 (defvar eshell-command-buffer-name-sync "*Eshell Command Output*")
 
 ;;;###autoload
-(defun eshell-command (command &optional to-current-buffer)
+(defun eshell-command (command &optional output-target error-target)
   "Execute the Eshell command string COMMAND.
-If TO-CURRENT-BUFFER is non-nil (interactively, with the prefix
-argument), then insert output into the current buffer at point.
+If OUTPUT-TARGET is t (interactively, with the prefix argument), write
+the command's standard output to the current buffer at point.  If nil,
+write the output to a new output buffer.  For any other value, output to
+that Eshell target (see `eshell-get-target').
 
-When \"&\" is added at end of command, the command is async and its output
-appears in a specific buffer.  You can customize
+ERROR-TARGET is similar to OUTPUT-TARGET, except that it controls where
+to write standard error, and a nil value means to write standard error
+to the same place as standard output.  (To suppress standard error, you
+can write to the Eshell virtual target \"/dev/null\".)
+
+When \"&\" is added at end of command, the command is async and its
+output appears in a specific buffer.  You can customize
 `eshell-command-async-buffer' to specify what to do when this output
 buffer is already taken by another running shell command."
   (interactive (list (eshell-read-command)
-                     current-prefix-arg))
+                     (not (not current-prefix-arg))))
   (save-excursion
-    (let ((stdout (if to-current-buffer (current-buffer) t))
+    (let ((stdout (cond ((eq output-target t) (current-buffer))
+                        ((not output-target) t)
+                        (t output-target)))
+          (stderr (if (eq error-target t) (current-buffer) error-target))
           (buf (set-buffer (generate-new-buffer " *eshell cmd*")))
 	  (eshell-non-interactive-p t))
       (eshell-mode)
       (let* ((proc (eshell-eval-command
                     `(let ((eshell-current-handles
-                            (eshell-create-handles ,stdout 'insert))
+                            (eshell-create-handles ,stdout 'insert
+                                                   ,stderr 'insert))
                            (eshell-current-subjob-p))
 		       ,(eshell-parse-command command))
                     command))
              (async (eq (car-safe proc) :eshell-background))
              (bufname (cond
-                       (to-current-buffer nil)
+                       ((not (eq stdout t)) nil)
                        (async eshell-command-buffer-name-async)
                        (t eshell-command-buffer-name-sync)))
              unique)
@@ -382,7 +405,7 @@ buffer is already taken by another running shell command."
 	  (while (and (bolp) (not (bobp)))
 	    (delete-char -1)))
 	(cl-assert (and buf (buffer-live-p buf)))
-	(unless to-current-buffer
+        (unless bufname
           (let ((len (if async 2
 		       (count-lines (point-min) (point-max)))))
 	    (cond

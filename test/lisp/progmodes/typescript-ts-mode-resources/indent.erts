@@ -104,6 +104,24 @@ Name: JSX indentation
 
 =-=
 const foo = (props) => {
+return (
+<div>
+<div>
+<div>
+<div>
+{
+props.foo
+? Hello, foo!
+: Hello, World!;
+}
+</div>
+</div>
+</div>
+</div>
+);
+}
+=-=
+const foo = (props) => {
   return (
     <div>
       <div>

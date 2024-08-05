@@ -34,10 +34,9 @@ merged) and rebuild Emacs.
 
 * Install language definitions
 
-Tree-sitter by itself doesn’t know how to parse any particular
-language. We need to install language definitions (or “grammars”) for
-a language to be able to parse it. There are a couple of ways to get
-them.
+Tree-sitter by itself doesn’t know how to parse any particular language.
+We need to install language definitions (or “grammars”) for a language
+to be able to parse it.  There are a couple of ways to get them.
 
 You can use this script that I put together here:
 
@@ -45,54 +44,53 @@ You can use this script that I put together here:
 
 This script automatically pulls and builds language definitions for C,
 C++, Rust, JSON, Go, HTML, JavaScript, CSS, Python, Typescript,
-C#, etc. Better yet, I pre-built these language definitions for
+C#, etc.  Better yet, I pre-built these language definitions for
 GNU/Linux and macOS, they can be downloaded here:
 
-    https://github.com/casouri/tree-sitter-module/releases/tag/v2.1
+    https://github.com/casouri/tree-sitter-module/releases/tag/v2.4
 
-To build them yourself, run
+To build them yourself, run:
 
     git clone git@github.com:casouri/tree-sitter-module.git
     cd tree-sitter-module
     ./batch.sh
 
-and language definitions will be in the /dist directory. You can
+and language definitions will be in the /dist directory.  You can
 either copy them to standard dynamic library locations of your system,
-eg, /usr/local/lib, or leave them in /dist and later tell Emacs where
+e.g., /usr/local/lib, or leave them in /dist and later tell Emacs where
 to find language definitions by setting ‘treesit-extra-load-path’.
 
 Language definition sources can be found on GitHub under
-tree-sitter/xxx, like tree-sitter/tree-sitter-python. The tree-sitter
+tree-sitter/xxx, like tree-sitter/tree-sitter-python.  The tree-sitter
 organization has all the "official" language definitions:
 
    https://github.com/tree-sitter
 
 Alternatively, you can use treesit-install-language-grammar command
-and follow its instructions. If everything goes right, it should
+and follow its instructions.  If everything goes right, it should
 automatically download and compile the language grammar for you.
 
 * Setting up for adding major mode features
 
-Start Emacs and load tree-sitter with
+Start Emacs and load tree-sitter with:
 
     (require 'treesit)
 
-Now check if Emacs is built with tree-sitter library
+Now check if Emacs is built with tree-sitter library:
 
     (treesit-available-p)
 
-Make sure Emacs can find the language grammar you want to use
+Make sure Emacs can find the language grammar you want to use:
 
     (treesit-language-available-p 'lang)
 
 * Tree-sitter major modes
 
 Tree-sitter modes should be separate major modes, so other modes
-inheriting from the original mode don't break if tree-sitter is
-enabled.  For example js2-mode inherits js-mode, we can't enable
-tree-sitter in js-mode, lest js-mode would not setup things that
-js2-mode expects to inherit from. So it's best to use separate major
-modes.
+inheriting from the original mode don't break if tree-sitter is enabled.
+For example js2-mode inherits js-mode, we can't enable tree-sitter in
+js-mode, lest js-mode would not setup things that js2-mode expects to
+inherit from.  So it's best to use separate major modes.
 
 If the tree-sitter variant and the "native" variant could share some
 setup, you can create a "base mode", which only contains the common
@@ -115,27 +113,26 @@ symbol (variable, function).
 Tree-sitter works like this: You provide a query made of patterns and
 capture names, tree-sitter finds the nodes that match these patterns,
 tag the corresponding capture names onto the nodes and return them to
-you. The query function returns a list of (capture-name . node). For
-font-lock, we use face names as capture names. And the captured node
+you.  The query function returns a list of (capture-name . node).  For
+font-lock, we use face names as capture names.  And the captured node
 will be fontified in their capture name.
 
-The capture name could also be a function, in which case (NODE
-OVERRIDE START END) is passed to the function for fontification. START
-and END are the start and end of the region to be fontified.  The
-function should only fontify within that region.  The function should
-also allow more optional arguments with (&rest _), for future
-extensibility.  For OVERRIDE check out the docstring of
-treesit-font-lock-rules.
+The capture name could also be a function, in which case (NODE OVERRIDE
+START END) is passed to the function for fontification.  START and END
+are the start and end of the region to be fontified.  The function
+should only fontify within that region.  The function should also allow
+more optional arguments with (&rest _), for future extensibility.  For
+OVERRIDE check out the docstring of treesit-font-lock-rules.
 
 ** Query syntax
 
 There are two types of nodes, named, like (identifier),
 (function_definition), and anonymous, like "return", "def", "(",
-"}". Parent-child relationship is expressed as
+"}".  Parent-child relationship is expressed as:
 
    (parent (child) (child) (child (grand_child)))
 
-Eg, an argument list (1, "3", 1) could be:
+For example, an argument list (1, "3", 1) could be:
 
    (argument_list "(" (number) (string) (number) ")")
 
@@ -155,8 +152,7 @@ The query above captures both parent and child.
 
    ["return" "continue" "break"] @keyword
 
-The query above captures all the keywords with capture name
-"keyword".
+The query above captures all the keywords with capture name "keyword".
 
 These are the common syntax, see all of them in the manual
 ("Parsing Program Source" section).
@@ -167,8 +163,8 @@ But how do one come up with the queries? Take python for an example,
 open any python source file, type M-x treesit-explore-mode RET.  Now
 you should see the parse-tree in a separate window, automatically
 updated as you select text or edit the buffer.  Besides this, you can
-consult the grammar of the language definition. For example, Python’s
-grammar file is at
+consult the grammar of the language definition.  For example, Python’s
+grammar file is at:
 
     https://github.com/tree-sitter/tree-sitter-python/blob/master/grammar.js
 
@@ -182,24 +178,24 @@ The manual explains how to read grammar files in the bottom of section
 ** Debugging queries
 
 If your query has problems, use ‘treesit-query-validate’ to debug the
-query. It will pop a buffer containing the query (in text format) and
+query.  It will pop a buffer containing the query (in text format) and
 mark the offending part in red.
 
 ** Code
 
 To enable tree-sitter font-lock, set ‘treesit-font-lock-settings’ and
 ‘treesit-font-lock-feature-list’ buffer-locally and call
-‘treesit-major-mode-setup’. For example, see
-‘python--treesit-settings’ in python.el. Below is a snippet of it.
+‘treesit-major-mode-setup’.  For example, see
+‘python--treesit-settings’ in python.el.  Below is a snippet of it.
 
 Just like the current font-lock, if the to-be-fontified region already
 has a face (ie, an earlier match fontified part/all of the region),
-the new face is discarded rather than applied. If you want later
+the new face is discarded rather than applied.  If you want later
 matches always override earlier matches, use the :override keyword.
 
 Each rule should have a :feature, like function-name,
-string-interpolation, builtin, etc. Users can then enable/disable each
-feature individually. See Appendix 1 at the bottom for a set of common
+string-interpolation, builtin, etc.  Users can then enable/disable each
+feature individually.  See Appendix 1 at the bottom for a set of common
 features names.
 
 #+begin_src elisp
@@ -262,22 +258,22 @@ Concretely, something like this:
 
 * Indent
 
-Indent works like this: We have a bunch of rules that look like
+Indent works like this: We have a bunch of rules that look like:
 
    (MATCHER ANCHOR OFFSET)
 
 When the indentation process starts, point is at the BOL of a line, we
-want to know which column to indent this line to. Let NODE be the node
+want to know which column to indent this line to.  Let NODE be the node
 at point, we pass this node to the MATCHER of each rule, one of them
-will match the node (eg, "this node is a closing bracket!"). Then we
-pass the node to the ANCHOR, which returns a point, eg, the BOL of the
-previous line. We find the column number of that point (eg, 4), add
-OFFSET to it (eg, 0), and that is the column we want to indent the
+will match the node (e.g., "this node is a closing bracket!").  Then we
+pass the node to the ANCHOR, which returns a point, e.g., the BOL of the
+previous line.  We find the column number of that point (e.g., 4), add
+OFFSET to it (e.g., 0), and that is the column we want to indent the
 current line to (4 + 0 = 4).
 
 Matchers and anchors are functions that takes (NODE PARENT BOL &rest
-_). Matches return nil/non-nil for no match/match, and anchors return
-the anchor point. Below are some convenient builtin matchers and anchors.
+_).  Matches return nil/non-nil for no match/match, and anchors return
+the anchor point.  Below are some convenient builtin matchers and anchors.
 
 For MATCHER we have
 
@@ -289,8 +285,8 @@ For MATCHER we have
     (match NODE-TYPE PARENT-TYPE NODE-FIELD
            NODE-INDEX-MIN NODE-INDEX-MAX)
 
-    => checks everything. If an argument is nil, don’t match that. Eg,
-    (match nil TYPE) is the same as (parent-is TYPE)
+    => checks everything.  If an argument is nil, don’t match that.
+    E.g., (match nil TYPE) is the same as (parent-is TYPE)
 
 For ANCHOR we have
 
@@ -305,8 +301,8 @@ For ANCHOR we have
 There is also a manual section for indent: "Parser-based Indentation".
 
 When writing indent rules, you can use ‘treesit-check-indent’ to
-check if your indentation is correct. To debug what went wrong, set
-‘treesit--indent-verbose’ to non-nil. Then when you indent, Emacs
+check if your indentation is correct.  To debug what went wrong, set
+‘treesit--indent-verbose’ to non-nil.  Then when you indent, Emacs
 tells you which rule is applied in the echo area.
 
 #+begin_src elisp
@@ -354,9 +350,8 @@ Set ‘treesit-simple-imenu-settings’ and call
 
 * Navigation
 
-Set ‘treesit-defun-type-regexp’ and call
-‘treesit-major-mode-setup’. You can additionally set
-‘treesit-defun-name-function’.
+Set ‘treesit-defun-type-regexp’ and call ‘treesit-major-mode-setup’.
+You can additionally set ‘treesit-defun-name-function’.
 
 * Which-func
 
@@ -370,7 +365,7 @@ find the current function by ‘treesit-defun-at-point’.
 
 Obviously this list is just a starting point, if there are features in
 the major mode that would benefit from a parse tree, adding tree-sitter
-support for that would be great. But in the minimal case, just adding
+support for that would be great.  But in the minimal case, just adding
 font-lock is awesome.
 
 * Common tasks
@@ -403,14 +398,13 @@ BTW ‘treesit-node-string’ does different things.
 
 * Manual
 
-I suggest you read the manual section for tree-sitter in Info. The
-section is Parsing Program Source. Typing
+I suggest you read the manual section for tree-sitter in Info.  The
+section is Parsing Program Source.  Typing:
 
     C-h i d m elisp RET g Parsing Program Source RET
 
-will bring you to that section. You don’t need to read through every
-sentence, just read the text paragraphs and glance over function
-names.
+will bring you to that section.  You don’t need to read through every
+sentence, just read the text paragraphs and glance over function names.
 
 * Appendix 1
 
@@ -439,13 +433,13 @@ error                   highlight parse error
 
 Abstract features:
 
-assignment: the LHS of an assignment (thing being assigned to), eg:
+assignment: the LHS of an assignment (thing being assigned to), e.g.:
 
 a = b    <--- highlight a
 a.b = c  <--- highlight b
 a[1] = d <--- highlight a
 
-definition: the thing being defined, eg:
+definition: the thing being defined, e.g.:
 
 int a(int b) { <--- highlight a
  return 0

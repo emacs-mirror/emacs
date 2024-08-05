@@ -2455,8 +2455,8 @@ the inline source block.  The macro is stripped upon export.
 Multiline and non-scalar RESULTS from inline source blocks are
 not allowed.  When EXEC-TIME is provided it may be included in a
 generated message.  With optional argument RESULT-PARAMS controls
-insertion of results in the Org mode file.  RESULT-PARAMS can
-take the following values:
+insertion of results in the Org mode file.  RESULT-PARAMS is a list
+that can contain the following values:
 
 replace - (default option) insert results after the source block
           or inline source block replacing any previously
@@ -2515,15 +2515,17 @@ list ---- the results are rendered as a list.  This option not
 table --- the results are rendered as a table.  This option not
           allowed for inline source blocks.
 
-INFO may provide the values of these header arguments (in the
-`header-arguments-alist' see the docstring for
-`org-babel-get-src-block-info'):
+INFO is the src block info, as returned by
+`org-babel-get-src-block-info' (which see).  Some values from its
+PARAMETERS part (header argument alist) can affect the inserted
+result:
 
-:file --- the name of the file to which output should be written.
+:file-desc - when RESULT-PARAMS contains \"file\", use it as
+             description of the inserted link.
 
-:wrap --- the effect is similar to `latex' in RESULT-PARAMS but
-          using the argument supplied to specify the export block
-          or snippet type."
+:wrap        the effect is similar to `latex' in RESULT-PARAMS but
+             using the argument supplied to specify the export block
+             or snippet type."
   (cond ((stringp result)
 	 (setq result (substring-no-properties result))
 	 (when (member "file" result-params)

@@ -1721,7 +1721,7 @@ getenv_internal (const char *var, ptrdiff_t varlen, char **value,
 			 Vprocess_environment))
     return *value ? 1 : 0;
 
-  /* On Windows we make some modifications to Emacs' environment
+  /* On Windows we make some modifications to Emacs's environment
      without recording them in Vprocess_environment.  */
 #ifdef WINDOWSNT
   {

@@ -150,7 +150,7 @@ Widget library will also use the new graphic features automatically.
 A form consists of read only text for documentation and some fields,
 where each field contains two parts, a tag and a value.  The tags are
 used to identify the fields, so the documentation can refer to the
-@samp{foo field}, meaning the field tagged with @samp{Foo}. Here is an
+@samp{foo field}, meaning the field tagged with @samp{Foo}.  Here is an
 example form:
 
 @example
@@ -865,7 +865,7 @@ the @code{:mouse-down-action} property.
 All widgets can be created from a type specification.  The general
 syntax of a type specification is:
 
-@c FIXME: Add BNF reference here? If yes, what reference?
+@c FIXME: Add BNF reference here?  If yes, what reference?
 @example
 @var{name} ::= (@var{name} [@var{keyword} @var{argument}]... @var{args})
      |   @var{name}

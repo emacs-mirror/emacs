@@ -1257,7 +1257,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (FIXNUMP (v1) && FIXNUMP (v2))
 	      TOP = BASE_EQ (v1, v2) ? Qt : Qnil;
 	    else
-	      TOP = arithcompare (v1, v2, ARITH_EQUAL);
+	      TOP = arithcompare (v1, v2) & Cmp_EQ ? Qt : Qnil;
 	    NEXT;
 	  }
 
@@ -1268,7 +1268,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (FIXNUMP (v1) && FIXNUMP (v2))
 	      TOP = XFIXNUM (v1) > XFIXNUM (v2) ? Qt : Qnil;
 	    else
-	      TOP = arithcompare (v1, v2, ARITH_GRTR);
+	      TOP = arithcompare (v1, v2) & Cmp_GT ? Qt : Qnil;
 	    NEXT;
 	  }
 
@@ -1279,7 +1279,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (FIXNUMP (v1) && FIXNUMP (v2))
 	      TOP = XFIXNUM (v1) < XFIXNUM (v2) ? Qt : Qnil;
 	    else
-	      TOP = arithcompare (v1, v2, ARITH_LESS);
+	      TOP = arithcompare (v1, v2) & Cmp_LT ? Qt : Qnil;
 	    NEXT;
 	  }
 
@@ -1290,7 +1290,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (FIXNUMP (v1) && FIXNUMP (v2))
 	      TOP = XFIXNUM (v1) <= XFIXNUM (v2) ? Qt : Qnil;
 	    else
-	      TOP = arithcompare (v1, v2, ARITH_LESS_OR_EQUAL);
+	      TOP = arithcompare (v1, v2) & (Cmp_LT | Cmp_EQ) ? Qt : Qnil;
 	    NEXT;
 	  }
 
@@ -1301,7 +1301,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (FIXNUMP (v1) && FIXNUMP (v2))
 	      TOP = XFIXNUM (v1) >= XFIXNUM (v2) ? Qt : Qnil;
 	    else
-	      TOP = arithcompare (v1, v2, ARITH_GRTR_OR_EQUAL);
+	      TOP = arithcompare (v1, v2) & (Cmp_GT | Cmp_EQ) ? Qt : Qnil;
 	    NEXT;
 	  }
 

@@ -773,7 +773,7 @@ corrupted while unpacking and Emacs will not start.
 
 If it is still not working, send mail to the
 @email{help-gnu-emacs@@gnu.org} mailing list, describing what you've
-done, and what you are seeing. (The more information you send the more
+done, and what you are seeing.  (The more information you send the more
 likely it is that you'll receive a helpful response.)
 
 @node Virus
@@ -1592,7 +1592,7 @@ smtpmail is loaded, then you'll need to change
 @code{smtpmail-smtp-server}.
 
 If you are experiencing problems with sending large messages, check
-the value of the variable @code{smtpmail-debug-info}. If it is
+the value of the variable @code{smtpmail-debug-info}.  If it is
 non-@code{nil}, you should set it to @code{nil}:
 
 @node Incoming mail with Rmail
@@ -1908,9 +1908,9 @@ See the following two URLs for details:
 @cindex MSVC++, compiling within Emacs
 @findex compile
 
-This is an app note on how to use Microsoft Visual C++ with Emacs. The
+This is an app note on how to use Microsoft Visual C++ with Emacs.  The
 experiments done below were done with Emacs 19.34.1 on Windows 95,
-using Visual C++ 4.0 Standard Edition. Your mileage may vary.
+using Visual C++ 4.0 Standard Edition.  Your mileage may vary.
 
 This writeup assumes minimal knowledge of Emacs hacking on the part of
 the reader.
@@ -1939,14 +1939,14 @@ For all versions of Windows you can alternatively set the variables
 just inside Emacs by using @code{setenv} calls in your init file.
 @xref{Installing Emacs,,Where do I put my init file?}.
 
-You should now be able to compile from Emacs. Load a source file from
-a VC++ project. Type @kbd{M-x compile}. Replace the proposed command line
+You should now be able to compile from Emacs.  Load a source file from
+a VC++ project.  Type @kbd{M-x compile}.  Replace the proposed command line
 with:
 @example
 nmake -f @var{ProjectName}.mak
 @end example
 
-You will find that this defaults to a debug build. You can change it
+You will find that this defaults to a debug build.  You can change it
 to a release build with:
 @example
 nmake -f @var{ProjectName}.mak CFG="@var{ProjectName} - Win32 Release"
@@ -2018,21 +2018,21 @@ click on @code{Customize...}.  In the @code{Tools} tab, click on
 @file{emacsclientw.exe} file in your Emacs bin directory, and
 select it.  For arguments, use @option{+$(CurLine)}
 @option{"$(FilePath)"} and for the directory use the @code{$(WkspDir)}
-(the quotes around FilePath handle paths with spaces in them). Set the
-Menu Text to say "Em&acs". The @option{+$(CurLine)} will set point in
-Emacs to the same line as the cursor position in VC++. The ampersand
+(the quotes around FilePath handle paths with spaces in them).  Set the
+Menu Text to say "Em&acs".  The @option{+$(CurLine)} will set point in
+Emacs to the same line as the cursor position in VC++.  The ampersand
 in the word @code{Em&acs} allows you to select emacs from the keyboard.
 (E is already used for the OLE control test container.)
 
-You should now be able to go to any source file in your project. Then,
-use the pull-down menu @code{Tools->Emacs}. The active file in your
+You should now be able to go to any source file in your project.  Then,
+use the pull-down menu @code{Tools->Emacs}.  The active file in your
 VC++ IDE should now be front and center in Emacs, all ready to edit as
-you wish. If you use keystrokes to work the menus, try @kbd{Alt-T A} to
-move the file into Emacs. Binding this tool to a keystroke will be
+you wish.  If you use keystrokes to work the menus, try @kbd{Alt-T A} to
+move the file into Emacs.  Binding this tool to a keystroke will be
 left as an exercise for the student.
 
 If you have the option of saving files before running tools, make sure
-this option is set. (I don't see it on VC++ 4.0.)
+this option is set.  (I don't see it on VC++ 4.0.)
 
 @node Borland C++ Builder
 @section Emacs and Borland C++ Builder
@@ -2072,8 +2072,8 @@ Free native Windows binaries.  For those that don't Cygwin may be an option.
 From Jay Rogers:
 
 Some versions of the perl debugger itself need to be patched to work
-with emacs. They are perl versions 5.001 and less, and version
-5.004_01. To fix, locate and change the code similar to the following
+with emacs.  They are perl versions 5.001 and less, and version
+5.004_01.  To fix, locate and change the code similar to the following
 code in lib/perl5db.pl
 @example
         if (-e "/dev/tty") @{
@@ -2218,7 +2218,7 @@ outdated.  Tools available here that are useful for Emacs include:
 @item OpenSSL - used by @code{gnus} to talk to servers over SSL.
 @item Patch - used by @code{ediff-patch-file} and others to apply patches.
 @item Tar - used by @code{tar-mode} to edit tar files.
-@item TexInfo - used to build Emacs' manuals.
+@item TexInfo - used to build Emacs's manuals.
 @item Unzip - used by @code{archive-mode} for extracting zip files.
 @item Xpm - library to support XPM images (bundled with Emacs binaries)
 @item Zip - used by @code{archive-mode} for editing zip files.
@@ -2245,7 +2245,7 @@ image libraries that it provides, even if they are not on the
 @findex man
 
 Man pages for Emacs and other ported programs that you have can be
-read using Emacs' built-in manual reader @code{woman}.  This
+read using Emacs's built-in manual reader @code{woman}.  This
 requires no external programs, but if you do have a port of
 @command{man}, there is also an Emacs wrapper @code{man} that
 which may be slightly faster.  A Windows version of @command{man} is
@@ -2273,7 +2273,7 @@ If you have general questions about Emacs, the best places to start
 looking are @ref{Top,,, emacs, The GNU Emacs Manual}, and
 @ref{Top,,, efaq, the standard Emacs FAQ}.
 In Emacs, you can browse the manual using Info by typing @kbd{C-h r},
-and you can view the FAQ by typing @kbd{C-h C-f}. Other resources include:
+and you can view the FAQ by typing @kbd{C-h C-f}.  Other resources include:
 
 @itemize
 @item @uref{https://www.gnu.org/software/emacs/, The Emacs website}

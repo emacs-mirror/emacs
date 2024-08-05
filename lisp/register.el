@@ -131,17 +131,20 @@ to the value of `register--read-with-preview-function'.")
 (defcustom register-use-preview 'traditional
   "Whether to show register preview when modifying registers.
 
-When set to `t', show a preview buffer with navigation and
-highlighting.
-When set to \\='insist, behave as with `t', but allow exiting the
-minibuffer by pressing the register name a second time.  E.g.,
-press \"a\" to select register \"a\", then press \"a\" again to
-exit the minibuffer.
-When nil, show a preview buffer without navigation and highlighting, and
-exit the minibuffer immediately after inserting response in minibuffer.
-When set to \\='never, behave as with nil, but with no preview buffer at
-all; the preview buffer is still accessible with `help-char' (C-h).
-When set to \\='traditional (the default), provide a more basic preview
+When set to t, show a preview buffer with navigation and highlighting.
+
+When set `insist', behave as with t, but allow exiting the minibuffer by
+pressing the register name a second time.  For example, press \\`a' to
+select register \"a\", then press \\`a' again to exit the minibuffer.
+
+When set to nil, show a preview buffer without navigation and
+highlighting, and exit the minibuffer immediately after inserting
+response in minibuffer.
+
+When set to `never', behave as with nil, but with no preview buffer at
+all; the preview buffer is still accessible with `help-char' (\\`C-h').
+
+When set to `traditional' (the default), provide a more basic preview
 according to `register-preview-delay'; this preserves the traditional
 behavior of Emacs 29 and before."
   :type '(choice

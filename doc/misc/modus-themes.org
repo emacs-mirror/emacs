@@ -144,7 +144,7 @@ and covers everything that goes into every tagged release of the themes.
 :end:
 
 The Modus themes are distributed with Emacs starting with version 28.1.
-On older versions of Emacs, they can be installed using Emacs' package
+On older versions of Emacs, they can be installed using Emacs's package
 manager or manually from their code repository.  There also exist
 packages for distributions of GNU/Linux.
 
@@ -1237,7 +1237,7 @@ and ==*modus-operandi-list-mappings*= for the semantic color mappings.
 :END:
 
 The Modus themes provide the means to access the palette of (i) the
-active theme or (ii) any theme in the Modus collection. These are
+active theme or (ii) any theme in the Modus collection.  These are
 useful for Do-It-Yourself customizations ([[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]]),
 though it can also be helpful in other cases, such as to reuse a color
 value in some other application.
@@ -1252,8 +1252,8 @@ value in some other application.
 
 #+findex: modus-themes-get-color-value
 The function ~modus-themes-get-color-value~ can be called from Lisp to
-return the value of a color from the active Modus theme palette. It
-takea a =COLOR= argument and an optional =OVERRIDES=. It also accepts
+return the value of a color from the active Modus theme palette.  It
+takea a =COLOR= argument and an optional =OVERRIDES=.  It also accepts
 a third =THEME= argument, to get the color from the given theme.
 
 =COLOR= is a symbol that represents a named color entry in the
@@ -1264,7 +1264,7 @@ mapping), this function recurs until it finds the underlying color
 value.
 
 With an optional =OVERRIDES= argument as a non-~nil~ value, it
-accounts for palette overrides. Else it reads only the default palette
+accounts for palette overrides.  Else it reads only the default palette
 ([[#h:34c7a691-19bb-4037-8d2f-67a07edab150][Option for palette overrides]])
 
 With an optional =THEME= as a symbol among the ~modus-themes-items~
@@ -1309,12 +1309,12 @@ with/without overrides and when recursive mappings are introduced.
 
 #+findex: modus-themes-with-colors
 Advanced users may want to apply many colors from the palette of the
-active Modus theme in their custom code. In such a case, retrieving
+active Modus theme in their custom code.  In such a case, retrieving
 each value with the function ~modus-themes-get-color-value~ is
-inefficient ([[#h:1cc552c1-5f5f-4a56-ae78-7b69e8512c4e][Get a single color from the palette]]). The Lisp macro
-~modus-themes-with-colors~ provides the requisite functionality. It
+inefficient ([[#h:1cc552c1-5f5f-4a56-ae78-7b69e8512c4e][Get a single color from the palette]]).  The Lisp macro
+~modus-themes-with-colors~ provides the requisite functionality.  It
 supplies the current theme's palette to the code called from inside of
-it. For example:
+it.  For example:
 
 #+begin_src emacs-lisp
 (modus-themes-with-colors
@@ -1323,9 +1323,9 @@ it. For example:
 #+end_src
 
 The above return value is for ~modus-operandi~ when that is the active
-theme. Switching to another theme and evaluating this code anew will
+theme.  Switching to another theme and evaluating this code anew will
 return the relevant results for that theme (remember that since
-version 4, the Modus themes consist of many items ([[#h:f0f3dbcb-602d-40cf-b918-8f929c441baf][Overview]])). The
+version 4, the Modus themes consist of many items ([[#h:f0f3dbcb-602d-40cf-b918-8f929c441baf][Overview]])).  The
 same with ~modus-vivendi~ as the active theme:
 
 #+begin_src emacs-lisp
@@ -1340,7 +1340,7 @@ like =blue-warmer= and (ii) semantic color mappings like =warning=.
 We provide commands to inspect those ([[#h:f4d4b71b-2ca5-4c3d-b0b4-9bfd7aa7fb4d][Preview theme colors]]).
 
 Others sections in this manual show how to use the aforementioned
-macro ([[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]]). In practice, the use of a hook will
+macro ([[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]]).  In practice, the use of a hook will
 also be needed ([[#h:d87673fe-2ce1-4c80-a4b8-be36ca9f2d24][DIY Use a hook at the post-load-theme phase]]).
 
 * Advanced customization
@@ -1355,7 +1355,7 @@ mechanism to control things with precision ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd
 
 This section is of interest only to users who are prepared to maintain
 their own local tweaks and who are willing to deal with any possible
-incompatibilities between versioned releases of the themes. As such,
+incompatibilities between versioned releases of the themes.  As such,
 they are labeled as "do-it-yourself" or "DIY".
 
 ** DIY Palette override presets
@@ -2076,14 +2076,14 @@ Reload the theme for changes to take effect.
 :end:
 
 This is one of our practical examples to override the semantic colors
-of the Modus themes ([[#h:df1199d8-eaba-47db-805d-6b568a577bf3][Stylistic variants using palette overrides]]). Here
+of the Modus themes ([[#h:df1199d8-eaba-47db-805d-6b568a577bf3][Stylistic variants using palette overrides]]).  Here
 we show how to change the presentation of Org blocks (and other such
 blocks like Markdown fenced code sections, though the exact
 presentation depends on each major mode).
 
 The default style of Org blocks is a subtle gray background for the
 contents and for the delimiter lines (the =#+begin_= and =#+end_=
-parts). The text of the delimiter lines is a subtle gray foreground
+parts).  The text of the delimiter lines is a subtle gray foreground
 color.
 
 [[#h:bb5b396f-5532-4d52-ab13-149ca24854f1][Make inline code in prose use alternative styles]].
@@ -2123,8 +2123,8 @@ color.
 #+end_src
 
 The previous examples differentiate the delimiter lines from the
-block's contents. Though we can mimic the default aesthetic of a
-uniform background, while changing the applicable colors. Here are
+block's contents.  Though we can mimic the default aesthetic of a
+uniform background, while changing the applicable colors.  Here are
 some nice combinations:
 
 #+begin_src emacs-lisp
@@ -2152,7 +2152,7 @@ some nice combinations:
 
 Finally, the following makes code blocks have no distinct background.
 The minimal styles are applied to the delimiter lines, which only use
-a subtle gray foreground. This was the default for the Modus themes up
+a subtle gray foreground.  This was the default for the Modus themes up
 until version 4.3.0.
 
 #+begin_src emacs-lisp
@@ -3280,11 +3280,11 @@ invoke {{{kbd(M-x org-mode-restart)}}}.
 
 In versions of the Modus themes before =4.4.0= there was an option to
 change the coloration of Org source blocks so that certain languages
-would have a distinctly colored background. This was not flexible
+would have a distinctly colored background.  This was not flexible
 enough, because (i) we cannot cover all languages effectively and (ii)
 the user had no choice over the =language --> color= mapping.
 
-As such, the old user option is no more. Users can use the following
+As such, the old user option is no more.  Users can use the following
 to achieve what they want:
 
 [ All this is done by setting the Org user option ~org-src-block-faces~,
@@ -3323,9 +3323,9 @@ to achieve what they want:
 [[#h:d87673fe-2ce1-4c80-a4b8-be36ca9f2d24][DIY Use a hook at the post-load-theme phase]].
 
 Note that the ~org-src-block-faces~ accepts a named face, as shown
-above, as well as a list of face attributes. The latter approach is
+above, as well as a list of face attributes.  The latter approach is
 not good enough because it hardcodes values in such a way that an
-~org-mode-restart~ is necessary. Whereas the indirection of the named
+~org-mode-restart~ is necessary.  Whereas the indirection of the named
 face lets the theme change the values while Org buffers continue to
 show the right colors.
 
@@ -3638,7 +3638,7 @@ Add this to the `modus-themes-post-load-hook'."
 The above will work only for themes that belong to the Modus family.
 For users of Emacs version 29 or higher, there exists a theme-agnostic
 hook that takes a function with one argument---that of the theme---and
-calls in the the "post enable" phase of theme loading.  Here is the
+calls in the "post enable" phase of theme loading.  Here is the
 above snippet, with the necessary tweaks:
 
 #+begin_src emacs-lisp
@@ -3768,7 +3768,7 @@ Reload the theme for changes to take effect.
 :END:
 
 Many of the Do-It-Yourself (DIY) snippets provided herein make use of
-a hook to apply the desired changes. In most examples, this hook is
+a hook to apply the desired changes.  In most examples, this hook is
 the ~modus-themes-after-load-theme-hook~ (alias ~modus-themes-post-load-hook~).
 This hook is provided by the Modus themes and is called at the end of
 one the following:
@@ -3786,7 +3786,7 @@ one the following:
 
 Users who switch between themes that are not limited to the Modus
 collection cannot benefit from the aforementioned hook: it only works
-with the Modus themes. A theme-agnostic hook is needed in such a case.
+with the Modus themes.  A theme-agnostic hook is needed in such a case.
 Before Emacs 29, this had to be set up manually ([[#h:86f6906b-f090-46cc-9816-1fe8aeb38776][DIY A theme-agnostic hook for theme loading]]).
 Starting with Emacs 29, the special hook ~enable-theme-functions~
 works with anything that uses the basic ~enable-theme~ function.
@@ -3799,7 +3799,7 @@ the way it is done with every hook:
 #+end_src
 
 Functions added to ~enable-theme-functions~ accept a single =THEME=
-argument. The examples shown in this manual use the pattern =(&rest
+argument.  The examples shown in this manual use the pattern =(&rest
 _)=, which is how a function accepts one or more arguments but
 declares it will not use them (in plain terms, the code works with or
 without ~enable-theme-functions~).
@@ -3809,7 +3809,7 @@ without ~enable-theme-functions~).
 :custom_id: h:86f6906b-f090-46cc-9816-1fe8aeb38776
 :end:
 
-[ NOTE: The following is for versions of Emacs before 29. For Emacs 29
+[ NOTE: The following is for versions of Emacs before 29.  For Emacs 29
   or higher, users can rely on the built-in ~enable-theme-functions~
   ([[#h:d87673fe-2ce1-4c80-a4b8-be36ca9f2d24][Using a hook at the post-load-theme phase]]). ]
 
@@ -4769,7 +4769,7 @@ and/or mode line setup.
 :custom_id: h:4cc767dc-ffef-4c5c-9f10-82eb7b8921bf
 :end:
 
-Emacs' HTML rendering library ({{{file(shr.el)}}}) may need explicit
+Emacs's HTML rendering library ({{{file(shr.el)}}}) may need explicit
 configuration to respect the theme's colors instead of whatever
 specifications the webpage provides.
 

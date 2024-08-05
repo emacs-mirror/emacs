@@ -468,7 +468,7 @@ extern bool charset_map_loaded;
 #define ISO_MAX_FINAL 0x80	/* only 0x30..0xFF are used */
 
 /* Mapping table from ISO2022's charset (specified by DIMENSION,
-   CHARS, and FINAL_CHAR) to Emacs' charset ID.  Should be accessed by
+   CHARS, and FINAL_CHAR) to Emacs's charset ID.  Should be accessed by
    macro ISO_CHARSET_TABLE (DIMENSION, CHARS, FINAL_CHAR).  */
 extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 

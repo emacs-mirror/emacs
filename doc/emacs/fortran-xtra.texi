@@ -124,7 +124,7 @@ check the outermost block since that may be incomplete.
 @findex f90-beginning-of-block
 @item C-M-p
 Move to the start of the current code block
-(@code{fortran-beginning-of-block}/@code{f90-beginning-of-block}). This
+(@code{fortran-beginning-of-block}/@code{f90-beginning-of-block}).  This
 is like @code{fortran-end-of-block}, but moves backwards.
 @end table
 

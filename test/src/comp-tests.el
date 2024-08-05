@@ -1567,37 +1567,31 @@ folded."
     (should (native-comp-function-p (symbol-function 'comp-tests-pure-fibn-entry-f)))
     (should (= (comp-tests-pure-fibn-entry-f) 6765))))
 
-(defvar comp-tests-cond-rw-checked-function nil
-  "Function to be checked.")
-(defun comp-tests-cond-rw-checker-val (_)
-  "Check we manage to propagate the correct return value."
-  (should
-   (cl-some
-    #'identity
-    (comp-tests-map-checker
-     comp-tests-cond-rw-checked-function
-     (lambda (insn)
-       (pcase insn
-         (`(return ,mvar)
-          (and (comp-cstr-imm-vld-p mvar)
-               (eql (comp-cstr-imm mvar) 123)))))))))
-
-(defvar comp-tests-cond-rw-expected-type nil
-  "Type to expect in `comp-tests-cond-rw-checker-type'.")
-(defun comp-tests-cond-rw-checker-type (_)
-  "Check we manage to propagate the correct return type."
-  (should
-   (cl-some
-    #'identity
-    (comp-tests-map-checker
-     comp-tests-cond-rw-checked-function
-     (lambda (insn)
-       (pcase insn
-         (`(return ,mvar)
-          (equal (comp-mvar-typeset mvar)
-                 comp-tests-cond-rw-expected-type))))))))
-
 (comp-deftest comp-tests-result-lambda ()
   (native-compile 'comp-tests-result-lambda)
   (should (eq (funcall (comp-tests-result-lambda) '(a . b)) 'a)))
+
+(defun comp-tests-type-branch-optim-checker (_)
+  "Check there's only a single call to `type-of'."
+  (should (= (cl-count t (comp-tests-map-checker
+                          #'comp-tests-type-branch-optim-1-f
+                          (lambda (insn)
+                            (pcase insn
+                              (`(set ,_mvar-1 (call type-of ,_mvar-2))
+                               t)))))
+             1)))
+
+(declare-function comp-tests-type-branch-optim-1-f nil)
+
+(comp-deftest comp-tests-type-branch-optim ()
+  (let ((native-comp-speed 2)
+        (comp-post-pass-hooks '((comp--final comp-tests-type-branch-optim-checker))))
+    (eval '(progn
+             (cl-defstruct type-branch-optim-struct a b c)
+             (defun comp-tests-type-branch-optim-1-f (x)
+               (setf (type-branch-optim-struct-a x) 3)
+               (+ (type-branch-optim-struct-b x) (type-branch-optim-struct-c x))))
+          t)
+    (native-compile #'comp-tests-type-branch-optim-1-f)))
+
 ;;; comp-tests.el ends here

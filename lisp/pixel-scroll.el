@@ -289,7 +289,7 @@ This is and alternative of `scroll-down'.  Scope moves upward."
 (put 'pixel-scroll-down 'scroll-command t)
 
 (defun pixel-bob-at-top-p (amt)
-  "Return non-nil if window-start is at beginning of the current buffer.
+  "Return non-nil if `window-start' is at beginning of the current buffer.
 Window must be vertically scrolled by not more than AMT pixels."
   (and (equal (window-start) (point-min))
        (< (window-vscroll nil t) amt)))
@@ -492,8 +492,8 @@ unseen line just above the scope of current window."
 
 (defun pixel-scroll-down-and-set-window-vscroll (vscroll)
   "Scroll down a line and set VSCROLL in pixels.
-It is important to call `set-window-start' to force the display
-engine use that particular position as the window-start point.
+It is important to call `set-window-start' to force the display engine
+to use that particular position as the `window-start' point.
 Otherwise, redisplay will reset the window's vscroll."
   (set-window-start nil (pixel-point-at-unseen-line) t)
   (set-window-vscroll nil vscroll t))

@@ -40,7 +40,7 @@
          ((should-parse (expected)
             `(let ((shell-file-name "sh")
                    (shell-command-switch "-c"))
-               ;; Strip `eshell-trap-errors'.
+               ;; Strip `eshell-do-command'.
                (should (equal ,expected
                               (cadadr (eshell-parse-command input))))))
           (with-substitute-for-temp (&rest body)

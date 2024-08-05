@@ -972,6 +972,7 @@ Each element is an `isearch--state' struct where the slots are
 ;; The value of input-method-function when isearch is invoked.
 (defvar isearch-input-method-function nil)
 
+(defvar isearch--saved-local-map nil)
 (defvar isearch--saved-overriding-local-map nil)
 
 ;; Minor-mode-alist changes - kind of redundant with the
@@ -1003,8 +1004,7 @@ Each element is an `isearch--state' struct where the slots are
 ;; Entry points to isearch-mode.
 
 (defun isearch-forward (&optional regexp-p no-recursive-edit)
-  "\
-Do incremental search forward.
+  "Do incremental search forward.
 With a prefix argument, do an incremental regular expression search instead.
 \\<isearch-mode-map>
 As you type characters, they add to the search string and are found.
@@ -1012,7 +1012,7 @@ The following non-printing keys are bound in `isearch-mode-map'.
 
 Type \\[isearch-delete-char] to cancel last input item from end of search string.
 Type \\[isearch-exit] to exit, leaving point at location found.
-Type LFD (C-j) to match end of line.
+Type LFD (\\`C-j') to match end of line.
 Type \\[isearch-repeat-forward] to search again forward,\
  \\[isearch-repeat-backward] to search again backward.
 Type \\[isearch-beginning-of-buffer] to go to the first match,\
@@ -1110,7 +1110,7 @@ as a regexp.  See the command `isearch-forward' for more information.
 
 In incremental searches, a space or spaces normally matches any
 whitespace defined by the variable `search-whitespace-regexp'.
-To search for a literal space and nothing else, enter C-q SPC.
+To search for a literal space and nothing else, enter \\`C-q SPC'.
 To toggle whitespace matching, use `isearch-toggle-lax-whitespace',
 usually bound to \\`M-s SPC' during isearch.
 This command does not support character folding."
@@ -1322,6 +1322,7 @@ used to set the value of `isearch-regexp-function'."
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
   (force-mode-line-update)
 
+  (setq isearch--saved-local-map overriding-terminal-local-map)
   (setq overriding-terminal-local-map isearch-mode-map)
   (run-hooks 'isearch-mode-hook)
   ;; Remember the initial map possibly modified
@@ -1338,6 +1339,7 @@ used to set the value of `isearch-regexp-function'."
   (add-hook 'pre-command-hook 'isearch-pre-command-hook)
   (add-hook 'post-command-hook 'isearch-post-command-hook)
   (add-hook 'mouse-leave-buffer-hook 'isearch-mouse-leave-buffer)
+  (add-hook 'delete-frame-functions 'isearch-done)
   (add-hook 'kbd-macro-termination-hook 'isearch-done)
 
   ;; If the keyboard is not up and the last event did not come from
@@ -1440,10 +1442,12 @@ The last thing is to trigger a new round of lazy highlighting."
 
 (defun isearch-done (&optional nopush edit)
   "Exit Isearch mode.
+Called by all commands that terminate isearch-mode.
 For successful search, pass no args.
 For a failing search, NOPUSH is t.
 For going to the minibuffer to edit the search string,
-NOPUSH is t and EDIT is t."
+NOPUSH is t and EDIT is t.
+If NOPUSH is non-nil, we don't push the string on the search ring."
 
   (when isearch-resume-in-command-history
     (add-to-history 'command-history
@@ -1455,15 +1459,14 @@ NOPUSH is t and EDIT is t."
   (remove-hook 'pre-command-hook 'isearch-pre-command-hook)
   (remove-hook 'post-command-hook 'isearch-post-command-hook)
   (remove-hook 'mouse-leave-buffer-hook 'isearch-mouse-leave-buffer)
+  (remove-hook 'delete-frame-functions 'isearch-done)
   (remove-hook 'kbd-macro-termination-hook 'isearch-done)
   (when (buffer-live-p isearch--current-buffer)
     (with-current-buffer isearch--current-buffer
       (setq isearch--current-buffer nil)
       (setq cursor-sensor-inhibit (delq 'isearch cursor-sensor-inhibit))))
 
-  ;; Called by all commands that terminate isearch-mode.
-  ;; If NOPUSH is non-nil, we don't push the string on the search ring.
-  (setq overriding-terminal-local-map nil)
+  (setq overriding-terminal-local-map isearch--saved-local-map)
   ;; (setq pre-command-hook isearch-old-pre-command-hook) ; for lemacs
   (setq minibuffer-message-timeout isearch-original-minibuffer-message-timeout)
   (isearch-dehighlight)
@@ -2677,7 +2680,7 @@ Otherwise invoke whatever the calling mouse-2 command sequence
 is bound to outside of Isearch."
   (interactive "e")
   (let ((w (posn-window (event-start click)))
-        (binding (let ((overriding-terminal-local-map nil)
+        (binding (let ((overriding-terminal-local-map isearch--saved-local-map)
                        ;; Key search depends on mode (bug#47755)
                        (isearch-mode nil))
                    (key-binding (this-command-keys-vector) t))))
@@ -3557,7 +3560,8 @@ the word mode."
 (defun isearch-lazy-count-format (&optional suffix-p)
   "Format the current match number and the total number of matches.
 When SUFFIX-P is non-nil, the returned string is intended for
-isearch-message-suffix prompt.  Otherwise, for isearch-message-prefix."
+`isearch-message-suffix' prompt.  Otherwise, for
+`isearch-message-prefix'."
   (let ((format-string (if suffix-p
                            lazy-count-suffix-format
                          lazy-count-prefix-format)))

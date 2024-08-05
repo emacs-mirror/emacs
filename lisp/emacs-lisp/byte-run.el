@@ -222,12 +222,27 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
                  (cadr elem)))
               val)))))
 
+(defalias 'byte-run--anonymize-arg-list
+  #'(lambda (arg-list)
+      (mapcar (lambda (x)
+                (if (memq x '(&optional &rest))
+                    x
+                 t))
+              arg-list)))
+
 (defalias 'byte-run--set-function-type
-  #'(lambda (f _args val &optional f2)
+  #'(lambda (f args val &optional f2)
       (when (and f2 (not (eq f2 f)))
         (error
          "`%s' does not match top level function `%s' inside function type \
 declaration" f2 f))
+      (unless (and  (length= val 3)
+                    (eq (car val) 'function)
+                    (listp (car (cdr val))))
+        (error "Type `%s' is not valid a function type" val))
+      (unless (equal (byte-run--anonymize-arg-list args)
+                     (byte-run--anonymize-arg-list (car (cdr val))))
+        (error "Type `%s' incompatible with function arguments `%s'" val args))
       (list 'function-put (list 'quote f)
             ''function-type (list 'quote val))))
 
@@ -334,7 +349,7 @@ This is used by `declare'.")
                       (f (apply (car f) name arglist (cdr x)))
                       ;; Yuck!!
                       ((and (featurep 'cl)
-                            (memq (car x)  ;C.f. cl--do-proclaim.
+                            (memq (car x)  ;Cf. cl--do-proclaim.
                                   '(special inline notinline optimize warn)))
                        (push (list 'declare x) cl-decls)
                        nil)

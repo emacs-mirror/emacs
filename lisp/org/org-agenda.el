@@ -2048,6 +2048,9 @@ the normal rules apply."
 (defcustom org-agenda-category-icon-alist nil
   "Alist of category icon to be displayed in agenda views.
 
+The icons are displayed in place of the %i placeholders in
+`org-agenda-prefix-format', which see.
+
 Each entry should have the following format:
 
   (CATEGORY-REGEXP FILE-OR-DATA TYPE DATA-P PROPS)
@@ -2227,7 +2230,7 @@ This is an internal flag indicating either temporary or extended
 agenda restriction.  Specifically, it is set to t if the agenda
 is restricted to an entire file, and is set to the corresponding
 buffer if the agenda is restricted to a part of a file, e.g. a
-region or a substree.  In the latter case,
+region or a subtree.  In the latter case,
 `org-agenda-restrict-begin' and `org-agenda-restrict-end' are set
 to the beginning and the end of the part.
 

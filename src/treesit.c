@@ -392,19 +392,23 @@ init_treesit_functions (void)
    These are all imaginary scenarios but they are not impossible
    :-)
 
-   Parsers in indirect buffers: We make indirect buffers to share the
-   parser of its base buffer.  Indirect buffers and their base buffer
+   Parsers in indirect buffers: We make indirect buffers share the
+   parser of their base buffer.  Indirect buffers and their base buffer
    share the same buffer content but not other buffer attributes.  If
    they have separate parser lists, changes made in an indirect buffer
-   will only update parsers of that indirect buffer, and not parsers
-   in the base buffer or other indirect buffers, and vice versa.  We
-   could keep track of all the base and indirect buffers, and update
-   all of their parsers, but ultimately decide to take a simpler
-   approach, which is to make indirect buffers share their base
-   buffer's parser list.  The discussion can be found in bug#59693.  */
+   will only update parsers of that indirect buffer, and not parsers in
+   the base buffer or other indirect buffers, and vice versa.  For that
+   reason, the base buffer and all ot its indirect buffers share a
+   single parser list.  But each parser in this shared parser list still
+   points to their own buffer.  On top of that, treesit-parser-list only
+   return parsers that belongs to the calling buffer.  So ultimately,
+   from the user's POV, each buffer, regardless of indirect or not,
+   appears to have their own parser list.  A discussion can be found in
+   bug#59693.  Note that that discussion led to an earlier design, which
+   is different from the current one.  */
 
 
-/*** Initialization */
+/*** Initialization  */
 
 static Lisp_Object Vtreesit_str_libtree_sitter;
 static Lisp_Object Vtreesit_str_tree_sitter;
@@ -431,7 +435,7 @@ static Lisp_Object Vtreesit_str_pred;
    functions.  Remember to update docstrings when changing this value.
 
    If we think of programs and AST, it is very rare for any program to
-   have a very deep AST. For example, you would need 1000+ levels of
+   have a very deep AST.  For example, you would need 1000+ levels of
    nested if-statements, or a struct somehow nested for 1000+ levels.
    It's hard for me to imagine any hand-written or machine generated
    program to be like that.  So I think 1000 is already generous.  If
@@ -485,10 +489,9 @@ treesit_initialize (void)
 }
 
 
-/*** Loading language library */
+/*** Loading language library  */
 
-/* Translates a symbol treesit-<lang> to a C name
-   treesit_<lang>.  */
+/* Translate a symbol treesit-<lang> to a C name treesit_<lang>.  */
 static void
 treesit_symbol_to_c_name (char *symbol_name)
 {
@@ -758,7 +761,7 @@ Return nil if a grammar library for LANGUAGE is not available.  */)
 }
 
 
-/*** Parsing functions */
+/*** Parsing functions  */
 
 static void
 treesit_check_parser (Lisp_Object obj)
@@ -873,7 +876,7 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
     }
 }
 
-/* Comment (ref:visible-beg-null) The purpose of visible_beg/end is to
+/* Comment (ref:visible-beg-null)  The purpose of visible_beg/end is to
    keep track of "which part of the buffer does the tree-sitter tree
    see", in order to update the tree correctly.  Visible_beg/end have
    two purposes: they "clip" buffer changes within them, and they
@@ -1150,7 +1153,7 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
 }
 
 
-/*** Functions for parser and node object */
+/*** Functions for parser and node object  */
 
 /* Wrap the parser in a Lisp_Object to be used in the Lisp
    machine.  */
@@ -1201,7 +1204,6 @@ make_treesit_node (Lisp_Object parser, TSNode node)
 static Lisp_Object
 make_treesit_query (Lisp_Object query, Lisp_Object language)
 {
-  TSQueryCursor *treesit_cursor = ts_query_cursor_new ();
   struct Lisp_TS_Query *lisp_query;
 
   lisp_query = ALLOCATE_PSEUDOVECTOR (struct Lisp_TS_Query,
@@ -1210,7 +1212,7 @@ make_treesit_query (Lisp_Object query, Lisp_Object language)
   lisp_query->language = language;
   lisp_query->source = query;
   lisp_query->query = NULL;
-  lisp_query->cursor = treesit_cursor;
+  lisp_query->cursor = NULL;
   return make_lisp_ptr (lisp_query, Lisp_Vectorlike);
 }
 
@@ -1225,8 +1227,10 @@ treesit_delete_parser (struct Lisp_TS_Parser *lisp_parser)
 void
 treesit_delete_query (struct Lisp_TS_Query *lisp_query)
 {
-  ts_query_delete (lisp_query->query);
-  ts_query_cursor_delete (lisp_query->cursor);
+  if (lisp_query->query)
+    ts_query_delete (lisp_query->query);
+  if (lisp_query->cursor)
+    ts_query_cursor_delete (lisp_query->cursor);
 }
 
 /* The following function is called from print.c:print_vectorlike.  */
@@ -1269,6 +1273,16 @@ treesit_compose_query_signal_data (uint32_t error_offset,
 		build_string ("Debug the query with `treesit-query-validate'"));
 }
 
+/* Ensure QUERY has a non-NULL cursor, and return it.  */
+static TSQueryCursor *
+treesit_ensure_query_cursor (Lisp_Object query)
+{
+  if (!XTS_COMPILED_QUERY (query)->cursor)
+    XTS_COMPILED_QUERY (query)->cursor = ts_query_cursor_new ();
+
+  return XTS_COMPILED_QUERY (query)->cursor;
+}
+
 /* Ensure the QUERY is compiled.  Return the TSQuery.  It could be
    NULL if error occurs, in which case ERROR_OFFSET and ERROR_TYPE are
    bound.  If error occurs, return NULL, and assign SIGNAL_SYMBOL and
@@ -1299,9 +1313,7 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
   /* Create TSQuery.  */
   uint32_t error_offset;
   TSQueryError error_type;
-  char *treesit_source = SSDATA (source);
-  treesit_query = ts_query_new (treesit_lang, treesit_source,
-				strlen (treesit_source),
+  treesit_query = ts_query_new (treesit_lang, SSDATA (source), SBYTES (source),
 				&error_offset, &error_type);
   if (treesit_query == NULL)
     {
@@ -1312,6 +1324,17 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
     }
   XTS_COMPILED_QUERY (query)->query = treesit_query;
   return treesit_query;
+}
+
+/* Resolve language symbol LANG according to
+   treesit-language-remap-alist.  */
+static
+Lisp_Object resolve_language_symbol (Lisp_Object lang)
+{
+  Lisp_Object res = Fassoc (lang, Vtreesit_language_remap_alist, Qeq);
+  if (NILP (res))
+    return lang;
+  return Fcdr (res);
 }
 
 
@@ -1408,13 +1431,20 @@ an indirect buffer.  */)
   CHECK_SYMBOL (language);
   CHECK_SYMBOL (tag);
   struct buffer *buf;
+  Lisp_Object buf_orig;
+
   if (NILP (buffer))
-    buf = current_buffer;
+    {
+      buf = current_buffer;
+      XSETBUFFER (buf_orig, current_buffer);
+    }
   else
     {
       CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
+      buf_orig = buffer;
     }
+
   if (buf->base_buffer)
     buf = buf->base_buffer;
 
@@ -1422,6 +1452,9 @@ an indirect buffer.  */)
     xsignal2(Qwrong_type_argument, list2(Qnot, Qt), Qt);
 
   treesit_check_buffer_size (buf);
+
+  language = resolve_language_symbol (language);
+  CHECK_SYMBOL (language);
 
   /* See if we can reuse a parser.  */
   if (NILP (no_reuse))
@@ -1449,7 +1482,7 @@ an indirect buffer.  */)
   ts_parser_set_language (parser, lang);
 
   /* Create parser.  */
-  Lisp_Object lisp_parser = make_treesit_parser (Fcurrent_buffer (),
+  Lisp_Object lisp_parser = make_treesit_parser (buf_orig,
 						 parser, NULL,
 						 language, tag);
 
@@ -1495,15 +1528,24 @@ tag.  */)
   (Lisp_Object buffer, Lisp_Object language, Lisp_Object tag)
 {
   struct buffer *buf;
+  Lisp_Object buf_orig;
+
   if (NILP (buffer))
-    buf = current_buffer;
+    {
+      buf = current_buffer;
+      XSETBUFFER (buf_orig, current_buffer);
+    }
   else
     {
       CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
+      buf_orig = buffer;
     }
+
   if (buf->base_buffer)
     buf = buf->base_buffer;
+
+  language = resolve_language_symbol (language);
 
   /* Return a fresh list so messing with that list doesn't affect our
      internal data.  */
@@ -1516,7 +1558,10 @@ tag.  */)
     {
       struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
       if ((NILP (language) || EQ (language, parser->language_symbol))
-	  && (EQ (tag, Qt) || EQ (tag, parser->tag)))
+	  && (EQ (tag, Qt) || EQ (tag, parser->tag))
+	  /* Indirect buffers and base buffer shares the same parser
+	   * list, so we need the filtering here.  */
+	  && (EQ (parser->buffer, buf_orig)))
 	return_list = Fcons (XCAR (tail), return_list);
     }
 
@@ -1566,7 +1611,7 @@ treesit_parser_live_p (Lisp_Object parser)
 }
 
 
-/*** Parser API */
+/*** Parser API  */
 
 DEFUN ("treesit-parser-root-node",
        Ftreesit_parser_root_node, Streesit_parser_root_node,
@@ -1739,7 +1784,7 @@ See also `treesit-parser-set-included-ranges'.  */)
 
   /* When the parser doesn't have a range set and we call
      ts_parser_included_ranges on it, it doesn't return an empty list,
-     but rather return DEFAULT_RANGE. (A single range where start_byte
+     but rather return DEFAULT_RANGE.  (A single range where start_byte
      = 0, end_byte = UINT32_MAX).  So we need to track whether the
      parser is ranged ourselves.  */
   if (NILP (XTS_PARSER (parser)->last_set_ranges))
@@ -1842,8 +1887,8 @@ treesit_check_node (Lisp_Object obj)
     xsignal1 (Qtreesit_node_buffer_killed, obj);
 }
 
-/* Checks that OBJ is a positive integer and it is within the visible
-   portion of BUF. */
+/* Check that OBJ is a positive integer and it is within the visible
+   portion of BUF.  */
 static void
 treesit_check_position (Lisp_Object obj, struct buffer *buf)
 {
@@ -2138,7 +2183,7 @@ nil.  If NODE is nil, return nil.  */)
 DEFUN ("treesit-node-child-by-field-name",
        Ftreesit_node_child_by_field_name,
        Streesit_node_child_by_field_name, 2, 2, 0,
-       doc: /* Return the child of NODE with FIELD-NAME.
+       doc: /* Return the child of NODE with FIELD-NAME (a string).
 Return nil if there is no such child.  If NODE is nil, return nil.  */)
   (Lisp_Object node, Lisp_Object field_name)
 {
@@ -2148,11 +2193,10 @@ Return nil if there is no such child.  If NODE is nil, return nil.  */)
   CHECK_STRING (field_name);
   treesit_initialize ();
 
-  char *name_str = SSDATA (field_name);
   TSNode treesit_node = XTS_NODE (node)->node;
   TSNode child
-    = ts_node_child_by_field_name (treesit_node, name_str,
-				   strlen (name_str));
+    = ts_node_child_by_field_name (treesit_node, SSDATA (field_name),
+				   SBYTES (field_name));
 
   if (ts_node_is_null (child))
     return Qnil;
@@ -2360,7 +2404,7 @@ produced by tree-sitter.  */)
 }
 
 
-/*** Query functions */
+/*** Query functions  */
 
 /* Convert a Lisp string to its printed representation in the tree-sitter
    query syntax.  */
@@ -2865,7 +2909,7 @@ treesit_initialize_query (Lisp_Object query, const TSLanguage *lang,
     {
       *ts_query = treesit_ensure_query_compiled (query, signal_symbol,
 						 signal_data);
-      *cursor = XTS_COMPILED_QUERY (query)->cursor;
+      *cursor = treesit_ensure_query_cursor (query);
       /* We don't need to free ts_query and cursor because they
 	 are stored in a lisp object, which is tracked by gc.  */
       *need_free = false;
@@ -2877,10 +2921,9 @@ treesit_initialize_query (Lisp_Object query, const TSLanguage *lang,
 	 or a cons.  */
       if (CONSP (query))
 	query = Ftreesit_query_expand (query);
-      char *query_string = SSDATA (query);
       uint32_t error_offset;
       TSQueryError error_type;
-      *ts_query = ts_query_new (lang, query_string, strlen (query_string),
+      *ts_query = ts_query_new (lang, SSDATA (query), SBYTES (query),
 				&error_offset, &error_type);
       if (*ts_query == NULL)
 	{
@@ -2998,7 +3041,7 @@ the query.  */)
      test for predicates.  If predicates pass, then all good, if
      predicates don't pass, revert the result back to the result
      before this loop (PREV_RESULT).  (Predicates control the entire
-     match.) This way we don't need to create a list of captures in
+     match.)  This way we don't need to create a list of captures in
      every for loop and nconc it to RESULT every time.  That is indeed
      the initial implementation in which Yoav found nconc being the
      bottleneck (98.4% of the running time spent on nconc).  */
@@ -3076,7 +3119,7 @@ the query.  */)
 }
 
 
-/*** Navigation */
+/*** Navigation  */
 
 static inline void
 treesit_assume_true (bool val)
@@ -3193,7 +3236,7 @@ treesit_traverse_sibling_helper (TSTreeCursor *cursor,
       if (ts_node_eq (first_child, start))
 	return false;
 
-      /* PROBE is always DELTA siblings ahead of CURSOR. */
+      /* PROBE is always DELTA siblings ahead of CURSOR.  */
       TSTreeCursor probe = ts_tree_cursor_copy (cursor);
       /* This is position of PROBE minus position of CURSOR.  */
       ptrdiff_t delta = 0;
@@ -3477,7 +3520,7 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
 	  return true;
 	}
     }
-  /* Returning false is better than UB. */
+  /* Returning false is better than UB.  */
   return false;
 }
 
@@ -3990,7 +4033,7 @@ DEFUN ("treesit-available-p", Ftreesit_available_p,
 }
 
 
-/*** Initialization */
+/*** Initialization  */
 
 /* Initialize the tree-sitter routines.  */
 void
@@ -4129,6 +4172,19 @@ PRED), meaning not satisfying the inner PRED qualifies the node.
 Finally, PRED can refer to other THINGs defined in this list by using
 the symbol of that THING.  For example, (or sexp sentence).  */);
   Vtreesit_thing_settings = Qnil;
+
+  DEFVAR_LISP ("treesit-language-remap-alist",
+	       Vtreesit_language_remap_alist,
+	       doc:
+	       /* An alist remapping language symbols.
+
+The value should be an alist of (LANGUAGE-A . LANGUAGE-B).  When such
+pair exists in the alist, creating a parser for LANGUAGE-A actually
+creates a parser for LANGUAGE-B.  Basically, anything that requires or
+applies to LANGUAGE-A will be redirected to LANGUAGE-B instead.  */);
+  Vtreesit_language_remap_alist = Qnil;
+  DEFSYM (Qtreesit_language_remap_alist, "treesit-language-remap-alist");
+  Fmake_variable_buffer_local (Qtreesit_language_remap_alist);
 
   staticpro (&Vtreesit_str_libtree_sitter);
   Vtreesit_str_libtree_sitter = build_pure_c_string ("libtree-sitter-");

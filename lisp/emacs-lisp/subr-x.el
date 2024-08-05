@@ -337,8 +337,10 @@ This construct can only be used with lexical binding."
       . ,aargs)))
 
 ;;;###autoload
-(defun string-pixel-width (string)
-  "Return the width of STRING in pixels."
+(defun string-pixel-width (string &optional buffer)
+  "Return the width of STRING in pixels.
+If BUFFER is non-nil, use the face remappings from that buffer when
+determining the width."
   (declare (important-return-value t))
   (if (zerop (length string))
       0
@@ -352,6 +354,11 @@ This construct can only be used with lexical binding."
       ;; Disable line-prefix and wrap-prefix, for the same reason.
       (setq line-prefix nil
 	    wrap-prefix nil)
+      (if buffer
+          (setq-local face-remapping-alist
+                      (with-current-buffer buffer
+                        face-remapping-alist))
+        (kill-local-variable 'face-remapping-alist))
       (insert (propertize string 'line-prefix nil 'wrap-prefix nil))
       (car (buffer-text-pixel-size nil nil t)))))
 

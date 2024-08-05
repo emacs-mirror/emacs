@@ -189,7 +189,9 @@
 (ert-deftest dired-test-bug27243-02 ()
   "Test for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27243#28 ."
   (ert-with-temp-directory test-dir
-    (let ((dired-auto-revert-buffer t) buffers)
+    (let ((dired-auto-revert-buffer t)
+          (dired-free-space nil)
+          buffers)
       ;; On MS-Windows, get rid of 8+3 short names in test-dir, if the
       ;; corresponding long file names exist, otherwise such names trip
       ;; string comparisons below.

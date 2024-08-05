@@ -1259,7 +1259,7 @@ object.  Example:
 @end lisp
 
 With the @code{dbus-introspect} function it is possible to explore the
-interfaces of @samp{org.freedesktop.Hal} service. It offers the
+interfaces of @samp{org.freedesktop.Hal} service.  It offers the
 interfaces @samp{org.freedesktop.Hal.Manager} for the object at the
 path @samp{/org/freedesktop/Hal/Manager} as well as the interface
 @samp{org.freedesktop.Hal.Device} for all objects prefixed with the
@@ -1428,7 +1428,7 @@ We are not an owner of the name @var{service}.
 @end table
 
 When @var{service} is not a known name but a unique name, the function
-returns nil.
+returns @code{nil}.
 @end defun
 
 When a name has been chosen, Emacs can offer its own methods, which
@@ -1978,7 +1978,7 @@ If this variable is non-@code{nil}, D-Bus specific debug messages are raised.
 Input parameters of @code{dbus-call-method},
 @code{dbus-call-method-asynchronously}, @code{dbus-send-signal},
 @code{dbus-register-method}, @code{dbus-register-property} and
-@code{dbus-register-signal} are checked for correct D-Bus types. If
+@code{dbus-register-signal} are checked for correct D-Bus types.  If
 there is a type mismatch, the Lisp error @code{wrong-type-argument}
 @code{D-Bus @var{arg}} is raised.
 

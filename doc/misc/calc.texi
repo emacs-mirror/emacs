@@ -355,7 +355,7 @@ To print the Calc manual in one huge tome, you will need the
 Emacs source, which contains the source code to this manual,
 @file{calc.texi}.  Change to the @file{doc/misc} subdirectory of the
 Emacs source distribution, which contains source code for this manual,
-and type @kbd{make calc.pdf}. (Don't worry if you get some ``overfull
+and type @kbd{make calc.pdf}.  (Don't worry if you get some ``overfull
 box'' warnings while @TeX{} runs.)   The result will be this entire
 manual as a pdf file.
 @end ifnottex
@@ -524,7 +524,7 @@ matrix into a
 @infoline 2x3
 matrix.  Type @w{@kbd{v u}} to unpack the rows into two separate
 vectors.  Now type @w{@kbd{V R + @key{TAB} V R +}} to compute the sums
-of the two original columns. (There is also a special
+of the two original columns.  (There is also a special
 grab-and-sum-columns command, @kbd{C-x * :}.)
 
 @strong{Units conversion.}  Units are entered algebraically.
@@ -929,7 +929,7 @@ is
 Calc has added annotations to the file to help it remember the modes
 that were used for this formula.  They are formatted like comments
 in the @TeX{} typesetting language, just in case you are using @TeX{} or
-@LaTeX{}. (In this example @TeX{} is not being used, so you might want
+@LaTeX{}.  (In this example @TeX{} is not being used, so you might want
 to move these comments up to the top of the file or otherwise put them
 out of the way.)
 
@@ -1174,7 +1174,7 @@ that arbitrary-size integers were just as easy as large integers.
 Arbitrary floating-point precision was the logical next step.  Also,
 since the large integer arithmetic was there anyway it seemed only
 fair to give the user direct access to it, which in turn made it
-practical to support fractions as well as floats. All these features
+practical to support fractions as well as floats.  All these features
 inspired me to look around for other data types that might be worth
 having.
 
@@ -5762,7 +5762,7 @@ which in algebraic notation is written like @samp{ninteg(f(t), t, 0, x)}
 with any integrand @samp{f(t)}.  Define a @kbd{z s} command and
 @code{Si} function that implement this.  You will need to edit the
 default argument list a bit.  As a test, @samp{Si(1)} should return
-0.946083. (If you don't get this answer, you might want to check that
+0.946083.  (If you don't get this answer, you might want to check that
 Calc is in Radians mode.  Also, @code{ninteg} will run a lot faster if
 you reduce the precision to, say, six digits beforehand.)
 @xref{Programming Answer 1, 1}. (@bullet{})
@@ -9758,7 +9758,7 @@ by a zero) resets the Calculator to its initial state.  This clears
 the stack, resets all the modes to their initial values (the values
 that were saved with @kbd{m m} (@code{calc-save-modes})), clears the
 caches (@pxref{Caches}), and so on.  (It does @emph{not} erase the
-values of any variables.) With an argument of 0, Calc will be reset to
+values of any variables.)  With an argument of 0, Calc will be reset to
 its default state; namely, the modes will be given their default values.
 With a positive prefix argument, @kbd{C-x * 0} preserves the contents of
 the stack but resets everything else to its initial state; with a
@@ -10254,7 +10254,7 @@ specified number of operations.  When the Calculator is quit, as with
 the @kbd{q} (@code{calc-quit}) command, the undo history will be
 truncated to the length of the customizable variable
 @code{calc-undo-length} (@pxref{Customizing Calc}), which by default
-is @expr{100}. (Recall that @kbd{C-x * c} is synonymous with
+is @expr{100}.  (Recall that @kbd{C-x * c} is synonymous with
 @code{calc-quit} while inside the Calculator; this also truncates the
 undo history.)
 
@@ -11050,8 +11050,8 @@ calendar.
 
 Some calendars attempt to mimic the historical situation by using the
 Gregorian calendar for recent dates and the Julian calendar for older
-dates. The @code{cal} program in most Unix implementations does this,
-for example. While January 1 wasn't always the beginning of a calendar
+dates.  The @code{cal} program in most Unix implementations does this,
+for example.  While January 1 wasn't always the beginning of a calendar
 year, these hybrid calendars still use January 1 as the beginning of
 the year even for older dates.   The customizable variable
 @code{calc-gregorian-switch} (@pxref{Customizing Calc}) can be set to
@@ -11405,7 +11405,7 @@ means a variable is random, and its value could
 be anything but is ``probably'' within one
 @texline @math{\sigma}
 @infoline @var{sigma}
-of the mean value @expr{x}. An interval
+of the mean value @expr{x}.  An interval
 `@tfn{[}@var{a} @tfn{..@:} @var{b}@tfn{]}' means a
 variable's value is unknown, but guaranteed to lie in the specified
 range.  Error forms are statistical or ``average case'' approximations;
@@ -11862,7 +11862,7 @@ any portion of a vector or formula on the stack.
 @cindex Moving stack entries
 The command @kbd{C-x C-t} (@code{calc-transpose-lines}) will transpose
 the stack object determined by the point with the stack object at the
-next higher level. For example, with @samp{10 20 30 40 50} on the
+next higher level.  For example, with @samp{10 20 30 40 50} on the
 stack and the point on the line containing @samp{30}, @kbd{C-x C-t}
 creates @samp{10 20 40 30 50}.  More generally, @kbd{C-x C-t} acts on
 the stack objects determined by the current point (and mark) similar
@@ -11871,7 +11871,7 @@ lines.  With argument @var{n}, @kbd{C-x C-t} will move the stack object
 at the level above the current point and move it past N other objects;
 for example, with @samp{10 20 30 40 50} on the stack and the point on
 the line containing @samp{30}, @kbd{C-u 2 C-x C-t} creates
-@samp{10 40 20 30 50}. With an argument of 0, @kbd{C-x C-t} will switch
+@samp{10 40 20 30 50}.  With an argument of 0, @kbd{C-x C-t} will switch
 the stack objects at the levels determined by the point and the mark.
 
 @node Editing Stack Entries
@@ -12062,14 +12062,14 @@ the stack contains the sole number 5, but after @kbd{2 @key{RET} 3 K +},
 the stack contains the arguments and the result: @samp{2 3 5}.
 
 With the exception of keyboard macros, this works for all commands that
-take arguments off the stack. (To avoid potentially unpleasant behavior,
+take arguments off the stack.  (To avoid potentially unpleasant behavior,
 a @kbd{K} prefix before a keyboard macro will be ignored.  A @kbd{K}
 prefix called @emph{within} the keyboard macro will still take effect.)
 As another example, @kbd{K a s} simplifies a formula, pushing the
 simplified version of the formula onto the stack after the original
 formula (rather than replacing the original formula).  Note that you
 could get the same effect by typing @kbd{@key{RET} a s}, copying the
-formula and then simplifying the copy. One difference is that for a very
+formula and then simplifying the copy.  One difference is that for a very
 large formula the time taken to format the intermediate copy in
 @kbd{@key{RET} a s} could be noticeable; @kbd{K a s} would avoid this
 extra work.
@@ -13171,7 +13171,7 @@ Calc can display @expr{w}-bit integers using two's complement
 notation, although this is most useful with the binary, octal and
 hexadecimal display modes.  This option is selected by using the
 @kbd{O} option prefix before setting the display radix, and a negative word
-size might be appropriate (@pxref{Binary Functions}). In two's
+size might be appropriate (@pxref{Binary Functions}).  In two's
 complement notation, the integers in the (nearly) symmetric interval
 from
 @texline @math{-2^{w-1}}
@@ -13502,7 +13502,7 @@ date representation, this week goes from 2013-W01-1 (December 31,
 All three ISO 8601 representations arrange the numbers from most
 significant to least significant; as well as being unambiguous
 representations, they are easy to sort since chronological order in
-this formats corresponds to lexicographical order. The hyphens are
+this formats corresponds to lexicographical order.  The hyphens are
 sometimes omitted.
 
 The ISO 8601 standard uses a 24 hour clock; a particular time is
@@ -13744,7 +13744,7 @@ order), then all other characters are ignored and this information
 determines the date.  Otherwise, all words and numbers are isolated
 from the string; other characters are ignored.  All words must be
 either month names or day-of-week names (the latter of which are
-ignored). Names can be written in full or as three-letter
+ignored).  Names can be written in full or as three-letter
 abbreviations.
 
 Large numbers, or numbers with @samp{+} or @samp{-} signs,
@@ -14205,9 +14205,9 @@ quotients are written using @code{\over} in @TeX{} mode (as in
 @code{\choose} in @TeX{} mode (as in @code{@{a \choose b@}}) and
 @code{\binom} in @LaTeX{} mode (as in @code{\binom@{a@}@{b@}}).
 Interval forms are written with @code{\ldots}, and error forms are
-written with @code{\pm}. Absolute values are written as in
+written with @code{\pm}.  Absolute values are written as in
 @samp{|x + 1|}, and the floor and ceiling functions are written with
-@code{\lfloor}, @code{\rfloor}, etc. The words @code{\left} and
+@code{\lfloor}, @code{\rfloor}, etc.  The words @code{\left} and
 @code{\right} are ignored when reading formulas in @TeX{} and @LaTeX{}
 modes.  Both @code{inf} and @code{uinf} are written as @code{\infty};
 when read, @code{\infty} always translates to @code{inf}.
@@ -16290,7 +16290,7 @@ interpretations; the expression @samp{a/b*c} should be written
 @samp{(a/b)*c} or @samp{a/(b*c)}, as appropriate.  Without the
 parentheses, Calc will interpret @samp{a/b*c} as @samp{a/(b*c)}, since
 in algebraic entry Calc gives division a lower precedence than
-multiplication. (This is not standard across all computer languages, and
+multiplication.  (This is not standard across all computer languages, and
 Calc may change the precedence depending on the language mode being used.
 @xref{Language Modes}.)  This default ordering can be changed by setting
 the customizable variable @code{calc-multiplication-has-precedence} to
@@ -17456,7 +17456,7 @@ converting into a generalized time zone (see below).
 The Lisp function @code{math-prev-weekday-in-month} is useful for
 daylight saving computations.  This is an internal version of
 the user-level @code{pwday} function described in the previous
-section. It takes four arguments:  The floating-point date value,
+section.  It takes four arguments:  The floating-point date value,
 the corresponding six-element date list, the day-of-month number,
 and the weekday number (0--6).
 
@@ -20150,7 +20150,7 @@ that the counts in the result vector don't add up to the length of the
 input vector.)
 
 If no prefix is given, then you will be prompted for a vector which
-will be used to determine the bins. (If a positive integer is given at
+will be used to determine the bins.  (If a positive integer is given at
 this prompt, it will be still treated as if it were given as a
 prefix.)  Each bin will consist of the interval of numbers closest to
 the corresponding number of this new vector; if the vector
@@ -21636,7 +21636,7 @@ to
 
 @noindent
 Every character not part of the sub-formula @samp{b} has been changed
-to a dot. (If the customizable variable
+to a dot.  (If the customizable variable
 @code{calc-highlight-selections-with-faces} is non-@code{nil}, then the characters
 not part of the sub-formula are de-emphasized by using a less
 noticeable face instead of using dots. @pxref{Displaying Selections}.)
@@ -22837,12 +22837,12 @@ suitable numbers.
 This section describes all simplifications that are performed by
 the algebraic simplification mode, which is the default simplification
 mode.  If you have switched to a different simplification mode, you can
-switch back with the @kbd{m A} command. Even in other simplification
+switch back with the @kbd{m A} command.  Even in other simplification
 modes, the @kbd{a s} command will use these algebraic simplifications to
 simplify the formula.
 
 There is a variable, @code{AlgSimpRules}, in which you can put rewrites
-to be applied. Its use is analogous to @code{EvalRules},
+to be applied.  Its use is analogous to @code{EvalRules},
 but without the special restrictions.  Basically, the simplifier does
 @samp{@w{a r} AlgSimpRules} with an infinite repeat count on the whole
 expression being simplified, then it traverses the expression applying
@@ -22991,7 +22991,7 @@ function; for example, @expr{1/@tfn{sec}(x)} is simplified to
 hyperbolic functions are also handled.
 
 Trigonometric functions of their inverse functions are
-simplified. The expression @expr{@tfn{sin}(@tfn{arcsin}(x))} is
+simplified.  The expression @expr{@tfn{sin}(@tfn{arcsin}(x))} is
 simplified to @expr{x}, and similarly for @code{cos} and @code{tan}.
 Trigonometric functions of inverses of different trigonometric
 functions can also be simplified, as in @expr{@tfn{sin}(@tfn{arccos}(x))}
@@ -27646,7 +27646,7 @@ simplifications.
 Most of the special limitations for @code{EvalRules} don't apply to
 @code{AlgSimpRules}.  Calc simply does an @kbd{a r AlgSimpRules}
 command with an infinite repeat count as the first step of algebraic
-simplifications. It then applies its own built-in simplifications
+simplifications.  It then applies its own built-in simplifications
 throughout the formula, and then repeats these two steps (along with
 applying the default simplifications) until no further changes are
 possible.
@@ -27883,7 +27883,7 @@ while typing @kbd{u c au/yr @key{RET}} produces
 If the units you request are inconsistent with the original units, the
 number will be converted into your units times whatever ``remainder''
 units are left over.  For example, converting @samp{55 mph} into acres
-produces @samp{6.08e-3 acre / (m s)}. Remainder units are expressed in terms of
+produces @samp{6.08e-3 acre / (m s)}.  Remainder units are expressed in terms of
 ``fundamental'' units like @samp{m} and @samp{s}, regardless of the
 input units.
 
@@ -28257,7 +28257,7 @@ is defined to be
 @infoline @math{10 log10(P1/P0) dB}.
 @texline @math{10 \log_{10}(P_{1}/P_{0}) {\rm dB}}.
 (The factor of 10 is because a decibel, as its name implies, is
-one-tenth of a bel. The bel, named after Alexander Graham Bell, was
+one-tenth of a bel.  The bel, named after Alexander Graham Bell, was
 considered to be too large of a unit and was effectively replaced by
 the decibel.)  If @math{F} is a field quantity with power
 @math{P=k F^2}, then a reference quantity of
@@ -28353,10 +28353,10 @@ capital @kbd{O} prefix is used.
 @tindex lufquant
 The @kbd{l q} (@code{calc-lu-quant}) [@code{lupquant}]
 command computes the power quantity corresponding to a given number of
-logarithmic units. With the capital @kbd{O} prefix, @kbd{O l q}, the
-reference level will be read from the top of the stack. (In an
+logarithmic units.  With the capital @kbd{O} prefix, @kbd{O l q}, the
+reference level will be read from the top of the stack.  (In an
 algebraic formula, @code{lupquant} can be given an optional second
-argument which will be used for the reference level.) For example,
+argument which will be used for the reference level.)  For example,
 @code{20 dB @key{RET} l q} will return @code{100 mW};
 @code{20 dB @key{RET} 4 W @key{RET} O l q} will return @code{400 W}.
 The @kbd{H l q} [@code{lufquant}] command behaves like @kbd{l q} but
@@ -28469,7 +28469,7 @@ The @kbd{l *} (@code{calc-lu-times}) [@code{lupmul}] and @kbd{H l *}
 [@code{lufmul}] commands will ``multiply'' a logarithmic unit by a
 number; the @kbd{l /} (@code{calc-lu-divide}) [@code{lupdiv}] and
 @kbd{H l /} [@code{lufdiv}] commands will ``divide'' a logarithmic
-unit by a number. Note that the reference quantities don't play a role
+unit by a number.  Note that the reference quantities don't play a role
 in this arithmetic.
 
 @node Musical Notes
@@ -28528,7 +28528,7 @@ example, @code{500 Hz} gets converted to
 @tindex midi
 The @kbd{l m} (@code{calc-midi}) [@code{midi}] command converts either
 a frequency or a note given in scientific pitch notation to the
-corresponding midi number. For example, @code{C_6} gets converted to 84
+corresponding midi number.  For example, @code{C_6} gets converted to 84
 and @code{440 Hz} to 69.
 
 @kindex l f
@@ -28536,7 +28536,7 @@ and @code{440 Hz} to 69.
 @tindex freq
 The @kbd{l f} (@code{calc-freq}) [@code{freq}] command converts either
 either a midi number or a note given in scientific pitch notation to
-the corresponding frequency. For example, @code{Asharp_2 + 30 cents}
+the corresponding frequency.  For example, @code{Asharp_2 + 30 cents}
 gets converted to @code{118.578040134 Hz} and @code{55} to
 @code{195.99771799 Hz}.
 
@@ -29530,7 +29530,7 @@ will be computed for the surface.
 
 Data values in the graph of a function are normally computed to a
 precision of five digits, regardless of the current precision at the
-time. This is usually more than adequate, but there are cases where
+time.  This is usually more than adequate, but there are cases where
 it will not be.  For example, plotting @expr{1 + x} with @expr{x} in the
 interval @samp{[0 ..@: 1e-6]} will round all the data points down
 to 1.0!  Putting the command @samp{set precision @var{n}} in the
@@ -29975,7 +29975,7 @@ register will be deleted from the Calc buffer.
 It is possible to add additional stack entries to a register.  The
 command @kbd{M-x calc-append-to-register} will prompt for a register,
 then add the stack entries in the region to the end of the register
-contents. The command @kbd{M-x calc-prepend-to-register} will
+contents.  The command @kbd{M-x calc-prepend-to-register} will
 similarly prompt for a register and add  the stack entries in the
 region to the beginning of the register contents.  Both commands take
 @kbd{C-u} arguments, which will cause the region to be deleted after being
@@ -30620,7 +30620,7 @@ like most Calc commands, but rather in regular editing buffers that
 are visiting your own files.
 
 Calc will try to guess an appropriate language based on the major mode
-of the editing buffer. (@xref{Language Modes}.) If the current buffer is
+of the editing buffer.  (@xref{Language Modes}.)  If the current buffer is
 in @code{latex-mode}, for example, Calc will set its language to @LaTeX{}.
 Similarly, Calc will use @TeX{} language for @code{tex-mode},
 @code{plain-tex-mode} and @code{context-mode}, C language for
@@ -30657,7 +30657,7 @@ on their own separate lines or in-line with the formula.
 If you give a positive or negative numeric prefix argument, Calc
 instead uses the current point as one end of the formula, and includes
 that many lines forward or backward (respectively, including the current
-line). Explicit delimiters are not necessary in this case.
+line).  Explicit delimiters are not necessary in this case.
 
 With a prefix argument of zero, Calc uses the current region (delimited
 by point and mark) instead of formula delimiters.  With a prefix
@@ -31189,7 +31189,7 @@ use @kbd{C-x * u} to update the buffer by hand.
 @noindent
 The mode settings can be changed while Calc is in embedded mode, but
 by default they will revert to their original values when embedded mode
-is ended. However, the modes saved when the mode-recording mode is
+is ended.  However, the modes saved when the mode-recording mode is
 @code{Save} (see below) and the modes in effect when the @kbd{m e}
 (@code{calc-embedded-preserve-modes}) command is given
 will be preserved when embedded mode is ended.
@@ -31315,7 +31315,7 @@ on it in order to get it to notice the new annotation.
 
 Two more mode-recording modes selectable by @kbd{m R} are available
 which are also available outside of Embedded mode.
-(@pxref{General Mode Commands}.) They are @code{Save},  in which mode
+(@pxref{General Mode Commands}.)  They are @code{Save}, in which mode
 settings are recorded permanently in your Calc init file (the file given
 by the variable @code{calc-settings-file}, typically @file{~/.emacs.d/calc.el})
 rather than by annotating the current document, and no-recording
@@ -35645,7 +35645,7 @@ formulas in normal language modes.  If
 @code{calc-multiplication-has-precedence} is non-@code{nil}, then
 multiplication has precedence (and, for certain obscure reasons, is
 right associative), and so for example @samp{a/b*c} will be interpreted
-as @samp{a/(b*c)}. If @code{calc-multiplication-has-precedence} is
+as @samp{a/(b*c)}.  If @code{calc-multiplication-has-precedence} is
 @code{nil}, then multiplication has the same precedence as division
 (and, like division, is left associative), and so for example
 @samp{a/b*c} will be interpreted as @samp{(a/b)*c}.  The default value

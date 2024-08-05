@@ -298,9 +298,9 @@ Similar to @code{forms-next-field} but moves backwards.
 @item M-x forms-save-buffer
 @kindex C-x C-s
 @itemx C-x C-s
-Forms mode replacement for @code{save-buffer}. When executed in the
+Forms mode replacement for @code{save-buffer}.  When executed in the
 forms buffer it will save the contents of the (modified) data buffer
-instead. In Forms mode this function will be bound to @kbd{C-x C-s}.
+instead.  In Forms mode this function will be bound to @kbd{C-x C-s}.
 
 @findex forms-print
 @item M-x forms-print
@@ -374,10 +374,10 @@ string @code{forms-field-sep}, which is @code{"\t"} (a Tab) by default.
 If the format of the data file is not suitable enough you can define the
 filter functions @code{forms-read-file-filter} and
 @code{forms-write-file-filter}. @code{forms-read-file-filter} is called
-when the data file is read from disk into the data buffer. It operates
-on the data buffer, ignoring read-only protections. When the data file
+when the data file is read from disk into the data buffer.  It operates
+on the data buffer, ignoring read-only protections.  When the data file
 is saved to disk @code{forms-write-file-filter} is called to cancel the
-effects of @code{forms-read-file-filter}. After being saved,
+effects of @code{forms-read-file-filter}.  After being saved,
 @code{forms-read-file-filter} is called again to prepare the data buffer
 for further processing.
 
@@ -488,7 +488,7 @@ The default value is @code{"\^k"}, the character Control-K@.  Example:
 @findex forms-read-file-filter
 @item forms-read-file-filter
 This variable holds the name of a function to be called after the data
-file has been read in. This can be used to transform the contents of the
+file has been read in.  This can be used to transform the contents of the
 data file into a format more suitable for forms processing.
 If it is @code{nil}, no function is called.  For example, to maintain a
 gzipped database:
@@ -533,7 +533,7 @@ modified, just before updating the Forms data file.  If it is
 @findex forms-insert-after
 @item forms-insert-after
 If this variable is not @code{nil}, new records are created @emph{after} the
-current record. Also, upon visiting a file, the initial position will be
+current record.  Also, upon visiting a file, the initial position will be
 at the last record instead of the first one.
 
 @findex forms-check-number-of-fields
@@ -798,8 +798,8 @@ newline in a field, while @code{forms-multi-line} was @code{nil}.
 
 @item Field separator occurs in record - update refused!
 The current record contains the field separator string inside one of the
-fields. It can not be written back to the data file, for it would
-corrupt it. Probably you inserted the field separator string in a field.
+fields.  It can not be written back to the data file, for it would
+corrupt it.  Probably you inserted the field separator string in a field.
 
 @item Record number @var{xx} out of range 1..@var{yy}
 A jump was made to non-existing record @var{xx}.  @var{yy} denotes the
@@ -813,7 +813,7 @@ An attempt was made to enable edit mode on a file that has been write
 protected.
 
 @item Search failed: @var{regexp}
-The @var{regexp} could not be found in the data file. Forward searching
+The @var{regexp} could not be found in the data file.  Forward searching
 is done from the current location until the end of the file, then
 retrying from the beginning of the file until the current location.
 Backward searching is done from the current location until the beginning
@@ -828,7 +828,7 @@ Forms mode's idea of the number of records has been adjusted to the
 number of records actually present in the data file.
 
 @item Problem saving buffers?
-An error occurred while saving the data file buffer. Most likely, Emacs
+An error occurred while saving the data file buffer.  Most likely, Emacs
 did ask to confirm deleting the buffer because it had been modified, and
 you said ``no''.
 @end table

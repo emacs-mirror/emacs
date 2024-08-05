@@ -473,7 +473,7 @@ depends on the Info reader you use.)  This is because @kbd{n} and
 level}.  The present node is contained in a menu (see next) of the
 node you came from, and hence is considered to be at a lower level.
 It is the only node in the previous node's menu (even though it was
-listed three times). Hence it has no next or previous node that
+listed three times).  Hence it has no next or previous node that
 @kbd{n} or @kbd{p} could move to.
 
 If you systematically move through a manual by typing @kbd{n}, you run

@@ -37,7 +37,7 @@ main (int argc, char **argv)
 {
   char **args;
   int i;
-  char *bootclasspath, *emacs_class_path, *ld_library_path;
+  char *bootclasspath, *emacs_class_path;
 
   /* Allocate enough to hold the arguments to app_process.  */
   args = alloca ((10 + argc) * sizeof *args);
@@ -62,15 +62,6 @@ main (int argc, char **argv)
 	       " from within a running copy of Emacs.\n");
       return 1;
     }
-
-  /* Restore LD_LIBRARY_PATH to its original value, the app library
-     directory, to guarantee that it is possible for Java to find the
-     Emacs C code later.  */
-
-  ld_library_path = getenv ("EMACS_LD_LIBRARY_PATH");
-
-  if (ld_library_path)
-    setenv ("LD_LIBRARY_PATH", ld_library_path, 1);
 
   if (asprintf (&bootclasspath, "-Djava.class.path=%s",
 		emacs_class_path) < 0)

@@ -1657,6 +1657,16 @@ used.  Some examples are:
                   'han (font-spec :registry "big5")
                   nil 'prepend)
 
+@cindex emoji font
+;; Use "Noto Color Emoji" for the emoji script (this is the default).
+(set-fontset-font "fontset-default" 'emoji
+                  '("Noto Color Emoji" . "iso10646-1")
+                  nil 'prepend)
+
+;; Display the "heart" character using a color font.
+(set-fontset-font "fontset-default"
+                  #x2764 "Noto Color Emoji")
+
 ;; Use MyPrivateFont for the Unicode private use area.
 (set-fontset-font "fontset-default"  '(#xe000 . #xf8ff)
                   "MyPrivateFont")

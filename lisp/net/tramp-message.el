@@ -53,6 +53,8 @@
 (declare-function tramp-file-name-host-port "tramp")
 (declare-function tramp-file-name-user-domain "tramp")
 (declare-function tramp-get-default-directory "tramp")
+(defvar tramp-repository-branch)
+(defvar tramp-repository-version)
 
 ;;;###tramp-autoload
 (defcustom tramp-verbose 3
@@ -122,9 +124,8 @@ The outline level is equal to the verbosity of the Tramp message."
   (declare (tramp-suppress-trace t))
   (1+ (string-to-number (match-string 3))))
 
-;; This function takes action since Emacs 28.1, when
-;; `read-extended-command-predicate' is set to
-;; `command-completion-default-include-p'.
+;; This function takes action, when `read-extended-command-predicate'
+;; is set to `command-completion-default-include-p'.
 (defun tramp-debug-buffer-command-completion-p (_symbol buffer)
   "A predicate for Tramp interactive commands.
 They are completed by `M-x TAB' only in Tramp debug buffers."
@@ -190,13 +191,13 @@ They are completed by `M-x TAB' only in Tramp debug buffers."
   "Get the debug file name for VEC."
   (declare (tramp-suppress-trace t))
   (expand-file-name
-   (tramp-compat-string-replace "/" " " (tramp-debug-buffer-name vec))
+   (string-replace "/" " " (tramp-debug-buffer-name vec))
    tramp-compat-temporary-file-directory))
 
 (defun tramp-trace-buffer-name (vec)
   "A name for the trace buffer for VEC."
   (declare (tramp-suppress-trace t))
-   (tramp-compat-string-replace "*debug" "*trace" (tramp-debug-buffer-name vec)))
+  (string-replace "*debug" "*trace" (tramp-debug-buffer-name vec)))
 
 (defvar tramp-trace-functions nil
   "A list of non-Tramp functions to be traced with `tramp-verbose' > 10.")

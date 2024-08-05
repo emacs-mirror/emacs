@@ -2015,6 +2015,13 @@ cleaning up all windows currently displaying the buffer to be killed. */)
      buffer (bug#10114).  */
   replace_buffer_in_windows (buffer);
 
+  /* For dead windows that have not been collected yet, remove this
+     buffer from those windows' lists of previously and next shown
+     buffers and remove any 'quit-restore' or 'quit-restore-prev'
+     parameters mentioning the buffer.  */
+  if (XFIXNUM (BVAR (b, display_count)) > 0)
+    window_discard_buffer_from_dead_windows (buffer);
+
   /* Exit if replacing the buffer in windows has killed our buffer.  */
   if (!BUFFER_LIVE_P (b))
     return Qt;

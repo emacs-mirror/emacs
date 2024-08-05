@@ -28,7 +28,7 @@
 ;; This is based on Sebastian Kremer's excellent dired-x.el (Dired Extra),
 ;; version 1.191, adapted for GNU Emacs.  See the `dired-x' Info manual.
 
-;; At load time dired-x.el will install itself and bind some dired keys.
+;; At load time dired-x.el will install itself and bind some Dired keys.
 ;; Some dired.el and dired-aux.el functions have extra features if
 ;; dired-x is loaded.
 
@@ -858,7 +858,7 @@ sure that a trailing letter in STR is one of BKkMGTPEZYRQ."
   "Mark files for which PREDICATE returns non-nil.
 With a prefix arg, unmark or unflag those files instead.
 
-PREDICATE is a lisp expression that can refer to the following symbols:
+PREDICATE is a Lisp expression that can refer to the following symbols:
 
     inode  [integer] the inode of the file (only for ls -i output)
     s      [integer] the size of the file for ls -s output

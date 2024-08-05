@@ -45,6 +45,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "thread.h"
 #include "bignum.h"
+#include "treesit.h"
 
 #ifdef CHECK_STRUCTS
 # include "dmpstruct.h"
@@ -2325,6 +2326,21 @@ dump_finalizer (struct dump_context *ctx,
   return finish_dump_pvec (ctx, &out->header);
 }
 
+#ifdef HAVE_TREE_SITTER
+static dump_off
+dump_treesit_compiled_query (struct dump_context *ctx,
+			     struct Lisp_TS_Query *query)
+{
+  START_DUMP_PVEC (ctx, &query->header, struct Lisp_TS_Query, out);
+  dump_field_lv (ctx, &out->language, query, &query->language, WEIGHT_STRONG);
+  dump_field_lv (ctx, &out->source, query, &query->source, WEIGHT_STRONG);
+  /* These will be recompiled after load from dump.  */
+  out->query = NULL;
+  out->cursor = NULL;
+  return finish_dump_pvec (ctx, &out->header);
+}
+#endif
+
 struct bignum_reload_info
 {
   dump_off data_location;
@@ -3193,6 +3209,10 @@ dump_vectorlike (struct dump_context *ctx,
           return DUMP_OBJECT_IS_RUNTIME_MAGIC;
         }
       break;
+    case PVEC_TS_COMPILED_QUERY:
+#ifdef HAVE_TREE_SITTER
+      return dump_treesit_compiled_query (ctx, XTS_COMPILED_QUERY (lv));
+#endif
     case PVEC_WINDOW_CONFIGURATION:
     case PVEC_OTHER:
     case PVEC_XWIDGET:
@@ -3208,7 +3228,6 @@ dump_vectorlike (struct dump_context *ctx,
     case PVEC_FREE:
     case PVEC_TS_PARSER:
     case PVEC_TS_NODE:
-    case PVEC_TS_COMPILED_QUERY:
       break;
     }
   char msg[60];

@@ -172,7 +172,7 @@
 
 ;; The isearch behavior is controlled on per-folding-spec basis by
 ;; setting `isearch-open' and `isearch-ignore' folding spec
-;; properties.  The the docstring of `org-fold-core--specs' for more details.
+;; properties.  See the docstring of `org-fold-core--specs' for more details.
 
 ;;; Handling edits inside folded text
 

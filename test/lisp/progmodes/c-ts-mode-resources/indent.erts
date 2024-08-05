@@ -458,6 +458,34 @@ namespace test {
 }
 =-=-=
 
+Name: Namespace and template (bug#72263)
+
+=-=
+namespace A {
+
+T myfunction1(const char *fname)
+{
+}
+
+template <class T>
+T myfunction2(const char *fname)
+{
+}
+}
+=-=
+namespace A {
+
+  T myfunction1(const char *fname)
+  {
+  }
+
+  template <class T>
+  T myfunction2(const char *fname)
+  {
+  }
+}
+=-=-=
+
 Code:
   (lambda ()
     (c-ts-mode)

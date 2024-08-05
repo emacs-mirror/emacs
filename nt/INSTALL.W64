@@ -192,7 +192,7 @@ and if all went well, you will have a new 64-bit version of Emacs.
 
 When running Emacs from outside the mingw64 shell, you will need to
 add c:\msys64\mingw64\bin to your Windows PATH, or copy the needed
-DLLs into Emacs' bin/ directory.  Otherwise features such as TLS which
+DLLs into Emacs's bin/ directory.  Otherwise features such as TLS which
 depend on those DLLs will be missing.
 
 You can do this through Control Panel / System and Security / System /

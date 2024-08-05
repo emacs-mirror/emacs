@@ -39,6 +39,8 @@
 (defvar mm-7bit-chars)
 (defvar reporter-eval-buffer)
 (defvar reporter-prompt-for-summary-p)
+(defvar tramp-repository-branch)
+(defvar tramp-repository-version)
 
 ;;;###tramp-autoload
 (defun tramp-change-syntax (&optional syntax)
@@ -155,17 +157,11 @@ When called interactively, a Tramp connection has to be selected."
 ;;;###tramp-autoload
 (defun tramp-cleanup-this-connection ()
   "Flush all connection related objects of the current buffer's connection."
-  ;; (declare (completion tramp-command-completion-p)))
+  (declare (completion tramp-command-completion-p))
   (interactive)
   (and (tramp-tramp-file-p default-directory)
        (tramp-cleanup-connection
 	(tramp-dissect-file-name default-directory 'noexpand))))
-
-;; Starting with Emacs 28.1, this can be replaced by the "(declare ...)" form.
-;;;###tramp-autoload
-(function-put
- #'tramp-cleanup-this-connection 'completion-predicate
- #'tramp-command-completion-p)
 
 ;;;###tramp-autoload
 (defvar tramp-cleanup-all-connections-hook nil
@@ -287,7 +283,7 @@ non-nil."
 (defun tramp-cleanup-all-buffers ()
   "Kill all remote buffers."
   (interactive)
-  (let ((tramp-cleanup-some-buffers-hook '(tramp-compat-always)))
+  (let ((tramp-cleanup-some-buffers-hook '(always)))
     (tramp-cleanup-some-buffers)))
 
 ;;; Rename
@@ -472,8 +468,7 @@ ESC or `q' to quit without changing further buffers,
 	(dolist (buffer (tramp-list-remote-buffers))
           (switch-to-buffer buffer)
 	  (let* ((bfn (buffer-file-name))
-		 (new-bfn (and (stringp bfn)
-			       (tramp-compat-string-replace source target bfn)))
+		 (new-bfn (and (stringp bfn) (string-replace source target bfn)))
 		 (prompt (format-message
 			  "Set visited file name to `%s' [Type yn!eq or %s] "
 			  new-bfn (key-description (vector help-char)))))
@@ -520,7 +515,7 @@ Interactively, TARGET is selected from `tramp-default-rename-alist'
 without confirmation if the prefix argument is non-nil.
 
 For details, see `tramp-rename-files'."
-  ;; (declare (completion tramp-command-completion-p))
+  (declare (completion tramp-command-completion-p))
   (interactive
    (let ((source default-directory)
 	 target
@@ -550,11 +545,6 @@ For details, see `tramp-rename-files'."
      (list target)))
 
   (tramp-rename-files default-directory target))
-
-;; Starting with Emacs 28.1, this can be replaced by the "(declare ...)" form.
-;;;###tramp-autoload
-(function-put
- #'tramp-rename-these-files 'completion-predicate #'tramp-command-completion-p)
 
 ;;; Run as sudo
 
@@ -624,9 +614,8 @@ If the buffer runs `dired', the buffer is reverted."
 
 ;;; Recompile on ELPA
 
-;; This function takes action since Emacs 28.1, when
-;; `read-extended-command-predicate' is set to
-;; `command-completion-default-include-p'.
+;; This function takes action, when `read-extended-command-predicate'
+;; is set to `command-completion-default-include-p'.
 ;;;###tramp-autoload
 (defun tramp-recompile-elpa-command-completion-p (_symbol _buffer)
   "A predicate for `tramp-recompile-elpa'.
@@ -641,7 +630,7 @@ Tramp is an installed ELPA package."
 (defun tramp-recompile-elpa ()
   "Recompile the installed Tramp ELPA package.
 This is needed if there are compatibility problems."
-  ;; (declare (completion tramp-recompile-elpa-command-completion-p))
+  (declare (completion tramp-recompile-elpa-command-completion-p))
   (interactive)
   ;; We expect just one Tramp package is installed.
   (when-let
@@ -660,12 +649,6 @@ This is needed if there are compatibility problems."
 	 "-Q" "-batch" "-L" dir
 	 "--eval" (format "(byte-recompile-directory %S 0 t)" dir))
 	(message "Package `tramp' recompiled.")))))
-
-;; Starting with Emacs 28.1, this can be replaced by the "(declare ...)" form.
-;;;###tramp-autoload
-(function-put
- #'tramp-recompile-elpa 'completion-predicate
- #'tramp-recompile-elpa-command-completion-p)
 
 ;; Tramp version is useful in a number of situations.
 
@@ -827,7 +810,7 @@ buffer in your bug report.
   (insert "\nload-path shadows:\n==================\n")
   (ignore-errors
     (mapc
-     (lambda (x) (when (tramp-compat-string-search "tramp" x) (insert x "\n")))
+     (lambda (x) (when (string-search "tramp" x) (insert x "\n")))
      (split-string (list-load-path-shadows t) "\n")))
 
   ;; Append buffers only when we are in message mode.

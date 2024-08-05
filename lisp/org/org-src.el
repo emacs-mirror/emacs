@@ -663,7 +663,7 @@ Leave point in edit buffer."
 (defvar org-src-fontify-natively) ; Defined in org.el
 (defun org-src-font-lock-fontify-block (lang start end)
   "Fontify code block between START and END using LANG's syntax.
-This function is called by Emacs' automatic fontification, as long
+This function is called by Emacs's automatic fontification, as long
 as `org-src-fontify-natively' is non-nil."
   (let ((modified (buffer-modified-p)) native-tab-width)
     (remove-text-properties start end '(face nil))

@@ -47,40 +47,53 @@
   "C-c C-b" #'outline-backward-same-level
   "C-c C-n" #'outline-next-visible-heading
   "C-c C-p" #'outline-previous-visible-heading
-  "C-c C-u" #'outline-up-heading)
+  "C-c C-u" #'outline-up-heading
+  ;; `news-mode' motion commands.
+  "C-c C-s" #'emacs-news-next-untagged-entry
+  "C-c C-r" #'emacs-news-previous-untagged-entry
+  "C-c C-g" #'emacs-news-goto-section
+  "C-c C-j" #'emacs-news-find-heading
+  "C-c C-e" #'emacs-news-count-untagged-entries)
 
 (defvar-keymap emacs-news-mode-map
   :parent emacs-news-common-map
-  "C-c C-s" #'emacs-news-next-untagged-entry
-  "C-c C-r" #'emacs-news-previous-untagged-entry
+  "C-x C-q" #'emacs-news-view-mode
+  ;; `news-mode' editing commands.
   "C-c C-t" #'emacs-news-cycle-tag
   "C-c C-d" #'emacs-news-delete-temporary-markers
-  "C-c C-g" #'emacs-news-goto-section
-  "C-c C-j" #'emacs-news-find-heading
-  "C-c C-e" #'emacs-news-count-untagged-entries
-  "C-x C-q" #'emacs-news-view-mode
   "<remap> <open-line>" #'emacs-news-open-line)
+
+(defconst emacs-news-mode--menu-common-1
+    '(["Next Untagged" emacs-news-next-untagged-entry :help "Go to next untagged entry"]
+      ["Previous Untagged" emacs-news-previous-untagged-entry :help "Go to previous untagged entry"]
+      ["Count Untagged" emacs-news-count-untagged-entries :help "Count the number of untagged entries"]
+      "--"))
+
+(defconst emacs-news-mode--menu-common-2
+  '(["Goto Section" emacs-news-goto-section :help "Prompt for section and go to it"]
+    ["Goto Heading" emacs-news-find-heading :help "Prompt for heading and go to it"]
+    "--"))
 
 (easy-menu-define emacs-news-mode-menu emacs-news-mode-map
   "Menu for `emacs-news-mode'."
-  '("News"
-    ["Next Untagged" emacs-news-next-untagged-entry :help "Go to next untagged entry"]
-    ["Previous Untagged" emacs-news-previous-untagged-entry :help "Go to previous untagged entry"]
-    ["Count Untagged" emacs-news-count-untagged-entries :help "Count the number of untagged entries"]
+  `("News"
+    ,@emacs-news-mode--menu-common-1
     ["Cycle Tag" emacs-news-cycle-tag :help "Cycle documentation tag of current entry"]
     ["Delete Tags" emacs-news-delete-temporary-markers :help "Delete all documentation tags in buffer"]
     "--"
-    ["Goto Section" emacs-news-goto-section :help "Prompt for section and go to it"]
-    ["Goto Heading" emacs-news-find-heading :help "Prompt for heading and go to it"]
-    "--"
+    ,@emacs-news-mode--menu-common-2
     ["Enter View Mode" emacs-news-view-mode :help "Enter view-only mode"]))
 
-(defvar emacs-news-view-mode-map
-  ;; This is defined this way instead of inheriting because we're
-  ;; deriving the mode from `special-mode' and want the keys from there.
-  (let ((map (copy-keymap emacs-news-common-map)))
-    (keymap-set map "C-x C-q" #'emacs-news-mode)
-    map))
+(defvar-keymap emacs-news-view-mode-map
+  :parent (make-composed-keymap emacs-news-common-map special-mode-map)
+  "C-x C-q" #'emacs-news-mode)
+
+(easy-menu-define emacs-news-view-mode-menu emacs-news-view-mode-map
+  "Menu for `emacs-news-view-mode'."
+  `("News"
+    ,@emacs-news-mode--menu-common-1
+    ,@emacs-news-mode--menu-common-2
+    ["Enter NEWS Mode" emacs-news-mode :help "Enter NEWS mode"]))
 
 (defvar emacs-news-mode-font-lock-keywords
   `(("^---$" 0 'emacs-news-does-not-need-documentation)
@@ -107,12 +120,11 @@
   (emacs-news--mode-common))
 
 ;;;###autoload
-(define-derived-mode emacs-news-view-mode special-mode "NEWS"
+(define-derived-mode emacs-news-view-mode emacs-news-mode "NEWS"
   "Major mode for viewing the Emacs NEWS file."
   (setq buffer-read-only t)
   (emacs-news--buttonize)
-  (button-mode)
-  (emacs-news--mode-common))
+  (button-mode))
 
 (defun emacs-news--fill-paragraph (&optional justify)
   (cond

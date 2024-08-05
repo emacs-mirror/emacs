@@ -93,7 +93,7 @@
 ;;
 ;; GIVEN AN ARGUMENT (with the ^U prefix), ff-find-other-file will get the
 ;; other file in another (the other?) window (see find-file-other-window and
-;; switch-to-buffer-other-window). This can be set on a more permanent basis
+;; switch-to-buffer-other-window).  This can be set on a more permanent basis
 ;; by setting ff-always-in-other-window to t in which case the ^U prefix will
 ;; do the opposite of what was described above.
 ;;

@@ -1087,11 +1087,11 @@ set more variables in the @samp{-*-} specification, add it after
 @code{lexical-binding}.  If this would make the first line too long, use
 a Local Variables section at the end of the file.
 
-  The copyright notice usually lists your name (if you wrote the
-file).  If you have an employer who claims copyright on your work, you
-might need to list them instead.  Do not say that the copyright holder
-is the Free Software Foundation (or that the file is part of GNU
-Emacs) unless your file has been accepted into the Emacs distribution.
+  The copyright notice usually lists your name (if you wrote the file).
+If you have an employer who claims copyright on your work, you might
+need to list them instead.  Do not say that the copyright holder is the
+Free Software Foundation (or that the file is part of GNU Emacs) unless
+your file has been accepted into the Emacs distribution or GNU ELPA.
 For more information on the form of copyright and license notices, see
 @uref{https://www.gnu.org/licenses/gpl-howto.html, the guide on the GNU
 website}.

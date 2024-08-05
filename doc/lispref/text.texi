@@ -3854,13 +3854,19 @@ controls the total height of the display line ending in that newline.
 @xref{Line Height}.
 
 @item wrap-prefix
-If text has a @code{wrap-prefix} property, the prefix it defines will
-be added at display time to the beginning of every continuation line
-due to text wrapping (so if lines are truncated, the wrap-prefix is
-never used).  It may be a string or an image (@pxref{Other Display
-Specs}), or a stretch of whitespace such as specified by the
-@code{:width} or @code{:align-to} display properties (@pxref{Specified
-Space}).
+If a region of text has a @code{wrap-prefix} property, the prefix it
+defines will be added at display time to the beginning of every
+continuation line due to text wrapping (so if lines are truncated, the
+wrap-prefix is never used).  The property value may be a string or an
+image (@pxref{Other Display Specs}), or a stretch of whitespace such as
+specified by the @code{:width} or @code{:align-to} display properties
+(@pxref{Specified Space}).  Note that to have its effect, the
+@code{wrap-prefix} property must be set on the entire region of text,
+starting from the first character of the first line of that text and up
+to the last character of the last line; otherwise, breaking the text
+into lines in a different way might fail to display the prefix, because
+the display engine checks for this property only immediately after
+continuing a line.
 
 A wrap-prefix may also be specified for an entire buffer using the
 @code{wrap-prefix} buffer-local variable (however, a
@@ -3868,12 +3874,18 @@ A wrap-prefix may also be specified for an entire buffer using the
 the @code{wrap-prefix} variable).  @xref{Truncation}.
 
 @item line-prefix
-If text has a @code{line-prefix} property, the prefix it defines will
-be added at display time to the beginning of every non-continuation
-line.  It may be a string or an image (@pxref{Other Display
-Specs}), or a stretch of whitespace such as specified by the
-@code{:width} or @code{:align-to} display properties (@pxref{Specified
-Space}).
+If a region of text has a @code{line-prefix} property, the prefix it
+defines will be added at display time to the beginning of every
+non-continuation line.  The property value may be a string or an image
+(@pxref{Other Display Specs}), or a stretch of whitespace such as
+specified by the @code{:width} or @code{:align-to} display properties
+(@pxref{Specified Space}).  Note that to have its effect, the
+@code{line-prefix} property must be set on the entire region of text,
+starting from the first character of the first line of that text and up
+to the last character of the last line; otherwise, breaking the text
+into lines in a different way might fail to display the prefix, because
+the display engine checks for this property only when starting a new
+line.
 
 A line-prefix may also be specified for an entire buffer using the
 @code{line-prefix} buffer-local variable (however, a
@@ -6009,7 +6021,7 @@ This API has mandatory and optional parts.
 To allow its users to initiate JSONRPC contacts (notifications or
 requests) or reply to endpoint requests, the new transport
 implementation must equip the @code{jsonrpc-connection-send} generic
-function with a specialization for the the new subclass
+function with a specialization for the new subclass
 (@pxref{Generic Functions}).  This generic function is called
 automatically by primitives such as @code{jsonrpc-request} and
 @code{jsonrpc-notify}.  The specialization should ensure that the

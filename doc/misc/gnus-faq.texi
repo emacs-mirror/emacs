@@ -115,7 +115,7 @@ development version that became Gnus 5.12.
 * FAQ 2-4::    My group buffer becomes a bit crowded, is there a way to
                sort my groups into categories so I can easier browse through
                them?
-* FAQ 2-5::    How to manually sort the groups in Group buffer? How to
+* FAQ 2-5::    How to manually sort the groups in Group buffer?  How to
                sort the groups in a topic?
 @end menu
 
@@ -146,7 +146,7 @@ what's this?
 @subsubheading Answer
 
 You get the message described in the q/a pair above while
-starting Gnus, right? It's another symptom for the same
+starting Gnus, right?  It's another symptom for the same
 problem, so read the answer above.
 
 @node FAQ 2-3
@@ -190,7 +190,7 @@ groups nicely indented.
 @node FAQ 2-5
 @subsubheading Question 2.5
 
-How to manually sort the groups in Group buffer? How to
+How to manually sort the groups in Group buffer?  How to
 sort the groups in a topic?
 
 @subsubheading Answer
@@ -583,7 +583,7 @@ each POP3 mail source.  @xref{Mail Source Specifiers}, for details on
 * FAQ 4-8::     Is there anything I can do to make poorly formatted
                 mails more readable?
 * FAQ 4-9::     Is there a way to automatically ignore posts by specific
-                authors or with specific words in the subject? And can I
+                authors or with specific words in the subject?  And can I
                 highlight more interesting ones in some way?
 * FAQ 4-10::    How can I disable threading in some (e.g., mail-) groups,
                 or set other variables specific for some groups?
@@ -593,7 +593,7 @@ each POP3 mail source.  @xref{Mail Source Specifiers}, for details on
                 displays in group buffer is by far to high, especially in mail
                 groups.  Is this a bug?
 * FAQ 4-13::    I don't like the layout of summary and article buffer,
-                how to change it? Perhaps even a three pane display?
+                how to change it?  Perhaps even a three pane display?
 * FAQ 4-14::    I don't like the way the Summary buffer looks, how to
                 tweak it?
 * FAQ 4-15::    How to split incoming mails in several groups?
@@ -750,7 +750,7 @@ other deuglifications).
 @subsubheading Question 4.9
 
 Is there a way to automatically ignore posts by specific
-authors or with specific words in the subject? And can I
+authors or with specific words in the subject?  And can I
 highlight more interesting ones in some way?
 
 @subsubheading Answer
@@ -876,7 +876,7 @@ groups again).
 @subsubheading Question 4.13
 
 I don't like the layout of summary and article buffer, how
-to change it? Perhaps even a three pane display?
+to change it?  Perhaps even a three pane display?
 
 @subsubheading Answer
 
@@ -1056,7 +1056,7 @@ of the variables @code{shr-color-visible-distance-min} and
                 signature...?
 * FAQ 5-4::     Can I set things like From, Signature etc. group based on
                 the group I post too?
-* FAQ 5-5::     Is there a spell-checker? Perhaps even on-the-fly
+* FAQ 5-5::     Is there a spell-checker?  Perhaps even on-the-fly
                 spell-checking?
 * FAQ 5-6::     Can I set the dictionary based on the group I'm posting
                 to?
@@ -1173,12 +1173,11 @@ to postings you send to the gmane hierarchy, use
 send to groups containing the string binaries in their
 name etc.
 
-You can instead of specifying a regexp specify a function
-which is evaluated, only if it returns true, the
-corresponding settings take effect.  Two interesting
-candidates for this are message-news-p which returns t if
-the current Group is a newsgroup and the corresponding
-message-mail-p.
+You can instead of specifying a regexp specify a function which is
+evaluated, only if it returns true, the corresponding settings take
+effect.  Two interesting candidates for this are @code{message-news-p}
+which returns @code{t} if the current Group is a newsgroup and the
+corresponding @code{message-mail-p}.
 
 Note that all forms that match are applied, that means in
 the example below, when I post to
@@ -1212,7 +1211,7 @@ at the bottom.
 @node FAQ 5-5
 @subsubheading Question 5.5
 
-Is there a spell-checker? Perhaps even on-the-fly spell-checking?
+Is there a spell-checker?  Perhaps even on-the-fly spell-checking?
 
 @subsubheading Answer
 
@@ -1562,7 +1561,7 @@ gnu.emacs.gnus and want to archive it there are several
 solutions.  The first and easiest is to save it to a file
 by saying @kbd{O f}.  However, wouldn't
 it be much more convenient to have more direct access to
-the archived message from Gnus? If you say yes, put this
+the archived message from Gnus?  If you say yes, put this
 snippet by Frank Haun <pille3003@@fhaun.de> in
 @file{~/.gnus.el}:
 
@@ -1584,7 +1583,7 @@ more then one article."
 @noindent
 
 You can now say @kbd{M-x my-archive-article} in summary buffer to
-archive the article under the cursor in a nnml group. (Change nnml to
+archive the article under the cursor in a nnml group.  (Change nnml to
 your preferred back end.)
 
 Of course you can also make sure the cache is enabled by saying
@@ -1664,7 +1663,7 @@ follows a slightly different approach, here all article
 where the read mark is set are expirable.
 
 To activate auto-expire, include auto-expire in the
-Group parameters for the group. (Hit @kbd{G
+Group parameters for the group.  (Hit @kbd{G
 c} in summary buffer with point over the
 group to change group parameters).  For total-expire add
 total-expire to the group-parameters.
@@ -1808,7 +1807,7 @@ other possibility is to set, again in the summary
 buffer, downloadable (%) marks for the articles you
 want by typing @kbd{@@} with point over
 the article and then typing @kbd{J u}.
-What's the difference? Well, process marks are erased as
+What's the difference?  Well, process marks are erased as
 soon as you exit the summary buffer while downloadable
 marks are permanent.  You can actually set downloadable
 marks in several groups then use fetch session ('J s' in

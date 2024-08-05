@@ -135,7 +135,7 @@ stream to a different destination.
 
 @cindex program arguments
   All three of the subprocess-creating functions allow specifying
-command-line arguments for the process to run. For @code{call-process}
+command-line arguments for the process to run.  For @code{call-process}
 and @code{call-process-region}, these come in the form of a
 @code{&rest} argument, @var{args}.  For @code{make-process}, both the
 program to run and its command-line arguments are specified as a list

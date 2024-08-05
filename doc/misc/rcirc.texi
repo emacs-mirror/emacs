@@ -835,7 +835,7 @@ window @code{rcirc} considers is controlled by the
 
 @vindex rcirc-omit-unless-requested
 Certain messages can be omitted by default, unless the user manual
-requests them. For example, if you don't want to display @code{TOPIC}
+requests them.  For example, if you don't want to display @code{TOPIC}
 and @code{NAMES} messages, after reconnecting, you can configure
 @code{rcirc-omit-unless-requested} to hide:
 

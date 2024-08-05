@@ -1406,9 +1406,9 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       if (cursor_data.error_cursor >= 0)
 	bad_cursor_name = mouse_cursor_types[cursor_data.error_cursor].name;
       if (bad_cursor_name)
-	error ("bad %s pointer cursor: %s", bad_cursor_name, xmessage);
+	error ("Bad %s pointer cursor: %s", bad_cursor_name, xmessage);
       else
-	error ("can't set cursor shape: %s", xmessage);
+	error ("Can't set cursor shape: %s", xmessage);
     }
 
   x_uncatch_errors_after_check ();
@@ -7060,7 +7060,7 @@ x_frame_list_z_order (struct x_display_info *dpyinfo, Window window)
 
 DEFUN ("x-frame-list-z-order", Fx_frame_list_z_order,
        Sx_frame_list_z_order, 0, 1, 0,
-       doc: /* Return list of Emacs' frames, in Z (stacking) order.
+       doc: /* Return list of Emacs's frames, in Z (stacking) order.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be either a frame or a display name (a string).  If
 omitted or nil, that stands for the selected frame's display.  Return
@@ -7361,7 +7361,7 @@ that mouse buttons are being held down, such as immediately after a
   else
     signal_error ("Invalid drag-and-drop action", action);
 
-  target_atoms = SAFE_ALLOCA (ntargets * sizeof *target_atoms);
+  SAFE_NALLOCA (target_atoms, 1, ntargets);
 
   /* Catch errors since interning lots of targets can potentially
      generate a BadAlloc error.  */
@@ -9854,7 +9854,7 @@ unless TYPE is `png'.  */)
 
       XSETFRAME (frame, f);
       if (!FRAME_VISIBLE_P (f))
-	error ("Frames to be exported must be visible.");
+	error ("Frames to be exported must be visible");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);
@@ -9868,7 +9868,7 @@ unless TYPE is `png'.  */)
   if (EQ (type, Qpng))
     {
       if (!NILP (XCDR (frames)))
-	error ("PNG export cannot handle multiple frames.");
+	error ("PNG export cannot handle multiple frames");
       surface_type = CAIRO_SURFACE_TYPE_IMAGE;
     }
   else
@@ -9883,7 +9883,7 @@ unless TYPE is `png'.  */)
     {
       /* For now, we stick to SVG 1.1.  */
       if (!NILP (XCDR (frames)))
-	error ("SVG export cannot handle multiple frames.");
+	error ("SVG export cannot handle multiple frames");
       surface_type = CAIRO_SURFACE_TYPE_SVG;
     }
   else
@@ -9957,7 +9957,7 @@ Note: Text drawn with the `x' font backend is shown with hollow boxes.  */)
 
       XSETFRAME (frame, f);
       if (!FRAME_VISIBLE_P (f))
-	error ("Frames to be printed must be visible.");
+	error ("Frames to be printed must be visible");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);

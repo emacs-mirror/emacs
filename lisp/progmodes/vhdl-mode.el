@@ -2338,10 +2338,13 @@ Ignore byte-compiler warnings you might see."
 
 (defun vhdl-run-when-idle (secs repeat function)
   "Wait until idle, then run FUNCTION."
-  (if (fboundp 'start-itimer)
+  (if (fboundp 'start-itimer) ;;XEmacs
       (start-itimer "vhdl-mode" function secs repeat t)
     ;; explicitly activate timer (necessary when Emacs is already idle)
-    (aset (run-with-idle-timer secs repeat function) 0 nil)))
+    (let ((timer (run-with-idle-timer secs repeat function)))
+      ;; `run-with-idle-timer' already sets the `triggered' flag to nil,
+      ;; at least since Emacs-24.
+      (if (< emacs-major-version 24) (aset timer 0 nil)))))
 
 (defun vhdl-warning-when-idle (&rest args)
   "Wait until idle, then print out warning STRING and beep."

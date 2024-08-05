@@ -65,7 +65,7 @@
 ;;---------------------
 ;;
 ;;   A "word" is any string containing characters with either word or symbol
-;; syntax.  [E.G. Any alphanumeric string with hyphens, underscores, etc.]
+;; syntax.  [E.g., any alphanumeric string with hyphens, underscores, etc.]
 ;; Unless you change the constants, you must type at least three characters
 ;; for the word to be recognized.  Only words longer than 6 characters are
 ;; saved.

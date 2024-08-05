@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; URL: https://github.com/magit/transient
 ;; Keywords: extensions
-;; Version: 0.7.2
+;; Version: 0.7.2.1
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -45,7 +45,7 @@
 (unless (fboundp 'seq-keep)
   (display-warning 'transient (substitute-command-keys "\
 Transient requires `seq' >= 2.24,
-but due to bad defaults, Emacs' package manager, refuses to
+but due to bad defaults, Emacs's package manager, refuses to
 upgrade this and other built-in packages to higher releases
 from GNU Elpa, when a package specifies that this is needed.
 
@@ -81,17 +81,6 @@ similar defect.") :emergency))
 
 (defvar Man-notify-method)
 (defvar pp-default-function) ; since Emacs 29.1
-
-(defmacro static-if (condition then-form &rest else-forms)
-  "A conditional compilation macro.
-Evaluate CONDITION at macro-expansion time.  If it is non-nil,
-expand the macro to THEN-FORM.  Otherwise expand it to ELSE-FORMS
-enclosed in a `progn' form.  ELSE-FORMS may be empty."
-  (declare (indent 2)
-           (debug (sexp sexp &rest sexp)))
-  (if (eval condition lexical-binding)
-      then-form
-    (cons 'progn else-forms)))
 
 (defmacro transient--with-emergency-exit (id &rest body)
   (declare (indent defun))
@@ -4001,9 +3990,9 @@ and its value is returned to the caller."
                         set " ")))))
 
 (cl-defmethod transient-format-description ((obj transient-group))
-  "Format the description by calling the next method.  If the result
-doesn't use the `face' property at all, then apply the face
-`transient-heading' to the complete string."
+  "Format the description by calling the next method.
+If the result doesn't use the `face' property at all, then apply the
+face `transient-heading' to the complete string."
   (and-let* ((desc (transient--get-description obj)))
     (cond ((oref obj inapt)
            (propertize desc 'face 'transient-inapt-suffix))
@@ -4012,8 +4001,9 @@ doesn't use the `face' property at all, then apply the face
           ((propertize desc 'face 'transient-heading)))))
 
 (cl-defmethod transient-format-description :around ((obj transient-suffix))
-  "Format the description by calling the next method.  If the result
-is nil, then use \"(BUG: no description)\" as the description.
+  "Format the description by calling the next method.
+If the result is nil, then use \"(BUG: no description)\" as the
+description.
 If the OBJ's `key' is currently unreachable, then apply the face
 `transient-unreachable' to the complete string."
   (let ((desc (or (cl-call-next-method obj)

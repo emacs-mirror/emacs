@@ -97,24 +97,85 @@ extra indent = 2
                                  (if (visual-wrap--face-extend-p f) f))
                                eol-face)))))))
 
-(defun visual-wrap--prefix (fcp)
-  (let ((fcp-len (string-width fcp)))
-    (cond
-     ((= 0 visual-wrap-extra-indent)
-      fcp)
-     ((< 0 visual-wrap-extra-indent)
-      (concat fcp (make-string visual-wrap-extra-indent ?\s)))
-     ((< 0 (+ visual-wrap-extra-indent fcp-len))
-      (substring fcp
-                 0
-                 (+ visual-wrap-extra-indent fcp-len)))
-     (t
-      ""))))
+(defun visual-wrap--adjust-prefix (prefix)
+  "Adjust PREFIX with `visual-wrap-extra-indent'."
+  (if (numberp prefix)
+      (+ visual-wrap-extra-indent prefix)
+    (let ((prefix-len (string-width prefix)))
+      (cond
+       ((= 0 visual-wrap-extra-indent)
+        prefix)
+       ((< 0 visual-wrap-extra-indent)
+        (concat prefix (make-string visual-wrap-extra-indent ?\s)))
+       ((< 0 (+ visual-wrap-extra-indent prefix-len))
+        (substring prefix
+                   0 (+ visual-wrap-extra-indent prefix-len)))
+       (t
+        "")))))
+
+(defun visual-wrap--apply-to-line (position)
+  "Apply visual-wrapping properties to the logical line starting at POSITION."
+  (save-excursion
+    (goto-char position)
+    (when-let ((first-line-prefix (fill-match-adaptive-prefix))
+               (next-line-prefix (visual-wrap--content-prefix
+                                  first-line-prefix position)))
+      (when (numberp next-line-prefix)
+        (put-text-property
+         position (+ position (length first-line-prefix)) 'display
+         `(min-width ((,next-line-prefix . width)))))
+      (setq next-line-prefix (visual-wrap--adjust-prefix next-line-prefix))
+      (put-text-property
+       position (line-end-position) 'wrap-prefix
+       (if (numberp next-line-prefix)
+           `(space :align-to (,next-line-prefix . width))
+         next-line-prefix)))))
+
+(defun visual-wrap--content-prefix (prefix position)
+  "Get the next-line prefix for the specified first-line PREFIX.
+POSITION is the position in the buffer where PREFIX is located.
+
+This returns a string prefix to use for subsequent lines; an integer,
+indicating the number of canonical-width spaces to use; or nil, if
+PREFIX was empty."
+  (cond
+   ((string= prefix "")
+    nil)
+   ((string-match (rx bos (+ blank) eos) prefix)
+    ;; If the first-line prefix is all spaces, return its width in
+    ;; characters.  This way, we can set the prefix for all lines to use
+    ;; the canonical-width of the font, which helps for variable-pitch
+    ;; fonts where space characters are usually quite narrow.
+    (string-width prefix))
+   ((or (and adaptive-fill-first-line-regexp
+             (string-match adaptive-fill-first-line-regexp prefix))
+        (and comment-start-skip
+             (string-match comment-start-skip prefix)))
+    ;; If we want to repeat the first-line prefix on subsequent lines,
+    ;; return its string value.  However, we remove any `wrap-prefix'
+    ;; property that might have been added earlier.  Otherwise, we end
+    ;; up with a string containing a `wrap-prefix' string containing a
+    ;; `wrap-prefix' string...
+    (remove-text-properties 0 (length prefix) '(wrap-prefix) prefix)
+    prefix)
+   (t
+    ;; Otherwise, we want the prefix to be whitespace of the same width
+    ;; as the first-line prefix.  If possible, compute the real pixel
+    ;; width of the first-line prefix in canonical-width characters.
+    ;; This is useful if the first-line prefix uses some very-wide
+    ;; characters.
+    (if-let ((font (font-at position))
+             (info (query-font font)))
+        (max (string-width prefix)
+             (ceiling (string-pixel-width prefix (current-buffer))
+                      (aref info 7)))
+      (string-width prefix)))))
 
 (defun visual-wrap-fill-context-prefix (beg end)
   "Compute visual wrap prefix from text between BEG and END.
 This is like `fill-context-prefix', but with prefix length adjusted
 by `visual-wrap-extra-indent'."
+  (declare (obsolete nil "31.1"))
   (let* ((fcp
           ;; `fill-context-prefix' ignores prefixes that look like
           ;; paragraph starts, in order to avoid inadvertently
@@ -128,7 +189,7 @@ by `visual-wrap-extra-indent'."
                   ;; Note: fill-context-prefix may return nil; See:
                   ;; http://article.gmane.org/gmane.emacs.devel/156285
               ""))
-         (prefix (visual-wrap--prefix fcp))
+         (prefix (visual-wrap--adjust-prefix fcp))
          (face (visual-wrap--prefix-face fcp beg end)))
     (if face
         (propertize prefix 'face face)
@@ -147,28 +208,8 @@ by `visual-wrap-extra-indent'."
   (forward-line 0)
   (setq beg (point))
   (while (< (point) end)
-    (let ((lbp (point)))
-      (put-text-property
-       (point) (progn (search-forward "\n" end 'move) (point))
-       'wrap-prefix
-       (let ((pfx (visual-wrap-fill-context-prefix
-		   lbp (point))))
-	 ;; Remove any `wrap-prefix' property that might have been
-	 ;; added earlier.  Otherwise, we end up with a string
-	 ;; containing a `wrap-prefix' string containing a
-	 ;; `wrap-prefix' string ...
-	 (remove-text-properties
-	  0 (length pfx) '(wrap-prefix) pfx)
-         (let ((dp (get-text-property 0 'display pfx)))
-           (when (and dp (eq dp (get-text-property (1- lbp) 'display)))
-             ;; There's a `display' property which covers not just the
-             ;; prefix but also the previous newline.  So it's not
-             ;; just making the prefix more pretty and could interfere
-             ;; or even defeat our efforts (e.g. it comes from
-             ;; `adaptive-fill-mode').
-             (remove-text-properties
-	      0 (length pfx) '(display) pfx)))
-	 pfx))))
+    (visual-wrap--apply-to-line (point))
+    (forward-line))
   `(jit-lock-bounds ,beg . ,end))
 
 ;;;###autoload

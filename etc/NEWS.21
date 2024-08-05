@@ -923,7 +923,7 @@ for (i = 0; i < 17; i++)
 else
 
 Here, the "else" should be indented like the preceding "if", since it
-continues that statement. CC Mode will automatically reindent it after
+continues that statement.  CC Mode will automatically reindent it after
 the "else" has been typed in full, since it's not until then it's
 possible to decide whether it's a new statement or a continuation of
 the preceding "if".
@@ -1743,7 +1743,7 @@ Features are:
   also do without the mouse.
 
 - Aspect-ratio: You can set the variable artist-aspect-ratio to
-  reflect the height-width ratio for the font you are using. Squares
+  reflect the height-width ratio for the font you are using.  Squares
   and circles are then drawn square/round.  Note, that once your
   ascii-file is shown with font with a different height-width ratio,
   the squares won't be square and the circles won't be round.
@@ -1808,7 +1808,7 @@ Emacs is idle.
 fragments in accordance with the current major mode.
 
 *** The new package xml.el provides a simple but generic XML
-parser. It doesn't parse the DTDs however.
+parser.  It doesn't parse the DTDs however.
 
 *** The comment operations are now provided by the newcomment.el
 package which allows different styles of comment-region and should
@@ -1950,12 +1950,12 @@ the text at point.
 whitespace in a file.
 
 *** PostScript mode (ps-mode) is a new major mode for editing PostScript
-files. It offers: interaction with a PostScript interpreter, including
+files.  It offers: interaction with a PostScript interpreter, including
 (very basic) error handling; fontification, easily customizable for
 interpreter messages; auto-indentation; insertion of EPSF templates and
 often used code snippets; viewing of BoundingBox; commenting out /
 uncommenting regions; conversion of 8bit characters to PostScript octal
-codes. All functionality is accessible through a menu.
+codes.  All functionality is accessible through a menu.
 
 *** delim-col helps to prettify columns in a text region or rectangle.
 
@@ -2004,7 +2004,7 @@ delim-col has the following commands:
 
 *** Recentf mode maintains a menu for visiting files that were
 operated on recently.  User option recentf-menu-filter specifies a
-menu filter function to change the menu appearance. For example, the
+menu filter function to change the menu appearance.  For example, the
 recent file list can be displayed:
 
 - organized by major modes, directories or user defined rules.
@@ -2286,7 +2286,7 @@ functionality with aliases for the mldrag functions.
 * Incompatible Lisp changes in 21.1
 
 There are a few Lisp changes which are not backwards-compatible and
-may require changes to existing code. Here is a list for reference.
+may require changes to existing code.  Here is a list for reference.
 See the sections below for details.
 
 ** Since 'format' preserves text properties, the idiom
@@ -2992,10 +2992,10 @@ COUNT-FINAL-NEWLINE is non-nil.
 
 The optional fourth argument WINDOW specifies the window used for
 obtaining parameters such as width, horizontal scrolling, and so
-on. The default is to use the selected window's parameters.
+on.  The default is to use the selected window's parameters.
 
 Like 'vertical-motion', 'count-screen-lines' always uses the current
-buffer, regardless of which buffer is displayed in WINDOW. This makes
+buffer, regardless of which buffer is displayed in WINDOW.  This makes
 possible to use 'count-screen-lines' in any buffer, whether or not it
 is currently displayed in some window.
 
@@ -3428,7 +3428,7 @@ ensuring that no other job can use the same name for a temporary file.
 The optional seventh arg is now called MUSTBENEW.  If non-nil, it insists
 on a check for an existing file with the same name.  If MUSTBENEW
 is 'excl', that means to get an error if the file already exists;
-never overwrite. If MUSTBENEW is neither nil nor 'excl', that means
+never overwrite.  If MUSTBENEW is neither nil nor 'excl', that means
 ask for confirmation before overwriting, but do go ahead and
 overwrite the file if the user gives confirmation.
 
@@ -3872,7 +3872,7 @@ box.
 `:inverse-video'
 
 VALUE specifies whether characters in FACE should be displayed in
-inverse video. VALUE must be one of t or nil.
+inverse video.  VALUE must be one of t or nil.
 
 `:stipple'
 

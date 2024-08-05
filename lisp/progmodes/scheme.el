@@ -545,7 +545,7 @@ that variable's value is a string."
      '("(\\(element\\)\\>[ \t]*(\\(\\S)+\\))"
        (1 font-lock-keyword-face)
        (2 font-lock-type-face))
-     '("\\<\\sw+:\\>" . font-lock-constant-face) ; trailing `:' c.f. scheme
+     '("\\<\\sw+:\\>" . font-lock-constant-face) ; trailing `:' cf. scheme
      ;; SGML markup (from sgml-mode) :
      '("<\\([!?][-a-z0-9]+\\)" 1 font-lock-keyword-face)
      '("<\\(/?[-a-z0-9]+\\)" 1 font-lock-function-name-face)))

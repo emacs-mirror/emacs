@@ -1298,9 +1298,14 @@ any that are missing.
 IDENTIFICATION can specify which part of the identification to
 return.  IDENTIFICATION can be the symbol `method', `user',
 `host', or `localname'.  Any other value is handled like nil and
-means to return the complete identification.  The string returned
-for IDENTIFICATION `localname' can differ depending on whether
-there is an existing connection.
+means to return the complete identification.
+
+If the remote FILE does not contain a method, a user name, or a host
+name, the respective default value is returned.  The string returned for
+IDENTIFICATION `localname' can differ depending on whether there is an
+existing connection.  File name handler specific implementations could
+support further IDENTIFICATION symbols; Tramp, for example, knows also
+the `hop' symbol.
 
 If CONNECTED is non-nil, return an identification only if FILE is
 located on a remote system and a connection is established to
@@ -5769,7 +5774,7 @@ We don't want excessive versions piling up, so there are variables
  `kept-old-versions', which tells Emacs how many oldest versions to keep,
  and `kept-new-versions', which tells how many newest versions to keep.
  Defaults are 2 old versions and 2 new.
-`dired-kept-versions' controls dired's clean-directory (.) command.
+`dired-kept-versions' controls Dired's clean-directory (.) command.
 If `delete-old-versions' is nil, system will query user
  before trimming versions.  Otherwise it does it silently.
 
@@ -6857,7 +6862,7 @@ For historical reasons, a value of nil means to use the default function.
 This should not be relied upon.
 
 For more information on how this variable is used by Auto Revert mode,
-see Info node `(emacs)Supporting additional buffers'.")
+see Info node `(elisp)Reverting'.")
 
 (defvar-local buffer-auto-revert-by-notification nil
   "Whether a buffer can rely on notification in Auto-Revert mode.

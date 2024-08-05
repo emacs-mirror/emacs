@@ -1329,11 +1329,11 @@ struct image_type
      image type.  Value is true if SPEC is valid.  */
   bool (*valid_p) (Lisp_Object spec);
 
-  /* Load IMG which is used on frame F from information contained in
-     IMG->spec.  Value is true if successful.  */
+  /* Load IMG which is to be used on frame F from information contained
+     in IMG->spec.  Value is true if successful.  */
   bool (*load_img) (struct frame *f, struct image *img);
 
-  /* Free resources of image IMG which is used on frame F.  */
+  /* Free such resources of image IMG as are used on frame F.  */
   void (*free_img) (struct frame *f, struct image *img);
 
 #ifdef WINDOWSNT
@@ -2317,6 +2317,9 @@ free_image_cache (struct frame *f)
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
   ptrdiff_t i;
 
+  /* This function assumes the caller already verified that the frame's
+     image cache is non-NULL.  */
+  eassert (c);
   /* Cache should not be referenced by any frame when freed.  */
   eassert (c->refcount == 0);
 
@@ -3537,8 +3540,9 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
       img->face_font_size = font_size;
       img->face_font_height = face->font->height;
       img->face_font_width = face->font->average_width;
-      img->face_font_family = xmalloc (strlen (font_family) + 1);
-      strcpy (img->face_font_family, font_family);
+      size_t len = strlen (font_family) + 1;
+      img->face_font_family = xmalloc (len);
+      memcpy (img->face_font_family, font_family, len);
       img->load_failed_p = ! img->type->load_img (f, img);
 
       /* If we can't load the image, and we don't have a width and
@@ -3901,7 +3905,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
 static void
 x_destroy_x_image (XImage *ximg)
 {
-  if (ximg)
+  if (ximg->data)
     {
       xfree (ximg->data);
       ximg->data = NULL;
@@ -4168,16 +4172,16 @@ image_destroy_x_image (Emacs_Pix_Container pimg)
   eassert (input_blocked_p ());
   if (pimg)
     {
-#ifdef USE_CAIRO
-#endif	/* USE_CAIRO */
+#if defined USE_CAIRO || defined HAVE_HAIKU || defined HAVE_NS
+      /* On these systems, Emacs_Pix_Containers always point to the same
+	 data as pixmaps in `struct image', and therefore must never be
+	 freed separately.  */
+#endif	/* USE_CAIRO || HAVE_HAIKU || HAVE_NS */
 #ifdef HAVE_NTGUI
       /* Data will be freed by DestroyObject.  */
       pimg->data = NULL;
       xfree (pimg);
 #endif /* HAVE_NTGUI */
-#ifdef HAVE_NS
-      ns_release_object (pimg);
-#endif /* HAVE_NS */
     }
 #endif
 }
@@ -4191,7 +4195,7 @@ static void
 gui_put_x_image (struct frame *f, Emacs_Pix_Container pimg,
                  Emacs_Pixmap pixmap, int width, int height)
 {
-#if defined USE_CAIRO || defined HAVE_HAIKU
+#if defined USE_CAIRO || defined HAVE_HAIKU || defined HAVE_NS
   eassert (pimg == pixmap);
 #elif defined HAVE_X_WINDOWS
   GC gc;
@@ -4203,12 +4207,7 @@ gui_put_x_image (struct frame *f, Emacs_Pix_Container pimg,
   XFreeGC (FRAME_X_DISPLAY (f), gc);
 #elif defined HAVE_ANDROID
   android_put_image (pixmap, pimg);
-#endif
-
-#ifdef HAVE_NS
-  eassert (pimg == pixmap);
-  ns_retain_object (pimg);
-#endif
+#endif /* HAVE_ANDROID */
 }
 
 /* Thin wrapper for image_create_x_image_and_pixmap_1, so that it matches
@@ -5456,7 +5455,7 @@ static const struct image_keyword xpm_format[XPM_LAST] =
 
 #if defined HAVE_X_WINDOWS && !defined USE_CAIRO
 
-/* Define ALLOC_XPM_COLORS if we can use Emacs' own color allocation
+/* Define ALLOC_XPM_COLORS if we can use Emacs's own color allocation
    functions for allocating image colors.  Our own functions handle
    color allocation failures more gracefully than the ones on the XPM
    lib.  */
@@ -5559,15 +5558,13 @@ xpm_color_bucket (char *color_name)
 static struct xpm_cached_color *
 xpm_cache_color (struct frame *f, char *color_name, XColor *color, int bucket)
 {
-  size_t nbytes;
-  struct xpm_cached_color *p;
-
   if (bucket < 0)
     bucket = xpm_color_bucket (color_name);
 
-  nbytes = FLEXSIZEOF (struct xpm_cached_color, name, strlen (color_name) + 1);
-  p = xmalloc (nbytes);
-  strcpy (p->name, color_name);
+  size_t len = strlen (color_name) + 1;
+  size_t nbytes = FLEXSIZEOF (struct xpm_cached_color, name, len);
+  struct xpm_cached_color *p = xmalloc (nbytes);
+  memcpy (p->name, color_name, len);
   p->color = *color;
   p->next = xpm_color_cache[bucket];
   xpm_color_cache[bucket] = p;
@@ -6264,9 +6261,7 @@ static const char xpm_color_key_strings[][4] = {"s", "m", "g4", "g", "c"};
 static int
 xpm_str_to_color_key (const char *s)
 {
-  int i;
-
-  for (i = 0; i < ARRAYELTS (xpm_color_key_strings); i++)
+  for (int i = 0; i < ARRAYELTS (xpm_color_key_strings); i++)
     if (strcmp (xpm_color_key_strings[i], s) == 0)
       return i;
   return -1;
@@ -6520,9 +6515,13 @@ xpm_load_image (struct frame *f,
 
  failure:
   image_error ("Invalid XPM3 file (%s)", img->spec);
-  image_destroy_x_image (ximg);
-  image_destroy_x_image (mask_img);
-  image_clear_image (f, img);
+  if (ximg)
+    {
+      image_destroy_x_image (ximg);
+      if (mask_img)
+	image_destroy_x_image (mask_img);
+      image_clear_image (f, img);
+    }
   return 0;
 
 #undef match
@@ -10884,13 +10883,13 @@ static struct animation_cache *animation_cache = NULL;
 static struct animation_cache *
 imagemagick_create_cache (char *signature)
 {
+  size_t len = strlen (signature) + 1;
   struct animation_cache *cache
-    = xmalloc (FLEXSIZEOF (struct animation_cache, signature,
-			   strlen (signature) + 1));
+    = xmalloc (FLEXSIZEOF (struct animation_cache, signature, len));
   cache->wand = 0;
   cache->index = 0;
   cache->next = 0;
-  strcpy (cache->signature, signature);
+  memcpy (cache->signature, signature, len);
   return cache;
 }
 

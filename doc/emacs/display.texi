@@ -2198,7 +2198,7 @@ The line numbers are displayed in a special face @code{line-number}.
 The current line number is displayed in a different face,
 @code{line-number-current-line}, so you can make the current line's
 number have a distinct appearance, which will help locating the line
-showing point. Additional faces @code{line-number-major-tick} and
+showing point.  Additional faces @code{line-number-major-tick} and
 @code{line-number-minor-tick} can be used to highlight the line numbers
 of lines which are a multiple of certain numbers.  Customize
 @code{display-line-numbers-major-tick} and

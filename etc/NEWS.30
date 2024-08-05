@@ -436,7 +436,7 @@ the signature) the automatically inferred function type as well.
 *** 'describe-function' now shows the type of the function object.
 The text used to say things like "car is a built-in function" whereas it
 now says "car is a primitive-function" where "primitive-function" is the
-the name of the symbol returned by 'cl-type-of'.  You can click on those
+name of the symbol returned by 'cl-type-of'.  You can click on those
 words to get information about that type.
 
 ---
@@ -1329,8 +1329,8 @@ Android.
 
 +++
 *** New optional connection method "run0".
-This connection method is similar to "sudo", but it uses the
-'systemd-run' program internally.
+This connection method is similar to "sudo", but it uses the 'systemd'
+framework internally.
 
 +++
 *** New connection methods "dockercp" and "podmancp".
@@ -1704,6 +1704,11 @@ the server variable 'nnweb-type' to 'gmane'.
 This allows the user to either disable the display of any logo or
 specify which logo will be displayed as part of the
 buffer-identification in the mode-line of Gnus buffers.
+
+---
+*** 'gnus-summary-limit-to-age' now counts days since midnight.
+"Less than 1 day" now means "since last midnight", rather than "less
+than 24 hours old".
 
 ** Rmail
 

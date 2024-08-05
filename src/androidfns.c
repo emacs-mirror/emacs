@@ -1374,6 +1374,7 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
+  check_android_display_info (terminal);
   return make_fixnum (android_get_mm_width ());
 #endif
 }
@@ -1386,6 +1387,7 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
+  check_android_display_info (terminal);
   return make_fixnum (android_get_mm_height ());
 #endif
 }
@@ -1469,6 +1471,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #else
   struct MonitorInfo monitor;
 
+  check_android_display_info (terminal);
   memset (&monitor, 0, sizeof monitor);
   monitor.geom.width = android_get_screen_width ();
   monitor.geom.height = android_get_screen_height ();
@@ -1737,7 +1740,7 @@ android_frame_list_z_order (struct android_display_info *dpyinfo,
 
 DEFUN ("android-frame-list-z-order", Fandroid_frame_list_z_order,
        Sandroid_frame_list_z_order, 0, 1, 0,
-       doc: /* Return list of Emacs' frames, in Z (stacking) order.
+       doc: /* Return list of Emacs's frames, in Z (stacking) order.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be either a frame or a display name (a string).  If
 omitted or nil, that stands for the selected frame's display.  Return
@@ -3270,6 +3273,11 @@ External storage on Android encompasses the `/sdcard' and
 absent these permissions.  */)
   (void)
 {
+  /* Implement a rather undependable fallback when no GUI is
+     available.  */
+  if (!android_init_gui)
+    return Ffile_accessible_directory_p (build_string ("/sdcard"));
+
   return android_external_storage_available_p () ? Qt : Qnil;
 }
 
@@ -3284,6 +3292,9 @@ Use `android-external-storage-available-p' (which see) to verify
 whether Emacs has actually received such access permissions.  */)
   (void)
 {
+  if (!android_init_gui)
+    return Qnil;
+
   android_request_storage_access ();
   return Qnil;
 }

@@ -1,5 +1,5 @@
 # acl.m4
-# serial 30
+# serial 31
 dnl Copyright (C) 2002, 2004-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -178,13 +178,14 @@ AC_DEFUN([gl_ACL_GET_FILE],
   AS_IF([test "$gl_cv_func_working_acl_get_file" != no], [$1], [$2])
 ])
 
-# On GNU/Linux, testing if a file has an acl can be done with the
-# listxattr and getxattr syscalls, which don't require linking
-# against additional libraries.  Assume this works if linux/attr.h
-# and listxattr are present.
+# Prerequisites of module file-has-acl.
 AC_DEFUN([gl_FILE_HAS_ACL],
 [
   AC_REQUIRE([gl_FUNC_ACL_ARG])
+  # On GNU/Linux, testing if a file has an acl can be done with the
+  # listxattr and getxattr syscalls, which don't require linking
+  # against additional libraries.  Assume this works if linux/attr.h
+  # and listxattr are present.
   AC_CHECK_HEADERS_ONCE([linux/xattr.h])
   AC_CHECK_FUNCS_ONCE([listxattr])
   FILE_HAS_ACL_LIB=
@@ -197,4 +198,18 @@ AC_DEFUN([gl_FILE_HAS_ACL],
        gl_need_lib_has_acl=1
        FILE_HAS_ACL_LIB=$LIB_ACL])
   AC_SUBST([FILE_HAS_ACL_LIB])
+])
+
+# Prerequisites of module qcopy-acl.
+AC_DEFUN([gl_QCOPY_ACL],
+[
+  AC_REQUIRE([gl_FUNC_ACL])
+  AC_CHECK_HEADERS_ONCE([linux/xattr.h])
+  gl_FUNC_XATTR
+  if test "$use_xattr" = yes; then
+    QCOPY_ACL_LIB="$LIB_XATTR"
+  else
+    QCOPY_ACL_LIB="$LIB_ACL"
+  fi
+  AC_SUBST([QCOPY_ACL_LIB])
 ])

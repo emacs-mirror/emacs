@@ -271,8 +271,7 @@ Remove also properties of all files in subdirectories."
     (dolist (key (hash-table-keys tramp-cache-data))
       (when (and (tramp-file-name-p key)
 		 (stringp (tramp-file-name-localname key))
-		 (tramp-compat-string-search
-		  directory (tramp-file-name-localname key)))
+		 (string-search directory (tramp-file-name-localname key)))
 	(remhash key tramp-cache-data)))
     ;; Remove file properties of symlinks.
     (when (and (stringp truename)
@@ -585,8 +584,7 @@ PROPERTIES is a list of file properties (strings)."
 	;; Dump it.
 	(with-temp-file tramp-persistency-file-name
 	  (insert
-	   ;; Starting with Emacs 28, we could use `lisp-data'.
-	   (format ";; -*- emacs-lisp -*- <%s %s>\n"
+	   (format ";; -*- lisp-data -*- <%s %s>\n"
 		   (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
 		   tramp-persistency-file-name)
 	   ";; Tramp connection history.  Don't change this file.\n"

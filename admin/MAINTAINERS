@@ -84,14 +84,6 @@ Michael Albinus
 Simen Heggestøyl
 	lisp/textmodes/css-mode.el
 
-Nicolas Petton
-	lisp/emacs-lisp/map.el
-	test/lisp/emac-lisp/map-tests.el
-	lisp/emacs-lisp/seq.el
-	test/lisp/emac-lisp/seq-tests.el
-	lisp/emacs-lisp/thunk.el
-	test/lisp/emac-lisp/thunk-tests.el
-
 The GNU AUCTeX maintainers (auctex-devel@gnu.org)
 	RefTeX
 	    lisp/textmodes/reftex-auc.el
@@ -233,6 +225,16 @@ Jim Porter
 	    test/lisp/eshell/*
 	    doc/misc/eshell.texi
 
+Juri Linkov
+	lisp/tab-bar.el
+	lisp/tab-line.el
+
+Philip Kaludercic
+       lisp/emacs-lisp/package.el
+       lisp/emacs-lisp/package-vc.el
+       lisp/emacs-lisp/compat.el
+       lisp/net/rcirc.el
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.
@@ -334,10 +336,6 @@ Michael Albinus
 	    doc/misc/auth.texi
 	    test/lisp/auth-source-tests.el
 
-Nicolas Petton
-	lisp/emacs-lisp/subr-x.el
-	lisp/arc-mode.el
-
 Tassilo Horn
 	lisp/doc-view.el
 
@@ -363,6 +361,23 @@ Po Lu
 
 Daniel Pettersson
 	lisp/jsonrpc.el
+
+Juri Linkov
+	Isearch and Replace
+	    lisp/isearch.el
+	    lisp/replace.el
+	    lisp/misearch.el
+	    lisp/hi-lock.el
+	Outline minor mode
+	    lisp/outline.el
+	Repeat mode
+	    lisp/repeat.el
+
+Philip Kaludercic
+	lisp/epa-ks.el
+
+Harald Jörg
+	lisp/progmodes/cperl-mode.el
 
 ==============================================================================
 3. Externally maintained packages.

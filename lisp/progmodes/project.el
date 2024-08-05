@@ -1715,7 +1715,7 @@ in `project-kill-buffer-conditions'."
     bufs))
 
 ;;;###autoload
-(defun project-kill-buffers (&optional no-confirm)
+(defun project-kill-buffers (&optional no-confirm project)
   "Kill the buffers belonging to the current project.
 Two buffers belong to the same project if their project
 instances, as reported by `project-current' in each buffer, are
@@ -1725,9 +1725,11 @@ is non-nil, the command will not ask the user for confirmation.
 NO-CONFIRM is always nil when the command is invoked
 interactively.
 
+If PROJECT is non-nil, kill buffers for that project instead.
+
 Also see the `project-kill-buffers-display-buffer-list' variable."
   (interactive)
-  (let* ((pr (project-current t))
+  (let* ((pr (or project (project-current t)))
          (bufs (project--buffers-to-kill pr))
          (query-user (lambda ()
                        (yes-or-no-p

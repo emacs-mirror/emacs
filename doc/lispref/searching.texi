@@ -1771,7 +1771,7 @@ required for @code{rx-to-string} to work.  Example:
 
 Another difference from @code{rx-let} is that the @var{bindings} are
 dynamically scoped, and thus also available in functions called from
-@var{body}. However, they are not visible inside functions defined in
+@var{body}.  However, they are not visible inside functions defined in
 @var{body}.
 @end defmac
 
@@ -1919,7 +1919,7 @@ symptoms less likely and help alleviate problems that do arise.
 @itemize
 @item
 Anchor regexps at the beginning of a line, string or buffer using
-zero-width assertions (@samp{^} and @code{\`}). This takes advantage
+zero-width assertions (@samp{^} and @code{\`}).  This takes advantage
 of fast paths in the implementation and can avoid futile matching
 attempts.  Other zero-width assertions may also bring benefits by
 causing a match to fail early.
@@ -1977,7 +1977,7 @@ To help diagnose problems in your regexps or in the regexp engine
 itself, this function returns a string describing the compiled
 form of @var{regexp}.  To make sense of it, it can be necessary
 to read at least the description of the @code{re_opcode_t} type in the
-@code{src/regex-emacs.c} file in Emacs' source code.
+@code{src/regex-emacs.c} file in Emacs's source code.
 
 It is currently able to give a meaningful description only if Emacs
 was compiled with @code{--enable-checking}.

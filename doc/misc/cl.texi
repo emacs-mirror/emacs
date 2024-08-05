@@ -388,10 +388,11 @@ This function prints an ellipsis (``@dots{}'') to @var{stream} (see
 above).  When @var{stream} is a buffer, the ellipsis will be given the
 @code{cl-print-ellipsis} text property.  The value of the text
 property will contain state (including @var{start}) in order to print
-the elided part of @var{object} later.  @var{start} should be nil if
-the whole @var{object} is being elided, otherwise it should be an
-index or other pointer into the internals of @var{object} which can be
-passed to `cl-print-object-contents' at a later time.
+the elided part of @var{object} later.  @var{start} should be
+@code{nil} if the whole @var{object} is being elided, otherwise it
+should be an index or other pointer into the internals of @var{object}
+which can be passed to @code{cl-print-object-contents} at a later
+time.
 @end defun
 
 @defvar cl-print-expand-ellipsis-function
@@ -859,7 +860,7 @@ Thus @code{(cl-typep @var{object} 'null)} is equivalent to
 
 @item
 The type symbol @code{atom} represents all objects that are not cons
-cells. Thus @code{(cl-typep @var{object} 'atom)} is equivalent to
+cells.  Thus @code{(cl-typep @var{object} 'atom)} is equivalent to
 @code{(atom @var{object})}.
 
 @item
@@ -2190,7 +2191,7 @@ term restricts the search to just the specified property.  The
 Properties,,,elisp}.
 
 @item for @var{var} being the frames
-This clause iterates over all Emacs frames. The clause @code{screens} is
+This clause iterates over all Emacs frames.  The clause @code{screens} is
 a synonym for @code{frames}.  The frames are visited in
 @code{next-frame} order starting from @code{selected-frame}.
 

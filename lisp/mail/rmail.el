@@ -2955,51 +2955,56 @@ charset= headers.
 This function assumes that the current message is already decoded
 and displayed in the RMAIL buffer, but the coding system used to
 decode it was incorrect.  It then decodes the message again,
-using the coding system CODING."
-  (interactive "zCoding system for re-decoding this message: ")
-  (when (not rmail-enable-mime)
-    (with-current-buffer rmail-buffer
-      (rmail-swap-buffers-maybe)
-      (save-restriction
-	(widen)
-	(let ((msgbeg (rmail-msgbeg rmail-current-message))
-	      (msgend (rmail-msgend rmail-current-message))
-	      (buffer-read-only nil)
-	      body-start x-coding-header old-coding)
-	  (narrow-to-region msgbeg msgend)
-	  (goto-char (point-min))
-	  (unless (setq body-start (search-forward "\n\n" (point-max) 1))
-	    (error "No message body"))
+using the coding system CODING.
 
-	  (save-restriction
-	    ;; Narrow to headers
-	    (narrow-to-region (point-min) body-start)
-	    (setq x-coding-header (goto-char (point-min)))
-	    (if (not (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t))
-		(setq old-coding (rmail-get-coding-system))
-	      (setq old-coding (intern (match-string 1)))
-	      (setq x-coding-header (point)))
-	    (check-coding-system old-coding)
-	    ;; Make sure the new coding system uses the same EOL
-	    ;; conversion, to prevent ^M characters from popping up
-	    ;; all over the place.
-	    (let ((eol-type (coding-system-eol-type old-coding)))
-	      (if (numberp eol-type)
-		  (setq coding
-			(coding-system-change-eol-conversion coding eol-type))))
-	    (when (not (coding-system-equal
-			(coding-system-base old-coding)
-			(coding-system-base coding)))
-	      ;; Rewrite the coding-system header.
-	      (goto-char x-coding-header)
-	      (if (> (point) (point-min))
-		  (delete-region (line-beginning-position) (point))
-		(forward-line)
-		(insert "\n")
-		(forward-line -1))
-	      (insert "X-Coding-System: "
-		      (symbol-name coding))))
-	  (rmail-show-message))))))
+This function does nothing (except reporting a user-error)
+if `rmail-enable-mime' is non-nil."
+  (interactive "zCoding system for re-decoding this message: ")
+  (if (not rmail-enable-mime)
+      (with-current-buffer rmail-buffer
+        (rmail-swap-buffers-maybe)
+        (save-restriction
+	  (widen)
+	  (let ((msgbeg (rmail-msgbeg rmail-current-message))
+	        (msgend (rmail-msgend rmail-current-message))
+	        (buffer-read-only nil)
+	        body-start x-coding-header old-coding)
+	    (narrow-to-region msgbeg msgend)
+	    (goto-char (point-min))
+	    (unless (setq body-start (search-forward "\n\n" (point-max) 1))
+	      (error "No message body"))
+
+	    (save-restriction
+	      ;; Narrow to headers
+	      (narrow-to-region (point-min) body-start)
+	      (setq x-coding-header (goto-char (point-min)))
+	      (if (not (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t))
+		  (setq old-coding (rmail-get-coding-system))
+	        (setq old-coding (intern (match-string 1)))
+	        (setq x-coding-header (point)))
+	      (check-coding-system old-coding)
+	      ;; Make sure the new coding system uses the same EOL
+	      ;; conversion, to prevent ^M characters from popping up
+	      ;; all over the place.
+	      (let ((eol-type (coding-system-eol-type old-coding)))
+	        (if (numberp eol-type)
+		    (setq coding
+			  (coding-system-change-eol-conversion coding eol-type))))
+	      (when (not (coding-system-equal
+			  (coding-system-base old-coding)
+			  (coding-system-base coding)))
+	        ;; Rewrite the coding-system header.
+	        (goto-char x-coding-header)
+	        (if (> (point) (point-min))
+		    (delete-region (line-beginning-position) (point))
+		  (forward-line)
+		  (insert "\n")
+		  (forward-line -1))
+	        (insert "X-Coding-System: "
+		        (symbol-name coding))))
+	    (rmail-show-message))))
+    (user-error
+     (substitute-quotes "`rmail-enable-mime' is non-nil; disable it first"))))
 
 (defun rmail-highlight-headers ()
   "Highlight the headers specified by `rmail-highlighted-headers'.

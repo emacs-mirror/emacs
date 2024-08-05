@@ -2127,7 +2127,7 @@ to IRC, and don't forget that you can roll back to the previous
 version by running @kbd{M-x package-delete @key{RET}}.
 @xref{Packages,,,emacs, The Emacs Editor}, for more information.
 
-Note that a bug affecting Emacs' packaging machinery may prevent the
+Note that a bug affecting Emacs's packaging machinery may prevent the
 above method from working on Emacs versions 29 and below.  Users on 29
 can try running @kbd{C-u M-x package-install @key{RET}} instead.
 Users on 28 and below can click on the @emph{installed} @samp{erc}

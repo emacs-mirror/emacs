@@ -1338,8 +1338,8 @@ your PGP implementation, so we refer to it.
 
 If you have imported your old PGP 2.x key into GnuPG, and want to send
 signed and encrypted messages to your fellow PGP 2.x users, you'll
-discover that the receiver cannot understand what you send. One
-solution is to use PGP 2.x instead. You could also convince your
+discover that the receiver cannot understand what you send.  One
+solution is to use PGP 2.x instead.  You could also convince your
 fellow PGP 2.x users to convert to GnuPG@.
 @vindex mml-signencrypt-style-alist
 As a final workaround, you can make the sign and encryption work in
@@ -1687,8 +1687,8 @@ Allegedly.
 @item message-default-headers
 @vindex message-default-headers
 Header lines to be inserted in outgoing messages before you edit the
-message, so you can edit or delete their lines. If set to a string, it
-is directly inserted. If set to a function, it is called and its
+message, so you can edit or delete their lines.  If set to a string, it
+is directly inserted.  If set to a function, it is called and its
 result is inserted.
 
 @item message-subject-re-regexp
@@ -2190,7 +2190,7 @@ posting a prepared news message.
 @table @code
 @item message-cite-style
 @vindex message-cite-style
-The overall style to be used when replying to messages. This controls
+The overall style to be used when replying to messages.  This controls
 things like where the reply should be put relative to the original,
 how the citation is formatted, where the signature goes, etc.
 
@@ -2198,12 +2198,12 @@ Value is either @code{nil} (no variable overrides) or a let-style list
 of pairs @code{(VARIABLE VALUE)} to override default values.
 
 See @code{gnus-posting-styles} to set this variable for specific
-groups. Presets to impersonate popular mail agents are available in the
+groups.  Presets to impersonate popular mail agents are available in the
 @code{message-cite-style-*} variables.
 
 @item message-cite-reply-position
 @vindex message-cite-reply-position
-Where the reply should be positioned. Available styles are
+Where the reply should be positioned.  Available styles are
 @code{traditional} to reply inline, @code{above} for top-posting, and
 @code{below} for bottom-posting
 
@@ -2565,8 +2565,8 @@ into the message headers as the SMTP Method.  If @var{cond} is a
 function, it will be called in the message buffer without any
 arguments, and the corresponding @var{method} will be inserted into
 the message headers as the SMTP Method if the function returns a
-non-@code{nil} value; if @var{method} is nil, the value returned by
-the function @code{cond} is used instead.
+non-@code{nil} value; if @var{method} is @code{nil}, the value
+returned by the function @code{cond} is used instead.
 
 @end table
 

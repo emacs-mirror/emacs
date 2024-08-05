@@ -3009,6 +3009,32 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 #endif
 }
 
+DEFUN ("remember-mouse-glyph", Fremember_mouse_glyph, Sremember_mouse_glyph,
+       3, 3, 0,
+       doc: /* Return the extents of glyph in FRAME for mouse event generation.
+Return a rectangle (X Y WIDTH HEIGHT) representing the confines, in
+pixel coordinates, of the glyph at X, Y and in FRAME, or, should
+`mouse-fine-grained-tracking' or `window-resize-pixelwise` be enabled,
+an approximation thereof.  All coordinates are relative to the origin
+point of FRAME.  */)
+  (Lisp_Object frame, Lisp_Object x, Lisp_Object y)
+{
+  struct frame *f = decode_window_system_frame (frame);
+  NativeRectangle rect;
+#ifdef CONVERT_TO_EMACS_RECT
+  Emacs_Rectangle xrect;
+#endif /* CONVERT_TO_EMACS_RECT */
+
+  CHECK_FIXNUM (x);
+  CHECK_FIXNUM (y);
+  remember_mouse_glyph (f, XFIXNUM (x), XFIXNUM (y), &rect);
+#ifdef CONVERT_TO_EMACS_RECT
+  CONVERT_TO_EMACS_RECT (xrect, rect);
+  return list4i (xrect.x, xrect.y, xrect.width, xrect.height);
+#else /* !defined CONVERT_TO_EMACS_RECT */
+  return list4i (rect.x, rect.y, rect.width, rect.height);
+#endif /* !defined CONVERT_TO_EMACS_RECT */
+}
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -6332,6 +6358,12 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	  return retval;
 	}
 
+      /* We want the string to inherit the paragraph direction of the
+         parent object, so we need to calculate that if not yet done.  */
+      ptrdiff_t eob = (BUFFERP (object) ? ZV : it->end_charpos);
+      if (it->bidi_it.first_elt && it->bidi_it.charpos < eob)
+	bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, true);
+
       /* Save current settings of IT so that we can restore them
 	 when we are finished with the glyph property value.  */
       push_it (it, position);
@@ -6364,9 +6396,10 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	  if (BUFFERP (object))
 	    *position = start_pos;
 
-	  /* Force paragraph direction to be that of the parent
-	     object.  If the parent object's paragraph direction is
-	     not yet determined, default to L2R.  */
+	  /* Force paragraph direction to be that of the parent object.
+	     If the parent object's paragraph direction is not yet
+	     determined (which shouldn not happen, since we called
+	     bidi_paragraph_init above), default to L2R.  */
 	  if (it->bidi_p && it->bidi_it.paragraph_dir == R2L)
 	    it->paragraph_embedding = it->bidi_it.paragraph_dir;
 	  else
@@ -7021,6 +7054,11 @@ get_overlay_strings_1 (struct it *it, ptrdiff_t charpos, bool compute_stop_p)
 	 strings have been processed.  */
       eassert (!compute_stop_p || it->sp == 0);
 
+      /* We want the string to inherit the paragraph direction of the
+         parent object, so we need to calculate that if not yet done.  */
+      if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
+	bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, true);
+
       /* When called from handle_stop, there might be an empty display
          string loaded.  In that case, don't bother saving it.  But
          don't use this optimization with the bidi iterator, since we
@@ -7174,7 +7212,7 @@ iterate_out_of_display_property (struct it *it)
   eassert (eob >= CHARPOS (it->position) && CHARPOS (it->position) >= bob);
 
   /* Maybe initialize paragraph direction.  If we are at the beginning
-     of a new paragraph, next_element_from_buffer may not have a
+     of a new paragraph, next_element_from_buffer may not have had a
      chance to do that.  */
   if (it->bidi_it.first_elt && it->bidi_it.charpos < eob)
     bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, true);
@@ -19972,6 +20010,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   int frame_line_height, margin;
   bool use_desired_matrix;
   void *itdata = NULL;
+  modiff_count lchars_modiff = CHARS_MODIFF, ochars_modiff = lchars_modiff;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
@@ -20065,6 +20104,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   end_unchanged = END_UNCHANGED;
 
   SET_TEXT_POS (opoint, PT, PT_BYTE);
+  ochars_modiff = CHARS_MODIFF;
 
   specbind (Qinhibit_point_motion_hooks, Qt);
 
@@ -21097,14 +21137,28 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
     TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
   else if (CHARPOS (opoint) > ZV)
     TEMP_SET_PT_BOTH (Z, Z_BYTE);
-  else
+  else if (ochars_modiff == CHARS_MODIFF)
     TEMP_SET_PT_BOTH (CHARPOS (opoint), BYTEPOS (opoint));
-
+  else
+    {
+      /* If the buffer was modified while we were redisplaying it, we
+         cannot trust the correspondence between character and byte
+         positions.  This can happen, for example, if we are
+         redisplaying *Messages* and some Lisp, perhaps invoked by
+         display_mode_lines, signals an error which caused something
+         added/deleted to/from the buffer text.  */
+      TEMP_SET_PT_BOTH (CHARPOS (opoint), CHAR_TO_BYTE (CHARPOS (opoint)));
+    }
   set_buffer_internal_1 (old);
   /* Avoid an abort in TEMP_SET_PT_BOTH if the buffer has become
      shorter.  This can be caused by log truncation in *Messages*.  */
   if (CHARPOS (lpoint) <= ZV)
-    TEMP_SET_PT_BOTH (CHARPOS (lpoint), BYTEPOS (lpoint));
+    {
+      if (lchars_modiff == CHARS_MODIFF)
+	TEMP_SET_PT_BOTH (CHARPOS (lpoint), BYTEPOS (lpoint));
+      else
+	TEMP_SET_PT_BOTH (CHARPOS (lpoint), CHAR_TO_BYTE (CHARPOS (lpoint)));
+    }
 
   unbind_to (count, Qnil);
 }
@@ -24392,6 +24446,12 @@ push_prefix_prop (struct it *it, Lisp_Object prop)
 	   || it->method == GET_FROM_STRING
 	   || it->method == GET_FROM_IMAGE);
 
+  /* We want the string to inherit the paragraph direction of the parent
+     object, so we need to calculate that if not yet done.  */
+  ptrdiff_t eob = (STRINGP (it->string) ? SCHARS (it->string) : ZV);
+  if (it->bidi_it.first_elt && it->bidi_it.charpos < eob)
+    bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, true);
+
   /* We need to save the current buffer/string position, so it will be
      restored by pop_it, because iterate_out_of_display_property
      depends on that being set correctly, but some situations leave
@@ -25920,6 +25980,18 @@ display_line (struct it *it, int cursor_vpos)
 		    }
 		  it->hpos = hpos_before;
 		}
+	      /* If the default face is remapped, and the window has
+                 display margins, and no glyphs were written yet to the
+                 margins on this screen line, we must add one space
+                 glyph to the margin area to make sure the margins use
+                 the background of the remapped default face.  */
+	      if (lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID)
+		  != DEFAULT_FACE_ID /* default face is remapped */
+		  && ((WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
+		       && it->glyph_row->used[LEFT_MARGIN_AREA] == 0)
+		      || (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
+			  && it->glyph_row->used[RIGHT_MARGIN_AREA] == 0)))
+		extend_face_to_end_of_line (it);
 	    }
 	  else if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
@@ -28137,7 +28209,7 @@ store_mode_line_string (const char *string, Lisp_Object lisp_string,
 
 DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
        1, 4, 0,
-       doc: /* Format a string out of a mode line format specification.
+       doc: /* Return a string formatted according to mode-line format specification.
 First arg FORMAT specifies the mode line format (see `mode-line-format'
 for details) to use.
 
@@ -32138,6 +32210,8 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
   struct it temp_it;
   Lisp_Object gc;
   GLYPH glyph;
+  /* Take face-remapping into consideration.  */
+  int face_id = lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID);
 
   temp_it = *it;
   temp_it.object = Qnil;
@@ -32147,27 +32221,27 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
     {
       /* Continuation glyph.  For R2L lines, we mirror it by hand.  */
       if (it->bidi_it.paragraph_dir == R2L)
-	SET_GLYPH_FROM_CHAR (glyph, '/');
+	SET_GLYPH (glyph, '/', face_id);
       else
-	SET_GLYPH_FROM_CHAR (glyph, '\\');
+	SET_GLYPH (glyph, '\\', face_id);
       if (it->dp
 	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
 	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
-	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
+	  spec_glyph_lookup_face (it->w, &glyph);
 	}
     }
   else if (what == IT_TRUNCATION)
     {
       /* Truncation glyph.  */
-      SET_GLYPH_FROM_CHAR (glyph, '$');
+      SET_GLYPH (glyph, '$', face_id);
       if (it->dp
 	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
 	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
-	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
+	  spec_glyph_lookup_face (it->w, &glyph);
 	}
     }
   else
@@ -37266,6 +37340,7 @@ be let-bound around code that needs to disable messages temporarily. */);
   defsubr (&Strace_to_stderr);
 #endif
 #ifdef HAVE_WINDOW_SYSTEM
+  defsubr (&Sremember_mouse_glyph);
   defsubr (&Stab_bar_height);
   defsubr (&Stool_bar_height);
   defsubr (&Slookup_image_map);

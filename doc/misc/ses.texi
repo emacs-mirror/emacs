@@ -162,7 +162,7 @@ A       B
 By default, the cell value print-out is right aligned, that is the
 reason for such an alignment for the notes in column @samp{B}.  To
 change that, you can enter a printer function for the whole column,
-using e.g., @kbd{M-p ("%s")}. Enclosing @code{"%s"} into a list tells
+using e.g., @kbd{M-p ("%s")}.  Enclosing @code{"%s"} into a list tells
 @acronym{SES} to align left.  You can override a column's printer
 function in any individual cell using @kbd{p}.
 
@@ -203,7 +203,7 @@ remove blank cells from the returned list, which enables using
 
 Actually, both options are not exactly equivalent as the former makes
 the summing in reversed order of argument, and the latter in the same
-order. You can also reverse the order of arguments returned by
+order.  You can also reverse the order of arguments returned by
 @code{ses-range} with the @code{<} modifier.
 
 @c ===================================================================
@@ -226,16 +226,16 @@ with @file{.ses}.  For example, @kbd{C-x C-f test.ses @key{RET}}.
 A @dfn{cell identifier} is a symbol with a column letter and a row
 number.  Cell B7 is the 2nd column of the 7th row.  For very wide
 spreadsheets, there are two column letters: cell AB7 is the 28th
-column of the 7th row. Super wide spreadsheets get AAA1, etc.
+column of the 7th row.  Super wide spreadsheets get AAA1, etc.
 You move around with the regular Emacs movement commands.
 
 @table @kbd
 @item j
-Moves point to cell, specified by identifier (@code{ses-jump}). Unless
-the cell is a renamed cell, the identifier is case-insensitive. A
+Moves point to cell, specified by identifier (@code{ses-jump}).  Unless
+the cell is a renamed cell, the identifier is case-insensitive.  A
 prefix argument @math{n} move to cell with coordinates @math{(n\div R,
 n \% C)} for a spreadsheet of @math{R} rows and @math{C} columns, and
-@samp{A1} being of coordinates @math{(0,0)}. The way the identifier or
+@samp{A1} being of coordinates @math{(0,0)}.  The way the identifier or
 the command prefix argument are interpreted can be customized through
 variables @code{ses-jump-cell-name-function} and
 @code{ses-jump-prefix-function}.
@@ -434,7 +434,7 @@ use parentheses: @samp{("$%.2f")}.
 @item
 A printer can also be a one-argument function, the result of which is
 a string (to get right alignment) or list of one string (to get left
-alignment). Such a function can be in turn configured as:
+alignment).  Such a function can be in turn configured as:
 @itemize
 @item
 A lambda expression, for instance:
@@ -543,11 +543,11 @@ printer function.  Then, if you call again
 reprinted accordingly.
 
 Sometimes there are local printers that you want to define or
-re-define automatically every time you open a sheet. For instance
+re-define automatically every time you open a sheet.  For instance
 imagine that you want to define/re-define automatically a local
 printer @code{euro} to display a number like an amount of euros, that
 is to say number @code{3.1} would be displayed as
-@code{3.10@dmn{}@euro{}}. To do so in any non read-only SES buffer,
+@code{3.10@dmn{}@euro{}}.  To do so in any non read-only SES buffer,
 you can add some code like this to your @file{.emacs} init file:
 
 @lisp
@@ -586,7 +586,7 @@ when you define a local printer function with command
 
 When doing so, please take care that the returned value is a string,
 or a list containing a string, even when the input argument has an
-unexpected value. Here is an example:
+unexpected value.  Here is an example:
 
 @example
 (lambda (val)
@@ -769,24 +769,24 @@ list.
 
 @vindex ses-jump-cell-name-function
 @code{ses-jump-cell-name-function} is a customizable variable by
-default set to the @code{upcase} function. This function is called
+default set to the @code{upcase} function.  This function is called
 when you pass a cell name to the @command{ses-jump} command (@kbd{j}),
 @c TODO : propagate extra explanation from the French version.
-it changes the entered cell name to that where to jump. The default
+it changes the entered cell name to that where to jump.  The default
 setting @code{upcase} allows you to enter the cell name in low
-case. Another use of @code{ses-jump-cell-name-function} could be some
+case.  Another use of @code{ses-jump-cell-name-function} could be some
 internationalization to convert non latin characters into latin
-equivalents to name the cell. Instead of a cell name, the function may
+equivalents to name the cell.  Instead of a cell name, the function may
 return cell coordinates in the form of a cons, for instance @code{(0
 . 0)} for cell @code{A1}, @code{(1 . 0)} for cell @code{A2}, etc.
 
 @vindex ses-jump-prefix-function
 @code{ses-jump-prefix-function} is a customizable variable by default
-set to the @code{ses-jump-prefix} function. This function is called
+set to the @code{ses-jump-prefix} function.  This function is called
 when you give a prefix argument to the @command{ses-jump} command
-(@kbd{j}). It returns a cell name or cell coordinates corresponding to
-the prefix argument. Cell coordinates are in the form of a cons, for
-instance @code{(1 . 0)} for cell @code{A2}. The default setting
+(@kbd{j}).  It returns a cell name or cell coordinates corresponding to
+the prefix argument.  Cell coordinates are in the form of a cons, for
+instance @code{(1 . 0)} for cell @code{A2}.  The default setting
 @code{ses-jump-prefix} will number cells left to right and then top
 down, so assuming a 4x3 spreadsheet prefix argument @samp{0} jumps to
 cell @samp{A1}, prefix argument @samp{2} jumps to @samp{C1}, prefix
@@ -841,7 +841,7 @@ valid local variable name (See also @ref{Nonrelocatable references}).
 @findex ses-repair-cell-reference-all
 When you interrupt a cell formula update by typing @kbd{C-g}, then
 the cell reference link may be broken, which will jeopardize automatic
-cell update when any other cell on which it depends is changed. To
+cell update when any other cell on which it depends is changed.  To
 repair that use function @code{ses-repair-cell-reference-all}
 @end table
 
@@ -946,21 +946,21 @@ Flags can be added to @code{ses-range} immediately after the @var{to}
 cell.
 @table @code
 @item !
-Empty cells in range can be removed by adding the @code{!} flag. An
+Empty cells in range can be removed by adding the @code{!} flag.  An
 empty cell is a cell the value of which is one of symbols @code{nil}
-or @code{*skip*}. For instance @code{(ses-range A1 A4 !)} will do the
+or @code{*skip*}.  For instance @code{(ses-range A1 A4 !)} will do the
 same as @code{(list A1 A3)} when cells @code{A2} and @code{A4} are
 empty.
 @item _
 Empty cell values are replaced by the argument following flag
-@code{_}, or @code{0} when flag @code{_} is last in argument list. For
+@code{_}, or @code{0} when flag @code{_} is last in argument list.  For
 instance @code{(ses-range A1 A4 _ "empty")} will do the same as
 @code{(list A1 "empty" A3 "empty")} when cells @code{A2} and @code{A4}
-are empty. Similarly, @code{(ses-range A1 A4 _ )} will do the same as
+are empty.  Similarly, @code{(ses-range A1 A4 _ )} will do the same as
 @code{(list A1 0 A3 0)}.
 @item >v
 When order matters, list cells by reading cells row-wise from top left
-to bottom right. This flag is provided for completeness only as it is
+to bottom right.  This flag is provided for completeness only as it is
 the default reading order.
 @item <v
 List cells by reading cells row-wise from top right to bottom left.
@@ -978,7 +978,7 @@ A short hand for @code{>v}.
 A short hand for @code{>^}.
 @item *
 Instead of listing cells, it makes a Calc vector or matrix of it
-(@pxref{Top,,,calc,GNU Emacs Calc Manual}). If the range contains only
+(@pxref{Top,,,calc,GNU Emacs Calc Manual}).  If the range contains only
 one row or one column a vector is made, otherwise a matrix is made.
 @item *2
 Same as @code{*} except that a matrix is always made even when there
@@ -1033,7 +1033,7 @@ are some useful functions to call from your formulas:
 @table @code
 @item (ses-delete-blanks &rest @var{args})
 Returns a list from which all blank cells (value is either @code{nil}
-or '*skip*) have been deleted. Order of args is reverted. Please note
+or '*skip*) have been deleted.  Order of args is reverted.  Please note
 that @code{ses-range} has a @code{!} modifier that enables removing
 blanks, so it is possible to write:
 @lisp
@@ -1060,9 +1060,10 @@ as a single argument, since you'll probably use it with @code{ses-range}.
 
 Special cell values:
 @itemize
-@item nil prints typically the same as "", but allows previous cell to spill over.
-@item '*skip* replaces nil when the previous cell actually does spill over;
-nothing is printed for it.
+@item @code{nil} prints typically the same as "", but allows previous
+cell to spill over.
+@item '*skip* replaces @code{nil} when the previous cell actually does
+spill over; nothing is printed for it.
 @item '*error* indicates that the formula signaled an error instead of
 producing a value: the print cell is filled with hash marks (#).
 @end itemize
@@ -1249,8 +1250,8 @@ The best way is to rename cells that you do @emph{not} want to be
 relocatable by using @code{ses-rename-cell}.
 @findex ses-rename-cell
 Cells that do not have an A1-like name style are not relocated on
-yank. Using this method, the concerned cells won't be relocated
-whatever formula they appear in. Please note however that when a
+yank.  Using this method, the concerned cells won't be relocated
+whatever formula they appear in.  Please note however that when a
 formula contains some range @code{(ses-range @var{cell1} @var{cell2})}
 then in the yanked formula each range bound @var{cell1} and
 @var{cell2} are relocated, or not, independently, depending on whether

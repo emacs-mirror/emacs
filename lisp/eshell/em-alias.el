@@ -211,7 +211,8 @@ This is useful after manually editing the contents of the file."
     (let ((eshell-current-handles
            (eshell-create-handles eshell-aliases-file 'overwrite)))
       (eshell/alias)
-      (eshell-close-handles 0 'nil))))
+      (eshell-set-exit-info 0 nil)
+      (eshell-close-handles))))
 
 (defsubst eshell-lookup-alias (name)
   "Check whether NAME is aliased.  Return the alias if there is one."

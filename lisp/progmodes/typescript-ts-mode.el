@@ -80,10 +80,19 @@
     table)
   "Syntax table for `typescript-ts-mode'.")
 
+(define-error 'typescript-ts-mode-wrong-dialect-error
+              "Wrong typescript dialect"
+              'error)
+
+(defun typescript-ts-mode--check-dialect (dialect)
+  (unless (or (eq dialect 'typescript) (eq dialect 'tsx))
+    (signal 'typescript-ts-mode-wrong-dialect-error
+            (list "Unsupported dialect for typescript-ts-mode suplied" dialect))))
+
 (defun tsx-ts-mode--indent-compatibility-b893426 ()
   "Indent rules helper, to handle different releases of tree-sitter-tsx.
 Check if a node type is available, then return the right indent rules."
-  ;; handle commit b893426
+  ;; handle https://github.com/tree-sitter/tree-sitter-typescript/commit/b893426b82492e59388a326b824a346d829487e8
   (condition-case nil
       (progn (treesit-query-capture 'tsx '((jsx_fragment) @capture))
              `(((match "<" "jsx_fragment") parent 0)
@@ -106,6 +115,7 @@ declarations, accounting for the length of keyword (var, let, or const)."
 (defun typescript-ts-mode--indent-rules (language)
   "Rules used for indentation.
 Argument LANGUAGE is either `typescript' or `tsx'."
+  (typescript-ts-mode--check-dialect language)
   `((,language
      ((parent-is "program") column-0 0)
      ((node-is "}") parent-bol 0)
@@ -188,6 +198,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   ;; Warning: treesitter-query-capture says both node types are valid,
   ;; but then raises an error if the wrong node type is used. So it is
   ;; important to check with the new node type (member_expression)
+  (typescript-ts-mode--check-dialect language)
   (condition-case nil
       (progn (treesit-query-capture language '((jsx_opening_element (member_expression) @capture)))
 	     '((jsx_opening_element
@@ -219,6 +230,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
 LANGUAGE can be `typescript' or `tsx'.  Starting from version 0.20.4 of the
 typescript/tsx grammar, `function' becomes `function_expression'."
+  (typescript-ts-mode--check-dialect language)
   (condition-case nil
       (progn (treesit-query-capture language '((function_expression) @cap))
              ;; New version of the grammar
@@ -230,6 +242,7 @@ typescript/tsx grammar, `function' becomes `function_expression'."
 (defun typescript-ts-mode--font-lock-settings (language)
   "Tree-sitter font-lock settings.
 Argument LANGUAGE is either `typescript' or `tsx'."
+  (typescript-ts-mode--check-dialect language)
   (let ((func-exp (tsx-ts-mode--font-lock-compatibility-function-expression language)))
     (treesit-font-lock-rules
      :language language
@@ -380,7 +393,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      :language language
      :feature 'jsx
      (append (tsx-ts-mode--font-lock-compatibility-bb1f97b language)
-	     `((jsx_attribute (property_identifier) @typescript-ts-jsx-attribute-face)))
+             `((jsx_attribute (property_identifier) @typescript-ts-jsx-attribute-face)))
 
      :language language
      :feature 'number

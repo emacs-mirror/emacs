@@ -264,7 +264,7 @@ Those commands will move to this position in the line moved to
 rather than trying to keep the same horizontal position.
 With a non-nil argument ARG, clears out the goal column
 so that C-n and C-p resume vertical motion.
-The goal column is stored in the variable ‘goal-column’.
+The goal column is stored in the variable `goal-column'.
 
 (fn ARG)
 @end group
@@ -275,13 +275,13 @@ Current goal column for vertical motion.
 It is the column where point was at the start of the current run
 of vertical motion commands.
 
-When moving by visual lines via the function ‘line-move-visual’, it is a cons
+When moving by visual lines via the function `line-move-visual', it is a cons
 cell (COL . HSCROLL), where COL is the x-position, in pixels,
 divided by the default column width, and HSCROLL is the number of
 columns by which window is scrolled from left margin.
 
-When the ‘track-eol’ feature is doing its job, the value is
-‘most-positive-fixnum’.
+When the `track-eol' feature is doing its job, the value is
+`most-positive-fixnum'.
 ---------- Buffer: *Help* ----------
 @end group
 @end smallexample
@@ -375,7 +375,7 @@ as a link in the @file{*Help*} buffer.
 @end table
 
 @strong{Please note:} Each @samp{\} must be doubled when written in a
-string in Emacs Lisp.
+string in Emacs Lisp (@pxref{Syntax for Strings}).
 
 @defun substitute-command-keys string &optional no-face include-menus
 @vindex help-key-binding@r{ (face)}

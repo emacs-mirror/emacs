@@ -40,7 +40,7 @@
 ;; other in `completion-styles' are ignored.
 ;;
 ;; This compromise is for speed: all other styles need the full data
-;; set to be available in Emacs' addressing space, which is often slow
+;; set to be available in Emacs's addressing space, which is often slow
 ;; if not completely unfeasible.
 ;;
 ;; To make use of the `external' style the function
@@ -75,7 +75,7 @@ function links CATEGORY to the style `external', by modifying
 set in `completion-styles'.
 
 LOOKUP is a function taking a string PATTERN and a number
-POINT. The function should contact the tool and return a list of
+POINT.  The function should contact the tool and return a list of
 strings representing the completions for PATTERN given that POINT
 is the location of point within it.  LOOKUP decides if PATTERN is
 interpreted as a substring, a regular expression, or any other

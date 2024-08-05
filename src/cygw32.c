@@ -37,7 +37,7 @@ chdir_to_default_directory (void)
   int old_cwd_fd = emacs_open (".", O_RDONLY | O_DIRECTORY, 0);
 
   if (old_cwd_fd == -1)
-    error ("could not open current directory: %s", strerror (errno));
+    error ("Could not open current directory: %s", strerror (errno));
 
   record_unwind_protect_int (fchdir_unwind, old_cwd_fd);
 
@@ -47,7 +47,7 @@ chdir_to_default_directory (void)
     new_cwd = build_string ("/");
 
   if (chdir (SSDATA (ENCODE_FILE (new_cwd))))
-    error ("could not chdir: %s", strerror (errno));
+    error ("Could not chdir: %s", strerror (errno));
 }
 
 static Lisp_Object

@@ -1491,15 +1491,6 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
        EmacsNoninteractive can be found.  */
     setenv ("EMACS_CLASS_PATH", android_class_path, 1);
 
-  /* Set LD_LIBRARY_PATH to an appropriate value.  */
-  setenv ("LD_LIBRARY_PATH", android_lib_dir, 1);
-
-  /* EMACS_LD_LIBRARY_PATH records the location of the app library
-     directory.  android-emacs refers to this, since users have valid
-     reasons for changing LD_LIBRARY_PATH to a value that precludes
-     the possibility of Java locating libemacs later.  */
-  setenv ("EMACS_LD_LIBRARY_PATH", android_lib_dir, 1);
-
   /* If the system is Android 5.0 or later, set LANG to en_US.utf8,
      which is understood by the C library.  In other instances set it
      to C, a meaningless value, for good measure.  */
@@ -5350,7 +5341,7 @@ android_wc_lookup_string (android_key_pressed_event *event,
       characters = (*env)->GetStringChars (env, string, NULL);
       android_exception_check_nonnull ((void *) characters, string);
 
-      /* Establish the size of the the string.  */
+      /* Establish the size of the string.  */
       size = (*env)->GetStringLength (env, string);
 
       /* Copy over the string data.  */

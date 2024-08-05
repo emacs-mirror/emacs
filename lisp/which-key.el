@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; Maintainer: Justin Burkett <justin@burkett.cc>
-;; Version: 3.6.0
+;; Version: 3.6.1
 ;; Package-Requires: ((emacs "25.1"))
 
 ;; This file is part of GNU Emacs.
@@ -130,9 +130,10 @@ For affected settings, see `which-key-replacement-alist', `which-key-ellipsis'
 `which-key-separator'."
   :set (lambda (sym val)
          (custom-set-default sym val)
-         (mapc #'custom-reevaluate-setting
-               '(which-key-separator
-                 which-key-ellipsis)))
+         (dolist (sym '(which-key-separator
+                        which-key-ellipsis))
+           (when (get sym 'standard-value)
+             (custom-reevaluate-setting sym))))
   :initialize #'custom-initialize-changed
   :type 'boolean
   :package-version "1.0" :version "30.1")
@@ -444,7 +445,7 @@ Note that `which-key-idle-delay' should be set before turning on
 If non-nil, save window configuration before which-key buffer is
 shown and restore it after which-key buffer is hidden.  It
 prevents which-key from changing window position of visible
-buffers.  Only takken into account when popup type is
+buffers.  Only taken into account when popup type is
 side-window."
   :type 'boolean
   :package-version "1.0" :version "30.1")
@@ -2113,7 +2114,7 @@ should be minimized."
 (defun which-key--create-pages (keys &optional prefix-keys prefix-title)
   "Create page strings using `which-key--list-to-pages'.
 Will try to find the best number of rows and columns using the
-given dimensions and the length and wdiths of KEYS.  SEL-WIN-WIDTH
+given dimensions and the length and widths of KEYS.  SEL-WIN-WIDTH
 is the width of the live window."
   (let* ((max-dims (which-key--popup-max-dimensions))
          (max-lines (car max-dims))
@@ -2825,7 +2826,7 @@ Finally, show the buffer."
                                             (funcall which-key-this-command-keys-function)))))
                    (cancel-timer which-key--paging-timer)
                    (if which-key-idle-secondary-delay
-                       ;; we haven't executed a command yet so the secandary
+                       ;; we haven't executed a command yet so the secondary
                        ;; timer is more relevant here
                        (which-key--start-timer which-key-idle-secondary-delay t)
                      (which-key--start-timer)))))))

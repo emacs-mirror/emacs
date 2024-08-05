@@ -77,22 +77,12 @@ extern void set_waiting_for_input (struct timespec *);
    (HI << LO_TIME_BITS) + LO + US / 1e6 + PS / 1e12.  */
 enum { LO_TIME_BITS = 16 };
 
-/* Components of a new-format Lisp timestamp.  */
-struct lisp_time
-{
-  /* Clock count as a Lisp integer.  */
-  Lisp_Object ticks;
-
-  /* Clock frequency (ticks per second) as a positive Lisp integer.  */
-  Lisp_Object hz;
-};
-
 /* defined in timefns.c */
 extern struct timeval make_timeval (struct timespec) ATTRIBUTE_CONST;
 extern Lisp_Object make_lisp_time (struct timespec);
 extern Lisp_Object timespec_to_lisp (struct timespec);
-extern bool list4_to_timespec (Lisp_Object, Lisp_Object, Lisp_Object,
-			       Lisp_Object, struct timespec *);
+extern struct timespec list4_to_timespec (Lisp_Object, Lisp_Object,
+					  Lisp_Object, Lisp_Object);
 extern struct timespec lisp_time_argument (Lisp_Object);
 extern double float_time (Lisp_Object);
 extern void init_timefns (void);

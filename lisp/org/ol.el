@@ -542,7 +542,7 @@ original string length.")
 (defvar-local org-target-link-regexps nil
   "List of regular expressions matching radio targets in plain text.
 This list is non-nil, when a single regexp would be too long to match
-all the possible targets, exceeding Emacs' regexp length limit.")
+all the possible targets, exceeding Emacs's regexp length limit.")
 
 (defvar org-link-types-re nil
   "Matches a link that has a url-like prefix like \"http:\".")

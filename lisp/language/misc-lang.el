@@ -364,6 +364,19 @@ language environment."))
        (vector "[\u1820-\u18AF\u202F\u180B-\u180F\u1807]+"
                0 'font-shape-gstring)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Tifinagh
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(set-language-info-alist
+ "Tifinagh"
+ '((charset unicode)
+   (coding-system utf-8)
+   (coding-priority utf-8)
+   (input-method . "tifinagh")
+   (sample-text . "Tifinagh	ⴰⵣⵓⵍ")
+   (documentation . "Tifinagh a script used to write the Berber languages."))
+ '("Misc"))
+
 (provide 'misc-lang)
 
 ;;; misc-lang.el ends here

@@ -63,8 +63,7 @@
 	    (append
 	     '("." "..")
 	     (tramp-fuse-remove-hidden-files
-	      (tramp-compat-directory-files
-	       (tramp-fuse-local-file-name directory))))))))
+	      (directory-files (tramp-fuse-local-file-name directory))))))))
     (if full
 	;; Massage the result.
 	(let ((local (rx
@@ -207,7 +206,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
 	  (delete (tramp-file-name-unify vec) tramp-fuse-mount-points))
     ;; Give the caches a chance to expire.
     (sleep-for 1)
-    (when (tramp-compat-directory-empty-p mount-point)
+    (when (directory-empty-p mount-point)
       (delete-directory mount-point))))
 
 (defun tramp-fuse-local-file-name (filename)

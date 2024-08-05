@@ -41,23 +41,21 @@
             nil
             `[ ;; Idle.
               ,(propertize
-                (if (aref timer 7) "   *" " ")
+                (if (timer--idle-delay timer) "   *" " ")
                 'help-echo "* marks idle timers"
                 'timer timer)
               ;; Next time.
               ,(propertize
-                (let ((time (list (aref timer 1)
-				  (aref timer 2)
-				  (aref timer 3))))
+                (let ((time (timer--time timer)))
                   (format "%12s"
                           (format-seconds "%dd %hh %mm %z%,1ss"
 			                  (float-time
-			                   (if (aref timer 7)
+			                   (if (timer--idle-delay timer)
 			                       time
 			                     (time-subtract time nil))))))
                 'help-echo "Time until next invocation")
               ;; Repeat.
-              ,(let ((repeat (aref timer 4)))
+              ,(let ((repeat (timer--repeat-delay timer)))
                  (cond
                   ((numberp repeat)
                    (propertize
@@ -73,7 +71,7 @@
                 (let ((cl-print-compiled 'static)
                       (cl-print-compiled-button nil)
                       (print-escape-newlines t))
-                  (cl-prin1-to-string (aref timer 5)))
+                  (cl-prin1-to-string (timer--function timer)))
                 'help-echo "Function called by timer")]))
          (append timer-list timer-idle-list)))
   (tabulated-list-print))

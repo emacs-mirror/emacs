@@ -462,8 +462,9 @@ no_sanitize_memcpy (void *dest, void const *src, size_t size)
 
 #endif /* MAX_SAVE_STACK > 0 */
 
+static struct Lisp_Vector *allocate_clear_vector (ptrdiff_t, bool);
 #ifndef HAVE_MPS
- static void mark_terminals (void);
+static void mark_terminals (void);
 static void gc_sweep (void);
 static void mark_buffer (struct buffer *);
 
@@ -1012,6 +1013,7 @@ record_xmalloc (size_t size)
    allocated memory block (for strings, for conses, ...).  */
 
 #if ! USE_LSB_TAG
+extern void *lisp_malloc_loser;
 void *lisp_malloc_loser EXTERNALLY_VISIBLE;
 #endif
 
@@ -1423,8 +1425,8 @@ lmalloc (size_t size, bool clearit)
       if (laligned (p, size) && (MALLOC_0_IS_NONNULL || size || p))
 	return p;
       free (p);
-      size_t bigger = size + LISP_ALIGNMENT;
-      if (size < bigger)
+      size_t bigger;
+      if (!ckd_add (&bigger, size, LISP_ALIGNMENT))
 	size = bigger;
     }
 }
@@ -1437,8 +1439,8 @@ lrealloc (void *p, size_t size)
       p = realloc (p, size);
       if (laligned (p, size) && (size || p))
 	return p;
-      size_t bigger = size + LISP_ALIGNMENT;
-      if (size < bigger)
+      size_t bigger;
+      if (!ckd_add (&bigger, size, LISP_ALIGNMENT))
 	size = bigger;
     }
 }
@@ -2471,30 +2473,39 @@ bool_vector_fill (Lisp_Object a, Lisp_Object init)
   return a;
 }
 
+/* Return a newly allocated, bool vector of size NBITS.  If CLEARIT,
+   clear its slots; otherwise the vector's slots are uninitialized.  */
+
+Lisp_Object
+make_clear_bool_vector (EMACS_INT nbits, bool clearit)
+{
+  eassert (0 <= nbits && nbits <= BOOL_VECTOR_LENGTH_MAX);
+  Lisp_Object val;
+  ptrdiff_t words = bool_vector_words (nbits);
+  ptrdiff_t word_bytes = words * sizeof (bits_word);
+  ptrdiff_t needed_elements = ((bool_header_size - header_size + word_bytes
+				+ word_size - 1)
+			       / word_size);
+  struct Lisp_Bool_Vector *p
+    = (struct Lisp_Bool_Vector *) allocate_clear_vector (needed_elements,
+							 clearit);
+  /* Clear padding at end; but only if necessary, to avoid polluting the
+     data cache.  */
+  if (!clearit && nbits % BITS_PER_BITS_WORD != 0)
+    p->data[words - 1] = 0;
+
+  XSETVECTOR (val, p);
+  XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
+  p->size = nbits;
+  return val;
+}
+
 /* Return a newly allocated, uninitialized bool vector of size NBITS.  */
 
 Lisp_Object
 make_uninit_bool_vector (EMACS_INT nbits)
 {
-  Lisp_Object val;
-  EMACS_INT words = bool_vector_words (nbits);
-  EMACS_INT word_bytes = words * sizeof (bits_word);
-  EMACS_INT needed_elements = ((bool_header_size - header_size + word_bytes
-				+ word_size - 1)
-			       / word_size);
-  if (PTRDIFF_MAX < needed_elements)
-    memory_full (SIZE_MAX);
-  struct Lisp_Bool_Vector *p
-    = (struct Lisp_Bool_Vector *) allocate_vector (needed_elements);
-  XSETVECTOR (val, p);
-  XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
-  p->size = nbits;
-
-  /* Clear padding at the end.  */
-  if (words)
-    p->data[words - 1] = 0;
-
-  return val;
+  return make_clear_bool_vector (nbits, false);
 }
 
 DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
@@ -2502,11 +2513,12 @@ DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
 LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   (Lisp_Object length, Lisp_Object init)
 {
-  Lisp_Object val;
-
   CHECK_FIXNAT (length);
-  val = make_uninit_bool_vector (XFIXNAT (length));
-  return bool_vector_fill (val, init);
+  EMACS_INT len = XFIXNAT (length);
+  if (BOOL_VECTOR_LENGTH_MAX < len)
+    memory_full (SIZE_MAX);
+  Lisp_Object val = make_clear_bool_vector (len, NILP (init));
+  return NILP (init) ? val : bool_vector_fill (val, init);
 }
 
 DEFUN ("bool-vector", Fbool_vector, Sbool_vector, 0, MANY, 0,
@@ -2515,13 +2527,12 @@ Allows any number of arguments, including zero.
 usage: (bool-vector &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t i;
-  Lisp_Object vector;
-
-  vector = make_uninit_bool_vector (nargs);
-  for (i = 0; i < nargs; i++)
-    bool_vector_set (vector, i, !NILP (args[i]));
-
+  if (BOOL_VECTOR_LENGTH_MAX < nargs)
+    memory_full (SIZE_MAX);
+  Lisp_Object vector = make_clear_bool_vector (nargs, true);
+  for (ptrdiff_t i = 0; i < nargs; i++)
+    if (!NILP (args[i]))
+      bool_vector_set (vector, i, true);
   return vector;
 }
 
@@ -7291,41 +7302,6 @@ mark_face_cache (struct face_cache *c)
     }
 }
 
-/* Remove killed buffers or items whose car is a killed buffer from
-   LIST, and mark other items.  Return changed LIST, which is marked.  */
-
-static Lisp_Object
-mark_discard_killed_buffers (Lisp_Object list)
-{
-  Lisp_Object tail, *prev = &list;
-
-#ifndef HAVE_MPS
-#define CONS_MARKED_P(x) cons_marked_p (x)
-#define SET_CONS_MARKED(x) set_cons_marked (x)
-#else
-#define CONS_MARKED_P(x) 1
-#define SET_CONS_MARKED(x) (void) 0
-#endif
-
-  for (tail = list; CONSP (tail) && !CONS_MARKED_P (XCONS (tail));
-       tail = XCDR (tail))
-    {
-      Lisp_Object tem = XCAR (tail);
-      if (CONSP (tem))
-	tem = XCAR (tem);
-      if (BUFFERP (tem) && !BUFFER_LIVE_P (XBUFFER (tem)))
-	*prev = XCDR (tail);
-      else
-	{
-	  SET_CONS_MARKED (XCONS (tail));
-	  mark_object (XCAR (tail));
-	  prev = xcdr_addr (tail);
-	}
-    }
-  mark_object (tail);
-  return list;
-}
-
 static void
 mark_frame (struct Lisp_Vector *ptr)
 {
@@ -7380,15 +7356,6 @@ mark_window (struct Lisp_Vector *ptr)
       mark_glyph_matrix (w->current_matrix);
       mark_glyph_matrix (w->desired_matrix);
     }
-
-  /* Filter out killed buffers from both buffer lists
-     in attempt to help GC to reclaim killed buffers faster.
-     We can do it elsewhere for live windows, but this is the
-     best place to do it for dead windows.  */
-  wset_prev_buffers
-    (w, mark_discard_killed_buffers (w->prev_buffers));
-  wset_next_buffers
-    (w, mark_discard_killed_buffers (w->next_buffers));
 }
 
 /* Entry of the mark stack.  */

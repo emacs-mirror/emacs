@@ -3102,27 +3102,19 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 #ifdef USE_XCB
   USE_SAFE_ALLOCA;
 
-  window_attribute_cookies
-    = SAFE_ALLOCA (sizeof *window_attribute_cookies * nitems);
-  translate_coordinate_cookies
-    = SAFE_ALLOCA (sizeof *translate_coordinate_cookies * nitems);
-  get_property_cookies
-    = SAFE_ALLOCA (sizeof *get_property_cookies * nitems);
-  xm_property_cookies
-    = SAFE_ALLOCA (sizeof *xm_property_cookies * nitems);
-  extent_property_cookies
-    = SAFE_ALLOCA (sizeof *extent_property_cookies * nitems);
-  get_geometry_cookies
-    = SAFE_ALLOCA (sizeof *get_geometry_cookies * nitems);
+  SAFE_NALLOCA (window_attribute_cookies, 1, nitems);
+  SAFE_NALLOCA (translate_coordinate_cookies, 1, nitems);
+  SAFE_NALLOCA (get_property_cookies, 1, nitems);
+  SAFE_NALLOCA (xm_property_cookies, 1, nitems);
+  SAFE_NALLOCA (extent_property_cookies, 1, nitems);
+  SAFE_NALLOCA (get_geometry_cookies, 1, nitems);
 
 #ifdef HAVE_XCB_SHAPE
-  bounding_rect_cookies
-    = SAFE_ALLOCA (sizeof *bounding_rect_cookies * nitems);
+  SAFE_NALLOCA (bounding_rect_cookies, 1, nitems);
 #endif
 
 #ifdef HAVE_XCB_SHAPE_INPUT_RECTS
-  input_rect_cookies
-    = SAFE_ALLOCA (sizeof *input_rect_cookies * nitems);
+  SAFE_NALLOCA (input_rect_cookies, 1, nitems);
 #endif
 
   for (i = 0; i < nitems; ++i)
@@ -20438,8 +20430,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  if (overflow)
 		    {
-		      copy_bufptr = SAFE_ALLOCA ((copy_bufsiz += overflow)
-						 * sizeof *copy_bufptr);
+		      copy_bufsiz += overflow;
+		      copy_bufptr = SAFE_ALLOCA (copy_bufsiz);
 		      overflow = 0;
 
 		      /* Use the original keysym derived from the
@@ -24353,9 +24345,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 						       &overflow);
 			  if (overflow)
 			    {
-			      copy_bufptr
-				= SAFE_ALLOCA ((copy_bufsiz += overflow)
-					       * sizeof *copy_bufptr);
+			      copy_bufsiz += overflow;
+			      copy_bufptr = SAFE_ALLOCA (copy_bufsiz);
 			      overflow = 0;
 
 			      /* Use the original keysym derived from
@@ -24696,7 +24687,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      any_changed = false;
 #endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 	      hev = (XIHierarchyEvent *) xi_event;
-	      disabled = SAFE_ALLOCA (sizeof *disabled * hev->num_info);
+	      SAFE_NALLOCA (disabled, 1, hev->num_info);
 	      n_disabled = 0;
 
 	      for (i = 0; i < hev->num_info; ++i)
@@ -31729,8 +31720,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	}
 
 #ifdef USE_XCB
-      selection_cookies = SAFE_ALLOCA (sizeof *selection_cookies
-				       * num_fast_selections);
+      SAFE_NALLOCA (selection_cookies, 1, num_fast_selections);
 #endif
 
       /* Now, ask for the current owners of all those selections.  */
@@ -32284,7 +32274,7 @@ x_initialize (void)
   Xt_app_con = XtCreateApplicationContext ();
 
   /* Register a converter from strings to pixels, which uses
-     Emacs' color allocation infrastructure.  */
+     Emacs's color allocation infrastructure.  */
   XtAppSetTypeConverter (Xt_app_con,
 			 XtRString, XtRPixel, cvt_string_to_pixel,
 			 cvt_string_to_pixel_args,

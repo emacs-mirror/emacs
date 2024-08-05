@@ -65,7 +65,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    ==== FIXME: bug#58342 some important operations remain slow ===
 
-   The amortized costs of Emacs' previous-overlay-change and
+   The amortized costs of Emacs's previous-overlay-change and
    next-overlay-change functions are O(N) with this data structure.
    The root problem is that we only have an order for the BEG field,
    but not the END.  The previous/next overlay change operations need

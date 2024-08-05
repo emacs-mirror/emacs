@@ -26,6 +26,7 @@
 (require 'dbus)
 
 (defvar dbus-debug)
+(defvar dbus-message-type-signal)
 (declare-function dbus-get-unique-name "dbusbind.c" (bus))
 
 (defconst dbus--test-enabled-session-bus
@@ -732,7 +733,7 @@ is in progress."
     ;; Cleanup.
     (dbus-unregister-service :session dbus--test-service)))
 
-(defun dbus--test-method-authorizable-handler (&rest args)
+(defun dbus--test-method-authorizable-handler (&rest _args)
   "Method handler for `dbus-test04-call-method-authorizable'.
 Returns the respective error."
   `(:error ,dbus-error-interactive-authorization-required
@@ -791,10 +792,10 @@ Returns the respective error."
 
   ;; Check parsing.  "org.freedesktop.DBus.ListNames" is agnostic to
   ;; :authorizable, so we can use it as test method.
-  (unless (dbus-ignore-errors
-            (dbus-call-method
-             :session dbus-service-dbus dbus-path-dbus
-             dbus-interface-dbus "ListNames"))
+  (when (dbus-ignore-errors
+          (dbus-call-method
+           :session dbus-service-dbus dbus-path-dbus
+           dbus-interface-dbus "ListNames"))
     (should
      (dbus-call-method
       :session dbus-service-dbus dbus-path-dbus

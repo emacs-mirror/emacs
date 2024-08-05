@@ -1499,7 +1499,7 @@ case.
 The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax
 table (@pxref{Syntax Class Table}); if @code{case-symbols-as-words}
-is non-nil, characters assigned to the symbol constituent syntax
+is non-@code{nil}, characters assigned to the symbol constituent syntax
 class are also considered as word constituent.
 
 When @var{string-or-char} is a character, this function does the same
@@ -1682,7 +1682,7 @@ Exits}).
   Some language environments modify the case conversions of
 @acronym{ASCII} characters; for example, in the Turkish language
 environment, the @acronym{ASCII} capital I is downcased into
-a Turkish dotless i (@samp{ı}).  This can interfere with code that requires
+a Turkish dotless i (@samp{@dotless{i}}).  This can interfere with code that requires
 ordinary @acronym{ASCII} case conversion, such as implementations of
 @acronym{ASCII}-based network protocols.  In that case, use the
 @code{with-case-table} macro with the variable @var{ascii-case-table},

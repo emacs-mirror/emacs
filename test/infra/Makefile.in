@@ -117,22 +117,19 @@ endef
 
 $(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
 
-# js-tests.el and python-tests.el don't follow test file name convention.
 TREE-SITTER-FILES ?= $(shell cd .. ; \
-  find lisp src \( -name "*-ts-mode-tests.el" -o -name "treesit-tests.el" \
-       -o -name "js-tests.el" -o -name "python-tests.el" \) | \
+  find lisp src -name "*-tests.el" | xargs grep -El "treesit.*-p" | \
   sort | sed s/\\.el/.log/)
 
 all: generate-test-jobs
 
-.PHONY: generate-test-jobs $(FILE) $(SUBDIR_TARGETS) tree-sitter-files-template
+.PHONY: generate-test-jobs $(FILE) $(SUBDIR_TARGETS) tree-sitter-files
 
-generate-test-jobs: $(FILE) $(SUBDIR_TARGETS) tree-sitter-files-template
+generate-test-jobs: $(FILE) $(SUBDIR_TARGETS) tree-sitter-files
 
-tree-sitter-files-template:
+tree-sitter-files:
 	@echo >>$(FILE)
-	@echo "# js-tests.el and python-tests.el don't follow test file name convention." >>$(FILE)
-	@echo '.tree-sitter-files-template:' >>$(FILE)
+	@echo '.tree-sitter-files:' >>$(FILE)
 	@echo '  variables:' >>$(FILE)
 	@echo '    tree_sitter_files: >-' >>$(FILE)
 	@for name in $(TREE-SITTER-FILES) ; do echo "      $${name}" >>$(FILE) ; done

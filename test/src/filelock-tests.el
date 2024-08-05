@@ -68,7 +68,7 @@ unavailable to Lisp."
   "Spoil the lock file for FILE-NAME.
 Cause Emacs to report errors for various file locking operations
 on FILE-NAME going forward.  Create a file that is incompatible
-with Emacs' file locking protocol, but uses the same name as
+with Emacs's file locking protocol, but uses the same name as
 FILE-NAME's lock file.  A directory file is used, which is
 portable in practice."
   (make-directory (filelock-tests--make-lock-name file-name)))

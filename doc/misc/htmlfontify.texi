@@ -751,7 +751,7 @@ should do this.
 (hfy-face-to-css @var{fn})
 @end lisp
 
-Take @var{fn}, a font or @code{defface} specification (c.f.
+Take @var{fn}, a font or @code{defface} specification (cf.
 @code{face-attr-construct}) and return a CSS style specification.
 
 See also: @ref{hfy-face-to-style}
@@ -1167,7 +1167,7 @@ An assoc of @code{(point . @var{face-symbol})} or
 . end)} elements, in descending order of point value (i.e., from the
 file's end to its beginning).  The map is in reverse order because
 inserting a @samp{<style>} tag (or any other string) at @var{point}
-invalidates the map for all entries with a greater value of point. By
+invalidates the map for all entries with a greater value of point.  By
 traversing the map from greatest to least @var{point}, we still
 invalidate the map as we go, but only those points we have already
 dealt with (and therefore no longer care about) will be invalid at any

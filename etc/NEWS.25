@@ -1504,7 +1504,7 @@ permissions set to temporary values (e.g., for creating private files).
 system's name has changed or if the Emacs process has changed systems.
 To avoid long waits it no longer consults DNS to canonicalize the name
 (in some cases this may affect generated message-id headers - customize
-'message-user-fqdn' if this bothers you). The variable 'system-name'
+'message-user-fqdn' if this bothers you).  The variable 'system-name'
 is now obsolete.
 
 ** Function 'write-region' no longer outputs "Wrote FILE" in batch mode.

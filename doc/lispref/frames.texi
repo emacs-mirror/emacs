@@ -589,7 +589,7 @@ The @dfn{external border} is part of the decorations supplied by the
 window manager.  It is typically used for resizing the frame with the
 mouse and is therefore not shown on ``fullboth'' and maximized frames
 (@pxref{Size Parameters}).  Its width is determined by the window
-manager and cannot be changed by Emacs' functions.
+manager and cannot be changed by Emacs's functions.
 
 External borders don't exist on text terminal frames.  For graphical
 frames, their display can be suppressed by setting the
@@ -2283,7 +2283,7 @@ it on an undecorated frame.
 If non-@code{nil}, this means that this is an @dfn{override redirect}
 frame---a frame not handled by window managers under X@.  Override
 redirect frames have no window manager decorations, can be positioned
-and resized only via Emacs' positioning and resizing functions and are
+and resized only via Emacs's positioning and resizing functions and are
 usually drawn on top of all other frames.  Setting this parameter has
 no effect on MS-Windows.
 
@@ -2780,7 +2780,7 @@ visible, even though only the selected one is actually displayed.
 @end defun
 
 @defun frame-list-z-order &optional display
-This function returns a list of Emacs' frames, in Z (stacking) order
+This function returns a list of Emacs's frames, in Z (stacking) order
 (@pxref{Raising and Lowering}).  The optional argument @var{display}
 specifies which display to poll.  @var{display} should be either a frame
 or a display name (a string).  If omitted or @code{nil}, that stands for
@@ -3157,7 +3157,7 @@ A frame on a graphical display may be @dfn{visible}, @dfn{invisible}, or
 usual manner.  If it is iconified, its contents are not displayed, but
 there is a little icon somewhere to bring the frame back into view (some
 window managers refer to this state as @dfn{minimized} rather than
-@dfn{iconified}, but from Emacs' point of view they are the same thing).
+@dfn{iconified}, but from Emacs's point of view they are the same thing).
 If a frame is invisible, it is not displayed at all.
 
 @cindex mapped frame
@@ -4678,7 +4678,7 @@ A unibyte string containing data in a certain MIME type.
 @end table
 @end defvar
 
-  A call to @code{gui-get-selection} generally returns the the data
+  A call to @code{gui-get-selection} generally returns the data
 named @var{data-type} within the selection message, albeit with
 @var{data-type} replaced by an alternative name should it be one of
 the following X selection targets:

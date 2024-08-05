@@ -189,7 +189,7 @@ Alternatively, return nil if the clipboard is empty.  */)
   const char *data;
 
   if (!android_init_gui)
-    error ("No Android display connection!");
+    error ("No Android display connection");
 
   method = clipboard_class.get_clipboard;
   text
@@ -258,7 +258,7 @@ for.  Use `android-browse-url' instead.  */)
   Lisp_Object value;
 
   if (!android_init_gui)
-    error ("No Android display connection!");
+    error ("No Android display connection");
 
   CHECK_STRING (url);
   value = android_browse_url (url, send);
@@ -290,7 +290,7 @@ data type available from the clipboard.  */)
   Lisp_Object targets, tem;
 
   if (!android_init_gui)
-    error ("No Android display connection!");
+    error ("No Android display connection");
 
   targets = Qnil;
   block_input ();
@@ -544,7 +544,7 @@ does not have any corresponding data.  In that case, use
   char *buffer, *start;
 
   if (!android_init_gui)
-    error ("No Android display connection!");
+    error ("No Android display connection");
 
   CHECK_STRING (type);
 
@@ -1003,7 +1003,7 @@ usage: (android-notifications-notify &rest ARGS) */)
   AUTO_STRING (default_icon, "ic_dialog_alert");
 
   if (!android_init_gui)
-    error ("No Android display connection!");
+    error ("No Android display connection");
 
   /* Clear each variable above.  */
   title = body = replaces_id = group = icon = urgency = actions = Qnil;

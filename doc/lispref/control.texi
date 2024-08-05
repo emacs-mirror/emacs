@@ -1037,11 +1037,11 @@ For example, the following is invalid:
 
 @group
 Enter an integer: 42
-@error{} Symbol’s value as variable is void: o-num
+@error{} Symbol's value as variable is void: o-num
 @end group
 @group
 Enter an integer: 149
-@error{} Symbol’s value as variable is void: e-num
+@error{} Symbol's value as variable is void: e-num
 @end group
 @end example
 
@@ -1888,7 +1888,7 @@ These examples show typical uses of @code{error}:
 
 @group
 (error "Invalid name `%s'" "A%%B")
-     @error{} Invalid name ‘A%%B’
+     @error{} Invalid name `A%%B'
 @end group
 @end example
 

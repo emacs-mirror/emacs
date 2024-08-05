@@ -109,7 +109,7 @@ described in the @ref{Top, Semantic Manual, Semantic Manual, semantic}.
 @chapter Wisent Overview
 
 @dfn{Wisent} (the European Bison) is an implementation in Emacs Lisp
-of the GNU Compiler Compiler Bison. Its code is a port of the C code
+of the GNU Compiler Compiler Bison.  Its code is a port of the C code
 of GNU Bison 1.28 & 1.31.
 
 For more details on the basic concepts for understanding Wisent, it is
@@ -1795,12 +1795,12 @@ environment.
 @samp{grammar} rule.  The semantic action uses the @code{TAG} macro to
 produce a raw tag, automagically expanded by @semantic{}.
 
-But @samp{rules} part is parsed in Bison style! Why?
+But @samp{rules} part is parsed in Bison style!  Why?
 
 Rule delimiters are the colon (@code{:}), that follows the nonterminal
 name, and a final semicolon (@code{;}).  Unfortunately these
 delimiters are not @code{open-paren}/@code{close-paren} type, and the
-Emacs' syntactic analyzer can't easily isolate data between them to
+Emacs syntactic analyzer can't easily isolate data between them to
 produce a @samp{RULES_PART} parenthesis-block-like lexical token.
 Consequently it is not possible to use @code{EXPANDFULL} to iterate in
 @samp{RULES_PART}, like this:

@@ -7114,7 +7114,7 @@ comment at the start of cc-engine.el for more info."
 	       "\\(?:\\\\\\(?:.\\|\n\\)\\|[^\"\n\\]\\)*[\"\n]" nil 'stay)))
 	 ((memq lit-type '(c c++))
 	  ;; To work around a bug in parse-partial-sexp, where effect is given
-	  ;; to the syntax of a backslash, even the the scan starts with point
+	  ;; to the syntax of a backslash, even the scan starts with point
 	  ;; just after it.
 	  (if (and (eq (char-before pt-search) ?\\)
 		   (eq (char-after pt-search) ?\n))
@@ -8771,6 +8771,7 @@ multi-line strings (but not C++, for example)."
   ;; This function might do hidden buffer changes.
 
   (let ((start (point))
+	(old-record-type-identifiers c-record-type-identifiers)
 	(old-found-types (copy-hash-table c-found-types))
 	;; If `c-record-type-identifiers' is set then activate
 	;; recording of any found types that constitute an argument in
@@ -8807,7 +8808,8 @@ multi-line strings (but not C++, for example)."
 		    (nconc c-record-found-types c-record-type-identifiers)))
 	    t)
 
-	(setq c-found-types old-found-types)
+	(setq c-record-type-identifiers old-record-type-identifiers
+	      c-found-types old-found-types)
 	(goto-char start)
 	nil))))
 

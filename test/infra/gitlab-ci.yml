@@ -294,7 +294,7 @@ build-image-tree-sitter:
 
 test-tree-sitter:
   stage: platforms
-  extends: [.job-template, .test-template, .tree-sitter-template, .tree-sitter-files-template]
+  extends: [.job-template, .test-template, .tree-sitter-template, .tree-sitter-files]
   needs:
     - job: build-image-tree-sitter
       optional: true

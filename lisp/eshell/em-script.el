@@ -106,20 +106,29 @@ Comments begin with `#'."
          (eshell--source-file file args subcommand-p)))
 
 ;;;###autoload
-(defun eshell-execute-file (file &optional args destination)
+(defun eshell-execute-file (file &optional args output-target error-target)
   "Execute a series of Eshell commands in FILE, passing ARGS.
-If DESTINATION is t, write the command output to the current buffer.  If
-nil, don't write the output anywhere.  For any other value, output to
-the corresponding Eshell target (see `eshell-get-target').
+If OUTPUT-TARGET is t (interactively, with the prefix argument), write
+the command's standard output to the current buffer at point.  If nil,
+don't write the output anywhere.  For any other value, output to that
+Eshell target (see `eshell-get-target').
+
+ERROR-TARGET is similar to OUTPUT-TARGET, except that it controls where
+to write standard error, and a nil value means to write standard error
+to the same place as standard output.  (To suppress standard error, you
+can write to the Eshell virtual target \"/dev/null\".)
 
 Comments begin with `#'."
+  (interactive (list (read-file-name "Execute file: " nil nil t)
+                     nil (not (not current-prefix-arg))))
   (let ((eshell-non-interactive-p t)
-        (stdout (if (eq destination t) (current-buffer) destination)))
+        (stdout (if (eq output-target t) (current-buffer) output-target))
+        (stderr (if (eq error-target t) (current-buffer) error-target)))
     (with-temp-buffer
       (eshell-mode)
       (eshell-do-eval
        `(let ((eshell-current-handles
-               (eshell-create-handles ,stdout 'insert))
+               (eshell-create-handles ,stdout 'insert ,stderr 'insert))
               (eshell-current-subjob-p))
           ,(eshell--source-file file args))
        t))))

@@ -323,8 +323,8 @@
   "Non-nil means: visit the file in view (read-only) mode.
 This is set automatically if the file permissions don't let you write it.")
 
-(defvar forms-multi-line "\C-k" "\
-If not nil: use this character to separate multi-line fields (default C-k).")
+(defvar forms-multi-line "\C-k"
+  "If non-nil, use this character to separate multi-line fields (default \\`C-k').")
 
 (defcustom forms-forms-scroll nil
   "Non-nil means replace scroll-up/down commands in Forms mode.

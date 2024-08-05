@@ -46,6 +46,12 @@
   :safe 'integerp
   :group 'go)
 
+(defcustom go-ts-mode-build-tags nil
+  "List of Go build tags for the test commands."
+  :version "31.1"
+  :type '(repeat string)
+  :group 'go)
+
 (defvar go-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?+   "."      table)
@@ -242,7 +248,10 @@
 (defvar-keymap go-ts-mode-map
   :doc "Keymap used in Go mode, powered by tree-sitter"
   :parent prog-mode-map
-  "C-c C-d" #'go-ts-mode-docstring)
+  "C-c C-d" #'go-ts-mode-docstring
+  "C-c C-t t" #'go-ts-mode-test-function-at-point
+  "C-c C-t f" #'go-ts-mode-test-this-file
+  "C-c C-t p" #'go-ts-mode-test-this-package)
 
 ;;;###autoload
 (define-derived-mode go-ts-mode prog-mode "Go"
@@ -374,6 +383,83 @@ comment already exists, jump to it."
      ;; treesit-node-at can return nodes after point
      (<= (treesit-node-start node) point (treesit-node-end node))
      (string-equal "comment" (treesit-node-type node)))))
+
+(defun go-ts-mode--get-build-tags-flag ()
+  "Return the compile flag for build tags.
+This function respects the `go-ts-mode-build-tags' variable for
+specifying build tags."
+  (if go-ts-mode-build-tags
+      (format "-tags %s" (string-join go-ts-mode-build-tags ","))
+    ""))
+
+(defun go-ts-mode--compile-test (regexp)
+  "Compile the tests matching REGEXP.
+This function respects the `go-ts-mode-build-tags' variable for
+specifying build tags."
+  (compile (format "go test -v %s -run '%s'"
+                   (go-ts-mode--get-build-tags-flag)
+                   regexp)))
+
+(defun go-ts-mode--find-defun-at (start)
+  "Return the first defun node from START."
+  (let ((thing (or treesit-defun-type-regexp 'defun)))
+    (or (treesit-thing-at start thing)
+        (treesit-thing-next start thing))))
+
+(defun go-ts-mode--get-function-regexp (name)
+  (if name
+      (format "^%s$" name)
+    (error "No test function found")))
+
+(defun go-ts-mode--get-functions-in-range (start end)
+  "Return a list with the names of all defuns in the range START to END."
+  (let* ((node (go-ts-mode--find-defun-at start))
+         (name (treesit-defun-name node))
+         (node-start (treesit-node-start node))
+         (node-end (treesit-node-end node)))
+    (cond ((or (not node)
+               (> start node-end)
+               (< end node-start))
+           nil)
+          ((or (not (equal (treesit-node-type node) "function_declaration"))
+               (not (string-prefix-p "Test" name)))
+           (go-ts-mode--get-functions-in-range (treesit-node-end node) end))
+          (t
+           (cons (go-ts-mode--get-function-regexp name)
+                 (go-ts-mode--get-functions-in-range (treesit-node-end node) end))))))
+
+(defun go-ts-mode--get-test-regexp-at-point ()
+  "Return a regular expression for the tests at point.
+If region is active, the regexp will include all the functions under the
+region."
+  (if-let ((range (if (region-active-p)
+                      (list (region-beginning) (region-end))
+                    (list (point) (point))))
+           (funcs (apply #'go-ts-mode--get-functions-in-range range)))
+      (string-join funcs "|")
+    (error "No test function found")))
+
+(defun go-ts-mode-test-function-at-point ()
+  "Run the unit test at point.
+If the point is anywhere in the test function, that function will be
+run.  If the region is selected, all the functions under the region will
+be run."
+  (interactive)
+  (go-ts-mode--compile-test (go-ts-mode--get-test-regexp-at-point)))
+
+(defun go-ts-mode-test-this-file ()
+  "Run all the unit tests in the current file."
+  (interactive)
+  (if-let ((defuns (go-ts-mode--get-functions-in-range (point-min) (point-max))))
+      (go-ts-mode--compile-test (string-join defuns "|"))
+    (error "No test functions found in the current file")))
+
+(defun go-ts-mode-test-this-package ()
+  "Run all the unit tests under the current package."
+  (interactive)
+  (compile (format "go test -v %s -run %s"
+                   (go-ts-mode--get-build-tags-flag)
+                   default-directory)))
 
 ;; go.mod support.
 

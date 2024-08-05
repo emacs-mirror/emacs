@@ -1122,7 +1122,7 @@ and leave settings for other languages unchanged."
                        (t current-value))))))
 
 (defun treesit-add-font-lock-rules (rules &optional how feature)
-  "Add font-lock RULES to the current buffer
+  "Add font-lock RULES to the current buffer.
 
 RULES should be the return value of `treesit-font-lock-rules'.  RULES
 will be enabled and added to `treesit-font-lock-settings'.
@@ -1413,7 +1413,8 @@ For RANGES and PARSER see `treesit-parser-add-notifier'.
 After the parser reparses, we get the changed ranges, and
 1) update non-primary parsers' ranges in the changed ranges
 2) mark these ranges as to-be-fontified,
-3) tell syntax-ppss to start reparsing from the min point of the ranges.
+3) tell `syntax-ppss' to start reparsing from the min point of the
+   ranges.
 
 We need to mark to-be-fontified ranges before redisplay starts working,
 because sometimes the range edited by the user is not the only range
@@ -2976,7 +2977,7 @@ instead of emitting a warning."
     (catch 'term
       (when (not (treesit-available-p))
         (setq msg (if (fboundp 'treesit-node-p)
-                      ;; Windows loads tree-sitter dynakically.
+                      ;; Windows loads tree-sitter dynamically.
                       "tree-sitter library is not available or failed to load"
                     "Emacs is not compiled with tree-sitter library"))
         (throw 'term nil))

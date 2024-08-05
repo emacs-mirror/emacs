@@ -5837,7 +5837,7 @@ Mail a very wide reply to the author of the current article
 (@code{gnus-summary-very-wide-reply}).  A @dfn{very wide reply} is a
 reply that goes out to all people listed in the @code{To}, @code{From}
 (or @code{Reply-To}) and @code{Cc} headers in all the process/prefixed
-articles. This command uses the process/prefix convention.  If given a
+articles.  This command uses the process/prefix convention.  If given a
 prefix argument, the body of the current article will also be yanked.
 
 @item S V
@@ -7424,7 +7424,7 @@ meaningful.  Here's one example:
 @end lisp
 
 And another example:  the protonmail bridge adds fake message-ids to
-@code{References} in message headers, which can confuse threading. To
+@code{References} in message headers, which can confuse threading.  To
 remove these spurious ids
 
 @lisp
@@ -10558,7 +10558,7 @@ course, it'll make group entry somewhat slow.
 
 @vindex gnus-refer-thread-use-search
 If @code{gnus-refer-thread-use-search} is @code{nil} (the default)
-then thread-referral only looks for articles in the current group. If
+then thread-referral only looks for articles in the current group.  If
 this variable is @code{t} the server to which the current group
 belongs is searched (provided that searching is available for the
 server's backend).  If this variable is a list of servers, each server
@@ -11513,7 +11513,7 @@ even with @sc{xover} by registering the @code{Xref} lines of all
 articles you actually read, but if you kill the articles, or just mark
 them as read without reading them, Gnus will not get a chance to snoop
 the @code{Xref} lines out of these articles, and will be unable to use
-the cross reference mechanism.
+the cross-reference mechanism.
 
 @cindex LIST overview.fmt
 @cindex overview.fmt
@@ -12075,7 +12075,7 @@ article buffer.  There are many methods for doing that, but two of
 them are kind of default methods.
 
 If your Emacs copy has been built with libxml2 support, then Gnus uses
-Emacs' built-in, plain elisp Simple HTML Renderer @code{shr}
+Emacs's built-in, plain elisp Simple HTML Renderer @code{shr}
 @footnote{@code{shr} displays colors as declared in the @acronym{HTML}
 article but tries to adjust them in order to be readable.  If you
 prefer more contrast, @xref{FAQ 4-16}.} which is also used by Emacs'
@@ -14706,7 +14706,7 @@ Here's a complete example @code{nnimap} backend with a client-side
 
 If you're using Google's Gmail, you may want to see your Gmail labels
 when reading your mail.  Gnus can give you this information if you ask
-for @samp{X-GM-LABELS} in the variable @code{gnus-extra-headers}. For
+for @samp{X-GM-LABELS} in the variable @code{gnus-extra-headers}.  For
 example:
 
 @example
@@ -15387,7 +15387,7 @@ corresponding keywords.
 
 @item :mailbox
 The name of the mailbox to get mail from.  The default is @samp{INBOX}
-which normally is the mailbox which receives incoming mail. Instead of
+which normally is the mailbox which receives incoming mail.  Instead of
 a single mailbox, this can be a list of mailboxes to fetch mail from.
 
 @item :predicate
@@ -19842,7 +19842,8 @@ may ask:
 @table @dfn
 @item If I read an article while plugged, do they get entered into the Agent?
 
-@strong{No}.  If you want this behavior, add
+Yes, because of the default value of
+@code{gnus-agent-eagerly-store-articles}.  An alternative is to add
 @code{gnus-agent-fetch-selected-article} to
 @code{gnus-select-article-hook}.
 
@@ -20601,7 +20602,7 @@ key will lead to creation of @file{ADAPT} files.)
 @cindex score file atoms
 @item score-fn
 The value of this entry should be one or more user-defined function
-names in parentheses. Each function will be called in order and the
+names in parentheses.  Each function will be called in order and the
 returned value is required to be an integer.
 
 @example
@@ -22354,7 +22355,7 @@ calling @code{nnmairix-search} with @samp{f:From}.
 @item G G o
 @kindex G G o @r{(Summary)}
 @findex nnmairix-goto-original-article
-(Only in @code{nnmairix} groups!) Tries determine the group this article
+(Only in @code{nnmairix} groups!)  Tries determine the group this article
 originally came from and displays the article in this group, so that,
 e.g., replying to this article the correct posting styles/group
 parameters are applied (@code{nnmairix-goto-original-article}).  This
@@ -26640,13 +26641,13 @@ data across multiple machines.
 
 Very often, you want all your marks (what articles you've read, which
 ones were important, and so on) to be synchronized between several
-machines. With IMAP, that's built into the protocol, so you can read
+machines.  With IMAP, that's built into the protocol, so you can read
 nnimap groups from many machines and they are automatically
-synchronized. But NNTP, nnrss, and many other backends do not store
+synchronized.  But NNTP, nnrss, and many other backends do not store
 marks, so you have to do it locally.
 
 The Gnus Cloud package stores the marks, plus any files you choose, on
-an IMAP server in a special folder. It's like a
+an IMAP server in a special folder.  It's like a
 DropTorrentSyncBoxOakTree(TM).@footnote{The name ``Gnus Cloud''
 parodizes but otherwise has little to do with ``cloud computing'', a
 @url{https://www.gnu.org/philosophy/words-to-avoid.html#CloudComputing,
@@ -26660,17 +26661,17 @@ misleading term normally best avoided}.}
 @node Gnus Cloud Setup
 @subsection Gnus Cloud Setup
 
-Setting up the Gnus Cloud takes less than a minute. From the Group
+Setting up the Gnus Cloud takes less than a minute.  From the Group
 buffer:
 
-Press @kbd{^} to go to the Server buffer. Here you'll see all the
+Press @kbd{^} to go to the Server buffer.  Here you'll see all the
 servers that Gnus knows. @xref{Server Buffer}.
 
 Then press @kbd{i} to mark any servers as cloud-synchronized (their marks are synchronized).
 
 Then press @kbd{I} to mark a single server as the cloud host (it must
 be an IMAP server, and will host a special IMAP folder with all the
-synchronization data). This will set the variable
+synchronization data).  This will set the variable
 @code{gnus-cloud-method} (using the Customize facilities), then ask
 you to optionally upload your first CloudSynchronizationDataPack(TM).
 
@@ -26690,37 +26691,37 @@ Download the latest Gnus Cloud data.
 @item ~ ~
 @findex gnus-cloud-upload-all-data
 @cindex cloud, download
-Upload the local Gnus Cloud data. Creates a new
+Upload the local Gnus Cloud data.  Creates a new
 CloudSynchronizationDataPack(TM).
 
 @end table
 
-But wait, there's more. Of course there's more. So much more. You can
+But wait, there's more.  Of course there's more.  So much more.  You can
 customize all of the following.
 
 @defvar gnus-cloud-synced-files
 These are the files that will be part of every
-CloudSynchronizationDataPack(TM). They are included in every upload,
-so don't synchronize a lot of large files. Files under 100Kb are best.
+CloudSynchronizationDataPack(TM).  They are included in every upload,
+so don't synchronize a lot of large files.  Files under 100Kb are best.
 @end defvar
 
 @defvar gnus-cloud-storage-method
-This is a choice from several storage methods. It's highly recommended
-to use the EPG facilities. It will be automatic if have GnuPG
-installed and EPG loaded. Otherwise, you could use Base64+gzip,
+This is a choice from several storage methods.  It's highly recommended
+to use the EPG facilities.  It will be automatic if have GnuPG
+installed and EPG loaded.  Otherwise, you could use Base64+gzip,
 Base64, or no encoding.
 @end defvar
 
 @defvar gnus-cloud-interactive
 When this is set, and by default it is, the Gnus Cloud package will
-ask you for confirmation here and there. Leave it on until you're
+ask you for confirmation here and there.  Leave it on until you're
 comfortable with the package.
 @end defvar
 
 
 @defvar gnus-cloud-method
 The name of the IMAP server to store the
-CloudSynchronizationDataPack(TM)s. It's easiest to set this from the
+CloudSynchronizationDataPack(TM)s.  It's easiest to set this from the
 Server buffer (@pxref{Gnus Cloud Setup}).
 @end defvar
 

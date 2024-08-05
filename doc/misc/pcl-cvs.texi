@@ -730,7 +730,7 @@ positioned on a directory all files in that directory are marked
 (@code{cvs-mode-mark}).
 
 @item u
-Unmark the file that the cursor is positioned on. If the cursor is on a
+Unmark the file that the cursor is positioned on.  If the cursor is on a
 directory, all files in that directory are unmarked
 (@code{cvs-mode-unmark}).
 

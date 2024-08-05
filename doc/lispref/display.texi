@@ -2385,9 +2385,11 @@ The optional arguments @var{x-limit} and @var{y-limit} have the same
 meaning as with @code{window-text-pixel-size}.
 @end defun
 
-@defun string-pixel-width string
+@defun string-pixel-width string &optional buffer
 This is a convenience function that uses @code{window-text-pixel-size}
-to compute the width of @var{string} (in pixels).
+to compute the width of @var{string} (in pixels).  If @var{buffer} is
+non-@code{nil}, use any face remappings (@pxref{Face Remapping}) from
+that buffer when computing the width of @var{string}.
 @end defun
 
 @defun line-pixel-height
@@ -2771,7 +2773,7 @@ width of the vertical and horizontal lines to draw; they default to (1
 . 1).  A negative horizontal or vertical width @minus{}@var{n} means
 to draw a line of width @var{n} that occupies the space of the
 underlying text, thus avoiding any increase in the character height or
-width. For simplification the width could be specified with only a
+width.  For simplification the width could be specified with only a
 single number @var{n} instead of a list, such case is equivalent to
 @code{((abs @var{n}) . @var{n})}.
 
@@ -6179,7 +6181,7 @@ or @code{:flip} is changed.
 If @code{:original-map} is not specified when creating an image with
 @code{create-image}, it will be computed based on the supplied
 @code{:map}, as well as any of @code{:scale}, @code{:rotation}, or
-@code{:flip} which are non-nil.
+@code{:flip} which are non-@code{nil}.
 
 Conversely, if @code{:original-map} is specified but @code{:map} is not,
 @code{:map} will be computed based on @code{:original-map},
@@ -6708,7 +6710,7 @@ Draw vertical lines.
 @end deffn
 
 @deffn Command curveto coordinate-sets
-Using the first element in @var{coordinate-sets}, draw a cubic Bézier
+Using the first element in @var{coordinate-sets}, draw a cubic B@'ezier
 curve from the current point.  If there are multiple coordinate sets,
 draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x1} @var{y1} @var{x2} @var{y2} @var{x} @var{y})}, where
@@ -6725,7 +6727,7 @@ beginning and at the end, respectively.
 @end deffn
 
 @deffn Command smooth-curveto coordinate-sets
-Using the first element in @var{coordinate-sets}, draw a cubic Bézier
+Using the first element in @var{coordinate-sets}, draw a cubic B@'ezier
 curve from the current point.  If there are multiple coordinate sets,
 draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x2} @var{y2} @var{x} @var{y})}, where @w{(@var{x},
@@ -6746,7 +6748,7 @@ coincides with the current point.
 
 @deffn Command quadratic-bezier-curveto coordinate-sets
 Using the first element in @var{coordinate-sets}, draw a quadratic
-Bézier curve from the current point.  If there are multiple coordinate
+B@'ezier curve from the current point.  If there are multiple coordinate
 sets, draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x1} @var{y1} @var{x} @var{y})}, where @w{(@var{x},
 @var{y})} is the curve's end point and @w{(@var{x1}, @var{y1})} is the
@@ -6764,7 +6766,7 @@ control point.
 
 @deffn Command smooth-quadratic-bezier-curveto coordinate-sets
 Using the first element in @var{coordinate-sets}, draw a quadratic
-Bézier curve from the current point.  If there are multiple coordinate
+B@'ezier curve from the current point.  If there are multiple coordinate
 sets, draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x} @var{y})}, where @w{(@var{x}, @var{y})} is the curve's
 end point.  The control point is the reflection of the control point
@@ -7095,7 +7097,9 @@ buffer's text.
 
 Internally, this function creates an overlay, and gives it a
 @code{before-string} property containing text that has a @code{display}
-property whose value is the image.  (Whew! that was a mouthful@dots{})
+property whose value is the image.  (Whew! that was a mouthful@dots{}).
+It returns the created overlay upon success, and also sets its
+@code{put-image} property to @code{t}.
 @end defun
 
 @defun remove-images start end &optional buffer

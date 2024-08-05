@@ -531,6 +531,7 @@ Many aspects this mode can be customized using
   (setq-local comment-end-skip "[ \t\r\n]*-->")
   (setq-local comment-line-break-function #'nxml-newline-and-indent)
   (setq-local comment-quote-nested-function #'nxml-comment-quote-nested)
+  (setq-local comment-continue "") ; avoid double-hyphens as a padding
   (save-excursion
     (save-restriction
       (widen)

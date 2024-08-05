@@ -3,11 +3,10 @@
 ;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: sequences
 ;; Version: 1.0
 ;; Package: thunk
-
-;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
 

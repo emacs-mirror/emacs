@@ -271,6 +271,10 @@ Image filename chosen can be customized by setting
 ~org-yank-image-file-name-function~ which by default autogenerates a
 filename based on the current time.
 
+Note that ~yank-media~, as of Emacs 30, does not yet support Windows
+(Emacs bug#71909) and may not be always reliable on Mac (Emacs
+bug#71731).
+
 *** Files and images can be attached by dropping onto Emacs
 
 By default, Org asks the user what to do with the dropped file like
@@ -556,7 +560,7 @@ The old name is obsolete.
 
 ** New and changed options
 
-# Chanes deadling with changing default values of customizations,
+# Changes dealing with changing default values of customizations,
 # adding new customizations, or changing the interpretation of the
 # existing customizations.
 
@@ -619,7 +623,7 @@ This new hook runs when a note has been stored.
 Sorting of agenda items, tables, menus, headlines, etc can now be
 controlled using a new custom option ~org-sort-function~.
 
-By default, Org mode sorts things according to the operation system
+By default, Org mode sorts things according to the operating system
 language.  However, language sorting rules may or may not produce good
 results depending on the use case.  For example, multi-language
 documents may be sorted weirdly when sorting rules for system language
@@ -689,8 +693,8 @@ Org-Org (=ox-org=) export.  The default value is ~t~.
 
 *** New option ~org-babel-comint-fallback-regexp-threshold~
 
-Org babel is often using Emacs' interactive REPL feature to implement
-:session functionality in code blocks. However, Emacs' REPLs use
+Org babel is often using Emacs's interactive REPL feature to implement
+:session functionality in code blocks.  However, Emacs's REPLs use
 heuristics to detect which lines in the REPL buffer correspond to
 output and which lines are user prompts.
 
@@ -1986,7 +1990,7 @@ When ~org-latex-src-block-backend~ is set to ~engraved~,
 =engrave-faces-latex= from [[http://elpa.gnu.org/packages/engrave-faces.html][engrave-faces]] is used to transcode source
 blocks to LaTeX. This requires the =fvextra=, =float=, and (by
 default, but not necessarily) =tcolorbox= LaTeX packages be
-installed. It uses Emacs' font-lock information, and so tends to
+installed. It uses Emacs's font-lock information, and so tends to
 produce results superior to Minted or Listings.
 *** Support for =#+include=-ing URLs
 
@@ -8177,7 +8181,7 @@ that Calc formulas can operate on them.
 
 **** org-ctags.el (Paul Sexton)
 
-     Targets like =<<my target>>= can now be found by Emacs' etag
+     Targets like =<<my target>>= can now be found by Emacs's etag
      functionality, and Org-mode links can be used to link to
      etags, also in non-Org-mode files.  For details, see the file
      /org-ctags.el/.

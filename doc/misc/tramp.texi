@@ -892,9 +892,9 @@ a predefined timeout.
 @cindex method @option{run0}
 @cindex @option{run0} method
 
-This method is used on @code{systemd}-based hosts.  Internally, it
-uses the @code{systemd-run} command.  A @option{run0} connection is
-disabled after a predefined timeout as well.
+@c This requires systemd 256.  Check with 'systemd-run --version'.
+This method is used on @code{systemd}-based hosts.  A @option{run0}
+connection is disabled after a predefined timeout as well.
 
 This is an optional method, @pxref{Optional methods}.
 
@@ -999,9 +999,11 @@ if desired.
 @cindex @option{kubernetes} method
 
 Integration for containers in Kubernetes pods.  The host name is
-@samp{@var{pod}}, or @samp{@var{container}.@var{pod}} if an
-explicit container name shall be used.  Otherwise, the first container
-in a pod is used.
+@samp{@var{pod}}, or @samp{@var{container}.@var{pod}} if an explicit
+container name shall be used.  Otherwise, the first container in a pod
+is used.  @samp{@var{pod}%@var{namespace}} as host name allows to use
+another namespace but the default one.  This can also be combined with
+the @samp{@var{container}.} prefix.
 
 This method does not support user names.
 
@@ -3246,7 +3248,9 @@ by setting the pod annotation
 @vindex tramp-kubernetes-namespace
 @value{tramp} uses the default Kubernetes context and namespace.  If
 another context or namespace shall be used, configure the user options
-@code{tramp-kubernetes-context} and @code{tramp-kubernetes-namespace}.
+@code{tramp-kubernetes-context} or @code{tramp-kubernetes-namespace},
+respectively.  An explicit @samp{%@var{namespace}} postfix in the host
+name takes precedence.
 
 
 @node Auto-save File Lock and Backup
@@ -3361,11 +3365,10 @@ files, set user option
 @code{remote-file-name-inhibit-auto-save-visited} to non-@code{nil}.
 
 @vindex lock-file-name-transforms
-And still more issues to handle.  Since @w{Emacs 28}, file locks use a
-similar user option as auto-save files, called
-@code{lock-file-name-transforms}.  By default this user option is
-@code{nil}, meaning to keep file locks in the same directory as the
-original file.
+And still more issues to handle.  File locks use a similar user option
+as auto-save files, called @code{lock-file-name-transforms}.  By
+default this user option is @code{nil}, meaning to keep file locks in
+the same directory as the original file.
 
 If you change @code{lock-file-name-transforms} in order to keep file
 locks for remote files somewhere else, you will lose Emacs's feature
@@ -4580,6 +4583,11 @@ It does not report the remote terminal name via @code{process-tty-name}.
 
 @item
 It does not set process property @code{remote-pid}.
+
+@item
+It fails, when the command is too long.  This can happen on
+directories with a long directory name, or when the remote @env{PATH}
+and/or other environment variables, which must be set, are too long.
 @end itemize
 
 In order to gain even more performance, it is recommended to bind
@@ -5149,8 +5157,8 @@ Where is the latest @value{tramp}?
 @item
 Which systems does it work on?
 
-The package works successfully on @w{Emacs 27}, @w{Emacs 28}, @w{Emacs
-29}, and @w{Emacs 30}.
+The package works successfully on @w{Emacs 28}, @w{Emacs 29}, @w{Emacs
+30}, and @w{Emacs 31}.
 
 While Unix and Unix-like systems are the primary remote targets,
 @value{tramp} has equal success connecting to other platforms, such as

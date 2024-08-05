@@ -145,9 +145,19 @@ make_neg_biguint (uintmax_t n)
 Lisp_Object
 make_integer_mpz (void)
 {
+  if (FASTER_BIGNUM && mpz_fits_slong_p (mpz[0]))
+    {
+      long int v = mpz_get_si (mpz[0]);
+      if (!FIXNUM_OVERFLOW_P (v))
+	return make_fixnum (v);
+    }
+
   size_t bits = mpz_sizeinbase (mpz[0], 2);
 
-  if (bits <= FIXNUM_BITS)
+  if (! (FASTER_BIGNUM
+	 && FIXNUM_OVERFLOW_P (LONG_MIN)
+	 && FIXNUM_OVERFLOW_P (LONG_MAX))
+      && bits <= FIXNUM_BITS)
     {
       EMACS_INT v = 0;
       int i = 0, shift = 0;
@@ -216,6 +226,17 @@ mpz_set_uintmax_slow (mpz_t result, uintmax_t v)
 bool
 mpz_to_intmax (mpz_t const z, intmax_t *pi)
 {
+  if (FASTER_BIGNUM)
+    {
+      if (mpz_fits_slong_p (z))
+	{
+	  *pi = mpz_get_si (z);
+	  return true;
+	}
+      if (LONG_MIN <= INTMAX_MIN && INTMAX_MAX <= LONG_MAX)
+	return false;
+    }
+
   ptrdiff_t bits = mpz_sizeinbase (z, 2);
   bool negative = mpz_sgn (z) < 0;
 
@@ -246,6 +267,17 @@ mpz_to_intmax (mpz_t const z, intmax_t *pi)
 bool
 mpz_to_uintmax (mpz_t const z, uintmax_t *pi)
 {
+  if (FASTER_BIGNUM)
+    {
+      if (mpz_fits_ulong_p (z))
+	{
+	  *pi = mpz_get_ui (z);
+	  return true;
+	}
+      if (UINTMAX_MAX <= ULONG_MAX)
+	return false;
+    }
+
   if (mpz_sgn (z) < 0)
     return false;
   ptrdiff_t bits = mpz_sizeinbase (z, 2);

@@ -182,7 +182,7 @@ modify this GNU manual.''
 @end quotation
 @end copying
 
-@comment Info directory entry for use by install-info. The indentation
+@comment Info directory entry for use by install-info.  The indentation
 @comment here is by request from the FSF folks.
 @dircategory Emacs editing modes
 @direntry
@@ -1429,7 +1429,7 @@ continuation of the preceding @code{if}.
 @findex abbrev-mode
 @cindex Abbrev mode
 @ccmode{} uses Abbrev mode (@pxref{Abbrevs,,,@emacsman{}, @emacsmantitle{}})
-to accomplish this. It's therefore turned on by default in all language
+to accomplish this.  It's therefore turned on by default in all language
 modes except IDL mode, since CORBA IDL doesn't have any statements.
 @end deffn
 
@@ -2704,7 +2704,7 @@ for C code in GNU programs.
 
 @item k&r
 @cindex K&R style
-The classic Kernighan and Ritchie style for C code. If you're looking
+The classic Kernighan and Ritchie style for C code.  If you're looking
 for the style used in the 2nd edition of their book ``The C
 Programming Language'', then check out the @code{stroustrup} style.
 
@@ -6283,8 +6283,8 @@ returned if there's no template argument on the first line.
 
 @defun c-lineup-template-args-indented-from-margin
 @findex lineup-template-args-indented-from-margin (c-)
-Indent a template argument line `c-basic-offset' from the left-hand
-margin of the line with the containing <.
+Indent a template argument line @code{c-basic-offset} from the
+left-hand margin of the line with the containing <.
 
 @workswith @code{template-args-cont}.
 @end defun
@@ -7591,7 +7591,7 @@ Started}.
 @kindex C-M-\
 @emph{How do I reindent the whole file?}
 
-Visit the file and hit @kbd{C-x h} to mark the whole buffer. Then hit
+Visit the file and hit @kbd{C-x h} to mark the whole buffer.  Then hit
 @kbd{C-M-\}.  @xref{Indentation Commands}.
 
 @item

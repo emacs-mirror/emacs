@@ -34,6 +34,10 @@
 
 (defvar eshell-test-value nil)
 
+(defun eshell-test-replace-command (command &rest args)
+  "Run COMMAND with ARGS by throwing `eshell-replace-command'."
+  (throw 'eshell-replace-command `(eshell-named-command ,command ',args)))
+
 ;;; Tests:
 
 
@@ -113,7 +117,7 @@ bug#59469."
     (with-temp-eshell
      (eshell-match-command-output
       (format "*echo hi > #<%s> &" bufname)
-      (rx "[echo" (? ".exe") "] " (+ digit) "\n"))
+      (rx bos "[echo" (? ".exe") "] " (+ digit) "\n"))
      (eshell-wait-for-subprocess t))
     (should (equal (buffer-string) "hi\n"))))
 
@@ -128,6 +132,18 @@ bug#59469."
       (rx "[echo" (? ".exe") "] " (+ digit) "\n"))
      (eshell-wait-for-subprocess t))
     (should (equal (buffer-string) "olleh\n"))))
+
+(ert-deftest esh-cmd-test/background/kill ()
+  "Make sure that a background command that gets killed doesn't emit a prompt."
+  (skip-unless (executable-find "sleep"))
+  (let ((background-message (rx bos "[sleep" (? ".exe") "] " (+ digit) "\n")))
+    (with-temp-eshell
+      (eshell-match-command-output "*sleep 10 &" background-message)
+      (kill-process (caar eshell-process-list))
+      (eshell-wait-for-subprocess t)
+      ;; Ensure we didn't emit another prompt after killing the
+      ;; background process.
+      (should (eshell-match-output background-message)))))
 
 
 ;; Lisp forms
@@ -252,6 +268,20 @@ This should also wait for the subcommand."
     (eshell-command-result-equal
      (format template "format \"%s\" eshell-in-pipeline-p")
      "nil")))
+
+(ert-deftest esh-cmd-test/pipeline/replace-command ()
+  "Ensure that `eshell-replace-command' doesn't affect Eshell deferral.
+Pipelines want to defer (yield) execution after starting all the
+processes in the pipeline, not before.  This lets us track all the
+processes correctly."
+  (skip-unless (and (executable-find "sleep")
+                    (executable-find "cat")))
+  (with-temp-eshell
+    (eshell-insert-command "eshell-test-replace-command *sleep 1 | cat")
+    ;; Make sure both processes are in `eshell-foreground-command'; this
+    ;; makes sure that the first command (which was replaced via
+    ;; `eshell-replace-command' isn't deferred by `eshell-do-eval'.
+    (should (= (length (cadr eshell-foreground-command)) 2))))
 
 
 ;; Control flow statements
@@ -527,6 +557,17 @@ NAME is the name of the test case."
    (should-not eshell-foreground-command)
    ;; Make sure we can call another command after throwing.
    (eshell-match-command-output "echo again" "\\`again\n")))
+
+(ert-deftest esh-cmd-test/command-not-found/pipeline ()
+  "Ensure that processes are stopped if a command in a pipeline is not found."
+  (skip-when (or (not (executable-find "cat"))
+                 (executable-find "nonexist")))
+  (with-temp-eshell
+    (let ((starting-process-list (process-list)))
+      (eshell-match-command-output "nonexist | *cat"
+                                   "\\`nonexist: command not found\n")
+      (eshell-wait-for-subprocess t)
+      (should (equal (process-list) starting-process-list)))))
 
 
 ;; `which' command

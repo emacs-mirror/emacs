@@ -35,7 +35,7 @@
 eval 'exec perl -wSx "$0" "$@"'
      if 0;
 
-my $VERSION = '2023-06-24 21:59'; # UTC
+my $VERSION = '2024-07-04 10:56'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
@@ -97,6 +97,7 @@ OPTIONS:
    --strip-cherry-pick  remove data inserted by "git cherry-pick";
                   this includes the "cherry picked from commit ..." line,
                   and the possible final "Conflicts:" paragraph.
+   --commit-timezone  use dates respecting the timezone commits were made in.
    --help       display this help and exit
    --version    output version information and exit
 
@@ -247,6 +248,7 @@ sub git_dir_option($)
   my $ignore_line;
   my $strip_tab = 0;
   my $strip_cherry_pick = 0;
+  my $commit_timezone = 0;
   my $srcdir;
   GetOptions
     (
@@ -262,6 +264,7 @@ sub git_dir_option($)
      'ignore-line=s' => \$ignore_line,
      'strip-tab' => \$strip_tab,
      'strip-cherry-pick' => \$strip_cherry_pick,
+     'commit-timezone' => \$commit_timezone,
      'srcdir=s' => \$srcdir,
     ) or usage 1;
 
@@ -274,10 +277,12 @@ sub git_dir_option($)
   # that makes a correction in the log or attribution of that commit.
   my $amend_code = defined $amend_file ? parse_amend_file $amend_file : {};
 
+  my $commit_time_format = $commit_timezone ? '%cI' : '%ct';
   my @cmd = ('git',
              git_dir_option $srcdir,
              qw(log --log-size),
-             '--pretty=format:%H:%ct  %an  <%ae>%n%n'.$format_string, @ARGV);
+             ("--pretty=format:%H:$commit_time_format"
+              . '  %an  <%ae>%n%n'.$format_string, @ARGV));
   open PIPE, '-|', @cmd
     or die ("$ME: failed to run '". quoted_cmd (@cmd) ."': $!\n"
             . "(Is your Git too old?  Version 1.5.1 or later is required.)\n");
@@ -350,17 +355,31 @@ sub git_dir_option($)
       my $author_line = shift @line;
       defined $author_line
         or die "$ME:$.: unexpected EOF\n";
-      $author_line =~ /^(\d+)  (.*>)$/
+      $author_line =~ /^(\S+)  (.*>)$/
         or die "$ME:$.: Invalid line "
           . "(expected date/author/email):\n$author_line\n";
+
+      # Author  <email>
+      my $author = $2;
+
+      my $commit_date = $1;
+      if (! $commit_timezone)
+        {
+          # Seconds since the Epoch.
+          $commit_date = strftime "%Y-%m-%d", localtime ($commit_date);
+        }
+      else
+        {
+          # ISO 8601 date.
+          $commit_date =~ s/T.*$//;
+        }
 
       # Format 'Copyright-paperwork-exempt: Yes' as a standard ChangeLog
       # '(tiny change)' annotation.
       my $tiny = (grep (/^(?:Copyright-paperwork-exempt|Tiny-change):\s+[Yy]es$/, @line)
                   ? '  (tiny change)' : '');
 
-      my $date_line = sprintf "%s  %s$tiny\n",
-        strftime ("%Y-%m-%d", localtime ($1)), $2;
+      my $date_line = "$commit_date  $author$tiny\n";
 
       my @coauthors = grep /^Co-authored-by:.*$/, @line;
       # Omit meta-data lines we've already interpreted.
@@ -507,7 +526,7 @@ sub git_dir_option($)
 # Local Variables:
 # mode: perl
 # indent-tabs-mode: nil
-# eval: (add-hook 'before-save-hook 'time-stamp)
+# eval: (add-hook 'before-save-hook 'time-stamp nil t)
 # time-stamp-line-limit: 50
 # time-stamp-start: "my $VERSION = '"
 # time-stamp-format: "%:y-%02m-%02d %02H:%02M"

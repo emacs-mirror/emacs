@@ -459,7 +459,7 @@ FORMAT and ARGS are passed to `message'."
   ;; With all this in mind, we ensure `write-region-inhibit-fsync' is
   ;; set.
   ;;
-  ;; To read more about this, see the comments in Emacs' fileio.c, in
+  ;; To read more about this, see the comments in Emacs's fileio.c, in
   ;; particular the large comment block in init_fileio.
   (let ((write-region-inhibit-fsync t)
         ;; We set UTF-8 here and in `org-persist--read-elisp-file'
@@ -670,8 +670,8 @@ When INNER is non-nil, do not try to match as list of containers."
                ;; `secure-hash' may trigger interactive dialog when it
                ;; cannot determine the coding system automatically.
                ;; Force coding system that works reliably for any text
-               ;; to avoid it.  The has will be consistent anyway, as
-               ;; long as we use the same coding system.
+               ;; to avoid it.  The hash will be consistent, as long
+               ;; as we use the same coding system.
                (let ((coding-system-for-write 'emacs-internal))
                  (secure-hash 'md5 associated)))
          (puthash associated

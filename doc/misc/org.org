@@ -27,7 +27,7 @@ Authoring Org files is best supported by Emacs, but you can view,
 understand, and change them with any text editor.
 
 As an authoring tool, Org helps you write structured documents and
-provides exporting facilities. Org files can also be used for literate
+provides exporting facilities.  Org files can also be used for literate
 programming and reproducible research.  As a TODO lists manager, Org
 helps you organize your tasks in a flexible way, from daily needs to
 detailed project-planning, allowing logging, multiple views on your
@@ -3359,7 +3359,7 @@ Here is the full set of built-in link types:
 
 - =gnus=, =rmail=, =mhe= ::
 
-  Link to messages or folders from a given Emacs' MUA.
+  Link to messages or folders from a given Emacs MUA.
 
 - =help= ::
 
@@ -11766,7 +11766,7 @@ example
 : ./img/cat.jpg
 
 If you wish to define a caption for the image (see [[*Captions]]) and
-maybe a label for internal cross references (see [[*Internal Links]]),
+maybe a label for internal cross-references (see [[*Internal Links]]),
 make sure that the link is on a line by itself and precede it with
 =CAPTION= and =NAME= keywords as follows:
 
@@ -16552,7 +16552,7 @@ BACKEND is the export backend being used, as a symbol."
    (lambda ()
      (delete-region (point) (line-beginning-position 2))
      ;; We need to tell `org-map-entries' to not skip over heading at
-     ;; point. Otherwise, it would continue from _next_ heading. See
+     ;; point.  Otherwise, it would continue from _next_ heading.  See
      ;; the docstring of `org-map-entries' for details.
      (setq org-map-continue-from (point)))))
 
@@ -17661,7 +17661,7 @@ Org currently includes the following export processors:
   - bibtex :: this export processor uses BibTeX, the historical
     bibliographic processor used with LaTeX, thus allowing the use of
     data and style files compatible with this processor (including a
-    large number of publishers' styles). It only supports LaTeX's
+    large number of publishers' styles).  It only supports LaTeX's
     =\cite= and =\nocite= commands.
 
   - natbib :: as with the bibtex processor, but using the LaTeX
@@ -17706,15 +17706,15 @@ your LaTeX installation, it won't export to anything but PDF.
 #+vindex: org-cite-biblatex-options
 #+texinfo: @noindent
 specifies the =biblatex= export processor with the default =numeric=
-style and the =bibtex= backend. Always define the style first and then
+style and the =bibtex= backend.  Always define the style first and then
 the rest of load-time options for the =biblatex=
-package. Alternatively, you can use the ~key=val,key=val~ format for
+package.  Alternatively, you can use the ~key=val,key=val~ format for
 the options as documented in the =biblatex= package documentation:
 
 : #+cite_export: biblatex backend=bibtex,style=numeric
 
 The ~org-cite-biblatex-options~ variable in your Emacs configuration
-uses this format. It will only export to PDF, since it relies on the
+uses this format.  It will only export to PDF, since it relies on the
 ~biblatex~ processor of your LaTeX installation.
 
 ** Bibliography printing
@@ -19425,10 +19425,10 @@ the tangled file's executable permission.
 The =tangle-mode= header argument specifies what permissions to set
 for tangled files by ~set-file-modes~.  Permissions are given by an
 octal value, which can be provided calling the ~identity~ function on
-an elisp octal value. For instance, to create a read-only file one may
-use =:tangle-mode (identity #o444)=. To reduce the verbosity required,
-a octal shorthand is defined, =oXXX= (=o= for octal). Using this, our
-read-only example is =:tangle-mode o444=. Omitting the =o= prefix will
+an elisp octal value.  For instance, to create a read-only file one may
+use =:tangle-mode (identity #o444)=.  To reduce the verbosity required,
+a octal shorthand is defined, =oXXX= (=o= for octal).  Using this, our
+read-only example is =:tangle-mode o444=.  Omitting the =o= prefix will
 cause the argument to be interpreted as an integer, which can lead to
 unexpected results (=444= is the same as =o674=).
 Two other shorthands are recognized, ls-style strings like
@@ -19437,7 +19437,7 @@ Note that chmod-style permissions are based on
 ~org-babel-tangle-default-file-mode~, which is =#o544= by default.
 
 When =:tangle-mode= and =:shebang= are both specified, the give
-=:tangle-mode= will override the permissions from =:shebang=. When
+=:tangle-mode= will override the permissions from =:shebang=.  When
 multiple source code blocks tangle to a single file with conflicting
 =:tangle-mode= header arguments, Org's behavior is undefined.
 
@@ -23201,7 +23201,7 @@ than 30 stars.  This is a hard-coded limitation of ~lmax~ in
 2003, not the beginning of time.
 
 [fn:29] On computers using macOS, idleness is based on actual user
-idleness, not just Emacs' idle time.  For X11, you can install a
+idleness, not just Emacs's idle time.  For X11, you can install a
 utility program =x11idle.c=, available in the =org-contrib/=
 repository, or install the xprintidle package and set it to the
 variable ~org-clock-x11idle-program-name~ if you are running Debian,

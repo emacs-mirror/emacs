@@ -487,9 +487,9 @@ xfont_list (struct frame *f, Lisp_Object spec)
   if (NILP (list) && NILP (registry))
     {
       /* Try iso10646-1 */
-      char *r = name + len - 9;	/* 9 == strlen (iso8859-1) */
+      char *r = name + len - (sizeof "iso8859-1" - 1);
 
-      if (r - name + 10 < 256)	/* 10 == strlen (iso10646-1) */
+      if (r - name + (sizeof "iso10646-1" - 1) < 256)
 	{
 	  strcpy (r, "iso10646-1");
 	  list = xfont_list_pattern (display, name, Qiso10646_1, script);

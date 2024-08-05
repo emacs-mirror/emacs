@@ -71,7 +71,7 @@ pgtk_get_monitor_scale_factor (const char *model)
   else if (FLOATP (cdr))
     return XFLOAT_DATA (cdr);
   else
-    error ("unknown type of scale-factor");
+    error ("Unknown type of scale-factor");
 }
 
 struct pgtk_display_info *
@@ -826,7 +826,7 @@ pgtk_set_scroll_bar_foreground (struct frame *f, Lisp_Object new_value,
       Emacs_Color rgb;
 
       if (!pgtk_parse_color (f, SSDATA (new_value), &rgb))
-	error ("Unknown color.");
+	error ("Unknown color");
 
       char css[64];
       sprintf (css, "scrollbar slider { background-color: #%06x; }",
@@ -836,7 +836,7 @@ pgtk_set_scroll_bar_foreground (struct frame *f, Lisp_Object new_value,
 
     }
   else
-    error ("Invalid scroll-bar-foreground.");
+    error ("Invalid scroll-bar-foreground");
 }
 
 static void
@@ -856,7 +856,7 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value,
       Emacs_Color rgb;
 
       if (!pgtk_parse_color (f, SSDATA (new_value), &rgb))
-	error ("Unknown color.");
+	error ("Unknown color");
 
       /* On pgtk, this frame parameter should be ignored, and honor
 	 gtk theme.  (It honors the GTK theme if not explicitly set, so
@@ -869,7 +869,7 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value,
 
     }
   else
-    error ("Invalid scroll-bar-background.");
+    error ("Invalid scroll-bar-background");
 }
 
 
@@ -904,7 +904,7 @@ unless TYPE is `png'.  */)
 
       XSETFRAME (frame, f);
       if (!FRAME_VISIBLE_P (f))
-	error ("Frames to be exported must be visible.");
+	error ("Frames to be exported must be visible");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);
@@ -918,7 +918,7 @@ unless TYPE is `png'.  */)
   if (EQ (type, Qpng))
     {
       if (!NILP (XCDR (frames)))
-	error ("PNG export cannot handle multiple frames.");
+	error ("PNG export cannot handle multiple frames");
       surface_type = CAIRO_SURFACE_TYPE_IMAGE;
     }
   else
@@ -933,7 +933,7 @@ unless TYPE is `png'.  */)
     {
       /* For now, we stick to SVG 1.1.  */
       if (!NILP (XCDR (frames)))
-	error ("SVG export cannot handle multiple frames.");
+	error ("SVG export cannot handle multiple frames");
       surface_type = CAIRO_SURFACE_TYPE_SVG;
     }
   else
@@ -1153,15 +1153,15 @@ scale factor.  */)
       if (FIXNUMP (scale_factor))
 	{
 	  if (XFIXNUM (scale_factor) <= 0)
-	    error ("scale factor must be > 0.");
+	    error ("Scale factor must be > 0");
 	}
       else if (FLOATP (scale_factor))
 	{
 	  if (XFLOAT_DATA (scale_factor) <= 0.0)
-	    error ("scale factor must be > 0.");
+	    error ("Scale factor must be > 0");
 	}
       else
-	error ("unknown type of scale-factor");
+	error ("Unknown type of scale-factor");
     }
 
   Lisp_Object tem = Fassoc (monitor_model, monitor_scale_factor_alist, Qnil);
@@ -1781,6 +1781,9 @@ Some window managers may refuse to restack windows.  */)
 #define SCHEMA_ID "org.gnu.emacs.defaults"
 #define PATH_FOR_CLASS_TYPE "/org/gnu/emacs/defaults-by-class/"
 #define PATH_PREFIX_FOR_NAME_TYPE "/org/gnu/emacs/defaults-by-name/"
+#define PATH_MAX_LEN \
+  (sizeof PATH_FOR_CLASS_TYPE > sizeof PATH_PREFIX_FOR_NAME_TYPE ? \
+   sizeof PATH_FOR_CLASS_TYPE : sizeof PATH_PREFIX_FOR_NAME_TYPE)
 
 static inline int
 pgtk_is_lower_char (int c)
@@ -1803,7 +1806,7 @@ pgtk_is_numeric_char (int c)
 static GSettings *
 parse_resource_key (const char *res_key, char *setting_key)
 {
-  char path[32 + RESOURCE_KEY_MAX_LEN];
+  char path[PATH_MAX_LEN + RESOURCE_KEY_MAX_LEN];
   const char *sp = res_key;
   char *dp;
 
@@ -1822,7 +1825,7 @@ parse_resource_key (const char *res_key, char *setting_key)
   /* generate path */
   if (pgtk_is_upper_char (*sp))
     {
-      /* First letter is upper case. It should be "Emacs",
+      /* First letter is upper case.  It should be "Emacs",
        * but don't care.
        */
       strcpy (path, PATH_FOR_CLASS_TYPE);
@@ -1853,7 +1856,7 @@ parse_resource_key (const char *res_key, char *setting_key)
 	  *dp++ = c;
 	  sp++;
 	}
-      *dp++ = '/';		/* must ends with '/' */
+      *dp++ = '/';		/* must end with '/' */
       *dp = '\0';
     }
 
@@ -1901,19 +1904,23 @@ parse_resource_key (const char *res_key, char *setting_key)
   return gs;
 }
 
+static void
+pgtk_check_resource_key_length (const char *key)
+{
+  if (strnlen (key, RESOURCE_KEY_MAX_LEN) >= RESOURCE_KEY_MAX_LEN)
+    error ("Resource key too long");
+}
+
 const char *
 pgtk_get_defaults_value (const char *key)
 {
   char skey[(RESOURCE_KEY_MAX_LEN + 1) * 2];
 
-  if (strlen (key) >= RESOURCE_KEY_MAX_LEN)
-    error ("resource key too long.");
+  pgtk_check_resource_key_length (key);
 
   GSettings *gs = parse_resource_key (key, skey);
   if (gs == NULL)
-    {
-      return NULL;
-    }
+    return NULL;
 
   gchar *str = g_settings_get_string (gs, skey);
 
@@ -1936,21 +1943,16 @@ pgtk_set_defaults_value (const char *key, const char *value)
 {
   char skey[(RESOURCE_KEY_MAX_LEN + 1) * 2];
 
-  if (strlen (key) >= RESOURCE_KEY_MAX_LEN)
-    error ("resource key too long.");
+  pgtk_check_resource_key_length (key);
 
   GSettings *gs = parse_resource_key (key, skey);
   if (gs == NULL)
-    error ("unknown resource key.");
+    error ("Unknown resource key");
 
   if (value != NULL)
-    {
-      g_settings_set_string (gs, skey, value);
-    }
+    g_settings_set_string (gs, skey, value);
   else
-    {
-      g_settings_reset (gs, skey);
-    }
+    g_settings_reset (gs, skey);
 
   g_object_unref (gs);
 }
@@ -1959,6 +1961,7 @@ pgtk_set_defaults_value (const char *key, const char *value)
 #undef SCHEMA_ID
 #undef PATH_FOR_CLASS_TYPE
 #undef PATH_PREFIX_FOR_NAME_TYPE
+#undef PATH_MAX_LEN
 
 #else /* not HAVE_GSETTINGS */
 
@@ -1971,7 +1974,7 @@ pgtk_get_defaults_value (const char *key)
 static void
 pgtk_set_defaults_value (const char *key, const char *value)
 {
-  error ("gsettings not supported.");
+  error ("gsettings not supported");
 }
 
 #endif
@@ -3659,7 +3662,7 @@ visible.  */)
 
       XSETFRAME (frame, f);
       if (!FRAME_VISIBLE_P (f))
-	error ("Frames to be printed must be visible.");
+	error ("Frames to be printed must be visible");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);

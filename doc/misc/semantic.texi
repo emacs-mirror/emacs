@@ -372,7 +372,7 @@ Infrastructure for searching groups @semantic{} databases, and dealing
 with the search results format.
 
 @item semantic/db-ref.el
-Tracks crossreferences.   Cross references are needed when buffer is
+Tracks cross-references.  Cross-references are needed when buffer is
 reparsed, and must alert other tables that any dependent caches may
 need to be flushed.  References are in the form of include files.
 

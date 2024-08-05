@@ -361,10 +361,10 @@ COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
 ifeq (${ns_self_contained},no)
-BIN_DESTDIR='$(DESTDIR)${bindir}/'
+BIN_DESTDIR = $(DESTDIR)${bindir}/
 ELN_DESTDIR = $(DESTDIR)${libdir}/emacs/${version}/
 else
-BIN_DESTDIR='${ns_appbindir}/'
+BIN_DESTDIR = ${ns_appbindir}/
 ELN_DESTDIR = ${ns_applibdir}/
 endif
 
@@ -915,8 +915,14 @@ install-etc:
 install-eln: lisp
 ifeq ($(HAVE_NATIVE_COMP),yes)
 	umask 022 ; \
-	find native-lisp -type d -exec $(MKDIR_P) "$(ELN_DESTDIR){}" \; ; \
-	find native-lisp -type f -exec ${INSTALL_ELN} "{}" "$(ELN_DESTDIR){}" \;
+	find native-lisp -exec sh -c \
+	  'for f in "$$@"; do \
+	     if test -d "$$f"; then \
+	       $(MKDIR_P) '\''$(ELN_DESTDIR)'\''"$$f" || exit; \
+	     else \
+	       $(INSTALL_ELN) "$$f" '\''$(ELN_DESTDIR)'\''"$$f"; \
+	     fi || exit; \
+	   done' - {} +
 endif
 
 ### Build Emacs and install it, stripping binaries while installing them.
@@ -931,7 +937,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc uninstall-gsettings-schemas
 	rm -f "$(DESTDIR)$(includedir)/emacs-module.h"
 	$(MAKE) -C lib-src uninstall
 	-unset CDPATH; \
-	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" "$(ELN_DESTDIR)" ; do 	\
+	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" '$(ELN_DESTDIR)' ; do 	\
 	  if [ -d "$${dir}" ]; then			\
 	    case `cd "$${dir}" ; pwd -P` in		\
 	      "`cd ${srcdir} ; pwd -P`"* ) ;;		\

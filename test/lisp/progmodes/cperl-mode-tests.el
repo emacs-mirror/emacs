@@ -1448,7 +1448,7 @@ as a regex."
 
       ;; Example 3 and 4 can't be directly tested because jit-lock and
       ;; batch tests don't play together well.  But we can approximate
-      ;; the behavior by calling the the fontification for the same
+      ;; the behavior by calling the fontification for the same
       ;; region which would be used by jit-lock.
       ;; Example 3
       (search-forward "sub do_stuff")
@@ -1572,6 +1572,23 @@ not appropriate."
         (search-forward "in string")
         (should (equal (get-text-property (point) 'face)
                        font-lock-string-face))))))
+
+(ert-deftest cperl-test-bug-72296 ()
+  "Verify that the perl modes correctly handle the flip-flop operator.
+Two successive dots are an operator.  A slash immediately following them
+starts a regular expression, if there's another term between the dots
+and the slash, then we have a division."
+  :tags '(:fontification)
+  ;; Code from the bug report.  The slash is a division.  The following
+  ;; number is not a string.
+  (let ((code "for (2..$n/2) { ...; }"))
+    (should (equal (nth 8 (cperl-test-ppss code "/")) nil)))
+  ;; This is what the test for two successive dots wants to catch: The
+  ;; flip-flop operator.  Here, the number is part of a regexp, seen as
+  ;; a string.
+  (let ((code "for (2../2/) { ...; }"))
+    (should (equal (nth 8 (cperl-test-ppss code "/")) 9)))
+  )
 
 (ert-deftest test-indentation ()
   (ert-test-erts-file (ert-resource-file "cperl-indents.erts")))

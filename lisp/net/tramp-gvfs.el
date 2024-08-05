@@ -108,6 +108,7 @@
 (require 'url-util)
 
 ;; Pacify byte-compiler.
+(declare-function file-notify-callback "filenotify")
 (declare-function zeroconf-init "zeroconf")
 (declare-function zeroconf-list-service-types "zeroconf")
 (declare-function zeroconf-list-services "zeroconf")
@@ -1169,7 +1170,7 @@ file names."
 		  (delete-file file)))
 	      (directory-files
 	       directory 'full directory-files-no-dot-files-regexp))
-      (unless (tramp-compat-directory-empty-p directory)
+      (unless (directory-empty-p directory)
 	(tramp-error
 	 v 'file-error "Couldn't delete non-empty %s" directory)))
 
@@ -1203,7 +1204,7 @@ file names."
     (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
-    (setq name (tramp-compat-file-name-concat dir name)))
+    (setq name (file-name-concat dir name)))
   ;; If NAME is not a Tramp file, run the real handler.
   (if (not (tramp-tramp-file-p name))
       (tramp-run-real-handler #'expand-file-name (list name))
@@ -1465,7 +1466,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 (defun tramp-gvfs-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
   (tramp-skeleton-file-name-all-completions filename directory
-    (unless (tramp-compat-string-search "/" filename)
+    (unless (string-search "/" filename)
       (all-completions
        filename
        (with-parsed-tramp-file-name (expand-file-name directory) nil
@@ -1533,12 +1534,9 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (tramp-message proc 6 "%S\n%s" proc string)
     (setq string (concat rest-string string)
           ;; Fix action names.
-          string (tramp-compat-string-replace
-	          "attributes changed" "attribute-changed" string)
-          string (tramp-compat-string-replace
-	          "changes done" "changes-done-hint" string)
-          string (tramp-compat-string-replace
-	          "renamed to" "moved" string))
+          string (string-replace "attributes changed" "attribute-changed" string)
+          string (string-replace "changes done" "changes-done-hint" string)
+          string (string-replace "renamed to" "moved" string))
     ;; https://bugs.launchpad.net/bugs/1742946
     (when
 	(string-match-p
@@ -1574,8 +1572,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	;; `unread-command-events' does not accept several events at
 	;; once.  Therefore, we apply the callback directly.
 	(when (member action events)
-	  (tramp-compat-funcall
-           'file-notify-callback (list proc action file file1)))))
+	  (file-notify-callback (list proc action file file1)))))
 
     ;; Save rest of the string.
     (when (string-empty-p string) (setq string nil))
@@ -2145,7 +2142,7 @@ Their full names are
 	   (vec (make-tramp-file-name
 		 :method "mtp"
 		 ;; A host name cannot contain spaces.
-		 :host (tramp-compat-string-replace " " "_" (nth 1 volume))))
+		 :host (string-replace " " "_" (nth 1 volume))))
 	   (media (make-tramp-media-device
 		   :method method
 		   :host (tramp-gvfs-url-host (nth 5 volume))
@@ -2217,8 +2214,8 @@ connection if a previous connection has died for some reason."
 
     (unless (tramp-gvfs-connection-mounted-p vec)
       (let ((method (tramp-file-name-method vec))
-	    (user (tramp-file-name-user vec))
-	    (host (tramp-file-name-host vec))
+	    (user-domain (tramp-file-name-user-domain vec))
+	    (host-port (tramp-file-name-host-port vec))
 	    (localname (tramp-file-name-unquote-localname vec))
 	    (object-path
 	     (tramp-gvfs-object-path (tramp-make-tramp-file-name vec 'noloc))))
@@ -2246,9 +2243,9 @@ connection if a previous connection has died for some reason."
 
 	(with-tramp-progress-reporter
 	    vec 3 (format "Opening connection for %s%s using %s"
-			  (if (tramp-string-empty-or-nil-p user)
-			      "" (concat user "@"))
-			  host method)
+			  (if (tramp-string-empty-or-nil-p user-domain)
+			      "" (concat user-domain "@"))
+			  host-port method)
 
 	  ;; Enable `auth-source'.
 	  (tramp-set-connection-property
@@ -2296,13 +2293,14 @@ connection if a previous connection has died for some reason."
 	  (with-timeout
 	      ((tramp-get-method-parameter
 		vec 'tramp-connection-timeout tramp-connection-timeout)
-	       (if (tramp-string-empty-or-nil-p (tramp-file-name-user vec))
+	       (if (tramp-string-empty-or-nil-p user-domain)
 		   (tramp-error
 		    vec 'file-error
-		    "Timeout reached mounting %s using %s" host method)
+		    "Timeout reached mounting %s using %s" host-port method)
 		 (tramp-error
 		  vec 'file-error
-		  "Timeout reached mounting %s@%s using %s" user host method)))
+		  "Timeout reached mounting %s@%s using %s"
+		  user-domain host-port method)))
 	    (while (not (tramp-get-file-property vec "/" "fuse-mountpoint"))
 	      (read-event nil nil 0.1)))
 
@@ -2461,7 +2459,7 @@ VEC is used only for traces."
 	       (vec (make-tramp-file-name
 		     :method "mtp"
 		     ;; A host name cannot contain spaces.
-		     :host (tramp-compat-string-replace " " "_" (nth 1 volume))))
+		     :host (string-replace " " "_" (nth 1 volume))))
 	       (media (make-tramp-media-device
 		       :method method
 		       :host (tramp-gvfs-url-host (nth 5 volume))
@@ -2475,7 +2473,7 @@ VEC is used only for traces."
     ;; Adapt default host name, supporting /mtp:: when possible.
     (setq tramp-default-host-alist
 	  (append
-	   `(("mtp" nil ,(if (tramp-compat-length= devices 1) (car devices) "")))
+	   `(("mtp" nil ,(if (length= devices 1) (car devices) "")))
 	   (delete
 	    (assoc "mtp" tramp-default-host-alist)
 	    tramp-default-host-alist)))))

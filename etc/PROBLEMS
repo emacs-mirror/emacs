@@ -757,7 +757,7 @@ window sizes" (Lisp value 'ignore').
 
 This can happen if your Emacs is configured to convert PDF to SVG for
 display, and the version of the MuPDF package you have installed has a
-a known bug, whereby it sometimes produces invalid SVG images.
+known bug, whereby it sometimes produces invalid SVG images.
 Version 1.21 of MuPDF is known to be affected.
 
 The solution is either to upgrade or downgrade to a version of MuPDF
@@ -3471,6 +3471,22 @@ file; for example:
       "/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin20/11.2.0") ":"))
 
 * Runtime problems specific to PGTK build
+
+** Whether a display server is available cannot be automatically detected.
+
+When started with no arguments from a text terminal and in an
+environment where no display server is specified, Emacs will print:
+
+  $ emacs
+  (emacs:3988): Gtk-WARNING **: 19:19:10.887: cannot open display:
+
+and exit.  This is a byproduct of GTK's not providing any means of
+probing for a display connection before committing to opening one, and
+cannot be addressed by Emacs.  Rather, users must expressly request a
+text mode session:
+
+  $ emacs -nw
+  [...]
 
 ** SECONDARY selections don't work on Wayland.
 

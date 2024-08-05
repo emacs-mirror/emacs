@@ -1,4 +1,4 @@
-@c -*- mode: texinfo; coding: utf-8 -*-
+@c -*- mode: texinfo -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 2021--2024 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
@@ -413,13 +413,6 @@ is non-@code{nil}, this function always creates a new parser.
 
 @var{tag} can be any symbol except @code{t}, and defaults to
 @code{nil}.  Different parsers can have the same tag.
-
-If that buffer is an indirect buffer, its base buffer is used instead.
-That is, indirect buffers use their base buffer's parsers.  If the
-base buffer is narrowed, an indirect buffer might not be able to
-retrieve information of the portion of the buffer text that is
-invisible in the base buffer.  Lisp programs should widen as necessary
-should they want to use a parser in an indirect buffer.
 @end defun
 
 Given a parser, we can query information about it.
@@ -458,9 +451,7 @@ tree incrementally.
 @defun treesit-parser-list &optional buffer language tag
 This function returns the parser list of @var{buffer}, filtered by
 @var{language} and @var{tag}.  If @var{buffer} is @code{nil} or
-omitted, it defaults to the current buffer.  If that buffer is an
-indirect buffer, its base buffer is used instead.  That is, indirect
-buffers use their base buffer's parsers.
+omitted, it defaults to the current buffer.
 
 If @var{language} is non-@var{nil}, only include parsers for that
 language, and only include parsers with @var{tag}.  @var{tag} defaults
@@ -539,6 +530,30 @@ symbol, rather than a lambda function.
 @defun treesit-parser-notifiers parser
 This function returns the list of @var{parser}'s notifier functions.
 @end defun
+
+@heading Substitute parser for another language
+@cindex remap language grammar, tree-sitter
+@cindex replace language grammar, tree-sitter
+@cindex replace parser language, tree-sitter
+@cindex extended grammar, tree-sitter
+
+Sometimes, a grammar for language B is a strict superset of the grammar
+of another language A.  Then it makes sense to reuse configurations
+(font-lock rules, indentation rules, etc.) of language A for language B.
+For that purpose, @var{treesit-language-remap-alist} allows users to
+remap language A into language B.
+
+@defvar treesit-language-remap-alist
+The value of this variable should be an alist of
+@w{@code{(@var{language-a} . @var{language-b})}}.  When such pair exists
+in the alist, creating a parser for @var{language-a} actually creates a
+parser for @var{language-b}.  By extension, anything that creates a node
+or makes a query of @var{language-a} will be redirected to use
+@var{language-b} instead.
+
+Note that calling @code{treesit-parser-language} on a parser for
+@var{language-a} still returns @var{language-a}.
+@end defvar
 
 @node Retrieving Nodes
 @section Retrieving Nodes
@@ -2159,7 +2174,7 @@ node is a defun node but doesn't have a name, or the node is
 @node Tree-sitter C API
 @section Tree-sitter C API Correspondence
 
-Emacs' tree-sitter integration doesn't expose every feature
+Emacs's tree-sitter integration doesn't expose every feature
 provided by tree-sitter's C API@.  Missing features include:
 
 @itemize

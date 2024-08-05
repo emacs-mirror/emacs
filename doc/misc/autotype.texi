@@ -290,7 +290,7 @@ be inserted.
   It can also be a function, which allows doing various things.  The function
 can simply insert some text, indeed, it can be skeleton command (@pxref{Using
 Skeletons}).  It can be a lambda function which will for example conditionally
-call another function.  Or it can even reset the mode for the buffer. If you
+call another function.  Or it can even reset the mode for the buffer.  If you
 want to perform several such actions in order, you use a vector, i.e., several
 of the above elements between square brackets (@samp{[@r{@dots{}}]}).
 

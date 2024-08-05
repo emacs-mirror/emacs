@@ -305,7 +305,7 @@ absolute file names."
 	  ;; Set the time and mode. Mask possible errors.
 	  (when keep-date
 	    (ignore-errors
-	      (tramp-compat-set-file-times
+	      (set-file-times
 	       newname file-times (unless ok-if-already-exists 'nofollow))
 	      (set-file-modes newname file-modes)))
 
@@ -371,7 +371,7 @@ the result will be a local, non-Tramp, file name."
     (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
-    (setq name (tramp-compat-file-name-concat dir name)))
+    (setq name (file-name-concat dir name)))
   ;; If NAME is not a Tramp file, run the real handler.
   (if (not (tramp-tramp-file-p name))
       (tramp-run-real-handler #'expand-file-name (list name))

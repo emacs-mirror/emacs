@@ -72,10 +72,10 @@ Convert those to use it.
 
 ** Remove unnecessary autoload cookies from defcustoms
 This needs a bit of care, since often people have become used to
-expecting such variables to always be defined, eg when they modify
-things in their .emacs.
+expecting such variables to always be defined, for example when they
+modify things in their .emacs.
 
-** See if other files can use generated-autoload-file (see eg ps-print)
+** See if other files can use generated-autoload-file (see e.g. ps-print)
 
 ** Do interactive mode tagging for commands
 Change "(interactive)" to "(interactive nil foo-mode)" for command
@@ -482,7 +482,7 @@ LSP), see the thread starting at
 https://lists.gnu.org/archive/html/emacs-devel/2023-09/msg00609.html
 
 ** FFI (foreign function interface)
-See eg https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
+See e.g. https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
 
 One way of doing this is to start with fx's dynamic loading, and use it
 to implement things like auto-loaded buffer parsers and database
@@ -612,7 +612,7 @@ Ideally from someone familiar with GNUstep and Objective C.
 ** A more modern printing interface
 A UI that pops up a dialog that lets you choose printer, page style,
 etc.  Integration with the Gtk print dialog is apparently difficult.
-See eg: https://lists.gnu.org/r/emacs-devel/2009-03/msg00501.html
+See e.g.: https://lists.gnu.org/r/emacs-devel/2009-03/msg00501.html
 https://lists.gnu.org/r/emacs-devel/2009-04/msg00034.html
 
 ** Allow frames(terminals) created by emacsclient to inherit their environment
@@ -727,12 +727,6 @@ bar.  In the mean time, it should process other messages.
 
 ** Get some major packages installed
 
-*** Magit
-This needs work on getting the relevant copyright assignments.  This
-task should be highly doable for anyone, but will likely require some
-patience.  For inspiration, see how this was done for 'use-package':
-https://github.com/jwiegley/use-package/issues/282
-
 *** PSGML, _possibly_ ECB
 https://lists.gnu.org/r/emacs-devel/2007-05/msg01493.html Check the
 assignments file for other packages which might go in and have been
@@ -753,8 +747,8 @@ them.
 Zlib is required for PNG, so may be linked anyhow.
 
 ** Improve the GC
-Introduce generational or incremental GC.  We may be able to use the
-Boehm collector.)  See the Boehm-GC branch in CVS for work on this.
+Introduce generational or incremental GC.  (We may be able to use the
+Boehm collector.)  See the Boehm-GC branch in Git for work on this.
 
 ** Check what hooks would help Emacspeak
 See the defadvising in W3.
@@ -1068,7 +1062,7 @@ Anders Lindgren <andlind@gmail.com> has implemented some (very basic)
 tests for full screen, toolbar, and auto-hiding the menu bar.
 
 **** Make sure all build variants work
-Emacs can be build in a number of different ways.  For each feature,
+Emacs can be built in a number of different ways.  For each feature,
 consider if is really is "NS" specific, or if it should be applied to
 all build versions.
 

@@ -42,9 +42,9 @@ explicitly at configure time.  This makes the default Emacs build
 process much faster.
 
 @item
-JSON interfaces are slowly move into oblivion as past years come closer,
-so we have removed our internal implementation of JSON; you will now
-need to build Emacs with the libjansson library, if you need JSON.
+JSON interfaces slowly move into oblivion as past years come closer, so
+we have removed our internal implementation of JSON; you will now need
+to build Emacs with the libjansson library, if you need JSON.
 Eventually, we plan on removing JSON support from Emacs altogether; this
 move will make the removal much simpler.
 
@@ -52,7 +52,7 @@ move will make the removal much simpler.
 Tree-sitter based modes are now completely independent of their
 non-Tree-Sitter counterparts.  We decided that keeping the settings
 separate and independent goes a long way toward simplicity, which is one
-of our main motivation for removing stuff from Emacs.
+of our main motivations for removing stuff from Emacs.
 
 @item
 Various Help commands no longer turn on Outline minor mode.  With less

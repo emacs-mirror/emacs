@@ -115,7 +115,7 @@ inhibition of `allout-widgets-mode'."
 ;;;_  > allout-widgets-setup (varname value)
 ;;;###autoload
 (defun allout-widgets-setup (varname value)
-  "Commission or decommission allout-widgets-mode along with allout-mode.
+  "Commission or decommission `allout-widgets-mode' along with `allout-mode'.
 
 Meant to be used by customization of `allout-widgets-auto-activation'."
   (set-default varname value)
@@ -254,7 +254,8 @@ or deleted while this variable is nil.")
 (defun allout-widgets-tally-string ()
   "Return a string with number of tracked widgets, or empty string if not tracking.
 
-The string is formed for appending to the allout-mode mode-line lighter.
+The string is formed for appending to the `allout-mode' mode-line
+lighter.
 
 An empty string is also returned if tracking is inhibited or
 widgets are locally inhibited.
@@ -303,9 +304,9 @@ You can use this as a file local variable setting to disable
 allout widgets enhancements in selected buffers while generally
 enabling widgets by customizing `allout-widgets-auto-activation'.
 
-In addition, you can invoked `allout-widgets-mode' allout-mode
-buffers where this is set to enable and disable widget
-enhancements, directly.")
+In addition, you can invoke `allout-widgets-mode' in `allout-mode'
+buffers where this is set to enable and disable widget enhancements,
+directly.")
 ;;;###autoload
 (put 'allout-widgets-mode-inhibit 'safe-local-variable #'booleanp)
 ;;;_    = allout-inhibit-body-modification-hook
@@ -862,7 +863,7 @@ Optional RECURSING is for internal use, to limit recursion."
 We store a backtrace of the error information in the variable,
 `allout-widgets-last-hook-error', unset the error handlers, and
 reraise the error, so that processing continues to the
-encompassing condition-case."
+encompassing `condition-case'."
   ;; first deconstruct special error environment so errors here propagate
   ;; to encompassing condition-case:
   (setq debugger 'debug

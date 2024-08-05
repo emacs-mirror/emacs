@@ -70,7 +70,7 @@ Once an insertion set is done, these fields will be activated.")
 (defclass srecode-overlaid ()
   ((overlay :documentation
 	    "Overlay representing this field.
-The overlay will crossreference this object.")
+The overlay will cross-reference this object.")
    )
   "An object that gets automatically bound to an overlay.
 Has virtual :start and :end initializers.")

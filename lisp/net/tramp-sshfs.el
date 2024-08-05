@@ -301,15 +301,13 @@ arguments to pass to the OPERATION."
   "Like `set-file-modes' for Tramp files."
   (unless (and (eq flag 'nofollow) (file-symlink-p filename))
     (tramp-skeleton-set-file-modes-times-uid-gid filename
-      (tramp-compat-set-file-modes
-       (tramp-fuse-local-file-name filename) mode flag))))
+      (set-file-modes (tramp-fuse-local-file-name filename) mode flag))))
 
 (defun tramp-sshfs-handle-set-file-times (filename &optional timestamp flag)
   "Like `set-file-times' for Tramp files."
   (unless (and (eq flag 'nofollow) (file-symlink-p filename))
     (tramp-skeleton-set-file-modes-times-uid-gid filename
-      (tramp-compat-set-file-times
-       (tramp-fuse-local-file-name filename) timestamp flag))))
+      (set-file-times (tramp-fuse-local-file-name filename) timestamp flag))))
 
 (defun tramp-sshfs-handle-write-region
   (start end filename &optional append visit lockname mustbenew)

@@ -1371,7 +1371,7 @@ the context.
 @end lisp
 
 The empty pairs of brackets indicate the different arguments of the
-@code{\myfig} macro. The @samp{*} marks the label argument.  @code{?f}
+@code{\myfig} macro.  The @samp{*} marks the label argument.  @code{?f}
 indicates that this is a figure label which will be listed together with
 labels from normal figure environments.  The @code{nil} entries for
 prefix and reference format mean to use the defaults for figure labels.
@@ -1748,7 +1748,7 @@ selection process similar to that for selecting labels
 (@pxref{Referencing Labels}).
 
 The regular expression uses an extended syntax: @samp{&&} defines a
-logic @code{and} for regular expressions. For example
+logic @code{and} for regular expressions.  For example
 @samp{Einstein&&Bose} will match all articles which mention
 Bose-Einstein condensation, or which are co-authored by Bose and
 Einstein.  When entering the regular expression, you can complete on
@@ -2708,7 +2708,7 @@ display.
 
 @item @code{\bibitem}
 @cindex @code{\bibitem}
-Display a document location which cites this article. Pressing
+Display a document location which cites this article.  Pressing
 @kbd{C-c &} several times moves through the entire document and finds
 all locations.
 
@@ -2955,7 +2955,7 @@ path specified in the variables @code{BIBINPUTS} and @code{TEXBIB} for
 When searching, @RefTeX{} will also expand recursive path
 definitions (directories ending in @samp{//} or @samp{!!}).  But it will
 only search and expand directories @emph{explicitly} given in these
-variables. This may cause problems under the following circumstances:
+variables.  This may cause problems under the following circumstances:
 
 @itemize @bullet
 @item
@@ -3288,7 +3288,7 @@ Labels}).
 @findex TeX-add-style-hook@r{, AUCTeX}
 Style files are Emacs Lisp files which are evaluated by @AUCTeX{} in
 association with the @code{\documentclass} and @code{\usepackage}
-commands of a document (@pxref{Style Files,,,auctex}). Support for
+commands of a document (@pxref{Style Files,,,auctex}).  Support for
 @RefTeX{} in such a style file is useful when the @LaTeX{} style
 defines macros or environments connected with labels, citations, or the
 index.  Many style files (e.g., @file{amsmath.el} or @file{natbib.el})
@@ -4132,7 +4132,7 @@ Prefixes for section labels.  When the label prefix given in an entry in
 @code{reftex-label-alist} contains @samp{%S}, this list is used to
 determine the correct prefix string depending on the current section
 level.  The list is an alist, with each entry of the form
-@w{@code{(@var{key} . @var{prefix})}}. Possible keys are sectioning macro
+@w{@code{(@var{key} . @var{prefix})}}.  Possible keys are sectioning macro
 names like @samp{chapter}, integer section levels (as given in
 @code{reftex-section-levels}), and @code{t} for the default.
 @end defopt
@@ -4298,7 +4298,7 @@ Character class after  abbrev point in word.
 @cindex Referencing labels, options
 
 @defopt reftex-label-menu-flags
-List of flags governing the label menu makeup. The flags are:
+List of flags governing the label menu makeup.  The flags are:
 @table @asis
 @item @var{table-of-contents}
 Show the labels embedded in a table of context.
@@ -4764,7 +4764,7 @@ phrase and its index command will always end up on a single line.
 
 @defopt reftex-index-phrases-sort-prefers-entry
 Non-@code{nil} means when sorting phrase lines, the explicit index entry
-is used. Phrase lines in the phrases buffer contain a search phrase, and
+is used.  Phrase lines in the phrases buffer contain a search phrase, and
 sorting is normally based on these.  Some phrase lines also have
 an explicit index argument specified.  When this variable is
 non-@code{nil}, the index argument will be used for sorting.
@@ -4823,7 +4823,7 @@ Macros which can be used for the display of cross references.
 This is used when @code{reftex-view-crossref} is called with point in an
 argument of a macro.  Note that crossref viewing for citations,
 references (both ways) and index entries is hard-coded.  This variable
-is only to configure additional structures for which crossreference
+is only to configure additional structures for which cross-reference
 viewing can be useful.  Each entry has the structure
 @example
 (@var{macro-re} @var{search-re} @var{highlight}).
@@ -4993,7 +4993,7 @@ lookup.
 @end table
 
 If a buffer is to be kept, the file is visited normally (which is
-potentially slow but will happen only once). If a buffer is to be thrown
+potentially slow but will happen only once).  If a buffer is to be thrown
 away, the initialization of the buffer depends upon the variable
 @code{reftex-initialize-temporary-buffers}.
 @end defopt
@@ -5001,7 +5001,7 @@ away, the initialization of the buffer depends upon the variable
 @defopt reftex-initialize-temporary-buffers
 Non-@code{nil} means do initializations even when visiting file
 temporarily.  When @code{nil}, @RefTeX{} may turn off find-file hooks and
-other stuff to briefly visit a file. When @code{t}, the full default
+other stuff to briefly visit a file.  When @code{t}, the full default
 initializations are done (@code{find-file-hook} etc.).  Instead of
 @code{t} or @code{nil}, this variable may also be a list of hook
 functions to do a minimal initialization.
@@ -5107,7 +5107,7 @@ Non-@code{nil} means, highlight selected text in selection and
 @emph{selected} text, and it is highlighted.  This is the entry most
 keys in the selection and @file{*toc*} buffers act on.  However, if you
 mainly use the mouse to select an item, you may find it nice to have
-mouse-triggered highlighting @emph{instead} or @emph{as well}. The
+mouse-triggered highlighting @emph{instead} or @emph{as well}.  The
 variable may have one of these values:
 
 @example
@@ -5719,7 +5719,7 @@ Fixed bug with empty context strings.
 @noindent @b{Version 3.21}
 @itemize @bullet
 @item
-New options for all faces used by @RefTeX{}. They're in the
+New options for all faces used by @RefTeX{}.  They're in the
 customization group @code{reftex-fontification-configurations}.
 @end itemize
 

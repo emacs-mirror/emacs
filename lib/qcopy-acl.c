@@ -26,6 +26,20 @@
 #if USE_XATTR
 
 # include <attr/libattr.h>
+# include <string.h>
+
+# if HAVE_LINUX_XATTR_H
+#  include <linux/xattr.h>
+# endif
+# ifndef XATTR_NAME_NFSV4_ACL
+#  define XATTR_NAME_NFSV4_ACL "system.nfs4_acl"
+# endif
+# ifndef XATTR_NAME_POSIX_ACL_ACCESS
+#  define XATTR_NAME_POSIX_ACL_ACCESS "system.posix_acl_access"
+# endif
+# ifndef XATTR_NAME_POSIX_ACL_DEFAULT
+#  define XATTR_NAME_POSIX_ACL_DEFAULT "system.posix_acl_default"
+# endif
 
 /* Returns 1 if NAME is the name of an extended attribute that is related
    to permissions, i.e. ACLs.  Returns 0 otherwise.  */
@@ -33,7 +47,12 @@
 static int
 is_attr_permissions (const char *name, struct error_context *ctx)
 {
-  return attr_copy_action (name, ctx) == ATTR_ACTION_PERMISSIONS;
+  /* We need to explicitly test for the known extended attribute names,
+     because at least on CentOS 7, attr_copy_action does not do it.  */
+  return strcmp (name, XATTR_NAME_POSIX_ACL_ACCESS) == 0
+         || strcmp (name, XATTR_NAME_POSIX_ACL_DEFAULT) == 0
+         || strcmp (name, XATTR_NAME_NFSV4_ACL) == 0
+         || attr_copy_action (name, ctx) == ATTR_ACTION_PERMISSIONS;
 }
 
 #endif  /* USE_XATTR */

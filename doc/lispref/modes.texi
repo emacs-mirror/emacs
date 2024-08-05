@@ -2259,7 +2259,7 @@ space filled on the right if its width is less than @var{width}.  When
 @minus{}@var{width} columns if its width exceeds @minus{}@var{width}.
 
 For example, the usual way to show what percentage of a buffer is above
-the top of the window is to use a list like this: @code{(-3 "%p")}.
+the top of the window is to use a list like this: @w{@code{(-3 "%p")}}.
 @end table
 
 @node Mode Line Top
@@ -4530,7 +4530,7 @@ and a few other such modes) has been made more generic over the years,
 so if your language seems somewhat similar to one of those languages,
 you might try to use that engine.  @c FIXME: documentation?
 Another one is SMIE which takes an approach in the spirit
-of Lisp sexps and adapts it to non-Lisp languages. Yet another one is
+of Lisp sexps and adapts it to non-Lisp languages.  Yet another one is
 to rely on a full-blown parser, for example, the tree-sitter library.
 
 @menu

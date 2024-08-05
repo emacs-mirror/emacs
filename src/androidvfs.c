@@ -4356,7 +4356,7 @@ android_saf_stat (const char *uri_name, const char *id_name,
   return 0;
 }
 
-/* Detect if Emacs has access to the document designated by the the
+/* Detect if Emacs has access to the document designated by the
    document ID ID_NAME within the tree URI_NAME.  If ID_NAME is NULL,
    use the document ID in URI_NAME itself.
 

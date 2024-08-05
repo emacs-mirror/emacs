@@ -450,7 +450,7 @@ in the buffer, or in the region if the region is active.
 @cindex line number
 This function returns the line number in the current buffer
 corresponding to the buffer position @var{pos}.  If @var{pos} is
-@code{nil} or omitted, the current buffer position is used. If
+@code{nil} or omitted, the current buffer position is used.  If
 @var{absolute} is @code{nil}, the default, counting starts at
 @code{(point-min)}, so the value refers to the contents of the
 accessible portion of the (potentially narrowed) buffer.  If

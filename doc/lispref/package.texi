@@ -133,7 +133,7 @@ file (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
 @end defun
 
 @deffn Command package-initialize &optional no-activate
-This function initializes Emacs' internal record of which packages are
+This function initializes Emacs's internal record of which packages are
 installed, and then calls @code{package-activate-all}.
 
 The optional argument @var{no-activate}, if non-@code{nil}, causes
@@ -250,7 +250,7 @@ is the brief description.
 Each element in this list should have the form @code{(@var{dep-name}
 @var{dep-version})}, where @var{dep-name} is a symbol whose name is the
 dependency's package name, and @var{dep-version} is the dependency's
-version (a string).  The spacial value @samp{emacs} means that the
+version (a string).  The special value @samp{emacs} means that the
 package depends on the given version of Emacs.
 @end defun
 
@@ -387,7 +387,7 @@ following queries:
 
 @table @asis
 @item archive-contents
-Return a lisp form describing the archive contents. The form is a list
+Return a lisp form describing the archive contents.  The form is a list
 of 'package-desc' structures (see @file{package.el}), except the first
 element of the list is the archive version.
 
@@ -398,7 +398,7 @@ Return the long description of the package.
 Return the signature for the file.
 
 @item <file name>
-Return the file. This will be the tarball for a multi-file
+Return the file.  This will be the tarball for a multi-file
 package, or the single file for a simple package.
 
 @end table

@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.7.2
+@subtitle for version 0.7.2.1
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.7.2.
+This manual is for Transient version 0.7.2.1.
 
 @insertcopying
 @end ifnottex
@@ -165,9 +165,9 @@ commands even have so many options that they introduce @emph{subcommands}
 @anchor{Using Transient for composing interactive commands}
 @heading Using Transient for composing interactive commands
 
-What about Emacs commands used interactively? How do these handle
+What about Emacs commands used interactively?  How do these handle
 options?  One solution is to make many versions of the same command,
-so you don't need to! Consider: @samp{delete-other-windows} vs.
+so you don't need to!  Consider: @samp{delete-other-windows} vs.
 @samp{delete-other-windows-vertically} (among many similar examples).
 
 Some Emacs commands will simply prompt you for the next "argument"
@@ -1019,7 +1019,7 @@ independently.  See @ref{Using History}.
 After a transient prefix command is invoked, @kbd{C-h @var{KEY}} can be used to
 show the documentation for the infix or suffix command that @kbd{@var{KEY}} is
 bound to (see @ref{Getting Help for Suffix Commands}), and infixes and
-suffixes can be removed from the transient using @kbd{C-x l @var{KEY}}. Infixes
+suffixes can be removed from the transient using @kbd{C-x l @var{KEY}}.  Infixes
 and suffixes that are disabled by default can be enabled the same way.
 See @ref{Enabling and Disabling Suffixes}.
 
@@ -1287,7 +1287,7 @@ individual suffix command.
 The same form is also used when later binding additional commands
 using functions such as @code{transient-insert-suffix}, see @ref{Modifying Existing Transients}.
 
-Note that an infix is a special kind of suffix. Depending on context
+Note that an infix is a special kind of suffix.  Depending on context
 ``suffixes'' means ``suffixes (including infixes)'' or ``non-infix
 suffixes''.  Here it means the former.
 
@@ -1382,7 +1382,7 @@ argument supported by the constructor of that class.  See @ref{Suffix Slots}.
 @cindex defining suffix commands
 @cindex defining infix commands
 
-Note that an infix is a special kind of suffix. Depending on context
+Note that an infix is a special kind of suffix.  Depending on context
 ``suffixes'' means ``suffixes (including infixes)'' or ``non-infix
 suffixes''.
 
@@ -1458,7 +1458,7 @@ When returning to the command-loop after calling the suffix command,
 the arguments are reset to @code{nil} (which causes the function to return
 @code{nil} too).
 
-Like for Emacs' prefix arguments, it is advisable, but not mandatory,
+Like for Emacs's prefix arguments, it is advisable, but not mandatory,
 to access the infix arguments inside the command's @code{interactive} form.
 The preferred way of doing that is to call the @code{transient-args}
 function, which for infix arguments serves about the same purpose as

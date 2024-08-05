@@ -51,7 +51,7 @@
 ;; subdirectory of `doc-view-cache-directory' and reused when you want to view
 ;; that file again.  To reconvert a document hit `g' (`doc-view-reconvert-doc')
 ;; when displaying the document.  To delete all cached files use
-;; `doc-view-clear-cache'.  To open the cache with dired, so that you can tidy
+;; `doc-view-clear-cache'.  To open the cache with Dired, so that you can tidy
 ;; it out use `doc-view-dired-cache'.
 ;;
 ;; When conversion is underway the first page will be displayed as soon as it
@@ -239,8 +239,8 @@ showing only titles and no page number."
   :version "29.1")
 
 (defface doc-view-svg-face '((t :inherit default))
-  "Face used for SVG images.  Only background and foreground colors
-are used.
+  "Face used for SVG images.
+Only background and foreground colors are used.
 See `doc-view-mupdf-use-svg'."
   :version "30.1")
 
@@ -432,6 +432,15 @@ of the page moves to the previous page."
 
 (defun doc-view-new-window-function (winprops)
   ;; (message "New window %s for buf %s" (car winprops) (current-buffer))
+  ;;
+  ;; If the window configuration changed, `image-mode-reapply-winprops'
+  ;; will have erased any previous property list for this window, but
+  ;; without removing existing overlays for the same, so that they must
+  ;; be located and erased before a new overlay is created.
+  (dolist (tem (car (overlay-lists)))
+    (when (and (eq (overlay-get tem 'window) (car winprops))
+               (overlay-get tem 'doc-view))
+      (delete-overlay tem)))
   (cl-assert (or (eq t (car winprops))
                  (eq (window-buffer (car winprops)) (current-buffer))))
   (let ((ol (image-mode-window-get 'overlay winprops)))
@@ -1328,7 +1337,7 @@ is named like ODF with the extension turned to pdf."
   "Convert PDF-PS to PNG asynchronously."
   (funcall
    (pcase doc-view-doc-type
-     ((or 'pdf 'odf 'epub 'cbz 'fb2 'xps 'oxps)
+     ((or 'pdf 'odf 'epub 'cbz 'fb2 'xps 'oxps 'dvi)
       doc-view-pdf->png-converter-function)
      ('djvu #'doc-view-djvu->tiff-converter-ddjvu)
      (_ #'doc-view-ps->png-converter-ghostscript))
@@ -1768,34 +1777,27 @@ For now these keys are useful:
     (let ((txt (expand-file-name "doc.txt" (doc-view--current-cache-dir)))
           (page (doc-view-current-page)))
       (if (file-readable-p txt)
-	  (let ((inhibit-read-only t)
-		(buffer-undo-list t)
-		(dv-bfn doc-view--buffer-file-name))
-	    (erase-buffer)
-            ;; FIXME: Replacing the buffer's PDF content with its txt rendering
-            ;; is pretty risky.  We should probably use *another*
-            ;; buffer instead, so there's much less risk of
-            ;; overwriting the PDF file with some text rendering.
-	    (set-buffer-multibyte t)
-	    (insert-file-contents txt)
-	    (doc-view--text-view-mode)
-	    (setq-local doc-view--buffer-file-name dv-bfn)
-	    (set-buffer-modified-p nil)
-	    (doc-view-minor-mode)
-            (goto-char (point-min))
-            ;; Put point at the start of the page the user was
-            ;; reading.  Pages are separated by Control-L characters.
-            (re-search-forward page-delimiter nil t (1- page))
-	    (add-hook 'write-file-functions
-		      (lambda ()
-                        ;; FIXME: If the user changes major mode and then
-                        ;; saves the buffer, the PDF file will be clobbered
-                        ;; with its txt rendering!
-			(when (eq major-mode 'doc-view--text-view-mode)
-			  (error "Cannot save text contents of document %s"
-				 buffer-file-name)))
-		      nil t))
-	(doc-view-doc->txt txt 'doc-view-open-text)))))
+          (let ((dv-bfn doc-view--buffer-file-name)
+                (dv-text-buffer-name (format "%s/text" (buffer-name))))
+            ;; Prepare the text buffer
+            (with-current-buffer (get-buffer-create dv-text-buffer-name)
+              (let ((inhibit-read-only t)
+                    (buffer-undo-list t))
+                (erase-buffer)
+                (set-buffer-multibyte t)
+                (insert-file-contents txt)
+                (doc-view--text-view-mode)
+                (setq-local doc-view--buffer-file-name dv-bfn)
+                ;; Pages are separated by form feed characters.
+                (setq-local page-delimiter "")
+                (set-buffer-modified-p nil)
+                (doc-view-minor-mode)
+                (goto-char (point-min))
+                ;; Put point at the start of the page the user was
+                ;; reading.  Pages are separated by Control-L characters.
+                (re-search-forward page-delimiter nil t (1- page))))
+            (switch-to-buffer (get-buffer dv-text-buffer-name)))
+        (doc-view-doc->txt txt 'doc-view-open-text)))))
 
 ;;;;; Toggle between editing and viewing
 
@@ -1816,14 +1818,11 @@ For now these keys are useful:
     (doc-view-fallback-mode)
     (doc-view-minor-mode 1))
    ((eq major-mode 'doc-view--text-view-mode)
-    (let ((buffer-undo-list t))
-      ;; We're currently viewing the document's text contents, so switch
-      ;; back to .
-      (setq buffer-read-only nil)
-      (insert-file-contents doc-view--buffer-file-name nil nil nil t)
-      (doc-view-fallback-mode)
-      (doc-view-minor-mode 1)
-      (set-buffer-modified-p nil)))
+    ;; We're currently viewing the document's text contents, switch to
+    ;; the buffer visiting the real document and kill myself.
+    (let ((dv-buffer (find-buffer-visiting doc-view--buffer-file-name)))
+      (kill-buffer)
+      (switch-to-buffer dv-buffer)))
    (t
     ;; Switch to doc-view-mode
     (when (and (buffer-modified-p)
@@ -2151,6 +2150,8 @@ GOTO-PAGE-FN other than `doc-view-goto-page'."
   (pcase-let ((`(,conv-function ,type ,extension)
                (pcase doc-view-doc-type
                  ('djvu (list #'doc-view-djvu->tiff-converter-ddjvu 'tiff "tif"))
+                 ((or 'ps 'postscript 'eps)
+                  (list #'doc-view-ps->png-converter-ghostscript 'png "png"))
                  (_ (if (and (eq doc-view-pdf->png-converter-function
                                  #'doc-view-pdf->png-converter-mupdf)
                              doc-view-mupdf-use-svg)
