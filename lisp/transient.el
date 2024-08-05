@@ -37,6 +37,7 @@
 (require 'edmacro)
 (require 'format-spec)
 (require 'seq)
+(require 'pp)
 
 (eval-when-compile (require 'subr-x))
 
