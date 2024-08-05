@@ -126,10 +126,10 @@ extra indent = 2
         ;; of the line though!  (`fill-match-adaptive-prefix' could
         ;; potentially return a prefix longer than the current line in
         ;; the buffer.)
-        (put-text-property
+        (add-display-text-property
          position (min (+ position (length first-line-prefix))
                        (line-end-position))
-         'display `(min-width ((,next-line-prefix . width)))))
+         'min-width `((,next-line-prefix . width))))
       (setq next-line-prefix (visual-wrap--adjust-prefix next-line-prefix))
       (put-text-property
        position (line-end-position) 'wrap-prefix
@@ -147,12 +147,6 @@ PREFIX was empty."
   (cond
    ((string= prefix "")
     nil)
-   ((string-match (rx bos (+ blank) eos) prefix)
-    ;; If the first-line prefix is all spaces, return its width in
-    ;; characters.  This way, we can set the prefix for all lines to use
-    ;; the canonical-width of the font, which helps for variable-pitch
-    ;; fonts where space characters are usually quite narrow.
-    (string-width prefix))
    ((or (and adaptive-fill-first-line-regexp
              (string-match adaptive-fill-first-line-regexp prefix))
         (and comment-start-skip
@@ -175,7 +169,11 @@ PREFIX was empty."
         (max (string-width prefix)
              (ceiling (string-pixel-width prefix (current-buffer))
                       (aref info 7)))
-      (string-width prefix)))))
+      ;; We couldn't get the font, so we're in a terminal and
+      ;; `string-pixel-width' is really returning the number of columns.
+      ;; (This is different from `string-width', since that doesn't
+      ;; respect specified spaces.)
+      (string-pixel-width prefix)))))
 
 (defun visual-wrap-fill-context-prefix (beg end)
   "Compute visual wrap prefix from text between BEG and END.

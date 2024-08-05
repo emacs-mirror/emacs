@@ -144,6 +144,17 @@ Advanced" node in the EWW manual.
 By customizing 'shr-image-zoom-levels', you can change the list of zoom
 levels that SHR cycles through when calling 'shr-zoom-image'.
 
+** EWW
+
+---
+*** EWW now enables 'visual-wrap-prefix-mode' when 'shr-fill-text' is nil.
+By default, 'shr-fill-text' is t, and EWW fills the text according to
+the width of the window.  If you customize 'shr-fill-text' to nil, EWW
+will now automatically turn on 'visual-wrap-prefix-mode' in addition to
+'visual-line-mode', so that long lines are wrapped at word boundaries
+near window edge and the continuation lines are indented using prefixes
+computed from surrounding context.
+
 ** Go-ts mode
 
 +++
