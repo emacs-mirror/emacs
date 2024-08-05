@@ -2136,9 +2136,9 @@ dump_interval_node (struct dump_context *ctx, struct itree_node *node)
   if (node->parent)
     dump_field_fixup_later (ctx, &out, node, &node->parent);
   if (node->left)
-    dump_field_fixup_later (ctx, &out, node, &node->parent);
+    dump_field_fixup_later (ctx, &out, node, &node->left);
   if (node->right)
-    dump_field_fixup_later (ctx, &out, node, &node->parent);
+    dump_field_fixup_later (ctx, &out, node, &node->right);
   DUMP_FIELD_COPY (&out, node, begin);
   DUMP_FIELD_COPY (&out, node, end);
   DUMP_FIELD_COPY (&out, node, limit);
