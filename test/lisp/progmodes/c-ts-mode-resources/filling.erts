@@ -101,7 +101,7 @@ Name: Type 4
 =-=
 /*================================================================
  * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
- woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
  woooomy woooomy woooomy woooomy woooomy
  * ================================================================*/
 =-=
@@ -111,6 +111,20 @@ Name: Type 4
  * woooomy woooomy woooomy woooomy woooomy
  * ================================================================*/
 =-=-=
+
+Name: Type 4 Single-line
+
+=-=
+/*================================================================
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * ================================================================*/
+=-=
+/*================================================================
+ * woooomy woooomy woooomy woooomy woooomy woooomy woooomy woooomy
+ * woooomy woooomy
+ * ================================================================*/
+=-=-=
+
 
 Name: Type 5
 

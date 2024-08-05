@@ -186,9 +186,9 @@ comment."
       ;; filling region.
       (when (not end-marker)
         (goto-char end)
-        (when (looking-back (rx "*/") 2)
-          (backward-char 2)
-          (skip-syntax-backward "-")
+        (forward-line 0)
+        (when (looking-at (rx (* (or (syntax whitespace) "*" "=" "-"))
+                              "*/" eol))
           (setq end (point))))
 
       ;; Let `fill-paragraph' do its thing.
