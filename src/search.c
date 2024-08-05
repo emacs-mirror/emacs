@@ -3405,6 +3405,7 @@ DEFUN ("re--describe-compiled", Fre__describe_compiled, Sre__describe_compiled,
 If RAW is non-nil, just return the actual bytecode.  */)
   (Lisp_Object regexp, Lisp_Object raw)
 {
+  CHECK_STRING (regexp);
   struct regexp_cache *cache_entry
     = compile_pattern (regexp, NULL,
                        (!NILP (Vcase_fold_search)
