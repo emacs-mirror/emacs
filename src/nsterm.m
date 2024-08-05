@@ -8074,7 +8074,8 @@ ns_in_echo_area (void)
   old_title = 0;
   maximizing_resize = NO;
   /* Restore to default before macOS 14 (bug#72440).  */
-  [self setClipsToBounds: YES];
+  if ([self respondsToSelector:@selector(setClipsToBounds:)])
+    [self setClipsToBounds: YES];
 #endif
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
