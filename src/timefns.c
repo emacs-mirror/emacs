@@ -1555,7 +1555,7 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
      if HZ != 1 also set TH.ticks.  */
   time_t time_spec;
   Lisp_Object hz;
-  struct ticks_hz th;
+  struct ticks_hz th UNINIT;
   if (EQ (form, Qt))
     {
       th = decode_lisp_time (specified_time, CFORM_TICKS_HZ).th;
