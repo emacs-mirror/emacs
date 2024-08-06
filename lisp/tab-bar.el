@@ -1047,7 +1047,7 @@ The argument I is the tab index, and CURRENT-P is non-nil
 when the tab is current.  Return the result as a keymap."
   (append
    `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
-   `((,(intern (format "group-%i" i))
+   `((,(intern (if current-p "current-group" (format "group-%i" i)))
       menu-item
       ,(if current-p
            (condition-case nil
