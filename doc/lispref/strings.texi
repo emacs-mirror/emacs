@@ -502,7 +502,7 @@ in case if @code{case-fold-search} is non-@code{nil}.
 @end example
 @end defun
 
-@defun string= string1 string2
+@defun string-equal string1 string2
 This function returns @code{t} if the characters of the two strings
 match exactly.  Symbols are also allowed as arguments, in which case
 the symbol names are used.  Case is always significant, regardless of
@@ -513,25 +513,25 @@ This function is equivalent to @code{equal} for comparing two strings
 the two strings are ignored; use @code{equal-including-properties} if
 you need to distinguish between strings that differ only in their text
 properties.  However, unlike @code{equal}, if either argument is not a
-string or symbol, @code{string=} signals an error.
+string or symbol, @code{string-equal} signals an error.
 
 @example
-(string= "abc" "abc")
+(string-equal "abc" "abc")
      @result{} t
-(string= "abc" "ABC")
+(string-equal "abc" "ABC")
      @result{} nil
-(string= "ab" "ABC")
+(string-equal "ab" "ABC")
      @result{} nil
 @end example
 
 A unibyte and a multibyte string are equal in the sense of
-@code{string=} if and only if they contain the same sequence of
+@code{string-equal} if and only if they contain the same sequence of
 character codes all being in the range 0--127 (@acronym{ASCII}).
 @xref{Text Representations}.
 @end defun
 
-@defun string-equal string1 string2
-@code{string-equal} is another name for @code{string=}.
+@defun string= string1 string2
+@code{string=} is another name for @code{string-equal}.
 @end defun
 
 @defun string-equal-ignore-case string1 string2
@@ -597,9 +597,8 @@ that collation implements.
 @end defun
 
 @cindex lexical comparison of strings
-@anchor{definition of string<}
-@defun string< string1 string2
-@c (findex string< causes problems for permuted index!!)
+@anchor{definition of string-lessp}
+@defun string-lessp string1 string2
 This function compares two strings a character at a time.  It
 scans both the strings at the same time to find the first pair of corresponding
 characters that do not match.  If the lesser character of these two is
@@ -618,11 +617,11 @@ multibyte non-@acronym{ASCII} character (@pxref{Text Representations}).
 
 @example
 @group
-(string< "abc" "abd")
+(string-lessp "abc" "abd")
      @result{} t
-(string< "abd" "abc")
+(string-lessp "abd" "abc")
      @result{} nil
-(string< "123" "abc")
+(string-lessp "123" "abc")
      @result{} t
 @end group
 @end example
@@ -634,15 +633,15 @@ no characters is less than any other string.
 
 @example
 @group
-(string< "" "abc")
+(string-lessp "" "abc")
      @result{} t
-(string< "ab" "abc")
+(string-lessp "ab" "abc")
      @result{} t
-(string< "abc" "")
+(string-lessp "abc" "")
      @result{} nil
-(string< "abc" "ab")
+(string-lessp "abc" "ab")
      @result{} nil
-(string< "" "")
+(string-lessp "" "")
      @result{} nil
 @end group
 @end example
@@ -651,14 +650,18 @@ Symbols are also allowed as arguments, in which case their print names
 are compared.
 @end defun
 
-@defun string-lessp string1 string2
-@code{string-lessp} is another name for @code{string<}.
+@defun string< string1 string2
+@code{string<} is another name for @code{string-lessp}.
 @end defun
 
 @defun string-greaterp string1 string2
 This function returns the result of comparing @var{string1} and
 @var{string2} in the opposite order, i.e., it is equivalent to calling
 @code{(string-lessp @var{string2} @var{string1})}.
+@end defun
+
+@defun string> string1 string2
+@code{string>} is another name for @code{string-greaterp}.
 @end defun
 
 @cindex locale-dependent string comparison
