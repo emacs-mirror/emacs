@@ -274,37 +274,38 @@ NAME must be equal to `tramp-current-connection'."
 
 ;;; Integration of shortdoc.el:
 
-(with-eval-after-load 'shortdoc
-  ;; Some packages deactivate Tramp.  They don't deserve a shortdoc entry then.
-  (when (file-remote-p "/ssh:user@host:/tmp/foo")
-    (dolist (elem `((file-remote-p
-		     :eval (file-remote-p "/ssh:user@host:/tmp/foo")
-		     :eval (file-remote-p "/ssh:user@host:/tmp/foo" 'method)
-		     :eval (file-remote-p "/ssh:user@[::1]#1234:/tmp/foo" 'host)
-		     ;; We don't want to see the text properties.
-		     :no-eval (file-remote-p "/sudo::/tmp/foo" 'user)
-		     :result ,(substring-no-properties
-			       (file-remote-p "/sudo::/tmp/foo" 'user)))
-		    (file-local-name
-		     :eval (file-local-name "/ssh:user@host:/tmp/foo"))
-		    (file-local-copy
-		     :no-eval (file-local-copy "/ssh:user@host:/tmp/foo")
-		     :eg-result "/tmp/tramp.8ihLbO"
-		     :eval (file-local-copy "/tmp/foo"))))
-      (unless (assoc (car elem)
-		     (member "Remote Files" (assq 'file shortdoc--groups)))
-	(shortdoc-add-function 'file "Remote Files" elem)))
+(tramp--with-startup
+ (with-eval-after-load 'shortdoc
+   ;; Some packages deactivate Tramp.  They don't deserve a shortdoc entry then.
+   (when (file-remote-p "/ssh:user@host:/tmp/foo")
+     (dolist (elem `((file-remote-p
+		      :eval (file-remote-p "/ssh:user@host:/tmp/foo")
+		      :eval (file-remote-p "/ssh:user@host:/tmp/foo" 'method)
+		      :eval (file-remote-p "/ssh:user@[::1]#1234:/tmp/foo" 'host)
+		      ;; We don't want to see the text properties.
+		      :no-eval (file-remote-p "/sudo::/tmp/foo" 'user)
+		      :result ,(substring-no-properties
+			        (file-remote-p "/sudo::/tmp/foo" 'user)))
+		     (file-local-name
+		      :eval (file-local-name "/ssh:user@host:/tmp/foo"))
+		     (file-local-copy
+		      :no-eval (file-local-copy "/ssh:user@host:/tmp/foo")
+		      :eg-result "/tmp/tramp.8ihLbO"
+		      :eval (file-local-copy "/tmp/foo"))))
+       (unless (assoc (car elem)
+		      (member "Remote Files" (assq 'file shortdoc--groups)))
+	 (shortdoc-add-function 'file "Remote Files" elem)))
 
-    (add-hook
-     'tramp-integration-unload-hook
-     (lambda ()
-       (let ((glist (assq 'file shortdoc--groups)))
-	 (while (and (consp glist)
-                     (not (and (stringp (cadr glist))
-                               (string-equal (cadr glist) "Remote Files"))))
-           (setq glist (cdr glist)))
-	 (when (consp glist)
-           (setcdr glist nil)))))))
+     (add-hook
+      'tramp-integration-unload-hook
+      (lambda ()
+        (let ((glist (assq 'file shortdoc--groups)))
+	  (while (and (consp glist)
+                      (not (and (stringp (cadr glist))
+                                (string-equal (cadr glist) "Remote Files"))))
+            (setq glist (cdr glist)))
+	  (when (consp glist)
+            (setcdr glist nil))))))))
 
 ;;; Integration of compile.el:
 
