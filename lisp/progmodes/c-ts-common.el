@@ -151,7 +151,9 @@ comment."
          (orig-point (point-marker))
          (start-marker (point-marker))
          (end-marker nil)
-         (end-len 0))
+         (end-len 0)
+         (start-mask-done nil)
+         (end-mask-done nil))
     (move-marker start-marker start)
     ;; If the first line is /* followed by non-text, exclude this line
     ;; from filling.
@@ -179,6 +181,7 @@ comment."
         (goto-char (match-beginning 1))
         (setq end-marker (point-marker))
         (setq end-len (- (match-end 1) (match-beginning 1)))
+        (setq end-mask-done t)
         (replace-match (make-string end-len ?x)
                        nil nil nil 1))
 

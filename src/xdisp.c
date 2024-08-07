@@ -3647,14 +3647,14 @@ get_narrowed_len (struct window *w)
 static ptrdiff_t
 get_medium_narrowing_begv (struct window *w, ptrdiff_t pos)
 {
-  int len = get_narrowed_len (w);
+  ptrdiff_t len = get_narrowed_len (w);
   return max ((pos / len - 1) * len, BEGV);
 }
 
 static ptrdiff_t
 get_medium_narrowing_zv (struct window *w, ptrdiff_t pos)
 {
-  int len = get_narrowed_len (w);
+  ptrdiff_t len = get_narrowed_len (w);
   return min ((pos / len + 1) * len, ZV);
 }
 
@@ -3704,9 +3704,9 @@ get_large_narrowing_begv (ptrdiff_t pos)
 {
   if (long_line_optimizations_region_size <= 0)
     return BEGV;
-  int len = long_line_optimizations_region_size / 2;
-  int begv = max (pos - len, BEGV);
-  int limit = long_line_optimizations_bol_search_limit;
+  ptrdiff_t len = long_line_optimizations_region_size / 2;
+  ptrdiff_t begv = max (pos - len, BEGV);
+  ptrdiff_t limit = long_line_optimizations_bol_search_limit;
   while (limit > 0)
     {
       if (begv == BEGV || FETCH_BYTE (CHAR_TO_BYTE (begv) - 1) == '\n')
@@ -3722,7 +3722,7 @@ get_large_narrowing_zv (ptrdiff_t pos)
 {
   if (long_line_optimizations_region_size <= 0)
     return ZV;
-  int len = long_line_optimizations_region_size / 2;
+  ptrdiff_t len = long_line_optimizations_region_size / 2;
   return min (pos + len, ZV);
 }
 

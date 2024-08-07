@@ -2549,7 +2549,10 @@ If the item is checked, CHOSEN is a cons whose cdr is the value."
 			    (t
 			     (widget-create-child-value
 			      widget type (car (cdr chosen)))
-                             (widget-specify-selected child)))))
+                             ;; This somehow breaks :options and other
+                             ;; Custom features.
+                             ;; (widget-specify-selected child)
+                             ))))
 	       (t
 		(error "Unknown escape `%c'" escape)))))
      ;; Update properties.

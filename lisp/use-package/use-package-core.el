@@ -726,9 +726,9 @@ extending any keys already present."
 
     ;; If at this point no :load, :defer or :no-require has been seen, then
     ;; :load the package itself.
-    (when (and (not (plist-member args :load))
-               (not (plist-member args :defer))
-               (not (plist-member args :no-require)))
+    (when (and (not (plist-get args :load))
+               (not (plist-get args :defer))
+               (not (plist-get args :no-require)))
       (setq args (append args `(:load (,name)))))
 
     ;; Sort the list of keywords based on the order of `use-package-keywords'.

@@ -490,16 +490,15 @@ option `erc-fill-wrap-margin-width'.  To use it, either include
 `erc-fill-wrap'.
 
 Once enabled, use \\[erc-fill-wrap-nudge] to adjust the width of
-the indent and the stamp margin.  And For cycling between
+the indent and the stamp margin.  For cycling between
 logical- and screen-line oriented command movement, see
 \\[erc-fill-wrap-toggle-truncate-lines].  Similarly, use
 \\[erc-fill-wrap-refill-buffer] to fix alignment problems after
 running certain commands, like `text-scale-adjust'.  Also see
-related stylistic options `erc-fill-wrap-merge', and
+related stylistic options `erc-fill-wrap-merge' and
 `erc-fill-wrap-merge-indicator'.  (Hint: in narrow windows, try
-setting `erc-fill-static-center' to 1, and if you use
-`erc-fill-wrap-merge-indicator', choose \"Leading MIDDLE DOT sans
-gap\" or one of the \"trailing\" items from the Customize menu.)
+setting `erc-fill-static-center' to 1 and choosing \"Leading
+MIDDLE DOT sans gap\" for `erc-fill-wrap-merge-indicator'.)
 
 This module imposes various restrictions on the appearance of
 timestamps.  Most notably, it insists on displaying them in the
@@ -510,12 +509,11 @@ Additionally, this module assumes that users providing their own
 `erc-insert-timestamp-function' have also customized the option
 `erc-fill-wrap-margin-side' to an explicit side.  When stamps
 appear in the right margin, which they do by default, users may
-find that ERC actually appends them to copy-as-killed messages
-without an intervening space.  This normally poses at most a
-minor inconvenience, however users of the `log' module may prefer
-a workaround provided by `erc-stamp-prefix-log-filter', which
-strips trailing stamps from logged messages and instead prepends
-them to every line.
+find that ERC actually appends them to copy-as-killed messages.
+This normally poses at most a minor inconvenience.  Users of the
+`log' module wanting to avoid this effect in logs should see
+`erc-stamp-prefix-log-filter', which strips trailing stamps from
+logged messages and instead prepends them to every line.
 
 A so-called \"local\" module, `fill-wrap' depends on the global
 modules `fill', `stamp', `button', and `scrolltobottom'.  It

@@ -726,7 +726,9 @@
                ;; This is required, as otherwise many TrueType fonts
                ;; with CJK characters but no corresponding ``design
                ;; language'' declaration can't be found.
-               ,(font-spec :registry "iso10646-1" :script 'cjk-misc))
+               ,@(and (featurep 'android)
+                      (list (font-spec :registry "iso10646-1"
+                                       :script 'cjk-misc))))
 
      (hangul (nil . "KSC5601.1987-0")
 	     ,(font-spec :registry "iso10646-1" :lang 'ko))

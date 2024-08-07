@@ -1018,8 +1018,8 @@ usage: (let* VARLIST BODY...)  */)
 	}
 
       var = maybe_remove_pos_from_symbol (var);
-      if (!NILP (lexenv) && BARE_SYMBOL_P (var)
-	  && !XBARE_SYMBOL (var)->u.s.declared_special
+      CHECK_TYPE (BARE_SYMBOL_P (var), Qsymbolp, var);
+      if (!NILP (lexenv) && !XBARE_SYMBOL (var)->u.s.declared_special
 	  && NILP (Fmemq (var, Vinternal_interpreter_environment)))
 	/* Lexically bind VAR by adding it to the interpreter's binding
 	   alist.  */
@@ -1090,10 +1090,10 @@ usage: (let VARLIST BODY...)  */)
       varlist = XCDR (varlist);
       Lisp_Object var = maybe_remove_pos_from_symbol (SYMBOLP (elt) ? elt
 						      : Fcar (elt));
+      CHECK_TYPE (BARE_SYMBOL_P (var), Qsymbolp, var);
       tem = temps[argnum];
 
-      if (!NILP (lexenv) && SYMBOLP (var)
-	  && !XSYMBOL (var)->u.s.declared_special
+      if (!NILP (lexenv) && !XBARE_SYMBOL (var)->u.s.declared_special
 	  && NILP (Fmemq (var, Vinternal_interpreter_environment)))
 	/* Lexically bind VAR by adding it to the lexenv alist.  */
 	lexenv = Fcons (Fcons (var, tem), lexenv);
@@ -1492,7 +1492,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
   ptrdiff_t CACHEABLE clausenb = 0;
 
   var = maybe_remove_pos_from_symbol (var);
-  CHECK_SYMBOL (var);
+  CHECK_TYPE (BARE_SYMBOL_P (var), Qsymbolp, var);
 
   Lisp_Object success_handler = Qnil;
 
@@ -3272,18 +3272,18 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
     {
       maybe_quit ();
 
-      Lisp_Object next = XCAR (syms_left);
-      if (!SYMBOLP (next))
+      Lisp_Object next = maybe_remove_pos_from_symbol (XCAR (syms_left));
+      if (!BARE_SYMBOL_P (next))
 	xsignal1 (Qinvalid_function, fun);
 
-      if (EQ (next, Qand_rest))
+      if (BASE_EQ (next, Qand_rest))
         {
           if (rest || previous_rest)
             xsignal1 (Qinvalid_function, fun);
           rest = 1;
 	  previous_rest = true;
         }
-      else if (EQ (next, Qand_optional))
+      else if (BASE_EQ (next, Qand_optional))
         {
           if (optional || rest || previous_rest)
             xsignal1 (Qinvalid_function, fun);
@@ -3305,12 +3305,12 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
 	    arg = Qnil;
 
 	  /* Bind the argument.  */
-	  if (!NILP (lexenv) && SYMBOLP (next))
+	  if (!NILP (lexenv))
 	    /* Lexically bind NEXT by adding it to the lexenv alist.  */
 	    lexenv = Fcons (Fcons (next, arg), lexenv);
 	  else
 	    /* Dynamically bind NEXT.  */
-	    specbind (maybe_remove_pos_from_symbol (next), arg);
+	    specbind (next, arg);
 	  previous_rest = false;
 	}
     }

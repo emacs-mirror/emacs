@@ -1748,6 +1748,9 @@ Return t if the file exists and loads successfully.  */)
       saved_strings[i].size = 0;
     }
 
+  /* The "...done" messages are shown only in interactive mode, because
+     the echo-area can display only the last message, and we want to
+     avoid the impression that the load is still in progress.  */
   if (!noninteractive && (NILP (nomessage) || force_load_messages))
     {
       if (is_module)
