@@ -209,7 +209,7 @@ comment."
         (fill-region (max start-marker para-start) (min end para-end) arg))
 
       ;; Unmask.
-      (when end-marker
+      (when (and end-marker end-mask-done)
         (goto-char end-marker)
         (delete-region (point) (+ end-len (point)))
         (insert (make-string end-len ?\s)))
