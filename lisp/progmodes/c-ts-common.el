@@ -152,7 +152,6 @@ comment."
          (start-marker (point-marker))
          (end-marker nil)
          (end-len 0)
-         (start-mask-done nil)
          (end-mask-done nil))
     (move-marker start-marker start)
     ;; If the first line is /* followed by non-text, exclude this line
