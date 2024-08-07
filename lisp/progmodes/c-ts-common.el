@@ -214,7 +214,7 @@ comment."
         (goto-char start-marker)
         (delete-char 1)
         (insert "/"))
-      (when (and end-mask-done start-marker)
+      (when (and end-mask-done end-marker)
         (goto-char end-marker)
         (delete-region (point) (+ end-len (point)))
         (insert (make-string end-len ?\s)))
