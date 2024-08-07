@@ -73,8 +73,7 @@
   "Tree-sitter indent rules for `cmake-ts-mode'.")
 
 (defvar cmake-ts-mode--constants
-  '("1" "ON" "TRUE" "YES" "Y" "0" "OFF" "FALSE" "NO" "N" "IGNORE"
-    "NOTFOUND")
+  '("ON" "TRUE" "YES" "Y" "OFF" "FALSE" "NO" "N" "IGNORE" "NOTFOUND")
   "CMake constants for tree-sitter font-locking.")
 
 (defvar cmake-ts-mode--keywords
@@ -164,7 +163,7 @@ Check if a node type is available, then return the right font lock rules."
    :language 'cmake
    :feature 'number
    '(((unquoted_argument) @font-lock-number-face
-      (:match "\\`[[:digit:]]*\\.?[[:digit:]]*\\.?[[:digit:]]+\\'"
+      (:match "\\`-?[[:digit:]]*\\.?[[:digit:]]*\\.?[[:digit:]]+\\'"
               @font-lock-number-face)))
 
    :language 'cmake
