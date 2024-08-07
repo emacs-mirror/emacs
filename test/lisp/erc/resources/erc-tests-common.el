@@ -103,16 +103,17 @@ recently passed to the mocked `erc-process-input-line'.  Make
                  (lambda (&rest r) (push r calls)))
                 ((symbol-function 'erc-server-buffer)
                  (lambda () (current-buffer))))
-        (erc-tests-common-prep-for-insertion)
         (funcall test-fn (lambda () (pop calls)))))
     (when noninteractive (kill-buffer))))
 
 (defun erc-tests-common-make-server-buf (&optional name)
   "Return a server buffer named NAME, creating it if necessary.
 Use NAME for the network and the session server as well."
-  (unless name
-    (cl-assert (string-prefix-p " *temp*" (setq name (buffer-name)))))
-  (with-current-buffer (get-buffer-create name)
+  (with-current-buffer (if name
+                           (get-buffer-create name)
+                         (and (string-search "temp" (buffer-name))
+                              (setq name "foonet")
+                              (buffer-name)))
     (erc-tests-common-prep-for-insertion)
     (erc-tests-common-init-server-proc "sleep" "1")
     (setq erc-session-server (concat "irc." name ".org")

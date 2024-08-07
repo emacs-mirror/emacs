@@ -173,7 +173,8 @@ as of ERC 5.6:
     and help text, and on outgoing messages unless echoed back by
     the server (assuming future support)
 
- - `erc--spkr': a string, the nick of the person speaking
+ - `erc--spkr': a string, the non-case-mapped nick of the speaker as
+    stored in the `nickname' slot of its `erc-server-users' item
 
  - `erc--ctcp': a CTCP command, like `ACTION'
 
@@ -6339,20 +6340,18 @@ rely on their presence, and cleaner ways exist)."
   "Template for a CTCP ACTION status message from current client.")
 
 (defun erc--speakerize-nick (nick &optional disp)
-  "Propertize NICK with `erc--speaker' if not already present.
-Do so to DISP instead if it's non-nil.  In either case, assign
-NICK, sans properties, as the `erc--speaker' value.  As a side
-effect, pair the latter string (the same `eq'-able object) with
-the symbol `erc--spkr' in the \"msg prop\" environment for any
-imminent `erc-display-message' invocations.  While doing so,
-include any overrides defined in `erc--message-speaker-catalog'."
-  (let ((plain-nick (substring-no-properties nick)))
-    (erc--ensure-spkr-prop plain-nick (get erc--message-speaker-catalog
-                                           'erc--msg-prop-overrides))
-    (if (text-property-not-all 0 (length (or disp nick))
-                               'erc--speaker nil (or disp nick))
-        (or disp nick)
-      (propertize (or disp nick) 'erc--speaker plain-nick))))
+  "Return propertized NICK with canonical NICK in `erc--speaker'.
+Return propertized DISP instead if given.  As a side effect, pair NICK
+with `erc--spkr' in the \"msg prop\" environment for any imminent
+`erc-display-message' invocations, and include any overrides defined in
+`erc--message-speaker-catalog'.  Expect NICK (but not necessarily DISP)
+to be absent of any existing text properties."
+  (when-let ((erc-server-process)
+             (cusr (erc-get-server-user nick)))
+    (setq nick (erc-server-user-nickname cusr)))
+  (erc--ensure-spkr-prop nick (get erc--message-speaker-catalog
+                                   'erc--msg-prop-overrides))
+  (propertize (or disp nick) 'erc--speaker nick))
 
 (defun erc--determine-speaker-message-format-args
     (nick message queryp privmsgp inputp &optional statusmsg prefix disp-nick)
