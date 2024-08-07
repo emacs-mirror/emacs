@@ -10480,6 +10480,16 @@ init_ntproc (int dumping)
   /* Initial preparation for subprocess support: replace our standard
      handles with non-inheritable versions. */
   {
+
+#ifdef _UCRT
+    /* For UCRT, the _fdopen will try to find free stream from
+       _IOB_ENTRIES (= 3), thus we can't reopen the standard handles
+       with it. Using SetHandleInformation to make the handle not
+       inheritable to child process is a better way. */
+    SetHandleInformation (GetStdHandle(STD_INPUT_HANDLE), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation (GetStdHandle(STD_OUTPUT_HANDLE), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation (GetStdHandle(STD_ERROR_HANDLE), HANDLE_FLAG_INHERIT, 0);
+#else
     HANDLE parent;
     HANDLE stdin_save =  INVALID_HANDLE_VALUE;
     HANDLE stdout_save = INVALID_HANDLE_VALUE;
@@ -10534,6 +10544,7 @@ init_ntproc (int dumping)
     else
       _open ("nul", O_TEXT | O_NOINHERIT | O_WRONLY);
     _fdopen (2, "w");
+#endif
   }
 
   /* unfortunately, atexit depends on implementation of malloc */
