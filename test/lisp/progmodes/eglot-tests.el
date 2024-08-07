@@ -1235,8 +1235,8 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
     (let ((eglot-server-programs '(((baz-mode (foo-mode :language-id "bar"))
                                     . ("prog-executable")))))
       (eglot--guessing-contact (_ nil _ _ modes guessed-langs)
-        (should (equal guessed-langs '("bar" "baz")))
-        (should (equal modes '(foo-mode baz-mode)))))))
+        (should (equal guessed-langs '("baz" "bar")))
+        (should (equal modes '(baz-mode foo-mode)))))))
 
 (defun eglot--glob-match (glob str)
   (funcall (eglot--glob-compile glob t t) str))

@@ -1238,38 +1238,31 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
   "Lookup `eglot-server-programs' for MODE.
 Return (LANGUAGES . CONTACT-PROXY).
 
-MANAGED-MODES is a list with MODE as its first element.
-Subsequent elements are other major modes also potentially
-managed by the server that is to manage MODE.
-
-LANGUAGE-IDS is a list of the same length as MANAGED-MODES.  Each
-elem is derived from the corresponding mode name, if not
-specified in `eglot-server-programs' (which see).
+LANGUAGES is a list ((MANAGED-MODE . LANGUAGE-ID) ...).  MANAGED-MODE is
+a major mode also potentially managed by the server that is to manage
+MODE.  LANGUAGE-ID is string identifying the language to the LSP server.
+It's derived from the corresponding mode name, or explicitly specified
+in `eglot-server-programs' (which see).
 
 CONTACT-PROXY is the value of the corresponding
 `eglot-server-programs' entry."
-  (cl-flet ((languages (main-mode-sym specs)
-              (let* ((res
-                      (mapcar (jsonrpc-lambda (sym &key language-id &allow-other-keys)
-                                (cons sym
-                                      (or language-id
-                                          (or (get sym 'eglot-language-id)
-                                              (replace-regexp-in-string
-                                               "\\(?:-ts\\)?-mode$" ""
-                                               (symbol-name sym))))))
-                              specs))
-                     (head (cl-find main-mode-sym res :key #'car)))
-                (cons head (delq head res)))))
-    (cl-loop
-     for (modes . contact) in eglot-server-programs
-     for specs = (mapcar #'eglot--ensure-list
-                         (if (or (symbolp modes) (keywordp (cadr modes)))
-                             (list modes) modes))
-     thereis (cl-some (lambda (spec)
-                        (cl-destructuring-bind (sym &key &allow-other-keys) spec
-                          (and (provided-mode-derived-p mode sym)
-                               (cons (languages sym specs) contact))))
-                      specs))))
+  (cl-loop
+   for (modes . contact) in eglot-server-programs
+   for llists = (mapcar #'eglot--ensure-list
+                           (if (or (symbolp modes) (keywordp (cadr modes)))
+                               (list modes) modes))
+   for normalized = (mapcar (jsonrpc-lambda (sym &key language-id &allow-other-keys)
+                              (cons sym
+                                    (or language-id
+                                        (or (get sym 'eglot-language-id)
+                                            (replace-regexp-in-string
+                                             "\\(?:-ts\\)?-mode$" ""
+                                             (symbol-name sym))))))
+                            llists)
+   when (cl-some (lambda (cell)
+                   (provided-mode-derived-p mode (car cell)))
+                 normalized)
+   return (cons normalized contact)))
 
 (defun eglot--guess-contact (&optional interactive)
   "Helper for `eglot'.
