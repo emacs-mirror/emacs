@@ -1,4 +1,4 @@
-;;; -*-lexical-binding: t; -*-
+;;; cond-star.el --- Extended form of `cond' construct  -*-lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
@@ -20,6 +20,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;; Here is the list of functions the generated code is known to call:
 ;; car, cdr, car-safe, cdr-safe, nth, nthcdr, null, eq, equal, eql, =,
 ;; vectorp, length.
@@ -31,6 +33,8 @@
 ;;; should the element after the keyword be treated in the usual way
 ;;; as a pattern?  Currently `cond*-non-exit-clause-substance' explicitly
 ;;; prevents that by adding t at the front of its value.
+
+;;; Code:
 
 (defmacro cond* (&rest clauses)
   "Extended form of traditional Lisp `cond' construct.
@@ -80,51 +84,51 @@ REGEXP matches a string if REGEXP matches it.
   The match must cover the entire string from its first char to its last.
 ATOM (meaning any other kind of non-list not described above)
   matches anything `equal' to it.
-(rx REGEXP) uses a regexp specified in s-expression form,
+\(rx REGEXP) uses a regexp specified in s-expression form,
   as in the function `rx', and matches the data that way.
-(rx REGEXP SYM0 SYM1...) uses a regexp specified in s-expression form,
+\(rx REGEXP SYM0 SYM1...) uses a regexp specified in s-expression form,
   and binds the symbols SYM0, SYM1, and so on
   to (match-string 0 DATUM), (match-string 1 DATUM), and so on.
   You can use as many SYMs as regexp matching supports.
 
 `OBJECT  matches any value `equal' to OBJECT.
-(cons CARPAT CDRPAT)
+\(cons CARPAT CDRPAT)
   matches a cons cell if CARPAT matches its car and CDRPAT matches its cdr.
-(list ELTPATS...)
+\(list ELTPATS...)
   matches a list if the ELTPATS match its elements.
   The first ELTPAT should match the list's first element.
   The second ELTPAT should match the list's second element.  And so on.
-(vector ELTPATS...)
+\(vector ELTPATS...)
   matches a vector if the ELTPATS match its elements.
   The first ELTPAT should match the vector's first element.
   The second ELTPAT should match the vector's second element.  And so on.
-(cdr PATTERN)  matches PATTERN with strict checking of cdrs.
+\(cdr PATTERN)  matches PATTERN with strict checking of cdrs.
   That means that `list' patterns verify that the final cdr is nil.
   Strict checking is the default.
-(cdr-safe PATTERN)  matches PATTERN with lax checking of cdrs.
+\(cdr-safe PATTERN)  matches PATTERN with lax checking of cdrs.
   That means that `list' patterns do not examine the final cdr.
-(and CONJUNCTS...)  matches each of the CONJUNCTS against the same data.
+\(and CONJUNCTS...)  matches each of the CONJUNCTS against the same data.
   If all of them match, this pattern succeeds.
   If one CONJUNCT fails, this pattern fails and does not try more CONJUNCTS.
-(or DISJUNCTS...)  matches each of the DISJUNCTS against the same data.
+\(or DISJUNCTS...)  matches each of the DISJUNCTS against the same data.
   If one DISJUNCT succeeds, this pattern succeeds
   and does not try more DISJUNCTs.
   If all of them fail, this pattern fails.
-(COND*-EXPANDER ...)
+\(COND*-EXPANDER ...)
   Here the car is a symbol that has a `cond*-expander' property
   which defines how to handle it in a pattern.  The property value
   is a function.  Trying to match such a pattern calls that
   function with one argument, the pattern in question (including its car).
   The function should return an equivalent pattern
   to be matched instead.
-(PREDICATE SYMBOL)
+\(PREDICATE SYMBOL)
   matches datum if (PREDICATE DATUM) is true,
   then binds SYMBOL to DATUM.
-(PREDICATE SYMBOL MORE-ARGS...)
+\(PREDICATE SYMBOL MORE-ARGS...)
   matches datum if (PREDICATE DATUM MORE-ARGS...) is true,
   then binds SYMBOL to DATUM.
   MORE-ARGS... can refer to symbols bound earlier in the pattern.
-(constrain SYMBOL EXP)
+\(constrain SYMBOL EXP)
   matches datum if the form EXP is true.
   EXP can refer to symbols bound earlier in the pattern."
   (ignore datum)
@@ -212,7 +216,7 @@ This is used for conditional exit clauses."
            (let* ((bindings (cdr condition))
                   (first-binding (car bindings))
                   (first-variable (if (symbolp first-binding) first-binding
-                                   (car first-binding)))
+                                    (car first-binding)))
                   (first-value (if (symbolp first-binding) nil
                                  (cadr first-binding)))
                   (init-gensym (gensym "init"))
@@ -584,7 +588,7 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
                (setq expression (cdr result))
                ;; Were any bindings made by this arm of the disjunction?
                (when (not (eq bindings bindings-before-or))
-                 ;; Ok, arrange to clear their backtrack aliases
+                 ;; OK, arrange to clear their backtrack aliases
                  ;; if this arm does not match.
                  (setq bindings-to-clear bindings)
                  (let (clearing)
@@ -708,3 +712,7 @@ That is safe for the purpose this is used for."
       (cons (car args)
             (cond*-un-backquote-list* (cdr args)))
     (mapcar (lambda (x) (list 'quote x)) (cadr (car args)))))
+
+(provide 'cond-star)
+
+;;; cond-star.el ends here
