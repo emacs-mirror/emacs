@@ -889,10 +889,6 @@ interpreted as a number, this function returns 0.
      @result{} 100000.0
 @end example
 
-@findex string-to-int
-@code{string-to-int} is an obsolete alias for this function.
-@end defun
-
 @defun char-to-string character
 @cindex character to string
 This function returns a new string containing one character,
