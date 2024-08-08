@@ -888,6 +888,7 @@ interpreted as a number, this function returns 0.
 (string-to-number "1e5")
      @result{} 100000.0
 @end example
+@end defun
 
 @defun char-to-string character
 @cindex character to string
