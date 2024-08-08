@@ -452,7 +452,7 @@ runs the normal hook `display-time-hook' after each update."
     ("America/New_York" "New York")
     ("Europe/London" "London")
     ("Europe/Paris" "Paris")
-    ("Asia/Calcutta" "Bangalore")
+    ("Asia/Kolkata" "Bangalore")
     ("Asia/Tokyo" "Tokyo"))
   "Alist of zoneinfo-style time zones and places for `world-clock'.
 Each element has the form (TIMEZONE LABEL).
