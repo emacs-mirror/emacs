@@ -419,10 +419,11 @@ Obey `tramp-kubernetes-context'"
   "The kubectl options for context and namespace as string."
   (mapconcat
    #'identity
-   `(,(when-let ((context (tramp-kubernetes--current-context vec)))
-	(format "--context=%s" context))
-     ,(when-let ((namespace (tramp-kubernetes--namespace vec)))
-	(format "--namespace=%s" namespace)))
+   (delq nil
+	 `(,(when-let ((context (tramp-kubernetes--current-context vec)))
+	      (format "--context=%s" context))
+	   ,(when-let ((namespace (tramp-kubernetes--namespace vec)))
+	      (format "--namespace=%s" namespace))))
    " "))
 
 ;;;###tramp-autoload
