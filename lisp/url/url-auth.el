@@ -90,7 +90,7 @@ instead of the filename inheritance method."
 		       (read-string (url-auth-user-prompt href realm)
 			            (or user (user-real-login-name)))))
 	    pass (or
-		  (url-do-auth-source-search server type :secret)
+		  (url-do-auth-source-search server type :secret user)
                   (and (url-interactive-p)
 		       (read-passwd "Password: " nil (or pass "")))))
       (setq server (format "%s:%d" server port))
@@ -126,7 +126,7 @@ instead of the filename inheritance method."
 			     (read-string (url-auth-user-prompt href realm)
 				          (user-real-login-name))))
 		  pass (or
-			(url-do-auth-source-search server type :secret)
+			(url-do-auth-source-search server type :secret user)
                         (and (url-interactive-p)
 			     (read-passwd "Password: ")))
                   server (format "%s:%d" server port)
@@ -461,8 +461,8 @@ challenge such as nonce and opaque."
   "A list of the registered authorization schemes and various and sundry
 information associated with them.")
 
-(defun url-do-auth-source-search (server type parameter)
-  (let* ((auth-info (auth-source-search :max 1 :host server :port type))
+(defun url-do-auth-source-search (server type parameter &optional user)
+  (let* ((auth-info (auth-source-search :max 1 :host server :port type :user user))
          (auth-info (nth 0 auth-info))
          (token (plist-get auth-info parameter))
          (token (if (functionp token) (funcall token) token)))
