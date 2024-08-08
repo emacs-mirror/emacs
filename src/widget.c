@@ -42,6 +42,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/ShellP.h>
 #include "../lwlib/lwlib.h"
 
+#ifdef HAVE_MPS
+#include "igc.h"
+#endif
+
 static void EmacsFrameInitialize (Widget, Widget, ArgList, Cardinal *);
 static void EmacsFrameDestroy (Widget);
 static void EmacsFrameRealize (Widget, XtValueMask *, XSetWindowAttributes *);
@@ -61,7 +65,7 @@ static XtResource resources[] = {
 
   {(char *) XtNemacsFrame, (char *) XtCEmacsFrame,
      XtRPointer, sizeof (XtPointer),
-     offset (frame), XtRImmediate, 0},
+     offset (framep), XtRImmediate, 0},
 
   {(char *) XtNminibuffer, (char *) XtCMinibuffer, XtRInt, sizeof (int),
      offset (minibuffer), XtRImmediate, (XtPointer)0},
@@ -157,7 +161,7 @@ emacsFrameClass (void)
 static void
 get_default_char_pixel_size (EmacsFrame ew, int *pixel_width, int *pixel_height)
 {
-  struct frame *f = ew->emacs_frame.frame;
+  struct frame *f = *ew->emacs_frame.framep;
 
   *pixel_width = FRAME_COLUMN_WIDTH (f);
   *pixel_height = FRAME_LINE_HEIGHT (f);
@@ -167,7 +171,7 @@ static void
 pixel_to_char_size (EmacsFrame ew, Dimension pixel_width,
 		    Dimension pixel_height, int *char_width, int *char_height)
 {
-  struct frame *f = ew->emacs_frame.frame;
+  struct frame *f = *ew->emacs_frame.framep;
 
   *char_width = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, (int) pixel_width);
   *char_height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, (int) pixel_height);
@@ -177,7 +181,7 @@ static void
 char_to_pixel_size (EmacsFrame ew, int char_width, int char_height,
 		    Dimension *pixel_width, Dimension *pixel_height)
 {
-  struct frame *f = ew->emacs_frame.frame;
+  struct frame *f = *ew->emacs_frame.framep;
 
   *pixel_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, char_width);
   *pixel_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, char_height);
@@ -259,7 +263,7 @@ set_frame_size (EmacsFrame ew)
 
    */
 
-  struct frame *f = ew->emacs_frame.frame;
+  struct frame *f = *ew->emacs_frame.framep;
 
   ew->core.width = FRAME_PIXEL_WIDTH (f);
   ew->core.height = FRAME_PIXEL_HEIGHT (f);
@@ -326,7 +330,7 @@ widget_update_wm_size_hints (Widget widget, Widget frame)
 static void
 update_various_frame_slots (EmacsFrame ew)
 {
-  struct frame *f = ew->emacs_frame.frame;
+  struct frame *f = *ew->emacs_frame.framep;
 
   f->internal_border_width = ew->emacs_frame.internal_border_width;
 }
@@ -334,7 +338,7 @@ update_various_frame_slots (EmacsFrame ew)
 static void
 update_from_various_frame_slots (EmacsFrame ew)
 {
-  struct frame *f = ew->emacs_frame.frame;
+  struct frame *f = *ew->emacs_frame.framep;
   struct x_output *x = f->output_data.x;
 
   ew->core.height = FRAME_PIXEL_HEIGHT (f) - x->menubar_height;
@@ -359,7 +363,7 @@ EmacsFrameInitialize (Widget request, Widget new,
 {
   EmacsFrame ew = (EmacsFrame) new;
 
-  if (!ew->emacs_frame.frame)
+  if (!*ew->emacs_frame.framep)
     {
       fputs ("can't create an emacs frame widget without a frame\n", stderr);
       exit (1);
@@ -384,7 +388,7 @@ EmacsFrameRealize (Widget widget, XtValueMask *mask,
 		   XSetWindowAttributes *attrs)
 {
   EmacsFrame ew = (EmacsFrame) widget;
-  struct frame *f = ew->emacs_frame.frame;
+  struct frame *f = *ew->emacs_frame.framep;
 
   /* This used to contain SubstructureRedirectMask, but this turns out
      to be a problem with XIM on Solaris, and events from that mask
@@ -410,14 +414,21 @@ EmacsFrameRealize (Widget widget, XtValueMask *mask,
 static void
 EmacsFrameDestroy (Widget widget)
 {
-  /* All GCs are now freed in x_free_frame_resources.  */
+  EmacsFrame ew = (EmacsFrame) widget;
+  struct frame **fp = ew->emacs_frame.framep;
+
+#ifdef HAVE_MPS
+  igc_xfree (fp);
+#else
+  xfree (fp);
+#endif
 }
 
 static void
 EmacsFrameResize (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame) widget;
-  struct frame *f = ew->emacs_frame.frame;
+  struct frame *f = *ew->emacs_frame.framep;
 
   if (CONSP (frame_size_history))
     frame_size_history_extra
@@ -470,7 +481,7 @@ void
 EmacsFrameSetCharSize (Widget widget, int columns, int rows)
 {
   EmacsFrame ew = (EmacsFrame) widget;
-  struct frame *f = ew->emacs_frame.frame;
+  struct frame *f = *ew->emacs_frame.framep;
 
   if (CONSP (frame_size_history))
     frame_size_history_extra
@@ -489,7 +500,7 @@ static void
 EmacsFrameExpose (Widget widget, XEvent *event, Region region)
 {
   EmacsFrame ew = (EmacsFrame) widget;
-  struct frame *f = ew->emacs_frame.frame;
+  struct frame *f = *ew->emacs_frame.framep;
 
   expose_frame (f, event->xexpose.x, event->xexpose.y,
 		event->xexpose.width, event->xexpose.height);
@@ -501,7 +512,7 @@ void
 widget_store_internal_border (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame) widget;
-  struct frame *f = ew->emacs_frame.frame;
+  struct frame *f = *ew->emacs_frame.framep;
 
   ew->emacs_frame.internal_border_width = f->internal_border_width;
 }

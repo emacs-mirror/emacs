@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include "lisp.h"
+#include "igc.h"
 #include "character.h"
 #include "xterm.h"
 #include "frame.h"
@@ -4195,12 +4196,20 @@ x_window (struct frame *f, long window_prompting)
   /* mappedWhenManaged to false tells to the paned window to not map/unmap
      the emacs screen when changing menubar.  This reduces flickering.  */
 
+  struct frame **framep;
+#ifdef HAVE_MPS
+  framep = igc_xzalloc_ambig (sizeof *framep);
+#else
+  framep = xmalloc (sizeof *framep);
+#endif
+  *framep = f;
+
   ac = 0;
   XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
   XtSetArg (al[ac], (char *) XtNshowGrip, 0); ac++;
   XtSetArg (al[ac], (char *) XtNallowResize, 1); ac++;
   XtSetArg (al[ac], (char *) XtNresizeToPreferred, 1); ac++;
-  XtSetArg (al[ac], (char *) XtNemacsFrame, f); ac++;
+  XtSetArg (al[ac], (char *) XtNemacsFrame, framep); ac++;
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
   XtSetArg (al[ac], XtNdepth, FRAME_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;

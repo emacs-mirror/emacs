@@ -25,7 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/CoreP.h>
 
 typedef struct {
-  struct frame *frame;		/* the *emacs* frame object */
+  struct frame **framep;		/* the *emacs* frame object */
 
   /* Resources that can't be done from lisp.
    */
