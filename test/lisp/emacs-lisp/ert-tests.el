@@ -876,6 +876,60 @@ This macro is used to test if macroexpansion in `should' works."
   (should (eq (ert--get-explainer 'string-equal) 'ert--explain-string-equal))
   (should (eq (ert--get-explainer 'string=) 'ert--explain-string-equal)))
 
+(ert-deftest ert--pp-with-indentation-and-newline ()
+  :tags '(:causes-redisplay)
+  (let ((failing-test (make-ert-test
+                       :name 'failing-test
+                       :body (lambda ()
+                               (should (equal '((:one "1" :three "3" :two "2"))
+                                              '((:one "1")))))))
+        (want-body "\
+Selector: <failing-test>
+Passed:  0
+Failed:  1 (1 unexpected)
+Skipped: 0
+Total:   1/1
+
+Started at:   @@TIMESTAMP@@
+Finished.
+Finished at:  @@TIMESTAMP@@
+
+F
+
+F failing-test
+    (ert-test-failed
+     ((should (equal '((:one \"1\" :three \"3\" :two \"2\")) '((:one \"1\"))))
+      :form (equal ((:one \"1\" :three \"3\" :two \"2\")) ((:one \"1\"))) :value
+      nil :explanation
+      (list-elt 0
+                (proper-lists-of-different-length 6 2
+                                                  (:one \"1\" :three \"3\"
+                                                        :two \"2\")
+                                                  (:one \"1\")
+                                                  first-mismatch-at 2))))
+\n\n")
+        (want-msg "Ran 1 tests, 0 results were as expected, 1 unexpected")
+        (buffer-name (generate-new-buffer-name " *ert-test-run-tests*")))
+    (cl-letf* ((ert-debug-on-error nil)
+               (ert--output-buffer-name buffer-name)
+               (messages nil)
+               ((symbol-function 'message)
+                (lambda (format-string &rest args)
+                  (push (apply #'format format-string args) messages)))
+               ((symbol-function 'ert--format-time-iso8601)
+                (lambda (_) "@@TIMESTAMP@@")))
+      (save-window-excursion
+        (unwind-protect
+            (let ((fill-column 70))
+              (ert-run-tests-interactively failing-test)
+              (should (equal (list want-msg) messages))
+              (should (equal (string-replace "\t" "        "
+                                             (with-current-buffer buffer-name
+                                               (buffer-string)))
+                             want-body)))
+          (when noninteractive
+            (kill-buffer buffer-name)))))))
+
 (provide 'ert-tests)
 
 ;;; ert-tests.el ends here

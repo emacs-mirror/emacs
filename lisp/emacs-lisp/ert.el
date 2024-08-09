@@ -1317,13 +1317,12 @@ empty string."
   "Pretty-print OBJECT, indenting it to the current column of point.
 Ensures a final newline is inserted."
   (let ((begin (point))
+        (cols (current-column))
         (pp-escape-newlines t)
         (print-escape-control-characters t))
     (pp object (current-buffer))
     (unless (bolp) (insert "\n"))
-    (save-excursion
-      (goto-char begin)
-      (indent-sexp))))
+    (indent-rigidly begin (point) cols)))
 
 (defun ert--insert-infos (result)
   "Insert `ert-info' infos from RESULT into current buffer.
