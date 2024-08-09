@@ -270,6 +270,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
       </intent-filter>
 
       <intent-filter>
+        <action android:name="android.intent.action.SEND"/>
         <action android:name="android.intent.action.SENDTO"/>
         <data android:scheme="mailto"/>
         <category android:name="android.intent.category.DEFAULT"/>
