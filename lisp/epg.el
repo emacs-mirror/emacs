@@ -683,7 +683,7 @@ callback data (if any)."
     ;; We encode and decode ourselves the text sent/received from gpg,
     ;; so the below disables automatic encoding and decoding by
     ;; subprocess communications routines.
-    (set-process-coding-system process 'raw-text 'raw-text)
+    (set-process-coding-system process 'raw-text 'raw-text-unix)
     (setf (epg-context-process context) process)))
 
 (defun epg--process-filter (process input)
