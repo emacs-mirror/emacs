@@ -422,11 +422,11 @@ public final class EmacsOpenActivity extends Activity
 
     /* Now see if the action specified is supported by Emacs.  */
 
-    if (action.equals ("android.intent.action.VIEW")
-	|| action.equals ("android.intent.action.EDIT")
-	|| action.equals ("android.intent.action.PICK")
-	|| action.equals ("android.intent.action.SEND")
-	|| action.equals ("android.intent.action.SENDTO"))
+    if (action.equals (Intent.ACTION_VIEW)
+	|| action.equals (Intent.ACTION_EDIT)
+	|| action.equals (Intent.ACTION_PICK)
+	|| action.equals (Intent.ACTION_SEND)
+	|| action.equals (Intent.ACTION_SENDTO))
       {
 	/* Obtain the URI of the action.  */
 	uri = intent.getData ();
