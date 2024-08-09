@@ -800,11 +800,7 @@ Returns an error if the server cannot be contacted."
 		  (smtpmail-command-or-throw
 		   process (format "HELO %s" (smtpmail-fqdn)))
 		;; EHLO was successful, so we parse the extensions.
-		(dolist (line (delete
-			       ""
-			       (split-string
-				(plist-get (cdr result) :capabilities)
-				"\r\n")))
+		(dolist (line (delete "" (split-string capabilities "\r\n")))
 		  (let ((name
                          ;; Use ASCII case-table to prevent I
                          ;; downcasing to a dotless i under some
