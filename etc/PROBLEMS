@@ -1778,6 +1778,23 @@ happen without any special user interaction, for example, when Emacs
 restores a saved desktop.  A fix is to install version 2.6.8 of FVWM,
 see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=31650.
 
+*** ssh -X session hangs on exit after remote emacsclient -c frame is deleted.
+
+When Emacs is configured with an X toolkit, for example,
+--with-x-toolkit=lucid, and "emacsclient -c" is run over an "ssh -X"
+connection, deleting the emacsclient frame (via C-x 5 0 or C-x C-c) can
+leave the X display connection open.
+
+The symptom is that after you delete the "emacsclient -c" frame and then
+attempt to exit ssh (with C-d, or "exit"), ssh will hang before
+returning you to the local shell.  You will have to press C-c (to sever
+the X connection) before ssh returns you to your local shell (that is,
+the shell from which you invoked "ssh -X").
+
+To avoid this issue configure Emacs with --with-x-toolkit=no.
+
+See <URL:https://debbugs.gnu.org/72517>.
+
 ** General X problems
 
 *** Redisplay using X is much slower than previous Emacs versions.
