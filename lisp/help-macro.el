@@ -78,6 +78,12 @@ gives the window that lists the options."
   :type 'boolean
   :group 'help)
 
+(defcustom help-for-help-use-variable-pitch t
+  "If non-nil, `help-for-help' should use `variable-pitch-mode'."
+  :type 'boolean
+  :version "30.1"
+  :group 'help)
+
 (defmacro make-help-screen (fname help-line help-text helped-map
                                   &optional buffer-name)
   "Construct help-menu function name FNAME.
@@ -146,7 +152,8 @@ and then returns."
                 (insert (substitute-command-keys help-screen)))
               (let ((minor-mode-map-alist new-minor-mode-map-alist))
                 (help-mode)
-                (variable-pitch-mode)
+                (when help-for-help-use-variable-pitch
+                  (variable-pitch-mode))
                 (setq new-minor-mode-map-alist minor-mode-map-alist))
               (goto-char (point-min))
               (while (or (memq char (append help-event-list

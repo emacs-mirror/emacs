@@ -158,6 +158,9 @@ If the value is `annotation', annotate each completion candidate
 with a suffix that is the section name to which it belongs.
 If the value is `group', split completion candidates into groups
 according to the sections.
+Since the values `annotation' and `group' rely on text properties,
+you can use them only by selecting candidates from the completions
+buffer, not by typing in the minibuffer.
 Any other value is treated as `prefix'.
 
 The value of `imenu-level-separator', a string, is used to separate
