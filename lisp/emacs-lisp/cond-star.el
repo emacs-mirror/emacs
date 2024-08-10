@@ -347,8 +347,8 @@ as in `cond*-condition'."
     (if uncondit-clauses
         (setq expression
               `(progn ,expression 
-                      (cond*-bind-pattern-syms
-                       ,(if retrieve-value-swap-outs
+                      ,(cond*-bind-pattern-syms
+                        (if retrieve-value-swap-outs
                             ;; If we saved the bindings' values after the
                             ;; true-clauses, bind the same variables
                             ;; here to the values we saved then.
@@ -356,7 +356,7 @@ as in `cond*-condition'."
                           ;; Otherwise bind them to the values
                           ;; they matched in the pattern.
                           (car raw-result))
-                       (cond*-convert uncondit-clauses)))))
+                        (cond*-convert uncondit-clauses)))))
     ;; Bind the backtrack-aliases if any.
     ;; We need them bound for the TRUE-EXPS.
     ;; It is harmless to bind them around IFFALSE
