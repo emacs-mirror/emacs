@@ -2384,9 +2384,11 @@ LIST-VAR should not refer to a lexical variable.
 
 The return value is the new value of LIST-VAR.
 
-This is handy to add some elements to configuration variables,
-but please do not abuse it in Elisp code, where you are usually
-better off using `push' or `cl-pushnew'.
+This is meant to be used for adding elements to configuration
+variables, such as adding a directory to a path variable
+like `load-path', but please do not abuse it to construct
+arbitrary lists in Elisp code, where using `push' or `cl-pushnew'
+will get you more efficient code.
 
 If you want to use `add-to-list' on a variable that is not
 defined until a certain package is loaded, you should put the

@@ -5067,7 +5067,7 @@ ns_set_vertical_scroll_bar (struct window *window,
   window_box (window, ANY_AREA, 0, &window_y, 0, &window_height);
   top = window_y;
   height = window_height;
-  width = NS_SCROLL_BAR_WIDTH (f);
+  width = WINDOW_SCROLL_BAR_AREA_WIDTH (window);
   left = WINDOW_SCROLL_BAR_AREA_X (window);
 
   r = NSMakeRect (left, top, width, height);
@@ -5161,7 +5161,7 @@ ns_set_horizontal_scroll_bar (struct window *window,
   window_box (window, ANY_AREA, &window_x, 0, &window_width, 0);
   left = window_x;
   width = window_width;
-  height = NS_SCROLL_BAR_HEIGHT (f);
+  height = WINDOW_SCROLL_BAR_AREA_HEIGHT (window);
   top = WINDOW_SCROLL_BAR_AREA_Y (window);
 
   r = NSMakeRect (left, top, width, height);
@@ -5199,7 +5199,7 @@ ns_set_horizontal_scroll_bar (struct window *window,
      it fills with junk.  */
   if (!NILP (window->vertical_scroll_bar))
     ns_clear_frame_area (f, WINDOW_SCROLL_BAR_AREA_X (window), top,
-                         NS_SCROLL_BAR_HEIGHT (f), height);
+                         WINDOW_SCROLL_BAR_AREA_WIDTH (window), height);
 
   if (update_p)
     [bar setPosition: position portion: portion whole: whole];

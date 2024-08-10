@@ -840,6 +840,13 @@ The argument @var{symbol} is not implicitly quoted; @code{add-to-list}
 is an ordinary function, like @code{set} and unlike @code{setq}.  Quote
 the argument yourself if that is what you want.
 
+This function is for adding elements to configuration variables such as
+@code{load-path} (@pxref{Library Search}), @code{image-load-path}
+(@pxref{Defining Images}), etc.  Its code includes quite a few special
+checks for these uses, and emits warnings in support of them.  For this
+reason, we recommend against using it in Lisp programs for constructing
+arbitrary lists; use @code{push} instead.  @xref{List Variables}.
+
 Do not use this function when @var{symbol} refers to a lexical
 variable.
 @end defun
