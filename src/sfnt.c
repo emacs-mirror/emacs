@@ -2578,8 +2578,10 @@ sfnt_transform_coordinates (struct sfnt_compound_glyph_component *component,
 
   for (i = 0; i < num_coordinates; ++i)
     {
-      x[i] = m1 * x[i] + m2 * y[i] + m3 * 1;
-      y[i] = m4 * x[i] + m5 * y[i] + m6 * 1;
+      sfnt_fixed xi = m1 * x[i] + m2 * y[i] + m3 * 1;
+      sfnt_fixed yi = m4 * x[i] + m5 * y[i] + m6 * 1;
+      x[i] = xi;
+      y[i] = yi;
     }
 }
 
@@ -12822,8 +12824,10 @@ sfnt_transform_f26dot6 (struct sfnt_compound_glyph_component *component,
 
   for (i = 0; i < num_coordinates; ++i)
     {
-      x[i] = m1 * x[i] + m2 * y[i] + m3 * 1;
-      y[i] = m4 * x[i] + m5 * y[i] + m6 * 1;
+      sfnt_f26dot6 xi = m1 * x[i] + m2 * y[i] + m3 * 1;
+      sfnt_f26dot6 yi = m4 * x[i] + m5 * y[i] + m6 * 1;
+      x[i] = xi;
+      y[i] = yi;
     }
 }
 
