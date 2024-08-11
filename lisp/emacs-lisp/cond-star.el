@@ -35,7 +35,7 @@
 (defmacro cond* (&rest clauses)
   "Extended form of traditional Lisp `cond' construct.
 A `cond*' construct is a series of clauses, and a clause
-normally has the form (CONDITION BDOY...).
+normally has the form (CONDITION BODY...).
 
 CONDITION can be a Lisp expression, as in `cond'.
 Or it can be `(bind* BINDINGS...)' or `(match* PATTERN DATUM)'.
