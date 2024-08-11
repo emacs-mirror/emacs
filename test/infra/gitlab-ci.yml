@@ -101,6 +101,8 @@ default:
 
 .build-template:
   needs: []
+  cache:
+    policy: push
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
       when: always
@@ -131,6 +133,8 @@ default:
     - docker push ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
 
 .test-template:
+  cache:
+    policy: pull
   artifacts:
     name: ${test_name}
     public: true
@@ -142,6 +146,8 @@ default:
       junit: ${test_name}/${EMACS_TEST_JUNIT_REPORT}
 
 .gnustep-template:
+  cache:
+    key: gnustep-${CI_COMMIT_SHA}
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
@@ -154,6 +160,8 @@ default:
         - test/infra/*
 
 .filenotify-gio-template:
+  cache:
+    key: filenotify-gio-${CI_COMMIT_SHA}
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     # - if: '$CI_PIPELINE_SOURCE == "schedule"'
@@ -168,6 +176,8 @@ default:
         - test/lisp/filenotify-tests.el
 
 .eglot-template:
+  cache:
+    key: eglot-${CI_COMMIT_SHA}
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
@@ -178,6 +188,8 @@ default:
         - test/lisp/progmodes/eglot-tests.el
 
 .tree-sitter-template:
+  cache:
+    key: tree-sitter-${CI_COMMIT_SHA}
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
@@ -198,6 +210,8 @@ default:
         - test/src/treesit-tests.el
 
 .native-comp-template:
+  cache:
+    key: native-comp-${CI_COMMIT_SHA}
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
