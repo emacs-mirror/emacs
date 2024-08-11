@@ -379,7 +379,7 @@ as in `cond*-condition'."
 (defun cond*-bind-pattern-syms (bindings expr)
   "Wrap EXPR in code to bind the BINDINGS.
 This is used for the bindings specified explicitly in match* patterns."
-  ;; They can't have side effects.   Skip them
+  ;; They can't have side effects.  Skip them
   ;; if we don't actually need them.
   (if (equal expr '(progn))
       nil
@@ -708,6 +708,3 @@ That is safe for the purpose this is used for."
       (cons (car args)
             (cond*-un-backquote-list* (cdr args)))
     (mapcar (lambda (x) (list 'quote x)) (cadr (car args)))))
-
-
-
