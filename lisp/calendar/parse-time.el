@@ -154,9 +154,8 @@ or something resembling an RFC 822 (or later) date-time, e.g.,
 \"Wed, 15 Jan 2020 16:12:21 -0800\".  This function is
 somewhat liberal in what format it accepts, and will attempt to
 return a \"likely\" value even for somewhat malformed strings.
-The values returned are identical to those of `decode-time', but
-any unknown values other than DST are returned as nil, and an
-unknown DST value is returned as -1.
+Values returned are identical to those of `decode-time', except
+that an unknown DST value is -1 and other unknown values are nil.
 
 See `decode-time' for the meaning of FORM."
   (condition-case ()

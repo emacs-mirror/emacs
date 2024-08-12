@@ -1800,19 +1800,31 @@ structure (@pxref{Time Conversion}).  The argument @var{string} should
 resemble an RFC 822 (or later) or ISO 8601 string, like ``Fri, 25 Mar
 2016 16:24:56 +0100'' or ``1998-09-12T12:21:54-0200'', but this
 function will attempt to parse less well-formed time strings as well.
+It parses an incomplete string like ``2024-08-13'' to an incomplete
+structure like @samp{(nil nil nil 13 8 2024 nil -1 nil)}, in which
+an unknown DST value is @minus{}1 and other unknown values are @code{nil}.
 @end defun
 
 @vindex ISO 8601 date/time strings
 @defun iso8601-parse string
-For a more strict function (that will error out upon invalid input),
-this function can be used instead.  It can parse all variants of
+This function acts like @code{parse-time-string} except it is stricter
+and errors out upon invalid input.  It can parse all variants of
 the ISO 8601 standard, so in addition to the formats mentioned above,
 it also parses things like ``1998W45-3'' (week number) and
-``1998-245'' (ordinal day number).  To parse durations, there's
-@code{iso8601-parse-duration}, and to parse intervals, there's
-@code{iso8601-parse-interval}.  All these functions return decoded
-time structures, except the final one, which returns three of them
-(the start, the end, and the duration).
+``1998-245'' (ordinal day number).
+@end defun
+
+@defun iso8601-parse-duration string
+This function parses an ISO 8601 time duration @var{string}
+and returns a decoded time structure.
+@c FIXME: example? behavior on incomplete input?
+@end defun
+
+@defun iso8601-parse-interval string
+This function parses an ISO 8601 time interval @var{string}
+and returns three decoded time structures
+representing the start, the end, and the duration.
+@c FIXME: example? behavior on incomplete input?
 @end defun
 
 @defun format-time-string format-string &optional time zone

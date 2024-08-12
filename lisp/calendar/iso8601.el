@@ -121,11 +121,11 @@
 
 (defun iso8601-parse (string &optional form)
   "Parse an ISO 8601 date/time string and return a `decode-time' structure.
-
-The ISO 8601 date/time strings look like \"2008-03-02T13:47:30\",
-but shorter, incomplete strings like \"2008-03-02\" are valid, as
-well as variants like \"2008W32\" (week number) and
-\"2008-234\" (ordinal day number).
+ISO 8601 date/time strings look like \"2008-03-02T13:47:30+05:30\",
+or like shorter, incomplete strings like date \"2008-03-02\",
+week number \"2008W32\", and ordinal day number \"2008-234\".
+Values returned are identical to those of `decode-time', except
+that an unknown DST value is -1 and other unknown values are nil.
 
 See `decode-time' for the meaning of FORM."
   (if (not (iso8601-valid-p string))
