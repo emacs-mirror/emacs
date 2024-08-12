@@ -271,11 +271,12 @@ HOSTS can be a string or a list of strings."
                            n)))
              seen)))
 
-(defun auth-source-pass--match-parts (parts key value require)
-  (let ((mv (plist-get parts key)))
-    (if (memq key require)
-        (and value (equal mv value))
-      (or (not value) (not mv) (equal mv value)))))
+(defun auth-source-pass--match-parts (cache key reference require)
+  (let ((value (plist-get cache key)))
+    (cond ((memq key require)
+           (if reference (equal value reference) value))
+          ((and value reference) (equal value reference))
+          (t))))
 
 (defun auth-source-pass--find-match-many (hosts users ports require max)
   "Return plists for valid combinations of HOSTS, USERS, PORTS."
@@ -290,17 +291,17 @@ HOSTS can be a string or a list of strings."
           (dolist (user (or users (list u)))
             (dolist (port (or ports (list p)))
               (dolist (e entries)
-                (when-let*
+                (when-let
                     ((m (or (gethash e seen) (auth-source-pass--retrieve-parsed
                                               seen e (integerp port))))
                      ((equal host (plist-get m :host)))
                      ((auth-source-pass--match-parts m :port port require))
                      ((auth-source-pass--match-parts m :user user require))
-                     (parsed (auth-source-pass-parse-entry e))
                      ;; For now, ignore body-content pairs, if any,
                      ;; from `auth-source-pass--parse-data'.
-                     (secret (or (auth-source-pass--get-attr 'secret parsed)
-                                 (not (memq :secret require)))))
+                     (secret (let ((parsed (auth-source-pass-parse-entry e)))
+                               (or (auth-source-pass--get-attr 'secret parsed)
+                                   (not (memq :secret require))))))
                   (push
                    `( :host ,host ; prefer user-provided :host over h
                       ,@(and-let* ((u (plist-get m :user))) (list :user u))
