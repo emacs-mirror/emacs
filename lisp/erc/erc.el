@@ -8794,7 +8794,7 @@ Sets the buffer local variables:
 (defun erc-compute-server (&optional server)
   "Return an IRC server name.
 
-This tries a number of increasingly more default methods until a
+This tries a progressively greater number of default methods until a
 non-nil value is found.
 
 - SERVER (the argument passed to this function)
@@ -8813,7 +8813,7 @@ non-nil value is found.
 (defun erc-compute-nick (&optional nick)
   "Return user's IRC nick.
 
-This tries a number of increasingly more default methods until a
+This tries a progressively greater number of default methods until a
 non-nil value is found.
 
 - NICK (the argument passed to this function)
@@ -8837,7 +8837,7 @@ the user field and use whatever it returns as the server password."
 (defun erc-compute-full-name (&optional full-name)
   "Return user's full name.
 
-This tries a number of increasingly more default methods until a
+This tries a progressively greater number of default methods until a
 non-nil value is found.
 
 - FULL-NAME (the argument passed to this function)
@@ -8853,7 +8853,7 @@ non-nil value is found.
 (defun erc-compute-port (&optional port)
   "Return a port for an IRC server.
 
-This tries a number of increasingly more default methods until a
+This tries a progressively greater number of default methods until a
 non-nil value is found.
 
 - PORT (the argument passed to this function)
