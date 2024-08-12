@@ -1258,11 +1258,11 @@ See `load-file' for a different interface to `load'."
 (defun require-with-check (feature &optional filename noerror)
   "If FEATURE is not already loaded, load it from FILENAME.
 This is like `require' except if FEATURE is already a member of the list
-`features’, then we check if this was provided by a different file than the
-one that we would load now (presumably because `load-path' has been
-changed since the file was loaded).
-If it's the case, we either signal an error (the default), or forcibly reload
-the new file (if NOERROR is equal to `reload'), or otherwise emit a warning."
+`features’, then check if it was provided by a different file than the
+one that is about to be loaded now (presumably because `load-path' has
+been changed since FILENAME was loaded).  If that is the case, either
+signal an error (the default), or forcibly reload the new file (if
+NOERROR is equal to `reload'), or otherwise emit a warning."
   (let ((lh load-history)
         (res (require feature filename (if (eq noerror 'reload) nil noerror))))
     ;; If the `feature' was not yet provided, `require' just loaded the right
@@ -1275,7 +1275,7 @@ the new file (if NOERROR is equal to `reload'), or otherwise emit a warning."
          ((assoc fn load-history) nil)  ;We loaded the right file.
          ((eq noerror 'reload) (load fn nil 'nomessage))
          (t (funcall (if noerror #'warn #'error)
-                     "Feature provided by other file: %S" feature)))))
+                     "Feature `%S' is now provided by a different file %s" fn)))))
     res))
 
 (defun file-remote-p (file &optional identification connected)
