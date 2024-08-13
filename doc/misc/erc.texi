@@ -867,8 +867,8 @@ ERC's auth-source integration}.
 @defun erc-compute-server &optional server
 Return an IRC server name.
 
-This tries a number of increasingly more default methods until a non-@code{nil}
-value is found.
+This tries a progressively greater number of default methods until a
+non-@code{nil} value is found.
 
 @itemize @bullet
 @item @var{server} (the argument passed to this function)
@@ -888,8 +888,8 @@ IRC server to use if one is not provided.
 @defun erc-compute-port &optional port
 Return a port for an IRC server.
 
-This tries a number of increasingly more default methods until a non-@code{nil}
-value is found.
+This tries a progressively greater number of default methods until a
+non-@code{nil} value is found.
 
 @itemize @bullet
 @item @var{port} (the argument passed to this function)
@@ -910,7 +910,7 @@ This can be either a string or a number.
 @defun erc-compute-nick &optional nick
 Return user's IRC nick.
 
-This tries a number of increasingly more default methods until a
+This tries a progressively greater number of default methods until a
 non-@code{nil} value is found.
 
 @itemize
@@ -1010,7 +1010,7 @@ auth-source facility to retrieve a server password, although hitting
 @defun erc-compute-full-name &optional full-name
 Return user's full name.
 
-This tries a number of increasingly more default methods until a
+This tries a progressively greater number of default methods until a
 non-@code{nil} value is found.
 
 @itemize @bullet

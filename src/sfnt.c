@@ -1093,10 +1093,10 @@ sfnt_lookup_glyph_2 (sfnt_char character,
   unsigned char *slice;
   uint16_t glyph;
 
-  if (character > 65335)
+  if (character > 65535)
     return 0;
 
-  i = character >> 16;
+  i = character >> 8;
   j = character & 0xff;
   k = format2->sub_header_keys[i] / 8;
 
@@ -1129,9 +1129,9 @@ sfnt_lookup_glyph_2 (sfnt_char character,
 	return 0;
     }
 
-  /* k is 0, so glyph_index_array[i] is the glyph.  */
-  return (i < format2->num_glyphs
-	  ? format2->glyph_index_array[i]
+  /* k is 0, so glyph_index_array[j] is the glyph.  */
+  return (j < format2->num_glyphs
+	  ? format2->glyph_index_array[j]
 	  : 0);
 }
 
