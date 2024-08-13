@@ -1275,7 +1275,8 @@ NOERROR is equal to `reload'), or otherwise emit a warning."
          ((assoc fn load-history) nil)  ;We loaded the right file.
          ((eq noerror 'reload) (load fn nil 'nomessage))
          (t (funcall (if noerror #'warn #'error)
-                     "Feature `%S' is now provided by a different file %s" fn)))))
+                     "Feature `%S' is now provided by a different file %s"
+                     feature fn)))))
     res))
 
 (defun file-remote-p (file &optional identification connected)
