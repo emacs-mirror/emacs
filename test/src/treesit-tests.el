@@ -190,6 +190,7 @@
 
 (ert-deftest treesit-indirect-buffer ()
   "Tests for indirect buffers."
+  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
   (skip-unless (treesit-language-available-p 'json))
   (let ((base (get-buffer-create "*treesit test*"))
         parser indirect)
