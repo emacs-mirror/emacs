@@ -1800,19 +1800,51 @@ structure (@pxref{Time Conversion}).  The argument @var{string} should
 resemble an RFC 822 (or later) or ISO 8601 string, like ``Fri, 25 Mar
 2016 16:24:56 +0100'' or ``1998-09-12T12:21:54-0200'', but this
 function will attempt to parse less well-formed time strings as well.
+
+Note that, unlike @code{decode-time} (@pxref{Time Conversion}), this
+function does not interpret the time string, and in particular the
+values of daylight-saving and timezone or UTC offset parts of the
+@var{string} argument do not affect the returned value of date and time,
+they only affect the last two members of the returned decoded time
+structure.  For example, if the time-zone information is present in
+@var{string}, the decoded time structure will include it; otherwise the
+time-zone member of the returned value will be @code{nil}.  In other
+words, this function simply parses the textual representation of date
+and time into separate numerical values, and doesn't care whether the
+input time is local or UTC.
+
+If a Lisp program passes the return value of this function to some other
+time-related API, it should make sure the @code{nil} members of the
+decoded time structure are interpreted correctly, and in particular the
+lack of time-zone information is interpreted as UTC or local time,
+according to the needs of the calling program.
 @end defun
 
 @vindex ISO 8601 date/time strings
 @defun iso8601-parse string
 For a more strict function (that will error out upon invalid input),
-this function can be used instead.  It can parse all variants of
-the ISO 8601 standard, so in addition to the formats mentioned above,
-it also parses things like ``1998W45-3'' (week number) and
-``1998-245'' (ordinal day number).  To parse durations, there's
+Lisp programs can use this function instead.  It can parse all variants
+of the ISO 8601 standard, so in addition to the formats mentioned above,
+it also parses things like ``1998W45-3'' (week number) and ``1998-245''
+(ordinal day number).  To parse durations, there's
 @code{iso8601-parse-duration}, and to parse intervals, there's
-@code{iso8601-parse-interval}.  All these functions return decoded
-time structures, except the final one, which returns three of them
-(the start, the end, and the duration).
+@code{iso8601-parse-interval}.  All these functions return decoded time
+structures, except the final one, which returns three of them (the
+start, the end, and the duration).
+
+Like @code{parse-time-string}, this function does not interpret the time
+string, and in particular the time-zone designator or UTC offset that is
+part of the @var{string} argument does not affect the returned value of
+date and time, it only affects the last two members of the returned
+decoded time structure.  The ISO 8601 standard specifies that date/time
+strings that do not include information about UTC relation are assumed
+to be in local time, but this function does not do that, because it
+doesn't interpret the time values.  For example, if the time-zone
+information is present in @var{string}, the decoded time structure will
+include it; otherwise the time-zone member of the returned value will be
+@code{nil}.  In other words, this function simply parses the textual
+representation of date and time into separate numerical values, and
+doesn't care whether the input time is local or UTC.
 @end defun
 
 @defun format-time-string format-string &optional time zone
