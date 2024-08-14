@@ -103,8 +103,13 @@
 
 ;;; Backtraces
 
+(defun profiler-fixup-entry (entry)
+  (if (symbolp entry)
+      entry
+    (substring-no-properties (help-fns-function-name entry))))
+
 (defun profiler-fixup-backtrace (backtrace)
-  (apply #'vector (mapcar #'help-fns-function-name backtrace)))
+  (apply #'vector (mapcar #'profiler-fixup-entry backtrace)))
 
 
 ;;; Logs
