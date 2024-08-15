@@ -154,6 +154,11 @@ it is assumed that PICO was omitted and should be treated as zero."
 DATE should be in one of the forms recognized by `parse-time-string'.
 If DATE lacks timezone information, GMT is assumed."
   (condition-case err
+      ;; Parse DATE. If it contains a year, use defaults for other components.
+      ;; Then encode the result; this signals an error if the year is missing,
+      ;; because encode-time signals if crucial time components are nil.
+      ;; This heuristic uses local time if the string lacks time zone info,
+      ;; because encode-time treats a nil time zone as local time.
       (let ((parsed (parse-time-string date)))
 	(when (decoded-time-year parsed)
 	  (decoded-time-set-defaults parsed))
