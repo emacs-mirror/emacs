@@ -274,7 +274,7 @@ specify "+0000" or "Z" as the time zone in the argument.
 ** Process execution has been optimized on Android.
 The run-time performance of subprocesses on recent Android releases,
 where a userspace executable loader is required, has been optimized on
-systems featuring GNU/Linux 3.5.0 and above.
+systems featuring Linux 3.5.0 and above.
 
 
 ----------------------------------------------------------------------
