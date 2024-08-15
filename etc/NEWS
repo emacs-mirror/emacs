@@ -258,7 +258,7 @@ If supplied, 'string-pixel-width' will use any face remappings from
 BUFFER when computing the string's width.
 
 +++
-** 'date-to-time' now defaults to local time
+** 'date-to-time' now defaults to local time.
 The function now assumes local time instead of Universal Time when
 its argument lacks explicit time zone information.  This has been the
 de-facto behavior since Emacs 24 although documentation said otherwise.
