@@ -271,27 +271,29 @@ lock_file_1 (Lisp_Object lfname, bool force)
   intmax_t boot = get_boot_sec ();
   Lisp_Object luser_name = Fuser_login_name (Qnil);
   Lisp_Object lhost_name = Fsystem_name ();
-
-  /* Protect against the extremely unlikely case of the host name
-     containing an @ character.  */
-  if (!NILP (lhost_name) && strchr (SSDATA (lhost_name), '@'))
-    lhost_name = CALLN (Ffuncall, Qstring_replace,
-			build_string ("@"), build_string ("-"),
-			lhost_name);
-
   char const *user_name = STRINGP (luser_name) ? SSDATA (luser_name) : "";
   char const *host_name = STRINGP (lhost_name) ? SSDATA (lhost_name) : "";
   char lock_info_str[MAX_LFINFO + 1];
   intmax_t pid = getpid ();
 
-  char const *lock_info_fmt = (boot
-			       ? "%s@%s.%"PRIdMAX":%"PRIdMAX
-			       : "%s@%s.%"PRIdMAX);
-  int len = snprintf (lock_info_str, sizeof lock_info_str,
-		      lock_info_fmt, user_name, host_name, pid, boot);
+  int room = sizeof lock_info_str;
+  int len = snprintf (lock_info_str, room, "%s@", user_name);
   if (! (0 <= len && len < sizeof lock_info_str))
     return ENAMETOOLONG;
-
+  /* Protect against the extremely unlikely case of the host name
+     containing an @ character.  */
+  for (; *host_name; len++, host_name++)
+    {
+      if (! (len < sizeof lock_info_str - 1))
+	return ENAMETOOLONG;
+      lock_info_str[len] = *host_name == '@' ? '-' : *host_name;
+    }
+  char const *lock_info_fmt = boot ? ".%"PRIdMAX":%"PRIdMAX : ".%"PRIdMAX;
+  room = sizeof lock_info_str - len;
+  int suffixlen = snprintf (lock_info_str + len, room,
+			    lock_info_fmt, pid, boot);
+  if (! (0 <= suffixlen && suffixlen < room))
+    return ENAMETOOLONG;
   return create_lock_file (SSDATA (lfname), lock_info_str, force);
 }
 
@@ -448,22 +450,32 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
   if (lfinfo_end != owner->user + lfinfolen)
     return EINVAL;
 
+  char *linkhost = at + 1;
+  ptrdiff_t linkhostlen = dot - linkhost;
   Lisp_Object system_name = Fsystem_name ();
   /* If `system-name' returns nil, that means we're in a
      --no-build-details Emacs, and the name part of the link (e.g.,
      .#test.txt -> larsi@.118961:1646577954) is an empty string.  */
+  bool on_current_host;
   if (NILP (system_name))
-    system_name = build_string ("");
-  /* Protect against the extremely unlikely case of the host name
-     containing an @ character.  */
-  else if (strchr (SSDATA (system_name), '@'))
-    system_name = CALLN (Ffuncall, intern ("string-replace"),
-			 build_string ("@"), build_string ("-"),
-			 system_name);
-  /* On current host?  */
-  if (STRINGP (system_name)
-      && dot - (at + 1) == SBYTES (system_name)
-      && memcmp (at + 1, SSDATA (system_name), SBYTES (system_name)) == 0)
+    on_current_host = linkhostlen == 0;
+  else
+    {
+      on_current_host = linkhostlen == SBYTES (system_name);
+      if (on_current_host)
+	{
+	  /* Protect against the extremely unlikely case of the host
+	     name containing '@'.  */
+	  char *sysname = SSDATA (system_name);
+	  for (ptrdiff_t i = 0; i < linkhostlen; i++)
+	    if (linkhost[i] != (sysname[i] == '@' ? '-' : sysname[i]))
+	      {
+		on_current_host = false;
+		break;
+	      }
+	}
+    }
+  if (on_current_host)
     {
       if (pid == getpid ())
         return I_OWN_IT;
