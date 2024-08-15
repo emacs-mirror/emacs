@@ -298,9 +298,10 @@ lock_file_1 (Lisp_Object lfname, bool force)
 /* Return true if times A and B are no more than one second apart.  */
 
 static bool
-within_one_second (time_t a, time_t b)
+within_one_second (intmax_t a, time_t b)
 {
-  return (a - b >= -1 && a - b <= 1);
+  intmax_t diff;
+  return !ckd_sub (&diff, a, b) && -1 <= diff && diff <= 1;
 }
 
 /* On systems lacking ELOOP, test for an errno value that shouldn't occur.  */
@@ -469,8 +470,7 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
       else if (VALID_PROCESS_ID (pid)
                && (kill (pid, 0) >= 0 || errno == EPERM)
 	       && (boot_time == 0
-		   || (boot_time <= TYPE_MAXIMUM (time_t)
-		       && within_one_second (boot_time, get_boot_sec ()))))
+		   || within_one_second (boot_time, get_boot_sec ())))
         return ANOTHER_OWNS_IT;
       /* The owner process is dead or has a strange pid, so try to
          zap the lockfile.  */
