@@ -1026,7 +1026,7 @@ usage: (let* VARLIST BODY...)  */)
 	{
 	  Lisp_Object newenv
 	    = Fcons (Fcons (var, val), Vinternal_interpreter_environment);
-	  if (EQ (Vinternal_interpreter_environment, lexenv))
+	  if (BASE_EQ (Vinternal_interpreter_environment, lexenv))
 	    /* Save the old lexical environment on the specpdl stack,
 	       but only for the first lexical binding, since we'll never
 	       need to revert to one of the intermediate ones.  */
@@ -1102,7 +1102,7 @@ usage: (let VARLIST BODY...)  */)
 	specbind (var, tem);
     }
 
-  if (!EQ (lexenv, Vinternal_interpreter_environment))
+  if (!BASE_EQ (lexenv, Vinternal_interpreter_environment))
     /* Instantiate a new lexical environment.  */
     specbind (Qinternal_interpreter_environment, lexenv);
 
@@ -3320,7 +3320,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
   else if (i < nargs)
     xsignal2 (Qwrong_number_of_arguments, fun, make_fixnum (nargs));
 
-  if (!EQ (lexenv, Vinternal_interpreter_environment))
+  if (!BASE_EQ (lexenv, Vinternal_interpreter_environment))
     /* Instantiate a new lexical environment.  */
     specbind (Qinternal_interpreter_environment, lexenv);
 
@@ -3471,7 +3471,7 @@ let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
 	eassert (let_bound_symbol->u.s.redirect != SYMBOL_VARALIAS);
 	if (symbol == let_bound_symbol
 	    && p->kind != SPECPDL_LET_LOCAL /* bug#62419 */
-	    && EQ (specpdl_where (p), buf))
+	    && BASE_EQ (specpdl_where (p), buf))
 	  return 1;
       }
 

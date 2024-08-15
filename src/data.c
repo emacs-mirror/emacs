@@ -82,7 +82,7 @@ XOBJFWD (lispfwd a)
 static void
 set_blv_found (struct Lisp_Buffer_Local_Value *blv, int found)
 {
-  eassert (found == !EQ (blv->defcell, blv->valcell));
+  eassert (found == !BASE_EQ (blv->defcell, blv->valcell));
   blv->found = found;
 }
 
@@ -1697,9 +1697,9 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 	   loaded, or if it's a Lisp_Buffer_Local_Value and
 	   the default binding is loaded, the loaded binding may be the
 	   wrong one.  */
-	if (!EQ (blv->where, where)
+	if (!BASE_EQ (blv->where, where)
 	    /* Also unload a global binding (if the var is local_if_set).  */
-	    || (EQ (blv->valcell, blv->defcell)))
+	    || (BASE_EQ (blv->valcell, blv->defcell)))
 	  {
 	    /* The currently loaded binding is not necessarily valid.
 	       We need to unload it, and choose a new binding.  */
@@ -1940,7 +1940,7 @@ default_value (Lisp_Object symbol)
 	   But the `realvalue' slot may be more up to date, since
 	   ordinary setq stores just that slot.  So use that.  */
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
-	if (blv->fwd.fwdptr && EQ (blv->valcell, blv->defcell))
+	if (blv->fwd.fwdptr && BASE_EQ (blv->valcell, blv->defcell))
 	  return do_symval_forwarding (blv->fwd);
 	else
 	  return XCDR (blv->defcell);
@@ -2035,7 +2035,7 @@ set_default_internal (Lisp_Object symbol, Lisp_Object value,
 	XSETCDR (blv->defcell, value);
 
 	/* If the default binding is now loaded, set the REALVALUE slot too.  */
-	if (blv->fwd.fwdptr && EQ (blv->defcell, blv->valcell))
+	if (blv->fwd.fwdptr && BASE_EQ (blv->defcell, blv->valcell))
 	  store_symval_forwarding (blv->fwd, value, NULL);
         return;
       }
@@ -2401,7 +2401,7 @@ Also see `buffer-local-boundp'.*/)
 	XSETBUFFER (tmp, buf);
 	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
 
-	if (EQ (blv->where, tmp)) /* The binding is already loaded.  */
+	if (BASE_EQ (blv->where, tmp)) /* The binding is already loaded.  */
 	  return blv_found (blv) ? Qt : Qnil;
 	else
 	  return NILP (assq_no_quit (variable, BVAR (buf, local_var_alist)))
