@@ -397,8 +397,8 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
   if (lfinfolen < 0)
     return errno == ENOENT || errno == ENOTDIR ? 0 : errno;
 
-  /* Examine lock file contents.  */
-  if (true)
+  /* If the lock file seems valid, return a value based on its contents.  */
+  if (lfinfolen)
     {
       if (MAX_LFINFO < lfinfolen)
 	return ENAMETOOLONG;
@@ -496,8 +496,11 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
 	return ANOTHER_OWNS_IT;
     }
 
-  /* The owner process is dead or has a strange pid.
-     Try to zap the lockfile.  */
+  /* The owner process is dead or has a strange pid, or the lock file is empty.
+     Try to zap the lockfile.  If the lock file is empty, this assumes
+     the file system is buggy, e.g., <https://bugs.gnu.org/72641>.
+     Emacs never creates empty lock files even temporarily, so removing
+     an empty lock file should be harmless.  */
   return emacs_unlink (SSDATA (lfname)) < 0 ? errno : 0;
 }
 
