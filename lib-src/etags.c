@@ -7812,7 +7812,7 @@ do_move_file (const char *src_file, const char *dst_file)
   if (fclose (dst_f) == EOF)
     pfatal (dst_file);
 
-  if (unlink (src_file) == -1)
+  if (unlink (src_file) < 0 && errno != ENOENT)
     pfatal ("unlink error");
 
   return;

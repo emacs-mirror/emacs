@@ -1323,7 +1323,7 @@ android_hack_asset_fd_fallback (AAsset *asset)
   if (fd < 0)
     return -1;
 
-  if (unlink (filename))
+  if (unlink (filename) && errno != ENOENT)
     goto fail;
 
   if (ftruncate (fd, size))

@@ -501,7 +501,7 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
      the file system is buggy, e.g., <https://bugs.gnu.org/72641>.
      Emacs never creates empty lock files even temporarily, so removing
      an empty lock file should be harmless.  */
-  return emacs_unlink (SSDATA (lfname)) < 0 ? errno : 0;
+  return emacs_unlink (SSDATA (lfname)) < 0 && errno != ENOENT ? errno : 0;
 }
 
 
