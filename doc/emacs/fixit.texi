@@ -450,6 +450,30 @@ dictionary is specified by the variable
 spelling program looks for a personal dictionary in a default
 location, which is specific to each spell-checker.
 
+@cindex spell-checking different languages
+@cindex language for spell-checking
+  Usually, a dictionary used by a spell-checker is for a specific
+language.  The default language is determined from your system's
+environment and locale.  Both the standard dictionary and your personal
+dictionary should be changed if you want to spell-check text in a
+different language.  You can use the @code{ispell-change-dictionary}
+command for that.
+
+@cindex spell-checking multi-lingual text
+@findex ispell-hunspell-add-multi-dic
+  Hunspell is special in that it supports spell-checking using several
+different dictionaries in parallel.  To use this feature, invoke the
+@kbd{M-x ispell-hunspell-add-multi-dic} command before you start using
+Hunspell for a particular combination of dictionaries.  This command
+prompts for the dictionary combination, which should be a
+comma-separated list of language-specific dictionary names, such as
+@samp{en_US,de_DE,ru_RU}.  Thereafter, you can spell-check text which
+mixes these languages without changing the dictionaries each time.
+(Caveat: when several languages use the same script, it is possible that
+a word that is mis-spelled in one language is found as a valid spelling
+in the dictionary of another language; in that case, the mis-spelled
+word might be missed.)
+
 @vindex ispell-complete-word-dict
   A separate dictionary is used for word completion.  The variable
 @code{ispell-complete-word-dict} specifies the file name of this

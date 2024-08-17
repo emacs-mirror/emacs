@@ -50,7 +50,7 @@
     (modify-syntax-entry ?=  "."     table)
     (modify-syntax-entry ?\' "\""    table)
     (modify-syntax-entry ?#  "<"   table)
-    (modify-syntax-entry ?\n "> b"  table)
+    (modify-syntax-entry ?\n ">"  table)
     (modify-syntax-entry ?\^m "> b" table)
     table)
   "Syntax table for `toml-ts-mode'.")

@@ -5199,7 +5199,7 @@ extern void syms_of_frame (void);
 extern char **initial_argv;
 extern int initial_argc;
 extern char const *emacs_wd;
-#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_PGTK) || defined (HAVE_NS)
 extern bool display_arg;
 #endif
 extern Lisp_Object decode_env_path (const char *, const char *, bool);

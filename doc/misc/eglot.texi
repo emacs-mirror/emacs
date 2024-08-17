@@ -600,7 +600,7 @@ user, but automatically, as the result of starting an Eglot session
 for the buffer.  However, this minor mode provides a hook variable
 @code{eglot-managed-mode-hook} that can be used to customize the Eglot
 management of the buffer.  This hook is run both when the minor mode
-is turned on and when it's turned off; use the variable
+is turned on and when it's turned off; use the function
 @code{eglot-managed-p} to tell if current buffer is still being
 managed or not.  When Eglot stops managing the buffer, this minor mode
 is turned off, and all the settings that Eglot changed are restored to
