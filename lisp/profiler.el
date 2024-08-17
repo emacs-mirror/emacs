@@ -452,6 +452,11 @@ Do not touch this variable directly.")
   (let ((string (cond
 		 ((eq entry t)
 		  "Others")
+		 ;; When we save profile data into a file, the function
+                 ;; objects are replaced with their "names".  When we see
+                 ;; a string here, that's presumably why, so just print
+                 ;; it as-is.
+		 ((stringp entry) entry)
 		 (t (propertize (help-fns-function-name entry)
 		                ;; Override the `button-map' which
 		                ;; otherwise adds RET, mouse-1, and TAB
