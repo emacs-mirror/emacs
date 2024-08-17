@@ -505,7 +505,9 @@ DEFUN ("user-ptrp", Fuser_ptrp, Suser_ptrp, 1, 1, 0,
 #endif
 
 DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0,
-       doc: /* Return t if OBJECT is a built-in function.  */)
+       doc: /* Return t if OBJECT is a built-in or native compiled Lisp function.
+
+See also `primitive-function-p' and `native-comp-function-p'.  */)
   (Lisp_Object object)
 {
   if (SUBRP (object))

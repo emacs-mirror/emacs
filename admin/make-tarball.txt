@@ -137,38 +137,40 @@ General steps (for each step, check for possible errors):
     of the format "Bump Emacs version to ...", so that the commit can
     be skipped when merging branches (see admin/gitmerge.el).
 
-    The final pretest should be a release candidate.
-    Before a release candidate is made, the tasks listed in
-    admin/release-process must be completed.
+    If this is a final pretest before the release:
 
-    Set the version number to that of the actual release (commit in
-    one, as described above).  Pick a date about a week from now when
-    you intend to make the release.  Use M-x add-release-logs from
-    admin/admin.el to add entries to etc/HISTORY and the ChangeLog
-    file.  It's best not to commit these files until the release is
-    actually made.  Merge the entries from (unversioned) ChangeLog
-    into the top of the current versioned ChangeLog.N and commit that
-    along with etc/HISTORY.  Then you can tag that commit as the
-    release.
+      The final pretest should be a release candidate.
+      Before a release candidate is made, the tasks listed in
+      admin/release-process must be completed.
 
-    Alternatively, you can commit and tag with the RC tag right away,
-    and delay the final tagging until you actually decide to make a
-    release and announce it.  The "git tag" command can tag a specific
-    commit if you give it the SHA1 of that commit, even if additional
-    commits have been pushed in the meantime.
+      Set the version number to that of the actual release (commit in
+      one, as described above).  Pick a date about a week from now when
+      you intend to make the release.  Use M-x add-release-logs from
+      admin/admin.el to add entries to etc/HISTORY and the ChangeLog
+      file.  It's best not to commit these files until the release is
+      actually made.  Merge the entries from (unversioned) ChangeLog
+      into the top of the current versioned ChangeLog.N and commit that
+      along with etc/HISTORY.  Then you can tag that commit as the
+      release.
 
-    Name the tar file as emacs-XX.Y-rc1.tar.  If all goes well in the
-    following week, you can simply rename the file and use it for the
-    actual release.  If you need another release candidate, remember
-    to adjust the ChangeLog and etc/HISTORY entries.
+      Alternatively, you can commit and tag with the RC tag right away,
+      and delay the final tagging until you actually decide to make a
+      release and announce it.  The "git tag" command can tag a specific
+      commit if you give it the SHA1 of that commit, even if additional
+      commits have been pushed in the meantime.
 
-    If you need to change only a file(s) that cannot possibly affect
-    the build (README, ChangeLog, NEWS, etc.) then rather than doing
-    an entirely new build, it is better to unpack the existing
-    tarfile, modify the file(s), and tar it back up again.
+      Name the tar file as emacs-XX.Y-rc1.tar.  If all goes well in the
+      following week, you can simply rename the file and use it for the
+      actual release.  If you need another release candidate, remember
+      to adjust the ChangeLog and etc/HISTORY entries.
 
-    Never replace an existing tarfile!  If you need to fix something,
-    always upload it with a different name.
+      If you need to change only a file(s) that cannot possibly affect
+      the build (README, ChangeLog, NEWS, etc.) then rather than doing
+      an entirely new build, it is better to unpack the existing
+      tarfile, modify the file(s), and tar it back up again.
+
+      Never replace an existing tarfile!  If you need to fix something,
+      always upload it with a different name.
 
 4.    autoreconf -i -I m4 --force
       make bootstrap

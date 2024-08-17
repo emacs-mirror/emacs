@@ -487,7 +487,9 @@ null characters.  It may also change @var{string}'s length.
 @section Comparison of Characters and Strings
 @cindex string equality
 @cindex text comparison
+@cindex string comparison
 
+@cindex compare characters
 @defun char-equal character1 character2
 This function returns @code{t} if the arguments represent the same
 character, @code{nil} otherwise.  This function ignores differences
@@ -502,6 +504,7 @@ in case if @code{case-fold-search} is non-@code{nil}.
 @end example
 @end defun
 
+@cindex compare strings
 @defun string-equal string1 string2
 This function returns @code{t} if the characters of the two strings
 match exactly.  Symbols are also allowed as arguments, in which case
@@ -534,6 +537,7 @@ character codes all being in the range 0--127 (@acronym{ASCII}).
 @code{string=} is another name for @code{string-equal}.
 @end defun
 
+@cindex case-insensitive string comparison
 @defun string-equal-ignore-case string1 string2
 @code{string-equal-ignore-case} compares strings ignoring case
 differences, like @code{char-equal} when @code{case-fold-search} is
@@ -665,6 +669,7 @@ This function returns the result of comparing @var{string1} and
 @end defun
 
 @cindex locale-dependent string comparison
+@cindex string collation
 @defun string-collate-lessp string1 string2 &optional locale ignore-case
 This function returns @code{t} if @var{string1} is less than
 @var{string2} in collation order of the specified @var{locale}, which
@@ -719,6 +724,8 @@ If your system does not support a locale environment, this function
 behaves like @code{string-lessp}.
 @end defun
 
+@cindex version comparison
+@cindex comparing version strings
 @defun string-version-lessp string1 string2
 This function compares strings lexicographically, except it treats
 sequences of numerical characters as if they comprised a base-ten
@@ -727,6 +734,7 @@ number, and then compares the numbers.  So @samp{foo2.png} is
 @samp{12} is lexicographically ``smaller'' than @samp{2}.
 @end defun
 
+@cindex string starts with prefix
 @defun string-prefix-p string1 string2 &optional ignore-case
 This function returns non-@code{nil} if @var{string1} is a prefix of
 @var{string2}; i.e., if @var{string2} starts with @var{string1}.  If
@@ -734,6 +742,7 @@ the optional argument @var{ignore-case} is non-@code{nil}, the
 comparison ignores case differences.
 @end defun
 
+@cindex string ends with suffix
 @defun string-suffix-p suffix string &optional ignore-case
 This function returns non-@code{nil} if @var{suffix} is a suffix of
 @var{string}; i.e., if @var{string} ends with @var{suffix}.  If the

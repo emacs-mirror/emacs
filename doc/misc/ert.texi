@@ -203,9 +203,12 @@ different Emacs versions.
 @cindex interactive testing
 
 @findex ert
+@findex ert-run-tests-interactively
 You can run the tests that are currently defined in your Emacs with the
-command @kbd{M-x ert @key{RET} t @key{RET}}.  (For an explanation of the
-@code{t} argument, @pxref{Test Selectors}.)  ERT will pop up a new
+command @kbd{M-x ert @key{RET} t @key{RET}} (which is an alias of
+@code{ert-run-tests-interactively}).  The @code{t} argument means to run
+all the defined tests, see @ref{Test Selectors}, which also explains how
+to run only some specific part of the tests.  ERT will pop up a new
 buffer, the ERT results buffer, showing the results of the tests run.
 It looks like this:
 
@@ -474,7 +477,7 @@ to Common Lisp's type specifier syntax:
 @item @code{:failed} and @code{:passed} select tests according to their most recent result.
 @item @code{:expected}, @code{:unexpected} select tests according to their most recent result.
 @item A string is a regular expression that selects all tests with matching names.
-@item A test (i.e., an object of @code{ert-test} data type) selects that test.
+@item A test (i.e., an object of @code{ert-test} data type, see its doc string for details) selects that test.
 @item A symbol selects the test that the symbol names.
 @item @code{(member @var{tests}...)} selects the elements of
 @var{tests}, a list of tests or symbols naming tests.

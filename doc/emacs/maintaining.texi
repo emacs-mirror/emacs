@@ -1829,7 +1829,7 @@ the current project.
 @item C-x p r
 Perform query-replace for a regexp in all files that belong to the
 current project (@code{project-query-replace-regexp}).
-@item C-x p d
+@item C-x p D
 Run Dired in the current project's root directory
 (@code{project-dired}).
 @item C-x p v

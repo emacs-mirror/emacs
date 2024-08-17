@@ -91,7 +91,7 @@ Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `%s'.
+evaluate %s.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.")
@@ -128,8 +128,11 @@ it is disabled.")
                         easy-mmode--arg-docstring
                         (if global "global " "")
                         mode-pretty-name
-                        ;; Avoid having quotes turn into pretty quotes.
-                        (string-replace "'" "\\='" (format "%S" getter)))))
+                        (concat
+                         (if (symbolp getter) "the variable ")
+                         (format "`%s'"
+                                 ;; Avoid having quotes turn into pretty quotes.
+                                 (string-replace "'" "\\='" (format "%S" getter)))))))
           (let ((start (point)))
             (insert argdoc)
             (when (fboundp 'fill-region) ;Don't break bootstrap!
