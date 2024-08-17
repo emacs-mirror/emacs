@@ -146,6 +146,19 @@ FILENAME ~ "Blocks.txt" && /^[0-9A-F]/ {
     end[i] = fix_end[e] ? fix_end[e]: e
     name[i] = $0
 
+    # Hard-coded splits that must be processed before name2alias and
+    # before combining same-named adjacent ranges.
+    if (start[i] == "3300") # See Scripts.txt
+    {
+	end[i] = "3357"
+	name[i] = "Katakana"
+	alt[i] = "kana"
+	i++
+	start[i] = "3358"
+	end[i] = "33FF"
+	name[i] = "CJK Compatibility"
+    }
+
     alt[i] = name2alias(name[i])
 
     if (!alt[i])
