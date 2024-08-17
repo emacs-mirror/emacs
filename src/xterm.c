@@ -14691,7 +14691,7 @@ x_construct_mouse_click (struct input_event *result,
           result->kind = (event->type != ButtonRelease ? NO_EVENT
 		          : wheel & 2 ? HORIZ_WHEEL_EVENT : WHEEL_EVENT);
           result->code = 0;         /* Not used.  */
-          result->modifiers &= ~(up_modifier || down_modifier);
+          result->modifiers &= ~(up_modifier | down_modifier);
           result->modifiers |= wheel & 1 ? up_modifier : down_modifier;
         }
     }
