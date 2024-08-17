@@ -2752,7 +2752,7 @@ read_char (int commandflag, Lisp_Object map,
      it *must not* be in effect when we call redisplay.  */
 
   specpdl_ref jmpcount = SPECPDL_INDEX ();
-  Lisp_Object volatile c_volatile;
+  Lisp_Object volatile c_volatile = c;
   if (sys_setjmp (local_getcjmp))
     {
       c = c_volatile;
@@ -2800,7 +2800,6 @@ read_char (int commandflag, Lisp_Object map,
       goto non_reread;
     }
 
-  c_volatile = c;
 #if GCC_LINT && __GNUC__ && !__clang__
   /* This useless assignment pacifies GCC 14.2.1 x86-64
      <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=21161>.  */
