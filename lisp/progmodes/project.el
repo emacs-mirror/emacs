@@ -1001,7 +1001,7 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
               (project-files pr)
             (let* ((dir (read-directory-name "Base directory: "
                                              caller-dir nil t)))
-              (setq default-directory dir)
+              (setq default-directory (file-name-as-directory dir))
               (project--files-in-directory dir
                                            nil
                                            (grep-read-files regexp))))))
