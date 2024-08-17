@@ -121,9 +121,15 @@ extra indent = 2
                (next-line-prefix (visual-wrap--content-prefix
                                   first-line-prefix position)))
       (when (numberp next-line-prefix)
+        ;; Set a minimum width for the prefix so it lines up correctly
+        ;; with subsequent lines.  Make sure not to do this past the end
+        ;; of the line though!  (`fill-match-adaptive-prefix' could
+        ;; potentially return a prefix longer than the current line in
+        ;; the buffer.)
         (put-text-property
-         position (+ position (length first-line-prefix)) 'display
-         `(min-width ((,next-line-prefix . width)))))
+         position (min (+ position (length first-line-prefix))
+                       (line-end-position))
+         'display `(min-width ((,next-line-prefix . width)))))
       (setq next-line-prefix (visual-wrap--adjust-prefix next-line-prefix))
       (put-text-property
        position (line-end-position) 'wrap-prefix
