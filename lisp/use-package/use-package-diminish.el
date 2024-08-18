@@ -70,8 +70,6 @@
              arg)
      body)))
 
-(add-to-list 'use-package-keywords :diminish t)
-
 (provide 'use-package-diminish)
 
 ;;; use-package-diminish.el ends here

@@ -65,6 +65,12 @@
   :link '(custom-manual "(use-package) Top")
   :version "29.1")
 
+(defgroup use-package-ensure nil
+  "Support for :ensure and :pin keywords in `use-package' declarations."
+  :group 'use-package
+  :link '(custom-manual "(use-package) Installing packages")
+  :version "29.1")
+
 (defconst use-package-version "2.4.5"
   "This version of `use-package'.")
 
@@ -76,6 +82,10 @@
     :functions
     :preface
     :if :when :unless
+    :ensure
+    :pin
+    :delight
+    :diminish
     :vc
     :no-require
     :catch
@@ -114,7 +124,8 @@ Note that `:disabled' is special in this list, as it causes
 nothing at all to happen, even if the rest of the `use-package'
 declaration is incorrect."
   :type '(repeat symbol)
-  :group 'use-package)
+  :group 'use-package
+  :version "30.1")
 
 (defcustom use-package-deferring-keywords
   '(:bind-keymap
@@ -189,7 +200,12 @@ See also `use-package-defaults', which uses this value."
              (lambda (name args)
                (and use-package-always-demand
                     (not (plist-member args :defer))
-                    (not (plist-member args :demand))))))
+                    (not (plist-member args :demand)))))
+    (:ensure (list use-package-always-ensure)
+             (lambda (name args)
+               (and use-package-always-ensure
+                    (not (plist-member args :load-path)))))
+    (:pin use-package-always-pin use-package-always-pin))
   "Default values for specified `use-package' keywords.
 Each entry in the alist is a list of three elements:
 The first element is the `use-package' keyword.
@@ -214,7 +230,8 @@ attempted."
           (list (symbol :tag "Keyword")
                 (choice :tag "Default value" sexp function)
                 (choice :tag "Enable if non-nil" sexp function)))
-  :group 'use-package)
+  :group 'use-package
+  :version "30.1")
 
 (defcustom use-package-merge-key-alist
   '((:if    . (lambda (new old) `(and ,new ,old)))
@@ -359,6 +376,39 @@ stability issues."
   :type 'boolean
   :version "30.1"
   :group 'use-package)
+
+(defcustom use-package-always-ensure nil
+  "Treat every package as though it had specified using `:ensure SEXP'.
+See also `use-package-defaults', which uses this value."
+  :type 'sexp
+  :group 'use-package-ensure
+  :version "29.1")
+
+(defcustom use-package-always-pin nil
+  "Treat every package as though it had specified using `:pin SYM'.
+See also `use-package-defaults', which uses this value."
+  :type 'symbol
+  :group 'use-package-ensure
+  :version "29.1")
+
+(defcustom use-package-ensure-function 'use-package-ensure-elpa
+  "Function that ensures a package is installed.
+This function is called with three arguments: the name of the
+package declared in the `use-package' form; the arguments passed
+to all `:ensure' keywords (always a list, even if only one); and
+the current `state' plist created by previous handlers.
+
+Note that this function is called whenever `:ensure' is provided,
+even if it is nil.  It is up to the function to decide on the
+semantics of the various values for `:ensure'.
+
+This function should return non-nil if the package is installed.
+
+The default value uses package.el to install the package."
+  :type '(choice (const :tag "package.el" use-package-ensure-elpa)
+                 (function :tag "Custom"))
+  :group 'use-package-ensure
+  :version "29.1")
 
 (defvar use-package-statistics (make-hash-table))
 

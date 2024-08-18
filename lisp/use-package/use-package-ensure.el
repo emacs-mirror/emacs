@@ -32,45 +32,9 @@
 (require 'cl-lib)
 (require 'use-package-core)
 
-(defgroup use-package-ensure nil
-  "Support for :ensure and :pin keywords in `use-package' declarations."
-  :group 'use-package
-  :link '(custom-manual "(use-package) Installing packages")
-  :version "29.1")
-
 (eval-when-compile
   (declare-function package-installed-p "package")
   (declare-function package-read-all-archive-contents "package" ()))
-
-(defcustom use-package-always-ensure nil
-  "Treat every package as though it had specified using `:ensure SEXP'.
-See also `use-package-defaults', which uses this value."
-  :type 'sexp
-  :group 'use-package-ensure)
-
-(defcustom use-package-always-pin nil
-  "Treat every package as though it had specified using `:pin SYM'.
-See also `use-package-defaults', which uses this value."
-  :type 'symbol
-  :group 'use-package-ensure)
-
-(defcustom use-package-ensure-function 'use-package-ensure-elpa
-  "Function that ensures a package is installed.
-This function is called with three arguments: the name of the
-package declared in the `use-package' form; the arguments passed
-to all `:ensure' keywords (always a list, even if only one); and
-the current `state' plist created by previous handlers.
-
-Note that this function is called whenever `:ensure' is provided,
-even if it is nil.  It is up to the function to decide on the
-semantics of the various values for `:ensure'.
-
-This function should return non-nil if the package is installed.
-
-The default value uses package.el to install the package."
-  :type '(choice (const :tag "package.el" use-package-ensure-elpa)
-                 (function :tag "Custom"))
-  :group 'use-package-ensure)
 
 ;;;; :pin
 
@@ -195,18 +159,6 @@ manually updated package."
       (push `(,use-package-ensure-function ',name ',ensure ',state)
             body))
     body))
-
-(add-to-list 'use-package-defaults
-             '(:ensure (list use-package-always-ensure)
-                       (lambda (name args)
-                         (and use-package-always-ensure
-                              (not (plist-member args :load-path))))) t)
-
-(add-to-list 'use-package-defaults
-             '(:pin use-package-always-pin use-package-always-pin) t)
-
-(add-to-list 'use-package-keywords :ensure)
-(add-to-list 'use-package-keywords :pin)
 
 (provide 'use-package-ensure)
 
