@@ -4637,30 +4637,6 @@ next_almost_prime (EMACS_INT n)
       return n;
 }
 
-
-/* Find KEY in ARGS which has size NARGS.  Don't consider indices for
-   which USED[I] is non-zero.  If found at index I in ARGS, set
-   USED[I] and USED[I + 1] to 1, and return I + 1.  Otherwise return
-   0.  This function is used to extract a keyword/argument pair from
-   a DEFUN parameter list.  */
-
-static ptrdiff_t
-get_key_arg (Lisp_Object key, ptrdiff_t nargs, Lisp_Object *args, char *used)
-{
-  ptrdiff_t i;
-
-  for (i = 1; i < nargs; i++)
-    if (!used[i - 1] && EQ (args[i - 1], key))
-      {
-	used[i - 1] = 1;
-	used[i] = 1;
-	return i;
-      }
-
-  return 0;
-}
-
-
 /* Return a Lisp vector which has the same contents as VEC but has
    at least INCR_MIN more entries, where INCR_MIN is positive.
    If NITEMS_MAX is not -1, do not grow the vector to be any larger
@@ -5762,32 +5738,43 @@ and ignored.
 usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  USE_SAFE_ALLOCA;
+  Lisp_Object test_arg = Qnil;
+  Lisp_Object weakness_arg = Qnil;
+  Lisp_Object size_arg = Qnil;
+  Lisp_Object purecopy_arg = Qnil;
 
-  /* The vector `used' is used to keep track of arguments that
-     have been consumed.  */
-  char *used = SAFE_ALLOCA (nargs * sizeof *used);
-  memset (used, 0, nargs * sizeof *used);
+  if (nargs & 1)
+    error ("Odd number of arguments");
+  while (nargs >= 2)
+    {
+      Lisp_Object arg = maybe_remove_pos_from_symbol (args[--nargs]);
+      Lisp_Object kw = maybe_remove_pos_from_symbol (args[--nargs]);
+      if (BASE_EQ (kw, QCtest))
+	test_arg = arg;
+      else if (BASE_EQ (kw, QCweakness))
+	weakness_arg = arg;
+      else if (BASE_EQ (kw, QCsize))
+	size_arg = arg;
+      else if (BASE_EQ (kw, QCpurecopy))
+	purecopy_arg = arg;
+      else if (BASE_EQ (kw, QCrehash_threshold) || BASE_EQ (kw, QCrehash_size))
+	;  /* ignore obsolete keyword arguments */
+      else
+	signal_error ("Invalid keyword argument", kw);
+    }
 
-  /* See if there's a `:test TEST' among the arguments.  */
-  ptrdiff_t i = get_key_arg (QCtest, nargs, args, used);
-  Lisp_Object test = i ? maybe_remove_pos_from_symbol (args[i]) : Qeql;
-  const struct hash_table_test *testdesc;
-  if (BASE_EQ (test, Qeq))
-    testdesc = &hashtest_eq;
-  else if (BASE_EQ (test, Qeql))
-    testdesc = &hashtest_eql;
-  else if (BASE_EQ (test, Qequal))
-    testdesc = &hashtest_equal;
+  const struct hash_table_test *test;
+  if (NILP (test_arg) || BASE_EQ (test_arg, Qeql))
+    test = &hashtest_eql;
+  else if (BASE_EQ (test_arg, Qeq))
+    test = &hashtest_eq;
+  else if (BASE_EQ (test_arg, Qequal))
+    test = &hashtest_equal;
   else
-    testdesc = get_hash_table_user_test (test);
+    test = get_hash_table_user_test (test_arg);
 
-  /* See if there's a `:purecopy PURECOPY' argument.  */
-  i = get_key_arg (QCpurecopy, nargs, args, used);
-  bool purecopy = i && !NILP (args[i]);
-  /* See if there's a `:size SIZE' argument.  */
-  i = get_key_arg (QCsize, nargs, args, used);
-  Lisp_Object size_arg = i ? args[i] : Qnil;
+  bool purecopy = !NILP (purecopy_arg);
+
   EMACS_INT size;
   if (NILP (size_arg))
     size = DEFAULT_HASH_SIZE;
@@ -5796,36 +5783,21 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   else
     signal_error ("Invalid hash table size", size_arg);
 
-  /* Look for `:weakness WEAK'.  */
-  i = get_key_arg (QCweakness, nargs, args, used);
-  Lisp_Object weakness = i ? args[i] : Qnil;
   hash_table_weakness_t weak;
-  if (NILP (weakness))
+  if (NILP (weakness_arg))
     weak = Weak_None;
-  else if (EQ (weakness, Qkey))
+  else if (BASE_EQ (weakness_arg, Qkey))
     weak = Weak_Key;
-  else if (EQ (weakness, Qvalue))
+  else if (BASE_EQ (weakness_arg, Qvalue))
     weak = Weak_Value;
-  else if (EQ (weakness, Qkey_or_value))
+  else if (BASE_EQ (weakness_arg, Qkey_or_value))
     weak = Weak_Key_Or_Value;
-  else if (EQ (weakness, Qt) || EQ (weakness, Qkey_and_value))
+  else if (BASE_EQ (weakness_arg, Qt) || BASE_EQ (weakness_arg, Qkey_and_value))
     weak = Weak_Key_And_Value;
   else
-    signal_error ("Invalid hash table weakness", weakness);
+    signal_error ("Invalid hash table weakness", weakness_arg);
 
-  /* Now, all args should have been used up, or there's a problem.  */
-  for (i = 0; i < nargs; ++i)
-    if (!used[i])
-      {
-	/* Ignore obsolete arguments.  */
-	if (EQ (args[i], QCrehash_threshold) || EQ (args[i], QCrehash_size))
-	  i++;
-	else
-	  signal_error ("Invalid argument list", args[i]);
-      }
-
-  SAFE_FREE ();
-  return make_hash_table (testdesc, size, weak, purecopy);
+  return make_hash_table (test, size, weak, purecopy);
 }
 
 
