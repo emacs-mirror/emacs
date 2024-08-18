@@ -2633,6 +2633,7 @@ SYSCALL,	0,			st_C_gnumacro
 ENTRY,		0,			st_C_gnumacro
 PSEUDO,		0,			st_C_gnumacro
 ENUM_BF,	0,			st_C_enum_bf
+@SuppressWarnings,	(C_JAVA & ~C_PLPL),	st_C_attribute
 # These are defined inside C functions, so currently they are not met.
 # EXFUN used in glibc, DEFVAR_* in emacs.
 #EXFUN,		0,			st_C_gnumacro
@@ -2644,44 +2645,44 @@ and replace lines between %< and %> with its output, then:
  - make in_word_set static and not inline
  - remove any 'register' qualifications from variable decls. */
 /*%<*/
-/* C code produced by gperf version 3.0.1 */
-/* Command-line: gperf -m 5 */
+/* ANSI-C code produced by gperf version 3.1 */
+/* Command-line: gperf -m 5 gperf.inp  */
 /* Computed positions: -k'2-3' */
 
 struct C_stab_entry { const char *name; int c_ext; enum sym_type type; };
-/* maximum key range = 34, duplicates = 0 */
+/* maximum key range = 36, duplicates = 0 */
 
 static int
 hash (const char *str, int len)
 {
   static char const asso_values[] =
     {
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36,  3,
-      27, 36, 36, 36, 36, 36, 36, 36, 26, 36,
-      36, 36, 36, 25,  0,  0, 36, 36, 36,  0,
-      36, 36, 36, 36, 36,  1, 36, 16, 36,  6,
-      23,  0,  0, 36, 22,  0, 36, 36,  5,  0,
-       0, 15,  1, 36,  6, 36,  8, 19, 36, 16,
-       4,  5, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36, 36, 36, 36, 36,
-      36, 36, 36, 36, 36, 36
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 29,
+       3, 38, 38, 38, 38, 38, 38, 38, 23, 38,
+      38, 38, 38,  0,  5,  4, 38, 38, 38, 24,
+      38, 38, 38, 38, 38,  1, 38, 16, 38,  6,
+      23,  0,  0, 38, 22,  0, 38, 38,  5,  0,
+       0, 15,  1, 38,  6, 38,  8, 19, 38, 16,
+       4,  5, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38, 38, 38, 38, 38,
+      38, 38, 38, 38, 38, 38
     };
   int hval = len;
 
@@ -2702,18 +2703,18 @@ in_word_set (const char *str, ptrdiff_t len)
 {
   enum
     {
-      TOTAL_KEYWORDS = 34,
+      TOTAL_KEYWORDS = 35,
       MIN_WORD_LENGTH = 2,
-      MAX_WORD_LENGTH = 15,
+      MAX_WORD_LENGTH = 17,
       MIN_HASH_VALUE = 2,
-      MAX_HASH_VALUE = 35
+      MAX_HASH_VALUE = 37
     };
 
   static struct C_stab_entry wordlist[] =
     {
       {""}, {""},
       {"if",		0,			st_C_ignore},
-      {"GTY",           0,                      st_C_attribute},
+      {""},
       {"@end",		0,			st_C_objend},
       {"union",		0,			st_C_struct},
       {"define",		0,			st_C_define},
@@ -2741,10 +2742,12 @@ in_word_set (const char *str, ptrdiff_t len)
       {"undef",		0,			st_C_define},
       {"package",	(C_JAVA & ~C_PLPL),	st_C_ignore},
       {"__attribute__",	0,			st_C_attribute},
-      {"ENTRY",		0,			st_C_gnumacro},
       {"SYSCALL",	0,			st_C_gnumacro},
+      {"GTY",            0,                      st_C_attribute},
+      {"ENTRY",		0,			st_C_gnumacro},
       {"ENUM_BF",	0,			st_C_enum_bf},
       {"PSEUDO",		0,			st_C_gnumacro},
+      {"@SuppressWarnings",	(C_JAVA & ~C_PLPL),	st_C_attribute},
       {"DEFUN",		0,			st_C_gnumacro}
     };
 
@@ -3011,7 +3014,6 @@ consider_token (char *str,	      /* IN: token pointer */
   static enum sym_type structtype;
   static ptrdiff_t structbracelev;
   static enum sym_type toktype;
-
 
   toktype = C_symtype (str, len, *c_extp);
 
@@ -4016,7 +4018,9 @@ C_entries (int c_ext,		/* extension of C */
 	    default:
 	      fvdef = fvnone;
 	    }
-	  if (structdef == stagseen)
+	  if (structdef == stagseen
+	      /* class Foo<K,V,T>...  */
+	      && !(cjava && templatelev > 0))
 	    structdef = snone;
 	  break;
 	case ']':
