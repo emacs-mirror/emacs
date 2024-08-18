@@ -2,13 +2,11 @@
 
 ;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
-;; Author:								\
-;;   Philip Kaludercic <philipk@posteo.net>,				\
-;;   Daniel Mendler <mail@daniel-mendler.de>
-;; Maintainer:								\
-;;   Daniel Mendler <mail@daniel-mendler.de>,				\
-;;   Compat Development <~pkal/compat-devel@lists.sr.ht>,
-;;   emacs-devel@gnu.org
+;; Author: Philip Kaludercic <philipk@posteo.net>,
+;;	   Daniel Mendler <mail@daniel-mendler.de>
+;; Maintainers: Daniel Mendler <mail@daniel-mendler.de>,
+;;		Compat Development <~pkal/compat-devel@lists.sr.ht>,
+;;		emacs-devel@gnu.org
 ;; URL: https://github.com/emacs-compat/compat
 ;; Keywords: lisp, maint
 
