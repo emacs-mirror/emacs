@@ -192,10 +192,13 @@ default:
         - lisp/textmodes/*-ts-mode.el
         - src/treesit.{h,c}
         - test/infra/*
+        - test/lisp/align-resources/**
         - test/lisp/align-tests.el
         - test/lisp/progmodes/*-ts-mode-resources/**
         - test/lisp/progmodes/*-ts-mode-tests.el
+        - test/lisp/progmodes/csharp-mode-resources/**
         - test/lisp/progmodes/csharp-mode-tests.el
+        - test/lisp/progmodes/js-resources/**
         - test/lisp/progmodes/js-tests.el
         - test/lisp/progmodes/python-tests.el
         - test/lisp/textmodes/*-ts-mode-resources/**
