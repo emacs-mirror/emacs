@@ -95,11 +95,14 @@ General steps (for each step, check for possible errors):
       CHANGELOG_HISTORY_INDEX_MAX = N
 
     by incrementing the value of N by 1; then regenerate Makefile.
-    After bumping N, you need to actually create and commit
-    ChangeLog.N with the updated N, otherwise "M-x authors" below will
-    fail.  The easiest way of creating the new ChangeLog.N is to
-    rename the file ChangeLog (without the .N suffix) left over from
-    the last major release (it is usually unversioned) and commit it.
+    After bumping N, you need to actually create and commit ChangeLog.N
+    with the updated N, otherwise "M-x authors" below will fail.  The
+    easiest way of creating the new ChangeLog.N is to rename the file
+    ChangeLog (without the .N suffix) left over from the last release
+    (it is usually unversioned) and commit it, together with the
+    modified Makefile.in.  If you don't have the unversioned ChangeLog
+    file from the last release, you can take it from the release
+    tarball.
 
     Now:
 
