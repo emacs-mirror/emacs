@@ -119,7 +119,7 @@ nothing at all to happen, even if the rest of the `use-package'
 declaration is incorrect."
   :type '(repeat symbol)
   :group 'use-package
-  :version "30.1")
+  :version "31.1")
 
 (defcustom use-package-deferring-keywords
   '(:bind-keymap
@@ -225,7 +225,7 @@ attempted."
                 (choice :tag "Default value" sexp function)
                 (choice :tag "Enable if non-nil" sexp function)))
   :group 'use-package
-  :version "30.1")
+  :version "31.1")
 
 (defcustom use-package-merge-key-alist
   '((:if    . (lambda (new old) `(and ,new ,old)))
