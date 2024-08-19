@@ -1409,7 +1409,7 @@ for setting the remote 'PATH' environment variable.
 ** SHR
 
 ---
-*** New option 'shr-fill-text'.
+*** New user option 'shr-fill-text'.
 When 'shr-fill-text' is non-nil (the default), SHR will fill text
 according to the width of the window.  If you customize it to nil, SHR
 will leave the text as-is; in that case, EWW will automatically enable
