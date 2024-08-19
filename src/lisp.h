@@ -3851,9 +3851,6 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
    All the other members are concerned with restoring the interpreter
    state.
 
-   Members are volatile if their values need to survive _longjmp when
-   a 'struct handler' is a local variable.
-
    When running the HANDLER of a 'handler-bind', we need to
    temporarily "mute" the CONDITION_CASEs and HANDLERs that are "below"
    the current handler, but without hiding any CATCHERs.  We do that by
