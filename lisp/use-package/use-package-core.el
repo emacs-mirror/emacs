@@ -65,12 +65,6 @@
   :link '(custom-manual "(use-package) Top")
   :version "29.1")
 
-(defgroup use-package-ensure nil
-  "Support for :ensure and :pin keywords in `use-package' declarations."
-  :group 'use-package
-  :link '(custom-manual "(use-package) Installing packages")
-  :version "29.1")
-
 (defconst use-package-version "2.4.5"
   "This version of `use-package'.")
 
@@ -381,14 +375,12 @@ stability issues."
   "Treat every package as though it had specified using `:ensure SEXP'.
 See also `use-package-defaults', which uses this value."
   :type 'sexp
-  :group 'use-package-ensure
   :version "29.1")
 
 (defcustom use-package-always-pin nil
   "Treat every package as though it had specified using `:pin SYM'.
 See also `use-package-defaults', which uses this value."
   :type 'symbol
-  :group 'use-package-ensure
   :version "29.1")
 
 (defcustom use-package-ensure-function 'use-package-ensure-elpa
@@ -407,7 +399,6 @@ This function should return non-nil if the package is installed.
 The default value uses package.el to install the package."
   :type '(choice (const :tag "package.el" use-package-ensure-elpa)
                  (function :tag "Custom"))
-  :group 'use-package-ensure
   :version "29.1")
 
 (defvar use-package-statistics (make-hash-table))
