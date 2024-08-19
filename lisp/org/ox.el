@@ -81,6 +81,7 @@
 (require 'ol)
 (require 'org-element)
 (require 'org-macro)
+(require 'org-attach) ; org-attach adds staff to `org-export-before-parsing-functions'
 (require 'tabulated-list)
 
 (declare-function org-src-coderef-format "org-src" (&optional element))

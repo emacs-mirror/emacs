@@ -448,6 +448,8 @@ FORMAT and ARGS are passed to `message'."
                  buffer-or-file (error-message-string err)))
          nil)))))
 
+;; FIXME: `pp' is very slow when writing even moderately large datasets
+;; We should probably drop it or find some fast formatter.
 (defun org-persist--write-elisp-file (file data &optional no-circular pp)
   "Write elisp DATA to FILE."
   ;; Fsync slightly reduces the chance of an incomplete filesystem
@@ -898,7 +900,7 @@ Otherwise, return t."
     (let ((index-file
            (org-file-name-concat org-persist-directory org-persist-index-file)))
       (org-persist--merge-index-with-disk)
-      (org-persist--write-elisp-file index-file org-persist--index t t)
+      (org-persist--write-elisp-file index-file org-persist--index t)
       (setq org-persist--index-age
             (file-attribute-modification-time (file-attributes index-file)))
       index-file)))

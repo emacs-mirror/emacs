@@ -2351,7 +2351,7 @@ is the language used for CODE, as a string, or nil."
      ((not (progn (require 'htmlize nil t)
 		(fboundp 'htmlize-region-for-paste)))
       ;; Emit a warning.
-      (warn "Cannot fontify source block (htmlize.el >= 1.34 required)")
+      (warn "Cannot fontify source block (htmlize.el >= 1.34 required).  Falling back to plain text.  (see `org-html-htmlize-output-type')")
       (org-html-encode-plain-text code))
      (t
       ;; Map language
