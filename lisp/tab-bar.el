@@ -1238,18 +1238,24 @@ which see.
 It's not recommended to change this value since with larger values, the
 tab bar might wrap to the second line when it shouldn't.")
 
-(defvar tab-bar-auto-width-faces
+(defconst tab-bar--auto-width-faces-default
   '( tab-bar-tab tab-bar-tab-inactive
      tab-bar-tab-ungrouped
-     tab-bar-tab-group-inactive)
+     tab-bar-tab-group-inactive))
+
+(defvar tab-bar-auto-width-faces
+  tab-bar--auto-width-faces-default
   "Resize tabs only with these faces.")
 
 (defun tab-bar-auto-width-predicate-default (item)
   "Accepts tab ITEM and returns non-nil for tabs and tab groups."
-  (string-match-p
-   ;; (rx bos (or "current-tab" "current-group" "tab-" "group-"))
-   "\\`\\(?:current-\\(?:group\\|tab\\)\\|\\(?:group\\|tab\\)-\\)"
-   (symbol-name (nth 0 item))))
+  (if (eq tab-bar-auto-width-faces tab-bar--auto-width-faces-default)
+      (string-match-p
+       ;; (rx bos (or "current-tab" "tab-" "group-"))
+       "\\`\\(?:current-tab\\|\\(?:group\\|tab\\)-\\)"
+       (symbol-name (nth 0 item)))
+    (memq (get-text-property 0 'face (nth 2 item))
+          tab-bar-auto-width-faces)))
 
 (defvar tab-bar-auto-width-functions '(tab-bar-auto-width-predicate-default)
   "List of functions for `tab-bar-auto-width' to call with a tab ITEM.
