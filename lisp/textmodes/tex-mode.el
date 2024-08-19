@@ -210,6 +210,7 @@ otherwise, the file name, preceded by a space, is added at the end.
 
 If the value is a form, it is evaluated to get the command to use."
   :type '(choice (const nil) string sexp)
+  :risky t
   :group 'tex-view)
 
 ;;;###autoload
