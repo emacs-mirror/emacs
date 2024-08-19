@@ -1851,8 +1851,8 @@ add things to `%s' instead."
                                    ?t tgt ?m mode)
             (erc-display-message parsed 'notice buf
                                  'MODE ?n nick ?u login
-                                 ?h host ?t tgt ?m mode)))
-      (erc-banlist-update proc parsed))))
+                                 ?h host ?t tgt ?m mode)))))
+  nil)
 
 (defun erc--wrangle-query-buffers-on-nick-change (old new)
   "Create or reuse a query buffer for NEW nick after considering OLD nick.

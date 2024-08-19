@@ -87,7 +87,8 @@
        ("5.4" . "28.1")
        ("5.4.1" . "29.1")
        ("5.5" . "29.1")
-       ("5.6" . "30.1")))
+       ("5.6" . "30.1")
+       ("5.6.1" . "31.1")))
 
 (defgroup erc nil
   "Emacs Internet Relay Chat client."
@@ -5555,109 +5556,117 @@ If CHANNEL is not specified, clear the topic for the default channel."
 
 (defvar-local erc-channel-banlist nil
   "A list of bans seen for the current channel.
-
-Each ban is an alist of the form:
-  (WHOSET . MASK)
-
-The property `received-from-server' indicates whether
-or not the ban list has been requested from the server.")
+Entries are cons cells of the form (OP . MASK), where OP is the channel
+operator who issued the ban.  Modules needing such a list should call
+`erc-sync-banlist' once per session in the channel before accessing the
+variable.  Interactive users need only issue a /BANLIST.  Note that
+older versions of ERC relied on a deprecated convention involving a
+property of the symbol `erc-channel-banlist' to indicate whether a ban
+list had been received in full; this was found to be unreliable.")
 (put 'erc-channel-banlist 'received-from-server nil)
 
-(defvar erc-fill-column)
+(defvar-local erc--channel-banlist-synchronized-p nil
+  "Whether the full channel ban list has been fetched since joining.")
 
-(defun erc-cmd-BANLIST ()
-  "Pretty-print the contents of `erc-channel-banlist'.
+(defun erc-sync-banlist (&optional done-fn)
+  "Initialize syncing of current channel's `erc-channel-banlist'.
+Arrange for it to remain synced for the rest of the IRC session.  When
+DONE-FN is non-nil, call it with no args once fully updated. Expect it
+to return non-nil, if necessary, to inhibit further processing."
+  (unless (erc-channel-p (current-buffer))
+    (error "Not a channel buffer"))
+  (let ((channel (erc-target))
+        (buffer (current-buffer))
+        (hook (lambda (&rest r) (apply #'erc-banlist-store r) t)))
+    (setq erc-channel-banlist nil)
+    (erc-with-server-buffer
+      (add-hook 'erc-server-367-functions hook -98 t)
+      (erc-once-with-server-event
+       368 (lambda (&rest _)
+             (remove-hook 'erc-server-367-functions hook t)
+             (with-current-buffer buffer
+               (prog1 (if done-fn (funcall done-fn) t)
+                 (setq erc--channel-banlist-synchronized-p t)))))
+      (erc-server-send (format "MODE %s b" channel)))))
 
-The ban list is fetched from the server if necessary."
-  (let ((chnl (erc-default-target))
-        (chnl-name (buffer-name)))
-
-    (cond
-     ((not (erc-channel-p chnl))
-      (erc-display-message nil 'notice 'active "You're not on a channel\n"))
-
-     ((not (get 'erc-channel-banlist 'received-from-server))
-      (let ((old-367-hook erc-server-367-functions))
-        (setq erc-server-367-functions 'erc-banlist-store
-              erc-channel-banlist nil)
-        ;; fetch the ban list then callback
-        (erc-with-server-buffer
-          (erc-once-with-server-event
-           368
-           (lambda (_proc _parsed)
-             (with-current-buffer chnl-name
-               (put 'erc-channel-banlist 'received-from-server t)
-               (setq erc-server-367-functions old-367-hook)
-               (erc-cmd-BANLIST)
-               t)))
-          (erc-server-send (format "MODE %s b" chnl)))))
-
-     ((null erc-channel-banlist)
-      (erc-display-message nil 'notice 'active
-                           (format "No bans for channel: %s\n" chnl))
+(defun erc--wrap-banlist-cmd (slashcmd)
+  (lambda ()
+    (put 'erc-channel-banlist 'received-from-server t)
+    (unwind-protect (funcall slashcmd)
       (put 'erc-channel-banlist 'received-from-server nil))
+    t))
 
-     (t
-      (let* ((erc-fill-column (or (and (boundp 'erc-fill-column)
-                                       erc-fill-column)
-                                  (and (boundp 'fill-column)
-                                       fill-column)
-                                  (1- (window-width))))
-             (separator (make-string erc-fill-column ?=))
-             (fmt (concat
-                   "%-" (number-to-string (/ erc-fill-column 2)) "s"
-                   "%" (number-to-string (/ erc-fill-column 2)) "s")))
+(defvar erc-banlist-fill-padding 1.0
+  "Scaling factor from 0 to 1 of free space between entries, if any.")
 
-        (erc-display-message
-         nil 'notice 'active
-         (format "Ban list for channel: %s\n" (erc-default-target)))
+(cl-defgeneric erc--determine-fill-column-function ()
+  fill-column)
 
-        (erc-display-line separator 'active)
-        (erc-display-line (format fmt "Ban Mask" "Banned By") 'active)
-        (erc-display-line separator 'active)
-
-        (mapc
-         (lambda (x)
-           (erc-display-line
-            (format fmt
-                    (truncate-string-to-width (cdr x) (/ erc-fill-column 2))
-                    (if (car x)
-                        (truncate-string-to-width (car x) (/ erc-fill-column 2))
-                      ""))
-            'active))
-         erc-channel-banlist)
-
-        (erc-display-message nil 'notice 'active "End of Ban list")
-        (put 'erc-channel-banlist 'received-from-server nil)))))
+(defun erc-cmd-BANLIST (&rest args)
+  "Print the list of ban masks for the current channel.
+When uninitialized or with option -f, resync `erc-channel-banlist'."
+  (cond
+   ((not (erc-channel-p (current-buffer)))
+    (erc-display-message nil 'notice 'active "You're not on a channel\n"))
+   ((or (equal args '("-f"))
+        (and (not erc--channel-banlist-synchronized-p)
+             (not (get 'erc-channel-banlist 'received-from-server))))
+    (erc-sync-banlist (erc--wrap-banlist-cmd #'erc-cmd-BANLIST)))
+   ((null erc-channel-banlist)
+    (erc-display-message nil 'notice 'active
+                         (format "No bans for channel: %s\n" (erc-target))))
+   ((let ((max-width (erc--determine-fill-column-function))
+          (lw 0) (rw 0) separator fmt)
+      (dolist (entry erc-channel-banlist)
+        (setq rw (max (length (car entry)) rw)
+              lw (max (length (cdr entry)) lw)))
+      (let ((maxw (* 1.0 (min max-width (+ rw lw)))))
+        (when (< maxw (+ rw lw)) ; scale down when capped
+          (cl-psetq rw (/ (* rw maxw) (* 1.0 (+ rw lw)))
+                    lw (/ (* lw maxw) (* 1.0 (+ rw lw)))))
+        (when-let ((larger (max rw lw)) ; cap ratio at 3:1
+                   (wavg (* maxw 0.75))
+                   ((> larger wavg)))
+          (setq rw (if (eql larger rw) wavg (- maxw wavg))
+                lw (- maxw rw)))
+        (cl-psetq rw (+ rw (* erc-banlist-fill-padding
+                              (- (/ (* rw max-width) maxw) rw)))
+                  lw (+ lw (* erc-banlist-fill-padding
+                              (- (/ (* lw max-width) maxw) lw)))))
+      (setq rw (truncate rw)
+            lw (truncate lw))
+      (cl-assert (<= (+ rw lw) max-width))
+      (setq separator (make-string (+ rw lw 1) ?=)
+            fmt (concat "%-" (number-to-string lw) "s "
+                        "%" (number-to-string rw) "s"))
+      (erc-display-message
+       nil 'notice 'active
+       (format "Ban list for channel: %s%s\n" (erc-target)
+               (if erc--channel-banlist-synchronized-p " (cached)" "")))
+      (erc-display-line separator 'active)
+      (erc-display-line (format fmt "Ban Mask" "Banned By") 'active)
+      (erc-display-line separator 'active)
+      (dolist (entry erc-channel-banlist)
+        (erc-display-line
+         (format fmt (truncate-string-to-width (cdr entry) lw)
+                 (truncate-string-to-width (car entry) rw))
+         'active))
+      (erc-display-message nil 'notice 'active "End of Ban list"))))
+  (put 'erc-channel-banlist 'received-from-server nil)
   t)
 
 (defalias 'erc-cmd-BL #'erc-cmd-BANLIST)
 
-(defun erc-cmd-MASSUNBAN ()
-  "Mass Unban.
-
-Unban all currently banned users in the current channel."
+(defun erc-cmd-MASSUNBAN (&rest args)
+  "Remove all bans in the current channel."
   (let ((chnl (erc-default-target)))
     (cond
-
      ((not (erc-channel-p chnl))
       (erc-display-message nil 'notice 'active "You're not on a channel\n"))
-
-     ((not (get 'erc-channel-banlist 'received-from-server))
-      (let ((old-367-hook erc-server-367-functions))
-        (setq erc-server-367-functions 'erc-banlist-store)
-        ;; fetch the ban list then callback
-        (erc-with-server-buffer
-          (erc-once-with-server-event
-           368
-           (lambda (_proc _parsed)
-             (with-current-buffer chnl
-               (put 'erc-channel-banlist 'received-from-server t)
-               (setq erc-server-367-functions old-367-hook)
-               (erc-cmd-MASSUNBAN)
-               t)))
-          (erc-server-send (format "MODE %s b" chnl)))))
-
+     ((or (equal args '("-f"))
+          (and (not erc--channel-banlist-synchronized-p)
+               (not (get 'erc-channel-banlist 'received-from-server))))
+      (erc-sync-banlist (erc--wrap-banlist-cmd #'erc-cmd-MASSUNBAN)))
      (t (let ((bans (mapcar #'cdr erc-channel-banlist)))
           (when bans
             ;; Glob the bans into groups of three, and carry out the unban.
@@ -5668,8 +5677,9 @@ Unban all currently banned users in the current channel."
                 (format "MODE %s -%s %s" (erc-default-target)
                         (make-string (length x) ?b)
                         (mapconcat #'identity x " "))))
-             (erc-group-list bans 3))))
-        t))))
+             (erc-group-list bans 3))))))
+    (put 'erc-channel-banlist 'received-from-server nil)
+    t))
 
 (defalias 'erc-cmd-MUB #'erc-cmd-MASSUNBAN)
 
@@ -6639,17 +6649,31 @@ See also: `erc-echo-notice-in-user-buffers',
                                           erc-channel-banlist))))))
   nil)
 
+;; This was a default member of `erc-server-368-functions' (nee -hook)
+;; between January and June of 2003 (but not as part of any release).
 (defun erc-banlist-finished (proc parsed)
   "Record that we have received the banlist."
+  (declare (obsolete "uses obsolete and likely faulty logic" "31.1"))
   (let* ((channel (nth 1 (erc-response.command-args parsed)))
          (buffer (erc-get-buffer channel proc)))
     (with-current-buffer buffer
       (put 'erc-channel-banlist 'received-from-server t)))
   t)                                    ; suppress the 'end of banlist' message
 
+(defun erc--banlist-update (statep mask)
+  "Add or remove a mask from `erc-channel-banlist'."
+  (if statep
+      (let ((whoset (erc-response.sender erc--parsed-response)))
+        (cl-pushnew (cons whoset mask) erc-channel-banlist :test #'equal))
+    (let ((upcased (upcase mask)))
+      (setq erc-channel-banlist
+            (cl-delete-if (lambda (y) (equal (upcase (cdr y)) upcased))
+                          erc-channel-banlist)))))
+
 (defun erc-banlist-update (proc parsed)
   "Check MODE commands for bans and update the banlist appropriately."
   ;; FIXME: Possibly incorrect. -- Lawrence 2004-05-11
+  (declare (obsolete "continual syncing via `erc--banlist-update'" "31.1"))
   (let* ((tgt (car (erc-response.command-args parsed)))
          (mode (erc-response.contents parsed))
          (whoset (erc-response.sender parsed))
@@ -7731,6 +7755,11 @@ Remember when STATE is non-nil and forget otherwise."
         (if state
             (cl-pushnew (char-to-string c) erc-channel-modes :test #'equal)
           (delete (char-to-string c) erc-channel-modes))))
+
+;; We could specialize on type A, but that may be too brittle.
+(cl-defmethod erc--handle-channel-mode (_ (_ (eql ?b)) state arg)
+  "Update `erc-channel-banlist' when synchronized."
+  (when erc--channel-banlist-synchronized-p (erc--banlist-update state arg)))
 
 ;; We could specialize on type C, but that may be too brittle.
 (cl-defmethod erc--handle-channel-mode (_ (_ (eql ?l)) state arg)

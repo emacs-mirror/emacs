@@ -12,6 +12,15 @@ extensible IRC (Internet Relay Chat) client distributed with
 GNU Emacs since Emacs version 22.1.
 
 
+* Changes in ERC 5.6.1
+
+** Reliable library access for ban lists.
+Say goodbye to continually running "/BANLIST" for programmatic
+purposes.  Modules can instead use the function 'erc-sync-banlist' to
+guarantee that the variable 'erc-channel-banlist' remains synced for
+the remainder of an IRC session.
+
+
 * Changes in ERC 5.6
 
 ** Module 'keep-place' has a more decorative cousin.

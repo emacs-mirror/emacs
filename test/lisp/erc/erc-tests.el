@@ -929,13 +929,19 @@
 
   (setq erc--isupport-params (make-hash-table)
         erc--target (erc--target-from-string "#test")
+        erc--channel-banlist-synchronized-p t
         erc-server-parameters
         '(("CHANMODES" . "eIbq,k,flj,CFLMPQRSTcgimnprstuz")))
 
   (erc-tests-common-init-server-proc "sleep" "1")
 
-  (cl-letf (((symbol-function 'erc-update-mode-line) #'ignore))
-    (erc--update-channel-modes "+bltk" "fool!*@*" "3" "h2"))
+  (cl-letf ((erc--parsed-response (make-erc-response
+                                   :sender "chop!~u@gnu.org"))
+            ((symbol-function 'erc-update-mode-line) #'ignore))
+    (should-not erc-channel-banlist)
+    (erc--update-channel-modes "+bbltk" "fool!*@*" "spam!*@*" "3" "h2")
+    (should (equal erc-channel-banlist '(("chop!~u@gnu.org" . "spam!*@*")
+                                         ("chop!~u@gnu.org" . "fool!*@*")))))
 
   (should (equal (erc--channel-modes 'string) "klt"))
   (should (equal (erc--channel-modes 'strings) '("k" "l" "t")))
@@ -980,11 +986,16 @@
   (erc-tests-common-init-server-proc "sleep" "1")
   (setq erc--isupport-params (make-hash-table)
         erc--target (erc--target-from-string "#test")
+        erc--channel-banlist-synchronized-p t
         erc-server-parameters
         '(("CHANMODES" . "eIbq,k,flj,CFLMPQRSTcgimnprstuz")))
 
-  (cl-letf (((symbol-function 'erc-update-mode-line) #'ignore))
-    (erc--update-channel-modes "+bltk" "fool!*@*" "3" "hun2"))
+  (cl-letf ((erc--parsed-response (make-erc-response
+                                   :sender "chop!~u@gnu.org"))
+            ((symbol-function 'erc-update-mode-line) #'ignore))
+    (should-not erc-channel-banlist)
+    (erc--update-channel-modes "+bltk" "fool!*@*" "3" "hun2")
+    (should (equal erc-channel-banlist '(("chop!~u@gnu.org" . "fool!*@*")))))
 
   ;; Truncation cache populated and used.
   (let ((cache (erc--channel-mode-types-shortargs erc--channel-mode-types))

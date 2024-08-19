@@ -896,6 +896,12 @@ decorations applied by third-party modules."
       (length (format-time-string erc-timestamp-format))
     0))
 
+(cl-defmethod erc--determine-fill-column-function
+  (&context (erc-fill-mode (eql t)))
+  (if erc-fill-wrap-mode
+      (- (window-width) erc-fill--wrap-value 1)
+    erc-fill-column))
+
 (provide 'erc-fill)
 
 ;;; erc-fill.el ends here
