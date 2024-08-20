@@ -85,14 +85,14 @@ current help buffer.")
 
 (defun help-definition-prefixes ()
   "Return the up-to-date radix-tree form of `definition-prefixes'."
-  (when (> (hash-table-count definition-prefixes) 0)
+  (when (and (null help-definition-prefixes)
+             (> (hash-table-count definition-prefixes) 0))
     (maphash (lambda (prefix files)
                (let ((old (radix-tree-lookup help-definition-prefixes prefix)))
                  (setq help-definition-prefixes
                        (radix-tree-insert help-definition-prefixes
                                           prefix (append old files)))))
-             definition-prefixes)
-    (clrhash definition-prefixes))
+             definition-prefixes))
   help-definition-prefixes)
 
 (defun help--loaded-p (file)
