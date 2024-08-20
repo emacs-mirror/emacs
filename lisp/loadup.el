@@ -57,7 +57,7 @@
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping or running Emacs normally.
 ;; This is because PATH_DUMPLOADSEARCH is just "../lisp".
-(if (or (member dump-mode '("bootstrap" "pbootstrap"))
+(if (or (member dump-mode '("pbootstrap"))
 	;; FIXME this is irritatingly fragile.
         (and (stringp (nth 4 command-line-args))
              (string-match "^unidata-gen\\(\\.elc?\\)?$"
@@ -635,8 +635,6 @@ directory got moved.  This is set to be a pair in the form of:
               (error nil))))))
   (if dump-mode
       (let ((output (cond ((equal dump-mode "pdump") "emacs.pdmp")
-                          ((equal dump-mode "dump") "emacs")
-                          ((equal dump-mode "bootstrap") "emacs")
                           ((equal dump-mode "pbootstrap") "bootstrap-emacs.pdmp")
                           (t (error "Unrecognized dump mode %s" dump-mode)))))
         (when (and (featurep 'native-compile)
@@ -680,7 +678,7 @@ directory got moved.  This is set to be a pair in the form of:
                          (eq system-type 'android))
                      ;; Don't bother adding another name if we're just
                      ;; building bootstrap-emacs.
-                     (member dump-mode '("pbootstrap" "bootstrap"))))
+                     (member dump-mode '("pbootstrap"))))
             (let ((name (format "emacs-%s.%d" emacs-version emacs-build-number))
                   (exe (if (eq system-type 'windows-nt) ".exe" "")))
               (while (string-match "[^-+_.a-zA-Z0-9]+" name)

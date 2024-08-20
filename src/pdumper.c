@@ -4143,12 +4143,6 @@ types.  */)
            "contributing a patch to Emacs.");
 #endif
 
-  if (will_dump_with_unexec_p ())
-    error ("This Emacs instance was started under the assumption "
-           "that it would be dumped with unexec, not the portable "
-           "dumper.  Dumping with the portable dumper may produce "
-           "unexpected results.");
-
   if (!main_thread_p (current_thread))
     error ("This function can be called only in the main thread");
 

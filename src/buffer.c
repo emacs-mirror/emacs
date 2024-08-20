@@ -4892,47 +4892,6 @@ init_buffer (void)
 {
   Lisp_Object temp;
 
-#ifdef USE_MMAP_FOR_BUFFERS
-  if (dumped_with_unexec_p ())
-    {
-      Lisp_Object tail, buffer;
-
-#ifndef WINDOWSNT
-      /* These must be reset in the dumped Emacs, to avoid stale
-	 references to mmap'ed memory from before the dump.
-
-	 WINDOWSNT doesn't need this because it doesn't track mmap'ed
-	 regions by hand (see w32heap.c, which uses system APIs for
-	 that purpose), and thus doesn't use mmap_regions.  */
-      mmap_regions = NULL;
-      mmap_fd = -1;
-#endif
-
-      /* The dumped buffers reference addresses of buffer text
-	 recorded by temacs, that cannot be used by the dumped Emacs.
-	 We map new memory for their text here.
-
-	 Implementation notes: the buffers we carry from temacs are:
-	 " prin1", "*scratch*", " *Minibuf-0*", "*Messages*", and
-	 " *code-conversion-work*".  They are created by
-	 init_buffer_once and init_window_once (which are not called
-	 in the dumped Emacs), and by the first call to coding.c
-	 routines.  Since FOR_EACH_LIVE_BUFFER only walks the buffers
-	 in Vbuffer_alist, any buffer we carry from temacs that is
-	 not in the alist (a.k.a. "magic invisible buffers") should
-	 be handled here explicitly.  */
-      FOR_EACH_LIVE_BUFFER (tail, buffer)
-        {
-	  struct buffer *b = XBUFFER (buffer);
-	  b->text->beg = NULL;
-	  enlarge_buffer_text (b, 0);
-	}
-      /* The " prin1" buffer is not in Vbuffer_alist.  */
-      XBUFFER (Vprin1_to_string_buffer)->text->beg = NULL;
-      enlarge_buffer_text (XBUFFER (Vprin1_to_string_buffer), 0);
-    }
-#endif /* USE_MMAP_FOR_BUFFERS */
-
   AUTO_STRING (scratch, "*scratch*");
   Fset_buffer (Fget_buffer_create (scratch, Qnil));
   if (NILP (BVAR (&buffer_defaults, enable_multibyte_characters)))

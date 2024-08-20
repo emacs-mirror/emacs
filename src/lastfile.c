@@ -42,14 +42,3 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
      || defined WINDOWSNT || defined CYGWIN || defined DARWIN_OS)
 char my_edata[] = "End of Emacs initialized data";
 #endif
-
-#ifdef HAVE_UNEXEC
-
-/* Help unexec locate the end of the .bss area used by Emacs (which
-   isn't always a separate section in NT executables).  */
-char my_endbss[1];
-
-static char _my_endbss[1];
-char * my_endbss_static = _my_endbss;
-
-#endif
