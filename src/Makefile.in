@@ -306,8 +306,6 @@ XSHAPE_CFLAGS = @XSHAPE_CFLAGS@
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
 
-HYBRID_MALLOC = @HYBRID_MALLOC@
-
 ## cygw32.o if CYGWIN, otherwise empty.
 CYGWIN_OBJ=@CYGWIN_OBJ@
 
@@ -477,7 +475,6 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o     \
 	profiler.o decompress.o 					       \
 	thread.o systhread.o sqlite.o  treesit.o			       \
 	itree.o json.o 							       \
-	$(if $(HYBRID_MALLOC),sheap.o) 					       \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)        \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)			       \
 	$(HAIKU_OBJ) $(PGTK_OBJ) $(ANDROID_OBJ)
@@ -718,7 +715,7 @@ globals.h: gl-stamp; @true
 
 $(ALLOBJS): globals.h
 
-LIBEGNU_ARCHIVE = $(lib)/lib$(if $(HYBRID_MALLOC),e)gnu.a
+LIBEGNU_ARCHIVE = $(lib)/libgnu.a
 
 $(LIBEGNU_ARCHIVE): $(config_h)
 	$(MAKE) -C $(dir $@) all

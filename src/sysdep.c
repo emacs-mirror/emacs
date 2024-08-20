@@ -287,11 +287,7 @@ get_current_dir_name_or_unreachable (void)
 #endif
 
 # if HAVE_GET_CURRENT_DIR_NAME && !BROKEN_GET_CURRENT_DIR_NAME
-#  ifdef HYBRID_MALLOC
-  bool use_libc = will_dump_with_unexec_p ();
-#  else
   bool use_libc = true;
-#  endif
   if (use_libc)
     {
       /* For an unreachable directory, this returns a string that starts

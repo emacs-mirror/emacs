@@ -3213,14 +3213,12 @@ AC_CACHE_CHECK(
    fi])
 doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
-hybrid_malloc=
 system_malloc=yes
 
 dnl This must be before the test of $ac_cv_func_sbrk below.
 AC_CHECK_FUNCS_ONCE([sbrk])
 
 GMALLOC_OBJ=
-HYBRID_MALLOC=
 if test "${system_malloc}" = "yes"; then
   AC_DEFINE([SYSTEM_MALLOC], [1],
     [Define to 1 to use the system memory allocator, even if it is not
@@ -3228,14 +3226,6 @@ if test "${system_malloc}" = "yes"; then
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
-  VMLIMIT_OBJ=
-elif test "$hybrid_malloc" = yes; then
-  AC_DEFINE([HYBRID_MALLOC], [1],
-    [Define to use gmalloc before dumping and the system malloc after.])
-  HYBRID_MALLOC=1
-  GNU_MALLOC=no
-  GNU_MALLOC_reason=" (only before dumping)"
-  GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=
 else
   test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
@@ -3255,11 +3245,10 @@ else
        of the main data segment.])
   fi
 fi
-AC_SUBST([HYBRID_MALLOC])
 AC_SUBST([GMALLOC_OBJ])
 AC_SUBST([VMLIMIT_OBJ])
 
-if test "$doug_lea_malloc" = "yes" && test "$hybrid_malloc" != yes; then
+if test "$doug_lea_malloc" = "yes"; then
   if test "$GNU_MALLOC" = yes ; then
     GNU_MALLOC_reason="
       (Using Doug Lea's new malloc from the GNU C Library.)"
@@ -3321,8 +3310,7 @@ if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
 	      status += pthread_create (&th, 0, 0, 0);
 	      status += pthread_sigmask (SIG_BLOCK, &new_mask, &old_mask);
 	      status += pthread_kill (th, 0);
-	      #if ! (defined SYSTEM_MALLOC || defined HYBRID_MALLOC \
-		     || defined DOUG_LEA_MALLOC)
+	      #if ! (defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC)
 	      /* Test for pthread_atfork only if gmalloc uses it,
 		 as older-style hosts like MirBSD 10 lack it.  */
 	      status += pthread_atfork (noop, noop, noop);

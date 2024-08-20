@@ -93,31 +93,6 @@ typedef bool bool_bf;
 # define ADDRESS_SANITIZER false
 #endif
 
-/* If HYBRID_MALLOC is defined (e.g., on Cygwin), emacs will use
-   gmalloc before dumping and the system malloc after dumping.
-   hybrid_malloc and friends, defined in gmalloc.c, are wrappers that
-   accomplish this.  */
-#ifdef HYBRID_MALLOC
-#ifdef emacs
-#undef malloc
-#define malloc hybrid_malloc
-#undef realloc
-#define realloc hybrid_realloc
-#undef aligned_alloc
-#define aligned_alloc hybrid_aligned_alloc
-#undef calloc
-#define calloc hybrid_calloc
-#undef free
-#define free hybrid_free
-
-extern void *hybrid_malloc (size_t);
-extern void *hybrid_calloc (size_t, size_t);
-extern void hybrid_free (void *);
-extern void *hybrid_aligned_alloc (size_t, size_t);
-extern void *hybrid_realloc (void *, size_t);
-#endif	/* emacs */
-#endif	/* HYBRID_MALLOC */
-
 /* We have to go this route, rather than the old hpux9 approach of
    renaming the functions via macros.  The system's stdlib.h has fully
    prototyped declarations, which yields a conflicting definition of

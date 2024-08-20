@@ -110,7 +110,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "dispextern.h"
 #include "regex-emacs.h"
-#include "sheap.h"
 #include "syntax.h"
 #include "sysselect.h"
 #include "systime.h"
@@ -1565,7 +1564,7 @@ main (int argc, char **argv)
 
   emacs_backtrace (-1);
 
-#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
+#if !defined SYSTEM_MALLOC
   /* Arrange to get warning messages as memory fills up.  */
   memory_warnings (0, malloc_warning);
 
@@ -1573,7 +1572,7 @@ main (int argc, char **argv)
      Also call realloc and free for consistency.  */
   free (realloc (malloc (4), 4));
 
-#endif	/* not SYSTEM_MALLOC and not HYBRID_MALLOC */
+#endif	/* not SYSTEM_MALLOC */
 
 #ifdef MSDOS
   set_binary_mode (STDIN_FILENO, O_BINARY);
@@ -1879,7 +1878,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
 #if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC \
-  && !defined DOUG_LEA_MALLOC && !defined HYBRID_MALLOC
+  && !defined DOUG_LEA_MALLOC
   /* Do not make gmalloc thread-safe when creating bootstrap-emacs, as
      that causes an infinite recursive loop with FreeBSD.  See
      Bug#14569.  The part of this bug involving Cygwin is no longer
