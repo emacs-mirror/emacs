@@ -155,7 +155,7 @@ native compilation runs.")
 
 (defvar comp-curr-allocation-class 'd-default
   "Current allocation class.
-Can be one of: `d-default', `d-impure' or `d-ephemeral'.  See `comp-ctxt'.")
+Can be one of: `d-default' or `d-ephemeral'.  See `comp-ctxt'.")
 
 (defconst comp-passes '(comp--spill-lap
                         comp--limplify
@@ -395,9 +395,6 @@ Needed to replace immediate byte-compiled lambdas with the compiled reference.")
                :documentation "Documentation index -> documentation")
   (d-default (make-comp-data-container) :type comp-data-container
              :documentation "Standard data relocated in use by functions.")
-  (d-impure (make-comp-data-container) :type comp-data-container
-            :documentation "Relocated data that cannot be moved into pure space.
-This is typically for top-level forms other than defun.")
   (d-ephemeral (make-comp-data-container) :type comp-data-container
                :documentation "Relocated data not necessary after load.")
   (with-late-load nil :type boolean
@@ -1615,7 +1612,7 @@ and the annotation emission."
   (unless for-late-load
     (comp--emit
      (comp--call 'eval
-                (let ((comp-curr-allocation-class 'd-impure))
+                (let ((comp-curr-allocation-class 'd-default))
                   (make--comp-mvar :constant
                                   (byte-to-native-top-level-form form)))
                 (make--comp-mvar :constant
@@ -1625,7 +1622,7 @@ and the annotation emission."
   "Emit the creation of subrs for lambda FUNC.
 These are stored in the reloc data array."
   (let ((args (comp--prepare-args-for-top-level func)))
-    (let ((comp-curr-allocation-class 'd-impure))
+    (let ((comp-curr-allocation-class 'd-default))
       (comp--add-const-to-relocs (comp-func-byte-func func)))
     (comp--emit
      (comp--call 'comp--register-lambda
@@ -3271,28 +3268,15 @@ Update all insn accordingly."
 
   (let* ((d-default (comp-ctxt-d-default comp-ctxt))
          (d-default-idx (comp-data-container-idx d-default))
-         (d-impure (comp-ctxt-d-impure comp-ctxt))
-         (d-impure-idx (comp-data-container-idx d-impure))
          (d-ephemeral (comp-ctxt-d-ephemeral comp-ctxt))
          (d-ephemeral-idx (comp-data-container-idx d-ephemeral)))
-    ;; We never want compiled lambdas ending up in pure space.  A copy must
-    ;; be already present in impure (see `comp--emit-lambda-for-top-level').
-    (cl-loop for obj being each hash-keys of d-default-idx
-             when (gethash obj (comp-ctxt-lambda-fixups-h comp-ctxt))
-               do (cl-assert (gethash obj d-impure-idx))
-                  (remhash obj d-default-idx))
-    ;; Remove entries in d-impure already present in d-default.
-    (cl-loop for obj being each hash-keys of d-impure-idx
-             when (gethash obj d-default-idx)
-               do (remhash obj d-impure-idx))
-    ;; Remove entries in d-ephemeral already present in d-default or
-    ;; d-impure.
+    ;; Remove entries in d-ephemeral already present in d-default
     (cl-loop for obj being each hash-keys of d-ephemeral-idx
-             when (or (gethash obj d-default-idx) (gethash obj d-impure-idx))
+             when (gethash obj d-default-idx)
                do (remhash obj d-ephemeral-idx))
     ;; Fix-up indexes in each relocation class and fill corresponding
     ;; reloc lists.
-    (mapc #'comp--finalize-container (list d-default d-impure d-ephemeral))
+    (mapc #'comp--finalize-container (list d-default d-ephemeral))
     ;; Make a vector from the function documentation hash table.
     (cl-loop with h = (comp-ctxt-function-docs comp-ctxt)
              with v = (make-vector (hash-table-count h) nil)
@@ -3302,13 +3286,13 @@ Update all insn accordingly."
              finally
              do (setf (comp-ctxt-function-docs comp-ctxt) v))
     ;; And now we conclude with the following: We need to pass to
-    ;; `comp--register-lambda' the index in the impure relocation
-    ;; array to store revived lambdas, but given we know it only now
-    ;; we fix it up as last.
+    ;; `comp--register-lambda' the index in the relocation array to
+    ;; store revived lambdas, but given we know it only now we fix it up
+    ;; as last.
     (cl-loop for f being each hash-keys of (comp-ctxt-lambda-fixups-h comp-ctxt)
              using (hash-value mvar)
              with reverse-h = (make-hash-table) ;; Make sure idx is unique.
-             for idx = (gethash f d-impure-idx)
+             for idx = (gethash f d-default-idx)
              do
              (cl-assert (null (gethash idx reverse-h)))
              (cl-assert (fixnump idx))
