@@ -2314,12 +2314,6 @@ this does nothing and returns nil.  */)
       && !AUTOLOADP (XSYMBOL (function)->u.s.function))
     return Qnil;
 
-  if (!NILP (Vpurify_flag) && BASE_EQ (docstring, make_fixnum (0)))
-    /* `read1' in lread.c has found the docstring starting with "\
-       and assumed the docstring will be provided by Snarf-documentation, so it
-       passed us 0 instead.  But that leads to accidental sharing in purecopy's
-       hash-consing, so we use a (hopefully) unique integer instead.  */
-    docstring = make_ufixnum (XHASH (function));
   return Fdefalias (function,
 		    list5 (Qautoload, file, docstring, interactive, type),
 		    Qnil);
