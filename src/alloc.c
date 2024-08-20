@@ -3898,13 +3898,6 @@ struct symbol_block
 
 static struct symbol_block *symbol_block;
 static int symbol_block_index = SYMBOL_BLOCK_SIZE;
-/* Pointer to the first symbol_block that contains pinned symbols.
-   Tests for 24.4 showed that at dump-time, Emacs contains about 15K symbols,
-   10K of which are pinned (and all but 250 of them are interned in obarray),
-   whereas a "typical session" has in the order of 30K symbols.
-   `symbol_block_pinned' lets mark_pinned_symbols scan only 15K symbols rather
-   than 30K to find the 10K symbols we need to mark.  */
-static struct symbol_block *symbol_block_pinned;
 
 /* List of free symbols.  */
 
@@ -3930,7 +3923,6 @@ init_symbol (Lisp_Object val, Lisp_Object name)
   p->u.s.interned = SYMBOL_UNINTERNED;
   p->u.s.trapped_write = SYMBOL_UNTRAPPED_WRITE;
   p->u.s.declared_special = false;
-  p->u.s.pinned = false;
 }
 
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
@@ -5666,13 +5658,6 @@ Does not copy symbols.  Copies strings without text properties.  */)
     return purecopy (obj);
 }
 
-/* Pinned objects are marked before every GC cycle.  */
-static struct pinned_object
-{
-  Lisp_Object object;
-  struct pinned_object *next;
-} *pinned_objects;
-
 static Lisp_Object
 purecopy (Lisp_Object obj)
 {
@@ -5882,13 +5867,6 @@ compact_undo_list (Lisp_Object list)
   return list;
 }
 
-static void
-mark_pinned_objects (void)
-{
-  for (struct pinned_object *pobj = pinned_objects; pobj; pobj = pobj->next)
-    mark_object (pobj->object);
-}
-
 #if defined HAVE_ANDROID && !defined (__clang__)
 
 /* The Android gcc is broken and needs the following version of
@@ -5911,29 +5889,6 @@ android_make_lisp_symbol (struct Lisp_Symbol *sym)
 }
 
 #endif
-
-static void
-mark_pinned_symbols (void)
-{
-  struct symbol_block *sblk;
-  int lim;
-  struct Lisp_Symbol *sym, *end;
-
-  if (symbol_block_pinned == symbol_block)
-    lim = symbol_block_index;
-  else
-    lim = SYMBOL_BLOCK_SIZE;
-
-  for (sblk = symbol_block_pinned; sblk; sblk = sblk->next)
-    {
-      sym = sblk->symbols, end = sym + lim;
-      for (; sym < end; ++sym)
-	if (sym->u.s.pinned)
-	  mark_object (make_lisp_symbol (sym));
-
-      lim = SYMBOL_BLOCK_SIZE;
-    }
-}
 
 static void
 visit_vectorlike_root (struct gc_root_visitor visitor,
@@ -6198,8 +6153,6 @@ garbage_collect (void)
   struct gc_root_visitor visitor = { .visit = mark_object_root_visitor };
   visit_static_gc_roots (visitor);
 
-  mark_pinned_objects ();
-  mark_pinned_symbols ();
   mark_lread ();
   mark_terminals ();
   mark_kboards ();
