@@ -4847,15 +4847,11 @@ static const hash_idx_t empty_hash_index_vector[] = {-1};
 
    Give the table initial capacity SIZE, 0 <= SIZE <= MOST_POSITIVE_FIXNUM.
 
-   WEAK specifies the weakness of the table.
-
-   If PURECOPY is non-nil, the table can be copied to pure storage via
-   `purecopy' when Emacs is being dumped. Such tables can no longer be
-   changed after purecopy.  */
+   WEAK specifies the weakness of the table.  */
 
 Lisp_Object
 make_hash_table (const struct hash_table_test *test, EMACS_INT size,
-		 hash_table_weakness_t weak, bool purecopy)
+		 hash_table_weakness_t weak)
 {
   eassert (SYMBOLP (test->name));
   eassert (0 <= size && size <= min (MOST_POSITIVE_FIXNUM, PTRDIFF_MAX));
@@ -4901,7 +4897,6 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
     }
 
   h->next_weak = NULL;
-  h->purecopy = purecopy;
   h->mutable = true;
   return make_lisp_hash_table (h);
 }
@@ -5735,13 +5730,8 @@ key, value, one of key or value, or both key and value, depending on
 WEAK.  WEAK t is equivalent to `key-and-value'.  Default value of WEAK
 is nil.
 
-:purecopy PURECOPY -- If PURECOPY is non-nil, the table can be copied
-to pure storage when Emacs is being dumped, making the contents of the
-table read only. Any further changes to purified tables will result
-in an error.
-
-The keywords arguments :rehash-threshold and :rehash-size are obsolete
-and ignored.
+The keywords arguments :rehash-threshold, :rehash-size, and :purecopy
+are obsolete and ignored.
 
 usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
@@ -5749,7 +5739,6 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   Lisp_Object test_arg = Qnil;
   Lisp_Object weakness_arg = Qnil;
   Lisp_Object size_arg = Qnil;
-  Lisp_Object purecopy_arg = Qnil;
 
   if (nargs & 1)
     error ("Odd number of arguments");
@@ -5763,9 +5752,8 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 	weakness_arg = arg;
       else if (BASE_EQ (kw, QCsize))
 	size_arg = arg;
-      else if (BASE_EQ (kw, QCpurecopy))
-	purecopy_arg = arg;
-      else if (BASE_EQ (kw, QCrehash_threshold) || BASE_EQ (kw, QCrehash_size))
+      else if (BASE_EQ (kw, QCrehash_threshold) || BASE_EQ (kw, QCrehash_size)
+	       || BASE_EQ (kw, QCpurecopy))
 	;  /* ignore obsolete keyword arguments */
       else
 	signal_error ("Invalid keyword argument", kw);
@@ -5780,8 +5768,6 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
     test = &hashtest_equal;
   else
     test = get_hash_table_user_test (test_arg);
-
-  bool purecopy = !NILP (purecopy_arg);
 
   EMACS_INT size;
   if (NILP (size_arg))
@@ -5805,7 +5791,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   else
     signal_error ("Invalid hash table weakness", weakness_arg);
 
-  return make_hash_table (test, size, weak, purecopy);
+  return make_hash_table (test, size, weak);
 }
 
 

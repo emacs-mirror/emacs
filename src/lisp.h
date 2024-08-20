@@ -2620,10 +2620,6 @@ struct Lisp_Hash_Table
   /* Hash table test (only used when frozen in dump)  */
   hash_table_std_test_t frozen_test : 2;
 
-  /* True if the table can be purecopied.  The table cannot be
-     changed afterwards.  */
-  bool_bf purecopy : 1;
-
   /* True if the table is mutable.  Ordinarily tables are mutable, but
      some tables are not: while a table is being mutated it is immutable
      for recursive attempts to mutate it.  */
@@ -4258,7 +4254,7 @@ extern char *extract_data_from_object (Lisp_Object, ptrdiff_t *, ptrdiff_t *);
 EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object);
 Lisp_Object make_hash_table (const struct hash_table_test *, EMACS_INT,
-                             hash_table_weakness_t, bool);
+                             hash_table_weakness_t);
 Lisp_Object hash_table_weakness_symbol (hash_table_weakness_t weak);
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object);
 ptrdiff_t hash_lookup_get_hash (struct Lisp_Hash_Table *h, Lisp_Object key,

@@ -2605,9 +2605,6 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 			      printcharfun, escapeflag);
 	      }
 
-	    if (h->purecopy)
-	      print_c_string (" purecopy t", printcharfun);
-
 	    ptrdiff_t size = h->count;
 	    if (size > 0)
 	      {
