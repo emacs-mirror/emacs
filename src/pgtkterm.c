@@ -7422,7 +7422,7 @@ syms_of_pgtkterm (void)
   DEFSYM (Qlatin_1, "latin-1");
 
   xg_default_icon_file
-    = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
+    = build_string ("icons/hicolor/scalable/apps/emacs.svg");
   staticpro (&xg_default_icon_file);
 
   DEFSYM (Qx_gtk_map_stock, "x-gtk-map-stock");

@@ -3266,7 +3266,6 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
       size = SCHARS (array);
       if (size != 0)
 	{
-	  CHECK_IMPURE (array, XSTRING (array));
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len;
 	  if (STRING_MULTIBYTE (array))
@@ -3307,7 +3306,6 @@ This makes STRING unibyte and may change its length.  */)
   ptrdiff_t len = SBYTES (string);
   if (len != 0 || STRING_MULTIBYTE (string))
     {
-      CHECK_IMPURE (string, XSTRING (string));
       memset (SDATA (string), 0, len);
       STRING_SET_CHARS (string, len);
       STRING_SET_UNIBYTE (string);
@@ -5127,7 +5125,6 @@ check_mutable_hash_table (Lisp_Object obj, struct Lisp_Hash_Table *h)
 {
   if (!h->mutable)
     signal_error ("hash table test modifies table", obj);
-  eassert (!PURE_P (h));
 }
 
 /* Put an entry into hash table H that associates KEY with VALUE.

@@ -4153,8 +4153,6 @@ types.  */)
   CALLN (Ffuncall, intern_c_string ("load--fixup-all-elns"));
 #endif
 
-  check_pure_size ();
-
   /* Clear out any detritus in memory.  */
   do
     {

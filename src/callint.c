@@ -822,10 +822,10 @@ syms_of_callint (void)
   callint_message = Qnil;
   staticpro (&callint_message);
 
-  preserved_fns = pure_list (intern_c_string ("region-beginning"),
-			     intern_c_string ("region-end"),
-			     intern_c_string ("point"),
-			     intern_c_string ("mark"));
+  preserved_fns = list (intern_c_string ("region-beginning"),
+			intern_c_string ("region-end"),
+			intern_c_string ("point"),
+			intern_c_string ("mark"));
   staticpro (&preserved_fns);
 
   DEFSYM (Qlist, "list");

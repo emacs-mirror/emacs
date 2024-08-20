@@ -4584,7 +4584,6 @@ build_string (const char *str)
   return make_string (str, strlen (str));
 }
 
-extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern Lisp_Object make_vector (ptrdiff_t, Lisp_Object);
 extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t)
   ATTRIBUTE_RETURNS_NONNULL;

@@ -817,8 +817,6 @@ value.  */)
   XSYMBOL (symbol)->u.s.declared_special = true;
   if (!NILP (doc))
     {
-      if (!NILP (Vpurify_flag))
-	doc = Fpurecopy (doc);
       Fput (symbol, Qvariable_documentation, doc);
     }
   LOADHIST_ATTACH (symbol);
@@ -967,8 +965,6 @@ More specifically, behaves like (defconst SYM 'INITVALUE DOCSTRING).  */)
   CHECK_SYMBOL (sym);
   Lisp_Object tem = initvalue;
   Finternal__define_uninitialized_variable (sym, docstring);
-  if (!NILP (Vpurify_flag))
-    tem = Fpurecopy (tem);
   Fset_default (sym, tem);      /* FIXME: set-default-toplevel-value? */
   Fput (sym, Qrisky_local_variable, Qt); /* FIXME: Why?  */
   return sym;
@@ -2001,8 +1997,8 @@ define_error (Lisp_Object name, const char *message, Lisp_Object parent)
   eassert (CONSP (parent_conditions));
   eassert (!NILP (Fmemq (parent, parent_conditions)));
   eassert (NILP (Fmemq (name, parent_conditions)));
-  Fput (name, Qerror_conditions, pure_cons (name, parent_conditions));
-  Fput (name, Qerror_message, build_pure_c_string (message));
+  Fput (name, Qerror_conditions, Fcons (name, parent_conditions));
+  Fput (name, Qerror_message, build_string (message));
 }
 
 /* Use this for arithmetic overflow, e.g., when an integer result is
@@ -4477,7 +4473,7 @@ alist of active lexical bindings.  */);
      also use something like Fcons (Qnil, Qnil), but json.c treats any
      cons cell as error data, so use an uninterned symbol instead.  */
   Qcatch_all_memory_full
-    = Fmake_symbol (build_pure_c_string ("catch-all-memory-full"));
+    = Fmake_symbol (build_string ("catch-all-memory-full"));
 
   staticpro (&list_of_t);
   list_of_t = list1 (Qt);

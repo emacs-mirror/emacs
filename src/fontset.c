@@ -2174,7 +2174,7 @@ syms_of_fontset (void)
   set_fontset_id (Vdefault_fontset, make_fixnum (0));
   set_fontset_name
     (Vdefault_fontset,
-     build_pure_c_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default"));
+     build_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default"));
   ASET (Vfontset_table, 0, Vdefault_fontset);
   next_fontset_id = 1;
   PDUMPER_REMEMBER_SCALAR (next_fontset_id);
@@ -2232,7 +2232,7 @@ alternate fontnames (if any) are tried instead.  */);
 	       doc: /* Alist of fontset names vs the aliases.  */);
   Vfontset_alias_alist
     = list1 (Fcons (FONTSET_NAME (Vdefault_fontset),
-		    build_pure_c_string ("fontset-default")));
+		    build_string ("fontset-default")));
 
   DEFVAR_LISP ("vertical-centering-font-regexp",
 	       Vvertical_centering_font_regexp,

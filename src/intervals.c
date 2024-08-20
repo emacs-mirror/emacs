@@ -100,7 +100,6 @@ create_root_interval (Lisp_Object parent)
     }
   else
     {
-      CHECK_IMPURE (parent, XSTRING (parent));
       new->total_length = SCHARS (parent);
       eassert (TOTAL_LENGTH (new) >= 0);
       set_string_intervals (parent, new);
