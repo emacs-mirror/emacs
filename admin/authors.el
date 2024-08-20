@@ -55,6 +55,7 @@ files.")
     ("Andrew G Cohen" "Andrew Cohen")
     ("Anna M. Bigatti" "Anna Bigatti")
     ("Aurélien Aptel" "Aurelien Aptel")
+    ("Azeem Hasan" "Rahguzar" "rahguzar@zohomail.eu")
     ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
      "Barry A. Warsaw, ITB" "Barry Warsaw")
     ("Bastien Guerry" "Bastien .*bzg")
@@ -65,8 +66,10 @@ files.")
     ("Bill Rozas" "Guillermo J. Rozas")
     ("Billy Zheng" "vil963@gmail\\.com")
     (nil "binjo\\.cn@gmail\\.com")
+    (nil "BlaCk_Void" "alstjr7375@daum.net")
     (nil "bug-gnu-emacs@gnu\\.org")  ; mistake
     ("Björn Torkelsson" "Bjorn Torkelsson")
+    (nil "brandon.irizarry@gmail.com")
     ("Brian Fox" "Brian J. Fox")
     ("Brian P Templeton" "BT Templeton")
     ("Brian Sniffen" "Brian T. Sniffen")
@@ -77,6 +80,7 @@ files.")
     ("Clément Pit-Claudel" "Clément Pit--Claudel")
     (nil "Cristian" "crstml@libero\\.it")
     ("Le Trung Dan" "daanturo@gmail\\.com" "Daanturo")
+    (nil "D.K" "beerandhot@gmail.com")
     ("Daniel Freeman" "dannyfreeman")
     ("David Abrahams" "Dave Abrahams")
     ("David J. Biesack" "David Biesack")
@@ -154,6 +158,7 @@ files.")
     ("Joseph M. Kelsey" "Joe Kelsey")	; FIXME ?
     ("Juan León Lahoz García" "Juan-Leon Lahoz Garcia")
     ("Jürgen Hötzel" "Juergen Hoetzel")
+    ("Justin Burkett" "justbur" "justin@burkett.cc")
     (nil "k3tu0isui")
     (nil "kby@tilde\\.team")
     ("K. Shane Hartman" "Shane Hartman")
@@ -196,6 +201,7 @@ files.")
     ("Michael Sperber" "Mike Sperber" "Michael Sperber \\[Mr. Preprocessor\\]")
     ("Michalis V" "^mvar")
     ("Miha Rihtaršič" "Miha Rihtarsic" "miha@kamnitnik\\.top" "miha")
+    (nil "mikpom" "mikpom@mikpom.ru")
     ("Mikio Nakajima" "Nakajima Mikio")
     (nil "montag451@laposte\\.net")
     ("Morgan Smith" "Morgan J\\. Smith")
@@ -260,6 +266,7 @@ files.")
     (nil "ssnnoo")
     ("Steven L. Baur" "SL Baur" "Steven L Baur")
     ("Stewart M. Clamen" "Stewart Clamen")
+    (nil "StrawberryTea" "look@strawberrytea.xyz")
     ("Stuart D. Herring" "Stuart Herring" "Davis Herring")
     ("T.V. Raman" "T\\. V\\. Raman")
     ("Taichi Kawabata" "KAWABATA,? Taichi")
@@ -277,6 +284,7 @@ files.")
     ("Torbjörn Axelsson" "Torbjvrn Axelsson")
     ("Torbjörn Einarsson" "Torbj.*rn Einarsson")
     ("Toru Tomabechi" "Toru TOMABECHI")
+    ("Toshi Umehara" "niceume" "toshi@niceume.com")
     ("Tsugutomo Enami" "enami tsugutomo")
     ("Ulrich Müller" "Ulrich Mueller")
     (nil "vividsnow")
@@ -612,7 +620,72 @@ Changes to files matching one of the regexps in this list are not listed.")
     "lisp/org/ob-J.el"
     ;; Removed -- for now.
     "test/src/doc-tests.el"
-    )
+    "xcompile"
+    "java/org/gnu/emacs/EmacsPaintQueue.java"
+    "java/org/gnu/emacs/EmacsPaintReq.java"
+    "xcompile/lib/unistd.c"
+    "xcompile/lib/open.c"
+    "xcompile/lib/fpending.c"
+    "xcompile/lib/gnulib.mk.in"
+    "cross/lib/math.h"
+    "cross/ndk-build/ndk-build.in"
+    "cross/lib/stdalign.in.h"
+    "cross/lib/_Noreturn.h"
+    "test/lisp/tramp-tests.el"
+    "lib/vasnprintf.c"
+    "lib/isnan.c"
+    "cross/lib/verify.h"
+    "cross/lib/libc-config.h"
+    "cross/lib/cdefs.h"
+    "java/org/gnu/emacs/EmacsEditable.java"
+    "lib/math.h"
+    "cross/lib/vasnprintf.c"
+    "cross/lib/openat-proc.c"
+    "lib/math.in.h"
+    "cross/lib/string.in.h"
+    "cross/lib/stpncpy.c"
+    "cross/lib/limits.in.h"
+    "cross/lib/getopt-pfx-core.h"
+    "cross/lib/unistd.in.h"
+    "INSTALL.android"
+    "lisp/eshell/em-arg.el"
+    "test/lisp/erc/resources/base/renick/regain/normal.eld"
+    "test/lisp/erc/resources/fill/snapshots/merge-wrap-indicator-post-01.eld"
+    "if-11.cc"
+    "if-11.res"
+    "java/org/gnu/emacs/EmacsWindowAttachmentManager.java"
+    "lisp/gnus/legacy-gnus-agent.el"
+    "admin/coccinelle/xsave.cocci"
+    "register-tests.el"
+    "feat" "build" "docs" "chore"
+    "nt/ftime-nostartup.bat" "nt/ftime.bat"
+    "java/org/gnu/emacs/EmacsCopyArea.java"
+    "test/lisp/erc/resources/base/renick/regain/normal-again.eld"
+    "test/lisp/erc/resources/base/commands/motd.eld"
+    "cross/lib/math.in.h"
+    "lib/strncpy.c"
+    "cross/lib/isnan.c"
+    "lib/count-one-bits.c"
+    "lib/count-one-bits.h"
+    "lib/count-trailing-zeros.c"
+    "lib/count-trailing-zeros.h"
+    "lib/count-leading-zeros.h"
+    "lib/count-leading-zeros.c"
+    "lisp/org/ob-asymptote.el"
+    "lisp/org/ob-io.el"
+    "lisp/org/ob-shen.el"
+    "lisp/progmodes/ada-stmt.el"
+    "lib-src/profile.c"
+    "doc/misc/gnus-overrides.texi"
+    "etc/CENSORSHIP" "etc/FTP" "etc/GNU" "etc/LINUX-GNU" "etc/MORE.STUFF" "etc/ORDERS"
+    "etc/THE-GNU-PROJECT" "etc/WHY-FREE"
+    "lisp/obsolete/options.el"
+    "etc/emacs.appdata.xml"
+    "lisp/obsolete/sregex.el"
+    "lisp/org/ob-picolisp.el"
+    "lisp/obsolete/levents.el"
+    "lisp/obsolete/lucid.el"
+    "lisp/obsolete/old-whitespace.el")
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
 
@@ -1614,7 +1687,25 @@ in the repository.")
     ("lisp/emacs-lisp/autoload.el" . "autoload.el")
     ("lisp/emacs-lisp/eieio-compat.el" . "eieio-compat.el")
     ("autoarg.el" . "autoarg.el")
-    )
+    ("xcompile/Makefile.in" . "cross/Makefile.in")
+    ("xcompile/README" . "cross/README")
+    ("xcompile/langinfo.h" . "cross/langinfo.h")
+    ("xcompile/verbose.mk.android" . "cross/verbose.mk.android")
+    ("test/lisp/peg-tests.el" . "test/lisp/progmodes/peg-tests.el")
+    ("doc/lispref/type_hierarchy.txt" . "doc/lispref/elisp_type_hierarchy.txt")
+    ("doc/lispref/type_hierarchy.jpg" . "doc/lispref/elisp_type_hierarchy.jpg")
+    ("etc/syncdoc-type-hierarchy.el" . "admin/syncdoc-type-hierarchy.el")
+    ("doc/lang/fr/misc/ses-fr.texi" . "doc/translations/fr/misc/ses-fr.texi")
+    ("lisp/use-package/bind-key.el" . "lisp/bind-key.el")
+    ("lisp/autoarg.el" . "lisp/obsolete/autoarg.el")
+    ("lisp/url/url-ns.el" . "lisp/obsolete/url-ns.el")
+    ("lisp/mail/rfc2368.el" . "lisp/obsolete/mail/rfc2368.el")
+    ("lisp/vt-control.el" . "lisp/obsolete/vt-control.el")
+    ("lisp/cedet/inversion.el" . "lisp/obsolete/inversion.el")
+    ("lisp/emacs-lisp/tcover-unsafep.el" . "test/lisp/emacs-lisp/unsafep-tests.el")
+    ("lisp/vt100-led.el" . "lisp/obsolete/vt100-led.el")
+    ("lisp/mail/metamail.el" . "lisp/obsolete/metamail.el")
+    ("lisp/sb-image.el" . "lisp/obsolete/sb-image.el"))
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
 
