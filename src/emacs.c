@@ -1334,26 +1334,8 @@ main (int argc, char **argv)
 
 #ifdef WINDOWSNT
   /* Grab our malloc arena space now, before anything important
-     happens.  This relies on the static heap being needed only in
-     temacs and only if we are going to dump with unexec.  */
-  bool use_dynamic_heap = true;
-  if (temacs)
-    {
-      char *temacs_str = NULL, *p;
-      for (p = argv[0]; (p = strstr (p, "temacs")) != NULL; p++)
-	temacs_str = p;
-      if (temacs_str != NULL
-	  && (temacs_str == argv[0] || IS_DIRECTORY_SEP (temacs_str[-1])))
-	{
-	  /* Note that gflags are set at this point only if we have been
-	     called with the --temacs=METHOD option.  We assume here that
-	     temacs is always called that way, otherwise the functions
-	     that rely on gflags, like will_dump_with_pdumper_p below,
-	     will not do their job.  */
-	  use_dynamic_heap = will_dump_with_pdumper_p ();
-	}
-    }
-  init_heap (use_dynamic_heap);
+     happens.  */
+  init_heap ();
   initial_cmdline = GetCommandLine ();
 #endif
 #if defined WINDOWSNT || defined HAVE_NTGUI
@@ -1881,8 +1863,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   && !defined DOUG_LEA_MALLOC
   /* Do not make gmalloc thread-safe when creating bootstrap-emacs, as
      that causes an infinite recursive loop with FreeBSD.  See
-     Bug#14569.  The part of this bug involving Cygwin is no longer
-     relevant, now that Cygwin defines HYBRID_MALLOC.  */
+     Bug#14569.  */
   if (!noninteractive || !will_dump_p ())
     malloc_enable_thread ();
 #endif

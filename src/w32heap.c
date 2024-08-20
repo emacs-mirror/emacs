@@ -28,15 +28,6 @@
   Memory allocation scheme for w32/w64:
 
   - Buffers are mmap'ed using a very simple emulation of mmap/munmap
-  - During the temacs phase, if unexec is to be used:
-    * we use a private heap declared to be stored into the `dumped_data'
-    * unfortunately, this heap cannot be made growable, so the size of
-      blocks it can allocate is limited to (0x80000 - pagesize)
-    * the blocks that are larger than this are allocated from the end
-      of the `dumped_data' array; there are not so many of them.
-      We use a very simple first-fit scheme to reuse those blocks.
-    * we check that the private heap does not cross the area used
-      by the bigger chunks.
   - During the emacs phase, or always if pdumper is used:
     * we create a private heap for new memory blocks
     * we make sure that we never free a block that has been dumped.
@@ -95,40 +86,6 @@ typedef struct _RTL_HEAP_PARAMETERS {
   SIZE_T Reserved[ 2 ];
 } RTL_HEAP_PARAMETERS, *PRTL_HEAP_PARAMETERS;
 
-/* We reserve space for dumping emacs lisp byte-code inside a static
-   array.  By storing it in an array, the generic mechanism in
-   unexecw32.c will be able to dump it without the need to add a
-   special segment to the executable.  In order to be able to do this
-   without losing too much space, we need to create a Windows heap at
-   the specific address of the static array.  The RtlCreateHeap
-   available inside the NT kernel since XP will do this.  It allows the
-   creation of a non-growable heap at a specific address.  So before
-   dumping, we create a non-growable heap at the address of the
-   dumped_data[] array.  After dumping, we reuse memory allocated
-   there without being able to free it (but most of it is not meant to
-   be freed anyway), and we use a new private heap for all new
-   allocations.  */
-
-/* FIXME: Most of the space reserved for dumped_data[] is only used by
-   the 1st bootstrap-emacs.exe built while bootstrapping.  Once the
-   preloaded Lisp files are byte-compiled, the next loadup uses less
-   than half of the size stated below.  It would be nice to find a way
-   to build only the first bootstrap-emacs.exe with the large size,
-   and reset that to a lower value afterwards.  */
-#ifndef HAVE_UNEXEC
-/* We don't use dumped_data[], so define to a small size that won't
-   matter.  */
-# define DUMPED_HEAP_SIZE 10
-#else
-# if defined _WIN64 || defined WIDE_EMACS_INT
-#  define DUMPED_HEAP_SIZE (28*1024*1024)
-# else
-#  define DUMPED_HEAP_SIZE (24*1024*1024)
-# endif
-#endif
-
-static unsigned char dumped_data[DUMPED_HEAP_SIZE];
-
 /* Info for keeping track of our dynamic heap used after dumping. */
 unsigned char *data_region_base = NULL;
 unsigned char *data_region_end = NULL;
@@ -178,12 +135,6 @@ static struct
 static DWORD          blocks_number = 0;
 static unsigned char *bc_limit;
 
-/* Handle for the private heap:
-    - inside the dumped_data[] array before dump with unexec,
-    - outside of it after dump, or always if pdumper is used.
-*/
-HANDLE heap = NULL;
-
 /* We redirect the standard allocation functions.  */
 malloc_fn the_malloc_fn;
 realloc_fn the_realloc_fn;
@@ -213,30 +164,6 @@ heap_realloc (void *ptr, size_t size)
    It would be if the memory was shared.
      https://stackoverflow.com/questions/307060/what-is-the-purpose-of-allocating-pages-in-the-pagefile-with-createfilemapping  */
 
-/* This is the function to commit memory when the heap allocator
-   claims for new memory.  Before dumping with unexec, we allocate
-   space from the fixed size dumped_data[] array.
-*/
-static NTSTATUS NTAPI
-dumped_data_commit (PVOID Base, PVOID *CommitAddress, PSIZE_T CommitSize)
-{
-  /* This is used before dumping.
-
-     The private heap is stored at dumped_data[] address.
-     We commit contiguous areas of the dumped_data array
-     as requests arrive.  */
-  *CommitAddress = data_region_base + committed;
-  committed += *CommitSize;
-  /* Check that the private heap area does not overlap the big chunks area.  */
-  if (((unsigned char *)(*CommitAddress)) + *CommitSize >= bc_limit)
-    {
-      fprintf (stderr,
-	       "dumped_data_commit: memory exhausted.\nEnlarge dumped_data[]!\n");
-      exit (-1);
-    }
-  return 0;
-}
-
 /* Heap creation.  */
 
 /* We want to turn on Low Fragmentation Heap for XP and older systems.
@@ -250,99 +177,51 @@ typedef WINBASEAPI BOOL (WINAPI * HeapSetInformation_Proc)(HANDLE,HEAP_INFORMATI
 #endif
 
 void
-init_heap (bool use_dynamic_heap)
+init_heap (void)
 {
-  /* FIXME: Remove the condition, the 'else' branch below, and all the
-     related definitions and code, including dumped_data[], when unexec
-     support is removed from Emacs.  */
-  if (use_dynamic_heap)
-    {
-      /* After dumping, use a new private heap.  We explicitly enable
-         the low fragmentation heap (LFH) here, for the sake of pre
-         Vista versions.  Note: this will harmlessly fail on Vista and
-         later, where the low-fragmentation heap is enabled by
-         default.  It will also fail on pre-Vista versions when Emacs
-         is run under a debugger; set _NO_DEBUG_HEAP=1 in the
-         environment before starting GDB to get low fragmentation heap
-         on XP and older systems, for the price of losing "certain
-         heap debug options"; for the details see
-	 https://msdn.microsoft.com/en-us/library/windows/desktop/aa366705%28v=vs.85%29.aspx.  */
-      data_region_end = data_region_base;
+  /* After dumping, use a new private heap.  We explicitly enable
+     the low fragmentation heap (LFH) here, for the sake of pre
+     Vista versions.  Note: this will harmlessly fail on Vista and
+     later, where the low-fragmentation heap is enabled by
+     default.  It will also fail on pre-Vista versions when Emacs
+     is run under a debugger; set _NO_DEBUG_HEAP=1 in the
+     environment before starting GDB to get low fragmentation heap
+     on XP and older systems, for the price of losing "certain
+     heap debug options"; for the details see
+     https://msdn.microsoft.com/en-us/library/windows/desktop/aa366705%28v=vs.85%29.aspx.  */
+  data_region_end = data_region_base;
 
-      /* Create the private heap.  */
-      heap = HeapCreate (0, 0, 0);
+  /* Create the private heap.  */
+  heap = HeapCreate (0, 0, 0);
 
 #ifndef MINGW_W64
-      unsigned long enable_lfh = 2;
-      /* Set the low-fragmentation heap for OS before Vista.  */
-      HMODULE hm_kernel32dll = LoadLibrary ("kernel32.dll");
-      HeapSetInformation_Proc s_pfn_Heap_Set_Information =
-        (HeapSetInformation_Proc) get_proc_addr (hm_kernel32dll,
-                                                        "HeapSetInformation");
-      if (s_pfn_Heap_Set_Information != NULL)
-	{
-	  if (s_pfn_Heap_Set_Information ((PVOID) heap,
-					  HeapCompatibilityInformation,
-					  &enable_lfh, sizeof(enable_lfh)) == 0)
-	    DebPrint (("Enabling Low Fragmentation Heap failed: error %ld\n",
-		       GetLastError ()));
-	}
+  unsigned long enable_lfh = 2;
+  /* Set the low-fragmentation heap for OS before Vista.  */
+  HMODULE hm_kernel32dll = LoadLibrary ("kernel32.dll");
+  HeapSetInformation_Proc s_pfn_Heap_Set_Information =
+    (HeapSetInformation_Proc) get_proc_addr (hm_kernel32dll,
+					     "HeapSetInformation");
+  if (s_pfn_Heap_Set_Information != NULL)
+    {
+      if (s_pfn_Heap_Set_Information ((PVOID) heap,
+				      HeapCompatibilityInformation,
+				      &enable_lfh, sizeof(enable_lfh)) == 0)
+	DebPrint (("Enabling Low Fragmentation Heap failed: error %ld\n",
+		   GetLastError ()));
+    }
 #endif
 
-      if (os_subtype == OS_SUBTYPE_9X)
-        {
-          the_malloc_fn = malloc_after_dump_9x;
-          the_realloc_fn = realloc_after_dump_9x;
-          the_free_fn = free_after_dump_9x;
-        }
-      else
-        {
-          the_malloc_fn = malloc_after_dump;
-          the_realloc_fn = realloc_after_dump;
-          the_free_fn = free_after_dump;
-        }
-    }
-  else	/* Before dumping with unexec: use static heap.  */
+  if (os_subtype == OS_SUBTYPE_9X)
     {
-      /* Find the RtlCreateHeap function.  Headers for this function
-         are provided with the w32 DDK, but the function is available
-         in ntdll.dll since XP.  */
-      HMODULE hm_ntdll = LoadLibrary ("ntdll.dll");
-      RtlCreateHeap_Proc s_pfn_Rtl_Create_Heap
-	= (RtlCreateHeap_Proc) get_proc_addr (hm_ntdll, "RtlCreateHeap");
-      /* Specific parameters for the private heap.  */
-      RTL_HEAP_PARAMETERS params;
-      ZeroMemory (&params, sizeof(params));
-      params.Length = sizeof(RTL_HEAP_PARAMETERS);
-
-      data_region_base = (unsigned char *)ROUND_UP (dumped_data, 0x1000);
-      data_region_end = bc_limit = dumped_data + DUMPED_HEAP_SIZE;
-
-      params.InitialCommit = committed = 0x1000;
-      params.InitialReserve = sizeof(dumped_data);
-      /* Use our own routine to commit memory from the dumped_data
-         array.  */
-      params.CommitRoutine = &dumped_data_commit;
-
-      /* Create the private heap.  */
-      if (s_pfn_Rtl_Create_Heap == NULL)
-	{
-	  fprintf (stderr, "Cannot build Emacs without RtlCreateHeap being available; exiting.\n");
-	  exit (-1);
-	}
-      heap = s_pfn_Rtl_Create_Heap (0, data_region_base, 0, 0, NULL, &params);
-
-      if (os_subtype == OS_SUBTYPE_9X)
-        {
-          fprintf (stderr, "Cannot dump Emacs on Windows 9X; exiting.\n");
-          exit (-1);
-        }
-      else
-        {
-          the_malloc_fn = malloc_before_dump;
-          the_realloc_fn = realloc_before_dump;
-          the_free_fn = free_before_dump;
-        }
+      the_malloc_fn = malloc_after_dump_9x;
+      the_realloc_fn = realloc_after_dump_9x;
+      the_free_fn = free_after_dump_9x;
+    }
+  else
+    {
+      the_malloc_fn = malloc_after_dump;
+      the_realloc_fn = realloc_after_dump;
+      the_free_fn = free_after_dump;
     }
 
   /* Update system version information to match current system.  */
