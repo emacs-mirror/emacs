@@ -634,6 +634,4 @@ syms_of_w32image (void)
 void
 globals_of_w32image (void)
 {
-  /* This is only needed in an unexec build.  */
-  memset (&last_encoder, 0, sizeof last_encoder);
 }

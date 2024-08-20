@@ -266,7 +266,7 @@ voidfuncptr __MALLOC_HOOK_VOLATILE __malloc_initialize_hook EXTERNALLY_VISIBLE
 
 #endif
 
-#if defined DOUG_LEA_MALLOC || defined HAVE_UNEXEC
+#if defined DOUG_LEA_MALLOC
 
 /* Allocator-related actions to do just before and after unexec.  */
 
@@ -570,15 +570,9 @@ static void mem_delete (struct mem_node *);
 static void mem_delete_fixup (struct mem_node *);
 static struct mem_node *mem_find (void *);
 
-/* Addresses of staticpro'd variables.  Initialize it to a nonzero
-   value if we might unexec; otherwise some compilers put it into
-   BSS.  */
+/* Addresses of staticpro'd variables.  */
 
-Lisp_Object const *staticvec[NSTATICS]
-#ifdef HAVE_UNEXEC
-= {&Vpurify_flag}
-#endif
-  ;
+Lisp_Object const *staticvec[NSTATICS];
 
 /* Index of next unused slot in staticvec.  */
 
@@ -631,10 +625,8 @@ mmap_lisp_allowed_p (void)
 {
   /* If we can't store all memory addresses in our lisp objects, it's
      risky to let the heap use mmap and give us addresses from all
-     over our address space.  We also can't use mmap for lisp objects
-     if we might dump: unexec doesn't preserve the contents of mmapped
-     regions.  */
-  return pointers_fit_in_lispobj_p () && !will_dump_with_unexec_p ();
+     over our address space.  */
+  return pointers_fit_in_lispobj_p ();
 }
 #endif
 
@@ -1071,11 +1063,7 @@ lisp_free (void *block)
    BLOCK_BYTES and guarantees they are aligned on a BLOCK_ALIGN boundary.  */
 
 /* Byte alignment of storage blocks.  */
-#ifdef HAVE_UNEXEC
-# define BLOCK_ALIGN (1 << 10)
-#else  /* !HAVE_UNEXEC */
 # define BLOCK_ALIGN (1 << 15)
-#endif
 static_assert (POWER_OF_2 (BLOCK_ALIGN));
 
 /* Use aligned_alloc if it or a simple substitute is available.

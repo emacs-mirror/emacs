@@ -1104,7 +1104,7 @@ init-file, or to a default value if loading is not possible."
                ;; Else, perhaps the user init file was compiled
                (when (and (equal (file-name-extension user-init-file) "eln")
                           ;; The next test is for builds without native
-                          ;; compilation support or builds with unexec.
+                          ;; compilation support.
                           (boundp 'comp-eln-to-el-h))
                  (if-let* ((source (gethash (file-name-nondirectory
                                              user-init-file)
@@ -2523,7 +2523,7 @@ A fancy display is used on graphic displays, normal otherwise."
 (defalias 'about-emacs #'display-about-screen)
 (defalias 'display-splash-screen #'display-startup-screen)
 
-;; This avoids byte-compiler warning in the unexec build.
+;; This avoids byte-compiler warning in non-pdumper builds.
 (declare-function pdumper-stats "pdumper.c" ())
 
 (defun command-line-1 (args-left)

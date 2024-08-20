@@ -386,8 +386,6 @@ RUN_TEMACS = ./temacs
 # Whether builds should contain details. '--no-build-details' or empty.
 BUILD_DETAILS = @BUILD_DETAILS@
 
-UNEXEC_OBJ = @UNEXEC_OBJ@
-
 HAIKU_OBJ = @HAIKU_OBJ@
 HAIKU_CXX_OBJ = @HAIKU_CXX_OBJ@
 HAIKU_LIBS = @HAIKU_LIBS@
@@ -471,9 +469,9 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o     \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex-emacs.o undo.o   \
 	alloc.o pdumper.o data.o doc.o editfns.o callint.o 		       \
 	eval.o floatfns.o fns.o sort.o font.o print.o lread.o $(MODULES_OBJ)   \
-	syntax.o $(UNEXEC_OBJ) bytecode.o comp.o $(DYNLIB_OBJ) 		       \
-	process.o gnutls.o callproc.o 					       \
-	region-cache.o sound.o timefns.o atimer.o 			       \
+	syntax.o bytecode.o comp.o $(DYNLIB_OBJ)			       \
+	process.o gnutls.o callproc.o					       \
+	region-cache.o sound.o timefns.o atimer.o			       \
 	doprnt.o intervals.o textprop.o composite.o xml.o lcms.o $(NOTIFY_OBJ) \
 	$(XWIDGETS_OBJ) 						       \
 	profiler.o decompress.o 					       \

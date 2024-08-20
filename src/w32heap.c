@@ -617,31 +617,6 @@ sys_calloc (size_t number, size_t size)
   return ptr;
 }
 
-#if defined HAVE_UNEXEC && defined ENABLE_CHECKING
-void
-report_temacs_memory_usage (void)
-{
-  DWORD blocks_used = 0;
-  size_t large_mem_used = 0;
-  int i;
-
-  for (i = 0; i < blocks_number; i++)
-    if (blocks[i].occupied)
-      {
-	blocks_used++;
-	large_mem_used += blocks[i].size;
-      }
-
-  /* Emulate 'message', which writes to stderr in non-interactive
-     sessions.  */
-  fprintf (stderr,
-	   "Dump memory usage: Heap: %" PRIu64 "  Large blocks(%lu/%lu): %" PRIu64 "/%" PRIu64 "\n",
-	   (unsigned long long)committed, blocks_used, blocks_number,
-	   (unsigned long long)large_mem_used,
-	   (unsigned long long)(dumped_data + DUMPED_HEAP_SIZE - bc_limit));
-}
-#endif
-
 /* Emulate getpagesize. */
 int
 getpagesize (void)

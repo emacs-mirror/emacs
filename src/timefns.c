@@ -318,36 +318,7 @@ tzlookup (Lisp_Object zone, bool settz)
 void
 init_timefns (void)
 {
-#ifdef HAVE_UNEXEC
-  /* A valid but unlikely setting for the TZ environment variable.
-     It is OK (though a bit slower) if the user chooses this value.  */
-  static char dump_tz_string[] = "TZ=UtC0";
-
-  /* When just dumping out, set the time zone to a known unlikely value
-     and skip the rest of this function.  */
-  if (will_dump_with_unexec_p ())
-    {
-      xputenv (dump_tz_string);
-      tzset ();
-      return;
-    }
-#endif
-
   char *tz = getenv ("TZ");
-
-#ifdef HAVE_UNEXEC
-  /* If the execution TZ happens to be the same as the dump TZ,
-     change it to some other value and then change it back,
-     to force the underlying implementation to reload the TZ info.
-     This is needed on implementations that load TZ info from files,
-     since the TZ file contents may differ between dump and execution.  */
-  if (tz && strcmp (tz, &dump_tz_string[tzeqlen]) == 0)
-    {
-      ++*tz;
-      tzset ();
-      --*tz;
-    }
-#endif
 
   /* Set the time zone rule now, so that the call to putenv is done
      before multiple threads are active.  */
