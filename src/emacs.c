@@ -113,7 +113,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "syntax.h"
 #include "sysselect.h"
 #include "systime.h"
-#include "puresize.h"
 
 #include "getpagesize.h"
 #include "gnutls.h"

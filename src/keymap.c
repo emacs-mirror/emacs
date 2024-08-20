@@ -50,7 +50,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "termhooks.h"
 #include "blockinput.h"
-#include "puresize.h"
 #include "intervals.h"
 #include "keymap.h"
 #include "window.h"

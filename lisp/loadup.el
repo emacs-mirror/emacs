@@ -184,12 +184,6 @@
   (file-error
    (load "ldefs-boot.el")))
 
-(let ((new (make-hash-table :test #'equal)))
-  ;; Now that loaddefs has populated definition-prefixes, purify its contents.
-  (maphash (lambda (k v) (puthash (purecopy k) (purecopy v) new))
-           definition-prefixes)
-  (setq definition-prefixes new))
-
 (load "button")                  ;After loaddefs, because of define-minor-mode!
 
 (when (interpreted-function-p (symbol-function 'add-hook))
@@ -503,11 +497,6 @@ lost after dumping")))
 ;; Avoid storing references to build directory in the binary.
 (setq custom-current-group-alist nil)
 
-;; We keep the load-history data in PURE space.
-;; Make sure that the spine of the list is not in pure space because it can
-;; be destructively mutated in lread.c:build_load_history.
-(setq load-history (mapcar #'purecopy load-history))
-
 (set-buffer-modified-p nil)
 
 (remove-hook 'after-load-functions (lambda (_) (garbage-collect)))
@@ -659,8 +648,7 @@ directory got moved.  This is set to be a pair in the form of:
                     (dump-emacs-portable (expand-file-name output invocation-directory))
                   (dump-emacs output (if (eq system-type 'ms-dos)
                                          "temacs.exe"
-                                       "temacs"))
-                  (message "%d pure bytes used" pure-bytes-used))
+                                       "temacs")))
                 (setq success t))
             (unless success
               (ignore-errors

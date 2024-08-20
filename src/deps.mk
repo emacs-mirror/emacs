@@ -132,10 +132,10 @@ insdel.o: insdel.c window.h buffer.h $(INTERVALS_H) blockinput.h character.h \
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systime.h syntax.h $(INTERVALS_H) blockinput.h atimer.h composite.h \
-   xterm.h puresize.h msdos.h keymap.h w32term.h nsterm.h nsgui.h coding.h \
+   xterm.h msdos.h keymap.h w32term.h nsterm.h nsgui.h coding.h \
    process.h ../lib/unistd.h gnutls.h lisp.h globals.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
-   atimer.h systime.h puresize.h character.h charset.h $(INTERVALS_H) \
+   atimer.h systime.h character.h charset.h $(INTERVALS_H) \
    keymap.h window.h coding.h frame.h lisp.h globals.h $(config_h)
 lastfile.o: lastfile.c $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h keyboard.h msdos.h \
@@ -267,12 +267,12 @@ xsettings.o: xterm.h xsettings.h lisp.h frame.h termhooks.h $(config_h) \
    atimer.h termopts.h globals.h
 
 ## The files of Lisp proper.
-alloc.o: alloc.c process.h frame.h window.h buffer.h  puresize.h syssignal.h \
+alloc.o: alloc.c process.h frame.h window.h buffer.h syssignal.h \
    keyboard.h blockinput.h atimer.h systime.h character.h lisp.h $(config_h) \
    $(INTERVALS_H) termhooks.h gnutls.h coding.h ../lib/unistd.h globals.h
 bytecode.o: bytecode.c buffer.h syntax.h character.h window.h dispextern.h \
   lisp.h globals.h $(config_h) msdos.h
-data.o: data.c buffer.h puresize.h character.h syssignal.h keyboard.h frame.h \
+data.o: data.c buffer.h character.h syssignal.h keyboard.h frame.h \
    termhooks.h systime.h coding.h composite.h dispextern.h font.h ccl.h \
    lisp.h globals.h $(config_h) msdos.h
 eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h frame.h \
@@ -295,7 +295,7 @@ lread.o: lread.c commands.h keyboard.h buffer.h epaths.h character.h \
 composite.o: composite.c composite.h buffer.h character.h coding.h font.h \
    ccl.h frame.h termhooks.h $(INTERVALS_H) window.h \
    lisp.h globals.h $(config_h)
-intervals.o: intervals.c buffer.h $(INTERVALS_H) keyboard.h puresize.h \
+intervals.o: intervals.c buffer.h $(INTERVALS_H) keyboard.h \
    keymap.h lisp.h globals.h $(config_h) systime.h coding.h
 textprop.o: textprop.c buffer.h window.h $(INTERVALS_H) \
    lisp.h globals.h $(config_h)

@@ -27,7 +27,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "bignum.h"
-#include "puresize.h"
 #include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
@@ -133,12 +132,6 @@ wrong_type_argument (Lisp_Object predicate, Lisp_Object value)
 {
   eassert (!TAGGEDP (value, Lisp_Type_Unused0));
   xsignal2 (Qwrong_type_argument, predicate, value);
-}
-
-void
-pure_write_error (Lisp_Object obj)
-{
-  xsignal2 (Qerror, build_string ("Attempt to modify read-only object"), obj);
 }
 
 void

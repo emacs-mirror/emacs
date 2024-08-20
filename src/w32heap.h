@@ -42,7 +42,7 @@ extern void report_temacs_memory_usage (void);
 extern void *sbrk (ptrdiff_t size);
 
 /* Initialize heap structures for sbrk on startup.  */
-extern void init_heap (bool);
+extern void init_heap (void);
 
 /* ----------------------------------------------------------------- */
 /* Useful routines for manipulating memory-mapped files.  */

@@ -36,7 +36,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "intervals.h"
 #include "window.h"
-#include "puresize.h"
 #include "gnutls.h"
 
 #ifdef HAVE_TREE_SITTER

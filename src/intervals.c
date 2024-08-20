@@ -44,7 +44,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
-#include "puresize.h"
 #include "keymap.h"
 
 /* Test for membership, allowing for t (actually any non-cons) to mean the
