@@ -2628,8 +2628,8 @@ struct Lisp_Hash_Table
   bool_bf purecopy : 1;
 
   /* True if the table is mutable.  Ordinarily tables are mutable, but
-     pure tables are not, and while a table is being mutated it is
-     immutable for recursive attempts to mutate it.  */
+     some tables are not: while a table is being mutated it is immutable
+     for recursive attempts to mutate it.  */
   bool_bf mutable : 1;
 
   /* Next weak hash table if this is a weak hash table.  The head of
@@ -4436,7 +4436,6 @@ extern void parse_str_as_multibyte (const unsigned char *, ptrdiff_t,
 /* Defined in alloc.c.  */
 extern intptr_t garbage_collection_inhibited;
 extern void *my_heap_start (void);
-extern void check_pure_size (void);
 unsigned char *resize_string_data (Lisp_Object, ptrdiff_t, int, int);
 extern void malloc_warning (const char *);
 extern AVOID memory_full (size_t);
@@ -4499,11 +4498,8 @@ extern Lisp_Object list4 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
 extern Lisp_Object list5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object,
 			  Lisp_Object);
 extern Lisp_Object listn (ptrdiff_t, Lisp_Object, ...);
-extern Lisp_Object pure_listn (ptrdiff_t, Lisp_Object, ...);
 #define list(...) \
   listn (ARRAYELTS (((Lisp_Object []) {__VA_ARGS__})), __VA_ARGS__)
-#define pure_list(...) \
-  pure_listn (ARRAYELTS (((Lisp_Object []) {__VA_ARGS__})), __VA_ARGS__)
 
 enum gc_root_type
 {
@@ -4577,17 +4573,7 @@ extern Lisp_Object make_uninit_multibyte_string (EMACS_INT, EMACS_INT);
 extern Lisp_Object make_string_from_bytes (const char *, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_specified_string (const char *,
 					  ptrdiff_t, ptrdiff_t, bool);
-extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, bool);
-extern Lisp_Object make_pure_c_string (const char *, ptrdiff_t);
 extern void pin_string (Lisp_Object string);
-
-/* Make a string allocated in pure space, use STR as string data.  */
-
-INLINE Lisp_Object
-build_pure_c_string (const char *str)
-{
-  return make_pure_c_string (str, strlen (str));
-}
 
 /* Make a string from the data at STR, treating it as multibyte if the
    data warrants.  */

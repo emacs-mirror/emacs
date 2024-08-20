@@ -355,7 +355,7 @@ looked for.
 Setting `init-file-user' does not prevent Emacs from loading
 `site-start.el'.  The only way to do that is to use `--no-site-file'.")
 
-(defcustom site-run-file (purecopy "site-start")
+(defcustom site-run-file "site-start"
   "File containing site-wide run-time initializations.
 This file is loaded at run-time before `user-init-file'.  It contains
 inits that need to be in place for the entire site, but which, due to
@@ -429,10 +429,6 @@ from being initialized."
 
 (defvar pure-space-overflow nil
   "Non-nil if building Emacs overflowed pure space.")
-
-(defvar pure-space-overflow-message (purecopy "\
-Warning Warning!!!  Pure space overflow    !!!Warning Warning
-\(See the node Pure Storage in the Lisp manual for details.)\n"))
 
 (defcustom tutorial-directory
   (file-name-as-directory (expand-file-name "tutorials" data-directory))
@@ -1693,11 +1689,11 @@ Changed settings will be marked as \"CHANGED outside of Customize\"."
 	   `((changed ((t :background ,color)))))
       (put 'cursor 'face-modified t))))
 
-(defcustom initial-scratch-message (purecopy "\
+(defcustom initial-scratch-message "\
 ;; This buffer is for text that is not saved, and for Lisp evaluation.
 ;; To create a file, visit it with `\\[find-file]' and enter text in its buffer.
 
-")
+"
   "Initial documentation displayed in *scratch* buffer at startup.
 If this is nil, no message will be displayed."
   :type '(choice (text :tag "Message")
@@ -2096,8 +2092,6 @@ splash screen in another window."
 	(erase-buffer)
 	(setq default-directory command-line-default-directory)
 	(make-local-variable 'startup-screen-inhibit-startup-screen)
-	(if pure-space-overflow
-	    (insert pure-space-overflow-message))
         ;; Insert the permissions notice if the user has yet to grant Emacs
         ;; storage permissions.
         (when (fboundp 'android-before-splash-screen)
@@ -2139,8 +2133,6 @@ splash screen in another window."
       (setq buffer-undo-list t)
       (let ((inhibit-read-only t))
 	(erase-buffer)
-	(if pure-space-overflow
-	    (insert pure-space-overflow-message))
 	(fancy-splash-head)
 	(dolist (text fancy-about-text)
 	  (apply #'fancy-splash-insert text)
@@ -2206,8 +2198,6 @@ splash screen in another window."
       (setq default-directory command-line-default-directory)
       (setq-local tab-width 8)
 
-      (if pure-space-overflow
-	  (insert pure-space-overflow-message))
       ;; Insert the permissions notice if the user has yet to grant
       ;; Emacs storage permissions.
       (when (fboundp 'android-before-splash-screen)
@@ -2529,17 +2519,6 @@ A fancy display is used on graphic displays, normal otherwise."
 (defun command-line-1 (args-left)
   "A subroutine of `command-line'."
   (display-startup-echo-area-message)
-  (when (and pure-space-overflow
-	     (not noninteractive)
-             ;; If we were dumped with pdumper, we don't care about
-             ;; pure-space overflow.
-             (or (not (fboundp 'pdumper-stats))
-                 (null (pdumper-stats))))
-    (display-warning
-     'initialization
-     "Building Emacs overflowed pure space.\
-  (See the node Pure Storage in the Lisp manual for details.)"
-     :warning))
 
   ;; `displayable-buffers' is a list of buffers that may be displayed,
   ;; which includes files parsed from the command line arguments and

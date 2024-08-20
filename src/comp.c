@@ -31,7 +31,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <libgccjit.h>
 #include <epaths.h>
 
-#include "puresize.h"
 #include "window.h"
 #include "dynlib.h"
 #include "buffer.h"

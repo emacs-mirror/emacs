@@ -135,6 +135,12 @@ static struct
 static DWORD          blocks_number = 0;
 static unsigned char *bc_limit;
 
+/* Handle for the private heap:
+    - inside the dumped_data[] array before dump with unexec,
+    - outside of it after dump, or always if pdumper is used.
+*/
+HANDLE heap = NULL;
+
 /* We redirect the standard allocation functions.  */
 malloc_fn the_malloc_fn;
 realloc_fn the_realloc_fn;
@@ -237,9 +243,7 @@ init_heap (void)
 
 /* FREEABLE_P checks if the block can be safely freed.  */
 #define FREEABLE_P(addr)						\
-  ((DWORD_PTR)(unsigned char *)(addr) > 0				\
-   && ((unsigned char *)(addr) < dumped_data				\
-       || (unsigned char *)(addr) >= dumped_data + DUMPED_HEAP_SIZE))
+  ((DWORD_PTR)(unsigned char *)(addr) > 0)
 
 void *
 malloc_after_dump (size_t size)
@@ -254,65 +258,6 @@ malloc_after_dump (size_t size)
 
       if (new_brk > data_region_end)
 	data_region_end = new_brk;
-    }
-  return p;
-}
-
-/* FIXME: The *_before_dump functions should be removed when pdumper
-   becomes the only dumping method.  */
-void *
-malloc_before_dump (size_t size)
-{
-  void *p;
-
-  /* Before dumping.  The private heap can handle only requests for
-     less than MaxBlockSize.  */
-  if (size < MaxBlockSize)
-    {
-      /* Use the private heap if possible.  */
-      p = heap_alloc (size);
-    }
-  else
-    {
-      /* Find the first big chunk that can hold the requested size.  */
-      int i = 0;
-
-      for (i = 0; i < blocks_number; i++)
-	{
-	  if (blocks[i].occupied == 0 && blocks[i].size >= size)
-	    break;
-	}
-      if (i < blocks_number)
-	{
-	  /* If found, use it.  */
-	  p = blocks[i].address;
-	  blocks[i].occupied = TRUE;
-	}
-      else
-	{
-	  /* Allocate a new big chunk from the end of the dumped_data
-	     array.  */
-	  if (blocks_number >= MAX_BLOCKS)
-	    {
-	      fprintf (stderr,
-		       "malloc_before_dump: no more big chunks available.\nEnlarge MAX_BLOCKS!\n");
-	      exit (-1);
-	    }
-	  bc_limit -= size;
-	  bc_limit = (unsigned char *)ROUND_DOWN (bc_limit, 0x10);
-	  p = bc_limit;
-	  blocks[blocks_number].address = p;
-	  blocks[blocks_number].size = size;
-	  blocks[blocks_number].occupied = TRUE;
-	  blocks_number++;
-	  /* Check that areas do not overlap.  */
-	  if (bc_limit < dumped_data + committed)
-	    {
-	      fprintf (stderr,
-		       "malloc_before_dump: memory exhausted.\nEnlarge dumped_data[]!\n");
-	      exit (-1);
-	    }
-	}
     }
   return p;
 }
@@ -349,39 +294,6 @@ realloc_after_dump (void *ptr, size_t size)
   return p;
 }
 
-void *
-realloc_before_dump (void *ptr, size_t size)
-{
-  void *p;
-
-  /* Before dumping.  */
-  if (dumped_data < (unsigned char *)ptr
-      && (unsigned char *)ptr < bc_limit && size <= MaxBlockSize)
-    {
-      p = heap_realloc (ptr, size);
-    }
-  else
-    {
-      /* In this case, either the new block is too large for the heap,
-         or the old block was already too large.  In both cases,
-         malloc_before_dump() and free_before_dump() will take care of
-         reallocation.  */
-      p = malloc_before_dump (size);
-      /* If SIZE is below MaxBlockSize, malloc_before_dump will try to
-	 allocate it in the fixed heap.  If that fails, we could have
-	 kept the block in its original place, above bc_limit, instead
-	 of failing the call as below.  But this doesn't seem to be
-	 worth the added complexity, as loadup allocates only a very
-	 small number of large blocks, and never reallocates them.  */
-      if (p && ptr)
-	{
-	  CopyMemory (p, ptr, size);
-	  free_before_dump (ptr);
-	}
-    }
-  return p;
-}
-
 /* Free a block allocated by `malloc', `realloc' or `calloc'.  */
 void
 free_after_dump (void *ptr)
@@ -391,39 +303,6 @@ free_after_dump (void *ptr)
     {
       /* Free the block if it is in the new private heap.  */
       HeapFree (heap, 0, ptr);
-    }
-}
-
-void
-free_before_dump (void *ptr)
-{
-  if (!ptr)
-    return;
-
-  /* Before dumping.  */
-  if (dumped_data < (unsigned char *)ptr
-      && (unsigned char *)ptr < bc_limit)
-    {
-      /* Free the block if it is allocated in the private heap.  */
-      HeapFree (heap, 0, ptr);
-    }
-  else
-    {
-      /* Look for the big chunk.  */
-      int i;
-
-      for (i = 0; i < blocks_number; i++)
-	{
-	  if (blocks[i].address == ptr)
-	    {
-	      /* Reset block occupation if found.  */
-	      blocks[i].occupied = 0;
-	      break;
-	    }
-	  /* What if the block is not found?  We should trigger an
-	     error here.  */
-	  eassert (i < blocks_number);
-	}
     }
 }
 
