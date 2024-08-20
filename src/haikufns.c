@@ -3300,7 +3300,7 @@ invalid color.  */);
     int len = sprintf (cairo_version, "%d.%d.%d",
 		       CAIRO_VERSION_MAJOR, CAIRO_VERSION_MINOR,
                        CAIRO_VERSION_MICRO);
-    Vcairo_version_string = make_pure_string (cairo_version, len, len, false);
+    Vcairo_version_string = make_specified_string (cairo_version, len, len, false);
   }
 #endif
 

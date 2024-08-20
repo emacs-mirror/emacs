@@ -1638,7 +1638,6 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		record_in_backtrace (Qsetcar, &TOP, 2);
 		wrong_type_argument (Qconsp, cell);
 	      }
-	    CHECK_IMPURE (cell, XCONS (cell));
 	    XSETCAR (cell, newval);
 	    TOP = newval;
 	    NEXT;
@@ -1653,7 +1652,6 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		record_in_backtrace (Qsetcdr, &TOP, 2);
 		wrong_type_argument (Qconsp, cell);
 	      }
-	    CHECK_IMPURE (cell, XCONS (cell));
 	    XSETCDR (cell, newval);
 	    TOP = newval;
 	    NEXT;

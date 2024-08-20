@@ -559,7 +559,6 @@ the same file name is found in the `doc-directory'.  */)
       int i = ARRAYELTS (buildobj);
       while (0 <= --i)
 	Vbuild_files = Fcons (build_string (buildobj[i]), Vbuild_files);
-      Vbuild_files = Fpurecopy (Vbuild_files);
     }
 
   fd = doc_open (name, O_RDONLY, 0);

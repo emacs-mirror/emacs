@@ -1765,7 +1765,7 @@ string_bytes (struct Lisp_String *s)
   ptrdiff_t nbytes =
     (s->u.s.size_byte < 0 ? s->u.s.size & ~ARRAY_MARK_FLAG : s->u.s.size_byte);
 
-  if (!PURE_P (s) && !pdumper_object_p (s) && s->u.s.data
+  if (!pdumper_object_p (s) && s->u.s.data
       && nbytes != SDATA_NBYTES (SDATA_OF_STRING (s)))
     emacs_abort ();
   return nbytes;
@@ -2612,7 +2612,7 @@ pin_string (Lisp_Object string)
   unsigned char *data = s->u.s.data;
 
   if (!(size > LARGE_STRING_BYTES
-	|| PURE_P (data) || pdumper_object_p (data)
+	|| pdumper_object_p (data)
 	|| s->u.s.size_byte == -3))
     {
       eassert (s->u.s.size_byte == -1);
@@ -5570,8 +5570,6 @@ valid_lisp_object_p (Lisp_Object obj)
     return 1;
 
   void *p = XPNTR (obj);
-  if (PURE_P (p))
-    return 1;
 
   if (BARE_SYMBOL_P (obj) && c_symbol_p (p))
     return ((char *) p - (char *) lispsym) % sizeof lispsym[0] == 0;
@@ -6756,8 +6754,6 @@ process_mark_stack (ptrdiff_t base_sp)
       Lisp_Object obj = mark_stack_pop ();
     mark_obj: ;
       void *po = XPNTR (obj);
-      if (PURE_P (po))
-	continue;
 
 #if GC_REMEMBER_LAST_MARKED
       last_marked[last_marked_index++] = obj;
@@ -7001,8 +6997,7 @@ process_mark_stack (ptrdiff_t base_sp)
 		break;
 	      default: emacs_abort ();
 	      }
-	    if (!PURE_P (XSTRING (ptr->u.s.name)))
-	      set_string_marked (XSTRING (ptr->u.s.name));
+	    set_string_marked (XSTRING (ptr->u.s.name));
 	    mark_interval_tree (string_intervals (ptr->u.s.name));
 	    /* Inner loop to mark next symbol in this bucket, if any.  */
 	    po = ptr = ptr->u.s.next;
@@ -7135,7 +7130,7 @@ survives_gc_p (Lisp_Object obj)
       emacs_abort ();
     }
 
-  return survives_p || PURE_P (XPNTR (obj));
+  return survives_p;
 }
 
 
@@ -7804,10 +7799,10 @@ allocated but to know if we're in the preload phase of Emacs's build.  */);
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
   Vmemory_signal_data
-    = pure_list (Qerror,
-		 build_pure_c_string ("Memory exhausted--use"
-				      " M-x save-some-buffers then"
-				      " exit and restart Emacs"));
+    = list (Qerror,
+	    build_string ("Memory exhausted--use"
+			  " M-x save-some-buffers then"
+			  " exit and restart Emacs"));
 
   DEFVAR_LISP ("memory-full", Vmemory_full,
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);

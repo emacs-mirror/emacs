@@ -3847,7 +3847,7 @@ syms_of_pgtkfns (void)
 				 GTK_MAJOR_VERSION, GTK_MINOR_VERSION,
 				 GTK_MICRO_VERSION);
     int len = strlen (ver);
-    Vgtk_version_string = make_pure_string (ver, len, len, false);
+    Vgtk_version_string = make_specified_string (ver, len, len, false);
     g_free (ver);
   }
 
@@ -3861,7 +3861,7 @@ syms_of_pgtkfns (void)
 				 CAIRO_VERSION_MAJOR, CAIRO_VERSION_MINOR,
 				 CAIRO_VERSION_MICRO);
     int len = strlen (ver);
-    Vcairo_version_string = make_pure_string (ver, len, len, false);
+    Vcairo_version_string = make_specified_string (ver, len, len, false);
     g_free (ver);
   }
 
