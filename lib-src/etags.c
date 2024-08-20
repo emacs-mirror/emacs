@@ -5148,10 +5148,10 @@ Rust_entries (FILE *inf)
       cp = skip_spaces(cp);
       name = cp;
 
-      // Skip 'pub' keyworld
+      /* Skip 'pub' keyword.  */
       (void)LOOKING_AT (cp, "pub");
 
-      // Look for define
+      /* Look for define.  */
       if ((is_func = LOOKING_AT (cp, "fn"))
 	  || LOOKING_AT (cp, "enum")
 	  || LOOKING_AT (cp, "struct")

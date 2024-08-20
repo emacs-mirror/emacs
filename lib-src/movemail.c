@@ -97,7 +97,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    [18-Feb-97 andrewi] I now believe my comment above to be incorrect,
    since it was based on a misunderstanding of how locking calls are
    implemented and used on Unix.  */
-//#define DISABLE_DIRECT_ACCESS
+/* #define DISABLE_DIRECT_ACCESS */
 
 #include <fcntl.h>
 #endif /* WINDOWSNT */
