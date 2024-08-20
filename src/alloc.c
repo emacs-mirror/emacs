@@ -127,7 +127,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    marked objects.  */
 
 #if (defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC \
-     || defined HYBRID_MALLOC || GC_CHECK_MARKED_OBJECTS)
+     || GC_CHECK_MARKED_OBJECTS)
 #undef GC_MALLOC_CHECK
 #endif
 
@@ -460,7 +460,7 @@ static void gc_sweep (void);
 static Lisp_Object make_pure_vector (ptrdiff_t);
 static void mark_buffer (struct buffer *);
 
-#if !defined REL_ALLOC || defined SYSTEM_MALLOC || defined HYBRID_MALLOC
+#if !defined REL_ALLOC || defined SYSTEM_MALLOC
 static void refill_memory_reserve (void);
 #endif
 static void compact_small_strings (void);
@@ -644,7 +644,7 @@ struct Lisp_Finalizer doomed_finalizers;
 				Malloc
  ************************************************************************/
 
-#if defined SIGDANGER || (!defined SYSTEM_MALLOC && !defined HYBRID_MALLOC)
+#if defined SIGDANGER || (!defined SYSTEM_MALLOC)
 
 /* Function malloc calls this if it finds we are near exhausting storage.  */
 
@@ -1066,19 +1066,14 @@ lisp_free (void *block)
 # define BLOCK_ALIGN (1 << 15)
 static_assert (POWER_OF_2 (BLOCK_ALIGN));
 
-/* Use aligned_alloc if it or a simple substitute is available.
-   Aligned allocation is incompatible with unexmacosx.c, so don't use
-   it on Darwin if HAVE_UNEXEC.  */
+/* Use aligned_alloc if it or a simple substitute is available. */
 
-#if ! (defined DARWIN_OS && defined HAVE_UNEXEC)
-# if (defined HAVE_ALIGNED_ALLOC					\
-      || (defined HYBRID_MALLOC						\
-	  ? defined HAVE_POSIX_MEMALIGN					\
-	  : !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC))
-#  define USE_ALIGNED_ALLOC 1
-# elif !defined HYBRID_MALLOC && defined HAVE_POSIX_MEMALIGN
-#  define USE_ALIGNED_ALLOC 1
-#  define aligned_alloc my_aligned_alloc /* Avoid collision with lisp.h.  */
+#if (defined HAVE_ALIGNED_ALLOC					\
+     || (!defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC))
+# define USE_ALIGNED_ALLOC 1
+#elif defined HAVE_POSIX_MEMALIGN
+# define USE_ALIGNED_ALLOC 1
+# define aligned_alloc my_aligned_alloc /* Avoid collision with lisp.h.  */
 static void *
 aligned_alloc (size_t alignment, size_t size)
 {
@@ -1095,7 +1090,6 @@ aligned_alloc (size_t alignment, size_t size)
   void *p;
   return posix_memalign (&p, alignment, size) == 0 ? p : 0;
 }
-# endif
 #endif
 
 /* Padding to leave at the end of a malloc'd block.  This is to give
@@ -4433,7 +4427,7 @@ memory_full (size_t nbytes)
 void
 refill_memory_reserve (void)
 {
-#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
+#if !defined SYSTEM_MALLOC
   if (spare_memory[0] == 0)
     spare_memory[0] = malloc (SPARE_MEMORY);
   if (spare_memory[1] == 0)

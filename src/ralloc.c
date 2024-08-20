@@ -1162,7 +1162,7 @@ r_alloc_init (void)
   r_alloc_initialized = 1;
 
   page_size = PAGE;
-#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
+#if !defined SYSTEM_MALLOC
   real_morecore = __morecore;
   __morecore = r_alloc_sbrk;
 
@@ -1181,7 +1181,7 @@ r_alloc_init (void)
   mallopt (M_TOP_PAD, 64 * 4096);
   unblock_input ();
 #else
-#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
+#if !defined SYSTEM_MALLOC
   /* Give GNU malloc's morecore some hysteresis so that we move all
      the relocatable blocks much less often.  The number used to be
      64, but alloc.c would override that with 32 in code that was
@@ -1194,7 +1194,7 @@ r_alloc_init (void)
 #endif
 #endif
 
-#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
+#if !defined SYSTEM_MALLOC
   first_heap->end = (void *) PAGE_ROUNDUP (first_heap->start);
 
   /* The extra call to real_morecore guarantees that the end of the
