@@ -4992,22 +4992,22 @@ of the returned string depends on @var{algorithm}:
 
 @itemize
 @item
-For @code{md5}: 32 characters (32 bytes if @var{binary} is
+For @code{md5}: 32 characters (16 bytes if @var{binary} is
 non-@code{nil}).
 @item
-For @code{sha1}: 40 characters (40 bytes if @var{binary} is
+For @code{sha1}: 40 characters (20 bytes if @var{binary} is
 non-@code{nil}).
 @item
-For @code{sha224}: 56 characters (56 bytes if @var{binary} is
+For @code{sha224}: 56 characters (28 bytes if @var{binary} is
 non-@code{nil}).
 @item
-For @code{sha256}: 64 characters (64 bytes if @var{binary} is
+For @code{sha256}: 64 characters (32 bytes if @var{binary} is
 non-@code{nil}).
 @item
-For @code{sha384}: 96 characters (96 bytes if @var{binary} is
+For @code{sha384}: 96 characters (48 bytes if @var{binary} is
 non-@code{nil}).
 @item
-For @code{sha512}: 128 characters (128 bytes if @var{binary} is
+For @code{sha512}: 128 characters (64 bytes if @var{binary} is
 non-@code{nil}).
 @end itemize
 
@@ -5062,7 +5062,7 @@ This function is equivalent to calling @code{secure-hash} like this:
 @end lisp
 
 It returns a 40-character string if @var{binary} is @code{nil}, or a
-40-byte unibyte string otherwise.
+20-byte unibyte string otherwise.
 @end defun
 
 @node Suspicious Text

@@ -6422,7 +6422,9 @@ whole OBJECT.
 
 The full list of algorithms can be obtained with `secure-hash-algorithms'.
 
-If BINARY is non-nil, returns a string in binary form.
+If BINARY is non-nil, returns a string in binary form.  In this case,
+the function returns a unibyte string whose length is half the number
+of characters it returns when BINARY is nil.
 
 Note that MD5 and SHA-1 are not collision resistant and should not be
 used for anything security-related.  For these applications, use one

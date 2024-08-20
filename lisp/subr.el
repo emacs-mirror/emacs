@@ -4487,8 +4487,8 @@ Otherwise, return nil."
   "Return the SHA-1 (Secure Hash Algorithm) of an OBJECT.
 OBJECT is either a string or a buffer.  Optional arguments START and
 END are character positions specifying which portion of OBJECT for
-computing the hash.  If BINARY is non-nil, return a 40-byte unibyte
-string; otherwise returna 40-character string.
+computing the hash.  If BINARY is non-nil, return a 20-byte unibyte
+string; otherwise return a 40-character string.
 
 Note that SHA-1 is not collision resistant and should not be used
 for anything security-related.  See `secure-hash' for
