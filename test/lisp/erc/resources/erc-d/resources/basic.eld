@@ -27,5 +27,5 @@
  (0 ":irc.example.org 366 alice #chan :End of NAMES list"))
 
 ;; Some comment (to prevent regression)
-((mode-chan 1.2 "MODE #chan")
+((mode-chan 3.2 "MODE #chan")
  (0.1 ":bob!~bob@example.org PRIVMSG #chan :hey"))

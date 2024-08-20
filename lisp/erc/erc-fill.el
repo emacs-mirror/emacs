@@ -421,7 +421,7 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
 (defvar erc-scrolltobottom-mode)
 (defvar erc-legacy-invisible-bounds-p)
 
-(defvar erc--fill-wrap-scrolltobottom-exempt-p nil)
+(defvar erc-fill--wrap-scrolltobottom-exempt-p nil)
 
 (defun erc-fill--wrap-ensure-dependencies ()
   (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
@@ -435,7 +435,7 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
     (unless erc-fill-mode
       (push 'fill missing-deps)
       (erc-fill-mode +1))
-    (unless (or erc-scrolltobottom-mode erc--fill-wrap-scrolltobottom-exempt-p
+    (unless (or erc-scrolltobottom-mode erc-fill--wrap-scrolltobottom-exempt-p
                 (memq 'scrolltobottom erc-modules))
       (push 'scrolltobottom missing-deps)
       (erc-scrolltobottom-mode +1))

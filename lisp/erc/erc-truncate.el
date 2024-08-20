@@ -38,7 +38,7 @@
 (defcustom erc-max-buffer-size 30000
   "Maximum size in chars of each ERC buffer.
 Used only when auto-truncation is enabled.
-\(see `erc-truncate-buffer' and `erc-insert-post-hook')."
+\(Also see `erc-truncate-buffer'.)"
   :type 'integer)
 
 ;;;###autoload(autoload 'erc-truncate-mode "erc-truncate" nil t)
@@ -92,10 +92,7 @@ present in `erc-modules'."
       (error "erc-truncate-buffer-to-size: %S is not a buffer" buffer)))
   (when (> (buffer-size buffer) (+ size 512))
     (with-current-buffer buffer
-      ;; Note that when erc-insert-post-hook runs, the buffer is
-      ;; narrowed to the new message.  So do this delicate widening.
-      ;; I am not sure, I think this was not recommended behavior in
-      ;; Emacs 20.
+      ;; Though unneeded, widen anyway to preserve pre-5.5 behavior.
       (save-restriction
 	(widen)
 	(let ((end (- erc-insert-marker size)))
