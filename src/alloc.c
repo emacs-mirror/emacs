@@ -6296,10 +6296,6 @@ where each entry has the form (NAME SIZE USED FREE), where:
   keeps around for future allocations (maybe because it does not know how
   to return them to the OS).
 
-However, if there was overflow in pure space, and Emacs was dumped
-using the \"unexec\" method, `garbage-collect' returns nil, because
-real GC can't be done.
-
 Note that calling this function does not guarantee that absolutely all
 unreachable objects will be garbage-collected.  Emacs uses a
 mark-and-sweep garbage collector, but is conservative when it comes to

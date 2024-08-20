@@ -593,8 +593,7 @@ modes.  @xref{Setting Hooks}.
 If the value is non-@code{nil}, the named function is considered to be
 pure (@pxref{What Is a Function}).  Calls with constant arguments can
 be evaluated at compile time.  This may shift run time errors to
-compile time.  Not to be confused with pure storage (@pxref{Pure
-Storage}).
+compile time.
 
 @item risky-local-variable
 If the value is non-@code{nil}, the named variable is considered risky
