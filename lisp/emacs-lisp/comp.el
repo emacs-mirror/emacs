@@ -1190,7 +1190,7 @@ Return value is the fall-through block name."
 (defun comp--jump-table-optimizable (jmp-table)
   "Return t if JMP-TABLE can be optimized out."
   ;; Identify LAP sequences like:
-  ;; (byte-constant #s(hash-table test eq purecopy t data (created 126 deleted 126 changed 126)) . 24)
+  ;; (byte-constant #s(hash-table test eq data (created 126 deleted 126 changed 126)) . 24)
   ;; (byte-switch)
   ;; (TAG 126 . 10)
   (let ((targets (hash-table-values jmp-table)))

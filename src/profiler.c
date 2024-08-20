@@ -562,7 +562,7 @@ export_log (struct profiler_log *plog)
      the log but close enough, and will never confuse two distinct
      keys in the log.  */
   Lisp_Object h = make_hash_table (&hashtest_equal, DEFAULT_HASH_SIZE,
-				   Weak_None, false);
+				   Weak_None);
   for (int i = 0; i < log->size; i++)
     {
       int count = get_log_count (log, i);
