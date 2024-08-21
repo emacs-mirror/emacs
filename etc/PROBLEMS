@@ -4150,31 +4150,6 @@ prints a nonzero value.  You can temporarily disable it as follows:
 As with randomize_va_space, you can re-enable Exec-shield when you are
 done, by echoing the original value back to the file.
 
-*** temacs prints "Pure Lisp storage exhausted".
-
-This means that the Lisp code loaded from the .elc and .el files during
-'temacs --batch --load loadup dump' took up more space than was allocated.
-
-This could be caused by
- 1) adding code to the preloaded Lisp files
- 2) adding more preloaded files in loadup.el
- 3) having a site-init.el or site-load.el which loads files.
-   Note that ANY site-init.el or site-load.el is nonstandard;
-   if you have received Emacs from some other site and it contains a
-   site-init.el or site-load.el file, consider deleting that file.
- 4) getting the wrong .el or .elc files
-   (not from the directory you expected).
- 5) deleting some .elc files that are supposed to exist.
-   This would cause the source files (.el files) to be
-   loaded instead.  They take up more room, so you lose.
- 6) a bug in the Emacs distribution which underestimates the space required.
-
-If the need for more space is legitimate, change the definition
-of PURESIZE in puresize.h.
-
-But in some of the cases listed above, this problem is a consequence
-of something else that is wrong.  Be sure to check and fix the real problem.
-
 *** openSUSE 10.3: Segfault in bcopy during dumping.
 
 This is due to a bug in the bcopy implementation in openSUSE 10.3.
@@ -4193,13 +4168,6 @@ binary null characters, and the 'file' utility says:
 
 We don't know what exactly causes this failure.  A work-around is to
 build Emacs in a directory on a local disk.
-
-*** The dumped Emacs crashes when run, trying to write pure data.
-
-On a system where getpagesize is not a system call, it is defined
-as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
-it can cause problems like this.  You might be able to find the correct
-value in the man page for a.out(5).
 
 * Problems on legacy systems
 
