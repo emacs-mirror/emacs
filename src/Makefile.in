@@ -126,16 +126,6 @@ LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 ## Flags to pass to ld only for temacs.
 TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
 
-## If needed, the names of the paxctl and setfattr programs.
-## On grsecurity/PaX systems, unexec will fail due to a gap between
-## the bss section and the heap.  Older versions need paxctl to work
-## around this, newer ones setfattr.  See Bug#11398 and Bug#16343.
-PAXCTL = @PAXCTL@
-SETFATTR = @SETFATTR@
-## Commands to set PaX flags on dumped and not-dumped instances of Emacs.
-PAXCTL_dumped = @PAXCTL_dumped@
-PAXCTL_notdumped = @PAXCTL_notdumped@
-
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM=@LIBS_SYSTEM@
 
@@ -652,15 +642,7 @@ emacs$(EXEEXT): temacs$(EXEEXT) \
 ifeq ($(SYSTEM_TYPE),cygwin)
 	find ${top_builddir} -name '*.eln' | rebase -v -O -T -
 endif
-ifeq ($(DUMPING),unexec)
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=dump
-  ifneq ($(PAXCTL_dumped),)
-	      $(PAXCTL_dumped) emacs$(EXEEXT)
-  endif
-	cp -f $@ bootstrap-emacs$(EXEEXT)
-else
 	rm -f $@ && cp -f temacs$(EXEEXT) $@
-endif
 
 ## On Haiku, also produce a binary named Emacs with the appropriate
 ## icon set.
@@ -749,11 +731,6 @@ endif
 endif
 	$(AM_V_at)mv $@.tmp $@
 	$(MKDIR_P) $(etc)
-ifeq ($(DUMPING),unexec)
-  ifneq ($(PAXCTL_notdumped),)
-	$(PAXCTL_notdumped) $@
-  endif
-endif
 
 ifeq ($(XCONFIGURE),android)
 ## The Android package internally links to a shared library named
@@ -989,20 +966,10 @@ endif
 
 bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	$(MAKE) -C ../lisp update-subdirs
-ifeq ($(DUMPING),unexec)
-	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=bootstrap
-  ifneq ($(PAXCTL_dumped),)
-	$(PAXCTL_dumped) emacs$(EXEEXT)
-  endif
-	mv -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
-	@: Compile some files earlier to speed up further compilation.
-	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
-else
 	@: In the pdumper case, make compile-first after the dump
 	cp -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
 ifeq ($(DO_CODESIGN),yes)
 	codesign -s - -f bootstrap-emacs$(EXEEXT)
-endif
 endif
 
 ifeq ($(DUMPING),pdumper)
