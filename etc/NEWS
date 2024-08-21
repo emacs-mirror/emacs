@@ -24,6 +24,11 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 31.1
 
++++
+** Unexec dumper removed.
+The traditional unexec dumper, deprecated since Emacs 27, has been
+removed.
+
 ** Changed GCC default options on 32-bit x86 systems.
 When using GCC 4 or later to build Emacs on 32-bit x86 systems,
 'configure' now defaults to using the GCC options '-mfpmath=sse' (if the
