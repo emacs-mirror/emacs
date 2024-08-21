@@ -467,7 +467,8 @@ point, otherwise hide it."
     ;; preview, don't do anything.
     (unless internal-p
       (if (and (completion-preview-require-certain-commands)
-               (completion-preview-require-minimum-symbol-length))
+               (completion-preview-require-minimum-symbol-length)
+               (not buffer-read-only))
           (completion-preview--show)
         (completion-preview-active-mode -1)))))
 
