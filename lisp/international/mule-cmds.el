@@ -59,97 +59,97 @@
 
 (defvar describe-language-environment-map
   (let ((map (make-sparse-keymap "Describe Language Environment")))
-    (bindings--define-key map
+    (define-key map
       [Default] '(menu-item "Default" describe-specified-language-support))
     map))
 
 (defvar setup-language-environment-map
   (let ((map (make-sparse-keymap "Set Language Environment")))
-    (bindings--define-key map
+    (define-key map
       [Default] '(menu-item "Default" setup-specified-language-environment))
     map))
 
 (defvar set-coding-system-map
   (let ((map (make-sparse-keymap "Set Coding System")))
-    (bindings--define-key map [set-buffer-process-coding-system]
+    (define-key map [set-buffer-process-coding-system]
       '(menu-item "For I/O with Subprocess" set-buffer-process-coding-system
         :visible (fboundp 'make-process)
         :enable (get-buffer-process (current-buffer))
         :help "How to en/decode I/O from/to subprocess connected to this buffer"))
-    (bindings--define-key map [set-next-selection-coding-system]
+    (define-key map [set-next-selection-coding-system]
       '(menu-item "For Next X Selection" set-next-selection-coding-system
         :visible (display-selections-p)
         :help "How to en/decode next selection/clipboard operation"))
-    (bindings--define-key map [set-selection-coding-system]
+    (define-key map [set-selection-coding-system]
       '(menu-item "For X Selections/Clipboard" set-selection-coding-system
         :visible (display-selections-p)
         :help "How to en/decode data to/from selection/clipboard"))
 
-    (bindings--define-key map [separator-3] menu-bar-separator)
-    (bindings--define-key map [set-terminal-coding-system]
+    (define-key map [separator-3] menu-bar-separator)
+    (define-key map [set-terminal-coding-system]
       '(menu-item "For Terminal" set-terminal-coding-system
         :enable (null (memq initial-window-system '(x w32 ns haiku pgtk
 						    android)))
         :help "How to encode terminal output"))
-    (bindings--define-key map [set-keyboard-coding-system]
+    (define-key map [set-keyboard-coding-system]
       '(menu-item "For Keyboard" set-keyboard-coding-system
         :help "How to decode keyboard input"))
 
-    (bindings--define-key map [separator-2] menu-bar-separator)
-    (bindings--define-key map [set-file-name-coding-system]
+    (define-key map [separator-2] menu-bar-separator)
+    (define-key map [set-file-name-coding-system]
       '(menu-item "For File Name" set-file-name-coding-system
         :help "How to decode/encode file names"))
-    (bindings--define-key map [revert-buffer-with-coding-system]
+    (define-key map [revert-buffer-with-coding-system]
       '(menu-item "For Reverting This File Now"
         revert-buffer-with-coding-system
         :enable buffer-file-name
         :help "Revisit this file immediately using specified coding system"))
-    (bindings--define-key map [set-buffer-file-coding-system]
+    (define-key map [set-buffer-file-coding-system]
       '(menu-item "For Saving This Buffer" set-buffer-file-coding-system
         :help "How to encode this buffer when saved"))
-    (bindings--define-key map [separator-1] menu-bar-separator)
-    (bindings--define-key map [universal-coding-system-argument]
+    (define-key map [separator-1] menu-bar-separator)
+    (define-key map [universal-coding-system-argument]
       '(menu-item "For Next Command" universal-coding-system-argument
         :help "Coding system to be used by next command"))
     map))
 
 (defvar mule-menu-keymap
   (let ((map (make-sparse-keymap "Mule (Multilingual Environment)")))
-    (bindings--define-key map [mule-diag]
+    (define-key map [mule-diag]
       '(menu-item "Show All Multilingual Settings" mule-diag
         :help "Display multilingual environment settings"))
-    (bindings--define-key map [list-character-sets]
+    (define-key map [list-character-sets]
       '(menu-item "List Character Sets" list-character-sets
         :help "Show table of available character sets"))
-    (bindings--define-key map [describe-coding-system]
+    (define-key map [describe-coding-system]
       '(menu-item "Describe Coding System..." describe-coding-system))
-    (bindings--define-key map [describe-input-method]
+    (define-key map [describe-input-method]
       '(menu-item "Describe Input Method..." describe-input-method
         :help "Keyboard layout for a specific input method"))
-    (bindings--define-key map [describe-language-environment]
+    (define-key map [describe-language-environment]
       `(menu-item "Describe Language Environment"
             ,describe-language-environment-map
             :help "Show multilingual settings for a specific language"))
 
-    (bindings--define-key map [separator-coding-system] menu-bar-separator)
-    (bindings--define-key map [view-hello-file]
+    (define-key map [separator-coding-system] menu-bar-separator)
+    (define-key map [view-hello-file]
       '(menu-item "Show Multilingual Sample Text" view-hello-file
         :enable (file-readable-p
                  (expand-file-name "HELLO" data-directory))
         :help "Demonstrate various character sets"))
-    (bindings--define-key map [set-various-coding-system]
+    (define-key map [set-various-coding-system]
       `(menu-item "Set Coding Systems" ,set-coding-system-map))
 
-    (bindings--define-key map [separator-input-method] menu-bar-separator)
-    (bindings--define-key map [activate-transient-input-method]
+    (define-key map [separator-input-method] menu-bar-separator)
+    (define-key map [activate-transient-input-method]
       '(menu-item "Transient Input Method" activate-transient-input-method))
-    (bindings--define-key map [set-input-method]
+    (define-key map [set-input-method]
       '(menu-item "Select Input Method..." set-input-method))
-    (bindings--define-key map [toggle-input-method]
+    (define-key map [toggle-input-method]
       '(menu-item "Toggle Input Method" toggle-input-method))
 
-    (bindings--define-key map [separator-mule] menu-bar-separator)
-    (bindings--define-key map [set-language-environment]
+    (define-key map [separator-mule] menu-bar-separator)
+    (define-key map [set-language-environment]
       `(menu-item  "Set Language Environment" ,setup-language-environment-map))
     map)
   "Keymap for Mule (Multilingual environment) menu specific commands.")
