@@ -2473,6 +2473,10 @@ Fall back to normal file name handler if no Tramp file name handler exists."
 			    (autoload-do-load sf foreign)))
 			(with-tramp-debug-message
 			    v (format "Running `%S'" (cons operation args))
+			  ;; We flush connection properties
+			  ;; "process-name" and "process-buffer",
+			  ;; because the operations shall be applied
+			  ;; in the main connection process.
                           ;; If `non-essential' is non-nil, Tramp shall
 		          ;; not open a new connection.
 		          ;; If Tramp detects that it shouldn't continue
@@ -2481,10 +2485,14 @@ Fall back to normal file name handler if no Tramp file name handler exists."
 		          ;; tries to open the same connection twice in
 		          ;; a short time frame.
 		          ;; In both cases, we try the default handler then.
-		          (setq result
-				(catch 'non-essential
-			          (catch 'suppress
-				    (apply foreign operation args)))))
+			  (with-tramp-saved-connection-properties
+			      v '("process-name" "process-buffer")
+			    (tramp-flush-connection-property v "process-name")
+			    (tramp-flush-connection-property v "process-buffer")
+		            (setq result
+				  (catch 'non-essential
+			            (catch 'suppress
+				      (apply foreign operation args))))))
 		        (cond
 		         ((eq result 'non-essential)
 			  (tramp-message

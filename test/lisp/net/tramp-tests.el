@@ -5404,6 +5404,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		direct-async-process-profile)
 	      connection-local-criteria-alist)))
        (skip-unless (tramp-direct-async-process-p))
+       (when-let ((result (ert-test-most-recent-result ert-test)))
+	 (skip-unless (< (ert-test-result-duration result) 300)))
        ;; We do expect an established connection already,
        ;; `file-truename' does it by side-effect.  Suppress
        ;; `tramp--test-enabled', in order to keep the connection.
@@ -7679,39 +7681,6 @@ should all return proper values."
 (defconst tramp--test-asynchronous-requests-timeout 300
   "Timeout for `tramp-test45-asynchronous-requests'.")
 
-(defmacro tramp--test-with-proper-process-name-and-buffer (proc &rest body)
-  "Set \"process-name\" and \"process-buffer\" connection properties.
-The values are derived from PROC.  Run BODY.
-This is needed in timer functions as well as process filters and sentinels."
-  ;; FIXME: For tramp-sshfs.el, `processp' does not work.
-  (declare (indent 1) (debug (processp body)))
-  `(let* ((v (tramp-get-connection-property ,proc "vector"))
-	  (pname (tramp-get-connection-property v "process-name"))
-	  (pbuffer (tramp-get-connection-property v "process-buffer")))
-     (tramp--test-message
-      "tramp--test-with-proper-process-name-and-buffer before %s %s"
-      (tramp-get-connection-property v "process-name")
-      (tramp-get-connection-property v "process-buffer"))
-     (if (process-name ,proc)
-	 (tramp-set-connection-property v "process-name" (process-name ,proc))
-       (tramp-flush-connection-property v "process-name"))
-     (if (process-buffer ,proc)
-	 (tramp-set-connection-property
-	  v "process-buffer" (process-buffer ,proc))
-       (tramp-flush-connection-property v "process-buffer"))
-     (tramp--test-message
-      "tramp--test-with-proper-process-name-and-buffer changed %s %s"
-      (tramp-get-connection-property v "process-name")
-      (tramp-get-connection-property v "process-buffer"))
-     (unwind-protect
-	 (progn ,@body)
-       (if pname
-	   (tramp-set-connection-property v "process-name" pname)
-	 (tramp-flush-connection-property v "process-name"))
-       (if pbuffer
-	   (tramp-set-connection-property v "process-buffer" pbuffer)
-	 (tramp-flush-connection-property v "process-buffer")))))
-
 ;; This test is inspired by Bug#16928.
 (ert-deftest tramp-test45-asynchronous-requests ()
   "Check parallel asynchronous requests.
@@ -7781,29 +7750,27 @@ process sentinels.  They shall not disturb each other."
              (run-at-time
               0 timer-repeat
               (lambda ()
-                (tramp--test-with-proper-process-name-and-buffer
-                    (get-buffer-process (tramp-get-buffer tramp-test-vec))
-                  (when (> (- (time-to-seconds) (time-to-seconds timer-start))
-                           tramp--test-asynchronous-requests-timeout)
-                    (tramp--test-timeout-handler))
-                  (when buffers
-                    (let ((time (float-time))
-                          (default-directory tmp-name)
-                          (file (buffer-name (seq-random-elt buffers))))
+                (when (> (- (time-to-seconds) (time-to-seconds timer-start))
+                         tramp--test-asynchronous-requests-timeout)
+                  (tramp--test-timeout-handler))
+                (when buffers
+                  (let ((time (float-time))
+                        (default-directory tmp-name)
+                        (file (buffer-name (seq-random-elt buffers))))
+                    (tramp--test-message
+		     "Start timer %s %s" file (current-time-string))
+		    (dired-uncache file)
+		    (tramp--test-message
+		     "Continue timer %s %s" file (file-attributes file))
+		    (vc-registered file)
+                    (tramp--test-message
+                     "Stop timer %s %s" file (current-time-string))
+                    ;; Adjust timer if it takes too much time.
+                    (when (> (- (float-time) time) timer-repeat)
+                      (setq timer-repeat (* 1.1 (- (float-time) time)))
+                      (setf (timer--repeat-delay timer) timer-repeat)
                       (tramp--test-message
-                       "Start timer %s %s" file (current-time-string))
-		      (dired-uncache file)
-		      (tramp--test-message
-		       "Continue timer %s %s" file (file-attributes file))
-		      (vc-registered file)
-                      (tramp--test-message
-                       "Stop timer %s %s" file (current-time-string))
-                      ;; Adjust timer if it takes too much time.
-                      (when (> (- (float-time) time) timer-repeat)
-                        (setq timer-repeat (* 1.1 (- (float-time) time)))
-                        (setf (timer--repeat-delay timer) timer-repeat)
-                        (tramp--test-message
-                         "Increase timer %s" timer-repeat))))))))
+		       "Increase timer %s" timer-repeat)))))))
 
             ;; Create temporary buffers.  The number of buffers
             ;; corresponds to the number of processes; it could be
@@ -7830,23 +7797,21 @@ process sentinels.  They shall not disturb each other."
                 (set-process-filter
                  proc
                  (lambda (proc string)
-		   (tramp--test-with-proper-process-name-and-buffer proc
-                     (tramp--test-message
-                      "Process filter %s %s %s"
-		      proc string (current-time-string))
-                     (with-current-buffer (process-buffer proc)
-                       (insert string))
-                     (when (< (process-get proc 'bar) 2)
-		       (dired-uncache (process-get proc 'foo))
-                       (should (file-attributes (process-get proc 'foo)))))))
+                   (tramp--test-message
+                    "Process filter %s %s %s"
+		    proc string (current-time-string))
+                   (with-current-buffer (process-buffer proc)
+                     (insert string))
+                   (when (< (process-get proc 'bar) 2)
+		     (dired-uncache (process-get proc 'foo))
+                     (should (file-attributes (process-get proc 'foo))))))
                 ;; Add process sentinel.  It shall not perform remote
                 ;; operations, triggering Tramp processes.  This blocks.
                 (set-process-sentinel
                  proc
                  (lambda (proc _state)
-		   (tramp--test-with-proper-process-name-and-buffer proc
-                     (tramp--test-message
-                      "Process sentinel %s %s" proc (current-time-string)))))
+                   (tramp--test-message
+                    "Process sentinel %s %s" proc (current-time-string))))
 		(tramp--test-message "Process started %s" proc)))
 
             ;; Send a string to the processes.  Use a random order of

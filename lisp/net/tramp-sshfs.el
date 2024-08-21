@@ -254,10 +254,10 @@ arguments to pass to the OPERATION."
     (let ((coding-system-for-read 'utf-8-dos)) ; Is this correct?
 
       (setq command
-	   (format
-	    "cd %s && exec %s"
-	    (tramp-unquote-shell-quote-argument localname)
-	    (mapconcat #'tramp-shell-quote-argument (cons program args) " ")))
+	    (format
+	     "cd %s && exec %s"
+	     (tramp-unquote-shell-quote-argument localname)
+	     (mapconcat #'tramp-shell-quote-argument (cons program args) " ")))
       (when input (setq command (format "%s <%s" command input)))
       (when stderr (setq command (format "%s 2>%s" command stderr)))
 

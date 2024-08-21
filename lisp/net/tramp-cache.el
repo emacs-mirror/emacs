@@ -122,6 +122,7 @@ details see the info pages."
 (defconst tramp-cache-undefined 'undef
   "The symbol marking undefined hash keys and values.")
 
+;;;###tramp-autoload
 (defun tramp-get-hash-table (key)
   "Return the hash table for KEY.
 If it doesn't exist yet, it is created and initialized with
