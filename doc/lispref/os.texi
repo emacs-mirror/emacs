@@ -590,10 +590,10 @@ displays the startup messages.
 The value of this variable is @code{t} once the command line has been
 processed.
 
-If you redump Emacs by calling @code{dump-emacs} (@pxref{Building
-Emacs}), you may wish to set this variable to @code{nil} first in
-order to cause the new dumped Emacs to process its new command-line
-arguments.
+If you redump Emacs by calling @code{dump-emacs-portable}
+(@pxref{Building Emacs}), you may wish to set this variable to
+@code{nil} first in order to cause the new dumped Emacs to process its
+new command-line arguments.
 @end defvar
 
 @defvar command-switch-alist
