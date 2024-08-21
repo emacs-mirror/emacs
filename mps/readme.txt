@@ -89,7 +89,7 @@ The MPS is currently supported for deployment on:
 
 The MPS is highly portable and has run on many other processors and
 operating systems in the past (see `Building the MPS
-<manual/guide/build.html>`__). Most of the MPS is written in very pure
+<manual/build.txt>`__). Most of the MPS is written in very pure
 ANSI C and compiles without warnings on anything.
 
 .. warning::
