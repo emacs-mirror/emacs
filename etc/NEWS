@@ -43,6 +43,28 @@ The 'find-function', 'find-library', 'find-face-definition', and
 'find-variable' commands now allow retrieving previous input using the
 usual minibuffer history commands.  Each command has a separate history.
 
+** Minibuffer and Completions
+
++++
+*** New user option 'completion-pcm-leading-wildcard'.
+This option configures how the partial-completion style does completion.
+It defaults to nil, which preserves the existing behavior.  When it is set
+to t, the partial-completion style behaves more like the substring
+style, in that a string being completed can match against a candidate
+anywhere in the candidate string.
+
++++
+*** 'completion-styles' now can contain lists of bindings.
+In addition to being a symbol naming a completion style, an element of
+'completion-styles' can now be a list of the form '(STYLE ((VARIABLE
+VALUE) ...))' where STYLE is a symbol naming a completion style.
+VARIABLE will be bound to VALUE (without evaluating it) while the style
+is executing.  This allows multiple references to the same style with
+different values for completion-affecting variables like
+'completion-pcm-leading-wildcard or 'completion-ignore-case'.  This also
+applies for the styles configuration in 'completion-category-overrides'
+and 'completion-category-defaults'.
+
 
 ** Windows
 
