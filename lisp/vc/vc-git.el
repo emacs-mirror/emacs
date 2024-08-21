@@ -748,8 +748,8 @@ or an empty string if none."
                    (and tracking (fmt "Tracking" tracking))
                    (and remote-url (fmt "Remote" remote-url)))))))
 
-(defun vc-git-dir--in-progress-headers ()
-  "Return headers for Git commands in progress in this worktree."
+(defun vc-git--cmds-in-progress ()
+  "Return a list of Git commands in progress in this worktree."
   (let ((gitdir (vc-git--git-path))
         cmds)
     ;; See contrib/completion/git-prompt.sh in git.git.
@@ -765,6 +765,11 @@ or an empty string if none."
       (push 'merge cmds))
     (when (file-exists-p (expand-file-name "BISECT_START" gitdir))
       (push 'bisect cmds))
+    cmds))
+
+(defun vc-git-dir--in-progress-headers ()
+  "Return headers for Git commands in progress in this worktree."
+  (let ((cmds (vc-git--cmds-in-progress)))
     (cl-flet ((fmt (cmd name)
                 (when (memq cmd cmds)
                   ;; For now just a heading, key bindings can be added
