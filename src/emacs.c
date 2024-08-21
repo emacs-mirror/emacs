@@ -1310,8 +1310,7 @@ main (int argc, char **argv)
       if (strcmp (temacs, "pdump") == 0 ||
           strcmp (temacs, "pbootstrap") == 0)
         gflags.will_dump_with_pdumper_ = true;
-      if (strcmp (temacs, "bootstrap") == 0 ||
-          strcmp (temacs, "pbootstrap") == 0)
+      if (strcmp (temacs, "pbootstrap") == 0)
         gflags.will_bootstrap_ = true;
       gflags.will_dump_ =
         will_dump_with_pdumper_p ();
