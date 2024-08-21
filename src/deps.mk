@@ -92,7 +92,7 @@ editfns.o: editfns.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h atimer.h systime.h $(INTERVALS_H) lisp.h $(config_h) \
    globals.h ../lib/unistd.h window.h dispextern.h keyboard.h keymap.h \
-   frame.h coding.h gnutls.h msdos.h dosfns.h unexec.h
+   frame.h coding.h gnutls.h msdos.h dosfns.h
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
    coding.h msdos.h blockinput.h atimer.h lisp.h $(config_h) frame.h \
    commands.h globals.h ../lib/unistd.h
@@ -202,14 +202,6 @@ terminfo.o: terminfo.c tparam.h lisp.h globals.h $(config_h)
 tparam.o: tparam.c tparam.h lisp.h $(config_h)
 undo.o: undo.c buffer.h commands.h window.h dispextern.h msdos.h \
    lisp.h globals.h $(config_h)
-unexaix.o: unexaix.c lisp.h unexec.h $(config_h)
-unexcw.o: unexcw.c lisp.h unexec.h $(config_h)
-unexcoff.o: unexcoff.c lisp.h unexec.h $(config_h)
-unexelf.o: unexelf.c unexec.h ../lib/unistd.h $(config_h)
-unexhp9k800.o: unexhp9k800.c unexec.h $(config_h)
-unexmacosx.o: unexmacosx.c unexec.h $(config_h)
-unexsol.o: unexsol.c lisp.h unexec.h $(config_h)
-unexw32.o: unexw32.c unexec.h $(config_h)
 w16select.o: w16select.c dispextern.h frame.h blockinput.h atimer.h systime.h \
    msdos.h buffer.h charset.h coding.h composite.h lisp.h $(config_h)
 widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
