@@ -65,14 +65,21 @@ window used already has a 'quit-restore' parameter.  Its presence gives
 operations more intuitively.
 
 +++
-*** 'quit-restore-window' now handles the values 'killing' and 'burying'
-for its BURY-OR-KILL argument just like 'kill' and 'bury' but assumes
+*** 'quit-restore-window' handles new values for BURY-OR-KILL argument.
+The values 'killing' and 'burying' are like 'kill' and 'bury' but assume
 that the actual killing or burying of the buffer is done by the caller.
 
 +++
 *** New option 'quit-restore-window-no-switch'.
 With this option set, 'quit-restore-window' will delete its window more
 aggressively rather than switching to some other buffer in it.
+
+** Frames
+
++++
+*** New function 'frame-deletable-p'.
+Calling this function before 'delete-frame' is useful to avoid that the
+latter throws an error when the argument frame cannot be deleted.
 
 ** Tab Bars and Tab Lines
 

@@ -4109,8 +4109,8 @@ and no others."
 The value should be a list of functions that take two arguments.  The
 first argument is the window about to be deleted.  The second argument
 if non-nil, means that the window is the only window on its frame and
-should be deleted together with its frame.  The window's buffer is
-current when running this hook.
+should be deleted together with its frame.  If the window is live, its
+buffer is current when running this hook.
 
 If any of these functions returns nil, the window will not be deleted
 and another buffer will be shown in it.  This hook is run implicitly by
@@ -4147,23 +4147,13 @@ returns nil."
       ;; WINDOW's frame can be deleted only if there are other frames
       ;; on the same terminal, and it does not contain the active
       ;; minibuffer.
-      (unless (or (eq frame (next-frame frame 0))
-		  ;; We can delete our frame only if no other frame
-		  ;; currently uses our minibuffer window.
-		  (catch 'other
-		    (dolist (other (frame-list))
-		      (when (and (not (eq other frame))
-				 (eq (window-frame (minibuffer-window other))
-				     frame))
-			(throw 'other t))))
-		  (let ((minibuf (active-minibuffer-window)))
-		    (and minibuf (eq frame (window-frame minibuf))
-                         (not (eq (default-toplevel-value
-                                    'minibuffer-follows-selected-frame)
-                                  t))))
+      (unless (or (not (frame-deletable-p (window-frame window)))
 		  (or no-run
-		      (not (with-current-buffer (window-buffer window)
-			     (run-hook-with-args-until-failure
+		      (if (window-live-p window)
+			  (not (with-current-buffer (window-buffer window)
+				 (run-hook-with-args-until-failure
+				  'window-deletable-functions window t)))
+			(not (run-hook-with-args-until-failure
 			      'window-deletable-functions window t)))))
 	'frame))
      ((window-minibuffer-p window)
@@ -4173,7 +4163,10 @@ returns nil."
      ((and (or ignore-window-parameters
 	       (not (eq window (window-main-window frame))))
 	   (or no-run
-	       (with-current-buffer (window-buffer window)
+	       (if (window-live-p window)
+		   (with-current-buffer (window-buffer window)
+		     (run-hook-with-args-until-failure
+		      'window-deletable-functions window nil))
 		 (run-hook-with-args-until-failure
 		  'window-deletable-functions window nil))))
       ;; Otherwise, WINDOW can be deleted unless it is the main window

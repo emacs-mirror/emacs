@@ -2760,6 +2760,43 @@ With the prefix argument @var{iconify}, the frames are iconified rather
 than deleted.
 @end deffn
 
+The following function checks whether a frame can be safely deleted.  It
+is useful to avoid that a subsequent call of @code{delete-frame} throws
+an error.
+
+@defun frame-deletable-p &optional frame
+This function returns non-@code{nil} if the frame specified by
+@var{frame} can be safely deleted.  @var{frame} must be a live frame and
+defaults to the selected frame.
+
+A frame cannot be safely deleted in the following cases:
+
+@itemize @bullet
+@item
+It is the only visible or iconified frame (@pxref{Visibility of
+Frames}).
+
+@item
+It hosts the active minibuffer window and minibuffer windows do not
+follow the selected frame (@pxref{Basic Minibuffer,,, emacs}).
+
+@item
+All other visible or iconified frames are either child frames
+(@pxref{Child Frames}) or have a non-@code{nil} @code{delete-before}
+parameter.
+
+@item
+The frame or one of its descendants hosts the minibuffer window of a
+frame that is not a descendant of the frame (@pxref{Child Frames}).
+@end itemize
+
+These conditions cover most cases where @code{delete-frame} might fail
+when called from top-level.  They do not catch some special cases like,
+for example, deleting a frame during a drag-and-drop operation
+(@pxref{Drag and Drop}).  In any such case, it will be better to wrap
+the @code{delete-frame} call in a @code{condition-case} form.
+@end defun
+
 
 @node Finding All Frames
 @section Finding All Frames
