@@ -1688,13 +1688,14 @@ result is inserted.
 
 @item message-subject-re-regexp
 @vindex message-subject-re-regexp
+@vindex mail-re-regexps
 @cindex Aw
 @cindex Sv
 @cindex Re
 Responses to messages have subjects that start with @samp{Re: }.  This
 is @emph{not} an abbreviation of the English word ``response'', but it
 comes from the Latin ``res'', and means ``in the matter of''.  Some
-illiterate nincompoops have failed to grasp this fact, and have
+standards-challenged companies have failed to grasp this fact, and have
 ``internationalized'' their software to use abominations like
 @samp{Aw: } (``antwort'') or @samp{Sv: } (``svar'') instead, which is
 meaningless and evil.  However, you may have to deal with users that
@@ -1725,6 +1726,16 @@ responding to a message:
        "*[ \t]*"
        ))
 @end lisp
+
+You shouldn't need to do this, since the default value of
+@code{message-subject-re-regexp} is initialized based on
+@code{mail-re-regexps}, which covers most known cases of such
+internationalization, and is a lot easier to customize.  Customizing
+@code{mail-re-regexps} updates @code{message-subject-re-regexp} to
+match.
+
+Note that the regexp is matched case-insensitively against the
+@samp{Subject} header contents.
 
 @item message-subject-trailing-was-query
 @vindex message-subject-trailing-was-query

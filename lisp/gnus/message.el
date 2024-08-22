@@ -312,11 +312,20 @@ any confusion."
 		 regexp))
 
 (defcustom message-subject-re-regexp
-  "^[ \t]*\\([Rr][Ee]\\(\\[[0-9]*\\]\\)* ?:[ \t]*\\)*[ \t]*"
-  "Regexp matching \"Re: \" in the subject line."
+  (mail--wrap-re-regexp
+   (concat
+    "\\("
+    (string-join mail-re-regexps "\\|")
+    "\\)"))
+  "Regexp matching \"Re: \" in the subject line.
+Matching is done case-insensitively.
+Initialized from the value of `mail-re-regexps', which is easier to
+customize."
   :group 'message-various
   :link '(custom-manual "(message)Message Headers")
-  :type 'regexp)
+  :type 'regexp
+  :set-after '(mail-re-regexps)
+  :version "31.1")
 
 (defcustom message-screenshot-command '("import" "png:-")
   "Command to take a screenshot.
@@ -2264,10 +2273,12 @@ see `message-narrow-to-headers-or-head'."
       subject)))
 
 (defun message-strip-subject-re (subject)
-  "Remove \"Re:\" from subject lines in string SUBJECT."
-  (if (string-match message-subject-re-regexp subject)
-      (substring subject (match-end 0))
-    subject))
+  "Remove \"Re:\" from subject lines in string SUBJECT.
+This uses `mail-re-regexps', matching is done case-insensitively."
+  (let ((case-fold-search t))
+    (if (string-match message-subject-re-regexp subject)
+        (substring subject (match-end 0))
+      subject)))
 
 (defcustom message-replacement-char "."
   "Replacement character used instead of unprintable or not decodable chars."

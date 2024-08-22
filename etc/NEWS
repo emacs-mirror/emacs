@@ -660,6 +660,32 @@ only search in input history.  If you customize it to the symbol 'dwim',
 those commands search in input history only when the point is after the
 last prompt.
 
++++
+** Mail-util
+
+*** New user option 'mail-re-regexps'.
+This contains the list of regular expressions used to match "Re:" and
+international variants of it when modifying the Subject field in
+replies.
+
++++
+** Rmail
+
+*** 'rmail-re-abbrevs' default value is now derived from 'mail-re-regexps'.
+'mail-re-regexps' is a new user option that is easier to customize than
+'rmail-re-abbrevs'.  'rmail-re-abbrevs' is still honored if it was
+already set.
+
++++
+** Message
+
+*** 'message-subject-re-regexp' default value is now derived from 'mail-re-regexps'.
+'mail-re-regexps' is a new user option that is easier to customize than
+'message-subject-re-regexp'.  'message-subject-re-regexp' is still
+honored if it was already set.
+
+*** 'message-strip-subject-re' now matches case-insensitively.
+
 ** SHR
 
 +++

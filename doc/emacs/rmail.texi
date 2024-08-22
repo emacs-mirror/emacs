@@ -776,6 +776,14 @@ to.  The @samp{To} field starts out as the address of the person who
 sent the message you received, and the @samp{CC} field starts out with
 all the other recipients of that message.
 
+@vindex rmail-re-abbrevs
+@vindex rmail-reply-prefix
+@vindex mail-re-regexps
+The @samp{Subject} header field may contain one or more instances of
+@samp{Re:} or localized variants thereof.  These are removed if they
+match @code{rmail-re-abbrevs} (which is initialized from
+@code{mail-re-regexps}), and @code{rmail-reply-prefix} is prepended.
+
 @vindex mail-dont-reply-to-names
   You can exclude certain recipients from being included automatically
 in replies, using the variable @code{mail-dont-reply-to-names}.  Its
