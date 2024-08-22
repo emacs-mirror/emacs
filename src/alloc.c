@@ -6702,8 +6702,6 @@ process_mark_stack (ptrdiff_t base_sp)
     {
       Lisp_Object obj = mark_stack_pop ();
     mark_obj: ;
-      void *po = XPNTR (obj);
-
 #if GC_REMEMBER_LAST_MARKED
       last_marked[last_marked_index++] = obj;
       last_marked_index &= LAST_MARKED_SIZE - 1;
@@ -6713,6 +6711,7 @@ process_mark_stack (ptrdiff_t base_sp)
 	 we encounter an object we know is bogus.  This increases GC time
 	 by ~80%.  */
 #if GC_CHECK_MARKED_OBJECTS
+      void *po = XPNTR (obj);
 
       /* Check that the object pointed to by PO is known to be a Lisp
 	 structure allocated from the heap.  */
@@ -6949,7 +6948,10 @@ process_mark_stack (ptrdiff_t base_sp)
 	    set_string_marked (XSTRING (ptr->u.s.name));
 	    mark_interval_tree (string_intervals (ptr->u.s.name));
 	    /* Inner loop to mark next symbol in this bucket, if any.  */
-	    po = ptr = ptr->u.s.next;
+	    ptr = ptr->u.s.next;
+#if GC_CHECK_MARKED_OBJECTS
+	    po = ptr;
+#endif
 	    if (ptr)
 	      goto nextsym;
 	  }
