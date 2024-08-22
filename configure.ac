@@ -2365,7 +2365,7 @@ AC_CACHE_CHECK([for flags to work around GCC bug 58416],
 		    20240607 (Red Hat 14.1.1-5) on x86-64.  */
 		 #include <float.h>
 		 #if \
-		     (4 <= __GNUC__ && !defined __clang__ \
+		     (4 <= __GNUC__ && __GNUC__ <= 14 && !defined __clang__ \
 		      && (defined __i386__ || defined __x86_64__) \
 		      && ! (0 <= FLT_EVAL_METHOD && FLT_EVAL_METHOD <= 1))
 		 # error "GCC bug 58416 is possibly present"
