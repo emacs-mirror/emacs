@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
-;; Version: 1.17
+;; Version: 1.17.30
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
