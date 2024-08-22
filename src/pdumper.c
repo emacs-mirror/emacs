@@ -2465,7 +2465,7 @@ dump_symbol (struct dump_context *ctx,
              Lisp_Object object,
              dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_61B174C9F4
+#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_E0ADAF2F24
 # error "Lisp_Symbol changed. See CHECK_STRUCTS comment in config.h."
 #endif
 #if CHECK_STRUCTS && !defined (HASH_symbol_redirect_EA72E4BFF5)
@@ -2733,7 +2733,7 @@ dump_hash_table_contents (struct dump_context *ctx, struct Lisp_Hash_Table *h)
 static dump_off
 dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_0360833954
+#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_6728D315B2
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);
