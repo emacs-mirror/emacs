@@ -336,6 +336,53 @@ This construct can only be used with lexical binding."
       (cl-labels ((,name ,fargs . ,body)) #',name)
       . ,aargs)))
 
+(defvar work-buffer--list nil)
+(defvar work-buffer-limit 10
+  "Maximum number of reusable work buffers.
+When this limit is exceeded, newly allocated work buffers are
+automatically killed, which means that in a such case
+`with-work-buffer' becomes equivalent to `with-temp-buffer'.")
+
+(defsubst work-buffer--get ()
+  "Get a work buffer."
+  (let ((buffer (pop work-buffer--list)))
+    (if (buffer-live-p buffer)
+        buffer
+      (generate-new-buffer " *work*" t))))
+
+(defun work-buffer--release (buffer)
+  "Release work BUFFER."
+  (if (buffer-live-p buffer)
+      (with-current-buffer buffer
+        ;; Flush BUFFER before making it available again, i.e. clear
+        ;; its contents, remove all overlays and buffer-local
+        ;; variables.  Is it enough to safely reuse the buffer?
+        (erase-buffer)
+        (delete-all-overlays)
+        (let (change-major-mode-hook)
+          (kill-all-local-variables t))
+        ;; Make the buffer available again.
+        (push buffer work-buffer--list)))
+  ;; If the maximum number of reusable work buffers is exceeded, kill
+  ;; work buffer in excess, taking into account that the limit could
+  ;; have been let-bound to temporarily increase its value.
+  (when (> (length work-buffer--list) work-buffer-limit)
+    (mapc #'kill-buffer (nthcdr work-buffer-limit work-buffer--list))
+    (setq work-buffer--list (ntake work-buffer-limit work-buffer--list))))
+
+;;;###autoload
+(defmacro with-work-buffer (&rest body)
+  "Create a work buffer, and evaluate BODY there like `progn'.
+Like `with-temp-buffer', but reuse an already created temporary
+buffer when possible, instead of creating a new one on each call."
+  (declare (indent 0) (debug t))
+  (let ((work-buffer (make-symbol "work-buffer")))
+    `(let ((,work-buffer (work-buffer--get)))
+       (with-current-buffer ,work-buffer
+         (unwind-protect
+             (progn ,@body)
+           (work-buffer--release ,work-buffer))))))
+
 ;;;###autoload
 (defun string-pixel-width (string &optional buffer)
   "Return the width of STRING in pixels.
