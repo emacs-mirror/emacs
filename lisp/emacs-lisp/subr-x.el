@@ -393,20 +393,24 @@ determining the width."
       0
     ;; Keeping a work buffer around is more efficient than creating a
     ;; new temporary buffer.
-    (with-current-buffer (get-buffer-create " *string-pixel-width*")
-      ;; If `display-line-numbers' is enabled in internal buffers
-      ;; (e.g. globally), it breaks width calculation (bug#59311)
-      (setq-local display-line-numbers nil)
-      (delete-region (point-min) (point-max))
-      ;; Disable line-prefix and wrap-prefix, for the same reason.
-      (setq line-prefix nil
-	    wrap-prefix nil)
+    (with-work-buffer
+      ;; If `display-line-numbers' is enabled in internal
+      ;; buffers (e.g. globally), it breaks width calculation
+      ;; (bug#59311).  Disable `line-prefix' and `wrap-prefix',
+      ;; for the same reason.
+      (setq display-line-numbers nil
+            line-prefix nil wrap-prefix nil)
       (if buffer
           (setq-local face-remapping-alist
                       (with-current-buffer buffer
                         face-remapping-alist))
         (kill-local-variable 'face-remapping-alist))
-      (insert (propertize string 'line-prefix nil 'wrap-prefix nil))
+      (erase-buffer)
+      (insert string)
+      ;; Prefer `remove-text-properties' to `propertize' to avoid
+      ;; creating a new string on each call.
+      (remove-text-properties
+       (point-min) (point-max) '(line-prefix nil wrap-prefix nil))
       (car (buffer-text-pixel-size nil nil t)))))
 
 ;;;###autoload
