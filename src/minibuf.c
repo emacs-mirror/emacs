@@ -63,7 +63,7 @@ Lisp_Object last_minibuf_string;
 
 static Lisp_Object minibuf_prompt;
 
-/* The frame containinug the most recently opened Minibuffer.  This is
+/* The frame containing the most recently opened minibuffer.  This is
    used only when `minibuffer-follows-selected-frame' is neither nil
    nor t.  */
 
@@ -1248,27 +1248,36 @@ static void
 minibuffer_unwind (void)
 {
   struct frame *f;
-  struct window *w;
-  Lisp_Object window;
-  Lisp_Object entry;
 
   if (NILP (exp_MB_frame)) return; /* "Can't happen." */
   f = XFRAME (exp_MB_frame);
-  window = f->minibuffer_window;
-  w = XWINDOW (window);
   if (FRAME_LIVE_P (f))
     {
-      /* minibuf_window = sf->minibuffer_window; */
-      if (!NILP (w->prev_buffers))
+      Lisp_Object window = f->minibuffer_window;
+
+      if (WINDOW_LIVE_P (window))
 	{
-	  entry = Fcar (w->prev_buffers);
-	  w->prev_buffers = Fcdr (w->prev_buffers);
-	  set_window_buffer (window, Fcar (entry), 0, 0);
-	  Fset_window_start (window, Fcar (Fcdr (entry)), Qnil);
-	  Fset_window_point (window, Fcar (Fcdr (Fcdr (entry))));
+	  struct window *w = XWINDOW (window);
+
+	  /* minibuf_window = sf->minibuffer_window; */
+	  if (!NILP (w->prev_buffers))
+	    {
+	      Lisp_Object entry = Fcar (w->prev_buffers);
+
+	      if (BUFFERP (Fcar (entry))
+		  && BUFFER_LIVE_P (XBUFFER (Fcar (entry))))
+		{
+		  wset_prev_buffers (w, Fcdr (w->prev_buffers));
+		  set_window_buffer (window, Fcar (entry), 0, 0);
+		  Fset_window_start (window, Fcar (Fcdr (entry)), Qnil);
+		  Fset_window_point (window, Fcar (Fcdr (Fcdr (entry))));
+		}
+	      else
+		set_window_buffer (window, nth_minibuffer (0), 0, 0);
+	    }
+	  else
+	    set_window_buffer (window, nth_minibuffer (0), 0, 0);
 	}
-      else
-	set_window_buffer (window, nth_minibuffer (0), 0, 0);
     }
 }
 
