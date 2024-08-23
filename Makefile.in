@@ -381,7 +381,7 @@ bootstrap-all:
 
 .PHONY: bootstrap-all actual-all advice-on-failure sanity-check
 
-actual-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp
+actual-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp blessmail
 
 # ADVICE-ON-FAILURE-BEGIN:all
 # You could try to:
