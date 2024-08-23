@@ -2142,7 +2142,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
     (goto-char point)
     (beginning-of-line)
     (if (looking-at "^ +\\({[0-9]+}\\):")
-	(match-string 1)
+        (match-string-no-properties 1)
       (error "Cannot find stash at point"))))
 
 ;; vc-git-stash-delete-at-point must be called from a vc-dir buffer.
