@@ -1051,17 +1051,17 @@ When `shr-fill-text' is nil, only indent."
       (if (not shr-use-fonts)
           (insert-char ?\s shr-indentation)
         (insert ?\s)
-        (put-text-property
-         (1- (point)) (point) 'display
-         ;; Set the specified space width in terms of the default width
-         ;; of the current face, like (N . width).  That way, the
-         ;; indentation is calculated correctly when using
-         ;; `text-scale-adjust'.
-         `(space :width (,(if-let ((font (font-at (1- (point))))
-                                   (info (query-font font)))
-                              (/ (float shr-indentation) (aref info 7))
-                            shr-indentation)
-                         . width))))
+        ;; Set the specified space width in units of the average-width
+        ;; of the current font, like (N . width).  That way, the
+        ;; indentation is calculated correctly when using
+        ;; `text-scale-adjust'.
+        (let ((avg-space (propertize (buffer-substring (1- (point)) (point))
+                                     'display '(space :width 1))))
+          (put-text-property
+           (1- (point)) (point) 'display
+           `(space :width (,(/ (float shr-indentation)
+                               (string-pixel-width avg-space (current-buffer)))
+                           . width)))))
       (put-text-property start (+ (point) prefix)
                          'shr-prefix-length (+ prefix (- (point) start))))))
 

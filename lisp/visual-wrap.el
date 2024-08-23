@@ -160,20 +160,14 @@ PREFIX was empty."
     prefix)
    (t
     ;; Otherwise, we want the prefix to be whitespace of the same width
-    ;; as the first-line prefix.  If possible, compute the real pixel
-    ;; width of the first-line prefix in canonical-width characters.
-    ;; This is useful if the first-line prefix uses some very-wide
-    ;; characters.
-    (if-let ((font (font-at position))
-             (info (query-font font)))
+    ;; as the first-line prefix.  We want to return an integer width (in
+    ;; units of the font's average-width) large enough to fit the
+    ;; first-line prefix.
+    (let ((avg-space (propertize (buffer-substring position (1+ position))
+                                 'display '(space :width 1))))
         (max (string-width prefix)
              (ceiling (string-pixel-width prefix (current-buffer))
-                      (aref info 7)))
-      ;; We couldn't get the font, so we're in a terminal and
-      ;; `string-pixel-width' is really returning the number of columns.
-      ;; (This is different from `string-width', since that doesn't
-      ;; respect specified spaces.)
-      (string-pixel-width prefix)))))
+                      (string-pixel-width avg-space (current-buffer))))))))
 
 (defun visual-wrap-fill-context-prefix (beg end)
   "Compute visual wrap prefix from text between BEG and END.
@@ -189,7 +183,7 @@ by `visual-wrap-extra-indent'."
           ;; make much sense (and is positively harmful in
           ;; taskpaper-mode where paragraph-start matches everything).
           (or (let ((paragraph-start regexp-unmatchable))
-                    (fill-context-prefix beg end))
+                (fill-context-prefix beg end))
                   ;; Note: fill-context-prefix may return nil; See:
                   ;; http://article.gmane.org/gmane.emacs.devel/156285
               ""))
