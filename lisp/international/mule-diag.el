@@ -43,7 +43,7 @@
 ;;; CHARSET
 
 (define-button-type 'sort-listed-character-sets
-  'help-echo (purecopy "mouse-2, RET: sort on this column")
+  'help-echo "mouse-2, RET: sort on this column"
   'face 'bold
   'action (lambda (button)
             (sort-listed-character-sets (button-get button 'sort-key))))

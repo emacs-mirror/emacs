@@ -265,7 +265,7 @@ attribute."
 	  (aset emacs-mule-charset-table emacs-mule-id name)))
 
     (dolist (slot attrs)
-      (setcdr slot (purecopy (plist-get props (car slot)))))
+      (setcdr slot (plist-get props (car slot))))
 
     ;; Make sure that the value of :code-space is a vector of 8
     ;; elements.
@@ -278,19 +278,12 @@ attribute."
 
     ;; Add :name and :docstring properties to PROPS.
     (setq props
-	  (cons :name (cons name (cons :docstring (cons (purecopy docstring) props)))))
+          (cons :name (cons name (cons :docstring (cons docstring props)))))
     (or (plist-get props :short-name)
 	(plist-put props :short-name (symbol-name name)))
     (or (plist-get props :long-name)
 	(plist-put props :long-name (plist-get props :short-name)))
     (plist-put props :base name)
-    ;; We can probably get a worthwhile amount in purespace.
-    (setq props
-	  (mapcar (lambda (elt)
-		    (if (stringp elt)
-			(purecopy elt)
-		      elt))
-		  props))
     (setcdr (assq :plist attrs) props)
 
     (apply 'define-charset-internal name (mapcar 'cdr attrs))))
@@ -326,7 +319,7 @@ Return t if file exists."
 	    (message "Loading %s (source)..." file)
 	  (message "Loading %s..." file)))
       (when purify-flag
-	(push (purecopy file) preloaded-file-list))
+        (push file preloaded-file-list))
       (unwind-protect
 	  (let ((load-true-file-name fullname)
                 (load-file-name fullname)
@@ -440,10 +433,7 @@ This is the last value stored with
   "Set CHARSETS's PROPNAME property to value VALUE.
 It can be retrieved with `(get-charset-property CHARSET PROPNAME)'."
   (set-charset-plist charset
-		     (plist-put (charset-plist charset) propname
-				(if (stringp value)
-				    (purecopy value)
-				  value))))
+                     (plist-put (charset-plist charset) propname value)))
 
 (defun charset-description (charset)
   "Return description string of CHARSET."
@@ -984,8 +974,7 @@ non-ASCII files.  This attribute is meaningful only when
 
     ;; Add :name and :docstring properties to PROPS.
     (setq props
-	  (cons :name (cons name (cons :docstring (cons (purecopy docstring)
-							props)))))
+          (cons :name (cons name (cons :docstring (cons docstring props)))))
     (setcdr (assq :plist common-attrs) props)
     (apply #'define-coding-system-internal
 	   name (mapcar #'cdr (append common-attrs spec-attrs)))))
@@ -1529,13 +1518,12 @@ This setting is effective for the next communication only."
 ;;; X selections
 
 (defvar ctext-non-standard-encodings-alist
-  (mapcar 'purecopy
   '(("big5-0" big5 2 big5)
     ("ISO8859-14" iso-8859-14 1 latin-iso8859-14)
     ("ISO8859-15" iso-8859-15 1 latin-iso8859-15)
     ("gbk-0" gbk 2 chinese-gbk)
     ("koi8-r" koi8-r 1 koi8-r)
-    ("microsoft-cp1251" windows-1251 1 windows-1251)))
+    ("microsoft-cp1251" windows-1251 1 windows-1251))
   "Alist of non-standard encoding names vs the corresponding usages in CTEXT.
 
 It controls how extended segments of a compound text are handled
@@ -1568,14 +1556,13 @@ Each element must be one of the names listed in the variable
 `ctext-non-standard-encodings-alist' (which see).")
 
 (defvar ctext-non-standard-encodings-regexp
-  (purecopy
   (string-to-multibyte
    (concat
     ;; For non-standard encodings.
     "\\(\e%/[0-4][\200-\377][\200-\377]\\([^\002]+\\)\002\\)"
     "\\|"
     ;; For UTF-8 encoding.
-    "\\(\e%G[^\e]*\e%@\\)"))))
+    "\\(\e%G[^\e]*\e%@\\)")))
 
 ;; Functions to support "Non-Standard Character Set Encodings" defined
 ;; by the COMPOUND-TEXT spec.  They also support "The UTF-8 encoding"
@@ -1746,7 +1733,6 @@ in-place."
 (defcustom auto-coding-alist
   ;; .exe and .EXE are added to support archive-mode looking at DOS
   ;; self-extracting exe archives.
-  (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
 	  '(("\\.\\(\
 arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|7z\\|squashfs\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\|SQUASHFS\\)\\'"
@@ -1756,7 +1742,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\|SQUASHFS\\)\\'"
     ("\\.\\(gz\\|Z\\|bz\\|bz2\\|xz\\|gpg\\)\\'" . no-conversion)
     ("\\.\\(jpe?g\\|png\\|gif\\|tiff?\\|p[bpgn]m\\)\\'" . no-conversion)
     ("\\.pdf\\'" . no-conversion)
-    ("/#[^/]+#\\'" . utf-8-emacs-unix)))
+    ("/#[^/]+#\\'" . utf-8-emacs-unix))
   "Alist of filename patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose name matches REGEXP is decoded by CODING-SYSTEM on reading.
@@ -1771,12 +1757,11 @@ and the contents of `file-coding-system-alist'."
 		       (symbol :tag "Coding system"))))
 
 (defcustom auto-coding-regexp-alist
-  (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
   '(("\\`BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion)
     ("\\`\xFE\xFF" . utf-16be-with-signature)
     ("\\`\xFF\xFE" . utf-16le-with-signature)
     ("\\`\xEF\xBB\xBF" . utf-8-with-signature)
-    ("\\`;ELC\024\0\0\0" . emacs-mule)))	; Emacs 20-compiled
+    ("\\`;ELC\024\0\0\0" . emacs-mule))	; Emacs 20-compiled
   "Alist of patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose first bytes match REGEXP is decoded by CODING-SYSTEM on reading.
