@@ -42,6 +42,7 @@ workflow:
     - when: always
 
 variables:
+  GIT_DEPTH: 0
   GIT_STRATEGY: fetch
   EMACS_EMBA_CI: 1
   EMACS_TEST_JUNIT_REPORT: junit-test-report.xml
