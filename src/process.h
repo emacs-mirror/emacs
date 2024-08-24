@@ -191,6 +191,7 @@ struct Lisp_Process
 #endif
 
 #ifdef HAVE_GNUTLS
+    struct Lisp_Process **gnutls_pproc;
     gnutls_initstage_t gnutls_initstage;
     gnutls_session_t gnutls_state;
     gnutls_certificate_client_credentials gnutls_x509_cred;

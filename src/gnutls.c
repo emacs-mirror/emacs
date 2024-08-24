@@ -27,6 +27,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "pdumper.h"
 
+#ifdef HAVE_MPS
+#include "igc.h"
+#endif
+
 #ifdef HAVE_GNUTLS
 
 # if GNUTLS_VERSION_NUMBER >= 0x030014
@@ -702,12 +706,21 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
   if (proc->gnutls_initstage < GNUTLS_STAGE_TRANSPORT_POINTERS_SET)
     {
 # ifdef WINDOWSNT
+#ifdef HAVE_MPS
+      /* FIXME/igc: use exact tracing here */
+      if (!proc->gnutls_pproc)
+	proc->gnutls_pproc = igc_xzalloc_ambig (sizeof *proc->gnutls_pproc);
+#else
+      if (!proc->gnutls_pproc)
+	proc->gnutls_pproc = xmalloc (sizeof *proc->gnutls_pproc);
+#endif
+      *proc->gnutls_pproc = proc;
       /* On W32 we cannot transfer socket handles between different runtime
 	 libraries, so we tell GnuTLS to use our special push/pull
 	 functions.  */
       gnutls_transport_set_ptr2 (state,
-				 (gnutls_transport_ptr_t) proc,
-				 (gnutls_transport_ptr_t) proc);
+				 (gnutls_transport_ptr_t) proc->gnutls_pproc,
+				 (gnutls_transport_ptr_t) proc->gnutls_pproc);
       gnutls_transport_set_push_function (state, &emacs_gnutls_push);
       gnutls_transport_set_pull_function (state, &emacs_gnutls_pull);
 # else
