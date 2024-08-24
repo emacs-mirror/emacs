@@ -766,7 +766,17 @@ Ignores `line-move-visual'."
    ((not rectangle-mark-mode)
     (funcall orig))
    (t
-    (apply #'min (mapcar #'car (region-bounds))))))
+    (save-excursion
+      (let* ((pt (point))
+             (mk (mark))
+             (start (min pt mk))
+             (end (max pt mk))
+             (cols (rectangle--pos-cols start end))
+             (startcol (car cols))
+             (endcol (cdr cols)))
+        (goto-char start)
+        (move-to-column (min startcol endcol))
+        (point))))))
 
 (defun rectangle--region-end (orig)
   "Like `region-end' but supports rectangular regions."
@@ -774,7 +784,17 @@ Ignores `line-move-visual'."
    ((not rectangle-mark-mode)
     (funcall orig))
    (t
-    (apply #'max (mapcar #'cdr (region-bounds))))))
+    (save-excursion
+      (let* ((pt (point))
+             (mk (mark))
+             (start (min pt mk))
+             (end (max pt mk))
+             (cols (rectangle--pos-cols start end))
+             (startcol (car cols))
+             (endcol (cdr cols)))
+        (goto-char end)
+        (move-to-column (max startcol endcol))
+        (point))))))
 
 (defun rectangle--extract-region (orig &optional delete)
   (cond
