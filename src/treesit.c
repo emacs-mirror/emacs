@@ -1467,7 +1467,8 @@ an indirect buffer.  */)
       {
 	struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
 	if (EQ (parser->tag, tag)
-	    && EQ (parser->language_symbol, language))
+	    && EQ (parser->language_symbol, language)
+	    && EQ (parser->buffer, buf_orig))
 	  return XCAR (tail);
       }
     }
