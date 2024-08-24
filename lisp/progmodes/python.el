@@ -5390,8 +5390,8 @@ be added to `python-mode-skeleton-abbrev-table'."
               (format "Insert %s statement." name))
          ,@skel))))
 
-(define-abbrev-table 'python-mode-abbrev-table ()
-  "Abbrev table for Python mode."
+(define-abbrev-table 'python-base-mode-abbrev-table ()
+  "Abbrev table for Python modes."
   :parents (list python-mode-skeleton-abbrev-table))
 
 (defmacro python-define-auxiliary-skeleton (name &optional doc &rest skel)
