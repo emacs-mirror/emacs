@@ -989,7 +989,7 @@ buffer and save warnings in a separate buffer."
 Return nil if there are no more doc strings."
   (let (found)
     (while (and (not (setq found (checkdoc--next-docstring)))
-                (beginning-of-defun -1)))
+                (beginning-of-defun-raw -1)))
     found))
 
 (defun checkdoc--next-docstring ()

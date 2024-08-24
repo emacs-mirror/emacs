@@ -4230,6 +4230,9 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
   specpdl_ref count = SPECPDL_INDEX ();
   bool samebuf = EQ (buffer, w->contents);
 
+  /* It's never OK to assign WINDOW a dead buffer.  */
+  eassert (BUFFER_LIVE_P (b));
+
   wset_buffer (w, buffer);
 
   if (EQ (window, selected_window))
