@@ -2020,48 +2020,55 @@ ID-FORMAT valid values are `string' and `integer'."
 	  (t2 (tramp-tramp-file-p newname))
 	  target)
       (with-parsed-tramp-file-name (if t1 dirname newname) nil
-	(unless (file-exists-p dirname)
-	  (tramp-error v 'file-missing dirname))
+	(cond
+	 ((and copy-directory-create-symlink
+	       (setq target (file-symlink-p dirname))
+	       (tramp-equal-remote dirname newname))
+	  (make-symbolic-link
+	   target
+	   (if (directory-name-p newname)
+	       (concat newname (file-name-nondirectory dirname)) newname)
+	   t))
 
-	(if (and copy-directory-create-symlink
-		 (setq target (file-symlink-p dirname))
-		 (tramp-equal-remote dirname newname))
-	    (make-symbolic-link
-	     target
-	     (if (directory-name-p newname)
-		 (concat newname (file-name-nondirectory dirname)) newname)
-	     t)
+	 ;; Shortcut: if method, host, user are the same for both
+	 ;; files, we invoke `cp' on the remote host directly.
+	 ((and (not copy-contents)
+	       (tramp-equal-remote dirname newname))
+	  (when (and (file-directory-p newname)
+		     (not (directory-name-p newname)))
+	    (tramp-error v 'file-already-exists newname))
+	  (setq dirname (directory-file-name (expand-file-name dirname))
+		newname (directory-file-name (expand-file-name newname)))
+	  (tramp-do-copy-or-rename-file-directly
+	   'copy dirname newname
+	   'ok-if-already-exists keep-date 'preserve-uid-gid))
 
-	  (if (and (not copy-contents)
-		   (tramp-get-method-parameter v 'tramp-copy-recursive)
-		   ;; When DIRNAME and NEWNAME are remote, they must
-		   ;; have the same method.
-		   (or (null t1) (null t2)
-		       (string-equal
-			(tramp-file-name-method
-			 (tramp-dissect-file-name dirname))
-			(tramp-file-name-method
-			 (tramp-dissect-file-name newname)))))
-	      ;; scp or rsync DTRT.
-	      (progn
-		(when (and (file-directory-p newname)
-			   (not (directory-name-p newname)))
-		  (tramp-error v 'file-already-exists newname))
-		(setq dirname (directory-file-name (expand-file-name dirname))
-		      newname (directory-file-name (expand-file-name newname)))
-		(when (and (file-directory-p newname)
-			   (not (string-equal (file-name-nondirectory dirname)
-					      (file-name-nondirectory newname))))
-		  (setq newname
-			(expand-file-name
-			 (file-name-nondirectory dirname) newname)))
-		(unless (file-directory-p (file-name-directory newname))
-		  (make-directory (file-name-directory newname) parents))
-		(tramp-do-copy-or-rename-file-out-of-band
-		 'copy dirname newname 'ok-if-already-exists keep-date))
+	 ;; scp or rsync DTRT.
+	 ((and (not copy-contents)
+	       (tramp-get-method-parameter v 'tramp-copy-recursive)
+	       ;; When DIRNAME and NEWNAME are remote, they must have
+	       ;; the same method.
+	       (or (null t1) (null t2)
+		   (string-equal
+		    (tramp-file-name-method (tramp-dissect-file-name dirname))
+		    (tramp-file-name-method (tramp-dissect-file-name newname)))))
+	  (when (and (file-directory-p newname)
+		     (not (directory-name-p newname)))
+	    (tramp-error v 'file-already-exists newname))
+	  (setq dirname (directory-file-name (expand-file-name dirname))
+		newname (directory-file-name (expand-file-name newname)))
+	  (when (and (file-directory-p newname)
+		     (not (string-equal (file-name-nondirectory dirname)
+					(file-name-nondirectory newname))))
+	    (setq newname
+		  (expand-file-name (file-name-nondirectory dirname) newname)))
+	  (unless (file-directory-p (file-name-directory newname))
+	    (make-directory (file-name-directory newname) parents))
+	  (tramp-do-copy-or-rename-file-out-of-band
+	   'copy dirname newname 'ok-if-already-exists keep-date))
 
-	    ;; We must do it file-wise.
-	    (tramp-run-real-handler
+	 ;; We must do it file-wise.
+	 (t (tramp-run-real-handler
 	     #'copy-directory
 	     (list dirname newname keep-date parents copy-contents))))
 
