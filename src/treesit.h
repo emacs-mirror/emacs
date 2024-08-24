@@ -82,6 +82,10 @@ struct Lisp_TS_Parser
   /* If this field is true, parser functions raises
      treesit-parser-deleted signal.  */
   bool deleted;
+  /* If this field is true, deleting the parser should also delete the
+     associated buffer.  This is for parsers created by
+     treesit-parse-string, which uses a hidden temp buffer.  */
+  bool need_to_gc_buffer;
 };
 
 /* A wrapper around a tree-sitter node.  */

@@ -1181,6 +1181,7 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
   lisp_parser->visible_end = BUF_ZV_BYTE (XBUFFER (buffer));
   lisp_parser->timestamp = 0;
   lisp_parser->deleted = false;
+  lisp_parser->need_to_gc_buffer = false;
   eassert (lisp_parser->visible_beg <= lisp_parser->visible_end);
   return make_lisp_ptr (lisp_parser, Lisp_Vectorlike);
 }
@@ -1220,6 +1221,8 @@ make_treesit_query (Lisp_Object query, Lisp_Object language)
 void
 treesit_delete_parser (struct Lisp_TS_Parser *lisp_parser)
 {
+  if (lisp_parser->need_to_gc_buffer)
+    Fkill_buffer (lisp_parser->buffer);
   ts_tree_delete (lisp_parser->tree);
   ts_parser_delete (lisp_parser->parser);
 }
@@ -1857,6 +1860,49 @@ positions.  PARSER is the parser issuing the notification.   */)
   if (!NILP (Fmemq (function, functions)))
     XTS_PARSER (parser)->after_change_functions = Fdelq (function, functions);
   return Qnil;
+}
+
+// Why don't we use ts_parse_string?  I tried, but it requires too much
+// change throughout treesit.c: we either return a root node that has no
+// associated parser, or one that has a parser but the parser doesn't
+// have associated buffer. Both route requires us to add checks and
+// branches everytime we use the parser of a node or the buffer of a
+// parser.  I tried route 1, and found that on top of needing to add a
+// bunch of branches to handle the no-parser case, many functions
+// requires a parser alongside the node (getting the tree, or language
+// symbol, etc), and I would need to rewrite those as well.  Overall
+// it's just not worth it--this is just a convenience function. --yuan
+DEFUN ("treesit-parse-string",
+       Ftreesit_parse_string, Streesit_parse_string,
+       2, 2, 0,
+       doc: /* Parse STRING using a parser for LANGUAGE.
+
+Return the root node of the result parse tree.  DO NOT use this function
+in a loop: this function is intended for one-off use and isn't
+optimized; for heavy workload, use a temporary buffer instead.  */)
+  (Lisp_Object string, Lisp_Object language)
+{
+  CHECK_SYMBOL (language);
+  CHECK_STRING (string);
+
+  Lisp_Object name_str = build_string (" *treesit-parse-string*");
+  Lisp_Object buffer_name = Fgenerate_new_buffer_name (name_str, Qnil);
+  Lisp_Object buffer = Fget_buffer_create (buffer_name, Qnil);
+
+  struct buffer *old_buffer = current_buffer;
+  set_buffer_internal (XBUFFER (buffer));
+  insert1 (string);
+  set_buffer_internal (old_buffer);
+
+  Lisp_Object parser = Ftreesit_parser_create (language, buffer, Qt, Qnil);
+  XTS_PARSER (parser)->need_to_gc_buffer = true;
+
+  /* Make sure the temp buffer doesn't reference the parser, otherwise
+     the buffer and parser cross-reference each other and the parser is
+     never garbage-collected.  */
+  BVAR (XBUFFER (buffer), ts_parser_list) = Qnil;
+
+  return Ftreesit_parser_root_node (parser);
 }
 
 
@@ -4245,7 +4291,7 @@ applies to LANGUAGE-A will be redirected to LANGUAGE-B instead.  */);
   defsubr (&Streesit_parser_tag);
 
   defsubr (&Streesit_parser_root_node);
-  /* defsubr (&Streesit_parse_string); */
+  defsubr (&Streesit_parse_string);
 
   defsubr (&Streesit_parser_set_included_ranges);
   defsubr (&Streesit_parser_included_ranges);

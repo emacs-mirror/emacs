@@ -123,17 +123,6 @@ of max unsigned 32-bit value for byte offsets into buffer text."
 
 ;;; Parser API supplement
 
-(defun treesit-parse-string (string language)
-  "Parse STRING using a parser for LANGUAGE.
-Return the root node of the syntax tree."
-  ;; We can't use `with-temp-buffer' because it kills the buffer when
-  ;; returning from the form.
-  (let ((buf (generate-new-buffer " *treesit-parse-string*")))
-    (with-current-buffer buf
-      (insert string)
-      (treesit-parser-root-node
-       (treesit-parser-create language)))))
-
 (defvar-local treesit-language-at-point-function nil
   "A function that returns the language at point.
 This is used by `treesit-language-at', which is used by various
