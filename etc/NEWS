@@ -61,21 +61,20 @@ VALUE) ...))' where STYLE is a symbol naming a completion style.
 VARIABLE will be bound to VALUE (without evaluating it) while the style
 is executing.  This allows multiple references to the same style with
 different values for completion-affecting variables like
-'completion-pcm-leading-wildcard or 'completion-ignore-case'.  This also
+'completion-pcm-leading-wildcard' or 'completion-ignore-case'.  This also
 applies for the styles configuration in 'completion-category-overrides'
 and 'completion-category-defaults'.
 
-
 ** Windows
 
 +++
 *** New hook 'window-deletable-functions'.
 This abnormal hook gives its client a way to save a window from getting
 deleted implicitly by functions like 'kill-buffer', 'bury-buffer' and
-'quit-restore-window',
+'quit-restore-window'.
 
 +++
-*** New option 'kill-buffer-quit-windows'.
+*** New user option 'kill-buffer-quit-windows'.
 This option has 'kill-buffer' call 'quit-restore-window' to handle the
 further destiny of any window showing the buffer to be killed.
 
@@ -92,7 +91,7 @@ The values 'killing' and 'burying' are like 'kill' and 'bury' but assume
 that the actual killing or burying of the buffer is done by the caller.
 
 +++
-*** New option 'quit-restore-window-no-switch'.
+*** New user option 'quit-restore-window-no-switch'.
 With this option set, 'quit-restore-window' will delete its window more
 aggressively rather than switching to some other buffer in it.
 
@@ -101,7 +100,7 @@ aggressively rather than switching to some other buffer in it.
 +++
 *** New function 'frame-deletable-p'.
 Calling this function before 'delete-frame' is useful to avoid that the
-latter throws an error when the argument frame cannot be deleted.
+latter throws an error when the argument FRAME cannot be deleted.
 
 ** Tab Bars and Tab Lines
 
@@ -263,17 +262,17 @@ back to real DocView buffer if it still exists.
 *** Connection method "kubernetes" supports now optional namespace.
 The host name for Kubernetes connections can be of kind
 [CONTAINER.]POD[%NAMESPACE], in order to specify the namespace to be
-used.  This overrides the setiing in 'tramp-kubernetes-namespace', if
+used.  This overrides the setting in 'tramp-kubernetes-namespace', if
 any.
 
 ** Diff
 
 ---
-*** New command 'diff-kill-ring-save'
+*** New command 'diff-kill-ring-save'.
 This command copies to the 'kill-ring' a region of text modified
 according to diffs in the current buffer, but without applying the diffs
 to the original text.  If the selected range extends a hunk, the
-commands attempts to look up and copy the text in-between the hunks.
+command attempts to look up and copy the text in-between the hunks.
 
 
 * New Modes and Packages in Emacs 31.1
