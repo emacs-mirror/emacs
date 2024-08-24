@@ -83,7 +83,7 @@
 
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
-  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.22.5"))
+  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.22.8" "php/src"))
     (phpdoc . ("https://github.com/claytonrcarter/tree-sitter-phpdoc"))
     (html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.20.3"))
     (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.21.2"))
@@ -509,7 +509,7 @@ characters of the current line."
             (if (search-forward "</html>" end-html t 1)
                 0
               (+ (point) php-ts-mode-indent-offset))))
-      ;; Maybe it's better to use bol, read the documentation!!!
+      ;; Maybe it's better to use bol?
       (treesit-node-start parent))))
 
 (defun php-ts-mode--array-element-heuristic (_node parent _bol &rest _)
@@ -728,7 +728,7 @@ characters of the current line."
   '("abstract" "and" "array" "as" "break" "callable" "case" "catch"
     "class" "clone" "const" "continue" "declare" "default" "do" "echo"
     "else" "elseif" "enddeclare" "endfor" "endforeach" "endif"
-    "endswitch" "endwhile" "enum" "extends" "final" "finally" "fn"
+    "endswitch" "endwhile" "enum" "exit" "extends" "final" "finally" "fn"
     "for" "foreach" "from" "function" "global" "goto" "if" "implements"
     "include" "include_once" "instanceof" "insteadof" "interface"
     "list" "match" "namespace" "new" "null" "or" "print" "private"
@@ -762,6 +762,12 @@ characters of the current line."
     "E_COMPILE_WARNING" "E_USER_ERROR" "E_USER_WARNING"
     "E_USER_NOTICE" "E_DEPRECATED" "E_USER_DEPRECATED"
     "E_ALL" "E_STRICT"
+    ;; math constant
+    "M_PI" "M_E" "M_LOG2E" "M_LOG10E" "M_LN2" "M_LN10" "M_PI_2"
+    "M_PI_4" "M_1_PI" "M_2_PI" "M_SQRTPI" "M_2_SQRTPI" "M_SQRT2"
+    "M_SQRT3" "M_SQRT1_2" "M_LNPI" "M_EULER" "PHP_ROUND_HALF_UP"
+    "PHP_ROUND_HALF_DOWN" "PHP_ROUND_HALF_EVEN" "PHP_ROUND_HALF_ODD"
+    "NAN" "INF"
     ;; magic constant
     "__COMPILER_HALT_OFFSET__" "__CLASS__" "__DIR__" "__FILE__"
     "__FUNCTION__" "__LINE__" "__METHOD__" "__NAMESPACE__" "__TRAIT__")
@@ -785,26 +791,23 @@ characters of the current line."
    :feature 'constant
    `((boolean) @font-lock-constant-face
      (null) @font-lock-constant-face
-     ;; predefined constant or built in constant
+     ;; predefined constant or built in constant (part of PHP core)
      ((name) @font-lock-builtin-face
       (:match ,(rx-to-string
                 `(: bos (or ,@php-ts-mode--predefined-constant) eos))
               @font-lock-builtin-face))
      ;; user defined constant
      ((name) @font-lock-constant-face
-      (:match "\\`_?[A-Z][0-9A-Z_]+\\'" @font-lock-constant-face))
+      (:match "\\`_*[A-Z][0-9A-Z_]+\\'" @font-lock-constant-face))
      (const_declaration
       (const_element (name) @font-lock-constant-face))
-     (relative_scope "self") @font-lock-builtin-face
      ;; declare directive
      (declare_directive ["strict_types" "encoding" "ticks"] @font-lock-constant-face))
 
    :language 'php
    :feature 'name
-   `((goto_statement (name) @font-lock-constant-face)
-     (named_label_statement (name) @font-lock-constant-face)
-     (expression_statement (name) @font-lock-keyword-face
-                           (:equal "exit" @font-lock-keyword-face)))
+   '((goto_statement (name) @font-lock-constant-face)
+     (named_label_statement (name) @font-lock-constant-face))
 
    :language 'php
    ;;:override t
@@ -813,19 +816,21 @@ characters of the current line."
 
    :language 'php
    :feature 'operator
-   `([,@php-ts-mode--operators] @font-lock-operator-face)
+   `((error_suppression_expression "@" @font-lock-keyword-face)
+     [,@php-ts-mode--operators] @font-lock-operator-face)
 
    :language 'php
    :feature 'variable-name
    :override t
-   `(((name) @font-lock-keyword-face (:equal "this" @font-lock-keyword-face))
+   '(((name) @font-lock-keyword-face (:equal "this" @font-lock-keyword-face))
      (variable_name (name) @font-lock-variable-name-face)
+     (relative_scope ["parent" "self" "static"] @font-lock-builtin-face)
+     (relative_scope) @font-lock-constant-face
      (dynamic_variable_name (name) @font-lock-variable-name-face)
      (member_access_expression
       name: (_) @font-lock-variable-name-face)
      (scoped_property_access_expression
-      scope: (name) @font-lock-constant-face)
-     (error_suppression_expression (name) @font-lock-variable-name-face))
+      scope: (name) @font-lock-constant-face))
 
    :language 'php
    :feature 'string
@@ -850,7 +855,8 @@ characters of the current line."
    :language 'php
    :feature 'type
    :override t
-   '((union_type) @font-lock-type-face
+   '((union_type "|" @font-lock-operator-face)
+     (union_type) @font-lock-type-face
      (bottom_type) @font-lock-type-face
      (primitive_type) @font-lock-type-face
      (cast_type) @font-lock-type-face
@@ -883,17 +889,18 @@ characters of the current line."
      ("=>") @font-lock-keyword-face
      (object_creation_expression
       (name) @font-lock-type-face)
+     (namespace_name_as_prefix "\\" @font-lock-delimiter-face)
      (namespace_name_as_prefix (namespace_name (name)) @font-lock-type-face)
      (namespace_use_clause (name) @font-lock-property-use-face)
      (namespace_aliasing_clause (name) @font-lock-type-face)
+     (namespace_name "\\" @font-lock-delimiter-face)
      (namespace_name (name) @font-lock-type-face)
      (use_declaration (name) @font-lock-property-use-face))
 
    :language 'php
    :feature 'function-scope
    :override t
-   '((relative_scope) @font-lock-constant-face
-     (scoped_call_expression
+   '((scoped_call_expression
       scope: (name) @font-lock-constant-face)
      (class_constant_access_expression (name) @font-lock-constant-face))
 
