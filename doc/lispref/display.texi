@@ -4372,9 +4372,10 @@ should be equal to the value of @var{height} above.
 The width, in pixels, of the font's space character.
 
 @item average-width
-The average width of the font characters.  If this is zero, Emacs uses
-the value of @var{space-width} instead, when it calculates text layout
-on display.
+The average width of the font characters.  Emacs uses this for
+calculating text layout on display; if the value of @var{average-width}
+is zero, Emacs uses the value of @var{space-width} instead for those
+purposes.
 
 @item filename
 The file name of the font as a string.  This can be @code{nil} if the
