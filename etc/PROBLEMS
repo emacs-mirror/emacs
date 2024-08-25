@@ -1984,6 +1984,12 @@ To check thoroughly for such resource specifications, use 'xrdb
 -query' to see what resources the X server records, and also look at
 the user's ~/.Xdefaults and ~/.Xdefaults-* files.
 
+*** In Emacs built with Lucid cannot display very long popup menus.
+
+Very long popup menus cannot be shown in their entirety, and don't have
+a scroll bar to scroll them vertically.  Lucid does not support this
+feature.  A workaround is to use other toolkits (GTK, LessTif, etc.).
+
 *** Emacs running under X Window System does not handle mouse clicks.
 *** 'emacs -geometry 80x20' finds a file named '80x20'.
 
