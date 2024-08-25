@@ -41,7 +41,7 @@ modify this GNU manual.''
 @contents
 
 
-@node Top, Overview, (dir), (dir)
+@node Top
 @top D-Bus integration in Emacs
 
 This manual documents an API for usage of D-Bus in Emacs.  D-Bus is a

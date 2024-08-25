@@ -107,7 +107,7 @@ inline query
 Fast minibuffer queries for email addresses and phone numbers
 @item
 Interface to BBDB to let you insert server records into your own BBDB database
-(@pxref{Top,,BBDB,bbdb,BBDB Manual})
+(@pxref{BBDB,,BBDB,bbdb,BBDB Manual})
 @end itemize
 
 @menu
@@ -986,8 +986,8 @@ In addition to providing a dedicated EUDC function for binding to a
 key shortcut (@pxref{Inline Query Expansion}), EUDC also provides a
 function to contribute search results to the Emacs in-buffer
 completion system available via the function
-@code{completion-at-point} (@pxref{Identifier
-Inquiries,,,maintaining}) in @code{message-mode} buffers
+@code{completion-at-point} (@pxref{List Identifiers,,,emacs, The GNU
+Emacs Manual}) in @code{message-mode} buffers
 (@pxref{Top,Message,, message, Message}).  When using this mechanism,
 queries are made in the multi-server query mode of operation
 (@pxref{Multi-server Queries}).
@@ -1133,7 +1133,7 @@ that all available servers should be tried.
 @findex eudc-insert-record-at-point-into-bbdb
 @findex eudc-try-bbdb-insert
 With EUDC, you can automatically create BBDB records
-(@pxref{Top,,BBDB,bbdb,BBDB Manual}) from records you get from a
+(@pxref{BBDB,,BBDB,bbdb,BBDB Manual}) from records you get from a
 directory server.  You do this by moving point to the appropriate
 record in a query result display buffer and invoking the command
 @kbd{M-x eudc-insert-record-at-point-into-bbdb} with the

@@ -48,7 +48,7 @@ itself allows free copying and redistribution.
 
 @contents
 
-@node Top, FAQ notation, (dir), (dir)
+@node Top
 @top The GNU Emacs FAQ
 
 This is the GNU Emacs FAQ.
