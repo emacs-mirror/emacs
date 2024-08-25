@@ -736,11 +736,6 @@ recompute_basic_faces (struct frame *f)
       clear_face_cache (false);
       if (!realize_basic_faces (f))
 	emacs_abort ();
-      /* Force complete face recalculation next time we use the display
-         code, because realize_basic_faces could free the fontset used
-         by non-ASCII faces corresponding to ASCII faces of the basic
-         faces, and attempt to use that fontset might segfault.  */
-      f->face_change = true;
     }
 }
 
