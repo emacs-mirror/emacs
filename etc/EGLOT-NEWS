@@ -36,6 +36,12 @@ documentation snippets.
 These affect mostly the "vanilla" frontend to completions (invoked with
 C-M-i).
 
+** More strict completion expansion (bug#72705).
+
+It ensures that "expand common" commands (such as C-M-i or TAB in
+third-party frontends) don't result in fewer completions than before
+they are called.
+
 ** Experimental support for Eglot-only subprojects (github#1337)
 
 Useful for complex projects with subprojects needing different language

@@ -645,6 +645,36 @@ directory hierarchy."
         (forward-line -1)
         (should (looking-at "Complete, but not unique")))))))
 
+(ert-deftest eglot-test-stop-completion-on-nonprefix ()
+  "Test completion also resulting in 'Complete, but not unique'."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("coiso.c" .
+                       ,(concat "int foot; int footer; int fo_obar;"
+                                "int main() {foo")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (goto-char (point-max))
+      (completion-at-point)
+      (should (looking-back "foo")))))
+
+(ert-deftest eglot-test-try-completion-nomatch ()
+  "Test completion table with non-matching input, returning nil."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("coiso.c" .
+                       ,(concat "int main() {abc")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (goto-char (point-max))
+      (should
+       (null
+        (completion-try-completion
+         "abc"
+         (nth 2 (eglot-completion-at-point)) nil 3))))))
+
 (ert-deftest eglot-test-try-completion-inside-symbol ()
   "Test completion table inside symbol, with only prefix matching."
   (skip-unless (executable-find "clangd"))
