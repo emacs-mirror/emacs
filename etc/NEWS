@@ -331,6 +331,12 @@ removed because its supported date styles can be handled by
 'parse-time-string'.  To restore the previously documented behavior,
 specify "+0000" or "Z" as the time zone in the argument.
 
+---
+** The 'min-width' property is now supported for overlays as well.
+This 'display' property was previously supported only as text property.
+Now overlays can also have this property, with the same effect for the
+text "covered" by the overlay.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 

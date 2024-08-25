@@ -5632,16 +5632,25 @@ find_display_property (Lisp_Object disp, Lisp_Object prop)
     return XCDR (elem);
 }
 
+/* Return the value of 'display' text or overlay property PROP of
+   character at CHARPOS in OBJECT.  Return nil if character at CHARPOS
+   has no 'display' property or if the 'display' property of that
+   character does not include PROP.  OBJECT can be a buffer or a window
+   or a string.  */
 static Lisp_Object
-get_display_property (ptrdiff_t bufpos, Lisp_Object prop, Lisp_Object object)
+get_display_property (ptrdiff_t charpos, Lisp_Object prop, Lisp_Object object)
 {
-  return find_display_property (Fget_text_property (make_fixnum (bufpos),
+  return find_display_property (Fget_char_property (make_fixnum (charpos),
 						    Qdisplay, object),
 				prop);
 }
 
+/* Handle 'display' property '(min-width (WIDTH))' at CHARPOS in OBJECT.
+   OBJECT can be a buffer (or nil, which means the current buffer) or a
+   string.  MIN_WIDTH is the value of min-width spec that we expect to
+   process.  */
 static void
-display_min_width (struct it *it, ptrdiff_t bufpos,
+display_min_width (struct it *it, ptrdiff_t charpos,
 		   Lisp_Object object, Lisp_Object width_spec)
 {
   /* We're being called at the end of the `min-width' sequence,
@@ -5652,15 +5661,21 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
       /* When called from display_string (i.e., the mode line),
 	 we're being called with a string as the object, and we
 	 may be called with many sub-strings belonging to the same
-	 :propertize run. */
-      if ((bufpos == 0
-	   && !EQ (it->min_width_property,
-		   get_display_property (0, Qmin_width, object)))
+	 :propertize run.  */
+      if ((STRINGP (object)
+	   && ((charpos == 0
+		&& !EQ (it->min_width_property,
+			get_display_property (0, Qmin_width, object)))
+	       || (charpos > 0
+		   && EQ (it->min_width_property,
+			  get_display_property (charpos - 1, Qmin_width,
+						 object)))))
 	  /* In a buffer -- check that we're really right after the
 	     sequence of characters covered by this `min-width'.  */
-	  || (bufpos > BEGV
+	  || (!STRINGP (object)
+	      && charpos > BEGV
 	      && EQ (it->min_width_property,
-		     get_display_property (bufpos - 1, Qmin_width, object))))
+		     get_display_property (charpos - 1, Qmin_width, object))))
 	{
 	  Lisp_Object w = Qnil;
 	  double width;
@@ -5707,15 +5722,18 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
      the end.  */
   if (CONSP (width_spec))
     {
-      if (bufpos == BEGV
+      if ((!STRINGP (object)
+	   && charpos == BEGV)
 	  /* Mode line (see above).  */
-	  || (bufpos == 0
+	  || (STRINGP (object)
+	      && charpos == 0
 	      && !EQ (it->min_width_property,
 		      get_display_property (0, Qmin_width, object)))
 	  /* Buffer.  */
-	  || (bufpos > BEGV
+	  || (!STRINGP (object)
+	      && charpos > BEGV
 	      && !EQ (width_spec,
-		      get_display_property (bufpos - 1, Qmin_width, object))))
+		      get_display_property (charpos - 1, Qmin_width, object))))
 	{
 	  it->min_width_property = width_spec;
 	  it->min_width_start = it->current_x;
@@ -5792,13 +5810,24 @@ handle_display_prop (struct it *it)
 					   Qdisplay, object, &overlay);
 
   /* Rest of the code must have OBJECT be either a string or a buffer.  */
+  Lisp_Object objwin = object;
   if (!STRINGP (it->string))
     object = it->w->contents;
 
   /* Handle min-width ends. */
   if (!NILP (it->min_width_property)
       && NILP (find_display_property (propval, Qmin_width)))
-    display_min_width (it, bufpos, object, Qnil);
+    {
+      ptrdiff_t pos = bufpos, start = BEGV;
+
+      if (STRINGP (object))
+	{
+	  pos = IT_STRING_CHARPOS (*it);
+	  start = 0;
+	}
+      if (pos > start)
+	display_min_width (it, pos, objwin, Qnil);
+    }
 
   if (NILP (propval))
     return HANDLED_NORMALLY;
@@ -6099,7 +6128,13 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       && CONSP (XCAR (XCDR (spec))))
     {
       if (it)
-	display_min_width (it, bufpos, object, XCAR (XCDR (spec)));
+	{
+	  ptrdiff_t pos = bufpos;
+
+	  if (STRINGP (object))
+	    pos = IT_STRING_CHARPOS (*it);
+	  display_min_width (it, pos, object, XCAR (XCDR (spec)));
+	}
       return 0;
     }
 
@@ -9004,6 +9039,10 @@ set_iterator_to_next (struct it *it, bool reseat_p)
 	     next, if there is one.  */
 	  if (IT_STRING_CHARPOS (*it) >= SCHARS (it->string))
 	    {
+	      /* Maybe add a stretch glyph if the string had 'min-width'
+                 display spec.  */
+	      display_min_width (it, IT_STRING_CHARPOS (*it), it->string,
+				 Qnil);
 	      it->ellipsis_p = false;
 	      next_overlay_string (it);
 	      if (it->ellipsis_p)
@@ -9019,6 +9058,12 @@ set_iterator_to_next (struct it *it, bool reseat_p)
 	  if (IT_STRING_CHARPOS (*it) == SCHARS (it->string)
 	      && it->sp > 0)
 	    {
+	      /* Maybe add a stretch glyph if the string had 'min-width'
+                 display spec.  We only do this if it->sp > 0 because
+                 mode-line strings are handled differently, see
+                 display_min_width.  */
+	      display_min_width (it, IT_STRING_CHARPOS (*it), it->string,
+				 Qnil);
 	      pop_it (it);
 	      if (it->method == GET_FROM_STRING)
 		goto consider_string_end;
