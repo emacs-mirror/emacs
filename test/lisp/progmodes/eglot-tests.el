@@ -587,6 +587,18 @@ directory hierarchy."
     (eglot--wait-for (s-notifs 20) (&key method &allow-other-keys)
       (string= method "textDocument/publishDiagnostics"))))
 
+(defun eglot--wait-for-rust-analyzer ()
+  (eglot--sniffing (:server-notifications s-notifs)
+    (should (eglot--tests-connect))
+    (eglot--wait-for (s-notifs 20) (&key method params &allow-other-keys)
+      (and
+       (string= method "$/progress")
+       "rustAnalyzer/Indexing"
+       (equal params
+              '(:token "rustAnalyzer/Indexing" :value
+                       ;; Could wait for :kind "end" instead, but it's 2 more seconds.
+                       (:kind "begin" :title "Indexing" :cancellable :json-false :percentage 0)))))))
+
 (ert-deftest eglot-test-basic-completions ()
   "Test basic autocompletion in a clangd LSP."
   (skip-unless (executable-find "clangd"))
@@ -599,6 +611,20 @@ directory hierarchy."
       (completion-at-point)
       (message (buffer-string))
       (should (looking-back "fprintf.?")))))
+
+(ert-deftest eglot-test-common-prefix-completion ()
+  "Test completion appending the common prefix."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("coiso.c" .
+                       ,(concat "int foo_bar; int foo_bar_baz;"
+                                "int main() {foo")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (goto-char (point-max))
+      (completion-at-point)
+      (should (looking-back "{foo_bar")))))
 
 (ert-deftest eglot-test-non-unique-completions ()
   "Test completion resulting in 'Complete, but not unique'."
@@ -619,19 +645,101 @@ directory hierarchy."
         (forward-line -1)
         (should (looking-at "Complete, but not unique")))))))
 
+(ert-deftest eglot-test-stop-completion-on-nonprefix ()
+  "Test completion also resulting in 'Complete, but not unique'."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("coiso.c" .
+                       ,(concat "int foot; int footer; int fo_obar;"
+                                "int main() {foo")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (goto-char (point-max))
+      (completion-at-point)
+      (should (looking-back "foo")))))
+
+(ert-deftest eglot-test-try-completion-nomatch ()
+  "Test completion table with non-matching input, returning nil."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("coiso.c" .
+                       ,(concat "int main() {abc")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (goto-char (point-max))
+      (should
+       (null
+        (completion-try-completion
+         "abc"
+         (nth 2 (eglot-completion-at-point)) nil 3))))))
+
+(ert-deftest eglot-test-try-completion-inside-symbol ()
+  "Test completion table inside symbol, with only prefix matching."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("coiso.c" .
+                       ,(concat
+                         "int foobar;"
+                         "int main() {foo123")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (goto-char (- (point-max) 3))
+      (when (buffer-live-p "*Completions*")
+        (kill-buffer "*Completions*"))
+      (completion-at-point)
+      (should (looking-back "foo"))
+      (should (looking-at "123"))
+      (should (get-buffer "*Completions*"))
+      )))
+
+(ert-deftest eglot-test-rust-completion-exit-function ()
+  "Ensure that the rust-analyzer exit function creates the expected contents."
+  (skip-unless (executable-find "rust-analyzer"))
+  (skip-unless (executable-find "cargo"))
+  (eglot--with-fixture
+      '(("cmpl-project" .
+         (("main.rs" .
+           "fn test() -> i32 { let v: usize = 1; v.count_on1234.1234567890;"))))
+    (with-current-buffer
+        (eglot--find-file-noselect "cmpl-project/main.rs")
+      (should (zerop (shell-command "cargo init")))
+      (eglot--tests-connect)
+      (goto-char (point-min))
+      (search-forward "v.count_on")
+      (let ((minibuffer-message-timeout 0)
+            ;; Fail at (ding) if completion fails.
+            (executing-kbd-macro t))
+        (when (buffer-live-p "*Completions*")
+          (kill-buffer "*Completions*"))
+        ;; The design is pretty brittle, we'll need to monitor the
+        ;; language server for changes in behavior.
+        (eglot--wait-for-rust-analyzer)
+        (completion-at-point)
+        (should (looking-back "\\.count_on"))
+        (should (get-buffer "*Completions*"))
+        (minibuffer-next-completion 1)
+        (minibuffer-choose-completion t))
+      (should
+       (equal
+        "fn test() -> i32 { let v: usize = 1; v.count_ones().1234567890;"
+        (buffer-string))))))
+
 (ert-deftest eglot-test-basic-xref ()
   "Test basic xref functionality in a clangd LSP."
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
-      `(("project" . (("coiso.c" .
-                       ,(concat "int foo=42; int fooey;"
-                                "int main() {foo=82;}")))))
-    (with-current-buffer
-        (eglot--find-file-noselect "project/coiso.c")
-      (should (eglot--tests-connect))
-      (search-forward "{foo")
-      (call-interactively 'xref-find-definitions)
-      (should (looking-at "foo=42")))))
+   `(("project" . (("coiso.c" .
+                    ,(concat "int foo=42; int fooey;"
+                             "int main() {foo=82;}")))))
+   (with-current-buffer
+       (eglot--find-file-noselect "project/coiso.c")
+     (should (eglot--tests-connect))
+     (search-forward "{foo")
+     (call-interactively 'xref-find-definitions)
+     (should (looking-at "foo=42")))))
 
 (defvar eglot--test-c-buffer
   "\

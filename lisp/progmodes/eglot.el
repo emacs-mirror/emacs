@@ -3142,8 +3142,18 @@ for which LSP on-type-formatting should be requested."
 (defun eglot--dumb-tryc (pat table pred point)
   (let ((probe (funcall table pat pred nil)))
     (cond ((eq probe t) t)
-          (probe (cons probe (length probe)))
-          (t (cons pat point)))))
+          (probe
+           (if (and (not (equal probe pat))
+                    (cl-every
+                     (lambda (s) (string-prefix-p probe s completion-ignore-case))
+                     (funcall table pat pred t)))
+               (cons probe (length probe))
+             (cons pat point)))
+          (t
+           ;; Match ignoring suffix: if there are any completions for
+           ;; the current prefix at least, keep the current input.
+           (and (funcall table (substring pat 0 point) pred t)
+                (cons pat point))))))
 
 (add-to-list 'completion-category-defaults '(eglot-capf (styles eglot--dumb-flex)))
 (add-to-list 'completion-styles-alist '(eglot--dumb-flex eglot--dumb-tryc eglot--dumb-allc))
