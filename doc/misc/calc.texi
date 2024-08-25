@@ -142,7 +142,7 @@ modify this GNU manual.''
 
 @c [begin]
 @ifnottex
-@node Top, Getting Started, (dir), (dir)
+@node Top
 @top The GNU Emacs Calculator
 
 @noindent
