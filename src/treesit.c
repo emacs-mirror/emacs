@@ -1863,16 +1863,16 @@ positions.  PARSER is the parser issuing the notification.   */)
   return Qnil;
 }
 
-// Why don't we use ts_parse_string?  I tried, but it requires too much
-// change throughout treesit.c: we either return a root node that has no
-// associated parser, or one that has a parser but the parser doesn't
-// have associated buffer. Both route requires us to add checks and
-// branches everytime we use the parser of a node or the buffer of a
-// parser.  I tried route 1, and found that on top of needing to add a
-// bunch of branches to handle the no-parser case, many functions
-// requires a parser alongside the node (getting the tree, or language
-// symbol, etc), and I would need to rewrite those as well.  Overall
-// it's just not worth it--this is just a convenience function. --yuan
+/* Why don't we use ts_parse_string?  I tried, but it requires too much
+   change throughout treesit.c: we either return a root node that has no
+   associated parser, or one that has a parser but the parser doesn't
+   have associated buffer.  Both routes require us to add checks and
+   branches everywhere we use the parser of a node or the buffer of a
+   parser.  I tried route 1, and found that on top of the need to add a
+   bunch of branches to handle the no-parser case, many functions
+   require a parser alongside the node (getting the tree, or language
+   symbol, etc), and I would need to rewrite those as well.  Overall,
+   it's just not worth it--this is just a convenience function. --yuan  */
 DEFUN ("treesit-parse-string",
        Ftreesit_parse_string, Streesit_parse_string,
        2, 2, 0,
