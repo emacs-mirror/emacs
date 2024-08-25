@@ -331,7 +331,60 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
         (test-insert-overlay " " 'display (char-to-string #x3fffc)))
   (insert "\n\n")
   (insert-button "Toggle between octal and hex display"
-                 'action 'test-redisplay-5-toggle))
+                 'action 'test-redisplay-5-toggle)
+  (insert "\n\n"))
+
+(defun test-redisplay-6 ()
+  (insert "Test 6: min-width display property:\n\n")
+  (insert "  Expected: 123  45\n")
+  (insert "  Results:  "
+          (propertize "123" 'display '((min-width (5))))
+          "45")
+  (insert "\n\n")
+  (insert "  Expected: 12  34  5\n")
+  (insert "  Results:  "
+          (propertize "12" 'display '((min-width (4))))
+          (propertize "34" 'display '((min-width (4))))
+          "5")
+  (insert "\n\n")
+  (insert "  Expected: 1gnu  45\n")
+  (insert "  Results:  "
+          "1"
+          (propertize "23" 'display
+                      (propertize "gnu" 'display '((min-width (5)))))
+          "45")
+  (insert "\n\n")
+  (insert "  Expected: 123  45\n")
+  (insert "  Results:  ")
+  (test-insert-overlay "123" 'display '((min-width (5))))
+  (insert "45")
+  (insert "\n\n")
+  (insert "  Expected: 1_23 45\n")
+  (insert "  Results:  ")
+  (insert (propertize "123" 'display '((min-width (5)))))
+  (let ((overlay (make-overlay (- (point) 1) (- (point) 2))))
+    (overlay-put overlay 'before-string "_"))
+  (insert "45")
+  (insert "\n\n")
+  (insert (propertize "_" 'display '(left-fringe large-circle))
+          "  Expected: 123  45\n")
+  (insert "  Results:  ")
+  (insert (propertize "123" 'display '((min-width (5)))))
+  (let ((overlay (make-overlay (- (point) 2) (- (point) 1))))
+    (overlay-put overlay 'before-string
+                 (propertize "_" 'display '(left-fringe large-circle))))
+  (insert "45")
+  (insert "\n\n")
+  (insert (propertize "_" 'display '(left-fringe large-circle))
+          "  Expected: 123  45\n")
+  (insert "  Results:  ")
+  (insert (propertize "123" 'display '((min-width (5)))))
+  (let ((overlay1 (make-overlay (- (point) 3) (point)))
+        (overlay2 (make-overlay (- (point) 2) (- (point) 1))))
+    (overlay-put overlay1 'display '((min-width (5))))
+    (overlay-put overlay2 'before-string
+                 (propertize "_" 'display '(left-fringe large-circle))))
+  (insert "45"))
 
 (defun test-redisplay ()
   (interactive)
@@ -349,6 +402,7 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
     (test-redisplay-3)
     (test-redisplay-4)
     (test-redisplay-5)
+    (test-redisplay-6)
     (goto-char (point-min))))
 
 ;;; redisplay-testsuite.el ends here
