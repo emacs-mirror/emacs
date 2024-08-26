@@ -1530,9 +1530,8 @@ it is displayed along with the global value."
   "Edit the variable under point."
   (declare (completion ignore))
   (interactive)
-  (let* ((val (thing-at-point 'sexp))
-         (var (get-text-property 0 'help-fns--edit-variable val)))
-    (unless val
+  (let ((var (get-text-property (point) 'help-fns--edit-variable)))
+    (unless var
       (error "No variable under point"))
     (let ((str (read-string-from-buffer
                 (format ";; Edit the `%s' variable." (nth 0 var))
