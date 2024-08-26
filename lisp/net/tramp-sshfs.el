@@ -44,7 +44,8 @@
   "The sshfs mount command."
   :group 'tramp
   :version "28.1"
-  :type 'string)
+  :type 'string
+  :link '(info-link :tag "Tramp manual" "(tramp) Setup of sshfs method"))
 
 ;;;###tramp-autoload
 (defvar tramp-default-remote-shell) ;; Silence byte compiler.

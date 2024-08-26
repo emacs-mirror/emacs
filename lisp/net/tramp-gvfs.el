@@ -142,7 +142,8 @@
 			 (const "mtp")
 			 (const "nextcloud")
 			 (const "sftp")
-			 (const "smb"))))
+			 (const "smb")))
+  :link '(tramp-info-link :tag "Tramp manual" tramp-gvfs-methods))
 
 ;;;###tramp-autoload
 (defconst tramp-goa-methods '("gdrive" "nextcloud")

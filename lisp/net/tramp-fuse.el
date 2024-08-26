@@ -233,7 +233,8 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
   "Whether fuse volumes shall be unmounted on cleanup."
   :group 'tramp
   :version "28.1"
-  :type 'boolean)
+  :type 'boolean
+  :link '(info-link :tag "Tramp manual" "(tramp) FUSE setup"))
 
 (defun tramp-fuse-cleanup (vec)
   "Cleanup fuse volume determined by VEC."

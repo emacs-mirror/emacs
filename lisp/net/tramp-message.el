@@ -74,7 +74,8 @@ Any level x includes messages for all levels 1 .. x-1.  The levels are
 10  traces (huge)
 11  call traces (maintainer only)."
   :group 'tramp
-  :type 'integer)
+  :type 'integer
+  :link '(info-link :tag "Tramp manual" "(tramp) Traces and Profiles"))
 
 (defcustom tramp-debug-to-file nil
   "Whether Tramp debug messages shall be saved to file.
@@ -82,14 +83,16 @@ The debug file has the same name as the debug buffer, written to
 `tramp-compat-temporary-file-directory'."
   :group 'tramp
   :version "28.1"
-  :type 'boolean)
+  :type 'boolean
+  :link '(info-link :tag "Tramp manual" "(tramp) Traces and Profiles"))
 
 (defcustom tramp-debug-command-messages nil
   "Whether to write only command messages to the debug buffer.
 This increases `tramp-verbose' to 6 if necessary."
   :group 'tramp
   :version "30.1"
-  :type 'boolean)
+  :type 'boolean
+  :link '(info-link :tag "Tramp manual" "(tramp) Traces and Profiles"))
 
 (defconst tramp-debug-outline-regexp
   (rx ;; Timestamp.
@@ -137,9 +140,8 @@ They are completed by `M-x TAB' only in Tramp debug buffers."
 
 (defun tramp-setup-debug-buffer ()
   "Function to setup debug buffers."
-  (declare (tramp-suppress-trace t))
-  ;; (declare (completion tramp-debug-buffer-command-completion-p)
-  ;; 	   (tramp-suppress-trace t))
+  (declare (completion tramp-debug-buffer-command-completion-p)
+           (tramp-suppress-trace t))
   (interactive)
   (set-buffer-file-coding-system 'utf-8)
   (setq buffer-undo-list t)
@@ -164,10 +166,6 @@ They are completed by `M-x TAB' only in Tramp debug buffers."
   ;; For debugging purposes.
   (local-set-key "\M-n" 'clone-buffer)
   (add-hook 'clone-buffer-hook #'tramp-setup-debug-buffer nil 'local))
-
-(function-put
- #'tramp-setup-debug-buffer 'completion-predicate
- #'tramp-debug-buffer-command-completion-p)
 
 (defun tramp-debug-buffer-name (vec)
   "A name for the debug buffer of VEC."

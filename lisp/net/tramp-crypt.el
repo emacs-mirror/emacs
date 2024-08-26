@@ -84,13 +84,15 @@
   "Name of the encfs program."
   :group 'tramp
   :version "28.1"
-  :type 'string)
+  :type 'string
+  :link '(info-link :tag "Tramp manual" "(tramp) Keeping files encrypted"))
 
 (defcustom tramp-crypt-encfsctl-program "encfsctl"
   "Name of the encfsctl program."
   :group 'tramp
   :version "28.1"
-  :type 'string)
+  :type 'string
+  :link '(info-link :tag "Tramp manual" "(tramp) Keeping files encrypted"))
 
 (defcustom tramp-crypt-encfs-option "--standard"
   "Configuration option for encfs.
@@ -100,7 +102,8 @@ initializing a new encrypted remote directory."
   :group 'tramp
   :version "28.1"
   :type '(choice (const "--standard")
-		 (const "--paranoia")))
+		 (const "--paranoia"))
+  :link '(info-link :tag "Tramp manual" "(tramp) Keeping files encrypted"))
 
 ;; We check only for encfs, assuming that encfsctl will be available
 ;; as well.  The autoloaded value is nil, the check will run when
@@ -131,7 +134,8 @@ They are completed by `M-x TAB' only when encryption support is enabled."
   "Whether to keep the encfs configuration file in the encrypted remote directory."
   :group 'tramp
   :version "28.1"
-  :type 'boolean)
+  :type 'boolean
+  :link '(info-link :tag "Tramp manual" "(tramp) Keeping files encrypted"))
 
 ;;;###tramp-autoload
 (defvar tramp-crypt-directories nil

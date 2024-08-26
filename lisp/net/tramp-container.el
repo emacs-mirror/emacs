@@ -121,7 +121,8 @@
   :group 'tramp
   :version "29.1"
   :type '(choice (const "docker")
-                 (string)))
+                 (string))
+  :link '(tramp-info-link :tag "Tramp manual" tramp-docker-program))
 
 ;;;###tramp-autoload
 (defcustom tramp-podman-program "podman"
@@ -129,7 +130,8 @@
   :group 'tramp
   :version "29.1"
   :type '(choice (const "podman")
-                 (string)))
+                 (string))
+  :link '(tramp-info-link :tag "Tramp manual" tramp-podman-program))
 
 ;;;###tramp-autoload
 (defcustom tramp-kubernetes-program "kubectl"
@@ -137,7 +139,8 @@
   :group 'tramp
   :version "29.1"
   :type '(choice (const "kubectl")
-                 (string)))
+                 (string))
+  :link '(tramp-info-link :tag "Tramp manual" tramp-kubernetes-program))
 
 (defcustom tramp-kubernetes-context nil
   "Context of Kubernetes.
@@ -145,7 +148,8 @@ If it is nil, the default context will be used."
   :group 'tramp
   :version "30.1"
   :type '(choice (const :tag "Use default" nil)
-                 (string)))
+                 (string))
+  :link '(info-link :tag "Tramp manual" "(tramp) Kubernetes setup"))
 
 (defcustom tramp-kubernetes-namespace nil
   "Namespace of Kubernetes.
@@ -154,7 +158,8 @@ in the remote file name host part will override it."
   :group 'tramp
   :version "31.1"
   :type '(choice (const :tag "Use default" nil)
-                 (string)))
+                 (string))
+  :link '(info-link :tag "Tramp manual" "(tramp) Kubernetes setup"))
 
 ;;;###tramp-autoload
 (defcustom tramp-toolbox-program "toolbox"
@@ -162,7 +167,8 @@ in the remote file name host part will override it."
   :group 'tramp
   :version "30.1"
   :type '(choice (const "toolbox")
-                 (string)))
+                 (string))
+  :link '(tramp-info-link :tag "Tramp manual" tramp-toolbox-program))
 
 ;;;###tramp-autoload
 (defcustom tramp-distrobox-program "distrobox"
@@ -170,7 +176,8 @@ in the remote file name host part will override it."
   :group 'tramp
   :version "30.1"
   :type '(choice (const "distrobox")
-                 (string)))
+                 (string))
+  :link '(tramp-info-link :tag "Tramp manual" tramp-distrobox-program))
 
 ;;;###tramp-autoload
 (defcustom tramp-flatpak-program "flatpak"
@@ -178,7 +185,8 @@ in the remote file name host part will override it."
   :group 'tramp
   :version "30.1"
   :type '(choice (const "flatpak")
-                 (string)))
+                 (string))
+  :link '(tramp-info-link :tag "Tramp manual" tramp-flatpak-program))
 
 ;;;###tramp-autoload
 (defcustom tramp-apptainer-program "apptainer"
@@ -186,14 +194,16 @@ in the remote file name host part will override it."
   :group 'tramp
   :version "30.1"
   :type '(choice (const "apptainer")
-                 (string)))
+                 (string))
+  :link '(tramp-info-link :tag "Tramp manual" tramp-apptainer-program))
 
 (defcustom tramp-nspawn-program "machinectl"
   "Name of the machinectl program."
   :group 'tramp
   :version "30.1"
   :type '(choice (const "machinectl")
-                 (string)))
+                 (string))
+  :link '(tramp-info-link :tag "Tramp manual" tramp-nspawn-program))
 
 ;;;###tramp-autoload
 (defconst tramp-docker-method "docker"

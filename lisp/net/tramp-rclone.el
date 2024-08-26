@@ -46,7 +46,8 @@
   "Name of the rclone program."
   :group 'tramp
   :version "27.1"
-  :type 'string)
+  :type 'string
+  :link '(info-link :tag "Tramp manual" "(tramp) Setup of rclone method"))
 
 ;;;###tramp-autoload
 (tramp--with-startup

@@ -103,13 +103,16 @@ details see the info pages."
   :version "24.4"
   :type '(repeat (list (choice :tag "File Name regexp" regexp (const nil))
 		       (choice :tag "        Property" string)
-		       (choice :tag "           Value" sexp))))
+		       (choice :tag "           Value" sexp)))
+  :link '(info-link :tag "Tramp manual"
+		    "(tramp) Predefined connection information"))
 
 ;;;###tramp-autoload
 (defcustom tramp-persistency-file-name (locate-user-emacs-file "tramp")
   "File which keeps connection history for Tramp connections."
   :group 'tramp
-  :type 'file)
+  :type 'file
+  :link '(info-link :tag "Tramp manual" "(tramp) Connection caching"))
 
 ;;;###tramp-autoload
 (defconst tramp-cache-version (make-tramp-file-name :method "cache")
@@ -608,7 +611,8 @@ example if the host configuration changes often, or if you plug
 your laptop to different networks frequently."
   :group 'tramp
   :version "29.1"
-  :type 'boolean)
+  :type 'boolean
+  :link '(tramp-info-link :tag "Tramp manual" tramp-completion-use-cache))
 
 ;;;###tramp-autoload
 (defun tramp-parse-connection-properties (method)

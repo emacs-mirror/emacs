@@ -43,14 +43,18 @@
   "Name of the Android Debug Bridge program."
   :group 'tramp
   :version "24.4"
-  :type 'string)
+  :type '(choice (const "adb")
+                 (string))
+  :link '(tramp-info-link :tag "Tramp manual" tramp-adb-program))
 
 (defcustom tramp-adb-connect-if-not-connected nil
   "Try to run `adb connect' if provided device is not connected currently.
 It is used for TCP/IP devices."
   :group 'tramp
   :version "25.1"
-  :type 'boolean)
+  :type 'boolean
+  :link '(tramp-info-link :tag "Tramp manual"
+			  tramp-adb-connect-if-not-connected))
 
 ;;;###tramp-autoload
 (defconst tramp-adb-method "adb"
