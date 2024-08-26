@@ -869,6 +869,21 @@ the C sources, too."
     ))
 
 
+(defun help-fns--first-release-override (symbol type)
+  "The first release defining SYMBOL of TYPE, or nil.
+TYPE indicates the namespace and is `fun' or `var'."
+  (let* ((sym-rel-file (expand-file-name "symbol-releases.eld" data-directory))
+         (tuples
+          (with-temp-buffer
+            (ignore-errors
+              (insert-file-contents sym-rel-file)
+              (goto-char (point-min))
+              (read (current-buffer))))))
+    (unless (cl-every (lambda (x) (and (= (length x) 3) (stringp (car x))))
+                      tuples)
+      (error "Bad %s format" sym-rel-file))
+    (car (rassoc (list type symbol) tuples))))
+
 (defun help-fns--first-release (symbol)
   "Return the likely first release that defined SYMBOL, or nil."
   ;; Code below relies on the etc/NEWS* files.
@@ -949,16 +964,24 @@ the C sources, too."
 ;;       (display-buffer (current-buffer)))))
 
 (add-hook 'help-fns-describe-function-functions
-          #'help-fns--mention-first-release)
+          #'help-fns--mention-first-function-release)
 (add-hook 'help-fns-describe-variable-functions
-          #'help-fns--mention-first-release)
-(defun help-fns--mention-first-release (object)
+          #'help-fns--mention-first-variable-release)
+
+(defun help-fns--mention-first-function-release (object)
+  (help-fns--mention-first-release object 'fun))
+
+(defun help-fns--mention-first-variable-release (object)
   ;; Don't output anything if we've already output the :version from
   ;; the `defcustom'.
   (unless (memq 'help-fns--customize-variable-version
                 help-fns--activated-functions)
-    (when-let ((first (and (symbolp object)
-                           (help-fns--first-release object))))
+    (help-fns--mention-first-release object 'var)))
+
+(defun help-fns--mention-first-release (object type)
+  (when (symbolp object)
+    (when-let ((first (or (help-fns--first-release-override object type)
+                          (help-fns--first-release object))))
       (with-current-buffer standard-output
         (insert (format "  Probably introduced at or before Emacs version %s.\n"
                         first))))))
