@@ -4384,18 +4384,21 @@ the same set of elements."
                      (unique (or (and (eq prefix t) (setq prefix fixed))
                                  (and (stringp prefix)
                                       (eq t (try-completion prefix comps))))))
-                ;; if the common prefix is unique, it also is a common
-                ;; suffix, so we should add it for `prefix' elements
-                (unless (or (and (eq elem 'prefix) (not unique))
-                            (equal prefix ""))
-                  (push prefix res))
                 ;; If there's only one completion, `elem' is not useful
                 ;; any more: it can only match the empty string.
                 ;; FIXME: in some cases, it may be necessary to turn an
                 ;; `any' into a `star' because the surrounding context has
                 ;; changed such that string->pattern wouldn't add an `any'
                 ;; here any more.
-                (unless unique
+                (if unique
+                    ;; if the common prefix is unique, it also is a common
+                    ;; suffix, so we should add it for `prefix' elements
+                    (push prefix res)
+                  ;; `prefix' only wants to include the fixed part before the
+                  ;; wildcard, not the result of growing that fixed part.
+                  (when (eq elem 'prefix)
+                    (setq prefix fixed))
+                  (push prefix res)
                   (push elem res)
                   ;; Extract common suffix additionally to common prefix.
                   ;; Don't do it for `any' since it could lead to a merged
