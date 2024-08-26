@@ -1316,13 +1316,9 @@ empty string."
 (defun ert--pp-with-indentation-and-newline (object)
   "Pretty-print OBJECT, indenting it to the current column of point.
 Ensures a final newline is inserted."
-  (let ((begin (point))
-        (cols (current-column))
-        (pp-escape-newlines t)
+  (let ((pp-escape-newlines t)
         (print-escape-control-characters t))
-    (pp object (current-buffer))
-    (unless (bolp) (insert "\n"))
-    (indent-rigidly begin (point) cols)))
+    (pp object (current-buffer))))
 
 (defun ert--insert-infos (result)
   "Insert `ert-info' infos from RESULT into current buffer.
