@@ -138,6 +138,20 @@ When everything's done, look hard at the resulting merge.  Skipping
 commits requires separate merges, so don't be surprised to see more
 than one merge commit.  If you're happy, push.
 
+
+Long-lived feature branches
+===========================
+
+The conventions for formatting commit log messages set out in CONTRIBUTE
+don't apply to commits made to feature branches.
+Thus, feel free to commit little and often, with short and simple commit
+messages.  This practice can ease development by making 'git bisect' and
+'git revert' more effective.
+
+The commit merging the feature branch to master, on the other hand,
+should follow the usual commit log message conventions.
+
+
 Warnings about X11 forwarding
 =============================
 
