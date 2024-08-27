@@ -2254,8 +2254,15 @@ What constitutes as text and source code sexp is determined
 by `text' and `sexp' in `treesit-thing-settings'."
   (interactive "^p")
   (let ((arg (or arg 1))
-        (pred (or treesit-sexp-type-regexp 'sexp)))
-    (or (when (treesit-node-match-p (treesit-node-at (point)) 'text t)
+        (pred (or treesit-sexp-type-regexp 'sexp))
+        (node-at-point
+         (treesit-node-at (point) (treesit-language-at (point)))))
+    (or (when (and node-at-point
+                   ;; Make sure point is strictly inside node.
+                   (< (treesit-node-start node-at-point)
+                      (point)
+                      (treesit-node-end node-at-point))
+                   (treesit-node-match-p node-at-point 'text t))
           (forward-sexp-default-function arg)
           t)
         (if (> arg 0)
