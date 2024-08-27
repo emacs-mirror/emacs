@@ -210,7 +210,10 @@ General steps (for each step, check for possible errors):
     should be committed separately, as described in step 3 above, to
     avoid them being merged to master.  The lisp/ldefs-boot.el file
     should not be merged to master either, so it could be added to the
-    same commit or committed separately.
+    same commit or committed separately.  To make sure the changes to
+    ChangeLog.N and etc/AUTHORS are _not_ skipped, do NOT describe their
+    updates as "regenerate" or "re-generate", since gitmerge.el by
+    default skips such commits; instead, use "update" or some such.
 
     The easiest way of doing that is "C-x v d ROOT-DIR RET", then go
     to the first modified file, press 'M' to mark all modified files,
