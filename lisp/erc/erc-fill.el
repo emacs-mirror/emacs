@@ -547,6 +547,9 @@ via `erc-fill-wrap-mode-hook'."
    (when erc-fill-wrap-merge
      (add-hook 'erc-button--prev-next-predicate-functions
                #'erc-fill--wrap-merged-button-p nil t))
+   (add-function :after (local 'erc--clear-function)
+                 #'erc-fill--wrap-massage-initial-message-post-clear
+                 '((depth . 50)))
    (erc-stamp--display-margin-mode +1)
    (visual-line-mode +1))
   ((visual-line-mode -1)
@@ -557,6 +560,8 @@ via `erc-fill-wrap-mode-hook'."
    (kill-local-variable 'erc-fill--wrap-last-msg)
    (kill-local-variable 'erc--inhibit-prompt-display-property-p)
    (kill-local-variable 'erc-fill--wrap-merge-indicator-pre)
+   (remove-function (local 'erc--clear-function)
+                    #'erc-fill--wrap-massage-initial-message-post-clear)
    (remove-hook 'erc--refresh-prompt-hook
                 #'erc-fill--wrap-indent-prompt t)
    (remove-hook 'erc-button--prev-next-predicate-functions
@@ -673,6 +678,24 @@ Also cover region with text prop `erc-fill--wrap-merge' set to t."
                    (beg (pop end))
                    (erc-fill--wrap-continued-predicate #'ignore))
           (erc-fill--wrap-rejigger-region (1- beg) (1+ end) nil 'repairp))))))
+
+(defun erc-fill--wrap-massage-initial-message-post-clear (beg end)
+  "Maybe reveal hidden speaker or add stamp on initial message after END."
+  (if erc-stamp--date-mode
+      (erc-stamp--redo-right-stamp-post-clear beg end)
+    ;; With other non-date stamp-insertion functions, remove hidden
+    ;; speaker continuation on first spoken message in buffer.
+    (when-let (((< end (1- erc-insert-marker)))
+               (next (text-property-not-all end (min erc-insert-marker
+                                                     (+ 4096 end))
+                                            'erc--msg nil))
+               (bounds (erc--get-inserted-msg-bounds next))
+               (found (text-property-not-all (car bounds) (cdr bounds)
+                                             'erc-fill--wrap-merge nil))
+               (erc-fill--wrap-continued-predicate #'ignore))
+      (erc-fill--wrap-rejigger-region (max (1- (car bounds)) (point-min))
+                                      (min (1+ (cdr bounds)) erc-insert-marker)
+                                      nil 'repairp))))
 
 (defun erc-fill-wrap ()
   "Use text props to mimic the effect of `erc-fill-static'.

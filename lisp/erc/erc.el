@@ -1794,7 +1794,9 @@ Defaults to the server buffer."
   (setq-local completion-ignore-case t)
   (add-hook 'post-command-hook #'erc-check-text-conversion nil t)
   (add-hook 'kill-buffer-hook #'erc-kill-buffer-function nil t)
-  (add-hook 'completion-at-point-functions #'erc-complete-word-at-point nil t))
+  (add-hook 'completion-at-point-functions #'erc-complete-word-at-point nil t)
+  (add-function :before (local 'erc--clear-function)
+                #'erc--skip-past-headroom-on-clear '((depth . 30))))
 
 ;; activation
 
@@ -2690,6 +2692,9 @@ side effect of setting the current buffer to the one it returns.  Use
 (defun erc-initialize-log-marker (buffer)
   "Initialize the `erc-last-saved-position' marker to a sensible position.
 BUFFER is the current buffer."
+  ;; Note that in 5.6, `erc-input-marker' itself became a "sensible
+  ;; position" when its insertion type changed to t.  However,
+  ;; decrementing still makes sense for compatibility.
   (with-current-buffer buffer
     (unless (markerp erc-last-saved-position)
       (setq erc-last-saved-position (make-marker))
@@ -3387,7 +3392,8 @@ a history backlog."
   (declare (indent 1))
   (let ((marker (make-symbol "marker")))
     `(progn
-       (cl-assert (= ?\n (char-before ,marker-or-pos)))
+       (cl-assert (or (= ,marker-or-pos (point-min))
+                      (= ?\n (char-before ,marker-or-pos))))
        (cl-assert (null erc--insert-line-function))
        (let* ((,marker (and (not (markerp ,marker-or-pos))
                             (copy-marker ,marker-or-pos)))
@@ -3703,7 +3709,8 @@ them from the previous newline, and add them to the newline suffixing
 the inserted version of STRING."
   (let* ((after (and (not erc-legacy-invisible-bounds-p)
                      (get-text-property (point) 'erc--hide)))
-         (before (and after (get-text-property (1- (point)) 'invisible)))
+         (before (and after (> (point) (point-min))
+                      (get-text-property (1- (point)) 'invisible)))
          (a (and after (ensure-list after)))
          (b (and before (ensure-list before)))
          (new (and before (erc--solo (cl-intersection b a)))))
@@ -4475,21 +4482,42 @@ of `erc-ignore-list'."
       (when-let ((existing (erc--find-ignore-timer user buffer)))
         (cancel-timer existing)))))
 
-(defvar erc--pre-clear-functions nil
-  "Abnormal hook run when truncating buffers.
-Called with position indicating boundary of interval to be excised.")
+(defvar erc--clear-function #'delete-region
+  "Function to truncate buffer.
+Called with two markers, LOWER and UPPER, indicating the bounds of the
+interval to be excised.  LOWER <= UPPER <= `erc-insert-marker'.")
+
+(defun erc--skip-past-headroom-on-clear (beg end)
+  "Move marker BEG past the two newlines added by `erc--initialize-markers'."
+  (when (and (not (buffer-narrowed-p)) (= beg (point-min)))
+    (save-excursion
+      (goto-char (point-min))
+      (let ((pos (skip-chars-forward "\n" (if erc--called-as-input-p 2 3))))
+        (set-marker beg (min (1+ pos) end erc-input-marker))))))
+
+(defvar erc--inhibit-clear-p nil
+  "When non-nil, ERC inhibits buffer truncation.")
 
 (defun erc-cmd-CLEAR ()
   "Clear messages in current buffer after informing active modules.
 Expect modules to perform housekeeping tasks to withstand the
 disruption.  When called from Lisp code, only clear messages up
 to but not including the one occupying the current line."
+  (when erc--inhibit-clear-p
+    (user-error "Truncation currently inhibited"))
   (with-silent-modifications
-    (let ((max (if (>= (point) erc-insert-marker)
-                   (1- erc-insert-marker)
-                 (or (erc--get-inserted-msg-beg (point)) (pos-bol)))))
-      (run-hook-with-args 'erc--pre-clear-functions max)
-      (delete-region (point-min) max)))
+    (let ((end (copy-marker
+                ;; Leave a final newline for compatibility, even though
+                ;; it complicates `erc--clear-function' handling.
+                (cond ((>= (point) erc-insert-marker)
+                       (max (point-min) (1- erc-insert-marker)))
+                      ((erc--get-inserted-msg-beg (point)))
+                      ((pos-bol)))))
+          (beg (point-min-marker)))
+      (let ((erc--inhibit-clear-p t))
+        (funcall erc--clear-function beg end))
+      (set-marker beg nil)
+      (set-marker end nil)))
   t)
 (put 'erc-cmd-CLEAR 'process-not-needed t)
 

@@ -20,6 +20,12 @@ purposes.  Modules can instead use the function 'erc-sync-banlist' to
 guarantee that the variable 'erc-channel-banlist' remains synced for
 the remainder of an IRC session.
 
+** Option 'erc-truncate-padding-size' controls truncation frequency.
+In fast-moving channels and in queries with long-winded bots, the
+'truncate' module has historically been asked to work overtime, mostly
+on account of a rather stingy buffering threshold of 512 characters.
+Now configurable, its default has been relaxed eightfold to 4096.
+
 
 * Changes in ERC 5.6
 

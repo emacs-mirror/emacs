@@ -231,7 +231,7 @@ also be a predicate function.  To only log when you are not set away, use:
    (add-hook 'erc-part-hook #'erc-conditional-save-buffer)
    ;; append, so that 'erc-initialize-log-marker runs first
    (add-hook 'erc-connect-pre-hook #'erc-log-setup-logging 'append)
-   (add-hook 'erc--pre-clear-functions #'erc-save-buffer-in-logs 50)
+   ;; FIXME use proper local "setup" function and major-mode hook.
    (dolist (buffer (erc-buffer-list))
      (erc-log-setup-logging buffer))
    (erc--modify-local-map t "C-c C-l" #'erc-save-buffer-in-logs))
@@ -244,7 +244,6 @@ also be a predicate function.  To only log when you are not set away, use:
    (remove-hook 'erc-quit-hook #'erc-conditional-save-queries)
    (remove-hook 'erc-part-hook #'erc-conditional-save-buffer)
    (remove-hook 'erc-connect-pre-hook #'erc-log-setup-logging)
-   (remove-hook 'erc--pre-clear-functions #'erc-save-buffer-in-logs)
    (dolist (buffer (erc-buffer-list))
      (erc-log-disable-logging buffer))
    (erc--modify-local-map nil "C-c C-l" #'erc-save-buffer-in-logs)))
@@ -259,6 +258,8 @@ The current buffer is given by BUFFER."
       (auto-save-mode -1)
       (setq buffer-file-name nil)
       (add-hook 'write-file-functions #'erc-save-buffer-in-logs nil t)
+      (add-function :before (local 'erc--clear-function)
+                    #'erc-log--save-on-clear '((depth . 50)))
       (when erc-log-insert-log-on-open
 	(ignore-errors
 	  (save-excursion
@@ -271,6 +272,7 @@ The current buffer is given by BUFFER."
   "Disable logging in BUFFER."
   (when (erc-logging-enabled buffer)
     (with-current-buffer buffer
+      (remove-function (local 'erc--clear-function) #'erc-log--save-on-clear)
       (setq buffer-offer-save nil
 	    erc-enable-logging nil))))
 
@@ -415,6 +417,7 @@ You can save every individual message by putting this function on
 	    (widen)
 	    ;; early on in the initialization, don't try and write the log out
 	    (when (and (markerp erc-last-saved-position)
+                       (null erc--insert-marker) ; suppress when splicing
 		       (> erc-insert-marker (1+ erc-last-saved-position)))
 	      (let ((start (1+ (marker-position erc-last-saved-position)))
 		    (end (marker-position erc-insert-marker)))
@@ -445,6 +448,9 @@ You can save every individual message by putting this function on
 			     (1- (marker-position erc-insert-marker)))))
 	    (set-buffer-modified-p nil))))))
   t)
+
+(defun erc-log--save-on-clear (_ end)
+  (erc-save-buffer-in-logs end))
 
 ;; This is a kludge to avoid littering erc-truncate.el with forward
 ;; declarations needed only for a corner-case compatibility check.
