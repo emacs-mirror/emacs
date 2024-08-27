@@ -693,5 +693,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
         <string>Emacs requires permission to access the Downloads folder.</string>
         <key>NSRemovableVolumesUsageDescription</key>
         <string>Emacs requires permission to access files on Removable Volumes.</string>
+        <key>NSSpeechRecognitionUsageDescription</key>
+        <string>Emacs requires permission to handle any speech recognition.</string>
 </dict>
 </plist>
