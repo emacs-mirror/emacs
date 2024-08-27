@@ -122,15 +122,11 @@
 
 ;; Maybe we need once a real Tramp mode, with key bindings etc.
 ;;;###autoload
-(defcustom tramp-mode t
+(defvar tramp-mode t
   "Whether Tramp is enabled.
 If it is set to nil, all remote file names are used literally.  Don't
 set it manually, use `inhibit-remote-files' or `without-remote-files'
-instead."
-  :type 'boolean
-  :link '(tramp-info-link :tag "Tramp manual" tramp-mode)
-  :link '(info-link :tag "Emacs manual" "(emacs) Remote Files")
-  :link '(info-link :tag "Elisp manual" "(elisp) Magic File Names"))
+instead.")
 
 (defcustom tramp-backup-directory-alist nil
   "Alist of filename patterns and backup directory names.

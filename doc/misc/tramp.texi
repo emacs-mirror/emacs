@@ -6188,9 +6188,6 @@ inhibit-remote-files @key{RET}}.  You can also add this to your
 (inhibit-remote-files)
 @end lisp
 
-@vindex tramp-mode
-This command sets the user option @code{tramp-mode} to @code{nil}.
-
 @findex without-remote-files
 @item
 If you write code, which is intended to run only for local files, you
@@ -6201,8 +6198,7 @@ can use the @code{without-remote-files} macro.
 @end lisp
 
 This improves performance, because many primitive file name operations
-don't check any longer for @value{tramp} file name regexps then.  The
-macro binds the user option @code{tramp-mode} to @code{nil}.
+don't check any longer for @value{tramp} file name regexps then.
 
 @findex tramp-unload-tramp
 @item
