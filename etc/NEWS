@@ -139,6 +139,14 @@ exactly below the text after the prefix on the first line.
 If 'whitespace-style' includes 'missing-newline-at-eof' (which is the
 default), the 'whitespace-cleanup' function will now add the newline.
 
+** Gnus
+
+---
+*** Replying to icalendar events now supports specifying a comment.
+When called with a prefix argument, accepting, declining, or tentatively
+accepting an icalendar event will prompt for a comment to add to the
+response.
+
 ** Eshell
 
 ---

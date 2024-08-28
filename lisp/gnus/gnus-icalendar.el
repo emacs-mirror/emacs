@@ -309,7 +309,7 @@ status will be retrieved from the first matching attendee record."
 ;;; gnus-icalendar-event-reply
 ;;;
 
-(defun gnus-icalendar-event--build-reply-event-body (ical-request status identities)
+(defun gnus-icalendar-event--build-reply-event-body (ical-request status identities &optional comment)
   (let ((summary-status (capitalize (symbol-name status)))
         (attendee-status (upcase (symbol-name status)))
         reply-event-lines)
@@ -319,6 +319,10 @@ status will be retrieved from the first matching attendee record."
 	  (if (string-match "^[^:]+:" line)
 	      (replace-match (format "\\&%s: " summary-status) t nil line)
 	    line))
+         (update-comment
+           (line)
+           (if comment (format "COMMENT:%s" comment)
+             line))
 	 (update-dtstamp ()
 			 (format-time-string "DTSTAMP:%Y%m%dT%H%M%SZ" nil t))
 	 (attendee-matches-identity
@@ -341,6 +345,7 @@ status will be retrieved from the first matching attendee record."
 		    (cond
 		     ((string= key "ATTENDEE") (update-attendee-status line))
 		     ((string= key "SUMMARY") (update-summary line))
+		     ((string= key "COMMENT") (update-comment line))
 		     ((string= key "DTSTAMP") (update-dtstamp))
 		     ((member key '("ORGANIZER" "DTSTART" "DTEND"
 				    "LOCATION" "DURATION" "SEQUENCE"
@@ -363,16 +368,27 @@ status will be retrieved from the first matching attendee record."
                       attendee-status user-full-name user-mail-address)
               reply-event-lines))
 
+      ;; add comment line if not existing
+      (when (and comment
+                 (not (gnus-icalendar-find-if
+                       (lambda (x)
+                         (string-match "^COMMENT" x))
+                       reply-event-lines)))
+        (push (format "COMMENT:%s" comment) reply-event-lines))
+
       (mapconcat #'identity `("BEGIN:VEVENT"
                               ,@(nreverse reply-event-lines)
                               "END:VEVENT")
                  "\n"))))
 
-(defun gnus-icalendar-event-reply-from-buffer (buf status identities)
+(defun gnus-icalendar-event-reply-from-buffer (buf status identities &optional comment)
   "Build a calendar event reply for request contained in BUF.
 The reply will have STATUS (`accepted', `tentative' or  `declined').
 The reply will be composed for attendees matching any entry
-on the IDENTITIES list."
+on the IDENTITIES list.
+Optional argument COMMENT will be placed in the comment field of the
+reply.
+"
   (cl-labels
       ((extract-block
 	(blockname)
@@ -396,7 +412,7 @@ on the IDENTITIES list."
                               "PRODID:Gnus"
                               "VERSION:2.0"
                               zone
-                              (gnus-icalendar-event--build-reply-event-body event status identities)
+                              (gnus-icalendar-event--build-reply-event-body event status identities comment)
                               "END:VCALENDAR")))
 
           (mapconcat #'identity (delq nil contents) "\n"))))))
@@ -878,13 +894,13 @@ These will be used to retrieve the RSVP information from ical events."
       (insert "Subject: " subject)
       (message-send-and-exit))))
 
-(defun gnus-icalendar-reply (data)
+(defun gnus-icalendar-reply (data &optional comment)
   (let* ((handle (car data))
          (status (cadr data))
          (event (caddr data))
          (reply (gnus-icalendar-with-decoded-handle handle
                   (gnus-icalendar-event-reply-from-buffer
-                   (current-buffer) status (gnus-icalendar-identities))))
+                   (current-buffer) status (gnus-icalendar-identities) comment)))
          (organizer (gnus-icalendar-event:organizer event)))
 
     (when reply
@@ -1009,25 +1025,37 @@ These will be used to retrieve the RSVP information from ical events."
     (when data
       (gnus-icalendar-save-part data))))
 
-(defun gnus-icalendar-reply-accept ()
-  "Accept invitation in the current article."
-  (interactive nil gnus-article-mode gnus-summary-mode)
+(defun gnus-icalendar-reply-accept (&optional comment-p)
+  "Accept invitation in the current article.
+
+Optional argument COMMENT-P non-nil (interactively `\\[universal-argument]')
+means prompt for a comment to include in the reply."
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (with-current-buffer gnus-article-buffer
-    (gnus-icalendar-reply (list gnus-icalendar-handle 'accepted gnus-icalendar-event))
+    (gnus-icalendar-reply (list gnus-icalendar-handle 'accepted gnus-icalendar-event)
+                          (when comment-p (read-string "Comment: ")))
     (setq-local gnus-icalendar-reply-status 'accepted)))
 
-(defun gnus-icalendar-reply-tentative ()
-  "Send tentative response to invitation in the current article."
-  (interactive nil gnus-article-mode gnus-summary-mode)
+(defun gnus-icalendar-reply-tentative (&optional comment-p)
+  "Send tentative response to invitation in the current article.
+
+Optional argument COMMENT-P non-nil (interactively `\\[universal-argument]')
+means prompt for a comment to include in the reply."
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (with-current-buffer gnus-article-buffer
-    (gnus-icalendar-reply (list gnus-icalendar-handle 'tentative gnus-icalendar-event))
+    (gnus-icalendar-reply (list gnus-icalendar-handle 'tentative gnus-icalendar-event)
+                          (when comment-p (read-string "Comment: ")))
     (setq-local gnus-icalendar-reply-status 'tentative)))
 
-(defun gnus-icalendar-reply-decline ()
-  "Decline invitation in the current article."
-  (interactive nil gnus-article-mode gnus-summary-mode)
+(defun gnus-icalendar-reply-decline (&optional comment-p)
+  "Decline invitation in the current article.
+
+Optional argument COMMENT-P non-nil (interactively `\\[universal-argument]')
+means prompt for a comment to include in the reply."
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (with-current-buffer gnus-article-buffer
-    (gnus-icalendar-reply (list gnus-icalendar-handle 'declined gnus-icalendar-event))
+    (gnus-icalendar-reply (list gnus-icalendar-handle 'declined gnus-icalendar-event)
+                          (when comment-p (read-string "Comment: ")))
     (setq-local gnus-icalendar-reply-status 'declined)))
 
 (defun gnus-icalendar-event-export ()
