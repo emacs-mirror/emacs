@@ -1934,6 +1934,10 @@
   (erc-tests-common-assert-get-inserted-msg/basic
    (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
 
+(ert-deftest erc--get-inserted-msg-beg/truncated ()
+  (erc-tests-common-assert-get-inserted-msg/truncated
+   (lambda (arg) (should (= 1 (erc--get-inserted-msg-beg arg))))))
+
 (ert-deftest erc--get-inserted-msg-end/basic ()
   (erc-tests-common-assert-get-inserted-msg/basic
    (lambda (arg) (should (= 11 (erc--get-inserted-msg-end arg))))))

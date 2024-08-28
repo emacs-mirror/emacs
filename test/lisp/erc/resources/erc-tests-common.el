@@ -184,6 +184,13 @@ For simplicity, assume string evaluates to itself."
   (should (looking-back "<bob> hi"))
   (erc-tests-common-assert-get-inserted-msg 3 11 test-fn))
 
+(defun erc-tests-common-assert-get-inserted-msg/truncated (test-fn)
+  (erc-tests-common-get-inserted-msg-setup)
+  (with-silent-modifications (delete-region 1 3))
+  (goto-char 9)
+  (should (looking-back "<bob> hi"))
+  (erc-tests-common-assert-get-inserted-msg 1 9 test-fn))
+
 ;; This is a "mixin" and requires a base assertion function, like
 ;; `erc-tests-common-assert-get-inserted-msg/basic', to work.
 (defun erc-tests-common-assert-get-inserted-msg-readonly-with

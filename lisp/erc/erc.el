@@ -3324,10 +3324,14 @@ value.  Otherwise, return the stored value."
   (macroexp-let2* nil ((point point)
                        (at-start-p at-start-p))
     `(or (and ,at-start-p ,point)
-         (and-let* ((p (previous-single-property-change ,point 'erc--msg)))
-           (if (and (= p (1- ,point)) (get-text-property p 'erc--msg))
-               p
-             (1- p))))))
+         (let ((p (previous-single-property-change ,point 'erc--msg)))
+           (cond
+            ((and p (= p (1- ,point)) (get-text-property p 'erc--msg)) p)
+            (p (1- p))
+            ((and (null p)
+                  (> ,point (point-min))
+                  (get-text-property (1- point) 'erc--msg))
+             (1- point)))))))
 
 (defmacro erc--get-inserted-msg-end-at (point at-start-p)
   (macroexp-let2 nil point point
@@ -3356,9 +3360,9 @@ if not found."
     (and-let* ((b (erc--get-inserted-msg-beg-at point at-start-p)))
       (cons b (erc--get-inserted-msg-end-at point at-start-p)))))
 
-(defun erc--get-inserted-msg-prop (prop)
+(defun erc--get-inserted-msg-prop (prop &optional point)
   "Return the value of text property PROP for some message at point."
-  (and-let* ((stack-pos (erc--get-inserted-msg-beg (point))))
+  (and-let* ((stack-pos (erc--get-inserted-msg-beg (or point (point)))))
     (get-text-property stack-pos prop)))
 
 ;; FIXME improve this nascent "message splicing" facility to include a
