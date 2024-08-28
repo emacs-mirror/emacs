@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
+#include "coding.h"
 
 #include "treesit.h"
 
@@ -541,6 +542,15 @@ treesit_debug_print_parser_list (char *msg, Lisp_Object parser)
 
 /*** Loading language library  */
 
+struct treesit_loaded_lang
+{
+  /* The language object, or NULL if the language failed to load.  */
+  TSLanguage *lang;
+  /* The absolute file name of the shared library, or NULL if access
+     failed.  */
+  const char *filename;
+};
+
 /* Translate a symbol treesit-<lang> to a C name treesit_<lang>.  */
 static void
 treesit_symbol_to_c_name (char *symbol_name)
@@ -625,7 +635,7 @@ treesit_load_language_push_for_each_suffix (Lisp_Object lib_base_name,
 
    If error occurs, return NULL and fill SIGNAL_SYMBOL and SIGNAL_DATA
    with values suitable for xsignal.  */
-static TSLanguage *
+static struct treesit_loaded_lang
 treesit_load_language (Lisp_Object language_symbol,
 		       Lisp_Object *signal_symbol, Lisp_Object *signal_data)
 {
@@ -676,6 +686,7 @@ treesit_load_language (Lisp_Object language_symbol,
   dynlib_handle_ptr handle;
   const char *error;
   Lisp_Object error_list = Qnil;
+  struct treesit_loaded_lang loaded_lang = { NULL, NULL };
 
   tail = path_candidates;
   error = NULL;
@@ -700,7 +711,7 @@ treesit_load_language (Lisp_Object language_symbol,
          mismatch.  */
       *signal_symbol = Qtreesit_load_language_error;
       *signal_data = Fcons (Qnot_found, Fnreverse (error_list));
-      return NULL;
+      return loaded_lang;
     }
 
   /* Load TSLanguage.  */
@@ -722,7 +733,7 @@ treesit_load_language (Lisp_Object language_symbol,
     {
       *signal_symbol = Qtreesit_load_language_error;
       *signal_data = list2 (Qsymbol_error, build_string (error));
-      return NULL;
+      return loaded_lang;
     }
   TSLanguage *lang = (*langfn) ();
 
@@ -735,9 +746,14 @@ treesit_load_language (Lisp_Object language_symbol,
       *signal_symbol = Qtreesit_load_language_error;
       *signal_data = list2 (Qversion_mismatch,
 			    make_fixnum (ts_language_version (lang)));
-      return NULL;
+      return loaded_lang;
     }
-  return lang;
+
+  const char *sym;
+  dynlib_addr ((void (*)) langfn, &loaded_lang.filename, &sym);
+
+  loaded_lang.lang = lang;
+  return loaded_lang;
 }
 
 DEFUN ("treesit-language-available-p", Ftreesit_language_available_p,
@@ -754,7 +770,9 @@ If DETAIL is non-nil, return (t . nil) when LANGUAGE is available,
   treesit_initialize ();
   Lisp_Object signal_symbol = Qnil;
   Lisp_Object signal_data = Qnil;
-  if (treesit_load_language (language, &signal_symbol, &signal_data) == NULL)
+  struct treesit_loaded_lang loaded_lang
+    = treesit_load_language (language, &signal_symbol, &signal_data);
+  if (loaded_lang.lang == NULL)
     {
       if (NILP (detail))
 	return Qnil;
@@ -800,14 +818,38 @@ Return nil if a grammar library for LANGUAGE is not available.  */)
     {
       Lisp_Object signal_symbol = Qnil;
       Lisp_Object signal_data = Qnil;
-      TSLanguage *ts_language = treesit_load_language (language,
-						       &signal_symbol,
-						       &signal_data);
+      struct treesit_loaded_lang lang
+	= treesit_load_language (language, &signal_symbol, &signal_data);
+      TSLanguage *ts_language = lang.lang;
       if (ts_language == NULL)
 	return Qnil;
       uint32_t version =  ts_language_version (ts_language);
       return make_fixnum((ptrdiff_t) version);
     }
+}
+
+/* This function isn't documented in the manual since it's mainly for
+   debugging.  */
+DEFUN ("treesit-grammar-location", Ftreesit_grammar_location,
+       Streesit_grammar_location,
+       1, 1, 0,
+       doc: /* Return the absolute file name of the grammar file for LANGUAGE.
+
+If LANGUAGE isn't loaded yet, load it first.  If the language can't be
+loaded or the file name couldn't be determined, return nil.  */)
+  (Lisp_Object language)
+{
+  CHECK_SYMBOL (language);
+
+  Lisp_Object signal_symbol = Qnil;
+  Lisp_Object signal_data = Qnil;
+  struct treesit_loaded_lang lang
+    = treesit_load_language (language, &signal_symbol, &signal_data);
+
+  if (!lang.lang || !lang.filename) return Qnil;
+
+  return DECODE_FILE (make_unibyte_string (lang.filename,
+					   strlen (lang.filename)));
 }
 
 
@@ -1401,8 +1443,9 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
   Lisp_Object language = XTS_COMPILED_QUERY (query)->language;
   /* This is the main reason why we compile query lazily: to avoid
      loading languages early.  */
-  TSLanguage *treesit_lang = treesit_load_language (language, signal_symbol,
-						    signal_data);
+  struct treesit_loaded_lang lang
+    = treesit_load_language (language, signal_symbol, signal_data);
+  TSLanguage *treesit_lang = lang.lang;
   if (treesit_lang == NULL)
     return NULL;
 
@@ -1573,8 +1616,9 @@ an indirect buffer.  */)
   Lisp_Object signal_symbol = Qnil;
   Lisp_Object signal_data = Qnil;
   TSParser *parser = ts_parser_new ();
-  TSLanguage *lang = treesit_load_language (language, &signal_symbol,
-					    &signal_data);
+  struct treesit_loaded_lang loaded_lang
+    = treesit_load_language (language, &signal_symbol, &signal_data);
+  TSLanguage *lang = loaded_lang.lang;
   if (lang == NULL)
     xsignal (signal_symbol, signal_data);
   /* We check language version when loading a language, so this should
@@ -4369,6 +4413,7 @@ applies to LANGUAGE-A will be redirected to LANGUAGE-B instead.  */);
   defsubr (&Streesit_language_available_p);
   defsubr (&Streesit_library_abi_version);
   defsubr (&Streesit_language_abi_version);
+  defsubr (&Streesit_grammar_location);
 
   defsubr (&Streesit_parser_p);
   defsubr (&Streesit_node_p);
