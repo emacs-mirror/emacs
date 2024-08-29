@@ -910,8 +910,11 @@ Changes to files in this list are not listed.")
     ("Garrett Wollman" :changed "sendmail.el")
     ("Dale R. Worley" :changed "mail-extr.el")
     ("Jamie Zawinski" :changed "bytecode.c" :wrote "tar-mode.el"
-     :cowrote "disass.el"))
-  "Actions taken from the original, manually (un)maintained AUTHORS file.")
+     :cowrote "disass.el")
+    ("Andrea Corallo" :wrote "comp.c"))
+  "Manual fixes to the list of actions taken.
+These are mostly taken from the original, manually (un)maintained
+AUTHORS file.  There are also some more recent manual additions.")
 
 
 (defconst authors-valid-file-names

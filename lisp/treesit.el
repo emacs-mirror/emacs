@@ -689,32 +689,55 @@ PARSER."
           (push (if with-host (cons parser host-parser) parser) res))))
     (nreverse res)))
 
+(defun treesit--cleanup-local-range-overlays (modified-tick beg end)
+  "Cleanup overlays used to mark local parsers between BEG and END.
+
+For every local parser overlay between BEG and END, if its
+`treesit-parser-ov-timestamp' is smaller than MODIFIED-TICK, delete
+it."
+  (dolist (ov (overlays-in beg end))
+    (when-let ((ov-timestamp
+                (overlay-get ov 'treesit-parser-ov-timestamp)))
+      (when (< ov-timestamp modified-tick)
+        (when-let ((local-parser (overlay-get ov 'treesit-parser)))
+          (treesit-parser-delete local-parser))
+        (delete-overlay ov)))))
+
 (defun treesit--update-ranges-local
-    (query embedded-lang &optional beg end)
+    (query embedded-lang modified-tick &optional beg end)
   "Update range for local parsers between BEG and END.
 Use QUERY to get the ranges, and make sure each range has a local
-parser for EMBEDDED-LANG."
-  ;; Clean up.
-  (dolist (ov (overlays-in (or beg (point-min)) (or end (point-max))))
-    (when-let ((parser (overlay-get ov 'treesit-parser)))
-      (when (eq (overlay-start ov) (overlay-end ov))
-        (delete-overlay ov)
-        (treesit-parser-delete parser))))
+parser for EMBEDDED-LANG.
+
+The local parser is stored in an overlay, in the `treesit-parser'
+property, the host parser is stored in the `treesit-host-parser'
+property.
+
+When this function touches an overlay, it sets the
+`treesit-parser-ov-timestamp' property of the overlay to
+MODIFIED-TICK.  This will help Emacs garbage-collect overlays that
+aren't in use anymore."
   ;; Update range.
   (let* ((host-lang (treesit-query-language query))
          (host-parser (treesit-parser-create host-lang))
          (ranges (treesit-query-range host-parser query beg end)))
     (pcase-dolist (`(,beg . ,end) ranges)
       (let ((has-parser nil))
-        (dolist (ov (overlays-in beg end))
-          ;; Update range of local parser.
-          (let ((embedded-parser (overlay-get ov 'treesit-parser)))
-            (when (and (treesit-parser-p embedded-parser)
-                       (eq (treesit-parser-language embedded-parser)
-                           embedded-lang))
-              (treesit-parser-set-included-ranges
-               embedded-parser `((,beg . ,end)))
-              (setq has-parser t))))
+        (setq
+         has-parser
+         (catch 'done
+           (dolist (ov (overlays-in beg end) nil)
+             ;; Update range of local parser.
+             (when-let* ((embedded-parser (overlay-get ov 'treesit-parser))
+                         (parser-lang (treesit-parser-language
+                                       embedded-parser)))
+               (when (eq parser-lang embedded-lang)
+                 (treesit-parser-set-included-ranges
+                  embedded-parser `((,beg . ,end)))
+                 (move-overlay ov beg end)
+                 (overlay-put ov 'treesit-parser-ov-timestamp
+                              modified-tick)
+                 (throw 'done t))))))
         ;; Create overlay and local parser.
         (when (not has-parser)
           (let ((embedded-parser (treesit-parser-create
@@ -722,6 +745,8 @@ parser for EMBEDDED-LANG."
                 (ov (make-overlay beg end nil nil t)))
             (overlay-put ov 'treesit-parser embedded-parser)
             (overlay-put ov 'treesit-host-parser host-parser)
+            (overlay-put ov 'treesit-parser-ov-timestamp
+                         modified-tick)
             (treesit-parser-set-included-ranges
              embedded-parser `((,beg . ,end)))))))))
 
@@ -729,40 +754,44 @@ parser for EMBEDDED-LANG."
   "Update the ranges for each language in the current buffer.
 If BEG and END are non-nil, only update parser ranges in that
 region."
-  ;; When updating ranges, we want to avoid querying the whole buffer
-  ;; which could be slow in very large buffers.  Instead, we only
-  ;; query for nodes that intersect with the region between BEG and
-  ;; END.  Also, we only update the ranges intersecting BEG and END;
-  ;; outside of that region we inherit old ranges.
-  (dolist (setting treesit-range-settings)
-    (let ((query (nth 0 setting))
-          (language (nth 1 setting))
-          (local (nth 2 setting))
-          (offset (nth 3 setting))
-          (beg (or beg (point-min)))
-          (end (or end (point-max))))
-      (cond
-       ((functionp query) (funcall query beg end))
-       (local
-        (treesit--update-ranges-local query language beg end))
-       (t
-        (let* ((host-lang (treesit-query-language query))
-               (parser (treesit-parser-create language))
-               (old-ranges (treesit-parser-included-ranges parser))
-               (new-ranges (treesit-query-range
-                            host-lang query beg end offset))
-               (set-ranges (treesit--clip-ranges
-                            (treesit--merge-ranges
-                             old-ranges new-ranges beg end)
-                            (point-min) (point-max))))
-          (dolist (parser (treesit-parser-list nil language))
+  (let ((modified-tick (buffer-chars-modified-tick))
+        (beg (or beg (point-min)))
+        (end (or end (point-max))))
+    ;; When updating ranges, we want to avoid querying the whole buffer
+    ;; which could be slow in very large buffers.  Instead, we only
+    ;; query for nodes that intersect with the region between BEG and
+    ;; END.  Also, we only update the ranges intersecting BEG and END;
+    ;; outside of that region we inherit old ranges.
+    (dolist (setting treesit-range-settings)
+      (let ((query (nth 0 setting))
+            (language (nth 1 setting))
+            (local (nth 2 setting))
+            (offset (nth 3 setting)))
+        (cond
+         ((functionp query) (funcall query beg end))
+         (local
+          (treesit--update-ranges-local
+           query language modified-tick beg end))
+         (t
+          (let* ((host-lang (treesit-query-language query))
+                 (parser (treesit-parser-create language))
+                 (old-ranges (treesit-parser-included-ranges parser))
+                 (new-ranges (treesit-query-range
+                              host-lang query beg end offset))
+                 (set-ranges (treesit--clip-ranges
+                              (treesit--merge-ranges
+                               old-ranges new-ranges beg end)
+                              (point-min) (point-max))))
+            (dolist (parser (treesit-parser-list nil language))
               (treesit-parser-set-included-ranges
                parser (or set-ranges
                           ;; When there's no range for the embedded
                           ;; language, set it's range to a dummy (1
                           ;; . 1), otherwise it would be set to the
                           ;; whole buffer, which is not what we want.
-                          `((,(point-min) . ,(point-min))))))))))))
+                          `((,(point-min) . ,(point-min)))))))))))
+
+    (treesit--cleanup-local-range-overlays modified-tick beg end)))
 
 (defun treesit-parser-range-on (parser beg &optional end)
   "Check if PARSER's range covers the portion between BEG and END.
@@ -2214,8 +2243,15 @@ What constitutes as text and source code sexp is determined
 by `text' and `sexp' in `treesit-thing-settings'."
   (interactive "^p")
   (let ((arg (or arg 1))
-        (pred (or treesit-sexp-type-regexp 'sexp)))
-    (or (when (treesit-node-match-p (treesit-node-at (point)) 'text t)
+        (pred (or treesit-sexp-type-regexp 'sexp))
+        (node-at-point
+         (treesit-node-at (point) (treesit-language-at (point)))))
+    (or (when (and node-at-point
+                   ;; Make sure point is strictly inside node.
+                   (< (treesit-node-start node-at-point)
+                      (point)
+                      (treesit-node-end node-at-point))
+                   (treesit-node-match-p node-at-point 'text t))
           (forward-sexp-default-function arg)
           t)
         (if (> arg 0)

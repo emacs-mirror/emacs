@@ -3253,7 +3253,7 @@ for which LSP on-type-formatting should be requested."
            (try-completion pattern (funcall proxies)))
           ((eq action t)                                 ; all-completions
            (let ((comps (funcall proxies)))
-             (dolist (c comps) (eglot--dumb-flex pattern c t))
+             (dolist (c comps) (eglot--dumb-flex pattern c completion-ignore-case))
              (all-completions
               ""
               comps

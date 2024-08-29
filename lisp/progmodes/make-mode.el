@@ -504,7 +504,7 @@ not be enclosed in { } or ( )."
 
 ;; ------------------------------------------------------------
 ;; The following configurable variables are used in the
-;; up-to-date overview .
+;; up-to-date overview.
 ;; The standard configuration assumes that your `make' program
 ;; can be run in question/query mode using the `-q' option, this
 ;; means that the command
@@ -514,12 +514,12 @@ not be enclosed in { } or ( )."
 ;; should return an exit status of zero if the target `foo' is
 ;; up to date and a nonzero exit status otherwise.
 ;; Many makes can do this although the docs/manpages do not mention
-;; it. Try it with your favorite one.  GNU make, System V make, and
+;; it.  Try it with your favorite one.  GNU make, System V make, and
 ;; Dennis Vadura's DMake have no problems.
 ;; Set the variable `makefile-brave-make' to the name of the
 ;; make utility that does this on your system.
 ;; To understand what this is all about see the function definition
-;; of `makefile-query-by-make-minus-q' .
+;; of `makefile-query-by-make-minus-q'.
 ;; ------------------------------------------------------------
 
 (defcustom makefile-brave-make "make"
@@ -787,7 +787,7 @@ Makefile mode can be configured by modifying the following variables:
    to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\".
 
 `makefile-special-targets-list':
-   List of special targets. You will be offered to complete
+   List of special targets.  You will be offered to complete
    on one of those in the minibuffer whenever you enter a `.'.
    at the beginning of a line in Makefile mode."
   (add-hook 'completion-at-point-functions
@@ -1583,7 +1583,7 @@ and generates the overview, one line per target name."
 	(goto-char (point-min))
 	(if (re-search-forward "^\\(\t+$\\| +\t\\)" nil t)
 	    (not (y-or-n-p
-		  (format "Suspicious line %d. Save anyway? "
+                  (format "Suspicious line %d.  Save anyway?"
 			  (count-lines (point-min) (point)))))))))
 
 (defun makefile-warn-continuations ()
@@ -1592,7 +1592,7 @@ and generates the overview, one line per target name."
 	(goto-char (point-min))
 	(if (re-search-forward "\\\\[ \t]+$" nil t)
 	    (not (y-or-n-p
-		  (format "Suspicious continuation in line %d. Save anyway? "
+                  (format "Suspicious continuation in line %d.  Save anyway?"
 			  (count-lines (point-min) (point)))))))))
 
 

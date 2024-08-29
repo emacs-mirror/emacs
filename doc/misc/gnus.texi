@@ -22355,7 +22355,7 @@ calling @code{nnmairix-search} with @samp{f:From}.
 @item G G o
 @kindex G G o @r{(Summary)}
 @findex nnmairix-goto-original-article
-(Only in @code{nnmairix} groups!)  Tries determine the group this article
+(Only in @code{nnmairix} groups!)  Tries to determine the group this article
 originally came from and displays the article in this group, so that,
 e.g., replying to this article the correct posting styles/group
 parameters are applied (@code{nnmairix-goto-original-article}).  This
