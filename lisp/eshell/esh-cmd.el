@@ -901,11 +901,10 @@ This avoids the need to use `let*'."
 (defmacro eshell-command-to-value (command)
   "Run an Eshell COMMAND synchronously, returning its output."
   (let ((value (make-symbol "eshell-temp")))
-    `(let ((eshell-in-pipeline-p nil)
-           (eshell-current-handles
-	    (eshell-create-handles ',value 'overwrite)))
-       ,command
-       ,value)))
+    `(eshell-with-handles (',value 'overwrite)
+       (let ((eshell-in-pipeline-p nil))
+         ,command
+         ,value))))
 
 ;;;_* Iterative evaluation
 ;;

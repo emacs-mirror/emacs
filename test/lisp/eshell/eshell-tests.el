@@ -138,6 +138,12 @@ This test uses a pipeline for the command."
         (forward-line)
         (should (looking-at "bye\n"))))))
 
+(ert-deftest eshell-test/eshell-command/output-file ()
+  "Test that `eshell-command' can write to a file."
+  (ert-with-temp-file temp-file :text "initial"
+    (eshell-command "echo more" temp-file)
+    (should (equal (eshell-test-file-string temp-file) "moreinitial"))))
+
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"
   (with-temp-eshell
