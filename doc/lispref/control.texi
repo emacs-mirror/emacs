@@ -1411,7 +1411,7 @@ argument:
 @end defmac
 
 @node cond* Macro
-@subsection The @code{pcase} macro
+@subsection The @code{cond*} macro
 @findex cond*@r{, a macro}
 
   The @code{cond*} macro is an alternative to @code{pcase}, and supports
