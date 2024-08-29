@@ -35,6 +35,7 @@
                                                     default-directory))))
 
 (defvar eshell-test-value nil)
+(defvar eshell-command-output)
 
 ;;; Tests:
 
@@ -143,6 +144,11 @@ This test uses a pipeline for the command."
   (ert-with-temp-file temp-file :text "initial"
     (eshell-command "echo more" temp-file)
     (should (equal (eshell-test-file-string temp-file) "moreinitial"))))
+
+(ert-deftest eshell-test/eshell-command/output-symbol ()
+  "Test that `eshell-command' can write to a symbol."
+  (eshell-command "echo hi" 'eshell-command-output)
+  (should (equal eshell-command-output "hi")))
 
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"

@@ -128,7 +128,7 @@ Comments begin with `#'."
     (with-temp-buffer
       (eshell-mode)
       (eshell-do-eval
-       `(eshell-with-handles (,stdout 'insert ,stderr 'insert)
+       `(eshell-with-handles (',stdout 'insert ',stderr 'insert)
           (let ((eshell-current-subjob-p))
             ,(eshell--source-file file args)))
        t))))

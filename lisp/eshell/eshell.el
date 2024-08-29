@@ -354,7 +354,7 @@ buffer is already taken by another running shell command."
 	  (eshell-non-interactive-p t))
       (eshell-mode)
       (let* ((proc (eshell-eval-command
-                    `(eshell-with-handles (,stdout 'insert ,stderr 'insert)
+                    `(eshell-with-handles (',stdout 'insert ',stderr 'insert)
                        (let ((eshell-current-subjob-p))
 		         ,(eshell-parse-command command)))
                     command))
