@@ -119,7 +119,7 @@ Comments begin with `#'."
       (eshell-mode)
       (eshell-do-eval
        `(let ((eshell-current-handles
-               (eshell-create-handles ,stdout 'insert))
+               (eshell-create-handles ',stdout 'insert))
               (eshell-current-subjob-p))
           ,(eshell--source-file file args))
        t))))

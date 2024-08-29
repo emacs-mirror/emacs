@@ -139,6 +139,12 @@ After inserting, call FUNC.  If FUNC is nil, instead call
   (buffer-substring-no-properties
    (eshell-beginning-of-output) (eshell-end-of-output)))
 
+(defun eshell-test-file-string (file)
+  "Return the contents of FILE as a string."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (buffer-string)))
+
 (defun eshell-match-output (regexp)
   "Test whether the output of the last command matches REGEXP."
   (string-match-p regexp (eshell-last-output)))

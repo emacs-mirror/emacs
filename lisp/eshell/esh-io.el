@@ -713,7 +713,7 @@ Returns what was actually sent, or nil if nothing was sent.")
 
 (cl-defmethod eshell-output-object-to-target (object (target symbol))
   "Output OBJECT to the value of the symbol TARGET."
-  (if (not (symbol-value target))
+  (if (not (and (boundp target) (symbol-value target)))
       (set target object)
     (setq object (eshell-stringify object))
     (if (not (stringp (symbol-value target)))
