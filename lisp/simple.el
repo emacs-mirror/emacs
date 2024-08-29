@@ -7085,11 +7085,15 @@ point otherwise."
   :group 'editing-basics)
 
 (defun use-region-beginning ()
-  "Return the start of the region if `use-region-p'."
+  "Return the start of the region if `use-region-p' returns non-nil.
+This is a convenience function to use in `interactive' forms of
+commands that need to act on the region when it is active."
   (and (use-region-p) (region-beginning)))
 
 (defun use-region-end ()
-  "Return the end of the region if `use-region-p'."
+  "Return the end of the region if `use-region-p' returns non-nil.
+This is a convenience function to use in `interactive' forms of
+commands that need to act on the region when it is active."
   (and (use-region-p) (region-end)))
 
 (defun use-region-noncontiguous-p ()
