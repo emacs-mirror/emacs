@@ -3030,11 +3030,11 @@ machine then modifies `tramp-remote-process-environment' and
                  (tramp-dissect-file-name default-directory 'noexpand)))))
     (if vec
         (python-shell--tramp-with-environment vec extraenv bodyfun)
-      (let ((process-environment
-             (append extraenv process-environment))
-            (exec-path
-             ;; FIXME: This is still Python-specific.
-             (python-shell-calculate-exec-path)))
+      (cl-letf (((default-value 'process-environment)
+		 (append extraenv process-environment))
+		((default-value 'exec-path)
+		 ;; FIXME: This is still Python-specific.
+		 (python-shell-calculate-exec-path)))
         (funcall bodyfun)))))
 
 (defun python-shell--tramp-with-environment (vec extraenv bodyfun)
