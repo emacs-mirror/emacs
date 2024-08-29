@@ -392,8 +392,6 @@ If REALNAME is nil, ignore that author.")
     "test/etags/"
     "\\`\\(indent\\|automated\\)\\'" "indent/" "mod-test/"
     "-resources/"
-    "unidata/.*\\.txt\\'"
-    "BidiCharacterTest\\.txt"
     ;; TODO lib/? Matches other things?
     "build-aux/" "m4/" "Emacs\\.xcodeproj" "mapfiles" "\\.map\\'"
     "preferences\\.\\(nib\\|gorm\\)"
@@ -688,7 +686,29 @@ Changes to files matching one of the regexps in this list are not listed.")
     "lisp/org/ob-picolisp.el"
     "lisp/obsolete/levents.el"
     "lisp/obsolete/lucid.el"
-    "lisp/obsolete/old-whitespace.el")
+    "lisp/obsolete/old-whitespace.el"
+    ;; These are imported from Unicode
+    "unidata/UnicodeData.txt" "admin/unidata/UnicodeData.txt"
+    "admin/unidata/BidiBrackets.txt" "unidata/BidiBrackets.txt"
+    "admin/unidata/BidiMirroring.txt" "unidata/BidiMirroring.txt"
+    "admin/unidata/Blocks.txt"
+    "admin/unidata/IVD_Sequences.txt" "unidata/IVD_Sequences.txt"
+    "admin/unidata/IdnaMappingTable.txt"
+    "admin/unidata/NormalizationTest.txt"
+    "admin/unidata/PropertyValueAliases.txt"
+    "admin/unidata/ScriptExtensions.txt"
+    "admin/unidata/Scripts.txt"
+    "admin/unidata/SpecialCasing.txt"
+    "admin/unidata/UnicodeData.txt"
+    "admin/unidata/confusables.txt"
+    "admin/unidata/copyright.html"
+    "test/manual/BidiCharacterTest.txt"
+    "admin/unidata/emoji-data.txt"
+    "admin/unidata/emoji-sequences.txt"
+    "admin/unidata/emoji-test.txt"
+    "admin/unidata/emoji-variation-sequences.txt"
+    "admin/unidata/emoji-zwj-sequences.txt"
+    )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
 
@@ -1151,27 +1171,6 @@ AUTHORS file.  There are also some more recent manual additions.")
     "admin/notes/tree-sitter/build-module/batch.sh"
     "doc/misc/gnus-coding.texi"
     "gnus-coding.texi"
-    ;; These are imported from Unicode
-    "unidata/UnicodeData.txt" "admin/unidata/UnicodeData.txt"
-    "admin/unidata/BidiBrackets.txt" "unidata/BidiBrackets.txt"
-    "admin/unidata/BidiMirroring.txt" "unidata/BidiMirroring.txt"
-    "admin/unidata/Blocks.txt"
-    "admin/unidata/IVD_Sequences.txt" "unidata/IVD_Sequences.txt"
-    "admin/unidata/IdnaMappingTable.txt"
-    "admin/unidata/NormalizationTest.txt"
-    "admin/unidata/PropertyValueAliases.txt"
-    "admin/unidata/ScriptExtensions.txt"
-    "admin/unidata/Scripts.txt"
-    "admin/unidata/SpecialCasing.txt"
-    "admin/unidata/UnicodeData.txt"
-    "admin/unidata/confusables.txt"
-    "admin/unidata/copyright.html"
-    "test/manual/BidiCharacterTest.txt"
-    "admin/unidata/emoji-data.txt"
-    "admin/unidata/emoji-sequences.txt"
-    "admin/unidata/emoji-test.txt"
-    "admin/unidata/emoji-variation-sequences.txt"
-    "admin/unidata/emoji-zwj-sequences.txt"
     )
   "File names which are valid, but no longer exist (or cannot be found)
 in the repository.")
