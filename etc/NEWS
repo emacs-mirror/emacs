@@ -337,6 +337,15 @@ This 'display' property was previously supported only as text property.
 Now overlays can also have this property, with the same effect for the
 text "covered" by the overlay.
 
++++
+** New macro 'cond*'.
+The new macro 'cond*' is an alternative to 'pcase'.  Like 'pcase', it
+allows to define several clauses, each one of with its own condition;
+the first clause that matches will cause its body to be evaluated.
+'cond*' uses syntax that is different from that of 'pcase', which some
+users might find less cryptic.  See the Info node "(elisp) cond Macro"
+for details.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
