@@ -3,6 +3,7 @@
 ;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
+;; Maintainer: Spencer Baugh <sbaugh@janestreet.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; Version: 1.3.7
 ;; Keywords: c languages tools
