@@ -429,11 +429,10 @@ current list of targets."
       (when defaultp
         (cl-decf (cdar handle))
         (setcar handle (cons nil 1)))
-      (catch 'eshell-null-device
-        (let ((current (caar handle))
-              (where (eshell-get-target target mode)))
-          (unless (member where current)
-            (setcar (car handle) (append current (list where))))))
+      (let ((current (caar handle))
+            (where (eshell-get-target target mode)))
+        (when (and where (not (member where current)))
+          (setcar (car handle) (append current (list where)))))
       (setcar (cdr handle) nil))))
 
 (defun eshell-copy-output-handle (index index-to-copy &optional handles)
@@ -609,11 +608,13 @@ return an `eshell-generic-target' instance; otherwise, return a
 marker for a file named TARGET."
   (setq mode (or mode 'insert))
   (if-let ((redir (assoc raw-target eshell-virtual-targets)))
-      (let ((target (if (nth 2 redir)
-                        (funcall (nth 1 redir) mode)
-                      (nth 1 redir))))
-        (unless (eshell-generic-target-p target)
-          (setq target (eshell-function-target-create target)))
+      (let (target)
+        (catch 'eshell-null-device
+          (setq target (if (nth 2 redir)
+                           (funcall (nth 1 redir) mode)
+                         (nth 1 redir)))
+          (unless (eshell-generic-target-p target)
+            (setq target (eshell-function-target-create target))))
         target)
     (let ((exists (get-file-buffer raw-target))
           (buf (find-file-noselect raw-target t)))
