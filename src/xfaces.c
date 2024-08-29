@@ -733,9 +733,18 @@ recompute_basic_faces (struct frame *f)
 {
   if (FRAME_FACE_CACHE (f))
     {
+      bool non_basic_faces_cached =
+	FRAME_FACE_CACHE (f)->used > BASIC_FACE_ID_SENTINEL;
       clear_face_cache (false);
       if (!realize_basic_faces (f))
 	emacs_abort ();
+      /* The call to realize_basic_faces above recomputed the basic
+         faces and freed their fontsets, but if there are non-ASCII
+         faces in the cache, they might now be invalid, and they
+         reference fontsets that are no longer in Vfontset_table.  We
+         therefore must force complete regeneration of all frame faces.  */
+      if (non_basic_faces_cached)
+	f->face_change = true;
     }
 }
 
