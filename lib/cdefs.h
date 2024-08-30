@@ -497,7 +497,7 @@
 # endif
 #endif
 
-/* ISO C99 also allows to declare arrays as non-overlapping.  The syntax is
+/* ISO C99 also allows declaring arrays as non-overlapping.  The syntax is
      array_name[restrict]
    GCC 3.1 and clang support this.
    This syntax is not usable in C++ mode.  */
