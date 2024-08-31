@@ -1017,6 +1017,16 @@ behavior, set user option 'vc-annotate-use-short-revision' to nil.
 *** New user option 'vc-git-file-name-changes-switches'.
 It allows tweaking the thresholds for rename and copy detection.
 
+---
+*** VC Directory buffers now display the upstream branch in Git repositories.
+The "upstream branch" is the branch from which 'vc-pull' fetches changes
+by default.  In Git terms, the upstream branch of branch B is determined
+by configuration variables branch.B.remote and branch.B.merge.
+
+When these configuration variables are set for the current branch, the
+VC Directory buffer will show the corresponding upstream branch under
+the "Tracking" header.
+
 ** Diff mode
 
 ---

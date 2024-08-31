@@ -81,7 +81,7 @@ This returns the result of `make-xwidget'."
 (defun xwidget-at (pos)
   "Return xwidget at POS."
   (let* ((disp (get-text-property pos 'display))
-         (xw (car (cdr (cdr disp)))))
+         (xw (ignore-errors (car (cdr (cdr disp))))))
     (when (xwidget-live-p xw) xw)))
 
 
