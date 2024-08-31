@@ -106,6 +106,8 @@
               outline-minor-mode-use-buttons 'in-margins)
   (outline-minor-mode)
   (setq-local imenu-generic-expression outline-imenu-generic-expression)
+  ;; This is so 'C-h o' picks up correctly symbols quoted 'like this'.
+  (modify-syntax-entry ?' "\"")
   (emacs-etc--hide-local-variables))
 
 ;;;###autoload
