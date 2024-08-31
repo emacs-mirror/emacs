@@ -43,15 +43,6 @@ The 'find-function', 'find-library', 'find-face-definition', and
 'find-variable' commands now allow retrieving previous input using the
 usual minibuffer history commands.  Each command has a separate history.
 
----
-** NSSpeechRecognitionUsageDescription now included in Info.plist (macOS).
-Should Emacs (or any built-in shell) invoke a process using macOS speech
-recognition APIs, the relevant permission dialog is now displayed, thus
-allowing Emacs users access to speech recognition utilities.
-
-Note: Accepting this permission allows the use of system APIs, which may
-send user data to Apple’s speech recognition servers.
-
 ** Minibuffer and Completions
 
 +++
@@ -370,6 +361,15 @@ for details.
 The run-time performance of subprocesses on recent Android releases,
 where a userspace executable loader is required, has been optimized on
 systems featuring Linux 3.5.0 and above.
+
+---
+** NSSpeechRecognitionUsageDescription now included in Info.plist (macOS).
+Should Emacs (or any built-in shell) invoke a process using macOS speech
+recognition APIs, the relevant permission dialog is now displayed, thus
+allowing Emacs users access to speech recognition utilities.
+
+Note: Accepting this permission allows the use of system APIs, which may
+send user data to Apple’s speech recognition servers.
 
 
 ----------------------------------------------------------------------
