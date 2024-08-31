@@ -405,7 +405,6 @@ determining the width."
                       (with-current-buffer buffer
                         face-remapping-alist))
         (kill-local-variable 'face-remapping-alist))
-      (erase-buffer)
       (insert string)
       ;; Prefer `remove-text-properties' to `propertize' to avoid
       ;; creating a new string on each call.
