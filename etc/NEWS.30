@@ -1021,7 +1021,7 @@ It allows tweaking the thresholds for rename and copy detection.
 *** VC Directory buffers now display the upstream branch in Git repositories.
 The "upstream branch" is the branch from which 'vc-pull' fetches changes
 by default.  In Git terms, the upstream branch of branch B is determined
-by configuration variables branch.B.remote and branch.B.merge.
+by configuration variables 'branch.B.remote' and 'branch.B.merge'.
 
 When these configuration variables are set for the current branch, the
 VC Directory buffer will show the corresponding upstream branch under
@@ -1102,7 +1102,7 @@ in size.
 
 +++
 *** 'dired-listing-switches' handles connection-local values if exist.
-This allows to customize different switches for different remote machines.
+This allows customizing different switches for different remote machines.
 
 ** Ediff
 
