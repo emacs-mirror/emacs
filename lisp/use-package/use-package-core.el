@@ -1415,11 +1415,13 @@ enable gathering statistics."
           (when fun
             (mapcar
              #'(lambda (sym)
-                 `(add-hook
-                   (quote ,(intern
-                            (concat (symbol-name sym)
-                                    use-package-hook-name-suffix)))
-                   (function ,fun)))
+                 (if (boundp sym)
+                     `(add-hook (quote ,sym) (function ,fun))
+                   `(add-hook
+                     (quote ,(intern
+                              (concat (symbol-name sym)
+                                      use-package-hook-name-suffix)))
+                     (function ,fun))))
              (use-package-hook-handler-normalize-mode-symbols syms)))))
     (use-package-normalize-commands args))))
 
