@@ -69,17 +69,15 @@
   "This version of `use-package'.")
 
 (defcustom use-package-keywords
-  '(:disabled
+  '(:pin
+    :ensure
+    :disabled
     :load-path
     :requires
     :defines
     :functions
     :preface
     :if :when :unless
-    :ensure
-    :pin
-    :delight
-    :diminish
     :vc
     :no-require
     :catch
@@ -105,7 +103,9 @@
     :load
     ;; This must occur almost last; the only forms which should appear after
     ;; are those that must happen directly after the config forms.
-    :config)
+    :config
+    :diminish
+    :delight)
   "The set of valid keywords, in the order they are processed in.
 The order of this list is *very important*, so it is only
 advisable to insert new keywords, never to delete or reorder
