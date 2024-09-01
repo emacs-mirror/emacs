@@ -540,19 +540,14 @@ check-defun-dups:
 # dependency in cc-*.elc files on the macros in other cc-*.el and the
 # version string in cc-defs.el.
 $(lisp)/progmodes/cc-align.elc\
- $(lisp)/progmodes/cc-cmds.elc $(lisp)/progmodes/cc-compat.elc\
- $(lisp)/progmodes/cc-engine.elc $(lisp)/progmodes/cc-fonts.elc\
- $(lisp)/progmodes/cc-langs.elc $(lisp)/progmodes/cc-menus.elc\
- $(lisp)/progmodes/cc-mode.elc $(lisp)/progmodes/cc-styles.elc\
- $(lisp)/progmodes/cc-vars.elc: \
+ $(lisp)/progmodes/cc-cmds.elc $(lisp)/progmodes/cc-engine.elc \
+ $(lisp)/progmodes/cc-fonts.elc $(lisp)/progmodes/cc-langs.elc \
+ $(lisp)/progmodes/cc-menus.elc $(lisp)/progmodes/cc-mode.elc \
+ $(lisp)/progmodes/cc-styles.elc $(lisp)/progmodes/cc-vars.elc: \
    $(lisp)/progmodes/cc-bytecomp.elc $(lisp)/progmodes/cc-defs.elc
 
 $(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-cmds.elc: \
    $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
-
-$(lisp)/progmodes/cc-compat.elc: \
-   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-styles.elc \
-   $(lisp)/progmodes/cc-engine.elc
 
 $(lisp)/progmodes/cc-defs.elc: $(lisp)/progmodes/cc-bytecomp.elc
 
