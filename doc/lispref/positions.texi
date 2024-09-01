@@ -894,11 +894,13 @@ Sentences,,, emacs, The extensible self-documenting text editor}).
 @findex treesit-forward-sexp
 @findex forward-sexp@r{, and tree-sitter}
 @findex backward-sexp@r{, and tree-sitter}
+@vindex forward-sexp-function
 If Emacs is compiled with tree-sitter, it can use the tree-sitter
 parser information to move across syntax constructs.  Since what
 exactly is considered a sexp varies between languages, a major mode
 should set @code{treesit-thing-settings} to determine that.  Then
-the mode can get navigation-by-sexp functionality for free, by using
+@code{forward-sexp-function} will be set to @code{treesit-forward-sexp},
+and the mode can get navigation-by-sexp functionality for free, by using
 @code{forward-sexp} and @code{backward-sexp}(@pxref{Expressions,
 ,, emacs, The extensible self-documenting text editor}).
 

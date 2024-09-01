@@ -380,11 +380,6 @@ It can be used to add, remove and reorder functions that change the
 appearance of every tab on the tab bar.
 
 ---
-*** New user option 'tab-line-tabs-buffer-group-function'.
-It provides two choices to group tab buffers by major mode and by
-project name.
-
----
 *** New hook 'tab-bar-tab-post-select-functions'.
 
 ---
@@ -401,7 +396,7 @@ you want to use these keys for the commands 'previous-buffer' and
 'next-buffer'.
 
 ---
-*** Default list of tabs is changed to support a fixed order.
+*** Default list of tab-line tabs is changed to support a fixed order.
 This means that 'tab-line-tabs-fixed-window-buffers', the new default
 tabs function, is like the previous 'tab-line-tabs-window-buffers' where
 both of them show only buffers that were previously displayed in the
@@ -411,7 +406,12 @@ these buffers.  You can drag the tabs and release at a new position
 to manually reorder the buffers on the tab line.
 
 ---
-*** Buffers on group tabs are now sorted alphabetically.
+*** New user option 'tab-line-tabs-buffer-group-function'.
+It provides two choices to group tab buffers by major mode and by
+project name.
+
+---
+*** Buffers on tab-line group tabs are now sorted alphabetically.
 This will keep the fixed order of tabs, even after switching between
 them.
 
@@ -945,7 +945,7 @@ Customizing it to 'relativize' makes commands like 'project-find-file'
 and 'project-find-dir' display previous history entries relative to
 the current project.
 
---
+---
 *** New user option 'project-key-prompt-style'.
 The look of the key prompt in the project switcher has been changed
 slightly.  To get the previous one, set this option to 'brackets'.
@@ -1993,12 +1993,7 @@ providers for "things" that are defined by text properties.
 Now, calling '(thing-at-point 'url)' when point is on a bug reference
 will return the URL for that bug.
 
-** Miscellaneous
-
-+++
-*** New user option 'rcirc-log-time-format'.
-This allows for rcirc logs to use a custom timestamp format, which the
-chat buffers use by default.
+** Buffer-menu
 
 ---
 *** New user option 'Buffer-menu-group-by'.
@@ -2012,6 +2007,13 @@ This command toggles the display of internal buffers in Buffer Menu mode;
 that is, buffers not visiting a file and whose names start with a space.
 Previously, such buffers were never shown.  This command is bound to 'I'
 in Buffer Menu mode.
+
+** Miscellaneous
+
++++
+*** New user option 'rcirc-log-time-format'.
+This allows for rcirc logs to use a custom timestamp format, which the
+chat buffers use by default.
 
 ---
 *** 'ffap-lax-url' now defaults to nil.
@@ -2506,7 +2508,7 @@ sorts by the return value of 'age', then by 'size', then by 'cost'.
 The old signature, '(sort SEQ PREDICATE)', can still be used and sorts
 its input in-place as before.
 
-** New API for 'derived-mode-p' and control of the graph of major modes.
+** New API for 'derived-mode-p' and control of the graph of major modes
 
 +++
 *** 'derived-mode-p' now takes the list of modes as a single argument.

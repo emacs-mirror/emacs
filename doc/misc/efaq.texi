@@ -954,7 +954,7 @@ used.
 @item
 New major modes based on the
 @uref{https://tree-sitter.github.io/tree-sitter/, tree-sitter library}
-library for editing Elixir, HTML, Lua, HEEx, and PHP.
+library for editing Elixir, HEEx, HTML, Lua, and PHP.
 
 @item
 Support for the EditorConfig standard has been added, an editor-neutral

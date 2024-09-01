@@ -1430,7 +1430,7 @@ line shows how many manual pages are available.
 @vindex Man-prefer-synchronous-call
   By default, @kbd{M-x man} calls the @code{man} program
 asynchronously.  You can force the invocation to be synchronous by
-customizing @code{Man-prefer-synchronous-calls} to a non-@code{nil}
+customizing @code{Man-prefer-synchronous-call} to a non-@code{nil}
 value.
 
 @vindex Man-support-remote-systems
