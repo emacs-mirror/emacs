@@ -2032,7 +2032,7 @@ The intention is that this command can be used to access a wide
 variety of version control system-specific functionality from VC
 without complexifying either the VC command set or the backend API.
 
-*** 'C-x v v' in a diffs buffer allows committing only some of the changes.
+*** 'C-x v v' in a diffs buffer lets you commit only some of the changes.
 This command is intended to allow you to commit only some of the
 changes you have in your working tree.  Begin by creating a buffer
 with the changes against the last commit, e.g. with 'C-x v D'
@@ -3529,8 +3529,8 @@ The variables 'connection-local-profile-alist' and
 make it more convenient to inspect and modify them.
 
 *** New function 'connection-local-update-profile-variables'.
-This function allows modifying the settings of an existing
-connection-local profile.
+You can use this to modify the settings of an existing connection-local
+profile.
 
 *** New macro 'with-connection-local-application-variables'.
 This macro works like 'with-connection-local-variables', but it allows
@@ -4046,8 +4046,8 @@ measured will be counted for the purpose of calculating the text
 dimensions.
 
 ** 'window-text-pixel-size' understands a new meaning of FROM.
-Specifying a cons as the FROM argument allows starting the measurement
-of text from a specified amount of pixels above or below a position.
+The FROM argument can now be a cons, which means to start measuring text
+from a specified number of pixels above or below a position.
 
 ** 'window-body-width' and 'window-body-height' can use remapped faces.
 Specifying 'remap' as the PIXELWISE argument now checks if the default

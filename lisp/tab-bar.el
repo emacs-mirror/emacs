@@ -1478,8 +1478,8 @@ in the same window to give information about the killed buffer."
 
 (defun tab-bar-select-restore-windows (_frame windows _type)
   "Display a placeholder buffer in the window whose buffer was killed.
-A button in the window allows restoring the killed buffer,
-if it was visiting a file."
+There is a button in the window which you can press to restore the
+killed buffer, if that buffer was visiting a file."
   (dolist (quad windows)
     (when (window-live-p (nth 0 quad))
       (let* ((window (nth 0 quad))

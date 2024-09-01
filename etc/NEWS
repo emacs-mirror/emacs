@@ -1102,7 +1102,7 @@ in size.
 
 +++
 *** 'dired-listing-switches' handles connection-local values if exist.
-This allows customizing different switches for different remote machines.
+This allows you to customize different switches for different remote machines.
 
 ** Ediff
 
