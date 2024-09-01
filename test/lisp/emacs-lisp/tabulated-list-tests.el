@@ -171,4 +171,31 @@
        4clojure   4clojure   1507      obsolete    Open and evaluate 4clojure.com questions
 ")))))
 
+(ert-deftest tabulated-list-groups-with-path ()
+  (with-temp-buffer
+    (tabulated-list-mode)
+    (setq tabulated-list-groups
+          (tabulated-list-groups
+           tabulated-list--test-entries
+           `( :path-function (lambda (entry)
+                               (list (list (aref (cadr entry) 3))))
+              :sort-function (lambda (groups _level)
+                               (sort groups :in-place t :key #'car)))))
+    (setq tabulated-list-format tabulated-list--test-format)
+    (setq tabulated-list-padding 7)
+    (tabulated-list-init-header)
+    (tabulated-list-print)
+    ;; Basic printing.
+    (should (string-equal
+             (buffer-substring-no-properties (point-min) (point-max))
+             "\
+* available
+       abc-mode   abc-mode   944       available   Major mode for editing abc music files
+* installed
+       zzzz-game  zzzz-game  2113      installed   play zzzz in Emacs
+       mode       mode       1128      installed   A simple mode for editing Actionscript 3 files
+* obsolete
+       4clojure   4clojure   1507      obsolete    Open and evaluate 4clojure.com questions
+"))))
+
 ;;; tabulated-list-tests.el ends here
