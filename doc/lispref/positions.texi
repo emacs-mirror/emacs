@@ -788,6 +788,14 @@ other kinds, such as words and string constants.
 ---------- Buffer: foo ----------
 @end group
 @end example
+
+@vindex forward-sexp-function
+@code{forward-sexp} calls the function that is the value of the variable
+@code{forward-sexp-function}, if that is non-@code{nil}, to do the
+actual work, passing it the same arguments as those with which the
+command was called.  Major modes can define their own functions for
+moving over balanced expressions as appropriate for the mode, and set
+this variable to that function.
 @end deffn
 
 @deffn Command backward-sexp &optional arg
@@ -894,7 +902,6 @@ Sentences,,, emacs, The extensible self-documenting text editor}).
 @findex treesit-forward-sexp
 @findex forward-sexp@r{, and tree-sitter}
 @findex backward-sexp@r{, and tree-sitter}
-@vindex forward-sexp-function
 If Emacs is compiled with tree-sitter, it can use the tree-sitter
 parser information to move across syntax constructs.  Since what
 exactly is considered a sexp varies between languages, a major mode
