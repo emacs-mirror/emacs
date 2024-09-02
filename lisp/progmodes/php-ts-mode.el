@@ -490,7 +490,7 @@ characters of the current line."
         (treesit-node-start parent)))))
 
 (defun php-ts-mode--parent-html-heuristic (node parent _bol &rest _)
-  "Returns position based on html indentation.
+  "Return position based on html indentation.
 
 Returns 0 if the NODE is after the </html>, otherwise returns the
 indentation point of the last word before the NODE, plus the
@@ -1469,8 +1469,12 @@ Depends on `c-ts-common-comment-setup'."
 
 
 ;;;###autoload
-(defun php-ts-mode-run-php-webserver (&optional port hostname document-root
-                                                router-script num-of-workers)
+(defun php-ts-mode-run-php-webserver (&optional port
+                                                hostname
+                                                document-root
+                                                router-script
+                                                num-of-workers
+                                                config)
   "Run PHP built-in web server.
 
 PORT: Port number of built-in web server, default `php-ts-mode-ws-port'.
@@ -1484,10 +1488,12 @@ ROUTER-SCRIPT: Path of the router PHP script,
 see `https://www.php.net/manual/en/features.commandline.webserver.php'
 NUM-OF-WORKERS: Before run the web server set the
 PHP_CLI_SERVER_WORKERS env variable useful for testing code against
-multiple simultaneous requests.
+multiple simultaneous requests
+CONFIG: Alternative php.ini config, default `php-ts-mode-php-config'.
 
-Interactively, when invoked with prefix argument, always prompt
-for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT."
+Interactively, when invoked with prefix argument, always prompt for
+PORT, HOSTNAME, DOCUMENT-ROOT, ROUTER-SCRIPT, NUM-OF-WORKERS and
+CONFIG."
   (interactive (when current-prefix-arg
                  (php-ts-mode--webserver-read-args)))
   (let* ((port (or
@@ -1502,6 +1508,9 @@ for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT."
                          document-root
                          php-ts-mode-ws-document-root
                          (php-ts-mode--webserver-read-args 'document-root)))
+         (config (or config
+                     (when php-ts-mode-php-config
+                       (expand-file-name php-ts-mode-php-config))))
          (host (format "%s:%d" hostname port))
          (name (format "PHP web server on: %s" host))
          (buf-name (format "*%s*" name))
@@ -1509,12 +1518,18 @@ for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT."
                 nil
                 (list "-S" host
                       "-t" document-root
+                      (when config
+			(format "-c %s" config))
                       router-script)))
          (process-environment
-          (cons (cond
-                 (num-of-workers (format "PHP_CLI_SERVER_WORKERS=%d" num-of-workers))
-                 (php-ts-mode-ws-workers (format "PHP_CLI_SERVER_WORKERS=%d" php-ts-mode-ws-workers)))
-                process-environment)))
+          (nconc (cond
+                  (num-of-workers
+                   (list
+                    (format "PHP_CLI_SERVER_WORKERS=%d" num-of-workers)))
+                  (php-ts-mode-ws-workers
+                   (list
+                    (format "PHP_CLI_SERVER_WORKERS=%d" php-ts-mode-ws-workers))))
+                 process-environment)))
     (if (get-buffer buf-name)
         (message "Switch to already running web server into buffer %s" buf-name)
       (message "Run PHP built-in web server with args %s into buffer %s"
@@ -1529,12 +1544,17 @@ for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT."
 
 (defun php-ts-mode--webserver-read-args (&optional type)
   "Helper for `php-ts-mode-run-php-webserver'.
-The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\" or
-\"router-script\", otherwise it requires all of them."
+The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\",
+\"router-script\", \"num-workers\" or \"config\", otherwise it requires all of them."
   (let ((ask-port (lambda ()
-                    (read-number "Port: " 3000)))
+                    (read-number "Port: " (or
+                                           php-ts-mode-ws-port
+                                           3000))))
         (ask-hostname (lambda ()
-                        (read-string "Hostname: " "localhost")))
+                        (read-string "Hostname: "
+                                     (or
+                                      php-ts-mode-ws-hostname
+                                      "localhost"))))
         (ask-document-root (lambda ()
                              (expand-file-name
                               (read-directory-name "Document root: "
@@ -1546,17 +1566,40 @@ The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\" or
                               (read-file-name "Router script: "
                                               (file-name-directory
                                                (or (buffer-file-name)
-                                                   default-directory)))))))
+                                                   default-directory))))))
+        (ask-num-workers (lambda ()
+                           (let ((num-workers
+                                  (read-number
+                                   "Number of workers (less then 2 means no workers): "
+                                   (or php-ts-mode-ws-workers 0))))
+                             ;; num-workers must be >= 2 or nil
+                             ;; otherwise PHP's built-in web server will not start.
+                             (if (> num-workers 1)
+                                 num-workers
+                               nil))))
+        (ask-config (lambda()
+                      (let ((file-name (expand-file-name
+                                        (read-file-name "Alternative php.ini: "
+                                                        (file-name-directory
+                                                         (or (buffer-file-name)
+                                                             default-directory))))))
+                        (if (string= "" (file-name-directory file-name))
+                            nil
+                          file-name)))))
     (cl-case type
       (port (funcall ask-port))
       (hostname (funcall ask-hostname))
       (document-root (funcall ask-document-root))
       (router-script (funcall ask-router-script))
+      (num-of-workers (funcall ask-num-workers))
+      (config (funcall ask-config))
       (t (list
           (funcall ask-port)
           (funcall ask-hostname)
           (funcall ask-document-root)
-          (funcall ask-router-script))))))
+          (funcall ask-router-script)
+          (funcall ask-num-workers)
+          (funcall ask-config))))))
 
 (define-derived-mode inferior-php-ts-mode comint-mode "Inferior PHP"
   "Major mode for PHP inferior process."
