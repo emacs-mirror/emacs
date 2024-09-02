@@ -68,7 +68,7 @@
                      "http" (? "s") "://www.gnu.org/licenses"
                      (? "/") (? ">") (? " "))
                 (seq "Boston," delim "MA" delim
-                     (or "02111-1307" "02110-1301" "02111-1301")
+                     (or "02111-1307" "02110-1301" "02111-1301" "02196")
                      (? ",") delim
                      "USA")
                 "675 Mass Ave, Cambridge, MA 02139, USA")

@@ -89,8 +89,8 @@ developing GNU and promoting software freedom.''
 
 @sp 2
 Published by the Free Software Foundation @*
-51 Franklin Street, Fifth Floor @*
-Boston, MA 02110-1301 USA @*
+31 Milk Street, # 960789 @*
+Boston, MA 02196 @*
 ISBN 978-0-9831592-8-5
 
 @sp 2
@@ -1432,8 +1432,8 @@ If you need to contact the Free Software Foundation, see
 
 @display
 Free Software Foundation
-51 Franklin Street, Fifth Floor
-Boston, MA 02110-1301
+31 Milk Street # 960789
+Boston, MA 02196
 USA
 @end display
 
