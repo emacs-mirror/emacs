@@ -1973,6 +1973,10 @@ By default it retains the previous behavior: read the contents of
 Gemfile and act accordingly.  But you can also set it to t or nil to
 skip the check.
 
+*** New user option 'ruby-bracketed-args-indent'.
+When it is set to nil, multiple consecutive open braces/brackets/parens
+result in only one additional indentation level.
+
 ** Thingatpt
 
 ---

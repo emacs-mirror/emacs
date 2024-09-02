@@ -1,10 +1,11 @@
-update({
-  key => value,
-  other_key:
-}, {
-  key => value,
-  other_key:
-})
+foo
+  .update({
+    key => value,
+    other_key:
+  }, {
+    key => value,
+    other_key:
+  })
 
 update([
   1,
@@ -26,6 +27,15 @@ update(arg1, {
   1,
   2
 ], arg2)
+
+def foo
+  foo.update(
+    {
+      key => value,
+      other_key: foo
+    }
+  )
+end
 
 # Local Variables:
 # ruby-bracketed-args-indent: nil
