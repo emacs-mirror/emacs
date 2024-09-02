@@ -579,7 +579,11 @@ HEADER is a header component of a MIME-entity object (see
 	       (ignore-errors (base64-decode-region pos (point))))
 	      ((string= transfer-encoding "quoted-printable")
 	       (quoted-printable-decode-region pos (point))))))
-    (decode-coding-region pos (point) coding-system)
+    (decode-coding-region
+     pos (point)
+     ;; Use -dos decoding, to remove ^M characters left from base64 or
+     ;; rogue qp-encoded text.
+     (coding-system-change-eol-conversion coding-system 1))
     (if (and
 	 (or (not rmail-mime-coding-system) (consp rmail-mime-coding-system))
 	 (not (eq (coding-system-base coding-system) 'us-ascii)))
@@ -691,7 +695,11 @@ HEADER is a header component of a MIME-entity object (see
 	    (if (and (eq coding-system 'undecided)
 		     (not (null coding-system-for-read)))
 		(setq coding-system coding-system-for-read))))
-      (decode-coding-region (point-min) (point) coding-system)
+      (decode-coding-region
+       (point-min) (point)
+       ;; Use -dos decoding, to remove ^M characters left from base64 or
+       ;; rogue qp-encoded text.
+       (coding-system-change-eol-conversion coding-system 1))
       (if (and
 	   (or (not rmail-mime-coding-system) (consp rmail-mime-coding-system))
 	   (not (eq (coding-system-base coding-system) 'us-ascii)))
