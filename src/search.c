@@ -2900,7 +2900,7 @@ Return value is undefined if the last search failed.  */)
   prev = Qnil;
 
   USE_SAFE_ALLOCA;
-  SAFE_NALLOCA (data, 1, 2 * search_regs.num_regs + 1);
+  SAFE_ALLOCA_LISP (data, 2 * search_regs.num_regs + 1);
 
   len = 0;
   for (i = 0; i < search_regs.num_regs; i++)
