@@ -5817,6 +5817,19 @@ move the yanking point; just return the Nth kill forward."
   :type 'boolean
   :group 'killing)
 
+(defcustom kill-region-dwim nil
+  "Behavior when `kill-region' is invoked without an active region.
+If set to nil (default), then the behavior of `kill-region' will not
+change.  If set to `emacs-word', then kill the last word as defined by
+the current major mode.  If set to `unix-word', then kill the last word
+in the style of a shell like Bash, disregarding the major mode like with
+`unix-word-rubout'."
+  :type '(choice (const :tag "Kill a word like `backward-kill-word'" emacs-word)
+                 (const :tag "Kill a word like Bash would" unix-word)
+                 (const :tag "Do not kill anything" nil))
+  :group 'killing
+  :version "31.1")
+
 (defun kill-region (beg end &optional region)
   "Kill (\"cut\") text between point and mark.
 This deletes the text from the buffer and saves it in the kill ring.
@@ -5843,21 +5856,35 @@ Lisp programs should use this function for killing text.
  (To delete text, use `delete-region'.)
 Supply two arguments, character positions BEG and END indicating the
  stretch of text to be killed.  If the optional argument REGION is
- non-nil, the function ignores BEG and END, and kills the current
+ `region', the function ignores BEG and END, and kills the current
  region instead.  Interactively, REGION is always non-nil, and so
- this command always kills the current region."
+ this command always kills the current region.  It is possible to
+ override this behavior by customising the user option
+ `kill-region-dwim'."
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.
   (interactive (progn
                  (let ((beg (mark))
                        (end (point)))
-                   (unless (and beg end)
+                   (cond
+                    ((and kill-region-dwim (not (use-region-p)))
+                     (list beg end kill-region-dwim))
+                    ((not (or beg end))
                      (user-error "The mark is not set now, so there is no region"))
-                   (list beg end 'region))))
+                    ((list beg end 'region))))))
+
   (condition-case nil
-      (let ((string (if region
-                        (funcall region-extract-function 'delete)
-                      (filter-buffer-substring beg end 'delete))))
+      (let ((string (cond
+                     ((memq region '(unix-word emacs-word))
+                      (let ((end (point)))
+                        (save-excursion
+                          (if (eq region 'emacs-word)
+                              (forward-word -1)
+                            (forward-unix-word -1))
+                          (filter-buffer-substring (point) end 'delete))))
+                     (region
+                      (funcall region-extract-function 'delete))
+                     ((filter-buffer-substring beg end 'delete)))))
 	(when string			;STRING is nil if BEG = END
 	  ;; Add that string to the kill ring, one way or another.
 	  (if (eq last-command 'kill-region)
