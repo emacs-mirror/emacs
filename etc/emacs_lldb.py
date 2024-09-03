@@ -111,8 +111,9 @@ class Lisp_Object:
         self.lisp_type = enumerator_name(t)
         if self.lisp_type == "Lisp_Vectorlike":
             self.pvec_type = "PVEC_NORMAL_VECTOR"
-            vector = self.get_lisp_pointer("struct Lisp_Vector")
-            size = vector.GetValueForExpressionPath("->header.size")
+            vector = self.get_lisp_pointer("struct Lisp_Vector", False)
+            header = vector.GetChildMemberWithName("header");
+            size = header.GetChildMemberWithName("size");
             size = size.GetValueAsUnsigned()
             pseudo = self.eval(f"{size} & PSEUDOVECTOR_FLAG")
             if pseudo.GetValueAsUnsigned() != 0:
