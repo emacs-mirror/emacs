@@ -2061,6 +2061,19 @@ fix_frame (mps_ss_t ss, struct frame *f)
     if (f->terminal)
       IGC_FIX12_PVEC (ss, &f->terminal);
 
+    if (!FRAME_INITIAL_P (f))
+      {
+	/* This is typically stored in the dsiplay_info, e.g.
+	   ns_display_info. Check for being NULL anyway. */
+	Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+	if (hlinfo)
+	  {
+	    IGC_FIX12_OBJ (ss, &hlinfo->mouse_face_window);
+	    IGC_FIX12_OBJ (ss, &hlinfo->mouse_face_overlay);
+	    IGC_FIX12_RAW (ss, &hlinfo->mouse_face_mouse_frame);
+	  }
+      }
+
 #ifdef HAVE_WINDOW_SYSTEM
     if (f->image_cache)
       IGC_FIX12_RAW (ss, &f->image_cache);
