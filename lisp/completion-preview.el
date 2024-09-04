@@ -88,6 +88,26 @@
 ;; `completion-preview-idle-delay' to have the preview appear only
 ;; when you pause typing for a short duration rather than after every
 ;; key.  Try setting it to 0.2 seconds and see how that works for you.
+;;
+;; Sometimes you may want to use Completion Preview mode alongside other
+;; Emacs features that place an overlay after point, in a way that could
+;; "compete" with the preview overlay.  In such cases, you should give
+;; the completion preview overlay a higher priority, so it properly
+;; appears immediately after point, before other overlays.  To do that,
+;; set the variable `completion-preview-overlay-priority'.  You can set
+;; it buffer-locally if you only use competing overlays in some buffers.
+;; In particular, an important use case for this variable is enabling
+;; Completion Preview mode for `M-:' and other minibuffers that support
+;; `completion-at-point'.  In the minibuffer, some message are displayed
+;; using an overlay that may, by default, conflict with the completion
+;; preview overlay.  Use `completion-preview-overlay-priority' to
+;; resolve this conflict by giving the completion preview overlay a
+;; higher priority:
+;;
+;;   (add-hook 'eval-expression-minibuffer-setup-hook
+;;             (lambda ()
+;;               (setq-local completion-preview-overlay-priority 1200)
+;;               (completion-preview-mode)))
 
 ;;; Code:
 
@@ -252,11 +272,16 @@ Completion Preview mode avoids updating the preview after these commands.")
     (setq completion-preview--overlay nil
           completion-preview--inhibit-update-p nil)))
 
+(defvar completion-preview-overlay-priority nil
+  "Value of the `priority' property for the completion preview overlay.")
+
 (defun completion-preview--make-overlay (pos string)
   "Make preview overlay showing STRING at POS, or move existing preview there."
   (if completion-preview--overlay
       (move-overlay completion-preview--overlay pos pos)
     (setq completion-preview--overlay (make-overlay pos pos))
+    (overlay-put completion-preview--overlay 'priority
+                 completion-preview-overlay-priority)
     (overlay-put completion-preview--overlay 'window (selected-window)))
   (add-text-properties 0 1 '(cursor 1) string)
   (overlay-put completion-preview--overlay 'after-string string)
