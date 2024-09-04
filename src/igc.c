@@ -2063,8 +2063,8 @@ fix_frame (mps_ss_t ss, struct frame *f)
 
     if (!FRAME_INITIAL_P (f))
       {
-	/* This is typically stored in the dsiplay_info, e.g.
-	   ns_display_info. Check for being NULL anyway. */
+	/* This is typically stored in the display_info, e.g.
+	   ns_display_info.  Check for being NULL anyway.  */
 	Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 	if (hlinfo)
 	  {
@@ -2085,7 +2085,7 @@ fix_frame (mps_ss_t ss, struct frame *f)
 	Lisp_Object *nle = &FRAME_DISPLAY_INFO (f)->name_list_element;
 	IGC_FIX12_OBJ (ss, nle);
       }
-#endif // HAVE_WINDOW_SYSTEM
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_TEXT_CONVERSION
     IGC_FIX12_OBJ (ss, &f->conversion.compose_region_start);
