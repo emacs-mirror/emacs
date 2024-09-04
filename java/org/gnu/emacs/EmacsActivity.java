@@ -271,6 +271,12 @@ public class EmacsActivity extends Activity
     /* Set it as the content view.  */
     setContentView (layout);
 
+    /* Android 15 also realigns activity contents to originate beneath
+       system windows, e.g. the navigation bar, so request the original
+       behavior.  */
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM)
+      layout.setFitsSystemWindows (true);
+
     /* Maybe start the Emacs service if necessary.  */
     EmacsService.startEmacsService (this);
 

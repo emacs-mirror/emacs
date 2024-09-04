@@ -49,6 +49,10 @@ if test "$XCONFIGURE" = "android"; then
     CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=32"
     enable_largefile=no
     enable_year2038=no])
+  # Prevent Gnulib from enabling time_rz.c on old Android releases, till
+  # Gnulib itself is fixed.
+  AS_IF([test "$ANDROID_SDK" -lt "35"],
+    [ac_cv_type_timezone_t=no])
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
@@ -953,7 +957,7 @@ a valid path to android.jar.  See config.log for more details.])
   fi
 
   AC_CACHE_CHECK([whether android.jar is new enough],
-    [emacs_cv_android_u_or_later],
+    [emacs_cv_android_v_or_later],
     AS_IF([rm -f conftest.class
 cat << EOF > conftest.java
 
@@ -961,18 +965,18 @@ import android.os.Build;
 
 class conftest
 {
-  private static int test = Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
+  private static int test = Build.VERSION_CODES.VANILLA_ICE_CREAM;
 }
 
 EOF
 ("$JAVAC" -classpath "$with_android" -target 1.7 -source 1.7 conftest.java \
   -d . >&AS_MESSAGE_LOG_FD 2>&1) && test -s conftest.class && rm -f conftest.class],
-          [emacs_cv_android_u_or_later=yes],
-          [emacs_cv_android_u_or_later=no]))
+          [emacs_cv_android_v_or_later=yes],
+          [emacs_cv_android_v_or_later=no]))
 
-  if test "$emacs_cv_android_u_or_later" = "no"; then
+  if test "$emacs_cv_android_v_or_later" = "no"; then
     AC_MSG_ERROR([Emacs must be built with an android.jar file produced for \
-Android 14 (Upside Down Cake) or later.])
+Android 15 (Vanilla Ice Cream) or later.])
   fi
 
   dnl See if the Java compiler supports the `--release' option which
@@ -1181,6 +1185,8 @@ main (void)
    foo = "emacs_api_33";
 #elif __ANDROID_API__ < 35
    foo = "emacs_api_34";
+#elif __ANDROID_API__ < 36
+   foo = "emacs_api_35";
 #else
    foo = "emacs_api_future";
 #endif

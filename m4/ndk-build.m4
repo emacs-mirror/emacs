@@ -56,11 +56,13 @@ ndk_ANY_CXX=
 ndk_BUILD_CFLAGS="$4"
 ndk_working_cxx=no
 ndk_CXX_SHARED=
+ndk_BUILD_SO_LDFLAGS=
+ndk_want_16k_page_sizes=no
 
 AS_CASE(["$ndk_ABI"],
-  [*arm64*], [ndk_ARCH=arm64],
+  [*arm64*], [ndk_ARCH=arm64; ndk_want_16k_page_sizes=yes],
   [*arm*], [ndk_ARCH=arm],
-  [*x86_64*], [ndk_ARCH=x86_64],
+  [*x86_64*], [ndk_ARCH=x86_64; ndk_want_16k_page_sizes=yes],
   [*x86*], [ndk_ARCH=x86],
   [*mips64*], [ndk_ARCH=mips64],
   [*mips*], [ndk_ARCH=mips],
@@ -519,8 +521,7 @@ AS_ECHO([])
 AS_ECHO(["Library includes        : $ndk_CXX_STL"])
 AS_ECHO(["Linker options          : $ndk_CXX_LDFLAGS"])
 AS_ECHO(["Library file (if any)   : $ndk_CXX_SHARED"])
-AS_ECHO([])
-])
+AS_ECHO([])])
 
 # ndk_LATE_EARLY
 # --------------
@@ -535,7 +536,7 @@ AC_DEFUN([ndk_LATE_EARLY],
 # ndk_LATE
 # --------
 # Perform late initialization of the ndk-build system by checking for
-# required C and C++ headers.
+# required C and C++ headers and 16 KB page size support.
 
 AC_DEFUN([ndk_LATE],
 [dnl
@@ -543,10 +544,30 @@ AS_IF([test "$ndk_INITIALIZED" = "yes"],[
   AS_IF([test -n "$CXX"], [
     AC_LANG_PUSH([C++])
     AC_CHECK_HEADER([string], [ndk_working_cxx=yes],
-      [AC_MSG_WARN([Your C++ compiler is not properly configured, as \
+      [AC_MSG_WARN([Your C++ compiler is not properly configured, as
 the standard library headers could not be found.])])
     AC_LANG_POP([C++])])])
 LDFLAGS="$ndk_save_LDFLAGS"
+dnl Detect whether this version of the NDK supports 16KB page sizes,
+dnl which are required on certain architectures to execute under Android
+dnl 15 (35) and later, and apply the appropriate linker options if
+dnl positive.
+AS_IF([test "$ndk_want_16k_page_sizes" = "yes"],
+  [AC_CACHE_CHECK([whether toolchain supports configurations with 16k page sizes],
+     [ndk_cv_16k_page_sizes],
+     [ndk_save_LDFLAGS="$LDFLAGS"
+      LDFLAGS="$LDFLAGS -Wl,-z,max-page-size=16384"
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
+        [ndk_cv_16k_page_sizes=yes],
+	[ndk_cv_16k_page_sizes=no])
+      LDFLAGS="$ndk_save_LDFLAGS"])
+   AS_IF([test "$ndk_cv_16k_page_sizes" = "yes"],
+     [LDFLAGS="$LDFLAGS -Wl,-z,max-page-size=16384"
+      ndk_BUILD_SO_LDFLAGS="-Wl,-z,max-page-size=16384"],
+     [AC_MSG_WARN([\
+Your toolchain does not support configurations with 16KB page sizes,
+and consequently binaries it produces cannot support all devices
+running Android 15 or later.])])])
 ])
 
 # ndk_SEARCH_MODULE(MODULE, NAME, ACTION-IF-FOUND, [ACTION-IF-NOT-FOUND])
@@ -659,6 +680,7 @@ AC_DEFUN_ONCE([ndk_CONFIG_FILES],
     NDK_BUILD_CXX_STL="$ndk_CXX_STL"
     NDK_BUILD_CXX_LDFLAGS="$ndk_CXX_LDFLAGS"
     NDK_BUILD_ANY_CXX_MODULE=$ndk_ANY_CXX
+    NDK_BUILD_SO_LDFLAGS="$ndk_BUILD_SO_LDFLAGS"
     NDK_BUILD_CFLAGS="$ndk_BUILD_CFLAGS"
 
     AC_SUBST([NDK_BUILD_ANDROID_MK])
@@ -674,6 +696,7 @@ AC_DEFUN_ONCE([ndk_CONFIG_FILES],
     AC_SUBST([NDK_BUILD_CXX_STL])
     AC_SUBST([NDK_BUILD_CXX_LDFLAGS])
     AC_SUBST([NDK_BUILD_ANY_CXX_MODULE])
+    AC_SUBST([NDK_BUILD_SO_LDFLAGS])
     AC_SUBST([NDK_BUILD_CFLAGS])
     AC_SUBST([NDK_BUILD_READELF])
 
