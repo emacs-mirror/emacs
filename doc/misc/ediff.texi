@@ -489,15 +489,17 @@ compares three files simultaneously).
 @item a
 @kindex a
 @emph{In comparison sessions:}
-Copies the current difference region (or the region specified as the prefix
-to this command) from buffer A to buffer B@.
-Ediff saves the old contents of buffer B's region; it can
-be restored via the command @kbd{rb}, which see.
+Copies the current difference region (or the region specified as the
+numerical prefix to this command, or @emph{all} regions with @kbd{C-u}
+prefix) from buffer A to buffer B@.  Ediff saves the old contents of
+buffer B's region; it can be restored via the command @kbd{rb}, which
+see.
 
 @emph{In merge sessions:}
-Copies the current difference region (or the region specified as the prefix
-to this command) from buffer A to the merge buffer.  The old contents of
-this region in buffer C can be restored via the command @kbd{r}.
+Copies the current difference region (or the region specified as the
+numerical prefix to this command, or @emph{all} regions with @kbd{C-u}
+prefix) from buffer A to the merge buffer.  The old contents of this
+region in buffer C can be restored via the command @kbd{r}.
 
 @item b
 @kindex b
@@ -511,11 +513,12 @@ be reinstated via the command @kbd{ra} in comparison sessions and
 
 @item ab
 @kindex ab
-Copies the current difference region (or the region specified as the prefix
-to this command) from buffer A to buffer B@.  This (and the next five)
-command is enabled only in sessions that compare three files
-simultaneously.  The old region in buffer B is saved and can be restored
-via the command @kbd{rb}.
+Copies the current difference region (or the region specified as the
+numerical prefix to this command, or @emph{all} regions with @kbd{C-u}
+prefix) from buffer A to buffer B@.  This (and the next five) command is
+enabled only in sessions that compare three files simultaneously.  The
+old region in buffer B is saved and can be restored via the command
+@kbd{rb}.
 @item ac
 @kindex ac
 Copies the difference region from buffer A to buffer C@.

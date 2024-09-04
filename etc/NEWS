@@ -298,6 +298,24 @@ the built-in Web server.  Interactively, when invoked with a prefix
 argument, 'php-ts-mode-run-php-webserver' prompts for the config file as
 well as for other connection parameters.
 
+** Ediff
+
++++
+*** Ediff's copy commands now apply to all changes with 'C-u' prefix.
+The Ediff copy commands, bound to 'a', 'b', 'ab', etc., now copy all
+changes when supplied with a universal prefix argument via 'C-u':
+
+- 'C-u a' copies all changes from buffer A to buffer B (in 2-way diff)
+  or to buffer C (in 3-way diff or merge).
+- 'C-u b' copies all changes from buffer B to buffer A (in 2-way diff)
+  or to buffer C (in 3-way diff or merge).
+- 'C-u a b' copies all changes from buffer A to buffer B.
+- 'C-u b a' copies all changes from buffer B to buffer A.
+- 'C-u a c' copies all changes from buffer A to buffer C.
+- 'C-u b c' copies all changes from buffer B to buffer C.
+- 'C-u c a' copies all changes from buffer C to buffer A.
+- 'C-u c b' copies all changes from buffer C to buffer B.
+
 
 * New Modes and Packages in Emacs 31.1
 
