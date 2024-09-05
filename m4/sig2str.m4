@@ -1,5 +1,5 @@
 # sig2str.m4
-# serial 7
+# serial 8
 dnl Copyright (C) 2002, 2005-2006, 2009-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -7,7 +7,14 @@ dnl with or without modifications, as long as this notice is preserved.
 
 AC_DEFUN([gl_FUNC_SIG2STR],
 [
-  AC_CHECK_FUNCS([sig2str])
+  AC_REQUIRE([gl_SIGNAL_H_DEFAULTS])
+  AC_CHECK_FUNCS([sig2str str2sig])
+  if test $ac_cv_func_sig2str = no; then
+    HAVE_SIG2STR=0
+  fi
+  if test $ac_cv_func_str2sig = no; then
+    HAVE_STR2SIG=0
+  fi
 ])
 
 # Prerequisites of lib/sig2str.c.

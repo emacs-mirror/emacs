@@ -475,15 +475,3 @@ extern int emacs_setenv_TZ (char const *);
 /* Emacs does not need glibc strftime behavior for AM and PM
    indicators.  */
 #define REQUIRE_GNUISH_STRFTIME_AM_PM false
-
-#if defined __ANDROID_API__ && __ANDROID_API__ < 35
-/* Persuade lib/time.h to include the system's time.h, then... */
-#define __need_time_t
-#include <time.h>
-#undef __need_time_t
-
-/* ... redefine timezone_t to an Emacs-specific type, so that Gnulib's
-   replacement may not conflict with the OS type uselessly defined when
-   __ANDROID_API__ < 35.  */
-#define timezone_t rpl_timezone_t
-#endif /* __ANDROID_API__ && __ANDROID_API__ < 35 */

@@ -21,7 +21,7 @@
 #include <limits.h>
 
 /* Pacify GCC 13.2 in some calls to _GL_EXPR_SIGNED.  */
-#if defined __GNUC__ && 4 < __GNUC__ + (3 <= __GNUC_MINOR__)
+#if 4 < __GNUC__ + (3 <= __GNUC_MINOR__) && !defined __clang__
 # pragma GCC diagnostic ignored "-Wtype-limits"
 #endif
 
@@ -163,7 +163,7 @@
 #if _GL_HAS_BUILTIN_MUL_OVERFLOW
 # if ((9 < __GNUC__ + (3 <= __GNUC_MINOR__) \
        || (__GNUC__ == 8 && 4 <= __GNUC_MINOR__)) \
-      && !defined __EDG__)
+      && !defined __clang__ && !defined __EDG__)
 #  define _GL_INT_MULTIPLY_WRAPV(a, b, r) __builtin_mul_overflow (a, b, r)
 # else
    /* Work around GCC bug 91450.  */

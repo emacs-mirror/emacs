@@ -139,6 +139,47 @@ typedef void (*sighandler_t) (int);
 #endif
 
 
+/* Maximum size of a signal name returned by sig2str(), including the
+   terminating NUL byte.  */
+#ifndef SIG2STR_MAX
+/* The longest one: "RTMAX", then "+" or "-", then up to 10 digits, then NUL.
+   Add + 2 as a reserve for the future.  */
+# define SIG2STR_MAX (5 + 1 + 10 + 1 + 2)
+#endif
+
+#if @GNULIB_SIG2STR@
+# if !@HAVE_SIG2STR@
+_GL_FUNCDECL_SYS (sig2str, int, (int signo, char *str));
+# endif
+_GL_CXXALIAS_SYS (sig2str, int, (int signo, char *str));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (sig2str);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef sig2str
+# if HAVE_RAW_DECL_SIG2STR
+_GL_WARN_ON_USE (sig2str, "sig2str is not portable - "
+                 "use gnulib module sig2str for portability");
+# endif
+#endif
+
+#if @GNULIB_SIG2STR@
+# if !@HAVE_STR2SIG@
+_GL_FUNCDECL_SYS (str2sig, int, (char const *str, int *signo_p));
+# endif
+_GL_CXXALIAS_SYS (str2sig, int, (char const *str, int *signo_p));
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (str2sig);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef str2sig
+# if HAVE_RAW_DECL_STR2SIG
+_GL_WARN_ON_USE (str2sig, "str2sig is not portable - "
+                 "use gnulib module sig2str for portability");
+# endif
+#endif
+
+
 #if @GNULIB_PTHREAD_SIGMASK@
 # if @REPLACE_PTHREAD_SIGMASK@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -243,7 +284,7 @@ typedef int verify_NSIG_constraint[NSIG <= 32 ? 1 : -1];
 #   undef sigismember
 #  endif
 # else
-_GL_FUNCDECL_SYS (sigismember, int, (const sigset_t *set, int sig)
+_GL_FUNCDECL_SYS (sigismember, int, (const sigset_t *set, int sig),
                                     _GL_ARG_NONNULL ((1)));
 # endif
 _GL_CXXALIAS_SYS (sigismember, int, (const sigset_t *set, int sig));
@@ -256,7 +297,7 @@ _GL_CXXALIASWARN (sigismember);
 #   undef sigemptyset
 #  endif
 # else
-_GL_FUNCDECL_SYS (sigemptyset, int, (sigset_t *set) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (sigemptyset, int, (sigset_t *set), _GL_ARG_NONNULL ((1)));
 # endif
 _GL_CXXALIAS_SYS (sigemptyset, int, (sigset_t *set));
 _GL_CXXALIASWARN (sigemptyset);
@@ -268,7 +309,7 @@ _GL_CXXALIASWARN (sigemptyset);
 #   undef sigaddset
 #  endif
 # else
-_GL_FUNCDECL_SYS (sigaddset, int, (sigset_t *set, int sig)
+_GL_FUNCDECL_SYS (sigaddset, int, (sigset_t *set, int sig),
                                   _GL_ARG_NONNULL ((1)));
 # endif
 _GL_CXXALIAS_SYS (sigaddset, int, (sigset_t *set, int sig));
@@ -281,7 +322,7 @@ _GL_CXXALIASWARN (sigaddset);
 #   undef sigdelset
 #  endif
 # else
-_GL_FUNCDECL_SYS (sigdelset, int, (sigset_t *set, int sig)
+_GL_FUNCDECL_SYS (sigdelset, int, (sigset_t *set, int sig),
                                   _GL_ARG_NONNULL ((1)));
 # endif
 _GL_CXXALIAS_SYS (sigdelset, int, (sigset_t *set, int sig));
@@ -294,14 +335,14 @@ _GL_CXXALIASWARN (sigdelset);
 #   undef sigfillset
 #  endif
 # else
-_GL_FUNCDECL_SYS (sigfillset, int, (sigset_t *set) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (sigfillset, int, (sigset_t *set), _GL_ARG_NONNULL ((1)));
 # endif
 _GL_CXXALIAS_SYS (sigfillset, int, (sigset_t *set));
 _GL_CXXALIASWARN (sigfillset);
 
 /* Return the set of those blocked signals that are pending.  */
 # if !@HAVE_POSIX_SIGNALBLOCKING@
-_GL_FUNCDECL_SYS (sigpending, int, (sigset_t *set) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (sigpending, int, (sigset_t *set), _GL_ARG_NONNULL ((1)));
 # endif
 _GL_CXXALIAS_SYS (sigpending, int, (sigset_t *set));
 _GL_CXXALIASWARN (sigpending);

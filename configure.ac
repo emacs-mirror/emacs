@@ -49,10 +49,6 @@ if test "$XCONFIGURE" = "android"; then
     CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=32"
     enable_largefile=no
     enable_year2038=no])
-  # Prevent Gnulib from enabling time_rz.c on old Android releases, till
-  # Gnulib itself is fixed.
-  AS_IF([test "$ANDROID_SDK" -lt "35"],
-    [ac_cv_type_timezone_t=no])
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,

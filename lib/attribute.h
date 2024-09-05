@@ -20,12 +20,49 @@
 /* Provide public ATTRIBUTE_* names for the private _GL_ATTRIBUTE_*
    macros used within Gnulib.  */
 
-/* These attributes can be placed in two ways:
-     - At the start of a declaration (i.e. even before storage-class
-       specifiers!); then they apply to all entities that are declared
-       by the declaration.
-     - Immediately after the name of an entity being declared by the
-       declaration; then they apply to that entity only.  */
+/* The placement of these attributes depends on the kind of declaration
+   and, in some cases, also on the programming language (C vs. C++).
+
+   In function declarations and function definitions:
+
+     * ATTRIBUTE_NOTHROW must come after the parameter list.
+
+     * The macros
+         ATTRIBUTE_CONST
+         ATTRIBUTE_PURE
+         DEPRECATED
+         MAYBE_UNUSED
+         NODISCARD
+         REPRODUCIBLE
+         UNSEQUENCED
+       must come before the return type, and more precisely:
+         - In a function declaration/definition without a storage-class
+           specifier: at the beginning of the declaration/definition.
+         - In a function declaration/definition with a storage-class
+           specifier:
+             - In C: before the storage-class specifier.
+             - In C++: between the storage-class specifier and the return type.
+
+     * The other macros can be placed
+         - Either
+             - In a function declaration/definition without a storage-class
+               specifier: at the beginning of the declaration/definition.
+             - In a function declaration/definition with a storage-class
+               specifier: between the storage-class specifier and the return
+               type.
+        - Or after the parameter list,
+          ∙ but after ATTRIBUTE_NOTHROW if present.
+
+   In other declarations, such as variable declarations:
+
+     * Either
+         - In C: before the storage-class specifier.
+         - In C++: between the storage-class specifier and the return type.
+       Then they apply to all entities that are declared by the declaration.
+
+     * Or immediately after the name of an entity being declared by the
+       declaration.  Then they apply to that entity only.
+ */
 
 #ifndef _GL_ATTRIBUTE_H
 #define _GL_ATTRIBUTE_H

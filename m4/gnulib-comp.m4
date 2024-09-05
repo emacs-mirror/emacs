@@ -83,6 +83,10 @@ AC_DEFUN([gl_EARLY],
   # Code from module euidaccess:
   # Code from module execinfo:
   # Code from module extensions:
+  # This is actually already done in the pre-early phase.
+  # AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
+  # Code from module extensions-aix:
+  AC_REQUIRE([gl_USE_AIX_EXTENSIONS])
   # Code from module extern-inline:
   # Code from module faccessat:
   # Code from module fchmodat:
@@ -129,6 +133,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module lchmod:
   # Code from module libc-config:
   # Code from module libgmp:
+  # Code from module libgmp-mpz:
   # Code from module limits-h:
   # Code from module lstat:
   # Code from module malloc-gnu:
@@ -339,6 +344,7 @@ AC_DEFUN([gl_INIT],
   gl_CONDITIONAL([GL_COND_OBJ_FSTATAT],
                  [test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1])
   gl_SYS_STAT_MODULE_INDICATOR([fstatat])
+  gl_MODULE_INDICATOR([fstatat])
   gl_FSUSAGE
   gl_CONDITIONAL([GL_COND_OBJ_FSUSAGE], [test $gl_cv_fs_space = yes])
   AM_COND_IF([GL_COND_OBJ_FSUSAGE], [
@@ -417,6 +423,7 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_LSTAT
   ])
   gl_SYS_STAT_MODULE_INDICATOR([lstat])
+  gl_MODULE_INDICATOR([lstat])
   gl_FUNC_MEMMEM_SIMPLE
   if test $HAVE_MEMMEM = 0 || test $REPLACE_MEMMEM = 1; then
     AC_LIBOBJ([memmem])
@@ -496,10 +503,12 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_REGEX
   ])
   gl_FUNC_SIG2STR
-  gl_CONDITIONAL([GL_COND_OBJ_SIG2STR], [test $ac_cv_func_sig2str = no])
+  gl_CONDITIONAL([GL_COND_OBJ_SIG2STR],
+                 [test $HAVE_SIG2STR = 0 || test $HAVE_STR2SIG = 0])
   AM_COND_IF([GL_COND_OBJ_SIG2STR], [
     gl_PREREQ_SIG2STR
   ])
+  gl_SIGNAL_MODULE_INDICATOR([sig2str])
   gl_FUNC_SIGDESCR_NP
   gl_CONDITIONAL([GL_COND_OBJ_SIGDESCR_NP], [test $HAVE_SIGDESCR_NP = 0])
   gl_STRING_MODULE_INDICATOR([sigdescr_np])
@@ -626,7 +635,8 @@ AC_DEFUN([gl_INIT],
   ])
   gl_TIME_MODULE_INDICATOR([time_r])
   gl_TIME_RZ
-  gl_CONDITIONAL([GL_COND_OBJ_TIME_RZ], [test $HAVE_TIMEZONE_T = 0])
+  gl_CONDITIONAL([GL_COND_OBJ_TIME_RZ],
+                 [test $HAVE_TZALLOC = 0 || test $REPLACE_LOCALTIME_RZ = 1 || test $REPLACE_MKTIME_Z = 1])
   gl_TIME_MODULE_INDICATOR([time_rz])
   gl_FUNC_TIMEGM
   gl_CONDITIONAL([GL_COND_OBJ_TIMEGM],
@@ -1521,6 +1531,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/errno_h.m4
   m4/euidaccess.m4
   m4/execinfo.m4
+  m4/extensions-aix.m4
   m4/extensions.m4
   m4/extern-inline.m4
   m4/faccessat.m4
@@ -1557,7 +1568,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/lchmod.m4
   m4/libgmp.m4
   m4/limits-h.m4
-  m4/locale-fr.m4
+  m4/locale-en.m4
   m4/lstat.m4
   m4/malloc.m4
   m4/manywarnings-c++.m4

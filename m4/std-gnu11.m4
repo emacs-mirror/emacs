@@ -1,7 +1,10 @@
 # std-gnu11.m4
-# serial 1
+# serial 2
 
 # Prefer GNU C11 and C++11 to earlier versions.  -*- coding: utf-8 -*-
+
+# The std-gnu23 module, which defines _AC_C_C23_OPTIONS, supersedes us.
+m4_ifndef([_AC_C_C23_OPTIONS], [
 
 # This implementation is taken from GNU Autoconf lib/autoconf/c.m4
 # commit 017d5ddd82854911f0119691d91ea8a1438824d6
@@ -38,7 +41,7 @@ m4_version_prereq([2.70], [], [
 # COMPILER ... is a space separated list of C compilers to search for.
 # This just gives the user an opportunity to specify an alternative
 # search list for the C compiler.
-AC_DEFUN_ONCE([AC_PROG_CC],
+AC_DEFUN([AC_PROG_CC],
 [AC_LANG_PUSH(C)dnl
 AC_ARG_VAR([CC],     [C compiler command])dnl
 AC_ARG_VAR([CFLAGS], [C compiler flags])dnl
@@ -830,3 +833,4 @@ dnl with extended modes being tried first.
 
 
 ])# m4_version_prereq
+])# !_AC_C_C23_OPTIONS

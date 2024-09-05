@@ -54,7 +54,8 @@ GNULIB_MODULES='
 
 AVOIDED_MODULES='
   access btowc chmod close crypto/af_alg dup fchdir fstat
-  iswblank iswctype iswdigit iswxdigit langinfo localename-unsafe-limited lock
+  iswblank iswctype iswdigit iswxdigit langinfo libgmp-mpq
+  localename-unsafe-limited lock
   mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h raise
   save-cwd select setenv sigprocmask stat stdarg
@@ -125,7 +126,6 @@ rm -- "$src"lib/gl_openssl.h \
       "$src"m4/fcntl-o.m4 \
       "$src"m4/gl-openssl.m4 \
       "$src"m4/gnulib-cache.m4 "$src"m4/gnulib-tool.m4 \
-      "$src"m4/locale-fr.m4 \
       "$src"m4/manywarnings-c++.m4 \
       "$src"m4/off64_t.m4 \
       "$src"m4/warn-on-use.m4 "$src"m4/wint_t.m4 &&

@@ -1,5 +1,5 @@
 # stdlib_h.m4
-# serial 78
+# serial 81
 dnl Copyright (C) 2007-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -37,7 +37,7 @@ AC_DEFUN_ONCE([gl_STDLIB_H],
   dnl On Solaris 10, in UTF-8 locales, its value is 3 but needs to be 4.
   dnl Fortunately, we can do this because on this platform MB_LEN_MAX is 5.
   AC_REQUIRE([AC_CANONICAL_HOST])
-  AC_REQUIRE([gt_LOCALE_FR_UTF8])
+  AC_REQUIRE([gt_LOCALE_EN_UTF8])
   AC_CACHE_CHECK([whether MB_CUR_MAX is correct],
     [gl_cv_macro_MB_CUR_MAX_good],
     [
@@ -45,13 +45,13 @@ AC_DEFUN_ONCE([gl_STDLIB_H],
       dnl is present.
 changequote(,)dnl
       case "$host_os" in
-                  # Guess no on Solaris.
-        solaris*) gl_cv_macro_MB_CUR_MAX_good="guessing no" ;;
-                  # Guess yes otherwise.
-        *)        gl_cv_macro_MB_CUR_MAX_good="guessing yes" ;;
+                           # Guess no on Solaris and Haiku.
+        solaris* | haiku*) gl_cv_macro_MB_CUR_MAX_good="guessing no" ;;
+                           # Guess yes otherwise.
+        *)                 gl_cv_macro_MB_CUR_MAX_good="guessing yes" ;;
       esac
 changequote([,])dnl
-      if test $LOCALE_FR_UTF8 != none; then
+      if test "$LOCALE_EN_UTF8" != none; then
         AC_RUN_IFELSE(
           [AC_LANG_SOURCE([[
 #include <locale.h>
@@ -59,7 +59,7 @@ changequote([,])dnl
 int main ()
 {
   int result = 0;
-  if (setlocale (LC_ALL, "$LOCALE_FR_UTF8") != NULL)
+  if (setlocale (LC_ALL, "$LOCALE_EN_UTF8") != NULL)
     {
       if (MB_CUR_MAX < 4)
         result |= 1;
@@ -146,6 +146,7 @@ AC_DEFUN([gl_STDLIB_H_REQUIRE_DEFAULTS],
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_RPMATCH])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_SECURE_GETENV])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_SETENV])
+    gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_STACK_TRACE])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_STRTOD])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_STRTOF])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_STRTOL])
@@ -261,4 +262,5 @@ AC_DEFUN([gl_STDLIB_H_DEFAULTS],
   REPLACE_STRTOULL=0;        AC_SUBST([REPLACE_STRTOULL])
   REPLACE_UNSETENV=0;        AC_SUBST([REPLACE_UNSETENV])
   REPLACE_WCTOMB=0;          AC_SUBST([REPLACE_WCTOMB])
+  CAN_PRINT_STACK_TRACE=0;   AC_SUBST([CAN_PRINT_STACK_TRACE])
 ])

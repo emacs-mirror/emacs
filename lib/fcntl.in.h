@@ -100,7 +100,7 @@
 #   undef creat
 #   define creat rpl_creat
 #  endif
-_GL_FUNCDECL_RPL (creat, int, (const char *filename, mode_t mode)
+_GL_FUNCDECL_RPL (creat, int, (const char *filename, mode_t mode),
                              _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (creat, int, (const char *filename, mode_t mode));
 # elif defined _WIN32 && !defined __CYGWIN__
@@ -170,7 +170,7 @@ _GL_WARN_ON_USE (fcntl, "fcntl is not always POSIX compliant - "
 #   undef open
 #   define open rpl_open
 #  endif
-_GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...)
+_GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                              _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (open, int, (const char *filename, int flags, ...));
 # elif defined _WIN32 && !defined __CYGWIN__
@@ -217,14 +217,14 @@ _GL_CXXALIASWARN (open);
 #   define openat rpl_openat
 #  endif
 _GL_FUNCDECL_RPL (openat, int,
-                  (int fd, char const *file, int flags, /* mode_t mode */ ...)
+                  (int fd, char const *file, int flags, /* mode_t mode */ ...),
                   _GL_ARG_NONNULL ((2)));
 _GL_CXXALIAS_RPL (openat, int,
                   (int fd, char const *file, int flags, /* mode_t mode */ ...));
 # else
 #  if !@HAVE_OPENAT@
 _GL_FUNCDECL_SYS (openat, int,
-                  (int fd, char const *file, int flags, /* mode_t mode */ ...)
+                  (int fd, char const *file, int flags, /* mode_t mode */ ...),
                   _GL_ARG_NONNULL ((2)));
 #  endif
 _GL_CXXALIAS_SYS (openat, int,

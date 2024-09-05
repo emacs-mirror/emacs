@@ -332,8 +332,10 @@ _GL_CXXALIAS_SYS (select, int,
 _GL_CXXALIASWARN (select);
 # endif
 #elif @HAVE_WINSOCK2_H@
-# undef select
-# define select select_used_without_requesting_gnulib_module_select
+# if !GNULIB_SELECT
+#  undef select
+#  define select select_used_without_requesting_gnulib_module_select
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef select
 # if HAVE_RAW_DECL_SELECT
