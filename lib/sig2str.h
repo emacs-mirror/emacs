@@ -17,6 +17,11 @@
 
 /* Written by Paul Eggert.  */
 
+/* This file uses HAVE_* macros.  */
+# if !_GL_CONFIG_H_INCLUDED
+#  error "Please include config.h first."
+# endif
+
 #include <signal.h>
 
 /* Maximum size of a signal name returned by sig2str(), including the
