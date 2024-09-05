@@ -1689,9 +1689,9 @@ command or function is invoked.  For example:
 
   Note that installing a package using @code{package-install}
 (@pxref{Package Installation}) takes care of placing the package's
-Lisp files in a directory where Emacs will find it, and also writes
-the necessary initialization code into your init files, making the
-above manual customizations unnecessary.
+Lisp files in a directory where Emacs will find it, and also extends
+@code{load-path} as needed, making the above manual customizations
+unnecessary for such packages.
 
 @node Lisp Eval
 @section Evaluating Emacs Lisp Expressions
