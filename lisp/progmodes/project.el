@@ -1070,6 +1070,19 @@ using a command like `project-find-file'."
     filename))
 
 ;;;###autoload
+(defun project-find-file-in-root ()
+  "Call `find-file' in the current project root.
+
+Unlike `project-find-file', this doesn't provide completion over the
+entire file tree.
+
+This is equivalent to running `project-any-command' with `find-file'."
+  (interactive)
+  (let* ((pr (project-current t))
+         (default-directory (project-root pr)))
+    (call-interactively #'find-file)))
+
+;;;###autoload
 (defun project-find-file (&optional include-all)
   "Visit a file (with completion) in the current project.
 
