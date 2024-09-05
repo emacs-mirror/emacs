@@ -1021,11 +1021,9 @@ default_pixels_per_inch_y (void)
    does not have FRAME_DISPLAY_INFO.  */
 #ifdef HAVE_WINDOW_SYSTEM
 #ifndef HAVE_ANDROID
-#   define MOUSE_HL_INFO(F)					\
+# define MOUSE_HL_INFO(F)					\
   (FRAME_WINDOW_P (F)						\
-  ? (FRAME_OUTPUT_DATA (F)					\
-     ? &FRAME_DISPLAY_INFO (F)->mouse_highlight			\
-     : NULL)							\
+   ? &FRAME_DISPLAY_INFO(F)->mouse_highlight			\
    : &(F)->output_data.tty->display_info->mouse_highlight)
 #else
 /* There is no "struct tty_output" on Android at all.  */
