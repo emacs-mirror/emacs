@@ -257,7 +257,15 @@ a list of frames to update."
   "Tab Bar mode map.")
 
 (define-minor-mode tab-bar-mode
-  "Toggle the tab bar in all graphical frames (Tab Bar mode)."
+  "Toggle the tab bar in all graphical frames (Tab Bar mode).
+
+When this mode is enabled, Emacs displays a tab bar on top of each frame.
+The tab bar is a row of tabs -- buttons that you can click
+to switch the frame between different window configurations.
+See `current-window-configuration' for more about window configurations.
+To add a button (which can then record one more window configuration),
+click on the \"+\" button.  Clicking on the \"x\" icon of a button
+deletes the button."
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable tab-bar-mode
