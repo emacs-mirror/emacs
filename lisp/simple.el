@@ -8896,6 +8896,63 @@ constitute a word."
       ;; If we found something nonempty, return it as a string.
       (unless (= start end)
 	(buffer-substring-no-properties start end)))))
+
+(defun forward-unix-word (n &optional delim)
+  "Move forward N Unix-words.
+A Unix-word is whitespace-delimited.
+A negative N means go backwards to the beginning of Unix-words.
+
+Unix-words differ from Emacs words in that they are always delimited by
+whitespace, regardless of the buffer's syntax table.  This function
+emulates how C-w at the Unix terminal or shell identifies words.
+
+Optional argument DELIM specifies what characters are considered
+whitespace.  It is a string as might be passed to `skip-chars-forward'.
+The default is \"\\s\\f\\n\\r\\t\\v\".  Do not prefix a `^' character."
+  (when (string-prefix-p "^" delim)
+    (error "DELIM argument must not begin with `^'"))
+  (unless (zerop n)
+    ;; We do skip over newlines by default because `backward-word' does.
+    (let* ((delim (or delim "\s\f\n\r\t\v"))
+           (ndelim (format "^%s" delim))
+           (start (point))
+           (fun (if (> n 0)
+                    #'skip-chars-forward
+                  #'skip-chars-backward)))
+      (dotimes (_ (abs n))
+        (funcall fun delim)
+        (funcall fun ndelim))
+      (constrain-to-field nil start))))
+
+(defun unix-word-rubout (arg)
+  "Kill ARG Unix-words backwards.
+A Unix-word is whitespace-delimited.
+Interactively, ARG is the numeric prefix argument, defaulting to 1.
+A negative ARG means to kill forwards.
+
+Unix-words differ from Emacs words in that they are always delimited by
+whitespace, regardless of the buffer's syntax table.
+Thus, this command emulates C-w at the Unix terminal or shell.
+See also this command's nakesake in Info node
+`(readline)Commands For Killing'."
+  (interactive "^p")
+  (let ((start (point)))
+    (forward-unix-word (- arg))
+    (kill-region start (point))))
+
+(defun unix-filename-rubout (arg)
+  "Kill ARG Unix-words backwards, also treating slashes as word delimiters.
+A Unix-word is whitespace-delimited.
+Interactively, ARG is the numeric prefix argument, defaulting to 1.
+A negative ARG means to kill forwards.
+
+This is like `unix-word-rubout' (which see), but `/' and `\\' are also
+treated as delimiting words.  See this command's namesake in Info node
+`(readline)Commands For Killing'."
+  (interactive "^p")
+  (let ((start (point)))
+    (forward-unix-word (- arg) "\\\\/\s\f\n\r\t\v")
+    (kill-region start (point))))
 
 (defcustom fill-prefix nil
   "String for filling to insert at front of new line, or nil for none."

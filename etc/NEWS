@@ -132,6 +132,12 @@ When using 'visual-wrap-prefix-mode' in buffers with variable-pitch
 fonts, the wrapped text will now be lined up correctly so that it's
 exactly below the text after the prefix on the first line.
 
+---
+** New commands 'unix-word-rubout' and 'unix-filename-rubout'.
+Unix-words are words separated by whitespace regardless of the buffer's
+syntax table.  In a Unix terminal or shell, C-w kills by Unix-word.
+The new commands 'unix-word-rubout' and 'unix-filename-rubout' allow
+you to bind keys to operate more similarly to the terminal.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
