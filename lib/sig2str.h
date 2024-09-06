@@ -32,10 +32,10 @@
 # define SIG2STR_MAX (5 + 1 + 10 + 1 + 2)
 #endif
 
-#ifdef __MINGW32__
+#ifndef HAVE_SIG2STR
 int sig2str (int, char *);
 #endif
-#ifdef __MINGW32__
+#ifndef HAVE_STR2SIG
 int str2sig (char const *, int *);
 #endif
 
