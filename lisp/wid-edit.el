@@ -3891,6 +3891,30 @@ or a list with the default value of each component of the list WIDGET."
   (and (consp value)
        (widget-group-match widget
 			   (widget-apply widget :value-to-internal value))))
+
+(defun widget-single-or-list-to-internal (widget val)
+  (if (listp val) val
+    (cons val (make-list (1- (length (widget-get widget :args))) nil))))
+
+(define-widget 'single-or-list 'group
+  "Either a single value (`nlistp') or a list of values (`listp').
+
+If the initial value is `nlistp', the first child widget gets
+that value and the other children get nil.
+
+If the first child's value is `nlistp' and the other children are
+nil, then `widget-value' just returns the first child's value."
+  ;; The internal value is always a list; only :value-to-internal and
+  ;; :match ever get called with the external value, which might be
+  ;; `nlistp'.
+  :value-to-external (lambda (_ val)
+                       (if (and (nlistp (car val))
+                                (cl-every #'null (cdr val)))
+                           (car val) val))
+  :value-to-internal #'widget-single-or-list-to-internal
+  :match (lambda (widget val)
+           (widget-group-match widget (widget-single-or-list-to-internal widget val))))
+
 
 ;;; The `lazy' Widget.
 ;;
