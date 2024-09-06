@@ -1071,7 +1071,7 @@ using a command like `project-find-file'."
 
 ;;;###autoload
 (defun project-find-file-in-root ()
-  "Call `find-file' in the current project root.
+  "Call `find-file' with the current project root as `default-directory'.
 
 Unlike `project-find-file', this doesn't provide completion over the
 entire file tree.
