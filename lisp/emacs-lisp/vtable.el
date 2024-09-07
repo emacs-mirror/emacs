@@ -722,15 +722,17 @@ This also updates the displayed table."
                    (vtable--limit-string
                     name (- (elt widths index) indicator-width))
                  name))
-         (let ((fill-width
-                (+ (- (elt widths index)
-                      (string-pixel-width displayed)
-                      indicator-width
-                      (vtable-separator-width table)
-                      ;; We want the indicator to not be quite flush
-                      ;; right.
-                      (/ (vtable--char-width table) 2.0))
-                   (if last 0 spacer))))
+         (let* ((indicator-lead-width
+                 ;; We want the indicator to not be quite flush right.
+                 (/ (vtable--char-width table) 2.0))
+                (indicator-pad-width (- (vtable--char-width table)
+                                        indicator-lead-width))
+                (fill-width
+                 (+ (- (elt widths index)
+                       (string-pixel-width displayed)
+                       indicator-width
+                       indicator-lead-width)
+                    (if last 0 spacer))))
            (if (or (not last)
                    (zerop indicator-width)
                    (< (seq-reduce #'+ widths 0) (window-width nil t)))
@@ -739,7 +741,9 @@ This also updates the displayed table."
                 displayed
                 (propertize " " 'display
                             (list 'space :width (list fill-width)))
-                indicator)
+                indicator
+                (propertize " " 'display
+                            (list 'space :width (list indicator-pad-width))))
              ;; This is the final column, and we have a sorting
              ;; indicator, and the table is too wide for the window.
              (let* ((pre-indicator (string-pixel-width
@@ -758,10 +762,6 @@ This also updates the displayed table."
                                   (list (- fill-width pre-fill))))))))
          (when (and divider (not last))
            (insert (propertize divider 'keymap dmap)))
-         (insert (propertize
-                  " " 'display
-                  (list 'space :width (list
-                                       (/ (vtable--char-width table) 2.0)))))
          (put-text-property start (point) 'vtable-column index)))
      (vtable-columns table))
     (insert "\n")
