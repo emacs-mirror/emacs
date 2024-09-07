@@ -1308,6 +1308,11 @@ if defined_HAVE_X_WINDOWS
   break x_error_quitter
 end
 
+if defined_WINDOWSNT
+  while kbdhook.hook_count > 0
+    call remove_w32_kbdhook()
+  end
+end
 
 # Put the Python code at the end of .gdbinit so that if GDB does not
 # support Python, GDB will do all the above initializations before
