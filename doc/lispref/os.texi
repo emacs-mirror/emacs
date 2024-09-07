@@ -846,7 +846,8 @@ Really suspend? @kbd{y}
 
 @group
 ---------- Parent Shell ----------
-bash$ /home/username
+bash$ pwd
+/home/username
 bash$ fg
 @end group
 
