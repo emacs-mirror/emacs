@@ -649,7 +649,7 @@ SORT-PRED if desired."
   "Compute total size of files in directory DIR and its subdirectories.
 DIR is assumed to be a directory, verified by the caller."
   (let ((size 0))
-    (dolist (file (directory-files-recursively dir "." t))
+    (dolist (file (directory-files-recursively dir "" t))
       (let ((fsize (nth 7 (file-attributes file))))
         (if (> fsize 0)
             (setq size
