@@ -337,7 +337,9 @@ width (in pixels), and @var{table} is the table.
 @end defun
 
 @item align
-Should be either @code{right} or @code{left}.
+Should be either @code{right} or @code{left}.  If not specified,
+numerical values will be flushed to the right, and all other values will
+be flushed to the left.
 @end table
 
 @item :getter
@@ -426,14 +428,19 @@ current line, they can use the @code{vtable-current-object} function
 (@pxref{Interface Functions}) to determine what that object is.
 
 @item :separator-width
-The width of the blank space between columns.
+The width of the blank space between columns.  If not specified, it
+defaults to 1.
 
 @item :divider-width
 @itemx :divider
-You can have a divider inserted between the columns.  This can either
-be specified by using @code{:divider}, which should be a string to be
-displayed between the columns, or @code{:divider-width}, which
-specifies the width of the space to be used as the divider.
+You can have a divider inserted between the columns.  This can either be
+specified by using @code{:divider}, which should be a string to be
+displayed between the columns, or @code{:divider-width}, which specifies
+the width of the space to be used as the divider, in units of characters
+of the face used to display the table.  If not specified,
+@code{:divider} defaults to @code{nil}, but specifying
+@code{:divider-width} effectively sets the divider to a whitespace
+string of that width.
 
 @item :sort-by
 This should be a list of tuples, and specifies how the table is to be

@@ -119,8 +119,8 @@
 ;;
 ;;     FSF
 ;;     Free Software Foundation
-;;     51 Franklin Street, Fifth Floor
-;;     Boston, MA 02110-1301  USA.
+;;     31 Milk Street, # 960789
+;;     Boston, MA 02196  USA.
 ;;     (617) 542-5942
 ;;     gnu@gnu.org
 ;;

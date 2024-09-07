@@ -257,7 +257,15 @@ a list of frames to update."
   "Tab Bar mode map.")
 
 (define-minor-mode tab-bar-mode
-  "Toggle the tab bar in all graphical frames (Tab Bar mode)."
+  "Toggle the tab bar in all graphical frames (Tab Bar mode).
+
+When this mode is enabled, Emacs displays a tab bar on top of each frame.
+The tab bar is a row of tabs -- buttons that you can click
+to switch the frame between different window configurations.
+See `current-window-configuration' for more about window configurations.
+To add a button (which can then record one more window configuration),
+click on the \"+\" button.  Clicking on the \"x\" icon of a button
+deletes the button."
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable tab-bar-mode
@@ -1517,8 +1525,8 @@ in the same window to give information about the killed buffer."
 
 (defun tab-bar-select-restore-windows (_frame windows _type)
   "Display a placeholder buffer in the window whose buffer was killed.
-A button in the window allows restoring the killed buffer,
-if it was visiting a file."
+There is a button in the window which you can press to restore the
+killed buffer, if that buffer was visiting a file."
   (dolist (quad windows)
     (when (window-live-p (nth 0 quad))
       (let* ((window (nth 0 quad))

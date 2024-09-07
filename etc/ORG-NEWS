@@ -284,6 +284,26 @@ respected.
 Images dropped also respect the value of ~org-yank-image-save-method~
 when ~org-yank-dnd-method~ is =attach=.
 
+*** Alignment of image previews can be customized
+
+Previously, all the image previews where always left-aligned.
+
+Now, you can customize image previews to be left-aligned, centered, or right-aligned.
+
+The customization can be done globally, via ~org-image-align~, or per
+image, using =#+attr_...:=.  Example:
+
+: #+attr_org: :align center
+: [[/path/to/image/file/png]]
+:
+: or
+:
+: #+attr_org: :center t
+: [[/path/to/image/file/png]]
+
+When =#+attr_org= is not present, ~:align~ and ~:center~ attributes
+from other =#+attr_...:= keywords will be used.
+
 *** =id:= links support search options; ~org-id-store-link~ adds search option by default
 
 Adding search option by ~org-id-store-link~ can be disabled by setting

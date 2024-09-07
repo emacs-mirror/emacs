@@ -1141,7 +1141,15 @@ However, return the correct mouse position list if EVENT is a
 
 ;;;###autoload
 (define-minor-mode tab-line-mode
-  "Toggle display of tab line in the windows displaying the current buffer."
+  "Toggle display of tab line in the windows displaying the current buffer.
+
+When this mode is enabled, each window displays a tab line on its
+top screen line.  The tab line is a row of tabs -- buttons which
+you can click to have the window display the buffer whose name is
+shown on the button.  Clicking on the \"x\" icon of the button
+removes the button (but does not kill the corresponding buffer).
+In addition, the tab line shows a \"+\" button which adds a new
+button, so you could have one more buffer shown on the tab line."
   :lighter nil
   (let ((default-value '(:eval (tab-line-format))))
     ;; Preserve the existing tab-line set outside of this mode

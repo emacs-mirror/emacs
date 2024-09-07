@@ -1415,13 +1415,16 @@ enable gathering statistics."
           (when fun
             (mapcar
              #'(lambda (sym)
-                 (if (boundp sym)
-                     `(add-hook (quote ,sym) (function ,fun))
-                   `(add-hook
-                     (quote ,(intern
-                              (concat (symbol-name sym)
-                                      use-package-hook-name-suffix)))
-                     (function ,fun))))
+                 (let ((symname (symbol-name sym)))
+                   (if (and (boundp sym)
+                            ;; Mode variables are usually bound, but
+                            ;; their hooks are named FOO-mode-hook.
+                            (not (string-suffix-p "-mode" symname)))
+                       `(add-hook (quote ,sym) (function ,fun))
+                     `(add-hook
+                       (quote ,(intern
+                                (concat symname use-package-hook-name-suffix)))
+                       (function ,fun)))))
              (use-package-hook-handler-normalize-mode-symbols syms)))))
     (use-package-normalize-commands args))))
 

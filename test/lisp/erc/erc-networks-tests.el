@@ -133,10 +133,12 @@
     (with-temp-buffer
       (setq erc-networks--id (erc-networks--id-fixed-create 'oldest)
             oldest (current-buffer))
+      (sleep-for 0.02)
 
       (with-temp-buffer
         (setq erc-networks--id (erc-networks--id-fixed-create 'middle)
               middle (current-buffer))
+        (sleep-for 0.02)
 
         (with-temp-buffer
           (setq erc-networks--id (erc-networks--id-fixed-create 'newest)

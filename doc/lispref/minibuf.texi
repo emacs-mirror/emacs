@@ -1910,8 +1910,8 @@ pairs.  The following properties are supported:
 @item :category
 The value should be a symbol describing what kind of text the
 completion function is trying to complete.  If the symbol matches one
-of the keys in @code{completion-category-overrides}, the usual
-completion behavior is overridden.  @xref{Completion Variables}.
+of the keys in @code{completion-category-overrides} described above,
+the usual completion behavior is overridden.
 
 @item :annotation-function
 The value should be a function to add annotations in the completions

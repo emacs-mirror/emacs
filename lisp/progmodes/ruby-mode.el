@@ -472,6 +472,26 @@ Only has effect when `ruby-use-smie' is t."
   :safe 'booleanp
   :version "29.1")
 
+(defcustom ruby-bracketed-args-indent t
+  "Non-nil to align the contents of bracketed arguments with the brackets.
+
+Example:
+
+  qux({
+        foo => bar
+      })
+
+Set it to nil to align to the beginning of the statement:
+
+  qux({
+    foo => bar
+  })
+
+Only has effect when `ruby-use-smie' is t."
+  :type 'boolean
+  :safe 'booleanp
+  :version "30.1")
+
 (defcustom ruby-deep-arglist t
   "Deep indent lists in parenthesis when non-nil.
 Also ignores spaces after parenthesis when `space'.
@@ -826,6 +846,9 @@ This only affects the output of the command `ruby-toggle-block'."
       ))
     (`(:before . ,(or "(" "[" "{"))
      (cond
+      ((and (not (eq ruby-bracketed-args-indent t))
+            (smie-rule-prev-p "," "(" "["))
+       (cons 'column (current-indentation)))
       ((and (equal token "{")
             (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";" "do"))
             (save-excursion

@@ -3788,8 +3788,8 @@ argument.
 
 With the above setting, you could link to a specific bug with
 =[[bugzilla:129]]=, search the web for =OrgMode= with =[[duckduckgo:OrgMode]]=,
-show the map location of the Free Software Foundation =[[gmap:51
-Franklin Street, Boston]]= or of Carsten office =[[omap:Science Park 904,
+show the map location of the Free Software Foundation =[[omap:31
+Milk Street, Boston]]= or of Carsten's office =[[omap:Science Park 904,
 Amsterdam, The Netherlands]]= and find out what the Org author is doing
 besides Emacs hacking with =[[ads:Dominik,C]]=.
 

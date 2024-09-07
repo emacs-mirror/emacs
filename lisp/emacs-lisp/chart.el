@@ -641,27 +641,68 @@ SORT-PRED if desired."
 		       (lambda (a b) (> (cdr a) (cdr b))))
     ))
 
+;; This assumes 4KB blocks
+(defun chart--file-size (size)
+  (* (/ (+ size 4095) 4096) 4096))
+
+(defun chart--directory-size (dir)
+  "Compute total size of files in directory DIR and its subdirectories.
+DIR is assumed to be a directory, verified by the caller."
+  (let ((size 0))
+    (dolist (file (directory-files-recursively dir "." t))
+      (let ((fsize (nth 7 (file-attributes file))))
+        (if (> fsize 0)
+            (setq size
+                  (+ size (chart--file-size fsize))))))
+    size))
+
 (defun chart-space-usage (d)
   "Display a top usage chart for directory D."
   (interactive "DDirectory: ")
   (message "Collecting statistics...")
   (let ((nmlst nil)
 	(cntlst nil)
-	(b (get-buffer-create " *du-tmp*")))
-    (set-buffer b)
-    (erase-buffer)
-    (insert "cd " d ";du -sk * \n")
-    (message "Running `cd %s;du -sk *'..." d)
-    (call-process-region (point-min) (point-max) shell-file-name t
-			 (current-buffer) nil)
-    (goto-char (point-min))
-    (message "Scanning output ...")
-    (while (re-search-forward "^\\([0-9]+\\)[ \t]+\\([^ \n]+\\)$" nil t)
-      (let* ((nam (buffer-substring (match-beginning 2) (match-end 2)))
-	     (num (buffer-substring (match-beginning 1) (match-end 1))))
-	(setq nmlst (cons nam nmlst)
-	      ;; * 1000 to put it into bytes
-	      cntlst (cons (* (string-to-number num) 1000) cntlst))))
+        b)
+    (if (executable-find "du")
+        (progn
+	  (setq b (get-buffer-create " *du-tmp*"))
+          (set-buffer b)
+          (erase-buffer)
+          (if (and (memq system-type '(windows-nt ms-dos))
+                   (fboundp 'w32-shell-dos-semantics)
+                   (w32-shell-dos-semantics))
+              (progn
+                ;; With Windows shells, 'cd' does not change the drive,
+                ;; and ';' is not reliable for running multiple
+                ;; commands, so use alternatives.  We quote the
+                ;; directory because otherwise pushd will barf on a
+                ;; directory with forward slashes.  Note that * will not
+                ;; skip dotfiles with Windows shells, unlike on Unix.
+                (insert "pushd \"" d "\" && du -sk * \n")
+                (message "Running `pushd \"%s\" && du -sk *'..." d))
+            (insert "cd " d ";du -sk * \n")
+            (message "Running `cd %s;du -sk *'..." d))
+          (call-process-region (point-min) (point-max) shell-file-name t
+			       (current-buffer) nil)
+          (goto-char (point-min))
+          (message "Scanning output ...")
+          (while (re-search-forward "^\\([0-9]+\\)[ \t]+\\([^ \n]+\\)$" nil t)
+            (let* ((nam (buffer-substring (match-beginning 2) (match-end 2)))
+	           (num (buffer-substring (match-beginning 1) (match-end 1))))
+	      (setq nmlst (cons nam nmlst)
+	            ;; * 1000 to put it into bytes
+	            cntlst (cons (* (string-to-number num) 1000) cntlst)))))
+      (dolist (file (directory-files d t directory-files-no-dot-files-regexp))
+        (let ((fbase (file-name-nondirectory file)))
+          ;; Typical shells exclude files and subdirectories whose names
+          ;; begin with a period when it expands *, so we do the same.
+          (unless (string-match-p "\\`\\." fbase)
+            (setq nmlst (cons fbase nmlst))
+            (if (file-regular-p file)
+                (setq cntlst (cons (chart--file-size
+                                    (nth 7 (file-attributes file)))
+                                   cntlst))
+              (setq cntlst (cons (chart--directory-size file) cntlst)))))))
     (if (not nmlst)
 	(error "No files found!"))
     (chart-bar-quickie 'vertical (format "Largest files in %s" d)

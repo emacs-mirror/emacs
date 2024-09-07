@@ -816,9 +816,9 @@ Like the other commands in this section, this command operates on the
 @findex dired-do-open
 @kindex E @r{(Dired)}
 @item E
-``Open'' the specified files using an external program.  The program is
-selected according to the system conventions, as determined by the
-variable @code{shell-command-guess-open}.
+``Open'' the specified files using an external program (@code{dired-do-open}).
+The program is selected according to the system conventions, as
+determined by the variable @code{shell-command-guess-open}.
 
 @findex dired-do-rename
 @kindex R @r{(Dired)}

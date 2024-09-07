@@ -992,6 +992,7 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ruby-deftest-indent "ruby-method-call-indent.rb")
 (ruby-deftest-indent "ruby-method-params-indent.rb")
 (ruby-deftest-indent "ruby-parenless-call-arguments-indent.rb")
+(ruby-deftest-indent "ruby-bracketed-args-indent.rb")
 
 (ert-deftest ruby--test-chained-indentation ()
   (with-temp-buffer

@@ -1459,9 +1459,9 @@ the file renames.  The downsides is that the log produced this
 way may omit certain (merge) commits, and that `log-view-diff'
 fails on commits that used the previous name, in that log buffer.
 
-When this variable is nil, and the log ends with a rename, we
-show a button below that which allows showing the log for the
-file name before the rename."
+When this variable is nil, and the log ends with a rename, there is a
+button which you can press to show the log for the file name before the
+rename."
   :type 'boolean
   :version "26.1")
 

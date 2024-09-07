@@ -2227,8 +2227,9 @@ construct.)
 @item (:eval @var{form})
 A list whose first element is the symbol @code{:eval} says to evaluate
 @var{form}, and use the result as a string to display.  Make sure this
-evaluation cannot load any files, as doing so could cause infinite
-recursion.
+evaluation neither loads any files nor calls functions like
+@code{posn-at-point} or @code{window-in-direction}, which themselves
+evaluate the mode line, as doing so could cause infinite recursion.
 
 @item (:propertize @var{elt} @var{props}@dots{})
 A list whose first element is the symbol @code{:propertize} says to

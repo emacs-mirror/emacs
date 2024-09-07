@@ -156,8 +156,11 @@
     (:cite-export "CITE_EXPORT" nil org-cite-export-processors))
   "Alist between export properties and ways to set them.
 
-The key of the alist is the property name, and the value is a list
-like (KEYWORD OPTION DEFAULT BEHAVIOR) where:
+Each element of the alist is a list like
+(ALIST-KEY KEYWORD OPTION DEFAULT BEHAVIOR)
+
+ALIST-KEY is the key of the alist - a symbol like `:option', and the
+value is (KEYWORD OPTION ...).
 
 KEYWORD is a string representing a buffer keyword, or nil.  Each
   property defined this way can also be set, during subtree
