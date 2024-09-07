@@ -170,56 +170,60 @@ DOC should be a doc string, and ARGS are keywords as applicable to
          "create unique index multisession_idx on multisession (package, key)")))))
 
 (cl-defmethod multisession-backend-value ((_type (eql 'sqlite)) object)
-  (multisession--ensure-db)
-  (let ((id (list (multisession--package object)
-                  (multisession--key object))))
-    (cond
-     ;; We have no value yet; check the database.
-     ((eq (multisession--cached-value object) multisession--unbound)
-      (let ((stored
-             (car
-              (sqlite-select
-               multisession--db
-               "select value, sequence from multisession where package = ? and key = ?"
-               id))))
-        (if stored
-            (let ((value (car (read-from-string (car stored)))))
-              (setf (multisession--cached-value object) value
-                    (multisession--cached-sequence object) (cadr stored))
-              value)
-          ;; Nothing; return the initial value.
-          (multisession--initial-value object))))
-     ;; We have a value, but we want to update in case some other
-     ;; Emacs instance has updated.
-     ((multisession--synchronized object)
-      (let ((stored
-             (car
-              (sqlite-select
-               multisession--db
-               "select value, sequence from multisession where sequence > ? and package = ? and key = ?"
-               (cons (multisession--cached-sequence object) id)))))
-        (if stored
-            (let ((value (car (read-from-string (car stored)))))
-              (setf (multisession--cached-value object) value
-                    (multisession--cached-sequence object) (cadr stored))
-              value)
-          ;; Nothing, return the cached value.
-          (multisession--cached-value object))))
-     ;; Just return the cached value.
-     (t
-      (multisession--cached-value object)))))
+  (if (not (sqlite-available-p))
+      (cl-call-next-method)
+    (multisession--ensure-db)
+    (let ((id (list (multisession--package object)
+                    (multisession--key object))))
+      (cond
+       ;; We have no value yet; check the database.
+       ((eq (multisession--cached-value object) multisession--unbound)
+        (let ((stored
+               (car
+                (sqlite-select
+                 multisession--db
+                 "select value, sequence from multisession where package = ? and key = ?"
+                 id))))
+          (if stored
+              (let ((value (car (read-from-string (car stored)))))
+                (setf (multisession--cached-value object) value
+                      (multisession--cached-sequence object) (cadr stored))
+                value)
+            ;; Nothing; return the initial value.
+            (multisession--initial-value object))))
+       ;; We have a value, but we want to update in case some other
+       ;; Emacs instance has updated.
+       ((multisession--synchronized object)
+        (let ((stored
+               (car
+                (sqlite-select
+                 multisession--db
+                 "select value, sequence from multisession where sequence > ? and package = ? and key = ?"
+                 (cons (multisession--cached-sequence object) id)))))
+          (if stored
+              (let ((value (car (read-from-string (car stored)))))
+                (setf (multisession--cached-value object) value
+                      (multisession--cached-sequence object) (cadr stored))
+                value)
+            ;; Nothing, return the cached value.
+            (multisession--cached-value object))))
+       ;; Just return the cached value.
+       (t
+        (multisession--cached-value object))))))
 
 (cl-defmethod multisession--backend-set-value ((_type (eql 'sqlite))
                                                object value)
-  (catch 'done
-    (let ((i 0))
-      (while (< i 10)
-        (condition-case nil
-            (throw 'done (multisession--set-value-sqlite object value))
-          (sqlite-locked-error
-           (setq i (1+ i))
-           (sleep-for (+ 0.1 (/ (float (random 10)) 10))))))
-      (signal 'sqlite-locked-error "Database is locked"))))
+  (if (not (sqlite-available-p))
+      (cl-call-next-method)
+    (catch 'done
+      (let ((i 0))
+        (while (< i 10)
+          (condition-case nil
+              (throw 'done (multisession--set-value-sqlite object value))
+            (sqlite-locked-error
+             (setq i (1+ i))
+             (sleep-for (+ 0.1 (/ (float (random 10)) 10))))))
+        (signal 'sqlite-locked-error "Database is locked")))))
 
 (defun multisession--set-value-sqlite (object value)
   (multisession--ensure-db)
@@ -245,16 +249,20 @@ DOC should be a doc string, and ARGS are keywords as applicable to
       (setf (multisession--cached-value object) value))))
 
 (cl-defmethod multisession--backend-values ((_type (eql 'sqlite)))
-  (multisession--ensure-db)
-  (sqlite-select
-   multisession--db
-   "select package, key, value from multisession order by package, key"))
+      (if (not (sqlite-available-p))
+          (cl-call-next-method)
+        (multisession--ensure-db)
+        (sqlite-select
+         multisession--db
+         "select package, key, value from multisession order by package, key")))
 
 (cl-defmethod multisession--backend-delete ((_type (eql 'sqlite)) object)
-  (sqlite-execute multisession--db
-                  "delete from multisession where package = ? and key = ?"
-                  (list (multisession--package object)
-                        (multisession--key object))))
+      (if (not (sqlite-available-p))
+          (cl-call-next-method)
+        (sqlite-execute multisession--db
+                        "delete from multisession where package = ? and key = ?"
+                        (list (multisession--package object)
+                              (multisession--key object)))))
 
 ;; Files Backend
 
