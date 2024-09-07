@@ -1451,7 +1451,7 @@ This default should work without changes."
     (ediff-abbreviate-file-name (file-name-directory dir))))
 
 (defsubst ediff-nonempty-string-p (string)
-  (and (stringp string) (string-empty-p string)))
+  (and (stringp string) (not (string-empty-p string))))
 
 (defun ediff-abbrev-jobname (jobname)
   (cond ((eq jobname 'ediff-directories)
