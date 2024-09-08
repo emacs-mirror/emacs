@@ -280,6 +280,16 @@ according to diffs in the current buffer, but without applying the diffs
 to the original text.  If the selected range extends a hunk, the
 command attempts to look up and copy the text in-between the hunks.
 
+** php-ts-mode
+
+---
+*** 'php-ts-mode-run-php-webserver' can now accept a custom php.ini file.
+You can use the new optional argument CONFIG when calling
+'php-ts-mode-run-php-webserver' to pass an alternative php.ini file to
+the built-in Web server.  Interactively, when invoked with a prefix
+argument, 'php-ts-mode-run-php-webserver' prompts for the config file as
+well as for other connection parameters.
+
 
 * New Modes and Packages in Emacs 31.1
 
