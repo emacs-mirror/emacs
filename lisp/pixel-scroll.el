@@ -161,22 +161,22 @@ This is only effective if supported by your mouse or touchpad."
 
 (defcustom pixel-scroll-precision-momentum-tick 0.01
   "Number of seconds between each momentum scroll."
-  :type 'float
+  :type 'number
   :version "29.1")
 
 (defcustom pixel-scroll-precision-momentum-seconds 1.75
   "The maximum duration in seconds of momentum scrolling."
-  :type 'float
+  :type 'number
   :version "29.1")
 
 (defcustom pixel-scroll-precision-momentum-min-velocity 10.0
   "The minimum scrolled pixels per second before momentum scrolling starts."
-  :type 'float
+  :type 'number
   :version "29.1")
 
 (defcustom pixel-scroll-precision-initial-velocity-factor (/ 0.0335 4)
   "Factor applied to the initial velocity before momentum scrolling begins."
-  :type 'float
+  :type 'number
   :version "29.1")
 
 (defcustom pixel-scroll-precision-large-scroll-height nil
@@ -188,17 +188,17 @@ Nil means to not interpolate such scrolls."
 
 (defcustom pixel-scroll-precision-interpolation-total-time 0.1
   "The total time in seconds to spend interpolating a large scroll."
-  :type 'float
+  :type 'number
   :version "29.1")
 
 (defcustom pixel-scroll-precision-interpolation-factor 2.0
   "A factor to apply to the distance of an interpolated scroll."
-  :type 'float
+  :type 'number
   :version "29.1")
 
 (defcustom pixel-scroll-precision-interpolation-between-scroll 0.001
   "The number of seconds between each step of an interpolated scroll."
-  :type 'float
+  :type 'number
   :version "29.1")
 
 (defcustom pixel-scroll-precision-interpolate-page nil

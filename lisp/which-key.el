@@ -61,7 +61,7 @@ This variable should be set before activating `which-key-mode'.
 A value of zero might lead to issues, so a non-zero value is
 recommended
 (see https://github.com/justbur/emacs-which-key/issues/134)."
-  :type 'float
+  :type 'number
   :package-version "1.0" :version "30.1")
 
 (defcustom which-key-idle-secondary-delay nil
@@ -82,7 +82,7 @@ This only applies if `which-key-popup-type' is minibuffer or
 `which-key-show-prefix' is echo.  It needs to be less than
 `which-key-idle-delay' or else the keystroke echo will erase the
 which-key popup."
-  :type 'float
+  :type 'number
   :package-version '(which-key . "1.0") :version "30.1")
 
 (defcustom which-key-max-description-length 27
@@ -331,14 +331,14 @@ the right of) the middle slot.  The default is zero."
   "Maximum width of which-key popup when type is side-window.
 This variable can also be a number between 0 and 1. In that case,
 it denotes a percentage out of the frame's width."
-  :type 'float
+  :type 'number
   :package-version '(which-key . "1.0") :version "30.1")
 
 (defcustom which-key-side-window-max-height 0.25
   "Maximum height of which-key popup when type is side-window.
 This variable can also be a number between 0 and 1. In that case, it denotes
 a percentage out of the frame's height."
-  :type 'float
+  :type 'number
   :package-version '(which-key . "1.0") :version "30.1")
 
 (defcustom which-key-frame-max-width 60

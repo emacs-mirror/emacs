@@ -766,7 +766,7 @@ may happen."
 
 (defcustom hfy-font-zoom 1.05
   "Font scaling from Emacs to HTML."
-  :type 'float)
+  :type 'number)
 
 (defun hfy-size (height)
   "Derive a CSS font-size specifier from an Emacs font :height attribute HEIGHT.

@@ -1078,7 +1078,7 @@ Resized or in full-size."
 (defcustom image-dired-slideshow-delay 5.0
   "Seconds to wait before showing the next image in a slideshow.
 This is used by `image-dired-slideshow-start'."
-  :type 'float
+  :type 'number
   :version "29.1")
 
 (define-obsolete-variable-alias 'image-dired-slideshow-timer
