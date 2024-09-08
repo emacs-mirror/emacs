@@ -1072,7 +1072,8 @@ plain variables.  This means that `setopt' will execute any
   ;; Check that the type is correct.
   (when-let ((type (get variable 'custom-type)))
     (unless (widget-apply (widget-convert type) :match value)
-      (warn "Value `%S' does not match type %s" value type)))
+      (warn "Value `%S' for variable `%s' does not match its type \"%s\""
+            value variable type)))
   (put variable 'custom-check-value (list value))
   (funcall (or (get variable 'custom-set) #'set-default) variable value))
 
