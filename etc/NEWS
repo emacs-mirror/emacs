@@ -110,8 +110,9 @@ This hook allows you to control which tab-bar tabs are auto-resized.
 
 ** Project
 
-New command `project-find-file-in-root` which is equivalent to running
-‘project-any-command’ with ‘find-file’.
+---
+*** New command `project-find-file-in-root`.
+It is equivalent to running ‘project-any-command’ with ‘find-file’.
 
 
 * Editing Changes in Emacs 31.1
