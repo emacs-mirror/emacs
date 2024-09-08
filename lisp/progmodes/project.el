@@ -331,7 +331,10 @@ end it with `/'.  DIR must be either `project-root' or one of
 The file names should be relative to the project root.  And this can
 only happen when all returned files are in the same directory.
 In other words, the DIRS argument of `project-files' has to be nil or a
-list of only one element.")
+list of only one element.
+
+This variable is only meant to be set by Lisp code, not customized by
+the user.")
 
 (cl-defgeneric project-files (project &optional dirs)
   "Return a list of files in directories DIRS in PROJECT.
