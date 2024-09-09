@@ -26,6 +26,10 @@ In fast-moving channels and in queries with long-winded bots, the
 on account of a rather stingy buffering threshold of 512 characters.
 Now configurable, its default has been relaxed eightfold to 4096.
 
+** New option determines 'keep-place-indicator's influence on 'truncate'.
+Option 'erc-keep-place-indicator-truncation' manages the tension between
+truncation and place keeping, prioritizing one or the other.
+
 
 * Changes in ERC 5.6
 

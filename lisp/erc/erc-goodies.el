@@ -308,6 +308,19 @@ buffer than the window's start."
   :package-version '(ERC . "5.6")
   :type 'boolean)
 
+(defcustom erc-keep-place-indicator-truncation nil
+  "What to do when truncation occurs and the buffer is trimmed.
+If nil, a truncation event moves the indicator, effectively resetting it
+to `point-min'.  If this option's value is t, the indicator stays put
+and limits the operation, but only when it resides on an actual message.
+That is, if it remains at its initial position at or near `point-min',
+truncation will still occur.  As of ERC 5.6.1, this option only
+influences the behavior of the `truncate' module, rather than truncation
+resulting from a /CLEAR."
+  :group 'erc
+  :package-version '(ERC . "5.6.1")
+  :type 'boolean)
+
 (defface erc-keep-place-indicator-line
   '((((class color) (min-colors 88) (background light)
       (supports :underline (:style wave)))
@@ -370,6 +383,8 @@ and `keep-place-indicator' in different buffers."
              #'erc--keep-place-indicator-on-window-buffer-change 40)
    (add-hook 'erc-keep-place-mode-hook
              #'erc--keep-place-indicator-on-global-module 40)
+   (add-function :before (local 'erc--clear-function)
+                 #'erc--keep-place-indicator-adjust-on-clear '((depth . 40)))
    (if (pcase erc-keep-place-indicator-buffer-type
          ('target erc--target)
          ('server (not erc--target))
@@ -401,7 +416,9 @@ and `keep-place-indicator' in different buffers."
        (remove-hook 'erc-keep-place-mode-hook
                     #'erc--keep-place-indicator-on-global-module)
        (remove-hook 'window-buffer-change-functions
-                    #'erc--keep-place-indicator-on-window-buffer-change)))
+                    #'erc--keep-place-indicator-on-window-buffer-change)
+       (remove-function (local 'erc--clear-function)
+                        #'erc--keep-place-indicator-adjust-on-clear)))
    (when (local-variable-p 'erc-insert-pre-hook)
      (remove-hook 'erc-insert-pre-hook  #'erc-keep-place t))
    (remove-hook 'erc-keep-place-mode-hook
@@ -417,6 +434,21 @@ Do this by simulating `keep-place' in all buffers where
     (if erc-keep-place-mode
         (remove-hook 'erc-insert-pre-hook  #'erc-keep-place t)
       (add-hook 'erc-insert-pre-hook  #'erc-keep-place 65 t))))
+
+(defvar erc--keep-place-move-hook nil
+  "Hook run when `erc-keep-place-move' moves the indicator.")
+
+(defun erc--keep-place-indicator-adjust-on-clear (beg end)
+  "Either shrink region bounded by BEG to END to preserve overlay, or reset."
+  (when-let ((pos (overlay-start erc--keep-place-indicator-overlay))
+             ((<= beg pos end)))
+    (if (and erc-keep-place-indicator-truncation
+             (not erc--called-as-input-p))
+        (when-let ((pos (erc--get-inserted-msg-beg pos)))
+          (set-marker end pos))
+      (let (erc--keep-place-move-hook)
+        ;; Move earlier than `beg', which may delimit date stamps, etc.
+        (erc-keep-place-move (point-min))))))
 
 (defun erc-keep-place-move (pos)
   "Move keep-place indicator to current line or POS.
@@ -441,6 +473,9 @@ window's first line.  Interpret an integer as an offset in lines."
     (let ((inhibit-field-text-motion t))
       (when pos
         (goto-char pos))
+      (when-let ((pos (erc--get-inserted-msg-beg)))
+        (goto-char pos))
+      (run-hooks 'erc--keep-place-move-hook)
       (move-overlay erc--keep-place-indicator-overlay
                     (line-beginning-position)
                     (line-end-position)))))
