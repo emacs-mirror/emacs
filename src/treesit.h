@@ -45,9 +45,12 @@ struct Lisp_TS_Parser
      same tag.  A tag is primarily used to differentiate between
      parsers for the same language.  */
   Lisp_Object tag;
-  /* The Lisp ranges last set.  This is use to compare to the new
-     ranges the users wants to set, and avoid reparse if the new
-     ranges is the same as the last set one.  */
+  /* The Lisp ranges last set.  This is use to compare to the new ranges
+     the users wants to set, and avoid reparse if the new ranges is the
+     same as the last set one.  This might go out of sync with the
+     ranges we return from Ftreesit_parser_included_ranges, if we did a
+     ranges fix in treesit_sync_visible_region, but I don't think
+     that'll cause any harm.  */
   Lisp_Object last_set_ranges;
   /* The buffer associated with this parser.  */
   Lisp_Object buffer;
@@ -82,6 +85,10 @@ struct Lisp_TS_Parser
   /* If this field is true, parser functions raises
      treesit-parser-deleted signal.  */
   bool deleted;
+  /* This field is set to true when treesit_ensure_parsed runs, to
+     prevent infinite recursion due to calling after change
+     functions.  */
+  bool within_reparse;
 };
 
 /* A wrapper around a tree-sitter node.  */

@@ -1045,6 +1045,48 @@ treesit_sync_visible_region (Lisp_Object parser)
 
   XTS_PARSER (parser)->visible_beg = visible_beg;
   XTS_PARSER (parser)->visible_end = visible_end;
+
+  /* Fix ranges so that the ranges stays with in visible_end.  Here we
+     try to do minimal work so that the ranges is minimally correct such
+     that there's no OOB error.  Usually treesit-update-ranges should
+     update the parser with actually correct ranges.  */
+  if (NILP (XTS_PARSER (parser)->last_set_ranges)) return;
+  uint32_t len;
+  const TSRange *ranges
+    = ts_parser_included_ranges (XTS_PARSER (parser)->parser, &len);
+  /* We might need to discard some ranges that exceeds visible_end, in
+     that case, new_len is the length of the new ranges array (which
+     will be shorter than len).  */
+  uint32_t new_len = 0;
+  uint32_t new_end = 0;
+  for (int idx = 0; idx < len; idx++)
+    {
+      TSRange range = ranges[idx];
+      /* If this range starts after visible_end, we don't include this
+         range and the ranges after it in the new ranges.  */
+      if (range.start_byte + visible_beg >= visible_end)
+	break;
+      /* If this range's end is after visible_end, we don't include any
+         ranges after it, and changes the end of this range to
+         visible_end.  */
+      if (range.end_byte + visible_beg > visible_end)
+	{
+	  new_end = visible_end - visible_beg;
+	  new_len++;
+	  break;
+	}
+      new_len++;
+    }
+  if (new_len != len || new_end != 0)
+    {
+      TSRange *new_ranges = xmalloc (sizeof (TSRange) * new_len);
+      memcpy (new_ranges, ranges, sizeof (TSRange) * new_len);
+      new_ranges[new_len - 1].end_byte = new_end;
+      /* TODO: What should we do if this fails?  */
+      ts_parser_set_included_ranges (XTS_PARSER (parser)->parser,
+				     new_ranges, new_len);
+      xfree (new_ranges);
+    }
 }
 
 static void
@@ -1057,7 +1099,8 @@ treesit_check_buffer_size (struct buffer *buffer)
 	      make_fixnum (buffer_size_bytes));
 }
 
-static Lisp_Object treesit_make_ranges (const TSRange *, uint32_t, struct buffer *);
+static Lisp_Object treesit_make_ranges (const TSRange *, uint32_t,
+					Lisp_Object, struct buffer *);
 
 static void
 treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
@@ -1071,7 +1114,7 @@ treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
     {
       uint32_t len;
       TSRange *ranges = ts_tree_get_changed_ranges (old_tree, new_tree, &len);
-      lisp_ranges = treesit_make_ranges (ranges, len, buf);
+      lisp_ranges = treesit_make_ranges (ranges, len, parser, buf);
       xfree (ranges);
     }
   else
@@ -1098,6 +1141,9 @@ treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
 static void
 treesit_ensure_parsed (Lisp_Object parser)
 {
+  if (XTS_PARSER (parser)->within_reparse) return;
+  XTS_PARSER (parser)->within_reparse = true;
+
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
 
   /* Before we parse, catch up with the narrowing situation.  */
@@ -1106,10 +1152,11 @@ treesit_ensure_parsed (Lisp_Object parser)
      because it might set the flag to true.  */
   treesit_sync_visible_region (parser);
 
-  /* Make sure this comes before everything else, see comment
-     (ref:notifier-inside-ensure-parsed) for more detail.  */
   if (!XTS_PARSER (parser)->need_reparse)
-    return;
+    {
+      XTS_PARSER (parser)->within_reparse = false;
+      return;
+    }
 
   TSParser *treesit_parser = XTS_PARSER (parser)->parser;
   TSTree *tree = XTS_PARSER (parser)->tree;
@@ -1134,14 +1181,10 @@ treesit_ensure_parsed (Lisp_Object parser)
   XTS_PARSER (parser)->need_reparse = false;
   XTS_PARSER (parser)->timestamp++;
 
-  /* After-change functions should run at the very end, most crucially
-     after need_reparse is set to false, this way if the function
-     calls some tree-sitter function which invokes
-     treesit_ensure_parsed again, it returns early and do not
-     recursively call the after change functions again.
-     (ref:notifier-inside-ensure-parsed)  */
   treesit_call_after_change_functions (tree, new_tree, parser);
   ts_tree_delete (tree);
+
+  XTS_PARSER (parser)->within_reparse = false;
 }
 
 /* This is the read function provided to tree-sitter to read from a
@@ -1224,6 +1267,7 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
   lisp_parser->visible_end = BUF_ZV_BYTE (XBUFFER (buffer));
   lisp_parser->timestamp = 0;
   lisp_parser->deleted = false;
+  lisp_parser->within_reparse = false;
   eassert (lisp_parser->visible_beg <= lisp_parser->visible_end);
   return make_lisp_ptr (lisp_parser, Lisp_Vectorlike);
 }
@@ -1672,14 +1716,14 @@ treesit_check_range_argument (Lisp_Object ranges)
    convert between tree-sitter buffer offset and buffer position.  */
 static Lisp_Object
 treesit_make_ranges (const TSRange *ranges, uint32_t len,
-		     struct buffer *buffer)
+		     Lisp_Object parser, struct buffer *buffer)
 {
   Lisp_Object list = Qnil;
   for (int idx = 0; idx < len; idx++)
     {
       TSRange range = ranges[idx];
-      uint32_t beg_byte = range.start_byte + BUF_BEGV_BYTE (buffer);
-      uint32_t end_byte = range.end_byte + BUF_BEGV_BYTE (buffer);
+      uint32_t beg_byte = range.start_byte + XTS_PARSER (parser)->visible_beg;
+      uint32_t end_byte = range.end_byte + XTS_PARSER (parser)->visible_beg;
       eassert (BUF_BEGV_BYTE (buffer) <= beg_byte);
       eassert (beg_byte <= end_byte);
       eassert (end_byte <= BUF_ZV_BYTE (buffer));
@@ -1725,11 +1769,9 @@ buffer.  */)
   if (NILP (ranges))
     {
       /* If RANGES is nil, make parser to parse the whole document.
-	 To do that we give tree-sitter a 0 length, the range is a
-	 dummy.  */
-      TSRange treesit_range = {{0, 0}, {0, 0}, 0, 0};
+	 To do that we give tree-sitter a 0 length.  */
       success = ts_parser_set_included_ranges (XTS_PARSER (parser)->parser,
-					       &treesit_range , 0);
+					       NULL , 0);
     }
   else
     {
@@ -1742,7 +1784,6 @@ buffer.  */)
 
       /* We can use XFIXNUM, XCAR, XCDR freely because we have checked
 	 the input by treesit_check_range_argument.  */
-
       for (int idx = 0; !NILP (ranges); idx++, ranges = XCDR (ranges))
 	{
 	  Lisp_Object range = XCAR (ranges);
@@ -1787,6 +1828,10 @@ See also `treesit-parser-set-included-ranges'.  */)
   treesit_check_parser (parser);
   treesit_initialize ();
 
+  /* Our return value depends on the buffer state (BUF_BEGV_BYTE,
+     etc), so we need to sync up.  */
+  treesit_check_buffer_size (XBUFFER (XTS_PARSER (parser)->buffer));
+  treesit_sync_visible_region (parser);
   /* When the parser doesn't have a range set and we call
      ts_parser_included_ranges on it, it doesn't return an empty list,
      but rather return DEFAULT_RANGE.  (A single range where start_byte
@@ -1799,13 +1844,10 @@ See also `treesit-parser-set-included-ranges'.  */)
   const TSRange *ranges
     = ts_parser_included_ranges (XTS_PARSER (parser)->parser, &len);
 
-  /* Our return value depends on the buffer state (BUF_BEGV_BYTE,
-     etc), so we need to sync up.  */
-  treesit_check_buffer_size (XBUFFER (XTS_PARSER (parser)->buffer));
-  treesit_sync_visible_region (parser);
-
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
-  return treesit_make_ranges (ranges, len, buffer);
+
+
+  return treesit_make_ranges (ranges, len, parser, buffer);
 }
 
 DEFUN ("treesit-parser-notifiers", Ftreesit_parser_notifiers,
