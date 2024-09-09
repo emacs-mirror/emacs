@@ -1225,11 +1225,13 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
       beg = NULL;
       len = 0;
     }
-  /* Normal case, read a character.  */
+  /* Normal case, read until the gap or visible end.  */
   else
     {
       beg = (char *) BUF_BYTE_ADDRESS (buffer, byte_pos);
-      len = BYTES_BY_CHAR_HEAD ((int) *beg);
+      ptrdiff_t gap_bytepos = buffer->text->gpt_byte;
+      len = (byte_pos < gap_bytepos)
+	    ? gap_bytepos - byte_pos : visible_end - byte_pos;
     }
   /* We never let tree-sitter to parse buffers that large so this
      assertion should never hit.  */
