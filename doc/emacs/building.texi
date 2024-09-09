@@ -528,6 +528,16 @@ grep-find-toggle-abbreviation}.  To disable this abbreviation of the
 shell commands, customize the option @code{grep-find-abbreviate} to a
 @code{nil} value.
 
+@findex grep-change-to-grep-edit-mode
+@cindex Grep Edit mode
+@cindex mode, Grep Edit
+  Typing @kbd{e} in the @file{*grep*} buffer makes the buffer writiable
+and enters the Grep Edit mode.  Similar to Occur Edit mode (@pxref{Other
+Repeating Search}), you can edit the matching lines reported by
+@code{grep} and have those changes reflected in the buffer visiting the
+originating file.  Type @kbd{C-c C-c} to leave the Grep Edit mode and
+return to the Grep mode.
+
 @node Flymake
 @section Finding Syntax Errors On The Fly
 @cindex checking syntax

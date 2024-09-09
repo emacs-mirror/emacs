@@ -310,6 +310,8 @@ See `compilation-error-screen-columns'."
     (define-key map "}" #'compilation-next-file)
     (define-key map "\t" #'compilation-next-error)
     (define-key map [backtab] #'compilation-previous-error)
+
+    (define-key map "e" #'grep-change-to-grep-edit-mode)
     map)
   "Keymap for grep buffers.
 `compilation-minor-mode-map' is a cdr of this.")
@@ -1052,6 +1054,90 @@ list is empty)."
 		       command-args)
 		     #'grep-mode))
 
+(defun grep-edit--prepare-buffer ()
+  "Mark relevant regions read-only, and add relevant occur text-properties."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((inhibit-read-only t)
+          (dummy (make-marker))
+          match)
+      (while (setq match (text-property-search-forward 'compilation-annotation))
+        (add-text-properties (prop-match-beginning match) (prop-match-end match)
+                             '(read-only t)))
+      (goto-char (point-min))
+      (while (setq match (text-property-search-forward 'compilation-message))
+        (add-text-properties (prop-match-beginning match) (prop-match-end match)
+                             '(read-only t occur-prefix t))
+        (let ((loc (compilation--message->loc (prop-match-value match)))
+              m)
+          ;; Update the markers if necessary.
+          (unless (and (compilation--loc->marker loc)
+                       (marker-buffer (compilation--loc->marker loc)))
+            (compilation--update-markers loc dummy compilation-error-screen-columns compilation-first-column))
+          (setq m (compilation--loc->marker loc))
+          (add-text-properties (prop-match-beginning match)
+                               (or (next-single-property-change
+                                    (prop-match-end match)
+                                    'compilation-message)
+                                   (1+ (pos-eol)))
+                               `(occur-target ((,m . ,m)))))))))
+
+(defvar grep-edit-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map text-mode-map)
+    (define-key map (kbd "C-c C-c") #'grep-edit-save-changes)
+    map)
+  "Keymap for `grep-edit-mode'.")
+
+(defvar grep-edit-mode-hook nil
+  "Hooks run when changing to Grep-Edit mode.")
+
+(defun grep-edit-mode ()
+  "Major mode for editing *grep* buffers.
+In this mode, changes to the *grep* buffer are applied to the
+originating files.
+\\<grep-edit-mode-map>
+Type \\[grep-edit-save-changes] to exit Grep-Edit mode, return to Grep
+mode.
+
+The only editable texts in a Grep-Edit buffer are the match results."
+  (interactive)
+  (error "This mode can be enabled only by `grep-change-to-grep-edit-mode'"))
+(put 'grep-edit-mode 'mode-class 'special)
+
+(defun grep-change-to-grep-edit-mode ()
+  "Switch to `grep-edit-mode' to edit *grep* buffer."
+  (interactive)
+  (unless (derived-mode-p 'grep-mode)
+    (error "Not a Grep buffer"))
+  (when (get-buffer-process (current-buffer))
+    (error "Cannot switch when grep is running"))
+  (use-local-map grep-edit-mode-map)
+  (grep-edit--prepare-buffer)
+  (setq buffer-read-only nil)
+  (setq major-mode 'grep-edit-mode)
+  (setq mode-name "Grep-Edit")
+  (buffer-enable-undo)
+  (set-buffer-modified-p nil)
+  (setq buffer-undo-list nil)
+  (add-hook 'after-change-functions #'occur-after-change-function nil t)
+  (run-mode-hooks 'grep-edit-mode-hook)
+  (message "Editing: \\[grep-edit-save-changes] to return to Grep mode"))
+
+(defun grep-edit-save-changes ()
+  "Switch back to Grep mode."
+  (interactive)
+  (unless (derived-mode-p 'grep-edit-mode)
+    (error "Not a Grep-Edit buffer"))
+  (remove-hook 'after-change-functions #'occur-after-change-function t)
+  (use-local-map grep-mode-map)
+  (setq buffer-read-only t)
+  (setq major-mode 'grep-mode)
+  (setq mode-name "Grep")
+  (force-mode-line-update)
+  (buffer-disable-undo)
+  (setq buffer-undo-list t)
+  (message "Switching to Grep mode"))
 
 ;;;###autoload
 (defun grep-find (command-args)

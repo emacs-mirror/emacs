@@ -328,6 +328,15 @@ fontifying them, which can be slow for remote directories.  Setting
 'dired-check-symlinks' to nil disables these checks.  Defaults to t, can
 be set as a connection-local variable.
 
+** Grep
+
++++
+*** Grep results can be edited to reflect changes in the originating file.
+Like Occur Edit mode, typing 'e' in the '*grep*' buffer will now make
+the 'grep' results editable.  The edits will be reflected in the buffer
+visiting the originating file.  Typing 'C-c C-c' will leave the Grep
+Edit mode.
+
 
 * New Modes and Packages in Emacs 31.1
 
