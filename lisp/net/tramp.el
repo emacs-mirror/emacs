@@ -1516,8 +1516,9 @@ calling HANDLER.")
 ;; so .... here we are.
 ;;;###tramp-autoload(require 'cl-lib)
 ;;;###tramp-autoload
-(cl-defstruct (tramp-file-name (:type list) :named)
-  method user domain host port localname hop)
+(progn
+  (cl-defstruct (tramp-file-name (:type list) :named)
+    method user domain host port localname hop))
 
 (tramp--with-startup
  (function-put #'tramp-file-name-method 'tramp-suppress-trace t)
