@@ -487,6 +487,7 @@ treesit_initialize (void)
 
 /*** Debugging */
 
+void treesit_debug_print_parser_list (char *, Lisp_Object);
 void treesit_debug_print_parser_list (char *msg, Lisp_Object parser)
 {
   struct buffer *buf = XBUFFER (XTS_PARSER (parser)->buffer);
