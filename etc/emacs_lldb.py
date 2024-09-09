@@ -71,7 +71,7 @@ class Lisp_Object:
         "PVEC_SQLITE": "struct Lisp_Sqlite",
         "PVEC_CLOSURE": "struct Lisp_Vector",
         "PVEC_CHAR_TABLE": "struct Lisp_Vector",
-        "PVEC_SUB_CHAR_TABLE": "void",
+        "PVEC_SUB_CHAR_TABLE": "struct Lisp_Sub_Char_Table",
         "PVEC_RECORD": "struct Lisp_Vector",
         "PVEC_FONT": "struct font",
         "PVEC_NORMAL_VECTOR": "struct Lisp_Vector",
