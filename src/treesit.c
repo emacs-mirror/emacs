@@ -487,8 +487,7 @@ treesit_initialize (void)
 
 /*** Debugging */
 
-void
-treesit_debug_print_parser_list (char *, Lisp_Object);
+void treesit_debug_print_parser_list (char *, Lisp_Object);
 
 void
 treesit_debug_print_parser_list (char *msg, Lisp_Object parser)
@@ -1233,7 +1232,7 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
   else
     {
       beg = (char *) BUF_BYTE_ADDRESS (buffer, byte_pos);
-      ptrdiff_t gap_bytepos = buffer->text->gpt_byte;
+      ptrdiff_t gap_bytepos = BUF_GPT_BYTE (buffer);
       len = (byte_pos < gap_bytepos)
 	    ? gap_bytepos - byte_pos : visible_end - byte_pos;
     }
