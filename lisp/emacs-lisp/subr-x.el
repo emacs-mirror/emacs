@@ -338,7 +338,11 @@ This construct can only be used with lexical binding."
 
 ;;;###autoload
 (defun string-pixel-width (string)
-  "Return the width of STRING in pixels."
+  "Return the width of STRING in pixels.
+
+If you call this function to measure pixel width of a string
+with embedded newlines, it returns the width of the widest
+substring that does not include newlines."
   (declare (important-return-value t))
   (if (zerop (length string))
       0

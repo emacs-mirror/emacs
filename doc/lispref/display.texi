@@ -2238,7 +2238,7 @@ displayed in a given window.  This function is used by
 it contains.
 
 @defun window-text-pixel-size &optional window from to x-limit y-limit mode-lines ignore-line-at-end
-This function returns the size of the text of @var{window}'s buffer in
+This function returns the dimensions of the text of @var{window}'s buffer in
 pixels.  @var{window} must be a live window and defaults to the
 selected one.  The return value is a cons of the maximum pixel-width
 of any text line and the maximum pixel-height of all text lines.  This
@@ -2387,7 +2387,11 @@ meaning as with @code{window-text-pixel-size}.
 
 @defun string-pixel-width string
 This is a convenience function that uses @code{window-text-pixel-size}
-to compute the width of @var{string} (in pixels).
+to compute the width of @var{string} (in pixels).  Caveat: if you call
+this function to measure the width of a string with embedded newlines,
+it will then return the width of the widest substring that does not
+include newlines.  The meaning of this result is the widest line taken
+by the string if inserted into a buffer.
 @end defun
 
 @defun line-pixel-height
