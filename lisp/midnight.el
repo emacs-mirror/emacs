@@ -179,7 +179,8 @@ lifetime, i.e., its \"age\" when it will be purged."
                     (and (buffer-file-name buf) (buffer-modified-p buf))
                     (get-buffer-window buf 'visible)
                     (< delay cbld))
-          (message "[%s] killing `%s'" ts bn)
+          (message "[%s] killing `%s' (last displayed %s ago)" ts bn
+                   (format-seconds "%Y, %D, %H, %M, %z%S" delay))
           (kill-buffer buf))))))
 
 ;;; midnight hook
