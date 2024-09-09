@@ -521,7 +521,7 @@ treesit_debug_print_parser_list (char *msg, Lisp_Object parser)
 	  for (int idx = 0; idx < len; idx++)
 	    {
 	      TSRange range = ranges[idx];
-	      printf (" [%d, %d)", range.start_byte, range.end_byte);
+	      printf (" [%"PRIu32", %"PRIu32")", range.start_byte, range.end_byte);
 
 	      /* if (!parser->need_reparse) */
 	      /* 	{ */
