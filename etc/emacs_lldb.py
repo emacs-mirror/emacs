@@ -104,62 +104,103 @@ class Lisp_Object:
     # the pvec_type enumerator if the object is a vector-like, as a
     # string.
     def init_lisp_types(self):
-        t = self.eval(f"(enum Lisp_Type)"
-                      f"((EMACS_INT) {self.unsigned} "
-                      f"& (1 << GCTYPEBITS) - 1)")
-        self.lisp_type = enumerator_name(t)
+        GCTYPEBITS = self.unsigned_const('GCTYPEBITS')
+        self.lisp_type = self.tag_name(self.unsigned
+                                       & ((1 << GCTYPEBITS) - 1))
         if self.lisp_type == "Lisp_Vectorlike":
             self.pvec_type = "PVEC_NORMAL_VECTOR"
             vector = self.get_lisp_pointer("struct Lisp_Vector")
             size = vector.GetValueForExpressionPath("->header.size")
             size = size.GetValueAsUnsigned()
-            pseudo = self.eval(f"{size} & PSEUDOVECTOR_FLAG")
-            if pseudo.GetValueAsUnsigned() != 0:
-                typ = self.eval(
-                    f"(enum pvec_type) (({size} "
-                    f"& More_Lisp_Bits::PVEC_TYPE_MASK) "
-                    f">> More_Lisp_Bits::PSEUDOVECTOR_AREA_BITS)")
-                self.pvec_type = enumerator_name(typ)
+            PSEUDOVECTOR_FLAG = self.unsigned_const('PSEUDOVECTOR_FLAG')
+            if size & PSEUDOVECTOR_FLAG:
+                PVEC_TYPE_MASK = self.unsigned_const(
+                    'More_Lisp_Bits::PVEC_TYPE_MASK')
+                PSEUDOVECTOR_AREA_BITS = self.unsigned_const(
+                    'More_Lisp_Bits::PSEUDOVECTOR_AREA_BITS')
+                pvec = (size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS
+                self.pvec_type = self.pvec_name(pvec)
 
     # Initialize self.untagged according to lisp_type and pvec_type.
     def init_values(self):
-        if self.lisp_type == "Lisp_Symbol":
+        lt = self.lisp_type
+        if lt == "Lisp_Symbol":
             offset = self.get_lisp_pointer("char").GetValueAsUnsigned()
-            self.untagged = self.eval(f"(struct Lisp_Symbol *)"
-                                   f" ((char *) &lispsym + {offset})",
-                                   True)
-        elif self.lisp_type == "Lisp_String":
-            self.untagged = self.get_lisp_pointer("struct Lisp_String", True)
-        elif self.lisp_type == "Lisp_Vectorlike":
+            self.untagged = self.eval(
+                f"(struct Lisp_Symbol *)((char *)&lispsym + {offset})")
+        elif lt == "Lisp_String":
+            self.untagged = self.get_lisp_pointer("struct Lisp_String")
+        elif lt == "Lisp_Vectorlike":
             c_type = Lisp_Object.pvec2type[self.pvec_type]
-            self.untagged = self.get_lisp_pointer(c_type, True)
-        elif self.lisp_type == "Lisp_Cons":
-            self.untagged = self.get_lisp_pointer("struct Lisp_Cons", True)
-        elif self.lisp_type == "Lisp_Float":
-            self.untagged = self.get_lisp_pointer("struct Lisp_Float", True)
-        elif self.lisp_type in ("Lisp_Int0", "Lisp_Int1"):
-            self.untagged = self.eval(f"((EMACS_INT) {self.unsigned}) "
-                                      f">> (GCTYPEBITS - 1)", True)
-        elif self.lisp_type == "Lisp_Type_Unused0":
+            self.untagged = self.get_lisp_pointer(c_type)
+        elif lt == "Lisp_Cons":
+            self.untagged = self.get_lisp_pointer("struct Lisp_Cons")
+        elif lt == "Lisp_Float":
+            self.untagged = self.get_lisp_pointer("struct Lisp_Float")
+        elif lt in ("Lisp_Int0", "Lisp_Int1"):
+            GCTYPEBITS = self.unsigned_const('GCTYPEBITS')
+            x = self.unsigned >> (GCTYPEBITS - 1)
+            self.untagged = self.eval(f"(EMACS_INT){x})")
+        elif lt == "Lisp_Type_Unused0":
             self.untagged = self.unsigned
         else:
             assert False, f"Unknown Lisp type {self.lisp_type}"
 
+    # Get a numeric constant (unsigned).
+    const_cache = {}
+    def unsigned_const(self, name):
+        val = self.const_cache.get(name)
+        if val is None:
+            frame = self.tagged.GetFrame()
+            val = frame.EvaluateExpression(name).GetValueAsUnsigned()
+            self.const_cache[name] = val
+        return val
+
+    # Get the name of a Lisp_Object tag value, like "Lisp_String".
+    tag_cache = {}
+    def tag_name(self, tag):
+        name = self.tag_cache.get(tag)
+        if name is None:
+            frame = self.tagged.GetFrame()
+            val = frame.EvaluateExpression(f"(enum Lisp_Type){tag}")
+            name = enumerator_name(val)
+            self.tag_cache[tag] = name
+        return name
+
+    # Get the name of a pseudovector type tag, like "PVEC_HASH_TABLE".
+    pvec_cache = {}
+    def pvec_name(self, pvec):
+        name = self.pvec_cache.get(pvec)
+        if name is None:
+            frame = self.tagged.GetFrame()
+            val = frame.EvaluateExpression(f"(enum pvec_type){pvec}")
+            name = enumerator_name(val)
+            self.pvec_cache[pvec] = name
+        return name
+
     # Evaluate EXPR in the context of the current frame.
-    def eval(self, expr, make_var=False):
-        frame = self.tagged.GetFrame()
-        if make_var:
-            return frame.EvaluateExpression(expr)
-        options = lldb.SBExpressionOptions()
-        options.SetSuppressPersistentResult(True)
-        return frame.EvaluateExpression(expr, options)
+    eval_cache = {}
+    def eval(self, expr):
+        val = self.eval_cache.get(expr)
+        if val is None:
+            frame = self.tagged.GetFrame()
+            val = frame.EvaluateExpression(expr)
+            self.eval_cache[expr] = val
+        return val
 
     # Return an SBValue for this object denoting a pointer of type
     # TYP*.
-    def get_lisp_pointer(self, typ, make_var=False):
-        return self.eval(f"({typ}*) (((EMACS_INT) "
-                         f"{self.unsigned}) & VALMASK)",
-                         make_var)
+    lisp_ptr_cache = {}
+    def get_lisp_pointer(self, typ):
+        uns = self.unsigned
+        ptr = self.lisp_ptr_cache.get((uns, typ))
+        if ptr is None:
+            VALMASK = self.unsigned_const('VALMASK')
+            frame = self.tagged.GetFrame()
+            ptr = frame.EvaluateExpression(
+                f"({typ}*)(EMACS_INT){uns & VALMASK}")
+            self.lisp_ptr_cache[(uns, typ)] = ptr
+        return ptr
 
     # If this is a Lisp_String, return an SBValue for its string data.
     # Return None otherwise.
