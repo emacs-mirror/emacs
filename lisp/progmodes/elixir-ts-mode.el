@@ -572,7 +572,9 @@
     (treesit-range-rules
      :embed 'heex
      :host 'elixir
-     '((sigil (sigil_name) @name (:match "^[HF]$" @name) (quoted_content) @heex)))))
+     '((sigil (sigil_name) @_name
+              (:match "^[HF]$" @_name)
+              (quoted_content) @heex)))))
 
 (defvar heex-ts--sexp-regexp)
 (defvar heex-ts--indent-rules)
