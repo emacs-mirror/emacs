@@ -131,7 +131,7 @@ details see the info pages."
 If it doesn't exist yet, it is created and initialized with
 matching entries of `tramp-connection-properties'.
 If KEY is `tramp-cache-undefined', don't create anything, and return nil."
-  (declare (tramp-suppress-trace t))
+  ;; (declare (tramp-suppress-trace t))
   (unless (eq key tramp-cache-undefined)
     (or (gethash key tramp-cache-data)
 	(let ((hash
@@ -143,6 +143,11 @@ If KEY is `tramp-cache-undefined', don't create anything, and return nil."
 		     (tramp-make-tramp-file-name key 'noloc))
 		(tramp-set-connection-property key (nth 1 elt) (nth 2 elt)))))
 	  hash))))
+
+;; We cannot use the `declare' form for `tramp-suppress-trace' in
+;; autoloaded functions, because the tramp-loaddefs.el generation
+;; would fail.
+(function-put #'tramp-get-hash-table 'tramp-suppress-trace t)
 
 ;;;###tramp-autoload
 (defun tramp-get-file-property (key file property &optional default)
