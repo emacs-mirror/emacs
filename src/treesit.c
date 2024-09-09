@@ -485,6 +485,53 @@ treesit_initialize (void)
 }
 
 
+/*** Debugging */
+
+void treesit_debug_print_parser_list (char *msg, Lisp_Object parser)
+{
+  struct buffer *buf = XBUFFER (XTS_PARSER (parser)->buffer);
+  char *buf_name = SSDATA (BVAR (buf, name));
+  printf ("%s (%s) [%s] <%s>: %ld(%ld)-(%ld)%ld {\n",
+	  msg == NULL ? "" : msg,
+	  SSDATA (SYMBOL_NAME (Vthis_command)),
+	  SSDATA (SYMBOL_NAME (XTS_PARSER (parser)->language_symbol)),
+	  buf_name, BUF_BEG (buf),
+	  BUF_BEGV (buf), BUF_Z (buf), BUF_ZV (buf));
+  Lisp_Object tail = BVAR (buf, ts_parser_list);
+
+  FOR_EACH_TAIL (tail)
+    {
+      struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
+      printf ("[%s %s %s %ld-%ld T:%ld]\n", SSDATA (SYMBOL_NAME (parser->language_symbol)),
+	      SSDATA (SYMBOL_NAME (parser->tag)),
+	      parser->need_reparse ? "NEED-R" : "NONEED",
+	      parser->visible_beg, parser->visible_end,
+	      parser->timestamp);
+      /* Print ranges. */
+      uint32_t len;
+      const TSRange *ranges
+	= ts_parser_included_ranges (parser->parser, &len);
+
+      if (!(len == 1 && ranges[0].start_byte == 0 && ranges[0].end_byte == -1))
+	{
+	  for (int idx = 0; idx < len; idx++)
+	    {
+	      TSRange range = ranges[idx];
+	      printf (" [%d, %d)", range.start_byte, range.end_byte);
+
+	      /* if (!parser->need_reparse) */
+	      /* 	{ */
+	      /* 	  eassert (BUF_BEGV_BYTE (buf) <= range.start_byte + parser->visible_beg); */
+	      /* 	  eassert (range.end_byte + parser->visible_beg <= BUF_ZV_BYTE (buf)); */
+	      /* 	} */
+	    }
+	  printf ("\n");
+	}
+    }
+  printf ("}\n\n");
+}
+
+
 /*** Loading language library  */
 
 /* Translate a symbol treesit-<lang> to a C name treesit_<lang>.  */
