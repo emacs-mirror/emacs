@@ -65,7 +65,7 @@
 ;; libraries installed.
 ;;
 ;; If the tree-sitter doxygen grammar is available, then the comment
-;; blocks will be highlighted according to this grammar.
+;; blocks can be highlighted according to this grammar.
 
 ;;; Code:
 
@@ -212,6 +212,17 @@ This needs to be set before enabling `c-ts-mode'; if you change
 the value after enabling `c-ts-mode', toggle the mode off and on
 again."
   :version "29.1"
+  :type 'boolean
+  :safe 'booleanp
+  :group 'c)
+
+(defcustom c-ts-mode-enable-doxygen nil
+  "Enable doxygen syntax highlighting.
+If Non-nil, enable doxygen based font lock for comment blocks.
+This needs to be set before enabling `c-ts-mode'; if you change
+the value after enabling `c-ts-mode', toggle the mode off and on
+again."
+  :version "31.1"
   :type 'boolean
   :safe 'booleanp
   :group 'c)
@@ -1365,7 +1376,7 @@ in your init files."
         (treesit-font-lock-recompute-features '(emacs-devel)))
 
       ;; Inject doxygen parser for comment.
-      (when (treesit-ready-p 'doxygen t)
+      (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
         (setq-local treesit-primary-parser primary-parser)
         (setq-local treesit-font-lock-settings
                     (append
@@ -1426,7 +1437,7 @@ recommended to enable `electric-pair-mode' with this mode."
                     #'c-ts-mode--emacs-current-defun-name))
 
       ;; Inject doxygen parser for comment.
-      (when (treesit-ready-p 'doxygen t)
+      (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
         (setq-local treesit-primary-parser primary-parser)
         (setq-local treesit-font-lock-settings
                     (append
@@ -1537,6 +1548,9 @@ the code is C or C++, and based on that chooses whether to enable
 (when (and (treesit-ready-p 'cpp)
            (treesit-ready-p 'c))
   (add-to-list 'major-mode-remap-defaults '(c-or-c++-mode . c-or-c++-ts-mode)))
+
+(when (and c-ts-mode-enable-doxygen (not (treesit-ready-p 'doxygen t)))
+  (message "Doxygen syntax highlighting can't be enabled, please install the language grammar."))
 
 (provide 'c-ts-mode)
 (provide 'c++-ts-mode)
