@@ -56,7 +56,7 @@ General steps (for each step, check for possible errors):
     Makefiles to be present.
 
       ./autogen.sh
-      ./configure && make
+      ./configure --without-native-compilation && make
 
     For a release (as opposed to pretest), visit etc/NEWS and use the
     "M-x emacs-news-delete-temporary-markers" command to delete any
