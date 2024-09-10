@@ -22089,7 +22089,8 @@ try_window_id (struct window *w)
 
   /* Window must either use window-based redisplay or be full width.  */
   if (!FRAME_WINDOW_P (f)
-      && (!FRAME_LINE_INS_DEL_OK (f)
+      && (FRAME_INITIAL_P (f)
+	  || !FRAME_LINE_INS_DEL_OK (f)
 	  || !WINDOW_FULL_WIDTH_P (w)))
     GIVE_UP (4);
 
