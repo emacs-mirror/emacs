@@ -9497,7 +9497,7 @@ Turn on EDT Emulation." t)
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push (purecopy '(eglot 1 17)) package--builtin-versions)
+(push (purecopy '(eglot 1 17 30)) package--builtin-versions)
 (define-obsolete-function-alias 'eglot-update #'eglot-upgrade-eglot "29.1")
 (autoload 'eglot "eglot" "\
 Start LSP server for PROJECT's buffers under MANAGED-MAJOR-MODES.
@@ -20493,7 +20493,7 @@ Makefile mode can be configured by modifying the following variables:
    to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\".
 
 `makefile-special-targets-list':
-   List of special targets. You will be offered to complete
+   List of special targets.  You will be offered to complete
    on one of those in the minibuffer whenever you enter a `.'.
    at the beginning of a line in Makefile mode.
 
@@ -23043,7 +23043,7 @@ Coloring:
 
 ;;; Generated autoloads from org/org.el
 
-(push (purecopy '(org 9 7 10)) package--builtin-versions)
+(push (purecopy '(org 9 7 11)) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
 
@@ -31146,6 +31146,10 @@ This construct can only be used with lexical binding.
 (autoload 'string-pixel-width "subr-x" "\
 Return the width of STRING in pixels.
 
+If you call this function to measure pixel width of a string
+with embedded newlines, it returns the width of the widest
+substring that does not include newlines.
+
 (fn STRING)")
 (function-put 'string-pixel-width 'important-return-value 't)
 (autoload 'string-glyph-split "subr-x" "\
@@ -31371,6 +31375,14 @@ disabled.
 
 (autoload 'tab-line-mode "tab-line" "\
 Toggle display of tab line in the windows displaying the current buffer.
+
+When this mode is enabled, each window displays a tab line on its
+top screen line.  The tab line is a row of tabs -- buttons which
+you can click to have the window display the buffer whose name is
+shown on the button.  Clicking on the \"x\" icon of the button
+removes the button (but does not kill the corresponding buffer).
+In addition, the tab line shows a \"+\" button which adds a new
+button, so you could have one more buffer shown on the tab line.
 
 This is a minor mode.  If called interactively, toggle the `Tab-Line
 mode' mode.  If the prefix argument is positive, enable the mode, and if
