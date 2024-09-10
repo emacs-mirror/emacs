@@ -6041,6 +6041,8 @@ nil."
   (let ((found (tramp-check-for-regexp proc regexp)))
     (with-tramp-timeout (timeout)
       (while (not found)
+	;; This is needed to yield the CPU, otherwise we'll see 100% CPU load.
+	(sit-for 0.005)
 	(tramp-accept-process-output proc)
 	(unless (process-live-p proc)
 	  (tramp-error-with-buffer
