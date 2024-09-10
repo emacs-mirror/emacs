@@ -772,6 +772,17 @@ ENDFUN and NARROWFUN are treated like in `easy-mmode-define-navigation'."
   (unless count (setq count 1))
   (if (< count 0) (easy-mmode--next re name (- count) endfun narrowfun)
     (let ((re-narrow (and narrowfun (prog1 (buffer-narrowed-p) (widen)))))
+      ;; If point is inside a match for RE, move to its beginning like
+      ;; `backward-sexp' and other movement commands.
+      (when (and (not (zerop count))
+                 (save-excursion
+                   ;; Make sure we're out of the current match if any.
+                   (goto-char (if (re-search-backward re nil t 1)
+                                  (match-end 0) (point-min)))
+                   (re-search-forward re nil t 1))
+                 (< (match-beginning 0) (point) (match-end 0)))
+        (goto-char (match-beginning 0))
+        (setq count (1- count)))
       (unless (re-search-backward re nil t count)
         (user-error "No previous %s" name))
       (when re-narrow (funcall narrowfun)))))
