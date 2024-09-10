@@ -3076,7 +3076,7 @@ entire SQL file.
 This is appropriate since it is an encoding operation.  In the unlikely
 event that a multibyte string is needed, the result can be decoded using
 
-  (decode-coding-string RESULT 'utf-8)
+    (decode-coding-string RESULT 'utf-8)
 
 ---
 *** The parser keeps duplicated object keys in alist and plist output.
