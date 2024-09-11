@@ -89,6 +89,10 @@ struct Lisp_TS_Parser
      associated buffer.  This is for parsers created by
      treesit-parse-string, which uses a hidden temp buffer.  */
   bool need_to_gc_buffer;
+  /* This field is set to true when treesit_ensure_parsed runs, to
+     prevent infinite recursion due to calling after change
+     functions.  */
+  bool within_reparse;
 };
 
 /* A wrapper around a tree-sitter node.  */
