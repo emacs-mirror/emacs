@@ -1594,9 +1594,10 @@ for instance using the window manager, then this produces a quit and
       Lisp_Object selection
 	= FRAME_TERMINAL (f)->popup_dialog_hook (f, header, contents);
 #ifdef HAVE_NTGUI
-      /* NTGUI supports only simple dialogs with Yes/No choices.  For
-	 other dialogs, it returns the symbol 'unsupported--w32-dialog',
-	 as a signal for the caller to fall back to the emulation code.  */
+      /* NTGUI on Windows versions before Vista supports only simple
+	 dialogs with Yes/No choices.  For other dialogs, it returns the
+	 symbol 'unsupported--w32-dialog', as a signal for the caller to
+	 fall back to the emulation code.  */
       if (!EQ (selection, Qunsupported__w32_dialog))
 #endif
 	return selection;
