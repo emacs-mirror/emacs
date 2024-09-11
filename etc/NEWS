@@ -322,10 +322,11 @@ changes when supplied with a universal prefix argument via 'C-u':
 ** Dired
 
 +++
-*** Dired allows to disable checks for symbolic link validity.
-Dired fontifies symbolic links in Dired buffers using the
-'file-truename' operation.  This can be slow for remote directories.
-Setting user option 'dired-check-symlinks' to nil disables these checks.
+*** New user option 'dired-check-symlinks' allows disabling validity checks.
+Dired uses 'file-truename' to check symbolic link validity when
+fontifying them, which can be slow for remote directories.  Setting
+'dired-check-symlinks' to nil disables these checks.  Defaults to t, can
+be set as a connection-local variable.
 
 
 * New Modes and Packages in Emacs 31.1
