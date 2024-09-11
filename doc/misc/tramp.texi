@@ -5292,6 +5292,31 @@ connections, apply the following code.
 @end group
 @end lisp
 
+@vindex dired-check-symlinks
+@item
+Disable check for symbolic link validity in @code{dired} buffers.
+Emacs fontifies symbolic links in @code{dired} buffers using the
+@code{file-truename} operation.  This can be slow.  Since @w{Emacs
+31}, there is a user option which suppresses this.  It can be set
+connection-local.
+@ifinfo
+@xref{Connection Variables, , , emacs}.
+@end ifinfo
+
+@lisp
+@group
+(connection-local-set-profile-variables
+ 'my-dired-profile
+ '((dired-check-symlinks . nil)))
+@end group
+
+@group
+(connection-local-set-profiles
+ '(:application tramp :machine "remotehost")
+ 'my-dired-profile)
+@end group
+@end lisp
+
 @item
 Use direct asynchronous processes if possible.
 

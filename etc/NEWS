@@ -111,7 +111,7 @@ This hook allows you to control which tab-bar tabs are auto-resized.
 ** Project
 
 ---
-*** New command `project-find-file-in-root`.
+*** New command 'project-find-file-in-root'.
 It is equivalent to running ‘project-any-command’ with ‘find-file’.
 
 
@@ -291,9 +291,9 @@ command attempts to look up and copy the text in-between the hunks.
 ** php-ts-mode
 
 ---
-*** 'php-ts-mode-run-php-webserver' can now accept a custom php.ini file.
+*** 'php-ts-mode-run-php-webserver' can now accept a custom "php.ini" file.
 You can use the new optional argument CONFIG when calling
-'php-ts-mode-run-php-webserver' to pass an alternative php.ini file to
+'php-ts-mode-run-php-webserver' to pass an alternative "php.ini" file to
 the built-in Web server.  Interactively, when invoked with a prefix
 argument, 'php-ts-mode-run-php-webserver' prompts for the config file as
 well as for other connection parameters.
@@ -315,6 +315,14 @@ changes when supplied with a universal prefix argument via 'C-u':
 - 'C-u b c' copies all changes from buffer B to buffer C.
 - 'C-u c a' copies all changes from buffer C to buffer A.
 - 'C-u c b' copies all changes from buffer C to buffer B.
+
+** Dired
+
++++
+*** Dired allows to disable checks for symbolic link validity.
+Dired fontifies symbolic links in Dired buffers using the
+'file-truename' operation.  This can be slow for remote directories.
+Setting user option 'dired-check-symlinks' to nil disables these checks.
 
 
 * New Modes and Packages in Emacs 31.1
@@ -364,11 +372,11 @@ If supplied, 'string-pixel-width' will use any face remappings from
 BUFFER when computing the string's width.
 
 ---
-*** New macro 'with-work-buffer'.
-This macro is similar to the already existing macro `with-temp-buffer',
+** New macro 'with-work-buffer'.
+This macro is similar to the already existing macro 'with-temp-buffer',
 except that it does not allocate a new temporary buffer on each call,
 but tries to reuse those previously allocated (up to a number defined by
-the new variable `work-buffer-limit', which defaults to 10).
+the new variable 'work-buffer-limit', which defaults to 10).
 
 +++
 ** 'date-to-time' now defaults to local time.
@@ -405,7 +413,7 @@ where a userspace executable loader is required, has been optimized on
 systems featuring Linux 3.5.0 and above.
 
 ---
-** NSSpeechRecognitionUsageDescription now included in Info.plist (macOS).
+** 'NSSpeechRecognitionUsageDescription' now included in "Info.plist" (macOS).
 Should Emacs (or any built-in shell) invoke a process using macOS speech
 recognition APIs, the relevant permission dialog is now displayed, thus
 allowing Emacs users access to speech recognition utilities.
