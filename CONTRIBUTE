@@ -110,8 +110,11 @@ admin/notes/bug-triage.
 
 Any change that matters to end-users should have an entry in etc/NEWS.
 Try to start each NEWS entry with a sentence that summarizes the entry
-and takes just one line -- this will allow reading NEWS in Outline
-mode after hiding the body of each entry.
+and takes just one line -- this will allow reading NEWS in Outline mode
+after hiding the body of each entry.  When adding a new user option that
+allows changing behavior, please document its default value.  Similarly,
+changes to the default value of an existing user option should be
+announced.
 
 Doc-strings should be updated together with the code.
 
