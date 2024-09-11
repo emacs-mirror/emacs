@@ -1028,13 +1028,13 @@ programming language:
 
 @example
 @group
-(rx "/*"                          ; Initial /*
+(rx "/*"                    ; Initial /*
     (zero-or-more
-     (or (not (any "*"))          ;  Either non-*,
-         (seq "*"                 ;  or * followed by
-              (not (any "/")))))  ;  non-/
-    (one-or-more "*")             ; At least one star,
-    "/")                          ; and the final /
+     (or (not "*")          ;  Either non-*,
+         (seq "*"           ;  or * followed by
+              (not "/"))))  ;     non-/
+    (one-or-more "*")       ; At least one star,
+    "/")                    ; and the final /
 @end group
 @end example
 

@@ -5844,7 +5844,7 @@ can be serialized to JSON@.  Likewise, the parsing functions will
 return any of the possible types described above.
 
 @defun json-serialize object &rest args
-This function returns a new Lisp string which contains the JSON
+This function returns a new Lisp unibyte string which contains the JSON
 representation of @var{object}.  The argument @var{args} is a list of
 keyword/argument pairs.  The following keywords are accepted:
 

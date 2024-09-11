@@ -64,16 +64,18 @@
   (let ((offset heex-ts-indent-offset))
     `((heex
        ((parent-is "fragment")
-        (lambda (node parent &rest _)
+        (lambda (_node _parent bol &rest _)
           ;; If HEEx is embedded indent to parent
           ;; otherwise indent to the bol.
           (if (eq (treesit-language-at (point-min)) 'heex)
               (point-min)
             (save-excursion
-              (goto-char (treesit-node-start parent))
+              (goto-char (treesit-node-start
+                          (treesit-node-at bol 'elixir)))
               (back-to-indentation)
               (point))
-            )) 0)
+            ))
+        0)
        ((node-is "end_tag") parent-bol 0)
        ((node-is "end_component") parent-bol 0)
        ((node-is "end_slot") parent-bol 0)

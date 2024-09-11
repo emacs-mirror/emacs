@@ -3071,6 +3071,13 @@ entire SQL file.
 
 ** JSON
 
++++
+*** 'json-serialize' now always returns a unibyte string.
+This is appropriate since it is an encoding operation.  In the unlikely
+event that a multibyte string is needed, the result can be decoded using
+
+    (decode-coding-string RESULT 'utf-8)
+
 ---
 *** The parser keeps duplicated object keys in alist and plist output.
 A JSON object such as '{"a":1,"a":2}' will now be translated into the

@@ -36,7 +36,7 @@
          (json
           "[null,false,true,0,123,-456,3.75,\"abc\uFFFFαβγ𝔸𝐁𝖢\\\"\\\\\"]")
          (json-bytes (encode-coding-string json 'utf-8)))
-    (should (equal (json-serialize lisp) json))  ; or `json-bytes'?
+    (should (equal (json-serialize lisp) json-bytes))
     (with-temp-buffer
       ;; multibyte buffer
       (json-insert lisp)
@@ -82,28 +82,29 @@
                    "\"abc\uFFFFαβγ𝔸𝐁𝖢\\\"\\\\\"")))
     (cl-destructuring-bind (lisp json) case
       (ert-info ((format "%S ↔ %S" lisp json))
-        (should (equal (json-serialize lisp) json))
-        (with-temp-buffer
-          (json-insert lisp)
-          (should (equal (buffer-string) json))
-          (should (eobp)))
-        (with-temp-buffer
-          (set-buffer-multibyte nil)
-          (json-insert lisp)
-          (should (equal (buffer-string) (encode-coding-string json 'utf-8)))
-          (should (eobp)))
-        (should (equal (json-parse-string json) lisp))
-        (with-temp-buffer
-          (insert json)
-          (goto-char 1)
-          (should (equal (json-parse-buffer) lisp))
-          (should (eobp)))
-        (with-temp-buffer
-          (set-buffer-multibyte nil)
-          (insert (encode-coding-string json 'utf-8))
-          (goto-char 1)
-          (should (equal (json-parse-buffer) lisp))
-          (should (eobp)))))))
+        (let ((json-bytes (encode-coding-string json 'utf-8)))
+          (should (equal (json-serialize lisp) json-bytes))
+          (with-temp-buffer
+            (json-insert lisp)
+            (should (equal (buffer-string) json))
+            (should (eobp)))
+          (with-temp-buffer
+            (set-buffer-multibyte nil)
+            (json-insert lisp)
+            (should (equal (buffer-string) (encode-coding-string json 'utf-8)))
+            (should (eobp)))
+          (should (equal (json-parse-string json) lisp))
+          (with-temp-buffer
+            (insert json)
+            (goto-char 1)
+            (should (equal (json-parse-buffer) lisp))
+            (should (eobp)))
+          (with-temp-buffer
+            (set-buffer-multibyte nil)
+            (insert (encode-coding-string json 'utf-8))
+            (goto-char 1)
+            (should (equal (json-parse-buffer) lisp))
+            (should (eobp))))))))
 
 (ert-deftest json-serialize/object ()
   (let ((table (make-hash-table :test #'equal)))
@@ -226,7 +227,8 @@
   (should (equal (json-serialize ["foo"]) "[\"foo\"]"))
   (should (equal (json-serialize ["a\n\fb"]) "[\"a\\n\\fb\"]"))
   (should (equal (json-serialize ["\nasdфыв\u001f\u007ffgh\t"])
-                 "[\"\\nasdфыв\\u001F\u007ffgh\\t\"]"))
+                 (encode-coding-string "[\"\\nasdфыв\\u001F\u007ffgh\\t\"]"
+                                       'utf-8)))
   (should (equal (json-serialize ["a\0b"]) "[\"a\\u0000b\"]"))
   (should-error (json-serialize ["\xC3\x84"]))
   (should-error (json-serialize ["\u00C4\xC3\x84"])))

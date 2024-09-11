@@ -136,9 +136,11 @@ directory hierarchy."
                                           (jsonrpc-events-buffer server)))))
                   (cond (noninteractive
                          (dolist (buffer buffers)
-                           (eglot--test-message "contents of `%s':" (buffer-name buffer))
-                           (princ (with-current-buffer buffer (buffer-string))
-                                  'external-debugging-output)))
+                           (eglot--test-message "contents of `%s' %S:" (buffer-name buffer) buffer)
+                           (if (buffer-live-p buffer)
+                               (princ (with-current-buffer buffer (buffer-string))
+                                      'external-debugging-output)
+                             (princ "Killed\n" #'external-debugging-output))))
                         (t
                          (eglot--test-message "Preserved for inspection: %s"
                                               (mapconcat #'buffer-name buffers ", "))))))))
@@ -724,7 +726,7 @@ directory hierarchy."
         (minibuffer-choose-completion t))
       (should
        (equal
-        "fn test() -> i32 { let v: usize = 1; v.count_ones().1234567890;"
+        "fn test() -> i32 { let v: usize = 1; v.count_ones.1234567890;"
         (buffer-string))))))
 
 (ert-deftest eglot-test-basic-xref ()

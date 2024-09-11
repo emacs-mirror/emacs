@@ -11917,7 +11917,12 @@ Before suspending, run the normal hook `suspend-hook'.
 After resumption run the normal hook `suspend-resume-hook'.
 
 Some operating systems cannot stop the Emacs process and resume it later.
-On such systems, Emacs starts a subshell instead of suspending.  */)
+On such systems, Emacs starts a subshell instead of suspending.
+
+On some operating systems, stuffing characters into terminal input
+buffer requires special privileges or is not supported at all.
+On such systems, calling this function with non-nil STUFFSTRING might
+either signal an error or silently fail to stuff the characters.  */)
   (Lisp_Object stuffstring)
 {
   specpdl_ref count = SPECPDL_INDEX ();

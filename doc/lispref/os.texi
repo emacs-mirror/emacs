@@ -811,9 +811,6 @@ before suspending Emacs, or this function signals an error.
 
 If @var{string} is non-@code{nil}, its characters are sent to Emacs's
 superior shell, to be read as terminal input.
-@c FIXME?  It seems to me that shell does echo STRING.
-The characters in @var{string} are not echoed by the superior shell;
-only the results appear.
 
 Before suspending, @code{suspend-emacs} runs the normal hook
 @code{suspend-hook}.  After the user resumes Emacs,
@@ -849,7 +846,8 @@ Really suspend? @kbd{y}
 
 @group
 ---------- Parent Shell ----------
-bash$ /home/username
+bash$ pwd
+/home/username
 bash$ fg
 @end group
 
@@ -859,9 +857,13 @@ Resumed!
 @end group
 @end smallexample
 
-@c FIXME?  AFAICS, it is echoed.
-Note that @samp{pwd} is not echoed after Emacs is suspended.  But it
-is read and executed by the shell.
+Note that on some operating systems, sending @var{string} to the Emacs
+parent shell might require special privileges, in which case it might
+silently fail to send @var{string} to the shell for execution.  On other
+systems this is not supported, and Emacs will signal an error if you
+try.  Also, @var{string} might not be echoed, even if it is executed by
+the shell.  So we don't recommend relying on this feature in portable
+Lisp programs.
 @end deffn
 
 @defvar suspend-hook

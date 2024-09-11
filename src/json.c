@@ -559,16 +559,6 @@ json_out_something (json_out_t *jo, Lisp_Object obj)
     wrong_type_argument (Qjson_value_p, obj);
 }
 
-static Lisp_Object
-json_out_to_string (json_out_t *jo)
-{
-  /* FIXME: should this be a unibyte or multibyte string?
-     Right now we make a multibyte string for test compatibility,
-     but we are really encoding so unibyte would make more sense.  */
-  ptrdiff_t nchars = jo->size - jo->chars_delta;
-  return make_multibyte_string (jo->buf, nchars, jo->size);
-}
-
 static void
 json_serialize (json_out_t *jo, Lisp_Object object,
 		ptrdiff_t nargs, Lisp_Object *args)
@@ -596,7 +586,7 @@ json_serialize (json_out_t *jo, Lisp_Object object,
 
 DEFUN ("json-serialize", Fjson_serialize, Sjson_serialize, 1, MANY,
        NULL,
-       doc: /* Return the JSON representation of OBJECT as a string.
+       doc: /* Return the JSON representation of OBJECT as a unibyte string.
 
 OBJECT is translated as follows:
 
@@ -629,7 +619,7 @@ usage: (json-serialize OBJECT &rest ARGS)  */)
   specpdl_ref count = SPECPDL_INDEX ();
   json_out_t jo;
   json_serialize (&jo, args[0], nargs - 1, args + 1);
-  return unbind_to (count, json_out_to_string (&jo));
+  return unbind_to (count, make_unibyte_string (jo.buf, jo.size));
 }
 
 DEFUN ("json-insert", Fjson_insert, Sjson_insert, 1, MANY,

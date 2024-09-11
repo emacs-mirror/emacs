@@ -11869,7 +11869,7 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
 }
 
 DEFUN ("window-text-pixel-size", Fwindow_text_pixel_size, Swindow_text_pixel_size, 0, 7, 0,
-       doc: /* Return the size of the text of WINDOW's buffer in pixels.
+       doc: /* Return the dimensions of the text of WINDOW's buffer in pixels.
 WINDOW must be a live window and defaults to the selected one.  The
 return value is a cons of the maximum pixel-width of any text line and
 the pixel-height of all the text lines in the accessible portion of
@@ -11949,7 +11949,7 @@ screen line that includes TO to the returned height of the text.  */)
 }
 
 DEFUN ("buffer-text-pixel-size", Fbuffer_text_pixel_size, Sbuffer_text_pixel_size, 0, 4, 0,
-       doc: /* Return size of whole text of BUFFER-OR-NAME in WINDOW.
+       doc: /* Return the dimensions of whole text of BUFFER-OR-NAME in WINDOW.
 BUFFER-OR-NAME must specify a live buffer or the name of a live buffer
 and defaults to the current buffer.  WINDOW must be a live window and
 defaults to the selected one.  The return value is a cons of the maximum
@@ -22182,7 +22182,8 @@ try_window_id (struct window *w)
 
   /* Window must either use window-based redisplay or be full width.  */
   if (!FRAME_WINDOW_P (f)
-      && (!FRAME_LINE_INS_DEL_OK (f)
+      && (FRAME_INITIAL_P (f)
+	  || !FRAME_LINE_INS_DEL_OK (f)
 	  || !WINDOW_FULL_WIDTH_P (w)))
     GIVE_UP (4);
 
