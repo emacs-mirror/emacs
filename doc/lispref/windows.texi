@@ -2353,6 +2353,12 @@ buffers (@pxref{Window History}) of all windows (including dead windows
 that are only referenced by window configurations) and remove any
 @code{quit-restore} or @code{quit-restore-prev} parameters
 (@pxref{Window Parameters}) referencing that buffer.
+
+This function does not replace the buffer specified by
+@var{buffer-or-name} in any minibuffer window showing it, nor does it
+delete minibuffer windows or minibuffer frames.  It removes, however,
+that buffer from the lists of previous and next buffers of all
+minibuffer windows.
 @end deffn
 
 By default, @code{replace-buffer-in-windows} deletes only windows

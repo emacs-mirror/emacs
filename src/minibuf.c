@@ -160,16 +160,15 @@ zip_minibuffer_stacks (Lisp_Object dest_window, Lisp_Object source_window)
       set_window_buffer (dest_window, sw->contents, 0, 0);
       Fset_window_start (dest_window, Fwindow_start (source_window), Qnil);
       Fset_window_point (dest_window, Fwindow_point (source_window));
-      dw->prev_buffers = sw->prev_buffers;
+      wset_prev_buffers (dw, sw->prev_buffers);
       set_window_buffer (source_window, nth_minibuffer (0), 0, 0);
-      sw->prev_buffers = Qnil;
+      wset_prev_buffers (sw, Qnil);
       return;
     }
 
-  if (live_minibuffer_p (dw->contents))
-    call1 (Qpush_window_buffer_onto_prev, dest_window);
-  if (live_minibuffer_p (sw->contents))
-    call1 (Qpush_window_buffer_onto_prev, source_window);
+  call1 (Qrecord_window_buffer, dest_window);
+  call1 (Qrecord_window_buffer, source_window);
+
   acc = merge_c (dw->prev_buffers, sw->prev_buffers, minibuffer_ent_greater);
 
   if (!NILP (acc))
@@ -180,8 +179,9 @@ zip_minibuffer_stacks (Lisp_Object dest_window, Lisp_Object source_window)
       Fset_window_start (dest_window, Fcar (Fcdr (d_ent)), Qnil);
       Fset_window_point (dest_window, Fcar (Fcdr (Fcdr (d_ent))));
     }
-  dw->prev_buffers = acc;
-  sw->prev_buffers = Qnil;
+
+  wset_prev_buffers (dw, acc);
+  wset_prev_buffers (sw, Qnil);
   set_window_buffer (source_window, nth_minibuffer (0), 0, 0);
 }
 
@@ -688,8 +688,8 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 				    Fframe_first_window (MB_frame), Qnil);
     }
   MB_frame = XWINDOW (XFRAME (selected_frame)->minibuffer_window)->frame;
-  if (live_minibuffer_p (XWINDOW (minibuf_window)->contents))
-    call1 (Qpush_window_buffer_onto_prev, minibuf_window);
+
+  call1 (Qrecord_window_buffer, minibuf_window);
 
   record_unwind_protect_void (minibuffer_unwind);
   if (read_minibuffer_restore_windows)

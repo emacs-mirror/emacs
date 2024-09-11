@@ -3647,9 +3647,17 @@ replace_buffer_in_windows (Lisp_Object buffer)
     call1 (Qreplace_buffer_in_windows, buffer);
 }
 
-/* If BUFFER is shown in a window, safely replace it with some other
-   buffer in all windows of all frames, even those on other keyboards.  */
+/** If BUFFER is shown in any window, safely replace it with some other
+    buffer in all windows of all frames, even those on other keyboards.
+    Do not delete any window.
 
+    This function is called by Fkill_buffer when it detects that
+    replacing BUFFER in some window showing BUFFER has failed.  It
+    assumes that ‘replace-buffer-in-windows’ has removed any entry
+    referencing BUFFER from any window's lists of previous and next
+    buffers and that window's ‘quit-restore’ and 'quit-restore-prev'
+    parameters.
+*/
 void
 replace_buffer_in_windows_safely (Lisp_Object buffer)
 {

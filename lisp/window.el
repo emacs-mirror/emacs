@@ -4469,75 +4469,86 @@ This may be a useful alternative binding for \\[delete-other-windows]
 
 ;;; Windows and buffers.
 
-;; `prev-buffers' and `next-buffers' are two reserved window slots used
+;; 'prev-buffers' and 'next-buffers' are two reserved window slots used
 ;; for (1) determining which buffer to show in the window when its
 ;; buffer shall be buried or killed and (2) which buffer to show for
-;; `switch-to-prev-buffer' and `switch-to-next-buffer'.
+;; 'switch-to-prev-buffer' and 'switch-to-next-buffer'.
 
-;; `prev-buffers' consists of <buffer, window-start, window-point>
+;; 'prev-buffers' consists of <buffer, window-start, window-point>
 ;; triples.  The entries on this list are ordered by the time their
 ;; buffer has been removed from the window, the most recently removed
 ;; buffer's entry being first.  The window-start and window-point
-;; components are `window-start' and `window-point' at the time the
+;; components are 'window-start' and 'window-point' at the time the
 ;; buffer was removed from the window which implies that the entry must
-;; be added when `set-window-buffer' removes the buffer from the window.
+;; be added when 'set-window-buffer' removes the buffer from the window.
 
-;; `next-buffers' is the list of buffers that have been replaced
-;; recently by `switch-to-prev-buffer'.  These buffers are the least
-;; preferred candidates of `switch-to-prev-buffer' and the preferred
-;; candidates of `switch-to-next-buffer' to switch to.  This list is
+;; 'next-buffers' is the list of buffers that have been replaced
+;; recently by 'switch-to-prev-buffer'.  These buffers are the least
+;; preferred candidates of 'switch-to-prev-buffer' and the preferred
+;; candidates of 'switch-to-next-buffer' to switch to.  This list is
 ;; reset to nil by any action changing the window's buffer with the
-;; exception of `switch-to-prev-buffer' and `switch-to-next-buffer'.
-;; `switch-to-prev-buffer' pushes the buffer it just replaced on it,
-;; `switch-to-next-buffer' pops the last pushed buffer from it.
+;; exception of 'switch-to-prev-buffer' and 'switch-to-next-buffer'.
+;; 'switch-to-prev-buffer' pushes the buffer it just replaced on it,
+;; 'switch-to-next-buffer' pops the last pushed buffer from it.
 
-;; Both `prev-buffers' and `next-buffers' may reference killed buffers
-;; if such a buffer was killed while the window was hidden within a
-;; window configuration.  Such killed buffers get removed whenever
-;; `switch-to-prev-buffer' or `switch-to-next-buffer' encounter them.
-
-;; The following function is called by `set-window-buffer' _before_ it
-;; replaces the buffer of the argument window with the new buffer.
-(defun push-window-buffer-onto-prev (&optional window)
-  "Push entry for WINDOW's buffer onto WINDOW's prev-buffers list.
-WINDOW must be a live window and defaults to the selected one.
-
-Any duplicate entries for the buffer in the list are removed."
-  (let* ((window (window-normalize-window window t))
-         (buffer (window-buffer window))
-         (w-list (window-prev-buffers window))
-         (entry (assq buffer w-list)))
-    (when entry
-      (setq w-list (assq-delete-all buffer w-list)))
-    (let ((start (window-start window))
-          (point (window-point window)))
-      (setq entry
-            (cons buffer
-                  (with-current-buffer buffer
-                    (if entry
-                        ;; We have an entry, update marker positions.
-                        (list (set-marker (nth 1 entry) start)
-                              (set-marker (nth 2 entry) point))
-                      (list (copy-marker start)
-                            (copy-marker
-                             ;; Preserve window-point-insertion-type
-                             ;; (Bug#12855)
-                             point window-point-insertion-type))))))
-      (set-window-prev-buffers window (cons entry w-list)))))
-
+;; The following function is called by 'set-window-buffer' _before_ it
+;; replaces the buffer of the argument window with the new buffer.  It
+;; does not record a non-minibuffer buffer (like the one created by
+;; 'calculator' in Electric mode) in a minibuffer window since the code
+;; in minibuf.c cannot handle that.  The minibuf.c code calls this
+;; function exclusively to arrange minibuffers shown in minibuffer
+;; windows.
 (defun record-window-buffer (&optional window)
   "Record WINDOW's buffer.
-WINDOW must be a live window and defaults to the selected one."
+Add the buffer currently shown in WINDOW to the list of WINDOW's
+previous buffers.  WINDOW must be a live window and defaults to the
+selected one.
+
+If WINDOW is not a minibuffer window, do not record insignificant
+buffers (buffers whose name starts with a space).  If WINDOW is a
+minibuffer window, record its buffer if and only if that buffer is a
+live minibuffer (`minibufferp' with LIVE argument non-nil must return
+non-nil for it).
+
+Run `buffer-list-update-hook' if and only if WINDOW is not a minibuffer
+window."
   (let* ((window (window-normalize-window window t))
-         (buffer (window-buffer window)))
+	 (mini (window-minibuffer-p window))
+         (buffer (window-buffer window))
+         (prev-buffers (window-prev-buffers window))
+         (entry (assq buffer prev-buffers)))
+    (when entry
+      (setq prev-buffers (assq-delete-all buffer prev-buffers)))
+
     ;; Reset WINDOW's next buffers.  If needed, they are resurrected by
     ;; `switch-to-prev-buffer' and `switch-to-next-buffer'.
     (set-window-next-buffers window nil)
 
-    ;; Don't record insignificant buffers.
-    (when (not (eq (aref (buffer-name buffer) 0) ?\s))
-      (push-window-buffer-onto-prev window)
-      (run-hooks 'buffer-list-update-hook))))
+    ;; For minibuffer windows record live minibuffers only.  For normal
+    ;; windows do not record insignificant buffers.
+    (when (if mini
+	      (minibufferp buffer t)
+	    (not (eq (aref (buffer-name buffer) 0) ?\s)))
+      (let ((start (window-start window))
+            (point (window-point window)))
+	(setq entry
+              (cons buffer
+                    (with-current-buffer buffer
+                      (if entry
+                          ;; We have an entry, update marker positions.
+                          (list (set-marker (nth 1 entry) start)
+				(set-marker (nth 2 entry) point))
+			(list (copy-marker start)
+                              (copy-marker
+                               ;; Preserve window-point-insertion-type
+                               ;; (Bug#12855)
+                               point window-point-insertion-type))))))
+	(set-window-prev-buffers window (cons entry prev-buffers))
+
+	(unless mini
+	  (run-hooks 'buffer-list-update-hook))))))
+
+(defalias 'push-window-buffer-onto-prev 'record-window-buffer)
 
 (defun unrecord-window-buffer (&optional window buffer all)
   "Unrecord BUFFER in WINDOW.
@@ -5160,10 +5171,19 @@ parameters naming it."
 	;; If a window doesn't show BUFFER, unrecord BUFFER in it.
 	(unrecord-window-buffer window buffer t)))))
 
+;; Conceptually, 'replace-buffer-in-windows' would not have to touch the
+;; list of previous buffers of a minibuffer window: As a rule,
+;; minibuffers are never deleted and any other buffers shown in a
+;; minibuffer window are not recorded by 'record-window'.  To be on the
+;; safe side, 'replace-buffer-in-windows' now scans minibuffer windows
+;; too to make sure that any killed buffer gets removed from all lists
+;; of previous and next buffers.  'replace-buffer-in-windows' still does
+;; _not_ replace the buffer itself in any minibuffer window showing it.
+;; That case is still handled only in 'kill-buffer' itself.
 (defun replace-buffer-in-windows (&optional buffer-or-name)
   "Replace BUFFER-OR-NAME with some other buffer in all windows showing it.
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer and
-defaults to the current buffer.  Minibuffer windows are not considered.
+defaults to the current buffer.
 
 If the option `kill-buffer-quit-windows' is nil, behave as follows: With
 the exception of side windows, when a window showing BUFFER-OR-NAME is
@@ -5180,21 +5200,29 @@ In either case, remove the buffer denoted by BUFFER-OR-NAME from the
 lists of previous and next buffers of all windows and remove any
 `quit-restore' or `quit-restore-prev' parameters mentioning it.
 
+This function does not replace the buffer specified by BUFFER-OR-NAME in
+any minibuffer window showing it, nor does it delete minibuffer windows
+or minibuffer frames.  It removes, however, that buffer from the lists
+of previous and next buffers of all minibuffer windows.
+
 If, for any window showing BUFFER-OR-NAME running the abnormal hook
 `window-deletable-functions' returns nil, do not delete that window but
 show some other buffer in that window.
 
-This function is called by `kill-buffer' which kills the buffer
-specified by `buffer-or-name' afterwards.  It never kills a buffer by
-itself."
+This function is called by `kill-buffer' which effectively kills the
+buffer specified by `buffer-or-name' afterwards.  It never kills a
+buffer by itself."
   (interactive "bBuffer to replace: ")
   (let ((buffer (window-normalize-buffer buffer-or-name)))
-    ;; Scan all windows.  We have to unrecord BUFFER-OR-NAME in those
-    ;; not showing it.
-    (dolist (window (window-list-1 nil nil t))
+    ;; Scan all windows including minibuffer windows.  We have to
+    ;; unrecord BUFFER-OR-NAME even in those not showing it.
+    (dolist (window (window-list-1 nil t t))
       (when (eq (window-buffer window) buffer)
-	(if kill-buffer-quit-windows
-	    (quit-restore-window window 'killing)
+	(cond
+	 ((window-minibuffer-p window))
+	 (kill-buffer-quit-windows
+	  (quit-restore-window window 'killing))
+	 (t
 	  (let ((dedicated-side (eq (window-dedicated-p window) 'side)))
             (when (or dedicated-side (not (window--delete window t 'kill)))
 	      ;; Switch to another buffer in that window.
@@ -5212,7 +5240,7 @@ itself."
 	  ;; element of the parameter, 'quit-restore-window' cannot
 	  ;; possibly show BUFFER instead; so this parameter becomes
 	  ;; useless too.
-	  (unrecord-window-buffer window buffer t)))))
+	  (unrecord-window-buffer window buffer t))))))
 
 (defcustom quit-window-hook nil
   "Hook run before performing any other actions in the `quit-window' command."
