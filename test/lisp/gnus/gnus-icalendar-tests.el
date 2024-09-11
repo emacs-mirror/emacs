@@ -257,7 +257,8 @@ END:VCALENDAR" (list "participant@anoncompany.com"))))
 
 (ert-deftest gnus-icalendar-accept-with-comment ()
   ""
-  (let ((event "BEGIN:VEVENT
+  (let ((event "\
+BEGIN:VEVENT
 DTSTART;TZID=Europe/Berlin:20200915T140000
 DTEND;TZID=Europe/Berlin:20200915T143000
 RRULE:FREQ=WEEKLY;BYDAY=FR,MO,TH,TU,WE
@@ -276,23 +277,22 @@ SUMMARY:Casual coffee talk
 TRANSP:OPAQUE
 END:VEVENT")
         (icalendar-identities '("participant@anoncompany.com")))
-    (unwind-protect
-        (progn
-          (let* ((reply (with-temp-buffer
-                         (insert event)
-                         (gnus-icalendar-event-reply-from-buffer
-                          (current-buffer)
-                          'accepted
-                          icalendar-identities
-                          "Can not stay long."))))
-            (should (string-match "^ATTENDEE;.*?\\(PARTSTAT=[^;]+\\)" reply))
-            (should (string-equal (match-string 1 reply) "PARTSTAT=ACCEPTED"))
-            (should (string-match "^COMMENT:\\(.*\\)$" reply))
-            (should (string-equal (match-string 1 reply) "Can not stay long.")))))))
+    (let* ((reply (with-temp-buffer
+                    (insert event)
+                    (gnus-icalendar-event-reply-from-buffer
+                     (current-buffer)
+                     'accepted
+                     icalendar-identities
+                     "Can not stay long."))))
+      (should (string-match "^ATTENDEE;.*?\\(PARTSTAT=[^;]+\\)" reply))
+      (should (string-equal (match-string 1 reply) "PARTSTAT=ACCEPTED"))
+      (should (string-match "^COMMENT:\\(.*\\)$" reply))
+      (should (string-equal (match-string 1 reply) "Can not stay long.")))))
 
 (ert-deftest gnus-icalendar-decline-without-changing-comment ()
   ""
-  (let ((event "BEGIN:VEVENT
+  (let ((event "\
+BEGIN:VEVENT
 DTSTART;TZID=Europe/Berlin:20200915T140000
 DTEND;TZID=Europe/Berlin:20200915T143000
 RRULE:FREQ=WEEKLY;BYDAY=FR,MO,TH,TU,WE
@@ -312,20 +312,18 @@ SUMMARY:Casual coffee talk
 TRANSP:OPAQUE
 END:VEVENT")
         (icalendar-identities '("participant@anoncompany.com")))
-    (unwind-protect
-        (progn
-          (let* ((reply (with-temp-buffer
-                        (insert event)
-                        (gnus-icalendar-event-reply-from-buffer
-                         (current-buffer)
-                          'declined
-                          icalendar-identities
-                          nil))))
-            (should (string-match "^ATTENDEE;.*?\\(PARTSTAT=[^;]+\\)" reply))
-            (should (string-equal (match-string 1 reply) "PARTSTAT=DECLINED"))
-            (should (string-match "^COMMENT:\\(.*\\)$" reply))
-            (should (string-equal (match-string 1 reply) "Only available at 2pm"))
-                        )))))
+    (let* ((reply (with-temp-buffer
+                    (insert event)
+                    (gnus-icalendar-event-reply-from-buffer
+                     (current-buffer)
+                     'declined
+                     icalendar-identities
+                     nil))))
+      (should (string-match "^ATTENDEE;.*?\\(PARTSTAT=[^;]+\\)" reply))
+      (should (string-equal (match-string 1 reply) "PARTSTAT=DECLINED"))
+      (should (string-match "^COMMENT:\\(.*\\)$" reply))
+      (should (string-equal (match-string 1 reply) "Only available at 2pm"))
+      )))
 
 (provide 'gnus-icalendar-tests)
 ;;; gnus-icalendar-tests.el ends here
