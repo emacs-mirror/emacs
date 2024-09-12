@@ -1820,11 +1820,12 @@ information will not be displayed at all.
 @vindex dired-check-symlinks
   Dired fontifies the items in the Dired buffer.  If the
 @code{default-directory} of that buffer is remote, this might be
-extensive for symbolic links, because their @code{file-truename} is
-evaluated.  Set user option @code{dired-check-symlinks} to @code{nil}
-for remote directories, which suffer from a slow connection.  It can be
-declared as connection-local variable to match how a remote system is
-connectable (@pxref{Connection Variables}).
+expensive for symbolic links, because their @code{file-truename} needs
+to be accessed.  To avoid slowdown in Dired due to this, set user option
+@code{dired-check-symlinks} to @code{nil} for remote directories which
+suffer from a slow connection.  It can be declared as connection-local
+variable to match how a remote system is connectable (@pxref{Connection
+Variables}).
 
 @kindex + @r{(Dired)}
 @findex dired-create-directory
