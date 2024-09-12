@@ -1,7 +1,8 @@
-# BidiMirroring-15.1.0.txt
-# Date: 2023-01-05
-# © 2023 Unicode®, Inc.
-# For terms of use, see https://www.unicode.org/terms_of_use.html
+# BidiMirroring-16.0.0.txt
+# Date: 2024-01-30
+# © 2024 Unicode®, Inc.
+# Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
+# For terms of use and license, see https://www.unicode.org/terms_of_use.html
 #
 # Unicode Character Database
 # For documentation, see https://www.unicode.org/reports/tr44/
@@ -15,7 +16,7 @@
 # value, for which there is another Unicode character that typically has a glyph
 # that is the mirror image of the original character's glyph.
 #
-# The repertoire covered by the file is Unicode 15.1.0.
+# The repertoire covered by the file is Unicode 16.0.0.
 #
 # The file contains a list of lines with mappings from one code point
 # to another one for character-based mirroring.
@@ -44,7 +45,8 @@
 #
 # This file was originally created by Markus Scherer.
 # Extended for Unicode 3.2, 4.0, 4.1, 5.0, 5.1, 5.2, and 6.0 by Ken Whistler,
-# and for subsequent versions by Ken Whistler, Laurentiu Iancu, and Roozbeh Pournader.
+# and for subsequent versions by Ken Whistler, Laurentiu Iancu, Roozbeh Pournader,
+# and Robin Leroy.
 #
 # Historical and Compatibility Information:
 #
@@ -542,6 +544,7 @@ FF63; FF62 # [BEST FIT] HALFWIDTH RIGHT CORNER BRACKET
 # 225F; QUESTIONED EQUAL TO
 # 2260; NOT EQUAL TO
 # 2262; NOT IDENTICAL TO
+# 226D; NOT EQUIVALENT TO
 # 228C; MULTISET
 # 22A7; MODELS
 # 22AA; TRIPLE VERTICAL BAR RIGHT TURNSTILE
