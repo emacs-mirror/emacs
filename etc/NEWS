@@ -120,6 +120,9 @@ It is equivalent to running ‘project-any-command’ with ‘find-file’.
 ** Internationalization
 
 ---
+*** Emacs now supports Unicode version 16.0.
+
+---
 *** New language-environment and input method for Tifinagh.
 The Tifinagh script is used to write the Berber languages.
 
