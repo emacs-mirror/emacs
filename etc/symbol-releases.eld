@@ -16,7 +16,7 @@
 ;; well be much earlier.
 ;; 13.8 may be the earliest surviving version with source code, although
 ;; damaged.  See
-;; https://github.com/larsbrinkhoff/emacs-history/decuslib.com/decus/vax85b/gnuemax
+;; https://github.com/larsbrinkhoff/emacs-history/tree/sources/decuslib.com/decus/vax85b/gnuemax
 
  ("19.7" fun defsubst)
  ("18.59" fun mark)
