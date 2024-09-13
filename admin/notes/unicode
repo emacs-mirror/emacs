@@ -30,6 +30,9 @@ Emacs also uses the file emoji-test.txt which should be imported from
 the Unicode's Public/emoji/ directory, and IdnaMappingTable.txt from
 the Public/idna/ directory.
 
+"admin/unidata/README" contains the URLs that can be used to download
+these files.
+
 First, the first 15 files, emoji-test.txt and IdnaMappingTable.txt
 need to be copied into admin/unidata/, and the file
 https://www.unicode.org/copyright.html should be copied over
