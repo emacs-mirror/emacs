@@ -1647,7 +1647,7 @@ See `treesit-simple-indent-presets'.")
 
                     (goto-char bol)
                     (setq this-line-has-prefix
-                          (and (looking-at-p adaptive-fill-regexp)
+                          (and (looking-at adaptive-fill-regexp)
                                (not (string-match-p
                                      (rx bos (* whitespace) eos)
                                      (match-string 0)))))
