@@ -286,7 +286,7 @@ when ~org-yank-dnd-method~ is =attach=.
 
 *** Alignment of image previews can be customized
 
-Previously, all the image previews where always left-aligned.
+Previously, all the image previews were always left-aligned.
 
 Now, you can customize image previews to be left-aligned, centered, or right-aligned.
 
