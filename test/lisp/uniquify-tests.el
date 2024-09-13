@@ -129,6 +129,7 @@ uniquify-trailing-separator-p is ignored"
 (require 'project)
 (ert-deftest uniquify-project-transform ()
   "`project-uniquify-dirname-transform' works"
+  (skip-unless (project-current nil source-directory))
   (let ((uniquify-dirname-transform #'project-uniquify-dirname-transform)
         (project-vc-name "foo1/bar")
         bufs)
