@@ -849,6 +849,19 @@ with L, LRE, or LRO Unicode bidi character type.")
   ;; Fixme: syntax for symbols &c
   )
 
+
+;; Symbols and digits
+;;; Each character whose script is 'symbol' gets the symbol category,
+;;; see charscript.el.
+;;; Each character whose Unicode general-category is Nd gets the digit
+;;; category:
+(let ((table (unicode-property-table-internal 'general-category)))
+  (when table
+    (map-char-table (lambda (key val)
+                      (if (eq val 'Nd)
+			  (modify-category-entry key ?6)))
+		    table)))
+
 (let ((pairs
        '("⁅⁆"				; U+2045 U+2046
 	 "⁽⁾"				; U+207D U+207E

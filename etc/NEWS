@@ -339,6 +339,18 @@ That convention was: '(error &rest ARGS)'.
 ** The 'rx' category name 'chinese-two-byte' must now be spelled correctly.
 An old alternative name (without the first 'e') has been removed.
 
+---
+** All the digit characters now have the 'digit' category.
+All the characters whose Unicode general-category is Nd now have the
+'digit' category, whose mnemonic is '6'.  This includes both ASCII and
+non-ASCII digit characters.
+
+---
+** All the symbol characters now have the 'symbol' category.
+All the characters that belong to the 'symbol' script (according to
+'char-script-table') now have the 'symbol' category, whose mnemonic is
+'5'.
+
 
 * Lisp Changes in Emacs 31.1
 

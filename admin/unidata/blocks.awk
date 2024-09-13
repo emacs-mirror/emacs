@@ -278,6 +278,10 @@ END {
     print "    (or (memq (nth 2 elt) script-list)"
     print "	(setq script-list (cons (nth 2 elt) script-list))))"
     print "  (set-char-table-extra-slot char-script-table 0 (nreverse script-list)))"
-    print "\n"
-    print "(provide 'charscript)"
+    print "\n(map-char-table"
+    print " (lambda (ch script)"
+    print "   (and (eq script 'symbol)"
+    print "	(modify-category-entry ch ?5)))"
+    print " char-script-table)"
+    print "\n(provide 'charscript)"
 }
