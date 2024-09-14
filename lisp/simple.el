@@ -5819,11 +5819,12 @@ move the yanking point; just return the Nth kill forward."
 
 (defcustom kill-region-dwim nil
   "Behavior when `kill-region' is invoked without an active region.
-If set to nil (default), then the behavior of `kill-region' will not
-change.  If set to `emacs-word', then kill the last word as defined by
-the current major mode.  If set to `unix-word', then kill the last word
-in the style of a shell like Bash, disregarding the major mode like with
-`unix-word-rubout'."
+If set to nil (default), kill the region even if it is inactive,
+signalling an error if there is no region.
+If set to `emacs-word', kill the last word as defined by the
+current major mode.
+If set to `unix-word', kill the last word in the style of a shell like
+Bash.  This ignores the major mode like `unix-word-rubout' (which see)."
   :type '(choice (const :tag "Kill a word like `backward-kill-word'" emacs-word)
                  (const :tag "Kill a word like Bash would" unix-word)
                  (const :tag "Do not kill anything" nil))
