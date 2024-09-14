@@ -4391,8 +4391,8 @@ the same set of elements."
                 ;; changed such that string->pattern wouldn't add an `any'
                 ;; here any more.
                 (if unique
-                    ;; if the common prefix is unique, it also is a common
-                    ;; suffix, so we should add it for `prefix' elements
+                    ;; If the common prefix is unique, it also is a common
+                    ;; suffix, so we should add it for `prefix' elements.
                     (push prefix res)
                   ;; `prefix' only wants to include the fixed part before the
                   ;; wildcard, not the result of growing that fixed part.
