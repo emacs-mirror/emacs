@@ -233,6 +233,11 @@ Philip Kaludercic
        lisp/emacs-lisp/compat.el
        lisp/net/rcirc.el
 
+Yuan Fu
+       src/treesit.c
+       lisp/treesit.el
+       lisp/progmodes/c-ts-common.el
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.
@@ -376,6 +381,9 @@ Harald Jörg
 
 Spencer Baugh
 	lisp/progmodes/flymake.el
+
+Yuan Fu
+       lisp/progmodes/c-ts-mode.el
 
 ==============================================================================
 3. Externally maintained packages.
