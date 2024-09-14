@@ -481,6 +481,14 @@ For some discussion and implementation ideas (including possibly using
 LSP), see the thread starting at
 https://lists.gnu.org/archive/html/emacs-devel/2023-09/msg00609.html
 
+** Add indentation guide support to the display engine
+Support vertical lines that indicate the current level of indentation,
+which is useful when editing source code.  This feature should be
+implemented in the display engine.
+
+See the indent-bars package, which implements this in Emacs Lisp:
+https://github.com/jdtsmith/indent-bars
+
 ** FFI (foreign function interface)
 See e.g. https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
 
