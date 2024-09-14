@@ -205,8 +205,9 @@ formatting them:
 
 - Unindented ChangeLog entries normally come next.  However, if the
   commit couldn't be properly summarized in the brief summary line,
-  you can put a paragraph (after the empty line and before the
-  individual ChangeLog entries) that further describes the commit.
+  you can put one or more paragraphs (after the empty line and before
+  the individual ChangeLog entries) that further describe(s) the
+  commit.
 
 - Lines in ChangeLog entries should preferably be not longer than 63
   characters, and must not exceed 78 characters, unless they consist
