@@ -3243,7 +3243,8 @@ contents are given by @var{menu}.
 
 If @var{symbol} is non-@code{nil}, it should be a symbol; then this
 macro defines @var{symbol} as a function for popping up the menu
-(@pxref{Pop-Up Menus}), with @var{doc} as its documentation string.
+(@pxref{Pop-Up Menus}), with @var{doc} as its documentation string.  It
+also defines @var{symbol} as a variable whose value is the menu.
 @var{symbol} should not be quoted.
 
 Regardless of the value of @var{symbol}, if @var{maps} is a keymap,
