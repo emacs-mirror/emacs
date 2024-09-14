@@ -574,7 +574,7 @@ MODE is either `c' or `cpp'."
                   "or_eq" "override" "private" "protected"
                   "public" "requires" "template" "throw"
                   "try" "typename" "using"
-                  "xor" "xor_eq"))
+                  "xor" "xor_eq" "thread_local"))
       (append '("auto") c-keywords))))
 
 (defvar c-ts-mode--type-keywords
@@ -591,6 +591,11 @@ MODE is either `c' or `cpp'."
   (rx "FOR_EACH_" (or "TAIL" "TAIL_SAFE" "ALIST_VALUE"
                       "LIVE_BUFFER" "FRAME"))
   "A regexp matching all the variants of the FOR_EACH_* macro.")
+
+(defun c-ts-mode--test-virtual-named-p ()
+  "Return t if the virtual keyword is a namded node, nil otherwise."
+  (ignore-errors
+    (progn (treesit-query-compile 'cpp "(virtual)" t) t)))
 
 (defun c-ts-mode--font-lock-settings (mode)
   "Tree-sitter font-lock settings.
@@ -636,8 +641,13 @@ MODE is either `c' or `cpp'."
    `([,@(c-ts-mode--keywords mode)] @font-lock-keyword-face
      ,@(when (eq mode 'cpp)
          '((auto) @font-lock-keyword-face
-           (this) @font-lock-keyword-face
-           (virtual) @font-lock-keyword-face)))
+           (this) @font-lock-keyword-face))
+     ,@(when (and (eq mode 'cpp)
+                  (c-ts-mode--test-virtual-named-p))
+         '((virtual) @font-lock-keyword-face))
+     ,@(when (and (eq mode 'cpp)
+                  (not (c-ts-mode--test-virtual-named-p)))
+         '("virtual" @font-lock-keyword-face)))
 
    :language mode
    :feature 'operator
