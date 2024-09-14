@@ -446,6 +446,11 @@ allowing Emacs users access to speech recognition utilities.
 Note: Accepting this permission allows the use of system APIs, which may
 send user data to Apple’s speech recognition servers.
 
+---
+** Emacs on MS-Windows now supports GUI dialogs and message boxes better.
+In particular, it is now possible to show text with embedded newlines in
+a dialog popped by 'message-box'.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
