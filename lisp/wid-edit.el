@@ -1336,7 +1336,10 @@ nothing is shown in the echo area."
     (let ((new (widget-tabable-at)))
       (while (and (eq (widget-tabable-at) new) (not (bobp)))
 	(backward-char)))
-    (unless (bobp) (forward-char)))
+    ;; If the widget is at BOB, point is already at the widget's
+    ;; starting position; otherwise, advance point to put it at the
+    ;; start of the widget (cf. bug#69943 and bug#72995).
+    (unless (and (widget-tabable-at) (bobp)) (forward-char)))
   (unless suppress-echo
     (widget-echo-help (point)))
   (run-hooks 'widget-move-hook))
