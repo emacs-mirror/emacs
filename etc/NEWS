@@ -201,8 +201,6 @@ Advanced" node in the EWW manual.
 By customizing 'shr-image-zoom-levels', you can change the list of zoom
 levels that SHR cycles through when calling 'shr-zoom-image'.
 
-** SHR
-
 ---
 *** New user option 'shr-fill-text'.
 When 'shr-fill-text' is non-nil (the default), SHR will fill text
