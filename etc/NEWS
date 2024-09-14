@@ -140,7 +140,7 @@ The new commands 'unix-word-rubout' and 'unix-filename-rubout' allow
 you to bind keys to operate more similarly to the terminal.
 
 ---
-** New user option 'kill-word-dwim'.
+** New user option 'kill-region-dwim'.
 This option, if non-nil, modifies the fall-back behavior of
 'kill-region' if no region is active, and will kill the last word
 instead of raising an error.  Note that if you have disabled Transient
