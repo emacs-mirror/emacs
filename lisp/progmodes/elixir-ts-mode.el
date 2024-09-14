@@ -701,7 +701,8 @@ Return nil if NODE is not a defun node or doesn't have a name."
       (require 'heex-ts-mode)
       (treesit-parser-create 'heex))
 
-    (treesit-parser-create 'elixir)
+    (setq-local treesit-primary-parser
+                (treesit-parser-create 'elixir))
 
     (setq-local treesit-language-at-point-function
                 'elixir-ts--treesit-language-at-point)

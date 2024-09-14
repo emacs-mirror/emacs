@@ -1318,7 +1318,8 @@ in your init files."
     ;; Create an "for-each" parser, see `c-ts-mode--emacs-set-ranges'
     ;; for more.
     (when c-ts-mode-emacs-sources-support
-      (treesit-parser-create 'c nil nil 'for-each))
+      (setq-local treesit-primary-parser
+                  (treesit-parser-create 'c nil nil 'for-each)))
 
     (treesit-parser-create 'c)
     ;; Comments.
