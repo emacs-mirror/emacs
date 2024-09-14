@@ -1631,7 +1631,7 @@ Return point or nil."
                (setq icol (+ icol fortran-if-indent)))
               ((looking-at "where[ \t]*(.*)[ \t]*\n")
                (setq icol (+ icol fortran-if-indent)))
-              ((looking-at "do\\b")
+              ((looking-at "do *[0-9]* *[a-z0-9_]+ *= *[a-z0-9_]+ *, *[a-z0-9_]+")
                (setq icol (+ icol fortran-do-indent)))
               ((looking-at
                 "\\(structure\\|union\\|map\\|interface\\)\
