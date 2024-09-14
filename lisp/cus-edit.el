@@ -1060,6 +1060,11 @@ This is like `setq', but is meant for user options instead of
 plain variables.  This means that `setopt' will execute any
 `custom-set' form associated with VARIABLE.
 
+Note that `setopt' will emit a warning if the type of a VALUE
+does not match the type of the corresponding VARIABLE as
+declared by `defcustom'.  (VARIABLE will be assigned the value
+even if it doesn't match the type.)
+
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
   (unless (zerop (mod (length pairs) 2))
