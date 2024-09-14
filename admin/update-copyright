@@ -77,3 +77,7 @@ updatable_files=$(find $repo_files \
   -print) &&
 
 build-aux/update-copyright $updatable_files
+
+printf ">>> Please remember to search for and manually update any\n"
+printf ">>> copyright years that were not updated by this script.\n"
+printf ">>> See the file 'admin/notes/years' for details.\n"
