@@ -3059,9 +3059,9 @@ If `treesit-defun-name-function' is non-nil, set up
 
 If `treesit-simple-imenu-settings' is non-nil, set up Imenu.
 
-If `treesit-outline-predicate' or `treesit-simple-imenu-settings', and
-Outline minor mode settings don't alreay exist, setup Outline minor
-mode.
+If either `treesit-outline-predicate' or `treesit-simple-imenu-settings'
+are non-nil, and Outline minor mode settings don't alreay exist, setup
+Outline minor mode.
 
 If `sexp', `sentence' are defined in `treesit-thing-settings',
 enable tree-sitter navigation commands for them.
