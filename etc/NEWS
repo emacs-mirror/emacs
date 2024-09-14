@@ -455,7 +455,8 @@ send user data to Apple’s speech recognition servers.
 ---
 ** Emacs on MS-Windows now supports GUI dialogs and message boxes better.
 In particular, it is now possible to show text with embedded newlines in
-a dialog popped by 'message-box'.
+a dialog popped by 'message-box'.  This is supported on Windows Vista
+and later versions.
 
 
 ----------------------------------------------------------------------
