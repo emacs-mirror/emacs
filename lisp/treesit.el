@@ -1636,7 +1636,7 @@ See `treesit-simple-indent-presets'.")
 
                     (goto-char bol)
                     (setq this-line-has-prefix
-                          (and (looking-at-p adaptive-fill-regexp)
+                          (and (looking-at adaptive-fill-regexp)
                                (not (string-match-p
                                      (rx bos (* whitespace) eos)
                                      (match-string 0)))))
@@ -2938,7 +2938,8 @@ when a major mode sets it.")
 
 (defun treesit-outline-search (&optional bound move backward looking-at)
   "Search for the next outline heading in the syntax tree.
-See the descriptions of arguments in `outline-search-function'."
+For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
+`outline-search-function'."
   (if looking-at
       (when-let* ((node (or (treesit-thing-at (pos-eol) treesit-outline-predicate)
                             (treesit-thing-at (pos-bol) treesit-outline-predicate)))
@@ -3046,6 +3047,10 @@ If `treesit-defun-name-function' is non-nil, set up
 `add-log-current-defun'.
 
 If `treesit-simple-imenu-settings' is non-nil, set up Imenu.
+
+If either `treesit-outline-predicate' or `treesit-simple-imenu-settings'
+are non-nil, and Outline minor mode settings don't alreay exist, setup
+Outline minor mode.
 
 If `sexp', `sentence' are defined in `treesit-thing-settings',
 enable tree-sitter navigation commands for them.

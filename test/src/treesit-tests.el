@@ -686,6 +686,33 @@ visible_end.)"
       (should (equal '((16 . 28)) (treesit-query-range
                                    'javascript query nil nil '(1 . -1)))))))
 
+(ert-deftest treesit-range-fixup-after-edit ()
+  "Tests if Emacs can fix OOB ranges after deleting text or narrowing."
+  (skip-unless (treesit-language-available-p 'json))
+  (with-temp-buffer
+    (let ((parser (treesit-parser-create 'json)))
+      (insert "11111111111111111111")
+      (treesit-parser-set-included-ranges parser '((1 . 20)))
+      (treesit-parser-root-node parser)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((1 . 20))))
+
+      (narrow-to-region 5 15)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((5 . 15))))
+
+      (widen)
+      ;; Trickier ranges
+      ;; 11111111111111111111
+      ;; [    ]      [      ]
+      ;;    {  narrow   }
+      (treesit-parser-set-included-ranges parser '((1 . 7) (10 . 15)))
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((1 . 7) (10 . 15))))
+      (narrow-to-region 5 13)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((5 . 7) (10 . 13)))))))
+
 ;;; Multiple language
 
 (ert-deftest treesit-multi-lang ()

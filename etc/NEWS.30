@@ -150,7 +150,7 @@ number has been bumped to 2048 bits.
 +++
 ** URL now never sends user email addresses in HTTP requests.
 Emacs never sent email addresses by default, but it used to be
-possible to customize 'url-privacy-level' so that the users email
+possible to customize 'url-privacy-level' so that the user's email
 address was sent along in HTTP requests.  This feature has now been
 removed, as it was considered more dangerous than useful.  RFC 9110
 (§ 10.1.2) also recommends against it.  The user option
@@ -670,15 +670,15 @@ that shows as diffs replacements in the marked files in Dired.
 +++
 ** New mode of prompting for register names and showing preview.
 The new user option 'register-use-preview' can be customized to the
-value t or insist to request a different user interface of prompting for
+value t or 'insist' to request a different user interface of prompting for
 register names and previewing the registers: Emacs will require
 confirmation for overwriting the value of a register, and will show
 the preview of registers without delay.  You can also customize this
 new option to disable the preview completely.
 
-The default value of 'register-use-preview' preserves the behavior of
-Emacs 29 and before.  See the Info node "(emacs) Registers" for more
-details about the new UI and its variants.
+The default value of 'register-use-preview' ('traditional') preserves the
+behavior of Emacs 29 and before.  See the Info node "(emacs) Registers"
+for more details about the new UI and its variants.
 
 +++
 ** New advanced macro counter commands.
@@ -1464,8 +1464,8 @@ bookmark URIs.
 *** New command 'eww-copy-alternate-url'.
 It copies an alternate link on the page currently visited in EWW into
 the kill ring.  Alternate links are optional metadata that HTML pages
-use for linking to their alternative representations, such as
-translated versions or associated RSS feeds.
+use for linking to their alternative representations, such as translated
+versions or associated RSS feeds.  It is bound to 'A' by default.
 
 +++
 *** 'eww-open-in-new-buffer' supports the prefix argument.
@@ -1565,9 +1565,10 @@ following to your init file:
 
 ---
 *** New user option 'package-vc-register-as-project'.
-When non-nil, it will automatically register every package as a
-project, that you can quickly select using 'project-switch-project'
-('C-x p p').
+When non-nil, 'package-vc-install' and 'package-vc-checkout' will
+automatically register every package they install as a project, that you
+can quickly select using 'project-switch-project' ('C-x p p').  Default
+is t.
 
 ---
 *** New user option 'package-vc-allow-build-commands'.
@@ -1592,9 +1593,9 @@ in a clean environment.
 
 +++
 *** New user option 'flymake-indicator-type'.
-This user option controls which error indicator type Flymake should use
-in current buffer.  Depending on your preference, this can either use
-fringes or margins for indicating errors.
+This controls which error indicator type Flymake should use in the
+current buffer.  Depending on your preference, this can either use
+fringes or margins for indicating errors, the default is 'margins'.
 
 +++
 *** New user option 'flymake-margin-indicators-string'.
@@ -1603,14 +1604,14 @@ the margin indicator.
 
 +++
 *** New user option 'flymake-autoresize-margins'.
-If non-nil, Flymake will resize the margins when 'flymake-mode' is
-turned on or off.
+If non-nil (the default), Flymake will resize the margins when
+'flymake-mode' is turned on or off.
 Only relevant if 'flymake-indicator-type' is set to 'margins'.
 
 +++
 *** New user option 'flymake-margin-indicator-position'.
-It controls which margin (left or right) is used for margin
-indicators.
+It controls whether to use margins for margin indicators, and which
+margin (left or right) to use.  Default is to use the left margin.
 
 +++
 *** New user option 'flymake-show-diagnostics-at-end-of-line'.
@@ -1618,7 +1619,7 @@ When non-nil, Flymake shows summarized descriptions of diagnostics at
 the end of the line.  Depending on your preference, this can either be
 distracting and easily confused with actual code, or a significant
 early aid that relieves you from moving the buffer or reaching for the
-mouse to consult an error message.
+mouse to consult an error message.  Default is nil.
 
 ** Flyspell
 
@@ -1626,6 +1627,7 @@ mouse to consult an error message.
 *** New user option 'flyspell-check-changes'.
 When non-nil, Flyspell mode spell-checks only words that you edited; it
 does not check unedited words just because you move point across them.
+Default is nil.
 
 ---
 ** JS mode.
@@ -1647,7 +1649,7 @@ buffers contain Javascript code.
 *** New user option 'python-indent-block-paren-deeper'.
 If non-nil, increase the indentation of the lines inside parens in a
 header of a block when they are indented to the same level as the body
-of the block:
+of the block, producing:
 
     if (some_expression
             and another_expression):
@@ -1658,6 +1660,8 @@ instead of:
     if (some_expression
         and another_expression):
         do_something()
+
+Default is nil.
 
 ---
 *** New user option 'python-interpreter-args'.
@@ -1699,8 +1703,8 @@ This keyword enables the user to install packages using package-vc.el.
 
 +++
 *** New user option 'use-package-vc-prefer-newest'.
-This allows the user to always install the newest commit of a package
-when using the ':vc' keyword.
+If non-nil, always install the newest commit of a package when using the
+':vc' keyword rather than its stable release.  Default is nil.
 
 ** Gnus
 
@@ -1749,6 +1753,7 @@ Controls how the 'dictionary-search' command prompts for and displays
 dictionary definitions.  Customize this user option to 'help' to have
 'dictionary-search' display definitions in a "*Help*" buffer and
 provide dictionary-based minibuffer completion for word selection.
+Default is nil, which means to use a "*Dictionary*" buffer.
 
 ---
 *** New user option 'dictionary-read-word-prompt'.
@@ -1971,11 +1976,11 @@ If non-nil, moving point forward or backward between widgets by typing
 *** New user option 'ruby-rubocop-use-bundler'.
 By default it retains the previous behavior: read the contents of
 Gemfile and act accordingly.  But you can also set it to t or nil to
-skip the check.
+skip checking the Gemfile.
 
 *** New user option 'ruby-bracketed-args-indent'.
 When it is set to nil, multiple consecutive open braces/brackets/parens
-result in only one additional indentation level.
+result in only one additional indentation level.  Default is t.
 
 ** Thingatpt
 
@@ -2003,7 +2008,8 @@ will return the URL for that bug.
 *** New user option 'Buffer-menu-group-by'.
 It controls how buffers are divided into groups that are displayed with
 headings using Outline minor mode.  Using commands that mark buffers
-on the outline heading line will mark all buffers in the outline.
+on the outline heading line will mark all buffers in the outline.  By
+default, no grouping is performed.
 
 +++
 *** New command 'Buffer-menu-toggle-internal'.
@@ -2025,9 +2031,9 @@ Previously, it was set to t, but this broke remote file name detection.
 
 ---
 *** More control on automatic update of Proced buffers.
-The user option 'proced-auto-update-flag' can now be set to two
-additional values, which control automatic updates of Proced buffers
-that are not displayed in some window.
+The user option 'proced-auto-update-flag' can now be set to an
+additional value 'visible', which controls automatic updates of Proced
+buffers that are displayed in some window.
 
 ---
 *** nXML Mode now comes with schemas for Mono/.NET development.
@@ -2165,7 +2171,8 @@ This is a minor mode for editing regular expressions in the minibuffer,
 for example in 'query-replace-regexp'.  It correctly highlights parens
 via 'show-paren-mode' and 'blink-matching-paren' in a user-friendly way,
 avoids reporting alleged paren mismatches and makes sexp navigation more
-intuitive.
+intuitive.  It is enabled by default, 'minibuffer-regexp-prompts' can be
+used to tune when it takes effect.
 
 ---
 ** The highly accessible Modus themes collection has eight items.
@@ -2291,7 +2298,7 @@ unibyte string.
 buffer-local value from the minibuffer.
 
 +++
-** 'minibuffer-allow-text-properties' also affects completions.
+** 'minibuffer-allow-text-properties' now also affects completions.
 When it has a non-nil value, then completion functions like
 'completing-read' don't discard text properties from the returned
 completion candidate.
@@ -2321,7 +2328,7 @@ values.
 
 ---
 ** User option 'tramp-completion-reread-directory-timeout' has been removed.
-This user option has been obsoleted in Emacs 27, use
+This user option was obsoleted in Emacs 27, use
 'remote-file-name-inhibit-cache' instead.
 
 +++
@@ -2497,7 +2504,7 @@ where arguments after the first are keyword/value pairs, all optional:
 ':key' specifies a function that produces the sorting key from an element,
 ':lessp' specifies the ordering predicate, defaulting to 'value<',
 ':reverse' is used to reverse the sorting order,
-':in-place is used for in-place sorting, as the default is now to
+':in-place' is used for in-place sorting, as the default is now to
 sort a copy of the input.
 
 The new signature is less error-prone and reduces the need to write
@@ -2574,7 +2581,8 @@ analogous to 'w32-notification-notify'.
 ** New Haiku specific variable 'haiku-pass-control-tab-to-system'.
 This sets whether Emacs should pass 'C-TAB' on to the system instead of
 handling it, fixing a problem where window switching would not activate
-if an Emacs frame had focus on the Haiku operating system.
+if an Emacs frame had focus on the Haiku operating system.  Default
+value is t.
 
 +++
 ** New value 'if-regular' for the REPLACE argument to 'insert-file-contents'.
@@ -2956,9 +2964,9 @@ default to use 'LANGUAGE'.
 
 ---
 ** New optional argument to 'modify-dir-local-variable'.
-A 5th argument, optional, has been added to
-'modify-dir-local-variable'.  It can be used to specify which
-dir-locals file to modify.
+An optional 5th argument FILE has been added to
+'modify-dir-local-variable'.  It can be used to specify which file to
+modify instead of the default ".dir-locals.el".
 
 ** Connection local variables
 
@@ -3012,13 +3020,13 @@ They pertained to the internal storage size which is now irrelevant.
 ** 'treesit-install-language-grammar' can handle local directory instead of URL.
 It is now possible to pass a directory of a local repository as URL
 inside 'treesit-language-source-alist', so that calling
-'treesit-install-language-grammar' would avoid cloning the repository.
+'treesit-install-language-grammar' will avoid cloning the repository.
 It may be useful, for example, for the purposes of bisecting a
 treesitter grammar.
 
-+++
 ** New buffer-local variable 'tabulated-list-groups'.
-It controls display and separate sorting of groups of entries.
+It controls display and separate sorting of groups of entries.  By
+default no grouping or sorting is done.
 
 +++
 ** New variable 'revert-buffer-restore-functions'.

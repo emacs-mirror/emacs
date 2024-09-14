@@ -58,9 +58,7 @@ Bastien Guerry
 	    doc/misc/org.texi
 
 Artur Malabarba
-	lisp/emacs-lisp/package.el
 	lisp/emacs-lisp/let-alist.el
-	lisp/character-fold.el
 
 Michael Albinus
         Tramp
@@ -294,9 +292,6 @@ Stefan Monnier
 	lisp/progmodes/perl-mode.el
 	lisp/progmodes/tcl.el
 	lisp/emacs-lisp/easymenu.el
-
-Artur Malabarba
-        lisp/isearch.el
 
 Paul Eggert
 	.dir-locals.el

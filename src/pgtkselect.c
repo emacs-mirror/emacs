@@ -1644,10 +1644,24 @@ frame's display, or the first available X display.  */)
 
   if (NILP (val) && FRAME_LIVE_P (f))
     {
-      Lisp_Object frame;
+      Lisp_Object frame, val;
       XSETFRAME (frame, f);
-      return pgtk_get_foreign_selection (selection_symbol, target_type,
-					 time_stamp, frame);
+
+      val = pgtk_get_foreign_selection (selection_symbol, target_type,
+					time_stamp, frame);
+
+      /* A window property holding just one item is indistinguishable
+	 from an array of one element, and is always decoded as the
+	 former, producing issues with programs that expect the TARGETS
+	 property always to return vectors, even when the toolkit
+	 reports just one data type.  Though X sidesteps this ambiguity
+	 by defining TARGETS as returning at least two properties
+	 TARGETS and MULTIPLE, GTK knows no such scruples, and therefore
+	 symbol values (or nil) should be enclosed in vectors when
+	 TARGETS is being requested.  (bug#72254) */
+      if (EQ (target_type, QTARGETS) && (NILP (val) || SYMBOLP (val)))
+	val = make_vector (NILP (val) ? 0 : 1, val);
+      return val;
     }
 
   if (CONSP (val) && SYMBOLP (XCAR (val)))
