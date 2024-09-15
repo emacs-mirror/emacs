@@ -556,7 +556,10 @@ Typically \"page-%s.png\".")
   "C-c C-c" #'doc-view-toggle-display
   ;; Open a new buffer with doc's text contents
   "C-c C-t" #'doc-view-open-text
-  "r"       #'revert-buffer)
+  "r"       #'revert-buffer
+  ;; Registers
+  "m"       #'doc-view-page-to-register
+  "'"       #'doc-view-jump-to-register)
 
 (define-obsolete-function-alias 'doc-view-revert-buffer #'revert-buffer "27.1")
 (defvar revert-buffer-preserve-modes)
@@ -2467,6 +2470,55 @@ See the command `doc-view-mode' for more information on this mode."
     (bookmark-default-handler bmk)))
 
 (put 'doc-view-bookmark-jump 'bookmark-handler-type "DocView")
+
+;;; Register integration
+
+(defvar-local doc-view-register-alist nil
+  "Register alist containing only doc-view registers for current buffer.
+Each doc-view register entry is of the form (doc-view . ALIST) where
+ALIST has the keys `buffer', `file', and `page'.  `buffer' is the buffer
+the `file' is visiting.  `page' is the page number to be show.")
+
+(defun doc-view-page-to-register (register)
+  "Store the current page to the register REGISTER."
+  (interactive
+   (let ((register-alist doc-view-register-alist))
+     (list (register-read-with-preview "Page to register: "))))
+  (let ((register-alist doc-view-register-alist))
+    (set-register register
+                  `(doc-view
+                    (buffer . ,(current-buffer))
+                    (file . ,(buffer-file-name))
+                    (page . ,(doc-view-current-page))))
+    (setq doc-view-register-alist register-alist)))
+
+(defun doc-view-jump-to-register (register)
+  "Jump to the register REGISTER."
+  (interactive
+   (let ((register-alist doc-view-register-alist))
+     (list (register-read-with-preview "Jump to register: "))))
+  (let ((register-alist doc-view-register-alist))
+    (jump-to-register register)))
+
+(cl-defmethod register-val-insert ((val (head doc-view)))
+  (prin1 val))
+
+(cl-defmethod register-val-describe ((val (head doc-view)) _verbose)
+  (let* ((alist (cdr val))
+         (name (or (file-name-nondirectory (alist-get 'file alist))
+                   (buffer-name (alist-get 'buffer alist)))))
+    (princ name)
+    (princ " p. ")
+    (princ (alist-get 'page alist))))
+
+(cl-defmethod register-val-jump-to ((val (head doc-view)) _arg)
+  (let* ((alist (cdr val))
+         (buffer (or (alist-get 'buffer alist)
+                     (find-buffer-visiting (alist-get 'file alist)))))
+    (unless buffer
+      (user-error "Cannot find the doc-view buffer to jump to"))
+    (switch-to-buffer buffer)
+    (doc-view-goto-page (alist-get 'page alist))))
 
 ;; Obsolete.
 

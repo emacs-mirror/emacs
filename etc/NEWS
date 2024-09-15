@@ -345,6 +345,12 @@ When switching to the plain text contents with 'doc-view-open-text',
 DocView now creates a dedicated buffer to display it.  'C-c C-c' gets you
 back to real DocView buffer if it still exists.
 
++++
+*** New commands to save and restore pages in buffer local registers.
+Docview can store current page to buffer local registers with the new
+command 'doc-view-page-to-register' (bound to 'm'), and later can be
+restored with 'doc-view-jump-to-register' (bound to ''').
+
 ** Tramp
 
 +++
