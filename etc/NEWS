@@ -535,6 +535,13 @@ instead.
 *** A new shortcut to navigate to previous menu.
 The hardcoded "^" shortcut gets you back to the previous menu.
 
+** Foldout
+
+---
+*** New command 'foldout-widen-to-current-fold'.
+This command widens the view to the current fold level when in a fold,
+or behaves like 'widen' if not in a fold.
+
 
 * New Modes and Packages in Emacs 31.1
 

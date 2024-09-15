@@ -1396,6 +1396,14 @@ exits all folds.
 subheadings, specify a negative argument.  For example, @w{@kbd{M--2 C-c
 C-x}} exits two folds and leaves the text and subheadings exposed.
 
+@findex foldout-widen-to-current-fold
+  While working within a fold, you may wish to use Emacs's standard
+narrowing commands such as @kbd{C-x n n} (@code{narrow-to-region}) or
+@kbd{C-x n d} (@code{narrow-to-defun}).  After using these commands,
+@code{foldout-widen-to-current-fold}) allows you to widen back to the
+current fold level, rather than the entire buffer.  If you're not
+currently in a fold, it behaves like @code{widen}.
+
   Foldout mode also provides mouse commands for entering and exiting
 folds, and for showing and hiding text:
 

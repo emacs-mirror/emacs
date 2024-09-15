@@ -490,6 +490,21 @@ Signal an error if the event didn't occur on a heading."
       (error "Not a heading line")))
 
 
+(defun foldout-widen-to-current-fold ()
+  "Widen to the current fold level.
+If in a fold, widen to that fold's boundaries.
+If not in a fold, acts like `widen'."
+  (interactive)
+  (if foldout-fold-list
+      (let* ((last-fold (car foldout-fold-list))
+             (start (car last-fold))
+             (end (cdr last-fold)))
+        (widen)
+        (narrow-to-region start
+                          (if end (1- (marker-position end)) (point-max))))
+    (widen)))
+
+
 ;;; Keymaps:
 
 (defvar foldout-inhibit-key-bindings nil
