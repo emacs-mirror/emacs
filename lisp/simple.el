@@ -5827,7 +5827,7 @@ If set to `unix-word', kill the last word in the style of a shell like
 Bash.  This ignores the major mode like `unix-word-rubout' (which see)."
   :type '(choice (const :tag "Kill a word like `backward-kill-word'" emacs-word)
                  (const :tag "Kill a word like Bash would" unix-word)
-                 (const :tag "Do not kill anything" nil))
+                 (const :tag "Kill region even when inactive" nil))
   :group 'killing
   :version "31.1")
 
