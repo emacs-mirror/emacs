@@ -1064,6 +1064,7 @@ treesit_sync_visible_region (Lisp_Object parser)
   if (NILP (lisp_ranges)) return;
 
   Lisp_Object new_ranges_head = lisp_ranges;
+  Lisp_Object prev_cons = Qnil;
 
   FOR_EACH_TAIL_SAFE (lisp_ranges)
   {
@@ -1076,9 +1077,12 @@ treesit_sync_visible_region (Lisp_Object parser)
       new_ranges_head = XCDR (new_ranges_head);
     else if (beg >= visible_end)
       {
-	/* Even the beg is after visible_end, dicard this range and all
+	/* Even the beg is after visible_end, discard this range and all
            the ranges after it.  */
-	XSETCDR (range, Qnil);
+	if (NILP (prev_cons))
+	  new_ranges_head = Qnil;
+	else
+	  XSETCDR (prev_cons, Qnil);
 	break;
       }
     else
@@ -1091,12 +1095,18 @@ treesit_sync_visible_region (Lisp_Object parser)
 	if (end > visible_end)
 	  XSETCDR (range, make_fixnum (visible_end));
       }
+    prev_cons = lisp_ranges;
   }
 
   XTS_PARSER (parser)->last_set_ranges = new_ranges_head;
 
   if (NILP (new_ranges_head))
     {
+      /* We are in a weird situation here: none of the previous ranges
+         overlaps with the new visible region.  We don't have any good
+         options, so just throw the towel: just remove ranges and hope
+         lisp world will soon update with reasonable ranges or just
+         delete this parser.   */
       bool success;
       success = ts_parser_set_included_ranges (XTS_PARSER (parser)->parser,
 					       NULL, 0);
