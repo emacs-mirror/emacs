@@ -490,7 +490,8 @@
 
    :language 'elixir
    :feature 'elixir-data-type
-   '([(atom) (alias)] @font-lock-type-face
+   '((alias) @font-lock-type-face
+     (atom) @elixir-ts-atom
      (keywords (pair key: (keyword) @elixir-ts-keyword-key))
      [(keyword) (quoted_keyword)] @elixir-ts-atom
      [(boolean) (nil)] @elixir-ts-atom
@@ -555,6 +556,10 @@
      (unary_operator operand: (identifier) @font-lock-variable-use-face)
      (interpolation (identifier) @font-lock-variable-use-face)
      (do_block (identifier) @font-lock-variable-use-face)
+     (rescue_block (identifier) @font-lock-variable-use-face)
+     (catch_block (identifier) @font-lock-variable-use-face)
+     (else_block (identifier) @font-lock-variable-use-face)
+     (after_block (identifier) @font-lock-variable-use-face)
      (access_call target: (identifier) @font-lock-variable-use-face)
      (access_call "[" key: (identifier) @font-lock-variable-use-face "]"))
 
