@@ -393,6 +393,13 @@ Tramp
         doc/misc/tramp*.texi
         test/lisp/net/tramp*-tests.el
 
+Transient
+        Maintainer: Jonas Bernoulli
+        Repository: https://github.com/magit/transient
+
+	lisp/transient.el
+	doc/misc/transient.texi
+
 Modus themes
         Maintainer: Protesilaos Stavrou
         Repository:  https://github.com/protesilaos/modus-themes

@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(defconst transient-version "0.7.2.2")
+
 (require 'cl-lib)
 (require 'eieio)
 (require 'edmacro)
