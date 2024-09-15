@@ -7559,6 +7559,8 @@ Use as
 (defvar cperl-tags-file-name "TAGS"
   "TAGS file name to use in `cperl-write-tags'.")
 
+(declare-function initialize-new-tags-table "etags" ())
+
 (defun cperl-write-tags (&optional file erase recurse dir inbuffer noxs topdir)
   "Write tags for FILE.  If this is a directory, RECURSE if non-nil.
 If ERASE is `ignore', do not erase, and do not try to delete old info.
@@ -7635,8 +7637,7 @@ If INBUFFER, do not select buffer, and do not save."
 	      (insert (cperl-find-tags file xs topdir))))))
       (if inbuffer nil			; Delegate to the caller
 	(save-buffer 0)			; No backup
-	(if (fboundp 'initialize-new-tags-table)
-	    (initialize-new-tags-table))))))
+        (initialize-new-tags-table)))))
 
 (defvar cperl-tags-hier-regexp-list
   (concat
