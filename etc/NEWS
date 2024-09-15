@@ -147,6 +147,12 @@ instead of raising an error.  Note that if you have disabled Transient
 Mark mode you might prefer to use 'unix-word-rubout', as this feature
 relies on there being an active region.
 
+---
+** New user option 'delete-pair-push-mark'.
+This option, if non-nil, makes 'delete-pair' push a mark at the end of
+the region enclosed by the deleted delimiters.  This makes it easy to
+act on that region.  For example, we can highlight it using 'C-x C-x'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
