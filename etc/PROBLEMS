@@ -3583,6 +3583,14 @@ GTK_IM_MODULE.
 GTK does not allow programs to warp the pointer anymore.  There is
 nothing that can be done about this problem.
 
+** 'frame-edges' or 'frame-geometry' does not return correct frame origin positions.
+
+Rather, on Wayland, they return a position not distant from 0, 0, as the
+Wayland protocol is specifically engineered not to reveal this
+information to clients.  By the same token, `frame-monitor-workarea',
+and related geometry-querying functions, cannot establish the size of
+the workarea and return a placeholder result.
+
 ** Certain keys such as 'C-S-u' are not reported correctly.
 
 Some keys with modifiers such as Shift and Control might not be
