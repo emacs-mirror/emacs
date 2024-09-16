@@ -1073,7 +1073,7 @@ using a command like `project-find-file'."
     filename))
 
 ;;;###autoload
-(defun project-find-file-in-root (filename)
+(defun project-root-find-file (filename)
   "Edit file FILENAME.
 
 Interactively, prompt for FILENAME, defaulting to the root directory of

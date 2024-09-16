@@ -111,7 +111,7 @@ This hook allows you to control which tab-bar tabs are auto-resized.
 ** Project
 
 ---
-*** New command 'project-find-file-in-root'.
+*** New command 'project-root-find-file'.
 It is equivalent to running ‘project-any-command’ with ‘find-file’.
 
 
