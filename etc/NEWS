@@ -559,6 +559,14 @@ The hardcoded '^' shortcut gets you back to the previous menu.
 This command widens the view to the current fold level when in a fold,
 or behaves like 'widen' if not in a fold.
 
+** MPC
+
+---
+*** New user option 'mpc-notifications'.
+When non-nil MPC displays a desktop notification when the song changes.
+The notification’s title and body can be customized with
+'mpc-notifications-title' and 'mpc-notifications-body'.
+
 
 * New Modes and Packages in Emacs 31.1
 

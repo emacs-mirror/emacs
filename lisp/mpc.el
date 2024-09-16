@@ -95,6 +95,8 @@
   (require 'cl-lib)
   (require 'subr-x))
 
+(require 'notifications)
+
 (defgroup mpc ()
   "Client for the Music Player Daemon (mpd)."
   :prefix "mpc-"
@@ -460,6 +462,7 @@ which will be concatenated with proper quoting before passing them to MPD."
     (state  . mpc--faster-toggle-refresh) ;Only ffwd/rewind while play/pause.
     (volume . mpc-volume-refresh)
     (file   . mpc-songpointer-refresh)
+    (file   . mpc-notifications-notify)
     ;; The song pointer may need updating even if the file doesn't change,
     ;; if the same song appears multiple times in a row.
     (song   . mpc-songpointer-refresh)
@@ -958,6 +961,20 @@ If PLAYLIST is t or nil or missing, use the main playlist."
     ;;   aux)
     ))
 
+(defun mpc-cover-image-find (file)
+  "Find cover image for FILE."
+  (and-let* ((default-directory mpc-mpd-music-directory)
+             (dir (mpc-file-local-copy (file-name-directory file)))
+             (files (directory-files dir))
+             (cover (seq-find #'mpc-cover-image-p files))
+             ((expand-file-name cover dir)))))
+
+(defun mpc-cover-image-p (file)
+  "Check if FILE is a cover image."
+  (let ((covers '(".folder.png" "folder.png" "cover.jpg" "folder.jpg")))
+    (or (seq-find (lambda (cover) (string= file cover)) covers)
+        (and mpc-cover-image-re (string-match-p mpc-cover-image-re file)))))
+
 ;;; Formatter ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom mpc-cover-image-re nil ; (rx (or ".jpg" ".jpeg" ".png") string-end)
@@ -992,7 +1009,15 @@ If PLAYLIST is t or nil or missing, use the main playlist."
   (push file mpc-tempfiles))
 
 (defun mpc-format (format-spec info &optional hscroll)
-  "Format the INFO according to FORMAT-SPEC, inserting the result at point."
+  "Format the INFO according to FORMAT-SPEC, inserting the result at point.
+
+FORMAT-SPEC is a string of the format '%-WIDTH{NAME-POST}' where the first
+'-', WIDTH and -POST are optional.  % followed by the optional '-' means
+to right align the output.  WIDTH limits the output to the specified
+number of characters by replacing any further output with a horizontal
+ellipsis.  The optional -POST means to use the empty string if NAME is
+absent or else use the concatenation of the content of NAME with the
+string POST."
   (let* ((pos 0)
          (start (point))
          (col (if hscroll (- hscroll) 0))
@@ -1026,7 +1051,8 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                                                (substring time (match-end 0))
                                              time)))))
                     ('Cover
-                     (let ((dir (file-name-directory (cdr (assq 'file info)))))
+                     (let* ((file (alist-get 'file info))
+                            (dir (file-name-directory file)))
                        ;; (debug)
                        (setq pred
                              ;; We want the closure to capture the current
@@ -1037,12 +1063,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                                  (and (funcall oldpred info)
                                       (equal dir (file-name-directory
                                                   (cdr (assq 'file info))))))))
-                       (if-let* ((covers '(".folder.png" "folder.png" "cover.jpg" "folder.jpg"))
-                                 (cover (cl-loop for file in (directory-files (mpc-file-local-copy dir))
-                                                 if (or (member (downcase file) covers)
-                                                        (and mpc-cover-image-re
-                                                             (string-match mpc-cover-image-re file)))
-                                                 return (concat dir file)))
+                       (if-let* ((cover (mpc-cover-image-find file))
                                  (file (with-demoted-errors "MPC: %s"
                                          (mpc-file-local-copy cover))))
                            (let (image)
@@ -2765,6 +2786,65 @@ If stopped, start playback."
         (mpc-songs-refresh))
       (t
        (error "Unsupported drag'n'drop gesture"))))))
+
+;;; Notifications ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(declare-function notifications-notify "notifications")
+
+(defcustom mpc-notifications nil
+  "Non-nil means to display notifications when the song changes."
+  :version "31.1"
+  :type 'boolean)
+
+(defcustom mpc-notifications-title
+  '("%{Title}" "Unknown Title")
+  "FORMAT-SPEC used in the notification title.
+
+The first element that returns a non-emtpy string is used.  The last
+element is a plain string to use as fallback for when none of the tags
+are found.  See `mpc-format' for the definition of FORMAT-SPEC."
+  :version "31.1"
+  :type '(repeat string))
+
+(defcustom mpc-notifications-body
+  '("%{Artist}" "%{AlbumArtist}" "Unknown Artist")
+  "FORMAT-SPEC used in the notification body.
+
+The first element that returns a non-emtpy string is used.  The last
+element is a plain string to use as fallback for when none of the tags
+are found.  See `mpc-format' for the definition of FORMAT-SPEC."
+  :version "31.1"
+  :type '(repeat string))
+
+(defvar mpc--notifications-id nil)
+
+(defun mpc--notifications-format (format-specs)
+  "Use FORMAT-SPECS to get string for use in notification."
+  (seq-some
+   (lambda (spec)
+     (let ((text (with-temp-buffer
+                   (mpc-format spec mpc-status)
+                   (buffer-string))))
+       (if (string= "" text) nil text)))
+   format-specs))
+
+(defun mpc-notifications-notify ()
+  "Display a notification with information about the current song."
+  (when-let ((mpc-notifications)
+             ((notifications-get-server-information))
+             ((string= "play" (alist-get 'state mpc-status)))
+             (title (mpc--notifications-format mpc-notifications-title))
+             (body (mpc--notifications-format mpc-notifications-body))
+             (icon (or (mpc-cover-image-find (alist-get 'file mpc-status))
+                       notifications-application-icon)))
+    (setq mpc--notifications-id
+          (notifications-notify :title title
+                                :body body
+                                :app-icon icon
+                                :replaces-id mpc--notifications-id))))
+
+
+
 
 ;;; Toplevel ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
