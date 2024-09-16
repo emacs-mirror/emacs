@@ -33,7 +33,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <c-ctype.h>
 #include <close-stream.h>
 #include <pathmax.h>
-#include <utimens.h>
 
 #include "lisp.h"
 #include "sysselect.h"
