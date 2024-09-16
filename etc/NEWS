@@ -411,6 +411,13 @@ language A for language B, when language B is a strict superset of
 language A.
 
 +++
+*** New accessor functions for each setting in 'treesit-font-lock-settings'.
+Now users can access a setting's query, feature, enable flag, and
+override flag by 'treesit-font-lock-setting-query',
+'treesit-font-lock-setting-feature', 'treesit-font-lock-setting-enable',
+and 'treesit-font-lock-setting-override'.
+
++++
 ** New optional BUFFER argument for 'string-pixel-width'.
 If supplied, 'string-pixel-width' will use any face remappings from
 BUFFER when computing the string's width.

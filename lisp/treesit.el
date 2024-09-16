@@ -623,12 +623,14 @@ Return the merged list of ranges."
          ;; New range and old range don't intersect, new comes
          ;; before, push new.
          ((<= new-end old-beg)
-          (push (car new-ranges) result)
+          (unless (eq new-beg new-end)
+            (push (car new-ranges) result))
           (setq new-ranges (cdr new-ranges)))
          ;; New range and old range don't intersect, old comes
          ;; before, push old.
          ((<= old-end new-beg)
-          (push (car old-ranges) result)
+          (unless (eq old-beg old-end)
+            (push (car old-ranges) result))
           (setq old-ranges (cdr old-ranges)))
          (t ;; New and old range intersect, discard old.
           (setq old-ranges (cdr old-ranges))))))
@@ -637,6 +639,8 @@ Return the merged list of ranges."
         (push range result)))
     (nreverse result)))
 
+;; TODO: Instead of throwing away ranges that exceeds START and END,
+;; truncate the head and tail ranges so they stay within START and END.
 (defun treesit--clip-ranges (ranges start end)
   "Clip RANGES in between START and END.
 RANGES is a list of ranges of the form (BEG . END).  Ranges
@@ -829,10 +833,15 @@ opposed to embedded parsers which parses only part of the buffer.")
 (defvar-local treesit-font-lock-settings nil
   "A list of SETTINGs for treesit-based fontification.
 
-The exact format of each SETTING is considered internal.  Use
-`treesit-font-lock-rules' to set this variable.
+Use `treesit-font-lock-rules' to set this variable.  The exact format of
+each individual SETTING is considered internal and will change in the
+future.  Use `treesit-font-lock-setting-query',
+`treesit-font-lock-setting-enable', etc, to access each field.
 
-Each SETTING has the form:
+Below information is considered internal and only provided to help
+debugging:
+
+Currently each SETTING has the form:
 
     (QUERY ENABLE FEATURE OVERRIDE)
 
@@ -850,12 +859,25 @@ OVERRIDE is the override flag for this query.  Its value can be
 t, nil, append, prepend, keep.  See more in
 `treesit-font-lock-rules'.")
 
-(defsubst treesit--font-lock-setting-feature (setting)
-  "Return the feature of SETTING.
-SETTING should be a setting in `treesit-font-lock-settings'."
+;; Follow cl-defstruct naming conventions, in case we use cl-defstruct
+;; in the future.
+(defsubst treesit-font-lock-setting-query (setting)
+  "Return the QUERY of SETTING in `treesit-font-lock-settings'."
+  (nth 0 setting))
+
+(defsubst treesit-font-lock-setting-enable (setting)
+  "Return the ENABLE flag of SETTING in `treesit-font-lock-settings'."
+  (nth 1 setting))
+
+(defsubst treesit-font-lock-setting-feature (setting)
+  "Return the FEATURE symbol of SETTING in `treesit-font-lock-settings'."
   (nth 2 setting))
 
-(defsubst treesit--font-lock-setting-enable (setting)
+(defsubst treesit-font-lock-setting-override (setting)
+  "Return the OVERRIDE flag of SETTING in `treesit-font-lock-settings'."
+  (nth 3 setting))
+
+(defsubst treesit--font-lock-setting-clone-enable (setting)
   "Return enabled SETTING."
   (let ((new-setting (copy-tree setting)))
     (setf (nth 1 new-setting) t)
@@ -1152,12 +1174,12 @@ all existing rules.
 
 If FEATURE is non-nil, add RULES before/after rules for FEATURE.  See
 docstring of `treesit-font-lock-rules' for what is a feature."
-  (let ((rules (seq-map #'treesit--font-lock-setting-enable rules))
+  (let ((rules (seq-map #'treesit--font-lock-setting-clone-enable rules))
         (feature-idx
          (when feature
            (cl-position-if
             (lambda (setting)
-              (eq (treesit--font-lock-setting-feature setting) feature))
+              (eq (treesit-font-lock-setting-feature setting) feature))
             treesit-font-lock-settings))))
     (pcase (cons how feature)
       ((or '(:after . nil) '(nil . nil))
@@ -1329,6 +1351,10 @@ If LOUDLY is non-nil, display some debugging information."
          (root-nodes
           (mapcar #'treesit-parser-root-node
                   (append local-parsers global-parsers))))
+    ;; Can't we combine all the queries in each setting into one big
+    ;; query? That should make font-lock faster? I tried, it shaved off
+    ;; 1ms in xdisp.c, and 0.3ms in a small C file (for typing a single
+    ;; character), not worth it.  --yuan
     (dolist (setting treesit-font-lock-settings)
       (let* ((query (nth 0 setting))
              (enable (nth 1 setting))

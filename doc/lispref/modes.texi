@@ -4460,10 +4460,21 @@ For this variable to take effect, a Lisp program should call
 @code{treesit-font-lock-recompute-features}).
 @end defvar
 
+@findex treesit-font-lock-setting-query
+@findex treesit-font-lock-setting-feature
+@findex treesit-font-lock-setting-enable
+@findex treesit-font-lock-setting-override
 @defvar treesit-font-lock-settings
-A list of settings for tree-sitter based font lock.  The exact format
-of each setting is considered internal.  One should always use
+A list of settings for tree-sitter based font lock.  The exact format of
+each individual setting is considered internal.  One should always use
 @code{treesit-font-lock-rules} to set this variable.
+
+Even though the setting object is opaque, Emacs provides accessors for
+the setting's query, feature, enable flag and override flag:
+@code{treesit-font-lock-setting-query},
+@code{treesit-font-lock-setting-feature},
+@code{treesit-font-lock-setting-enable},
+@code{treesit-font-lock-setting-override}.
 
 @c Because the format is internal, we don't document them here.  Though
 @c we do have it explained in the docstring.  We also expose the fact
