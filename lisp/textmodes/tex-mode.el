@@ -3814,37 +3814,6 @@ There might be text before point."
 ;; Emacs and `etags' this way aims to improve the user experience "out
 ;; of the box."
 
-(defvar tex-thingatpt-exclude-chars '(?\\ ?\{ ?\})
-  "Exclude these chars by default from TeX thing-at-point.
-
-The TeX `xref-backend-identifier-at-point' method uses the characters
-listed in this variable to decide on the default search string to
-present to the user who calls an `xref' command.  These characters
-become part of a regexp which always excludes them from that default
-string.  For the `xref' commands to function properly in TeX buffers, at
-least the TeX escape and the two TeX grouping characters should be
-listed here.  Should your TeX documents contain other characters which
-you want to exclude by default, then you can add them to the list,
-though you may wish to consult the functions
-`tex-thingatpt--beginning-of-symbol' and `tex-thingatpt--end-of-symbol'
-to see what the regexp already contains.  If your documents contain
-non-standard escape and grouping characters, then you can replace the
-three listed here with your own, thereby allowing the three standard
-characters to appear by default in search strings.  Please be aware,
-however, that the `etags' program only recognizes `\\' (92) and `!' (33)
-as escape characters in TeX documents, and if it detects the latter it
-also uses `<>' as the TeX grouping construct rather than `{}'.  Setting
-the escape and grouping chars to anything other than `\\=\\{}' or `!<>'
-will not be useful without changes to `etags', at least for commands
-that search tags tables, such as \\[xref-find-definitions] and \
-\\[xref-find-apropos].
-
-Should you wish to change the defaults, please also be aware that,
-without further modifications to tex-mode.el, the usual text-parsing
-routines for `font-lock' and the like won't work correctly, as the
-default escape and grouping characters are currently hard coded in many
-places.")
-
 ;; Populate `semantic-symref-filepattern-alist' for the in-tree modes;
 ;; AUCTeX is doing the same for its modes.
 (with-eval-after-load 'semantic/symref/grep
@@ -3878,20 +3847,12 @@ places.")
 
 (defun tex-thingatpt--beginning-of-symbol ()
   (and
-   (re-search-backward (concat "[]["
-                               (mapconcat #'regexp-quote
-                                          (mapcar #'char-to-string
-                                                  tex-thingatpt-exclude-chars))
-                               "\"*`'#=&()%,|$[:cntrl:][:blank:]]"))
+   (re-search-backward "[][\\{}\"*`'#=&()%,|$[:cntrl:][:blank:]]" nil t)
    (forward-char)))
 
 (defun tex-thingatpt--end-of-symbol ()
   (and
-   (re-search-forward (concat "[]["
-                              (mapconcat #'regexp-quote
-                                          (mapcar #'char-to-string
-                                                  tex-thingatpt-exclude-chars))
-                              "\"*`'#=&()%,|$[:cntrl:][:blank:]]"))
+   (re-search-forward "[][\\{}\"*`'#=&()%,|$[:cntrl:][:blank:]]" nil t)
    (backward-char)))
 
 (defun tex--bounds-of-symbol-at-point ()
