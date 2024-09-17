@@ -6849,11 +6849,10 @@ mark_glyph_matrix (struct glyph_matrix *matrix)
       }
 }
 
-/* Whether to remember a few of the last marked values for debugging.  */
-#define GC_REMEMBER_LAST_MARKED 0
-
 #if GC_REMEMBER_LAST_MARKED
+/* Remember a few of the last marked values for debugging purposes.  */
 enum { LAST_MARKED_SIZE = 1 << 9 }; /* Must be a power of 2.  */
+extern Lisp_Object last_marked[LAST_MARKED_SIZE];
 Lisp_Object last_marked[LAST_MARKED_SIZE] EXTERNALLY_VISIBLE;
 static int last_marked_index;
 #endif

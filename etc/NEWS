@@ -55,6 +55,13 @@ and to resolve potential incompatibilities between GNU/Linux and *BSD
 versions of ALSA.  Use '--with-sound=alsa' to build with ALSA on these
 operating systems instead.
 
+---
+** New configuration option '--disable-gc-mark-trace'.
+This disables the GC mark trace buffer for about 5 % better garbage
+collection performance.  Doing so may make it more difficult for Emacs
+developers to help finding GC-related bugs that you run into, which is
+why it the mark trace buffer is enabled by default.
+
 
 * Startup Changes in Emacs 30.1
 
