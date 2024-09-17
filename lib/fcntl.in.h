@@ -141,14 +141,14 @@ _GL_CXXALIASWARN (creat);
 #   undef fcntl
 #   define fcntl rpl_fcntl
 #  endif
-_GL_FUNCDECL_RPL (fcntl, int, (int fd, int action, ...));
+_GL_FUNCDECL_RPL (fcntl, int, (int fd, int action, ...), );
 _GL_CXXALIAS_RPL (fcntl, int, (int fd, int action, ...));
 #  if !GNULIB_defined_rpl_fcntl
 #   define GNULIB_defined_rpl_fcntl 1
 #  endif
 # else
 #  if !@HAVE_FCNTL@
-_GL_FUNCDECL_SYS (fcntl, int, (int fd, int action, ...));
+_GL_FUNCDECL_SYS (fcntl, int, (int fd, int action, ...), );
 #   if !GNULIB_defined_fcntl
 #    define GNULIB_defined_fcntl 1
 #   endif

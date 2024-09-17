@@ -20,7 +20,9 @@
 #endif
 @PRAGMA_COLUMNS@
 
-#if (defined __need_system_stdlib_h && !defined _GLIBCXX_STDLIB_H) || defined __need_malloc_and_calloc
+#if ((defined __need_system_stdlib_h && !defined _GLIBCXX_STDLIB_H) \
+     || defined __need_malloc_and_calloc) \
+    && !defined __SUNPRO_CC
 /* Special invocation conventions inside some gnulib header files,
    and inside some glibc header files, respectively.
    Do not recognize this special invocation convention when GCC's
@@ -220,11 +222,11 @@ struct random_data
 #   undef _Exit
 #   define _Exit rpl__Exit
 #  endif
-_GL_FUNCDECL_RPL (_Exit, _Noreturn void, (int status));
+_GL_FUNCDECL_RPL (_Exit, _Noreturn void, (int status), );
 _GL_CXXALIAS_RPL (_Exit, void, (int status));
 # else
 #  if !@HAVE__EXIT@
-_GL_FUNCDECL_SYS (_Exit, _Noreturn void, (int status));
+_GL_FUNCDECL_SYS (_Exit, _Noreturn void, (int status), );
 #  endif
 _GL_CXXALIAS_SYS (_Exit, void, (int status));
 # endif
@@ -249,7 +251,7 @@ _GL_WARN_ON_USE (_Exit, "_Exit is unportable - "
 #   undef abort
 #   define abort rpl_abort
 #  endif
-_GL_FUNCDECL_RPL (abort, _Noreturn void, (void));
+_GL_FUNCDECL_RPL (abort, _Noreturn void, (void), );
 _GL_CXXALIAS_RPL (abort, void, (void));
 # else
 _GL_CXXALIAS_SYS (abort, void, (void));
@@ -267,9 +269,9 @@ _GL_CXXALIASWARN (abort);
 #   define free rpl_free
 #  endif
 #  if defined __cplusplus && (__GLIBC__ + (__GLIBC_MINOR__ >= 14) > 2)
-_GL_FUNCDECL_RPL (free, void, (void *ptr)) _GL_ATTRIBUTE_NOTHROW;
+_GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
 #  else
-_GL_FUNCDECL_RPL (free, void, (void *ptr));
+_GL_FUNCDECL_RPL (free, void, (void *ptr), );
 #  endif
 _GL_CXXALIAS_RPL (free, void, (void *ptr));
 # else
@@ -592,7 +594,7 @@ _GL_WARN_ON_USE (getloadavg, "getloadavg is not portable - "
 #  if @HAVE_DECL_PROGRAM_INVOCATION_NAME@
 _GL_FUNCDECL_RPL (getprogname, const char *, (void), _GL_ATTRIBUTE_PURE);
 #  else
-_GL_FUNCDECL_RPL (getprogname, const char *, (void));
+_GL_FUNCDECL_RPL (getprogname, const char *, (void), );
 #  endif
 _GL_CXXALIAS_RPL (getprogname, const char *, (void));
 # else
@@ -600,7 +602,7 @@ _GL_CXXALIAS_RPL (getprogname, const char *, (void));
 #   if @HAVE_DECL_PROGRAM_INVOCATION_NAME@
 _GL_FUNCDECL_SYS (getprogname, const char *, (void), _GL_ATTRIBUTE_PURE);
 #   else
-_GL_FUNCDECL_SYS (getprogname, const char *, (void));
+_GL_FUNCDECL_SYS (getprogname, const char *, (void), );
 #   endif
 #  endif
 _GL_CXXALIAS_SYS (getprogname, const char *, (void));
@@ -662,7 +664,7 @@ _GL_WARN_ON_USE (getsubopt, "getsubopt is unportable - "
 /* Change the ownership and access permission of the slave side of the
    pseudo-terminal whose master side is specified by FD.  */
 # if !@HAVE_GRANTPT@
-_GL_FUNCDECL_SYS (grantpt, int, (int fd));
+_GL_FUNCDECL_SYS (grantpt, int, (int fd), );
 # endif
 _GL_CXXALIAS_SYS (grantpt, int, (int fd));
 _GL_CXXALIASWARN (grantpt);
@@ -788,13 +790,13 @@ _GL_WARN_ON_USE (mbstowcs, "mbstowcs is unportable - "
 #   define mbtowc rpl_mbtowc
 #  endif
 _GL_FUNCDECL_RPL (mbtowc, int,
-                  (wchar_t *restrict pwc, const char *restrict s, size_t n));
+                  (wchar_t *restrict pwc, const char *restrict s, size_t n), );
 _GL_CXXALIAS_RPL (mbtowc, int,
                   (wchar_t *restrict pwc, const char *restrict s, size_t n));
 # else
 #  if !@HAVE_MBTOWC@
 _GL_FUNCDECL_SYS (mbtowc, int,
-                  (wchar_t *restrict pwc, const char *restrict s, size_t n));
+                  (wchar_t *restrict pwc, const char *restrict s, size_t n), );
 #  endif
 _GL_CXXALIAS_SYS (mbtowc, int,
                   (wchar_t *restrict pwc, const char *restrict s, size_t n));
@@ -1078,11 +1080,11 @@ _GL_WARN_ON_USE (ptsname, "ptsname is not portable - "
 #   undef ptsname_r
 #   define ptsname_r rpl_ptsname_r
 #  endif
-_GL_FUNCDECL_RPL (ptsname_r, int, (int fd, char *buf, size_t len));
+_GL_FUNCDECL_RPL (ptsname_r, int, (int fd, char *buf, size_t len), );
 _GL_CXXALIAS_RPL (ptsname_r, int, (int fd, char *buf, size_t len));
 # else
 #  if !@HAVE_PTSNAME_R@
-_GL_FUNCDECL_SYS (ptsname_r, int, (int fd, char *buf, size_t len));
+_GL_FUNCDECL_SYS (ptsname_r, int, (int fd, char *buf, size_t len), );
 #  endif
 _GL_CXXALIAS_SYS (ptsname_r, int, (int fd, char *buf, size_t len));
 # endif
@@ -1204,7 +1206,7 @@ _GL_WARN_ON_USE (qsort_r, "qsort_r is not portable - "
 #   undef rand
 #   define rand rpl_rand
 #  endif
-_GL_FUNCDECL_RPL (rand, int, (void));
+_GL_FUNCDECL_RPL (rand, int, (void), );
 _GL_CXXALIAS_RPL (rand, int, (void));
 # else
 _GL_CXXALIAS_SYS (rand, int, (void));
@@ -1221,11 +1223,11 @@ _GL_CXXALIASWARN (rand);
 #   undef random
 #   define random rpl_random
 #  endif
-_GL_FUNCDECL_RPL (random, long, (void));
+_GL_FUNCDECL_RPL (random, long, (void), );
 _GL_CXXALIAS_RPL (random, long, (void));
 # else
 #  if !@HAVE_RANDOM@
-_GL_FUNCDECL_SYS (random, long, (void));
+_GL_FUNCDECL_SYS (random, long, (void), );
 #  endif
 /* Need to cast, because on Haiku, the return type is
                                int.  */
@@ -1248,11 +1250,11 @@ _GL_WARN_ON_USE (random, "random is unportable - "
 #   undef srandom
 #   define srandom rpl_srandom
 #  endif
-_GL_FUNCDECL_RPL (srandom, void, (unsigned int seed));
+_GL_FUNCDECL_RPL (srandom, void, (unsigned int seed), );
 _GL_CXXALIAS_RPL (srandom, void, (unsigned int seed));
 # else
 #  if !@HAVE_RANDOM@
-_GL_FUNCDECL_SYS (srandom, void, (unsigned int seed));
+_GL_FUNCDECL_SYS (srandom, void, (unsigned int seed), );
 #  endif
 /* Need to cast, because on FreeBSD, the first parameter is
                                        unsigned long seed.  */
@@ -1910,7 +1912,7 @@ _GL_WARN_ON_USE (strtoull, "strtoull is unportable - "
 /* Unlock the slave side of the pseudo-terminal whose master side is specified
    by FD, so that it can be opened.  */
 # if !@HAVE_UNLOCKPT@
-_GL_FUNCDECL_SYS (unlockpt, int, (int fd));
+_GL_FUNCDECL_SYS (unlockpt, int, (int fd), );
 # endif
 _GL_CXXALIAS_SYS (unlockpt, int, (int fd));
 _GL_CXXALIASWARN (unlockpt);
@@ -1955,7 +1957,7 @@ _GL_WARN_ON_USE (unsetenv, "unsetenv is unportable - "
 #   undef wctomb
 #   define wctomb rpl_wctomb
 #  endif
-_GL_FUNCDECL_RPL (wctomb, int, (char *s, wchar_t wc));
+_GL_FUNCDECL_RPL (wctomb, int, (char *s, wchar_t wc), );
 _GL_CXXALIAS_RPL (wctomb, int, (char *s, wchar_t wc));
 # else
 _GL_CXXALIAS_SYS (wctomb, int, (char *s, wchar_t wc));

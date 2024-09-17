@@ -201,7 +201,7 @@ _GL_WARN_ON_USE (timespec_getres, "timespec_getres is unportable - "
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    define time rpl_time
 #   endif
-_GL_FUNCDECL_RPL (time, time_t, (time_t *__tp));
+_GL_FUNCDECL_RPL (time, time_t, (time_t *__tp), );
 _GL_CXXALIAS_RPL (time, time_t, (time_t *__tp));
 #  else
 _GL_CXXALIAS_SYS (time, time_t, (time_t *__tp));
@@ -255,7 +255,7 @@ _GL_WARN_ON_USE (nanosleep, "nanosleep is unportable - "
 #    undef tzset
 #    define tzset rpl_tzset
 #   endif
-_GL_FUNCDECL_RPL (tzset, void, (void));
+_GL_FUNCDECL_RPL (tzset, void, (void), );
 _GL_CXXALIAS_RPL (tzset, void, (void));
 #  elif defined _WIN32 && !defined __CYGWIN__
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -516,7 +516,7 @@ typedef struct tm_zone *rpl_timezone_t;
    May return NULL if NAME is invalid (this is platform dependent) or
    upon memory allocation failure.  */
 #  if !@HAVE_TZALLOC@
-_GL_FUNCDECL_SYS (tzalloc, timezone_t, (char const *__name));
+_GL_FUNCDECL_SYS (tzalloc, timezone_t, (char const *__name), );
 _GL_CXXALIAS_SYS (tzalloc, timezone_t, (char const *__name));
 #  endif
 
@@ -524,7 +524,7 @@ _GL_CXXALIAS_SYS (tzalloc, timezone_t, (char const *__name));
    Frees a time zone object.
    The argument must have been returned by tzalloc().  */
 #  if !@HAVE_TZALLOC@
-_GL_FUNCDECL_SYS (tzfree, void, (timezone_t __tz));
+_GL_FUNCDECL_SYS (tzfree, void, (timezone_t __tz), );
 _GL_CXXALIAS_SYS (tzfree, void, (timezone_t __tz));
 #  endif
 

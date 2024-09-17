@@ -213,7 +213,7 @@ _GL_WARN_ON_USE (explicit_bzero, "explicit_bzero is unportable - "
 /* Find the index of the least-significant set bit.  */
 #if @GNULIB_FFSL@
 # if !@HAVE_FFSL@
-_GL_FUNCDECL_SYS (ffsl, int, (long int i));
+_GL_FUNCDECL_SYS (ffsl, int, (long int i), );
 # endif
 _GL_CXXALIAS_SYS (ffsl, int, (long int i));
 _GL_CXXALIASWARN (ffsl);
@@ -231,11 +231,11 @@ _GL_WARN_ON_USE (ffsl, "ffsl is not portable - use the ffsl module");
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define ffsll rpl_ffsll
 #  endif
-_GL_FUNCDECL_RPL (ffsll, int, (long long int i));
+_GL_FUNCDECL_RPL (ffsll, int, (long long int i), );
 _GL_CXXALIAS_RPL (ffsll, int, (long long int i));
 # else
 #  if !@HAVE_FFSLL@
-_GL_FUNCDECL_SYS (ffsll, int, (long long int i));
+_GL_FUNCDECL_SYS (ffsll, int, (long long int i), );
 #  endif
 _GL_CXXALIAS_SYS (ffsll, int, (long long int i));
 # endif
@@ -1308,7 +1308,7 @@ _GL_EXTERN_C char * mbstok_r (char *restrict string, const char *delim,
 #   undef strerror
 #   define strerror rpl_strerror
 #  endif
-_GL_FUNCDECL_RPL (strerror, char *, (int));
+_GL_FUNCDECL_RPL (strerror, char *, (int), );
 _GL_CXXALIAS_RPL (strerror, char *, (int));
 # else
 _GL_CXXALIAS_SYS (strerror, char *, (int));
@@ -1359,11 +1359,11 @@ _GL_WARN_ON_USE (strerror_r, "strerror_r is unportable - "
 #   undef strerrorname_np
 #   define strerrorname_np rpl_strerrorname_np
 #  endif
-_GL_FUNCDECL_RPL (strerrorname_np, const char *, (int errnum));
+_GL_FUNCDECL_RPL (strerrorname_np, const char *, (int errnum), );
 _GL_CXXALIAS_RPL (strerrorname_np, const char *, (int errnum));
 # else
 #  if !@HAVE_STRERRORNAME_NP@
-_GL_FUNCDECL_SYS (strerrorname_np, const char *, (int errnum));
+_GL_FUNCDECL_SYS (strerrorname_np, const char *, (int errnum), );
 #  endif
 _GL_CXXALIAS_SYS (strerrorname_np, const char *, (int errnum));
 # endif
@@ -1379,7 +1379,7 @@ _GL_WARN_ON_USE (strerrorname_np, "strerrorname_np is unportable - "
 /* Return an abbreviation string for the signal number SIG.  */
 #if @GNULIB_SIGABBREV_NP@
 # if ! @HAVE_SIGABBREV_NP@
-_GL_FUNCDECL_SYS (sigabbrev_np, const char *, (int sig));
+_GL_FUNCDECL_SYS (sigabbrev_np, const char *, (int sig), );
 # endif
 _GL_CXXALIAS_SYS (sigabbrev_np, const char *, (int sig));
 _GL_CXXALIASWARN (sigabbrev_np);
@@ -1394,7 +1394,7 @@ _GL_WARN_ON_USE (sigabbrev_np, "sigabbrev_np is unportable - "
 /* Return an English description string for the signal number SIG.  */
 #if @GNULIB_SIGDESCR_NP@
 # if ! @HAVE_SIGDESCR_NP@
-_GL_FUNCDECL_SYS (sigdescr_np, const char *, (int sig));
+_GL_FUNCDECL_SYS (sigdescr_np, const char *, (int sig), );
 # endif
 _GL_CXXALIAS_SYS (sigdescr_np, const char *, (int sig));
 _GL_CXXALIASWARN (sigdescr_np);
@@ -1411,11 +1411,11 @@ _GL_WARN_ON_USE (sigdescr_np, "sigdescr_np is unportable - "
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define strsignal rpl_strsignal
 #  endif
-_GL_FUNCDECL_RPL (strsignal, char *, (int __sig));
+_GL_FUNCDECL_RPL (strsignal, char *, (int __sig), );
 _GL_CXXALIAS_RPL (strsignal, char *, (int __sig));
 # else
 #  if ! @HAVE_DECL_STRSIGNAL@
-_GL_FUNCDECL_SYS (strsignal, char *, (int __sig));
+_GL_FUNCDECL_SYS (strsignal, char *, (int __sig), );
 #  endif
 /* Need to cast, because on Cygwin 1.5.x systems, the return type is
    'const char *'.  */

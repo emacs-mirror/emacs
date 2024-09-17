@@ -461,7 +461,7 @@ _GL_CXXALIASWARN (fdopen);
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define fflush rpl_fflush
 #  endif
-_GL_FUNCDECL_RPL (fflush, int, (FILE *gl_stream));
+_GL_FUNCDECL_RPL (fflush, int, (FILE *gl_stream), );
 _GL_CXXALIAS_RPL (fflush, int, (FILE *gl_stream));
 # else
 _GL_CXXALIAS_SYS (fflush, int, (FILE *gl_stream));
@@ -994,7 +994,7 @@ _GL_CXXALIASWARN (getc);
 #   undef getchar
 #   define getchar rpl_getchar
 #  endif
-_GL_FUNCDECL_RPL (getchar, int, (void));
+_GL_FUNCDECL_RPL (getchar, int, (void), );
 _GL_CXXALIAS_RPL (getchar, int, (void));
 # else
 _GL_CXXALIAS_SYS (getchar, int, (void));
@@ -1112,7 +1112,7 @@ _GL_CXXALIAS_MDA (getw, int, (FILE *restrict stream));
 #  if @HAVE_DECL_GETW@
 #   if defined __APPLE__ && defined __MACH__
 /* The presence of the declaration depends on _POSIX_C_SOURCE.  */
-_GL_FUNCDECL_SYS (getw, int, (FILE *restrict stream));
+_GL_FUNCDECL_SYS (getw, int, (FILE *restrict stream), );
 #   endif
 _GL_CXXALIAS_SYS (getw, int, (FILE *restrict stream));
 #  endif
@@ -1221,7 +1221,7 @@ _GL_WARN_ON_USE (pclose, "pclose is unportable - "
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define perror rpl_perror
 #  endif
-_GL_FUNCDECL_RPL (perror, void, (const char *string));
+_GL_FUNCDECL_RPL (perror, void, (const char *string), );
 _GL_CXXALIAS_RPL (perror, void, (const char *string));
 # else
 _GL_CXXALIAS_SYS (perror, void, (const char *string));
@@ -1366,7 +1366,7 @@ _GL_CXXALIASWARN (putc);
 #   undef putchar
 #   define putchar rpl_putchar
 #  endif
-_GL_FUNCDECL_RPL (putchar, int, (int c));
+_GL_FUNCDECL_RPL (putchar, int, (int c), );
 _GL_CXXALIAS_RPL (putchar, int, (int c));
 # else
 _GL_CXXALIAS_SYS (putchar, int, (int c));
@@ -1406,7 +1406,7 @@ _GL_CXXALIAS_MDA (putw, int, (int w, FILE *restrict stream));
 #  if @HAVE_DECL_PUTW@
 #   if defined __APPLE__ && defined __MACH__
 /* The presence of the declaration depends on _POSIX_C_SOURCE.  */
-_GL_FUNCDECL_SYS (putw, int, (int w, FILE *restrict stream));
+_GL_FUNCDECL_SYS (putw, int, (int w, FILE *restrict stream), );
 #   endif
 _GL_CXXALIAS_SYS (putw, int, (int w, FILE *restrict stream));
 #  endif

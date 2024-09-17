@@ -1,5 +1,5 @@
 # std-gnu11.m4
-# serial 2
+# serial 3
 
 # Prefer GNU C11 and C++11 to earlier versions.  -*- coding: utf-8 -*-
 
@@ -9,6 +9,7 @@ m4_ifndef([_AC_C_C23_OPTIONS], [
 # This implementation is taken from GNU Autoconf lib/autoconf/c.m4
 # commit 017d5ddd82854911f0119691d91ea8a1438824d6
 # dated Sun Apr 3 13:57:17 2016 -0700
+# with minor changes to commentary.
 # This implementation will be obsolete once we can assume Autoconf 2.70
 # or later is installed everywhere a Gnulib program might be developed.
 
@@ -17,9 +18,10 @@ m4_version_prereq([2.70], [], [
 
 # Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# This file is part of Autoconf.  This program is free
+# software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -27,8 +29,15 @@ m4_version_prereq([2.70], [], [
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
+# Under Section 7 of GPL version 3, you are granted additional
+# permissions described in the Autoconf Configure Script Exception,
+# version 3.0, as published by the Free Software Foundation.
+#
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# and a copy of the Autoconf Configure Script Exception along with
+# this program; see the files COPYINGv3 and COPYING.EXCEPTION
+# respectively.  If not, see <https://www.gnu.org/licenses/> and
+# <https://git.savannah.gnu.org/gitweb/?p=autoconf.git;a=blob_plain;f=COPYING.EXCEPTION>.
 
 # Written by David MacKenzie, with help from
 # Akim Demaille, Paul Eggert,

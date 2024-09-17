@@ -308,7 +308,7 @@ __gl_stdbit_popcount_wide (unsigned long long int n)
         x333333 = max / (1 << 2 | 1),	/* 0x333333... */
         x0f0f0f = max / (1 << 4 | 1),	/* 0x0f0f0f... */
         x010101 = max / ((1 << 8) - 1),	/* 0x010101... */
-        x000_7f = max / 0xffffffffffffffff * 0x7f; /* 0x000000000000007f... */
+        x000_7f = max / 0xffffffffffffffffLL * 0x7f; /* 0x000000000000007f... */
       n -= (n >> 1) & x555555;
       n = (n & x333333) + ((n >> 2) & x333333);
       n = (n + (n >> 4)) & x0f0f0f;

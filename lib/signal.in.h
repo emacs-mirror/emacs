@@ -149,7 +149,7 @@ typedef void (*sighandler_t) (int);
 
 #if @GNULIB_SIG2STR@
 # if !@HAVE_SIG2STR@
-_GL_FUNCDECL_SYS (sig2str, int, (int signo, char *str));
+_GL_FUNCDECL_SYS (sig2str, int, (int signo, char *str), );
 # endif
 _GL_CXXALIAS_SYS (sig2str, int, (int signo, char *str));
 # if __GLIBC__ >= 2
@@ -165,7 +165,7 @@ _GL_WARN_ON_USE (sig2str, "sig2str is not portable - "
 
 #if @GNULIB_SIG2STR@
 # if !@HAVE_STR2SIG@
-_GL_FUNCDECL_SYS (str2sig, int, (char const *str, int *signo_p));
+_GL_FUNCDECL_SYS (str2sig, int, (char const *str, int *signo_p), );
 # endif
 _GL_CXXALIAS_SYS (str2sig, int, (char const *str, int *signo_p));
 # if __GLIBC__ >= 2
@@ -189,7 +189,7 @@ _GL_WARN_ON_USE (str2sig, "str2sig is not portable - "
 _GL_FUNCDECL_RPL (pthread_sigmask, int,
                   (int how,
                    const sigset_t *restrict new_mask,
-                   sigset_t *restrict old_mask));
+                   sigset_t *restrict old_mask), );
 _GL_CXXALIAS_RPL (pthread_sigmask, int,
                   (int how,
                    const sigset_t *restrict new_mask,
@@ -199,7 +199,7 @@ _GL_CXXALIAS_RPL (pthread_sigmask, int,
 _GL_FUNCDECL_SYS (pthread_sigmask, int,
                   (int how,
                    const sigset_t *restrict new_mask,
-                   sigset_t *restrict old_mask));
+                   sigset_t *restrict old_mask), );
 #  endif
 _GL_CXXALIAS_SYS (pthread_sigmask, int,
                   (int how,
@@ -224,11 +224,11 @@ _GL_WARN_ON_USE (pthread_sigmask, "pthread_sigmask is not portable - "
 #   undef raise
 #   define raise rpl_raise
 #  endif
-_GL_FUNCDECL_RPL (raise, int, (int sig));
+_GL_FUNCDECL_RPL (raise, int, (int sig), );
 _GL_CXXALIAS_RPL (raise, int, (int sig));
 # else
 #  if !@HAVE_RAISE@
-_GL_FUNCDECL_SYS (raise, int, (int sig));
+_GL_FUNCDECL_SYS (raise, int, (int sig), );
 #  endif
 _GL_CXXALIAS_SYS (raise, int, (int sig));
 # endif
@@ -359,7 +359,7 @@ _GL_CXXALIASWARN (sigpending);
 _GL_FUNCDECL_SYS (sigprocmask, int,
                   (int operation,
                    const sigset_t *restrict set,
-                   sigset_t *restrict old_set));
+                   sigset_t *restrict old_set), );
 # endif
 _GL_CXXALIAS_SYS (sigprocmask, int,
                   (int operation,
@@ -384,7 +384,7 @@ typedef void (*_gl_function_taking_int_returning_void_t) (int);
 #   define signal rpl_signal
 #  endif
 _GL_FUNCDECL_RPL (signal, _gl_function_taking_int_returning_void_t,
-                  (int sig, _gl_function_taking_int_returning_void_t func));
+                  (int sig, _gl_function_taking_int_returning_void_t func), );
 _GL_CXXALIAS_RPL (signal, _gl_function_taking_int_returning_void_t,
                   (int sig, _gl_function_taking_int_returning_void_t func));
 # else
@@ -392,7 +392,7 @@ _GL_CXXALIAS_RPL (signal, _gl_function_taking_int_returning_void_t,
    because it occurs in <sys/signal.h>, not <signal.h> directly.  */
 #  if defined __OpenBSD__
 _GL_FUNCDECL_SYS (signal, _gl_function_taking_int_returning_void_t,
-                  (int sig, _gl_function_taking_int_returning_void_t func));
+                  (int sig, _gl_function_taking_int_returning_void_t func), );
 #  endif
 _GL_CXXALIAS_SYS (signal, _gl_function_taking_int_returning_void_t,
                   (int sig, _gl_function_taking_int_returning_void_t func));
@@ -510,7 +510,7 @@ struct sigaction
 #  endif
 
 _GL_FUNCDECL_SYS (sigaction, int, (int, const struct sigaction *restrict,
-                                   struct sigaction *restrict));
+                                   struct sigaction *restrict), );
 
 # elif !@HAVE_STRUCT_SIGACTION_SA_SIGACTION@
 

@@ -104,10 +104,15 @@
 # define _GL_EXTERN_C_FUNC
 #endif
 
-/* _GL_FUNCDECL_RPL (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_RPL (func, rettype, parameters, [attributes]);
    declares a replacement function, named rpl_func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_RPL (free, void, (void *ptr), ) _GL_ATTRIBUTE_NOTHROW;
      _GL_FUNCDECL_RPL (open, int, (const char *filename, int flags, ...),
                                   _GL_ARG_NONNULL ((1)));
 
@@ -116,24 +121,22 @@
    because
      [[...]] extern "C" <declaration>;
    is invalid syntax in C++.)
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_RPL invocation, at the end of the declaration.
  */
 #define _GL_FUNCDECL_RPL(func,rettype,parameters,...) \
   _GL_FUNCDECL_RPL_1 (rpl_##func, rettype, parameters, __VA_ARGS__)
 #define _GL_FUNCDECL_RPL_1(rpl_func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype rpl_func parameters
 
-/* _GL_FUNCDECL_SYS (func, rettype, parameters[, attributes]);
+/* _GL_FUNCDECL_SYS (func, rettype, parameters, [attributes]);
    declares the system function, named func, with the given prototype,
    consisting of return type, parameters, and attributes.
-   Example:
-     _GL_FUNCDECL_SYS (open, int, (const char *filename, int flags, ...),
-                                  _GL_ARG_NONNULL ((1)));
-
-   Note: The attribute _GL_ATTRIBUTE_NOTHROW, if needed, must be placed outside
-   of the _GL_FUNCDECL_SYS invocation, at the end of the declaration.
+   Although attributes are optional, the comma before them is required
+   for portability to C17 and earlier.  The attribute _GL_ATTRIBUTE_NOTHROW,
+   if needed, must be placed after the _GL_FUNCDECL_RPL invocation,
+   at the end of the declaration.
+   Examples:
+     _GL_FUNCDECL_SYS (getumask, mode_t, (void), ) _GL_ATTRIBUTE_NOTHROW;
+     _GL_FUNCDECL_SYS (posix_openpt, int, (int flags), _GL_ATTRIBUTE_NODISCARD);
  */
 #define _GL_FUNCDECL_SYS(func,rettype,parameters,...) \
   _GL_EXTERN_C_FUNC __VA_ARGS__ rettype func parameters

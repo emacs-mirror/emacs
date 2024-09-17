@@ -913,11 +913,11 @@ extern "C" {
 #   undef imaxabs
 #   define imaxabs rpl_imaxabs
 #  endif
-_GL_FUNCDECL_RPL (imaxabs, intmax_t, (intmax_t x));
+_GL_FUNCDECL_RPL (imaxabs, intmax_t, (intmax_t x), );
 _GL_CXXALIAS_RPL (imaxabs, intmax_t, (intmax_t x));
 # else
 #  if !@HAVE_DECL_IMAXABS@
-_GL_FUNCDECL_SYS (imaxabs, intmax_t, (intmax_t x));
+_GL_FUNCDECL_SYS (imaxabs, intmax_t, (intmax_t x), );
 #  endif
 _GL_CXXALIAS_SYS (imaxabs, intmax_t, (intmax_t x));
 # endif
@@ -944,11 +944,11 @@ typedef struct { intmax_t quot; intmax_t rem; } imaxdiv_t;
 #   undef imaxdiv
 #   define imaxdiv rpl_imaxdiv
 #  endif
-_GL_FUNCDECL_RPL (imaxdiv, imaxdiv_t, (intmax_t numer, intmax_t denom));
+_GL_FUNCDECL_RPL (imaxdiv, imaxdiv_t, (intmax_t numer, intmax_t denom), );
 _GL_CXXALIAS_RPL (imaxdiv, imaxdiv_t, (intmax_t numer, intmax_t denom));
 # else
 #  if !@HAVE_DECL_IMAXDIV@
-_GL_FUNCDECL_SYS (imaxdiv, imaxdiv_t, (intmax_t numer, intmax_t denom));
+_GL_FUNCDECL_SYS (imaxdiv, imaxdiv_t, (intmax_t numer, intmax_t denom), );
 #  endif
 _GL_CXXALIAS_SYS (imaxdiv, imaxdiv_t, (intmax_t numer, intmax_t denom));
 # endif
