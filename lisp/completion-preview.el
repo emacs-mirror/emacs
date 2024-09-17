@@ -173,6 +173,24 @@ If this is nil, display the completion preview without delay."
                  (const :tag "No delay" nil))
   :version "30.1")
 
+(defcustom completion-preview-ignore-case nil
+  "Whether Completion Preview mode ignores case differences.
+
+By default this option is nil, which says that case is significant, so a
+completion candidate \"FooBar\" matches prefix \"Foo\", but not \"foo\".
+If you set it to non-nil, then Completion Preview mode also suggests
+completions that differ in case from the prefix that you type; for
+example, it may suggest completing \"foo\" with the suffix \"Bar\" when
+there's an available completion candidate \"FooBar\".  Note that in this
+case, when you insert the completion (with `completion-preview-insert'),
+Completion Preview mode does not update the completed prefix according
+to the capitalization of the completion candidate, instead it simply
+ignores such case differences, so the resulting string is \"fooBar\".
+
+See also `completion-ignore-case'."
+  :type 'boolean
+  :version "31.1")
+
 (defvar completion-preview-sort-function #'minibuffer--sort-by-length-alpha
   "Sort function to use for choosing a completion candidate to preview.")
 
@@ -345,6 +363,7 @@ candidates or if there are multiple matching completions and
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (let* ((pred (plist-get props :predicate))
          (string (buffer-substring beg end))
+         (completion-ignore-case completion-preview-ignore-case)
          (md (completion-metadata string table pred))
          (sort-fn (or (completion-metadata-get md 'cycle-sort-function)
                       (completion-metadata-get md 'display-sort-function)
