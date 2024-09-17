@@ -1598,15 +1598,21 @@ same directory."))
   (let ((map (make-char-table nil)))
     (with-temp-buffer
       (unidata-gen--insert-file "IdnaMappingTable.txt")
-      (while (re-search-forward "^\\([0-9A-F]+\\)\\(?:\\.\\.\\([0-9A-F]+\\)\\)? +; +\\([^ ]+\\) +\\(?:; +\\([ 0-9A-F]+\\)\\)?"
+      (while (re-search-forward "^\\([0-9A-F]+\\)\\(?:\\.\\.\\([0-9A-F]+\\)\\)? +; +\\([^ ]+\\) +\\(?:; +\\([ 0-9A-F]+\\)\\)?\\(?:; \\(NV8\\|XV8\\)\\)?"
                                 nil t)
         (let ((start (match-string 1))
               (end (match-string 2))
               (status (match-string 3))
-              (mapped (match-string 4)))
+              (mapped (match-string 4))
+              (idna-status (match-string 5)))
           ;; Make reading the file slightly faster by using `t'
           ;; instead of `disallowed' all over the place.
-          (when (string-match-p "\\`disallowed" status)
+          (when (or (string-match-p "\\`disallowed" status)
+                    ;; UTS #46 messed us about with "status = valid" for
+                    ;; invalid characters, so we need to check for "NV8" or
+                    ;; "XV8".
+                    (string= idna-status "NV8")
+                    (string= idna-status "XV8"))
             (setq status "t"))
           (unless (or (equal status "valid")
                       (equal status "deviation"))
