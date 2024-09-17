@@ -22,11 +22,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <assert.h>
 #include <getopt.h>
 
 #include <attribute.h>
+#include <c-ctype.h>
 #include <flexmember.h>
 #include <min-max.h>
 #include <unlocked-io.h>
@@ -1875,7 +1875,7 @@ yylex (void)
 
         int_suffixes:
           /* Integer suffixes.  */
-          while (isalpha (c))
+          while (c_isalpha (c))
             GET (c);
           UNGET ();
           return CINT;
@@ -1907,7 +1907,7 @@ yylex (void)
             }
 
           /* Optional type suffixes.  */
-          while (isalpha (c))
+          while (c_isalpha (c))
             GET (c);
 	  UNGET ();
           return CFLOAT;
@@ -2158,7 +2158,7 @@ init_scanner (void)
   /* Set up character class vectors.  */
   for (i = 0; i < sizeof is_ident; ++i)
     {
-      if (i == '_' || isalnum (i))
+      if (i == '_' || c_isalnum (i))
         is_ident[i] = 1;
 
       if (i >= '0' && i <= '9')
@@ -2946,7 +2946,7 @@ operator_name (int *sc)
           MATCH ();
 
 	  /* If this is a simple operator like `+', stop now.  */
-	  if (!isalpha ((unsigned char) *s) && *s != '(' && *s != '[')
+	  if (!c_isalpha (*s) && *s != '(' && *s != '[')
 	    break;
 
 	  ++tokens_matched;
