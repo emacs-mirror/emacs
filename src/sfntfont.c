@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <fcntl.h>
-#include <ctype.h>
+#include <c-ctype.h>
 
 #include "lisp.h"
 
@@ -534,12 +534,12 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
 	}
 
       /* This token is extraneous or was not recognized.  Capitalize
-	 the first letter and set it as the adstyle.  */
+	 the first letter if it's ASCII lowercase, then set the token as
+	 the adstyle.  */
 
       if (strlen (single))
 	{
-	  if (islower (single[0]))
-	    single[0] = toupper (single[0]);
+	  single[0] = c_toupper (single[0]);
 
 	  if (NILP (desc->adstyle))
 	    desc->adstyle = build_string (single);
