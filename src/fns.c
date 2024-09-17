@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <intprops.h>
 #include <vla.h>
 #include <errno.h>
-#include <ctype.h>
 #include <math.h>
 
 #include "lisp.h"
@@ -36,6 +35,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "buffer.h"
 #include "intervals.h"
+#include "syntax.h"
 #include "window.h"
 #include "puresize.h"
 #include "gnutls.h"
@@ -3576,13 +3576,15 @@ by a mouse, or by some window-system gesture, or via a menu.  */)
   if (use_short_answers)
     return call1 (Qy_or_n_p, prompt);
 
-  {
-    char *s = SSDATA (prompt);
-    ptrdiff_t len = strlen (s);
-    if ((len > 0) && !isspace (s[len - 1]))
-      prompt = CALLN (Fconcat, prompt, build_string (" "));
-  }
-  prompt = CALLN (Fconcat, prompt, Vyes_or_no_prompt);
+  ptrdiff_t promptlen = SCHARS (prompt);
+  bool prompt_ends_in_nonspace
+    = (0 < promptlen
+       && (SYNTAX (XFIXNAT (Faref (prompt, make_fixnum (promptlen - 1))))
+	   != Swhitespace));
+  AUTO_STRING (space_string, " ");
+  prompt = CALLN (Fconcat, prompt,
+		  prompt_ends_in_nonspace ? space_string : empty_unibyte_string,
+		  Vyes_or_no_prompt);
 
   specpdl_ref count = SPECPDL_INDEX ();
   specbind (Qenable_recursive_minibuffers, Qt);
