@@ -4711,6 +4711,9 @@ network_lookup_address_info_1 (Lisp_Object host, const char *service,
 DEFUN ("network-lookup-address-info", Fnetwork_lookup_address_info,
        Snetwork_lookup_address_info, 1, 3, 0,
        doc: /* Look up Internet Protocol (IP) address info of NAME.
+NAME must be an ASCII-only string.  For looking up internationalized
+hostnames, use `puny-encode-domain' on the string first.
+
 Optional argument FAMILY controls whether to look up IPv4 or IPv6
 addresses.  The default of nil means both, symbol `ipv4' means IPv4
 only, symbol `ipv6' means IPv6 only.
@@ -4729,6 +4732,8 @@ returned from the lookup.  */)
 
   struct addrinfo *res, *lres;
   struct addrinfo hints;
+
+  CHECK_STRING (name);
 
   memset (&hints, 0, sizeof hints);
   if (NILP (family))
