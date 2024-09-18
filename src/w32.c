@@ -32,7 +32,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <io.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <ctype.h>
 #include <signal.h>
 #include <sys/file.h>
 #include <time.h>	/* must be before nt/inc/sys/time.h, for MinGW64 */
@@ -264,6 +263,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 
 #include <wincrypt.h>
 
+#include <c-ctype.h>
 #include <c-strcase.h>
 #include <utimens.h>	/* for fdutimens */
 
@@ -2558,7 +2558,7 @@ parse_root (const char * name, const char ** pPath)
     return 0;
 
   /* find the root name of the volume if given */
-  if (isalpha (name[0]) && name[1] == ':')
+  if (c_isalpha (name[0]) && name[1] == ':')
     {
       /* skip past drive specifier */
       name += 2;
@@ -3311,7 +3311,7 @@ static BOOL fixed_drives[26];
    at least for non-local drives.  Info for fixed drives is never stale.  */
 #define DRIVE_INDEX( c ) ( (c) <= 'Z' ? (c) - 'A' : (c) - 'a' )
 #define VOLINFO_STILL_VALID( root_dir, info )		\
-  ( ( isalpha (root_dir[0]) &&				\
+  ( ( c_isalpha (root_dir[0]) &&				\
       fixed_drives[ DRIVE_INDEX (root_dir[0]) ] )	\
     || GetTickCount () - info->timestamp < 10000 )
 
@@ -3380,7 +3380,7 @@ GetCachedVolumeInformation (char * root_dir)
      involve network access, and so is extremely quick).  */
 
   /* Map drive letter to UNC if remote. */
-  if (isalpha (root_dir[0]) && !fixed[DRIVE_INDEX (root_dir[0])])
+  if (c_isalpha (root_dir[0]) && !fixed[DRIVE_INDEX (root_dir[0])])
     {
       char remote_name[ 256 ];
       char drive[3] = { root_dir[0], ':' };
@@ -3595,9 +3595,9 @@ map_w32_filename (const char * name, const char ** pPath)
 	    default:
 	      if ( left && 'A' <= c && c <= 'Z' )
 	        {
-		  *str++ = tolower (c);	/* map to lower case (looks nicer) */
+		  *str++ = c_tolower (c); /* map to lower case (looks nicer) */
 		  left--;
-		  dots = 0;		/* started a path component */
+		  dots = 0;		  /* started a path component */
 		}
 	      break;
 	    }

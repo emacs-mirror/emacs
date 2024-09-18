@@ -937,13 +937,13 @@ x_to_w32_color (const char * colorname)
     {
       int len = strlen (colorname);
 
-      if (isdigit (colorname[len - 1]))
+      if (c_isdigit (colorname[len - 1]))
 	{
 	  char *ptr, *approx = alloca (len + 1);
 
 	  strcpy (approx, colorname);
 	  ptr = &approx[len - 1];
-	  while (ptr > approx && isdigit (*ptr))
+	  while (ptr > approx && c_isdigit (*ptr))
 	      *ptr-- = '\0';
 
 	  ret = w32_color_map_lookup (approx);
@@ -3725,7 +3725,7 @@ post_character_message (HWND hwnd, UINT msg,
      message that has no particular effect.  */
   {
     int c = wParam;
-    if (isalpha (c) && wmsg.dwModifiers == ctrl_modifier)
+    if (c_isalpha (c) && wmsg.dwModifiers == ctrl_modifier)
       c = make_ctrl_char (c) & 0377;
     if (c == quit_char
 	|| (wmsg.dwModifiers == 0
@@ -8748,7 +8748,7 @@ lookup_vk_code (char *key)
 	    || (key[0] >= '0' && key[0] <= '9'))
 	  return key[0];
 	if (key[0] >= 'a' && key[0] <= 'z')
-	  return toupper(key[0]);
+	  return c_toupper (key[0]);
       }
     }
 
@@ -9518,7 +9518,7 @@ DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
     BOOL result;
 
     /* find the root name of the volume if given */
-    if (isalpha (name[0]) && name[1] == ':')
+    if (c_isalpha (name[0]) && name[1] == ':')
       {
 	rootname[0] = name[0];
 	rootname[1] = name[1];
