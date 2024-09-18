@@ -181,8 +181,7 @@ describing where Eshell will find the function."
   :type 'hook)
 
 (defcustom eshell-pre-rewrite-command-hook
-  '(eshell-no-command-conversion
-    eshell-subcommand-arg-values)
+  '(eshell-no-command-conversion)
   "A hook run before command rewriting begins.
 The terms of the command to be rewritten is passed as arguments, and
 may be modified in place.  Any return value is ignored."
@@ -478,6 +477,7 @@ command hooks should be run before and after the command."
 
 (defun eshell-rewrite-named-command (terms)
   "If no other rewriting rule transforms TERMS, assume a named command."
+  (eshell-subcommand-arg-values terms)
   (let ((sym (if eshell-in-pipeline-p
 		 'eshell-named-command*
 	       'eshell-named-command))
@@ -503,6 +503,7 @@ current output stream, which is separately redirectable.  SILENT
 means the user and/or any redirections shouldn't see any output
 from this command.  If both SHARE-OUTPUT and SILENT are non-nil,
 the second is ignored."
+  (declare (obsolete nil "31.1"))
   ;; something that begins with `eshell-convert' means that it
   ;; intends to return a Lisp value.  We want to get past this,
   ;; but if it's not _actually_ a value interpolation -- in which
@@ -543,7 +544,7 @@ implemented via rewriting, rather than as a function."
              (let ((,(intern (cadr terms)) (car ,for-items))
 		   (eshell--local-vars (cons ',(intern (cadr terms))
                                              eshell--local-vars)))
-	       ,(eshell-invokify-arg body t))
+	       ,body)
              (setq ,for-items (cdr ,for-items)))))))
 
 (defun eshell-structure-basic-command (func names keyword test body
@@ -552,6 +553,11 @@ implemented via rewriting, rather than as a function."
 The first of NAMES should be the positive form, and the second the
 negative.  It's not likely that users should ever need to call this
 function."
+  ;; If the test form is a subcommand, wrap it in `eshell-commands' to
+  ;; silence the output.
+  (when (eq (car test) 'eshell-as-subcommand)
+    (setq test `(eshell-commands ,test t)))
+
   ;; If the test form begins with `eshell-convert' or
   ;; `eshell-escape-arg', it means something data-wise will be
   ;; returned, and we should let that determine the truth of the
@@ -583,8 +589,8 @@ must be implemented via rewriting, rather than as a function."
 	   (member (car terms) '("while" "until")))
       (eshell-structure-basic-command
        'while '("while" "until") (car terms)
-       (eshell-invokify-arg (cadr terms) nil t)
-       (eshell-invokify-arg (car (last terms)) t))))
+       (cadr terms)
+       (car (last terms)))))
 
 (defun eshell-rewrite-if-command (terms)
   "Rewrite an `if' command into its equivalent Eshell command form.
@@ -595,10 +601,10 @@ must be implemented via rewriting, rather than as a function."
 	   (member (car terms) '("if" "unless")))
       (eshell-structure-basic-command
        'if '("if" "unless") (car terms)
-       (eshell-invokify-arg (cadr terms) nil t)
-       (eshell-invokify-arg (car (last terms (if (= (length terms) 4) 2))) t)
+       (cadr terms)
+       (car (last terms (if (= (length terms) 4) 2)))
        (when (= (length terms) 4)
-         (eshell-invokify-arg (car (last terms)) t)))))
+         (car (last terms))))))
 
 (defun eshell-set-exit-info (status &optional result)
   "Set the exit status and result for the last command.
