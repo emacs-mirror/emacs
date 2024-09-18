@@ -5870,7 +5870,7 @@ Supply two arguments, character positions BEG and END indicating the
                    (cond
                     ((and kill-region-dwim (not (use-region-p)))
                      (list beg end kill-region-dwim))
-                    ((not (or beg end))
+                    ((not (and beg end))
                      (user-error "The mark is not set now, so there is no region"))
                     ((list beg end 'region))))))
 
