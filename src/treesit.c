@@ -1098,31 +1098,26 @@ treesit_sync_visible_region (Lisp_Object parser)
     prev_cons = lisp_ranges;
   }
 
+  /* We are in a weird situation here: none of the previous ranges
+     overlaps with the new visible region.  We don't have any good
+     options, so just throw the towel: just give the parser a zero
+     range.  (Perfect filling!!)   */
+  if (NILP (new_ranges_head))
+    new_ranges_head = Fcons (Fcons (make_fixnum (visible_beg),
+				    make_fixnum (visible_beg)),
+			     Qnil);
+
   XTS_PARSER (parser)->last_set_ranges = new_ranges_head;
 
-  if (NILP (new_ranges_head))
-    {
-      /* We are in a weird situation here: none of the previous ranges
-         overlaps with the new visible region.  We don't have any good
-         options, so just throw the towel: just remove ranges and hope
-         lisp world will soon update with reasonable ranges or just
-         delete this parser.   */
-      bool success;
-      success = ts_parser_set_included_ranges (XTS_PARSER (parser)->parser,
-					       NULL, 0);
-      eassert (success);
-    }
-  else
-    {
-      uint32_t len = 0;
-      TSRange *ts_ranges = treesit_make_ts_ranges (new_ranges_head, parser,
-						   &len);
-      bool success;
-      success = ts_parser_set_included_ranges (XTS_PARSER (parser)->parser,
-					       ts_ranges, len);
-      xfree (ts_ranges);
-      eassert (success);
-    }
+  uint32_t len = 0;
+  TSRange *ts_ranges = NULL;
+  ts_ranges = treesit_make_ts_ranges (new_ranges_head, parser,
+				      &len);
+  bool success;
+  success = ts_parser_set_included_ranges (XTS_PARSER (parser)->parser,
+					   ts_ranges, len);
+  xfree (ts_ranges);
+  eassert (success);
 }
 
 /* (ref:bytepos-range-pitfall) Suppose we have the following buffer

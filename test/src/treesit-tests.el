@@ -741,7 +741,7 @@ visible_end.)"
       ;;              {     } narrow
       (narrow-to-region 1 10)
       (should (equal (treesit-parser-included-ranges parser)
-                     nil)))))
+                     '((1 . 1)))))))
 
 ;;; Multiple language
 
