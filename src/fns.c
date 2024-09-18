@@ -35,7 +35,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "buffer.h"
 #include "intervals.h"
-#include "syntax.h"
 #include "window.h"
 #include "puresize.h"
 #include "gnutls.h"
@@ -3579,8 +3578,7 @@ by a mouse, or by some window-system gesture, or via a menu.  */)
   ptrdiff_t promptlen = SCHARS (prompt);
   bool prompt_ends_in_nonspace
     = (0 < promptlen
-       && (SYNTAX (XFIXNAT (Faref (prompt, make_fixnum (promptlen - 1))))
-	   != Swhitespace));
+       && !blankp (XFIXNAT (Faref (prompt, make_fixnum (promptlen - 1)))));
   AUTO_STRING (space_string, " ");
   prompt = CALLN (Fconcat, prompt,
 		  prompt_ends_in_nonspace ? space_string : empty_unibyte_string,
