@@ -5825,9 +5825,9 @@ If set to `emacs-word', kill the last word as defined by the
 current major mode.
 If set to `unix-word', kill the last word in the style of a shell like
 Bash.  This ignores the major mode like `unix-word-rubout' (which see)."
-  :type '(choice (const :tag "Kill a word like `backward-kill-word'" emacs-word)
-                 (const :tag "Kill a word like Bash would" unix-word)
-                 (const :tag "Kill region even when inactive" nil))
+  :type '(choice (const :tag "Kill region even when inactive" nil)
+                 (const :tag "Kill a word like `backward-kill-word'" emacs-word)
+                 (const :tag "Kill a word like Bash would" unix-word))
   :group 'killing
   :version "31.1")
 
@@ -5865,7 +5865,7 @@ Supply two arguments, character positions BEG and END indicating the
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.
   (interactive (progn
-                 (let ((beg (mark))
+                 (let ((beg (mark kill-region-dwim))
                        (end (point)))
                    (cond
                     ((and kill-region-dwim (not (use-region-p)))
@@ -5888,10 +5888,12 @@ Supply two arguments, character positions BEG and END indicating the
                      ((filter-buffer-substring beg end 'delete)))))
 	(when string			;STRING is nil if BEG = END
 	  ;; Add that string to the kill ring, one way or another.
-	  (if (eq last-command 'kill-region)
+	  (if (and (not (memq region '(unix-word emacs-word)))
+		   (eq last-command 'kill-region))
 	      (kill-append string (< end beg))
 	    (kill-new string)))
-	(when (or string (eq last-command 'kill-region))
+	(when (and (not (memq region '(unix-word emacs-word)))
+		   (or string (eq last-command 'kill-region)))
 	  (setq this-command 'kill-region))
 	(setq deactivate-mark t)
 	nil)

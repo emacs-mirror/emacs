@@ -142,7 +142,7 @@ you to bind keys to operate more similarly to the terminal.
 ---
 ** New user option 'kill-region-dwim'.
 This option, if non-nil, modifies the fall-back behavior of
-'kill-region' if no region is active, and will kill the last word
+'kill-region' ('C-w') if no region is active, and will kill the last word
 instead of raising an error.  Note that if you have disabled Transient
 Mark mode you might prefer to use 'unix-word-rubout', as this feature
 relies on there being an active region.
