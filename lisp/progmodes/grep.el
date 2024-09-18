@@ -1122,7 +1122,8 @@ The only editable texts in a Grep-Edit buffer are the match results."
   (setq buffer-undo-list nil)
   (add-hook 'after-change-functions #'occur-after-change-function nil t)
   (run-mode-hooks 'grep-edit-mode-hook)
-  (message "Editing: \\[grep-edit-save-changes] to return to Grep mode"))
+  (message (substitute-command-keys
+            "Editing: Type \\[grep-edit-save-changes] to return to Grep mode")))
 
 (defun grep-edit-save-changes ()
   "Switch back to Grep mode."
