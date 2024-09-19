@@ -494,7 +494,7 @@ treesit_debug_print_parser_list (char *msg, Lisp_Object parser)
 {
   struct buffer *buf = XBUFFER (XTS_PARSER (parser)->buffer);
   char *buf_name = SSDATA (BVAR (buf, name));
-  printf ("%s (%s) [%s] <%s>: %"PRIuPTR"(%"PRIuPTR")-(%"PRIuPTR")%"PRIuPTR" {\n",
+  printf ("%s (%s) [%s] <%s>: %td(%td)-(%td)%td {\n",
 	  msg == NULL ? "" : msg,
 	  SSDATA (SYMBOL_NAME (Vthis_command)),
 	  SSDATA (SYMBOL_NAME (XTS_PARSER (parser)->language_symbol)),
@@ -505,7 +505,7 @@ treesit_debug_print_parser_list (char *msg, Lisp_Object parser)
   FOR_EACH_TAIL (tail)
     {
       struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
-      printf ("[%s %s %s %"PRIuPTR"-%"PRIuPTR" T:%"PRIuPTR"]\n", SSDATA (SYMBOL_NAME (parser->language_symbol)),
+      printf ("[%s %s %s %td-%td T:%td]\n", SSDATA (SYMBOL_NAME (parser->language_symbol)),
 	      SSDATA (SYMBOL_NAME (parser->tag)),
 	      parser->need_reparse ? "NEED-R" : "NONEED",
 	      parser->visible_beg, parser->visible_end,
