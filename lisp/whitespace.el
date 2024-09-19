@@ -739,7 +739,7 @@ This variable is used when `whitespace-style' includes
 
 (defcustom whitespace-indentation-regexp
   '("^\t*\\(\\( \\{%d\\}\\)+\\)[^\n\t]"
-    . "^ *\\(\t+\\)[^\n]")
+    . "^ *\\(\t+\\).")
   "Regexps to match indentation whitespace that should be visualized.
 
 The value should be a cons whose car specifies the regexp to match
@@ -1738,7 +1738,7 @@ cleaning up these problems."
                        ((eq (car option) 'space-after-tab::space)
                         (whitespace-space-after-tab-regexp 'space))
                        ((eq (car option) 'missing-newline-at-eof)
-                        "[^\n]\\'")
+                        ".\\'")
                        (t
                         (cdr option)))))
                  (when (re-search-forward regexp rend t)
@@ -2174,14 +2174,14 @@ resultant list will be returned."
               1 whitespace-space-after-tab t)))
        ,@(when (memq 'missing-newline-at-eof whitespace-active-style)
            ;; Show missing newline.
-           `(("[^\n]\\'" 0
-              ;; Don't mark the end of the buffer is point is there --
+           `((".\\'" 0
+              ;; Don't mark the end of the buffer if point is there --
               ;; it probably means that the user is typing something
               ;; at the end of the buffer.
               (and (/= whitespace-point (point-max))
                    'whitespace-missing-newline-at-eof)
-              t)))))
-    (font-lock-add-keywords nil whitespace-font-lock-keywords t)
+              prepend)))))
+    (font-lock-add-keywords nil whitespace-font-lock-keywords 'append)
     (font-lock-flush)))
 
 
