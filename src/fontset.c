@@ -668,6 +668,7 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face,
 	  font_object = font_open_for_lface (f, font_entity, face->lface,
 					     FONT_DEF_SPEC (font_def));
 
+#ifdef HAVE_ANDROID
 	  /* If the font registry is not the same as explicitly
 	     specified in the font spec, do not cache the font.
 	     TrueType fonts have contrived character map selection
@@ -692,10 +693,13 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face,
 			    Qiso10646_1)))
 	      goto strangeness;
 	  }
+#endif /* HAVE_ANDROID */
 
 	  if (NILP (font_object))
 	    {
+#ifdef HAVE_ANDROID
 	    strangeness:
+#endif /* HAVE_ANDROID */
 	      /* Something strange happened, perhaps because of a
 		 Font-backend problem.  To avoid crashing, record
 		 that this spec is unusable.  It may be better to find
