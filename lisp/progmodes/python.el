@@ -7071,6 +7071,11 @@ implementations: `python-mode' and `python-ts-mode'."
   (setq-local electric-indent-inhibit t)
   (setq-local electric-indent-chars
               (cons ?: electric-indent-chars))
+  (setq-local electric-layout-rules
+              `((?: . ,(lambda ()
+                         (and (zerop (car (syntax-ppss)))
+                              (python-info-statement-starts-block-p)
+                              'after)))))
 
   ;; Add """ ... """ pairing to electric-pair-mode.
   (add-hook 'post-self-insert-hook
