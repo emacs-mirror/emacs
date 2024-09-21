@@ -711,7 +711,39 @@ visible_end.)"
                      '((1 . 7) (10 . 15))))
       (narrow-to-region 5 13)
       (should (equal (treesit-parser-included-ranges parser)
-                     '((5 . 7) (10 . 13)))))))
+                     '((5 . 7) (10 . 13))))
+
+      ;; Narrow in front, and discard the last one.
+      (widen)
+      (treesit-parser-set-included-ranges
+       parser '((4 . 10) (12 . 14) (16 . 20)))
+      ;; 11111111111111111111
+      ;;    [    ] [  ]  [  ]
+      ;; {     } narrow
+      (narrow-to-region 1 8)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((4 . 8))))
+
+      ;; Narrow in back, and discard the first one.
+      (widen)
+      (treesit-parser-set-included-ranges
+       parser '((1 . 5) (7 . 9) (11 . 17)))
+      ;; 11111111111111111111
+      ;; [  ] [  ]  [    ]
+      ;;              {     } narrow
+      (narrow-to-region 15 20)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((15 . 17))))
+
+      ;; No overlap
+      (widen)
+      (treesit-parser-set-included-ranges parser '((15 . 20)))
+      ;; 11111111111111111111
+      ;;    [           ]
+      ;;              {     } narrow
+      (narrow-to-region 1 10)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((1 . 1)))))))
 
 ;;; Multiple language
 

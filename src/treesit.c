@@ -499,7 +499,7 @@ treesit_debug_print_parser_list (char *msg, Lisp_Object parser)
 {
   struct buffer *buf = XBUFFER (XTS_PARSER (parser)->buffer);
   char *buf_name = SSDATA (BVAR (buf, name));
-  printf ("%s (%s) [%s] <%s>: %ld(%ld)-(%ld)%ld {\n",
+  printf ("%s (%s) [%s] <%s>: %td(%td)-(%td)%td {\n",
 	  msg == NULL ? "" : msg,
 	  SSDATA (SYMBOL_NAME (Vthis_command)),
 	  SSDATA (SYMBOL_NAME (XTS_PARSER (parser)->language_symbol)),
@@ -510,7 +510,7 @@ treesit_debug_print_parser_list (char *msg, Lisp_Object parser)
   FOR_EACH_TAIL (tail)
     {
       struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
-      printf ("[%s %s %s %ld-%ld T:%ld]\n", SSDATA (SYMBOL_NAME (parser->language_symbol)),
+      printf ("[%s %s %s %td-%td T:%td]\n", SSDATA (SYMBOL_NAME (parser->language_symbol)),
 	      SSDATA (SYMBOL_NAME (parser->tag)),
 	      parser->need_reparse ? "NEED-R" : "NONEED",
 	      parser->visible_beg, parser->visible_end,
@@ -1110,6 +1110,7 @@ treesit_sync_visible_region (Lisp_Object parser)
   if (NILP (lisp_ranges)) return;
 
   Lisp_Object new_ranges_head = lisp_ranges;
+  Lisp_Object prev_cons = Qnil;
 
   FOR_EACH_TAIL_SAFE (lisp_ranges)
   {
@@ -1122,9 +1123,12 @@ treesit_sync_visible_region (Lisp_Object parser)
       new_ranges_head = XCDR (new_ranges_head);
     else if (beg >= visible_end)
       {
-	/* Even the beg is after visible_end, dicard this range and all
+	/* Even the beg is after visible_end, discard this range and all
            the ranges after it.  */
-	XSETCDR (range, Qnil);
+	if (NILP (prev_cons))
+	  new_ranges_head = Qnil;
+	else
+	  XSETCDR (prev_cons, Qnil);
 	break;
       }
     else
@@ -1137,28 +1141,29 @@ treesit_sync_visible_region (Lisp_Object parser)
 	if (end > visible_end)
 	  XSETCDR (range, make_fixnum (visible_end));
       }
+    prev_cons = lisp_ranges;
   }
+
+  /* We are in a weird situation here: none of the previous ranges
+     overlaps with the new visible region.  We don't have any good
+     options, so just throw the towel: just give the parser a zero
+     range.  (Perfect filling!!)   */
+  if (NILP (new_ranges_head))
+    new_ranges_head = Fcons (Fcons (make_fixnum (visible_beg),
+				    make_fixnum (visible_beg)),
+			     Qnil);
 
   XTS_PARSER (parser)->last_set_ranges = new_ranges_head;
 
-  if (NILP (new_ranges_head))
-    {
-      bool success;
-      success = ts_parser_set_included_ranges (XTS_PARSER (parser)->parser,
-					       NULL, 0);
-      eassert (success);
-    }
-  else
-    {
-      uint32_t len = 0;
-      TSRange *ts_ranges = treesit_make_ts_ranges (new_ranges_head, parser,
-						   &len);
-      bool success;
-      success = ts_parser_set_included_ranges (XTS_PARSER (parser)->parser,
-					       ts_ranges, len);
-      xfree (ts_ranges);
-      eassert (success);
-    }
+  uint32_t len = 0;
+  TSRange *ts_ranges = NULL;
+  ts_ranges = treesit_make_ts_ranges (new_ranges_head, parser,
+				      &len);
+  bool success;
+  success = ts_parser_set_included_ranges (XTS_PARSER (parser)->parser,
+					   ts_ranges, len);
+  xfree (ts_ranges);
+  eassert (success);
 }
 
 /* (ref:bytepos-range-pitfall) Suppose we have the following buffer

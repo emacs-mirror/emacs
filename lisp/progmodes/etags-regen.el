@@ -118,7 +118,7 @@ We currently support only Emacs's etags program with this option."
 ;; when it cannot determine the type of the file.
 ;; http://lists.gnu.org/archive/html/emacs-devel/2018-01/msg00323.html
 (defcustom etags-regen-file-extensions
-  '("rb" "js" "py" "pl" "el" "c" "cpp" "cc" "h" "hh" "hpp"
+  '("rb" "js" "py" "pl" "pm" "el" "c" "cpp" "cc" "h" "hh" "hpp"
     "java" "go" "cl" "lisp" "prolog" "php" "erl" "hrl"
     "F" "f" "f90" "for" "cs" "a" "asm" "ads" "adb" "ada")
   "Code file extensions for `etags-regen-mode'.

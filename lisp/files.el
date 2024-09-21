@@ -299,12 +299,12 @@ See also `backup-by-copying' and `backup-by-copying-when-linked'."
   :version "23.1")
 
 (defcustom version-control nil
-  "Control use of version numbers for backup files.
-When t, make numeric backup versions unconditionally.
-When nil, make them for files that have some already.
-The value `never' means do not make them."
+  "Control use of version-numbered backup files.
+When t, make numbered backup files unconditionally.
+When nil, make them for files that already have numbered backups.
+The value `never' means never make numbered backups."
   :type '(choice (const :tag "Never" never)
-		 (const :tag "If existing" nil)
+		 (const :tag "If numbered backups exist" nil)
                  (other :tag "Always" t))
   :safe #'version-control-safe-local-p
   :group 'backup)
@@ -314,28 +314,36 @@ The value `never' means do not make them."
   (or (booleanp x) (equal x 'never)))
 
 (defcustom dired-kept-versions 2
-  "When cleaning directory, number of versions to keep."
+  "When cleaning directory, number of versions of numbered backups to keep.
+See `version-control', `kept-old-versions' and `kept-new-versions' for
+more about keeping and deleting old versioned (a.k.a. \"numbered\")
+backup files."
   :type 'natnum
   :group 'backup
   :group 'dired)
 
 (defcustom delete-old-versions nil
-  "If t, delete excess backup versions silently.
-If nil, ask confirmation.  Any other value prevents any trimming."
+  "If t, delete excess numbered backup files silently.
+If nil, ask confirmation.  Any other value prevents any trimming.
+See `version-control', `kept-old-versions', `kept-new-versions'
+and `dired-kept-versions' for more about keeping and deleting old
+versioned (a.k.a. \"numbered\") backup files."
   :type '(choice (const :tag "Delete" t)
 		 (const :tag "Ask" nil)
 		 (other :tag "Leave" other))
   :group 'backup)
 
 (defcustom kept-old-versions 2
-  "Number of oldest versions to keep when a new numbered backup is made."
+  "Number of oldest versions to keep when a new numbered backup is made.
+See `version-control' for how Emacs decides when to make numbered backups."
   :type 'natnum
   :safe #'natnump
   :group 'backup)
 
 (defcustom kept-new-versions 2
   "Number of newest versions to keep when a new numbered backup is made.
-Includes the new backup.  Must be greater than 0."
+Includes the new backup.  Must be greater than 0.
+See `version-control' for how Emacs decides when to make numbered backups."
   :type 'natnum
   :safe #'natnump
   :group 'backup)
