@@ -420,6 +420,11 @@ To customize the Python interpreter for interactive use, modify
          :help "Sort the import statements at the top of this buffer"]
         ["Fix imports" python-fix-imports
          :help "Add missing imports and remove unused ones from the current buffer"]
+        "-----"
+        ("Toggle..."
+         ["Subword Mode" subword-mode
+          :style toggle :selected subword-mode
+          :help "Toggle subword movement and editing mode"])
         ))
     map)
   "Keymap for `python-mode'.")
