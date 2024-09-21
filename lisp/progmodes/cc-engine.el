@@ -10045,7 +10045,7 @@ point unchanged and return nil."
 (defun c-forward-declarator (&optional limit accept-anon not-top)
   ;; Assuming point is at the start of a declarator, move forward over it,
   ;; leaving point at the next token after it (e.g. a ) or a ; or a ,), or at
-  ;; end of buffer if there is no such token.
+  ;; LIMIT (or end of buffer) if that comes first.
   ;;
   ;; Return a list (ID-START ID-END BRACKETS-AFTER-ID GOT-INIT DECORATED
   ;; ARGLIST), where ID-START and ID-END are the bounds of the declarator's
@@ -10177,9 +10177,6 @@ point unchanged and return nil."
 	     (prog1
 		 (c-safe (goto-char (scan-lists (point) 1 paren-depth)))
 	       (c-forward-syntactic-ws)))
-
-	 (or (eq (point) (point-max))	; No token after identifier.
-	     (< (point) limit))
 
 	 ;; Skip over any trailing bit, such as "__attribute__".
 	 (progn
