@@ -684,6 +684,11 @@ visible_end.)"
       (should (equal '((16 . 28)) (treesit-query-range
                                    'javascript query nil nil '(1 . -1)))))))
 
+(ert-deftest treesit-range-merge ()
+  "Test merging ranges."
+  (should (equal (treesit--merge-ranges '((1 . 1) (3 . 483)) nil 1 488)
+                 nil)))
+
 (ert-deftest treesit-range-fixup-after-edit ()
   "Tests if Emacs can fix OOB ranges after deleting text or narrowing."
   (skip-unless (treesit-language-available-p 'json))
