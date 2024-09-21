@@ -562,6 +562,14 @@ baz\"\""
       (electric-pair-delete-pair 1)
       (should (equal "" (buffer-string))))))
 
+(ert-deftest electric-pair-backspace-2 ()
+  (save-electric-modes
+   (with-temp-buffer
+     (insert "((()))")
+     (goto-char 4)
+     (electric-pair-delete-pair 2)
+     (should (equal "()" (buffer-string))))))
+
 
 ;;; Undoing
 (ert-deftest electric-pair-undo-unrelated-state ()
