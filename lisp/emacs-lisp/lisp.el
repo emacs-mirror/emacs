@@ -852,7 +852,9 @@ It's used by the command `delete-pair'.  The value 0 disables blinking."
 
 (defcustom delete-pair-push-mark nil
   "Non-nil means `delete-pair' pushes mark at end of delimited region."
-  :type 'boolean)
+  :type 'boolean
+  :group 'lisp
+  :version "31.1")
 
 (defun delete-pair (&optional arg)
   "Delete a pair of characters enclosing ARG sexps that follow point.
