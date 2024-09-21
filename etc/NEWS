@@ -252,17 +252,19 @@ build tags for the test commands.
 
 +++
 *** New user option 'c-ts-mode-enable-doxygen'.
-By default, 'c-ts-mode-enable-doxygen' is nil, and the comment blocks
-are highlighted like other comments.  When Non-nil doxygen comment
-blocks are syntax-highlighted if the doxygen grammar is available.
+By default, this is nil, and the Doxygen comment blocks in C/C++ source
+are highlighted like other comments.  When non-nil, Doxygen comment
+blocks are syntax-highlighted if the Doxygen grammar library is
+available.
 
 ** Java-ts mode
 
 +++
 *** New user option 'java-ts-mode-enable-doxygen'.
-By default, 'java-ts-mode-enable-doxygen' is nil, and the comment blocks
-are highlighted like other comments.  When Non-nil doxygen comment
-blocks are syntax-highlighted if the doxygen grammar is available.
+By default, this is nil, and the Doxygen comment blocks in Java source
+are highlighted like other comments.  When non-nil, Doxygen comment
+blocks are syntax-highlighted if the Doxygen grammar library is
+available.
 
 ** Emacs Lisp mode
 
