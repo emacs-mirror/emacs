@@ -101,6 +101,13 @@
 ;;   (princ event))
 
 (defun w32-handle-dropped-file (window file-name)
+  (dnd-handle-multiple-urls
+   window
+   (list
+    (w32-dropped-file-to-url file-name))
+   'private))
+
+(defun w32-dropped-file-to-url (file-name)
   (let ((f (if (eq system-type 'cygwin)
                (cygwin-convert-file-name-from-windows file-name t)
              (subst-char-in-string ?\\ ?/ file-name)))
@@ -117,14 +124,11 @@
                      (split-string (encode-coding-string f coding)
                                    "/")
                      "/")))
-  ;; FIXME: is the W32 build capable only of receiving a single file
-  ;; from each drop?
-  (dnd-handle-multiple-urls window (list (concat
-			                  (if (eq system-type 'cygwin)
-				              "file://"
-			                    "file:")
-			                  file-name))
-                            'private))
+  (concat
+   (if (eq system-type 'cygwin)
+       "file://"
+     "file:")
+   file-name))
 
 (defun w32-drag-n-drop (event &optional new-frame)
   "Edit the files listed in the drag-n-drop EVENT.
@@ -146,8 +150,11 @@ Switch to a buffer editing the last file dropped."
       (raise-frame)
       (setq window (selected-window))
 
-      (mapc (apply-partially #'w32-handle-dropped-file window)
-            (car (cdr (cdr event)))))))
+      (dnd-handle-multiple-urls
+       window
+       (mapcar #'w32-dropped-file-to-url
+               (car (cdr (cdr event))))
+       'private))))
 
 (defun w32-drag-n-drop-other-frame (event)
   "Edit the files listed in the drag-n-drop EVENT, in other frames.
