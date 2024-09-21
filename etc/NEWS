@@ -365,9 +365,6 @@ toggle.
 
 * Incompatible Lisp Changes in Emacs 31.1
 
-** The obsolete calling convention of 'error' has been removed.
-That convention was: '(error &rest ARGS)'.
-
 ** The 'rx' category name 'chinese-two-byte' must now be spelled correctly.
 An old alternative name (without the first 'e') has been removed.
 
