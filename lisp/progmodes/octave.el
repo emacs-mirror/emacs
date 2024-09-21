@@ -536,8 +536,6 @@ Non-nil means always go to the next Octave code line after sending."
       (put-text-property (match-beginning 1) (match-end 1)
                          'syntax-table (string-to-syntax "\"'")))))
 
-(defvar electric-layout-rules)
-
 ;; FIXME: cc-mode.el also adds an entry for .m files, mapping them to
 ;; objc-mode.  We here rely on the fact that loaddefs.el is filled in
 ;; alphabetical order, so cc-mode.el comes before octave-mode.el, which lets

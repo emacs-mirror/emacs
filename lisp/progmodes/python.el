@@ -7050,7 +7050,6 @@ Add import for undefined name `%s' (empty to skip): "
              (eq (char-after) last-command-event))
     (save-excursion (insert (make-string 2 last-command-event)))))
 
-(defvar electric-indent-inhibit)
 (defvar prettify-symbols-alist)
 (defvar python--installed-grep-hook nil)
 

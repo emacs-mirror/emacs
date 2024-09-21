@@ -62,7 +62,6 @@
   (require 'rx))
 
 (defvar ido-cur-list)
-(defvar electric-layout-rules)
 (declare-function ido-mode "ido" (&optional arg))
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
