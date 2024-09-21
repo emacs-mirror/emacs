@@ -267,8 +267,8 @@ This is a fallback used for those modes which don't set
 
 Each element should look like (MODE . SETTING) where SETTING
 should obey the same rules as `editorconfig-indent-size-vars',
-i.e. either a list of variable names or a function returning a list of (VAR . VAL)
-settings."
+i.e. be either a list of variable names or a function returning
+a list of settings in the form (VARIABLE . VALUE)."
   :type '(alist :key-type symbol
                 :value-type (choice function
                                     (repeat
