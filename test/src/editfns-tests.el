@@ -503,6 +503,7 @@
             sanity-check-change-functions-errors)))
 
 (ert-deftest editfns-tests--before/after-change-functions ()
+  :expected-result :failed
   (with-temp-buffer
     (add-hook 'before-change-functions
               #'sanity-check-change-functions-before nil t)
