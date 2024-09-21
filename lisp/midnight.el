@@ -56,6 +56,7 @@ the time when it is run.")
   ;; the timer if the mode is on.  The ':initialize' function above
   ;; (which ends up calling `midnight-delay-set') did not know yet if
   ;; the mode was on or not.
+  (defvar midnight-delay)
   (midnight-delay-set 'midnight-delay midnight-delay))
 
 ;;; clean-buffer-list stuff
