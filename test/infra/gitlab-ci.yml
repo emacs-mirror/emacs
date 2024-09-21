@@ -186,6 +186,7 @@ default:
         - lisp/progmodes/js.el
         - lisp/progmodes/python.el
         - lisp/textmodes/*-ts-mode.el
+        - lisp/treesit.el
         - src/treesit.{h,c}
         - test/infra/*
         - test/lisp/align-resources/**
