@@ -2319,10 +2319,22 @@ Also refontify when necessary."
         (font-lock-flush whitespace-eob-marker (1+ (buffer-size)))))
     (setq-local whitespace-buffer-changed nil)
     (setq whitespace-point (point))	; current point position
-    (let ((refontify (and (eolp) ; It is at end of line ...
-                          ;; ... with trailing SPACE or TAB
-                          (or (memq (preceding-char) '(?\s ?\t)))
-                          (line-beginning-position)))
+    (let ((refontify (or (and (eolp) ; It is at end of line ...
+                              ;; ... with trailing SPACE or TAB
+                              (or (memq (preceding-char) '(?\s ?\t)))
+                              (line-beginning-position))
+                         (and (memq 'missing-newline-at-eof
+                                    ;; If user requested to highlight
+                                    ;; EOB without a newline...
+                                    whitespace-active-style)
+                              ;; ...and the buffer is not empty...
+                              (not (= (point-min) (point-max)))
+                              (= (point-max) (without-restriction (point-max)))
+                              ;; ...and no newline at EOB...
+                              (not (eq (char-before (point-max)) ?\n))
+                              ;; ...then refontify the last character in
+                              ;; the buffer
+                              (max (1- (point-max)) (point-min)))))
           (ostart (overlay-start whitespace-point--used)))
       (cond
        ((not refontify)
