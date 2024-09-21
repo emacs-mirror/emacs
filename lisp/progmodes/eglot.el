@@ -2106,6 +2106,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
 (defvar revert-buffer-preserve-modes)
 (defun eglot--after-revert-hook ()
   "Eglot's `after-revert-hook'."
+  ;; FIXME: Do we really need this?
   (when revert-buffer-preserve-modes (eglot--signal-textDocument/didOpen)))
 
 (defun eglot--maybe-activate-editing-mode ()
@@ -2813,6 +2814,8 @@ When called interactively, use the currently active server"
 
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
+  ;; Flush any potential pending change.
+  (eglot--track-changes-fetch eglot--track-changes)
   (setq eglot--recent-changes nil
         eglot--versioned-identifier 0
         eglot--TextDocumentIdentifier-cache nil)

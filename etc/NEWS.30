@@ -1530,6 +1530,11 @@ value of this option for the current invocation of 'man'.
 ** DocView
 
 ---
+*** New user option 'doc-view-mpdf-use-svg'.
+If non-nil, DocView uses SVG images to display PDF documents.  The
+default is non-nil if your system supports display of SVG images.
+
+---
 *** New face 'doc-view-svg-face'.
 This replaces 'doc-view-svg-foreground' and 'doc-view-svg-background'.
 If you don't like the colors produced by the default definition of
