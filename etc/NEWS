@@ -390,6 +390,13 @@ functionality of the standard 'xref' commands in TeX buffers.  You can
 restore the standard 'etags' backend with the 'M-x xref-etags-mode'
 toggle.
 
+** Midnight mode
+
+---
+*** Change for activating the mode
+Putting (require 'midnight) in your init file no longer activates the
+mode.  Now, one needs to say (midnight-mode +1) instead.
+
 
 * New Modes and Packages in Emacs 31.1
 

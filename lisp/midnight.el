@@ -52,12 +52,11 @@ the time when it is run.")
   "Non-nil means run `midnight-hook' at midnight."
   :global t
   :initialize #'custom-initialize-default
-  ;; Disable first, since the ':initialize' function above already
-  ;; starts the timer when the mode is turned on for the first time,
-  ;; via setting 'midnight-delay', which calls 'midnight-delay-set',
-  ;; which starts the timer.
-  (when (timerp midnight-timer) (cancel-timer midnight-timer))
-  (if midnight-mode (timer-activate midnight-timer)))
+  ;; Call `midnight-delay-set' again because it takes care of starting
+  ;; the timer if the mode is on.  The ':initialize' function above
+  ;; (which ends up calling `midnight-delay-set') did not know yet if
+  ;; the mode was on or not.
+  (midnight-delay-set 'midnight-delay midnight-delay))
 
 ;;; clean-buffer-list stuff
 
@@ -207,9 +206,11 @@ to its second argument TM."
              "Invalid argument to `midnight-delay-set': `%s'")
   (set symb tm)
   (when (timerp midnight-timer) (cancel-timer midnight-timer))
-  (setq midnight-timer
-        (run-at-time (if (numberp tm) (+ (midnight-next) tm) tm)
-                     midnight-period #'run-hooks 'midnight-hook)))
+  ;; Only start the timer if the mode is turned on.
+  (when midnight-mode
+    (setq midnight-timer
+          (run-at-time (if (numberp tm) (+ (midnight-next) tm) tm)
+                       midnight-period #'run-hooks 'midnight-hook))))
 
 (defcustom midnight-delay 3600
   "The number of seconds after the midnight when the `midnight-timer' is run.
