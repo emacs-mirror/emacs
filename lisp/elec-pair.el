@@ -260,7 +260,7 @@ inside a comment or string."
                (list ?\( (cdr direct) t string-or-comment)))
      (reverse (list ?\) (car reverse) t string-or-comment)))))
 
-(defun electric-pair--insert (char)
+(defun electric-pair--insert (char times)
   (let ((last-command-event char)
 	(blink-matching-paren nil)
 	(electric-pair-mode nil)
@@ -271,7 +271,7 @@ inside a comment or string."
         ;; us to add these newlines, and is probably about to kick in
         ;; again after we add the closer.
         (electric-layout-allow-duplicate-newlines t))
-    (self-insert-command 1)))
+    (self-insert-command times)))
 
 (defun electric-pair--syntax-ppss (&optional pos where)
   "Like `syntax-ppss', but sometimes fallback to `parse-partial-sexp'.
@@ -455,7 +455,8 @@ happened."
        (atomic-change-group
          ;; Don't use `delete-char'; that may modify the head of the
          ;; undo list.
-         (delete-region (point) (1- (point)))
+         (delete-region (- (point) (prefix-numeric-value current-prefix-arg))
+                        (point))
          (throw
           'done
           (cond ((eq ?\( syntax)
@@ -474,25 +475,26 @@ happened."
 Works by first removing the character from the buffer, then doing
 some list calculations, finally restoring the situation as if nothing
 happened."
-  (pcase (electric-pair-syntax-info char)
-    (`(,syntax ,pair ,_ ,s-or-c)
-     (unwind-protect
-         (progn
-           (delete-char -1)
-           (cond ((eq syntax ?\))
-                  (let* ((pair-data
-                          (electric-pair--balance-info
-                           -1 s-or-c))
-                         (innermost (car pair-data))
-                         (outermost (cdr pair-data)))
-                    (and
-                     (cond ((car outermost)
-                            (car innermost))
-                           ((car innermost)
-                            (not (eq (cdr outermost) pair)))))))
-                 ((eq syntax ?\")
-                  (electric-pair--inside-string-p char))))
-       (insert char)))))
+  (let ((num (prefix-numeric-value current-prefix-arg)))
+    (pcase (electric-pair-syntax-info char)
+      (`(,syntax ,pair ,_ ,s-or-c)
+       (unwind-protect
+           (progn
+             (delete-char (- num))
+             (cond ((eq syntax ?\))
+                    (let* ((pair-data
+                            (electric-pair--balance-info
+                             (- num) s-or-c))
+                           (innermost (car pair-data))
+                           (outermost (cdr pair-data)))
+                      (and
+                       (cond ((car outermost)
+                              (car innermost))
+                             ((car innermost)
+                              (not (eq (cdr outermost) pair)))))))
+                   ((eq syntax ?\")
+                    (electric-pair--inside-string-p char))))
+         (insert (make-string num char)))))))
 
 (defun electric-pair-default-skip-self (char)
   (if electric-pair-preserve-balance
@@ -527,11 +529,14 @@ The decision is taken by order of preference:
  `electric-pair-inhibit-predicate', `electric-pair-skip-self'
   and `electric-pair-skip-whitespace' (which see)."
   (let* ((pos (and electric-pair-mode (electric--after-char-pos)))
+         (num (when pos (prefix-numeric-value current-prefix-arg)))
+         (beg (when num (- pos num)))
          (skip-whitespace-info))
     (pcase (electric-pair-syntax-info last-command-event)
       (`(,syntax ,pair ,unconditional ,_)
        (cond
         ((null pos) nil)
+        ((zerop num) nil)
         ;; Wrap a pair around the active region.
         ;;
         ((and (memq syntax '(?\( ?\) ?\" ?\$)) (use-region-p))
@@ -545,16 +550,17 @@ The decision is taken by order of preference:
                       (>= (mark) (point))))
              (save-excursion
                (goto-char (mark))
-               (electric-pair--insert pair))
-           (delete-region pos (1- pos))
-           (electric-pair--insert pair)
+               (electric-pair--insert pair num))
+           (delete-region beg pos)
+           (electric-pair--insert pair num)
            (goto-char (mark))
-           (electric-pair--insert last-command-event)))
+           (electric-pair--insert last-command-event num)))
         ;; Backslash-escaped: no pairing, no skipping.
         ((save-excursion
-           (goto-char (1- pos))
+           (goto-char beg)
            (not (zerop (% (skip-syntax-backward "\\") 2))))
-         nil)
+         (let ((current-prefix-arg (1- num)))
+           (electric-pair-post-self-insert-function)))
         ;; Skip self.
         ((and (memq syntax '(?\) ?\" ?\$))
               (and (or unconditional
@@ -580,10 +586,10 @@ The decision is taken by order of preference:
          ;; live with it for now.
          (when skip-whitespace-info
            (funcall electric-pair-skip-whitespace-function))
-         (delete-region (1- pos) (if (eq skip-whitespace-info 'chomp)
-                                     (point)
-                                   pos))
-         (forward-char))
+         (delete-region beg (if (eq skip-whitespace-info 'chomp)
+                                (point)
+                              pos))
+         (forward-char num))
         ;; Insert matching pair.
         ((and (memq syntax '(?\( ?\" ?\$))
               (not overwrite-mode)
@@ -592,7 +598,7 @@ The decision is taken by order of preference:
                          (goto-char pos)
                          (funcall electric-pair-inhibit-predicate
                                   last-command-event)))))
-         (save-excursion (electric-pair--insert pair))))))))
+         (save-excursion (electric-pair--insert pair num))))))))
 
 (defun electric-pair-open-newline-between-pairs-psif ()
   "Honor `electric-pair-open-newline-between-pairs'.
@@ -604,7 +610,8 @@ Member of `post-self-insert-hook' if `electric-pair-mode' is on."
              (< (1+ (point-min)) (point) (point-max))
              (eq (save-excursion
                    (skip-chars-backward "\t\s")
-                   (char-before (1- (point))))
+                   (char-before (- (point)
+                                   (prefix-numeric-value current-prefix-arg))))
                  (matching-paren (char-after))))
     (save-excursion (newline 1 t))))
 
@@ -618,7 +625,7 @@ Member of `post-self-insert-hook' if `electric-pair-mode' is on."
 ARG and KILLP are passed directly to
 `backward-delete-char-untabify', which see."
   (interactive "*p\nP")
-  (delete-char 1)
+  (delete-char arg)
   (backward-delete-char-untabify arg killp))
 
 (defvar electric-pair-mode-map

@@ -160,6 +160,12 @@ This option, if non-nil, makes 'delete-pair' push a mark at the end of
 the region enclosed by the deleted delimiters.  This makes it easy to
 act on that region.  For example, we can highlight it using 'C-x C-x'.
 
++++
+** Electric Pair mode can now pair multiple delimiters at once.
+You can now insert or wrap text with multiple sets of parentheses and
+other matching delimiters at once with Electric Pair mode, by providing
+a prefix argument when inserting one of the delimiters.
+
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
