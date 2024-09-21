@@ -789,11 +789,12 @@ sign in chained assignment."
            ;; Python 3:
            "BlockingIOError" "BrokenPipeError" "ChildProcessError"
            "ConnectionAbortedError" "ConnectionError" "ConnectionRefusedError"
-           "ConnectionResetError" "FileExistsError" "FileNotFoundError"
-           "InterruptedError" "IsADirectoryError" "NotADirectoryError"
-           "PermissionError" "ProcessLookupError" "RecursionError"
+           "ConnectionResetError" "EncodingWarning" "FileExistsError"
+           "FileNotFoundError" "InterruptedError" "IsADirectoryError"
+           "NotADirectoryError" "ModuleNotFoundError" "PermissionError"
+           "ProcessLookupError" "PythonFinalizationError" "RecursionError"
            "ResourceWarning" "StopAsyncIteration" "TimeoutError"
-           "ExceptionGroup"
+           "BaseExceptionGroup" "ExceptionGroup"
            ;; OS specific
            "VMSError" "WindowsError"
            )
@@ -1063,11 +1064,12 @@ It makes underscores and dots word constituent chars.")
     ;; Python 3:
     "BlockingIOError" "BrokenPipeError" "ChildProcessError"
     "ConnectionAbortedError" "ConnectionError" "ConnectionRefusedError"
-    "ConnectionResetError" "FileExistsError" "FileNotFoundError"
-    "InterruptedError" "IsADirectoryError" "NotADirectoryError"
-    "PermissionError" "ProcessLookupError" "RecursionError"
+    "ConnectionResetError" "EncodingWarning" "FileExistsError"
+    "FileNotFoundError" "InterruptedError" "IsADirectoryError"
+    "NotADirectoryError" "ModuleNotFoundError" "PermissionError"
+    "ProcessLookupError" "PythonFinalizationError" "RecursionError"
     "ResourceWarning" "StopAsyncIteration" "TimeoutError"
-    "ExceptionGroup"
+    "BaseExceptionGroup" "ExceptionGroup"
     ;; OS specific
     "VMSError" "WindowsError"
     ))
