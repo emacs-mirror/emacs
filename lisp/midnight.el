@@ -1,6 +1,6 @@
 ;;; midnight.el --- run something every midnight, e.g., kill old buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
 
 ;; Author: Sam Steingold <sds@gnu.org>
 ;; Created: 1998-05-18
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; To use the file, put (require 'midnight) into your .emacs.  Then, at
+;; To use the file, put (midnight-mode) into your .emacs.  Then, at
 ;; midnight, Emacs will run the normal hook `midnight-hook'.  You can
 ;; put whatever you like there, say, `calendar'; by default there is
 ;; only one function there - `clean-buffer-list'.  It will kill the
