@@ -389,11 +389,13 @@ This function only tries to handle strings."
       (delete-file remote-temp-file))))
 
 (ert-deftest dnd-tests-get-local-file-uri ()
-  (should (equal (dnd-get-local-file-uri "file://localhost/path/to/foo")
-                 "file:///path/to/foo"))
-  (should (equal (dnd-get-local-file-uri
-                  (format "file://%s/path/to/" (system-name)))
-                 "file:///path/to/"))
+  ;; 'dnd-get-local-file-uri' always returns nil on MS-Windows
+  (unless (eq system-type 'windows-nt)
+    (should (equal (dnd-get-local-file-uri "file://localhost/path/to/foo")
+                   "file:///path/to/foo"))
+    (should (equal (dnd-get-local-file-uri
+                    (format "file://%s/path/to/" (system-name)))
+                   "file:///path/to/")))
   (should-not (dnd-get-local-file-uri "file://some-remote-host/path/to/foo"))
   (should-not (dnd-get-local-file-uri "file:///path/to/foo")))
 
