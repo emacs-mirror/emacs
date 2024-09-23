@@ -6017,6 +6017,8 @@ $ export EDITOR=/path/to/emacsclient.sh
 @item
 How to determine whether a buffer is remote?
 
+@findex file-remote-p
+@vindex default-directory
 The buffer-local variable @code{default-directory} tells this.  If the
 form @code{(file-remote-p default-directory)} returns non-@code{nil},
 the buffer is remote.  See the optional arguments of
