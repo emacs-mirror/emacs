@@ -700,12 +700,15 @@ The `sudo' program appears to insert a `^@' character into the prompt."
 (defcustom tramp-otp-password-prompt-regexp
   (rx-to-string
    `(: bol (* nonl)
-       ;; JumpCloud.
-       (group (| "Verification code"))
+       (group (|
+	 ;; JumpCloud.
+	 "Verification code"
+	 ;; TACC HPC.  <https://docs.tacc.utexas.edu/basics/mfa/>
+	 "TACC Token Code"))
        (* nonl) (any . ,tramp-compat-password-colon-equivalents) (* blank)))
   "Regexp matching one-time password prompts.
 The regexp should match at end of buffer."
-  :version "29.2"
+  :version "30.2"
   :type 'regexp
   :link '(tramp-info-link :tag "Tramp manual" tramp-otp-password-prompt-regexp))
 
