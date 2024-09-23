@@ -724,7 +724,7 @@ a list, this results in a dotted list.
 
 As an exception, if all the arguments except the last are nil, and the
 last argument is not a list, the return value is that last argument
-unaltered.
+unaltered, not a list.
 
 usage: (append &rest SEQUENCES)  */)
   (ptrdiff_t nargs, Lisp_Object *args)

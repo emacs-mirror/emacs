@@ -670,6 +670,7 @@ This once was the usual way to copy a list, before the function
 
 @cindex list of characters of a string
 @cindex convert string to list of its characters
+@findex string-to-list
   Here's how to convert a string into a list of its characters:
 
 @example
@@ -678,6 +679,9 @@ This once was the usual way to copy a list, before the function
      @result{} (97 98 99 100)
 @end group
 @end example
+
+@noindent
+The function @code{string-to-list} is a handy shortcut for the above.
 
   With the help of @code{apply} (@pxref{Calling Functions}), we can append
 all the lists in a list of lists:
@@ -717,7 +721,7 @@ any other non-list final argument.
 
   As an exception, if all the arguments but the last are @code{nil} and
 the last argument is not a list, the return value is that last argument
-unchanged:
+unchanged (i.e., in this case the return value is not a list):
 
 @example
 @group
