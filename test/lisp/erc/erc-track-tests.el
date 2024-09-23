@@ -22,8 +22,12 @@
 
 ;;; Code:
 
-(require 'ert)
 (require 'erc-track)
+(require 'ert-x)
+(eval-and-compile
+  (let ((load-path (cons (ert-resource-directory) load-path)))
+    (require 'erc-tests-common)))
+
 
 (ert-deftest erc-track--shorten-aggressive-nil ()
   "Test non-aggressive erc track buffer name shortening."
@@ -285,5 +289,125 @@
      (b a (a b))
      (a b (b a))
      (a b (a b)))))
+
+(ert-deftest erc-track--collect-faces-in ()
+  (with-current-buffer (get-buffer-create "*erc-track--get-faces-in*")
+    (erc-tests-common-prep-for-insertion)
+    (goto-char (point-min))
+    (skip-chars-forward "\n")
+
+    (let ((ts #("[04:37]"
+                0 1 ( erc--msg 0 field erc-timestamp
+                      font-lock-face erc-timestamp-face)
+                1 7 ( field erc-timestamp
+                      font-lock-face erc-timestamp-face)))
+          bounds)
+
+      (with-silent-modifications
+
+        (push (list (point)) bounds)
+        (insert ; JOIN
+         ts "      " ; iniital `fill' indentation lacks properties
+         #("*** You have joined channel #chan" 0 33
+           (font-lock-face erc-notice-face))
+         "\n")
+        (setcdr (car bounds) (point))
+
+        (push (list (point)) bounds)
+        (insert ; 353
+         ts "      "
+         #("*** Users on #chan: bob alice dummy tester"
+           0 30 (font-lock-face erc-notice-face)
+           30 35 (font-lock-face erc-current-nick-face)
+           35 42 (font-lock-face erc-notice-face))
+         "\n" #("                 @fsbot" ; but intervening HAS properties
+                0 23 (font-lock-face erc-notice-face)))
+        (setcdr (car bounds) (point))
+
+        (push (list (point)) bounds)
+        (insert ; PRIVMSG
+         "\n" ts "  "
+         #("<alice> bob: Thou canst not come to me: I come to"
+           0 1 (font-lock-face erc-default-face)
+           ;; erc-dangerous-host-face -> erc-nicks-alice-face (undefined)
+           1 6 (font-lock-face (erc-dangerous-host-face erc-nick-default-face))
+           6 8 (font-lock-face erc-default-face)
+           ;; erc-pal-face -> erc-nicks-bob-face (undefined)
+           8 11 (font-lock-face (erc-pal-face erc-default-face))
+           11 49 (font-lock-face erc-default-face))
+         "\n" #("                 thee."
+                0 22 (font-lock-face erc-default-face))
+         "\n")
+        (setcdr (car bounds) (point)))
+
+      (goto-char (point-max))
+      (should (equal (setq bounds (nreverse bounds))
+                     '((3 . 50) (50 . 129) (129 . 212))))
+
+      ;; For these result assertions, the insertion order of the table
+      ;; elements should mirror that of the consed lists.
+
+      ;; Baseline
+      (narrow-to-region 1 3)
+      (let ((result (erc-track--collect-faces-in)))
+        (should-not (map-pairs (car result)))
+        (should-not (cdr result)))
+
+      ;; JOIN
+      (narrow-to-region (car (nth 0 bounds)) (cdr (nth 0 bounds)))
+      (let ((result (erc-track--collect-faces-in)))
+        (should (seq-set-equal-p
+                 (map-pairs (car result)) '((erc-timestamp-face . t)
+                                            (erc-notice-face . t))))
+        (should (equal (cdr result) '(erc-notice-face erc-timestamp-face))))
+
+      ;; 353
+      (narrow-to-region (car (nth 1 bounds)) (cdr (nth 1 bounds)))
+      (let ((result (erc-track--collect-faces-in)))
+        (should (seq-set-equal-p (map-pairs (car result))
+                                 '((erc-timestamp-face . t)
+                                   (erc-notice-face . t)
+                                   (erc-current-nick-face . t))))
+        (should (equal (cdr result) '(erc-current-nick-face
+                                      erc-notice-face
+                                      erc-timestamp-face))))
+
+      ;; PRIVMSG
+      (narrow-to-region (car (nth 2 bounds)) (cdr (nth 2 bounds)))
+      (let ((result (erc-track--collect-faces-in)))
+        (should (seq-set-equal-p
+                 (map-pairs (car result))
+                 '((erc-timestamp-face . t)
+                   (erc-default-face . t)
+                   ((erc-dangerous-host-face erc-nick-default-face) . t)
+                   ((erc-pal-face erc-default-face) . t))))
+        (should (equal (cdr result)
+                       '((erc-pal-face erc-default-face)
+                         (erc-dangerous-host-face erc-nick-default-face)
+                         erc-default-face
+                         erc-timestamp-face))))
+
+      ;; Entire buffer.
+      (narrow-to-region (car (nth 0 bounds)) erc-insert-marker)
+      (let ((result (erc-track--collect-faces-in)))
+        (should (seq-set-equal-p
+                 (map-pairs (car result))
+                 '((erc-timestamp-face . t)
+                   (erc-notice-face . t)
+                   (erc-current-nick-face . t)
+                   (erc-default-face . t)
+                   ((erc-dangerous-host-face erc-nick-default-face) . t)
+                   ((erc-pal-face erc-default-face) . t))))
+        (should (equal (cdr result)
+                       '((erc-pal-face erc-default-face)
+                         (erc-dangerous-host-face erc-nick-default-face)
+                         erc-default-face
+                         erc-current-nick-face
+                         erc-notice-face
+                         erc-timestamp-face)))))
+
+    (widen)
+    (when noninteractive
+      (kill-buffer))))
 
 ;;; erc-track-tests.el ends here

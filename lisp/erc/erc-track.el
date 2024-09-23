@@ -768,7 +768,7 @@ is displayed according to `erc-track-mouse-face'."
   ;; (really?), 3. the defun needs to switch to BUFFER, so we would
   ;; need to save that value somewhere.
   (let ((map (make-sparse-keymap))
-	(name (if erc-track-showcount
+        (name (if (and count erc-track-showcount)
 		  (concat string
 			  erc-track-showcount-string
 			  (int-to-string count))
@@ -992,7 +992,7 @@ the current buffer is in `erc-mode'."
         (when-let
             ((faces (if erc-track-ignore-normal-contenders-p
                         (erc-faces-in (buffer-string))
-                      (erc-track--get-faces-in-current-message)))
+                      (erc-track--collect-faces-in)))
              (normals erc-track--normal-faces)
              (erc-track-faces-priority-list
               `(,@erc-track--attn-faces ,@erc-track-faces-priority-list))
@@ -1057,25 +1057,25 @@ the current buffer is in `erc-mode'."
 (defvar erc-track--face-reject-function nil
   "Function called with face in current buffer to massage or reject.")
 
-(defun erc-track--get-faces-in-current-message ()
-  "Collect all faces in the narrowed buffer.
-Return a cons of a hash table and a list ordered from most
-recently seen to earliest seen."
-  (let ((i (text-property-not-all (point-min) (point-max) 'font-lock-face nil))
-        (seen (make-hash-table :test #'equal))
-        ;;
-        (rfaces ())
-        (faces (make-hash-table :test #'equal)))
-    (while-let ((i)
-                (cur (get-text-property i 'face)))
-      (unless (gethash cur seen)
-        (puthash cur t seen)
-        (when erc-track--face-reject-function
-          (setq cur (funcall erc-track--face-reject-function cur)))
-        (when cur
-          (push cur rfaces)
-          (puthash cur t faces)))
-      (setq i (next-single-property-change i 'font-lock-face)))
+(defun erc-track--collect-faces-in ()
+  "Collect all faces in the (presumably narrowed) current buffer.
+Return a cons cell of a hash table and a list ordered from most recently
+seen to least."
+  (let* ((prop (if noninteractive 'font-lock-face 'face))
+         (p (text-property-not-all (point-min) (point-max) prop nil))
+         (seen (and p (make-hash-table :test #'equal)))
+         (faces (make-hash-table :test #'equal))
+         (rfaces ()))
+    (while p
+      (when-let ((cur (get-text-property p prop)))
+        (unless (gethash cur seen)
+          (puthash cur t seen)
+          (when erc-track--face-reject-function
+            (setq cur (funcall erc-track--face-reject-function cur)))
+          (when cur
+            (push cur rfaces)
+            (puthash cur t faces))))
+      (setq p (next-single-property-change p prop)))
     (cons faces rfaces)))
 
 ;;; Buffer switching

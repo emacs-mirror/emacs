@@ -580,7 +580,7 @@ Abandon search after examining LIMIT faces."
    (setf (alist-get "Edit face" erc-button--nick-popup-alist nil nil #'equal)
          #'erc-nicks-customize-face)
    (erc-nicks--setup-track-integration)
-   (add-hook 'erc-track-mode #'erc-nicks--setup-track-integration 50 t)
+   (add-hook 'erc-track-mode-hook #'erc-nicks--setup-track-integration 50 t)
    (advice-add 'widget-create-child-and-convert :filter-args
                #'erc-nicks--redirect-face-widget-link))
   ((kill-local-variable 'erc-nicks--face-table)
@@ -598,6 +598,7 @@ Abandon search after examining LIMIT faces."
                     #'erc-nicks--highlight-button)
    (remove-function (local 'erc-track--alt-normals-function)
                     #'erc-nicks--check-normals)
+   (remove-hook 'erc-track-mode-hook #'erc-nicks--setup-track-integration t)
    (setf (alist-get "Edit face"
                     erc-button--nick-popup-alist nil 'remove #'equal)
          nil)
@@ -736,7 +737,7 @@ Expect PREFIX to be something like \"ansi-color-\" or \"font-lock-\"."
   "Return a viable `nicks'-owned face from NORMALS in CONTENDERS.
 But only do so if the CURRENT face is also one of ours and in
 NORMALS and if the highest ranked CONTENDER among new faces is
-`erc-default-face', the lowest ranking default priority face."
+`erc-default-face'."
   (and-let* (((eq contender 'erc-default-face))
              ((or (null current) (gethash current normals)))
              (spkr (or (null current) (erc-nicks--oursp current))))
