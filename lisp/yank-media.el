@@ -93,7 +93,7 @@ TYPES should be a MIME media type symbol, a regexp, or a list
 that can contain both symbols and regexps.
 
 HANDLER is a function that will be called with two arguments: The
-MIME type (a symbol on the form `image/png') and the selection
+MIME type (a symbol of the form `image/png') and the selection
 data (a string)."
   (make-local-variable 'yank-media--registered-handlers)
   (dolist (type (ensure-list types))
