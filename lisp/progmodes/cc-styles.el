@@ -441,7 +441,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 	 (symname (symbol-name langelem))
 	 (defstr  (format "(default %s): " oldoff))
 	 (errmsg  (concat "Offset must be int, func, var, vector, list, "
-			  "or [+,-,++,--,*,/] "
+			  "a syntactic symbol, or [+,-,++,--,*,/] "
 			  defstr))
 	 (prompt (concat symname " offset " defstr))
 	 (keymap (make-sparse-keymap))

@@ -218,7 +218,9 @@ See `c-offsets-alist'."
       (eq offset '/)
       (integerp offset)
       (functionp offset)
-      (and (symbolp offset) (boundp offset))
+      (and (symbolp offset)
+	   (or (boundp offset)
+	       (assq offset c-offsets-alist)))
       (and (vectorp offset)
 	   (= (length offset) 1)
 	   (integerp (elt offset 0)))
@@ -1141,6 +1143,18 @@ can always override the use of `c-default-style' by making calls to
        ;; token.
        (brace-entry-open      . 0)
        ;; Anchor pos: Same as brace-list-entry.
+       (enum-open             . class-open)
+       ;; Anchor pos: At the statement(*) at boi of the start of the
+       ;; enum construct.
+       (enum-close            . 0)
+       ;; Anchor pos: At the enum block open.
+       (enum-intro            . +)
+       ;; Anchor pos: The opening brace position when at boi, or boi
+       ;; at the enum decl start(*).
+       (enum-entry            . 0)
+       ;; Anchor pos: Normally, boi of the line containing the
+       ;; previous token, but if that line also contains the opening
+       ;; brace, then the first token after that brace.
        (statement             . 0)
        ;; Anchor pos: After a `;' in the condition clause of a for
        ;; statement: At the first token after the starting paren.

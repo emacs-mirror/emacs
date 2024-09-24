@@ -12684,18 +12684,18 @@ comment at the start of cc-engine.el for more info."
 	     (goto-char (setq kwd-start (match-beginning 0)))
 	     (and
 	      ;; Exclude cases where we matched what would ordinarily
-	      ;; be a block declaration keyword, except where it's not
+	      ;; be an enum declaration keyword, except where it's not
 	      ;; legal because it's part of a "compound keyword" like
-	      ;; "enum class".	Of course, if c-after-brace-list-key
+	      ;; "enum class".	Of course, if c-after-enum-list-key
 	      ;; is nil, we can skip the test.
-	      (or (equal c-after-brace-list-key regexp-unmatchable)
+	      (or (equal c-after-enum-list-key regexp-unmatchable)
 		  (save-match-data
 		    (save-excursion
 		      (not
 		       (and
-			(looking-at c-after-brace-list-key)
+			(looking-at c-after-enum-list-key)
 			(= (c-backward-token-2 1 t) 0)
-			(looking-at c-brace-list-key))))))
+			(looking-at c-enum-list-key))))))
 	      (or
 	       ;; Found a keyword that can't be a type?
 	       (match-beginning 1)
@@ -12874,7 +12874,7 @@ comment at the start of cc-engine.el for more info."
 			(or (c-on-identifier)
 			    (progn
 			      (c-backward-token-2)
-			      (looking-at c-brace-list-key)))))
+			      (looking-at c-enum-list-key)))))
 		 (setq colon-pos (point))
 		 (forward-char)
 		 (c-forward-syntactic-ws)
@@ -12913,8 +12913,8 @@ comment at the start of cc-engine.el for more info."
 		    (looking-at c-postfix-decl-spec-key)))
 	   (setq before-identifier nil)
 	   t)
-	  ((looking-at c-after-brace-list-key) t)
-	  ((looking-at c-brace-list-key) nil)
+	  ((looking-at c-after-enum-list-key) t)
+	  ((looking-at c-enum-list-key) nil)
 	  ((eq (char-after) ?\()
 	   (and (eq (c-backward-token-2) 0)
 		(or (looking-at c-decl-hangon-key)
@@ -12926,8 +12926,18 @@ comment at the start of cc-engine.el for more info."
 		(looking-at "\\s("))
 	   t)
 	  (t nil))))
-    (or (looking-at c-brace-list-key)
+    (or (looking-at c-enum-list-key)
 	(progn (goto-char here) nil))))
+
+(defun c-at-enum-brace (&optional pos)
+  ;; Return the position of the enum-like keyword introducing the brace at POS
+  ;; (default point), or nil if we're not at such a construct.
+  (save-excursion
+    (if pos
+	(goto-char pos)
+      (setq pos (point)))
+    (and (c-backward-over-enum-header)
+	 (point))))
 
 (defun c-laomib-loop (lim)
   ;; The "expensive" loop from `c-looking-at-or-maybe-in-bracelist'.  Move
@@ -13404,13 +13414,7 @@ comment at the start of cc-engine.el for more info."
   ;; speed.
   ;;
   ;; This function might do hidden buffer changes.
-  (or
-   ;; This will pick up brace list declarations.
-   (save-excursion
-     (goto-char containing-sexp)
-     (and (c-backward-over-enum-header)
-	  (point)))
-   ;; this will pick up array/aggregate init lists, even if they are nested.
+  ;; this will pick up array/aggregate init lists, even if they are nested.
    (save-excursion
      (let ((bufpos t)
 	    next-containing)
@@ -13435,7 +13439,7 @@ comment at the start of cc-engine.el for more info."
 		     next-containing nil)))))
        (and (consp bufpos)
 	    (or accept-in-paren (not (eq (cdr bufpos) 'in-paren)))
-	    (car bufpos))))))
+	    (car bufpos)))))
 
 (defun c-looking-at-special-brace-list ()
   ;; If we're looking at the start of a pike-style list, i.e., `({ })',
@@ -14149,6 +14153,8 @@ comment at the start of cc-engine.el for more info."
 		     (cdr (assoc (match-string 1)
 				 c-other-decl-block-key-in-symbols-alist))
 		     (max (c-point 'boi paren-pos) (point))))
+		   ((c-at-enum-brace paren-pos)
+		    (c-add-syntax 'enum-intro nil))
 		   ((c-inside-bracelist-p paren-pos paren-state nil)
 		    (if (save-excursion
 			  (goto-char paren-pos)
@@ -14232,7 +14238,7 @@ comment at the start of cc-engine.el for more info."
 
     (cond
      ;; (CASE A removed.)
-     ;; CASE B: open braces for class or brace-lists
+     ;; CASE B: open braces for class, enum or brace-lists
      ((setq special-brace-list
 	    (or (and c-special-brace-lists
 		     (c-looking-at-special-brace-list))
@@ -14246,6 +14252,10 @@ comment at the start of cc-engine.el for more info."
 	       (setq beg-of-same-or-containing-stmt (point))))
 	(c-add-syntax 'class-open beg-of-same-or-containing-stmt
 		      (c-point 'boi placeholder)))
+
+       ;; CASE B.6: enum-open.
+       ((setq placeholder (c-at-enum-brace))
+	(c-add-syntax 'enum-open placeholder))
 
        ;; CASE B.2: brace-list-open
        ((or (consp special-brace-list)
@@ -14410,7 +14420,7 @@ comment at the start of cc-engine.el for more info."
 	 literal char-before-ip before-ws-ip char-after-ip macro-start
 	 in-macro-expr c-syntactic-context placeholder
 	 step-type tmpsymbol keyword injava-inher special-brace-list tmp-pos
-	 tmp-pos2 containing-< tmp constraint-detail
+	 tmp-pos2 containing-< tmp constraint-detail enum-pos
 	 ;; The following record some positions for the containing
 	 ;; declaration block if we're directly within one:
 	 ;; `containing-decl-open' is the position of the open
@@ -14791,13 +14801,13 @@ comment at the start of cc-engine.el for more info."
 	    (c-add-syntax 'class-open placeholder
 			  (c-point 'boi tmp-pos)))
 
-	   ;; CASE 5A.3: brace list open
+	   ;; CASE 5A.3: brace-list/enum open
 	   ((save-excursion
 	      (goto-char indent-point)
 	      (skip-chars-forward " \t")
 	      (cond
-	       ((c-backward-over-enum-header)
-		(setq placeholder (c-point 'boi)))
+	       ((setq enum-pos (c-at-enum-brace))
+		(setq placeholder (c-point 'boi enum-pos)))
 	       ((consp (setq placeholder
 			     (c-looking-at-or-maybe-in-bracelist
 			      containing-sexp lim)))
@@ -14817,7 +14827,8 @@ comment at the start of cc-engine.el for more info."
 		(progn
 		  (c-beginning-of-statement-1 lim)
 		  (c-add-syntax 'topmost-intro-cont (c-point 'boi)))
-	      (c-add-syntax 'brace-list-open placeholder)))
+	      (c-add-syntax (if enum-pos 'enum-open 'brace-list-open)
+			    placeholder)))
 
 	   ;; CASE 5A.4: inline defun open
 	   ((and containing-decl-open
@@ -15487,11 +15498,16 @@ comment at the start of cc-engine.el for more info."
 			  (eq (c-beginning-of-statement-1 lim t nil t) 'same)
 			  (looking-at c-opt-inexpr-brace-list-key))))
 	       (progn
-		 (setq placeholder (c-inside-bracelist-p (point)
-							 paren-state
-							 nil))
+		 (setq placeholder
+		       (or (setq enum-pos (c-at-enum-brace))
+			   (c-inside-bracelist-p (point)
+						 paren-state
+						 nil)))
 		 (if placeholder
-		     (setq tmpsymbol '(brace-list-open . inexpr-class))
+		     (setq tmpsymbol
+			   `(,(if enum-pos 'enum-open 'brace-list-open)
+			     . inexpr-class)
+			   )
 		   (setq tmpsymbol '(block-open . inexpr-statement)
 			 placeholder
 			 (cdr-safe (c-looking-at-inexpr-block
@@ -15606,16 +15622,16 @@ comment at the start of cc-engine.el for more info."
 	  (c-add-syntax 'inher-cont (point))
 	  )))
 
-       ;; CASE 9: we are inside a brace-list
+       ;; CASE 9: we are inside a brace-list or enum.
        ((and (not (c-major-mode-is 'awk-mode))  ; Maybe this isn't needed (ACM, 2002/3/29)
 	     (setq special-brace-list
 		   (or (and c-special-brace-lists ;;;; ALWAYS NIL FOR AWK!!
 			    (save-excursion
 			      (goto-char containing-sexp)
 			      (c-looking-at-special-brace-list)))
+		       (setq enum-pos (c-at-enum-brace containing-sexp))
 		       (c-inside-bracelist-p containing-sexp paren-state t))))
 	(cond
-
 	 ;; CASE 9A: In the middle of a special brace list opener.
 	 ((and (consp special-brace-list)
 	       (save-excursion
@@ -15641,7 +15657,7 @@ comment at the start of cc-engine.el for more info."
 		     (c-forward-noise-clause))))
 	    (c-add-syntax 'brace-list-open (c-point 'boi))))
 
-	 ;; CASE 9B: brace-list-close brace
+	 ;; CASE 9B: brace-list-close/enum-close brace
 	 ((if (consp special-brace-list)
 	      ;; Check special brace list closer.
 	      (progn
@@ -15662,7 +15678,8 @@ comment at the start of cc-engine.el for more info."
 		 (c-safe (goto-char (c-up-list-backward (point))) t)
 		 (= (point) containing-sexp)))
 	  (if (eq (point) (c-point 'boi))
-	      (c-add-syntax 'brace-list-close (point))
+	      (c-add-syntax (if enum-pos 'enum-close 'brace-list-close)
+			    (point))
 	    (setq lim (or (save-excursion
 			    (and
 			     (c-back-over-member-initializers
@@ -15670,7 +15687,8 @@ comment at the start of cc-engine.el for more info."
 			     (point)))
 			  (c-most-enclosing-brace state-cache (point))))
 	    (c-beginning-of-statement-1 lim nil nil t)
-	    (c-add-stmt-syntax 'brace-list-close nil t lim paren-state)))
+	    (c-add-stmt-syntax (if enum-pos 'enum-close 'brace-list-close)
+			       nil t lim paren-state)))
 
 	 (t
 	  ;; Prepare for the rest of the cases below by going back to the
@@ -15690,13 +15708,14 @@ comment at the start of cc-engine.el for more info."
 	      (c-skip-ws-forward indent-point)))
 	  (cond
 
-	   ;; CASE 9C: we're looking at the first line in a brace-list
+	   ;; CASE 9C: we're looking at the first line in a brace-list/enum
 	   ((= (point) indent-point)
 	    (if (consp special-brace-list)
 		(goto-char (car (car special-brace-list)))
 	      (goto-char containing-sexp))
 	    (if (eq (point) (c-point 'boi))
-		(c-add-syntax 'brace-list-intro (point))
+		(c-add-syntax (if enum-pos 'enum-intro 'brace-list-intro)
+			      (point))
 	      (setq lim (or (save-excursion
 			      (and
 			       (c-back-over-member-initializers
@@ -15704,9 +15723,10 @@ comment at the start of cc-engine.el for more info."
 			       (point)))
 			    (c-most-enclosing-brace state-cache (point))))
 	      (c-beginning-of-statement-1 lim nil nil t)
-	      (c-add-stmt-syntax 'brace-list-intro nil t lim paren-state)))
+	      (c-add-stmt-syntax (if enum-pos 'enum-intro 'brace-list-intro)
+				 nil t lim paren-state)))
 
-	   ;; CASE 9D: this is just a later brace-list-entry or
+	   ;; CASE 9D: this is just a later brace-list-entry/enum-entry or
 	   ;; brace-entry-open
 	   (t (if (or (eq char-after-ip ?{)
 		      (and c-special-brace-lists
@@ -15715,10 +15735,9 @@ comment at the start of cc-engine.el for more info."
 			     (c-forward-syntactic-ws (c-point 'eol))
 			     (c-looking-at-special-brace-list))))
 		  (c-add-syntax 'brace-entry-open (point))
-		(c-add-stmt-syntax 'brace-list-entry nil t containing-sexp
-				   paren-state (point))
-		))
-	   ))))
+		(c-add-stmt-syntax (if enum-pos 'enum-entry 'brace-list-entry)
+				   nil t containing-sexp
+				   paren-state (point))))))))
 
        ;; CASE 10: A continued statement or top level construct.
        ((and (not (memq char-before-ip '(?\; ?:)))
@@ -16092,12 +16111,24 @@ comment at the start of cc-engine.el for more info."
 
 ;; Indentation calculation.
 
+(defvar c-used-syntactic-symbols nil)
+;; The syntactic symbols so far used in a chain of them.
+;; It is used to prevent infinite loops when the OFFSET in `c-evaluate-offset'
+;; is itself a syntactic symbol.
+
 (defun c-evaluate-offset (offset langelem symbol)
-  ;; offset can be a number, a function, a variable, a list, or one of
-  ;; the symbols + or -
+  ;; Evaluate the offset for OFFSET, returning it either as a number,
+  ;; a vector, a symbol (whose value gets used), or nil.
+  ;; OFFSET is a number, a function, a syntactic symbol, a variable, a list,
+  ;; or a symbol such as +, -, etc.
+  ;; LANGELEM is the original language element for which this function is
+  ;; being called.
+  ;; SYMBOL is the syntactic symbol, used mainly for error messages.
   ;;
   ;; This function might do hidden buffer changes.
-  (let ((res
+  (let*
+      (offset1
+       (res
 	 (cond
 	  ((numberp offset) offset)
 	  ((vectorp offset) offset)
@@ -16116,6 +16147,15 @@ comment at the start of cc-engine.el for more info."
 		     (cons (c-langelem-sym langelem)
 			   (c-langelem-pos langelem)))
 	    langelem symbol))
+
+	  ((setq offset1 (assq offset c-offsets-alist))
+	   (when (memq offset c-used-syntactic-symbols)
+	     (error "Error evaluating offset %S for %s: \
+Infinite loop of syntactic symbols: %S."
+		    offset symbol c-used-syntactic-symbols))
+	   (let ((c-used-syntactic-symbols
+		  (cons symbol c-used-syntactic-symbols)))
+	     (c-evaluate-offset (cdr-safe offset1) langelem offset)))
 
 	  ((listp offset)
 	   (cond
