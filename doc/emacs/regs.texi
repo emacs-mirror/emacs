@@ -290,40 +290,39 @@ numeric argument stores zero in the register.
 @cindex saving file name in a register
 @cindex saving buffer name in a register
 
-  If you visit certain file names frequently, you can visit them more
-conveniently if you put their names in registers.  Here's the Lisp code
-used to put a file @var{name} into register @var{r}:
+@table @kbd
+@item C-x r F @var{r}
+Store the currently visited file or directory in register
+@var{r} (@code{file-to-register}).
+@item C-x r B @var{r}
+Store the currently visited buffer in register
+@var{r} (@code{buffer-to-register}).
+@end table
 
-@smallexample
-(set-register @var{r} '(file . @var{name}))
-@end smallexample
+If you visit certain files or buffers frequently, you can visit them
+more conveniently if you put their names in registers.
 
-@need 3000
-@noindent
-For example,
+@kindex C-x r F
+@findex file-to-register
+        Typing @kbd{C-x r F} (@code{file-to-register}), followed by a
+character @kbd{@var{r}}, saves a reference to the currently visited file
+in register @var{r}.  You can then visit the file using
+@code{jump-to-register} by typing @kbd{C-x r j} @var{r}. With a prefix
+argument, @code{file-to-register} prompts for a file name to store in
+the register.
 
-@smallexample
-(set-register ?z '(file . "/gd/gnu/emacs/19.0/src/ChangeLog"))
-@end smallexample
+@kindex C-x r B
+@findex buffer-to-register
+        Typing @kbd{C-x r B} (@code{buffer-to-register}), followed by a
+character @kbd{@var{r}}, saves a reference to the currently visited buffer
+in register @var{r}.  You can then revisit the buffer using
+@code{jump-to-register}. With a prefix argument, @code{buffer-to-register}
+prompts for a buffer name to store in the register.
 
-@noindent
-puts the file name shown in register @samp{z}.
-
-  To visit the file whose name is in register @var{r}, type @kbd{C-x r j
-@var{r}}.  (This is the same command used to jump to a position or
-restore a frame configuration.)
-
-  Similarly, if there are certain buffers you visit frequently, you
-can put their names in registers.  For instance, if you visit the
-@samp{*Messages*} buffer often, you can use the following snippet to
-put that buffer into the @samp{m} register:
-
-@smallexample
-(set-register ?m '(buffer . "*Messages*"))
-@end smallexample
-
-  To switch to the buffer whose name is in register @var{r}, type
-@kbd{C-x r j @var{r}}.
+        If you store a buffer name which is visiting a file in a
+register, and the buffer is then closed, the register is automatically
+converted to a file reference, allowing you to quickly re-open the
+closed file.
 
 @node Keyboard Macro Registers
 @section Keyboard Macro Registers

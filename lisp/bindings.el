@@ -1574,7 +1574,9 @@ if `inhibit-field-text-motion' is non-nil."
   "n"     #'number-to-register
   "+"     #'increment-register
   "w"     #'window-configuration-to-register
-  "f"     #'frameset-to-register)
+  "f"     #'frameset-to-register
+  "F"     #'file-to-register
+  "B"     #'buffer-to-register)
 (define-key ctl-x-map "r" ctl-x-r-map)
 
 (define-key esc-map "q" 'fill-paragraph)
