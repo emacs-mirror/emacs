@@ -409,6 +409,8 @@ mode.  Now, one needs to say (midnight-mode +1) instead.
 
 * Incompatible Lisp Changes in Emacs 31.1
 
+** Nested backquotes are not supported any more in Pcase patterns.
+
 ** The 'rx' category name 'chinese-two-byte' must now be spelled correctly.
 An old alternative name (without the first 'e') has been removed.
 

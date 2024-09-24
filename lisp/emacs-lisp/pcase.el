@@ -1172,7 +1172,10 @@ The predicate is the logical-AND of:
           (upatd (pcase--expand-\` (cdr qpat))))
       (if (and (eq (car-safe upata) 'quote) (eq (car-safe upatd) 'quote))
           `'(,(cadr upata) . ,(cadr upatd))
-        `(and (pred consp)
+        `(and ,@(when (eq (car qpat) '\`)
+                  `((guard ,(macroexp-warn-and-return
+                             "Nested ` are not supported" t nil nil qpat))))
+              (pred consp)
               (app car-safe ,upata)
               (app cdr-safe ,upatd)))))
    ((or (stringp qpat) (numberp qpat) (symbolp qpat)) `',qpat)
