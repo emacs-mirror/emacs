@@ -2082,7 +2082,8 @@ When applying all hunks was successful, then save the changed buffers."
                (save-buffer)))
            (message "Saved %d buffers" (length buffer-edits)))
           (t
-           (message "%d hunks failed; no buffers changed" failures)))))
+           (message "%d %s failed; no buffers changed"
+                    failures (if (> failures 1) "hunks" "hunk"))))))
 
 (defalias 'diff-mouse-goto-source #'diff-goto-source)
 
