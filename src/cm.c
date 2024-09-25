@@ -193,7 +193,7 @@ calccost (struct tty_display_info *tty,
             tabcost;
     register const char *p;
 
-    /* If have just wrapped on a terminal with xn,
+    /* If we have just wrapped on a terminal with xn,
        don't believe the cursor position: give up here
        and force use of absolute positioning.  */
 
