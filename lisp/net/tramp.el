@@ -2480,8 +2480,11 @@ Fall back to normal file name handler if no Tramp file name handler exists."
 			  ;; We flush connection properties
 			  ;; "process-name" and "process-buffer",
 			  ;; because the operations shall be applied
-			  ;; in the main connection process.
-                          ;; If `non-essential' is non-nil, Tramp shall
+			  ;; in the main connection process.  In order
+			  ;; to avoid suspicious debug buffers during
+			  ;; host name completion, we adapt
+			  ;; `tramp-verbose'.
+			  ;; If `non-essential' is non-nil, Tramp shall
 		          ;; not open a new connection.
 		          ;; If Tramp detects that it shouldn't continue
 		          ;; to work, it throws the `suppress' event.
@@ -2491,8 +2494,11 @@ Fall back to normal file name handler if no Tramp file name handler exists."
 		          ;; In both cases, we try the default handler then.
 			  (with-tramp-saved-connection-properties
 			      v '("process-name" "process-buffer")
-			    (tramp-flush-connection-property v "process-name")
-			    (tramp-flush-connection-property v "process-buffer")
+			    (let ((tramp-verbose
+				   (if minibuffer-completing-file-name
+				       0 tramp-verbose)))
+			      (tramp-flush-connection-property v "process-name")
+			      (tramp-flush-connection-property v "process-buffer"))
 		            (setq result
 				  (catch 'non-essential
 			            (catch 'suppress
