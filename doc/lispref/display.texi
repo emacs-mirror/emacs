@@ -8053,6 +8053,7 @@ These are commands and functions for locating and operating on
 buttons in an Emacs buffer.
 
 @cindex buffer-button-map
+@findex button-mode
 @code{push-button} is the command that a user uses to actually push
 a button, and is bound by default in the button itself to @key{RET}
 and to @key{mouse-2} using a local keymap in the button's overlay or
@@ -8063,7 +8064,8 @@ additionally available in the keymap stored in
 @code{button-buffer-map} as a parent keymap for its keymap.
 Alternatively, the @code{button-mode} can be switched on for much the
 same effect: It's a minor mode that does nothing else than install
-@code{button-buffer-map} as a minor mode keymap.
+@code{button-buffer-map} as a minor mode keymap (note that disabling
+@code{button-mode} will remove all the buttons in the current buffer).
 
 If the button has a non-@code{nil} @code{follow-link} property, and
 @code{mouse-1-click-follows-link} is set, a quick @key{mouse-1} click

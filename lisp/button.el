@@ -80,8 +80,15 @@ Mode-specific keymaps may want to use this as their parent keymap."
   "<touchscreen-down>" #'push-button)
 
 (define-minor-mode button-mode
-  "A minor mode for navigating to buttons with the TAB key."
-  :keymap button-buffer-map)
+  "A minor mode for navigating to buttons with the TAB key.
+
+Disabling the mode will remove all buttons in the current buffer."
+  :keymap button-buffer-map
+  (when (not button-mode)
+    (save-excursion
+      (save-restriction
+        (widen)
+        (unbuttonize-region (point-min) (point-max))))))
 
 ;; Default properties for buttons.
 (put 'default-button 'face 'button)

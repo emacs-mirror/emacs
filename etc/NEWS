@@ -228,6 +228,9 @@ response.
 *** New function 'unbuttonize-region'.
 It removes all the buttons in the specified region.
 
++++
+*** Disabling 'button-mode' now removes all buttons in the current buffer.
+
 ** Eshell
 
 ---
