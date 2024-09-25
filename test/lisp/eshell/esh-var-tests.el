@@ -669,6 +669,11 @@ nil, use FUNCTION instead."
    (eshell-match-command-output "env VAR=hello env" "VAR=hello\n")
    (should (equal (getenv "VAR") "value"))))
 
+(ert-deftest esh-var-test/local-variables/env/no-locals ()
+  "Test that \"env command\" works like \"command\"."
+  (with-temp-eshell
+   (eshell-match-command-output "env echo hi" "\\`hi\n")))
+
 
 ;; Variable aliases
 
