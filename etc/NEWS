@@ -494,6 +494,12 @@ instead.
 ---
 *** Support 'electric-layout-mode'.
 
+** Tmm Menubar
+
+---
+*** Add a shortcut to navigate to previous menu
+The hardcoded "^" shortcut gets you back to the previous menu.
+
 
 * New Modes and Packages in Emacs 31.1
 
