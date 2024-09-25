@@ -248,6 +248,28 @@ will now automatically turn on 'visual-wrap-prefix-mode' in addition to
 near window edge and the continuation lines are indented using prefixes
 computed from surrounding context.
 
+** CC Mode
+
++++
+*** New type of 'c-offsets-alist' element.
+The cdr of such an alist element may now be a syntactic symbol.  A
+source line with a syntactic element whose symbol is the car of that
+alist element is indented as though it were the cdr.
+
++++
+*** Enums now have their own syntactic symbols.
+The new symbols 'enum-open', 'enum-close', 'enum-intro' and
+'enum-entry' are used in the analysis of enum constructs.  Previously
+they were given 'brace-list-open', etc.  These are fully described in
+the CC Mode manual.
+
++++
+*** Enums are now, by default, indented like classes, not brace-lists.
+To get the old behavior back, add an element '(enum-open
+. brace-list-open)' to 'c-offsets-alist' in your CC Mode style, or amend
+'c-offsets-alist' likewise in any of the other ways detailed in the CC
+Mode manual page "Config Basics".
+
 ** Go-ts mode
 
 +++
