@@ -158,10 +158,18 @@ If the value is `annotation', annotate each completion candidate
 with a suffix that is the section name to which it belongs.
 If the value is `group', split completion candidates into groups
 according to the sections.
+Any other value is treated as `prefix'.
+
 Since the values `annotation' and `group' rely on text properties,
 you can use them only by selecting candidates from the completions
-buffer, not by typing in the minibuffer.
-Any other value is treated as `prefix'.
+buffer, not by typing in the minibuffer.  This also means that
+if you use `minibuffer-next-completion' (`M-<down>') to select
+a completion while point stays in the minibuffer, you need
+to customize `minibuffer-completion-auto-choose' to nil that
+doesn't insert completion candidates to the minibuffer.
+Also note that for using the value `group' you need to customize
+`completions-group' to the value t, and `completions-format'
+to the value `vertical'.
 
 The value of `imenu-level-separator', a string, is used to separate
 names from different flattened levels, such as section names, from the
