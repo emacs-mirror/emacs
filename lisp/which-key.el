@@ -2037,7 +2037,7 @@ that width."
           (mapcar (pcase-lambda (`(,key ,sep ,desc ,_doc))
                     (concat
                      (format col-format key sep desc)
-                     (make-string (- col-desc-width (length desc)) ?\s)))
+                     (make-string (- col-desc-width (string-width desc)) ?\s)))
                   col-keys))))
 
 (defun which-key--partition-list (n list)
