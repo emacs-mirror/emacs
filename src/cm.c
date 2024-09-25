@@ -317,6 +317,8 @@ losecursor (void)
 #define	USELL	2
 #define	USECR	3
 
+/* Move the cursor to (row, col), by computing the optimal way. */
+
 void
 cmgoto (struct tty_display_info *tty, int row, int col)
 {
