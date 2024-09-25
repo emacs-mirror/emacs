@@ -663,9 +663,21 @@ itself will be used instead as the function argument.
 
 If HELP-ECHO, use that as the `help-echo' property.
 
-Also see `buttonize'."
+Also see `buttonize' and `unbuttonize-region'."
   (add-text-properties start end (button--properties callback data help-echo))
   (add-face-text-property start end 'button t))
+
+(defun unbuttonize-region (start end)
+  "Remove all the buttons between START and END.
+This removes both text-property and overlay based buttons."
+  (dolist (o (overlays-in start end))
+    (when (overlay-get o 'button)
+      (delete-overlay o)))
+  (with-silent-modifications
+    (remove-text-properties start end
+                            (button--properties nil nil nil))
+    (add-face-text-property start end
+                            'button nil)))
 
 (provide 'button)
 

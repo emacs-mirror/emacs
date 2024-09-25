@@ -222,6 +222,12 @@ When called with a prefix argument, accepting, declining, or tentatively
 accepting an icalendar event will prompt for a comment to add to the
 response.
 
+** Button
+
++++
+*** New function 'unbuttonize-region'.
+It removes all the buttons in the specified region.
+
 ** Eshell
 
 ---

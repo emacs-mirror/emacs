@@ -7968,6 +7968,11 @@ between @var{start} and @var{end} into a button.  Arguments
 @code{help-echo} property of the button.
 @end defun
 
+@defun unbuttonize-region start end
+This function removes all buttons between @var{start} and @var{end} in
+the current buffer (both overlay and text-property based ones).
+@end defun
+
 @node Manipulating Buttons
 @subsection Manipulating Buttons
 @cindex manipulating buttons
