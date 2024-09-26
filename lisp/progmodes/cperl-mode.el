@@ -6225,7 +6225,7 @@ default function."
    (t (funcall (default-value 'font-lock-syntactic-face-function) state))))
 
 (defface cperl-method-call
-  '((t (:inherit 'default )))
+  '((t (:inherit default )))
   "Font Lock mode face for method calls.
 Usually, method calls are not fontified.
 We use this face to prevent calls to methods which look like
