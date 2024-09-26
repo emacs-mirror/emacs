@@ -3583,7 +3583,6 @@ the deferred compilation mechanism."
                               do (comp-log (format "Pass %s took: %fs."
                                                    pass time)
                                            0))))
-                (native-compiler-skip)
                 (t
                  (let ((err-val (cdr err)))
                    ;; If we are doing an async native compilation print the
