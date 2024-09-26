@@ -293,8 +293,15 @@
 (autoload 'comint-mode "comint")
 (autoload 'help-function-arglist "help-fns")
 
+(defconst python--auto-mode-alist-regexp
+  (rx "." (or "py"
+              "pth"                     ; Python Path Configuration File
+              "pyi"                     ; Python Stub File (PEP 484)
+              "pyw")                    ; MS-Windows specific extension
+      eos))
+
 ;;;###autoload
-(add-to-list 'auto-mode-alist (cons (purecopy "\\.py[iw]?\\'") 'python-mode))
+(add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-mode))
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist (cons (purecopy "python[0-9.]*") 'python-mode))
 
@@ -7208,7 +7215,7 @@ implementations: `python-mode' and `python-ts-mode'."
     (when python-indent-guess-indent-offset
       (python-indent-guess-indent-offset))
 
-    (add-to-list 'auto-mode-alist '("\\.py[iw]?\\'" . python-ts-mode))
+    (add-to-list 'auto-mode-alist '(python--auto-mode-alist-regexp . python-ts-mode))
     (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode))))
 
 (derived-mode-add-parents 'python-ts-mode '(python-mode))
