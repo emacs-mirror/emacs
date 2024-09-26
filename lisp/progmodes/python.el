@@ -312,14 +312,17 @@
   :version "24.3"
   :link '(emacs-commentary-link "python"))
 
-(defcustom python-interpreter "python"
+(defcustom python-interpreter
+  (cond ((executable-find "python3") "python3")
+        ((executable-find "python") "python")
+        (t "python3"))
   "Python interpreter for noninteractive use.
 Some Python interpreters also require changes to
 `python-interpreter-args'.
 
 To customize the Python interpreter for interactive use, modify
 `python-shell-interpreter' instead."
-  :version "29.1"
+  :version "30.1"
   :type 'string)
 
 (defcustom python-interpreter-args ""
