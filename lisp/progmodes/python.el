@@ -293,6 +293,7 @@
 (autoload 'comint-mode "comint")
 (autoload 'help-function-arglist "help-fns")
 
+;;;###autoload
 (defconst python--auto-mode-alist-regexp
   (rx "." (or "py"
               "pth"                     ; Python Path Configuration File
