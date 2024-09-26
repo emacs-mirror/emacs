@@ -1172,12 +1172,13 @@ The predicate is the logical-AND of:
           (upatd (pcase--expand-\` (cdr qpat))))
       (if (and (eq (car-safe upata) 'quote) (eq (car-safe upatd) 'quote))
           `'(,(cadr upata) . ,(cadr upatd))
-        `(and ,@(when (eq (car qpat) '\`)
-                  `((guard ,(macroexp-warn-and-return
-                             "Nested ` are not supported" t nil nil qpat))))
-              (pred consp)
+        `(and (pred consp)
               (app car-safe ,upata)
-              (app cdr-safe ,upatd)))))
+              (app cdr-safe ,upatd)
+              ,@(when (eq (car qpat) '\`)
+                  `((guard ,(macroexp-warn-and-return
+                             "Nested ` are not supported in Pcase patterns"
+                             t nil nil qpat))))))))
    ((or (stringp qpat) (numberp qpat) (symbolp qpat)) `',qpat)
    ;; In all other cases just raise an error so we can't break
    ;; backward compatibility when adding \` support for other
