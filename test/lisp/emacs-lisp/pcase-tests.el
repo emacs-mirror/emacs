@@ -85,7 +85,7 @@
                                     (`(,_ . ,_) (BAR))
                                     ('(a b) (FOO))))))
   (let ((exp1 (macroexpand '(pcase EXP
-                              (`(`(,(or 'a1 'b1)) (FOO1)))
+                              (`((,(or 'a1 'b1))) (FOO1))
                               ('(c) (FOO2))
                               ('(d) (FOO3))))))
     (should (= 1 (with-temp-buffer (prin1 exp1 (current-buffer))
