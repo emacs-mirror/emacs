@@ -1158,8 +1158,8 @@ the place to write arbitrary keywords that describe their package,
 rather than just the relevant Finder keywords.
 
 @item URL
-@itemx Homepage
-These lines state the website of the library.
+This line states the website of the library.  @samp{Homepage} is a
+deprecated alternative to @samp{URL}.
 
 @item Package-Version
 If @samp{Version} is not suitable for use by the package manager, then
