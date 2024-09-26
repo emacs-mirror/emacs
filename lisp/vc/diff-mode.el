@@ -2055,7 +2055,8 @@ With a prefix argument, try to REVERSE the hunk."
 
 (defcustom diff-ask-before-revert-and-kill-hunk t
   "If non-nil, `diff-revert-and-kill-hunk' will ask for confirmation."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 
 (defun diff-revert-and-kill-hunk ()
   "Reverse-apply and then kill the hunk at point.  Save changed buffer.
@@ -2068,7 +2069,7 @@ to permanently drop changes you didn't intend, or no longer want.
 
 This is a destructive operation, so by default, this command asks you to
 confirm you really want to reverse-apply and kill the hunk.  You can
-customize `diff-ask-before-revert-and-kill-hunk' to change that."
+customize `diff-ask-before-revert-and-kill-hunk' to control that."
   (interactive)
   (when (or (not diff-ask-before-revert-and-kill-hunk)
             (yes-or-no-p "Really reverse-apply and kill this hunk?"))
@@ -2078,11 +2079,11 @@ customize `diff-ask-before-revert-and-kill-hunk' to change that."
 
 (defun diff-apply-buffer (&optional beg end reverse)
   "Apply the diff in the entire diff buffer.
-When applying all hunks was successful, then save the changed buffers.
+If applying all hunks succeeds, save the changed buffers.
 When called from Lisp with optional arguments, restrict the application
-to hunks lying between BEG and END, and reverse-apply when REVERSE is
-non-nil.  Returns nil if buffers were saved, or the number of failed
-applications."
+to hunks lying between BEG and END, and reverse-apply them when REVERSE is
+non-nil.  Returns nil if buffers were successfully modified and saved, or
+the number of failed hunk applications otherwise."
   (interactive)
   (let ((buffer-edits nil)
         (failures 0)
