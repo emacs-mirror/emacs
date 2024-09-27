@@ -35,6 +35,19 @@ has been removed.
 Option 'erc-keep-place-indicator-truncation' manages the tension between
 truncation and place keeping, prioritizing one or the other.
 
+** Updated defaults for the 'track' module's face-list options.
+The default values of options 'erc-track-faces-priority-list' and
+'erc-track-faces-normal-list' have both gained a face for buttonized
+speaker names, with the latter option also gaining 'erc-notice-face'.
+This was done to provide a more frequent and practical indication of
+channel activity in keeping with the module's original design.
+
+** An arguably less distracting 'erc-nicks-track-faces' variant.
+Setting this option to t tells the 'track' module to have the mode-line
+indicator stick with the most recent speaker's face, even when they're
+monologuing, instead of alternating between it and the highest ranked
+'erc-track-faces-normal-list' member in a given message.
+
 
 * Changes in ERC 5.6
 

@@ -227,6 +227,13 @@
 (defun erc-track-tests--select-mode-line-face (ranked normals cases)
   (setq normals (map-into (mapcar (lambda (f) (cons f t)) normals)
                           '(hash-table :test equal)))
+
+  (setq ranked (cons (map-into (mapcar (let ((i 0))
+                                         (lambda (f) (cons f (cl-incf i))))
+                                       ranked)
+                               '(hash-table :test equal))
+                     ranked))
+
   (pcase-dolist (`(,want ,cur-face ,new-faces) cases)
 
     (ert-info ((format "Observed: {cur: %S, new: %S, want: %S}"
@@ -235,8 +242,8 @@
                              (mapcar (lambda (f) (cons f t)) new-faces)
                              '(hash-table :test equal))
                             (reverse new-faces)))
-      (should (equal want (funcall #'erc-track--select-mode-line-face
-                                   cur-face new-faces ranked normals))))))
+      (should (equal want (erc-track--select-mode-line-face
+                           cur-face new-faces ranked normals))))))
 
 ;; The main difference between these variants is that with the above,
 ;; when given alternating lines like
@@ -409,5 +416,256 @@
     (widen)
     (when noninteractive
       (kill-buffer))))
+
+(defun erc-track-tests--modified-channels/baseline (set-faces)
+  ;; Simulate a JOIN, PART, etc. that's displayed in `erc-notice-face'.
+  (funcall set-faces '(erc-notice-face))
+  (erc-track-modified-channels)
+  (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                 '(1 . erc-notice-face)))
+
+  ;; Someone speaks, and the mode-line face goes from ERC's generic
+  ;; "notice" face, `erc-notice-face', to the first face in the
+  ;; inserted message that outranks it, which happens to be the
+  ;; `button' module's composite face for buttonized speakers:
+  ;; (erc-button-nick-default-face erc-nick-default-face).  It
+  ;; outranks both the previous occupant, `erc-notice-face', and its
+  ;; one cohabitant in the message text, `erc-default-face', in
+  ;; `erc-track-faces-priority-list'.  Note that in the following
+  ;; list, `erc-default-face' appears first because it's used for the
+  ;; opening speaker bracket "<".  The timestamp appears last because
+  ;; it's a right-sided stamp appended to the message body.
+  (funcall set-faces '(erc-timestamp-face
+                       (erc-button-nick-default-face erc-nick-default-face)
+                       erc-default-face))
+  (erc-track-modified-channels)
+  (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                 '(2 erc-button-nick-default-face erc-nick-default-face)))
+
+  ;; The speaker speaks again immediately, and the segment changes to
+  ;; `erc-default-face', which appears later in the message, as
+  ;; normal body text.  This happens because both `erc-default-face'
+  ;; and (erc-button-nick-default-face erc-nick-default-face) appear
+  ;; in `erc-track-faces-normal-list', meaning the lower-ranked
+  ;; former can replace the higher-ranked latter in the mode-line for
+  ;; the purpose of indicating channel activity.
+  (funcall set-faces '(erc-timestamp-face
+                       (erc-button-nick-default-face erc-nick-default-face)
+                       erc-default-face))
+  (erc-track-modified-channels)
+  (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                 '(3 . erc-default-face)))
+
+  ;; Note: if (erc-button-nick-default-face erc-nick-default-face)
+  ;; were removed from `erc-track-faces-priority-list' but kept in
+  ;; `erc-track-faces-normal-list', then replaying the sequence would
+  ;; result in the previous two results being switched:
+  ;; `erc-default-face' would replace `erc-notice-face' before being
+  ;; replaced by the buttonized composite.
+
+  ;; The speaker speaks yet again, and the segment goes back to the
+  ;; higher ranking face.
+  (funcall set-faces '(erc-timestamp-face
+                       (erc-button-nick-default-face erc-nick-default-face)
+                       erc-default-face))
+  (erc-track-modified-channels)
+  (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                 '(4 erc-button-nick-default-face erc-nick-default-face)))
+
+  ;; Finally, another notice arrives.  Although lower ranked, it also
+  ;; appears in `erc-track-faces-normal-list' and so is eligible to
+  ;; replace the incumbent.
+  (funcall set-faces '(erc-notice-face))
+  (erc-track-modified-channels)
+  (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                 '(5 . erc-notice-face))))
+
+(ert-deftest erc-track-modified-channels/baseline ()
+  (erc-tests-common-track-modified-channels
+   #'erc-track-tests--modified-channels/baseline))
+
+(ert-deftest erc-track-modified-channels/baseline/mention ()
+  (erc-tests-common-track-modified-channels
+   (lambda (set-faces)
+     ;; Note: these messages don't have timestamps.
+
+     ;; Simulate a JOIN, PART, etc. that's displayed in `erc-notice-face'.
+     (funcall set-faces '(erc-notice-face))
+     (erc-track-modified-channels)
+     (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                    '(1 . erc-notice-face)))
+
+     ;; Someone speaks, mentioning someone else, and the mode-line
+     ;; changes to (erc-button-nick-default-face erc-nick-default-face)
+     ;; rather than (erc-button-nick-default-face erc-default-face)
+     ;; based on their rankings in `erc-track-faces-priority-list'.
+     (funcall set-faces '((erc-button-nick-default-face erc-default-face)
+                          (erc-button-nick-default-face erc-nick-default-face)
+                          erc-default-face))
+     (erc-track-modified-channels)
+     (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                    '(2 erc-button-nick-default-face erc-nick-default-face)))
+
+     ;; Someone else speaks, again with a mention and additional body text.
+     (funcall set-faces '((erc-button-nick-default-face erc-default-face)
+                          (erc-button-nick-default-face erc-nick-default-face)
+                          erc-default-face))
+     (erc-track-modified-channels)
+     (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                    '(3 erc-button-nick-default-face erc-default-face)))
+
+     ;; And yet again, which results in the indicator going back to one.
+     (funcall set-faces '((erc-button-nick-default-face erc-default-face)
+                          (erc-button-nick-default-face erc-nick-default-face)
+                          erc-default-face))
+     (erc-track-modified-channels)
+     (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                    '(4 erc-button-nick-default-face erc-nick-default-face)))
+
+     ;; Finally, another notice arrives.
+     (funcall set-faces '(erc-notice-face))
+     (erc-track-modified-channels)
+     (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                    '(5 . erc-notice-face))))))
+
+;; The compat-oriented option `erc-track-ignore-normal-contenders-p'
+;; blinds track to `erc-track-faces-normal-list' for certain consecutive
+;; messages with an identical face makeup.
+(ert-deftest erc-track-modified-channels/baseline/ignore ()
+  (let ((erc-track-ignore-normal-contenders-p t))
+    (erc-tests-common-track-modified-channels
+     (lambda (set-faces)
+       ;; Simulate a JOIN, PART, etc. that's displayed in `erc-notice-face'.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(1 . erc-notice-face)))
+
+       ;; Someone speaks, and the mode-line indicator's face changes to
+       ;; that of a buttonized speaker.
+       (funcall set-faces
+                '(erc-timestamp-face
+                  (erc-button-nick-default-face erc-nick-default-face)
+                  erc-default-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(2 erc-button-nick-default-face erc-nick-default-face)))
+
+       ;; The speaker speaks again immediately, and the segment doesn't
+       ;; change.
+       (funcall set-faces
+                '(erc-timestamp-face
+                  (erc-button-nick-default-face erc-nick-default-face)
+                  erc-default-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(3 erc-button-nick-default-face erc-nick-default-face)))
+
+       ;; Finally, another notice arrives.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(4 . erc-notice-face)))))))
+
+;; Compat-oriented option `erc-track-ignore-normal-contenders-p'.
+(ert-deftest erc-track-modified-channels/baseline/mention/ignore ()
+  (let ((erc-track-ignore-normal-contenders-p t))
+    (erc-tests-common-track-modified-channels
+     (lambda (set-faces)
+
+       ;; Simulate a JOIN, PART, etc. that's displayed in `erc-notice-face'.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(1 . erc-notice-face)))
+
+       ;; Someone speaks, and the mode-line indicator's face changes to
+       ;; that of a buttonized speaker.
+       (funcall set-faces
+                '((erc-button-nick-default-face erc-default-face)
+                  (erc-button-nick-default-face erc-nick-default-face)
+                  erc-default-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(2 erc-button-nick-default-face erc-nick-default-face)))
+
+       ;; Someone else speaks, again with a mention and additional body
+       ;; text, but the indicator stays the same.
+       (funcall set-faces
+                '((erc-button-nick-default-face erc-default-face)
+                  (erc-button-nick-default-face erc-nick-default-face)
+                  erc-default-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(3 erc-button-nick-default-face erc-nick-default-face)))
+
+       ;; Finally, another notice arrives.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(4 . erc-notice-face)))))))
+
+;; Option `erc-track-priority-faces-only' does not affect the behavior
+;; of the baseline "normals" scenario because all faces appear in
+;; `erc-track-faces-priority-list'.
+(ert-deftest erc-track-modified-channels/priority-only-all/baseline ()
+  (let ((erc-track-priority-faces-only 'all))
+    (erc-tests-common-track-modified-channels
+     #'erc-track-tests--modified-channels/baseline)))
+
+;; This test simulates a common configuration that combines an
+;; `erc-track-faces-priority-list' removed of `erc-notice-face' with
+;; `erc-track-priority-faces-only' being `all'.  It also features in the
+;; sample configuration in ERC's manual.
+(ert-deftest erc-track-modified-channels/priority-only-all/sans-notice ()
+  (let ((erc-track-priority-faces-only 'all)
+        (erc-track-faces-priority-list
+         (remq 'erc-notice-face erc-track-faces-priority-list)))
+
+    (erc-tests-common-track-modified-channels
+     (lambda (set-faces)
+       ;; Note: these messages don't have timestamps.
+
+       ;; Simulate a message normally displayed in `erc-notice-face',
+       ;; which has been removed from `erc-track-faces-priority-list'.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (should-not (alist-get (current-buffer) erc-modified-channels-alist))
+
+       ;; Someone speaks, mentioning someone else, and the mode-line
+       ;; changes to the buttonized speaker face rather than the
+       ;; buttonized mention face, due to their respective ranks.
+       (funcall set-faces
+                '((erc-button-nick-default-face erc-default-face)
+                  (erc-button-nick-default-face erc-nick-default-face)
+                  erc-default-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(1 erc-button-nick-default-face erc-nick-default-face)))
+
+       ;; Someone else speaks, again with a mention and additional body text.
+       (funcall set-faces
+                '((erc-button-nick-default-face erc-default-face)
+                  (erc-button-nick-default-face erc-nick-default-face)
+                  erc-default-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(2 erc-button-nick-default-face erc-default-face)))
+
+       ;; And yet again, which results in the indicator going back to one.
+       (funcall set-faces
+                '((erc-button-nick-default-face erc-default-face)
+                  (erc-button-nick-default-face erc-nick-default-face)
+                  erc-default-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(3 erc-button-nick-default-face erc-nick-default-face)))
+
+       ;; Finally, another notice arrives, which is ignored.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
+                      '(3 erc-button-nick-default-face
+                          erc-nick-default-face)))))))
 
 ;;; erc-track-tests.el ends here

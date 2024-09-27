@@ -89,10 +89,10 @@ ERC only considers this option during module activation, so users
 should adjust it before connecting."
   :type '(repeat string))
 
-(defcustom erc-nicks-skip-faces '( erc-notice-face erc-current-nick-face
-                                   erc-my-nick-face erc-pal-face erc-fool-face)
+(defcustom erc-nicks-skip-faces '(erc-notice-face erc-my-nick-face)
   "Faces to avoid highlighting atop."
-  :type  (erc--with-dependent-type-match (repeat face) erc-match))
+  :type '(repeat face)
+  :package-version '(ERC . "5.6.1"))
 
 (defcustom erc-nicks-backing-face erc-button-nickname-face
   "Face to mix with generated one for emphasizing non-speakers."
@@ -175,17 +175,20 @@ like \"@%-012n\"."
 
 (defcustom erc-nicks-track-faces 'prioritize
   "Show nick faces in the `track' module's portion of the mode line.
-A value of nil means don't show nick faces at all.  A value of
-`defer' means have `track' consider nick faces only after those
-ranked faces in `erc-track-faces-normal-list'.  This has the
-effect of \"alternating\" between a ranked \"normal\" and a nick.
-The value `prioritize' means have `track' consider nick faces to
-be \"normal\" unless the current speaker is the same as the
-previous one, in which case pretend the value is `defer'.  Like
-most options in this module, updating the value mid-session is
-not officially supported, although cycling \\[erc-nicks-mode] may
-be worth a shot."
-  :type '(choice (const nil) (const defer) (const prioritize)))
+A value of nil means don't show `nicks'-managed faces at all.  A value
+of t means treat them as non-\"normal\" faces ranked at or below
+`erc-default-face'.  This has the effect of always showing them while
+suppressing the \"alternating\" behavior normally associated with
+`erc-track-faces-normal-list' (including between the speaker and nicks
+mentioned in the message body.)  A value of `defer' means treat nicks as
+unranked normals to favor alternating between them and ranked normals.
+A value of `prioritize' exhibits the same alternating effect as `defer'
+when speakers stay the same but allows a new speaker's face to
+impersonate a ranked normal so that adjacent speakers alternate among
+themselves before deferring to non-face normals.  Like most options in
+this module, updating the value mid-session is not officially supported,
+although cycling \\[erc-nicks-mode] may be worth a shot."
+  :type '(choice boolean (const defer) (const prioritize)))
 
 (defvar erc-nicks--max-skip-search 3 ; make this an option?
   "Max number of faces to visit when testing `erc-nicks-skip-faces'.")
@@ -597,7 +600,9 @@ Abandon search after examining LIMIT faces."
    (remove-function (local 'erc-button--modify-nick-function)
                     #'erc-nicks--highlight-button)
    (remove-function (local 'erc-track--alt-normals-function)
-                    #'erc-nicks--check-normals)
+                    #'erc-nicks--track-prioritize)
+   (remove-function (local 'erc-track--alt-normals-function)
+                    #'erc-nicks--track-always)
    (remove-hook 'erc-track-mode-hook #'erc-nicks--setup-track-integration t)
    (setf (alist-get "Edit face"
                     erc-button--nick-popup-alist nil 'remove #'equal)
@@ -724,29 +729,55 @@ Expect PREFIX to be something like \"ansi-color-\" or \"font-lock-\"."
               ((facep next))
               ((not (intern-soft next))))
     (setq candidate (cdr candidate)))
-  (if (and (consp candidate) (not (cdr candidate))) (car candidate) candidate))
+  (erc--solo candidate))
 
-(define-inline erc-nicks--oursp (face)
+(define-inline erc-nicks--ours-p (face)
+  "Return uninterned `nicks'-created face if FACE is a known list of faces."
   (inline-quote
    (and-let* ((sym (car-safe ,face))
               ((symbolp sym))
               ((get sym 'erc-nicks--key)))
      sym)))
 
-(defun erc-nicks--check-normals (current contender contenders normals)
-  "Return a viable `nicks'-owned face from NORMALS in CONTENDERS.
-But only do so if the CURRENT face is also one of ours and in
-NORMALS and if the highest ranked CONTENDER among new faces is
-`erc-default-face'."
-  (and-let* (((eq contender 'erc-default-face))
-             ((or (null current) (gethash current normals)))
-             (spkr (or (null current) (erc-nicks--oursp current))))
+(defvar erc-nicks-track-normal-max-rank 'erc-default-face
+  "Highest priority normal face still eligible to alternate with `nicks' faces.
+Must appear in both `erc-track-faces-priority-list' and
+`erc-track-faces-normal-list'.")
+
+(defun erc-nicks--assess-track-faces (current contender ranks normals)
+  "Return symbol face for CURRENT or t, to mean CURRENT is replaceable.
+But only do so if CURRENT and CONTENDER are either nil or \"normal\"
+faces ranking at or below `erc-nicks-track-normal-max-rank'.  See
+`erc-track--select-mode-line-face' for the expected types of RANKS and
+NORMALS.  Expect a non-nil CONTENDER to always be ranked."
+  (and-let*
+      (((or (null contender) (gethash contender normals)))
+       ((or (null current) (gethash current normals)))
+       (threshold (gethash erc-nicks-track-normal-max-rank (car ranks)))
+       ((or (null contender) (<= threshold (gethash contender (car ranks)))))
+       ((or (erc-nicks--ours-p current)
+            (null current)
+            (<= threshold (or (gethash current (car ranks)) 0)))))))
+
+(defun erc-nicks--track-prioritize (current contender contenders ranks normals)
+  "Return a viable non-CURRENT `nicks' face among CONTENDERS.
+See `erc-track--select-mode-line-face' for parameter types."
+  (when-let
+      ((spkr (erc-nicks--assess-track-faces current contender ranks normals)))
     (catch 'contender
-      (dolist (candidate (cdr contenders) contender)
+      (dolist (candidate (cdr contenders))
         (when-let (((not (equal candidate current)))
-                   ((gethash candidate normals))
-                   (s (erc-nicks--oursp candidate))
+                   (s (erc-nicks--ours-p candidate))
                    ((not (eq s spkr))))
+          (throw 'contender candidate))))))
+
+(defun erc-nicks--track-always (current contender contenders ranks normals)
+  "Return a viable `nicks' face, possibly CURRENT, among CONTENDERS.
+See `erc-track--select-mode-line-face' for parameter types."
+  (when (erc-nicks--assess-track-faces current contender ranks normals)
+    (catch 'contender
+      (dolist (candidate (reverse (cdr contenders)))
+        (when (erc-nicks--ours-p candidate)
           (throw 'contender candidate))))))
 
 (defun erc-nicks--setup-track-integration ()
@@ -756,7 +787,10 @@ NORMALS and if the highest ranked CONTENDER among new faces is
       ;; Variant `defer' is handled elsewhere.
       ('prioritize
        (add-function :override (local 'erc-track--alt-normals-function)
-                     #'erc-nicks--check-normals))
+                     #'erc-nicks--track-prioritize))
+      ('t
+       (add-function :override (local 'erc-track--alt-normals-function)
+                     #'erc-nicks--track-always))
       ('nil
        (add-function :override (local 'erc-track--face-reject-function)
                      #'erc-nicks--reject-uninterned-faces)))))

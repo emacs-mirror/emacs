@@ -330,4 +330,47 @@ interspersing \"-l\" between members."
     (set-process-query-on-exit-flag proc t)
     proc))
 
+(declare-function erc-track--setup "erc-track" ())
+
+(defun erc-tests-common-track-modified-channels (test)
+  (erc-tests-common-prep-for-insertion)
+  (setq erc--target (erc--target-from-string "#chan"))
+  (erc-tests-common-track-modified-channels-sans-setup test))
+
+(defun erc-tests-common-track-modified-channels-sans-setup (test)
+  "Provide a fixture for testing `erc-track-modified-channels'.
+Call function TEST with another function that sets the mocked return
+value of `erc-track--collect-faces-in' to the given argument, a list of
+faces in the reverse order they appear in an inserted message."
+  (defvar erc-modified-channels-alist)
+  (defvar erc-modified-channels-object)
+  (defvar erc-track--attn-faces)
+  (defvar erc-track--normal-faces)
+  (defvar erc-track--priority-faces)
+  (defvar erc-track-faces-normal-list)
+  (defvar erc-track-faces-priority-list)
+  (defvar erc-track-mode)
+
+  (cl-letf* ((erc-track-mode t)
+             (erc-modified-channels-alist nil)
+             (erc-modified-channels-object erc-modified-channels-object)
+             (faces ())
+             ((symbol-function 'force-mode-line-update) #'ignore)
+             ((symbol-function 'erc-faces-in) (lambda (_) faces))
+             ((symbol-function 'erc-track--collect-faces-in)
+              (lambda ()
+                (cons (map-into (mapcar (lambda (f) (cons f t)) faces)
+                                '(hash-table :test equal))
+                      faces))))
+    (erc-track--setup)
+
+    ;; Faces from `erc-track--attn-faces' prepended.
+    (should (= (+ (length erc-track--attn-faces)
+                  (length erc-track-faces-priority-list))
+               (hash-table-count erc-track--priority-faces)))
+    (should (= (length erc-track-faces-normal-list)
+               (hash-table-count erc-track--normal-faces)))
+
+    (funcall test (lambda (arg) (setq faces arg)))))
+
 (provide 'erc-tests-common)
