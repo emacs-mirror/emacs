@@ -2713,7 +2713,7 @@ Call from the source buffer."
       (let ((newdocs (byte-compile--docstring docs kind name)))
         (unless (eq docs newdocs)
           (setq form (byte-compile--list-with-n form 3 newdocs)))))
-    form))
+    (byte-compile-keep-pending form)))
 
 (put 'require 'byte-hunk-handler 'byte-compile-file-form-require)
 (defun byte-compile-file-form-require (form)
@@ -5361,6 +5361,56 @@ FORM is used to provide location, `bytecomp--cus-function' and
       (bytecomp--cus-warn type "`%s' is not a valid type" type))
      )))
 
+(defun bytecomp--check-cus-face-spec (spec)
+  "Check for mistakes in a `defface' SPEC argument."
+  (when (consp spec)
+    (dolist (sp spec)
+      (let ((display (car-safe sp))
+            (atts (cdr-safe sp)))
+        (cond ((listp display)
+               (dolist (condition display)
+                 (unless (memq (car-safe condition)
+                               '(type class background min-colors supports))
+                   (bytecomp--cus-warn
+                    (list sp spec)
+                    "Bad face display condition `%S'" (car condition)))))
+              ((not (memq display '(t default)))
+               (bytecomp--cus-warn
+                (list sp spec) "Bad face display `%S'" display)))
+        (when (and (consp atts) (null (cdr atts)))
+          (setq atts (car atts)))       ; old (DISPLAY ATTS) syntax
+        (while atts
+          (let ((attr (car atts))
+                (val (cadr atts)))
+            (cond
+             ((not (keywordp attr))
+              (bytecomp--cus-warn
+               (list atts sp spec)
+               "Non-keyword in face attribute list: `%S'" attr))
+             ((null (cdr atts))
+              (bytecomp--cus-warn
+               (list atts sp spec) "Missing face attribute `%s' value" attr))
+             ((memq attr '( :inherit :extend
+                            :family :foundry :width :height :weight :slant
+                            :foreground :distant-foreground :background
+                            :underline :overline :strike-through :box
+                            :inverse-video :stipple :font
+                            ;; FIXME: obsolete keywords, warn about them too?
+                            ;; `:reverse-video' is very rare.
+                            :bold           ; :bold t   = :weight bold
+                            :italic         ; :italic t = :slant italic
+                            :reverse-video  ; alias for :inverse-video
+                            ))
+              (when (eq (car-safe val) 'quote)
+                (bytecomp--cus-warn
+                 (list val atts sp spec)
+                 "Value for face attribute `%s' should not be quoted" attr)))
+             (t
+              (bytecomp--cus-warn
+               (list atts sp spec)
+               "`%s' is not a valid face attribute keyword" attr))))
+          (setq atts (cddr atts)))))))
+
 ;; Unified handler for multiple functions with similar arguments:
 ;; (NAME SOMETHING DOC KEYWORD-ARGS...)
 (byte-defop-compiler-1 define-widget           bytecomp--custom-declare)
@@ -5393,6 +5443,13 @@ FORM is used to provide location, `bytecomp--cus-function' and
               (when (or (null type-arg)
                         (eq (car-safe type-arg) 'quote))
                 (bytecomp--check-cus-type (cadr type-arg)))))))
+
+      (when (eq fun 'custom-declare-face)
+        (let ((face-arg (nth 2 form)))
+          (when (and (eq (car-safe face-arg) 'quote)
+                     (consp (cdr face-arg))
+                     (null (cddr face-arg)))
+            (bytecomp--check-cus-face-spec (nth 1 face-arg)))))
 
       ;; Check :group
       (when (cond
