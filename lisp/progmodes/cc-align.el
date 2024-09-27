@@ -91,7 +91,10 @@ Works with: topmost-intro-cont."
       (c-backward-syntactic-ws (c-langelem-pos langelem))
       (if (and (memq (char-before) '(?} ?,))
 	       (not (and c-overloadable-operators-regexp
-			 (c-after-special-operator-id))))
+			 (c-after-special-operator-id)))
+	       (or (not (eq (char-before) ?}))
+		   (not (eq (cdr-safe (c-in-requires-or-at-end-of-clause))
+			    t))))
 	  c-basic-offset))))
 
 (defun c-lineup-gnu-DEFUN-intro-cont (langelem)

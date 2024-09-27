@@ -2673,6 +2673,19 @@ will be handled."
   t (c-make-keywords-re t (c-lang-const c-equals-type-clause-kwds)))
 (c-lang-defvar c-equals-type-clause-key (c-lang-const c-equals-type-clause-key))
 
+(c-lang-defconst c-lambda-spec-kwds
+  "Keywords which are specifiers of certain elements of a C++ lambda function.
+This is only used in C++ Mode."
+  t nil
+  c++ '("mutable" "constexpr" "consteval" "static"))
+
+(c-lang-defconst c-lambda-spec-key
+  ;; A regular expression which matches a member of `c-lambda-spec-kwds',
+  ;; or nil.
+  t (if (c-lang-const c-lambda-spec-kwds)
+	(c-make-keywords-re t (c-lang-const c-lambda-spec-kwds))))
+(c-lang-defvar c-lambda-spec-key (c-lang-const c-lambda-spec-key))
+
 (c-lang-defconst c-equals-nontype-decl-kwds
   "Keywords which are followed by an identifier then an \"=\"
 sign, which declares the identifier to be something other than a
@@ -2691,19 +2704,32 @@ type."
 (c-lang-defconst c-fun-name-substitute-kwds
   "Keywords which take the place of type+declarator at the beginning
 of a function-like structure, such as a C++20 \"requires\"
-clause.  An arglist may or may not follow such a keyword."
+expression.  An arglist may or may not follow such a keyword.
+Not to be confused with `c-requires-clause-kwds'."
   t nil
   c++ '("requires"))
 
 (c-lang-defconst c-fun-name-substitute-key
   ;; An unadorned regular expression which matches any member of
   ;; `c-fun-name-substitute-kwds'.
-  t (c-make-keywords-re 'appendable (c-lang-const c-fun-name-substitute-kwds)))
+  t (c-make-keywords-re t (c-lang-const c-fun-name-substitute-kwds)))
 ;; We use 'appendable, so that we get "\\>" on the regexp, but without a further
 ;; character, which would mess up backward regexp search from just after the
 ;; keyword.  If only XEmacs had \\_>.  ;-(
 (c-lang-defvar c-fun-name-substitute-key
 	       (c-lang-const c-fun-name-substitute-key))
+
+(c-lang-defconst c-requires-clause-kwds
+  "Keywords which introduce a C++ requires clause, or something analogous.
+This should not be confused with `c-fun-name-substitute-kwds'."
+  t nil
+  c++ '("requires"))
+
+(c-lang-defconst c-requires-clause-key
+  ;; A regexp matching any member of `c-requires-clause-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-requires-clause-kwds)))
+;; See `c-fun-name-substitute-key' for the justification of appendable.
+(c-lang-defvar c-requires-clause-key (c-lang-const c-requires-clause-key))
 
 (c-lang-defconst c-modifier-kwds
   "Keywords that can prefix normal declarations of identifiers

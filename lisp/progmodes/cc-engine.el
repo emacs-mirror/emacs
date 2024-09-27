@@ -8668,7 +8668,7 @@ multi-line strings (but not C++, for example)."
 	(c-forward-syntactic-ws)
 	(c-forward-id-comma-list ref t t))
 
-       ((and (c-keyword-member kwd-sym 'c-paren-any-kwds)
+       ((and (c-keyword-member kwd-sym 'c-paren-type-kwds)
 	     (eq (char-after) ?\())
 	;; There's an open paren after a keyword in `c-paren-any-kwds'.
 
@@ -8688,6 +8688,12 @@ multi-line strings (but not C++, for example)."
 	  (goto-char pos)
 	  (setq safe-pos (point)))
 	  (c-forward-syntactic-ws))
+
+       ((c-keyword-member kwd-sym 'c-paren-nontype-kwds)
+	(when (and (eq (char-after) ?\()
+		   (c-go-list-forward))
+	  (setq safe-pos (point))
+	  (c-forward-syntactic-ws)))
 
        ((and (c-keyword-member kwd-sym 'c-<>-sexp-kwds)
 	     (eq (char-after) ?<)
@@ -9893,9 +9899,6 @@ point unchanged and return nil."
   ;;
   ;; Note that this function is incomplete, handling only those cases expected
   ;; to be common in a C++20 requires clause.
-  ;;
-  ;; Note also that (...) is not recognized as a primary expression if the
-  ;; next token is an open brace.
   (let ((here (point))
 	(c-restricted-<>-arglists t)
 	(c-parse-and-markup-<>-arglists nil)
@@ -9908,12 +9911,10 @@ point unchanged and return nil."
 	 ((eq (char-after) ?\()
 	  (and (c-go-list-forward (point) limit)
 	       (eq (char-before) ?\))
-	       (let ((after-paren (point)))
-		 (c-forward-syntactic-ws limit)
-		 (prog1
-		     (not (eq (char-after) ?{))
-		   (when stop-at-end
-		     (goto-char after-paren))))))
+	       (progn
+		 (unless stop-at-end
+		   (c-forward-syntactic-ws limit))
+		 t)))
 	 ((c-forward-over-compound-identifier)
 	  (let ((after-id (point)))
 	    (c-forward-syntactic-ws limit)
@@ -9932,9 +9933,7 @@ point unchanged and return nil."
 			  (c-forward-over-compound-identifier)
 			(c-forward-syntactic-ws limit))))))
 	    (goto-char after-id)))
-	 ((and
-	   (looking-at c-fun-name-substitute-key) ; "requires"
-	   (not (eq (char-after (match-end 0)) ?_)))
+	 ((looking-at c-fun-name-substitute-key) ; "requires"
 	  (goto-char (match-end 1))
 	  (c-forward-syntactic-ws limit)
 	  (and
@@ -10186,9 +10185,7 @@ point unchanged and return nil."
 		   ((looking-at c-type-decl-suffix-key)
 		    (cond
 		     ((save-match-data
-			(and
-			 (looking-at c-fun-name-substitute-key)
-			 (not (eq (char-after (match-end 0)) ?_))))
+			(looking-at c-requires-clause-key))
 		      (c-forward-c++-requires-clause))
 		     ((eq (char-after) ?\()
 		      (if (c-forward-decl-arglist not-top decorated limit)
@@ -10645,10 +10642,8 @@ This function might do hidden buffer changes."
 	      (c-forward-keyword-clause 1)
 	      (when (and (c-major-mode-is 'c++-mode)
 			 (c-keyword-member kwd-sym 'c-<>-sexp-kwds)
-			 (save-match-data
-			   (and
-			    (looking-at c-fun-name-substitute-key)
-			    (not (eq (char-after (match-end 0)) ?_)))))
+			 (save-match-data ; Probably unnecessary (2024-09-20)
+			   (looking-at c-requires-clause-key)))
 		(c-forward-c++-requires-clause))
 	      (setq kwd-clause-end (point))))
 	   ((and c-opt-cpp-prefix
@@ -11006,9 +11001,7 @@ This function might do hidden buffer changes."
 		     ((save-match-data (looking-at "\\s("))
 		      (c-safe (c-forward-sexp 1) t))
 		     ((save-match-data
-			(and
-			 (looking-at c-fun-name-substitute-key)
-			 (not (eq (char-after (match-end 0)) ?_)))) ; C++ requires
+			(looking-at c-requires-clause-key))
 		      (c-forward-c++-requires-clause))
 		     (t (goto-char (match-end 1))
 			t))
@@ -13169,229 +13162,218 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; Here, "brace list" does not include the body of an enum.
   (save-excursion
-    (let ((start (point))
-	  (braceassignp 'dontknow)
-	  inexpr-brace-list bufpos macro-start res pos after-type-id-pos
-	  pos2 in-paren parens-before-brace
-	  paren-state paren-pos)
+    (unless (and (c-major-mode-is 'c++-mode)
+		 (c-backward-over-lambda-expression lim))
+      (let ((start (point))
+	    (braceassignp 'dontknow)
+	    inexpr-brace-list bufpos macro-start res pos after-type-id-pos
+	    pos2 in-paren paren-state paren-pos)
 
-      (setq res
-	    (or (progn (c-backward-syntactic-ws)
-		       (c-back-over-compound-identifier))
-		(c-backward-token-2 1 t lim)))
-      ;; Checks to do only on the first sexp before the brace.
-      ;; Have we a C++ initialization, without an "="?
-      (if (and (c-major-mode-is 'c++-mode)
-	       (cond
-		((and (or (not (memq res '(t 0)))
-			  (eq (char-after) ?,))
-		      (setq paren-state (c-parse-state))
-		      (setq paren-pos (c-pull-open-brace paren-state))
-		      (eq (char-after paren-pos) ?\())
-		 (goto-char paren-pos)
-		 (setq braceassignp 'c++-noassign
-		       in-paren 'in-paren))
-		((looking-at c-pre-brace-non-bracelist-key)
-		 (setq braceassignp nil))
-		((and
-		  (looking-at c-fun-name-substitute-key)
-		  (not (eq (char-after (match-end 0)) ?_)))
-		 (setq braceassignp nil))
-		((looking-at c-return-key))
-		((and (looking-at c-symbol-start)
-		      (not (looking-at c-keywords-regexp)))
-		 (if (save-excursion
-		       (and (zerop (c-backward-token-2 1 t lim))
-			    (looking-at c-pre-id-bracelist-key)))
-		     (setq braceassignp 'c++-noassign)
-		   (setq after-type-id-pos (point))))
-		((eq (char-after) ?\()
-		 (setq parens-before-brace t)
-		 ;; Have we a requires with a parenthesis list?
-		 (when (save-excursion
-			 (and (zerop (c-backward-token-2 1 nil lim))
-			      (looking-at c-fun-name-substitute-key)
-			      (not (eq (char-after (match-end 0)) ?_))))
-		   (setq braceassignp nil))
-		 nil)
-		(t nil))
-	       (save-excursion
+	(setq res
+	      (or (progn (c-backward-syntactic-ws)
+			 (c-back-over-compound-identifier))
+		  (c-backward-token-2 1 t lim)))
+	;; Checks to do only on the first sexp before the brace.
+	;; Have we a C++ initialization, without an "="?
+	(if (and (c-major-mode-is 'c++-mode)
 		 (cond
-		  ((or (not (memq res '(t 0)))
-		       (eq (char-after) ?,))
-		   (and (setq paren-state (c-parse-state))
+		  ((and (or (not (memq res '(t 0)))
+			    (eq (char-after) ?,))
+			(setq paren-state (c-parse-state))
 			(setq paren-pos (c-pull-open-brace paren-state))
-			(eq (char-after paren-pos) ?\()
-			(setq in-paren 'in-paren)
-			(goto-char paren-pos)))
-		  ((looking-at c-pre-brace-non-bracelist-key))
+			(eq (char-after paren-pos) ?\())
+		   (goto-char paren-pos)
+		   (setq braceassignp 'c++-noassign
+			 in-paren 'in-paren))
+		  ((looking-at c-pre-brace-non-bracelist-key)
+		   (setq braceassignp nil))
+		  ((looking-at c-fun-name-substitute-key)
+		   (setq braceassignp nil))
 		  ((looking-at c-return-key))
 		  ((and (looking-at c-symbol-start)
-			(not (looking-at c-keywords-regexp))
-			(save-excursion
-			  (and (zerop (c-backward-token-2 1 t lim))
-			       (looking-at c-pre-id-bracelist-key)))))
-		  (t (setq after-type-id-pos (point))
-		     nil))))
-	  (setq braceassignp 'c++-noassign))
+			(not (looking-at c-keywords-regexp)))
+		   (if (save-excursion
+			 (and (zerop (c-backward-token-2 1 t lim))
+			      (looking-at c-pre-id-bracelist-key)))
+		       (setq braceassignp 'c++-noassign)
+		     (setq after-type-id-pos (point))))
+		  ((eq (char-after) ?\()
+		   ;; Have we a requires with a parenthesis list?
+		   (when (save-excursion
+			   (and (zerop (c-backward-token-2 1 nil lim))
+				(looking-at c-fun-name-substitute-key)))
+		     (setq braceassignp nil))
+		   nil)
+		  (t nil))
+		 (save-excursion
+		   (cond
+		    ((or (not (memq res '(t 0)))
+			 (eq (char-after) ?,))
+		     (and (setq paren-state (c-parse-state))
+			  (setq paren-pos (c-pull-open-brace paren-state))
+			  (eq (char-after paren-pos) ?\()
+			  (setq in-paren 'in-paren)
+			  (goto-char paren-pos)))
+		    ((looking-at c-pre-brace-non-bracelist-key))
+		    ((looking-at c-return-key))
+		    ((and (looking-at c-symbol-start)
+			  (not (looking-at c-keywords-regexp))
+			  (save-excursion
+			    (and (zerop (c-backward-token-2 1 t lim))
+				 (looking-at c-pre-id-bracelist-key)))))
+		    (t (setq after-type-id-pos (point))
+		       nil))))
+	    (setq braceassignp 'c++-noassign))
 
-      (when (and c-opt-inexpr-brace-list-key
-		 (eq (char-after) ?\[))
-	;; In Java, an initialization brace list may follow
-	;; directly after "new Foo[]", so check for a "new"
-	;; earlier.
-	(while (eq braceassignp 'dontknow)
-	  (setq braceassignp
-		(cond ((/= (c-backward-token-2 1 t lim) 0) nil)
-		      ((looking-at c-opt-inexpr-brace-list-key)
-		       (setq inexpr-brace-list t)
-		       t)
-		      ((looking-at "\\sw\\|\\s_\\|[.[]")
-		       ;; Carry on looking if this is an
-		       ;; identifier (may contain "." in Java)
-		       ;; or another "[]" sexp.
-		       'dontknow)
-		      (t nil)))))
+	(when (and c-opt-inexpr-brace-list-key
+		   (eq (char-after) ?\[))
+	  ;; In Java, an initialization brace list may follow
+	  ;; directly after "new Foo[]", so check for a "new"
+	  ;; earlier.
+	  (while (eq braceassignp 'dontknow)
+	    (setq braceassignp
+		  (cond ((/= (c-backward-token-2 1 t lim) 0) nil)
+			((looking-at c-opt-inexpr-brace-list-key)
+			 (setq inexpr-brace-list t)
+			 t)
+			((looking-at "\\sw\\|\\s_\\|[.[]")
+			 ;; Carry on looking if this is an
+			 ;; identifier (may contain "." in Java)
+			 ;; or another "[]" sexp.
+			 'dontknow)
+			(t nil)))))
 
-      (setq pos (point))
-      (cond
-       ((not braceassignp)
-	nil)
-       ((and after-type-id-pos
-	     (goto-char after-type-id-pos)
-	     (setq res (c-back-over-member-initializers))
-	     (goto-char res)
-	     (eq (car (c-beginning-of-decl-1 lim)) 'same))
-	(cons (point) nil))		; Return value.
-
-       ((and after-type-id-pos
-	     (progn
-	       (c-backward-syntactic-ws)
-	       (eq (char-before) ?\()))
-	;; Single identifier between '(' and '{'.  We have a bracelist.
-	(cons after-type-id-pos 'in-paren))
-
-       ;; Are we at the parens of a C++ lambda expression?
-       ((and parens-before-brace
-	     (save-excursion
-	       (and
-		(zerop (c-backward-token-2 1 t lim))
-		(c-looking-at-c++-lambda-capture-list))))
-	nil)			     ; a lambda expression isn't a brace list.
-
-       (t
-	(goto-char pos)
-	(when (eq braceassignp 'dontknow)
-	  (let* ((cache-entry (and containing-sexp
-				   (c-laomib-get-cache containing-sexp pos)))
-		 (lim2 (or (cadr cache-entry) lim))
-		 sub-bassign-p)
-	    (if cache-entry
-		(cond
-		 ((<= (point) (cadr cache-entry))
-		  ;; We're inside the region we've already scanned over, so
-		  ;; just go to that scan's end position.
-		  (goto-char (nth 2 cache-entry))
-		  (setq braceassignp (nth 3 cache-entry)))
-		 ((> (point) (cadr cache-entry))
-		  ;; We're beyond the previous scan region, so just scan as
-		  ;; far as the end of that region.
-		  (setq sub-bassign-p (c-laomib-loop lim2))
-		  (if (<= (point) (cadr cache-entry))
-		      (progn
-			(c-laomib-put-cache containing-sexp
-					    start (nth 2 cache-entry)
-					    (nth 3 cache-entry) ;; sub-bassign-p
-					    )
-			(setq braceassignp (nth 3 cache-entry))
-			(goto-char (nth 2 cache-entry)))
-		    (c-laomib-put-cache containing-sexp
-					start (point) sub-bassign-p)
-		    (setq braceassignp sub-bassign-p)))
-		 (t))
-
-	      (setq braceassignp (c-laomib-loop lim))
-	      (when lim
-		(c-laomib-put-cache lim start (point) braceassignp)))))
-
+	(setq pos (point))
 	(cond
-	 (braceassignp
-	  ;; We've hit the beginning of the aggregate list.
-	  (setq pos2 (point))
-	  (cons
-	   (if (eq (c-beginning-of-statement-1 containing-sexp) 'same)
-	       (point)
-	     pos2)
-	   (or in-paren inexpr-brace-list)))
-	 ((and after-type-id-pos
-	       (save-excursion
-		 (when (eq (char-after) ?\;)
-		   (c-forward-over-token-and-ws t))
-		 (setq bufpos (point))
-		 (when (looking-at c-opt-<>-sexp-key)
-		   (c-forward-over-token-and-ws)
-		   (when (and (eq (char-after) ?<)
-			      (c-get-char-property (point) 'syntax-table))
-		     (c-go-list-forward nil after-type-id-pos)
-		     (c-forward-syntactic-ws)))
-		 (if (and (not (eq (point) after-type-id-pos))
-			  (or (not (looking-at c-class-key))
-			      (save-excursion
-				(goto-char (match-end 1))
-				(c-forward-syntactic-ws)
-				(not (eq (point) after-type-id-pos)))))
-		     (progn
-		       (setq res
-			     (c-forward-decl-or-cast-1 (c-point 'bosws)
-						       nil nil))
-		       (and (consp res)
-			    (cond
-			     ((eq (car res) after-type-id-pos))
-			     ((> (car res) after-type-id-pos) nil)
-			     (t
-			      (catch 'find-decl
-				(save-excursion
-				  (goto-char (car res))
-				  (c-do-declarators
-				   (point-max) t nil nil
-				   (lambda (id-start _id-end _tok _not-top _func _init)
-				     (cond
-				      ((> id-start after-type-id-pos)
-				       (throw 'find-decl nil))
-				      ((eq id-start after-type-id-pos)
-				       (throw 'find-decl t)))))
-				  nil))))))
-		   (save-excursion
-		     (goto-char start)
-		     (not (c-looking-at-statement-block))))))
-	  (cons bufpos (or in-paren inexpr-brace-list)))
-	 ((or (eq (char-after) ?\;)
-	      ;; Brace lists can't contain a semicolon, so we're done.
-	      (save-excursion
-		(c-backward-syntactic-ws)
-		(eq (char-before) ?}))
-	      ;; They also can't contain a bare }, which is probably the end
-	      ;; of a function.
-	      )
+	 ((not braceassignp)
 	  nil)
-	 ((and (setq macro-start (point))
-	       (c-forward-to-cpp-define-body)
-	       (eq (point) start))
-	  ;; We've a macro whose expansion starts with the '{'.
-	  ;; Heuristically, if we have a ';' in it we've not got a
-	  ;; brace list, otherwise we have.
-	  (let ((macro-end (progn (c-end-of-macro) (point))))
-	    (goto-char start)
-	    (forward-char)
-	    (if (and (c-syntactic-re-search-forward "[;,]" macro-end t t)
-		     (eq (char-before) ?\;))
-		nil
-	      (cons macro-start nil)))) ; (2016-08-30): Lazy! We have no
+	 ((and after-type-id-pos
+	       (goto-char after-type-id-pos)
+	       (setq res (c-back-over-member-initializers))
+	       (goto-char res)
+	       (eq (car (c-beginning-of-decl-1 lim)) 'same))
+	  (cons (point) nil))		; Return value.
+
+	 ((and after-type-id-pos
+	       (progn
+		 (c-backward-syntactic-ws)
+		 (eq (char-before) ?\()))
+	  ;; Single identifier between '(' and '{'.  We have a bracelist.
+	  (cons after-type-id-pos 'in-paren))
+
+	 (t
+	  (goto-char pos)
+	  (when (eq braceassignp 'dontknow)
+	    (let* ((cache-entry (and containing-sexp
+				     (c-laomib-get-cache containing-sexp pos)))
+		   (lim2 (or (cadr cache-entry) lim))
+		   sub-bassign-p)
+	      (if cache-entry
+		  (cond
+		   ((<= (point) (cadr cache-entry))
+		    ;; We're inside the region we've already scanned over, so
+		    ;; just go to that scan's end position.
+		    (goto-char (nth 2 cache-entry))
+		    (setq braceassignp (nth 3 cache-entry)))
+		   ((> (point) (cadr cache-entry))
+		    ;; We're beyond the previous scan region, so just scan as
+		    ;; far as the end of that region.
+		    (setq sub-bassign-p (c-laomib-loop lim2))
+		    (if (<= (point) (cadr cache-entry))
+			(progn
+			  (c-laomib-put-cache containing-sexp
+					      start (nth 2 cache-entry)
+					      (nth 3 cache-entry) ;; sub-bassign-p
+					      )
+			  (setq braceassignp (nth 3 cache-entry))
+			  (goto-char (nth 2 cache-entry)))
+		      (c-laomib-put-cache containing-sexp
+					  start (point) sub-bassign-p)
+		      (setq braceassignp sub-bassign-p)))
+		   (t))
+
+		(setq braceassignp (c-laomib-loop lim))
+		(when lim
+		  (c-laomib-put-cache lim start (point) braceassignp)))))
+
+	  (cond
+	   (braceassignp
+	    ;; We've hit the beginning of the aggregate list.
+	    (setq pos2 (point))
+	    (cons
+	     (if (eq (c-beginning-of-statement-1 containing-sexp) 'same)
+		 (point)
+	       pos2)
+	     (or in-paren inexpr-brace-list)))
+	   ((and after-type-id-pos
+		 (save-excursion
+		   (when (eq (char-after) ?\;)
+		     (c-forward-over-token-and-ws t))
+		   (setq bufpos (point))
+		   (when (looking-at c-opt-<>-sexp-key)
+		     (c-forward-over-token-and-ws)
+		     (when (and (eq (char-after) ?<)
+				(c-get-char-property (point) 'syntax-table))
+		       (c-go-list-forward nil after-type-id-pos)
+		       (c-forward-syntactic-ws)))
+		   (if (and (not (eq (point) after-type-id-pos))
+			    (or (not (looking-at c-class-key))
+				(save-excursion
+				  (goto-char (match-end 1))
+				  (c-forward-syntactic-ws)
+				  (not (eq (point) after-type-id-pos)))))
+		       (progn
+			 (setq res
+			       (c-forward-decl-or-cast-1 (c-point 'bosws)
+							 nil nil))
+			 (and (consp res)
+			      (cond
+			       ((eq (car res) after-type-id-pos))
+			       ((> (car res) after-type-id-pos) nil)
+			       (t
+				(catch 'find-decl
+				  (save-excursion
+				    (goto-char (car res))
+				    (c-do-declarators
+				     (point-max) t nil nil
+				     (lambda (id-start _id-end _tok _not-top _func _init)
+				       (cond
+					((> id-start after-type-id-pos)
+					 (throw 'find-decl nil))
+					((eq id-start after-type-id-pos)
+					 (throw 'find-decl t)))))
+				    nil))))))
+		     (save-excursion
+		       (goto-char start)
+		       (not (c-looking-at-statement-block))))))
+	    (cons bufpos (or in-paren inexpr-brace-list)))
+	   ((or (eq (char-after) ?\;)
+		;; Brace lists can't contain a semicolon, so we're done.
+		(save-excursion
+		  (c-backward-syntactic-ws)
+		  (eq (char-before) ?}))
+		;; They also can't contain a bare }, which is probably the end
+		;; of a function.
+		)
+	    nil)
+	   ((and (setq macro-start (point))
+		 (c-forward-to-cpp-define-body)
+		 (eq (point) start))
+	    ;; We've a macro whose expansion starts with the '{'.
+	    ;; Heuristically, if we have a ';' in it we've not got a
+	    ;; brace list, otherwise we have.
+	    (let ((macro-end (progn (c-end-of-macro) (point))))
+	      (goto-char start)
+	      (forward-char)
+	      (if (and (c-syntactic-re-search-forward "[;,]" macro-end t t)
+		       (eq (char-before) ?\;))
+		  nil
+		(cons macro-start nil)))) ; (2016-08-30): Lazy! We have no
 					; languages where
 					; `c-opt-inexpr-brace-list-key' is
 					; non-nil and we have macros.
-	 (t t))))			;; The caller can go up one level.
-      )))
+	   (t t))))			;; The caller can go up one level.
+	))))
 
 (defun c-inside-bracelist-p (containing-sexp paren-state accept-in-paren)
   ;; return the buffer position of the beginning of the brace list statement
@@ -13637,7 +13619,7 @@ comment at the start of cc-engine.el for more info."
 		nil))
 	     ((progn
 		(goto-char req-pos)
-		(if (looking-at c-fun-name-substitute-key)
+		(if (looking-at c-requires-clause-key)
 		    (setq found-clause (c-forward-c++-requires-clause nil t))
 		  (and (c-forward-concept-fragment)
 		       (setq found-clause (point))))
@@ -13848,18 +13830,84 @@ comment at the start of cc-engine.el for more info."
 	 (looking-at c-pre-lambda-tokens-re)))
    (not (c-in-literal))))
 
+(defun c-looking-at-c++-lambda-expression (&optional lim)
+  ;; If point is at the [ opening a C++ lambda expressions's capture list,
+  ;; and the lambda expression is complete, return the position of the { which
+  ;; opens the body form, otherwise return nil.  LIM is the limit for forward
+  ;; searching for the {.
+  (let ((here (point))
+	(lim-or-max (or lim (point-max)))
+	got-params)
+    (when (and (c-looking-at-c++-lambda-capture-list)
+	       (c-go-list-forward nil lim))
+      (c-forward-syntactic-ws lim)
+      (when (c-forward-<>-arglist t)
+	(c-forward-syntactic-ws lim)
+	(when (looking-at c-requires-clause-key)
+	  (c-forward-c++-requires-clause lim nil)))
+      (when (looking-at "\\(alignas\\)\\([^a-zA-Z0-9_$]\\|$\\)")
+	(c-forward-keyword-clause 1))
+      (when (and (eq (char-after) ?\()
+		 (c-go-list-forward nil lim))
+	(setq got-params t)
+	(c-forward-syntactic-ws lim))
+      (while (and c-lambda-spec-key (looking-at c-lambda-spec-key))
+	(goto-char (match-end 1))
+	(c-forward-syntactic-ws lim))
+      (let (after-except-pos)
+	(while
+	    (and (<= (point) lim-or-max)
+		 (cond
+		  ((save-excursion
+		     (and (looking-at "throw\\([^a-zA-Z0-9_]\\|$\\)")
+			  (progn (goto-char (match-beginning 1))
+				 (c-forward-syntactic-ws lim)
+				 (eq (char-after) ?\())
+			  (c-go-list-forward nil lim)
+			  (progn (c-forward-syntactic-ws lim)
+				 (setq after-except-pos (point)))))
+		   (goto-char after-except-pos)
+		   (c-forward-syntactic-ws lim)
+		   t)
+		  ((looking-at c-paren-nontype-key) ; "noexcept" or "alignas"
+		   (c-forward-keyword-clause 1))))))
+      (and (<= (point) lim-or-max)
+	   (looking-at c-haskell-op-re)
+	   (goto-char (match-end 0))
+	   (progn (c-forward-syntactic-ws lim)
+		  (c-forward-type t)))	; t is BRACE-BLOCK-TOO.
+      (and got-params
+	   (<= (point) lim-or-max)
+	   (looking-at c-requires-clause-key)
+	   (c-forward-c++-requires-clause lim nil))
+      (prog1 (and (<= (point) lim-or-max)
+		  (eq (char-after) ?{)
+		  (point))
+	(goto-char here)))))
+
+(defun c-backward-over-lambda-expression (&optional lim)
+  ;; Point is at a {.  Move back over the lambda expression this is a part of,
+  ;; stopping at the [ of the capture list, if this is the case, returning
+  ;; the position of that opening bracket.  If we're not at such a list, leave
+  ;; point unchanged and return nil.
+  (let ((here (point)))
+    (c-syntactic-skip-backward "^;}]" lim t)
+    (if (and (eq (char-before) ?\])
+	     (c-go-list-backward nil lim)
+	     (eq (c-looking-at-c++-lambda-expression (1+ here))
+		 here))
+	(point)
+      (goto-char here)
+      nil)))
+
 (defun c-c++-vsemi-p (&optional pos)
   ;; C++ Only - Is there a "virtual semicolon" at POS or point?
   ;; (See cc-defs.el for full details of "virtual semicolons".)
   ;;
   ;; This is true when point is at the last non syntactic WS position on the
-  ;; line, and either there is a "macro with semicolon" just before it (see
-  ;; `c-at-macro-vsemi-p') or there is a "requires" clause which ends there.
-  (let (res)
-    (cond
-     ((setq res (c-in-requires-or-at-end-of-clause pos))
-      (and res (eq (cdr res) t)))
-     ((c-at-macro-vsemi-p)))))
+  ;; line, and there is a "macro with semicolon" just before it (see
+  ;; `c-at-macro-vsemi-p').
+  (c-at-macro-vsemi-p pos))
 
 (defun c-at-macro-vsemi-p (&optional pos)
   ;; Is there a "virtual semicolon" at POS or point?
@@ -14849,7 +14897,6 @@ comment at the start of cc-engine.el for more info."
 		   (progn (c-backward-syntactic-ws lim)
 			  (zerop (c-backward-token-2 nil nil lim)))
 		   (looking-at c-fun-name-substitute-key)
-		   (not (eq (char-after (match-end 0)) ?_))
 		   (setq placeholder (point))))
 	    (goto-char placeholder)
 	    (back-to-indentation)
@@ -15274,6 +15321,15 @@ comment at the start of cc-engine.el for more info."
 			     containing-sexp paren-state))
 
 	 ;; NOTE: The point is at the end of the previous token here.
+
+	 ;; CASE 5U: We are just after a requires clause.
+	 ((and (setq placeholder (c-in-requires-or-at-end-of-clause))
+	       (eq (cdr-safe placeholder) t))
+	  (goto-char (car placeholder))
+	  (c-beginning-of-statement-1
+	   (or (c-safe-position (point) paren-state)
+	       (c-determine-limit 1000)))
+	  (c-add-syntax 'topmost-intro-cont (point)))
 
 	 ;; CASE 5J: we are at the topmost level, make
 	 ;; sure we skip back past any access specifiers
@@ -15818,8 +15874,7 @@ comment at the start of cc-engine.el for more info."
 		     (c-go-list-backward nil lim))
 		 (progn (c-backward-syntactic-ws lim)
 			(zerop (c-backward-token-2 nil nil lim)))
-		 (looking-at c-fun-name-substitute-key)
-		 (not (eq (char-after (match-end 0)) ?_))))
+		 (looking-at c-fun-name-substitute-key)))
 	  (goto-char containing-sexp)
 	  (back-to-indentation)
 	  (c-add-stmt-syntax 'defun-close nil t lim paren-state))
@@ -15983,8 +16038,7 @@ comment at the start of cc-engine.el for more info."
 		     (c-go-list-backward nil lim))
 		 (progn (c-backward-syntactic-ws lim)
 			(zerop (c-backward-token-2 nil nil lim)))
-		 (looking-at c-fun-name-substitute-key)
-		 (not (eq (char-after (match-end 0)) ?_))))
+		 (looking-at c-fun-name-substitute-key)))
 	  (goto-char containing-sexp)
 	  (back-to-indentation)
 	  (c-add-syntax 'defun-block-intro (point)))
