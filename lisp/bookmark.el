@@ -1857,6 +1857,7 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
   "a" #'bookmark-bmenu-show-annotation
   "A" #'bookmark-bmenu-show-all-annotations
   "e" #'bookmark-bmenu-edit-annotation
+  "J" #'bookmark-jump
   "/" #'bookmark-bmenu-search
   "<mouse-2>" #'bookmark-bmenu-other-window-with-mouse)
 
