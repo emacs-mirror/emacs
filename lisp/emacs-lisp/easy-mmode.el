@@ -764,7 +764,7 @@ CSS contains a list of syntax specifications of the form (CHAR . SYNTAX)."
 ;;;
 
 (defun easy-mmode--prev (re name count &optional endfun narrowfun)
-  "Go to the previous COUNT'th occurence of RE.
+  "Go to the COUNT'th previous occurence of RE.
 
 If none, error with NAME.
 
