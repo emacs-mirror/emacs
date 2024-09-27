@@ -322,7 +322,7 @@ Some Python interpreters also require changes to
 
 To customize the Python interpreter for interactive use, modify
 `python-shell-interpreter' instead."
-  :version "30.1"
+  :version "31.1"
   :type 'string)
 
 (defcustom python-interpreter-args ""
