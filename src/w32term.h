@@ -272,6 +272,7 @@ extern const char *w32_get_string_resource (void *v_rdb,
 
 /* w32fns.c */
 extern void w32_default_font_parameter (struct frame* f, Lisp_Object parms);
+extern Lisp_Object w32_process_dnd_data (int format, void *pDataObj);
 
 
 #define PIX_TYPE COLORREF
@@ -710,7 +711,8 @@ do { \
 #define WM_EMACS_INPUT_READY           (WM_EMACS_START + 24)
 #define WM_EMACS_FILENOTIFY            (WM_EMACS_START + 25)
 #define WM_EMACS_IME_STATUS            (WM_EMACS_START + 26)
-#define WM_EMACS_END                   (WM_EMACS_START + 27)
+#define WM_EMACS_DROP                  (WM_EMACS_START + 27)
+#define WM_EMACS_END                   (WM_EMACS_START + 28)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)

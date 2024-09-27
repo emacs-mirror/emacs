@@ -34,6 +34,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <c-ctype.h>
 
+#define COBJMACROS /* Ask for C definitions for COM.  */
+#include <shlobj.h>
+#include <oleidl.h>
+#include <objidl.h>
+#include <ole2.h>
+
 #include "lisp.h"
 #include "w32term.h"
 #include "frame.h"
@@ -358,6 +364,9 @@ typedef HWND (WINAPI *GetConsoleWindow_Proc) (void);
 extern HANDLE keyboard_handle;
 
 static struct w32_display_info *w32_display_info_for_name (Lisp_Object);
+
+static void my_post_msg (W32Msg*, HWND, UINT, WPARAM, LPARAM);
+static unsigned int w32_get_modifiers (void);
 
 /* Let the user specify a display with a frame.
    nil stands for the selected frame--or, if that is not a w32 frame,
@@ -2464,6 +2473,182 @@ w32_createhscrollbar (struct frame *f, struct scroll_bar * bar)
   return hwnd;
 }
 
+/* From the DROPFILES struct, extract the filenames and return as a list
+   of strings.  */
+static Lisp_Object
+process_dropfiles (DROPFILES *files)
+{
+  char *start_of_files = (char *) files + files->pFiles;
+  char filename[MAX_UTF8_PATH];
+  Lisp_Object lisp_files = Qnil;
+
+  if (files->fWide)
+    {
+      WCHAR *p = (WCHAR *) start_of_files;
+      for (; *p; p += wcslen (p) + 1)
+	{
+	  filename_from_utf16(p, filename);
+	  lisp_files = Fcons (DECODE_FILE (build_unibyte_string (filename)),
+			      lisp_files );
+	}
+    }
+  else
+    {
+      char *p = start_of_files;
+      for (; *p; p += strlen(p) + 1)
+	{
+	  filename_from_ansi (p, filename);
+	  lisp_files = Fcons (DECODE_FILE (build_unibyte_string (filename)),
+			      lisp_files );
+	}
+    }
+  return lisp_files;
+}
+
+
+/* This function can be called ONLY between calls to
+   block_input/unblock_input.  It is used in w32_read_socket.  */
+Lisp_Object
+w32_process_dnd_data (int format, void *hGlobal)
+{
+  Lisp_Object result = Qnil;
+  HGLOBAL hg = (HGLOBAL) hGlobal;
+
+  switch (format)
+    {
+    case CF_HDROP:
+      {
+	DROPFILES *files = (DROPFILES *) GlobalLock (hg);
+	if (files)
+	  result = process_dropfiles (files);
+	GlobalUnlock (hg);
+	break;
+      }
+    case CF_UNICODETEXT:
+      {
+	WCHAR *text = (WCHAR *) GlobalLock (hg);
+	result = from_unicode_buffer (text);
+	GlobalUnlock (hg);
+	break;
+      }
+    case CF_TEXT:
+      {
+	char *text = (char *) GlobalLock (hg);
+	result = DECODE_SYSTEM (build_unibyte_string (text));
+	GlobalUnlock (hg);
+	break;
+      }
+    }
+
+  GlobalFree (hg);
+
+  return result;
+}
+
+struct w32_drop_target {
+  /* i_drop_target must be the first member.  */
+  IDropTarget i_drop_target;
+  HWND hwnd;
+};
+
+static HRESULT STDMETHODCALLTYPE
+w32_drop_target_QueryInterface (IDropTarget *t, REFIID ri, void **r)
+{
+  return E_NOINTERFACE;
+}
+
+static ULONG STDMETHODCALLTYPE
+w32_drop_target_AddRef (IDropTarget *This)
+{
+  return 1;
+}
+
+static ULONG STDMETHODCALLTYPE
+w32_drop_target_Release (IDropTarget *This)
+{
+  struct w32_drop_target *target = (struct w32_drop_target * ) This;
+  free (target->i_drop_target.lpVtbl);
+  free (target);
+  return 0;
+}
+
+static HRESULT STDMETHODCALLTYPE
+w32_drop_target_DragEnter (IDropTarget *This, IDataObject *pDataObj,
+			   DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
+{
+  /* Possible 'effect' values are COPY, MOVE, LINK or NONE.  This choice
+     changes the mouse pointer shape to inform the user of what will
+     happen on drop.  We send COPY because our use cases don't modify
+     or link to the original data.  */
+  *pdwEffect = DROPEFFECT_COPY;
+  return S_OK;
+}
+
+static HRESULT STDMETHODCALLTYPE
+w32_drop_target_DragOver (IDropTarget *This, DWORD grfKeyState, POINTL pt,
+			  DWORD *pdwEffect)
+{
+  /* See comment in w32_drop_target_DragEnter.  */
+  *pdwEffect = DROPEFFECT_COPY;
+  return S_OK;
+}
+
+static HRESULT STDMETHODCALLTYPE
+w32_drop_target_DragLeave (IDropTarget *This)
+{
+  return S_OK;
+}
+
+static HGLOBAL w32_try_get_data (IDataObject *pDataObj, int format)
+{
+  FORMATETC formatetc = { format, NULL, DVASPECT_CONTENT, -1,
+			  TYMED_HGLOBAL };
+  STGMEDIUM stgmedium;
+  HRESULT r = IDataObject_GetData (pDataObj, &formatetc, &stgmedium);
+  if (SUCCEEDED (r))
+    {
+      if (stgmedium.tymed == TYMED_HGLOBAL)
+	return stgmedium.hGlobal;
+      ReleaseStgMedium (&stgmedium);
+    }
+  return NULL;
+}
+
+static HRESULT STDMETHODCALLTYPE
+w32_drop_target_Drop (IDropTarget *This, IDataObject *pDataObj,
+		      DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
+{
+  struct w32_drop_target *target = (struct w32_drop_target *)This;
+  *pdwEffect = DROPEFFECT_COPY;
+
+  W32Msg msg = {0};
+  msg.dwModifiers = w32_get_modifiers();
+  msg.msg.time = GetMessageTime ();
+  msg.msg.pt.x = pt.x;
+  msg.msg.pt.y = pt.y;
+
+  int format = CF_HDROP;
+  HGLOBAL hGlobal = w32_try_get_data (pDataObj, format);
+
+  if (!hGlobal)
+    {
+      format = CF_UNICODETEXT;
+      hGlobal = w32_try_get_data (pDataObj, format);
+    }
+
+  if (!hGlobal)
+    {
+      format = CF_TEXT;
+      hGlobal = w32_try_get_data (pDataObj, format);
+    }
+
+  if (hGlobal)
+      my_post_msg (&msg, target->hwnd, WM_EMACS_DROP, format,
+		   (LPARAM) hGlobal);
+
+  return S_OK;
+}
+
 static void
 w32_createwindow (struct frame *f, int *coords)
 {
@@ -2548,7 +2733,30 @@ w32_createwindow (struct frame *f, int *coords)
       SetWindowLong (hwnd, WND_BACKGROUND_INDEX, FRAME_BACKGROUND_PIXEL (f));
 
       /* Enable drag-n-drop.  */
-      DragAcceptFiles (hwnd, TRUE);
+      struct w32_drop_target *drop_target =
+	malloc (sizeof (struct w32_drop_target));
+
+      if (drop_target != NULL)
+	{
+	  IDropTargetVtbl *vtbl = malloc (sizeof (IDropTargetVtbl));
+	  if (vtbl != NULL)
+	    {
+	      drop_target->hwnd = hwnd;
+	      drop_target->i_drop_target.lpVtbl = vtbl;
+	      vtbl->QueryInterface = w32_drop_target_QueryInterface;
+	      vtbl->AddRef = w32_drop_target_AddRef;
+	      vtbl->Release = w32_drop_target_Release;
+	      vtbl->DragEnter = w32_drop_target_DragEnter;
+	      vtbl->DragOver = w32_drop_target_DragOver;
+	      vtbl->DragLeave = w32_drop_target_DragLeave;
+	      vtbl->Drop = w32_drop_target_Drop;
+	      RegisterDragDrop (hwnd, &drop_target->i_drop_target);
+	    }
+	  else
+	    {
+	      free (drop_target);
+	    }
+	}
 
       /* Enable system light/dark theme.  */
       w32_applytheme (hwnd);
@@ -3399,6 +3607,7 @@ w32_name_of_message (UINT msg)
       M (WM_EMACS_PAINT),
       M (WM_EMACS_IME_STATUS),
       M (WM_CHAR),
+      M (WM_EMACS_DROP),
 #undef M
       { 0, 0 }
   };
@@ -3465,13 +3674,14 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      /* Produced by complete_deferred_msg; just ignore.  */
 	      break;
 	    case WM_EMACS_CREATEWINDOW:
-	      /* Initialize COM for this window. Even though we don't use it,
-		 some third party shell extensions can cause it to be used in
+	      /* Initialize COM for this window.  Needed for RegisterDragDrop.
+		 Some third party shell extensions can cause it to be used in
 		 system dialogs, which causes a crash if it is not initialized.
 		 This is a known bug in Windows, which was fixed long ago, but
 		 the patch for XP is not publicly available until XP SP3,
 		 and older versions will never be patched.  */
-	      CoInitialize (NULL);
+	      OleInitialize (NULL);
+
 	      w32_createwindow ((struct frame *) msg.wParam,
 				(int *) msg.lParam);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
@@ -5106,7 +5316,6 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       return 0;
 
     case WM_MOUSEWHEEL:
-    case WM_DROPFILES:
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       signal_user_input ();
@@ -5597,7 +5806,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       }
 
     case WM_EMACS_DESTROYWINDOW:
-      DragAcceptFiles ((HWND) wParam, FALSE);
+      RevokeDragDrop ((HWND) wParam);
       return DestroyWindow ((HWND) wParam);
 
     case WM_EMACS_HIDE_CARET:

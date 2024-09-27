@@ -659,6 +659,11 @@ In particular, it is now possible to show text with embedded newlines in
 a dialog popped by 'message-box'.  This is supported on Windows Vista
 and later versions.
 
+---
+** Emacs on MS-Windows now supports drag-n-drop of text into a buffer.
+This is in addition to drag-n-drop of files, that was already supported.
+
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
