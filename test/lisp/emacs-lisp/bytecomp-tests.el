@@ -2001,6 +2001,10 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
      (rx "`:inverse' is not a valid face attribute keyword")
      (df '((t (:background "blue" :inverse t)))))  ; old attr list syntax
     (bytecomp--with-warning-test
+     (rx "Face attribute `:reverse-video' is obsolete;"
+         " use `:inverse-video' instead")
+     (df '((t :background "red" :reverse-video t))))
+    (bytecomp--with-warning-test
      (rx "Value for face attribute `:inherit' should not be quoted")
      (df '((t :inherit 'other))))
     (bytecomp--with-warning-test

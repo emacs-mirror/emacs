@@ -5396,15 +5396,18 @@ FORM is used to provide location, `bytecomp--cus-function' and
                             :underline :overline :strike-through :box
                             :inverse-video :stipple :font
                             ;; FIXME: obsolete keywords, warn about them too?
-                            ;; `:reverse-video' is very rare.
                             :bold           ; :bold t   = :weight bold
                             :italic         ; :italic t = :slant italic
-                            :reverse-video  ; alias for :inverse-video
                             ))
               (when (eq (car-safe val) 'quote)
                 (bytecomp--cus-warn
                  (list val atts sp spec)
                  "Value for face attribute `%s' should not be quoted" attr)))
+             ((eq attr :reverse-video)
+              (bytecomp--cus-warn
+               (list atts sp spec)
+               (concat "Face attribute `:reverse-video' is obsolete;"
+                       " use `:inverse-video' instead")))
              (t
               (bytecomp--cus-warn
                (list atts sp spec)

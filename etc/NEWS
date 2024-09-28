@@ -470,6 +470,10 @@ All the characters that belong to the 'symbol' script (according to
 
 * Lisp Changes in Emacs 31.1
 
+---
+** The face attribute ':reverse-video' is obsolete.
+Use ':inverse-video' instead.
+
 +++
 ** Support interactive D-Bus authorization.
 A new ':authorizable t' parameter has been added to 'dbus-call-method'
