@@ -54,6 +54,7 @@
 (defvar shortdoc--groups)
 (defvar tramp-current-connection)
 (defvar tramp-postfix-host-format)
+(defvar tramp-syntax)
 (defvar tramp-use-connection-share)
 
 ;;; Fontification of `read-file-name':
@@ -304,7 +305,8 @@ It's value must be a Tramp user option, indexed in the Tramp manual via
 (tramp--with-startup
  (with-eval-after-load 'shortdoc
    ;; Some packages deactivate Tramp.  They don't deserve a shortdoc entry then.
-   (when (file-remote-p "/ssh:user@host:/tmp/foo")
+   (when (and (file-remote-p "/ssh:user@host:/tmp/foo")
+              (eq tramp-syntax 'default))
      (dolist (elem `((file-remote-p
 		      :eval (file-remote-p "/ssh:user@host:/tmp/foo")
 		      :eval (file-remote-p "/ssh:user@host:/tmp/foo" 'method)

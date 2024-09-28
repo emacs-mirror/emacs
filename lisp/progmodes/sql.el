@@ -2666,11 +2666,11 @@ highlighting rules in SQL mode.")
   "Read a valid SQL product."
   (let ((init (or (and initial (symbol-name initial)) "ansi")))
     (intern (completing-read
-             prompt
+             (format-prompt prompt init)
              (mapcar (lambda (info) (symbol-name (car info)))
                      sql-product-alist)
              nil 'require-match
-             init 'sql-product-history init))))
+             nil 'sql-product-history init))))
 
 (defun sql-add-product (product display &rest plist)
   "Add support for a database product in `sql-mode'.
@@ -2912,7 +2912,7 @@ adds a fontification pattern to fontify identifiers ending in
 (defun sql-set-product (product)
   "Set `sql-product' to PRODUCT and enable appropriate highlighting."
   (interactive
-   (list (sql-read-product "SQL product: ")))
+   (list (sql-read-product "SQL product")))
   (if (stringp product) (setq product (intern product)))
   (when (not (assoc product sql-product-alist))
     (user-error "SQL product %s is not supported; treated as ANSI" product)
@@ -4546,7 +4546,7 @@ the call to \\[sql-product-interactive] with
   (setq product
         (cond
          ((= (prefix-numeric-value product) 4) ; C-u, prompt for product
-          (sql-read-product "SQL product: " sql-product))
+          (sql-read-product "SQL product" sql-product))
          ((assoc product sql-product-alist) ; Product specified
           product)
          (t sql-product)))              ; Default to sql-product

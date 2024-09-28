@@ -668,6 +668,21 @@ This once was the usual way to copy a list, before the function
 @end group
 @end example
 
+@cindex list of characters of a string
+@cindex convert string to list of its characters
+@findex string-to-list
+  Here's how to convert a string into a list of its characters:
+
+@example
+@group
+(append "abcd" nil)
+     @result{} (97 98 99 100)
+@end group
+@end example
+
+@noindent
+The function @code{string-to-list} is a handy shortcut for the above.
+
   With the help of @code{apply} (@pxref{Calling Functions}), we can append
 all the lists in a list of lists:
 
@@ -690,10 +705,12 @@ all the lists in a list of lists:
   Here are some examples where the final argument is not a list:
 
 @example
+@group
 (append '(x y) 'z)
      @result{} (x y . z)
 (append '(x y) [z])
      @result{} (x y . [z])
+@end group
 @end example
 
 @noindent
@@ -701,6 +718,17 @@ The second example shows that when the final argument is a sequence but
 not a list, the sequence's elements do not become elements of the
 resulting list.  Instead, the sequence becomes the final @sc{cdr}, like
 any other non-list final argument.
+
+  As an exception, if all the arguments but the last are @code{nil} and
+the last argument is not a list, the return value is that last argument
+unchanged (i.e., in this case the return value is not a list):
+
+@example
+@group
+(append nil nil "abcd")
+     @result{} "abcd"
+@end group
+@end example
 
 @defun copy-tree tree &optional vectors-and-records
 This function returns a copy of the tree @var{tree}.  If @var{tree} is a

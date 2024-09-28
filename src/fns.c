@@ -719,7 +719,12 @@ The result is a list whose elements are the elements of all the arguments.
 Each argument may be a list, vector or string.
 
 All arguments except the last argument are copied.  The last argument
-is just used as the tail of the new list.
+is just used as the tail of the new list.  If the last argument is not
+a list, this results in a dotted list.
+
+As an exception, if all the arguments except the last are nil, and the
+last argument is not a list, the return value is that last argument
+unaltered, not a list.
 
 usage: (append &rest SEQUENCES)  */)
   (ptrdiff_t nargs, Lisp_Object *args)

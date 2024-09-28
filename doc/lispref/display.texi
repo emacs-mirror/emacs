@@ -7959,6 +7959,15 @@ will be called when the user clicks on the button.  The optional
 is called.  If @code{nil}, the button is used as the parameter instead.
 @end defun
 
+@defun buttonize-region start end callback &optional data help-echo
+Sometimes it's more convenient to convert existing text in a buffer to a
+button instead of inserting new text.  This function makes the region
+between @var{start} and @var{end} into a button.  Arguments
+@var{callback} and @var{data} have the same meanings as for
+@code{buttonize}.  Optional argument @var{help-echo} is used as the
+@code{help-echo} property of the button.
+@end defun
+
 @node Manipulating Buttons
 @subsection Manipulating Buttons
 @cindex manipulating buttons

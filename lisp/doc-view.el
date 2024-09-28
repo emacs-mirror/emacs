@@ -238,10 +238,15 @@ showing only titles and no page number."
   :type 'boolean
   :version "29.1")
 
-(defface doc-view-svg-face '((t :inherit default))
+(defface doc-view-svg-face '((t :inherit default
+                                :background "white"
+                                :foreground "black"))
   "Face used for SVG images.
-Only background and foreground colors are used.
-See `doc-view-mupdf-use-svg'."
+See `doc-view-mupdf-use-svg'.
+
+Only background and foreground colors are used as the SVG image's
+descriptors, see (info \"(elisp) SVG Images\").  Non-standard values may
+cause low-contrast issues with certain documents."
   :version "30.1")
 
 (make-obsolete 'doc-view-svg-background 'doc-view-svg-face "30.1")

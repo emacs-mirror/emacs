@@ -265,13 +265,13 @@ asynchronously."
 
 (add-hook 'package-read-archive-hook     #'package-vc--read-archive-data 20)
 
-(defun package-vc-commit (pkg)
-  "Return the last commit of a development package PKG."
-  (cl-assert (package-vc-p pkg))
+(defun package-vc-commit (pkg-desc)
+  "Return the last commit of a development package PKG-DESC."
+  (cl-assert (package-vc-p pkg-desc))
   ;; FIXME: vc should be extended to allow querying the commit of a
   ;; directory (as is possible when dealing with git repositories).
   ;; This should be a fallback option.
-  (cl-loop with dir = (package-desc-dir pkg)
+  (cl-loop with dir = (package-desc-dir pkg-desc)
            for file in (directory-files dir t "\\.el\\'" t)
            when (vc-working-revision file) return it
            finally return "unknown"))
@@ -359,7 +359,11 @@ asynchronously."
                          requires))))
           (list :kind 'vc)
           (package--alist-to-plist-args
-           (package-desc-extras pkg-desc))))
+           (let ((extras (copy-alist (package-desc-extras pkg-desc))))
+             (setf (alist-get :commit extras)
+                   (package-vc-commit pkg-desc))
+             extras)
+           )))
         "\n")
        nil pkg-file nil 'silent))))
 

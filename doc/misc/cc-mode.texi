@@ -4846,7 +4846,7 @@ involved.
  3:   BEST
  4: @};
 @end example
- 
+
 Here, line 2 is assigned a syntactic context with two elements:
 @code{enum-intro} anchored on the beginning of indentation of line 1,
 and @code{enum-entry} anchored on the first element @code{GOOD} on

@@ -1544,10 +1544,12 @@ default is non-nil if your system supports display of SVG images.
 ---
 *** New face 'doc-view-svg-face'.
 This replaces 'doc-view-svg-foreground' and 'doc-view-svg-background'.
-If you don't like the colors produced by the default definition of
-this new face when DocView displays documents, customize this face to
-restore the colors you were used to, or to get colors more to your
-liking.
+By default, this face has black foreground on white background and
+inherits from the default face.  When unsetting the foreground and
+background values, the display in DocView is styled according to the
+current theme.  However, this, or any non-standard values, can result in
+poor contrast for documents which aren't simply black text on white
+background.
 
 ---
 *** DocView buffers now display a new tool bar.

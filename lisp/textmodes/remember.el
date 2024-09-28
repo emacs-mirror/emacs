@@ -378,8 +378,15 @@ exists) might be changed."
            (set-default symbol value)
            (when (buffer-live-p buf)
              (with-current-buffer buf
-               (set-visited-file-name
-                (expand-file-name remember-data-file))))))
+               ;; Don't unconditionally call `set-visited-file-name'
+               ;; because that will probably change the major mode and
+               ;; rename the buffer.
+               ;; These must be avoided in the case where
+               ;; `remember-notes-buffer-name' is "*scratch*", a
+               ;; supported configuration.
+               (let ((value (expand-file-name value)))
+                 (unless (string= buffer-file-name value)
+                   (set-visited-file-name value)))))))
   :initialize #'custom-initialize-default)
 
 (defcustom remember-leader-text "** "

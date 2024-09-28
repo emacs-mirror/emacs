@@ -21,9 +21,9 @@ If necessary, you can read the manual without an info program:
 
     cat info/emacs* | more "+/^File: emacs.*,  Node: Bugs,"
 
-If you think you may have found a critical security issue that needs
-to be communicated privately, please contact the GNU Emacs maintainers
-directly.  See admin/MAINTAINERS for their contact details.
+If you think you may have found a security issue that needs to be
+communicated privately, please contact the GNU Emacs maintainers
+directly.  See the file admin/MAINTAINERS for their contact details.
 
 
 Please first check the file etc/PROBLEMS (e.g. with C-h C-p in Emacs) to

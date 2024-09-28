@@ -83,12 +83,12 @@
 
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
-  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.22.8" "php/src"))
+  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.23.0" "php/src"))
     (phpdoc . ("https://github.com/claytonrcarter/tree-sitter-phpdoc"))
-    (html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.20.3"))
-    (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.21.2"))
-    (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.21.0"))
-    (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.21.0")))
+    (html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.23.0"))
+    (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.0"))
+    (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.0"))
+    (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.23.0")))
   "Treesitter language parsers required by `php-ts-mode'.
 You can customize this variable if you want to stick to a specific
 commit and/or use different parsers.")
@@ -773,6 +773,21 @@ characters of the current line."
     "__FUNCTION__" "__LINE__" "__METHOD__" "__NAMESPACE__" "__TRAIT__")
   "PHP predefined constant.")
 
+(defun php-ts-mode--test-namespace-name-as-prefix-p  ()
+  "Return t if the namespace_name_as_prefix keyword is a namded node, nil otherwise."
+  (ignore-errors
+    (progn (treesit-query-compile 'php "(namespace_name_as_prefix)" t) t)))
+
+(defun php-ts-mode--test-namespace-aliasing-clause-p  ()
+  "Return t if the namespace_name_as_prefix keyword is a namded node, nil otherwise."
+  (ignore-errors
+    (progn (treesit-query-compile 'php "(namespace_name_as_prefix)" t) t)))
+
+(defun php-ts-mode--test-namespace-use-group-clause-p ()
+  "Return t if the namespace_use_group_clause keyword is a namded node, nil otherwise."
+  (ignore-errors
+    (progn (treesit-query-compile 'php "(namespace_use_group_clause)" t) t)))
+
 (defun php-ts-mode--font-lock-settings ()
   "Tree-sitter font-lock settings."
   (treesit-font-lock-rules
@@ -866,7 +881,7 @@ characters of the current line."
    :language 'php
    :feature 'definition
    :override t
-   '((php_tag) @font-lock-preprocessor-face
+   `((php_tag) @font-lock-preprocessor-face
      ("?>") @font-lock-preprocessor-face
      ;; Highlights identifiers in declarations.
      (class_declaration
@@ -889,10 +904,16 @@ characters of the current line."
      ("=>") @font-lock-keyword-face
      (object_creation_expression
       (name) @font-lock-type-face)
-     (namespace_name_as_prefix "\\" @font-lock-delimiter-face)
-     (namespace_name_as_prefix (namespace_name (name)) @font-lock-type-face)
-     (namespace_use_clause (name) @font-lock-property-use-face)
-     (namespace_aliasing_clause (name) @font-lock-type-face)
+     ,@(when (php-ts-mode--test-namespace-name-as-prefix-p)
+	   '((namespace_name_as_prefix "\\" @font-lock-delimiter-face)
+	     (namespace_name_as_prefix
+	      (namespace_name (name)) @font-lock-type-face)))
+     ,@(if (php-ts-mode--test-namespace-aliasing-clause-p)
+	   '((namespace_aliasing_clause (name) @font-lock-type-face))
+	 '((namespace_use_clause alias: (name) @font-lock-type-face)))
+     ,@(when (not (php-ts-mode--test-namespace-use-group-clause-p))
+	 '((namespace_use_group
+	    (namespace_use_clause (name) @font-lock-type-face))))
      (namespace_name "\\" @font-lock-delimiter-face)
      (namespace_name (name) @font-lock-type-face)
      (use_declaration (name) @font-lock-property-use-face))
@@ -931,8 +952,10 @@ characters of the current line."
    :language 'php
    :feature 'base-clause
    :override t
-   '((base_clause (name) @font-lock-type-face)
+   `((base_clause (name) @font-lock-type-face)
      (use_as_clause (name) @font-lock-property-use-face)
+     ,@(when (not (php-ts-mode--test-namespace-name-as-prefix-p))
+	 '((qualified_name prefix: "\\" @font-lock-delimiter-face)))
      (qualified_name (name) @font-lock-constant-face))
 
    :language 'php
