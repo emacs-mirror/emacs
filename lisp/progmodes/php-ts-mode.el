@@ -77,6 +77,7 @@
 (declare-function treesit-parser-included-ranges "treesit.c")
 (declare-function treesit-parser-list "treesit.c")
 (declare-function treesit-parser-language "treesit.c")
+(declare-function treesit-query-compile "treesit.c")
 (declare-function treesit-search-forward "treesit.c")
 (declare-function treesit-node-prev-sibling "treesit.c")
 (declare-function treesit-node-first-child-for-pos "treesit.c")
@@ -774,17 +775,17 @@ characters of the current line."
   "PHP predefined constant.")
 
 (defun php-ts-mode--test-namespace-name-as-prefix-p  ()
-  "Return t if the namespace_name_as_prefix keyword is a namded node, nil otherwise."
+  "Return t if namespace_name_as_prefix keyword is a named node, nil otherwise."
   (ignore-errors
     (progn (treesit-query-compile 'php "(namespace_name_as_prefix)" t) t)))
 
 (defun php-ts-mode--test-namespace-aliasing-clause-p  ()
-  "Return t if the namespace_name_as_prefix keyword is a namded node, nil otherwise."
+  "Return t if namespace_name_as_prefix keyword is named node, nil otherwise."
   (ignore-errors
     (progn (treesit-query-compile 'php "(namespace_name_as_prefix)" t) t)))
 
 (defun php-ts-mode--test-namespace-use-group-clause-p ()
-  "Return t if the namespace_use_group_clause keyword is a namded node, nil otherwise."
+  "Return t if namespace_use_group_clause keyword is named node, nil otherwise."
   (ignore-errors
     (progn (treesit-query-compile 'php "(namespace_use_group_clause)" t) t)))
 
