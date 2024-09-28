@@ -2476,11 +2476,12 @@ See the command `doc-view-mode' for more information on this mode."
 (defvar-local doc-view-register-alist nil
   "Register alist containing only doc-view registers for current buffer.
 Each doc-view register entry is of the form (doc-view . ALIST) where
-ALIST has the keys `buffer', `file', and `page'.  `buffer' is the buffer
-the `file' is visiting.  `page' is the page number to be show.")
+ALIST has the keys `buffer', `file', and `page'.  The value of `buffer'
+is the buffer which visits the file specified by the value of `file'.
+The value of `page' is the page stored in the register.")
 
 (defun doc-view-page-to-register (register)
-  "Store the current page to the register REGISTER."
+  "Store the current page to the specified REGISTER."
   (interactive
    (let ((register-alist doc-view-register-alist))
      (list (register-read-with-preview "Page to register: "))))
@@ -2493,7 +2494,7 @@ the `file' is visiting.  `page' is the page number to be show.")
     (setq doc-view-register-alist register-alist)))
 
 (defun doc-view-jump-to-register (register)
-  "Jump to the register REGISTER."
+  "Jump to the specified REGISTER."
   (interactive
    (let ((register-alist doc-view-register-alist))
      (list (register-read-with-preview "Jump to register: "))))

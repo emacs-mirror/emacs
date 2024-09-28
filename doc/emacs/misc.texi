@@ -593,6 +593,7 @@ can further customize how @code{imenu} items are formatted and
 displayed using the variables @code{doc-view-imenu-format} and
 @code{doc-view-imenu-flatten}.
 
+@cindex registers, in DocView mode
 @findex doc-view-page-to-register
 @findex doc-view-jump-to-register
 @kindex m @r{(DocView mode)}
@@ -600,7 +601,7 @@ displayed using the variables @code{doc-view-imenu-format} and
   You can save the current page to a register with @kbd{m}
 (@code{doc-view-page-to-register}) (@pxref{Registers}).  However, these
 registers are not shared across buffers and stay local to the DocView
-buffer.  You can later jump to the register with @kbd{'}
+buffer.  You can later jump to the saved page with @kbd{'}
 (@code{doc-view-jump-to-register}).
 
 @node DocView Searching
