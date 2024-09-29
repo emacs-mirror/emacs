@@ -663,7 +663,7 @@ See `project-vc-extra-root-markers' for the marker value format.")
   (pcase backend
     (`Git
      (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
-            (args '("-z"))
+            (args '("-z" "-c" "--exclude-standard"))
             (vc-git-use-literal-pathspecs nil)
             (include-untracked (project--value-in-dir
                                 'project-vc-include-untracked
@@ -671,7 +671,8 @@ See `project-vc-extra-root-markers' for the marker value format.")
             (submodules (project--git-submodules))
             files)
        (setq args (append args
-                          '("-c" "--exclude-standard")
+                          (and (version<= "2.35" (vc-git--program-version))
+                               '("--sparse"))
                           (and include-untracked '("-o"))))
        (when extra-ignores
          (setq args (append args
@@ -703,7 +704,10 @@ See `project-vc-extra-root-markers' for the marker value format.")
              (delq nil
                    (mapcar
                     (lambda (file)
-                      (unless (member file submodules)
+                      (unless (or (member file submodules)
+                                  ;; Should occur for sparse directories
+                                  ;; only, when sparse index is enabled.
+                                  (directory-name-p file))
                         (if project-files-relative-names
                             file
                           (concat default-directory file))))
