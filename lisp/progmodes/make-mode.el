@@ -83,7 +83,7 @@
 
 (defface makefile-space
   '((((class color)) (:background  "hotpink"))
-    (t (:reverse-video t)))
+    (t (:inverse-video t)))
   "Face to use for highlighting leading spaces in Font-Lock mode.")
 
 (defface makefile-targets
@@ -102,7 +102,7 @@
 (defface makefile-makepp-perl
   '((((class color) (background light)) (:background  "LightBlue1")) ; Camel Book
     (((class color) (background dark)) (:background  "DarkBlue"))
-    (t (:reverse-video t)))
+    (t (:inverse-video t)))
   "Face to use for additionally highlighting Perl code in Font-Lock mode."
   :version "22.1")
 
