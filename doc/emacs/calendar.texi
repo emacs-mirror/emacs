@@ -106,7 +106,7 @@ commands for moving by characters and by lines.  Just as @kbd{C-n}
 usually moves to the same column in the following line, in Calendar
 mode it is bound to @code{calendar-forward-week}, which moves to the
 same day in the following week.  And @kbd{C-p}
-(@code{calendar-backward-week} moves to the same day in the previous
+(@code{calendar-backward-week}) moves to the same day in the previous
 week.  @kbd{C-f} (@code{calendar-forward-day}) and @kbd{C-b}
 (@code{calendar-backward-day}) move forward and back by days.
 
