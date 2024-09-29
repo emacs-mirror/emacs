@@ -341,7 +341,7 @@
        (should (search-forward "done to her." nil t)))
 
      (ert-info ("Value: nil")
-       (execute-kbd-macro "\C-ca")
+       (call-interactively #'erc-fill-wrap-cycle-visual-movement)
        (should-not erc-fill--wrap-visual-keys)
        (goto-char (point-min))
        (should (search-forward "in debug mode" nil t))
@@ -351,7 +351,7 @@
        (should (eql ?\] (char-before (point)))))
 
      (ert-info ("Value: t")
-       (execute-kbd-macro "\C-ca")
+       (call-interactively #'erc-fill-wrap-cycle-visual-movement)
        (should (eq erc-fill--wrap-visual-keys t))
        (goto-char (point-min))
        (should (search-forward "that he hath" nil t))
@@ -387,7 +387,7 @@
        (should (eobp)))
 
      (ert-info ("Value: nil") ; same
-       (execute-kbd-macro "\C-ca")
+       (call-interactively #'erc-fill-wrap-cycle-visual-movement)
        (should-not erc-fill--wrap-visual-keys)
        (execute-kbd-macro "\C-y")
        (should (looking-back "its buffer\\."))
@@ -397,7 +397,7 @@
        (should (eobp)))
 
      (ert-info ("Value: non-input")
-       (execute-kbd-macro "\C-ca")
+       (call-interactively #'erc-fill-wrap-cycle-visual-movement)
        (should (eq erc-fill--wrap-visual-keys t))
        (execute-kbd-macro "\C-y")
        (execute-kbd-macro "\C-a")

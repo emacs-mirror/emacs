@@ -413,7 +413,6 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
   "<remap> <toggle-truncate-lines>" #'erc-fill-wrap-toggle-truncate-lines
   "<remap> <next-line>" #'erc-fill--wrap-next-line
   "<remap> <previous-line>" #'erc-fill--wrap-previous-line
-  "C-c a" #'erc-fill-wrap-cycle-visual-movement
   ;; Not sure if this is problematic because `erc-bol' takes no args.
   "<remap> <erc-bol>" #'erc-fill--wrap-beginning-of-line)
 
