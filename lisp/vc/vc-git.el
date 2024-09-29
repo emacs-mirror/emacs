@@ -2211,7 +2211,7 @@ The difference to `vc-do-command' is that this function always invokes
        (let ((file (or (car-safe file-or-list)
                        file-or-list)))
          (and file
-              (eq ?/ (aref file (1- (length file))))
+              (directory-name-p file)
               (equal file (vc-git-root file))))))
 
 (defun vc-git--empty-db-p ()
