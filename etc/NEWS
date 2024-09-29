@@ -582,6 +582,11 @@ a desktop notification when the song changes, using
 customized using the new user options 'mpc-notifications-title' and
 'mpc-notifications-body'.
 
+*** New user option 'mpc-crossfade-time'.
+When non-nil, MPC will crossfade between songs for the specified number
+of seconds.  Crossfading can be toggled using the command
+'mpc-toggle-crossfade' or from the MPC menu.
+
 
 * New Modes and Packages in Emacs 31.1
 

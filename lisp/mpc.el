@@ -883,6 +883,11 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 (defun mpc-cmd-tagtypes ()
   (mapcar #'cdr (mpc-proc-cmd-to-alist "tagtypes")))
 
+(defun mpc-cmd-crossfade (&optional arg)
+  "Set duration of crossfade to `mpc-crossfade-time' or ARG seconds."
+  (mpc-proc-cmd (list "crossfade" (or arg mpc-crossfade-time))
+                #'mpc-status-refresh))
+
 ;; This was never integrated into MPD.
 ;; (defun mpc-cmd-download (file)
 ;;   (with-current-buffer (generate-new-buffer " *mpc download*")
@@ -917,6 +922,11 @@ If PLAYLIST is t or nil or missing, use the main playlist."
   (locate-user-emacs-file "mpc" ".mpc")
   "Directory where MPC.el stores auxiliary data."
   :type 'directory)
+
+(defcustom mpc-crossfade-time 3
+  "Number of seconds to crossfade between songs."
+  :version "31.1"
+  :type 'natnum)
 
 (defun mpc-data-directory ()
   (unless (file-directory-p mpc-data-directory)
@@ -1188,6 +1198,8 @@ string POST."
      :selected (member '(single . "1") mpc-status)]
     ["Consume Mode" mpc-toggle-consume :style toggle
      :selected (member '(consume . "1") mpc-status)]
+    ["Crossfade Songs" mpc-toggle-crossfade :style toggle
+     :selected (alist-get 'xfade mpc-status)]
     "--"
     ["Add new browser" mpc-tagbrowser]
     ["Update DB" mpc-update]
@@ -2427,6 +2439,12 @@ This is used so that they can be compared with `eq', which is needed for
   (interactive)
   (mpc-cmd-random
    (if (string= "0" (cdr (assq 'random (mpc-cmd-status)))) "1" "0")))
+
+(defun mpc-toggle-crossfade ()
+  "Toggle crossfading between songs."
+  (interactive)
+  (mpc-cmd-crossfade
+   (if (alist-get 'xfade mpc-status) "0" mpc-crossfade-time)))
 
 (defun mpc-stop ()
   "Stop playing the current queue of songs."
