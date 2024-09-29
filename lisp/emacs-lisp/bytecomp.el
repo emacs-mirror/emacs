@@ -5406,7 +5406,7 @@ FORM is used to provide location, `bytecomp--cus-function' and
              ((eq attr :reverse-video)
               (bytecomp--cus-warn
                (list atts sp spec)
-               (concat "Face attribute `:reverse-video' is obsolete;"
+               (concat "Face attribute `:reverse-video' has been removed;"
                        " use `:inverse-video' instead")))
              (t
               (bytecomp--cus-warn
