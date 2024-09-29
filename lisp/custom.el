@@ -977,7 +977,7 @@ Also change :reverse-video to :inverse-video."
   (when (listp spec)
     (if (or (memq :bold spec)
 	    (memq :italic spec)
-	    (memq :inverse-video spec))
+	    (memq :reverse-video spec))
 	(let (result)
 	  (while spec
 	    (let ((key (car spec))
