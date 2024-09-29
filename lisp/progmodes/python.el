@@ -313,8 +313,8 @@
   :link '(emacs-commentary-link "python"))
 
 (defcustom python-interpreter
-  (cond ((executable-find "python3") "python3")
-        ((executable-find "python") "python")
+  (cond ((executable-find "python") "python")
+        ((executable-find "python3") "python3")
         (t "python3"))
   "Python interpreter for noninteractive use.
 Some Python interpreters also require changes to
@@ -2739,8 +2739,8 @@ position, else returns nil."
   :safe 'stringp)
 
 (defcustom python-shell-interpreter
-  (cond ((executable-find "python3") "python3")
-        ((executable-find "python") "python")
+  (cond ((executable-find "python") "python")
+        ((executable-find "python3") "python3")
         (t "python3"))
   "Python interpreter for interactive use.
 
@@ -2748,7 +2748,7 @@ Some Python interpreters also require changes to
 `python-shell-interpreter-args'.  In particular, setting
 `python-shell-interpreter' to \"ipython3\" requires setting
 `python-shell-interpreter-args' to \"--simple-prompt\"."
-  :version "28.1"
+  :version "31.1"
   :type 'string)
 
 (defcustom python-shell-internal-buffer-name "Python Internal"
