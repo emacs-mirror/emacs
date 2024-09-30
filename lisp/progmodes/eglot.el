@@ -180,7 +180,7 @@
 (defgroup eglot nil
   "Interaction with Language Server Protocol servers."
   :prefix "eglot-"
-  :group 'applications)
+  :group 'tools)
 
 (defun eglot-alternatives (alternatives)
   "Compute server-choosing function for `eglot-server-programs'.
