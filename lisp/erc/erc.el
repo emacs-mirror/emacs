@@ -9001,6 +9001,8 @@ If S is nil or an empty string then return general CLIENTINFO."
 
 ;; Hook functions
 
+;; FIXME rename this to something like `erc-ensure-directory-writable'.
+;; Functions suffixed with "-p" probably shouldn't have side effects.
 (defun erc-directory-writable-p (dir)
   "Determine whether DIR is a writable directory.
 If it doesn't exist, create it."

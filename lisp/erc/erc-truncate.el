@@ -52,7 +52,18 @@ plus `erc-max-buffer-size'."
   "Truncate a query buffer if it gets too large.
 This prevents the query buffer from getting too large, which can
 bring any grown Emacs to its knees after a few days worth of
-tracking heavy-traffic channels."
+tracking heavy-traffic channels.
+
+Before ERC 5.6, this module performed logging whenever the \\+`log'
+module's library, \\+`erc-log', happened to be loaded, regardless of
+whether the \\+`log' module itself was enabled.  (Loading can of course
+happen in any number of ways, such as when browsing options via
+\\[customize-group] or completing autoloaded symbol names at the
+\\[describe-variable] prompt.)  Users of \\+`truncate' who prefer the
+old behavior can add \\+`log' to `erc-modules' to get the same effect.
+Those who don't want logging but need to load the \\+`erc-log' library
+for other purposes should customize either `erc-enable-logging' or
+`erc-log-channels-directory' to avoid the annoying warning."
   ;;enable
   ((add-hook 'erc-insert-done-hook #'erc-truncate-buffer)
    (add-hook 'erc-connect-pre-hook #'erc-truncate--warn-about-logging)
@@ -83,21 +94,13 @@ tracking heavy-traffic channels."
 
 (defun erc-truncate--warn-about-logging (&rest _)
   (when (and (not erc--target)
-             (fboundp 'erc-log--call-when-logging-enabled-sans-module))
-    ;; We could also enable `erc-log-mode' here, but the risk of
-    ;; lasting damage is nonzero.
-    (erc-log--call-when-logging-enabled-sans-module
-     (lambda (dirfile)
-       ;; Emit a real Emacs warning because the message may be
-       ;; truncated away before it can be read if merely inserted.
-       (erc-button--display-error-notice-with-keys-and-warn
-        "The `truncate' module no longer enables logging implicitly."
-        " If you want ERC to write logs before truncating, add `log' to"
-        " `erc-modules' using something like \\[customize-option]."
-        " To silence this message, don't `require' `erc-log'."
-        (and dirfile " Alternatively, change the value of")
-        (and dirfile " `erc-log-channels-directory', or move ")
-        dirfile (and dirfile " elsewhere."))))))
+             (fboundp 'erc-log--check-legacy-implicit-enabling-by-truncate)
+             (erc-log--check-legacy-implicit-enabling-by-truncate))
+    ;; Emit a real Emacs warning because the message may be
+    ;; truncated away before it can be read if merely inserted.
+    (erc-button--display-error-notice-with-keys-and-warn
+     "The `truncate' module no longer enables logging implicitly."
+     " See the doc string for `erc-truncate-mode' for details.")))
 
 ;;;###autoload
 (defun erc-truncate-buffer-to-size (size &optional buffer)

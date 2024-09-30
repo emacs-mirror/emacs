@@ -307,6 +307,10 @@ Return nil if BUFFER is a server buffer."
     (erc-save-buffer-in-logs buffer)))
 
 (defvar erc-log--save-in-progress-p nil)
+;; The function `erc-directory-writable-p' may signal when HOME is not
+;; writable, such as when running the test suite (/nonexistent).  This
+;; flag tells `erc-logging-enabled' to use `file-writable-p' instead.
+(defvar erc-log--check-writable-nocreate-p nil)
 
 ;;;###autoload
 (defun erc-logging-enabled (&optional buffer)
@@ -319,7 +323,9 @@ is writable (it will be created as necessary) and
   (and erc-log-channels-directory
        (not erc-log--save-in-progress-p)
        (or (functionp erc-log-channels-directory)
-	   (erc-directory-writable-p erc-log-channels-directory))
+           (if erc-log--check-writable-nocreate-p
+               (file-writable-p erc-log-channels-directory)
+             (erc-directory-writable-p erc-log-channels-directory)))
        (if (functionp erc-enable-logging)
 	   (funcall erc-enable-logging buffer)
 	 (buffer-local-value 'erc-enable-logging buffer))))
@@ -452,14 +458,14 @@ You can save every individual message by putting this function on
 (defun erc-log--save-on-clear (_ end)
   (erc-save-buffer-in-logs end))
 
-;; This is a kludge to avoid littering erc-truncate.el with forward
-;; declarations needed only for a corner-case compatibility check.
-(defun erc-log--call-when-logging-enabled-sans-module (fn)
-  (when (and (erc-logging-enabled)
-             (not (or erc-log-mode (memq 'log erc-modules))))
-    (let ((dirfile (and (stringp erc-log-channels-directory)
-                        erc-log-channels-directory)))
-      (funcall fn dirfile))))
+;; This exists to avoid littering erc-truncate.el with forward
+;; declarations needed only for a compatibility check.
+(defun erc-log--check-legacy-implicit-enabling-by-truncate ()
+  "Return non-nil when conditions for legacy \"implicit\" activation are met.
+This only concerns the \\+`truncate' module."
+  (and (not (or erc-log-mode (memq 'log erc-modules)))
+       (let ((erc-log--check-writable-nocreate-p t))
+         (erc-logging-enabled))))
 
 (provide 'erc-log)
 
