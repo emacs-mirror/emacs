@@ -223,7 +223,7 @@ These directories are searched after those in `Info-directory-list'."
       "org" "pcl-cvs" "pgg" "rcirc" "reftex" "remember" "sasl" "sc"
       "semantic" "ses" "sieve" "smtpmail" "speedbar" "srecode"
       "todo-mode" "tramp" "transient" "url" "use-package" "vhdl-mode"
-      "vip" "viper" "vtable" "widget" "wisent" "woman") .
+      "viper" "vtable" "widget" "wisent" "woman") .
      "https://www.gnu.org/software/emacs/manual/html_node/%m/%e"))
   "Alist telling `Info-mode' where manuals are accessible online.
 
@@ -4675,7 +4675,7 @@ Advanced commands:
 
 (defvar Info-file-list-for-emacs
   '("ediff" "eudc" "forms" "gnus" "info" ("Info" . "info") ("mh" . "mh-e")
-    "sc" "message" ("dired" . "dired-x") "viper" "vip" "idlwave"
+    "sc" "message" ("dired" . "dired-x") "viper" "idlwave"
     ("c" . "ccmode") ("c++" . "ccmode") ("objc" . "ccmode")
     ("java" . "ccmode") ("idl" . "ccmode") ("pike" . "ccmode")
     ("skeleton" . "autotype") ("auto-insert" . "autotype")

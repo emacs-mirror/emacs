@@ -478,6 +478,10 @@ All the characters that belong to the 'symbol' script (according to
 'char-script-table') now have the 'symbol' category, whose mnemonic is
 '5'.
 
+** Some libraries obsolete since Emacs 24.4 and 24.5 have been removed:
+cc-compat.el, info-edit.el, meese.el, otodo-mode.el, rcompile.el,
+sup-mouse.el, terminal.el, vi.el, vip.el, ws-mode.el, and yow.el.
+
 
 * Lisp Changes in Emacs 31.1
 
