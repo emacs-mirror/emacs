@@ -1,18 +1,18 @@
 ;;; cond-star.el --- Extended form of `cond' construct  -*-lexical-binding: t; -*-
 
-;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2024 Free Software Foundation, Inc.
 
-;; Maintainer: rms@gnu.org
+;; Maintainer: Richard Stallman <rms@gnu.org>
 ;; Package: emacs
 
-;; This file is part of GNU Emacs.  It implements `cond*'.
+;; This file is part of GNU Emacs.
 
-;; cond* is free software: you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; cond* is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -21,6 +21,8 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This library implements `cond*', an alternative to 'pcase'.
 
 ;; Here is the list of functions the generated code is known to call:
 ;; car, cdr, car-safe, cdr-safe, nth, nthcdr, null, eq, equal, eql, =,
