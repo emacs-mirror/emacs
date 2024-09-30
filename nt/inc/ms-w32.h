@@ -256,7 +256,7 @@ extern void w32_reset_stack_overflow_guard (void);
 #define fopen   sys_fopen
 #define link    sys_link
 #define localtime sys_localtime
-/* we override read after including io.h, see #73444 */
+/* We redirect 'read' below, after including io.h, see bug#73444.  */
 #define rename  sys_rename
 #define rmdir   sys_rmdir
 #define select  sys_select
@@ -379,7 +379,7 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #define fileno	  _fileno
 #endif
 
-/* Here we override CRT read with our own, see #73444 */
+/* Here we redirect CRT's 'read' to our own implementation, see bug#73444.  */
 #undef read
 #define read    sys_read
 int sys_read (int, char *, unsigned int);
