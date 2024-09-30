@@ -382,6 +382,13 @@ Previously, 'diff-file-prev' and 'diff-hunk-prev' would move when point
 is after the corresponding file or hunk header, but not when inside it.
 Now they will always move to the start of the current header.
 
++++
+*** New command 'diff-delete-other-hunks' bound to C-c RET n.
+This command deletes all hunks other than the current hunk.  It is
+useful to prepare a *vc-diff* buffer for committing a single hunk.
+When the region is active, it deletes all hunks that the region does not
+overlap.
+
 ** php-ts-mode
 
 ---
