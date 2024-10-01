@@ -283,14 +283,11 @@ If set, enable that mode when `trim_trailing_whitespace` is set to true.
 Otherwise, use `delete-trailing-whitespace'."
   :type 'symbol)
 
-(defvar editorconfig-properties-hash nil
+(defvar-local editorconfig-properties-hash nil
   "Hash object of EditorConfig properties that was enabled for current buffer.
 Set by `editorconfig-apply' and nil if that is not invoked in
 current buffer yet.")
-(make-variable-buffer-local 'editorconfig-properties-hash)
-(put 'editorconfig-properties-hash
-     'permanent-local
-     t)
+(put 'editorconfig-properties-hash 'permanent-local t)
 
 (defvar editorconfig-lisp-use-default-indent nil
   "Selectively ignore the value of indent_size for Lisp files.
@@ -464,9 +461,7 @@ heuristic for those modes not found there."
 
 (defvar-local editorconfig--apply-coding-system-currently nil
   "Used internally.")
-(put 'editorconfig--apply-coding-system-currently
-     'permanent-local
-     t)
+(put 'editorconfig--apply-coding-system-currently 'permanent-local t)
 
 (defun editorconfig-merge-coding-systems (end-of-line charset)
   "Return merged coding system symbol of END-OF-LINE and CHARSET."

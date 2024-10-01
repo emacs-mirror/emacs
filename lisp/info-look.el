@@ -46,11 +46,10 @@
   "Major mode sensitive help agent."
   :group 'help :group 'languages)
 
-(defvar info-lookup-mode nil
+(defvar-local info-lookup-mode nil
   "Symbol of the current buffer's help mode.
 Help is provided according to the buffer's major mode if value is nil.
 Automatically becomes buffer local when set in any fashion.")
-(make-variable-buffer-local 'info-lookup-mode)
 
 (defcustom info-lookup-other-window-flag t
  "Non-nil means pop up the Info buffer in another window."

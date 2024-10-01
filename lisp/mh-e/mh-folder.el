@@ -454,11 +454,10 @@ FACE is the font-lock face used to display the matching scan lines."
   (let ((cache (intern (format "mh-folder-%s-seq-cache" prefix)))
         (func (intern (format "mh-folder-font-lock-%s" prefix))))
     `(progn
-       (defvar ,cache nil
+       (defvar-local ,cache nil
          "Internal cache variable used for font-lock in MH-E.
 Should only be non-nil through font-lock stepping, and nil once
 font-lock is done highlighting.")
-       (make-variable-buffer-local ',cache)
 
        (defun ,func (limit)
          "Return unseen message lines to font-lock between point and LIMIT."

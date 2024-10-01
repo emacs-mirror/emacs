@@ -186,8 +186,7 @@ processes from `comp-async-compilations'"
 		(max 1 (/ (num-processors) 2))))
     native-comp-async-jobs-number))
 
-(defvar comp-last-scanned-async-output nil)
-(make-variable-buffer-local 'comp-last-scanned-async-output)
+(defvar-local comp-last-scanned-async-output nil)
 ;; From warnings.el
 (defvar warning-suppress-types)
 (defun comp--accept-and-process-async-output (process)

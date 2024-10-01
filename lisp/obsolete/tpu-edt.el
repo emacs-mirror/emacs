@@ -604,21 +604,17 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 ;;;
 ;;;  Buffer Local Variables
 ;;;
-(defvar tpu-newline-and-indent-p nil
+(defvar-local tpu-newline-and-indent-p nil
   "If non-nil, Return produces a newline and indents.")
-(make-variable-buffer-local 'tpu-newline-and-indent-p)
 
-(defvar tpu-newline-and-indent-string nil
+(defvar-local tpu-newline-and-indent-string nil
   "Mode line string to identify AutoIndent mode.")
-(make-variable-buffer-local 'tpu-newline-and-indent-string)
 
-(defvar tpu-saved-delete-func nil
+(defvar-local tpu-saved-delete-func nil
   "Saved value of the delete key.")
-(make-variable-buffer-local 'tpu-saved-delete-func)
 
-(defvar tpu-buffer-local-map nil
+(defvar-local tpu-buffer-local-map nil
   "TPU-edt buffer local key map.")
-(make-variable-buffer-local 'tpu-buffer-local-map)
 
 
 ;;;
@@ -631,8 +627,7 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 ;;;
 (defvar tpu-original-mm-alist minor-mode-alist)
 
-(defvar tpu-mark-flag "")
-(make-variable-buffer-local 'tpu-mark-flag)
+(defvar-local tpu-mark-flag "")
 
 (defun tpu-set-mode-line (for-tpu)
   "Set `minor-mode-alist' for TPU-edt, or reset it to default Emacs."

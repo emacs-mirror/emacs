@@ -410,10 +410,9 @@ Its value is one of `samewindow', `otherwindow', `display', `otherframe',
 `maybe-frame' or `always-frame'.  See `iswitchb-default-method' for
 details of values.")
 
-(defvar iswitchb-eoinput 1
+(defvar-local iswitchb-eoinput 1
   "Point where minibuffer input ends and completion info begins.
 Copied from `icomplete-eoinput'.")
-(make-variable-buffer-local 'iswitchb-eoinput)
 
 (defvar iswitchb-buflist nil
   "Stores the current list of buffers that will be searched through.

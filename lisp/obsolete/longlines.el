@@ -80,17 +80,11 @@ This is used when `longlines-show-hard-newlines' is on."
 
 ;;; Internal variables
 
-(defvar longlines-wrap-beg nil)
-(defvar longlines-wrap-end nil)
-(defvar longlines-wrap-point nil)
-(defvar longlines-showing nil)
-(defvar longlines-decoded nil)
-
-(make-variable-buffer-local 'longlines-wrap-beg)
-(make-variable-buffer-local 'longlines-wrap-end)
-(make-variable-buffer-local 'longlines-wrap-point)
-(make-variable-buffer-local 'longlines-showing)
-(make-variable-buffer-local 'longlines-decoded)
+(defvar-local longlines-wrap-beg nil)
+(defvar-local longlines-wrap-end nil)
+(defvar-local longlines-wrap-point nil)
+(defvar-local longlines-showing nil)
+(defvar-local longlines-decoded nil)
 
 ;;; Mode
 
