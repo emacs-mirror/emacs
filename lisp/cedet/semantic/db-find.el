@@ -166,9 +166,8 @@ the following keys:
                  in `semanticdb-project-system-databases'.
                  The Emacs Lisp system DB is an omniscience database."
   :group 'semanticdb
-  :type semanticdb-find-throttle-custom-list)
-
-(make-variable-buffer-local 'semanticdb-find-default-throttle)
+  :type semanticdb-find-throttle-custom-list
+  :local t)
 
 (defun semanticdb-find-throttle-active-p (access-type)
   "Non-nil if ACCESS-TYPE is an active throttle type."
