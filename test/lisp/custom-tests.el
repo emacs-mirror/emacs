@@ -325,4 +325,33 @@
       ;; But it was only for the current session, so this should not happen.
       (should-not (get 'custom--test-bug-21355-after 'saved-value)))))
 
+(defcustom custom-tests--:local-nil nil
+  "Not local or permanent."
+  :type 'number
+  :group 'emacs)
+(defcustom custom-tests--:local-t nil
+  "Automatically local but not permanent."
+  :type 'number
+  :local t
+  :group 'emacs)
+(defcustom custom-tests--:local-permanent nil
+  "Automatically local and permanent."
+  :type 'number
+  :local 'permanent
+  :group 'emacs)
+(defcustom custom-tests--:local-permanent-only nil
+  "Permanent but not automatically local."
+  :type 'number
+  :local 'permanent-only
+  :group 'emacs)
+(ert-deftest custom-tests-defcustom-:local-keyword ()
+  (should-not (local-variable-if-set-p 'custom-tests--:local-nil))
+  (should-not (get 'custom-tests--:local-nil 'permanent-local))
+  (should (local-variable-if-set-p 'custom-tests--:local-t))
+  (should-not (get 'custom-tests--:local-t 'permanent-local))
+  (should (local-variable-if-set-p 'custom-tests--:local-permanent))
+  (should (get 'custom-tests--:local-permanent 'permanent-local))
+  (should-not (local-variable-if-set-p 'custom-tests--:local-permanent-only))
+  (should (get 'custom-tests--:local-permanent-only 'permanent-local)))
+
 ;;; custom-tests.el ends here

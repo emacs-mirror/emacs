@@ -492,6 +492,11 @@ sup-mouse.el, terminal.el, vi.el, vip.el, ws-mode.el, and yow.el.
 
 * Lisp Changes in Emacs 31.1
 
++++
+** The 'defcustom' :local keyword can now be 'permanent-only'.
+This means that the variable's 'permanent-local' property is set to t,
+without marking it as automatically buffer-local.
+
 ---
 ** The obsolete face attribute ':reverse-video' has been removed.
 Use ':inverse-video' instead.

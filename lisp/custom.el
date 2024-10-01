@@ -204,7 +204,7 @@ set to nil, as the value is no longer rogue."
                 ((eq keyword :local)
                  (when (memq value '(t permanent))
                    (setq buffer-local t))
-                 (when (eq value 'permanent)
+                 (when (memq value '(permanent permanent-only))
                    (put symbol 'permanent-local t)))
 		((eq keyword :type)
 		 (put symbol 'custom-type (purecopy value)))
@@ -300,6 +300,8 @@ The following keywords are meaningful:
 :local  If VALUE is t, mark SYMBOL as automatically buffer-local.
         If VALUE is `permanent', also set SYMBOL's `permanent-local'
         property to t.
+        If VALUE is `permanent-only', set SYMBOL's `permanent-local'
+        property to t, but do not mark it as automatically buffer-local.
 
 The following common keywords are also meaningful.
 
