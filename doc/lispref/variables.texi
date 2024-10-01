@@ -1733,7 +1733,7 @@ buffer-local variables interactively.
 This function eliminates all the buffer-local variable bindings of the
 current buffer.  As a result, the buffer will see the default values
 of most variables.  By default, for variables marked as permanent and
-local, hook functions that have a non-@code{nil}
+local hook functions that have a non-@code{nil}
 @code{permanent-local-hook} property (@pxref{Setting Hooks}) won't be
 killed, but if the optional @var{kill-permanent} argument is
 non-@code{nil}, even these variables will be killed.
