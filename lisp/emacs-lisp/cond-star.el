@@ -58,7 +58,7 @@ When a clause's condition is true, and it exits the `cond*'
 or is the last clause, the value of the last expression
 in its body becomes the return value of the `cond*' construct.
 
-Mon-exit clause:
+Non-exit clause:
 
 If a clause has only one element, or if its first element is
 t, or if it ends with the keyword :non-exit, then
