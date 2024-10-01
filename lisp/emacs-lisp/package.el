@@ -2690,7 +2690,7 @@ the Emacs user directory is set to a temporary directory."
                                  `(add-to-list 'package-directory-list ,dir))
                                (cons package-user-dir package-directory-list))
                             (setq package-load-list ',package-load-list)
-                            (package-initialize)))))))
+                            (package-activate-all)))))))
 
 
 ;;;; Package description buffer.
