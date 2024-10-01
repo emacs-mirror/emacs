@@ -336,7 +336,7 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
     (((type tty) (class color))
      (:foreground "green"))
     (t
-     (:inverse t)))
+     (:inverse-video t)))
   "The face that is used for displaying the initial word entry line."
   :group 'dictionary
   :version "28.1")
