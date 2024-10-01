@@ -1974,7 +1974,11 @@ TARGET-BB-SYM is the symbol name of the target block."
 (defun comp--add-cond-cstrs-simple ()
   "`comp--add-cstrs' worker function for each selected function."
   (cl-loop
-   for b being each hash-value of (comp-func-blocks comp-func)
+   ;; Don't iterate over hash values directly as
+   ;; `comp--add-cond-cstrs-target-block' can modify the hash table
+   ;; content.
+   for b in (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
+                     collect b)
    do
    (cl-loop
     named in-the-basic-block
