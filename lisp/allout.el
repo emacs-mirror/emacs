@@ -382,23 +382,23 @@ value that `normal-auto-fill-function', if any, when allout mode starts, or
 else allout's special hanging-indent maintaining auto-fill function,
 `allout-auto-fill'."
   :type 'boolean
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-inhibit-auto-fill)
 ;;;_  = allout-inhibit-auto-fill-on-headline
 (defcustom allout-inhibit-auto-fill-on-headline nil
   "If non-nil, auto-fill will be inhibited while on topic's header line."
   :version "24.1"
   :type 'boolean
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-inhibit-auto-fill-on-headline)
 ;;;_  = allout-use-hanging-indents
 (defcustom allout-use-hanging-indents t
   "If non-nil, topic body text auto-indent defaults to indent of the header.
 I.e., it is indented to be just past the header prefix.  This is
 relevant mostly for situations where auto-fill occurs."
   :type 'boolean
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-use-hanging-indents)
 ;;;###autoload
 (put 'allout-use-hanging-indents 'safe-local-variable #'booleanp)
 ;;;_  = allout-reindent-bodies
@@ -414,9 +414,9 @@ A value of t enables reindent in non-programming-code buffers, ie
 those that do not have the variable `comment-start' set.  A value of
 `force' enables reindent whether or not `comment-start' is set."
   :type '(choice (const nil) (const t) (const text) (const force))
+  :local t
   :group 'allout)
 
-(make-variable-buffer-local 'allout-reindent-bodies)
 ;;;###autoload
 (put 'allout-reindent-bodies 'safe-local-variable
      (lambda (x) (memq x '(nil t text force))))
@@ -425,8 +425,8 @@ those that do not have the variable `comment-start' set.  A value of
 (defcustom allout-show-bodies nil
   "If non-nil, show entire body when exposing a topic, rather than just the header."
   :type 'boolean
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-show-bodies)
 ;;;###autoload
 (put 'allout-show-bodies 'safe-local-variable #'booleanp)
 
@@ -498,8 +498,8 @@ header prefix, which mostly have the value of this var at their front.
 Level 1 topics are exceptions.  They consist of only a single
 character, which is typically set to the `allout-primary-bullet'."
   :type 'string
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-header-prefix)
 ;;;###autoload
 (put 'allout-header-prefix 'safe-local-variable #'stringp)
 ;;;_  = allout-primary-bullet
@@ -515,8 +515,8 @@ with the original Emacs outline mode.  See `allout-plain-bullets-string'
 and `allout-distinctive-bullets-string' for the range of available
 bullets."
   :type 'string
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-primary-bullet)
 ;;;###autoload
 (put 'allout-primary-bullet 'safe-local-variable #'stringp)
 ;;;_  = allout-plain-bullets-string
@@ -531,8 +531,8 @@ DO NOT include the close-square-bracket, `]', as a bullet.
 Outline mode has to be reactivated in order for changes to the value
 of this var to take effect."
   :type 'string
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-plain-bullets-string)
 ;;;###autoload
 (put 'allout-plain-bullets-string 'safe-local-variable #'stringp)
 ;;;_  = allout-distinctive-bullets-string
@@ -579,8 +579,8 @@ adopt changes of this value.
 DO NOT include the close-square-bracket, `]', on either of the bullet
 strings."
   :type 'string
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-distinctive-bullets-string)
 ;;;###autoload
 (put 'allout-distinctive-bullets-string 'safe-local-variable #'stringp)
 
@@ -646,8 +646,8 @@ like the original Emacs-outline style prefixes.
 Whatever the setting of this variable, both old and new style prefixes
 are always respected by the topic maneuvering functions."
   :type 'boolean
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-old-style-prefixes)
 ;;;###autoload
 (put 'allout-old-style-prefixes 'safe-local-variable #'booleanp)
 ;;;_  = allout-stylish-prefixes -- alternating bullets
@@ -694,8 +694,8 @@ this variable setting.
 The setting of this var is not relevant when `allout-old-style-prefixes'
 is non-nil."
   :type 'boolean
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-stylish-prefixes)
 ;;;###autoload
 (put 'allout-stylish-prefixes 'safe-local-variable #'booleanp)
 
@@ -708,8 +708,8 @@ sequence-number tacked on, just after the bullet.  Conventionally set
 to \"#\", you can set it to a bullet of your choice.  A nil value
 disables numbering maintenance."
   :type '(choice (const nil) string)
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-numbered-bullet)
 ;;;###autoload
 (put 'allout-numbered-bullet 'safe-local-variable #'string-or-null-p)
 ;;;_  = allout-file-xref-bullet
@@ -725,9 +725,8 @@ Set this var to the bullet you want to use for file cross-references."
 (defcustom allout-presentation-padding 2
   "Presentation-format white-space padding factor, for greater indent."
   :type 'integer
+  :local t
   :group 'allout)
-
-(make-variable-buffer-local 'allout-presentation-padding)
 ;;;###autoload
 (put 'allout-presentation-padding 'safe-local-variable #'integerp)
 
@@ -809,11 +808,10 @@ text for editing though the file system copy is encrypted.
 \(Auto-saves are handled differently.  Buffers with plain-text
 exposed encrypted topics are exempted from auto saves until all
 such topics are encrypted.)"
-
   :type 'boolean
+  :local t
   :version "23.1"
   :group 'allout-encryption)
-(make-variable-buffer-local 'allout-encrypt-unencrypted-on-saves)
 (defvar allout-auto-save-temporarily-disabled nil
   "Non-nil while topic encryption is pending and auto-saving was active.
 
@@ -842,8 +840,8 @@ is nil.
 Operations potentially causing edits include allout encryption routines.
 For details, see `allout-toggle-current-subtree-encryption's docstring."
   :type 'boolean
+  :local t
   :group 'allout)
-(make-variable-buffer-local 'allout-enable-file-variable-adjustment)
 
 ;;;_* CODE -- no user customizations below.
 
