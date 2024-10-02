@@ -506,6 +506,20 @@ fontifying them, which can be slow for remote directories.  Setting
 'dired-check-symlinks' to nil disables these checks.  Defaults to t, can
 be set as a connection-local variable.
 
+---
+*** New user option 'dired-hide-details-hide-absolute-location'.
+When dired's 'dired-hide-details-mode' is enabled, also hide the
+'default-directory' absolute location, typically displayed as the first
+line in a dired buffer.
+
+With dired-hide-details-hide-absolute-location:
+
+  project: (100 GiB available)
+
+Without dired-hide-details-hide-absolute-location:
+
+  /absolute/path/to/my/important/project: (100 GiB available)
+
 ** Grep
 
 +++

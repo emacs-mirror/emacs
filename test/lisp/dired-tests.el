@@ -524,6 +524,52 @@
       (when (file-directory-p testdir)
         (delete-directory testdir t)))))
 
+(ert-deftest dired-test-hide-absolute-location-enabled ()
+  "Test for https://debbugs.gnu.org/72272 ."
+  (let* ((dired-hide-details-hide-absolute-location t)
+         (dir-name (expand-file-name "lisp" source-directory))
+         (buffer (prog1 (dired (list dir-name "dired.el" "play"))
+                   (dired-insert-subdir (file-name-concat default-directory
+                                                          "play")))))
+    (unwind-protect
+        (progn
+          (goto-char (point-min))
+          (re-search-forward dired-subdir-regexp)
+          (goto-char (match-beginning 1))
+          (should (equal "lisp" (file-name-nondirectory
+                                 (directory-file-name (dired-get-subdir)))))
+          (should (equal 'dired-hide-details-absolute-location
+                         (get-text-property (match-beginning 1) 'invisible)))
+          (re-search-forward dired-subdir-regexp)
+          (goto-char (match-beginning 1))
+          (should (equal "play" (file-name-nondirectory
+                                 (directory-file-name (dired-get-subdir)))))
+          (should (equal 'dired-hide-details-absolute-location
+                         (get-text-property (match-beginning 1) 'invisible))))
+      (kill-buffer buffer))))
+
+(ert-deftest dired-test-hide-absolute-location-disabled ()
+  "Test for https://debbugs.gnu.org/72272 ."
+  (let* ((dired-hide-details-hide-absolute-location nil)
+         (dir-name (expand-file-name "lisp" source-directory))
+         (buffer (prog1 (dired (list dir-name "dired.el" "play"))
+                   (dired-insert-subdir (file-name-concat default-directory
+                                                          "play")))))
+    (unwind-protect
+        (progn
+          (goto-char (point-min))
+          (re-search-forward dired-subdir-regexp)
+          (goto-char (match-beginning 1))
+          (should (equal "lisp" (file-name-nondirectory
+                                 (directory-file-name (dired-get-subdir)))))
+          (should-not (get-text-property (match-beginning 1) 'invisible))
+          (re-search-forward dired-subdir-regexp)
+          (goto-char (match-beginning 1))
+          (should (equal "play" (file-name-nondirectory
+                                 (directory-file-name (dired-get-subdir)))))
+          (should-not (get-text-property (match-beginning 1) 'invisible)))
+      (kill-buffer buffer))))
+
 ;; `dired-insert-directory' output tests.
 (let* ((data-dir "insert-directory")
        (test-dir (file-name-as-directory
