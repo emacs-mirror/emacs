@@ -2537,9 +2537,14 @@ activity.  Only run if the buffer is not visible and
                                       (rcirc-activity-string lopri)
                                       ")"))
                          (and hipri "]")))
+                ;; Consistently don't display anything if there aren't
+                ;; any IRC connections.  Otherwise, whether we display
+                ;; "[]" or not depends on whether or not this function
+                ;; happens to have been called in this session yet.
                 ((not (null (rcirc-process-list)))
                  "[]")
-                (t "[]")))
+                (t
+                 "")))
     (run-hooks 'rcirc-update-activity-string-hook)
     (force-mode-line-update t)))
 
