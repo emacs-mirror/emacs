@@ -572,6 +572,13 @@ the first clause that matches will cause its body to be evaluated.
 users might find less cryptic.  See the Info node "(elisp) cond* Macro"
 for details.
 
+---
+** New function 'shell-command-do-open'.
+This lets a Lisp program access the core functionality of the
+'dired-do-open' command.  It opens a file or files using an external
+program, choosing the program according to the operating system's
+conventions.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
