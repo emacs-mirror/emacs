@@ -27,8 +27,10 @@
 ;; `pdftotext', which comes with xpdf (https://www.foolabs.com/xpdf/)
 ;; or poppler (https://poppler.freedesktop.org/). EPUB, CBZ, FB2, XPS
 ;; and OXPS documents require `mutool' which comes with mupdf
-;; (https://mupdf.com/index.html). Djvu documents require `ddjvu'
+;; (https://mupdf.com/index.html). DjVu documents require `ddjvu'
 ;; (from DjVuLibre).  ODF files require `soffice' (from LibreOffice).
+;; `djvused' (from DjVuLibre) can be optionally used to generate imenu
+;; outline for DjVu documents when available.
 
 ;;; Commentary:
 
@@ -185,13 +187,13 @@ are available (see Info node `(emacs)Document View')."
 
 (defcustom doc-view-pdfdraw-program
   (cond
+   ((executable-find "mutool") "mutool")
    ((executable-find "pdfdraw") "pdfdraw")
    ((executable-find "mudraw") "mudraw")
-   ((executable-find "mutool") "mutool")
    (t "mudraw"))
   "Name of MuPDF's program to convert PDF files to PNG."
   :type 'file
-  :version "24.4")
+  :version "31.1")
 
 (defcustom doc-view-pdftotext-program-args '("-raw")
   "Parameters to give to the pdftotext command."
@@ -216,10 +218,23 @@ are available (see Info node `(emacs)Document View')."
   :type 'boolean
   :version "30.1")
 
-(defcustom doc-view-imenu-enabled (and (executable-find "mutool") t)
-  "Whether to generate an imenu outline when \"mutool\" is available."
+(defcustom doc-view-djvused-program (and (executable-find "djvused")
+                                         "djvused")
+  "Name of \"djvused\" program to generate imenu outline for DjVu files.
+This is part of DjVuLibre."
+  :type 'file
+  :version "31.1")
+
+(defcustom doc-view-imenu-enabled (and (or (executable-find "mutool")
+                                           (executable-find "djvused"))
+                                       t)
+  "Whether to generate imenu outline for PDF and DjVu files.
+This uses \"mutool\" for PDF files and \"djvused\" for DjVu files."
   :type 'boolean
-  :version "29.1")
+  :version "31.1")
+(make-obsolete-variable 'doc-view-imenu-enabled
+   "Imenu index is generated unconditionally when available."
+   "31.1")
 
 (defcustom doc-view-imenu-title-format "%t (%p)"
   "Format spec for imenu's display of section titles from docview documents.
@@ -1958,7 +1973,9 @@ the document text."
   "[^\t]+\\(\t+\\)\"\\(.+\\)\"\t#\\(?:page=\\)?\\([0-9]+\\)")
 
 (defvar-local doc-view--outline nil
-  "Cached PDF outline, so that it is only computed once per document.")
+  "Cached PDF outline, so that it is only computed once per document.
+It can be the symbol `unavailable' to indicate that outline is
+unavailable for the document.")
 
 (defun doc-view--pdf-outline (&optional file-name)
   "Return a list describing the outline of FILE-NAME.
@@ -1972,7 +1989,9 @@ structure is extracted by `doc-view--imenu-subtree'."
       (let ((outline nil)
             (fn (expand-file-name fn)))
         (with-temp-buffer
-          (unless (eql 0 (call-process "mutool" nil (current-buffer) nil "show" fn "outline"))
+          (unless (eql 0 (call-process doc-view-pdfdraw-program nil
+                                       (current-buffer) nil "show" fn "outline"))
+            (setq doc-view--outline 'unavailable)
             (imenu-unavailable-error "Unable to create imenu index using `mutool'"))
           (goto-char (point-min))
           (while (re-search-forward doc-view--outline-rx nil t)
@@ -1982,6 +2001,42 @@ structure is extracted by `doc-view--imenu-subtree'."
                     (page . ,(string-to-number (match-string 3))))
                   outline)))
         (nreverse outline)))))
+
+(defun doc-view--djvu-outline (&optional file-name)
+  "Return a list describing the outline of FILE-NAME.
+If FILE-NAME is nil or omitted, it defaults to the current buffer's file
+name.
+
+For the format, see `doc-view--pdf-outline'."
+  (unless file-name (setq file-name (buffer-file-name)))
+  (with-temp-buffer
+    (call-process doc-view-djvused-program nil (current-buffer) nil
+                  "-e" "print-outline" file-name)
+    (goto-char (point-min))
+    (when (eobp)
+      (setq doc-view--outline 'unavailable)
+      (imenu-unavailable-error "Unable to create imenu index using `djvused'"))
+    (nreverse (doc-view--parse-djvu-outline (read (current-buffer))))))
+
+(defun doc-view--parse-djvu-outline (bookmark &optional level)
+  "Return a list describing the djvu outline from BOOKMARK.
+Optional argument LEVEL is the current heading level, which defaults to 1."
+  (unless level (setq level 1))
+  (let ((res))
+    (unless (eq (car bookmark) 'bookmarks)
+      (user-error "Unknown outline type: %S" (car bookmark)))
+    (pcase-dolist (`(,title ,page . ,rest) (cdr bookmark))
+      (push `((level . ,level)
+              (title . ,title)
+              (page . ,(string-to-number (string-remove-prefix "#" page))))
+            res)
+      (when (and rest (listp (car rest)))
+        (setq res (append
+                   (doc-view--parse-djvu-outline
+                    (cons 'bookmarks rest)
+                    (+ level 1))
+                   res))))
+    res))
 
 (defun doc-view--imenu-subtree (outline act)
   "Construct a tree of imenu items for the given outline list and action.
@@ -2015,19 +2070,36 @@ entries at an upper level."
 For extensibility, callers can specify a FILE-NAME to indicate
 the buffer other than the current buffer, and a jumping function
 GOTO-PAGE-FN other than `doc-view-goto-page'."
-  (let* ((goto (or goto-page-fn 'doc-view-goto-page))
-         (act (lambda (_name _pos page) (funcall goto page)))
-         (outline (or doc-view--outline (doc-view--pdf-outline file-name))))
-    (car (doc-view--imenu-subtree outline act))))
+  (unless doc-view--outline
+    (setq doc-view--outline (doc-view--outline file-name)))
+  (unless (eq doc-view--outline 'unavailable)
+    (let* ((goto (or goto-page-fn #'doc-view-goto-page))
+           (act (lambda (_name _pos page) (funcall goto page)))
+           (outline doc-view--outline))
+      (car (doc-view--imenu-subtree outline act)))))
+
+(defun doc-view--outline (&optional file-name)
+  "Return the outline for the file FILE-NAME.
+If FILE-NAME is nil, use the current file instead."
+  (unless file-name (setq file-name (buffer-file-name)))
+  (let ((outline
+         (pcase doc-view-doc-type
+           ('djvu
+            (when doc-view-djvused-program
+              (doc-view--djvu-outline file-name)))
+           (_
+            (doc-view--pdf-outline file-name)))))
+    (when outline (imenu-add-to-menubar "Outline"))
+    ;; When the outline could not be made due to unavailability of the
+    ;; required program, or its absency from the document, return
+    ;; 'unavailable'.
+    (or outline 'unavailable)))
 
 (defun doc-view-imenu-setup ()
   "Set up local state in the current buffer for imenu, if needed."
-  (when doc-view-imenu-enabled
-    (setq-local imenu-create-index-function #'doc-view-imenu-index
-                imenu-submenus-on-top nil
-                imenu-sort-function nil
-                doc-view--outline (doc-view--pdf-outline))
-    (when doc-view--outline (imenu-add-to-menubar "Outline"))))
+  (setq-local imenu-create-index-function #'doc-view-imenu-index
+              imenu-submenus-on-top nil
+              imenu-sort-function nil))
 
 ;;;; User interface commands and the mode
 
