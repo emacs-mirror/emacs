@@ -1324,14 +1324,11 @@ settings (@pxref{Sample configuration via Customize}).
 ;;; My ERC configuration -*- lexical-binding: t -*-
 
 (use-package erc
-  :config
-  ;; Prefer SASL to NickServ, colorize nicknames, and show side panels
-  ;; with joined channels and members
-  (setopt erc-modules
-          (seq-union '(sasl nicks bufbar nickbar scrolltobottom)
-                     erc-modules))
-
   :custom
+  ;; Prefer SASL to NickServ, colorize nicknames, and show side panels
+  ;; with joined channels and members.
+  (erc-modules (append '(sasl nicks bufbar nickbar scrolltobottom)
+                       erc-modules))
   ;; Protect me from accidentally sending excess lines.
   (erc-inhibit-multiline-input t)
   (erc-send-whitespace-lines t)
@@ -1371,6 +1368,13 @@ settings (@pxref{Sample configuration via Customize}).
   (erc-fill-static-center 18)
 
   :bind (:map erc-fill-wrap-mode-map ("C-c =" . #'erc-fill-wrap-nudge)))
+
+(use-package erc-match
+  ;; Use the same face for my own nick wherever it appears.
+  :custom-face
+  (erc-current-nick-face ((t ( :weight unspecified
+                               :foreground unspecified
+                               :inherit erc-my-nick-face)))))
 
 (use-package erc-track
   ;; Prevent JOINs and PARTs from lighting up the mode-line.
@@ -1551,6 +1555,18 @@ function @code{erc-fill-wrap-nudge} in the minor-mode keymap
 @code{erc-fill-wrap-mode-map} (hint: the minor mode's hook is called
 @code{erc-fill-wrap-mode-hook}, and it's not a member of any
 customization group).
+
+Try customizing another face, this time with inheritance.  ERC's match
+module highlights your nick whenever someone mentions you in
+conversation.  However, some users don't like that this face differs
+from the one in your own messages.  Let's change that.  Type @kbd{M-x
+customize-group @key{RET} erc-faces @key{RET}}.  Either search for the
+word ``Current'' or type @kbd{M-x customize-face @key{RET}
+erc-current-nick-face @key{RET}}.  Untick @samp{Weight} and
+@samp{Foreground}, then click the ``Show All Attributes'' button below
+them.  Navigate down to the @samp{Inherit} box, tick it, hit
+@samp{[INS]}, and type @code{erc-my-nick-face} in the @samp{Face} field.
+Hit @kbd{C-x C-s} to save.
 
 ERC users tend to be picky about the mode line.  If you find that
 you'd rather not see changes when people join and leave channels,
