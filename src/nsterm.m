@@ -7973,6 +7973,7 @@ ns_in_echo_area (void)
   event.kind = FOCUS_IN_EVENT;
   XSETFRAME (event.frame_or_window, emacsframe);
   kbd_buffer_store_event (&event);
+  ns_send_appdefined (-1);  // Kick main loop
 }
 
 
