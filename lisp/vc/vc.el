@@ -1302,17 +1302,6 @@ from which to check out the file(s)."
      ;; Fileset comes from a diff-mode buffer, see
      ;; 'diff-vc-deduce-fileset', and the buffer is the patch to apply.
      ((eq model 'patch)
-      (when (buffer-narrowed-p)
-        ;; If user used `diff-restrict-view' then we may not have the
-        ;; file header, and the commit will not succeed (bug#73387).
-        (user-error "Cannot commit patch when narrowed; consider %s"
-                    (mapconcat (lambda (c)
-                                 (key-description
-                                  (where-is-internal c nil t)))
-                               '(widen
-                                 diff-delete-other-hunks
-                                 vc-next-action)
-                               " ")))
       (vc-checkin files backend nil nil nil (buffer-string)))
      ((or (null state) (eq state 'unregistered))
       (cond (verbose

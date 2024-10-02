@@ -3202,6 +3202,17 @@ hunk text is not found in the source file."
 
 ;;;###autoload
 (defun diff-vc-deduce-fileset ()
+  (when (buffer-narrowed-p)
+    ;; If user used `diff-restrict-view' then we may not have the
+    ;; file header, and the commit will not succeed (bug#73387).
+    (user-error "Cannot commit patch when narrowed; consider %s"
+                (mapconcat (lambda (c)
+                             (key-description
+                              (where-is-internal c nil t)))
+                           '(widen
+                             diff-delete-other-hunks
+                             vc-next-action)
+                           " ")))
   (let ((backend (vc-responsible-backend default-directory))
         files)
     (save-excursion
