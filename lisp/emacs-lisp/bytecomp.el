@@ -5467,7 +5467,13 @@ FORM is used to provide location, `bytecomp--cus-function' and
       (when (and name
                  byte-compile-current-file  ; only when compiling a whole file
 		 (eq fun 'custom-declare-group))
-	(setq byte-compile-current-group name))))
+        (setq byte-compile-current-group name))
+
+      ;; Check :local
+      (when-let ((val (and (eq fun 'custom-declare-variable)
+                           (plist-get keyword-args :local)))
+                 (_ (not (memq val '(t permanent permanent-only)))))
+        (bytecomp--cus-warn form ":local keyword does not accept %S" val))))
 
   (byte-compile-normal-call form))
 
