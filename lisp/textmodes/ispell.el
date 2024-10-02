@@ -346,11 +346,10 @@ calling \\[ispell-change-dictionary] with that value.  This variable
 is automatically set when defined in the file with either
 `ispell-dictionary-keyword' or the Local Variable syntax."
   :type '(choice string
-                 (const :tag "default" nil)))
+                 (const :tag "default" nil))
+  :local t)
 ;;;###autoload
 (put 'ispell-local-dictionary 'safe-local-variable 'string-or-null-p)
-
-(make-variable-buffer-local 'ispell-local-dictionary)
 
 (defcustom ispell-dictionary nil
   "Default dictionary to use if `ispell-local-dictionary' is nil."
@@ -377,10 +376,8 @@ such as \"&amp;\".  See `ispell-html-skip-alists' for more details.
 
 This variable affects spell-checking of HTML, XML, and SGML files."
   :type '(choice (const :tag "always" t) (const :tag "never" nil)
-                 (const :tag "use-mode-name" use-mode-name)))
-
-(make-variable-buffer-local 'ispell-skip-html)
-
+                 (const :tag "use-mode-name" use-mode-name))
+  :local t)
 
 (defcustom ispell-local-dictionary-alist nil
   "List of local or customized dictionary definitions.
