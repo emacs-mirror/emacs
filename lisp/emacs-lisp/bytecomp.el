@@ -5472,7 +5472,7 @@ FORM is used to provide location, `bytecomp--cus-function' and
       ;; Check :local
       (when-let ((val (and (eq fun 'custom-declare-variable)
                            (plist-get keyword-args :local)))
-                 (_ (not (memq val '(t permanent permanent-only)))))
+                 (_ (not (member val '(t 'permanent 'permanent-only)))))
         (bytecomp--cus-warn form ":local keyword does not accept %S" val))))
 
   (byte-compile-normal-call form))

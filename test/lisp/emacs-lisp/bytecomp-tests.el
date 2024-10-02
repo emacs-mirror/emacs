@@ -1991,6 +1991,9 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
      (rx ":local keyword does not accept 'symbol") (dc 'symbol))
     (bytecomp--with-warning-test
      (rx ":local keyword does not accept \"string\"") (dc "string"))
+    (bytecomp--without-warning-test (dc t))
+    (bytecomp--without-warning-test (dc 'permanent))
+    (bytecomp--without-warning-test (dc 'permanent-only))
     ))
 
 (ert-deftest bytecomp-test-defface-spec ()
