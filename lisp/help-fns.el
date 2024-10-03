@@ -262,9 +262,21 @@ interactive command."
                   fn))
     (list fn)))
 
+(declare-function project-combine-directories "project" (&rest lists))
+
+(cl-defmethod xref-backend-references ((_backend (eql 'elisp)) identifier
+                                       &context (major-mode help-mode))
+  (mapcan
+   (lambda (dir)
+     (message "Searching %s..." dir)
+     (redisplay)
+     (prog1
+         (xref-references-in-directory identifier dir)
+       (message "Searching %s... done" dir)))
+   (project-combine-directories (elisp-load-path-roots))))
+
 (defun help-fns--setup-xref-backend ()
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
-  (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (setq-local semantic-symref-filepattern-alist '((help-mode "*.el"))))
 
 ;;;###autoload
