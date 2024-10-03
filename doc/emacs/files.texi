@@ -481,6 +481,9 @@ Terminate @code{save-some-buffers} without any more saving.
 @item .
 Save this buffer, then exit @code{save-some-buffers} without even asking
 about other buffers.
+@item M-~
+Don't save this buffer, and also mark it as unmodified.
+This is like the @code{not-modified} command (@pxref{Save Commands}).
 @item C-r
 View the buffer that you are currently being asked about.  When you exit
 View mode, you get back to @code{save-some-buffers}, which asks the

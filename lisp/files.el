@@ -6150,7 +6150,13 @@ Before and after saving the buffer, this function runs
 (defvar save-some-buffers--switch-window-callback nil)
 
 (defvar save-some-buffers-action-alist
-  `((?\C-r
+  `((?\M-~ ,(lambda (buf)
+              (with-current-buffer buf
+                (set-buffer-modified-p nil))
+              ;; Return t not to ask about BUF again.
+              t)
+           ,(purecopy "skip this buffer and mark it unmodified"))
+    (?\C-r
      ,(lambda (buf)
         (if (not enable-recursive-minibuffers)
             (progn (display-buffer buf)
@@ -6257,7 +6263,8 @@ in variables (rather than in buffers).")
 
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
-You can answer \\`y' or \\`SPC' to save, \\`n' or \\`DEL' not to save, \\`C-r'
+You can answer \\`y' or \\`SPC' to save, \\`n' or \\`DEL' not to save,
+\\`M-~' not to save and also mark the buffer as unmodified, \\`C-r'
 to look at the buffer in question with `view-buffer' before
 deciding, \\`d' to view the differences using
 `diff-buffer-with-file', \\`!' to save the buffer and all remaining

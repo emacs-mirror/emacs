@@ -166,6 +166,11 @@ You can now insert or wrap text with multiple sets of parentheses and
 other matching delimiters at once with Electric Pair mode, by providing
 a prefix argument when inserting one of the delimiters.
 
++++
+** You can now use M-~ during C-x s ('save-some-buffers').
+Typing M-~ while saving some buffers means not to save the buffer and
+also to mark it as unmodified.  This is an alternative way to mark a
+buffer as unmodified which doesn't require switching to that buffer.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
