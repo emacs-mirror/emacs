@@ -157,10 +157,10 @@ Line numbers start from 1 and columns from 0."
         (save-excursion
           (goto-char (point-min))
           (ignore-errors
-            ;; xref location may be out of date; it may be past the
-            ;; end of the current file, or the file may have been
-            ;; deleted. Return a reasonable location; the user will
-            ;; figure it out.
+            ;; The location shouldn't be be out of date, but we make
+            ;; provision for that anyway; in case it's past the end of
+            ;; the file, or it had been deleted. Then return an
+            ;; approximation, the user will figure it out.
             (beginning-of-line line)
             (forward-char column))
           (point-marker))))))
