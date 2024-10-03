@@ -812,7 +812,7 @@ You do it using Emacs Lisp's built-in support for CLOS-style generic
 functions via the @code{cl-defgeneric} and @code{cl-defmethod} macros
 (@pxref{Generic Functions,,,elisp,GNU Emacs Lisp Reference Manual}).
 
-EIEIO provides one extension to @code{cl-defmethod} to allow mathods to
+EIEIO provides one extension to @code{cl-defmethod} to allow methods to
 dispatch on a class argument: so-called ``static'' methods do not depend
 on an object instance, but instead operate on a class.  You can create
 a static method by using the @code{subclass} specializer with
