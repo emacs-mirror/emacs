@@ -150,9 +150,8 @@ Line numbers start from 1 and columns from 0."
 (cl-defmethod xref-location-marker ((l xref-file-location))
   (pcase-let (((cl-struct xref-file-location file line column) l))
     (with-current-buffer
-        (or (get-file-buffer file)
-            (let ((find-file-suppress-same-file-warnings t))
-              (find-file-noselect file)))
+        (let ((find-file-suppress-same-file-warnings t))
+          (find-file-noselect file))
       (save-restriction
         (widen)
         (save-excursion
