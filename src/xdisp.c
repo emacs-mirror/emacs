@@ -5689,7 +5689,13 @@ display_min_width (struct it *it, ptrdiff_t charpos,
 					  XCAR (it->min_width_property),
 					  font, true, NULL);
 	      width -= it->current_x - it->min_width_start;
-	      w = list1 (make_int (width));
+	      /* It makes no sense to try to obey min-width which yields
+                 a stretch that ends beyond the visible portion of the
+                 window if we are truncating screen lines.  If we are
+                 requested to do that, some Lisp program went awry.  */
+	      if (!(it->line_wrap == TRUNCATE
+		    && it->current_x + width > it->last_visible_x))
+		w = list1 (make_int (width));
 	    }
 	  else
 #endif
@@ -5699,19 +5705,24 @@ display_min_width (struct it *it, ptrdiff_t charpos,
 					  NULL, true, NULL);
 	      width -= (it->current_x - it->min_width_start) /
 		FRAME_COLUMN_WIDTH (it->f);
-	      w = make_int (width);
+	      if (!(it->line_wrap == TRUNCATE
+		    && it->current_x + width > it->last_visible_x))
+		w = make_int (width);
 	    }
 
 	  /* Insert the stretch glyph.  */
-	  it->object = list3 (Qspace, QCwidth, w);
-	  produce_stretch_glyph (it);
-	  if (it->area == TEXT_AREA)
+	  if (!NILP (w))
 	    {
-	      it->current_x += it->pixel_width;
+	      it->object = list3 (Qspace, QCwidth, w);
+	      produce_stretch_glyph (it);
+	      if (it->area == TEXT_AREA)
+		{
+		  it->current_x += it->pixel_width;
 
-	      if (it->continuation_lines_width
-		  && it->string_from_prefix_prop_p)
-		it->wrap_prefix_width = it->current_x;
+		  if (it->continuation_lines_width
+		      && it->string_from_prefix_prop_p)
+		    it->wrap_prefix_width = it->current_x;
+		}
 	    }
 	  it->min_width_property = Qnil;
 	}
