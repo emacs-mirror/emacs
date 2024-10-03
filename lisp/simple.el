@@ -7704,8 +7704,8 @@ This has no effect when the variable `line-move-visual' is non-nil."
 A non-nil setting overrides the variable `line-move-visual', which see."
   :type '(choice integer
 		 (const :tag "None" nil))
+  :local t
   :group 'editing-basics)
-(make-variable-buffer-local 'goal-column)
 
 (defvar temporary-goal-column 0
   "Current goal column for vertical motion.
@@ -8989,8 +8989,8 @@ treated as delimiting words.  See this command's namesake in Info node
   :type '(choice (const :tag "None" nil)
                  string)
   :safe #'string-or-null-p
+  :local t
   :group 'fill)
-(make-variable-buffer-local 'fill-prefix)
 
 (defcustom auto-fill-inhibit-regexp nil
   "Regexp to match lines that should not be auto-filled."

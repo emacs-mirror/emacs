@@ -698,8 +698,8 @@ If nil, the cursor will move backwards without deleting anything."
   "List of file and buffer names to consider related to the current buffer.
 Related buffers can be cycled through via :R and :P commands."
   :type 'boolean
+  :local 'permanent-only
   :group 'viper-misc)
-(put 'viper-related-files-and-buffers-ring 'permanent-local t)
 
 ;; Used to find out if we are done with searching the current buffer.
 (defvar-local viper-local-search-start-marker nil)

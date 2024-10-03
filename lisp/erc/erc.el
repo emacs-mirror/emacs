@@ -1106,8 +1106,8 @@ A user identifier has the form \"nick!login@host\".  If an
 identifier matches, the message from the person will not be
 processed."
   :group 'erc-ignore
-  :type '(repeat regexp))
-(make-variable-buffer-local 'erc-ignore-list)
+  :type '(repeat regexp)
+  :local t)
 
 (defcustom erc-ignore-reply-list nil
   "List of regexps matching user identifiers to ignore completely.

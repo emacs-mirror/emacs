@@ -130,37 +130,45 @@
 
 (defcustom ff-pre-find-hook nil
   "List of functions to be called before the search for the file starts."
-  :type 'hook)
+  :type 'hook
+  :local t)
 
 (defcustom ff-pre-load-hook nil
   "List of functions to be called before the other file is loaded."
-  :type 'hook)
+  :type 'hook
+  :local t)
 
 (defcustom ff-post-load-hook nil
   "List of functions to be called after the other file is loaded."
-  :type 'hook)
+  :type 'hook
+  :local t)
 
 (defcustom ff-not-found-hook nil
   "List of functions to be called if the other file could not be found."
-  :type 'hook)
+  :type 'hook
+  :local t)
 
 (defcustom ff-file-created-hook nil
   "List of functions to be called if the other file needs to be created."
-  :type 'hook)
+  :type 'hook
+  :local t)
 
 (defcustom ff-case-fold-search nil
   "Non-nil means ignore cases in matches (see `case-fold-search').
 If you have extensions in different cases, you will want this to be nil."
-  :type 'boolean)
+  :type 'boolean
+  :local t)
 
 (defcustom ff-always-in-other-window nil
   "If non-nil, find the corresponding file in another window by default.
 To override this, give an argument to `ff-find-other-file'."
-  :type 'boolean)
+  :type 'boolean
+  :local t)
 
 (defcustom ff-ignore-include nil
   "If non-nil, ignore `#include' lines."
-  :type 'boolean)
+  :type 'boolean
+  :local t)
 
 (defcustom ff-always-try-to-create t
   "If non-nil, always attempt to create the other file if it was not found."
@@ -168,7 +176,8 @@ To override this, give an argument to `ff-find-other-file'."
 
 (defcustom ff-quiet-mode nil
   "If non-nil, do not trace which directories are being searched."
-  :type 'boolean)
+  :type 'boolean
+  :local t)
 
 ;;;###autoload
 (defcustom ff-special-constructs
@@ -220,7 +229,8 @@ function must return a non-nil list of file-names.  It cannot
 return nil, nor can it signal in any way a failure to find a suitable
 list of file names."
   :type '(choice (repeat (list regexp (choice (repeat string) function)))
-		 symbol))
+                 symbol)
+  :local t)
 
 (defcustom ff-search-directories 'cc-search-directories
   "List of directories to search for a specific file.
@@ -243,7 +253,8 @@ not exist, it is replaced (silently) with an empty string.
 The stars are *not* wildcards: they are searched for together with
 the preceding slash.  The star represents all the subdirectories except
 `..', and each of these subdirectories will be searched in turn."
-  :type '(choice (repeat directory) symbol))
+  :type '(choice (repeat directory) symbol)
+  :local t)
 
 (defcustom cc-search-directories
   '("." "/usr/include" "/usr/local/include/*")
@@ -294,17 +305,6 @@ is created with the first matching extension (`.cc' yields `.hh')."
 ;; No user definable variables beyond this point!
 ;; ==============================================
 
-(make-variable-buffer-local 'ff-pre-find-hook)
-(make-variable-buffer-local 'ff-pre-load-hook)
-(make-variable-buffer-local 'ff-post-load-hook)
-(make-variable-buffer-local 'ff-not-found-hook)
-(make-variable-buffer-local 'ff-file-created-hook)
-(make-variable-buffer-local 'ff-case-fold-search)
-(make-variable-buffer-local 'ff-always-in-other-window)
-(make-variable-buffer-local 'ff-ignore-include)
-(make-variable-buffer-local 'ff-quiet-mode)
-(make-variable-buffer-local 'ff-other-file-alist)
-(make-variable-buffer-local 'ff-search-directories)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User entry points

@@ -432,8 +432,8 @@ interpreted as local file name on the remote host.
 If `shell-mode' is invoked in a local buffer, and no history file name
 can be determined, a default according to the shell type is used."
   :type '(choice (const :tag "Default" nil) (const :tag "Suppress" t) file)
+  :local 'permanent-only
   :version "30.1")
-(put 'shell-history-file-name 'permanent-local t)
 
 ;;; Basic Procedures
 

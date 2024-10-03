@@ -109,8 +109,8 @@ can set the value for a particular mode using that mode's hook.
 Comments might be indented to a different value in order not to go beyond
 `comment-fill-column' or in order to align them with surrounding comments."
   :type 'integer
+  :local t
   :group 'comment)
-(make-variable-buffer-local 'comment-column)
 ;;;###autoload
 (put 'comment-column 'safe-local-variable 'integerp)
 

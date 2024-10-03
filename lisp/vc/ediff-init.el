@@ -567,9 +567,8 @@ If nil, differences are highlighted using ASCII flags, ediff-before-flag
 and ediff-after-flag.  On a non-window system, differences are always
 highlighted using ASCII flags."
   :type 'boolean
+  :local 'permanent
   :group 'ediff-highlighting)
-(make-variable-buffer-local 'ediff-use-faces)
-(put 'ediff-use-faces 'permanent-local t)
 
 ;; this indicates that diff regions are word-size, so fine diffs are
 ;; permanently nixed; used in ediff-windows-wordwise and ediff-regions-wordwise
@@ -611,9 +610,8 @@ reverses the meaning of this variable."
 Otherwise, all difference regions are highlighted, but the selected region is
 shown in brighter colors."
   :type 'boolean
+  :local 'permanent
   :group 'ediff-highlighting)
-(make-variable-buffer-local 'ediff-highlight-all-diffs)
-(put 'ediff-highlight-all-diffs 'permanent-local t)
 
 
 (ediff-defvar-local ediff-control-buffer-suffix nil
@@ -1200,8 +1198,8 @@ save.  Anything else means save automatically only if the merge
 job is part of a group of jobs, such as `ediff-merge-directory'
 or `ediff-merge-directory-revisions'."
   :type '(choice (const nil) (const t) (const group-jobs-only))
+  :local t
   :group 'ediff-merge)
-(make-variable-buffer-local 'ediff-autostore-merges)
 
 (ediff-defvar-local ediff-merge-store-file nil
   "File where the result of the merge is to be saved.  Internal.")

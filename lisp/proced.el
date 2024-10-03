@@ -289,8 +289,8 @@ one, etc."
 It can be the car of an element of `proced-format-alist'.
 It can also be a list of keys appearing in `proced-grammar-alist'."
   :type '(choice (symbol :tag "Format Name")
-                 (repeat :tag "Keys" (symbol :tag ""))))
-(make-variable-buffer-local 'proced-format)
+                 (repeat :tag "Keys" (symbol :tag "")))
+  :local t)
 
 ;; FIXME: is there a better name for filter `user' that does not coincide
 ;; with an attribute key?
@@ -335,8 +335,8 @@ of `proced-filter-alist'."
                          (choice (cons :tag "Key . Regexp" (symbol :tag "Key") regexp)
                                  (cons :tag "Key . Function" (symbol :tag "Key") function)
                                  (cons :tag "Function" (const :tag "Key: function" function) function)
-                                 (cons :tag "Fun-all" (const :tag "Key: fun-all" fun-all) function)))))
-(make-variable-buffer-local 'proced-filter)
+                                 (cons :tag "Fun-all" (const :tag "Key: fun-all" fun-all) function))))
+  :local t)
 
 (defcustom proced-sort 'pcpu
   "Current sort scheme for proced listing.
@@ -344,13 +344,13 @@ It must be the KEY of an element of `proced-grammar-alist'.
 It can also be a list of KEYs as in the SORT-SCHEMEs of the elements
 of `proced-grammar-alist'."
   :type '(choice (symbol :tag "Sort Scheme")
-                 (repeat :tag "Key List" (symbol :tag "Key"))))
-(make-variable-buffer-local 'proced-sort)
+                 (repeat :tag "Key List" (symbol :tag "Key")))
+  :local t)
 
 (defcustom proced-descend t
   "Non-nil if proced listing is sorted in descending order."
-  :type '(boolean :tag "Descending Sort Order"))
-(make-variable-buffer-local 'proced-descend)
+  :type '(boolean :tag "Descending Sort Order")
+  :local t)
 
 (defcustom proced-goal-attribute 'args
   "If non-nil, key of the attribute that defines the `goal-column'."
@@ -368,13 +368,13 @@ displayed in a window.  Can be changed interactively via
 `proced-toggle-auto-update'."
   :type '(radio (const :tag "Don't auto update" nil)
                 (const :tag "Only update visible proced buffers" visible)
-                (const :tag "Update all proced buffers" t)))
-(make-variable-buffer-local 'proced-auto-update-flag)
+                (const :tag "Update all proced buffers" t))
+  :local t)
 
 (defcustom proced-tree-flag nil
   "Non-nil for display of Proced buffer as process tree."
-  :type 'boolean)
-(make-variable-buffer-local 'proced-tree-flag)
+  :type 'boolean
+  :local t)
 
 (defcustom proced-post-display-hook nil
   "Normal hook run after displaying or updating a Proced buffer.

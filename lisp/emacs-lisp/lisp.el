@@ -36,8 +36,8 @@ This is only necessary if the opening paren or brace is not in column 0.
 See function `beginning-of-defun'."
   :type '(choice (const nil)
 		 regexp)
+  :local t
   :group 'lisp)
-(make-variable-buffer-local 'defun-prompt-regexp)
 
 (defcustom parens-require-spaces t
   "If non-nil, add whitespace as needed when inserting parentheses.
