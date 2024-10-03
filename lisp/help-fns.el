@@ -206,9 +206,12 @@ type specifier when available."
         ,@(when completions-detailed
             '((affixation-function . help--symbol-completion-table-affixation)))
         (category . symbol-help))
-    (when help-enable-completion-autoload
+    (when (and help-enable-completion-autoload
+               (memq action '(nil t lambda)))
       (let ((prefixes (radix-tree-prefixes (help-definition-prefixes) string)))
-        (help--load-prefixes prefixes)))
+        ;; Don't load FOO.el during `test-completion' of `FOO-'.
+        (unless (and (eq action 'lambda) (assoc string prefixes))
+          (help--load-prefixes prefixes))))
     (let ((prefix-completions
            (and help-enable-completion-autoload
                 (mapcar #'intern (all-completions string definition-prefixes)))))
