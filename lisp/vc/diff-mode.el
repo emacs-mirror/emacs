@@ -822,10 +822,12 @@ If the prefix ARG is given, restrict the view to the current file instead."
 ;; would be a patch with the same meaning.  That is not implemented
 ;; because it does not seem like it would be useful.
 (defun diff-delete-other-hunks (&optional beg end)
-  "Delete all hunks other than the current hunk.
-Interactively, if the region is active, then delete all hunks that the
-region does not overlap.  When called from Lisp, the optional arguments
-BEG and END specify the region of hunks not to delete."
+  "Delete hunks other than the current one.
+Interactively, if the region is active, delete all hunks that the region
+overlaps; otherwise delete all hunks except the current one.
+When calling from Lisp, pass BEG and END as the bounds of the region in
+which to delete hunks; BEG and END omitted or nil means to delete all
+the hunks but the one which contains point."
   (interactive (list (use-region-beginning) (use-region-end)))
   (when (buffer-narrowed-p)
     (user-error "Command is not safe in a narrowed buffer"))

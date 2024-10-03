@@ -1705,8 +1705,11 @@ diffs were applied successfully, save the changed buffers.
 
 @findex diff-delete-other-hunks
 @item C-c @key{RET} n
-Delete all hunks other than the current hunk.  If the region is active,
-then delete all hunks that the region does not overlap.
+Delete hunks other than the current one.  If the region is active, this
+command deletes the hunks the region overlaps; otherwise it deletes all
+hunks other than the current hunk.  This command does not work in a
+narrowed buffer because deleting hunks safely requires access to the
+file headers.
 
 @findex diff-refine-hunk
 @item C-c C-b
