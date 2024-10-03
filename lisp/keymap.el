@@ -424,7 +424,7 @@ Interactively, prompt for FROM and TO with `read-char'."
           (aref from-key 0)
           (and to (aref to-key 0)))))
 
-(defun key-select-translation ()
+(defun key-translate-select ()
   "Prompt for a current keyboard translation pair with `completing-read'.
 
 Each pair is formatted as \"FROM -> TO\".
@@ -454,6 +454,7 @@ Return the \"FROM\" as a key string."
        (if (characterp chr)
            (funcall key-code-func chr trans)
          (require 'range)
+         (declare-function range-map "range" (func range))
          (range-map
           (lambda (kc) (funcall key-code-func kc trans))
           chr)))
@@ -470,7 +471,7 @@ Return the \"FROM\" as a key string."
 
 FROM must satisfy `key-valid-p'.  If FROM has no entry in
 `keyboard-translate-table', this has no effect."
-  (interactive (list (key-select-translation)))
+  (interactive (list (key-translate-select)))
   (key-translate from nil))
 
 (defun keymap-lookup (keymap key &optional accept-default no-remap position)
