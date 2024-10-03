@@ -170,6 +170,10 @@ More specifically it indicates which \"before\" they hold.
   "Current size of the buffer, as far as this library knows.
 This is used to try and detect cases where buffer modifications are \"lost\".")
 
+(defvar track-changes--trace nil
+  "Ring holding a trace of recent calls to the API.
+Each call is recorded as a (BUFFER-NAME . BACKTRACE).")
+
 ;;;; Exposed API.
 
 (defvar track-changes-record-errors
@@ -178,7 +182,8 @@ This is used to try and detect cases where buffer modifications are \"lost\".")
   ;; annoy the user too much about errors.
   (string-match "\\..*\\." emacs-version)
   "If non-nil, keep track of errors in `before/after-change-functions' calls.
-The errors are kept in `track-changes--error-log'.")
+The errors are kept in `track-changes--error-log'.
+If set to `trace', then we additionally keep a trace of recent calls to the API.")
 
 (cl-defun track-changes-register ( signal &key nobefore disjoint immediate)
   "Register a new tracker whose change-tracking function is SIGNAL.
@@ -213,6 +218,7 @@ and should thus be extra careful: don't modify the buffer, don't call a function
 that may block, do as little work as possible, ...
 When IMMEDIATE is non-nil, the SIGNAL should probably not always call
 `track-changes-fetch', since that would defeat the purpose of this library."
+  (track-changes--trace)
   (when (and nobefore disjoint)
     ;; FIXME: Without `before-change-functions', we can discover
     ;; a disjoint change only after the fact, which is not good enough.
@@ -236,6 +242,7 @@ When IMMEDIATE is non-nil, the SIGNAL should probably not always call
 Trackers can consume resources (especially if `track-changes-fetch' is
 not called), so it is good practice to unregister them when you don't
 need them any more."
+  (track-changes--trace)
   (unless (memq id track-changes--trackers)
     (error "Unregistering a non-registered tracker: %S" id))
   (setq track-changes--trackers (delq id track-changes--trackers))
@@ -270,6 +277,7 @@ This reflects a bug somewhere, so please report it when it happens.
 If no changes occurred since the last time, it doesn't call FUNC and
 returns nil, otherwise it returns the value returned by FUNC
 and re-enable the TRACKER corresponding to ID."
+  (track-changes--trace)
   (cl-assert (memq id track-changes--trackers))
   (unless (equal track-changes--buffer-size (buffer-size))
     (track-changes--recover-from-error
@@ -387,6 +395,29 @@ returned to a consistent state."
 
 ;;;; Auxiliary functions.
 
+(defun track-change--backtrace (n &optional base)
+  (let ((frames nil))
+    (catch 'done
+      (mapbacktrace (lambda (&rest frame)
+                      (if (>= (setq n (- n 1)) 0)
+                          (push frame frames)
+                        (push '... frames)
+                        (throw 'done nil)))
+                    (or base #'track-change--backtrace)))
+    (nreverse frames)))
+
+(defun track-changes--trace ()
+  (when (eq 'trace track-changes-record-errors)
+    (require 'ring)
+    (declare-function ring-insert "ring" (ring item))
+    (declare-function make-ring "ring" (size))
+    (unless track-changes--trace
+      (setq track-changes--trace (make-ring 10)))
+    (ring-insert track-changes--trace
+                 (cons (buffer-name)
+                       (track-change--backtrace
+                        10 #'track-changes--trace)))))
+
 (defun track-changes--clean-state ()
   (cond
    ((null track-changes--state)
@@ -442,7 +473,9 @@ returned to a consistent state."
 
 (defvar track-changes--error-log ()
   "List of errors encountered.
-Each element is a triplet (BUFFER-NAME BACKTRACE RECENT-KEYS).")
+Each element is a tuple [BUFFER-NAME BACKTRACE RECENT-KEYS TRACE].
+where both RECENT-KEYS and TRACE are sorted oldest-first and
+backtraces have the deepest frame first.")
 
 (defun track-changes--recover-from-error (&optional info)
   ;; We somehow got out of sync.  This is usually the result of a bug
@@ -453,14 +486,15 @@ Each element is a triplet (BUFFER-NAME BACKTRACE RECENT-KEYS).")
       (message "Recovering from confusing calls to `before/after-change-functions'!")
     (warn "Missing/incorrect calls to `before/after-change-functions'!!
 Details logged to `track-changes--error-log'")
-    (push (list (buffer-name) info
-                (let* ((bf (backtrace-frames
-                            #'track-changes--recover-from-error))
-                       (tail (nthcdr 50 bf)))
-                  (when tail (setcdr tail '...))
-                  bf)
-                (let ((rk (recent-keys 'include-cmds)))
-                  (if (< (length rk) 20) rk (substring rk -20))))
+    (push (vector (buffer-name) info
+                  (track-change--backtrace
+                   50 #'track-changes--recover-from-error)
+                  (let ((rk (recent-keys 'include-cmds)))
+                    (if (< (length rk) 20) rk (substring rk -20)))
+                  (when (and (eq 'trace track-changes-record-errors)
+                             (fboundp 'ring-elements))
+                    (apply #'vector
+                           (nreverse (ring-elements track-changes--trace)))))
           track-changes--error-log))
   (setq track-changes--before-clean 'unset)
   (setq track-changes--buffer-size (buffer-size))
@@ -470,6 +504,7 @@ Details logged to `track-changes--error-log'")
   (setq track-changes--state (track-changes--state)))
 
 (defun track-changes--before (beg end)
+  (track-changes--trace)
   (cl-assert track-changes--state)
   (cl-assert (<= beg end))
   (let* ((size (- end beg))
@@ -554,6 +589,7 @@ Details logged to `track-changes--error-log'")
                 (buffer-substring-no-properties old-bend new-bend)))))))))
 
 (defun track-changes--after (beg end len)
+  (track-changes--trace)
   (cl-assert track-changes--state)
   (and (eq track-changes--before-clean 'unset)
        (not track-changes--before-no)
