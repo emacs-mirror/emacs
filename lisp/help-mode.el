@@ -518,7 +518,9 @@ restore it properly when going back."
               outline-minor-mode-highlight
               outline-minor-mode-use-buttons
               outline-default-state
-              outline-default-rules)))
+              outline-default-rules
+              xref-backend-functions
+              semantic-symref-filepattern-alist)))
     (when help-xref-stack-item
       (push (cons (point) help-xref-stack-item) help-xref-stack)
       (setq help-xref-forward-stack nil))
