@@ -1049,7 +1049,9 @@ namespace but with lower confidence."
   (let ((sym (intern-soft identifier)))
     (when sym
       (let* ((pos (get-text-property 0 'pos identifier))
-             (namespace (if pos
+             (namespace (if (and pos
+                                 ;; Reusing it in Help Mode.
+                                 (derived-mode-p 'emacs-lisp-mode))
                             (elisp--xref-infer-namespace pos)
                           'any))
              (defs (elisp--xref-find-definitions sym)))

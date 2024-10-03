@@ -262,6 +262,11 @@ interactive command."
                   fn))
     (list fn)))
 
+(defun help-fns--setup-xref-backend ()
+  (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
+  (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
+  (setq-local semantic-symref-filepattern-alist '((help-mode "*.el"))))
+
 ;;;###autoload
 (defun describe-function (function)
   "Display the full documentation of FUNCTION (a symbol).
@@ -295,6 +300,8 @@ handling of autoloaded functions."
         (princ " is ")
         (describe-function-1 function)
         (with-current-buffer standard-output
+          (help-fns--setup-xref-backend)
+
           ;; Return the text we displayed.
           (buffer-string))))))
 
@@ -1510,6 +1517,7 @@ it is displayed along with the global value."
                     (delete-char 1)))))
 
 	    (with-current-buffer standard-output
+              (help-fns--setup-xref-backend)
 	      ;; Return the text we displayed.
 	      (buffer-string))))))))
 
