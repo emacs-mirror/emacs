@@ -222,7 +222,7 @@ are available (see Info node `(emacs)Document View')."
                                          "djvused")
   "Name of \"djvused\" program to generate imenu outline for DjVu files.
 This is part of DjVuLibre."
-  :type 'file
+  :type '(choice (const nil) file)
   :version "31.1")
 
 (defcustom doc-view-imenu-enabled (and (or (executable-find "mutool")
