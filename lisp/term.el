@@ -3545,7 +3545,8 @@ color is unset in the terminal state."
     (setq term-current-face
           `(,@(when fg `(:foreground ,fg))
             ,@(when bg `(:background ,bg))
-            ,@(unless term-ansi-current-invisible
+            ,@(when (and term-ansi-current-reverse
+                         (not term-ansi-current-invisible))
                 (list :inverse-video term-ansi-current-reverse)))))
 
   (setq term-current-face
