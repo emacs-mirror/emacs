@@ -1099,6 +1099,11 @@ Return nil if there is nothing appropriate in the buffer near point."
  :other-modes '(emacs-lisp-mode))
 
 (info-lookup-maybe-add-help
+ :mode 'inferior-emacs-lisp-mode
+ :regexp "[^][()`'‘’,:\" \t\n]+"
+ :other-modes '(emacs-lisp-mode))
+
+(info-lookup-maybe-add-help
  :mode 'lisp-mode
  :regexp "[^()`'‘’,\" \t\n]+"
  :parse-rule 'ignore
