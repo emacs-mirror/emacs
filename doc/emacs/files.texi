@@ -1712,7 +1712,7 @@ Delete hunks other than the current one.  If the region is active, this
 command deletes the hunks the region overlaps; otherwise it deletes all
 hunks other than the current hunk.  This command does not work in a
 narrowed buffer because deleting hunks safely requires access to the
-file headers.
+parts of the buffer where the hunks' file names are specified.
 
 @findex diff-refine-hunk
 @item C-c C-b
