@@ -976,14 +976,14 @@ Return nil if there is nothing appropriate in the buffer near point."
  :doc-spec-function
  (lambda ()
    ;; Python is released annually (PEP 602).
-   (let ((yy (- (decoded-time-year (decode-time (current-time))) 2000)))
-     (list
-      (list
-       (cl-loop for version from yy downto 7
-                for name = (format "python3.%d" version)
-                if (Info-find-file name t)
-                return (format "(%s)Index" name)
-                finally return "(python)Index"))))))
+   (let* ((yy (- (decoded-time-year (decode-time (current-time))) 2000))
+          (manual (cl-loop for version from yy downto 7
+                           for name = (format "python3.%d" version)
+                           if (Info-find-file name t)
+                           return name
+                           finally return "python")))
+     `((,(format "(%s)Index" manual))
+       (,(format "(%s)Python Module Index" manual))))))
 
 (info-lookup-maybe-add-help
  :mode 'perl-mode
