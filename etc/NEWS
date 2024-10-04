@@ -50,6 +50,9 @@ The 'find-function', 'find-library', 'find-face-definition', and
 'find-variable' commands now allow retrieving previous input using the
 usual minibuffer history commands.  Each command has a separate history.
 
+---
+** New minor mode find-function-mode replaces the old find-function-setup-keys.
+
 ** Minibuffer and Completions
 
 +++
