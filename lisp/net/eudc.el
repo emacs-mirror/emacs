@@ -23,25 +23,27 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;    This package provides a common interface to query directory servers using
-;;    different protocols such as LDAP, CCSO PH/QI or BBDB.  Queries can be
-;;    made through an interactive form or inline.  Inline query strings in
-;;    buffers are expanded with appropriately formatted query results
-;;    (especially used to expand email addresses in message buffers).  EUDC
-;;    also interfaces with the BBDB package to let you register query results
-;;    into your own BBDB database.
 
-;;; Usage:
-;;    EUDC comes with an extensive documentation, please refer to it.
+;; This package provides a common interface to query directory servers using
+;; different protocols such as LDAP, CCSO PH/QI or BBDB.  Queries can be
+;; made through an interactive form or inline.  Inline query strings in
+;; buffers are expanded with appropriately formatted query results
+;; (especially used to expand email addresses in message buffers).  EUDC
+;; also interfaces with the BBDB package to let you register query results
+;; into your own BBDB database.
 ;;
-;;    The main entry points of EUDC are:
-;;      `eudc-query-form': Query a directory server from a query form
-;;      `eudc-expand-inline': Query a directory server for the e-mail address
-;;                            of the name before cursor and insert it in the
-;;                            buffer
-;;      `eudc-get-phone': Get a phone number from a directory server
-;;      `eudc-get-email': Get an e-mail address from a directory server
-;;      `eudc-customize': Customize various aspects of EUDC
+;; Usage:
+;;
+;; EUDC comes with extensive documentation, please refer to it.
+;;
+;; The main entry points of EUDC are:
+;;   `eudc-query-form': Query a directory server from a query form
+;;   `eudc-expand-inline': Query a directory server for the e-mail address
+;;                         of the name before cursor and insert it in the
+;;                         buffer
+;;   `eudc-get-phone': Get a phone number from a directory server
+;;   `eudc-get-email': Get an e-mail address from a directory server
+;;   `eudc-customize': Customize various aspects of EUDC
 
 ;;; Code:
 
