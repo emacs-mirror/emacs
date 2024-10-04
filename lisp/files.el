@@ -6152,7 +6152,7 @@ Before and after saving the buffer, this function runs
   `((?\M-~ ,(lambda (buf)
               (with-current-buffer buf
                 (set-buffer-modified-p nil))
-              ;; Return t to not ask about BUF again.
+              ;; Return t so we don't ask about BUF again.
               t)
            ,(purecopy "skip this buffer and mark it unmodified"))
     (?\C-r
