@@ -2661,7 +2661,7 @@ window is included in the count.
 If ALL-FRAMES is non-nil, count the windows in all frames instead
 just the selected frame.
 
-See `walk-windows' for the precise meaning of this argument."
+See `walk-windows' for the precise meaning of these arguments."
    (length (window-list-1 nil minibuf all-frames)))
 
 ;;; Resizing windows.
