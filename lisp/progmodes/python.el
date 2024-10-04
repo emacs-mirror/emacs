@@ -7090,6 +7090,11 @@ implementations: `python-mode' and `python-ts-mode'."
               `((?: . ,(lambda ()
                          (and (zerop (car (syntax-ppss)))
                               (python-info-statement-starts-block-p)
+                              ;; Heuristic: assume walrus operator :=
+                              ;; when colon is preceded by space.
+                              (save-excursion
+                                (goto-char (- (point) 2))
+                                (looking-at (rx (not space) ":")))
                               'after)))))
 
   ;; Add """ ... """ pairing to electric-pair-mode.
