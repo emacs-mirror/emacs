@@ -48,8 +48,7 @@
 
 (defvar-local info-lookup-mode nil
   "Symbol of the current buffer's help mode.
-Help is provided according to the buffer's major mode if value is nil.
-Automatically becomes buffer local when set in any fashion.")
+Help is provided according to the buffer's major mode if value is nil.")
 
 (defcustom info-lookup-other-window-flag t
  "Non-nil means pop up the Info buffer in another window."
