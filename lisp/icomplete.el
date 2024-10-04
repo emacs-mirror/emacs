@@ -1007,7 +1007,12 @@ matches exist."
                                   (or determ (concat open-bracket close-bracket)))
                                  (string-width icomplete-separator)
                                  (+ 2 (string-width ellipsis)) ;; take {…} into account
-                                 (string-width (buffer-string))))
+                                 (string-width
+                                  (buffer-substring
+                                   (save-excursion
+                                     (goto-char (icomplete--field-beg))
+                                     (pos-bol))
+                                   (icomplete--field-end)))))
                (prospects-max
                 ;; Max total length to use, including the minibuffer content.
                 (* (+ icomplete-prospects-height
