@@ -410,7 +410,7 @@ with a space."
 ;;; Syntax tables and abbrev-expansion
 
 (defcustom mail-abbrev-mode-regexp
-  "^\\(Resent-\\)?\\(To\\|From\\|Cc\\|Bcc\\|Reply-To\\):"
+  "^\\(Resent-\\)?\\(To\\|From\\|Cc\\|Bcc\\|Reply-To\\|X-Debbugs-Cc\\):"
   "Regexp matching mail headers in which mail abbrevs should be expanded.
 This string will be handed to `looking-at' with point at the beginning
 of the current line; if it matches, abbrev mode will be turned on, otherwise
