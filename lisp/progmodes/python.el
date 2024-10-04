@@ -295,10 +295,12 @@
 
 ;;;###autoload
 (defconst python--auto-mode-alist-regexp
-  (rx "." (or "py"
-              "pth"                     ; Python Path Configuration File
-              "pyi"                     ; Python Stub File (PEP 484)
-              "pyw")                    ; MS-Windows specific extension
+  (rx (or
+       (seq "." (or "py"
+                    "pth"               ; Python Path Configuration File
+                    "pyi"               ; Python Stub File (PEP 484)
+                    "pyw"))             ; MS-Windows specific extension
+       (seq "/" (or "SConstruct" "SConscript"))) ; SCons Build Files
       eos))
 
 ;;;###autoload
