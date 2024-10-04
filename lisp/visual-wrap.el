@@ -73,6 +73,36 @@ extra indent = 2
         (face-extend-p face nil t)
       (face-background face nil t)))))
 
+(defvar visual-wrap--safe-display-specs
+  '(height raise)
+  "A list of display specs that don't interfere with wrap prefixes.
+A \"safe\" display spec is one that won't interfere with the additional
+text properties that `visual-wrap-prefix-mode' uses.
+
+Specs that replace the text are unsafe, since they generally determine
+the range of text to replace via `eq'.  If `visual-wrap-prefix-mode'
+were to add text properties to some subset of this range, it would
+violate this assumption.")
+
+(defun visual-wrap--display-property-safe-p (display)
+  "Return non-nil if the display property DISPLAY is \"safe\".
+A \"safe\" display property is one where all the display specs are
+members of `visual-wrap--safe-display-specs' (which see)."
+  ;; The display property could be a single display spec; if so, wrap it
+  ;; in a list so we can iterate over it in our loop below.
+  (when (and (consp display) (not (consp (car display))))
+    (setq display (list display)))
+  ;; Loop over all the display specs to check if they're safe.  Assume
+  ;; any display property other than a vector or list (e.g. a string) is
+  ;; unsafe.
+  (when (or (vectorp display) (listp display))
+    (not (catch 'unsafe
+           (mapc (lambda (spec)
+                   (unless (memq (car-safe spec)
+                                 visual-wrap--safe-display-specs)
+                     (throw 'unsafe t)))
+                 display)))))
+
 (defun visual-wrap--prefix-face (fcp _beg end)
   ;; If the fill-context-prefix already specifies a face, just use that.
   (cond ((get-text-property 0 'face fcp))
@@ -128,11 +158,11 @@ extra indent = 2
         ;; the buffer.)
         (add-display-text-property
          position (min (+ position (length first-line-prefix))
-                       (line-end-position))
+                       (pos-eol))
          'min-width `((,next-line-prefix . width))))
       (setq next-line-prefix (visual-wrap--adjust-prefix next-line-prefix))
       (put-text-property
-       position (line-end-position) 'wrap-prefix
+       position (pos-eol) 'wrap-prefix
        (if (numberp next-line-prefix)
            `(space :align-to (,next-line-prefix . width))
          next-line-prefix)))))
@@ -209,8 +239,27 @@ by `visual-wrap-extra-indent'."
   (forward-line 0)
   (setq beg (point))
   (while (< (point) end)
-    (visual-wrap--apply-to-line (point))
-    (forward-line))
+    ;; Check if the display property at the end of this line is "safe".
+    (if (visual-wrap--display-property-safe-p
+         (get-char-property (pos-eol) 'display))
+        ;; If so, we can apply our visual wrapping properties to this
+        ;; line and continue to the next line.
+        (progn
+          (visual-wrap--apply-to-line (point))
+          (forward-line))
+      ;; Otherwise, skip ahead until the end of any unsafe display
+      ;; properties.  NOTE: We do this out of an abundance of caution to
+      ;; be as certain as possible that we're not interfering with the
+      ;; display engine.  If this results in cases where we fail to add
+      ;; wrapping properties when we should, then we should remove the
+      ;; `while' loop below.  Without that loop, this should be the same
+      ;; logic `handle_single_display_spec' in xdisp.c uses for
+      ;; determining what text to replace.  See bug#73600.
+      (goto-char (next-single-char-property-change (pos-eol) 'display))
+      (while (not (visual-wrap--display-property-safe-p
+                   (get-char-property (point) 'display)))
+        (goto-char (next-single-char-property-change (point) 'display)))
+      (unless (bolp) (forward-line 1))))
   `(jit-lock-bounds ,beg . ,end))
 
 ;;;###autoload
