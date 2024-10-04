@@ -973,14 +973,17 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'python-mode
  ;; Debian includes Python info files, but they're version-named
  ;; instead of having a symlink.
- :doc-spec-function (lambda ()
-                      (list
-                       (list
-                        (cl-loop for version from 20 downto 7
-                                 for name = (format "python3.%d" version)
-                                 if (Info-find-file name t)
-                                 return (format "(%s)Index" name)
-                                 finally return "(python)Index")))))
+ :doc-spec-function
+ (lambda ()
+   ;; Python is released annually (PEP 602).
+   (let ((yy (- (decoded-time-year (decode-time (current-time))) 2000)))
+     (list
+      (list
+       (cl-loop for version from yy downto 7
+                for name = (format "python3.%d" version)
+                if (Info-find-file name t)
+                return (format "(%s)Index" name)
+                finally return "(python)Index"))))))
 
 (info-lookup-maybe-add-help
  :mode 'perl-mode
