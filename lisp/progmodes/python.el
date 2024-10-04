@@ -408,7 +408,7 @@ To customize the Python interpreter for interactive use, modify
   "Keymap for `python-mode'.")
 
 (defvar python-ts-mode-map (copy-keymap python-mode-map)
-  "Keymap for `(copy-keymap python-mode-map)'.")
+  "Keymap for `python-ts-mode'.")
 
 
 ;;; Python specialized rx
