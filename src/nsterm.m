@@ -1505,7 +1505,7 @@ ns_make_frame_visible (struct frame *f)
       EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
       EmacsWindow *window = (EmacsWindow *)[view window];
 
-      SET_FRAME_VISIBLE (f, 1);
+      SET_FRAME_VISIBLE (f, true);
       ns_raise_frame (f, ! FRAME_NO_FOCUS_ON_MAP (f));
 
       /* Making a new frame from a fullscreen frame will make the new frame
@@ -1550,7 +1550,7 @@ ns_make_frame_invisible (struct frame *f)
   check_window_system (f);
   view = FRAME_NS_VIEW (f);
   [[view window] orderOut: NSApp];
-  SET_FRAME_VISIBLE (f, 0);
+  SET_FRAME_VISIBLE (f, false);
   SET_FRAME_ICONIFIED (f, 0);
 }
 

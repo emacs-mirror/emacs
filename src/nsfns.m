@@ -3351,7 +3351,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 	      [nswindow orderFront: NSApp];
 	      [nswindow display];
 
-	      SET_FRAME_VISIBLE (tip_f, 1);
+	      SET_FRAME_VISIBLE (tip_f, true);
 	      unblock_input ();
 
 	      goto start_timer;
@@ -3534,7 +3534,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
       [nswindow orderFront: NSApp];
       [nswindow display];
 
-      SET_FRAME_VISIBLE (tip_f, YES);
+      SET_FRAME_VISIBLE (tip_f, true);
       FRAME_PIXEL_WIDTH (tip_f) = width;
       FRAME_PIXEL_HEIGHT (tip_f) = height;
       unblock_input ();
