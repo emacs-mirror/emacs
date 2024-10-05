@@ -316,7 +316,6 @@
 
 (defcustom python-interpreter
   (cond ((executable-find "python") "python")
-        ((executable-find "python3") "python3")
         (t "python3"))
   "Python interpreter for noninteractive use.
 Some Python interpreters also require changes to
@@ -2742,7 +2741,6 @@ position, else returns nil."
 
 (defcustom python-shell-interpreter
   (cond ((executable-find "python") "python")
-        ((executable-find "python3") "python3")
         (t "python3"))
   "Python interpreter for interactive use.
 
