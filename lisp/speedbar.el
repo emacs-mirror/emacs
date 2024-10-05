@@ -3168,25 +3168,32 @@ With universal argument ARG, flush cached data."
 	(speedbar-do-function-pointer))
     (error (speedbar-position-cursor-on-line))))
 
+(defun speedbar--get-line-indent-level ()
+  "Return the indentation level of the current line."
+  (save-excursion
+    (beginning-of-line)
+    (if (looking-at "[0-9]+:")
+        (string-to-number (match-string 0))
+      0)))
+
 (defun speedbar-expand-line-descendants (&optional arg)
   "Expand the line under the cursor and all descendants.
 Optional argument ARG indicates that any cache should be flushed."
   (interactive "P")
-  (save-restriction
-    (narrow-to-region (line-beginning-position)
-                      (line-beginning-position 2))
-    (speedbar-expand-line arg)
-    ;; Now, inside the area expanded here, expand all subnodes of
-    ;; the same descendant type.
-    (save-excursion
-      (speedbar-next 1) ;; Move into the list.
-      (let ((err nil))
-        (while (not err)
-	  (condition-case nil
-	      (progn
-	        (speedbar-expand-line-descendants arg)
-	        (speedbar-restricted-next 1))
-	    (error (setq err t))))))))
+  (dframe-message "Expanding all descendants...")
+  (save-excursion
+    (let ((top-depth (speedbar--get-line-indent-level)))
+      ;; Attempt to expand the top-level item.
+      (speedbar-expand-line arg)
+      ;; Move forwards, either into the newly expanded list, onto an
+      ;; already expanded list, onto a sibling item, or to the end of
+      ;; the buffer.
+      (while (and (zerop (forward-line 1))
+                  (not (eobp))
+                  (> (speedbar--get-line-indent-level) top-depth)
+                  (speedbar-expand-line arg)))))
+  (dframe-message "Expanding all descendants...done")
+  (speedbar-position-cursor-on-line))
 
 (defun speedbar-contract-line-descendants ()
   "Expand the line under the cursor and all descendants."
