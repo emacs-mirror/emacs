@@ -46,6 +46,7 @@
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 (declare-function treesit-query-capture "treesit.c")
+(declare-function treesit-query-compile "treesit.c")
 
 (defgroup csharp nil
   "Major mode for editing C# code."
