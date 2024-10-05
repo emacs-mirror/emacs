@@ -427,11 +427,15 @@ processes correctly."
 (ert-deftest esh-cmd-test/if-else-statement ()
   "Test invocation of an if/else statement."
   (let ((eshell-test-value t))
-    (eshell-command-result-equal "if $eshell-test-value {echo yes} {echo no}"
-                                 "yes"))
+    (eshell-command-result-equal
+     "if $eshell-test-value {echo yes} {echo no}" "yes")
+    (eshell-command-result-equal
+     "if $eshell-test-value {echo yes} else {echo no}" "yes"))
   (let ((eshell-test-value nil))
-    (eshell-command-result-equal "if $eshell-test-value {echo yes} {echo no}"
-                                 "no")))
+    (eshell-command-result-equal
+     "if $eshell-test-value {echo yes} {echo no}" "no")
+    (eshell-command-result-equal
+     "if $eshell-test-value {echo yes} else {echo no}" "no")))
 
 (ert-deftest esh-cmd-test/if-else-statement-lisp-form ()
   "Test invocation of an if/else statement using a Lisp form."
@@ -473,6 +477,16 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                                "yes")
   (eshell-command-result-equal "if {[ foo = bar ]} {echo yes} {echo no}"
                                "no"))
+
+(ert-deftest esh-cmd-test/if-else-statement-chain ()
+  "Test invocation of a chained if/else statement."
+  (dolist (case '((1 . "one") (2 . "two") (3 . "other")))
+    (let ((eshell-test-value (car case)))
+      (eshell-command-result-equal
+       (concat "if (= eshell-test-value 1) {echo one} "
+               "else if (= eshell-test-value 2) {echo two} "
+               "else {echo other}")
+       (cdr case)))))
 
 (ert-deftest esh-cmd-test/if-statement-pipe ()
   "Test invocation of an if statement piped to another command."

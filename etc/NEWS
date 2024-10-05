@@ -258,6 +258,20 @@ where to send the standard error output.  See the "(eshell) Entry
 Points" node in the Eshell manual for more details.
 
 +++
+*** Conditional statements in Eshell now use an 'else' keyword.
+Eshell now prefers the following form when writing conditionals:
+
+    if {conditional} {true-subcommand} else {false-subcommand}
+
+The old form (without the 'else' keyword) is retained for compatibility.
+
++++
+*** You can now chain conditional statements in Eshell.
+When using the newly-preferred conditional form in Eshell, you can now
+chain together multiple 'if'/'else' statements.  For more information,
+see "(eshell) Control Flow" in the Eshell manual.
+
++++
 *** Eshell's built-in 'wait' command now accepts a timeout.
 By passing '-t' or '--timeout', you can specify a maximum time to wait
 for the processes to exit.  Additionally, you can now wait for external

@@ -551,12 +551,14 @@ implemented via rewriting, rather than as a function."
 	       ,body)
              (setq ,for-items (cdr ,for-items)))))))
 
-(defun eshell-structure-basic-command (func names keyword test body
-					    &optional else)
+(defun eshell-structure-basic-command (func names keyword test &rest body)
   "With TERMS, KEYWORD, and two NAMES, structure a basic command.
 The first of NAMES should be the positive form, and the second the
 negative.  It's not likely that users should ever need to call this
 function."
+  (unless test
+    (error "Missing test for `%s' command" keyword))
+
   ;; If the test form is a subcommand, wrap it in `eshell-commands' to
   ;; silence the output.
   (when (memq (car test) '(eshell-as-subcommand eshell-lisp-command))
@@ -582,33 +584,39 @@ function."
       (setq test `(not ,test)))
 
   ;; Finally, create the form that represents this structured command.
-  `(,func ,test ,body ,else))
+  `(,func ,test ,@body))
 
 (defun eshell-rewrite-while-command (terms)
   "Rewrite a `while' command into its equivalent Eshell command form.
 Because the implementation of `while' relies upon conditional
 evaluation of its argument (i.e., use of a Lisp special form), it
 must be implemented via rewriting, rather than as a function."
-  (if (and (stringp (car terms))
-	   (member (car terms) '("while" "until")))
-      (eshell-structure-basic-command
-       'while '("while" "until") (car terms)
-       (cadr terms)
-       (car (last terms)))))
+  (when (and (stringp (car terms))
+             (member (car terms) '("while" "until")))
+    (eshell-structure-basic-command
+     'while '("while" "until") (car terms)
+     (cadr terms)
+     (caddr terms))))
 
 (defun eshell-rewrite-if-command (terms)
   "Rewrite an `if' command into its equivalent Eshell command form.
 Because the implementation of `if' relies upon conditional
 evaluation of its argument (i.e., use of a Lisp special form), it
 must be implemented via rewriting, rather than as a function."
-  (if (and (stringp (car terms))
-	   (member (car terms) '("if" "unless")))
-      (eshell-structure-basic-command
-       'if '("if" "unless") (car terms)
-       (cadr terms)
-       (car (last terms (if (= (length terms) 4) 2)))
-       (when (= (length terms) 4)
-         (car (last terms))))))
+  (when (and (stringp (car terms))
+             (member (car terms) '("if" "unless")))
+    (eshell-structure-basic-command
+     'if '("if" "unless") (car terms)
+     (cadr terms)
+     (caddr terms)
+     (if (equal (nth 3 terms) "else")
+         ;; If there's an "else" keyword, allow chaining together
+         ;; multiple "if" forms...
+         (or (eshell-rewrite-if-command (nthcdr 4 terms))
+             (nth 4 terms))
+       ;; ... otherwise, only allow a single "else" block (without the
+       ;; keyword) as before for compatibility.
+       (nth 3 terms)))))
 
 (defun eshell-set-exit-info (status &optional result)
   "Set the exit status and result for the last command.
