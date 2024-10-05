@@ -1008,11 +1008,10 @@ matches exist."
                                  (string-width icomplete-separator)
                                  (+ 2 (string-width ellipsis)) ;; take {…} into account
                                  (string-width
-                                  (buffer-substring
-                                   (save-excursion
-                                     (goto-char (icomplete--field-beg))
-                                     (pos-bol))
-                                   (icomplete--field-end)))))
+                                  (buffer-substring (save-excursion
+                                                      (goto-char (icomplete--field-beg))
+                                                      (pos-bol))
+                                                    (icomplete--field-end)))))
                (prospects-max
                 ;; Max total length to use, including the minibuffer content.
                 (* (+ icomplete-prospects-height
