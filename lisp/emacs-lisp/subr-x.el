@@ -357,7 +357,8 @@ automatically killed, which means that in a such case
         ;; Flush BUFFER before making it available again, i.e. clear
         ;; its contents, remove all overlays and buffer-local
         ;; variables.  Is it enough to safely reuse the buffer?
-        (erase-buffer)
+        (let ((inhibit-read-only t))
+          (erase-buffer))
         (delete-all-overlays)
         (let (change-major-mode-hook)
           (kill-all-local-variables t))
