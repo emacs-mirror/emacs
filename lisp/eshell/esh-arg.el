@@ -35,6 +35,8 @@
 (eval-when-compile
   (require 'cl-lib))
 
+(declare-function eshell-term-as-value "esh-cmd" (term))
+
 (defgroup eshell-arg nil
   "Argument parsing involves transforming the arguments passed on the
 command line into equivalent Lisp forms that, when evaluated, will
@@ -626,7 +628,8 @@ If the form has no `type', the syntax is parsed as if `type' were
             (prog1
                 (cons creation-fun
                       (let ((eshell-current-argument-plain t))
-                        (eshell-parse-arguments (point) end)))
+                        (mapcar #'eshell-term-as-value
+                                (eshell-parse-arguments (point) end))))
               (goto-char (1+ end)))
           (ignore (goto-char here)))))))
 

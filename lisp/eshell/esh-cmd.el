@@ -454,6 +454,7 @@ command hooks should be run before and after the command."
 
 (defun eshell-subcommand-arg-values (terms)
   "Convert subcommand arguments {x} to ${x}, in order to take their values."
+  (declare (obsolete nil "31.1"))
   (setq terms (cdr terms))		; skip command argument
   (while terms
     (if (and (listp (car terms))
@@ -465,9 +466,9 @@ command hooks should be run before and after the command."
 (defun eshell-rewrite-sexp-command (terms)
   "Rewrite a sexp in initial position, such as `(+ 1 2)'."
   ;; this occurs when a Lisp expression is in first position
-  (if (and (listp (car terms))
-	   (eq (caar terms) 'eshell-command-to-value))
-      (car (cdar terms))))
+  (when (and (listp (car terms))
+             (eq (caar terms) 'eshell-lisp-command))
+    (car terms)))
 
 (defun eshell-rewrite-initial-subcommand (terms)
   "Rewrite a subcommand in initial position, such as `{+ 1 2}'."
@@ -477,20 +478,23 @@ command hooks should be run before and after the command."
 
 (defun eshell-rewrite-named-command (terms)
   "If no other rewriting rule transforms TERMS, assume a named command."
-  (eshell-subcommand-arg-values terms)
-  (let ((sym (if eshell-in-pipeline-p
-		 'eshell-named-command*
-	       'eshell-named-command))
-        (grouped-terms (eshell-prepare-splice terms)))
-    (cond
-     (grouped-terms
-      `(let ((terms (nconc ,@grouped-terms)))
-         (,sym (car terms) (cdr terms))))
-     ;; If no terms are spliced, use a simpler command form.
-     ((cdr terms)
-      (list sym (car terms) `(list ,@(cdr terms))))
-     (t
-      (list sym (car terms))))))
+  (when terms
+    (setq terms (cons (car terms)
+                      ;; Convert arguments to take their values.
+                      (mapcar #'eshell-term-as-value (cdr terms))))
+    (let ((sym (if eshell-in-pipeline-p
+		   'eshell-named-command*
+	         'eshell-named-command))
+          (grouped-terms (eshell-prepare-splice terms)))
+      (cond
+       (grouped-terms
+        `(let ((new-terms (nconc ,@grouped-terms)))
+           (,sym (car new-terms) (cdr new-terms))))
+       ;; If no terms are spliced, use a simpler command form.
+       ((cdr terms)
+        (list sym (car terms) `(list ,@(cdr terms))))
+       (t
+        (list sym (car terms)))))))
 
 (defvar eshell--command-body)
 (defvar eshell--test-body)
@@ -537,7 +541,7 @@ implemented via rewriting, rather than as a function."
                  ,@(mapcar
                     (lambda (elem)
                       (if (listp elem)
-                          elem
+                          (eshell-term-as-value elem)
                         `(list ,elem)))
                     (nthcdr 3 terms)))))
            (while ,for-items
@@ -555,7 +559,7 @@ negative.  It's not likely that users should ever need to call this
 function."
   ;; If the test form is a subcommand, wrap it in `eshell-commands' to
   ;; silence the output.
-  (when (eq (car test) 'eshell-as-subcommand)
+  (when (memq (car test) '(eshell-as-subcommand eshell-lisp-command))
     (setq test `(eshell-commands ,test t)))
 
   ;; If the test form begins with `eshell-convert' or
@@ -686,8 +690,7 @@ This means an exit code of 0."
 		(end-of-file
                  (throw 'eshell-incomplete "(")))))
 	(if (eshell-arg-delimiter)
-	    `(eshell-command-to-value
-              (eshell-lisp-command (quote ,obj)))
+	    `(eshell-lisp-command (quote ,obj))
 	  (ignore (goto-char here))))))
 
 (defun eshell-split-commands (terms separator &optional
@@ -911,6 +914,15 @@ This avoids the need to use `let*'."
        (let ((eshell-in-pipeline-p nil))
          ,command
          ,value))))
+
+(defun eshell-term-as-value (term)
+  "Convert an Eshell TERM to take its value."
+  (cond
+   ((eq (car-safe term) 'eshell-as-subcommand) ; {x} -> ${x}
+    `(eshell-convert (eshell-command-to-value ,term)))
+   ((eq (car-safe term) 'eshell-lisp-command)  ; (x) -> $(x)
+    `(eshell-command-to-value ,term))
+   (t term)))
 
 ;;;_* Iterative evaluation
 ;;

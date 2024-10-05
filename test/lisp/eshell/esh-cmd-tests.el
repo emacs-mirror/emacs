@@ -325,6 +325,12 @@ processes correctly."
    (eshell-match-command-output "for i in 1 { echo $for-items }"
                                 "hello\n")))
 
+(ert-deftest esh-cmd-test/for-loop-lisp-body ()
+  "Test invocation of a for loop with a Lisp body form."
+  (with-temp-eshell
+   (eshell-match-command-output "for i in 1 2 3 (format \"%s\" i)"
+                                "1\n2\n3\n")))
+
 (ert-deftest esh-cmd-test/for-loop-pipe ()
   "Test invocation of a for loop piped to another command."
   (skip-unless (executable-find "rev"))
@@ -348,6 +354,15 @@ processes correctly."
      (eshell-match-command-output
       (concat "while (/= eshell-test-value 3) "
               "{ setq eshell-test-value (1+ eshell-test-value) }")
+      "1\n2\n3\n"))))
+
+(ert-deftest esh-cmd-test/while-loop-lisp-body ()
+  "Test invocation of a while loop using a Lisp form for the body."
+  (with-temp-eshell
+   (let ((eshell-test-value 0))
+     (eshell-match-command-output
+      (concat "while (/= eshell-test-value 3) "
+              "(setq eshell-test-value (1+ eshell-test-value))")
       "1\n2\n3\n"))))
 
 (ert-deftest esh-cmd-test/while-loop-ext-cmd ()
@@ -439,6 +454,17 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
     (let ((debug-on-error nil))
       (eshell-command-result-equal "if (zerop \"foo\") {echo yes} {echo no}"
                                    "no"))))
+
+(ert-deftest esh-cmd-test/if-else-statement-lisp-body ()
+  "Test invocation of an if/else statement using Lisp forms for the bodies."
+  (eshell-command-result-equal "if (zerop 0) (format \"yes\") (format \"no\")"
+                               "yes")
+  (eshell-command-result-equal "if (zerop 1) (format \"yes\") (format \"no\")"
+                               "no")
+  (let ((debug-on-error nil))
+    (eshell-command-result-equal
+     "if (zerop \"foo\")  (format \"yes\") (format \"no\")"
+     "no")))
 
 (ert-deftest esh-cmd-test/if-else-statement-ext-cmd ()
   "Test invocation of an if/else statement using an external command."
