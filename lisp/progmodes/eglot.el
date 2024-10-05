@@ -178,9 +178,9 @@
 
 ;;; User tweakable stuff
 (defgroup eglot nil
-  "Interaction with Language Server Protocol servers."
+  "Interaction with Language Server Protocol (LSP) servers."
   :prefix "eglot-"
-  :group 'applications)
+  :group 'tools)
 
 (defun eglot-alternatives (alternatives)
   "Compute server-choosing function for `eglot-server-programs'.

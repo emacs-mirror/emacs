@@ -260,7 +260,7 @@ showing only titles and no page number."
 See `doc-view-mupdf-use-svg'.
 
 Only background and foreground colors are used as the SVG image's
-descriptors, see (info \"(elisp) SVG Images\").  Non-standard values may
+descriptors; see (info \"(elisp) SVG Images\").  Custom values may
 cause low-contrast issues with certain documents."
   :version "30.1")
 

@@ -676,19 +676,19 @@ Calls REPORT-FN directly."
 
 (defun lua-ts-send-buffer ()
   "Send current buffer to the inferior Lua process."
-  (interactive)
+  (interactive nil lua-ts-mode)
   (lua-ts-send-region (point-min) (point-max)))
 
 (defun lua-ts-send-file (file)
   "Send contents of FILE to the inferior Lua process."
-  (interactive "f")
+  (interactive "f" lua-ts-mode)
   (with-temp-buffer
     (insert-file-contents-literally file)
     (lua-ts-send-region (point-min) (point-max))))
 
 (defun lua-ts-send-region (beg end)
   "Send region between BEG and END to the inferior Lua process."
-  (interactive "r")
+  (interactive "r" lua-ts-mode)
   (let ((string (buffer-substring-no-properties beg end))
         (proc-buffer (lua-ts-inferior-lua)))
     (comint-send-string proc-buffer "print()") ; Prevent output from
