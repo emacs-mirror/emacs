@@ -131,9 +131,11 @@ These allow users to interactively store file and buffers in registers.
 Killed buffers stored in a register using buffer-to-register are
 automatically converted to a file-query value if the buffer was visiting
 a file.
+
 
 * Editing Changes in Emacs 31.1
-** Commands for keyboard translation
+
+** Commands for keyboard translation.
 `key-translate' is now interactive.  It prompts for a key to translate
 from, and another to translate to, and sets `keyboard-translate-table'.
 The new command `key-translate-remove' prompts for a key/translation
