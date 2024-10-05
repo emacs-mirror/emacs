@@ -36,6 +36,7 @@
 ;; FIXME: Clean up namespace usage!
 
 (declare-function frameset-register-p "frameset")
+(declare-function dired-current-directory "dired")
 
 (cl-defstruct
   (registerv (:constructor nil)
@@ -705,7 +706,8 @@ To visit the file, use \\[jump-to-register].
 
 Interactively, prompt for REGISTER using `register-read-with-preview'.
 With a prefix-argument, prompt for FILE-NAME using `read-file-name',
-With no prefix-argument, use the currently visited file or directory for FILE-NAME."
+With no prefix-argument, use the currently visited file or directory
+for FILE-NAME."
   (interactive (list (if (eq current-prefix-arg nil)
                          (if (eq major-mode 'dired-mode)
                              (dired-current-directory)
