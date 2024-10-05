@@ -6579,8 +6579,7 @@ comment at the start of cc-engine.el for more info."
 	  ;; we're just some syntactic whitespace further down we can
 	  ;; still use the cache to limit the skipping.
 	  (c-backward-syntactic-ws
-	   (max (or c-find-decl-syntactic-pos (point-min))
-		(- (point) 10000) (point-min))))
+	   (max (or c-find-decl-syntactic-pos (point-min)) (point-min))))
 
 	;; If we hit `c-find-decl-syntactic-pos' and
 	;; `c-find-decl-match-pos' is set then we install the cached
