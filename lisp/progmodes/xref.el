@@ -2076,7 +2076,8 @@ directory, used as the root of the ignore globs."
   (replace-regexp-in-string
    ;; FIXME: Add tests.  Move to subr.el, make a public function.
    ;; Maybe error on Emacs-only constructs.
-   "\\(?:\\\\\\\\\\)*\\(?:\\\\[][]\\)?\\(?:\\[.+?\\]\\|\\(\\\\?[(){}|]\\)\\)"
+   (rx (zero-or-more "\\\\") (opt "\\" (any "[]"))
+     (or (seq "[" (+? nonl) "]") (group (opt "\\") (any "(){|}"))))
    (lambda (str)
      (cond
       ((not (match-beginning 1))
