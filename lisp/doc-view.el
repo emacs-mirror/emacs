@@ -1969,13 +1969,25 @@ the document text."
 	(doc-view-goto-page (caar (last doc-view--current-search-matches)))))))
 
 ;;;; Imenu support
-(defconst doc-view--outline-rx
-  "[^\t]+\\(\t+\\)\"\\(.+\\)\"\t#\\(?:page=\\)?\\([0-9]+\\)")
-
 (defvar-local doc-view--outline nil
-  "Cached PDF outline, so that it is only computed once per document.
+  "Cached document outline, so that it is only computed once per document.
 It can be the symbol `unavailable' to indicate that outline is
 unavailable for the document.")
+
+(defvar doc-view--mutool-pdf-outline-script
+  "var document = new Document.openDocument(\"%s\", \"application/pdf\");
+var outline = document.loadOutline();
+if(!outline) quit();
+function pp(outl, level){print(\"((level . \" + level + \")\");\
+print(\"(title . \" + repr(outl.title) + \")\");\
+print(\"(page . \" + (document.resolveLink(outl.uri)+1) + \"))\");\
+if(outl.down){for(var i=0; i<outl.down.length; i++){pp(outl.down[i], level+1);}}};
+function run(){print(\"BEGIN(\");\
+for(var i=0; i<outline.length; i++){pp(outline[i], 1);}print(\")\");};
+run()"
+  "JS script to extract the PDF's outline using mutool.
+The script has to be minified to pass it to the REPL.  The \"BEGIN\"
+marker is here to skip past the prompt characters.")
 
 (defun doc-view--pdf-outline (&optional file-name)
   "Return a list describing the outline of FILE-NAME.
@@ -1986,21 +1998,25 @@ title, nesting level and page number.  The list is flat: its tree
 structure is extracted by `doc-view--imenu-subtree'."
   (let ((fn (or file-name (buffer-file-name))))
     (when fn
-      (let ((outline nil)
-            (fn (expand-file-name fn)))
-        (with-temp-buffer
-          (unless (eql 0 (call-process doc-view-pdfdraw-program nil
-                                       (current-buffer) nil "show" fn "outline"))
+      (with-temp-buffer
+        (let ((proc (make-process
+                     :name "doc-view-pdf-outline"
+                     :command (list "mutool" "run")
+                     :buffer (current-buffer))))
+          (process-send-string proc (format doc-view--mutool-pdf-outline-script
+                                            (expand-file-name fn)))
+          ;; Need to send this twice for some reason...
+          (process-send-eof)
+          (process-send-eof)
+          (while (accept-process-output proc))
+          (unless (eq (process-status proc) 'exit)
             (setq doc-view--outline 'unavailable)
             (imenu-unavailable-error "Unable to create imenu index using `mutool'"))
           (goto-char (point-min))
-          (while (re-search-forward doc-view--outline-rx nil t)
-            (push `((level . ,(length (match-string 1)))
-                    (title . ,(replace-regexp-in-string "\\\\[rt]" " "
-                                                        (match-string 2)))
-                    (page . ,(string-to-number (match-string 3))))
-                  outline)))
-        (nreverse outline)))))
+          (when (search-forward "BEGIN" nil t)
+            (condition-case nil
+                (read (current-buffer))
+              (end-of-file nil))))))))
 
 (defun doc-view--djvu-outline (&optional file-name)
   "Return a list describing the outline of FILE-NAME.
