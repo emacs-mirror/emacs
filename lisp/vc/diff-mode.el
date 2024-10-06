@@ -2153,7 +2153,8 @@ the number of failed hunk applications otherwise."
           (t
            (message (ngettext "%d hunk failed; no buffers changed"
                               "%d hunks failed; no buffers changed"
-                              failures))
+                              failures)
+                    failures)
            failures))))
 
 (defalias 'diff-mouse-goto-source #'diff-goto-source)
