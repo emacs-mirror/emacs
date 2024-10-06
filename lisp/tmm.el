@@ -138,8 +138,8 @@ DEFAULT-ITEM, if non-nil, specifies an initial default choice.
 Its value should be an event that has a binding in MENU.
 NO-EXECUTE, if non-nil, means to return the command the user selects
 instead of executing it.
-PATH is a stack that keeps track your path into sub-menus.  It is used
-to go back in the menu hierarchy."
+PATH is a stack that keeps track of your path through sub-menus.  It
+is used to go back through those sub-menus."
   ;; If the optional argument IN-POPUP is t,
   ;; then MENU is an alist of elements of the form (STRING . VALUE).
   ;; That is used for recursive calls only.
@@ -231,7 +231,7 @@ to go back in the menu hierarchy."
                         (tmm--completion-table tmm-km-list) nil t nil
                         'tmm--history (reverse tmm--history)))))))
       (if (and (stringp out) (string= "^" out))
-          ;; a fake choice to please the destructuring later.
+          ;; A fake choice to please the destructuring later.
           (setq choice (cons out out))
         (setq choice (cdr (assoc out tmm-km-list)))
         (and (null choice)

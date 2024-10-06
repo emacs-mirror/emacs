@@ -497,7 +497,7 @@ instead.
 ** Tmm Menubar
 
 ---
-*** Add a shortcut to navigate to previous menu
+*** A new shortcut to navigate to previous menu.
 The hardcoded "^" shortcut gets you back to the previous menu.
 
 
