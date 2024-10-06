@@ -728,8 +728,10 @@ With no prefix-argument, use the current buffer for BUFFER."
                          (current-buffer)
                        (read-buffer "Buffer: "))
                      (register-read-with-preview "Buffer to register: ")))
-  (add-hook 'kill-buffer-hook 'register-buffer-to-file-query nil t)
-  (set-register register (cons 'buffer buffer)))
+  (let ((buffer (or (get-buffer buffer) buffer)))
+    (with-current-buffer buffer
+      (add-hook 'kill-buffer-hook 'register-buffer-to-file-query nil t))
+    (set-register register (cons 'buffer buffer))))
 
 (cl-defgeneric register-val-jump-to (_val _arg)
   "Execute the \"jump\" operation of VAL.
