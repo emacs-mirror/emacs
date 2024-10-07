@@ -218,7 +218,8 @@ else prompt the user for the project to use.  To prompt for a
 project, call the function specified by `project-prompter', which
 returns the directory in which to look for the project.  If no
 project is found in that directory, return a \"transient\"
-project instance.
+project instance.  When MAYBE-PROMPT is a string, it's passed to the
+prompter function as an argument.
 
 The \"transient\" project instance is a special kind of value
 which denotes a project rooted in that directory and includes all
@@ -235,7 +236,9 @@ of the project instance object."
      (pr)
      ((unless project-current-directory-override
         maybe-prompt)
-      (setq directory (funcall project-prompter)
+      (setq directory (if (stringp maybe-prompt)
+                          (funcall project-prompter maybe-prompt)
+                        (funcall project-prompter))
             pr (project--find-in-directory directory))))
     (when maybe-prompt
       (if pr
@@ -1880,11 +1883,12 @@ the project list."
 
 (defvar project--dir-history)
 
-(defun project-prompt-project-dir ()
+(defun project-prompt-project-dir (&optional prompt)
   "Prompt the user for a directory that is one of the known project roots.
 The project is chosen among projects known from the project list,
 see `project-list-file'.
-It's also possible to enter an arbitrary directory not in the list."
+It's also possible to enter an arbitrary directory not in the list.
+When PROMPT is non-nil, use it as the prompt string."
   (project--ensure-read-project-list)
   (let* ((dir-choice "... (choose a dir)")
          (choices
@@ -1898,18 +1902,23 @@ It's also possible to enter an arbitrary directory not in the list."
       ;; If the user simply pressed RET, do this again until they don't.
       (setq pr-dir
             (let (history-add-new-input)
-              (completing-read "Select project: " choices nil t nil 'project--dir-history))))
+              (completing-read (if prompt
+                                   ;; TODO: Use `format-prompt' (Emacs 28.1+)
+                                   (format "%s: " (substitute-command-keys prompt))
+                                 "Select project: ")
+                               choices nil t nil 'project--dir-history))))
     (if (equal pr-dir dir-choice)
         (read-directory-name "Select directory: " default-directory nil t)
       pr-dir)))
 
 (defvar project--name-history)
 
-(defun project-prompt-project-name ()
+(defun project-prompt-project-name (&optional prompt)
   "Prompt the user for a project, by name, that is one of the known project roots.
 The project is chosen among projects known from the project list,
 see `project-list-file'.
-It's also possible to enter an arbitrary directory not in the list."
+It's also possible to enter an arbitrary directory not in the list.
+When PROMPT is non-nil, use it as the prompt string."
   (let* ((dir-choice "... (choose a dir)")
          project--name-history
          (choices
@@ -1933,7 +1942,10 @@ It's also possible to enter an arbitrary directory not in the list."
       ;; If the user simply pressed RET, do this again until they don't.
       (setq pr-name
             (let (history-add-new-input)
-              (completing-read "Select project: " table nil t nil 'project--name-history))))
+              (completing-read (if prompt
+                                   (format "%s: " prompt)
+                                 "Select project: ")
+                               table nil t nil 'project--name-history))))
     (if (equal pr-name dir-choice)
         (read-directory-name "Select directory: " default-directory nil t)
       (let ((proj (assoc pr-name choices)))
