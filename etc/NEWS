@@ -424,6 +424,8 @@ useful to prepare a *vc-diff* buffer for committing a single hunk.
 When the region is active, it deletes all hunks that the region does not
 overlap.
 
+*** 'diff-apply-hunk' now supports creating and deleting files.
+
 ** php-ts-mode
 
 ---

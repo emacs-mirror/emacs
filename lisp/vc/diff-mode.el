@@ -1091,13 +1091,24 @@ PREFIX is only used internally: don't use it."
 	      (diff-find-file-name old noprompt (match-string 1)))
          ;; if all else fails, ask the user
          (unless noprompt
-           (let ((file (expand-file-name (or (car fs) ""))))
+           (let ((file (or (car fs) ""))
+                 (creation (equal null-device
+                                  (car (diff-hunk-file-names (not old))))))
+             (when (and (memq diff-buffer-type '(git hg))
+                        (string-match "/" file))
+               ;; Strip the dst prefix (like b/) if diff is from Git/Hg.
+               (setq file (substring file (match-end 0))))
+             (setq file (expand-file-name file))
 	     (setq file
 		   (read-file-name (format "Use file %s: " file)
-				   (file-name-directory file) file t
+				   (file-name-directory file) file
+                                   ;; Allow non-matching for creation.
+                                   (not creation)
 				   (file-name-nondirectory file)))
-             (setq-local diff-remembered-files-alist
-                         (cons (cons fs file) diff-remembered-files-alist))
+             (when (or (not creation) (file-exists-p file))
+               ;; Only remember files that exist. User might have mistyped.
+               (setq-local diff-remembered-files-alist
+                           (cons (cons fs file) diff-remembered-files-alist)))
              file)))))))
 
 
@@ -1647,7 +1658,9 @@ modified lines of the diff."
     (setq-local diff-buffer-type
                 (if (re-search-forward "^diff --git" nil t)
                     'git
-                  nil)))
+                  (if (re-search-forward "^diff -r.*-r" nil t)
+                      'hg
+                    nil))))
   (when (eq diff-buffer-type 'git)
     (setq diff-outline-regexp
           (concat "\\(^diff --git.*\\|" diff-hunk-header-re "\\)")))
@@ -1957,7 +1970,7 @@ SWITCHED is non-nil if the patch is already applied."
                                 diff-context-mid-hunk-header-re nil t)
 			 (error "Can't find the hunk separator"))
 		       (match-string 1)))))
-	   (file (or (diff-find-file-name other noprompt)
+	   (file (or (diff-find-file-name (xor other reverse) noprompt)
                      (error "Can't find the file")))
 	   (revision (and other diff-vc-backend
                           (if reverse (nth 1 diff-vc-revisions)
@@ -2020,7 +2033,11 @@ the value of this variable when given an appropriate prefix argument).
 With a prefix argument, REVERSE the hunk."
   (interactive "P")
   (diff-beginning-of-hunk t)
-  (pcase-let ((`(,buf ,line-offset ,pos ,old ,new ,switched)
+  (pcase-let* (;; Do not accept BUFFER.REV buffers as source location.
+               (diff-vc-backend nil)
+               ;; When we detect deletion, we will use the old file name.
+               (deletion (equal null-device (car (diff-hunk-file-names reverse))))
+               (`(,buf ,line-offset ,pos ,old ,new ,switched)
                ;; Sometimes we'd like to have the following behavior: if
                ;; REVERSE go to the new file, otherwise go to the old.
                ;; But that means that by default we use the old file, which is
@@ -2030,7 +2047,7 @@ With a prefix argument, REVERSE the hunk."
                ;; TODO: make it possible to ask explicitly for this behavior.
                ;;
                ;; This is duplicated in diff-test-hunk.
-               (diff-find-source-location nil reverse)))
+               (diff-find-source-location deletion reverse)))
     (cond
      ((null line-offset)
       (user-error "Can't find the text to patch"))
@@ -2056,6 +2073,10 @@ With a prefix argument, REVERSE the hunk."
 		       "Hunk hasn't been applied yet; apply it now? "
 		     "Hunk has already been applied; undo it? ")))))
       (message "(Nothing done)"))
+     ((and deletion (not switched))
+      (when (y-or-n-p (format-message "Delete file `%s'?" (buffer-file-name buf)))
+        (delete-file (buffer-file-name buf) delete-by-moving-to-trash)
+        (kill-buffer buf)))
      (t
       ;; Apply the hunk
       (with-current-buffer buf
