@@ -4266,7 +4266,10 @@ C_entries (int c_ext,		/* extension of C */
 	  /* Only if typdef == tinbody is typdefbracelev significant. */
 	  if (typdef == tinbody && bracelev <= typdefbracelev)
 	    {
-	      assert (bracelev == typdefbracelev);
+	      /* If we forcibly reset bracelevel to zero above, let's
+		 not shoot ourself in the foot and assert that we didn't.  */
+	      if (!(!ignoreindent && lp == newlb.buffer + 1))
+		assert (bracelev == typdefbracelev);
 	      typdef = tend;
 	    }
 	  break;
