@@ -315,11 +315,21 @@ Good example of file name that needs this: \"test[56].xx\".")
 
 (defvar vc-git--program-version nil)
 
+(connection-local-set-profile-variables
+ 'vc-git-connection-default-profile
+ '((vc-git--program-version . nil)))
+
+(connection-local-set-profiles
+ '(:application vc-git)
+ 'vc-git-connection-default-profile)
+
 (defun vc-git--program-version ()
-  (or vc-git--program-version
-      (let ((version-string
-             (vc-git--run-command-string nil "version")))
-        (setq vc-git--program-version
+  (with-connection-local-application-variables 'vc-git
+   (or vc-git--program-version
+       (let ((version-string
+              (vc-git--run-command-string nil "version")))
+         (setq-connection-local
+              vc-git--program-version
               (if (and version-string
                        ;; Some Git versions append additional strings
                        ;; to the numerical version string. E.g., Git
@@ -329,7 +339,7 @@ Good example of file name that needs this: \"test[56].xx\".")
                        (string-match "git version \\([0-9][0-9.]+\\)"
                                      version-string))
                   (string-trim-right (match-string 1 version-string) "\\.")
-                "0")))))
+                "0"))))))
 
 (defun vc-git--git-path (&optional path)
   "Resolve .git/PATH for the current working tree.
