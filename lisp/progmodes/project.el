@@ -674,7 +674,8 @@ See `project-vc-extra-root-markers' for the marker value format.")
             (submodules (project--git-submodules))
             files)
        (setq args (append args
-                          (and (version<= "2.35" (vc-git--program-version))
+                          (and (<= 31 emacs-major-version)
+                               (version<= "2.35" (vc-git--program-version))
                                '("--sparse"))
                           (and include-untracked '("-o"))))
        (when extra-ignores
