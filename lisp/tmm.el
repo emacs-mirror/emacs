@@ -82,9 +82,6 @@ or else the correct item might not be found in the `*Completions*' buffer."
   :type '(choice (const :tag "No shortcuts" nil)
                  string))
 
-(defvar tmm-mb-map nil
-  "A place to store minibuffer map.")
-
 (defcustom tmm-completion-prompt
   "Press PageUp key to reach this buffer from the minibuffer.
 Alternatively, you can use Up/Down keys (or your History keys) to change
@@ -325,14 +322,14 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
         ;; downcase input to the same
         (define-key map (char-to-string (downcase c)) 'tmm-shortcut)
         (define-key map (char-to-string (upcase c)) 'tmm-shortcut)))
-    (if minibuffer
-	(progn
-          (define-key map [pageup] 'tmm-goto-completions)
-          (define-key map [prior] 'tmm-goto-completions)
-          (define-key map "\ev" 'tmm-goto-completions)
-          (define-key map "\C-n" 'next-history-element)
-          (define-key map "\C-p" 'previous-history-element)
-          (define-key map "^" 'self-insert-and-exit)))
+    (when minibuffer
+      (define-key map [pageup] 'tmm-goto-completions)
+      (define-key map [prior] 'tmm-goto-completions)
+      (define-key map "\ev" 'tmm-goto-completions)
+      (define-key map "\C-n" 'next-history-element)
+      (define-key map "\C-p" 'previous-history-element)
+      ;; Previous menu shortcut (see `tmm-prompt')
+      (define-key map "^" 'self-insert-and-exit))
     (prog1 (current-local-map)
       (use-local-map (append map (current-local-map))))))
 
@@ -487,13 +484,20 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
             (when binding
               (setq binding (key-description binding))
               ;; Try to align the keybindings.
-              (let ((colwidth (min 30 (- (/ (window-width) 2) 10))))
+              (let* ((window (get-buffer-window "*Completions*"))
+                     (colwidth (min 30 (- (/ (if window
+                                                 (window-width window)
+                                               (frame-width))
+                                             2)
+                                          10)))
+                     (nspaces (max 2 (- colwidth
+                                        (string-width str)
+                                        (string-width binding)))))
                 (setq str
                       (concat str
-                              (make-string (max 2 (- colwidth
-                                                     (string-width str)
-                                                     (string-width binding)))
-                                           ?\s)
+                              (propertize (make-string nspaces ?\s)
+                                          'display
+                                          (cons 'space (list :width nspaces)))
                               binding)))))))
       (and km (stringp km) (setq str km))
       ;; Verify that the command is enabled;
