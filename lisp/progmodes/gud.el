@@ -2949,11 +2949,19 @@ It is saved for when this flag is not set.")
   "Overlay created for `gud-highlight-current-line'.
 It is nil if not yet present.")
 
+(defun gud-hide-current-line-indicator(destroy-overlay)
+  "Stop displaying arrow and highlighting current line in a source file."
+  ;; Stop displaying an arrow in a source file.
+  (setq gud-overlay-arrow-position nil)
+  ;; And any highlight overlays.
+  (when gud-highlight-current-line-overlay
+    (delete-overlay gud-highlight-current-line-overlay)
+    (if destroy-overlay
+    (setq gud-highlight-current-line-overlay nil))))
+
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
 	 ;; buffer killed
-	 ;; Stop displaying an arrow in a source file.
-	 (setq gud-overlay-arrow-position nil)
 	 (set-process-buffer proc nil)
 	 (if (and (boundp 'speedbar-initial-expansion-list-name)
 		  (string-equal speedbar-initial-expansion-list-name "GUD"))
@@ -2963,12 +2971,9 @@ It is nil if not yet present.")
 	     (gdb-reset)
 	   (gud-reset)))
 	((memq (process-status proc) '(signal exit))
-	 ;; Stop displaying an arrow in a source file.
-	 (setq gud-overlay-arrow-position nil)
-         ;; And any highlight overlays.
-         (when gud-highlight-current-line-overlay
-           (delete-overlay gud-highlight-current-line-overlay)
-           (setq gud-highlight-current-line-overlay nil))
+
+         (gud-hide-current-line-indicator t)
+
 	 (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
 		   'gdbmi)
 	     (gdb-reset)
