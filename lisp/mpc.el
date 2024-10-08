@@ -1572,9 +1572,10 @@ when constructing the set of constraints."
    (t (concat (symbol-name tag) "s"))))
 
 (defun mpc-tagbrowser-buf (tag)
-  (let ((buf (mpc-proc-buffer (mpc-proc) tag)))
+  (let ((buf (mpc-proc-buffer (mpc-proc) tag))
+        (tag-name (mpc-tagbrowser-tag-name tag)))
     (if (buffer-live-p buf) buf
-      (setq buf (get-buffer-create (format "*MPC %ss*" tag)))
+      (setq buf (get-buffer-create (format "*MPC %s*" tag-name)))
       (mpc-proc-buffer (mpc-proc) tag buf)
       (with-current-buffer buf
         (let ((inhibit-read-only t))
@@ -1585,7 +1586,7 @@ when constructing the set of constraints."
           (insert mpc-tagbrowser-all-name "\n"))
         (forward-line -1)
         (setq mpc-tag tag)
-        (setq mpc-tag-name (mpc-tagbrowser-tag-name tag))
+        (setq mpc-tag-name tag-name)
         (mpc-tagbrowser-all-select)
         (mpc-tagbrowser-refresh)
         buf))))
