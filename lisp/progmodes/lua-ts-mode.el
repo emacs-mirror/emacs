@@ -750,7 +750,7 @@ Calls REPORT-FN directly."
   (use-local-map lua-ts-mode-map)
 
   (when (treesit-ready-p 'lua)
-    (treesit-parser-create 'lua)
+    (setq treesit-primary-parser (treesit-parser-create 'lua))
 
     ;; Comments.
     (setq-local comment-start "--")

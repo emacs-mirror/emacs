@@ -511,7 +511,7 @@ See `prettify-symbols-compose-predicate'."
   :syntax-table rust-ts-mode--syntax-table
 
   (when (treesit-ready-p 'rust)
-    (treesit-parser-create 'rust)
+    (setq treesit-primary-parser (treesit-parser-create 'rust))
 
     ;; Syntax.
     (setq-local syntax-propertize-function

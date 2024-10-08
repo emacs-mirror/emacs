@@ -148,7 +148,7 @@ With ARG, do it many times.  Negative ARG means move backward."
   :group 'heex-ts
 
   (when (treesit-ready-p 'heex)
-    (treesit-parser-create 'heex)
+    (setq treesit-primary-parser (treesit-parser-create 'heex))
 
     ;; Comments
     (setq-local treesit-thing-settings

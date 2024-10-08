@@ -1127,7 +1127,7 @@ leading double colon is not added."
   (unless (treesit-ready-p 'ruby)
     (error "Tree-sitter for Ruby isn't available"))
 
-  (treesit-parser-create 'ruby)
+  (setq treesit-primary-parser (treesit-parser-create 'ruby))
 
   (setq-local add-log-current-defun-function #'ruby-ts-add-log-current-function)
 

@@ -208,7 +208,7 @@ Return nil if there is no name or if NODE is not a defun node."
   :syntax-table cmake-ts-mode--syntax-table
 
   (when (treesit-ready-p 'cmake)
-    (treesit-parser-create 'cmake)
+    (setq treesit-primary-parser (treesit-parser-create 'cmake))
 
     ;; Comments.
     (setq-local comment-start "# ")

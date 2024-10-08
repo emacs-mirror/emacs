@@ -262,7 +262,7 @@
   :syntax-table go-ts-mode--syntax-table
 
   (when (treesit-ready-p 'go)
-    (treesit-parser-create 'go)
+    (setq treesit-primary-parser (treesit-parser-create 'go))
 
     ;; Comments.
     (setq-local comment-start "// ")
@@ -539,7 +539,7 @@ what the parent of the node would be if it were a node."
   :syntax-table go-mod-ts-mode--syntax-table
 
   (when (treesit-ready-p 'gomod)
-    (treesit-parser-create 'gomod)
+    (setq treesit-primary-parser (treesit-parser-create 'gomod))
 
     ;; Comments.
     (setq-local comment-start "// ")

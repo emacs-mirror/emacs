@@ -1049,7 +1049,7 @@ Key bindings:
     (error "Tree-sitter for C# isn't available"))
 
   ;; Tree-sitter.
-  (treesit-parser-create 'c-sharp)
+  (setq treesit-primary-parser (treesit-parser-create 'c-sharp))
 
   ;; Comments.
   (c-ts-common-comment-setup)

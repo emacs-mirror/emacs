@@ -7182,7 +7182,7 @@ implementations: `python-mode' and `python-ts-mode'."
 \\{python-ts-mode-map}"
   :syntax-table python-mode-syntax-table
   (when (treesit-ready-p 'python)
-    (treesit-parser-create 'python)
+    (setq treesit-primary-parser (treesit-parser-create 'python))
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)
                   ( keyword string type)
