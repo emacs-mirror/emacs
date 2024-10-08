@@ -44,6 +44,16 @@ why it the mark trace buffer is enabled by default.
 
 * Changes in Emacs 31.1
 
+** Etags
++++
+New command-line options for handling unrecognized programming languages.
+The new command-line option '--no-fallback-lang' disables attempts to
+parse as Fortran or C/C++ files whose programming language 'etags' could
+not determine.  This allows to avoid false positives and reduce the time
+required to scan directories with many such files.  Another new option
+'--no-empty-file-entries' disables generation of file entries in tags
+tables for files in which no tags were found.
+
 ---
 ** find-func.el commands now have history enabled.
 The 'find-function', 'find-library', 'find-face-definition', and

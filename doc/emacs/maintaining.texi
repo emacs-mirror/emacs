@@ -3048,6 +3048,10 @@ language not yet supported by @command{etags}, and you want to avoid
 having @command{etags} fall back on Fortran and C as the default
 languages.
 
+  You can also prevent @command{etags} from falling back on Fortran and
+C if you specify the @samp{--no-fallback-lang} option.  The option
+@samp{--fallback-lang} countermands that.
+
   The option @samp{--parse-stdin=@var{file}} is mostly useful when
 calling @command{etags} from programs.  It can be used (only once) in
 place of a file name on the command line.  @command{etags} will read from
@@ -3067,6 +3071,15 @@ a list of all the available @command{etags} options, together with a short
 explanation.  If followed by one or more @samp{--language=@var{lang}}
 options, it outputs detailed information about how tags are generated for
 @var{lang}.
+
+  By default, @command{etags} includes in the tags table it produces all
+the files it scans, including files where it found no tags at all.
+Specify @samp{--no-empty-file-entries} to prevent that; then files with
+no tags will not be mentioned in the tags table.  However, note that
+commands which process files mentioned in the tags table, such as
+@code{tags-search} (@pxref{Identifier Search}), will process files which
+were thus omitted from the tags table.  The option
+@samp{--empty-file-entries} countermands that.
 
 @findex etags-regen-mode
   Instead of creating and updating the tags table by manually invoking

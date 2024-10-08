@@ -59,6 +59,7 @@ check:
 	@$(MAKE) OPTIONS='--regex=@regexfile --no-members' ediff_4
 	@$(MAKE) OPTIONS='nonexistent --members --declarations --regex=@regexfile' ediff_5
 	@$(MAKE) OPTIONS='--class-qualify --members --declarations --regex=@regexfile' ediff_6
+	@$(MAKE) OPTIONS='--no-members --no-fallback --no-empty' ediff_7
 	@$(MAKE) cdiff
 	@$(MAKE) ctags_update
 

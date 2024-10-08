@@ -480,6 +480,8 @@ static bool ignoreindent;	/* -I: ignore indentation in C */
 static int packages_only;	/* --packages-only: in Ada, only tag packages*/
 static int class_qualify;	/* -Q: produce class-qualified tags in C++/Java */
 static int debug;		/* --debug */
+static int fallback_lang;	/* --(no-)fallback-lang: Fortran/C fallbacks */
+static int empty_files;		/* --(no-)empty-file-entries */
 
 /* STDIN is defined in LynxOS system headers */
 #ifdef STDIN
@@ -530,6 +532,10 @@ static struct option longopts[] =
   { "no-defines",         no_argument,       NULL,               'D'   },
   { "no-globals",         no_argument,       &globals,           0     },
   { "include",            required_argument, NULL,               'i'   },
+  { "no-fallback-lang",   no_argument,       &fallback_lang,     0     },
+  { "fallback-lang",      no_argument,       &fallback_lang,     1     },
+  { "no-empty-file-entries", no_argument,    &empty_files,       0     },
+  { "empty-file-entries", no_argument,       &empty_files,       1     },
 #endif
   { NULL }
 };
@@ -1039,6 +1045,20 @@ Relative ones are stored relative to the output file's directory.\n");
 	Do not create tag entries for members of structures\n\
 	in some languages.");
 
+  if (!CTAGS)
+    {
+      puts ("--fallback-lang\n\
+	If a file's language could not be determined, try to parse\n\
+	it as Fortran and C/C++.");
+      puts ("--no-fallback-lang\n\
+	Do not fall back to Fortran and C/C++ if a file's language\n\
+	could not be determined.");
+      puts ("--empty-file-entries\n\
+	Produce file entries for files with no tags.");
+      puts ("--no-empty-file-entries\n\
+	Do not output file entries for files with no tags.");
+    }
+
   puts ("-Q, --class-qualify\n\
         Qualify tag names with their class name in C++, ObjC, Java, and Perl.\n\
         This produces tag names of the form \"class::member\" for C++,\n\
@@ -1160,6 +1180,15 @@ main (int argc, char **argv)
    */
   typedefs = typedefs_or_cplusplus = constantypedefs = true;
   globals = members = true;
+
+  /* By default, fall back to Fortran/C/C++ if no language is detected by the
+     file's name.  This could be reversed in a future version, but only for
+     ETAGS.  */
+  fallback_lang = true;
+
+  /* By default, output file entries for files that have no tags.  This affects
+     only ETAGS. */
+  empty_files = true;
 
   /* When the optstring begins with a '-' getopt_long does not rearrange the
      non-options arguments to be at the end, but leaves them alone. */
@@ -1388,10 +1417,13 @@ main (int argc, char **argv)
 	{
 	  fdesc *fdp;
 
-	  /* Output file entries that have no tags. */
-	  for (fdp = fdhead; fdp != NULL; fdp = fdp->next)
-	    if (!fdp->written)
-	      fprintf (tagf, "\f\n%s,0\n", fdp->taggedfname);
+	  /* Output file entries that have no tags, unless disabled. */
+	  if (empty_files)
+	    {
+	      for (fdp = fdhead; fdp != NULL; fdp = fdp->next)
+		if (!fdp->written)
+		  fprintf (tagf, "\f\n%s,0\n", fdp->taggedfname);
+	    }
 
 	  while (nincluded_files-- > 0)
 	    fprintf (tagf, "\f\n%s,include\n", *included_files++);
@@ -1951,22 +1983,30 @@ find_entries (FILE *inf)
 	}
     }
 
-  /* Else try Fortran or C. */
+  /* Else try Fortran or C if that fallback is not disabled. */
   if (parser == NULL)
     {
-      node *old_last_node = last_node;
-
-      curfdp->lang = get_language_from_langname ("fortran");
-      find_entries (inf);
-
-      if (old_last_node == last_node)
-	/* No Fortran entries found.  Try C. */
+      if (fallback_lang)
 	{
-	  reset_input (inf);
-	  curfdp->lang = get_language_from_langname (cplusplus ? "c++" : "c");
+	  node *old_last_node = last_node;
+
+	  curfdp->lang = get_language_from_langname ("fortran");
 	  find_entries (inf);
+
+	  if (old_last_node == last_node)
+	    /* No Fortran entries found.  Try C. */
+	    {
+	      reset_input (inf);
+	      curfdp->lang = get_language_from_langname (cplusplus
+							 ? "c++" : "c");
+	      find_entries (inf);
+	    }
+	  return;
 	}
-      return;
+      /* If fallbacks are disabled, treat files without a language as if
+	 '--language=none' was specified for them. */
+      curfdp->lang = get_language_from_langname ("none");
+      parser = curfdp->lang->function;
     }
 
   if (!no_line_directive
