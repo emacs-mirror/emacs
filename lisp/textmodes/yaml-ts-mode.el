@@ -148,7 +148,7 @@ boundaries.  JUSTIFY is passed to `fill-paragraph'."
   :syntax-table yaml-ts-mode--syntax-table
 
   (when (treesit-ready-p 'yaml)
-    (treesit-parser-create 'yaml)
+    (setq treesit-primary-parser (treesit-parser-create 'yaml))
 
     ;; Comments.
     (setq-local comment-start "# ")

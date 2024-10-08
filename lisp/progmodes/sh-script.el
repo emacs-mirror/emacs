@@ -1623,7 +1623,7 @@ not written in Bash or sh."
     (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
     (add-hook 'hack-local-variables-hook
               #'sh-after-hack-local-variables nil t)
-    (treesit-parser-create 'bash)
+    (setq treesit-primary-parser (treesit-parser-create 'bash))
     (setq-local treesit-font-lock-feature-list
                 '(( comment function)
                   ( command declaration-command keyword string)

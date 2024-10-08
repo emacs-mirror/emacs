@@ -1814,7 +1814,7 @@ can also be used to fill comments.
     (setq-local font-lock-fontify-region-function #'css--fontify-region)
 
     ;; Tree-sitter specific setup.
-    (treesit-parser-create 'css)
+    (setq treesit-primary-parser (treesit-parser-create 'css))
     (setq-local treesit-simple-indent-rules css--treesit-indent-rules)
     (setq-local treesit-defun-type-regexp "rule_set")
     (setq-local treesit-defun-name-function #'css--treesit-defun-name)

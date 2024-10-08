@@ -124,7 +124,7 @@ Return nil if there is no name or if NODE is not a defun node."
   :syntax-table toml-ts-mode--syntax-table
 
   (when (treesit-ready-p 'toml)
-    (treesit-parser-create 'toml)
+    (setq treesit-primary-parser (treesit-parser-create 'toml))
 
     ;; Comments
     (setq-local comment-start "# ")

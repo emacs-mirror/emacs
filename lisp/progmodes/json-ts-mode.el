@@ -128,7 +128,7 @@ Return nil if there is no name or if NODE is not a defun node."
   (unless (treesit-ready-p 'json)
     (error "Tree-sitter for JSON isn't available"))
 
-  (treesit-parser-create 'json)
+  (setq treesit-primary-parser (treesit-parser-create 'json))
 
   ;; Comments.
   (setq-local comment-start "// ")

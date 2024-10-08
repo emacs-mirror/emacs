@@ -133,7 +133,7 @@ Return nil if there is no name or if NODE is not a stage node."
   :syntax-table dockerfile-ts-mode--syntax-table
 
   (when (treesit-ready-p 'dockerfile)
-    (treesit-parser-create 'dockerfile)
+    (setq treesit-primary-parser (treesit-parser-create 'dockerfile))
 
     ;; Comments.
     (setq-local comment-start "# ")
