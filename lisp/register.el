@@ -718,20 +718,25 @@ for FILE-NAME."
     (set-register register (cons 'file file-name))))
 
 (defun buffer-to-register (buffer register)
-  "Insert BUFFER into REGISTER.
+  "Store reference to BUFFER in REGISTER.
 To visit the buffer, use \\[jump-to-register].
 
-Interactively, prompt for REGISTER using `register-read-with-preview'.
-With a prefix-argument, prompt for BUFFER-NAME using `read-buffer',
-With no prefix-argument, use the current buffer for BUFFER."
-  (interactive (list (if (eq current-prefix-arg nil)
-                         (current-buffer)
-                       (read-buffer "Buffer: "))
-                     (register-read-with-preview "Buffer to register: ")))
-  (let ((buffer (or (get-buffer buffer) buffer)))
-    (with-current-buffer buffer
-      (add-hook 'kill-buffer-hook 'register-buffer-to-file-query nil t))
-    (set-register register (cons 'buffer buffer))))
+Interactively, use current buffer as BUFFER, and prompt for REGISTER.
+With a prefix argument, prompt for BUFFER as well."
+  (interactive
+   (let ((buffer
+          (if current-prefix-arg
+              (get-buffer (read-buffer "Store reference to buffer"
+                                       (current-buffer) t))
+            (current-buffer))))
+     (list buffer
+           (register-read-with-preview
+            (substitute-quotes
+             (format "Store reference to buffer `%s' in register: "
+                     (buffer-name buffer)))))))
+  (with-current-buffer buffer
+    (add-hook 'kill-buffer-hook #'register-buffer-to-file-query nil t))
+  (set-register register (cons 'buffer buffer)))
 
 (cl-defgeneric register-val-jump-to (_val _arg)
   "Execute the \"jump\" operation of VAL.
