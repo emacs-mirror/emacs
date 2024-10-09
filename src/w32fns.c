@@ -365,7 +365,7 @@ extern HANDLE keyboard_handle;
 
 static struct w32_display_info *w32_display_info_for_name (Lisp_Object);
 
-static void my_post_msg (W32Msg*, HWND, UINT, WPARAM, LPARAM);
+static void my_post_msg (W32Msg *, HWND, UINT, WPARAM, LPARAM);
 static unsigned int w32_get_modifiers (void);
 
 /* Let the user specify a display with a frame.
@@ -2487,19 +2487,19 @@ process_dropfiles (DROPFILES *files)
       WCHAR *p = (WCHAR *) start_of_files;
       for (; *p; p += wcslen (p) + 1)
 	{
-	  filename_from_utf16(p, filename);
+	  filename_from_utf16 (p, filename);
 	  lisp_files = Fcons (DECODE_FILE (build_unibyte_string (filename)),
-			      lisp_files );
+			      lisp_files);
 	}
     }
   else
     {
       char *p = start_of_files;
-      for (; *p; p += strlen(p) + 1)
+      for (; *p; p += strlen (p) + 1)
 	{
 	  filename_from_ansi (p, filename);
 	  lisp_files = Fcons (DECODE_FILE (build_unibyte_string (filename)),
-			      lisp_files );
+			      lisp_files);
 	}
     }
   return lisp_files;
@@ -2566,7 +2566,7 @@ w32_drop_target_AddRef (IDropTarget *This)
 static ULONG STDMETHODCALLTYPE
 w32_drop_target_Release (IDropTarget *This)
 {
-  struct w32_drop_target *target = (struct w32_drop_target * ) This;
+  struct w32_drop_target *target = (struct w32_drop_target *) This;
   free (target->i_drop_target.lpVtbl);
   free (target);
   return 0;
@@ -2622,7 +2622,7 @@ w32_drop_target_Drop (IDropTarget *This, IDataObject *pDataObj,
   *pdwEffect = DROPEFFECT_COPY;
 
   W32Msg msg = {0};
-  msg.dwModifiers = w32_get_modifiers();
+  msg.dwModifiers = w32_get_modifiers ();
   msg.msg.time = GetMessageTime ();
   msg.msg.pt.x = pt.x;
   msg.msg.pt.y = pt.y;
@@ -2733,8 +2733,8 @@ w32_createwindow (struct frame *f, int *coords)
       SetWindowLong (hwnd, WND_BACKGROUND_INDEX, FRAME_BACKGROUND_PIXEL (f));
 
       /* Enable drag-n-drop.  */
-      struct w32_drop_target *drop_target =
-	malloc (sizeof (struct w32_drop_target));
+      struct w32_drop_target *drop_target
+	= malloc (sizeof (struct w32_drop_target));
 
       if (drop_target != NULL)
 	{
