@@ -109,6 +109,19 @@ duplicate entries (if any) removed."
              eww-current-url
              eww-bookmark-urls))
 
+(defcustom eww-guess-content-type-functions
+  '(eww--html-if-doctype)
+  "List of functions used to guess a page's content-type.
+These are only used when the page does not have a valid Content-Type
+header.  Functions are called in order, until one of them returns the
+value to be used as Content-Type.  They receive two parameters: an alist
+of headers, and the buffer that holds the complete response.  If the
+list is exhausted, EWW assumes \"application/octet-stream\" per
+RFC-9110."
+  :version "31.1"
+  :group 'eww
+  :type '(repeat function))
+
 (defcustom eww-bookmarks-directory user-emacs-directory
   "Directory where bookmark files will be stored."
   :version "25.1"
@@ -631,6 +644,30 @@ Currently this means either text/html or application/xhtml+xml."
   (member content-type '("text/html"
 			 "application/xhtml+xml")))
 
+(defun eww--guess-content-type (headers response-buffer)
+  "Use HEADERS and RESPONSE-BUFFER to guess the Content-Type.
+Will call each function in `eww-guess-content-type-functions', until one
+of them returns a value.  This mechanism is used only if there isn't a
+valid Content-Type header.  If none of the functions can guess, return
+\"application/octet-stream\"."
+  (or (run-hook-with-args-until-success
+       'eww-guess-content-type-functions headers response-buffer)
+      "application/octet-stream"))
+
+(defun eww--html-if-doctype (_headers response-buffer)
+  "Return \"text/html\" if RESPONSE-BUFFER has an HTML doctype declaration.
+HEADERS is unused."
+  ;; https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
+  (let ((case-fold-search t)
+        (target
+         "<!doctype +html *\\(>\\|system +\\(\\\"\\|'\\)+about:legacy-compat\\)"))
+    (with-current-buffer response-buffer
+      (goto-char (point-min))
+      ;; match basic <!doctype html> and also legacy variants as
+      ;; specified in link above
+      (when (re-search-forward target nil t)
+        "text/html"))))
+
 (defun eww--rename-buffer ()
   "Rename the current EWW buffer.
 The renaming scheme is performed in accordance with
@@ -660,7 +697,7 @@ The renaming scheme is performed in accordance with
 	 (content-type
 	  (mail-header-parse-content-type
            (if (zerop (length (cdr (assoc "content-type" headers))))
-	       "text/plain"
+               (eww--guess-content-type headers (current-buffer))
              (cdr (assoc "content-type" headers)))))
 	 (charset (intern
 		   (downcase
