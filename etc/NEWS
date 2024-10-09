@@ -785,6 +785,14 @@ This is in addition to drag-n-drop of files, that was already
 supported.  As on X, the user options 'dnd-scroll-margin' and
 'dnd-indicate-insertion-point' can be used to customize the process.
 
+---
+** Emacs on MS-Windows now supports color fonts.
+On Windows 8.1 and later versions Emacs now uses DirectWrite to draw
+text, which supports color fonts.  This can be disabled by setting the
+variable 'w32-inhibit-dwrite' to t.  Also see 'w32-dwrite-available' and
+'w32-dwrite-reinit' to check availability and to configure render
+parameters.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
