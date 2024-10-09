@@ -2074,20 +2074,15 @@ INITIAL-INPUT are passed on to `vc-read-revision' directly."
      ;; filesets, but not yet.
      ((/= (length files) 1)
       nil)
-     ;; if it's a directory, don't supply any revision default
-     ((file-directory-p first)
-      nil)
-     ;; if the file is not up-to-date, use working revision as older revision
-     ((not (vc-up-to-date-p first))
-      (setq rev1-default (vc-working-revision first)))
-     ;; if the file is not locked, use last revision and current source as defaults
+     ;; if the file is not locked, use previous revision and current source as defaults
      (t
-      (setq rev1-default (ignore-errors ;If `previous-revision' doesn't work.
-                           (vc-call-backend backend 'previous-revision first
-                                            (vc-working-revision first))))
-      (when (string= rev1-default "") (setq rev1-default nil))))
+      (push (ignore-errors         ;If `previous-revision' doesn't work.
+              (vc-call-backend backend 'previous-revision first
+                               (vc-working-revision first backend)))
+            rev1-default)
+      (when (member (car rev1-default) '("" nil)) (setq rev1-default nil))))
     ;; construct argument list
-    (let* ((rev1-prompt (format-prompt "Older revision" rev1-default))
+    (let* ((rev1-prompt (format-prompt "Older revision" (car rev1-default)))
            (rev2-prompt (format-prompt "Newer revision"
                                        ;; (or rev2-default
                                        "current source"))
@@ -2101,8 +2096,8 @@ INITIAL-INPUT are passed on to `vc-read-revision' directly."
 (defun vc-version-diff (_files rev1 rev2)
   "Report diffs between revisions REV1 and REV2 in the repository history.
 This compares two revisions of the current fileset.
-If REV1 is nil, it defaults to the current revision, i.e. revision
-of the last commit.
+If REV1 is nil, it defaults to the previous revision, i.e. revision
+before the last commit.
 If REV2 is nil, it defaults to the work tree, i.e. the current
 state of each file in the fileset."
   (interactive (vc-diff-build-argument-list-internal))
@@ -2119,9 +2114,8 @@ state of each file in the fileset."
   "Report diffs between REV1 and REV2 revisions of the whole tree."
   (interactive
    (vc-diff-build-argument-list-internal
-    (or (ignore-errors (vc-deduce-fileset t))
-        (let ((backend (or (vc-deduce-backend) (vc-responsible-backend default-directory))))
-          (list backend (list (vc-call-backend backend 'root default-directory)))))))
+    (let ((backend (or (vc-deduce-backend) (vc-responsible-backend default-directory))))
+      (list backend (list (vc-call-backend backend 'root default-directory))))))
   ;; This is a mix of `vc-root-diff' and `vc-version-diff'
   (when (and (not rev1) rev2)
     (error "Not a valid revision range"))

@@ -436,6 +436,12 @@ overlap.
 
 *** 'diff-apply-hunk' now supports creating and deleting files.
 
+---
+*** 'vc-version-diff' and 'vc-root-revsion-diff' changed default for REV1.
+They suggest the previous revision as the default for REV1, not the last
+one as before.  This makes them different from 'vc-diff' and
+'vc-root-diff' when those are called without a prefix argument.
+
 ** php-ts-mode
 
 ---
