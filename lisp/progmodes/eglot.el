@@ -3242,7 +3242,8 @@ for which LSP on-type-formatting should be requested."
                                                         :resolveProvider)
                                  (plist-get lsp-comp :data))
                             (eglot--request server :completionItem/resolve
-                                            lsp-comp :cancel-on-input t)
+                                            lsp-comp :cancel-on-input t
+                                            :immediate t)
                           lsp-comp))))))
       (when (and (consp eglot--capf-session)
                  (= (car bounds) (car (nth 0 eglot--capf-session)))
