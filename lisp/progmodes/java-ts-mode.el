@@ -326,7 +326,7 @@ Return nil if there is no name or if NODE is not a defun node."
   (unless (treesit-ready-p 'java)
     (error "Tree-sitter for Java isn't available"))
 
-  (setq treesit-primary-parser (treesit-parser-create 'java))
+  (treesit-parser-create 'java)
 
   ;; Comments.
   (c-ts-common-comment-setup)
