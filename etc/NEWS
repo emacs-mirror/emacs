@@ -390,10 +390,12 @@ command 'doc-view-page-to-register' (bound to 'm'), and later the stored
 page can be restored with 'doc-view-jump-to-register' (bound to ''').
 
 +++
-*** Docview can generate imenu index for DjVu files.
+*** Docview can generate imenu index for DjVu and ODF documents.
 When the 'djvused' program is available, Docview can now generate imenu
-index for DjVu files from its outline.
-The name of the 'djvused' program can be customized by changing the user
+index for DjVu files from its outline.  Index for Open Document Format
+(ODF) files as used by OpenOffice and LibreOffice are generated using
+the 'mutool' program after their initial conversion to PDF format.  The
+name of the 'djvused' program can be customized by changing the user
 option 'doc-view-djvused-program'.
 
 ** Tramp

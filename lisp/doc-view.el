@@ -2103,6 +2103,8 @@ If FILE-NAME is nil, use the current file instead."
            ('djvu
             (when doc-view-djvused-program
               (doc-view--djvu-outline file-name)))
+           ('odf
+            (doc-view--pdf-outline (doc-view-current-cache-doc-pdf)))
            (_
             (doc-view--pdf-outline file-name)))))
     (when outline (imenu-add-to-menubar "Outline"))

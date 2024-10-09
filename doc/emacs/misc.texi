@@ -586,12 +586,15 @@ default size for DocView, customize the variable
 @vindex doc-view-djvused-program
   DocView can generate an outline menu for PDF and DjVu documents using
 the @command{mutool} and the @command{djvused} programs, respectively,
-when they are available.  This uses the @code{imenu} facility
-(@pxref{Imenu}).  You can customize how the @code{imenu} items for this
-outline are formatted and displayed using the variables
-@code{doc-view-imenu-format} and @code{doc-view-imenu-flatten}.  The
-filename of the @command{djvused} program can be customized by changing
-the @code{doc-view-djvused-program} user option.
+when they are available.  The outline for Open Document Format files as
+used by OpenOffice and LibreOffice are also generated using the
+@command{mutool} after they are converted to PDF.  This uses the
+@code{imenu} facility (@pxref{Imenu}).  You can customize how the
+@code{imenu} items for this outline are formatted and displayed using
+the variables @code{doc-view-imenu-format} and
+@code{doc-view-imenu-flatten}.  The filename of the @command{djvused}
+program can be customized by changing the
+@code{doc-view-djvused-program} user option.
 
 @cindex registers, in DocView mode
 @findex doc-view-page-to-register
