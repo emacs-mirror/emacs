@@ -6806,7 +6806,7 @@ parameter is installed and updated by the function
 @item quit-restore-prev
 @vindex quit-restore@r{, a window parameter}
 @vindex quit-restore-prev@r{, a window parameter}
-These parameters ares installed by the buffer display functions
+These parameters are installed by the buffer display functions
 (@pxref{Choosing Window}) and consulted by @code{quit-restore-window}
 (@pxref{Quitting Windows}).  They are lists of four elements, see the
 description of @code{quit-restore-window} in @ref{Quitting Windows} for
