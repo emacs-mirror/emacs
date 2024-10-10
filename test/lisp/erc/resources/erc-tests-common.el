@@ -40,6 +40,10 @@
 (require 'ert-x)
 (require 'erc)
 (eval-when-compile (require 'erc-stamp))
+(eval-and-compile
+  (let ((load-path (cons (expand-file-name "../erc-d" (ert-resource-directory))
+                         load-path)))
+    (require 'erc-d-i)))
 
 (defmacro erc-tests-common-equal-with-props (a b)
   "Compare strings A and B for equality including text props.
@@ -152,6 +156,39 @@ For simplicity, assume string evaluates to itself."
   (interactive "P")
   (let ((sexp (erc-tests-common-string-to-propertized-parts (pp-last-sexp))))
     (if arg (insert (pp-to-string sexp)) (pp-macroexpand-expression sexp))))
+
+
+(cl-defun erc-tests-common-add-cmem
+    (nick &optional (host "fsf.org")
+          (user (concat "~" (substring nick 0 (min 10 (length nick)))))
+          (full-name (upcase-initials nick)))
+  "Create channel user for NICK with test-oriented defaults."
+  (erc-update-channel-member (erc-target) nick nick t nil nil nil nil nil
+                             host user full-name))
+
+(defun erc-tests-common-parse-line (line)
+  "Return a single `erc-response' parsed from line."
+  (let ((parsed (erc-d-i--parse-message line)))
+    (make-erc-response :unparsed (erc-d-i-message.unparsed parsed)
+                       :sender (erc-d-i-message.sender parsed)
+                       :command (erc-d-i-message.command parsed)
+                       :command-args (erc-d-i-message.command-args parsed)
+                       :contents (erc-d-i-message.contents parsed)
+                       :tags (erc-d-i-message.tags parsed))))
+
+(defun erc-tests-common-simulate-line (line)
+  "Run response handlers for raw IRC protocol LINE."
+  (let ((parsed (erc-tests-common-parse-line line))
+        (erc--msg-prop-overrides (or erc--msg-prop-overrides
+                                     '((erc--ts . 0)))))
+    (erc-call-hooks erc-server-process parsed)))
+
+(defun erc-tests-common-simulate-privmsg (nick msg)
+  (erc-tests-common-simulate-line
+   (format ":%s PRIVMSG %s :%s"
+           (erc-user-spec (erc-get-server-user nick))
+           (erc-target)
+           msg)))
 
 ;; The following utilities are meant to help prepare tests for
 ;; `erc--get-inserted-msg-bounds' and friends.
