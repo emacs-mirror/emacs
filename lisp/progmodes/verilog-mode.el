@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2024.03.01.121933719
+;; Version: 2024.10.09.140346409
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2024-03-01-7448f97-vpo-GNU"
+(defconst verilog-mode-version "2024-10-09-85d8429-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -11441,6 +11441,7 @@ This repairs those mis-inserted by an AUTOARG."
           ;; Prefix regexp needs beginning of match, or some symbol of
           ;; lesser or equal precedence.  We assume the [:]'s exist in expr.
           ;; Ditto the end.
+          ;;(message "sre: out=%s" out)
           (while (string-match
                   (concat "\\([[({:*/<>+-]\\)"  ; - must be last
                           "(\\<\\([0-9A-Za-z_]+\\))"
@@ -11486,19 +11487,23 @@ This repairs those mis-inserted by an AUTOARG."
                   out)
             (let ((pre (match-string 1 out))
                   (lhs (string-to-number (match-string 2 out)))
+                  (op (match-string 3 out))
                   (rhs (string-to-number (match-string 4 out)))
                   (post (match-string 5 out))
                   val)
               (when (equal pre "-")
                 (setq lhs (- lhs)))
-              (setq val (if (equal (match-string 3 out) "-")
+              (setq val (if (equal op "-")
                             (- lhs rhs)
                           (+ lhs rhs))
                     out (replace-match
-                         (concat (if (and (equal pre "-")
-                                          (< val 0))
-                                     ""  ; Not "--20" but just "-20"
-                                   pre)
+                         (concat (cond ((and (equal pre "-")
+                                             (< val 0))
+                                        "")  ; Not "--20" but just "-20"
+                                       ((and (equal pre "-")
+                                             (> val 0))
+                                        "+")  ; Not "-+20" but just "+20"
+                                       (t pre))
                                  (int-to-string val)
                                  post)
                          nil nil out)) ))
@@ -11526,19 +11531,20 @@ This repairs those mis-inserted by an AUTOARG."
                        nil nil out)))))
       out)))
 
-;;(verilog-simplify-range-expression "[1:3]")  ; 1
-;;(verilog-simplify-range-expression "[(1):3]")  ; 1
-;;(verilog-simplify-range-expression "[(((16)+1)+1+(1+1))]")  ; 20
-;;(verilog-simplify-range-expression "[(2*3+6*7)]")  ; 48
-;;(verilog-simplify-range-expression "[(FOO*4-1*2)]")  ; FOO*4-2
-;;(verilog-simplify-range-expression "[(FOO*4+1-1)]")  ; FOO*4+0
-;;(verilog-simplify-range-expression "[(func(BAR))]")  ; func(BAR)
-;;(verilog-simplify-range-expression "[FOO-1+1-1+1]")  ; FOO-0
-;;(verilog-simplify-range-expression "[$clog2(2)]")  ; 1
-;;(verilog-simplify-range-expression "[$clog2(7)]")  ; 3
-;;(verilog-simplify-range-expression "[(TEST[1])-1:0]")
-;;(verilog-simplify-range-expression "[1<<2:8>>2]")  ; [4:2]
-;;(verilog-simplify-range-expression "[2*4/(4-2) +2+4 <<4 >>2]")
+;;(verilog-simplify-range-expression "[1:3]")  ; "[1:3]"
+;;(verilog-simplify-range-expression "[(1):3]")  ; "[1:3]"
+;;(verilog-simplify-range-expression "[(((16)+1)+1+(1+1))]")  ; "[20]"
+;;(verilog-simplify-range-expression "[(2*3+6*7)]")  ; "[48]"
+;;(verilog-simplify-range-expression "[(FOO*4-1*2)]")  ; "[FOO*4-2]"
+;;(verilog-simplify-range-expression "[(FOO*4+1-1)]")  ; "[FOO*4+0]"
+;;(verilog-simplify-range-expression "[(func(BAR))]")  ; "[func(BAR)]"
+;;(verilog-simplify-range-expression "[FOO-1+1-1+1]")  ; "[FOO-0]"
+;;(verilog-simplify-range-expression "[FOO-1+2:LSB-3+1]")  ; "[FOO+1:LSB-1]"
+;;(verilog-simplify-range-expression "[$clog2(2)]")  ; "[1]"
+;;(verilog-simplify-range-expression "[$clog2(7)]")  ; "[3]"
+;;(verilog-simplify-range-expression "[(TEST[1])-1:0]")  ; "[(TEST[1])-1:0]"
+;;(verilog-simplify-range-expression "[1<<2:8>>2]")  ; "[4:2]"
+;;(verilog-simplify-range-expression "[2*4/(4-2) +2+4 <<4 >>2]")  ; "[8/(2) +2+4 <<4 >>2]"
 ;;(verilog-simplify-range-expression "[WIDTH*2/8-1:0]")  ; "[WIDTH*2/8-1:0]"
 ;;(verilog-simplify-range-expression "[(FOO).size:0]")  ; "[FOO.size:0]"
 
