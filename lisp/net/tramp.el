@@ -2479,7 +2479,7 @@ Fall back to normal file name handler if no Tramp file name handler exists."
 			  ;; "process-name" and "process-buffer",
 			  ;; because the operations shall be applied
 			  ;; in the main connection process.  In order
-			  ;; to avoid suspicious debug buffers during
+			  ;; to avoid superfluous debug buffers during
 			  ;; host name completion, we adapt
 			  ;; `tramp-verbose'.
 			  ;; If `non-essential' is non-nil, Tramp shall
@@ -6049,7 +6049,7 @@ nil."
     (with-tramp-timeout (timeout)
       (while (not found)
 	;; This is needed to yield the CPU, otherwise we'll see 100% CPU load.
-	(sit-for 0)
+	(sit-for 0 'nodisp)
 	(tramp-accept-process-output proc)
 	(unless (process-live-p proc)
 	  (tramp-error-with-buffer
