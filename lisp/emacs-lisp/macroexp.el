@@ -41,7 +41,8 @@ This is to preserve the data in it in the event of a
 
 (defmacro macroexp--with-extended-form-stack (expr &rest body)
   "Evaluate BODY with EXPR pushed onto `byte-compile-form-stack'."
-  (declare (indent 1))
+  (declare (indent 1)
+           (debug (sexp body)))
   `(let ((byte-compile-form-stack (cons ,expr byte-compile-form-stack)))
      ,@body))
 
