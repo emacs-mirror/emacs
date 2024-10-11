@@ -112,6 +112,7 @@ current help buffer.")
   (pcase-dolist (`(,prefix . ,files) prefixes)
     (setq help-definition-prefixes
           (radix-tree-insert help-definition-prefixes prefix nil))
+    (remhash prefix definition-prefixes)
     (dolist (file files)
       ;; FIXME: Should we scan help-definition-prefixes to remove
       ;; other prefixes of the same file?
