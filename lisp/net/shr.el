@@ -950,7 +950,7 @@ When `shr-fill-text' is nil, only indent."
   ;; NB: <base href=""> URI may itself be relative to the document's URI.
   (setq url (shr-expand-url url))
   (let* ((parsed (url-generic-parse-url url))
-	 (local (url-filename parsed)))
+	 (local (or (url-filename parsed) "")))
     (setf (url-filename parsed) "")
     ;; Chop off the bit after the last slash.
     (when (string-match "\\`\\(.*/\\)[^/]+\\'" local)
