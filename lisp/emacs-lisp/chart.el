@@ -574,13 +574,11 @@ R1 and R2 are dotted pairs.  Colorize it with FACE."
 
 (defun chart-bar-quickie (dir title namelst nametitle numlst numtitle
 			      &optional max sort-pred)
-  "Wash over the complex EIEIO stuff and create a nice bar chart.
-Create it going in direction DIR [`horizontal' `vertical'] with TITLE
-using a name sequence NAMELST labeled NAMETITLE with values NUMLST
-labeled NUMTITLE.
-Optional arguments:
-Set the chart's max element display to MAX, and sort lists with
-SORT-PRED if desired."
+  "Create a bar chart in direction DIR [`horizontal' `vertical'] named TITLE.
+NAMELST is the list of bar names and NAMETITLE is the name the of axis containing
+them.  NUMLST is the list of values and NUMTITLE is the name of the value
+axis.  Optional arguments: Set the chart's max element display to MAX, and sort
+lists with SORT-PRED if desired."
   (let ((nc (make-instance 'chart-bar
 			   :title title
 			   :key-label "8-m"  ; This is a text key pic
