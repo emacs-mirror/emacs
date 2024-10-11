@@ -918,10 +918,10 @@ during splitting, which may be slow."
 	    (nnimap-finish-retrieve-group-infos server info sequences
 						t)
 	    (setq active (nth 2 (assoc group nnimap-current-infos)))))
-	(setq active (or active '(0 . 1)))
+	(setq active (or active '(1 . 0)))
 	(erase-buffer)
 	(insert (format "211 %d %d %d %S\n"
-			(- (cdr active) (car active))
+			(max (1+ (- (cdr active) (car active))) 0)
 			(car active)
 			(cdr active)
 			group))
