@@ -8501,7 +8501,7 @@ with MARKS.  MARKS can either be a string of marks or a list of marks.
 Returns how many articles were removed."
   (interactive
    (list
-    (completing-read "Marks:"
+    (completing-read "Marks: "
 		     (let ((mark-list '()))
 		       (mapc (lambda (datum)
 			       (cl-pushnew   (gnus-data-mark datum) mark-list))
@@ -8518,7 +8518,7 @@ list of marks.
 Returns how many articles were removed."
   (interactive
    (list
-    (completing-read "Marks:"
+    (completing-read "Marks: "
 		     (let ((mark-list '()))
 		       (mapc (lambda (datum)
 			       (cl-pushnew   (gnus-data-mark datum) mark-list))
