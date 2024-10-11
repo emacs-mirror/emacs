@@ -26,6 +26,8 @@
 (require 'ert)
 (require 'esh-mode)
 (require 'eshell)
+(require 'em-banner)
+(require 'em-prompt)
 
 (require 'eshell-tests-helpers
          (expand-file-name "eshell-tests-helpers"
@@ -58,5 +60,45 @@
   (with-temp-eshell
     (eshell-match-command-output (format "(format \"hello%c%cp\")" ?\C-h ?\C-h)
                                  "\\`help\n")))
+
+(ert-deftest esh-mode-test/clear/eshell-command ()
+  "Test that `eshell/clear' works as an Eshell command."
+  (let ((eshell-banner-message "")
+        (eshell-prompt-function (lambda () "$ ")))
+    (with-temp-eshell
+      (eshell-insert-command "echo hi")
+      (eshell-insert-command "clear")
+      (should (string-match "\\`\\$ echo hi\nhi\n\\$ clear\n+\\$ "
+                            (buffer-string))))))
+
+(ert-deftest esh-mode-test/clear/eshell-command/erase ()
+  "Test that `eshell/clear' can erase the buffer."
+  (let ((eshell-banner-message "")
+        (eshell-prompt-function (lambda () "$ ")))
+    (with-temp-eshell
+      (eshell-insert-command "echo hi")
+      (eshell-insert-command "clear t")
+      (should (string-match "\\`\\$ " (buffer-string))))))
+
+(ert-deftest esh-mode-test/clear/emacs-command ()
+  "Test that `eshell-clear' works as an interactive Emacs command."
+  (let ((eshell-banner-message "")
+        (eshell-prompt-function (lambda () "$ ")))
+    (with-temp-eshell
+      (eshell-insert-command "echo hi")
+      (insert "echo b")
+      (eshell-clear)
+      (should (string-match "\\`\\$ echo hi\nhi\n\n+\\$ echo b"
+                            (buffer-string))))))
+
+(ert-deftest esh-mode-test/clear/emacs-command/erase ()
+  "Test that `eshell-clear' can erase the buffer."
+  (let ((eshell-banner-message "")
+        (eshell-prompt-function (lambda () "$ ")))
+    (with-temp-eshell
+      (eshell-insert-command "echo hi")
+      (insert "echo b")
+      (eshell-clear t)
+      (should (string-match "\\`\\$ echo b" (buffer-string))))))
 
 ;; esh-mode-tests.el ends here

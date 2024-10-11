@@ -876,20 +876,61 @@ When run interactively, widen the buffer first."
   (goto-char (point-max))
   (recenter -1))
 
-(defun eshell/clear (&optional scrollback)
-  "Scroll contents of eshell window out of sight, leaving a blank window.
-If SCROLLBACK is non-nil, clear the scrollback contents."
+(defun eshell-clear (&optional clear-scrollback)
+  "Scroll contents of the Eshell window out of sight, leaving a blank window.
+If CLEAR-SCROLLBACK is non-nil (interactively, with the prefix
+argument), clear the scrollback contents.
+
+Otherwise, the behavior depends on `eshell-scroll-show-maximum-output'.
+If non-nil, fill newlines before the current prompt so that the prompt
+is the last line in the window; if nil, just scroll the window so that
+the prompt is the first line in the window."
+  (interactive "P")
+  (cond
+   (clear-scrollback
+    (let ((inhibit-read-only t))
+      (widen)
+      (delete-region (point-min) (eshell-end-of-output))))
+   (eshell-scroll-show-maximum-output
+    (save-excursion
+      (goto-char (eshell-end-of-output))
+      (let ((inhibit-read-only t))
+        (insert-and-inherit (make-string (window-size) ?\n))))
+    (when (< (point) eshell-last-output-end)
+      (goto-char eshell-last-output-end)))
+  (t
+   (when (< (point) eshell-last-output-end)
+     (goto-char eshell-last-output-end))
+   (set-window-start nil (eshell-end-of-output)))))
+
+(defun eshell/clear (&optional clear-scrollback)
+  "Scroll contents of the Eshell window out of sight, leaving a blank window.
+If CLEAR-SCROLLBACK is non-nil, clear the scrollback contents.
+
+Otherwise, the behavior depends on `eshell-scroll-show-maximum-output'.
+If non-nil, fill newlines before the current prompt so that the prompt
+is the last line in the window; if nil, just scroll the window so that
+the prompt is the first line in the window.
+
+This command is for use as an Eshell command (entered at the prompt);
+for clearing the Eshell buffer from elsewhere (e.g. via
+\\[execute-extended-command]), use `eshell-clear'."
   (interactive)
-  (if scrollback
-      (eshell/clear-scrollback)
+  (cond
+   ((null eshell-current-handles)
+    (eshell-clear clear-scrollback))
+   (clear-scrollback
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+   (eshell-scroll-show-maximum-output
     (let ((eshell-input-filter-functions nil))
-      (insert (make-string (window-size) ?\n))
-      (eshell-send-input))))
+      (ignore (eshell-interactive-print (make-string (window-size) ?\n)))))
+   (t
+    (recenter 0))))
 
 (defun eshell/clear-scrollback ()
-  "Clear the scrollback content of the eshell window."
-  (let ((inhibit-read-only t))
-    (erase-buffer)))
+  "Clear the scrollback content of the Eshell window."
+  (eshell/clear t))
 
 (defun eshell-get-old-input (&optional use-current-region)
   "Return the command input on the current line.

@@ -242,6 +242,14 @@ It removes all the buttons in the specified region.
 ** Eshell
 
 ---
+*** New interactive command 'eshell-clear'.
+This command scrolls the screen so that only the current prompt is
+visible, optionally erasing all the previous input/output as well.
+Previously, the Eshell built-in command 'eshell/clear' supported this
+(e.g. to call it via 'M-x'), but this new command behaves more
+consistently if you have a partially-typed command at the Eshell prompt.
+
+---
 *** New user option 'eshell-command-async-buffer'.
 This option lets you tell 'eshell-command' how to respond if its output
 buffer is already in use by another invocation of 'eshell-command', much
