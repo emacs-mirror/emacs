@@ -428,6 +428,16 @@ The functions currently affected by this are `split-window',
 An application may bind this to a non-nil value around calls to
 these functions to inhibit processing of window parameters.")
 
+(defun window-no-other-p (&optional window)
+  "Return non-nil if WINDOW should not be used as \"other\" window.
+WINDOW must be a live window and defaults to the selected one.
+
+Return non-nil if the `no-other-window' parameter of WINDOW is non-nil
+and `ignore-window-parameters' is nil.  Return nil in any other case."
+  (setq window (window-normalize-window window t))
+  (and (not ignore-window-parameters)
+       (window-parameter window 'no-other-window)))
+
 ;; This must go to C, finally (or get removed).
 (defconst window-safe-min-height 1
   "The absolute minimum number of lines of any window.
@@ -2307,11 +2317,11 @@ as seen from the position of `window-point' in window WINDOW.
 DIRECTION should be one of `above', `below', `left' or `right'.
 WINDOW must be a live window and defaults to the selected one.
 
-Do not return a window whose `no-other-window' parameter is
-non-nil.  If the nearest window's `no-other-window' parameter is
-non-nil, try to find another window in the indicated direction.
-If, however, the optional argument IGNORE is non-nil, return that
-window even if its `no-other-window' parameter is non-nil.
+Do not return a window for which `window-no-other-p' returns non-nil.
+If `window-no-other-p' returns non-nil for the nearest window, try to
+find another window in the indicated direction.  If, however, the
+optional argument IGNORE is non-nil, return the nearest window even if
+`window-no-other-p' returns for it a non-nil value.
 
 Optional argument SIGN a negative number means to use the right
 or bottom edge of WINDOW as reference position instead of
@@ -2375,7 +2385,7 @@ Return nil if no suitable window can be found."
 	 (cond
 	  ((or (eq window w)
 	       ;; Ignore ourselves.
-	       (and (window-parameter w 'no-other-window)
+	       (and (window-no-other-p w)
 		    ;; Ignore W unless IGNORE is non-nil.
 		    (not ignore))))
 	  (hor
@@ -2491,14 +2501,13 @@ and no others."
 
 (defun get-lru-window (&optional all-frames dedicated not-selected no-other)
   "Return the least recently used window on frames specified by ALL-FRAMES.
-Return a full-width window if possible.  A minibuffer window is
-never a candidate.  A dedicated window is never a candidate
-unless DEDICATED is non-nil, so if all windows are dedicated, the
-value is nil.  Avoid returning the selected window if possible.
-Optional argument NOT-SELECTED non-nil means never return the
-selected window.  Optional argument NO-OTHER non-nil means to
-never return a window whose `no-other-window' parameter is
-non-nil.
+Return a full-width window if possible.  A minibuffer window is never a
+candidate.  A dedicated window is never a candidate unless DEDICATED is
+non-nil, so if all windows are dedicated, the value is nil.  Avoid
+returning the selected window if possible.  Optional argument
+NOT-SELECTED non-nil means never return the selected window.  Optional
+argument NO-OTHER non-nil means to never return a window for which
+`window-no-other-p' returns non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -2522,8 +2531,7 @@ selected frame and no others."
     (dolist (window windows)
       (when (and (or dedicated (not (window-dedicated-p window)))
 		 (or (not not-selected) (not (eq window (selected-window))))
-                 (or (not no-other)
-                     (not (window-parameter window 'no-other-window))))
+                 (or (not no-other) (not (window-no-other-p window))))
 	(setq time (window-use-time window))
 	(if (or (eq window (selected-window))
 		(not (window-full-width-p window)))
@@ -2537,12 +2545,11 @@ selected frame and no others."
 
 (defun get-mru-window (&optional all-frames dedicated not-selected no-other)
    "Return the most recently used window on frames specified by ALL-FRAMES.
-A minibuffer window is never a candidate.  A dedicated window is
-never a candidate unless DEDICATED is non-nil, so if all windows
-are dedicated, the value is nil.  Optional argument NOT-SELECTED
-non-nil means never return the selected window.  Optional
-argument NO-OTHER non-nil means to never return a window whose
-`no-other-window' parameter is non-nil.
+A minibuffer window is never a candidate.  A dedicated window is never a
+candidate unless DEDICATED is non-nil, so if all windows are dedicated,
+the value is nil.  Optional argument NOT-SELECTED non-nil means never
+return the selected window.  Optional argument NO-OTHER non-nil means to
+never return a window for which `window-no-other-p' returns non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -2564,8 +2571,7 @@ selected frame and no others."
       (setq time (window-use-time window))
       (when (and (or dedicated (not (window-dedicated-p window)))
 		 (or (not not-selected) (not (eq window (selected-window))))
-                 (or (not no-other)
-                     (not (window-parameter window 'no-other-window)))
+                 (or (not no-other) (not (window-no-other-p window)))
                  (or (not best-time) (> time best-time)))
 	(setq best-time time)
 	(setq best-window window)))
@@ -2573,12 +2579,11 @@ selected frame and no others."
 
 (defun get-largest-window (&optional all-frames dedicated not-selected no-other)
   "Return the largest window on frames specified by ALL-FRAMES.
-A minibuffer window is never a candidate.  A dedicated window is
-never a candidate unless DEDICATED is non-nil, so if all windows
-are dedicated, the value is nil.  Optional argument NOT-SELECTED
-non-nil means never return the selected window.  Optional
-argument NO-OTHER non-nil means to never return a window whose
-`no-other-window' parameter is non-nil.
+A minibuffer window is never a candidate.  A dedicated window is never a
+candidate unless DEDICATED is non-nil, so if all windows are dedicated,
+the value is nil.  Optional argument NOT-SELECTED non-nil means never
+return the selected window.  Optional argument NO-OTHER non-nil means to
+never return a window for which `window-no-other-p' returns non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -2602,8 +2607,7 @@ selected frame and no others."
     (dolist (window (window-list-1 nil 'nomini all-frames))
       (when (and (or dedicated (not (window-dedicated-p window)))
 		 (or (not not-selected) (not (eq window (selected-window))))
-                 (or (not no-other)
-                     (not (window-parameter window 'no-other-window))))
+                 (or (not no-other) (window-no-other-p window)))
 	(setq size (* (window-pixel-height window)
 		      (window-pixel-width window)))
 	(when (> size best-size)
@@ -3963,12 +3967,10 @@ skip -COUNT windows backwards.  COUNT zero means do not skip any
 window, so select the selected window.  In an interactive call,
 COUNT is the numeric prefix argument.  Return nil.
 
-If the `other-window' parameter of the selected window is a
-function and `ignore-window-parameters' is nil, call that
-function with the arguments COUNT and ALL-FRAMES.
-
-This function does not select a window whose `no-other-window'
-window parameter is non-nil.
+If the `other-window' parameter of the selected window is a function and
+`ignore-window-parameters' is nil, call that function with the arguments
+COUNT and ALL-FRAMES.  Otherwise, do not return a window for which
+`window-no-other-p' returns non-nil.
 
 This function uses `next-window' for finding the window to
 select.  The argument ALL-FRAMES has the same meaning as in
@@ -3994,7 +3996,7 @@ always effectively nil."
 	      ;; Keep out of infinite loops.  When COUNT has not changed
 	      ;; since we last looked at `window' we're probably in one.
 	      (throw 'exit nil)))
-	   ((window-parameter window 'no-other-window)
+	   ((window-no-other-p window)
 	    (unless old-window
 	      ;; The first non-selectable window `next-window' got us:
 	      ;; Remember it and the current value of COUNT.
@@ -4010,7 +4012,7 @@ always effectively nil."
 	      ;; Keep out of infinite loops.  When COUNT has not changed
 	      ;; since we last looked at `window' we're probably in one.
 	      (throw 'exit nil)))
-	   ((window-parameter window 'no-other-window)
+	   ((window-no-other-p window)
 	    (unless old-window
 	      ;; The first non-selectable window `previous-window' got
 	      ;; us: Remember it and the current value of COUNT.
@@ -4183,10 +4185,10 @@ Tool-bar and tab-bar pseudo-windows are ignored by this function:
 if the specified coordinates are in any of these two windows, this
 function returns nil.
 
-Optional argument FRAME must specify a live frame and defaults to
-the selected one.  Optional argument NO-OTHER non-nil means to
-return nil if the window located at the specified coordinates has
-a non-nil `no-other-window' parameter."
+Optional argument FRAME must specify a live frame and defaults to the
+selected one.  Optional argument NO-OTHER non-nil means to return nil if
+`window-no-other-p' returns non-nil for the window located at the
+specified coordinates."
   (setq frame (window-normalize-frame frame))
   (let* ((root-edges (window-edges (frame-root-window frame) nil nil t))
          (root-left (nth 2 root-edges))
@@ -4199,7 +4201,7 @@ a non-nil `no-other-window' parameter."
                       (or (< x (nth 2 edges)) (= x root-left))
 		      (>= y (nth 1 edges))
                       (or (< y (nth 3 edges)) (= y root-bottom)))
-             (if (and no-other (window-parameter window 'no-other-window))
+             (if (and no-other (window-no-other-p window))
                  (throw 'window nil)
 	       (throw 'window window)))))
        frame))))
@@ -4211,13 +4213,13 @@ another live window on that frame to serve as its selected
 window.  This option controls the window that is selected in such
 a situation.
 
-The possible choices are `mru' (the default) to select the most
-recently used window on that frame, and `pos' to choose the
-window at the frame coordinates of point of the previously
-selected window.  If this is nil, choose the frame's first window
-instead.  A window with a non-nil `no-other-window' parameter is
-chosen only if all windows on that frame have that parameter set
-to a non-nil value."
+The possible choices are `mru' (the default) to select the most recently
+used window on that frame, and `pos' to choose the window at the frame
+coordinates of point of the previously selected window.  If this is nil,
+choose the frame's first window instead.  A window for which
+`window-no-other-p' returns non-nil is chosen only if all windows on
+that frame have their `no-other-window' parameter set to a non-nil
+value."
   :type '(choice (const :tag "Most recently used" mru)
                  (const :tag "At position of deleted" pos)
                  (const :tag "Frame's first " nil))
@@ -4340,15 +4342,14 @@ the option `delete-window-choose-selected'."
                (let ((mru-window (get-mru-window frame nil nil t)))
                  (and mru-window
 	              (set-frame-selected-window frame mru-window)))))
-         ((and (window-parameter
-                (frame-selected-window frame) 'no-other-window)
+         ((and (window-no-other-p (frame-selected-window frame))
                ;; If `delete-window-internal' selected a window with a
                ;; non-nil 'no-other-window' parameter as its frame's
                ;; selected window, try to choose another one.
                (catch 'found
                  (walk-window-tree
                   (lambda (other)
-                    (unless (window-parameter other 'no-other-window)
+                    (unless (window-no-other-p other)
                       (set-frame-selected-window frame other)
                       (throw 'found t)))
                   frame))))

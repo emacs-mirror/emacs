@@ -427,13 +427,14 @@ window @var{window}.  The argument @var{direction} must be one of
 argument @var{window} must denote a live window and defaults to the
 selected one.
 
-This function does not return a window whose @code{no-other-window}
-parameter is non-@code{nil} (@pxref{Window Parameters}).  If the nearest
-window's @code{no-other-window} parameter is non-@code{nil}, this
-function tries to find another window in the indicated direction whose
-@code{no-other-window} parameter is @code{nil}.  If the optional
-argument @var{ignore} is non-@code{nil}, a window may be returned even
-if its @code{no-other-window} parameter is non-@code{nil}.
+This function does not return a window for which
+@code{window-no-other-p} (@pxref{Cyclic Window Ordering}) returns
+non-@code{nil}.  If the nearest window's @code{no-other-window}
+parameter is non-@code{nil}, this function tries to find another window
+in the indicated direction whose @code{no-other-window} parameter is
+@code{nil}.  However, if the optional argument @var{ignore} is
+non-@code{nil}, a window may be returned even if its
+@code{no-other-window} parameter is non-@code{nil}.
 
 If the optional argument @var{sign} is a negative number, it means to
 use the right or bottom edge of @var{window} as reference position
@@ -1585,9 +1586,10 @@ choose the first window (the window returned by
 @code{frame-first-window}) on that frame.
 @end itemize
 
-A window with a non-@code{nil} @code{no-other-window} parameter is
-chosen only if all other windows on that frame have that parameter set
-to a non-@code{nil} value too.
+A window for which @code{window-no-other-p} (@pxref{Cyclic Window
+Ordering}) returns non-@code{nil} is chosen only if all other windows on
+that frame have their @code{no-other-window} parameter set to a
+non-@code{nil} value too.
 @end defopt
 
 @deffn Command delete-other-windows &optional window
@@ -2129,15 +2131,32 @@ The optional argument @var{all-frames} has the same meaning as in
 @code{next-window}, like a @code{nil} @var{minibuf} argument to
 @code{next-window}.
 
-This function does not select a window that has a non-@code{nil}
-@code{no-other-window} window parameter (@pxref{Window Parameters}),
-provided that @code{ignore-window-parameters} is @code{nil}.
-
 If the @code{other-window} parameter of the selected window is a
 function, and @code{ignore-window-parameters} is @code{nil}, that
 function will be called with the arguments @var{count} and
 @var{all-frames} instead of the normal operation of this function.
+
+Otherwise, this function does not select a window for which the function
+@code{window-no-other-p} (see next) returns @code{nil}.
 @end deffn
+
+@defun window-no-other-p &optional window
+This function returns non-@code{nil} if @var{window} should not be used
+as ``other'' window by commands like @code{other-window} or functions
+like @code{get-lru-window} (see below).  It's also called when deleting
+the selected window (@pxref{Deleting Windows}) and a new selected window
+has to be chosen.
+
+More precisely, this function returns non-@code{nil} if the
+@code{no-other-window} parameter of @var{window} is non-@code{nil} and
+@code{ignore-window-parameters} is @code{nil}.  It returns @code{nil} in
+any other case.
+
+Note that if this function returns @code{nil}, this does not necessarily
+mean that @var{window} can be selected.  A tooltip window (@pxref{Basic
+Windows}), for example, has its @code{no-other-window} parameter set to
+@code{t} by default but cannot be selected.
+@end defun
 
 @defun walk-windows fun &optional minibuf all-frames
 This function calls the function @var{fun} once for each live window,
@@ -2186,8 +2205,9 @@ optional argument @var{dedicated} is non-@code{nil}.  The selected
 window is never returned, unless it is the only candidate.  However, if
 the optional argument @var{not-selected} is non-@code{nil}, this
 function returns @code{nil} in that case.  The optional argument
-@var{no-other}, if non-@code{nil}, means to never return a window whose
-@code{no-other-window} parameter is non-@code{nil}.
+@var{no-other}, if non-@code{nil}, means to never return a window for
+which @code{window-no-other-p} (@pxref{Cyclic Window Ordering}) returns
+non-@code{nil}.
 @end defun
 
 @cindex most recently used window
@@ -6784,7 +6804,10 @@ This parameter affects the execution of @code{other-window}
 @item no-other-window
 @vindex no-other-window@r{, a window parameter}
 This parameter marks the window as not selectable by @code{other-window}
-(@pxref{Cyclic Window Ordering}).
+(@pxref{Cyclic Window Ordering}).  It is by default @code{t} for tooltip
+windows (@pxref{Basic Windows}).  Use @code{window-no-other-p}
+(@pxref{Cyclic Window Ordering}) to check whether it applies to a
+specific window.
 
 @item clone-of
 @vindex clone-of@r{, a window parameter}
