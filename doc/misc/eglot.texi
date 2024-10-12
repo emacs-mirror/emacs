@@ -123,14 +123,16 @@ Here's how to start using Eglot with your programming project:
 @item
 Select and install a language server.
 
-Eglot comes pre-configured with many popular language servers, see the
-value of @code{eglot-server-programs}.  If the server(s) mentioned
-there satisfy your needs for the programming language(s) with which
-you want to use Eglot, you just need to make sure those servers are
-installed on your system.  Alternatively, install one or more servers
-of your choice and add them to the value of
+Eglot comes pre-configured for many popular language servers, see the
+value of @code{eglot-server-programs}.  If the server(s) mentioned there
+satisfy your needs for the programming language(s) with which you want
+to use Eglot, you just need to make sure those servers are installed on
+your system and Eglot can find them.
+
+Alternatively, install one or more servers of your choice and tell Eglot
+where to find them.  To do that, you may add to the value of
 @code{eglot-server-programs}, as described in @ref{Setting Up LSP
-Servers}.
+Servers} or have Eglot prompt you about it (@pxref{Eglot Commands}).
 
 @item
 Turn on Eglot for your project.
@@ -197,7 +199,7 @@ particular server(s) you want to install.
 
 To use a language server, Eglot must know how to start it and which
 programming languages each server supports.  This information is
-provided by the variable @code{eglot-server-programs}.
+commonly provided by the variable @code{eglot-server-programs}.
 
 @defvar eglot-server-programs
 This variable associates major modes with names and command-line
@@ -939,12 +941,16 @@ to @w{@code{(disallow-non-standard-keys enforce-required-keys)}}.
 
 @vindex eglot-server-initialized-hook
 @item eglot-server-initialized-hook
-A hook run after the server object is successfully initialized.
+A hook run after the server object is successfully initialized (which
+includes launching the process) but before any LSP communication is
+attempted.  Each function receives a @code{eglot-lsp-server} instance as
+argument.
 
 @vindex eglot-connect-hook
 @item eglot-connect-hook
-A hook run after connection to the server is successfully
-established.  @xref{Starting Eglot}.
+A hook run after the LSP connection to the server is successfully
+established.  Each function receives a @code{eglot-lsp-server} instance
+as argument.  @xref{Starting Eglot}.
 
 @item eglot-managed-mode-hook
 A hook run after Eglot started or stopped managing a buffer.

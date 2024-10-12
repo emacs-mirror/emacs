@@ -338,10 +338,13 @@ characters of the current line."
           ;; If the start of the previous sibling isn't at the
           ;; beginning of a line, something's probably not quite
           ;; right, go a step further. (E.g., comment after a
-          ;; statement.)
+          ;; statement.)  If the previous sibling is the first named
+          ;; node then anchor to that, e.g. when returning an aggregate
+          ;; and starting the items on the same line as {.
           (_ (goto-char (treesit-node-start prev-sibling))
-             (if (looking-back (rx bol (* whitespace))
-                               (line-beginning-position))
+             (if (or (looking-back (rx bol (* whitespace))
+                                   (line-beginning-position)))
+                     (null (treesit-node-prev-sibling prev-sibling t))
                  (setq continue nil)
                (setq prev-sibling
                      (treesit-node-prev-sibling prev-sibling)))))))

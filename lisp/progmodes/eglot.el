@@ -1480,18 +1480,21 @@ Use current server's or first available Eglot events buffer."
 
 (defvar eglot-connect-hook
   '(eglot-signal-didChangeConfiguration)
-  "Hook run after connecting in `eglot--connect'.")
+  "Hook run after connecting to a server.
+Each function is passed an `eglot-lsp-server' instance
+as argument.")
 
 (defvar eglot-server-initialized-hook
   '()
   "Hook run after a `eglot-lsp-server' instance is created.
 
-That is before a connection was established.  Use
+That is before a connection is established.  Use
 `eglot-connect-hook' to hook into when a connection was
 successfully established and the server on the other side has
 received the initializing configuration.
 
-Each function is passed the server as an argument")
+Each function is passed an `eglot-lsp-server' instance
+as argument.")
 
 (defun eglot--cmd (contact)
   "Helper for `eglot--connect'."
@@ -3232,7 +3235,8 @@ for which LSP on-type-formatting should be requested."
                                                         :resolveProvider)
                                  (plist-get lsp-comp :data))
                             (eglot--request server :completionItem/resolve
-                                            lsp-comp :cancel-on-input t)
+                                            lsp-comp :cancel-on-input t
+                                            :immediate t)
                           lsp-comp))))))
       (when (and (consp eglot--capf-session)
                  (= (car bounds) (car (nth 0 eglot--capf-session)))

@@ -788,9 +788,6 @@ to ASCII.
 
 *** Provide a user friendly interface to specify fonts
 
-** Use the XIE X extension, if available, for image display
-This is obsolete, as XIE itself is now considered obsolete.
-
 ** Make monochrome images honor the face
 Display those images using the foreground and background colors of the
 applicable faces.
