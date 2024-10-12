@@ -1832,6 +1832,7 @@ to a function that generates a unique name."
   (compilation-start command comint))
 
 ;; run compile with the default command line
+;;;###autoload
 (defun recompile (&optional edit-command)
   "Re-compile the program including the current buffer.
 If this is run in a Compilation mode buffer, reuse the arguments from the
