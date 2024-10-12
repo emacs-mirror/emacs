@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'subr-x)
 
 (cl-defstruct (erc-d-i-message (:conc-name erc-d-i-message.))
   "Identical to `erc-response'.
@@ -101,18 +102,19 @@ With DECODE, decode as UTF-8 text."
     (setq s (decode-coding-string s 'utf-8 t)))
   (let ((mes (make-erc-d-i-message :unparsed s :compat (not decode)))
         tokens)
-    (when-let* (((not (string-empty-p s)))
-                ((eq ?@ (aref s 0)))
-                (m (string-match " " s))
-                (u (substring s 1 m)))
+    (when-let (((not (string-empty-p s)))
+               ((eq ?@ (aref s 0)))
+               (m (string-match " " s))
+               (u (substring s 1 m)))
       (setf (erc-d-i-message.tags mes) (erc-d-i--validate-tags u)
             s (substring s (1+ m))))
-    (if-let* ((m (string-match " :" s))
-              (other-toks (split-string (substring s 0 m) " " t))
-              (rest (substring s (+ 2 m))))
+    (if-let ((m (string-search " :" s))
+             (other-toks (split-string (substring s 0 m) " " t))
+             (rest (substring s (+ 2 m))))
         (setf (erc-d-i-message.contents mes) rest
               tokens (nconc other-toks (list rest)))
-      (setq tokens (split-string s " " t " ")))
+      (setf tokens (split-string s " " t " ")
+            (erc-d-i-message.contents mes) (car (last tokens))))
     (when (and tokens (eq ?: (aref (car tokens) 0)))
       (setf (erc-d-i-message.sender mes) (substring (pop tokens) 1)))
     (setf (erc-d-i-message.command mes) (or (pop tokens) "")

@@ -248,8 +248,36 @@
                   'decode))
       (should-not (erc-d-i-message.compat ours))
       (should (equal (erc-d-i-message.command-args ours) '("#chàn")))
-      (should (equal (erc-d-i-message.contents ours) ""))
+      (should (equal (erc-d-i-message.contents ours) "#chàn"))
       (should (equal (erc-d-i-message.tags ours) '((foo . "çedilla")))))))
+
+(ert-deftest erc-d-i--parse-message/privmsg ()
+  (dolist (raw '(":Bob!~bob@gnu.org PRIVMSG #chan :one two"
+                 ":Bob!~bob@gnu.org PRIVMSG #chan one"
+                 ":Bob!~bob@gnu.org PRIVMSG #chan : "
+                 ":Bob!~bob@gnu.org PRIVMSG #chan :"
+                 "@account=bob :Bob!~bob@gnu.org PRIVMSG #chan one"
+                 "@foo=bar;baz :Bob!~bob@gnu.org PRIVMSG #chan :one"))
+    (dolist (slot '(unparsed
+                    sender
+                    command
+                    command-args
+                    contents
+                    tags))
+      (let ((ours (erc-d-i--parse-message raw))
+            (orig (erc-d-tests--parse-message-upstream raw)))
+        (ert-info ((format "slot: `%s', orig: %S, ours: %S"
+                           slot orig ours))
+          (if (eq slot 'tags)
+              (should (equal (erc-response.tags orig)
+                             (mapcar (pcase-lambda (`(,key . ,value))
+                                       (if value
+                                           (list (symbol-name key) value)
+                                         (list (symbol-name key))))
+                                     (reverse (erc-d-i-message.tags ours)))))
+            (should
+             (equal (cl-struct-slot-value 'erc-d-i-message slot ours)
+                    (cl-struct-slot-value 'erc-response slot orig)))))))))
 
 (ert-deftest erc-d-i--unescape-tag-value ()
   (should (equal (erc-d-i--unescape-tag-value
