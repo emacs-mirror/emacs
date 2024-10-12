@@ -1324,11 +1324,14 @@ settings (@pxref{Sample configuration via Customize}).
 ;;; My ERC configuration -*- lexical-binding: t -*-
 
 (use-package erc
-  :custom
+  :config
   ;; Prefer SASL to NickServ, colorize nicknames, and show side panels
-  ;; with joined channels and members.
-  (erc-modules (append '(sasl nicks bufbar nickbar scrolltobottom)
-                       erc-modules))
+  ;; with joined channels and members
+  (setopt erc-modules
+          (seq-union '(sasl nicks bufbar nickbar scrolltobottom)
+                     erc-modules))
+
+  :custom
   ;; Protect me from accidentally sending excess lines.
   (erc-inhibit-multiline-input t)
   (erc-send-whitespace-lines t)

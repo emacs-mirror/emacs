@@ -240,10 +240,14 @@ for beeping to work."
 
 (defcustom erc-text-matched-hook '(erc-log-matches)
   "Abnormal hook for visiting text matching a predefined \"type\".
-ERC calls members with the arguments (MATCH-TYPE NUH MESSAGE),
-where MATCH-TYPE is one of the symbols `current-nick', `keyword',
-`pal', `dangerous-host', `fool', and NUH is an `erc-response'
-sender, like bob!~bob@example.org."
+ERC calls members with the arguments (MATCH-TYPE NUH MESSAGE), where
+MATCH-TYPE is a symbol among `current-nick', `keyword', `pal',
+`dangerous-host', and `fool'; and NUH is an `erc-response' sender, like
+\"bob!~bob@example.org\" or an IRC command prefixed with the string
+\"Server:\", as in \"Server:353\".  MESSAGE is the current incarnation
+of the just-inserted message minus a leading speaker, like \"<bob> \".
+For traditional reasons, MESSAGE always includes a leading
+`erc-notice-prefix' and a trailing newline."
   :options '(erc-log-matches erc-hide-fools erc-beep-on-match)
   :type 'hook)
 

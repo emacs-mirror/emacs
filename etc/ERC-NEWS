@@ -26,6 +26,13 @@ In fast-moving channels and in queries with long-winded bots, the
 on account of a rather stingy buffering threshold of 512 characters.
 Now configurable, its default has been relaxed eightfold to 4096.
 
+** Option 'erc-modules' no longer autoloaded.
+This cornerstone of ERC's configuration system was autoloaded globally
+in 5.6 to allow users the freedom of running 'customize-option' without
+first having to load the package.  Unfortunately, this also had the side
+effect of arranging for ERC to load on startup whenever someone
+customized the variable.
+
 ** Stray key binding removed from 'erc-fill-wrap-mode-map'.
 The command 'erc-fill-wrap-cycle-visual-movement' was mistakenly given
 the key binding "C-c a" in an inadvertent holdover from development.  It

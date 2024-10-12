@@ -569,7 +569,8 @@
 
 (defun erc-match-tests--log-matches ()
   (let ((erc-log-matches-flag t)
-        (erc-timestamp-format "[@@TS@@]"))
+        (erc-timestamp-format "[@@TS@@]")
+        (inhibit-message noninteractive))
     (erc-match-tests--hl-type-keyword)
     (with-current-buffer "*scratch*"
       (ert-simulate-keys "\t\r"
