@@ -397,11 +397,11 @@ specific file to query."
 (defun vc-hg-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
 If SHORTLOG is non-nil, use a short format based on `vc-hg-root-log-format'.
-If LIMIT is non-nil, show no more than this many entries.
+If LIMIT is a positive integer, show no more than that many entries.
 
-If START-REVISION is nil, the commit log is printed starting from the
-working directory parent (revset \".\").  If START-REVISION is non-nil,
-the log is printed starting from that revision."
+If START-REVISION is nil, print the commit log starting from the working
+directory parent (revset \".\").  If START-REVISION is a string, print
+the log starting from that revision."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
   (vc-setup-buffer buffer)
