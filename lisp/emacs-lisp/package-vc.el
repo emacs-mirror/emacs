@@ -417,7 +417,7 @@ this function successfully installs all given dependencies)."
                   "Attempt to find all dependencies for PKG."
                   (cond
                    ((assq (car pkg) to-install)) ;inhibit cycles
-                   ((package-installed-p (car pkg)))
+                   ((package-installed-p (car pkg) (cadr pkg)))
                    ((let* ((pac package-archive-contents)
                            (desc (cadr (assoc (car pkg) pac))))
                       (if desc
