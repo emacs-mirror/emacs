@@ -2264,6 +2264,18 @@ BASE is the URL of the HTML being rendered."
   (shr-generic dom)
   (insert ?\N{POP DIRECTIONAL ISOLATE}))
 
+(defun shr-tag-math (dom)
+  ;; Sometimes a math element contains a plain text annotation
+  ;; (typically TeX notation) in addition to MathML markup.  If we pass
+  ;; that to `dom-generic', the formula is printed twice.  So we select
+  ;; only the annotation if available.
+  (shr-generic
+   (thread-first
+     dom
+     (dom-child-by-tag 'semantics)
+     (dom-child-by-tag 'annotation)
+     (or dom))))
+
 ;;; Outline Support
 (defun shr-outline-search (&optional bound move backward looking-at)
   "A function that can be used as `outline-search-function' for rendered html.
