@@ -361,6 +361,8 @@ To customize the Python interpreter for interactive use, modify
   ;; Utilities
   "<remap> <complete-symbol>" #'completion-at-point)
 
+(defvar subword-mode nil)
+
 (easy-menu-define python-menu python-mode-map
   "Menu used for ´python-mode'."
   '("Python"
