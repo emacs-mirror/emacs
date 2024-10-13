@@ -14,6 +14,26 @@ GNU Emacs since Emacs version 22.1.
 
 * Changes in ERC 5.7
 
+** A flexible 'match' API.
+To the frustration many, ERC has long lacked of a flexible API for
+reacting to a message's contents and envelope info, like its sender and
+associated IRC command.  While the long-term plan is to transition to an
+object-based formatting model that should offer more useful access to
+the various parts of a message before they're assembled, it's become
+obvious that users need something practical in the interim.  This
+'match' API is based on a simple hook-like handler system that offers
+more opportunities for things like filtering and styling.  See Info node
+'Match API' to find out more.
+
+** Exercise more control in skipping certain desktop notifications.
+Skip select notifications that ERC would otherwise emit with new hook
+option 'erc-desktop-notifications-skip-predicates'.  Its default members
+skip messages from "fools" and those in untracked buffers.
+
+** Opt out of desktop notifications from the active buffer.
+Option 'erc-desktop-notifications-ignored-when-focused' can spare users
+from being notified when interacting with the initiating buffer.
+
 ** Changes in the library API.
 
 *** Module setup runs in query buffers on reconnect.

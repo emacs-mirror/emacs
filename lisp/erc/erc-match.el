@@ -298,7 +298,7 @@ available via universal argument."
   "Type constructors for \\+`match' processing.
 See the struct `erc-match' as well as Info node `(erc) Match API' for
 details."
-  :package-version '(ERC . "5.7") ; FIXME sync on release
+  :package-version '(ERC . "5.7")
   :type '(hook :options (erc-match-opt-pal
                          erc-match-opt-fool
                          erc-match-opt-dangerous-host

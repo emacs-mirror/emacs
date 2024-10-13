@@ -47,6 +47,28 @@
   "Icon to use for notification."
   :type '(choice (const :tag "No icon" nil) file))
 
+(defcustom erc-desktop-notifications-ignored-when-focused ()
+  "Contexts in which to suppress notification in the selected window.
+Assumes `erc-desktop-notifications-focused-p' is a member of
+`erc-desktop-notifications-skip-predicates'.  If the option's value
+contains the symbol `query', ERC skips all notifications in focused
+query buffers.  And if it contains `mention', ERC skips notifications
+upon mention of the user's nick in a focused channel buffer."
+  :package-version '(ERC . "5.7")
+  :type '(set (const query) (const mention)))
+
+(defcustom erc-desktop-notifications-skip-predicates
+  '(erc-desktop-notifications-focused-p
+    erc-desktop-notifications-untracked-p
+    erc-desktop-notifications-fool-p)
+  "Abnormal hook whose members return non-nil to suppress notification.
+Called in match buffer with a matching `erc-match-user' object."
+  :options '(erc-desktop-notifications-focused-p
+             erc-desktop-notifications-untracked-p
+             erc-desktop-notifications-fool-p)
+  :package-version '(ERC . "5.7")
+  :type 'hook)
+
 (defcustom erc-notifications-bus :session
   "D-Bus bus to use for notification."
   :version "25.1"
@@ -60,16 +82,18 @@
 (defun erc-notifications-notify (nick msg &optional privp)
   "Notify that NICK send some MSG, where PRIVP should be non-nil for PRIVMSGs.
 This will replace the last notification sent with this function."
-  ;; TODO: can we do this without PRIVP? (by "fixing" ERC's not
-  ;; setting the current buffer to the existing query buffer)
   (dbus-ignore-errors
     (setq erc-notifications-last-notification
-          (let* ((channel (if privp (erc-get-buffer nick) (current-buffer)))
-                 (title (format "%s in %s"
-                                (erc-compat--xml-escape-string nick t)
-                                channel))
-                 (body (erc-compat--xml-escape-string (erc-controls-strip msg)
-                                                      t)))
+          (let* ((channel (or (and privp (not (equal nick (erc-target)))
+                                   (erc-get-buffer nick))
+                              (current-buffer)))
+                 (title (if (or privp (equal nick (erc-target)))
+                            (erc-compat--xml-escape-string nick t)
+                          (format "%s in %s"
+                                  (erc-compat--xml-escape-string nick t)
+                                  channel)))
+                 (body (erc-compat--xml-escape-string
+                        (erc-controls-strip msg) t)))
             (funcall (cond ((featurep 'android)
                             #'android-notifications-notify)
                            ((featurep 'haiku)
@@ -85,6 +109,7 @@ This will replace the last notification sent with this function."
                                   (pop-to-buffer channel)))))))
 
 (defun erc-notifications-PRIVMSG (_proc parsed)
+  (declare (obsolete "switched to `erc-match-type' API" "31.1"))
   (let ((nick (car (erc-parse-user (erc-response.sender parsed))))
         (target (car (erc-response.command-args parsed)))
         (msg (erc-response.contents parsed)))
@@ -96,23 +121,96 @@ This will replace the last notification sent with this function."
   ;; Return nil to continue processing by ERC
   nil)
 
-(defun erc-notifications-notify-on-match (match-type nickuserhost msg)
+(defun erc-desktop-notifications-untracked-p (&rest _)
+  "Return non-nil if current buffer's target appears in `erc-track-exclude'."
+  (and (boundp 'erc-track-exclude) (member (erc-target) erc-track-exclude)))
+
+(defun erc-desktop-notifications-fool-p (&rest _)
+  "Return non-nil if the current message has a \"match type\" of `fool'."
+  (erc-match-get-match 'erc-match-opt-fool))
+
+(defun erc-desktop-notifications-focused-p (match)
+  "Return non-nil if the frame is focused and suppressed by context.
+See `erc-desktop-notifications-ignored-when-focused' for contexts."
+  (and (eq (current-buffer) (window-buffer))
+       (cond
+        ((erc-query-buffer-p)
+         (memq 'query erc-desktop-notifications-ignored-when-focused))
+        ((erc-match-opt-current-nick-p match)
+         (memq 'mention erc-desktop-notifications-ignored-when-focused)))
+       (frame-focus-state)))
+
+(defun erc-notifications-notify-on-match (match-type _ msg)
+  "Emit MSG if MATCH-TYPE is `current-nick' and other conditions allow."
   (when (eq match-type 'current-nick)
-    (let ((nick (nth 0 (erc-parse-user nickuserhost))))
-      (unless (or (string-match-p "^Server:" nick)
-                  (when (boundp 'erc-track-exclude)
-                    (member nick erc-track-exclude)))
-        (erc-notifications-notify nick msg)))))
+    (let ((match erc-match-highlight-matched))
+      (cl-assert (erc-match-opt-current-nick-p match))
+      (when-let* ((nick (erc-match-nick match)))
+        (unless (run-hook-with-args-until-success
+                 'erc-desktop-notifications-skip-predicates
+                 match)
+          (erc-notifications-notify nick msg))))))
 
 ;;;###autoload(autoload 'erc-notifications-mode "erc-desktop-notifications" "" t)
 (define-erc-module notifications nil
   "Send notifications on private message reception and mentions."
   ;; Enable
-  ((add-hook 'erc-server-PRIVMSG-functions #'erc-notifications-PRIVMSG)
-   (add-hook 'erc-text-matched-hook #'erc-notifications-notify-on-match))
+  ((unless erc--updating-modules-p
+     (erc-buffer-do #'erc-desktop-notifications--setup))
+   (add-hook 'erc-mode-hook #'erc-desktop-notifications--setup))
   ;; Disable
-  ((remove-hook 'erc-server-PRIVMSG-functions #'erc-notifications-PRIVMSG)
-   (remove-hook 'erc-text-matched-hook #'erc-notifications-notify-on-match)))
+  ((erc-buffer-do #'erc-desktop-notifications--setup)
+   (remove-hook 'erc-mode-hook #'erc-desktop-notifications--setup)))
+
+(defun erc-desktop-notifications--setup ()
+  (if erc-notifications-mode
+      (progn
+        (add-hook 'erc-match-functions
+                  ;; Run after default value to detect fools.
+                  #'erc-desktop-notifications-match-query 20 t)
+        (add-hook 'erc-text-matched-hook #'erc-notifications-notify-on-match
+                  20 t))
+    (remove-hook 'erc-match-functions
+                 #'erc-desktop-notifications-match-query t)
+    (remove-hook 'erc-text-matched-hook
+                 #'erc-notifications-notify-on-match t)))
+
+;; This flag is most likely only temporary and exists as a hedge against
+;; a likely thinko involving NOTICEs sent to query buffers.  At the time
+;; of writing, it's unclear whether the current behavior of suppressing
+;; query NOTICEs outright is TRT.  For example, a user might want
+;; NOTICEs from a particular bot to trigger notifications because it's
+;; monitoring critical updates to some library they use.  When the
+;; picture becomes clearer, the introduction of a new option/predicate
+;; pair resembling `erc-desktop-notifications-ignored-when-focused' and
+;; `erc-desktop-notifications-focused-p' may be warranted.
+(defvar erc-desktop-notifications--query-NOTICE-p nil
+  "Whether to notify on receiving a \"NOTICE\" in a query.
+Bots and services typically send these.")
+
+(cl-defstruct (erc-desktop-notifications-match-query
+               (:constructor erc-desktop-notifications-match-query)
+               (:include erc-match-user
+                         (category nil)
+                         (predicate #'erc-desktop-notifications--query-p)
+                         (handler #'erc-desktop-notifications--query-notify)))
+  "Desktop notification match type for queries.")
+
+(defun erc-desktop-notifications--query-p (match)
+  "Return non-nil if MATCH object describes a \"PRIVMSG\" query."
+  (and (erc-query-buffer-p)
+       (or erc-desktop-notifications--query-NOTICE-p
+           (eq (erc-match-command match) 'PRIVMSG))
+       (progn
+         (cl-assert (erc-match-nick match))
+         (not (run-hook-with-args-until-success
+               'erc-desktop-notifications-skip-predicates match)))))
+
+(defun erc-desktop-notifications--query-notify (match)
+  ;; No need for PRIVP arg because current buffer is correct.
+  (erc-notifications-notify (erc-target)
+                            (erc-match-get-message-body match)))
+
 
 (provide 'erc-desktop-notifications)
 
