@@ -869,7 +869,13 @@ current input in the SQLi buffer to the process."
   :type '(choice (const :tag "Nothing" nil)
 		 (const :tag "The semicolon `;'" semicolon)
 		 (const :tag "The string `go' by itself" go))
-  :version "20.8")
+  :initialize #'custom-initialize-default
+  :set (lambda (symbol value)
+         (custom-set-default symbol value)
+         (if (eq value 'go)
+             (add-hook 'post-self-insert-hook 'sql-magic-go)
+           (remove-hook 'post-self-insert-hook 'sql-magic-go)))
+  :version "31.1")
 
 (defcustom sql-send-terminator nil
   "When non-nil, add a terminator to text sent to the SQL interpreter.
@@ -1359,8 +1365,6 @@ Based on `comint-mode-map'."
   :parent comint-mode-map
   "C-j"       #'sql-accumulate-and-indent
   "C-c C-w"   #'sql-copy-column
-  "O"         #'sql-magic-go
-  "o"         #'sql-magic-go
   ";"         #'sql-magic-semicolon
   "C-c C-l a" #'sql-list-all
   "C-c C-l t" #'sql-list-table)
@@ -3067,16 +3071,16 @@ displayed."
 
 ;;; Small functions
 
-(defun sql-magic-go (arg)
+(defun sql-magic-go ()
   "Insert \"o\" and call `comint-send-input'.
 `sql-electric-stuff' must be the symbol `go'."
-  (interactive "P")
-  (self-insert-command (prefix-numeric-value arg))
-  (if (and (equal sql-electric-stuff 'go)
-	   (save-excursion
-	     (comint-bol nil)
-	     (looking-at "go\\b")))
-      (comint-send-input)))
+  (and (eq major-mode 'sql-interactive-mode)
+       (equal sql-electric-stuff 'go)
+       (or (eq last-command-event ?o) (eq last-command-event ?O))
+       (save-excursion
+	 (comint-bol nil)
+	 (looking-at "go\\b"))
+       (comint-send-input)))
 (put 'sql-magic-go 'delete-selection t)
 
 (defun sql-magic-semicolon (arg)
