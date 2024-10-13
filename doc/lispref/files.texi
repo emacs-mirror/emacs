@@ -1299,7 +1299,8 @@ and modification.
 This function returns @code{t} if the file @var{filename1} is
 newer than file @var{filename2}.  If @var{filename1} does not
 exist, it returns @code{nil}.  If @var{filename1} does exist, but
-@var{filename2} does not, it returns @code{t}.
+@var{filename2} does not, it returns @code{t}.  Otherwise, it compares
+the times of last modification of the files.
 
 In the following example, assume that the file @file{aug-19} was written
 on the 19th, @file{aug-20} was written on the 20th, and the file

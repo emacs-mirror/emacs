@@ -30,6 +30,8 @@
 ;; Scheme: https://groups.csail.mit.edu/mac/ftpdir/scm/r5rs.info.tar.gz
 ;; LaTeX: https://mirrors.ctan.org/info/latex2e-help-texinfo/latex2e.texi
 ;;  (or CTAN mirrors)
+;; Python: https://www.python.org/ftp/python/doc/
+;; SICP: https://github.com/webframp/sicp-info
 
 ;; Traditionally, makeinfo quoted `like this', but version 5 and later
 ;; quotes 'like this' or ‘like this’.  Doc specs with patterns
@@ -1081,6 +1083,7 @@ Return nil if there is nothing appropriate in the buffer near point."
    ("srecode" "Index")
    ("tramp" "Variable Index" "Function Index")
    ("url" "Variable Index" "Function Index")
+   ("use-package" "Index")
    ("vhdl" "(vhdl-mode)Variable Index" "(vhdl-mode)Command Index")
    ("viper" "Variable Index" "Function Index")
    ("vtable" "Index")

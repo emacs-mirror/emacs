@@ -25,7 +25,7 @@
 
 (defvar filesets-version "1.8.4")
 (defvar filesets-homepage
-  "http://members.a1.net/t.link/CompEmacsFilesets.html")
+  "https://web.archive.org/web/20210225032922/https://members.a1.net/t.link/CompEmacsFilesets.html")
 
 ;;; Commentary:
 

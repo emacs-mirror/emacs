@@ -1,8 +1,8 @@
 ;;; bat-mode.el --- Major mode for editing DOS/Windows scripts  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003, 2008-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
 
-;; Author: Arni Magnusson <arnima@hafro.is>
+;; Author: Arni Magnusson <thisisarni@gmail.com>
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.

@@ -436,7 +436,8 @@ the values of nil for each."
      :usage "[NAME=VALUE]... [COMMAND]...")
    (if args
        (or (eshell-parse-local-variables args)
-           (eshell-named-command (car args) (cdr args)))
+           (throw 'eshell-replace-command
+                  `(eshell-named-command ,(car args) ',(cdr args))))
      (eshell-with-buffered-print
        (dolist (setting (sort (eshell-environment-variables) 'string-lessp))
          (eshell-buffered-print setting "\n"))))))

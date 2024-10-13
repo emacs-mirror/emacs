@@ -2664,14 +2664,13 @@ loaded, this command can use it to generate completion candidates.
 @xref{Symbol Completion}.
 
 @findex list-tags
-  @kbd{M-x list-tags} reads the name of one of the files covered by
-the selected tags table, and displays a list of tags defined in that
-file.  Do not include a directory as part of the file name unless the
-file name recorded in the tags table includes a directory.  This
-command works only with the etags backend, and requires a tags table
-for the project to be available.  @xref{Tags Tables}.  If used
-interactively, the default tag is file name of the current buffer if
-used interactively.
+  @kbd{M-x list-tags} reads the name of one of the files covered by the
+selected tags table, with completion, and displays the list of tags
+defined in that file; it offers the current buffer's file name as the
+default file whose tags to list.  Do not include a directory as part of
+the file name unless the file name recorded in the tags table includes a
+directory.  This command works only with the etags backend, and requires
+a tags table for the project to be available.  @xref{Tags Tables}.
 
 @findex tags-next-file
   @kbd{M-x tags-next-file} visits files covered by the selected tags table.

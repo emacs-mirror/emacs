@@ -157,7 +157,7 @@ build should run on Windows 9X and newer systems).
   When the installation ends, perform the post-installation steps
   described on this page of the MinGW site:
 
-    http://www.mingw.org/wiki/Getting_Started
+    https://web.archive.org/web/20210106033223/http://www.mingw.org/wiki/Getting_Started
 
   in the "After Installing You Should ..." section.  These steps are
   important for making your installation complete, and in particular

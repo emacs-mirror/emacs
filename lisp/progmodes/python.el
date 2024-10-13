@@ -233,23 +233,6 @@
 ;; `python-imenu-format-parent-item-jump-label-function' variables for
 ;; changing the way labels are formatted in the tree version.
 
-;; If you used python-mode.el you may miss auto-indentation when
-;; inserting newlines.  To achieve the same behavior you have two
-;; options:
-
-;; 1) Enable the minor-mode `electric-indent-mode' (enabled by
-;;    default) and use RET.  If this mode is disabled use
-;;    `newline-and-indent', bound to C-j.
-
-;; 2) Add the following hook in your .emacs:
-
-;; (add-hook 'python-mode-hook
-;;   (lambda ()
-;;     (define-key python-mode-map "\C-m" 'newline-and-indent)))
-
-;; I'd recommend the first one since you'll get the same behavior for
-;; all modes out-of-the-box.
-
 ;; Flymake: A Flymake backend, using the pyflakes program by default,
 ;; is provided.  You can also use flake8 or pylint by customizing
 ;; `python-flymake-command'.
@@ -425,7 +408,7 @@ To customize the Python interpreter for interactive use, modify
   "Keymap for `python-mode'.")
 
 (defvar python-ts-mode-map (copy-keymap python-mode-map)
-  "Keymap for `(copy-keymap python-mode-map)'.")
+  "Keymap for `python-ts-mode'.")
 
 
 ;;; Python specialized rx

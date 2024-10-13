@@ -2537,9 +2537,25 @@ activity.  Only run if the buffer is not visible and
                                       (rcirc-activity-string lopri)
                                       ")"))
                          (and hipri "]")))
+                ;; Consistently don't display anything if there aren't
+                ;; any IRC connections.  Otherwise, whether we display
+                ;; "[]" or not depends on whether or not this function
+                ;; happens to have been called in this session yet.
+                ;;
+                ;; Consistently display nothing, rather than
+                ;; consistently displaying "[]", for the sake of the
+                ;; following sort of case: the user has enabled
+                ;; `rcirc-track-minor-mode' using the customization
+                ;; system, but also starts up Emacs instances that
+                ;; aren't used for IRC.  Due to the use of easy
+                ;; customization, `rcirc-track-minor-mode' will be
+                ;; turned on for every instance of Emacs.  But we don't
+                ;; want to take up valuable mode line space when, say,
+                ;; Emacs is started up as the value of EDITOR/VISUAL.
                 ((not (null (rcirc-process-list)))
                  "[]")
-                (t "[]")))
+                (t
+                 "")))
     (run-hooks 'rcirc-update-activity-string-hook)
     (force-mode-line-update t)))
 

@@ -178,7 +178,8 @@ If it is nil, logging is disabled."
                              (with-current-buffer
                                  (get-buffer-create sieve-manage-log)
                                (set-buffer-multibyte nil)
-                               (buffer-disable-undo)))
+                               (buffer-disable-undo)
+                               (current-buffer)))
       (goto-char (point-max))
       (apply #'insert args))))
 
