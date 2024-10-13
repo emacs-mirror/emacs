@@ -206,6 +206,12 @@ Typing 'M-~' while saving some buffers means not to save the buffer and
 also to mark it as unmodified.  This is an alternative way to mark a
 buffer as unmodified which doesn't require switching to that buffer.
 
+** New minor mode 'delete-selection-local-mode'.
+This mode sets 'delete-selection-mode' buffer-locally.  This can be
+useful for enabling or disabling the features of 'delete-selection-mode'
+based on the state of the buffer, such as for the different states of
+modal editing packages.
+
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 

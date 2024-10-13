@@ -95,6 +95,24 @@ information on adapting behavior of commands in Delete Selection mode."
       (remove-hook 'pre-command-hook 'delete-selection-pre-hook)
     (add-hook 'pre-command-hook 'delete-selection-pre-hook)))
 
+;;;###autoload
+(define-minor-mode delete-selection-local-mode
+  "Toggle `delete-selection-mode' only in this buffer.
+
+For compatibility with features and packages that are aware of
+`delete-selection-mode', this local mode sets the variable
+`delete-selection-mode' in the current buffer as needed."
+  :global nil :group 'editing-basics
+  :variable (buffer-local-value 'delete-selection-mode (current-buffer))
+  (cond
+   ((eq delete-selection-mode (default-value 'delete-selection-mode))
+    (kill-local-variable 'delete-selection-mode))
+   ((not (default-value 'delete-selection-mode))
+    ;; Locally enabled, but globally disabled.
+    (delete-selection-mode 1)                ; Setup the hooks.
+    (setq-default delete-selection-mode nil) ; But keep it globally disabled.
+    )))
+
 (defvar delsel--replace-text-or-position nil)
 
 ;;;###autoload
