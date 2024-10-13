@@ -167,6 +167,7 @@ How file names, directories and localnames are mangled and managed
 * Temporary directory::         Where temporary files are kept.
 * Localname deconstruction::    Breaking a localname into its components.
 * External packages::           Integration with external Lisp packages.
+* Extension packages::          Adding new methods to @value{tramp}.
 
 @end detailmenu
 @end menu
@@ -2665,7 +2666,7 @@ will help:
 @example
 @group
 if test "$TERM" = "dumb"; then
-   ...
+   @dots{}
 fi
 @end group
 @end example
@@ -5047,8 +5048,8 @@ An archive file name could be a remote file name, as in
 Since all file operations are mapped internally to @acronym{GVFS}
 operations, remote file names supported by @code{tramp-gvfs} perform
 better, because no local copy of the file archive must be downloaded
-first.  For example, @samp{/sftp:user@@host:...} performs better than
-the similar @samp{/scp:user@@host:...}.  See the constant
+first.  For example, @samp{/sftp:user@@host:@dots{}} performs better
+than the similar @samp{/scp:user@@host:@dots{}}.  See the constant
 @code{tramp-archive-all-gvfs-methods} for a complete list of
 @code{tramp-gvfs} supported method names.
 
@@ -6260,6 +6261,7 @@ programs.
 * Temporary directory::         Where temporary files are kept.
 * Localname deconstruction::    Splitting a localname into its component parts.
 * External packages::           Integrating with external Lisp packages.
+* Extension packages::          Adding new methods to @value{tramp}.
 @end menu
 
 
@@ -6377,7 +6379,7 @@ root directory, it is most likely sufficient to make the
 @code{default-directory} of the process buffer as the root directory.
 
 
-@subsection Timers
+@subsection Timers, process filters, process sentinels, redisplay
 
 @vindex remote-file-error
 Timers run asynchronously at any time when Emacs is waiting for
@@ -6395,6 +6397,133 @@ wrapping the timer function body as follows:
   @dots{})
 @end group
 @end lisp
+
+A similar problem could happen with process filters, process
+sentinels, and redisplay (updating the mode line).
+
+
+@node Extension packages
+@section Adding new methods to @value{tramp}
+
+There are two ways to add new methods to @value{tramp}: writing a new
+backend including an own file name handler, or adding the new method,
+using the existing @code{tramp-sh-file-name-handler}.  The former
+shall happen inside the @value{tramp} repository, and it isn't
+discussed here.  The latter means usually a new ELPA package.
+@pxref{Customizing Methods} for some examples.
+
+
+@subsection Writing an own ELPA package
+
+An external ELPA package @file{foo-tramp.el}, which intends to
+provide a new @value{tramp} method, say @option{foo}, must add this
+new method to the variable @code{tramp-methods}.  This variable is an
+alist with elements @code{(@var{name} @var{param1} @var{param2}
+@dots{})}.
+
+@var{name} is the method name, @t{"foo"} in this case.
+@var{param}@t{x} is a pair of the form @code{(@var{key} @var{value})}.
+See the docstring of variable @code{tramp-methods} for possible
+@var{key}s and @var{value}s.  An example would be
+
+@lisp
+@group
+(add-to-list
+ 'tramp-methods
+ `("foo"
+   (tramp-login-program ,foo-tramp-executable)
+   (tramp-login-args (("exec") ("%h") ("--") ("su - %u")))
+   (tramp-remote-shell "/bin/sh")
+   (tramp-remote-shell-args ("-i" "-c"))))
+@end group
+@end lisp
+
+@code{foo-tramp-executable} in this example would be a Lisp constant,
+which is the program name of @command{foo}.
+
+Another initialization could tell @value{tramp} which are the default
+user and host name for method @option{foo}.  This is done by calling
+@code{tramp-set-completion-function}:
+
+@lisp
+@group
+(tramp-set-completion-function
+ "foo"
+ '((tramp-foo--completion-function @var{arg})))
+@end group
+@end lisp
+
+@code{tramp-foo--completion-function} is a function, which returns
+completion candidates.  @var{arg}, a string, is the argument for the
+completion function, for example a file name to read from.
+@pxref{Customizing Completion} for details.
+
+Finally, it might also be helpful to define default user or host names
+for method @option{foo}, in case a remote file name leaves them empty.
+This can be performed by calling
+
+@lisp
+@group
+(add-to-list 'tramp-default-user-alist '("foo" nil "root"))
+(add-to-list 'tramp-default-host-alist '("foo" nil "localhost"))
+@end group
+@end lisp
+
+@pxref{Default User} and @ref{Default Host} explaining the user options
+@code{tramp-default-user-alist} and @code{tramp-default-host-alist}.
+
+
+@subsection Making a customized method optional
+
+The settings of the previous subsection are global in the package
+@file{foo-tramp.el}, meaning they are activated when loading
+@code{foo-tramp}.  Sometimes, it is desired to make these settings
+available without loading the whole package @code{foo-tramp}, but
+declaring the new method @option{foo} as optional method only.  In
+this case, declare a function @code{tramp-enable-foo-method} which
+collects the initialization.  This function must be auto loaded.
+
+@lisp
+@group
+;;;###autoload
+(defun tramp-enable-foo-method ()
+  (add-to-list 'tramp-methods '("foo" @dots{}))
+  (tramp-set-completion-function "foo" @dots{})
+  (add-to-list 'tramp-default-user-alist '("foo" @dots{}))
+  (add-to-list 'tramp-default-host-alist '("foo" @dots{})))
+@end group
+@end lisp
+
+Then, you can activate method @option{foo} by calling @kbd{M-x
+tramp-enable-method @key{RET} foo @key{RET}}.  @pxref{Optional methods}.
+
+
+@subsection Activating a customized method without loading the package
+
+If you want to make method @option{foo} known after loading
+@value{tramp}, without loading the package @file{foo-tramp.el}, you
+must autoload the implementation of function
+@code{tramp-enable-foo-method}.  Add the following code in
+@file{foo-tramp.el}:
+
+@lisp
+@group
+;;;###autoload
+(progn
+  (defun tramp-enable-foo-method ()
+    (add-to-list 'tramp-methods '("foo" @dots{}))
+    (tramp-set-completion-function "foo" @dots{})
+    (add-to-list 'tramp-default-user-alist '("foo" @dots{}))
+    (add-to-list 'tramp-default-host-alist '("foo" @dots{}))))
+
+;;;###autoload
+(with-eval-after-load 'tramp (tramp-enable-method "foo"))
+@end group
+@end lisp
+
+The trick is to wrap the function definition of
+@code{tramp-enable-foo-method} with @code{progn} for the
+@code{;;;###autoload} cookie.
 
 
 @node Traces and Profiles
