@@ -42,6 +42,7 @@ workflow:
     - when: always
 
 variables:
+  GIT_DEPTH: 0
   GIT_STRATEGY: fetch
   EMACS_EMBA_CI: 1
   EMACS_TEST_JUNIT_REPORT: junit-test-report.xml
@@ -75,7 +76,6 @@ default:
   cache:
     key: ${CI_COMMIT_SHA}
     paths: []
-    policy: pull-push
   # These will be saved for followup builds.
   artifacts:
     expire_in: 24 hrs
@@ -98,6 +98,9 @@ default:
     - find ${test_name} -type d -depth -exec rmdir {} + 2>/dev/null
 
 .build-template:
+  needs: []
+  cache:
+    policy: push
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
       when: always
@@ -128,6 +131,8 @@ default:
     - docker push ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
 
 .test-template:
+  cache:
+    policy: pull
   artifacts:
     name: ${test_name}
     public: true
@@ -185,7 +190,9 @@ default:
         - lisp/progmodes/csharp-mode.el
         - lisp/progmodes/js.el
         - lisp/progmodes/python.el
+        - lisp/progmodes/sh-script.el
         - lisp/textmodes/*-ts-mode.el
+        - lisp/textmodes/css-mode.el
         - lisp/treesit.el
         - src/treesit.{h,c}
         - test/infra/*
