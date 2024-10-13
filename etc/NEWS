@@ -36,7 +36,7 @@ incorrectly in rare cases.
 This disables the GC mark trace buffer for about 5 % better garbage
 collection performance.  Doing so may make it more difficult for Emacs
 developers to help finding GC-related bugs that you run into, which is
-why it the mark trace buffer is enabled by default.
+why the mark trace buffer is enabled by default.
 
 
 * Startup Changes in Emacs 31.1
@@ -45,11 +45,12 @@ why it the mark trace buffer is enabled by default.
 * Changes in Emacs 31.1
 
 ** Etags
+
 +++
-New command-line options for handling unrecognized programming languages.
+*** New command-line options for handling unrecognized programming languages.
 The new command-line option '--no-fallback-lang' disables attempts to
 parse as Fortran or C/C++ files whose programming language 'etags' could
-not determine.  This allows to avoid false positives and reduce the time
+not determine.  This allows to avoid false positives and reduces the time
 required to scan directories with many such files.  Another new option
 '--no-empty-file-entries' disables generation of file entries in tags
 tables for files in which no tags were found.
@@ -61,7 +62,8 @@ The 'find-function', 'find-library', 'find-face-definition', and
 usual minibuffer history commands.  Each command has a separate history.
 
 ---
-** New minor mode find-function-mode replaces the old find-function-setup-keys.
+** New minor mode 'find-function-mode'.
+It replaces the old 'find-function-setup-keys'.
 
 ** Minibuffer and Completions
 
@@ -144,7 +146,7 @@ example, the reason or the context why the project is asked for.
 
 *** New functions 'buffer-to-register' and 'file-to-register'.
 These allow users to interactively store file and buffers in registers.
-Killed buffers stored in a register using buffer-to-register are
+Killed buffers stored in a register using 'buffer-to-register' are
 automatically converted to a file-query value if the buffer was visiting
 a file.
 
@@ -152,10 +154,10 @@ a file.
 * Editing Changes in Emacs 31.1
 
 ** Commands for keyboard translation.
-`key-translate' is now interactive.  It prompts for a key to translate
-from, and another to translate to, and sets `keyboard-translate-table'.
-The new command `key-translate-remove' prompts for a key/translation
-pair with completing-read, and removes it from the translation table.
+'key-translate' is now interactive.  It prompts for a key to translate
+from, and another to translate to, and sets 'keyboard-translate-table'.
+The new command 'key-translate-remove' prompts for a key/translation
+pair with 'completing-read', and removes it from the translation table.
 
 ** Internationalization
 
@@ -175,7 +177,7 @@ exactly below the text after the prefix on the first line.
 ---
 ** New commands 'unix-word-rubout' and 'unix-filename-rubout'.
 Unix-words are words separated by whitespace regardless of the buffer's
-syntax table.  In a Unix terminal or shell, C-w kills by Unix-word.
+syntax table.  In a Unix terminal or shell, 'C-w' kills by Unix-word.
 The new commands 'unix-word-rubout' and 'unix-filename-rubout' allow
 you to bind keys to operate more similarly to the terminal.
 
@@ -200,10 +202,11 @@ other matching delimiters at once with Electric Pair mode, by providing
 a prefix argument when inserting one of the delimiters.
 
 +++
-** You can now use M-~ during C-x s ('save-some-buffers').
-Typing M-~ while saving some buffers means not to save the buffer and
+** You can now use 'M-~' during 'C-x s' ('save-some-buffers').
+Typing 'M-~' while saving some buffers means not to save the buffer and
 also to mark it as unmodified.  This is an alternative way to mark a
 buffer as unmodified which doesn't require switching to that buffer.
+
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
@@ -295,27 +298,27 @@ will now automatically turn on 'visual-wrap-prefix-mode' in addition to
 near window edge and the continuation lines are indented using prefixes
 computed from surrounding context.
 
-** CC Mode
+** CC mode
 
 +++
 *** New type of 'c-offsets-alist' element.
-The cdr of such an alist element may now be a syntactic symbol.  A
-source line with a syntactic element whose symbol is the car of that
-alist element is indented as though it were the cdr.
+The 'cdr' of such an alist element may now be a syntactic symbol.  A
+source line with a syntactic element whose symbol is the 'car' of that
+alist element is indented as though it were the 'cdr'.
 
 +++
 *** Enums now have their own syntactic symbols.
 The new symbols 'enum-open', 'enum-close', 'enum-intro' and
 'enum-entry' are used in the analysis of enum constructs.  Previously
 they were given 'brace-list-open', etc.  These are fully described in
-the CC Mode manual.
+the "(ccmode) Enum Symbols" node of the CC mode manual.
 
 +++
 *** Enums are now, by default, indented like classes, not brace-lists.
 To get the old behavior back, add an element '(enum-open
-. brace-list-open)' to 'c-offsets-alist' in your CC Mode style, or amend
-'c-offsets-alist' likewise in any of the other ways detailed in the CC
-Mode manual page "Config Basics".
+. brace-list-open)' to 'c-offsets-alist' in your CC mode style, or amend
+'c-offsets-alist' likewise in any of the other ways detailed in the
+"(ccmode) Config Basics" node of the CC mode manual.
 
 ** Go-ts mode
 
@@ -394,14 +397,14 @@ back to real DocView buffer if it still exists.
 
 +++
 *** New commands to save and restore pages in buffer-local registers.
-Docview can store current page to buffer-local registers with the new
+Docview can store the current page to buffer-local registers with the new
 command 'doc-view-page-to-register' (bound to 'm'), and later the stored
 page can be restored with 'doc-view-jump-to-register' (bound to ''').
 
 +++
-*** Docview can generate imenu index for DjVu and ODF documents.
-When the 'djvused' program is available, Docview can now generate imenu
-index for DjVu files from its outline.  Index for Open Document Format
+*** Docview can generate imenu indices for DjVu and ODF documents.
+When the 'djvused' program is available, Docview can now generate an imenu
+index for DjVu files from its outline.  Indices for Open Document Format
 (ODF) files as used by OpenOffice and LibreOffice are generated using
 the 'mutool' program after their initial conversion to PDF format.  The
 name of the 'djvused' program can be customized by changing the user
@@ -426,7 +429,7 @@ to the original text.  If the selected range extends a hunk, the
 command attempts to look up and copy the text in-between the hunks.
 
 +++
-*** New command 'diff-revert-and-kill-hunk' bound to C-c M-r.
+*** New command 'diff-revert-and-kill-hunk' bound to 'C-c M-r'.
 This command reverts the hunk at point (i.e., applies the reverse of the
 hunk), and then removes the hunk from the diffs.
 This is useful to undo or revert changes, committed and uncommitted, when
@@ -439,9 +442,9 @@ is after the corresponding file or hunk header, but not when inside it.
 Now they will always move to the start of the current header.
 
 +++
-*** New command 'diff-delete-other-hunks' bound to C-c RET n.
+*** New command 'diff-delete-other-hunks' bound to 'C-c RET n'.
 This command deletes all hunks other than the current hunk.  It is
-useful to prepare a *vc-diff* buffer for committing a single hunk.
+useful to prepare a "*vc-diff*" buffer for committing a single hunk.
 When the region is active, it deletes all hunks that the region does not
 overlap.
 
@@ -453,7 +456,7 @@ They suggest the previous revision as the default for REV1, not the last
 one as before.  This makes them different from 'vc-diff' and
 'vc-root-diff' when those are called without a prefix argument.
 
-** php-ts-mode
+** PHP-ts mode
 
 ---
 *** 'php-ts-mode-run-php-webserver' can now accept a custom "php.ini" file.
@@ -494,7 +497,7 @@ be set as a connection-local variable.
 
 +++
 *** Grep results can be edited to reflect changes in the originating file.
-Like Occur Edit mode, typing 'e' in the '*grep*' buffer will now make
+Like Occur Edit mode, typing 'e' in the "*grep*" buffer will now make
 the 'grep' results editable.  The edits will be reflected in the buffer
 visiting the originating file.  Typing 'C-c C-c' will leave the Grep
 Edit mode.
@@ -502,7 +505,7 @@ Edit mode.
 ** TeX modes
 
 +++
-*** New xref backend for TeX modes.
+*** New Xref backend for TeX modes.
 The new backend ('tex-etags') is on by default, and improves the
 functionality of the standard 'xref' commands in TeX buffers.  You can
 restore the standard 'etags' backend with the 'M-x xref-etags-mode'
@@ -511,9 +514,9 @@ toggle.
 ** Midnight mode
 
 ---
-*** Change for activating the mode
-Putting (require 'midnight) in your init file no longer activates the
-mode.  Now, one needs to say (midnight-mode +1) instead.
+*** Change for activating the mode.
+Putting '(require 'midnight)' in your init file no longer activates the
+mode.  Now, one needs to say '(midnight-mode +1)' instead.
 
 ** Python mode
 
@@ -527,13 +530,13 @@ customize these variables to "python3" if you want to use Python 3
 instead.
 
 ---
-*** Support 'electric-layout-mode'.
+*** Support of 'electric-layout-mode' added.
 
 ** Tmm Menubar
 
 ---
 *** A new shortcut to navigate to previous menu.
-The hardcoded "^" shortcut gets you back to the previous menu.
+The hardcoded '^' shortcut gets you back to the previous menu.
 
 ** Foldout
 
@@ -573,7 +576,7 @@ sup-mouse.el, terminal.el, vi.el, vip.el, ws-mode.el, and yow.el.
 * Lisp Changes in Emacs 31.1
 
 +++
-** The 'defcustom' :local keyword can now be 'permanent-only'.
+** The 'defcustom' ':local' keyword can now be 'permanent-only'.
 This means that the variable's 'permanent-local' property is set to t,
 without marking it as automatically buffer-local.
 
@@ -686,7 +689,6 @@ and later versions.
 ---
 ** Emacs on MS-Windows now supports drag-n-drop of text into a buffer.
 This is in addition to drag-n-drop of files, that was already supported.
-
 
 
 ----------------------------------------------------------------------
