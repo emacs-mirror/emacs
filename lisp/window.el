@@ -5599,6 +5599,13 @@ frame.  The selected window is not changed by this function."
 	     (setq atom-root (window-atom-root window))
 	     (not (eq atom-root window)))
 	(throw 'done (split-window atom-root size side pixelwise)))
+       ;; If WINDOW's frame has a side window and WINDOW specifies the
+       ;; frame's root window, split the frame's main window instead
+       ;; (Bug#73627).
+       ((and (eq window (frame-root-window frame))
+	     (window-with-parameter 'window-side nil frame))
+	(throw 'done (split-window (window-main-window frame)
+				   size side pixelwise)))
        ;; If WINDOW is a side window or its first or last child is a
        ;; side window, throw an error unless `window-combination-resize'
        ;; equals 'side.
