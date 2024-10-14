@@ -33,6 +33,7 @@
 (require 'url)
 (require 'url-queue)
 (require 'url-file)
+(require 'vtable)
 (require 'xdg)
 (eval-when-compile (require 'subr-x))
 
@@ -2604,58 +2605,47 @@ see)."
 
 ;;; eww buffers list
 
+(defun eww-buffer-list ()
+  "Return a list of all live eww buffers."
+  (match-buffers '(derived-mode . eww-mode)))
+
 (defun eww-list-buffers ()
-  "Enlist eww buffers."
+  "Pop a buffer with a list of eww buffers."
   (interactive)
-  (let (buffers-info
-        (current (current-buffer)))
-    (dolist (buffer (buffer-list))
-      (with-current-buffer buffer
-        (when (derived-mode-p 'eww-mode)
-          (push (vector buffer (plist-get eww-data :title)
-                        (plist-get eww-data :url))
-                buffers-info))))
-    (unless buffers-info
-      (error "No eww buffers"))
-    (setq buffers-info (nreverse buffers-info)) ;more recent on top
-    (set-buffer (get-buffer-create "*eww buffers*"))
+  (with-current-buffer (get-buffer-create "*eww buffers*")
     (eww-buffers-mode)
-    (let ((inhibit-read-only t)
-          (domain-length 0)
-          (title-length 0)
-          url title format start)
-      (erase-buffer)
-      (dolist (buffer-info buffers-info)
-        (setq title-length (max title-length
-                                (length (elt buffer-info 1)))
-              domain-length (max domain-length
-                                 (length (elt buffer-info 2)))))
-      (setq format (format "%%-%ds %%-%ds" title-length domain-length)
-            header-line-format
-            (concat " " (format format "Title" "URL")))
-      (let ((line 0)
-            (current-buffer-line 1))
-        (dolist (buffer-info buffers-info)
-          (setq start (point)
-                title (elt buffer-info 1)
-                url (elt buffer-info 2)
-                line (1+ line))
-          (insert (format format title url))
-          (insert "\n")
-          (let ((buffer (elt buffer-info 0)))
-            (put-text-property start (1+ start) 'eww-buffer
-                               buffer)
-            (when (eq current buffer)
-              (setq current-buffer-line line))))
-        (goto-char (point-min))
-        (forward-line (1- current-buffer-line)))))
+    (eww--list-buffers-display-table))
   (pop-to-buffer "*eww buffers*"))
+
+(defun eww--list-buffers-display-table (&optional ignore-auto noconfirm)
+  "Display a table with the list of eww buffers.
+Will remove all buffer contents first.  The parameters IGNORE-AUTO and
+NOCONFIRM are ignored, they are for compatibility with
+`revert-buffer-function'."
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (make-vtable
+     :columns '((:name "Title" :min-width "25%" :max-width "50%")
+                (:name "URL"))
+     :objects-function #'eww--list-buffers-get-data
+     ;; use fixed-font face
+     :face 'default)))
+
+(defun eww--list-buffers-get-data ()
+  "Return the eww-data of BUF, assumed to be a eww buffer.
+The format of the data is (title url buffer), for use in of
+`eww-buffers-mode'."
+  (mapcar (lambda (buf)
+            (let ((buf-eww-data (buffer-local-value 'eww-data buf)))
+              (list (plist-get buf-eww-data :title)
+                    (plist-get buf-eww-data :url)
+                    buf)))
+          (eww-buffer-list)))
 
 (defun eww-buffer-select ()
   "Switch to eww buffer."
   (interactive nil eww-buffers-mode)
-  (let ((buffer (get-text-property (line-beginning-position)
-                                   'eww-buffer)))
+  (let ((buffer (nth 2 (vtable-current-object))))
     (unless buffer
       (error "No buffer on current line"))
     (quit-window)
@@ -2663,8 +2653,7 @@ see)."
 
 (defun eww-buffer-show ()
   "Display buffer under point in eww buffer list."
-  (let ((buffer (get-text-property (line-beginning-position)
-                                   'eww-buffer)))
+  (let ((buffer (nth 2 (vtable-current-object))))
     (unless buffer
       (error "No buffer on current line"))
     (other-window -1)
@@ -2692,7 +2681,7 @@ see)."
   "Kill buffer from eww list."
   (interactive nil eww-buffers-mode)
   (let* ((start (line-beginning-position))
-	 (buffer (get-text-property start 'eww-buffer))
+	 (buffer (nth 2 (vtable-current-object)))
 	 (inhibit-read-only t))
     (unless buffer
       (user-error "No buffer on the current line"))
@@ -2711,10 +2700,9 @@ see)."
   :menu '("Eww Buffers"
           ["Exit" quit-window t]
           ["Select" eww-buffer-select
-           :active (get-text-property (line-beginning-position) 'eww-buffer)]
+           :active (nth 2 (vtable-current-object))]
           ["Kill" eww-buffer-kill
-           :active (get-text-property (line-beginning-position)
-                                      'eww-buffer)]))
+           :active (nth 2 (vtable-current-object))]))
 
 (define-derived-mode eww-buffers-mode special-mode "eww buffers"
   "Mode for listing buffers.
@@ -2722,7 +2710,10 @@ see)."
 \\{eww-buffers-mode-map}"
   :interactive nil
   (buffer-disable-undo)
-  (setq truncate-lines t))
+  (setq truncate-lines t
+        ;; this is set so that pressing "g" with point just below the
+        ;; table will still update the listing
+        revert-buffer-function #'eww--list-buffers-display-table))
 
 ;;; Desktop support
 
