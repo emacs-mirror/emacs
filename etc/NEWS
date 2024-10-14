@@ -821,6 +821,16 @@ This lets a Lisp program access the core functionality of the
 program, choosing the program according to the operating system's
 conventions.
 
++++
+** 'make-vtable' can create an empty vtable.
+It is now possible to create a vtable without data, by leaving the
+':objects' list empty, or by providing a ':objects-function' that
+(initially) produces no data.  In such a case, it is necessary to
+provide a ':columns' spec, so that the number of columns and their
+widths can be determined.  Columns widths can be set explicitly, or they
+will be calculated based on the window width.
+
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
