@@ -1774,14 +1774,14 @@ position of `after-change-functions'.")
 (defconst c-maybe-quoted-number-head
   (concat
    "\\(0\\("
-       "\\([Xx]\\([[:xdigit:]]\\('[[:xdigit:]]\\|[[:xdigit:]]\\)*'?\\)?\\)"
+       "[Xx]\\([[:xdigit:]]\\('?[[:xdigit:]]\\)*\\)?"
        "\\|"
-       "\\([Bb]\\([01]\\('[01]\\|[01]\\)*'?\\)?\\)"
+       "[Bb]\\([01]\\('?[01]\\)*\\)?"
        "\\|"
-       "\\('[0-7]\\|[0-7]\\)*'?"
+       "\\('?[0-7]\\)*"
        "\\)"
    "\\|"
-       "[1-9]\\('[0-9]\\|[0-9]\\)*'?"
+       "[1-9]\\('?[0-9]\\)*"
    "\\)")
   "Regexp matching the head of a numeric literal, including with digit separators.")
 
@@ -1808,11 +1808,11 @@ position of `after-change-functions'.")
 (defconst c-maybe-quoted-number-tail
   (concat
    "\\("
-       "\\([xX']?[[:xdigit:]]\\('[[:xdigit:]]\\|[[:xdigit:]]\\)*\\)"
+       "\\([xX']?[[:xdigit:]]\\('?[[:xdigit:]]\\)*\\)"
    "\\|"
-       "\\([bB']?[01]\\('[01]\\|[01]\\)*\\)"
+       "\\([bB']?[01]\\('?[01]\\)*\\)"
    "\\|"
-       "\\('?[0-9]\\('[0-9]\\|[0-9]\\)*\\)"
+       "\\('?[0-9]\\)+"
    "\\)")
   "Regexp matching the tail of a numeric literal, including with digit separators.
 Note that this is a strict tail, so won't match, e.g. \"0x....\".")
@@ -1828,14 +1828,14 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 (defconst c-maybe-quoted-number
   (concat
    "\\(0\\("
-       "\\([Xx][[:xdigit:]]\\('[[:xdigit:]]\\|[[:xdigit:]]\\)*\\)"
+       "\\([Xx][[:xdigit:]]\\('?[[:xdigit:]]\\)*\\)"
        "\\|"
-       "\\([Bb][01]\\('[01]\\|[01]\\)*\\)"
+       "\\([Bb][01]\\('?[01]\\)*\\)"
        "\\|"
-       "\\('[0-7]\\|[0-7]\\)*"
+       "\\('?[0-7]\\)*"
        "\\)"
    "\\|"
-       "[1-9]\\('[0-9]\\|[0-9]\\)*"
+       "[1-9]\\('?[0-9]\\)*"
    "\\)")
   "Regexp matching a numeric literal, including with digit separators.")
 
