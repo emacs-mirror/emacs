@@ -55,6 +55,13 @@ indicator stick with the most recent speaker's face, even when they're
 monologuing, instead of alternating between it and the highest ranked
 'erc-track-faces-normal-list' member in a given message.
 
+** Module 'querypoll' has left 'goodies' and moved in with 'notify'.
+The 'querypoll' module was initially placed in 'erc-goodies' even though
+a far more sensible home existed in 'erc-notify'.  Given the similarity
+of concerns and the newer module's "experimental" status, the migration
+was deemed worth any potential disruption, despite this being a point
+release.  ERC appreciates your understanding in this matter.
+
 
 * Changes in ERC 5.6
 
