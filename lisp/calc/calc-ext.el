@@ -2069,7 +2069,7 @@ calc-kill calc-kill-region calc-yank))))
 
 (defconst math-approx-sqrt-e
   (math-read-number-simple "1.648721270700128146849")
-  "An approximation for sqrt(3).")
+  "An approximation for sqrt(e).")
 
 (math-defcache math-sqrt-e math-approx-sqrt-e
   (math-add-float '(float 1 0) (math-exp-minus-1-raw '(float 5 -1))))
