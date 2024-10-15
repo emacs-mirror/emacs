@@ -936,6 +936,8 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
 
 (defun comp-cstr-type-p (cstr type)
   "Return t if CSTR is certainly of type TYPE."
+  ;; Only basic types are valid input.
+  (cl-assert (symbolp type))
   (when
       (with-comp-cstr-accessors
         (cl-case type
