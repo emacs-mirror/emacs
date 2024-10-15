@@ -562,6 +562,23 @@
 (defun comp-test-67883-1-f ()
   '#1=(1 . #1#))
 
+(cl-defstruct comp-test-73270-base)
+(cl-defstruct
+    (comp-test-73270-child1 (:include comp-test-73270-base)))
+(cl-defstruct
+    (comp-test-73270-child2 (:include comp-test-73270-base)))
+(cl-defstruct
+    (comp-test-73270-child3 (:include comp-test-73270-base)))
+(cl-defstruct
+    (comp-test-73270-child4 (:include comp-test-73270-base)))
+
+(defun comp-test-73270-1-f (x)
+  (cl-typecase x
+    (comp-test-73270-child1 'child1)
+    (comp-test-73270-child2 'child2)
+    (comp-test-73270-child3 'child3)
+    (comp-test-73270-child4 'child4)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

@@ -592,6 +592,10 @@ dedicated byte-op code."
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-11/msg00925.html>"
   (should-not (comp-test-67239-1-f)))
 
+(comp-deftest comp-test-73270-1 ()
+  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2024-09/msg00794.html>"
+  (should (eq (comp-test-73270-1-f (make-comp-test-73270-child4)) 'child4)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;

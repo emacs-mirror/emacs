@@ -950,9 +950,12 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
            (if-let ((pred (get type 'cl-deftype-satisfies)))
                (and (null (range cstr))
                     (null (neg cstr))
-                    (and (or (null (typeset cstr))
-                             (equal (typeset cstr) `(,type)))
-                         (cl-every pred (valset cstr))))
+                    (if (null (typeset cstr))
+                        (and (valset cstr)
+                             (cl-every pred (valset cstr)))
+                      (when (equal (typeset cstr) `(,type))
+                        ;; (valset cstr) can be nil as well.
+                        (cl-every pred (valset cstr)))))
              (error "Unknown predicate for type %s" type)))))
     t))
 
