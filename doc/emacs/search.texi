@@ -807,21 +807,21 @@ look up, using the word at point as the default, then asks the @sc{dict}
 server to provide the definitions of that word in one or more
 dictionaries.  By default, the command first tries to connect to the
 @sc{dict} server installed on the local host, and if that fails, it
-tries @file{dict.org} after your confirmation; customize the variable
+tries @file{dict.org} after asking for confirmation; customize the variable
 @code{dictionary-server} to specify, as a string, the URL of a single
 server to use (use @samp{localhost} if you want to query only the local
 server).  Normally, @code{dictionary-search} tells the server to look up
 the word in all the dictionaries available to the server, but if you
 invoke the command with a prefix argument, it will prompt for a single
-dictionary to look.  The list of dictionaries available to a server can
+dictionary to use.  The list of dictionaries available to a server can
 be displayed by pressing the @samp{Select dictionary} button shown in
 the @file{*Dictionary*} buffer, described below.
 
-  First time you use @code{dictionary-search}, it creates a new
+  The first time you use @code{dictionary-search}, it creates a new
 @file{*Dictionary*} buffer and turns on a special mode in it.  The
 buffer shows buttons for selecting a dictionary, searching a definition
 of another word, etc.  Subsequent @code{dictionary-search} commands
-reuse this buffer.  To create another such buffer (e.g., too look up
+reuse this buffer.  To create another such buffer (e.g., to look up
 other words, perhaps in another dictionary), type @w{@kbd{M-x dictionary
 @key{RET}}}.
 
