@@ -411,8 +411,9 @@ Kill current input line using @code{erc-bol} followed by @code{kill-line}.
 One way to add functionality to ERC is to customize which of its many
 modules are loaded.
 
-There is a spiffy customize interface, which may be reached by typing
-@kbd{M-x customize-option @key{RET} erc-modules @key{RET}}.  When
+You can do this by typing @kbd{C-h v erc-modules @key{RET}} and clicking
+@samp{customize} near the bottom of the resulting help buffer, where it
+says ``You can @emph{customize} this variable.''  When
 removing a module outside of Customize, you may wish to ensure it's
 disabled by invoking its associated minor-mode toggle with a
 nonpositive prefix argument, for example, @kbd{C-u - M-x
