@@ -761,14 +761,14 @@
 	 (c-put-string-fence end))
 	((eq (char-after beg) ?/)	; Properly bracketed regexp
 	 (c-put-char-property beg 'syntax-table '(7)) ; (7) = "string"
-	 (c-put-char-property end 'syntax-table '(7)))
-        (t))                       ; Properly bracketed string: Nothing to do.
+	 (c-put-syntax-table-trim-caches end '(7)))
+	(t))                       ; Properly bracketed string: Nothing to do.
   ;; Now change the properties of any escaped "s in the string to punctuation.
   (save-excursion
     (goto-char (1+ beg))
     (or (eobp)
-        (while (search-forward "\"" end t)
-          (c-put-char-property (1- (point)) 'syntax-table '(1))))))
+	(while (search-forward "\"" end t)
+	  (c-put-syntax-table-trim-caches (1- (point)) '(1))))))
 
 (defun c-awk-syntax-tablify-string ()
   ;; Point is at the opening " or _" of a string.  Set the syntax-table
@@ -861,7 +861,7 @@
   (let (anchor
 	(anchor-state-/div nil)) ; t means a following / would be a div sign.
     (c-awk-beginning-of-logical-line) ; ACM 2002/7/21.  This is probably redundant.
-    (c-clear-char-properties (point) lim 'syntax-table)
+    (c-clear-syntax-table-properties-trim-caches (point) lim)
     ;; Once round the next loop for each string, regexp, or div sign
     (while (progn
              ;; Skip any "harmless" lines before the next tricky one.
