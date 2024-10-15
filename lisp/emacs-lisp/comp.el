@@ -2851,10 +2851,11 @@ Return t if something was changed."
                 (call symbol-value ,(and (pred comp-cstr-cl-tag-p) mvar-tag)))
            (set ,(and (pred comp-mvar-p) mvar-3)
                 (call memq ,(and (pred comp-mvar-p) mvar-1) ,(and (pred comp-mvar-p) mvar-2)))
-           (cond-jump ,(and (pred comp-mvar-p) mvar-3) ,(pred comp-mvar-p) ,_bb1 ,bb2))
+           (cond-jump ,(and (pred comp-mvar-p) mvar-3) ,(pred comp-mvar-p) ,bb1 ,bb2))
          (cl-assert (comp-cstr-imm-vld-p mvar-tag))
          (when (comp-cstr-type-p mvar-tested (comp-cstr-cl-tag mvar-tag))
-           (comp-log (format "Optimizing conditional branch in function: %s"
+           (comp-log (format "Optimizing conditional branch %s in function: %s"
+                             bb1
                              (comp-func-name comp-func))
                      3)
            (setf (car insns-seq) '(comment "optimized by comp--type-check-optim")
