@@ -1266,7 +1266,7 @@ have been replaced by constants."
 		(setq args (cdr args)))))
 	(cond
 	 ((eq (car form) 'progn)
-	  (car (last form)))
+	  (car (last (cdr form))))
 	 ((eq (car form) 'prog1)
 	  (cadr form))
 	 (t
