@@ -2200,8 +2200,9 @@ comment at the start of cc-engine.el for more info."
 	      (c-put-is-sws (1+ rung-pos)
 			    (1+ (point)))
 	      (c-put-in-sws rung-pos
-			    (setq rung-pos (point)
-				  last-put-in-sws-pos rung-pos)))
+			    (point))
+	      (setq rung-pos (point)
+		    last-put-in-sws-pos rung-pos))
 
 	    ;; Now move over any comments (x)or a CPP construct.
 	    (setq simple-ws-end (point))
