@@ -91,9 +91,7 @@
 ;; UI-commands       : mpc-
 ;; internal          : mpc--
 
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'subr-x))
+(require 'cl-lib)
 
 (require 'notifications)
 
@@ -470,7 +468,8 @@ which will be concatenated with proper quoting before passing them to MPD."
     (updating_db . mpc--status-timers-refresh)
     (t      . mpc-current-refresh))
   "Alist associating properties to the functions that care about them.
-Each entry has the form (PROP . FUN) where PROP can be t to mean
+Each entry has the form (PROP . FUN) to call FUN (without arguments)
+whenever property PROP changes.  PROP can be t to mean
 to call FUN for any change whatsoever.")
 
 (defun mpc--status-callback ()
@@ -961,20 +960,6 @@ If PLAYLIST is t or nil or missing, use the main playlist."
     ;;   aux)
     ))
 
-(defun mpc-cover-image-find (file)
-  "Find cover image for FILE."
-  (and-let* ((default-directory mpc-mpd-music-directory)
-             (dir (mpc-file-local-copy (file-name-directory file)))
-             (files (directory-files dir))
-             (cover (seq-find #'mpc-cover-image-p files))
-             ((expand-file-name cover dir)))))
-
-(defun mpc-cover-image-p (file)
-  "Check if FILE is a cover image."
-  (let ((covers '(".folder.png" "folder.png" "cover.jpg" "folder.jpg")))
-    (or (seq-find (lambda (cover) (string= file cover)) covers)
-        (and mpc-cover-image-re (string-match-p mpc-cover-image-re file)))))
-
 ;;; Formatter ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom mpc-cover-image-re nil ; (rx (or ".jpg" ".jpeg" ".png") string-end)
@@ -1011,11 +996,14 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 (defun mpc-format (format-spec info &optional hscroll)
   "Format the INFO according to FORMAT-SPEC, inserting the result at point.
 
-FORMAT-SPEC is a string of the format '%-WIDTH{NAME-POST}' where the first
-'-', WIDTH and -POST are optional.  % followed by the optional '-' means
-to right align the output.  WIDTH limits the output to the specified
-number of characters by replacing any further output with a horizontal
-ellipsis.  The optional -POST means to use the empty string if NAME is
+FORMAT-SPEC is a string that includes elements of the form
+'%-WIDTH{NAME-POST}' that get expanded to the value of
+property NAME,
+The first '-', WIDTH, and -POST are optional.
+% followed by the optional '-' means to right align the output.
+WIDTH limits the output to the specified number of characters by replacing
+any further output with a horizontal ellipsis.
+The optional -POST means to use the empty string if NAME is
 absent or else use the concatenation of the content of NAME with the
 string POST."
   (let* ((pos 0)
@@ -1142,6 +1130,20 @@ string POST."
     ;; last actual format specifier.
     (insert (substring format-spec pos))
     (put-text-property start (point) 'mpc--uptodate-p pred)))
+
+(defun mpc-cover-image-find (file)
+  "Find cover image for FILE."
+  (when-let* ((default-directory mpc-mpd-music-directory)
+              (dir (mpc-file-local-copy (file-name-directory file)))
+              (files (directory-files dir))
+              (cover (seq-find #'mpc-cover-image-p files)))
+    (expand-file-name cover dir)))
+
+(defun mpc-cover-image-p (file)
+  "Check if FILE is a cover image."
+  (let ((covers '(".folder.png" "folder.png" "cover.jpg" "folder.jpg")))
+    (or (member-ignore-case file covers)
+        (and mpc-cover-image-re (string-match-p mpc-cover-image-re file)))))
 
 ;;; The actual UI code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2798,21 +2800,19 @@ If stopped, start playback."
 
 (defcustom mpc-notifications-title
   '("%{Title}" "Unknown Title")
-  "FORMAT-SPEC used in the notification title.
+  "List of FORMAT-SPECs used in the notification title.
 
-The first element that returns a non-emtpy string is used.  The last
-element is a plain string to use as fallback for when none of the tags
-are found.  See `mpc-format' for the definition of FORMAT-SPEC."
+The first element that expands to a non-empty string is used.
+See `mpc-format' for the definition of FORMAT-SPEC."
   :version "31.1"
   :type '(repeat string))
 
 (defcustom mpc-notifications-body
   '("%{Artist}" "%{AlbumArtist}" "Unknown Artist")
-  "FORMAT-SPEC used in the notification body.
+  "List of FORMAT-SPEC used in the notification body.
 
-The first element that returns a non-emtpy string is used.  The last
-element is a plain string to use as fallback for when none of the tags
-are found.  See `mpc-format' for the definition of FORMAT-SPEC."
+The first element that returns a non-emtpy string is used.
+See `mpc-format' for the definition of FORMAT-SPEC."
   :version "31.1"
   :type '(repeat string))
 
@@ -2820,31 +2820,28 @@ are found.  See `mpc-format' for the definition of FORMAT-SPEC."
 
 (defun mpc--notifications-format (format-specs)
   "Use FORMAT-SPECS to get string for use in notification."
-  (seq-some
-   (lambda (spec)
-     (let ((text (with-temp-buffer
-                   (mpc-format spec mpc-status)
-                   (buffer-string))))
-       (if (string= "" text) nil text)))
-   format-specs))
+  (with-temp-buffer
+    (cl-some
+     (lambda (spec)
+       (mpc-format spec mpc-status)
+       (if (< (point-min) (point-max))
+           (buffer-string)))
+     format-specs)))
 
 (defun mpc-notifications-notify ()
   "Display a notification with information about the current song."
-  (when-let ((mpc-notifications)
-             ((notifications-get-server-information))
-             ((string= "play" (alist-get 'state mpc-status)))
-             (title (mpc--notifications-format mpc-notifications-title))
-             (body (mpc--notifications-format mpc-notifications-body))
-             (icon (or (mpc-cover-image-find (alist-get 'file mpc-status))
-                       notifications-application-icon)))
+  (when-let* ((mpc-notifications)
+              ((notifications-get-server-information))
+              ((string= "play" (alist-get 'state mpc-status)))
+              (title (mpc--notifications-format mpc-notifications-title))
+              (body (mpc--notifications-format mpc-notifications-body))
+              (icon (or (mpc-cover-image-find (alist-get 'file mpc-status))
+                        notifications-application-icon)))
     (setq mpc--notifications-id
           (notifications-notify :title title
                                 :body body
                                 :app-icon icon
                                 :replaces-id mpc--notifications-id))))
-
-
-
 
 ;;; Toplevel ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
