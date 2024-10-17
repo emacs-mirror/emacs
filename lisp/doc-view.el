@@ -2026,13 +2026,16 @@ name.
 For the format, see `doc-view--pdf-outline'."
   (unless file-name (setq file-name (buffer-file-name)))
   (with-temp-buffer
-    (call-process doc-view-djvused-program nil (current-buffer) nil
-                  "-e" "print-outline" file-name)
-    (goto-char (point-min))
-    (when (eobp)
-      (setq doc-view--outline 'unavailable)
-      (imenu-unavailable-error "Unable to create imenu index using `djvused'"))
-    (nreverse (doc-view--parse-djvu-outline (read (current-buffer))))))
+    (let ((coding-system-for-read 'utf-8))
+      ;; Pass "-u" to make `djvused' emit UTF-8 encoded text to avoid
+      ;; unescaping octal escapes for non-ASCII text.
+      (call-process doc-view-djvused-program nil (current-buffer) nil
+                    "-u" "-e" "print-outline" file-name)
+      (goto-char (point-min))
+      (when (eobp)
+        (setq doc-view--outline 'unavailable)
+        (imenu-unavailable-error "Unable to create imenu index using `djvused'"))
+      (nreverse (doc-view--parse-djvu-outline (read (current-buffer)))))))
 
 (defun doc-view--parse-djvu-outline (bookmark &optional level)
   "Return a list describing the djvu outline from BOOKMARK.
