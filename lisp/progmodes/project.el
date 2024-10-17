@@ -1958,6 +1958,12 @@ When PROMPT is non-nil, use it as the prompt string."
   (project--ensure-read-project-list)
   (mapcar #'car project--list))
 
+(defun project-read-project ()
+  "Read a project with completion from the known list.
+Returns an object that the API methods can be used with."
+  ;; Will prompt again if the entered directory is not a project anymore.
+  (project-current t (funcall project-prompter)))
+
 ;;;###autoload
 (defun project-execute-extended-command ()
   "Execute an extended command in project root."

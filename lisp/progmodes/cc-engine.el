@@ -164,6 +164,7 @@
 (cc-require-when-compile 'cc-langs)
 (cc-require 'cc-vars)
 
+(defvar c-state-cache-invalid-pos)
 (defvar c-doc-line-join-re)
 (defvar c-doc-bright-comment-start-re)
 (defvar c-doc-line-join-end-ch)
@@ -2199,8 +2200,9 @@ comment at the start of cc-engine.el for more info."
 	      (c-put-is-sws (1+ rung-pos)
 			    (1+ (point)))
 	      (c-put-in-sws rung-pos
-			    (setq rung-pos (point)
-				  last-put-in-sws-pos rung-pos)))
+			    (point))
+	      (setq rung-pos (point)
+		    last-put-in-sws-pos rung-pos))
 
 	    ;; Now move over any comments (x)or a CPP construct.
 	    (setq simple-ws-end (point))
@@ -3210,12 +3212,19 @@ comment at the start of cc-engine.el for more info."
 	      (c-full-put-near-cache-entry here s nil))
 	    (list s))))))))
 
+
 (defsubst c-truncate-lit-pos-cache (pos)
   ;; Truncate the upper bound of each of the three caches to POS, if it is
   ;; higher than that position.
   (setq c-lit-pos-cache-limit (min c-lit-pos-cache-limit pos)
 	c-semi-near-cache-limit (min c-semi-near-cache-limit pos)
 	c-full-near-cache-limit (min c-full-near-cache-limit pos)))
+
+(defsubst c-truncate-lit-pos/state-cache (pos)
+  ;; Truncate the upper bound of each of the four caches to POS, if it is
+  ;; higher than that position.
+  (c-truncate-lit-pos-cache pos)
+  (setq c-state-cache-invalid-pos (min c-state-cache-invalid-pos pos)))
 
 (defun c-foreign-truncate-lit-pos-cache (beg _end)
   "Truncate CC Mode's literal cache.
@@ -3266,7 +3275,7 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 ;; subparen that is closed before the last recorded position.
 ;;
 ;; The exact position is chosen to try to be close to yet earlier than
-;; the position where `c-state-cache' will be called next.  Right now
+;; the position where `c-parse-state' will be called next.  Right now
 ;; the heuristic is to set it to the position after the last found
 ;; closing paren (of any type) before the line on which
 ;; `c-parse-state' was called.  That is chosen primarily to work well
@@ -3281,6 +3290,19 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 ;; 2009-06-12: In a brace desert, c-state-cache-good-pos may also be in
 ;; the middle of the desert, as long as it is not within a brace pair
 ;; recorded in `c-state-cache' or a paren/bracket pair.
+
+(defvar c-state-cache-invalid-pos 1)
+(make-variable-buffer-local 'c-state-cache-invalid-pos)
+;; This variable is always a number, and is typically eq to
+;; `c-state-cache-good-pos'.
+;;
+;; Its purpose is to record the position that `c-invalidate-state-cache' needs
+;; to trim `c-state-cache' to.
+;;
+;; When a `syntax-table' text property has been
+;; modified at a position before `c-state-cache-good-pos', it gets set to
+;; the lowest such position.  When that variable is nil,
+;; `c-state-cache-invalid-pos' is set to `c-state-point-min-literal'.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; We maintain a simple cache of positions which aren't in a literal, so as to
@@ -3747,6 +3769,7 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 	(c-state-mark-point-min-literal)
 	(setq c-state-cache nil
 	      c-state-cache-good-pos c-state-min-scan-pos
+	      c-state-cache-invalid-pos c-state-cache-good-pos
 	      c-state-brace-pair-desert nil))
 
     ;; point-min has MOVED FORWARD.
@@ -3770,7 +3793,8 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 							; inside a recorded
 							; brace pair.
 	    (setq c-state-cache nil
-		  c-state-cache-good-pos c-state-min-scan-pos)
+		  c-state-cache-good-pos c-state-min-scan-pos
+		  c-state-cache-invalid-pos c-state-cache-good-pos)
 	  ;; Do not alter the original `c-state-cache' structure, since there
 	  ;; may be a loop suspended which is looping through that structure.
 	  ;; This may have been the cause of bug #37910.
@@ -3778,7 +3802,8 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 	    (setcdr ptr nil)
 	    (setq c-state-cache (copy-sequence c-state-cache))
 	    (setcdr ptr cdr-ptr))
-	  (setq c-state-cache-good-pos (1+ (c-state-cache-top-lparen))))
+	  (setq c-state-cache-good-pos (1+ (c-state-cache-top-lparen))
+		c-state-cache-invalid-pos c-state-cache-good-pos))
 	)))
 
   (setq c-state-point-min (point-min)))
@@ -4302,6 +4327,7 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 (defun c-state-cache-init ()
   (setq c-state-cache nil
 	c-state-cache-good-pos 1
+	c-state-cache-invalid-pos 1
 	c-state-nonlit-pos-cache nil
 	c-state-nonlit-pos-cache-limit 1
 	c-state-brace-pair-desert nil
@@ -4338,8 +4364,9 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 
 (defun c-invalidate-state-cache-1 (here)
   ;; Invalidate all info on `c-state-cache' that applies to the buffer at HERE
-  ;; or higher and set `c-state-cache-good-pos' accordingly.  The cache is
-  ;; left in a consistent state.
+  ;; or higher and set `c-state-cache-good-pos' and
+  ;; `c-state-cache-invalid-pos' accordingly.  The cache is left in a
+  ;; consistent state.
   ;;
   ;; This is much like `c-whack-state-after', but it never changes a paren
   ;; pair element into an open paren element.  Doing that would mean that the
@@ -4353,7 +4380,6 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
   ;; HERE.
   (if (<= here c-state-nonlit-pos-cache-limit)
       (setq c-state-nonlit-pos-cache-limit (1- here)))
-  (c-truncate-lit-pos-cache here)
 
   (cond
    ;; `c-state-cache':
@@ -4363,6 +4389,7 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 	(< here (c-state-get-min-scan-pos)))
     (setq c-state-cache nil
 	  c-state-cache-good-pos nil
+	  c-state-cache-invalid-pos (c-state-get-min-scan-pos)
 	  c-state-min-scan-pos nil))
 
    ;; Case 2: `here' is below `c-state-cache-good-pos', so we need to amend
@@ -4377,7 +4404,9 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
       (setq c-state-cache-good-pos
 	    (if scan-forward-p
 		(c-append-to-state-cache good-pos here)
-	      good-pos)))))
+	      good-pos)
+	    c-state-cache-invalid-pos
+	    (or c-state-cache-good-pos (c-state-get-min-scan-pos))))))
 
   ;; The brace-pair desert marker:
   (when (car c-state-brace-pair-desert)
@@ -4474,7 +4503,8 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 	    (if (and bopl-state
 		     (< good-pos (- here c-state-cache-too-far)))
 		(c-state-cache-lower-good-pos here here-bopl bopl-state)
-	      good-pos)))
+	      good-pos)
+	    c-state-cache-invalid-pos c-state-cache-good-pos))
 
      ((eq strategy 'backward)
       (setq res (c-remove-stale-state-cache-backwards here)
@@ -4486,7 +4516,8 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
       (setq c-state-cache-good-pos
 	    (if scan-forward-p
 		(c-append-to-state-cache good-pos here)
-	      good-pos)))
+	      good-pos)
+	    c-state-cache-invalid-pos c-state-cache-good-pos))
 
      (t					; (eq strategy 'IN-LIT)
       (setq c-state-cache nil
@@ -4494,7 +4525,7 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 
   c-state-cache)
 
-(defun c-invalidate-state-cache (here)
+(defun c-invalidate-state-cache ()
   ;; This is a wrapper over `c-invalidate-state-cache-1'.
   ;;
   ;; It suppresses the syntactic effect of the < and > (template) brackets and
@@ -4504,9 +4535,9 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
   (if (eval-when-compile (memq 'category-properties c-emacs-features))
       ;; Emacs
       (c-with-<->-as-parens-suppressed
-       (c-invalidate-state-cache-1 here))
+       (c-invalidate-state-cache-1 c-state-cache-invalid-pos))
     ;; XEmacs
-    (c-invalidate-state-cache-1 here)))
+    (c-invalidate-state-cache-1 c-state-cache-invalid-pos)))
 
 (defmacro c-state-maybe-marker (place marker)
   ;; If PLACE is non-nil, return a marker marking it, otherwise nil.
@@ -4539,8 +4570,14 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 	(if (eval-when-compile (memq 'category-properties c-emacs-features))
 	    ;; Emacs
 	    (c-with-<->-as-parens-suppressed
+	     (when (< c-state-cache-invalid-pos
+		      (or c-state-cache-good-pos (c-state-get-min-scan-pos)))
+	       (c-invalidate-state-cache-1 c-state-cache-invalid-pos))
 	     (c-parse-state-1))
 	  ;; XEmacs
+	  (when (< c-state-cache-invalid-pos
+		   (or c-state-cache-good-pos (c-state-get-min-scan-pos)))
+	    (c-invalidate-state-cache-1 c-state-cache-invalid-pos))
 	  (c-parse-state-1))
       (setq c-state-old-cpp-beg
 	    (c-state-maybe-marker here-cpp-beg c-state-old-cpp-beg-marker)
@@ -4572,6 +4609,7 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 			 (t val)))))
 	 '(c-state-cache
 	   c-state-cache-good-pos
+	   c-state-cache-invalid-pos
 	   c-state-nonlit-pos-cache
 	   c-state-nonlit-pos-cache-limit
 	   c-state-brace-pair-desert
@@ -4609,6 +4647,7 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
   (let ((here (point)) (min-point (point-min)) (res1 (c-real-parse-state)) res2)
     (let ((c-state-cache nil)
 	  (c-state-cache-good-pos 1)
+	  (c-state-cache-invalid-pos 1)
 	  (c-state-nonlit-pos-cache nil)
 	  (c-state-nonlit-pos-cache-limit 1)
 	  (c-state-brace-pair-desert nil)
@@ -6999,9 +7038,9 @@ comment at the start of cc-engine.el for more info."
       (when (equal (c-get-char-property (1- (point)) 'syntax-table)
 		   c->-as-paren-syntax) ; should always be true.
 	(c-unmark-<->-as-paren (1- (point)))
-	(c-truncate-lit-pos-cache (1- (point))))
+	(c-truncate-lit-pos/state-cache (1- (point))))
       (c-unmark-<->-as-paren pos)
-      (c-truncate-lit-pos-cache pos))))
+      (c-truncate-lit-pos/state-cache pos))))
 
 (defun c-clear->-pair-props (&optional pos)
   ;; POS (default point) is at a > character.  If it is marked with
@@ -7018,9 +7057,9 @@ comment at the start of cc-engine.el for more info."
       (when (equal (c-get-char-property (point) 'syntax-table)
 			c-<-as-paren-syntax) ; should always be true.
 	(c-unmark-<->-as-paren (point))
-	(c-truncate-lit-pos-cache (point)))
+	(c-truncate-lit-pos/state-cache (point)))
       (c-unmark-<->-as-paren pos)
-      (c-truncate-lit-pos-cache pos))))
+      (c-truncate-lit-pos/state-cache pos))))
 
 (defun c-clear-<>-pair-props (&optional pos)
   ;; POS (default point) is at a < or > character.  If it has an
@@ -7054,7 +7093,7 @@ comment at the start of cc-engine.el for more info."
 			c->-as-paren-syntax)) ; should always be true.
 	(c-unmark-<->-as-paren (1- (point)))
 	(c-unmark-<->-as-paren pos)
-	(c-truncate-lit-pos-cache pos)
+	(c-truncate-lit-pos/state-cache pos)
       (point)))))
 
 (defun c-clear->-pair-props-if-match-before (lim &optional pos)
@@ -7075,7 +7114,7 @@ comment at the start of cc-engine.el for more info."
 		 (equal (c-get-char-property (point) 'syntax-table)
 			c-<-as-paren-syntax)) ; should always be true.
 	(c-unmark-<->-as-paren (point))
-	(c-truncate-lit-pos-cache (point))
+	(c-truncate-lit-pos/state-cache (point))
 	(c-unmark-<->-as-paren pos)
 	(point)))))
 
@@ -7194,7 +7233,8 @@ comment at the start of cc-engine.el for more info."
 			     (not (eq beg-literal-end end-literal-end))
 			     (skip-chars-forward "\\\\")
 			     (eq (char-after) ?\n)
-			     (not (zerop (skip-chars-backward "\\\\"))))
+			     (not (zerop (skip-chars-backward "\\\\")))
+			     (< (point) end))
 		    (setq swap-open-string-ends t)
 		    (if (c-get-char-property (1- beg-literal-end)
 					     'syntax-table)
@@ -7500,16 +7540,11 @@ multi-line strings (but not C++, for example)."
   ;; Remove any syntax-table text properties from the multi-line string
   ;; delimiters specified by STRING-DELIMS, the output of
   ;; `c-ml-string-delims-around-point'.
-  (let (found)
-    (if (setq found (c-clear-char-properties (caar string-delims)
-					     (cadar string-delims)
-					     'syntax-table))
-	(c-truncate-lit-pos-cache found))
+    (c-clear-syntax-table-properties-trim-caches (caar string-delims)
+						 (cadar string-delims))
     (when (cdr string-delims)
-      (if (setq found (c-clear-char-properties (cadr string-delims)
-					       (caddr string-delims)
-					       'syntax-table))
-	  (c-truncate-lit-pos-cache found)))))
+      (c-clear-syntax-table-properties-trim-caches (cadr string-delims)
+						   (caddr string-delims))))
 
 (defun c-get-ml-closer (open-delim)
   ;; Return the closer, a three element dotted list of the closer's start, its
@@ -7943,7 +7978,7 @@ multi-line strings (but not C++, for example)."
 	       ((eq (nth 3 (car state)) t)
 		(insert ?\")
 		(c-put-string-fence end)))
-	      (c-truncate-lit-pos-cache end)
+	      (c-truncate-lit-pos/state-cache end)
 	      ;; ....ensure c-new-END extends right to the end of the about
 	      ;; to be un-stringed raw string....
 	      (save-excursion
@@ -7963,7 +7998,7 @@ multi-line strings (but not C++, for example)."
 	  ;; Remove the temporary string delimiter.
 	  (goto-char end)
 	  (delete-char 1)
-	  (c-truncate-lit-pos-cache end))))
+	  (c-truncate-lit-pos/state-cache end))))
 
     ;; Have we just created a new starting id?
     (goto-char beg)
@@ -8013,7 +8048,7 @@ multi-line strings (but not C++, for example)."
 		 (> (point) beg)))
 	  (goto-char (caar c-old-1-beg-ml))
 	  (setq c-new-BEG (min c-new-BEG (point)))
-	  (c-truncate-lit-pos-cache (point))))
+	  (c-truncate-lit-pos/state-cache (point))))
 
       (when (looking-at c-ml-string-opener-re)
 	(goto-char (match-end 1))
@@ -8026,11 +8061,8 @@ multi-line strings (but not C++, for example)."
 	  (when (c-get-char-property (match-beginning 2) 'c-fl-syn-tab)
 	    (c-remove-string-fences (match-beginning 2)))
 	  (setq c-new-END (point-max))
-	  (c-clear-char-properties (caar (or c-old-beg-ml c-old-1-beg-ml))
-				   c-new-END
-				   'syntax-table)
-	  (c-truncate-lit-pos-cache
-	   (caar (or c-old-beg-ml c-old-1-beg-ml))))))
+	  (c-clear-syntax-table-properties-trim-caches
+	   (caar (or c-old-beg-ml c-old-1-beg-ml)) c-new-END))))
 
     ;; Have we disturbed the innards of an ml string, possibly by deleting "s?
     (when (and
@@ -8056,10 +8088,9 @@ multi-line strings (but not C++, for example)."
 		bound 'bound)
 	       (< (match-end 1) new-END-end-ml-string))
 	    (setq c-new-END (max new-END-end-ml-string c-new-END))
-	    (c-clear-char-properties (caar c-old-beg-ml) c-new-END
-				     'syntax-table)
-	    (setq c-new-BEG (min (caar c-old-beg-ml) c-new-BEG))
-	    (c-truncate-lit-pos-cache (caar c-old-beg-ml)))))
+	    (c-clear-syntax-table-properties-trim-caches
+	     (caar c-old-beg-ml) c-new-END)
+	    (setq c-new-BEG (min (caar c-old-beg-ml) c-new-BEG)))))
 
     ;; Have we terminated an existing raw string by inserting or removing
     ;; text?
@@ -8093,7 +8124,7 @@ multi-line strings (but not C++, for example)."
 	  (setq c-new-BEG (min (point) c-new-BEG)
 		c-new-END (point-max))
 	  (c-clear-syn-tab-properties (point) c-new-END)
-	  (c-truncate-lit-pos-cache (point)))))
+	  (c-truncate-lit-pos/state-cache (point)))))
 
     ;; Are there any raw strings in a newly created macro?
       (goto-char (c-point 'bol beg))
@@ -8147,8 +8178,7 @@ multi-line strings (but not C++, for example)."
 				    (cadr delim))
 		(< (point) (cadr delim)))
       (when (not (eq (point) (cddr delim)))
-	(c-put-char-property (point) 'syntax-table '(1))
-	(c-truncate-lit-pos-cache (point)))
+	(c-put-syntax-table-trim-caches (point) '(1)))
       (forward-char))))
 
 (defun c-propertize-ml-string-opener (delim bound)
@@ -8181,14 +8211,12 @@ multi-line strings (but not C++, for example)."
 	(while (progn (skip-syntax-forward c-ml-string-non-punc-skip-chars
 					   (car end-delim))
 		      (< (point) (car end-delim)))
-	      (c-put-char-property (point) 'syntax-table '(1)) ; punctuation
-	      (c-truncate-lit-pos-cache (point))
+	      (c-put-syntax-table-trim-caches (point) '(1)) ; punctuation
 	      (forward-char))
 	(goto-char (cadr end-delim))
 	t)
-    (c-put-char-property (cddr delim) 'syntax-table '(1))
+    (c-put-syntax-table-trim-caches (cddr delim) '(1))
     (c-put-string-fence (1- (cadr delim)))
-    (c-truncate-lit-pos-cache (1- (cddr delim)))
     (when bound
       ;; In a CPP construct, we try to apply a generic-string
       ;; `syntax-table' text property to the last possible character in
@@ -8218,10 +8246,9 @@ multi-line strings (but not C++, for example)."
 	  (if (match-beginning 10)
 	      (progn
 		(c-put-string-fence (match-beginning 10))
-		(c-truncate-lit-pos-cache (match-beginning 10)))
-	    (c-put-char-property (match-beginning 5) 'syntax-table '(1))
-	    (c-put-string-fence (1+ (match-beginning 5)))
-	    (c-truncate-lit-pos-cache (match-beginning 5))))
+		(c-truncate-lit-pos/state-cache (match-beginning 10)))
+	    (c-put-syntax-table-trim-caches (match-beginning 5) '(1))
+	    (c-put-string-fence (1+ (match-beginning 5)))))
       (goto-char bound))
     nil))
 
@@ -8261,20 +8288,18 @@ multi-line strings (but not C++, for example)."
 	      '(15)))
     (goto-char (cdddr string-delims))
     (when (c-safe (c-forward-sexp))	; To '(15) at EOL.
-      (c-clear-char-property (1- (point)) 'syntax-table)
-      (c-truncate-lit-pos-cache (1- (point)))))
+      (c-clear-syntax-table-trim-caches (1- (point)))))
     ;; The '(15) in the closing delimiter will be cleared by the following.
 
   (c-depropertize-ml-string-delims string-delims)
   (let ((bound1 (if (cdr string-delims)
 		    (caddr string-delims) ; end of closing delimiter.
 		  bound))
-	first s)
-    (if (and
-	 bound1
-	 (setq first (c-clear-char-properties (cadar string-delims) bound1
-					      'syntax-table)))
-	(c-truncate-lit-pos-cache first))
+	s)
+    (if bound1
+	(c-clear-syntax-table-properties-trim-caches
+	 (cadar string-delims) bound1))
+
     (setq s (parse-partial-sexp (or c-neutralize-pos (caar string-delims))
 				(or bound1 (point-max))))
     (cond
@@ -8283,15 +8308,13 @@ multi-line strings (but not C++, for example)."
       (setq c-neutralize-pos (nth 8 s))
       (setq c-neutralized-prop (c-get-char-property c-neutralize-pos
 						    'syntax-table))
-      (c-put-char-property c-neutralize-pos 'syntax-table '(1))
-      (c-truncate-lit-pos-cache c-neutralize-pos))
+      (c-put-syntax-table-trim-caches c-neutralize-pos '(1)))
      ((eq (nth 3 s) (char-after c-neutralize-pos))
       ;; New unbalanced quote balances old one.
       (if c-neutralized-prop
-	  (c-put-char-property c-neutralize-pos 'syntax-table
-			       c-neutralized-prop)
-	(c-clear-char-property c-neutralize-pos 'syntax-table))
-      (c-truncate-lit-pos-cache c-neutralize-pos)
+	  (c-put-syntax-table-trim-caches c-neutralize-pos
+					c-neutralized-prop)
+	(c-clear-syntax-table-trim-caches c-neutralize-pos))
       (setq c-neutralize-pos nil))
      ;; New unbalanced quote doesn't balance old one.  Nothing to do.
      )))
@@ -8350,10 +8373,8 @@ multi-line strings (but not C++, for example)."
 	       eom)))))))			; bound.
   (when c-neutralize-pos
     (if c-neutralized-prop
-	(c-put-char-property c-neutralize-pos 'syntax-table
-			     c-neutralized-prop)
-      (c-clear-char-property c-neutralize-pos 'syntax-table))
-    (c-truncate-lit-pos-cache c-neutralize-pos)))
+	(c-put-syntax-table-trim-caches c-neutralize-pos c-neutralized-prop)
+      (c-clear-syntax-table-trim-caches c-neutralize-pos))))
 
 
 (defun c-before-after-change-check-c++-modules (beg end &optional _old_len)
@@ -8793,7 +8814,7 @@ multi-line strings (but not C++, for example)."
 		(when c-parse-and-markup-<>-arglists
 		  (c-mark-<-as-paren (point))
 		  (c-mark->-as-paren (match-beginning 1))
-		  (c-truncate-lit-pos-cache (point)))
+		  (c-truncate-lit-pos/state-cache (point)))
 		(goto-char (match-end 1))
 		t)
 	    nil))
@@ -8927,11 +8948,11 @@ multi-line strings (but not C++, for example)."
 			(save-excursion
 			  (and (c-go-list-backward)
 			       (eq (char-after) ?<)
-			       (c-truncate-lit-pos-cache (point))
+			       (c-truncate-lit-pos/state-cache (point))
 			       (c-unmark-<->-as-paren (point)))))
 		      (c-mark-<-as-paren start)
 		      (c-mark->-as-paren (1- (point)))
-		      (c-truncate-lit-pos-cache start))
+		      (c-truncate-lit-pos/state-cache start))
 		    (setq res t)
 		    nil))		; Exit the loop.
 

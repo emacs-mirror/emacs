@@ -75,6 +75,7 @@
   (require 'cl-lib))
 
 (declare-function eshell-interactive-print "esh-mode" (string))
+(declare-function eshell-term-as-value "esh-cmd" (term))
 
 (defgroup eshell-io nil
   "Eshell's I/O management code provides a scheme for treating many
@@ -301,8 +302,8 @@ describing the mode, e.g. for using with `eshell-get-target'.")
         (unless (cdr tt)
           (error "Missing redirection target"))
         (nconc eshell-current-redirections
-               (list (list 'ignore
-                           (append (car tt) (list (cadr tt))))))
+               `((ignore ,(append (car tt)
+                                  (list (eshell-term-as-value (cadr tt)))))))
         (setcdr tl (cddr tt))
         (setq tt (cddr tt)))
        (t

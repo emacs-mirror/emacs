@@ -181,8 +181,7 @@ describing where Eshell will find the function."
   :type 'hook)
 
 (defcustom eshell-pre-rewrite-command-hook
-  '(eshell-no-command-conversion
-    eshell-subcommand-arg-values)
+  '(eshell-no-command-conversion)
   "A hook run before command rewriting begins.
 The terms of the command to be rewritten is passed as arguments, and
 may be modified in place.  Any return value is ignored."
@@ -455,6 +454,7 @@ command hooks should be run before and after the command."
 
 (defun eshell-subcommand-arg-values (terms)
   "Convert subcommand arguments {x} to ${x}, in order to take their values."
+  (declare (obsolete nil "31.1"))
   (setq terms (cdr terms))		; skip command argument
   (while terms
     (if (and (listp (car terms))
@@ -466,9 +466,9 @@ command hooks should be run before and after the command."
 (defun eshell-rewrite-sexp-command (terms)
   "Rewrite a sexp in initial position, such as `(+ 1 2)'."
   ;; this occurs when a Lisp expression is in first position
-  (if (and (listp (car terms))
-	   (eq (caar terms) 'eshell-command-to-value))
-      (car (cdar terms))))
+  (when (and (listp (car terms))
+             (eq (caar terms) 'eshell-lisp-command))
+    (car terms)))
 
 (defun eshell-rewrite-initial-subcommand (terms)
   "Rewrite a subcommand in initial position, such as `{+ 1 2}'."
@@ -478,19 +478,23 @@ command hooks should be run before and after the command."
 
 (defun eshell-rewrite-named-command (terms)
   "If no other rewriting rule transforms TERMS, assume a named command."
-  (let ((sym (if eshell-in-pipeline-p
-		 'eshell-named-command*
-	       'eshell-named-command))
-        (grouped-terms (eshell-prepare-splice terms)))
-    (cond
-     (grouped-terms
-      `(let ((terms (nconc ,@grouped-terms)))
-         (,sym (car terms) (cdr terms))))
-     ;; If no terms are spliced, use a simpler command form.
-     ((cdr terms)
-      (list sym (car terms) `(list ,@(cdr terms))))
-     (t
-      (list sym (car terms))))))
+  (when terms
+    (setq terms (cons (car terms)
+                      ;; Convert arguments to take their values.
+                      (mapcar #'eshell-term-as-value (cdr terms))))
+    (let ((sym (if eshell-in-pipeline-p
+		   'eshell-named-command*
+	         'eshell-named-command))
+          (grouped-terms (eshell-prepare-splice terms)))
+      (cond
+       (grouped-terms
+        `(let ((new-terms (nconc ,@grouped-terms)))
+           (,sym (car new-terms) (cdr new-terms))))
+       ;; If no terms are spliced, use a simpler command form.
+       ((cdr terms)
+        (list sym (car terms) `(list ,@(cdr terms))))
+       (t
+        (list sym (car terms)))))))
 
 (defvar eshell--command-body)
 (defvar eshell--test-body)
@@ -503,6 +507,7 @@ current output stream, which is separately redirectable.  SILENT
 means the user and/or any redirections shouldn't see any output
 from this command.  If both SHARE-OUTPUT and SILENT are non-nil,
 the second is ignored."
+  (declare (obsolete nil "31.1"))
   ;; something that begins with `eshell-convert' means that it
   ;; intends to return a Lisp value.  We want to get past this,
   ;; but if it's not _actually_ a value interpolation -- in which
@@ -536,22 +541,29 @@ implemented via rewriting, rather than as a function."
                  ,@(mapcar
                     (lambda (elem)
                       (if (listp elem)
-                          elem
+                          (eshell-term-as-value elem)
                         `(list ,elem)))
                     (nthcdr 3 terms)))))
            (while ,for-items
              (let ((,(intern (cadr terms)) (car ,for-items))
 		   (eshell--local-vars (cons ',(intern (cadr terms))
                                              eshell--local-vars)))
-	       ,(eshell-invokify-arg body t))
+	       ,body)
              (setq ,for-items (cdr ,for-items)))))))
 
-(defun eshell-structure-basic-command (func names keyword test body
-					    &optional else)
+(defun eshell-structure-basic-command (func names keyword test &rest body)
   "With TERMS, KEYWORD, and two NAMES, structure a basic command.
 The first of NAMES should be the positive form, and the second the
 negative.  It's not likely that users should ever need to call this
 function."
+  (unless test
+    (error "Missing test for `%s' command" keyword))
+
+  ;; If the test form is a subcommand, wrap it in `eshell-commands' to
+  ;; silence the output.
+  (when (memq (car test) '(eshell-as-subcommand eshell-lisp-command))
+    (setq test `(eshell-commands ,test t)))
+
   ;; If the test form begins with `eshell-convert' or
   ;; `eshell-escape-arg', it means something data-wise will be
   ;; returned, and we should let that determine the truth of the
@@ -572,33 +584,39 @@ function."
       (setq test `(not ,test)))
 
   ;; Finally, create the form that represents this structured command.
-  `(,func ,test ,body ,else))
+  `(,func ,test ,@body))
 
 (defun eshell-rewrite-while-command (terms)
   "Rewrite a `while' command into its equivalent Eshell command form.
 Because the implementation of `while' relies upon conditional
 evaluation of its argument (i.e., use of a Lisp special form), it
 must be implemented via rewriting, rather than as a function."
-  (if (and (stringp (car terms))
-	   (member (car terms) '("while" "until")))
-      (eshell-structure-basic-command
-       'while '("while" "until") (car terms)
-       (eshell-invokify-arg (cadr terms) nil t)
-       (eshell-invokify-arg (car (last terms)) t))))
+  (when (and (stringp (car terms))
+             (member (car terms) '("while" "until")))
+    (eshell-structure-basic-command
+     'while '("while" "until") (car terms)
+     (cadr terms)
+     (caddr terms))))
 
 (defun eshell-rewrite-if-command (terms)
   "Rewrite an `if' command into its equivalent Eshell command form.
 Because the implementation of `if' relies upon conditional
 evaluation of its argument (i.e., use of a Lisp special form), it
 must be implemented via rewriting, rather than as a function."
-  (if (and (stringp (car terms))
-	   (member (car terms) '("if" "unless")))
-      (eshell-structure-basic-command
-       'if '("if" "unless") (car terms)
-       (eshell-invokify-arg (cadr terms) nil t)
-       (eshell-invokify-arg (car (last terms (if (= (length terms) 4) 2))) t)
-       (when (= (length terms) 4)
-         (eshell-invokify-arg (car (last terms)) t)))))
+  (when (and (stringp (car terms))
+             (member (car terms) '("if" "unless")))
+    (eshell-structure-basic-command
+     'if '("if" "unless") (car terms)
+     (cadr terms)
+     (caddr terms)
+     (if (equal (nth 3 terms) "else")
+         ;; If there's an "else" keyword, allow chaining together
+         ;; multiple "if" forms...
+         (or (eshell-rewrite-if-command (nthcdr 4 terms))
+             (nth 4 terms))
+       ;; ... otherwise, only allow a single "else" block (without the
+       ;; keyword) as before for compatibility.
+       (nth 3 terms)))))
 
 (defun eshell-set-exit-info (status &optional result)
   "Set the exit status and result for the last command.
@@ -680,8 +698,7 @@ This means an exit code of 0."
 		(end-of-file
                  (throw 'eshell-incomplete "(")))))
 	(if (eshell-arg-delimiter)
-	    `(eshell-command-to-value
-              (eshell-lisp-command (quote ,obj)))
+	    `(eshell-lisp-command (quote ,obj))
 	  (ignore (goto-char here))))))
 
 (defun eshell-split-commands (terms separator &optional
@@ -905,6 +922,15 @@ This avoids the need to use `let*'."
        (let ((eshell-in-pipeline-p nil))
          ,command
          ,value))))
+
+(defun eshell-term-as-value (term)
+  "Convert an Eshell TERM to take its value."
+  (cond
+   ((eq (car-safe term) 'eshell-as-subcommand) ; {x} -> ${x}
+    `(eshell-convert (eshell-command-to-value ,term)))
+   ((eq (car-safe term) 'eshell-lisp-command)  ; (x) -> $(x)
+    `(eshell-command-to-value ,term))
+   (t term)))
 
 ;;;_* Iterative evaluation
 ;;

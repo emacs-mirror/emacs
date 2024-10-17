@@ -1689,36 +1689,52 @@ convenience.
 
 Most of Eshell's control flow statements accept a @var{conditional}.
 This can take a few different forms.  If @var{conditional} is a dollar
-expansion, the condition is satisfied if the result is a
-non-@code{nil} value.  If @var{conditional} is a @samp{@{
-@var{subcommand} @}} or @samp{(@var{lisp form})}, the condition is
-satisfied if the command's exit status is 0.
+expansion, the condition is satisfied if the result is a non-@code{nil}
+value.  Alternately, @var{conditional} may be a subcommand, either in
+command form, e.g.@: @samp{@{@var{subcommand}@}}; or in Lisp form,
+e.g.@: @samp{(@var{lisp form})}.  In that case, the condition is
+satisfied if the subcommand's exit status is 0.
 
 @table @code
 
-@item if @var{conditional} @{ @var{true-commands} @}
-@itemx if @var{conditional} @{ @var{true-commands} @} @{ @var{false-commands} @}
-Evaluate @var{true-commands} if @var{conditional} is satisfied;
-otherwise, evaluate @var{false-commands}.
+@item if @var{conditional} @var{true-subcommand}
+@itemx if @var{conditional} @var{true-subcommand} else @var{false-subcommand}
+Evaluate @var{true-subcommand} if @var{conditional} is satisfied;
+otherwise, evaluate @var{false-subcommand}.  Both @var{true-subcommand}
+and @var{false-subcommand} should be subcommands, as with
+@var{conditional}.
 
-@item unless @var{conditional} @{ @var{false-commands} @}
-@itemx unless @var{conditional} @{ @var{false-commands} @} @{ @var{true-commands} @}
-Evaluate @var{false-commands} if @var{conditional} is not satisfied;
-otherwise, evaluate @var{true-commands}.
+You can also chain together @code{if}/@code{else} forms, for example:
 
-@item while @var{conditional} @{ @var{commands} @}
-Repeatedly evaluate @var{commands} so long as @var{conditional} is
+@example
+if @{[ -f file.txt ]@} @{
+  echo found file
+@} else if @{[ -f alternate.txt ]@} @{
+  echo found alternate
+@} else @{
+  echo not found!
+@}
+@end example
+
+@item unless @var{conditional} @var{false-subcommand}
+@itemx unless @var{conditional} @var{false-subcommand} else @var{true-subcommand}
+Evaluate @var{false-subcommand} if @var{conditional} is not satisfied;
+otherwise, evaluate @var{true-subcommand}.  Like above, you can also
+chain together @code{unless}/@code{else} forms.
+
+@item while @var{conditional} @var{subcommand}
+Repeatedly evaluate @var{subcommand} so long as @var{conditional} is
 satisfied.
 
-@item until @var{conditional} @{ @var{commands} @}
-Repeatedly evaluate @var{commands} until @var{conditional} is
+@item until @var{conditional} @var{subcommand}
+Repeatedly evaluate @var{subcommand} until @var{conditional} is
 satisfied.
 
-@item for @var{var} in @var{list}@dots{} @{ @var{commands} @}
+@item for @var{var} in @var{list}@dots{} @var{subcommand}
 Iterate over each element of @var{list}, storing the element in
-@var{var} and evaluating @var{commands}.  If @var{list} is not a list,
-treat it as a list of one element.  If you specify multiple
-@var{lists}, this will iterate over each of them in turn.
+@var{var} and evaluating @var{subcommand}.  If @var{list} is not a list,
+treat it as a list of one element.  If you specify multiple @var{lists},
+this will iterate over each of them in turn.
 
 @end table
 

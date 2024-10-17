@@ -190,6 +190,9 @@ nil, use FUNCTION instead."
      "zero")
     (eshell-command-result-equal
      "echo $eshell-test-value[${*echo 0} ${*echo 2}]"
+     '("zero" "two"))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[{*echo 0} {*echo 2}]"
      '("zero" "two"))))
 
 (ert-deftest esh-var-test/interp-var-length-list ()
