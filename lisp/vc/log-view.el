@@ -111,6 +111,7 @@
 
 (require 'pcvs-util)
 (require 'easy-mmode)
+(require 'log-edit)
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-diff-internal "vc")
 
@@ -553,6 +554,17 @@ If called interactively, visit the version at point."
                       (vc-call-backend log-view-vc-backend
                                        'get-change-comment files rev)
                     (vc-not-supported (log-view-extract-comment)))))
+    (when (memq 'log-edit-insert-message-template log-edit-hook)
+      (let* ((first-newline (string-match "\n" comment))
+             (summary (substring comment 0 first-newline))
+             (rest (and first-newline
+                        (substring comment (1+ first-newline)))))
+        (setq comment
+              ;; As we are part of the VC subsystem I think we are
+              ;; entitled to call a \\`log-edit--' function.
+              ;; --spwhitton
+              (concat (log-edit--make-header-line "Summary" summary)
+                      (if (length> rest 0) rest "\n")))))
     (vc-modify-change-comment files rev comment)))
 
 (defun log-view-annotate-version (pos)
