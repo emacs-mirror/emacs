@@ -741,14 +741,11 @@ MODE, defaulting to `log-edit-mode' if MODE is nil.
 AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'.
 BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer.
 PATCH-STRING is a patch to check in."
-  (let ((parent
-         (if (vc-dispatcher-browsing)
-             ;; If we are called from a directory browser, the parent buffer is
-             ;; the current buffer.
-             (current-buffer)
-           (if (and files (equal (length files) 1))
-               (get-file-buffer (car files))
-             (current-buffer)))))
+  (let ((parent (or (and (not (vc-dispatcher-browsing))
+                         (length= files 1)
+                         (not (file-directory-p (car files)))
+                         (get-file-buffer (car files)))
+                    (current-buffer))))
     (if (and comment (not initial-contents))
 	(set-buffer (get-buffer-create logbuf))
       (pop-to-buffer (get-buffer-create logbuf)))
