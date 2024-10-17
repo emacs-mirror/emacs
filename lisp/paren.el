@@ -524,7 +524,8 @@ It is the default value of `show-paren-data-function'."
                 (cond
                  ((and
                    (eq show-paren-context-when-offscreen 'child-frame)
-                   (display-graphic-p))
+                   (or (display-graphic-p)
+                       (featurep 'tty-child-frames)))
                   (show-paren--show-context-in-child-frame context))
                  ((eq show-paren-context-when-offscreen 'overlay)
                   (show-paren--show-context-in-overlay context))
