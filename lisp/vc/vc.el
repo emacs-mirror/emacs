@@ -704,22 +704,6 @@
 ;;
 ;; - Add the ability to list tags and branches.
 ;;
-;;;; Unify two different versions of the amend capability
-;;
-;; - Some back ends (SCCS/RCS/SVN/SRC), have an amend capability that can
-;;   be invoked from log-view.
-;;
-;; - The git backend supports amending, but in a different
-;;   way (press `C-c C-e' in log-edit buffer, when making a new commit).
-;;
-;; - Doing message editing in log-view might be a natural way to go
-;;   about it, but editing any but the last commit (and even it, if it's
-;;   been pushed) is a dangerous operation in Git, which we shouldn't make
-;;   too easy for users to perform.
-;;
-;;   There should be a check that the given comment is not reachable
-;;   from any of the "remote" refs?
-;;
 ;;;; Other
 ;;
 ;; - asynchronous checkin and commit, so you can keep working in other
