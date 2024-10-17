@@ -128,7 +128,7 @@ To add or remove elements of this list, see
 
 (declare-function eshell-reset "esh-mode" (&optional no-hooks))
 (declare-function eshell-send-eof-to-process "esh-mode")
-(declare-function eshell-interactive-filter "esh-mode" (buffer string))
+(declare-function eshell-interactive-output-filter "esh-mode" (buffer string))
 (declare-function eshell-set-exit-info "esh-cmd" (status result))
 (declare-function eshell-tail-process "esh-cmd")
 
@@ -483,10 +483,9 @@ This is done after all necessary filtering has been done."
   (when string
     (eshell-debug-command 'process
       "received output from process `%s'\n\n%s" process string)
-    (eshell--mark-as-output 0 (length string) string)
-    (eshell-interactive-filter (if process (process-buffer process)
-                                 (current-buffer))
-                               string)))
+    (eshell-interactive-output-filter (if process (process-buffer process)
+                                        (current-buffer))
+                                      string)))
 
 (define-obsolete-function-alias 'eshell-output-filter
   #'eshell-interactive-process-filter "30.1")
@@ -559,8 +558,7 @@ PROC is the process that's exiting.  STRING is the exit message."
                        (eshell-interactive-output-p eshell-error-handle handles)
                        (not (string-match "^\\(finished\\|exited\\)"
                                           string)))
-              (eshell--mark-as-output 0 (length string) string)
-              (eshell-interactive-filter (process-buffer proc) string))
+              (eshell-interactive-output-filter (process-buffer proc) string))
             (process-put proc :eshell-pending nil)
             ;; If we're in the middle of handling output from this
             ;; process then schedule the EOF for later.
