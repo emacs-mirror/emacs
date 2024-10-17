@@ -543,11 +543,17 @@ If called interactively, visit the version at point."
 (defun log-view-modify-change-comment ()
   "Edit the change comment displayed at point."
   (interactive)
-  (vc-modify-change-comment (list (if log-view-per-file-logs
-				      (log-view-current-file)
-				    (car log-view-vc-fileset)))
-			    (log-view-current-tag)
-			    (log-view-extract-comment)))
+  (let* ((files (list (if log-view-per-file-logs
+			  (log-view-current-file)
+		        (car log-view-vc-fileset))))
+         (rev (log-view-current-tag))
+         ;; `log-view-extract-comment' is the legacy code for this; the
+         ;; `get-change-comment' backend action is the new way to do it.
+         (comment (condition-case _
+                      (vc-call-backend log-view-vc-backend
+                                       'get-change-comment files rev)
+                    (vc-not-supported (log-view-extract-comment)))))
+    (vc-modify-change-comment files rev comment)))
 
 (defun log-view-annotate-version (pos)
   "Annotate the version at POS.

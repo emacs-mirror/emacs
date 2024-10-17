@@ -309,6 +309,12 @@
 ;;   used for files under this backend, and if files can indeed be
 ;;   locked by other users.
 ;;
+;; - get-change-comment (files rev)
+;;
+;;   Return the change comments associated with the files at the given
+;;   revision.  The FILES argument it for forward-compatibility;
+;;   existing implementations care only about REV.
+;;
 ;; - modify-change-comment (files rev comment)
 ;;
 ;;   Modify the change comments associated with the files at the
@@ -706,12 +712,7 @@
 ;; - The git backend supports amending, but in a different
 ;;   way (press `C-c C-e' in log-edit buffer, when making a new commit).
 ;;
-;; - Second, `log-view-modify-change-comment' doesn't seem to support
-;;   modern backends at all because `log-view-extract-comment'
-;;   unconditionally calls `log-view-current-file'.  This should be easy to
-;;   fix.
-;;
-;; - Third, doing message editing in log-view might be a natural way to go
+;; - Doing message editing in log-view might be a natural way to go
 ;;   about it, but editing any but the last commit (and even it, if it's
 ;;   been pushed) is a dangerous operation in Git, which we shouldn't make
 ;;   too easy for users to perform.
@@ -2440,7 +2441,8 @@ the variable `vc-BACKEND-header'."
      (lambda () (vc-call-backend backend 'log-edit-mode))
      (lambda (files comment)
        (vc-call-backend backend
-                        'modify-change-comment files rev comment)))))
+                        'modify-change-comment files rev comment))
+     nil backend)))
 
 ;;;###autoload
 (defun vc-merge ()

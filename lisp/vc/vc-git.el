@@ -67,6 +67,7 @@
 ;; - merge-news (file)                      see `merge-file'
 ;; - mark-resolved (files)                         OK
 ;; - steal-lock (file &optional revision)          NOT NEEDED
+;; - get-change-comment (files rev)                OK
 ;; HISTORY FUNCTIONS
 ;; * print-log (files buffer &optional shortlog start-revision limit)   OK
 ;; * log-outgoing (buffer remote-location)         OK
@@ -1037,12 +1038,8 @@ See `vc-git-log-edit-summary-max-len'.")
   "Toggle whether this will amend the previous commit.
 If toggling on, also insert its message into the buffer."
   (interactive)
-  (log-edit--toggle-amend
-   (lambda ()
-     (with-output-to-string
-       (vc-git-command
-        standard-output 1 nil
-        "log" "--max-count=1" "--pretty=format:%B" "HEAD")))))
+  (log-edit--toggle-amend (lambda ()
+                            (vc-git-get-change-comment nil "HEAD"))))
 
 (defvar-keymap vc-git-log-edit-mode-map
   :name "Git-Log-Edit"
@@ -1957,6 +1954,11 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 
 (defun vc-git-mark-resolved (files)
   (vc-git-command nil 0 files "add"))
+
+(defun vc-git-get-change-comment (_files rev)
+  (with-output-to-string
+    (vc-git-command standard-output 1 nil
+                    "log" "--max-count=1" "--pretty=format:%B" rev)))
 
 (defvar vc-git-extra-menu-map
   (let ((map (make-sparse-keymap)))
