@@ -868,6 +868,17 @@
 		    pahawh-hmong
 		    medefaidrin
                     znamenny-musical-notation
+                    khudawadi
+                    khojki
+                    mahajani
+                    sogdian
+                    old-sogdian
+                    nabataean
+                    palmyrene
+                    linear-a
+                    linear-b
+                    caucasian-albanian
+                    elbasan
 		    byzantine-musical-symbol
 		    musical-symbol
 		    ancient-greek-musical-notation
@@ -878,6 +889,15 @@
                     wancho
                     nag-mundari
                     mende-kikakui
+                    nyiakeng-puachue-hmong
+                    mro
+                    masaram-gondi
+                    pau-cin-hau
+                    soyombo
+                    zanabazar-square
+                    warang-citi
+                    dogra
+                    takri
 		    adlam
                     tifinagh
                     tai-tham
