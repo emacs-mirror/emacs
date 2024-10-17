@@ -782,6 +782,22 @@ at the top of a window just as the mode line appears at the bottom.
 Most windows do not have a header line---only some special modes, such
 Info mode, create one.
 
+The @code{header-line-active} and @code{header-line-inactive} faces (which
+are the ones used on the header lines) inherit from this face.
+
+@item header-line-active
+@cindex faces for header lines
+Like @code{header-line}, but used for the header line of the currently
+selected window.  This face inherits from @code{header-line}, so changes
+in that face affect header lines in all windows.
+
+@item header-line-inactive
+@cindex @code{header-line-inactive} face
+Like @code{header-line}, but used for header lines of the windows other
+than the selected one (if those windows have a header line).  This face
+inherits from @code{header-line}, so changes in that face affect header
+lines in all windows.
+
 @item header-line-highlight
 @cindex @code{header-line-highlight} face
 Similar to @code{highlight} and @code{mode-line-highlight}, but used

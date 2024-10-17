@@ -162,6 +162,11 @@ The version bundled with Emacs is out-of-date, and is now marked as
 obsolete.  Use 'M-x list-packages' to install the 'idlwave' package from
 GNU ELPA instead.
 
++++
+** New face 'header-line-active'.
+This inherits from the 'header-line' face, but is the face actually used
+on the header lines (along with 'header-line-inactive').
+
 
 * Editing Changes in Emacs 31.1
 

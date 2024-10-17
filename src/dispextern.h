@@ -1561,6 +1561,34 @@ struct glyph_string
 	 : estimate_mode_line_height					\
 	 (XFRAME ((W)->frame), CURRENT_MODE_LINE_ACTIVE_FACE_ID (W)))))
 
+/* Return the desired face id for the header line of a window, depending
+   on whether the window is selected or not, or if the window is the
+   scrolling window for the currently active minibuffer window.
+
+   Due to the way display_mode_lines manipulates with the contents of
+   selected_window, this macro needs three arguments: SELW which is
+   compared against the current value of selected_window, MBW which is
+   compared against minibuf_window (if SELW doesn't match), and SCRW
+   which is compared against minibuf_selected_window (if MBW matches).  */
+
+#define CURRENT_HEADER_LINE_ACTIVE_FACE_ID_3(SELW, MBW, SCRW)    	\
+     ((!mode_line_in_non_selected_windows			\
+       || (SELW) == XWINDOW (selected_window)			\
+       || (minibuf_level > 0					\
+           && !NILP (minibuf_selected_window)			\
+           && (MBW) == XWINDOW (minibuf_window)			\
+           && (SCRW) == XWINDOW (minibuf_selected_window)))	\
+      ? HEADER_LINE_ACTIVE_FACE_ID				\
+      : HEADER_LINE_INACTIVE_FACE_ID)
+
+
+/* Return the desired face id for the header line of window W.  */
+
+#define CURRENT_HEADER_LINE_ACTIVE_FACE_ID(W)		\
+	 CURRENT_HEADER_LINE_ACTIVE_FACE_ID_3(W, \
+					    XWINDOW (selected_window), \
+					    W)
+
 /* Return the current height of the header line of window W.  If not known
    from W->header_line_height, look at W's current glyph matrix, or return
    an estimation based on the height of the font of the face `header-line'.  */
@@ -1572,7 +1600,7 @@ struct glyph_string
       = (MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
 	 ? MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
 	 : estimate_mode_line_height				\
-	     (XFRAME ((W)->frame), HEADER_LINE_FACE_ID))))
+	 (XFRAME ((W)->frame), CURRENT_HEADER_LINE_ACTIVE_FACE_ID (W)))))
 
 /* Return the current height of the tab line of window W.  If not known
    from W->tab_line_height, look at W's current glyph matrix, or return
@@ -1893,7 +1921,8 @@ enum face_id
   MODE_LINE_INACTIVE_FACE_ID,
   TOOL_BAR_FACE_ID,
   FRINGE_FACE_ID,
-  HEADER_LINE_FACE_ID,
+  HEADER_LINE_ACTIVE_FACE_ID,
+  HEADER_LINE_INACTIVE_FACE_ID,
   SCROLL_BAR_FACE_ID,
   BORDER_FACE_ID,
   CURSOR_FACE_ID,
