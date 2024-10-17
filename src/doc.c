@@ -669,7 +669,7 @@ If the variable `text-quoting-style' is `grave', `straight' or
 `curve', just return that value.  If it is nil (the default), return
 `grave' if curved quotes cannot be displayed (for instance, on a
 terminal with no support for these characters), otherwise return
-`quote'.  Any other value is treated as `grave'.
+`curve'.  Any other value is treated as `curve'.
 
 Note that in contrast to the variable `text-quoting-style', this
 function will never return nil.  */)
