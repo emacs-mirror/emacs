@@ -1045,17 +1045,41 @@ TYPE indicates the namespace and is `fun' or `var'."
         (fill-region-as-paragraph (point-min) (point-max))
         (goto-char (point-max))))))
 
+(require 'radix-tree)
+
+(defconst help-fns--radix-trees
+  (make-hash-table :weakness 'key :test 'equal)
+  "Cache of radix-tree representation of `load-path'.")
+
+(defun help-fns--filename (file)
+  (let ((f (abbreviate-file-name (expand-file-name file))))
+    (if (file-name-case-insensitive-p f) (downcase f) f)))
+
+(defun help-fns--radix-tree (dirs)
+  (with-memoization (gethash dirs help-fns--radix-trees)
+    (let ((rt radix-tree-empty))
+      (dolist (d dirs)
+        (let ((d (help-fns--filename (file-name-as-directory d))))
+          (setq rt (radix-tree-insert rt d t))))
+      rt)))
+
 (defun help-fns-short-filename (filename)
-  (let* ((abbrev (abbreviate-file-name filename))
-         (short abbrev))
-    (dolist (dir load-path)
-      (let ((rel (file-relative-name filename dir)))
-        (if (< (length rel) (length short))
-            (setq short rel)))
-      (let ((rel (file-relative-name abbrev dir)))
-        (if (< (length rel) (length short))
-            (setq short rel))))
-    short))
+  (let* ((short (help-fns--filename filename))
+         (prefixes (radix-tree-prefixes (help-fns--radix-tree load-path)
+                                        (file-name-directory short))))
+    (if (not prefixes)
+        ;; The file is not inside the `load-path'.
+        ;; FIXME: Here's the old code (too slow, bug#73766),
+        ;; which used to try and shorten it with "../" as well.
+        ;; (dolist (dir load-path)
+        ;;   (let ((rel (file-relative-name filename dir)))
+        ;;     (if (< (length rel) (length short))
+        ;;         (setq short rel)))
+        ;;   (let ((rel (file-relative-name abbrev dir)))
+        ;;     (if (< (length rel) (length short))
+        ;;         (setq short rel))))
+        short
+      (file-relative-name short (caar prefixes)))))
 
 (defun help-fns--analyze-function (function)
   ;; FIXME: Document/explain the differences between FUNCTION,
