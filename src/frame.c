@@ -1373,8 +1373,7 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
     }
 
   /* Set the top frame to the newly created frame.  */
-  if (!FRAME_PARENT_FRAME (f))
-    FRAME_TTY (f)->top_frame = frame;
+  FRAME_TTY (f)->top_frame = frame;
   return f;
 }
 
