@@ -62,6 +62,15 @@ to be checked as its standard input."
                  (repeat :tag "Custom command" string))
   :group 'rust)
 
+(defcustom rust-ts-mode-fontify-number-suffix-as-type nil
+  "If non-nil, suffixes of number literals are fontified as types.
+In Rust, number literals can possess an optional type suffix.  When this
+variable is non-nil, these suffixes are fontified using
+`font-lock-type-face' instead of `font-lock-number-face'."
+  :version "31.1"
+  :type 'boolean
+  :group 'rust)
+
 (defvar rust-ts-mode-prettify-symbols-alist
   '(("&&" . ?∧) ("||" . ?∨)
     ("<=" . ?≤)  (">=" . ?≥) ("!=" . ?≠)
@@ -115,6 +124,12 @@ to be checked as its standard input."
      ((parent-is "token_tree") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "use_list") parent-bol rust-ts-mode-indent-offset)))
   "Tree-sitter indent rules for `rust-ts-mode'.")
+
+(defconst rust-ts-mode--number-types
+  (regexp-opt '("u8" "i8" "u16" "i16" "u32" "i32" "u64"
+                "i64" "u128" "i128" "usize" "isize" "f32" "f64"))
+  "Regexp matching type suffixes of number literals.
+See https://doc.rust-lang.org/reference/tokens.html#suffixes.")
 
 (defvar rust-ts-mode--builtin-macros
   '("concat_bytes" "concat_idents" "const_format_args"
@@ -221,7 +236,8 @@ to be checked as its standard input."
 
    :language 'rust
    :feature 'number
-   '([(float_literal) (integer_literal)] @font-lock-number-face)
+   '([(float_literal) (integer_literal)]
+     @rust-ts-mode--fontify-number-literal)
 
    :language 'rust
    :feature 'operator
@@ -368,6 +384,25 @@ to be checked as its standard input."
             (treesit-fontify-with-override
              (treesit-node-start id) (treesit-node-end id)
              'font-lock-variable-name-face override start end)))))))
+
+(defun rust-ts-mode--fontify-number-literal (node override start stop &rest _)
+  "Fontify number literals, highlighting the optional type suffix.
+If `rust-ts-mode-fontify-number-suffix-as-type' is non-nil, use
+`font-lock-type-face' to highlight the suffix."
+  (let* ((beg (treesit-node-start node))
+         (end (treesit-node-end node)))
+    (save-excursion
+      (goto-char end)
+      (if (and rust-ts-mode-fontify-number-suffix-as-type
+               (looking-back rust-ts-mode--number-types beg))
+          (let* ((ty (match-beginning 0))
+                 (nb (if (eq (char-before ty) ?_) (1- ty) ty)))
+            (treesit-fontify-with-override
+             ty end 'font-lock-type-face override start stop)
+            (treesit-fontify-with-override
+             beg nb 'font-lock-number-face override start stop))
+          (treesit-fontify-with-override
+           beg end 'font-lock-number-face override start stop)))))
 
 (defun rust-ts-mode--defun-name (node)
   "Return the defun name of NODE.

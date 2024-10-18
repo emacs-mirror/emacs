@@ -23,11 +23,21 @@
 (require 'ert-font-lock)
 (require 'ert-x)
 (require 'treesit)
+(require 'rust-ts-mode)
 
 (ert-deftest rust-ts-test-font-lock ()
   (skip-unless (treesit-ready-p 'rust))
-  (let ((treesit-font-lock-level 4))
-    (ert-font-lock-test-file (ert-resource-file "font-lock.rs") 'rust-ts-mode)))
+  (let ((treesit-font-lock-level 4)
+        (rust-ts-mode-fontify-number-suffix-as-type nil))
+    (ert-font-lock-test-file (ert-resource-file "font-lock.rs")
+                             'rust-ts-mode)))
+
+(ert-deftest rust-ts-test-font-lock-number ()
+  (skip-unless (treesit-ready-p 'rust))
+  (let ((treesit-font-lock-level 4)
+        (rust-ts-mode-fontify-number-suffix-as-type t))
+    (ert-font-lock-test-file (ert-resource-file "font-lock-number.rs")
+                             'rust-ts-mode)))
 
 (provide 'rust-ts-mode-tests)
 

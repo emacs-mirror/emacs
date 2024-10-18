@@ -608,6 +608,13 @@ the built-in Web server.  Interactively, when invoked with a prefix
 argument, 'php-ts-mode-run-php-webserver' prompts for the config file as
 well as for other connection parameters.
 
+** Rust-ts mode
+
+---
+*** New user option 'rust-ts-mode-fontify-number-suffix-as-type'.
+Rust number literals may have an optional type suffix.  When this option
+is non-nil, this suffix is fontified using 'font-lock-type-face'.
+
 ** Ediff
 
 +++
