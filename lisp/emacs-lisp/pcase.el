@@ -181,7 +181,6 @@ Emacs Lisp manual for more information and examples."
   (let* ((main (documentation (symbol-function 'pcase) 'raw))
          (ud (help-split-fundoc main 'pcase)))
     (require 'help-fns)
-    (declare-function help-fns-short-filename "help-fns" (filename))
     (declare-function help-fns--signature "help-fns"
                       (function doc real-def real-function buffer))
     (with-temp-buffer
@@ -214,7 +213,9 @@ Emacs Lisp manual for more information and examples."
               (save-excursion
                 (forward-char -1)
                 (insert (format-message "  in `"))
-                (help-insert-xref-button (help-fns-short-filename filename)
+                ;; `file-name-nondirectory' is naive, but
+                ;; `help-fns-short-filename' is not fast enough yet (bug#73766).
+                (help-insert-xref-button (file-name-nondirectory filename)
                                          'help-function-def symbol filename
                                          'pcase-macro)
                 (insert (format-message "'."))))
