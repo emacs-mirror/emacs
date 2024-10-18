@@ -3067,7 +3067,8 @@ instead."
   (if (and (or (null type) (eq type 'defun))
 	   (symbolp symbol)
 	   (autoloadp (symbol-function symbol)))
-      (nth 1 (symbol-function symbol))
+      (locate-library
+       (nth 1 (symbol-function symbol)))
     (if (and native-p (or (null type) (eq type 'defun))
 	     (symbolp symbol)
 	     (native-comp-available-p)
