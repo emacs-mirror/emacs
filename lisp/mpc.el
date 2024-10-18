@@ -469,8 +469,8 @@ which will be concatenated with proper quoting before passing them to MPD."
     (t      . mpc-current-refresh))
   "Alist associating properties to the functions that care about them.
 Each entry has the form (PROP . FUN) to call FUN (without arguments)
-whenever property PROP changes.  PROP can be t to mean
-to call FUN for any change whatsoever.")
+whenever property PROP changes.  PROP can be t, which means to call
+FUN for any change whatsoever.")
 
 (defun mpc--status-callback ()
   (let ((old-status mpc-status))
@@ -998,11 +998,11 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 
 FORMAT-SPEC is a string that includes elements of the form
 '%-WIDTH{NAME-POST}' that get expanded to the value of
-property NAME,
+property NAME.
 The first '-', WIDTH, and -POST are optional.
 % followed by the optional '-' means to right align the output.
-WIDTH limits the output to the specified number of characters by replacing
-any further output with a horizontal ellipsis.
+WIDTH limits the output to the specified number of characters by
+replacing any further output with a horizontal ellipsis.
 The optional -POST means to use the empty string if NAME is
 absent or else use the concatenation of the content of NAME with the
 string POST."
@@ -1132,7 +1132,7 @@ string POST."
     (put-text-property start (point) 'mpc--uptodate-p pred)))
 
 (defun mpc-cover-image-find (file)
-  "Find cover image for FILE."
+  "Find cover image for FILE in suitable MPC directory."
   (when-let* ((default-directory mpc-mpd-music-directory)
               (dir (mpc-file-local-copy (file-name-directory file)))
               (files (directory-files dir))
@@ -1140,7 +1140,7 @@ string POST."
     (expand-file-name cover dir)))
 
 (defun mpc-cover-image-p (file)
-  "Check if FILE is a cover image."
+  "Check if FILE is a cover image suitable for MPC."
   (let ((covers '(".folder.png" "folder.png" "cover.jpg" "folder.jpg")))
     (or (member-ignore-case file covers)
         (and mpc-cover-image-re (string-match-p mpc-cover-image-re file)))))
@@ -2794,7 +2794,7 @@ If stopped, start playback."
 (declare-function notifications-notify "notifications")
 
 (defcustom mpc-notifications nil
-  "Non-nil means to display notifications when the song changes."
+  "Non-nil means MPC should display notifications when the song changes."
   :version "31.1"
   :type 'boolean)
 
@@ -2802,8 +2802,8 @@ If stopped, start playback."
   '("%{Title}" "Unknown Title")
   "List of FORMAT-SPECs used in the notification title.
 
-The first element that expands to a non-empty string is used.
-See `mpc-format' for the definition of FORMAT-SPEC."
+The first element in the list that expands to a non-empty string
+will be used.  See `mpc-format' for the definition of FORMAT-SPEC."
   :version "31.1"
   :type '(repeat string))
 
@@ -2811,8 +2811,8 @@ See `mpc-format' for the definition of FORMAT-SPEC."
   '("%{Artist}" "%{AlbumArtist}" "Unknown Artist")
   "List of FORMAT-SPEC used in the notification body.
 
-The first element that returns a non-emtpy string is used.
-See `mpc-format' for the definition of FORMAT-SPEC."
+The first element in the list that expands to a non-empty string
+will be used.  See `mpc-format' for the definition of FORMAT-SPEC."
   :version "31.1"
   :type '(repeat string))
 

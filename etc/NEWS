@@ -562,9 +562,11 @@ or behaves like 'widen' if not in a fold.
 
 ---
 *** New user option 'mpc-notifications'.
-When non-nil MPC displays a desktop notification when the song changes.
-The notification’s title and body can be customized with
-'mpc-notifications-title' and 'mpc-notifications-body'.
+When non-nil, MPC (the Emacs front-end to Music Player Daemon) displays
+a desktop notification when the song changes, using
+'notifications-notify'.  The notification's title and body can be
+customized using the new user options 'mpc-notifications-title' and
+'mpc-notifications-body'.
 
 
 * New Modes and Packages in Emacs 31.1
