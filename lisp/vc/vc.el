@@ -914,6 +914,31 @@ is sensitive to blank lines."
   :type 'boolean
   :version "27.1")
 
+;; The default is nil because only a VC user who also possesses a lot of
+;; knowledge specific to the VCS in use can know when it is okay to
+;; rewrite history, and we can't convey to a user who is relatively
+;; naïve regarding the VCS in use the potential risks in only the space
+;; of a minibuffer yes/no prompt.
+;;
+;; See `vc-git--assert-allowed-rewrite' for an example of how to use
+;; this variable in VCS backend code.
+(defcustom vc-allow-rewriting-published-history nil
+  "When non-nil, permit VCS operations that may rewrite published history.
+
+Many VCS commands can change your copy of published change history
+without warning.  If this occurs, you won't be able to pull and push in
+the ordinary way until you take special action.  For example, for Git,
+see \"Recovering from Upstream Rebase\" in the Man page git-rebase(1).
+
+Normally, Emacs refuses to run VCS commands that it thinks will rewrite
+published history.  If you customize this variable to a non-nil value,
+Emacs will instead prompt you to confirm that you really want to perform
+the rewrite.  A value of `no-ask' means to proceed with no prompting."
+  :type '(choice (const :tag "Don't allow" nil)
+                 (const :tag "Prompt to allow" t)
+                 (const :tag "Allow without prompting" no-ask))
+  :version "31.1")
+
 
 ;; File property caching
 
