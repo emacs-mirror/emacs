@@ -1889,11 +1889,16 @@ putting the following in your init file:
 (push '(tty-color-mode . no) default-frame-alist)
 @end lisp
 
-To disable tty color support in the @emph{current} frame you can run:
+@noindent
+To disable tty color support in the @emph{current} frame you can
+evaluate:
 
 @lisp
 (set-frame-parameter nil 'tty-color-mode 'no)
 @end lisp
+
+Note that this currently doesn't work on MS-Windows and MS-DOS, whose
+text-mode terminals always use the fixed number of 16 text colors.
 
 The command @kbd{M-x list-colors-display} pops up a window which
 exhibits all the colors Emacs knows about on the current display.
