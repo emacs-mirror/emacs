@@ -214,7 +214,7 @@ Name: Return Compund Literal
 struct pair { int fst, snd; };
 struct pair
 make_pair(int long_identifier_a[], int long_identifier_b[],
-	  int offset_a, int offset_b)
+          int offset_a, int offset_b)
 {
   int base_offset = 10;
   return (struct pair) { long_identifier_a[base_offset + offset_b],

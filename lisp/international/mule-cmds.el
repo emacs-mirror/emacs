@@ -737,7 +737,7 @@ DEFAULT is the coding system to use by default in the query."
 			  (format "string \"%s\"." from)
 			(format-message "buffer `%s'." bufname)))
 	    (insert
-	     "These default coding systems were tried to encode"
+	     "These default coding systems were tried to safely encode"
 	     (if (stringp from)
 		 (concat " \"" (if (> (length from) 10)
 				   (concat (substring from 0 10) "...\"")
@@ -758,9 +758,9 @@ e.g., for sending an email message.\n ")
 	      (insert (if rejected "The other coding systems"
 			"However, each of them")
 		      (substitute-command-keys
-		       " encountered characters it couldn't encode:\n"))
+		       " encountered characters it couldn't encode safely:\n"))
 	      (dolist (coding unsafe)
-		(insert (format "  %s cannot encode these:" (car coding)))
+		(insert (format "  %s cannot safely encode these:" (car coding)))
 		(let ((i 0)
 		      (func1
                        (lambda (bufname pos)

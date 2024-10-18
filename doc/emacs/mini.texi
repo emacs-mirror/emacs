@@ -981,10 +981,14 @@ action with Emacs until you have submitted the password.
 backwards, removing the last character entered.  @kbd{C-u} deletes
 everything you have typed so far.  @kbd{C-g} quits the password prompt
 (@pxref{Quitting}).  @kbd{C-y} inserts the current kill into the
-password (@pxref{Killing}).  You may type either @key{RET} or
-@key{ESC} to submit the password.  Any other self-inserting character
-key inserts the associated character into the password, and all other
-input is ignored.
+password (@pxref{Killing}).  @key{TAB} toggles the visibility of the
+password.  You may type either @key{RET} or @key{ESC} to submit the
+password.  Any other self-inserting character key inserts the associated
+character into the password, and all other input is ignored.
+
+  There is also an icon at the front of the mode line indicating the
+password visibility.  Clicking @kbd{mouse-1} on it toggles the password
+visibility as well.
 
 @node Yes or No Prompts
 @section Yes or No Prompts

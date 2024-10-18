@@ -3787,8 +3787,8 @@ DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
 
 DEFUN ("file-newer-than-file-p", Ffile_newer_than_file_p, Sfile_newer_than_file_p, 2, 2, 0,
        doc: /* Return t if file FILE1 is newer than file FILE2.
-If FILE1 does not exist, the answer is nil;
-otherwise, if FILE2 does not exist, the answer is t.
+If FILE1 does not exist, the return value is nil;
+if FILE2 does not exist, the return value is t.
 For existing files, this compares their last-modified times.  */)
   (Lisp_Object file1, Lisp_Object file2)
 {

@@ -2769,7 +2769,7 @@ Draw a box with lines of width 1, in the foreground color.
 Draw a box with lines of width 1, in color @var{color}.
 
 @item @code{(:line-width (@var{vwidth} . @var{hwidth}) :color @var{color} :style @var{style})}
-You can explicitly specify all aspects of the box with a plist on this
+You can explicitly specify all aspects of the box with a plist of this
 form.  Any element in this plist can be omitted.
 
 The values of @var{vwidth} and @var{hwidth} specify respectively the
