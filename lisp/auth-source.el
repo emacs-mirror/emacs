@@ -2467,14 +2467,11 @@ point is moved into the passwords (see `authinfo-hide-elements').
   :version "30.1"
   :help-echo "mouse-1: Toggle password visibility")
 
-(defvar read-passwd--mode-line-buffer nil
-  "Buffer to modify `mode-line-format' for showing/hiding passwords.")
-
 (defvar read-passwd--mode-line-icon nil
   "Propertized mode line icon for showing/hiding passwords.")
 
 (defvar read-passwd--hide-password t
-  "Toggle whether password should be hidden in minubuffer.")
+  "Toggle whether password should be hidden in minibuffer.")
 
 (defun read-passwd--hide-password ()
   "Make password in minibuffer hidden or visible."
@@ -2497,8 +2494,8 @@ Adapt also mode line."
     ;; FIXME: In case of a recursive minibuffer, this may select the wrong
     ;; mini-buffer.
     (with-current-buffer (window-buffer win)
-      (setq read-passwd--hide-password (not read-passwd--hide-password))
-      (with-current-buffer read-passwd--mode-line-buffer
+      (when (memq 'read-passwd-mode local-minor-modes)
+        (setq read-passwd--hide-password (not read-passwd--hide-password))
         (setq read-passwd--mode-line-icon
               `(:propertize
                 ,(if icon-preference
@@ -2514,8 +2511,8 @@ Adapt also mode line."
                      (define-key map [mode-line mouse-1]
                                  #'read-passwd-toggle-visibility)
                      map))))
-        (force-mode-line-update))
-      (read-passwd--hide-password))))
+        (force-mode-line-update 'all)
+        (read-passwd--hide-password)))))
 
 (defvar read-passwd-map
   ;; BEWARE: `defconst' would purecopy it, breaking the sharing with
@@ -2534,25 +2531,18 @@ Adapt also mode line."
   :keymap read-passwd-map
   :version "30.1"
 
-  (setq read-passwd--hide-password nil
-        ;; Stolen from `eldoc-minibuffer-message'.
-        read-passwd--mode-line-buffer
-        (window-buffer
-         (or (window-in-direction 'above (minibuffer-window))
-	     (minibuffer-selected-window)
-	     (get-largest-window))))
+  (setq read-passwd--hide-password nil)
+  (or global-mode-string (setq global-mode-string '("")))
 
-  (if read-passwd-mode
-      (with-current-buffer read-passwd--mode-line-buffer
+  (let ((mode-string '(:eval read-passwd--mode-line-icon)))
+    (if read-passwd-mode
         ;; Add `read-passwd--mode-line-icon'.
-        (when (listp mode-line-format)
-          (setq mode-line-format
-                (cons '(:eval read-passwd--mode-line-icon)
-	              mode-line-format))))
-    (with-current-buffer read-passwd--mode-line-buffer
+        (or (member mode-string global-mode-string)
+            (setq global-mode-string
+	          (append global-mode-string (list mode-string))))
       ;; Remove `read-passwd--mode-line-icon'.
-      (when (listp mode-line-format)
-        (setq mode-line-format (cdr mode-line-format)))))
+      (setq global-mode-string
+	    (delete mode-string global-mode-string))))
 
   (when read-passwd-mode
     (read-passwd-toggle-visibility)))
