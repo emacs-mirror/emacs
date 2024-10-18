@@ -1027,7 +1027,11 @@ there is no mode that supports @var{num} colors, Emacs acts as if
 @var{num} were 0, i.e., it uses the terminal's default color support
 mode.
 @end table
-If @var{mode} is omitted, it defaults to @var{ansi8}.
+If @var{mode} is omitted, it defaults to @var{ansi8}.  This support is
+dynamic: the current mode is available via the @code{tty-color-mode}
+frame parameter, and it can be changed by modifying that frame parameter.
+This means you can also specify the initial value via
+@code{default-frame-alist} instead of the command-line option.
 @end table
 
   For example, to use a coral mouse cursor and a slate blue text cursor,
