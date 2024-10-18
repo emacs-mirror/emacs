@@ -1443,7 +1443,7 @@ tty_child_size_param (struct frame *child, Lisp_Object key,
 	      val = make_fixnum (XFLOAT_DATA (val) * sz);
 	}
 
-      if (FIXNUMP (val) && XFIXNUM (val) > 0)
+      if (FIXNUMP (val) && XFIXNUM (val) >= 0)
 	return XFIXNUM (val);
     }
   return dflt;
