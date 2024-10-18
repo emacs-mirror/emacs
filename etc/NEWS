@@ -62,8 +62,7 @@ The 'find-function', 'find-library', 'find-face-definition', and
 usual minibuffer history commands.  Each command has a separate history.
 
 ---
-** New minor mode 'find-function-mode'.
-It replaces the old 'find-function-setup-keys'.
+** New minor mode 'find-function-mode' replaces 'find-function-setup-keys'.
 
 ** Minibuffer and Completions
 
