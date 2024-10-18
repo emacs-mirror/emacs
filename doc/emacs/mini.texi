@@ -986,8 +986,8 @@ password.  You may type either @key{RET} or @key{ESC} to submit the
 password.  Any other self-inserting character key inserts the associated
 character into the password, and all other input is ignored.
 
-  There is also an icon at the front of the mode line indicating the
-password visibility.  Clicking @kbd{mouse-1} on it toggles the password
+  There is also an icon in the mode line indicating the password
+visibility.  Clicking @kbd{mouse-1} on it toggles the password
 visibility as well.
 
 @node Yes or No Prompts

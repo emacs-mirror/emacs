@@ -2447,7 +2447,8 @@ off color support.
 
 If the parameter's value is a symbol, it specifies a number through
 the value of @code{tty-color-mode-alist}, and the associated number is
-used instead.
+used instead.  This parameter supports dynamic changes during a running
+Emacs session (but not on MS-Windows and MS-DOS).
 
 @vindex screen-gamma@r{, a frame parameter}
 @item screen-gamma
