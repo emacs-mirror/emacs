@@ -1435,23 +1435,23 @@ tty_child_size_param (struct frame *child, Lisp_Object key,
 	}
       else if (FLOATP (val))
 	{
-	      /* Width and height may be a float, in which case
-		 it's a multiple of the parent's value. */
-	      struct frame *parent = FRAME_PARENT_FRAME (child);
-	      int sz = (EQ (key, Qwidth) ? FRAME_TOTAL_COLS (parent)
-			: FRAME_TOTAL_LINES (parent));
-	      val = make_fixnum (XFLOAT_DATA (val) * sz);
+	  /* Width and height may be a float, in which case
+	     it's a multiple of the parent's value. */
+	  struct frame *parent = FRAME_PARENT_FRAME (child);
+	  int sz = (EQ (key, Qwidth) ? FRAME_TOTAL_COLS (parent)
+		    : FRAME_TOTAL_LINES (parent));
+	  val = make_fixnum (XFLOAT_DATA (val) * sz);
 	}
 
-      if (FIXNUMP (val) && XFIXNUM (val) >= 0)
+      if (FIXNATP (val))
 	return XFIXNUM (val);
     }
   return dflt;
 }
 
 static void
-child_frame_rect (struct frame *f, Lisp_Object params,
-		  int *x, int *y, int *w, int *h)
+tty_child_frame_rect (struct frame *f, Lisp_Object params,
+		      int *x, int *y, int *w, int *h)
 {
   *x = tty_child_pos_param (f, Qleft, params, 0);
   *y = tty_child_pos_param (f, Qtop, params, 0);
@@ -1585,7 +1585,7 @@ affects all frames on the same terminal device.  */)
      terminal size).  */
   int x = 0, y = 0, width, height;
   if (FRAME_PARENT_FRAME (f))
-    child_frame_rect (f, parms, &x, &y, &width, &height);
+    tty_child_frame_rect (f, parms, &x, &y, &width, &height);
   else
     get_tty_size (fileno (FRAME_TTY (f)->input), &width, &height);
   adjust_frame_size (f, width, height - FRAME_TOP_MARGIN (f), 5, 0,
