@@ -533,6 +533,7 @@ an optional alist of possible values."
   "Add \"face\" tags with `facemenu-keymap' commands."
   (let ((tag-face (ensure-list (cdr (assq face sgml-face-tag-alist)))))
     (cond (tag-face
+           (require 'skeleton)
 	   (setq tag-face (funcall skeleton-transformation-function tag-face))
            (setq facemenu-end-add-face
                  (mapconcat (lambda (f) (concat "</" f ">")) (reverse tag-face)))
@@ -851,6 +852,7 @@ If QUIET, do not print a message when there are no attributes for TAG."
             (setq alist (cons '("class") alist)))
           (unless (assoc-string "id" alist)
             (setq alist (cons '("id") alist))))
+        (require 'skeleton)
 	(if (stringp (car alist))
 	    (progn
 	      (insert (if (eq (preceding-char) ?\s) "" ?\s)
