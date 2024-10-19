@@ -63,7 +63,7 @@
 ;;   e.g. filename regexp -> compilation flag
 ;; - window/buffer management.
 ;; - menubar, tooltips, ...
-;; - add mpc-describe-song, mpc-describe-album, ...
+;; - add mpc-describe-album, ...
 ;; - add import/export commands (especially export to an MP3 player).
 ;; - add a real notion of album (as opposed to just album-name):
 ;;   if all songs with same album-name have same artist -> it's an album
@@ -94,6 +94,8 @@
 (require 'cl-lib)
 
 (require 'notifications)
+
+(require 'vtable)
 
 (defgroup mpc ()
   "Client for the Music Player Daemon (mpd)."
@@ -978,11 +980,15 @@ If PLAYLIST is t or nil or missing, use the main playlist."
   :version "28.1")
 
 (defun mpc-secs-to-time (secs)
+  "Convert SECS from a string, integer or float value to a time string."
   ;; We could use `format-seconds', but it doesn't seem worth the trouble
   ;; because we'd still need to check (>= secs (* 60 100)) since the special
   ;; %z only allows us to drop the large units for small values but
   ;; not to drop the small units for large values.
   (if (stringp secs) (setq secs (string-to-number secs)))
+  ;; Ensure secs is an integer.  The Time tag has been deprecated by MPD
+  ;; and its replacement (the duration tag) includes fractional seconds.
+  (if (floatp secs) (setq secs (round secs)))
   (if (>= secs (* 60 100))              ;More than 100 minutes.
       (format "%dh%02d" ;"%d:%02d:%02d"
               (/ secs 3600) (% (/ secs 60) 60)) ;; (% secs 60)
@@ -1180,7 +1186,8 @@ string POST."
   ">"                           #'mpc-next
   "<"                           #'mpc-prev
   "g"                           #'mpc-seek-current
-  "o"                           #'mpc-goto-playing-song)
+  "o"                           #'mpc-goto-playing-song
+  "d"                           #'mpc-describe-song)
 
 (easy-menu-define mpc-mode-menu mpc-mode-map
   "Menu for MPC mode."
@@ -1189,6 +1196,7 @@ string POST."
     ["Next Track" mpc-next]             ;FIXME: Add ⇥ there?
     ["Previous Track" mpc-prev]         ;FIXME: Add ⇤ there?
     ["Seek Within Track" mpc-seek-current]
+    ["Song Details" mpc-describe-song]
     "--"
     ["Repeat Playlist" mpc-toggle-repeat :style toggle
      :selected (member '(repeat . "1") mpc-status)]
@@ -2861,6 +2869,98 @@ will be used.  See `mpc-format' for the definition of FORMAT-SPEC."
                                 :body body
                                 :app-icon icon
                                 :replaces-id mpc--notifications-id))))
+
+;;; Song Viewer ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defface mpc-song-viewer-value
+  '((t (:inherit vtable)))
+  "Face for tag values in the MPC song viewer.")
+
+(defface mpc-song-viewer-tag
+  '((t (:inherit (mpc-song-viewer-value bold))))
+  "Face for tag types in the MPC song viewer.")
+
+(defface mpc-song-viewer-empty
+  '((t (:inherit (mpc-song-viewer-value italic shadow))))
+  "Face for empty tag values in the MPC song viewer.")
+
+(defcustom mpc-song-viewer-tags
+  '("Title" "Artist" "Album" "Performer" "Composer"
+    "Date" "Duration" "Disc" "Track" "Genre" "File")
+  "The list of tags to display with `mpc-describe-song'.
+
+The list of supported tags are available by evaluating
+`mpc-cmd-tagtypes'.  In addition to the standard MPD tags: Bitrate,
+Duration, File, and Format are also supported."
+  :version "31.1"
+  :type '(repeat string))
+
+(defun mpc-describe-song (file)
+  "Show details of the selected song or FILE in the MPC song viewer.
+
+If there is no song at point then information about the currently
+playing song is displayed."
+  (interactive
+   ;; Handle being called from the context menu.  In that case you want
+   ;; to see details for the song you clicked on to invoke the menu not
+   ;; whatever `point' happens to be on at that time.
+   (list (when-let* ((event last-nonmenu-event)
+                     ((listp event))
+                     (position (nth 1 (event-start event))))
+           (get-text-property position 'mpc-file))))
+  (let ((tags (or (when (and file (stringp file))
+                    (mpc-proc-cmd-to-alist (list "search" "file" file)))
+                  (when-let* (((string= (buffer-name) "*MPC-Songs*"))
+                              (file (get-text-property (point) 'mpc-file)))
+                    (mpc-proc-cmd-to-alist (list "search" "file" file)))
+                  (when (assoc 'file mpc-status) mpc-status)))
+        (buffer "*MPC Song Viewer*"))
+    (when tags
+      (with-current-buffer (get-buffer-create buffer)
+        (special-mode)
+        (visual-line-mode)
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (make-vtable
+           :columns '(( :name "Tag"
+                        :align right
+                        :min-width 3
+                        :displayer
+                        (lambda (tag &rest _)
+                          (propertize tag 'face 'mpc-song-viewer-tag)))
+                      ( :name "Value"
+                        :align left
+                        :min-width 5
+                        :displayer
+                        (lambda (value &rest _)
+                          (if (and value (not (string-blank-p value)))
+                              (propertize value 'face 'mpc-song-viewer-value)
+                            (propertize "empty" 'face 'mpc-song-viewer-empty)))))
+           :objects (mapcar
+                     (lambda (tag)
+                       (pcase tag
+                         ("Bitrate"
+                          (list tag (let ((bitrate (alist-get 'bitrate tags)))
+                                      (when bitrate
+                                        (format "%s kpbs" bitrate)))))
+                         ("Duration" (list tag (mpc-secs-to-time
+                                                (alist-get 'duration tags))))
+                         ("File" (list tag (alist-get 'file tags)))
+                         ;; Concatenate all the values of tags which may
+                         ;; occur multiple times.
+                         ((or "Composer" "Genre" "Performer")
+                          (list tag (mapconcat
+                                     (lambda (val) (cdr val))
+                                     (seq-filter
+                                      (lambda (val) (eq (car val) (intern tag)))
+                                      tags)
+                                     "; ")))
+                         (_ (list tag (alist-get (intern tag) tags)))))
+                     mpc-song-viewer-tags))
+          (goto-char (point-min))))
+      (pop-to-buffer buffer '((display-buffer-reuse-window
+                               display-buffer-same-window)
+                              (reusable-frames . t))))))
 
 ;;; Toplevel ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
