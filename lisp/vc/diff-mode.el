@@ -1970,7 +1970,7 @@ SWITCHED is non-nil if the patch is already applied."
                                 diff-context-mid-hunk-header-re nil t)
 			 (error "Can't find the hunk separator"))
 		       (match-string 1)))))
-	   (file (or (diff-find-file-name (xor other reverse) noprompt)
+	   (file (or (diff-find-file-name other noprompt)
                      (error "Can't find the file")))
 	   (revision (and other diff-vc-backend
                           (if reverse (nth 1 diff-vc-revisions)
@@ -2047,7 +2047,7 @@ With a prefix argument, REVERSE the hunk."
                ;; TODO: make it possible to ask explicitly for this behavior.
                ;;
                ;; This is duplicated in diff-test-hunk.
-               (diff-find-source-location deletion reverse)))
+               (diff-find-source-location (xor deletion reverse) reverse)))
     (cond
      ((null line-offset)
       (user-error "Can't find the text to patch"))
