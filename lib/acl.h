@@ -20,7 +20,7 @@
 #ifndef _GL_ACL_H
 #define _GL_ACL_H 1
 
-/* This file uses _GL_ATTRIBUTE_CONST.  */
+/* This file uses _GL_ATTRIBUTE_CONST, _GL_ATTRIBUTE_DEPRECATED.  */
 #if !_GL_CONFIG_H_INCLUDED
  #error "Please include config.h first."
 #endif
@@ -35,10 +35,18 @@ extern "C" {
 
 bool acl_errno_valid (int) _GL_ATTRIBUTE_CONST;
 int file_has_acl (char const *, struct stat const *);
+
 int qset_acl (char const *, int, mode_t);
-int set_acl (char const *, int, mode_t);
+int xset_acl (char const *, int, mode_t);
+/* Old name of xset_acl.  */
+_GL_ATTRIBUTE_DEPRECATED int set_acl (char const *, int, mode_t);
+
 int qcopy_acl (char const *, int, char const *, int, mode_t);
-int copy_acl (char const *, int, char const *, int, mode_t);
+int xcopy_acl (char const *, int, char const *, int, mode_t);
+/* Old name of xcopy_acl.  */
+_GL_ATTRIBUTE_DEPRECATED int copy_acl (char const *, int, char const *, int,
+                                       mode_t);
+
 int chmod_or_fchmod (char const *, int, mode_t);
 
 

@@ -33,6 +33,9 @@
          (expand-file-name "eshell-tests-helpers"
                            (file-name-directory (or load-file-name
                                                     default-directory))))
+
+(defvar eshell-execute-file-output)
+
 ;;; Tests:
 
 (ert-deftest em-script-test/source-script ()
@@ -112,6 +115,21 @@
       (with-temp-eshell-settings
         (eshell-execute-file temp-file '(1 2 3) t))
       (should (equal (buffer-string) "6")))))
+
+(ert-deftest em-script-test/execute-file/output-file ()
+  "Test `eshell-execute-file' redirecting to a file."
+  (ert-with-temp-file temp-file :text "echo more"
+    (ert-with-temp-file output-file :text "initial"
+      (with-temp-eshell-settings
+        (eshell-execute-file temp-file nil output-file))
+      (should (equal (eshell-test-file-string output-file) "moreinitial")))))
+
+(ert-deftest em-script-test/execute-file/output-symbol ()
+  "Test `eshell-execute-file' redirecting to a symbol."
+  (ert-with-temp-file temp-file :text "echo hi\necho bye"
+    (with-temp-eshell-settings
+      (eshell-execute-file temp-file nil 'eshell-execute-file-output))
+    (should (equal eshell-execute-file-output "hibye"))))
 
 (ert-deftest em-script-test/batch-file ()
   "Test running an Eshell script file as a batch script."

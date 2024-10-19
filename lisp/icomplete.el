@@ -139,9 +139,17 @@ See `icomplete-delay-completions-threshold'."
   :type 'integer)
 
 (defcustom icomplete-in-buffer nil
-  "If non-nil, also use Icomplete when completing in non-mini buffers.
+  "If non-nil, use Icomplete when completing in buffers other than minibuffer.
 This affects commands like `completion-in-region', but not commands
-that use their own completions setup."
+that use their own completions setup.
+
+If you would prefer to see only Icomplete's in-buffer display, but do
+not want the \"*Completions*\" buffer to pop up in those cases, add
+this advice to your init file:
+
+  (advice-add \\='completion-at-point
+              :after #\\='minibuffer-hide-completions)
+"
   :type 'boolean)
 
 (defcustom icomplete-minibuffer-setup-hook nil
@@ -1007,7 +1015,11 @@ matches exist."
                                   (or determ (concat open-bracket close-bracket)))
                                  (string-width icomplete-separator)
                                  (+ 2 (string-width ellipsis)) ;; take {…} into account
-                                 (string-width (buffer-string))))
+                                 (string-width
+                                  (buffer-substring (save-excursion
+                                                      (goto-char (icomplete--field-beg))
+                                                      (pos-bol))
+                                                    (icomplete--field-end)))))
                (prospects-max
                 ;; Max total length to use, including the minibuffer content.
                 (* (+ icomplete-prospects-height

@@ -330,16 +330,12 @@
 
     (ert-info ("Server buffer")
       (with-current-buffer (get-buffer-create "ServNet")
-        (erc-tests-common-prep-for-insertion)
+        (erc-tests-common-make-server-buf "ServNet")
         (goto-char erc-insert-marker)
         (should (looking-at-p "ServNet 3>"))
         (erc-tests-common-init-server-proc "sleep" "1")
         (set-process-sentinel erc-server-process #'ignore)
-        (setq erc-network 'ServNet
-              erc-server-current-nick "tester"
-              erc-networks--id (erc-networks--id-create nil)
-              erc-server-users (make-hash-table :test 'equal))
-        (set-process-query-on-exit-flag erc-server-process nil)
+        (setq erc-server-current-nick "tester")
         ;; Incoming message redraws prompt
         (erc-display-message nil 'notice nil "Welcome")
         (should (looking-at-p (rx "*** Welcome")))
@@ -364,6 +360,8 @@
           (should-not (search-forward (rx (any "3-5") ">") nil t)))))
 
     (ert-info ("Channel buffer")
+      ;; Create buffer manually instead of using `erc--open-target' in
+      ;; order to show prompt before/after network is known.
       (with-current-buffer (get-buffer-create "#chan")
         (erc-tests-common-prep-for-insertion)
         (goto-char erc-insert-marker)
@@ -931,13 +929,19 @@
 
   (setq erc--isupport-params (make-hash-table)
         erc--target (erc--target-from-string "#test")
+        erc--channel-banlist-synchronized-p t
         erc-server-parameters
         '(("CHANMODES" . "eIbq,k,flj,CFLMPQRSTcgimnprstuz")))
 
   (erc-tests-common-init-server-proc "sleep" "1")
 
-  (cl-letf (((symbol-function 'erc-update-mode-line) #'ignore))
-    (erc--update-channel-modes "+bltk" "fool!*@*" "3" "h2"))
+  (cl-letf ((erc--parsed-response (make-erc-response
+                                   :sender "chop!~u@gnu.org"))
+            ((symbol-function 'erc-update-mode-line) #'ignore))
+    (should-not erc-channel-banlist)
+    (erc--update-channel-modes "+bbltk" "fool!*@*" "spam!*@*" "3" "h2")
+    (should (equal erc-channel-banlist '(("chop!~u@gnu.org" . "spam!*@*")
+                                         ("chop!~u@gnu.org" . "fool!*@*")))))
 
   (should (equal (erc--channel-modes 'string) "klt"))
   (should (equal (erc--channel-modes 'strings) '("k" "l" "t")))
@@ -982,11 +986,16 @@
   (erc-tests-common-init-server-proc "sleep" "1")
   (setq erc--isupport-params (make-hash-table)
         erc--target (erc--target-from-string "#test")
+        erc--channel-banlist-synchronized-p t
         erc-server-parameters
         '(("CHANMODES" . "eIbq,k,flj,CFLMPQRSTcgimnprstuz")))
 
-  (cl-letf (((symbol-function 'erc-update-mode-line) #'ignore))
-    (erc--update-channel-modes "+bltk" "fool!*@*" "3" "hun2"))
+  (cl-letf ((erc--parsed-response (make-erc-response
+                                   :sender "chop!~u@gnu.org"))
+            ((symbol-function 'erc-update-mode-line) #'ignore))
+    (should-not erc-channel-banlist)
+    (erc--update-channel-modes "+bltk" "fool!*@*" "3" "hun2")
+    (should (equal erc-channel-banlist '(("chop!~u@gnu.org" . "fool!*@*")))))
 
   ;; Truncation cache populated and used.
   (let ((cache (erc--channel-mode-types-shortargs erc--channel-mode-types))
@@ -1521,6 +1530,7 @@
 (ert-deftest erc--check-prompt-input-functions ()
   (erc-tests-common-with-process-input-spy
    (lambda (next)
+     (erc-tests-common-prep-for-insertion)
 
      (ert-info ("Errors when point not in prompt area") ; actually just dings
        (insert "/msg #chan hi")
@@ -1556,7 +1566,7 @@
 (ert-deftest erc-send-current-line ()
   (erc-tests-common-with-process-input-spy
    (lambda (next)
-     (erc-tests-common-init-server-proc "sleep" "1")
+     (erc-tests-common-make-server-buf (buffer-name))
      (should (= 0 erc-last-input-time))
 
      (ert-info ("Simple command")
@@ -1639,7 +1649,8 @@
   (ert-with-message-capture messages
     (erc-tests-common-with-process-input-spy
      (lambda (next)
-       (erc-tests-common-init-server-proc "sleep" "300")
+       (erc-tests-common-make-server-buf (buffer-name))
+
        (should-not erc-send-whitespace-lines)
        (should erc-warn-about-blank-lines)
 
@@ -1717,7 +1728,8 @@
 (ert-deftest erc-send-whitespace-lines ()
   (erc-tests-common-with-process-input-spy
    (lambda (next)
-     (erc-tests-common-init-server-proc "sleep" "1")
+     (erc-tests-common-make-server-buf (buffer-name))
+
      (setq-local erc-send-whitespace-lines t)
 
      (ert-info ("Multiline hunk with blank line correctly split")
@@ -1921,6 +1933,10 @@
 (ert-deftest erc--get-inserted-msg-beg/basic ()
   (erc-tests-common-assert-get-inserted-msg/basic
    (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
+
+(ert-deftest erc--get-inserted-msg-beg/truncated ()
+  (erc-tests-common-assert-get-inserted-msg/truncated
+   (lambda (arg) (should (= 1 (erc--get-inserted-msg-beg arg))))))
 
 (ert-deftest erc--get-inserted-msg-end/basic ()
   (erc-tests-common-assert-get-inserted-msg/basic
@@ -2652,6 +2668,58 @@
     (apply #'erc-format-message
            (erc--determine-speaker-message-format-args nick msg privp msgp
                                                        inputp nil pfx))))
+
+;; This test demonstrates that ERC uses the same string for the
+;; `erc--spkr' and `erc--speaker' text properties, which it gets from
+;; the `nickname' shot of the speaker's server user.
+(ert-deftest erc--speakerize-nick ()
+  (erc-tests-common-make-server-buf)
+  (setq erc-server-current-nick "tester")
+
+  (let ((sentinel "alice"))
+    (with-current-buffer (erc--open-target "#chan")
+      (erc-update-current-channel-member "bob" "bob" t nil nil nil nil nil
+                                         "example.org" "~u" "bob")
+      (erc-update-current-channel-member "alice" sentinel t nil nil nil nil nil
+                                         "fsf.org" "~u" "alice"))
+
+    (erc-call-hooks nil (make-erc-response
+                         :sender "alice!~u@fsf.org"
+                         :command "PRIVMSG"
+                         :command-args '("#chan" "one")
+                         :contents "one"
+                         :unparsed ":alice!~u@fsf.org PRIVMSG #chan :one"))
+    (erc-call-hooks nil (make-erc-response
+                         :sender "bob!~u@example.org"
+                         :command "PRIVMSG"
+                         :command-args '("#chan" "hi")
+                         :contents "hi"
+                         :unparsed ":bob!~u@example.org PRIVMSG #chan :hi"))
+    (erc-call-hooks nil (make-erc-response
+                         :sender "alice!~u@fsf.org"
+                         :command "PRIVMSG"
+                         :command-args '("#chan" "two")
+                         :contents "two"
+                         :unparsed ":alice!~u@fsf.org PRIVMSG #chan :two"))
+
+    (with-current-buffer (get-buffer "#chan")
+      (should (eq sentinel
+                  (erc-server-user-nickname (erc-get-server-user "alice"))))
+      (goto-char (point-min))
+
+      (should (search-forward "<a" nil t))
+      (should (looking-at "lice> one"))
+      (should (eq (get-text-property (point) 'erc--speaker) sentinel))
+      (should (eq (erc--get-inserted-msg-prop 'erc--spkr) sentinel))
+
+      (should (search-forward "<bob> hi" nil t))
+
+      (should (search-forward "<a" nil t))
+      (should (looking-at "lice> two"))
+      (should (eq (get-text-property (point) 'erc--speaker) sentinel))
+      (should (eq (erc--get-inserted-msg-prop 'erc--spkr) sentinel))
+
+      (when noninteractive (kill-buffer)))))
 
 ;; This asserts that `erc--determine-speaker-message-format-args'
 ;; behaves identically to `erc-format-privmessage', the function whose

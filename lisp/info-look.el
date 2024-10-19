@@ -30,6 +30,8 @@
 ;; Scheme: https://groups.csail.mit.edu/mac/ftpdir/scm/r5rs.info.tar.gz
 ;; LaTeX: https://mirrors.ctan.org/info/latex2e-help-texinfo/latex2e.texi
 ;;  (or CTAN mirrors)
+;; Python: https://www.python.org/ftp/python/doc/
+;; SICP: https://github.com/webframp/sicp-info
 
 ;; Traditionally, makeinfo quoted `like this', but version 5 and later
 ;; quotes 'like this' or ‘like this’.  Doc specs with patterns
@@ -46,11 +48,9 @@
   "Major mode sensitive help agent."
   :group 'help :group 'languages)
 
-(defvar info-lookup-mode nil
+(defvar-local info-lookup-mode nil
   "Symbol of the current buffer's help mode.
-Help is provided according to the buffer's major mode if value is nil.
-Automatically becomes buffer local when set in any fashion.")
-(make-variable-buffer-local 'info-lookup-mode)
+Help is provided according to the buffer's major mode if value is nil.")
 
 (defcustom info-lookup-other-window-flag t
  "Non-nil means pop up the Info buffer in another window."
@@ -868,12 +868,12 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'texinfo-mode
  :regexp "@\\([a-zA-Z]+\\|[^a-zA-Z]\\)"
- :doc-spec '(("(texinfo)Command and Variable Index"
-	      ;; Ignore Emacs commands and prepend a `@'.
-	      (lambda (item)
-		(if (string-match "^\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\( .*\\)?$" item)
-		    (concat "@" (match-string 1 item))))
-	      "['`‘]" "['’ ]")))
+ :doc-spec `(("(texinfo)Command and Variable Index"
+              ;; Ignore Emacs commands and prepend a `@'.
+              ,(lambda (item)
+                 (if (string-match "^\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\( .*\\)?$" item)
+                     (concat "@" (match-string 1 item))))
+              "['`‘]" "['’ ]")))
 
 (info-lookup-maybe-add-help
  :mode 'm4-mode
@@ -884,31 +884,31 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'autoconf-mode
  :regexp "A[CM]_[_A-Z0-9]+"
- :doc-spec '(;; Autoconf Macro Index entries are without an "AC_" prefix,
-	     ;; but with "AH_" or "AU_" for those.  So add "AC_" if there
-	     ;; isn't already an "A._".
+ :doc-spec `(;; Autoconf Macro Index entries are without an "AC_" prefix,
+             ;; but with "AH_" or "AU_" for those.  So add "AC_" if there
+             ;; isn't already an "A._".
              ("(autoconf)Autoconf Macro Index"
-              (lambda (item)
-                (if (string-match "^A._" item) item (concat "AC_" item)))
-	      "^[ \t]+-+ \\(Macro\\|Variable\\): .*\\<" "\\>")
+              ,(lambda (item)
+                 (if (string-match "^A._" item) item (concat "AC_" item)))
+              "^[ \t]+-+ \\(Macro\\|Variable\\): .*\\<" "\\>")
              ;; M4 Macro Index entries are without "AS_" prefixes, and
              ;; mostly without "m4_" prefixes.  "dnl" is an exception, not
              ;; wanting any prefix.  So AS_ is added back to upper-case
              ;; names (if needed), m4_ to others which don't already an m4_.
              ("(autoconf)M4 Macro Index"
-              (lambda (item)
-                (let ((case-fold-search nil))
-                  (cond ((or (string-equal item "dnl")
-                             (string-match "^m4_" item)
-                             ;; Autoconf 2.62 index includes some macros
-                             ;; (e.g., AS_HELP_STRING), so avoid prefixing.
-                             (string-match "^AS_" item))
-                         item)
-                        ((string-match "^[A-Z0-9_]+$" item)
-                         (concat "AS_" item))
-                        (t
-                         (concat "m4_" item)))))
-	      "^[ \t]+-+ Macro: .*\\<" "\\>")
+              ,(lambda (item)
+                 (let ((case-fold-search nil))
+                   (cond ((or (string-equal item "dnl")
+                              (string-match "^m4_" item)
+                              ;; Autoconf 2.62 index includes some macros
+                              ;; (e.g., AS_HELP_STRING), so avoid prefixing.
+                              (string-match "^AS_" item))
+                          item)
+                         ((string-match "^[A-Z0-9_]+$" item)
+                          (concat "AS_" item))
+                         (t
+                          (concat "m4_" item)))))
+              "^[ \t]+-+ Macro: .*\\<" "\\>")
              ;; Autotest Macro Index entries are without "AT_".
              ("(autoconf)Autotest Macro Index" "AT_"
 	      "^[ \t]+-+ Macro: .*\\<" "\\>")
@@ -927,62 +927,65 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'awk-mode
  :regexp "[_a-zA-Z]+"
- :doc-spec '(("(gawk)Index"
-	      (lambda (item)
-		(let ((case-fold-search nil))
-		  (cond
-		   ;; `BEGIN' and `END'.
-		   ((string-match "^\\([A-Z]+\\) special pattern\\b" item)
-		    (match-string 1 item))
-		   ;; `if', `while', `do', ...
-		   ((string-match "^\\([a-z]+\\) statement\\b" item)
-		    (if (not (string-equal (match-string 1 item) "control"))
-			(match-string 1 item)))
-		   ;; `NR', `NF', ...
-		   ((string-match "^[A-Z]+$" item)
-		    item)
-		   ;; Built-in functions (matches to many entries).
-		   ((string-match "^[a-z]+$" item)
-		    item))))
-	      "['`‘]" "\\([ \t]*([^)]*)\\)?['’]")))
+ :doc-spec `(("(gawk)Index"
+              ,(lambda (item)
+                 (let ((case-fold-search nil))
+                   (cond
+                    ;; `BEGIN' and `END'.
+                    ((string-match "^\\([A-Z]+\\) special pattern\\b" item)
+                     (match-string 1 item))
+                    ;; `if', `while', `do', ...
+                    ((string-match "^\\([a-z]+\\) statement\\b" item)
+                     (if (not (string-equal (match-string 1 item) "control"))
+                         (match-string 1 item)))
+                    ;; `NR', `NF', ...
+                    ((string-match "^[A-Z]+$" item)
+                     item)
+                    ;; Built-in functions (matches to many entries).
+                    ((string-match "^[a-z]+$" item)
+                     item))))
+              "['`‘]" "\\([ \t]*([^)]*)\\)?['’]")))
 
 (info-lookup-maybe-add-help
  :mode 'perl-mode
  :regexp "[$@%][^a-zA-Z]\\|\\$\\^[A-Z]\\|[$@%]?[a-zA-Z][_a-zA-Z0-9]*"
- :doc-spec '(("(perl5)Function Index"
-	      (lambda (item)
-		(if (string-match "^\\([a-zA-Z0-9]+\\)" item)
-		    (match-string 1 item)))
-	      "^" "\\b")
-	     ("(perl5)Variable Index"
-	      (lambda (item)
-		;; Work around bad formatted array variables.
-		(let ((sym (cond ((or (string-match "^\\$\\(.\\|@@\\)$" item)
-				      (string-match "^\\$\\^[A-Z]$" item))
-				  item)
-				 ((string-match
-				   "^\\([$%@]\\|@@\\)?[_a-zA-Z0-9]+" item)
-				  (match-string 0 item))
-				 (t ""))))
-		  (if (string-match "@@" sym)
-		      (setq sym (concat (substring sym 0 (match-beginning 0))
-					(substring sym (1- (match-end 0))))))
-		  (if (string-equal sym "") nil sym)))
-	      "^" "\\b"))
+ :doc-spec `(("(perl5)Function Index"
+              ,(lambda (item)
+                 (if (string-match "^\\([a-zA-Z0-9]+\\)" item)
+                     (match-string 1 item)))
+              "^" "\\b")
+             ("(perl5)Variable Index"
+              ,(lambda (item)
+                 ;; Work around bad formatted array variables.
+                 (let ((sym (cond ((or (string-match "^\\$\\(.\\|@@\\)$" item)
+                                       (string-match "^\\$\\^[A-Z]$" item))
+                                   item)
+                                  ((string-match
+                                    "^\\([$%@]\\|@@\\)?[_a-zA-Z0-9]+" item)
+                                   (match-string 0 item))
+                                  (t ""))))
+                   (if (string-match "@@" sym)
+                       (setq sym (concat (substring sym 0 (match-beginning 0))
+                                         (substring sym (1- (match-end 0))))))
+                   (if (string-equal sym "") nil sym)))
+              "^" "\\b"))
  :parse-rule "[$@%]?\\([_a-zA-Z0-9]+\\|[^a-zA-Z]\\)")
 
 (info-lookup-maybe-add-help
  :mode 'python-mode
  ;; Debian includes Python info files, but they're version-named
  ;; instead of having a symlink.
- :doc-spec-function (lambda ()
-                      (list
-                       (list
-                        (cl-loop for version from 20 downto 7
-                                 for name = (format "python3.%d" version)
-                                 if (Info-find-file name t)
-                                 return (format "(%s)Index" name)
-                                 finally return "(python)Index")))))
+ :doc-spec-function
+ (lambda ()
+   ;; Python is released annually (PEP 602).
+   (let* ((yy (- (decoded-time-year (decode-time (current-time))) 2000))
+          (manual (cl-loop for version from yy downto 7
+                           for name = (format "python3.%d" version)
+                           if (Info-find-file name t)
+                           return name
+                           finally return "python")))
+     `((,(format "(%s)Index" manual))
+       (,(format "(%s)Python Module Index" manual))))))
 
 (info-lookup-maybe-add-help
  :mode 'perl-mode
@@ -1081,6 +1084,7 @@ Return nil if there is nothing appropriate in the buffer near point."
    ("srecode" "Index")
    ("tramp" "Variable Index" "Function Index")
    ("url" "Variable Index" "Function Index")
+   ("use-package" "Index")
    ("vhdl" "(vhdl-mode)Variable Index" "(vhdl-mode)Command Index")
    ("viper" "Variable Index" "Function Index")
    ("vtable" "Index")
@@ -1101,6 +1105,11 @@ Return nil if there is nothing appropriate in the buffer near point."
  :other-modes '(emacs-lisp-mode))
 
 (info-lookup-maybe-add-help
+ :mode 'inferior-emacs-lisp-mode
+ :regexp "[^][()`'‘’,:\" \t\n]+"
+ :other-modes '(emacs-lisp-mode))
+
+(info-lookup-maybe-add-help
  :mode 'lisp-mode
  :regexp "[^()`'‘’,\" \t\n]+"
  :parse-rule 'ignore
@@ -1117,19 +1126,19 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'octave-mode
  :regexp "[_a-zA-Z0-9]+\\|\\s.+\\|[-!=^|*/.\\,><~&+]\\{1,3\\}\\|[][();,\"']"
- :doc-spec '(("(octave)Function Index" nil
-	      "^ -+ [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)
-	     ("(octave)Variable Index" nil "^ -+ [^:]+:[ ]+" nil)
+ :doc-spec `(("(octave)Function Index" nil
+              "^ -+ [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)
+             ("(octave)Variable Index" nil "^ -+ [^:]+:[ ]+" nil)
              ("(octave)Operator Index" nil nil nil)
-	     ;; Catch lines of the form "xyz statement"
-	     ("(octave)Concept Index"
-	      (lambda (item)
-		(cond
-		 ((string-match "^\\([A-Z]+\\) statement\\b" item)
-		    (match-string 1 item))
-		 (t nil)))
-	      nil; "^ -+ [^:]+:[ ]+" don't think this prefix is useful here.
-	      nil)))
+             ;; Catch lines of the form "xyz statement"
+             ("(octave)Concept Index"
+              ,(lambda (item)
+                 (cond
+                  ((string-match "^\\([A-Z]+\\) statement\\b" item)
+                   (match-string 1 item))
+                  (t nil)))
+              nil; "^ -+ [^:]+:[ ]+" don't think this prefix is useful here.
+              nil)))
 
 (info-lookup-maybe-add-help
  :mode 'maxima-mode
@@ -1160,7 +1169,7 @@ Return nil if there is nothing appropriate in the buffer near point."
  ;; bash has "." and ":" in its index, but those chars will probably never
  ;; work in info, so don't bother matching them in the regexp.
  :regexp "\\([a-zA-Z0-9_-]+\\|[!{}@*#?$]\\|\\[\\[?\\|]]?\\)"
- :doc-spec '(("(bash)Builtin Index"       nil "^['`‘]" "[ .'’]")
+ :doc-spec `(("(bash)Builtin Index"       nil "^['`‘]" "[ .'’]")
              ("(bash)Reserved Word Index" nil "^['`‘]" "[ .'’]")
              ("(bash)Variable Index"      nil "^['`‘]" "[ .'’]")
 
@@ -1171,30 +1180,30 @@ Return nil if there is nothing appropriate in the buffer near point."
              ;; versions have node "Index", look for both, whichever is
              ;; absent is quietly ignored
              ("(coreutils)Index"
-              (lambda (item) (if (string-match "\\`[a-z]+\\'" item) item)))
+              ,(lambda (item) (if (string-match "\\`[a-z]+\\'" item) item)))
              ("(coreutils)Concept Index"
-              (lambda (item) (if (string-match "\\`[a-z]+\\'" item) item)))
+              ,(lambda (item) (if (string-match "\\`[a-z]+\\'" item) item)))
 
              ;; diff (version 2.8.1) has only a few programs, index entries
              ;; are things like "foo invocation".
              ("(diff)Index"
-              (lambda (item)
-		(if (string-match "\\`\\([a-z]+\\) invocation\\'" item)
-                    (match-string 1 item))))
+              ,(lambda (item)
+                 (if (string-match "\\`\\([a-z]+\\) invocation\\'" item)
+                     (match-string 1 item))))
              ;; there's no plain "sed" index entry as such, mung another
              ;; hopefully unique one to get to the invocation section
              ("(sed)Concept Index"
-              (lambda (item)
-                (if (string-equal item "Standard input, processing as input")
-                    "sed")))
+              ,(lambda (item)
+                 (if (string-equal item "Standard input, processing as input")
+                     "sed")))
              ;; there's no plain "awk" or "gawk" index entries, mung other
              ;; hopefully unique ones to get to the command line options
              ("(gawk)Index"
-              (lambda (item)
-                (cond ((string-equal item "gawk, extensions, disabling")
-                       "awk")
-                      ((string-equal item "gawk, versions of, information about, printing")
-                       "gawk"))))))
+              ,(lambda (item)
+                 (cond ((string-equal item "gawk, extensions, disabling")
+                        "awk")
+                       ((string-equal item "gawk, versions of, information about, printing")
+                        "gawk"))))))
 
 ;; This misses some things which occur as node names but not in the
 ;; index.  Unfortunately it also picks up the wrong one of multiple
@@ -1202,15 +1211,15 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'cfengine-mode
  :regexp "[[:alnum:]_]+\\(?:()\\)?"
- :doc-spec '(("(cfengine-Reference)Variable Index"
-	      (lambda (item)
-		;; Index entries may be like `IsPlain()'
-		(if (string-match "\\([[:alnum:]_]+\\)()" item)
-		    (match-string 1 item)
-		  item))
-	      ;; This gets functions in evaluated classes.  Other
-	      ;; possible patterns don't seem to work too well.
-	      "['`‘]" "(")))
+ :doc-spec `(("(cfengine-Reference)Variable Index"
+              ,(lambda (item)
+                 ;; Index entries may be like `IsPlain()'
+                 (if (string-match "\\([[:alnum:]_]+\\)()" item)
+                     (match-string 1 item)
+                   item))
+              ;; This gets functions in evaluated classes.  Other
+              ;; possible patterns don't seem to work too well.
+              "['`‘]" "(")))
 
 (info-lookup-maybe-add-help
  :mode 'Custom-mode

@@ -101,6 +101,13 @@
 ;;   (princ event))
 
 (defun w32-handle-dropped-file (window file-name)
+  (dnd-handle-multiple-urls
+   window
+   (list
+    (w32-dropped-file-to-url file-name))
+   'private))
+
+(defun w32-dropped-file-to-url (file-name)
   (let ((f (if (eq system-type 'cygwin)
                (cygwin-convert-file-name-from-windows file-name t)
              (subst-char-in-string ?\\ ?/ file-name)))
@@ -117,18 +124,22 @@
                      (split-string (encode-coding-string f coding)
                                    "/")
                      "/")))
-  ;; FIXME: is the W32 build capable only of receiving a single file
-  ;; from each drop?
-  (dnd-handle-multiple-urls window (list (concat
-			                  (if (eq system-type 'cygwin)
-				              "file://"
-			                    "file:")
-			                  file-name))
-                            'private))
+  (concat
+   (if (eq system-type 'cygwin)
+       "file://"
+     "file:")
+   file-name))
 
 (defun w32-drag-n-drop (event &optional new-frame)
-  "Edit the files listed in the drag-n-drop EVENT.
-Switch to a buffer editing the last file dropped."
+  "Perform drag-n-drop action according to data in EVENT.
+If EVENT is for one or more files, visit those files in corresponding
+buffers, and switch to the buffer that visits the last dropped file.
+If EVENT is for text, insert that text at point into the buffer
+shown in the window that is the target of the drop; if that buffer is
+read-only, add the dropped text to kill-ring.
+If the optional argument NEW-FRAME is non-nil, perform the
+drag-n-drop action in a newly-created frame using its selected-window
+and that window's buffer."
   (interactive "e")
   (save-excursion
     ;; Make sure the drop target has positive co-ords
@@ -136,6 +147,7 @@ Switch to a buffer editing the last file dropped."
     ;; won't work.  <skx@tardis.ed.ac.uk>
     (let* ((window (posn-window (event-start event)))
 	   (coords (posn-x-y (event-start event)))
+           (arg (car (cdr (cdr event))))
 	   (x (car coords))
 	   (y (cdr coords)))
       (if (and (> x 0) (> y 0))
@@ -146,8 +158,14 @@ Switch to a buffer editing the last file dropped."
       (raise-frame)
       (setq window (selected-window))
 
-      (mapc (apply-partially #'w32-handle-dropped-file window)
-            (car (cdr (cdr event)))))))
+      ;; arg (the payload of the event) is a string when the drop is
+      ;; text, and a list of strings when the drop is one or more files.
+      (if (stringp arg)
+          (dnd-insert-text window 'copy arg)
+        (dnd-handle-multiple-urls
+         window
+         (mapcar #'w32-dropped-file-to-url arg)
+         'private)))))
 
 (defun w32-drag-n-drop-other-frame (event)
   "Edit the files listed in the drag-n-drop EVENT, in other frames.

@@ -122,10 +122,21 @@
 (defun iso8601-parse (string &optional form)
   "Parse an ISO 8601 date/time string and return a `decode-time' structure.
 
-The ISO 8601 date/time strings look like \"2008-03-02T13:47:30\",
+The ISO 8601 date/time strings look like \"2008-03-02T13:47:30\"
+or \"2024-04-05T14:30Z\" or \"2024-04-05T12:30−02:00\",
 but shorter, incomplete strings like \"2008-03-02\" are valid, as
 well as variants like \"2008W32\" (week number) and
 \"2008-234\" (ordinal day number).
+Values returned are identical to those of `decode-time', except
+that an unknown DST value is -1 and other unknown values are nil.
+
+Note that, unlike `decode-time', this function does not interpret
+the time string, and in particular the time-zone designator or UTC
+offset that is part of STRING does not affect the returned value of
+date and time, it only affects the last two members of the returned
+value.  This function simply parses the textual representation of
+date and time into separate numerical values, and doesn't care
+whether the time is local or UTC.
 
 See `decode-time' for the meaning of FORM."
   (if (not (iso8601-valid-p string))

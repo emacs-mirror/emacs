@@ -582,16 +582,6 @@ json_out_something (json_out_t *jo, Lisp_Object obj)
     wrong_type_argument (Qjson_value_p, obj);
 }
 
-static Lisp_Object
-json_out_to_string (json_out_t *jo)
-{
-  /* FIXME: should this be a unibyte or multibyte string?
-     Right now we make a multibyte string for test compatibility,
-     but we are really encoding so unibyte would make more sense.  */
-  ptrdiff_t nchars = jo->size - jo->chars_delta;
-  return make_multibyte_string (jo->buf, nchars, jo->size);
-}
-
 static void
 json_serialize (json_out_t *jo, Lisp_Object object,
 		ptrdiff_t nargs, Lisp_Object *args)
@@ -619,7 +609,7 @@ json_serialize (json_out_t *jo, Lisp_Object object,
 
 DEFUN ("json-serialize", Fjson_serialize, Sjson_serialize, 1, MANY,
        NULL,
-       doc: /* Return the JSON representation of OBJECT as a string.
+       doc: /* Return the JSON representation of OBJECT as a unibyte string.
 
 OBJECT is translated as follows:
 
@@ -652,7 +642,7 @@ usage: (json-serialize OBJECT &rest ARGS)  */)
   specpdl_ref count = SPECPDL_INDEX ();
   json_out_t jo;
   json_serialize (&jo, args[0], nargs - 1, args + 1);
-  return unbind_to (count, json_out_to_string (&jo));
+  return unbind_to (count, make_unibyte_string (jo.buf, jo.size));
 }
 
 DEFUN ("json-insert", Fjson_insert, Sjson_insert, 1, MANY,
@@ -1691,43 +1681,10 @@ json_parse_value (struct json_parser *parser, int c)
     }
 }
 
-enum ParseEndBehavior
-  {
-    PARSEENDBEHAVIOR_CheckForGarbage,
-    PARSEENDBEHAVIOR_MovePoint
-  };
-
 static Lisp_Object
-json_parse (struct json_parser *parser,
-	    enum ParseEndBehavior parse_end_behavior)
+json_parse (struct json_parser *parser)
 {
-  int c = json_skip_whitespace (parser);
-
-  Lisp_Object result = json_parse_value (parser, c);
-
-  switch (parse_end_behavior)
-    {
-    case PARSEENDBEHAVIOR_CheckForGarbage:
-      c = json_skip_whitespace_if_possible (parser);
-      if (c >= 0)
-	json_signal_error (parser, Qjson_trailing_content);
-      break;
-    case PARSEENDBEHAVIOR_MovePoint:
-      {
-	ptrdiff_t byte = (PT_BYTE + parser->input_current - parser->input_begin
-			  + parser->additional_bytes_count);
-	ptrdiff_t position;
-	if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	  position = byte;
-	else
-	  position = PT + parser->point_of_current_line + parser->current_column;
-
-	SET_PT_BOTH (position, byte);
-	break;
-      }
-    }
-
-  return result;
+  return json_parse_value (parser, json_skip_whitespace (parser));
 }
 
 DEFUN ("json-parse-string", Fjson_parse_string, Sjson_parse_string, 1, MANY,
@@ -1771,10 +1728,12 @@ usage: (json-parse-string STRING &rest ARGS) */)
   const unsigned char *begin = SDATA (string);
   json_parser_init (&p, conf, begin, begin + SBYTES (string), NULL, NULL);
   record_unwind_protect_ptr (json_parser_done, &p);
+  Lisp_Object result = json_parse (&p);
 
-  return unbind_to (count,
-		    json_parse (&p,
-				PARSEENDBEHAVIOR_CheckForGarbage));
+  if (json_skip_whitespace_if_possible (&p) >= 0)
+    json_signal_error (&p, Qjson_trailing_content);
+
+  return unbind_to (count, result);
 }
 
 DEFUN ("json-parse-buffer", Fjson_parse_buffer, Sjson_parse_buffer,
@@ -1832,9 +1791,17 @@ usage: (json-parse-buffer &rest args) */)
   json_parser_init (&p, conf, begin, end, secondary_begin,
 		    secondary_end);
   record_unwind_protect_ptr (json_parser_done, &p);
+  Lisp_Object result = json_parse (&p);
 
-  return unbind_to (count,
-		    json_parse (&p, PARSEENDBEHAVIOR_MovePoint));
+  ptrdiff_t byte = (PT_BYTE + p.input_current - p.input_begin
+		    + p.additional_bytes_count);
+  ptrdiff_t position = (NILP (BVAR (current_buffer,
+				    enable_multibyte_characters))
+			? byte
+			: PT + p.point_of_current_line + p.current_column);
+  SET_PT_BOTH (position, byte);
+
+  return unbind_to (count, result);
 }
 
 void

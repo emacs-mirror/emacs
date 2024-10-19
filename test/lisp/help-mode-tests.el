@@ -92,7 +92,7 @@ Lisp concepts such as car, cdr, cons cell and list.")
 
 (ert-deftest help-mode-tests-xref-on-pp ()
   (with-temp-buffer
-    (insert (pp '(cons fill-column)))
+    (pp '(cons fill-column) (current-buffer))
     (help-xref-on-pp (point-min) (point-max))
     (goto-char (point-min))
     (search-forward "co")

@@ -88,8 +88,9 @@ or else the correct item might not be found in the `*Completions*' buffer."
 (defcustom tmm-completion-prompt
   "Press PageUp key to reach this buffer from the minibuffer.
 Alternatively, you can use Up/Down keys (or your History keys) to change
-the item in the minibuffer, and press RET when you are done, or press the
-marked letters to pick up your choice.  Type C-g or ESC ESC ESC to cancel.
+the item in the minibuffer, and press RET when you are done, or press
+the marked letters to pick up your choice.  Type ^ to go to the parent
+menu.  Type C-g or ESC ESC ESC to cancel.
 "
   "Help text to insert on the top of the completion buffer.
 To save space, you can set this to nil,
@@ -123,7 +124,7 @@ specify nil for this variable."
 (defvar tmm--history nil)
 
 ;;;###autoload
-(defun tmm-prompt (menu &optional in-popup default-item no-execute)
+(defun tmm-prompt (menu &optional in-popup default-item no-execute path)
   "Text-mode emulation of calling the bindings in keymap.
 Creates a text-mode menu of possible choices.  You can access the elements
 in the menu in two ways:
@@ -136,7 +137,9 @@ keymap or an alist of alists.
 DEFAULT-ITEM, if non-nil, specifies an initial default choice.
 Its value should be an event that has a binding in MENU.
 NO-EXECUTE, if non-nil, means to return the command the user selects
-instead of executing it."
+instead of executing it.
+PATH is a stack that keeps track of your path through sub-menus.  It
+is used to go back through those sub-menus."
   ;; If the optional argument IN-POPUP is t,
   ;; then MENU is an alist of elements of the form (STRING . VALUE).
   ;; That is used for recursive calls only.
@@ -227,22 +230,28 @@ instead of executing it."
                                 " (up/down to change, PgUp to menu): ")
                         (tmm--completion-table tmm-km-list) nil t nil
                         'tmm--history (reverse tmm--history)))))))
-      (setq choice (cdr (assoc out tmm-km-list)))
-      (and (null choice)
-           (string-prefix-p tmm-c-prompt out)
-	   (setq out (substring out (length tmm-c-prompt))
-		 choice (cdr (assoc out tmm-km-list))))
-      (and (null choice) out
-	   (setq out (try-completion out tmm-km-list)
-		 choice (cdr (assoc  out tmm-km-list)))))
+      (if (and (stringp out) (string= "^" out))
+          ;; A fake choice to please the destructuring later.
+          (setq choice (cons out out))
+        (setq choice (cdr (assoc out tmm-km-list)))
+        (and (null choice)
+             (string-prefix-p tmm-c-prompt out)
+	     (setq out (substring out (length tmm-c-prompt))
+		   choice (cdr (assoc out tmm-km-list))))
+        (and (null choice) out
+	     (setq out (try-completion out tmm-km-list)
+		   choice (cdr (assoc out tmm-km-list))))))
     ;; CHOICE is now (STRING . MEANING).  Separate the two parts.
     (setq chosen-string (car choice))
     (setq choice (cdr choice))
-    (cond (in-popup
+    (cond ((and (stringp choice) (string= "^" choice))
+           ;; User wants to go up: do it first.
+           (if path (tmm-prompt (pop path) in-popup nil nil path)))
+          (in-popup
 	   ;; We just did the inner level of a -popup menu.
 	   choice)
 	  ;; We just did the outer level.  Do the inner level now.
-	  (not-menu (tmm-prompt choice t nil no-execute))
+	  (not-menu (tmm-prompt choice t nil no-execute (cons menu path)))
 	  ;; We just handled a menu keymap and found another keymap.
 	  ((keymapp choice)
 	   (if (symbolp choice)
@@ -250,7 +259,7 @@ instead of executing it."
 	   (condition-case nil
 	       (require 'mouse)
 	     (error nil))
-	   (tmm-prompt choice nil nil no-execute))
+           (tmm-prompt choice nil nil no-execute (cons menu path)))
 	  ;; We just handled a menu keymap and found a command.
 	  (choice
 	   (if chosen-string
@@ -322,7 +331,8 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
           (define-key map [prior] 'tmm-goto-completions)
           (define-key map "\ev" 'tmm-goto-completions)
           (define-key map "\C-n" 'next-history-element)
-          (define-key map "\C-p" 'previous-history-element)))
+          (define-key map "\C-p" 'previous-history-element)
+          (define-key map "^" 'self-insert-and-exit)))
     (prog1 (current-local-map)
       (use-local-map (append map (current-local-map))))))
 

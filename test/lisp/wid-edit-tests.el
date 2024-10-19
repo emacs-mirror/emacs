@@ -344,6 +344,23 @@ return nil, even with a non-nil bubblep argument."
     (should (string= "Third" (widget-value (widget-at))))
     (widget-forward 1)))  ; Should not signal beginning-of-buffer error.
 
+(ert-deftest widget-test-widget-move-bug72995 ()
+  "Test moving to a widget that starts at buffer position 2."
+  (with-temp-buffer
+    ;; The first tabable widget begins at position 2 (bug#72995).
+    (widget-insert " ")
+    (dolist (el '("First" "Second" "Third"))
+      (widget-create 'push-button el))
+    (widget-insert "\n")
+    (use-local-map widget-keymap)
+    (widget-setup)
+    ;; Make sure there is no tabable widget at BOB.
+    (goto-char (point-min))
+    (should-not (widget-tabable-at))
+    ;; Check that we can move to the first widget after BOB.
+    (widget-forward 1)
+    (should (widget-tabable-at))))
+
 (ert-deftest widget-test-color-match ()
   "Test that the :match function for the color widget works."
   (let ((widget (widget-convert 'color)))

@@ -41,11 +41,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <time.h>
 #include <pwd.h>
-#include <ctype.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <getopt.h>
 
+#include <c-ctype.h>
 #include <unlocked-io.h>
 
 #ifdef WINDOWSNT
@@ -143,7 +143,7 @@ normalize_integer (char *num)
 {
   bool neg;
   char *p;
-  while (*num != '\n' && isspace (*num))
+  while (*num != '\n' && c_isspace (*num))
     num++;
   neg = *num == '-';
   num += neg || *num == '-';
@@ -497,7 +497,7 @@ unlock_file (const char *filename, void *state)
   char *lockpath = (char *) state;
   int saved_errno = errno;
   int ret = unlink (lockpath);
-  if (0 <= ret)
+  if (! (ret < 0 && errno != ENOENT))
     errno = saved_errno;
   free (lockpath);
   return ret;

@@ -193,7 +193,7 @@ calccost (struct tty_display_info *tty,
             tabcost;
     register const char *p;
 
-    /* If have just wrapped on a terminal with xn,
+    /* If we have just wrapped on a terminal with xn,
        don't believe the cursor position: give up here
        and force use of absolute positioning.  */
 
@@ -316,6 +316,8 @@ losecursor (void)
 #define	USEHOME	1
 #define	USELL	2
 #define	USECR	3
+
+/* Move the cursor to (ROW, COL), by computing the optimal way.  */
 
 void
 cmgoto (struct tty_display_info *tty, int row, int col)

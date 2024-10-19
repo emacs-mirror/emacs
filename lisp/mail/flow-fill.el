@@ -78,7 +78,9 @@ RFC 2646 suggests 66 characters for readability."
       (let ((start (point-min)) end)
 	;; Go through each paragraph, filling it and adding SPC
 	;; as the last character on each line.
-	(while (setq end (text-property-any start (point-max) 'hard 't))
+	(while (and (< start (point-max))
+                    (setq end (or (text-property-any start (point-max) 'hard 't)
+                                  (point-max))))
 	  (save-restriction
 	    (narrow-to-region start end)
 	    (let ((fill-column (eval fill-flowed-encode-column t)))

@@ -54,6 +54,7 @@
 (defvar shortdoc--groups)
 (defvar tramp-current-connection)
 (defvar tramp-postfix-host-format)
+(defvar tramp-syntax)
 (defvar tramp-use-connection-share)
 
 ;;; Fontification of `read-file-name':
@@ -272,37 +273,68 @@ NAME must be equal to `tramp-current-connection'."
 		  (delete (info-lookup->mode-cache 'symbol ',mode)
 			  (info-lookup->topic-cache 'symbol))))))))
 
+;;; Integration of new `:link' type in `defcustom':
+
+(define-widget 'tramp-info-link 'link
+  "A link to the Tramp info file."
+  :action 'tramp-widget-info-link-action)
+
+(defun tramp-widget-info-link-action (widget &optional _event)
+  "Open the info node specified by WIDGET.
+It's value must be a Tramp user option, indexed in the Tramp manual via
+`@vindex'."
+  (let* ((topic (widget-value widget))
+	 (pattern
+	  (rx "\n*" (1+ " ") (0+ nonl)
+	      (literal (if (stringp topic) topic (symbol-name topic)))
+	      (0+ nonl) ":" (1+ (any "\t "))
+	      (group (0+ nonl))
+	      "." (0+ (any "\t\n ")) "(line" (1+ " ")
+	      (group (1+ digit))
+	      ")")))
+    (info "(tramp) Variable Index")
+    (goto-char (point-min))
+    (when (re-search-forward pattern nil t)
+      (let ((nodename (concat "(tramp) " (match-string-no-properties 1)))
+	    (line (string-to-number (match-string 2))))
+	(info nodename)
+	(forward-line (- line 2))))))
+
 ;;; Integration of shortdoc.el:
 
-(with-eval-after-load 'shortdoc
-  (dolist (elem `((file-remote-p
-		   :eval (file-remote-p "/ssh:user@host:/tmp/foo")
-		   :eval (file-remote-p "/ssh:user@host:/tmp/foo" 'method)
-		   :eval (file-remote-p "/ssh:user@[::1]#1234:/tmp/foo" 'host)
-		   ;; We don't want to see the text properties.
-		   :no-eval (file-remote-p "/sudo::/tmp/foo" 'user)
-		   :result ,(substring-no-properties
-			     (file-remote-p "/sudo::/tmp/foo" 'user)))
-		  (file-local-name
-		   :eval (file-local-name "/ssh:user@host:/tmp/foo"))
-		  (file-local-copy
-		   :no-eval (file-local-copy "/ssh:user@host:/tmp/foo")
-		   :eg-result "/tmp/tramp.8ihLbO"
-		   :eval (file-local-copy "/tmp/foo"))))
-    (unless (assoc (car elem)
-		   (member "Remote Files" (assq 'file shortdoc--groups)))
-      (shortdoc-add-function 'file "Remote Files" elem)))
+(tramp--with-startup
+ (with-eval-after-load 'shortdoc
+   ;; Some packages deactivate Tramp.  They don't deserve a shortdoc entry then.
+   (when (and (file-remote-p "/ssh:user@host:/tmp/foo")
+              (eq tramp-syntax 'default))
+     (dolist (elem `((file-remote-p
+		      :eval (file-remote-p "/ssh:user@host:/tmp/foo")
+		      :eval (file-remote-p "/ssh:user@host:/tmp/foo" 'method)
+		      :eval (file-remote-p "/ssh:user@[::1]#1234:/tmp/foo" 'host)
+		      ;; We don't want to see the text properties.
+		      :no-eval (file-remote-p "/sudo::/tmp/foo" 'user)
+		      :result ,(substring-no-properties
+			        (file-remote-p "/sudo::/tmp/foo" 'user)))
+		     (file-local-name
+		      :eval (file-local-name "/ssh:user@host:/tmp/foo"))
+		     (file-local-copy
+		      :no-eval (file-local-copy "/ssh:user@host:/tmp/foo")
+		      :eg-result "/tmp/tramp.8ihLbO"
+		      :eval (file-local-copy "/tmp/foo"))))
+       (unless (assoc (car elem)
+		      (member "Remote Files" (assq 'file shortdoc--groups)))
+	 (shortdoc-add-function 'file "Remote Files" elem)))
 
-  (add-hook
-   'tramp-integration-unload-hook
-   (lambda ()
-     (let ((glist (assq 'file shortdoc--groups)))
-       (while (and (consp glist)
-                   (not (and (stringp (cadr glist))
-                             (string-equal (cadr glist) "Remote Files"))))
-         (setq glist (cdr glist)))
-       (when (consp glist)
-         (setcdr glist nil))))))
+     (add-hook
+      'tramp-integration-unload-hook
+      (lambda ()
+        (let ((glist (assq 'file shortdoc--groups)))
+	  (while (and (consp glist)
+                      (not (and (stringp (cadr glist))
+                                (string-equal (cadr glist) "Remote Files"))))
+            (setq glist (cdr glist)))
+	  (when (consp glist)
+            (setcdr glist nil))))))))
 
 ;;; Integration of compile.el:
 

@@ -145,30 +145,24 @@ it is assumed that PICO was omitted and should be treated as zero."
 (autoload 'timezone-make-date-arpa-standard "timezone")
 
 ;;;###autoload
-;; `parse-time-string' isn't sufficiently general or robust.  It fails
-;; to grok some of the formats that timezone does (e.g. dodgy
-;; post-2000 stuff from some Elms) and either fails or returns bogus
-;; values.  timezone-make-date-arpa-standard should help.
 (defun date-to-time (date)
   "Parse a string DATE that represents a date-time and return a time value.
 DATE should be in one of the forms recognized by `parse-time-string'.
-If DATE lacks timezone information, GMT is assumed."
+If DATE lacks time zone information, local time is assumed."
   (condition-case err
+      ;; Parse DATE. If it contains a year, use defaults for other components.
+      ;; Then encode the result; this signals an error if the year is missing,
+      ;; because encode-time signals if crucial time components are nil.
+      ;; This heuristic uses local time if the string lacks time zone info,
+      ;; because encode-time treats a nil time zone as local time.
       (let ((parsed (parse-time-string date)))
 	(when (decoded-time-year parsed)
 	  (decoded-time-set-defaults parsed))
 	(encode-time parsed))
     (error
-     (let ((overflow-error '(error "Specified time is not representable")))
-       (if (equal err overflow-error)
-	   (signal (car err) (cdr err))
-	 (condition-case err
-	     (encode-time (parse-time-string
-			   (timezone-make-date-arpa-standard date)))
-	   (error
-	    (if (equal err overflow-error)
-		(signal (car err) (cdr err))
-	      (error "Invalid date: %s" date)))))))))
+     (if (equal err '(error "Specified time is not representable"))
+	 (signal (car err) (cdr err))
+       (error "Invalid date: %s" date)))))
 
 ;;;###autoload
 (defalias 'time-to-seconds #'float-time)

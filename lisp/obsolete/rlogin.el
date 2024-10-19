@@ -99,9 +99,8 @@ re-syncing of directories."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "ftp" t)
 		 (other :tag "local" local))
+  :local t
   :group 'rlogin)
-
-(make-variable-buffer-local 'rlogin-directory-tracking-mode)
 
 (defcustom rlogin-host nil
   "The name of the default remote host.  This variable is buffer-local."

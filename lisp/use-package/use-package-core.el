@@ -69,7 +69,9 @@
   "This version of `use-package'.")
 
 (defcustom use-package-keywords
-  '(:disabled
+  '(:pin
+    :ensure
+    :disabled
     :load-path
     :requires
     :defines
@@ -101,7 +103,9 @@
     :load
     ;; This must occur almost last; the only forms which should appear after
     ;; are those that must happen directly after the config forms.
-    :config)
+    :config
+    :diminish
+    :delight)
   "The set of valid keywords, in the order they are processed in.
 The order of this list is *very important*, so it is only
 advisable to insert new keywords, never to delete or reorder
@@ -114,7 +118,8 @@ Note that `:disabled' is special in this list, as it causes
 nothing at all to happen, even if the rest of the `use-package'
 declaration is incorrect."
   :type '(repeat symbol)
-  :group 'use-package)
+  :group 'use-package
+  :version "31.1")
 
 (defcustom use-package-deferring-keywords
   '(:bind-keymap
@@ -128,21 +133,24 @@ function symbols that can be autoloaded from the module; whereas
 the default keywords provided here always defer loading unless
 otherwise requested."
   :type '(repeat symbol)
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-ignore-unknown-keywords nil
   "If non-nil, warn instead of signaling error for unknown keywords.
 The unknown keyword and its associated arguments will be ignored
 in the `use-package' expansion."
   :type 'boolean
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-use-theme t
   "If non-nil, use a custom theme to avoid saving :custom
 variables twice (once in the Custom file, once in the use-package
 call)."
   :type 'boolean
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-verbose nil
   "Whether to report about loading and configuration details.
@@ -154,25 +162,29 @@ then the expanded macros do their job silently."
                  (const :tag "Quiet" nil)
                  (const :tag "Verbose" t)
                  (const :tag "Debug" debug))
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-check-before-init nil
   "If non-nil, check that package exists before executing its `:init' block.
 This check is performed by calling `locate-library'."
   :type 'boolean
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-always-defer nil
   "If non-nil, assume `:defer t' unless `:demand' is used.
 See also `use-package-defaults', which uses this value."
   :type 'boolean
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-always-demand nil
   "If non-nil, assume `:demand t' unless `:defer' is used.
 See also `use-package-defaults', which uses this value."
   :type 'boolean
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-defaults
   '(;; this '(t) has special meaning; see `use-package-handler/:config'
@@ -189,7 +201,12 @@ See also `use-package-defaults', which uses this value."
              (lambda (name args)
                (and use-package-always-demand
                     (not (plist-member args :defer))
-                    (not (plist-member args :demand))))))
+                    (not (plist-member args :demand)))))
+    (:ensure (list use-package-always-ensure)
+             (lambda (name args)
+               (and use-package-always-ensure
+                    (not (plist-member args :load-path)))))
+    (:pin use-package-always-pin use-package-always-pin))
   "Default values for specified `use-package' keywords.
 Each entry in the alist is a list of three elements:
 The first element is the `use-package' keyword.
@@ -214,7 +231,8 @@ attempted."
           (list (symbol :tag "Keyword")
                 (choice :tag "Default value" sexp function)
                 (choice :tag "Enable if non-nil" sexp function)))
-  :group 'use-package)
+  :group 'use-package
+  :version "31.1")
 
 (defcustom use-package-merge-key-alist
   '((:if    . (lambda (new old) `(and ,new ,old)))
@@ -238,21 +256,24 @@ handler is called only once."
                                   use-package-keywords)
                         (const :tag "Any" t))
                 function))
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-hook-name-suffix "-hook"
   "Text append to the name of hooks mentioned by :hook.
 Set to nil if you don't want this to happen; it's only a
 convenience."
   :type '(choice string (const :tag "No suffix" nil))
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-minimum-reported-time 0.1
   "Minimal load time that will be reported.
 Note that `use-package-verbose' has to be set to a non-nil value
 for anything to be reported at all."
   :type 'number
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-inject-hooks nil
   "If non-nil, add hooks to the `:init' and `:config' sections.
@@ -278,7 +299,8 @@ user-supplied configuration is not evaluated, so be certain to
 return t if you only wish to add behavior to what the user had
 specified."
   :type 'boolean
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-expand-minimally nil
   "If non-nil, make the expanded code as minimal as possible.
@@ -293,7 +315,8 @@ configuration works, it will make the byte-compiled file as
 minimal as possible.  It can also help with reading macro-expanded
 definitions, to understand the main intent of what's happening."
   :type 'boolean
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-form-regexp-eval
   `(concat ,(eval-when-compile
@@ -306,7 +329,8 @@ definitions, to understand the main intent of what's happening."
 This is used by `use-package-jump-to-package-form' and
 `use-package-enable-imenu-support'."
   :type 'sexp
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-enable-imenu-support nil
   "If non-nil, cause imenu to see `use-package' declarations.
@@ -325,7 +349,8 @@ Must be set before loading `use-package'."
                  (remove (list "Packages" ,use-package-form-regexp-eval 2)
                          lisp-imenu-generic-expression))))
       (set-default sym value))
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 ;; Redundant in Emacs 26 or later, which already highlights macro names.
 (defconst use-package-font-lock-keywords
@@ -344,7 +369,8 @@ if this option is enabled, you must require `use-package' in your
 user init file at loadup time, or you will see errors concerning
 undefined variables."
   :type 'boolean
-  :group 'use-package)
+  :group 'use-package
+  :version "29.1")
 
 (defcustom use-package-vc-prefer-newest nil
   "Prefer the newest commit over the latest release.
@@ -359,6 +385,36 @@ stability issues."
   :type 'boolean
   :version "30.1"
   :group 'use-package)
+
+(defcustom use-package-always-ensure nil
+  "Treat every package as though it had specified using `:ensure SEXP'.
+See also `use-package-defaults', which uses this value."
+  :type 'sexp
+  :version "29.1")
+
+(defcustom use-package-always-pin nil
+  "Treat every package as though it had specified using `:pin SYM'.
+See also `use-package-defaults', which uses this value."
+  :type 'symbol
+  :version "29.1")
+
+(defcustom use-package-ensure-function 'use-package-ensure-elpa
+  "Function that ensures a package is installed.
+This function is called with three arguments: the name of the
+package declared in the `use-package' form; the arguments passed
+to all `:ensure' keywords (always a list, even if only one); and
+the current `state' plist created by previous handlers.
+
+Note that this function is called whenever `:ensure' is provided,
+even if it is nil.  It is up to the function to decide on the
+semantics of the various values for `:ensure'.
+
+This function should return non-nil if the package is installed.
+
+The default value uses package.el to install the package."
+  :type '(choice (const :tag "package.el" use-package-ensure-elpa)
+                 (function :tag "Custom"))
+  :version "29.1")
 
 (defvar use-package-statistics (make-hash-table))
 
@@ -726,9 +782,9 @@ extending any keys already present."
 
     ;; If at this point no :load, :defer or :no-require has been seen, then
     ;; :load the package itself.
-    (when (and (not (plist-member args :load))
-               (not (plist-member args :defer))
-               (not (plist-member args :no-require)))
+    (when (and (not (plist-get args :load))
+               (not (plist-get args :defer))
+               (not (plist-get args :no-require)))
       (setq args (append args `(:load (,name)))))
 
     ;; Sort the list of keywords based on the order of `use-package-keywords'.
@@ -1359,11 +1415,16 @@ enable gathering statistics."
           (when fun
             (mapcar
              #'(lambda (sym)
-                 `(add-hook
-                   (quote ,(intern
-                            (concat (symbol-name sym)
-                                    use-package-hook-name-suffix)))
-                   (function ,fun)))
+                 (let ((symname (symbol-name sym)))
+                   (if (and (boundp sym)
+                            ;; Mode variables are usually bound, but
+                            ;; their hooks are named FOO-mode-hook.
+                            (not (string-suffix-p "-mode" symname)))
+                       `(add-hook (quote ,sym) (function ,fun))
+                     `(add-hook
+                       (quote ,(intern
+                                (concat symname use-package-hook-name-suffix)))
+                       (function ,fun)))))
              (use-package-hook-handler-normalize-mode-symbols syms)))))
     (use-package-normalize-commands args))))
 

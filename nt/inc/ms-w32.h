@@ -256,8 +256,7 @@ extern void w32_reset_stack_overflow_guard (void);
 #define fopen   sys_fopen
 #define link    sys_link
 #define localtime sys_localtime
-#undef read
-#define read    sys_read
+/* We redirect 'read' below, after including io.h, see bug#73444.  */
 #define rename  sys_rename
 #define rmdir   sys_rmdir
 #define select  sys_select
@@ -379,6 +378,11 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #ifndef fileno
 #define fileno	  _fileno
 #endif
+
+/* Here we redirect CRT's 'read' to our own implementation, see bug#73444.  */
+#undef read
+#define read    sys_read
+int sys_read (int, char *, unsigned int);
 
 /* Defines that we need that aren't in the standard signal.h.  */
 #define SIGHUP  1               /* Hang up */

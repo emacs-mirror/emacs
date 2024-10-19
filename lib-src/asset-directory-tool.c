@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
-#include <verify.h>
+#include <assert.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <byteswap.h>
@@ -236,7 +236,7 @@ main_2 (int fd, struct directory_tree *tree, size_t *offset)
   output[0] = (unsigned int) tree->st_size;
 #endif /* !WORDS_BIGENDIAN */
 
-  verify (sizeof output == 8 && sizeof output[0] == 4);
+  static_assert (sizeof output == 8 && sizeof output[0] == 4);
   if (!need_file_size)
     {
       if (write (fd, output + 1, 4) < 1)

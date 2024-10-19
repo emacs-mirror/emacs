@@ -25,7 +25,7 @@
 ;;; Commentary:
 ;;
 ;; If the tree-sitter doxygen grammar is available, then the comment
-;; blocks will be highlighted according to this grammar.
+;; blocks can be highlighted according to this grammar.
 
 ;;; Code:
 
@@ -46,6 +46,17 @@
   :version "29.1"
   :type 'integer
   :safe 'integerp
+  :group 'java)
+
+(defcustom java-ts-mode-enable-doxygen nil
+  "Enable doxygen syntax highlighting.
+If Non-nil, enable doxygen based font lock for comment blocks.
+This needs to be set before enabling `java-ts-mode'; if you change
+the value after enabling `java-ts-mode', toggle the mode off and on
+again."
+  :version "31.1"
+  :type 'boolean
+  :safe 'booleanp
   :group 'java)
 
 (defvar java-ts-mode--syntax-table
@@ -401,7 +412,7 @@ Return nil if there is no name or if NODE is not a defun node."
                 java-ts-mode--font-lock-settings)
 
     ;; Inject doxygen parser for comment.
-    (when (treesit-ready-p 'doxygen t)
+    (when (and java-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
       (setq-local treesit-primary-parser primary-parser)
       (setq-local treesit-font-lock-settings
                   (append treesit-font-lock-settings
@@ -427,6 +438,9 @@ Return nil if there is no name or if NODE is not a defun node."
 
 (if (treesit-ready-p 'java)
     (add-to-list 'auto-mode-alist '("\\.java\\'" . java-ts-mode)))
+
+(when (and java-ts-mode-enable-doxygen (not (treesit-ready-p 'doxygen t)))
+  (message "Doxygen syntax highlighting can't be enabled, please install the language grammar."))
 
 (provide 'java-ts-mode)
 

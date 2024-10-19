@@ -481,6 +481,14 @@ For some discussion and implementation ideas (including possibly using
 LSP), see the thread starting at
 https://lists.gnu.org/archive/html/emacs-devel/2023-09/msg00609.html
 
+** Add indentation guide support to the display engine
+Support vertical lines that indicate the current level of indentation,
+which is useful when editing source code.  This feature should be
+implemented in the display engine.
+
+See the indent-bars package, which implements this in Emacs Lisp:
+https://github.com/jdtsmith/indent-bars
+
 ** FFI (foreign function interface)
 See e.g. https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
 
@@ -780,9 +788,6 @@ to ASCII.
 
 *** Provide a user friendly interface to specify fonts
 
-** Use the XIE X extension, if available, for image display
-This is obsolete, as XIE itself is now considered obsolete.
-
 ** Make monochrome images honor the face
 Display those images using the foreground and background colors of the
 applicable faces.
@@ -917,6 +922,12 @@ unit (CU) such that calls from functions in a CU targeting functions
 in the same CU don't have to go through funcall.  If one of these
 functions is redefined, a trampoline is compiled and installed to
 restore the redirection through funcall.
+
+**** Better runtime function inlining
+
+Several functions could be open-coded in generated code once exposed to
+libgccjit.  Two simple first candidates are probably 'maybe_quit' and
+'maybe_gc'.
 
 *** Features to be improved or missing
 

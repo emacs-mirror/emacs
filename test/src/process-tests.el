@@ -462,7 +462,9 @@ See Bug#30460."
         (ipv6-addrs
          '("fe80::1" "e301::203:1" "e301:203::1"
            "e301:0203::1" "::1" "::0"
-           "0343:1:2::3" "343:001:2::3")))
+           "0343:1:2::3" "343:001:2::3"))
+        (invalid-values
+         '(1 a 1.0)))
     (dolist (a ipv4-invalid-addrs)
       (should-not (network-lookup-address-info a nil 'numeric))
       (should-not (network-lookup-address-info a 'ipv4 'numeric)))
@@ -471,6 +473,8 @@ See Bug#30460."
     (dolist (a ipv4-addrs)
       (should (network-lookup-address-info a nil 'numeric))
       (should (network-lookup-address-info a 'ipv4 'numeric)))
+    (dolist (a invalid-values)
+      (should-error (network-lookup-address-info a)))
     (when (ipv6-is-available)
       (dolist (a ipv4-addrs)
         (should-not (network-lookup-address-info a 'ipv6 'numeric)))

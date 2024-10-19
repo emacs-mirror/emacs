@@ -891,7 +891,7 @@ Apply the previous patterns after reverting the buffer."
             (let ((face (hi-lock-keyword->face (cdr pattern))))
               (highlight-regexp (or (get-text-property 0 'regexp (car pattern))
                                     (car pattern))
-                                face)
+                                face nil (car pattern))
               (setq hi-lock--unused-faces
                     (remove (face-name face) hi-lock--unused-faces)))))))))
 

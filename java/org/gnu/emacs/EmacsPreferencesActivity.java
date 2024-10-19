@@ -28,6 +28,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Build;
 
+import android.view.View;
+
 import android.widget.Toast;
 
 import android.preference.*;
@@ -115,6 +117,7 @@ public class EmacsPreferencesActivity extends PreferenceActivity
   {
     Preference tem;
     Preference.OnPreferenceClickListener listener;
+    View view;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
       setTheme (android.R.style.Theme_DeviceDefault_Settings);
@@ -167,5 +170,13 @@ public class EmacsPreferencesActivity extends PreferenceActivity
       };
 
     tem.setOnPreferenceClickListener (listener);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM)
+      {
+	/* Align the list view to system windows, or they will be
+	   obstructed by the title bar.  */
+	view = this.getListView ();
+	view.setFitsSystemWindows (true);
+      }
   }
 };

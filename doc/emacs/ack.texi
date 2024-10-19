@@ -1044,7 +1044,7 @@ a package for running source-level debuggers like GDB and SDB in
 Emacs; @file{asm-mode.el}, a mode for editing assembly language code;
 @file{AT386.el}, terminal support package for IBM's AT keyboards;
 @file{cookie1.el}, support for fortune-cookie programs like
-@file{yow.el} and @file{spook.el}; @file{finder.el}, a package for
+@file{spook.el}; @file{finder.el}, a package for
 finding Emacs Lisp packages by keyword and topic; @file{keyswap.el},
 code to swap the @key{BS} and @key{DEL} keys; @file{loadhist.el},
 functions for loading and unloading Emacs features;

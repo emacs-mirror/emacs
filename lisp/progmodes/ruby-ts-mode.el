@@ -842,6 +842,16 @@ a statement container is a node that matches
      ;; No paren/curly/brace found on the same line.
      ((< (treesit-node-start found) parent-bol)
       parent-bol)
+     ;; Nesting of brackets args.
+     ((and
+       (not (eq ruby-bracketed-args-indent t))
+       (string-match-p "\\`array\\|hash\\'" (treesit-node-type parent))
+       (equal (treesit-node-parent parent) found)
+       ;; Grandparent is not a parenless call.
+       (or (not (equal (treesit-node-type found) "argument_list"))
+           (equal (treesit-node-type (treesit-node-child found 0))
+                  "(")))
+      parent-bol)
      ;; Hash or array opener on the same line.
      ((string-match-p "\\`array\\|hash\\'" (treesit-node-type found))
       (save-excursion
@@ -1117,7 +1127,7 @@ leading double colon is not added."
   (unless (treesit-ready-p 'ruby)
     (error "Tree-sitter for Ruby isn't available"))
 
-  (treesit-parser-create 'ruby)
+  (setq treesit-primary-parser (treesit-parser-create 'ruby))
 
   (setq-local add-log-current-defun-function #'ruby-ts-add-log-current-function)
 

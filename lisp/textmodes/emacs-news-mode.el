@@ -106,13 +106,15 @@
               outline-minor-mode-use-buttons 'in-margins)
   (outline-minor-mode)
   (setq-local imenu-generic-expression outline-imenu-generic-expression)
+  ;; This is so 'C-h o' picks up correctly symbols quoted 'like this'.
+  (modify-syntax-entry ?' "\"")
   (emacs-etc--hide-local-variables))
 
 ;;;###autoload
 (define-derived-mode emacs-news-mode text-mode "NEWS"
   "Major mode for editing the Emacs NEWS file."
   ;; Disable buttons.
-  (button-mode nil)
+  (button-mode -1)
   ;; And make the buffer writable.  This is used when toggling
   ;; emacs-news-mode.
   (setq buffer-read-only nil)

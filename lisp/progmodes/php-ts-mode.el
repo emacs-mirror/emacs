@@ -77,18 +77,19 @@
 (declare-function treesit-parser-included-ranges "treesit.c")
 (declare-function treesit-parser-list "treesit.c")
 (declare-function treesit-parser-language "treesit.c")
+(declare-function treesit-query-compile "treesit.c")
 (declare-function treesit-search-forward "treesit.c")
 (declare-function treesit-node-prev-sibling "treesit.c")
 (declare-function treesit-node-first-child-for-pos "treesit.c")
 
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
-  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.22.5"))
+  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.23.0" "php/src"))
     (phpdoc . ("https://github.com/claytonrcarter/tree-sitter-phpdoc"))
-    (html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.20.3"))
-    (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.21.2"))
-    (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.21.0"))
-    (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.21.0")))
+    (html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.23.0"))
+    (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.0"))
+    (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.0"))
+    (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.23.0")))
   "Treesitter language parsers required by `php-ts-mode'.
 You can customize this variable if you want to stick to a specific
 commit and/or use different parsers.")
@@ -490,7 +491,7 @@ characters of the current line."
         (treesit-node-start parent)))))
 
 (defun php-ts-mode--parent-html-heuristic (node parent _bol &rest _)
-  "Returns position based on html indentation.
+  "Return position based on html indentation.
 
 Returns 0 if the NODE is after the </html>, otherwise returns the
 indentation point of the last word before the NODE, plus the
@@ -509,7 +510,7 @@ characters of the current line."
             (if (search-forward "</html>" end-html t 1)
                 0
               (+ (point) php-ts-mode-indent-offset))))
-      ;; Maybe it's better to use bol, read the documentation!!!
+      ;; Maybe it's better to use bol?
       (treesit-node-start parent))))
 
 (defun php-ts-mode--array-element-heuristic (_node parent _bol &rest _)
@@ -728,7 +729,7 @@ characters of the current line."
   '("abstract" "and" "array" "as" "break" "callable" "case" "catch"
     "class" "clone" "const" "continue" "declare" "default" "do" "echo"
     "else" "elseif" "enddeclare" "endfor" "endforeach" "endif"
-    "endswitch" "endwhile" "enum" "extends" "final" "finally" "fn"
+    "endswitch" "endwhile" "enum" "exit" "extends" "final" "finally" "fn"
     "for" "foreach" "from" "function" "global" "goto" "if" "implements"
     "include" "include_once" "instanceof" "insteadof" "interface"
     "list" "match" "namespace" "new" "null" "or" "print" "private"
@@ -762,10 +763,31 @@ characters of the current line."
     "E_COMPILE_WARNING" "E_USER_ERROR" "E_USER_WARNING"
     "E_USER_NOTICE" "E_DEPRECATED" "E_USER_DEPRECATED"
     "E_ALL" "E_STRICT"
+    ;; math constant
+    "M_PI" "M_E" "M_LOG2E" "M_LOG10E" "M_LN2" "M_LN10" "M_PI_2"
+    "M_PI_4" "M_1_PI" "M_2_PI" "M_SQRTPI" "M_2_SQRTPI" "M_SQRT2"
+    "M_SQRT3" "M_SQRT1_2" "M_LNPI" "M_EULER" "PHP_ROUND_HALF_UP"
+    "PHP_ROUND_HALF_DOWN" "PHP_ROUND_HALF_EVEN" "PHP_ROUND_HALF_ODD"
+    "NAN" "INF"
     ;; magic constant
     "__COMPILER_HALT_OFFSET__" "__CLASS__" "__DIR__" "__FILE__"
     "__FUNCTION__" "__LINE__" "__METHOD__" "__NAMESPACE__" "__TRAIT__")
   "PHP predefined constant.")
+
+(defun php-ts-mode--test-namespace-name-as-prefix-p  ()
+  "Return t if namespace_name_as_prefix keyword is a named node, nil otherwise."
+  (ignore-errors
+    (progn (treesit-query-compile 'php "(namespace_name_as_prefix)" t) t)))
+
+(defun php-ts-mode--test-namespace-aliasing-clause-p  ()
+  "Return t if namespace_name_as_prefix keyword is named node, nil otherwise."
+  (ignore-errors
+    (progn (treesit-query-compile 'php "(namespace_name_as_prefix)" t) t)))
+
+(defun php-ts-mode--test-namespace-use-group-clause-p ()
+  "Return t if namespace_use_group_clause keyword is named node, nil otherwise."
+  (ignore-errors
+    (progn (treesit-query-compile 'php "(namespace_use_group_clause)" t) t)))
 
 (defun php-ts-mode--font-lock-settings ()
   "Tree-sitter font-lock settings."
@@ -785,26 +807,23 @@ characters of the current line."
    :feature 'constant
    `((boolean) @font-lock-constant-face
      (null) @font-lock-constant-face
-     ;; predefined constant or built in constant
+     ;; predefined constant or built in constant (part of PHP core)
      ((name) @font-lock-builtin-face
       (:match ,(rx-to-string
                 `(: bos (or ,@php-ts-mode--predefined-constant) eos))
               @font-lock-builtin-face))
      ;; user defined constant
      ((name) @font-lock-constant-face
-      (:match "\\`_?[A-Z][0-9A-Z_]+\\'" @font-lock-constant-face))
+      (:match "\\`_*[A-Z][0-9A-Z_]+\\'" @font-lock-constant-face))
      (const_declaration
       (const_element (name) @font-lock-constant-face))
-     (relative_scope "self") @font-lock-builtin-face
      ;; declare directive
      (declare_directive ["strict_types" "encoding" "ticks"] @font-lock-constant-face))
 
    :language 'php
    :feature 'name
-   `((goto_statement (name) @font-lock-constant-face)
-     (named_label_statement (name) @font-lock-constant-face)
-     (expression_statement (name) @font-lock-keyword-face
-                           (:equal "exit" @font-lock-keyword-face)))
+   '((goto_statement (name) @font-lock-constant-face)
+     (named_label_statement (name) @font-lock-constant-face))
 
    :language 'php
    ;;:override t
@@ -813,19 +832,21 @@ characters of the current line."
 
    :language 'php
    :feature 'operator
-   `([,@php-ts-mode--operators] @font-lock-operator-face)
+   `((error_suppression_expression "@" @font-lock-keyword-face)
+     [,@php-ts-mode--operators] @font-lock-operator-face)
 
    :language 'php
    :feature 'variable-name
    :override t
-   `(((name) @font-lock-keyword-face (:equal "this" @font-lock-keyword-face))
+   '(((name) @font-lock-keyword-face (:equal "this" @font-lock-keyword-face))
      (variable_name (name) @font-lock-variable-name-face)
+     (relative_scope ["parent" "self" "static"] @font-lock-builtin-face)
+     (relative_scope) @font-lock-constant-face
      (dynamic_variable_name (name) @font-lock-variable-name-face)
      (member_access_expression
       name: (_) @font-lock-variable-name-face)
      (scoped_property_access_expression
-      scope: (name) @font-lock-constant-face)
-     (error_suppression_expression (name) @font-lock-variable-name-face))
+      scope: (name) @font-lock-constant-face))
 
    :language 'php
    :feature 'string
@@ -850,7 +871,8 @@ characters of the current line."
    :language 'php
    :feature 'type
    :override t
-   '((union_type) @font-lock-type-face
+   '((union_type "|" @font-lock-operator-face)
+     (union_type) @font-lock-type-face
      (bottom_type) @font-lock-type-face
      (primitive_type) @font-lock-type-face
      (cast_type) @font-lock-type-face
@@ -860,7 +882,7 @@ characters of the current line."
    :language 'php
    :feature 'definition
    :override t
-   '((php_tag) @font-lock-preprocessor-face
+   `((php_tag) @font-lock-preprocessor-face
      ("?>") @font-lock-preprocessor-face
      ;; Highlights identifiers in declarations.
      (class_declaration
@@ -883,17 +905,24 @@ characters of the current line."
      ("=>") @font-lock-keyword-face
      (object_creation_expression
       (name) @font-lock-type-face)
-     (namespace_name_as_prefix (namespace_name (name)) @font-lock-type-face)
-     (namespace_use_clause (name) @font-lock-property-use-face)
-     (namespace_aliasing_clause (name) @font-lock-type-face)
+     ,@(when (php-ts-mode--test-namespace-name-as-prefix-p)
+	   '((namespace_name_as_prefix "\\" @font-lock-delimiter-face)
+	     (namespace_name_as_prefix
+	      (namespace_name (name)) @font-lock-type-face)))
+     ,@(if (php-ts-mode--test-namespace-aliasing-clause-p)
+	   '((namespace_aliasing_clause (name) @font-lock-type-face))
+	 '((namespace_use_clause alias: (name) @font-lock-type-face)))
+     ,@(when (not (php-ts-mode--test-namespace-use-group-clause-p))
+	 '((namespace_use_group
+	    (namespace_use_clause (name) @font-lock-type-face))))
+     (namespace_name "\\" @font-lock-delimiter-face)
      (namespace_name (name) @font-lock-type-face)
      (use_declaration (name) @font-lock-property-use-face))
 
    :language 'php
    :feature 'function-scope
    :override t
-   '((relative_scope) @font-lock-constant-face
-     (scoped_call_expression
+   '((scoped_call_expression
       scope: (name) @font-lock-constant-face)
      (class_constant_access_expression (name) @font-lock-constant-face))
 
@@ -924,8 +953,10 @@ characters of the current line."
    :language 'php
    :feature 'base-clause
    :override t
-   '((base_clause (name) @font-lock-type-face)
+   `((base_clause (name) @font-lock-type-face)
      (use_as_clause (name) @font-lock-property-use-face)
+     ,@(when (not (php-ts-mode--test-namespace-name-as-prefix-p))
+	 '((qualified_name prefix: "\\" @font-lock-delimiter-face)))
      (qualified_name (name) @font-lock-constant-face))
 
    :language 'php
@@ -1462,8 +1493,12 @@ Depends on `c-ts-common-comment-setup'."
 
 
 ;;;###autoload
-(defun php-ts-mode-run-php-webserver (&optional port hostname document-root
-                                                router-script num-of-workers)
+(defun php-ts-mode-run-php-webserver (&optional port
+                                                hostname
+                                                document-root
+                                                router-script
+                                                num-of-workers
+                                                config)
   "Run PHP built-in web server.
 
 PORT: Port number of built-in web server, default `php-ts-mode-ws-port'.
@@ -1477,10 +1512,12 @@ ROUTER-SCRIPT: Path of the router PHP script,
 see `https://www.php.net/manual/en/features.commandline.webserver.php'
 NUM-OF-WORKERS: Before run the web server set the
 PHP_CLI_SERVER_WORKERS env variable useful for testing code against
-multiple simultaneous requests.
+multiple simultaneous requests
+CONFIG: Alternative php.ini config, default `php-ts-mode-php-config'.
 
-Interactively, when invoked with prefix argument, always prompt
-for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT."
+Interactively, when invoked with prefix argument, always prompt for
+PORT, HOSTNAME, DOCUMENT-ROOT, ROUTER-SCRIPT, NUM-OF-WORKERS and
+CONFIG."
   (interactive (when current-prefix-arg
                  (php-ts-mode--webserver-read-args)))
   (let* ((port (or
@@ -1495,6 +1532,9 @@ for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT."
                          document-root
                          php-ts-mode-ws-document-root
                          (php-ts-mode--webserver-read-args 'document-root)))
+         (config (or config
+                     (when php-ts-mode-php-config
+                       (expand-file-name php-ts-mode-php-config))))
          (host (format "%s:%d" hostname port))
          (name (format "PHP web server on: %s" host))
          (buf-name (format "*%s*" name))
@@ -1502,12 +1542,18 @@ for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT."
                 nil
                 (list "-S" host
                       "-t" document-root
+                      (when config
+			(format "-c %s" config))
                       router-script)))
          (process-environment
-          (cons (cond
-                 (num-of-workers (format "PHP_CLI_SERVER_WORKERS=%d" num-of-workers))
-                 (php-ts-mode-ws-workers (format "PHP_CLI_SERVER_WORKERS=%d" php-ts-mode-ws-workers)))
-                process-environment)))
+          (nconc (cond
+                  (num-of-workers
+                   (list
+                    (format "PHP_CLI_SERVER_WORKERS=%d" num-of-workers)))
+                  (php-ts-mode-ws-workers
+                   (list
+                    (format "PHP_CLI_SERVER_WORKERS=%d" php-ts-mode-ws-workers))))
+                 process-environment)))
     (if (get-buffer buf-name)
         (message "Switch to already running web server into buffer %s" buf-name)
       (message "Run PHP built-in web server with args %s into buffer %s"
@@ -1522,12 +1568,17 @@ for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT."
 
 (defun php-ts-mode--webserver-read-args (&optional type)
   "Helper for `php-ts-mode-run-php-webserver'.
-The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\" or
-\"router-script\", otherwise it requires all of them."
+The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\",
+\"router-script\", \"num-workers\" or \"config\", otherwise it requires all of them."
   (let ((ask-port (lambda ()
-                    (read-number "Port: " 3000)))
+                    (read-number "Port: " (or
+                                           php-ts-mode-ws-port
+                                           3000))))
         (ask-hostname (lambda ()
-                        (read-string "Hostname: " "localhost")))
+                        (read-string "Hostname: "
+                                     (or
+                                      php-ts-mode-ws-hostname
+                                      "localhost"))))
         (ask-document-root (lambda ()
                              (expand-file-name
                               (read-directory-name "Document root: "
@@ -1539,17 +1590,40 @@ The optional TYPE can be the symbol \"port\", \"hostname\", \"document-root\" or
                               (read-file-name "Router script: "
                                               (file-name-directory
                                                (or (buffer-file-name)
-                                                   default-directory)))))))
+                                                   default-directory))))))
+        (ask-num-workers (lambda ()
+                           (let ((num-workers
+                                  (read-number
+                                   "Number of workers (less then 2 means no workers): "
+                                   (or php-ts-mode-ws-workers 0))))
+                             ;; num-workers must be >= 2 or nil
+                             ;; otherwise PHP's built-in web server will not start.
+                             (if (> num-workers 1)
+                                 num-workers
+                               nil))))
+        (ask-config (lambda()
+                      (let ((file-name (expand-file-name
+                                        (read-file-name "Alternative php.ini: "
+                                                        (file-name-directory
+                                                         (or (buffer-file-name)
+                                                             default-directory))))))
+                        (if (string= "" (file-name-directory file-name))
+                            nil
+                          file-name)))))
     (cl-case type
       (port (funcall ask-port))
       (hostname (funcall ask-hostname))
       (document-root (funcall ask-document-root))
       (router-script (funcall ask-router-script))
+      (num-of-workers (funcall ask-num-workers))
+      (config (funcall ask-config))
       (t (list
           (funcall ask-port)
           (funcall ask-hostname)
           (funcall ask-document-root)
-          (funcall ask-router-script))))))
+          (funcall ask-router-script)
+          (funcall ask-num-workers)
+          (funcall ask-config))))))
 
 (define-derived-mode inferior-php-ts-mode comint-mode "Inferior PHP"
   "Major mode for PHP inferior process."

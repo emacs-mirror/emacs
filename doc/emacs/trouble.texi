@@ -550,6 +550,13 @@ investigating and fixing the bug, where you will receive copies of
 email messages discussing the bug, in which we might ask you to
 provide more information, test possible fixes, etc.
 
+@cindex security, reporting issues
+@item
+If you think you may have found a security issue that needs to be
+communicated privately, please contact the GNU Emacs maintainers
+directly.  See the file @file{admin/MAINTAINERS} in the Emacs
+distribution for their contact details.
+
 @item
 Finally, if you want to propose specific changes to Emacs, whether to
 fix a bug, add a new feature, or improve our documentation, please see

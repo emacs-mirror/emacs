@@ -50,7 +50,7 @@
 When t this still needs to be initialized.")
 
 (defvar mail-address-field-regexp
-  "^\\(Resent-\\)?\\(To\\|From\\|Cc\\|Bcc\\|Reply-To\\):")
+  "^\\(Resent-\\)?\\(To\\|From\\|Cc\\|Bcc\\|Reply-To\\|X-Debbugs-Cc\\):")
 
 ;; `pattern' is bound dynamically before evaluating the forms in
 ;; `mail-complete-alist' and may be part of user customizations of
@@ -61,7 +61,7 @@ When t this still needs to be initialized.")
 (defcustom mail-complete-alist
   ;; Don't refer to mail-address-field-regexp here;
   ;; that confuses some things such as cus-dep.el.
-  '(("^\\(Resent-\\)?\\(To\\|From\\|Cc\\|Bcc\\|Reply-To\\):"
+  '(("^\\(Resent-\\)?\\(To\\|From\\|Cc\\|Bcc\\|Reply-To\\|X-Debbugs-Cc\\):"
      . (mail-get-names pattern))
     ("Newsgroups:" . (if (boundp 'gnus-active-hashtb)
                          gnus-active-hashtb

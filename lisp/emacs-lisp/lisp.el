@@ -36,8 +36,8 @@ This is only necessary if the opening paren or brace is not in column 0.
 See function `beginning-of-defun'."
   :type '(choice (const nil)
 		 regexp)
+  :local t
   :group 'lisp)
-(make-variable-buffer-local 'defun-prompt-regexp)
 
 (defcustom parens-require-spaces t
   "If non-nil, add whitespace as needed when inserting parentheses.
@@ -850,10 +850,18 @@ It's used by the command `delete-pair'.  The value 0 disables blinking."
   :group 'lisp
   :version "28.1")
 
+(defcustom delete-pair-push-mark nil
+  "Non-nil means `delete-pair' pushes mark at end of delimited region."
+  :type 'boolean
+  :group 'lisp
+  :version "31.1")
+
 (defun delete-pair (&optional arg)
   "Delete a pair of characters enclosing ARG sexps that follow point.
 A negative ARG deletes a pair around the preceding ARG sexps instead.
-The option `delete-pair-blink-delay' can disable blinking."
+The option `delete-pair-blink-delay' can disable blinking.  With
+`delete-pair-push-mark' enabled, pushes a mark at the end of the
+enclosed region."
   (interactive "P")
   (if arg
       (setq arg (prefix-numeric-value arg))
@@ -887,7 +895,9 @@ The option `delete-pair-blink-delay' can disable blinking."
 	  (when (and (numberp delete-pair-blink-delay)
 		     (> delete-pair-blink-delay 0))
 	    (sit-for delete-pair-blink-delay))
-	  (delete-char -1)))
+	  (delete-char -1)
+	  (when delete-pair-push-mark
+	    (push-mark))))
       (delete-char 1))))
 
 (defun raise-sexp (&optional n)

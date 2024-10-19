@@ -515,7 +515,7 @@ This mode is intended to be inherited by concrete major modes."
   :syntax-table typescript-ts-mode--syntax-table
 
   (when (treesit-ready-p 'typescript)
-    (treesit-parser-create 'typescript)
+    (setq treesit-primary-parser (treesit-parser-create 'typescript))
 
     ;; Indent.
     (setq-local treesit-simple-indent-rules
@@ -553,7 +553,7 @@ at least 3 (which is the default value)."
   :syntax-table typescript-ts-mode--syntax-table
 
   (when (treesit-ready-p 'tsx)
-    (treesit-parser-create 'tsx)
+    (setq treesit-primary-parser (treesit-parser-create 'tsx))
 
     ;; Comments.
     (setq-local comment-start "// ")

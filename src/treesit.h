@@ -45,9 +45,23 @@ struct Lisp_TS_Parser
      same tag.  A tag is primarily used to differentiate between
      parsers for the same language.  */
   Lisp_Object tag;
-  /* The Lisp ranges last set.  This is use to compare to the new
-     ranges the users wants to set, and avoid reparse if the new
-     ranges is the same as the last set one.  */
+  /* The Lisp ranges last set.  One purpose for it is to compare to the
+     new ranges the users wants to set, and avoid reparse if the new
+     ranges is the same as the current one.  Another purpose is to store
+     the ranges in charpos (ts api returns ranges in bytepos).  We need
+     to use charpos so we don't end up having a range cut into a
+     multibyte character.  (See (ref:bytepos-range-pitfall) in treesit.c
+     for more detail.)
+
+     treesit-parser-set-included-ranges sets this field;
+     treesit-parser-included-ranges directly returns this field, and
+     before each reparse, treesit_sync_visible_region uses this to
+     calculate a range for the parser that fits in the visible region.
+
+     Trivia: when the parser doesn't have a range set and we call
+     ts_parser_included_ranges on it, it doesn't return an empty list,
+     but rather return DEFAULT_RANGE.  (A single range where start_byte
+     = 0, end_byte = UINT32_MAX).  */
   Lisp_Object last_set_ranges;
   /* The buffer associated with this parser.  */
   Lisp_Object buffer;
@@ -82,6 +96,14 @@ struct Lisp_TS_Parser
   /* If this field is true, parser functions raises
      treesit-parser-deleted signal.  */
   bool deleted;
+  /* If this field is true, deleting the parser should also delete the
+     associated buffer.  This is for parsers created by
+     treesit-parse-string, which uses a hidden temp buffer.  */
+  bool need_to_gc_buffer;
+  /* This field is set to true when treesit_ensure_parsed runs, to
+     prevent infinite recursion due to calling after change
+     functions.  */
+  bool within_reparse;
 };
 
 /* A wrapper around a tree-sitter node.  */

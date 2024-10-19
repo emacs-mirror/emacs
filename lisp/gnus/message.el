@@ -8612,7 +8612,6 @@ From headers in the original article."
   (let ((regexps (if (stringp message-hidden-headers)
 		     (list message-hidden-headers)
 		   message-hidden-headers))
-	(inhibit-modification-hooks t)
 	end-of-headers)
     (when regexps
       (save-excursion

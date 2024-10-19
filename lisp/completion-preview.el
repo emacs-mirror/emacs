@@ -88,6 +88,26 @@
 ;; `completion-preview-idle-delay' to have the preview appear only
 ;; when you pause typing for a short duration rather than after every
 ;; key.  Try setting it to 0.2 seconds and see how that works for you.
+;;
+;; Sometimes you may want to use Completion Preview mode alongside other
+;; Emacs features that place an overlay after point, in a way that could
+;; "compete" with the preview overlay.  In such cases, you should give
+;; the completion preview overlay a higher priority, so it properly
+;; appears immediately after point, before other overlays.  To do that,
+;; set the variable `completion-preview-overlay-priority'.  You can set
+;; it buffer-locally if you only use competing overlays in some buffers.
+;; In particular, an important use case for this variable is enabling
+;; Completion Preview mode for `M-:' and other minibuffers that support
+;; `completion-at-point'.  In the minibuffer, some message are displayed
+;; using an overlay that may, by default, conflict with the completion
+;; preview overlay.  Use `completion-preview-overlay-priority' to
+;; resolve this conflict by giving the completion preview overlay a
+;; higher priority:
+;;
+;;   (add-hook 'eval-expression-minibuffer-setup-hook
+;;             (lambda ()
+;;               (setq-local completion-preview-overlay-priority 1200)
+;;               (completion-preview-mode)))
 
 ;;; Code:
 
@@ -152,6 +172,24 @@ If this is nil, display the completion preview without delay."
   :type '(choice (number :tag "Delay duration in seconds")
                  (const :tag "No delay" nil))
   :version "30.1")
+
+(defcustom completion-preview-ignore-case nil
+  "Whether Completion Preview mode ignores case differences.
+
+By default this option is nil, which says that case is significant, so a
+completion candidate \"FooBar\" matches prefix \"Foo\", but not \"foo\".
+If you set it to non-nil, then Completion Preview mode also suggests
+completions that differ in case from the prefix that you type; for
+example, it may suggest completing \"foo\" with the suffix \"Bar\" when
+there's an available completion candidate \"FooBar\".  Note that in this
+case, when you insert the completion (with `completion-preview-insert'),
+Completion Preview mode does not update the completed prefix according
+to the capitalization of the completion candidate, instead it simply
+ignores such case differences, so the resulting string is \"fooBar\".
+
+See also `completion-ignore-case'."
+  :type 'boolean
+  :version "31.1")
 
 (defvar completion-preview-sort-function #'minibuffer--sort-by-length-alpha
   "Sort function to use for choosing a completion candidate to preview.")
@@ -252,11 +290,16 @@ Completion Preview mode avoids updating the preview after these commands.")
     (setq completion-preview--overlay nil
           completion-preview--inhibit-update-p nil)))
 
+(defvar completion-preview-overlay-priority nil
+  "Value of the `priority' property for the completion preview overlay.")
+
 (defun completion-preview--make-overlay (pos string)
   "Make preview overlay showing STRING at POS, or move existing preview there."
   (if completion-preview--overlay
       (move-overlay completion-preview--overlay pos pos)
     (setq completion-preview--overlay (make-overlay pos pos))
+    (overlay-put completion-preview--overlay 'priority
+                 completion-preview-overlay-priority)
     (overlay-put completion-preview--overlay 'window (selected-window)))
   (add-text-properties 0 1 '(cursor 1) string)
   (overlay-put completion-preview--overlay 'after-string string)
@@ -320,6 +363,7 @@ candidates or if there are multiple matching completions and
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (let* ((pred (plist-get props :predicate))
          (string (buffer-substring beg end))
+         (completion-ignore-case completion-preview-ignore-case)
          (md (completion-metadata string table pred))
          (sort-fn (or (completion-metadata-get md 'cycle-sort-function)
                       (completion-metadata-get md 'display-sort-function)
@@ -467,7 +511,8 @@ point, otherwise hide it."
     ;; preview, don't do anything.
     (unless internal-p
       (if (and (completion-preview-require-certain-commands)
-               (completion-preview-require-minimum-symbol-length))
+               (completion-preview-require-minimum-symbol-length)
+               (not buffer-read-only))
           (completion-preview--show)
         (completion-preview-active-mode -1)))))
 

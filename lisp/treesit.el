@@ -123,17 +123,6 @@ of max unsigned 32-bit value for byte offsets into buffer text."
 
 ;;; Parser API supplement
 
-(defun treesit-parse-string (string language)
-  "Parse STRING using a parser for LANGUAGE.
-Return the root node of the syntax tree."
-  ;; We can't use `with-temp-buffer' because it kills the buffer when
-  ;; returning from the form.
-  (let ((buf (generate-new-buffer " *treesit-parse-string*")))
-    (with-current-buffer buf
-      (insert string)
-      (treesit-parser-root-node
-       (treesit-parser-create language)))))
-
 (defvar-local treesit-language-at-point-function nil
   "A function that returns the language at point.
 This is used by `treesit-language-at', which is used by various
@@ -634,20 +623,39 @@ Return the merged list of ranges."
          ;; New range and old range don't intersect, new comes
          ;; before, push new.
          ((<= new-end old-beg)
-          (push (car new-ranges) result)
+          (unless (eq new-beg new-end)
+            (push (car new-ranges) result))
           (setq new-ranges (cdr new-ranges)))
          ;; New range and old range don't intersect, old comes
          ;; before, push old.
          ((<= old-end new-beg)
-          (push (car old-ranges) result)
+          (unless (eq old-beg old-end)
+            (push (car old-ranges) result))
           (setq old-ranges (cdr old-ranges)))
          (t ;; New and old range intersect, discard old.
           (setq old-ranges (cdr old-ranges))))))
-    (let ((left-over (or new-ranges old-ranges)))
-      (dolist (range left-over)
-        (push range result)))
+    ;; At this point, either old-ranges has left-over or new-ranges has
+    ;; left-over, but not both.
+    (while old-ranges
+      ;; For each left-over old range, push to result unless it
+      ;; intersects with START-END.
+      (let ((old-beg (caar old-ranges))
+            (old-end (cdar old-ranges)))
+        (unless (or (and (< start old-end)
+                         (< old-beg end))
+                    (eq old-beg old-end))
+          (push (car old-ranges) result)))
+      (setq old-ranges (cdr old-ranges)))
+    ;; Unconditionally push left-over new ranges to result.
+    (while new-ranges
+      (unless (eq (caar new-ranges) (cdar new-ranges))
+        (push (car new-ranges) result))
+      (setq new-ranges (cdr new-ranges)))
     (nreverse result)))
 
+;; TODO: truncate ranges that exceeds START and END instead of
+;; discarding them.  Merge into treesit--merge-ranges so we don't loop
+;; over the ranges twice (might be premature optimization tho).
 (defun treesit--clip-ranges (ranges start end)
   "Clip RANGES in between START and END.
 RANGES is a list of ranges of the form (BEG . END).  Ranges
@@ -700,32 +708,55 @@ PARSER."
           (push (if with-host (cons parser host-parser) parser) res))))
     (nreverse res)))
 
+(defun treesit--cleanup-local-range-overlays (modified-tick beg end)
+  "Cleanup overlays used to mark local parsers between BEG and END.
+
+For every local parser overlay between BEG and END, if its
+`treesit-parser-ov-timestamp' is smaller than MODIFIED-TICK, delete
+it."
+  (dolist (ov (overlays-in beg end))
+    (when-let ((ov-timestamp
+                (overlay-get ov 'treesit-parser-ov-timestamp)))
+      (when (< ov-timestamp modified-tick)
+        (when-let ((local-parser (overlay-get ov 'treesit-parser)))
+          (treesit-parser-delete local-parser))
+        (delete-overlay ov)))))
+
 (defun treesit--update-ranges-local
-    (query embedded-lang &optional beg end)
+    (query embedded-lang modified-tick &optional beg end)
   "Update range for local parsers between BEG and END.
 Use QUERY to get the ranges, and make sure each range has a local
-parser for EMBEDDED-LANG."
-  ;; Clean up.
-  (dolist (ov (overlays-in (or beg (point-min)) (or end (point-max))))
-    (when-let ((parser (overlay-get ov 'treesit-parser)))
-      (when (eq (overlay-start ov) (overlay-end ov))
-        (delete-overlay ov)
-        (treesit-parser-delete parser))))
+parser for EMBEDDED-LANG.
+
+The local parser is stored in an overlay, in the `treesit-parser'
+property, the host parser is stored in the `treesit-host-parser'
+property.
+
+When this function touches an overlay, it sets the
+`treesit-parser-ov-timestamp' property of the overlay to
+MODIFIED-TICK.  This will help Emacs garbage-collect overlays that
+aren't in use anymore."
   ;; Update range.
   (let* ((host-lang (treesit-query-language query))
          (host-parser (treesit-parser-create host-lang))
          (ranges (treesit-query-range host-parser query beg end)))
     (pcase-dolist (`(,beg . ,end) ranges)
       (let ((has-parser nil))
-        (dolist (ov (overlays-in beg end))
-          ;; Update range of local parser.
-          (let ((embedded-parser (overlay-get ov 'treesit-parser)))
-            (when (and (treesit-parser-p embedded-parser)
-                       (eq (treesit-parser-language embedded-parser)
-                           embedded-lang))
-              (treesit-parser-set-included-ranges
-               embedded-parser `((,beg . ,end)))
-              (setq has-parser t))))
+        (setq
+         has-parser
+         (catch 'done
+           (dolist (ov (overlays-in beg end) nil)
+             ;; Update range of local parser.
+             (when-let* ((embedded-parser (overlay-get ov 'treesit-parser))
+                         (parser-lang (treesit-parser-language
+                                       embedded-parser)))
+               (when (eq parser-lang embedded-lang)
+                 (treesit-parser-set-included-ranges
+                  embedded-parser `((,beg . ,end)))
+                 (move-overlay ov beg end)
+                 (overlay-put ov 'treesit-parser-ov-timestamp
+                              modified-tick)
+                 (throw 'done t))))))
         ;; Create overlay and local parser.
         (when (not has-parser)
           (let ((embedded-parser (treesit-parser-create
@@ -733,6 +764,8 @@ parser for EMBEDDED-LANG."
                 (ov (make-overlay beg end nil nil t)))
             (overlay-put ov 'treesit-parser embedded-parser)
             (overlay-put ov 'treesit-host-parser host-parser)
+            (overlay-put ov 'treesit-parser-ov-timestamp
+                         modified-tick)
             (treesit-parser-set-included-ranges
              embedded-parser `((,beg . ,end)))))))))
 
@@ -740,40 +773,44 @@ parser for EMBEDDED-LANG."
   "Update the ranges for each language in the current buffer.
 If BEG and END are non-nil, only update parser ranges in that
 region."
-  ;; When updating ranges, we want to avoid querying the whole buffer
-  ;; which could be slow in very large buffers.  Instead, we only
-  ;; query for nodes that intersect with the region between BEG and
-  ;; END.  Also, we only update the ranges intersecting BEG and END;
-  ;; outside of that region we inherit old ranges.
-  (dolist (setting treesit-range-settings)
-    (let ((query (nth 0 setting))
-          (language (nth 1 setting))
-          (local (nth 2 setting))
-          (offset (nth 3 setting))
-          (beg (or beg (point-min)))
-          (end (or end (point-max))))
-      (cond
-       ((functionp query) (funcall query beg end))
-       (local
-        (treesit--update-ranges-local query language beg end))
-       (t
-        (let* ((host-lang (treesit-query-language query))
-               (parser (treesit-parser-create language))
-               (old-ranges (treesit-parser-included-ranges parser))
-               (new-ranges (treesit-query-range
-                            host-lang query beg end offset))
-               (set-ranges (treesit--clip-ranges
-                            (treesit--merge-ranges
-                             old-ranges new-ranges beg end)
-                            (point-min) (point-max))))
-          (dolist (parser (treesit-parser-list nil language))
+  (let ((modified-tick (buffer-chars-modified-tick))
+        (beg (or beg (point-min)))
+        (end (or end (point-max))))
+    ;; When updating ranges, we want to avoid querying the whole buffer
+    ;; which could be slow in very large buffers.  Instead, we only
+    ;; query for nodes that intersect with the region between BEG and
+    ;; END.  Also, we only update the ranges intersecting BEG and END;
+    ;; outside of that region we inherit old ranges.
+    (dolist (setting treesit-range-settings)
+      (let ((query (nth 0 setting))
+            (language (nth 1 setting))
+            (local (nth 2 setting))
+            (offset (nth 3 setting)))
+        (cond
+         ((functionp query) (funcall query beg end))
+         (local
+          (treesit--update-ranges-local
+           query language modified-tick beg end))
+         (t
+          (let* ((host-lang (treesit-query-language query))
+                 (parser (treesit-parser-create language))
+                 (old-ranges (treesit-parser-included-ranges parser))
+                 (new-ranges (treesit-query-range
+                              host-lang query beg end offset))
+                 (set-ranges (treesit--clip-ranges
+                              (treesit--merge-ranges
+                               old-ranges new-ranges beg end)
+                              (point-min) (point-max))))
+            (dolist (parser (treesit-parser-list nil language))
               (treesit-parser-set-included-ranges
                parser (or set-ranges
                           ;; When there's no range for the embedded
                           ;; language, set it's range to a dummy (1
                           ;; . 1), otherwise it would be set to the
                           ;; whole buffer, which is not what we want.
-                          `((,(point-min) . ,(point-min))))))))))))
+                          `((,(point-min) . ,(point-min)))))))))))
+
+    (treesit--cleanup-local-range-overlays modified-tick beg end)))
 
 (defun treesit-parser-range-on (parser beg &optional end)
   "Check if PARSER's range covers the portion between BEG and END.
@@ -811,10 +848,15 @@ opposed to embedded parsers which parses only part of the buffer.")
 (defvar-local treesit-font-lock-settings nil
   "A list of SETTINGs for treesit-based fontification.
 
-The exact format of each SETTING is considered internal.  Use
-`treesit-font-lock-rules' to set this variable.
+Use `treesit-font-lock-rules' to set this variable.  The exact format of
+each individual SETTING is considered internal and will change in the
+future.  Use `treesit-font-lock-setting-query',
+`treesit-font-lock-setting-enable', etc, to access each field.
 
-Each SETTING has the form:
+Below information is considered internal and only provided to help
+debugging:
+
+Currently each SETTING has the form:
 
     (QUERY ENABLE FEATURE OVERRIDE)
 
@@ -832,17 +874,31 @@ OVERRIDE is the override flag for this query.  Its value can be
 t, nil, append, prepend, keep.  See more in
 `treesit-font-lock-rules'.")
 
-(defsubst treesit--font-lock-setting-feature (setting)
-  "Return the feature of SETTING.
-SETTING should be a setting in `treesit-font-lock-settings'."
+;; Follow cl-defstruct naming conventions, in case we use cl-defstruct
+;; in the future.
+(defsubst treesit-font-lock-setting-query (setting)
+  "Return the QUERY of SETTING in `treesit-font-lock-settings'."
+  (nth 0 setting))
+
+(defsubst treesit-font-lock-setting-enable (setting)
+  "Return the ENABLE flag of SETTING in `treesit-font-lock-settings'."
+  (nth 1 setting))
+
+(defsubst treesit-font-lock-setting-feature (setting)
+  "Return the FEATURE symbol of SETTING in `treesit-font-lock-settings'."
   (nth 2 setting))
 
-(defsubst treesit--font-lock-setting-enable (setting)
+(defsubst treesit-font-lock-setting-override (setting)
+  "Return the OVERRIDE flag of SETTING in `treesit-font-lock-settings'."
+  (nth 3 setting))
+
+(defsubst treesit--font-lock-setting-clone-enable (setting)
   "Return enabled SETTING."
   (let ((new-setting (copy-tree setting)))
     (setf (nth 1 new-setting) t)
     new-setting))
 
+;; FIXME: Rewrite this in more readable fashion.
 (defun treesit--font-lock-level-setter (sym val)
   "Custom setter for `treesit-font-lock-level'.
 Set the default value of SYM to VAL, recompute fontification
@@ -1134,12 +1190,12 @@ all existing rules.
 
 If FEATURE is non-nil, add RULES before/after rules for FEATURE.  See
 docstring of `treesit-font-lock-rules' for what is a feature."
-  (let ((rules (seq-map #'treesit--font-lock-setting-enable rules))
+  (let ((rules (seq-map #'treesit--font-lock-setting-clone-enable rules))
         (feature-idx
          (when feature
            (cl-position-if
             (lambda (setting)
-              (eq (treesit--font-lock-setting-feature setting) feature))
+              (eq (treesit-font-lock-setting-feature setting) feature))
             treesit-font-lock-settings))))
     (pcase (cons how feature)
       ((or '(:after . nil) '(nil . nil))
@@ -1311,6 +1367,10 @@ If LOUDLY is non-nil, display some debugging information."
          (root-nodes
           (mapcar #'treesit-parser-root-node
                   (append local-parsers global-parsers))))
+    ;; Can't we combine all the queries in each setting into one big
+    ;; query? That should make font-lock faster? I tried, it shaved off
+    ;; 1ms in xdisp.c, and 0.3ms in a small C file (for typing a single
+    ;; character), not worth it.  --yuan
     (dolist (setting treesit-font-lock-settings)
       (let* ((query (nth 0 setting))
              (enable (nth 1 setting))
@@ -1618,7 +1678,7 @@ See `treesit-simple-indent-presets'.")
 
                     (goto-char bol)
                     (setq this-line-has-prefix
-                          (and (looking-at-p adaptive-fill-regexp)
+                          (and (looking-at adaptive-fill-regexp)
                                (not (string-match-p
                                      (rx bos (* whitespace) eos)
                                      (match-string 0)))))
@@ -2225,8 +2285,15 @@ What constitutes as text and source code sexp is determined
 by `text' and `sexp' in `treesit-thing-settings'."
   (interactive "^p")
   (let ((arg (or arg 1))
-        (pred (or treesit-sexp-type-regexp 'sexp)))
-    (or (when (treesit-node-match-p (treesit-node-at (point)) 'text t)
+        (pred (or treesit-sexp-type-regexp 'sexp))
+        (node-at-point
+         (treesit-node-at (point) (treesit-language-at (point)))))
+    (or (when (and node-at-point
+                   ;; Make sure point is strictly inside node.
+                   (< (treesit-node-start node-at-point)
+                      (point)
+                      (treesit-node-end node-at-point))
+                   (treesit-node-match-p node-at-point 'text t))
           (forward-sexp-default-function arg)
           t)
         (if (> arg 0)
@@ -2913,7 +2980,8 @@ when a major mode sets it.")
 
 (defun treesit-outline-search (&optional bound move backward looking-at)
   "Search for the next outline heading in the syntax tree.
-See the descriptions of arguments in `outline-search-function'."
+For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
+`outline-search-function'."
   (if looking-at
       (when-let* ((node (or (treesit-thing-at (pos-eol) treesit-outline-predicate)
                             (treesit-thing-at (pos-bol) treesit-outline-predicate)))
@@ -3021,6 +3089,10 @@ If `treesit-defun-name-function' is non-nil, set up
 `add-log-current-defun'.
 
 If `treesit-simple-imenu-settings' is non-nil, set up Imenu.
+
+If either `treesit-outline-predicate' or `treesit-simple-imenu-settings'
+are non-nil, and Outline minor mode settings don't alreay exist, setup
+Outline minor mode.
 
 If `sexp', `sentence' are defined in `treesit-thing-settings',
 enable tree-sitter navigation commands for them.

@@ -67,7 +67,7 @@
   "Face used for Sieve Test Commands.")
 
 (defface sieve-tagged-arguments
-  '((t :inherit font-lock-keyword face))
+  '((t :inherit font-lock-keyword-face))
   "Face used for Sieve Tagged Arguments.")
 
 

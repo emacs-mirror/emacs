@@ -709,7 +709,8 @@ The renaming scheme is performed in accordance with
 	      (and last-coding-system-used
 		   (set-buffer-file-coding-system last-coding-system-used))
               (unless shr-fill-text
-                (visual-line-mode))
+                (visual-line-mode)
+                (visual-wrap-prefix-mode))
 	      (run-hooks 'eww-after-render-hook)
               ;; Enable undo again so that undo works in text input
               ;; boxes.
@@ -1336,6 +1337,8 @@ within text input fields."
   ;; desktop support
   (setq-local desktop-save-buffer #'eww-desktop-misc-data)
   (setq truncate-lines t)
+  ;; visual-wrap-prefix-mode support
+  (setq-local adaptive-fill-function #'shr-adaptive-fill-function)
   ;; thingatpt support
   (setq-local thing-at-point-provider-alist
               (cons '(url . eww--url-at-point)

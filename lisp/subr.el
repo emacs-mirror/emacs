@@ -2384,9 +2384,11 @@ LIST-VAR should not refer to a lexical variable.
 
 The return value is the new value of LIST-VAR.
 
-This is handy to add some elements to configuration variables,
-but please do not abuse it in Elisp code, where you are usually
-better off using `push' or `cl-pushnew'.
+This is meant to be used for adding elements to configuration
+variables, such as adding a directory to a path variable
+like `load-path', but please do not abuse it to construct
+arbitrary lists in Elisp code, where using `push' or `cl-pushnew'
+will get you more efficient code.
 
 If you want to use `add-to-list' on a variable that is not
 defined until a certain package is loaded, you should put the
@@ -3065,7 +3067,8 @@ instead."
   (if (and (or (null type) (eq type 'defun))
 	   (symbolp symbol)
 	   (autoloadp (symbol-function symbol)))
-      (nth 1 (symbol-function symbol))
+      (locate-library
+       (nth 1 (symbol-function symbol)))
     (if (and native-p (or (null type) (eq type 'defun))
 	     (symbolp symbol)
 	     (native-comp-available-p)
@@ -4485,8 +4488,8 @@ Otherwise, return nil."
   "Return the SHA-1 (Secure Hash Algorithm) of an OBJECT.
 OBJECT is either a string or a buffer.  Optional arguments START and
 END are character positions specifying which portion of OBJECT for
-computing the hash.  If BINARY is non-nil, return a 40-byte unibyte
-string; otherwise returna 40-character string.
+computing the hash.  If BINARY is non-nil, return a 20-byte unibyte
+string; otherwise return a 40-character string.
 
 Note that SHA-1 is not collision resistant and should not be used
 for anything security-related.  See `secure-hash' for

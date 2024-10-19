@@ -2505,7 +2505,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
 (defmacro cl-once-only (names &rest body)
   "Generate code to evaluate each of NAMES just once in BODY.
 
-This macro helps with writing other macros.  Each of names is
+This macro helps with writing other macros.  Each of NAMES is
 either (NAME FORM) or NAME, which latter means (NAME NAME).
 During macroexpansion, each NAME is bound to an uninterned
 symbol.  The expansion evaluates each FORM and binds it to the

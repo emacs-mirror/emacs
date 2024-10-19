@@ -32,7 +32,9 @@ NDK_LOCAL_EXPORT_C_INCLUDES_$(LOCAL_MODULE) := $(LOCAL_EXPORT_C_INCLUDES) $(LOCA
 NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) :=
 NDK_WHOLE_A_NAMES_$(LOCAL_MODULE) :=
 NDK_LOCAL_SO_NAMES_$(LOCAL_MODULE) :=
-NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) :=
+
+# Linker options enabling 16k page sizes.
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) := $(NDK_BUILD_SO_LDFLAGS)
 
 # List of all dependencies resolved for this module thus far.
 # Used to avoid infinite recursion.

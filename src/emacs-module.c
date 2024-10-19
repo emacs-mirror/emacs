@@ -95,12 +95,6 @@ To add a new module function, proceed as follows:
 #include "thread.h"
 
 #include <intprops.h>
-#include <verify.h>
-
-/* Work around GCC bug 83162.  */
-#if GNUC_PREREQ (4, 3, 0)
-# pragma GCC diagnostic ignored "-Wclobbered"
-#endif
 
 /* We use different strategies for allocating the user-visible objects
    (struct emacs_runtime, emacs_env, emacs_value), depending on
@@ -270,14 +264,17 @@ module_decode_utf_8 (const char *str, ptrdiff_t len)
       module_out_of_memory (env);					\
       return retval;							\
     }									\
-  struct handler *internal_cleanup                                      \
+  emacs_env *env_volatile = env;					\
+  struct handler *volatile internal_cleanup				\
     = internal_handler;                                                 \
-  if (sys_setjmp (internal_cleanup->jmp))                               \
+  if (sys_setjmp (internal_handler->jmp))				\
     {									\
+      emacs_env *env = env_volatile;					\
+      struct handler *internal_handler = internal_cleanup;	\
       module_handle_nonlocal_exit (env,                                 \
-                                   internal_cleanup->nonlocal_exit,     \
-                                   internal_cleanup->val);              \
-      module_reset_handlerlist (internal_cleanup);			\
+				   internal_handler->nonlocal_exit,     \
+				   internal_handler->val);              \
+      module_reset_handlerlist (internal_handler);			\
       return retval;							\
     }									\
   do { } while (false)
@@ -1021,15 +1018,24 @@ import/export overhead on most platforms.
 
 /* Verify that emacs_limb_t indeed has unique object
    representations.  */
-verify (CHAR_BIT == 8);
-verify ((sizeof (emacs_limb_t) == 4 && EMACS_LIMB_MAX == 0xFFFFFFFF)
-        || (sizeof (emacs_limb_t) == 8
-            && EMACS_LIMB_MAX == 0xFFFFFFFFFFFFFFFF));
+static_assert (CHAR_BIT == 8);
+static_assert ((sizeof (emacs_limb_t) == 4 && EMACS_LIMB_MAX == 0xFFFFFFFF)
+	       || (sizeof (emacs_limb_t) == 8
+		   && EMACS_LIMB_MAX == 0xFFFFFFFFFFFFFFFF));
 
 static bool
 module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
                             ptrdiff_t *count, emacs_limb_t *magnitude)
 {
+#if GCC_LINT && __GNUC__ && !__clang__
+  /* These useless assignments pacify GCC 14.2.1 x86-64
+     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=21161>.  */
+  {
+    int *volatile sign_volatile = sign;
+    sign = sign_volatile;
+  }
+#endif
+
   MODULE_FUNCTION_BEGIN (false);
   Lisp_Object o = value_to_lisp (arg);
   CHECK_INTEGER (o);
@@ -1062,7 +1068,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
          suffice.  */
       EMACS_UINT u;
       enum { required = (sizeof u + size - 1) / size };
-      verify (0 < required && +required <= module_bignum_count_max);
+      static_assert (0 < required && +required <= module_bignum_count_max);
       if (magnitude == NULL)
         {
           *count = required;
@@ -1082,7 +1088,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
         u = (EMACS_UINT) x;
       else
         u = -(EMACS_UINT) x;
-      verify (required * bits < PTRDIFF_MAX);
+      static_assert (required * bits < PTRDIFF_MAX);
       for (ptrdiff_t i = 0; i < required; ++i)
         magnitude[i] = (emacs_limb_t) (u >> (i * bits));
       MODULE_INTERNAL_CLEANUP ();

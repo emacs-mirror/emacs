@@ -45,7 +45,6 @@
 
 (require 'ob)
 (require 'org-macs)
-(require 'ox-ascii)
 
 (declare-function org-time-string-to-time "org" (s))
 (declare-function orgtbl-to-generic "org-table" (table params))
@@ -295,6 +294,8 @@ then create one.  Return the initialized session.  The current
   "Export TABLE to DATA-FILE in a format readable by gnuplot.
 Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
   (require 'ox-org)
+  (require 'ox-ascii)
+  (declare-function org-export-create-backend "ox")
   (with-temp-file data-file
     (insert (let ((org-babel-gnuplot-timestamp-fmt
 		   (or (plist-get params :timefmt) "%Y-%m-%d-%H:%M:%S"))

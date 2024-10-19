@@ -1,5 +1,5 @@
 # time_h.m4
-# serial 26
+# serial 27
 dnl Copyright (C) 2000-2001, 2003-2007, 2009-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -163,13 +163,16 @@ AC_DEFUN([gl_TIME_H_DEFAULTS],
   HAVE_TIMEGM=1;                         AC_SUBST([HAVE_TIMEGM])
   HAVE_TIMESPEC_GET=1;                   AC_SUBST([HAVE_TIMESPEC_GET])
   HAVE_TIMESPEC_GETRES=1;                AC_SUBST([HAVE_TIMESPEC_GETRES])
-  dnl Even GNU libc does not have timezone_t yet.
+  dnl Even GNU libc does not have timezone_t and tzalloc() yet.
   HAVE_TIMEZONE_T=0;                     AC_SUBST([HAVE_TIMEZONE_T])
+  HAVE_TZALLOC=0;                        AC_SUBST([HAVE_TZALLOC])
   REPLACE_CTIME=0;                       AC_SUBST([REPLACE_CTIME])
   REPLACE_GMTIME=0;                      AC_SUBST([REPLACE_GMTIME])
   REPLACE_LOCALTIME=0;                   AC_SUBST([REPLACE_LOCALTIME])
   REPLACE_LOCALTIME_R=0;                 AC_SUBST([REPLACE_LOCALTIME_R])
+  REPLACE_LOCALTIME_RZ=0;                AC_SUBST([REPLACE_LOCALTIME_RZ])
   REPLACE_MKTIME=0;                      AC_SUBST([REPLACE_MKTIME])
+  REPLACE_MKTIME_Z=0;                    AC_SUBST([REPLACE_MKTIME_Z])
   REPLACE_NANOSLEEP=0;                   AC_SUBST([REPLACE_NANOSLEEP])
   REPLACE_STRFTIME=0;                    AC_SUBST([REPLACE_STRFTIME])
   REPLACE_TIME=0;                        AC_SUBST([REPLACE_TIME])

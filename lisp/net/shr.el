@@ -938,6 +938,11 @@ When `shr-fill-text' is nil, only indent."
         (when (looking-at " $")
 	  (delete-region (point) (line-end-position)))))))
 
+(defun shr-adaptive-fill-function ()
+  "Return a fill prefix for the paragraph at point."
+  (when-let ((prefix (get-text-property (point) 'shr-prefix-length)))
+    (buffer-substring (point) (+ (point) prefix))))
+
 (defun shr-parse-base (url)
   ;; Always chop off anchors.
   (when (string-match "#.*" url)
@@ -945,7 +950,7 @@ When `shr-fill-text' is nil, only indent."
   ;; NB: <base href=""> URI may itself be relative to the document's URI.
   (setq url (shr-expand-url url))
   (let* ((parsed (url-generic-parse-url url))
-	 (local (url-filename parsed)))
+	 (local (or (url-filename parsed) "")))
     (setf (url-filename parsed) "")
     ;; Chop off the bit after the last slash.
     (when (string-match "\\`\\(.*/\\)[^/]+\\'" local)
@@ -1041,11 +1046,24 @@ When `shr-fill-text' is nil, only indent."
 
 (defun shr-indent ()
   (when (> shr-indentation 0)
-    (if (not shr-use-fonts)
-        (insert-char ?\s shr-indentation)
-      (insert ?\s)
-      (put-text-property (1- (point)) (point)
-                         'display `(space :width (,shr-indentation))))))
+    (let ((start (point))
+          (prefix (or (get-text-property (point) 'shr-prefix-length) 0)))
+      (if (not shr-use-fonts)
+          (insert-char ?\s shr-indentation)
+        (insert ?\s)
+        ;; Set the specified space width in units of the average-width
+        ;; of the current font, like (N . width).  That way, the
+        ;; indentation is calculated correctly when using
+        ;; `text-scale-adjust'.
+        (let ((avg-space (propertize (buffer-substring (1- (point)) (point))
+                                     'display '(space :width 1))))
+          (put-text-property
+           (1- (point)) (point) 'display
+           `(space :width (,(/ (float shr-indentation)
+                               (string-pixel-width avg-space (current-buffer)))
+                           . width)))))
+      (put-text-property start (+ (point) prefix)
+                         'shr-prefix-length (+ prefix (- (point) start))))))
 
 (defun shr-fontize-dom (dom &rest types)
   (let ((start (point)))

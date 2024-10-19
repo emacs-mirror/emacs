@@ -33,15 +33,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "atimer.h"
 #include "igc.h"
 
-/* CACHEABLE is ordinarily nothing, except it is 'volatile' if
-   necessary to cajole GCC into not warning incorrectly that a
-   variable should be volatile.  */
-#if defined GCC_LINT || defined lint
-# define CACHEABLE volatile
-#else
-# define CACHEABLE /* empty */
-#endif
-
 /* Non-nil means record all fset's and provide's, to be undone
    if the file being autoloaded is not fully loaded.
    They are recorded by being consed onto the front of Vautoload_queue:
@@ -443,7 +434,7 @@ DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
 usage: (progn BODY...)  */)
   (Lisp_Object body)
 {
-  Lisp_Object CACHEABLE val = Qnil;
+  Lisp_Object val = Qnil;
 
   while (CONSP (body))
     {
@@ -1031,15 +1022,15 @@ usage: (let* VARLIST BODY...)  */)
 	}
 
       var = maybe_remove_pos_from_symbol (var);
-      if (!NILP (lexenv) && BARE_SYMBOL_P (var)
-	  && !XBARE_SYMBOL (var)->u.s.declared_special
+      CHECK_TYPE (BARE_SYMBOL_P (var), Qsymbolp, var);
+      if (!NILP (lexenv) && !XBARE_SYMBOL (var)->u.s.declared_special
 	  && NILP (Fmemq (var, Vinternal_interpreter_environment)))
 	/* Lexically bind VAR by adding it to the interpreter's binding
 	   alist.  */
 	{
 	  Lisp_Object newenv
 	    = Fcons (Fcons (var, val), Vinternal_interpreter_environment);
-	  if (EQ (Vinternal_interpreter_environment, lexenv))
+	  if (BASE_EQ (Vinternal_interpreter_environment, lexenv))
 	    /* Save the old lexical environment on the specpdl stack,
 	       but only for the first lexical binding, since we'll never
 	       need to revert to one of the intermediate ones.  */
@@ -1103,10 +1094,10 @@ usage: (let VARLIST BODY...)  */)
       varlist = XCDR (varlist);
       Lisp_Object var = maybe_remove_pos_from_symbol (SYMBOLP (elt) ? elt
 						      : Fcar (elt));
+      CHECK_TYPE (BARE_SYMBOL_P (var), Qsymbolp, var);
       tem = temps[argnum];
 
-      if (!NILP (lexenv) && SYMBOLP (var)
-	  && !XSYMBOL (var)->u.s.declared_special
+      if (!NILP (lexenv) && !XBARE_SYMBOL (var)->u.s.declared_special
 	  && NILP (Fmemq (var, Vinternal_interpreter_environment)))
 	/* Lexically bind VAR by adding it to the lexenv alist.  */
 	lexenv = Fcons (Fcons (var, tem), lexenv);
@@ -1115,7 +1106,7 @@ usage: (let VARLIST BODY...)  */)
 	specbind (var, tem);
     }
 
-  if (!EQ (lexenv, Vinternal_interpreter_environment))
+  if (!BASE_EQ (lexenv, Vinternal_interpreter_environment))
     /* Instantiate a new lexical environment.  */
     specbind (Qinternal_interpreter_environment, lexenv);
 
@@ -1270,17 +1261,11 @@ usage: (catch TAG BODY...)  */)
   return internal_catch (tag, Fprogn, XCDR (args));
 }
 
-/* Work around GCC bug 61118
-   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61118>.  */
-#if GNUC_PREREQ (4, 9, 0)
-# pragma GCC diagnostic ignored "-Wclobbered"
-#endif
-
 /* Assert that E is true, but do not evaluate E.  Use this instead of
    eassert (E) when E contains variables that might be clobbered by a
    longjmp.  */
 
-#define clobbered_eassert(E) verify (sizeof (E) != 0)
+#define clobbered_eassert(E) static_assert (sizeof (E) != 0)
 
 void
 pop_handler (void)
@@ -1508,11 +1493,13 @@ Lisp_Object
 internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 			      Lisp_Object handlers)
 {
-  struct handler *oldhandlerlist = handlerlist;
-  ptrdiff_t CACHEABLE clausenb = 0;
+  struct handler *volatile oldhandlerlist = handlerlist;
+
+  /* The number of non-success handlers, plus 1 for a sentinel.  */
+  ptrdiff_t clausenb = 1;
 
   var = maybe_remove_pos_from_symbol (var);
-  CHECK_SYMBOL (var);
+  CHECK_TYPE (BARE_SYMBOL_P (var), Qsymbolp, var);
 
   Lisp_Object success_handler = Qnil;
 
@@ -1541,69 +1528,67 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
     memory_full (SIZE_MAX);
   Lisp_Object volatile *clauses = alloca (clausenb * sizeof *clauses);
   clauses += clausenb;
+  *--clauses = make_fixnum (0);
   for (Lisp_Object tail = handlers; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object tem = XCAR (tail);
       if (!(CONSP (tem) && EQ (XCAR (tem), QCsuccess)))
 	*--clauses = tem;
     }
-  for (ptrdiff_t i = 0; i < clausenb; i++)
+  Lisp_Object volatile var_volatile = var;
+  Lisp_Object val, handler_body;
+  for (Lisp_Object volatile *pcl = clauses; ; pcl++)
     {
-      Lisp_Object clause = clauses[i];
+      if (BASE_EQ (*pcl, make_fixnum (0)))
+	{
+	  val = eval_sub (bodyform);
+	  handlerlist = oldhandlerlist;
+	  if (NILP (success_handler))
+	    return val;
+#if GCC_LINT && __GNUC__ && !__clang__
+	  /* This useless assignment pacifies GCC 14.2.1 x86-64
+	     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=21161>.  */
+	  var = var_volatile;
+#endif
+	  handler_body = XCDR (success_handler);
+	  break;
+	}
+      Lisp_Object clause = *pcl;
       Lisp_Object condition = CONSP (clause) ? XCAR (clause) : Qnil;
       if (!CONSP (condition))
 	condition = list1 (condition);
       struct handler *c = push_handler (condition, CONDITION_CASE);
+      Lisp_Object volatile *clauses_volatile = clauses;
       if (sys_setjmp (c->jmp))
 	{
-	  Lisp_Object val = handlerlist->val;
-	  Lisp_Object volatile *chosen_clause = clauses;
-	  for (struct handler *h = handlerlist->next; h != oldhandlerlist;
-	       h = h->next)
+	  var = var_volatile;
+	  val = handlerlist->val;
+	  Lisp_Object volatile *chosen_clause = clauses_volatile;
+	  struct handler *oldh = oldhandlerlist;
+	  for (struct handler *h = handlerlist->next; h != oldh; h = h->next)
 	    chosen_clause++;
-	  Lisp_Object handler_body = XCDR (*chosen_clause);
-	  handlerlist = oldhandlerlist;
+	  handler_body = XCDR (*chosen_clause);
+	  handlerlist = oldh;
 
-	  if (NILP (var))
-	    return Fprogn (handler_body);
-
-	  Lisp_Object handler_var = var;
-	  if (!NILP (Vinternal_interpreter_environment))
-	    {
-	      val = Fcons (Fcons (var, val),
-			   Vinternal_interpreter_environment);
-	      handler_var = Qinternal_interpreter_environment;
-	    }
-
-	  /* Bind HANDLER_VAR to VAL while evaluating HANDLER_BODY.
-	     The unbind_to undoes just this binding; whoever longjumped
-	     to us unwound the stack to C->pdlcount before throwing.  */
-	  specpdl_ref count = SPECPDL_INDEX ();
-	  specbind (handler_var, val);
-	  return unbind_to (count, Fprogn (handler_body));
+	  /* Whoever longjumped to us unwound the stack to C->pdlcount before
+	     throwing, so the unbind_to will undo just this binding.  */
+	  break;
 	}
     }
 
-  Lisp_Object CACHEABLE result = eval_sub (bodyform);
-  handlerlist = oldhandlerlist;
-  if (!NILP (success_handler))
+  if (NILP (var))
+    return Fprogn (handler_body);
+
+  if (!NILP (Vinternal_interpreter_environment))
     {
-      if (NILP (var))
-	return Fprogn (XCDR (success_handler));
-
-      Lisp_Object handler_var = var;
-      if (!NILP (Vinternal_interpreter_environment))
-	{
-	  result = Fcons (Fcons (var, result),
-		       Vinternal_interpreter_environment);
-	  handler_var = Qinternal_interpreter_environment;
-	}
-
-      specpdl_ref count = SPECPDL_INDEX ();
-      specbind (handler_var, result);
-      return unbind_to (count, Fprogn (XCDR (success_handler)));
+      val = Fcons (Fcons (var, val),
+		   Vinternal_interpreter_environment);
+      var = Qinternal_interpreter_environment;
     }
-  return result;
+
+  specpdl_ref count = SPECPDL_INDEX ();
+  specbind (var, val);
+  return unbind_to (count, Fprogn (handler_body));
 }
 
 /* Call the function BFUN with no arguments, catching errors within it
@@ -1760,7 +1745,7 @@ push_handler (Lisp_Object tag_ch_val, enum handlertype handlertype)
 struct handler *
 push_handler_nosignal (Lisp_Object tag_ch_val, enum handlertype handlertype)
 {
-  struct handler *CACHEABLE c = handlerlist->nextfree;
+  struct handler *c = handlerlist->nextfree;
   if (!c)
     {
 #ifdef HAVE_MPS
@@ -3301,18 +3286,18 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
     {
       maybe_quit ();
 
-      Lisp_Object next = XCAR (syms_left);
-      if (!SYMBOLP (next))
+      Lisp_Object next = maybe_remove_pos_from_symbol (XCAR (syms_left));
+      if (!BARE_SYMBOL_P (next))
 	xsignal1 (Qinvalid_function, fun);
 
-      if (EQ (next, Qand_rest))
+      if (BASE_EQ (next, Qand_rest))
         {
           if (rest || previous_rest)
             xsignal1 (Qinvalid_function, fun);
           rest = 1;
 	  previous_rest = true;
         }
-      else if (EQ (next, Qand_optional))
+      else if (BASE_EQ (next, Qand_optional))
         {
           if (optional || rest || previous_rest)
             xsignal1 (Qinvalid_function, fun);
@@ -3334,12 +3319,12 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
 	    arg = Qnil;
 
 	  /* Bind the argument.  */
-	  if (!NILP (lexenv) && SYMBOLP (next))
+	  if (!NILP (lexenv))
 	    /* Lexically bind NEXT by adding it to the lexenv alist.  */
 	    lexenv = Fcons (Fcons (next, arg), lexenv);
 	  else
 	    /* Dynamically bind NEXT.  */
-	    specbind (maybe_remove_pos_from_symbol (next), arg);
+	    specbind (next, arg);
 	  previous_rest = false;
 	}
     }
@@ -3349,7 +3334,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs, Lisp_Object *arg_vector)
   else if (i < nargs)
     xsignal2 (Qwrong_number_of_arguments, fun, make_fixnum (nargs));
 
-  if (!EQ (lexenv, Vinternal_interpreter_environment))
+  if (!BASE_EQ (lexenv, Vinternal_interpreter_environment))
     /* Instantiate a new lexical environment.  */
     specbind (Qinternal_interpreter_environment, lexenv);
 
@@ -3500,7 +3485,7 @@ let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
 	eassert (let_bound_symbol->u.s.redirect != SYMBOL_VARALIAS);
 	if (symbol == let_bound_symbol
 	    && p->kind != SPECPDL_LET_LOCAL /* bug#62419 */
-	    && EQ (specpdl_where (p), buf))
+	    && BASE_EQ (specpdl_where (p), buf))
 	  return 1;
       }
 

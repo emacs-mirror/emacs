@@ -115,8 +115,8 @@ This can be also be set to a full path, or a relative path.  If
 the path is relative, it will be relative to the value of
 `less-css-output-dir', if set, or the current directory by
 default."
-  :type '(choice (const :tag "Default" nil) file))
-(make-variable-buffer-local 'less-css-output-file-name)
+  :type '(choice (const :tag "Default" nil) file)
+  :local t)
 
 (defcustom less-css-input-file-name nil
   "File name which will be compiled to CSS.
@@ -131,10 +131,10 @@ variables.
 This can be also be set to a full path, or a relative path.  If
 the path is relative, it will be relative to the current
 directory by default."
-  :type '(choice (const nil) file))
+  :type '(choice (const nil) file)
+  :local t)
 ;;;###autoload
 (put 'less-css-input-file-name 'safe-local-variable #'stringp)
-(make-variable-buffer-local 'less-css-input-file-name)
 
 (defconst less-css-default-error-regex
   "^\\(?:\e\\[31m\\)?\\([^\e\n]*\\|FileError:.*\n\\)\\(?:\e\\[39m\e\\[31m\\)? in \\(?:\e\\[39m\\)?\\([^ \r\n\t\e]+\\)\\(?:\e\\[90m\\)?\\(?::\\| on line \\)\\([0-9]+\\)\\(?::\\|, column \\)\\([0-9]+\\):?\\(?:\e\\[39m\\)?")

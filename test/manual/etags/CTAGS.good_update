@@ -1,4 +1,6 @@
 
+"	tex-src/texinfo.tex	/^\\def\\turnoffactive{\\let"=\\normaldoublequote$/
+"	tex-src/texinfo.tex	/^\\let"=\\activedoublequote$/
 #a-defer-word	forth-src/test-forth.fth	/^defer #a-defer-word$/
 #some-storage	forth-src/test-forth.fth	/^2000 buffer: #some-storage$/
 $0x80	c-src/sysdep.h	32
@@ -33,14 +35,28 @@ $user_comment_lc	php-src/lce_functions.php	115
 ${CHECKOBJS}	make-src/Makefile	/^${CHECKOBJS}: CFLAGS=-g3 -DNULLFREECHECK=0$/
 %cdiff	make-src/Makefile	/^%cdiff: CTAGS% CTAGS ${infiles}$/
 %ediff	make-src/Makefile	/^%ediff: ETAGS% ETAGS ${infiles}$/
+&	tex-src/texinfo.tex	/^\\gdef\\functionparens{\\boldbrax\\let&=\\amprm\\parenco/
+&	tex-src/texinfo.tex	/^\\gdef\\normalparens{\\boldbrax\\let&=\\ampnr}$/
+'	tex-src/texinfo.tex	/^\\def\\'{{'}}$/
+(	tex-src/texinfo.tex	/^\\gdef\\amprm#1 {{\\rm\\&#1}\\let(=\\oprm \\let)=\\clrm\\ }/
+(	tex-src/texinfo.tex	/^\\gdef\\boldbrax{\\let(=\\opnr\\let)=\\clnr\\let[=\\lbrb\\l/
+(	tex-src/texinfo.tex	/^\\gdef\\oprm#1 {{\\rm\\char`\\(}#1 \\bf \\let(=\\opnested /
+(	tex-src/texinfo.tex	/^\\ifnum \\parencount=1 {\\rm \\char `\\)}\\sl \\let(=\\opr/
 ($_,$flag,$opt,$f,$r,@temp	perl-src/yagrip.pl	8
 ($prog,$_,@list	perl-src/yagrip.pl	39
 ($string,$flag,@string,@temp,@last	perl-src/yagrip.pl	40
 (a-forth-constant	forth-src/test-forth.fth	/^constant (a-forth-constant$/
 (another-forth-word)	forth-src/test-forth.fth	/^: (another-forth-word) ( -- )$/
 (foo)	forth-src/test-forth.fth	/^: (foo) 1 ;$/
+)	tex-src/texinfo.tex	/^\\gdef\\amprm#1 {{\\rm\\&#1}\\let(=\\oprm \\let)=\\clrm\\ }/
+)	tex-src/texinfo.tex	/^\\gdef\\boldbrax{\\let(=\\opnr\\let)=\\clnr\\let[=\\lbrb\\l/
+*	tex-src/texinfo.tex	/^\\def\\*{\\hfil\\break\\hbox{}\\ignorespaces}$/
+*	tex-src/texinfo.tex	/^\\let\\*=\\ptexstar$/
 +	ruby-src/test.rb	/^        def +(y)$/
 +	tex-src/texinfo.tex	/^\\def+{{\\tt \\char 43}}$/
++	tex-src/texinfo.tex	/^\\let+=\\normalplus}$/
+.	tex-src/texinfo.tex	/^\\def\\.{.\\spacefactor=3000 }$/
+.	tex-src/texinfo.tex	/^\\let\\.=\\ptexdot$/
 .PRECIOUS	make-src/Makefile	/^.PRECIOUS: ETAGS CTAGS ETAGS16 CTAGS16 ETAGS17 CTA/
 /.notdef	ps-src/rfc1245.ps	/^\/.notdef \/.notdef \/.notdef \/.notdef \/.notdef \/.not/
 /.notdef	ps-src/rfc1245.ps	/^\/.notdef \/.notdef \/.notdef \/.notdef \/space \/exclam/
@@ -172,35 +188,26 @@ ${CHECKOBJS}	make-src/Makefile	/^${CHECKOBJS}: CFLAGS=-g3 -DNULLFREECHECK=0$/
 2const	forth-src/test-forth.fth	/^3 4 2constant 2const$/
 2val	forth-src/test-forth.fth	/^2const 2value 2val$/
 2var	forth-src/test-forth.fth	/^2variable 2var$/
+:	tex-src/texinfo.tex	/^\\def\\:{\\spacefactor=1000 }$/
 :a-forth-dictionary-entry	forth-src/test-forth.fth	/^create :a-forth-dictionary-entry$/
 <	tex-src/texinfo.tex	/^\\def<{{\\tt \\less}}$/
+<	tex-src/texinfo.tex	/^\\let<=\\normalless$/
 <<	ruby-src/test.rb	/^        def <<(y)$/
 <=	ruby-src/test.rb	/^        def <=(y)$/
 <=>	ruby-src/test.rb	/^        def <=>(y)$/
 =	tex-src/texinfo.tex	/^\\global\\def={{\\tt \\char 61}}}$/
-=	tex-src/texinfo.tex	/^\\global\\let\\section = \\appendixsec$/
-=	tex-src/texinfo.tex	/^\\global\\let\\section = \\numberedsec$/
-=	tex-src/texinfo.tex	/^\\global\\let\\section = \\unnumberedsec$/
-=	tex-src/texinfo.tex	/^\\global\\let\\subsection = \\appendixsubsec$/
-=	tex-src/texinfo.tex	/^\\global\\let\\subsection = \\numberedsubsec$/
-=	tex-src/texinfo.tex	/^\\global\\let\\subsection = \\unnumberedsubsec$/
-=	tex-src/texinfo.tex	/^\\global\\let\\subsubsection = \\appendixsubsubsec$/
-=	tex-src/texinfo.tex	/^\\global\\let\\subsubsection = \\numberedsubsubsec$/
-=	tex-src/texinfo.tex	/^\\global\\let\\subsubsection = \\unnumberedsubsubsec$/
 =/f	ada-src/etags-test-for.ada	/^   function "=" (L, R : System.Address) return Boo/
 ==	ruby-src/test.rb	/^        def ==(y)$/
 ===	ruby-src/test.rb	/^        def ===(y)$/
-=\indexdummyfont	tex-src/texinfo.tex	/^\\let\\cite=\\indexdummyfont$/
-=\relax	tex-src/texinfo.tex	/^\\let\\appendix=\\relax$/
-=\relax	tex-src/texinfo.tex	/^\\let\\chapter=\\relax$/
-=\relax	tex-src/texinfo.tex	/^\\let\\section=\\relax$/
-=\relax	tex-src/texinfo.tex	/^\\let\\subsection=\\relax$/
-=\relax	tex-src/texinfo.tex	/^\\let\\subsubsection=\\relax$/
-=\smartitalic	tex-src/texinfo.tex	/^\\let\\cite=\\smartitalic$/
 =starts-with-equals!	scm-src/test.scm	/^(define =starts-with-equals! #t)$/
 >	tex-src/texinfo.tex	/^\\def>{{\\tt \\gtr}}$/
+>	tex-src/texinfo.tex	/^\\let>=\\normalgreater$/
 >field1	forth-src/test-forth.fth	/^   9   field   >field1$/
 >field2	forth-src/test-forth.fth	/^   5   field   >field2$/
+@	tex-src/texinfo.tex	/^\\def\\@{@}%$/
+@	tex-src/texinfo.tex	/^\\def\\@{{\\tt \\char '100}}$/
+@sf	tex-src/texinfo.tex	/^\\ifhmode\\edef\\@sf{\\spacefactor\\the\\spacefactor}\\\/\\/
+@sf	tex-src/texinfo.tex	/^\\let\\@sf\\empty$/
 A	c.c	162
 A	cp-src/c.C	/^void A::A() {}$/
 A	cp-src/c.C	117
@@ -325,6 +332,11 @@ CATCHER	c-src/emacs/src/lisp.h	3021
 CDR	c-src/emacs/src/lisp.h	/^CDR (Lisp_Object c)$/
 CDR_SAFE	c-src/emacs/src/lisp.h	/^CDR_SAFE (Lisp_Object c)$/
 CFLAGS	make-src/Makefile	/^CFLAGS=${WARNINGS} -ansi -g3 # -pg -O$/
+CHAPFopen	tex-src/texinfo.tex	/^\\def\\CHAPFopen{$/
+CHAPFplain	tex-src/texinfo.tex	/^\\def\\CHAPFplain{$/
+CHAPPAGodd	tex-src/texinfo.tex	/^\\def\\CHAPPAGodd{$/
+CHAPPAGoff	tex-src/texinfo.tex	/^\\def\\CHAPPAGoff{$/
+CHAPPAGon	tex-src/texinfo.tex	/^\\def\\CHAPPAGon{$/
 CHAR	c-src/etags.c	/^#define CHAR(x)		((unsigned int)(x) & (CHARS - 1))/
 CHAR	y-src/cccp.c	7
 CHARACTERBITS	c-src/emacs/src/lisp.h	2457
@@ -530,6 +542,7 @@ EMACS_UINT	c-src/emacs/src/lisp.h	97
 ENTRY	c-src/sysdep.h	/^#define	ENTRY(name)							      \\$/
 ENUM_BF	c-src/emacs/src/lisp.h	/^#define ENUM_BF(TYPE) enum TYPE$/
 ENUM_BF	c-src/emacs/src/lisp.h	/^#define ENUM_BF(TYPE) unsigned int$/
+ENVcheck	tex-src/texinfo.tex	/^\\def\\ENVcheck{%$/
 EQ	c-src/emacs/src/lisp.h	/^# define EQ(x, y) lisp_h_EQ (x, y)$/
 EQUAL	y-src/cccp.c	12
 ERLSRC	make-src/Makefile	/^ERLSRC=gs_dialog.erl lines.erl lists.erl$/
@@ -543,13 +556,37 @@ EXFUN	c-src/emacs/src/lisp.h	/^#define EXFUN(fnname, maxargs) \\$/
 EXTAGS	make-src/Makefile	/^EXTAGS: extags ${infiles} Makefile$/
 EXTERNALLY_VISIBLE	c-src/emacs/src/keyboard.c	3497
 EXTERNALLY_VISIBLE	c-src/emacs/src/keyboard.c	4372
+Ealphaenumerate	tex-src/texinfo.tex	/^\\def\\Ealphaenumerate{\\Eenumerate}$/
+Ecapsenumerate	tex-src/texinfo.tex	/^\\def\\Ecapsenumerate{\\Eenumerate}$/
+Ecartouche	tex-src/texinfo.tex	/^\\def\\Ecartouche{%$/
+Edescription	tex-src/texinfo.tex	/^\\def\\Edescription{\\Etable}% Necessary kludge.$/
+Edisplay	tex-src/texinfo.tex	/^\\def\\Edisplay{\\endgroup\\afterenvbreak}%$/
+Eexample	tex-src/texinfo.tex	/^\\def\\Eexample{\\Elisp}$/
+Eflushleft	tex-src/texinfo.tex	/^\\def\\Eflushleft{\\endgroup\\afterenvbreak}%$/
+Eflushright	tex-src/texinfo.tex	/^\\def\\Eflushright{\\endgroup\\afterenvbreak}%$/
+Eformat	tex-src/texinfo.tex	/^\\def\\Eformat{\\endgroup\\afterenvbreak}$/
+Eftable	tex-src/texinfo.tex	/^\\def\\Eftable{\\endgraf\\endgroup\\afterenvbreak}%$/
+Egroup	tex-src/texinfo.tex	/^  \\def\\Egroup{\\egroup\\endgroup}%$/
+Eifclear	tex-src/texinfo.tex	/^\\def\\Eifclear{}$/
+Eifset	tex-src/texinfo.tex	/^\\def\\Eifset{}$/
+Eiftex	tex-src/texinfo.tex	/^\\def\\Eiftex{}$/
+Elisp	tex-src/texinfo.tex	/^\\def\\Elisp{\\endgroup\\afterenvbreak}%$/
 EmptyNmStr	pas-src/common.pas	/^function EmptyNmStr(* : NameString*);$/
 Environment	tex-src/gzip.texi	/^@node Environment, Tapes, Advanced usage, Top$/
+Equotation	tex-src/texinfo.tex	/^\\def\\Equotation{\\par\\endgroup\\afterenvbreak}%$/
 Erlang_functions	c-src/etags.c	/^Erlang_functions (FILE *inf)$/
 Erlang_help	c-src/etags.c	567
 Erlang_suffixes	c-src/etags.c	565
 ErrStrToNmStr	pas-src/common.pas	/^function ErrStrToNmStr;(*($/
 Error_Information/t	ada-src/2ataspri.ads	/^   type Error_Information is new Interfaces.C.POSI/
+Esmallexample	tex-src/texinfo.tex	/^\\def\\Esmallexample{\\Elisp}$/
+Esmallexample	tex-src/texinfo.tex	/^\\global\\def\\Esmallexample{\\Esmalllisp}$/
+Esmalllisp	tex-src/texinfo.tex	/^\\def\\Esmalllisp{\\endgroup\\afterenvbreak}%$/
+Etable	tex-src/texinfo.tex	/^\\def\\Etable{\\endgraf\\endgroup\\afterenvbreak}%$/
+Etable	tex-src/texinfo.tex	/^\\let\\Etable=\\relax}}$/
+Etex	tex-src/texinfo.tex	/^\\let\\Etex=\\endgroup}$/
+Etitlepage	tex-src/texinfo.tex	/^\\def\\Etitlepage{%$/
+Evtable	tex-src/texinfo.tex	/^\\def\\Evtable{\\endgraf\\endgroup\\afterenvbreak}%$/
 Exit_LL_Task/p	ada-src/2ataspri.adb	/^   procedure Exit_LL_Task is$/
 Exit_LL_Task/p	ada-src/2ataspri.ads	/^   procedure Exit_LL_Task;$/
 ExtractCommentInfo	pas-src/common.pas	/^procedure ExtractCommentInfo; (*($/
@@ -690,6 +727,20 @@ HASH_TABLE_P	c-src/emacs/src/lisp.h	/^HASH_TABLE_P (Lisp_Object a)$/
 HASH_TABLE_SIZE	c-src/emacs/src/lisp.h	/^HASH_TABLE_SIZE (struct Lisp_Hash_Table *h)$/
 HASH_VALUE	c-src/emacs/src/lisp.h	/^HASH_VALUE (struct Lisp_Hash_Table *h, ptrdiff_t i/
 HAVE_NTGUI	c-src/etags.c	116
+HEADINGSafter	tex-src/texinfo.tex	/^\\def\\HEADINGSafter{\\let\\HEADINGShook=\\HEADINGSdoub/
+HEADINGSdouble	tex-src/texinfo.tex	/^\\def\\HEADINGSdouble{$/
+HEADINGSdoubleafter	tex-src/texinfo.tex	/^\\let\\HEADINGSdoubleafter=\\HEADINGSafter$/
+HEADINGSdoublex	tex-src/texinfo.tex	/^\\def\\HEADINGSdoublex{%$/
+HEADINGShook	tex-src/texinfo.tex	/^\\def\\HEADINGSafter{\\let\\HEADINGShook=\\HEADINGSdoub/
+HEADINGShook	tex-src/texinfo.tex	/^\\def\\HEADINGSsingleafter{\\let\\HEADINGShook=\\HEADIN/
+HEADINGShook	tex-src/texinfo.tex	/^\\let\\HEADINGShook=\\relax$/
+HEADINGSoff	tex-src/texinfo.tex	/^\\def\\HEADINGSoff{$/
+HEADINGSon	tex-src/texinfo.tex	/^\\def\\HEADINGSon{\\HEADINGSdouble}$/
+HEADINGSon	tex-src/texinfo.tex	/^\\global\\def\\HEADINGSon{\\HEADINGSdouble}}$/
+HEADINGSon	tex-src/texinfo.tex	/^\\global\\def\\HEADINGSon{\\HEADINGSsingle}}$/
+HEADINGSsingle	tex-src/texinfo.tex	/^\\def\\HEADINGSsingle{$/
+HEADINGSsingleafter	tex-src/texinfo.tex	/^\\def\\HEADINGSsingleafter{\\let\\HEADINGShook=\\HEADIN/
+HEADINGSsinglex	tex-src/texinfo.tex	/^\\def\\HEADINGSsinglex{%$/
 HEAP	c-src/emacs/src/gmalloc.c	131
 HTMLSRC	make-src/Makefile	/^HTMLSRC=softwarelibero.html index.shtml algrthms.h/
 HTML_help	c-src/etags.c	584
@@ -751,6 +802,7 @@ JAVASRC	make-src/Makefile	/^JAVASRC=AWTEMul.java KeyEve.java SMan.java SysCol./
 KBD_BUFFER_SIZE	c-src/emacs/src/keyboard.c	82
 KBYTES	objc-src/PackInsp.m	58
 KEY_TO_CHAR	c-src/emacs/src/keyboard.c	/^#define KEY_TO_CHAR(k) (XINT (k) & ((1 << CHARACTE/
+L	tex-src/texinfo.tex	/^\\let\\L=\\ptexL$/
 LATEST	make-src/Makefile	/^LATEST=17$/
 LCE_COMMENT	php-src/lce_functions.php	13
 LCE_COMMENT_TOOL	php-src/lce_functions.php	17
@@ -1408,6 +1460,9 @@ Task_Type/b	ada-src/etags-test-for.ada	/^  task body Task_Type is$/
 Task_Type/b	ada-src/waroquiers.ada	/^  task body Task_Type is$/
 Task_Type/k	ada-src/etags-test-for.ada	/^  task type Task_Type is$/
 Task_Type/k	ada-src/waroquiers.ada	/^  task type Task_Type is$/
+TeX	tex-src/texinfo.tex	/^\\def\\TeX{\\realbackslash TeX}$/
+TeX	tex-src/texinfo.tex	/^\\def\\TeX{\\realbackslash TeX}%$/
+TeX	tex-src/texinfo.tex	/^\\let\\TeX=\\indexdummytex$/
 TeX_commands	c-src/etags.c	/^TeX_commands (FILE *inf)$/
 TeX_help	c-src/etags.c	674
 TeX_suffixes	c-src/etags.c	672
@@ -1667,551 +1722,22 @@ YY_DECL_VARIABLES	/usr/share/bison/bison.simple	391
 Yacc_entries	c-src/etags.c	/^Yacc_entries (FILE *inf)$/
 Yacc_help	c-src/etags.c	693
 Yacc_suffixes	c-src/etags.c	691
+Yappendixletterandtype	tex-src/texinfo.tex	/^\\def\\Yappendixletterandtype{%$/
+Ynothing	tex-src/texinfo.tex	/^\\def\\Ynothing{}$/
+Ypagenumber	tex-src/texinfo.tex	/^\\def\\Ypagenumber{\\folio}$/
+Ysectionnumberandtype	tex-src/texinfo.tex	/^\\def\\Ysectionnumberandtype{%$/
+Ytitle	tex-src/texinfo.tex	/^\\def\\Ytitle{\\thischapter}$/
 Z	c-src/h.h	100
+[	tex-src/texinfo.tex	/^\\gdef\\boldbrax{\\let(=\\opnr\\let)=\\clnr\\let[=\\lbrb\\l/
 []	ruby-src/test.rb	/^        def [](y)$/
 []=	ruby-src/test.rb	/^        def []=(y, val)$/
-\	tex-src/texinfo.tex	/^\\def\\ {{\\fontdimen2\\font=\\tclosesave{} }}%$/
-\	tex-src/texinfo.tex	/^\\gdef\\sepspaces{\\def {\\ }}}$/
-\'	tex-src/texinfo.tex	/^\\def\\'{{'}}$/
-\*	tex-src/texinfo.tex	/^\\def\\*{\\hfil\\break\\hbox{}\\ignorespaces}$/
-\.	tex-src/texinfo.tex	/^\\def\\.{.\\spacefactor=3000 }$/
-\:	tex-src/texinfo.tex	/^\\def\\:{\\spacefactor=1000 }$/
-\@	tex-src/texinfo.tex	/^\\def\\@{@}%$/
-\@	tex-src/texinfo.tex	/^\\def\\@{{\\tt \\char '100}}$/
-\CHAPFopen	tex-src/texinfo.tex	/^\\def\\CHAPFopen{$/
-\CHAPFplain	tex-src/texinfo.tex	/^\\def\\CHAPFplain{$/
-\CHAPPAGodd	tex-src/texinfo.tex	/^\\def\\CHAPPAGodd{$/
-\CHAPPAGoff	tex-src/texinfo.tex	/^\\def\\CHAPPAGoff{$/
-\CHAPPAGon	tex-src/texinfo.tex	/^\\def\\CHAPPAGon{$/
-\ENVcheck	tex-src/texinfo.tex	/^\\def\\ENVcheck{%$/
-\Ealphaenumerate	tex-src/texinfo.tex	/^\\def\\Ealphaenumerate{\\Eenumerate}$/
-\Ecapsenumerate	tex-src/texinfo.tex	/^\\def\\Ecapsenumerate{\\Eenumerate}$/
-\Ecartouche	tex-src/texinfo.tex	/^\\def\\Ecartouche{%$/
-\Edescription	tex-src/texinfo.tex	/^\\def\\Edescription{\\Etable}% Necessary kludge.$/
-\Edisplay	tex-src/texinfo.tex	/^\\def\\Edisplay{\\endgroup\\afterenvbreak}%$/
-\Eexample	tex-src/texinfo.tex	/^\\def\\Eexample{\\Elisp}$/
-\Eflushleft	tex-src/texinfo.tex	/^\\def\\Eflushleft{\\endgroup\\afterenvbreak}%$/
-\Eflushright	tex-src/texinfo.tex	/^\\def\\Eflushright{\\endgroup\\afterenvbreak}%$/
-\Eformat	tex-src/texinfo.tex	/^\\def\\Eformat{\\endgroup\\afterenvbreak}$/
-\Eftable	tex-src/texinfo.tex	/^\\def\\Eftable{\\endgraf\\endgroup\\afterenvbreak}%$/
-\Egroup	tex-src/texinfo.tex	/^  \\def\\Egroup{\\egroup\\endgroup}%$/
-\Eifclear	tex-src/texinfo.tex	/^\\def\\Eifclear{}$/
-\Eifset	tex-src/texinfo.tex	/^\\def\\Eifset{}$/
-\Eiftex	tex-src/texinfo.tex	/^\\def\\Eiftex{}$/
-\Elisp	tex-src/texinfo.tex	/^\\def\\Elisp{\\endgroup\\afterenvbreak}%$/
-\Equotation	tex-src/texinfo.tex	/^\\def\\Equotation{\\par\\endgroup\\afterenvbreak}%$/
-\Esmallexample	tex-src/texinfo.tex	/^\\def\\Esmallexample{\\Elisp}$/
-\Esmallexample	tex-src/texinfo.tex	/^\\global\\def\\Esmallexample{\\Esmalllisp}$/
-\Esmalllisp	tex-src/texinfo.tex	/^\\def\\Esmalllisp{\\endgroup\\afterenvbreak}%$/
-\Etable	tex-src/texinfo.tex	/^\\def\\Etable{\\endgraf\\endgroup\\afterenvbreak}%$/
-\Etitlepage	tex-src/texinfo.tex	/^\\def\\Etitlepage{%$/
-\Evtable	tex-src/texinfo.tex	/^\\def\\Evtable{\\endgraf\\endgroup\\afterenvbreak}%$/
-\HEADINGSafter	tex-src/texinfo.tex	/^\\def\\HEADINGSafter{\\let\\HEADINGShook=\\HEADINGSdoub/
-\HEADINGSdouble	tex-src/texinfo.tex	/^\\def\\HEADINGSdouble{$/
-\HEADINGSdoublex	tex-src/texinfo.tex	/^\\def\\HEADINGSdoublex{%$/
-\HEADINGSoff	tex-src/texinfo.tex	/^\\def\\HEADINGSoff{$/
-\HEADINGSon	tex-src/texinfo.tex	/^\\def\\HEADINGSon{\\HEADINGSdouble}$/
-\HEADINGSon	tex-src/texinfo.tex	/^\\global\\def\\HEADINGSon{\\HEADINGSdouble}}$/
-\HEADINGSon	tex-src/texinfo.tex	/^\\global\\def\\HEADINGSon{\\HEADINGSsingle}}$/
-\HEADINGSsingle	tex-src/texinfo.tex	/^\\def\\HEADINGSsingle{$/
-\HEADINGSsingleafter	tex-src/texinfo.tex	/^\\def\\HEADINGSsingleafter{\\let\\HEADINGShook=\\HEADIN/
-\HEADINGSsinglex	tex-src/texinfo.tex	/^\\def\\HEADINGSsinglex{%$/
-\TeX	tex-src/texinfo.tex	/^\\def\\TeX{\\realbackslash TeX}$/
-\TeX	tex-src/texinfo.tex	/^\\def\\TeX{\\realbackslash TeX}%$/
-\Yappendixletterandtype	tex-src/texinfo.tex	/^\\def\\Yappendixletterandtype{%$/
-\Ynothing	tex-src/texinfo.tex	/^\\def\\Ynothing{}$/
-\Ypagenumber	tex-src/texinfo.tex	/^\\def\\Ypagenumber{\\folio}$/
-\Ysectionnumberandtype	tex-src/texinfo.tex	/^\\def\\Ysectionnumberandtype{%$/
-\Ytitle	tex-src/texinfo.tex	/^\\def\\Ytitle{\\thischapter}$/
-\_	tex-src/texinfo.tex	/^\\def\\_{\\lvvmode \\kern.06em \\vbox{\\hrule width.3em /
-\_	tex-src/texinfo.tex	/^\\def\\_{{\\realbackslash _}}%$/
-\`	tex-src/texinfo.tex	/^\\def\\`{{`}}$/
-\aboveenvbreak	tex-src/texinfo.tex	/^\\def\\aboveenvbreak{{\\advance\\aboveenvskipamount by/
-\activedoublequote	tex-src/texinfo.tex	/^\\def\\activedoublequote{{\\tt \\char '042}}$/
-\activeparens	tex-src/texinfo.tex	/^\\def\\activeparens{%$/
-\afourpaper	tex-src/texinfo.tex	/^\\def\\afourpaper{$/
-\afterenvbreak	tex-src/texinfo.tex	/^\\def\\afterenvbreak{\\endgraf \\ifdim\\lastskip<\\above/
-\alphaenumerate	tex-src/texinfo.tex	/^\\def\\alphaenumerate{\\enumerate{a}}$/
-\appendix	tex-src/texinfo.tex	/^\\outer\\def\\appendix{\\parsearg\\appendixzzz}$/
-\appendixletter	tex-src/texinfo.tex	/^\\def\\appendixletter{\\char\\the\\appendixno}$/
-\appendixnoderef	tex-src/texinfo.tex	/^\\def\\appendixnoderef{\\ifx\\lastnode\\relax\\else$/
-\appendixsec	tex-src/texinfo.tex	/^\\outer\\def\\appendixsec{\\parsearg\\appendixsectionzz/
-\appendixsection	tex-src/texinfo.tex	/^\\outer\\def\\appendixsection{\\parsearg\\appendixsecti/
-\appendixsectionzzz	tex-src/texinfo.tex	/^\\def\\appendixsectionzzz #1{\\seccheck{appendixsecti/
-\appendixsetref	tex-src/texinfo.tex	/^\\def\\appendixsetref#1{%$/
-\appendixsubsec	tex-src/texinfo.tex	/^\\outer\\def\\appendixsubsec{\\parsearg\\appendixsubsec/
-\appendixsubseczzz	tex-src/texinfo.tex	/^\\def\\appendixsubseczzz #1{\\seccheck{appendixsubsec/
-\appendixsubsubsec	tex-src/texinfo.tex	/^\\outer\\def\\appendixsubsubsec{\\parsearg\\appendixsub/
-\appendixsubsubseczzz	tex-src/texinfo.tex	/^\\def\\appendixsubsubseczzz #1{\\seccheck{appendixsub/
-\appendixzzz	tex-src/texinfo.tex	/^\\def\\appendixzzz #1{\\seccheck{appendix}%$/
-\asis	tex-src/texinfo.tex	/^\\def\\asis#1{#1}$/
-\author	tex-src/texinfo.tex	/^   \\def\\author{\\parsearg\\authorzzz}%$/
-\authorfont	tex-src/texinfo.tex	/^   \\def\\authorfont{\\authorrm \\normalbaselineskip =/
-\authorzzz	tex-src/texinfo.tex	/^   \\def\\authorzzz##1{\\ifseenauthor\\else\\vskip 0pt /
-\b	tex-src/texinfo.tex	/^\\def\\b##1{\\realbackslash b {##1}}$/
-\b	tex-src/texinfo.tex	/^\\def\\b##1{\\realbackslash b {##1}}%$/
-\b	tex-src/texinfo.tex	/^\\def\\b#1{{\\bf #1}}$/
-\balancecolumns	tex-src/texinfo.tex	/^\\def\\balancecolumns{%$/
-\begin	tex-src/texinfo.tex	/^\\outer\\def\\begin{\\parsearg\\beginxxx}$/
-\begindoublecolumns	tex-src/texinfo.tex	/^\\def\\begindoublecolumns{\\begingroup$/
-\beginxxx	tex-src/texinfo.tex	/^\\def\\beginxxx #1{%$/
-\bf	tex-src/texinfo.tex	/^\\def\\bf{\\realbackslash bf }$/
-\bf	tex-src/texinfo.tex	/^\\def\\bf{\\realbackslash bf }%$/
-\bullet	tex-src/texinfo.tex	/^\\def\\bullet{$\\ptexbullet$}$/
-\bye	tex-src/texinfo.tex	/^\\outer\\def\\bye{\\pagealignmacro\\tracingstats=1\\ptex/
-\capsenumerate	tex-src/texinfo.tex	/^\\def\\capsenumerate{\\enumerate{A}}$/
-\cartbot	tex-src/texinfo.tex	/^\\def\\cartbot{\\hbox to \\cartouter{\\hskip\\lskip$/
-\cartouche	tex-src/texinfo.tex	/^\\long\\def\\cartouche{%$/
-\carttop	tex-src/texinfo.tex	/^\\def\\carttop{\\hbox to \\cartouter{\\hskip\\lskip$/
-\cbl	tex-src/texinfo.tex	/^\\def\\cbl{{\\circle\\char'012\\hskip -6pt}}$/
-\cbr	tex-src/texinfo.tex	/^\\def\\cbr{{\\hskip 6pt\\circle\\char'011}}$/
-\center	tex-src/texinfo.tex	/^\\def\\center{\\parsearg\\centerzzz}$/
-\centerzzz	tex-src/texinfo.tex	/^\\def\\centerzzz #1{{\\advance\\hsize by -\\leftskip$/
-\chapbreak	tex-src/texinfo.tex	/^\\def\\chapbreak{\\dobreak \\chapheadingskip {-4000}}$/
-\chapentry	tex-src/texinfo.tex	/^\\def\\chapentry#1#2#3{\\dochapentry{#2\\labelspace#1}/
-\chapentryfonts	tex-src/texinfo.tex	/^\\def\\chapentryfonts{\\secfonts \\rm}$/
-\chapfonts	tex-src/texinfo.tex	/^\\def\\chapfonts{%$/
-\chapheading	tex-src/texinfo.tex	/^\\def\\chapheading{\\parsearg\\chapheadingzzz}$/
-\chapheadingzzz	tex-src/texinfo.tex	/^\\def\\chapheadingzzz #1{\\chapbreak %$/
-\chapoddpage	tex-src/texinfo.tex	/^\\def\\chapoddpage{\\chappager \\ifodd\\pageno \\else \\h/
-\chappager	tex-src/texinfo.tex	/^\\def\\chappager{\\par\\vfill\\supereject}$/
-\chapter	tex-src/texinfo.tex	/^\\outer\\def\\chapter{\\parsearg\\chapterzzz}$/
-\chapternofonts	tex-src/texinfo.tex	/^\\def\\chapternofonts{%$/
-\chapterzzz	tex-src/texinfo.tex	/^\\def\\chapterzzz #1{\\seccheck{chapter}%$/
-\char	tex-src/texinfo.tex	/^\\def\\char{\\realbackslash char}$/
-\char	tex-src/texinfo.tex	/^\\def\\char{\\realbackslash char}%$/
-\chfopen	tex-src/texinfo.tex	/^\\def\\chfopen #1#2{\\chapoddpage {\\chapfonts$/
-\chfplain	tex-src/texinfo.tex	/^\\def\\chfplain #1#2{%$/
-\cindex	tex-src/texinfo.tex	/^\\def\\cindex {\\cpindex}$/
-\cindexsub	tex-src/texinfo.tex	/^\\def\\cindexsub {\\begingroup\\obeylines\\cindexsub}$/
-\cite	tex-src/texinfo.tex	/^\\def\\cite##1{\\realbackslash cite {##1}}$/
-\cite	tex-src/texinfo.tex	/^\\def\\cite##1{\\realbackslash cite {##1}}%$/
-\clear	tex-src/texinfo.tex	/^\\def\\clear{\\parsearg\\clearxxx}$/
-\clearxxx	tex-src/texinfo.tex	/^\\def\\clearxxx #1{$/
-\code	tex-src/texinfo.tex	/^\\def\\code##1{\\realbackslash code {##1}}$/
-\code	tex-src/texinfo.tex	/^\\def\\code##1{\\realbackslash code {##1}}%$/
-\comment	tex-src/texinfo.tex	/^\\def\\comment{\\catcode 64=\\other \\catcode 123=\\othe/
-\commentxxx	tex-src/texinfo.tex	/^\\def\\commentxxx #1{\\catcode 64=0 \\catcode 123=1 \\c/
-\contents	tex-src/texinfo.tex	/^\\outer\\def\\contents{%$/
-\copyright	tex-src/texinfo.tex	/^\\def\\copyright{\\realbackslash copyright }%$/
-\copyright	tex-src/texinfo.tex	/^\\def\\copyright{\\realbackslash copyright}$/
-\cropmarks	tex-src/texinfo.tex	/^\\def\\cropmarks{\\let\\onepageout=\\croppageout }$/
-\croppageout	tex-src/texinfo.tex	/^\\def\\croppageout#1{\\hoffset=0pt % make sure this d/
-\ctl	tex-src/texinfo.tex	/^\\def\\ctl{{\\circle\\char'013\\hskip -6pt}}% 6pt from /
-\ctr	tex-src/texinfo.tex	/^\\def\\ctr{{\\hskip 6pt\\circle\\char'010}}$/
-\ctrl	tex-src/texinfo.tex	/^\\def\\ctrl #1{{\\tt \\rawbackslash \\hat}#1}$/
-\defcodeindex	tex-src/texinfo.tex	/^\\def\\defcodeindex{\\parsearg\\newcodeindex}$/
-\defcv	tex-src/texinfo.tex	/^\\def\\defcv #1 {\\def\\defcvtype{#1}%$/
-\defcvarheader	tex-src/texinfo.tex	/^\\def\\defcvarheader #1#2#3{%$/
-\defcvx	tex-src/texinfo.tex	/^\\def\\defcvx #1 {\\errmessage{@defcvx in invalid con/
-\deffn	tex-src/texinfo.tex	/^\\def\\deffn{\\defmethparsebody\\Edeffn\\deffnx\\deffnhe/
-\deffnheader	tex-src/texinfo.tex	/^\\def\\deffnheader #1#2#3{\\doind {fn}{\\code{#2}}%$/
-\deffnx	tex-src/texinfo.tex	/^\\def\\deffnx #1 {\\errmessage{@deffnx in invalid con/
-\defindex	tex-src/texinfo.tex	/^\\def\\defindex{\\parsearg\\newindex}$/
-\defivar	tex-src/texinfo.tex	/^\\def\\defivar{\\defvrparsebody\\Edefivar\\defivarx\\def/
-\defivarheader	tex-src/texinfo.tex	/^\\def\\defivarheader #1#2#3{%$/
-\defivarx	tex-src/texinfo.tex	/^\\def\\defivarx #1 {\\errmessage{@defivarx in invalid/
-\defmac	tex-src/texinfo.tex	/^\\def\\defmac{\\defparsebody\\Edefmac\\defmacx\\defmache/
-\defmacheader	tex-src/texinfo.tex	/^\\def\\defmacheader #1#2{\\doind {fn}{\\code{#1}}% Mak/
-\defmacx	tex-src/texinfo.tex	/^\\def\\defmacx #1 {\\errmessage{@defmacx in invalid c/
-\defmethod	tex-src/texinfo.tex	/^\\def\\defmethod{\\defmethparsebody\\Edefmethod\\defmet/
-\defmethodheader	tex-src/texinfo.tex	/^\\def\\defmethodheader #1#2#3{%$/
-\defmethodx	tex-src/texinfo.tex	/^\\def\\defmethodx #1 {\\errmessage{@defmethodx in inv/
-\defmethparsebody	tex-src/texinfo.tex	/^\\def\\defmethparsebody #1#2#3#4 {\\begingroup\\inENV /
-\defname	tex-src/texinfo.tex	/^\\def\\defname #1#2{%$/
-\defop	tex-src/texinfo.tex	/^\\def\\defop #1 {\\def\\defoptype{#1}%$/
-\defopheader	tex-src/texinfo.tex	/^\\def\\defopheader #1#2#3{%$/
-\defopparsebody	tex-src/texinfo.tex	/^\\def\\defopparsebody #1#2#3#4#5 {\\begingroup\\inENV /
-\defopt	tex-src/texinfo.tex	/^\\def\\defopt{\\defvarparsebody\\Edefopt\\defoptx\\defop/
-\defoptheader	tex-src/texinfo.tex	/^\\def\\defoptheader #1#2{\\doind {vr}{\\code{#1}}% Mak/
-\defoptx	tex-src/texinfo.tex	/^\\def\\defoptx #1 {\\errmessage{@defoptx in invalid c/
-\defopvarparsebody	tex-src/texinfo.tex	/^\\def\\defopvarparsebody #1#2#3#4#5 {\\begingroup\\inE/
-\defopx	tex-src/texinfo.tex	/^\\def\\defopx #1 {\\errmessage{@defopx in invalid con/
-\defparsebody	tex-src/texinfo.tex	/^\\def\\defparsebody #1#2#3{\\begingroup\\inENV% Enviro/
-\defspec	tex-src/texinfo.tex	/^\\def\\defspec{\\defparsebody\\Edefspec\\defspecx\\defsp/
-\defspecheader	tex-src/texinfo.tex	/^\\def\\defspecheader #1#2{\\doind {fn}{\\code{#1}}% Ma/
-\defspecx	tex-src/texinfo.tex	/^\\def\\defspecx #1 {\\errmessage{@defspecx in invalid/
-\deftp	tex-src/texinfo.tex	/^\\def\\deftp{\\defvrparsebody\\Edeftp\\deftpx\\deftphead/
-\deftpargs	tex-src/texinfo.tex	/^\\def\\deftpargs #1{\\bf \\defvarargs{#1}}$/
-\deftpheader	tex-src/texinfo.tex	/^\\def\\deftpheader #1#2#3{\\doind {tp}{\\code{#2}}%$/
-\deftpx	tex-src/texinfo.tex	/^\\def\\deftpx #1 {\\errmessage{@deftpx in invalid con/
-\deftypefn	tex-src/texinfo.tex	/^\\def\\deftypefn{\\defmethparsebody\\Edeftypefn\\deftyp/
-\deftypefnheader	tex-src/texinfo.tex	/^\\def\\deftypefnheader #1#2#3{\\deftypefnheaderx{#1}{/
-\deftypefnheaderx	tex-src/texinfo.tex	/^\\def\\deftypefnheaderx #1#2#3 #4\\relax{%$/
-\deftypefnx	tex-src/texinfo.tex	/^\\def\\deftypefnx #1 {\\errmessage{@deftypefnx in inv/
-\deftypefun	tex-src/texinfo.tex	/^\\def\\deftypefun{\\defparsebody\\Edeftypefun\\deftypef/
-\deftypefunargs	tex-src/texinfo.tex	/^\\def\\deftypefunargs #1{%$/
-\deftypefunheader	tex-src/texinfo.tex	/^\\def\\deftypefunheader #1#2{\\deftypefunheaderx{#1}#/
-\deftypefunheaderx	tex-src/texinfo.tex	/^\\def\\deftypefunheaderx #1#2 #3\\relax{%$/
-\deftypeunx	tex-src/texinfo.tex	/^\\def\\deftypeunx #1 {\\errmessage{@deftypeunx in inv/
-\deftypevar	tex-src/texinfo.tex	/^\\def\\deftypevar{\\defvarparsebody\\Edeftypevar\\defty/
-\deftypevarheader	tex-src/texinfo.tex	/^\\def\\deftypevarheader #1#2{%$/
-\deftypevarx	tex-src/texinfo.tex	/^\\def\\deftypevarx #1 {\\errmessage{@deftypevarx in i/
-\deftypevr	tex-src/texinfo.tex	/^\\def\\deftypevr{\\defvrparsebody\\Edeftypevr\\deftypev/
-\deftypevrheader	tex-src/texinfo.tex	/^\\def\\deftypevrheader #1#2#3{\\doind {vr}{\\code{#3}}/
-\deftypevrx	tex-src/texinfo.tex	/^\\def\\deftypevrx #1 {\\errmessage{@deftypevrx in inv/
-\defun	tex-src/texinfo.tex	/^\\def\\defun{\\defparsebody\\Edefun\\defunx\\defunheader/
-\defunargs	tex-src/texinfo.tex	/^\\def\\defunargs #1{\\functionparens \\sl$/
-\defunheader	tex-src/texinfo.tex	/^\\def\\defunheader #1#2{\\doind {fn}{\\code{#1}}% Make/
-\defunx	tex-src/texinfo.tex	/^\\def\\defunx #1 {\\errmessage{@defunx in invalid con/
-\defvar	tex-src/texinfo.tex	/^\\def\\defvar{\\defvarparsebody\\Edefvar\\defvarx\\defva/
-\defvarargs	tex-src/texinfo.tex	/^\\def\\defvarargs #1{\\normalparens #1%$/
-\defvarheader	tex-src/texinfo.tex	/^\\def\\defvarheader #1#2{\\doind {vr}{\\code{#1}}% Mak/
-\defvarparsebody	tex-src/texinfo.tex	/^\\def\\defvarparsebody #1#2#3{\\begingroup\\inENV% Env/
-\defvarx	tex-src/texinfo.tex	/^\\def\\defvarx #1 {\\errmessage{@defvarx in invalid c/
-\defvr	tex-src/texinfo.tex	/^\\def\\defvr{\\defvrparsebody\\Edefvr\\defvrx\\defvrhead/
-\defvrheader	tex-src/texinfo.tex	/^\\def\\defvrheader #1#2#3{\\doind {vr}{\\code{#2}}%$/
-\defvrparsebody	tex-src/texinfo.tex	/^\\def\\defvrparsebody #1#2#3#4 {\\begingroup\\inENV %$/
-\defvrx	tex-src/texinfo.tex	/^\\def\\defvrx #1 {\\errmessage{@defvrx in invalid con/
-\description	tex-src/texinfo.tex	/^\\def\\description{\\tablez{\\dontindex}{1}{}{}{}{}}$/
-\df	tex-src/texinfo.tex	/^\\def\\df{\\let\\tentt=\\deftt \\let\\tenbf = \\defbf \\bf}/
-\dfn	tex-src/texinfo.tex	/^\\def\\dfn##1{\\realbackslash dfn {##1}}$/
-\direntry	tex-src/texinfo.tex	/^\\def\\direntry{\\begingroup\\direntryxxx}$/
-\direntryxxx	tex-src/texinfo.tex	/^\\long\\def\\direntryxxx #1\\end direntry{\\endgroup\\ig/
-\display	tex-src/texinfo.tex	/^\\def\\display{\\begingroup\\inENV %This group ends at/
-\dmn	tex-src/texinfo.tex	/^\\def\\dmn#1{\\thinspace #1}$/
-\dobreak	tex-src/texinfo.tex	/^\\def\\dobreak#1#2{\\par\\ifdim\\lastskip<#1\\removelast/
-\dochapentry	tex-src/texinfo.tex	/^\\def\\dochapentry#1#2{%$/
-\docodeindex	tex-src/texinfo.tex	/^\\def\\docodeindex#1{\\edef\\indexname{#1}\\parsearg\\si/
-\doind	tex-src/texinfo.tex	/^\\def\\doind #1#2{%$/
-\doindex	tex-src/texinfo.tex	/^\\def\\doindex#1{\\edef\\indexname{#1}\\parsearg\\single/
-\donoderef	tex-src/texinfo.tex	/^\\def\\donoderef{\\ifx\\lastnode\\relax\\else$/
-\dontindex	tex-src/texinfo.tex	/^\\def\\dontindex #1{}$/
-\dopageno	tex-src/texinfo.tex	/^\\def\\dopageno#1{{\\rm #1}}$/
-\doprintindex	tex-src/texinfo.tex	/^\\def\\doprintindex#1{%$/
-\dosecentry	tex-src/texinfo.tex	/^\\def\\dosecentry#1#2{%$/
-\dosetq	tex-src/texinfo.tex	/^\\def\\dosetq #1#2{{\\let\\folio=0 \\turnoffactive%$/
-\doshortpageno	tex-src/texinfo.tex	/^\\def\\doshortpageno#1{{\\rm #1}}$/
-\dosubind	tex-src/texinfo.tex	/^\\def\\dosubind #1#2#3{%$/
-\dosubsecentry	tex-src/texinfo.tex	/^\\def\\dosubsecentry#1#2{%$/
-\dosubsubsecentry	tex-src/texinfo.tex	/^\\def\\dosubsubsecentry#1#2{%$/
-\dots	tex-src/texinfo.tex	/^\\def\\dots{$\\ldots$}$/
-\dots	tex-src/texinfo.tex	/^\\def\\dots{\\realbackslash dots }%$/
-\dots	tex-src/texinfo.tex	/^\\def\\dots{\\realbackslash dots}$/
-\doublecolumnout	tex-src/texinfo.tex	/^\\def\\doublecolumnout{\\splittopskip=\\topskip \\split/
-\emph	tex-src/texinfo.tex	/^\\def\\emph##1{\\realbackslash emph {##1}}$/
-\end	tex-src/texinfo.tex	/^\\def\\end{\\parsearg\\endxxx}$/
-\enddoublecolumns	tex-src/texinfo.tex	/^\\def\\enddoublecolumns{\\output={\\balancecolumns}\\ej/
-\endxxx	tex-src/texinfo.tex	/^\\def\\endxxx #1{%$/
-\entry	tex-src/texinfo.tex	/^\\def\\entry #1#2{\\begingroup$/
-\enumerate	tex-src/texinfo.tex	/^\\def\\enumerate{\\parsearg\\enumeratezzz}$/
-\enumeratey	tex-src/texinfo.tex	/^\\def\\enumeratey #1 #2\\endenumeratey{%$/
-\enumeratezzz	tex-src/texinfo.tex	/^\\def\\enumeratezzz #1{\\enumeratey #1  \\endenumerate/
-\equiv	tex-src/texinfo.tex	/^\\def\\equiv{\\leavevmode\\lower.1ex\\hbox to 1em{\\hfil/
-\equiv	tex-src/texinfo.tex	/^\\def\\equiv{\\realbackslash equiv}$/
-\error	tex-src/texinfo.tex	/^\\def\\error{\\leavevmode\\lower.7ex\\copy\\errorbox}$/
-\errorE	tex-src/texinfo.tex	/^\\def\\errorE#1{$/
-\evenfooting	tex-src/texinfo.tex	/^\\def\\evenfooting{\\parsearg\\evenfootingxxx}$/
-\evenheading	tex-src/texinfo.tex	/^\\def\\evenheading{\\parsearg\\evenheadingxxx}$/
-\everyfooting	tex-src/texinfo.tex	/^\\def\\everyfooting{\\parsearg\\everyfootingxxx}$/
-\everyheading	tex-src/texinfo.tex	/^\\def\\everyheading{\\parsearg\\everyheadingxxx}$/
-\ewbot	tex-src/texinfo.tex	/^\\def\\ewbot{\\vrule height0pt depth\\cornerthick widt/
-\ewtop	tex-src/texinfo.tex	/^\\def\\ewtop{\\vrule height\\cornerthick depth0pt widt/
-\exdent	tex-src/texinfo.tex	/^\\def\\exdent{\\parsearg\\exdentyyy}$/
-\exdentyyy	tex-src/texinfo.tex	/^\\def\\exdentyyy #1{{\\hfil\\break\\hbox{\\kern -\\exdent/
-\expansion	tex-src/texinfo.tex	/^\\def\\expansion{\\leavevmode\\raise.1ex\\hbox to 1em{\\/
-\expansion	tex-src/texinfo.tex	/^\\def\\expansion{\\realbackslash expansion}$/
-\file	tex-src/texinfo.tex	/^\\def\\file##1{\\realbackslash file {##1}}$/
-\file	tex-src/texinfo.tex	/^\\def\\file##1{\\realbackslash file {##1}}%$/
-\finalout	tex-src/texinfo.tex	/^\\def\\finalout{\\overfullrule=0pt}$/
-\findex	tex-src/texinfo.tex	/^\\def\\findex {\\fnindex}$/
-\finishtitlepage	tex-src/texinfo.tex	/^\\def\\finishtitlepage{%$/
-\flushcr	tex-src/texinfo.tex	/^\\def\\flushcr{\\ifx\\par\\lisppar \\def\\next##1{}\\else /
-\flushleft	tex-src/texinfo.tex	/^\\def\\flushleft{%$/
-\flushright	tex-src/texinfo.tex	/^\\def\\flushright{%$/
-\fnitemindex	tex-src/texinfo.tex	/^\\def\\fnitemindex #1{\\doind {fn}{\\code{#1}}}%$/
-\format	tex-src/texinfo.tex	/^\\def\\format{\\begingroup\\inENV %This group ends at /
-\frenchspacing	tex-src/texinfo.tex	/^\\def\\frenchspacing{\\sfcode46=1000 \\sfcode63=1000 \\/
-\ftable	tex-src/texinfo.tex	/^\\def\\ftable{\\begingroup\\inENV\\obeylines\\obeyspaces/
-\gloggingall	tex-src/texinfo.tex	/^\\def\\gloggingall{\\begingroup \\globaldefs = 1 \\logg/
-\group	tex-src/texinfo.tex	/^\\def\\group{\\begingroup$/
-\gtr	tex-src/texinfo.tex	/^\\def\\gtr{\\realbackslash gtr}$/
-\gtr	tex-src/texinfo.tex	/^\\def\\gtr{\\realbackslash gtr}%$/
-\hat	tex-src/texinfo.tex	/^\\def\\hat{\\realbackslash hat}$/
-\hat	tex-src/texinfo.tex	/^\\def\\hat{\\realbackslash hat}%$/
-\heading	tex-src/texinfo.tex	/^\\def\\heading{\\parsearg\\secheadingi}$/
-\headings	tex-src/texinfo.tex	/^\\def\\headings #1 {\\csname HEADINGS#1\\endcsname}$/
-\i	tex-src/texinfo.tex	/^\\def\\i##1{\\realbackslash i {##1}}$/
-\i	tex-src/texinfo.tex	/^\\def\\i##1{\\realbackslash i {##1}}%$/
-\ifclear	tex-src/texinfo.tex	/^\\def\\ifclear{\\begingroup\\ignoresections\\parsearg\\i/
-\ifclearfail	tex-src/texinfo.tex	/^\\def\\ifclearfail{\\begingroup\\ignoresections\\ifclea/
-\ifclearfailxxx	tex-src/texinfo.tex	/^\\long\\def\\ifclearfailxxx #1\\end ifclear{\\endgroup\\/
-\ifclearxxx	tex-src/texinfo.tex	/^\\def\\ifclearxxx #1{\\endgroup$/
-\ifinfo	tex-src/texinfo.tex	/^\\def\\ifinfo{\\begingroup\\ignoresections\\ifinfoxxx}$/
-\ifinfoxxx	tex-src/texinfo.tex	/^\\long\\def\\ifinfoxxx #1\\end ifinfo{\\endgroup\\ignore/
-\ifset	tex-src/texinfo.tex	/^\\def\\ifset{\\begingroup\\ignoresections\\parsearg\\ifs/
-\ifsetfail	tex-src/texinfo.tex	/^\\def\\ifsetfail{\\begingroup\\ignoresections\\ifsetfai/
-\ifsetfailxxx	tex-src/texinfo.tex	/^\\long\\def\\ifsetfailxxx #1\\end ifset{\\endgroup\\igno/
-\ifsetxxx	tex-src/texinfo.tex	/^\\def\\ifsetxxx #1{\\endgroup$/
-\iftex	tex-src/texinfo.tex	/^\\def\\iftex{}$/
-\ifusingtt	tex-src/texinfo.tex	/^\\def\\ifusingtt#1#2{\\ifdim \\fontdimen3\\the\\font=0pt/
-\ignore	tex-src/texinfo.tex	/^\\def\\ignore{\\begingroup\\ignoresections$/
-\ignoresections	tex-src/texinfo.tex	/^\\def\\ignoresections{%$/
-\ignorexxx	tex-src/texinfo.tex	/^\\long\\def\\ignorexxx #1\\end ignore{\\endgroup\\ignore/
-\ii	tex-src/texinfo.tex	/^\\def\\ii#1{{\\it #1}}		% italic font$/
-\inENV	tex-src/texinfo.tex	/^\\newif\\ifENV \\ENVfalse \\def\\inENV{\\ifENV\\relax\\els/
-\include	tex-src/texinfo.tex	/^\\def\\include{\\parsearg\\includezzz}$/
-\includezzz	tex-src/texinfo.tex	/^\\def\\includezzz #1{{\\def\\thisfile{#1}\\input #1$/
-\indexbackslash	tex-src/texinfo.tex	/^  \\def\\indexbackslash{\\rawbackslashxx}$/
-\indexdotfill	tex-src/texinfo.tex	/^\\def\\indexdotfill{\\cleaders$/
-\indexdummies	tex-src/texinfo.tex	/^\\def\\indexdummies{%$/
-\indexdummydots	tex-src/texinfo.tex	/^\\def\\indexdummydots{...}$/
-\indexdummyfont	tex-src/texinfo.tex	/^\\def\\indexdummyfont#1{#1}$/
-\indexdummytex	tex-src/texinfo.tex	/^\\def\\indexdummytex{TeX}$/
-\indexfonts	tex-src/texinfo.tex	/^\\def\\indexfonts{%$/
-\indexnofonts	tex-src/texinfo.tex	/^\\def\\indexnofonts{%$/
-\infoappendix	tex-src/texinfo.tex	/^\\def\\infoappendix{\\parsearg\\appendixzzz}$/
-\infoappendixsec	tex-src/texinfo.tex	/^\\def\\infoappendixsec{\\parsearg\\appendixseczzz}$/
-\infoappendixsubsec	tex-src/texinfo.tex	/^\\def\\infoappendixsubsec{\\parsearg\\appendixsubseczz/
-\infoappendixsubsubsec	tex-src/texinfo.tex	/^\\def\\infoappendixsubsubsec{\\parsearg\\appendixsubsu/
-\infochapter	tex-src/texinfo.tex	/^\\def\\infochapter{\\parsearg\\chapterzzz}$/
-\inforef	tex-src/texinfo.tex	/^\\def\\inforef #1{\\inforefzzz #1,,,,**}$/
-\inforefzzz	tex-src/texinfo.tex	/^\\def\\inforefzzz #1,#2,#3,#4**{See Info file \\file{/
-\infosection	tex-src/texinfo.tex	/^\\def\\infosection{\\parsearg\\sectionzzz}$/
-\infosubsection	tex-src/texinfo.tex	/^\\def\\infosubsection{\\parsearg\\subsectionzzz}$/
-\infosubsubsection	tex-src/texinfo.tex	/^\\def\\infosubsubsection{\\parsearg\\subsubsectionzzz}/
-\infotop	tex-src/texinfo.tex	/^\\def\\infotop{\\parsearg\\unnumberedzzz}$/
-\infounnumbered	tex-src/texinfo.tex	/^\\def\\infounnumbered{\\parsearg\\unnumberedzzz}$/
-\infounnumberedsec	tex-src/texinfo.tex	/^\\def\\infounnumberedsec{\\parsearg\\unnumberedseczzz}/
-\infounnumberedsubsec	tex-src/texinfo.tex	/^\\def\\infounnumberedsubsec{\\parsearg\\unnumberedsubs/
-\infounnumberedsubsubsec	tex-src/texinfo.tex	/^\\def\\infounnumberedsubsubsec{\\parsearg\\unnumbereds/
-\initial	tex-src/texinfo.tex	/^\\def\\initial #1{%$/
-\internalBitem	tex-src/texinfo.tex	/^\\def\\internalBitem{\\smallbreak \\parsearg\\itemzzz}$/
-\internalBitemx	tex-src/texinfo.tex	/^\\def\\internalBitemx{\\par \\parsearg\\itemzzz}$/
-\internalBkitem	tex-src/texinfo.tex	/^\\def\\internalBkitem{\\smallbreak \\parsearg\\kitemzzz/
-\internalBkitemx	tex-src/texinfo.tex	/^\\def\\internalBkitemx{\\par \\parsearg\\kitemzzz}$/
-\internalBxitem	tex-src/texinfo.tex	/^\\def\\internalBxitem "#1"{\\def\\xitemsubtopix{#1} \\s/
-\internalBxitemx	tex-src/texinfo.tex	/^\\def\\internalBxitemx "#1"{\\def\\xitemsubtopix{#1} \\/
-\internalsetq	tex-src/texinfo.tex	/^\\def\\internalsetq #1#2{'xrdef {#1}{\\csname #2\\endc/
-\item	tex-src/texinfo.tex	/^\\def\\item{\\errmessage{@item while not in a table}}/
-\itemcontents	tex-src/texinfo.tex	/^\\def\\itemcontents{#1}%$/
-\itemfont	tex-src/texinfo.tex	/^\\def\\itemfont{#2}%$/
-\itemize	tex-src/texinfo.tex	/^\\def\\itemize{\\parsearg\\itemizezzz}$/
-\itemizeitem	tex-src/texinfo.tex	/^\\def\\itemizeitem{%$/
-\itemizey	tex-src/texinfo.tex	/^\\def\\itemizey #1#2{%$/
-\itemizezzz	tex-src/texinfo.tex	/^\\def\\itemizezzz #1{%$/
-\itemx	tex-src/texinfo.tex	/^\\def\\itemx{\\errmessage{@itemx while not in a table/
-\itemzzz	tex-src/texinfo.tex	/^\\def\\itemzzz #1{\\begingroup %$/
-\kbd	tex-src/texinfo.tex	/^\\def\\kbd##1{\\realbackslash kbd {##1}}$/
-\kbd	tex-src/texinfo.tex	/^\\def\\kbd##1{\\realbackslash kbd {##1}}%$/
-\kbd	tex-src/texinfo.tex	/^\\def\\kbd#1{\\def\\look{#1}\\expandafter\\kbdfoo\\look??/
-\kbdfoo	tex-src/texinfo.tex	/^\\def\\kbdfoo#1#2#3\\par{\\def\\one{#1}\\def\\three{#3}\\d/
-\key	tex-src/texinfo.tex	/^\\def\\key #1{{\\tt \\exhyphenpenalty=10000\\uppercase{/
-\key	tex-src/texinfo.tex	/^\\def\\key##1{\\realbackslash key {##1}}$/
-\key	tex-src/texinfo.tex	/^\\def\\key##1{\\realbackslash key {##1}}%$/
-\kindex	tex-src/texinfo.tex	/^\\def\\kindex {\\kyindex}$/
-\kitem	tex-src/texinfo.tex	/^\\def\\kitem{\\errmessage{@kitem while not in a table/
-\kitemx	tex-src/texinfo.tex	/^\\def\\kitemx{\\errmessage{@kitemx while not in a tab/
-\kitemzzz	tex-src/texinfo.tex	/^\\def\\kitemzzz #1{\\dosubind {kw}{\\code{#1}}{for {\\b/
-\l	tex-src/texinfo.tex	/^\\def\\l#1{{\\li #1}\\null}		% $/
-\labelspace	tex-src/texinfo.tex	/^\\def\\labelspace{\\hskip1em \\relax}$/
-\lbrb	tex-src/texinfo.tex	/^\\def\\lbrb{{\\bf\\char`\\[}} \\def\\rbrb{{\\bf\\char`\\]}}$/
-\less	tex-src/texinfo.tex	/^\\def\\less{\\realbackslash less}$/
-\less	tex-src/texinfo.tex	/^\\def\\less{\\realbackslash less}%$/
-\linenumber	tex-src/texinfo.tex	/^  \\def\\linenumber{\\the\\inputlineno:\\space}$/
-\lisp	tex-src/texinfo.tex	/^\\def\\lisp{\\aboveenvbreak$/
-\loggingall	tex-src/texinfo.tex	/^\\def\\loggingall{\\tracingcommands2 \\tracingstats2 $/
-\losespace	tex-src/texinfo.tex	/^\\def\\losespace #1{#1}$/
-\lowercaseenumerate	tex-src/texinfo.tex	/^\\def\\lowercaseenumerate{%$/
-\lvvmode	tex-src/texinfo.tex	/^\\def\\lvvmode{\\vbox to 0pt{}}$/
-\majorheading	tex-src/texinfo.tex	/^\\def\\majorheading{\\parsearg\\majorheadingzzz}$/
-\majorheadingzzz	tex-src/texinfo.tex	/^\\def\\majorheadingzzz #1{%$/
-\math	tex-src/texinfo.tex	/^\\def\\math#1{\\implicitmath #1\\implicitmath}$/
-\menu	tex-src/texinfo.tex	/^\\long\\def\\menu #1\\end menu{}$/
-\minus	tex-src/texinfo.tex	/^\\def\\minus{$-$}$/
-\mylbrace	tex-src/texinfo.tex	/^\\def\\mylbrace {{\\tt \\char '173}}$/
-\myrbrace	tex-src/texinfo.tex	/^\\def\\myrbrace {{\\tt \\char '175}}$/
-\need	tex-src/texinfo.tex	/^\\def\\need{\\parsearg\\needx}$/
-\needx	tex-src/texinfo.tex	/^\\def\\needx#1{%$/
-\newcodeindex	tex-src/texinfo.tex	/^\\def\\newcodeindex #1{$/
-\newindex	tex-src/texinfo.tex	/^\\def\\newindex #1{$/
-\next	tex-src/texinfo.tex	/^\\def\\next##1{}\\next}$/
-\nm	tex-src/testenv.tex	/^\\newcommand{\\nm}[2]{\\nomenclature{#1}{#2}}$/
-\node	tex-src/texinfo.tex	/^\\def\\node{\\ENVcheck\\parsearg\\nodezzz}$/
-\nodexxx[	tex-src/texinfo.tex	/^\\def\\nodexxx[#1,#2]{\\gdef\\lastnode{#1}}$/
-\nodezzz	tex-src/texinfo.tex	/^\\def\\nodezzz#1{\\nodexxx [#1,]}$/
-\nofillexdent	tex-src/texinfo.tex	/^\\def\\nofillexdent{\\parsearg\\nofillexdentyyy}$/
-\nofillexdentyyy	tex-src/texinfo.tex	/^\\def\\nofillexdentyyy #1{{\\advance \\leftskip by -\\e/
-\normalbackslash	tex-src/texinfo.tex	/^\\def\\normalbackslash{{\\tt\\rawbackslashxx}}$/
-\normalcaret	tex-src/texinfo.tex	/^\\def\\normalcaret{^}$/
-\normaldoublequote	tex-src/texinfo.tex	/^\\def\\normaldoublequote{"}$/
-\normalgreater	tex-src/texinfo.tex	/^\\def\\normalgreater{>}$/
-\normalless	tex-src/texinfo.tex	/^\\def\\normalless{<}$/
-\normalplus	tex-src/texinfo.tex	/^\\def\\normalplus{+}$/
-\normaltilde	tex-src/texinfo.tex	/^\\def\\normaltilde{~}$/
-\normalunderscore	tex-src/texinfo.tex	/^\\def\\normalunderscore{_}$/
-\normalverticalbar	tex-src/texinfo.tex	/^\\def\\normalverticalbar{|}$/
-\nsbot	tex-src/texinfo.tex	/^\\def\\nsbot{\\vbox$/
-\nstop	tex-src/texinfo.tex	/^\\def\\nstop{\\vbox$/
-\numberedsec	tex-src/texinfo.tex	/^\\outer\\def\\numberedsec{\\parsearg\\seczzz}$/
-\numberedsubsec	tex-src/texinfo.tex	/^\\outer\\def\\numberedsubsec{\\parsearg\\numberedsubsec/
-\numberedsubseczzz	tex-src/texinfo.tex	/^\\def\\numberedsubseczzz #1{\\seccheck{subsection}%$/
-\numberedsubsubsec	tex-src/texinfo.tex	/^\\outer\\def\\numberedsubsubsec{\\parsearg\\numberedsub/
-\numberedsubsubseczzz	tex-src/texinfo.tex	/^\\def\\numberedsubsubseczzz #1{\\seccheck{subsubsecti/
-\numericenumerate	tex-src/texinfo.tex	/^\\def\\numericenumerate{%$/
-\oddfooting	tex-src/texinfo.tex	/^\\def\\oddfooting{\\parsearg\\oddfootingxxx}$/
-\oddheading	tex-src/texinfo.tex	/^\\def\\oddheading{\\parsearg\\oddheadingxxx}$/
-\onepageout	tex-src/texinfo.tex	/^\\def\\onepageout#1{\\hoffset=\\normaloffset$/
-\opencontents	tex-src/texinfo.tex	/^\\def\\opencontents{\\openout \\contentsfile = \\jobnam/
-\openindices	tex-src/texinfo.tex	/^\\def\\openindices{%$/
-\opnr	tex-src/texinfo.tex	/^\\def\\opnr{{\\sf\\char`\\(}} \\def\\clnr{{\\sf\\char`\\)}} /
-\page	tex-src/texinfo.tex	/^   \\def\\page{%$/
-\page	tex-src/texinfo.tex	/^\\def\\page{\\par\\vfill\\supereject}$/
-\pagebody	tex-src/texinfo.tex	/^\\def\\pagebody#1{\\vbox to\\pageheight{\\boxmaxdepth=\\/
-\pagesofar	tex-src/texinfo.tex	/^\\def\\pagesofar{\\unvbox\\partialpage %$/
-\parsearg	tex-src/texinfo.tex	/^\\def\\parsearg #1{\\let\\next=#1\\begingroup\\obeylines/
-\parseargline	tex-src/texinfo.tex	/^\\def\\parseargline{\\begingroup \\obeylines \\parsearg/
-\parseargx	tex-src/texinfo.tex	/^\\def\\parseargx{%$/
-\pindex	tex-src/texinfo.tex	/^\\def\\pindex {\\pgindex}$/
-\plainsecheading	tex-src/texinfo.tex	/^\\def\\plainsecheading #1{\\secheadingi {#1}}$/
-\point	tex-src/texinfo.tex	/^\\def\\point{$\\star$}$/
-\primary	tex-src/texinfo.tex	/^\\def\\primary #1{\\line{#1\\hfil}}$/
-\print	tex-src/texinfo.tex	/^\\def\\print{\\leavevmode\\lower.1ex\\hbox to 1em{\\hfil/
-\print	tex-src/texinfo.tex	/^\\def\\print{\\realbackslash print}$/
-\printedmanual	tex-src/texinfo.tex	/^\\def\\printedmanual{\\ignorespaces #5}%$/
-\printedmanual	tex-src/texinfo.tex	/^section ``\\printednodename'' in \\cite{\\printedmanu/
-\printednodename	tex-src/texinfo.tex	/^\\def\\printednodename{\\ignorespaces #1}%$/
-\printednodename	tex-src/texinfo.tex	/^\\def\\printednodename{\\ignorespaces #3}%$/
-\printindex	tex-src/texinfo.tex	/^\\def\\printindex{\\parsearg\\doprintindex}$/
-\pxref	tex-src/texinfo.tex	/^\\def\\pxref#1{see \\xrefX[#1,,,,,,,]}$/
-\quotation	tex-src/texinfo.tex	/^\\def\\quotation{%$/
-\r	tex-src/texinfo.tex	/^\\def\\r##1{\\realbackslash r {##1}}$/
-\r	tex-src/texinfo.tex	/^\\def\\r##1{\\realbackslash r {##1}}%$/
-\r	tex-src/texinfo.tex	/^\\def\\r#1{{\\rm #1}}		% roman font$/
-\rawbackslashxx	tex-src/texinfo.tex	/^\\def\\rawbackslashxx{\\indexbackslash}% \\indexbacksl/
-\rawbackslashxx	tex-src/texinfo.tex	/^\\def\\rawbackslashxx{\\indexbackslash}%$/
-\readauxfile	tex-src/texinfo.tex	/^\\def\\readauxfile{%$/
-\ref	tex-src/texinfo.tex	/^\\def\\ref#1{\\xrefX[#1,,,,,,,]}$/
-\refx	tex-src/texinfo.tex	/^\\def\\refx#1#2{%$/
-\resetmathfonts	tex-src/texinfo.tex	/^\\def\\resetmathfonts{%$/
-\result	tex-src/texinfo.tex	/^\\def\\result{\\leavevmode\\raise.15ex\\hbox to 1em{\\hf/
-\result	tex-src/texinfo.tex	/^\\def\\result{\\realbackslash result}$/
-\rm	tex-src/texinfo.tex	/^\\def\\rm{\\realbackslash rm }%$/
-\samp	tex-src/texinfo.tex	/^\\def\\samp #1{`\\tclose{#1}'\\null}$/
-\samp	tex-src/texinfo.tex	/^\\def\\samp##1{\\realbackslash samp {##1}}$/
-\samp	tex-src/texinfo.tex	/^\\def\\samp##1{\\realbackslash samp {##1}}%$/
-\sc	tex-src/texinfo.tex	/^\\def\\sc#1{{\\smallcaps#1}}	% smallcaps font$/
-\seccheck	tex-src/texinfo.tex	/^\\def\\seccheck#1{\\if \\pageno<0 %$/
-\secentry	tex-src/texinfo.tex	/^      \\def\\secentry ##1##2##3##4{}$/
-\secentry	tex-src/texinfo.tex	/^\\def\\secentry#1#2#3#4{\\dosecentry{#2.#3\\labelspace/
-\secentryfonts	tex-src/texinfo.tex	/^\\def\\secentryfonts{\\textfonts}$/
-\secfonts	tex-src/texinfo.tex	/^\\def\\secfonts{%$/
-\secheading	tex-src/texinfo.tex	/^\\def\\secheading #1#2#3{\\secheadingi {#2.#3\\enspace/
-\secheadingbreak	tex-src/texinfo.tex	/^\\def\\secheadingbreak{\\dobreak \\secheadingskip {-10/
-\secheadingi	tex-src/texinfo.tex	/^\\def\\secheadingi #1{{\\advance \\secheadingskip by \\/
-\secondary	tex-src/texinfo.tex	/^\\def\\secondary #1#2{$/
-\seczzz	tex-src/texinfo.tex	/^\\def\\seczzz #1{\\seccheck{section}%$/
-\set	tex-src/texinfo.tex	/^\\def\\set{\\parsearg\\setxxx}$/
-\setchapternewpage	tex-src/texinfo.tex	/^\\def\\setchapternewpage #1 {\\csname CHAPPAG#1\\endcs/
-\setchapterstyle	tex-src/texinfo.tex	/^\\def\\setchapterstyle #1 {\\csname CHAPF#1\\endcsname/
-\setdeffont	tex-src/texinfo.tex	/^\\def\\setdeffont #1 {\\csname DEF#1\\endcsname}$/
-\setfilename	tex-src/texinfo.tex	/^\\def\\setfilename{%$/
-\setref	tex-src/texinfo.tex	/^\\def\\setref#1{%$/
-\settitle	tex-src/texinfo.tex	/^\\def\\settitle{\\parsearg\\settitlezzz}$/
-\settitlezzz	tex-src/texinfo.tex	/^\\def\\settitlezzz #1{\\gdef\\thistitle{#1}}$/
-\setxxx	tex-src/texinfo.tex	/^\\def\\setxxx #1{$/
-\sf	tex-src/texinfo.tex	/^\\def\\sf{\\fam=\\sffam \\tensf}$/
-\sf	tex-src/texinfo.tex	/^\\def\\sf{\\realbackslash sf}%$/
-\shortchapentry	tex-src/texinfo.tex	/^\\def\\shortchapentry#1#2#3{%$/
-\shortunnumberedentry	tex-src/texinfo.tex	/^\\def\\shortunnumberedentry#1#2{%$/
-\singlecodeindexer	tex-src/texinfo.tex	/^\\def\\singlecodeindexer #1{\\doind{\\indexname}{\\code/
-\singleindexer	tex-src/texinfo.tex	/^\\def\\singleindexer #1{\\doind{\\indexname}{#1}}$/
-\singlespace	tex-src/texinfo.tex	/^\\def\\singlespace{%$/
-\sl	tex-src/texinfo.tex	/^\\def\\sl{\\realbackslash sl }%$/
-\smallbook	tex-src/texinfo.tex	/^\\def\\smallbook{$/
-\smalllispx	tex-src/texinfo.tex	/^\\def\\smalllispx{\\aboveenvbreak\\begingroup\\inENV$/
-\smartitalic	tex-src/texinfo.tex	/^\\def\\smartitalic#1{{\\sl #1}\\futurelet\\next\\smartit/
-\smartitalicx	tex-src/texinfo.tex	/^\\def\\smartitalicx{\\ifx\\next,\\else\\ifx\\next-\\else\\i/
-\sp	tex-src/texinfo.tex	/^\\def\\sp{\\parsearg\\spxxx}$/
-\splitoff	tex-src/texinfo.tex	/^\\def\\splitoff#1#2\\endmark{\\def\\first{#1}\\def\\rest{/
-\spxxx	tex-src/texinfo.tex	/^\\def\\spxxx #1{\\par \\vskip #1\\baselineskip}$/
-\startcontents	tex-src/texinfo.tex	/^\\def\\startcontents#1{%$/
-\startenumeration	tex-src/texinfo.tex	/^\\def\\startenumeration#1{%$/
-\subheading	tex-src/texinfo.tex	/^\\def\\subheading{\\parsearg\\subsecheadingi}$/
-\subsecentry	tex-src/texinfo.tex	/^      \\def\\subsecentry ##1##2##3##4##5{}$/
-\subsecentry	tex-src/texinfo.tex	/^\\def\\subsecentry#1#2#3#4#5{\\dosubsecentry{#2.#3.#4/
-\subsecfonts	tex-src/texinfo.tex	/^\\def\\subsecfonts{%$/
-\subsecheading	tex-src/texinfo.tex	/^\\def\\subsecheading #1#2#3#4{\\subsecheadingi {#2.#3/
-\subsecheadingbreak	tex-src/texinfo.tex	/^\\def\\subsecheadingbreak{\\dobreak \\subsecheadingski/
-\subsecheadingi	tex-src/texinfo.tex	/^\\def\\subsecheadingi #1{{\\advance \\subsecheadingski/
-\subsubheading	tex-src/texinfo.tex	/^\\def\\subsubheading{\\parsearg\\subsubsecheadingi}$/
-\subsubsecentry	tex-src/texinfo.tex	/^      \\def\\subsubsecentry ##1##2##3##4##5##6{}$/
-\subsubsecentry	tex-src/texinfo.tex	/^\\def\\subsubsecentry#1#2#3#4#5#6{%$/
-\subsubsecfonts	tex-src/texinfo.tex	/^\\def\\subsubsecfonts{\\subsecfonts} % Maybe this sho/
-\subsubsecheading	tex-src/texinfo.tex	/^\\def\\subsubsecheading #1#2#3#4#5{\\subsubsecheading/
-\subsubsecheadingi	tex-src/texinfo.tex	/^\\def\\subsubsecheadingi #1{{\\advance \\subsecheading/
-\subtitle	tex-src/texinfo.tex	/^   \\def\\subtitle{\\parsearg\\subtitlezzz}%$/
-\subtitlefont	tex-src/texinfo.tex	/^   \\def\\subtitlefont{\\subtitlerm \\normalbaselinesk/
-\subtitlezzz	tex-src/texinfo.tex	/^   \\def\\subtitlezzz##1{{\\subtitlefont \\rightline{#/
-\summarycontents	tex-src/texinfo.tex	/^\\outer\\def\\summarycontents{%$/
-\supereject	tex-src/texinfo.tex	/^\\def\\supereject{\\par\\penalty -20000\\footnoteno =0 /
-\syncodeindex	tex-src/texinfo.tex	/^\\def\\syncodeindex #1 #2 {%$/
-\synindex	tex-src/texinfo.tex	/^\\def\\synindex #1 #2 {%$/
-\t	tex-src/texinfo.tex	/^\\def\\t##1{\\realbackslash r {##1}}%$/
-\t	tex-src/texinfo.tex	/^\\def\\t#1{{\\tt \\exhyphenpenalty=10000\\rawbackslash /
-\table	tex-src/texinfo.tex	/^\\def\\table{\\begingroup\\inENV\\obeylines\\obeyspaces\\/
-\tablez	tex-src/texinfo.tex	/^\\def\\tablez #1#2#3#4#5#6{%$/
-\tclose	tex-src/texinfo.tex	/^\\def\\tclose##1{\\realbackslash tclose {##1}}$/
-\tclose	tex-src/texinfo.tex	/^\\def\\tclose##1{\\realbackslash tclose {##1}}%$/
-\tclose	tex-src/texinfo.tex	/^\\def\\tclose#1{{\\rm \\tcloserm=\\fontdimen2\\font \\tt /
-\tex	tex-src/texinfo.tex	/^\\def\\tex{\\begingroup$/
-\texinfoversion	tex-src/texinfo.tex	/^\\def\\texinfoversion{2.73}$/
-\textfonts	tex-src/texinfo.tex	/^\\def\\textfonts{%$/
-\thearg	tex-src/texinfo.tex	/^  \\def\\thearg{#1}%$/
-\thearg	tex-src/texinfo.tex	/^  \\ifx\\thearg\\empty \\def\\thearg{1}\\fi$/
-\thischapter	tex-src/texinfo.tex	/^   \\unnumbchapmacro{#1}\\def\\thischapter{}%$/
-\thischapter	tex-src/texinfo.tex	/^\\def\\thischapter{} \\def\\thissection{}$/
-\thischaptername	tex-src/texinfo.tex	/^\\def\\thischaptername{No Chapter Title}$/
-\thisfile	tex-src/texinfo.tex	/^\\def\\thisfile{}$/
-\thistitle	tex-src/texinfo.tex	/^\\def\\thistitle{No Title}$/
-\tie	tex-src/texinfo.tex	/^\\def\\tie{\\penalty 10000\\ }     % Save plain tex de/
-\tindex	tex-src/texinfo.tex	/^\\def\\tindex {\\tpindex}$/
-\title	tex-src/texinfo.tex	/^   \\def\\title{\\parsearg\\titlezzz}%$/
-\titlefont	tex-src/texinfo.tex	/^\\def\\titlefont#1{{\\titlerm #1}}$/
-\titlepage	tex-src/texinfo.tex	/^\\def\\titlepage{\\begingroup \\parindent=0pt \\textfon/
-\titlezzz	tex-src/texinfo.tex	/^   \\def\\titlezzz##1{\\leftline{\\titlefont{##1}}$/
-\today	tex-src/texinfo.tex	/^\\def\\today{\\number\\day\\space$/
-\top	tex-src/texinfo.tex	/^\\outer\\def\\top{\\parsearg\\unnumberedzzz}$/
-\tt	tex-src/texinfo.tex	/^\\def\\tt{\\realbackslash tt}$/
-\tt	tex-src/texinfo.tex	/^\\def\\tt{\\realbackslash tt}%$/
-\turnoffactive	tex-src/texinfo.tex	/^\\def\\turnoffactive{\\let"=\\normaldoublequote$/
-\unnchfopen	tex-src/texinfo.tex	/^\\def\\unnchfopen #1{%$/
-\unnchfplain	tex-src/texinfo.tex	/^\\def\\unnchfplain #1{%$/
-\unnumbchapentry	tex-src/texinfo.tex	/^\\def\\unnumbchapentry#1#2{\\dochapentry{#1}{#2}}$/
-\unnumbered	tex-src/texinfo.tex	/^\\outer\\def\\unnumbered{\\parsearg\\unnumberedzzz}$/
-\unnumberedsec	tex-src/texinfo.tex	/^\\outer\\def\\unnumberedsec{\\parsearg\\unnumberedseczz/
-\unnumberedseczzz	tex-src/texinfo.tex	/^\\def\\unnumberedseczzz #1{\\seccheck{unnumberedsec}%/
-\unnumberedsubsec	tex-src/texinfo.tex	/^\\outer\\def\\unnumberedsubsec{\\parsearg\\unnumberedsu/
-\unnumberedsubseczzz	tex-src/texinfo.tex	/^\\def\\unnumberedsubseczzz #1{\\seccheck{unnumberedsu/
-\unnumberedsubsubsec	tex-src/texinfo.tex	/^\\outer\\def\\unnumberedsubsubsec{\\parsearg\\unnumbere/
-\unnumberedsubsubseczzz	tex-src/texinfo.tex	/^\\def\\unnumberedsubsubseczzz #1{\\seccheck{unnumbere/
-\unnumberedzzz	tex-src/texinfo.tex	/^\\def\\unnumberedzzz #1{\\seccheck{unnumbered}%$/
-\unnumbnoderef	tex-src/texinfo.tex	/^\\def\\unnumbnoderef{\\ifx\\lastnode\\relax\\else$/
-\unnumbsecentry	tex-src/texinfo.tex	/^      \\def\\unnumbsecentry ##1##2{}$/
-\unnumbsecentry	tex-src/texinfo.tex	/^\\def\\unnumbsecentry#1#2{\\dosecentry{#1}{#2}}$/
-\unnumbsetref	tex-src/texinfo.tex	/^\\def\\unnumbsetref#1{%$/
-\unnumbsubsecentry	tex-src/texinfo.tex	/^      \\def\\unnumbsubsecentry ##1##2{}$/
-\unnumbsubsecentry	tex-src/texinfo.tex	/^\\def\\unnumbsubsecentry#1#2{\\dosubsecentry{#1}{#2}}/
-\unnumbsubsubsecentry	tex-src/texinfo.tex	/^      \\def\\unnumbsubsubsecentry ##1##2{}$/
-\unnumbsubsubsecentry	tex-src/texinfo.tex	/^\\def\\unnumbsubsubsecentry#1#2{\\dosubsubsecentry{#1/
-\uppercaseenumerate	tex-src/texinfo.tex	/^\\def\\uppercaseenumerate{%$/
-\var	tex-src/texinfo.tex	/^\\def\\var##1{\\realbackslash var {##1}}$/
-\var	tex-src/texinfo.tex	/^\\def\\var##1{\\realbackslash var {##1}}%$/
-\vindex	tex-src/texinfo.tex	/^\\def\\vindex {\\vrindex}$/
-\vritemindex	tex-src/texinfo.tex	/^\\def\\vritemindex #1{\\doind {vr}{\\code{#1}}}%$/
-\vtable	tex-src/texinfo.tex	/^\\def\\vtable{\\begingroup\\inENV\\obeylines\\obeyspaces/
-\w	tex-src/texinfo.tex	/^\\def\\w#1{\\leavevmode\\hbox{#1}}$/
-\w	tex-src/texinfo.tex	/^\\def\\w{\\realbackslash w }%$/
-\w	tex-src/texinfo.tex	/^\\def\\w{\\realbackslash w}$/
-\xitem	tex-src/texinfo.tex	/^\\def\\xitem{\\errmessage{@xitem while not in a table/
-\xitemx	tex-src/texinfo.tex	/^\\def\\xitemx{\\errmessage{@xitemx while not in a tab/
-\xitemzzz	tex-src/texinfo.tex	/^\\def\\xitemzzz #1{\\dosubind {kw}{\\code{#1}}{for {\\b/
-\xkey	tex-src/texinfo.tex	/^\\def\\xkey{\\key}$/
-\xrdef	tex-src/texinfo.tex	/^\\def\\xrdef #1#2{$/
-\xref	tex-src/texinfo.tex	/^\\def\\xref#1{See \\xrefX[#1,,,,,,,]}$/
-\xrefX[	tex-src/texinfo.tex	/^\\def\\xrefX[#1,#2,#3,#4,#5,#6]{\\begingroup%$/
+]	tex-src/texinfo.tex	/^\\gdef\\boldbrax{\\let(=\\opnr\\let)=\\clnr\\let[=\\lbrb\\l/
 ^	tex-src/texinfo.tex	/^\\def^{{\\tt \\hat}}$/
+^	tex-src/texinfo.tex	/^\\let^=\\normalcaret$/
+_	tex-src/texinfo.tex	/^\\def\\_{\\lvvmode \\kern.06em \\vbox{\\hrule width.3em /
+_	tex-src/texinfo.tex	/^\\def\\_{{\\realbackslash _}}%$/
 _	tex-src/texinfo.tex	/^\\def_{\\ifusingtt\\normalunderscore\\_}$/
+_	tex-src/texinfo.tex	/^\\let_=\\normalunderscore$/
 _GETOPT_H	c-src/getopt.h	19
 _GNU_SOURCE	c-src/etags.c	94
 _REGEX_H	c-src/emacs/src/regex.h	21
@@ -2264,6 +1790,7 @@ _realloc	c-src/emacs/src/gmalloc.c	/^_realloc (void *ptr, size_t size)$/
 _realloc_internal	c-src/emacs/src/gmalloc.c	/^_realloc_internal (void *ptr, size_t size)$/
 _realloc_internal_nolock	c-src/emacs/src/gmalloc.c	/^_realloc_internal_nolock (void *ptr, size_t size)$/
 `	ruby-src/test.rb	/^        def `(command)$/
+`	tex-src/texinfo.tex	/^\\def\\`{{`}}$/
 a	c-src/h.h	103
 a	c-src/h.h	40
 a	c.c	/^a ()$/
@@ -2299,6 +1826,7 @@ abbrevs_changed	c-src/abbrev.c	56
 abc	c-src/h.h	33
 abc	c-src/h.h	37
 abort-recursive-edit	c-src/emacs/src/keyboard.c	/^DEFUN ("abort-recursive-edit", Fabort_recursive_ed/
+aboveenvbreak	tex-src/texinfo.tex	/^\\def\\aboveenvbreak{{\\advance\\aboveenvskipamount by/
 abs/f	ada-src/etags-test-for.ada	/^   function "abs"   (Right : Complex) return Real'/
 absolute_dirname	c-src/etags.c	/^absolute_dirname (char *file, char *dir)$/
 absolute_filename	c-src/etags.c	/^absolute_filename (char *file, char *dir)$/
@@ -2347,6 +1875,8 @@ accu_warning	merc-src/accumulator.m	/^:- type accu_warning$/
 act	prol-src/natded.prolog	/^act(OutForm,OutSyn,Ws):-$/
 action	prol-src/natded.prolog	/^action(KeyVals):-$/
 active_maps	c-src/emacs/src/keyboard.c	/^active_maps (Lisp_Object first_event)$/
+activedoublequote	tex-src/texinfo.tex	/^\\def\\activedoublequote{{\\tt \\char '042}}$/
+activeparens	tex-src/texinfo.tex	/^\\def\\activeparens{%$/
 actout	prol-src/natded.prolog	/^actout('Text',Trees):-$/
 addArchs	objc-src/PackInsp.m	/^-(void)addArchs:(const char *)string$/
 addPOReader	php-src/lce_functions.php	/^      function addPOReader($d_name, &$por)$/
@@ -2359,6 +1889,8 @@ add_user_signal	c-src/emacs/src/keyboard.c	/^add_user_signal (int sig, const cha
 addnoise	html-src/algrthms.html	/^Adding Noise to the$/
 address	y-src/cccp.y	113
 adjust_point_for_property	c-src/emacs/src/keyboard.c	/^adjust_point_for_property (ptrdiff_t last_pt, bool/
+afourpaper	tex-src/texinfo.tex	/^\\def\\afourpaper{$/
+afterenvbreak	tex-src/texinfo.tex	/^\\def\\afterenvbreak{\\endgraf \\ifdim\\lastskip<\\above/
 agent	cp-src/clheir.hpp	75
 algorithms	html-src/algrthms.html	/^Description$/
 alias	c-src/emacs/src/lisp.h	688
@@ -2373,6 +1905,9 @@ alive	cp-src/conway.hpp	7
 all_kboards	c-src/emacs/src/keyboard.c	86
 allocate_kboard	c-src/emacs/src/keyboard.c	/^allocate_kboard (Lisp_Object type)$/
 allocated	c-src/emacs/src/regex.h	344
+alphaenumerate	tex-src/texinfo.tex	/^\\def\\alphaenumerate{\\enumerate{a}}$/
+ampnr	tex-src/texinfo.tex	/^\\def\\opnr{{\\sf\\char`\\(}} \\def\\clnr{{\\sf\\char`\\)}} /
+amprm	tex-src/texinfo.tex	/^\\gdef\\amprm#1 {{\\rm\\&#1}\\let(=\\oprm \\let)=\\clrm\\ }/
 an_extern_linkage	c-src/h.h	44
 an_extern_linkage	c-src/h.h	56
 an_extern_linkage_ptr	c-src/h.h	43
@@ -2389,8 +1924,27 @@ append_list	prol-src/natded.prolog	/^append_list([],[]).$/
 append_string	pas-src/common.pas	/^procedure append_string;(*($/
 append_tool_bar_item	c-src/emacs/src/keyboard.c	/^append_tool_bar_item (void)$/
 appendix	perl-src/htlmify-cystic	24
+appendix	tex-src/texinfo.tex	/^\\let\\appendix=\\relax$/
+appendix	tex-src/texinfo.tex	/^\\outer\\def\\appendix{\\parsearg\\appendixzzz}$/
 appendix_name	perl-src/htlmify-cystic	13
 appendix_toc	perl-src/htlmify-cystic	16
+appendixletter	tex-src/texinfo.tex	/^\\def\\appendixletter{\\char\\the\\appendixno}$/
+appendixnoderef	tex-src/texinfo.tex	/^\\def\\appendixnoderef{\\ifx\\lastnode\\relax\\else$/
+appendixsec	tex-src/texinfo.tex	/^\\let\\appendixsec=\\relax$/
+appendixsec	tex-src/texinfo.tex	/^\\outer\\def\\appendixsec{\\parsearg\\appendixsectionzz/
+appendixsection	tex-src/texinfo.tex	/^\\let\\appendixsection=\\relax$/
+appendixsection	tex-src/texinfo.tex	/^\\outer\\def\\appendixsection{\\parsearg\\appendixsecti/
+appendixsectionzzz	tex-src/texinfo.tex	/^\\def\\appendixsectionzzz #1{\\seccheck{appendixsecti/
+appendixsetref	tex-src/texinfo.tex	/^\\def\\appendixsetref#1{%$/
+appendixsubsec	tex-src/texinfo.tex	/^\\let\\appendixsubsec=\\relax$/
+appendixsubsec	tex-src/texinfo.tex	/^\\outer\\def\\appendixsubsec{\\parsearg\\appendixsubsec/
+appendixsubsection	tex-src/texinfo.tex	/^\\let\\appendixsubsection=\\relax$/
+appendixsubseczzz	tex-src/texinfo.tex	/^\\def\\appendixsubseczzz #1{\\seccheck{appendixsubsec/
+appendixsubsubsec	tex-src/texinfo.tex	/^\\let\\appendixsubsubsec=\\relax$/
+appendixsubsubsec	tex-src/texinfo.tex	/^\\outer\\def\\appendixsubsubsec{\\parsearg\\appendixsub/
+appendixsubsubsection	tex-src/texinfo.tex	/^\\let\\appendixsubsubsection=\\relax$/
+appendixsubsubseczzz	tex-src/texinfo.tex	/^\\def\\appendixsubsubseczzz #1{\\seccheck{appendixsub/
+appendixzzz	tex-src/texinfo.tex	/^\\def\\appendixzzz #1{\\seccheck{appendix}%$/
 apply_modifiers	c-src/emacs/src/keyboard.c	/^apply_modifiers (int modifiers, Lisp_Object base)$/
 apply_modifiers_uncached	c-src/emacs/src/keyboard.c	/^apply_modifiers_uncached (int modifiers, char *bas/
 aref_addr	c-src/emacs/src/lisp.h	/^aref_addr (Lisp_Object array, ptrdiff_t idx)$/
@@ -2410,6 +1964,7 @@ argument	c-src/etags.c	253
 argvals	prol-src/natded.prolog	/^argvals([]) --> [].$/
 array	c.c	190
 ascii	c-src/emacs/src/lisp.h	1598
+asis	tex-src/texinfo.tex	/^\\def\\asis#1{#1}$/
 asort	cp-src/functions.cpp	/^void asort(int *a, int num){$/
 assemby-code-word	forth-src/test-forth.fth	/^code assemby-code-word ( dunno what it does )$/
 assert	c-src/etags.c	/^# define assert(x) ((void) 0)$/
@@ -2427,7 +1982,11 @@ atom	prol-src/natded.prolog	/^atom(X) --> [X], {atomic(X)}.$/
 atomval	prol-src/natded.prolog	/^atomval(X) --> atom(X).$/
 aultparindent	tex-src/texinfo.tex	/^\\newdimen\\defaultparindent \\defaultparindent = 15p/
 aultparindent	tex-src/texinfo.tex	/^\\parindent = \\defaultparindent$/
-aultparindent\hang\textindent	tex-src/texinfo.tex	/^\\footstrut\\parindent=\\defaultparindent\\hang\\textin/
+aultparindent\hang	tex-src/texinfo.tex	/^\\footstrut\\parindent=\\defaultparindent\\hang\\textin/
+author	tex-src/texinfo.tex	/^   \\def\\author{\\parsearg\\authorzzz}%$/
+authorfont	tex-src/texinfo.tex	/^   \\def\\authorfont{\\authorrm \\normalbaselineskip =/
+authorrm	tex-src/texinfo.tex	/^\\let\\authorrm = \\secrm$/
+authorzzz	tex-src/texinfo.tex	/^   \\def\\authorzzz##1{\\ifseenauthor\\else\\vskip 0pt /
 auto_help	c-src/etags.c	699
 b	c-src/h.h	103
 b	c-src/h.h	104
@@ -2439,7 +1998,14 @@ b	c.c	260
 b	c.c	262
 b	cp-src/c.C	132
 b	ruby-src/test1.ru	/^ def b()$/
-backslash=0	tex-src/texinfo.tex	/^\\let\\indexbackslash=0  %overridden during \\printin/
+b	tex-src/texinfo.tex	/^\\def\\b##1{\\realbackslash b {##1}}$/
+b	tex-src/texinfo.tex	/^\\def\\b##1{\\realbackslash b {##1}}%$/
+b	tex-src/texinfo.tex	/^\\def\\b#1{{\\bf #1}}$/
+b	tex-src/texinfo.tex	/^\\let\\b=\\indexdummyfont$/
+b	tex-src/texinfo.tex	/^\\let\\b=\\ptexb \\let\\c=\\ptexc \\let\\i=\\ptexi \\let\\t=\\/
+backslash	tex-src/texinfo.tex	/^\\def\\rawbackslashxx{\\indexbackslash}% \\indexbacksl/
+backslash	tex-src/texinfo.tex	/^\\def\\rawbackslashxx{\\indexbackslash}%$/
+balancecolumns	tex-src/texinfo.tex	/^\\def\\balancecolumns{%$/
 bar	c-src/c.c	/^void bar() {while(0) {}}$/
 bar	c-src/h.h	19
 bar	c.c	143
@@ -2459,9 +2025,16 @@ bbbbbb	c-src/h.h	113
 been_warned	c-src/etags.c	222
 before_command_echo_length	c-src/emacs/src/keyboard.c	130
 before_command_key_count	c-src/emacs/src/keyboard.c	129
+begin	tex-src/texinfo.tex	/^\\outer\\def\\begin{\\parsearg\\beginxxx}$/
+begindoublecolumns	tex-src/texinfo.tex	/^\\def\\begindoublecolumns{\\begingroup$/
+beginxxx	tex-src/texinfo.tex	/^\\def\\beginxxx #1{%$/
 begtoken	c-src/etags.c	/^#define	begtoken(c)	(_btk[CHAR (c)]) \/* c can star/
 behaviour_info	erl-src/gs_dialog.erl	/^behaviour_info(callbacks) ->$/
-bf=cmbx10	tex-src/texinfo.tex	/^\\font\\defbf=cmbx10 scaled \\magstep1 %was 1314$/
+bf	tex-src/texinfo.tex	/^      \\let\\rm=\\shortcontrm \\let\\bf=\\shortcontbf \\l/
+bf	tex-src/texinfo.tex	/^\\def\\bf{\\realbackslash bf }$/
+bf	tex-src/texinfo.tex	/^\\def\\bf{\\realbackslash bf }%$/
+bf	tex-src/texinfo.tex	/^\\def\\df{\\let\\tentt=\\deftt \\let\\tenbf = \\defbf \\bf}/
+bf	tex-src/texinfo.tex	/^\\font\\defbf=cmbx10 scaled \\magstep1 %was 1314$/
 bind	pyt-src/server.py	/^    def bind(self, key, action):$/
 bind_polling_period	c-src/emacs/src/keyboard.c	/^bind_polling_period (int n)$/
 bits_word	c-src/emacs/src/lisp.h	123
@@ -2477,6 +2050,7 @@ bodyindent	tex-src/texinfo.tex	/^\\advance\\leftskip by -\\defbodyindent$/
 bodyindent	tex-src/texinfo.tex	/^\\advance\\leftskip by \\defbodyindent \\advance \\righ/
 bodyindent	tex-src/texinfo.tex	/^\\exdentamount=\\defbodyindent$/
 bodyindent	tex-src/texinfo.tex	/^\\newskip\\defbodyindent \\defbodyindent=.4in$/
+boldbrax	tex-src/texinfo.tex	/^\\gdef\\boldbrax{\\let(=\\opnr\\let)=\\clnr\\let[=\\lbrb\\l/
 bool	c.c	222
 bool	merc-src/accumulator.m	/^:- import_module bool.$/
 bool_header_size	c-src/emacs/src/lisp.h	1472
@@ -2489,6 +2063,7 @@ bool_vector_size	c-src/emacs/src/lisp.h	/^bool_vector_size (Lisp_Object a)$/
 bool_vector_uchar_data	c-src/emacs/src/lisp.h	/^bool_vector_uchar_data (Lisp_Object a)$/
 bool_vector_words	c-src/emacs/src/lisp.h	/^bool_vector_words (EMACS_INT size)$/
 boolvar	c-src/emacs/src/lisp.h	2287
+br	tex-src/texinfo.tex	/^\\let\\br = \\par$/
 bracelev	c-src/etags.c	2520
 bsp_DevId	c-src/h.h	25
 bt	c-src/emacs/src/lisp.h	2988
@@ -2502,10 +2077,13 @@ build_pure_c_string	c-src/emacs/src/lisp.h	/^build_pure_c_string (const char *st
 build_string	c-src/emacs/src/lisp.h	/^build_string (const char *str)$/
 buildact	prol-src/natded.prolog	/^buildact([SynIn],Right,RightPlus1):-$/
 builtin_lisp_symbol	c-src/emacs/src/lisp.h	/^builtin_lisp_symbol (int index)$/
+bullet	tex-src/texinfo.tex	/^\\def\\bullet{$\\ptexbullet$}$/
+bullet	tex-src/texinfo.tex	/^\\let\\bullet=\\ptexbullet$/
 burst	c-src/h.h	28
 busy	c-src/emacs/src/gmalloc.c	158
 button_down_location	c-src/emacs/src/keyboard.c	5210
 button_down_time	c-src/emacs/src/keyboard.c	5218
+bye	tex-src/texinfo.tex	/^\\outer\\def\\bye{\\pagealignmacro\\tracingstats=1\\ptex/
 byte_stack	c-src/emacs/src/lisp.h	3049
 bytecode_dest	c-src/emacs/src/lisp.h	3037
 bytecode_top	c-src/emacs/src/lisp.h	3036
@@ -2516,6 +2094,8 @@ bytes_used	c-src/emacs/src/gmalloc.c	312
 c	c-src/h.h	/^#define c() d$/
 c	c-src/h.h	106
 c	c.c	180
+c	tex-src/texinfo.tex	/^\\let\\b=\\ptexb \\let\\c=\\ptexc \\let\\i=\\ptexi \\let\\t=\\/
+c	tex-src/texinfo.tex	/^\\let\\c=\\comment$/
 c_ext	c-src/etags.c	2271
 caccacacca	c.c	/^caccacacca (a,b,c,d,e,f,g)$/
 cacheLRUEntry_s	c.c	172
@@ -2528,21 +2108,47 @@ calloc	c-src/emacs/src/gmalloc.c	70
 can_be_null	c-src/emacs/src/regex.h	370
 cancel_echoing	c-src/emacs/src/keyboard.c	/^cancel_echoing (void)$/
 canonicalize_filename	c-src/etags.c	/^canonicalize_filename (register char *fn)$/
+capsenumerate	tex-src/texinfo.tex	/^\\def\\capsenumerate{\\enumerate{A}}$/
+cartbot	tex-src/texinfo.tex	/^\\def\\cartbot{\\hbox to \\cartouter{\\hskip\\lskip$/
+cartouche	tex-src/texinfo.tex	/^\\long\\def\\cartouche{%$/
+carttop	tex-src/texinfo.tex	/^\\def\\carttop{\\hbox to \\cartouter{\\hskip\\lskip$/
 case_Lisp_Int	c-src/emacs/src/lisp.h	438
 cat	c-src/h.h	81
 cat	cp-src/c.C	126
 cat	cp-src/c.C	130
 cat	prol-src/natded.prolog	/^cat(A, Alpha@Beta, Ass3, Qs3, tree(fe,A:Alpha@Beta/
 cat_atoms	prol-src/natded.prolog	/^cat_atoms(A1,A2,A3):-$/
+cbl	tex-src/texinfo.tex	/^\\def\\cbl{{\\circle\\char'012\\hskip -6pt}}$/
+cbr	tex-src/texinfo.tex	/^\\def\\cbr{{\\hskip 6pt\\circle\\char'011}}$/
 cccccccccc	c-src/h.h	115
 cdr	c-src/emacs/src/lisp.h	1159
 cell	y-src/parse.y	279
+center	tex-src/texinfo.tex	/^\\def\\center{\\parsearg\\centerzzz}$/
+centerzzz	tex-src/texinfo.tex	/^\\def\\centerzzz #1{{\\advance\\hsize by -\\leftskip$/
 cgrep	html-src/software.html	/^cgrep$/
 chain	c-src/emacs/src/lisp.h	1162
 chain	c-src/emacs/src/lisp.h	2206
 chain	c-src/emacs/src/lisp.h	2396
 chain_subst	merc-src/accumulator.m	/^:- func chain_subst(accu_subst, accu_subst) = accu/
 chain_subst_2	merc-src/accumulator.m	/^:- pred chain_subst_2(list(A)::in, map(A, B)::in, /
+chapbf	tex-src/texinfo.tex	/^\\let\\chapbf=\\chaprm$/
+chapbreak	tex-src/texinfo.tex	/^\\def\\chapbreak{\\dobreak \\chapheadingskip {-4000}}$/
+chapentry	tex-src/texinfo.tex	/^      \\let\\chapentry = \\shortchapentry$/
+chapentry	tex-src/texinfo.tex	/^\\def\\chapentry#1#2#3{\\dochapentry{#2\\labelspace#1}/
+chapentryfonts	tex-src/texinfo.tex	/^\\def\\chapentryfonts{\\secfonts \\rm}$/
+chapfonts	tex-src/texinfo.tex	/^\\def\\chapfonts{%$/
+chapheading	tex-src/texinfo.tex	/^\\def\\chapheading{\\parsearg\\chapheadingzzz}$/
+chapheadingzzz	tex-src/texinfo.tex	/^\\def\\chapheadingzzz #1{\\chapbreak %$/
+chapmacro	tex-src/texinfo.tex	/^\\global\\let\\chapmacro=\\chfopen$/
+chapmacro	tex-src/texinfo.tex	/^\\global\\let\\chapmacro=\\chfplain$/
+chapoddpage	tex-src/texinfo.tex	/^\\def\\chapoddpage{\\chappager \\ifodd\\pageno \\else \\h/
+chappager	tex-src/texinfo.tex	/^\\def\\chappager{\\par\\vfill\\supereject}$/
+chapter	tex-src/texinfo.tex	/^\\let\\chapter=\\relax$/
+chapter	tex-src/texinfo.tex	/^\\outer\\def\\chapter{\\parsearg\\chapterzzz}$/
+chapternofonts	tex-src/texinfo.tex	/^\\def\\chapternofonts{%$/
+chapterzzz	tex-src/texinfo.tex	/^\\def\\chapterzzz #1{\\seccheck{chapter}%$/
+char	tex-src/texinfo.tex	/^\\def\\char{\\realbackslash char}$/
+char	tex-src/texinfo.tex	/^\\def\\char{\\realbackslash char}%$/
 char_bits	c-src/emacs/src/lisp.h	2443
 char_table_specials	c-src/emacs/src/lisp.h	1692
 charpos	c-src/emacs/src/lisp.h	2011
@@ -2553,14 +2159,24 @@ check_cons_list	c-src/emacs/src/lisp.h	/^#  define check_cons_list() lisp_h_chec
 checker	make-src/Makefile	/^checker:$/
 checkhdr	c-src/emacs/src/gmalloc.c	/^checkhdr (const struct hdr *hdr)$/
 checkiso	html-src/software.html	/^checkiso$/
+chfopen	tex-src/texinfo.tex	/^\\def\\chfopen #1#2{\\chapoddpage {\\chapfonts$/
+chfplain	tex-src/texinfo.tex	/^\\def\\chfplain #1#2{%$/
 childDidExit	objc-src/Subprocess.m	/^- childDidExit$/
 chunks_free	c-src/emacs/src/gmalloc.c	313
 chunks_used	c-src/emacs/src/gmalloc.c	311
+cindex	tex-src/texinfo.tex	/^\\def\\cindex {\\cpindex}$/
+cindexsub	tex-src/texinfo.tex	/^\\def\\cindexsub {\\begingroup\\obeylines\\cindexsub}$/
+cindexsub	tex-src/texinfo.tex	/^\\gdef\\cindexsub "#1" #2^^M{\\endgroup %$/
+cite	tex-src/texinfo.tex	/^\\def\\cite##1{\\realbackslash cite {##1}}$/
+cite	tex-src/texinfo.tex	/^\\def\\cite##1{\\realbackslash cite {##1}}%$/
+cite	tex-src/texinfo.tex	/^\\let\\cite=\\indexdummyfont$/
+cite	tex-src/texinfo.tex	/^\\let\\cite=\\smartitalic$/
 cjava	c-src/etags.c	2936
 class_method	ruby-src/test.rb	/^        def ClassExample.class_method$/
 classifyLine	php-src/lce_functions.php	/^      function classifyLine($line)$/
 clean	make-src/Makefile	/^clean:$/
 clear	cp-src/conway.hpp	/^    void clear(void) { alive = 0; }$/
+clear	tex-src/texinfo.tex	/^\\def\\clear{\\parsearg\\clearxxx}$/
 clear-abbrev-table	c-src/abbrev.c	/^DEFUN ("clear-abbrev-table", Fclear_abbrev_table, /
 clear-this-command-keys	c-src/emacs/src/keyboard.c	/^DEFUN ("clear-this-command-keys", Fclear_this_comm/
 clearAllKey	objcpp-src/SimpleCalc.M	/^- clearAllKey:sender$/
@@ -2570,12 +2186,19 @@ clear_input_pending	c-src/emacs/src/keyboard.c	/^clear_input_pending (void)$/
 clear_neighbors	cp-src/clheir.cpp	/^void discrete_location::clear_neighbors(void)$/
 clear_screen	cp-src/screen.cpp	/^void clear_screen(void)$/
 clear_waiting_for_input	c-src/emacs/src/keyboard.c	/^clear_waiting_for_input (void)$/
+clearxxx	tex-src/texinfo.tex	/^\\def\\clearxxx #1{$/
+clnr	tex-src/texinfo.tex	/^\\def\\opnr{{\\sf\\char`\\(}} \\def\\clnr{{\\sf\\char`\\)}} /
+clrm	tex-src/texinfo.tex	/^\\gdef\\clrm{% Print a paren in roman if it is takin/
 cmd_error	c-src/emacs/src/keyboard.c	/^cmd_error (Lisp_Object data)$/
 cmd_error_internal	c-src/emacs/src/keyboard.c	/^cmd_error_internal (Lisp_Object data, const char */
 cmpfn	c-src/emacs/src/lisp.h	/^  bool (*cmpfn) (struct hash_table_test *t, Lisp_O/
 cmt	prol-src/natded.prolog	/^cmt:-$/
 cname	c-src/etags.c	2519
 cno	c-src/etags.c	224
+code	tex-src/texinfo.tex	/^\\def\\code##1{\\realbackslash code {##1}}$/
+code	tex-src/texinfo.tex	/^\\def\\code##1{\\realbackslash code {##1}}%$/
+code	tex-src/texinfo.tex	/^\\let\\code=\\indexdummyfont$/
+code	tex-src/texinfo.tex	/^\\let\\code=\\tclose$/
 colori	cp-src/c.C	40
 commaargvals	prol-src/natded.prolog	/^commaargvals(Args) -->$/
 command	c-src/etags.c	187
@@ -2585,6 +2208,8 @@ command_loop_1	c-src/emacs/src/keyboard.c	/^command_loop_1 (void)$/
 command_loop_2	c-src/emacs/src/keyboard.c	/^command_loop_2 (Lisp_Object ignore)$/
 command_loop_level	c-src/emacs/src/keyboard.c	195
 comment	php-src/lce_functions.php	/^      function comment($line, $class)$/
+comment	tex-src/texinfo.tex	/^\\def\\comment{\\catcode 64=\\other \\catcode 123=\\othe/
+commentxxx	tex-src/texinfo.tex	/^\\def\\commentxxx #1{\\catcode 64=0 \\catcode 123=1 \\c/
 commutativity_assertion	merc-src/accumulator.m	/^:- pred commutativity_assertion(module_info::in,li/
 compile_empty	prol-src/natded.prolog	/^compile_empty:-$/
 compile_lex	prol-src/natded.prolog	/^compile_lex(File):-$/
@@ -2607,6 +2232,10 @@ consult_lex	prol-src/natded.prolog	/^consult_lex:-$/
 contents	c-src/emacs/src/lisp.h	1372
 contents	c-src/emacs/src/lisp.h	1600
 contents	c-src/emacs/src/lisp.h	1624
+contents	tex-src/texinfo.tex	/^\\let\\contents=\\relax$/
+contents	tex-src/texinfo.tex	/^\\outer\\def\\contents{%$/
+copyright	tex-src/texinfo.tex	/^\\def\\copyright{\\realbackslash copyright }%$/
+copyright	tex-src/texinfo.tex	/^\\def\\copyright{\\realbackslash copyright}$/
 count	c-src/emacs/src/lisp.h	1863
 count_layers	lua-src/allegro.lua	/^local function count_layers (layer)$/
 count_words	c-src/tab.c	/^static int		count_words(char *str, char delim)$/
@@ -2626,10 +2255,20 @@ create_new_orig_recursive_goals	merc-src/accumulator.m	/^:- func create_new_orig
 create_new_recursive_goals	merc-src/accumulator.m	/^:- func create_new_recursive_goals(set(accu_goal_i/
 create_new_var	merc-src/accumulator.m	/^:- pred create_new_var(prog_var::in, string::in, p/
 create_orig_goal	merc-src/accumulator.m	/^:- pred create_orig_goal(hlds_goal::in, accu_subst/
+cropmarks	tex-src/texinfo.tex	/^\\def\\cropmarks{\\let\\onepageout=\\croppageout }$/
+croppageout	tex-src/texinfo.tex	/^\\def\\croppageout#1{\\hoffset=0pt % make sure this d/
 cscInitTime	cp-src/c.C	7
 cscSegmentationTime	cp-src/c.C	8
+csname	tex-src/texinfo.tex	/^\\expandafter\\let\\csname IF#1\\endcsname=\\relax}$/
+csname	tex-src/texinfo.tex	/^\\expandafter\\let\\csname IF#1\\endcsname=\\set}$/
+csname	tex-src/texinfo.tex	/^\\expandafter\\let\\csname#1indfile\\endcsname=\\synind/
+csname	tex-src/texinfo.tex	/^\\expandafter\\xdef\\csname#1index\\endcsname{%	% Defi/
+csname	tex-src/texinfo.tex	/^{\\catcode`\\'=\\other\\expandafter \\gdef \\csname X#1\\/
 cstack	c-src/etags.c	2523
 ctags	make-src/Makefile	/^ctags: etags.c ${OBJS}$/
+ctl	tex-src/texinfo.tex	/^\\def\\ctl{{\\circle\\char'013\\hskip -6pt}}% 6pt from /
+ctr	tex-src/texinfo.tex	/^\\def\\ctr{{\\hskip 6pt\\circle\\char'010}}$/
+ctrl	tex-src/texinfo.tex	/^\\def\\ctrl #1{{\\tt \\rawbackslash \\hat}#1}$/
 curlb	c-src/etags.c	2929
 curlinepos	c-src/etags.c	2931
 current-idle-time	c-src/emacs/src/keyboard.c	/^DEFUN ("current-idle-time", Fcurrent_idle_time, Sc/
@@ -2640,6 +2279,10 @@ curry-test	scm-src/test.scm	/^(define (((((curry-test a) b) c) d) e)$/
 cursor_position	cp-src/screen.cpp	/^void cursor_position(void)$/
 cursor_x	cp-src/screen.cpp	15
 cursor_y	cp-src/screen.cpp	15
+cvarheader\defcvtype	tex-src/texinfo.tex	/^\\defopvarparsebody\\Edefcv\\defcvx\\defcvarheader\\def/
+cvtype	tex-src/texinfo.tex	/^\\begingroup\\defname {#2}{\\defcvtype{} of #1}%$/
+cvtype	tex-src/texinfo.tex	/^\\defopvarparsebody\\Edefcv\\defcvx\\defcvarheader\\def/
+cvx\defcvarheader	tex-src/texinfo.tex	/^\\defopvarparsebody\\Edefcv\\defcvx\\defcvarheader\\def/
 d	c-src/emacs/src/lisp.h	4673
 d	c-src/emacs/src/lisp.h	4679
 d	c.c	180
@@ -2661,6 +2304,15 @@ default_C_help	c-src/etags.c	515
 default_C_help	c-src/etags.c	523
 default_C_suffixes	c-src/etags.c	512
 defcell	c-src/emacs/src/lisp.h	2351
+defcodeindex	tex-src/texinfo.tex	/^\\def\\defcodeindex{\\parsearg\\newcodeindex}$/
+defcv	tex-src/texinfo.tex	/^\\def\\defcv #1 {\\def\\defcvtype{#1}%$/
+defcvarheader	tex-src/texinfo.tex	/^\\def\\defcvarheader #1#2#3{%$/
+defcvtype	tex-src/texinfo.tex	/^\\def\\defcv #1 {\\def\\defcvtype{#1}%$/
+defcvx	tex-src/texinfo.tex	/^\\def\\defcvx #1 {\\errmessage{@defcvx in invalid con/
+deffn	tex-src/texinfo.tex	/^\\def\\deffn{\\defmethparsebody\\Edeffn\\deffnx\\deffnhe/
+deffnheader	tex-src/texinfo.tex	/^\\def\\deffnheader #1#2#3{\\doind {fn}{\\code{#2}}%$/
+deffnx	tex-src/texinfo.tex	/^\\def\\deffnx #1 {\\errmessage{@deffnx in invalid con/
+defindex	tex-src/texinfo.tex	/^\\def\\defindex{\\parsearg\\newindex}$/
 define-abbrev	c-src/abbrev.c	/^DEFUN ("define-abbrev", Fdefine_abbrev, Sdefine_ab/
 define-abbrev-table	c-src/abbrev.c	/^DEFUN ("define-abbrev-table", Fdefine_abbrev_table/
 define-global-abbrev	c-src/abbrev.c	/^DEFUN ("define-global-abbrev", Fdefine_global_abbr/
@@ -2668,7 +2320,63 @@ define-mode-abbrev	c-src/abbrev.c	/^DEFUN ("define-mode-abbrev", Fdefine_mode_ab
 defined_GC_CHECK_STRING_BYTES	c-src/emacs/src/lisp.h	4663
 defined_GC_CHECK_STRING_BYTES	c-src/emacs/src/lisp.h	4665
 definedef	c-src/etags.c	2464
+defivar	tex-src/texinfo.tex	/^\\def\\defivar{\\defvrparsebody\\Edefivar\\defivarx\\def/
+defivarheader	tex-src/texinfo.tex	/^\\def\\defivarheader #1#2#3{%$/
+defivarx	tex-src/texinfo.tex	/^\\def\\defivarx #1 {\\errmessage{@defivarx in invalid/
+defmac	tex-src/texinfo.tex	/^\\def\\defmac{\\defparsebody\\Edefmac\\defmacx\\defmache/
+defmacheader	tex-src/texinfo.tex	/^\\def\\defmacheader #1#2{\\doind {fn}{\\code{#1}}% Mak/
+defmacx	tex-src/texinfo.tex	/^\\def\\defmacx #1 {\\errmessage{@defmacx in invalid c/
+defmethod	tex-src/texinfo.tex	/^\\def\\defmethod{\\defmethparsebody\\Edefmethod\\defmet/
+defmethodheader	tex-src/texinfo.tex	/^\\def\\defmethodheader #1#2#3{%$/
+defmethodx	tex-src/texinfo.tex	/^\\def\\defmethodx #1 {\\errmessage{@defmethodx in inv/
+defmethparsebody	tex-src/texinfo.tex	/^\\def\\defmethparsebody #1#2#3#4 {\\begingroup\\inENV /
+defname	tex-src/texinfo.tex	/^\\def\\defname #1#2{%$/
+defop	tex-src/texinfo.tex	/^\\def\\defop #1 {\\def\\defoptype{#1}%$/
+defopheader	tex-src/texinfo.tex	/^\\def\\defopheader #1#2#3{%$/
+defopparsebody	tex-src/texinfo.tex	/^\\def\\defopparsebody #1#2#3#4#5 {\\begingroup\\inENV /
+defopt	tex-src/texinfo.tex	/^\\def\\defopt{\\defvarparsebody\\Edefopt\\defoptx\\defop/
+defoptheader	tex-src/texinfo.tex	/^\\def\\defoptheader #1#2{\\doind {vr}{\\code{#1}}% Mak/
+defoptx	tex-src/texinfo.tex	/^\\def\\defoptx #1 {\\errmessage{@defoptx in invalid c/
+defoptype	tex-src/texinfo.tex	/^\\def\\defop #1 {\\def\\defoptype{#1}%$/
+defopvarparsebody	tex-src/texinfo.tex	/^\\def\\defopvarparsebody #1#2#3#4#5 {\\begingroup\\inE/
+defopx	tex-src/texinfo.tex	/^\\def\\defopx #1 {\\errmessage{@defopx in invalid con/
+defparsebody	tex-src/texinfo.tex	/^\\def\\defparsebody #1#2#3{\\begingroup\\inENV% Enviro/
+defspec	tex-src/texinfo.tex	/^\\def\\defspec{\\defparsebody\\Edefspec\\defspecx\\defsp/
+defspecheader	tex-src/texinfo.tex	/^\\def\\defspecheader #1#2{\\doind {fn}{\\code{#1}}% Ma/
+defspecx	tex-src/texinfo.tex	/^\\def\\defspecx #1 {\\errmessage{@defspecx in invalid/
+deftp	tex-src/texinfo.tex	/^\\def\\deftp{\\defvrparsebody\\Edeftp\\deftpx\\deftphead/
+deftpargs	tex-src/texinfo.tex	/^\\def\\deftpargs #1{\\bf \\defvarargs{#1}}$/
+deftpheader	tex-src/texinfo.tex	/^\\def\\deftpheader #1#2#3{\\doind {tp}{\\code{#2}}%$/
+deftpx	tex-src/texinfo.tex	/^\\def\\deftpx #1 {\\errmessage{@deftpx in invalid con/
+deftypefn	tex-src/texinfo.tex	/^\\def\\deftypefn{\\defmethparsebody\\Edeftypefn\\deftyp/
+deftypefnheader	tex-src/texinfo.tex	/^\\def\\deftypefnheader #1#2#3{\\deftypefnheaderx{#1}{/
+deftypefnheaderx	tex-src/texinfo.tex	/^\\def\\deftypefnheaderx #1#2#3 #4\\relax{%$/
+deftypefnx	tex-src/texinfo.tex	/^\\def\\deftypefnx #1 {\\errmessage{@deftypefnx in inv/
+deftypefun	tex-src/texinfo.tex	/^\\def\\deftypefun{\\defparsebody\\Edeftypefun\\deftypef/
+deftypefunargs	tex-src/texinfo.tex	/^\\def\\deftypefunargs #1{%$/
+deftypefunheader	tex-src/texinfo.tex	/^\\def\\deftypefunheader #1#2{\\deftypefunheaderx{#1}#/
+deftypefunheaderx	tex-src/texinfo.tex	/^\\def\\deftypefunheaderx #1#2 #3\\relax{%$/
+deftypeunx	tex-src/texinfo.tex	/^\\def\\deftypeunx #1 {\\errmessage{@deftypeunx in inv/
+deftypevar	tex-src/texinfo.tex	/^\\def\\deftypevar{\\defvarparsebody\\Edeftypevar\\defty/
+deftypevarheader	tex-src/texinfo.tex	/^\\def\\deftypevarheader #1#2{%$/
+deftypevarx	tex-src/texinfo.tex	/^\\def\\deftypevarx #1 {\\errmessage{@deftypevarx in i/
+deftypevr	tex-src/texinfo.tex	/^\\def\\deftypevr{\\defvrparsebody\\Edeftypevr\\deftypev/
+deftypevrheader	tex-src/texinfo.tex	/^\\def\\deftypevrheader #1#2#3{\\doind {vr}{\\code{#3}}/
+deftypevrx	tex-src/texinfo.tex	/^\\def\\deftypevrx #1 {\\errmessage{@deftypevrx in inv/
+defun	tex-src/texinfo.tex	/^\\def\\defun{\\defparsebody\\Edefun\\defunx\\defunheader/
 defun_func1	c.c	/^defun_func1()$/
+defunargs	tex-src/texinfo.tex	/^\\def\\defunargs #1{\\functionparens \\sl$/
+defunheader	tex-src/texinfo.tex	/^\\def\\defunheader #1#2{\\doind {fn}{\\code{#1}}% Make/
+defunx	tex-src/texinfo.tex	/^\\def\\defunx #1 {\\errmessage{@defunx in invalid con/
+defvar	tex-src/texinfo.tex	/^\\def\\defvar{\\defvarparsebody\\Edefvar\\defvarx\\defva/
+defvarargs	tex-src/texinfo.tex	/^\\def\\defvarargs #1{\\normalparens #1%$/
+defvarheader	tex-src/texinfo.tex	/^\\def\\defvarheader #1#2{\\doind {vr}{\\code{#1}}% Mak/
+defvarparsebody	tex-src/texinfo.tex	/^\\def\\defvarparsebody #1#2#3{\\begingroup\\inENV% Env/
+defvarx	tex-src/texinfo.tex	/^\\def\\defvarx #1 {\\errmessage{@defvarx in invalid c/
+defvr	tex-src/texinfo.tex	/^\\def\\defvr{\\defvrparsebody\\Edefvr\\defvrx\\defvrhead/
+defvrheader	tex-src/texinfo.tex	/^\\def\\defvrheader #1#2#3{\\doind {vr}{\\code{#2}}%$/
+defvrparsebody	tex-src/texinfo.tex	/^\\def\\defvrparsebody #1#2#3#4 {\\begingroup\\inENV %$/
+defvrx	tex-src/texinfo.tex	/^\\def\\defvrx #1 {\\errmessage{@defvrx in invalid con/
 delegate	objc-src/Subprocess.m	/^- delegate$/
 deleteItem	pyt-src/server.py	/^    def deleteItem(self):$/
 delete_kboard	c-src/emacs/src/keyboard.c	/^delete_kboard (KBOARD *kb)$/
@@ -2678,25 +2386,54 @@ deliver_user_signal	c-src/emacs/src/keyboard.c	/^deliver_user_signal (int sig)$/
 depth	c-src/emacs/src/lisp.h	1618
 derived_analyses	prol-src/natded.prolog	/^derived_analyses([],[]).$/
 describe_abbrev	c-src/abbrev.c	/^describe_abbrev (sym, stream)$/
+description	tex-src/texinfo.tex	/^\\def\\description{\\tablez{\\dontindex}{1}{}{}{}{}}$/
 detect_input_pending	c-src/emacs/src/keyboard.c	/^detect_input_pending (void)$/
 detect_input_pending_ignore_squeezables	c-src/emacs/src/keyboard.c	/^detect_input_pending_ignore_squeezables (void)$/
 detect_input_pending_run_timers	c-src/emacs/src/keyboard.c	/^detect_input_pending_run_timers (bool do_display)$/
+df	tex-src/texinfo.tex	/^\\def\\df{\\let\\tentt=\\deftt \\let\\tenbf = \\defbf \\bf}/
+dfn	tex-src/texinfo.tex	/^\\def\\dfn##1{\\realbackslash dfn {##1}}$/
+dfn	tex-src/texinfo.tex	/^\\let\\dfn=\\smartitalic$/
 dialog_loop	erl-src/gs_dialog.erl	/^dialog_loop(Module, Window, Frame, Extra, Args) ->/
 dignorerest	c-src/etags.c	2463
+direntry	tex-src/texinfo.tex	/^\\def\\direntry{\\begingroup\\direntryxxx}$/
+direntryxxx	tex-src/texinfo.tex	/^\\long\\def\\direntryxxx #1\\end direntry{\\endgroup\\ig/
 discard-input	c-src/emacs/src/keyboard.c	/^DEFUN ("discard-input", Fdiscard_input, Sdiscard_i/
 discard_mouse_events	c-src/emacs/src/keyboard.c	/^discard_mouse_events (void)$/
 discrete_location	cp-src/clheir.hpp	/^    discrete_location(int xi, int yi, int zi):$/
 discrete_location	cp-src/clheir.hpp	56
 display	cp-src/conway.cpp	/^void display(void)$/
+display	tex-src/texinfo.tex	/^\\def\\display{\\begingroup\\inENV %This group ends at/
 disposetextstring	pas-src/common.pas	/^procedure disposetextstring;(*($/
+dmn	tex-src/texinfo.tex	/^\\def\\dmn#1{\\thinspace #1}$/
 dnone	c-src/etags.c	2460
+dobreak	tex-src/texinfo.tex	/^\\def\\dobreak#1#2{\\par\\ifdim\\lastskip<#1\\removelast/
 doc	c-src/emacs/src/lisp.h	1689
+dochapentry	tex-src/texinfo.tex	/^\\def\\dochapentry#1#2{%$/
+docodeindex	tex-src/texinfo.tex	/^\\def\\docodeindex#1{\\edef\\indexname{#1}\\parsearg\\si/
 dog	c-src/h.h	81
 dog	cp-src/c.C	126
 dog	cp-src/c.C	130
+doind	tex-src/texinfo.tex	/^\\def\\doind #1#2{%$/
+doindex	tex-src/texinfo.tex	/^\\def\\doindex#1{\\edef\\indexname{#1}\\parsearg\\single/
+donoderef	tex-src/texinfo.tex	/^\\def\\donoderef{\\ifx\\lastnode\\relax\\else$/
+dontindex	tex-src/texinfo.tex	/^\\def\\dontindex #1{}$/
+dopageno	tex-src/texinfo.tex	/^\\def\\dopageno#1{{\\rm #1}}$/
+doprintindex	tex-src/texinfo.tex	/^\\def\\doprintindex#1{%$/
+dosecentry	tex-src/texinfo.tex	/^\\def\\dosecentry#1#2{%$/
+dosetq	tex-src/texinfo.tex	/^\\def\\dosetq #1#2{{\\let\\folio=0 \\turnoffactive%$/
+doshortpageno	tex-src/texinfo.tex	/^\\def\\doshortpageno#1{{\\rm #1}}$/
+dosubind	tex-src/texinfo.tex	/^\\def\\dosubind #1#2#3{%$/
+dosubsecentry	tex-src/texinfo.tex	/^\\def\\dosubsecentry#1#2{%$/
+dosubsubsecentry	tex-src/texinfo.tex	/^\\def\\dosubsubsecentry#1#2{%$/
 dotfill	tex-src/texinfo.tex	/^  \\null\\nobreak\\indexdotfill % Have leaders before/
 dotfill	tex-src/texinfo.tex	/^\\noindent\\hskip\\secondaryindent\\hbox{#1}\\indexdotf/
+dots	tex-src/texinfo.tex	/^\\def\\dots{$\\ldots$}$/
+dots	tex-src/texinfo.tex	/^\\def\\dots{\\realbackslash dots }%$/
+dots	tex-src/texinfo.tex	/^\\def\\dots{\\realbackslash dots}$/
+dots	tex-src/texinfo.tex	/^\\let\\dots=\\indexdummydots$/
+dots	tex-src/texinfo.tex	/^\\let\\dots=\\ptexdots$/
 double_click_count	c-src/emacs/src/keyboard.c	5222
+doublecolumnout	tex-src/texinfo.tex	/^\\def\\doublecolumnout{\\splittopskip=\\topskip \\split/
 drag_n_drop_syms	c-src/emacs/src/keyboard.c	4629
 dribble	c-src/emacs/src/keyboard.c	236
 dsharpseen	c-src/etags.c	2461
@@ -2706,6 +2443,7 @@ dummy2	cp-src/burton.cpp	/^::dummy::dummy test::dummy2(::CORBA::Long dummy)$/
 dummy3	cp-src/burton.cpp	/^::dummy::dummy test::dummy3(char* name, ::CORBA::L/
 dummydots	tex-src/texinfo.tex	/^\\let\\dots=\\indexdummydots$/
 dummyfont	tex-src/texinfo.tex	/^\\let\\b=\\indexdummyfont$/
+dummyfont	tex-src/texinfo.tex	/^\\let\\cite=\\indexdummyfont$/
 dummyfont	tex-src/texinfo.tex	/^\\let\\code=\\indexdummyfont$/
 dummyfont	tex-src/texinfo.tex	/^\\let\\emph=\\indexdummyfont$/
 dummyfont	tex-src/texinfo.tex	/^\\let\\file=\\indexdummyfont$/
@@ -2744,10 +2482,16 @@ editsite	pyt-src/server.py	/^    def editsite(self, site):$/
 edituser	pyt-src/server.py	/^    def edituser(self, user):$/
 egetenv	c-src/emacs/src/lisp.h	/^egetenv (const char *var)$/
 emacs_abort	c-src/emacs/src/lisp.h	/^extern _Noreturn void emacs_abort (void) NO_INLINE/
+emph	tex-src/texinfo.tex	/^\\def\\emph##1{\\realbackslash emph {##1}}$/
+emph	tex-src/texinfo.tex	/^\\let\\emph=\\indexdummyfont$/
+emph	tex-src/texinfo.tex	/^\\let\\emph=\\smartitalic$/
 end	c-src/emacs/src/keyboard.c	8753
 end	c-src/emacs/src/lisp.h	2039
 end	c-src/emacs/src/regex.h	432
+end	tex-src/texinfo.tex	/^\\def\\end{\\parsearg\\endxxx}$/
+enddoublecolumns	tex-src/texinfo.tex	/^\\def\\enddoublecolumns{\\output={\\balancecolumns}\\ej/
 endtoken	c-src/etags.c	/^#define	endtoken(c)	(_etk[CHAR (c)]) \/* c ends tok/
+endxxx	tex-src/texinfo.tex	/^\\def\\endxxx #1{%$/
 enter_critical_section	c-src/h.h	116
 entry	perl-src/htlmify-cystic	218
 entry	perl-src/htlmify-cystic	234
@@ -2757,14 +2501,22 @@ entry	perl-src/htlmify-cystic	268
 entry	perl-src/htlmify-cystic	276
 entry	perl-src/htlmify-cystic	281
 entry	perl-src/htlmify-cystic	296
+entry	tex-src/texinfo.tex	/^\\def\\entry #1#2{\\begingroup$/
+enumerate	tex-src/texinfo.tex	/^\\def\\enumerate{\\parsearg\\enumeratezzz}$/
+enumeratey	tex-src/texinfo.tex	/^\\def\\enumeratey #1 #2\\endenumeratey{%$/
+enumeratezzz	tex-src/texinfo.tex	/^\\def\\enumeratezzz #1{\\enumeratey #1  \\endenumerate/
 equalsKey	objcpp-src/SimpleCalc.M	/^- equalsKey:sender$/
+equiv	tex-src/texinfo.tex	/^\\def\\equiv{\\leavevmode\\lower.1ex\\hbox to 1em{\\hfil/
+equiv	tex-src/texinfo.tex	/^\\def\\equiv{\\realbackslash equiv}$/
 erlang_atom	c-src/etags.c	/^erlang_atom (char *s)$/
 erlang_attribute	c-src/etags.c	/^erlang_attribute (char *s)$/
 erlang_func	c-src/etags.c	/^erlang_func (char *s, char *last)$/
 error	c-src/emacs/src/lisp.h	/^extern _Noreturn void error (const char *, ...) AT/
 error	c-src/etags.c	/^error (const char *format, ...)$/
 error	c-src/etags.c	/^static void error (const char *, ...) ATTRIBUTE_FO/
+error	tex-src/texinfo.tex	/^\\def\\error{\\leavevmode\\lower.7ex\\copy\\errorbox}$/
 error	y-src/cccp.y	/^error (msg)$/
+errorE	tex-src/texinfo.tex	/^\\def\\errorE#1{$/
 error_signaled	c-src/etags.c	264
 etags	el-src/emacs/lisp/progmodes/etags.el	/^(defgroup etags nil "Tags tables."$/
 etags	html-src/software.html	/^Etags$/
@@ -2787,11 +2539,29 @@ etags-xref-find-definitions-tag-order	el-src/emacs/lisp/progmodes/etags.el	/^(de
 etags.1.man	make-src/Makefile	/^etags.1.man: etags.1$/
 etags_getcwd	c-src/etags.c	/^etags_getcwd (void)$/
 eval_dyn	c-src/emacs/src/keyboard.c	/^eval_dyn (Lisp_Object form)$/
+evenfooting	tex-src/texinfo.tex	/^\\def\\evenfooting{\\parsearg\\evenfootingxxx}$/
+evenfootingxxx	tex-src/texinfo.tex	/^\\gdef\\evenfootingxxx #1{\\evenfootingyyy #1@|@|@|@|/
+evenfootingyyy	tex-src/texinfo.tex	/^\\gdef\\evenfootingyyy #1@|#2@|#3@|#4\\finish{%$/
+evenheading	tex-src/texinfo.tex	/^\\def\\evenheading{\\parsearg\\evenheadingxxx}$/
+evenheadingxxx	tex-src/texinfo.tex	/^\\gdef\\evenheadingxxx #1{\\evenheadingyyy #1@|@|@|@|/
+evenheadingyyy	tex-src/texinfo.tex	/^\\gdef\\evenheadingyyy #1@|#2@|#3@|#4\\finish{%$/
 event-convert-list	c-src/emacs/src/keyboard.c	/^DEFUN ("event-convert-list", Fevent_convert_list, /
 event-symbol-parse-modifiers	c-src/emacs/src/keyboard.c	/^DEFUN ("internal-event-symbol-parse-modifiers", Fe/
 event_head	c-src/emacs/src/keyboard.c	11021
 event_to_kboard	c-src/emacs/src/keyboard.c	/^event_to_kboard (struct input_event *event)$/
+everyfooting	tex-src/texinfo.tex	/^\\def\\everyfooting{\\parsearg\\everyfootingxxx}$/
+everyfootingxxx	tex-src/texinfo.tex	/^\\gdef\\everyfootingxxx #1{\\everyfootingyyy #1@|@|@|/
+everyfootingyyy	tex-src/texinfo.tex	/^\\gdef\\everyfootingyyy #1@|#2@|#3@|#4\\finish{%$/
+everyheading	tex-src/texinfo.tex	/^\\def\\everyheading{\\parsearg\\everyheadingxxx}$/
+everyheadingxxx	tex-src/texinfo.tex	/^\\gdef\\everyheadingxxx #1{\\everyheadingyyy #1@|@|@|/
+everyheadingyyy	tex-src/texinfo.tex	/^\\gdef\\everyheadingyyy #1@|#2@|#3@|#4\\finish{%$/
+ewbot	tex-src/texinfo.tex	/^\\def\\ewbot{\\vrule height0pt depth\\cornerthick widt/
+ewtop	tex-src/texinfo.tex	/^\\def\\ewtop{\\vrule height\\cornerthick depth0pt widt/
 exact	c-src/emacs/src/gmalloc.c	200
+example	tex-src/texinfo.tex	/^\\let\\example=\\lisp$/
+exdent	tex-src/texinfo.tex	/^\\def\\exdent{\\parsearg\\exdentyyy}$/
+exdent	tex-src/texinfo.tex	/^\\let\\exdent=\\nofillexdent$/
+exdentyyy	tex-src/texinfo.tex	/^\\def\\exdentyyy #1{{\\hfil\\break\\hbox{\\kern -\\exdent/
 execute	cp-src/c.C	/^        void execute(CPluginCSCState& p, int w, in/
 exit	c-src/exit.c	/^DEFUN(exit, (status), int status)$/
 exit	c-src/exit.strange_suffix	/^DEFUN(exit, (status), int status)$/
@@ -2804,10 +2574,13 @@ exp	y-src/parse.y	95
 exp1	y-src/cccp.y	148
 exp_list	y-src/parse.y	263
 expand-abbrev	c-src/abbrev.c	/^DEFUN ("expand-abbrev", Fexpand_abbrev, Sexpand_ab/
+expandafter	tex-src/texinfo.tex	/^\\expandafter\\let\\expandafter\\synindexfoo\\expandaft/
 expandmng	prol-src/natded.prolog	/^expandmng(var(V),var(V)).$/
 expandmng_tree	prol-src/natded.prolog	/^expandmng_tree(tree(Rule,Syn:Sem,Trees),$/
 expandmng_trees	prol-src/natded.prolog	/^expandmng_trees([],[]).$/
 expandsyn	prol-src/natded.prolog	/^expandsyn(Syn,Syn):-$/
+expansion	tex-src/texinfo.tex	/^\\def\\expansion{\\leavevmode\\raise.1ex\\hbox to 1em{\\/
+expansion	tex-src/texinfo.tex	/^\\def\\expansion{\\realbackslash expansion}$/
 explicitly-quoted-pending-delete-mode	el-src/TAGTEST.EL	/^(defalias (quote explicitly-quoted-pending-delete-/
 expression_value	y-src/cccp.y	68
 extras	c-src/emacs/src/lisp.h	1603
@@ -2854,6 +2627,10 @@ fdp	c-src/etags.c	217
 ff	cp-src/c.C	/^  int ff(){return 1;};$/
 field_of_play	cp-src/conway.cpp	18
 fignore	c-src/etags.c	2416
+file	tex-src/texinfo.tex	/^\\def\\file##1{\\realbackslash file {##1}}$/
+file	tex-src/texinfo.tex	/^\\def\\file##1{\\realbackslash file {##1}}%$/
+file	tex-src/texinfo.tex	/^\\let\\file=\\indexdummyfont$/
+file	tex-src/texinfo.tex	/^\\let\\file=\\samp$/
 file-of-tag	el-src/emacs/lisp/progmodes/etags.el	/^(defun file-of-tag (&optional relative)$/
 file-of-tag-function	el-src/emacs/lisp/progmodes/etags.el	/^(defvar file-of-tag-function nil$/
 fileJoin	php-src/lce_functions.php	/^  function fileJoin()$/
@@ -2862,6 +2639,7 @@ file_index	perl-src/htlmify-cystic	33
 file_tocs	perl-src/htlmify-cystic	30
 filename_is_absolute	c-src/etags.c	/^filename_is_absolute (char *fn)$/
 filenames	c-src/etags.c	196
+finalout	tex-src/texinfo.tex	/^\\def\\finalout{\\overfullrule=0pt}$/
 find-tag	el-src/emacs/lisp/progmodes/etags.el	/^(defun find-tag (tagname &optional next-p regexp-p/
 find-tag-default-function	el-src/emacs/lisp/progmodes/etags.el	/^(defcustom find-tag-default-function nil$/
 find-tag-history	el-src/emacs/lisp/progmodes/etags.el	/^(defvar find-tag-history nil) ; Doc string?$/
@@ -2884,21 +2662,33 @@ find-tag-tag-order	el-src/emacs/lisp/progmodes/etags.el	/^(defvar find-tag-tag-o
 find_entries	c-src/etags.c	/^find_entries (FILE *inf)$/
 find_user_signal_name	c-src/emacs/src/keyboard.c	/^find_user_signal_name (int sig)$/
 findcats	prol-src/natded.prolog	/^findcats([],Left,Left).$/
+findex	tex-src/texinfo.tex	/^\\def\\findex {\\fnindex}$/
 finish_appendices	perl-src/htlmify-cystic	/^sub finish_appendices ()$/
 finish_sections	perl-src/htlmify-cystic	/^sub finish_sections ()$/
 finish_subsections	perl-src/htlmify-cystic	/^sub finish_subsections ()$/
 finish_subsubsections	perl-src/htlmify-cystic	/^sub finish_subsubsections ()$/
+finishtitlepage	tex-src/texinfo.tex	/^\\def\\finishtitlepage{%$/
 finlist	c-src/etags.c	2414
 first	c-src/emacs/src/gmalloc.c	151
+first	tex-src/texinfo.tex	/^\\def\\splitoff#1#2\\endmark{\\def\\first{#1}\\def\\rest{/
 fitchtreelist	prol-src/natded.prolog	/^fitchtreelist([]).$/
 fixup_locale	c-src/emacs/src/lisp.h	/^INLINE void fixup_locale (void) {}$/
 flag	c-src/getopt.h	83
 flag2str	pyt-src/server.py	/^def flag2str(value, string):$/
 flistseen	c-src/etags.c	2415
+flushcr	tex-src/texinfo.tex	/^\\def\\flushcr{\\ifx\\par\\lisppar \\def\\next##1{}\\else /
+flushleft	tex-src/texinfo.tex	/^\\def\\flushleft{%$/
+flushright	tex-src/texinfo.tex	/^\\def\\flushright{%$/
 fn	c-src/exit.c	/^    void EXFUN((*fn[1]), (NOARGS));$/
 fn	c-src/exit.strange_suffix	/^    void EXFUN((*fn[1]), (NOARGS));$/
+fnheader	tex-src/texinfo.tex	/^\\def\\deffn{\\defmethparsebody\\Edeffn\\deffnx\\deffnhe/
 fnin	y-src/parse.y	68
+fnitemindex	tex-src/texinfo.tex	/^\\def\\fnitemindex #1{\\doind {fn}{\\code{#1}}}%$/
+fnx\deffnheader	tex-src/texinfo.tex	/^\\def\\deffn{\\defmethparsebody\\Edeffn\\deffnx\\deffnhe/
 focus_set	pyt-src/server.py	/^    def focus_set(self):$/
+folio	tex-src/texinfo.tex	/^\\def\\dosetq #1#2{{\\let\\folio=0 \\turnoffactive%$/
+folio	tex-src/texinfo.tex	/^{\\let\\folio=0% Expand all macros now EXCEPT \\folio/
+folio	tex-src/texinfo.tex	/^{\\let\\folio=0%$/
 follow_key	c-src/emacs/src/keyboard.c	/^follow_key (Lisp_Object keymap, Lisp_Object key)$/
 fonts	tex-src/texinfo.tex	/^\\obeyspaces \\obeylines \\ninett \\indexfonts \\rawbac/
 fonts\rm	tex-src/texinfo.tex	/^  \\indexfonts\\rm \\tolerance=9500 \\advance\\baseline/
@@ -2926,11 +2716,15 @@ foobar	c-src/c.c	/^int foobar() {;}$/
 foobar	c.c	/^extern void foobar (void) __attribute__ ((section /
 foobar2	c-src/h.h	20
 foobar2_	c-src/h.h	16
+footnote	tex-src/texinfo.tex	/^\\long\\gdef\\footnote #1{\\global\\advance \\footnoteno/
+footnotestyle	tex-src/texinfo.tex	/^\\let\\footnotestyle=\\comment$/
+footnotezzz	tex-src/texinfo.tex	/^\\long\\gdef\\footnotezzz #1{\\insert\\footins{$/
 foperator	c-src/etags.c	2411
 force_auto_save_soon	c-src/emacs/src/keyboard.c	/^force_auto_save_soon (void)$/
 force_explicit_name	c-src/etags.c	265
 force_quit_count	c-src/emacs/src/keyboard.c	10387
 foreign_export	merc-src/accumulator.m	/^:- pragma foreign_export("C", unravel_univ(in, out/
+format	tex-src/texinfo.tex	/^\\def\\format{\\begingroup\\inENV %This group ends at /
 formatSize	objc-src/PackInsp.m	/^-(const char *)formatSize:(const char *)size inBuf/
 found	c-src/emacs/src/lisp.h	2344
 fracas	html-src/software.html	/^Fracas$/
@@ -2947,8 +2741,12 @@ free_regexps	c-src/etags.c	/^free_regexps (void)$/
 free_tree	c-src/etags.c	/^free_tree (register node *np)$/
 free_var	prol-src/natded.prolog	/^free_var(var(V),var(V)).$/
 freehook	c-src/emacs/src/gmalloc.c	/^freehook (void *ptr)$/
+frenchspacing	tex-src/texinfo.tex	/^\\def\\frenchspacing{\\sfcode46=1000 \\sfcode63=1000 \\/
+frenchspacing	tex-src/texinfo.tex	/^\\let\\frenchspacing=\\relax%$/
 fresh_vars	prol-src/natded.prolog	/^fresh_vars(var(V),var(V)).$/
 fstartlist	c-src/etags.c	2413
+ftable	tex-src/texinfo.tex	/^\\def\\ftable{\\begingroup\\inENV\\obeylines\\obeyspaces/
+ftablex	tex-src/texinfo.tex	/^\\gdef\\ftablex #1^^M{%$/
 func	c-src/emacs/src/lisp.h	/^      void (*func) (Lisp_Object);$/
 func	c-src/emacs/src/lisp.h	/^      void (*func) (int);$/
 func	c-src/emacs/src/lisp.h	/^      void (*func) (void *);$/
@@ -2965,6 +2763,7 @@ function	c-src/emacs/src/lisp.h	2985
 function	c-src/emacs/src/lisp.h	694
 function	c-src/etags.c	194
 functionp	c-src/emacs/src/lisp.h	/^functionp (Lisp_Object object)$/
+functionparens	tex-src/texinfo.tex	/^\\gdef\\functionparens{\\boldbrax\\let&=\\amprm\\parenco/
 fval	forth-src/test-forth.fth	/^fconst fvalue fval$/
 fvar	forth-src/test-forth.fth	/^fvariable fvar$/
 fvdef	c-src/etags.c	2418
@@ -3020,10 +2819,14 @@ ghi1	c-src/h.h	36
 ghi2	c-src/h.h	39
 giallo	cp-src/c.C	40
 glider	cp-src/conway.cpp	/^void glider(int x, int y)$/
+gloggingall	tex-src/texinfo.tex	/^\\def\\gloggingall{\\begingroup \\globaldefs = 1 \\logg/
 gnu	html-src/software.html	/^Free software that I wrote for the GNU project or /
 gobble_input	c-src/emacs/src/keyboard.c	/^gobble_input (void)$/
 goto-tag-location-function	el-src/emacs/lisp/progmodes/etags.el	/^(defvar goto-tag-location-function nil$/
 goto_xy	cp-src/screen.cpp	/^void goto_xy(unsigned char x, unsigned char y)$/
+group	tex-src/texinfo.tex	/^\\def\\group{\\begingroup$/
+gtr	tex-src/texinfo.tex	/^\\def\\gtr{\\realbackslash gtr}$/
+gtr	tex-src/texinfo.tex	/^\\def\\gtr{\\realbackslash gtr}%$/
 handleList	pyt-src/server.py	/^    def handleList(self, event):$/
 handleNew	pyt-src/server.py	/^    def handleNew(self, event):$/
 handle_async_input	c-src/emacs/src/keyboard.c	/^handle_async_input (void)$/
@@ -3038,6 +2841,8 @@ hash	c-src/emacs/src/lisp.h	1843
 hash	c-src/etags.c	/^hash (const char *str, int len)$/
 hash_table_test	c-src/emacs/src/lisp.h	1805
 hashfn	c-src/emacs/src/lisp.h	/^  EMACS_UINT (*hashfn) (struct hash_table_test *t,/
+hat	tex-src/texinfo.tex	/^\\def\\hat{\\realbackslash hat}$/
+hat	tex-src/texinfo.tex	/^\\def\\hat{\\realbackslash hat}%$/
 hdr	c-src/emacs/src/gmalloc.c	1860
 head_table	c-src/emacs/src/keyboard.c	11027
 header	c-src/emacs/src/lisp.h	1371
@@ -3047,6 +2852,8 @@ header	c-src/emacs/src/lisp.h	1610
 header	c-src/emacs/src/lisp.h	1672
 header	c-src/emacs/src/lisp.h	1826
 header_size	c-src/emacs/src/lisp.h	1471
+heading	tex-src/texinfo.tex	/^\\def\\heading{\\parsearg\\secheadingi}$/
+headings	tex-src/texinfo.tex	/^\\def\\headings #1 {\\csname HEADINGS#1\\endcsname}$/
 heapsize	c-src/emacs/src/gmalloc.c	361
 hello	scm-src/test.scm	/^(define hello "Hello, Emacs!")$/
 hello	scm-src/test.scm	/^(set! hello "Hello, world!")$/
@@ -3058,6 +2865,10 @@ help_form_saved_window_configs	c-src/emacs/src/keyboard.c	2156
 helpwin	pyt-src/server.py	/^def helpwin(helpdict):$/
 hide_cursor	cp-src/screen.cpp	/^void hide_cursor(void)$/
 hlds	merc-src/accumulator.m	/^:- import_module hlds.$/
+hsize	tex-src/texinfo.tex	/^			{\\let\\hsize=\\pagewidth \\makefootline}}$/
+hsize	tex-src/texinfo.tex	/^			{\\let\\hsize=\\pagewidth \\makeheadline}$/
+hsize	tex-src/texinfo.tex	/^\\shipout\\vbox{{\\let\\hsize=\\pagewidth \\makeheadline/
+hsize	tex-src/texinfo.tex	/^{\\let\\hsize=\\pagewidth \\makefootline}}}%$/
 htmltreelist	prol-src/natded.prolog	/^htmltreelist([]).$/
 hybrid_aligned_alloc	c-src/emacs/src/gmalloc.c	/^hybrid_aligned_alloc (size_t alignment, size_t siz/
 hybrid_calloc	c-src/emacs/src/gmalloc.c	/^hybrid_calloc (size_t nmemb, size_t size)$/
@@ -3072,31 +2883,87 @@ i	c-src/emacs/src/lisp.h	4679
 i	c-src/emacs/src/lisp.h	567
 i	c.c	169
 i	cp-src/c.C	132
+i	tex-src/texinfo.tex	/^\\def\\i##1{\\realbackslash i {##1}}$/
+i	tex-src/texinfo.tex	/^\\def\\i##1{\\realbackslash i {##1}}%$/
+i	tex-src/texinfo.tex	/^\\let\\b=\\ptexb \\let\\c=\\ptexc \\let\\i=\\ptexi \\let\\t=\\/
+i	tex-src/texinfo.tex	/^\\let\\i=\\indexdummyfont$/
+i	tex-src/texinfo.tex	/^\\let\\i=\\smartitalic$/
 ialpage	tex-src/texinfo.tex	/^     \\dimen@=\\pageheight \\advance\\dimen@ by-\\ht\\pa/
 ialpage	tex-src/texinfo.tex	/^  \\availdimen@=\\pageheight \\advance\\availdimen@ by/
 ialpage	tex-src/texinfo.tex	/^  \\dimen@=\\pageheight \\advance\\dimen@ by-\\ht\\parti/
+ialpage	tex-src/texinfo.tex	/^  \\output={\\global\\setbox\\partialpage=$/
+ialpage	tex-src/texinfo.tex	/^\\def\\pagesofar{\\unvbox\\partialpage %$/
 ialpage	tex-src/texinfo.tex	/^\\newbox\\partialpage$/
-ialpage=	tex-src/texinfo.tex	/^  \\output={\\global\\setbox\\partialpage=$/
 identify_goal_type	merc-src/accumulator.m	/^:- pred identify_goal_type(pred_id::in, proc_id::i/
 identify_out_and_out_prime	merc-src/accumulator.m	/^:- pred identify_out_and_out_prime(module_info::in/
 identify_recursive_calls	merc-src/accumulator.m	/^:- pred identify_recursive_calls(pred_id::in, proc/
 idx	c-src/emacs/src/lisp.h	3150
+ifclear	tex-src/texinfo.tex	/^\\def\\ifclear{\\begingroup\\ignoresections\\parsearg\\i/
+ifclearfail	tex-src/texinfo.tex	/^\\def\\ifclearfail{\\begingroup\\ignoresections\\ifclea/
+ifclearfailxxx	tex-src/texinfo.tex	/^\\long\\def\\ifclearfailxxx #1\\end ifclear{\\endgroup\\/
+ifclearxxx	tex-src/texinfo.tex	/^\\def\\ifclearxxx #1{\\endgroup$/
+ifinfo	tex-src/texinfo.tex	/^\\def\\ifinfo{\\begingroup\\ignoresections\\ifinfoxxx}$/
+ifinfoxxx	tex-src/texinfo.tex	/^\\long\\def\\ifinfoxxx #1\\end ifinfo{\\endgroup\\ignore/
+ifset	tex-src/texinfo.tex	/^\\def\\ifset{\\begingroup\\ignoresections\\parsearg\\ifs/
+ifsetfail	tex-src/texinfo.tex	/^\\def\\ifsetfail{\\begingroup\\ignoresections\\ifsetfai/
+ifsetfailxxx	tex-src/texinfo.tex	/^\\long\\def\\ifsetfailxxx #1\\end ifset{\\endgroup\\igno/
+ifsetxxx	tex-src/texinfo.tex	/^\\def\\ifsetxxx #1{\\endgroup$/
+iftex	tex-src/texinfo.tex	/^\\def\\iftex{}$/
+ifusingtt	tex-src/texinfo.tex	/^\\def\\ifusingtt#1#2{\\ifdim \\fontdimen3\\the\\font=0pt/
+ignore	tex-src/texinfo.tex	/^\\def\\ignore{\\begingroup\\ignoresections$/
 ignore_case	c-src/etags.c	266
 ignore_mouse_drag_p	c-src/emacs/src/keyboard.c	1256
-ill=\relax	tex-src/texinfo.tex	/^\\let\\refill=\\relax$/
+ignoresections	tex-src/texinfo.tex	/^\\def\\ignoresections{%$/
+ignorexxx	tex-src/texinfo.tex	/^\\long\\def\\ignorexxx #1\\end ignore{\\endgroup\\ignore/
+ii	tex-src/texinfo.tex	/^\\def\\ii#1{{\\it #1}}		% italic font$/
 immediate_quit	c-src/emacs/src/keyboard.c	174
 impatto	html-src/softwarelibero.html	/^Impatto pratico del software libero$/
 implementation	merc-src/accumulator.m	/^:- implementation.$/
+implicitmath	tex-src/texinfo.tex	/^\\let\\implicitmath = $$/
+inENV	tex-src/texinfo.tex	/^\\newif\\ifENV \\ENVfalse \\def\\inENV{\\ifENV\\relax\\els/
 in_word_set	c-src/etags.c	/^in_word_set (register const char *str, register un/
 inattribute	c-src/etags.c	2400
 inc	cp-src/Range.h	/^  double inc (void) const { return rng_inc;   }$/
+include	tex-src/texinfo.tex	/^\\def\\include{\\parsearg\\includezzz}$/
+includezzz	tex-src/texinfo.tex	/^\\def\\includezzz #1{{\\def\\thisfile{#1}\\input #1$/
+indbf	tex-src/texinfo.tex	/^\\let\\indbf=\\indrm$/
 index	c-src/emacs/src/lisp.h	1856
+indexbackslash	tex-src/texinfo.tex	/^  \\def\\indexbackslash{\\rawbackslashxx}$/
+indexbackslash	tex-src/texinfo.tex	/^\\let\\indexbackslash=0  %overridden during \\printin/
+indexdotfill	tex-src/texinfo.tex	/^\\def\\indexdotfill{\\cleaders$/
+indexdummies	tex-src/texinfo.tex	/^\\def\\indexdummies{%$/
+indexdummydots	tex-src/texinfo.tex	/^\\def\\indexdummydots{...}$/
+indexdummyfont	tex-src/texinfo.tex	/^\\def\\indexdummyfont#1{#1}$/
+indexdummytex	tex-src/texinfo.tex	/^\\def\\indexdummytex{TeX}$/
+indexfonts	tex-src/texinfo.tex	/^\\def\\indexfonts{%$/
+indexname	tex-src/texinfo.tex	/^\\def\\docodeindex#1{\\edef\\indexname{#1}\\parsearg\\si/
+indexname	tex-src/texinfo.tex	/^\\def\\doindex#1{\\edef\\indexname{#1}\\parsearg\\single/
+indexnofonts	tex-src/texinfo.tex	/^\\def\\indexnofonts{%$/
+indsc	tex-src/texinfo.tex	/^\\let\\indsc=\\indrm$/
+indsf	tex-src/texinfo.tex	/^\\let\\indsf=\\indrm$/
+indsl	tex-src/texinfo.tex	/^\\let\\indsl=\\indit$/
+indtt	tex-src/texinfo.tex	/^\\let\\indtt=\\ninett$/
 infabsdir	c-src/etags.c	206
 infabsname	c-src/etags.c	205
 infiles	make-src/Makefile	/^infiles = $(filter-out ${NONSRCS},${SRCS}) srclist/
 infname	c-src/etags.c	204
 info	c-src/emacs/src/gmalloc.c	157
 infoPanel	objcpp-src/SimpleCalc.M	/^- infoPanel:sender$/
+infoappendix	tex-src/texinfo.tex	/^\\def\\infoappendix{\\parsearg\\appendixzzz}$/
+infoappendixsec	tex-src/texinfo.tex	/^\\def\\infoappendixsec{\\parsearg\\appendixseczzz}$/
+infoappendixsubsec	tex-src/texinfo.tex	/^\\def\\infoappendixsubsec{\\parsearg\\appendixsubseczz/
+infoappendixsubsubsec	tex-src/texinfo.tex	/^\\def\\infoappendixsubsubsec{\\parsearg\\appendixsubsu/
+infochapter	tex-src/texinfo.tex	/^\\def\\infochapter{\\parsearg\\chapterzzz}$/
+inforef	tex-src/texinfo.tex	/^\\def\\inforef #1{\\inforefzzz #1,,,,**}$/
+inforefzzz	tex-src/texinfo.tex	/^\\def\\inforefzzz #1,#2,#3,#4**{See Info file \\file{/
+infosection	tex-src/texinfo.tex	/^\\def\\infosection{\\parsearg\\sectionzzz}$/
+infosubsection	tex-src/texinfo.tex	/^\\def\\infosubsection{\\parsearg\\subsectionzzz}$/
+infosubsubsection	tex-src/texinfo.tex	/^\\def\\infosubsubsection{\\parsearg\\subsubsectionzzz}/
+infotop	tex-src/texinfo.tex	/^\\def\\infotop{\\parsearg\\unnumberedzzz}$/
+infounnumbered	tex-src/texinfo.tex	/^\\def\\infounnumbered{\\parsearg\\unnumberedzzz}$/
+infounnumberedsec	tex-src/texinfo.tex	/^\\def\\infounnumberedsec{\\parsearg\\unnumberedseczzz}/
+infounnumberedsubsec	tex-src/texinfo.tex	/^\\def\\infounnumberedsubsec{\\parsearg\\unnumberedsubs/
+infounnumberedsubsubsec	tex-src/texinfo.tex	/^\\def\\infounnumberedsubsubsec{\\parsearg\\unnumbereds/
 init	c-src/etags.c	/^init (void)$/
 init	objc-src/Subprocess.m	/^    andStdErr:(BOOL)wantsStdErr$/
 init	objc-src/Subprocess.m	/^- init:(const char *)subprocessString$/
@@ -3108,6 +2975,7 @@ init_registry	cp-src/clheir.cpp	/^void init_registry(void)$/
 init_tool_bar_items	c-src/emacs/src/keyboard.c	/^init_tool_bar_items (Lisp_Object reuse)$/
 inita	c.c	/^static void inita () {}$/
 initb	c.c	/^static void initb () {}$/
+initial	tex-src/texinfo.tex	/^\\def\\initial #1{%$/
 initial_kboard	c-src/emacs/src/keyboard.c	84
 initialize-new-tags-table	el-src/emacs/lisp/progmodes/etags.el	/^(defun initialize-new-tags-table ()$/
 initialize_goal_store	merc-src/accumulator.m	/^:- func initialize_goal_store(list(hlds_goal), ins/
@@ -3139,7 +3007,14 @@ interface	merc-src/accumulator.m	/^:- interface.$/
 interface_locate	c-src/c.c	/^interface_locate(void)$/
 intern	c-src/emacs/src/lisp.h	/^intern (const char *str)$/
 intern_c_string	c-src/emacs/src/lisp.h	/^intern_c_string (const char *str)$/
+internalBitem	tex-src/texinfo.tex	/^\\def\\internalBitem{\\smallbreak \\parsearg\\itemzzz}$/
+internalBitemx	tex-src/texinfo.tex	/^\\def\\internalBitemx{\\par \\parsearg\\itemzzz}$/
+internalBkitem	tex-src/texinfo.tex	/^\\def\\internalBkitem{\\smallbreak \\parsearg\\kitemzzz/
+internalBkitemx	tex-src/texinfo.tex	/^\\def\\internalBkitemx{\\par \\parsearg\\kitemzzz}$/
+internalBxitem	tex-src/texinfo.tex	/^\\def\\internalBxitem "#1"{\\def\\xitemsubtopix{#1} \\s/
+internalBxitemx	tex-src/texinfo.tex	/^\\def\\internalBxitemx "#1"{\\def\\xitemsubtopix{#1} \\/
 internal_last_event_frame	c-src/emacs/src/keyboard.c	228
+internalsetq	tex-src/texinfo.tex	/^\\def\\internalsetq #1#2{'xrdef {#1}{\\csname #2\\endc/
 interned	c-src/emacs/src/lisp.h	672
 interpreters	c-src/etags.c	197
 interrupt_input	c-src/emacs/src/keyboard.c	328
@@ -3174,9 +3049,28 @@ iso_lispy_function_keys	c-src/emacs/src/keyboard.c	5151
 isoperator	prol-src/natded.prolog	/^isoperator(Char):-$/
 isoptab	prol-src/natded.prolog	/^isoptab('%').$/
 iswhite	c-src/etags.c	/^#define	iswhite(c)	(_wht[CHAR (c)]) \/* c is white /
+item	tex-src/texinfo.tex	/^\\def\\item{\\errmessage{@item while not in a table}}/
+item	tex-src/texinfo.tex	/^\\let\\item = \\internalBitem %$/
+item	tex-src/texinfo.tex	/^\\let\\item=\\itemizeitem}$/
 item_properties	c-src/emacs/src/keyboard.c	7568
+itemcontents	tex-src/texinfo.tex	/^\\def\\itemcontents{#1}%$/
+itemfont	tex-src/texinfo.tex	/^\\def\\itemfont{#2}%$/
+itemindex	tex-src/texinfo.tex	/^\\let\\itemindex=#1%$/
+itemize	tex-src/texinfo.tex	/^\\def\\itemize{\\parsearg\\itemizezzz}$/
+itemizeitem	tex-src/texinfo.tex	/^\\def\\itemizeitem{%$/
+itemizey	tex-src/texinfo.tex	/^\\def\\itemizey #1#2{%$/
+itemizezzz	tex-src/texinfo.tex	/^\\def\\itemizezzz #1{%$/
+itemx	tex-src/texinfo.tex	/^\\def\\itemx{\\errmessage{@itemx while not in a table/
+itemx	tex-src/texinfo.tex	/^\\let\\itemx = \\internalBitemx %$/
+itemzzz	tex-src/texinfo.tex	/^\\def\\itemzzz #1{\\begingroup %$/
+ivarheader	tex-src/texinfo.tex	/^\\def\\defivar{\\defvrparsebody\\Edefivar\\defivarx\\def/
+ivarx\defivarheader	tex-src/texinfo.tex	/^\\def\\defivar{\\defvrparsebody\\Edefivar\\defivarx\\def/
 jmp	c-src/emacs/src/lisp.h	3044
 just_read_file	c-src/etags.c	/^just_read_file (FILE *inf)$/
+kbd	tex-src/texinfo.tex	/^\\def\\kbd##1{\\realbackslash kbd {##1}}$/
+kbd	tex-src/texinfo.tex	/^\\def\\kbd##1{\\realbackslash kbd {##1}}%$/
+kbd	tex-src/texinfo.tex	/^\\def\\kbd#1{\\def\\look{#1}\\expandafter\\kbdfoo\\look??/
+kbd	tex-src/texinfo.tex	/^\\let\\kbd=\\indexdummyfont$/
 kbd_buffer	c-src/emacs/src/keyboard.c	291
 kbd_buffer_events_waiting	c-src/emacs/src/keyboard.c	/^kbd_buffer_events_waiting (void)$/
 kbd_buffer_get_event	c-src/emacs/src/keyboard.c	/^kbd_buffer_get_event (KBOARD **kbp,$/
@@ -3187,9 +3081,14 @@ kbd_buffer_store_help_event	c-src/emacs/src/keyboard.c	/^kbd_buffer_store_help_e
 kbd_buffer_unget_event	c-src/emacs/src/keyboard.c	/^kbd_buffer_unget_event (register struct input_even/
 kbd_fetch_ptr	c-src/emacs/src/keyboard.c	297
 kbd_store_ptr	c-src/emacs/src/keyboard.c	302
+kbdfoo	tex-src/texinfo.tex	/^\\def\\kbdfoo#1#2#3\\par{\\def\\one{#1}\\def\\three{#3}\\d/
 kboard	c-src/emacs/src/keyboard.c	860
 kboard_stack	c-src/emacs/src/keyboard.c	858
 kboard_stack	c-src/emacs/src/keyboard.c	864
+key	tex-src/texinfo.tex	/^\\def\\key #1{{\\tt \\exhyphenpenalty=10000\\uppercase{/
+key	tex-src/texinfo.tex	/^\\def\\key##1{\\realbackslash key {##1}}$/
+key	tex-src/texinfo.tex	/^\\def\\key##1{\\realbackslash key {##1}}%$/
+key	tex-src/texinfo.tex	/^\\let\\key=\\indexdummyfont$/
 key_and_value	c-src/emacs/src/lisp.h	1868
 keyremap	c-src/emacs/src/keyboard.c	8742
 keyremap	c-src/emacs/src/keyboard.c	8754
@@ -3204,6 +3103,12 @@ keywords	y-src/cccp.y	114
 keywords	y-src/cccp.y	306
 kind	c-src/emacs/src/keyboard.c	11024
 kind	c-src/h.h	46
+kindex	tex-src/texinfo.tex	/^\\def\\kindex {\\kyindex}$/
+kitem	tex-src/texinfo.tex	/^\\def\\kitem{\\errmessage{@kitem while not in a table/
+kitem	tex-src/texinfo.tex	/^\\let\\kitem = \\internalBkitem %$/
+kitemx	tex-src/texinfo.tex	/^\\def\\kitemx{\\errmessage{@kitemx while not in a tab/
+kitemx	tex-src/texinfo.tex	/^\\let\\kitemx = \\internalBkitemx %$/
+kitemzzz	tex-src/texinfo.tex	/^\\def\\kitemzzz #1{\\dosubind {kw}{\\code{#1}}{for {\\b/
 kset_echo_string	c-src/emacs/src/keyboard.c	/^kset_echo_string (struct kboard *kb, Lisp_Object v/
 kset_kbd_queue	c-src/emacs/src/keyboard.c	/^kset_kbd_queue (struct kboard *kb, Lisp_Object val/
 kset_keyboard_translate_table	c-src/emacs/src/keyboard.c	/^kset_keyboard_translate_table (struct kboard *kb, /
@@ -3213,6 +3118,9 @@ kset_local_function_key_map	c-src/emacs/src/keyboard.c	/^kset_local_function_key
 kset_overriding_terminal_local_map	c-src/emacs/src/keyboard.c	/^kset_overriding_terminal_local_map (struct kboard /
 kset_real_last_command	c-src/emacs/src/keyboard.c	/^kset_real_last_command (struct kboard *kb, Lisp_Ob/
 kset_system_key_syms	c-src/emacs/src/keyboard.c	/^kset_system_key_syms (struct kboard *kb, Lisp_Obje/
+l	tex-src/texinfo.tex	/^\\def\\l#1{{\\li #1}\\null}		% $/
+l	tex-src/texinfo.tex	/^\\let\\b=\\ptexb \\let\\c=\\ptexc \\let\\i=\\ptexi \\let\\t=\\/
+labelspace	tex-src/texinfo.tex	/^\\def\\labelspace{\\hskip1em \\relax}$/
 lang	c-src/etags.c	208
 lang	c-src/etags.c	251
 lang	c-src/etags.c	259
@@ -3233,7 +3141,11 @@ lasta	c.c	272
 lastargmargin	tex-src/texinfo.tex	/^\\newskip\\deflastargmargin \\deflastargmargin=18pt$/
 lastargmargin	tex-src/texinfo.tex	/^\\setbox0=\\hbox{\\hskip \\deflastargmargin{\\rm #2}\\hs/
 lastb	c.c	278
+lastnode	tex-src/texinfo.tex	/^\\def\\nodexxx[#1,#2]{\\gdef\\lastnode{#1}}$/
+lastnode	tex-src/texinfo.tex	/^\\let\\lastnode=\\relax$/
+lastnode	tex-src/texinfo.tex	/^\\let\\lastnode=\\relax}$/
 lb	c-src/etags.c	2923
+lbrb	tex-src/texinfo.tex	/^\\def\\lbrb{{\\bf\\char`\\[}} \\def\\rbrb{{\\bf\\char`\\]}}$/
 lbs	c-src/etags.c	2924
 lce	php-src/lce_functions.php	/^      function lce()$/
 lce_bindtextdomain	php-src/lce_functions.php	/^      function lce_bindtextdomain($d_name, $d_path/
@@ -3249,12 +3161,15 @@ len	c-src/etags.c	237
 length	c-src/etags.c	2495
 length	y-src/cccp.y	113
 length	y-src/cccp.y	44
+less	tex-src/texinfo.tex	/^\\def\\less{\\realbackslash less}$/
+less	tex-src/texinfo.tex	/^\\def\\less{\\realbackslash less}%$/
 let	c-src/emacs/src/lisp.h	2981
 letter	tex-src/texinfo.tex	/^  {#1}{Appendix \\appendixletter}{\\noexpand\\folio}}/
 letter	tex-src/texinfo.tex	/^  {\\appendixletter}$/
 letter	tex-src/texinfo.tex	/^  {\\appendixletter}{\\the\\secno}{\\the\\subsecno}{\\th/
 letter	tex-src/texinfo.tex	/^\\chapmacro {#1}{Appendix \\appendixletter}%$/
 letter	tex-src/texinfo.tex	/^\\gdef\\thissection{#1}\\secheading {#1}{\\appendixlet/
+letter	tex-src/texinfo.tex	/^\\global\\advance \\appendixno by 1 \\message{Appendix/
 letter	tex-src/texinfo.tex	/^\\subsecheading {#1}{\\appendixletter}{\\the\\secno}{\\/
 letter	tex-src/texinfo.tex	/^{#1}{\\appendixletter}{\\the\\secno}{\\noexpand\\folio}/
 letter	tex-src/texinfo.tex	/^{#1}{\\appendixletter}{\\the\\secno}{\\the\\subsecno}{\\/
@@ -3262,6 +3177,7 @@ letter:	tex-src/texinfo.tex	/^\\xdef\\thischapter{Appendix \\appendixletter: \\n
 level	c-src/emacs/src/lisp.h	3153
 lex	prol-src/natded.prolog	/^lex(W,SynOut,Sem):-$/
 lexptr	y-src/cccp.y	332
+li	tex-src/texinfo.tex	/^\\let\\li = \\sf % Sometimes we call it \\li, not \\sf./
 libs	merc-src/accumulator.m	/^:- import_module libs.$/
 licenze	html-src/softwarelibero.html	/^Licenze d'uso di un programma$/
 limit	cp-src/Range.h	/^  double limit (void) const { return rng_limit; }$/
@@ -3274,9 +3190,12 @@ linebuffer_init	c-src/etags.c	/^linebuffer_init (linebuffer *lbp)$/
 linebuffer_setlen	c-src/etags.c	/^linebuffer_setlen (linebuffer *lbp, int toksize)$/
 lineno	c-src/emacs/src/lisp.h	3147
 lineno	c-src/etags.c	2506
+linenumber	tex-src/texinfo.tex	/^  \\def\\linenumber{\\the\\inputlineno:\\space}$/
+linenumber	tex-src/texinfo.tex	/^  \\let\\linenumber = \\empty % Non-3.0.$/
 linepos	c-src/etags.c	2507
 linepos	c-src/etags.c	2922
 links	html-src/software.html	/^Links to interesting software$/
+lisp	tex-src/texinfo.tex	/^\\def\\lisp{\\aboveenvbreak$/
 lisp_eval_depth	c-src/emacs/src/lisp.h	3045
 lisp_h_CHECK_LIST_CONS	c-src/emacs/src/lisp.h	/^#define lisp_h_CHECK_LIST_CONS(x, y) CHECK_TYPE (C/
 lisp_h_CHECK_NUMBER	c-src/emacs/src/lisp.h	/^#define lisp_h_CHECK_NUMBER(x) CHECK_TYPE (INTEGER/
@@ -3310,6 +3229,7 @@ lisp_h_XTYPE	c-src/emacs/src/lisp.h	/^# define lisp_h_XTYPE(a) ((enum Lisp_Type)
 lisp_h_XUNTAG	c-src/emacs/src/lisp.h	/^# define lisp_h_XUNTAG(a, type) ((void *) (intptr_/
 lisp_h_check_cons_list	c-src/emacs/src/lisp.h	/^# define lisp_h_check_cons_list() ((void) 0)$/
 lisp_h_make_number	c-src/emacs/src/lisp.h	/^# define lisp_h_make_number(n) \\$/
+lisppar	tex-src/texinfo.tex	/^\\gdef\\lisppar{\\null\\endgraf}}$/
 lispy_accent_codes	c-src/emacs/src/keyboard.c	4634
 lispy_accent_keys	c-src/emacs/src/keyboard.c	4741
 lispy_drag_n_drop_names	c-src/emacs/src/keyboard.c	5181
@@ -3336,18 +3256,29 @@ loadPORManager	php-src/lce_functions.php	/^  function &loadPORManager()$/
 local_if_set	c-src/emacs/src/lisp.h	2338
 location	cp-src/clheir.hpp	/^    location() { }$/
 location	cp-src/clheir.hpp	33
+loggingall	tex-src/texinfo.tex	/^\\def\\loggingall{\\tracingcommands2 \\tracingstats2 $/
+look	tex-src/texinfo.tex	/^\\def\\kbd#1{\\def\\look{#1}\\expandafter\\kbdfoo\\look??/
 lookup	y-src/cccp.y	/^lookup (name, len, hash)$/
 lookup_call	merc-src/accumulator.m	/^:- pred lookup_call(accu_goal_store::in, accu_goal/
+losespace	tex-src/texinfo.tex	/^\\def\\losespace #1{#1}$/
 lowcase	c-src/etags.c	/^#define lowcase(c)	tolower (CHAR (c))$/
+lowercaseenumerate	tex-src/texinfo.tex	/^\\def\\lowercaseenumerate{%$/
 lucid_event_type_list_p	c-src/emacs/src/keyboard.c	/^lucid_event_type_list_p (Lisp_Object object)$/
+lvvmode	tex-src/texinfo.tex	/^\\def\\lvvmode{\\vbox to 0pt{}}$/
 mabort	c-src/emacs/src/gmalloc.c	/^mabort (enum mcheck_status status)$/
 mach_host_self	c-src/machsyscalls.h	/^SYSCALL (mach_host_self, -29,$/
 mach_msg_trap	c-src/machsyscalls.h	/^SYSCALL (mach_msg_trap, -25,$/
 mach_reply_port	c-src/machsyscalls.h	/^SYSCALL (mach_reply_port, -26,$/
 mach_task_self	c-src/machsyscalls.h	/^SYSCALL (mach_task_self, -28,$/
 mach_thread_self	c-src/machsyscalls.h	/^SYSCALL (mach_thread_self, -27,$/
+macheader	tex-src/texinfo.tex	/^\\def\\defmac{\\defparsebody\\Edefmac\\defmacx\\defmache/
+macx\defmacheader	tex-src/texinfo.tex	/^\\def\\defmac{\\defparsebody\\Edefmac\\defmacx\\defmache/
 magic	c-src/emacs/src/gmalloc.c	1863
+mainmagstep	tex-src/texinfo.tex	/^\\let\\mainmagstep=\\magstep1$/
+mainmagstep	tex-src/texinfo.tex	/^\\let\\mainmagstep=\\magstephalf$/
 maintaining.info	make-src/Makefile	/^maintaining.info: maintaining.texi$/
+majorheading	tex-src/texinfo.tex	/^\\def\\majorheading{\\parsearg\\majorheadingzzz}$/
+majorheadingzzz	tex-src/texinfo.tex	/^\\def\\majorheadingzzz #1{%$/
 make-abbrev-table	c-src/abbrev.c	/^DEFUN ("make-abbrev-table", Fmake_abbrev_table, Sm/
 make_C_tag	c-src/etags.c	/^make_C_tag (bool isfun)$/
 make_coor	prol-src/natded.prolog	/^make_coor(s(_),Alpha,Sem1,Sem2,Alpha@Sem1@Sem2).$/
@@ -3388,6 +3319,7 @@ map_word	prol-src/natded.prolog	/^map_word([[_]|Ws],Exp):-$/
 mapping	html-src/algrthms.html	/^Mapping the Channel Symbols$/
 mapsyn	prol-src/natded.prolog	/^mapsyn(A\/B,AM\/BM):-$/
 mark_kboards	c-src/emacs/src/keyboard.c	/^mark_kboards (void)$/
+math	tex-src/texinfo.tex	/^\\def\\math#1{\\implicitmath #1\\implicitmath}$/
 max	c-src/emacs/src/lisp.h	/^#define max(a, b) ((a) > (b) ? (a) : (b))$/
 max	c-src/emacs/src/lisp.h	58
 max	c.c	/^__attribute__ ((always_inline)) max (int a, int b)/
@@ -3410,6 +3342,7 @@ memalign	c-src/emacs/src/gmalloc.c	/^memalign (size_t alignment, size_t size)$/
 member	prol-src/natded.prolog	/^member(X,[X|_]).$/
 member_lessthan_goalid	merc-src/accumulator.m	/^:- pred member_lessthan_goalid(accu_goal_store::in/
 memclear	c-src/emacs/src/lisp.h	/^memclear (void *p, ptrdiff_t nbytes)$/
+menu	tex-src/texinfo.tex	/^\\long\\def\\menu #1\\end menu{}$/
 menu_bar_item	c-src/emacs/src/keyboard.c	/^menu_bar_item (Lisp_Object key, Lisp_Object item, /
 menu_bar_items	c-src/emacs/src/keyboard.c	/^menu_bar_items (Lisp_Object old)$/
 menu_bar_items_index	c-src/emacs/src/keyboard.c	7369
@@ -3419,6 +3352,11 @@ menu_item_eval_property	c-src/emacs/src/keyboard.c	/^menu_item_eval_property (Li
 menu_item_eval_property_1	c-src/emacs/src/keyboard.c	/^menu_item_eval_property_1 (Lisp_Object arg)$/
 menu_separator_name_p	c-src/emacs/src/keyboard.c	/^menu_separator_name_p (const char *label)$/
 metasource	c-src/etags.c	198
+methodheader	tex-src/texinfo.tex	/^\\def\\defmethod{\\defmethparsebody\\Edefmethod\\defmet/
+methodx\defmethodheader	tex-src/texinfo.tex	/^\\def\\defmethod{\\defmethparsebody\\Edefmethod\\defmet/
+methparsebody\Edeffn	tex-src/texinfo.tex	/^\\def\\deffn{\\defmethparsebody\\Edeffn\\deffnx\\deffnhe/
+methparsebody\Edefmethod	tex-src/texinfo.tex	/^\\def\\defmethod{\\defmethparsebody\\Edefmethod\\defmet/
+methparsebody\Edeftypefn	tex-src/texinfo.tex	/^\\def\\deftypefn{\\defmethparsebody\\Edeftypefn\\deftyp/
 min	c-src/emacs/src/gmalloc.c	/^#define min(a, b) ((a) < (b) ? (a) : (b))$/
 min	c-src/emacs/src/lisp.h	/^#define min(a, b) ((a) < (b) ? (a) : (b))$/
 min	c-src/emacs/src/lisp.h	57
@@ -3426,6 +3364,7 @@ min	cp-src/conway.cpp	/^#define min(x,y)  ((x > y) ? y : x)$/
 min_args	c-src/emacs/src/lisp.h	1686
 min_char	c-src/emacs/src/lisp.h	1621
 minus	cp-src/functions.cpp	/^void Date::minus ( int days , int month , int year/
+minus	tex-src/texinfo.tex	/^\\def\\minus{$-$}$/
 miti	html-src/softwarelibero.html	/^Sfatiamo alcuni miti$/
 modifier_names	c-src/emacs/src/keyboard.c	6319
 modifier_symbols	c-src/emacs/src/keyboard.c	6327
@@ -3451,7 +3390,9 @@ my_struct	c-src/h.h	91
 my_struct	c.c	226
 my_typedef	c-src/h.h	93
 my_typedef	c.c	228
+mylbrace	tex-src/texinfo.tex	/^\\def\\mylbrace {{\\tt \\char '173}}$/
 mypi	forth-src/test-forth.fth	/^synonym mypi fconst$/
+myrbrace	tex-src/texinfo.tex	/^\\def\\myrbrace {{\\tt \\char '175}}$/
 n	c-src/exit.c	28
 n	c-src/exit.strange_suffix	28
 name	c-src/emacs/src/keyboard.c	7241
@@ -3481,21 +3422,28 @@ name	tex-src/texinfo.tex	/^\\begingroup\\defname {\\code{#1} #2}{Function}%$/
 name	tex-src/texinfo.tex	/^\\begingroup\\defname {\\code{#1} #2}{Variable}%$/
 name	tex-src/texinfo.tex	/^\\begingroup\\defname {\\code{#2} #3}{#1}$/
 name	tex-src/texinfo.tex	/^\\begingroup\\defname {\\code{#2} #3}{#1}%$/
+name	tex-src/texinfo.tex	/^\\def\\singlecodeindexer #1{\\doind{\\indexname}{\\code/
+name	tex-src/texinfo.tex	/^\\def\\singleindexer #1{\\doind{\\indexname}{#1}}$/
 name	y-src/cccp.y	113
 name	y-src/cccp.y	43
 named	c-src/etags.c	2505
 namestringequal	pas-src/common.pas	/^function namestringequal;(*(var Name1,Name2 : Name/
 nargs	c-src/emacs/src/lisp.h	2987
+need	tex-src/texinfo.tex	/^\\def\\need{\\parsearg\\needx}$/
 need_adjustment	c-src/emacs/src/lisp.h	1986
+needx	tex-src/texinfo.tex	/^\\def\\needx#1{%$/
 neighbors	cp-src/clheir.hpp	59
 nelem	cp-src/Range.h	/^  int nelem (void) const { return rng_nelem; }$/
 nestlev	c-src/etags.c	2525
 new	objc-src/PackInsp.m	/^+new$/
 new	perl-src/htlmify-cystic	163
 new_tag	perl-src/htlmify-cystic	18
+newcodeindex	tex-src/texinfo.tex	/^\\def\\newcodeindex #1{$/
+newindex	tex-src/texinfo.tex	/^\\def\\newindex #1{$/
 newlb	c-src/etags.c	2930
 newlinepos	c-src/etags.c	2932
 newtextstring	pas-src/common.pas	/^function newtextstring; (*: TextString;*)$/
+newwrite	tex-src/texinfo.tex	/^\\gdef\\newwrite{\\alloc@7\\write\\chardef\\sixt@@n}}$/
 next	c-src/emacs/src/gmalloc.c	164
 next	c-src/emacs/src/gmalloc.c	188
 next	c-src/emacs/src/gmalloc.c	198
@@ -3510,6 +3458,10 @@ next	c-src/emacs/src/lisp.h	3134
 next	c-src/emacs/src/lisp.h	700
 next	c-src/etags.c	203
 next	c.c	174
+next	tex-src/texinfo.tex	/^\\def\\flushcr{\\ifx\\par\\lisppar \\def\\next##1{}\\else /
+next	tex-src/texinfo.tex	/^\\def\\next##1{}\\next}$/
+next	tex-src/texinfo.tex	/^\\def\\parsearg #1{\\let\\next=#1\\begingroup\\obeylines/
+next	tex-src/texinfo.tex	/^\\edef\\next{\\write\\auxfile{\\internalsetq {#1}{#2}}}/
 next	y-src/cccp.y	42
 next-file	el-src/emacs/lisp/progmodes/etags.el	/^(defun next-file (&optional initialize novisit)$/
 next-file-list	el-src/emacs/lisp/progmodes/etags.el	/^(defvar next-file-list nil$/
@@ -3520,26 +3472,44 @@ next_weak	c-src/emacs/src/lisp.h	1875
 nextfree	c-src/emacs/src/lisp.h	3029
 nfree	c-src/emacs/src/gmalloc.c	150
 nl	c-src/etags.c	2521
+nm	tex-src/testenv.tex	/^\\newcommand{\\nm}[2]{\\nomenclature{#1}{#2}}$/
+no	tex-src/texinfo.tex	/^\\def\\appendixletter{\\char\\the\\appendixno}$/
 no	tex-src/texinfo.tex	/^\\global\\advance \\appendixno by 1 \\message{Appendix/
 no	tex-src/texinfo.tex	/^\\ifnum\\secno=0 Appendix\\xreftie'char\\the\\appendixn/
 no	tex-src/texinfo.tex	/^\\newcount \\appendixno  \\appendixno = `\\@$/
-no.\the\secno	tex-src/texinfo.tex	/^\\else \\ifnum \\subsecno=0 Section\\xreftie'char\\the\\/
-no.\the\secno.\the\subsecno	tex-src/texinfo.tex	/^Section\\xreftie'char\\the\\appendixno.\\the\\secno.\\th/
-no.\the\secno.\the\subsecno.\the\subsubsecno	tex-src/texinfo.tex	/^Section\\xreftie'char\\the\\appendixno.\\the\\secno.\\th/
+no.\the	tex-src/texinfo.tex	/^Section\\xreftie'char\\the\\appendixno.\\the\\secno.\\th/
+no.\the	tex-src/texinfo.tex	/^\\else \\ifnum \\subsecno=0 Section\\xreftie'char\\the\\/
 no_argument	c-src/getopt.h	89
 no_lang_help	c-src/etags.c	707
 no_sub	c-src/emacs/src/regex.h	387
 nocase_tail	c-src/etags.c	/^nocase_tail (const char *cp)$/
 node	c-src/etags.c	225
+node	tex-src/texinfo.tex	/^\\def\\node{\\ENVcheck\\parsearg\\nodezzz}$/
 node_st	c-src/etags.c	214
 noderef	tex-src/texinfo.tex	/^\\appendixnoderef %$/
+nodexxx	tex-src/texinfo.tex	/^\\def\\nodexxx[#1,#2]{\\gdef\\lastnode{#1}}$/
+nodezzz	tex-src/texinfo.tex	/^\\def\\nodezzz#1{\\nodexxx [#1,]}$/
+nofillexdent	tex-src/texinfo.tex	/^\\def\\nofillexdent{\\parsearg\\nofillexdentyyy}$/
+nofillexdentyyy	tex-src/texinfo.tex	/^\\def\\nofillexdentyyy #1{{\\advance \\leftskip by -\\e/
+nofonts	tex-src/texinfo.tex	/^{\\chapternofonts%$/
 nofonts	tex-src/texinfo.tex	/^{\\indexnofonts$/
-nofonts%	tex-src/texinfo.tex	/^{\\chapternofonts%$/
+nonarrowing	tex-src/texinfo.tex	/^	\\let\\nonarrowing=\\comment$/
+nonarrowing	tex-src/texinfo.tex	/^\\let\\nonarrowing=\\relax$/
 none_help	c-src/etags.c	703
+normalbackslash	tex-src/texinfo.tex	/^\\def\\normalbackslash{{\\tt\\rawbackslashxx}}$/
+normalcaret	tex-src/texinfo.tex	/^\\def\\normalcaret{^}$/
+normaldoublequote	tex-src/texinfo.tex	/^\\def\\normaldoublequote{"}$/
+normalgreater	tex-src/texinfo.tex	/^\\def\\normalgreater{>}$/
 normalize	prol-src/natded.prolog	/^normalize(M,MNorm):-$/
 normalize_fresh	prol-src/natded.prolog	/^normalize_fresh(M,N):-$/
 normalize_tree	prol-src/natded.prolog	/^normalize_tree(tree(Rule,Syn:Sem,Trees),$/
 normalize_trees	prol-src/natded.prolog	/^normalize_trees([],[]).$/
+normalless	tex-src/texinfo.tex	/^\\def\\normalless{<}$/
+normalparens	tex-src/texinfo.tex	/^\\gdef\\normalparens{\\boldbrax\\let&=\\ampnr}$/
+normalplus	tex-src/texinfo.tex	/^\\def\\normalplus{+}$/
+normaltilde	tex-src/texinfo.tex	/^\\def\\normaltilde{~}$/
+normalunderscore	tex-src/texinfo.tex	/^\\def\\normalunderscore{_}$/
+normalverticalbar	tex-src/texinfo.tex	/^\\def\\normalverticalbar{|}$/
 nosave	pyt-src/server.py	/^    def nosave(self):$/
 not_bol	c-src/emacs/src/regex.h	391
 not_eol	c-src/emacs/src/regex.h	394
@@ -3550,6 +3520,8 @@ notag4	c-src/dostorture.c	45
 notag4	c-src/torture.c	45
 notinname	c-src/etags.c	/^#define notinname(c)	(_nin[CHAR (c)]) \/* c is not /
 npending	c-src/emacs/src/keyboard.c	7244
+nsbot	tex-src/texinfo.tex	/^\\def\\nsbot{\\vbox$/
+nstop	tex-src/texinfo.tex	/^\\def\\nstop{\\vbox$/
 ntool_bar_items	c-src/emacs/src/keyboard.c	7974
 numOfChannels	cp-src/c.C	1
 num_columns	cp-src/conway.cpp	16
@@ -3558,8 +3530,15 @@ num_regs	c-src/emacs/src/regex.h	430
 num_rows	cp-src/conway.cpp	15
 numberKeys	objcpp-src/SimpleCalc.M	/^- numberKeys:sender$/
 number_len	c-src/etags.c	/^static int number_len (long) ATTRIBUTE_CONST;$/
+numberedsec	tex-src/texinfo.tex	/^\\outer\\def\\numberedsec{\\parsearg\\seczzz}$/
+numberedsubsec	tex-src/texinfo.tex	/^\\outer\\def\\numberedsubsec{\\parsearg\\numberedsubsec/
+numberedsubseczzz	tex-src/texinfo.tex	/^\\def\\numberedsubseczzz #1{\\seccheck{subsection}%$/
+numberedsubsubsec	tex-src/texinfo.tex	/^\\outer\\def\\numberedsubsubsec{\\parsearg\\numberedsub/
+numberedsubsubseczzz	tex-src/texinfo.tex	/^\\def\\numberedsubsubseczzz #1{\\seccheck{subsubsecti/
 numbervars	prol-src/natded.prolog	/^numbervars(X):-$/
+numericenumerate	tex-src/texinfo.tex	/^\\def\\numericenumerate{%$/
 nvars	c-src/emacs/src/lisp.h	3140
+obeyedspace	tex-src/texinfo.tex	/^\\gdef\\obeyedspace{\\ }$/
 objdef	c-src/etags.c	2484
 object	c-src/emacs/src/lisp.h	2128
 object_registry	cp-src/clheir.cpp	10
@@ -3570,6 +3549,12 @@ obstack_chunk_free	y-src/parse.y	48
 ocatseen	c-src/etags.c	2477
 octave_MDiagArray2_h	cp-src/MDiagArray2.h	29
 octave_Range_h	cp-src/Range.h	24
+oddfooting	tex-src/texinfo.tex	/^\\def\\oddfooting{\\parsearg\\oddfootingxxx}$/
+oddfootingxxx	tex-src/texinfo.tex	/^\\gdef\\oddfootingxxx #1{\\oddfootingyyy #1@|@|@|@|\\f/
+oddfootingyyy	tex-src/texinfo.tex	/^\\gdef\\oddfootingyyy #1@|#2@|#3@|#4\\finish{%$/
+oddheading	tex-src/texinfo.tex	/^\\def\\oddheading{\\parsearg\\oddheadingxxx}$/
+oddheadingxxx	tex-src/texinfo.tex	/^\\gdef\\oddheadingxxx #1{\\oddheadingyyy #1@|@|@|@|\\f/
+oddheadingyyy	tex-src/texinfo.tex	/^\\gdef\\oddheadingyyy #1@|#2@|#3@|#4\\finish{%$/
 oediff	make-src/Makefile	/^oediff: OTAGS ETAGS ${infiles}$/
 offset	c-src/emacs/src/lisp.h	2305
 offset	c-src/emacs/src/lisp.h	2365
@@ -3580,15 +3565,21 @@ oinbody	c-src/etags.c	2478
 ok	objc-src/PackInsp.m	/^-ok:sender$/
 ok_to_echo_at_next_pause	c-src/emacs/src/keyboard.c	159
 old_value	c-src/emacs/src/lisp.h	2980
+oldpage	tex-src/texinfo.tex	/^   \\let\\oldpage = \\page$/
 omethodcolon	c-src/etags.c	2481
 omethodparm	c-src/etags.c	2482
 omethodsign	c-src/etags.c	2479
 omethodtag	c-src/etags.c	2480
+one	tex-src/texinfo.tex	/^\\def\\kbdfoo#1#2#3\\par{\\def\\one{#1}\\def\\three{#3}\\d/
+onepageout	tex-src/texinfo.tex	/^\\def\\cropmarks{\\let\\onepageout=\\croppageout }$/
+onepageout	tex-src/texinfo.tex	/^\\def\\onepageout#1{\\hoffset=\\normaloffset$/
 onone	c-src/etags.c	2472
 oparenseen	c-src/etags.c	2476
 open	objc-src/PackInsp.m	/^-open:sender$/
 open-dribble-file	c-src/emacs/src/keyboard.c	/^DEFUN ("open-dribble-file", Fopen_dribble_file, So/
 openInWorkspace	objc-src/PackInsp.m	/^static void openInWorkspace(const char *filename)$/
+opencontents	tex-src/texinfo.tex	/^\\def\\opencontents{\\openout \\contentsfile = \\jobnam/
+openindices	tex-src/texinfo.tex	/^\\def\\openindices{%$/
 operationKeys	objcpp-src/SimpleCalc.M	/^- operationKeys:sender$/
 operator	y-src/cccp.y	438
 operator ++	cp-src/functions.cpp	/^Date & Date::operator ++ ( void ){$/
@@ -3610,11 +3601,20 @@ operator int	cp-src/fail.C	/^			   operator int() const {return x;}$/
 operator+	cp-src/c.C	/^  A operator+(A& a) {};$/
 operator+	cp-src/c.C	/^const A& A::operator+(const A&) { }$/
 operator+	cp-src/c.C	/^void operator+(int, int) {}$/
-opparsebody\Edefop\defopx\defopheader\defoptype	tex-src/texinfo.tex	/^\\defopparsebody\\Edefop\\defopx\\defopheader\\defoptyp/
+opheader\defoptype	tex-src/texinfo.tex	/^\\defopparsebody\\Edefop\\defopx\\defopheader\\defoptyp/
+opnested	tex-src/texinfo.tex	/^\\gdef\\opnested{\\char`\\(\\global\\advance\\parencount /
+opnr	tex-src/texinfo.tex	/^\\def\\opnr{{\\sf\\char`\\(}} \\def\\clnr{{\\sf\\char`\\)}} /
+opparsebody\Edefop	tex-src/texinfo.tex	/^\\defopparsebody\\Edefop\\defopx\\defopheader\\defoptyp/
+oprm	tex-src/texinfo.tex	/^\\gdef\\oprm#1 {{\\rm\\char`\\(}#1 \\bf \\let(=\\opnested /
 oprotocol	c-src/etags.c	2473
+optheader	tex-src/texinfo.tex	/^\\def\\defopt{\\defvarparsebody\\Edefopt\\defoptx\\defop/
 option	c-src/getopt.h	73
 optional_argument	c-src/getopt.h	91
-opvarparsebody\Edefcv\defcvx\defcvarheader\defcvtype	tex-src/texinfo.tex	/^\\defopvarparsebody\\Edefcv\\defcvx\\defcvarheader\\def/
+optx\defoptheader	tex-src/texinfo.tex	/^\\def\\defopt{\\defvarparsebody\\Edefopt\\defoptx\\defop/
+optype	tex-src/texinfo.tex	/^\\begingroup\\defname {#2}{\\defoptype{} on #1}%$/
+optype	tex-src/texinfo.tex	/^\\defopparsebody\\Edefop\\defopx\\defopheader\\defoptyp/
+opvarparsebody\Edefcv	tex-src/texinfo.tex	/^\\defopvarparsebody\\Edefcv\\defcvx\\defcvarheader\\def/
+opx\defopheader	tex-src/texinfo.tex	/^\\defopparsebody\\Edefop\\defopx\\defopheader\\defoptyp/
 ord_add_element	prol-src/ordsets.prolog	/^ord_add_element([], Element, [Element]).$/
 ord_del_element	prol-src/ordsets.prolog	/^ord_del_element([], _, []).$/
 ord_disjoint	prol-src/ordsets.prolog	/^ord_disjoint(Set1, Set2) :-$/
@@ -3660,8 +3660,20 @@ pMd	c-src/emacs/src/lisp.h	155
 pMu	c-src/emacs/src/lisp.h	151
 pMu	c-src/emacs/src/lisp.h	156
 p_next	c-src/etags.c	258
+page	tex-src/texinfo.tex	/^      \\let\\page = \\oldpage$/
+page	tex-src/texinfo.tex	/^   \\def\\page{%$/
+page	tex-src/texinfo.tex	/^\\def\\page{\\par\\vfill\\supereject}$/
+pagealignmacro	tex-src/texinfo.tex	/^\\global\\let\\pagealignmacro=\\chapoddpage$/
+pagealignmacro	tex-src/texinfo.tex	/^\\global\\let\\pagealignmacro=\\chappager$/
+pagealignmacro	tex-src/texinfo.tex	/^\\global\\let\\pagealignmacro=\\chappager}$/
+pagebody	tex-src/texinfo.tex	/^\\def\\pagebody#1{\\vbox to\\pageheight{\\boxmaxdepth=\\/
+pagecontents	tex-src/texinfo.tex	/^\\gdef\\pagecontents#1{\\ifvoid\\topins\\else\\unvbox\\to/
 pagesize	c-src/emacs/src/gmalloc.c	1703
+pagesofar	tex-src/texinfo.tex	/^\\def\\pagesofar{\\unvbox\\partialpage %$/
 pair	merc-src/accumulator.m	/^:- import_module pair.$/
+par	tex-src/texinfo.tex	/^\\let\\par=\\lisppar$/
+par	tex-src/texinfo.tex	/^{\\let\\par=\\endgraf \\smallbreak}%$/
+paragraphindent	tex-src/texinfo.tex	/^\\let\\paragraphindent=\\comment$/
 parent	c-src/emacs/src/keyboard.c	8745
 parent	c-src/emacs/src/lisp.h	1590
 parse	prol-src/natded.prolog	/^parse(Ws,Cat):-$/
@@ -3680,8 +3692,20 @@ parse_return_error	y-src/cccp.y	70
 parse_solitary_modifier	c-src/emacs/src/keyboard.c	/^parse_solitary_modifier (Lisp_Object symbol)$/
 parse_tool_bar_item	c-src/emacs/src/keyboard.c	/^parse_tool_bar_item (Lisp_Object key, Lisp_Object /
 parse_tree	merc-src/accumulator.m	/^:- import_module parse_tree.$/
+parsearg	tex-src/texinfo.tex	/^\\def\\parsearg #1{\\let\\next=#1\\begingroup\\obeylines/
+parseargdiscardspace	tex-src/texinfo.tex	/^\\gdef\\parseargdiscardspace {\\begingroup\\obeylines\\/
+parseargline	tex-src/texinfo.tex	/^\\def\\parseargline{\\begingroup \\obeylines \\parsearg/
+parsearglinex	tex-src/texinfo.tex	/^\\gdef\\parsearglinex #1^^M{\\endgroup \\next {#1}}}$/
+parseargx	tex-src/texinfo.tex	/^\\def\\parseargx{%$/
+parsebody\Edefmac	tex-src/texinfo.tex	/^\\def\\defmac{\\defparsebody\\Edefmac\\defmacx\\defmache/
+parsebody\Edefspec	tex-src/texinfo.tex	/^\\def\\defspec{\\defparsebody\\Edefspec\\defspecx\\defsp/
+parsebody\Edeftypefun	tex-src/texinfo.tex	/^\\def\\deftypefun{\\defparsebody\\Edeftypefun\\deftypef/
+parsebody\Edefun	tex-src/texinfo.tex	/^\\def\\defun{\\defparsebody\\Edefun\\defunx\\defunheader/
 pat	c-src/etags.c	262
 pattern	c-src/etags.c	260
+pchapsepmacro	tex-src/texinfo.tex	/^\\global\\let\\pchapsepmacro=\\chapbreak$/
+pchapsepmacro	tex-src/texinfo.tex	/^\\global\\let\\pchapsepmacro=\\chapoddpage$/
+pchapsepmacro	tex-src/texinfo.tex	/^\\global\\let\\pchapsepmacro=\\chappager$/
 pdlcount	c-src/emacs/src/lisp.h	3046
 pending-delete-mode	el-src/TAGTEST.EL	/^(defalias 'pending-delete-mode 'delete-selection-m/
 pending_funcalls	c-src/emacs/src/keyboard.c	4377
@@ -3689,16 +3713,19 @@ pending_signals	c-src/emacs/src/keyboard.c	80
 pfatal	c-src/etags.c	/^pfatal (const char *s1)$/
 pfdset	c-src/h.h	57
 pfnote	c-src/etags.c	/^pfnote (char *name, bool is_func, char *linestart,/
+pindex	tex-src/texinfo.tex	/^\\def\\pindex {\\pgindex}$/
 pinned	c-src/emacs/src/lisp.h	679
 plain_C_entries	c-src/etags.c	/^plain_C_entries (FILE *inf)$/
 plain_C_suffixes	c-src/etags.c	643
 plainc	c-src/etags.c	2934
+plainsecheading	tex-src/texinfo.tex	/^\\def\\plainsecheading #1{\\secheadingi {#1}}$/
 plist	c-src/emacs/src/lisp.h	2040
 plist	c-src/emacs/src/lisp.h	697
 plus	cp-src/functions.cpp	/^void Date::plus ( int days , int month , int year /
 plus	go-src/test1.go	5
 plusvalseq	prol-src/natded.prolog	/^plusvalseq([]) --> [].$/
 point	forth-src/test-forth.fth	/^BEGIN-STRUCTURE point \\ create the named structure/
+point	tex-src/texinfo.tex	/^\\def\\point{$\\star$}$/
 pointer	c-src/emacs/src/lisp.h	2125
 poll_for_input	c-src/emacs/src/keyboard.c	/^poll_for_input (struct atimer *timer)$/
 poll_for_input_1	c-src/emacs/src/keyboard.c	/^poll_for_input_1 (void)$/
@@ -3748,10 +3775,18 @@ prev	c-src/emacs/src/gmalloc.c	165
 prev	c-src/emacs/src/gmalloc.c	189
 prev	c-src/emacs/src/lisp.h	2191
 prev	c.c	175
+primary	tex-src/texinfo.tex	/^\\def\\primary #1{\\line{#1\\hfil}}$/
+print	tex-src/texinfo.tex	/^\\def\\print{\\leavevmode\\lower.1ex\\hbox to 1em{\\hfil/
+print	tex-src/texinfo.tex	/^\\def\\print{\\realbackslash print}$/
 printClassification	php-src/lce_functions.php	/^      function printClassification()$/
 print_help	c-src/etags.c	/^print_help (argument *argbuffer)$/
 print_language_names	c-src/etags.c	/^print_language_names (void)$/
 print_version	c-src/etags.c	/^print_version (void)$/
+printedmanual	tex-src/texinfo.tex	/^\\def\\printedmanual{\\ignorespaces #5}%$/
+printedmanual	tex-src/texinfo.tex	/^section ``\\printednodename'' in \\cite{\\printedmanu/
+printednodename	tex-src/texinfo.tex	/^\\def\\printednodename{\\ignorespaces #1}%$/
+printednodename	tex-src/texinfo.tex	/^\\def\\printednodename{\\ignorespaces #3}%$/
+printindex	tex-src/texinfo.tex	/^\\def\\printindex{\\parsearg\\doprintindex}$/
 printmax_t	c-src/emacs/src/lisp.h	148
 printmax_t	c-src/emacs/src/lisp.h	153
 proc	c-src/h.h	87
@@ -3766,6 +3801,21 @@ prolog_pr	c-src/etags.c	/^prolog_pr (char *s, char *last)$/
 prolog_skip_comment	c-src/etags.c	/^prolog_skip_comment (linebuffer *plb, FILE *inf)$/
 prop	c-src/etags.c	209
 protect_malloc_state	c-src/emacs/src/gmalloc.c	/^protect_malloc_state (int protect_p)$/
+ptexL	tex-src/texinfo.tex	/^\\let\\ptexL=\\L$/
+ptexb	tex-src/texinfo.tex	/^\\let\\ptexb=\\b$/
+ptexbullet	tex-src/texinfo.tex	/^\\let\\ptexbullet=\\bullet$/
+ptexc	tex-src/texinfo.tex	/^\\let\\ptexc=\\c$/
+ptexdot	tex-src/texinfo.tex	/^\\let\\ptexdot=\\.$/
+ptexdots	tex-src/texinfo.tex	/^\\let\\ptexdots=\\dots$/
+ptexend	tex-src/texinfo.tex	/^\\let\\ptexend=\\end$/
+ptexequiv	tex-src/texinfo.tex	/^\\let\\ptexequiv = \\equiv$/
+ptexfootnote	tex-src/texinfo.tex	/^\\let\\ptexfootnote=\\footnote$/
+ptexi	tex-src/texinfo.tex	/^\\let\\ptexi=\\i$/
+ptexl	tex-src/texinfo.tex	/^\\let\\ptexl=\\l$/
+ptexlbrace	tex-src/texinfo.tex	/^\\let\\ptexlbrace=\\{$/
+ptexrbrace	tex-src/texinfo.tex	/^\\let\\ptexrbrace=\\}$/
+ptexstar	tex-src/texinfo.tex	/^\\let\\ptexstar=\\*$/
+ptext	tex-src/texinfo.tex	/^\\let\\ptext=\\t$/
 pthread_mutexattr_setprio_ceiling/f	ada-src/2ataspri.adb	/^   function pthread_mutexattr_setprio_ceiling$/
 pthread_mutexattr_setprotocol/f	ada-src/2ataspri.adb	/^   function pthread_mutexattr_setprotocol$/
 purpose	c-src/emacs/src/lisp.h	1594
@@ -3773,14 +3823,20 @@ push_kboard	c-src/emacs/src/keyboard.c	/^push_kboard (struct kboard *k)$/
 pushclass_above	c-src/etags.c	/^pushclass_above (int bracelev, char *str, int len)/
 put_entries	c-src/etags.c	/^put_entries (register node *np)$/
 pvec_type	c-src/emacs/src/lisp.h	780
+pxref	tex-src/texinfo.tex	/^\\def\\pxref#1{see \\xrefX[#1,,,,,,,]}$/
 quantizing	html-src/algrthms.html	/^Quantizing the Received$/
 questo	../c/c.web	34
 quiettest	make-src/Makefile	/^quiettest:$/
 quit_char	c-src/emacs/src/keyboard.c	192
 quit_throw_to_read_char	c-src/emacs/src/keyboard.c	/^quit_throw_to_read_char (bool from_signal)$/
+quotation	tex-src/texinfo.tex	/^\\def\\quotation{%$/
 qux	ruby-src/test1.ru	/^    alias_method :qux, :tee, attr_accessor(:bogus)/
 qux1	ruby-src/test1.ru	/^                :qux1)$/
 qux=	ruby-src/test1.ru	/^      def qux=(tee)$/
+r	tex-src/texinfo.tex	/^\\def\\r##1{\\realbackslash r {##1}}$/
+r	tex-src/texinfo.tex	/^\\def\\r##1{\\realbackslash r {##1}}%$/
+r	tex-src/texinfo.tex	/^\\def\\r#1{{\\rm #1}}		% roman font$/
+r	tex-src/texinfo.tex	/^\\let\\r=\\indexdummyfont$/
 r0	c-src/sysdep.h	54
 r1	c-src/sysdep.h	55
 r_alloc	c-src/emacs/src/lisp.h	/^extern void *r_alloc (void **, size_t) ATTRIBUTE_A/
@@ -3788,6 +3844,10 @@ range_exp	y-src/parse.y	269
 range_exp_list	y-src/parse.y	273
 raw_keybuf	c-src/emacs/src/keyboard.c	116
 raw_keybuf_count	c-src/emacs/src/keyboard.c	117
+rawbackslash	tex-src/texinfo.tex	/^\\let\\rawbackslash=\\relax%$/
+rawbackslashxx	tex-src/texinfo.tex	/^\\def\\rawbackslashxx{\\indexbackslash}% \\indexbacksl/
+rawbackslashxx	tex-src/texinfo.tex	/^\\def\\rawbackslashxx{\\indexbackslash}%$/
+rbrb	tex-src/texinfo.tex	/^\\def\\lbrb{{\\bf\\char`\\[}} \\def\\rbrb{{\\bf\\char`\\]}}$/
 rbtp	c.c	240
 re_iswctype	c-src/emacs/src/regex.h	602
 re_nsub	c-src/emacs/src/regex.h	364
@@ -3819,6 +3879,7 @@ read_key_sequence_vs	c-src/emacs/src/keyboard.c	/^read_key_sequence_vs (Lisp_Obj
 read_menu_command	c-src/emacs/src/keyboard.c	/^read_menu_command (void)$/
 read_toc	perl-src/htlmify-cystic	/^sub read_toc ()$/
 readable_events	c-src/emacs/src/keyboard.c	/^readable_events (int flags)$/
+readauxfile	tex-src/texinfo.tex	/^\\def\\readauxfile{%$/
 readline	c-src/etags.c	/^readline (linebuffer *lbp, FILE *stream)$/
 readline_internal	c-src/etags.c	/^readline_internal (linebuffer *lbp, register FILE /
 realloc	c-src/emacs/src/gmalloc.c	/^realloc (void *ptr, size_t size)$/
@@ -3843,7 +3904,10 @@ recursive_edit_unwind	c-src/emacs/src/keyboard.c	/^recursive_edit_unwind (Lisp_O
 redirect	c-src/emacs/src/lisp.h	663
 reduce	prol-src/natded.prolog	/^reduce((X^M)@N,L):-     % beta reduction$/
 reduce_subterm	prol-src/natded.prolog	/^reduce_subterm(M,M2):-$/
+ref	tex-src/texinfo.tex	/^\\def\\ref#1{\\xrefX[#1,,,,,,,]}$/
+refill	tex-src/texinfo.tex	/^\\let\\refill=\\relax$/
 refreshPort	pyt-src/server.py	/^    def refreshPort(self):$/
+refx	tex-src/texinfo.tex	/^\\def\\refx#1#2{%$/
 reg_errcode_t	c-src/emacs/src/regex.h	323
 reg_errcode_t	c.c	279
 reg_syntax_t	c-src/emacs/src/regex.h	43
@@ -3874,8 +3938,12 @@ requeued_events_pending_p	c-src/emacs/src/keyboard.c	/^requeued_events_pending_p
 require	merc-src/accumulator.m	/^:- import_module require.$/
 required_argument	c-src/getopt.h	90
 reset-this-command-lengths	c-src/emacs/src/keyboard.c	/^DEFUN ("reset-this-command-lengths", Freset_this_c/
+resetmathfonts	tex-src/texinfo.tex	/^\\def\\resetmathfonts{%$/
+rest	tex-src/texinfo.tex	/^\\def\\splitoff#1#2\\endmark{\\def\\first{#1}\\def\\rest{/
 restore_getcjmp	c-src/emacs/src/keyboard.c	/^restore_getcjmp (sys_jmp_buf temp)$/
 restore_kboard_configuration	c-src/emacs/src/keyboard.c	/^restore_kboard_configuration (int was_locked)$/
+result	tex-src/texinfo.tex	/^\\def\\result{\\leavevmode\\raise.15ex\\hbox to 1em{\\hf/
+result	tex-src/texinfo.tex	/^\\def\\result{\\realbackslash result}$/
 return_to_command_loop	c-src/emacs/src/keyboard.c	135
 reverse	prol-src/natded.prolog	/^reverse([],Ws,Ws).$/
 revert	objc-src/PackInsp.m	/^-revert:sender$/
@@ -3883,6 +3951,8 @@ right	c-src/etags.c	216
 right_shift	y-src/cccp.y	/^right_shift (a, b)$/
 ring1	c.c	241
 ring2	c.c	242
+rm	tex-src/texinfo.tex	/^      \\let\\rm=\\shortcontrm \\let\\bf=\\shortcontbf \\l/
+rm	tex-src/texinfo.tex	/^\\def\\rm{\\realbackslash rm }%$/
 rm_eo	c-src/emacs/src/regex.h	450
 rm_so	c-src/emacs/src/regex.h	449
 rng_base	cp-src/Range.h	79
@@ -3909,19 +3979,37 @@ safe_run_hook_funcall	c-src/emacs/src/keyboard.c	/^safe_run_hook_funcall (ptrdif
 safe_run_hooks	c-src/emacs/src/keyboard.c	/^safe_run_hooks (Lisp_Object hook)$/
 safe_run_hooks_1	c-src/emacs/src/keyboard.c	/^safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *ar/
 safe_run_hooks_error	c-src/emacs/src/keyboard.c	/^safe_run_hooks_error (Lisp_Object error, ptrdiff_t/
+samp	tex-src/texinfo.tex	/^\\def\\samp #1{`\\tclose{#1}'\\null}$/
+samp	tex-src/texinfo.tex	/^\\def\\samp##1{\\realbackslash samp {##1}}$/
+samp	tex-src/texinfo.tex	/^\\def\\samp##1{\\realbackslash samp {##1}}%$/
+samp	tex-src/texinfo.tex	/^\\let\\samp=\\indexdummyfont$/
 save	pyt-src/server.py	/^    def save(self):$/
 save_getcjmp	c-src/emacs/src/keyboard.c	/^save_getcjmp (sys_jmp_buf temp)$/
 save_type	c-src/emacs/src/lisp.h	/^save_type (struct Lisp_Save_Value *v, int n)$/
 savenstr	c-src/etags.c	/^savenstr (const char *cp, int len)$/
 savestr	c-src/etags.c	/^savestr (const char *cp)$/
 say	go-src/test.go	/^func say(msg string) {$/
+sc	tex-src/texinfo.tex	/^\\def\\sc#1{{\\smallcaps#1}}	% smallcaps font$/
+sc	tex-src/texinfo.tex	/^\\let\\sc=\\indexdummyfont$/
 scan_separators	c-src/etags.c	/^scan_separators (char *name)$/
 scolonseen	c-src/etags.c	2447
 scratch	c-src/sysdep.h	56
 scroll_bar_parts	c-src/emacs/src/keyboard.c	5189
-sec=\relax	tex-src/texinfo.tex	/^\\let\\appendixsec=\\relax$/
+sec	tex-src/texinfo.tex	/^\\global\\let\\section = \\appendixsec$/
+seccheck	tex-src/texinfo.tex	/^\\def\\seccheck#1{\\if \\pageno<0 %$/
+secentry	tex-src/texinfo.tex	/^      \\def\\secentry ##1##2##3##4{}$/
+secentry	tex-src/texinfo.tex	/^\\def\\secentry#1#2#3#4{\\dosecentry{#2.#3\\labelspace/
+secentryfonts	tex-src/texinfo.tex	/^\\def\\secentryfonts{\\textfonts}$/
+secfonts	tex-src/texinfo.tex	/^\\def\\secfonts{%$/
+secheading	tex-src/texinfo.tex	/^\\def\\secheading #1#2#3{\\secheadingi {#2.#3\\enspace/
+secheadingbreak	tex-src/texinfo.tex	/^\\def\\secheadingbreak{\\dobreak \\secheadingskip {-10/
+secheadingi	tex-src/texinfo.tex	/^\\def\\secheadingi #1{{\\advance \\secheadingskip by \\/
+secondary	tex-src/texinfo.tex	/^\\def\\secondary #1#2{$/
 section	perl-src/htlmify-cystic	25
-section=\relax	tex-src/texinfo.tex	/^\\let\\appendixsection=\\relax$/
+section	tex-src/texinfo.tex	/^\\global\\let\\section = \\appendixsec$/
+section	tex-src/texinfo.tex	/^\\global\\let\\section = \\numberedsec$/
+section	tex-src/texinfo.tex	/^\\global\\let\\section = \\unnumberedsec$/
+section	tex-src/texinfo.tex	/^\\let\\section=\\relax$/
 section_href	perl-src/htlmify-cystic	/^sub section_href ($)$/
 section_name	perl-src/htlmify-cystic	/^sub section_name ($)$/
 section_name	perl-src/htlmify-cystic	12
@@ -3929,6 +4017,10 @@ section_toc	perl-src/htlmify-cystic	15
 section_url	perl-src/htlmify-cystic	/^sub section_url ()$/
 section_url_base	perl-src/htlmify-cystic	/^sub section_url_base ()$/
 section_url_name	perl-src/htlmify-cystic	/^sub section_url_name ()$/
+sectionzzz	tex-src/texinfo.tex	/^\\outer\\def\\appendixsection{\\parsearg\\appendixsecti/
+sectionzzz	tex-src/texinfo.tex	/^\\outer\\def\\appendixsec{\\parsearg\\appendixsectionzz/
+seczzz	tex-src/texinfo.tex	/^\\def\\infoappendixsec{\\parsearg\\appendixseczzz}$/
+seczzz	tex-src/texinfo.tex	/^\\def\\seczzz #1{\\seccheck{section}%$/
 select	prol-src/natded.prolog	/^select(X,[X|Xs],Xs).$/
 select-tags-table	el-src/emacs/lisp/progmodes/etags.el	/^(defun select-tags-table ()$/
 select-tags-table-mode	el-src/emacs/lisp/progmodes/etags.el	/^(define-derived-mode select-tags-table-mode specia/
@@ -3939,9 +4031,11 @@ select_last	prol-src/natded.prolog	/^select_last([X],X,[]).$/
 send	objc-src/Subprocess.m	/^- send:(const char *)string withNewline:(BOOL)want/
 send	objc-src/Subprocess.m	/^- send:(const char *)string$/
 separator_names	c-src/emacs/src/keyboard.c	7372
+sepspaces	tex-src/texinfo.tex	/^\\gdef\\sepspaces{\\def {\\ }}}$/
 serializeToVars	php-src/lce_functions.php	/^      function serializeToVars($prefix)$/
 set	cp-src/conway.hpp	/^    void set(void) { alive = 1; }$/
 set	merc-src/accumulator.m	/^:- import_module set.$/
+set	tex-src/texinfo.tex	/^\\def\\set{\\parsearg\\setxxx}$/
 set-input-interrupt-mode	c-src/emacs/src/keyboard.c	/^DEFUN ("set-input-interrupt-mode", Fset_input_inte/
 set-input-meta-mode	c-src/emacs/src/keyboard.c	/^DEFUN ("set-input-meta-mode", Fset_input_meta_mode/
 set-input-mode	c-src/emacs/src/keyboard.c	/^DEFUN ("set-input-mode", Fset_input_mode, Sset_inp/
@@ -3971,9 +4065,24 @@ set_symbol_next	c-src/emacs/src/lisp.h	/^set_symbol_next (Lisp_Object sym, struc
 set_symbol_plist	c-src/emacs/src/lisp.h	/^set_symbol_plist (Lisp_Object sym, Lisp_Object pli/
 set_upto	merc-src/accumulator.m	/^:- func set_upto(accu_case, int) = set(accu_goal_i/
 set_waiting_for_input	c-src/emacs/src/keyboard.c	/^set_waiting_for_input (struct timespec *time_to_cl/
+setchapternewpage	tex-src/texinfo.tex	/^\\def\\setchapternewpage #1 {\\csname CHAPPAG#1\\endcs/
+setchapterstyle	tex-src/texinfo.tex	/^\\def\\setchapterstyle #1 {\\csname CHAPF#1\\endcsname/
+setdeffont	tex-src/texinfo.tex	/^\\def\\setdeffont #1 {\\csname DEF#1\\endcsname}$/
+setfilename	tex-src/texinfo.tex	/^   \\global\\let\\setfilename=\\comment % Ignore extra/
+setfilename	tex-src/texinfo.tex	/^\\def\\setfilename{%$/
+setref	tex-src/texinfo.tex	/^\\def\\setref#1{%$/
 setref	tex-src/texinfo.tex	/^\\expandafter\\expandafter\\expandafter\\appendixsetre/
+settitle	tex-src/texinfo.tex	/^\\def\\settitle{\\parsearg\\settitlezzz}$/
+settitlezzz	tex-src/texinfo.tex	/^\\def\\settitlezzz #1{\\gdef\\thistitle{#1}}$/
 setup	cp-src/c.C	5
+setxxx	tex-src/texinfo.tex	/^\\def\\setxxx #1{$/
+sf	tex-src/texinfo.tex	/^\\def\\sf{\\fam=\\sffam \\tensf}$/
+sf	tex-src/texinfo.tex	/^\\def\\sf{\\realbackslash sf}%$/
+sf	tex-src/texinfo.tex	/^{\\let\\tentt=\\sectt \\let\\tt=\\sectt \\let\\sf=\\sectt$/
 shift	cp-src/functions.cpp	/^void Date::shift ( void ){\/\/Shift this date to pre/
+shortchapentry	tex-src/texinfo.tex	/^\\def\\shortchapentry#1#2#3{%$/
+shortcontents	tex-src/texinfo.tex	/^\\let\\shortcontents = \\summarycontents$/
+shortunnumberedentry	tex-src/texinfo.tex	/^\\def\\shortunnumberedentry#1#2{%$/
 shouldLoad	objc-src/PackInsp.m	/^-(BOOL)shouldLoad$/
 should_attempt_accu_transform	merc-src/accumulator.m	/^:- pred should_attempt_accu_transform(module_info:/
 should_attempt_accu_transform_2	merc-src/accumulator.m	/^:- pred should_attempt_accu_transform_2(module_inf/
@@ -3991,6 +4100,9 @@ signal_handler_t	c-src/h.h	94
 simulation	html-src/software.html	/^Software that I wrote for supporting my research a/
 single_kboard	c-src/emacs/src/keyboard.c	89
 single_kboard_state	c-src/emacs/src/keyboard.c	/^single_kboard_state ()$/
+singlecodeindexer	tex-src/texinfo.tex	/^\\def\\singlecodeindexer #1{\\doind{\\indexname}{\\code/
+singleindexer	tex-src/texinfo.tex	/^\\def\\singleindexer #1{\\doind{\\indexname}{#1}}$/
+singlespace	tex-src/texinfo.tex	/^\\def\\singlespace{%$/
 site	cp-src/conway.hpp	/^    site(int xi, int yi): x(xi), y(yi), alive(0) {/
 site	cp-src/conway.hpp	5
 size	c-src/emacs/src/gmalloc.c	156
@@ -4004,20 +4116,45 @@ skeyseen	c-src/etags.c	2445
 skip_name	c-src/etags.c	/^skip_name (char *cp)$/
 skip_non_spaces	c-src/etags.c	/^skip_non_spaces (char *cp)$/
 skip_spaces	c-src/etags.c	/^skip_spaces (char *cp)$/
+sl	tex-src/texinfo.tex	/^      \\let\\rm=\\shortcontrm \\let\\bf=\\shortcontbf \\l/
+sl	tex-src/texinfo.tex	/^\\def\\sl{\\realbackslash sl }%$/
+smallbook	tex-src/texinfo.tex	/^\\def\\smallbook{$/
+smallbook	tex-src/texinfo.tex	/^\\let\\smallbook=\\relax$/
+smallcaps	tex-src/texinfo.tex	/^  \\let\\tenbf=\\chapbf \\let\\tentt=\\chaptt \\let\\small/
+smallcaps	tex-src/texinfo.tex	/^  \\let\\tenbf=\\indbf \\let\\tentt=\\indtt \\let\\smallca/
+smallcaps	tex-src/texinfo.tex	/^  \\let\\tenbf=\\secbf \\let\\tentt=\\sectt \\let\\smallca/
+smallcaps	tex-src/texinfo.tex	/^  \\let\\tenbf=\\ssecbf \\let\\tentt=\\ssectt \\let\\small/
+smallcaps	tex-src/texinfo.tex	/^  \\let\\tenbf=\\textbf \\let\\tentt=\\texttt \\let\\small/
+smallexample	tex-src/texinfo.tex	/^\\global\\let\\smallexample=\\smalllispx$/
+smallexample	tex-src/texinfo.tex	/^\\let\\smallexample=\\lisp$/
+smalllisp	tex-src/texinfo.tex	/^\\global\\let\\smalllisp=\\smalllispx$/
+smalllispx	tex-src/texinfo.tex	/^\\def\\smalllispx{\\aboveenvbreak\\begingroup\\inENV$/
+smartitalic	tex-src/texinfo.tex	/^\\def\\smartitalic#1{{\\sl #1}\\futurelet\\next\\smartit/
+smartitalicx	tex-src/texinfo.tex	/^\\def\\smartitalicx{\\ifx\\next,\\else\\ifx\\next-\\else\\i/
 snarf-tag-function	el-src/emacs/lisp/progmodes/etags.el	/^(defvar snarf-tag-function nil$/
 snone	c-src/etags.c	2443
 solutions	merc-src/accumulator.m	/^:- import_module solutions.$/
 some_mouse_moved	c-src/emacs/src/keyboard.c	/^some_mouse_moved (void)$/
+sp	tex-src/texinfo.tex	/^\\def\\sp{\\parsearg\\spxxx}$/
 space	tex-src/texinfo.tex	/^    {#2\\labelspace #1}\\dotfill\\doshortpageno{#3}}%/
 space	tex-src/texinfo.tex	/^  \\dosubsubsecentry{#2.#3.#4.#5\\labelspace#1}{#6}}/
+space	tex-src/texinfo.tex	/^\\def\\chapentry#1#2#3{\\dochapentry{#2\\labelspace#1}/
+space	tex-src/texinfo.tex	/^\\def\\secentry#1#2#3#4{\\dosecentry{#2.#3\\labelspace/
+space	tex-src/texinfo.tex	/^\\def\\subsecentry#1#2#3#4#5{\\dosubsecentry{#2.#3.#4/
 spacer	c-src/emacs/src/lisp.h	1975
 spacer	c-src/emacs/src/lisp.h	1982
 spacer	c-src/emacs/src/lisp.h	2036
 spacer	c-src/emacs/src/lisp.h	2205
+spacesplit	tex-src/texinfo.tex	/^\\gdef\\spacesplit#1#2^^M{\\endgroup\\spacesplitfoo{#1/
+spacesplitfoo	tex-src/texinfo.tex	/^\\long\\gdef\\spacesplitfoo#1#2 #3#4\\spacesplitfoo{%$/
 specbind_tag	c-src/emacs/src/lisp.h	2943
 specbinding	c-src/emacs/src/lisp.h	2955
+specheader	tex-src/texinfo.tex	/^\\def\\defspec{\\defparsebody\\Edefspec\\defspecx\\defsp/
 specialsymbol	prol-src/natded.prolog	/^specialsymbol(C1,C2,S):-$/
+specx\defspecheader	tex-src/texinfo.tex	/^\\def\\defspec{\\defparsebody\\Edefspec\\defspecx\\defsp/
 splitexp	prol-src/natded.prolog	/^splitexp(E,E,('NIL','NIL')):-!.$/
+splitoff	tex-src/texinfo.tex	/^\\def\\splitoff#1#2\\endmark{\\def\\first{#1}\\def\\rest{/
+spxxx	tex-src/texinfo.tex	/^\\def\\spxxx #1{\\par \\vskip #1\\baselineskip}$/
 srclist	make-src/Makefile	/^srclist: Makefile$/
 ss3	c.c	255
 sss1	c.c	252
@@ -4049,6 +4186,8 @@ start	php-src/lce_functions.php	/^      function start($line, $class)$/
 start	y-src/cccp.y	143
 start_polling	c-src/emacs/src/keyboard.c	/^start_polling (void)$/
 start_up	prol-src/natded.prolog	/^start_up:-$/
+startcontents	tex-src/texinfo.tex	/^\\def\\startcontents#1{%$/
+startenumeration	tex-src/texinfo.tex	/^\\def\\startenumeration#1{%$/
 state_protected_p	c-src/emacs/src/gmalloc.c	400
 statetable	html-src/algrthms.html	/^Next$/
 staticetags	make-src/Makefile	/^staticetags:$/
@@ -4068,24 +4207,59 @@ stripLine	php-src/lce_functions.php	/^      function stripLine($line, $class)$/
 stripname	pas-src/common.pas	/^function stripname; (* ($/
 strncaseeq	c-src/etags.c	/^#define strncaseeq(s,t,n) (assert ((s)!=NULL && (t/
 strneq	c-src/etags.c	/^#define strneq(s,t,n)	(assert ((s)!=NULL || (t)!=N/
+strong	tex-src/texinfo.tex	/^\\let\\strong=\\b$/
+strong	tex-src/texinfo.tex	/^\\let\\strong=\\indexdummyfont$/
 structdef	c-src/etags.c	2448
 stuff_buffered_input	c-src/emacs/src/keyboard.c	/^stuff_buffered_input (Lisp_Object stuffstring)$/
+subheading	tex-src/texinfo.tex	/^\\def\\subheading{\\parsearg\\subsecheadingi}$/
 subprocess	objc-src/PackInsp.m	/^-subprocess:(Subprocess *)sender output:(char *)bu/
 subprocessDone	objc-src/PackInsp.m	/^-subprocessDone:(Subprocess *)sender$/
-subsec=\relax	tex-src/texinfo.tex	/^\\let\\appendixsubsec=\\relax$/
+subsec	tex-src/texinfo.tex	/^\\global\\let\\subsection = \\appendixsubsec$/
+subsec	tex-src/texinfo.tex	/^\\let\\subsec=\\relax$/
+subsecentry	tex-src/texinfo.tex	/^      \\def\\subsecentry ##1##2##3##4##5{}$/
+subsecentry	tex-src/texinfo.tex	/^\\def\\subsecentry#1#2#3#4#5{\\dosubsecentry{#2.#3.#4/
+subsecentryfonts	tex-src/texinfo.tex	/^\\let\\subsecentryfonts = \\textfonts$/
+subsecfonts	tex-src/texinfo.tex	/^\\def\\subsecfonts{%$/
+subsecheading	tex-src/texinfo.tex	/^\\def\\subsecheading #1#2#3#4{\\subsecheadingi {#2.#3/
+subsecheadingbreak	tex-src/texinfo.tex	/^\\def\\subsecheadingbreak{\\dobreak \\subsecheadingski/
+subsecheadingi	tex-src/texinfo.tex	/^\\def\\subsecheadingi #1{{\\advance \\subsecheadingski/
 subsection	perl-src/htlmify-cystic	26
-subsection=\relax	tex-src/texinfo.tex	/^\\let\\appendixsubsection=\\relax$/
+subsection	tex-src/texinfo.tex	/^\\global\\let\\subsection = \\appendixsubsec$/
+subsection	tex-src/texinfo.tex	/^\\global\\let\\subsection = \\numberedsubsec$/
+subsection	tex-src/texinfo.tex	/^\\global\\let\\subsection = \\unnumberedsubsec$/
+subsection	tex-src/texinfo.tex	/^\\let\\subsection=\\relax$/
 subsection_marker	perl-src/htlmify-cystic	161
+subseczzz	tex-src/texinfo.tex	/^\\def\\infoappendixsubsec{\\parsearg\\appendixsubseczz/
+subseczzz	tex-src/texinfo.tex	/^\\outer\\def\\appendixsubsec{\\parsearg\\appendixsubsec/
 subst	prol-src/natded.prolog	/^subst(var(Y),var(X),M,N):-$/
 substitute	c-src/etags.c	/^substitute (char *in, char *out, struct re_registe/
-subsubsec=\relax	tex-src/texinfo.tex	/^\\let\\appendixsubsubsec=\\relax$/
+subsubheading	tex-src/texinfo.tex	/^\\def\\subsubheading{\\parsearg\\subsubsecheadingi}$/
+subsubsec	tex-src/texinfo.tex	/^\\global\\let\\subsubsection = \\appendixsubsubsec$/
+subsubsec	tex-src/texinfo.tex	/^\\let\\subsubsec=\\relax$/
+subsubsecentry	tex-src/texinfo.tex	/^      \\def\\subsubsecentry ##1##2##3##4##5##6{}$/
+subsubsecentry	tex-src/texinfo.tex	/^\\def\\subsubsecentry#1#2#3#4#5#6{%$/
+subsubsecentryfonts	tex-src/texinfo.tex	/^\\let\\subsubsecentryfonts = \\textfonts$/
+subsubsecfonts	tex-src/texinfo.tex	/^\\def\\subsubsecfonts{\\subsecfonts} % Maybe this sho/
+subsubsecheading	tex-src/texinfo.tex	/^\\def\\subsubsecheading #1#2#3#4#5{\\subsubsecheading/
+subsubsecheadingi	tex-src/texinfo.tex	/^\\def\\subsubsecheadingi #1{{\\advance \\subsecheading/
 subsubsection	perl-src/htlmify-cystic	27
-subsubsection=\relax	tex-src/texinfo.tex	/^\\let\\appendixsubsubsection=\\relax$/
+subsubsection	tex-src/texinfo.tex	/^\\global\\let\\subsubsection = \\appendixsubsubsec$/
+subsubsection	tex-src/texinfo.tex	/^\\global\\let\\subsubsection = \\numberedsubsubsec$/
+subsubsection	tex-src/texinfo.tex	/^\\global\\let\\subsubsection = \\unnumberedsubsubsec$/
+subsubsection	tex-src/texinfo.tex	/^\\let\\subsubsection=\\relax$/
+subsubseczzz	tex-src/texinfo.tex	/^\\def\\infoappendixsubsubsec{\\parsearg\\appendixsubsu/
+subsubseczzz	tex-src/texinfo.tex	/^\\outer\\def\\appendixsubsubsec{\\parsearg\\appendixsub/
+subtitle	tex-src/texinfo.tex	/^   \\def\\subtitle{\\parsearg\\subtitlezzz}%$/
+subtitlefont	tex-src/texinfo.tex	/^   \\def\\subtitlefont{\\subtitlerm \\normalbaselinesk/
+subtitlerm	tex-src/texinfo.tex	/^   \\let\\subtitlerm=\\tenrm$/
+subtitlezzz	tex-src/texinfo.tex	/^   \\def\\subtitlezzz##1{{\\subtitlefont \\rightline{#/
 subtle	ruby-src/test1.ru	/^                 :tee ; attr_reader :subtle$/
 subtree	prol-src/natded.prolog	/^subtree(T,T).$/
 suffix	c-src/etags.c	186
 suffixes	c-src/etags.c	195
 suggest_asking_for_help	c-src/etags.c	/^suggest_asking_for_help (void)$/
+summarycontents	tex-src/texinfo.tex	/^\\outer\\def\\summarycontents{%$/
+supereject	tex-src/texinfo.tex	/^\\def\\supereject{\\par\\penalty -20000\\footnoteno =0 /
 suspend-emacs	c-src/emacs/src/keyboard.c	/^DEFUN ("suspend-emacs", Fsuspend_emacs, Ssuspend_e/
 sval	y-src/cccp.y	116
 swallow_events	c-src/emacs/src/keyboard.c	/^swallow_events (bool do_display)$/
@@ -4100,6 +4274,8 @@ syms_of_abbrev	c-src/abbrev.c	/^syms_of_abbrev ()$/
 syms_of_keyboard	c-src/emacs/src/keyboard.c	/^syms_of_keyboard (void)$/
 synchronize_system_messages_locale	c-src/emacs/src/lisp.h	/^INLINE void synchronize_system_messages_locale (vo/
 synchronize_system_time_locale	c-src/emacs/src/lisp.h	/^INLINE void synchronize_system_time_locale (void) /
+syncodeindex	tex-src/texinfo.tex	/^\\def\\syncodeindex #1 #2 {%$/
+synindex	tex-src/texinfo.tex	/^\\def\\synindex #1 #2 {%$/
 syntax	c-src/emacs/src/regex.h	350
 sys_jmp_buf	c-src/emacs/src/lisp.h	2906
 sys_jmp_buf	c-src/emacs/src/lisp.h	2910
@@ -4112,12 +4288,20 @@ sys_setjmp	c-src/emacs/src/lisp.h	/^# define sys_setjmp(j) setjmp (j)$/
 sys_setjmp	c-src/emacs/src/lisp.h	/^# define sys_setjmp(j) sigsetjmp (j, 0)$/
 syscall_error	c-src/sysdep.h	34
 t	cp-src/c.C	52
+t	tex-src/texinfo.tex	/^\\def\\t##1{\\realbackslash r {##1}}%$/
+t	tex-src/texinfo.tex	/^\\def\\t#1{{\\tt \\exhyphenpenalty=10000\\rawbackslash /
+t	tex-src/texinfo.tex	/^\\let\\b=\\ptexb \\let\\c=\\ptexc \\let\\i=\\ptexi \\let\\t=\\/
+t	tex-src/texinfo.tex	/^\\let\\t=\\indexdummyfont$/
 t1	cp-src/c.C	34
 t2	cp-src/c.C	38
 tab_count_words	c-src/tab.c	/^int			tab_count_words(char **tab)$/
 tab_delete_first	c-src/tab.c	/^int			tab_delete_first(char **tab)$/
 tab_fill	c-src/tab.c	/^char			**tab_fill(char *str, char delim)$/
 tab_free	c-src/tab.c	/^void			tab_free(char **tab)$/
+table	tex-src/texinfo.tex	/^\\def\\table{\\begingroup\\inENV\\obeylines\\obeyspaces\\/
+tablex	tex-src/texinfo.tex	/^\\gdef\\tablex #1^^M{%$/
+tabley	tex-src/texinfo.tex	/^\\gdef\\tabley#1#2 #3 #4 #5 #6 #7\\endtabley{\\endgrou/
+tablez	tex-src/texinfo.tex	/^\\def\\tablez #1#2#3#4#5#6{%$/
 tag-any-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-any-match-p (_tag)$/
 tag-exact-file-name-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-exact-file-name-match-p (tag)$/
 tag-exact-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-exact-match-p (tag)$/
@@ -4196,12 +4380,75 @@ tags-tag-face	el-src/emacs/lisp/progmodes/etags.el	/^(defcustom tags-tag-face 'd
 tags-verify-table	el-src/emacs/lisp/progmodes/etags.el	/^(defun tags-verify-table (file)$/
 tags-with-face	el-src/emacs/lisp/progmodes/etags.el	/^(defmacro tags-with-face (face &rest body)$/
 target_multibyte	c-src/emacs/src/regex.h	407
+tclose	tex-src/texinfo.tex	/^\\def\\tclose##1{\\realbackslash tclose {##1}}$/
+tclose	tex-src/texinfo.tex	/^\\def\\tclose##1{\\realbackslash tclose {##1}}%$/
+tclose	tex-src/texinfo.tex	/^\\def\\tclose#1{{\\rm \\tcloserm=\\fontdimen2\\font \\tt /
+tclose	tex-src/texinfo.tex	/^\\let\\tclose=\\indexdummyfont$/
 tcpdump	html-src/software.html	/^tcpdump$/
 teats	cp-src/c.C	127
 tee	ruby-src/test1.ru	/^    attr_accessor :tee$/
 tee=	ruby-src/test1.ru	/^    attr_accessor :tee$/
+temp	tex-src/texinfo.tex	/^\\edef\\temp{%$/
+temp	tex-src/texinfo.tex	/^\\edef\\temp{{\\realbackslash chapentry $/
+temp	tex-src/texinfo.tex	/^\\edef\\temp{{\\realbackslash chapentry {#1}{\\the\\cha/
+temp	tex-src/texinfo.tex	/^\\edef\\temp{{\\realbackslash secentry %$/
+temp	tex-src/texinfo.tex	/^\\edef\\temp{{\\realbackslash subsecentry %$/
+temp	tex-src/texinfo.tex	/^\\edef\\temp{{\\realbackslash subsubsecentry %$/
+temp	tex-src/texinfo.tex	/^\\edef\\temp{{\\realbackslash subsubsecentry{#1}%$/
+temp	tex-src/texinfo.tex	/^\\edef\\temp{{\\realbackslash unnumbchapentry {#1}{\\n/
+temp	tex-src/texinfo.tex	/^\\edef\\temp{{\\realbackslash unnumbsecentry{#1}{\\noe/
+temp	tex-src/texinfo.tex	/^\\edef\\temp{{\\realbackslash unnumbsubsecentry{#1}{\\/
+temp	tex-src/texinfo.tex	/^\\edef\\temp{{\\realbackslash unnumbsubsubsecentry{#1/
+temp	tex-src/texinfo.tex	/^\\else \\let\\temp=\\ifclearfail \\fi$/
+temp	tex-src/texinfo.tex	/^\\else \\let\\temp=\\relax \\fi$/
+temp	tex-src/texinfo.tex	/^\\expandafter\\ifx\\csname IF#1\\endcsname\\relax \\let\\/
+temp1	tex-src/texinfo.tex	/^\\xdef\\temp1{#2 #3}%$/
+temp1	tex-src/texinfo.tex	/^\\xdef\\temp1{#2}%$/
 temporarily_switch_to_single_kboard	c-src/emacs/src/keyboard.c	/^temporarily_switch_to_single_kboard (struct frame /
+tenbf	tex-src/texinfo.tex	/^  \\let\\tenbf=\\chapbf \\let\\tentt=\\chaptt \\let\\small/
+tenbf	tex-src/texinfo.tex	/^  \\let\\tenbf=\\indbf \\let\\tentt=\\indtt \\let\\smallca/
+tenbf	tex-src/texinfo.tex	/^  \\let\\tenbf=\\secbf \\let\\tentt=\\sectt \\let\\smallca/
+tenbf	tex-src/texinfo.tex	/^  \\let\\tenbf=\\ssecbf \\let\\tentt=\\ssectt \\let\\small/
+tenbf	tex-src/texinfo.tex	/^  \\let\\tenbf=\\textbf \\let\\tentt=\\texttt \\let\\small/
+tenbf	tex-src/texinfo.tex	/^\\def\\df{\\let\\tentt=\\deftt \\let\\tenbf = \\defbf \\bf}/
 tend	c-src/etags.c	2432
+teni	tex-src/texinfo.tex	/^  \\let\\tensf=\\chapsf \\let\\teni=\\chapi \\let\\tensy=\\/
+teni	tex-src/texinfo.tex	/^  \\let\\tensf=\\indsf \\let\\teni=\\indi \\let\\tensy=\\in/
+teni	tex-src/texinfo.tex	/^  \\let\\tensf=\\secsf \\let\\teni=\\seci \\let\\tensy=\\se/
+teni	tex-src/texinfo.tex	/^  \\let\\tensf=\\ssecsf \\let\\teni=\\sseci \\let\\tensy=\\/
+teni	tex-src/texinfo.tex	/^  \\let\\tensf=\\textsf \\let\\teni=\\texti \\let\\tensy=\\/
+tenit	tex-src/texinfo.tex	/^  \\let\\tenrm=\\chaprm \\let\\tenit=\\chapit \\let\\tensl/
+tenit	tex-src/texinfo.tex	/^  \\let\\tenrm=\\indrm \\let\\tenit=\\indit \\let\\tensl=\\/
+tenit	tex-src/texinfo.tex	/^  \\let\\tenrm=\\secrm \\let\\tenit=\\secit \\let\\tensl=\\/
+tenit	tex-src/texinfo.tex	/^  \\let\\tenrm=\\ssecrm \\let\\tenit=\\ssecit \\let\\tensl/
+tenit	tex-src/texinfo.tex	/^  \\let\\tenrm=\\textrm \\let\\tenit=\\textit \\let\\tensl/
+tenrm	tex-src/texinfo.tex	/^  \\let\\tenrm=\\chaprm \\let\\tenit=\\chapit \\let\\tensl/
+tenrm	tex-src/texinfo.tex	/^  \\let\\tenrm=\\indrm \\let\\tenit=\\indit \\let\\tensl=\\/
+tenrm	tex-src/texinfo.tex	/^  \\let\\tenrm=\\secrm \\let\\tenit=\\secit \\let\\tensl=\\/
+tenrm	tex-src/texinfo.tex	/^  \\let\\tenrm=\\ssecrm \\let\\tenit=\\ssecit \\let\\tensl/
+tenrm	tex-src/texinfo.tex	/^  \\let\\tenrm=\\textrm \\let\\tenit=\\textit \\let\\tensl/
+tensf	tex-src/texinfo.tex	/^  \\let\\tensf=\\chapsf \\let\\teni=\\chapi \\let\\tensy=\\/
+tensf	tex-src/texinfo.tex	/^  \\let\\tensf=\\indsf \\let\\teni=\\indi \\let\\tensy=\\in/
+tensf	tex-src/texinfo.tex	/^  \\let\\tensf=\\secsf \\let\\teni=\\seci \\let\\tensy=\\se/
+tensf	tex-src/texinfo.tex	/^  \\let\\tensf=\\ssecsf \\let\\teni=\\sseci \\let\\tensy=\\/
+tensf	tex-src/texinfo.tex	/^  \\let\\tensf=\\textsf \\let\\teni=\\texti \\let\\tensy=\\/
+tensl	tex-src/texinfo.tex	/^  \\let\\tenrm=\\chaprm \\let\\tenit=\\chapit \\let\\tensl/
+tensl	tex-src/texinfo.tex	/^  \\let\\tenrm=\\indrm \\let\\tenit=\\indit \\let\\tensl=\\/
+tensl	tex-src/texinfo.tex	/^  \\let\\tenrm=\\secrm \\let\\tenit=\\secit \\let\\tensl=\\/
+tensl	tex-src/texinfo.tex	/^  \\let\\tenrm=\\ssecrm \\let\\tenit=\\ssecit \\let\\tensl/
+tensl	tex-src/texinfo.tex	/^  \\let\\tenrm=\\textrm \\let\\tenit=\\textit \\let\\tensl/
+tensy	tex-src/texinfo.tex	/^  \\let\\tensf=\\chapsf \\let\\teni=\\chapi \\let\\tensy=\\/
+tensy	tex-src/texinfo.tex	/^  \\let\\tensf=\\indsf \\let\\teni=\\indi \\let\\tensy=\\in/
+tensy	tex-src/texinfo.tex	/^  \\let\\tensf=\\secsf \\let\\teni=\\seci \\let\\tensy=\\se/
+tensy	tex-src/texinfo.tex	/^  \\let\\tensf=\\ssecsf \\let\\teni=\\sseci \\let\\tensy=\\/
+tensy	tex-src/texinfo.tex	/^  \\let\\tensf=\\textsf \\let\\teni=\\texti \\let\\tensy=\\/
+tentt	tex-src/texinfo.tex	/^  \\let\\tenbf=\\chapbf \\let\\tentt=\\chaptt \\let\\small/
+tentt	tex-src/texinfo.tex	/^  \\let\\tenbf=\\indbf \\let\\tentt=\\indtt \\let\\smallca/
+tentt	tex-src/texinfo.tex	/^  \\let\\tenbf=\\secbf \\let\\tentt=\\sectt \\let\\smallca/
+tentt	tex-src/texinfo.tex	/^  \\let\\tenbf=\\ssecbf \\let\\tentt=\\ssectt \\let\\small/
+tentt	tex-src/texinfo.tex	/^  \\let\\tenbf=\\textbf \\let\\tentt=\\texttt \\let\\small/
+tentt	tex-src/texinfo.tex	/^\\def\\df{\\let\\tentt=\\deftt \\let\\tenbf = \\defbf \\bf}/
+tentt	tex-src/texinfo.tex	/^{\\let\\tentt=\\sectt \\let\\tt=\\sectt \\let\\sf=\\sectt$/
 term	merc-src/accumulator.m	/^:- import_module term.$/
 terminate	objc-src/Subprocess.m	/^- terminate:sender$/
 terminateInput	objc-src/Subprocess.m	/^- terminateInput$/
@@ -4216,7 +4463,12 @@ test.me22b	lua-src/test.lua	/^   local function test.me22b (one)$/
 test.me_22a	lua-src/test.lua	/^   function test.me_22a(one, two)$/
 test1	rs-src/test.rs	/^fn test1() {$/
 test_undefined	c-src/emacs/src/keyboard.c	/^test_undefined (Lisp_Object binding)$/
+tex	tex-src/texinfo.tex	/^\\def\\tex{\\begingroup$/
+texinfoversion	tex-src/texinfo.tex	/^\\def\\texinfoversion{2.73}$/
+textfonts	tex-src/texinfo.tex	/^\\def\\textfonts{%$/
 texttreelist	prol-src/natded.prolog	/^texttreelist([]).$/
+thearg	tex-src/texinfo.tex	/^  \\def\\thearg{#1}%$/
+thearg	tex-src/texinfo.tex	/^  \\ifx\\thearg\\empty \\def\\thearg{1}\\fi$/
 there-is-a-=-in-the-middle!	scm-src/test.scm	/^(define (there-is-a-=-in-the-middle!) #t)$/
 this	c-src/a/b/b.c	1
 this-command-keys	c-src/emacs/src/keyboard.c	/^DEFUN ("this-command-keys", Fthis_command_keys, St/
@@ -4228,6 +4480,30 @@ this_command_key_count_reset	c-src/emacs/src/keyboard.c	112
 this_command_keys	c-src/emacs/src/keyboard.c	107
 this_file_toc	perl-src/htlmify-cystic	29
 this_single_command_key_start	c-src/emacs/src/keyboard.c	125
+thischapter	tex-src/texinfo.tex	/^   \\unnumbchapmacro{#1}\\def\\thischapter{}%$/
+thischapter	tex-src/texinfo.tex	/^\\def\\thischapter{} \\def\\thissection{}$/
+thischapter	tex-src/texinfo.tex	/^\\gdef\\thischapter{#1}\\gdef\\thissection{#1}%$/
+thischapter	tex-src/texinfo.tex	/^\\xdef\\thischapter{Appendix \\appendixletter: \\noexp/
+thischapter	tex-src/texinfo.tex	/^\\xdef\\thischapter{Chapter \\the\\chapno: \\noexpand\\t/
+thischaptername	tex-src/texinfo.tex	/^\\def\\thischaptername{No Chapter Title}$/
+thischaptername	tex-src/texinfo.tex	/^\\gdef\\thischaptername{#1}%$/
+thisfile	tex-src/texinfo.tex	/^\\def\\includezzz #1{{\\def\\thisfile{#1}\\input #1$/
+thisfile	tex-src/texinfo.tex	/^\\def\\thisfile{}$/
+thisfootno	tex-src/texinfo.tex	/^\\edef\\thisfootno{$^{\\the\\footnoteno}$}%$/
+thispage	tex-src/texinfo.tex	/^\\let\\thispage=\\folio$/
+thissection	tex-src/texinfo.tex	/^\\def\\thischapter{} \\def\\thissection{}$/
+thissection	tex-src/texinfo.tex	/^\\gdef\\thischapter{#1}\\gdef\\thissection{#1}%$/
+thissection	tex-src/texinfo.tex	/^\\gdef\\thissection{#1}%$/
+thissection	tex-src/texinfo.tex	/^\\gdef\\thissection{#1}\\global\\advance \\subsubsecno /
+thissection	tex-src/texinfo.tex	/^\\gdef\\thissection{#1}\\secheading {#1}{\\appendixlet/
+thissection	tex-src/texinfo.tex	/^\\gdef\\thissection{#1}\\secheading {#1}{\\the\\chapno}/
+thissection	tex-src/texinfo.tex	/^\\gdef\\thissection{#1}\\subsubsecno=0 \\global\\advanc/
+thissection	tex-src/texinfo.tex	/^\\plainsecheading {#1}\\gdef\\thissection{#1}%$/
+thistitle	tex-src/texinfo.tex	/^\\def\\settitlezzz #1{\\gdef\\thistitle{#1}}$/
+thistitle	tex-src/texinfo.tex	/^\\def\\thistitle{No Title}$/
+three	tex-src/texinfo.tex	/^\\def\\kbdfoo#1#2#3\\par{\\def\\one{#1}\\def\\three{#3}\\d/
+threex	tex-src/texinfo.tex	/^\\def\\kbdfoo#1#2#3\\par{\\def\\one{#1}\\def\\three{#3}\\d/
+tie	tex-src/texinfo.tex	/^\\def\\tie{\\penalty 10000\\ }     % Save plain tex de/
 tignore	c-src/etags.c	2433
 timer_check	c-src/emacs/src/keyboard.c	/^timer_check (void)$/
 timer_check_2	c-src/emacs/src/keyboard.c	/^timer_check_2 (Lisp_Object timers, Lisp_Object idl/
@@ -4238,9 +4514,16 @@ timer_start_idle	c-src/emacs/src/keyboard.c	/^timer_start_idle (void)$/
 timer_stop_idle	c-src/emacs/src/keyboard.c	/^timer_stop_idle (void)$/
 timers_run	c-src/emacs/src/keyboard.c	320
 tinbody	c-src/etags.c	2431
+tindex	tex-src/texinfo.tex	/^\\def\\tindex {\\tpindex}$/
+title	tex-src/texinfo.tex	/^   \\def\\title{\\parsearg\\titlezzz}%$/
+titlefont	tex-src/texinfo.tex	/^\\def\\titlefont#1{{\\titlerm #1}}$/
+titlepage	tex-src/texinfo.tex	/^\\def\\titlepage{\\begingroup \\parindent=0pt \\textfon/
+titlepage	tex-src/texinfo.tex	/^\\let\\titlepage=\\relax$/
+titlezzz	tex-src/texinfo.tex	/^   \\def\\titlezzz##1{\\leftline{\\titlefont{##1}}$/
 tkeyseen	c-src/etags.c	2429
 tnone	c-src/etags.c	2428
 toc_line	perl-src/htlmify-cystic	/^sub toc_line ($)$/
+today	tex-src/texinfo.tex	/^\\def\\today{\\number\\day\\space$/
 toggleDescription	objc-src/PackInsp.m	/^-toggleDescription$/
 tok	c-src/etags.c	2491
 token	c-src/etags.c	2508
@@ -4253,6 +4536,8 @@ tool_bar_item_properties	c-src/emacs/src/keyboard.c	7970
 tool_bar_items	c-src/emacs/src/keyboard.c	/^tool_bar_items (Lisp_Object reuse, int *nitems)$/
 tool_bar_items_vector	c-src/emacs/src/keyboard.c	7965
 toolkit_menubar_in_use	c-src/emacs/src/keyboard.c	/^toolkit_menubar_in_use (struct frame *f)$/
+top	tex-src/texinfo.tex	/^\\let\\top=\\relax$/
+top	tex-src/texinfo.tex	/^\\outer\\def\\top{\\parsearg\\unnumberedzzz}$/
 top-level	c-src/emacs/src/keyboard.c	/^DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, /
 top_level	merc-src/accumulator.m	/^:- type top_level$/
 top_level_1	c-src/emacs/src/keyboard.c	/^top_level_1 (Lisp_Object ignore)$/
@@ -4261,17 +4546,26 @@ total_keys	c-src/emacs/src/keyboard.c	97
 total_size_of_entries	c-src/etags.c	/^total_size_of_entries (register node *np)$/
 total_surrounding	cp-src/conway.cpp	/^int site::total_surrounding(void)$/
 totally_unblock_input	c-src/emacs/src/keyboard.c	/^totally_unblock_input (void)$/
+tpargs	tex-src/texinfo.tex	/^\\begingroup\\defname {#2}{#1}\\deftpargs{#3}\\endgrou/
 tpcmd	c-src/h.h	15
 tpcmd	c-src/h.h	8
+tpheader	tex-src/texinfo.tex	/^\\def\\deftp{\\defvrparsebody\\Edeftp\\deftpx\\deftphead/
+tpx\deftpheader	tex-src/texinfo.tex	/^\\def\\deftp{\\defvrparsebody\\Edeftp\\deftpx\\deftphead/
 track-mouse	c-src/emacs/src/keyboard.c	/^DEFUN ("internal--track-mouse", Ftrack_mouse, Stra/
 tracking_off	c-src/emacs/src/keyboard.c	/^tracking_off (Lisp_Object old_value)$/
 traffic_light	cp-src/conway.cpp	/^void traffic_light(int x, int y)$/
 translate	c-src/emacs/src/regex.h	361
 treats	cp-src/c.C	131
 tt	prol-src/natded.prolog	/^tt:-$/
-tt=cmtt10	tex-src/texinfo.tex	/^\\font\\deftt=cmtt10 scaled \\magstep1$/
+tt	tex-src/texinfo.tex	/^\\def\\df{\\let\\tentt=\\deftt \\let\\tenbf = \\defbf \\bf}/
+tt	tex-src/texinfo.tex	/^\\def\\tt{\\realbackslash tt}$/
+tt	tex-src/texinfo.tex	/^\\def\\tt{\\realbackslash tt}%$/
+tt	tex-src/texinfo.tex	/^\\font\\deftt=cmtt10 scaled \\magstep1$/
+tt	tex-src/texinfo.tex	/^{\\let\\tentt=\\sectt \\let\\tt=\\sectt \\let\\sf=\\sectt$/
+ttfont	tex-src/texinfo.tex	/^\\let\\ttfont = \\t$/
 tty_read_avail_input	c-src/emacs/src/keyboard.c	/^tty_read_avail_input (struct terminal *terminal,$/
 ttypeseen	c-src/etags.c	2430
+turnoffactive	tex-src/texinfo.tex	/^\\def\\turnoffactive{\\let"=\\normaldoublequote$/
 typdef	c-src/etags.c	2434
 type	c-src/emacs/src/gmalloc.c	145
 type	c-src/emacs/src/lisp.h	1973
@@ -4286,10 +4580,21 @@ type	c-src/emacs/src/lisp.h	2304
 type	c-src/emacs/src/lisp.h	2364
 type	c-src/emacs/src/lisp.h	3025
 type	c-src/etags.c	2271
+typefnheader	tex-src/texinfo.tex	/^\\def\\deftypefn{\\defmethparsebody\\Edeftypefn\\deftyp/
+typefnheaderx	tex-src/texinfo.tex	/^\\def\\deftypefnheader #1#2#3{\\deftypefnheaderx{#1}{/
+typefnx\deftypefnheader	tex-src/texinfo.tex	/^\\def\\deftypefn{\\defmethparsebody\\Edeftypefn\\deftyp/
 typefunargs	tex-src/texinfo.tex	/^\\deftypefunargs {#3}\\endgroup %$/
 typefunargs	tex-src/texinfo.tex	/^\\deftypefunargs {#4}\\endgroup %$/
+typefunheader	tex-src/texinfo.tex	/^\\def\\deftypefun{\\defparsebody\\Edeftypefun\\deftypef/
+typefunheaderx	tex-src/texinfo.tex	/^\\def\\deftypefunheader #1#2{\\deftypefunheaderx{#1}#/
+typefunx\deftypefunheader	tex-src/texinfo.tex	/^\\def\\deftypefun{\\defparsebody\\Edeftypefun\\deftypef/
 typemargin	tex-src/texinfo.tex	/^\\newskip\\deftypemargin \\deftypemargin=12pt$/
 typemargin	tex-src/texinfo.tex	/^\\rlap{\\rightline{{\\rm #2}\\hskip \\deftypemargin}}}%/
+typemargin	tex-src/texinfo.tex	/^\\setbox0=\\hbox{\\hskip \\deflastargmargin{\\rm #2}\\hs/
+typevarheader	tex-src/texinfo.tex	/^\\def\\deftypevar{\\defvarparsebody\\Edeftypevar\\defty/
+typevarx\deftypevarheader	tex-src/texinfo.tex	/^\\def\\deftypevar{\\defvarparsebody\\Edeftypevar\\defty/
+typevrheader	tex-src/texinfo.tex	/^\\def\\deftypevr{\\defvrparsebody\\Edeftypevr\\deftypev/
+typevrx\deftypevrheader	tex-src/texinfo.tex	/^\\def\\deftypevr{\\defvrparsebody\\Edeftypevr\\deftypev/
 u	c-src/emacs/src/lisp.h	2397
 u_any	c-src/emacs/src/lisp.h	2214
 u_boolfwd	c-src/emacs/src/lisp.h	2371
@@ -4302,13 +4607,44 @@ u_marker	c-src/emacs/src/lisp.h	2216
 u_objfwd	c-src/emacs/src/lisp.h	2372
 u_overlay	c-src/emacs/src/lisp.h	2217
 u_save_value	c-src/emacs/src/lisp.h	2218
+unargs	tex-src/texinfo.tex	/^\\begingroup\\defname {#2}{#1}\\defunargs{#3}\\endgrou/
 unargs	tex-src/texinfo.tex	/^\\defunargs {#2}\\endgroup %$/
 unargs	tex-src/texinfo.tex	/^\\defunargs {#3}\\endgroup %$/
 unblock_input	c-src/emacs/src/keyboard.c	/^unblock_input (void)$/
 unblock_input_to	c-src/emacs/src/keyboard.c	/^unblock_input_to (int level)$/
 unchar	c-src/h.h	99
 unexpand-abbrev	c-src/abbrev.c	/^DEFUN ("unexpand-abbrev", Funexpand_abbrev, Sunexp/
+unheader	tex-src/texinfo.tex	/^\\def\\defun{\\defparsebody\\Edefun\\defunx\\defunheader/
 univ	merc-src/accumulator.m	/^:- import_module univ.$/
+unnchfopen	tex-src/texinfo.tex	/^\\def\\unnchfopen #1{%$/
+unnchfplain	tex-src/texinfo.tex	/^\\def\\unnchfplain #1{%$/
+unnumbchapentry	tex-src/texinfo.tex	/^      \\let\\unnumbchapentry = \\shortunnumberedentry/
+unnumbchapentry	tex-src/texinfo.tex	/^\\def\\unnumbchapentry#1#2{\\dochapentry{#1}{#2}}$/
+unnumbchapmacro	tex-src/texinfo.tex	/^\\global\\let\\unnumbchapmacro=\\unnchfopen}$/
+unnumbchapmacro	tex-src/texinfo.tex	/^\\global\\let\\unnumbchapmacro=\\unnchfplain}$/
+unnumbered	tex-src/texinfo.tex	/^\\let\\unnumbered=\\relax$/
+unnumbered	tex-src/texinfo.tex	/^\\outer\\def\\unnumbered{\\parsearg\\unnumberedzzz}$/
+unnumberedsec	tex-src/texinfo.tex	/^\\let\\unnumberedsec=\\relax$/
+unnumberedsec	tex-src/texinfo.tex	/^\\outer\\def\\unnumberedsec{\\parsearg\\unnumberedseczz/
+unnumberedsection	tex-src/texinfo.tex	/^\\let\\unnumberedsection=\\relax$/
+unnumberedseczzz	tex-src/texinfo.tex	/^\\def\\unnumberedseczzz #1{\\seccheck{unnumberedsec}%/
+unnumberedsubsec	tex-src/texinfo.tex	/^\\let\\unnumberedsubsec=\\relax$/
+unnumberedsubsec	tex-src/texinfo.tex	/^\\outer\\def\\unnumberedsubsec{\\parsearg\\unnumberedsu/
+unnumberedsubsection	tex-src/texinfo.tex	/^\\let\\unnumberedsubsection=\\relax$/
+unnumberedsubseczzz	tex-src/texinfo.tex	/^\\def\\unnumberedsubseczzz #1{\\seccheck{unnumberedsu/
+unnumberedsubsubsec	tex-src/texinfo.tex	/^\\let\\unnumberedsubsubsec=\\relax$/
+unnumberedsubsubsec	tex-src/texinfo.tex	/^\\outer\\def\\unnumberedsubsubsec{\\parsearg\\unnumbere/
+unnumberedsubsubsection	tex-src/texinfo.tex	/^\\let\\unnumberedsubsubsection=\\relax$/
+unnumberedsubsubseczzz	tex-src/texinfo.tex	/^\\def\\unnumberedsubsubseczzz #1{\\seccheck{unnumbere/
+unnumberedzzz	tex-src/texinfo.tex	/^\\def\\unnumberedzzz #1{\\seccheck{unnumbered}%$/
+unnumbnoderef	tex-src/texinfo.tex	/^\\def\\unnumbnoderef{\\ifx\\lastnode\\relax\\else$/
+unnumbsecentry	tex-src/texinfo.tex	/^      \\def\\unnumbsecentry ##1##2{}$/
+unnumbsecentry	tex-src/texinfo.tex	/^\\def\\unnumbsecentry#1#2{\\dosecentry{#1}{#2}}$/
+unnumbsetref	tex-src/texinfo.tex	/^\\def\\unnumbsetref#1{%$/
+unnumbsubsecentry	tex-src/texinfo.tex	/^      \\def\\unnumbsubsecentry ##1##2{}$/
+unnumbsubsecentry	tex-src/texinfo.tex	/^\\def\\unnumbsubsecentry#1#2{\\dosubsecentry{#1}{#2}}/
+unnumbsubsubsecentry	tex-src/texinfo.tex	/^      \\def\\unnumbsubsubsecentry ##1##2{}$/
+unnumbsubsubsecentry	tex-src/texinfo.tex	/^\\def\\unnumbsubsubsecentry#1#2{\\dosubsubsecentry{#1/
 unravel_univ	merc-src/accumulator.m	/^:- some [T] pred unravel_univ(univ::in, T::out) is/
 unread_switch_frame	c-src/emacs/src/keyboard.c	204
 unsignedp	y-src/cccp.y	112
@@ -4316,7 +4652,9 @@ unwind	c-src/emacs/src/lisp.h	2962
 unwind_int	c-src/emacs/src/lisp.h	2972
 unwind_ptr	c-src/emacs/src/lisp.h	2967
 unwind_void	c-src/emacs/src/lisp.h	2976
+unx\defunheader	tex-src/texinfo.tex	/^\\def\\defun{\\defparsebody\\Edefun\\defunx\\defunheader/
 update_accumulator_pred	merc-src/accumulator.m	/^:- pred update_accumulator_pred(pred_id::in, proc_/
+uppercaseenumerate	tex-src/texinfo.tex	/^\\def\\uppercaseenumerate{%$/
 uprintmax_t	c-src/emacs/src/lisp.h	149
 uprintmax_t	c-src/emacs/src/lisp.h	154
 usage	perl-src/yagrip.pl	/^sub usage {$/
@@ -4343,20 +4681,45 @@ value	c-src/emacs/src/lisp.h	687
 value	y-src/cccp.y	112
 var	c-src/emacs/src/keyboard.c	11023
 var	c-src/emacs/src/lisp.h	3137
+var	tex-src/texinfo.tex	/^\\def\\var##1{\\realbackslash var {##1}}$/
+var	tex-src/texinfo.tex	/^\\def\\var##1{\\realbackslash var {##1}}%$/
+var	tex-src/texinfo.tex	/^\\let\\var=\\indexdummyfont$/
+var	tex-src/texinfo.tex	/^\\let\\var=\\smartitalic$/
+varargs	tex-src/texinfo.tex	/^\\begingroup\\defname {#2}{#1}\\defvarargs{#3}\\endgro/
+varargs	tex-src/texinfo.tex	/^\\def\\deftpargs #1{\\bf \\defvarargs{#1}}$/
 varargs	tex-src/texinfo.tex	/^\\defvarargs {#2}\\endgroup %$/
 varargs	tex-src/texinfo.tex	/^\\defvarargs {#3}\\endgroup %$/
+varheader	tex-src/texinfo.tex	/^\\def\\defvar{\\defvarparsebody\\Edefvar\\defvarx\\defva/
+varparsebody\Edefopt	tex-src/texinfo.tex	/^\\def\\defopt{\\defvarparsebody\\Edefopt\\defoptx\\defop/
+varparsebody\Edeftypevar	tex-src/texinfo.tex	/^\\def\\deftypevar{\\defvarparsebody\\Edeftypevar\\defty/
+varparsebody\Edefvar	tex-src/texinfo.tex	/^\\def\\defvar{\\defvarparsebody\\Edefvar\\defvarx\\defva/
 varset	merc-src/accumulator.m	/^:- import_module varset.$/
+varx\defvarheader	tex-src/texinfo.tex	/^\\def\\defvar{\\defvarparsebody\\Edefvar\\defvarx\\defva/
 vcopy	c-src/emacs/src/lisp.h	/^vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Objec/
 vectorlike_header	c-src/emacs/src/lisp.h	1343
 verde	cp-src/c.C	40
 verify-tags-table-function	el-src/emacs/lisp/progmodes/etags.el	/^(defvar verify-tags-table-function nil$/
 verify_ascii	c-src/emacs/src/lisp.h	/^# define verify_ascii(str) (str)$/
 vignore	c-src/etags.c	2417
+vindex	tex-src/texinfo.tex	/^\\def\\vindex {\\vrindex}$/
 visit-tags-table	el-src/emacs/lisp/progmodes/etags.el	/^(defun visit-tags-table (file &optional local)$/
 visit-tags-table-buffer	el-src/emacs/lisp/progmodes/etags.el	/^(defun visit-tags-table-buffer (&optional cont)$/
 void	c-src/emacs/src/lisp.h	/^INLINE void (check_cons_list) (void) { lisp_h_chec/
 voidfuncptr	c-src/emacs/src/lisp.h	2108
 voidval	y-src/cccp.y	115
+vrheader	tex-src/texinfo.tex	/^\\def\\defvr{\\defvrparsebody\\Edefvr\\defvrx\\defvrhead/
+vritemindex	tex-src/texinfo.tex	/^\\def\\vritemindex #1{\\doind {vr}{\\code{#1}}}%$/
+vrparsebody\Edefivar	tex-src/texinfo.tex	/^\\def\\defivar{\\defvrparsebody\\Edefivar\\defivarx\\def/
+vrparsebody\Edeftp	tex-src/texinfo.tex	/^\\def\\deftp{\\defvrparsebody\\Edeftp\\deftpx\\deftphead/
+vrparsebody\Edeftypevr	tex-src/texinfo.tex	/^\\def\\deftypevr{\\defvrparsebody\\Edeftypevr\\deftypev/
+vrparsebody\Edefvr	tex-src/texinfo.tex	/^\\def\\defvr{\\defvrparsebody\\Edefvr\\defvrx\\defvrhead/
+vrx\defvrheader	tex-src/texinfo.tex	/^\\def\\defvr{\\defvrparsebody\\Edefvr\\defvrx\\defvrhead/
+vtable	tex-src/texinfo.tex	/^\\def\\vtable{\\begingroup\\inENV\\obeylines\\obeyspaces/
+vtablex	tex-src/texinfo.tex	/^\\gdef\\vtablex #1^^M{%$/
+w	tex-src/texinfo.tex	/^\\def\\w#1{\\leavevmode\\hbox{#1}}$/
+w	tex-src/texinfo.tex	/^\\def\\w{\\realbackslash w }%$/
+w	tex-src/texinfo.tex	/^\\def\\w{\\realbackslash w}$/
+w	tex-src/texinfo.tex	/^\\let\\w=\\indexdummyfont$/
 wait_status_ptr_t	c.c	161
 waiting_for_input	c-src/emacs/src/keyboard.c	150
 warning	y-src/cccp.y	/^warning (msg)$/
@@ -4409,13 +4772,25 @@ x-get-selection-internal	c.c	/^DEFUN ("x-get-selection-internal", Fx_get_selecti
 xcar_addr	c-src/emacs/src/lisp.h	/^xcar_addr (Lisp_Object c)$/
 xcdr_addr	c-src/emacs/src/lisp.h	/^xcdr_addr (Lisp_Object c)$/
 xdiff	make-src/Makefile	/^xdiff: ETAGS EXTAGS ${infiles}$/
+xitem	tex-src/texinfo.tex	/^\\def\\xitem{\\errmessage{@xitem while not in a table/
+xitem	tex-src/texinfo.tex	/^\\let\\xitem = \\internalBxitem %$/
+xitemsubtopix	tex-src/texinfo.tex	/^\\def\\internalBxitem "#1"{\\def\\xitemsubtopix{#1} \\s/
+xitemsubtopix	tex-src/texinfo.tex	/^\\def\\internalBxitemx "#1"{\\def\\xitemsubtopix{#1} \\/
+xitemx	tex-src/texinfo.tex	/^\\def\\xitemx{\\errmessage{@xitemx while not in a tab/
+xitemx	tex-src/texinfo.tex	/^\\let\\xitemx = \\internalBxitemx %$/
+xitemzzz	tex-src/texinfo.tex	/^\\def\\xitemzzz #1{\\dosubind {kw}{\\code{#1}}{for {\\b/
+xkey	tex-src/texinfo.tex	/^\\def\\xkey{\\key}$/
 xmalloc	c-src/etags.c	/^xmalloc (size_t size)$/
 xnew	c-src/etags.c	/^#define xnew(n, Type)      ((Type *) xmalloc ((n) /
+xrdef	tex-src/texinfo.tex	/^\\def\\xrdef #1#2{$/
 xrealloc	c-src/etags.c	/^xrealloc (void *ptr, size_t size)$/
+xref	tex-src/texinfo.tex	/^\\def\\xref#1{See \\xrefX[#1,,,,,,,]}$/
 xref-etags-location	el-src/emacs/lisp/progmodes/etags.el	/^(defclass xref-etags-location (xref-location)$/
 xref-location-line	el-src/emacs/lisp/progmodes/etags.el	/^(cl-defmethod xref-location-line ((l xref-etags-lo/
 xref-location-marker	el-src/emacs/lisp/progmodes/etags.el	/^(cl-defmethod xref-location-marker ((l xref-etags-/
 xref-make-etags-location	el-src/emacs/lisp/progmodes/etags.el	/^(defun xref-make-etags-location (tag-info file)$/
+xrefX	tex-src/texinfo.tex	/^\\def\\xrefX[#1,#2,#3,#4,#5,#6]{\\begingroup%$/
+xreftie	tex-src/texinfo.tex	/^\\gdef\\xreftie{'tie}$/
 xrnew	c-src/etags.c	/^#define xrnew(op, n, Type) ((op) = (Type *) xreall/
 xx	make-src/Makefile	/^xx="this line is here because of a fontlock bug$/
 xyz	ruby-src/test1.ru	/^    alias_method :xyz,$/
@@ -4475,8 +4850,22 @@ z	c.c	144
 z	c.c	164
 z	cp-src/clheir.hpp	49
 z	cp-src/clheir.hpp	58
+zzz	tex-src/texinfo.tex	/^\\def\\infoappendix{\\parsearg\\appendixzzz}$/
+zzz	tex-src/texinfo.tex	/^\\def\\infochapter{\\parsearg\\chapterzzz}$/
+zzz	tex-src/texinfo.tex	/^\\def\\infosection{\\parsearg\\sectionzzz}$/
+zzz	tex-src/texinfo.tex	/^\\def\\infosubsection{\\parsearg\\subsectionzzz}$/
+zzz	tex-src/texinfo.tex	/^\\def\\infosubsubsection{\\parsearg\\subsubsectionzzz}/
+zzz	tex-src/texinfo.tex	/^\\outer\\def\\appendix{\\parsearg\\appendixzzz}$/
+zzz	tex-src/texinfo.tex	/^\\outer\\def\\chapter{\\parsearg\\chapterzzz}$/
+{	tex-src/texinfo.tex	/^\\let\\{=\\mylbrace$/
+{	tex-src/texinfo.tex	/^\\let\\{=\\ptexlbrace$/
 |	tex-src/texinfo.tex	/^\\def|{{\\tt \\char '174}}$/
+|	tex-src/texinfo.tex	/^\\let|=\\normalverticalbar$/
+}	tex-src/texinfo.tex	/^\\let\\}=\\myrbrace$/
+}	tex-src/texinfo.tex	/^\\let\\}=\\ptexrbrace$/
+~	tex-src/texinfo.tex	/^\\catcode `\\^=7 \\catcode `\\_=8 \\catcode `\\~=13 \\let/
 ~	tex-src/texinfo.tex	/^\\def~{{\\tt \\char '176}}$/
+~	tex-src/texinfo.tex	/^\\let~=\\normaltilde$/
 ~A	cp-src/c.C	/^A::~A() {}$/
 ~B	cp-src/c.C	/^    ~B() {};$/
 ~MDiagArray2	cp-src/MDiagArray2.h	/^  ~MDiagArray2 (void) { }$/

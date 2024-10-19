@@ -1974,7 +1974,11 @@ TARGET-BB-SYM is the symbol name of the target block."
 (defun comp--add-cond-cstrs-simple ()
   "`comp--add-cstrs' worker function for each selected function."
   (cl-loop
-   for b being each hash-value of (comp-func-blocks comp-func)
+   ;; Don't iterate over hash values directly as
+   ;; `comp--add-cond-cstrs-target-block' can modify the hash table
+   ;; content.
+   for b in (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
+                     collect b)
    do
    (cl-loop
     named in-the-basic-block
@@ -2847,10 +2851,11 @@ Return t if something was changed."
                 (call symbol-value ,(and (pred comp-cstr-cl-tag-p) mvar-tag)))
            (set ,(and (pred comp-mvar-p) mvar-3)
                 (call memq ,(and (pred comp-mvar-p) mvar-1) ,(and (pred comp-mvar-p) mvar-2)))
-           (cond-jump ,(and (pred comp-mvar-p) mvar-3) ,(pred comp-mvar-p) ,_bb1 ,bb2))
+           (cond-jump ,(and (pred comp-mvar-p) mvar-3) ,(pred comp-mvar-p) ,bb1 ,bb2))
          (cl-assert (comp-cstr-imm-vld-p mvar-tag))
          (when (comp-cstr-type-p mvar-tested (comp-cstr-cl-tag mvar-tag))
-           (comp-log (format "Optimizing conditional branch in function: %s"
+           (comp-log (format "Optimizing conditional branch %s in function: %s"
+                             bb1
                              (comp-func-name comp-func))
                      3)
            (setf (car insns-seq) '(comment "optimized by comp--type-check-optim")
@@ -3583,7 +3588,6 @@ the deferred compilation mechanism."
                               do (comp-log (format "Pass %s took: %fs."
                                                    pass time)
                                            0))))
-                (native-compiler-skip)
                 (t
                  (let ((err-val (cdr err)))
                    ;; If we are doing an async native compilation print the

@@ -562,6 +562,14 @@ baz\"\""
       (electric-pair-delete-pair 1)
       (should (equal "" (buffer-string))))))
 
+(ert-deftest electric-pair-backspace-2 ()
+  (save-electric-modes
+   (with-temp-buffer
+     (insert "((()))")
+     (goto-char 4)
+     (electric-pair-delete-pair 2)
+     (should (equal "()" (buffer-string))))))
+
 
 ;;; Undoing
 (ert-deftest electric-pair-undo-unrelated-state ()
@@ -647,6 +655,22 @@ baz\"\""
   "foo" "\"" :expected-string "``foo''" :expected-point 8
   :modes '(tex-mode)
   :test-in-comments nil
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)
+                (goto-char (point-max))
+                (skip-chars-backward "\"")
+                (mark-sexp -1)))
+
+(define-electric-pair-test autowrapping-multi-1
+ "foo" "(" :expected-string "(((((foo)))))" :expected-point 6
+  :bindings '((current-prefix-arg . 5))
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)
+                (mark-sexp 1)))
+
+(define-electric-pair-test autowrapping-multi-2
+ "foo" ")" :expected-string "(((((foo)))))" :expected-point 14
+  :bindings '((current-prefix-arg . 5))
   :fixture-fn (lambda ()
                 (electric-pair-mode 1)
                 (goto-char (point-max))

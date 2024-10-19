@@ -320,7 +320,11 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
   :version "30.1")
 
 (defface dictionary-word-definition-face
-  '((((supports (:family "DejaVu Serif")))
+  ;; w32 first, because 'supports' doesn't really tell whether the font
+  ;; family exists, and MS-Windows selects an ugly font as result.
+  '((((type w32))
+     (:font "Sans Serif"))
+    (((supports (:family "DejaVu Serif")))
      (:family "DejaVu Serif"))
     (((type x))
      (:font "Sans Serif"))
@@ -328,7 +332,7 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
      (:font "default")))
 "The face that is used for displaying the definition of the word."
 :group 'dictionary
-:version "28.1")
+:version "31.1")
 
 (defface dictionary-word-entry-face
   '((((type x))
@@ -336,7 +340,7 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
     (((type tty) (class color))
      (:foreground "green"))
     (t
-     (:inverse t)))
+     (:inverse-video t)))
   "The face that is used for displaying the initial word entry line."
   :group 'dictionary
   :version "28.1")

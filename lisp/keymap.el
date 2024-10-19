@@ -392,9 +392,16 @@ This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it.
 
 Both FROM and TO should be specified by strings that satisfy `key-valid-p'.
-If TO is nil, remove any existing translation for FROM."
+If TO is nil, remove any existing translation for FROM.
+
+Interactively, prompt for FROM and TO with `read-char'."
   (declare (compiler-macro
             (lambda (form) (keymap--compile-check from to) form)))
+  ;; Using `key-description' is a necessary evil here, so that the
+  ;; values can be passed to keymap-* functions, even though those
+  ;; functions immediately undo it with `key-parse'.
+  (interactive `(,(key-description `[,(read-char "From: ")])
+                 ,(key-description `[,(read-char "To: ")])))
   (keymap--check from)
   (when to
     (keymap--check to))
@@ -416,6 +423,56 @@ If TO is nil, remove any existing translation for FROM."
     (aset keyboard-translate-table
           (aref from-key 0)
           (and to (aref to-key 0)))))
+
+(defun key-translate-select ()
+  "Prompt for a current keyboard translation pair with `completing-read'.
+
+Each pair is formatted as \"FROM -> TO\".
+
+Return the \"FROM\" as a key string."
+  (let* ((formatted-trans-alist nil)
+         ;; Alignment helpers
+         (pad 0)
+         (key-code-func
+          (lambda (kc trans)
+            (let* ((desc (key-description `[,kc]))
+                   (len (length desc)))
+              (when (> len pad)
+                (setq pad len))
+              (push
+               `(,desc . ,(key-description `[,trans]))
+               formatted-trans-alist))))
+         (format-func
+          (lambda (pair) ;; (key . value)
+            (format
+             "%s -> %s"
+             (string-pad (key-description `[,(car pair)]) pad)
+             (key-description `[,(cdr pair)])))))
+    ;; Set `pad' and `formatted-trans-alist'
+    (map-char-table
+     (lambda (chr trans)
+       (if (characterp chr)
+           (funcall key-code-func chr trans)
+         (require 'range)
+         (declare-function range-map "range" (func range))
+         (range-map
+          (lambda (kc) (funcall key-code-func kc trans))
+          chr)))
+     keyboard-translate-table)
+    (car
+     (split-string
+      (completing-read
+       "Key Translation: "
+       (mapcar format-func formatted-trans-alist)
+       nil t)))))
+
+(defun key-translate-remove (from)
+  "Remove translation of FROM from `keyboard-translate-table'.
+
+FROM must satisfy `key-valid-p'.  If FROM has no entry in
+`keyboard-translate-table', this has no effect."
+  (interactive (list (key-translate-select)))
+  (key-translate from nil))
 
 (defun keymap-lookup (keymap key &optional accept-default no-remap position)
   "Return the binding for command KEY in KEYMAP.

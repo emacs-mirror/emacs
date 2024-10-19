@@ -26,7 +26,7 @@
 ;; The funniest thing about this is that I can't imagine why a package
 ;; so obviously useful as this hasn't been written before!!
 ;; ;;; find-func
-;; (find-function-setup-keys)
+;; (find-function-mode 1)
 ;;
 ;; or just:
 ;;
@@ -806,20 +806,35 @@ See `find-function-on-key'."
       (find-variable-other-window symb))))
 
 ;;;###autoload
+(define-minor-mode find-function-mode
+  "Enable some key bindings for the `find-function' family of functions."
+  :group 'find-function :version "31.1" :global t :lighter nil
+  ;; For compatibility with the historical behavior of the old
+  ;; `find-function-setup-keys', define our bindings at the precedence
+  ;; level of the global map.
+  :keymap nil
+  (pcase-dolist (`(,map ,key ,cmd)
+                 `((,ctl-x-map   "F" find-function)
+                   (,ctl-x-4-map "F" find-function-other-window)
+                   (,ctl-x-5-map "F" find-function-other-frame)
+                   (,ctl-x-map   "K" find-function-on-key)
+                   (,ctl-x-4-map "K" find-function-on-key-other-window)
+                   (,ctl-x-5-map "K" find-function-on-key-other-frame)
+                   (,ctl-x-map   "V" find-variable)
+                   (,ctl-x-4-map "V" find-variable-other-window)
+                   (,ctl-x-5-map "V" find-variable-other-frame)
+                   (,ctl-x-map   "L" find-library)
+                   (,ctl-x-4-map "L" find-library-other-window)
+                   (,ctl-x-5-map "L" find-library-other-frame)))
+    (if find-function-mode
+        (keymap-set map key cmd)
+      (keymap-unset map key t))))
+
+;;;###autoload
 (defun find-function-setup-keys ()
-  "Define some key bindings for the `find-function' family of functions."
-  (define-key ctl-x-map "F" 'find-function)
-  (define-key ctl-x-4-map "F" 'find-function-other-window)
-  (define-key ctl-x-5-map "F" 'find-function-other-frame)
-  (define-key ctl-x-map "K" 'find-function-on-key)
-  (define-key ctl-x-4-map "K" 'find-function-on-key-other-window)
-  (define-key ctl-x-5-map "K" 'find-function-on-key-other-frame)
-  (define-key ctl-x-map "V" 'find-variable)
-  (define-key ctl-x-4-map "V" 'find-variable-other-window)
-  (define-key ctl-x-5-map "V" 'find-variable-other-frame)
-  (define-key ctl-x-map "L" 'find-library)
-  (define-key ctl-x-4-map "L" 'find-library-other-window)
-  (define-key ctl-x-5-map "L" 'find-library-other-frame))
+  "Turn on `find-function-mode', which see."
+  (find-function-mode 1))
+(make-obsolete 'find-function-setup-keys 'find-function-mode "31.1")
 
 (provide 'find-func)
 

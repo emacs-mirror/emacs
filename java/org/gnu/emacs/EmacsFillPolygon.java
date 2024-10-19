@@ -26,8 +26,11 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
 
+import android.os.Build;
+
 public final class EmacsFillPolygon
 {
+  @SuppressWarnings ("deprecation") /* computeBounds (IZ) */
   public static void
   perform (EmacsDrawable drawable, EmacsGC gc, Point points[])
   {
@@ -60,7 +63,15 @@ public final class EmacsFillPolygon
 
     /* Compute the damage rectangle.  */
     rectF = new RectF (0, 0, 0, 0);
-    path.computeBounds (rectF, true);
+
+    /* computeBounds (IZ) is deprecated but the incompetence of
+       Android's release management has caused its replacement to be
+       omitted from published header files.  */
+
+    /* if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) */
+      path.computeBounds (rectF, true);
+    /* else
+       path.computeBounds (rectF); */
 
     rect = new Rect ((int) Math.floor (rectF.left),
 		     (int) Math.floor (rectF.top),

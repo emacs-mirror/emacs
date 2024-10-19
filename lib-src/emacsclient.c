@@ -68,7 +68,6 @@ char *w32_getenv (const char *);
 
 #define DEFAULT_TIMEOUT (30)
 
-#include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
 #include <inttypes.h>
@@ -83,6 +82,7 @@ char *w32_getenv (const char *);
 #include <unistd.h>
 
 #include <attribute.h>
+#include <c-ctype.h>
 #include <filename.h>
 #include <intprops.h>
 #include <min-max.h>
@@ -2124,7 +2124,7 @@ main (int argc, char **argv)
 	      unsigned char c;
 	      do
 		c = *++p;
-	      while (isdigit (c) || c == ':');
+	      while (c_isdigit (c) || c == ':');
 
 	      if (c == 0)
                 {
@@ -2136,7 +2136,7 @@ main (int argc, char **argv)
             }
 #ifdef WINDOWSNT
 	  else if (! IS_ABSOLUTE_FILE_NAME (argv[i])
-		   && (isalpha (argv[i][0]) && argv[i][1] == ':'))
+		   && (c_isalpha (argv[i][0]) && argv[i][1] == ':'))
 	    /* Windows can have a different default directory for each
 	       drive, so the cwd passed via "-dir" is not sufficient
 	       to account for that.

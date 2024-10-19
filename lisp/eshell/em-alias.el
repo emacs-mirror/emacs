@@ -208,11 +208,9 @@ This is useful after manually editing the contents of the file."
   "Write out the current aliases into `eshell-aliases-file'."
   (when (and eshell-aliases-file
              (file-writable-p (file-name-directory eshell-aliases-file)))
-    (let ((eshell-current-handles
-           (eshell-create-handles eshell-aliases-file 'overwrite)))
+    (eshell-with-handles (eshell-aliases-file 'overwrite)
       (eshell/alias)
-      (eshell-set-exit-info 0 nil)
-      (eshell-close-handles))))
+      (eshell-set-exit-info 0 nil))))
 
 (defsubst eshell-lookup-alias (name)
   "Check whether NAME is aliased.  Return the alias if there is one."

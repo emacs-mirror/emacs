@@ -2699,7 +2699,8 @@ Sets `gdb-thread-number' to new id."
   (gdb-force-mode-line-update
    (propertize gdb-inferior-status 'face font-lock-type-face))
   (setq gdb-active-process t)
-  (setq gud-running t))
+  (setq gud-running t)
+  (gud-hide-current-line-indicator nil))
 
 ;; -break-insert -t didn't give a reason before gdb 6.9
 

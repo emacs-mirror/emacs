@@ -24,7 +24,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <assert.h>
 #include <string.h>
-#include <ctype.h>
 #include <stdlib.h>
 
 #include <sys/ptrace.h>
@@ -116,11 +115,11 @@ check_interpreter (const char *name, int fd, const char **extra)
 
   /* Strip leading whitespace.  */
   start = buffer;
-  while (*start && ((unsigned char) *start) < 128 && isspace (*start))
+  while (start < buffer + rc && (*start == ' ' || *start == '\t'))
     ++start;
 
   /* Look for a newline character.  */
-  end = memchr (start, '\n', rc);
+  end = memchr (start, '\n', buffer + rc - start);
 
   if (!end)
     goto fail;
@@ -130,11 +129,12 @@ check_interpreter (const char *name, int fd, const char **extra)
   *end = '\0';
 
   /* Now look for any whitespace characters.  */
-  ws = strchr (start, ' ');
+  for (ws = start; *ws && *ws != ' ' && *ws != '\t'; ws++)
+    continue;
 
   /* If there's no whitespace, return the entire start.  */
 
-  if (!ws)
+  if (!*ws)
     {
       if (lseek (fd, 0, SEEK_SET))
 	goto fail;

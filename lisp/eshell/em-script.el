@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'esh-mode)
+(require 'esh-cmd)
 (require 'esh-io)
 
 ;;;###esh-module-autoload
@@ -127,10 +128,9 @@ Comments begin with `#'."
     (with-temp-buffer
       (eshell-mode)
       (eshell-do-eval
-       `(let ((eshell-current-handles
-               (eshell-create-handles ,stdout 'insert ,stderr 'insert))
-              (eshell-current-subjob-p))
-          ,(eshell--source-file file args))
+       `(eshell-with-handles (',stdout 'insert ',stderr 'insert)
+          (let ((eshell-current-subjob-p))
+            ,(eshell--source-file file args)))
        t))))
 
 (cl-defstruct (eshell-princ-target
@@ -175,11 +175,9 @@ top in order to make it into an executable script:
     (with-temp-buffer
       (eshell-mode)
       (eshell-do-eval
-       `(let ((eshell-current-handles
-               (eshell-create-handles "/dev/stdout" 'append
-                                      "/dev/stderr" 'append))
-              (eshell-current-subjob-p))
-          ,(eshell--source-file file args))
+       `(eshell-with-handles ("/dev/stdout" 'append "/dev/stderr" 'append)
+          (let ((eshell-current-subjob-p))
+            ,(eshell--source-file file args)))
        t))))
 
 (defun eshell/source (file &rest args)

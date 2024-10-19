@@ -55,14 +55,8 @@ General steps (for each step, check for possible errors):
     because some of the commands below run Make, so they need
     Makefiles to be present.
 
-    For Emacs 28 and later, as long as --with-native-compilation is
-    not the default, the tree needs to be configured with
-    native-compilation enabled, to ensure all the pertinent *.elc
-    files will end up in the tarball.  Otherwise, the *.eln files
-    might not build correctly on the user's system.
-
       ./autogen.sh
-      ./configure --with-native-compilation && make
+      ./configure --without-native-compilation && make
 
     For a release (as opposed to pretest), visit etc/NEWS and use the
     "M-x emacs-news-delete-temporary-markers" command to delete any
@@ -95,11 +89,14 @@ General steps (for each step, check for possible errors):
       CHANGELOG_HISTORY_INDEX_MAX = N
 
     by incrementing the value of N by 1; then regenerate Makefile.
-    After bumping N, you need to actually create and commit
-    ChangeLog.N with the updated N, otherwise "M-x authors" below will
-    fail.  The easiest way of creating the new ChangeLog.N is to
-    rename the file ChangeLog (without the .N suffix) left over from
-    the last major release (it is usually unversioned) and commit it.
+    After bumping N, you need to actually create and commit ChangeLog.N
+    with the updated N, otherwise "M-x authors" below will fail.  The
+    easiest way of creating the new ChangeLog.N is to rename the file
+    ChangeLog (without the .N suffix) left over from the last release
+    (it is usually unversioned) and commit it, together with the
+    modified Makefile.in.  If you don't have the unversioned ChangeLog
+    file from the last release, you can take it from the release
+    tarball.
 
     Now:
 
@@ -137,38 +134,40 @@ General steps (for each step, check for possible errors):
     of the format "Bump Emacs version to ...", so that the commit can
     be skipped when merging branches (see admin/gitmerge.el).
 
-    The final pretest should be a release candidate.
-    Before a release candidate is made, the tasks listed in
-    admin/release-process must be completed.
+    If this is a final pretest before the release:
 
-    Set the version number to that of the actual release (commit in
-    one, as described above).  Pick a date about a week from now when
-    you intend to make the release.  Use M-x add-release-logs from
-    admin/admin.el to add entries to etc/HISTORY and the ChangeLog
-    file.  It's best not to commit these files until the release is
-    actually made.  Merge the entries from (unversioned) ChangeLog
-    into the top of the current versioned ChangeLog.N and commit that
-    along with etc/HISTORY.  Then you can tag that commit as the
-    release.
+      The final pretest should be a release candidate.
+      Before a release candidate is made, the tasks listed in
+      admin/release-process must be completed.
 
-    Alternatively, you can commit and tag with the RC tag right away,
-    and delay the final tagging until you actually decide to make a
-    release and announce it.  The "git tag" command can tag a specific
-    commit if you give it the SHA1 of that commit, even if additional
-    commits have been pushed in the meantime.
+      Set the version number to that of the actual release (commit in
+      one, as described above).  Pick a date about a week from now when
+      you intend to make the release.  Use M-x add-release-logs from
+      admin/admin.el to add entries to etc/HISTORY and the ChangeLog
+      file.  It's best not to commit these files until the release is
+      actually made.  Merge the entries from (unversioned) ChangeLog
+      into the top of the current versioned ChangeLog.N and commit that
+      along with etc/HISTORY.  Then you can tag that commit as the
+      release.
 
-    Name the tar file as emacs-XX.Y-rc1.tar.  If all goes well in the
-    following week, you can simply rename the file and use it for the
-    actual release.  If you need another release candidate, remember
-    to adjust the ChangeLog and etc/HISTORY entries.
+      Alternatively, you can commit and tag with the RC tag right away,
+      and delay the final tagging until you actually decide to make a
+      release and announce it.  The "git tag" command can tag a specific
+      commit if you give it the SHA1 of that commit, even if additional
+      commits have been pushed in the meantime.
 
-    If you need to change only a file(s) that cannot possibly affect
-    the build (README, ChangeLog, NEWS, etc.) then rather than doing
-    an entirely new build, it is better to unpack the existing
-    tarfile, modify the file(s), and tar it back up again.
+      Name the tar file as emacs-XX.Y-rc1.tar.  If all goes well in the
+      following week, you can simply rename the file and use it for the
+      actual release.  If you need another release candidate, remember
+      to adjust the ChangeLog and etc/HISTORY entries.
 
-    Never replace an existing tarfile!  If you need to fix something,
-    always upload it with a different name.
+      If you need to change only a file(s) that cannot possibly affect
+      the build (README, ChangeLog, NEWS, etc.) then rather than doing
+      an entirely new build, it is better to unpack the existing
+      tarfile, modify the file(s), and tar it back up again.
+
+      Never replace an existing tarfile!  If you need to fix something,
+      always upload it with a different name.
 
 4.    autoreconf -i -I m4 --force
       make bootstrap
@@ -205,7 +204,10 @@ General steps (for each step, check for possible errors):
     should be committed separately, as described in step 3 above, to
     avoid them being merged to master.  The lisp/ldefs-boot.el file
     should not be merged to master either, so it could be added to the
-    same commit or committed separately.
+    same commit or committed separately.  To make sure the changes to
+    ChangeLog.N and etc/AUTHORS are _not_ skipped, do NOT describe their
+    updates as "regenerate" or "re-generate", since gitmerge.el by
+    default skips such commits; instead, use "update" or some such.
 
     The easiest way of doing that is "C-x v d ROOT-DIR RET", then go
     to the first modified file, press 'M' to mark all modified files,

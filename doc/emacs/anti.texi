@@ -71,7 +71,7 @@ tool bars on the bottom.  For the same reasons @code{modifier-bar-mode}
 is now gone.
 
 @item
-The command @code{recover-file} no longer allows to display the diffs
+The command @code{recover-file} no longer lets you display the diffs
 between a file and its auto-save file.  You either want to recover a
 file or you don't; confusing users with a third alternative when they
 are anxious already by the possibility of losing precious edits is

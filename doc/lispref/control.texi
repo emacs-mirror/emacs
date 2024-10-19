@@ -537,6 +537,7 @@ sometimes ``the value matches the pattern'').
 * Extending @code{pcase}: Extending pcase.  Define new kinds of patterns.
 * Backquote-Style Patterns: Backquote Patterns.  Structural patterns matching.
 * Destructuring with pcase Patterns:: Using pcase patterns to extract subfields.
+* The @code{cond*} macro: cond* Macro.  Alternative to @code{pcase}.
 @end menu
 
 @node pcase Macro
@@ -1407,6 +1408,145 @@ argument:
 (funcall fun '(foo . 2))
     @result{} [foo 20]
 @end example
+@end defmac
+
+@node cond* Macro
+@subsection The @code{cond*} macro
+@findex cond*@r{, a macro}
+
+  The @code{cond*} macro is an alternative to @code{pcase}, and supports
+the same functionality, but using syntax that some might find less
+cryptic.
+
+@defmac cond* &rest clauses
+The @code{cond*} macro is an extended form of the traditional
+@code{cond}.  A @code{cond*} expression contains a series of
+@var{clauses}, each of which can use @code{bind*} to specify binding
+variables, use @code{match*} to specify matching a pattern as a
+condition, or specify an expression as a condition to evaluate as a
+test.
+
+Each clause normally has the form @w{@code{(@var{condition}
+@var{body}@dots{})}}.
+
+@var{condition} can be a Lisp expression, as in @code{cond}
+(@pxref{Conditionals}).  Or it can be @w{@code{(bind*
+@var{bindings}@dots{})}} or @w{@code{(match* @var{pattern}
+@var{datum})}}.
+
+@findex bind*
+@code{(bind* @var{bindings}@dots{})} means to bind @var{bindings} (like
+the bindings list in @code{let*}, @pxref{Local Variables}) for the body
+of the clause.  As a condition, it counts as true if the first binding's
+value is non-@code{nil}.
+
+@findex match*
+@code{(match* @var{pattern} @var{datum})} means to match @var{datum}
+against the specified @var{pattern}.  The condition counts as true if
+@var{pattern} matches @var{datum}.  The pattern can specify variables to
+bind to the parts of @var{datum} that they match.
+
+Both @code{bind*} and @code{match*} normally bind their bindings over
+the execution of the whole containing clause.  However, if the clause is
+written to specify ``non-exit'', the clause's bindings cover the whole
+rest of the @code{cond*}.
+
+When a clause's condition is true, and it exits the @code{cond*} or is
+the last clause, the value of the last expression in the clause's body
+becomes the return value of the @code{cond*} construct.
+
+@subheading Non-exit clause
+
+If a clause has only one element, or if its first element is @code{t},
+or if it ends with the keyword @code{:non-exit}, then this clause never
+exits the @code{cond*} construct.  Instead, control falls through to the
+next clause (if any).  The bindings made in @var{condition} for the
+@var{body} of the non-exit clause are passed along to the rest of the
+clauses in this @code{cond*} construct.
+
+@subheading Matching clauses
+
+A matching clause looks like @code{(match* @var{pattern} @var{datum})}.
+It evaluates the expression @var{datum} and matches the pattern
+@var{pattern} (which is not evaluated) against it.
+
+@var{pattern} allows these kinds of patterns, and those that are lists
+often include other patters within them:
+
+@table @code
+@item _
+Matches any value.
+@item @var{keyword}
+Matches that keyword.
+@item nil
+Matches @code{nil}.
+@item t
+Matches @code{t}.
+@item @var{symbol}
+Matches any value and binds @var{symbol} to that value.  If @var{symbol}
+has been matched and bound earlier in this pattern, it matches here the
+same value that it matched before.
+@item @var{regexp}
+Matches a string if @var{regexp} matches it.  The match must cover the
+entire string from its first char to its last.
+@item @var{atom}
+(Meaning any other kind of non-list not described above.)  Matches
+anything `equal' to it.
+@item (rx @var{regexp})
+Uses a regexp specified in s-expression form, as in the function
+@code{rx} (@pxref{Rx Notation}, and matches the data that way.
+@item (rx @var{regexp} @var{sym0} @var{sym1}@dots{})
+Uses a regexp specified in s-expression form, and binds the symbols
+@var{sym0}, @var{sym1}, and so on to @w{@code{(match-string 0
+@var{datum})}}, @w{@code{(match-string 1 @var{datum})}}, and so on.  You
+can use as many @var{sym}s as regexp matching supports.
+@item `@var{object}
+Matches any value @code{equal} to @var{object}.
+@item (cons @var{carpat} @code{cdrpat})
+Matches a cons cell if @var{carpat} matches its @code{car} and
+@var{cdrpat} matches its @code{cdr}.
+@item (list @var{eltpats}@dots{})
+Matches a list if the @var{eltpats} match its elements.  The first
+@var{eltpat} should match the list's first element.  The second
+@var{eltpat} should match the list's second element.  And so on.
+@item (vector @var{eltpats}@dots{})
+Matches a vector if the @var{eltpats} match its elements.  The first
+@var{eltpat} should match the vector's first element.  The second
+@var{eltpat} should match the vector's second element.  And so on.
+@item (cdr @var{pattern})
+Matches @var{pattern} with strict checking of @code{cdr}s.  That means
+that @code{list} patterns verify that the final @code{cdr} is
+@code{nil}.  Strict checking is the default.
+@item (cdr-safe @var{pattern})
+Matches @var{pattern} with lax checking of @code{cdr}s.  That means that
+@code{list} patterns do not examine the final @code{cdr}.
+@item (and @var{conjuncts}@dots{})
+Matches each of the @var{conjuncts} against the same data.  If all of
+them match, this pattern succeeds.  If one @var{conjunct} fails, this
+pattern fails and does not try more @var{conjuncts}.
+@item (or @var{disjuncts}@dots{})
+Matches each of the @var{disjuncts} against the same data.  If one
+@var{disjunct} succeeds, this pattern succeeds and does not try more
+@var{disjuncts}.  If all of them fail, this pattern fails.
+@item (@var{cond*-expander} @dots{})
+Here the @code{car} is a symbol that has a @code{cond*-expander}
+property which defines how to handle it in a pattern.  The property
+value is a function.  Trying to match such a pattern calls that function
+with one argument, the pattern in question (including its @code{car}).
+The function should return an equivalent pattern to be matched instead.
+@item (@var{predicate} @var{symbol})
+Matches datum if @code{(@var{predicate} @var{datum})} is true, then
+binds @var{symbol} to @var{datum}.
+@item (@var{predicate} @var{SYMBOL} @var{more-args}@dots{})
+Matches datum if @w{@code{(@var{predicate} @var{datum}
+@var{more-args}@dots{})}} is true, then binds @var{symbol} to
+@var{datum}.  @var{more-args}@dots{} can refer to symbols bound earlier
+in the pattern.
+@item (constrain @var{symbol} @var{exp})
+Matches datum if the form @var{exp} is true.  @var{exp} can refer to
+symbols bound earlier in the pattern.
+@end table
+
 @end defmac
 
 @node Iteration

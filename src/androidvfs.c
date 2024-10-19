@@ -259,7 +259,7 @@ struct android_special_vnode
   Lisp_Object special_coding_system;
 };
 
-verify (NIL_IS_ZERO); /* special_coding_system above.  */
+static_assert (NIL_IS_ZERO); /* special_coding_system above.  */
 
 enum android_vnode_type
   {
@@ -1323,7 +1323,7 @@ android_hack_asset_fd_fallback (AAsset *asset)
   if (fd < 0)
     return -1;
 
-  if (unlink (filename))
+  if (unlink (filename) && errno != ENOENT)
     goto fail;
 
   if (ftruncate (fd, size))
@@ -2599,9 +2599,10 @@ android_content_name (struct android_vnode *vnode, char *name,
     component_end++;
 
   /* Now, find out if the first component is a special vnode; if so,
-     call its root lookup function with the rest of NAME there.  */
+     call its root lookup function with the rest of NAME there.  What is
+     more, content files are inaccessible in the absence of a GUI.  */
 
-  if (api < 19)
+  if (api < 19 || !android_init_gui)
     i = 3;
   else if (api < 21)
     i = 1;

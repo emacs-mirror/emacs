@@ -1027,7 +1027,21 @@ there is no mode that supports @var{num} colors, Emacs acts as if
 @var{num} were 0, i.e., it uses the terminal's default color support
 mode.
 @end table
+
+This option has no effect on MS-Windows and MS-DOS.
+
+@cindex colors on character terminal, changing during session
+@cindex character terminal, change color mode
+@vindex tty-color-mode@r{, frame parameter}
 If @var{mode} is omitted, it defaults to @var{ansi8}.
+
+The color mode can be changed dynamically during a running Emacs
+session: the current mode is available via the @code{tty-color-mode}
+frame parameter, and it can be changed by modifying that frame
+parameter.@footnote{
+This does not work on MS-Windows and MS-DOS text-mode terminals.
+}  This means you can also specify the initial value via
+@code{default-frame-alist} instead of the command-line option.
 @end table
 
   For example, to use a coral mouse cursor and a slate blue text cursor,

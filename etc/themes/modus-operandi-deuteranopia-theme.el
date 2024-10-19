@@ -134,22 +134,30 @@ standard)."
       (bg-magenta-nuanced "#f8e6f5")
       (bg-cyan-nuanced    "#e0f2fa")
 
-;;; Uncommon accent backgrounds
+;;; Uncommon accent background and foreground pairs
 
-      (bg-ochre    "#f0e0cc")
-      (bg-lavender "#dfdbfa")
+      (bg-clay     "#f1c8b5")
+      (fg-clay     "#63192a")
+
+      (bg-ochre    "#f0e3c0")
+      (fg-ochre    "#573a30")
+
+      (bg-lavender "#dfcdfa")
+      (fg-lavender "#443379")
+
       (bg-sage     "#c0e7d4")
+      (fg-sage     "#124b41")
 
 ;;; Graphs
 
       (bg-graph-red-0     "#d0b029")
       (bg-graph-red-1     "#e0cab4")
-      (bg-graph-green-0   "#8ad080")
+      (bg-graph-green-0   "#8ac050")
       (bg-graph-green-1   "#afdfa5")
       (bg-graph-yellow-0  "#ffcf00")
       (bg-graph-yellow-1  "#f9ff00")
       (bg-graph-blue-0    "#7f9fff")
-      (bg-graph-blue-1    "#9fc6ff")
+      (bg-graph-blue-1    "#afd0ff")
       (bg-graph-magenta-0 "#b0b0d0")
       (bg-graph-magenta-1 "#d0dfdf")
       (bg-graph-cyan-0    "#6faad9")
@@ -248,19 +256,24 @@ standard)."
 
 ;;;; Code mappings
 
+      (bracket fg-main)
       (builtin magenta-warmer)
       (comment yellow-cooler)
       (constant blue-cooler)
-      (docstring green-faint)
+      (delimiter fg-main)
       (docmarkup magenta-faint)
+      (docstring green-faint)
       (fnname magenta)
       (keyword magenta-cooler)
+      (number fg-main)
+      (operator fg-main)
       (preprocessor red-cooler)
+      (punctuation fg-main)
+      (rx-backslash blue-cooler)
+      (rx-construct yellow-cooler)
       (string blue-warmer)
       (type cyan-cooler)
       (variable cyan)
-      (rx-construct yellow-cooler)
-      (rx-backslash blue-cooler)
 
 ;;;; Accent mappings
 
@@ -482,6 +495,19 @@ as a symbol and the latter as a string.
 Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
 exists in the palette and is associated with a HEX-VALUE.")
+
+  (defcustom modus-operandi-deuteranopia-palette-user nil
+    "Like the `modus-operandi-deuteranopia-palette' for user-defined entries.
+This is meant to extend the palette with custom named colors and/or
+semantic palette mappings.  Those may then be used in combination with
+palette overrides (also see `modus-themes-common-palette-overrides' and
+`modus-operandi-deuteranopia-palette-overrides')."
+    :group 'modus-themes
+    :package-version '(modus-themes . "4.5.0")
+    :type '(repeat (list symbol (choice symbol string)))
+    :set #'modus-themes--set-option
+    :initialize #'custom-initialize-default
+    :link '(info-link "(modus-themes) Option to extend the palette for use with overrides"))
 
   (defcustom modus-operandi-deuteranopia-palette-overrides nil
     "Overrides for `modus-operandi-deuteranopia-palette'.

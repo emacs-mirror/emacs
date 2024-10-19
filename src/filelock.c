@@ -271,36 +271,39 @@ lock_file_1 (Lisp_Object lfname, bool force)
   intmax_t boot = get_boot_sec ();
   Lisp_Object luser_name = Fuser_login_name (Qnil);
   Lisp_Object lhost_name = Fsystem_name ();
-
-  /* Protect against the extremely unlikely case of the host name
-     containing an @ character.  */
-  if (!NILP (lhost_name) && strchr (SSDATA (lhost_name), '@'))
-    lhost_name = CALLN (Ffuncall, Qstring_replace,
-			build_string ("@"), build_string ("-"),
-			lhost_name);
-
   char const *user_name = STRINGP (luser_name) ? SSDATA (luser_name) : "";
   char const *host_name = STRINGP (lhost_name) ? SSDATA (lhost_name) : "";
   char lock_info_str[MAX_LFINFO + 1];
   intmax_t pid = getpid ();
 
-  char const *lock_info_fmt = (boot
-			       ? "%s@%s.%"PRIdMAX":%"PRIdMAX
-			       : "%s@%s.%"PRIdMAX);
-  int len = snprintf (lock_info_str, sizeof lock_info_str,
-		      lock_info_fmt, user_name, host_name, pid, boot);
+  int room = sizeof lock_info_str;
+  int len = snprintf (lock_info_str, room, "%s@", user_name);
   if (! (0 <= len && len < sizeof lock_info_str))
     return ENAMETOOLONG;
-
+  /* Protect against the extremely unlikely case of the host name
+     containing an @ character.  */
+  for (; *host_name; len++, host_name++)
+    {
+      if (! (len < sizeof lock_info_str - 1))
+	return ENAMETOOLONG;
+      lock_info_str[len] = *host_name == '@' ? '-' : *host_name;
+    }
+  char const *lock_info_fmt = boot ? ".%"PRIdMAX":%"PRIdMAX : ".%"PRIdMAX;
+  room = sizeof lock_info_str - len;
+  int suffixlen = snprintf (lock_info_str + len, room,
+			    lock_info_fmt, pid, boot);
+  if (! (0 <= suffixlen && suffixlen < room))
+    return ENAMETOOLONG;
   return create_lock_file (SSDATA (lfname), lock_info_str, force);
 }
 
 /* Return true if times A and B are no more than one second apart.  */
 
 static bool
-within_one_second (time_t a, time_t b)
+within_one_second (intmax_t a, time_t b)
 {
-  return (a - b >= -1 && a - b <= 1);
+  intmax_t diff;
+  return !ckd_sub (&diff, a, b) && -1 <= diff && diff <= 1;
 }
 
 /* On systems lacking ELOOP, test for an errno value that shouldn't occur.  */
@@ -383,9 +386,6 @@ static int
 current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
 {
   lock_info_type local_owner;
-  ptrdiff_t lfinfolen;
-  intmax_t pid, boot_time;
-  char *at, *dot, *lfinfo_end;
 
   /* Even if the caller doesn't want the owner info, we still have to
      read it to determine return value.  */
@@ -393,95 +393,115 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
     owner = &local_owner;
 
   /* If nonexistent lock file, all is well; otherwise, got strange error. */
-  lfinfolen = read_lock_data (SSDATA (lfname), owner->user);
+  ptrdiff_t lfinfolen = read_lock_data (SSDATA (lfname), owner->user);
   if (lfinfolen < 0)
     return errno == ENOENT || errno == ENOTDIR ? 0 : errno;
-  if (MAX_LFINFO < lfinfolen)
-    return ENAMETOOLONG;
-  owner->user[lfinfolen] = 0;
 
-  /* Parse USER@HOST.PID:BOOT_TIME.  If can't parse, return EINVAL.  */
-  /* The USER is everything before the last @.  */
-  owner->at = at = memrchr (owner->user, '@', lfinfolen);
-  if (!at)
-    return EINVAL;
-  owner->dot = dot = strrchr (at, '.');
-  if (!dot)
-    return EINVAL;
-
-  /* The PID is everything from the last '.' to the ':' or equivalent.  */
-  if (! integer_prefixed (dot + 1))
-    return EINVAL;
-  errno = 0;
-  pid = strtoimax (dot + 1, &owner->colon, 10);
-  if (errno == ERANGE)
-    pid = -1;
-
-  /* After the ':' or equivalent, if there is one, comes the boot time.  */
-  char *boot = owner->colon + 1;
-  switch (owner->colon[0])
+  /* If the lock file seems valid, return a value based on its contents.  */
+  if (lfinfolen)
     {
-    case 0:
-      boot_time = 0;
-      lfinfo_end = owner->colon;
-      break;
+      if (MAX_LFINFO < lfinfolen)
+	return ENAMETOOLONG;
+      owner->user[lfinfolen] = 0;
 
-    case '\357':
-      /* Treat "\357\200\242" (U+F022 in UTF-8) as if it were ":" (Bug#24656).
-	 This works around a bug in the Linux CIFS kernel client, which can
-	 mistakenly transliterate ':' to U+F022 in symlink contents.
-	 See <https://bugzilla.redhat.com/show_bug.cgi?id=1384153>.  */
-      if (! (boot[0] == '\200' && boot[1] == '\242'))
+      /* Parse USER@HOST.PID:BOOT_TIME.  If can't parse, return EINVAL.  */
+      /* The USER is everything before the last @.  */
+      char *at = memrchr (owner->user, '@', lfinfolen);
+      if (!at)
 	return EINVAL;
-      boot += 2;
-      FALLTHROUGH;
-    case ':':
-      if (! integer_prefixed (boot))
+      owner->at = at;
+      char *dot = strrchr (at, '.');
+      if (!dot)
 	return EINVAL;
-      boot_time = strtoimax (boot, &lfinfo_end, 10);
-      break;
+      owner->dot = dot;
 
-    default:
-      return EINVAL;
-    }
-  if (lfinfo_end != owner->user + lfinfolen)
-    return EINVAL;
+      /* The PID is everything from the last '.' to the ':' or equivalent.  */
+      if (! integer_prefixed (dot + 1))
+	return EINVAL;
+      errno = 0;
+      intmax_t pid = strtoimax (dot + 1, &owner->colon, 10);
+      if (errno == ERANGE)
+	pid = -1;
 
-  Lisp_Object system_name = Fsystem_name ();
-  /* If `system-name' returns nil, that means we're in a
-     --no-build-details Emacs, and the name part of the link (e.g.,
-     .#test.txt -> larsi@.118961:1646577954) is an empty string.  */
-  if (NILP (system_name))
-    system_name = build_string ("");
-  /* Protect against the extremely unlikely case of the host name
-     containing an @ character.  */
-  else if (strchr (SSDATA (system_name), '@'))
-    system_name = CALLN (Ffuncall, intern ("string-replace"),
-			 build_string ("@"), build_string ("-"),
-			 system_name);
-  /* On current host?  */
-  if (STRINGP (system_name)
-      && dot - (at + 1) == SBYTES (system_name)
-      && memcmp (at + 1, SSDATA (system_name), SBYTES (system_name)) == 0)
-    {
-      if (pid == getpid ())
-        return I_OWN_IT;
-      else if (VALID_PROCESS_ID (pid)
-               && (kill (pid, 0) >= 0 || errno == EPERM)
-	       && (boot_time == 0
-		   || (boot_time <= TYPE_MAXIMUM (time_t)
-		       && within_one_second (boot_time, get_boot_sec ()))))
-        return ANOTHER_OWNS_IT;
-      /* The owner process is dead or has a strange pid, so try to
-         zap the lockfile.  */
+      /* After the ':' or equivalent, if there is one, comes the boot time.  */
+      intmax_t boot_time;
+      char *boot = owner->colon + 1, *lfinfo_end;
+      switch (owner->colon[0])
+	{
+	case 0:
+	  boot_time = 0;
+	  lfinfo_end = owner->colon;
+	  break;
+
+	case '\357':
+	  /* Treat "\357\200\242" (U+F022 in UTF-8) like ":" (Bug#24656).
+	     This works around a bug in the Linux CIFS kernel client, which can
+	     mistakenly transliterate ':' to U+F022 in symlink contents.
+	     See <https://bugzilla.redhat.com/show_bug.cgi?id=1384153>.  */
+	  if (! (boot[0] == '\200' && boot[1] == '\242'))
+	    return EINVAL;
+	  boot += 2;
+	  FALLTHROUGH;
+	case ':':
+	  if (! integer_prefixed (boot))
+	    return EINVAL;
+	  boot_time = strtoimax (boot, &lfinfo_end, 10);
+	  break;
+
+	default:
+	  return EINVAL;
+	}
+      if (lfinfo_end != owner->user + lfinfolen)
+	return EINVAL;
+
+      char *linkhost = at + 1;
+      ptrdiff_t linkhostlen = dot - linkhost;
+      Lisp_Object system_name = Fsystem_name ();
+      /* If `system-name' returns nil, that means we're in a
+	 --no-build-details Emacs, and the name part of the link (e.g.,
+	 .#test.txt -> larsi@.118961:1646577954) is an empty string.  */
+      bool on_current_host;
+      if (NILP (system_name))
+	on_current_host = linkhostlen == 0;
       else
-        return emacs_unlink (SSDATA (lfname)) < 0 ? errno : 0;
+	{
+	  on_current_host = linkhostlen == SBYTES (system_name);
+	  if (on_current_host)
+	    {
+	      /* Protect against the extremely unlikely case of the host
+		 name containing '@'.  */
+	      char *sysname = SSDATA (system_name);
+	      for (ptrdiff_t i = 0; i < linkhostlen; i++)
+		if (linkhost[i] != (sysname[i] == '@' ? '-' : sysname[i]))
+		  {
+		    on_current_host = false;
+		    break;
+		  }
+	    }
+	}
+      if (!on_current_host)
+	{
+	  /* Not on current host.  If we wanted to support the check for
+	     stale locks on remote machines, here's where we'd do it.  */
+	  return ANOTHER_OWNS_IT;
+	}
+
+      if (pid == getpid ())
+	return I_OWN_IT;
+
+      if (VALID_PROCESS_ID (pid)
+	  && ! (kill (pid, 0) < 0 && errno != EPERM)
+	  && (boot_time == 0
+	      || within_one_second (boot_time, get_boot_sec ())))
+	return ANOTHER_OWNS_IT;
     }
-  else
-    { /* If we wanted to support the check for stale locks on remote machines,
-         here's where we'd do it.  */
-      return ANOTHER_OWNS_IT;
-    }
+
+  /* The owner process is dead or has a strange pid, or the lock file is empty.
+     Try to zap the lockfile.  If the lock file is empty, this assumes
+     the file system is buggy, e.g., <https://bugs.gnu.org/72641>.
+     Emacs never creates empty lock files even temporarily, so removing
+     an empty lock file should be harmless.  */
+  return emacs_unlink (SSDATA (lfname)) < 0 && errno != ENOENT ? errno : 0;
 }
 
 

@@ -126,9 +126,8 @@ First item is a regexp that describes where to find the path in a prompt.
 Second is a number, the regexp group to match."
   :type  '(sexp (regexp  :tag "Prompt Expression")
 		(integer :tag "Regexp Group"))
+  :local t
   :version "24.1")
-
-(make-variable-buffer-local 'dirtrack-list)
 
 (defcustom dirtrack-debug nil
   "If non-nil, the function `dirtrack' will report debugging info."

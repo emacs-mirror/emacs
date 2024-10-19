@@ -36,6 +36,7 @@
 ;; FIXME: Clean up namespace usage!
 
 (declare-function frameset-register-p "frameset")
+(declare-function dired-current-directory "dired")
 
 (cl-defstruct
   (registerv (:constructor nil)
@@ -300,6 +301,18 @@ If NOCONFIRM is non-nil, request confirmation of register name by RET."
    :act 'set
    :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
+(cl-defmethod register-command-info ((_command (eql file-to-register)))
+  (make-register-preview-info
+   :types '(all)
+   :msg "File to register `%s'"
+   :act 'set
+   :noconfirm (memq register-use-preview '(nil never))))
+(cl-defmethod register-command-info ((_command (eql buffer-to-register)))
+  (make-register-preview-info
+   :types '(all)
+   :msg "Buffer to register `%s'"
+   :act 'set
+   :noconfirm (memq register-use-preview '(nil never))))
 
 (defun register-preview-forward-line (arg)
   "Move to next or previous line in register preview buffer.
@@ -672,7 +685,6 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
 Push the mark if going to the location moves point, unless called in succession.
 If the register contains a file name, find that file.
 If the register contains a buffer name, switch to that buffer.
-\(To put a file or buffer name in a register, you must use `set-register'.)
 If the register contains a window configuration (one frame) or a frameset
 \(all frames), restore the configuration of that frame or of all frames
 accordingly.
@@ -687,6 +699,44 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
 		     current-prefix-arg))
   (let ((val (get-register register)))
     (register-val-jump-to val delete)))
+
+(defun file-to-register (file-name register)
+  "Insert FILE-NAME into REGISTER.
+To visit the file, use \\[jump-to-register].
+
+Interactively, prompt for REGISTER using `register-read-with-preview'.
+With a prefix-argument, prompt for FILE-NAME using `read-file-name',
+With no prefix-argument, use the currently visited file or directory
+for FILE-NAME."
+  (interactive (list (if (eq current-prefix-arg nil)
+                         (if (eq major-mode 'dired-mode)
+                             (dired-current-directory)
+                           (buffer-file-name))
+                       (read-file-name "File: "))
+                (register-read-with-preview "File to register: ")))
+  (unless (eq file-name nil)
+    (set-register register (cons 'file file-name))))
+
+(defun buffer-to-register (buffer register)
+  "Store reference to BUFFER in REGISTER.
+To visit the buffer, use \\[jump-to-register].
+
+Interactively, use current buffer as BUFFER, and prompt for REGISTER.
+With a prefix argument, prompt for BUFFER as well."
+  (interactive
+   (let ((buffer
+          (if current-prefix-arg
+              (get-buffer (read-buffer "Store reference to buffer"
+                                       (current-buffer) t))
+            (current-buffer))))
+     (list buffer
+           (register-read-with-preview
+            (substitute-quotes
+             (format "Store reference to buffer `%s' in register: "
+                     (buffer-name buffer)))))))
+  (with-current-buffer buffer
+    (add-hook 'kill-buffer-hook #'register-buffer-to-file-query nil t))
+  (set-register register (cons 'buffer buffer)))
 
 (cl-defgeneric register-val-jump-to (_val _arg)
   "Execute the \"jump\" operation of VAL.
@@ -738,6 +788,18 @@ ARG is the value of the prefix argument or nil."
 		      (list 'file-query
 			    buffer-file-name
 			    (marker-position (cdr elem))))))))
+
+(defun register-buffer-to-file-query ()
+  "Turn buffer registers into file-query references when a buffer is killed."
+  (and buffer-file-name
+       (dolist (elem register-alist)
+         (and (consp (cdr elem))
+              (eq (current-buffer) (cddr elem))
+              (setcdr elem
+                      (list 'file-query
+                            buffer-file-name
+                            (point)))))))
+
 
 (defun number-to-register (number register)
   "Store NUMBER in REGISTER.

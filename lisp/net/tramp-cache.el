@@ -103,13 +103,16 @@ details see the info pages."
   :version "24.4"
   :type '(repeat (list (choice :tag "File Name regexp" regexp (const nil))
 		       (choice :tag "        Property" string)
-		       (choice :tag "           Value" sexp))))
+		       (choice :tag "           Value" sexp)))
+  :link '(info-link :tag "Tramp manual"
+		    "(tramp) Predefined connection information"))
 
 ;;;###tramp-autoload
 (defcustom tramp-persistency-file-name (locate-user-emacs-file "tramp")
   "File which keeps connection history for Tramp connections."
   :group 'tramp
-  :type 'file)
+  :type 'file
+  :link '(info-link :tag "Tramp manual" "(tramp) Connection caching"))
 
 ;;;###tramp-autoload
 (defconst tramp-cache-version (make-tramp-file-name :method "cache")
@@ -122,12 +125,13 @@ details see the info pages."
 (defconst tramp-cache-undefined 'undef
   "The symbol marking undefined hash keys and values.")
 
+;;;###tramp-autoload
 (defun tramp-get-hash-table (key)
   "Return the hash table for KEY.
 If it doesn't exist yet, it is created and initialized with
 matching entries of `tramp-connection-properties'.
 If KEY is `tramp-cache-undefined', don't create anything, and return nil."
-  (declare (tramp-suppress-trace t))
+  ;; (declare (tramp-suppress-trace t))
   (unless (eq key tramp-cache-undefined)
     (or (gethash key tramp-cache-data)
 	(let ((hash
@@ -139,6 +143,11 @@ If KEY is `tramp-cache-undefined', don't create anything, and return nil."
 		     (tramp-make-tramp-file-name key 'noloc))
 		(tramp-set-connection-property key (nth 1 elt) (nth 2 elt)))))
 	  hash))))
+
+;; We cannot use the `declare' form for `tramp-suppress-trace' in
+;; autoloaded functions, because the tramp-loaddefs.el generation
+;; would fail.
+(function-put #'tramp-get-hash-table 'tramp-suppress-trace t)
 
 ;;;###tramp-autoload
 (defun tramp-get-file-property (key file property &optional default)
@@ -607,7 +616,8 @@ example if the host configuration changes often, or if you plug
 your laptop to different networks frequently."
   :group 'tramp
   :version "29.1"
-  :type 'boolean)
+  :type 'boolean
+  :link '(tramp-info-link :tag "Tramp manual" tramp-completion-use-cache))
 
 ;;;###tramp-autoload
 (defun tramp-parse-connection-properties (method)

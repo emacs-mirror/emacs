@@ -733,6 +733,8 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 Call `cl--find-class' to get TYPE's propname `cl--class'"
   (cl--find-class type))
 
+(declare-function help-fns--setup-xref-backend "help-fns" ())
+
 ;;;###autoload
 (defun cl-describe-type (type &optional _buf _frame)
   "Display the documentation for type TYPE (a symbol)."
@@ -753,6 +755,7 @@ Call `cl--find-class' to get TYPE's propname `cl--class'"
             ;; cl-deftype).
             (user-error "Unknown type %S" type))))
       (with-current-buffer standard-output
+        (help-fns--setup-xref-backend)
         ;; Return the text we displayed.
         (buffer-string)))))
 

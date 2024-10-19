@@ -53,13 +53,15 @@ size is this value or above (up to `tramp-copy-size-limit' for
 out-of-band methods).
 If it is nil, no compression at all will be applied."
   :group 'tramp
-  :type '(choice (const nil) integer))
+  :type '(choice (const nil) integer)
+  :link '(info-link :tag "Tramp manual" "(tramp) Inline methods"))
 
 (defcustom tramp-copy-size-limit 10240
   "Maximum file size where inline copying is preferred to an out-of-the-band copy.
 If it is nil, out-of-the-band copy will be used without a check."
   :group 'tramp
-  :type '(choice (const nil) integer))
+  :type '(choice (const nil) integer)
+  :link '(info-link :tag "Tramp manual" "(tramp) External methods"))
 
 ;;;###tramp-autoload
 (defcustom tramp-histfile-override "~/.tramp_history"
@@ -76,7 +78,8 @@ the default storage location, e.g. \"$HOME/.sh_history\"."
   :version "25.2"
   :type '(choice (const :tag "Do not override HISTFILE" nil)
                  (const :tag "Unset HISTFILE" t)
-                 (string :tag "Redirect to a file")))
+                 (string :tag "Redirect to a file"))
+  :link '(info-link :tag "Tramp manual" "(tramp) Managing remote shell history"))
 
 (put 'tramp-histfile-override 'permanent-local t)
 
@@ -116,7 +119,8 @@ Set it to `suppress' if you want to disable settings in your
                  (const :tag "Don't set ControlMaster" nil)
                  (const :tag "Suppress ControlMaster" suppress))
   ;; Check with (safe-local-variable-p 'tramp-use-connection-share 'suppress)
-  :safe (lambda (val) (and (memq val '(t nil suppress)) t)))
+  :safe (lambda (val) (and (memq val '(t nil suppress)) t))
+  :link '(info-link :tag "Tramp manual" "(tramp) Using ssh connection sharing"))
 
 (defvar tramp-ssh-controlmaster-options nil
   "Which ssh Control* arguments to use.
@@ -154,7 +158,9 @@ The string is used in `tramp-methods'.")
   "Whether to use direct copying between two remote hosts."
   :group 'tramp
   :version "29.1"
-  :type 'boolean)
+  :type 'boolean
+  :link '(tramp-info-link :tag "Tramp manual"
+			  tramp-use-scp-direct-remote-copying))
 
 ;; Initialize `tramp-methods' with the supported methods.
 ;;;###tramp-autoload
@@ -587,7 +593,8 @@ for tilde expansion.  The extra arguments should typically prevent the
 shell from reading its init file."
   :group 'tramp
   :version "30.1"
-  :type '(alist :key-type regexp :value-type string))
+  :type '(alist :key-type regexp :value-type string)
+  :link '(info-link :tag "Tramp manual" "(tramp) Remote shell setup"))
 
 ;;;###tramp-autoload
 (defconst tramp-actions-before-shell
@@ -2020,48 +2027,55 @@ ID-FORMAT valid values are `string' and `integer'."
 	  (t2 (tramp-tramp-file-p newname))
 	  target)
       (with-parsed-tramp-file-name (if t1 dirname newname) nil
-	(unless (file-exists-p dirname)
-	  (tramp-error v 'file-missing dirname))
+	(cond
+	 ((and copy-directory-create-symlink
+	       (setq target (file-symlink-p dirname))
+	       (tramp-equal-remote dirname newname))
+	  (make-symbolic-link
+	   target
+	   (if (directory-name-p newname)
+	       (concat newname (file-name-nondirectory dirname)) newname)
+	   t))
 
-	(if (and copy-directory-create-symlink
-		 (setq target (file-symlink-p dirname))
-		 (tramp-equal-remote dirname newname))
-	    (make-symbolic-link
-	     target
-	     (if (directory-name-p newname)
-		 (concat newname (file-name-nondirectory dirname)) newname)
-	     t)
+	 ;; Shortcut: if method, host, user are the same for both
+	 ;; files, we invoke `cp' on the remote host directly.
+	 ((and (not copy-contents)
+	       (tramp-equal-remote dirname newname))
+	  (when (and (file-directory-p newname)
+		     (not (directory-name-p newname)))
+	    (tramp-error v 'file-already-exists newname))
+	  (setq dirname (directory-file-name (expand-file-name dirname))
+		newname (directory-file-name (expand-file-name newname)))
+	  (tramp-do-copy-or-rename-file-directly
+	   'copy dirname newname
+	   'ok-if-already-exists keep-date 'preserve-uid-gid))
 
-	  (if (and (not copy-contents)
-		   (tramp-get-method-parameter v 'tramp-copy-recursive)
-		   ;; When DIRNAME and NEWNAME are remote, they must
-		   ;; have the same method.
-		   (or (null t1) (null t2)
-		       (string-equal
-			(tramp-file-name-method
-			 (tramp-dissect-file-name dirname))
-			(tramp-file-name-method
-			 (tramp-dissect-file-name newname)))))
-	      ;; scp or rsync DTRT.
-	      (progn
-		(when (and (file-directory-p newname)
-			   (not (directory-name-p newname)))
-		  (tramp-error v 'file-already-exists newname))
-		(setq dirname (directory-file-name (expand-file-name dirname))
-		      newname (directory-file-name (expand-file-name newname)))
-		(when (and (file-directory-p newname)
-			   (not (string-equal (file-name-nondirectory dirname)
-					      (file-name-nondirectory newname))))
-		  (setq newname
-			(expand-file-name
-			 (file-name-nondirectory dirname) newname)))
-		(unless (file-directory-p (file-name-directory newname))
-		  (make-directory (file-name-directory newname) parents))
-		(tramp-do-copy-or-rename-file-out-of-band
-		 'copy dirname newname 'ok-if-already-exists keep-date))
+	 ;; scp or rsync DTRT.
+	 ((and (not copy-contents)
+	       (tramp-get-method-parameter v 'tramp-copy-recursive)
+	       ;; When DIRNAME and NEWNAME are remote, they must have
+	       ;; the same method.
+	       (or (null t1) (null t2)
+		   (string-equal
+		    (tramp-file-name-method (tramp-dissect-file-name dirname))
+		    (tramp-file-name-method (tramp-dissect-file-name newname)))))
+	  (when (and (file-directory-p newname)
+		     (not (directory-name-p newname)))
+	    (tramp-error v 'file-already-exists newname))
+	  (setq dirname (directory-file-name (expand-file-name dirname))
+		newname (directory-file-name (expand-file-name newname)))
+	  (when (and (file-directory-p newname)
+		     (not (string-equal (file-name-nondirectory dirname)
+					(file-name-nondirectory newname))))
+	    (setq newname
+		  (expand-file-name (file-name-nondirectory dirname) newname)))
+	  (unless (file-directory-p (file-name-directory newname))
+	    (make-directory (file-name-directory newname) parents))
+	  (tramp-do-copy-or-rename-file-out-of-band
+	   'copy dirname newname 'ok-if-already-exists keep-date))
 
-	    ;; We must do it file-wise.
-	    (tramp-run-real-handler
+	 ;; We must do it file-wise.
+	 (t (tramp-run-real-handler
 	     #'copy-directory
 	     (list dirname newname keep-date parents copy-contents))))
 

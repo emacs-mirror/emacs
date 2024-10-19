@@ -19,9 +19,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <math.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 /* Include this before including <setjmp.h> to work around bugs with
    older libpng; see Bug#17429.  */
@@ -63,11 +65,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
-
-/* Work around GCC bug 54561.  */
-#if GNUC_PREREQ (4, 3, 0)
-# pragma GCC diagnostic ignored "-Wclobbered"
-#endif
 
 #ifdef HAVE_X_WINDOWS
 typedef struct x_bitmap_record Bitmap_Record;
@@ -6267,6 +6264,26 @@ xpm_str_to_color_key (const char *s)
   return -1;
 }
 
+static int
+xpm_str_to_int (char **buf)
+{
+  char *p;
+
+  errno = 0;
+  long result = strtol (*buf, &p, 10);
+  if (errno || p == *buf || result < INT_MIN || result > INT_MAX)
+    return -1;
+
+  /* Error out if we see something like "12x3xyz".  */
+  if (!c_isspace (*p) && *p != '\0')
+    return -1;
+
+  /* Update position to read next integer.  */
+  *buf = p;
+
+  return result;
+}
+
 static bool
 xpm_load_image (struct frame *f,
                 struct image *img,
@@ -6324,10 +6341,14 @@ xpm_load_image (struct frame *f,
     goto failure;
   memcpy (buffer, beg, len);
   buffer[len] = '\0';
-  if (sscanf (buffer, "%d %d %d %d", &width, &height,
-	      &num_colors, &chars_per_pixel) != 4
-      || width <= 0 || height <= 0
-      || num_colors <= 0 || chars_per_pixel <= 0)
+  char *next_int = buffer;
+  if ((width = xpm_str_to_int (&next_int)) <= 0)
+    goto failure;
+  if ((height = xpm_str_to_int (&next_int)) <= 0)
+    goto failure;
+  if ((num_colors = xpm_str_to_int (&next_int)) <= 0)
+    goto failure;
+  if ((chars_per_pixel = xpm_str_to_int (&next_int)) <= 0)
     goto failure;
 
   if (!check_image_size (f, width, height))
@@ -8206,7 +8227,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   bool transparent_p;
   struct png_memory_storage tbr;  /* Data to be read */
   ptrdiff_t nbytes;
-  Emacs_Pix_Container ximg, mask_img = NULL;
+  Emacs_Pix_Container ximg;
 
   /* Find out what file to load.  */
   specified_file = image_spec_value (img->spec, QCfile, NULL);
@@ -8297,9 +8318,12 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 
   /* Set error jump-back.  We come back here when the PNG library
      detects an error.  */
+
+  struct png_load_context *volatile c_volatile = c;
   if (FAST_SETJMP (PNG_JMPBUF (png_ptr)))
     {
     error:
+      c = c_volatile;
       if (c->png_ptr)
 	png_destroy_read_struct (&c->png_ptr, &c->info_ptr, &c->end_info);
       xfree (c->pixels);
@@ -8308,6 +8332,13 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 	emacs_fclose (c->fp);
       return 0;
     }
+
+#if GCC_LINT && __GNUC__ && !__clang__
+  /* These useless assignments pacify GCC 14.2.1 x86-64
+     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=21161>.  */
+  c = c_volatile;
+  fp = c->fp;
+#endif
 
   /* Read image info.  */
   if (!NILP (specified_data))
@@ -8435,6 +8466,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 
   /* Create an image and pixmap serving as mask if the PNG image
      contains an alpha channel.  */
+  Emacs_Pix_Container mask_img = NULL;
   if (channels == 4
       && transparent_p
       && !image_create_x_image_and_pixmap (f, img, width, height, 1,
@@ -8930,13 +8962,13 @@ jpeg_load_body (struct frame *f, struct image *img,
 		struct my_jpeg_error_mgr *mgr)
 {
   Lisp_Object specified_file, specified_data;
-  FILE *volatile fp = NULL;
+  FILE *fp = NULL;
   JSAMPARRAY buffer;
   int row_stride, x, y;
   int width, height;
   int i, ir, ig, ib;
   unsigned long *colors;
-  Emacs_Pix_Container ximg = NULL;
+  Emacs_Pix_Container volatile ximg_volatile = NULL;
 
   /* Open the JPEG file.  */
   specified_file = image_spec_value (img->spec, QCfile, NULL);
@@ -8971,8 +9003,15 @@ jpeg_load_body (struct frame *f, struct image *img,
      error is detected.  This function will perform a longjmp.  */
   mgr->cinfo.err = jpeg_std_error (&mgr->pub);
   mgr->pub.error_exit = my_error_exit;
+  struct my_jpeg_error_mgr *volatile mgr_volatile = mgr;
+  struct image *volatile img_volatile = img;
+  FILE *volatile fp_volatile = fp;
   if (sys_setjmp (mgr->setjmp_buffer))
     {
+      mgr = mgr_volatile;
+      img = img_volatile;
+      fp = fp_volatile;
+
       switch (mgr->failure_code)
 	{
 	case MY_JPEG_ERROR_EXIT:
@@ -8998,12 +9037,21 @@ jpeg_load_body (struct frame *f, struct image *img,
       jpeg_destroy_decompress (&mgr->cinfo);
 
       /* If we already have an XImage, free that.  */
+      Emacs_Pix_Container ximg = ximg_volatile;
       if (ximg)
 	image_destroy_x_image (ximg);
       /* Free pixmap and colors.  */
       image_clear_image (f, img);
       return 0;
     }
+
+#if GCC_LINT && __GNUC__ && !__clang__
+  /* These useless assignments pacify GCC 14.2.1 x86-64
+     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=21161>.  */
+  mgr = mgr_volatile;
+  img = img_volatile;
+  fp = fp_volatile;
+#endif
 
   /* Create the JPEG decompression object.  Let it read from fp.
 	 Read the JPEG image header.  */
@@ -9031,7 +9079,11 @@ jpeg_load_body (struct frame *f, struct image *img,
     }
 
   /* Create X image and pixmap.  */
-  if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0))
+  Emacs_Pix_Container ximg;
+  bool ximg_ok = image_create_x_image_and_pixmap (f, img, width, height, 0,
+						  &ximg, 0);
+  ximg_volatile = ximg;
+  if (!ximg_ok)
     {
       mgr->failure_code = MY_JPEG_CANNOT_CREATE_X;
       sys_longjmp (mgr->setjmp_buffer, 1);

@@ -26,6 +26,36 @@ Eglot will now try to not register $/progress messages from the server
 when the defcustom is set to nil.  This requires a restart of the server
 for the change to take effect.
 
+** LSP MarkedString interface is now supported (bug#71353)
+
+Some servers still use this deprecated interface for communicating
+documentation snippets.
+
+** Fixes to completion logic (bug#68699, github#1339, github#1349)
+
+These affect mostly the "vanilla" frontend to completions (invoked with
+C-M-i).
+
+** More strict completion expansion (bug#72705).
+
+It ensures that "expand common" commands (such as C-M-i or TAB in
+third-party frontends) don't result in fewer completions than before
+they are called.
+
+** Experimental support for Eglot-only subprojects (github#1337)
+
+Useful for complex projects with subprojects needing different language
+servers.  See associated github issue
+https://github.com/joaotavora/eglot/discussions/1337 for examples.
+
+** New servers have been added to 'eglot-server-programs'.
+
+- blueprint (bug#70015)
+- BasedPyright (bug#69925)
+- move-analyzer (bug#69796)
+- millet
+- nushell (bug#68823)
+
 
 * Changes in Eglot 1.17 (25/1/2024)
 

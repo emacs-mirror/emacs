@@ -5073,7 +5073,7 @@ ns_set_vertical_scroll_bar (struct window *window,
   window_box (window, ANY_AREA, 0, &window_y, 0, &window_height);
   top = window_y;
   height = window_height;
-  width = NS_SCROLL_BAR_WIDTH (f);
+  width = WINDOW_SCROLL_BAR_AREA_WIDTH (window);
   left = WINDOW_SCROLL_BAR_AREA_X (window);
 
   r = NSMakeRect (left, top, width, height);
@@ -5167,7 +5167,7 @@ ns_set_horizontal_scroll_bar (struct window *window,
   window_box (window, ANY_AREA, &window_x, 0, &window_width, 0);
   left = window_x;
   width = window_width;
-  height = NS_SCROLL_BAR_HEIGHT (f);
+  height = WINDOW_SCROLL_BAR_AREA_HEIGHT (window);
   top = WINDOW_SCROLL_BAR_AREA_Y (window);
 
   r = NSMakeRect (left, top, width, height);
@@ -5205,7 +5205,7 @@ ns_set_horizontal_scroll_bar (struct window *window,
      it fills with junk.  */
   if (!NILP (window->vertical_scroll_bar))
     ns_clear_frame_area (f, WINDOW_SCROLL_BAR_AREA_X (window), top,
-                         NS_SCROLL_BAR_HEIGHT (f), height);
+                         WINDOW_SCROLL_BAR_AREA_WIDTH (window), height);
 
   if (update_p)
     [bar setPosition: position portion: portion whole: whole];
@@ -7983,10 +7983,12 @@ ns_in_echo_area (void)
     dpyinfo->ns_focus_frame = *emacsframe;
 
   ns_frame_rehighlight (*emacsframe);
+  [self adjustEmacsFrameRect];
 
   event.kind = FOCUS_IN_EVENT;
   XSETFRAME (event.frame_or_window, *emacsframe);
   kbd_buffer_store_event (&event);
+  ns_send_appdefined (-1);  // Kick main loop
 }
 
 
@@ -8094,6 +8096,10 @@ ns_in_echo_area (void)
 #ifdef NS_IMPL_COCOA
   old_title = 0;
   maximizing_resize = NO;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 140000
+  /* Restore to default before macOS 14 (bug#72440).  */
+  [self setClipsToBounds: YES];
+#endif
 #endif
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400

@@ -2413,6 +2413,13 @@ the converse is not always true.
 @end group
 @end example
 
+The @code{equal} function compares strings and bool-vectors by value.
+Numbers are compared by type and numeric value, using @code{eql}.
+Lists, cons cells, vectors, records, markers, char-tables, font objects,
+and function objects (closures)@footnote{However, equality of distinct
+function objects cannot be guaranteed in general.} are compared
+recursively by using @code{equal} on their constituent parts.
+
 Comparison of strings is case-sensitive, but does not take account of
 text properties---it compares only the characters in the strings.
 @xref{Text Properties}.  Use @code{equal-including-properties} to also
@@ -2427,10 +2434,6 @@ same sequence of character codes and all these codes are in the range
      @result{} nil
 @end group
 @end example
-
-The @code{equal} function recursively compares the contents of objects
-if they are integers, strings, markers, vectors, bool-vectors,
-byte-code function objects, char-tables, records, or font objects.
 
 If @var{object1} or @var{object2} contains symbols with position,
 @code{equal} treats them as if they were their bare symbols when

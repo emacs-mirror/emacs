@@ -102,7 +102,7 @@
   "Total number of seconds to wait in between steps.
 This is added to the total time it takes to run `animate-string'
 to ensure that the animation is not too fast to be seen."
-  :type 'float
+  :type 'number
   :version "29.1")
 
 (defvar animation-buffer-name nil

@@ -111,6 +111,7 @@
 
 (require 'pcvs-util)
 (require 'easy-mmode)
+(require 'log-edit)
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-diff-internal "vc")
 
@@ -543,11 +544,28 @@ If called interactively, visit the version at point."
 (defun log-view-modify-change-comment ()
   "Edit the change comment displayed at point."
   (interactive)
-  (vc-modify-change-comment (list (if log-view-per-file-logs
-				      (log-view-current-file)
-				    (car log-view-vc-fileset)))
-			    (log-view-current-tag)
-			    (log-view-extract-comment)))
+  (let* ((files (list (if log-view-per-file-logs
+			  (log-view-current-file)
+		        (car log-view-vc-fileset))))
+         (rev (log-view-current-tag))
+         ;; `log-view-extract-comment' is the legacy code for this; the
+         ;; `get-change-comment' backend action is the new way to do it.
+         (comment (condition-case _
+                      (vc-call-backend log-view-vc-backend
+                                       'get-change-comment files rev)
+                    (vc-not-supported (log-view-extract-comment)))))
+    (when (memq 'log-edit-insert-message-template log-edit-hook)
+      (let* ((first-newline (string-match "\n" comment))
+             (summary (substring comment 0 first-newline))
+             (rest (and first-newline
+                        (substring comment (1+ first-newline)))))
+        (setq comment
+              ;; As we are part of the VC subsystem I think we are
+              ;; entitled to call a \\`log-edit--' function.
+              ;; --spwhitton
+              (concat (log-edit--make-header-line "Summary" summary)
+                      (if (length> rest 0) rest "\n")))))
+    (vc-modify-change-comment files rev comment)))
 
 (defun log-view-annotate-version (pos)
   "Annotate the version at POS.

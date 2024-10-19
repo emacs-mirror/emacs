@@ -236,6 +236,7 @@ If neither t nor nil, doesn't ask user."
 May either be a string or a list of strings.  If it is nil,
 symmetric encryption will be used."
   :type '(choice (const nil) (repeat :tag "Recipient(s)" string))
+  :local 'permanent-only
   :group 'plstore)
 
 ;;;###autoload
@@ -250,7 +251,6 @@ symmetric encryption will be used."
 			val)
 		  t)))))
 
-(put 'plstore-encrypt-to 'permanent-local t)
 
 (defvar plstore-encoded nil
   "Non-nil if the current buffer shows the decoded alist.") ; [sic!]

@@ -5270,7 +5270,9 @@ decode_coding_raw_text (struct coding_system *coding)
   coding->chars_at_source = 1;
   coding->consumed_char = coding->src_chars;
   coding->consumed = coding->src_bytes;
-  if (eol_dos && coding->source[coding->src_bytes - 1] == '\r')
+  if (eol_dos
+      && coding->src_bytes > 0	/* empty source text? */
+      && coding->source[coding->src_bytes - 1] == '\r')
     {
       coding->consumed_char--;
       coding->consumed--;

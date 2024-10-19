@@ -29,7 +29,6 @@ PDF_ENGLISH = \
 	orgcard.pdf \
 	refcard.pdf \
 	survival.pdf \
-	vipcard.pdf \
 	viperCard.pdf
 
 PDF_CZECH = \
@@ -295,12 +294,6 @@ survival.pdf: $(survival_deps)
 	$(ENVADD) pdftex survival.tex
 survival.dvi: $(survival_deps)
 	$(ENVADD) tex survival.tex
-
-vipcard_deps = vipcard.tex emacsver.tex pdflayout.sty
-vipcard.pdf: $(vipcard_deps)
-	$(ENVADD) pdftex vipcard.tex
-vipcard.dvi: $(vipcard_deps)
-	$(ENVADD) tex vipcard.tex
 
 vipercard_deps = viperCard.tex emacsver.tex pdflayout.sty
 viperCard.pdf: $(vipercard_deps)

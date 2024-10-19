@@ -1573,9 +1573,9 @@ syms_of_w32uniscribe_for_pdumper (void)
   pfnScriptGetGlyphABCWidth = &ScriptGetGlyphABCWidth;
   pfnScriptFreeCache = &ScriptFreeCache;
   pfnScriptGetCMap = &ScriptGetCMap;
+#endif /* Cygwin */
 
   uniscribe_available = 1;
-#endif /* Cygwin */
 
   register_font_driver (&uniscribe_font_driver, NULL);
 

@@ -91,9 +91,9 @@
 ;; UI-commands       : mpc-
 ;; internal          : mpc--
 
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'subr-x))
+(require 'cl-lib)
+
+(require 'notifications)
 
 (defgroup mpc ()
   "Client for the Music Player Daemon (mpd)."
@@ -460,6 +460,7 @@ which will be concatenated with proper quoting before passing them to MPD."
     (state  . mpc--faster-toggle-refresh) ;Only ffwd/rewind while play/pause.
     (volume . mpc-volume-refresh)
     (file   . mpc-songpointer-refresh)
+    (file   . mpc-notifications-notify)
     ;; The song pointer may need updating even if the file doesn't change,
     ;; if the same song appears multiple times in a row.
     (song   . mpc-songpointer-refresh)
@@ -467,8 +468,9 @@ which will be concatenated with proper quoting before passing them to MPD."
     (updating_db . mpc--status-timers-refresh)
     (t      . mpc-current-refresh))
   "Alist associating properties to the functions that care about them.
-Each entry has the form (PROP . FUN) where PROP can be t to mean
-to call FUN for any change whatsoever.")
+Each entry has the form (PROP . FUN) to call FUN (without arguments)
+whenever property PROP changes.  PROP can be t, which means to call
+FUN for any change whatsoever.")
 
 (defun mpc--status-callback ()
   (let ((old-status mpc-status))
@@ -992,7 +994,18 @@ If PLAYLIST is t or nil or missing, use the main playlist."
   (push file mpc-tempfiles))
 
 (defun mpc-format (format-spec info &optional hscroll)
-  "Format the INFO according to FORMAT-SPEC, inserting the result at point."
+  "Format the INFO according to FORMAT-SPEC, inserting the result at point.
+
+FORMAT-SPEC is a string that includes elements of the form
+'%-WIDTH{NAME-POST}' that get expanded to the value of
+property NAME.
+The first '-', WIDTH, and -POST are optional.
+% followed by the optional '-' means to right align the output.
+WIDTH limits the output to the specified number of characters by
+replacing any further output with a horizontal ellipsis.
+The optional -POST means to use the empty string if NAME is
+absent or else use the concatenation of the content of NAME with the
+string POST."
   (let* ((pos 0)
          (start (point))
          (col (if hscroll (- hscroll) 0))
@@ -1026,7 +1039,8 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                                                (substring time (match-end 0))
                                              time)))))
                     ('Cover
-                     (let ((dir (file-name-directory (cdr (assq 'file info)))))
+                     (let* ((file (alist-get 'file info))
+                            (dir (file-name-directory file)))
                        ;; (debug)
                        (setq pred
                              ;; We want the closure to capture the current
@@ -1037,12 +1051,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                                  (and (funcall oldpred info)
                                       (equal dir (file-name-directory
                                                   (cdr (assq 'file info))))))))
-                       (if-let* ((covers '(".folder.png" "folder.png" "cover.jpg" "folder.jpg"))
-                                 (cover (cl-loop for file in (directory-files (mpc-file-local-copy dir))
-                                                 if (or (member (downcase file) covers)
-                                                        (and mpc-cover-image-re
-                                                             (string-match mpc-cover-image-re file)))
-                                                 return (concat dir file)))
+                       (if-let* ((cover (mpc-cover-image-find file))
                                  (file (with-demoted-errors "MPC: %s"
                                          (mpc-file-local-copy cover))))
                            (let (image)
@@ -1121,6 +1130,20 @@ If PLAYLIST is t or nil or missing, use the main playlist."
     ;; last actual format specifier.
     (insert (substring format-spec pos))
     (put-text-property start (point) 'mpc--uptodate-p pred)))
+
+(defun mpc-cover-image-find (file)
+  "Find cover image for FILE in suitable MPC directory."
+  (when-let* ((default-directory mpc-mpd-music-directory)
+              (dir (mpc-file-local-copy (file-name-directory file)))
+              (files (directory-files dir))
+              (cover (seq-find #'mpc-cover-image-p files)))
+    (expand-file-name cover dir)))
+
+(defun mpc-cover-image-p (file)
+  "Check if FILE is a cover image suitable for MPC."
+  (let ((covers '(".folder.png" "folder.png" "cover.jpg" "folder.jpg")))
+    (or (member-ignore-case file covers)
+        (and mpc-cover-image-re (string-match-p mpc-cover-image-re file)))))
 
 ;;; The actual UI code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1549,9 +1572,10 @@ when constructing the set of constraints."
    (t (concat (symbol-name tag) "s"))))
 
 (defun mpc-tagbrowser-buf (tag)
-  (let ((buf (mpc-proc-buffer (mpc-proc) tag)))
+  (let ((buf (mpc-proc-buffer (mpc-proc) tag))
+        (tag-name (mpc-tagbrowser-tag-name tag)))
     (if (buffer-live-p buf) buf
-      (setq buf (get-buffer-create (format "*MPC %ss*" tag)))
+      (setq buf (get-buffer-create (format "*MPC %s*" tag-name)))
       (mpc-proc-buffer (mpc-proc) tag buf)
       (with-current-buffer buf
         (let ((inhibit-read-only t))
@@ -1562,7 +1586,7 @@ when constructing the set of constraints."
           (insert mpc-tagbrowser-all-name "\n"))
         (forward-line -1)
         (setq mpc-tag tag)
-        (setq mpc-tag-name (mpc-tagbrowser-tag-name tag))
+        (setq mpc-tag-name tag-name)
         (mpc-tagbrowser-all-select)
         (mpc-tagbrowser-refresh)
         buf))))
@@ -2765,6 +2789,60 @@ If stopped, start playback."
         (mpc-songs-refresh))
       (t
        (error "Unsupported drag'n'drop gesture"))))))
+
+;;; Notifications ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(declare-function notifications-notify "notifications")
+
+(defcustom mpc-notifications nil
+  "Non-nil means MPC should display notifications when the song changes."
+  :version "31.1"
+  :type 'boolean)
+
+(defcustom mpc-notifications-title
+  '("%{Title}" "Unknown Title")
+  "List of FORMAT-SPECs used in the notification title.
+
+The first element in the list that expands to a non-empty string
+will be used.  See `mpc-format' for the definition of FORMAT-SPEC."
+  :version "31.1"
+  :type '(repeat string))
+
+(defcustom mpc-notifications-body
+  '("%{Artist}" "%{AlbumArtist}" "Unknown Artist")
+  "List of FORMAT-SPEC used in the notification body.
+
+The first element in the list that expands to a non-empty string
+will be used.  See `mpc-format' for the definition of FORMAT-SPEC."
+  :version "31.1"
+  :type '(repeat string))
+
+(defvar mpc--notifications-id nil)
+
+(defun mpc--notifications-format (format-specs)
+  "Use FORMAT-SPECS to get string for use in notification."
+  (with-temp-buffer
+    (cl-some
+     (lambda (spec)
+       (mpc-format spec mpc-status)
+       (if (< (point-min) (point-max))
+           (buffer-string)))
+     format-specs)))
+
+(defun mpc-notifications-notify ()
+  "Display a notification with information about the current song."
+  (when-let* ((mpc-notifications)
+              ((notifications-get-server-information))
+              ((string= "play" (alist-get 'state mpc-status)))
+              (title (mpc--notifications-format mpc-notifications-title))
+              (body (mpc--notifications-format mpc-notifications-body))
+              (icon (or (mpc-cover-image-find (alist-get 'file mpc-status))
+                        notifications-application-icon)))
+    (setq mpc--notifications-id
+          (notifications-notify :title title
+                                :body body
+                                :app-icon icon
+                                :replaces-id mpc--notifications-id))))
 
 ;;; Toplevel ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

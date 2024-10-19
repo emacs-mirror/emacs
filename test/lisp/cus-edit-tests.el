@@ -90,7 +90,7 @@
               (erase-buffer))
             (setopt cus-edit-test-foo1 :foo)
             (buffer-substring-no-properties (point-min) (point-max)))))
-    (should (string-search "Value `:foo' does not match type number"
+    (should (string-search "Value `:foo' for variable `cus-edit-test-foo1' does not match its type \"number\""
                            warn-txt))))
 
 (defcustom cus-edit-test-bug63290-option nil

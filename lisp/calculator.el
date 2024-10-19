@@ -1059,49 +1059,50 @@ the `left' or `right' when one of the standard modes is used."
 (defun calculator-update-display (&optional force)
   "Update the display.
 If optional argument FORCE is non-nil, don't use the cached string."
-  (set-buffer calculator-buffer)
-  ;; update calculator-stack-display
-  (when (or force (not (eq (car calculator-stack-display)
-                           calculator-stack)))
-    (setq calculator-stack-display
-          (cons calculator-stack
-                (if calculator-stack
-                  (concat
-                   (let ((calculator-displayer
-                          (if (and calculator-displayers
-                                   (= 1 (length calculator-stack)))
-                            ;; customizable display for a single value
-                            (caar calculator-displayers)
-                            calculator-displayer)))
-                     (mapconcat 'calculator-number-to-string
-                                (reverse calculator-stack)
-                                " "))
-                   " "
-                   (and calculator-display-fragile
-                        calculator-saved-list
-                        ;; Hack: use `eq' to compare the number: it's a
-                        ;; flonum, so `eq' means that its the actual
-                        ;; number rather than a computation that had an
-                        ;; equal result (eg, enter 1,3,2, use "v" to see
-                        ;; the average -- it now shows "2" instead of
-                        ;; "2 [3]").
-                        (eq (car calculator-stack)
-                            (nth calculator-saved-ptr
-                                 calculator-saved-list))
-                        (if (= 0 calculator-saved-ptr)
-                          (format "[%s]" (length calculator-saved-list))
-                          (format "[%s/%s]"
-                                  (- (length calculator-saved-list)
-                                     calculator-saved-ptr)
-                                  (length calculator-saved-list)))))
-                  ""))))
-  (let ((inhibit-read-only t))
-    (erase-buffer)
-    (insert (calculator-get-display)))
-  (set-buffer-modified-p nil)
-  (goto-char (if calculator-display-fragile
-               (1+ (length calculator-prompt))
-               (1- (point)))))
+  (when (buffer-live-p calculator-buffer)
+    (set-buffer calculator-buffer)
+    ;; update calculator-stack-display
+    (when (or force (not (eq (car calculator-stack-display)
+                             calculator-stack)))
+      (setq calculator-stack-display
+            (cons calculator-stack
+                  (if calculator-stack
+                      (concat
+                       (let ((calculator-displayer
+                              (if (and calculator-displayers
+                                       (= 1 (length calculator-stack)))
+				  ;; customizable display for a single value
+				  (caar calculator-displayers)
+				calculator-displayer)))
+			 (mapconcat 'calculator-number-to-string
+                                    (reverse calculator-stack)
+                                    " "))
+                       " "
+                       (and calculator-display-fragile
+                            calculator-saved-list
+                            ;; Hack: use `eq' to compare the number: it's a
+                            ;; flonum, so `eq' means that its the actual
+                            ;; number rather than a computation that had an
+                            ;; equal result (eg, enter 1,3,2, use "v" to see
+                            ;; the average -- it now shows "2" instead of
+                            ;; "2 [3]").
+                            (eq (car calculator-stack)
+				(nth calculator-saved-ptr
+                                     calculator-saved-list))
+                            (if (= 0 calculator-saved-ptr)
+				(format "[%s]" (length calculator-saved-list))
+                              (format "[%s/%s]"
+                                      (- (length calculator-saved-list)
+					 calculator-saved-ptr)
+                                      (length calculator-saved-list)))))
+                    ""))))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (insert (calculator-get-display)))
+    (set-buffer-modified-p nil)
+    (goto-char (if calculator-display-fragile
+		   (1+ (length calculator-prompt))
+		 (1- (point))))))
 
 ;;;---------------------------------------------------------------------
 ;;; Stack computations
@@ -1553,17 +1554,18 @@ a multiplication."
 (defun calculator-quit ()
   "Quit calculator."
   (interactive)
-  (set-buffer calculator-buffer)
-  (let ((inhibit-read-only t)) (erase-buffer))
-  (unless calculator-electric-mode
-    (ignore-errors
-      (while (get-buffer-window calculator-buffer)
-        (delete-window (get-buffer-window calculator-buffer)))))
-  (kill-buffer calculator-buffer)
-  (message "Calculator done.")
-  (if calculator-electric-mode
-    (throw 'calculator-done nil) ; will kill the buffer
-    (setq calculator-buffer nil)))
+  (when (buffer-live-p calculator-buffer)
+    (set-buffer calculator-buffer)
+    (let ((inhibit-read-only t)) (erase-buffer))
+    (unless calculator-electric-mode
+      (ignore-errors
+	(while (get-buffer-window calculator-buffer)
+          (delete-window (get-buffer-window calculator-buffer)))))
+    (kill-buffer calculator-buffer)
+    (message "Calculator done.")
+    (if calculator-electric-mode
+	(throw 'calculator-done nil)		; will kill the buffer
+      (setq calculator-buffer nil))))
 
 (defun calculator-save-and-quit ()
   "Quit the calculator, saving the result on the `kill-ring'."

@@ -532,6 +532,8 @@ Message buffer where you can explain more about the patch."
     (view-mode 1)
     (button-mode 1))
   (compose-mail-other-window report-emacs-bug-address subject)
+  (rfc822-goto-eoh)
+  (insert "X-Debbugs-Cc: \n")
   (message-goto-body)
   (insert "\n\n\n")
   (emacs-build-description)

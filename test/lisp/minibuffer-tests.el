@@ -306,13 +306,20 @@
            6)))
 
 (ert-deftest completion-substring-test-5 ()
-  ;; merge-completions needs to work correctly when
+  ;; Normally a `prefix' wildcard ignores the common prefix to its
+  ;; left, since it only grows the common suffix; but if that common
+  ;; prefix is also a common suffix, it should be included.
   (should (equal
-           (completion-pcm--merge-completions '("ab" "sab") '(prefix "b"))
-           '("b" "a" prefix)))
+           (completion-pcm--merge-try '(prefix "b") '("ab" "sab") "" "")
+           '("ab" . 2)))
   (should (equal
-           (completion-pcm--merge-completions '("ab" "ab") '(prefix "b"))
-           '("b" "a")))
+           (completion-pcm--merge-try '(prefix "b") '("ab" "ab") "" "")
+           '("ab" . 2)))
+  ;; When there's a fixed string before `prefix', that fixed string
+  ;; should always be included.
+  (should (equal
+           (completion-pcm--merge-try '("a" prefix "b") '("axb" "ayb") "" "")
+           '("ab" . 2)))
   ;; substring completion should successfully complete the entire string
   (should (equal
            (completion-substring-try-completion "b" '("ab" "ab") nil 0)

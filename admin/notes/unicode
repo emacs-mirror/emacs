@@ -30,6 +30,9 @@ Emacs also uses the file emoji-test.txt which should be imported from
 the Unicode's Public/emoji/ directory, and IdnaMappingTable.txt from
 the Public/idna/ directory.
 
+"admin/unidata/README" contains the URLs that can be used to download
+these files.
+
 First, the first 15 files, emoji-test.txt and IdnaMappingTable.txt
 need to be copied into admin/unidata/, and the file
 https://www.unicode.org/copyright.html should be copied over
@@ -100,12 +103,18 @@ Specifically, the values of 'ucs-normalize-composition-exclusions' and
 verified against the latest Unicode data files.
 
 Next, test normalization functions against NormalizationTests.txt,
-in the test/ directory run:
+in the top-level directory run:
 
-  make lisp/international/ucs-normalize-tests
+  make -C test lisp/international/ucs-normalize-tests
 
 See commentary in test/lisp/international/ucs-normalize-tests.el
 regarding failing lines.
+
+Changes in UTS#46 and other relevant Unicode data might break our
+features that detect confusable and suspicious text, so run
+test/lisp-international/textsec-tests to check that:
+
+  make -C test lisp/international/textsec-tests
 
 The file BidiCharacterTest.txt should be copied to the test suite, and
 if its format has changed, the file biditest.el there should be

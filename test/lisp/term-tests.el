@@ -28,25 +28,18 @@
 (defvar term-height)                    ; Number of lines in window.
 (defvar term-width)                     ; Number of columns in window.
 
-(defvar yellow-fg-props
-  `( :foreground ,(face-foreground 'term-color-yellow nil 'default)
-     :background "unspecified-bg" :inverse-video nil))
-(defvar yellow-bg-props
-  `( :foreground "unspecified-fg"
-     :background ,(face-background 'term-color-yellow nil 'default)
-     :inverse-video nil))
-(defvar bright-yellow-fg-props
-  `( :foreground ,(face-foreground 'term-color-bright-yellow nil 'default)
-     :background "unspecified-bg" :inverse-video nil))
-(defvar bright-yellow-bg-props
-  `( :foreground "unspecified-fg"
-     :background ,(face-background 'term-color-bright-yellow nil 'default)
-     :inverse-video nil))
-(defvar custom-color-fg-props
-  `( :foreground "#87FFFF"
-     :background "unspecified-bg" :inverse-video nil))
+(defconst yellow-fg-props
+  `(:foreground ,(face-foreground 'term-color-yellow nil 'default)))
+(defconst yellow-bg-props
+  `(:background ,(face-background 'term-color-yellow nil 'default)))
+(defconst bright-yellow-fg-props
+  `(:foreground ,(face-foreground 'term-color-bright-yellow nil 'default)))
+(defconst bright-yellow-bg-props
+  `(:background ,(face-background 'term-color-bright-yellow nil 'default)))
+(defconst custom-color-fg-props
+  `(:foreground "#87FFFF"))
 
-(defvar ansi-test-strings
+(defconst ansi-test-strings
   `(("\e[33mHello World\e[0m"
      ,(propertize "Hello World" 'font-lock-face `(,yellow-fg-props)))
     ("\e[43mHello World\e[0m"

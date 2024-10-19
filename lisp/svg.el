@@ -331,7 +331,6 @@ If the SVG is later changed, the image will also be updated."
         (insert (format " %s=\"%s\"" (car attr) (cdr attr)))))
     (insert ">")
     (dolist (elem (nthcdr 2 dom))
-      (insert " ")
       (svg-print elem))
     (insert (format "</%s>" (car dom)))))
 

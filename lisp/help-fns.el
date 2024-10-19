@@ -85,14 +85,14 @@ current help buffer.")
 
 (defun help-definition-prefixes ()
   "Return the up-to-date radix-tree form of `definition-prefixes'."
-  (when (> (hash-table-count definition-prefixes) 0)
+  (when (and (null help-definition-prefixes)
+             (> (hash-table-count definition-prefixes) 0))
     (maphash (lambda (prefix files)
                (let ((old (radix-tree-lookup help-definition-prefixes prefix)))
                  (setq help-definition-prefixes
                        (radix-tree-insert help-definition-prefixes
                                           prefix (append old files)))))
-             definition-prefixes)
-    (clrhash definition-prefixes))
+             definition-prefixes))
   help-definition-prefixes)
 
 (defun help--loaded-p (file)
@@ -112,6 +112,7 @@ current help buffer.")
   (pcase-dolist (`(,prefix . ,files) prefixes)
     (setq help-definition-prefixes
           (radix-tree-insert help-definition-prefixes prefix nil))
+    (remhash prefix definition-prefixes)
     (dolist (file files)
       ;; FIXME: Should we scan help-definition-prefixes to remove
       ;; other prefixes of the same file?
@@ -206,9 +207,12 @@ type specifier when available."
         ,@(when completions-detailed
             '((affixation-function . help--symbol-completion-table-affixation)))
         (category . symbol-help))
-    (when help-enable-completion-autoload
+    (when (and help-enable-completion-autoload
+               (memq action '(nil t lambda)))
       (let ((prefixes (radix-tree-prefixes (help-definition-prefixes) string)))
-        (help--load-prefixes prefixes)))
+        ;; Don't load FOO.el during `test-completion' of `FOO-'.
+        (unless (and (eq action 'lambda) (assoc string prefixes))
+          (help--load-prefixes prefixes))))
     (let ((prefix-completions
            (and help-enable-completion-autoload
                 (mapcar #'intern (all-completions string definition-prefixes)))))
@@ -262,6 +266,23 @@ interactive command."
                   fn))
     (list fn)))
 
+(declare-function project-combine-directories "project" (&rest lists))
+
+(cl-defmethod xref-backend-references ((_backend (eql 'elisp)) identifier
+                                       &context (major-mode help-mode))
+  (mapcan
+   (lambda (dir)
+     (message "Searching %s..." dir)
+     (redisplay)
+     (prog1
+         (xref-references-in-directory identifier dir)
+       (message "Searching %s... done" dir)))
+   (project-combine-directories (elisp-load-path-roots))))
+
+(defun help-fns--setup-xref-backend ()
+  (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
+  (setq-local semantic-symref-filepattern-alist '((help-mode "*.el"))))
+
 ;;;###autoload
 (defun describe-function (function)
   "Display the full documentation of FUNCTION (a symbol).
@@ -295,6 +316,8 @@ handling of autoloaded functions."
         (princ " is ")
         (describe-function-1 function)
         (with-current-buffer standard-output
+          (help-fns--setup-xref-backend)
+
           ;; Return the text we displayed.
           (buffer-string))))))
 
@@ -869,6 +892,21 @@ the C sources, too."
     ))
 
 
+(defun help-fns--first-release-override (symbol type)
+  "The first release defining SYMBOL of TYPE, or nil.
+TYPE indicates the namespace and is `fun' or `var'."
+  (let* ((sym-rel-file (expand-file-name "symbol-releases.eld" data-directory))
+         (tuples
+          (with-temp-buffer
+            (ignore-errors
+              (insert-file-contents sym-rel-file)
+              (goto-char (point-min))
+              (read (current-buffer))))))
+    (unless (cl-every (lambda (x) (and (= (length x) 3) (stringp (car x))))
+                      tuples)
+      (error "Bad %s format" sym-rel-file))
+    (car (rassoc (list type symbol) tuples))))
+
 (defun help-fns--first-release (symbol)
   "Return the likely first release that defined SYMBOL, or nil."
   ;; Code below relies on the etc/NEWS* files.
@@ -949,16 +987,24 @@ the C sources, too."
 ;;       (display-buffer (current-buffer)))))
 
 (add-hook 'help-fns-describe-function-functions
-          #'help-fns--mention-first-release)
+          #'help-fns--mention-first-function-release)
 (add-hook 'help-fns-describe-variable-functions
-          #'help-fns--mention-first-release)
-(defun help-fns--mention-first-release (object)
+          #'help-fns--mention-first-variable-release)
+
+(defun help-fns--mention-first-function-release (object)
+  (help-fns--mention-first-release object 'fun))
+
+(defun help-fns--mention-first-variable-release (object)
   ;; Don't output anything if we've already output the :version from
   ;; the `defcustom'.
   (unless (memq 'help-fns--customize-variable-version
                 help-fns--activated-functions)
-    (when-let ((first (and (symbolp object)
-                           (help-fns--first-release object))))
+    (help-fns--mention-first-release object 'var)))
+
+(defun help-fns--mention-first-release (object type)
+  (when (symbolp object)
+    (when-let ((first (or (help-fns--first-release-override object type)
+                          (help-fns--first-release object))))
       (with-current-buffer standard-output
         (insert (format "  Probably introduced at or before Emacs version %s.\n"
                         first))))))
@@ -999,17 +1045,41 @@ the C sources, too."
         (fill-region-as-paragraph (point-min) (point-max))
         (goto-char (point-max))))))
 
+(require 'radix-tree)
+
+(defconst help-fns--radix-trees
+  (make-hash-table :weakness 'key :test 'equal)
+  "Cache of radix-tree representation of `load-path'.")
+
+(defun help-fns--filename (file)
+  (let ((f (abbreviate-file-name (expand-file-name file))))
+    (if (file-name-case-insensitive-p f) (downcase f) f)))
+
+(defun help-fns--radix-tree (dirs)
+  (with-memoization (gethash dirs help-fns--radix-trees)
+    (let ((rt radix-tree-empty))
+      (dolist (d dirs)
+        (let ((d (help-fns--filename (file-name-as-directory d))))
+          (setq rt (radix-tree-insert rt d t))))
+      rt)))
+
 (defun help-fns-short-filename (filename)
-  (let* ((abbrev (abbreviate-file-name filename))
-         (short abbrev))
-    (dolist (dir load-path)
-      (let ((rel (file-relative-name filename dir)))
-        (if (< (length rel) (length short))
-            (setq short rel)))
-      (let ((rel (file-relative-name abbrev dir)))
-        (if (< (length rel) (length short))
-            (setq short rel))))
-    short))
+  (let* ((short (help-fns--filename filename))
+         (prefixes (radix-tree-prefixes (help-fns--radix-tree load-path)
+                                        (file-name-directory short))))
+    (if (not prefixes)
+        ;; The file is not inside the `load-path'.
+        ;; FIXME: Here's the old code (too slow, bug#73766),
+        ;; which used to try and shorten it with "../" as well.
+        ;; (dolist (dir load-path)
+        ;;   (let ((rel (file-relative-name filename dir)))
+        ;;     (if (< (length rel) (length short))
+        ;;         (setq short rel)))
+        ;;   (let ((rel (file-relative-name abbrev dir)))
+        ;;     (if (< (length rel) (length short))
+        ;;         (setq short rel))))
+        short
+      (file-relative-name short (caar prefixes)))))
 
 (defun help-fns--analyze-function (function)
   ;; FIXME: Document/explain the differences between FUNCTION,
@@ -1487,6 +1557,7 @@ it is displayed along with the global value."
                     (delete-char 1)))))
 
 	    (with-current-buffer standard-output
+              (help-fns--setup-xref-backend)
 	      ;; Return the text we displayed.
 	      (buffer-string))))))))
 
@@ -1507,9 +1578,8 @@ it is displayed along with the global value."
   "Edit the variable under point."
   (declare (completion ignore))
   (interactive)
-  (let* ((val (thing-at-point 'sexp))
-         (var (get-text-property 0 'help-fns--edit-variable val)))
-    (unless val
+  (let ((var (get-text-property (point) 'help-fns--edit-variable)))
+    (unless var
       (error "No variable under point"))
     (let ((str (read-string-from-buffer
                 (format ";; Edit the `%s' variable." (nth 0 var))

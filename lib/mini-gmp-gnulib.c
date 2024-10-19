@@ -31,11 +31,11 @@
 #include "mini-gmp.h"
 
 /* Pacify GCC -Wsuggest-attribute=const, pure, malloc.  */
-#if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
+#if _GL_GNUC_PREREQ (4, 6)
 # pragma GCC diagnostic ignored "-Wsuggest-attribute=const"
 # pragma GCC diagnostic ignored "-Wsuggest-attribute=pure"
 #endif
-#if 8 <= __GNUC__
+#if _GL_GNUC_PREREQ (8, 0)
 # pragma GCC diagnostic ignored "-Wsuggest-attribute=malloc"
 #endif
 

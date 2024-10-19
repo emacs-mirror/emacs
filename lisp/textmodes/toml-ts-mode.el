@@ -50,7 +50,7 @@
     (modify-syntax-entry ?=  "."     table)
     (modify-syntax-entry ?\' "\""    table)
     (modify-syntax-entry ?#  "<"   table)
-    (modify-syntax-entry ?\n "> b"  table)
+    (modify-syntax-entry ?\n ">"  table)
     (modify-syntax-entry ?\^m "> b" table)
     table)
   "Syntax table for `toml-ts-mode'.")
@@ -124,7 +124,7 @@ Return nil if there is no name or if NODE is not a defun node."
   :syntax-table toml-ts-mode--syntax-table
 
   (when (treesit-ready-p 'toml)
-    (treesit-parser-create 'toml)
+    (setq treesit-primary-parser (treesit-parser-create 'toml))
 
     ;; Comments
     (setq-local comment-start "# ")

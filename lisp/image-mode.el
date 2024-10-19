@@ -867,6 +867,13 @@ The limits are given by the user option
         (or (<= mw (* (car size) scale))
             (<= mh (* (cdr size) scale))))))
 
+(defun image--update-properties (image properties)
+  "Update IMAGE with the new PROPERTIES set."
+  (let (prop)
+    (while (setq prop (pop properties))
+      (plist-put (cdr image) prop (pop properties)))
+    image))
+
 (defun image-toggle-display-image ()
   "Show the image of the image file.
 Turn the image data into a real image, but only if the whole file
@@ -959,7 +966,7 @@ was inserted."
 
     ;; Discard any stale image data before looking it up again.
     (image-flush image)
-    (setq image (append image (image-transform-properties image)))
+    (setq image (image--update-properties image (image-transform-properties image)))
     (setq props
 	  `(display ,image
 		    ;; intangible ,image

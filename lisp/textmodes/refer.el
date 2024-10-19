@@ -91,7 +91,8 @@ the default search path.  Since Refer does not know that default path,
 it cannot search it.  Include that path explicitly in your BIBINPUTS
 environment if you really want it searched (which is not likely to
 happen anyway)."
-  :type '(choice (repeat directory) (const bibinputs) (const texinputs)))
+  :type '(choice (repeat directory) (const bibinputs) (const texinputs))
+  :local t)
 
 (defcustom refer-bib-files 'dir
   "List of \\.bib files to search for references,
@@ -109,14 +110,16 @@ If `refer-bib-files' is nil, auto or dir, it is setq'd to the appropriate
 list of files when it is first used if `refer-cache-bib-files' is t.  If
 `refer-cache-bib-files' is nil, the list of \\.bib files to use is re-read
 each time it is needed."
-  :type '(choice (repeat file) (const nil) (const auto) (const dir)))
+  :type '(choice (repeat file) (const nil) (const auto) (const dir))
+  :local t)
 
 (defcustom refer-cache-bib-files t
   "Variable determining whether the value of `refer-bib-files' should be cached.
 If t, initialize the value of refer-bib-files the first time it is used.
 If nil, re-read the list of \\.bib files depending on the value of
 `refer-bib-files' each time it is needed."
-  :type 'boolean)
+  :type 'boolean
+  :local t)
 
 (defcustom refer-bib-files-regexp "\\\\bibliography"
   "Regexp matching a bibliography file declaration.
@@ -129,10 +132,6 @@ names, within curly braces.
 If a specified file doesn't exist and has no extension, a \\.bib extension
 is automatically tried."
   :type 'regexp)
-
-(make-variable-buffer-local 'refer-bib-files)
-(make-variable-buffer-local 'refer-cache-bib-files)
-(make-variable-buffer-local 'refer-bib-directory)
 
 ;;; Internal variables
 (defvar refer-saved-state nil)

@@ -100,7 +100,7 @@ a font height that isn't optimal."
 ;; which are generally available.
 (defcustom face-font-family-alternatives
   (mapcar (lambda (arg) (mapcar 'purecopy arg))
-  '(("Monospace" "courier" "fixed")
+  '(("Monospace" "Cascadia Code" "Lucida Console" "courier" "fixed")
 
     ;; Monospace Serif is an Emacs invention, intended to work around
     ;; portability problems when using Courier.  It should work well
@@ -133,7 +133,10 @@ a font height that isn't optimal."
     ;; This is present for backward compatibility.
     ("courier" "CMU Typewriter Text" "fixed")
 
-    ("Sans Serif" "helv" "helvetica" "arial" "fixed")
+    ("Sans Serif"
+     ;; https://en.wikipedia.org/wiki/List_of_typefaces_included_with_Microsoft_Windows
+     "Calibri" "Tahoma" "Lucida Sans Unicode"
+     "helv" "helvetica" "arial" "fixed")
     ("helv" "helvetica" "arial" "fixed")))
   "Alist of alternative font family names.
 Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).

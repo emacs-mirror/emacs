@@ -505,27 +505,15 @@ This should be called very early, before the output buffer is cleared,
 because we want to record the \"previous\" position of point so we can
 restore it properly when going back."
   (with-current-buffer (help-buffer)
-    ;; Disable `outline-minor-mode' in a reused Help buffer
-    ;; created by `describe-bindings' that enables this mode.
-    (when (bound-and-true-p outline-minor-mode)
-      (outline-minor-mode -1)
-      (mapc #'kill-local-variable
-            '(outline-search-function
-              outline-regexp
-              outline-heading-end-regexp
-              outline-level
-              outline-minor-mode-cycle
-              outline-minor-mode-highlight
-              outline-minor-mode-use-buttons
-              outline-default-state
-              outline-default-rules)))
+    ;; Re-enable major mode, killing all unrelated local vars.
+    (funcall major-mode)
     (when help-xref-stack-item
       (push (cons (point) help-xref-stack-item) help-xref-stack)
       (setq help-xref-forward-stack nil))
     (when interactive-p
       (let ((tail (nthcdr 10 help-xref-stack)))
-	;; Truncate the stack.
-	(if tail (setcdr tail nil))))
+        ;; Truncate the stack.
+        (if tail (setcdr tail nil))))
     (setq help-xref-stack-item item)))
 
 (defvar help-xref-following nil

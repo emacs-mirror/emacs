@@ -21,11 +21,11 @@
 extern "C" {
 #endif
 
-/* Formats the broken-down time *__TP, with additional __NS nanoseconds,
+/* Format the broken-down time *__TP, with additional __NS nanoseconds,
    into the buffer __S of size __MAXSIZE, according to the rules of the
    LC_TIME category of the current locale.
 
-   Uses the time zone __TZ.
+   Use the time zone __TZ.
    If *__TP represents local time, __TZ should be set to
      tzalloc (getenv ("TZ")).
    If *__TP represents universal time (a.k.a. GMT), __TZ should be set to
@@ -60,15 +60,11 @@ extern "C" {
      time zone:              %z %Z
      nanosecond              %N
 
-   Stores the result, as a string with a trailing NUL character, at the
-   beginning of the array __S[0..__MAXSIZE-1], if it fits, and returns
-   the length of that string, not counting the trailing NUL.  In this case,
-   errno is preserved if the return value is 0.
-   If it does not fit, this function sets errno to ERANGE and returns 0.
-   Upon other errors, this function sets errno and returns 0 as well.
-
-   Note: The errno behavior is in draft POSIX 202x plus some requested
-   changes to POSIX.
+   Store the result, as a string with a trailing NUL character, at the
+   beginning of the array __S[0..__MAXSIZE-1] and return the length of
+   that string, not counting the trailing NUL, and without changing errno.
+   If unsuccessful, possibly change the array __S, set errno, and return 0;
+   errno == ERANGE means the string didn't fit.
 
    This function is like strftime, but with two more arguments:
      * __TZ instead of the local timezone information,

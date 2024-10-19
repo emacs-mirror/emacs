@@ -309,6 +309,12 @@
 ;;   used for files under this backend, and if files can indeed be
 ;;   locked by other users.
 ;;
+;; - get-change-comment (files rev)
+;;
+;;   Return the change comments associated with the files at the given
+;;   revision.  The FILES argument it for forward-compatibility;
+;;   existing implementations care only about REV.
+;;
 ;; - modify-change-comment (files rev comment)
 ;;
 ;;   Modify the change comments associated with the files at the
@@ -697,27 +703,6 @@
 ;;   vc-cvs-sticky-tag with that.
 ;;
 ;; - Add the ability to list tags and branches.
-;;
-;;;; Unify two different versions of the amend capability
-;;
-;; - Some back ends (SCCS/RCS/SVN/SRC), have an amend capability that can
-;;   be invoked from log-view.
-;;
-;; - The git backend supports amending, but in a different
-;;   way (press `C-c C-e' in log-edit buffer, when making a new commit).
-;;
-;; - Second, `log-view-modify-change-comment' doesn't seem to support
-;;   modern backends at all because `log-view-extract-comment'
-;;   unconditionally calls `log-view-current-file'.  This should be easy to
-;;   fix.
-;;
-;; - Third, doing message editing in log-view might be a natural way to go
-;;   about it, but editing any but the last commit (and even it, if it's
-;;   been pushed) is a dangerous operation in Git, which we shouldn't make
-;;   too easy for users to perform.
-;;
-;;   There should be a check that the given comment is not reachable
-;;   from any of the "remote" refs?
 ;;
 ;;;; Other
 ;;
@@ -2074,20 +2059,15 @@ INITIAL-INPUT are passed on to `vc-read-revision' directly."
      ;; filesets, but not yet.
      ((/= (length files) 1)
       nil)
-     ;; if it's a directory, don't supply any revision default
-     ((file-directory-p first)
-      nil)
-     ;; if the file is not up-to-date, use working revision as older revision
-     ((not (vc-up-to-date-p first))
-      (setq rev1-default (vc-working-revision first)))
-     ;; if the file is not locked, use last revision and current source as defaults
+     ;; if the file is not locked, use previous revision and current source as defaults
      (t
-      (setq rev1-default (ignore-errors ;If `previous-revision' doesn't work.
-                           (vc-call-backend backend 'previous-revision first
-                                            (vc-working-revision first))))
-      (when (string= rev1-default "") (setq rev1-default nil))))
+      (push (ignore-errors         ;If `previous-revision' doesn't work.
+              (vc-call-backend backend 'previous-revision first
+                               (vc-working-revision first backend)))
+            rev1-default)
+      (when (member (car rev1-default) '("" nil)) (setq rev1-default nil))))
     ;; construct argument list
-    (let* ((rev1-prompt (format-prompt "Older revision" rev1-default))
+    (let* ((rev1-prompt (format-prompt "Older revision" (car rev1-default)))
            (rev2-prompt (format-prompt "Newer revision"
                                        ;; (or rev2-default
                                        "current source"))
@@ -2101,8 +2081,8 @@ INITIAL-INPUT are passed on to `vc-read-revision' directly."
 (defun vc-version-diff (_files rev1 rev2)
   "Report diffs between revisions REV1 and REV2 in the repository history.
 This compares two revisions of the current fileset.
-If REV1 is nil, it defaults to the current revision, i.e. revision
-of the last commit.
+If REV1 is nil, it defaults to the previous revision, i.e. revision
+before the last commit.
 If REV2 is nil, it defaults to the work tree, i.e. the current
 state of each file in the fileset."
   (interactive (vc-diff-build-argument-list-internal))
@@ -2119,9 +2099,8 @@ state of each file in the fileset."
   "Report diffs between REV1 and REV2 revisions of the whole tree."
   (interactive
    (vc-diff-build-argument-list-internal
-    (or (ignore-errors (vc-deduce-fileset t))
-        (let ((backend (or (vc-deduce-backend) (vc-responsible-backend default-directory))))
-          (list backend (list (vc-call-backend backend 'root default-directory)))))))
+    (let ((backend (or (vc-deduce-backend) (vc-responsible-backend default-directory))))
+      (list backend (list (vc-call-backend backend 'root default-directory))))))
   ;; This is a mix of `vc-root-diff' and `vc-version-diff'
   (when (and (not rev1) rev2)
     (error "Not a valid revision range"))
@@ -2446,7 +2425,8 @@ the variable `vc-BACKEND-header'."
      (lambda () (vc-call-backend backend 'log-edit-mode))
      (lambda (files comment)
        (vc-call-backend backend
-                        'modify-change-comment files rev comment)))))
+                        'modify-change-comment files rev comment))
+     nil backend)))
 
 ;;;###autoload
 (defun vc-merge ()

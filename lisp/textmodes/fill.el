@@ -1115,9 +1115,9 @@ The `justification' text-property can locally override this variable."
 		 (const right)
 		 (const full)
 		 (const center)
-		 (const none))
+                 (const none))
+  :local t
   :safe 'symbolp)
-(make-variable-buffer-local 'default-justification)
 
 (defun current-justification ()
   "How should we justify this line?

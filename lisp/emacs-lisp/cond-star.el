@@ -1,18 +1,18 @@
-;;; -*-lexical-binding: t; -*-
+;;; cond-star.el --- Extended form of `cond' construct  -*-lexical-binding: t; -*-
 
-;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2024 Free Software Foundation, Inc.
 
-;; Maintainer: rms@gnu.org
+;; Maintainer: Richard Stallman <rms@gnu.org>
 ;; Package: emacs
 
-;; This file is part of GNU Emacs.  It implements `cond*'.
+;; This file is part of GNU Emacs.
 
-;; cond* is free software: you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; cond* is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -20,22 +20,28 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; This library implements `cond*', an alternative to 'pcase'.
+
 ;; Here is the list of functions the generated code is known to call:
 ;; car, cdr, car-safe, cdr-safe, nth, nthcdr, null, eq, equal, eql, =,
 ;; vectorp, length.
-;; It also uses these control and binding promitives:
+;; It also uses these control and binding primitives:
 ;; and, or, if, progn, let, let*, setq.
 ;; For regexp matching only, it can call string-match and match-string.
 
 ;;; ??? If a clause starts with a keyword,
-;;; should the element after the kwyword be treated in the usual way
-;;; as a pattern?  Curently `cond*-non-exit-clause-substance' explicitly
+;;; should the element after the keyword be treated in the usual way
+;;; as a pattern?  Currently `cond*-non-exit-clause-substance' explicitly
 ;;; prevents that by adding t at the front of its value.
+
+;;; Code:
 
 (defmacro cond* (&rest clauses)
   "Extended form of traditional Lisp `cond' construct.
 A `cond*' construct is a series of clauses, and a clause
-normally has the form (CONDITION BDOY...).
+normally has the form (CONDITION BODY...).
 
 CONDITION can be a Lisp expression, as in `cond'.
 Or it can be `(bind* BINDINGS...)' or `(match* PATTERN DATUM)'.
@@ -52,7 +58,7 @@ When a clause's condition is true, and it exits the `cond*'
 or is the last clause, the value of the last expression
 in its body becomes the return value of the `cond*' construct.
 
-Mon-exit clause:
+Non-exit clause:
 
 If a clause has only one element, or if its first element is
 t, or if it ends with the keyword :non-exit, then
@@ -66,7 +72,7 @@ are passed along to the rest of the clauses in this `cond*' construct.
 
 (defmacro match* (pattern datum)
   "This specifies matching DATUM against PATTERN.
-It is not really a LIsp function, and it is meaningful
+It is not really a Lisp function, and it is meaningful
 only in the CONDITION of a `cond*' clause.
 
 `_' matches any value.
@@ -80,51 +86,51 @@ REGEXP matches a string if REGEXP matches it.
   The match must cover the entire string from its first char to its last.
 ATOM (meaning any other kind of non-list not described above)
   matches anything `equal' to it.
-(rx REGEXP) uses a regexp specified in s-expression form,
+\(rx REGEXP) uses a regexp specified in s-expression form,
   as in the function `rx', and matches the data that way.
-(rx REGEXP SYM0 SYM1...) uses a regexp specified in s-expression form,
+\(rx REGEXP SYM0 SYM1...) uses a regexp specified in s-expression form,
   and binds the symbols SYM0, SYM1, and so on
   to (match-string 0 DATUM), (match-string 1 DATUM), and so on.
   You can use as many SYMs as regexp matching supports.
 
 `OBJECT  matches any value `equal' to OBJECT.
-(cons CARPAT CDRPAT)
+\(cons CARPAT CDRPAT)
   matches a cons cell if CARPAT matches its car and CDRPAT matches its cdr.
-(list ELTPATS...)
+\(list ELTPATS...)
   matches a list if the ELTPATS match its elements.
   The first ELTPAT should match the list's first element.
   The second ELTPAT should match the list's second element.  And so on.
-(vector ELTPATS...)
+\(vector ELTPATS...)
   matches a vector if the ELTPATS match its elements.
   The first ELTPAT should match the vector's first element.
   The second ELTPAT should match the vector's second element.  And so on.
-(cdr PATTERN)  matches PATTERN with strict checking of cdrs.
+\(cdr PATTERN)  matches PATTERN with strict checking of cdrs.
   That means that `list' patterns verify that the final cdr is nil.
   Strict checking is the default.
-(cdr-safe PATTERN)  matches PATTERN with lax checking of cdrs.
+\(cdr-safe PATTERN)  matches PATTERN with lax checking of cdrs.
   That means that `list' patterns do not examine the final cdr.
-(and CONJUNCTS...)  matches each of the CONJUNCTS against the same data.
+\(and CONJUNCTS...)  matches each of the CONJUNCTS against the same data.
   If all of them match, this pattern succeeds.
   If one CONJUNCT fails, this pattern fails and does not try more CONJUNCTS.
-(or DISJUNCTS...)  matches each of te DISJUNCTS against the same data.
+\(or DISJUNCTS...)  matches each of the DISJUNCTS against the same data.
   If one DISJUNCT succeeds, this pattern succeeds
   and does not try more DISJUNCTs.
   If all of them fail, this pattern fails.
-(COND*-EXPANDER ...)
+\(COND*-EXPANDER ...)
   Here the car is a symbol that has a `cond*-expander' property
   which defines how to handle it in a pattern.  The property value
   is a function.  Trying to match such a pattern calls that
   function with one argument, the pattern in question (including its car).
   The function should return an equivalent pattern
-  to be matched inetead.
-(PREDICATE SYMBOL)
+  to be matched instead.
+\(PREDICATE SYMBOL)
   matches datum if (PREDICATE DATUM) is true,
   then binds SYMBOL to DATUM.
-(PREDICATE SYMBOL MORE-ARGS...)
+\(PREDICATE SYMBOL MORE-ARGS...)
   matches datum if (PREDICATE DATUM MORE-ARGS...) is true,
   then binds SYMBOL to DATUM.
   MORE-ARGS... can refer to symbols bound earlier in the pattern.
-(constrain SYMBOL EXP)
+\(constrain SYMBOL EXP)
   matches datum if the form EXP is true.
   EXP can refer to symbols bound earlier in the pattern."
   (ignore datum)
@@ -147,7 +153,7 @@ This removes a final keyword if that's what makes CLAUSE non-exit."
   (cond ((null (cdr-safe clause))   ;; clause has only one element.
          clause)
         ;; Starts with t or a keyword.
-        ;; Include t as the first element of the substancea
+        ;; Include t as the first element of the substance
         ;; so that the following element is not treated as a pattern.
         ((and (cdr-safe clause)
               (or (eq (car clause) t)
@@ -186,7 +192,7 @@ REST is the rest of the clauses of this cond* expression."
          ;; run unconditionally and handled as a cond* body.
          rest
          nil nil))
-    ;; Handle a normal (conditional exit) clauss.
+    ;; Handle a normal (conditional exit) clause.
     (cond*-convert-condition (car-safe clause) (cdr-safe clause) nil
                              rest (cond*-convert rest))))
 
@@ -212,7 +218,7 @@ This is used for conditional exit clauses."
            (let* ((bindings (cdr condition))
                   (first-binding (car bindings))
                   (first-variable (if (symbolp first-binding) first-binding
-                                   (car first-binding)))
+                                    (car first-binding)))
                   (first-value (if (symbolp first-binding) nil
                                  (cadr first-binding)))
                   (init-gensym (gensym "init"))
@@ -259,7 +265,7 @@ This is used for conditional exit clauses."
           ((eq pat-type 'match*)
            (cond*-match condition true-exps uncondit-clauses iffalse))
           (t
-           ;; Ordinary Lixp expression is the condition 
+           ;; Ordinary Lisp expression is the condition.
            (if rest
                ;; A nonfinal exiting clause.
                ;; If condition succeeds, run the TRUE-EXPS.
@@ -310,8 +316,8 @@ as in `cond*-condition'."
     ;; unconditional clauses to follow,
     ;; and the pattern bound some variables,
     ;; copy their values into special aliases
-    ;; to be copied back at the start of the unonditional clauses.
-    (when (and uncondit-clauses true-exps 
+    ;; to be copied back at the start of the unconditional clauses.
+    (when (and uncondit-clauses true-exps
                (car raw-result))
       (dolist (bound-var (car raw-result))
         (push `(setq ,(gensym "ua") ,(car bound-var)) store-value-swap-outs)
@@ -320,7 +326,7 @@ as in `cond*-condition'."
     ;; Make an expression to run the TRUE-EXPS inside our bindings.
     (if store-value-swap-outs
         ;; If we have to store those bindings' values in aliases
-        ;; for the UNCONDIT-CLAUSES, ;; do so inside these bindigs.
+        ;; for the UNCONDIT-CLAUSES, do so inside these bindings.
         (setq run-true-exps
               (cond*-bind-pattern-syms
                (car raw-result)
@@ -346,9 +352,9 @@ as in `cond*-condition'."
     ;; always run the UNCONDIT-CLAUSES.
     (if uncondit-clauses
         (setq expression
-              `(progn ,expression 
-                      (cond*-bind-pattern-syms
-                       ,(if retrieve-value-swap-outs
+              `(progn ,expression
+                      ,(cond*-bind-pattern-syms
+                        (if retrieve-value-swap-outs
                             ;; If we saved the bindings' values after the
                             ;; true-clauses, bind the same variables
                             ;; here to the values we saved then.
@@ -356,7 +362,7 @@ as in `cond*-condition'."
                           ;; Otherwise bind them to the values
                           ;; they matched in the pattern.
                           (car raw-result))
-                       (cond*-convert uncondit-clauses)))))
+                        (cond*-convert uncondit-clauses)))))
     ;; Bind the backtrack-aliases if any.
     ;; We need them bound for the TRUE-EXPS.
     ;; It is harmless to bind them around IFFALSE
@@ -379,7 +385,7 @@ as in `cond*-condition'."
 (defun cond*-bind-pattern-syms (bindings expr)
   "Wrap EXPR in code to bind the BINDINGS.
 This is used for the bindings specified explicitly in match* patterns."
-  ;; They can't have side effects.   Skip them
+  ;; They can't have side effects.  Skip them
   ;; if we don't actually need them.
   (if (equal expr '(progn))
       nil
@@ -437,12 +443,12 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
              (if inside-or
                  (let (alias-gensym)
                    (if this-alias
-                       ;; Inside `or' subpattern, if this symbol already 
+                       ;; Inside `or' subpattern, if this symbol already
                        ;; has an alias for backtracking, just use that.
                        ;; This means the symbol was matched
                        ;; in a previous arm of the `or'.
                        (setq alias-gensym (cdr this-alias))
-                     ;; Inside `or' subpattern but this symbol has no alias,
+                     ;; Inside `or' subpattern, but this symbol has no alias,
                      ;; make an alias for it.
                      (setq alias-gensym (gensym "ba"))
                      (push (cons subpat alias-gensym) (cdr backtrack-aliases)))
@@ -512,8 +518,9 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
          (let ((i 0) expressions)
            ;; Check for bad structure of SUBPAT here?
            (dolist (this-elt (cdr subpat))
-             (let ((result 
-                    (cond*-subpat this-elt cdr-ignore bindings inside-or backtrack-aliases `(nth ,i ,data))))
+             (let ((result
+                    (cond*-subpat this-elt cdr-ignore bindings inside-or
+                                  backtrack-aliases `(nth ,i ,data))))
                (setq bindings (car result))
                (push `(consp ,(if (zerop i) data `(nthcdr ,i ,data)))
                      expressions)
@@ -538,19 +545,19 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
                 (length (length elts))
                 expressions (i 0))
            (dolist (elt elts)
-             (let* ((result 
-                     (cond*-subpat elt cdr-ignore
-                                   bindings inside-or backtrack-aliases `(aref ,i ,data))))
+             (let* ((result
+                     (cond*-subpat elt cdr-ignore bindings inside-or
+                                   backtrack-aliases `(aref ,i ,data))))
                (setq i (1+ i))
                (setq bindings (car result))
                (push (cdr result) expressions)))
            (cons bindings
                  (cond*-and `((vectorp ,data) (= (length ,data) ,length)
                               . ,(nreverse expressions))))))
-        ;; Subpattern to set the cdr-ignore flag
+        ;; Subpattern to set the cdr-ignore flag.
         ((eq (car subpat) 'cdr-ignore)
          (cond*-subpat (cadr subpat) t bindings inside-or backtrack-aliases data))
-        ;; Subpattern to clear the cdr-ignore flag
+        ;; Subpattern to clear the cdr-ignore flag.
         ((eq (car subpat) 'cdr)
          (cond*-subpat (cadr subpat) nil bindings inside-or backtrack-aliases data))
         ;; Handle conjunction subpatterns.
@@ -558,15 +565,16 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
          (let (expressions)
            ;; Check for bad structure of SUBPAT here?
            (dolist (this-elt (cdr subpat))
-             (let ((result 
-                    (cond*-subpat this-elt cdr-ignore bindings inside-or backtrack-aliases data)))
+             (let ((result
+                    (cond*-subpat this-elt cdr-ignore bindings inside-or
+                                  backtrack-aliases data)))
                (setq bindings (car result))
                (push (cdr result) expressions)))
            (cons bindings (cond*-and (nreverse expressions)))))
         ;; Handle disjunction subpatterns.
         ((eq (car subpat) 'or)
          ;; The main complexity is unsetting the pattern variables
-         ;; that tentatively matche in an or-branch that later failed.
+         ;; that tentatively match in an or-branch that later failed.
          (let (expressions
                (bindings-before-or bindings)
                (aliases-before-or (cdr backtrack-aliases)))
@@ -575,19 +583,20 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
              (let* ((bindings bindings-before-or)
                     bindings-to-clear expression
                     result)
-               (setq result 
-                     (cond*-subpat this-elt cdr-ignore bindings t backtrack-aliases data))
+               (setq result
+                     (cond*-subpat this-elt cdr-ignore bindings t
+                                   backtrack-aliases data))
                (setq bindings (car result))
                (setq expression (cdr result))
                ;; Were any bindings made by this arm of the disjunction?
                (when (not (eq bindings bindings-before-or))
-                 ;; Ok, arrange to clear their backtrack aliases
+                 ;; OK, arrange to clear their backtrack aliases
                  ;; if this arm does not match.
                  (setq bindings-to-clear bindings)
                  (let (clearing)
-                   ;; For each of those bindings,
+                   ;; For each of those bindings, ...
                    (while (not (eq bindings-to-clear bindings-before-or))
-                     ;; Make an expression to set it to nil, in CLEARING.
+                     ;; ... make an expression to set it to nil, in CLEARING.
                      (let* ((this-variable (caar bindings-to-clear))
                             (this-backtrack (assq this-variable
                                                   (cdr backtrack-aliases))))
@@ -618,7 +627,8 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
          (cond*-subpat (funcall (get (car subpat) 'cond*-expander) subpat)
                        cdr-ignore bindings inside-or backtrack-aliases data))
         ((macrop (car subpat))
-         (cond*-subpat (macroexpand subpat) cdr-ignore bindings inside-or backtrack-aliases data))
+         (cond*-subpat (macroexpand subpat) cdr-ignore bindings inside-or
+                       backtrack-aliases data))
         ;; Simple constrained variable, as in (symbolp x).
         ((functionp (car subpat))
          ;; Without this, nested constrained variables just work.
@@ -640,11 +650,13 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
          (unless (symbolp (cadr subpat))
            (byte-compile-warn-x subpat "Complex pattern nested in constrained variable pattern"))
          ;; Process VAR to get a binding for it.
-         (let ((result (cond*-subpat (cadr subpat) cdr-ignore bindings inside-or backtrack-aliases data)))
+         (let ((result
+                (cond*-subpat (cadr subpat) cdr-ignore bindings inside-or
+                              backtrack-aliases data)))
            (cons (car result)
                  ;; This is the test condition.
                  (cond*-bind-around (car result) (nth 2 subpat)))))
-        (t 
+        (t
          (byte-compile-warn-x subpat "Undefined pattern type `%s' in `cond*'" (car subpat)))))
 
 ;;; Subroutines of cond*-subpat.
@@ -661,7 +673,7 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
 This operates naively and errs on the side of overinclusion,
 and does not distinguish function names from variable names.
 That is safe for the purpose this is used for."
-  (cond ((symbolp exp) 
+  (cond ((symbolp exp)
          (let ((which (assq exp bindings)))
            (if which (list which))))
         ((listp exp)
@@ -703,5 +715,6 @@ That is safe for the purpose this is used for."
             (cond*-un-backquote-list* (cdr args)))
     (mapcar (lambda (x) (list 'quote x)) (cadr (car args)))))
 
+(provide 'cond-star)
 
-
+;;; cond-star.el ends here

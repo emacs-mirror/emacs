@@ -1890,8 +1890,8 @@ current point position in the specified buffer."
 
 (defun ediff-diff-to-diff (arg &optional keys)
   "Copy buffer-X'th difference region to buffer Y (X,Y are A, B, or C).
-With numerical prefix argument ARG, copy the difference specified
-in the arg.
+With numerical prefix argument ARG, copy the difference specified in the
+arg.  With prefix `\\[universal-argument]', copy all differences.
 Otherwise, copy the difference given by `ediff-current-difference'.
 This command assumes it is bound to a 2-character key sequence, `ab', `ba',
 `ac', etc., which is used to determine the types of buffers to be used for
@@ -1904,17 +1904,23 @@ command keys."
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
   (or keys (setq keys (this-command-keys)))
-  (if (eq arg '-) (setq arg -1)) ; translate neg arg to -1
-  (if (numberp arg) (ediff-jump-to-difference arg))
+  (if (equal arg '(4))
+      ;; copy all differences with `C-u' prefix
+      (let ((n 0))
+        (while (ediff-valid-difference-p n)
+          (ediff-diff-to-diff (1+ n) keys)
+          (setq n (1+ n))))
+    (if (eq arg '-) (setq arg -1))      ; translate neg arg to -1
+    (if (numberp arg) (ediff-jump-to-difference arg))
 
-  (let* ((char1 (aref keys 0))
-	 (char2 (aref keys 1))
-	 ediff-verbose-p)
-    (ediff-copy-diff ediff-current-difference
-		     (ediff-char-to-buftype char1)
-		     (ediff-char-to-buftype char2))
-    ;; recenter with rehighlighting, but no messages
-    (ediff-recenter)))
+    (let* ((char1 (aref keys 0))
+	   (char2 (aref keys 1))
+	   ediff-verbose-p)
+      (ediff-copy-diff ediff-current-difference
+		       (ediff-char-to-buftype char1)
+		       (ediff-char-to-buftype char2))
+      ;; recenter with rehighlighting, but no messages
+      (ediff-recenter))))
 
 (defun ediff-copy-A-to-B (arg)
   "Copy ARGth difference region from buffer A to B.

@@ -1359,8 +1359,7 @@ mail status in mode line"))
                   :visible (seq-some #'local-variable-p
                                      '(outline-search-function
                                        outline-regexp outline-level))
-                  :button (:toggle . (and (boundp 'outline-minor-mode)
-                                          outline-minor-mode))))
+                  :button (:toggle . (bound-and-true-p outline-minor-mode))))
 
     (bindings--define-key menu [showhide-tab-line-mode]
       '(menu-item "Window Tab Line" global-tab-line-mode

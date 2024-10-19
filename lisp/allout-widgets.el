@@ -275,8 +275,8 @@ buffer rather than as a prevailing configuration (but it's handy
 to publicize it by making it a customization variable)."
   :version "24.1"
   :type 'boolean
+  :local t
   :group 'allout-widgets-developer)
-(make-variable-buffer-local 'allout-widgets-track-decoration)
 
 ;;;_ : Mode context - variables, hookup, and hooks
 ;;;_  . internal mode variables

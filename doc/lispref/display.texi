@@ -2238,7 +2238,7 @@ displayed in a given window.  This function is used by
 it contains.
 
 @defun window-text-pixel-size &optional window from to x-limit y-limit mode-lines ignore-line-at-end
-This function returns the size of the text of @var{window}'s buffer in
+This function returns the dimensions of the text of @var{window}'s buffer in
 pixels.  @var{window} must be a live window and defaults to the
 selected one.  The return value is a cons of the maximum pixel-width
 of any text line and the maximum pixel-height of all text lines.  This
@@ -2387,7 +2387,11 @@ meaning as with @code{window-text-pixel-size}.
 
 @defun string-pixel-width string &optional buffer
 This is a convenience function that uses @code{window-text-pixel-size}
-to compute the width of @var{string} (in pixels).  If @var{buffer} is
+to compute the width of @var{string} (in pixels).  Caveat: if you call
+this function to measure the width of a string with embedded newlines,
+it will then return the width of the widest substring that does not
+include newlines.  The meaning of this result is the widest line taken
+by the string if inserted into a buffer.  If @var{buffer} is
 non-@code{nil}, use any face remappings (@pxref{Face Remapping}) from
 that buffer when computing the width of @var{string}.
 @end defun
@@ -2765,7 +2769,7 @@ Draw a box with lines of width 1, in the foreground color.
 Draw a box with lines of width 1, in color @var{color}.
 
 @item @code{(:line-width (@var{vwidth} . @var{hwidth}) :color @var{color} :style @var{style})}
-You can explicitly specify all aspects of the box with a plist on this
+You can explicitly specify all aspects of the box with a plist of this
 form.  Any element in this plist can be omitted.
 
 The values of @var{vwidth} and @var{hwidth} specify respectively the
@@ -4374,9 +4378,10 @@ should be equal to the value of @var{height} above.
 The width, in pixels, of the font's space character.
 
 @item average-width
-The average width of the font characters.  If this is zero, Emacs uses
-the value of @var{space-width} instead, when it calculates text layout
-on display.
+The average width of the font characters.  Emacs uses this for
+calculating text layout on display; if the value of @var{average-width}
+is zero, Emacs uses the value of @var{space-width} instead for those
+purposes.
 
 @item filename
 The file name of the font as a string.  This can be @code{nil} if the
@@ -7954,6 +7959,20 @@ will be called when the user clicks on the button.  The optional
 is called.  If @code{nil}, the button is used as the parameter instead.
 @end defun
 
+@defun buttonize-region start end callback &optional data help-echo
+Sometimes it's more convenient to convert existing text in a buffer to a
+button instead of inserting new text.  This function makes the region
+between @var{start} and @var{end} into a button.  Arguments
+@var{callback} and @var{data} have the same meanings as for
+@code{buttonize}.  Optional argument @var{help-echo} is used as the
+@code{help-echo} property of the button.
+@end defun
+
+@defun unbuttonize-region start end
+This function removes all buttons between @var{start} and @var{end} in
+the current buffer (both overlay and text-property based ones).
+@end defun
+
 @node Manipulating Buttons
 @subsection Manipulating Buttons
 @cindex manipulating buttons
@@ -8034,6 +8053,7 @@ These are commands and functions for locating and operating on
 buttons in an Emacs buffer.
 
 @cindex buffer-button-map
+@findex button-mode
 @code{push-button} is the command that a user uses to actually push
 a button, and is bound by default in the button itself to @key{RET}
 and to @key{mouse-2} using a local keymap in the button's overlay or
@@ -8044,7 +8064,8 @@ additionally available in the keymap stored in
 @code{button-buffer-map} as a parent keymap for its keymap.
 Alternatively, the @code{button-mode} can be switched on for much the
 same effect: It's a minor mode that does nothing else than install
-@code{button-buffer-map} as a minor mode keymap.
+@code{button-buffer-map} as a minor mode keymap (note that disabling
+@code{button-mode} will remove all the buttons in the current buffer).
 
 If the button has a non-@code{nil} @code{follow-link} property, and
 @code{mouse-1-click-follows-link} is set, a quick @key{mouse-1} click

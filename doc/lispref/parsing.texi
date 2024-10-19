@@ -486,8 +486,10 @@ string.  Unlike a buffer, parsing a string is a one-off operation, and
 there is no way to update the result.
 
 @defun treesit-parse-string string language
-This function parses @var{string} using @var{language}, and returns
-the root node of the generated syntax tree.
+This function parses @var{string} using @var{language}, and returns the
+root node of the generated syntax tree.  @emph{Do not} use this function
+in a loop: this is a convenience function intended for one-off use, and
+it isn't optimized; for heavy workload, use a temporary buffer instead.
 @end defun
 
 @heading Be notified by changes to the parse tree

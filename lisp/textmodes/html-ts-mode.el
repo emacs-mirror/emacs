@@ -92,7 +92,7 @@ Return nil if there is no name or if NODE is not a defun node."
   (unless (treesit-ready-p 'html)
     (error "Tree-sitter for HTML isn't available"))
 
-  (treesit-parser-create 'html)
+  (setq treesit-primary-parser (treesit-parser-create 'html))
 
   ;; Indent.
   (setq-local treesit-simple-indent-rules html-ts-mode--indent-rules)

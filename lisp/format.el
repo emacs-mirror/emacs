@@ -90,9 +90,9 @@
 	   ;; FROM-FN used to call the "diac" command which is not widely
 	   ;; available and apparently not under a free software license:
 	   ;; https://nm.wu-wien.ac.at/nm/download/file/diac4.tar.gz
-	   ;; Reliable round-trip conversion is not possible anyway
-	   ;; and would be by heuristic method, so use nil for now.
-	   nil iso-iso2duden t nil)
+	   ;; Reliable round-trip conversion is not possible anyway and
+	   ;; would be by heuristic method, so make it write-only for now.
+	   iso-cvt-write-only iso-iso2duden t nil)
     (de646 ,(purecopy "German ASCII (ISO 646)")
 	   nil
 	   ,(purecopy "iconv -f iso646-de -t utf-8")

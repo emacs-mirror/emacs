@@ -548,6 +548,44 @@ machine x.com port 42 password b
                      '((:host "x.com" :secret "a")
                        (:host "x.com" :port 42 :secret "b")))))))
 
+;; The query requires a user and doesn't specify a user to match against.
+;; The only entry matching the host lacks a user, so the search fails.
+
+(ert-deftest auth-source-pass-extra-query-keywords--req-noparam-miss-netrc ()
+  (ert-with-temp-file netrc-file
+    :text "machine foo password a\n"
+    (let ((auth-sources (list netrc-file))
+          (auth-source-do-cache nil))
+      (should-not (auth-source-search :host "foo" :require '(:user) :max 2)))))
+
+(ert-deftest auth-source-pass-extra-query-keywords--req-noparam-miss ()
+  (let ((auth-source-pass-extra-query-keywords t))
+    (auth-source-pass--with-store '(("foo" (secret . "a")))
+      (auth-source-pass-enable)
+      (should-not (auth-source-search :host "foo" :require '(:user) :max 2)))))
+
+;; The query requires a user but does not provide a reference value to
+;; match against.  An entry matching the host that specifies a user is
+;; selected because any user will do.
+(ert-deftest auth-source-pass-extra-query-keywords--req-param-netrc ()
+  (ert-with-temp-file netrc-file
+    :text "machine foo login bob password a\n"
+    (let* ((auth-sources (list netrc-file))
+           (auth-source-do-cache nil)
+           (results (auth-source-search :host "foo" :require '(:user))))
+      (dolist (result results)
+        (setf (plist-get result :secret) (auth-info-password result)))
+      (should (equal results '((:host "foo" :user "bob" :secret "a")))))))
+
+(ert-deftest auth-source-pass-extra-query-keywords--req-param ()
+  (let ((auth-source-pass-extra-query-keywords t))
+    (auth-source-pass--with-store '(("foo/bob" (secret . "a")))
+      (auth-source-pass-enable)
+      (let ((results (auth-source-search :host "foo" :require '(:user))))
+        (dolist (result results)
+          (setf (plist-get result :secret) (auth-info-password result)))
+        (should (equal results '((:host "foo" :user "bob" :secret "a"))))))))
+
 ;; No entry has the requested port, but :port is required, so search fails.
 
 (ert-deftest auth-source-pass-extra-query-keywords--wild-port-req-miss-netrc ()
@@ -629,14 +667,22 @@ machine Libera.Chat password b
                      '((:host "Libera.Chat" :secret "b")))))))
 
 
-;; A retrieved store entry mustn't be nil regardless of whether its
-;; path contains port or user components.
+;; An effectively empty entry in the store returns nothing but the
+;; :host field matching the given host parameter.
+
+(ert-deftest auth-source-pass-extra-query-keywords--netrc-baseline ()
+  (ert-with-temp-file netrc-file
+    :text "machine foo\n"
+    (let* ((auth-sources (list netrc-file))
+           (auth-source-do-cache nil)
+           (results (auth-source-search :host "foo")))
+      (should (equal results '((:host "foo")))))))
 
 (ert-deftest auth-source-pass-extra-query-keywords--baseline ()
   (let ((auth-source-pass-extra-query-keywords t))
-    (auth-source-pass--with-store '(("x.com"))
+    (auth-source-pass--with-store '(("foo"))
       (auth-source-pass-enable)
-      (should-not (auth-source-search :host "x.com")))))
+      (should (equal (auth-source-search :host "foo") '((:host "foo")))))))
 
 ;; Output port type (int or string) matches that of input parameter.
 

@@ -118,11 +118,21 @@ The following values are allowed:
 
     nil       - do not highlight the message at all
     `nick'    - highlight pal's nickname only
-    `message' - highlight the entire message from pal
+    \\+`message' - highlight the full message body from a matching pal
     `all'     - highlight the entire message (including the nick)
                 from pal
 
-Any other value disables pal highlighting altogether."
+A value of `nick' only highlights a matching sender's nick in the
+bracketed speaker portion of the message.  A value of \\+`message'
+basically highlights its complement: the message-body alone, after the
+speaker tag.  All values for this option require a matching sender to be
+an actual user on the network \(or a bot/service) as opposed to a host
+name, such as that of the server itself \(e.g. \"irc.gnu.org\").  When
+patterns from other user-based categories \(namely, \\+`fool' and
+\\+`dangerous-host') also match, the behavior is undefined.  However, in
+ERC 5.6, `erc-dangerous-host-face' is known to clobber `erc-fool-face',
+which in turn clobbers `erc-pal-face'.  \(Other effects, such as
+\\+`fool'-related invisibility may not survive such collisions.)"
   :type '(choice (const nil)
 		 (const nick)
                  (const message)
@@ -130,17 +140,18 @@ Any other value disables pal highlighting altogether."
 
 (defcustom erc-fool-highlight-type 'nick
   "Determines how to highlight messages by fools.
-See `erc-fools'.
+Unlike with the \\+`pal' and \\+`dangerous-host' categories, ERC doesn't
+only attempt to match associated patterns (here, from `erc-fools')
+against a message's sender, it also checks for matches in traditional
+IRC-style \"mentions\" in which a speaker addresses a USER directly:
 
-The following values are allowed:
+  <speaker> USER: hi.
+  <speaker> USER, hi.
 
-    nil       - do not highlight the message at all
-    `nick'    - highlight fool's nickname only
-    `message' - highlight the entire message from fool
-    `all'     - highlight the entire message (including the nick)
-                from fool
-
-Any other value disables fool highlighting altogether."
+However, at present, this option doesn't offer a means of highlighting
+matched mentions alone.  See `erc-pal-highlight-type' for a summary of
+possible values and additional details common to categories like
+\\+`fool' that normally match against a message's sender."
   :type '(choice (const nil)
 		 (const nick)
                  (const message)
@@ -165,16 +176,10 @@ Any other value disables keyword highlighting altogether."
 
 (defcustom erc-dangerous-host-highlight-type 'nick
   "Determines how to highlight messages by nicks from dangerous-hosts.
-See `erc-dangerous-hosts'.
-
-The following values are allowed:
-
-    `nick'    - highlight nick from dangerous-host only
-    `message' - highlight the entire message from dangerous-host
-    `all'     - highlight the entire message (including the nick)
-                from dangerous-host
-
-Any other value disables dangerous-host highlighting altogether."
+Use option `erc-dangerous-hosts' to specify patterns.  See
+`erc-pal-highlight-type' for a summary of possible values as well as
+additional details common to categories like \\+`dangerous-host' that
+normally match against a message's sender."
   :type '(choice (const nil)
 		 (const nick)
                  (const message)
@@ -235,10 +240,14 @@ for beeping to work."
 
 (defcustom erc-text-matched-hook '(erc-log-matches)
   "Abnormal hook for visiting text matching a predefined \"type\".
-ERC calls members with the arguments (MATCH-TYPE NUH MESSAGE),
-where MATCH-TYPE is one of the symbols `current-nick', `keyword',
-`pal', `dangerous-host', `fool', and NUH is an `erc-response'
-sender, like bob!~bob@example.org."
+ERC calls members with the arguments (MATCH-TYPE NUH MESSAGE), where
+MATCH-TYPE is a symbol among `current-nick', `keyword', `pal',
+`dangerous-host', and `fool'; and NUH is an `erc-response' sender, like
+\"bob!~bob@example.org\" or an IRC command prefixed with the string
+\"Server:\", as in \"Server:353\".  MESSAGE is the current incarnation
+of the just-inserted message minus a leading speaker, like \"<bob> \".
+For traditional reasons, MESSAGE always includes a leading
+`erc-notice-prefix' and a trailing newline."
   :options '(erc-log-matches erc-hide-fools erc-beep-on-match)
   :type 'hook)
 

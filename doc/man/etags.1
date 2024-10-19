@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH ETAGS 1 "2022-06-10" "GNU Tools" "GNU"
+.TH ETAGS 1 "2024-10-06" "GNU Tools" "GNU"
 .de BP
 .sp
 .ti -.2i
@@ -22,6 +22,8 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-members\|] [\|\-\-no\-members\|] [\|\-\-output=\fItagfile\fP\|]
 [\|\-\-class\-qualify\|]
 [\|\-\-regex=\fIregexp\fP\|] [\|\-\-no\-regex\|]
+[\|\-\-no\-fallback\-lang\|] [\|\-\-fallback\-lang\|]
+[\|\-\-no\-empty\-file\-entries\|] [\|\-\-empty\-file\-entries\|]
 [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
 
@@ -255,6 +257,20 @@ reads the regexes contained in the file regex.file.
 .B \-R, \-\-no\-regex
 Don't do any more regexp matching on the following files.  May be
 freely intermixed with filenames and the \fB\-\-regex\fP option.
+.TP
+\fB\-\-fallback\-lang
+If a file's language cannot be determined, attempt to parse it as
+Fortran and C/C++.  This is the default.
+.TP
+\fB\-\-no\-fallback\-lang
+Do not fall back to Fortran and C/C++ for files whose language is
+could not be determined.
+.TP
+\fB\-\-empty\-file\-entries
+Produce file entries for files with no tags.  This is the default.
+.TP
+\fB\-\-no\-empty\-file\-entries
+Do not output file entries for files with no tags.
 .TP
 .B \-u, \-\-update
 Update tag entries for \fIfiles\fP specified on command line, leaving

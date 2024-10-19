@@ -19,8 +19,10 @@
 
 #include <config.h>
 
-#include <limits.h>
+/* Specification.  */
 #include <signal.h>
+
+#include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

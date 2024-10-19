@@ -518,7 +518,7 @@ union map_keymap
   } s;
   GCALIGNED_UNION_MEMBER
 };
-verify (GCALIGNED (union map_keymap));
+static_assert (GCALIGNED (union map_keymap));
 
 static void
 map_keymap_char_table_item (Lisp_Object args, Lisp_Object key, Lisp_Object val)

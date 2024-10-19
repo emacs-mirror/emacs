@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; URL: https://github.com/magit/transient
 ;; Keywords: extensions
-;; Version: 0.7.2.1
+;; Version: 0.7.4
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -32,45 +32,14 @@
 
 ;;; Code:
 
+(defconst transient-version "0.7.2.2")
+
 (require 'cl-lib)
 (require 'eieio)
 (require 'edmacro)
 (require 'format-spec)
-
-(eval-and-compile
-  (when (and (featurep 'seq)
-             (not (fboundp 'seq-keep)))
-    (unload-feature 'seq 'force)))
 (require 'seq)
-(unless (fboundp 'seq-keep)
-  (display-warning 'transient (substitute-command-keys "\
-Transient requires `seq' >= 2.24,
-but due to bad defaults, Emacs's package manager, refuses to
-upgrade this and other built-in packages to higher releases
-from GNU Elpa, when a package specifies that this is needed.
-
-To fix this, you have to add this to your init file:
-
-  (setq package-install-upgrade-built-in t)
-
-Then evaluate that expression by placing the cursor after it
-and typing \\[eval-last-sexp].
-
-Once you have done that, you have to explicitly upgrade `seq':
-
-  \\[package-upgrade] seq \\`RET'
-
-Then you also must make sure the updated version is loaded,
-by evaluating this form:
-
-  (progn (unload-feature 'seq t) (require 'seq))
-
-Until you do this, you will get random errors about `seq-keep'
-being undefined while using Transient.
-
-If you don't use the `package' package manager but still get
-this warning, then your chosen package manager likely has a
-similar defect.") :emergency))
+(require 'pp)
 
 (eval-when-compile (require 'subr-x))
 
@@ -80,7 +49,6 @@ similar defect.") :emergency))
 (declare-function Man-getpage-in-background "man" (topic))
 
 (defvar Man-notify-method)
-(defvar pp-default-function) ; since Emacs 29.1
 
 (defmacro transient--with-emergency-exit (id &rest body)
   (declare (indent defun))
@@ -1588,6 +1556,31 @@ This is bound while the suffixes are drawn in the transient buffer.")
 
 ;;; Identities
 
+(defun transient-active-prefix (&optional prefixes)
+  "Return the active transient object.
+
+Return nil if there is no active transient, if the transient buffer
+isn't shown, and while the active transient is suspended (e.g., while
+the minibuffer is in use).
+
+Unlike `transient-current-prefix', which is only ever non-nil in code
+that is run directly by a command that is invoked while a transient
+is current, this function is also suitable for use in asynchronous
+code, such as timers and callbacks (this function's main use-case).
+
+If optional PREFIXES is non-nil, it must be a list of prefix command
+symbols, in which case the active transient object is only returned
+if it matches one of the PREFIXES."
+  (and transient--showp
+       transient--prefix
+       (or (not prefixes)
+           (memq (oref transient--prefix command) prefixes))
+       (or (memq 'transient--pre-command pre-command-hook)
+           (and (memq t pre-command-hook)
+                (memq 'transient--pre-command
+                      (default-value 'pre-command-hook))))
+       transient--prefix))
+
 (defun transient-prefix-object ()
   "Return the current prefix as an object.
 
@@ -2432,72 +2425,35 @@ value.  Otherwise return CHILDREN as is."
              (remove-hook 'minibuffer-exit-hook ,exit)))
        ,@body)))
 
-(static-if (>= emacs-major-version 30) ;transient--wrap-command
-    (defun transient--wrap-command ()
-      (cl-assert
-       (>= emacs-major-version 30) nil
-       "Emacs was downgraded, making it necessary to recompile Transient")
-      (letrec
-          ((prefix transient--prefix)
-           (suffix this-command)
-           (advice
-            (lambda (fn &rest args)
-              (interactive
-               (lambda (spec)
-                 (let ((abort t))
-                   (unwind-protect
-                       (prog1 (let ((debugger #'transient--exit-and-debug))
-                                (advice-eval-interactive-spec spec))
-                         (setq abort nil))
-                     (when abort
-                       (when-let ((unwind (oref prefix unwind-suffix)))
-                         (transient--debug 'unwind-interactive)
-                         (funcall unwind suffix))
-                       (advice-remove suffix advice)
-                       (oset prefix unwind-suffix nil))))))
-              (unwind-protect
-                  (let ((debugger #'transient--exit-and-debug))
-                    (apply fn args))
-                (when-let ((unwind (oref prefix unwind-suffix)))
-                  (transient--debug 'unwind-command)
-                  (funcall unwind suffix))
-                (advice-remove suffix advice)
-                (oset prefix unwind-suffix nil)))))
-        (when (symbolp this-command)
-          (advice-add suffix :around advice '((depth . -99))))))
-
-  (defun transient--wrap-command ()
-    (let* ((prefix transient--prefix)
-           (suffix this-command)
-           (advice nil)
-           (advice-interactive
-            (lambda (spec)
-              (let ((abort t))
-                (unwind-protect
-                    (prog1 (let ((debugger #'transient--exit-and-debug))
-                             (advice-eval-interactive-spec spec))
-                      (setq abort nil))
-                  (when abort
-                    (when-let ((unwind (oref prefix unwind-suffix)))
-                      (transient--debug 'unwind-interactive)
-                      (funcall unwind suffix))
-                    (advice-remove suffix advice)
-                    (oset prefix unwind-suffix nil))))))
-           (advice-body
-            (lambda (fn &rest args)
-              (unwind-protect
-                  (let ((debugger #'transient--exit-and-debug))
-                    (apply fn args))
-                (when-let ((unwind (oref prefix unwind-suffix)))
-                  (transient--debug 'unwind-command)
-                  (funcall unwind suffix))
-                (advice-remove suffix advice)
-                (oset prefix unwind-suffix nil)))))
-      (setq advice `(lambda (fn &rest args)
-                      (interactive ,advice-interactive)
-                      (apply ',advice-body fn args)))
-      (when (symbolp this-command)
-        (advice-add suffix :around advice '((depth . -99)))))))
+(defun transient--wrap-command ()
+  (letrec
+      ((prefix transient--prefix)
+       (suffix this-command)
+       (advice
+        (lambda (fn &rest args)
+          (interactive
+           (lambda (spec)
+             (let ((abort t))
+               (unwind-protect
+                   (prog1 (let ((debugger #'transient--exit-and-debug))
+                            (advice-eval-interactive-spec spec))
+                     (setq abort nil))
+                 (when abort
+                   (when-let ((unwind (oref prefix unwind-suffix)))
+                     (transient--debug 'unwind-interactive)
+                     (funcall unwind suffix))
+                   (advice-remove suffix advice)
+                   (oset prefix unwind-suffix nil))))))
+          (unwind-protect
+              (let ((debugger #'transient--exit-and-debug))
+                (apply fn args))
+            (when-let ((unwind (oref prefix unwind-suffix)))
+              (transient--debug 'unwind-command)
+              (funcall unwind suffix))
+            (advice-remove suffix advice)
+            (oset prefix unwind-suffix nil)))))
+    (when (symbolp this-command)
+      (advice-add suffix :around advice '((depth . -99))))))
 
 (defun transient--premature-post-command ()
   (and (equal (this-command-keys-vector) [])
@@ -3764,68 +3720,39 @@ have a history of their own.")
     (insert "   "))
   (insert ?\n))
 
-(cl-defmethod transient--insert-group ((group transient-column))
+(cl-defmethod transient--insert-group ((group transient-column)
+                                       &optional skip-empty)
   (transient--maybe-pad-keys group)
   (dolist (suffix (oref group suffixes))
     (let ((str (transient-with-shadowed-buffer (transient-format suffix))))
-      (insert str)
-      (unless (string-match-p ".\n\\'" str)
-        (insert ?\n)))))
+      (unless (and (not skip-empty) (equal str ""))
+        (insert str)
+        (unless (string-match-p ".\n\\'" str)
+          (insert ?\n))))))
 
 (cl-defmethod transient--insert-group ((group transient-columns))
-  (let* ((columns
-          (mapcar
-           (lambda (column)
-             (transient--maybe-pad-keys column group)
-             (transient-with-shadowed-buffer
-               (let* ((transient--pending-group column)
-                      (rows (mapcar #'transient-format (oref column suffixes))))
-                 (if-let ((desc (transient-format-description column)))
-                     (cons desc rows)
-                   rows))))
-           (oref group suffixes)))
-         (vp (or (oref transient--prefix variable-pitch)
-                 transient-align-variable-pitch))
-         (rs (apply #'max (mapcar #'length columns)))
-         (cs (length columns))
-         (cw (mapcar (let ((widths (oref transient--prefix column-widths)))
-                       (lambda (col)
-                         (apply
-                          #'max
-                          (if-let ((min (pop widths)))
-                              (if vp (* min (transient--pixel-width " ")) min)
-                            0)
-                          (mapcar (if vp #'transient--pixel-width #'length)
-                                  col))))
-                     columns))
-         (cc (transient--seq-reductions-from
-              (apply-partially #'+ (* 2 (if vp (transient--pixel-width " ") 1)))
-              cw 0)))
-    (if transient-force-single-column
-        (dotimes (c cs)
-          (dotimes (r rs)
-            (when-let ((cell (nth r (nth c columns))))
-              (unless (equal cell "")
-                (insert cell ?\n))))
-          (unless (= c (1- cs))
-            (insert ?\n)))
-      (dotimes (r rs)
-        (dotimes (c cs)
-          (if vp
-              (progn
-                (when-let ((cell (nth r (nth c columns))))
-                  (insert cell))
-                (if (= c (1- cs))
-                    (insert ?\n)
-                  (insert (propertize " " 'display
-                                      `(space :align-to (,(nth (1+ c) cc)))))))
-            (when (> c 0)
-              (insert (make-string (max 1 (- (nth c cc) (current-column)))
-                                   ?\s)))
-            (when-let ((cell (nth r (nth c columns))))
-              (insert cell))
-            (when (= c (1- cs))
-              (insert ?\n))))))))
+  (if transient-force-single-column
+      (dolist (group (oref group suffixes))
+        (transient--insert-group group t))
+    (let* ((columns
+            (mapcar
+             (lambda (column)
+               (transient--maybe-pad-keys column group)
+               (transient-with-shadowed-buffer
+                 `(,@(and-let* ((desc (transient-format-description column)))
+                       (list desc))
+                   ,@(let ((transient--pending-group column))
+                       (mapcar #'transient-format (oref column suffixes))))))
+             (oref group suffixes)))
+           (stops (transient--column-stops columns)))
+      (dolist (row (apply #'transient--mapn #'list columns))
+        (let ((stops stops))
+          (dolist (cell row)
+            (let ((stop (pop stops)))
+              (when cell
+                (transient--align-to stop)
+                (insert cell)))))
+        (insert ?\n)))))
 
 (cl-defmethod transient--insert-group ((group transient-subgroups))
   (let ((subgroups (oref group suffixes)))
@@ -4003,9 +3930,8 @@ face `transient-heading' to the complete string."
 (cl-defmethod transient-format-description :around ((obj transient-suffix))
   "Format the description by calling the next method.
 If the result is nil, then use \"(BUG: no description)\" as the
-description.
-If the OBJ's `key' is currently unreachable, then apply the face
-`transient-unreachable' to the complete string."
+description.  If the OBJ's `key' is currently unreachable, then
+apply the face `transient-unreachable' to the complete string."
   (let ((desc (or (cl-call-next-method obj)
                   (and (slot-boundp transient--prefix 'suffix-description)
                        (funcall (oref transient--prefix suffix-description)
@@ -4140,6 +4066,28 @@ If the OBJ's `key' is currently unreachable, then apply the face
       (set-window-buffer nil (current-buffer))
       (car (window-text-pixel-size
             nil (line-beginning-position) (point))))))
+
+(defun transient--column-stops (columns)
+  (let* ((var-pitch (or transient-align-variable-pitch
+                        (oref transient--prefix variable-pitch)))
+         (char-width (and var-pitch (transient--pixel-width " "))))
+    (transient--seq-reductions-from
+     (apply-partially #'+ (* 2 (if var-pitch char-width 1)))
+     (transient--mapn
+      (lambda (cells min)
+        (apply #'max
+               (if min (if var-pitch (* min char-width) min) 0)
+               (mapcar (if var-pitch #'transient--pixel-width #'length) cells)))
+      columns
+      (oref transient--prefix column-widths))
+     0)))
+
+(defun transient--align-to (stop)
+  (unless (zerop stop)
+    (insert (if (or transient-align-variable-pitch
+                    (oref transient--prefix variable-pitch))
+                (propertize " " 'display `(space :align-to (,stop)))
+              (make-string (max 0 (- stop (current-column))) ?\s)))))
 
 (defun transient-command-summary-or-name (obj)
   "Return the summary or name of the command represented by OBJ.
@@ -4494,6 +4442,17 @@ we stop there."
     (seq-doseq (elt sequence)
       (push (funcall function (car acc) elt) acc))
     (nreverse acc)))
+
+(defun transient--mapn (function &rest lists)
+  "Apply FUNCTION to elements of LISTS.
+Like `cl-mapcar' but while that stops when the shortest list
+is exhausted, continue until the longest list is, using nil
+as stand-in for elements of exhausted lists."
+  (let (result)
+    (while (catch 'more (mapc (lambda (l) (and l (throw 'more t))) lists) nil)
+      (push (apply function (mapcar #'car-safe lists)) result)
+      (setq lists (mapcar #'cdr lists)))
+    (nreverse result)))
 
 ;;; Font-Lock
 

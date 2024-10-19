@@ -89,11 +89,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* Work around GCC bug 54561.  */
-#if GNUC_PREREQ (4, 3, 0)
-# pragma GCC diagnostic ignored "-Wclobbered"
-#endif
-
 #ifdef WINDOWSNT
 char const DEV_TTY[] = "CONOUT$";
 #else
@@ -2768,8 +2763,10 @@ read_char (int commandflag, Lisp_Object map,
      it *must not* be in effect when we call redisplay.  */
 
   specpdl_ref jmpcount = SPECPDL_INDEX ();
+  Lisp_Object volatile c_volatile = c;
   if (sys_setjmp (local_getcjmp))
     {
+      c = c_volatile;
       /* Handle quits while reading the keyboard.  */
       /* We must have saved the outer value of getcjmp here,
 	 so restore it now.  */
@@ -2813,6 +2810,12 @@ read_char (int commandflag, Lisp_Object map,
       }
       goto non_reread;
     }
+
+#if GCC_LINT && __GNUC__ && !__clang__
+  /* This useless assignment pacifies GCC 14.2.1 x86-64
+     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=21161>.  */
+  c = c_volatile;
+#endif
 
   /* Start idle timers if no time limit is supplied.  We don't do it
      if a time limit is supplied to avoid an infinite recursion in the
@@ -2975,6 +2978,8 @@ read_char (int commandflag, Lisp_Object map,
 	    }
 	  reread = true;
 	}
+
+      c_volatile = c;
     }
 
   /* Read something from current KBOARD's side queue, if possible.  */
@@ -2986,6 +2991,7 @@ read_char (int commandflag, Lisp_Object map,
 	  if (!CONSP (KVAR (current_kboard, kbd_queue)))
 	    emacs_abort ();
 	  c = XCAR (KVAR (current_kboard, kbd_queue));
+	  c_volatile = c;
 	  kset_kbd_queue (current_kboard,
 			  XCDR (KVAR (current_kboard, kbd_queue)));
 	  if (NILP (KVAR (current_kboard, kbd_queue)))
@@ -3041,6 +3047,8 @@ read_char (int commandflag, Lisp_Object map,
 	  c = XCDR (c);
 	  recorded = true;
 	}
+
+      c_volatile = c;
   }
 
  non_reread:
@@ -3124,7 +3132,7 @@ read_char (int commandflag, Lisp_Object map,
 	  d = Faref (KVAR (current_kboard, Vkeyboard_translate_table), c);
 	  /* nil in keyboard-translate-table means no translation.  */
 	  if (!NILP (d))
-	    c = d;
+	    c_volatile = c = d;
 	}
     }
 
@@ -3164,6 +3172,7 @@ read_char (int commandflag, Lisp_Object map,
 	      Vunread_command_events = Fcons (c, Vunread_command_events);
 	    }
 	  c = posn;
+	  c_volatile = c;
 	}
     }
 
@@ -3289,6 +3298,7 @@ read_char (int commandflag, Lisp_Object map,
 	}
       /* It returned one event or more.  */
       c = XCAR (tem);
+      c_volatile = c;
       Vunread_post_input_method_events
 	= nconc2 (XCDR (tem), Vunread_post_input_method_events);
     }
@@ -3363,6 +3373,7 @@ read_char (int commandflag, Lisp_Object map,
       do
 	{
 	  c = read_char (0, Qnil, Qnil, 0, NULL);
+	  c_volatile = c;
 	  if (EVENT_HAS_PARAMETERS (c)
 	      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_click))
 	    XSETCAR (help_form_saved_window_configs, Qnil);
@@ -3376,7 +3387,7 @@ read_char (int commandflag, Lisp_Object map,
 	{
 	  cancel_echoing ();
 	  do
-	    c = read_char (0, Qnil, Qnil, 0, NULL);
+	    c_volatile = c = read_char (0, Qnil, Qnil, 0, NULL);
 	  while (BUFFERP (c));
 	}
     }
@@ -11922,7 +11933,12 @@ Before suspending, run the normal hook `suspend-hook'.
 After resumption run the normal hook `suspend-resume-hook'.
 
 Some operating systems cannot stop the Emacs process and resume it later.
-On such systems, Emacs starts a subshell instead of suspending.  */)
+On such systems, Emacs starts a subshell instead of suspending.
+
+On some operating systems, stuffing characters into terminal input
+buffer requires special privileges or is not supported at all.
+On such systems, calling this function with non-nil STUFFSTRING might
+either signal an error or silently fail to stuff the characters.  */)
   (Lisp_Object stuffstring)
 {
   specpdl_ref count = SPECPDL_INDEX ();

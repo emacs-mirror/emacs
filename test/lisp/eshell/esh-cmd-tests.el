@@ -325,6 +325,12 @@ processes correctly."
    (eshell-match-command-output "for i in 1 { echo $for-items }"
                                 "hello\n")))
 
+(ert-deftest esh-cmd-test/for-loop-lisp-body ()
+  "Test invocation of a for loop with a Lisp body form."
+  (with-temp-eshell
+   (eshell-match-command-output "for i in 1 2 3 (format \"%s\" i)"
+                                "1\n2\n3\n")))
+
 (ert-deftest esh-cmd-test/for-loop-pipe ()
   "Test invocation of a for loop piped to another command."
   (skip-unless (executable-find "rev"))
@@ -348,6 +354,15 @@ processes correctly."
      (eshell-match-command-output
       (concat "while (/= eshell-test-value 3) "
               "{ setq eshell-test-value (1+ eshell-test-value) }")
+      "1\n2\n3\n"))))
+
+(ert-deftest esh-cmd-test/while-loop-lisp-body ()
+  "Test invocation of a while loop using a Lisp form for the body."
+  (with-temp-eshell
+   (let ((eshell-test-value 0))
+     (eshell-match-command-output
+      (concat "while (/= eshell-test-value 3) "
+              "(setq eshell-test-value (1+ eshell-test-value))")
       "1\n2\n3\n"))))
 
 (ert-deftest esh-cmd-test/while-loop-ext-cmd ()
@@ -412,11 +427,15 @@ processes correctly."
 (ert-deftest esh-cmd-test/if-else-statement ()
   "Test invocation of an if/else statement."
   (let ((eshell-test-value t))
-    (eshell-command-result-equal "if $eshell-test-value {echo yes} {echo no}"
-                                 "yes"))
+    (eshell-command-result-equal
+     "if $eshell-test-value {echo yes} {echo no}" "yes")
+    (eshell-command-result-equal
+     "if $eshell-test-value {echo yes} else {echo no}" "yes"))
   (let ((eshell-test-value nil))
-    (eshell-command-result-equal "if $eshell-test-value {echo yes} {echo no}"
-                                 "no")))
+    (eshell-command-result-equal
+     "if $eshell-test-value {echo yes} {echo no}" "no")
+    (eshell-command-result-equal
+     "if $eshell-test-value {echo yes} else {echo no}" "no")))
 
 (ert-deftest esh-cmd-test/if-else-statement-lisp-form ()
   "Test invocation of an if/else statement using a Lisp form."
@@ -440,6 +459,17 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
       (eshell-command-result-equal "if (zerop \"foo\") {echo yes} {echo no}"
                                    "no"))))
 
+(ert-deftest esh-cmd-test/if-else-statement-lisp-body ()
+  "Test invocation of an if/else statement using Lisp forms for the bodies."
+  (eshell-command-result-equal "if (zerop 0) (format \"yes\") (format \"no\")"
+                               "yes")
+  (eshell-command-result-equal "if (zerop 1) (format \"yes\") (format \"no\")"
+                               "no")
+  (let ((debug-on-error nil))
+    (eshell-command-result-equal
+     "if (zerop \"foo\")  (format \"yes\") (format \"no\")"
+     "no")))
+
 (ert-deftest esh-cmd-test/if-else-statement-ext-cmd ()
   "Test invocation of an if/else statement using an external command."
   (skip-unless (executable-find "["))
@@ -447,6 +477,16 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                                "yes")
   (eshell-command-result-equal "if {[ foo = bar ]} {echo yes} {echo no}"
                                "no"))
+
+(ert-deftest esh-cmd-test/if-else-statement-chain ()
+  "Test invocation of a chained if/else statement."
+  (dolist (case '((1 . "one") (2 . "two") (3 . "other")))
+    (let ((eshell-test-value (car case)))
+      (eshell-command-result-equal
+       (concat "if (= eshell-test-value 1) {echo one} "
+               "else if (= eshell-test-value 2) {echo two} "
+               "else {echo other}")
+       (cdr case)))))
 
 (ert-deftest esh-cmd-test/if-statement-pipe ()
   "Test invocation of an if statement piped to another command."

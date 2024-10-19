@@ -1061,7 +1061,9 @@ one, no insertion takes places, and that position is simply skipped
 over.  If the region is active (@pxref{Mark}), insertion of a
 delimiter operates on the region: the characters in the region are
 enclosed in a pair of matching delimiters, leaving point after the
-delimiter you typed.
+delimiter you typed.  If you provide a prefix argument when inserting
+a delimiter, the numeric value of that prefix argument specifies the
+number of pairs to insert.
 
 These variables control additional features of Electric Pair mode:
 
@@ -1430,7 +1432,7 @@ line shows how many manual pages are available.
 @vindex Man-prefer-synchronous-call
   By default, @kbd{M-x man} calls the @code{man} program
 asynchronously.  You can force the invocation to be synchronous by
-customizing @code{Man-prefer-synchronous-calls} to a non-@code{nil}
+customizing @code{Man-prefer-synchronous-call} to a non-@code{nil}
 value.
 
 @vindex Man-support-remote-systems

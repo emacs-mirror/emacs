@@ -344,12 +344,20 @@ ftcrfont_close (struct font *font)
       ftcrfont_info->hb_font = NULL;
     }
 #endif
-  for (int i = 0; i < ftcrfont_info->metrics_nrows; i++)
-    if (ftcrfont_info->metrics[i])
-      xfree (ftcrfont_info->metrics[i]);
   if (ftcrfont_info->metrics)
-    xfree (ftcrfont_info->metrics);
-  cairo_scaled_font_destroy (ftcrfont_info->cr_scaled_font);
+    {
+      for (int i = 0; i < ftcrfont_info->metrics_nrows; i++)
+	if (ftcrfont_info->metrics[i])
+	  xfree (ftcrfont_info->metrics[i]);
+      if (ftcrfont_info->metrics)
+	xfree (ftcrfont_info->metrics);
+      ftcrfont_info->metrics = NULL;
+    }
+  if (ftcrfont_info->cr_scaled_font)
+    {
+      cairo_scaled_font_destroy (ftcrfont_info->cr_scaled_font);
+      ftcrfont_info->cr_scaled_font = NULL;
+    }
   unblock_input ();
 }
 

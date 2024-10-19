@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'newcomment)
 (require 'pcase)
 

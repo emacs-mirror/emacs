@@ -3650,14 +3650,14 @@ get_narrowed_len (struct window *w)
 static ptrdiff_t
 get_medium_narrowing_begv (struct window *w, ptrdiff_t pos)
 {
-  int len = get_narrowed_len (w);
+  ptrdiff_t len = get_narrowed_len (w);
   return max ((pos / len - 1) * len, BEGV);
 }
 
 static ptrdiff_t
 get_medium_narrowing_zv (struct window *w, ptrdiff_t pos)
 {
-  int len = get_narrowed_len (w);
+  ptrdiff_t len = get_narrowed_len (w);
   return min ((pos / len + 1) * len, ZV);
 }
 
@@ -3707,9 +3707,9 @@ get_large_narrowing_begv (ptrdiff_t pos)
 {
   if (long_line_optimizations_region_size <= 0)
     return BEGV;
-  int len = long_line_optimizations_region_size / 2;
-  int begv = max (pos - len, BEGV);
-  int limit = long_line_optimizations_bol_search_limit;
+  ptrdiff_t len = long_line_optimizations_region_size / 2;
+  ptrdiff_t begv = max (pos - len, BEGV);
+  ptrdiff_t limit = long_line_optimizations_bol_search_limit;
   while (limit > 0)
     {
       if (begv == BEGV || FETCH_BYTE (CHAR_TO_BYTE (begv) - 1) == '\n')
@@ -3725,7 +3725,7 @@ get_large_narrowing_zv (ptrdiff_t pos)
 {
   if (long_line_optimizations_region_size <= 0)
     return ZV;
-  int len = long_line_optimizations_region_size / 2;
+  ptrdiff_t len = long_line_optimizations_region_size / 2;
   return min (pos + len, ZV);
 }
 
@@ -5635,16 +5635,25 @@ find_display_property (Lisp_Object disp, Lisp_Object prop)
     return XCDR (elem);
 }
 
+/* Return the value of 'display' text or overlay property PROP of
+   character at CHARPOS in OBJECT.  Return nil if character at CHARPOS
+   has no 'display' property or if the 'display' property of that
+   character does not include PROP.  OBJECT can be a buffer or a window
+   or a string.  */
 static Lisp_Object
-get_display_property (ptrdiff_t bufpos, Lisp_Object prop, Lisp_Object object)
+get_display_property (ptrdiff_t charpos, Lisp_Object prop, Lisp_Object object)
 {
-  return find_display_property (Fget_text_property (make_fixnum (bufpos),
+  return find_display_property (Fget_char_property (make_fixnum (charpos),
 						    Qdisplay, object),
 				prop);
 }
 
+/* Handle 'display' property '(min-width (WIDTH))' at CHARPOS in OBJECT.
+   OBJECT can be a buffer (or nil, which means the current buffer) or a
+   string.  MIN_WIDTH is the value of min-width spec that we expect to
+   process.  */
 static void
-display_min_width (struct it *it, ptrdiff_t bufpos,
+display_min_width (struct it *it, ptrdiff_t charpos,
 		   Lisp_Object object, Lisp_Object width_spec)
 {
   /* We're being called at the end of the `min-width' sequence,
@@ -5655,15 +5664,21 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
       /* When called from display_string (i.e., the mode line),
 	 we're being called with a string as the object, and we
 	 may be called with many sub-strings belonging to the same
-	 :propertize run. */
-      if ((bufpos == 0
-	   && !EQ (it->min_width_property,
-		   get_display_property (0, Qmin_width, object)))
+	 :propertize run.  */
+      if ((STRINGP (object)
+	   && ((charpos == 0
+		&& !EQ (it->min_width_property,
+			get_display_property (0, Qmin_width, object)))
+	       || (charpos > 0
+		   && EQ (it->min_width_property,
+			  get_display_property (charpos - 1, Qmin_width,
+						 object)))))
 	  /* In a buffer -- check that we're really right after the
 	     sequence of characters covered by this `min-width'.  */
-	  || (bufpos > BEGV
+	  || (!STRINGP (object)
+	      && charpos > BEGV
 	      && EQ (it->min_width_property,
-		     get_display_property (bufpos - 1, Qmin_width, object))))
+		     get_display_property (charpos - 1, Qmin_width, object))))
 	{
 	  Lisp_Object w = Qnil;
 	  double width;
@@ -5677,7 +5692,13 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
 					  XCAR (it->min_width_property),
 					  font, true, NULL);
 	      width -= it->current_x - it->min_width_start;
-	      w = list1 (make_int (width));
+	      /* It makes no sense to try to obey min-width which yields
+                 a stretch that ends beyond the visible portion of the
+                 window if we are truncating screen lines.  If we are
+                 requested to do that, some Lisp program went awry.  */
+	      if (!(it->line_wrap == TRUNCATE
+		    && it->current_x + width > it->last_visible_x))
+		w = list1 (make_int (width));
 	    }
 	  else
 #endif
@@ -5687,19 +5708,24 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
 					  NULL, true, NULL);
 	      width -= (it->current_x - it->min_width_start) /
 		FRAME_COLUMN_WIDTH (it->f);
-	      w = make_int (width);
+	      if (!(it->line_wrap == TRUNCATE
+		    && it->current_x + width > it->last_visible_x))
+		w = make_int (width);
 	    }
 
 	  /* Insert the stretch glyph.  */
-	  it->object = list3 (Qspace, QCwidth, w);
-	  produce_stretch_glyph (it);
-	  if (it->area == TEXT_AREA)
+	  if (!NILP (w))
 	    {
-	      it->current_x += it->pixel_width;
+	      it->object = list3 (Qspace, QCwidth, w);
+	      produce_stretch_glyph (it);
+	      if (it->area == TEXT_AREA)
+		{
+		  it->current_x += it->pixel_width;
 
-	      if (it->continuation_lines_width
-		  && it->string_from_prefix_prop_p)
-		it->wrap_prefix_width = it->current_x;
+		  if (it->continuation_lines_width
+		      && it->string_from_prefix_prop_p)
+		    it->wrap_prefix_width = it->current_x;
+		}
 	    }
 	  it->min_width_property = Qnil;
 	}
@@ -5710,15 +5736,18 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
      the end.  */
   if (CONSP (width_spec))
     {
-      if (bufpos == BEGV
+      if ((!STRINGP (object)
+	   && charpos == BEGV)
 	  /* Mode line (see above).  */
-	  || (bufpos == 0
+	  || (STRINGP (object)
+	      && charpos == 0
 	      && !EQ (it->min_width_property,
 		      get_display_property (0, Qmin_width, object)))
 	  /* Buffer.  */
-	  || (bufpos > BEGV
+	  || (!STRINGP (object)
+	      && charpos > BEGV
 	      && !EQ (width_spec,
-		      get_display_property (bufpos - 1, Qmin_width, object))))
+		      get_display_property (charpos - 1, Qmin_width, object))))
 	{
 	  it->min_width_property = width_spec;
 	  it->min_width_start = it->current_x;
@@ -5795,13 +5824,24 @@ handle_display_prop (struct it *it)
 					   Qdisplay, object, &overlay);
 
   /* Rest of the code must have OBJECT be either a string or a buffer.  */
+  Lisp_Object objwin = object;
   if (!STRINGP (it->string))
     object = it->w->contents;
 
   /* Handle min-width ends. */
   if (!NILP (it->min_width_property)
       && NILP (find_display_property (propval, Qmin_width)))
-    display_min_width (it, bufpos, object, Qnil);
+    {
+      ptrdiff_t pos = bufpos, start = BEGV;
+
+      if (STRINGP (object))
+	{
+	  pos = IT_STRING_CHARPOS (*it);
+	  start = 0;
+	}
+      if (pos > start)
+	display_min_width (it, pos, objwin, Qnil);
+    }
 
   if (NILP (propval))
     return HANDLED_NORMALLY;
@@ -6102,7 +6142,13 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       && CONSP (XCAR (XCDR (spec))))
     {
       if (it)
-	display_min_width (it, bufpos, object, XCAR (XCDR (spec)));
+	{
+	  ptrdiff_t pos = bufpos;
+
+	  if (STRINGP (object))
+	    pos = IT_STRING_CHARPOS (*it);
+	  display_min_width (it, pos, object, XCAR (XCDR (spec)));
+	}
       return 0;
     }
 
@@ -9007,6 +9053,10 @@ set_iterator_to_next (struct it *it, bool reseat_p)
 	     next, if there is one.  */
 	  if (IT_STRING_CHARPOS (*it) >= SCHARS (it->string))
 	    {
+	      /* Maybe add a stretch glyph if the string had 'min-width'
+                 display spec.  */
+	      display_min_width (it, IT_STRING_CHARPOS (*it), it->string,
+				 Qnil);
 	      it->ellipsis_p = false;
 	      next_overlay_string (it);
 	      if (it->ellipsis_p)
@@ -9022,6 +9072,12 @@ set_iterator_to_next (struct it *it, bool reseat_p)
 	  if (IT_STRING_CHARPOS (*it) == SCHARS (it->string)
 	      && it->sp > 0)
 	    {
+	      /* Maybe add a stretch glyph if the string had 'min-width'
+                 display spec.  We only do this if it->sp > 0 because
+                 mode-line strings are handled differently, see
+                 display_min_width.  */
+	      display_min_width (it, IT_STRING_CHARPOS (*it), it->string,
+				 Qnil);
 	      pop_it (it);
 	      if (it->method == GET_FROM_STRING)
 		goto consider_string_end;
@@ -11827,7 +11883,7 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
 }
 
 DEFUN ("window-text-pixel-size", Fwindow_text_pixel_size, Swindow_text_pixel_size, 0, 7, 0,
-       doc: /* Return the size of the text of WINDOW's buffer in pixels.
+       doc: /* Return the dimensions of the text of WINDOW's buffer in pixels.
 WINDOW must be a live window and defaults to the selected one.  The
 return value is a cons of the maximum pixel-width of any text line and
 the pixel-height of all the text lines in the accessible portion of
@@ -11907,7 +11963,7 @@ screen line that includes TO to the returned height of the text.  */)
 }
 
 DEFUN ("buffer-text-pixel-size", Fbuffer_text_pixel_size, Sbuffer_text_pixel_size, 0, 4, 0,
-       doc: /* Return size of whole text of BUFFER-OR-NAME in WINDOW.
+       doc: /* Return the dimensions of whole text of BUFFER-OR-NAME in WINDOW.
 BUFFER-OR-NAME must specify a live buffer or the name of a live buffer
 and defaults to the current buffer.  WINDOW must be a live window and
 defaults to the selected one.  The return value is a cons of the maximum
@@ -15113,8 +15169,6 @@ note_tab_bar_highlight (struct frame *f, int x, int y)
   help_echo_object = help_echo_window = Qnil;
   help_echo_pos = -1;
   help_echo_string = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_HELP);
-  if (NILP (help_echo_string))
-    help_echo_string = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_CAPTION);
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -22142,7 +22196,8 @@ try_window_id (struct window *w)
 
   /* Window must either use window-based redisplay or be full width.  */
   if (!FRAME_WINDOW_P (f)
-      && (!FRAME_LINE_INS_DEL_OK (f)
+      && (FRAME_INITIAL_P (f)
+	  || !FRAME_LINE_INS_DEL_OK (f)
 	  || !WINDOW_FULL_WIDTH_P (w)))
     GIVE_UP (4);
 

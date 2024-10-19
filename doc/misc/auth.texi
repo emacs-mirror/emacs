@@ -73,7 +73,7 @@ It is a way for multiple applications to share a single configuration
 @chapter Overview
 
 The auth-source library is simply a way for Emacs and Gnus, among
-others, to answer the old burning question ``What are my user name and
+others, to answer the old burning question ``What is my user name and
 password?''
 
 (This is different from the old question about burning ``Where is the
@@ -82,11 +82,11 @@ fire extinguisher, please?''.)
 The auth-source library supports more than just the user name or the
 password (known as the secret).
 
-Similarly, the auth-source library supports multiple storage backend,
+Similarly, the auth-source library supports multiple storage backends,
 currently either the classic ``netrc'' backend, examples of which you
-can see later in this document, JSON files, the Secret Service API, and pass, the
-standard unix password manager.  This is done with EIEIO-based
-backends and you can write your own if you want.
+can see later in this document, JSON files, the Secret Service API, and
+@samp{pass}, the standard unix password manager.  This is done with
+EIEIO-based backends, and you can write your own if you want.
 
 @node Help for users
 @chapter Help for users
@@ -363,7 +363,7 @@ collections such as @code{"login"}.
 
 With GNOME Keyring, there exists a special collection called
 @code{"session"}, which has the lifetime of the user being logged in.
-Its data are not stored on disk and go away when the user logs out.
+Its data is not stored on disk and goes away when the user logs out.
 Therefore, it can be used to store and retrieve secret items
 temporarily.  The @code{"session"} collection is better than a
 persistent collection when the secret items should not live
@@ -372,7 +372,7 @@ by the string @code{"session"}, or by @code{nil}, whenever a
 collection parameter is needed.
 
 However, other Secret Service provider don't create this temporary
-@code{"session"} collection.  You shall check first that this
+@code{"session"} collection.  You must check first that this
 collection exists, before you use it.
 
 @defun secrets-list-items collection
@@ -474,13 +474,13 @@ functions.
 @chapter The Unix password store
 
 @uref{https://www.passwordstore.org,,The standard unix password
-manager} (or just @code{pass}) stores your passwords in
+manager} (or just @samp{pass}) stores your passwords in
 @code{gpg}-protected files following the Unix philosophy.  The store
 location (any directory) must be specified in the
 @code{auth-source-pass-filename} variable which defaults to
 @file{~/.password-store}.
 
-Emacs integration of @code{pass} follows the approach suggested by the
+Emacs integration of @samp{pass} follows the approach suggested by the
 pass project itself for data organization to find data.  In
 particular, to store a password for the user @code{rms} on the host
 @code{gnu.org} and port @code{22}, you should use one of the following
@@ -531,12 +531,13 @@ while searching for an entry matching the @code{rms} user on host
 However, such processing is not applied when the option
 @code{auth-source-pass-extra-query-keywords} is set to @code{t}.
 
-Users of @code{pass} may also be interested in functionality provided
+Users of @samp{pass} may also be interested in functionality provided
 by other Emacs packages:
 
 @itemize
 @item
-@uref{https://git.zx2c4.com/password-store/tree/contrib/emacs/password-store.el,,password-store}: library wrapping @code{pass};
+@uref{https://git.zx2c4.com/password-store/tree/contrib/emacs/password-store.el,,password-store}:
+library wrapping @samp{pass};
 @item
 @uref{https://github.com/NicolasPetton/pass,,pass}: major mode to manipulate the store and edit entries;
 @item
@@ -585,7 +586,7 @@ The auth-source library only has a few functions for external use.
 
 @defun auth-source-search &rest spec &key type max host user port secret require create delete &allow-other-keys
 This function searches (or modifies) authentication backends according
-to @var{spec}.  See the function's doc-string for details.
+to @var{spec}.  See the function's docstring for details.
 @c TODO more details.
 @end defun
 
@@ -635,8 +636,6 @@ authentication information we just used, if it was newly created.''
 After the first time it's called, the @code{:save-function} will not
 run again (but it will log something if you have set
 @code{auth-source-debug} to @code{'trivia}).  This is so it won't ask
-the same question again, which is annoying.  This is so it won't ask
-the same question again, which is annoying.  This is so it won't ask
 the same question again, which is annoying.
 
 So the responsibility of the API user that specified @code{:create t}

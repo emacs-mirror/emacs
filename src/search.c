@@ -2777,16 +2777,6 @@ since only regular expressions have distinguished subexpressions.  */)
     Fupcase_initials_region (make_fixnum (search_regs.start[sub]),
 			     make_fixnum (newpoint), Qnil);
 
-  /* The replace_range etc. functions can trigger modification hooks
-     (see signal_before_change and signal_after_change).  Try to error
-     out if these hooks clobber the match data since clobbering can
-     result in confusing bugs.  We used to check for changes in
-     search_regs start and end, but that fails if modification hooks
-     remove or add text earlier in the buffer, so just check num_regs
-     now. */
-  if (search_regs.num_regs != num_regs)
-    error ("Match data clobbered by buffer modification hooks");
-
   /* Put point back where it was in the text, if possible.  */
   TEMP_SET_PT (clip_to_bounds (BEGV, opoint + (opoint <= 0 ? ZV : 0), ZV));
   /* Now move point "officially" to the end of the inserted replacement.  */
@@ -3410,6 +3400,7 @@ DEFUN ("re--describe-compiled", Fre__describe_compiled, Sre__describe_compiled,
 If RAW is non-nil, just return the actual bytecode.  */)
   (Lisp_Object regexp, Lisp_Object raw)
 {
+  CHECK_STRING (regexp);
   struct regexp_cache *cache_entry
     = compile_pattern (regexp, NULL,
                        (!NILP (Vcase_fold_search)

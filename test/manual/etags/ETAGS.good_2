@@ -3721,8 +3721,8 @@ scm-src/test.scm,260
 (define (((((curry-test 14,205
 (define-syntax test-begin17,265
 
-tex-src/testenv.tex,52
-\newcommand{\nm}\nm4,77
+tex-src/testenv.tex,51
+\newcommand{\nm}nm4,77
 \section{blah}blah8,139
 
 tex-src/gzip.texi,303
@@ -3737,722 +3737,1142 @@ tex-src/gzip.texi,303
 @node Problems,460,16769
 @node Concept Index,Concept Index473,17289
 
-tex-src/texinfo.tex,30627
-\def\texinfoversion{\texinfoversion26,1035
-\def\tie{\tie49,1526
-\def\gloggingall{\gloggingall72,2276
-\def\loggingall{\loggingall73,2345
-\def\onepageout#1{\onepageout99,3282
-\def\croppageout#1{\croppageout115,4032
-\def\cropmarks{\cropmarks142,5092
-\def\pagebody#1{\pagebody144,5139
-\def\ewtop{\ewtop157,5594
-\def\nstop{\nstop158,5658
-\def\ewbot{\ewbot160,5741
-\def\nsbot{\nsbot161,5805
-\def\parsearg #1{\parsearg170,6104
-\def\parseargx{\parseargx172,6182
-\def\parseargline{\parseargline182,6422
-\def\flushcr{\flushcr186,6543
-\newif\ifENV \ENVfalse \def\inENV{\inENV190,6742
-\def\ENVcheck{\ENVcheck191,6806
-\outer\def\begin{\begin198,7053
-\def\beginxxx #1{\beginxxx200,7091
-\def\end{\end208,7346
-\def\endxxx #1{\endxxx210,7374
-\def\errorE#1{\errorE216,7563
-\def\singlespace{\singlespace222,7757
-\def\@{\@232,7980
-\def\`{\`236,8080
-\def\'{\'237,8092
-\def\mylbrace {\mylbrace241,8140
-\def\myrbrace {\myrbrace242,8173
-\def\:{\:247,8287
-\def\*{\*250,8341
-\def\.{\.253,8417
-\def\w#1{\w258,8648
-\def\group{\group268,9131
-  \def\Egroup{\Egroup273,9295
-\def\need{\need289,9737
-\def\needx#1{\needx300,10014
-\def\dots{\dots339,11400
-\def\page{\page343,11464
-\def\exdent{\exdent353,11791
-\def\exdentyyy #1{\exdentyyy354,11824
-\def\nofillexdent{\nofillexdent357,11968
-\def\nofillexdentyyy #1{\nofillexdentyyy358,12013
-\def\include{\include365,12197
-\def\includezzz #1{\includezzz366,12232
-\def\thisfile{\thisfile369,12283
-\def\center{\center373,12346
-\def\centerzzz #1{\centerzzz374,12379
-\def\sp{\sp380,12521
-\def\spxxx #1{\spxxx381,12546
-\def\comment{\comment387,12720
-\def\commentxxx #1{\commentxxx390,12817
-\def\ignoresections{\ignoresections396,12986
-\let\chapter=\relax=\relax397,13008
-\let\section=\relax=\relax406,13253
-\let\subsection=\relax=\relax409,13314
-\let\subsubsection=\relax=\relax410,13337
-\let\appendix=\relax=\relax411,13363
-\let\appendixsec=\relaxsec=\relax412,13384
-\let\appendixsection=\relaxsection=\relax413,13408
-\let\appendixsubsec=\relaxsubsec=\relax414,13436
-\let\appendixsubsection=\relaxsubsection=\relax415,13463
-\let\appendixsubsubsec=\relaxsubsubsec=\relax416,13494
-\let\appendixsubsubsection=\relaxsubsubsection=\relax417,13524
-\def\ignore{\ignore423,13626
-\long\def\ignorexxx #1\end ignore{\ignorexxx427,13766
-\def\direntry{\direntry429,13825
-\long\def\direntryxxx #1\end direntry{\direntryxxx430,13864
-\def\ifset{\ifset434,13974
-\def\ifsetxxx #1{\ifsetxxx436,14032
-\def\Eifset{\Eifset440,14159
-\def\ifsetfail{\ifsetfail441,14173
-\long\def\ifsetfailxxx #1\end ifset{\ifsetfailxxx442,14229
-\def\ifclear{\ifclear444,14290
-\def\ifclearxxx #1{\ifclearxxx446,14352
-\def\Eifclear{\Eifclear450,14483
-\def\ifclearfail{\ifclearfail451,14499
-\long\def\ifclearfailxxx #1\end ifclear{\ifclearfailxxx452,14559
-\def\set{\set456,14710
-\def\setxxx #1{\setxxx457,14737
-\def\clear{\clear460,14799
-\def\clearxxx #1{\clearxxx461,14830
-\def\iftex{\iftex466,14947
-\def\Eiftex{\Eiftex467,14960
-\def\ifinfo{\ifinfo468,14974
-\long\def\ifinfoxxx #1\end ifinfo{\ifinfoxxx469,15024
-\long\def\menu #1\end menu{\menu471,15083
-\def\asis#1{\asis472,15112
-\def\math#1{\math485,15655
-\def\node{\node487,15699
-\def\nodezzz#1{\nodezzz488,15737
-\def\nodexxx[#1,#2]{\nodexxx[489,15768
-\def\donoderef{\donoderef492,15830
-\def\unnumbnoderef{\unnumbnoderef496,15951
-\def\appendixnoderef{\appendixnoderef500,16082
+tex-src/texinfo.tex,55236
+\def\texinfoversion{texinfoversion26,1035
+\let\ptexlbrace=\{ptexlbrace35,1308
+\let\ptexrbrace=\}ptexrbrace36,1327
+\let\ptexdots=\dotsptexdots37,1346
+\let\ptexdot=\.ptexdot38,1366
+\let\ptexstar=\*ptexstar39,1382
+\let\ptexend=\endptexend40,1399
+\let\ptexbullet=\bulletptexbullet41,1417
+\let\ptexb=\bptexb42,1441
+\let\ptexc=\cptexc43,1455
+\let\ptexi=\iptexi44,1469
+\let\ptext=\tptext45,1483
+\let\ptexl=\lptexl46,1497
+\let\ptexL=\LptexL47,1511
+\def\tie{tie49,1526
+\def\gloggingall{gloggingall72,2276
+\def\loggingall{loggingall73,2345
+\def\onepageout#1{onepageout99,3282
+\shipout\vbox{{\let\hsize=\pagewidth \makeheadline}hsize103,3489
+{\let\hsize=\pagewidth \makefootline}hsize104,3556
+\def\croppageout#1{croppageout115,4032
+			{\let\hsize=\pagewidth \makeheadline}hsize126,4511
+			{\let\hsize=\pagewidth \makefootline}hsize128,4569
+\def\cropmarks{cropmarks142,5092
+\def\cropmarks{\let\onepageout=\croppageout }onepageout142,5092
+\def\pagebody#1{pagebody144,5139
+\gdef\pagecontents#1{pagecontents146,5220
+\def\ewtop{ewtop157,5594
+\def\nstop{nstop158,5658
+\def\ewbot{ewbot160,5741
+\def\nsbot{nsbot161,5805
+\def\parsearg #1{parsearg170,6104
+\def\parsearg #1{\let\next=#1\begingroup\obeylines\futurelet\temp\parseargx}next170,6104
+\def\parseargx{parseargx172,6182
+\gdef\parseargdiscardspace {parseargdiscardspace178,6321
+\gdef\obeyedspace{obeyedspace180,6399
+\def\parseargline{parseargline182,6422
+\gdef\parsearglinex #1^^M{parsearglinex184,6493
+\def\flushcr{flushcr186,6543
+\def\flushcr{\ifx\par\lisppar \def\next##1{next186,6543
+\def\flushcr{\ifx\par\lisppar \def\next##1{}\else \let\next=\relax \fi \next}next186,6543
+\newif\ifENV \ENVfalse \def\inENV{inENV190,6742
+\def\ENVcheck{ENVcheck191,6806
+\outer\def\begin{begin198,7053
+\def\beginxxx #1{beginxxx200,7091
+\def\end{end208,7346
+\def\endxxx #1{endxxx210,7374
+\def\errorE#1{errorE216,7563
+\def\singlespace{singlespace222,7757
+\def\@{@232,7980
+\def\`{`236,8080
+\def\'{'237,8092
+\def\mylbrace {mylbrace241,8140
+\def\myrbrace {myrbrace242,8173
+\let\{=\mylbrace{243,8206
+\let\}=\myrbrace}244,8223
+\def\:{:247,8287
+\def\*{*250,8341
+\def\.{.253,8417
+\def\w#1{w258,8648
+\def\group{group268,9131
+  \def\Egroup{Egroup273,9295
+\def\need{need289,9737
+\def\needx#1{needx300,10014
+\let\br = \parbr335,11355
+\def\dots{dots339,11400
+\def\page{page343,11464
+\def\exdent{exdent353,11791
+\def\exdentyyy #1{exdentyyy354,11824
+\def\nofillexdent{nofillexdent357,11968
+\def\nofillexdentyyy #1{nofillexdentyyy358,12013
+\def\include{include365,12197
+\def\includezzz #1{includezzz366,12232
+\def\includezzz #1{{\def\thisfile{thisfile366,12232
+\def\thisfile{thisfile369,12283
+\def\center{center373,12346
+\def\centerzzz #1{centerzzz374,12379
+\def\sp{sp380,12521
+\def\spxxx #1{spxxx381,12546
+\def\comment{comment387,12720
+\def\commentxxx #1{commentxxx390,12817
+\let\c=\commentc392,12883
+\def\ignoresections{ignoresections396,12986
+\let\chapter=\relaxchapter397,13008
+\let\unnumbered=\relaxunnumbered398,13028
+\let\top=\relaxtop399,13051
+\let\unnumberedsec=\relaxunnumberedsec400,13067
+\let\unnumberedsection=\relaxunnumberedsection401,13093
+\let\unnumberedsubsec=\relaxunnumberedsubsec402,13123
+\let\unnumberedsubsection=\relaxunnumberedsubsection403,13152
+\let\unnumberedsubsubsec=\relaxunnumberedsubsubsec404,13185
+\let\unnumberedsubsubsection=\relaxunnumberedsubsubsection405,13217
+\let\section=\relaxsection406,13253
+\let\subsec=\relaxsubsec407,13273
+\let\subsubsec=\relaxsubsubsec408,13292
+\let\subsection=\relaxsubsection409,13314
+\let\subsubsection=\relaxsubsubsection410,13337
+\let\appendix=\relaxappendix411,13363
+\let\appendixsec=\relaxappendixsec412,13384
+\let\appendixsection=\relaxappendixsection413,13408
+\let\appendixsubsec=\relaxappendixsubsec414,13436
+\let\appendixsubsection=\relaxappendixsubsection415,13463
+\let\appendixsubsubsec=\relaxappendixsubsubsec416,13494
+\let\appendixsubsubsection=\relaxappendixsubsubsection417,13524
+\let\contents=\relaxcontents418,13558
+\let\smallbook=\relaxsmallbook419,13579
+\let\titlepage=\relaxtitlepage420,13601
+\def\ignore{ignore423,13626
+\long\def\ignorexxx #1\end ignore{ignorexxx427,13766
+\def\direntry{direntry429,13825
+\long\def\direntryxxx #1\end direntry{direntryxxx430,13864
+\def\ifset{ifset434,13974
+\def\ifsetxxx #1{ifsetxxx436,14032
+\expandafter\ifx\csname IF#1\endcsname\relax \let\temp=\ifsetfailtemp437,14059
+\else \let\temp=\relax \fitemp438,14125
+\def\Eifset{Eifset440,14159
+\def\ifsetfail{ifsetfail441,14173
+\long\def\ifsetfailxxx #1\end ifset{ifsetfailxxx442,14229
+\def\ifclear{ifclear444,14290
+\def\ifclearxxx #1{ifclearxxx446,14352
+\expandafter\ifx\csname IF#1\endcsname\relax \let\temp=\relaxtemp447,14381
+\else \let\temp=\ifclearfail \fitemp448,14443
+\def\Eifclear{Eifclear450,14483
+\def\ifclearfail{ifclearfail451,14499
+\long\def\ifclearfailxxx #1\end ifclear{ifclearfailxxx452,14559
+\def\set{set456,14710
+\def\setxxx #1{setxxx457,14737
+\expandafter\let\csname IF#1\endcsname=\set}csname458,14753
+\def\clear{clear460,14799
+\def\clearxxx #1{clearxxx461,14830
+\expandafter\let\csname IF#1\endcsname=\relax}csname462,14848
+\def\iftex{iftex466,14947
+\def\Eiftex{Eiftex467,14960
+\def\ifinfo{ifinfo468,14974
+\long\def\ifinfoxxx #1\end ifinfo{ifinfoxxx469,15024
+\long\def\menu #1\end menu{menu471,15083
+\def\asis#1{asis472,15112
+\let\implicitmath = $implicitmath484,15633
+\def\math#1{math485,15655
+\def\node{node487,15699
+\def\nodezzz#1{nodezzz488,15737
+\def\nodexxx[#1,#2]{nodexxx489,15768
+\def\nodexxx[#1,#2]{\gdef\lastnode{lastnode489,15768
+\let\lastnode=\relaxlastnode490,15808
+\def\donoderef{donoderef492,15830
+\let\lastnode=\relax}lastnode494,15928
+\def\unnumbnoderef{unnumbnoderef496,15951
+\let\lastnode=\relax}lastnode498,16059
+\def\appendixnoderef{appendixnoderef500,16082
 \expandafter\expandafter\expandafter\appendixsetref{setref501,16128
-\let\refill=\relaxill=\relax504,16217
-\def\setfilename{\setfilename509,16431
-\outer\def\bye{\bye518,16677
-\def\inforef #1{\inforef520,16733
-\def\inforefzzz #1,#2,#3,#4**{\inforefzzz521,16771
-\def\losespace #1{\losespace523,16868
-\def\sf{\sf532,17072
-\font\defbf=cmbx10 scaled \magstep1 %was 1314bf=cmbx10558,17867
-\font\deftt=cmtt10 scaled \magstep1tt=cmtt10559,17913
-\def\df{\df560,17949
-\def\resetmathfonts{\resetmathfonts635,20543
-\def\textfonts{\textfonts648,21132
-\def\chapfonts{\chapfonts653,21347
-\def\secfonts{\secfonts658,21563
-\def\subsecfonts{\subsecfonts663,21768
-\def\indexfonts{\indexfonts668,21985
-\def\smartitalicx{\smartitalicx691,22717
-\def\smartitalic#1{\smartitalic692,22793
-\let\cite=\smartitalic=\smartitalic698,22938
-\def\b#1{\b700,22962
-\def\t#1{\t703,22997
-\def\samp #1{\samp706,23149
-\def\key #1{\key707,23182
-\def\ctrl #1{\ctrl708,23243
-\def\tclose#1{\tclose716,23445
-\def\ {\720,23611
-\def\xkey{\xkey728,23880
-\def\kbdfoo#1#2#3\par{\kbdfoo729,23896
-\def\dmn#1{\dmn738,24197
-\def\kbd#1{\kbd740,24224
-\def\l#1{\l742,24281
-\def\r#1{\r744,24310
-\def\sc#1{\sc746,24378
-\def\ii#1{\ii747,24421
-\def\titlefont#1{\titlefont755,24654
-\def\titlepage{\titlepage761,24757
-   \def\subtitlefont{\subtitlefont766,24984
-   \def\authorfont{\authorfont768,25068
-   \def\title{\title774,25278
-   \def\titlezzz##1{\titlezzz775,25313
-   \def\subtitle{\subtitle783,25628
-   \def\subtitlezzz##1{\subtitlezzz784,25669
-   \def\author{\author787,25787
-   \def\authorzzz##1{\authorzzz788,25824
-   \def\page{\page794,26115
-\def\Etitlepage{\Etitlepage804,26284
-\def\finishtitlepage{\finishtitlepage817,26672
-\def\evenheading{\evenheading846,27680
-\def\oddheading{\oddheading847,27723
-\def\everyheading{\everyheading848,27764
-\def\evenfooting{\evenfooting850,27810
-\def\oddfooting{\oddfooting851,27853
-\def\everyfooting{\everyfooting852,27894
-\def\headings #1 {\headings893,29586
-\def\HEADINGSoff{\HEADINGSoff895,29635
-\def\HEADINGSdouble{\HEADINGSdouble904,30062
-\def\HEADINGSsingle{\HEADINGSsingle914,30382
-\def\HEADINGSon{\HEADINGSon922,30603
-\def\HEADINGSafter{\HEADINGSafter924,30637
-\def\HEADINGSdoublex{\HEADINGSdoublex926,30732
-\def\HEADINGSsingleafter{\HEADINGSsingleafter933,30920
-\def\HEADINGSsinglex{\HEADINGSsinglex934,30981
-\def\today{\today943,31256
-\def\thistitle{\thistitle958,31801
-\def\settitle{\settitle959,31826
-\def\settitlezzz #1{\settitlezzz960,31863
-\def\internalBitem{\internalBitem992,32793
-\def\internalBitemx{\internalBitemx993,32843
-\def\internalBxitem "#1"{\internalBxitem995,32888
-\def\internalBxitemx "#1"{\internalBxitemx996,32968
-\def\internalBkitem{\internalBkitem998,33043
-\def\internalBkitemx{\internalBkitemx999,33095
-\def\kitemzzz #1{\kitemzzz1001,33142
-\def\xitemzzz #1{\xitemzzz1004,33244
-\def\itemzzz #1{\itemzzz1007,33347
-\def\item{\item1037,34418
-\def\itemx{\itemx1038,34469
-\def\kitem{\kitem1039,34522
-\def\kitemx{\kitemx1040,34575
-\def\xitem{\xitem1041,34630
-\def\xitemx{\xitemx1042,34683
-\def\description{\description1045,34793
-\def\table{\table1047,34843
-\def\ftable{\ftable1052,34987
-\def\Eftable{\Eftable1056,35133
-\def\vtable{\vtable1059,35202
-\def\Evtable{\Evtable1063,35348
-\def\dontindex #1{\dontindex1066,35417
-\def\fnitemindex #1{\fnitemindex1067,35437
-\def\vritemindex #1{\vritemindex1068,35482
-\def\tablez #1#2#3#4#5#6{\tablez1074,35631
-\def\Edescription{\Edescription1077,35689
-\def\itemfont{\itemfont1082,35890
-\def\Etable{\Etable1090,36116
-\def\itemize{\itemize1103,36440
-\def\itemizezzz #1{\itemizezzz1105,36476
-\def\itemizey #1#2{\itemizey1110,36571
-\def#2{1119,36817
-\def\itemcontents{\itemcontents1120,36858
-\def\bullet{\bullet1123,36906
-\def\minus{\minus1124,36933
-\def\frenchspacing{\frenchspacing1128,37041
-\def\splitoff#1#2\endmark{\splitoff1134,37266
-\def\enumerate{\enumerate1140,37496
-\def\enumeratezzz #1{\enumeratezzz1141,37535
-\def\enumeratey #1 #2\endenumeratey{\enumeratey1142,37588
-  \def\thearg{\thearg1146,37735
-  \ifx\thearg\empty \def\thearg{\thearg1147,37754
-\def\numericenumerate{\numericenumerate1184,39088
-\def\lowercaseenumerate{\lowercaseenumerate1190,39218
-\def\uppercaseenumerate{\uppercaseenumerate1203,39565
-\def\startenumeration#1{\startenumeration1219,40055
-\def\alphaenumerate{\alphaenumerate1227,40237
-\def\capsenumerate{\capsenumerate1228,40272
-\def\Ealphaenumerate{\Ealphaenumerate1229,40306
-\def\Ecapsenumerate{\Ecapsenumerate1230,40340
-\def\itemizeitem{\itemizeitem1234,40420
-\def\newindex #1{\newindex1259,41277
-\def\defindex{\defindex1268,41566
-\def\newcodeindex #1{\newcodeindex1272,41674
-\def\defcodeindex{\defcodeindex1279,41934
-\def\synindex #1 #2 {\synindex1283,42114
-\def\syncodeindex #1 #2 {\syncodeindex1292,42454
-\def\doindex#1{\doindex1309,43133
-\def\singleindexer #1{\singleindexer1310,43192
-\def\docodeindex#1{\docodeindex1313,43304
-\def\singlecodeindexer #1{\singlecodeindexer1314,43371
-\def\indexdummies{\indexdummies1316,43429
-\def\_{\_1317,43449
-\def\w{\w1318,43477
-\def\bf{\bf1319,43504
-\def\rm{\rm1320,43533
-\def\sl{\sl1321,43562
-\def\sf{\sf1322,43591
-\def\tt{\tt1323,43619
-\def\gtr{\gtr1324,43647
-\def\less{\less1325,43677
-\def\hat{\hat1326,43709
-\def\char{\char1327,43739
-\def\TeX{\TeX1328,43771
-\def\dots{\dots1329,43801
-\def\copyright{\copyright1330,43834
-\def\tclose##1{\tclose1331,43877
-\def\code##1{\code1332,43922
-\def\samp##1{\samp1333,43963
-\def\t##1{\t1334,44004
-\def\r##1{\r1335,44039
-\def\i##1{\i1336,44074
-\def\b##1{\b1337,44109
-\def\cite##1{\cite1338,44144
-\def\key##1{\key1339,44185
-\def\file##1{\file1340,44224
-\def\var##1{\var1341,44265
-\def\kbd##1{\kbd1342,44304
-\def\indexdummyfont#1{\indexdummyfont1347,44460
-\def\indexdummytex{\indexdummytex1348,44486
-\def\indexdummydots{\indexdummydots1349,44510
-\def\indexnofonts{\indexnofonts1351,44536
+\let\lastnode=\relax}lastnode502,16194
+\let\refill=\relaxrefill504,16217
+\def\setfilename{setfilename509,16431
+   \global\let\setfilename=\comment % Ignore extra @setfilename cmds.setfilename514,16562
+\outer\def\bye{bye518,16677
+\def\inforef #1{inforef520,16733
+\def\inforefzzz #1,#2,#3,#4**{inforefzzz521,16771
+\def\losespace #1{losespace523,16868
+\def\sf{sf532,17072
+\let\li = \sf % Sometimes we call it \li, not \sf.li533,17100
+\let\mainmagstep=\magstephalfmainmagstep536,17201
+\let\mainmagstep=\magstep1mainmagstep539,17250
+\font\defbf=cmbx10 scaled \magstep1 %was 1314bf558,17867
+\font\deftt=cmtt10 scaled \magstep1tt559,17913
+\def\df{df560,17949
+\def\df{\let\tentt=\deftt \let\tenbf = \defbf \bf}tentt560,17949
+\def\df{\let\tentt=\deftt \let\tenbf = \defbf \bf}tt560,17949
+\def\df{\let\tentt=\deftt \let\tenbf = \defbf \bf}tenbf560,17949
+\def\df{\let\tentt=\deftt \let\tenbf = \defbf \bf}bf560,17949
+\let\indsl=\inditindsl570,18310
+\let\indtt=\ninettindtt571,18328
+\let\indsf=\indrmindsf572,18347
+\let\indbf=\indrmindbf573,18365
+\let\indsc=\indrmindsc574,18383
+\let\chapbf=\chaprmchapbf584,18643
+\let\authorrm = \secrmauthorrm627,20193
+\def\resetmathfonts{resetmathfonts635,20543
+\def\textfonts{textfonts648,21132
+  \let\tenrm=\textrm \let\tenit=\textit \let\tensl=\textsltenrm649,21149
+  \let\tenrm=\textrm \let\tenit=\textit \let\tensl=\textsltenit649,21149
+  \let\tenrm=\textrm \let\tenit=\textit \let\tensl=\textsltensl649,21149
+  \let\tenbf=\textbf \let\tentt=\texttt \let\smallcaps=\textsctenbf650,21208
+  \let\tenbf=\textbf \let\tentt=\texttt \let\smallcaps=\textsctentt650,21208
+  \let\tenbf=\textbf \let\tentt=\texttt \let\smallcaps=\textscsmallcaps650,21208
+  \let\tensf=\textsf \let\teni=\texti \let\tensy=\textsytensf651,21271
+  \let\tensf=\textsf \let\teni=\texti \let\tensy=\textsyteni651,21271
+  \let\tensf=\textsf \let\teni=\texti \let\tensy=\textsytensy651,21271
+\def\chapfonts{chapfonts653,21347
+  \let\tenrm=\chaprm \let\tenit=\chapit \let\tensl=\chapsl tenrm654,21364
+  \let\tenrm=\chaprm \let\tenit=\chapit \let\tensl=\chapsl tenit654,21364
+  \let\tenrm=\chaprm \let\tenit=\chapit \let\tensl=\chapsl tensl654,21364
+  \let\tenbf=\chapbf \let\tentt=\chaptt \let\smallcaps=\chapsctenbf655,21424
+  \let\tenbf=\chapbf \let\tentt=\chaptt \let\smallcaps=\chapsctentt655,21424
+  \let\tenbf=\chapbf \let\tentt=\chaptt \let\smallcaps=\chapscsmallcaps655,21424
+  \let\tensf=\chapsf \let\teni=\chapi \let\tensy=\chapsytensf656,21487
+  \let\tensf=\chapsf \let\teni=\chapi \let\tensy=\chapsyteni656,21487
+  \let\tensf=\chapsf \let\teni=\chapi \let\tensy=\chapsytensy656,21487
+\def\secfonts{secfonts658,21563
+  \let\tenrm=\secrm \let\tenit=\secit \let\tensl=\secsltenrm659,21579
+  \let\tenrm=\secrm \let\tenit=\secit \let\tensl=\secsltenit659,21579
+  \let\tenrm=\secrm \let\tenit=\secit \let\tensl=\secsltensl659,21579
+  \let\tenbf=\secbf \let\tentt=\sectt \let\smallcaps=\secsctenbf660,21635
+  \let\tenbf=\secbf \let\tentt=\sectt \let\smallcaps=\secsctentt660,21635
+  \let\tenbf=\secbf \let\tentt=\sectt \let\smallcaps=\secscsmallcaps660,21635
+  \let\tensf=\secsf \let\teni=\seci \let\tensy=\secsytensf661,21695
+  \let\tensf=\secsf \let\teni=\seci \let\tensy=\secsyteni661,21695
+  \let\tensf=\secsf \let\teni=\seci \let\tensy=\secsytensy661,21695
+\def\subsecfonts{subsecfonts663,21768
+  \let\tenrm=\ssecrm \let\tenit=\ssecit \let\tensl=\ssecsltenrm664,21787
+  \let\tenrm=\ssecrm \let\tenit=\ssecit \let\tensl=\ssecsltenit664,21787
+  \let\tenrm=\ssecrm \let\tenit=\ssecit \let\tensl=\ssecsltensl664,21787
+  \let\tenbf=\ssecbf \let\tentt=\ssectt \let\smallcaps=\ssecsctenbf665,21846
+  \let\tenbf=\ssecbf \let\tentt=\ssectt \let\smallcaps=\ssecsctentt665,21846
+  \let\tenbf=\ssecbf \let\tentt=\ssectt \let\smallcaps=\ssecscsmallcaps665,21846
+  \let\tensf=\ssecsf \let\teni=\sseci \let\tensy=\ssecsytensf666,21909
+  \let\tensf=\ssecsf \let\teni=\sseci \let\tensy=\ssecsyteni666,21909
+  \let\tensf=\ssecsf \let\teni=\sseci \let\tensy=\ssecsytensy666,21909
+\def\indexfonts{indexfonts668,21985
+  \let\tenrm=\indrm \let\tenit=\indit \let\tensl=\indsltenrm669,22003
+  \let\tenrm=\indrm \let\tenit=\indit \let\tensl=\indsltenit669,22003
+  \let\tenrm=\indrm \let\tenit=\indit \let\tensl=\indsltensl669,22003
+  \let\tenbf=\indbf \let\tentt=\indtt \let\smallcaps=\indsctenbf670,22059
+  \let\tenbf=\indbf \let\tentt=\indtt \let\smallcaps=\indsctentt670,22059
+  \let\tenbf=\indbf \let\tentt=\indtt \let\smallcaps=\indscsmallcaps670,22059
+  \let\tensf=\indsf \let\teni=\indi \let\tensy=\indsytensf671,22119
+  \let\tensf=\indsf \let\teni=\indi \let\tensy=\indsyteni671,22119
+  \let\tensf=\indsf \let\teni=\indi \let\tensy=\indsytensy671,22119
+\def\smartitalicx{smartitalicx691,22717
+\def\smartitalic#1{smartitalic692,22793
+\let\i=\smartitalici694,22851
+\let\var=\smartitalicvar695,22871
+\let\dfn=\smartitalicdfn696,22893
+\let\emph=\smartitalicemph697,22915
+\let\cite=\smartitaliccite698,22938
+\def\b#1{b700,22962
+\let\strong=\bstrong701,22981
+\def\t#1{t703,22997
+\let\ttfont = \tttfont704,23072
+\def\samp #1{samp706,23149
+\def\key #1{key707,23182
+\def\ctrl #1{ctrl708,23243
+\let\file=\sampfile710,23285
+\def\tclose#1{tclose716,23445
+\let\code=\tclosecode722,23722
+\def\xkey{xkey728,23880
+\def\kbdfoo#1#2#3\par{kbdfoo729,23896
+\def\kbdfoo#1#2#3\par{\def\one{one729,23896
+\def\kbdfoo#1#2#3\par{\def\one{#1}\def\three{three729,23896
+\def\kbdfoo#1#2#3\par{\def\one{#1}\def\three{#3}\def\threex{threex729,23896
+\def\dmn#1{dmn738,24197
+\def\kbd#1{kbd740,24224
+\def\kbd#1{\def\look{look740,24224
+\def\l#1{l742,24281
+\def\r#1{r744,24310
+\def\sc#1{sc746,24378
+\def\ii#1{ii747,24421
+\def\titlefont#1{titlefont755,24654
+\def\titlepage{titlepage761,24757
+   \let\subtitlerm=\tenrmsubtitlerm762,24810
+   \def\subtitlefont{subtitlefont766,24984
+   \def\authorfont{authorfont768,25068
+   \def\title{title774,25278
+   \def\titlezzz##1{titlezzz775,25313
+   \def\subtitle{subtitle783,25628
+   \def\subtitlezzz##1{subtitlezzz784,25669
+   \def\author{author787,25787
+   \def\authorzzz##1{authorzzz788,25824
+   \let\oldpage = \pageoldpage793,26091
+   \def\page{page794,26115
+      \let\page = \oldpagepage799,26206
+\def\Etitlepage{Etitlepage804,26284
+\def\finishtitlepage{finishtitlepage817,26672
+\let\thispage=\foliothispage825,26825
+\let\HEADINGShook=\relaxHEADINGShook837,27420
+\def\evenheading{evenheading846,27680
+\def\oddheading{oddheading847,27723
+\def\everyheading{everyheading848,27764
+\def\evenfooting{evenfooting850,27810
+\def\oddfooting{oddfooting851,27853
+\def\everyfooting{everyfooting852,27894
+\gdef\evenheadingxxx #1{evenheadingxxx856,27958
+\gdef\evenheadingyyy #1@|#2@|#3@|#4\finish{evenheadingyyy857,28017
+\gdef\oddheadingxxx #1{oddheadingxxx860,28126
+\gdef\oddheadingyyy #1@|#2@|#3@|#4\finish{oddheadingyyy861,28183
+\gdef\everyheadingxxx #1{everyheadingxxx864,28290
+\gdef\everyheadingyyy #1@|#2@|#3@|#4\finish{everyheadingyyy865,28351
+\gdef\evenfootingxxx #1{evenfootingxxx869,28522
+\gdef\evenfootingyyy #1@|#2@|#3@|#4\finish{evenfootingyyy870,28581
+\gdef\oddfootingxxx #1{oddfootingxxx873,28690
+\gdef\oddfootingyyy #1@|#2@|#3@|#4\finish{oddfootingyyy874,28747
+\gdef\everyfootingxxx #1{everyfootingxxx877,28854
+\gdef\everyfootingyyy #1@|#2@|#3@|#4\finish{everyfootingyyy878,28915
+\def\headings #1 {headings893,29586
+\def\HEADINGSoff{HEADINGSoff895,29635
+\def\HEADINGSdouble{HEADINGSdouble904,30062
+\def\HEADINGSsingle{HEADINGSsingle914,30382
+\def\HEADINGSon{HEADINGSon922,30603
+\def\HEADINGSafter{HEADINGSafter924,30637
+\def\HEADINGSafter{\let\HEADINGShook=\HEADINGSdoublex}HEADINGShook924,30637
+\let\HEADINGSdoubleafter=\HEADINGSafterHEADINGSdoubleafter925,30692
+\def\HEADINGSdoublex{HEADINGSdoublex926,30732
+\def\HEADINGSsingleafter{HEADINGSsingleafter933,30920
+\def\HEADINGSsingleafter{\let\HEADINGShook=\HEADINGSsinglex}HEADINGShook933,30920
+\def\HEADINGSsinglex{HEADINGSsinglex934,30981
+\def\today{today943,31256
+\def\thistitle{thistitle958,31801
+\def\settitle{settitle959,31826
+\def\settitlezzz #1{settitlezzz960,31863
+\def\settitlezzz #1{\gdef\thistitle{thistitle960,31863
+\def\internalBitem{internalBitem992,32793
+\def\internalBitemx{internalBitemx993,32843
+\def\internalBxitem "#1"{internalBxitem995,32888
+\def\internalBxitem "#1"{\def\xitemsubtopix{xitemsubtopix995,32888
+\def\internalBxitemx "#1"{internalBxitemx996,32968
+\def\internalBxitemx "#1"{\def\xitemsubtopix{xitemsubtopix996,32968
+\def\internalBkitem{internalBkitem998,33043
+\def\internalBkitemx{internalBkitemx999,33095
+\def\kitemzzz #1{kitemzzz1001,33142
+\def\xitemzzz #1{xitemzzz1004,33244
+\def\itemzzz #1{itemzzz1007,33347
+\def\item{item1037,34418
+\def\itemx{itemx1038,34469
+\def\kitem{kitem1039,34522
+\def\kitemx{kitemx1040,34575
+\def\xitem{xitem1041,34630
+\def\xitemx{xitemx1042,34683
+\def\description{description1045,34793
+\def\table{table1047,34843
+\gdef\tablex #1^^M{tablex1049,34925
+\def\ftable{ftable1052,34987
+\gdef\ftablex #1^^M{ftablex1054,35071
+\def\Eftable{Eftable1056,35133
+\let\Etable=\relax}Etable1057,35180
+\def\vtable{vtable1059,35202
+\gdef\vtablex #1^^M{vtablex1061,35286
+\def\Evtable{Evtable1063,35348
+\let\Etable=\relax}Etable1064,35395
+\def\dontindex #1{dontindex1066,35417
+\def\fnitemindex #1{fnitemindex1067,35437
+\def\vritemindex #1{vritemindex1068,35482
+\gdef\tabley#1#2 #3 #4 #5 #6 #7\endtabley{tabley1071,35543
+\def\tablez #1#2#3#4#5#6{tablez1074,35631
+\def\Edescription{Edescription1077,35689
+\let\itemindex=#1%itemindex1078,35735
+\def\itemfont{itemfont1082,35890
+\def\Etable{Etable1090,36116
+\let\item = \internalBitem %item1091,36162
+\let\itemx = \internalBitemx %itemx1092,36191
+\let\kitem = \internalBkitem %kitem1093,36222
+\let\kitemx = \internalBkitemx %kitemx1094,36253
+\let\xitem = \internalBxitem %xitem1095,36286
+\let\xitemx = \internalBxitemx %xitemx1096,36317
+\def\itemize{itemize1103,36440
+\def\itemizezzz #1{itemizezzz1105,36476
+\def\itemizey #1#2{itemizey1110,36571
+\def\itemcontents{itemcontents1120,36858
+\let\item=\itemizeitem}item1121,36881
+\def\bullet{bullet1123,36906
+\def\minus{minus1124,36933
+\def\frenchspacing{frenchspacing1128,37041
+\def\splitoff#1#2\endmark{splitoff1134,37266
+\def\splitoff#1#2\endmark{\def\first{first1134,37266
+\def\splitoff#1#2\endmark{\def\first{#1}\def\rest{rest1134,37266
+\def\enumerate{enumerate1140,37496
+\def\enumeratezzz #1{enumeratezzz1141,37535
+\def\enumeratey #1 #2\endenumeratey{enumeratey1142,37588
+  \def\thearg{thearg1146,37735
+  \ifx\thearg\empty \def\thearg{thearg1147,37754
+\def\numericenumerate{numericenumerate1184,39088
+\def\lowercaseenumerate{lowercaseenumerate1190,39218
+\def\uppercaseenumerate{uppercaseenumerate1203,39565
+\def\startenumeration#1{startenumeration1219,40055
+\def\alphaenumerate{alphaenumerate1227,40237
+\def\capsenumerate{capsenumerate1228,40272
+\def\Ealphaenumerate{Ealphaenumerate1229,40306
+\def\Ecapsenumerate{Ecapsenumerate1230,40340
+\def\itemizeitem{itemizeitem1234,40420
+{\let\par=\endgraf \smallbreak}par1236,40460
+\gdef\newwrite{newwrite1249,40841
+\def\newindex #1{newindex1259,41277
+\expandafter\xdef\csname#1index\endcsname{csname1262,41439
+\def\defindex{defindex1268,41566
+\def\newcodeindex #1{newcodeindex1272,41674
+\expandafter\xdef\csname#1index\endcsname{csname1275,41840
+\def\defcodeindex{defcodeindex1279,41934
+\def\synindex #1 #2 {synindex1283,42114
+\expandafter\let\expandafter\synindexfoo\expandafter=\csname#2indfile\endcsnameexpandafter1284,42137
+\expandafter\let\csname#1indfile\endcsname=\synindexfoocsname1285,42217
+\expandafter\xdef\csname#1index\endcsname{csname1286,42273
+\def\syncodeindex #1 #2 {syncodeindex1292,42454
+\expandafter\let\expandafter\synindexfoo\expandafter=\csname#2indfile\endcsnameexpandafter1293,42481
+\expandafter\let\csname#1indfile\endcsname=\synindexfoocsname1294,42561
+\expandafter\xdef\csname#1index\endcsname{csname1295,42617
+\def\doindex#1{doindex1309,43133
+\def\doindex#1{\edef\indexname{indexname1309,43133
+\def\singleindexer #1{singleindexer1310,43192
+\def\singleindexer #1{\doind{\indexname}name1310,43192
+\def\docodeindex#1{docodeindex1313,43304
+\def\docodeindex#1{\edef\indexname{indexname1313,43304
+\def\singlecodeindexer #1{singlecodeindexer1314,43371
+\def\singlecodeindexer #1{\doind{\indexname}name1314,43371
+\def\indexdummies{indexdummies1316,43429
+\def\_{_1317,43449
+\def\w{w1318,43477
+\def\bf{bf1319,43504
+\def\rm{rm1320,43533
+\def\sl{sl1321,43562
+\def\sf{sf1322,43591
+\def\tt{tt1323,43619
+\def\gtr{gtr1324,43647
+\def\less{less1325,43677
+\def\hat{hat1326,43709
+\def\char{char1327,43739
+\def\TeX{TeX1328,43771
+\def\dots{dots1329,43801
+\def\copyright{copyright1330,43834
+\def\tclose##1{tclose1331,43877
+\def\code##1{code1332,43922
+\def\samp##1{samp1333,43963
+\def\t##1{t1334,44004
+\def\r##1{r1335,44039
+\def\i##1{i1336,44074
+\def\b##1{b1337,44109
+\def\cite##1{cite1338,44144
+\def\key##1{key1339,44185
+\def\file##1{file1340,44224
+\def\var##1{var1341,44265
+\def\kbd##1{kbd1342,44304
+\def\indexdummyfont#1{indexdummyfont1347,44460
+\def\indexdummytex{indexdummytex1348,44486
+\def\indexdummydots{indexdummydots1349,44510
+\def\indexnofonts{indexnofonts1351,44536
+\let\w=\indexdummyfontw1352,44556
 \let\w=\indexdummyfontdummyfont1352,44556
+\let\t=\indexdummyfontt1353,44579
 \let\t=\indexdummyfontdummyfont1353,44579
+\let\r=\indexdummyfontr1354,44602
 \let\r=\indexdummyfontdummyfont1354,44602
+\let\i=\indexdummyfonti1355,44625
 \let\i=\indexdummyfontdummyfont1355,44625
+\let\b=\indexdummyfontb1356,44648
 \let\b=\indexdummyfontdummyfont1356,44648
+\let\emph=\indexdummyfontemph1357,44671
 \let\emph=\indexdummyfontdummyfont1357,44671
+\let\strong=\indexdummyfontstrong1358,44697
 \let\strong=\indexdummyfontdummyfont1358,44697
-\let\cite=\indexdummyfont=\indexdummyfont1359,44725
+\let\cite=\indexdummyfontcite1359,44725
+\let\cite=\indexdummyfontdummyfont1359,44725
+\let\sc=\indexdummyfontsc1360,44751
 \let\sc=\indexdummyfontdummyfont1360,44751
+\let\tclose=\indexdummyfonttclose1364,44923
 \let\tclose=\indexdummyfontdummyfont1364,44923
+\let\code=\indexdummyfontcode1365,44951
 \let\code=\indexdummyfontdummyfont1365,44951
+\let\file=\indexdummyfontfile1366,44977
 \let\file=\indexdummyfontdummyfont1366,44977
+\let\samp=\indexdummyfontsamp1367,45003
 \let\samp=\indexdummyfontdummyfont1367,45003
+\let\kbd=\indexdummyfontkbd1368,45029
 \let\kbd=\indexdummyfontdummyfont1368,45029
+\let\key=\indexdummyfontkey1369,45054
 \let\key=\indexdummyfontdummyfont1369,45054
+\let\var=\indexdummyfontvar1370,45079
 \let\var=\indexdummyfontdummyfont1370,45079
+\let\TeX=\indexdummytexTeX1371,45104
 \let\TeX=\indexdummytexdummytex1371,45104
+\let\dots=\indexdummydotsdots1372,45128
 \let\dots=\indexdummydotsdummydots1372,45128
-\let\indexbackslash=0  %overridden during \printindex.backslash=01382,45380
-\def\doind #1#2{\doind1384,45436
+\let\indexbackslash=0  %overridden during \printindex.indexbackslash1382,45380
+\def\doind #1#2{doind1384,45436
 {\indexdummies % Must do this here, since \bf, etc expand at this stagedummies1386,45479
-\def\rawbackslashxx{\rawbackslashxx1389,45619
+{\let\folio=0% Expand all macros now EXCEPT \foliofolio1388,45568
+\def\rawbackslashxx{rawbackslashxx1389,45619
+\def\rawbackslashxx{\indexbackslash}backslash1389,45619
 {\indexnofontsnofonts1394,45881
-\def\dosubind #1#2#3{\dosubind1405,46192
+\xdef\temp1{temp11395,45896
+\edef\temp{temp1399,46068
+\def\dosubind #1#2#3{dosubind1405,46192
 {\indexdummies % Must do this here, since \bf, etc expand at this stagedummies1407,46240
-\def\rawbackslashxx{\rawbackslashxx1410,46344
+{\let\folio=0%folio1409,46329
+\def\rawbackslashxx{rawbackslashxx1410,46344
+\def\rawbackslashxx{\indexbackslash}backslash1410,46344
 {\indexnofontsnofonts1414,46498
-\def\findex {\findex1443,47429
-\def\kindex {\kindex1444,47452
-\def\cindex {\cindex1445,47475
-\def\vindex {\vindex1446,47498
-\def\tindex {\tindex1447,47521
-\def\pindex {\pindex1448,47544
-\def\cindexsub {\cindexsub1450,47568
-\def\printindex{\printindex1462,47895
-\def\doprintindex#1{\doprintindex1464,47936
-  \def\indexbackslash{\indexbackslash1481,48421
+\xdef\temp1{temp11415,46513
+\edef\temp{temp1419,46688
+\def\findex {findex1443,47429
+\def\kindex {kindex1444,47452
+\def\cindex {cindex1445,47475
+\def\vindex {vindex1446,47498
+\def\tindex {tindex1447,47521
+\def\pindex {pindex1448,47544
+\def\cindexsub {cindexsub1450,47568
+\gdef\cindexsub "#1" #2^^M{cindexsub1452,47631
+\def\printindex{printindex1462,47895
+\def\doprintindex#1{doprintindex1464,47936
+  \def\indexbackslash{indexbackslash1481,48421
   \indexfonts\rm \tolerance=9500 \advance\baselineskip -1ptfonts\rm1482,48460
-\def\initial #1{\initial1517,49532
-\def\entry #1#2{\entry1523,49739
+\def\initial #1{initial1517,49532
+{\let\tentt=\sectt \let\tt=\sectt \let\sf=\sectttentt1518,49550
+{\let\tentt=\sectt \let\tt=\sectt \let\sf=\sectttt1518,49550
+{\let\tentt=\sectt \let\tt=\sectt \let\sf=\secttsf1518,49550
+\def\entry #1#2{entry1523,49739
   \null\nobreak\indexdotfill % Have leaders before the page number.dotfill1540,50386
-\def\indexdotfill{\indexdotfill1549,50714
-\def\primary #1{\primary1552,50820
-\def\secondary #1#2{\secondary1556,50902
+\def\indexdotfill{indexdotfill1549,50714
+\def\primary #1{primary1552,50820
+\def\secondary #1#2{secondary1556,50902
 \noindent\hskip\secondaryindent\hbox{#1}\indexdotfill #2\pardotfill1559,50984
 \newbox\partialpageialpage1566,51157
-\def\begindoublecolumns{\begindoublecolumns1572,51315
-  \output={\global\setbox\partialpage=ialpage=1573,51351
-\def\enddoublecolumns{\enddoublecolumns1577,51539
-\def\doublecolumnout{\doublecolumnout1580,51624
+\def\begindoublecolumns{begindoublecolumns1572,51315
+  \output={\global\setbox\partialpage=ialpage1573,51351
+\def\enddoublecolumns{enddoublecolumns1577,51539
+\def\doublecolumnout{doublecolumnout1580,51624
   \dimen@=\pageheight \advance\dimen@ by-\ht\partialpageialpage1581,51693
-\def\pagesofar{\pagesofar1584,51871
-\def\balancecolumns{\balancecolumns1588,52108
+\def\pagesofar{pagesofar1584,51871
+\def\pagesofar{\unvbox\partialpage %ialpage1584,51871
+\def\balancecolumns{balancecolumns1588,52108
   \availdimen@=\pageheight \advance\availdimen@ by-\ht\partialpageialpage1594,52279
      \dimen@=\pageheight \advance\dimen@ by-\ht\partialpageialpage1600,52540
 \newcount \appendixno  \appendixno = `\@no1627,53445
-\def\appendixletter{\appendixletter1628,53486
-\def\opencontents{\opencontents1632,53589
-\def\thischapter{\thischapter1637,53770
-\def\seccheck#1{\seccheck1638,53808
-\def\chapternofonts{\chapternofonts1643,53912
-\def\result{\result1646,53987
-\def\equiv{\equiv1647,54022
-\def\expansion{\expansion1648,54055
-\def\print{\print1649,54096
-\def\TeX{\TeX1650,54129
-\def\dots{\dots1651,54158
-\def\copyright{\copyright1652,54189
-\def\tt{\tt1653,54230
-\def\bf{\bf1654,54257
-\def\w{\w1655,54285
-\def\less{\less1656,54310
-\def\gtr{\gtr1657,54341
-\def\hat{\hat1658,54370
-\def\char{\char1659,54399
-\def\tclose##1{\tclose1660,54430
-\def\code##1{\code1661,54474
-\def\samp##1{\samp1662,54514
-\def\r##1{\r1663,54554
-\def\b##1{\b1664,54588
-\def\key##1{\key1665,54622
-\def\file##1{\file1666,54660
-\def\kbd##1{\kbd1667,54700
-\def\i##1{\i1669,54808
-\def\cite##1{\cite1670,54842
-\def\var##1{\var1671,54882
-\def\emph##1{\emph1672,54920
-\def\dfn##1{\dfn1673,54960
-\def\thischaptername{\thischaptername1676,55001
-\outer\def\chapter{\chapter1677,55040
-\def\chapterzzz #1{\chapterzzz1678,55081
-{\chapternofonts%nofonts%1687,55477
-\global\let\section = \numberedsec=1692,55630
-\global\let\subsection = \numberedsubsec=1693,55665
-\global\let\subsubsection = \numberedsubsubsec=1694,55706
-\outer\def\appendix{\appendix1697,55757
-\def\appendixzzz #1{\appendixzzz1698,55800
+\newcount \appendixno  \appendixno = `\@no1627,53445
+\def\appendixletter{appendixletter1628,53486
+\def\appendixletter{\char\the\appendixno}no1628,53486
+\def\opencontents{opencontents1632,53589
+\def\thischapter{thischapter1637,53770
+\def\thischapter{} \def\thissection{thissection1637,53770
+\def\seccheck#1{seccheck1638,53808
+\def\chapternofonts{chapternofonts1643,53912
+\let\rawbackslash=\relax%rawbackslash1644,53934
+\let\frenchspacing=\relax%frenchspacing1645,53960
+\def\result{result1646,53987
+\def\equiv{equiv1647,54022
+\def\expansion{expansion1648,54055
+\def\print{print1649,54096
+\def\TeX{TeX1650,54129
+\def\dots{dots1651,54158
+\def\copyright{copyright1652,54189
+\def\tt{tt1653,54230
+\def\bf{bf1654,54257
+\def\w{w1655,54285
+\def\less{less1656,54310
+\def\gtr{gtr1657,54341
+\def\hat{hat1658,54370
+\def\char{char1659,54399
+\def\tclose##1{tclose1660,54430
+\def\code##1{code1661,54474
+\def\samp##1{samp1662,54514
+\def\r##1{r1663,54554
+\def\b##1{b1664,54588
+\def\key##1{key1665,54622
+\def\file##1{file1666,54660
+\def\kbd##1{kbd1667,54700
+\def\i##1{i1669,54808
+\def\cite##1{cite1670,54842
+\def\var##1{var1671,54882
+\def\emph##1{emph1672,54920
+\def\dfn##1{dfn1673,54960
+\def\thischaptername{thischaptername1676,55001
+\outer\def\chapter{chapter1677,55040
+\outer\def\chapter{\parsearg\chapterzzz}zzz1677,55040
+\def\chapterzzz #1{chapterzzz1678,55081
+\gdef\thissection{thissection1682,55246
+\gdef\thischaptername{thischaptername1683,55269
+\xdef\thischapter{thischapter1686,55410
+{\chapternofonts%nofonts1687,55477
+\edef\temp{temp1688,55495
+\global\let\section = \numberedsecsection1692,55630
+\global\let\subsection = \numberedsubsecsubsection1693,55665
+\global\let\subsubsection = \numberedsubsubsecsubsubsection1694,55706
+\outer\def\appendix{appendix1697,55757
+\outer\def\appendix{\parsearg\appendixzzz}zzz1697,55757
+\def\appendixzzz #1{appendixzzz1698,55800
 \global\advance \appendixno by 1 \message{no1700,55877
+\global\advance \appendixno by 1 \message{Appendix \appendixletter}letter1700,55877
 \chapmacro {#1}{Appendix \appendixletter}letter1701,55946
+\gdef\thissection{thissection1702,55989
+\gdef\thischaptername{thischaptername1703,56012
+\xdef\thischapter{thischapter1704,56039
 \xdef\thischapter{Appendix \appendixletter: \noexpand\thischaptername}letter:1704,56039
-{\chapternofonts%nofonts%1705,56111
+{\chapternofonts%nofonts1705,56111
+\edef\temp{temp1706,56129
   {#1}{Appendix \appendixletter}letter1707,56167
 \appendixnoderef %noderef1710,56267
-\global\let\section = \appendixsec=1711,56286
-\global\let\subsection = \appendixsubsec=1712,56321
-\global\let\subsubsection = \appendixsubsubsec=1713,56362
-\outer\def\top{\top1716,56413
-\outer\def\unnumbered{\unnumbered1717,56453
-\def\unnumberedzzz #1{\unnumberedzzz1718,56500
-{\chapternofonts%nofonts%1722,56663
-\global\let\section = \unnumberedsec=1727,56813
-\global\let\subsection = \unnumberedsubsec=1728,56850
-\global\let\subsubsection = \unnumberedsubsubsec=1729,56893
-\outer\def\numberedsec{\numberedsec1732,56946
-\def\seczzz #1{\seczzz1733,56987
-{\chapternofonts%nofonts%1736,57143
-\outer\def\appendixsection{\appendixsection1745,57329
-\outer\def\appendixsec{\appendixsec1746,57386
-\def\appendixsectionzzz #1{\appendixsectionzzz1747,57439
+\global\let\section = \appendixsecsection1711,56286
+\global\let\section = \appendixsecsec1711,56286
+\global\let\subsection = \appendixsubsecsubsection1712,56321
+\global\let\subsection = \appendixsubsecsubsec1712,56321
+\global\let\subsubsection = \appendixsubsubsecsubsubsection1713,56362
+\global\let\subsubsection = \appendixsubsubsecsubsubsec1713,56362
+\outer\def\top{top1716,56413
+\outer\def\unnumbered{unnumbered1717,56453
+\def\unnumberedzzz #1{unnumberedzzz1718,56500
+\gdef\thischapter{thischapter1721,56619
+\gdef\thischapter{#1}\gdef\thissection{thissection1721,56619
+{\chapternofonts%nofonts1722,56663
+\edef\temp{temp1723,56681
+\global\let\section = \unnumberedsecsection1727,56813
+\global\let\subsection = \unnumberedsubsecsubsection1728,56850
+\global\let\subsubsection = \unnumberedsubsubsecsubsubsection1729,56893
+\outer\def\numberedsec{numberedsec1732,56946
+\def\seczzz #1{seczzz1733,56987
+\gdef\thissection{thissection1735,57079
+{\chapternofonts%nofonts1736,57143
+\edef\temp{temp1737,57161
+\outer\def\appendixsection{appendixsection1745,57329
+\outer\def\appendixsection{\parsearg\appendixsectionzzz}sectionzzz1745,57329
+\outer\def\appendixsec{appendixsec1746,57386
+\outer\def\appendixsec{\parsearg\appendixsectionzzz}sectionzzz1746,57386
+\def\appendixsectionzzz #1{appendixsectionzzz1747,57439
+\gdef\thissection{thissection1749,57551
 \gdef\thissection{#1}\secheading {#1}{\appendixletter}letter1749,57551
-{\chapternofonts%nofonts%1750,57619
+{\chapternofonts%nofonts1750,57619
+\edef\temp{temp1751,57637
 {#1}{\appendixletter}letter1752,57675
 \appendixnoderef %noderef1755,57775
-\outer\def\unnumberedsec{\unnumberedsec1759,57815
-\def\unnumberedseczzz #1{\unnumberedseczzz1760,57868
-{\chapternofonts%nofonts%1762,57963
-\outer\def\numberedsubsec{\numberedsubsec1770,58131
-\def\numberedsubseczzz #1{\numberedsubseczzz1771,58186
-{\chapternofonts%nofonts%1774,58365
-\outer\def\appendixsubsec{\appendixsubsec1783,58569
-\def\appendixsubseczzz #1{\appendixsubseczzz1784,58624
+\outer\def\unnumberedsec{unnumberedsec1759,57815
+\def\unnumberedseczzz #1{unnumberedseczzz1760,57868
+\plainsecheading {#1}\gdef\thissection{thissection1761,57919
+{\chapternofonts%nofonts1762,57963
+\edef\temp{temp1763,57981
+\outer\def\numberedsubsec{numberedsubsec1770,58131
+\def\numberedsubseczzz #1{numberedsubseczzz1771,58186
+\gdef\thissection{thissection1772,58235
+{\chapternofonts%nofonts1774,58365
+\edef\temp{temp1775,58383
+\outer\def\appendixsubsec{appendixsubsec1783,58569
+\outer\def\appendixsubsec{\parsearg\appendixsubseczzz}subseczzz1783,58569
+\def\appendixsubseczzz #1{appendixsubseczzz1784,58624
+\gdef\thissection{thissection1785,58677
 \subsecheading {#1}{\appendixletter}letter1786,58746
-{\chapternofonts%nofonts%1787,58811
+{\chapternofonts%nofonts1787,58811
+\edef\temp{temp1788,58829
 {#1}{\appendixletter}letter1789,58870
 \appendixnoderef %noderef1792,58985
-\outer\def\unnumberedsubsec{\unnumberedsubsec1796,59025
-\def\unnumberedsubseczzz #1{\unnumberedsubseczzz1797,59084
-{\chapternofonts%nofonts%1799,59185
-\outer\def\numberedsubsubsec{\numberedsubsubsec1807,59356
-\def\numberedsubsubseczzz #1{\numberedsubsubseczzz1808,59417
-{\chapternofonts%nofonts%1812,59614
-\outer\def\appendixsubsubsec{\appendixsubsubsec1823,59847
-\def\appendixsubsubseczzz #1{\appendixsubsubseczzz1824,59908
+\outer\def\unnumberedsubsec{unnumberedsubsec1796,59025
+\def\unnumberedsubseczzz #1{unnumberedsubseczzz1797,59084
+\plainsecheading {#1}\gdef\thissection{thissection1798,59141
+{\chapternofonts%nofonts1799,59185
+\edef\temp{temp1800,59203
+\outer\def\numberedsubsubsec{numberedsubsubsec1807,59356
+\def\numberedsubsubseczzz #1{numberedsubsubseczzz1808,59417
+\gdef\thissection{thissection1809,59472
+{\chapternofonts%nofonts1812,59614
+\edef\temp{temp1813,59632
+\outer\def\appendixsubsubsec{appendixsubsubsec1823,59847
+\outer\def\appendixsubsubsec{\parsearg\appendixsubsubseczzz}subsubseczzz1823,59847
+\def\appendixsubsubseczzz #1{appendixsubsubseczzz1824,59908
+\gdef\thissection{thissection1825,59967
   {\appendixletter}letter1827,60047
-{\chapternofonts%nofonts%1828,60113
+{\chapternofonts%nofonts1828,60113
+\edef\temp{temp1829,60131
   {\appendixletter}letter1830,60178
 \appendixnoderef %noderef1834,60312
-\outer\def\unnumberedsubsubsec{\unnumberedsubsubsec1838,60352
-\def\unnumberedsubsubseczzz #1{\unnumberedsubsubseczzz1839,60417
-{\chapternofonts%nofonts%1841,60524
-\def\infotop{\infotop1851,60853
-\def\infounnumbered{\infounnumbered1852,60891
-\def\infounnumberedsec{\infounnumberedsec1853,60936
-\def\infounnumberedsubsec{\infounnumberedsubsec1854,60987
-\def\infounnumberedsubsubsec{\infounnumberedsubsubsec1855,61044
-\def\infoappendix{\infoappendix1857,61108
-\def\infoappendixsec{\infoappendixsec1858,61149
-\def\infoappendixsubsec{\infoappendixsubsec1859,61196
-\def\infoappendixsubsubsec{\infoappendixsubsubsec1860,61249
-\def\infochapter{\infochapter1862,61309
-\def\infosection{\infosection1863,61348
-\def\infosubsection{\infosubsection1864,61387
-\def\infosubsubsection{\infosubsubsection1865,61432
-\global\let\section = \numberedsec=1870,61669
-\global\let\subsection = \numberedsubsec=1871,61704
-\global\let\subsubsection = \numberedsubsubsec=1872,61745
-\def\majorheading{\majorheading1886,62252
-\def\majorheadingzzz #1{\majorheadingzzz1887,62297
-\def\chapheading{\chapheading1893,62530
-\def\chapheadingzzz #1{\chapheadingzzz1894,62573
-\def\heading{\heading1899,62768
-\def\subheading{\subheading1901,62805
-\def\subsubheading{\subsubheading1903,62848
-\def\dobreak#1#2{\dobreak1910,63125
-\def\setchapterstyle #1 {\setchapterstyle1912,63203
-\def\chapbreak{\chapbreak1919,63458
-\def\chappager{\chappager1920,63508
-\def\chapoddpage{\chapoddpage1921,63546
-\def\setchapternewpage #1 {\setchapternewpage1923,63625
-\def\CHAPPAGoff{\CHAPPAGoff1925,63682
-\def\CHAPPAGon{\CHAPPAGon1929,63776
-\global\def\HEADINGSon{\HEADINGSon1932,63867
-\def\CHAPPAGodd{\CHAPPAGodd1934,63909
-\global\def\HEADINGSon{\HEADINGSon1937,64005
-\def\CHAPFplain{\CHAPFplain1941,64059
-\def\chfplain #1#2{\chfplain1945,64151
-\def\unnchfplain #1{\unnchfplain1956,64374
-\def\unnchfopen #1{\unnchfopen1964,64603
-\def\chfopen #1#2{\chfopen1970,64811
-\def\CHAPFopen{\CHAPFopen1975,64955
-\def\subsecheadingbreak{\subsecheadingbreak1982,65173
-\def\secheadingbreak{\secheadingbreak1985,65302
-\def\secheading #1#2#3{\secheading1993,65584
-\def\plainsecheading #1{\plainsecheading1994,65640
-\def\secheadingi #1{\secheadingi1995,65683
-\def\subsecheading #1#2#3#4{\subsecheading2006,66051
-\def\subsecheadingi #1{\subsecheadingi2007,66118
-\def\subsubsecfonts{\subsubsecfonts2014,66415
-\def\subsubsecheading #1#2#3#4#5{\subsubsecheading2017,66538
-\def\subsubsecheadingi #1{\subsubsecheadingi2018,66616
-\def\startcontents#1{\startcontents2032,67088
-   \unnumbchapmacro{#1}\def\thischapter{\thischapter2040,67361
-\outer\def\contents{\contents2049,67720
-\outer\def\summarycontents{\summarycontents2057,67864
-      \def\secentry ##1##2##3##4{\secentry2067,68235
-      \def\unnumbsecentry ##1##2{\unnumbsecentry2068,68270
-      \def\subsecentry ##1##2##3##4##5{\subsecentry2069,68305
-      \def\unnumbsubsecentry ##1##2{\unnumbsubsecentry2070,68346
-      \def\subsubsecentry ##1##2##3##4##5##6{\subsubsecentry2071,68384
-      \def\unnumbsubsubsecentry ##1##2{\unnumbsubsubsecentry2072,68431
-\def\chapentry#1#2#3{\chapentry2085,68865
-\def\shortchapentry#1#2#3{\shortchapentry2088,68982
+\outer\def\unnumberedsubsubsec{unnumberedsubsubsec1838,60352
+\def\unnumberedsubsubseczzz #1{unnumberedsubsubseczzz1839,60417
+\plainsecheading {#1}\gdef\thissection{thissection1840,60480
+{\chapternofonts%nofonts1841,60524
+\edef\temp{temp1842,60542
+\def\infotop{infotop1851,60853
+\def\infounnumbered{infounnumbered1852,60891
+\def\infounnumberedsec{infounnumberedsec1853,60936
+\def\infounnumberedsubsec{infounnumberedsubsec1854,60987
+\def\infounnumberedsubsubsec{infounnumberedsubsubsec1855,61044
+\def\infoappendix{infoappendix1857,61108
+\def\infoappendix{\parsearg\appendixzzz}zzz1857,61108
+\def\infoappendixsec{infoappendixsec1858,61149
+\def\infoappendixsec{\parsearg\appendixseczzz}seczzz1858,61149
+\def\infoappendixsubsec{infoappendixsubsec1859,61196
+\def\infoappendixsubsec{\parsearg\appendixsubseczzz}subseczzz1859,61196
+\def\infoappendixsubsubsec{infoappendixsubsubsec1860,61249
+\def\infoappendixsubsubsec{\parsearg\appendixsubsubseczzz}subsubseczzz1860,61249
+\def\infochapter{infochapter1862,61309
+\def\infochapter{\parsearg\chapterzzz}zzz1862,61309
+\def\infosection{infosection1863,61348
+\def\infosection{\parsearg\sectionzzz}zzz1863,61348
+\def\infosubsection{infosubsection1864,61387
+\def\infosubsection{\parsearg\subsectionzzz}zzz1864,61387
+\def\infosubsubsection{infosubsubsection1865,61432
+\def\infosubsubsection{\parsearg\subsubsectionzzz}zzz1865,61432
+\global\let\section = \numberedsecsection1870,61669
+\global\let\subsection = \numberedsubsecsubsection1871,61704
+\global\let\subsubsection = \numberedsubsubsecsubsubsection1872,61745
+\def\majorheading{majorheading1886,62252
+\def\majorheadingzzz #1{majorheadingzzz1887,62297
+\def\chapheading{chapheading1893,62530
+\def\chapheadingzzz #1{chapheadingzzz1894,62573
+\def\heading{heading1899,62768
+\def\subheading{subheading1901,62805
+\def\subsubheading{subsubheading1903,62848
+\def\dobreak#1#2{dobreak1910,63125
+\def\setchapterstyle #1 {setchapterstyle1912,63203
+\def\chapbreak{chapbreak1919,63458
+\def\chappager{chappager1920,63508
+\def\chapoddpage{chapoddpage1921,63546
+\def\setchapternewpage #1 {setchapternewpage1923,63625
+\def\CHAPPAGoff{CHAPPAGoff1925,63682
+\global\let\pchapsepmacro=\chapbreakpchapsepmacro1926,63699
+\global\let\pagealignmacro=\chappager}pagealignmacro1927,63736
+\def\CHAPPAGon{CHAPPAGon1929,63776
+\global\let\pchapsepmacro=\chappagerpchapsepmacro1930,63792
+\global\let\pagealignmacro=\chappagerpagealignmacro1931,63829
+\global\def\HEADINGSon{HEADINGSon1932,63867
+\def\CHAPPAGodd{CHAPPAGodd1934,63909
+\global\let\pchapsepmacro=\chapoddpagepchapsepmacro1935,63926
+\global\let\pagealignmacro=\chapoddpagepagealignmacro1936,63965
+\global\def\HEADINGSon{HEADINGSon1937,64005
+\def\CHAPFplain{CHAPFplain1941,64059
+\global\let\chapmacro=\chfplainchapmacro1942,64076
+\global\let\unnumbchapmacro=\unnchfplain}unnumbchapmacro1943,64108
+\def\chfplain #1#2{chfplain1945,64151
+\def\unnchfplain #1{unnchfplain1956,64374
+\def\unnchfopen #1{unnchfopen1964,64603
+\def\chfopen #1#2{chfopen1970,64811
+\def\CHAPFopen{CHAPFopen1975,64955
+\global\let\chapmacro=\chfopenchapmacro1976,64971
+\global\let\unnumbchapmacro=\unnchfopen}unnumbchapmacro1977,65002
+\def\subsecheadingbreak{subsecheadingbreak1982,65173
+\def\secheadingbreak{secheadingbreak1985,65302
+\let\paragraphindent=\commentparagraphindent1988,65428
+\def\secheading #1#2#3{secheading1993,65584
+\def\plainsecheading #1{plainsecheading1994,65640
+\def\secheadingi #1{secheadingi1995,65683
+\def\subsecheading #1#2#3#4{subsecheading2006,66051
+\def\subsecheadingi #1{subsecheadingi2007,66118
+\def\subsubsecfonts{subsubsecfonts2014,66415
+\def\subsubsecheading #1#2#3#4#5{subsubsecheading2017,66538
+\def\subsubsecheadingi #1{subsubsecheadingi2018,66616
+\def\startcontents#1{startcontents2032,67088
+   \unnumbchapmacro{#1}\def\thischapter{thischapter2040,67361
+\outer\def\contents{contents2049,67720
+\outer\def\summarycontents{summarycontents2057,67864
+      \let\chapentry = \shortchapentrychapentry2060,67936
+      \let\unnumbchapentry = \shortunnumberedentryunnumbchapentry2061,67975
+      \let\rm=\shortcontrm \let\bf=\shortcontbf \let\sl=\shortcontslrm2064,68098
+      \let\rm=\shortcontrm \let\bf=\shortcontbf \let\sl=\shortcontslbf2064,68098
+      \let\rm=\shortcontrm \let\bf=\shortcontbf \let\sl=\shortcontslsl2064,68098
+      \def\secentry ##1##2##3##4{secentry2067,68235
+      \def\unnumbsecentry ##1##2{unnumbsecentry2068,68270
+      \def\subsecentry ##1##2##3##4##5{subsecentry2069,68305
+      \def\unnumbsubsecentry ##1##2{unnumbsubsecentry2070,68346
+      \def\subsubsecentry ##1##2##3##4##5##6{subsubsecentry2071,68384
+      \def\unnumbsubsubsecentry ##1##2{unnumbsubsubsecentry2072,68431
+\let\shortcontents = \summarycontentsshortcontents2077,68530
+\def\chapentry#1#2#3{chapentry2085,68865
+\def\chapentry#1#2#3{\dochapentry{#2\labelspace#1}space2085,68865
+\def\shortchapentry#1#2#3{shortchapentry2088,68982
     {#2\labelspace #1}space2091,69092
-\def\unnumbchapentry#1#2{\unnumbchapentry2094,69146
-\def\shortunnumberedentry#1#2{\shortunnumberedentry2095,69193
-\def\secentry#1#2#3#4{\secentry2102,69357
-\def\unnumbsecentry#1#2{\unnumbsecentry2103,69416
-\def\subsecentry#1#2#3#4#5{\subsecentry2106,69477
-\def\unnumbsubsecentry#1#2{\unnumbsubsecentry2107,69547
-\def\subsubsecentry#1#2#3#4#5#6{\subsubsecentry2110,69621
+\def\unnumbchapentry#1#2{unnumbchapentry2094,69146
+\def\shortunnumberedentry#1#2{shortunnumberedentry2095,69193
+\def\secentry#1#2#3#4{secentry2102,69357
+\def\secentry#1#2#3#4{\dosecentry{#2.#3\labelspace#1}space2102,69357
+\def\unnumbsecentry#1#2{unnumbsecentry2103,69416
+\def\subsecentry#1#2#3#4#5{subsecentry2106,69477
+\def\subsecentry#1#2#3#4#5{\dosubsecentry{#2.#3.#4\labelspace#1}space2106,69477
+\def\unnumbsubsecentry#1#2{unnumbsubsecentry2107,69547
+\def\subsubsecentry#1#2#3#4#5#6{subsubsecentry2110,69621
   \dosubsubsecentry{#2.#3.#4.#5\labelspace#1}space2111,69655
-\def\unnumbsubsubsecentry#1#2{\unnumbsubsubsecentry2112,69706
-\def\dochapentry#1#2{\dochapentry2123,70080
-\def\dosecentry#1#2{\dosecentry2138,70685
-\def\dosubsecentry#1#2{\dosubsecentry2145,70863
-\def\dosubsubsecentry#1#2{\dosubsubsecentry2152,71048
-\def\labelspace{\labelspace2160,71299
-\def\dopageno#1{\dopageno2162,71334
-\def\doshortpageno#1{\doshortpageno2163,71360
-\def\chapentryfonts{\chapentryfonts2165,71392
-\def\secentryfonts{\secentryfonts2166,71427
-\def\point{\point2192,72386
-\def\result{\result2194,72407
-\def\expansion{\expansion2195,72480
-\def\print{\print2196,72551
-\def\equiv{\equiv2198,72618
-\def\error{\error2218,73391
-\def\tex{\tex2224,73620
-\def\@{\@2242,74003
-\gdef\sepspaces{\def {\ }}}\2265,74735
-\def\aboveenvbreak{\aboveenvbreak2268,74817
-\def\afterenvbreak{\afterenvbreak2272,74983
-\def\ctl{\ctl2286,75494
-\def\ctr{\ctr2287,75566
-\def\cbl{\cbl2288,75605
-\def\cbr{\cbr2289,75645
-\def\carttop{\carttop2290,75684
-\def\cartbot{\cartbot2293,75792
-\long\def\cartouche{\cartouche2299,75932
-\def\Ecartouche{\Ecartouche2326,76720
-\def\lisp{\lisp2338,76855
-\def\Elisp{\Elisp2348,77202
-\def\next##1{\next2360,77528
-\def\Eexample{\Eexample2364,77570
-\def\Esmallexample{\Esmallexample2367,77617
-\def\smalllispx{\smalllispx2373,77795
-\def\Esmalllisp{\Esmalllisp2383,78149
+\def\unnumbsubsubsecentry#1#2{unnumbsubsubsecentry2112,69706
+\def\dochapentry#1#2{dochapentry2123,70080
+\def\dosecentry#1#2{dosecentry2138,70685
+\def\dosubsecentry#1#2{dosubsecentry2145,70863
+\def\dosubsubsecentry#1#2{dosubsubsecentry2152,71048
+\def\labelspace{labelspace2160,71299
+\def\dopageno#1{dopageno2162,71334
+\def\doshortpageno#1{doshortpageno2163,71360
+\def\chapentryfonts{chapentryfonts2165,71392
+\def\secentryfonts{secentryfonts2166,71427
+\let\subsecentryfonts = \textfontssubsecentryfonts2167,71458
+\let\subsubsecentryfonts = \textfontssubsubsecentryfonts2168,71493
+\let\ptexequiv = \equivptexequiv2180,71896
+\def\point{point2192,72386
+\def\result{result2194,72407
+\def\expansion{expansion2195,72480
+\def\print{print2196,72551
+\def\equiv{equiv2198,72618
+\def\error{error2218,73391
+\def\tex{tex2224,73620
+\catcode `\^=7 \catcode `\_=8 \catcode `\~=13 \let~=\tie~2227,73731
+\let\{=\ptexlbrace{2237,73912
+\let\}=\ptexrbrace}2238,73931
+\let\.=\ptexdot.2239,73950
+\let\*=\ptexstar*2240,73966
+\let\dots=\ptexdotsdots2241,73983
+\def\@{@2242,74003
+\let\bullet=\ptexbulletbullet2243,74014
+\let\b=\ptexb \let\c=\ptexc \let\i=\ptexi \let\t=\ptext \let\l=\ptexlb2244,74038
+\let\b=\ptexb \let\c=\ptexc \let\i=\ptexi \let\t=\ptext \let\l=\ptexlc2244,74038
+\let\b=\ptexb \let\c=\ptexc \let\i=\ptexi \let\t=\ptext \let\l=\ptexli2244,74038
+\let\b=\ptexb \let\c=\ptexc \let\i=\ptexi \let\t=\ptext \let\l=\ptexlt2244,74038
+\let\b=\ptexb \let\c=\ptexc \let\i=\ptexi \let\t=\ptext \let\l=\ptexll2244,74038
+\let\L=\ptexLL2245,74108
+\let\Etex=\endgroup}Etex2247,74124
+\gdef\lisppar{lisppar2259,74517
+\gdef\sepspaces{sepspaces2265,74735
+\def\aboveenvbreak{aboveenvbreak2268,74817
+\def\afterenvbreak{afterenvbreak2272,74983
+\let\nonarrowing=\relaxnonarrowing2276,75176
+\def\ctl{ctl2286,75494
+\def\ctr{ctr2287,75566
+\def\cbl{cbl2288,75605
+\def\cbr{cbr2289,75645
+\def\carttop{carttop2290,75684
+\def\cartbot{cartbot2293,75792
+\long\def\cartouche{cartouche2299,75932
+	\let\nonarrowing=\commentnonarrowing2311,76404
+\def\Ecartouche{Ecartouche2326,76720
+\def\lisp{lisp2338,76855
+\let\par=\lispparpar2347,77184
+\def\Elisp{Elisp2348,77202
+\let\exdent=\nofillexdentexdent2355,77418
+\let\nonarrowing=\relaxnonarrowing2356,77444
+\def\next##1{next2360,77528
+\let\example=\lispexample2363,77551
+\def\Eexample{Eexample2364,77570
+\let\smallexample=\lispsmallexample2366,77593
+\def\Esmallexample{Esmallexample2367,77617
+\def\smalllispx{smalllispx2373,77795
+\let\par=\lispparpar2382,78131
+\def\Esmalllisp{Esmalllisp2383,78149
+\let\exdent=\nofillexdentexdent2392,78436
+\let\nonarrowing=\relaxnonarrowing2393,78462
 \obeyspaces \obeylines \ninett \indexfonts \rawbackslashfonts2396,78505
-\def\next##1{\next2397,78562
-\def\display{\display2401,78642
-\def\Edisplay{\Edisplay2410,78961
-\def\next##1{\next2422,79272
-\def\format{\format2426,79375
-\def\Eformat{\Eformat2434,79671
-\def\next##1{\next2437,79760
-\def\flushleft{\flushleft2441,79812
-\def\Eflushleft{\Eflushleft2451,80183
-\def\next##1{\next2454,80276
-\def\flushright{\flushright2456,80298
-\def\Eflushright{\Eflushright2466,80670
-\def\next##1{\next2470,80801
-\def\quotation{\quotation2474,80859
-\def\Equotation{\Equotation2480,81051
-\def\setdeffont #1 {\setdeffont2493,81449
+\def\next##1{next2397,78562
+\def\display{display2401,78642
+\let\par=\lispparpar2409,78943
+\def\Edisplay{Edisplay2410,78961
+\let\exdent=\nofillexdentexdent2417,79180
+\let\nonarrowing=\relaxnonarrowing2418,79206
+\def\next##1{next2422,79272
+\def\format{format2426,79375
+\let\par=\lispparpar2433,79653
+\def\Eformat{Eformat2434,79671
+\def\next##1{next2437,79760
+\def\flushleft{flushleft2441,79812
+\let\par=\lispparpar2450,80165
+\def\Eflushleft{Eflushleft2451,80183
+\def\next##1{next2454,80276
+\def\flushright{flushright2456,80298
+\let\par=\lispparpar2465,80652
+\def\Eflushright{Eflushright2466,80670
+\def\next##1{next2470,80801
+\def\quotation{quotation2474,80859
+\def\Equotation{Equotation2480,81051
+\let\nonarrowing=\relaxnonarrowing2487,81301
+\def\setdeffont #1 {setdeffont2493,81449
+\newskip\defbodyindent \defbodyindent=.4inbodyindent2495,81495
 \newskip\defbodyindent \defbodyindent=.4inbodyindent2495,81495
 \newskip\defargsindent \defargsindent=50ptargsindent2496,81538
+\newskip\defargsindent \defargsindent=50ptargsindent2496,81538
+\newskip\deftypemargin \deftypemargin=12pttypemargin2497,81581
 \newskip\deftypemargin \deftypemargin=12pttypemargin2497,81581
 \newskip\deflastargmargin \deflastargmargin=18ptlastargmargin2498,81624
-\def\activeparens{\activeparens2503,81822
-\def\opnr{\opnr2529,83034
-\def\lbrb{\lbrb2530,83099
-\def\defname #1#2{\defname2536,83300
+\newskip\deflastargmargin \deflastargmargin=18ptlastargmargin2498,81624
+\def\activeparens{activeparens2503,81822
+\gdef\functionparens{functionparens2507,82016
+\gdef\functionparens{\boldbrax\let&=\amprm\parencount=0 }&2507,82016
+\gdef\boldbrax{boldbrax2508,82074
+\gdef\boldbrax{\let(=\opnr\let)=\clnr\let[=\lbrb\let]=\rbrb}(2508,82074
+\gdef\boldbrax{\let(=\opnr\let)=\clnr\let[=\lbrb\let]=\rbrb})2508,82074
+\gdef\boldbrax{\let(=\opnr\let)=\clnr\let[=\lbrb\let]=\rbrb}[2508,82074
+\gdef\boldbrax{\let(=\opnr\let)=\clnr\let[=\lbrb\let]=\rbrb}]2508,82074
+\gdef\oprm#1 {oprm2512,82250
+\gdef\oprm#1 {{\rm\char`\(}#1 \bf \let(=\opnested %(2512,82250
+\gdef\opnested{opnested2516,82407
+\gdef\clrm{clrm2518,82466
+\ifnum \parencount=1 {\rm \char `\)}\sl \let(=\oprm \else \char `\) \fi(2520,82602
+\gdef\amprm#1 {amprm2523,82769
+\gdef\amprm#1 {{\rm\&#1}\let(=\oprm \let)=\clrm\ }(2523,82769
+\gdef\amprm#1 {{\rm\&#1}\let(=\oprm \let)=\clrm\ })2523,82769
+\gdef\normalparens{normalparens2525,82822
+\gdef\normalparens{\boldbrax\let&=\ampnr}&2525,82822
+\def\opnr{opnr2529,83034
+\def\opnr{{\sf\char`\(}} \def\clnr{clnr2529,83034
+\def\opnr{{\sf\char`\(}} \def\clnr{{\sf\char`\)}} \def\ampnr{ampnr2529,83034
+\def\lbrb{lbrb2530,83099
+\def\lbrb{{\bf\char`\[}} \def\rbrb{rbrb2530,83099
+\def\defname #1#2{defname2536,83300
 \advance\dimen2 by -\defbodyindentbodyindent2540,83418
 \advance\dimen3 by -\defbodyindentbodyindent2542,83472
 \setbox0=\hbox{\hskip \deflastargmargin{lastargmargin2544,83526
+\setbox0=\hbox{\hskip \deflastargmargin{\rm #2}\hskip \deftypemargin}typemargin2544,83526
 \dimen1=\hsize \advance \dimen1 by -\defargsindent %size for continuationsargsindent2546,83668
 \parshape 2 0in \dimen0 \defargsindent \dimen1     %argsindent2547,83743
 \rlap{\rightline{{\rm #2}\hskip \deftypemargin}typemargin2554,84112
 \advance\leftskip by -\defbodyindentbodyindent2557,84246
 \exdentamount=\defbodyindentbodyindent2558,84283
-\def\defparsebody #1#2#3{\defparsebody2568,84642
-\def#1{2572,84826
-\def#2{2573,84862
+\def\defparsebody #1#2#3{defparsebody2568,84642
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2575,84934
 \advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2575,84934
 \exdentamount=\defbodyindentbodyindent2576,85008
-\def\defmethparsebody #1#2#3#4 {\defmethparsebody2581,85112
-\def#1{2585,85273
-\def#2##1 {2586,85309
+\def\defmethparsebody #1#2#3#4 {defmethparsebody2581,85112
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2588,85392
 \advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2588,85392
 \exdentamount=\defbodyindentbodyindent2589,85466
-\def\defopparsebody #1#2#3#4#5 {\defopparsebody2592,85551
-\def#1{2596,85712
-\def#2##1 ##2 {2597,85748
+\def\defopparsebody #1#2#3#4#5 {defopparsebody2592,85551
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2600,85848
 \advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2600,85848
 \exdentamount=\defbodyindentbodyindent2601,85922
-\def\defvarparsebody #1#2#3{\defvarparsebody2608,86193
-\def#1{2612,86380
-\def#2{2613,86416
+\def\defvarparsebody #1#2#3{defvarparsebody2608,86193
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2615,86475
 \advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2615,86475
 \exdentamount=\defbodyindentbodyindent2616,86549
-\def\defvrparsebody #1#2#3#4 {\defvrparsebody2621,86640
-\def#1{2625,86799
-\def#2##1 {2626,86835
+\def\defvrparsebody #1#2#3#4 {defvrparsebody2621,86640
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2628,86905
 \advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2628,86905
 \exdentamount=\defbodyindentbodyindent2629,86979
-\def\defopvarparsebody #1#2#3#4#5 {\defopvarparsebody2632,87051
-\def#1{2636,87215
-\def#2##1 ##2 {2637,87251
+\def\defopvarparsebody #1#2#3#4#5 {defopvarparsebody2632,87051
+\advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2640,87338
 \advance\leftskip by \defbodyindent \advance \rightskip by \defbodyindentbodyindent2640,87338
 \exdentamount=\defbodyindentbodyindent2641,87412
-\def\defunargs #1{\defunargs2664,88172
-\def\deftypefunargs #1{\deftypefunargs2676,88554
-\def\deffn{\deffn2690,88936
-\def\deffnheader #1#2#3{\deffnheader2692,88993
+\gdef\spacesplit#1#2^^M{spacesplit2652,87775
+\long\gdef\spacesplitfoo#1#2 #3#4\spacesplitfoo{spacesplitfoo2653,87852
+\def\defunargs #1{defunargs2664,88172
+\def\deftypefunargs #1{deftypefunargs2676,88554
+\def\deffn{deffn2690,88936
+\def\deffn{\defmethparsebody\Edeffn\deffnx\deffnheader}methparsebody\Edeffn2690,88936
+\def\deffn{\defmethparsebody\Edeffn\deffnx\deffnheader}fnx\deffnheader2690,88936
+\def\deffn{\defmethparsebody\Edeffn\deffnx\deffnheader}fnheader2690,88936
+\def\deffnheader #1#2#3{deffnheader2692,88993
 \begingroup\defname {name2693,89041
-\def\defun{\defun2699,89186
-\def\defunheader #1#2{\defunheader2701,89239
+\begingroup\defname {#2}{#1}\defunargs{unargs2693,89041
+\def\defun{defun2699,89186
+\def\defun{\defparsebody\Edefun\defunx\defunheader}parsebody\Edefun2699,89186
+\def\defun{\defparsebody\Edefun\defunx\defunheader}unx\defunheader2699,89186
+\def\defun{\defparsebody\Edefun\defunx\defunheader}unheader2699,89186
+\def\defunheader #1#2{defunheader2701,89239
 \begingroup\defname {name2702,89314
 \defunargs {unargs2703,89350
-\def\deftypefun{\deftypefun2709,89498
-\def\deftypefunheader #1#2{\deftypefunheader2712,89620
-\def\deftypefunheaderx #1#2 #3\relax{\deftypefunheaderx2714,89729
+\def\deftypefun{deftypefun2709,89498
+\def\deftypefun{\defparsebody\Edeftypefun\deftypefunx\deftypefunheader}parsebody\Edeftypefun2709,89498
+\def\deftypefun{\defparsebody\Edeftypefun\deftypefunx\deftypefunheader}typefunx\deftypefunheader2709,89498
+\def\deftypefun{\defparsebody\Edeftypefun\deftypefunx\deftypefunheader}typefunheader2709,89498
+\def\deftypefunheader #1#2{deftypefunheader2712,89620
+\def\deftypefunheader #1#2{\deftypefunheaderx{typefunheaderx2712,89620
+\def\deftypefunheaderx #1#2 #3\relax{deftypefunheaderx2714,89729
 \begingroup\defname {name2716,89821
 \deftypefunargs {typefunargs2717,89867
-\def\deftypefn{\deftypefn2723,90038
-\def\deftypefnheader #1#2#3{\deftypefnheader2726,90187
-\def\deftypefnheaderx #1#2#3 #4\relax{\deftypefnheaderx2728,90323
+\def\deftypefn{deftypefn2723,90038
+\def\deftypefn{\defmethparsebody\Edeftypefn\deftypefnx\deftypefnheader}methparsebody\Edeftypefn2723,90038
+\def\deftypefn{\defmethparsebody\Edeftypefn\deftypefnx\deftypefnheader}typefnx\deftypefnheader2723,90038
+\def\deftypefn{\defmethparsebody\Edeftypefn\deftypefnx\deftypefnheader}typefnheader2723,90038
+\def\deftypefnheader #1#2#3{deftypefnheader2726,90187
+\def\deftypefnheader #1#2#3{\deftypefnheaderx{typefnheaderx2726,90187
+\def\deftypefnheaderx #1#2#3 #4\relax{deftypefnheaderx2728,90323
 \begingroup\defname {name2730,90416
 \deftypefunargs {typefunargs2731,90456
-\def\defmac{\defmac2737,90577
-\def\defmacheader #1#2{\defmacheader2739,90634
+\def\defmac{defmac2737,90577
+\def\defmac{\defparsebody\Edefmac\defmacx\defmacheader}parsebody\Edefmac2737,90577
+\def\defmac{\defparsebody\Edefmac\defmacx\defmacheader}macx\defmacheader2737,90577
+\def\defmac{\defparsebody\Edefmac\defmacx\defmacheader}macheader2737,90577
+\def\defmacheader #1#2{defmacheader2739,90634
 \begingroup\defname {name2740,90710
 \defunargs {unargs2741,90743
-\def\defspec{\defspec2747,90867
-\def\defspecheader #1#2{\defspecheader2749,90928
+\def\defspec{defspec2747,90867
+\def\defspec{\defparsebody\Edefspec\defspecx\defspecheader}parsebody\Edefspec2747,90867
+\def\defspec{\defparsebody\Edefspec\defspecx\defspecheader}specx\defspecheader2747,90867
+\def\defspec{\defparsebody\Edefspec\defspecx\defspecheader}specheader2747,90867
+\def\defspecheader #1#2{defspecheader2749,90928
 \begingroup\defname {name2750,91005
 \defunargs {unargs2751,91045
-\def\deffnx #1 {\deffnx2758,91240
-\def\defunx #1 {\defunx2759,91297
-\def\defmacx #1 {\defmacx2760,91354
-\def\defspecx #1 {\defspecx2761,91413
-\def\deftypefnx #1 {\deftypefnx2762,91474
-\def\deftypeunx #1 {\deftypeunx2763,91539
-\def\defop #1 {\defop2769,91685
-\defopparsebody\Edefop\defopx\defopheader\defoptype}opparsebody\Edefop\defopx\defopheader\defoptype2770,91720
-\def\defopheader #1#2#3{\defopheader2772,91774
+\def\deffnx #1 {deffnx2758,91240
+\def\defunx #1 {defunx2759,91297
+\def\defmacx #1 {defmacx2760,91354
+\def\defspecx #1 {defspecx2761,91413
+\def\deftypefnx #1 {deftypefnx2762,91474
+\def\deftypeunx #1 {deftypeunx2763,91539
+\def\defop #1 {defop2769,91685
+\def\defop #1 {\def\defoptype{defoptype2769,91685
+\defopparsebody\Edefop\defopx\defopheader\defoptype}opparsebody\Edefop2770,91720
+\defopparsebody\Edefop\defopx\defopheader\defoptype}opx\defopheader2770,91720
+\defopparsebody\Edefop\defopx\defopheader\defoptype}opheader\defoptype2770,91720
+\defopparsebody\Edefop\defopx\defopheader\defoptype}optype2770,91720
+\def\defopheader #1#2#3{defopheader2772,91774
 \begingroup\defname {name2774,91863
+\begingroup\defname {#2}{\defoptype{optype2774,91863
 \defunargs {unargs2775,91909
-\def\defmethod{\defmethod2780,91970
-\def\defmethodheader #1#2#3{\defmethodheader2782,92043
+\def\defmethod{defmethod2780,91970
+\def\defmethod{\defmethparsebody\Edefmethod\defmethodx\defmethodheader}methparsebody\Edefmethod2780,91970
+\def\defmethod{\defmethparsebody\Edefmethod\defmethodx\defmethodheader}methodx\defmethodheader2780,91970
+\def\defmethod{\defmethparsebody\Edefmethod\defmethodx\defmethodheader}methodheader2780,91970
+\def\defmethodheader #1#2#3{defmethodheader2782,92043
 \begingroup\defname {name2784,92131
 \defunargs {unargs2785,92171
-\def\defcv #1 {\defcv2790,92245
-\defopvarparsebody\Edefcv\defcvx\defcvarheader\defcvtype}opvarparsebody\Edefcv\defcvx\defcvarheader\defcvtype2791,92280
-\def\defcvarheader #1#2#3{\defcvarheader2793,92339
+\def\defcv #1 {defcv2790,92245
+\def\defcv #1 {\def\defcvtype{defcvtype2790,92245
+\defopvarparsebody\Edefcv\defcvx\defcvarheader\defcvtype}opvarparsebody\Edefcv2791,92280
+\defopvarparsebody\Edefcv\defcvx\defcvarheader\defcvtype}cvx\defcvarheader2791,92280
+\defopvarparsebody\Edefcv\defcvx\defcvarheader\defcvtype}cvarheader\defcvtype2791,92280
+\defopvarparsebody\Edefcv\defcvx\defcvarheader\defcvtype}cvtype2791,92280
+\def\defcvarheader #1#2#3{defcvarheader2793,92339
 \begingroup\defname {name2795,92425
+\begingroup\defname {#2}{\defcvtype{cvtype2795,92425
 \defvarargs {varargs2796,92471
-\def\defivar{\defivar2801,92544
-\def\defivarheader #1#2#3{\defivarheader2803,92607
+\def\defivar{defivar2801,92544
+\def\defivar{\defvrparsebody\Edefivar\defivarx\defivarheader}vrparsebody\Edefivar2801,92544
+\def\defivar{\defvrparsebody\Edefivar\defivarx\defivarheader}ivarx\defivarheader2801,92544
+\def\defivar{\defvrparsebody\Edefivar\defivarx\defivarheader}ivarheader2801,92544
+\def\defivarheader #1#2#3{defivarheader2803,92607
 \begingroup\defname {name2805,92693
 \defvarargs {varargs2806,92744
-\def\defopx #1 {\defopx2812,92893
-\def\defmethodx #1 {\defmethodx2813,92950
-\def\defcvx #1 {\defcvx2814,93015
-\def\defivarx #1 {\defivarx2815,93072
-\def\defvarargs #1{\defvarargs2822,93343
-\def\defvr{\defvr2828,93487
-\def\defvrheader #1#2#3{\defvrheader2830,93542
+\def\defopx #1 {defopx2812,92893
+\def\defmethodx #1 {defmethodx2813,92950
+\def\defcvx #1 {defcvx2814,93015
+\def\defivarx #1 {defivarx2815,93072
+\def\defvarargs #1{defvarargs2822,93343
+\def\defvr{defvr2828,93487
+\def\defvr{\defvrparsebody\Edefvr\defvrx\defvrheader}vrparsebody\Edefvr2828,93487
+\def\defvr{\defvrparsebody\Edefvr\defvrx\defvrheader}vrx\defvrheader2828,93487
+\def\defvr{\defvrparsebody\Edefvr\defvrx\defvrheader}vrheader2828,93487
+\def\defvrheader #1#2#3{defvrheader2830,93542
 \begingroup\defname {name2831,93590
-\def\defvar{\defvar2835,93675
-\def\defvarheader #1#2{\defvarheader2837,93735
+\begingroup\defname {#2}{#1}\defvarargs{varargs2831,93590
+\def\defvar{defvar2835,93675
+\def\defvar{\defvarparsebody\Edefvar\defvarx\defvarheader}varparsebody\Edefvar2835,93675
+\def\defvar{\defvarparsebody\Edefvar\defvarx\defvarheader}varx\defvarheader2835,93675
+\def\defvar{\defvarparsebody\Edefvar\defvarx\defvarheader}varheader2835,93675
+\def\defvarheader #1#2{defvarheader2837,93735
 \begingroup\defname {name2838,93806
 \defvarargs {varargs2839,93842
-\def\defopt{\defopt2844,93908
-\def\defoptheader #1#2{\defoptheader2846,93968
+\def\defopt{defopt2844,93908
+\def\defopt{\defvarparsebody\Edefopt\defoptx\defoptheader}varparsebody\Edefopt2844,93908
+\def\defopt{\defvarparsebody\Edefopt\defoptx\defoptheader}optx\defoptheader2844,93908
+\def\defopt{\defvarparsebody\Edefopt\defoptx\defoptheader}optheader2844,93908
+\def\defoptheader #1#2{defoptheader2846,93968
 \begingroup\defname {name2847,94039
 \defvarargs {varargs2848,94078
-\def\deftypevar{\deftypevar2853,94135
-\def\deftypevarheader #1#2{\deftypevarheader2856,94251
+\def\deftypevar{deftypevar2853,94135
+\def\deftypevar{\defvarparsebody\Edeftypevar\deftypevarx\deftypevarheader}varparsebody\Edeftypevar2853,94135
+\def\deftypevar{\defvarparsebody\Edeftypevar\deftypevarx\deftypevarheader}typevarx\deftypevarheader2853,94135
+\def\deftypevar{\defvarparsebody\Edeftypevar\deftypevarx\deftypevarheader}typevarheader2853,94135
+\def\deftypevarheader #1#2{deftypevarheader2856,94251
 \begingroup\defname {name2858,94334
-\def\deftypevr{\deftypevr2865,94508
-\def\deftypevrheader #1#2#3{\deftypevrheader2867,94579
+\def\deftypevr{deftypevr2865,94508
+\def\deftypevr{\defvrparsebody\Edeftypevr\deftypevrx\deftypevrheader}vrparsebody\Edeftypevr2865,94508
+\def\deftypevr{\defvrparsebody\Edeftypevr\deftypevrx\deftypevrheader}typevrx\deftypevrheader2865,94508
+\def\deftypevr{\defvrparsebody\Edeftypevr\deftypevrx\deftypevrheader}typevrheader2865,94508
+\def\deftypevrheader #1#2#3{deftypevrheader2867,94579
 \begingroup\defname {name2868,94631
-\def\defvrx #1 {\defvrx2876,94868
-\def\defvarx #1 {\defvarx2877,94925
-\def\defoptx #1 {\defoptx2878,94984
-\def\deftypevarx #1 {\deftypevarx2879,95043
-\def\deftypevrx #1 {\deftypevrx2880,95110
-\def\deftpargs #1{\deftpargs2885,95259
-\def\deftp{\deftp2889,95339
-\def\deftpheader #1#2#3{\deftpheader2891,95394
+\def\defvrx #1 {defvrx2876,94868
+\def\defvarx #1 {defvarx2877,94925
+\def\defoptx #1 {defoptx2878,94984
+\def\deftypevarx #1 {deftypevarx2879,95043
+\def\deftypevrx #1 {deftypevrx2880,95110
+\def\deftpargs #1{deftpargs2885,95259
+\def\deftpargs #1{\bf \defvarargs{varargs2885,95259
+\def\deftp{deftp2889,95339
+\def\deftp{\defvrparsebody\Edeftp\deftpx\deftpheader}vrparsebody\Edeftp2889,95339
+\def\deftp{\defvrparsebody\Edeftp\deftpx\deftpheader}tpx\deftpheader2889,95339
+\def\deftp{\defvrparsebody\Edeftp\deftpx\deftpheader}tpheader2889,95339
+\def\deftpheader #1#2#3{deftpheader2891,95394
 \begingroup\defname {name2892,95442
-\def\deftpx #1 {\deftpx2897,95601
-\def\setref#1{\setref2908,95922
-\def\unnumbsetref#1{\unnumbsetref2913,96036
-\def\appendixsetref#1{\appendixsetref2918,96143
-\def\pxref#1{\pxref2929,96554
-\def\xref#1{\xref2930,96590
-\def\ref#1{\ref2931,96625
-\def\xrefX[#1,#2,#3,#4,#5,#6]{\xrefX[2932,96655
-\def\printedmanual{\printedmanual2933,96698
-\def\printednodename{\printednodename2934,96736
-\def\printednodename{\printednodename2939,96861
-section ``\printednodename'' in \cite{\printedmanual}\printedmanual2954,97493
+\begingroup\defname {#2}{#1}\deftpargs{tpargs2892,95442
+\def\deftpx #1 {deftpx2897,95601
+\def\setref#1{setref2908,95922
+\def\unnumbsetref#1{unnumbsetref2913,96036
+\def\appendixsetref#1{appendixsetref2918,96143
+\def\pxref#1{pxref2929,96554
+\def\xref#1{xref2930,96590
+\def\ref#1{ref2931,96625
+\def\xrefX[#1,#2,#3,#4,#5,#6]{xrefX2932,96655
+\def\printedmanual{printedmanual2933,96698
+\def\printednodename{printednodename2934,96736
+\def\printednodename{printednodename2939,96861
+section ``\printednodename'' in \cite{\printedmanual}printedmanual2954,97493
 \refx{x2957,97571
-\def\dosetq #1#2{\dosetq2965,97791
-\def\internalsetq #1#2{\internalsetq2973,98049
-\def\Ypagenumber{\Ypagenumber2977,98150
-\def\Ytitle{\Ytitle2979,98176
-\def\Ynothing{\Ynothing2981,98203
-\def\Ysectionnumberandtype{\Ysectionnumberandtype2983,98220
-\def\Yappendixletterandtype{\Yappendixletterandtype2992,98536
+\refx{#1-snt}{} [\printednodename], page\tie\refx{x2957,97571
+\def\dosetq #1#2{dosetq2965,97791
+\def\dosetq #1#2{{\let\folio=0 \turnoffactive%folio2965,97791
+\edef\next{next2966,97838
+\def\internalsetq #1#2{internalsetq2973,98049
+\def\Ypagenumber{Ypagenumber2977,98150
+\def\Ytitle{Ytitle2979,98176
+\def\Ynothing{Ynothing2981,98203
+\def\Ysectionnumberandtype{Ysectionnumberandtype2983,98220
+\def\Yappendixletterandtype{Yappendixletterandtype2992,98536
 \ifnum\secno=0 Appendix\xreftie'char\the\appendixno{no2993,98566
-\else \ifnum \subsecno=0 Section\xreftie'char\the\appendixno.\the\secno %no.\the\secno2994,98621
-Section\xreftie'char\the\appendixno.\the\secno.\the\subsecno %no.\the\secno.\the\subsecno2996,98725
-Section\xreftie'char\the\appendixno.\the\secno.\the\subsecno.\the\subsubsecno %no.\the\secno.\the\subsecno.\the\subsubsecno2998,98796
-  \def\linenumber{\linenumber3009,99135
-\def\refx#1#2{\refx3015,99319
-\def\xrdef #1#2{\xrdef3037,99945
-\def\readauxfile{\readauxfile3040,100030
-\def\supereject{\supereject3110,101811
-\footstrut\parindent=\defaultparindent\hang\textindent{aultparindent\hang\textindent3131,102496
-\def\openindices{\openindices3139,102682
+\else \ifnum \subsecno=0 Section\xreftie'char\the\appendixno.\the\secno %no.\the2994,98621
+Section\xreftie'char\the\appendixno.\the\secno.\the\subsecno %no.\the2996,98725
+Section\xreftie'char\the\appendixno.\the\secno.\the\subsecno.\the\subsubsecno %no.\the2998,98796
+\gdef\xreftie{xreftie3001,98891
+  \let\linenumber = \empty % Non-3.0.linenumber3007,99091
+  \def\linenumber{linenumber3009,99135
+\def\refx#1#2{refx3015,99319
+\def\xrdef #1#2{xrdef3037,99945
+{\catcode`\'=\other\expandafter \gdef \csname X#1\endcsname {csname3038,99962
+\def\readauxfile{readauxfile3040,100030
+\def\supereject{supereject3110,101811
+\let\footnotestyle=\commentfootnotestyle3113,101918
+\let\ptexfootnote=\footnoteptexfootnote3115,101947
+\long\gdef\footnote #1{footnote3118,101993
+\edef\thisfootno{thisfootno3120,102060
+\let\@sf\empty@sf3121,102100
+\ifhmode\edef\@sf{@sf3122,102115
+\long\gdef\footnotezzz #1{footnotezzz3126,102228
+\footstrut\parindent=\defaultparindent\hang\textindent{aultparindent\hang3131,102496
+\def\openindices{openindices3139,102682
+\newdimen\defaultparindent \defaultparindent = 15ptaultparindent3151,102907
 \newdimen\defaultparindent \defaultparindent = 15ptaultparindent3151,102907
 \parindent = \defaultparindentaultparindent3152,102959
-\def\smallbook{\smallbook3175,103683
-\global\def\Esmallexample{\Esmallexample3192,104110
-\def\afourpaper{\afourpaper3196,104201
-\def\finalout{\finalout3224,105009
-\def\normaldoublequote{\normaldoublequote3235,105270
-\def\normaltilde{\normaltilde3236,105296
-\def\normalcaret{\normalcaret3237,105316
-\def\normalunderscore{\normalunderscore3238,105336
-\def\normalverticalbar{\normalverticalbar3239,105361
-\def\normalless{\normalless3240,105387
-\def\normalgreater{\normalgreater3241,105406
-\def\normalplus{\normalplus3242,105428
-\def\ifusingtt#1#2{\ifusingtt3253,105920
-\def\activedoublequote{\activedoublequote3261,106248
+\def\smallbook{smallbook3175,103683
+\global\let\smalllisp=\smalllispxsmalllisp3190,104039
+\global\let\smallexample=\smalllispxsmallexample3191,104073
+\global\def\Esmallexample{Esmallexample3192,104110
+\def\afourpaper{afourpaper3196,104201
+\def\finalout{finalout3224,105009
+\def\normaldoublequote{normaldoublequote3235,105270
+\def\normaltilde{normaltilde3236,105296
+\def\normalcaret{normalcaret3237,105316
+\def\normalunderscore{normalunderscore3238,105336
+\def\normalverticalbar{normalverticalbar3239,105361
+\def\normalless{normalless3240,105387
+\def\normalgreater{normalgreater3241,105406
+\def\normalplus{normalplus3242,105428
+\def\ifusingtt#1#2{ifusingtt3253,105920
+\def\activedoublequote{activedoublequote3261,106248
+\let"=\activedoublequote"3262,106289
 \def~{~3264,106334
 \def^{^3267,106395
 \def_{_3270,106434
-\def\_{\_3272,106508
-\def\lvvmode{\lvvmode3279,106845
+\def\_{_3272,106508
+\def\lvvmode{lvvmode3279,106845
 \def|{|3282,106895
 \def<{<3285,106958
 \def>{>3288,107015
 \def+{+3290,107053
-\def\turnoffactive{\turnoffactive3296,107214
+\def\turnoffactive{turnoffactive3296,107214
+\def\turnoffactive{\let"=\normaldoublequote"3296,107214
+\let~=\normaltilde~3297,107258
+\let^=\normalcaret^3298,107277
+\let_=\normalunderscore_3299,107296
+\let|=\normalverticalbar|3300,107320
+\let<=\normalless<3301,107345
+\let>=\normalgreater>3302,107363
+\let+=\normalplus}+3303,107384
 \global\def={=3307,107500
-\def\normalbackslash{\normalbackslash3321,107882
+\def\normalbackslash{normalbackslash3321,107882
 
 merc-src/accumulator.m,4915
 :- interface146,5371

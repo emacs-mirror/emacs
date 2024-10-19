@@ -468,8 +468,9 @@ Specifically:
 @item
 Numbers are compared using @code{<} (@pxref{definition of <}).
 @item
-Strings are compared using @code{string<} (@pxref{definition of
-string<}) and symbols are compared by comparing their names as strings.
+Strings are compared using @code{string-lessp} (@pxref{definition of
+string-lessp}) and symbols are compared by comparing their names as
+strings.
 @item
 Conses, lists, vectors and records are compared lexicographically.  This
 means that the two sequences are compared element-wise from left to

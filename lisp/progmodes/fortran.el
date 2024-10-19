@@ -290,14 +290,13 @@ buffer).  This corresponds to the g77 compiler option
 `-ffixed-line-length-N'."
   :type 'integer
   :safe 'integerp
+  :local t
   :initialize 'custom-initialize-default
   :set (lambda (_symbol value)
          ;; Do all fortran buffers, and the default.
          (fortran-line-length value t))
   :version "23.1"
   :group 'fortran)
-
-(make-variable-buffer-local 'fortran-line-length)
 
 (defcustom fortran-mode-hook nil
   "Hook run when entering Fortran mode."
@@ -1631,7 +1630,7 @@ Return point or nil."
                (setq icol (+ icol fortran-if-indent)))
               ((looking-at "where[ \t]*(.*)[ \t]*\n")
                (setq icol (+ icol fortran-if-indent)))
-              ((looking-at "do\\b")
+              ((looking-at "do *[0-9]* *[a-z0-9_]+ *= *[a-z0-9_]+ *, *[a-z0-9_]+")
                (setq icol (+ icol fortran-do-indent)))
               ((looking-at
                 "\\(structure\\|union\\|map\\|interface\\)\

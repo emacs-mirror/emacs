@@ -54,37 +54,43 @@
     (with-temp-buffer
       (insert input)
       (fill-flowed)
-      (message "foo")
       (should (equal (buffer-string) output)))))
 
 (ert-deftest fill-flow-tests-fill-flowed-encode ()
   (let ((input
          (concat
-          "> Thou villainous ill-breeding spongy dizzy-eyed \n"
-          "> reeky elf-skinned pigeon-egg! \n"
-          ">> Thou artless swag-bellied milk-livered \n"
-          ">> dismal-dreaming idle-headed scut!\n"
+          ;; Hard newline in the middle of a level
+          "> Thou villainous ill-breeding spongy dizzy-eyed" hard-newline
+          "> reeky elf-skinned pigeon-egg!\n"
+          ">> Thou artless swag-bellied milk-livered\n"
+          ;; Hard new line at the end of a level
+          ">> dismal-dreaming idle-headed scut!" hard-newline
+          ;; Trailing space should be preserved after filling
           ">>> Thou errant folly-fallen spleeny reeling-ripe \n"
           ">>> unmuzzled ratsbane!\n"
-          ">>>> Henceforth, the coding style is to be strictly \n"
+          ">>>> Henceforth, the coding style is to be strictly\n"
           ">>>> enforced, including the use of only upper case.\n"
-          ">>>>> I've noticed a lack of adherence to the coding \n"
+          ;; Consecutive hard newlines within a level
+          ">>>>> I've noticed a lack of adherence to" hard-newline
+          ">>>>> the coding" hard-newline
           ">>>>> styles, of late.\n"
           ">>>>>> Any complaints?\n"))
         (output
          (concat
-          "> Thou villainous ill-breeding spongy dizzy-eyed \n"
+          "> Thou villainous ill-breeding spongy dizzy-eyed\n"
           "> reeky elf-skinned pigeon-egg! \n"
-          ">> Thou artless swag-bellied milk-livered \n"
-          ">> dismal-dreaming idle-headed scut!\n"
-          ">>> Thou errant folly-fallen spleeny reeling-ripe \n"
-          ">>> unmuzzled ratsbane!\n"
-          ">>>> Henceforth, the coding style is to be strictly \n"
-          ">>>> enforced, including the use of only upper case.\n"
-          ">>>>> I've noticed a lack of adherence to the coding \n"
-          ">>>>> styles, of late.\n"
-          ">>>>>> Any complaints?\n"))
-        (fill-flowed-display-column 69))
+          ">> Thou artless swag-bellied milk-livered dismal-dreaming \n"
+          ">> idle-headed scut!\n"
+          ">>> Thou errant folly-fallen spleeny reeling-ripe  unmuzzled \n"
+          ">>> ratsbane! \n"
+          ">>>> Henceforth, the coding style is to be strictly enforced, \n"
+          ">>>> including the use of only upper case. \n"
+          ">>>>> I've noticed a lack of adherence to\n"
+          ">>>>> the coding\n"
+          ">>>>> styles, of late. \n"
+          ">>>>>> Any complaints? \n"))
+        (use-hard-newlines t)
+        (fill-flowed-encode-column 66))
     (with-temp-buffer
       (insert input)
       (fill-flowed-encode)

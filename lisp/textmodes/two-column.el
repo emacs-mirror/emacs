@@ -142,15 +142,14 @@
 (defcustom 2C-separator ""
   "A string inserted between the two columns when merging.
 This gets set locally by \\[2C-split]."
-  :type 'string)
-(put '2C-separator 'permanent-local t)
+  :type 'string
+  :local 'permanent-only)
 
 (defcustom 2C-window-width 40
   "The width of the first column.  (Must be at least `window-min-width'.)
 This value is local for every buffer that sets it."
-  :type 'integer)
-(make-variable-buffer-local '2C-window-width)
-(put '2C-window-width 'permanent-local t)
+  :type 'integer
+  :local 'permanent)
 
 (defcustom 2C-beyond-fill-column 4
   "Base for calculating `fill-column' for a buffer in two-column minor mode.

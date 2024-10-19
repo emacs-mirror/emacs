@@ -1534,11 +1534,15 @@ See also `erc-server-responses'."
   (gethash (format (if (numberp command) "%03i" "%s") command)
            erc-server-responses))
 
+(defvar erc--parsed-response nil)
+
 (defun erc-call-hooks (process message)
   "Call hooks associated with MESSAGE in PROCESS.
 
 Finds hooks by looking in the `erc-server-responses' hash table."
-  (let ((hook (or (erc-get-hook (erc-response.command message))
+  (let ((erc--parsed-response message)
+        (erc--msg-prop-overrides erc--msg-prop-overrides)
+        (hook (or (erc-get-hook (erc-response.command message))
                   'erc-default-server-functions)))
     (run-hook-with-args-until-success hook process message)
     ;; Some handlers, like `erc-cmd-JOIN', open new targets without
@@ -1847,8 +1851,8 @@ add things to `%s' instead."
                                    ?t tgt ?m mode)
             (erc-display-message parsed 'notice buf
                                  'MODE ?n nick ?u login
-                                 ?h host ?t tgt ?m mode)))
-      (erc-banlist-update proc parsed))))
+                                 ?h host ?t tgt ?m mode)))))
+  nil)
 
 (defun erc--wrangle-query-buffers-on-nick-change (old new)
   "Create or reuse a query buffer for NEW nick after considering OLD nick.

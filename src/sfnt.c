@@ -383,15 +383,18 @@ sfnt_read_cmap_format_2 (int fd,
 
   for (i = 0; i < 256; ++i)
     {
+      /* Values in sub_header_keys are actually offsets from the end of
+	 that array.  Since the language of the spec is such as to imply
+	 that they must be divisible by eight, divide them by the
+	 same.  */
       sfnt_swap16 (&format2->sub_header_keys[i]);
 
       if (format2->sub_header_keys[i] > nsub)
-	nsub = format2->sub_header_keys[i];
+	nsub = format2->sub_header_keys[i] / 8;
     }
 
-  if (!nsub)
-    /* If there are no subheaders, then things are finished.  */
-    return format2;
+  /* There always exists a subheader at index zero.  */
+  nsub ++;
 
   /* Otherwise, read the rest of the variable length data to the end
      of format2.  */
@@ -1093,10 +1096,10 @@ sfnt_lookup_glyph_2 (sfnt_char character,
   unsigned char *slice;
   uint16_t glyph;
 
-  if (character > 65335)
+  if (character > 65535)
     return 0;
 
-  i = character >> 16;
+  i = character >> 8;
   j = character & 0xff;
   k = format2->sub_header_keys[i] / 8;
 
@@ -1108,9 +1111,11 @@ sfnt_lookup_glyph_2 (sfnt_char character,
 	  && j <= ((int) subheader->first_code
 		   + (int) subheader->entry_count))
 	{
-	  /* id_range_offset is actually the number of bytes past
-	     itself containing the uint16_t ``slice''.  It is possibly
-	     unaligned.  */
+	  /* id_range_offset is actually the number of bytes past itself
+	     containing the uint16_t ``slice''.  Whether this may be
+	     unaligned is not stated in the specification, but I doubt
+	     it, for that would render values meaningless if the array
+	     were byte swapped when read.  */
 	  slice = (unsigned char *) &subheader->id_range_offset;
 	  slice += subheader->id_range_offset;
 	  slice += (j - subheader->first_code) * sizeof (uint16_t);
@@ -1129,9 +1134,9 @@ sfnt_lookup_glyph_2 (sfnt_char character,
 	return 0;
     }
 
-  /* k is 0, so glyph_index_array[i] is the glyph.  */
-  return (i < format2->num_glyphs
-	  ? format2->glyph_index_array[i]
+  /* k is 0, so glyph_index_array[j] is the glyph.  */
+  return (j < format2->num_glyphs
+	  ? format2->glyph_index_array[j]
 	  : 0);
 }
 
@@ -2578,8 +2583,10 @@ sfnt_transform_coordinates (struct sfnt_compound_glyph_component *component,
 
   for (i = 0; i < num_coordinates; ++i)
     {
-      x[i] = m1 * x[i] + m2 * y[i] + m3 * 1;
-      y[i] = m4 * x[i] + m5 * y[i] + m6 * 1;
+      sfnt_fixed xi = m1 * x[i] + m2 * y[i] + m3 * 1;
+      sfnt_fixed yi = m4 * x[i] + m5 * y[i] + m6 * 1;
+      x[i] = xi;
+      y[i] = yi;
     }
 }
 
@@ -12822,8 +12829,10 @@ sfnt_transform_f26dot6 (struct sfnt_compound_glyph_component *component,
 
   for (i = 0; i < num_coordinates; ++i)
     {
-      x[i] = m1 * x[i] + m2 * y[i] + m3 * 1;
-      y[i] = m4 * x[i] + m5 * y[i] + m6 * 1;
+      sfnt_f26dot6 xi = m1 * x[i] + m2 * y[i] + m3 * 1;
+      sfnt_f26dot6 yi = m4 * x[i] + m5 * y[i] + m6 * 1;
+      x[i] = xi;
+      y[i] = yi;
     }
 }
 

@@ -73,9 +73,8 @@ STRING4"
 This means that regions that have status prefer-A or prefer-B will be
 skipped over.  A value of nil means show all regions."
   :type 'boolean
-  :group 'ediff-merge
-  )
-(make-variable-buffer-local 'ediff-show-clashes-only)
+  :local t
+  :group 'ediff-merge)
 
 (defcustom ediff-skip-merge-regions-that-differ-from-default nil
   "If t, show only the regions that have not been changed by the user.
@@ -87,9 +86,8 @@ A region is considered to have been changed also when it is marked as
 Buffer A or if it is marked as `prefer-B' and is different from the region in
 Buffer B."
   :type 'boolean
-  :group 'ediff-merge
-  )
-(make-variable-buffer-local 'ediff-skip-merge-regions-that-differ-from-default)
+  :local t
+  :group 'ediff-merge)
 
 (defvar state-of-merge)			; dynamic var
 

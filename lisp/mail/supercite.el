@@ -1244,9 +1244,7 @@ to the auto-selected attribution string."
 
 
 ;; ======================================================================
-;; filladapt hooks for supercite 3.1. you shouldn't need anything
-;; extra to make gin-mode understand supercited lines.  Even this
-;; stuff might not be entirely necessary...
+;; filladapt hooks for supercite 3.1.
 
 (defun sc-cite-regexp (&optional root-regexp)
   "Return a regexp describing a Supercited line.

@@ -792,6 +792,46 @@ search engine whose @acronym{URL} is specified by the variable
 Wowser Manual}).  If the region is not active, or doesn't contain any
 words, this command prompts the user for a URL or keywords to search.
 
+@findex dictionary-search
+@findex dictionary
+@findex dictionary-tooltip-mode
+@cindex dictionary server protocol (DICT)
+@cindex word definition search
+@vindex dictionary-server
+  You can also search for definitions of a word by querying dictionary
+servers via the @sc{dict} protocol defined by @acronym{RFC} 2229.  Emacs
+includes a client for this protocol.  Type @w{@kbd{M-x dictionary-search
+@key{RET}}} to connect to a @sc{dict} server and ask it to provide the
+available definitions of a word.  This command prompts for the word to
+look up, using the word at point as the default, then asks the @sc{dict}
+server to provide the definitions of that word in one or more
+dictionaries.  By default, the command first tries to connect to the
+@sc{dict} server installed on the local host, and if that fails, it
+tries @file{dict.org} after asking for confirmation; customize the variable
+@code{dictionary-server} to specify, as a string, the URL of a single
+server to use (use @samp{localhost} if you want to query only the local
+server).  Normally, @code{dictionary-search} tells the server to look up
+the word in all the dictionaries available to the server, but if you
+invoke the command with a prefix argument, it will prompt for a single
+dictionary to use.  The list of dictionaries available to a server can
+be displayed by pressing the @samp{Select dictionary} button shown in
+the @file{*Dictionary*} buffer, described below.
+
+  The first time you use @code{dictionary-search}, it creates a new
+@file{*Dictionary*} buffer and turns on a special mode in it.  The
+buffer shows buttons for selecting a dictionary, searching a definition
+of another word, etc.  Subsequent @code{dictionary-search} commands
+reuse this buffer.  To create another such buffer (e.g., to look up
+other words, perhaps in another dictionary), type @w{@kbd{M-x dictionary
+@key{RET}}}.
+
+  If you turn on @code{dictionary-tooltip-mode} in a buffer, Emacs will
+look up the definitions of the word at mouse pointer and show those
+definitions in a tool tip.  This is handy when you are reading text with
+many words about whose meaning you are unsure.
+
+  For other options of dictionary-search, see the @code{dictionary}
+customization group (@pxref{Specific Customization}).
 
 @node Symbol Search
 @section Symbol Search

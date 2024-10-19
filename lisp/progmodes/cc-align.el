@@ -91,7 +91,10 @@ Works with: topmost-intro-cont."
       (c-backward-syntactic-ws (c-langelem-pos langelem))
       (if (and (memq (char-before) '(?} ?,))
 	       (not (and c-overloadable-operators-regexp
-			 (c-after-special-operator-id))))
+			 (c-after-special-operator-id)))
+	       (or (not (eq (char-before) ?}))
+		   (not (eq (cdr-safe (c-in-requires-or-at-end-of-clause))
+			    t))))
 	  c-basic-offset))))
 
 (defun c-lineup-gnu-DEFUN-intro-cont (langelem)
@@ -301,7 +304,7 @@ Works with: arglist-cont, arglist-cont-nonempty."
   "Line up a line to just after the open paren of the surrounding paren
 or brace block.
 
-Works with: defun-block-intro, brace-list-intro,
+Works with: defun-block-intro, brace-list-intro, enum-intro
 statement-block-intro, statement-case-intro, arglist-intro."
   (save-excursion
     (beginning-of-line)
@@ -324,7 +327,8 @@ as the open parenthesis of the argument list, the indentation is
 of this \"DWIM\" measure.
 
 Works with: Almost all symbols, but are typically most useful on
-arglist-close, brace-list-close, arglist-cont and arglist-cont-nonempty."
+arglist-close, brace-list-close, enum-close, arglist-cont and
+arglist-cont-nonempty."
   (save-excursion
     (if (memq (c-langelem-sym langelem)
 	      '(arglist-cont-nonempty arglist-close))
@@ -1110,9 +1114,9 @@ In the first case the indentation is kept unchanged, in the
 second `c-basic-offset' is added.
 
 Works with: defun-close, defun-block-intro, inline-close, block-close,
-brace-list-close, brace-list-intro, statement-block-intro,
-arglist-intro, arglist-cont-nonempty, arglist-close, and all in*
-symbols, e.g. inclass and inextern-lang."
+brace-list-close, brace-list-intro, enum-close, enum-intro,
+statement-block-intro, arglist-intro, arglist-cont-nonempty,
+arglist-close, and all in* symbols, e.g. inclass and inextern-lang."
   (save-excursion
     (beginning-of-line)
     (if (and (c-go-up-list-backward)
@@ -1146,8 +1150,8 @@ anchor position is at an open paren character.  In that case, it
 instead indents relative to the surrounding block just like
 `c-lineup-whitesmith-in-block'.
 
-Works with: brace-list-entry, brace-entry-open, statement,
-arglist-cont."
+Works with: brace-list-entry, brace-entry-open, enum-entry,
+statement, arglist-cont."
   (save-excursion
     (goto-char (c-langelem-pos langelem))
     (when (looking-at "\\s(")

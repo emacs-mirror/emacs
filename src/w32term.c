@@ -3576,81 +3576,6 @@ w32_construct_mouse_wheel (struct input_event *result, W32Msg *msg,
   return Qnil;
 }
 
-static Lisp_Object
-w32_construct_drag_n_drop (struct input_event *result, W32Msg *msg,
-                           struct frame *f)
-{
-  Lisp_Object files;
-  Lisp_Object frame;
-  HDROP hdrop;
-  POINT p;
-  WORD num_files;
-  wchar_t name_w[MAX_PATH];
-#ifdef NTGUI_UNICODE
-  const int use_unicode = 1;
-#else
-  int use_unicode = w32_unicode_filenames;
-  char name_a[MAX_PATH];
-  char file[MAX_UTF8_PATH];
-#endif
-  int i;
-
-  result->kind = DRAG_N_DROP_EVENT;
-  result->code = 0;
-  result->timestamp = msg->msg.time;
-  result->modifiers = msg->dwModifiers;
-
-  hdrop = (HDROP) msg->msg.wParam;
-  DragQueryPoint (hdrop, &p);
-
-#if 0
-  p.x = LOWORD (msg->msg.lParam);
-  p.y = HIWORD (msg->msg.lParam);
-  ScreenToClient (msg->msg.hwnd, &p);
-#endif
-
-  XSETINT (result->x, p.x);
-  XSETINT (result->y, p.y);
-
-  num_files = DragQueryFile (hdrop, 0xFFFFFFFF, NULL, 0);
-  files = Qnil;
-
-  for (i = 0; i < num_files; i++)
-    {
-      if (use_unicode)
-	{
-	  eassert (DragQueryFileW (hdrop, i, NULL, 0) < MAX_PATH);
-	  /* If DragQueryFile returns zero, it failed to fetch a file
-	     name.  */
-	  if (DragQueryFileW (hdrop, i, name_w, MAX_PATH) == 0)
-	    continue;
-#ifdef NTGUI_UNICODE
-	  files = Fcons (from_unicode_buffer (name_w), files);
-#else
-	  filename_from_utf16 (name_w, file);
-	  files = Fcons (DECODE_FILE (build_unibyte_string (file)), files);
-#endif /* NTGUI_UNICODE */
-	}
-#ifndef NTGUI_UNICODE
-      else
-	{
-	  eassert (DragQueryFileA (hdrop, i, NULL, 0) < MAX_PATH);
-	  if (DragQueryFileA (hdrop, i, name_a, MAX_PATH) == 0)
-	    continue;
-	  filename_from_ansi (name_a, file);
-	  files = Fcons (DECODE_FILE (build_unibyte_string (file)), files);
-	}
-#endif
-    }
-
-  DragFinish (hdrop);
-
-  XSETFRAME (frame, f);
-  result->frame_or_window = frame;
-  result->arg = files;
-  return Qnil;
-}
-
 
 #if HAVE_W32NOTIFY
 
@@ -5682,11 +5607,26 @@ w32_read_socket (struct terminal *terminal,
 	  }
 	  break;
 
-	case WM_DROPFILES:
-	  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
+	case WM_EMACS_DROP:
+	  {
+	    int format = msg.msg.wParam;
+	    Lisp_Object drop_object =
+	      w32_process_dnd_data (format, (void *) msg.msg.lParam);
 
-	  if (f)
-	    w32_construct_drag_n_drop (&inev, &msg, f);
+	    f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
+	    if (!f || NILP (drop_object))
+	      break;
+
+	    XSETFRAME (inev.frame_or_window, f);
+	    inev.kind = DRAG_N_DROP_EVENT;
+	    inev.code = 0;
+	    inev.timestamp = msg.msg.time;
+	    inev.modifiers = msg.dwModifiers;
+	    ScreenToClient (msg.msg.hwnd, &msg.msg.pt);
+	    XSETINT (inev.x, msg.msg.pt.x);
+	    XSETINT (inev.y, msg.msg.pt.y);
+	    inev.arg = drop_object;
+	  }
 	  break;
 
 	case WM_HSCROLL:

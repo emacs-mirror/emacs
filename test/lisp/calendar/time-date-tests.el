@@ -42,8 +42,28 @@
                  '(1 2 3 4))))
 
 (ert-deftest test-date-to-time ()
-  (should (equal (format-time-string "%F %T" (date-to-time "2021-12-04"))
-                 "2021-12-04 00:00:00")))
+  (let ((date-list
+         '(("2021-12-04"                   (00 00 00 04 12 2021 nil -1 nil))
+           ("2006-05-04T03:02:01Z"         (01 02 03 04 05 2006 nil nil 0))
+           ;; Test cases from timezone-parse-date docstring
+           ("14 Apr 89 03:20"              (00 20 03 14 04 1989 nil -1 nil))
+           ("14 Apr 89 03:20:12 GMT"       (12 20 03 14 04 1989 nil nil 0))
+           ("Fri, 17 Mar 89 4:01"          (00 01 04 17 03 1989 nil -1 nil))
+           ("Fri, 17 Mar 89 4:01:33 GMT"   (33 01 04 17 03 1989 nil nil 0))
+           ("Mon Jan 16 16:12 1989"        (00 12 16 16 01 1989 nil -1 nil))
+           ("Mon Jan 16 16:12:37 GMT 1989" (37 12 16 16 01 1989 nil nil 0))
+           ("Thu, 11 Apr 16:17:12 91"      (12 17 16 11 04 1991 nil -1 nil))
+           ("Mon, 6  Jul 16:47:20 T 1992"  (20 47 16 06 07 1992 nil -1 nil))
+           ("1996-06-24 21:13:12"          (12 13 21 24 06 1996 nil -1 nil))
+           ("19960624t211312"              (12 13 21 24 06 1996 nil -1 nil))
+           ;; These are parsed incorrectly:
+           ;; "6 May 1992 1641-JST (Wednesday)"
+           ;; "22-AUG-1993 10:59:12.82"
+           ;; "1996-06-24 21:13-ZONE"
+           )))
+    (dolist (date date-list)
+      (should (equal (date-to-time (car date))
+                     (encode-time (cadr date)))))))
 
 (ert-deftest test-days-between ()
   (should (equal (days-between "2021-10-22" "2020-09-29") 388)))

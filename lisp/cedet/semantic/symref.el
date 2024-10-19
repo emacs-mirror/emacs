@@ -81,8 +81,8 @@
 The tool symbol can be `detect', or a symbol that is the name of
 a tool that can be used for symbol referencing."
   :type 'symbol
+  :local t
   :group 'semantic)
-(make-variable-buffer-local 'semantic-symref-tool)
 
 ;;; TOOL SETUP
 ;;

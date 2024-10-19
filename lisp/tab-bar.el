@@ -257,7 +257,15 @@ a list of frames to update."
   "Tab Bar mode map.")
 
 (define-minor-mode tab-bar-mode
-  "Toggle the tab bar in all graphical frames (Tab Bar mode)."
+  "Toggle the tab bar in all graphical frames (Tab Bar mode).
+
+When this mode is enabled, Emacs displays a tab bar on top of each frame.
+The tab bar is a row of tabs -- buttons that you can click
+to switch the frame between different window configurations.
+See `current-window-configuration' for more about window configurations.
+To add a button (which can then record one more window configuration),
+click on the \"+\" button.  Clicking on the \"x\" icon of a button
+deletes the button."
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable tab-bar-mode
@@ -1017,7 +1025,10 @@ It should return the formatted tab group name to display in the tab bar."
 
 (defun tab-bar-tab-group-format-default (tab i &optional current-p)
   (propertize
-   (concat (if (and tab-bar-tab-hints (not current-p)) (format "%d " i) "")
+   (concat (if (and tab-bar-tab-hints
+                    (not current-p)
+                    (not tab-bar-show-inactive-group-tabs))
+               (format "%d " i) "")
            (funcall tab-bar-tab-group-function tab))
    'face (if current-p 'tab-bar-tab-group-current 'tab-bar-tab-group-inactive)))
 
@@ -1044,7 +1055,7 @@ The argument I is the tab index, and CURRENT-P is non-nil
 when the tab is current.  Return the result as a keymap."
   (append
    `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
-   `((,(intern (format "group-%i" i))
+   `((,(intern (if current-p "current-group" (format "group-%i" i)))
       menu-item
       ,(if current-p
            (condition-case nil
@@ -1235,11 +1246,29 @@ which see.
 It's not recommended to change this value since with larger values, the
 tab bar might wrap to the second line when it shouldn't.")
 
-(defvar tab-bar-auto-width-faces
+(defconst tab-bar--auto-width-faces-default
   '( tab-bar-tab tab-bar-tab-inactive
      tab-bar-tab-ungrouped
-     tab-bar-tab-group-inactive)
+     tab-bar-tab-group-inactive))
+
+(defvar tab-bar-auto-width-faces
+  tab-bar--auto-width-faces-default
   "Resize tabs only with these faces.")
+
+(defun tab-bar-auto-width-predicate-default (item)
+  "Accepts tab ITEM and returns non-nil for tabs and tab groups."
+  (if (eq tab-bar-auto-width-faces tab-bar--auto-width-faces-default)
+      (string-match-p
+       ;; (rx bos (or "current-tab" "tab-" "group-"))
+       "\\`\\(?:current-tab\\|\\(?:group\\|tab\\)-\\)"
+       (symbol-name (nth 0 item)))
+    (memq (get-text-property 0 'face (nth 2 item))
+          tab-bar-auto-width-faces)))
+
+(defvar tab-bar-auto-width-functions '(tab-bar-auto-width-predicate-default)
+  "List of functions for `tab-bar-auto-width' to call with a tab ITEM.
+If any of these functions returns non-nil for a given tab ITEM, that
+tab's width will be auto-sized.")
 
 (defvar tab-bar--auto-width-hash nil
   "Memoization table for `tab-bar-auto-width'.")
@@ -1269,8 +1298,7 @@ be scaled for display on the current frame."
         (width 0))    ;; resize tab names to this width
     (dolist (item items)
       (when (and (eq (nth 1 item) 'menu-item) (stringp (nth 2 item)))
-        (if (memq (get-text-property 0 'face (nth 2 item))
-                  tab-bar-auto-width-faces)
+        (if (run-hook-with-args-until-success 'tab-bar-auto-width-functions item)
             (push item tabs)
           (unless (eq (nth 0 item) 'align-right)
             (setq non-tabs (concat non-tabs (nth 2 item)))))))
@@ -1497,8 +1525,8 @@ in the same window to give information about the killed buffer."
 
 (defun tab-bar-select-restore-windows (_frame windows _type)
   "Display a placeholder buffer in the window whose buffer was killed.
-A button in the window allows to restore the killed buffer,
-if it was visiting a file."
+There is a button in the window which you can press to restore the
+killed buffer, if that buffer was visiting a file."
   (dolist (quad windows)
     (when (window-live-p (nth 0 quad))
       (let* ((window (nth 0 quad))

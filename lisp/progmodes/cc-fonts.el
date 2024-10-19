@@ -1283,11 +1283,12 @@ casts and declarations are fontified.  Used on level 2 and higher."
       (c-put-char-property (1- match-pos) 'c-type
 			   'c-decl-arg-start)
       (cons 'decl nil))
-     ;; We're inside a brace list.
+     ;; We're inside a brace list/enum list.
      ((and (eq (char-before match-pos) ?{)
-	   (c-inside-bracelist-p (1- match-pos)
-				 (cdr (c-parse-state))
-				 nil))
+	   (or (c-at-enum-brace (1- match-pos))
+	       (c-inside-bracelist-p (1- match-pos)
+				     (cdr (c-parse-state))
+				     nil)))
       (c-put-char-property (1- match-pos) 'c-type
 			   'c-not-decl)
       (cons 'not-decl nil))
@@ -1388,8 +1389,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				  (memq type '(c-decl-arg-start
 					       c-decl-type-start))))))))
 		      ((and (zerop (c-backward-token-2))
-			    (looking-at c-fun-name-substitute-key)
-			    (not (eq (char-after (match-end 0)) ?_))))))))))
+			    (looking-at c-fun-name-substitute-key)))))))))
       ;; Cache the result of this test for next time around.
       (c-put-char-property (1- match-pos) 'c-type 'c-decl-arg-start)
       (cons 'decl nil))
@@ -1759,9 +1759,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; Fontification".
   (while (and (< (point) limit)
 	      (search-forward-regexp c-enum-clause-introduction-re limit t))
-    (when (save-excursion
-	    (backward-char)
-	    (c-backward-over-enum-header))
+    (when (c-at-enum-brace (1- (point)))
       (c-forward-syntactic-ws)
       (c-font-lock-declarators limit t nil t)))
   nil)
@@ -1785,9 +1783,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
       (when (and
 	     encl-pos
 	     (eq (char-after encl-pos) ?\{)
-	     (save-excursion
-	       (goto-char encl-pos)
-	       (c-backward-over-enum-header)))
+	     (c-at-enum-brace encl-pos))
 	(c-syntactic-skip-backward "^{," nil t)
 	(c-put-char-property (1- (point)) 'c-type 'c-decl-id-start)
 
@@ -2470,7 +2466,7 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 generic casts and declarations are fontified.  Used on level 2 and
 higher."
 
-  t `(,@(when (c-lang-const c-brace-list-decl-kwds)
+  t `(,@(when (c-lang-const c-enum-list-kwds)
       ;; Fontify the remaining identifiers inside an enum list when we start
       ;; inside it.
 	  '(c-font-lock-enum-tail

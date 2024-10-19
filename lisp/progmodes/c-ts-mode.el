@@ -65,7 +65,7 @@
 ;; libraries installed.
 ;;
 ;; If the tree-sitter doxygen grammar is available, then the comment
-;; blocks will be highlighted according to this grammar.
+;; blocks can be highlighted according to this grammar.
 
 ;;; Code:
 
@@ -85,6 +85,7 @@
 (declare-function treesit-node-prev-sibling "treesit.c")
 (declare-function treesit-node-first-child-for-pos "treesit.c")
 (declare-function treesit-node-next-sibling "treesit.c")
+(declare-function treesit-node-eq "treesit.c")
 (declare-function treesit-query-compile "treesit.c")
 
 ;;; Custom variables
@@ -216,6 +217,17 @@ again."
   :safe 'booleanp
   :group 'c)
 
+(defcustom c-ts-mode-enable-doxygen nil
+  "Enable doxygen syntax highlighting.
+If Non-nil, enable doxygen based font lock for comment blocks.
+This needs to be set before enabling `c-ts-mode'; if you change
+the value after enabling `c-ts-mode', toggle the mode off and on
+again."
+  :version "31.1"
+  :type 'boolean
+  :safe 'booleanp
+  :group 'c)
+
 ;;; Syntax table
 
 (defvar c-ts-mode--syntax-table
@@ -324,13 +336,17 @@ characters of the current line."
           ((or "#elif" "#else")
            (setq prev-sibling (treesit-node-prev-sibling
                                (treesit-node-parent prev-sibling) t)))
-          ;; If the start of the previous sibling isn't at the
-          ;; beginning of a line, something's probably not quite
-          ;; right, go a step further. (E.g., comment after a
-          ;; statement.)
+          ;; If the start of the previous sibling isn't at the beginning
+          ;; of a line, something's probably not quite right, go a step
+          ;; further. (E.g., comment after a statement.)  If the
+          ;; previous sibling is the first named node, then anchor to
+          ;; that, e.g. when returning an aggregate and starting the
+          ;; items on the same line as {.
           (_ (goto-char (treesit-node-start prev-sibling))
-             (if (looking-back (rx bol (* whitespace))
-                               (line-beginning-position))
+             (if (or (looking-back (rx bol (* whitespace))
+                                   (line-beginning-position))
+                     (treesit-node-eq (treesit-node-child parent 0 t)
+                                      prev-sibling))
                  (setq continue nil)
                (setq prev-sibling
                      (treesit-node-prev-sibling prev-sibling)))))))
@@ -577,7 +593,7 @@ MODE is either `c' or `cpp'."
                   "or_eq" "override" "private" "protected"
                   "public" "requires" "template" "throw"
                   "try" "typename" "using"
-                  "xor" "xor_eq"))
+                  "xor" "xor_eq" "thread_local"))
       (append '("auto") c-keywords))))
 
 (defvar c-ts-mode--type-keywords
@@ -598,6 +614,11 @@ MODE is either `c' or `cpp'."
 (defvar c-ts-mode--doxygen-comment-regex
   (rx (| "/**" "/*!" "//!" "///"))
   "A regexp that matches all doxygen comment styles.")
+
+(defun c-ts-mode--test-virtual-named-p ()
+  "Return t if the virtual keyword is a namded node, nil otherwise."
+  (ignore-errors
+    (progn (treesit-query-compile 'cpp "(virtual)" t) t)))
 
 (defun c-ts-mode--font-lock-settings (mode)
   "Tree-sitter font-lock settings.
@@ -643,8 +664,13 @@ MODE is either `c' or `cpp'."
    `([,@(c-ts-mode--keywords mode)] @font-lock-keyword-face
      ,@(when (eq mode 'cpp)
          '((auto) @font-lock-keyword-face
-           (this) @font-lock-keyword-face
-           (virtual) @font-lock-keyword-face)))
+           (this) @font-lock-keyword-face))
+     ,@(when (and (eq mode 'cpp)
+                  (c-ts-mode--test-virtual-named-p))
+         '((virtual) @font-lock-keyword-face))
+     ,@(when (and (eq mode 'cpp)
+                  (not (c-ts-mode--test-virtual-named-p)))
+         '("virtual" @font-lock-keyword-face)))
 
    :language mode
    :feature 'operator
@@ -1325,7 +1351,8 @@ in your init files."
     ;; Create an "for-each" parser, see `c-ts-mode--emacs-set-ranges'
     ;; for more.
     (when c-ts-mode-emacs-sources-support
-      (treesit-parser-create 'c nil nil 'for-each))
+      (setq-local treesit-primary-parser
+                  (treesit-parser-create 'c nil nil 'for-each)))
 
     (let ((primary-parser (treesit-parser-create 'c)))
       ;; Comments.
@@ -1354,7 +1381,7 @@ in your init files."
         (treesit-font-lock-recompute-features '(emacs-devel)))
 
       ;; Inject doxygen parser for comment.
-      (when (treesit-ready-p 'doxygen t)
+      (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
         (setq-local treesit-primary-parser primary-parser)
         (setq-local treesit-font-lock-settings
                     (append
@@ -1415,7 +1442,7 @@ recommended to enable `electric-pair-mode' with this mode."
                     #'c-ts-mode--emacs-current-defun-name))
 
       ;; Inject doxygen parser for comment.
-      (when (treesit-ready-p 'doxygen t)
+      (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
         (setq-local treesit-primary-parser primary-parser)
         (setq-local treesit-font-lock-settings
                     (append
@@ -1526,6 +1553,9 @@ the code is C or C++, and based on that chooses whether to enable
 (when (and (treesit-ready-p 'cpp)
            (treesit-ready-p 'c))
   (add-to-list 'major-mode-remap-defaults '(c-or-c++-mode . c-or-c++-ts-mode)))
+
+(when (and c-ts-mode-enable-doxygen (not (treesit-ready-p 'doxygen t)))
+  (message "Doxygen syntax highlighting can't be enabled, please install the language grammar."))
 
 (provide 'c-ts-mode)
 (provide 'c++-ts-mode)

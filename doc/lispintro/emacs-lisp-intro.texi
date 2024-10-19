@@ -125,8 +125,8 @@ Published by the:@*
 GNU Press,               @hfill @uref{https://www.fsf.org/licensing/gnu-press/}@*
 a division of the               @hfill email: @email{sales@@fsf.org}@*
 Free Software Foundation, Inc.  @hfill Tel: +1 (617) 542-5942@*
-51 Franklin Street, Fifth Floor @hfill Fax: +1 (617) 542-2652@*
-Boston, MA 02110-1301 USA
+31 Milk Street, # 960789        @hfill Fax: +1 (617) 542-2652@*
+Boston, MA 02196 USA
 @end iftex
 
 @ifnottex
@@ -136,8 +136,8 @@ Printed copies available from @uref{https://shop.fsf.org/}.  Published by:
 GNU Press,                        https://www.fsf.org/licensing/gnu-press/
 a division of the                 email: sales@@fsf.org
 Free Software Foundation, Inc.    Tel: +1 (617) 542-5942
-51 Franklin Street, Fifth Floor   Fax: +1 (617) 542-2652
-Boston, MA 02110-1301 USA
+31 Milk Street, # 960789          Fax: +1 (617) 542-2652
+Boston, MA 02196 USA
 @end example
 @end ifnottex
 

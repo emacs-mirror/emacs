@@ -738,6 +738,13 @@ Subexpression 2 must end right before the \\n.")
 
 ;;; Font-lock
 
+(defcustom dired-check-symlinks t
+  "Whether symlinks are checked for validity.
+Set it to nil for remote directories, which suffer from a slow connection."
+  :type 'boolean
+  :group 'dired
+  :version "31.1")
+
 (defvar dired-font-lock-keywords
   (list
    ;;
@@ -815,11 +822,13 @@ Subexpression 2 must end right before the \\n.")
    ;; Broken Symbolic link.
    (list dired-re-sym
          (list (lambda (end)
-                 (let* ((file (dired-file-name-at-point))
-                        (truename (ignore-errors (file-truename file))))
-                   ;; either not existent target or circular link
-                   (and (not (and truename (file-exists-p truename)))
-                        (search-forward-regexp "\\(.+\\) \\(->\\) ?\\(.+\\)" end t))))
+                 (when (connection-local-value dired-check-symlinks)
+                   (let* ((file (dired-file-name-at-point))
+                          (truename (ignore-errors (file-truename file))))
+                     ;; either not existent target or circular link
+                     (and (not (and truename (file-exists-p truename)))
+                          (search-forward-regexp
+                           "\\(.+\\) \\(->\\) ?\\(.+\\)" end t)))))
                '(dired-move-to-filename)
                nil
                '(1 'dired-broken-symlink)
@@ -829,24 +838,29 @@ Subexpression 2 must end right before the \\n.")
    ;; Symbolic link to a directory.
    (list dired-re-sym
          (list (lambda (end)
-                 (when-let* ((file (dired-file-name-at-point))
-                             (truename (ignore-errors (file-truename file))))
-                   (and (file-directory-p truename)
-		        (search-forward-regexp "\\(.+-> ?\\)\\(.+\\)" end t))))
+                 (when (connection-local-value dired-check-symlinks)
+                   (when-let* ((file (dired-file-name-at-point))
+                               (truename (ignore-errors (file-truename file))))
+                     (and (file-directory-p truename)
+		          (search-forward-regexp
+                           "\\(.+-> ?\\)\\(.+\\)" end t)))))
                '(dired-move-to-filename)
                nil
                '(1 dired-symlink-face)
                '(2 `(face ,dired-directory-face dired-symlink-filename t))))
    ;;
-   ;; Symbolic link to a non-directory.
+   ;; Symbolic link to a non-directory.  Or no check at all.
    (list dired-re-sym
          (list (lambda (end)
-                 (when-let ((file (dired-file-name-at-point)))
-                   (let ((truename (ignore-errors (file-truename file))))
-                     (and (or (not truename)
-		              (not (file-directory-p truename)))
-		          (search-forward-regexp "\\(.+-> ?\\)\\(.+\\)"
-                                                 end t)))))
+                 (if (not (connection-local-value dired-check-symlinks))
+                     (search-forward-regexp
+                      "\\(.+-> ?\\)\\(.+\\)" end t)
+                   (when-let ((file (dired-file-name-at-point)))
+                     (let ((truename (ignore-errors (file-truename file))))
+                       (and (or (not truename)
+		                (not (file-directory-p truename)))
+		            (search-forward-regexp
+                             "\\(.+-> ?\\)\\(.+\\)" end t))))))
                '(dired-move-to-filename)
                nil
                '(1 dired-symlink-face)

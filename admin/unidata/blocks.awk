@@ -57,6 +57,7 @@ BEGIN {
     alias["block elements"] = "symbol"
     alias["miscellaneous symbols"] = "symbol"
     alias["symbols for legacy computing"] = "symbol"
+    alias["symbols for legacy computing supplement"] = "symbol"
     alias["cjk strokes"] = "cjk-misc"
     alias["cjk symbols and punctuation"] = "cjk-misc"
     alias["halfwidth and fullwidth forms"] = "cjk-misc"
@@ -145,6 +146,19 @@ FILENAME ~ "Blocks.txt" && /^[0-9A-F]/ {
     start[i] = fix_start[s] ? fix_start[s] : s
     end[i] = fix_end[e] ? fix_end[e]: e
     name[i] = $0
+
+    # Hard-coded splits that must be processed before name2alias and
+    # before combining same-named adjacent ranges.
+    if (start[i] == "3300") # See Scripts.txt
+    {
+	end[i] = "3357"
+	name[i] = "Katakana"
+	alt[i] = "kana"
+	i++
+	start[i] = "3358"
+	end[i] = "33FF"
+	name[i] = "CJK Compatibility"
+    }
 
     alt[i] = name2alias(name[i])
 
@@ -264,6 +278,10 @@ END {
     print "    (or (memq (nth 2 elt) script-list)"
     print "	(setq script-list (cons (nth 2 elt) script-list))))"
     print "  (set-char-table-extra-slot char-script-table 0 (nreverse script-list)))"
-    print "\n"
-    print "(provide 'charscript)"
+    print "\n(map-char-table"
+    print " (lambda (ch script)"
+    print "   (and (eq script 'symbol)"
+    print "	(modify-category-entry ch ?5)))"
+    print " char-script-table)"
+    print "\n(provide 'charscript)"
 }

@@ -187,6 +187,14 @@ for use on `completion-at-point-function'."
   (pcomplete-here '("cancel"))
   (pcomplete-opt "a"))
 
+(defun pcomplete/erc-mode/BANLIST ()
+  (pcomplete-opt "f"))
+(defalias 'pcomplete/erc-mode/BL #'pcomplete/erc-mode/BANLIST)
+
+(defun pcomplete/erc-mode/MASSUNBAN ()
+  (pcomplete-opt "f"))
+(defalias 'pcomplete/erc-mode/MUB #'pcomplete/erc-mode/MASSUNBAN)
+
 ;;; Functions that provide possible completions.
 
 (defun pcomplete-erc-commands ()

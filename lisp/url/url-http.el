@@ -74,7 +74,9 @@
 
 (defvar url-http-open-connections (make-hash-table :test 'equal
 						   :size 17)
-  "A hash table of all open network connections.")
+  "A hash table of all open network connections.
+If Emacs is compiled with thread support, the key is a list `(host port
+thread)'.  Otherwise, it is a cons cell `(host . port)'.")
 
 (defvar url-http-version "1.1"
   "What version of HTTP we advertise, as a string.
@@ -153,27 +155,46 @@ request.")
 (defsubst url-http-debug (&rest args)
   (apply #'url-debug 'http args))
 
+(declare-function current-thread "thread.c" ())
+(declare-function thread-live-p "thread.c" (thread))
+
 (defun url-http-mark-connection-as-busy (host port proc)
-  (url-http-debug "Marking connection as busy: %s:%d %S" host port proc)
-  (set-process-query-on-exit-flag proc t)
-  (puthash (cons host port)
-	      (delq proc (gethash (cons host port) url-http-open-connections))
-	      url-http-open-connections)
-  proc)
+  (let ((key (if main-thread
+                 (list host port (current-thread))
+               (cons host port))))
+    (url-http-debug "Marking connection as busy: %s:%d %S" host port proc)
+    (set-process-query-on-exit-flag proc t)
+    (puthash key
+             (delq proc (gethash key url-http-open-connections))
+	     url-http-open-connections)
+    proc))
 
 (defun url-http-mark-connection-as-free (host port proc)
-  (url-http-debug "Marking connection as free: %s:%d %S" host port proc)
-  (when (memq (process-status proc) '(open run connect))
-    (set-process-buffer proc nil)
-    (set-process-sentinel proc 'url-http-idle-sentinel)
-    (set-process-query-on-exit-flag proc nil)
-    (puthash (cons host port)
-	     (cons proc (gethash (cons host port) url-http-open-connections))
-	     url-http-open-connections))
-  nil)
+  (let ((key (if main-thread
+                 (list host port (current-thread))
+               (cons host port))))
+    (url-http-debug "Marking connection as free: %s:%d %S" host port proc)
+    (when (memq (process-status proc) '(open run connect))
+      (set-process-buffer proc nil)
+      (set-process-sentinel proc 'url-http-idle-sentinel)
+      (set-process-query-on-exit-flag proc nil)
+      (puthash key
+	       (cons proc (gethash key url-http-open-connections))
+	       url-http-open-connections))
+    nil))
 
 (defun url-http-find-free-connection (host port &optional gateway-method)
-  (let ((conns (gethash (cons host port) url-http-open-connections))
+  (when main-thread
+    (maphash
+     (lambda (key _val)
+       (unless (thread-live-p (caddr key))
+         (remhash key url-http-open-connections)))
+     url-http-open-connections))
+  (let ((conns (gethash
+                (if main-thread
+                    (list host port (current-thread))
+                  (cons host port))
+                url-http-open-connections))
 	(connection nil))
     (while (and conns (not connection))
       (if (not (memq (process-status (car conns)) '(run open connect)))
@@ -182,7 +203,8 @@ request.")
 			    host port (car conns))
 	    (url-http-idle-sentinel (car conns) nil))
 	(setq connection (car conns))
-	(url-http-debug "Found existing connection: %s:%d %S" host port connection))
+	(url-http-debug
+         "Found existing connection: %s:%d %S" host port connection))
       (pop conns))
     (if connection
 	(url-http-debug "Reusing existing connection: %s:%d" host port)
@@ -232,7 +254,9 @@ request.")
                  " ")))
 
 (defun url-http--get-referer (url)
-  (url-http-debug "getting referer from buffer: buffer:%S target-url:%S lastloc:%S" (current-buffer) url url-current-lastloc)
+  (url-http-debug
+   "getting referer from buffer: buffer:%S target-url:%S lastloc:%S"
+   (current-buffer) url url-current-lastloc)
   (when url-current-lastloc
     (if (not (url-p url-current-lastloc))
         (setq url-current-lastloc (url-generic-parse-url url-current-lastloc)))
@@ -273,7 +297,8 @@ The string is based on `url-privacy-level' and `url-user-agent'."
                (cond
                 ((functionp url-user-agent) (funcall url-user-agent))
                 ((stringp url-user-agent) url-user-agent)
-                ((eq url-user-agent 'default) (url-http--user-agent-default-string))))))
+                ((eq url-user-agent 'default)
+                 (url-http--user-agent-default-string))))))
     (if ua-string (format "User-Agent: %s\r\n" (string-trim ua-string)) "")))
 
 (defun url-http-create-request ()
@@ -297,7 +322,8 @@ Use `url-http-referer' as the Referer-header (subject to `url-privacy-level')."
 		 (url-get-authentication (or
 					  (and (boundp 'proxy-info)
 					       proxy-info)
-					  url-http-target-url) nil 'any nil)))
+					  url-http-target-url)
+                                         nil 'any nil)))
          (ref-url (url-http--encode-string url-http-referer)))
     (if (equal "" real-fname)
 	(setq real-fname "/"))
@@ -343,8 +369,9 @@ Use `url-http-referer' as the Referer-header (subject to `url-privacy-level')."
              ;; (maybe) Try to keep the connection open
              "Connection: " (if (or using-proxy
                                     (not url-http-attempt-keepalives))
-                                "close" "keep-alive") "\r\n"
-                                ;; HTTP extensions we support
+                                "close" "keep-alive")
+             "\r\n"
+             ;; HTTP extensions we support
              (if url-extensions-header
                  (format
                   "Extension: %s\r\n" url-extensions-header))
@@ -511,7 +538,8 @@ Return the number of characters removed."
 (defun url-http-parse-response ()
   "Parse just the response code."
   (if (not url-http-end-of-headers)
-      (error "Trying to parse HTTP response code in odd buffer: %s" (buffer-name)))
+      (error
+       "Trying to parse HTTP response code in odd buffer: %s" (buffer-name)))
   (url-http-debug "url-http-parse-response called in (%s)" (buffer-name))
   (goto-char (point-min))
   (skip-chars-forward " \t\n")		; Skip any blank crap
@@ -1273,7 +1301,8 @@ the end of the document."
 	      (url-http-activate-callback)))
 	   ((> nd url-http-end-of-headers)
 	    ;; Have some leftover data
-	    (url-http-debug "Calling initial content-length for extra data at end of headers")
+	    (url-http-debug
+             "Calling initial content-length for extra data at end of headers")
 	    (url-http-content-length-after-change-function
 	     (marker-position url-http-end-of-headers)
 	     nd
@@ -1437,15 +1466,17 @@ The return value of this function is the retrieval buffer."
        ((= url-http-response-status 200)
         (if (gnutls-available-p)
             (condition-case e
-                (let ((tls-connection (gnutls-negotiate
-                                       :process proc
-                                       :hostname (puny-encode-domain (url-host url-current-object))
-                                       :verify-error nil)))
+                (let ((tls-connection
+                       (gnutls-negotiate
+                        :process proc
+                        :hostname (puny-encode-domain (url-host url-current-object))
+                        :verify-error nil)))
                   ;; check certificate validity
                   (setq tls-connection
-                        (nsm-verify-connection tls-connection
-                                               (puny-encode-domain (url-host url-current-object))
-                                               (url-port url-current-object)))
+                        (nsm-verify-connection
+                         tls-connection
+                         (puny-encode-domain (url-host url-current-object))
+                         (url-port url-current-object)))
                   (with-current-buffer process-buffer (erase-buffer))
                   (set-process-buffer tls-connection process-buffer)
                   (setq url-http-after-change-function
@@ -1484,9 +1515,11 @@ The return value of this function is the retrieval buffer."
              (message "HTTP error: %s" error)))))
        (t
 	(setf (car url-callback-arguments)
-	      (nconc (list :error (list 'error 'connection-failed why
-					:host (url-host (or url-http-proxy url-current-object))
-					:service (url-port (or url-http-proxy url-current-object))))
+	      (nconc (list
+                      :error
+                      (list 'error 'connection-failed why
+			    :host (url-host (or url-http-proxy url-current-object))
+			    :service (url-port (or url-http-proxy url-current-object))))
 		     (car url-callback-arguments)))
 	(url-http-activate-callback))))))
 

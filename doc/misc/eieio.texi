@@ -232,12 +232,6 @@ and you cannot define your own.  The @code{:metaclass} tag in
 should return instances of the metaclass, behave differently in
 @eieio{} in that they return symbols or plain structures instead.
 
-@item EQL specialization
-EIEIO does not support it.
-
-@item @code{:around} method tag
-This CLOS method tag is non-functional.
-
 @item :default-initargs in @code{defclass}
 Each slot can have an @code{:initform} tag, so this is not really necessary.
 
@@ -381,7 +375,7 @@ name, then the superclass showing up in the list first defines the
 slot attributes.
 
 Inheritance in @eieio{} is more than just combining different slots.
-It is also important in method invocation.  @ref{Methods}.
+It is also important in method invocation.  @ref{Writing Methods}.
 
 If a method is called on an instance of @code{my-subclass}, and that
 method only has an implementation on @code{my-baseclass}, or perhaps
@@ -810,158 +804,19 @@ variable name of the same name as the slot.
 @node Writing Methods
 @chapter Writing Methods
 
-Writing a method in @eieio{} is similar to writing a function.  The
-differences are that there are some extra options and there can be
+Writing a method in @eieio{} is similar to writing a function.
+The differences are that there are some extra options and there can be
 multiple definitions under the same function symbol.
 
-Where a method defines an implementation for a particular data type, a
-@dfn{generic method} accepts any argument, but contains no code.  It
-is used to provide the dispatching to the defined methods.  A generic
-method has no body, and is merely a symbol upon which methods are
-attached.  It also provides the base documentation for what methods
-with that name do.
+You do it using Emacs Lisp's built-in support for CLOS-style generic
+functions via the @code{cl-defgeneric} and @code{cl-defmethod} macros
+(@pxref{Generic Functions,,,elisp,GNU Emacs Lisp Reference Manual}).
 
-@menu
-* Generics::
-* Methods::
-* Static Methods::
-@end menu
-
-@node Generics
-@section Generics
-
-Each @eieio{} method has one corresponding generic.  This generic
-provides a function binding and the base documentation for the method
-symbol (@pxref{Symbol Components,,,elisp,GNU Emacs Lisp Reference
-Manual}).
-
-@defmac cl-defgeneric method arglist [doc-string]
-This macro turns the (unquoted) symbol @var{method} into a function.
-@var{arglist} is the default list of arguments to use (not implemented
-yet).  @var{doc-string} is the documentation used for this symbol.
-
-A generic function acts as a placeholder for methods.  There is no
-need to call @code{cl-defgeneric} yourself, as @code{cl-defmethod} will call
-it if necessary.  Currently the argument list is unused.
-
-@code{cl-defgeneric} signals an error if you attempt to turn an existing
-Emacs Lisp function into a generic function.
-
-You can also create a generic method with @code{cl-defmethod}
-(@pxref{Methods}).  When a method is created and there is no generic
-method in place with that name, then a new generic will be created,
-and the new method will use it.
-@end defmac
-
-@node Methods
-@section Methods
-
-A method is a function that is executed if the arguments passed
-to it matches the method's specializers.  Different @eieio{} classes may
-share the same method names.
-
-Methods are created with the @code{cl-defmethod} macro, which is similar
-to @code{defun}.
-
-@defmac cl-defmethod method [:before | :around | :after ] arglist [doc-string] forms
-
-@var{method} is the name of the function to create.
-
-@code{:before}, @code{:around}, and @code{:after} specify execution order
-(i.e., when this form is called).  If none of these symbols are present, the
-method is said to be a @emph{primary}.
-
-@var{arglist} is the list of arguments to this method.  The mandatory arguments
-in this list may have a type specializer (see the example below) which means
-that the method will only apply when those arguments match the given type
-specializer.  An argument with no type specializer means that the method
-applies regardless of its value.
-
-@var{doc-string} is the documentation attached to the implementation.
-All method doc-strings are incorporated into the generic method's
-function documentation.
-
-@var{forms} is the body of the function.
-
-@end defmac
-
-@noindent
-In the following example, we create a method @code{mymethod} for the
-@code{classname} class:
-
-@example
-(cl-defmethod mymethod ((obj classname) secondarg)
-  "Doc string" )
-@end example
-
-@noindent
-This method only executes if the @var{obj} argument passed to it is an
-@eieio{} object of class @code{classname}.
-
-A method with no type specializer is a @dfn{default method}.  If a given
-class has no implementation, then the default method is called when
-that method is used on a given object of that class.
-
-Only one method per combination of specializers and qualifiers (@code{:before},
-@code{:around}, or @code{:after}) is kept.  If two @code{cl-defmethod}s appear
-with the same specializers and the same qualifiers, then the second
-implementation replaces the first.
-
-When a method is called on an object, but there is no method specified
-for that object, but there is a method specified for object's parent
-class, the parent class's method is called.  If there is a method
-defined for both, only the child's method is called.  A child method
-may call a parent's method using @code{cl-call-next-method}, described
-below.
-
-If multiple methods and default methods are defined for the same
-method and class, they are executed in this order:
-
-@enumerate
-@item :around methods
-The most specific @code{:around} method is called first, which may invoke the
-less specific ones via @code{cl-call-next-method}.  If it doesn't invoke
-@code{cl-call-next-method}, then no other methods will be executed.  When there
-are no more @code{:around} methods to call, falls through to run the other
-(non-@code{:around}) methods.
-@item :before methods
-Called in sequence from most specific to least specific.
-@item primary methods
-The most specific method is called, which may invoke the less specific
-ones via @code{cl-call-next-method}.
-@item :after methods
-Called in sequence from least specific to most specific.
-@end enumerate
-
-If no methods exist, Emacs signals a @code{cl-no-applicable-method} error.
-@xref{Signals}.  If methods exist but none of them are primary, Emacs
-signals a @code{cl-no-primary-method} error.  @xref{Signals}.
-
-@defun cl-call-next-method &rest replacement-args
-@anchor{cl-call-next-method}
-
-This function calls the superclass method from a subclass method.
-This is the ``next method'' specified in the current method list.
-
-If @var{replacement-args} is non-@code{nil}, then use them instead of the
-arguments originally provided to the method.
-
-Can only be used from within the lexical body of a primary or around method.
-@end defun
-
-@defun cl-next-method-p
-@anchor{cl-next-method-p}
-Non-@code{nil} if there is a next method.
-
-Can only be used from within the lexical body of a primary or around method.
-@end defun
-
-@node Static Methods
-@section Static Methods
-
-Static methods do not depend on an object instance, but instead
-operate on a class.  You can create a static method by using
-the @code{subclass} specializer with @code{cl-defmethod}:
+EIEIO provides one extension to @code{cl-defmethod} to allow methods to
+dispatch on a class argument: so-called ``static'' methods do not depend
+on an object instance, but instead operate on a class.  You can create
+a static method by using the @code{subclass} specializer with
+@code{cl-defmethod}:
 
 @example
 (cl-defmethod make-instance ((class (subclass mychild)) &rest args)

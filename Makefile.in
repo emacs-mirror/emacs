@@ -381,7 +381,7 @@ bootstrap-all:
 
 .PHONY: bootstrap-all actual-all advice-on-failure sanity-check
 
-actual-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp
+actual-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp blessmail
 
 # ADVICE-ON-FAILURE-BEGIN:all
 # You could try to:
@@ -602,7 +602,7 @@ $(srcdir)/configure: $(srcdir)/configure.ac $(srcdir)/m4/*.m4
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
 
-install: actual-all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR) blessmail install-eln install-gsettings-schemas
+install: actual-all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR) install-eln install-gsettings-schemas
 	@true
 
 ## Ensure that $subdir contains a subdirs.el file.
@@ -1309,7 +1309,7 @@ emacslog = build-aux/gitlog-to-emacslog
 # The ChangeLog history files are called ChangeLog.1, ChangeLog.2, ...,
 # ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX).  $(CHANGELOG_N) stands for
 # the newest (highest-numbered) ChangeLog history file.
-CHANGELOG_HISTORY_INDEX_MAX = 3
+CHANGELOG_HISTORY_INDEX_MAX = 4
 CHANGELOG_N = ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX)
 
 # Convert git commit log to ChangeLog file.  make-dist uses this.
@@ -1319,7 +1319,7 @@ ChangeLog:
 	  ./$(emacslog) -o $(CHANGELOG) -n $(CHANGELOG_HISTORY_INDEX_MAX)
 
 # Check that we are in a good state for changing history.
-PREFERRED_BRANCH = emacs-28
+PREFERRED_BRANCH = emacs-30
 preferred-branch-is-current:
 	git branch | grep -q '^\* $(PREFERRED_BRANCH)$$'
 unchanged-history-files:

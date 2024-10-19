@@ -572,7 +572,9 @@
     (treesit-range-rules
      :embed 'heex
      :host 'elixir
-     '((sigil (sigil_name) @name (:match "^[HF]$" @name) (quoted_content) @heex)))))
+     '((sigil (sigil_name) @_name
+              (:match "^[HF]$" @_name)
+              (quoted_content) @heex)))))
 
 (defvar heex-ts--sexp-regexp)
 (defvar heex-ts--indent-rules)
@@ -699,7 +701,8 @@ Return nil if NODE is not a defun node or doesn't have a name."
       (require 'heex-ts-mode)
       (treesit-parser-create 'heex))
 
-    (treesit-parser-create 'elixir)
+    (setq-local treesit-primary-parser
+                (treesit-parser-create 'elixir))
 
     (setq-local treesit-language-at-point-function
                 'elixir-ts--treesit-language-at-point)
@@ -730,9 +733,6 @@ Return nil if NODE is not a defun node or doesn't have a name."
     ;; Embedded Heex.
     (when (treesit-ready-p 'heex)
       (setq-local treesit-range-settings elixir-ts--treesit-range-rules)
-
-      (setq-local treesit-simple-indent-rules
-                  (append treesit-simple-indent-rules heex-ts--indent-rules))
 
       (setq-local treesit-font-lock-settings
                   (append treesit-font-lock-settings

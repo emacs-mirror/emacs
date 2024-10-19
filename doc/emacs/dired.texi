@@ -816,9 +816,9 @@ Like the other commands in this section, this command operates on the
 @findex dired-do-open
 @kindex E @r{(Dired)}
 @item E
-``Open'' the specified files using an external program.  The program is
-selected according to the system conventions, as determined by the
-variable @code{shell-command-guess-open}.
+``Open'' the specified files using an external program (@code{dired-do-open}).
+The program is selected according to the system conventions, as
+determined by the variable @code{shell-command-guess-open}.
 
 @findex dired-do-rename
 @kindex R @r{(Dired)}
@@ -1816,6 +1816,16 @@ the directory name, and will include in that line the space used by
 the files in the current directory as well as the available disk
 space.  If you set this to @code{nil}, the available disk space
 information will not be displayed at all.
+
+@vindex dired-check-symlinks
+  Dired fontifies the items in the Dired buffer.  If the
+@code{default-directory} of that buffer is remote, this might be
+expensive for symbolic links, because their @code{file-truename} needs
+to be accessed.  To avoid slowdown in Dired due to this, set user option
+@code{dired-check-symlinks} to @code{nil} for remote directories which
+suffer from a slow connection.  It can be declared as connection-local
+variable to match how a remote system is connectable (@pxref{Connection
+Variables}).
 
 @kindex + @r{(Dired)}
 @findex dired-create-directory

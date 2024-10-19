@@ -132,11 +132,19 @@ which corresponds to a minimum contrast in relative luminance of
       (bg-magenta-nuanced "#2f0c3f")
       (bg-cyan-nuanced    "#042837")
 
-;;; Uncommon accent backgrounds
+;;; Uncommon accent background and foreground pairs
 
-      (bg-ochre    "#442c2f")
+      (bg-clay     "#49191a")
+      (fg-clay     "#f1b090")
+
+      (bg-ochre    "#462f20")
+      (fg-ochre    "#e0d09c")
+
       (bg-lavender "#38325c")
-      (bg-sage     "#0f3d30")
+      (fg-lavender "#dfc0f0")
+
+      (bg-sage     "#143e32")
+      (fg-sage     "#c3e7d4")
 
 ;;; Graphs
 
@@ -246,19 +254,24 @@ which corresponds to a minimum contrast in relative luminance of
 
 ;;;; Code mappings
 
+      (bracket fg-main)
       (builtin magenta-warmer)
       (comment fg-dim)
       (constant blue-cooler)
-      (docstring cyan-faint)
+      (delimiter fg-main)
       (docmarkup magenta-faint)
+      (docstring cyan-faint)
       (fnname magenta)
       (keyword magenta-cooler)
+      (number fg-main)
+      (operator fg-main)
       (preprocessor red-cooler)
+      (punctuation fg-main)
+      (rx-backslash magenta)
+      (rx-construct green-cooler)
       (string blue-warmer)
       (type cyan-cooler)
       (variable cyan)
-      (rx-construct green-cooler)
-      (rx-backslash magenta)
 
 ;;;; Accent mappings
 
@@ -480,6 +493,19 @@ as a symbol and the latter as a string.
 Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
 exists in the palette and is associated with a HEX-VALUE.")
+
+  (defcustom modus-vivendi-palette-user nil
+    "Like the `modus-vivendi--palette' for user-defined entries.
+This is meant to extend the palette with custom named colors and/or
+semantic palette mappings.  Those may then be used in combination with
+palette overrides (also see `modus-themes-common-palette-overrides' and
+`modus-vivendi--palette-overrides')."
+    :group 'modus-themes
+    :package-version '(modus-themes . "4.5.0")
+    :type '(repeat (list symbol (choice symbol string)))
+    :set #'modus-themes--set-option
+    :initialize #'custom-initialize-default
+    :link '(info-link "(modus-themes) Option to extend the palette for use with overrides"))
 
   (defcustom modus-vivendi-palette-overrides nil
     "Overrides for `modus-vivendi-palette'.

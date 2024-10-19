@@ -411,8 +411,9 @@ Kill current input line using @code{erc-bol} followed by @code{kill-line}.
 One way to add functionality to ERC is to customize which of its many
 modules are loaded.
 
-There is a spiffy customize interface, which may be reached by typing
-@kbd{M-x customize-option @key{RET} erc-modules @key{RET}}.  When
+You can do this by typing @kbd{C-h v erc-modules @key{RET}} and clicking
+@samp{customize} near the bottom of the resulting help buffer, where it
+says ``You can @emph{customize} this variable.''  When
 removing a module outside of Customize, you may wish to ensure it's
 disabled by invoking its associated minor-mode toggle with a
 nonpositive prefix argument, for example, @kbd{C-u - M-x
@@ -867,8 +868,8 @@ ERC's auth-source integration}.
 @defun erc-compute-server &optional server
 Return an IRC server name.
 
-This tries a number of increasingly more default methods until a non-@code{nil}
-value is found.
+This tries a progressively greater number of default methods until a
+non-@code{nil} value is found.
 
 @itemize @bullet
 @item @var{server} (the argument passed to this function)
@@ -888,8 +889,8 @@ IRC server to use if one is not provided.
 @defun erc-compute-port &optional port
 Return a port for an IRC server.
 
-This tries a number of increasingly more default methods until a non-@code{nil}
-value is found.
+This tries a progressively greater number of default methods until a
+non-@code{nil} value is found.
 
 @itemize @bullet
 @item @var{port} (the argument passed to this function)
@@ -910,7 +911,7 @@ This can be either a string or a number.
 @defun erc-compute-nick &optional nick
 Return user's IRC nick.
 
-This tries a number of increasingly more default methods until a
+This tries a progressively greater number of default methods until a
 non-@code{nil} value is found.
 
 @itemize
@@ -1010,7 +1011,7 @@ auth-source facility to retrieve a server password, although hitting
 @defun erc-compute-full-name &optional full-name
 Return user's full name.
 
-This tries a number of increasingly more default methods until a
+This tries a progressively greater number of default methods until a
 non-@code{nil} value is found.
 
 @itemize @bullet
@@ -1372,6 +1373,13 @@ settings (@pxref{Sample configuration via Customize}).
 
   :bind (:map erc-fill-wrap-mode-map ("C-c =" . #'erc-fill-wrap-nudge)))
 
+(use-package erc-match
+  ;; Use the same face for my own nick wherever it appears.
+  :custom-face
+  (erc-current-nick-face ((t ( :weight unspecified
+                               :foreground unspecified
+                               :inherit erc-my-nick-face)))))
+
 (use-package erc-track
   ;; Prevent JOINs and PARTs from lighting up the mode-line.
   :config (setopt erc-track-faces-priority-list
@@ -1551,6 +1559,18 @@ function @code{erc-fill-wrap-nudge} in the minor-mode keymap
 @code{erc-fill-wrap-mode-map} (hint: the minor mode's hook is called
 @code{erc-fill-wrap-mode-hook}, and it's not a member of any
 customization group).
+
+Try customizing another face, this time with inheritance.  ERC's match
+module highlights your nick whenever someone mentions you in
+conversation.  However, some users don't like that this face differs
+from the one in your own messages.  Let's change that.  Type @kbd{M-x
+customize-group @key{RET} erc-faces @key{RET}}.  Either search for the
+word ``Current'' or type @kbd{M-x customize-face @key{RET}
+erc-current-nick-face @key{RET}}.  Untick @samp{Weight} and
+@samp{Foreground}, then click the ``Show All Attributes'' button below
+them.  Navigate down to the @samp{Inherit} box, tick it, hit
+@samp{[INS]}, and type @code{erc-my-nick-face} in the @samp{Face} field.
+Hit @kbd{C-x C-s} to save.
 
 ERC users tend to be picky about the mode line.  If you find that
 you'd rather not see changes when people join and leave channels,

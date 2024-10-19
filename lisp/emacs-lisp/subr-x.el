@@ -336,30 +336,84 @@ This construct can only be used with lexical binding."
       (cl-labels ((,name ,fargs . ,body)) #',name)
       . ,aargs)))
 
+(defvar work-buffer--list nil)
+(defvar work-buffer-limit 10
+  "Maximum number of reusable work buffers.
+When this limit is exceeded, newly allocated work buffers are
+automatically killed, which means that in a such case
+`with-work-buffer' becomes equivalent to `with-temp-buffer'.")
+
+(defsubst work-buffer--get ()
+  "Get a work buffer."
+  (let ((buffer (pop work-buffer--list)))
+    (if (buffer-live-p buffer)
+        buffer
+      (generate-new-buffer " *work*" t))))
+
+(defun work-buffer--release (buffer)
+  "Release work BUFFER."
+  (if (buffer-live-p buffer)
+      (with-current-buffer buffer
+        ;; Flush BUFFER before making it available again, i.e. clear
+        ;; its contents, remove all overlays and buffer-local
+        ;; variables.  Is it enough to safely reuse the buffer?
+        (let ((inhibit-read-only t))
+          (erase-buffer))
+        (delete-all-overlays)
+        (let (change-major-mode-hook)
+          (kill-all-local-variables t))
+        ;; Make the buffer available again.
+        (push buffer work-buffer--list)))
+  ;; If the maximum number of reusable work buffers is exceeded, kill
+  ;; work buffer in excess, taking into account that the limit could
+  ;; have been let-bound to temporarily increase its value.
+  (when (> (length work-buffer--list) work-buffer-limit)
+    (mapc #'kill-buffer (nthcdr work-buffer-limit work-buffer--list))
+    (setq work-buffer--list (ntake work-buffer-limit work-buffer--list))))
+
+;;;###autoload
+(defmacro with-work-buffer (&rest body)
+  "Create a work buffer, and evaluate BODY there like `progn'.
+Like `with-temp-buffer', but reuse an already created temporary
+buffer when possible, instead of creating a new one on each call."
+  (declare (indent 0) (debug t))
+  (let ((work-buffer (make-symbol "work-buffer")))
+    `(let ((,work-buffer (work-buffer--get)))
+       (with-current-buffer ,work-buffer
+         (unwind-protect
+             (progn ,@body)
+           (work-buffer--release ,work-buffer))))))
+
 ;;;###autoload
 (defun string-pixel-width (string &optional buffer)
   "Return the width of STRING in pixels.
 If BUFFER is non-nil, use the face remappings from that buffer when
-determining the width."
+determining the width.
+If you call this function to measure pixel width of a string
+with embedded newlines, it returns the width of the widest
+substring that does not include newlines."
   (declare (important-return-value t))
   (if (zerop (length string))
       0
     ;; Keeping a work buffer around is more efficient than creating a
     ;; new temporary buffer.
-    (with-current-buffer (get-buffer-create " *string-pixel-width*")
-      ;; If `display-line-numbers' is enabled in internal buffers
-      ;; (e.g. globally), it breaks width calculation (bug#59311)
-      (setq-local display-line-numbers nil)
-      (delete-region (point-min) (point-max))
-      ;; Disable line-prefix and wrap-prefix, for the same reason.
-      (setq line-prefix nil
-	    wrap-prefix nil)
+    (with-work-buffer
+      ;; If `display-line-numbers' is enabled in internal
+      ;; buffers (e.g. globally), it breaks width calculation
+      ;; (bug#59311).  Disable `line-prefix' and `wrap-prefix',
+      ;; for the same reason.
+      (setq display-line-numbers nil
+            line-prefix nil wrap-prefix nil)
       (if buffer
           (setq-local face-remapping-alist
                       (with-current-buffer buffer
                         face-remapping-alist))
         (kill-local-variable 'face-remapping-alist))
-      (insert (propertize string 'line-prefix nil 'wrap-prefix nil))
+      (insert string)
+      ;; Prefer `remove-text-properties' to `propertize' to avoid
+      ;; creating a new string on each call.
+      (remove-text-properties
+       (point-min) (point-max) '(line-prefix nil wrap-prefix nil))
       (car (buffer-text-pixel-size nil nil t)))))
 
 ;;;###autoload

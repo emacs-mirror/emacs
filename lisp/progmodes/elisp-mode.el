@@ -784,13 +784,18 @@ functions are annotated with \"<f>\" via the
                         (list t (elisp--completion-local-symbols)
                               :predicate (lambda (sym)
                                            (get sym 'error-conditions))))
-                       ((and (or ?\( 'let 'let*)
+                       ((and (or ?\( 'let 'let* 'cond 'cond* 'bind*)
                              (guard (save-excursion
                                       (goto-char (1- beg))
                                       (when (eq parent ?\()
                                         (up-list -1))
                                       (forward-symbol -1)
-                                      (looking-at "\\_<let\\*?\\_>"))))
+                                      (or
+                                       (looking-at
+                                        "\\_<\\(let\\*?\\|bind\\*\\)\\_>")
+                                       (and (not (eq parent ?\())
+                                            (looking-at
+                                             "\\_<cond\\*?\\_>"))))))
                         (list t (elisp--completion-local-symbols)
                               :predicate #'elisp--shorthand-aware-boundp
                               :company-kind (lambda (_) 'variable)
@@ -1044,7 +1049,9 @@ namespace but with lower confidence."
   (let ((sym (intern-soft identifier)))
     (when sym
       (let* ((pos (get-text-property 0 'pos identifier))
-             (namespace (if pos
+             (namespace (if (and pos
+                                 ;; Reusing it in Help Mode.
+                                 (derived-mode-p 'emacs-lisp-mode))
                             (elisp--xref-infer-namespace pos)
                           'any))
              (defs (elisp--xref-find-definitions sym)))

@@ -110,8 +110,11 @@ admin/notes/bug-triage.
 
 Any change that matters to end-users should have an entry in etc/NEWS.
 Try to start each NEWS entry with a sentence that summarizes the entry
-and takes just one line -- this will allow reading NEWS in Outline
-mode after hiding the body of each entry.
+and takes just one line -- this will allow reading NEWS in Outline mode
+after hiding the body of each entry.  When adding a new user option that
+allows changing behavior, please document its default value.  Similarly,
+changes to the default value of an existing user option should be
+announced.
 
 Doc-strings should be updated together with the code.
 
@@ -205,8 +208,9 @@ formatting them:
 
 - Unindented ChangeLog entries normally come next.  However, if the
   commit couldn't be properly summarized in the brief summary line,
-  you can put a paragraph (after the empty line and before the
-  individual ChangeLog entries) that further describes the commit.
+  you can put one or more paragraphs (after the empty line and before
+  the individual ChangeLog entries) that further describe(s) the
+  commit.
 
 - Lines in ChangeLog entries should preferably be not longer than 63
   characters, and must not exceed 78 characters, unless they consist

@@ -190,6 +190,9 @@ nil, use FUNCTION instead."
      "zero")
     (eshell-command-result-equal
      "echo $eshell-test-value[${*echo 0} ${*echo 2}]"
+     '("zero" "two"))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[{*echo 0} {*echo 2}]"
      '("zero" "two"))))
 
 (ert-deftest esh-var-test/interp-var-length-list ()
@@ -668,6 +671,11 @@ nil, use FUNCTION instead."
    (push "VAR=value" process-environment)
    (eshell-match-command-output "env VAR=hello env" "VAR=hello\n")
    (should (equal (getenv "VAR") "value"))))
+
+(ert-deftest esh-var-test/local-variables/env/no-locals ()
+  "Test that \"env command\" works like \"command\"."
+  (with-temp-eshell
+   (eshell-match-command-output "env echo hi" "\\`hi\n")))
 
 
 ;; Variable aliases

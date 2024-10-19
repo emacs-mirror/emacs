@@ -428,9 +428,6 @@ arguments to pass to the OPERATION."
 	  (t2 (tramp-tramp-file-p newname))
 	  target)
       (with-parsed-tramp-file-name (if t1 dirname newname) nil
-	(unless (file-exists-p dirname)
-	  (tramp-error v 'file-missing dirname))
-
 	(if (and copy-directory-create-symlink
 		 (setq target (file-symlink-p dirname))
 		 (tramp-equal-remote dirname newname))

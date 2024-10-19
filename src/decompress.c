@@ -27,8 +27,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "md5.h"
 
-#include <verify.h>
-
 #ifdef WINDOWSNT
 # include <windows.h>
 # include "w32common.h"

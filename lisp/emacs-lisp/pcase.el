@@ -1174,7 +1174,11 @@ The predicate is the logical-AND of:
           `'(,(cadr upata) . ,(cadr upatd))
         `(and (pred consp)
               (app car-safe ,upata)
-              (app cdr-safe ,upatd)))))
+              (app cdr-safe ,upatd)
+              ,@(when (eq (car qpat) '\`)
+                  `((guard ,(macroexp-warn-and-return
+                             "Nested ` are not supported in Pcase patterns"
+                             t nil nil qpat))))))))
    ((or (stringp qpat) (numberp qpat) (symbolp qpat)) `',qpat)
    ;; In all other cases just raise an error so we can't break
    ;; backward compatibility when adding \` support for other

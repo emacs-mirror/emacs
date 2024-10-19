@@ -89,7 +89,7 @@ As usual in GitLab, the tests run in containers, which could be
 applied also locally.  Unfortunately, the Emba container registry,
 emba.gnu.org:5050, is not accessible publicly.  Instead, the container
 images must be build locally.  Change the current directory to a
-recent Emacs branch, and apply the command
+recent Emacs branch (not a worktree), and apply the command
 
   docker build --target emacs-inotify --tag emacs-inotify \
     -f test/infra/Dockerfile.emba .

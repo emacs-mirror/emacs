@@ -160,8 +160,8 @@ and `inhibit-local-variables-suffixes'."
 	(append auto-mode-alist jka-compr-mode-alist-additions))
 
   ;; Make sure that (load "foo") will find /bla/foo.el.gz.
-  (setq load-file-rep-suffixes
-	(append load-file-rep-suffixes jka-compr-load-suffixes nil)))
+  (dolist (suff jka-compr-load-suffixes load-file-rep-suffixes)
+    (add-to-list 'load-file-rep-suffixes suff t)))
 
 (defun jka-compr-installed-p ()
   "Return non-nil if jka-compr is installed.
@@ -379,14 +379,14 @@ compressed when writing."
   "Evaluate BODY with automatic file compression and uncompression enabled."
   (declare (indent 0))
   (let ((already-installed (make-symbol "already-installed")))
-    `(let ((,already-installed (jka-compr-installed-p)))
+    `(let ((,already-installed auto-compression-mode))
        (unwind-protect
 	   (progn
 	     (unless ,already-installed
-	       (jka-compr-install))
+	       (auto-compression-mode 1))
 	     ,@body)
 	 (unless ,already-installed
-	   (jka-compr-uninstall))))))
+	   (auto-compression-mode -1))))))
 
 ;; This is what we need to know about jka-compr-handler
 ;; in order to decide when to call it.

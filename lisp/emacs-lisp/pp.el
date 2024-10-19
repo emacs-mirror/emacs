@@ -308,17 +308,24 @@ can handle, whenever this is possible.
 Uses the pretty-printing code specified in `pp-default-function'.
 
 Output stream is STREAM, or value of `standard-output' (which see)."
-  (cond
-   ((and (eq (or stream standard-output) (current-buffer))
-         ;; Make sure the current buffer is setup sanely.
-         (eq (syntax-table) emacs-lisp-mode-syntax-table)
-         (eq indent-line-function #'lisp-indent-line))
-    ;; Skip the buffer->string->buffer middle man.
-    (funcall pp-default-function object)
-    ;; Preserve old behavior of (usually) finishing with a newline.
-    (unless (bolp) (insert "\n")))
-   (t
-    (princ (pp-to-string object) (or stream standard-output)))))
+  (let ((stream (or stream standard-output)))
+    (cond
+     ((and (eq stream (current-buffer))
+           ;; Make sure the current buffer is setup sanely.
+           (eq (syntax-table) emacs-lisp-mode-syntax-table)
+           (eq indent-line-function #'lisp-indent-line))
+      ;; Skip the buffer->string->buffer middle man.
+      (funcall pp-default-function object)
+      ;; Preserve old behavior of (usually) finishing with a newline.
+      (unless (bolp) (insert "\n")))
+     (t
+      (save-current-buffer
+        (when (bufferp stream) (set-buffer stream))
+        (let ((begin (point))
+              (cols (current-column)))
+          (princ (pp-to-string object) (or stream standard-output))
+          (when (and (> cols 0) (bufferp stream))
+            (indent-rigidly begin (point) cols))))))))
 
 ;;;###autoload
 (defun pp-display-expression (expression out-buffer-name &optional lisp)

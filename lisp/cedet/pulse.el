@@ -158,7 +158,7 @@ Optional argument FACE specifies the face to do the highlighting."
                      (face-background 'pulse-highlight-face nil 'default)))
              (stop (color-name-to-rgb (face-background 'default)))
              (colors (mapcar (apply-partially 'apply 'color-rgb-to-hex)
-                             (color-gradient start stop pulse-iterations))))
+                             (cons start (color-gradient start stop (1- pulse-iterations))))))
         (setq pulse-momentary-timer
               (run-with-timer 0 pulse-delay #'pulse-tick
                               colors

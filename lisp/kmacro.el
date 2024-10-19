@@ -1576,7 +1576,7 @@ To customize possible responses, change the \"bindings\" in
                                       ,(format "%d" cnt)
                                       ,fmt
                                       ,(format fmt cnt)
-                                      ,(format-kbd-macro (kmacro--keys km))])))
+                                      ,(format-kbd-macro (kmacro--keys km) 1)])))
                                (kmacro-menu--kmacros))
               kmacro-menu--deletion-flags nil
               kmacro-menu--marks nil)

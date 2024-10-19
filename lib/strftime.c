@@ -321,7 +321,7 @@ enum pad_style
    maximum object size 9223372036854775807", caused by insufficient data flow
    analysis and value propagation of the 'width_add' expansion when GCC is not
    optimizing.  Cf. <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88443>.  */
-#if __GNUC__ >= 7 && !__OPTIMIZE__
+#if _GL_GNUC_PREREQ (7, 0) && !__OPTIMIZE__
 # pragma GCC diagnostic ignored "-Wstringop-overflow"
 #endif
 

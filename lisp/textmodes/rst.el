@@ -1323,8 +1323,6 @@ The hook for `text-mode' is run before this one."
 ;; Pull in variable definitions silencing byte-compiler.
 (require 'newcomment)
 
-(defvar electric-indent-inhibit)
-
 ;; Use rst-mode for *.rst and *.rest files.  Many ReStructured-Text files
 ;; use *.txt, but this is too generic to be set as a default.
 ;;;###autoload (add-to-list 'auto-mode-alist (purecopy '("\\.re?st\\'" . rst-mode)))

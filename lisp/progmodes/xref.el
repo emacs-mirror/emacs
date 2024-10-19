@@ -150,18 +150,17 @@ Line numbers start from 1 and columns from 0."
 (cl-defmethod xref-location-marker ((l xref-file-location))
   (pcase-let (((cl-struct xref-file-location file line column) l))
     (with-current-buffer
-        (or (get-file-buffer file)
-            (let ((find-file-suppress-same-file-warnings t))
-              (find-file-noselect file)))
+        (let ((find-file-suppress-same-file-warnings t))
+          (find-file-noselect file))
       (save-restriction
         (widen)
         (save-excursion
           (goto-char (point-min))
           (ignore-errors
-            ;; xref location may be out of date; it may be past the
-            ;; end of the current file, or the file may have been
-            ;; deleted. Return a reasonable location; the user will
-            ;; figure it out.
+            ;; The location shouldn't be be out of date, but we make
+            ;; provision for that anyway; in case it's past the end of
+            ;; the file, or it had been deleted. Then return an
+            ;; approximation, the user will figure it out.
             (beginning-of-line line)
             (forward-char column))
           (point-marker))))))
@@ -2077,7 +2076,8 @@ directory, used as the root of the ignore globs."
   (replace-regexp-in-string
    ;; FIXME: Add tests.  Move to subr.el, make a public function.
    ;; Maybe error on Emacs-only constructs.
-   "\\(?:\\\\\\\\\\)*\\(?:\\\\[][]\\)?\\(?:\\[.+?\\]\\|\\(\\\\?[(){}|]\\)\\)"
+   (rx (zero-or-more "\\\\") (opt "\\" (any "[]"))
+     (or (seq "[" (+? nonl) "]") (group (opt "\\") (any "(){|}"))))
    (lambda (str)
      (cond
       ((not (match-beginning 1))

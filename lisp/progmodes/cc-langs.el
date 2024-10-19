@@ -2479,9 +2479,9 @@ following identifier as a type; the keyword must also be present on
   t (c-make-keywords-re t (c-lang-const c-class-decl-kwds)))
 (c-lang-defvar c-class-key (c-lang-const c-class-key))
 
-(c-lang-defconst c-brace-list-decl-kwds
+(c-lang-defconst c-enum-list-kwds
   "Keywords introducing declarations where the following block (if
-any) is a brace list.
+any) is an enum list.
 
 If any of these also are on `c-type-list-kwds', `c-ref-list-kwds',
 `c-colon-type-list-kwds', `c-paren-nontype-kwds', `c-paren-type-kwds',
@@ -2490,23 +2490,43 @@ will be handled."
   t    '("enum")
   (awk) nil)
 
-(c-lang-defconst c-brace-list-key
+(c-lang-defconst c-enum-list-key
   ;; Regexp matching the start of declarations where the following
   ;; block is a brace list.
-  t (c-make-keywords-re t (c-lang-const c-brace-list-decl-kwds)))
-(c-lang-defvar c-brace-list-key (c-lang-const c-brace-list-key))
+  t (let ((liszt
+	   (condition-case nil
+	       ;; (prog1
+	       (c-lang-const c-brace-list-decl-kwds)
+	     ;; (message "`c-brace-list-decl-kwds' has been renamed \
+	     ;; to `c-enum-list-kwds'.  Please amend your derived mode"))
+	     ;; After a few CC Mode versions, output a message here,
+	     ;; prompting the derived mode's maintainer to update the source.
+	     ;; 2024-09.
+	     (error (c-lang-const c-enum-list-kwds)))))
+      (c-make-keywords-re t liszt)))
+(c-lang-defvar c-enum-list-key (c-lang-const c-enum-list-key))
 
-(c-lang-defconst c-after-brace-list-decl-kwds
-  "Keywords that might follow keywords in `c-brace-list-decl-kwds'
+(c-lang-defconst c-after-enum-list-kwds
+  "Keywords that might follow keywords in `c-enum-list-kwds'
 and precede the opening brace."
   t    nil
   c++  '("class" "struct"))
 
-(c-lang-defconst c-after-brace-list-key
-  ;; Regexp matching keywords that can fall between a brace-list
+(c-lang-defconst c-after-enum-list-key
+  ;; Regexp matching keywords that can fall between an enum-list
   ;; keyword and the associated brace list.
-  t (c-make-keywords-re t (c-lang-const c-after-brace-list-decl-kwds)))
-(c-lang-defvar c-after-brace-list-key (c-lang-const c-after-brace-list-key))
+  t (let ((liszt
+	   (condition-case nil
+	       ;; (prog1
+	       (c-lang-const c-after-brace-list-decl-kwds)
+	     ;; (message "`c-after-brace-list-decl-kwds' has been renamed \
+	     ;; to `c-after-enum-list-kwds'.  Please amend your derived mode"))
+	     ;; After a few CC Mode versions, output a message here,
+	     ;; prompting the derived mode's maintainer to update the source.
+	     ;; 2024-09.
+	     (error (c-lang-const c-after-enum-list-kwds)))))
+      (c-make-keywords-re t liszt)))
+(c-lang-defvar c-after-enum-list-key (c-lang-const c-after-enum-list-key))
 
 (c-lang-defconst c-recognize-post-brace-list-type-p
   "Set to t when we recognize a colon and then a type after an enum,
@@ -2564,7 +2584,7 @@ their matching \"in\" syntactic symbols.")
   "Keywords introducing a named block, where the name is a \"defun\"
     name."
   t (append (c-lang-const c-class-decl-kwds)
-	    (c-lang-const c-brace-list-decl-kwds)))
+	    (c-lang-const c-enum-list-kwds)))
 
 (c-lang-defconst c-defun-type-name-decl-key
   ;; Regexp matching a keyword in `c-defun-type-name-decl-kwds'.
@@ -2580,11 +2600,11 @@ If any of these also are on `c-type-list-kwds', `c-ref-list-kwds',
 `c-colon-type-list-kwds', `c-paren-nontype-kwds', `c-paren-type-kwds',
 `c-<>-type-kwds', or `c-<>-arglist-kwds' then the associated clauses
 will be handled."
-  ;; Default to `c-class-decl-kwds' and `c-brace-list-decl-kwds'
+  ;; Default to `c-class-decl-kwds' and `c-enum-list-kwds'
   ;; (since e.g. "Foo" is a type that's being defined in "class Foo
   ;; {...}").
   t    (append (c-lang-const c-class-decl-kwds)
-	       (c-lang-const c-brace-list-decl-kwds))
+	       (c-lang-const c-enum-list-kwds))
   ;; Languages that have a "typedef" construct.
   (c c++ objc idl pike) (append (c-lang-const c-typedef-decl-kwds)
 				'("typedef"))
@@ -2624,11 +2644,11 @@ If any of these also are on `c-type-list-kwds', `c-ref-list-kwds',
 `c-colon-type-list-kwds', `c-paren-nontype-kwds', `c-paren-type-kwds',
 `c-<>-type-kwds', or `c-<>-arglist-kwds' then the associated clauses
 will be handled."
-  ;; Default to `c-class-decl-kwds' and `c-brace-list-decl-kwds'
+  ;; Default to `c-class-decl-kwds' and `c-enum-list-kwds'
   ;; (since e.g. "Foo" is the identifier being defined in "class Foo
   ;; {...}").
   t    (append (c-lang-const c-class-decl-kwds)
-	       (c-lang-const c-brace-list-decl-kwds))
+	       (c-lang-const c-enum-list-kwds))
   c nil
   ;; Note: "manages" for CORBA CIDL clashes with its presence on
   ;; `c-type-list-kwds' for IDL.
@@ -2653,6 +2673,19 @@ will be handled."
   t (c-make-keywords-re t (c-lang-const c-equals-type-clause-kwds)))
 (c-lang-defvar c-equals-type-clause-key (c-lang-const c-equals-type-clause-key))
 
+(c-lang-defconst c-lambda-spec-kwds
+  "Keywords which are specifiers of certain elements of a C++ lambda function.
+This is only used in C++ Mode."
+  t nil
+  c++ '("mutable" "constexpr" "consteval" "static"))
+
+(c-lang-defconst c-lambda-spec-key
+  ;; A regular expression which matches a member of `c-lambda-spec-kwds',
+  ;; or nil.
+  t (if (c-lang-const c-lambda-spec-kwds)
+	(c-make-keywords-re t (c-lang-const c-lambda-spec-kwds))))
+(c-lang-defvar c-lambda-spec-key (c-lang-const c-lambda-spec-key))
+
 (c-lang-defconst c-equals-nontype-decl-kwds
   "Keywords which are followed by an identifier then an \"=\"
 sign, which declares the identifier to be something other than a
@@ -2671,19 +2704,32 @@ type."
 (c-lang-defconst c-fun-name-substitute-kwds
   "Keywords which take the place of type+declarator at the beginning
 of a function-like structure, such as a C++20 \"requires\"
-clause.  An arglist may or may not follow such a keyword."
+expression.  An arglist may or may not follow such a keyword.
+Not to be confused with `c-requires-clause-kwds'."
   t nil
   c++ '("requires"))
 
 (c-lang-defconst c-fun-name-substitute-key
   ;; An unadorned regular expression which matches any member of
   ;; `c-fun-name-substitute-kwds'.
-  t (c-make-keywords-re 'appendable (c-lang-const c-fun-name-substitute-kwds)))
+  t (c-make-keywords-re t (c-lang-const c-fun-name-substitute-kwds)))
 ;; We use 'appendable, so that we get "\\>" on the regexp, but without a further
 ;; character, which would mess up backward regexp search from just after the
 ;; keyword.  If only XEmacs had \\_>.  ;-(
 (c-lang-defvar c-fun-name-substitute-key
 	       (c-lang-const c-fun-name-substitute-key))
+
+(c-lang-defconst c-requires-clause-kwds
+  "Keywords which introduce a C++ requires clause, or something analogous.
+This should not be confused with `c-fun-name-substitute-kwds'."
+  t nil
+  c++ '("requires"))
+
+(c-lang-defconst c-requires-clause-key
+  ;; A regexp matching any member of `c-requires-clause-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-requires-clause-kwds)))
+;; See `c-fun-name-substitute-key' for the justification of appendable.
+(c-lang-defvar c-requires-clause-key (c-lang-const c-requires-clause-key))
 
 (c-lang-defconst c-modifier-kwds
   "Keywords that can prefix normal declarations of identifiers
@@ -2719,7 +2765,7 @@ will be handled."
 
 (c-lang-defconst c-other-decl-kwds
   "Keywords that can start or prefix any declaration level construct,
-besides those on `c-class-decl-kwds', `c-brace-list-decl-kwds',
+besides those on `c-class-decl-kwds', `c-enum-list-kwds',
 `c-other-block-decl-kwds', `c-typedef-decl-kwds',
 `c-typeless-decl-kwds' and `c-modifier-kwds'.
 
@@ -2790,7 +2836,7 @@ one of `c-type-list-kwds', `c-ref-list-kwds',
   ;; declaration.  They might be ambiguous with types or type
   ;; prefixes.
   t (c--delete-duplicates (append (c-lang-const c-class-decl-kwds)
-				  (c-lang-const c-brace-list-decl-kwds)
+				  (c-lang-const c-enum-list-kwds)
 				  (c-lang-const c-other-block-decl-kwds)
 				  (c-lang-const c-typedef-decl-kwds)
 				  (c-lang-const c-typeless-decl-kwds)
@@ -3086,7 +3132,7 @@ assumed to be set if this isn't nil."
   "Keywords that may be followed by a brace block containing a comma
 separated list of identifier definitions, i.e. like the list of
 identifiers that follows the type in a normal declaration."
-  t (c-lang-const c-brace-list-decl-kwds))
+  t (c-lang-const c-enum-list-kwds))
 
 (c-lang-defconst c-block-stmt-1-kwds
   "Statement keywords followed directly by a substatement."
@@ -4226,10 +4272,10 @@ the invalidity of the putative template construct."
   ;; keyword itself, and extending up to the "{".  It may match text which
   ;; isn't such a construct; more accurate tests will rule these out when
   ;; needed.
-  t (if (c-lang-const c-brace-list-decl-kwds)
+  t (if (c-lang-const c-enum-list-kwds)
 	(concat
 	 "\\<\\("
-	 (c-make-keywords-re nil (c-lang-const c-brace-list-decl-kwds))
+	 (c-make-keywords-re nil (c-lang-const c-enum-list-kwds))
 	 "\\)\\>"
 	 ;; Disallow various common punctuation chars that can't come
 	 ;; before the '{' of the enum list, to avoid searching too far.

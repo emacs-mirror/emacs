@@ -198,12 +198,14 @@
           (with-current-buffer base
             (setq indirect (clone-indirect-buffer "*treesit test 1*" nil)))
           (with-current-buffer indirect
-            (setq parser (treesit-parser-create 'json)))
-          ;; 1. Parser created in the indirect buffer should be
-          ;; actually be created in the base buffer.
+            (setq parser (treesit-parser-create 'json))
+            (should (equal (list parser) (treesit-parser-list))))
+          ;; 1. Parser created in the indirect buffer should not appear
+          ;; in the base buffer.
           (with-current-buffer base
-            (should (equal (list parser)
+            (should (equal nil
                            (treesit-parser-list)))
+            (treesit-parser-create 'json)
             (insert "[1,2,3]"))
           ;; Change in the base buffer should be reflected in the
           ;; indirect buffer.
@@ -683,6 +685,70 @@ visible_end.)"
       (should (equal '((15 . 29)) (treesit-query-range 'javascript query)))
       (should (equal '((16 . 28)) (treesit-query-range
                                    'javascript query nil nil '(1 . -1)))))))
+
+(ert-deftest treesit-range-merge ()
+  "Test merging ranges."
+  (should (equal (treesit--merge-ranges '((1 . 1) (3 . 483)) nil 1 488)
+                 nil)))
+
+(ert-deftest treesit-range-fixup-after-edit ()
+  "Tests if Emacs can fix OOB ranges after deleting text or narrowing."
+  (skip-unless (treesit-language-available-p 'json))
+  (with-temp-buffer
+    (let ((parser (treesit-parser-create 'json)))
+      (insert "11111111111111111111")
+      (treesit-parser-set-included-ranges parser '((1 . 20)))
+      (treesit-parser-root-node parser)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((1 . 20))))
+
+      (narrow-to-region 5 15)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((5 . 15))))
+
+      (widen)
+      ;; Trickier ranges
+      ;; 11111111111111111111
+      ;; [    ]      [      ]
+      ;;    {  narrow   }
+      (treesit-parser-set-included-ranges parser '((1 . 7) (10 . 15)))
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((1 . 7) (10 . 15))))
+      (narrow-to-region 5 13)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((5 . 7) (10 . 13))))
+
+      ;; Narrow in front, and discard the last one.
+      (widen)
+      (treesit-parser-set-included-ranges
+       parser '((4 . 10) (12 . 14) (16 . 20)))
+      ;; 11111111111111111111
+      ;;    [    ] [  ]  [  ]
+      ;; {     } narrow
+      (narrow-to-region 1 8)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((4 . 8))))
+
+      ;; Narrow in back, and discard the first one.
+      (widen)
+      (treesit-parser-set-included-ranges
+       parser '((1 . 5) (7 . 9) (11 . 17)))
+      ;; 11111111111111111111
+      ;; [  ] [  ]  [    ]
+      ;;              {     } narrow
+      (narrow-to-region 15 20)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((15 . 17))))
+
+      ;; No overlap
+      (widen)
+      (treesit-parser-set-included-ranges parser '((15 . 20)))
+      ;; 11111111111111111111
+      ;;    [           ]
+      ;;              {     } narrow
+      (narrow-to-region 1 10)
+      (should (equal (treesit-parser-included-ranges parser)
+                     '((1 . 1)))))))
 
 ;;; Multiple language
 

@@ -64,8 +64,8 @@
 #define _@GUARD_PREFIX@_STDIO_H
 
 /* This file uses _GL_ATTRIBUTE_DEALLOC, _GL_ATTRIBUTE_FORMAT,
-   _GL_ATTRIBUTE_MALLOC, _GL_ATTRIBUTE_NOTHROW, GNULIB_POSIXCHECK,
-   HAVE_RAW_DECL_*.  */
+   _GL_ATTRIBUTE_MALLOC, _GL_ATTRIBUTE_NODISCARD, _GL_ATTRIBUTE_NOTHROW,
+   GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
 #if !_GL_CONFIG_H_INCLUDED
  #error "Please include config.h first."
 #endif
@@ -120,7 +120,7 @@
    that can be freed by passing them as the Ith argument to the
    function F.  */
 #ifndef _GL_ATTRIBUTE_DEALLOC
-# if __GNUC__ >= 11
+# if __GNUC__ >= 11 && !defined __clang__
 #  define _GL_ATTRIBUTE_DEALLOC(f, i) __attribute__ ((__malloc__ (f, i)))
 # else
 #  define _GL_ATTRIBUTE_DEALLOC(f, i)
@@ -155,7 +155,7 @@
  */
 #ifndef _GL_ATTRIBUTE_NOTHROW
 # if defined __cplusplus
-#  if (__GNUC__ + (__GNUC_MINOR__ >= 8) > 2) || __clang_major >= 4
+#  if (__GNUC__ + (__GNUC_MINOR__ >= 8) > 2) || __clang_major__ >= 4
 #   if __cplusplus >= 201103L
 #    define _GL_ATTRIBUTE_NOTHROW noexcept (true)
 #   else
@@ -178,7 +178,7 @@
    standardized by ISO C99 and POSIX.
    _GL_ATTRIBUTE_SPEC_PRINTF_STANDARD  */
 /* __gnu_printf__ is supported in GCC >= 4.4.  */
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
+#if (__GNUC__ + (__GNUC_MINOR__ >= 4) > 4) && !defined __clang__
 # define _GL_ATTRIBUTE_SPEC_PRINTF_STANDARD __gnu_printf__
 #else
 # define _GL_ATTRIBUTE_SPEC_PRINTF_STANDARD __printf__
@@ -289,7 +289,7 @@
    directives nor widths, the only possible failure codes are ENOMEM
    and the possible failure codes from write(), excluding EINTR.  */
 _GL_FUNCDECL_SYS (dzprintf, off64_t,
-                  (int fd, const char *restrict format, ...)
+                  (int fd, const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                   _GL_ARG_NONNULL ((2)));
 _GL_CXXALIAS_SYS (dzprintf, off64_t,
@@ -304,13 +304,13 @@ _GL_CXXALIAS_SYS (dzprintf, off64_t,
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define dprintf rpl_dprintf
 #  endif
-_GL_FUNCDECL_RPL (dprintf, int, (int fd, const char *restrict format, ...)
+_GL_FUNCDECL_RPL (dprintf, int, (int fd, const char *restrict format, ...),
                                 _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                                 _GL_ARG_NONNULL ((2)));
 _GL_CXXALIAS_RPL (dprintf, int, (int fd, const char *restrict format, ...));
 # else
 #  if !@HAVE_DPRINTF@
-_GL_FUNCDECL_SYS (dprintf, int, (int fd, const char *restrict format, ...)
+_GL_FUNCDECL_SYS (dprintf, int, (int fd, const char *restrict format, ...),
                                 _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                                 _GL_ARG_NONNULL ((2)));
 #  endif
@@ -333,7 +333,7 @@ _GL_WARN_ON_USE (dprintf, "dprintf is unportable - "
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define fclose rpl_fclose
 #  endif
-_GL_FUNCDECL_RPL (fclose, int, (FILE *stream) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (fclose, int, (FILE *stream), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (fclose, int, (FILE *stream));
 # else
 _GL_CXXALIAS_SYS (fclose, int, (FILE *stream));
@@ -380,9 +380,10 @@ _GL_CXXALIASWARN (fcloseall);
 #   define fdopen rpl_fdopen
 #  endif
 _GL_FUNCDECL_RPL (fdopen, FILE *,
-                  (int fd, const char *mode)
+                  (int fd, const char *mode),
                   _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1)
-                  _GL_ATTRIBUTE_MALLOC);
+                  _GL_ATTRIBUTE_MALLOC
+                  _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (fdopen, FILE *, (int fd, const char *mode));
 # elif defined _WIN32 && !defined __CYGWIN__
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -391,36 +392,38 @@ _GL_CXXALIAS_RPL (fdopen, FILE *, (int fd, const char *mode));
 #  endif
 _GL_CXXALIAS_MDA (fdopen, FILE *, (int fd, const char *mode));
 # else
-#  if __GNUC__ >= 11
+#  if __GNUC__ >= 11 && !defined __clang__
 /* For -Wmismatched-dealloc: Associate fdopen with fclose or rpl_fclose.  */
 #   if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
 _GL_FUNCDECL_SYS (fdopen, FILE *,
-                  (int fd, const char *mode)
-                  _GL_ATTRIBUTE_NOTHROW
+                  (int fd, const char *mode),
                   _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1)
-                  _GL_ATTRIBUTE_MALLOC);
+                  _GL_ATTRIBUTE_MALLOC
+                  _GL_ATTRIBUTE_NODISCARD)
+                  _GL_ATTRIBUTE_NOTHROW;
 #   else
 _GL_FUNCDECL_SYS (fdopen, FILE *,
-                  (int fd, const char *mode)
+                  (int fd, const char *mode),
                   _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1)
-                  _GL_ATTRIBUTE_MALLOC);
+                  _GL_ATTRIBUTE_MALLOC
+                  _GL_ATTRIBUTE_NODISCARD);
 #   endif
 #  endif
 _GL_CXXALIAS_SYS (fdopen, FILE *, (int fd, const char *mode));
 # endif
 _GL_CXXALIASWARN (fdopen);
 #else
-# if @GNULIB_FCLOSE@ && __GNUC__ >= 11 && !defined fdopen
+# if @GNULIB_FCLOSE@ && (__GNUC__ >= 11 && !defined __clang__) && !defined fdopen
 /* For -Wmismatched-dealloc: Associate fdopen with fclose or rpl_fclose.  */
 #  if __GLIBC__ + (__GLIBC_MINOR__ >= 2) > 2
 _GL_FUNCDECL_SYS (fdopen, FILE *,
-                  (int fd, const char *mode)
-                  _GL_ATTRIBUTE_NOTHROW
+                  (int fd, const char *mode),
                   _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1)
-                  _GL_ATTRIBUTE_MALLOC);
+                  _GL_ATTRIBUTE_MALLOC)
+                  _GL_ATTRIBUTE_NOTHROW;
 #  else
 _GL_FUNCDECL_SYS (fdopen, FILE *,
-                  (int fd, const char *mode)
+                  (int fd, const char *mode),
                   _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1)
                   _GL_ATTRIBUTE_MALLOC);
 #  endif
@@ -458,7 +461,7 @@ _GL_CXXALIASWARN (fdopen);
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define fflush rpl_fflush
 #  endif
-_GL_FUNCDECL_RPL (fflush, int, (FILE *gl_stream));
+_GL_FUNCDECL_RPL (fflush, int, (FILE *gl_stream), );
 _GL_CXXALIAS_RPL (fflush, int, (FILE *gl_stream));
 # else
 _GL_CXXALIAS_SYS (fflush, int, (FILE *gl_stream));
@@ -479,7 +482,7 @@ _GL_WARN_ON_USE (fflush, "fflush is not always POSIX compliant - "
 #   undef fgetc
 #   define fgetc rpl_fgetc
 #  endif
-_GL_FUNCDECL_RPL (fgetc, int, (FILE *stream) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (fgetc, int, (FILE *stream), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (fgetc, int, (FILE *stream));
 # else
 _GL_CXXALIAS_SYS (fgetc, int, (FILE *stream));
@@ -496,8 +499,8 @@ _GL_CXXALIASWARN (fgetc);
 #   define fgets rpl_fgets
 #  endif
 _GL_FUNCDECL_RPL (fgets, char *,
-                  (char *restrict s, int n, FILE *restrict stream)
-                  _GL_ARG_NONNULL ((1, 3)));
+                  (char *restrict s, int n, FILE *restrict stream),
+                  _GL_ARG_NONNULL ((1, 3)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (fgets, char *,
                   (char *restrict s, int n, FILE *restrict stream));
 # else
@@ -533,17 +536,18 @@ _GL_CXXALIASWARN (fileno);
 #   define fopen rpl_fopen
 #  endif
 _GL_FUNCDECL_RPL (fopen, FILE *,
-                  (const char *restrict filename, const char *restrict mode)
+                  (const char *restrict filename, const char *restrict mode),
                   _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1)
-                  _GL_ATTRIBUTE_MALLOC);
+                  _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (fopen, FILE *,
                   (const char *restrict filename, const char *restrict mode));
 # else
-#  if __GNUC__ >= 11
+#  if __GNUC__ >= 11 && !defined __clang__
 /* For -Wmismatched-dealloc: Associate fopen with fclose or rpl_fclose.  */
 _GL_FUNCDECL_SYS (fopen, FILE *,
-                  (const char *restrict filename, const char *restrict mode)
-                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1));
+                  (const char *restrict filename, const char *restrict mode),
+                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1)
+                  _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (fopen, FILE *,
                   (const char *restrict filename, const char *restrict mode));
@@ -552,10 +556,10 @@ _GL_CXXALIAS_SYS (fopen, FILE *,
 _GL_CXXALIASWARN (fopen);
 # endif
 #else
-# if @GNULIB_FCLOSE@ && __GNUC__ >= 11 && !defined fopen
+# if @GNULIB_FCLOSE@ && (__GNUC__ >= 11 && !defined __clang__) && !defined fopen
 /* For -Wmismatched-dealloc: Associate fopen with fclose or rpl_fclose.  */
 _GL_FUNCDECL_SYS (fopen, FILE *,
-                  (const char *restrict filename, const char *restrict mode)
+                  (const char *restrict filename, const char *restrict mode),
                   _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (fclose, 1));
 # endif
 # if defined GNULIB_POSIXCHECK
@@ -575,7 +579,7 @@ _GL_WARN_ON_USE (fopen, "fopen on native Windows platforms is not POSIX complian
    directives nor widths, the only possible failure causes are ENOMEM
    and the possible failure causes from fwrite().  */
 _GL_FUNCDECL_SYS (fzprintf, off64_t,
-                  (FILE *restrict fp, const char *restrict format, ...)
+                  (FILE *restrict fp, const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_SYS (fzprintf, off64_t,
@@ -594,12 +598,12 @@ _GL_CXXALIAS_SYS (fzprintf, off64_t,
 #  define GNULIB_overrides_fprintf 1
 #  if @GNULIB_FPRINTF_POSIX@ || @GNULIB_VFPRINTF_POSIX@
 _GL_FUNCDECL_RPL (fprintf, int,
-                  (FILE *restrict fp, const char *restrict format, ...)
+                  (FILE *restrict fp, const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                   _GL_ARG_NONNULL ((1, 2)));
 #  else
 _GL_FUNCDECL_RPL (fprintf, int,
-                  (FILE *restrict fp, const char *restrict format, ...)
+                  (FILE *restrict fp, const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_SYSTEM (2, 3)
                   _GL_ARG_NONNULL ((1, 2)));
 #  endif
@@ -634,15 +638,17 @@ _GL_WARN_ON_USE (fprintf, "fprintf is not always POSIX compliant - "
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define fpurge rpl_fpurge
 #  endif
-_GL_FUNCDECL_RPL (fpurge, int, (FILE *gl_stream) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (fpurge, int, (FILE *gl_stream), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (fpurge, int, (FILE *gl_stream));
 # else
 #  if !@HAVE_DECL_FPURGE@
-_GL_FUNCDECL_SYS (fpurge, int, (FILE *gl_stream) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (fpurge, int, (FILE *gl_stream), _GL_ARG_NONNULL ((1)));
 #  endif
 _GL_CXXALIAS_SYS (fpurge, int, (FILE *gl_stream));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (fpurge);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef fpurge
 # if HAVE_RAW_DECL_FPURGE
@@ -657,7 +663,7 @@ _GL_WARN_ON_USE (fpurge, "fpurge is not always present - "
 #   undef fputc
 #   define fputc rpl_fputc
 #  endif
-_GL_FUNCDECL_RPL (fputc, int, (int c, FILE *stream) _GL_ARG_NONNULL ((2)));
+_GL_FUNCDECL_RPL (fputc, int, (int c, FILE *stream), _GL_ARG_NONNULL ((2)));
 _GL_CXXALIAS_RPL (fputc, int, (int c, FILE *stream));
 # else
 _GL_CXXALIAS_SYS (fputc, int, (int c, FILE *stream));
@@ -674,7 +680,7 @@ _GL_CXXALIASWARN (fputc);
 #   define fputs rpl_fputs
 #  endif
 _GL_FUNCDECL_RPL (fputs, int,
-                  (const char *restrict string, FILE *restrict stream)
+                  (const char *restrict string, FILE *restrict stream),
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_RPL (fputs, int,
                   (const char *restrict string, FILE *restrict stream));
@@ -695,8 +701,8 @@ _GL_CXXALIASWARN (fputs);
 #  endif
 _GL_FUNCDECL_RPL (fread, size_t,
                   (void *restrict ptr, size_t s, size_t n,
-                   FILE *restrict stream)
-                  _GL_ARG_NONNULL ((4)));
+                   FILE *restrict stream),
+                  _GL_ARG_NONNULL ((4)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (fread, size_t,
                   (void *restrict ptr, size_t s, size_t n,
                    FILE *restrict stream));
@@ -718,8 +724,8 @@ _GL_CXXALIASWARN (fread);
 #  endif
 _GL_FUNCDECL_RPL (freopen, FILE *,
                   (const char *restrict filename, const char *restrict mode,
-                   FILE *restrict stream)
-                  _GL_ARG_NONNULL ((2, 3)));
+                   FILE *restrict stream),
+                  _GL_ARG_NONNULL ((2, 3)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (freopen, FILE *,
                   (const char *restrict filename, const char *restrict mode,
                    FILE *restrict stream));
@@ -746,9 +752,9 @@ _GL_WARN_ON_USE (freopen,
 #   define fscanf rpl_fscanf
 #  endif
 _GL_FUNCDECL_RPL (fscanf, int,
-                  (FILE *restrict stream, const char *restrict format, ...)
+                  (FILE *restrict stream, const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM (2, 3)
-                  _GL_ARG_NONNULL ((1, 2)));
+                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (fscanf, int,
                   (FILE *restrict stream, const char *restrict format, ...));
 # else
@@ -802,7 +808,7 @@ _GL_CXXALIASWARN (fscanf);
 #   undef fseek
 #   define fseek rpl_fseek
 #  endif
-_GL_FUNCDECL_RPL (fseek, int, (FILE *fp, long offset, int whence)
+_GL_FUNCDECL_RPL (fseek, int, (FILE *fp, long offset, int whence),
                               _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (fseek, int, (FILE *fp, long offset, int whence));
 # else
@@ -825,12 +831,12 @@ _GL_CXXALIASWARN (fseek);
 #   undef fseeko
 #   define fseeko rpl_fseeko
 #  endif
-_GL_FUNCDECL_RPL (fseeko, int, (FILE *fp, off_t offset, int whence)
+_GL_FUNCDECL_RPL (fseeko, int, (FILE *fp, off_t offset, int whence),
                                _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (fseeko, int, (FILE *fp, off_t offset, int whence));
 # else
 #  if ! @HAVE_DECL_FSEEKO@
-_GL_FUNCDECL_SYS (fseeko, int, (FILE *fp, off_t offset, int whence)
+_GL_FUNCDECL_SYS (fseeko, int, (FILE *fp, off_t offset, int whence),
                                _GL_ARG_NONNULL ((1)));
 #  endif
 _GL_CXXALIAS_SYS (fseeko, int, (FILE *fp, off_t offset, int whence));
@@ -868,7 +874,8 @@ _GL_WARN_ON_USE (fseek, "fseek cannot handle files larger than 4 GB "
 #   undef ftell
 #   define ftell rpl_ftell
 #  endif
-_GL_FUNCDECL_RPL (ftell, long, (FILE *fp) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (ftell, long, (FILE *fp),
+                               _GL_ARG_NONNULL ((1)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (ftell, long, (FILE *fp));
 # else
 _GL_CXXALIAS_SYS (ftell, long, (FILE *fp));
@@ -888,11 +895,13 @@ _GL_CXXALIASWARN (ftell);
 #   undef ftello
 #   define ftello rpl_ftello
 #  endif
-_GL_FUNCDECL_RPL (ftello, off_t, (FILE *fp) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (ftello, off_t, (FILE *fp),
+                                 _GL_ARG_NONNULL ((1)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (ftello, off_t, (FILE *fp));
 # else
 #  if ! @HAVE_DECL_FTELLO@
-_GL_FUNCDECL_SYS (ftello, off_t, (FILE *fp) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (ftello, off_t, (FILE *fp),
+                                 _GL_ARG_NONNULL ((1)) _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (ftello, off_t, (FILE *fp));
 # endif
@@ -925,7 +934,7 @@ _GL_WARN_ON_USE (ftell, "ftell cannot handle files larger than 4 GB "
 #  endif
 _GL_FUNCDECL_RPL (fwrite, size_t,
                   (const void *restrict ptr, size_t s, size_t n,
-                   FILE *restrict stream)
+                   FILE *restrict stream),
                   _GL_ARG_NONNULL ((1, 4)));
 _GL_CXXALIAS_RPL (fwrite, size_t,
                   (const void *restrict ptr, size_t s, size_t n,
@@ -940,9 +949,9 @@ _GL_CXXALIAS_SYS (fwrite, size_t,
    which sometimes causes an unwanted diagnostic for fwrite calls.
    This affects only function declaration attributes under certain
    versions of gcc and clang, and is not needed for C++.  */
-#  if (0 < __USE_FORTIFY_LEVEL                                          \
+#  if (0 < __USE_FORTIFY_LEVEL                                            \
        && __GLIBC__ == 2 && 4 <= __GLIBC_MINOR__ && __GLIBC_MINOR__ <= 15 \
-       && 3 < __GNUC__ + (4 <= __GNUC_MINOR__)                          \
+       && (3 < __GNUC__ + (4 <= __GNUC_MINOR__) || defined __clang__)     \
        && !defined __cplusplus)
 #   undef fwrite
 #   undef fwrite_unlocked
@@ -969,7 +978,7 @@ _GL_CXXALIASWARN (fwrite);
 #   undef getc
 #   define getc rpl_fgetc
 #  endif
-_GL_FUNCDECL_RPL (fgetc, int, (FILE *stream) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (fgetc, int, (FILE *stream), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL_1 (getc, rpl_fgetc, int, (FILE *stream));
 # else
 _GL_CXXALIAS_SYS (getc, int, (FILE *stream));
@@ -985,7 +994,7 @@ _GL_CXXALIASWARN (getc);
 #   undef getchar
 #   define getchar rpl_getchar
 #  endif
-_GL_FUNCDECL_RPL (getchar, int, (void));
+_GL_FUNCDECL_RPL (getchar, int, (void), );
 _GL_CXXALIAS_RPL (getchar, int, (void));
 # else
 _GL_CXXALIAS_SYS (getchar, int, (void));
@@ -1010,8 +1019,8 @@ _GL_CXXALIASWARN (getchar);
 _GL_FUNCDECL_RPL (getdelim, ssize_t,
                   (char **restrict lineptr, size_t *restrict linesize,
                    int delimiter,
-                   FILE *restrict stream)
-                  _GL_ARG_NONNULL ((1, 2, 4)));
+                   FILE *restrict stream),
+                  _GL_ARG_NONNULL ((1, 2, 4)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (getdelim, ssize_t,
                   (char **restrict lineptr, size_t *restrict linesize,
                    int delimiter,
@@ -1021,8 +1030,8 @@ _GL_CXXALIAS_RPL (getdelim, ssize_t,
 _GL_FUNCDECL_SYS (getdelim, ssize_t,
                   (char **restrict lineptr, size_t *restrict linesize,
                    int delimiter,
-                   FILE *restrict stream)
-                  _GL_ARG_NONNULL ((1, 2, 4)));
+                   FILE *restrict stream),
+                  _GL_ARG_NONNULL ((1, 2, 4)) _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (getdelim, ssize_t,
                   (char **restrict lineptr, size_t *restrict linesize,
@@ -1054,8 +1063,8 @@ _GL_WARN_ON_USE (getdelim, "getdelim is unportable - "
 #  endif
 _GL_FUNCDECL_RPL (getline, ssize_t,
                   (char **restrict lineptr, size_t *restrict linesize,
-                   FILE *restrict stream)
-                  _GL_ARG_NONNULL ((1, 2, 3)));
+                   FILE *restrict stream),
+                  _GL_ARG_NONNULL ((1, 2, 3)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (getline, ssize_t,
                   (char **restrict lineptr, size_t *restrict linesize,
                    FILE *restrict stream));
@@ -1063,8 +1072,8 @@ _GL_CXXALIAS_RPL (getline, ssize_t,
 #  if !@HAVE_DECL_GETLINE@
 _GL_FUNCDECL_SYS (getline, ssize_t,
                   (char **restrict lineptr, size_t *restrict linesize,
-                   FILE *restrict stream)
-                  _GL_ARG_NONNULL ((1, 2, 3)));
+                   FILE *restrict stream),
+                  _GL_ARG_NONNULL ((1, 2, 3)) _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (getline, ssize_t,
                   (char **restrict lineptr, size_t *restrict linesize,
@@ -1103,7 +1112,7 @@ _GL_CXXALIAS_MDA (getw, int, (FILE *restrict stream));
 #  if @HAVE_DECL_GETW@
 #   if defined __APPLE__ && defined __MACH__
 /* The presence of the declaration depends on _POSIX_C_SOURCE.  */
-_GL_FUNCDECL_SYS (getw, int, (FILE *restrict stream));
+_GL_FUNCDECL_SYS (getw, int, (FILE *restrict stream), );
 #   endif
 _GL_CXXALIAS_SYS (getw, int, (FILE *restrict stream));
 #  endif
@@ -1126,13 +1135,13 @@ struct obstack;
    directives nor widths, the only possible failure code is through
    obstack_alloc_failed_handler.  */
 _GL_FUNCDECL_SYS (obstack_zprintf, ptrdiff_t,
-                  (struct obstack *obs, const char *format, ...)
+                  (struct obstack *obs, const char *format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_SYS (obstack_zprintf, ptrdiff_t,
                   (struct obstack *obs, const char *format, ...));
 _GL_FUNCDECL_SYS (obstack_vzprintf, ptrdiff_t,
-                  (struct obstack *obs, const char *format, va_list args)
+                  (struct obstack *obs, const char *format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_SYS (obstack_vzprintf, ptrdiff_t,
@@ -1151,7 +1160,7 @@ struct obstack;
 #   define obstack_printf rpl_obstack_printf
 #  endif
 _GL_FUNCDECL_RPL (obstack_printf, int,
-                  (struct obstack *obs, const char *format, ...)
+                  (struct obstack *obs, const char *format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_RPL (obstack_printf, int,
@@ -1159,7 +1168,7 @@ _GL_CXXALIAS_RPL (obstack_printf, int,
 # else
 #  if !@HAVE_DECL_OBSTACK_PRINTF@
 _GL_FUNCDECL_SYS (obstack_printf, int,
-                  (struct obstack *obs, const char *format, ...)
+                  (struct obstack *obs, const char *format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                   _GL_ARG_NONNULL ((1, 2)));
 #  endif
@@ -1172,7 +1181,7 @@ _GL_CXXALIASWARN (obstack_printf);
 #   define obstack_vprintf rpl_obstack_vprintf
 #  endif
 _GL_FUNCDECL_RPL (obstack_vprintf, int,
-                  (struct obstack *obs, const char *format, va_list args)
+                  (struct obstack *obs, const char *format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_RPL (obstack_vprintf, int,
@@ -1180,7 +1189,7 @@ _GL_CXXALIAS_RPL (obstack_vprintf, int,
 # else
 #  if !@HAVE_DECL_OBSTACK_PRINTF@
 _GL_FUNCDECL_SYS (obstack_vprintf, int,
-                  (struct obstack *obs, const char *format, va_list args)
+                  (struct obstack *obs, const char *format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((1, 2)));
 #  endif
@@ -1192,7 +1201,7 @@ _GL_CXXALIASWARN (obstack_vprintf);
 
 #if @GNULIB_PCLOSE@
 # if !@HAVE_PCLOSE@
-_GL_FUNCDECL_SYS (pclose, int, (FILE *stream) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (pclose, int, (FILE *stream), _GL_ARG_NONNULL ((1)));
 # endif
 _GL_CXXALIAS_SYS (pclose, int, (FILE *stream));
 _GL_CXXALIASWARN (pclose);
@@ -1212,7 +1221,7 @@ _GL_WARN_ON_USE (pclose, "pclose is unportable - "
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define perror rpl_perror
 #  endif
-_GL_FUNCDECL_RPL (perror, void, (const char *string));
+_GL_FUNCDECL_RPL (perror, void, (const char *string), );
 _GL_CXXALIAS_RPL (perror, void, (const char *string));
 # else
 _GL_CXXALIAS_SYS (perror, void, (const char *string));
@@ -1234,25 +1243,26 @@ _GL_WARN_ON_USE (perror, "perror is not always POSIX compliant - "
 #   define popen rpl_popen
 #  endif
 _GL_FUNCDECL_RPL (popen, FILE *,
-                  (const char *cmd, const char *mode)
+                  (const char *cmd, const char *mode),
                   _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (pclose, 1)
-                  _GL_ATTRIBUTE_MALLOC);
+                  _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (popen, FILE *, (const char *cmd, const char *mode));
 # else
-#  if !@HAVE_POPEN@ || __GNUC__ >= 11
+#  if !@HAVE_POPEN@ || (__GNUC__ >= 11 && !defined __clang__)
 _GL_FUNCDECL_SYS (popen, FILE *,
-                  (const char *cmd, const char *mode)
+                  (const char *cmd, const char *mode),
                   _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (pclose, 1)
-                  _GL_ATTRIBUTE_MALLOC);
+                  _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (popen, FILE *, (const char *cmd, const char *mode));
 # endif
 _GL_CXXALIASWARN (popen);
 #else
-# if @GNULIB_PCLOSE@ && __GNUC__ >= 11 && !defined popen
+# if @GNULIB_PCLOSE@ \
+     && (__GNUC__ >= 11 && !defined __clang__) && !defined popen
 /* For -Wmismatched-dealloc: Associate popen with pclose or rpl_pclose.  */
 _GL_FUNCDECL_SYS (popen, FILE *,
-                  (const char *cmd, const char *mode)
+                  (const char *cmd, const char *mode),
                   _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_DEALLOC (pclose, 1)
                   _GL_ATTRIBUTE_MALLOC);
 # endif
@@ -1273,7 +1283,7 @@ _GL_WARN_ON_USE (popen, "popen is buggy on some platforms - "
    Therefore, if the format string is valid and does not use %ls/%lc
    directives nor widths, the only possible failure causes are ENOMEM
    and the possible failure causes from fwrite().  */
-_GL_FUNCDECL_SYS (zprintf, off64_t, (const char *restrict format, ...)
+_GL_FUNCDECL_SYS (zprintf, off64_t, (const char *restrict format, ...),
                                     _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 2)
                                     _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_SYS (zprintf, off64_t, (const char *restrict format, ...));
@@ -1294,14 +1304,14 @@ _GL_CXXALIAS_SYS (zprintf, off64_t, (const char *restrict format, ...));
 _GL_FUNCDECL_RPL_1 (__printf__, int,
                     (const char *restrict format, ...)
                     __asm__ (@ASM_SYMBOL_PREFIX@
-                             _GL_STDIO_MACROEXPAND_AND_STRINGIZE(rpl_printf))
+                             _GL_STDIO_MACROEXPAND_AND_STRINGIZE(rpl_printf)),
                     _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 2)
                     _GL_ARG_NONNULL ((1)));
 #   else
 _GL_FUNCDECL_RPL_1 (__printf__, int,
                     (const char *restrict format, ...)
                     __asm__ (@ASM_SYMBOL_PREFIX@
-                             _GL_STDIO_MACROEXPAND_AND_STRINGIZE(rpl_printf))
+                             _GL_STDIO_MACROEXPAND_AND_STRINGIZE(rpl_printf)),
                     _GL_ATTRIBUTE_FORMAT_PRINTF_SYSTEM (1, 2)
                     _GL_ARG_NONNULL ((1)));
 #   endif
@@ -1311,7 +1321,7 @@ _GL_CXXALIAS_RPL_1 (printf, __printf__, int, (const char *format, ...));
 #    define printf rpl_printf
 #   endif
 _GL_FUNCDECL_RPL (printf, int,
-                  (const char *restrict format, ...)
+                  (const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 2)
                   _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (printf, int, (const char *restrict format, ...));
@@ -1340,7 +1350,7 @@ _GL_WARN_ON_USE (printf, "printf is not always POSIX compliant - "
 #   undef putc
 #   define putc rpl_fputc
 #  endif
-_GL_FUNCDECL_RPL (fputc, int, (int c, FILE *stream) _GL_ARG_NONNULL ((2)));
+_GL_FUNCDECL_RPL (fputc, int, (int c, FILE *stream), _GL_ARG_NONNULL ((2)));
 _GL_CXXALIAS_RPL_1 (putc, rpl_fputc, int, (int c, FILE *stream));
 # else
 _GL_CXXALIAS_SYS (putc, int, (int c, FILE *stream));
@@ -1356,7 +1366,7 @@ _GL_CXXALIASWARN (putc);
 #   undef putchar
 #   define putchar rpl_putchar
 #  endif
-_GL_FUNCDECL_RPL (putchar, int, (int c));
+_GL_FUNCDECL_RPL (putchar, int, (int c), );
 _GL_CXXALIAS_RPL (putchar, int, (int c));
 # else
 _GL_CXXALIAS_SYS (putchar, int, (int c));
@@ -1372,7 +1382,7 @@ _GL_CXXALIASWARN (putchar);
 #   undef puts
 #   define puts rpl_puts
 #  endif
-_GL_FUNCDECL_RPL (puts, int, (const char *string) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (puts, int, (const char *string), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (puts, int, (const char *string));
 # else
 _GL_CXXALIAS_SYS (puts, int, (const char *string));
@@ -1396,7 +1406,7 @@ _GL_CXXALIAS_MDA (putw, int, (int w, FILE *restrict stream));
 #  if @HAVE_DECL_PUTW@
 #   if defined __APPLE__ && defined __MACH__
 /* The presence of the declaration depends on _POSIX_C_SOURCE.  */
-_GL_FUNCDECL_SYS (putw, int, (int w, FILE *restrict stream));
+_GL_FUNCDECL_SYS (putw, int, (int w, FILE *restrict stream), );
 #   endif
 _GL_CXXALIAS_SYS (putw, int, (int w, FILE *restrict stream));
 #  endif
@@ -1412,7 +1422,7 @@ _GL_CXXALIASWARN (putw);
 #   undef remove
 #   define remove rpl_remove
 #  endif
-_GL_FUNCDECL_RPL (remove, int, (const char *name) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (remove, int, (const char *name), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (remove, int, (const char *name));
 # else
 _GL_CXXALIAS_SYS (remove, int, (const char *name));
@@ -1434,7 +1444,7 @@ _GL_WARN_ON_USE (remove, "remove cannot handle directories on some platforms - "
 #   define rename rpl_rename
 #  endif
 _GL_FUNCDECL_RPL (rename, int,
-                  (const char *old_filename, const char *new_filename)
+                  (const char *old_filename, const char *new_filename),
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_RPL (rename, int,
                   (const char *old_filename, const char *new_filename));
@@ -1459,14 +1469,14 @@ _GL_WARN_ON_USE (rename, "rename is buggy on some platforms - "
 #   define renameat rpl_renameat
 #  endif
 _GL_FUNCDECL_RPL (renameat, int,
-                  (int fd1, char const *file1, int fd2, char const *file2)
+                  (int fd1, char const *file1, int fd2, char const *file2),
                   _GL_ARG_NONNULL ((2, 4)));
 _GL_CXXALIAS_RPL (renameat, int,
                   (int fd1, char const *file1, int fd2, char const *file2));
 # else
 #  if !@HAVE_RENAMEAT@
 _GL_FUNCDECL_SYS (renameat, int,
-                  (int fd1, char const *file1, int fd2, char const *file2)
+                  (int fd1, char const *file1, int fd2, char const *file2),
                   _GL_ARG_NONNULL ((2, 4)));
 #  endif
 _GL_CXXALIAS_SYS (renameat, int,
@@ -1492,18 +1502,18 @@ _GL_WARN_ON_USE (renameat, "renameat is not portable - "
 _GL_FUNCDECL_RPL_1 (__scanf__, int,
                     (const char *restrict format, ...)
                     __asm__ (@ASM_SYMBOL_PREFIX@
-                             _GL_STDIO_MACROEXPAND_AND_STRINGIZE(rpl_scanf))
+                             _GL_STDIO_MACROEXPAND_AND_STRINGIZE(rpl_scanf)),
                     _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM (1, 2)
-                    _GL_ARG_NONNULL ((1)));
+                    _GL_ARG_NONNULL ((1)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL_1 (scanf, __scanf__, int, (const char *restrict format, ...));
 #  else
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    undef scanf
 #    define scanf rpl_scanf
 #   endif
-_GL_FUNCDECL_RPL (scanf, int, (const char *restrict format, ...)
+_GL_FUNCDECL_RPL (scanf, int, (const char *restrict format, ...),
                               _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM (1, 2)
-                              _GL_ARG_NONNULL ((1)));
+                              _GL_ARG_NONNULL ((1)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (scanf, int, (const char *restrict format, ...));
 #  endif
 # else
@@ -1525,7 +1535,7 @@ _GL_CXXALIASWARN (scanf);
    directives nor widths, the only possible failure code is ENOMEM.  */
 _GL_FUNCDECL_SYS (snzprintf, ptrdiff_t,
                   (char *restrict str, size_t size,
-                   const char *restrict format, ...)
+                   const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (3, 4)
                   _GL_ARG_NONNULL ((3)));
 _GL_CXXALIAS_SYS (snzprintf, ptrdiff_t,
@@ -1546,7 +1556,7 @@ _GL_CXXALIAS_SYS (snzprintf, ptrdiff_t,
 #  define GNULIB_overrides_snprintf 1
 _GL_FUNCDECL_RPL (snprintf, int,
                   (char *restrict str, size_t size,
-                   const char *restrict format, ...)
+                   const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (3, 4)
                   _GL_ARG_NONNULL ((3)));
 _GL_CXXALIAS_RPL (snprintf, int,
@@ -1556,7 +1566,7 @@ _GL_CXXALIAS_RPL (snprintf, int,
 #  if !@HAVE_DECL_SNPRINTF@
 _GL_FUNCDECL_SYS (snprintf, int,
                   (char *restrict str, size_t size,
-                   const char *restrict format, ...)
+                   const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (3, 4)
                   _GL_ARG_NONNULL ((3)));
 #  endif
@@ -1584,7 +1594,7 @@ _GL_WARN_ON_USE (snprintf, "snprintf is unportable - "
    directives nor widths, the only possible failure code is ENOMEM.  */
 _GL_FUNCDECL_SYS (szprintf, ptrdiff_t,
                   (char *restrict str,
-                   const char *restrict format, ...)
+                   const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_SYS (szprintf, ptrdiff_t,
@@ -1611,7 +1621,7 @@ _GL_CXXALIAS_SYS (szprintf, ptrdiff_t,
 #  endif
 #  define GNULIB_overrides_sprintf 1
 _GL_FUNCDECL_RPL (sprintf, int,
-                  (char *restrict str, const char *restrict format, ...)
+                  (char *restrict str, const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_RPL (sprintf, int,
@@ -1652,16 +1662,18 @@ _GL_CXXALIASWARN (tempnam);
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define tmpfile rpl_tmpfile
 #  endif
-_GL_FUNCDECL_RPL (tmpfile, FILE *, (void)
+_GL_FUNCDECL_RPL (tmpfile, FILE *, (void),
                                    _GL_ATTRIBUTE_DEALLOC (fclose, 1)
-                                   _GL_ATTRIBUTE_MALLOC);
+                                   _GL_ATTRIBUTE_MALLOC
+                                   _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (tmpfile, FILE *, (void));
 # else
-#  if __GNUC__ >= 11
+#  if __GNUC__ >= 11 && !defined __clang__
 /* For -Wmismatched-dealloc: Associate tmpfile with fclose or rpl_fclose.  */
-_GL_FUNCDECL_SYS (tmpfile, FILE *, (void)
+_GL_FUNCDECL_SYS (tmpfile, FILE *, (void),
                                    _GL_ATTRIBUTE_DEALLOC (fclose, 1)
-                                   _GL_ATTRIBUTE_MALLOC);
+                                   _GL_ATTRIBUTE_MALLOC
+                                   _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (tmpfile, FILE *, (void));
 # endif
@@ -1669,9 +1681,10 @@ _GL_CXXALIAS_SYS (tmpfile, FILE *, (void));
 _GL_CXXALIASWARN (tmpfile);
 # endif
 #else
-# if @GNULIB_FCLOSE@ && __GNUC__ >= 11 && !defined tmpfile
+# if @GNULIB_FCLOSE@ \
+     && (__GNUC__ >= 11 && !defined __clang__) && !defined tmpfile
 /* For -Wmismatched-dealloc: Associate tmpfile with fclose or rpl_fclose.  */
-_GL_FUNCDECL_SYS (tmpfile, FILE *, (void)
+_GL_FUNCDECL_SYS (tmpfile, FILE *, (void),
                                    _GL_ATTRIBUTE_DEALLOC (fclose, 1)
                                    _GL_ATTRIBUTE_MALLOC);
 # endif
@@ -1694,15 +1707,17 @@ _GL_WARN_ON_USE (tmpfile, "tmpfile is not usable on mingw - "
    Therefore, if the format string is valid and does not use %ls/%lc
    directives nor widths, the only possible failure code is ENOMEM.  */
 _GL_FUNCDECL_SYS (aszprintf, ptrdiff_t,
-                  (char **result, const char *format, ...)
+                  (char **result, const char *format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
-                  _GL_ARG_NONNULL ((1, 2)));
+                  _GL_ARG_NONNULL ((1, 2))
+                  _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_SYS (aszprintf, ptrdiff_t,
                   (char **result, const char *format, ...));
 _GL_FUNCDECL_SYS (vaszprintf, ptrdiff_t,
-                  (char **result, const char *format, va_list args)
+                  (char **result, const char *format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
-                  _GL_ARG_NONNULL ((1, 2)));
+                  _GL_ARG_NONNULL ((1, 2))
+                  _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_SYS (vaszprintf, ptrdiff_t,
                   (char **result, const char *format, va_list args));
 #endif
@@ -1718,17 +1733,19 @@ _GL_CXXALIAS_SYS (vaszprintf, ptrdiff_t,
 #  endif
 #  define GNULIB_overrides_asprintf
 _GL_FUNCDECL_RPL (asprintf, int,
-                  (char **result, const char *format, ...)
+                  (char **result, const char *format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
-                  _GL_ARG_NONNULL ((1, 2)));
+                  _GL_ARG_NONNULL ((1, 2))
+                  _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (asprintf, int,
                   (char **result, const char *format, ...));
 # else
 #  if !@HAVE_VASPRINTF@
 _GL_FUNCDECL_SYS (asprintf, int,
-                  (char **result, const char *format, ...)
+                  (char **result, const char *format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
-                  _GL_ARG_NONNULL ((1, 2)));
+                  _GL_ARG_NONNULL ((1, 2))
+                  _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (asprintf, int,
                   (char **result, const char *format, ...));
@@ -1740,17 +1757,19 @@ _GL_CXXALIASWARN (asprintf);
 #  endif
 #  define GNULIB_overrides_vasprintf 1
 _GL_FUNCDECL_RPL (vasprintf, int,
-                  (char **result, const char *format, va_list args)
+                  (char **result, const char *format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
-                  _GL_ARG_NONNULL ((1, 2)));
+                  _GL_ARG_NONNULL ((1, 2))
+                  _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (vasprintf, int,
                   (char **result, const char *format, va_list args));
 # else
 #  if !@HAVE_VASPRINTF@
 _GL_FUNCDECL_SYS (vasprintf, int,
-                  (char **result, const char *format, va_list args)
+                  (char **result, const char *format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
-                  _GL_ARG_NONNULL ((1, 2)));
+                  _GL_ARG_NONNULL ((1, 2))
+                  _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (vasprintf, int,
                   (char **result, const char *format, va_list args));
@@ -1767,7 +1786,7 @@ _GL_CXXALIASWARN (vasprintf);
    directives nor widths, the only possible failure codes are ENOMEM
    and the possible failure codes from write(), excluding EINTR.  */
 _GL_FUNCDECL_SYS (vdzprintf, off64_t,
-                  (int fd, const char *restrict format, va_list args)
+                  (int fd, const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((2)));
 _GL_CXXALIAS_SYS (vdzprintf, off64_t,
@@ -1783,7 +1802,7 @@ _GL_CXXALIAS_SYS (vdzprintf, off64_t,
 #   define vdprintf rpl_vdprintf
 #  endif
 _GL_FUNCDECL_RPL (vdprintf, int,
-                  (int fd, const char *restrict format, va_list args)
+                  (int fd, const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((2)));
 _GL_CXXALIAS_RPL (vdprintf, int,
@@ -1791,7 +1810,7 @@ _GL_CXXALIAS_RPL (vdprintf, int,
 # else
 #  if !@HAVE_VDPRINTF@
 _GL_FUNCDECL_SYS (vdprintf, int,
-                  (int fd, const char *restrict format, va_list args)
+                  (int fd, const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((2)));
 #  endif
@@ -1821,7 +1840,7 @@ _GL_WARN_ON_USE (vdprintf, "vdprintf is unportable - "
    and the possible failure causes from fwrite().  */
 _GL_FUNCDECL_SYS (vfzprintf, off64_t,
                   (FILE *restrict fp,
-                   const char *restrict format, va_list args)
+                   const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_SYS (vfzprintf, off64_t,
@@ -1842,13 +1861,13 @@ _GL_CXXALIAS_SYS (vfzprintf, off64_t,
 #  if @GNULIB_VFPRINTF_POSIX@
 _GL_FUNCDECL_RPL (vfprintf, int,
                   (FILE *restrict fp,
-                   const char *restrict format, va_list args)
+                   const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((1, 2)));
 #  else
 _GL_FUNCDECL_RPL (vfprintf, int,
                   (FILE *restrict fp,
-                   const char *restrict format, va_list args)
+                   const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_SYSTEM (2, 0)
                   _GL_ARG_NONNULL ((1, 2)));
 #  endif
@@ -1885,9 +1904,9 @@ _GL_WARN_ON_USE (vfprintf, "vfprintf is not always POSIX compliant - "
 #  endif
 _GL_FUNCDECL_RPL (vfscanf, int,
                   (FILE *restrict stream,
-                   const char *restrict format, va_list args)
+                   const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM (2, 0)
-                  _GL_ARG_NONNULL ((1, 2)));
+                  _GL_ARG_NONNULL ((1, 2)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (vfscanf, int,
                   (FILE *restrict stream,
                    const char *restrict format, va_list args));
@@ -1909,9 +1928,10 @@ _GL_CXXALIASWARN (vfscanf);
    Therefore, if the format string is valid and does not use %ls/%lc
    directives nor widths, the only possible failure causes are ENOMEM
    and the possible failure causes from fwrite().  */
-_GL_FUNCDECL_SYS (vzprintf, off64_t, (const char *restrict format, va_list args)
-                                     _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 0)
-                                     _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (vzprintf, off64_t,
+                  (const char *restrict format, va_list args),
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 0)
+                  _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_SYS (vzprintf, off64_t,
                   (const char *restrict format, va_list args));
 #endif
@@ -1927,11 +1947,11 @@ _GL_CXXALIAS_SYS (vzprintf, off64_t,
 #  endif
 #  define GNULIB_overrides_vprintf 1
 #  if @GNULIB_VPRINTF_POSIX@ || @GNULIB_VFPRINTF_POSIX@
-_GL_FUNCDECL_RPL (vprintf, int, (const char *restrict format, va_list args)
+_GL_FUNCDECL_RPL (vprintf, int, (const char *restrict format, va_list args),
                                 _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 0)
                                 _GL_ARG_NONNULL ((1)));
 #  else
-_GL_FUNCDECL_RPL (vprintf, int, (const char *restrict format, va_list args)
+_GL_FUNCDECL_RPL (vprintf, int, (const char *restrict format, va_list args),
                                 _GL_ATTRIBUTE_FORMAT_PRINTF_SYSTEM (1, 0)
                                 _GL_ARG_NONNULL ((1)));
 #  endif
@@ -1963,9 +1983,9 @@ _GL_WARN_ON_USE (vprintf, "vprintf is not always POSIX compliant - "
 #   undef vscanf
 #   define vscanf rpl_vscanf
 #  endif
-_GL_FUNCDECL_RPL (vscanf, int, (const char *restrict format, va_list args)
+_GL_FUNCDECL_RPL (vscanf, int, (const char *restrict format, va_list args),
                                _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM (1, 0)
-                               _GL_ARG_NONNULL ((1)));
+                               _GL_ARG_NONNULL ((1)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (vscanf, int, (const char *restrict format, va_list args));
 # else
 _GL_CXXALIAS_SYS (vscanf, int, (const char *restrict format, va_list args));
@@ -1986,7 +2006,7 @@ _GL_CXXALIASWARN (vscanf);
    directives nor widths, the only possible failure code is ENOMEM.  */
 _GL_FUNCDECL_SYS (vsnzprintf, ptrdiff_t,
                   (char *restrict str, size_t size,
-                   const char *restrict format, va_list args)
+                   const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (3, 0)
                   _GL_ARG_NONNULL ((3)));
 _GL_CXXALIAS_SYS (vsnzprintf, ptrdiff_t,
@@ -2007,7 +2027,7 @@ _GL_CXXALIAS_SYS (vsnzprintf, ptrdiff_t,
 #  define GNULIB_overrides_vsnprintf 1
 _GL_FUNCDECL_RPL (vsnprintf, int,
                   (char *restrict str, size_t size,
-                   const char *restrict format, va_list args)
+                   const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (3, 0)
                   _GL_ARG_NONNULL ((3)));
 _GL_CXXALIAS_RPL (vsnprintf, int,
@@ -2017,7 +2037,7 @@ _GL_CXXALIAS_RPL (vsnprintf, int,
 #  if !@HAVE_DECL_VSNPRINTF@
 _GL_FUNCDECL_SYS (vsnprintf, int,
                   (char *restrict str, size_t size,
-                   const char *restrict format, va_list args)
+                   const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (3, 0)
                   _GL_ARG_NONNULL ((3)));
 #  endif
@@ -2045,7 +2065,7 @@ _GL_WARN_ON_USE (vsnprintf, "vsnprintf is unportable - "
    directives nor widths, the only possible failure code is ENOMEM.  */
 _GL_FUNCDECL_SYS (vszprintf, ptrdiff_t,
                   (char *restrict str,
-                   const char *restrict format, va_list args)
+                   const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_SYS (vszprintf, ptrdiff_t,
@@ -2064,7 +2084,7 @@ _GL_CXXALIAS_SYS (vszprintf, ptrdiff_t,
 #  define GNULIB_overrides_vsprintf 1
 _GL_FUNCDECL_RPL (vsprintf, int,
                   (char *restrict str,
-                   const char *restrict format, va_list args)
+                   const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((1, 2)));
 _GL_CXXALIAS_RPL (vsprintf, int,

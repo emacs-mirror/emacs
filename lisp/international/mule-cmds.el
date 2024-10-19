@@ -737,7 +737,7 @@ DEFAULT is the coding system to use by default in the query."
 			  (format "string \"%s\"." from)
 			(format-message "buffer `%s'." bufname)))
 	    (insert
-	     "These default coding systems were tried to encode"
+	     "These default coding systems were tried to safely encode"
 	     (if (stringp from)
 		 (concat " \"" (if (> (length from) 10)
 				   (concat (substring from 0 10) "...\"")
@@ -758,9 +758,9 @@ e.g., for sending an email message.\n ")
 	      (insert (if rejected "The other coding systems"
 			"However, each of them")
 		      (substitute-command-keys
-		       " encountered characters it couldn't encode:\n"))
+		       " encountered characters it couldn't encode safely:\n"))
 	      (dolist (coding unsafe)
-		(insert (format "  %s cannot encode these:" (car coding)))
+		(insert (format "  %s cannot safely encode these:" (car coding)))
 		(let ((i 0)
 		      (func1
                        (lambda (bufname pos)
@@ -3108,10 +3108,11 @@ on encoding."
 	       ;; (#x4E00 . #x9FFF) CJK Unified Ideographs
 	       (#xA000 . #xD7FF)
 	       ;; (#xD800 . #xF8FF) Surrogate/Private
-	       (#xFB00 . #x134FF)
-	       ;; (#x13500 . #x143FF) unused
+	       (#xFB00 . #x143FA)
                (#x14400 . #x14646)
-	       ;; (#x14647 . #x167FF) unused
+	       ;; (#x14647 . #x160FF) unused
+               (#x16100 . #x16139)
+               ;; (#x1613A . #x167FF) unused
 	       (#x16800 . #x16F9F)
                (#x16FE0 . #x16FF1)
                ;; (#x17000 . #x187FF) Tangut Ideographs
@@ -3127,8 +3128,8 @@ on encoding."
                (#x1B170 . #x1B2FF)
 	       ;; (#x1B300 . #x1BBFF) unused
                (#x1BC00 . #x1BCAF)
-	       ;; (#x1BCB0 . #x1CEFF) unused
-	       (#x1CF00 . #x1FFFF)
+	       ;; (#x1BCB0 . #x1CBFF) unused
+               (#x1CC00 . #x1FFFF)
 	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unused
 	       (#xE0000 . #xE01FF)))
             (gc-cons-threshold (max gc-cons-threshold 10000000))

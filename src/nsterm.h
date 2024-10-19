@@ -1070,22 +1070,6 @@ struct x_output
                      styleMask:[[FRAME_NS_VIEW (f) window] styleMask]]) \
            - NSHeight([[[FRAME_NS_VIEW (f) window] contentView] frame])))
 
-/* Compute pixel size for vertical scroll bars.  */
-#define NS_SCROLL_BAR_WIDTH(f)						\
-  (FRAME_HAS_VERTICAL_SCROLL_BARS (f)					\
-   ? rint (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0			\
-	   ? FRAME_CONFIG_SCROLL_BAR_WIDTH (f)				\
-	   : (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)))	\
-   : 0)
-
-/* Compute pixel size for horizontal scroll bars.  */
-#define NS_SCROLL_BAR_HEIGHT(f)						\
-  (FRAME_HAS_HORIZONTAL_SCROLL_BARS (f)					\
-   ? rint (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) > 0			\
-	   ? FRAME_CONFIG_SCROLL_BAR_HEIGHT (f)				\
-	   : (FRAME_SCROLL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)))	\
-   : 0)
-
 /* Difference between char-column-calculated and actual SB widths.
    This is only a concern for rendering when SB on left.  */
 #define NS_SCROLL_BAR_ADJUST(w, f)				\

@@ -34,11 +34,12 @@
 #ifndef __cplusplus
 # if (201112 <= __STDC_VERSION__ \
       || (!defined __STRICT_ANSI__ \
-          && (4 < __GNUC__ + (6 <= __GNUC_MINOR__) || 5 <= __clang_major__)))
+          && ((4 < __GNUC__ + (6 <= __GNUC_MINOR__) && !defined __clang__) \
+              || 5 <= __clang_major__)))
 #  define _GL_HAVE__STATIC_ASSERT 1
 # endif
 # if (202311 <= __STDC_VERSION__ \
-      || (!defined __STRICT_ANSI__ && 9 <= __GNUC__))
+      || (!defined __STRICT_ANSI__ && 9 <= __GNUC__ && !defined __clang__))
 #  define _GL_HAVE__STATIC_ASSERT1 1
 # endif
 #endif
@@ -215,7 +216,7 @@ template <int w>
 # define _GL_VERIFY(R, DIAGNOSTIC, ...) \
     extern int (*_GL_GENSYM (_gl_verify_function) (void)) \
       [_GL_VERIFY_TRUE (R, DIAGNOSTIC)]
-# if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
+# if 4 < __GNUC__ + (6 <= __GNUC_MINOR__) && !defined __clang__
 #  pragma GCC diagnostic ignored "-Wnested-externs"
 # endif
 #endif
@@ -305,7 +306,7 @@ template <int w>
 #ifndef _GL_HAS_BUILTIN_UNREACHABLE
 # if defined __clang_major__ && __clang_major__ < 5
 #  define _GL_HAS_BUILTIN_UNREACHABLE 0
-# elif 4 < __GNUC__ + (5 <= __GNUC_MINOR__)
+# elif 4 < __GNUC__ + (5 <= __GNUC_MINOR__) && !defined __clang__
 #  define _GL_HAS_BUILTIN_UNREACHABLE 1
 # elif defined __has_builtin
 #  define _GL_HAS_BUILTIN_UNREACHABLE __has_builtin (__builtin_unreachable)

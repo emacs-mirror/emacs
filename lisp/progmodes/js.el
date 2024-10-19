@@ -62,7 +62,6 @@
   (require 'rx))
 
 (defvar ido-cur-list)
-(defvar electric-layout-rules)
 (declare-function ido-mode "ido" (&optional arg))
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -3861,11 +3860,14 @@ See `treesit-thing-settings' for more information.")
     "array"
     "function"
     "string"
+    "template_string"
+    "template_substitution"
     "escape"
     "template"
     "regex"
     "number"
     "identifier"
+    "property_identifier"
     "this"
     "super"
     "true"
@@ -3929,7 +3931,7 @@ See `treesit-thing-settings' for more information.")
                    (sexp ,(js--regexp-opt-symbol js--treesit-sexp-nodes))
                    (sentence ,(js--regexp-opt-symbol js--treesit-sentence-nodes))
                    (text ,(js--regexp-opt-symbol '("comment"
-                                                   "template_string"))))))
+                                                   "string_fragment"))))))
 
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
@@ -3946,7 +3948,9 @@ See `treesit-thing-settings' for more information.")
                    :embed 'jsdoc
                    :host 'javascript
                    :local t
-                   `(((comment) @capture (:match ,js--treesit-jsdoc-beginning-regexp @capture))))))
+                   `(((comment) @capture (:match ,js--treesit-jsdoc-beginning-regexp @capture)))))
+
+      (setq c-ts-common--comment-regexp (rx (or "comment" "line_comment" "block_comment" "description"))))
 
     ;; Imenu
     (setq-local treesit-simple-imenu-settings

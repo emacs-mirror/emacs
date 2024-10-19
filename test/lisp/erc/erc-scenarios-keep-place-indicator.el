@@ -125,11 +125,10 @@
         (save-excursion
           (goto-char (window-point))
           (should (looking-back (rx "you can cog")))
-          (should (= (pos-bol) (window-start)))
-          (should (= (overlay-start erc--keep-place-indicator-overlay)
-                     (pos-bol)))))
+          (should (= (pos-bol) (window-start)
+                     (overlay-start erc--keep-place-indicator-overlay)))))
 
-      (ert-info ("description")
+      (ert-info ("Point formerly at prompt resides at last arrived message")
         (erc-send-input-line "#spam" "three")
         (save-excursion (erc-d-t-search-for 10 "Ready"))
         (switch-to-buffer "#spam")
