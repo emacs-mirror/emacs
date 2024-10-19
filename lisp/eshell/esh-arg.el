@@ -271,15 +271,21 @@ would produce (\"abc\" \"d\")."
          (t
           (setq result (eshell-concat-1 quoted result i))))))))
 
+(defsubst eshell--numberlike-p (object)
+  (or (numberp object)
+      (and (stringp object) (get-text-property 0 'number object))))
+
 (defun eshell-concat-1 (quoted first second)
   "Concatenate FIRST and SECOND.
-If QUOTED is nil and either FIRST or SECOND are numbers, try to
-convert the result to a number as well."
+If QUOTED is nil and either FIRST or SECOND are numberlike, try to mark
+the result as a number as well."
   (let ((result (concat (eshell-stringify first) (eshell-stringify second))))
-    (if (and (not quoted)
-             (or (numberp first) (numberp second)))
-        (eshell-convert-to-number result)
-      result)))
+    (remove-text-properties 0 (length result) '(number) result)
+    (when (and (not quoted)
+               (or (eshell--numberlike-p first)
+                   (eshell--numberlike-p second)))
+      (eshell-mark-numeric-string result))
+    result))
 
 (defun eshell-concat-groups (quoted &rest args)
   "Concatenate groups of arguments in ARGS and return the result.

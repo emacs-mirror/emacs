@@ -66,70 +66,70 @@
   "Test that `eshell-stringify' correctly stringifies complex objects."
   (should (equal (eshell-stringify (list 'quote 'hello)) "'hello")))
 
-(ert-deftest esh-util-test/eshell-convert-to-number/integer ()
-  "Test that `eshell-convert-to-number' correctly converts integers."
-  (should (equal (eshell-convert-to-number "123") 123))
-  (should (equal (eshell-convert-to-number "-123") -123))
+(ert-deftest esh-util-test/eshell-convertible-to-number-p/integer ()
+  "Test that `eshell-convertible-to-number-p' matches integers."
+  (should (eshell-convertible-to-number-p "123"))
+  (should (eshell-convertible-to-number-p "-123"))
   ;; These are technially integers, since Emacs Lisp requires at least
   ;; one digit after the "." to be a float:
-  (should (equal (eshell-convert-to-number "123.") 123))
-  (should (equal (eshell-convert-to-number "-123.") -123)))
+  (should (eshell-convertible-to-number-p "123."))
+  (should (eshell-convertible-to-number-p "-123.")))
 
-(ert-deftest esh-util-test/eshell-convert-to-number/floating-point ()
-  "Test that `eshell-convert-to-number' correctly converts floats."
-  (should (equal (eshell-convert-to-number "1.23") 1.23))
-  (should (equal (eshell-convert-to-number "-1.23") -1.23))
-  (should (equal (eshell-convert-to-number ".1") 0.1))
-  (should (equal (eshell-convert-to-number "-.1") -0.1)))
+(ert-deftest esh-util-test/eshell-convertible-to-number-p/float ()
+  "Test that `eshell-convertible-to-number-p' matches floats."
+  (should (eshell-convertible-to-number-p "1.23"))
+  (should (eshell-convertible-to-number-p "-1.23"))
+  (should (eshell-convertible-to-number-p ".1"))
+  (should (eshell-convertible-to-number-p "-.1")))
 
-(ert-deftest esh-util-test/eshell-convert-to-number/floating-point-exponent ()
-  "Test that `eshell-convert-to-number' correctly converts exponent notation."
+(ert-deftest esh-util-test/eshell-convertible-to-number-p/float-exponent ()
+  "Test that `eshell-convertible-to-number-p' matches exponent notation."
   ;; Positive exponent:
   (dolist (exp '("e2" "e+2" "E2" "E+2"))
-    (should (equal (eshell-convert-to-number (concat "123" exp)) 12300.0))
-    (should (equal (eshell-convert-to-number (concat "-123" exp)) -12300.0))
-    (should (equal (eshell-convert-to-number (concat "1.23" exp)) 123.0))
-    (should (equal (eshell-convert-to-number (concat "-1.23" exp)) -123.0))
-    (should (equal (eshell-convert-to-number (concat "1." exp)) 100.0))
-    (should (equal (eshell-convert-to-number (concat "-1." exp)) -100.0))
-    (should (equal (eshell-convert-to-number (concat ".1" exp)) 10.0))
-    (should (equal (eshell-convert-to-number (concat "-.1" exp)) -10.0)))
+    (should (eshell-convertible-to-number-p (concat "123" exp)))
+    (should (eshell-convertible-to-number-p (concat "-123" exp)))
+    (should (eshell-convertible-to-number-p (concat "1.23" exp)))
+    (should (eshell-convertible-to-number-p (concat "-1.23" exp)))
+    (should (eshell-convertible-to-number-p (concat "1." exp)))
+    (should (eshell-convertible-to-number-p (concat "-1." exp)))
+    (should (eshell-convertible-to-number-p (concat ".1" exp)))
+    (should (eshell-convertible-to-number-p (concat "-.1" exp))))
   ;; Negative exponent:
   (dolist (exp '("e-2" "E-2"))
-    (should (equal (eshell-convert-to-number (concat "123" exp)) 1.23))
-    (should (equal (eshell-convert-to-number (concat "-123" exp)) -1.23))
-    (should (equal (eshell-convert-to-number (concat "1.23" exp)) 0.0123))
-    (should (equal (eshell-convert-to-number (concat "-1.23" exp)) -0.0123))
-    (should (equal (eshell-convert-to-number (concat "1." exp)) 0.01))
-    (should (equal (eshell-convert-to-number (concat "-1." exp)) -0.01))
-    (should (equal (eshell-convert-to-number (concat ".1" exp)) 0.001))
-    (should (equal (eshell-convert-to-number (concat "-.1" exp)) -0.001))))
+    (should (eshell-convertible-to-number-p (concat "123" exp)))
+    (should (eshell-convertible-to-number-p (concat "-123" exp)))
+    (should (eshell-convertible-to-number-p (concat "1.23" exp)))
+    (should (eshell-convertible-to-number-p (concat "-1.23" exp)))
+    (should (eshell-convertible-to-number-p (concat "1." exp)))
+    (should (eshell-convertible-to-number-p (concat "-1." exp)))
+    (should (eshell-convertible-to-number-p (concat ".1" exp)))
+    (should (eshell-convertible-to-number-p (concat "-.1" exp)))))
 
-(ert-deftest esh-util-test/eshell-convert-to-number/floating-point/infinite ()
-  "Test that `eshell-convert-to-number' correctly converts infinite floats."
-  (should (equal (eshell-convert-to-number "1.0e+INF") 1.0e+INF))
-  (should (equal (eshell-convert-to-number "2.e+INF") 1.0e+INF))
-  (should (equal (eshell-convert-to-number "-1.0e+INF") -1.0e+INF))
-  (should (equal (eshell-convert-to-number "-2.e+INF") -1.0e+INF)))
+(ert-deftest esh-util-test/eshell-convertible-to-number-p/float/infinite ()
+  "Test that `eshell-convertible-to-number-p' matches infinite floats."
+  (should (eshell-convertible-to-number-p "1.0e+INF"))
+  (should (eshell-convertible-to-number-p "2.e+INF"))
+  (should (eshell-convertible-to-number-p "-1.0e+INF"))
+  (should (eshell-convertible-to-number-p "-2.e+INF")))
 
-(ert-deftest esh-util-test/eshell-convert-to-number/floating-point/nan ()
-  "Test that `eshell-convert-to-number' correctly converts NaNs."
-  (should (equal (eshell-convert-to-number "1.0e+NaN") 1.0e+NaN))
-  (should (equal (eshell-convert-to-number "2.e+NaN") 2.0e+NaN))
-  (should (equal (eshell-convert-to-number "-1.0e+NaN") -1.0e+NaN))
-  (should (equal (eshell-convert-to-number "-2.e+NaN") -2.0e+NaN)))
+(ert-deftest esh-util-test/eshell-convertible-to-number-p/float/nan ()
+  "Test that `eshell-convertible-to-number-p' matches NaNs."
+  (should (eshell-convertible-to-number-p "1.0e+NaN"))
+  (should (eshell-convertible-to-number-p "2.e+NaN"))
+  (should (eshell-convertible-to-number-p "-1.0e+NaN"))
+  (should (eshell-convertible-to-number-p "-2.e+NaN")))
 
-(ert-deftest esh-util-test/eshell-convert-to-number/non-numeric ()
-  "Test that `eshell-convert-to-number' does nothing to non-numeric values."
-  (should (equal (eshell-convert-to-number "foo") "foo"))
-  (should (equal (eshell-convert-to-number "") ""))
-  (should (equal (eshell-convert-to-number "123foo") "123foo")))
+(ert-deftest esh-util-test/eshell-convertible-to-number-p/non-numeric ()
+  "Test that `eshell-convertible-to-number-p' returns nil for non-numerics."
+  (should-not (eshell-convertible-to-number-p "foo"))
+  (should-not (eshell-convertible-to-number-p ""))
+  (should-not (eshell-convertible-to-number-p "123foo")))
 
-(ert-deftest esh-util-test/eshell-convert-to-number/no-convert ()
-  "Test that `eshell-convert-to-number' does nothing when disabled."
+(ert-deftest esh-util-test/eshell-convertible-to-number-p/no-convert ()
+  "Test that `eshell-convertible-to-number-p' returns nil when disabled."
   (let ((eshell-convert-numeric-arguments nil))
-    (should (equal (eshell-convert-to-number "123") "123"))
-    (should (equal (eshell-convert-to-number "1.23") "1.23"))))
+    (should-not (eshell-convertible-to-number-p "123"))
+    (should-not (eshell-convertible-to-number-p "1.23"))))
 
 (ert-deftest esh-util-test/eshell-printable-size ()
   (should (equal (eshell-printable-size (expt 2 16)) "65536"))

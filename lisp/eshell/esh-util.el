@@ -343,11 +343,22 @@ If `eshell-convert-numeric-arguments', always return nil."
         (concat "\\`\\s-*" eshell-number-regexp "\\s-*\\'")
         string)))
 
+(defsubst eshell--do-mark-numeric-string (string)
+  (put-text-property 0 (length string) 'number t string))
+
+(defun eshell-mark-numeric-string (string)
+  "If STRING is convertible to a number, add a text property indicating so.
+See `eshell-convertible-to-number-p'."
+  (when (eshell-convertible-to-number-p string)
+    (eshell--do-mark-numeric-string string))
+  string)
+
 (defun eshell-convert-to-number (string)
   "Try to convert STRING to a number.
 If STRING doesn't look like a number (or
 `eshell-convert-numeric-arguments' is nil), just return STRING
 unchanged."
+  (declare (obsolete 'eshell-mark-numeric-string "31.1"))
   (if (eshell-convertible-to-number-p string)
       (string-to-number string)
     string))
@@ -376,10 +387,10 @@ trailing newlines removed.  Otherwise, this behaves as follows:
 	    (setq string (substring string 0 (1- len))))
           (if (string-search "\n" string)
               (let ((lines (split-string string "\n")))
-                (if (seq-every-p #'eshell-convertible-to-number-p lines)
-                    (mapcar #'string-to-number lines)
-                  lines))
-            (eshell-convert-to-number string)))))))
+                (when (seq-every-p #'eshell-convertible-to-number-p lines)
+                  (mapc #'eshell--do-mark-numeric-string lines))
+                lines)
+            (eshell-mark-numeric-string string)))))))
 
 (defvar-local eshell-path-env (getenv "PATH")
   "Content of $PATH.
