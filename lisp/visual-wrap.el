@@ -165,9 +165,12 @@ PREFIX was empty."
     ;; first-line prefix.
     (let ((avg-space (propertize (buffer-substring position (1+ position))
                                  'display '(space :width 1))))
-        (max (string-width prefix)
-             (ceiling (string-pixel-width prefix (current-buffer))
-                      (string-pixel-width avg-space (current-buffer))))))))
+      ;; Remove any `min-width' display specs since we'll replace with
+      ;; our own later in `visual-wrap--apply-to-line' (bug#73882).
+      (add-display-text-property 0 (length prefix) 'min-width nil prefix)
+      (max (string-width prefix)
+           (ceiling (string-pixel-width prefix (current-buffer))
+                    (string-pixel-width avg-space (current-buffer))))))))
 
 (defun visual-wrap-fill-context-prefix (beg end)
   "Compute visual wrap prefix from text between BEG and END.
