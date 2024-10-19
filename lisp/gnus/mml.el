@@ -1039,6 +1039,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     (message-remove-header "Content-Transfer-Encoding")))
 
 (autoload 'message-encode-message-body "message")
+(autoload 'message-narrow-to-headers-or-head "message")
 (declare-function message-narrow-to-headers-or-head "message" ())
 
 ;;;###autoload
