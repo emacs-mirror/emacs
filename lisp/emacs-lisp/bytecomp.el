@@ -2582,7 +2582,7 @@ Call from the source buffer."
               byte-compile-jump-tables nil))))
 
 (defun byte-compile-preprocess (form &optional _for-effect)
-  (setq form (macroexpand-all form byte-compile-macro-environment))
+  (setq form (macroexpand-all form byte-compile-macro-environment t))
   ;; FIXME: We should run byte-optimize-form here, but it currently does not
   ;; recurse through all the code, so we'd have to fix this first.
   ;; Maybe a good fix would be to merge byte-optimize-form into

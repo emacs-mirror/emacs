@@ -238,22 +238,85 @@ It should normally be a symbol with position and it defaults to FORM."
                 form))))))))
    (t form)))
 
+(defun sub-macroexp--posify-form (form call-pos depth)
+  "Try to apply the transformation of `macroexp--posify-form' to FORM.
+FORM and CALL-POS are as in that function.  DEPTH is a small integer,
+decremented at each recursive call, to prevent infinite recursion.
+Return the changed form, or nil if no change happened."
+  (let (new-form)
+    (cond
+     ((zerop depth) nil)
+     ((and (consp form)
+           (symbolp (car form))
+           (car form))
+      (setcar form (position-symbol (car form) call-pos))
+      form)
+     ((consp form)
+      (or (when (setq new-form (sub-macroexp--posify-form
+                                (car form) call-pos (1- depth)))
+            (setcar form new-form)
+            form)
+          (when (setq new-form (sub-macroexp--posify-form
+                                (cdr form) call-pos (1- depth)))
+            (setcdr form new-form)
+            form)))
+     ((symbolp form)
+      (if form                          ; Don't position nil!
+          (position-symbol form call-pos)))
+     ((and (or (vectorp form) (recordp form)))
+      (let ((len (length form))
+            (i 0)
+            )
+        (while (and (< i len)
+                    (not (setq new-form (sub-macroexp--posify-form
+                                         (aref form i) call-pos (1- depth)))))
+          (setq i (1+ i)))
+        (when (< i len)
+          (aset form i new-form)
+          form))))))
+
+(defun macroexp--posify-form (form call-pos)
+  "Try to apply the position CALL-POS to the form FORM.
+CALL-POS is a buffer position, a number.  FORM may be any lisp form,
+and is typically the output form returned by macro expansion.
+Apply CALL-POS to FORM as a symbol with position, such that
+`byte-compile--first-symbol-with-pos' can later return it.  Return
+the possibly modified FORM."
+  (let ((new-form (sub-macroexp--posify-form form call-pos 10)))
+    (or new-form form)))
+
+(defmacro macroexp-preserve-posification (pos-form &rest body)
+  "Evaluate BODY..., posifying the result with POS-FORM's position, if any."
+  `(let ((call-pos (cond
+                    ((consp ,pos-form)
+                     (and (symbol-with-pos-p (car ,pos-form))
+                          (symbol-with-pos-pos (car ,pos-form))))
+                    ((symbol-with-pos-p ,pos-form)
+                     (symbol-with-pos-pos ,pos-form))))
+         (new-value (progn ,@body)))
+     (if call-pos
+         (macroexp--posify-form new-value call-pos)
+       new-value)))
+
 (defun macroexp-macroexpand (form env)
   "Like `macroexpand' but checking obsolescence."
   (let* ((macroexpand-all-environment env)
          new-form)
-    (while (not (eq form (setq new-form (macroexpand-1 form env))))
-      (let ((fun (car-safe form)))
-        (setq form
-              (if (and fun (symbolp fun)
-                       (get fun 'byte-obsolete-info))
-                  (macroexp-warn-and-return
-                   (macroexp--obsolete-warning
-                    fun (get fun 'byte-obsolete-info)
-                    (if (symbolp (symbol-function fun)) "alias" "macro"))
-                   new-form (list 'obsolete fun) nil fun)
-                new-form))))
-    form))
+    (macroexp-preserve-posification
+     form
+     (while (not (eq form (setq new-form (macroexpand-1 form env))))
+       (setq macroexpanded t)
+       (let ((fun (car-safe form)))
+         (setq form
+               (if (and fun (symbolp fun)
+                        (get fun 'byte-obsolete-info))
+                   (macroexp-warn-and-return
+                    (macroexp--obsolete-warning
+                     fun (get fun 'byte-obsolete-info)
+                     (if (symbolp (symbol-function fun)) "alias" "macro"))
+                    new-form (list 'obsolete fun) nil fun)
+                 new-form))))
+     new-form)))
 
 (defun macroexp--unfold-lambda (form &optional name)
   (or name (setq name "anonymous lambda"))
@@ -517,14 +580,21 @@ Assumes the caller has bound `macroexpand-all-environment'."
             (_ form))))))
 
 ;;;###autoload
-(defun macroexpand-all (form &optional environment)
+(defun macroexpand-all (form &optional environment keep-pos)
   "Return result of expanding macros at all levels in FORM.
-If no macros are expanded, FORM is returned unchanged.
-The second optional arg ENVIRONMENT specifies an environment of macro
-definitions to shadow the loaded ones for use in file byte-compilation."
-  (let ((macroexpand-all-environment environment)
+If no macros are expanded, FORM is returned unchanged.  The second
+optional arg ENVIRONMENT specifies an environment of macro definitions
+to shadow the loaded ones for use in file byte-compilation.  KEEP-POS,
+if non-nil, specifies that any symbol-with-position for FORM should be
+preserved, later to be usable by `byte-compile--warning-source-offset'."
+  (let*
+      ((macroexpand-all-environment environment)
         (macroexp--dynvars macroexp--dynvars))
-    (macroexp--expand-all form)))
+    (if keep-pos
+        (macroexp-preserve-posification
+         form
+         (macroexp--expand-all form))
+      (macroexp--expand-all form))))
 
 ;; This function is like `macroexpand-all' but for use with top-level
 ;; forms.  It does not dynbind `macroexp--dynvars' because we want
