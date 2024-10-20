@@ -53,8 +53,6 @@ yield the values intended."
 (defvar eshell-current-quoted nil)
 (defvar eshell-current-argument-plain nil
   "If non-nil, the current argument is \"plain\", and not part of a command.")
-(defvar eshell-inside-quote-regexp nil)
-(defvar eshell-outside-quote-regexp nil)
 
 ;;; User Variables:
 
@@ -177,12 +175,23 @@ Eshell will expand special refs like \"#<ARG...>\" into
 (defun eshell-arg-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the argument parsing code."
   (eshell-arg-mode)
-  (setq-local eshell-inside-quote-regexp nil)
-  (setq-local eshell-outside-quote-regexp nil)
-
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
               #'eshell-complete-special-reference nil t)))
+
+(defvar eshell--non-special-inside-quote-regexp nil)
+(defsubst eshell--non-special-inside-quote-regexp ()
+  (or eshell--non-special-inside-quote-regexp
+      (setq-local eshell--non-special-inside-quote-regexp
+                  (rx-to-string
+                   `(+ (not (any ,@eshell-special-chars-inside-quoting))) t))))
+
+(defvar eshell--non-special-outside-quote-regexp nil)
+(defsubst eshell--non-special-outside-quote-regexp ()
+  (or eshell--non-special-outside-quote-regexp
+      (setq-local eshell--non-special-outside-quote-regexp
+                  (rx-to-string
+                   `(+ (not (any ,@eshell-special-chars-outside-quoting))) t))))
 
 (defsubst eshell-escape-arg (string)
   "Return STRING with the `escaped' property on it."
@@ -422,17 +431,9 @@ their numeric values."
 
 (defun eshell-parse-non-special ()
   "Parse any non-special characters, depending on the current context."
-  (unless eshell-inside-quote-regexp
-    (setq eshell-inside-quote-regexp
-          (format "[^%s]+"
-                  (apply 'string eshell-special-chars-inside-quoting))))
-  (unless eshell-outside-quote-regexp
-    (setq eshell-outside-quote-regexp
-          (format "[^%s]+"
-                  (apply 'string eshell-special-chars-outside-quoting))))
   (when (looking-at (if eshell-current-quoted
-                        eshell-inside-quote-regexp
-                      eshell-outside-quote-regexp))
+                        (eshell--non-special-inside-quote-regexp)
+                      (eshell--non-special-outside-quote-regexp)))
     (goto-char (match-end 0))
     (let ((str (match-string 0)))
       (when str
