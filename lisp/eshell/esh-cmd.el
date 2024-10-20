@@ -488,7 +488,7 @@ command hooks should be run before and after the command."
           (grouped-terms (eshell-prepare-splice terms)))
       (cond
        (grouped-terms
-        `(let ((new-terms (nconc ,@grouped-terms)))
+        `(let ((new-terms (append ,@grouped-terms)))
            (,sym (car new-terms) (cdr new-terms))))
        ;; If no terms are spliced, use a simpler command form.
        ((cdr terms)

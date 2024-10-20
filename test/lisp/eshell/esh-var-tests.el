@@ -217,7 +217,8 @@ nil, use FUNCTION instead."
   "Splice-interpolate list variable."
   (let ((eshell-test-value '(1 2 3)))
     (eshell-command-result-equal "echo a $@eshell-test-value z"
-                                 '("a" 1 2 3 "z"))))
+                                 '("a" 1 2 3 "z"))
+    (should (equal eshell-test-value '(1 2 3)))))
 
 (ert-deftest esh-var-test/interp-var-splice-concat ()
   "Splice-interpolate and concat list variable."
@@ -428,7 +429,8 @@ nil, use FUNCTION instead."
   "Splice-interpolate list variable inside double-quotes."
   (let ((eshell-test-value '(1 2 3)))
     (eshell-command-result-equal "echo a \"$@eshell-test-value\" z"
-                                 '("a" "1 2 3" "z"))))
+                                 '("a" "1 2 3" "z"))
+    (should (equal eshell-test-value '(1 2 3)))))
 
 (ert-deftest esh-var-test/quoted-interp-var-splice-concat ()
   "Splice-interpolate and concat list variable inside double-quotes"
