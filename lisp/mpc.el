@@ -883,11 +883,6 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 (defun mpc-cmd-tagtypes ()
   (mapcar #'cdr (mpc-proc-cmd-to-alist "tagtypes")))
 
-(defun mpc-cmd-crossfade (&optional arg)
-  "Set duration of crossfade to `mpc-crossfade-time' or ARG seconds."
-  (mpc-proc-cmd (list "crossfade" (or arg mpc-crossfade-time))
-                #'mpc-status-refresh))
-
 ;; This was never integrated into MPD.
 ;; (defun mpc-cmd-download (file)
 ;;   (with-current-buffer (generate-new-buffer " *mpc download*")
@@ -927,6 +922,11 @@ If PLAYLIST is t or nil or missing, use the main playlist."
   "Number of seconds to crossfade between songs."
   :version "31.1"
   :type 'natnum)
+
+(defun mpc-cmd-crossfade (&optional arg)
+  "Set duration of crossfade to `mpc-crossfade-time' or ARG seconds."
+  (mpc-proc-cmd (list "crossfade" (or arg mpc-crossfade-time))
+                #'mpc-status-refresh))
 
 (defun mpc-data-directory ()
   (unless (file-directory-p mpc-data-directory)
