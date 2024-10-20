@@ -556,6 +556,15 @@ If called interactively, visit the version at point."
          ;; to be more robust than the approach taken by
          ;; `log-view-extract-comment'.  Then we can delete the latter.
          ;; See discussion in bug#64055.  --spwhitton
+         ;;
+         ;; FIXME: We should implement backend actions
+         ;; `get-change-comment' and `modify-change-comment' for Git,
+         ;; bzr and Hg, so that this command works for those backends.
+         ;; As discussed in bug#64055, get-change-comment is required,
+         ;; and parsing the old comment out of the Log View buffer will
+         ;; not do.  This is because for these backends there are
+         ;; `vc-*-log-switches' variables which can change what gets put
+         ;; in the Log View buffers and break any Lisp parsing attempt.
          (comment (condition-case _
                       (vc-call-backend log-view-vc-backend
                                        'get-change-comment files rev)
