@@ -353,6 +353,12 @@ See `eshell-convertible-to-number-p'."
     (eshell--do-mark-numeric-string string))
   string)
 
+(defsubst eshell--numeric-string-p (string)
+  "Return non-nil if STRING has been marked as numeric."
+  (and (stringp string)
+       (length> string 0)
+       (not (text-property-not-all 0 (length string) 'number t string))))
+
 (defun eshell-convert-to-number (string)
   "Try to convert STRING to a number.
 If STRING doesn't look like a number (or
@@ -377,7 +383,7 @@ trailing newlines removed.  Otherwise, this behaves as follows:
   (cond
    ((not (stringp string))
     (if to-string
-        (eshell-stringify string)
+        (eshell-stringify string t)
       string))
    (to-string (string-trim-right string "\n+"))
    (t (let ((len (length string)))
@@ -499,25 +505,27 @@ Prepend remote identification of `default-directory', if any."
 
 (define-obsolete-function-alias 'eshell-flatten-list #'flatten-tree "27.1")
 
-(defun eshell-stringify (object)
+(defun eshell-stringify (object &optional quoted)
   "Convert OBJECT into a string value."
   (cond
    ((stringp object) object)
    ((numberp object)
-    (number-to-string object))
+    (if quoted
+        (number-to-string object)
+      (propertize (number-to-string object) 'number t)))
    ((and (eq object t)
 	 (not eshell-stringify-t))
     nil)
    (t
     (string-trim-right (pp-to-string object)))))
 
-(defsubst eshell-stringify-list (args)
+(defsubst eshell-stringify-list (args &optional quoted)
   "Convert each element of ARGS into a string value."
-  (mapcar #'eshell-stringify args))
+  (mapcar (lambda (i) (eshell-stringify i quoted)) args))
 
 (defsubst eshell-list-to-string (list)
   "Convert LIST into a single string separated by spaces."
-  (mapconcat #'eshell-stringify list " "))
+  (mapconcat (lambda (i) (eshell-stringify i t)) list " "))
 
 (defsubst eshell-flatten-and-stringify (&rest args)
   "Flatten and stringify all of the ARGS into a single string."

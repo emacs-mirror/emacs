@@ -1577,9 +1577,7 @@ a string naming a Lisp function."
                     (while args
                       (let ((arg (car args)))
                         (cond
-                         ((and numeric (stringp arg) (> (length arg) 0)
-                               (text-property-any 0 (length arg)
-                                                  'number t arg))
+                         ((and numeric (eshell--numeric-string-p arg))
                           ;; If any of the arguments are flagged as
                           ;; numbers waiting for conversion, convert
                           ;; them now.

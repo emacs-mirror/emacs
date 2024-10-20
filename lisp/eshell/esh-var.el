@@ -495,7 +495,7 @@ process any indices that come after the variable reference."
       (if splice
           (setq value `(eshell-list-to-string ,value)
                 splice nil)
-        (setq value `(eshell-stringify ,value))))
+        (setq value `(eshell-stringify ,value t))))
     (setq value `(eshell-escape-arg ,value))
     (when splice
       (setq value `(eshell-splice-args ,value)))
