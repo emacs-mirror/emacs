@@ -550,6 +550,12 @@ If called interactively, visit the version at point."
          (rev (log-view-current-tag))
          ;; `log-view-extract-comment' is the legacy code for this; the
          ;; `get-change-comment' backend action is the new way to do it.
+         ;;
+         ;; FIXME: Eventually the older backends should have
+         ;; implementations of `get-change-comment' because that ought
+         ;; to be more robust than the approach taken by
+         ;; `log-view-extract-comment'.  Then we can delete the latter.
+         ;; See discussion in bug#64055.  --spwhitton
          (comment (condition-case _
                       (vc-call-backend log-view-vc-backend
                                        'get-change-comment files rev)
