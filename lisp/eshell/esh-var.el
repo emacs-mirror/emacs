@@ -607,8 +607,6 @@ Possible variable references are:
    (t
     (error "Invalid variable reference"))))
 
-(defvar eshell-glob-function)
-
 (defun eshell-parse-indices ()
   "Parse and return a list of index-lists.
 This produces a series of Lisp forms to be processed by
@@ -625,7 +623,7 @@ For example, \"[0 1][2]\" becomes:
 	  (forward-char)
           (eshell-with-temp-command (or (eshell-unescape-inner-double-quote end)
                                         (cons (point) end))
-	    (let (eshell-glob-function (eshell-current-quoted nil))
+	    (let ((eshell-current-quoted nil))
 	      (setq indices (cons (eshell-parse-arguments
                                    (point-min) (point-max))
 				  indices))))
