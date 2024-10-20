@@ -370,7 +370,7 @@ buffer.")
   "Non-nil when file has been modified on the file system.
 This has been reported by a file notification event.")
 
-(defvar-local auto-revert--last-time nil
+(defvar-local auto-revert--last-time 0 ;; Epoch.
   "The last time of buffer was reverted.")
 
 (defvar auto-revert-debug nil
@@ -752,16 +752,15 @@ system.")
               ;; Mark buffer modified.
               (setq auto-revert-notify-modified-p t)
 
-              ;; Lock out the buffer
+              ;; Lock out the buffer.
               (unless auto-revert--lockout-timer
                 (setq auto-revert--lockout-timer
                       (run-with-timer
                        auto-revert--lockout-interval nil
                        #'auto-revert--end-lockout buffer))
-                ;; Revert it when first entry or it was reverted intervals ago
-                (when (or (null auto-revert--last-time)
-                          (> (float-time (time-since auto-revert--last-time))
-                             auto-revert--lockout-interval))
+                ;; Revert it when first entry or it was reverted intervals ago.
+                (when (> (float-time (time-since auto-revert--last-time))
+                         auto-revert--lockout-interval)
                   (auto-revert-handler))))))))))
 
 (defun auto-revert--end-lockout (buffer)
