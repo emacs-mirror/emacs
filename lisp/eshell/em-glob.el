@@ -149,23 +149,48 @@ This mimics the behavior of zsh if non-nil, but bash if nil."
   "Don't glob the command argument.  Reflect this by modifying TERMS."
   (ignore
    (pcase (car terms)
-     ((or `(eshell-extended-glob ,term)
-          `(eshell-splice-args (eshell-extended-glob ,term)))
+     ((or `(eshell-expand-glob ,term)
+          `(eshell-splice-args (eshell-expand-glob ,term)))
       (setcar terms term)))))
 
 (defun eshell-add-glob-modifier ()
-  "Add `eshell-extended-glob' to the argument modifier list."
+  "Add `eshell-expand-glob' to the argument modifier list."
   (when eshell-glob-splice-results
     (add-hook 'eshell-current-modifiers #'eshell-splice-args 99))
-  (add-hook 'eshell-current-modifiers #'eshell-extended-glob))
+  (add-hook 'eshell-current-modifiers #'eshell-expand-glob))
 
 (defun eshell-parse-glob-chars ()
-  "Parse a globbing delimiter.
-The character is not advanced for ordinary globbing characters, so
-that other function may have a chance to override the globbing
-interpretation."
+  "Parse a globbing character."
   (when (memq (char-after) eshell-glob-chars-list)
-    (ignore (eshell-add-glob-modifier))))
+    (eshell-add-glob-modifier)
+    (prog1
+        (propertize (char-to-string (char-after)) 'eshell-glob-char t)
+      (forward-char))))
+
+(defvar eshell-glob-chars-regexp nil)
+(defsubst eshell-glob-chars-regexp ()
+  "Return the lazily-created value for `eshell-glob-chars-regexp'."
+  (or eshell-glob-chars-regexp
+      (setq-local eshell-glob-chars-regexp
+                  (rx-to-string `(+ (any ,@eshell-glob-chars-list)) t))))
+
+(defun eshell-parse-glob-string (glob)
+  "Add text properties to glob characters in GLOB and return the result."
+  (let ((regexp (rx-to-string
+                 `(or (seq (group-n 1 "\\") anychar)
+                      (group-n 2 (regexp ,(eshell-glob-chars-regexp))))
+                 t)))
+    (with-temp-buffer
+      (insert glob)
+      (goto-char (point-min))
+      (while (re-search-forward regexp nil t)
+        (cond
+         ((match-beginning 1)           ; Remove backslash escape.
+          (delete-region (match-beginning 1) (match-end 1)))
+         ((match-beginning 2)           ; Propertize globbing character.
+          (put-text-property (match-beginning 2) (match-end 2)
+                             'eshell-glob-char t))))
+      (buffer-string))))
 
 (defvar eshell-glob-matches)
 (defvar message-shown)
@@ -174,12 +199,16 @@ interpretation."
   '(("**/" . recurse)
     ("***/" . recurse-symlink)))
 
-(defvar eshell-glob-chars-regexp nil)
-(defsubst eshell-glob-chars-regexp ()
-  "Return the lazily-created value for `eshell-glob-chars-regexp'."
-  (or eshell-glob-chars-regexp
-      (setq-local eshell-glob-chars-regexp
-                  (rx-to-string `(+ (any ,@eshell-glob-chars-list)) t))))
+(defsubst eshell--glob-char-p (string index)
+  (get-text-property index 'eshell-glob-char string))
+
+(defsubst eshell--contains-glob-char-p (string)
+  (text-property-any 0 (length string) 'eshell-glob-char t string))
+
+(defun eshell--all-glob-chars-p (string)
+  (and (length> string 0)
+       (not (text-property-not-all
+             0 (length string) 'eshell-glob-char t string))))
 
 (defun eshell-glob-regexp (pattern)
   "Convert glob-pattern PATTERN to a regular expression.
@@ -196,9 +225,10 @@ The basic syntax is:
   [a-b]  [a-b]   matches a character or range
   [^a]   [^a]    excludes a character or range
 
-If any characters in PATTERN have the text property `escaped'
-set to true, then these characters will match themselves in the
-resulting regular expression."
+This function only considers in PATTERN that have the text property
+`eshell-glob-char' set to t for conversion from glob to regexp syntax.
+All other characters are treated as literals.  See also
+`eshell-parse-glob-chars' and `eshell-parse-glob-string'."
   (let ((matched-in-pattern 0)          ; How much of PATTERN handled
 	regexp)
     (while (string-match (eshell-glob-chars-regexp)
@@ -209,7 +239,7 @@ resulting regular expression."
 	      (concat regexp
 		      (regexp-quote
 		       (substring pattern matched-in-pattern op-begin))))
-	(if (get-text-property op-begin 'escaped pattern)
+	(if (not (eshell--glob-char-p pattern op-begin))
 	    (setq regexp (concat regexp
 				 (regexp-quote (char-to-string op-char)))
 		  matched-in-pattern (1+ op-begin))
@@ -229,6 +259,7 @@ resulting regular expression."
 
 (defun eshell-glob-p (pattern)
   "Return non-nil if PATTERN has any special glob characters."
+  (declare (obsolete nil "31.1"))
   ;; "~" is an infix globbing character, so one at the start of a glob
   ;; must be a literal.
   (let ((start (if (string-prefix-p "~" pattern) 1 0)))
@@ -249,8 +280,8 @@ include, and the second for ones to exclude."
     ;; Split the glob if it contains a negation like x~y.
     (while (and (eq incl glob)
                 (setq index (string-search "~" glob index)))
-      (if (or (get-text-property index 'escaped glob)
-              (or (= (1+ index) len)))
+      (if (or (not (eshell--glob-char-p glob index))
+              (= (1+ index) len))
           (setq index (1+ index))
         (setq incl (substring glob 0 index)
               excl (substring glob (1+ index)))))
@@ -294,13 +325,18 @@ The result is a list of three elements:
         (setq start-dir (pop globs))
       (setq start-dir (file-name-as-directory ".")))
     (while globs
-      (if-let* ((recurse (cdr (assoc (car globs)
-                                     eshell-glob-recursive-alist))))
+      ;; "~" is an infix globbing character, so one at the start of a
+      ;; glob component must be a literal.
+      (when (eq (aref (car globs) 0) ?~)
+        (remove-text-properties 0 1 '(eshell-glob-char) (car globs)))
+      (if-let* ((recurse (cdr (assoc (car globs) eshell-glob-recursive-alist)))
+                ((eshell--all-glob-chars-p
+                  (string-trim-right (car globs) "/"))))
           (if last-saw-recursion
               (setcar result recurse)
             (push recurse result)
             (setq last-saw-recursion t))
-        (if (or result (eshell-glob-p (car globs)))
+        (if (or result (eshell--contains-glob-char-p (car globs)))
             (push (eshell-glob-convert-1 (car globs) (null (cdr globs)))
                   result)
           ;; We haven't seen a glob yet, so instead append to the start
@@ -311,6 +347,38 @@ The result is a list of three elements:
     (list start-dir
           (nreverse result)
           isdir)))
+
+(defun eshell-expand-glob (glob)
+  "Return a list of files matched by GLOB.
+Each globbing character in GLOB should have a non-nil value for the text
+property `eshell-glob-char' (e.g. by `eshell-parse-glob-chars') in order
+for it to have syntactic meaning; otherwise, this function treats the
+character literally.
+
+This function is primarily intended for use within Eshell command
+forms.  If you want to use an ordinary string as a glob, use
+`eshell-extended-glob' instead."
+  (let ((globs (eshell-glob-convert glob))
+        eshell-glob-matches message-shown)
+    (unwind-protect
+        ;; After examining GLOB, make sure we actually got some globs
+        ;; before computing the results.  We can get zero globs for
+        ;; remote file names using "~", like "/ssh:remote:~/file.txt".
+        ;; During Eshell argument parsing, we can't always be sure if
+        ;; the "~" is a home directory reference or part of a glob
+        ;; (e.g. if the argument was assembled from variables).
+        (when (cadr globs)
+          (apply #'eshell-glob-entries globs))
+      (when message-shown
+        (message nil)))
+    (cond
+     (eshell-glob-matches
+      (sort eshell-glob-matches #'string<))
+     ((and eshell-error-if-no-glob (cadr globs))
+      (error "No matches found: %s" glob))
+     (t
+      (let ((result (substring-no-properties glob)))
+        (if eshell-glob-splice-results (list result) result))))))
 
 (defun eshell-extended-glob (glob)
   "Return a list of files matched by GLOB.
@@ -327,26 +395,9 @@ syntax.  Things that are not supported are:
 
 Mainly they are not supported because file matching is done with Emacs
 regular expressions, and these cannot support the above constructs."
-  (let ((globs (eshell-glob-convert glob))
-        eshell-glob-matches message-shown)
-    (if (null (cadr globs))
-        ;; If, after examining GLOB, there are no actual globs, just
-        ;; bail out.  This can happen for remote file names using "~",
-        ;; like "/ssh:remote:~/file.txt".  During parsing, we can't
-        ;; always be sure if the "~" is a home directory reference or
-        ;; part of a glob (e.g. if the argument was assembled from
-        ;; variables).
-        (if eshell-glob-splice-results (list glob) glob)
-      (unwind-protect
-          (apply #'eshell-glob-entries globs)
-        (if message-shown
-            (message nil)))
-      (or (and eshell-glob-matches (sort eshell-glob-matches #'string<))
-          (if eshell-error-if-no-glob
-              (error "No matches found: %s" glob)
-            (if eshell-glob-splice-results
-                (list glob)
-              glob))))))
+  (eshell-expand-glob (eshell-parse-glob-string glob)))
+
+(defconst eshell--glob-anything (eshell-parse-glob-string "*"))
 
 ;; FIXME does this really need to abuse eshell-glob-matches, message-shown?
 (defun eshell-glob-entries (path globs only-dirs)
@@ -363,7 +414,7 @@ directories and files."
     (if (rassq (car globs) eshell-glob-recursive-alist)
         (setq recurse-p (car globs)
               glob (or (cadr globs)
-                       (eshell-glob-convert-1 "*" t))
+                       (eshell-glob-convert-1 eshell--glob-anything t))
               glob-remainder (cddr globs))
       (setq glob (car globs)
             glob-remainder (cdr globs)))
