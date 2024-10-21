@@ -1792,8 +1792,29 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
      (select-window (frame-root-window (make-frame))) doesn't end up
      with your typing being interpreted in the new frame instead of
      the one you're actually typing in.  */
-  if (!frame_ancestor_p (f, sf))
-    internal_last_event_frame = Qnil;
+
+  /* FIXME/tty: I don't understand this. Setting the last event
+     frame to nil leads to switch-frame events being generated even
+     if they normally wouldn't because the frame in question equals
+     selected-frame. This leads to problems at least on ttys.
+
+     Imagine that we have functions on post-command-hook that use
+     with-selected-window (which is the case with Vertico-Posframe),
+     Secondly, let these functions select/restore windows on different
+     frames, so there will be select-frame calls with different frames
+     during the execution of post-command-hook. Setting
+     internal_last_event_frame to nil makes these select-frame calls
+     potentially generate switch-frame events (but only in one direction
+     (frame_ancestor_p), which I also don't understand).
+
+     These switch-frame events form an endless loop in command_loop_1 by
+     running post-command-hook, which generates switch-frame events,
+     which command_loop_1 finds (bound to '#ignore) and executes, which
+     again runs post-command-hook etc. ad infinitum. */
+
+  if (!is_tty_frame (f))
+    if (!frame_ancestor_p (f, sf))
+      internal_last_event_frame = Qnil;
 
   return frame;
 }
