@@ -133,7 +133,8 @@ https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 
 (defun xterm-mouse--handle-mouse-movement ()
   "Handle mouse motion that was just generated for XTerm mouse."
-  (display--update-for-mouse-movement (terminal-parameter nil 'xterm-mouse-x)
+  (display--update-for-mouse-movement (terminal-parameter nil 'xterm-mouse-frame)
+                                      (terminal-parameter nil 'xterm-mouse-x)
                                       (terminal-parameter nil 'xterm-mouse-y)))
 
 ;; These two variables have been converted to terminal parameters.
@@ -293,7 +294,16 @@ which is the \"1006\" extension implemented in Xterm >= 277."
 			    (progn (setq xt-mouse-epoch (float-time)) 0)
 			  (car (time-convert (time-since xt-mouse-epoch)
 					     1000))))
-             (w (window-at x y))
+             (frame (frame-at x y))
+             ;;(_ (message (format "*** %S" frame)))
+             (frame-pos (frame-position frame))
+             ;;(_ (message (format "*** %S" frame-pos)))
+             (x (- x (car frame-pos)))
+             (y (- y (cdr frame-pos)))
+             ;;(_ (message (format "*** %S %S" x y)))
+             (w (window-at x y frame))
+             ;;(_ (message (format "*** %S" w)))
+
              (ltrb (window-edges w))
              (left (nth 0 ltrb))
              (top (nth 1 ltrb))
@@ -345,6 +355,7 @@ which is the \"1006\" extension implemented in Xterm >= 277."
 
         (set-terminal-parameter nil 'xterm-mouse-x x)
         (set-terminal-parameter nil 'xterm-mouse-y y)
+        (set-terminal-parameter nil 'xterm-mouse-frame frame)
         (setq last-input-event event)))))
 
 ;;;###autoload

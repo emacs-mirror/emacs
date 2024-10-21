@@ -65,11 +65,9 @@ static int been_here = -1;
 #ifndef HAVE_ANDROID
 
 static void tty_set_scroll_region (struct frame *f, int start, int stop);
-static void turn_on_face (struct frame *, int face_id);
-static void turn_off_face (struct frame *, int face_id);
+static void turn_on_face (struct frame *f, struct face *face);
+static void turn_off_face (struct frame *f, struct face *face);
 static void tty_turn_off_highlight (struct tty_display_info *);
-static void tty_show_cursor (struct tty_display_info *);
-static void tty_hide_cursor (struct tty_display_info *);
 static void tty_background_highlight (struct tty_display_info *tty);
 static void clear_tty_hooks (struct terminal *terminal);
 static void set_tty_hooks (struct terminal *terminal);
@@ -336,7 +334,7 @@ tty_toggle_highlight (struct tty_display_info *tty)
 
 /* Make cursor invisible.  */
 
-static void
+void
 tty_hide_cursor (struct tty_display_info *tty)
 {
   if (tty->cursor_hidden == 0)
@@ -353,7 +351,7 @@ tty_hide_cursor (struct tty_display_info *tty)
 
 /* Ensure that cursor is visible.  */
 
-static void
+void
 tty_show_cursor (struct tty_display_info *tty)
 {
   if (tty->cursor_hidden)
@@ -788,13 +786,20 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
       /* Identify a run of glyphs with the same face.  */
       int face_id = string->face_id;
 
+      /* FIXME/tty: it happens that a single glyph's frame is NULL. It
+	 might depend on a tab bar line being present, then switching
+	 from a buffer without header line to one with header line and
+	 opening a child frame. */
+      struct frame *face_id_frame = string->frame ? string->frame : f;
+
       for (n = 1; n < stringlen; ++n)
-	if (string[n].face_id != face_id)
+	if (string[n].face_id != face_id || string[n].frame != face_id_frame)
 	  break;
 
       /* Turn appearance modes of the face of the run on.  */
       tty_highlight_if_desired (tty);
-      turn_on_face (f, face_id);
+      struct face *face = FACE_FROM_ID (face_id_frame, face_id);
+      turn_on_face (f, face);
 
       if (n == stringlen)
 	/* This is the last run.  */
@@ -812,7 +817,7 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
       string += n;
 
       /* Turn appearance modes off.  */
-      turn_off_face (f, face_id);
+      turn_off_face (f, face);
       tty_turn_off_highlight (tty);
     }
 
@@ -822,8 +827,8 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 #ifndef DOS_NT
 
 static void
-tty_write_glyphs_with_face (register struct frame *f, register struct glyph *string,
-			    register int len, register int face_id)
+tty_write_glyphs_with_face (struct frame *f, struct glyph *string,
+			    int len, struct face *face)
 {
   unsigned char *conversion_buffer;
   struct coding_system *coding;
@@ -856,7 +861,7 @@ tty_write_glyphs_with_face (register struct frame *f, register struct glyph *str
 
   /* Turn appearance modes of the face.  */
   tty_highlight_if_desired (tty);
-  turn_on_face (f, face_id);
+  turn_on_face (f, face);
 
   coding->mode |= CODING_MODE_LAST_BLOCK;
   conversion_buffer = encode_terminal_code (string, len, coding);
@@ -871,7 +876,7 @@ tty_write_glyphs_with_face (register struct frame *f, register struct glyph *str
     }
 
   /* Turn appearance modes off.  */
-  turn_off_face (f, face_id);
+  turn_off_face (f, face);
   tty_turn_off_highlight (tty);
 
   cmcheckmagic (tty);
@@ -919,6 +924,7 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 
   while (len-- > 0)
     {
+      struct face *face = NULL;
       OUTPUT1_IF (tty, tty->TS_ins_char);
       if (!start)
 	{
@@ -928,7 +934,10 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
       else
 	{
 	  tty_highlight_if_desired (tty);
-	  turn_on_face (f, start->face_id);
+	  int face_id = start->face_id;
+	  struct frame *face_id_frame = start->frame;
+	  face = FACE_FROM_ID (face_id_frame, face_id);
+	  turn_on_face (f, face);
 	  glyph = start;
 	  ++start;
 	  /* We must open sufficient space for a character which
@@ -957,9 +966,9 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 	}
 
       OUTPUT1_IF (tty, tty->TS_pad_inserted_char);
-      if (start)
+      if (face)
 	{
-	  turn_off_face (f, glyph->face_id);
+	  turn_off_face (f, face);
 	  tty_turn_off_highlight (tty);
 	}
     }
@@ -1542,6 +1551,7 @@ append_glyph (struct it *it)
       glyph->type = CHAR_GLYPH;
       glyph->pixel_width = 1;
       glyph->u.ch = it->char_to_display;
+      glyph->frame = it->f;
       glyph->face_id = it->face_id;
       glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
@@ -1769,6 +1779,7 @@ append_composite_glyph (struct it *it)
 
       glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
+      glyph->frame = it->f;
       glyph->face_id = it->face_id;
       glyph->padding_p = false;
       glyph->charpos = CHARPOS (it->position);
@@ -1855,6 +1866,7 @@ append_glyphless_glyph (struct it *it, int face_id, const char *str)
   glyph->pixel_width = 1;
   glyph->avoid_cursor_p = it->avoid_cursor_p;
   glyph->multibyte_p = it->multibyte_p;
+  glyph->frame = it->f;
   glyph->face_id = face_id;
   glyph->padding_p = false;
   glyph->charpos = CHARPOS (it->position);
@@ -1981,9 +1993,8 @@ produce_glyphless_glyph (struct it *it, Lisp_Object acronym)
    FACE_ID is a realized face ID number, in the face cache.  */
 
 static void
-turn_on_face (struct frame *f, int face_id)
+turn_on_face (struct frame *f, struct face *face)
 {
-  struct face *face = FACE_FROM_ID (f, face_id);
   unsigned long fg = face->foreground;
   unsigned long bg = face->background;
   struct tty_display_info *tty = FRAME_TTY (f);
@@ -2064,9 +2075,8 @@ turn_on_face (struct frame *f, int face_id)
 /* Turn off appearances of face FACE_ID on tty frame F.  */
 
 static void
-turn_off_face (struct frame *f, int face_id)
+turn_off_face (struct frame *f, struct face *face)
 {
-  struct face *face = FACE_FROM_ID (f, face_id);
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->TS_exit_attribute_mode)
@@ -2399,8 +2409,10 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       t->display_info.tty->output = 0;
 
       if (FRAMEP (t->display_info.tty->top_frame))
-        SET_FRAME_VISIBLE (XFRAME (t->display_info.tty->top_frame), 0);
-
+	{
+	  struct frame *top = XFRAME (t->display_info.tty->top_frame);
+	  SET_FRAME_VISIBLE (root_frame (top), false);
+	}
     }
 
   /* Clear display hooks to prevent further output.  */
@@ -2472,7 +2484,8 @@ frame's terminal). */)
 
       if (FRAMEP (t->display_info.tty->top_frame))
 	{
-	  struct frame *f = XFRAME (t->display_info.tty->top_frame);
+	  struct frame *top = XFRAME (t->display_info.tty->top_frame);
+	  struct frame *f = root_frame (top);
 	  int width, height;
 	  int old_height = FRAME_COLS (f);
 	  int old_width = FRAME_TOTAL_LINES (f);
@@ -2482,7 +2495,7 @@ frame's terminal). */)
 	  get_tty_size (fileno (t->display_info.tty->input), &width, &height);
 	  if (width != old_width || height != old_height)
 	    change_frame_size (f, width, height, false, false, false);
-	  SET_FRAME_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
+	  SET_FRAME_VISIBLE (f, true);
 	}
 
       set_tty_hooks (t);
@@ -2563,22 +2576,24 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct tty_display_info *tty = FRAME_TTY (f);
   int face_id = tty->mouse_highlight.mouse_face_face_id;
-  int save_x, save_y, pos_x, pos_y;
 
   if (end_hpos >= row->used[TEXT_AREA])
     nglyphs = row->used[TEXT_AREA] - start_hpos;
 
-  pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
-  pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos + WINDOW_LEFT_EDGE_X (w);
+  int pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
+  int pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos + WINDOW_LEFT_EDGE_X (w);
 
   /* Save current cursor coordinates.  */
-  save_y = curY (tty);
-  save_x = curX (tty);
+  int save_y = curY (tty);
+  int save_x = curX (tty);
   cursor_to (f, pos_y, pos_x);
 
   if (draw == DRAW_MOUSE_FACE)
-    tty_write_glyphs_with_face (f, row->glyphs[TEXT_AREA] + start_hpos,
-				nglyphs, face_id);
+    {
+      struct glyph *glyph = row->glyphs[TEXT_AREA] + start_hpos;
+      struct face *face = FACE_FROM_ID (f, face_id);
+      tty_write_glyphs_with_face (f, glyph, nglyphs, face);
+    }
   else if (draw == DRAW_NORMAL_TEXT)
     write_glyphs (f, row->glyphs[TEXT_AREA] + start_hpos, nglyphs);
 
@@ -3969,7 +3984,7 @@ tty_free_frame_resources (struct frame *f)
 
 #endif
 
-
+
 
 #ifndef HAVE_ANDROID
 
@@ -4044,6 +4059,8 @@ set_tty_hooks (struct terminal *terminal)
   terminal->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
   terminal->delete_frame_hook = &tty_free_frame_resources;
   terminal->delete_terminal_hook = &delete_tty;
+
+  terminal->frame_raise_lower_hook = tty_raise_lower_frame;
   /* Other hooks are NULL by default.  */
 }
 
@@ -4714,6 +4731,184 @@ delete_tty (struct terminal *terminal)
 
 #endif
 
+/* Return geometric attributes of FRAME.  According to the value of
+   ATTRIBUTES return the outer edges of FRAME (Qouter_edges), the
+   native edges of FRAME (Qnative_edges), or the inner edges of frame
+   (Qinner_edges).  Any other value means to return the geometry as
+   returned by Fx_frame_geometry.  */
+
+static Lisp_Object
+tty_frame_geometry (Lisp_Object frame, Lisp_Object attribute)
+{
+  struct frame *f = decode_live_frame (frame);
+  if (FRAME_INITIAL_P (f) || !FRAME_TTY (f))
+    return Qnil;
+
+  int native_width = f->pixel_width;
+  int native_height = f->pixel_height;
+
+  eassert (FRAME_PARENT_FRAME (f) || (f->left_pos == 0 && f->top_pos == 0));
+  int outer_left = f->left_pos;
+  int outer_top = f->top_pos;
+  int outer_right = outer_left + native_width;
+  int outer_bottom = outer_top + native_height;
+
+  int native_left = outer_left;
+  int native_top = outer_top;
+  int native_right = outer_right;
+  int native_bottom = outer_bottom;
+
+  int internal_border_width = FRAME_INTERNAL_BORDER_WIDTH (f);
+  int inner_left = native_left + internal_border_width;
+  int inner_top = native_top + internal_border_width;
+  int inner_right = native_right - internal_border_width;
+  int inner_bottom = native_bottom - internal_border_width;
+
+  int menu_bar_height = FRAME_MENU_BAR_HEIGHT (f);
+  inner_top += menu_bar_height;
+  int menu_bar_width = menu_bar_height ? native_width : 0;
+
+  int tab_bar_height = FRAME_TAB_BAR_HEIGHT (f);
+  int tab_bar_width = (tab_bar_height
+		       ? native_width - 2 * internal_border_width
+		       : 0);
+  inner_top += tab_bar_height;
+
+  int tool_bar_height = FRAME_TOOL_BAR_HEIGHT (f);
+  int tool_bar_width = (tool_bar_height
+			? native_width - 2 * internal_border_width
+			: 0);
+
+  /* Subtract or add to the inner dimensions based on the tool bar
+     position.  */
+  if (EQ (FRAME_TOOL_BAR_POSITION (f), Qtop))
+    inner_top += tool_bar_height;
+  else
+    inner_bottom -= tool_bar_height;
+
+  /* Construct list.  */
+  if (EQ (attribute, Qouter_edges))
+    return list4i (outer_left, outer_top, outer_right, outer_bottom);
+  else if (EQ (attribute, Qnative_edges))
+    return list4i (native_left, native_top, native_right, native_bottom);
+  else if (EQ (attribute, Qinner_edges))
+    return list4i (inner_left, inner_top, inner_right, inner_bottom);
+  else
+    return list (Fcons (Qouter_position, Fcons (make_fixnum (outer_left),
+						make_fixnum (outer_top))),
+		 Fcons (Qouter_size,
+			Fcons (make_fixnum (outer_right - outer_left),
+			       make_fixnum (outer_bottom - outer_top))),
+		 Fcons (Qouter_border_width, make_fixnum (0)),
+		 Fcons (Qexternal_border_size,
+			Fcons (make_fixnum (0), make_fixnum (0))),
+		 Fcons (Qtitle_bar_size,
+			Fcons (make_fixnum (0), make_fixnum (0))),
+		 Fcons (Qmenu_bar_external, Qnil),
+		 Fcons (Qmenu_bar_size,
+			Fcons (make_fixnum (menu_bar_width),
+			       make_fixnum (menu_bar_height))),
+		 Fcons (Qtab_bar_size,
+			Fcons (make_fixnum (tab_bar_width),
+			       make_fixnum (tab_bar_height))),
+		 Fcons (Qtool_bar_external, Qnil),
+		 Fcons (Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f)),
+		 Fcons (Qtool_bar_size,
+			Fcons (make_fixnum (tool_bar_width),
+			       make_fixnum (tool_bar_height))),
+		 Fcons (Qinternal_border_width,
+			make_fixnum (internal_border_width)));
+}
+
+DEFUN ("tty-frame-geometry", Ftty_frame_geometry, Stty_frame_geometry, 0, 1, 0,
+       doc: /* Return geometric attributes of terminal frame FRAME.
+	       See also `frame-geometry'.  */)
+  (Lisp_Object frame)
+{
+  return tty_frame_geometry (frame, Qnil);
+}
+
+DEFUN ("tty-frame-edges", Ftty_frame_edges, Stty_frame_edges, 0, 2, 0,
+       doc: /* Return coordinates of FRAME's edges.
+	       See also `frame-edges'.  */)
+  (Lisp_Object frame, Lisp_Object type)
+{
+  if (!EQ (type, Qouter_edges) && !EQ (type, Qinner_edges))
+    type = Qnative_edges;
+  return tty_frame_geometry (frame, type);
+}
+
+DEFUN ("tty-frame-list-z-order", Ftty_frame_list_z_order,
+       Stty_frame_list_z_order, 0, 1, 0,
+       doc: /* Return list of Emacs's frames, in Z (stacking) order.
+	       See also `frame-list-z-order'.  */)
+  (Lisp_Object frame)
+{
+  struct frame *f = decode_tty_frame (frame);
+  Lisp_Object frames = frames_in_reverse_z_order (f, true);
+  return Fnreverse (frames);
+}
+
+DEFUN ("tty-frame-restack", Ftty_frame_restack,
+       Stty_frame_restack, 2, 3, 0,
+       doc: /* Restack FRAME1 below FRAME2 on terminals.
+.	       See also `frame-restack'.  */)
+  (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object above)
+{
+  /* FIXME/tty: tty-frame-restack implementation.  */
+  return Qnil;
+}
+
+static void
+tty_display_dimension (Lisp_Object frame, int *width, int *height)
+{
+  if (!FRAMEP (frame))
+    frame = Fselected_frame ();
+  struct frame *f = XFRAME (frame);
+  switch (f->output_method)
+    {
+    case output_initial:
+      *width = 80;
+      *height = 25;
+      break;
+    case output_termcap:
+      *width = FrameCols (FRAME_TTY (f));
+      *height = FrameRows (FRAME_TTY (f));
+      break;
+    case output_x_window:
+    case output_msdos_raw:
+    case output_w32:
+    case output_ns:
+    case output_pgtk:
+    case output_haiku:
+    case output_android:
+      emacs_abort ();
+      break;
+    }
+}
+
+DEFUN ("tty-display-pixel-width", Ftty_display_pixel_width,
+       Stty_display_pixel_width, 0, 1, 0,
+       doc: /* Return the width of DISPLAY's screen in pixels.
+.	       See also `display-pixel-width'.  */)
+  (Lisp_Object display)
+{
+  int width, height;
+  tty_display_dimension (display, &width, &height);
+  return make_fixnum (width);
+}
+
+DEFUN ("tty-display-pixel-height", Ftty_display_pixel_height,
+       Stty_display_pixel_height, 0, 1, 0,
+       doc: /* Return the height of DISPLAY's screen in pixels.
+	       See also `display-pixel-height'.  */)
+  (Lisp_Object display)
+{
+  int width, height;
+  tty_display_dimension (display, &width, &height);
+  return make_fixnum (height);
+}
+
 void
 syms_of_term (void)
 {
@@ -4769,6 +4964,13 @@ trigger redisplay.  */);
   defsubr (&Sgpm_mouse_start);
   defsubr (&Sgpm_mouse_stop);
 #endif /* HAVE_GPM */
+
+  defsubr (&Stty_frame_geometry);
+  defsubr (&Stty_frame_edges);
+  defsubr (&Stty_frame_list_z_order);
+  defsubr (&Stty_frame_restack);
+  defsubr (&Stty_display_pixel_width);
+  defsubr (&Stty_display_pixel_height);
 
 #if !defined DOS_NT && !defined HAVE_ANDROID
   default_orig_pair = NULL;

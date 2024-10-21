@@ -28,7 +28,7 @@
 
 ;;; Code:
 
-(put 'display-table 'char-table-extra-slots 6)
+(put 'display-table 'char-table-extra-slots 12)
 
 ;;;###autoload
 (defun make-display-table ()
@@ -46,13 +46,21 @@
 (put 'control 'display-table-slot 3)
 (put 'selective-display 'display-table-slot 4)
 (put 'vertical-border 'display-table-slot 5)
+(put 'box-vertical 'display-table-slot 6)
+(put 'box-horizontal 'display-table-slot 7)
+(put 'box-down-right 'display-table-slot 8)
+(put 'box-down-left 'display-table-slot 9)
+(put 'box-up-right 'display-table-slot 10)
+(put 'box-up-left 'display-table-slot 11)
 
 ;;;###autoload
 (defun display-table-slot (display-table slot)
   "Return the value of the extra slot in DISPLAY-TABLE named SLOT.
-SLOT may be a number from 0 to 5 inclusive, or a slot name (symbol).
+SLOT may be a number from 0 to 11 inclusive, or a slot name (symbol).
 Valid symbols are `truncation', `wrap', `escape', `control',
-`selective-display', and `vertical-border'."
+`selective-display', `vertical-border', `box-vertical',
+`box-horizontal', `box-down-right', `box-down-left', `box-up-right',
+and `box-up-left'."
   (let ((slot-number
 	 (if (numberp slot) slot
 	   (or (get slot 'display-table-slot)
@@ -62,9 +70,11 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 ;;;###autoload
 (defun set-display-table-slot (display-table slot value)
   "Set the value of the extra slot in DISPLAY-TABLE named SLOT to VALUE.
-SLOT may be a number from 0 to 5 inclusive, or a name (symbol).
+SLOT may be a number from 0 to 11 inclusive, or a name (symbol).
 Valid symbols are `truncation', `wrap', `escape', `control',
-`selective-display', and `vertical-border'."
+`selective-display',  `vertical-border', `box-vertical',
+`box-horizontal', `box-down-right', `box-down-left', `box-up-right',
+and `box-up-left'."
   (let ((slot-number
 	 (if (numberp slot) slot
 	   (or (get slot 'display-table-slot)
@@ -87,6 +97,18 @@ Valid symbols are `truncation', `wrap', `escape', `control',
     (prin1 (display-table-slot dt 'selective-display))
     (princ "\nVertical window border glyph: ")
     (prin1 (display-table-slot dt 'vertical-border))
+    (princ "\nBox vertical line glyph: ")
+    (prin1 (display-table-slot dt 'box-vertical))
+    (princ "\nBox horizonal line glyph: ")
+    (prin1 (display-table-slot dt 'box-horizontal))
+    (princ "\nBox upper left corner glyph: ")
+    (prin1 (display-table-slot dt 'box-down-right))
+    (princ "\nBox upper right corner glyph: ")
+    (prin1 (display-table-slot dt 'box-down-left))
+    (princ "\nBox lower left corner glyph: ")
+    (prin1 (display-table-slot dt 'box-up-right))
+    (princ "\nBox lower right corner glyph: ")
+    (prin1 (display-table-slot dt 'box-up-left))
     (princ "\nCharacter display glyph sequences:\n")
     (with-current-buffer standard-output
       (let ((vector (make-vector 256 nil))
@@ -125,6 +147,28 @@ Valid symbols are `truncation', `wrap', `escape', `control',
     (if disptab
 	(describe-display-table disptab)
       (message "No display table"))))
+
+;;;###autoload
+(defun standard-display-unicode-special-glyphs ()
+  "Display some glyps using Unicode characters.
+The glyphs being changed by this function are `vertical-border',
+`box-vertical', `box-horizontal', `box-down-right', `box-down-left',
+`box-up-right', and `box-up-left'."
+  (interactive)
+  (set-display-table-slot standard-display-table
+			  'vertical-border (make-glyph-code #x2502))
+  (set-display-table-slot standard-display-table
+			  'box-vertical (make-glyph-code #x2502))
+  (set-display-table-slot standard-display-table
+			  'box-horizontal (make-glyph-code #x2500))
+  (set-display-table-slot standard-display-table
+			  'box-down-right (make-glyph-code #x250c))
+  (set-display-table-slot standard-display-table
+			  'box-down-left (make-glyph-code #x2510))
+  (set-display-table-slot standard-display-table
+			  'box-up-right (make-glyph-code #x2514))
+  (set-display-table-slot standard-display-table
+			  'box-up-left (make-glyph-code #x2518)))
 
 ;;;###autoload
 (defun standard-display-8bit (l h)

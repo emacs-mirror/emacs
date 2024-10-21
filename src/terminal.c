@@ -111,7 +111,8 @@ void
 cursor_to (struct frame *f, int vpos, int hpos)
 {
   if (FRAME_TERMINAL (f)->cursor_to_hook)
-    (*FRAME_TERMINAL (f)->cursor_to_hook) (f, vpos, hpos);
+    (*FRAME_TERMINAL (f)->cursor_to_hook) (f, vpos + f->top_pos,
+					   hpos + f->left_pos);
 }
 
 /* Similar but don't take any account of the wasted characters.  */
@@ -120,7 +121,8 @@ void
 raw_cursor_to (struct frame *f, int row, int col)
 {
   if (FRAME_TERMINAL (f)->raw_cursor_to_hook)
-    (*FRAME_TERMINAL (f)->raw_cursor_to_hook) (f, row, col);
+    (*FRAME_TERMINAL (f)->raw_cursor_to_hook) (f, row + f->top_pos,
+					       col + f->left_pos);
 }
 
 /* Erase operations.  */

@@ -28,13 +28,23 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    && EQ (XCHAR_TABLE (obj)->purpose, Qdisplay_table)			    \
    && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (obj)) == DISP_TABLE_EXTRA_SLOTS)
 
-#define DISP_TABLE_EXTRA_SLOTS 6
+#define DISP_TABLE_EXTRA_SLOTS 12
 #define DISP_TRUNC_GLYPH(dp) ((dp)->extras[0])
 #define DISP_CONTINUE_GLYPH(dp) ((dp)->extras[1])
 #define DISP_ESCAPE_GLYPH(dp) ((dp)->extras[2])
 #define DISP_CTRL_GLYPH(dp) ((dp)->extras[3])
 #define DISP_INVIS_VECTOR(dp) ((dp)->extras[4])
 #define DISP_BORDER_GLYPH(dp) ((dp)->extras[5])
+
+enum box
+{
+  BOX_VERTICAL = 6,
+  BOX_HORIZONTAL,
+  BOX_DOWN_RIGHT,
+  BOX_DOWN_LEFT,
+  BOX_UP_RIGHT,
+  BOX_UP_LEFT
+};
 
 extern Lisp_Object disp_char_vector (struct Lisp_Char_Table *, int);
 
