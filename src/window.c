@@ -6017,7 +6017,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 	      /* The last line was only partially visible, make it fully
 		 visible.  */
 	      w->vscroll = (it.last_visible_y
-			    - it.current_y + it.max_ascent + it.max_descent);
+			    - (it.current_y + it.max_ascent + it.max_descent));
 	      adjust_frame_glyphs (it.f);
 	    }
 	  else
