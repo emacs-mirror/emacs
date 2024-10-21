@@ -719,6 +719,15 @@ cloning, or prompts for that, too.
 When the argument is non-nil, the function switches to a buffer visiting
 the directory into which the repository was cloned.
 
+** Package
+
+---
+*** New optional argument to 'package-autoremove'.
+An optional argument NOCONFIRM has been added to 'package-autoremove'.
+If it is non-nil, or when invoked with a prefix argument,
+'package-autoremove' will not prompt the user for confirmation before
+removing packages.
+
 
 * New Modes and Packages in Emacs 31.1
 
