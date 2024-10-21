@@ -2617,7 +2617,7 @@ see)."
     (eww--list-buffers-display-table))
   (pop-to-buffer "*eww buffers*"))
 
-(defun eww--list-buffers-display-table (&optional _ignore-auto _noconfirm)
+(defun eww--list-buffers-display-table (&optional ignore-auto noconfirm)
   "Display a table with the list of eww buffers.
 Will remove all buffer contents first.  The parameters IGNORE-AUTO and
 NOCONFIRM are ignored, they are for compatibility with
@@ -2711,8 +2711,8 @@ The format of the data is (title url buffer), for use in of
   :interactive nil
   (buffer-disable-undo)
   (setq truncate-lines t
-        ;; This is set so that pressing "g" with point just below the
-        ;; table will still update the listing.
+        ;; this is set so that pressing "g" with point just below the
+        ;; table will still update the listing
         revert-buffer-function #'eww--list-buffers-display-table))
 
 ;;; Desktop support
