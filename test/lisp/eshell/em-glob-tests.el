@@ -317,4 +317,15 @@ value of `eshell-glob-splice-results'."
     (should (equal (eshell-extended-glob (format "%s~/file.txt" remote))
                    (format "%s~/file.txt" remote)))))
 
+;; Compatibility tests
+
+
+(ert-deftest em-glob-test/test-command-without-pred ()
+  "Test that the \"[\" command works when `eshell-pred' is disabled."
+  (skip-unless (executable-find "["))
+  (let ((eshell-modules-list (remq 'eshell-pred eshell-modules-list)))
+    (with-temp-eshell
+      (eshell-match-command-output "[ foo = foo ]" "\\`\\'")
+      (should (= eshell-last-command-status 0)))))
+
 ;; em-glob-tests.el ends here

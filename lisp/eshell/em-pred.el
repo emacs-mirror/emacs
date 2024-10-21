@@ -261,8 +261,8 @@ respectively.")
 
 (defun eshell-pred-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the predicate/modifier code."
-  (add-hook 'eshell-parse-argument-hook
-	    #'eshell-parse-arg-modifier t t)
+  ;; Make sure this function runs before `eshell-parse-glob-chars'.
+  (add-hook 'eshell-parse-argument-hook #'eshell-parse-arg-modifier 50 t)
   (eshell-pred-mode))
 
 (defun eshell-apply-modifiers (lst predicates modifiers string-desc)

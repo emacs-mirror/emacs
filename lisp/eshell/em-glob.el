@@ -141,7 +141,7 @@ This mimics the behavior of zsh if non-nil, but bash if nil."
   (when (boundp 'eshell-special-chars-outside-quoting)
     (setq-local eshell-special-chars-outside-quoting
 	 (append eshell-glob-chars-list eshell-special-chars-outside-quoting)))
-  (add-hook 'eshell-parse-argument-hook 'eshell-parse-glob-chars t t)
+  (add-hook 'eshell-parse-argument-hook 'eshell-parse-glob-chars 90 t)
   (add-hook 'eshell-pre-rewrite-command-hook
 	    'eshell-no-command-globbing nil t))
 
@@ -165,22 +165,7 @@ The character is not advanced for ordinary globbing characters, so
 that other function may have a chance to override the globbing
 interpretation."
   (when (memq (char-after) eshell-glob-chars-list)
-    (if (not (memq (char-after) '(?\( ?\[)))
-	(ignore (eshell-add-glob-modifier))
-      (let ((here (point)))
-	(forward-char)
-	(let* ((delim (char-before))
-	       (end (eshell-find-delimiter
-		     delim (if (eq delim ?\[) ?\] ?\)))))
-	  (if (not end)
-              (throw 'eshell-incomplete (char-to-string delim))
-	    (if (and (eshell-using-module 'eshell-pred)
-		     (eshell-arg-delimiter (1+ end)))
-		(ignore (goto-char here))
-	      (eshell-add-glob-modifier)
-	      (prog1
-		  (buffer-substring-no-properties (1- (point)) (1+ end))
-		(goto-char (1+ end))))))))))
+    (ignore (eshell-add-glob-modifier))))
 
 (defvar eshell-glob-matches)
 (defvar message-shown)
