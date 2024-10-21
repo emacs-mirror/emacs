@@ -90,6 +90,10 @@
 That is to say, the first time during an Emacs session."
   :type 'hook)
 
+(defcustom eshell-after-initialize-hook nil
+  "A hook that gets run after an Eshell session has been fully initialized."
+  :type 'hook)
+
 (defcustom eshell-exit-hook nil
   "A hook that is run whenever `eshell' is exited.
 This hook is only run if exiting actually kills the buffer."
@@ -406,7 +410,7 @@ and the hook `eshell-exit-hook'."
   (when eshell-first-time-p
     (setq eshell-first-time-p nil)
     (run-hooks 'eshell-first-time-mode-hook))
-
+  (run-hooks 'eshell-after-initialize-hook)
   (run-hooks 'eshell-post-command-hook))
 
 (put 'eshell-mode 'mode-class 'special)

@@ -68,22 +68,24 @@ This includes when running `eshell-command'."
                           'eshell/source)
                     eshell-interpreter-alist))
   (setq-local eshell-complex-commands
-	(append '("source" ".") eshell-complex-commands))
-  ;; these two variables are changed through usage, but we don't want
-  ;; to ruin it for other modules
-  (let (eshell-inside-quote-regexp
-	eshell-outside-quote-regexp)
-    (and (not (bound-and-true-p eshell-non-interactive-p))
-	 eshell-login-script
-	 (file-readable-p eshell-login-script)
-	 (eshell-do-eval
-	  `(eshell-commands ,(eshell--source-file eshell-login-script))
-          t))
-    (and eshell-rc-script
-	 (file-readable-p eshell-rc-script)
-	 (eshell-do-eval
-	  `(eshell-commands ,(eshell--source-file eshell-rc-script))
-          t))))
+	      (append '("source" ".") eshell-complex-commands))
+  ;; Run our startup scripts once this Eshell session has finished
+  ;; initialization.
+  (add-hook 'eshell-after-initialize-hook #'eshell-run-startup-scripts 90 t))
+
+(defun eshell-run-startup-scripts ()
+  "Run any necessary startup scripts for the current Eshell session."
+  (when (and (not (bound-and-true-p eshell-non-interactive-p))
+             eshell-login-script
+	     (file-readable-p eshell-login-script))
+    (eshell-do-eval
+     `(eshell-commands ,(eshell--source-file eshell-login-script))
+     t))
+  (when (and eshell-rc-script
+	     (file-readable-p eshell-rc-script))
+    (eshell-do-eval
+     `(eshell-commands ,(eshell--source-file eshell-rc-script))
+     t)))
 
 (defun eshell--source-file (file &optional args subcommand-p)
   "Return a Lisp form for executing the Eshell commands in FILE, passing ARGS.
