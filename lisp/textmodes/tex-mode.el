@@ -310,7 +310,7 @@ Should be a simple file name with no extension or directory specification.")
 
 (defvar tex-print-file nil
   "File name that \\[tex-print] prints.
-Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
+Set by \\[tex-region], \\[tex-buffer], \\[tex-file] and \\[tex-compile].")
 
 (defvar tex-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -2212,6 +2212,8 @@ If NOT-ALL is non-nil, save the `.dvi' file."
      t "%r.dvi")
     ("xdvi %r &" "%r.dvi")
     ("\\doc-view \"%r.pdf\"" "%r.pdf")
+    ("evince %r.pdf &" "%r.pdf")
+    ("mupdf %r.pdf &" "%r.pdf")
     ("xpdf %r.pdf &" "%r.pdf")
     ("gv %r.ps &" "%r.ps")
     ("yap %r &" "%r.dvi")
@@ -2530,6 +2532,7 @@ Only applies the FSPEC to the args part of FORMAT."
       (if (tex-shell-running)
           (tex-kill-job)
         (tex-start-shell))
+      (setq tex-print-file (expand-file-name (tex-main-file)))
       (tex-send-tex-command cmd dir))))
 
 (defun tex-start-tex (command file &optional dir)
