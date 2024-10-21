@@ -1563,14 +1563,11 @@ affects all frames on the same terminal device.  */)
       if (CONSP (undecorated) && !NILP (XCDR (undecorated)))
 	f->undecorated = true;
 
-      /* FIXME/tty: The only way to get borders on a tty is
-	 to allow decorations for now. */
+      /* Unused at present. */
       Lisp_Object no_focus = Fassq (Qno_accept_focus, parms);
       if (CONSP (no_focus) && !NILP (XCDR (no_focus)))
 	f->no_accept_focus = true;
 
-      /* FIXME/tty: The only way to get borders on a tty is
-	 to allow decorations for now. */
       Lisp_Object no_split = Fassq (Qunsplittable, parms);
       if (CONSP (no_split) && !NILP (XCDR (no_split)))
 	f->no_split = true;
@@ -1793,25 +1790,32 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
      with your typing being interpreted in the new frame instead of
      the one you're actually typing in.  */
 
-  /* FIXME/tty: I don't understand this. Setting the last event
-     frame to nil leads to switch-frame events being generated even
-     if they normally wouldn't because the frame in question equals
-     selected-frame. This leads to problems at least on ttys.
+  /* FIXME/tty: I don't understand this. (The comment aove is from
+     Jim BLandy 1993 BTW.)
 
-     Imagine that we have functions on post-command-hook that use
-     with-selected-window (which is the case with Vertico-Posframe),
-     Secondly, let these functions select/restore windows on different
-     frames, so there will be select-frame calls with different frames
-     during the execution of post-command-hook. Setting
-     internal_last_event_frame to nil makes these select-frame calls
-     potentially generate switch-frame events (but only in one direction
-     (frame_ancestor_p), which I also don't understand).
+     Setting the last event frame to nil leads to switch-frame events
+     being generated even if they normally wouldn't be because the frame
+     in question equals selected-frame. See the places in keyboard.c
+     where make_lispy_switch_frame is called.
 
-     These switch-frame events form an endless loop in command_loop_1 by
-     running post-command-hook, which generates switch-frame events,
-     which command_loop_1 finds (bound to '#ignore) and executes, which
-     again runs post-command-hook etc. ad infinitum. */
+     This leads to problems at least on ttys.
 
+     Imagine that we have functions in post-command-hook that use
+     select-frame in some way (e.g. with-selected-window). Let these
+     functions select different frames during the execution of
+     post-command-hook in command_loop_1. Setting
+     internal_last_event_frame to nil here makes these select-frame
+     calls (potentially, and reality) generate switch-frame events. (But
+     only in one direction (frame_ancestor_p), which I also don't
+     understand).
+
+     These switch-frame events form an endless loop in
+     command_loop_1. It runs post-command-hook, which generates
+     switch-frame events, which command_loop_1 finds (bound to '#ignore)
+     and executes, which again runs post-command-hook etc. ad
+     infinitum.
+
+     Let's not do that for now on ttys. */
   if (!is_tty_frame (f))
     if (!frame_ancestor_p (f, sf))
       internal_last_event_frame = Qnil;
