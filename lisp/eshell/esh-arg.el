@@ -53,8 +53,6 @@ yield the values intended."
 (defvar eshell-current-quoted nil)
 (defvar eshell-current-argument-plain nil
   "If non-nil, the current argument is \"plain\", and not part of a command.")
-(defvar eshell-inside-quote-regexp nil)
-(defvar eshell-outside-quote-regexp nil)
 
 ;;; User Variables:
 
@@ -89,66 +87,25 @@ If POS is nil, the location of point is checked."
 	(memq (char-after pos) eshell-delimiter-argument-list))))
 
 (defcustom eshell-parse-argument-hook
-  (list
-   ;; a term such as #<buffer NAME>, or #<process NAME> is a buffer
-   ;; or process reference
-   'eshell-parse-special-reference
-
-   ;; numbers convert to numbers if they stand alone
-   (lambda ()
-     (when (and (not eshell-current-argument)
-                (not eshell-current-quoted)
-                (looking-at eshell-number-regexp)
-                (eshell-arg-delimiter (match-end 0)))
-       (goto-char (match-end 0))
-       (let ((str (match-string 0)))
-         (if (> (length str) 0)
-             (add-text-properties 0 (length str) '(number t) str))
-         str)))
-
-   ;; parse any non-special characters, based on the current context
-   (lambda ()
-     (unless eshell-inside-quote-regexp
-       (setq eshell-inside-quote-regexp
-             (format "[^%s]+"
-                     (apply 'string eshell-special-chars-inside-quoting))))
-     (unless eshell-outside-quote-regexp
-       (setq eshell-outside-quote-regexp
-             (format "[^%s]+"
-                     (apply 'string eshell-special-chars-outside-quoting))))
-     (when (looking-at (if eshell-current-quoted
-                           eshell-inside-quote-regexp
-                         eshell-outside-quote-regexp))
-       (goto-char (match-end 0))
-       (let ((str (match-string 0)))
-         (if str
-             (set-text-properties 0 (length str) nil str))
-         str)))
-
-   ;; whitespace or a comment is an argument delimiter
-   (lambda ()
-     (let (comment-p)
-       (when (or (looking-at "[ \t]+")
-                 (and (not eshell-current-argument)
-                      (looking-at "#\\([^<'].*\\|$\\)")
-                      (setq comment-p t)))
-         (if comment-p
-             (add-text-properties (match-beginning 0) (match-end 0)
-                                  '(comment t)))
-         (goto-char (match-end 0))
-         (eshell-finish-arg))))
-
-   ;; parse backslash and the character after
-   'eshell-parse-backslash
-
-   ;; text beginning with ' is a literally quoted
-   'eshell-parse-literal-quote
-
-   ;; text beginning with " is interpolably quoted
-   'eshell-parse-double-quote
-
-   ;; argument delimiter
-   'eshell-parse-delimiter)
+  '(;; A term such as #<buffer NAME>, or #<process NAME> is a buffer
+    ;; or process reference.
+    eshell-parse-special-reference
+    ;; Numbers convert to numbers if they stand alone.
+    eshell-parse-number
+    ;; Parse any non-special characters, based on the current context.
+    eshell-parse-non-special
+    ;; Whitespace is an argument delimiter.
+    eshell-parse-whitespace
+    ;; ... so is a comment.
+    eshell-parse-comment
+    ;; Parse backslash and the character after.
+    eshell-parse-backslash
+    ;; Text beginning with ' is a literally quoted.
+    eshell-parse-literal-quote
+    ;; Text beginning with " is interpolably quoted.
+    eshell-parse-double-quote
+    ;; Delimiters that separate individual commands.
+    eshell-parse-delimiter)
   "Define how to process Eshell command line arguments.
 When each function on this hook is called, point will be at the
 current position within the argument list.  The function should either
@@ -218,12 +175,23 @@ Eshell will expand special refs like \"#<ARG...>\" into
 (defun eshell-arg-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the argument parsing code."
   (eshell-arg-mode)
-  (setq-local eshell-inside-quote-regexp nil)
-  (setq-local eshell-outside-quote-regexp nil)
-
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
               #'eshell-complete-special-reference nil t)))
+
+(defvar eshell--non-special-inside-quote-regexp nil)
+(defsubst eshell--non-special-inside-quote-regexp ()
+  (or eshell--non-special-inside-quote-regexp
+      (setq-local eshell--non-special-inside-quote-regexp
+                  (rx-to-string
+                   `(+ (not (any ,@eshell-special-chars-inside-quoting))) t))))
+
+(defvar eshell--non-special-outside-quote-regexp nil)
+(defsubst eshell--non-special-outside-quote-regexp ()
+  (or eshell--non-special-outside-quote-regexp
+      (setq-local eshell--non-special-outside-quote-regexp
+                  (rx-to-string
+                   `(+ (not (any ,@eshell-special-chars-outside-quoting))) t))))
 
 (defsubst eshell-escape-arg (string)
   "Return STRING with the `escaped' property on it."
@@ -447,6 +415,46 @@ Point is left at the end of the arguments."
   "A stub function that generates an error if a floating splice is found."
   (error "Splice operator is not permitted in this context"))
 
+(defun eshell-parse-number ()
+  "Parse a numeric argument.
+Eshell can treat unquoted arguments matching `eshell-number-regexp' as
+their numeric values."
+  (when (and (not eshell-current-argument)
+             (not eshell-current-quoted)
+             (looking-at eshell-number-regexp)
+             (eshell-arg-delimiter (match-end 0)))
+    (goto-char (match-end 0))
+    (let ((str (match-string 0)))
+      (when (> (length str) 0)
+        (add-text-properties 0 (length str) '(number t) str))
+      str)))
+
+(defun eshell-parse-non-special ()
+  "Parse any non-special characters, depending on the current context."
+  (when (looking-at (if eshell-current-quoted
+                        (eshell--non-special-inside-quote-regexp)
+                      (eshell--non-special-outside-quote-regexp)))
+    (goto-char (match-end 0))
+    (let ((str (match-string 0)))
+      (when str
+        (set-text-properties 0 (length str) nil str))
+      str)))
+
+(defun eshell-parse-whitespace ()
+  "Parse any whitespace, finishing the current argument.
+These are treated as argument delimiters and so finish the current argument."
+  (when (looking-at "[ \t]+")
+    (goto-char (match-end 0))
+    (eshell-finish-arg)))
+
+(defun eshell-parse-comment ()
+  "Parse a comment, finishing the current argument."
+  (when (and (not eshell-current-argument)
+             (looking-at "#\\([^<'].*\\|$\\)"))
+    (add-text-properties (match-beginning 0) (match-end 0) '(comment t))
+    (goto-char (match-end 0))
+    (eshell-finish-arg)))
+
 (defsubst eshell-looking-at-backslash-return (pos)
   "Test whether a backslash-return sequence occurs at POS."
   (declare (obsolete nil "30.1"))
@@ -553,7 +561,7 @@ leaves point where it was."
         (apply #'concat (nreverse strings))))))
 
 (defun eshell-parse-delimiter ()
-  "Parse an argument delimiter, which is essentially a command operator."
+  "Parse a command delimiter, which is essentially a command operator."
   ;; this `eshell-operator' keyword gets parsed out by
   ;; `eshell-split-commands'.  Right now the only possibility for
   ;; error is an incorrect output redirection specifier.

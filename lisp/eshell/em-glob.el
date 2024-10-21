@@ -182,7 +182,6 @@ interpretation."
 		  (buffer-substring-no-properties (1- (point)) (1+ end))
 		(goto-char (1+ end))))))))))
 
-(defvar eshell-glob-chars-regexp nil)
 (defvar eshell-glob-matches)
 (defvar message-shown)
 
@@ -190,11 +189,12 @@ interpretation."
   '(("**/" . recurse)
     ("***/" . recurse-symlink)))
 
+(defvar eshell-glob-chars-regexp nil)
 (defsubst eshell-glob-chars-regexp ()
   "Return the lazily-created value for `eshell-glob-chars-regexp'."
   (or eshell-glob-chars-regexp
       (setq-local eshell-glob-chars-regexp
-		  (format "[%s]+" (apply 'string eshell-glob-chars-list)))))
+                  (rx-to-string `(+ (any ,@eshell-glob-chars-list)) t))))
 
 (defun eshell-glob-regexp (pattern)
   "Convert glob-pattern PATTERN to a regular expression.
