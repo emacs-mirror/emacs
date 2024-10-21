@@ -252,27 +252,6 @@ included in the completions."
   :type 'boolean
   :version "28.1")
 
-;; The default is nil because only a VC user who also possesses a lot of
-;; Git-specific knowledge can know when it is okay to rewrite history,
-;; and we can't convey to a relatively Git-naïve user the potential
-;; risks in only the space of a minibuffer y/n prompt.
-(defcustom vc-git-allow-rewriting-history nil
-  "When non-nil, permit Git operations that may rewrite published history.
-
-Many Git commands can change your copy of published change history
-without warning.  If this occurs, you won't be able to pull and push in
-the ordinary way until you take special action.  See \"Recovering from
-Upstream Rebase\" in the Man page git-rebase(1).
-
-Normally, Emacs refuses to run Git commands that it thinks will rewrite
-published history.  If you customize this variable to a non-nil value,
-Emacs will instead prompt you to confirm that you really want to perform
-the rewrite.  A value of `no-ask' means to proceed with no prompting."
-  :type '(choice (const :tag "Don't allow" nil)
-                 (const :tag "Prompt to allow" t)
-                 (const :tag "Allow without prompting" no-ask))
-  :version "31.1")
-
 ;; History of Git commands.
 (defvar vc-git-history nil)
 
@@ -749,13 +728,11 @@ or an empty string if none."
                                  :files files
                                  :update-function update-function)))
 
-(defun vc-git--current-branch ()
-  (vc-git--out-match '("symbolic-ref" "HEAD")
-                     "^\\(refs/heads/\\)?\\(.+\\)$" 2))
-
 (defun vc-git-dir--branch-headers ()
   "Return headers for branch-related information."
-  (let ((branch (vc-git--current-branch))
+  (let ((branch (vc-git--out-match
+                 '("symbolic-ref" "HEAD")
+                 "^\\(refs/heads/\\)?\\(.+\\)$" 2))
         tracking remote-url)
     (if branch
         (when-let ((branch-merge
@@ -1105,17 +1082,6 @@ It is based on `log-edit-mode', and has Git-specific extensions."
 
 (autoload 'vc-switches "vc")
 
-(defun vc-git--log-edit-extract-headers (comment)
-  (cl-flet ((boolean-arg-fn (argument)
-              (lambda (v) (and (equal v "yes") (list argument)))))
-    (log-edit-extract-headers
-     `(("Author" . "--author")
-       ("Date" . "--date")
-       ("Amend" . ,(boolean-arg-fn "--amend"))
-       ("No-Verify" . ,(boolean-arg-fn "--no-verify"))
-       ("Sign-Off" . ,(boolean-arg-fn "--signoff")))
-     comment)))
-
 (defun vc-git-checkin (files comment &optional _rev)
   (let* ((file1 (or (car files) default-directory))
          (root (vc-git-root file1))
@@ -1214,23 +1180,31 @@ It is based on `log-edit-mode', and has Git-specific extensions."
               (vc-git-command nil 0 patch-file "apply" "--cached")
             (delete-file patch-file))))
       (when to-stash (vc-git--stash-staged-changes files)))
-    ;; When operating on the whole tree, better pass "-a" than ".",
-    ;; since "."  fails when we're committing a merge.
-    (apply #'vc-git-command nil 0
-           (if (and only (not vc-git-patch-string)) files)
-           (nconc (if msg-file (list "commit" "-F"
-                                     (file-local-name msg-file))
-                    (list "commit" "-m"))
-                  (let ((args
-                         (vc-git--log-edit-extract-headers comment)))
-                    (when msg-file
-                      (let ((coding-system-for-write
-                             (or pcsw vc-git-commits-coding-system)))
-                        (write-region (car args) nil msg-file))
-                      (setq args (cdr args)))
-                    args)
-                  (unless vc-git-patch-string
-                    (if only (list "--only" "--") '("-a")))))
+    (cl-flet ((boolean-arg-fn
+               (argument)
+               (lambda (value) (when (equal value "yes") (list argument)))))
+      ;; When operating on the whole tree, better pass "-a" than ".", since "."
+      ;; fails when we're committing a merge.
+      (apply #'vc-git-command nil 0 (if (and only (not vc-git-patch-string)) files)
+             (nconc (if msg-file (list "commit" "-F"
+                                       (file-local-name msg-file))
+                      (list "commit" "-m"))
+                    (let ((args
+                           (log-edit-extract-headers
+                            `(("Author" . "--author")
+                              ("Date" . "--date")
+                              ("Amend" . ,(boolean-arg-fn "--amend"))
+                              ("No-Verify" . ,(boolean-arg-fn "--no-verify"))
+                              ("Sign-Off" . ,(boolean-arg-fn "--signoff")))
+                            comment)))
+                      (when msg-file
+                        (let ((coding-system-for-write
+                               (or pcsw vc-git-commits-coding-system)))
+                          (write-region (car args) nil msg-file))
+                        (setq args (cdr args)))
+                      args)
+                    (unless vc-git-patch-string
+                      (if only (list "--only" "--") '("-a"))))))
     (if (and msg-file (file-exists-p msg-file)) (delete-file msg-file))
     (when to-stash
       (let ((cached (make-nearby-temp-file "git-cached")))
@@ -1985,94 +1959,6 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
   (with-output-to-string
     (vc-git-command standard-output 1 nil
                     "log" "--max-count=1" "--pretty=format:%B" rev)))
-
-(defun vc-git--assert-allowed-rewrite (rev)
-  (when (and (not (eq vc-git-allow-rewriting-history 'no-ask))
-             ;; Check there is an upstream.
-             (with-temp-buffer
-               (vc-git--out-ok "config" "--get"
-                               (format "branch.%s.merge"
-                                       (vc-git--current-branch)))))
-    (let ((outgoing (split-string
-                     (with-output-to-string
-                       (vc-git-command standard-output 0 nil "log"
-                                       "--pretty=format:%H"
-                                       "@{upstream}..HEAD")))))
-      (unless (or (cl-member rev outgoing :test #'string-prefix-p)
-                  (and vc-git-allow-rewriting-history
-                       (yes-or-no-p
-                        (format
-"Commit %s looks to be published; are you sure you want to rewrite history?"
-                         rev))))
-        (user-error "Will not rewrite likely-public Git history")))))
-
-(defun vc-git-modify-change-comment (files rev comment)
-  (vc-git--assert-allowed-rewrite rev)
-  (let* ((args (delete "--amend"
-                       (vc-git--log-edit-extract-headers comment)))
-         (message (format "amend! %s\n\n%s" rev (pop args)))
-         (msg-file
-          ;; On MS-Windows, pass the message through a file, to work
-          ;; around how command line arguments must be in the system
-          ;; codepage, and therefore might not support non-ASCII.
-          ;;
-          ;; As our other arguments are static, we need not be concerned
-          ;; about the encoding of command line arguments in general.
-          ;; See `vc-git-checkin' for the more complex case.
-          (and (eq system-type 'windows-nt)
-               (let ((default-directory
-                      (or (file-name-directory (or (car files)
-                                                   default-directory))
-                          default-directory)))
-                 (make-nearby-temp-file "git-msg"))))
-         (nothing-staged
-          (zerop
-           (vc-git-command nil t nil "diff" "--cached" "--quiet"))))
-    ;; We want to do just
-    ;;
-    ;;     % git commit --only --allow-empty -m...
-    ;;     % git rebase --autostash --autosquash -i REV~1
-    ;;
-    ;; because the first command is guaranteed to create an empty commit
-    ;; regardless of the state of the index and working tree.  However,
-    ;; that requires git.git commit 319d835, released in Git 2.11.1.
-    ;; In order to support older Git we do this longer, slower sequence:
-    ;;
-    ;;     % git stash push
-    ;;     % git commit --allow-empty -m...
-    ;;     % git rebase --autosquash -i REV~1
-    ;;     % git stash pop
-    ;; (unless nothing-staged
-    ;;   (vc-git-command nil 0 nil "stash" "push"))
-    (unwind-protect
-        (progn
-          (when (cl-intersection '("--author" "--date") args
-                                 :test #'string=)
-            ;; 'git rebase --autosquash' cannot alter authorship.
-            ;; See the description of --fixup in git-commit(1).
-            (error
-"Author: and Date: not supported when modifying existing commits"))
-          (when msg-file
-            (let ((coding-system-for-write
-                   (or coding-system-for-write
-                       vc-git-commits-coding-system)))
-              (write-region message nil msg-file)))
-          (apply #'vc-git-command nil 0 nil
-                 "commit" "--allow-empty"
-                 (nconc (if msg-file
-                            (list "-F" (file-local-name msg-file))
-                          (list "-m" message))
-                        args)))
-      (when (and msg-file (file-exists-p msg-file))
-        ;; (delete-file msg-file)
-        ))
-    ;; (with-environment-variables (("GIT_SEQUENCE_EDITOR" "true"))
-    ;;   (vc-git-command nil 0 nil "rebase" "--autosquash" "-i"
-    ;;                   (format "%s~1" rev)))
-    ;; (unless nothing-staged
-    ;;   (vc-git-command nil 0 nil "stash" "pop" "--index"))
-    (message "temporary file is: %s" msg-file)
-    ))
 
 (defvar vc-git-extra-menu-map
   (let ((map (make-sparse-keymap)))
