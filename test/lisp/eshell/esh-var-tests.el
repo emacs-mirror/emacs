@@ -35,6 +35,8 @@
                                                     default-directory))))
 
 (defvar eshell-test-value nil)
+(defvar eshell-test-begin nil)
+(defvar eshell-test-end nil)
 
 ;;; Tests:
 
@@ -111,7 +113,11 @@ nil, use FUNCTION instead."
     (eshell-command-result-equal
      "echo $eshell-test-value[1..4 -2..]"
      (list (funcall range-function '("one" "two" "three"))
-           (funcall range-function '("three" "four"))))))
+           (funcall range-function '("three" "four"))))
+    (let ((eshell-test-begin 1) (eshell-test-end 4))
+      (eshell-command-result-equal
+       "echo $eshell-test-value[$eshell-test-begin..$eshell-test-end]"
+       (funcall range-function '("one" "two" "three"))))))
 
 (ert-deftest esh-var-test/interp-var-indices/list ()
   "Interpolate list variable with indices."

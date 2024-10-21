@@ -369,6 +369,35 @@ unchanged."
       (string-to-number string)
     string))
 
+(cl-defstruct (eshell-range
+               (:constructor nil)
+               (:constructor eshell-range-create (begin end)))
+  "A half-open range from BEGIN to END."
+  begin end)
+
+(defsubst eshell--range-string-p (string)
+  "Return non-nil if STRING has been marked as a range."
+  (and (stringp string)
+       (text-property-any 0 (length string) 'eshell-range t string)))
+
+(defun eshell--string-to-range (string)
+  "Convert STRING to an `eshell-range' object."
+  (let* ((startpos (text-property-any 0 (length string) 'eshell-range t string))
+         (endpos (next-single-property-change startpos 'eshell-range
+                                              string (length string)))
+         range-begin range-end)
+    (unless (= startpos 0)
+      (setq range-begin (substring string 0 startpos))
+      (unless (eshell--numeric-string-p range-begin)
+        (user-error "range begin `%s' is not a number" range-begin))
+      (setq range-begin (string-to-number range-begin)))
+    (unless (= endpos (length string))
+      (setq range-end (substring string endpos))
+      (unless (eshell--numeric-string-p range-end)
+        (user-error "range end `%s' is not a number" range-end))
+      (setq range-end (string-to-number range-end)))
+    (eshell-range-create range-begin range-end)))
+
 (defun eshell-convert (string &optional to-string)
   "Convert STRING into a more-native Lisp object.
 If TO-STRING is non-nil, always return a single string with
