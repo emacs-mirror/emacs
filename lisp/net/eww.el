@@ -651,9 +651,10 @@ Will call each function in `eww-guess-content-type-functions', until one
 of them returns a value.  This mechanism is used only if there isn't a
 valid Content-Type header.  If none of the functions can guess, return
 \"application/octet-stream\"."
-  (or (run-hook-with-args-until-success
-       'eww-guess-content-type-functions headers response-buffer)
-      "application/octet-stream"))
+  (save-excursion
+    (or (run-hook-with-args-until-success
+         'eww-guess-content-type-functions headers response-buffer)
+        "application/octet-stream")))
 
 (defun eww--html-if-doctype (_headers response-buffer)
   "Return \"text/html\" if RESPONSE-BUFFER has an HTML doctype declaration.
