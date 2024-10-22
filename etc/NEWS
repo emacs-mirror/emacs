@@ -276,6 +276,12 @@ By passing '-t' or '--timeout', you can specify a maximum time to wait
 for the processes to exit.  Additionally, you can now wait for external
 processes by passing their PIDs.
 
+---
+*** New hook 'eshell-after-initialize-hook'.
+This hook runs after an Eshell session has been fully initialized,
+immediately before running 'eshell-post-command-hook' for the first
+time.
+
 ** SHR
 
 +++
