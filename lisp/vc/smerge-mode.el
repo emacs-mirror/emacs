@@ -168,6 +168,10 @@ Used in `smerge-diff-base-upper' and related functions."
 		 (const :tag "none"  "")
 		 string))
 
+;; Make it so `C-x ^ n' doesn't insert `n' but just signals an error
+;; when SMerge mode is not enabled (bug#73544).
+;;;###autoload (global-set-key "\C-c^" (make-sparse-keymap))
+
 (defvar-keymap smerge-mode-map
   (key-description smerge-command-prefix) smerge-basic-map)
 
