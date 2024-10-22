@@ -17035,9 +17035,9 @@ redisplay_internal (void)
   if (face_change)
     windows_or_buffers_changed = 47;
 
-  /* Can we do better for tty child frames? It could be
+  /* FIXME: Can we do better for tty child frames?  It could be
      a bit faster when we switch between child frames of the same
-     root frame. OTOH, it's probably not a frequent use case. */
+     root frame.  OTOH, it's probably not a frequent use case.  */
   if ((FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf))
       && FRAME_TTY (sf)->previous_frame != sf)
     {
@@ -17463,7 +17463,7 @@ redisplay_internal (void)
 	      if (!FRAME_VISIBLE_P (root_frame (f)))
 		continue;
 
-	      /* Remember tty root frames seen. */
+	      /* Remember tty root frames which we've seen.  */
 	      if (!FRAME_PARENT_FRAME (f))
 		{
 		  Lisp_Object found;

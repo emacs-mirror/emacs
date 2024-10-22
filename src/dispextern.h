@@ -482,9 +482,9 @@ struct glyph
      continuation glyphs, or the overlay-arrow glyphs on TTYs.  */
   Lisp_Object object;
 
-  /* Frame on which the glyph was produced. The face_id of this glyph
-     refers to the face_cache of this frame. This is used on tty frames
-     only. */
+  /* Frame on which the glyph was produced.  The face_id of this glyph
+     refers to the face_cache of this frame.  This is used on tty
+     frames only.  */
   struct frame *frame;
 
   /* Width in pixels.  */

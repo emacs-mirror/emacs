@@ -734,7 +734,7 @@ struct frame
   struct text_conversion_state conversion;
 # endif
 
-  /* Z-order of child frames. */
+  /* Z-order of child frames.  */
   int z_order;
 } GCALIGNED_STRUCT;
 

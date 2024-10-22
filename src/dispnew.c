@@ -1177,8 +1177,8 @@ line_hash_code (struct frame *f, struct glyph_row *row)
 	  int c = glyph->u.ch;
 	  int face_id = glyph->face_id;
 	  /* Struct frame can move with igc, and so on.  But we need
-	     something that takes different frames into account. Use the
-	     face_cache pointer for that which is malloc'd. */
+	     something that takes different frames into account.  Use the
+	     face_cache pointer for that which is malloc'd.  */
 	  if (glyph->frame && glyph->frame != f)
 	    face_id += (ptrdiff_t) glyph->frame->face_cache;
 	  if (FRAME_MUST_WRITE_SPACES (f))
@@ -3195,8 +3195,8 @@ redraw_frame (struct frame *f)
        future.  */
     SET_FRAME_GARBAGED (f);
 
-  /* Clear_frame is actually a "clear_terminal", i.e.
-     is clears the entire screen. */
+  /* clear_frame is actually a "clear_terminal", i.e.
+     it clears the entire screen.  */
   if (!FRAME_PARENT_FRAME (f))
     clear_frame (f);
   clear_current_matrices (f);
@@ -3238,37 +3238,37 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
 			    TTY Child Frames
  **********************************************************************/
 
-/* The new thing that child frames on ttys provide is that frames on a
-   tty no longer always occupy the whole terminal. They can overlap
-   instead.
+/* Child frames on ttys break the assumption that frames on a tty
+   always occupy the whole terminal.  They can overlap instead.
 
-   Let a "root" frame be a frame that has no parent frame. Such root
-   frames we require to be the size of the terminal screen. The current
-   glyph matrix of a root frame of a termimnal represents what is on the
-   screen. The desired matrix of a root frame represents what should be
-   one the screen.
+   Let a "root" frame be a frame that has no parent frame.  Such root
+   frames are required to be the size of the terminal screen.  The
+   current glyph matrix of a root frame of a termimnal represents what
+   is on the screen.  The desired matrix of a root frame represents
+   what should be one the screen.
 
    Building the desired matrix of root frame proceeds by
 
    - building the desired matrix of the root frame itself which is
-     the bottommost frame in z-order,
-   - building desired matrices of child frames in z-order, topmost last,
+     the bottommost frame in z-order;
+   - building desired matrices of child frames in z-order, topmost last;
    - copying the desired glyphs from child frames to the desired glyphs
      of the root frame
 
-   Updating the screen is then done using root frame matrices as it was
-   before child frames were introduced. Child frame current matrices are
-   updated by copying glyph contents of the current matrix of the root
-   frames to the current matrices of child frames. This imnplicitly
-   also updates the glyph contents of their windows' current matrices.  */
+   Updating the screen is then done using root frame matrices as it
+   was before child frames were introduced.  Child frame's current
+   matrices are updated by copying glyph contents of the current
+   matrix of the root frames to the current matrices of child
+   frames.  This implicitly also updates the glyph contents of their
+   windows' current matrices.  */
 
 struct rect
 {
   int x, y, w, h;
 };
 
-/* Compute the intersection of R1 and R2 in R. Value is true if R1 and
-   R2 intersect, false otherwise. */
+/* Compute the intersection of R1 and R2 in R.  Value is true if R1 and
+   R2 intersect, false otherwise.  */
 
 static bool
 rect_intersect (struct rect *r, struct rect r1, struct rect r2)
@@ -3285,7 +3285,7 @@ rect_intersect (struct rect *r, struct rect r1, struct rect r2)
   return true;
 }
 
-/* Return the absolute position of frame F in *X and *Y. */
+/* Return the absolute position of frame F in *X and *Y.  */
 
 static void
 frame_pos_abs (struct frame *f, int *x, int *y)
@@ -3298,7 +3298,8 @@ frame_pos_abs (struct frame *f, int *x, int *y)
     }
 }
 
-/* Return the rectangle frame F occupies. X and Y are in absolute coordinates. */
+/* Return the rectangle frame F occupies.  X and Y are in absolute
+   coordinates.  */
 
 static struct rect
 frame_rect_abs (struct frame *f)
@@ -3308,9 +3309,9 @@ frame_rect_abs (struct frame *f)
   return (struct rect) { x, y, f->total_cols, f->total_lines };
 }
 
-/* Return the root frame of frame F. Follow the parent_frame chain until
-   we reach a frame that has no parent. That is the root frame. Note
-   that the root of a root frame is itself. */
+/* Return the root frame of frame F.  Follow the parent_frame chain
+   until we reach a frame that has no parent.  That is the root frame.
+   Note that the root of a root frame is itself. */
 
 struct frame *
 root_frame (struct frame *f)
@@ -3441,7 +3442,7 @@ tty_raise_lower_frame (struct frame *f, bool raise)
   f->z_order = raise ? i : 0;
 }
 
-/* Return true if frame F is a tty frame. */
+/* Return true if frame F is a tty frame.  */
 
 bool
 is_tty_frame (struct frame *f)
@@ -3449,7 +3450,7 @@ is_tty_frame (struct frame *f)
   return FRAME_TERMCAP_P (f);
 }
 
-/* Return true if frame F is a tty child frame. */
+/* Return true if frame F is a tty child frame.  */
 
 bool
 is_tty_child_frame (struct frame *f)
@@ -3457,7 +3458,7 @@ is_tty_child_frame (struct frame *f)
   return FRAME_PARENT_FRAME (f) && is_tty_frame (f);
 }
 
-/* Return true if frame F is a tty root frame. */
+/* Return true if frame F is a tty root frame.  */
 
 bool
 is_tty_root_frame (struct frame *f)
@@ -3466,7 +3467,7 @@ is_tty_root_frame (struct frame *f)
 }
 
 /* Return the index of the first enabled row in MATRIX, or -1 if there
-   is none. */
+   is none.  */
 
 static int
 first_enabled_row (struct glyph_matrix *matrix)
@@ -3478,7 +3479,7 @@ first_enabled_row (struct glyph_matrix *matrix)
 }
 
 /* On tty frame F, make desired matrix current, without writing
-   to the terminal. */
+   to the terminal.  */
 
 static void
 make_matrix_current (struct frame *f)
@@ -3496,8 +3497,8 @@ make_matrix_current (struct frame *f)
 static struct glyph_row *
 prepare_desired_root_row (struct frame *root, int y)
 {
-  /* Start with the root's desired matrix row. If that hasn't
-     been redisplayed, copy from the root's current matrix. */
+  /* Start with the root's desired matrix row.  If that hasn't been
+     redisplayed, copy from the root's current matrix.  */
   struct glyph_row *root_row = MATRIX_ROW (root->desired_matrix, y);
   if (!root_row->enabled_p)
     {
@@ -3509,9 +3510,9 @@ prepare_desired_root_row (struct frame *root, int y)
   return root_row;
 }
 
-/* Produce glyphs for box character BOX in ROW.  X ist the position in ROW
-   where to start producing glyphs. N is the number of glyphs to produce.
-   CHILD is the frame to use for the face of the glyphs.  */
+/* Produce glyphs for box character BOX in ROW.  X is the position in
+   ROW where to start producing glyphs.  N is the number of glyphs to
+   produce.  CHILD is the frame to use for the face of the glyphs.  */
 
 static void
 produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
@@ -3534,7 +3535,7 @@ produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
       break;
     }
 
-  // FIXME/tty some face for the border.
+  /* FIXME/tty: some face for the border.  */
   int face_id = BORDER_FACE_ID;
   GLYPH g;
   SET_GLYPH (g, dflt, face_id);
@@ -3546,7 +3547,7 @@ produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
       if (GLYPH_CODE_P (gc))
 	{
 	  SET_GLYPH_FROM_GLYPH_CODE (g, gc);
-	  /* Sorry, but I really don't care if the glyph has a face :-). */
+	  /* Sorry, but I really don't care if the glyph has a face :-).  */
 	}
     }
 
@@ -3567,7 +3568,7 @@ produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
 
 /* Produce box glyphs LEFT and RIGHT in ROOT_ROW.  X and W are the start
    and width of a range in ROOT_ROW before and after which to put the
-   box glyphs, if they fit. ROOT and CHILD are root and child frame we
+   box glyphs, if they fit.  ROOT and CHILD are root and child frame we
    are working on.  ROOT is the root frame whose matrix dimensions
    determines if the box glyphs fit.  CHILD is the frame whose faces to
    use for the box glyphs.  */
@@ -3595,7 +3596,7 @@ produce_box_line (struct frame *root, struct frame *child, int x, int y, int w,
   root_row->hash = row_hash (root_row);
 }
 
-/* Copy to ROOT's desired matrix what we need from CHILD. */
+/* Copy to ROOT's desired matrix what we need from CHILD.  */
 
 static void
 copy_child_glyphs (struct frame *root, struct frame *child)
@@ -3603,20 +3604,20 @@ copy_child_glyphs (struct frame *root, struct frame *child)
   eassert (!FRAME_PARENT_FRAME (root));
   eassert (is_frame_ancestor (root, child));
 
-  /* Determine the intersection of the child frame rectangle with
-     the root frame. This is basically clipping the child frame to
-     the root frame rectangle. */
+  /* Determine the intersection of the child frame rectangle with the
+     root frame.  This is basically clipping the child frame to the
+     root frame rectangle.  */
   struct rect r;
   if (!rect_intersect (&r, frame_rect_abs (root), frame_rect_abs (child)))
     return;
 
-  /* Build CHILD's current matrix which we need to copy from it. */
+  /* Build CHILD's current matrix which we need to copy from it.  */
   make_matrix_current (child);
 
-  /* Draw borders around the child frame. */
+  /* Draw borders around the child frame.  */
   if (!FRAME_UNDECORATED (child))
     {
-      /* Horizontal line above. */
+      /* Horizontal line above.  */
       if (r.y > 0)
 	produce_box_line (root, child, r.x, r.y - 1, r.w, true);
 
@@ -3627,28 +3628,28 @@ copy_child_glyphs (struct frame *root, struct frame *child)
 			     root, child);
 	}
 
-      /* Horizontal line below */
+      /* Horizontal line below.  */
       if (r.y + r.h < root->desired_matrix->matrix_h)
 	produce_box_line (root, child, r.x, r.y + r.h, r.w, false);
     }
 
-  /* First visible row/col, relative to the child frame. */
+  /* First visible row/col, relative to the child frame.  */
   int child_x = child->left_pos < 0 ? - child->left_pos : 0;
   int child_y = child->top_pos < 0 ? - child->top_pos : 0;
 
   /* For all rows in the intersection, copy glyphs from the child's
-     current matrix to the root's desired matrix, enabling those
-     rows if they aren't already. */
+     current matrix to the root's desired matrix, enabling those rows
+     if they aren't already.  */
   for (int y = r.y; y < r.y + r.h; ++y, ++child_y)
     {
       struct glyph_row *root_row = prepare_desired_root_row (root, y);
 
-      /* Copy what's visible from the child's current row. */
+      /* Copy what's visible from the child's current row.  */
       struct glyph_row *child_row = MATRIX_ROW (child->current_matrix, child_y);
       memcpy (root_row->glyphs[0] + r.x, child_row->glyphs[0] + child_x,
 	      r.w * sizeof (struct glyph));
 
-      /* Compute a new hash since we changed glyphs. */
+      /* Compute a new hash since we changed glyphs.  */
       root_row->hash = row_hash (root_row);
     }
 }
@@ -3689,7 +3690,7 @@ update_bar_window (Lisp_Object window, Lisp_Object *current,
 }
 #endif
 
-/* Update the tab-bar window of frame F, if present. */
+/* Update the tab-bar window of frame F, if present.  */
 
 static void
 update_tab_bar (struct frame *f)
@@ -3757,7 +3758,7 @@ abs_cursor_pos (struct frame *f, int *x, int *y)
   *y += w->cursor.y;
 }
 
-/* Is the terminal cursor of frame F obscured by a child frame? */
+/* Is the terminal cursor of frame F obscured by a child frame?  */
 
 static bool
 is_cursor_obscured (void)
@@ -3771,17 +3772,17 @@ is_cursor_obscured (void)
   return cursor_glyph->frame != SELECTED_FRAME ();
 }
 
-/* Decide where to show the cursor, and if to hide it or not.
+/* Decide where to show the cursor, and whether to hide it.
 
    This works very well for Vertico-Posframe, Transient-Posframe and
    Corfu, but it's debatable if it's the right thing for a general use
-   of child frames of all sorts, nested and so on. But it is also debatable
-   if that's a realistic use case from my POV. */
+   of child frames of all sorts, nested and so on.  But it is also
+   debatable if that's a realistic use case from my POV.  */
 
 static void
 terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
 {
-  /* By default, prevent the cursor "shining through" child frames. */
+  /* By default, prevent the cursor "shining through" child frames.  */
   if (is_cursor_obscured ())
     tty_hide_cursor (FRAME_TTY (root));
 
@@ -3812,8 +3813,8 @@ combine_updates_for_frame (struct frame *f, bool force_p, bool inhibit_scrolling
   struct frame *root = root_frame (f);
   eassert (FRAME_VISIBLE_P (root));
 
-  /* Process child frames in reverse z-order, topmost last. For each
-     child, copy what we need to the root's desired matrix. */
+  /* Process child frames in reverse z-order, topmost last.  For each
+     child, copy what we need to the root's desired matrix.  */
   Lisp_Object z_order = frames_in_reverse_z_order (root, true);
   struct frame *topmost_child = NULL;
   for (Lisp_Object tail = XCDR (z_order); CONSP (tail); tail = XCDR (tail))
@@ -3830,7 +3831,7 @@ combine_updates_for_frame (struct frame *f, bool force_p, bool inhibit_scrolling
 
   /* If a child is displayed, and the cursor is displayed in another
      frame, the child might lay above the cursor, so that it appers to
-     "shine through" the child. Avoid that because it's confusing. */
+     "shine through" the child.  Avoid that because it's confusing.  */
   if (topmost_child)
     terminal_cursor_magic (root, topmost_child);
   flush_terminal (root);
@@ -3850,8 +3851,8 @@ combine_updates_for_frame (struct frame *f, bool force_p, bool inhibit_scrolling
   return paused;
 }
 
-/* Update on the screen all root frames ROOTS. Called from
-   redisplay_internal as the last step of redisplaying. */
+/* Update on the screen all root frames ROOTS.  Called from
+   redisplay_internal as the last step of redisplaying.  */
 
 bool
 combine_updates (Lisp_Object roots, bool force_p, bool inhibit_scrolling)
@@ -3926,8 +3927,8 @@ update_frame_with_menu (struct frame *f, int row, int col)
   /* Update the display.  */
   update_begin (f);
   cursor_at_point_p = !(row >= 0 && col >= 0);
-  /* Do not stop due to pending input, and do not try scrolling. This
-     means that write_glyphs will always return false. */
+  /* Do not stop due to pending input, and do not try scrolling.  This
+     means that write_glyphs will always return false.  */
   write_matrix (f, 1, 1, cursor_at_point_p, true);
   make_matrix_current (f);
   clear_desired_matrices (f);
@@ -5576,7 +5577,7 @@ write_matrix (struct frame *f, bool force_p, bool inhibit_id_p,
     force_p |= scrolling (f);
 
   /* Update the individual lines as needed.  Do bottom line first.  This
-     is done so that messages are made visible when pausing. */
+     is done so that messages are made visible when pausing.  */
   int last_row = f->desired_matrix->nrows - 1;
   if (MATRIX_ROW_ENABLED_P (f->desired_matrix, last_row))
     write_row (f, last_row, updating_menu_p);

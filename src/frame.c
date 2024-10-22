@@ -197,10 +197,10 @@ set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   int olines = FRAME_MENU_BAR_LINES (f);
   int nlines = TYPE_RANGED_FIXNUMP (int, value) ? XFIXNUM (value) : 0;
 
-  /* Menu bars on child frames don't work on all platforms,
-     which is the reason why prepare_menu_bar does not update_menu_bar
-     for child frames (info from Martin Rudalics). This could be
-     implemented in ttys, but it's probaly not worth it. */
+  /* Menu bars on child frames don't work on all platforms, which is
+     the reason why prepare_menu_bar does not update_menu_bar for
+     child frames (info from Martin Rudalics).  This could be
+     implemented in ttys, but it's probaly not worth it.  */
   if (is_tty_child_frame (f))
     {
       FRAME_MENU_BAR_LINES (f) = 0;
@@ -1297,10 +1297,10 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
 	    f = make_frame_without_minibuffer (Qnil, kb, Qnil);
 	  else if (EQ (mini, Qonly))
 	    {
-# if 0 /* No interest in this feature at the moment, */
+# if 0 /* No interest in this feature at the moment.  */
 	      f = make_minibuffer_frame ();
-	      /* Not sure about this plus the unsplittable frame
-		 paran. */
+	      /* Not sure about this, plus the unsplittable frame
+		 param.  */
 	      f->no_split = true;
 # endif
 	    }
@@ -1345,10 +1345,10 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
   f->horizontal_scroll_bars = false;
 #endif
 
-  /* Menu bars on child frames don't work on all platforms,
-     which is the reason why prepare_menu_bar does not update_menu_bar
-     for child frames (info from Martin Rudalics). This could be
-     implemented in ttys, but it's unclear if it is worth it. */
+  /* Menu bars on child frames don't work on all platforms, which is
+     the reason why prepare_menu_bar does not update_menu_bar for
+     child frames (info from Martin Rudalics).  This could be
+     implemented in ttys, but it's unclear if it is worth it.  */
   if (NILP (parent))
     FRAME_MENU_BAR_LINES (f) = NILP (Vmenu_bar_mode) ? 0 : 1;
   else
@@ -1363,7 +1363,7 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
     - FRAME_TAB_BAR_HEIGHT (f);
 
   /* Mark current topmost frame obscured if we make a new root frame.
-     Child frames don't completely obscure other frames. */
+     Child frames don't completely obscure other frames.  */
   if (NILP (parent) && FRAMEP (FRAME_TTY (f)->top_frame))
     {
       struct frame *top = XFRAME (FRAME_TTY (f)->top_frame);
@@ -1427,8 +1427,8 @@ tty_child_size_param (struct frame *child, Lisp_Object key,
       val = XCDR (val);
       if (CONSP (val))
 	{
-	  /* Width and height may look like (width text-pixels
-	     . PIXELS) on window systems.  Mimic that.  */
+	  /* Width and height may look like (width text-pixels . PIXELS)
+	     on window systems.  Mimic that.  */
 	  val = XCDR (val);
 	  if (EQ (val, Qtext_pixels))
 	    val = XCDR (val);
@@ -1545,9 +1545,9 @@ affects all frames on the same terminal device.  */)
       SAFE_FREE ();
     }
 
-  /* Make a new frame. We need to know upfront if if a parent frame is
-     specified because we behave differently in this case, e.g. child
-     frames don't obscure other frames. */
+  /* Make a new frame.  We need to know up front if a parent frame is
+     specified because we behave differently in this case, e.g., child
+     frames don't obscure other frames.  */
   Lisp_Object parent = Fcdr (Fassq (Qparent_frame, parms));
   struct frame *f = make_terminal_frame (t, parent, parms);
 
@@ -1556,20 +1556,20 @@ affects all frames on the same terminal device.  */)
 
   /* Visibility of root frames cannot be set with a frame parameter.
      Their visibility solely depends on whether or not they are the
-     top_frame on the terminal. */
+     top_frame on the terminal.  */
   if (FRAME_PARENT_FRAME (f))
     {
       Lisp_Object visible = Fassq (Qvisibility, parms);
       if (CONSP (visible))
 	SET_FRAME_VISIBLE (f, !NILP (visible));
 
-      /* FIXME/tty: The only way to get borders on a tty is
-	 to allow decorations for now. */
+      /* FIXME/tty: The only way, for now, to get borders on a tty is
+	 to allow decorations.  */
       Lisp_Object undecorated = Fassq (Qundecorated, parms);
       if (CONSP (undecorated) && !NILP (XCDR (undecorated)))
 	f->undecorated = true;
 
-      /* Unused at present. */
+      /* Unused at present.  */
       Lisp_Object no_focus = Fassq (Qno_accept_focus, parms);
       if (CONSP (no_focus) && !NILP (XCDR (no_focus)))
 	f->no_accept_focus = true;
@@ -1579,10 +1579,10 @@ affects all frames on the same terminal device.  */)
 	f->no_split = true;
     }
 
-  /* Determine width and height of the frame. For root frames use the
-     width/height of the terminal. For child frames, take it from frame
-     parameters. Note that a default (80x25) has been set in
-     make_frame. We handle root frames in this way because otherwise we
+  /* Determine width and height of the frame.  For root frames use the
+     width/height of the terminal.  For child frames, take it from frame
+     parameters.  Note that a default (80x25) has been set in
+     make_frame.  We handle root frames in this way because otherwise we
      would end up needing glyph matrices for the terminal, which is both
      more work and has its downsides (think of clipping frames to the
      terminal size).  */
@@ -1742,7 +1742,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 
 	  tty->top_frame = frame;
 
-	  /* Why is it correct to set FrameCols/Rows? */
+	  /* FIXME: Why is it correct to set FrameCols/Rows?  */
 	  if (!FRAME_PARENT_FRAME (f))
 	    {
 	      /* If the new TTY frame changed dimensions, we need to
@@ -1796,32 +1796,32 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
      with your typing being interpreted in the new frame instead of
      the one you're actually typing in.  */
 
-  /* FIXME/tty: I don't understand this. (The comment above is from
+  /* FIXME/tty: I don't understand this.  (The comment above is from
      Jim BLandy 1993 BTW, and the frame_ancestor_p from 2017.)
 
      Setting the last event frame to nil leads to switch-frame events
      being generated even if they normally wouldn't be because the frame
-     in question equals selected-frame. See the places in keyboard.c
+     in question equals selected-frame.  See the places in keyboard.c
      where make_lispy_switch_frame is called.
 
      This leads to problems at least on ttys.
 
      Imagine that we have functions in post-command-hook that use
-     select-frame in some way (e.g. with-selected-window). Let these
+     select-frame in some way (e.g., with-selected-window).  Let these
      functions select different frames during the execution of
-     post-command-hook in command_loop_1. Setting
+     post-command-hook in command_loop_1.  Setting
      internal_last_event_frame to nil here makes these select-frame
-     calls (potentially, and reality) generate switch-frame events. (But
-     only in one direction (frame_ancestor_p), which I also don't
+     calls (potentially and in reality) generate switch-frame events.
+     (But only in one direction (frame_ancestor_p), which I also don't
      understand).
 
      These switch-frame events form an endless loop in
-     command_loop_1. It runs post-command-hook, which generates
+     command_loop_1.  It runs post-command-hook, which generates
      switch-frame events, which command_loop_1 finds (bound to '#ignore)
-     and executes, which again runs post-command-hook etc. ad
+     and executes, which again runs post-command-hook etc., ad
      infinitum.
 
-     Let's not do that for now on ttys. */
+     Let's not do that for now on ttys.  */
   if (!is_tty_frame (f))
     if (!frame_ancestor_p (f, sf))
       internal_last_event_frame = Qnil;
@@ -3135,9 +3135,9 @@ displayed in the terminal.  */)
   if (FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->frame_visible_invisible_hook)
     FRAME_TERMINAL (f)->frame_visible_invisible_hook (f, false);
 
-  /* The Elisp info manual says that this "usually" makes child frames
-     invisible, too, but without saying when not. Since users can't rely
-     on this, it's not implemented. */
+  /* The ELisp manual says that this "usually" makes child frames
+     invisible, too, but without saying when not.  Since users can't
+     rely on this, it's not implemented.  */
   if (is_tty_frame (f))
     SET_FRAME_VISIBLE (f, false);
 
@@ -4503,10 +4503,11 @@ frame_float (struct frame *f, Lisp_Object val, enum frame_float_type what,
     }
 }
 
-/* Handle frame parameter change with frame parameter handler. F is the
-   frame whose frame parameter was changed.  PROP is the name of the
-   frame parameter.  VAL and OLD_VALUE are the current value and old
-   value of the frame parameter. */
+/* Handle frame parameter change with frame parameter handler.
+   F is the frame whose frame parameter was changed.
+   PROP is the name of the frame parameter.
+   VAL and OLD_VALUE are the current and the old value of the
+   frame parameter.  */
 
 static void
 handle_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val,
