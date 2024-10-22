@@ -1175,12 +1175,12 @@ line_hash_code (struct frame *f, struct glyph_row *row)
       while (glyph < end)
 	{
 	  int c = glyph->u.ch;
-	  int face_id = glyph->face_id;
+	  unsigned int face_id = glyph->face_id;
 	  /* Struct frame can move with igc, and so on.  But we need
 	     something that takes different frames into account.  Use the
 	     face_cache pointer for that which is malloc'd.  */
 	  if (glyph->frame && glyph->frame != f)
-	    face_id += (ptrdiff_t) glyph->frame->face_cache;
+	    face_id += (uintptr_t) glyph->frame->face_cache;
 	  if (FRAME_MUST_WRITE_SPACES (f))
 	    c -= SPACEGLYPH;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + c;
