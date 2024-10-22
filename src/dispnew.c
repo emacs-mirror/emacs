@@ -1176,9 +1176,12 @@ line_hash_code (struct frame *f, struct glyph_row *row)
 	{
 	  int c = glyph->u.ch;
 	  int face_id = glyph->face_id;
-	  /* Struct frame can move with igc, and so on.  But we need
-	     something that takes different frames into account.  Use the
-	     face_cache pointer for that which is malloc'd.  */
+	  /* A given row of a frame glyph matrix could have glyphs
+	     from more than one frame, if child frames are displayed.
+	     Since face_id of a face depends on the frame (it's an
+	     index into the frame's face cache), we need the hash
+	     value to include something specific to the frame, and we
+	     use the frame cache's address for that purpose.  */
 	  if (glyph->frame && glyph->frame != f)
 	    face_id += (ptrdiff_t) glyph->frame->face_cache;
 	  if (FRAME_MUST_WRITE_SPACES (f))
