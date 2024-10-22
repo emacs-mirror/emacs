@@ -1428,7 +1428,7 @@ tty_child_size_param (struct frame *child, Lisp_Object key,
       if (CONSP (val))
 	{
 	  /* Width and height may look like (width text-pixels
-	     . PIXELS) on window systems. Mimic that. */
+	     . PIXELS) on window systems.  Mimic that.  */
 	  val = XCDR (val);
 	  if (EQ (val, Qtext_pixels))
 	    val = XCDR (val);
@@ -1436,11 +1436,17 @@ tty_child_size_param (struct frame *child, Lisp_Object key,
       else if (FLOATP (val))
 	{
 	  /* Width and height may be a float, in which case
-	     it's a multiple of the parent's value. */
+	     it's a multiple of the parent's value.  */
 	  struct frame *parent = FRAME_PARENT_FRAME (child);
-	  int sz = (EQ (key, Qwidth) ? FRAME_TOTAL_COLS (parent)
-		    : FRAME_TOTAL_LINES (parent));
-	  val = make_fixnum (XFLOAT_DATA (val) * sz);
+	  eassert (parent);	/* the caller ensures this, but... */
+	  if (parent)
+	    {
+	      int sz = (EQ (key, Qwidth) ? FRAME_TOTAL_COLS (parent)
+			: FRAME_TOTAL_LINES (parent));
+	      val = make_fixnum (XFLOAT_DATA (val) * sz);
+	    }
+	  else
+	    val = Qnil;
 	}
 
       if (FIXNATP (val))
