@@ -3643,12 +3643,8 @@ the deferred compilation mechanism."
 Search happens in `native-comp-eln-load-path'."
   (cl-loop
    with eln-filename = (comp-el-to-eln-rel-filename filename)
-   for dir in native-comp-eln-load-path
-   for f = (expand-file-name eln-filename
-                             (expand-file-name comp-native-version-dir
-                                               (expand-file-name
-                                                dir
-                                                invocation-directory)))
+   for dir in (comp-eln-load-path-eff)
+   for f = (expand-file-name eln-filename dir)
    when (file-exists-p f)
      do (cl-return f)))
 
