@@ -111,13 +111,14 @@ duplicate entries (if any) removed."
 
 (defcustom eww-guess-content-type-functions
   '(eww--html-if-doctype)
-  "List of functions used to guess a page's content-type.
+  "List of functions used by EWW to guess the content-type of Web pages.
 These are only used when the page does not have a valid Content-Type
-header.  Functions are called in order, until one of them returns the
-value to be used as Content-Type.  They receive two parameters: an alist
-of headers, and the buffer that holds the complete response.  If the
-list is exhausted, EWW assumes \"application/octet-stream\" per
-RFC-9110."
+header.  Functions are called in order, until one of them returns a
+non-nil value to be used as Content-Type.  The functions receive two
+arguments: an alist of page's headers, and the buffer that holds the
+complete response of the server from which the page was requested.
+If the list of the functions is exhausted without any non-nil value,
+EWW assumes content-type is \"application/octet-stream\", per RFC-9110."
   :version "31.1"
   :group 'eww
   :type '(repeat function))

@@ -317,6 +317,13 @@ will now automatically turn on 'visual-wrap-prefix-mode' in addition to
 near window edge and the continuation lines are indented using prefixes
 computed from surrounding context.
 
+---
+*** New user option 'eww-guess-content-type-functions'.
+The value is a list of functions that EWW should call to determine the
+content-type of Web pages which don't have a valid 'Content-Type'
+header.  The default value is a function that considers a page with an
+HTML 'doctype' declaration to have context-type "text/html".
+
 ** CC mode
 
 +++
