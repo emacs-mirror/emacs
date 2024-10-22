@@ -3663,6 +3663,17 @@ the compilation was successful return the compiled function."
   (comp--native-compile function-or-file nil output))
 
 ;;;###autoload
+(defun native-compile-directory (directory)
+  "Native compile if necessary all the .el files present in DIRECTORY.
+Each .el file is native compiled if the corresponding .eln file is not
+found inside the current `native-comp-eln-load-path'. The search within
+DIRECTORY is perfomed recursively."
+  (mapc (lambda (file)
+	  (unless (comp-lookup-eln file)
+	    (native-compile file)))
+	(directory-files-recursively directory ".+\\.el\\'")))
+
+;;;###autoload
 (defun batch-native-compile (&optional for-tarball)
   "Perform batch native compilation of remaining command-line arguments.
 

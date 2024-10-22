@@ -630,6 +630,11 @@ sup-mouse.el, terminal.el, vi.el, vip.el, ws-mode.el, and yow.el.
 
 * Lisp Changes in Emacs 31.1
 
+---
+** New function 'native-compile-directory'.
+This function native compiles all Lisp files in a directory and in its
+sub-directories (if they are not already native compiled).
+
 +++
 ** The 'defcustom' ':local' keyword can now be 'permanent-only'.
 This means that the variable's 'permanent-local' property is set to t,
