@@ -1282,15 +1282,17 @@ NOERROR is equal to `reload'), or otherwise emit a warning."
          ((assoc fn load-history) nil)  ;We loaded the right file.
          ((eq noerror 'reload) (load fn nil 'nomessage))
          ((and fn (memq feature features))
-          (funcall (if noerror #'warn #'error)
-                   "Feature `%S' is now provided by a different file %s"
-                   feature fn))
+          (let ((oldfile (symbol-file feature 'provide)))
+            (funcall (if noerror #'warn #'error)
+                     "Feature `%S' loaded from %S is now provided by %S"
+                     feature (if oldfile (abbreviate-file-name oldfile))
+                     (abbreviate-file-name fn))))
          (fn
           (funcall (if noerror #'warn #'error)
-                   "Could not load file %s" fn))
+                   "Could not load file: %s" fn))
          (t
           (funcall (if noerror #'warn #'error)
-                   "Could not locate file %s in load path"
+                   "Could not locate file in load path: %s"
                    (or filename (symbol-name feature)))))))
     res))
 
@@ -4416,7 +4418,7 @@ already the major mode."
   (pcase var
     ('mode
      (let ((mode (intern (concat (downcase (symbol-name val))
-                          "-mode"))))
+                                 "-mode"))))
        (set-auto-mode-0 mode t)))
     ('eval
      (pcase val
