@@ -137,35 +137,40 @@ buffers, and switch to the buffer that visits the last dropped file.
 If EVENT is for text, insert that text at point into the buffer
 shown in the window that is the target of the drop; if that buffer is
 read-only, add the dropped text to kill-ring.
+If EVENT payload is nil, then this is a drag event.
 If the optional argument NEW-FRAME is non-nil, perform the
 drag-n-drop action in a newly-created frame using its selected-window
 and that window's buffer."
   (interactive "e")
-  (save-excursion
-    ;; Make sure the drop target has positive co-ords
-    ;; before setting the selected frame - otherwise it
-    ;; won't work.  <skx@tardis.ed.ac.uk>
-    (let* ((window (posn-window (event-start event)))
-	   (coords (posn-x-y (event-start event)))
-           (arg (car (cdr (cdr event))))
-	   (x (car coords))
-	   (y (cdr coords)))
-      (if (and (> x 0) (> y 0))
-	  (set-frame-selected-window nil window))
+  ;; Make sure the drop target has positive co-ords
+  ;; before setting the selected frame - otherwise it
+  ;; won't work.  <skx@tardis.ed.ac.uk>
+  (let* ((window (posn-window (event-start event)))
+	 (coords (posn-x-y (event-start event)))
+         (arg (car (cdr (cdr event))))
+	 (x (car coords))
+	 (y (cdr coords)))
 
-      (when new-frame
-        (select-frame (make-frame)))
-      (raise-frame)
-      (setq window (selected-window))
+    (if (and (> x 0) (> y 0) (window-live-p window))
+        (set-frame-selected-window nil window))
+    ;; Don't create new frame if we are just dragging
+    (and arg new-frame
+         (select-frame (make-frame)))
+    (raise-frame)
+    (setq window (selected-window))
 
-      ;; arg (the payload of the event) is a string when the drop is
-      ;; text, and a list of strings when the drop is one or more files.
-      (if (stringp arg)
-          (dnd-insert-text window 'copy arg)
-        (dnd-handle-multiple-urls
-         window
-         (mapcar #'w32-dropped-file-to-url arg)
-         'private)))))
+    ;; arg (the payload of the event) is a string when the drop is
+    ;; text, and a list of strings when the drop is one or more files.
+    ;; It is nil if the event is a drag event.
+    (if arg
+        (save-excursion
+          (if (stringp arg)
+              (dnd-insert-text window 'copy arg)
+            (dnd-handle-multiple-urls
+             window
+             (mapcar #'w32-dropped-file-to-url arg)
+             'private)))
+      (dnd-handle-movement (event-start event)))))
 
 (defun w32-drag-n-drop-other-frame (event)
   "Edit the files listed in the drag-n-drop EVENT, in other frames.

@@ -2505,7 +2505,6 @@ process_dropfiles (DROPFILES *files)
   return lisp_files;
 }
 
-
 /* This function can be called ONLY between calls to
    block_input/unblock_input.  It is used in w32_read_socket.  */
 Lisp_Object
@@ -2572,6 +2571,19 @@ w32_drop_target_Release (IDropTarget *This)
   return 0;
 }
 
+static void
+w32_handle_drag_movement (IDropTarget *This, POINTL pt)
+{
+  struct w32_drop_target *target = (struct w32_drop_target *)This;
+
+  W32Msg msg = {0};
+  msg.dwModifiers = w32_get_modifiers ();
+  msg.msg.time = GetMessageTime ();
+  msg.msg.pt.x = pt.x;
+  msg.msg.pt.y = pt.y;
+  my_post_msg (&msg, target->hwnd, WM_EMACS_DRAGOVER, 0, 0 );
+}
+
 static HRESULT STDMETHODCALLTYPE
 w32_drop_target_DragEnter (IDropTarget *This, IDataObject *pDataObj,
 			   DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
@@ -2581,6 +2593,7 @@ w32_drop_target_DragEnter (IDropTarget *This, IDataObject *pDataObj,
      happen on drop.  We send COPY because our use cases don't modify
      or link to the original data.  */
   *pdwEffect = DROPEFFECT_COPY;
+  w32_handle_drag_movement (This, pt);
   return S_OK;
 }
 
@@ -2590,6 +2603,7 @@ w32_drop_target_DragOver (IDropTarget *This, DWORD grfKeyState, POINTL pt,
 {
   /* See comment in w32_drop_target_DragEnter.  */
   *pdwEffect = DROPEFFECT_COPY;
+  w32_handle_drag_movement (This, pt);
   return S_OK;
 }
 
@@ -3607,6 +3621,7 @@ w32_name_of_message (UINT msg)
       M (WM_EMACS_PAINT),
       M (WM_EMACS_IME_STATUS),
       M (WM_CHAR),
+      M (WM_EMACS_DRAGOVER),
       M (WM_EMACS_DROP),
 #undef M
       { 0, 0 }

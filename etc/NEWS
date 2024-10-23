@@ -781,7 +781,9 @@ and later versions.
 
 ---
 ** Emacs on MS-Windows now supports drag-n-drop of text into a buffer.
-This is in addition to drag-n-drop of files, that was already supported.
+This is in addition to drag-n-drop of files, that was already
+supported. The configuration variables 'dnd-scroll-margin' and
+'dnd-indicate-insertion-point' can be used to customize the process.
 
 
 ----------------------------------------------------------------------

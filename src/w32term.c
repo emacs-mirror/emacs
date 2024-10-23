@@ -5629,6 +5629,24 @@ w32_read_socket (struct terminal *terminal,
 	  }
 	  break;
 
+	case WM_EMACS_DRAGOVER:
+	  {
+	    f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
+	    if (!f)
+	      break;
+	    XSETFRAME (inev.frame_or_window, f);
+	    inev.kind = DRAG_N_DROP_EVENT;
+	    inev.code = 0;
+	    inev.timestamp = msg.msg.time;
+	    inev.modifiers = msg.dwModifiers;
+	    ScreenToClient (msg.msg.hwnd, &msg.msg.pt);
+	    XSETINT (inev.x, msg.msg.pt.x);
+	    XSETINT (inev.y, msg.msg.pt.y);
+	    /* This is a drag movement.  */
+	    inev.arg = Qnil;
+	    break;
+	  }
+
 	case WM_HSCROLL:
 	  {
 	    struct scroll_bar *bar =
