@@ -3513,6 +3513,45 @@ prepare_desired_root_row (struct frame *root, int y)
   return root_row;
 }
 
+/* Change GLYPH to be a space glyph.  */
+
+static void
+make_glyph_space (struct glyph *glyph)
+{
+  glyph->u.ch = ' ';
+  glyph->pixel_width = 1;
+  glyph->padding_p = 0;
+}
+
+/* On root frame ROOT, if the glyph in ROW at position X is part of a
+   sequence of glyphs for a wide character, change every glyph belonging
+   to the sequence to a space.  If X is outside of ROOT, do nothing.  */
+
+static void
+neutralize_wide_char (struct frame *root, struct glyph_row *row, int x)
+{
+  if (x < 0 || x >= root->desired_matrix->matrix_w)
+    return;
+
+  struct glyph *glyph = row->glyphs[0] + x;
+  if (glyph->type == CHAR_GLYPH && CHARACTER_WIDTH (glyph->u.ch) > 1)
+    {
+      struct glyph *row_start = row->glyphs[0];
+      struct glyph *row_limit = row_start + row->used[0];
+
+      /* Glyph is somewhere in a sequence of glyphs for a wide
+	 character, find the start.  */
+      while (glyph > row_start && glyph->padding_p)
+	--glyph;
+
+      /* Make everything in the sequence a space glyph.  */
+      eassert (!glyph->padding_p);
+      make_glyph_space (glyph);
+      for (++glyph; glyph < row_limit && glyph->padding_p; ++glyph)
+	make_glyph_space (glyph);
+    }
+}
+
 /* Produce glyphs for box character BOX in ROW.  X is the position in
    ROW where to start producing glyphs.  N is the number of glyphs to
    produce.  CHILD is the frame to use for the face of the glyphs.  */
@@ -3582,9 +3621,16 @@ produce_box_sides (enum box left, enum box right, struct glyph_row *root_row, in
 		   int w, struct frame *root, struct frame *child)
 {
   if (x > 0)
-    produce_box_glyphs (left, root_row, x - 1, 1, child);
+    {
+      neutralize_wide_char (root, root_row, x - 1);
+      produce_box_glyphs (left, root_row, x - 1, 1, child);
+    }
+
   if (x + w < root->desired_matrix->matrix_w)
-    produce_box_glyphs (right, root_row, x + w, 1, child);
+    {
+      neutralize_wide_char (root, root_row, x + w);
+      produce_box_glyphs (right, root_row, x + w, 1, child);
+    }
 }
 
 static void
@@ -3647,6 +3693,14 @@ copy_child_glyphs (struct frame *root, struct frame *child)
   for (int y = r.y; y < r.y + r.h; ++y, ++child_y)
     {
       struct glyph_row *root_row = prepare_desired_root_row (root, y);
+
+      /* Deal with wide characters unless already done as part of
+	 drawing a box around the child frame.  */
+      if (FRAME_UNDECORATED (child))
+	{
+	  neutralize_wide_char (root, root_row, r.x - 1);
+	  neutralize_wide_char (root, root_row, r.x + r.w);
+	}
 
       /* Copy what's visible from the child's current row.  */
       struct glyph_row *child_row = MATRIX_ROW (child->current_matrix, child_y);
