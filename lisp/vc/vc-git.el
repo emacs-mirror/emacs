@@ -1986,7 +1986,8 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 
 (defun vc-git-modify-change-comment (files rev comment)
   (vc-git--assert-allowed-rewrite rev)
-  (let* ((args (vc-git--log-edit-extract-headers comment))
+  (let* ((args (delete "--amend"
+                       (vc-git--log-edit-extract-headers comment)))
          (message (format "amend! %s\n\n%s" rev (pop args)))
          (msg-file
           ;; On MS-Windows, pass the message through a file, to work
