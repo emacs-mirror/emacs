@@ -3561,8 +3561,9 @@ produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
       glyph->multibyte_p = 1;
       glyph->face_id = GLYPH_FACE (g);
       glyph->frame = child;
-      glyph->multibyte_p = 1;
+      glyph->padding_p = 0;
       glyph->object = Qnil;
+      glyph->padding_p = 0;
     }
 }
 
