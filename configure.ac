@@ -7117,6 +7117,9 @@ AC_CACHE_CHECK([for usable FIONREAD], [emacs_cv_usable_FIONREAD],
 			    #ifdef USG5_4
 			    # include <sys/filio.h>
 			    #endif
+			    #ifdef HAVE_UNISTD_H
+			    # include <unistd.h> /* defines ioctl() on Solaris */
+			    #endif
 			  ]],
 			  [[int foo = ioctl (0, FIONREAD, &foo);]])],
 	 [emacs_cv_usable_FIONREAD=yes],
