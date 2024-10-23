@@ -4249,9 +4249,9 @@ multiplied to find the real number of pixels.  */)
 /* Connect the frame-parameter names for frames to the ways of passing
    the parameter values to the window system.
 
-   The name of a parameter, as a Lisp symbol, has a
-   `frame-parameter-pos' property which is an integer in Lisp that is
-   an index in this table.  */
+   The name of a parameter, a Lisp symbol, has an `x-frame-parameter'
+   property which is its index in this table.  This is initialized in
+   syms_of_frame.  */
 
 struct frame_parm_table {
   const char *name;
@@ -4262,13 +4262,13 @@ static const struct frame_parm_table frame_parms[] =
 {
   {"auto-raise",		SYMBOL_INDEX (Qauto_raise)},
   {"auto-lower",		SYMBOL_INDEX (Qauto_lower)},
-  {"background-color",		-1},
+  {"background-color",		SYMBOL_INDEX (Qbackground_color)},
   {"border-color",		SYMBOL_INDEX (Qborder_color)},
   {"border-width",		SYMBOL_INDEX (Qborder_width)},
   {"cursor-color",		SYMBOL_INDEX (Qcursor_color)},
   {"cursor-type",		SYMBOL_INDEX (Qcursor_type)},
-  {"font",			-1},
-  {"foreground-color",		-1},
+  {"font",			SYMBOL_INDEX (Qfont)},
+  {"foreground-color",		SYMBOL_INDEX (Qforeground_color)},
   {"icon-name",			SYMBOL_INDEX (Qicon_name)},
   {"icon-type",			SYMBOL_INDEX (Qicon_type)},
   {"child-frame-border-width",	SYMBOL_INDEX (Qchild_frame_border_width)},
@@ -6720,17 +6720,13 @@ syms_of_frame (void)
   DEFSYM (Quse_frame_synchronization, "use-frame-synchronization");
   DEFSYM (Qfont_parameter, "font-parameter");
 
-  {
-    int i;
-
-    for (i = 0; i < ARRAYELTS (frame_parms); i++)
-      {
-	Lisp_Object v = (frame_parms[i].sym < 0
-			 ? intern_c_string (frame_parms[i].name)
-			 : builtin_lisp_symbol (frame_parms[i].sym));
-	Fput (v, Qx_frame_parameter, make_fixnum (i));
-      }
-  }
+  for (int i = 0; i < ARRAYELTS (frame_parms); i++)
+    {
+      int sym = frame_parms[i].sym;
+      eassert (sym >= 0 && sym < ARRAYELTS (lispsym));
+      Lisp_Object v = builtin_lisp_symbol (sym);
+      Fput (v, Qx_frame_parameter, make_fixnum (i));
+    }
 
 #ifdef HAVE_WINDOW_SYSTEM
   DEFVAR_LISP ("x-resource-name", Vx_resource_name,

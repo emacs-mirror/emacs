@@ -1175,7 +1175,7 @@ line_hash_code (struct frame *f, struct glyph_row *row)
       while (glyph < end)
 	{
 	  int c = glyph->u.ch;
-	  int face_id = glyph->face_id;
+	  unsigned int face_id = glyph->face_id;
 	  /* A given row of a frame glyph matrix could have glyphs
 	     from more than one frame, if child frames are displayed.
 	     Since face_id of a face depends on the frame (it's an
@@ -1183,7 +1183,7 @@ line_hash_code (struct frame *f, struct glyph_row *row)
 	     value to include something specific to the frame, and we
 	     use the frame cache's address for that purpose.  */
 	  if (glyph->frame && glyph->frame != f)
-	    face_id += (ptrdiff_t) glyph->frame->face_cache;
+	    face_id += (uintptr_t) glyph->frame->face_cache;
 	  if (FRAME_MUST_WRITE_SPACES (f))
 	    c -= SPACEGLYPH;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + c;
@@ -3564,8 +3564,9 @@ produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
       glyph->multibyte_p = 1;
       glyph->face_id = GLYPH_FACE (g);
       glyph->frame = child;
-      glyph->multibyte_p = 1;
+      glyph->padding_p = 0;
       glyph->object = Qnil;
+      glyph->padding_p = 0;
     }
 }
 
