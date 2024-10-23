@@ -560,7 +560,7 @@ If called interactively, visit the version at point."
          ;; FIXME: We should implement backend actions
          ;; `get-change-comment' and `modify-change-comment' for bzr and
          ;; Hg, so that this command works for those backends.
-         ;; As discussed in bug#64055, get-change-comment is required,
+         ;; As discussed in bug#64055, `get-change-comment' is required,
          ;; and parsing the old comment out of the Log View buffer will
          ;; not do.  This is because for these backends there are
          ;; `vc-*-log-switches' variables which can change what gets put
