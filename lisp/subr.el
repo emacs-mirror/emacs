@@ -2640,14 +2640,22 @@ This is like `if-let' but doesn't handle a VARLIST of the form
 (defmacro when-let* (varlist &rest body)
   "Bind variables according to VARLIST and conditionally evaluate BODY.
 This is like `when-let' but doesn't handle a VARLIST of the form
-\(SYMBOL SOMETHING) specially."
+\(SYMBOL SOMETHING) specially.
+
+See also `and-let*'."
   (declare (indent 1) (debug if-let*))
   (list 'if-let* varlist (macroexp-progn body)))
 
 (defmacro and-let* (varlist &rest body)
   "Bind variables according to VARLIST and conditionally evaluate BODY.
 Like `when-let*', except if BODY is empty and all the bindings
-are non-nil, then the result is the value of the last binding."
+are non-nil, then the result is the value of the last binding.
+
+Some Lisp programmers follow the convention that `and' and `and-let*'
+are for forms evaluated for return value, and `when' and `when-let*' are
+for forms evaluated for side-effect with returned values ignored."
+  ;; Document this convention here because it partially explains why we
+  ;; have both `when-let*' and `and-let*'.
   (declare (indent 1) (debug if-let*))
   (let (res)
     (if varlist
