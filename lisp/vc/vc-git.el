@@ -2010,6 +2010,22 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
             ;; See the description of --fixup in git-commit(1).
             (error
 "Author: and Date: not supported when modifying existing commits"))
+
+          ;; Check that a rebase with --autosquash won't make changes
+          ;; other than to REV's change comment.  With the prompt here
+          ;; it's okay to assume the user knows what --autosquash is
+          ;; because they've made some squash!/fixup!/amend! commits.
+          (when
+              (and (split-string
+                    (with-output-to-string
+                      (vc-git-command standard-output 0 nil
+                                      "log" "--oneline" "-E"
+                                      "--grep" "^(squash|fixup|amend)! "
+                                      (format "%s~1.." rev))))
+                   (not (yes-or-no-p
+"Rebase may --autosquash your other squash!/fixup!/amend!; proceed?")))
+            (user-error "Aborted"))
+
           (when msg-file
             (let ((coding-system-for-write
                    (or coding-system-for-write
