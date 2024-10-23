@@ -2654,8 +2654,9 @@ are non-nil, then the result is the value of the last binding.
 Some Lisp programmers follow the convention that `and' and `and-let*'
 are for forms evaluated for return value, and `when' and `when-let*' are
 for forms evaluated for side-effect with returned values ignored."
-  ;; Document this convention here because it partially explains why we
-  ;; have both `when-let*' and `and-let*'.
+  ;; ^ Document this convention here because it explains why we have
+  ;;   both `when-let*' and `and-let*' (in addition to the additional
+  ;;   feature of `and-let*' when BODY is empty).
   (declare (indent 1) (debug if-let*))
   (let (res)
     (if varlist
