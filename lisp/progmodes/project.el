@@ -199,7 +199,9 @@ When it is non-nil, `project-current' will always skip prompting too.")
 
 (defcustom project-prompter #'project-prompt-project-dir
   "Function to call to prompt for a project.
-Called with no arguments and should return a project root dir."
+The function is either called with no arguments or with one argument,
+which is the prompt string to use.  It should return a project root
+directory."
   :type '(choice (const :tag "Prompt for a project directory"
                         project-prompt-project-dir)
                  (const :tag "Prompt for a project name"
