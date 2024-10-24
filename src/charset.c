@@ -1007,7 +1007,8 @@ usage: (define-charset-internal ...)  */)
 
       i = CODE_POINT_TO_INDEX (&charset, charset.max_code);
       if (MAX_CHAR - charset.code_offset < i)
-	error ("Unsupported max char: %d", charset.max_char);
+	error ("Unsupported max char: %d + %ud > MAX_CHAR (%d)",
+	       i, charset.max_code, MAX_CHAR);
       charset.max_char = i + charset.code_offset;
       i = CODE_POINT_TO_INDEX (&charset, charset.min_code);
       charset.min_char = i + charset.code_offset;
