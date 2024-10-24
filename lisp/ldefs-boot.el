@@ -24112,7 +24112,7 @@ If PACKAGE is a string, it specifies the URL of the package
 repository.  In this case, optional argument BACKEND specifies
 the VC backend to use for cloning the repository; if it's nil,
 this function tries to infer which backend to use according to
-the value of `package-vc-heuristic-alist' and if that fails it
+the value of `vc-clone-heuristic-alist' and if that fails it
 uses `package-vc-default-backend'.  Optional argument NAME
 specifies the package name in this case; if it's nil, this
 package uses `file-name-base' on the URL to obtain the package

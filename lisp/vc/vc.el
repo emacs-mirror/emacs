@@ -3884,17 +3884,17 @@ If successful, return the string with the directory of the checkout;
 otherwise return nil.
 REMOTE should be a string, the URL of the remote repository or the name
 of a directory (if the repository is local).
+
+When called interactively, prompt for REMOTE, BACKEND and DIRECTORY,
+except attempt to determine BACKEND automatically based on REMOTE.
+
 If DIRECTORY is nil or omitted, it defaults to `default-directory'.
 If BACKEND is nil or omitted, the function iterates through every known
 backend in `vc-handled-backends' until one succeeds to clone REMOTE.
 If REV is non-nil, it indicates a specific revision to check out after
 cloning; the syntax of REV depends on what BACKEND accepts.
-If OPEN-DIR is non-nil, switches to a buffer visiting DIRECTORY to
-which the repository was cloned.  It would be useful in scripts, but not
-in regular code.
-If called interactively, prompt for REMOTE, DIRECTORY and BACKEND,
-if BACKEND has not been automatically determined according to the REMOTE
-URL, in the minibuffer."
+If OPEN-DIR is non-nil, as it is interactively, also switches to a
+buffer visiting DIRECTORY."
   (interactive
    (let* ((url (read-string "Remote: " nil 'vc--remotes-history))
           (backend (or (vc-guess-url-backend url)
