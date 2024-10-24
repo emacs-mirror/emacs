@@ -1205,7 +1205,7 @@ and move to the line in the SGML document that caused it."
 		      (or sgml-saved-validate-command
 			  (concat sgml-validate-command
 				  " "
-                                  (when-let ((name (buffer-file-name)))
+                                  (when-let* ((name (buffer-file-name)))
 				    (shell-quote-argument
 				     (file-name-nondirectory name))))))))
   (setq sgml-saved-validate-command command)
@@ -2436,14 +2436,14 @@ To work around that, do:
 (defun html-mode--complete-at-point ()
   ;; Complete a tag like <colg etc.
   (or
-   (when-let ((tag (save-excursion
-                     (and (looking-back "<\\([^ \t\n]*\\)"
-                                        (line-beginning-position))
-                          (match-string 1)))))
+   (when-let* ((tag (save-excursion
+                      (and (looking-back "<\\([^ \t\n]*\\)"
+                                         (line-beginning-position))
+                           (match-string 1)))))
      (list (match-beginning 1) (point)
            (mapcar #'car html-tag-alist)))
    ;; Complete params like <colgroup ali etc.
-   (when-let ((tag (save-excursion (sgml-beginning-of-tag)))
+   (when-let* ((tag (save-excursion (sgml-beginning-of-tag)))
               (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
               (param (save-excursion
                        (and (looking-back "[ \t\n]\\([^= \t\n]*\\)"
@@ -2452,14 +2452,14 @@ To work around that, do:
      (list (match-beginning 1) (point)
            (mapcar #'car params)))
    ;; Complete param values like <colgroup align=mi etc.
-   (when-let ((tag (save-excursion (sgml-beginning-of-tag)))
-              (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
-              (param (save-excursion
-                       (and (looking-back
-                             "[ \t\n]\\([^= \t\n]+\\)=\\([^= \t\n]*\\)"
-                             (line-beginning-position))
-                            (match-string 1))))
-              (values (cdr (assoc param params))))
+   (when-let* ((tag (save-excursion (sgml-beginning-of-tag)))
+               (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
+               (param (save-excursion
+                        (and (looking-back
+                              "[ \t\n]\\([^= \t\n]+\\)=\\([^= \t\n]*\\)"
+                              (line-beginning-position))
+                             (match-string 1))))
+               (values (cdr (assoc param params))))
      (list (match-beginning 2) (point)
            (mapcar #'car values)))))
 

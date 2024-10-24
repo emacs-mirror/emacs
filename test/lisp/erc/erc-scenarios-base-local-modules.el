@@ -153,7 +153,7 @@
 
 (define-erc-module -phony-sblm- nil
   "Test module for `erc-scenarios-base-local-modules--var-persistence'."
-  ((when-let ((vars (or erc--server-reconnecting erc--target-priors)))
+  ((when-let* ((vars (or erc--server-reconnecting erc--target-priors)))
      (should (assq 'erc--phony-sblm--mode vars))
      (setq erc-scenarios-base-local-modules--local-var
            (alist-get 'erc-scenarios-base-local-modules--local-var vars)))

@@ -904,8 +904,8 @@ aside) that aren't also `eq'.")
 
 (defun erc-networks--id-qualifying-init-parts ()
   "Return opaque list of atoms to serve as canonical identifier."
-  (when-let ((network (erc-network))
-             (nick (erc-current-nick)))
+  (when-let* ((network (erc-network))
+              (nick (erc-current-nick)))
     (vector network (erc-downcase nick))))
 
 (defvar erc-networks--id-sep "/"
@@ -986,7 +986,7 @@ object."
   (erc-networks--rename-server-buffer (or proc erc-server-process) parsed)
   (erc-networks--shrink-ids-and-buffer-names-any)
   (erc-with-all-buffers-of-server erc-server-process #'erc-target
-    (when-let
+    (when-let*
         ((new-name (erc-networks--reconcile-buffer-names erc--target nid))
          ((not (equal (buffer-name) new-name))))
       (rename-buffer new-name 'unique))))
@@ -1002,7 +1002,7 @@ object."
   ((nid erc-networks--id-qualifying) (other erc-networks--id-qualifying))
   "Grow NID along with that of the current buffer.
 Rename the current buffer if its NID has grown."
-  (when-let ((n (erc-networks--id-qualifying-prefix-length other nid)))
+  (when-let* ((n (erc-networks--id-qualifying-prefix-length other nid)))
     (while (and (<= (erc-networks--id-qualifying-len nid) n)
                 (erc-networks--id-qualifying-grow-id nid)))
     ;; Grow and rename a visited buffer and all its targets
@@ -1387,9 +1387,9 @@ Expect ANNOUNCED to be the server's reported host name."
                     (string= erc-server-announced-name announced)))
        ;; If a target buffer exists for the current process, kill this
        ;; stale one after transplanting its content; else reinstate.
-       (if-let ((actual (erc-get-buffer (erc--target-string erc--target)
-                                        new-proc))
-                (erc-networks--target-transplant-in-progress-p t))
+       (if-let* ((actual (erc-get-buffer (erc--target-string erc--target)
+                                         new-proc))
+                 (erc-networks--target-transplant-in-progress-p t))
            (progn
              (funcall erc-networks--transplant-target-buffer-function
                       (current-buffer) actual)
@@ -1593,7 +1593,7 @@ return the host alone sans URL formatting (for compatibility)."
 					 erc-server-alist)))))
          (s-choose (lambda (entry)
                      (and (equal (nth 1 entry) net)
-                          (if-let ((b (string-search ": " (car entry))))
+                          (if-let* ((b (string-search ": " (car entry))))
                               (cons (format "%s (%s)" (nth 2 entry)
                                             (substring (car entry) (+ b 2)))
                                     (cdr entry))

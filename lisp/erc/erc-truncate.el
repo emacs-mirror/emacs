@@ -82,8 +82,8 @@ for other purposes should customize either `erc-enable-logging' or
   "Enable or disable buffer-local `erc-truncate-mode' modifications."
   (if erc-truncate-mode
       (progn
-        (when-let ((priors (or erc--server-reconnecting erc--target-priors))
-                   (val (alist-get 'erc-truncate--buffer-size priors)))
+        (when-let* ((priors (or erc--server-reconnecting erc--target-priors))
+                    (val (alist-get 'erc-truncate--buffer-size priors)))
           (setq erc-truncate--buffer-size val))
         (add-function :before (local 'erc--clear-function)
                       #'erc-truncate--inhibit-when-local-and-interactive
@@ -150,7 +150,7 @@ present in `erc-modules'."
   ;; `erc-truncate-buffer-to-size' normally runs in a different buffer.
   (save-excursion
     (if (and erc--parsed-response erc--msg-props)
-        (when-let
+        (when-let*
             (((not erc--inhibit-clear-p))
              ((not (erc--memq-msg-prop 'erc--skip 'truncate)))
              ;; Determine here because this may be a target buffer and

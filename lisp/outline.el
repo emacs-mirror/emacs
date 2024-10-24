@@ -1856,8 +1856,8 @@ With a prefix argument, show headings up to that LEVEL."
     (save-excursion
       (goto-char (point-min))
       (while (not (or (eq top-level 1) (eobp)))
-        (when-let ((level (and (outline-on-heading-p t)
-                               (funcall outline-level))))
+        (when-let* ((level (and (outline-on-heading-p t)
+                                (funcall outline-level))))
           (when (< level (or top-level most-positive-fixnum))
             (setq top-level (max level 1))))
         (outline-next-heading)))

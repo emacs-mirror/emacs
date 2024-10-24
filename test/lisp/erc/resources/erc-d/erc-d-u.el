@@ -150,7 +150,7 @@ of zero or more response specs."
   (erc-d-u--canned-read dialog))
 
 (defun erc-d-u--read-exchange-slowly (num orig info)
-  (when-let ((spec (funcall orig info)))
+  (when-let* ((spec (funcall orig info)))
     (when (symbolp (car spec))
       (setf spec (copy-sequence spec)
             (nth 1 spec) (cond ((functionp num) (funcall num (nth 1 spec)))

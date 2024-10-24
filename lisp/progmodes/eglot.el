@@ -710,14 +710,14 @@ compile time if an undeclared LSP interface is used."))
   (cl-destructuring-bind
       (&key types required-keys optional-keys &allow-other-keys)
       (eglot--interface interface-name)
-    (when-let ((missing (and enforce-required
-                             (cl-set-difference required-keys
-                                                (eglot--plist-keys object)))))
+    (when-let* ((missing (and enforce-required
+                              (cl-set-difference required-keys
+                                                 (eglot--plist-keys object)))))
       (eglot--error "A `%s' must have %s" interface-name missing))
-    (when-let ((excess (and disallow-non-standard
-                            (cl-set-difference
-                             (eglot--plist-keys object)
-                             (append required-keys optional-keys)))))
+    (when-let* ((excess (and disallow-non-standard
+                             (cl-set-difference
+                              (eglot--plist-keys object)
+                              (append required-keys optional-keys)))))
       (eglot--error "A `%s' mustn't have %s" interface-name excess))
     (when check-types
       (cl-loop
@@ -1914,7 +1914,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (cond ((null servers)
            (eglot--error "No servers!"))
           ((or (cdr servers) (not dont-if-just-the-one))
-           (let* ((default (when-let ((current (eglot-current-server)))
+           (let* ((default (when-let* ((current (eglot-current-server)))
                              (funcall name current)))
                   (read (completing-read
                          (if default
@@ -2164,7 +2164,7 @@ If it is activated, also signal textDocument/didOpen."
   (with-no-warnings
     (require 'package)
     (unless package-archive-contents (package-refresh-contents))
-    (when-let ((existing (cadr (assoc 'eglot package-alist))))
+    (when-let* ((existing (cadr (assoc 'eglot package-alist))))
       (package-delete existing t))
     (package-install (cadr (assoc 'eglot package-archive-contents)))))
 
@@ -2457,10 +2457,10 @@ expensive cached value of `file-truename'.")
                         (current-buffer) beg end
                         (eglot--diag-type severity)
                         message `((eglot-lsp-diag . ,diag-spec))
-                        (when-let ((faces
-                                    (cl-loop for tag across tags
-                                             when (alist-get tag eglot--tag-faces)
-                                             collect it)))
+                        (when-let* ((faces
+                                     (cl-loop for tag across tags
+                                              when (alist-get tag eglot--tag-faces)
+                                              collect it)))
                           `((face . ,faces))))))
            into diags
            finally (cond ((and
@@ -2619,12 +2619,12 @@ buffer."
   (append
    (eglot--TextDocumentPositionParams)
    `(:context
-     ,(if-let (trigger (and (characterp eglot--last-inserted-char)
-                            (cl-find eglot--last-inserted-char
-                                     (eglot-server-capable :completionProvider
-                                                            :triggerCharacters)
-                                     :key (lambda (str) (aref str 0))
-                                     :test #'char-equal)))
+     ,(if-let* ((trigger (and (characterp eglot--last-inserted-char)
+                              (cl-find eglot--last-inserted-char
+                                       (eglot-server-capable :completionProvider
+                                                             :triggerCharacters)
+                                       :key (lambda (str) (aref str 0))
+                                       :test #'char-equal))))
           `(:triggerKind 2 :triggerCharacter ,trigger) `(:triggerKind 1)))))
 
 (defvar-local eglot--recent-changes nil
@@ -3167,7 +3167,7 @@ for which LSP on-type-formatting should be requested."
 (defun eglot-completion-at-point ()
   "Eglot's `completion-at-point' function."
   ;; Commit logs for this function help understand what's going on.
-  (when-let (completion-capability (eglot-server-capable :completionProvider))
+  (when-let* ((completion-capability (eglot-server-capable :completionProvider)))
     (let* ((server (eglot--current-server-or-lose))
            (bounds (or (bounds-of-thing-at-point 'symbol)
                        (cons (point) (point))))
@@ -3296,7 +3296,7 @@ for which LSP on-type-formatting should be requested."
              (_ (intern (downcase kind))))))
        :company-deprecated
        (lambda (proxy)
-         (when-let ((lsp-item (get-text-property 0 'eglot--lsp-item proxy)))
+         (when-let* ((lsp-item (get-text-property 0 'eglot--lsp-item proxy)))
            (or (seq-contains-p (plist-get lsp-item :tags)
                                1)
                (eq t (plist-get lsp-item :deprecated)))))
@@ -3390,7 +3390,7 @@ for which LSP on-type-formatting should be requested."
     (with-temp-buffer
       (insert siglabel)
       ;; Add documentation, indented so we can distinguish multiple signatures
-      (when-let (doc (and (not briefp) sigdoc (eglot--format-markup sigdoc)))
+      (when-let* ((doc (and (not briefp) sigdoc (eglot--format-markup sigdoc))))
         (goto-char (point-max))
         (insert "\n" (replace-regexp-in-string "^" "  " doc)))
       ;; Try to highlight function name only
@@ -3850,12 +3850,12 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                (handle-event `(,desc 'deleted ,file))
                (handle-event `(,desc 'created ,file1))))))
          (watch-dir (dir)
-           (when-let ((probe
-                       (and (file-readable-p dir)
-                            (or (gethash dir (eglot--file-watches server))
-                                (puthash dir (list (file-notify-add-watch
-                                                    dir '(change) #'handle-event))
-                                         (eglot--file-watches server))))))
+           (when-let* ((probe
+                        (and (file-readable-p dir)
+                             (or (gethash dir (eglot--file-watches server))
+                                 (puthash dir (list (file-notify-add-watch
+                                                     dir '(change) #'handle-event))
+                                          (eglot--file-watches server))))))
              (push id (cdr probe)))))
       (unwind-protect
           (progn

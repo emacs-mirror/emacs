@@ -1022,10 +1022,10 @@ and \"]\"."
            ;; Four functions: next-end, prev-beg, next-beg, prev-end.
            (mapcar (lambda (conf)
                      (lambda ()
-                       (if-let ((pos (funcall
-                                      #'treesit-navigate-thing
-                                      (point) (car conf) (cdr conf)
-                                      treesit-defun-type-regexp tactic)))
+                       (if-let* ((pos (funcall
+                                       #'treesit-navigate-thing
+                                       (point) (car conf) (cdr conf)
+                                       treesit-defun-type-regexp tactic)))
                            (save-excursion
                              (goto-char pos)
                              (funcall treesit-defun-skipper)

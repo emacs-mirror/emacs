@@ -364,7 +364,7 @@ is not shared with the original handles."
   (declare (advertised-calling-convention (handles) "31.1"))
   (let ((dup-handles (make-vector eshell-number-of-handles nil)))
     (dotimes (idx eshell-number-of-handles)
-      (when-let ((handle (aref handles idx)))
+      (when-let* ((handle (aref handles idx)))
         (unless steal-p
           (cl-incf (cdar handle)))
         (aset dup-handles idx (list (car handle) t))))
@@ -373,7 +373,7 @@ is not shared with the original handles."
 (defun eshell-protect-handles (handles)
   "Protect the handles in HANDLES from a being closed."
   (dotimes (idx eshell-number-of-handles)
-    (when-let ((handle (aref handles idx)))
+    (when-let* ((handle (aref handles idx)))
       (cl-incf (cdar handle))))
   handles)
 
@@ -608,7 +608,7 @@ If TARGET is a virtual target (see `eshell-virtual-targets'),
 return an `eshell-generic-target' instance; otherwise, return a
 marker for a file named TARGET."
   (setq mode (or mode 'insert))
-  (if-let ((redir (assoc raw-target eshell-virtual-targets)))
+  (if-let* ((redir (assoc raw-target eshell-virtual-targets)))
       (let (target)
         (catch 'eshell-null-device
           (setq target (if (nth 2 redir)
@@ -699,7 +699,7 @@ If status is nil, prompt before killing."
 
 (cl-defmethod eshell-close-target ((target eshell-function-target) status)
   "Close an Eshell function TARGET."
-  (when-let ((close-function (eshell-function-target-close-function target)))
+  (when-let* ((close-function (eshell-function-target-close-function target)))
     (funcall close-function status)))
 
 (cl-defgeneric eshell-output-object-to-target (object target)

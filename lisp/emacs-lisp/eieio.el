@@ -769,10 +769,10 @@ dynamically set from ARGS."
       (let* ((slot (aref slots i))
              (slot-name (eieio-slot-descriptor-name slot))
              (initform (cl--slot-descriptor-initform slot)))
-        (unless (or (when-let ((initarg
-                                (car (rassq slot-name
-                                            (eieio--class-initarg-tuples
-                                             this-class)))))
+        (unless (or (when-let* ((initarg
+                                 (car (rassq slot-name
+                                             (eieio--class-initarg-tuples
+                                              this-class)))))
                       (plist-get initargs initarg))
                     ;; Those slots whose initform is constant already have
                     ;; the right value set in the default-object.

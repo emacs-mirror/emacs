@@ -407,7 +407,7 @@ This function returns a timer object which you can use in
 
     ;; Handle relative times like "2 hours 35 minutes".
     (when (stringp time)
-      (when-let ((secs (timer-duration time)))
+      (when-let* ((secs (timer-duration time)))
 	(setq time (timer-relative-time nil secs))))
 
     ;; Handle "11:23pm" and the like.  Interpret it as meaning today

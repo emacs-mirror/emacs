@@ -1802,7 +1802,7 @@ works better if `comint-fontify-input-mode' is enabled."
       (progn
         (remove-hook 'comint-indirect-setup-hook shell--highlight-undef-indirect t)
         (setq shell--highlight-undef-indirect nil)
-        (when-let ((buf (comint-indirect-buffer t)))
+        (when-let* ((buf (comint-indirect-buffer t)))
           (with-current-buffer buf
             (font-lock-remove-keywords nil shell-highlight-undef-keywords))))
     (font-lock-remove-keywords nil shell-highlight-undef-keywords))
@@ -1842,7 +1842,7 @@ works better if `comint-fontify-input-mode' is enabled."
               (font-lock-add-keywords nil shell-highlight-undef-keywords t))))
       (cond (comint-fontify-input-mode
              (setq shell--highlight-undef-indirect setup)
-             (if-let ((buf (comint-indirect-buffer t)))
+             (if-let* ((buf (comint-indirect-buffer t)))
                  (with-current-buffer buf
                    (funcall setup))
                (add-hook 'comint-indirect-setup-hook setup nil t)))

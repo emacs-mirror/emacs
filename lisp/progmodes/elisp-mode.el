@@ -246,7 +246,7 @@ Use `emacs-lisp-byte-compile-and-load' in combination with
 `native-comp-jit-compilation' set to t to achieve asynchronous
 native compilation of the current buffer's file."
   (interactive nil emacs-lisp-mode)
-  (when-let ((byte-file (emacs-lisp-native-compile)))
+  (when-let* ((byte-file (emacs-lisp-native-compile)))
     (load (file-name-sans-extension byte-file))))
 
 (defun emacs-lisp-macroexpand ()
@@ -1851,7 +1851,7 @@ Also see `elisp-eldoc-var-docstring-with-value'."
 Intended for `eldoc-documentation-functions' (which see).
 Compared to `elisp-eldoc-var-docstring', this also includes the
 current variable value and a bigger chunk of the docstring."
-  (when-let ((cs (elisp--current-symbol)))
+  (when-let* ((cs (elisp--current-symbol)))
     (when (and (boundp cs)
 	       ;; nil and t are boundp!
 	       (not (null cs))

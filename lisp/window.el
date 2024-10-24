@@ -8094,7 +8094,7 @@ specified by the ACTION argument."
       (while (and functions (not window))
         (setq window (funcall (car functions) buffer alist)
               functions (cdr functions)))
-      (when-let ((select (assq 'post-command-select-window alist)))
+      (when-let* ((select (assq 'post-command-select-window alist)))
         (letrec ((old-selected-window (selected-window))
                  (postfun
                   (lambda ()
@@ -8187,10 +8187,10 @@ This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
 called only by `display-buffer' or a function directly or
 indirectly called by the latter."
-  (when-let ((window (or (display-buffer-reuse-window buffer alist)
-                         (display-buffer-same-window buffer alist)
-                         (display-buffer-pop-up-window buffer alist)
-                         (display-buffer-use-some-window buffer alist))))
+  (when-let* ((window (or (display-buffer-reuse-window buffer alist)
+                          (display-buffer-same-window buffer alist)
+                          (display-buffer-pop-up-window buffer alist)
+                          (display-buffer-use-some-window buffer alist))))
     (delete-other-windows window)
     window))
 
@@ -11071,10 +11071,10 @@ that can be later used as argument for `window-point-context-use-function'.
 Remember the returned context in the window parameter `context'."
   (walk-windows
    (lambda (w)
-     (when-let ((fn (buffer-local-value 'window-point-context-set-function
-                                        (window-buffer w)))
-                ((functionp fn))
-                (context (funcall fn w)))
+     (when-let* ((fn (buffer-local-value 'window-point-context-set-function
+                                         (window-buffer w)))
+                 ((functionp fn))
+                 (context (funcall fn w)))
        (set-window-parameter
         w 'context (cons (buffer-name (window-buffer w)) context))))
    'nomini))
@@ -11090,11 +11090,11 @@ The function called is supposed to set the window point to the location
 found by the provided context."
   (walk-windows
    (lambda (w)
-     (when-let ((fn (buffer-local-value 'window-point-context-use-function
-                                        (window-buffer w)))
-                ((functionp fn))
-                (context (window-parameter w 'context))
-                ((equal (buffer-name (window-buffer w)) (car context))))
+     (when-let* ((fn (buffer-local-value 'window-point-context-use-function
+                                         (window-buffer w)))
+                 ((functionp fn))
+                 (context (window-parameter w 'context))
+                 ((equal (buffer-name (window-buffer w)) (car context))))
        (funcall fn w (cdr context))
        (set-window-parameter w 'context nil)))
    'nomini))
@@ -11119,11 +11119,11 @@ found by the provided context."
     (let ((point (window-point w)))
       (save-excursion
         (goto-char point)
-        (when-let ((f (alist-get 'front-context-string context))
-                   ((search-forward f (point-max) t)))
+        (when-let* ((f (alist-get 'front-context-string context))
+                    ((search-forward f (point-max) t)))
           (goto-char (match-beginning 0))
-          (when-let ((r (alist-get 'rear-context-string context))
-                     ((search-backward r (point-min) t)))
+          (when-let* ((r (alist-get 'rear-context-string context))
+                      ((search-backward r (point-min) t)))
             (goto-char (match-end 0))
             (setq point (point)))))
       (set-window-point w point))))

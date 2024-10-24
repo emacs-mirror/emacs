@@ -946,8 +946,8 @@ COMMAND must be a list returned by
 (defun process-tests--emacs-command ()
   "Return a command to reinvoke the current Emacs instance.
 Return nil if that doesn't appear to be possible."
-  (when-let ((binary (process-tests--emacs-binary))
-             (dump (process-tests--dump-file)))
+  (when-let* ((binary (process-tests--emacs-binary))
+              (dump (process-tests--dump-file)))
     (cons binary
           (unless (eq dump :not-needed)
             (list (concat "--dump-file="
@@ -962,18 +962,18 @@ Return nil if that can't be determined."
        (stringp invocation-directory)
        (not (file-remote-p invocation-directory))
        (file-name-absolute-p invocation-directory)
-       (when-let ((file (process-tests--usable-file-for-reinvoke
-                         (expand-file-name invocation-name
-                                           invocation-directory))))
+       (when-let* ((file (process-tests--usable-file-for-reinvoke
+                          (expand-file-name invocation-name
+                                            invocation-directory))))
          (and (file-executable-p file) file))))
 
 (defun process-tests--dump-file ()
   "Return the filename of the dump file used to start Emacs.
 Return nil if that can't be determined.  Return `:not-needed' if
 Emacs wasn't started with a dump file."
-  (if-let ((stats (and (fboundp 'pdumper-stats) (pdumper-stats))))
-      (when-let ((file (process-tests--usable-file-for-reinvoke
-                        (cdr (assq 'dump-file-name stats)))))
+  (if-let* ((stats (and (fboundp 'pdumper-stats) (pdumper-stats))))
+      (when-let* ((file (process-tests--usable-file-for-reinvoke
+                         (cdr (assq 'dump-file-name stats)))))
         (and (file-readable-p file) file))
     :not-needed))
 

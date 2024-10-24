@@ -85,7 +85,7 @@ like \"image/gif\"."
   (image-converter-initialize)
   ;; When image-converter was customized
   (when (and image-converter (not image-converter-regexp))
-    (when-let ((formats (image-converter--probe image-converter)))
+    (when-let* ((formats (image-converter--probe image-converter)))
       (setq image-converter-regexp
             (concat "\\." (regexp-opt formats) "\\'"))
       (setq image-converter-file-name-extensions formats)))
@@ -136,8 +136,8 @@ converted image data as a string."
            (extra-converter (gethash type image-converter--extra-converters)))
       (if extra-converter
           (funcall extra-converter source format)
-        (when-let ((err (image-converter--convert
-                         image-converter source format)))
+        (when-let* ((err (image-converter--convert
+                          image-converter source format)))
           (error "%s" err))))
     (if (listp image)
         ;; Return an image object that's the same as we were passed,
@@ -217,8 +217,8 @@ converted image data as a string."
   "Find an installed image converter Emacs can use."
   (catch 'done
     (dolist (elem image-converter--converters)
-      (when-let ((formats (image-converter--filter-formats
-                           (image-converter--probe (car elem)))))
+      (when-let* ((formats (image-converter--filter-formats
+                            (image-converter--probe (car elem)))))
         (setq image-converter (car elem)
               image-converter-regexp (concat "\\." (regexp-opt formats) "\\'")
               image-converter-file-name-extensions formats)

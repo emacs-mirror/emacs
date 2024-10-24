@@ -507,7 +507,7 @@ type detected."
       (when (and (consp (car cont))
 		 (= (length cont) 1)
 		 content-type)
-        (when-let ((spec (assq 'type (cdr (car cont)))))
+        (when-let* ((spec (assq 'type (cdr (car cont)))))
 	  (setcdr spec content-type)))
       (when (fboundp 'libxml-parse-html-region)
 	(setq cont (mapcar #'mml-expand-all-html-into-multipart-related cont)))
@@ -943,7 +943,7 @@ type detected."
       (when parameters
 	(let ((cont (copy-sequence cont)))
 	  ;; Set the file name to what's specified by the user.
-	  (when-let ((recipient-filename (cdr (assq 'recipient-filename cont))))
+	  (when-let* ((recipient-filename (cdr (assq 'recipient-filename cont))))
 	    (setcdr cont
 		    (cons (cons 'filename recipient-filename)
 			  (cdr cont))))

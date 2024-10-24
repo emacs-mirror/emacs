@@ -1058,8 +1058,8 @@ responsible for the given file."
              (dirs (delq nil
                          (mapcar
                           (lambda (backend)
-                            (when-let ((dir (vc-call-backend
-                                             backend 'responsible-p file)))
+                            (when-let* ((dir (vc-call-backend
+                                              backend 'responsible-p file)))
                               ;; We run DIR through `expand-file-name'
                               ;; so that abbreviated directories, such
                               ;; as "~/", wouldn't look "less specific"
@@ -2174,7 +2174,7 @@ deduced fileset."
 
 (defun vc-buffer-sync-fileset (fileset not-urgent)
   (dolist (filename (cadr fileset))
-    (when-let ((buffer (find-buffer-visiting filename)))
+    (when-let* ((buffer (find-buffer-visiting filename)))
       (with-current-buffer buffer
 	(vc-buffer-sync not-urgent)))))
 
@@ -3834,9 +3834,9 @@ cloning; the syntax of REV depends on what BACKEND accepts."
     (catch 'ok
       (dolist (backend vc-handled-backends)
         (ignore-error vc-not-supported
-          (when-let ((res (vc-call-backend
-                           backend 'clone
-                           remote directory rev)))
+          (when-let* ((res (vc-call-backend
+                            backend 'clone
+                            remote directory rev)))
             (throw 'ok res)))))))
 
 (declare-function log-view-current-tag "log-view" (&optional pos))

@@ -258,17 +258,17 @@ current frame only."
      (erc-track-mode +1))
    (add-hook 'erc--setup-buffer-hook #'erc-status-sidebar--open)
    ;; Preserve side-window dimensions after `custom-buffer-done'.
-   (when-let (((not erc--updating-modules-p))
-              (buf (or (and (derived-mode-p 'erc-mode) (current-buffer))
-                       (car (erc-buffer-filter
-                             (lambda () erc-server-connected))))))
+   (when-let* (((not erc--updating-modules-p))
+               (buf (or (and (derived-mode-p 'erc-mode) (current-buffer))
+                        (car (erc-buffer-filter
+                              (lambda () erc-server-connected))))))
      (with-current-buffer buf
        (erc-status-sidebar--open))))
   ((remove-hook 'erc--setup-buffer-hook #'erc-status-sidebar--open)
    (erc-status-sidebar-close 'all-frames)
-   (when-let ((arg erc--module-toggle-prefix-arg)
-              ((numberp arg))
-              ((< arg 0)))
+   (when-let* ((arg erc--module-toggle-prefix-arg)
+               ((numberp arg))
+               ((< arg 0)))
      (erc-status-sidebar-kill))))
 
 ;;;###autoload
@@ -308,7 +308,7 @@ even if one already exists in another frame."
 
 (defun erc-status-sidebar-prefer-target-as-name (buffer)
   "Return some name to represent buffer in the sidebar."
-  (if-let ((target (buffer-local-value 'erc--target buffer)))
+  (if-let* ((target (buffer-local-value 'erc--target buffer)))
       (cond ((and erc-status-sidebar--trimpat (erc--target-channel-p target))
              (string-trim-left (erc--target-string target)
                                erc-status-sidebar--trimpat))
@@ -340,8 +340,8 @@ even if one already exists in another frame."
                   (let ((erc-status-sidebar--trimpat
                          (and (eq erc-status-sidebar-style 'all-mixed)
                               (with-current-buffer (process-buffer proc)
-                                (when-let ((ch-pfxs (erc--get-isupport-entry
-                                                     'CHANTYPES 'single)))
+                                (when-let* ((ch-pfxs (erc--get-isupport-entry
+                                                      'CHANTYPES 'single)))
                                   (regexp-quote ch-pfxs)))))
                         (erc-status-sidebar--prechan
                          (and (eq erc-status-sidebar-style
@@ -484,7 +484,7 @@ name stand out."
       (cl-assert (eq major-mode 'erc-status-sidebar-mode))
       (cl-assert (eq (selected-window) window))
       (cl-assert (eq (window-buffer window) (current-buffer)))
-      (when-let ((buf (get-text-property pos 'erc-buf)))
+      (when-let* ((buf (get-text-property pos 'erc-buf)))
         ;; Option operates relative to last selected window
         (select-window (get-mru-window nil nil 'not-selected))
         (pop-to-buffer buf erc-status-sidebar-click-display-action)))))

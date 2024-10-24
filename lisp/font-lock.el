@@ -1846,11 +1846,11 @@ See `font-lock-ignore' for the possible rules."
 
 (defun font-lock--filter-keywords (keywords)
   "Filter a list of KEYWORDS using `font-lock-ignore'."
-  (if-let ((rules (mapcan (pcase-lambda (`(,mode . ,rules))
-                            (when (or (and (boundp mode) mode)
-                                      (derived-mode-p mode))
-                              (copy-sequence rules)))
-                          font-lock-ignore)))
+  (if-let* ((rules (mapcan (pcase-lambda (`(,mode . ,rules))
+                             (when (or (and (boundp mode) mode)
+                                       (derived-mode-p mode))
+                               (copy-sequence rules)))
+                           font-lock-ignore)))
       (seq-filter (lambda (keyword) (not (font-lock--match-keyword
                                           `(or ,@rules) keyword)))
                   keywords)

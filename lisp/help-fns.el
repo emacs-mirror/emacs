@@ -325,7 +325,7 @@ handling of autoloaded functions."
 (defun help-find-source ()
   "Switch to a buffer visiting the source of what is being described in *Help*."
   (interactive)
-  (if-let ((help-buffer (get-buffer "*Help*")))
+  (if-let* ((help-buffer (get-buffer "*Help*")))
       (with-current-buffer help-buffer
           (help-view-source))
     (error "No *Help* buffer found")))
@@ -649,7 +649,7 @@ the C sources, too."
          (lambda (entry level)
            (when (symbolp map)
              (setq map (symbol-function map)))
-           (when-let ((elem (assq entry (cdr map))))
+           (when-let* ((elem (assq entry (cdr map))))
              (when (> level 0)
                (push sep string))
              (if (eq (nth 1 elem) 'menu-item)
@@ -1003,8 +1003,8 @@ TYPE indicates the namespace and is `fun' or `var'."
 
 (defun help-fns--mention-first-release (object type)
   (when (symbolp object)
-    (when-let ((first (or (help-fns--first-release-override object type)
-                          (help-fns--first-release object))))
+    (when-let* ((first (or (help-fns--first-release-override object type)
+                           (help-fns--first-release object))))
       (with-current-buffer standard-output
         (insert (format "  Probably introduced at or before Emacs version %s.\n"
                         first))))))
@@ -1016,8 +1016,8 @@ TYPE indicates the namespace and is `fun' or `var'."
           #'help-fns--mention-shortdoc-groups)
 (defun help-fns--mention-shortdoc-groups (object)
   (require 'shortdoc)
-  (when-let ((groups (and (symbolp object)
-                          (shortdoc-function-groups object))))
+  (when-let* ((groups (and (symbolp object)
+                           (shortdoc-function-groups object))))
     (let ((start (point))
           (times 0))
       (with-current-buffer standard-output
@@ -1618,7 +1618,7 @@ it is displayed along with the global value."
 (defun help-fns--customize-variable-version (variable)
   (when (custom-variable-p variable)
     ;; Note variable's version or package version.
-    (when-let ((output (describe-variable-custom-version-info variable)))
+    (when-let* ((output (describe-variable-custom-version-info variable)))
       (princ output))))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--var-safe-local)
@@ -1864,7 +1864,7 @@ If FRAME is omitted or nil, use the selected frame."
 (add-hook 'help-fns-describe-face-functions
           #'help-fns--face-custom-version-info)
 (defun help-fns--face-custom-version-info (face _frame)
-  (when-let ((version-info (describe-variable-custom-version-info face 'face)))
+  (when-let* ((version-info (describe-variable-custom-version-info face 'face)))
     (insert version-info)
     (terpri)))
 
@@ -2223,7 +2223,7 @@ is enabled in the Help buffer."
                    (lambda (_)
                      (describe-function major))))
           (insert " mode")
-          (when-let ((file-name (find-lisp-object-file-name major nil)))
+          (when-let* ((file-name (find-lisp-object-file-name major nil)))
 	    (insert (format " defined in %s:\n\n"
                             (buttonize
                              (help-fns-short-filename file-name)

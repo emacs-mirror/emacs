@@ -197,13 +197,13 @@ from entering them and instead jump over them."
 
 (defun erc-stamp--recover-on-reconnect ()
   "Attempt to restore \"last-inserted\" snapshots from prior session."
-  (when-let ((priors (or erc--server-reconnecting erc--target-priors)))
+  (when-let* ((priors (or erc--server-reconnecting erc--target-priors)))
     (dolist (var '(erc-timestamp-last-inserted
                    erc-timestamp-last-inserted-left
                    erc-timestamp-last-inserted-right
                    erc-stamp--deferred-date-stamp
                    erc-stamp--date-stamps))
-      (when-let (existing (alist-get var priors))
+      (when-let* ((existing (alist-get var priors)))
         (set var existing)))))
 
 (defvar erc-stamp--current-time nil
@@ -396,14 +396,14 @@ non-nil."
   (goto-char (point-min))
   (while
       (progn
-        (when-let (((< (point) (pos-eol)))
-                   (end (1- (pos-eol)))
-                   ((eq 'erc-timestamp (field-at-pos end)))
-                   (beg (field-beginning end))
-                   ;; Skip a line that's just a timestamp.
-                   ((> beg (point))))
+        (when-let* (((< (point) (pos-eol)))
+                    (end (1- (pos-eol)))
+                    ((eq 'erc-timestamp (field-at-pos end)))
+                    (beg (field-beginning end))
+                    ;; Skip a line that's just a timestamp.
+                    ((> beg (point))))
           (delete-region beg (1+ end)))
-        (when-let (time (erc--get-inserted-msg-prop 'erc--ts))
+        (when-let* ((time (erc--get-inserted-msg-prop 'erc--ts)))
           (insert (format-time-string "[%H:%M:%S] " time)))
         (zerop (forward-line))))
   "")
@@ -505,10 +505,10 @@ and `erc-stamp--margin-left-p', before activating the mode."
   (&context (erc-stamp--display-margin-mode (eql t))
             (erc-stamp--margin-left-p (eql t))
             (erc-stamp--skip-left-margin-prompt-p null))
-  (when-let (((null erc--hidden-prompt-overlay))
-             (prompt (string-pad erc-prompt-hidden left-margin-width nil 'start))
-             (ov (make-overlay erc-insert-marker (1- erc-input-marker)
-                               nil 'front-advance)))
+  (when-let* (((null erc--hidden-prompt-overlay))
+              (prompt (string-pad erc-prompt-hidden left-margin-width nil 'start))
+              (ov (make-overlay erc-insert-marker (1- erc-input-marker)
+                                nil 'front-advance)))
     (overlay-put ov 'display `((margin left-margin) ,prompt))
     (setq erc--hidden-prompt-overlay ov)))
 
@@ -534,7 +534,7 @@ and `erc-stamp--margin-left-p', before activating the mode."
     (goto-char (point-min))
     (insert-and-inherit (setq erc-timestamp-last-inserted string))
     (dolist (p erc-stamp--inherited-props)
-      (when-let ((v (get-text-property (point) p)))
+      (when-let* ((v (get-text-property (point) p)))
         (put-text-property (point-min) (point) p v)))
     (erc-put-text-property (point-min) (point) 'invisible
                            erc-stamp--invisible-property)
@@ -641,7 +641,7 @@ printed just after each line's text (no alignment)."
         (_ (indent-to pos)))
       (insert string)
       (dolist (p erc-stamp--inherited-props)
-        (when-let ((v (get-text-property (1- from) p)))
+        (when-let* ((v (get-text-property (1- from) p)))
           (put-text-property from (point) p v)))
       (erc-put-text-property from (point) 'field 'erc-timestamp)
       (erc-put-text-property from (point) 'rear-nonsticky t)
@@ -724,13 +724,13 @@ inserted is a date stamp."
   "Schedule a date stamp to be inserted via HOOK-VAR.
 Do so when `erc-stamp--deferred-date-stamp' and its `fn' slot are
 non-nil."
-  (when-let ((data erc-stamp--deferred-date-stamp)
-             ((eq (erc-stamp--date-fn data) #'ignore))
-             (ct (erc-stamp--date-ts data))
-             (rendered (erc-stamp--date-str data))
-             (buffer (current-buffer))
-             (symbol (make-symbol "erc-stamp--insert-date"))
-             (marker (setf (erc-stamp--date-marker data) (point-min-marker))))
+  (when-let* ((data erc-stamp--deferred-date-stamp)
+              ((eq (erc-stamp--date-fn data) #'ignore))
+              (ct (erc-stamp--date-ts data))
+              (rendered (erc-stamp--date-str data))
+              (buffer (current-buffer))
+              (symbol (make-symbol "erc-stamp--insert-date"))
+              (marker (setf (erc-stamp--date-marker data) (point-min-marker))))
     (setf (erc-stamp--date-fn data) symbol)
     (fset symbol
           (lambda (&rest _)
@@ -856,15 +856,15 @@ and date stamps inserted by this function."
     ;; "prepended" date stamps as well.  However, since this is a
     ;; compatibility oriented code path, and pre-5.6 did no such
     ;; thing, better to punt.
-    (if-let ((erc-stamp-prepend-date-stamps-p)
-             (ts-left (erc-format-timestamp ct erc-timestamp-format-left))
-             ((not (string= ts-left erc-timestamp-last-inserted-left))))
+    (if-let* ((erc-stamp-prepend-date-stamps-p)
+              (ts-left (erc-format-timestamp ct erc-timestamp-format-left))
+              ((not (string= ts-left erc-timestamp-last-inserted-left))))
         (progn
           (goto-char (point-min))
           (erc-put-text-property 0 (length ts-left) 'field 'erc-timestamp
                                  ts-left)
           (insert (setq erc-timestamp-last-inserted-left ts-left)))
-      (when-let
+      (when-let*
           (((null erc-stamp--deferred-date-stamp))
            (rendered (erc-stamp--format-date-stamp ct))
            ((not (string-equal rendered erc-timestamp-last-inserted-left)))
@@ -1064,17 +1064,17 @@ with the option `erc-echo-timestamps', see the companion option
   ;; regardless of `erc-timestamp-only-if-changed-flag'.  As of ERC 5.6,
   ;; recreating inserted messages from scratch isn't doable.  (Although,
   ;; attempting surgery like this is likely unwise.)
-  (when-let ((erc-stamp--date-mode)
-             ((< end (1- erc-insert-marker))) ; not a /CLEAR
-             (bounds (erc--get-inserted-msg-bounds (1+ end)))
-             (ts (get-text-property (car bounds) 'erc--ts))
-             (format (with-suppressed-warnings
-                         ((obsolete erc-timestamp-format-right))
-                       (or erc-timestamp-format-right erc-timestamp-format)))
-             (rendered (erc-format-timestamp ts format))
-             ((not (equal rendered erc-timestamp-last-inserted-right)))
-             ((not (eq 'erc-timestamp (field-at-pos (1- (cdr bounds))))))
-             (erc--msg-props (map-into `((erc--ts . ,ts)) 'hash-table)))
+  (when-let* ((erc-stamp--date-mode)
+              ((< end (1- erc-insert-marker))) ; not a /CLEAR
+              (bounds (erc--get-inserted-msg-bounds (1+ end)))
+              (ts (get-text-property (car bounds) 'erc--ts))
+              (format (with-suppressed-warnings
+                          ((obsolete erc-timestamp-format-right))
+                        (or erc-timestamp-format-right erc-timestamp-format)))
+              (rendered (erc-format-timestamp ts format))
+              ((not (equal rendered erc-timestamp-last-inserted-right)))
+              ((not (eq 'erc-timestamp (field-at-pos (1- (cdr bounds))))))
+              (erc--msg-props (map-into `((erc--ts . ,ts)) 'hash-table)))
     (save-excursion
       (save-restriction
         (let ((erc-timestamp-last-inserted erc-timestamp-last-inserted)
@@ -1106,12 +1106,12 @@ Call ORIG, an `erc--clear-function', with BEG and END markers."
     (when (and fullp culled (not skipp) (< 1 beg 3 end))
       (set-marker beg 3))
     (funcall orig beg end)
-    (when-let ((culled)
-               ((not skipp))
-               (ct (erc-stamp--date-ts (car culled)))
-               (hook (make-symbol "temporary-hook"))
-               (rendered (erc-stamp--format-date-stamp ct))
-               (data (make-erc-stamp--date :ts ct :str rendered)))
+    (when-let* ((culled)
+                ((not skipp))
+                (ct (erc-stamp--date-ts (car culled)))
+                (hook (make-symbol "temporary-hook"))
+                (rendered (erc-stamp--format-date-stamp ct))
+                (data (make-erc-stamp--date :ts ct :str rendered)))
       (cl-assert erc-stamp--date-mode)
       ;; Object successfully removed from model but snapshot remains.
       (cl-assert (null (cl-find rendered erc-stamp--date-stamps
@@ -1144,9 +1144,9 @@ copy non-duplicate `erc-stamp--date' objects from OLD-STAMPS to the
 current buffer's, maintaining order."
   (let (need)
     (dolist (old old-stamps)
-      (if-let ((new (cl-find (erc-stamp--date-str old) erc-stamp--date-stamps
-                             :test #'string= :key #'erc-stamp--date-str))
-               (new-marker (erc-stamp--date-marker new)))
+      (if-let* ((new (cl-find (erc-stamp--date-str old) erc-stamp--date-stamps
+                              :test #'string= :key #'erc-stamp--date-str))
+                (new-marker (erc-stamp--date-marker new)))
           ;; The new buffer now has a duplicate stamp, so remove the
           ;; "newer" one from the buffer.
           (progn

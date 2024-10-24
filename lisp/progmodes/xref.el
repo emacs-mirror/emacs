@@ -1050,7 +1050,7 @@ beginning of the line."
   "Return the string used to group a set of locations.
 This function is used as a value for `add-log-current-defun-function'."
   (xref--group-name-for-display
-   (if-let (item (xref--item-at-point))
+   (if-let* ((item (xref--item-at-point)))
        (xref-location-group (xref-match-item-location item))
      (xref--imenu-extract-index-name))
    (xref--project-root (project-current))))

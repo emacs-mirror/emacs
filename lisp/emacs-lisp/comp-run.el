@@ -370,8 +370,8 @@ Return the trampoline if found or nil otherwise."
                 (memq subr-name native-comp-never-optimize-functions)
                 (gethash subr-name comp-installed-trampolines-h))
       (cl-assert (subr-primitive-p subr))
-      (when-let ((trampoline (or (comp--trampoline-search subr-name)
-                                 (comp-trampoline-compile subr-name))))
+      (when-let* ((trampoline (or (comp--trampoline-search subr-name)
+                                  (comp-trampoline-compile subr-name))))
         (comp--install-trampoline subr-name trampoline)))))
 
 ;;;###autoload
@@ -423,7 +423,7 @@ bytecode definition was not changed in the meantime)."
             (t (signal 'native-compiler-error
                        (list "Not a file nor directory" file-or-dir)))))
     (dolist (file file-list)
-      (if-let ((entry (seq-find (lambda (x) (string= file (car x))) comp-files-queue)))
+      (if-let* ((entry (seq-find (lambda (x) (string= file (car x))) comp-files-queue)))
           ;; Most likely the byte-compiler has requested a deferred
           ;; compilation, so update `comp-files-queue' to reflect that.
           (unless (or (null load)

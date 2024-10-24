@@ -324,10 +324,10 @@ target buffer."
   ((when erc--querypoll-timer
      (cancel-timer erc--querypoll-timer))
    (if erc--target
-       (when-let (((erc-query-buffer-p))
-                  (ring (erc-with-server-buffer erc--querypoll-ring))
-                  (index (ring-member ring (current-buffer)))
-                  ((not (erc--querypoll-target-in-chan-p (current-buffer)))))
+       (when-let* (((erc-query-buffer-p))
+                   (ring (erc-with-server-buffer erc--querypoll-ring))
+                   (index (ring-member ring (current-buffer)))
+                   ((not (erc--querypoll-target-in-chan-p (current-buffer)))))
          (ring-remove ring index)
          (unless (erc-current-nick-p (erc-target))
            (erc-remove-current-channel-member (erc-target))))
@@ -376,8 +376,8 @@ between updates regardless of queue length.")
   (let ((n (ring-length ring)))
     (catch 'found
       (while (natnump (cl-decf n))
-        (when-let ((buffer (ring-remove ring))
-                   ((buffer-live-p buffer)))
+        (when-let* ((buffer (ring-remove ring))
+                    ((buffer-live-p buffer)))
           ;; Push back buffers for users joined to some chan.
           (if (erc--querypoll-target-in-chan-p buffer)
               (ring-insert ring buffer)
@@ -408,7 +408,7 @@ Then add user to participant rolls in any existing query buffers."
   (pcase-let
       ((`(,_ ,channel ,login ,host ,_server ,nick ,_flags, hop-real) args))
     (when (and (string= channel "*") (erc-nick-equal-p nick target-nick))
-      (if-let ((user (erc-get-server-user nick)))
+      (if-let* ((user (erc-get-server-user nick)))
           (erc-update-user user nick host login
                            (erc--extract-352-full-name hop-real))
         ;; Don't add unless target is already known.
@@ -428,7 +428,7 @@ Then add user to participant rolls in any existing query buffers."
              (buffer-local-value 'erc-server-connected server-buffer))
     (with-current-buffer server-buffer
       (setq erc--querypoll-timer nil)
-      (if-let ((buffer (erc--querypoll-get-next erc--querypoll-ring)))
+      (if-let* ((buffer (erc--querypoll-get-next erc--querypoll-ring)))
           (letrec
               ((target (erc--target-string
                         (buffer-local-value 'erc--target buffer)))

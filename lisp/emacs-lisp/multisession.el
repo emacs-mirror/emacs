@@ -428,8 +428,8 @@ storage method to list."
     (tabulated-list-print t)
     (goto-char (point-min))
     (when id
-      (when-let ((match
-                  (text-property-search-forward 'tabulated-list-id id t)))
+      (when-let* ((match
+                   (text-property-search-forward 'tabulated-list-id id t)))
         (goto-char (prop-match-beginning match))))))
 
 (defun multisession-delete-value (id)
@@ -456,7 +456,7 @@ storage method to list."
   (let* ((object (or
                   ;; If the multisession variable already exists, use
                   ;; it (so that we update it).
-                  (if-let (sym (intern-soft (cdr id)))
+                  (if-let* ((sym (intern-soft (cdr id))))
                       (and (boundp sym) (symbol-value sym))
                     nil)
                   ;; Create a new object.

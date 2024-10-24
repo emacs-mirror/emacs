@@ -1317,8 +1317,8 @@ have been replaced by constants."
 		    (setcar form (car new-form))
 		    (setcdr form (cdr new-form)))
 		  (eshell-do-eval form synchronous-p))
-              (if-let (((memq (car form) eshell-deferrable-commands))
-                       (procs (eshell-make-process-list result)))
+              (if-let* (((memq (car form) eshell-deferrable-commands))
+                        (procs (eshell-make-process-list result)))
                   (if synchronous-p
 		      (funcall #'eshell-wait-for-processes procs)
 		    (eshell-manipulate form "inserting ignore form"
@@ -1341,9 +1341,9 @@ have been replaced by constants."
            (run-hook-wrapped
             'eshell-named-command-hook
             (lambda (hook)
-              (when-let (((symbolp hook))
-                         (which-func (get hook 'eshell-which-function))
-                         (result (funcall which-func command)))
+              (when-let* (((symbolp hook))
+                          (which-func (get hook 'eshell-which-function))
+                          (result (funcall which-func command)))
                 (throw 'found result))))
            (eshell-plain-command--which name)))
       (error (eshell-error (format "which: %s\n" (cadr error)))))))
@@ -1407,7 +1407,7 @@ COMMAND may result in an alias being executed, or a plain command."
       sym)))
 
 (defun eshell-plain-command--which (command)
-  (if-let ((sym (eshell--find-plain-lisp-command command)))
+  (if-let* ((sym (eshell--find-plain-lisp-command command)))
       (or (with-output-to-string
             (require 'help-fns)
             (princ (format "%s is " sym))
@@ -1419,7 +1419,7 @@ COMMAND may result in an alias being executed, or a plain command."
   "Insert output from a plain COMMAND, using ARGS.
 COMMAND may result in either a Lisp function being executed by name,
 or an external command."
-  (if-let ((sym (eshell--find-plain-lisp-command command)))
+  (if-let* ((sym (eshell--find-plain-lisp-command command)))
       (eshell-lisp-command sym args)
     (eshell-external-command command args)))
 

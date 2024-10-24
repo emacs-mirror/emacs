@@ -73,9 +73,9 @@ happen to lurk on PATH when running the test suite."
 
 (defun comint-tests/test-password-function (password-function)
   "PASSWORD-FUNCTION can return nil or a string."
-  (when-let ((cat (if (eq system-type 'windows-nt)
-                      (w32-native-executable-find "cat")
-                    (executable-find "cat"))))
+  (when-let* ((cat (if (eq system-type 'windows-nt)
+                       (w32-native-executable-find "cat")
+                     (executable-find "cat"))))
     (let ((comint-password-function password-function))
       (cl-letf (((symbol-function 'read-passwd)
                  (lambda (&rest _args) "non-nil")))

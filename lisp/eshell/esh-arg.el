@@ -292,8 +292,8 @@ then the result will be:
   "If there are pending modifications to be made, make them now."
   (when eshell-current-argument
     (when eshell-arg-listified
-      (if-let ((grouped-terms (eshell-prepare-splice
-                               eshell-current-argument)))
+      (if-let* ((grouped-terms (eshell-prepare-splice
+                                eshell-current-argument)))
           (setq eshell-current-argument
                 `(eshell-splice-args
                   (eshell-concat-groups ,eshell-current-quoted

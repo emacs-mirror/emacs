@@ -81,7 +81,7 @@ all the different selection types."
    (gui-get-selection 'CLIPBOARD 'TARGETS)))
 
 (defun yank-media--get-selection (data-type)
-  (when-let ((data (gui-get-selection 'CLIPBOARD data-type)))
+  (when-let* ((data (gui-get-selection 'CLIPBOARD data-type)))
     (if (string-match-p "\\`text/" (symbol-name data-type))
         (yank-media-types--format data-type data)
       data)))
@@ -116,7 +116,7 @@ non-supported selection data types."
   (let ((elements nil))
     ;; First gather all the data.
     (dolist (type '(PRIMARY CLIPBOARD))
-      (when-let ((data-types (gui-get-selection type 'TARGETS)))
+      (when-let* ((data-types (gui-get-selection type 'TARGETS)))
         (when (vectorp data-types)
           (seq-do (lambda (data-type)
                     (unless (memq data-type '( TARGETS MULTIPLE

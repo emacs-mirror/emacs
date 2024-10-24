@@ -2399,7 +2399,7 @@ mode when reading the command name."
 (defun command-completion-using-modes-p (symbol buffer)
   "Say whether SYMBOL has been marked as a mode-specific command in BUFFER."
   ;; Check the modes.
-  (when-let ((modes (command-modes symbol)))
+  (when-let* ((modes (command-modes symbol)))
     ;; Common fast case: Just a single mode.
     (if (null (cdr modes))
         (or (provided-mode-derived-p
@@ -2801,10 +2801,10 @@ don't clear it."
          (t
           ;; Pass `cmd' rather than `final', for the backtrace's sake.
           (prog1 (call-interactively cmd record-flag keys)
-            (when-let ((info
-                        (and (symbolp cmd)
-                             (not (get cmd 'command-execute-obsolete-warned))
-                             (get cmd 'byte-obsolete-info))))
+            (when-let* ((info
+                         (and (symbolp cmd)
+                              (not (get cmd 'command-execute-obsolete-warned))
+                              (get cmd 'byte-obsolete-info))))
               (put cmd 'command-execute-obsolete-warned t)
               (message "%s" (macroexp--obsolete-warning
                              cmd info "command"
@@ -4779,7 +4779,7 @@ Names'.
 
 If a file name handler is unable to retrieve the effective uid,
 this function will instead return -1."
-  (if-let ((handler (find-file-name-handler default-directory 'file-user-uid)))
+  (if-let* ((handler (find-file-name-handler default-directory 'file-user-uid)))
       (funcall handler 'file-user-uid)
     (user-uid)))
 
@@ -4791,7 +4791,7 @@ Names'.
 
 If a file name handler is unable to retrieve the effective gid,
 this function will instead return -1."
-  (if-let ((handler (find-file-name-handler default-directory 'file-group-gid)))
+  (if-let* ((handler (find-file-name-handler default-directory 'file-group-gid)))
       (funcall handler 'file-group-gid)
     (group-gid)))
 
@@ -10054,7 +10054,7 @@ the completions is popped up and down."
         (let ((inhibit-read-only t))
           (add-text-properties (point) (min (1+ (point)) (point-max))
                                '(first-completion t))))
-    (when-let ((pos (next-single-property-change (point) 'mouse-face)))
+    (when-let* ((pos (next-single-property-change (point) 'mouse-face)))
       (goto-char pos))))
 
 (defun last-completion ()
@@ -10064,7 +10064,7 @@ the completions is popped up and down."
               (point-max) 'mouse-face nil (point-min)))
   ;; Move to the start of last one.
   (unless (get-text-property (point) 'mouse-face)
-    (when-let ((pos (previous-single-property-change (point) 'mouse-face)))
+    (when-let* ((pos (previous-single-property-change (point) 'mouse-face)))
       (goto-char pos))))
 
 (defun previous-completion (n)
@@ -10491,10 +10491,10 @@ to move point between completions.\n\n")))))))
 (defun switch-to-completions ()
   "Select the completion list window."
   (interactive)
-  (when-let ((window (or (get-buffer-window "*Completions*" 0)
-		         ;; Make sure we have a completions window.
-                         (progn (minibuffer-completion-help)
-                                (get-buffer-window "*Completions*" 0)))))
+  (when-let* ((window (or (get-buffer-window "*Completions*" 0)
+		          ;; Make sure we have a completions window.
+                          (progn (minibuffer-completion-help)
+                                 (get-buffer-window "*Completions*" 0)))))
     (select-window window)
     (when (bobp)
       (cond

@@ -121,10 +121,10 @@
 
 (define-ibuffer-column
  erc-members (:name "Users")
-  (if-let ((table (or erc-channel-users erc-server-users))
-           ((hash-table-p table))
-           (count (hash-table-count table))
-           ((> count 0)))
+  (if-let* ((table (or erc-channel-users erc-server-users))
+            ((hash-table-p table))
+            (count (hash-table-count table))
+            ((> count 0)))
       (number-to-string count)
     ""))
 

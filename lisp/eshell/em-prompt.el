@@ -178,8 +178,8 @@ Like `forward-paragraph', but also stops at the beginning of each prompt."
       (while (and (> n 0) (< (point) (point-max)))
         (let ((next-paragraph (save-excursion (forward-paragraph) (point)))
               (next-prompt (save-excursion
-                             (if-let ((match (text-property-search-forward
-                                              'field 'prompt t t)))
+                             (if-let* ((match (text-property-search-forward
+                                               'field 'prompt t t)))
                                  (prop-match-beginning match)
                                (point-max)))))
           (goto-char (min next-paragraph next-prompt)))
@@ -212,7 +212,7 @@ Like `backward-paragraph', but navigates using fields."
   (pcase (get-text-property (point) 'field)
     ('command-output)
     ('prompt (goto-char (field-end)))
-    (_ (when-let ((match (text-property-search-backward 'field 'prompt t)))
+    (_ (when-let* ((match (text-property-search-backward 'field 'prompt t)))
          (goto-char (prop-match-end match)))))
   ;; Now, move forward/backward to our destination prompt.
   (if (natnump n)

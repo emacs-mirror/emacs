@@ -2097,7 +2097,7 @@ do that, use `get-text-property' and `get-char-property'."
   (let (faces)
     (when text
       ;; Try to get a face name from the buffer.
-      (when-let ((face (thing-at-point 'face)))
+      (when-let* ((face (thing-at-point 'face)))
         (push face faces)))
     ;; Add the named faces that the `read-face-name' or `face' property uses.
     (let ((faceprop (or (get-char-property (point) 'read-face-name)

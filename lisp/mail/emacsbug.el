@@ -493,7 +493,7 @@ and send the mail again%s."
           (re-search-forward "^From: " nil t)
 	  (error "Please edit the From address and try again"))))
   ;; Bury the help buffer (if it's shown).
-  (when-let ((help (get-buffer "*Bug Help*")))
+  (when-let* ((help (get-buffer "*Bug Help*")))
     (when (get-buffer-window help)
       (quit-window nil (get-buffer-window help)))))
 
@@ -549,7 +549,7 @@ Message buffer where you can explain more about the patch."
   (message-add-action
    (lambda ()
      ;; Bury the help buffer (if it's shown).
-     (when-let ((help (get-buffer "*Patch Help*")))
+     (when-let* ((help (get-buffer "*Patch Help*")))
        (when (get-buffer-window help)
          (quit-window nil (get-buffer-window help)))))
    'send))

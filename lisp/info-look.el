@@ -327,7 +327,7 @@ string of `info-lookup-alist'.
 If optional argument QUERY is non-nil, query for the help mode."
   (let* ((mode (cond (query
 		      (info-lookup-change-mode topic))
-		     ((when-let
+		     ((when-let*
                           ((info (info-lookup->mode-value
                                   topic (info-lookup-select-mode))))
                         (info-lookup--expand-info info))
@@ -791,7 +791,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 (defun info-complete (topic mode)
   "Try to complete a help item."
   (barf-if-buffer-read-only)
-  (when-let ((info (info-lookup->mode-value topic mode)))
+  (when-let* ((info (info-lookup->mode-value topic mode)))
     (info-lookup--expand-info info))
   (let ((data (info-lookup-completions-at-point topic mode)))
     (if (null data)
@@ -1226,7 +1226,7 @@ Return nil if there is nothing appropriate in the buffer near point."
  :ignore-case t
  :regexp "[^][()`'‘’,:\" \t\n]+"
  :parse-rule (lambda ()
-               (when-let ((symbol (get-text-property (point) 'custom-data)))
+               (when-let* ((symbol (get-text-property (point) 'custom-data)))
                  (symbol-name symbol)))
  :other-modes '(emacs-lisp-mode))
 

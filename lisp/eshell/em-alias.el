@@ -221,14 +221,14 @@ This is useful after manually editing the contents of the file."
 (defun eshell-maybe-replace-by-alias--which (command)
   (unless (and eshell-prevent-alias-expansion
                (member command eshell-prevent-alias-expansion))
-    (when-let ((alias (eshell-lookup-alias command)))
+    (when-let* ((alias (eshell-lookup-alias command)))
       (concat command " is an alias, defined as \"" (cadr alias) "\""))))
 
 (defun eshell-maybe-replace-by-alias (command _args)
   "Call COMMAND's alias definition, if it exists."
   (unless (and eshell-prevent-alias-expansion
 	       (member command eshell-prevent-alias-expansion))
-    (when-let ((alias (eshell-lookup-alias command)))
+    (when-let* ((alias (eshell-lookup-alias command)))
       (throw 'eshell-replace-command
              `(let ((eshell-command-name ',eshell-last-command-name)
                     (eshell-command-arguments ',eshell-last-arguments)

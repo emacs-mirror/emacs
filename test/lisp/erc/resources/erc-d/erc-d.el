@@ -382,7 +382,7 @@ Return associated server."
   "Raise timeout error for EXCHANGE.
 This will start the teardown for DIALOG."
   (setf (erc-d-exchange-spec exchange) nil)
-  (if-let ((finalizer (erc-d-dialog-finalizer dialog)))
+  (if-let* ((finalizer (erc-d-dialog-finalizer dialog)))
       (funcall finalizer dialog exchange)
     (erc-d--teardown 'erc-d-timeout "Timed out awaiting request: %s"
                      (list :name (erc-d-exchange-tag exchange)
@@ -801,7 +801,7 @@ with leading-tilde tags."
 
 (defun erc-d--finalize-done (dialog)
   ;; Linger logic for individual dialogs is handled elsewhere
-  (if-let ((finalizer (erc-d-dialog-finalizer dialog)))
+  (if-let* ((finalizer (erc-d-dialog-finalizer dialog)))
       (funcall finalizer dialog)
     (let ((d (process-get (erc-d-dialog-process dialog) :dialog-linger-secs)))
       (push (run-at-time d nil #'erc-d--teardown)
@@ -876,7 +876,7 @@ back others indicating the lifecycle stage of the current dialog."
                 (apply #'erc-d--teardown matched)
               (erc-d-on-match dialog matched)
               (setf (erc-d-dialog-matched dialog) matched)
-              (if-let ((s (erc-d--command-meter-replies dialog matched nil)))
+              (if-let* ((s (erc-d--command-meter-replies dialog matched nil)))
                   (throw 'yield s)
                 (setf (erc-d-dialog-matched dialog) nil))))
           (erc-d--command-refresh dialog matched)))))))

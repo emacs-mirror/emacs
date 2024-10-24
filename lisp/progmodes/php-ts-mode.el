@@ -591,12 +591,12 @@ doesn't have a child.
 
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters of the current line."
-  (when-let ((prev-sibling
-              (or (treesit-node-prev-sibling node t)
-                  (treesit-node-prev-sibling
-                   (treesit-node-first-child-for-pos parent bol) t)
-                  (treesit-node-child parent -1 t)))
-             (continue t))
+  (when-let* ((prev-sibling
+               (or (treesit-node-prev-sibling node t)
+                   (treesit-node-prev-sibling
+                    (treesit-node-first-child-for-pos parent bol) t)
+                   (treesit-node-child parent -1 t)))
+              (continue t))
     (save-excursion
       (while (and prev-sibling continue)
         (goto-char (treesit-node-start prev-sibling))
@@ -1224,8 +1224,8 @@ Return nil if the NODE has no field “name” or if NODE is not a defun node."
   "Indent the current top-level declaration syntactically.
 `treesit-defun-type-regexp' defines what constructs to indent."
   (interactive "*")
-  (when-let ((orig-point (point-marker))
-             (node (treesit-defun-at-point)))
+  (when-let* ((orig-point (point-marker))
+              (node (treesit-defun-at-point)))
     (indent-region (treesit-node-start node)
                    (treesit-node-end node))
     (goto-char orig-point)))

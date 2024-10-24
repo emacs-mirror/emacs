@@ -271,7 +271,7 @@ If TABLE is found, return the position of the start of the table.
 If it can't be found, return nil and don't move point."
   (let ((start (point)))
     (goto-char (point-min))
-    (if-let ((match (text-property-search-forward 'vtable table t)))
+    (if-let* ((match (text-property-search-forward 'vtable table t)))
         (goto-char (prop-match-beginning match))
       (goto-char start)
       nil)))
@@ -279,7 +279,7 @@ If it can't be found, return nil and don't move point."
 (defun vtable-goto-column (column)
   "Go to COLUMN on the current line."
   (beginning-of-line)
-  (if-let ((match (text-property-search-forward 'vtable-column column t)))
+  (if-let* ((match (text-property-search-forward 'vtable-column column t)))
       (goto-char (prop-match-beginning match))
     (end-of-line)))
 
@@ -311,10 +311,10 @@ is signaled."
     ;; FIXME: If the table's buffer has no visible window, or if its
     ;; width has changed since the table was updated, the cache key will
     ;; not match and the object can't be updated.  (Bug #69837).
-    (if-let ((line-number (seq-position (car (vtable--cache table)) old-object
-                                        (lambda (a b)
-                                          (equal (car a) b))))
-             (line (elt (car (vtable--cache table)) line-number)))
+    (if-let* ((line-number (seq-position (car (vtable--cache table)) old-object
+                                         (lambda (a b)
+                                           (equal (car a) b))))
+              (line (elt (car (vtable--cache table)) line-number)))
         (progn
           (setcar line object)
           (setcdr line (vtable--compute-cached-line table object))
@@ -638,7 +638,7 @@ This also updates the displayed table."
     (insert "\n")
     (put-text-property start (point) 'vtable-object (car line))
     (unless column-colors
-      (when-let ((row-colors (slot-value table '-cached-colors)))
+      (when-let* ((row-colors (slot-value table '-cached-colors)))
         (add-face-text-property
          start (point)
          (elt row-colors (mod line-number (length row-colors))))))))
@@ -865,13 +865,13 @@ If NEXT, do the next column."
                                   (nth 1 (elt (cdr elem) index)))
                                 cache)))))
         ;; Let min-width/max-width specs have their say.
-        (when-let ((min-width (and (vtable-column-min-width column)
-                                   (vtable--compute-width
-                                    table (vtable-column-min-width column)))))
+        (when-let* ((min-width (and (vtable-column-min-width column)
+                                    (vtable--compute-width
+                                     table (vtable-column-min-width column)))))
           (setq width (max width min-width)))
-        (when-let ((max-width (and (vtable-column-max-width column)
-                                   (vtable--compute-width
-                                    table (vtable-column-max-width column)))))
+        (when-let* ((max-width (and (vtable-column-max-width column)
+                                    (vtable--compute-width
+                                     table (vtable-column-max-width column)))))
           (setq width (min width max-width)))
         width))
     (vtable-columns table))
@@ -904,7 +904,7 @@ If NEXT, do the next column."
                      (vtable-keymap table))
                  (copy-keymap vtable-map)
                vtable-map)))
-    (when-let ((actions (vtable-actions table)))
+    (when-let* ((actions (vtable-actions table)))
       (while actions
         (funcall (lambda (key binding)
                    (keymap-set map key

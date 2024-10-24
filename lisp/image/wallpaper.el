@@ -131,14 +131,14 @@ continue running even after exiting Emacs."
 The returned function kills any process named PROCESS-NAME owned
 by the current effective user id."
   (lambda ()
-    (when-let ((procs
-                (seq-filter (lambda (p) (let-alist p
-                                     (and (= .euid (user-uid))
-                                          (equal .comm process-name))))
-                            (mapcar (lambda (pid)
-                                      (cons (cons 'pid pid)
-                                            (process-attributes pid)))
-                                    (list-system-processes)))))
+    (when-let* ((procs
+                 (seq-filter (lambda (p) (let-alist p
+                                           (and (= .euid (user-uid))
+                                                (equal .comm process-name))))
+                             (mapcar (lambda (pid)
+                                       (cons (cons 'pid pid)
+                                             (process-attributes pid)))
+                                     (list-system-processes)))))
       (dolist (proc procs)
         (let-alist proc
           (when (y-or-n-p (format "Kill \"%s\" process with PID %d?" .comm .pid))
@@ -297,7 +297,7 @@ order in which they appear.")
                 (dolist (setter wallpaper--default-setters)
                   (wallpaper-debug "Testing setter %s" (wallpaper-setter-name setter))
                   (when (and (executable-find (wallpaper-setter-command setter))
-                             (if-let ((pred (wallpaper-setter-predicate setter)))
+                             (if-let* ((pred (wallpaper-setter-predicate setter)))
                                  (funcall pred)
                                t))
                     (wallpaper-debug "Found setter %s" (wallpaper-setter-name setter))
@@ -305,12 +305,12 @@ order in which they appear.")
 
 (defun wallpaper--find-command ()
   "Return the appropriate command to set the wallpaper."
-  (when-let ((setter (wallpaper--find-setter)))
+  (when-let* ((setter (wallpaper--find-setter)))
     (wallpaper-setter-command setter)))
 
 (defun wallpaper--find-command-args ()
   "Return command line arguments matching `wallpaper-command'."
-  (when-let ((setter (wallpaper--find-setter)))
+  (when-let* ((setter (wallpaper--find-setter)))
     (wallpaper-setter-args setter)))
 
 
@@ -449,23 +449,23 @@ This function is meaningful only on X and is used only there."
         (if (and .name (member .source '("XRandr" "XRandR 1.5" "Gdk")))
             .name
           "0"))
-    (if-let ((name
-              (and (getenv "DISPLAY")
-                   (or
-                    (cdr (assq 'name
-                               (progn
-                                 (x-open-connection (getenv "DISPLAY"))
-                                 (car (display-monitor-attributes-list
-                                       (car (last (terminal-list))))))))
-                    (and (executable-find "xrandr")
-                         (with-temp-buffer
-                           (call-process "xrandr" nil t nil)
-                           (goto-char (point-min))
-                           (re-search-forward (rx bol
-                                                  (group (+ (not (in " \n"))))
-                                                  " connected")
-                                              nil t)
-                           (match-string 1)))))))
+    (if-let* ((name
+               (and (getenv "DISPLAY")
+                    (or
+                     (cdr (assq 'name
+                                (progn
+                                  (x-open-connection (getenv "DISPLAY"))
+                                  (car (display-monitor-attributes-list
+                                        (car (last (terminal-list))))))))
+                     (and (executable-find "xrandr")
+                          (with-temp-buffer
+                            (call-process "xrandr" nil t nil)
+                            (goto-char (point-min))
+                            (re-search-forward (rx bol
+                                                   (group (+ (not (in " \n"))))
+                                                   " connected")
+                                               nil t)
+                            (match-string 1)))))))
         ;; Prefer "0" to "default" as that works in XFCE.
         (if (equal name "default") "0" name)
       (read-string (format-prompt "Monitor name" nil)))))

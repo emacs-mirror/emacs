@@ -294,7 +294,7 @@ Argument can be a simple name, remote file name, or already a
 (defsubst shadow-make-fullname (hup &optional host name)
   "Make a Tramp style fullname out of HUP, a `tramp-file-name' structure.
 Replace HOST, and NAME when non-nil.  HOST can also be a remote file name."
-  (when-let ((hup (copy-tramp-file-name hup)))
+  (when-let* ((hup (copy-tramp-file-name hup)))
     (when host
       (if (file-remote-p host)
           (setq name (or name (and hup (tramp-file-name-localname hup)))
@@ -364,7 +364,7 @@ Will return the name bare if it is a local file."
 Do so by replacing (when possible) home directory with ~/, and
 hostname with cluster name that includes it.  Filename should be
 absolute and true."
-  (when-let ((hup (shadow-parse-name file)))
+  (when-let* ((hup (shadow-parse-name file)))
     (let* ((homedir (if (shadow-local-file hup)
 		        shadow-homedir
 		      (file-name-as-directory
@@ -464,8 +464,8 @@ It may have different filenames on each site.  When this file is edited, the
 new version will be copied to each of the other locations.  Sites can be
 specific hostnames, or names of clusters (see `shadow-define-cluster')."
   (interactive)
-  (when-let ((hup (shadow-parse-name
-	           (shadow-contract-file-name (buffer-file-name)))))
+  (when-let* ((hup (shadow-parse-name
+	            (shadow-contract-file-name (buffer-file-name)))))
     (let* ((name (tramp-file-name-localname hup))
 	   site group)
       (while (setq site (shadow-read-site))

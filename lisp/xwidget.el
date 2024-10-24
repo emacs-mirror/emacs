@@ -439,7 +439,7 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
     (cond ((eq xwidget-event-type 'load-changed)
            (let ((title (xwidget-webkit-title xwidget))
                  (uri (xwidget-webkit-uri xwidget)))
-             (when-let ((buffer (get-buffer "*Xwidget WebKit History*")))
+             (when-let* ((buffer (get-buffer "*Xwidget WebKit History*")))
                (with-current-buffer buffer
                  (revert-buffer)))
              (with-current-buffer (xwidget-buffer xwidget)

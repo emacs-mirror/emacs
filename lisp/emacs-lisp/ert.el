@@ -328,8 +328,8 @@ DATA is displayed to the user and should state the reason for skipping."
                                  (unless (eql ,value ',default-value)
                                    (list :value ,value))
                                  (unless (eql ,value ',default-value)
-                                   (when-let ((-explainer-
-                                               (ert--get-explainer ',fn-name)))
+                                   (when-let* ((-explainer-
+                                                (ert--get-explainer ',fn-name)))
                                      (list :explanation
                                            (apply -explainer- ,args)))))
                          value)
@@ -1352,10 +1352,10 @@ RESULT must be an `ert-test-result-with-condition'."
 
 (defun ert-test-location (test)
   "Return a string description the source location of TEST."
-  (when-let ((loc
-              (ignore-errors
-                (find-function-search-for-symbol
-                 (ert-test-name test) 'ert-deftest (ert-test-file-name test)))))
+  (when-let* ((loc
+               (ignore-errors
+                 (find-function-search-for-symbol
+                  (ert-test-name test) 'ert-deftest (ert-test-file-name test)))))
     (let* ((buffer (car loc))
            (point (cdr loc))
            (file (file-relative-name (buffer-file-name buffer)))
@@ -1548,11 +1548,11 @@ test packages depend on each other, it might be helpful.")
   "Write a JUnit test report, generated from STATS."
   ;; https://www.ibm.com/docs/en/developer-for-zos/14.1.0?topic=formats-junit-xml-format
   ;; https://llg.cubic.org/docs/junit/
-  (when-let ((symbol (car (apropos-internal "" #'ert-test-boundp)))
-             (test-file (symbol-file symbol 'ert--test))
-             (test-report
-              (file-name-with-extension
-               (or ert-load-file-name test-file) "xml")))
+  (when-let* ((symbol (car (apropos-internal "" #'ert-test-boundp)))
+              (test-file (symbol-file symbol 'ert--test))
+              (test-report
+               (file-name-with-extension
+                (or ert-load-file-name test-file) "xml")))
     (with-temp-file test-report
       (insert "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
       (insert (format "<testsuites name=\"%s\" tests=\"%s\" errors=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\">\n"
@@ -2906,10 +2906,10 @@ write erts files."
         (setq end-before end-after
               start-after start-before))
       ;; Update persistent specs.
-      (when-let ((point-char (assq 'point-char specs)))
+      (when-let* ((point-char (assq 'point-char specs)))
         (setq gen-specs
               (map-insert gen-specs 'point-char (cdr point-char))))
-      (when-let ((code (cdr (assq 'code specs))))
+      (when-let* ((code (cdr (assq 'code specs))))
         (setq gen-specs
               (map-insert gen-specs 'code (car (read-from-string code)))))
       ;; Get the "after" strings.
@@ -2917,12 +2917,12 @@ write erts files."
         (insert-buffer-substring file-buffer start-after end-after)
         (ert--erts-unquote)
         ;; Remove the newline at the end of the buffer.
-        (when-let ((no-newline (cdr (assq 'no-after-newline specs))))
+        (when-let* ((no-newline (cdr (assq 'no-after-newline specs))))
           (goto-char (point-min))
           (when (re-search-forward "\n\\'" nil t)
             (delete-region (match-beginning 0) (match-end 0))))
         ;; Get the expected "after" point.
-        (when-let ((point-char (cdr (assq 'point-char gen-specs))))
+        (when-let* ((point-char (cdr (assq 'point-char gen-specs))))
           (goto-char (point-min))
           (when (search-forward point-char nil t)
             (delete-region (match-beginning 0) (match-end 0))
@@ -2933,13 +2933,13 @@ write erts files."
         (insert-buffer-substring file-buffer start-before end-before)
         (ert--erts-unquote)
         ;; Remove the newline at the end of the buffer.
-        (when-let ((no-newline (cdr (assq 'no-before-newline specs))))
+        (when-let* ((no-newline (cdr (assq 'no-before-newline specs))))
           (goto-char (point-min))
           (when (re-search-forward "\n\\'" nil t)
             (delete-region (match-beginning 0) (match-end 0))))
         (goto-char (point-min))
         ;; Place point in the specified place.
-        (when-let ((point-char (cdr (assq 'point-char gen-specs))))
+        (when-let* ((point-char (cdr (assq 'point-char gen-specs))))
           (when (search-forward point-char nil t)
             (delete-region (match-beginning 0) (match-end 0))))
         (let ((code (cdr (assq 'code gen-specs))))

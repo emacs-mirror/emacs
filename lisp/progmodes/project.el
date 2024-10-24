@@ -926,7 +926,7 @@ DIRS must contain directory names."
          (generic-cmd (lookup-key project-prefix-map key))
          (switch-to-buffer-obey-display-actions t)
          (display-buffer-overriding-action (unless place-cmd action)))
-    (if-let ((cmd (or place-cmd generic-cmd)))
+    (if-let* ((cmd (or place-cmd generic-cmd)))
         (call-interactively cmd)
       (user-error "%s is undefined" (key-description key)))))
 
@@ -1075,8 +1075,8 @@ relative to PROJECT instead.
 This supports using a relative file name from the current buffer
 when switching projects with `project-switch-project' and then
 using a command like `project-find-file'."
-  (if-let (filename-proj (and project-current-directory-override
-                            (project-current nil default-directory)))
+  (if-let* ((filename-proj (and project-current-directory-override
+                                (project-current nil default-directory))))
       ;; file-name-concat requires Emacs 28+
       (concat (file-name-as-directory (project-root project))
               (file-relative-name filename (project-root filename-proj)))
@@ -1167,7 +1167,7 @@ This has the effect of sharing more history between projects."
   :version "30.1")
 
 (defun project--transplant-file-name (filename project)
-  (when-let ((old-root (get-text-property 0 'project filename)))
+  (when-let* ((old-root (get-text-property 0 'project filename)))
     (expand-file-name
      (file-relative-name filename old-root)
      (project-root project))))
@@ -1443,7 +1443,7 @@ If you exit the `query-replace', you can later continue the
 
 (defun project-prefixed-buffer-name (mode)
   (concat "*"
-          (if-let ((proj (project-current nil)))
+          (if-let* ((proj (project-current nil)))
               (project-name proj)
             (file-name-nondirectory
              (directory-file-name default-directory)))
@@ -1870,7 +1870,7 @@ result in `project-list-file'.  Announce the project's removal
 from the list using REPORT-MESSAGE, which is a format string
 passed to `message' as its first argument."
   (project--ensure-read-project-list)
-  (when-let ((ent (assoc (abbreviate-file-name project-root) project--list)))
+  (when-let* ((ent (assoc (abbreviate-file-name project-root) project--list)))
     (setq project--list (delq ent project--list))
     (message report-message project-root)
     (project--write-project-list)))
@@ -1931,8 +1931,8 @@ When PROMPT is non-nil, use it as the prompt string."
             (dolist (dir (reverse (project-known-project-roots)))
               ;; We filter out directories that no longer map to a project,
               ;; since they don't have a clean project-name.
-              (when-let ((proj (project--find-in-directory dir))
-                         (name (project-name proj)))
+              (when-let* ((proj (project--find-in-directory dir))
+                          (name (project-name proj)))
                 (push name project--name-history)
                 (push (cons name proj) ret)))
             (reverse ret)))
@@ -2029,10 +2029,10 @@ projects."
     (dolist (project (mapcar #'car project--list))
       (puthash project t known))
     (dolist (subdir dirs)
-      (when-let (((file-directory-p subdir))
-                 (project (project--find-in-directory subdir))
-                 (project-root (project-root project))
-                 ((not (gethash project-root known))))
+      (when-let* (((file-directory-p subdir))
+                  (project (project--find-in-directory subdir))
+                  (project-root (project-root project))
+                  ((not (gethash project-root known))))
         (project-remember-project project t)
         (puthash project-root t known)
         (message "Found %s..." project-root)
@@ -2180,8 +2180,8 @@ Otherwise, use the face `help-key-binding' in the prompt."
           (let ((temp-map (make-sparse-keymap)))
             (set-keymap-parent temp-map project-prefix-map)
             (dolist (row commands-menu temp-map)
-              (when-let ((cmd (nth 0 row))
-                         (keychar (nth 2 row)))
+              (when-let* ((cmd (nth 0 row))
+                          (keychar (nth 2 row)))
                 (define-key temp-map (vector keychar) cmd)))))
          command
          choice)
@@ -2238,7 +2238,7 @@ If you set `uniquify-dirname-transform' to this function,
 slash-separated components from `project-name' will be appended to
 the buffer's directory name when buffers from two different projects
 would otherwise have the same name."
-  (if-let (proj (project-current nil dirname))
+  (if-let* ((proj (project-current nil dirname)))
       (let ((root (project-root proj)))
         (expand-file-name
          (file-name-concat
@@ -2273,7 +2273,7 @@ is part of the default mode line beginning with Emacs 30."
 
 (defun project-mode-line-format ()
   "Compose the project mode-line."
-  (when-let ((project (project-current)))
+  (when-let* ((project (project-current)))
     ;; Preserve the global value of 'last-coding-system-used'
     ;; that 'write-region' needs to set for 'basic-save-buffer',
     ;; but updating the mode line might occur at the same time

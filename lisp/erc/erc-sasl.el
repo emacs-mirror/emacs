@@ -148,17 +148,17 @@ PLIST to contain keyword params known to `auth-source-search'."
 (defun erc-sasl--read-password (prompt)
   "Return configured option or server password.
 If necessary, pass PROMPT to `read-passwd'."
-  (if-let ((found (pcase (alist-get 'password erc-sasl--options)
-                    ((guard (alist-get 'authfn erc-sasl--options))
-                     (let-alist erc-sasl--options
-                       (let ((erc-sasl-user .user)
-                             (erc-sasl-password .password)
-                             (erc-sasl-mechanism .mechanism)
-                             (erc-sasl-authzid .authzid)
-                             (erc-sasl-auth-source-function .authfn))
-                         (funcall .authfn :user (erc-sasl--get-user)))))
-                    (:password erc-session-password)
-                    ((and (pred stringp) v) (unless (string-empty-p v) v)))))
+  (if-let* ((found (pcase (alist-get 'password erc-sasl--options)
+                     ((guard (alist-get 'authfn erc-sasl--options))
+                      (let-alist erc-sasl--options
+                        (let ((erc-sasl-user .user)
+                              (erc-sasl-password .password)
+                              (erc-sasl-mechanism .mechanism)
+                              (erc-sasl-authzid .authzid)
+                              (erc-sasl-auth-source-function .authfn))
+                          (funcall .authfn :user (erc-sasl--get-user)))))
+                     (:password erc-session-password)
+                     ((and (pred stringp) v) (unless (string-empty-p v) v)))))
       (copy-sequence (erc--unfun found))
     (read-passwd prompt)))
 

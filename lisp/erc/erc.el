@@ -567,9 +567,9 @@ restore the described historical behavior.")
 (defun erc--ensure-query-member (nick)
   "Populate membership table in query buffer for online NICK."
   (erc-with-buffer (nick)
-    (when-let (((not erc--decouple-query-and-channel-membership-p))
-               ((zerop (hash-table-count erc-channel-users)))
-               (user (erc-get-server-user nick)))
+    (when-let* (((not erc--decouple-query-and-channel-membership-p))
+                ((zerop (hash-table-count erc-channel-users)))
+                (user (erc-get-server-user nick)))
       (erc-update-current-channel-member nick nil t)
       (erc--unhide-prompt)
       t)))
@@ -579,10 +579,10 @@ restore the described historical behavior.")
 Ensure targets with an entry in `erc-server-users' are present in
 `erc-channel-members'."
   (erc-with-all-buffers-of-server erc-server-process #'erc-query-buffer-p
-    (when-let (((not erc--decouple-query-and-channel-membership-p))
-               ((zerop (hash-table-count erc-channel-users)))
-               (target (erc-target))
-               ((erc-get-server-user target)))
+    (when-let* (((not erc--decouple-query-and-channel-membership-p))
+                ((zerop (hash-table-count erc-channel-users)))
+                (target (erc-target))
+                ((erc-get-server-user target)))
       (erc-update-current-channel-member target nil t)
       (erc--unhide-prompt))
     erc-server-process))
@@ -666,15 +666,15 @@ Also remove members from the server table if this was their only buffer."
 
 (defun erc--remove-channel-users-but (nick)
   "Drain channel users and remove from server, sparing NICK."
-  (when-let ((users (erc-with-server-buffer erc-server-users))
-             (my-user (gethash (erc-downcase nick) users))
-             (original-function erc--forget-server-user-function)
-             (erc--forget-server-user-function
-              (if erc--decouple-query-and-channel-membership-p
-                  erc--forget-server-user-function
-                (lambda (nick user)
-                  (unless (eq user my-user)
-                    (funcall original-function nick user))))))
+  (when-let* ((users (erc-with-server-buffer erc-server-users))
+              (my-user (gethash (erc-downcase nick) users))
+              (original-function erc--forget-server-user-function)
+              (erc--forget-server-user-function
+               (if erc--decouple-query-and-channel-membership-p
+                   erc--forget-server-user-function
+                 (lambda (nick user)
+                   (unless (eq user my-user)
+                     (funcall original-function nick user))))))
     (erc-remove-channel-users)))
 
 (defmacro erc--define-channel-user-status-compat-getter (name c d)
@@ -716,9 +716,9 @@ inlining calls to these adapters."
   "Add or remove membership status associated with LETTER for NICK-OR-CUSR.
 With RESETP, clear the user's status info completely.  If ENABLEP
 is non-nil, add the status value associated with LETTER."
-  (when-let ((cusr (or (and (erc-channel-user-p nick-or-cusr) nick-or-cusr)
-                       (cdr (erc-get-channel-member nick-or-cusr))))
-             (n (erc--get-prefix-flag letter)))
+  (when-let* ((cusr (or (and (erc-channel-user-p nick-or-cusr) nick-or-cusr)
+                        (cdr (erc-get-channel-member nick-or-cusr))))
+              (n (erc--get-prefix-flag letter)))
     (cl-callf (lambda (v)
                 (if resetp
                     (if enablep n 0)
@@ -2395,12 +2395,12 @@ invocations by third-party packages.")
 
 (defun erc--find-mode (sym)
   (setq sym (erc--normalize-module-symbol sym))
-  (if-let ((mode (intern-soft (concat "erc-" (symbol-name sym) "-mode")))
-           ((and (fboundp mode)
-                 (autoload-do-load (symbol-function mode) mode)))
-           ((or (get sym 'erc--module)
-                (symbol-file mode)
-                (ignore (cl-pushnew sym erc--aberrant-modules)))))
+  (if-let* ((mode (intern-soft (concat "erc-" (symbol-name sym) "-mode")))
+            ((and (fboundp mode)
+                  (autoload-do-load (symbol-function mode) mode)))
+            ((or (get sym 'erc--module)
+                 (symbol-file mode)
+                 (ignore (cl-pushnew sym erc--aberrant-modules)))))
       mode
     (and (or (and erc--requiring-module-mode-p
                   ;; Also likely non-nil: (eq sym (car features))
@@ -2418,7 +2418,7 @@ invocations by third-party packages.")
 (defun erc--update-modules (modules)
   (let (local-modes)
     (dolist (module modules local-modes)
-      (if-let ((mode (erc--find-mode module)))
+      (if-let* ((mode (erc--find-mode module)))
           (if (custom-variable-p mode)
               (funcall mode 1)
             (push mode local-modes))
@@ -3063,8 +3063,8 @@ such inconsistent labeling may pose a problem until the MOTD is
 received.  Setting a fixed `erc-networks--id' can serve as a
 workaround."
   (when erc-debug-irc-protocol
-    (let ((esid (if-let ((erc-networks--id)
-                         (esid (erc-networks--id-symbol erc-networks--id)))
+    (let ((esid (if-let* ((erc-networks--id)
+                          (esid (erc-networks--id-symbol erc-networks--id)))
                     (symbol-name esid)
                   (or erc-server-announced-name
                       (format "%s:%s" erc-session-server erc-session-port))))
@@ -3297,10 +3297,10 @@ a full refresh."
             (insert s)
             (delete-region erc-insert-marker p))))
       (run-hooks 'erc--refresh-prompt-hook)
-      (when-let (((> erc--refresh-prompt-continue-request 0))
-                 (n erc--refresh-prompt-continue-request)
-                 (erc--refresh-prompt-continue-request -1)
-                 (b (current-buffer)))
+      (when-let* (((> erc--refresh-prompt-continue-request 0))
+                  (n erc--refresh-prompt-continue-request)
+                  (erc--refresh-prompt-continue-request -1)
+                  (b (current-buffer)))
         (erc-with-all-buffers-of-server erc-server-process
             (lambda () (not (eq b (current-buffer))))
           (if (= n 1)
@@ -3677,10 +3677,10 @@ Callers should be aware that this function fails if the property
 `erc--important-props' has an empty value almost anywhere along the
 affected region.  Use the function `erc--remove-from-prop-value-list' to
 ensure that props with empty values are excised completely."
-  (when-let ((registered (erc--check-msg-prop 'erc--important-prop-names))
-             (present (seq-intersection props registered))
-             (b (or beg (point-min)))
-             (e (or end (point-max))))
+  (when-let* ((registered (erc--check-msg-prop 'erc--important-prop-names))
+              (present (seq-intersection props registered))
+              (b (or beg (point-min)))
+              (e (or end (point-max))))
     (while-let
         (((setq b (text-property-not-all b e 'erc--important-props nil)))
          (val (get-text-property b 'erc--important-props))
@@ -3790,7 +3790,7 @@ reverse order so they end up sorted in buffer interval plists for
 retrieval by `text-properties-at' and friends."
   (let (out)
     (dolist (k erc--ranked-properties)
-      (when-let ((v (gethash k table)))
+      (when-let* ((v (gethash k table)))
         (remhash k table)
         (setq out (nconc (list k v) out))))
     (maphash (lambda (k v) (setq out (nconc (list k v) out))) table)
@@ -4132,8 +4132,8 @@ for other purposes.")
 
 (defun erc-send-input-line (target line &optional force)
   "Send LINE to TARGET."
-  (when-let ((target)
-             (cmem (erc-get-channel-member (erc-current-nick))))
+  (when-let* ((target)
+              (cmem (erc-get-channel-member (erc-current-nick))))
     (setf (erc-channel-user-last-message-time (cdr cmem))
           (erc-compat--current-lisp-time)))
   (when (and (not erc--allow-empty-outgoing-lines-p) (string= line "\n"))
@@ -4430,7 +4430,7 @@ of `erc-ignore-list'."
                     (format "Now ignoring %s" user)))
         (erc-with-server-buffer
           (when timeout
-            (if-let ((existing (erc--find-ignore-timer user (current-buffer))))
+            (if-let* ((existing (erc--find-ignore-timer user (current-buffer))))
                 (timer-set-time existing (timer-relative-time nil timeout))
               (run-at-time timeout nil #'erc--unignore-user user
                            (current-buffer))))
@@ -4442,11 +4442,11 @@ of `erc-ignore-list'."
       (erc-with-server-buffer
         (let ((seen (copy-sequence erc-ignore-list)))
           (dolist (timer timer-list)
-            (when-let ((args (erc--get-ignore-timer-args timer))
-                       ((eq (current-buffer) (nth 1 args)))
-                       (user (car args))
-                       (delta (- (timer-until timer (current-time))))
-                       (duration (erc--format-time-period delta)))
+            (when-let* ((args (erc--get-ignore-timer-args timer))
+                        ((eq (current-buffer) (nth 1 args)))
+                        (user (car args))
+                        (delta (- (timer-until timer (current-time))))
+                        (duration (erc--format-time-period delta)))
               (setq seen (delete user seen))
               (erc-display-message nil 'notice 'active 'ignore-list
                                    ?p user ?s duration)))
@@ -4477,7 +4477,7 @@ of `erc-ignore-list'."
       (erc-display-message nil 'notice 'active
                            (format "No longer ignoring %s" user))
       (setq erc-ignore-list (delete user erc-ignore-list))
-      (when-let ((existing (erc--find-ignore-timer user buffer)))
+      (when-let* ((existing (erc--find-ignore-timer user buffer)))
         (cancel-timer existing)))))
 
 (defvar erc--clear-function #'delete-region
@@ -5249,7 +5249,7 @@ Display the query buffer in accordance with `erc-interactive-display'."
         (erc--display-context `((erc-interactive-display . /QUERY)
                                 ,@erc--display-context)))
     (erc-with-server-buffer
-      (if-let ((buffer (erc-get-buffer user erc-server-process)))
+      (if-let* ((buffer (erc-get-buffer user erc-server-process)))
           (prog1 buffer
             (erc-setup-buffer buffer))
         (prog1 (erc--open-target user) ; becomes current buffer
@@ -5654,9 +5654,9 @@ When uninitialized or with option -f, resync `erc-channel-banlist'."
         (when (< maxw (+ rw lw)) ; scale down when capped
           (cl-psetq rw (/ (* rw maxw) (* 1.0 (+ rw lw)))
                     lw (/ (* lw maxw) (* 1.0 (+ rw lw)))))
-        (when-let ((larger (max rw lw)) ; cap ratio at 3:1
-                   (wavg (* maxw 0.75))
-                   ((> larger wavg)))
+        (when-let* ((larger (max rw lw)) ; cap ratio at 3:1
+                    (wavg (* maxw 0.75))
+                    ((> larger wavg)))
           (setq rw (if (eql larger rw) wavg (- maxw wavg))
                 lw (- maxw rw)))
         (cl-psetq rw (+ rw (* erc-banlist-fill-padding
@@ -6386,8 +6386,8 @@ with `erc--spkr' in the \"msg prop\" environment for any imminent
 `erc-display-message' invocations, and include any overrides defined in
 `erc--message-speaker-catalog'.  Expect NICK (but not necessarily DISP)
 to be absent of any existing text properties."
-  (when-let ((erc-server-process)
-             (cusr (erc-get-server-user nick)))
+  (when-let* ((erc-server-process)
+              (cusr (erc-get-server-user nick)))
     (setq nick (erc-server-user-nickname cusr)))
   (erc--ensure-spkr-prop nick (get erc--message-speaker-catalog
                                    'erc--msg-prop-overrides))
@@ -6554,14 +6554,14 @@ similar to that performed by `erc-format-my-nick', but use either
 `erc--message-speaker-input-query-privmsg' as a formatting
 template, with MESSAGE being the actual message body.  Return a
 copy with possibly shared text-property values."
-  (if-let ((erc-show-my-nick)
-           (nick (erc-current-nick))
-           (pfx (erc-get-channel-membership-prefix nick))
-           (erc-current-message-catalog erc--message-speaker-catalog)
-           (key (if (or erc-format-query-as-channel-p
-                        (erc--target-channel-p erc--target))
-                    'input-chan-privmsg
-                  'input-query-privmsg)))
+  (if-let* ((erc-show-my-nick)
+            (nick (erc-current-nick))
+            (pfx (erc-get-channel-membership-prefix nick))
+            (erc-current-message-catalog erc--message-speaker-catalog)
+            (key (if (or erc-format-query-as-channel-p
+                         (erc--target-channel-p erc--target))
+                     'input-chan-privmsg
+                   'input-query-privmsg)))
       (progn
         (cond (erc--msg-props (puthash 'erc--msg key erc--msg-props))
               (erc--msg-prop-overrides (push (cons 'erc--msg key)
@@ -7194,7 +7194,7 @@ extensions."
   (let ((names (delete "" (split-string names-string)))
         (erc-channel-members-changed-hook nil))
     (dolist (name names)
-      (when-let ((args (erc--partition-prefixed-names name)))
+      (when-let* ((args (erc--partition-prefixed-names name)))
         (pcase-let* ((`(,status ,nick ,login ,host) args)
                      (cmem (erc-get-channel-user nick)))
           (progn
@@ -8190,10 +8190,10 @@ ERC prints them as a single message joined by newlines.")
           (let* ((str (erc-user-input))
                  (state (erc--make-input-split str)))
             (run-hook-with-args 'erc--input-review-functions state)
-            (when-let (((not (erc--input-split-abortp state)))
-                       (inhibit-read-only t)
-                       (erc--current-line-input-split state)
-                       (old-buf (current-buffer)))
+            (when-let* (((not (erc--input-split-abortp state)))
+                        (inhibit-read-only t)
+                        (erc--current-line-input-split state)
+                        (old-buf (current-buffer)))
               (progn ; unprogn this during next major surgery
                 (erc-set-active-buffer (current-buffer))
                 ;; Kill the input and the prompt
@@ -9187,12 +9187,12 @@ This should be a string with substitution variables recognized by
   "Return the network or the current target and network combined.
 If the name of the network is not available, then use the
 shortened server name instead."
-  (if-let ((erc--target)
-           (name (if-let ((erc-networks--id)
-                          (esid (erc-networks--id-symbol erc-networks--id)))
-                     (symbol-name esid)
-                   (erc-shorten-server-name (or erc-server-announced-name
-                                                erc-session-server)))))
+  (if-let* ((erc--target)
+            (name (if-let* ((erc-networks--id)
+                            (esid (erc-networks--id-symbol erc-networks--id)))
+                      (symbol-name esid)
+                    (erc-shorten-server-name (or erc-server-announced-name
+                                                 erc-session-server)))))
       (concat (erc--target-string erc--target) "@" name)
     (buffer-name)))
 
@@ -9773,8 +9773,8 @@ one of the following hooks:
 `erc-kill-channel-hook' if a channel buffer was killed,
 or `erc-kill-buffer-hook' if any other buffer."
   (when (eq major-mode 'erc-mode)
-    (when-let ((erc--target)
-               (nick (erc-current-nick)))
+    (when-let* ((erc--target)
+                (nick (erc-current-nick)))
       (erc--remove-channel-users-but nick))
     (cond
      ((eq (erc-server-buffer) (current-buffer))
@@ -9829,10 +9829,10 @@ This function should be on `erc-kill-server-hook'."
 
 (defun erc-restore-text-properties ()
   "Ensure the `erc-parsed' and `tags' props cover the entire message."
-  (when-let ((parsed-posn (erc-find-parsed-property))
+  (when-let* ((parsed-posn (erc-find-parsed-property))
               (found (erc-get-parsed-vector parsed-posn)))
     (put-text-property (point-min) (point-max) 'erc-parsed found)
-    (when-let ((tags (get-text-property parsed-posn 'tags)))
+    (when-let* ((tags (get-text-property parsed-posn 'tags)))
       (put-text-property (point-min) (point-max) 'tags tags))))
 
 (defun erc-get-parsed-vector (point)
@@ -9858,7 +9858,7 @@ This function should be on `erc-kill-server-hook'."
 See also `erc-message-type'."
   ;; IRC numerics are three-digit numbers, possibly with leading 0s.
   ;; To invert: (if (numberp o) (format "%03d" o) (symbol-name o))
-  (if-let ((n (string-to-number command)) ((zerop n))) (intern command) n))
+  (if-let* ((n (string-to-number command)) ((zerop n))) (intern command) n))
 
 ;; Teach url.el how to open irc:// URLs with ERC.
 ;; To activate, customize `url-irc-function' to `url-irc-erc'.

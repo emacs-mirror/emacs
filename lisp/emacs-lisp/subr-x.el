@@ -475,7 +475,7 @@ this defaults to the current buffer."
                  (t
                   disp)))
           ;; Remove any old instances.
-          (when-let ((old (assoc prop disp)))
+          (when-let* ((old (assoc prop disp)))
             (setq disp (delete old disp)))
           (setq disp (cons (list prop value) disp))
           (when vector

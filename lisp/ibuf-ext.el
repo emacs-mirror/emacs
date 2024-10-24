@@ -857,7 +857,7 @@ specification, with the same structure as an element of the list
   "Move point to the filter group whose name is NAME."
   (interactive
    (list (ibuffer-read-filter-group-name "Jump to filter group: ")))
-  (if-let ((it (assoc name (ibuffer-current-filter-groups-with-position))))
+  (if-let* ((it (assoc name (ibuffer-current-filter-groups-with-position))))
       (goto-char (cdr it))
     (error "No filter group with name %s" name)))
 
@@ -868,7 +868,7 @@ The group will be added to `ibuffer-filter-group-kill-ring'."
   (interactive (list (ibuffer-read-filter-group-name "Kill filter group: " t)))
   (when (equal name "Default")
     (error "Can't kill default filter group"))
-  (if-let ((it (assoc name ibuffer-filter-groups)))
+  (if-let* ((it (assoc name ibuffer-filter-groups)))
       (progn
 	(push (copy-tree it) ibuffer-filter-group-kill-ring)
 	(setq ibuffer-filter-groups (ibuffer-remove-alist
@@ -883,9 +883,9 @@ The group will be added to `ibuffer-filter-group-kill-ring'."
   "Kill the filter group at point.
 See also `ibuffer-kill-filter-group'."
   (interactive "P\np")
-  (if-let ((it (save-excursion
-                 (ibuffer-forward-line 0)
-                 (get-text-property (point) 'ibuffer-filter-group-name))))
+  (if-let* ((it (save-excursion
+                  (ibuffer-forward-line 0)
+                  (get-text-property (point) 'ibuffer-filter-group-name))))
       (ibuffer-kill-filter-group it)
     (funcall (if interactive-p #'call-interactively #'funcall)
              #'kill-line arg)))
@@ -944,7 +944,7 @@ prompt for NAME, and use the current filters."
      (list
       (read-from-minibuffer "Save current filter groups as: ")
       ibuffer-filter-groups)))
-  (if-let ((it (assoc name ibuffer-saved-filter-groups)))
+  (if-let* ((it (assoc name ibuffer-saved-filter-groups)))
       (setcdr it groups)
     (push (cons name groups) ibuffer-saved-filter-groups))
   (ibuffer-maybe-save-stuff))
@@ -1116,7 +1116,7 @@ Interactively, prompt for NAME, and use the current filters."
      (list
       (read-from-minibuffer "Save current filters as: ")
       ibuffer-filtering-qualifiers)))
-  (if-let ((it (assoc name ibuffer-saved-filters)))
+  (if-let* ((it (assoc name ibuffer-saved-filters)))
       (setcdr it filters)
     (push (cons name filters) ibuffer-saved-filters))
   (ibuffer-maybe-save-stuff))
@@ -1296,7 +1296,7 @@ For example, for a buffer associated with file '/a/b/c.d', this
 matches against '/a/b/c.d'."
   (:description "full file name"
    :reader (read-from-minibuffer "Filter by full file name (regexp): "))
-  (when-let ((it (with-current-buffer buf (ibuffer-buffer-file-name))))
+  (when-let* ((it (with-current-buffer buf (ibuffer-buffer-file-name))))
     (string-match qualifier it)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-basename "ibuf-ext")
@@ -1308,7 +1308,7 @@ matches against `c.d'."
   (:description "file basename"
    :reader (read-from-minibuffer
             "Filter by file name, without directory part (regex): "))
-  (when-let ((it (with-current-buffer buf (ibuffer-buffer-file-name))))
+  (when-let* ((it (with-current-buffer buf (ibuffer-buffer-file-name))))
     (string-match qualifier (file-name-nondirectory it))))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-file-extension "ibuf-ext")
@@ -1321,7 +1321,7 @@ pattern.  For example, for a buffer associated with file
   (:description "filename extension"
    :reader (read-from-minibuffer
             "Filter by filename extension without separator (regex): "))
-  (when-let ((it (with-current-buffer buf (ibuffer-buffer-file-name))))
+  (when-let* ((it (with-current-buffer buf (ibuffer-buffer-file-name))))
     (string-match qualifier (or (file-name-extension it) ""))))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-directory "ibuf-ext")
@@ -1656,7 +1656,7 @@ a prefix argument reverses the meaning of that variable."
   "Compare BUFFER with its associated file, if any.
 Unlike `diff-no-select', insert output into current buffer
 without erasing it."
-  (when-let ((old (buffer-file-name buffer)))
+  (when-let* ((old (buffer-file-name buffer)))
     (defvar diff-use-labels)
     (let* ((new buffer)
            (oldtmp (diff-file-local-copy old))
@@ -1822,7 +1822,7 @@ When BUF nil, default to the buffer at current line."
   (interactive (list (read-regexp "Mark by file name (regexp)")))
   (ibuffer-mark-on-buffer
    (lambda (buf)
-     (when-let ((name (with-current-buffer buf (ibuffer-buffer-file-name))))
+     (when-let* ((name (with-current-buffer buf (ibuffer-buffer-file-name))))
        ;; Match on the displayed file name (which is abbreviated).
        (string-match-p regexp (ibuffer--abbreviate-file-name name))))))
 
@@ -1843,7 +1843,7 @@ Otherwise buffers whose name matches an element of
                    (or
                     (memq mode ibuffer-never-search-content-mode)
                     (cl-dolist (x ibuffer-never-search-content-name nil)
-                      (when-let ((found (string-match x (buffer-name buf))))
+                      (when-let* ((found (string-match x (buffer-name buf))))
                         (cl-return found)))))
               (setq res nil))
              (t

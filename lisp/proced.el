@@ -955,11 +955,11 @@ Proced buffers."
   "Auto-update Proced buffers using `run-at-time'.
 
 If there are no proced buffers, cancel the timer."
-  (if-let (buffers (match-buffers '(derived-mode . proced-mode)))
+  (if-let* ((buffers (match-buffers '(derived-mode . proced-mode))))
       (dolist (buf buffers)
-        (when-let ((flag (buffer-local-value 'proced-auto-update-flag buf))
-                   ((or (not (eq flag 'visible))
-                        (get-buffer-window buf 'visible))))
+        (when-let* ((flag (buffer-local-value 'proced-auto-update-flag buf))
+                    ((or (not (eq flag 'visible))
+                         (get-buffer-window buf 'visible))))
           (with-current-buffer buf
             (proced-update t t))))
     (cancel-timer proced-auto-update-timer)

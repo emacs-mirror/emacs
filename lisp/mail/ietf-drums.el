@@ -275,11 +275,11 @@ a list of address strings."
            ((eq c ?:)
             (setq beg (1+ (point)))
             (skip-chars-forward "^;")
-            (when-let ((address
-                  (condition-case nil
-                      (ietf-drums-parse-addresses
-                       (buffer-substring beg (point)) rawp)
-                    (error nil))))
+            (when-let* ((address
+                         (condition-case nil
+                             (ietf-drums-parse-addresses
+                              (buffer-substring beg (point)) rawp)
+                           (error nil))))
               (if (listp address)
                   (setq pairs (append address pairs))
                 (push address pairs)))

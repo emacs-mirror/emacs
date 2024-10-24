@@ -1456,9 +1456,9 @@ These are the commands available for use in the file status buffer:
     (let ((use-vc-backend backend))
       (vc-dir-mode)
       ;; Activate the backend-specific minor mode, if any.
-      (when-let ((minor-mode
-                  (intern-soft (format "vc-dir-%s-mode"
-                                       (downcase (symbol-name backend))))))
+      (when-let* ((minor-mode
+                   (intern-soft (format "vc-dir-%s-mode"
+                                        (downcase (symbol-name backend))))))
         (funcall minor-mode 1)))))
 
 (defun vc-default-dir-extra-headers (_backend _dir)

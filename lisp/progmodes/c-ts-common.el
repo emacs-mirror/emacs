@@ -128,8 +128,8 @@ ARG is passed to `fill-paragraph'."
                   (looking-at "//"))
                 ;; In rust, NODE will be the body of a comment, and the
                 ;; parent will be the whole comment.
-                (if-let ((start (treesit-node-start
-                                 (treesit-node-parent node))))
+                (if-let* ((start (treesit-node-start
+                                  (treesit-node-parent node))))
                     (save-excursion
                       (goto-char start)
                       (looking-at "//"))))

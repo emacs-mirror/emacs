@@ -861,7 +861,7 @@ Set it to nil for remote directories, which suffer from a slow connection."
                  (if (not (connection-local-value dired-check-symlinks))
                      (search-forward-regexp
                       "\\(.+-> ?\\)\\(.+\\)" end t)
-                   (when-let ((file (dired-file-name-at-point)))
+                   (when-let* ((file (dired-file-name-at-point)))
                      (let ((truename (ignore-errors (file-truename file))))
                        (and (or (not truename)
 		                (not (file-directory-p truename)))
@@ -1741,11 +1741,11 @@ see `dired-use-ls-dired' for more details.")
                             (executable-find "sh")))
                     (switch (if remotep "-c" shell-command-switch)))
                ;; Enable globstar
-               (when-let ((globstar dired-maybe-use-globstar)
-                          (enable-it
-                           (assoc-default
-                            (file-truename sh) dired-enable-globstar-in-shell
-                            (lambda (reg shell) (string-match reg shell)))))
+               (when-let* ((globstar dired-maybe-use-globstar)
+                           (enable-it
+                            (assoc-default
+                             (file-truename sh) dired-enable-globstar-in-shell
+                             (lambda (reg shell) (string-match reg shell)))))
                  (setq script (format "%s; %s" enable-it script)))
                (unless
                    (zerop
@@ -1863,7 +1863,7 @@ see `dired-use-ls-dired' for more details.")
         ;; Replace "total" with "total used in directory" to
         ;; avoid confusion.
         (replace-match "total used in directory" nil nil nil 1))
-      (if-let ((available (get-free-disk-space file)))
+      (if-let* ((available (get-free-disk-space file)))
         (cond
          ((eq dired-free-space 'separate)
 	  (end-of-line)
@@ -2803,7 +2803,7 @@ Keybindings:
                   (let ((point (window-point w)))
                     (save-excursion
                       (goto-char point)
-                      (if-let ((f (dired-get-filename nil t)))
+                      (if-let* ((f (dired-get-filename nil t)))
                           `((dired-filename . ,f))
                         `((position . ,(point)))))))))
   (setq-local window-point-context-use-function
@@ -2811,9 +2811,9 @@ Keybindings:
                 (with-current-buffer (window-buffer w)
                   (let ((point (window-point w)))
                     (save-excursion
-                      (if-let ((f (alist-get 'dired-filename context)))
+                      (if-let* ((f (alist-get 'dired-filename context)))
                           (dired-goto-file f)
-                        (when-let ((p (alist-get 'position context)))
+                        (when-let* ((p (alist-get 'position context)))
                           (goto-char p)))
                       (setq point (point)))
                     (set-window-point w point)))))

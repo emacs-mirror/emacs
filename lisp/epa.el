@@ -498,7 +498,7 @@ If SECRET is non-nil, list secret keys instead of public keys."
 (defun epa-show-key ()
   "Show a key on the current line."
   (interactive)
-  (if-let ((key (get-text-property (point) 'epa-key)))
+  (if-let* ((key (get-text-property (point) 'epa-key)))
       (save-selected-window
         (epa--show-key key))
     (error "No key on this line")))

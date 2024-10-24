@@ -287,7 +287,7 @@ one step according to the great-grand-parent indent level.  The
 reason there is a difference between grand-parent and
 great-grand-parent here is that the node containing the newline
 is actually the parent of point at the moment of indentation."
-  (when-let ((node (treesit-node-on (point) (point))))
+  (when-let* ((node (treesit-node-on (point) (point))))
     (if (string-equal "translation_unit"
                       (treesit-node-type
                        (treesit-node-parent
@@ -315,12 +315,12 @@ doesn't have a child.
 
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters of the current line."
-  (when-let ((prev-sibling
-              (or (treesit-node-prev-sibling node t)
-                  (treesit-node-prev-sibling
-                   (treesit-node-first-child-for-pos parent bol) t)
-                  (treesit-node-child parent -1 t)))
-             (continue t))
+  (when-let* ((prev-sibling
+               (or (treesit-node-prev-sibling node t)
+                   (treesit-node-prev-sibling
+                    (treesit-node-first-child-for-pos parent bol) t)
+                   (treesit-node-child parent -1 t)))
+              (continue t))
     (save-excursion
       (while (and prev-sibling continue)
         (pcase (treesit-node-type prev-sibling)
@@ -1103,8 +1103,8 @@ is required, not just the declaration part for DEFUN."
 
 `treesit-defun-type-regexp' defines what constructs to indent."
   (interactive "*")
-  (when-let ((orig-point (point-marker))
-             (range (c-ts-mode--emacs-defun-at-point t)))
+  (when-let* ((orig-point (point-marker))
+              (range (c-ts-mode--emacs-defun-at-point t)))
     (indent-region (car range) (cdr range))
     (goto-char orig-point)))
 

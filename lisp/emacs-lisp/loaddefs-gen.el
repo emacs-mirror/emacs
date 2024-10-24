@@ -295,7 +295,7 @@ expression, in which case we want to handle forms differently."
                                  (null (plist-get props :set))
                                (error nil)))
            ;; Propagate the :safe property to the loaddefs file.
-           ,@(when-let ((safe (plist-get props :safe)))
+           ,@(when-let* ((safe (plist-get props :safe)))
                `((put ',varname 'safe-local-variable ,safe))))))
 
      ;; Extract theme properties.
@@ -413,8 +413,8 @@ don't include."
         (save-excursion
           ;; Since we're "open-coding", we have to repeat more
           ;; complicated logic in `hack-local-variables'.
-          (when-let ((beg
-                      (re-search-forward "read-symbol-shorthands: *" nil t)))
+          (when-let* ((beg
+                       (re-search-forward "read-symbol-shorthands: *" nil t)))
             ;; `read-symbol-shorthands' alist ends with two parens.
             (let* ((end (re-search-forward ")[;\n\s]*)"))
                    (commentless (replace-regexp-in-string
@@ -499,7 +499,7 @@ don't include."
         (when (and autoload-compute-prefixes
                    compute-prefixes)
           (with-demoted-errors "%S"
-            (when-let
+            (when-let*
                 ((form (loaddefs-generate--compute-prefixes load-name)))
               ;; This output needs to always go in the main loaddefs.el,
               ;; regardless of `generated-autoload-file'.

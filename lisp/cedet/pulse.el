@@ -167,7 +167,7 @@ Optional argument FACE specifies the face to do the highlighting."
 
 (defun pulse-tick (colors stop-time)
   (if (time-less-p nil stop-time)
-      (when-let (color (elt colors pulse-momentary-iteration))
+      (when-let* ((color (elt colors pulse-momentary-iteration)))
         (set-face-background 'pulse-highlight-face color)
         (setq pulse-momentary-iteration (1+ pulse-momentary-iteration)))
     (pulse-momentary-unhighlight)))

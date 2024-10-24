@@ -125,7 +125,7 @@ See also `image-dired-thumbnail-storage' and
 
 (defun image-dired-file-name-at-point ()
   "Get abbreviated file name for thumbnail or display image at point."
-  (when-let ((f (image-dired-original-file-name)))
+  (when-let* ((f (image-dired-original-file-name)))
     (abbreviate-file-name f)))
 
 (defun image-dired-associated-dired-buffer ()

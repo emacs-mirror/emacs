@@ -641,6 +641,13 @@ All the characters that belong to the 'symbol' script (according to
 cc-compat.el, info-edit.el, meese.el, otodo-mode.el, rcompile.el,
 sup-mouse.el, terminal.el, vi.el, vip.el, ws-mode.el, and yow.el.
 
++++
+** 'if-let' and 'when-let' are now obsolete.
+Use 'if-let*', 'when-let*' and 'and-let*' instead.
+
+This effectively obsoletes the old '(if-let (SYMBOL SOMETHING) ...)'
+single binding syntax, which we'd kept only for backwards compatibility.
+
 
 * Lisp Changes in Emacs 31.1
 

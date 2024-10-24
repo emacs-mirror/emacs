@@ -89,10 +89,10 @@ Integer values are handled in the `range' slot.")
   "Return all non built-in type names currently defined."
   (let (res)
     (mapatoms (lambda (x)
-                (when-let ((class (cl-find-class x))
-                           ;; Ignore EIEIO classes as they can be
-                           ;; redefined at runtime.
-                           (gate (not (eq 'eieio--class (type-of class)))))
+                (when-let* ((class (cl-find-class x))
+                            ;; Ignore EIEIO classes as they can be
+                            ;; redefined at runtime.
+                            (gate (not (eq 'eieio--class (type-of class)))))
                   (push x res)))
               obarray)
     res))
@@ -528,8 +528,8 @@ Return them as multiple value."
   `(with-comp-cstr-accessors
      (if (or (neg src1) (neg src2))
          (setf (typeset ,dst) '(number))
-       (when-let ((r1 (range ,src1))
-                  (r2 (range ,src2)))
+       (when-let* ((r1 (range ,src1))
+                   (r2 (range ,src2)))
          (let* ((l1 (comp-cstr-smallest-in-range r1))
                 (l2 (comp-cstr-smallest-in-range r2))
                 (h1 (comp-cstr-greatest-in-range r1))
@@ -620,7 +620,7 @@ DST is returned."
 
         ;; Check first if we are in the simple case of all input non-negate
         ;; or negated so we don't have to cons.
-        (when-let ((res (comp--cstrs-homogeneous srcs)))
+        (when-let* ((res (comp--cstrs-homogeneous srcs)))
           (apply #'comp--cstr-union-homogeneous range dst srcs)
           (cl-return-from comp--cstr-union-1-no-mem dst))
 
@@ -805,7 +805,7 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                                     (range dst) ()
                                     (neg dst) nil)
                               (cl-return-from comp-cstr-intersection-no-mem dst)))
-        (when-let ((res (comp--cstrs-homogeneous srcs)))
+        (when-let* ((res (comp--cstrs-homogeneous srcs)))
           (if (eq res 'neg)
               (apply #'comp--cstr-union-homogeneous t dst srcs)
             (apply #'comp-cstr-intersection-homogeneous dst srcs))
@@ -917,7 +917,7 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
     (when (and (null (neg cstr))
                (null (valset cstr))
                (null (typeset cstr)))
-      (when-let (range (range cstr))
+      (when-let* ((range (range cstr)))
         (let* ((low (caar range))
                (high (cdar (last range))))
           (unless (or (eq low '-)
@@ -949,7 +949,7 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                       (or (null (typeset cstr))
                           (equal (typeset cstr) '(integer)))))))
           (t
-           (if-let ((pred (get type 'cl-deftype-satisfies)))
+           (if-let* ((pred (get type 'cl-deftype-satisfies)))
                (and (null (range cstr))
                     (null (neg cstr))
                     (if (null (typeset cstr))

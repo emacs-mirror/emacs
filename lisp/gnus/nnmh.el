@@ -554,10 +554,10 @@ as unread by Gnus.")
 		 (mapcar
 		  (lambda (art)
 		    (cons art
-			  (when-let ((modtime
-				      (file-attribute-modification-time
-				       (file-attributes
-					(concat dir (int-to-string art))))))
+			  (when-let* ((modtime
+				       (file-attribute-modification-time
+				        (file-attributes
+					 (concat dir (int-to-string art))))))
 			    (time-convert modtime 'list))))
 		  new)))
     ;; Make Gnus mark all new articles as unread.

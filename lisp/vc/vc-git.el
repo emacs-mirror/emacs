@@ -737,14 +737,14 @@ or an empty string if none."
   (let ((branch (vc-git--current-branch))
         tracking remote-url)
     (if branch
-        (when-let ((branch-merge
-                    (vc-git--out-match
-                     `("config" ,(concat "branch." branch ".merge"))
-                     "^\\(refs/heads/\\)?\\(.+\\)$" 2))
-                   (branch-remote
-                    (vc-git--out-match
-                     `("config" ,(concat "branch." branch ".remote"))
-                     "\\([^\n]+\\)" 1)))
+        (when-let* ((branch-merge
+                     (vc-git--out-match
+                      `("config" ,(concat "branch." branch ".merge"))
+                      "^\\(refs/heads/\\)?\\(.+\\)$" 2))
+                    (branch-remote
+                     (vc-git--out-match
+                      `("config" ,(concat "branch." branch ".remote"))
+                      "\\([^\n]+\\)" 1)))
           (if (string= branch-remote ".")
               (setq tracking branch-merge
                     remote-url "none (tracking local branch)")
@@ -877,7 +877,7 @@ or an empty string if none."
   (list
    (concat
     (propertize "Stash      : " 'face 'vc-dir-header)
-    (if-let ((stash-list (vc-git-stash-list)))
+    (if-let* ((stash-list (vc-git-stash-list)))
         (let* ((len (length stash-list))
                (limit
                 (if (integerp vc-git-show-stash)
@@ -1051,19 +1051,19 @@ If toggling on, also insert its message into the buffer."
 
 (defun vc-git--log-edit-summary-check (limit)
   (and (re-search-forward "^Summary: " limit t)
-       (when-let ((regex
-                   (cond ((and (natnump vc-git-log-edit-summary-max-len)
-                               (natnump vc-git-log-edit-summary-target-len))
-                          (format ".\\{,%d\\}\\(.\\{,%d\\}\\)\\(.*\\)"
-                                  vc-git-log-edit-summary-target-len
-                                  (- vc-git-log-edit-summary-max-len
-                                     vc-git-log-edit-summary-target-len)))
-                         ((natnump vc-git-log-edit-summary-max-len)
-                          (format ".\\{,%d\\}\\(?2:.*\\)"
-                                  vc-git-log-edit-summary-max-len))
-                         ((natnump vc-git-log-edit-summary-target-len)
-                          (format ".\\{,%d\\}\\(.*\\)"
-                                  vc-git-log-edit-summary-target-len)))))
+       (when-let* ((regex
+                    (cond ((and (natnump vc-git-log-edit-summary-max-len)
+                                (natnump vc-git-log-edit-summary-target-len))
+                           (format ".\\{,%d\\}\\(.\\{,%d\\}\\)\\(.*\\)"
+                                   vc-git-log-edit-summary-target-len
+                                   (- vc-git-log-edit-summary-max-len
+                                      vc-git-log-edit-summary-target-len)))
+                          ((natnump vc-git-log-edit-summary-max-len)
+                           (format ".\\{,%d\\}\\(?2:.*\\)"
+                                   vc-git-log-edit-summary-max-len))
+                          ((natnump vc-git-log-edit-summary-target-len)
+                           (format ".\\{,%d\\}\\(.*\\)"
+                                   vc-git-log-edit-summary-target-len)))))
          (re-search-forward regex limit t))))
 
 (define-derived-mode vc-git-log-edit-mode log-edit-mode "Log-Edit/git"
@@ -2229,7 +2229,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
 (defun vc-git-stash-list ()
-  (when-let ((out (vc-git--run-command-string nil "stash" "list")))
+  (when-let* ((out (vc-git--run-command-string nil "stash" "list")))
     (split-string
      (replace-regexp-in-string
       "^stash@" "             " out)

@@ -3242,7 +3242,7 @@ See `def-gdb-auto-update-handler'."
       ;; Add the breakpoint/header row to the table.
       (gdb-breakpoints--add-breakpoint-row table breakpoint)
       ;; If this breakpoint has multiple locations, add them as well.
-      (when-let ((locations (gdb-mi--field breakpoint 'locations)))
+      (when-let* ((locations (gdb-mi--field breakpoint 'locations)))
         (dolist (loc locations)
           (add-to-list 'gdb-breakpoints-list
                        (cons (gdb-mi--field loc 'number) loc))
@@ -4830,7 +4830,7 @@ overlay arrow in source buffer."
     (when frame
       (setq gdb-selected-frame (gdb-mi--field frame 'func))
       (setq gdb-selected-file
-            (when-let ((full (gdb-mi--field frame 'fullname)))
+            (when-let* ((full (gdb-mi--field frame 'fullname)))
               (file-local-name full)))
       (setq gdb-frame-number (gdb-mi--field frame 'level))
       (setq gdb-frame-address (gdb-mi--field frame 'addr))

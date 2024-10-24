@@ -1340,7 +1340,7 @@ Tip: You can use this expansion of remote identifier components
      returns a remote file name for file \"/bin/sh\" that has the
      same remote identifier as FILE but expanded; a name such as
      \"/sudo:root@myhost:/bin/sh\"."
-  (when-let ((handler (find-file-name-handler file 'file-remote-p)))
+  (when-let* ((handler (find-file-name-handler file 'file-remote-p)))
     (funcall handler 'file-remote-p file identification connected)))
 
 ;; Probably this entire variable should be obsolete now, in favor of
@@ -2196,7 +2196,7 @@ if you want to permanently change your home directory after having
 started Emacs, set `abbreviated-home-dir' to nil so it will be recalculated)."
   ;; Get rid of the prefixes added by the automounter.
   (save-match-data                      ;FIXME: Why?
-    (if-let ((handler (find-file-name-handler filename 'abbreviate-file-name)))
+    (if-let* ((handler (find-file-name-handler filename 'abbreviate-file-name)))
         (funcall handler 'abbreviate-file-name filename)
       ;; Avoid treating /home/foo as /home/Foo during `~' substitution.
       (let ((case-fold-search (file-name-case-insensitive-p filename)))
@@ -3531,7 +3531,7 @@ we don't actually set it to the same mode the buffer already has."
      ;; If we didn't, look for an interpreter specified in the first line.
      ;; As a special case, allow for things like "#!/bin/env perl", which
      ;; finds the interpreter anywhere in $PATH.
-     (when-let
+     (when-let*
 	 ((interp (save-excursion
 		    (goto-char (point-min))
 		    (if (looking-at auto-mode-interpreter-regexp)
@@ -4160,7 +4160,7 @@ all the specified local variables, but ignores any settings of \"mode:\"."
           ;; Handle `lexical-binding' and other special local
           ;; variables.
           (dolist (variable permanently-enabled-local-variables)
-            (when-let ((elem (assq variable result)))
+            (when-let* ((elem (assq variable result)))
               (push elem file-local-variables-alist)))
           (hack-local-variables-apply))))))
 
@@ -6938,8 +6938,8 @@ buffer read-only, or keeping minor modes, etc.")
 
 (defun revert-buffer-restore-read-only ()
   "Preserve read-only state for `revert-buffer'."
-  (when-let ((state (and (boundp 'read-only-mode--state)
-                         (list read-only-mode--state))))
+  (when-let* ((state (and (boundp 'read-only-mode--state)
+                          (list read-only-mode--state))))
     (lambda ()
       (setq buffer-read-only (car state))
       (setq-local read-only-mode--state (car state)))))

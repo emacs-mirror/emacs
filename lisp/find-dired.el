@@ -431,9 +431,9 @@ specifies what to use in place of \"-ls\" as the final argument."
   "Sort entries in *Find* buffer by file name lexicographically."
   (sort-subr nil 'forward-line 'end-of-line
              (lambda ()
-               (when-let ((start
-                           (next-single-property-change
-                            (point) 'dired-filename)))
+               (when-let* ((start
+                            (next-single-property-change
+                             (point) 'dired-filename)))
                (buffer-substring-no-properties start (line-end-position))))))
 
 

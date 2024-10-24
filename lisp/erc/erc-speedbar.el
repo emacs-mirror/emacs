@@ -512,13 +512,13 @@ associated with an ERC session."
          ". Setting to t for the current Emacs session."
          " Customize it permanently to avoid this message.")
         (setq speedbar-update-flag t))
-      (when-let (((null speedbar-buffer))
-                 (speedbar-frame-parameters (backquote-list*
-                                             '(visibility . nil)
-                                             '(no-other-frame . t)
-                                             speedbar-frame-parameters))
-                 (speedbar-after-create-hook #'erc-speedbar--emulate-sidebar)
-                 (original-frame (selected-frame)))
+      (when-let* (((null speedbar-buffer))
+                  (speedbar-frame-parameters (backquote-list*
+                                              '(visibility . nil)
+                                              '(no-other-frame . t)
+                                              speedbar-frame-parameters))
+                  (speedbar-after-create-hook #'erc-speedbar--emulate-sidebar)
+                  (original-frame (selected-frame)))
         (erc-install-speedbar-variables)
         ;; Run before toggling mode to prevent timer from being
         ;; created twice.
@@ -591,8 +591,8 @@ For controlling whether the speedbar window is selectable with
                (and speedbar-buffer
                     (eq speedbar-frame
                         (window-frame (get-buffer-window speedbar-buffer t)))))
-     (when-let ((buf (or (and (derived-mode-p 'erc-mode) (current-buffer))
-                         (car (erc-buffer-filter #'erc--server-buffer-p)))))
+     (when-let* ((buf (or (and (derived-mode-p 'erc-mode) (current-buffer))
+                          (car (erc-buffer-filter #'erc--server-buffer-p)))))
        (with-current-buffer buf
          (erc-speedbar--ensure 'forcep)))))
   ((remove-hook 'erc--setup-buffer-hook #'erc-speedbar--ensure)
@@ -649,7 +649,7 @@ unlock the window."
   (interactive "P")
   (unless erc-nickbar-mode
     (user-error "`erc-nickbar-mode' inactive"))
-  (when-let ((window (get-buffer-window speedbar-buffer)))
+  (when-let* ((window (get-buffer-window speedbar-buffer)))
     (let ((val (cond ((natnump arg) t)
                      ((integerp arg) nil)
                      (t (not (erc-compat--window-no-other-p window))))))
@@ -669,10 +669,10 @@ unlock the window."
 (defun erc-speedbar--compose-nicks-face (orig buffer user cuser)
   (require 'erc-nicks)
   (let ((rv (funcall orig buffer user cuser)))
-    (if-let ((nick (erc-server-user-nickname user))
-             (face (with-current-buffer buffer
-                     (erc-nicks--highlight nick rv)))
-             ((not (eq face erc-button-nickname-face))))
+    (if-let* ((nick (erc-server-user-nickname user))
+              (face (with-current-buffer buffer
+                      (erc-nicks--highlight nick rv)))
+              ((not (eq face erc-button-nickname-face))))
         (cons face (ensure-list rv))
       rv)))
 

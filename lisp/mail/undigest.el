@@ -65,7 +65,7 @@ each undigestified message as markers.")
 
 (defun rmail-digest-parse-mixed-mime ()
   "Like `rmail-digest-parse-mime', but for multipart/mixed messages."
-  (when-let ((boundary (rmail-content-type-boundary "multipart/mixed")))
+  (when-let* ((boundary (rmail-content-type-boundary "multipart/mixed")))
     (let ((global-sep (concat "\n--" boundary))
           (digest (concat "^Content-type: multipart/digest;"
                           "\\s-* boundary=\"?\\([^\";\n]+\\)[\";\n]"))

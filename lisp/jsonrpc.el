@@ -658,7 +658,7 @@ and delete the network process."
 
 (defun jsonrpc--call-deferred (connection)
   "Call CONNECTION's deferred actions, who may again defer themselves."
-  (when-let ((actions (hash-table-values (jsonrpc--deferred-actions connection))))
+  (when-let* ((actions (hash-table-values (jsonrpc--deferred-actions connection))))
     (jsonrpc--event
      connection 'internal
      :log-text (format "re-attempting deferred requests %s"
@@ -689,7 +689,7 @@ and delete the network process."
                 (jsonrpc--continuations connection))
         (jsonrpc--message "Server exited with status %s" (process-exit-status proc))
         (delete-process proc)
-        (when-let (p (slot-value connection '-autoport-inferior)) (delete-process p))
+        (when-let* ((p (slot-value connection '-autoport-inferior))) (delete-process p))
         (funcall (jsonrpc--on-shutdown connection) connection)))))
 
 (defvar jsonrpc--in-process-filter nil
@@ -807,7 +807,7 @@ Also cancel \"deferred actions\" if DEFERRED-SPEC.
 Return the full continuation (ID SUCCESS-FN ERROR-FN TIMER)"
   (with-slots ((conts -continuations) (defs -deferred-actions)) conn
     (if deferred-spec (remhash deferred-spec defs))
-    (when-let ((ass (assq id conts)))
+    (when-let* ((ass (assq id conts)))
       (cl-destructuring-bind (_ _ _ _ timer) ass
         (when timer (cancel-timer timer)))
       (setf conts (delete ass conts))

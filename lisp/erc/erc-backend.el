@@ -605,7 +605,7 @@ escape hatch for inhibiting their transmission.")
                     (concat "Unbreakable line encountered "
                             "(Recover input with \\[erc-previous-command])"))))
                 (goto-char upper))
-              (when-let ((cmp (find-composition (point) (1+ (point)))))
+              (when-let* ((cmp (find-composition (point) (1+ (point)))))
                 (if (= (car cmp) (point-min))
                     (goto-char (nth 1 cmp))
                   (goto-char (car cmp)))))
@@ -1057,9 +1057,9 @@ Conditionally try to reconnect and take appropriate action."
     (setq erc--hidden-prompt-overlay nil)))
 
 (cl-defmethod erc--conceal-prompt ()
-  (when-let (((null erc--hidden-prompt-overlay))
-             (ov (make-overlay erc-insert-marker (1- erc-input-marker)
-                               nil 'front-advance)))
+  (when-let* (((null erc--hidden-prompt-overlay))
+              (ov (make-overlay erc-insert-marker (1- erc-input-marker)
+                                nil 'front-advance)))
     (defvar erc-prompt-hidden)
     (overlay-put ov 'display erc-prompt-hidden)
     (setq erc--hidden-prompt-overlay ov)))
@@ -2078,12 +2078,12 @@ like `erc-insert-modify-hook'.")
           (defvar erc-receive-query-display)
           (defvar erc-receive-query-display-defer)
           (if privp
-              (when-let ((erc-join-buffer
-                          (or (and (not erc-receive-query-display-defer)
-                                   erc-receive-query-display)
-                              (and erc-ensure-target-buffer-on-privmsg
-                                   (or erc-receive-query-display
-                                       erc-join-buffer)))))
+              (when-let* ((erc-join-buffer
+                           (or (and (not erc-receive-query-display-defer)
+                                    erc-receive-query-display)
+                               (and erc-ensure-target-buffer-on-privmsg
+                                    (or erc-receive-query-display
+                                        erc-join-buffer)))))
                 (push `(erc-receive-query-display . ,(intern cmd))
                       erc--display-context)
                 (setq buffer (erc--open-target nick)))
@@ -2262,12 +2262,12 @@ primitive value."
   (if-let* ((table (or erc--isupport-params
                        (erc-with-server-buffer erc--isupport-params)))
             (value (with-memoization (gethash key table)
-                     (when-let ((v (assoc (symbol-name key)
-                                          (or erc-server-parameters
-                                              (erc-with-server-buffer
+                     (when-let* ((v (assoc (symbol-name key)
+                                           (or erc-server-parameters
+                                               (erc-with-server-buffer
                                                 erc-server-parameters)))))
-                       (if-let ((val (cdr v))
-                                ((not (string-empty-p val))))
+                       (if-let* ((val (cdr v))
+                                 ((not (string-empty-p val))))
                            (erc--parse-isupport-value val)
                          '--empty--)))))
       (pcase value

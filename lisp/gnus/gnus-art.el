@@ -2419,8 +2419,8 @@ fill width."
 (defun article-emojize-symbols ()
   "Display symbols (that have an emoji version) as emojis."
   (interactive nil gnus-article-mode)
-  (when-let ((font (and (display-multi-font-p)
-                        (car (internal-char-font nil ?😀)))))
+  (when-let* ((font (and (display-multi-font-p)
+                         (car (internal-char-font nil ?😀)))))
     (save-excursion
       (let ((inhibit-read-only t))
         (goto-char (point-min))

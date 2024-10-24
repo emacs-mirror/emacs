@@ -856,10 +856,10 @@ If NO-DECODE is non-nil, don't decode STRING."
             ;; ~/.mailcap file, then we filter out the system entries
             ;; and see whether we have anything left.
             (when mailcap-prefer-mailcap-viewers
-              (when-let ((user-entries
-                          (seq-filter (lambda (elem)
-                                        (eq (cdr (assq 'source elem)) 'user))
-                                      passed)))
+              (when-let* ((user-entries
+                           (seq-filter (lambda (elem)
+                                         (eq (cdr (assq 'source elem)) 'user))
+                                       passed)))
                 (setq passed user-entries)))
             (setq viewer (car passed))))
         (when (and (stringp (cdr (assq 'viewer viewer)))

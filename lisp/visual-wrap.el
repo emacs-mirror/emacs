@@ -117,9 +117,9 @@ extra indent = 2
   "Apply visual-wrapping properties to the logical line starting at POSITION."
   (save-excursion
     (goto-char position)
-    (when-let ((first-line-prefix (fill-match-adaptive-prefix))
-               (next-line-prefix (visual-wrap--content-prefix
-                                  first-line-prefix position)))
+    (when-let* ((first-line-prefix (fill-match-adaptive-prefix))
+                (next-line-prefix (visual-wrap--content-prefix
+                                   first-line-prefix position)))
       (when (numberp next-line-prefix)
         ;; Set a minimum width for the prefix so it lines up correctly
         ;; with subsequent lines.  Make sure not to do this past the end

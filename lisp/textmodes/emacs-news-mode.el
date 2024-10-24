@@ -247,7 +247,7 @@ untagged NEWS entry."
         (while (re-search-forward "'\\([^-][^ \t\n]+\\)'" nil t)
           ;; Filter out references to key sequences.
           (let ((string (match-string 1)))
-            (when-let ((symbol (intern-soft string)))
+            (when-let* ((symbol (intern-soft string)))
               (when (or (boundp symbol)
                         (fboundp symbol))
                 (buttonize-region (match-beginning 1) (match-end 1)

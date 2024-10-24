@@ -528,7 +528,7 @@ If optional argument ACCEPT-DEFAULT is non-nil, recognize default
 bindings; see the description of `keymap-lookup' for more details
 about this."
   (declare (compiler-macro (lambda (form) (keymap--compile-check keys) form)))
-  (when-let ((map (current-local-map)))
+  (when-let* ((map (current-local-map)))
     (keymap-lookup map keys accept-default)))
 
 (defun keymap-global-lookup (keys &optional accept-default message)

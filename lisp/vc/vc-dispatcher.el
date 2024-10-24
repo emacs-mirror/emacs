@@ -460,7 +460,7 @@ Display the buffer in some window, but don't select it."
                   args))))
 	(setq proc (apply #'vc-do-command t 'async command nil args))))
     (unless vc--inhibit-async-window
-      (when-let ((window (display-buffer buffer)))
+      (when-let* ((window (display-buffer buffer)))
         (set-window-start window new-window-start)))
     proc))
 

@@ -247,8 +247,8 @@ This function is meant to be used as a hook for `package-read-archive-hook'."
                     (car spec)))
             (setf (alist-get (intern archive) package-vc--archive-data-alist)
                   (cdr spec))
-            (when-let ((default-vc (plist-get (cdr spec) :default-vc))
-                       ((not (memq default-vc vc-handled-backends))))
+            (when-let* ((default-vc (plist-get (cdr spec) :default-vc))
+                        ((not (memq default-vc vc-handled-backends))))
               (warn "Archive `%S' expects missing VC backend %S"
                     archive (plist-get (cdr spec) :default-vc)))))))))
 
@@ -279,7 +279,7 @@ asynchronously."
 (defun package-vc--version (pkg)
   "Return the version number for the VC package PKG."
   (cl-assert (package-vc-p pkg))
-  (if-let ((main-file (package-vc--main-file pkg)))
+  (if-let* ((main-file (package-vc--main-file pkg)))
       (with-temp-buffer
         (insert-file-contents main-file)
         (package-strip-rcs-id
@@ -663,7 +663,7 @@ attribute in PKG-SPEC."
 
     ;; Check out the latest release if requested
     (when (eq rev :last-release)
-      (if-let ((release-rev (package-vc--release-rev pkg-desc)))
+      (if-let* ((release-rev (package-vc--release-rev pkg-desc)))
           (vc-retrieve-tag dir release-rev)
         (message "No release revision was found, continuing...")))))
 

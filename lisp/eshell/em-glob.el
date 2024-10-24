@@ -306,8 +306,8 @@ The result is a list of three elements:
         (setq start-dir (pop globs))
       (setq start-dir (file-name-as-directory ".")))
     (while globs
-      (if-let ((recurse (cdr (assoc (car globs)
-                                    eshell-glob-recursive-alist))))
+      (if-let* ((recurse (cdr (assoc (car globs)
+                                     eshell-glob-recursive-alist))))
           (if last-saw-recursion
               (setcar result recurse)
             (push recurse result)

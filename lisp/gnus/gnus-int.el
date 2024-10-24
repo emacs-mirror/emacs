@@ -357,7 +357,7 @@ If it is down, start it up (again)."
 	(funcall (gnus-get-function gnus-command-method 'close-server)
 	         (nth 1 gnus-command-method)
 	         (nthcdr 2 gnus-command-method))
-      (when-let ((elem (assoc gnus-command-method gnus-opened-servers)))
+      (when-let* ((elem (assoc gnus-command-method gnus-opened-servers)))
         (setf (nth 1 elem) 'closed)))))
 
 (defun gnus-request-list (command-method)

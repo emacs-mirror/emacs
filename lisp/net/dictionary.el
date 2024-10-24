@@ -1278,7 +1278,7 @@ prompt for DICTIONARY."
   (unless dictionary
     (setq dictionary dictionary-default-dictionary))
   (if dictionary-display-definition-function
-      (if-let ((definition (dictionary-define-word word dictionary)))
+      (if-let* ((definition (dictionary-define-word word dictionary)))
           (funcall dictionary-display-definition-function word dictionary definition)
         (user-error "No definition found for \"%s\"" word))
     ;; if called by pressing the button

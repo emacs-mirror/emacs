@@ -143,7 +143,7 @@ The mail client is taken to be the handler of mailto URLs."
 	    (narrow-to-region (point-min) delimline)
             ;; We can't send multipart/* messages (i. e. with
             ;; attachments or the like) via this method.
-            (when-let ((type (mail-fetch-field "content-type")))
+            (when-let* ((type (mail-fetch-field "content-type")))
               (when (and (string-match "multipart"
                                        (car (mail-header-parse-content-type
                                              type)))

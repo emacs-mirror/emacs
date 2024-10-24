@@ -3922,8 +3922,8 @@ be installed in `emacs-lisp-mode-map'.")
 (define-obsolete-variable-alias 'global-edebug-prefix
   'edebug-global-prefix "28.1")
 (defvar edebug-global-prefix
-  (when-let ((binding
-              (car (where-is-internal 'Control-X-prefix (list global-map)))))
+  (when-let* ((binding
+               (car (where-is-internal 'Control-X-prefix (list global-map)))))
     (concat binding [?X]))
   "Prefix key for global edebug commands, available from any buffer.")
 
@@ -4659,8 +4659,8 @@ instrumentation for, defaulting to all functions."
           functions)))))
   ;; Remove instrumentation.
   (dolist (symbol functions)
-    (when-let ((unwrapped
-                (edebug--unwrap*-symbol-function symbol)))
+    (when-let* ((unwrapped
+                 (edebug--unwrap*-symbol-function symbol)))
       (edebug--strip-plist symbol)
       (defalias symbol unwrapped)))
   (message "Removed edebug instrumentation from %s"

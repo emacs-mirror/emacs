@@ -309,10 +309,10 @@ lower it to the upper bound of `erc-nicks-contrast-range'."
   "Invert COLOR based on the CAR of `erc-nicks-contrast-range'.
 Don't bother if the inverted color has less contrast than the
 input."
-  (if-let ((con-input (erc-nicks--get-contrast color))
-           ((< con-input (car erc-nicks-contrast-range)))
-           (flipped (mapcar (lambda (c) (- 1.0 c)) color))
-           ((> (erc-nicks--get-contrast flipped) con-input)))
+  (if-let* ((con-input (erc-nicks--get-contrast color))
+            ((< con-input (car erc-nicks-contrast-range)))
+            (flipped (mapcar (lambda (c) (- 1.0 c)) color))
+            ((> (erc-nicks--get-contrast flipped) con-input)))
       flipped
     color))
 
@@ -365,8 +365,8 @@ input."
 (defun erc-nicks--redirect-face-widget-link (args)
   (pcase args
     (`(,widget face-link . ,plist)
-     (when-let ((face (widget-value widget))
-                ((get face 'erc-nicks--custom-face)))
+     (when-let* ((face (widget-value widget))
+                 ((get face 'erc-nicks--custom-face)))
        (unless (symbol-file face)
          (setf (plist-get plist :action)
                (lambda (&rest _) (erc-nicks--create-defface-template face))))
@@ -518,17 +518,17 @@ Abandon search after examining LIMIT faces."
 
 (defun erc-nicks--highlight (nickname &optional base-face)
   "Return face for NICKNAME unless it or BASE-FACE is blacklisted."
-  (when-let ((trimmed (erc-nicks--trim nickname))
-             ((not (member trimmed erc-nicks--downcased-skip-nicks)))
-             ((not (and base-face
-                        (erc-nicks--skip-p base-face erc-nicks-skip-faces
-                                           erc-nicks--max-skip-search))))
-             (key (erc-nicks--gen-key-from-format-spec trimmed)))
+  (when-let* ((trimmed (erc-nicks--trim nickname))
+              ((not (member trimmed erc-nicks--downcased-skip-nicks)))
+              ((not (and base-face
+                         (erc-nicks--skip-p base-face erc-nicks-skip-faces
+                                            erc-nicks--max-skip-search))))
+              (key (erc-nicks--gen-key-from-format-spec trimmed)))
     (erc-nicks--get-face trimmed key)))
 
 (defun erc-nicks--highlight-button (nick-object)
   "Possibly add face to `erc-button--nick-user' NICK-OBJECT."
-  (when-let
+  (when-let*
       ((nick-object)
        (face (get-text-property (car (erc-button--nick-bounds nick-object))
                                 'font-lock-face))
@@ -628,13 +628,13 @@ Abandon search after examining LIMIT faces."
     (customize-face new-face)))
 
 (defun erc-nicks--list-faces-help-button-action (face)
-  (when-let (((or (get face 'erc-nicks--custom-face)
-                  (y-or-n-p (format "Create new persistent face for %s?"
-                                    (get face 'erc-nicks--key)))))
-             (nid (get face 'erc-nicks--netid))
-             (foundp (lambda ()
-                       (erc-networks--id-equal-p nid erc-networks--id)))
-             (server-buffer (car (erc-buffer-filter foundp))))
+  (when-let* (((or (get face 'erc-nicks--custom-face)
+                   (y-or-n-p (format "Create new persistent face for %s?"
+                                     (get face 'erc-nicks--key)))))
+              (nid (get face 'erc-nicks--netid))
+              (foundp (lambda ()
+                        (erc-networks--id-equal-p nid erc-networks--id)))
+              (server-buffer (car (erc-buffer-filter foundp))))
     (with-current-buffer server-buffer
       (erc-nicks-customize-face (get face 'erc-nicks--nick)))))
 
@@ -653,13 +653,13 @@ Abandon search after examining LIMIT faces."
                      (facep (car (button-get (point) 'help-args))))
             (button-put (point) 'help-function
                         #'erc-nicks--list-faces-help-button-action)
-            (if-let ((face (car (button-get (point) 'help-args)))
-                     ((not (get face 'erc-nicks--custom-face)))
-                     ((not (get face 'erc-nicks--key))))
+            (if-let* ((face (car (button-get (point) 'help-args)))
+                      ((not (get face 'erc-nicks--custom-face)))
+                      ((not (get face 'erc-nicks--key))))
                 (progn (delete-region (pos-bol) (1+ (pos-eol)))
                        (forward-line -1))
-              (when-let ((nid (get face 'erc-nicks--netid))
-                         (net (symbol-name (erc-networks--id-symbol nid))))
+              (when-let* ((nid (get face 'erc-nicks--netid))
+                          (net (symbol-name (erc-networks--id-symbol nid))))
                 (goto-char (button-end (point)))
                 (skip-syntax-forward "-")
                 (put-text-property (point) (1+ (point)) 'rear-nonsticky nil)
@@ -690,8 +690,8 @@ ones."
         (user-error "Pool empty: all colors rejected"))
       (dolist (nick (hash-table-keys erc-nicks--face-table))
         ;; User-tuned faces do not have an `erc-nicks--key' property.
-        (when-let ((face (gethash nick erc-nicks--face-table))
-                   (key (get face 'erc-nicks--key)))
+        (when-let* ((face (gethash nick erc-nicks--face-table))
+                    (key (get face 'erc-nicks--key)))
           (setq key (erc-nicks--gen-key-from-format-spec nick))
           (put face 'erc-nicks--key key)
           (set-face-foreground face (erc-nicks--determine-color key))))
@@ -719,8 +719,8 @@ ones."
 Expect PREFIX to be something like \"ansi-color-\" or \"font-lock-\"."
   (let (out)
     (dolist (face (face-list) (nreverse out))
-      (when-let (((string-prefix-p prefix (symbol-name face)))
-                 (color (face-foreground face)))
+      (when-let* (((string-prefix-p prefix (symbol-name face)))
+                  (color (face-foreground face)))
         (push color out)))))
 
 (defun erc-nicks--reject-uninterned-faces (candidate)
@@ -762,13 +762,13 @@ NORMALS.  Expect a non-nil CONTENDER to always be ranked."
 (defun erc-nicks--track-prioritize (current contender contenders ranks normals)
   "Return a viable non-CURRENT `nicks' face among CONTENDERS.
 See `erc-track--select-mode-line-face' for parameter types."
-  (when-let
+  (when-let*
       ((spkr (erc-nicks--assess-track-faces current contender ranks normals)))
     (catch 'contender
       (dolist (candidate (cdr contenders))
-        (when-let (((not (equal candidate current)))
-                   (s (erc-nicks--ours-p candidate))
-                   ((not (eq s spkr))))
+        (when-let* (((not (equal candidate current)))
+                    (s (erc-nicks--ours-p candidate))
+                    ((not (eq s spkr))))
           (throw 'contender candidate))))))
 
 (defun erc-nicks--track-always (current contender contenders ranks normals)
@@ -798,9 +798,9 @@ See `erc-track--select-mode-line-face' for parameter types."
 (defun erc-nicks--remember-face-for-track (face)
   "Add FACE to local hash table maintained by `track' module."
   (or (gethash face erc-track--normal-faces)
-      (if-let ((sym (or (car-safe face) face))
-               ((symbolp sym))
-               ((get sym 'erc-nicks--key)))
+      (if-let* ((sym (or (car-safe face) face))
+                ((symbolp sym))
+                ((get sym 'erc-nicks--key)))
           (puthash face face erc-track--normal-faces)
         face)))
 

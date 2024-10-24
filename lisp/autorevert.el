@@ -643,10 +643,10 @@ will use an up-to-date value of `auto-revert-interval'."
 
 (defun auto-revert-notify-rm-watch ()
   "Disable file notification for current buffer's associated file."
-  (when-let ((desc
-              ;; Don't disable notifications if this is an indirect buffer.
-              (and (null (buffer-base-buffer))
-                   auto-revert-notify-watch-descriptor)))
+  (when-let* ((desc
+               ;; Don't disable notifications if this is an indirect buffer.
+               (and (null (buffer-base-buffer))
+                    auto-revert-notify-watch-descriptor)))
     (setq auto-revert--buffer-by-watch-descriptor
           (assoc-delete-all desc auto-revert--buffer-by-watch-descriptor))
     (ignore-errors

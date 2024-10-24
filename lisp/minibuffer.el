@@ -168,9 +168,9 @@ specify the property, the `completion-extra-properties' plist is
 consulted.  Note that the keys of the
 `completion-extra-properties' plist are keyword symbols, not
 plain symbols."
-  (if-let (((not (eq prop 'category)))
-           (cat (completion--metadata-get-1 metadata 'category))
-           (over (completion--category-override cat prop)))
+  (if-let* (((not (eq prop 'category)))
+            (cat (completion--metadata-get-1 metadata 'category))
+            (over (completion--category-override cat prop)))
       (cdr over)
     (completion--metadata-get-1 metadata prop)))
 
@@ -2564,7 +2564,7 @@ The candidate will still be chosen by `choose-completion' unless
 (defun completions--after-change (_start _end _old-len)
   "Update displayed *Completions* buffer after change in buffer contents."
   (when completion-auto-deselect
-    (when-let (window (get-buffer-window "*Completions*" 0))
+    (when-let* ((window (get-buffer-window "*Completions*" 0)))
       (with-selected-window window
         (completions--deselect)))))
 
@@ -3192,7 +3192,7 @@ and `RET' accepts the input typed into the minibuffer."
   "Return CMD if `minibuffer-visible-completions' bindings should be active."
   (if minibuffer-visible-completions--always-bind
       cmd
-    (when-let ((window (get-buffer-window "*Completions*" 0)))
+    (when-let* ((window (get-buffer-window "*Completions*" 0)))
       (when (and (eq (buffer-local-value 'completion-reference-buffer
                                          (window-buffer window))
                      (window-buffer (active-minibuffer-window)))

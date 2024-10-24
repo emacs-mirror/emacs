@@ -532,7 +532,7 @@ This function can be added to `comint-preoutput-filter-functions'."
     (while (setq end (string-match ansi-color-control-seq-regexp string start))
       (let ((esc-end (match-end 0)))
         ;; Colorize the old block from start to end using old face.
-        (when-let ((face (ansi-color--face-vec-face face-vec)))
+        (when-let* ((face (ansi-color--face-vec-face face-vec)))
           (put-text-property start end 'font-lock-face
                              face string))
         (push (substring string start end) result)
@@ -550,7 +550,7 @@ This function can be added to `comint-preoutput-filter-functions'."
                  (when (<= cur-pos esc-end)
                    (string-to-number (match-string 1 string))))))))))
     ;; if the rest of the string should have a face, put it there
-    (when-let ((face (ansi-color--face-vec-face face-vec)))
+    (when-let* ((face (ansi-color--face-vec-face face-vec)))
       (put-text-property start (length string)
                          'font-lock-face face string))
     ;; save context, add the remainder of the string to the result
@@ -597,7 +597,7 @@ code.  It is usually stored as the car of the variable
          (bright (and ansi-color-bold-is-bright (aref basic-faces 1)))
          (faces nil))
 
-    (when-let ((fg (car colors)))
+    (when-let* ((fg (car colors)))
       (push
        `(:foreground
          ,(or (ansi-color--code-as-hex fg)
@@ -608,7 +608,7 @@ code.  It is usually stored as the car of the variable
                      (mod fg 8))
                nil 'default)))
        faces))
-    (when-let ((bg (cadr colors)))
+    (when-let* ((bg (cadr colors)))
       (push
        `(:background
          ,(or (ansi-color--code-as-hex bg)

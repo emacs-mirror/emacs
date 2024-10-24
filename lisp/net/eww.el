@@ -79,7 +79,7 @@ if that directory doesn't exist and the DOWNLOAD XDG user directory
 is defined, use the latter instead."
   (or (and (file-exists-p eww-default-download-directory)
            eww-default-download-directory)
-      (when-let ((dir (xdg-user-dir "DOWNLOAD")))
+      (when-let* ((dir (xdg-user-dir "DOWNLOAD")))
         (file-name-as-directory dir))
       eww-default-download-directory))
 
@@ -244,8 +244,8 @@ determine the renaming scheme, as follows:
 
   (defun my-eww-rename-buffer ()
     (when (eq major-mode \\='eww-mode)
-      (when-let ((string (or (plist-get eww-data :title)
-                             (plist-get eww-data :url))))
+      (when-let* ((string (or (plist-get eww-data :title)
+                              (plist-get eww-data :url))))
         (format \"*%s*\" string))))
 
 The string of `title' and `url' is always truncated to the value
@@ -625,7 +625,7 @@ for the search engine used."
 
 NO-SELECT non-nil means do not make the new buffer the current buffer."
   (interactive "P")
-  (if-let ((url (or url (eww-suggested-uris))))
+  (if-let* ((url (or url (eww-suggested-uris))))
       (if (or (eq eww-browse-url-new-window-is-tab t)
               (and (eq eww-browse-url-new-window-is-tab 'tab-bar)
                    tab-bar-mode))
@@ -2070,7 +2070,7 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
               (push (cons name (or (plist-get input :value) "on"))
 		    values)))
 	   ((equal (plist-get input :type) "file")
-            (when-let ((file (plist-get input :filename)))
+            (when-let* ((file (plist-get input :filename)))
               (push (list "file"
                           (cons "filedata"
                                 (with-temp-buffer
@@ -2186,7 +2186,7 @@ If EXTERNAL is double prefix, browse in new buffer."
         (eww--before-browse)
 	(plist-put eww-data :url url)
         (goto-char (point-min))
-        (if-let ((match (text-property-search-forward 'shr-target-id target #'member)))
+        (if-let* ((match (text-property-search-forward 'shr-target-id target #'member)))
             (goto-char (prop-match-beginning match))
           (goto-char (if (equal target "top")
                          (point-min)
@@ -2906,9 +2906,9 @@ these attributes is absent, the corresponding element is nil."
 If there is just one alternate link, return its URL.  If there
 are multiple alternate links, prompt for one in the minibuffer
 with completion.  If there are none, return nil."
-  (when-let ((alternates (eww--alternate-urls
-                          (plist-get eww-data :dom)
-                          (plist-get eww-data :url))))
+  (when-let* ((alternates (eww--alternate-urls
+                           (plist-get eww-data :dom)
+                           (plist-get eww-data :url))))
     (let ((url-max-width
            (seq-max (mapcar #'string-pixel-width
                             (mapcar #'car alternates))))
@@ -2952,7 +2952,7 @@ Alternate links are references that an HTML page may include to
 point to its alternative representations, such as a translated
 version or an RSS feed."
   (interactive nil eww-mode)
-  (if-let ((url (eww-read-alternate-url)))
+  (if-let* ((url (eww-read-alternate-url)))
       (progn
         (kill-new url)
         (message "Copied %s to kill ring" url))

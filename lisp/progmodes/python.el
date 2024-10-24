@@ -808,7 +808,7 @@ sign in chained assignment."
      (3 'font-lock-operator-face)
      (,(python-rx symbol-name)
       (progn
-        (when-let ((type-start (match-beginning 2)))
+        (when-let* ((type-start (match-beginning 2)))
           (goto-char type-start))
         (match-end 0))
       nil
@@ -1153,7 +1153,7 @@ fontified."
         ((or "identifier" "none")
          (setq font-node child))
         ("attribute"
-         (when-let ((type-node (treesit-node-child-by-field-name child "attribute")))
+         (when-let* ((type-node (treesit-node-child-by-field-name child "attribute")))
            (setq font-node type-node)))
         ((or "binary_operator" "subscript")
          (python--treesit-fontify-union-types child override start end type-regex)))
@@ -3264,8 +3264,8 @@ name respectively the current project name."
   (pcase dedicated
     ('nil python-shell-buffer-name)
     ('project
-     (if-let ((proj (and (featurep 'project)
-                         (project-current))))
+     (if-let* ((proj (and (featurep 'project)
+                          (project-current))))
          (format "%s[%s]" python-shell-buffer-name (file-name-nondirectory
                                                     (directory-file-name
                                                      (project-root proj))))
@@ -3788,7 +3788,7 @@ non-nil, means also display the Python shell buffer."
                                                   dedicated))))
                     '(buffer project nil))
           (user-error "No Python shell"))
-    (when-let ((proc (get-buffer-process (current-buffer))))
+    (when-let* ((proc (get-buffer-process (current-buffer))))
       (kill-process proc)
       (while (accept-process-output proc)))
     (python-shell-make-comint (python-shell-calculate-command)
@@ -4845,9 +4845,9 @@ using that one instead of current buffer's process."
        ((stringp (car cands))
         (if no-delims
             ;; Reduce completion candidates due to long prefix.
-            (if-let ((Lp (length prefix))
-                     ((string-match "\\(\\sw\\|\\s_\\)+\\'" prefix))
-                     (L (match-beginning 0)))
+            (if-let* ((Lp (length prefix))
+                      ((string-match "\\(\\sw\\|\\s_\\)+\\'" prefix))
+                      (L (match-beginning 0)))
                 ;; If extra-offset is not zero:
                 ;;                  start              end
                 ;; o------------------o---------o-------o
@@ -5521,14 +5521,14 @@ def __FFAP_get_module_path(objstr):
 
 (defun python-ffap-module-path (module)
   "Function for `ffap-alist' to return path for MODULE."
-  (when-let ((process (python-shell-get-process))
-             (ready (python-shell-with-shell-buffer
+  (when-let* ((process (python-shell-get-process))
+              (ready (python-shell-with-shell-buffer
                       (python-util-comint-end-of-output-p)))
-             (module-file
-              (python-shell-send-string-no-output
-               (format "%s\nprint(__FFAP_get_module_path(%s))"
-                       python-ffap-setup-code
-                       (python-shell--encode-string module)))))
+              (module-file
+               (python-shell-send-string-no-output
+                (format "%s\nprint(__FFAP_get_module_path(%s))"
+                        python-ffap-setup-code
+                        (python-shell--encode-string module)))))
     (unless (string-empty-p module-file)
       (python-util-strip-string module-file))))
 
@@ -6537,7 +6537,7 @@ This is for compatibility with Emacs < 24.4."
 
 (defun python-util-comint-end-of-output-p ()
   "Return non-nil if the last prompt matches input prompt."
-  (when-let ((prompt (python-util-comint-last-prompt)))
+  (when-let* ((prompt (python-util-comint-last-prompt)))
     (python-shell-comint-end-of-output-p
      (buffer-substring-no-properties
       (car prompt) (cdr prompt)))))
@@ -6817,8 +6817,8 @@ for key in sorted(result):
 
 (defun python--import-sources ()
   "List files containing Python imports that may be useful in the current buffer."
-  (if-let (((featurep 'project))        ;For compatibility with Emacs < 26
-           (proj (project-current)))
+  (if-let* (((featurep 'project))        ;For compatibility with Emacs < 26
+            (proj (project-current)))
       (seq-filter (lambda (s) (string-match-p "\\.py[iwx]?\\'" s))
                   (project-files proj))
     (list default-directory)))
@@ -6930,9 +6930,9 @@ asking.
 When calling from Lisp, use a non-nil NAME to restrict the
 suggestions to imports defining NAME."
   (interactive (list (when current-prefix-arg (thing-at-point 'symbol))))
-  (when-let ((statement (python--query-import name
-                                              (python--import-sources)
-                                              "Add import: ")))
+  (when-let* ((statement (python--query-import name
+                                               (python--import-sources)
+                                               "Add import: ")))
     (if (python--do-isort "--add" statement)
         (message "Added `%s'" statement)
       (message "(No changes in Python imports needed)"))))
@@ -6955,8 +6955,8 @@ argument, restrict the suggestions to imports defining the symbol
 at point.  If there is only one such suggestion, act without
 asking."
   (interactive (list (when current-prefix-arg (thing-at-point 'symbol))))
-  (when-let ((statement (python--query-import name (current-buffer)
-                                              "Remove import: ")))
+  (when-let* ((statement (python--query-import name (current-buffer)
+                                               "Remove import: ")))
     (if (python--do-isort "--rm" statement)
         (message "Removed `%s'" statement)
       (message "(No changes in Python imports needed)"))))
@@ -6998,11 +6998,11 @@ asking."
 	  (forward-line 1))))
     ;; Compute imports to be added
     (dolist (name (seq-uniq undefined))
-      (when-let ((statement (python--query-import name
-                                                  (python--import-sources)
-                                                  (format "\
+      (when-let* ((statement (python--query-import name
+                                                   (python--import-sources)
+                                                   (format "\
 Add import for undefined name `%s' (empty to skip): "
-                                                          name))))
+                                                           name))))
         (push statement add)))
     ;; Compute imports to be removed
     (dolist (name (seq-uniq unused))

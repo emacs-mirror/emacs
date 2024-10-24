@@ -126,7 +126,7 @@ other describing THREAD's blocker, if any."
   (cond
    ((not (thread-live-p thread)) '("Finished" ""))
    ((eq thread (current-thread)) '("Running" ""))
-   (t (if-let ((blocker (thread--blocker thread)))
+   (t (if-let* ((blocker (thread--blocker thread)))
           `("Blocked" ,(prin1-to-string blocker))
         '("Yielded" "")))))
 
