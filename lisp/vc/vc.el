@@ -944,6 +944,61 @@ value other than `ask' if you have a strong grasp of the VCS in use."
                  (const :tag "Allow without prompting" t))
   :version "31.1")
 
+(defconst vc-cloneable-backends-custom-type
+  `(choice :convert-widget
+           ,(lambda (widget)
+              (let (opts)
+                (dolist (be vc-handled-backends)
+                  (when (or (vc-find-backend-function be 'clone)
+                            (alist-get 'clone (get be 'vc-functions)))
+                    (push (widget-convert (list 'const be)) opts)))
+                (widget-put widget :args opts))
+              widget))
+  "The type of VC backends that support cloning VCS repositories.")
+
+(defcustom vc-clone-heuristic-alist
+  `((,(rx bos "http" (? "s") "://"
+          (or (: (? "www.") "github.com"
+                 "/" (+ (or alnum "-" "." "_"))
+                 "/" (+ (or alnum "-" "." "_")))
+              (: "codeberg.org"
+                 "/" (+ (or alnum "-" "." "_"))
+                 "/" (+ (or alnum "-" "." "_")))
+              (: (? "www.") "gitlab" (+ "." (+ alnum))
+                 "/" (+ (or alnum "-" "." "_"))
+                 "/" (+ (or alnum "-" "." "_")))
+              (: "git.sr.ht"
+                 "/~" (+ (or alnum "-" "." "_"))
+                 "/" (+ (or alnum "-" "." "_")))
+              (: "git." (or "savannah" "sv") "." (? "non") "gnu.org/"
+                 (or "r" "git") "/"
+                 (+ (or alnum "-" "." "_")) (? "/")))
+          (or (? "/") ".git") eos)
+     . Git)
+    (,(rx bos "http" (? "s") "://"
+          (or (: "hg.sr.ht"
+                 "/~" (+ (or alnum "-" "." "_"))
+                 "/" (+ (or alnum "-" "." "_")))
+              (: "hg." (or "savannah" "sv") "." (? "non") "gnu.org/hgweb/"
+                 (+ (or alnum "-" "." "_")) (? "/")))
+          eos)
+     . Hg)
+    (,(rx bos "http" (? "s") "://"
+          (or (: "bzr." (or "savannah" "sv") "." (? "non") "gnu.org/r/"
+                 (+ (or alnum "-" "." "_")) (? "/")))
+          eos)
+     . Bzr))
+  "Alist mapping repository URLs to VC backends.
+`vc-clone' consults this alist to determine the VC
+backend from the repository URL when you call it without
+specifying a backend.  Each element of the alist has the form
+\(URL-REGEXP . BACKEND).  `vc-clone' will use BACKEND of
+the first association for which the URL of the repository matches
+the URL-REGEXP of the association."
+  :type `(alist :key-type (regexp :tag "Regular expression matching URLs")
+                :value-type ,vc-cloneable-backends-custom-type)
+  :version "31.1")
+
 
 ;; File property caching
 
@@ -1032,6 +1087,13 @@ use."
       (let ((default-directory repo-dir))
 	(vc-call-backend bk 'create-repo))
       (throw 'found bk))))
+
+(defun vc-guess-url-backend (url)
+  "Guess the VC backend for URL.
+This function will internally query `vc-clone-heuristic-alist'
+and return nil if it cannot reasonably guess."
+  (and url (alist-get url vc-clone-heuristic-alist
+                      nil nil #'string-match-p)))
 
 ;;;###autoload
 (defun vc-responsible-backend (file &optional no-error)
