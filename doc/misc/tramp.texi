@@ -5173,6 +5173,17 @@ contents of files and directories will be included in the debug
 buffer.  Passwords typed in @value{tramp} will never be included
 there.
 
+If you find, that using @value{tramp} with @command{emacs -Q} doesn't
+cause any problem, you might check your init file for the suspicious
+configuration by bisecting it.  That is, comment out about half of the
+init file, and check whether the problem still arises when calling
+@command{emacs}.  If yes, comment out half of the still active code.
+Otherwise, comment out the active code, and uncomment the just
+commented code.
+
+Call @command{emacs}, again.  Reiterate, until you find the suspicious
+configuaration.
+
 
 @node Frequently Asked Questions
 @chapter Frequently Asked Questions
