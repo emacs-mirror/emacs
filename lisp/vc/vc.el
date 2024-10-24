@@ -3876,7 +3876,9 @@ to provide the `find-revision' operation instead."
   (interactive)
   (vc-call-backend (vc-backend buffer-file-name) 'check-headers))
 
-(defun vc-clone (remote &optional backend directory rev)
+(defvar vc--remotes-history)
+
+(defun vc-clone (remote &optional backend directory rev open-dir)
   "Clone repository REMOTE using version-control BACKEND, into DIRECTORY.
 If successful, return the string with the directory of the checkout;
 otherwise return nil.
@@ -3886,20 +3888,42 @@ If DIRECTORY is nil or omitted, it defaults to `default-directory'.
 If BACKEND is nil or omitted, the function iterates through every known
 backend in `vc-handled-backends' until one succeeds to clone REMOTE.
 If REV is non-nil, it indicates a specific revision to check out after
-cloning; the syntax of REV depends on what BACKEND accepts."
-  (setq directory (expand-file-name (or directory default-directory)))
-  (if backend
-      (progn
-        (unless (memq backend vc-handled-backends)
-          (error "Unknown VC backend %s" backend))
-        (vc-call-backend backend 'clone remote directory rev))
-    (catch 'ok
-      (dolist (backend vc-handled-backends)
-        (ignore-error vc-not-supported
-          (when-let* ((res (vc-call-backend
-                            backend 'clone
-                            remote directory rev)))
-            (throw 'ok res)))))))
+cloning; the syntax of REV depends on what BACKEND accepts.
+If OPEN-DIR is non-nil, switches to a buffer visiting DIRECTORY to
+which the repository was cloned.  It would be useful in scripts, but not
+in regular code.
+If called interactively, prompt for REMOTE, DIRECTORY and BACKEND,
+if BACKEND has not been automatically determined according to the REMOTE
+URL, in the minibuffer."
+  (interactive
+   (let* ((url (read-string "Remote: " nil 'vc--remotes-history))
+          (backend (or (vc-guess-url-backend url)
+                       (intern (completing-read
+                                "Backend: " vc-handled-backends nil t)))))
+     (list url backend
+           (read-directory-name
+            "Clone into new or empty directory: " nil nil
+            (lambda (dir) (or (not (file-exists-p dir))
+                              (directory-empty-p dir))))
+           nil t)))
+  (let* ((directory (expand-file-name (or directory default-directory)))
+         (backend (or backend (vc-guess-url-backend remote)))
+         (directory (if backend
+                        (progn
+                          (unless (memq backend vc-handled-backends)
+                            (error "Unknown VC backend %s" backend))
+                          (vc-call-backend backend 'clone remote directory rev))
+                      (catch 'ok
+                        (dolist (backend vc-handled-backends)
+                          (ignore-error vc-not-supported
+                            (when-let* ((res (vc-call-backend
+                                              backend 'clone
+                                              remote directory rev)))
+                              (throw 'ok res))))))))
+    (when (file-directory-p directory)
+      (when open-dir
+        (find-file directory))
+      directory)))
 
 (declare-function log-view-current-tag "log-view" (&optional pos))
 (defun vc-default-last-change (_backend file line)

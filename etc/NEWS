@@ -614,6 +614,16 @@ even though Emacs thinks it is dangerous.
 
 So far, this applies only to using 'e' from Log View mode for Git.
 
+*** 'vc-clone' is now an interactive command.
+When called interactively, 'vc-clone' now prompts for the remote
+repository address, the backend for cloning, if it has not been
+determined automatically according to the URL, and the directory to
+clone the repository into.
+
+*** 'vc-clone' now accepts an optional argument OPEN-DIR.
+When the argument is non-nil, the function switches to a buffer visiting
+directory to which the repository was cloned.
+
 
 * New Modes and Packages in Emacs 31.1
 
