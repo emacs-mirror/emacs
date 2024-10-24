@@ -56,7 +56,6 @@
 
 ;;; Code:
 (require 'cl-lib)
-(eval-when-compile (require 'subr-x)) 	; when-let
 
 ;; The `string' widget completion uses this.
 (declare-function ispell-get-word "ispell"
