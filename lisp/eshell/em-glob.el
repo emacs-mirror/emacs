@@ -348,7 +348,7 @@ regular expressions, and these cannot support the above constructs."
         ;; always be sure if the "~" is a home directory reference or
         ;; part of a glob (e.g. if the argument was assembled from
         ;; variables).
-        glob
+        (if eshell-glob-splice-results (list glob) glob)
       (unwind-protect
           (apply #'eshell-glob-entries globs)
         (if message-shown

@@ -170,7 +170,7 @@ WRITE_LOG = > $@ 2>&1 || { STAT=$$?; cat $@; exit $$STAT; }
 endif
 ## On Emba, always show logs for certain problematic tests.
 ifdef EMACS_EMBA_CI
-lisp/filenotify-tests.log lisp/net/tramp-tests.log src/emacs-module-tests.log \
+lisp/filenotify-tests.log lisp/net/tramp-tests.log \
 : WRITE_LOG = 2>&1 | tee $@
 endif
 

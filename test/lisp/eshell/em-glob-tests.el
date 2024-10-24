@@ -74,7 +74,13 @@ component ending in \"symlink\" is treated as a symbolic link."
       ;; Ensure the default expansion splices the glob.
       (eshell-command-result-equal "funcall list *.el" '("a.el" "b.el"))
       (eshell-command-result-equal "funcall list *.txt" '("c.txt"))
-      (eshell-command-result-equal "funcall list *.no" '("*.no")))))
+      ;; When spliting, no-matches cases also return a list containing
+      ;; the original non-matching glob.
+      (eshell-command-result-equal "funcall list *.no" '("*.no"))
+      (when (eshell-tests-remote-accessible-p)
+        (let ((remote (file-remote-p ert-remote-temporary-file-directory)))
+          (eshell-command-result-equal (format "funcall list %s~/a.el" remote)
+                                       `(,(format "%s~/a.el" remote))))))))
 
 (ert-deftest em-glob-test/expand/no-splice-results ()
   "Test that globs are treated as lists when
@@ -85,9 +91,13 @@ component ending in \"symlink\" is treated as a symbolic link."
       ;; Ensure the default expansion splices the glob.
       (eshell-command-result-equal "funcall list *.el" '(("a.el" "b.el")))
       (eshell-command-result-equal "funcall list *.txt" '(("c.txt")))
-      ;; The no-matches case is special here: the glob is just the
+      ;; The no-matches cases are special here: the glob is just the
       ;; string, not the list of results.
-      (eshell-command-result-equal "funcall list *.no" '("*.no")))))
+      (eshell-command-result-equal "funcall list *.no" '("*.no"))
+      (when (eshell-tests-remote-accessible-p)
+        (let ((remote (file-remote-p ert-remote-temporary-file-directory)))
+          (eshell-command-result-equal (format "funcall list %s~/a.el" remote)
+                                       `(,(format "%s~/a.el" remote))))))))
 
 (ert-deftest em-glob-test/expand/explicitly-splice-results ()
   "Test explicitly splicing globs works the same no matter the

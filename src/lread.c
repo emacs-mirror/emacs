@@ -3911,6 +3911,8 @@ read_stack_reset (intmax_t sp)
 
 #define READ_AND_BUFFER(c)			\
   c = READCHAR;					\
+  if (c < 0)					\
+    INVALID_SYNTAX_WITH_BUFFER ();		\
   if (multibyte)				\
     p += CHAR_STRING (c, (unsigned char *) p);	\
   else						\
