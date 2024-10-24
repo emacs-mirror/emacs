@@ -660,15 +660,14 @@ valid Content-Type header.  If none of the functions can guess, return
   "Return \"text/html\" if RESPONSE-BUFFER has an HTML doctype declaration.
 HEADERS is unused."
   ;; https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
-  (let ((case-fold-search t)
-        (target
-         "<!doctype +html *\\(>\\|system +\\(\\\"\\|'\\)+about:legacy-compat\\)"))
-    (with-current-buffer response-buffer
-      (goto-char (point-min))
-      ;; match basic <!doctype html> and also legacy variants as
-      ;; specified in link above
-      (when (re-search-forward target nil t)
-        "text/html"))))
+  (with-current-buffer response-buffer
+    (let ((case-fold-search t))
+      (save-excursion
+        (goto-char (point-min))
+        ;; match basic <!doctype html> and also legacy variants as
+        ;; specified in link above - being purposely lax about it
+        (when (search-forward "<!doctype html" nil t)
+          "text/html")))))
 
 (defun eww--rename-buffer ()
   "Rename the current EWW buffer.
