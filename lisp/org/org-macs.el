@@ -573,7 +573,7 @@ is selected, only the bare key is returned."
 		   ((assoc current specials) (throw 'exit current))
 		   (t (error "No entry available")))))))
         (when buffer
-          (when-let ((window (get-buffer-window buffer t)))
+          (when-let* ((window (get-buffer-window buffer t)))
             (quit-window 'kill window))
           (kill-buffer buffer))))))
 

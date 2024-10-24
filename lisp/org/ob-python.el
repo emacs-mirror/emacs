@@ -269,7 +269,7 @@ results as a string."
   "Return non-nil if the last prompt matches input prompt.
 Backport of `python-util-comint-end-of-output-p' to emacs28.  To
 be removed after minimum supported version reaches emacs29."
-  (when-let ((prompt (python-util-comint-last-prompt)))
+  (when-let* ((prompt (python-util-comint-last-prompt)))
     (python-shell-comint-end-of-output-p
      (buffer-substring-no-properties
       (car prompt) (cdr prompt)))))

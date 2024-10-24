@@ -870,7 +870,7 @@ guess will be made."
 		 (default-directory
 		  (cond
 		   ((not dir) default-directory)
-                   ((when-let ((session (org-babel-session-buffer info)))
+                   ((when-let* ((session (org-babel-session-buffer info)))
                       (buffer-local-value 'default-directory (get-buffer session))))
 		   ((member mkdirp '("no" "nil" nil))
 		    (file-name-as-directory (expand-file-name dir)))

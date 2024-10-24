@@ -3709,7 +3709,7 @@ With prefix ARG, apply the new formulas to the table."
     (org-table-store-formulas eql)
     (set-marker pos nil)
     (set-marker source nil)
-    (when-let ((window (get-buffer-window "*Edit Formulas*" t)))
+    (when-let* ((window (get-buffer-window "*Edit Formulas*" t)))
       (quit-window 'kill window))
     (when (get-buffer "*Edit Formulas*") (kill-buffer "*Edit Formulas*"))
     (if arg
