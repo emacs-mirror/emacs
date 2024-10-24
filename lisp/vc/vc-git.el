@@ -1966,7 +1966,8 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                     "log" "--max-count=1" "--pretty=format:%B" rev)))
 
 (defun vc-git--assert-allowed-rewrite (rev)
-  (when (and (not (eq vc-allow-rewriting-published-history 'no-ask))
+  (when (and (not (and vc-allow-rewriting-published-history
+                       (not (eq vc-allow-rewriting-published-history 'ask))))
              ;; Check there is an upstream.
              (with-temp-buffer
                (vc-git--out-ok "config" "--get"
@@ -1978,7 +1979,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                                        "--pretty=format:%H"
                                        "@{upstream}..HEAD")))))
       (unless (or (cl-member rev outgoing :test #'string-prefix-p)
-                  (and vc-allow-rewriting-published-history
+                  (and (eq vc-allow-rewriting-published-history 'ask)
                        (yes-or-no-p
                         (format "Commit %s appears published; allow rewriting history?"
                                 rev))))

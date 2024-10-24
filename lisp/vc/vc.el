@@ -931,12 +931,17 @@ the ordinary way until you take special action.  For example, for Git,
 see \"Recovering from Upstream Rebase\" in the Man page git-rebase(1).
 
 Normally, Emacs refuses to run VCS commands that it thinks will rewrite
-published history.  If you customize this variable to a non-nil value,
-Emacs will instead prompt you to confirm that you really want to perform
-the rewrite.  A value of `no-ask' means to proceed with no prompting."
+published history.  If you customize this variable to `ask', Emacs will
+instead prompt you to confirm that you really want to perform the
+rewrite.  Any other non-nil value means to proceed with no prompting.
+
+We recommend customizing this variable to `ask' or leaving it nil,
+because if published history is rewritten unexpectedly it can be fairly
+time-consuming to recover.  Only customize this variable to a non-nil
+value other than `ask' if you have a strong grasp of the VCS in use."
   :type '(choice (const :tag "Don't allow" nil)
-                 (const :tag "Prompt to allow" t)
-                 (const :tag "Allow without prompting" no-ask))
+                 (const :tag "Prompt to allow" ask)
+                 (const :tag "Allow without prompting" t))
   :version "31.1")
 
 
