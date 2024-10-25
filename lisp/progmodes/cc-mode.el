@@ -2009,6 +2009,70 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 (defvar c-new-id-is-type nil)
 (make-variable-buffer-local 'c-new-id-is-type)
 
+(defun c-before-change-include-<> (beg end)
+  "Remove category/syntax-table properties from each #include <..>.
+In particular, from the < and > characters which have been marked as parens
+using these properties.  This is done on every such #include <..> with a
+portion between BEG and END.
+
+This function is used solely as a member of
+`c-get-state-before-change-functions' where it should appear early, before
+`c-depropertize-CPP'.  It should be used only together with
+`c-after-change-include-<>'."
+  (c-save-buffer-state ((search-end (progn (goto-char end)
+					   (c-end-of-macro)
+					   (point)))
+			hash-pos)
+    (goto-char beg)
+    (c-beginning-of-macro)
+    (while (and (< (point) search-end)
+		(search-forward-regexp c-cpp-include-key search-end 'bound)
+		(setq hash-pos (match-beginning 0)))
+      (save-restriction
+	(narrow-to-region (point-min) (c-point 'eoll))
+	(c-forward-comments))
+      (when (and (< (point) search-end)
+		 (looking-at "\\s(")
+		 (looking-at "\\(<\\)[^>\n\r]*\\(>\\)?")
+		 (not (cdr (c-semi-pp-to-literal hash-pos))))
+	(c-unmark-<->-as-paren (match-beginning 1))
+	(when (< hash-pos c-new-BEG)
+	  (setq c-new-BEG hash-pos))
+	(when (match-beginning 2)
+	  (c-unmark-<->-as-paren (match-beginning 2))
+	  (when (> (match-end 2) c-new-END)
+	    (setq c-new-END (match-end 2))))))))
+
+(defun c-after-change-include-<> (beg end _old-len)
+  "Apply category/syntax-table properties to each #include <..>.
+In particular, to the < and > characters to mark them as matching parens
+using these properties.  This is done on every such #include <..> with a
+portion between BEG and END.
+
+This function is used solely as a member of
+`c-before-font-lock-functions' where is should appear late, but before
+`c-neutralize-syntax-in-CPP'.  It should be used only together with
+`c-before-change-include-<>'."
+  (c-save-buffer-state ((search-end (progn (goto-char end)
+					   (c-end-of-macro)
+					   (point)))
+			hash-pos)
+    (goto-char beg)
+    (c-beginning-of-macro)
+    (while (and (< (point) search-end)
+		(search-forward-regexp c-cpp-include-key search-end 'bound)
+		(setq hash-pos (match-beginning 0)))
+      (save-restriction
+	(narrow-to-region (point-min) (c-point 'eoll))
+	(c-forward-comments))
+      (when (and (< (point) search-end)
+		 (looking-at "\\(<\\)[^>\n\r]*\\(>\\)")
+		 (not (cdr (c-semi-pp-to-literal (match-beginning 0)))))
+	(c-mark-<-as-paren (match-beginning 1))
+	(when (< hash-pos c-new-BEG) (setq c-new-BEG hash-pos))
+	(c-mark->-as-paren (match-beginning 2))
+	(when (> (match-end 2) c-new-END) (setq c-new-END (match-end 2)))))))
+
 (defun c-before-change-fix-comment-escapes (beg end)
   "Remove punctuation syntax-table text properties from C/C++ comment markers.
 This is to handle the rare case of two or more backslashes at an
