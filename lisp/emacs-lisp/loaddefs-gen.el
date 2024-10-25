@@ -591,7 +591,7 @@ instead of just updating them with the new/changed autoloads."
                        ;; we don't want to depend on whether Emacs was
                        ;; built with or without modules support, nor
                        ;; what is the suffix for the underlying OS.
-		       (unless (string-match "\\.\\(elc\\|so\\|dll\\)" suf)
+		       (unless (string-match "\\.\\(elc\\|so\\|dll\\|dylib\\)" suf)
                          (push suf tmp)))
                      (concat "\\`[^=.].*" (regexp-opt tmp t) "\\'")))
 	 (files (apply #'nconc
