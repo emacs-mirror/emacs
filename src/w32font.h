@@ -112,7 +112,7 @@ bool w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
 bool w32_dwrite_text_extents (struct font *font, const unsigned *code,
 			      int nglyphs, struct font_metrics *metrics);
 unsigned w32_dwrite_encode_char (struct font *font, int c);
-void w32_dwrite_free_cached_face(void *cache);
+void w32_dwrite_free_cached_face (void *cache);
 void syms_of_w32dwrite (void);
 
 extern void globals_of_w32font (void);

@@ -469,11 +469,11 @@ typedef struct IDWriteFactory2Vtbl {
 interface IDWriteFactory2 {
   CONST_VTBL IDWriteFactory2Vtbl* lpVtbl;
 };
-#else /* ifndef MINGW_W64 */
+#else /* MINGW_W64 */
 # include <dwrite_3.h>
 #endif
 
-/* User configurable variables.  If they are lower than 0 use
+/* User configurable variables.  If they are smaller than 0, use
    DirectWrite's defaults, or our defaults.  To set them, the user calls
    'w32-dwrite-reinit' */
 static float config_enhanced_contrast = -1.0f;
@@ -495,7 +495,7 @@ release_com (IUnknown **i)
     }
 }
 
-#define RELEASE_COM(i) release_com ( (IUnknown **) &i )
+#define RELEASE_COM(i) release_com ((IUnknown **) &i)
 
 /* Global variables for DirectWrite.  */
 static bool direct_write_available = false;
@@ -516,7 +516,7 @@ verify_hr (HRESULT hr, const char *msg)
   return true;
 }
 
-/* Gets a IDWriteFontFace from a struct font (its HFONT). Returns the
+/* Gets a IDWriteFontFace from a struct font (its HFONT).  Returns the
    font size in points.  It may fail to get a DirectWrite font, and face
    will be NULL on return.  This happens for some fonts like Courier.
 
@@ -560,10 +560,10 @@ get_font_face (struct font *infont, IDWriteFontFace **face)
     }
 
   /* Cache this FontFace.  */
-  uniscribe_font->dwrite_font_size = abs (logfont.lfHeight);
+  uniscribe_font->dwrite_font_size = eabs (logfont.lfHeight);
   uniscribe_font->dwrite_cache = *face;
 
-  return abs (logfont.lfHeight);
+  return eabs (logfont.lfHeight);
 }
 
 void
@@ -642,7 +642,7 @@ text_extents_internal (IDWriteFontFace *dwrite_font_face,
       if (metrics->rbearing < rbearing)
 	metrics->rbearing = rbearing;
     }
-  metrics->width = round(width);
+  metrics->width = round (width);
   SAFE_FREE ();
   return true;
 }
@@ -794,7 +794,6 @@ w32_initialize_direct_write (void)
       DebPrint (("DirectWrite HRESULT failed: (%d) QueryInterface IDWriteFactory2\n", hr));
       RELEASE_COM (dwrite_factory);
       FreeLibrary (direct_write);
-      eassert (SUCCEEDED (hr));
       return;
     }
 
@@ -939,12 +938,12 @@ w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
   glyph_run.glyphIndices = indices;
   glyph_run.glyphCount = len;
   glyph_run.isSideways = false;
-  glyph_run.bidiLevel = 0;
+  glyph_run.bidiLevel = 0;	/* we reorder bidi text ourselves */
   glyph_run.glyphOffsets = NULL;
   glyph_run.glyphAdvances = advances;
 
   IDWriteColorGlyphRunEnumerator *layers;
-  /* This call will tell us if we hace to handle any color glyph.  */
+  /* This call will tell us if we have to handle any color glyphs.  */
   hr = dwrite_factory2->lpVtbl->TranslateColorGlyphRun (dwrite_factory2,
 							0, font->ascent,
 							&glyph_run,
@@ -965,8 +964,8 @@ w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
 						NULL);
   else
     {
-      /* If there were color glyphs, layers contains a list of GlyphRun
-	 with a color and a position for each.  We draw them
+      /* If there were color glyphs, 'layers' contains a list of
+	 GlyphRun with a color and a position for each.  We draw them
 	 individually.  */
       if (!verify_hr (hr, "Failed at TranslateColorGlyphRun"))
 	{
@@ -1057,11 +1056,13 @@ DirectWrite will be used if it is available and 'w32-inhibit-dwrite' is nil.  */
 DEFUN ("w32-dwrite-reinit", Fw32_dwrite_reinit, Sw32_dwrite_reinit, 0, 3, 0,
        doc: /* Reinitialize DirectWrite with the given parameters.
 If a parameter is not specified, or is out of range, it will take a default
-value. Returns nil.
+value.
 
-ENHANCED_CONTRAST is in the range [0.0, 1.0]
-CLEAR_TYPE_LEVEL is in the range [0.0, 1.0]
-GAMMA is in the range (0.0, 256.0]  */)
+Return value is nil.
+
+ENHANCED_CONTRAST is in the range [0.0, 1.0], and defaults to 0.0.
+CLEAR_TYPE_LEVEL is in the range [0.0, 1.0], and defaults to 0.0.
+GAMMA is in the range (0.0, 256.0], and defaults to 2.2.  */)
   (Lisp_Object enhanced_contrast, Lisp_Object clear_type_level,
    Lisp_Object gamma)
 {

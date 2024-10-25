@@ -712,7 +712,7 @@ w32font_draw (struct glyph_string *s, int from, int to,
       for (i = 0; i < len; i++)
 	if (!w32_use_direct_write (w32font) ||
 	    !w32_dwrite_draw (s->hdc, x, y, s->char2b + from, 1,
-			      GetTextColor(s->hdc), s->font))
+			      GetTextColor (s->hdc), s->font))
 	  {
 	    WCHAR c = s->char2b[from + i] & 0xFFFF;
 	    ExtTextOutW (s->hdc, x + i, y, options, NULL, &c, 1, NULL);
@@ -722,7 +722,7 @@ w32font_draw (struct glyph_string *s, int from, int to,
     {
       if (!w32_use_direct_write (w32font) ||
 	  !w32_dwrite_draw (s->hdc, x, y,
-			    s->char2b + from, len, GetTextColor(s->hdc),
+			    s->char2b + from, len, GetTextColor (s->hdc),
 			    s->font))
 	{
 	  /* The number of glyphs in a glyph_string cannot be larger than
