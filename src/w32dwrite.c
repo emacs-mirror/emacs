@@ -1060,9 +1060,10 @@ value.
 
 Return value is nil.
 
-ENHANCED_CONTRAST is in the range [0.0, 1.0], and defaults to 0.0.
-CLEAR_TYPE_LEVEL is in the range [0.0, 1.0], and defaults to 0.0.
-GAMMA is in the range (0.0, 256.0], and defaults to 2.2.  */)
+ENHANCED_CONTRAST is in the range [0.0, 1.0], and defaults to 0.5.
+CLEAR_TYPE_LEVEL is in the range [0.0, 1.0], and defaults to 1.0.
+GAMMA is in the range (0.0, 256.0], and defaults to a system-dependent value
+      around 2.0 (sometimes 1.8, sometimes 2.2).  */)
   (Lisp_Object enhanced_contrast, Lisp_Object clear_type_level,
    Lisp_Object gamma)
 {
