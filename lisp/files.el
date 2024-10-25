@@ -8490,7 +8490,8 @@ If RESTART, restart Emacs after killing the current Emacs process."
      ;; Query the user for other things, perhaps.
      (run-hook-with-args-until-failure 'kill-emacs-query-functions)
      (or (null confirm)
-         (funcall confirm "Really exit Emacs? "))
+         (funcall confirm (format "Really %s Emacs? "
+                                  (if restart "restart" "exit"))))
      (kill-emacs nil restart))))
 
 (defun save-buffers-kill-terminal (&optional arg)
