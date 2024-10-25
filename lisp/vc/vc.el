@@ -2517,7 +2517,17 @@ the variable `vc-BACKEND-header'."
      (lambda () (vc-call-backend backend 'log-edit-mode))
      (lambda (files comment)
        (vc-call-backend backend
-                        'modify-change-comment files rev comment))
+                        'modify-change-comment files rev comment)
+       ;; We are now back in `vc-parent-buffer'.
+       ;; If this is Log View, then revision IDs might now be
+       ;; out-of-date, which could be hazardous if the user immediately
+       ;; tries to use `log-view-modify-change-comment' a second time.
+       ;; E.g. with Git, `vc-git-modify-change-comment' could create an
+       ;; "amend!" commit referring to a commit which no longer exists
+       ;; on the branch, such that it wouldn't be autosquashed.
+       ;; So refresh the view.
+       (when (derived-mode-p 'log-view-mode)
+         (revert-buffer)))
      nil backend)))
 
 ;;;###autoload
