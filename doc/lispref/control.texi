@@ -1452,12 +1452,15 @@ of the clause.  As a condition, it counts as true if the first binding's
 value is non-@code{nil}.
 
 @findex match*
+@findex pcase*
 @code{(match* @var{pattern} @var{datum})} means to match @var{datum}
 against the specified @var{pattern}.  The condition counts as true if
 @var{pattern} matches @var{datum}.  The pattern can specify variables to
 bind to the parts of @var{datum} that they match.
+@code{(pcase* @var{pattern} @var{datum})} works in the same way except it
+uses the Pcase syntax for @var{pattern}.
 
-Both @code{bind*} and @code{match*} normally bind their bindings over
+@code{bind*}, @code{match*}, and @code{pcase*} normally bind their bindings over
 the execution of the whole containing clause.  However, if the clause is
 written to specify ``non-exit'', the clause's bindings cover the whole
 rest of the @code{cond*}.
@@ -1475,6 +1478,10 @@ next clause (if any).  The bindings made in @var{condition} for the
 @var{body} of the non-exit clause are passed along to the rest of the
 clauses in this @code{cond*} construct.
 
+Note: @code{pcase*} does not support @code{:non-exit}, and when used in
+a non-exit clause, it follows the semantics of @code{pcase-let}, see
+@ref{Destructuring with pcase Patterns}.
+
 @subheading Matching clauses
 
 A matching clause looks like @code{(match* @var{pattern} @var{datum})}.
@@ -1482,7 +1489,7 @@ It evaluates the expression @var{datum} and matches the pattern
 @var{pattern} (which is not evaluated) against it.
 
 @var{pattern} allows these kinds of patterns, and those that are lists
-often include other patters within them:
+often include other patterns within them:
 
 @table @code
 @item _

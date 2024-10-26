@@ -741,12 +741,14 @@ text "covered" by the overlay.
 
 +++
 ** New macro 'cond*'.
-The new macro 'cond*' is an alternative to 'pcase'.  Like 'pcase', it
-can be used to define several clauses, each one with its own condition;
-the first clause that matches will cause its body to be evaluated.
-'cond*' uses syntax that is different from that of 'pcase', which some
-users might find less cryptic.  See the Info node "(elisp) cond* Macro"
-for details.
+The new macro 'cond*' is an alternative to 'cond' and 'pcase'.
+Like them, it can be used to define several clauses, each one with its
+own condition; the first clause that matches will cause its body to be
+evaluated.
+'cond*' can use Pcase's pattern matching syntax and also provides
+another pattern matching syntax that is different from that of 'pcase',
+which some users might find less cryptic.
+See the Info node "(elisp) cond* Macro" for details.
 
 ---
 ** New function 'shell-command-do-open'.
