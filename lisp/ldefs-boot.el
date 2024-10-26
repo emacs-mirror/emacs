@@ -6120,6 +6120,11 @@ This is like `setq', but is meant for user options instead of
 plain variables.  This means that `setopt' will execute any
 `custom-set' form associated with VARIABLE.
 
+Note that `setopt' will emit a warning if the type of a VALUE
+does not match the type of the corresponding VARIABLE as
+declared by `defcustom'.  (VARIABLE will be assigned the value
+even if it doesn't match the type.)
+
 (fn [VARIABLE VALUE]...)" nil t)
 (autoload 'setopt--set "cus-edit" "\
 
@@ -11241,11 +11246,12 @@ For non-interactive use, this is superseded by `fileloop-initialize-replace'.
 (set-advertised-calling-convention 'tags-query-replace '(from to &optional delimited) '"27.1")
 (autoload 'list-tags "etags" "\
 Display list of tags in file FILE.
-This searches only the first table in the list, and no included
-tables.  FILE should be as it appeared in the `etags' command,
-usually without a directory specification.  If called
-interactively, FILE defaults to the file name of the current
-buffer.
+Interactively, prompt for FILE, with completion, offering the current
+buffer's file name as the defaul.
+This command searches only the first table in the list of tags tables,
+and does not search included tables.
+FILE should be as it was submitted to the `etags' command, which usually
+means relative to the directory of the tags table file.
 
 (fn FILE &optional NEXT-MATCH)" t)
 (autoload 'tags-apropos "etags" "\
@@ -12678,6 +12684,11 @@ The command run (after changing into DIR) is essentially
 
 except that the car of the variable `find-ls-option' specifies what to
 use in place of \"-ls\" as the final argument.
+
+If your `find' program is not a GNU Find, the columns in the produced
+Dired display might fail to align.  We recommend to install GNU Find in
+those cases (you may need to customize the value of `find-program' if
+you do so), which attempts to align the columns.
 
 Collect output in the \"*Find*\" buffer.  To kill the job before
 it finishes, type \\[kill-find].
@@ -33755,7 +33766,7 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;; Generated autoloads from transient.el
 
-(push (purecopy '(transient 0 7 2 1)) package--builtin-versions)
+(push (purecopy '(transient 0 7 2 2)) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient" "\
 Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -38396,7 +38407,7 @@ TYPES should be a MIME media type symbol, a regexp, or a list
 that can contain both symbols and regexps.
 
 HANDLER is a function that will be called with two arguments: The
-MIME type (a symbol on the form `image/png') and the selection
+MIME type (a symbol of the form `image/png') and the selection
 data (a string).
 
 (fn TYPES HANDLER)")
