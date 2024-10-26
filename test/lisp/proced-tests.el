@@ -28,13 +28,11 @@
   `(let ((proced-format ,format)
          (proced-filter ,filter)
          (proced-auto-update-flag nil)
-         (inhibit-message (not (getenv "EMACS_EMBA_CI"))))
+         (inhibit-message t))
      (proced)
      (unwind-protect
          (with-current-buffer "*Proced*"
            ,@body)
-       (with-current-buffer "*Proced*"
-         (message "%s" (buffer-string)))
        (kill-buffer "*Proced*"))))
 
 (defun proced--assert-emacs-pid-in-buffer ()
