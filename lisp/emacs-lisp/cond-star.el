@@ -38,6 +38,8 @@
 
 ;;; Code:
 
+(require 'cl-lib) ; for cl-assert
+
 (defmacro cond* (&rest clauses)
   "Extended form of traditional Lisp `cond' construct.
 A `cond*' construct is a series of clauses, and a clause
