@@ -462,7 +462,7 @@ Prepend remote identification of `default-directory', if any."
 (defun eshell-split-filename (filename)
   "Split a FILENAME into a list of file/directory components."
   (let* ((remote (file-remote-p filename))
-         (filename (file-local-name filename))
+         (filename (or (file-remote-p filename 'localname 'never) filename))
          (len (length filename))
          (index 0) (curr-start 0)
          parts)

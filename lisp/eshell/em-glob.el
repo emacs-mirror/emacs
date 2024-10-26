@@ -244,7 +244,10 @@ resulting regular expression."
 
 (defun eshell-glob-p (pattern)
   "Return non-nil if PATTERN has any special glob characters."
-  (string-match (eshell-glob-chars-regexp) pattern))
+  ;; "~" is an infix globbing character, so one at the start of a glob
+  ;; must be a literal.
+  (let ((start (if (string-prefix-p "~" pattern) 1 0)))
+    (string-match (eshell-glob-chars-regexp) pattern start)))
 
 (defun eshell-glob-convert-1 (glob &optional last)
   "Convert a GLOB matching a single element of a file name to regexps.

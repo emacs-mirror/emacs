@@ -183,4 +183,44 @@
     (should (equal (eshell-get-path 'literal)
                    expected-path))))
 
+(ert-deftest esh-util-test/split-filename/absolute ()
+  "Test splitting an absolute filename."
+  (should (equal (eshell-split-filename "/foo/bar/file.txt")
+                 '("/" "foo/" "bar/" "file.txt"))))
+
+(ert-deftest esh-util-test/split-filename/relative ()
+  "Test splitting a relative filename."
+  (should (equal (eshell-split-filename "foo/bar/file.txt")
+                 '("foo/" "bar/" "file.txt"))))
+
+(ert-deftest esh-util-test/split-filename/user ()
+  "Test splitting a user filename."
+  (should (equal (eshell-split-filename "~/file.txt")
+                 '("~/" "file.txt")))
+  (should (equal (eshell-split-filename "~user/file.txt")
+                 '("~user/" "file.txt"))))
+
+(ert-deftest esh-util-test/split-filename/remote-absolute ()
+  "Test splitting a remote absolute filename."
+  (skip-unless (eshell-tests-remote-accessible-p))
+  (let ((remote (file-remote-p ert-remote-temporary-file-directory)))
+    (should (equal (eshell-split-filename (format "%s/foo/bar/file.txt" remote))
+                   `(,remote "/" "foo/" "bar/" "file.txt")))))
+
+(ert-deftest esh-util-test/split-filename/remote-relative ()
+  "Test splitting a remote relative filename."
+  (skip-unless (eshell-tests-remote-accessible-p))
+  (let ((remote (file-remote-p ert-remote-temporary-file-directory)))
+    (should (equal (eshell-split-filename (format "%sfoo/bar/file.txt" remote))
+                   `(,remote "foo/" "bar/" "file.txt")))))
+
+(ert-deftest esh-util-test/split-filename/remote-user ()
+  "Test splitting a remote user filename."
+  (skip-unless (eshell-tests-remote-accessible-p))
+  (let ((remote (file-remote-p ert-remote-temporary-file-directory)))
+    (should (equal (eshell-split-filename (format "%s~/file.txt" remote))
+                   `(,remote "~/" "file.txt")))
+    (should (equal (eshell-split-filename (format "%s~user/file.txt" remote))
+                   `(,remote "~user/" "file.txt")))))
+
 ;;; esh-util-tests.el ends here
