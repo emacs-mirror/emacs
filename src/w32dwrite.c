@@ -895,7 +895,9 @@ w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
       return false;
     }
 
-  int bitmap_width = metrics.width + metrics.rbearing;
+  int left_margin = metrics.lbearing < 0 ? -metrics.lbearing : 0;
+
+  int bitmap_width = left_margin + metrics.width + metrics.rbearing;
   int bitmap_height = font->ascent + font->descent;
 
   /* We never release this, get_bitmap_render_target reuses it.  */
@@ -914,7 +916,7 @@ w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
     = bitmap_render_target->lpVtbl->GetMemoryDC (bitmap_render_target);
 
   /* Copy the background pixel to the render target bitmap.  */
-  BitBlt (text_dc, 0, 0, bitmap_width, bitmap_height, hdc, x, y, SRCCOPY);
+  BitBlt (text_dc, 0, 0, bitmap_width, bitmap_height, hdc, x - left_margin, y, SRCCOPY);
 
   UINT16 *indices = SAFE_ALLOCA (len * sizeof (UINT16));
 
@@ -948,7 +950,7 @@ w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
   IDWriteColorGlyphRunEnumerator *layers;
   /* This call will tell us if we have to handle any color glyphs.  */
   hr = dwrite_factory2->lpVtbl->TranslateColorGlyphRun (dwrite_factory2,
-							0, font->ascent,
+							left_margin, font->ascent,
 							&glyph_run,
 							NULL,
 							MEASURING_MODE,
@@ -959,7 +961,7 @@ w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
   /* No color.  Just draw the GlyphRun.  */
   if (hr == DWRITE_E_NOCOLOR)
     bitmap_render_target->lpVtbl->DrawGlyphRun (bitmap_render_target,
-						0, font->ascent,
+						left_margin, font->ascent,
 						MEASURING_MODE,
 						&glyph_run,
 						rendering_params,
@@ -1024,7 +1026,7 @@ w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
     }
 
   /* Finally, copy the rendered text back to the original DC.  */
-  BitBlt (hdc, x, y, bitmap_width, bitmap_height, text_dc, 0, 0, SRCCOPY);
+  BitBlt (hdc, x - left_margin, y, bitmap_width, bitmap_height, text_dc, 0, 0, SRCCOPY);
   SAFE_FREE ();
   return true;
 }
