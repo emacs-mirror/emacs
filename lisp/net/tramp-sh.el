@@ -3735,10 +3735,12 @@ Fall back to normal file name handler if no Tramp handler exists."
 	    (cond
 	     ;; That's what we want: file names, for which checks are
 	     ;; applied.  We assume that VC uses only `file-exists-p'
-	     ;; and `file-readable-p' checks; otherwise we must extend
-	     ;; the list.  We do not perform any action, but return
-	     ;; nil, in order to keep `vc-registered' running.
-	     ((and fn (memq operation '(file-exists-p file-readable-p)))
+	     ;; `file-readable-p' and `file-directory-p' checks;
+	     ;; otherwise we must extend the list.  We do not perform
+	     ;; any action, but return nil, in order to keep
+	     ;; `vc-registered' running.
+	     ((and fn (memq operation
+			    '(file-exists-p file-readable-p file-directory-p)))
 	      (add-to-list 'tramp-vc-registered-file-names localname 'append)
 	      nil)
 	     ;; `process-file' and `start-file-process' shall be ignored.
