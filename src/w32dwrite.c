@@ -56,7 +56,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    we don't use are declared with the EMACS_DWRITE_UNUSED macro, to
    avoid bringing in more types that would need to be declared.  */
 
-#define EMACS_DWRITE_UNUSED(name) void (STDMETHODCALLTYPE *name)(void)
+#define EMACS_DWRITE_UNUSED(name) void (STDMETHODCALLTYPE *name) (void)
 
 #define DWRITE_E_NOCOLOR _HRESULT_TYPEDEF_(0x8898500CL)
 
@@ -125,9 +125,12 @@ typedef interface IDWriteBitmapRenderTarget IDWriteBitmapRenderTarget;
 typedef interface IDWriteBitmapRenderTarget1 IDWriteBitmapRenderTarget1;
 typedef interface IDWriteColorGlyphRunEnumerator IDWriteColorGlyphRunEnumerator;
 
-DEFINE_GUID(IID_IDWriteBitmapRenderTarget1, 0x791e8298, 0x3ef3, 0x4230, 0x98,0x80, 0xc9,0xbd,0xec,0xc4,0x20,0x64);
-DEFINE_GUID(IID_IDWriteFactory2, 0x0439fc60, 0xca44, 0x4994, 0x8d,0xee, 0x3a,0x9a,0xf7,0xb7,0x32,0xec);
-DEFINE_GUID(IID_IDWriteFactory, 0xb859ee5a, 0xd838, 0x4b5b, 0xa2,0xe8, 0x1a,0xdc,0x7d,0x93,0xdb,0x48);
+DEFINE_GUID (IID_IDWriteBitmapRenderTarget1, 0x791e8298, 0x3ef3, 0x4230, 0x98,
+	     0x80, 0xc9, 0xbd, 0xec, 0xc4, 0x20, 0x64);
+DEFINE_GUID (IID_IDWriteFactory2, 0x0439fc60, 0xca44, 0x4994, 0x8d, 0xee,
+	     0x3a, 0x9a, 0xf7, 0xb7, 0x32, 0xec);
+DEFINE_GUID (IID_IDWriteFactory, 0xb859ee5a, 0xd838, 0x4b5b, 0xa2, 0xe8, 0x1a,
+	     0xdc, 0x7d, 0x93, 0xdb, 0x48);
 
 typedef struct DWRITE_GLYPH_OFFSET {
   FLOAT advanceOffset;
@@ -168,14 +171,14 @@ typedef struct IDWriteFontFaceVtbl {
 
   HRESULT (STDMETHODCALLTYPE *QueryInterface)
     (IDWriteFontFace *This, REFIID riid, void **ppvObject);
-  ULONG (STDMETHODCALLTYPE *AddRef)(IDWriteFontFace *This);
-  ULONG (STDMETHODCALLTYPE *Release)(IDWriteFontFace *This);
+  ULONG (STDMETHODCALLTYPE *AddRef) (IDWriteFontFace *This);
+  ULONG (STDMETHODCALLTYPE *Release) (IDWriteFontFace *This);
 
-  EMACS_DWRITE_UNUSED(GetType);
-  EMACS_DWRITE_UNUSED(GetFiles);
-  EMACS_DWRITE_UNUSED(GetIndex);
-  EMACS_DWRITE_UNUSED(GetSimulations);
-  EMACS_DWRITE_UNUSED(IsSymbolFont);
+  EMACS_DWRITE_UNUSED (GetType);
+  EMACS_DWRITE_UNUSED (GetFiles);
+  EMACS_DWRITE_UNUSED (GetIndex);
+  EMACS_DWRITE_UNUSED (GetSimulations);
+  EMACS_DWRITE_UNUSED (IsSymbolFont);
 
   void (STDMETHODCALLTYPE *GetMetrics)
     (IDWriteFontFace *This, DWRITE_FONT_METRICS *metrics);
@@ -207,7 +210,7 @@ typedef struct IDWriteFontFaceVtbl {
 } IDWriteFontFaceVtbl;
 
 interface IDWriteFontFace {
-    CONST_VTBL IDWriteFontFaceVtbl* lpVtbl;
+    CONST_VTBL IDWriteFontFaceVtbl *lpVtbl;
 };
 
 typedef struct IDWriteRenderingParamsVtbl {
@@ -215,8 +218,8 @@ typedef struct IDWriteRenderingParamsVtbl {
 
   HRESULT (STDMETHODCALLTYPE *QueryInterface)
     (IDWriteRenderingParams *This, REFIID riid, void **ppvObject);
-  ULONG (STDMETHODCALLTYPE *AddRef)(IDWriteRenderingParams *This);
-  ULONG (STDMETHODCALLTYPE *Release)(IDWriteRenderingParams *This);
+  ULONG (STDMETHODCALLTYPE *AddRef) (IDWriteRenderingParams *This);
+  ULONG (STDMETHODCALLTYPE *Release) (IDWriteRenderingParams *This);
 
   FLOAT (STDMETHODCALLTYPE *GetGamma)
     (IDWriteRenderingParams *This);
@@ -230,7 +233,7 @@ typedef struct IDWriteRenderingParamsVtbl {
 } IDWriteRenderingParamsVtbl;
 
 interface IDWriteRenderingParams {
-    CONST_VTBL IDWriteRenderingParamsVtbl* lpVtbl;
+    CONST_VTBL IDWriteRenderingParamsVtbl *lpVtbl;
 };
 
 typedef struct IDWriteFontVtbl {
@@ -238,8 +241,8 @@ typedef struct IDWriteFontVtbl {
 
   HRESULT (STDMETHODCALLTYPE *QueryInterface)
     (IDWriteFont *This, REFIID riid, void **ppvObject);
-  ULONG (STDMETHODCALLTYPE *AddRef)(IDWriteFont *This);
-  ULONG (STDMETHODCALLTYPE *Release)(IDWriteFont *This);
+  ULONG (STDMETHODCALLTYPE *AddRef) (IDWriteFont *This);
+  ULONG (STDMETHODCALLTYPE *Release) (IDWriteFont *This);
 
   EMACS_DWRITE_UNUSED (GetFontFamily);
   EMACS_DWRITE_UNUSED (GetWeight);
@@ -253,7 +256,7 @@ typedef struct IDWriteFontVtbl {
   void (STDMETHODCALLTYPE *GetMetrics)
     (IDWriteFont *This, DWRITE_FONT_METRICS *metrics);
 
-  EMACS_DWRITE_UNUSED(HasCharacter);
+  EMACS_DWRITE_UNUSED (HasCharacter);
 
   HRESULT (STDMETHODCALLTYPE *CreateFontFace)
     (IDWriteFont *This, IDWriteFontFace **face);
@@ -262,7 +265,7 @@ typedef struct IDWriteFontVtbl {
 } IDWriteFontVtbl;
 
 interface IDWriteFont {
-  CONST_VTBL IDWriteFontVtbl* lpVtbl;
+  CONST_VTBL IDWriteFontVtbl *lpVtbl;
 };
 
 typedef struct IDWriteBitmapRenderTargetVtbl {
@@ -270,8 +273,8 @@ typedef struct IDWriteBitmapRenderTargetVtbl {
 
   HRESULT (STDMETHODCALLTYPE *QueryInterface)
     (IDWriteBitmapRenderTarget *This, REFIID riid, void **ppvObject);
-  ULONG (STDMETHODCALLTYPE *AddRef)(IDWriteBitmapRenderTarget *This);
-  ULONG (STDMETHODCALLTYPE *Release)(IDWriteBitmapRenderTarget *This);
+  ULONG (STDMETHODCALLTYPE *AddRef) (IDWriteBitmapRenderTarget *This);
+  ULONG (STDMETHODCALLTYPE *Release) (IDWriteBitmapRenderTarget *This);
 
   HRESULT (STDMETHODCALLTYPE *DrawGlyphRun)
     (IDWriteBitmapRenderTarget *This,
@@ -283,7 +286,7 @@ typedef struct IDWriteBitmapRenderTargetVtbl {
      COLORREF textColor,
      RECT *blackbox_rect);
 
-  HDC (STDMETHODCALLTYPE *GetMemoryDC)(IDWriteBitmapRenderTarget *This);
+  HDC (STDMETHODCALLTYPE *GetMemoryDC) (IDWriteBitmapRenderTarget *This);
 
   EMACS_DWRITE_UNUSED (GetPixelsPerDip);
 
@@ -298,7 +301,7 @@ typedef struct IDWriteBitmapRenderTargetVtbl {
 } IDWriteBitmapRenderTargetVtbl;
 
 interface IDWriteBitmapRenderTarget {
-  CONST_VTBL IDWriteBitmapRenderTargetVtbl* lpVtbl;
+  CONST_VTBL IDWriteBitmapRenderTargetVtbl *lpVtbl;
 };
 
 typedef struct IDWriteBitmapRenderTarget1Vtbl {
@@ -326,7 +329,7 @@ typedef struct IDWriteBitmapRenderTarget1Vtbl {
 } IDWriteBitmapRenderTarget1Vtbl;
 
 interface IDWriteBitmapRenderTarget1 {
-  CONST_VTBL IDWriteBitmapRenderTarget1Vtbl* lpVtbl;
+  CONST_VTBL IDWriteBitmapRenderTarget1Vtbl *lpVtbl;
 };
 
 typedef struct IDWriteGdiInteropVtbl {
@@ -334,8 +337,8 @@ typedef struct IDWriteGdiInteropVtbl {
 
   HRESULT (STDMETHODCALLTYPE *QueryInterface)
     (IDWriteGdiInterop *This, REFIID riid, void **ppvObject);
-  ULONG (STDMETHODCALLTYPE *AddRef)(IDWriteGdiInterop *This);
-  ULONG (STDMETHODCALLTYPE *Release)(IDWriteGdiInterop *This);
+  ULONG (STDMETHODCALLTYPE *AddRef) (IDWriteGdiInterop *This);
+  ULONG (STDMETHODCALLTYPE *Release) (IDWriteGdiInterop *This);
 
   HRESULT (STDMETHODCALLTYPE *CreateFontFromLOGFONT)
     (IDWriteGdiInterop *This, const LOGFONTW *logfont,
@@ -352,7 +355,7 @@ typedef struct IDWriteGdiInteropVtbl {
 } IDWriteGdiInteropVtbl;
 
 interface IDWriteGdiInterop {
-  CONST_VTBL IDWriteGdiInteropVtbl* lpVtbl;
+  CONST_VTBL IDWriteGdiInteropVtbl *lpVtbl;
 };
 
 typedef struct IDWriteFactoryVtbl {
@@ -360,8 +363,8 @@ typedef struct IDWriteFactoryVtbl {
 
   HRESULT (STDMETHODCALLTYPE *QueryInterface)
     (IDWriteFactory *This, REFIID riid, void **ppvObject);
-  ULONG (STDMETHODCALLTYPE *AddRef)(IDWriteFactory *This);
-  ULONG (STDMETHODCALLTYPE *Release)(IDWriteFactory *This);
+  ULONG (STDMETHODCALLTYPE *AddRef) (IDWriteFactory *This);
+  ULONG (STDMETHODCALLTYPE *Release) (IDWriteFactory *This);
 
   EMACS_DWRITE_UNUSED (GetSystemFontCollection);
   EMACS_DWRITE_UNUSED (CreateCustomFontCollection);
@@ -392,37 +395,35 @@ typedef struct IDWriteFactoryVtbl {
   END_INTERFACE
 } IDWriteFactoryVtbl;
 
-interface IDWriteFactory { CONST_VTBL IDWriteFactoryVtbl* lpVtbl; };
+interface IDWriteFactory { CONST_VTBL IDWriteFactoryVtbl *lpVtbl; };
 
 typedef struct IDWriteColorGlyphRunEnumeratorVtbl {
   BEGIN_INTERFACE
 
   HRESULT (STDMETHODCALLTYPE *QueryInterface)
     (IDWriteColorGlyphRunEnumerator *This, REFIID riid, void **ppvObject);
-  ULONG (STDMETHODCALLTYPE *AddRef)(IDWriteColorGlyphRunEnumerator *This);
-  ULONG (STDMETHODCALLTYPE *Release)(IDWriteColorGlyphRunEnumerator *This);
+  ULONG (STDMETHODCALLTYPE *AddRef) (IDWriteColorGlyphRunEnumerator *This);
+  ULONG (STDMETHODCALLTYPE *Release) (IDWriteColorGlyphRunEnumerator *This);
 
-  HRESULT (STDMETHODCALLTYPE *MoveNext)(
-    IDWriteColorGlyphRunEnumerator *This,
-    WINBOOL *hasRun);
+  HRESULT (STDMETHODCALLTYPE *MoveNext) (IDWriteColorGlyphRunEnumerator *This,
+					 WINBOOL *hasRun);
 
-  HRESULT (STDMETHODCALLTYPE *GetCurrentRun)(
-    IDWriteColorGlyphRunEnumerator *This,
-    const DWRITE_COLOR_GLYPH_RUN **run);
+  HRESULT (STDMETHODCALLTYPE *GetCurrentRun) (IDWriteColorGlyphRunEnumerator *This,
+					      const DWRITE_COLOR_GLYPH_RUN **run);
 
   END_INTERFACE
 } IDWriteColorGlyphRunEnumeratorVtbl;
 
 interface IDWriteColorGlyphRunEnumerator {
-  CONST_VTBL IDWriteColorGlyphRunEnumeratorVtbl* lpVtbl;
+  CONST_VTBL IDWriteColorGlyphRunEnumeratorVtbl *lpVtbl;
 };
 
 typedef struct IDWriteFactory2Vtbl {
   BEGIN_INTERFACE
   HRESULT (STDMETHODCALLTYPE *QueryInterface)
     (IDWriteFactory2 *This, REFIID riid, void **ppvObject);
-  ULONG (STDMETHODCALLTYPE *AddRef)(IDWriteFactory2 *This);
-  ULONG (STDMETHODCALLTYPE *Release)(IDWriteFactory2 *This);
+  ULONG (STDMETHODCALLTYPE *AddRef) (IDWriteFactory2 *This);
+  ULONG (STDMETHODCALLTYPE *Release) (IDWriteFactory2 *This);
   EMACS_DWRITE_UNUSED (GetSystemFontCollection);
   EMACS_DWRITE_UNUSED (CreateCustomFontCollection);
   EMACS_DWRITE_UNUSED (RegisterFontCollectionLoader);
@@ -467,7 +468,7 @@ typedef struct IDWriteFactory2Vtbl {
 } IDWriteFactory2Vtbl;
 
 interface IDWriteFactory2 {
-  CONST_VTBL IDWriteFactory2Vtbl* lpVtbl;
+  CONST_VTBL IDWriteFactory2Vtbl *lpVtbl;
 };
 #else /* MINGW_W64 */
 # include <dwrite_3.h>
@@ -529,15 +530,15 @@ get_font_face (struct font *infont, IDWriteFontFace **face)
   LOGFONTW logfont;
   IDWriteFont *font;
 
-  struct uniscribe_font_info *uniscribe_font =
-    (struct uniscribe_font_info *) infont;
+  struct uniscribe_font_info *uniscribe_font
+    = (struct uniscribe_font_info *) infont;
 
   /* Check the cache.  */
   *face = uniscribe_font->dwrite_cache;
   if (*face)
     return uniscribe_font->dwrite_font_size;
 
-  GetObjectW (FONT_HANDLE(infont), sizeof (LOGFONTW), &logfont);
+  GetObjectW (FONT_HANDLE (infont), sizeof (LOGFONTW), &logfont);
 
   hr = gdi_interop->lpVtbl->CreateFontFromLOGFONT (gdi_interop,
 						   (const LOGFONTW *) &logfont,
@@ -597,8 +598,8 @@ text_extents_internal (IDWriteFontFace *dwrite_font_face,
   for (int i = 0; i < nglyphs; i++)
     indices[i] = code[i];
 
-  DWRITE_GLYPH_METRICS* gmetrics =
-    SAFE_ALLOCA (nglyphs * sizeof (DWRITE_GLYPH_METRICS));
+  DWRITE_GLYPH_METRICS *gmetrics
+    = SAFE_ALLOCA (nglyphs * sizeof (DWRITE_GLYPH_METRICS));
 
   hr = dwrite_font_face->lpVtbl->GetGdiCompatibleGlyphMetrics (dwrite_font_face,
 							       font_size,
@@ -620,18 +621,18 @@ text_extents_internal (IDWriteFontFace *dwrite_font_face,
 
   for (int i = 0; i < nglyphs; i++)
     {
-      float advance =
-	convert_metrics_sz (gmetrics[i].advanceWidth, font_size, du_per_em);
+      float advance
+	= convert_metrics_sz (gmetrics[i].advanceWidth, font_size, du_per_em);
 
       width += advance;
 
-      float lbearing =
-	round (convert_metrics_sz (gmetrics[i].leftSideBearing, font_size,
-				   du_per_em));
-      float rbearing =
-	round (advance -
-	       convert_metrics_sz (gmetrics[i].rightSideBearing,
-				   font_size, du_per_em));
+      float lbearing
+	= round (convert_metrics_sz (gmetrics[i].leftSideBearing, font_size,
+				     du_per_em));
+      float rbearing
+	= round (advance -
+		 convert_metrics_sz (gmetrics[i].rightSideBearing,
+				     font_size, du_per_em));
       if (i == 0)
 	{
 	  metrics->lbearing = lbearing;
@@ -759,7 +760,8 @@ w32_initialize_direct_write (void)
     return;
 
   /* This is only used here, no need to define it globally.  */
-  typedef HRESULT (WINAPI *DWCreateFactory) (DWRITE_FACTORY_TYPE f, REFIID r, IUnknown** u);
+  typedef HRESULT (WINAPI *DWCreateFactory) (DWRITE_FACTORY_TYPE,
+					     REFIID, IUnknown **);
 
   DWCreateFactory dw_create_factory
     = (DWCreateFactory) get_proc_addr (direct_write,
@@ -843,7 +845,7 @@ w32_initialize_direct_write (void)
 							    config_gamma,
 							    config_enhanced_contrast,
 							    config_clear_type_level,
-							    def->lpVtbl->GetPixelGeometry(def),
+							    def->lpVtbl->GetPixelGeometry (def),
 							    RENDERING_MODE,
 							    &rendering_params);
 
@@ -851,7 +853,8 @@ w32_initialize_direct_write (void)
 
   if (FAILED (hr))
     {
-      DebPrint (("DirectWrite HRESULT failed: (%d) CreateCustomRenderingParams\n", hr));
+      DebPrint (("DirectWrite HRESULT failed: (%d)"
+		 " CreateCustomRenderingParams\n", hr));
       RELEASE_COM (dwrite_factory);
       RELEASE_COM (dwrite_factory2);
       RELEASE_COM (gdi_interop);
@@ -874,8 +877,8 @@ w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
 
   USE_SAFE_ALLOCA;
 
-  struct uniscribe_font_info *uniscribe_font =
-    (struct uniscribe_font_info *) font;
+  struct uniscribe_font_info *uniscribe_font
+    = (struct uniscribe_font_info *) font;
 
   /* What we get as y is the baseline position.  */
   y -= font->ascent;
@@ -907,8 +910,8 @@ w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
     }
 
   /* This DC can't be released.  */
-  HDC text_dc = bitmap_render_target->lpVtbl->GetMemoryDC
-    (bitmap_render_target);
+  HDC text_dc
+    = bitmap_render_target->lpVtbl->GetMemoryDC (bitmap_render_target);
 
   /* Copy the background pixel to the render target bitmap.  */
   BitBlt (text_dc, 0, 0, bitmap_width, bitmap_height, hdc, x, y, SRCCOPY);
@@ -1036,10 +1039,10 @@ bool
 w32_use_direct_write (struct w32font_info *w32font)
 {
 #ifdef HAVE_HARFBUZZ
-  return direct_write_available
-    && w32font->font.driver == &harfbuzz_font_driver
-    && !w32_inhibit_dwrite
-    && !((struct uniscribe_font_info *) w32font)->dwrite_skip_font;
+  return (direct_write_available
+	  && w32font->font.driver == &harfbuzz_font_driver
+	  && !w32_inhibit_dwrite
+	  && !((struct uniscribe_font_info *) w32font)->dwrite_skip_font);
 #else
   return false;
 #endif

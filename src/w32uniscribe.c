@@ -189,7 +189,6 @@ uniscribe_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   /* Initialize the cache for this font.  */
   uniscribe_font->cache = NULL;
   uniscribe_font->dwrite_cache = NULL;
-
   uniscribe_font->dwrite_skip_font = false;
 
   /* Uniscribe and HarfBuzz backends use glyph indices.  */
