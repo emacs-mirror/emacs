@@ -327,14 +327,19 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
     {
       /* Identify a run of glyphs with the same face.  */
       int face_id = string->face_id;
+      /* Since this is called to deliver the frame glyph matrix to the
+	 glass, some of the glyphs might be from a child frame, which
+	 affects the interpretation of face ID.  */
+      struct frame *face_id_frame = string->frame ? string->frame : f;
       int n;
 
       for (n = 1; n < len; ++n)
-	if (string[n].face_id != face_id)
+	if (!(string[n].face_id == face_id
+	      && string[n].frame == face_id_frame))
 	  break;
 
       /* Turn appearance modes of the face of the run on.  */
-      char_attr = w32_face_attributes (f, face_id);
+      char_attr = w32_face_attributes (face_id_frame, face_id);
 
       if (n == len)
 	/* This is the last run.  */
