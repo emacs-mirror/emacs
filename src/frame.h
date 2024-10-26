@@ -450,7 +450,6 @@ struct frame
   bool_bf no_accept_focus : 1;
 
 #ifdef HAVE_WINDOW_SYSTEM
-# ifndef HAVE_NTGUI
   /* True if this frame is a tooltip frame.  */
   bool_bf tooltip : 1;
 
@@ -464,7 +463,7 @@ struct frame
   /* Nonzero if we should actually display horizontal scroll bars on this frame.  */
   bool_bf horizontal_scroll_bars : 1;
 
-
+# ifndef HAVE_NTGUI
   /* True if this is an override_redirect frame.  */
   bool_bf override_redirect : 1;
 #endif

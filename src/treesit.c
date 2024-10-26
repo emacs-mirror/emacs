@@ -651,7 +651,7 @@ treesit_load_language (Lisp_Object language_symbol,
 
   /* Override the library name and C name, if appropriate.  */
   Lisp_Object override_name;
-  Lisp_Object override_c_name;
+  Lisp_Object override_c_name UNINIT;
   bool found_override = treesit_find_override_name (language_symbol,
 						    &override_name,
 						    &override_c_name);
