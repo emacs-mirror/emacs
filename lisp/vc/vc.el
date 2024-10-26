@@ -1738,6 +1738,8 @@ Type \\[vc-next-action] to check in changes.")
 	 (format "%d files" (length files))
        "this file"))))
 
+(declare-function mail-text "sendmail" ())
+(declare-function message-goto-body "message" (&optional interactive))
 (defun vc-steal-lock (file rev owner)
   "Steal the lock on FILE."
   (let (file-description)
@@ -1758,7 +1760,10 @@ Type \\[vc-next-action] to check in changes.")
     ;; goes wrong, we don't want to send any mail.
     (compose-mail owner (format "Stolen lock on %s" file-description))
     (setq default-directory (expand-file-name "~/"))
-    (goto-char (point-max))
+    (cond
+     ((eq mail-user-agent 'sendmail-user-agent)
+      (mail-text))
+     ((message-goto-body)))
     (insert
      (format "I stole the lock on %s, " file-description)
      (current-time-string)
