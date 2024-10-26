@@ -556,26 +556,23 @@ stuff.  Used on level 1 and higher."
 
 	      ;; Fontify filenames in #include <...> as strings.
 	      ,@(when (c-lang-const c-cpp-include-directives)
-		  (let* ((re (c-make-keywords-re nil
-			       (c-lang-const c-cpp-include-directives)))
-			 (re-depth (regexp-opt-depth re)))
-		    ;; We used to use a font-lock "anchored matcher" here for
-		    ;; the paren syntax.  This failed when the ">" was at EOL,
-		    ;; since `font-lock-fontify-anchored-keywords' terminated
-		    ;; its loop at EOL without executing our lambda form at
-		    ;; all.
-		    `((,(concat noncontinued-line-end
-				"\\("	; To make the next ^ special.
-				(c-lang-const c-cpp-include-key)
-				"\\)"
-				(c-lang-const c-syntactic-ws)
-				"\\(<\\([^>\n\r]*\\)>?\\)")
-		       ,(+ ncle-depth 1
-			   (regexp-opt-depth
-			    (c-lang-const c-cpp-include-key))
-			   sws-depth
-			   (if (featurep 'xemacs) 2 1))
-		       font-lock-string-face t))))
+		  ;; We used to use a font-lock "anchored matcher" here for
+		  ;; the paren syntax.  This failed when the ">" was at EOL,
+		  ;; since `font-lock-fontify-anchored-keywords' terminated
+		  ;; its loop at EOL without executing our lambda form at all.
+		  ;; (2024-10): The paren syntax is now handled in
+		  ;; before/after-change functions.
+		  `((,(concat noncontinued-line-end
+			      "\\("	; To make the next ^ special.
+			      (c-lang-const c-cpp-include-key)
+			      "\\)"
+			      (c-lang-const c-syntactic-ws)
+			      "\\(<\\([^>\n\r]*\\)>?\\)")
+		     ,(+ ncle-depth 1
+			 (regexp-opt-depth (c-lang-const c-cpp-include-key))
+			 sws-depth
+			 (if (featurep 'xemacs) 2 1))
+		     font-lock-string-face t)))
 
 	      ;; #define.
 	      ,@(when (c-lang-const c-opt-cpp-macro-define)
