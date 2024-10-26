@@ -1512,7 +1512,6 @@ static void syms_of_w32uniscribe_for_pdumper (void);
 void
 syms_of_w32uniscribe (void)
 {
-  syms_of_w32dwrite ();
   pdumper_do_now_and_after_load (syms_of_w32uniscribe_for_pdumper);
 }
 
