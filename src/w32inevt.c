@@ -471,8 +471,13 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   DWORD but_change, mask, flags = event->dwEventFlags;
   int i;
 
-  /* Mouse didn't move unless MOUSE_MOVED says it did.  */
   struct frame *f = get_frame ();
+
+  /* For now, mouse events on child frames are ignored, because the
+     coordinate conversion is not in place; FIXME.  */
+  if (FRAMEP (f->parent_frame))
+    return 0;
+  /* Mouse didn't move unless MOUSE_MOVED says it did.  */
   f->mouse_moved = 0;
 
   switch (flags)
