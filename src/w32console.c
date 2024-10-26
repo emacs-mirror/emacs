@@ -535,6 +535,11 @@ static void
 w32con_update_end (struct frame * f)
 {
   SetConsoleCursorPosition (cur_screen, cursor_coords);
+  if (!XWINDOW (selected_window)->cursor_off_p
+      && cursor_coords.X < FRAME_COLS (f))
+    w32con_show_cursor ();
+  else
+    w32con_hide_cursor ();
 }
 
 /***********************************************************************
