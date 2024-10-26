@@ -1981,9 +1981,11 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
       (unless (or (cl-member rev outgoing :test #'string-prefix-p)
                   (and (eq vc-allow-rewriting-published-history 'ask)
                        (yes-or-no-p
-                        (format "Commit %s appears published; allow rewriting history?"
+                        (format "\
+Commit %s appears published; allow rewriting history?"
                                 rev))))
-        (user-error "Will not rewrite likely-public history; see option `vc-allow-rewriting-published-history'")))))
+        (user-error "\
+Will not rewrite likely-public history; see option `vc-allow-rewriting-published-history'")))))
 
 (defun vc-git-modify-change-comment (files rev comment)
   (vc-git--assert-allowed-rewrite rev)
@@ -2024,8 +2026,8 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                                       "log" "--oneline" "-E"
                                       "--grep" "^(squash|fixup|amend)! "
                                       (format "%s~1.." rev))))
-                   (not (yes-or-no-p
-"Rebase may --autosquash your other squash!/fixup!/amend!; proceed?")))
+                   (not (yes-or-no-p "\
+Rebase may --autosquash your other squash!/fixup!/amend!; proceed?")))
             (user-error "Aborted"))
 
           (when msg-file
