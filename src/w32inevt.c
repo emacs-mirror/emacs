@@ -619,6 +619,10 @@ maybe_generate_resize_event (void)
   CONSOLE_SCREEN_BUFFER_INFO info;
   struct frame *f = get_frame ();
 
+  /* Only resize the root frame.  */
+  if (FRAMEP (f->parent_frame))
+    return;
+
   GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info);
 
   /* It is okay to call this unconditionally, since it will do nothing
