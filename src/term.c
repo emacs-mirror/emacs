@@ -751,18 +751,12 @@ encode_terminal_code (struct glyph *src, int src_len,
 static void
 tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 {
-  unsigned char *conversion_buffer;
-  struct coding_system *coding;
-  int n, stringlen;
-
   struct tty_display_info *tty = FRAME_TTY (f);
-
   tty_turn_off_insert (tty);
   tty_hide_cursor (tty);
 
   /* Don't dare write in last column of bottom line, if Auto-Wrap,
      since that would scroll the whole frame on some terminals.  */
-
   if (AutoWrap (tty)
       && curY (tty) + 1 == FRAME_TOTAL_LINES (f)
       && (curX (tty) + len) == FRAME_COLS (f))
@@ -775,22 +769,19 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
   /* If terminal_coding does any conversion, use it, otherwise use
      safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
      because it always return 1 if the member src_multibyte is 1.  */
-  coding = (FRAME_TERMINAL_CODING (f)->common_flags & CODING_REQUIRE_ENCODING_MASK
-	    ? FRAME_TERMINAL_CODING (f) : &safe_terminal_coding);
+  struct coding_system *coding
+    = (FRAME_TERMINAL_CODING (f)->common_flags & CODING_REQUIRE_ENCODING_MASK
+       ? FRAME_TERMINAL_CODING (f) : &safe_terminal_coding);
+
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
   coding->mode &= ~CODING_MODE_LAST_BLOCK;
 
-  for (stringlen = len; stringlen != 0; stringlen -= n)
+  for (int stringlen = len, n; stringlen; stringlen -= n, string += n)
     {
       /* Identify a run of glyphs with the same face.  */
       int face_id = string->face_id;
-
-      /* FIXME/tty: it happens that a single glyph's frame is NULL.  It
-	 might depend on a tab bar line being present, then switching
-	 from a buffer without header line to one with header line and
-	 opening a child frame.  */
-      struct frame *face_id_frame = string->frame ? string->frame : f;
+      struct frame *face_id_frame = string->frame;
 
       for (n = 1; n < stringlen; ++n)
 	if (string[n].face_id != face_id || string[n].frame != face_id_frame)
@@ -804,7 +795,8 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
       if (n == stringlen)
 	/* This is the last run.  */
 	coding->mode |= CODING_MODE_LAST_BLOCK;
-      conversion_buffer = encode_terminal_code (string, n, coding);
+      unsigned char *conversion_buffer
+	= encode_terminal_code (string, n, coding);
       if (coding->produced > 0)
 	{
 	  block_input ();
@@ -814,7 +806,6 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 	    fwrite (conversion_buffer, 1, coding->produced, tty->termscript);
 	  unblock_input ();
 	}
-      string += n;
 
       /* Turn appearance modes off.  */
       turn_off_face (f, face);
