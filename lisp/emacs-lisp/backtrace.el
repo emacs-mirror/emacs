@@ -201,6 +201,7 @@ frames where the source code location is known.")
   "+"   #'backtrace-multi-line
   "-"   #'backtrace-single-line
   "."   #'backtrace-expand-ellipses
+  "C-]"    #'abort-recursive-edit
   "<follow-link>" 'mouse-face
   "<mouse-2>"     #'mouse-select-window
 
