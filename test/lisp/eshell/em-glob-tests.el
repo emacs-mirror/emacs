@@ -74,7 +74,7 @@ component ending in \"symlink\" is treated as a symbolic link."
       ;; Ensure the default expansion splices the glob.
       (eshell-command-result-equal "funcall list *.el" '("a.el" "b.el"))
       (eshell-command-result-equal "funcall list *.txt" '("c.txt"))
-      ;; When spliting, no-matches cases also return a list containing
+      ;; When splitting, no-matches cases also return a list containing
       ;; the original non-matching glob.
       (eshell-command-result-equal "funcall list *.no" '("*.no"))
       (when (eshell-tests-remote-accessible-p)

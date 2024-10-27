@@ -3091,7 +3091,7 @@ If `treesit-defun-name-function' is non-nil, set up
 If `treesit-simple-imenu-settings' is non-nil, set up Imenu.
 
 If either `treesit-outline-predicate' or `treesit-simple-imenu-settings'
-are non-nil, and Outline minor mode settings don't alreay exist, setup
+are non-nil, and Outline minor mode settings don't already exist, setup
 Outline minor mode.
 
 If `sexp', `sentence' are defined in `treesit-thing-settings',

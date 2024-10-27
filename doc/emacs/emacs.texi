@@ -1432,7 +1432,7 @@ If you need to contact the Free Software Foundation, see
 
 @display
 Free Software Foundation
-31 Milk Street # 960789
+31 Milk Street, # 960789
 Boston, MA 02196
 USA
 @end display
