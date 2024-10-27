@@ -967,6 +967,7 @@ characters of the current line."
      ,@(when (not (php-ts-mode--test-namespace-use-group-clause-p))
          '((namespace_use_group
             (namespace_use_clause (name) @font-lock-type-face))))
+     (namespace_use_clause (name) @font-lock-type-face)
      (namespace_name "\\" @font-lock-delimiter-face)
      (namespace_name (name) @font-lock-type-face)
      (use_declaration (name) @font-lock-property-use-face)

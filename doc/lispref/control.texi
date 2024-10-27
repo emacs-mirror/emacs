@@ -334,8 +334,8 @@ Like @code{if-let*}, but without @var{else-forms}.
 
 @defmac and-let* varlist then-forms...
 Like @code{when-let*}, but in addition, if there are no
-@var{then-forms} and all the bindings evaluate to non-nil, return the
-value of the last binding.
+@var{then-forms} and all the bindings evaluate to non-@code{nil}, return
+the value of the last binding.
 @end defmac
 
 @defmac while-let spec then-forms...
