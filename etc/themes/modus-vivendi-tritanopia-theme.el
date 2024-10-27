@@ -72,7 +72,7 @@ standard)."
 
       (red             "#ff5f59")
       (red-warmer      "#ff6740")
-      (red-cooler      "#ff6f9f")
+      (red-cooler      "#ff7f86")
       (red-faint       "#ff9070")
       (red-intense     "#ff5f5f")
       (green           "#44bc44")
@@ -304,14 +304,16 @@ standard)."
 
       (date-common cyan-cooler)
       (date-deadline red)
+      (date-deadline-subtle red-faint)
       (date-event fg-alt)
       (date-holiday red-intense)
       (date-holiday-other cyan-warmer)
       (date-now fg-main)
       (date-range fg-alt)
       (date-scheduled magenta)
+      (date-scheduled-subtle magenta-faint)
       (date-weekday cyan)
-      (date-weekend red-faint)
+      (date-weekend magenta-warmer)
 
 ;;;; Line number mappings
 

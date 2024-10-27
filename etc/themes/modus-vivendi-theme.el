@@ -70,7 +70,7 @@ which corresponds to a minimum contrast in relative luminance of
 
       (red             "#ff5f59")
       (red-warmer      "#ff6b55")
-      (red-cooler      "#ff7f9f")
+      (red-cooler      "#ff7f86")
       (red-faint       "#ff9580")
       (red-intense     "#ff5f5f")
       (green           "#44bc44")
@@ -301,15 +301,17 @@ which corresponds to a minimum contrast in relative luminance of
 ;;;; Date mappings
 
       (date-common cyan)
-      (date-deadline red)
+      (date-deadline red-cooler)
+      (date-deadline-subtle red-faint)
       (date-event fg-alt)
-      (date-holiday red-cooler)
+      (date-holiday magenta-warmer)
       (date-holiday-other blue)
       (date-now fg-main)
       (date-range fg-alt)
-      (date-scheduled yellow-warmer)
+      (date-scheduled yellow-cooler)
+      (date-scheduled-subtle yellow-faint)
       (date-weekday cyan)
-      (date-weekend red-faint)
+      (date-weekend magenta)
 
 ;;;; Line number mappings
 

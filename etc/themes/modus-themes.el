@@ -5,7 +5,7 @@
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
 ;; URL: https://github.com/protesilaos/modus-themes
-;; Version: 4.5.0
+;; Version: 4.6.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces, theme, accessibility
 
@@ -287,10 +287,14 @@ set this variable to a nil value."
   "Alias of `modus-themes-items'.")
 
 (defconst modus-themes-items
-  '( modus-operandi modus-vivendi
-     modus-operandi-tinted modus-vivendi-tinted
-     modus-operandi-deuteranopia modus-vivendi-deuteranopia
-     modus-operandi-tritanopia modus-vivendi-tritanopia)
+  '( modus-operandi
+     modus-operandi-tinted
+     modus-operandi-deuteranopia
+     modus-operandi-tritanopia
+     modus-vivendi
+     modus-vivendi-tinted
+     modus-vivendi-deuteranopia
+     modus-vivendi-tritanopia)
   "Symbols of the Modus themes.")
 
 (defcustom modus-themes-to-toggle '(modus-operandi modus-vivendi)
@@ -308,18 +312,19 @@ the same as using the command `modus-themes-select'."
   :type `(choice
           (const :tag "No toggle" nil)
           (list :tag "Pick two themes to toggle between"
-                (choice :tag "Theme one of two"
-                        ,@(mapcar (lambda (theme)
-                                    (list 'const theme))
-                                  modus-themes-items))
-                (choice :tag "Theme two of two"
-                        ,@(mapcar (lambda (theme)
-                                    (list 'const theme))
-                                  modus-themes-items))))
+                (choice :tag "Theme one of two" ,@(mapcar (lambda (theme) (list 'const theme)) modus-themes-items))
+                (choice :tag "Theme two of two" ,@(mapcar (lambda (theme) (list 'const theme)) modus-themes-items))))
   :package-version '(modus-themes . "4.0.0")
   :version "30.1"
-  :set #'modus-themes--set-option
-  :initialize #'custom-initialize-default
+  :group 'modus-themes)
+
+(defcustom modus-themes-to-rotate modus-themes-items
+  "List of Modus themes to rotate among, per `modus-themes-rotate'."
+  :type `(repeat
+          (choice :tag "A theme among the `modus-themes-items'"
+                  ,@(mapcar (lambda (theme) (list 'const theme)) modus-themes-items)))
+  :package-version '(modus-themes . "4.6.0")
+  :version "31.1"
   :group 'modus-themes)
 
 (defvaralias 'modus-themes-post-load-hook 'modus-themes-after-load-theme-hook)
@@ -330,8 +335,6 @@ This is used by the command `modus-themes-toggle'."
   :type 'hook
   :package-version '(modus-themes . "4.0.0")
   :version "30.1"
-  :set #'modus-themes--set-option
-  :initialize #'custom-initialize-default
   :group 'modus-themes)
 
 (defvaralias 'modus-themes-slanted-constructs 'modus-themes-italic-constructs)
@@ -1106,7 +1109,7 @@ With optional SUFFIX, return THEME-palette-SUFFIX as a symbol."
   "Return palette value of active Modus theme, else produce `user-error'.
 With optional OVERRIDES return palette value plus whatever
 overrides."
-  (if-let ((theme (modus-themes--current-theme)))
+  (if-let* ((theme (modus-themes--current-theme)))
       (if overrides
           (modus-themes--palette-value theme :overrides)
         (modus-themes--palette-value theme))
@@ -1182,13 +1185,15 @@ symbol, which is safe when used as a face attribute's value."
 
 ;;;; Commands
 
+;;;;; Select a theme with completion
+
 (defvar modus-themes--select-theme-history nil
   "Minibuffer history of `modus-themes--select-prompt'.")
 
 (defun modus-themes--annotate-theme (theme)
   "Return completion annotation for THEME."
-  (when-let ((symbol (intern-soft theme))
-             (doc-string (get symbol 'theme-documentation)))
+  (when-let* ((symbol (intern-soft theme))
+              (doc-string (get symbol 'theme-documentation)))
     (format " -- %s"
             (propertize (car (split-string doc-string "\\."))
                         'face 'completions-annotations))))
@@ -1222,6 +1227,8 @@ Disable other themes per `modus-themes-disable-other-themes'."
   (interactive (list (modus-themes--select-prompt)))
   (modus-themes-load-theme theme))
 
+;;;;; Toggle between two themes
+
 (defun modus-themes--toggle-theme-p ()
   "Return non-nil if `modus-themes-to-toggle' are valid."
   (mapc
@@ -1241,12 +1248,51 @@ practically the same as the `modus-themes-select' command).
 
 Run `modus-themes-after-load-theme-hook' after loading the theme.
 Disable other themes per `modus-themes-disable-other-themes'."
+  (declare (interactive-only t))
   (interactive)
   (if-let* ((themes (modus-themes--toggle-theme-p))
             (one (car themes))
             (two (cadr themes)))
       (modus-themes-load-theme (if (eq (car custom-enabled-themes) one) two one))
     (modus-themes-load-theme (modus-themes--select-prompt))))
+
+;;;;; Rotate through a list of themes
+
+(defun modus-themes--rotate (themes)
+  "Rotate THEMES rightward such that the car is moved to the end."
+  (if (proper-list-p themes)
+      (let* ((index (seq-position themes (modus-themes--current-theme)))
+             (offset (1+ index)))
+        (append (nthcdr offset themes) (take offset themes)))
+    (error "The `%s' is not a list" themes)))
+
+(defun modus-themes--rotate-p (themes)
+  "Return a new theme among THEMES if it is possible to rotate to it."
+  (if-let* ((new-theme (car (modus-themes--rotate themes))))
+      (if (eq new-theme (modus-themes--current-theme))
+          (car (modus-themes--rotate-p (modus-themes--rotate themes)))
+        new-theme)
+    (error "Cannot determine a theme among `%s'" themes)))
+
+;;;###autoload
+(defun modus-themes-rotate (themes)
+  "Rotate to the next theme among THEMES.
+When called interactively THEMES is the value of `modus-themes-to-rotate'.
+
+If the current theme is already the next in line, then move to the one
+after.  Perform the rotation rightwards, such that the first element in
+the list becomes the last.  Do not modify THEMES in the process."
+  (interactive (list modus-themes-to-rotate))
+  (unless (proper-list-p themes)
+    "This is not a list of themes: `%s'" themes)
+  (let ((candidate (modus-themes--rotate-p themes)))
+    (if (modus-themes--modus-p candidate)
+        (progn
+          (message "Rotating to `%s'" (propertize (symbol-name candidate) 'face 'success))
+          (modus-themes-load-theme candidate))
+      (user-error "`%s' is not part of the Modus collection" candidate))))
+
+;;;;; Preview a theme palette
 
 (defun modus-themes--list-colors-render (buffer theme &optional mappings &rest _)
   "Render colors in BUFFER from THEME for `modus-themes-list-colors'.
@@ -1741,12 +1787,12 @@ FG and BG are the main colors."
     `(all-the-icons-silver ((,c :foreground "gray50")))
     `(all-the-icons-yellow ((,c :foreground ,yellow)))
 ;;;;; all-the-icons-dired
-    `(all-the-icons-dired-dir-face ((,c :foreground ,cyan-faint)))
+    `(all-the-icons-dired-dir-face ((,c :foreground ,accent-0)))
 ;;;;; all-the-icons-ibuffer
-    `(all-the-icons-ibuffer-dir-face ((,c :foreground ,cyan-faint)))
-    `(all-the-icons-ibuffer-file-face ((,c :foreground ,blue-faint)))
-    `(all-the-icons-ibuffer-mode-face ((,c :foreground ,cyan)))
-    `(all-the-icons-ibuffer-size-face ((,c :foreground ,cyan-cooler)))
+    `(all-the-icons-ibuffer-dir-face ((,c :foreground ,accent-0)))
+    `(all-the-icons-ibuffer-file-face ((,c :foreground ,docstring)))
+    `(all-the-icons-ibuffer-mode-face ((,c :foreground ,type)))
+    `(all-the-icons-ibuffer-size-face ((,c :foreground ,variable)))
 ;;;;; annotate
     `(annotate-annotation ((,c :inherit modus-themes-subtle-blue)))
     `(annotate-annotation-secondary ((,c :inherit modus-themes-subtle-magenta)))
@@ -1942,7 +1988,7 @@ FG and BG are the main colors."
     `(company-scrollbar-bg ((,c :background ,bg-active)))
     `(company-scrollbar-fg ((,c :background ,fg-main)))
     `(company-template-field ((,c :background ,bg-active)))
-    `(company-tooltip ((,c :background ,bg-dim)))
+    `(company-tooltip ((,c :inherit modus-themes-fixed-pitch :background ,bg-dim)))
     `(company-tooltip-annotation ((,c :inherit completions-annotations)))
     `(company-tooltip-common ((,c :inherit company-echo-common)))
     `(company-tooltip-deprecated ((,c :inherit company-tooltip :strike-through t)))
@@ -1978,7 +2024,7 @@ FG and BG are the main colors."
     `(corfu-current ((,c :inherit modus-themes-completion-selected)))
     `(corfu-bar ((,c :background ,fg-dim)))
     `(corfu-border ((,c :background ,bg-active)))
-    `(corfu-default ((,c :background ,bg-dim)))
+    `(corfu-default ((,c :inherit modus-themes-fixed-pitch :background ,bg-dim)))
 ;;;;; corfu-candidate-overlay
     `(corfu-candidate-overlay-face ((t :inherit shadow)))
 ;;;;; corfu-quick
@@ -2269,8 +2315,10 @@ FG and BG are the main colors."
     `(elpher-gemini-heading2 ((,c :inherit modus-themes-heading-2)))
     `(elpher-gemini-heading3 ((,c :inherit modus-themes-heading-3)))
 ;;;;; embark
+    `(embark-collect-group-title ((,c :inherit bold :foreground ,name)))
     `(embark-keybinding ((,c :inherit modus-themes-key-binding)))
-    `(embark-collect-marked ((,c :inherit modus-themes-mark-sel)))
+    `(embark-keybinding-repeat ((,c :inherit bold)))
+    `(embark-selected ((,c :inherit modus-themes-mark-sel)))
 ;;;;; ement (ement.el)
     `(ement-room-fully-read-marker ((,c :inherit success)))
     `(ement-room-membership ((,c :inherit shadow)))
@@ -2439,6 +2487,23 @@ FG and BG are the main colors."
     `(font-lock-type-face ((,c :inherit modus-themes-bold :foreground ,type)))
     `(font-lock-variable-name-face ((,c :foreground ,variable)))
     `(font-lock-warning-face ((,c :inherit modus-themes-bold :foreground ,warning)))
+;;;;; forge
+    `(forge-dimmed ((,c :inherit shadow)))
+    `(forge-issue-completed ((,c :inherit shadow)))
+    `(forge-issue-open (( )))
+    `(forge-issue-unplanned ((,c :inherit forge-dimmed :strike-through t)))
+    `(forge-post-author ((,c :inherit bold :foreground ,name)))
+    `(forge-post-date ((,c :inherit bold :foreground ,date-common)))
+    `(forge-pullreq-merged ((,c :foreground ,fg-alt)))
+    `(forge-pullreq-open ((,c :foreground ,info)))
+    `(forge-pullreq-rejected ((,c :foreground ,err :strike-through t)))
+    `(forge-topic-done (( )))
+    `(forge-topic-pending ((,c :inherit italic)))
+    `(forge-topic-slug-completed ((,c :inherit forge-dimmed)))
+    `(forge-topic-slug-open ((,c :inherit forge-dimmed)))
+    `(forge-topic-slug-saved ((,c :inherit success)))
+    `(forge-topic-slug-unplanned ((,c :inherit forge-dimmed :strike-through t)))
+    `(forge-topic-unread ((,c :inherit bold)))
 ;;;;; geiser
     `(geiser-font-lock-autodoc-current-arg ((,c :inherit bold :background ,bg-active-argument :foreground ,fg-active-argument)))
     `(geiser-font-lock-autodoc-identifier ((,c :foreground ,docstring)))
@@ -2562,6 +2627,9 @@ FG and BG are the main colors."
     `(golden-ratio-scroll-highlight-line-face ((,c :background ,bg-cyan-subtle :foreground ,fg-main)))
 ;;;;; helpful
     `(helpful-heading ((,c :inherit modus-themes-heading-1)))
+;;;;; hexl-mode
+    `(hexl-address-region ((,c :foreground ,constant)))
+    `(hexl-ascii-region ((,c :foreground ,variable)))
 ;;;;; highlight region or ad-hoc regexp
     ;; HACK 2022-06-23: The :inverse-video prevents hl-line-mode from
     ;; overriding the background.  Such an override really defeats the
@@ -2620,6 +2688,11 @@ FG and BG are the main colors."
     `(hydra-face-pink ((,c :inherit bold :foreground ,magenta)))
     `(hydra-face-red ((,c :inherit bold :foreground ,red-faint)))
     `(hydra-face-teal ((,c :inherit bold :foreground ,cyan-cooler)))
+;;;;; hyperbole
+    `(hbut-item-face ((,c :foreground ,info)))
+    `(hbut-face ((,c :inherit modus-themes-button)))
+    `(hbut-flash ((,c :background ,bg-search-replace)))
+    `(ibut-face ((,c :inherit button :background ,bg-link-symbolic :foreground ,fg-link-symbolic :underline ,underline-link-symbolic)))
 ;;;;; icomplete
     `(icomplete-first-match ((,c :inherit modus-themes-completion-match-0)))
     `(icomplete-selected-match ((,c :inherit modus-themes-completion-selected)))
@@ -3128,14 +3201,14 @@ FG and BG are the main colors."
     `(nerd-icons-silver ((,c :foreground "gray50")))
     `(nerd-icons-yellow ((,c :foreground ,yellow)))
 ;;;;; nerd-icons-completion
-    `(nerd-icons-completion-dir-face ((,c :foreground ,cyan-faint)))
+    `(nerd-icons-completion-dir-face ((,c :foreground ,accent-0)))
 ;;;;; nerd-icons-dired
-    `(nerd-icons-dired-dir-face ((,c :foreground ,cyan-faint)))
+    `(nerd-icons-dired-dir-face ((,c :foreground ,accent-0)))
 ;;;;; nerd-icons-ibuffer
-    `(nerd-icons-ibuffer-dir-face ((,c :foreground ,cyan-faint)))
-    `(nerd-icons-ibuffer-file-face ((,c :foreground ,blue-faint)))
-    `(nerd-icons-ibuffer-mode-face ((,c :foreground ,cyan)))
-    `(nerd-icons-ibuffer-size-face ((,c :foreground ,cyan-cooler)))
+    `(nerd-icons-ibuffer-dir-face ((,c :foreground ,accent-0)))
+    `(nerd-icons-ibuffer-file-face ((,c :foreground ,docstring)))
+    `(nerd-icons-ibuffer-mode-face ((,c :foreground ,type)))
+    `(nerd-icons-ibuffer-size-face ((,c :foreground ,variable)))
 ;;;;; neotree
     `(neo-banner-face ((,c :foreground ,accent-0)))
     `(neo-button-face ((,c :inherit button)))
@@ -3273,7 +3346,7 @@ FG and BG are the main colors."
     `(org-headline-todo ((,c :inherit org-todo)))
     `(org-hide ((,c :foreground ,bg-main)))
     `(org-indent ((,c :inherit (fixed-pitch org-hide))))
-    `(org-imminent-deadline ((,c :inherit modus-themes-bold :foreground ,date-deadline)))
+    `(org-imminent-deadline ((,c :inherit bold :foreground ,date-deadline)))
     `(org-latex-and-related ((,c :foreground ,type)))
     `(org-level-1 ((,c :inherit modus-themes-heading-1)))
     `(org-level-2 ((,c :inherit modus-themes-heading-2)))
@@ -3292,9 +3365,9 @@ FG and BG are the main colors."
     `(org-priority ((,c :foreground ,prose-tag)))
     `(org-property-value ((,c :inherit modus-themes-fixed-pitch :foreground ,prose-metadata-value)))
     `(org-quote ((,c :inherit org-block)))
-    `(org-scheduled ((,c :foreground ,date-scheduled)))
-    `(org-scheduled-previously ((,c :inherit org-scheduled)))
-    `(org-scheduled-today ((,c :inherit (modus-themes-bold org-scheduled))))
+    `(org-scheduled ((,c :foreground ,date-scheduled-subtle)))
+    `(org-scheduled-previously ((,c :inherit (bold org-scheduled-today))))
+    `(org-scheduled-today ((,c :foreground ,date-scheduled)))
     `(org-sexp-date ((,c :foreground ,date-common)))
     `(org-special-keyword ((,c :inherit org-drawer)))
     `(org-table ((,c :inherit modus-themes-fixed-pitch :foreground ,prose-table)))
@@ -3304,8 +3377,8 @@ FG and BG are the main colors."
     `(org-target ((,c :underline t)))
     `(org-time-grid ((,c :foreground ,fg-dim)))
     `(org-todo ((,c :foreground ,prose-todo)))
-    `(org-upcoming-deadline ((,c :foreground ,date-deadline)))
-    `(org-upcoming-distant-deadline ((,c :inherit org-upcoming-deadline)))
+    `(org-upcoming-deadline ((,c :foreground ,date-deadline-subtle)))
+    `(org-upcoming-distant-deadline ((,c :foreground ,fg-main)))
     `(org-verbatim ((,c :inherit modus-themes-prose-verbatim)))
     `(org-verse ((,c :inherit org-block)))
     `(org-warning ((,c :inherit warning)))

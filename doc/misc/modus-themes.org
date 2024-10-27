@@ -4,9 +4,9 @@
 #+language: en
 #+options: ':t toc:nil author:t email:t num:t
 #+startup: content
-#+macro: stable-version 4.5.0
-#+macro: release-date 2024-08-21
-#+macro: development-version 4.6.0-dev
+#+macro: stable-version 4.6.0
+#+macro: release-date 2024-10-27
+#+macro: development-version 4.7.0-dev
 #+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro: space @@texinfo:@: @@
 #+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -50,7 +50,7 @@ Current development target is {{{development-version}}}.
 :custom_id: h:b14c3fcb-13dd-4144-9d92-2c58b3ed16d3
 :end:
 
-Copyright (C) 2020-2023  Free Software Foundation, Inc.
+Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 #+begin_quote
 Permission is granted to copy, distribute and/or modify this document
@@ -486,7 +486,7 @@ The reason we recommend ~load-theme~ instead of the other option of
 ~enable-theme~ is that the former does a kind of "reset" on the face
 specs.  It quite literally loads (or reloads) the theme.  Whereas the
 ~enable-theme~ function simply puts an already loaded theme to the top
-of the list of enabled items, re-using whatever state was last loaded.
+of the list of enabled items, reusing whatever state was last loaded.
 
 As such, ~load-theme~ reads all customizations that may happen during
 any given Emacs session: even after the initial setup of a theme.
@@ -707,10 +707,12 @@ Advanced users may also want to configure the exact attributes of the
 :PROPERTIES:
 :CUSTOM_ID: h:4fbfed66-5a89-447a-a07d-a03f6819c5bd
 :END:
+
+#+findex: modus-themes-toggle
+Brief: Specify which two themes to toggle between when using the command
+~modus-themes-toggle~.
+
 #+vindex: modus-themes-to-toggle
-
-Brief: Choose to Modus themes to toggle between
-
 Symbol: ~modus-themes-to-toggle~ (=list= type)
 
 Default value: ='(modus-operandi modus-vivendi)=
@@ -718,16 +720,38 @@ Default value: ='(modus-operandi modus-vivendi)=
 Possible values:
 
 - ~modus-operandi~
-- ~modus-vivendi~
 - ~modus-operandi-tinted~
-- ~modus-vivendi-tinted~
 - ~modus-operandi-deuteranopia~
-- ~modus-vivendi-deuteranopia~
 - ~modus-operandi-tritanopia~
+- ~modus-vivendi~
+- ~modus-vivendi-tinted~
+- ~modus-vivendi-deuteranopia~
 - ~modus-vivendi-tritanopia~
 
-Specify two themes to toggle between using the command
-~modus-themes-toggle~.
+** Option for which themes to rotate
+:PROPERTIES:
+:CUSTOM_ID: h:a10c0202-3683-4fad-9897-433c25e255f6
+:END:
+
+#+findex: modus-themes-rotate
+Brief: Specify which themes to rotate among when using the command
+~modus-themes-rotate~.
+
+#+vindex: modus-themes-to-rotate
+Symbol: ~modus-themes-to-rotate~ (=list= type)
+
+Default value: =modus-themes-items= (which includes all the Modus themes)
+
+Possible values:
+
+- ~modus-operandi~
+- ~modus-operandi-tinted~
+- ~modus-operandi-deuteranopia~
+- ~modus-operandi-tritanopia~
+- ~modus-vivendi~
+- ~modus-vivendi-tinted~
+- ~modus-vivendi-deuteranopia~
+- ~modus-vivendi-tritanopia~
 
 ** Option for font mixing
 :properties:
@@ -1515,6 +1539,101 @@ the general idea (extra space for didactic purposes):
         ;; we use the backtick for this list, instead of a straight
         ;; quote.
         ,@modus-themes-preset-overrides-intense))
+#+end_src
+
+** DIY Add support for ~engrave-faces~
+:PROPERTIES:
+:CUSTOM_ID: h:6c3f87a8-3573-43de-89e0-53f567c0ede1
+:END:
+
+The ~engraved-faces~ package is used as part of an Org export process
+to produce decent colors in the output. Its default style though
+requires changes to use the colors of the active Modus theme.
+
+In the code below we show how to map everything that ~engrave-faces~
+defines to the corresponding entry in the palette of the active Modus
+theme. We then use a hook to ensure that the value is updated after we
+switch to another theme in the collection ([[#h:d87673fe-2ce1-4c80-a4b8-be36ca9f2d24][DIY Use a hook at the post-load-theme phase]]).
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-engraved-faces (&rest _)
+  (modus-themes-with-colors
+    (setq engrave-faces-themes
+          `((default .
+                     (;; faces.el --- excluding: bold, italic, bold-italic, underline, and some others
+                      (default                             :short "default"             :slug "D"   :foreground ,fg-main :background ,bg-main :family "Monospace")
+                      (variable-pitch                      :short "var-pitch"           :slug "vp"  :foreground ,fg-main                       :family "Sans Serif")
+                      (shadow                              :short "shadow"              :slug "h"   :foreground ,fg-dim)
+                      (success                             :short "success"             :slug "sc"  :foreground ,green :weight bold)
+                      (warning                             :short "warning"             :slug "w"   :foreground ,warning :weight bold)
+                      (error                               :short "error"               :slug "e"   :foreground ,err :weight bold)
+                      (link                                :short "link"                :slug "l"   :foreground ,fg-link)
+                      (link-visited                        :short "link"                :slug "lv"  :foreground ,fg-link-visited)
+                      (highlight                           :short "link"                :slug "hi"  :foreground ,info)
+                      ;; font-lock.el
+                      (font-lock-comment-face              :short "fl-comment"          :slug "c"   :foreground ,comment)
+                      (font-lock-comment-delimiter-face    :short "fl-comment-delim"    :slug "cd"  :foreground ,comment)
+                      (font-lock-string-face               :short "fl-string"           :slug "s"   :foreground ,string)
+                      (font-lock-doc-face                  :short "fl-doc"              :slug "d"   :foreground ,docstring)
+                      (font-lock-doc-markup-face           :short "fl-doc-markup"       :slug "m"   :foreground ,docmarkup)
+                      (font-lock-keyword-face              :short "fl-keyword"          :slug "k"   :foreground ,keyword)
+                      (font-lock-builtin-face              :short "fl-builtin"          :slug "b"   :foreground ,builtin)
+                      (font-lock-function-name-face        :short "fl-function"         :slug "f"   :foreground ,fnname)
+                      (font-lock-variable-name-face        :short "fl-variable"         :slug "v"   :foreground ,variable)
+                      (font-lock-type-face                 :short "fl-type"             :slug "t"   :foreground ,type)
+                      (font-lock-constant-face             :short "fl-constant"         :slug "o"   :foreground ,constant)
+                      (font-lock-warning-face              :short "fl-warning"          :slug "wr"  :foreground ,warning :weight bold)
+                      (font-lock-negation-char-face        :short "fl-neg-char"         :slug "nc")
+                      (font-lock-preprocessor-face         :short "fl-preprocessor"     :slug "pp"  :foreground ,preprocessor)
+                      (font-lock-regexp-grouping-construct :short "fl-regexp"           :slug "rc"                        :weight bold)
+                      (font-lock-regexp-grouping-backslash :short "fl-regexp-backslash" :slug "rb"                        :weight bold)
+                      ;; org-faces.el
+                      (org-block                           :short "org-block"           :slug "ob") ; forcing no background is preferable
+                      (org-block-begin-line                :short "org-block-begin"     :slug "obb") ; forcing no background is preferable
+                      (org-block-end-line                  :short "org-block-end"       :slug "obe") ; forcing no background is preferable
+                      ;; outlines
+                      (outline-1                           :short "outline-1"           :slug "Oa"  :foreground ,fg-heading-1)
+                      (outline-2                           :short "outline-2"           :slug "Ob"  :foreground ,fg-heading-2)
+                      (outline-3                           :short "outline-3"           :slug "Oc"  :foreground ,fg-heading-3)
+                      (outline-4                           :short "outline-4"           :slug "Od"  :foreground ,fg-heading-4)
+                      (outline-5                           :short "outline-5"           :slug "Oe"  :foreground ,fg-heading-5)
+                      (outline-6                           :short "outline-6"           :slug "Of"  :foreground ,fg-heading-6)
+                      (outline-7                           :short "outline-7"           :slug "Og"  :foreground ,fg-heading-7)
+                      (outline-8                           :short "outline-8"           :slug "Oh"  :foreground ,fg-heading-8)
+                      ;; highlight-numbers.el
+                      (highlight-numbers-number            :short "hl-number"           :slug "hn"  :foreground ,number)
+                      ;; highlight-quoted.el
+                      (highlight-quoted-quote              :short "hl-qquote"           :slug "hq"  :foreground ,string)
+                      (highlight-quoted-symbol             :short "hl-qsymbol"          :slug "hs"  :foreground ,constant)
+                      ;; rainbow-delimiters.el
+                      (rainbow-delimiters-depth-1-face     :short "rd-1"                :slug "rda" :foreground ,rainbow-0)
+                      (rainbow-delimiters-depth-2-face     :short "rd-2"                :slug "rdb" :foreground ,rainbow-1)
+                      (rainbow-delimiters-depth-3-face     :short "rd-3"                :slug "rdc" :foreground ,rainbow-2)
+                      (rainbow-delimiters-depth-4-face     :short "rd-4"                :slug "rdd" :foreground ,rainbow-3)
+                      (rainbow-delimiters-depth-5-face     :short "rd-5"                :slug "rde" :foreground ,rainbow-4)
+                      (rainbow-delimiters-depth-6-face     :short "rd-6"                :slug "rdf" :foreground ,rainbow-5)
+                      (rainbow-delimiters-depth-7-face     :short "rd-7"                :slug "rdg" :foreground ,rainbow-6)
+                      (rainbow-delimiters-depth-8-face     :short "rd-8"                :slug "rdh" :foreground ,rainbow-7)
+                      (rainbow-delimiters-depth-9-face     :short "rd-9"                :slug "rdi" :foreground ,rainbow-8)
+                      ;; ansi-color
+                      (ansi-color-yellow                   :short "ansi-yellow"         :slug "any" :foreground ,fg-term-yellow)
+                      (ansi-color-red                      :short "ansi-red"            :slug "anr" :foreground ,fg-term-red)
+                      (ansi-color-black                    :short "ansi-black"          :slug "anb" :foreground ,fg-term-black)
+                      (ansi-color-green                    :short "ansi-green"          :slug "ang" :foreground ,fg-term-green)
+                      (ansi-color-blue                     :short "ansi-blue"           :slug "anB" :foreground ,fg-term-blue)
+                      (ansi-color-cyan                     :short "ansi-cyan"           :slug "anc" :foreground ,fg-term-cyan)
+                      (ansi-color-white                    :short "ansi-white"          :slug "anw" :foreground ,fg-term-white)
+                      (ansi-color-magenta                  :short "ansi-magenta"        :slug "anm" :foreground ,fg-term-magenta)
+                      (ansi-color-bright-yellow            :short "ansi-bright-yellow"  :slug "ANy" :foreground ,fg-term-yellow-bright)
+                      (ansi-color-bright-red               :short "ansi-bright-red"     :slug "ANr" :foreground ,fg-term-red-bright)
+                      (ansi-color-bright-black             :short "ansi-bright-black"   :slug "ANb" :foregroun  ,fg-term-black-bright)
+                      (ansi-color-bright-green             :short "ansi-bright-green"   :slug "ANg" :foreground ,fg-term-green-bright)
+                      (ansi-color-bright-blue              :short "ansi-bright-blue"    :slug "ANB" :foreground ,fg-term-blue-bright)
+                      (ansi-color-bright-cyan              :short "ansi-bright-cyan"    :slug "ANc" :foreground ,fg-term-cyan-bright)
+                      (ansi-color-bright-white             :short "ansi-bright-white"   :slug "ANw" :foregroun  ,fg-term-white-bright)
+                      (ansi-color-bright-magenta           :short "ansi-bright-magenta" :slug "ANm" :foregroun  ,fg-term-magenta-bright)))))))
+
+(add-hook 'enable-theme-functions #'my-modus-themes-engraved-faces)
 #+end_src
 
 ** DIY Stylistic variants using palette overrides
@@ -2892,7 +3011,7 @@ above:
 The reason we no longer provide this option is because it depends on a
 non-~nil~ value for ~x-underline-at-descent-line~.  That variable
 affects ALL underlines, including those of links.  The effect is
-intrusive and looks awkard in prose.
+intrusive and looks awkward in prose.
 
 As such, the Modus themes no longer provide that option but instead
 offer this piece of documentation to make the user fully aware of the
@@ -2907,7 +3026,7 @@ Reload the theme for changes to take effect.
 #+cindex: Remapping faces
 
 There are cases where we need to change the buffer-local attributes of a
-face.  This might be because we have our own minor mode that re-uses a
+face.  This might be because we have our own minor mode that reuses a
 face for a particular purpose, such as a line selection tool that
 activates ~hl-line-mode~, but we wish to keep it distinct from other
 buffers.  This is where ~face-remap-add-relative~ can be applied and may
@@ -3837,7 +3956,7 @@ on what we cover at length elsewhere in this manual:
   (modus-themes-with-colors
     (custom-set-faces
      `(solaire-default-face ((,c :inherit default :background ,bg-dim :foreground ,fg-dim)))
-     `(solaire-line-number-face ((,c :inherit solaire-default-face :foreground ,fg-unfocused)))
+     `(solaire-line-number-face ((,c :inherit solaire-default-face :foreground ,fg-dim)))
      `(solaire-hl-line-face ((,c :background ,bg-active)))
      `(solaire-org-hide-face ((,c :background ,bg-dim :foreground ,bg-dim))))))
 
@@ -3847,6 +3966,127 @@ on what we cover at length elsewhere in this manual:
 [[#h:d87673fe-2ce1-4c80-a4b8-be36ca9f2d24][Using a hook at the post-load-theme phase]].
 
 Reload the theme for changes to take effect.
+
+** DIY Add support for meow-mode
+:PROPERTIES:
+:CUSTOM_ID: h:caa5a5c4-18fb-4b9f-91f9-883f216fce41
+:END:
+
+The ~meow~ package provides a modal editing experience. It is meant to
+build on top of the key bindings the user is already familiar with. My
+problem as an outsider is that I cannot make sense of all the contexts
+where its faces are used in, so I cannot make a good choice of which
+styles to use. The following is but a basic attempt to get started.
+
+#+begin_src emacs-lisp
+;; This is not complete, because it is difficult for a non-user to
+;; make sense of where all the faces are used in.
+(defun my-modus-themes-custom-faces (&rest _)
+  (modus-themes-with-colors
+    (custom-set-faces
+     ;; FIXME: What is a "region cursor" and should it differ from the position highlights below?
+     `(meow-region-cursor-1 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-0)))
+     `(meow-region-cursor-2 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-1)))
+     `(meow-region-cursor-3 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-2)))
+
+     `(meow-position-highlight-number-1 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-0)))
+     `(meow-position-highlight-number-2 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-1)))
+     `(meow-position-highlight-number-3 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-2))))))
+
+(add-hook 'enable-theme-functions #'my-modus-themes-custom-faces)
+#+end_src
+
+[[#h:d87673fe-2ce1-4c80-a4b8-be36ca9f2d24][Using a hook at the post-load-theme phase]].
+
+** DIY Add support for combobulate
+:PROPERTIES:
+:CUSTOM_ID: h:e94bdd17-1c2d-41b5-86c5-83462bd8f30c
+:END:
+
+The ~combobulate~ package provides the means to operate on text that
+is underpinned by the ~tree-sitter~ program. Because this is a
+specialized case that requires intimate knowledge of the
+technicalities, I am not adding support for this package directly at
+the theme level. Users can try this instead:
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-custom-faces (&rest _)
+  (modus-themes-with-colors
+    (custom-set-faces
+     `(combobulate-active-indicator-face ((,c :foreground ,fg-main)))
+     `(combobulate-dimmed-indicator-face ((,c :inherit shadow)))
+     `(combobulate-error-indicator-face ((,c :inherit error)))
+     `(combobulate-query-highlight-fiery-flames-face ((,c :inherit modus-themes-intense-red)))
+     `(combobulate-query-highlight-gleaming-gold-face ((,c :inherit modus-themes-intense-yellow)))
+     `(combobulate-query-highlight-majestic-mercury-face ((,c :inherit modus-themes-intense-cyan)))
+     `(combobulate-query-highlight-mysterious-mauve-face ((,c :inherit modus-themes-intense-magenta)))
+     `(combobulate-query-highlight-radiant-rind-face ((,c :inherit modus-themes-subtle-red)))
+     `(combobulate-query-highlight-regal-ripples-face ((,c :inherit modus-themes-intense-blue)))
+     `(combobulate-query-highlight-serene-shade-face ((,c :inherit modus-themes-subtle-green)))
+     `(combobulate-query-highlight-silver-shadows-face ((,c :background ,bg-active :foreground ,fg-main)))
+     `(combobulate-query-highlight-vibrant-veggie-face ((,c :inherit modus-themes-intense-green)))
+     `(combobulate-query-query-anonymous-face ((,c :inherit modus-themes-bold :foreground ,fg-alt)))
+     `(combobulate-query-query-builtin-face ((,c :inherit font-lock-builtin-face)))
+     `(combobulate-query-query-constant-face ((,c :inherit font-lock-constant-face)))
+     `(combobulate-query-query-doc-markup-face ((,c :inherit font-lock-doc-markup-face)))
+     `(combobulate-query-query-keyword-face ((,c :inherit font-lock-keyword-face)))
+     `(combobulate-query-query-predicate-builtin-face ((,c :inherit bold)))
+     `(combobulate-query-query-string-face ((,c :inherit font-lock-string-face)))
+     `(combobulate-refactor-choice-face ((,c :inherit modus-themes-slant :foreground ,info)))
+     `(combobulate-refactor-cursor-face ((,c :foreground ,cursor)))
+     `(combobulate-refactor-field-face ((,c :background ,bg-inactive :foreground ,fg-main :extend nil)))
+     `(combobulate-refactor-highlight-face ((,c :inherit highlight)))
+     `(combobulate-refactor-inactive-choice-face ((,c :inherit modus-themes-slant :foreground ,fg-dim)))
+     `(combobulate-refactor-inactive-field-face ((,c :background ,bg-dim :foreground ,fg-dim :extend nil)))
+     `(combobulate-refactor-label-face ((,c :inherit modus-themes-search-replace)))
+     `(combobulate-tree-branch-face ((,c :inherit shadow)))
+     `(combobulate-tree-highlighted-node-face ((,c :inherit success)))
+     `(combobulate-tree-normal-node-face ((,c :foreground ,fg-main)))
+     `(combobulate-tree-pulse-node-face ((,c :background ,bg-blue-intense :extend t))))))
+
+(add-hook 'enable-theme-functions #'my-modus-themes-custom-faces)
+#+end_src
+
+[[#h:d87673fe-2ce1-4c80-a4b8-be36ca9f2d24][Using a hook at the post-load-theme phase]].
+
+** DIY Add support for howm
+:PROPERTIES:
+:CUSTOM_ID: h:7ea8fa66-1cd8-47b0-92b4-9998a3068f85
+:END:
+
+The ~howm~ package is a note-taking solution for Emacs. Users can add
+support for its faces with something like the following.
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-custom-faces (&rest _)
+  (modus-themes-with-colors
+    (custom-set-faces
+     `(action-lock-face ((,c :inherit button)))
+     `(howm-mode-keyword-face (( )))
+     `(howm-mode-ref-face ((,c :inherit link)))
+     `(howm-mode-title-face ((,c :inherit modus-themes-heading-0)))
+     `(howm-mode-wiki-face ((,c :inherit link)))
+     `(howm-reminder-deadline-face ((,c :foreground ,date-deadline)))
+     `(howm-reminder-late-deadline-face ((,c :inherit bold :foreground ,date-deadline)))
+     `(howm-reminder-defer-face ((,c :foreground ,date-scheduled)))
+     `(howm-reminder-scheduled-face ((,c :foreground ,date-scheduled)))
+     `(howm-reminder-done-face ((,c :foreground ,prose-done)))
+     `(howm-reminder-todo-face ((,c :foreground ,prose-todo)))
+     `(howm-reminder-normal-face ((,c :foreground ,date-common)))
+     `(howm-reminder-today-face ((,c :inherit bold :foreground ,date-common)))
+     `(howm-reminder-tomorrow-face ((,c :inherit bold :foreground ,date-scheduled)))
+     `(howm-simulate-todo-mode-line-face ((,c :inherit bold)))
+     `(howm-view-empty-face (( )))
+     `(howm-view-hilit-face ((,c :inherit match)))
+     `(howm-view-name-face ((,c :inherit bold)))
+     `(iigrep-counts-face1 ((,c :foreground ,rainbow-1)))
+     `(iigrep-counts-face2 ((,c :foreground ,rainbow-2)))
+     `(iigrep-counts-face3 ((,c :foreground ,rainbow-3)))
+     `(iigrep-counts-face4 ((,c :foreground ,rainbow-4)))
+     `(iigrep-counts-face5 ((,c :foreground ,rainbow-5))))))
+
+(add-hook 'enable-theme-functions #'my-modus-themes-custom-faces)
+#+end_src
 
 ** DIY Use a hook at the post-load-theme phase
 :PROPERTIES:
@@ -4057,6 +4297,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + focus
 + fold-this
 + font-lock (generic syntax highlighting)
++ forge
 + geiser
 + git-commit
 + git-gutter (and variants)
@@ -4066,6 +4307,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + gotest
 + golden-ratio-scroll-screen
 + helpful
++ hexl-mode
 + highlight-numbers
 + highlight-parentheses ([[#h:24bab397-dcb2-421d-aa6e-ec5bd622b913][Note on highlight-parentheses.el]])
 + highlight-thing
@@ -4264,7 +4506,6 @@ supported by the themes.
 + flyspell-correct
 + fortran-mode
 + freeze-it
-+ forge
 + git-walktree
 + goggles
 + highlight-defined
@@ -4534,7 +4775,7 @@ advanced customization options of the themes.
 [[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]].
 
 In the following example, we are assuming that the user wants to (i)
-re-use color variables provided by the themes, (ii) be able to retain
+reuse color variables provided by the themes, (ii) be able to retain
 their tweaks while switching between ~modus-operandi~ and ~modus-vivendi~,
 and (iii) have the option to highlight either the foreground of the
 parentheses or the background as well.
@@ -4554,7 +4795,7 @@ Then we can update our preference with this:
 (setq my-highlight-parentheses-use-background nil)
 #+end_src
 
-To re-use colors from the themes, we must wrap our code in the
+To reuse colors from the themes, we must wrap our code in the
 ~modus-themes-with-colors~ macro.  Our implementation must interface with
 the variables ~highlight-parentheses-background-colors~ and/or
 ~highlight-parentheses-colors~.
@@ -5220,7 +5461,7 @@ each of the three channels of light (red, green, blue).  For example:
 : xrandr --output LVDS1 --brightness 1.0 --gamma 0.76:0.75:0.68
 
 Typography is another variable.  Some font families are blurry at small
-point sizes.  Others may have a regular weight that is lighter (thiner)
+point sizes.  Others may have a regular weight that is lighter (thinner)
 than that of their peers which may, under certain circumstances, cause a
 halo effect around each glyph.
 
@@ -5516,19 +5757,19 @@ The Modus themes are a collective effort.  Every bit of work matters.
   Euker, Feng Shu, Filippo Argiolas, Gautier Ponsinet, Gerry Agbobada,
   Gianluca Recchia, Gonçalo Marrafa, Guilherme Semente, Gustavo
   Barros, Hörmetjan Yiltiz, Ilja Kocken, Imran Khan, Iris Garcia, Ivan
-  Popovych, James Ferguson, Jeremy Friesen, Jerry Zhang, Johannes
-  Grødem, John Haman, John Wick, Jonas Collberg, Jorge Morais, Joshua
-  O'Connor, Julio C. Villasante, Kenta Usami, Kevin Fleming, Kévin Le
-  Gouguec, Kevin Kainan Li, Kostadin Ninev, Laith Bahodi, Lasse
-  Lindner, Len Trigg, Lennart C.{{{space()}}} Karssen, Luis Miguel
-  Castañeda, Magne Hov, Manuel Giraud, Manuel Uberti, Mark Bestley,
-  Mark Burton, Mark Simpson, Marko Kocic, Markus Beppler, Matt
-  Armstrong, Matthias Fuchs, Mattias Engdegård, Mauro Aranda, Maxime
-  Tréca, Michael Goldenberg, Morgan Smith, Morgan Willcock, Murilo
-  Pereira, Nicky van Foreest, Nicolas De Jaeghere, Nicolas Semrau,
-  Olaf Meeuwissen, Oliver Epper, Pablo Stafforini, Paul Poloskov,
-  Pengji Zhang, Pete Kazmier, Peter Wu, Philip Kaludercic, Pierre
-  Téchoueyres, Przemysław Kryger, Robert Hepple, Roman Rudakov,
+  Popovych, Jabir Ali Ouassou, James Ferguson, Jeremy Friesen, Jerry
+  Zhang, Johannes Grødem, John Haman, John Wick, Jonas Collberg, Jorge
+  Morais, Joshua O'Connor, Julio C. Villasante, Kenta Usami, Kevin
+  Fleming, Kévin Le Gouguec, Kevin Kainan Li, Kostadin Ninev, Laith
+  Bahodi, Lasse Lindner, Len Trigg, Lennart C.{{{space()}}} Karssen,
+  Luis Miguel Castañeda, Magne Hov, Manuel Giraud, Manuel Uberti, Mark
+  Bestley, Mark Burton, Mark Simpson, Marko Kocic, Markus Beppler,
+  Matt Armstrong, Matthias Fuchs, Mattias Engdegård, Mauro Aranda,
+  Maxime Tréca, Michael Goldenberg, Morgan Smith, Morgan Willcock,
+  Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere, Nicolas
+  Semrau, Olaf Meeuwissen, Oliver Epper, Pablo Stafforini, Paul
+  Poloskov, Pengji Zhang, Pete Kazmier, Peter Wu, Philip Kaludercic,
+  Pierre Téchoueyres, Przemysław Kryger, Robert Hepple, Roman Rudakov,
   Russell Sim, Ryan Phillips, Rytis Paškauskas, Rudolf Adamkovič, Sam
   Kleinman, Samuel Culpepper, Saša Janiška, Shreyas Ragavan, Simon
   Pugnet, Steve Downey, Tassilo Horn, Thanos Apollo, Thibaut Verron,
