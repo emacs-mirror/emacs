@@ -168,10 +168,10 @@ uses a full scan)."
 
 (defcustom vc-git-resolve-conflicts t
   "When non-nil, mark conflicted file as resolved upon saving.
-That is performed after all conflict markers in it have been
-removed.  If the value is `unstage-maybe', and no merge is in
-progress, then after the last conflict is resolved, also clear
-the staging area."
+That is performed after all conflict markers in it have been removed.
+If the value is `unstage-maybe', and no merge, rebase or similar
+operation is in progress, then after the last conflict is resolved, also
+clear the staging area."
   :type '(choice (const :tag "Don't resolve" nil)
                  (const :tag "Resolve" t)
                  (const :tag "Resolve and maybe unstage all files"
@@ -766,6 +766,10 @@ or an empty string if none."
   (let ((gitdir (vc-git--git-path))
         cmds)
     ;; See contrib/completion/git-prompt.sh in git.git.
+    (when (file-exists-p (expand-file-name "REVERT_HEAD" gitdir))
+      (push 'revert cmds))
+    (when (file-exists-p (expand-file-name "CHERRY_PICK_HEAD" gitdir))
+      (push 'cherry-pick cmds))
     (when (or (file-directory-p
 	       (expand-file-name "rebase-merge" gitdir))
 	      (file-exists-p
@@ -1419,8 +1423,14 @@ This prompts for a branch to merge from."
       (vc-git-command nil 0 buffer-file-name "add")
       (unless (or
                (not (eq vc-git-resolve-conflicts 'unstage-maybe))
-               ;; Doing a merge, so bug#20292 doesn't apply.
-               (file-exists-p (vc-git--git-path "MERGE_HEAD"))
+               ;; Doing a merge or rebase-like operation, so bug#20292
+               ;; doesn't apply.
+               ;;
+               ;; If we were to 'git reset' in the middle of a
+               ;; cherry-pick, for example, it would effectively abort
+               ;; the cherry-pick, losing the user's progress.
+               (cl-intersection '(merge rebase am revert cherry-pick)
+                                (vc-git--cmds-in-progress))
                (vc-git-conflicted-files (vc-git-root buffer-file-name)))
         (vc-git-command nil 0 nil "reset"))
       (vc-resynch-buffer buffer-file-name t t)
