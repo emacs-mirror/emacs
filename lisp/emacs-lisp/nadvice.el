@@ -584,7 +584,7 @@ of the piece of advice."
 ;;;###autoload
 (defmacro define-advice (symbol args &rest body)
   "Define an advice and add it to function named SYMBOL.
-See `advice-add' and `add-function' for explanation on the
+See `advice-add' and `add-function' for explanation of the
 arguments.  If NAME is non-nil, the advice is named `SYMBOL@NAME'
 and installed with the name NAME; otherwise, the advice is anonymous.
 

@@ -1437,9 +1437,9 @@ recommended to enable `electric-pair-mode' with this mode."
       :help "Toggle C/C++ comment style between block and line comments"])
     "--"
     ("Toggle..."
-     ["SubWord Mode" subword-mode
+     ["Subword Mode" subword-mode
       :style toggle :selected subword-mode
-      :help "Toggle sub-word movement and editing mode"])))
+      :help "Toggle subword movement and editing mode"])))
 
 ;; We could alternatively use parsers, but if this works well, I don't
 ;; see the need to change.  This is copied verbatim from cc-guess.el.

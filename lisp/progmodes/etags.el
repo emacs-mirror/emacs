@@ -1915,7 +1915,7 @@ If no file is associated with the current buffer, this function returns nil."
 (defun list-tags (file &optional _next-match)
   "Display list of tags in file FILE.
 Interactively, prompt for FILE, with completion, offering the current
-buffer's file name as the defaul.
+buffer's file name as the default.
 This command searches only the first table in the list of tags tables,
 and does not search included tables.
 FILE should be as it was submitted to the `etags' command, which usually
