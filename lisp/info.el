@@ -667,7 +667,7 @@ in `Info-file-supports-index-cookies-list'."
 	  (goto-char (point-min))
 	  (condition-case ()
 	      (if (and (re-search-forward
-			"makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
+                        "\\(?:makeinfo\\|texi2any\\)[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
 			(line-beginning-position 4) t)
 		       (not (version< (match-string 1) "4.7")))
 		  (setq found t))
