@@ -67,7 +67,12 @@ all the different selection types."
    (lambda (type)
      (pcase-let ((`(,major ,minor) (split-string (symbol-name type) "/")))
        (if (and (equal major "image")
-                (not (image-type-available-p (intern minor))))
+                (not (image-type-available-p
+                      ;; Usually, MIME subtype is the same as Emacs'
+                      ;; identifier for an image type.  But for SVG, the
+                      ;; identifier is 'svg, while the MIME type is
+                      ;; image/svg+xml. So we make the exception here.
+                      (intern (if (string= minor "svg+xml") "svg" minor)))))
            ;; Just filter out all the image types that Emacs doesn't
            ;; support, because the clipboard is full of things like
            ;; `image/x-win-bitmap'.

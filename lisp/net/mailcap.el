@@ -1084,10 +1084,17 @@ For instance, \"foo.png\" will result in \"image/png\"."
 (defun mailcap-mime-type-to-extension (mime-type)
   "Return a file name extension based on a MIME-TYPE.
 For instance, `image/png' will result in `png'."
-  (intern (cadr (split-string (if (symbolp mime-type)
-                                  (symbol-name mime-type)
-                                mime-type)
-                              "/"))))
+  (intern
+   (let ((e (cadr (split-string (if (symbolp mime-type)
+                                    (symbol-name mime-type)
+                                  mime-type)
+                                "/"))))
+     ;; Usually, the normal extension is the same as the MIME subtype.
+     ;; But for SVG files, the extension is "svg" and the MIME type is
+     ;; "svg+xml".
+     (if (string= e "svg+xml")
+         "svg"
+       e))))
 
 (defun mailcap-mime-types ()
   "Return a list of MIME media types."
