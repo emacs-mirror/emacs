@@ -1040,6 +1040,7 @@ See `vc-git-log-edit-summary-max-len'.")
   "Toggle whether this will amend the previous commit.
 If toggling on, also insert its message into the buffer."
   (interactive)
+  (vc-git--assert-allowed-rewrite (vc-git--rev-parse "HEAD"))
   (log-edit--toggle-amend (lambda ()
                             (vc-git-get-change-comment nil "HEAD"))))
 

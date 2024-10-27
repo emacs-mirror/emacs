@@ -613,12 +613,10 @@ of seconds.  Crossfading can be toggled using the command
 
 ---
 *** New user option 'vc-allow-rewriting-published-history'.
-Many VCS commands can change your copy of published change history
-without warning.  If VC commands detect that this could happen, they
-will stop.  You can customize this variable to permit rewriting history
+Some VCS commands can change your copy of published change history
+without warning.  In VC we try to detect before that happens, and stop.
+You can customize this variable to permit rewriting history
 even though Emacs thinks it is dangerous.
-
-So far, this applies only to using 'e' from Log View mode for Git.
 
 ---
 *** 'vc-clone' is now an interactive command.
