@@ -246,7 +246,7 @@ when this variable is set to nil.")
 (defvar log-edit-initial-files nil)
 (defvar log-edit-callback nil)
 (defvar log-edit-diff-function
-  (lambda () (error "Diff functionality has not been setup")))
+  (lambda () (error "Diff functionality has not been set up")))
 (defvar log-edit-listfun nil)
 
 (defvar log-edit-parent-buffer nil)
