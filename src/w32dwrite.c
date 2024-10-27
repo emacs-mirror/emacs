@@ -1100,6 +1100,10 @@ syms_of_w32dwrite (void)
 {
   DEFVAR_BOOL ("w32-inhibit-dwrite", w32_inhibit_dwrite,
 	       doc: /* If t, don't use DirectWrite.  */);
+  /* The actual value is determined at startup in
+     w32_initialize_direct_write, which is called from
+     syms_of_w32uniscribe_for_pdumper.  */
+  w32_inhibit_dwrite = false;
 
   defsubr (&Sw32_dwrite_reinit);
   defsubr (&Sw32_dwrite_available);
