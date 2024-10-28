@@ -789,7 +789,7 @@ functions are annotated with \"<f>\" via the
                                       (goto-char (1- beg))
                                       (when (eq parent ?\()
                                         (up-list -1))
-                                      (forward-symbol -1)
+                                      (skip-syntax-backward " w_")
                                       (or
                                        (looking-at
                                         "\\_<\\(let\\*?\\|bind\\*\\)\\_>")
