@@ -2027,7 +2027,6 @@ fix_glyph_pool (mps_ss_t ss, struct glyph_pool *pool)
     for (ptrdiff_t i = 0; i < pool->nglyphs; ++i)
       {
 	IGC_FIX12_OBJ (ss, &pool->glyphs[i].object);
-	IGC_FIX12_RAW (ss, &pool->glyphs[i].frame);
       }
   }
   MPS_SCAN_END (ss);
