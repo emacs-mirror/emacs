@@ -543,61 +543,64 @@ project backend implementation of `project-external-roots'.")
 See `project-vc-extra-root-markers' for the marker value format.")
 
 (defun project-try-vc (dir)
-  ;; FIXME: Learn to invalidate when the value of
-  ;; `project-vc-merge-submodules' or `project-vc-extra-root-markers'
-  ;; changes.
+  ;; FIXME: Learn to invalidate when the value changes:
+  ;; `project-vc-merge-submodules' or `project-vc-extra-root-markers'.
   (or (vc-file-getprop dir 'project-vc)
-      (let* ((backend-markers
-              (delete
-               nil
-               (mapcar
-                (lambda (b) (assoc-default b project-vc-backend-markers-alist))
-                vc-handled-backends)))
-             (marker-re
-              (concat
-               "\\`"
-               (mapconcat
-                (lambda (m) (format "\\(%s\\)" (wildcard-to-regexp m)))
-                (append backend-markers
-                        (project--value-in-dir 'project-vc-extra-root-markers dir))
-                "\\|")
-               "\\'"))
-             (locate-dominating-stop-dir-regexp
-              (or vc-ignore-dir-regexp locate-dominating-stop-dir-regexp))
-             last-matches
-             (root
-              (locate-dominating-file
-               dir
-               (lambda (d)
-                 ;; Maybe limit count to 100 when we can drop Emacs < 28.
-                 (setq last-matches
-                       (condition-case nil
-                           (directory-files d nil marker-re t)
-                         (file-missing nil))))))
-             (backend
-              (cl-find-if
-               (lambda (b)
-                 (member (assoc-default b project-vc-backend-markers-alist)
-                         last-matches))
-               vc-handled-backends))
-             project)
-        (when (and
-               (eq backend 'Git)
-               (project--vc-merge-submodules-p root)
-               (project--submodule-p root))
-          (let* ((parent (file-name-directory (directory-file-name root))))
-            (setq root (vc-call-backend 'Git 'root parent))))
-        (when root
-          (when (not backend)
-            (let* ((project-vc-extra-root-markers nil)
-                   ;; Avoid submodules scan.
-                   (enable-dir-local-variables nil)
-                   (parent (project-try-vc root)))
-              (and parent (setq backend (nth 1 parent)))))
-          (setq project (list 'vc backend root))
-          ;; FIXME: Cache for a shorter time.
-          (vc-file-setprop dir 'project-vc project)
-          project))))
+      ;; FIXME: Cache for a shorter time.
+      (let ((res (project-try-vc--search dir)))
+        (and res (vc-file-setprop dir 'project-vc res))
+        res)))
+
+(defun project-try-vc--search (dir)
+  (let* ((backend-markers
+          (delete
+           nil
+           (mapcar
+            (lambda (b) (assoc-default b project-vc-backend-markers-alist))
+            vc-handled-backends)))
+         (marker-re
+          (concat
+           "\\`"
+           (mapconcat
+            (lambda (m) (format "\\(%s\\)" (wildcard-to-regexp m)))
+            (append backend-markers
+                    (project--value-in-dir 'project-vc-extra-root-markers dir))
+            "\\|")
+           "\\'"))
+         (locate-dominating-stop-dir-regexp
+          (or vc-ignore-dir-regexp locate-dominating-stop-dir-regexp))
+         last-matches
+         (root
+          (locate-dominating-file
+           dir
+           (lambda (d)
+             ;; Maybe limit count to 100 when we can drop Emacs < 28.
+             (setq last-matches
+                   (condition-case nil
+                       (directory-files d nil marker-re t)
+                     (file-missing nil))))))
+         (backend
+          (cl-find-if
+           (lambda (b)
+             (member (assoc-default b project-vc-backend-markers-alist)
+                     last-matches))
+           vc-handled-backends))
+         project)
+    (when (and
+           (eq backend 'Git)
+           (project--vc-merge-submodules-p root)
+           (project--submodule-p root))
+      (let* ((parent (file-name-directory (directory-file-name root))))
+        (setq root (vc-call-backend 'Git 'root parent))))
+    (when root
+      (when (not backend)
+        (let* ((project-vc-extra-root-markers nil)
+               ;; Avoid submodules scan.
+               (enable-dir-local-variables nil)
+               (parent (project-try-vc--search root)))
+          (and parent (setq backend (nth 1 parent)))))
+      (setq project (list 'vc backend root))
+      project)))
 
 (defun project--submodule-p (root)
   ;; XXX: We only support Git submodules for now.
