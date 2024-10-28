@@ -2093,6 +2093,14 @@ fix_frame (mps_ss_t ss, struct frame *f)
     IGC_FIX12_OBJ (ss, &f->conversion.compose_region_overlay);
     IGC_FIX12_OBJ (ss, &f->conversion.field);
 #endif
+
+    if (!FRAME_WINDOW_P (f))
+      {
+	if (f->current_matrix)
+	  IGC_FIX_CALL (ss, fix_glyph_matrix (ss, f->current_matrix));
+	if (f->desired_matrix)
+	  IGC_FIX_CALL (ss, fix_glyph_matrix (ss, f->desired_matrix));
+      }
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -2104,9 +2112,9 @@ fix_window (mps_ss_t ss, struct window *w)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, w, fix_vectorlike);
-    if (w->current_matrix)
+    if (w->current_matrix && !w->current_matrix->pool)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->current_matrix));
-    if (w->desired_matrix)
+    if (w->desired_matrix && !w->desired_matrix->pool)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->desired_matrix));
     IGC_FIX12_OBJ (ss, &w->prev_buffers);
     IGC_FIX12_OBJ (ss, &w->next_buffers);
