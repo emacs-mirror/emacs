@@ -51,7 +51,6 @@ Lisp_Object Vsignaling_function;
 /* These would ordinarily be static, but they need to be visible to GDB.  */
 bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
 Lisp_Object *backtrace_args (union specbinding *) EXTERNALLY_VISIBLE;
-Lisp_Object backtrace_function (union specbinding *) EXTERNALLY_VISIBLE;
 union specbinding *backtrace_next (union specbinding *) EXTERNALLY_VISIBLE;
 union specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
 
@@ -108,12 +107,21 @@ specpdl_arg (union specbinding *pdl)
   return pdl->unwind.arg;
 }
 
-Lisp_Object
-backtrace_function (union specbinding *pdl)
+static Lisp_Object
+backtrace_function_body (union specbinding *pdl)
 {
   eassert (pdl->kind == SPECPDL_BACKTRACE);
   return pdl->bt.function;
 }
+/* To work around GDB bug 32313
+   <https://sourceware.org/bugzilla/show_bug.cgi?id=32313>
+   make backtrace_function a visible-to-GDB pointer instead of merely
+   being an externally visible function itself.  Declare the pointer
+   first to pacify gcc -Wmissing-variable-declarations.  */
+#define GDB_FUNCPTR(func, resulttype, params) \
+  extern resulttype (*const func) params EXTERNALLY_VISIBLE; \
+  resulttype (*const func) params = func##_body
+GDB_FUNCPTR (backtrace_function, Lisp_Object, (union specbinding *));
 
 static ptrdiff_t
 backtrace_nargs (union specbinding *pdl)
