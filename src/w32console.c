@@ -167,6 +167,7 @@ w32con_clear_end_of_line (struct frame *f, int end)
       for (i = 0; i < glyphs_len; i++)
         {
 	  memcpy (&glyphs[i], &space_glyph, sizeof (struct glyph));
+	  glyphs[i].frame = f;
         }
       ceol_initialized = TRUE;
     }
@@ -330,7 +331,7 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
       /* Since this is called to deliver the frame glyph matrix to the
 	 glass, some of the glyphs might be from a child frame, which
 	 affects the interpretation of face ID.  */
-      struct frame *face_id_frame = string->frame ? string->frame : f;
+      struct frame *face_id_frame = string->frame;
       int n;
 
       for (n = 1; n < len; ++n)
