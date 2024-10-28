@@ -186,8 +186,7 @@
 		     (with-current-buffer b
 		       c-buffer-is-cc-mode))
 		(throw 'found nil)))
-	  (remove-hook 'post-command-hook 'c-post-command)
-	  (remove-hook 'post-gc-hook 'c-post-gc-hook)))
+	  (remove-hook 'post-command-hook 'c-post-command t)))
       (c-save-buffer-state ()
 	(c-clear-char-properties (point-min) (point-max) 'category)
 	(c-clear-char-properties (point-min) (point-max) 'syntax-table)
@@ -761,7 +760,7 @@ that requires a literal mode spec at compile time."
   ;; would do since font-lock uses a(n implicit) depth of 0) so we don't need
   ;; c-after-font-lock-init.
   (add-hook 'after-change-functions 'c-after-change nil t)
-  (add-hook 'post-command-hook 'c-post-command)
+  (add-hook 'post-command-hook 'c-post-command nil t)
 
   (when (boundp 'font-lock-extend-after-change-region-function)
     (set (make-local-variable 'font-lock-extend-after-change-region-function)
