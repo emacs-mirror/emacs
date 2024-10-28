@@ -2476,10 +2476,9 @@ To work around that, do:
     (when (and (file-exists-p file)
                (not (yes-or-no-p (format "%s exists; overwrite?" file))))
       (user-error "%s exists" file))
-    (with-temp-buffer
-      (set-buffer-multibyte nil)
-      (insert image)
-      (write-region (point-min) (point-max) file))
+    (let ((coding-system-for-write 'emacs-internal))
+      (with-temp-file file
+        (insert image)))
     (insert (format "<img src=%S>\n" (file-relative-name file)))
     (insert-image
      (create-image file (mailcap-mime-type-to-extension type) nil

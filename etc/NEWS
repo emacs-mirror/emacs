@@ -820,6 +820,12 @@ DirectWrite rendering parameters.
 To show color Emoji in Emacs, customize the default fontset to use a
 color Emoji font installed on your system for the 'emoji' script.
 
++++
+** Emacs on MS-Windows now supports 'yank-media'.
+This command inserts clipboard data of different formats into the
+current buffer, if the major mode supports it.
+
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

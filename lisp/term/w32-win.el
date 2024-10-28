@@ -442,15 +442,82 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
       (w32-set-clipboard-data (string-replace "\0" "\\0" value))
     (put 'x-selections (or type 'PRIMARY) value)))
 
-(defun w32--get-selection  (&optional type data-type)
+(defvar w32--selection-target-translations
+  '((PNG . image/png)
+    (DIBV5 . image/png)
+    (HTML\ Format . text/html)))
+
+(defun w32--translate-selection-target (target)
+  (let ((xlat (assoc target w32--selection-target-translations)))
+    (if xlat
+        (cdr xlat)
+      target)))
+
+(defun w32--translate-reverse-selection-target (target)
+  (append
+   (mapcar #'car
+           (seq-filter
+            (lambda (x)
+              (eq target
+                  (w32--translate-selection-target (car x))))
+            w32--selection-target-translations))
+   (list target)))
+
+(defvar w32--textual-mime-types
+  '("application/xml"
+    "application/json"
+    "application/yaml"
+    "application/json-seq"
+    "\\`text/"
+    "+xml\\'"
+    "+json\\'"
+    "+yaml\\'"
+    "+json-seq\\'"))
+
+(defun w32--mime-type-textual-p (mime-type)
+  "Returns t if MIME-TYPE, a symbol, names a textual MIME type.
+
+This function is intended to classify clipboard data.  All MIME subtypes
+of text/ are considered textual.  Also those with suffixes +xml, +json,
++yaml, +json-seq.  And application/xml, application/json,
+application/yaml, application/json-seq.
+
+This classification is not exhaustive.  Some MIME types not listed may
+also be textual."
+  (string-match-p
+   (mapconcat #'identity w32--textual-mime-types "\\|")
+        (symbol-name mime-type)))
+
+(defun w32--get-selection (&optional type data-type)
   (cond ((and (eq type 'CLIPBOARD)
               (eq data-type 'STRING))
          (with-demoted-errors "w32-get-clipboard-data:%S"
            (w32-get-clipboard-data)))
         ((eq data-type 'TARGETS)
          (if (eq type 'CLIPBOARD)
-             (w32-selection-targets type)
+             (vconcat
+              (delete-dups
+               (seq-map #'w32--translate-selection-target
+                        (w32-selection-targets type))))
            (if (get 'x-selections (or type 'PRIMARY)) '[STRING])))
+        ((eq type 'CLIPBOARD)
+         (let ((tmp-file (make-temp-file "emacs-clipboard"))
+               (is-textual (w32--mime-type-textual-p data-type)))
+           (unwind-protect
+               (let* ((data-types (w32--translate-reverse-selection-target data-type))
+                      (data (w32--get-clipboard-data-media data-types tmp-file is-textual)))
+                 (cond
+                  ;; data is in the file
+                  ((eq data t)
+                   (with-temp-buffer
+                     (set-buffer-multibyte nil)
+                     (insert-file-contents-literally tmp-file)
+                     (buffer-string)))
+                  ;; data is in data var
+                  ((stringp data) data)
+                  ;; No data
+                  (t nil)))
+             (delete-file tmp-file))))
         (t (get 'x-selections (or type 'PRIMARY)))))
 
 (defun w32--selection-owner-p (selection)

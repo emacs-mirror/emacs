@@ -73,12 +73,22 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
  */
 
 #include <config.h>
+#include <windows.h>
+#include <wingdi.h>
+#include <wtypes.h>
+#include <gdiplus.h>
+#ifndef CF_DIBV5
+# define CF_DIBV5 17
+# undef CF_MAX
+# define CF_MAX 18
+#endif
 #include "lisp.h"
 #include "w32common.h"	/* os_subtype */
 #include "w32term.h"	/* for all of the w32 includes */
 #include "w32select.h"
 #include "blockinput.h"
 #include "coding.h"
+#include "w32gdiplus.h"
 
 #ifdef CYGWIN
 #include <string.h>
@@ -787,6 +797,166 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
   return (ok ? string : Qnil);
 }
 
+/* Xlib-like names for standard Windows clipboard data formats.
+   They are in upper-case to mimic xselect.c.  A couple of the names
+   were changed to be more like their X counterparts.  */
+static const char *stdfmt_name[] = {
+  "UNDEFINED",
+  "STRING",
+  "BITMAP",
+  "METAFILE",
+  "SYMLINK",
+  "DIF",
+  "TIFF",
+  "OEM_STRING",
+  "DIB",
+  "PALETTE",
+  "PENDATA",
+  "RIFF",
+  "WAVE",
+  "UTF8_STRING",
+  "ENHMETAFILE",
+  "FILE_NAMES", /* DND */
+  "LOCALE", /* not used */
+  "DIBV5"
+};
+
+/* Must be called with block_input() active.  */
+static bool
+convert_dibv5_to_png (char *data, int size, char *temp_file)
+{
+  CLSID clsid_png;
+
+  if (!w32_gdiplus_startup ()
+      || !w32_gdip_get_encoder_clsid ("png", &clsid_png))
+    return false;
+
+  BITMAPV5HEADER *bmi = (void *) data;
+  int stride = bmi->bV5SizeImage / bmi->bV5Height;
+  long offset = bmi->bV5Size + bmi->bV5ClrUsed * sizeof (RGBQUAD);
+  if (bmi->bV5Compression == BI_BITFIELDS)
+    offset += 12;
+  BYTE *scan0 = data + offset;
+
+  GpBitmap *bitmap = NULL;
+
+  GpStatus status
+    = GdipCreateBitmapFromScan0 (bmi->bV5Width, bmi->bV5Height, stride,
+				 PixelFormat32bppARGB, scan0, &bitmap);
+
+  if (status != Ok)
+    return false;
+
+  /* The bitmap comes upside down.  */
+  GdipImageRotateFlip (bitmap, RotateNoneFlipY);
+
+  WCHAR wide_filename[MAX_PATH];
+  filename_to_utf16 (temp_file, wide_filename);
+
+  status = GdipSaveImageToFile (bitmap, wide_filename, &clsid_png, NULL);
+  GdipDisposeImage (bitmap);
+  if (status != Ok)
+    return false;
+  return true;
+}
+
+static int
+get_clipboard_format_name (int format_index, char *name)
+{
+  *name = 0;
+  format_index = EnumClipboardFormats (format_index);
+  if (format_index == 0)
+    return 0;
+  if (format_index < CF_MAX)
+    strcpy (name, stdfmt_name[format_index]);
+  GetClipboardFormatName (format_index, name, 256);
+  return format_index;
+}
+
+DEFUN ("w32--get-clipboard-data-media", Fw32__get_clipboard_data_media,
+       Sw32__get_clipboard_data_media, 3, 3, 0,
+       doc: /* Gets media (not plain text) clipboard data in one of the given formats.
+
+FORMATS is a list of formats.
+TEMP-FILE-IN is the name of the file to store the data.
+
+Elements in FORMATS are symbols naming a format, such a image/png, or
+image/jpeg.  For compatibility with X systems, some conventional
+format names are translated to equivalent MIME types, as configured with
+the variable 'w32--selection-target-translations'.
+
+The file named in TEMP-FILE-IN must be created by the caller, and also
+deleted if required.
+
+Returns nil it there is no such format, or something failed.
+If it returns t, then the caller should read the file to get the data.
+If it returns a string, then that is the data and the file is not used.
+
+When returning a string, it will be unibyte if IS-TEXTUAL is nil (the
+content is binary data).  */)
+  (Lisp_Object formats, Lisp_Object temp_file_in, Lisp_Object is_textual)
+{
+  CHECK_LIST (formats);
+  CHECK_STRING (temp_file_in);
+
+  temp_file_in = Fexpand_file_name (temp_file_in, Qnil);
+  char *temp_file = SSDATA (ENCODE_FILE (temp_file_in));
+
+  Lisp_Object result = Qnil;
+
+  block_input();
+  if (!OpenClipboard (NULL))
+    {
+      unblock_input();
+      return Qnil;
+    }
+
+  for (int format_index = 0;;)
+    {
+      static char name[256];
+      format_index = get_clipboard_format_name (format_index, name);
+      if (format_index == 0)
+	  break;
+
+      /* If name doesn't match any of the formats, try the next format.  */
+      bool match = false;
+      for (Lisp_Object tail = formats; CONSP (tail); tail = XCDR (tail))
+	if (strcmp (name, SSDATA (SYMBOL_NAME (XCAR (tail)))) == 0)
+	    match = true;
+      if (!match)
+	  continue;
+
+      /* Of the standard formats, only DIBV5 is supported.  */
+      if (format_index < CF_MAX && format_index != CF_DIBV5)
+	continue;
+
+      /* Found the format.  */
+      HANDLE d = GetClipboardData (format_index);
+      if (!d)
+	break;
+      int size = GlobalSize (d);
+      char *data = GlobalLock (d);
+      if (!data)
+	break;
+      if (strcmp (name, "DIBV5") == 0)
+	{
+	  if (convert_dibv5_to_png (data, size, temp_file))
+	    result = Qt;
+	}
+      else
+	{
+	  if (NILP (is_textual))
+	    result = make_unibyte_string (data, size);
+	  else
+	    result = make_string (data, size);
+	}
+      GlobalUnlock (d);
+      break;
+    }
+  CloseClipboard ();
+  unblock_input ();
+  return result;
+}
 
 DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
        Sw32_get_clipboard_data, 0, 1, 0,
@@ -1069,29 +1239,6 @@ for `CLIPBOARD'.  The return value is a vector of symbols, each symbol
 representing a data format that is currently available in the clipboard.  */)
   (Lisp_Object selection, Lisp_Object terminal)
 {
-  /* Xlib-like names for standard Windows clipboard data formats.
-     They are in upper-case to mimic xselect.c.  A couple of the names
-     were changed to be more like their X counterparts.  */
-  static const char *stdfmt_name[] = {
-    "UNDEFINED",
-    "STRING",
-    "BITMAP",
-    "METAFILE",
-    "SYMLINK",
-    "DIF",
-    "TIFF",
-    "OEM_STRING",
-    "DIB",
-    "PALETTE",
-    "PENDATA",
-    "RIFF",
-    "WAVE",
-    "UTF8_STRING",
-    "ENHMETAFILE",
-    "FILE_NAMES", /* DND */
-    "LOCALE", /* not used */
-    "DIBV5"
-  };
   CHECK_SYMBOL (selection);
 
   /* Return nil for PRIMARY and SECONDARY selections; for CLIPBOARD, check
@@ -1166,6 +1313,7 @@ syms_of_w32select (void)
 {
   defsubr (&Sw32_set_clipboard_data);
   defsubr (&Sw32_get_clipboard_data);
+  defsubr (&Sw32__get_clipboard_data_media);
   defsubr (&Sw32_selection_exists_p);
   defsubr (&Sw32_selection_targets);
 

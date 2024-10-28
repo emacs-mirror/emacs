@@ -38,44 +38,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "coding.h"
 
+#include "w32gdiplus.h"
 #ifdef WINDOWSNT
-
-typedef GpStatus (WINGDIPAPI *GdiplusStartup_Proc)
-  (ULONG_PTR *, GdiplusStartupInput *, GdiplusStartupOutput *);
-typedef VOID (WINGDIPAPI *GdiplusShutdown_Proc) (ULONG_PTR);
-typedef GpStatus (WINGDIPAPI *GdipGetPropertyItemSize_Proc)
-  (GpImage *, PROPID, UINT *);
-typedef GpStatus (WINGDIPAPI *GdipGetPropertyItem_Proc)
-  (GpImage *, PROPID, UINT, PropertyItem *);
-typedef GpStatus (WINGDIPAPI *GdipImageGetFrameDimensionsCount_Proc)
-  (GpImage *, UINT *);
-typedef GpStatus (WINGDIPAPI *GdipImageGetFrameDimensionsList_Proc)
-  (GpImage *, GUID *, UINT);
-typedef GpStatus (WINGDIPAPI *GdipImageGetFrameCount_Proc)
-  (GpImage *, GDIPCONST GUID *, UINT *);
-typedef GpStatus (WINGDIPAPI *GdipImageSelectActiveFrame_Proc)
-  (GpImage*, GDIPCONST GUID *, UINT);
-typedef GpStatus (WINGDIPAPI *GdipCreateBitmapFromFile_Proc)
-  (WCHAR *, GpBitmap **);
-typedef GpStatus (WINGDIPAPI *GdipCreateBitmapFromStream_Proc)
-  (IStream *, GpBitmap **);
-typedef IStream * (WINAPI *SHCreateMemStream_Proc) (const BYTE *, UINT);
-typedef GpStatus (WINGDIPAPI *GdipCreateHBITMAPFromBitmap_Proc)
-  (GpBitmap *, HBITMAP *, ARGB);
-typedef GpStatus (WINGDIPAPI *GdipDisposeImage_Proc) (GpImage *);
-typedef GpStatus (WINGDIPAPI *GdipGetImageHeight_Proc) (GpImage *, UINT *);
-typedef GpStatus (WINGDIPAPI *GdipGetImageWidth_Proc) (GpImage *, UINT *);
-typedef GpStatus (WINGDIPAPI *GdipGetImageEncodersSize_Proc) (UINT *, UINT *);
-typedef GpStatus (WINGDIPAPI *GdipGetImageEncoders_Proc)
- (UINT, UINT, ImageCodecInfo *);
-typedef GpStatus (WINGDIPAPI *GdipLoadImageFromFile_Proc)
- (GDIPCONST WCHAR *,GpImage **);
-typedef GpStatus (WINGDIPAPI *GdipGetImageThumbnail_Proc)
- (GpImage *, UINT, UINT, GpImage**, GetThumbnailImageAbort, VOID *);
-typedef GpStatus (WINGDIPAPI *GdipSaveImageToFile_Proc)
- (GpImage *, GDIPCONST WCHAR *, GDIPCONST CLSID *,
- GDIPCONST EncoderParameters *);
-
 GdiplusStartup_Proc fn_GdiplusStartup;
 GdiplusShutdown_Proc fn_GdiplusShutdown;
 GdipGetPropertyItemSize_Proc fn_GdipGetPropertyItemSize;
@@ -86,6 +50,7 @@ GdipImageGetFrameCount_Proc fn_GdipImageGetFrameCount;
 GdipImageSelectActiveFrame_Proc fn_GdipImageSelectActiveFrame;
 GdipCreateBitmapFromFile_Proc fn_GdipCreateBitmapFromFile;
 GdipCreateBitmapFromStream_Proc fn_GdipCreateBitmapFromStream;
+GdipCreateBitmapFromScan0_Proc fn_GdipCreateBitmapFromScan0;
 SHCreateMemStream_Proc fn_SHCreateMemStream;
 GdipCreateHBITMAPFromBitmap_Proc fn_GdipCreateHBITMAPFromBitmap;
 GdipDisposeImage_Proc fn_GdipDisposeImage;
@@ -96,6 +61,7 @@ GdipGetImageEncoders_Proc fn_GdipGetImageEncoders;
 GdipLoadImageFromFile_Proc fn_GdipLoadImageFromFile;
 GdipGetImageThumbnail_Proc fn_GdipGetImageThumbnail;
 GdipSaveImageToFile_Proc fn_GdipSaveImageToFile;
+GdipImageRotateFlip_Proc fn_GdipImageRotateFlip;
 
 static bool
 gdiplus_init (void)
@@ -145,6 +111,10 @@ gdiplus_init (void)
   fn_GdipCreateBitmapFromStream = (GdipCreateBitmapFromStream_Proc)
     get_proc_addr (gdiplus_lib, "GdipCreateBitmapFromStream");
   if (!fn_GdipCreateBitmapFromStream)
+    return false;
+  fn_GdipCreateBitmapFromScan0 = (GdipCreateBitmapFromScan0_Proc)
+    get_proc_addr (gdiplus_lib, "GdipCreateBitmapFromScan0");
+  if (!fn_GdipCreateBitmapFromScan0)
     return false;
   fn_GdipCreateHBITMAPFromBitmap = (GdipCreateHBITMAPFromBitmap_Proc)
     get_proc_addr (gdiplus_lib, "GdipCreateHBITMAPFromBitmap");
@@ -196,51 +166,13 @@ gdiplus_init (void)
     get_proc_addr (gdiplus_lib, "GdipSaveImageToFile");
   if (!fn_GdipSaveImageToFile)
     return false;
+  fn_GdipImageRotateFlip = (GdipImageRotateFlip_Proc)
+    get_proc_addr (gdiplus_lib, "GdipImageRotateFlip");
+  if (!fn_GdipImageRotateFlip)
+    return false;
 
   return true;
 }
-
-# undef GdiplusStartup
-# undef GdiplusShutdown
-# undef GdipGetPropertyItemSize
-# undef GdipGetPropertyItem
-# undef GdipImageGetFrameDimensionsCount
-# undef GdipImageGetFrameDimensionsList
-# undef GdipImageGetFrameCount
-# undef GdipImageSelectActiveFrame
-# undef GdipCreateBitmapFromFile
-# undef GdipCreateBitmapFromStream
-# undef SHCreateMemStream
-# undef GdipCreateHBITMAPFromBitmap
-# undef GdipDisposeImage
-# undef GdipGetImageHeight
-# undef GdipGetImageWidth
-# undef GdipGetImageEncodersSize
-# undef GdipGetImageEncoders
-# undef GdipLoadImageFromFile
-# undef GdipGetImageThumbnail
-# undef GdipSaveImageToFile
-
-# define GdiplusStartup fn_GdiplusStartup
-# define GdiplusShutdown fn_GdiplusShutdown
-# define GdipGetPropertyItemSize fn_GdipGetPropertyItemSize
-# define GdipGetPropertyItem fn_GdipGetPropertyItem
-# define GdipImageGetFrameDimensionsCount fn_GdipImageGetFrameDimensionsCount
-# define GdipImageGetFrameDimensionsList fn_GdipImageGetFrameDimensionsList
-# define GdipImageGetFrameCount fn_GdipImageGetFrameCount
-# define GdipImageSelectActiveFrame fn_GdipImageSelectActiveFrame
-# define GdipCreateBitmapFromFile fn_GdipCreateBitmapFromFile
-# define GdipCreateBitmapFromStream fn_GdipCreateBitmapFromStream
-# define SHCreateMemStream fn_SHCreateMemStream
-# define GdipCreateHBITMAPFromBitmap fn_GdipCreateHBITMAPFromBitmap
-# define GdipDisposeImage fn_GdipDisposeImage
-# define GdipGetImageHeight fn_GdipGetImageHeight
-# define GdipGetImageWidth fn_GdipGetImageWidth
-# define GdipGetImageEncodersSize fn_GdipGetImageEncodersSize
-# define GdipGetImageEncoders fn_GdipGetImageEncoders
-# define GdipLoadImageFromFile fn_GdipLoadImageFromFile
-# define GdipGetImageThumbnail fn_GdipGetImageThumbnail
-# define GdipSaveImageToFile fn_GdipSaveImageToFile
 
 #endif	/* WINDOWSNT */
 
@@ -252,8 +184,8 @@ static GdiplusStartupOutput output;
 
 
 /* Initialize GDI+, return true if successful.  */
-static bool
-gdiplus_startup (void)
+bool
+w32_gdiplus_startup (void)
 {
   GpStatus status;
 
@@ -305,7 +237,7 @@ w32_can_use_native_image_api (Lisp_Object type)
 	 But we don't yet support these in image.c.  */
       return false;
     }
-  return gdiplus_startup ();
+  return w32_gdiplus_startup ();
 }
 
 enum PropertyItem_type {
@@ -549,8 +481,8 @@ static struct thumb_type_data thumb_types [] =
   };
 
 
-static int
-get_encoder_clsid (const char *type, CLSID *clsid)
+int
+w32_gdip_get_encoder_clsid (const char *type, CLSID *clsid)
 {
   /* A simple cache based on the assumptions that many thumbnails will
      be generated using the same TYPE.  */
@@ -625,7 +557,7 @@ Return non-nil if thumbnail creation succeeds, nil otherwise.  */)
 
   if (!gdiplus_started)
     {
-      if (!gdiplus_startup ())
+      if (!w32_gdiplus_startup ())
 	return Qnil;
     }
 
@@ -649,7 +581,7 @@ Return non-nil if thumbnail creation succeeds, nil otherwise.  */)
       CLSID thumb_clsid;
       if (status == Ok
 	  /* Get the GUID of the TYPE's encoder. */
-	  && get_encoder_clsid (SSDATA (type), &thumb_clsid) >= 0)
+	  && w32_gdip_get_encoder_clsid (SSDATA (type), &thumb_clsid) >= 0)
 	{
 	  /* Save the thumbnail image to a file of specified TYPE.  */
 	  wchar_t thumb_file_w[MAX_PATH];
