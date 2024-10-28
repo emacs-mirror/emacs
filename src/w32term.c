@@ -5270,6 +5270,75 @@ w32_read_socket (struct terminal *terminal,
 	    }
 	  break;
 
+	case WM_EMACS_LOW_LEVEL_KEY:
+	  WORD key_flags = HIWORD (msg.msg.lParam);
+	  BOOL is_wm_keyup = key_flags & KF_UP;
+
+	  if (is_wm_keyup || (key_flags & KF_REPEAT) == 0) /* WM_KEYDOWN, not repeating.  */
+	    {
+	      WORD scan_code = LOBYTE (key_flags);
+	      if (key_flags & KF_EXTENDED)
+		scan_code = MAKEWORD (scan_code, 0xE0);
+
+	      UINT translated = MapVirtualKey (scan_code, MAPVK_VSC_TO_VK_EX);
+	      WORD vk = LOWORD (msg.msg.wParam);
+	      if (translated)
+		vk = LOWORD (translated);
+
+	      Lisp_Object key = Qnil;
+	      Lisp_Object modifier = Qnil;
+
+	      switch (vk)
+		{
+		case VK_LSHIFT: key = Qlshift; break;
+		case VK_RSHIFT: key = Qrshift; break;
+		case VK_LCONTROL: key = Qlctrl; break;
+		case VK_RCONTROL: key = Qrctrl; break;
+		case VK_LMENU: key = Qlalt; break;
+		case VK_RMENU: key = Qralt; break;
+		}
+
+	      switch (vk)
+		{
+		case VK_LSHIFT:
+		case VK_RSHIFT:
+		  modifier = Qshift;
+		  break;
+		case VK_LCONTROL:
+		case VK_RCONTROL:
+		  modifier = Qctrl;
+		  break;
+		case VK_LMENU:
+		case VK_RMENU:
+		  modifier = Qmeta;
+		  break;
+		}
+
+	      if (!NILP (key))
+		{
+		  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
+		  inev.kind = LOW_LEVEL_KEY_EVENT;
+		  XSETFRAME (inev.frame_or_window, f);
+		  inev.timestamp = msg.msg.time;
+		  inev.arg = list2 (is_wm_keyup ? Qnil : Qt, key);
+		  kbd_buffer_store_event_hold (&inev, hold_quit);
+
+		}
+
+	      if (!NILP (modifier))
+		{
+		  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
+		  inev.kind = LOW_LEVEL_MODIFIER_KEY_EVENT;
+		  XSETFRAME (inev.frame_or_window, f);
+		  inev.timestamp = msg.msg.time;
+		  inev.arg = list2 (is_wm_keyup ? Qnil : Qt, modifier);
+		  kbd_buffer_store_event_hold (&inev, hold_quit);
+		}
+	      inev.kind = NO_EVENT;
+
+	    }
+	  break;
+
         case WM_UNICHAR:
 	case WM_SYSCHAR:
 	case WM_CHAR:

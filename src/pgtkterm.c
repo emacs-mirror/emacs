@@ -5222,6 +5222,39 @@ pgtk_enqueue_preedit (struct frame *f, Lisp_Object preedit)
   evq_enqueue (&inev);
 }
 
+static void
+pgtk_maybe_send_low_level_key_event (GdkEvent *event)
+{
+  if (!Venable_low_level_key_events)
+    return;
+
+  Lisp_Object key;
+  switch (event->key.keyval)
+    {
+    case GDK_KEY_Shift_L: key = Qlshift; break;
+    case GDK_KEY_Shift_R: key = Qrshift; break;
+    case GDK_KEY_Control_L: key = Qlctrl; break;
+    case GDK_KEY_Control_R: key = Qrctrl; break;
+    case GDK_KEY_Alt_L: key = Qlalt; break;
+    case GDK_KEY_Alt_R: key = Qralt; break;
+    default:
+      return;
+    }
+  bool keypress = event->key.type == GDK_KEY_PRESS;
+  struct frame *f = pgtk_any_window_to_frame (event->key.window);
+  if (!f)
+    return;
+
+  union buffered_input_event inev;
+
+  EVENT_INIT (inev.ie);
+  XSETFRAME (inev.ie.frame_or_window, f);
+  inev.ie.kind = LOW_LEVEL_KEY_EVENT;
+  inev.ie.timestamp = event->key.time;
+  inev.ie.arg = list2 (keypress ? Qt : Qnil, key);
+  evq_enqueue (&inev);
+}
+
 static gboolean
 key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
@@ -5230,6 +5263,8 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
   Mouse_HLInfo *hlinfo;
   struct frame *f;
   struct pgtk_display_info *dpyinfo;
+
+  pgtk_maybe_send_low_level_key_event(event);
 
   f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
   EVENT_INIT (inev.ie);
@@ -5474,6 +5509,8 @@ key_release_event (GtkWidget *widget,
 {
   GdkDisplay *display;
   struct pgtk_display_info *dpyinfo;
+
+  pgtk_maybe_send_low_level_key_event(event);
 
   display = gtk_widget_get_display (widget);
   dpyinfo = pgtk_display_info_for_display (display);

@@ -17819,6 +17819,143 @@ static struct x_display_info *XTread_socket_fake_io_error;
 
 static struct x_display_info *next_noop_dpyinfo;
 
+static void
+x_maybe_send_low_level_key_event (struct x_display_info *dpyinfo,
+				  const XEvent *xev)
+{
+  XKeyEvent xkey;
+  bool is_press;
+  KeySym keysym;
+  Lisp_Object key, modifier;
+  struct input_event ie;
+
+  if (!Venable_low_level_key_events)
+    return;
+
+  switch (xev->type)
+    {
+    case KeyPress:
+      is_press = true;
+      xkey = xev->xkey;
+      break;
+    case KeyRelease:
+      is_press = false;
+      xkey = xev->xkey;
+      break;
+#ifdef HAVE_XINPUT2
+    case GenericEvent:
+      XIDeviceEvent *xiev = xev->xcookie.data;
+      switch (xev->xgeneric.evtype)
+	{
+	case XI_KeyPress:
+	  is_press = true;
+	  break;
+	case XI_KeyRelease:
+	  is_press = false;
+	  break;
+	default:
+	  return;
+	}
+
+      xkey.serial = xiev->serial;
+      xkey.send_event = xiev->send_event;
+      xkey.display = xiev->display;
+      xkey.window = xiev->event;
+      xkey.root = xiev->root;
+      xkey.subwindow = xiev->child;
+      xkey.time = xiev->time;
+      xkey.x = xiev->event_x;
+      xkey.y = xiev->event_y;
+      xkey.x_root = xiev->root_x;
+      xkey.y_root = xiev->root_y;
+      xkey.state = xiev->mods.effective;
+      xkey.keycode = xiev->detail;
+      xkey.same_screen = 1;
+      break;
+#endif
+    default:
+      return;
+    }
+
+  struct frame *f = x_any_window_to_frame (dpyinfo, xkey.window);
+  if (!f)
+    return;
+
+  XLookupString (&xkey, NULL, 0, &keysym, NULL);
+
+  switch (keysym)
+    {
+    case XK_Shift_L: key = Qlshift; break;
+    case XK_Shift_R: key = Qrshift; break;
+    case XK_Control_L: key = Qlctrl; break;
+    case XK_Control_R: key = Qrctrl; break;
+    case XK_Alt_L: key = Qlalt; break;
+    case XK_Alt_R: key = Qralt; break;
+    default:
+      key = Qnil;
+    }
+
+   switch (keysym)
+    {
+    case XK_Shift_L:
+    case XK_Shift_R:
+      modifier = Qshift;
+      break;
+    case XK_Control_L:
+    case XK_Control_R:
+      modifier = Vx_ctrl_keysym;
+      if (NILP (modifier))
+	modifier = Qctrl;
+      break;
+    case XK_Alt_L:
+    case XK_Alt_R:
+      modifier = Vx_meta_keysym;
+      if (NILP (modifier))
+	modifier = Qalt;
+      break;
+    case XK_Meta_L:
+    case XK_Meta_R:
+      modifier = Vx_meta_keysym;
+      if (NILP (modifier))
+	modifier = Qmeta;
+      break;
+    case XK_Hyper_L:
+    case XK_Hyper_R:
+      modifier = Vx_hyper_keysym;
+      if (NILP (modifier))
+	modifier = Qhyper;
+      break;
+    case XK_Super_L:
+    case XK_Super_R:
+      modifier = Vx_super_keysym;
+      if (NILP (modifier))
+	modifier = Qsuper;
+      break;
+    default:
+      modifier = Qnil;
+    }
+
+  if (!NILP (key))
+    {
+      EVENT_INIT (ie);
+      XSETFRAME (ie.frame_or_window, f);
+      ie.kind = LOW_LEVEL_KEY_EVENT;
+      ie.timestamp = xkey.time;
+      ie.arg = list2 (is_press ? Qt : Qnil, key);
+      kbd_buffer_store_event (&ie);
+    }
+
+  if (!NILP (modifier))
+    {
+      EVENT_INIT (ie);
+      XSETFRAME (ie.frame_or_window, f);
+      ie.kind = LOW_LEVEL_MODIFIER_KEY_EVENT;
+      ie.timestamp = xkey.time;
+      ie.arg = list2 (is_press ? Qt : Qnil, key);
+      kbd_buffer_store_event (&ie);
+    }
+}
+
 /* Filter events for the current X input method.
    DPYINFO is the display this event is for.
    EVENT is the X event to filter.
@@ -20179,6 +20316,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case KeyPress:
+      x_maybe_send_low_level_key_event (dpyinfo, event);
       x_display_set_last_user_time (dpyinfo, event->xkey.time,
 				    event->xkey.send_event,
 				    true);
@@ -20688,6 +20826,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
     case KeyRelease:
+      x_maybe_send_low_level_key_event (dpyinfo, event);
 #ifdef HAVE_X_I18N
       /* Don't dispatch this event since XtDispatchEvent calls
          XFilterEvent, and two calls in a row may freeze the
@@ -23952,6 +24091,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      struct xi_device_t *device, *source;
 	      XKeyPressedEvent xkey;
 
+	      x_maybe_send_low_level_key_event (dpyinfo, event);
+
 	      coding = Qlatin_1;
 
 	      /* The code under this label is quite desultory.  There
@@ -24568,6 +24709,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 	  case XI_KeyRelease:
+	    x_maybe_send_low_level_key_event (dpyinfo, event);
+
 #if defined HAVE_X_I18N || defined USE_GTK || defined USE_LUCID
 	    {
 	      XKeyPressedEvent xkey;
@@ -32635,6 +32778,7 @@ Android does not support scroll bars at all.  */);
   Vx_toolkit_scroll_bars = Qnil;
 #endif
 
+  DEFSYM (Qshift, "shift");
   DEFSYM (Qmodifier_value, "modifier-value");
   DEFSYM (Qctrl, "ctrl");
   Fput (Qctrl, Qmodifier_value, make_fixnum (ctrl_modifier));
