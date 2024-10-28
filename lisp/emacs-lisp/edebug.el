@@ -1803,12 +1803,21 @@ infinite loops when the code/environment contains a circular object.")
 
 (cl-defmethod edebug--match-&-spec-op ((_ (eql '&interpose)) cursor specs)
   "Compute the specs for `&interpose SPEC FUN ARGS...'.
-Extracts the head of the data by matching it against SPEC,
-and then matches the rest by calling (FUN HEAD PF ARGS...)
-where PF is the parsing function which FUN can call exactly once,
-passing it the specs that it needs to match.
-Note that HEAD will always be a list, since specs are defined to match
-a sequence of elements."
+SPECS is a list (SPEC FUN ARGS...), where SPEC is an edebug
+specification, FUN is the function from the &interpose form which
+transforms the edebug spec, and the optional ARGS is a list of final
+arguments to be supplied to FUN.
+
+Extracts the head of the data by matching it against SPEC, and then
+matches the rest by calling (FUN HEAD PF ARGS...).  PF is the parsing
+function which FUN must call exactly once, passing it one argument, the
+specs that it needs to match.  FUN's value must be the value of this PF
+call, which in turn will be the value of this function.
+
+Note that HEAD will always be a list, since specs is defined to match a
+sequence of elements."
+  ;; Note: PF is called in FUN rather than in this function, so that it
+  ;; can use any dynamic bindings created there.
   (pcase-let*
       ((`(,spec ,fun . ,args) specs)
        (exps (edebug-cursor-expressions cursor))
@@ -1817,14 +1826,14 @@ a sequence of elements."
                     (length (edebug-cursor-expressions cursor))))
        (head (seq-subseq exps 0 consumed)))
     (cl-assert (eq (edebug-cursor-expressions cursor) (nthcdr consumed exps)))
-    (apply fun `(,head
-                 ,(lambda (newspecs)
-                    ;; FIXME: What'd be the difference if we used
-                    ;; `edebug-match-sublist', which is what
-                    ;; `edebug-list-form-args' uses for the similar purpose
-                    ;; when matching "normal" forms?
-                    (append instrumented-head (edebug-match cursor newspecs)))
-                 ,@args))))
+    (apply fun head
+               (lambda (newspecs)
+                 ;; FIXME: What'd be the difference if we used
+                 ;; `edebug-match-sublist', which is what
+                 ;; `edebug-list-form-args' uses for the similar purpose
+                 ;; when matching "normal" forms?
+                 (append instrumented-head (edebug-match cursor newspecs)))
+               args)))
 
 (cl-defmethod edebug--match-&-spec-op ((_ (eql '&not)) cursor specs)
   ;; If any specs match, then fail
