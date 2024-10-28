@@ -2438,9 +2438,10 @@ directory."
 (defun package-install-selected-packages (&optional noconfirm)
   "Ensure packages in `package-selected-packages' are installed.
 If some packages are not installed, propose to install them.
-If optional argument NOCONFIRM is non-nil, don't ask for
-confirmation to install packages."
-  (interactive)
+
+If optional argument NOCONFIRM is non-nil, or when invoked with a prefix
+argument, don't ask for confirmation to install packages."
+  (interactive "P")
   (package--archives-initialize)
   ;; We don't need to populate `package-selected-packages' before
   ;; using here, because the outcome is the same either way (nothing

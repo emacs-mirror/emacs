@@ -728,6 +728,11 @@ If it is non-nil, or when invoked with a prefix argument,
 'package-autoremove' will not prompt the user for confirmation before
 removing packages.
 
+---
+*** New prefix argument for 'package-install-selected-packages'.
+When invoked with a prefix argument, 'package-install-selected-packages'
+will not prompt the user for confirmation before installing packages.
+
 
 * New Modes and Packages in Emacs 31.1
 
