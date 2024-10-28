@@ -2020,6 +2020,21 @@ fix_buffer (mps_ss_t ss, struct buffer *b)
 }
 
 static mps_res_t
+fix_glyph_pool (mps_ss_t ss, struct glyph_pool *pool)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    for (ptrdiff_t i = 0; i < pool->nglyphs; ++i)
+      {
+	IGC_FIX12_OBJ (ss, &pool->glyphs[i].object);
+	IGC_FIX12_RAW (ss, &pool->glyphs[i].frame);
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
 fix_glyph_matrix (mps_ss_t ss, struct glyph_matrix *matrix)
 {
   MPS_SCAN_BEGIN (ss)
@@ -2094,13 +2109,10 @@ fix_frame (mps_ss_t ss, struct frame *f)
     IGC_FIX12_OBJ (ss, &f->conversion.field);
 #endif
 
-    if (!FRAME_WINDOW_P (f))
-      {
-	if (f->current_matrix)
-	  IGC_FIX_CALL (ss, fix_glyph_matrix (ss, f->current_matrix));
-	if (f->desired_matrix)
-	  IGC_FIX_CALL (ss, fix_glyph_matrix (ss, f->desired_matrix));
-      }
+    if (f->current_pool)
+      IGC_FIX_CALL (ss, fix_glyph_pool (ss, f->current_pool));
+    if (f->desired_pool)
+      IGC_FIX_CALL (ss, fix_glyph_pool (ss, f->desired_pool));
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
