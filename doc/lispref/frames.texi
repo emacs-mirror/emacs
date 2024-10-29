@@ -4720,6 +4720,7 @@ to encoding or decoding by any coding system.
 
 @node Yanking Media
 @section Yanking Media
+@cindex yank media from window-system selections
 
   Data saved within window system selections is not restricted to
 plain text.  It is possible for selection data to encompass images or
