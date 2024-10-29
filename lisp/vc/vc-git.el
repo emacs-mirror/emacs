@@ -2177,6 +2177,10 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	(if (eq next-error-last-buffer (current-buffer))
 	    (setq default-directory dir))))))
 
+(declare-function vc-deduce-fileset "vc"
+                  (&optional observer allow-unregistered
+                             state-model-only-files))
+
 (autoload 'vc-dir-marked-files "vc-dir")
 
 (defun vc-git--deduce-files-for-stash ()
