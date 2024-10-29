@@ -1996,7 +1996,7 @@ in the output buffer."
     (setq-local revert-buffer-function
                 (lambda (_ _) (vc-diff-patch-string patch-string)))
     (setq-local vc-patch-string patch-string)
-    (pop-to-buffer (current-buffer))
+    (display-buffer (current-buffer))
     (vc-run-delayed (vc-diff-finish (current-buffer) nil))))
 
 (defun vc-diff-internal (async vc-fileset rev1 rev2 &optional verbose buffer)
@@ -2538,8 +2538,9 @@ the variable `vc-BACKEND-header'."
               (prevrev
                (vc-call-backend backend
                                 'previous-revision rootdir rev)))
-         (vc-diff-internal nil (list backend (list rootdir))
-                           prevrev rev))))))
+         (save-selected-window
+           (vc-diff-internal nil (list backend (list rootdir))
+                             prevrev rev)))))))
 
 ;;;###autoload
 (defun vc-merge ()
