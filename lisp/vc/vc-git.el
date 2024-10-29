@@ -2220,7 +2220,7 @@ then the most recently pushed stash is the default selection."
                                      nil :require-match nil
                                      'vc-git-stash-read-history
                                      default)))
-        (if (string-equal stash "")
+        (if (string-empty-p stash)
             (user-error "Not a stash")
           (string-match "^stash@{[[:digit:]]+}" stash)
           (match-string 0 stash)))
