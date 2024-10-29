@@ -180,6 +180,20 @@ resp. succeeded instead of signaling an error."
     (should (eobp)))
   )
 
+(define-peg-ruleset peg-test-myrules
+  (sign  () (or "+" "-" ""))
+  (digit () [0-9])
+  (nat   () digit (* digit))
+  (int   () sign digit (* digit))
+  (float () int "." nat))
+
+(ert-deftest peg-test-ruleset ()
+  (with-peg-rules
+      (peg-test-myrules
+       (complex float "+i" float))
+    (should (peg-parse-string nat "123" t))
+    (should (not (peg-parse-string nat "home" t)))))
+
 ;;; Examples:
 
 ;; peg-ex-recognize-int recognizes integers.  An integer begins with a

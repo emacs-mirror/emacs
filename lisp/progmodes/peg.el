@@ -412,6 +412,7 @@ sequencing `and' operator of PEG grammars."
              (full-rname (format "%s %s" name rname)))
         (push `(define-peg-rule ,full-rname . ,(cdr rule)) defs)
         (push `(,(peg--rule-id rname) #',(peg--rule-id full-rname)) aliases)))
+    (require 'cl-lib)
     `(cl-flet ,aliases
        ,@defs
        (eval-and-compile (put ',name 'peg--rules ',aliases)))))
@@ -432,7 +433,8 @@ rulesets defined previously with `define-peg-ruleset'."
                               (progn (push rule rulesets) nil)
                             (cons (car rule) (peg-normalize `(and . ,(cdr rule))))))
                         rules)))
-        (ctx (assq :peg-rules macroexpand-all-environment)))
+         (ctx (assq :peg-rules macroexpand-all-environment))
+         (body
     (macroexpand-all
      `(cl-labels
           ,(mapcar (lambda (rule)
@@ -444,6 +446,15 @@ rulesets defined previously with `define-peg-ruleset'."
         ,@body)
      `((:peg-rules ,@(append rules (cdr ctx)))
        ,@macroexpand-all-environment))))
+    (if (null rulesets)
+        body
+      `(cl-flet ,(mapcan (lambda (ruleset)
+                           (let ((aliases (get ruleset 'peg--rules)))
+                             (unless aliases
+                               (message "Unknown PEG ruleset: %S" ruleset))
+                             (copy-sequence aliases)))
+                         rulesets)
+         ,body))))
 
 ;;;;; Old entry points
 
@@ -645,7 +656,7 @@ rulesets defined previously with `define-peg-ruleset'."
         (code (peg-translate-exp exp)))
     (cond
      ((null msg) code)
-     (t (macroexp-warn-and-return msg code)))))
+     (t (macroexp-warn-and-return msg code 'peg nil exp)))))
 
 ;; This is the main translation function.
 (defun peg-translate-exp (exp)
