@@ -86,6 +86,14 @@ different values for completion-affecting variables like
 applies for the styles configuration in 'completion-category-overrides'
 and 'completion-category-defaults'.
 
+---
+*** Selected completion candidate is preserved across *Completions* updates.
+When point is on a completion candidate in the *Completions* buffer
+(because of 'minibuffer-next-completion' or for any other reason), point
+will still be on that candidate after *Completions* is updated with a
+new list of completions.  The candidate is automatically deselected when
+the *Completions* buffer is hidden.
+
 ** Windows
 
 +++
