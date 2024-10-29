@@ -1198,10 +1198,6 @@ by the user at will."
                           (file-name-absolute-p (car all-files)))
                      prompt
                    (concat prompt (format " in %s" common-parent-directory))))
-         (included-cpd (when (member common-parent-directory all-files)
-                         (setq all-files
-                               (delete common-parent-directory all-files))
-                         t))
          (mb-default (mapcar (lambda (mb-default)
                                (if (and common-parent-directory
                                         mb-default
@@ -1211,8 +1207,6 @@ by the user at will."
                                  mb-default))
                              (if (listp mb-default) mb-default (list mb-default))))
          (substrings (mapcar (lambda (s) (substring s cpd-length)) all-files))
-         (_ (when included-cpd
-              (setq substrings (cons "./" substrings))))
          (new-collection (project--file-completion-table substrings))
          (abs-cpd (expand-file-name common-parent-directory))
          (abs-cpd-length (length abs-cpd))
@@ -1323,6 +1317,7 @@ The current buffer's `default-directory' is available as part of
 \"future history\"."
   (interactive)
   (let* ((project (project-current t))
+         (project-files-relative-names t)
          (all-files (project-files project))
          (completion-ignore-case read-file-name-completion-ignore-case)
          ;; FIXME: This misses directories without any files directly
@@ -1330,11 +1325,15 @@ The current buffer's `default-directory' is available as part of
          ;; `project-files-filtered', and see
          ;; https://stackoverflow.com/a/50685235/615245 for possible
          ;; implementation.
-         (all-dirs (mapcar #'file-name-directory all-files))
+         (all-dirs (cons "./"
+                         (delq nil
+                               ;; Some completion UIs show duplicates.
+                               (delete-dups
+                                (mapcar #'file-name-directory all-files)))))
+         (default-directory (project-root project))
          (dir (project--read-file-name
                project "Dired"
-               ;; Some completion UIs show duplicates.
-               (delete-dups all-dirs)
+               all-dirs
                nil 'file-name-history
                (and default-directory
                     (project--find-default-from default-directory project)))))
