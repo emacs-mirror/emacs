@@ -331,55 +331,61 @@ and /* */ comments.  SOFT works the same as in
   ;; is a // comment, insert a newline and a // prefix; if the current
   ;; line is in a /* comment, insert a newline and a * prefix.  No
   ;; auto-fill or other smart features.
-  (cond
-   ;; Line starts with //, or ///, or ////...
-   ;; Or //! (used in rust).
-   ((save-excursion
-      (beginning-of-line)
-      (re-search-forward
-       (rx "//" (group (* (any "/!")) (* " ")))
-       (line-end-position)
-       t nil))
-    (let ((offset (- (match-beginning 0) (line-beginning-position)))
-          (whitespaces (match-string 1)))
-      (if soft (insert-and-inherit ?\n) (newline 1))
-      (delete-region (line-beginning-position) (point))
-      (insert (make-string offset ?\s) "//" whitespaces)))
+  (let ((insert-line-break
+         (lambda ()
+	   (delete-horizontal-space)
+	   (if soft
+	       (insert-and-inherit ?\n)
+	     (newline (if allow-auto-fill nil 1))))))
+    (cond
+     ;; Line starts with //, or ///, or ////...
+     ;; Or //! (used in rust).
+     ((save-excursion
+        (beginning-of-line)
+        (re-search-forward
+         (rx "//" (group (* (any "/!")) (* " ")))
+         (line-end-position)
+         t nil))
+      (let ((offset (- (match-beginning 0) (line-beginning-position)))
+            (whitespaces (match-string 1)))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert (make-string offset ?\s) "//" whitespaces)))
 
-   ;; Line starts with /* or /**.
-   ((save-excursion
-      (beginning-of-line)
-      (re-search-forward
-       (rx "/*" (group (? "*") (* " ")))
-       (line-end-position)
-       t nil))
-    (let ((offset (- (match-beginning 0) (line-beginning-position)))
-          (whitespace-and-star-len (length (match-string 1))))
-      (if soft (insert-and-inherit ?\n) (newline 1))
-      (delete-region (line-beginning-position) (point))
-      (insert
-       (make-string offset ?\s)
-       " *"
-       (make-string whitespace-and-star-len ?\s))))
+     ;; Line starts with /* or /**.
+     ((save-excursion
+        (beginning-of-line)
+        (re-search-forward
+         (rx "/*" (group (? "*") (* " ")))
+         (line-end-position)
+         t nil))
+      (let ((offset (- (match-beginning 0) (line-beginning-position)))
+            (whitespace-and-star-len (length (match-string 1))))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert
+         (make-string offset ?\s)
+         " *"
+         (make-string whitespace-and-star-len ?\s))))
 
-   ;; Line starts with *.
-   ((save-excursion
-      (beginning-of-line)
-      (looking-at (rx (group (* " ") (any "*|") (* " ")))))
-    (let ((prefix (match-string 1)))
-      (if soft (insert-and-inherit ?\n) (newline 1))
-      (delete-region (line-beginning-position) (point))
-      (insert prefix)))
+     ;; Line starts with *.
+     ((save-excursion
+        (beginning-of-line)
+        (looking-at (rx (group (* " ") (any "*|") (* " ")))))
+      (let ((prefix (match-string 1)))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert prefix)))
 
-   ;; Line starts with whitespaces or no space.  This is basically the
-   ;; default case since (rx (* " ")) matches anything.
-   ((save-excursion
-      (beginning-of-line)
-      (looking-at (rx (* " "))))
-    (let ((whitespaces (match-string 0)))
-      (if soft (insert-and-inherit ?\n) (newline 1))
-      (delete-region (line-beginning-position) (point))
-      (insert whitespaces)))))
+     ;; Line starts with whitespaces or no space.  This is basically the
+     ;; default case since (rx (* " ")) matches anything.
+     ((save-excursion
+        (beginning-of-line)
+        (looking-at (rx (* " "))))
+      (let ((whitespaces (match-string 0)))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert whitespaces))))))
 
 ;; Font locking using doxygen parser
 (defvar c-ts-mode-doxygen-comment-font-lock-settings
