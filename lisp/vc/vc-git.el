@@ -2179,14 +2179,24 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 (autoload 'vc-dir-marked-files "vc-dir")
 
+(defun vc-git--deduce-files-for-stash ()
+  ;; In *vc-dir*, if nothing is marked, act on the whole working tree
+  ;; regardless of the position of point.  This preserves historical
+  ;; behavior and is also probably more useful.
+  (if (derived-mode-p 'vc-dir-mode)
+      (vc-dir-marked-files)
+    (cadr (vc-deduce-fileset))))
+
 (defun vc-git-stash (name)
-  "Create a stash given the name NAME."
+  "Create a stash named NAME.
+In `vc-dir-mode', if there are files marked, stash the changes to those.
+If no files are marked, stash all uncommitted changes to tracked files.
+In other modes, call `vc-deduce-fileset' to determine files to stash."
   (interactive "sStash name: ")
   (let ((root (vc-git-root default-directory)))
     (when root
       (apply #'vc-git--call nil "stash" "push" "-m" name
-             (when (derived-mode-p 'vc-dir-mode)
-               (vc-dir-marked-files)))
+             (vc-git--deduce-files-for-stash))
       (vc-resynch-buffer root t t))))
 
 (defvar vc-git-stash-read-history nil
@@ -2234,10 +2244,14 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
 (defun vc-git-stash-snapshot ()
-  "Create a stash with the current tree state."
+  "Create a stash with the current uncommitted changes.
+In `vc-dir-mode', if there are files marked, stash the changes to those.
+If no files are marked, stash all uncommitted changes to tracked files.
+In other modes, call `vc-deduce-fileset' to determine files to stash."
   (interactive)
-  (vc-git--call nil "stash" "save"
-		(format-time-string "Snapshot on %Y-%m-%d at %H:%M"))
+  (apply #'vc-git--call nil "stash" "push" "-m"
+	 (format-time-string "Snapshot on %Y-%m-%d at %H:%M")
+         (vc-git--deduce-files-for-stash))
   (vc-git-command "*vc-git-stash*" 0 nil "stash" "apply" "-q" "stash@{0}")
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
