@@ -2834,7 +2834,9 @@ is `nested'.
 
 Return nil if `treesit-defun-type-regexp' isn't set and `defun'
 isn't defined in `treesit-thing-settings'."
-  (when (or treesit-defun-type-regexp (treesit-thing-defined-p 'defun))
+  (when (or treesit-defun-type-regexp
+            (treesit-thing-defined-p
+             'defun (treesit-language-at (point))))
     (treesit-thing-at-point
      (or treesit-defun-type-regexp 'defun) treesit-defun-tactic)))
 
