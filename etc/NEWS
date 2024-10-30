@@ -592,6 +592,11 @@ instead.
 *** A new shortcut to navigate to previous menu.
 The hardcoded '^' shortcut gets you back to the previous menu.
 
+---
+*** New user option 'tmm-shortcut-inside-entry'.
+When non-nil, highlight the character shortcut in the menu entry's
+string instead of preprending it and `tmm-mid-prompt' to said entry.
+
 ** Foldout
 
 ---
