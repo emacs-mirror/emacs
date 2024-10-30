@@ -50,7 +50,24 @@
 (defun proced--assert-process-valid-cpu-refinement (cpu)
   "Fail unless the process at point could be present after a refinement using CPU."
   (proced--move-to-column "%CPU")
-  (should (>= (thing-at-point 'number) cpu)))
+  (>= (thing-at-point 'number) cpu))
+
+(defun proced--assert-process-valid-cpu-refinement-explainer (cpu)
+  "Explain the result of `proced--assert-process-valid-cpu-refinement'.
+
+CPU is as in `proced--assert-process-valid-cpu-refinement'."
+  `(unexpected-refinement
+    (header-line
+     ,(substring-no-properties
+       (string-replace "%%" "%" (cadr (proced-header-line)))))
+    (process ,(thing-at-point 'line t))
+    (refined-value ,cpu)
+    (process-value
+     ,(save-excursion
+        (proced--move-to-column "%CPU") (thing-at-point 'number)))))
+
+(put #'proced--assert-process-valid-cpu-refinement 'ert-explainer
+     #'proced--assert-process-valid-cpu-refinement-explainer)
 
 (ert-deftest proced-format-test ()
   (dolist (format '(short medium long verbose))
@@ -90,7 +107,7 @@
    (let ((cpu (thing-at-point 'number)))
      (proced-refine)
      (while (not (eobp))
-       (proced--assert-process-valid-cpu-refinement cpu)
+       (should (proced--assert-process-valid-cpu-refinement cpu))
        (forward-line)))))
 
 (ert-deftest proced-refine-with-update-test ()
@@ -106,7 +123,7 @@
      ;; processes again, causing the test to fail.
      (proced-update)
      (while (not (eobp))
-       (proced--assert-process-valid-cpu-refinement cpu)
+       (should (proced--assert-process-valid-cpu-refinement cpu))
        (forward-line)))))
 
 (ert-deftest proced-update-preserves-pid-at-point-test ()
