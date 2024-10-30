@@ -3828,12 +3828,12 @@ The test is derived from TEST and COMMAND."
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-stat tramp-test-vec))
-     (if-let ((default-directory ert-remote-temporary-file-directory)
-	      (ert-test (ert-get-test ',test))
-	      (result (ert-test-most-recent-result ert-test))
-	      (tramp-connection-properties
-	       (cons '(nil "perl" nil)
-		     tramp-connection-properties)))
+     (if-let* ((default-directory ert-remote-temporary-file-directory)
+	       (ert-test (ert-get-test ',test))
+	       (result (ert-test-most-recent-result ert-test))
+	       (tramp-connection-properties
+		(cons '(nil "perl" nil)
+		      tramp-connection-properties)))
 	 (progn
 	   (skip-unless (< (ert-test-result-duration result) 300))
 	   (funcall (ert-test-body ert-test)))
@@ -3848,17 +3848,17 @@ The test is derived from TEST and COMMAND."
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-perl tramp-test-vec))
-     (if-let ((default-directory ert-remote-temporary-file-directory)
-	      (ert-test (ert-get-test ',test))
-	      (result (ert-test-most-recent-result ert-test))
-	      (tramp-connection-properties
-	       (append
-		'((nil "stat" nil)
-		  ;; See `tramp-sh-handle-file-truename'.
-		  (nil "readlink" nil)
-		  ;; See `tramp-sh-handle-get-remote-*'.
-		  (nil "id" nil))
-		tramp-connection-properties)))
+     (if-let* ((default-directory ert-remote-temporary-file-directory)
+	       (ert-test (ert-get-test ',test))
+	       (result (ert-test-most-recent-result ert-test))
+	       (tramp-connection-properties
+		(append
+		 '((nil "stat" nil)
+		   ;; See `tramp-sh-handle-file-truename'.
+		   (nil "readlink" nil)
+		   ;; See `tramp-sh-handle-get-remote-*'.
+		   (nil "id" nil))
+		 tramp-connection-properties)))
 	 (progn
 	   (skip-unless (< (ert-test-result-duration result) 300))
 	   (funcall (ert-test-body ert-test)))
@@ -3872,16 +3872,16 @@ The test is derived from TEST and COMMAND."
      (tramp--test-set-ert-test-documentation ',test "ls")
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
-     (if-let ((default-directory ert-remote-temporary-file-directory)
-	      (ert-test (ert-get-test ',test))
-	      (result (ert-test-most-recent-result ert-test))
-	      (tramp-connection-properties
-	       (append
-		'((nil "perl" nil)
-		  (nil "stat" nil)
-		  ;; See `tramp-sh-handle-file-truename'.
-		  (nil "readlink" nil))
-		tramp-connection-properties)))
+     (if-let* ((default-directory ert-remote-temporary-file-directory)
+	       (ert-test (ert-get-test ',test))
+	       (result (ert-test-most-recent-result ert-test))
+	       (tramp-connection-properties
+		(append
+		 '((nil "perl" nil)
+		   (nil "stat" nil)
+		   ;; See `tramp-sh-handle-file-truename'.
+		   (nil "readlink" nil))
+		 tramp-connection-properties)))
 	 (progn
 	   (skip-unless (< (ert-test-result-duration result) 300))
 	   (funcall (ert-test-body ert-test)))
@@ -3908,9 +3908,9 @@ The test is derived from TEST and COMMAND."
      (skip-unless (tramp--test-enabled))
      (skip-unless
       (or (tramp--test-adb-p) (tramp--test-sh-p) (tramp--test-sudoedit-p)))
-     (if-let ((default-directory ert-remote-temporary-file-directory)
-	      (ert-test (ert-get-test ',test))
-	      (result (ert-test-most-recent-result ert-test)))
+     (if-let* ((default-directory ert-remote-temporary-file-directory)
+	       (ert-test (ert-get-test ',test))
+	       (result (ert-test-most-recent-result ert-test)))
 	 (progn
 	   (skip-unless (< (ert-test-result-duration result) 300))
 	   (let (tramp-use-file-attributes)
@@ -5220,8 +5220,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   "Timeout handler, reporting a failed test."
   (interactive)
   (tramp--test-message "proc: %s" (get-buffer-process (current-buffer)))
-  (when-let ((proc (get-buffer-process (current-buffer)))
-	     ((processp proc)))
+  (when-let* ((proc (get-buffer-process (current-buffer)))
+	      ((processp proc)))
     (tramp--test-message "cmd: %s" (process-command proc)))
   (tramp--test-message "buf: %s\n%s\n---" (current-buffer) (buffer-string))
   (ert-fail (format "`%s' timed out" (ert-test-name (ert-running-test)))))
@@ -5814,8 +5814,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	  (setq command '("sleep" "100")
 		proc (apply #'start-file-process "test" nil command))
 	  (while (accept-process-output proc 0))
-	  (when-let ((pid (process-get proc 'remote-pid))
-		     (attributes (process-attributes pid)))
+	  (when-let* ((pid (process-get proc 'remote-pid))
+		      (attributes (process-attributes pid)))
 	    ;; (tramp--test-message "%s" attributes)
 	    (should (equal (cdr (assq 'comm attributes)) (car command)))
 	    (should (equal (cdr (assq 'args attributes))
@@ -5832,8 +5832,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   ;; `memory-info' is supported since Emacs 29.1.
   (skip-unless (tramp--test-emacs29-p))
 
-  (when-let ((default-directory ert-remote-temporary-file-directory)
-             (mi (memory-info)))
+  (when-let* ((default-directory ert-remote-temporary-file-directory)
+              (mi (memory-info)))
     (should (consp mi))
     (should (length= mi 4))
     (dotimes (i (length mi))
@@ -7356,7 +7356,7 @@ This requires restrictions of file name syntax."
 		(setq buffer (dired-noselect tmp-name1 "--dired -al"))
 	      (goto-char (point-min))
 	      (while (not (eobp))
-		(when-let ((name (dired-get-filename 'no-dir 'no-error)))
+		(when-let* ((name (dired-get-filename 'no-dir 'no-error)))
 		  (unless
 		      (string-match-p name directory-files-no-dot-files-regexp)
 		    (should (member name files))))
@@ -7636,7 +7636,7 @@ This requires restrictions of file name syntax."
   "Check that `file-system-info' returns proper values."
   (skip-unless (tramp--test-enabled))
 
-  (when-let ((fsi (file-system-info ert-remote-temporary-file-directory)))
+  (when-let* ((fsi (file-system-info ert-remote-temporary-file-directory)))
     (should (consp fsi))
     (should (length= fsi 3))
     (dotimes (i (length fsi))
@@ -7668,10 +7668,10 @@ should all return proper values."
       (should (or (stringp (tramp-get-remote-gid v 'string))
 		  (null (tramp-get-remote-gid v 'string))))
 
-      (when-let ((groups (tramp-get-remote-groups v 'integer)))
+      (when-let* ((groups (tramp-get-remote-groups v 'integer)))
 	(should (consp groups))
 	(dolist (group groups) (should (integerp group))))
-      (when-let ((groups (tramp-get-remote-groups v 'string)))
+      (when-let* ((groups (tramp-get-remote-groups v 'string)))
 	(should (consp groups))
 	(dolist (group groups) (should (stringp group)))))))
 
@@ -7820,9 +7820,9 @@ process sentinels.  They shall not disturb each other."
 		  buf)
               (while buffers
 		(setq buf (seq-random-elt buffers))
-                (if-let ((proc (get-buffer-process buf))
-			 (file (process-get proc 'foo))
-			 (count (process-get proc 'bar)))
+                (if-let* ((proc (get-buffer-process buf))
+			  (file (process-get proc 'foo))
+			  (count (process-get proc 'bar)))
 		    (progn
                       (tramp--test-message
                        "Start action %d %s %s" count buf (current-time-string))

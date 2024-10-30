@@ -76,9 +76,9 @@
 ;; an infloop.  We try to follow the XDG specification, for security reasons.
 (defconst tramp-compat-temporary-file-directory
   (file-name-as-directory
-   (if-let ((xdg (xdg-cache-home))
-	    ((file-directory-p xdg))
-	    ((file-writable-p xdg)))
+   (if-let* ((xdg (xdg-cache-home))
+	     ((file-directory-p xdg))
+	     ((file-writable-p xdg)))
        (prog1 (setq xdg (file-name-concat xdg "emacs"))
 	 (make-directory xdg t))
      (eval (car (get 'temporary-file-directory 'standard-value)) t)))
@@ -221,7 +221,7 @@ value is the default binding of the variable."
        (if (not criteria)
            ,variable
 	 (hack-connection-local-variables criteria)
-	 (if-let ((result (assq ',variable connection-local-variables-alist)))
+	 (if-let* ((result (assq ',variable connection-local-variables-alist)))
              (cdr result)
            ,variable)))))
 

@@ -128,8 +128,8 @@
 
 (defun tramp-fuse-mount-spec (vec)
   "Return local mount spec of VEC."
-  (if-let ((host (tramp-file-name-host vec))
-	   (user (tramp-file-name-user vec)))
+  (if-let* ((host (tramp-file-name-host vec))
+	    (user (tramp-file-name-user vec)))
       (format "%s@%s:/" user host)
     (format "%s:/" host)))
 

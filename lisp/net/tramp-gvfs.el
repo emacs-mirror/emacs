@@ -881,9 +881,9 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 ;;;###tramp-autoload
 (defsubst tramp-gvfs-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME handled by the GVFS daemon."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (let ((method (tramp-file-name-method vec)))
-      (and (stringp method) (member method tramp-gvfs-methods)))))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     (method (tramp-file-name-method vec))
+	     ((member method tramp-gvfs-methods)))))
 
 ;;;###tramp-autoload
 (defun tramp-gvfs-file-name-handler (operation &rest args)
@@ -893,11 +893,11 @@ arguments to pass to the OPERATION."
   ;; `file-remote-p' must not return an error.  (Bug#68976)
   (unless (or tramp-gvfs-enabled (eq operation 'file-remote-p))
     (tramp-user-error nil "Package `tramp-gvfs' not supported"))
-  (if-let ((filename (apply #'tramp-file-name-for-operation operation args))
-           (tramp-gvfs-dbus-event-vector
-            (and (tramp-tramp-file-p filename)
-                 (tramp-dissect-file-name filename)))
-           (fn (assoc operation tramp-gvfs-file-name-handler-alist)))
+  (if-let* ((filename (apply #'tramp-file-name-for-operation operation args))
+            (tramp-gvfs-dbus-event-vector
+             (and (tramp-tramp-file-p filename)
+                  (tramp-dissect-file-name filename)))
+            (fn (assoc operation tramp-gvfs-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)
@@ -930,9 +930,9 @@ arguments to pass to the OPERATION."
   "Like `dbus-byte-array-to-string' but remove trailing \\0 if exists.
 Return nil for null BYTE-ARRAY."
   ;; The byte array could be a variant.  Take care.
-  (when-let ((byte-array
-	      (if (and (consp byte-array) (atom (car byte-array)))
-		  byte-array (car byte-array))))
+  (when-let* ((byte-array
+	       (if (and (consp byte-array) (atom (car byte-array)))
+		   byte-array (car byte-array))))
     (dbus-byte-array-to-string
      (if (and (consp byte-array) (zerop (car (last byte-array))))
 	 (butlast byte-array) byte-array))))
@@ -1405,7 +1405,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	     (or (cdr (assoc "standard::size" attributes)) "0")))
       ;; ... file mode flags
       (setq res-filemodes
-	    (if-let ((n (cdr (assoc "unix::mode" attributes))))
+	    (if-let* ((n (cdr (assoc "unix::mode" attributes))))
 		(tramp-file-mode-from-int (string-to-number n))
 	      (format
 	       "%s%s%s%s------"
@@ -1421,11 +1421,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 		   "-" "x"))))
       ;; ... inode and device
       (setq res-inode
-	    (if-let ((n (cdr (assoc "unix::inode" attributes))))
+	    (if-let* ((n (cdr (assoc "unix::inode" attributes))))
 		(string-to-number n)
 	      (tramp-get-inode (tramp-dissect-file-name filename))))
       (setq res-device
-	    (if-let ((n (cdr (assoc "unix::device" attributes))))
+	    (if-let* ((n (cdr (assoc "unix::device" attributes))))
 		(string-to-number n)
 	      (tramp-get-device (tramp-dissect-file-name filename))))
 
@@ -1675,19 +1675,21 @@ ID-FORMAT valid values are `string' and `integer'."
   ;; The result is cached in `tramp-get-remote-uid'.
   (if (equal id-format 'string)
       (tramp-file-name-user vec)
-    (when-let ((localname
-		(tramp-get-connection-property (tramp-get-process vec) "share")))
-      (file-attribute-user-id
-       (file-attributes (tramp-make-tramp-file-name vec localname) id-format)))))
+    (and-let* ((localname
+		(tramp-get-connection-property (tramp-get-process vec) "share"))
+	       ((file-attribute-user-id
+		 (file-attributes
+		  (tramp-make-tramp-file-name vec localname) id-format)))))))
 
 (defun tramp-gvfs-handle-get-remote-gid (vec id-format)
   "The gid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
   ;; The result is cached in `tramp-get-remote-gid'.
-  (when-let ((localname
-	      (tramp-get-connection-property (tramp-get-process vec) "share")))
-    (file-attribute-group-id
-     (file-attributes (tramp-make-tramp-file-name vec localname) id-format))))
+  (and-let* ((localname
+	      (tramp-get-connection-property (tramp-get-process vec) "share"))
+	     ((file-attribute-group-id
+	       (file-attributes
+		(tramp-make-tramp-file-name vec localname) id-format))))))
 
 (defun tramp-gvfs-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
@@ -1720,12 +1722,12 @@ ID-FORMAT valid values are `string' and `integer'."
 	    (setq method "davs"
 		  localname
 		  (concat (tramp-gvfs-get-remote-prefix v) localname)))
-	  (when (string-equal "mtp" method)
-	    (when-let
-		((media (tramp-get-connection-property v "media-device")))
-	      (setq method (tramp-media-device-method media)
-		    host (tramp-media-device-host media)
-		    port (tramp-media-device-port media))))
+	  (when-let*
+	      (((string-equal "mtp" method))
+	       (media (tramp-get-connection-property v "media-device")))
+	    (setq method (tramp-media-device-method media)
+		  host (tramp-media-device-host media)
+		  port (tramp-media-device-port media)))
 	  (when (and user domain)
 	    (setq user (concat domain ";" user)))
 	  (url-recreate-url
@@ -1922,10 +1924,10 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 	(when (member method tramp-media-methods)
 	  ;; Ensure that media devices are cached.
 	  (tramp-get-media-devices nil)
-	  (when-let ((v (tramp-get-connection-property
-			 (make-tramp-media-device
-			  :method method :host host :port port)
-			 "vector" nil)))
+	  (when-let* ((v (tramp-get-connection-property
+			  (make-tramp-media-device
+			   :method method :host host :port port)
+			  "vector" nil)))
 	    (setq method (tramp-file-name-method v)
 		  host (tramp-file-name-host v)
 		  port (tramp-file-name-port v))))
@@ -2022,10 +2024,10 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 	 (when (member method tramp-media-methods)
 	   ;; Ensure that media devices are cached.
 	   (tramp-get-media-devices vec)
-	   (when-let ((v (tramp-get-connection-property
-			  (make-tramp-media-device
-			   :method method :host host :port port)
-			  "vector")))
+	   (when-let* ((v (tramp-get-connection-property
+			   (make-tramp-media-device
+			    :method method :host host :port port)
+			   "vector")))
 	     (setq method (tramp-file-name-method v)
 		   host (tramp-file-name-host v)
 		   port (tramp-file-name-port v))))
@@ -2440,8 +2442,8 @@ It checks for registered GNOME Online Accounts."
 (defun tramp-get-media-device (vec)
   "Transform VEC into a `tramp-media-device' structure.
 Check, that respective cache values do exist."
-  (if-let ((media (tramp-get-connection-property vec "media-device"))
-	   (prop (tramp-get-connection-property media "vector")))
+  (if-let* ((media (tramp-get-connection-property vec "media-device"))
+	    (prop (tramp-get-connection-property media "vector")))
       media
     (tramp-get-media-devices vec)
     (tramp-get-connection-property vec "media-device")))

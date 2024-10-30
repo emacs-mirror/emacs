@@ -243,8 +243,8 @@ Return VALUE."
   "Remove some properties of FILE's upper directory."
   (when (file-name-absolute-p file)
     ;; `file-name-directory' can return nil, for example for "~".
-    (when-let ((file (file-name-directory file))
-	       (file (directory-file-name file)))
+    (when-let* ((file (file-name-directory file))
+		(file (directory-file-name file)))
       (setq key (tramp-file-name-unify key file))
       (unless (eq key tramp-cache-undefined)
 	(dolist (property (hash-table-keys (tramp-get-hash-table key)))
@@ -409,7 +409,7 @@ is `tramp-cache-undefined', nothing is set.
 PROPERTY is set persistent when KEY is a `tramp-file-name' structure.
 Return VALUE."
   (setq key (tramp-file-name-unify key))
-  (when-let ((hash (tramp-get-hash-table key)))
+  (when-let* ((hash (tramp-get-hash-table key)))
     (puthash property value hash))
   (setq tramp-cache-data-changed
 	(or tramp-cache-data-changed (tramp-file-name-p key)))
@@ -433,7 +433,7 @@ KEY identifies the connection, it is either a process or a
 used to cache connection properties of the local machine.
 PROPERTY is set persistent when KEY is a `tramp-file-name' structure."
   (setq key (tramp-file-name-unify key))
-  (when-let ((hash (tramp-get-hash-table key)))
+  (when-let* ((hash (tramp-get-hash-table key)))
     (remhash property hash))
   (setq tramp-cache-data-changed
 	(or tramp-cache-data-changed (tramp-file-name-p key)))
@@ -448,7 +448,7 @@ used to cache connection properties of the local machine."
   (setq key (tramp-file-name-unify key))
   (tramp-message
    key 7 "%s %s" key
-   (when-let ((hash (gethash key tramp-cache-data)))
+   (when-let* ((hash (gethash key tramp-cache-data)))
      (hash-table-keys hash)))
   (setq tramp-cache-data-changed
 	(or tramp-cache-data-changed (tramp-file-name-p key)))

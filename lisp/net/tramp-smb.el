@@ -340,15 +340,15 @@ This can be used to disable echo etc."
 ;;;###tramp-autoload
 (defsubst tramp-smb-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME for SMB servers."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (string= (tramp-file-name-method vec) tramp-smb-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((string= (tramp-file-name-method vec) tramp-smb-method)))))
 
 ;;;###tramp-autoload
 (defun tramp-smb-file-name-handler (operation &rest args)
   "Invoke the SMB related OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (if-let ((fn (assoc operation tramp-smb-file-name-handler-alist)))
+  (if-let* ((fn (assoc operation tramp-smb-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)
@@ -613,8 +613,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; `file-local-copy' returns a file name also for a local file
       ;; with `jka-compr-handler', so we cannot trust its result as
       ;; indication for a remote file name.
-      (if-let ((tmpfile
-		(and (tramp-tramp-file-p filename) (file-local-copy filename))))
+      (if-let* ((tmpfile
+		 (and (tramp-tramp-file-p filename) (file-local-copy filename))))
 	  ;; Remote filename.
 	  (condition-case err
 	      (rename-file tmpfile newname ok-if-already-exists)
@@ -860,7 +860,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Implement `file-attributes' for Tramp files using `stat' command."
   (tramp-message
    vec 5 "file attributes with stat: %s" (tramp-file-name-localname vec))
-  (let* (size id link uid gid atime mtime ctime mode inode)
+  (let (size id link uid gid atime mtime ctime mode inode)
     (when (tramp-smb-send-command
 	   vec (format "stat %s" (tramp-smb-shell-quote-localname vec)))
 

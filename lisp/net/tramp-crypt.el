@@ -281,10 +281,10 @@ arguments to pass to the OPERATION."
   "Invoke the encrypted remote file related OPERATION.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (if-let ((filename
-	    (apply #'tramp-crypt-file-name-for-operation operation args))
-	   (fn (and (tramp-crypt-file-name-p filename)
-		    (assoc operation tramp-crypt-file-name-handler-alist))))
+  (if-let* ((filename
+	     (apply #'tramp-crypt-file-name-for-operation operation args))
+	    ((tramp-crypt-file-name-p filename))
+	    (fn (assoc operation tramp-crypt-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-crypt-run-real-handler operation args)
@@ -429,11 +429,11 @@ ARGS are the arguments.  It returns t if ran successful, and nil otherwise."
   "Return encrypted / decrypted NAME if NAME belongs to an encrypted directory.
 OP must be `encrypt' or `decrypt'.  Raise an error if this fails.
 Otherwise, return NAME."
-  (if-let ((tramp-crypt-enabled t)
-	   (dir (tramp-crypt-file-name-p name))
-	   ;; It must be absolute for the cache.
-	   (localname (substring name (1- (length dir))))
-	   (crypt-vec (tramp-crypt-dissect-file-name dir)))
+  (if-let* ((tramp-crypt-enabled t)
+	    (dir (tramp-crypt-file-name-p name))
+	    ;; It must be absolute for the cache.
+	    (localname (substring name (1- (length dir))))
+	    (crypt-vec (tramp-crypt-dissect-file-name dir)))
       ;; Preserve trailing "/".
       (funcall
        (if (directory-name-p name) #'file-name-as-directory #'identity)
@@ -469,9 +469,9 @@ Otherwise, return NAME."
 Both files must be local files.  OP must be `encrypt' or `decrypt'.
 If OP is `decrypt', the basename of INFILE must be an encrypted file name.
 Raise an error if this fails."
-  (when-let ((tramp-crypt-enabled t)
-	     (dir (tramp-crypt-file-name-p root))
-	     (crypt-vec (tramp-crypt-dissect-file-name dir)))
+  (when-let* ((tramp-crypt-enabled t)
+	      (dir (tramp-crypt-file-name-p root))
+	      (crypt-vec (tramp-crypt-dissect-file-name dir)))
     (let ((coding-system-for-read
 	   (if (eq op 'decrypt) 'binary coding-system-for-read))
 	  (coding-system-for-write
@@ -546,7 +546,7 @@ The structure consists of the `tramp-crypt-method' method, the
 local user name, the hexlified directory NAME as host, and the
 localname."
   (save-match-data
-    (if-let ((dir (tramp-crypt-file-name-p name)))
+    (if-let* ((dir (tramp-crypt-file-name-p name)))
 	(make-tramp-file-name
 	 :method tramp-crypt-method :user (user-login-name)
 	 :host (url-hexify-string dir))

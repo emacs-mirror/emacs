@@ -161,15 +161,15 @@ See `tramp-actions-before-shell' for more info.")
 ;;;###tramp-autoload
 (defsubst tramp-sudoedit-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME for SUDOEDIT."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (string= (tramp-file-name-method vec) tramp-sudoedit-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((string= (tramp-file-name-method vec) tramp-sudoedit-method)))))
 
 ;;;###tramp-autoload
 (defun tramp-sudoedit-file-name-handler (operation &rest args)
   "Invoke the SUDOEDIT handler for OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (if-let ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
+  (if-let* ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)

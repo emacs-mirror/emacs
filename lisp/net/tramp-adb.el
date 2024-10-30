@@ -205,15 +205,15 @@ It is used for TCP/IP devices."
 ;;;###tramp-autoload
 (defsubst tramp-adb-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME for ADB."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (string= (tramp-file-name-method vec) tramp-adb-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((string= (tramp-file-name-method vec) tramp-adb-method)))))
 
 ;;;###tramp-autoload
 (defun tramp-adb-file-name-handler (operation &rest args)
   "Invoke the ADB handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (if-let ((fn (assoc operation tramp-adb-file-name-handler-alist)))
+  (if-let* ((fn (assoc operation tramp-adb-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)
@@ -620,7 +620,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		      (tramp-shell-quote-argument l2))
 		   "Error copying %s to %s" filename newname))
 
-	      (if-let ((tmpfile (file-local-copy filename)))
+	      (if-let* ((tmpfile (file-local-copy filename)))
 		  ;; Remote filename.
 		  (condition-case err
 		      (rename-file tmpfile newname ok-if-already-exists)
