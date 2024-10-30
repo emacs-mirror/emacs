@@ -2206,7 +2206,7 @@ In other modes, call `vc-deduce-fileset' to determine files to stash."
 (defvar vc-git-stash-read-history nil
   "History for `vc-git-stash-read'.")
 
-(defun vc-git-stash-read (prompt &optional default-most-recent)
+(cl-defun vc-git-stash-read (prompt &key default-most-recent)
   "Prompt the user, with PROMPT, to select a git stash.
 PROMPT is passed to `format-prompt'.  If DEFAULT-MOST-RECENT is non-nil,
 then the most recently pushed stash is the default selection."
@@ -2215,7 +2215,9 @@ then the most recently pushed stash is the default selection."
                                                        "stash" "list")
                            "\n" t)))
       (let* ((default (and default-most-recent (car stashes)))
-             (prompt (format-prompt prompt default))
+             (prompt (format-prompt prompt
+                                    (and default-most-recent
+                                         "most recent, stash@{0}")))
              (stash (completing-read prompt stashes
                                      nil :require-match nil
                                      'vc-git-stash-read-history
@@ -2247,7 +2249,8 @@ then the most recently pushed stash is the default selection."
   "Pop stash NAME."
   ;; Stashes are commonly popped off in reverse order, so pass non-nil
   ;; DEFAULT-MOST-RECENT to `vc-git-stash-read'.
-  (interactive (list (vc-git-stash-read "Pop stash" t)))
+  (interactive (list (vc-git-stash-read "Pop stash"
+                                        :default-most-recent t)))
   (vc-git-command "*vc-git-stash*" 0 nil "stash" "pop" "-q" name)
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
