@@ -803,7 +803,9 @@ Return its existing value or a new value."
                   (funcall tab-bar-tab-name-function))))
       ;; Create default tabs
       (setq tabs (list (tab-bar--current-tab-make)))
-      (tab-bar-tabs-set tabs frame))
+      (tab-bar-tabs-set tabs frame)
+      (run-hook-with-args 'tab-bar-tab-post-open-functions
+                          (car tabs)))
     tabs))
 
 (defun tab-bar-tabs-set (tabs &optional frame)
