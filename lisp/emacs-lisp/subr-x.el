@@ -357,7 +357,9 @@ automatically killed, which means that in a such case
         ;; Flush BUFFER before making it available again, i.e. clear
         ;; its contents, remove all overlays and buffer-local
         ;; variables.  Is it enough to safely reuse the buffer?
-        (let ((inhibit-read-only t))
+        (let ((inhibit-read-only t)
+              ;; Avoid deactivating the region as side effect.
+              deactivate-mark)
           (erase-buffer))
         (delete-all-overlays)
         (let (change-major-mode-hook)
@@ -409,7 +411,9 @@ substring that does not include newlines."
                       (with-current-buffer buffer
                         face-remapping-alist))
         (kill-local-variable 'face-remapping-alist))
-      (insert string)
+      ;; Avoid deactivating the region as side effect.
+      (let (deactivate-mark)
+        (insert string))
       ;; Prefer `remove-text-properties' to `propertize' to avoid
       ;; creating a new string on each call.
       (remove-text-properties
