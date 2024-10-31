@@ -168,7 +168,7 @@ Used in `smerge-diff-base-upper' and related functions."
 		 (const :tag "none"  "")
 		 string))
 
-;; Make it so `C-x ^ n' doesn't insert `n' but just signals an error
+;; Make it so `C-c ^ n' doesn't insert `n' but just signals an error
 ;; when SMerge mode is not enabled (bug#73544).
 ;;;###autoload (global-set-key "\C-c^" (make-sparse-keymap))
 
