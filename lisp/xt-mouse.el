@@ -151,10 +151,11 @@ https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 
 (defun xterm-mouse-position-function (pos)
   "Bound to `mouse-position-function' in XTerm mouse mode."
-  (when (terminal-parameter nil 'xterm-mouse-x)
-    (setcdr pos (cons (terminal-parameter nil 'xterm-mouse-x)
-		      (terminal-parameter nil 'xterm-mouse-y))))
-  pos)
+  (if (terminal-parameter nil 'xterm-mouse-x)
+      (cons (terminal-parameter nil 'xterm-mouse-frame)
+            (cons (terminal-parameter nil 'xterm-mouse-x)
+		  (terminal-parameter nil 'xterm-mouse-y)))
+    pos))
 
 (define-obsolete-function-alias 'xterm-mouse-truncate-wrap 'truncate "27.1")
 
