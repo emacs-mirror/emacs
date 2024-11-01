@@ -336,6 +336,12 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
                  str))
        (cdr elt))))))
 
+(defun tmm-clear-self-insert-and-exit ()
+  "Clear the minibuffer contents then self insert and exit."
+  (interactive)
+  (delete-minibuffer-contents)
+  (self-insert-and-exit))
+
 ;; This returns the old map.
 (defun tmm-define-keys (minibuffer)
   (let ((map (make-sparse-keymap)))
@@ -354,7 +360,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
       (define-key map "\C-n" 'next-history-element)
       (define-key map "\C-p" 'previous-history-element)
       ;; Previous menu shortcut (see `tmm-prompt').
-      (define-key map "^" 'self-insert-and-exit))
+      (define-key map "^" 'tmm-clear-self-insert-and-exit))
     (prog1 (current-local-map)
       (use-local-map (append map (current-local-map))))))
 
@@ -452,10 +458,10 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 (defun tmm-goto-completions ()
   "Jump to the completions buffer."
   (interactive)
-  (let ((prompt-end (minibuffer-prompt-end)))
-    (setq tmm-c-prompt (buffer-substring prompt-end (point-max)))
-    ;; FIXME: Why?
-    (delete-region prompt-end (point-max)))
+  (setq tmm-c-prompt (buffer-substring (minibuffer-prompt-end) (point-max)))
+  ;; Clear minibuffer old contents before using *Completions* buffer for
+  ;; selection.
+  (delete-minibuffer-contents)
   (switch-to-buffer-other-window "*Completions*")
   (search-forward tmm-c-prompt)
   (search-backward tmm-c-prompt))
