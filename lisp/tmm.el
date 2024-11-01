@@ -111,8 +111,8 @@ specify nil for this variable."
 (defcustom tmm-shortcut-inside-entry nil
   "Highlight the shortcut character in the menu entry's string.
 When non-nil, the first menu-entry's character that acts as a shortcut
-will be highlighted with the `highlight' face to help identifying it.
-The `tmm-mid-prompt' string is not used then."
+is displayed with the `highlight' face to help identify it.  The
+`tmm-mid-prompt' string is not used then."
   :type 'boolean)
 
 (defface tmm-inactive
