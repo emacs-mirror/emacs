@@ -1997,7 +1997,7 @@ With optional argument SEE-THRU set to non-nil, text in the buffer
     (aset artist-rb-save-data 6 0)))
 
 (defun artist-no-rb-unset-point2 ()
-  "This function unsets point 2 when not rubber-banding."
+  "Unset point 2 when not rubber-banding."
   (if (= (aref artist-rb-save-data 6) 1)
       (let ((x-now (artist-current-column))
 	    (y-now (artist-current-line))
@@ -2020,7 +2020,7 @@ With optional argument SEE-THRU set to non-nil, text in the buffer
     (aset artist-rb-save-data 6 1)))
 
 (defun artist-no-rb-unset-points ()
-  "This function unsets point 1 and 2 when not rubber-banding."
+  "Unset point 1 and 2 when not rubber-banding."
   (artist-no-rb-unset-point1)
   (artist-no-rb-unset-point2))
 

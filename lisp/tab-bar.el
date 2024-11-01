@@ -298,7 +298,7 @@ For any other value of KEY, the value is t."
 (defvar tab-bar--dragging-in-progress)
 
 (defun tab-bar--event-to-item (posn)
-  "This function extracts extra info from the mouse event at position POSN.
+  "Extract extra info from the mouse event at position POSN.
 It returns a list of the form (KEY KEY-BINDING CLOSE-P), where:
  KEY is a symbol representing a tab, such as \\='tab-1 or \\='current-tab;
  KEY-BINDING is the binding of KEY;

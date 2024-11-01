@@ -400,7 +400,7 @@ If there is a marked region from START to END it only shows the symbols within."
     (end-of-line 2)))
 
 (defun hif-merge-ifdef-region (start end)
-  "This function merges nearby ifdef regions to form a bigger overlay.
+  "Merge nearby ifdef regions to form a bigger overlay.
 The region is defined by START and END.  This will decrease the number of
 overlays created."
   ;; Generally there is no need to call itself recursively since there should
