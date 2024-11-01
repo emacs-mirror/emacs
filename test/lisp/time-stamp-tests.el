@@ -535,7 +535,7 @@
       (should (equal (time-stamp-string "%#Z" ref-time1) utc-abbr)))))
 
 (ert-deftest time-stamp-format-time-zone-offset ()
-  "Tests time-stamp legacy format %z and spot tests of new offset format %5z."
+  "Test time-stamp legacy format %z and spot-test new offset format %5z."
   (with-time-stamp-test-env
     (let ((utc-abbr (format-time-string "%#Z" ref-time1 t)))
     ;; documented 1995-2019, warned since 2019, will change
@@ -617,7 +617,7 @@
     (should (equal (time-stamp-string "No percent" ref-time1) "No percent"))))
 
 (ert-deftest time-stamp-format-multiple-conversions ()
-  "Tests that multiple %-conversions are independent."
+  "Test that multiple %-conversions are independent."
   (with-time-stamp-test-env
     (let ((Mon (format-time-string "%a" ref-time1 t))
           (MON (format-time-string "%^a" ref-time1 t))
@@ -719,7 +719,7 @@
 ;;;; Setup for tests of time offset formatting with %z
 
 (defun formatz (format zone)
-  "Uses FORMAT to format the offset of ZONE, returning the result.
+  "Use FORMAT to format the offset of ZONE, returning the result.
 FORMAT must be time format \"%z\" or some variation thereof.
 ZONE is as the ZONE argument of the `format-time-string' function.
 This function is called by 99% of the `time-stamp' \"%z\" unit tests."
@@ -733,7 +733,7 @@ This function is called by 99% of the `time-stamp' \"%z\" unit tests."
      )))
 
 (defun format-time-offset (format offset-secs)
-  "Uses FORMAT to format the time zone represented by OFFSET-SECS.
+  "Use FORMAT to format the time zone represented by OFFSET-SECS.
 FORMAT must be time format \"%z\" or some variation thereof.
 This function is a wrapper around `time-stamp-formatz-from-parsed-options'
 and is called by some low-level `time-stamp' \"%z\" unit tests."
@@ -765,20 +765,20 @@ and is called by some low-level `time-stamp' \"%z\" unit tests."
             trailing-string)))
 
 (defun fz-make+zone (h &optional m s)
-  "Creates a non-negative offset."
+  "Create a non-negative offset."
   (declare (pure t))
   (let ((m (or m 0))
         (s (or s 0)))
     (+ (* 3600 h) (* 60 m) s)))
 
 (defun fz-make-zone (h &optional m s)
-  "Creates a negative offset.  The arguments are all non-negative."
+  "Create a negative offset.  The arguments are all non-negative."
   (declare (pure t))
   (- (fz-make+zone h m s)))
 
 (defmacro formatz-should-equal (zone expect)
-  "Formats ZONE and compares it to EXPECT.
-Uses the free variables `form-string' and `pattern-mod'.
+  "Format ZONE and compares it to EXPECT.
+Use the free variables `form-string' and `pattern-mod'.
 The functions in `pattern-mod' are composed left to right."
   (declare (debug t))
   `(let ((result ,expect))
@@ -790,7 +790,7 @@ The functions in `pattern-mod' are composed left to right."
 ;; for hours, minutes, and seconds.
 
 (defun formatz-hours-exact-helper (form-string pattern-mod)
-  "Tests format %z with whole hours."
+  "Test format %z with whole hours."
   (formatz-should-equal (fz-make+zone 0) "+00") ;0 sign always +, both digits
   (formatz-should-equal (fz-make+zone 10) "+10")
   (formatz-should-equal (fz-make-zone 10) "-10")
@@ -801,7 +801,7 @@ The functions in `pattern-mod' are composed left to right."
   )
 
 (defun formatz-nonzero-minutes-helper (form-string pattern-mod)
-  "Tests format %z with whole minutes."
+  "Test format %z with whole minutes."
   (formatz-should-equal (fz-make+zone 0 30) "+00:30") ;has hours even though 0
   (formatz-should-equal (fz-make-zone 0 30) "-00:30")
   (formatz-should-equal (fz-make+zone 0 4) "+00:04")
@@ -819,7 +819,7 @@ The functions in `pattern-mod' are composed left to right."
   )
 
 (defun formatz-nonzero-seconds-helper (form-string pattern-mod)
-  "Tests format %z with non-0 seconds."
+  "Test format %z with non-0 seconds."
   ;; non-0 seconds are always included
   (formatz-should-equal (fz-make+zone 0 0 50) "+00:00:50")
   (formatz-should-equal (fz-make-zone 0 0 50) "-00:00:50")
@@ -848,7 +848,7 @@ The functions in `pattern-mod' are composed left to right."
   )
 
 (defun formatz-hours-big-helper (form-string pattern-mod)
-  "Tests format %z with hours that don't fit in two digits."
+  "Test format %z with hours that don't fit in two digits."
   (formatz-should-equal (fz-make+zone 101) "+101:00")
   (formatz-should-equal (fz-make+zone 123 10) "+123:10")
   (formatz-should-equal (fz-make-zone 123 10) "-123:10")
@@ -857,7 +857,7 @@ The functions in `pattern-mod' are composed left to right."
   )
 
 (defun formatz-seconds-big-helper (form-string pattern-mod)
-  "Tests format %z with hours greater than 99 and non-zero seconds."
+  "Test format %z with hours greater than 99 and non-zero seconds."
   (formatz-should-equal (fz-make+zone 123 0 30) "+123:00:30")
   (formatz-should-equal (fz-make-zone 123 0 30) "-123:00:30")
   (formatz-should-equal (fz-make+zone 120 0 4) "+120:00:04")
@@ -868,30 +868,30 @@ The functions in `pattern-mod' are composed left to right."
 ;; use the above test cases for multiple formats.
 
 (defun formatz-mod-del-colons (string)
-  "Returns STRING with any colons removed."
+  "Return STRING with any colons removed."
   (string-replace ":" "" string))
 
 (defun formatz-mod-add-00 (string)
-  "Returns STRING with \"00\" appended."
+  "Return STRING with \"00\" appended."
   (concat string "00"))
 
 (defun formatz-mod-add-colon00 (string)
-  "Returns STRING with \":00\" appended."
+  "Return STRING with \":00\" appended."
   (concat string ":00"))
 
 (defun formatz-mod-pad-r10 (string)
-  "Returns STRING padded on the right to 10 characters."
+  "Return STRING padded on the right to 10 characters."
   (concat string (make-string (- 10 (length string)) ?\s)))
 
 (defun formatz-mod-pad-r12 (string)
-  "Returns STRING padded on the right to 12 characters."
+  "Return STRING padded on the right to 12 characters."
   (concat string (make-string (- 12 (length string)) ?\s)))
 
 ;; Convenience macro for generating groups of test cases.
 
 (defmacro formatz-generate-tests
     (form-strings hour-mod mins-mod secs-mod big-mod secbig-mod)
-  "Defines tests for time formats FORM-STRINGS.
+  "Define tests for time formats FORM-STRINGS.
 FORM-STRINGS is a list of formats, each \"%z\" or some variation thereof.
 
 Each of the remaining arguments is an unquoted list of the form
@@ -925,7 +925,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
        ert-test-list
        (list
         `(ert-deftest ,(intern (concat "formatz-" form-string "-hhmm")) ()
-           ,(concat "Tests time-stamp format " form-string
+           ,(concat "Test time-stamp format " form-string
                    " with whole hours or minutes.")
            (should (equal (formatz ,form-string (fz-make+zone 0))
                           ,(car hour-mod)))
@@ -934,13 +934,13 @@ the other expected results for hours greater than 99 with non-zero seconds."
                           ,(car mins-mod)))
            (formatz-nonzero-minutes-helper ,form-string ',(cdr mins-mod)))
         `(ert-deftest ,(intern (concat "formatz-" form-string "-seconds")) ()
-           ,(concat "Tests time-stamp format " form-string
+           ,(concat "Test time-stamp format " form-string
                    " with offsets that have non-zero seconds.")
            (should (equal (formatz ,form-string (fz-make+zone 0 0 30))
                           ,(car secs-mod)))
            (formatz-nonzero-seconds-helper ,form-string ',(cdr secs-mod)))
         `(ert-deftest ,(intern (concat "formatz-" form-string "-threedigit")) ()
-           ,(concat "Tests time-stamp format " form-string
+           ,(concat "Test time-stamp format " form-string
                    " with offsets that are 100 hours or greater.")
            (should (equal (formatz ,form-string (fz-make+zone 100))
                           ,(car big-mod)))
@@ -981,7 +981,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
 ;; The legacy exception for %z in time-stamp will need to remain
 ;; through at least 2024 and Emacs 28.
 (ert-deftest formatz-%z-spotcheck ()
-  "Spot-checks internal implementation of time-stamp format %z."
+  "Spot-check internal implementation of time-stamp format %z."
   (should (equal (format-time-offset "%z" (fz-make+zone 0)) "+0000"))
   (should (equal (format-time-offset "%z" (fz-make+zone 0 30)) "+0030"))
   (should (equal (format-time-offset "%z" (fz-make+zone 0 0 30)) "+000030"))
@@ -1104,7 +1104,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
 ;;; Illegal %z formats
 
 (ert-deftest formatz-illegal-options ()
-  "Tests that illegal/nonsensical/ambiguous %z formats don't produce output."
+  "Test that illegal/nonsensical/ambiguous %z formats don't produce output."
   ;; multiple options
   (should (equal "" (formatz "%_-z" 0)))
   (should (equal "" (formatz "%-_z" 0)))

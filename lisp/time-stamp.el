@@ -5,8 +5,8 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Maintainer: Stephen Gildea <stepheng+emacs@gildea.com>
-;; Keywords: tools
+;; Author: Stephen Gildea <stepheng+emacs@gildea.com>
+;; Keywords: files, tools
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,20 +25,19 @@
 
 ;; A template in a file can be updated with a new time stamp when
 ;; you save the file.  For example:
-;;     static char *ts = "sdmain.c Time-stamp: <2020-04-18 14:10:21 gildea>";
+;;     static char *ts = "sdmain.c Time-stamp: <2024-04-18 14:10:21 gildea>";
 
 ;; To use time-stamping, add this line to your init file:
 ;;     (add-hook 'before-save-hook 'time-stamp)
 ;; Now any time-stamp templates in your files will be updated automatically.
 
-;; See the documentation for the functions `time-stamp'
-;; and `time-stamp-toggle-active' for details.
+;; See the documentation for the function `time-stamp' for details.
 
 ;;; Code:
 
 (defgroup time-stamp nil
   "Maintain last change time stamps in files edited by Emacs."
-  :group 'data
+  :group 'files
   :group 'extensions)
 
 
@@ -47,34 +46,34 @@
 This is a string, used verbatim except for character sequences beginning
 with %, as follows.
 
-%:A  weekday name: `Monday'             %#A gives uppercase: `MONDAY'
-%3a  abbreviated weekday: `Mon'         %#a gives uppercase: `MON'
-%:B  month name: `January'              %#B gives uppercase: `JANUARY'
-%3b  abbreviated month: `Jan'           %#b gives uppercase: `JAN'
-%02d day of month
-%02H 24-hour clock hour
-%02I 12-hour clock hour
-%02m month number
-%02M minute
-%#p  `am' or `pm'                       %P  gives uppercase: `AM' or `PM'
-%02S seconds
-%w   day number of week, Sunday is 0
-%02y 2-digit year                       %Y  4-digit year
-%Z   time zone name: `EST'              %#Z gives lowercase: `est'
-%5z  time zone offset: `-0500' (since Emacs 27; see note below)
+%:A   weekday name: `Monday'            %#A   gives uppercase: `MONDAY'
+%3a   abbreviated weekday: `Mon'        %#a   gives uppercase: `MON'
+%:B   month name: `January'             %#B   gives uppercase: `JANUARY'
+%3b   abbreviated month: `Jan'          %#b   gives uppercase: `JAN'
+%02d  day of month
+%02H  24-hour clock hour
+%02I  12-hour clock hour
+%02m  month number
+%02M  minute
+%#p   `am' or `pm'                      %P    gives uppercase: `AM' or `PM'
+%02S  seconds
+%w    day number of week, Sunday is 0
+%02y  2-digit year                      %Y    4-digit year
+%Z    time zone name: `EST'             %#Z   gives lowercase: `est'
+%5z   time zone offset: `-0500' (since Emacs 27; see note below)
 
 Non-date items:
-%%   a literal percent character: `%'
-%f   file name without directory        %F  absolute file name
-%l   login name                         %L  full name of logged-in user
-%q   unqualified host name              %Q  fully-qualified host name
-%h   mail host name
+%%    a literal percent character: `%'
+%f    file name without directory       %F    absolute file name
+%l    login name                        %L    full name of logged-in user
+%q    unqualified host name             %Q    fully-qualified host name
+%h    mail host name
 
 Decimal digits between the % and the type character specify the
 field width.  Strings are truncated on the right.
 A leading zero in the field width zero-fills a number.
 
-For example, to get the format used by the `date' command,
+For example, to get a common format used by the `date' command,
 use \"%3a %3b %2d %02H:%02M:%02S %Z %Y\".
 
 The values of non-numeric formatted items depend on the locale
@@ -266,20 +265,22 @@ If you were to change `time-stamp-pattern', `time-stamp-line-limit',
 `time-stamp-start', or `time-stamp-end' in your init file, you
 would be incompatible with other people's files.
 
-See also `time-stamp-count' and `time-stamp-inserts-lines'.
-
 Examples:
 
-\"-10/\" (sets only `time-stamp-line-limit')
+;; time-stamp-pattern: \"-10/\"
+    (sets only `time-stamp-line-limit')
 
-\"-9/^Last modified: %%$\" (sets `time-stamp-line-limit',
-`time-stamp-start' and `time-stamp-end')
+// time-stamp-pattern: \"-9/^Last modified: %%$\"
+    (sets `time-stamp-line-limit', `time-stamp-start' and `time-stamp-end')
 
-\"@set Time-stamp: %:B %1d, %Y$\" (sets `time-stamp-start',
-`time-stamp-format' and `time-stamp-end')
+@c time-stamp-pattern: \"@set Time-stamp: %:B %1d, %Y$\"
+    (sets `time-stamp-start', `time-stamp-format' and `time-stamp-end')
 
-\"newcommand{\\\\\\\\timestamp}{%%}\" (sets `time-stamp-start'
-and `time-stamp-end')")
+%% time-stamp-pattern: \"newcommand{\\\\\\\\timestamp}{%%}\"
+    (sets `time-stamp-start'and `time-stamp-end')
+
+
+See also `time-stamp-count' and `time-stamp-inserts-lines'.")
 ;;;###autoload(put 'time-stamp-pattern 'safe-local-variable 'stringp)
 
 
@@ -287,8 +288,8 @@ and `time-stamp-end')")
 ;;;###autoload
 (defun time-stamp ()
   "Update any time stamp string(s) in the buffer.
-This function looks for a time stamp template and updates it with
-the current date, time, and/or other info.
+Look for a time stamp template and update it with the current date,
+time, and/or other info.
 
 The template, which you manually create on one of the first 8 lines
 of the file before running this function, by default can look like
@@ -297,7 +298,7 @@ one of the following (your choice):
       Time-stamp: \" \"
 This function writes the current time between the brackets or quotes,
 by default formatted like this:
-      Time-stamp: <2020-08-07 17:10:21 gildea>
+      Time-stamp: <2024-08-07 17:10:21 gildea>
 
 Although you can run this function manually to update a time stamp
 once, usually you want automatic time stamp updating.
@@ -311,7 +312,7 @@ To enable automatic time-stamping for only a specific file, add
 this line to a local variables list near the end of the file:
     eval: (add-hook \\='before-save-hook \\='time-stamp nil t)
 
-If the file has no time-stamp template, this function does nothing.
+If the file has no time stamp template, this function does nothing.
 
 You can set `time-stamp-pattern' in a file's local variables list
 to customize the information in the time stamp and where it is written.
@@ -419,7 +420,7 @@ Returns the end point, which is where `time-stamp' begins the next search."
 	  (cond
 	   ((not time-stamp-active)
 	    (if time-stamp-warn-inactive
-		;; don't signal an error in a write-file-hook
+		;; don't signal an error in a hook
 		(progn
 		  (message "Warning: time-stamp-active is off; did not time-stamp buffer.")
 		  (sit-for 1))))
@@ -801,6 +802,8 @@ Suggests replacing OLD-FORM with NEW-FORM."
 ;; - The %_z format always outputs seconds, allowing all added padding
 ;;   to be spaces.  Without this rule, there would be no way to
 ;;   request seconds that worked for both 2- and 3-digit hours.
+;;   (We consider 3-digit hours not because such offsets are in use but
+;;   instead to guide our design toward consistency and extensibility.)
 ;; - Conflicting options are rejected, lest users depend
 ;;   on incidental behavior.
 ;;
@@ -843,7 +846,7 @@ Suggests replacing OLD-FORM with NEW-FORM."
                                                colon-count
                                                field-width
                                                offset-secs)
-  "Formats a time offset according to a %z variation.
+  "Format a time offset according to a %z variation.
 
 With no flags, the output includes hours and minutes: +-HHMM
 unless there is a non-zero seconds part, in which case the seconds
