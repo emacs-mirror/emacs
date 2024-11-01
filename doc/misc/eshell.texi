@@ -2255,11 +2255,6 @@ Treating the value as a file name, gets the file name excluding the
 final extension.  For example, @samp{foo/bar/baz.tar.gz(:r)} expands
 to @samp{foo/bar/baz.tar}.
 
-@item q
-Marks that the value should be interpreted by Eshell literally, so
-that any special characters like @samp{$} no longer have any special
-meaning.
-
 @item s/@var{pattern}/@var{replace}/
 Replaces the first instance of the regular expression @var{pattern}
 with @var{replace}.  Signals an error if no match is found.

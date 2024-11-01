@@ -121,7 +121,7 @@ The format of each entry is
     (?r . (lambda (lst) (mapcar #'file-name-sans-extension lst)))
     (?e . (lambda (lst) (mapcar #'file-name-extension lst)))
     (?t . (lambda (lst) (mapcar #'file-name-nondirectory lst)))
-    (?q . (lambda (lst) (mapcar #'eshell-escape-arg lst)))
+    (?q . #'identity)                   ; Obsolete as of Emacs 31.1.
     (?u . (lambda (lst) (seq-uniq lst)))
     (?o . (lambda (lst) (sort lst #'string-lessp)))
     (?O . (lambda (lst) (sort lst #'string-greaterp)))
@@ -197,7 +197,6 @@ FOR SINGLE ARGUMENTS, or each argument of a list of strings:
   t  basename
   e  file extension
   r  strip file extension
-  q  escape special characters
 
   S       split string at any whitespace character
   S/PAT/  split string at each occurrence of PAT

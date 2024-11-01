@@ -209,6 +209,7 @@ Eshell will expand special refs like \"#<ARG...>\" into
 
 (defsubst eshell-escape-arg (string)
   "Return STRING with the `escaped' property on it."
+  (declare (obsolete nil "31.1"))
   (if (stringp string)
       (add-text-properties 0 (length string) '(escaped t) string))
   string)
@@ -540,53 +541,46 @@ after are both returned."
     (when (= (1+ (point)) (point-max))
       (throw 'eshell-incomplete "\\"))
     (forward-char 2) ; Move one char past the backslash.
-    (let ((special-chars (if eshell-current-quoted
-                             eshell-special-chars-inside-quoting
-                           eshell-special-chars-outside-quoting)))
-      (cond
-       ;; Escaped newlines are extra-special: they expand to an empty
-       ;; token to allow for continuing Eshell commands across
-       ;; multiple lines.
-       ((eq (char-before) ?\n)
-        'eshell-empty-token)
-       ((memq (char-before) special-chars)
-        (list 'eshell-escape-arg (char-to-string (char-before))))
-       ;; If the char is in a quote, backslash only has special
-       ;; meaning if it is escaping a special char.  Otherwise, the
-       ;; result is the literal string "\c".
-       (eshell-current-quoted
-        (concat "\\" (char-to-string (char-before))))
-       (t
-        (char-to-string (char-before)))))))
+    (cond
+     ;; Escaped newlines are extra-special: they expand to an empty
+     ;; token to allow for continuing Eshell commands across
+     ;; multiple lines.
+     ((eq (char-before) ?\n)
+      'eshell-empty-token)
+     ;; If the char is in a quote, backslash only has special
+     ;; meaning if it is escaping a special char.  Otherwise, the
+     ;; result is the literal string "\c".
+     ((and eshell-current-quoted
+           (not (memq (char-before) eshell-special-chars-inside-quoting)))
+      (concat "\\" (char-to-string (char-before))))
+     (t
+      (char-to-string (char-before))))))
 
 (defun eshell-parse-literal-quote ()
   "Parse a literally quoted string.  Nothing has special meaning!"
-  (if (eq (char-after) ?\')
-      (let ((end (eshell-find-delimiter ?\' ?\')))
-	(if (not end)
-            (throw 'eshell-incomplete "'")
-	  (let ((string (buffer-substring-no-properties (1+ (point)) end)))
-	    (goto-char (1+ end))
-	    (while (string-match "''" string)
-	      (setq string (replace-match "'" t t string)))
-	    (list 'eshell-escape-arg string))))))
+  (when (eq (char-after) ?\')
+    (let ((end (eshell-find-delimiter ?\' ?\')))
+      (unless end
+        (throw 'eshell-incomplete "'"))
+      (let ((string (buffer-substring-no-properties (1+ (point)) end)))
+        (goto-char (1+ end))
+        (while (string-match "''" string)
+          (setq string (replace-match "'" t t string)))
+        string))))
 
 (defun eshell-parse-double-quote ()
   "Parse a double quoted string, which allows for variable interpolation."
   (when (eq (char-after) ?\")
     (let* ((end (eshell-find-delimiter ?\" ?\" nil nil t))
-	   (eshell-current-quoted t))
-      (if (not end)
-          (throw 'eshell-incomplete "\"")
-	(prog1
-	    (save-restriction
-	      (forward-char)
-	      (narrow-to-region (point) end)
-	      (let ((arg (eshell-parse-argument)))
-		(if (eq arg nil)
-		    ""
-		  (list 'eshell-escape-arg arg))))
-	  (goto-char (1+ end)))))))
+           (eshell-current-quoted t))
+      (unless end
+        (throw 'eshell-incomplete "\""))
+      (prog1
+          (save-restriction
+            (forward-char)
+            (narrow-to-region (point) end)
+            (or (eshell-parse-argument) ""))
+        (goto-char (1+ end))))))
 
 (defun eshell-unescape-inner-double-quote (bound)
   "Unescape escaped characters inside a double-quoted string.

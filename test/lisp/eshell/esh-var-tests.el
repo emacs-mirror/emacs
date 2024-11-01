@@ -342,15 +342,10 @@ nil, use FUNCTION instead."
   (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
     (eshell-command-result-equal "echo \"$eshell-test-value[0]\""
                                  "zero")
-    ;; FIXME: These tests would use the 0th index like the other tests
-    ;; here, but evaluating the command just above adds an `escaped'
-    ;; property to the string "zero".  This results in the output
-    ;; printing the string properties, which is probably the wrong
-    ;; behavior.  See bug#54486.
-    (eshell-command-result-equal "echo \"$eshell-test-value[1 2]\""
-                                 "(\"one\" \"two\")")
-    (eshell-command-result-equal "echo \"$eshell-test-value[1 2 4]\""
-                                 "(\"one\" \"two\" \"four\")")))
+    (eshell-command-result-equal "echo \"$eshell-test-value[0 2]\""
+                                 "(\"zero\" \"two\")")
+    (eshell-command-result-equal "echo \"$eshell-test-value[0 2 4]\""
+                                 "(\"zero\" \"two\" \"four\")")))
 
 (ert-deftest esh-var-test/quote-interp-var-indices-subcommand ()
   "Interpolate list variable with subcommand expansion for indices inside double-quotes."
@@ -359,11 +354,9 @@ nil, use FUNCTION instead."
     (eshell-command-result-equal
      "echo \"$eshell-test-value[${*echo 0}]\""
      "zero")
-    ;; FIXME: These tests would use the 0th index like the other tests
-    ;; here, but see above.
     (eshell-command-result-equal
-     "echo \"$eshell-test-value[${*echo 1} ${*echo 2}]\""
-     "(\"one\" \"two\")")))
+     "echo \"$eshell-test-value[${*echo 0} ${*echo 2}]\""
+     "(\"zero\" \"two\")")))
 
 (ert-deftest esh-var-test/quoted-interp-var-split-indices ()
   "Interpolate string variable with indices inside double-quotes."
