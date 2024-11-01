@@ -556,6 +556,7 @@ implemented via rewriting, rather than as a function."
 The first of NAMES should be the positive form, and the second the
 negative.  It's not likely that users should ever need to call this
 function."
+  (declare (obsolete nil "31.1"))
   (unless test
     (error "Missing test for `%s' command" keyword))
 
@@ -586,6 +587,12 @@ function."
   ;; Finally, create the form that represents this structured command.
   `(,func ,test ,@body))
 
+(defun eshell-silence-test-command (terms)
+  "If TERMS is a subcommand, wrap it in `eshell-commands' to silence output."
+  (if (memq (car-safe terms) '(eshell-as-subcommand eshell-lisp-command))
+      `(eshell-command-success (eshell-commands ,terms t))
+    terms))
+
 (defun eshell-rewrite-while-command (terms)
   "Rewrite a `while' command into its equivalent Eshell command form.
 Because the implementation of `while' relies upon conditional
@@ -593,10 +600,13 @@ evaluation of its argument (i.e., use of a Lisp special form), it
 must be implemented via rewriting, rather than as a function."
   (when (and (stringp (car terms))
              (member (car terms) '("while" "until")))
-    (eshell-structure-basic-command
-     'while '("while" "until") (car terms)
-     (cadr terms)
-     (caddr terms))))
+    (unless (cadr terms)
+      (error "Missing test for `while' command"))
+    (let ((condition (eshell-silence-test-command (cadr terms))))
+      (unless (string= (car terms) "while")
+        (setq condition `(not ,condition)))
+      `(while ,condition
+         ,(caddr terms)))))
 
 (defun eshell-rewrite-if-command (terms)
   "Rewrite an `if' command into its equivalent Eshell command form.
@@ -605,18 +615,21 @@ evaluation of its argument (i.e., use of a Lisp special form), it
 must be implemented via rewriting, rather than as a function."
   (when (and (stringp (car terms))
              (member (car terms) '("if" "unless")))
-    (eshell-structure-basic-command
-     'if '("if" "unless") (car terms)
-     (cadr terms)
-     (caddr terms)
-     (if (equal (nth 3 terms) "else")
-         ;; If there's an "else" keyword, allow chaining together
-         ;; multiple "if" forms...
-         (or (eshell-rewrite-if-command (nthcdr 4 terms))
-             (nth 4 terms))
-       ;; ... otherwise, only allow a single "else" block (without the
-       ;; keyword) as before for compatibility.
-       (nth 3 terms)))))
+    (unless (cadr terms)
+      (error "Missing test for `while' command"))
+    (let ((condition (eshell-silence-test-command (cadr terms)))
+          (then (caddr terms))
+          (else (if (equal (nth 3 terms) "else")
+                    ;; If there's an "else" keyword, allow chaining
+                    ;; together multiple "if" forms...
+                    (or (eshell-rewrite-if-command (nthcdr 4 terms))
+                        (nth 4 terms))
+                  ;; ... otherwise, only allow a single "else" block
+                  ;; (without the keyword) as before for compatibility.
+                  (nth 3 terms))))
+      (unless (string= (car terms) "if")
+        (setq condition `(not ,condition)))
+      `(if ,condition ,then ,else))))
 
 (defun eshell-set-exit-info (status &optional result)
   "Set the exit status and result for the last command.
@@ -665,9 +678,10 @@ This means an exit code of 0."
           sep-terms (nreverse sep-terms))
     (while results
       (cl-assert (car sep-terms))
-      (setq final (eshell-structure-basic-command
-                   'if (string= (pop sep-terms) "&&") "if"
-                   (pop results) final)))
+      (setq final `(,(if (string= (pop sep-terms) "&&") 'and 'or)
+                    (eshell-command-success
+                     (eshell-deferrable ,(pop results)))
+                    ,final)))
     final))
 
 (defun eshell-parse-subcommand-argument ()
@@ -751,12 +765,12 @@ if none)."
 ;; `eshell-do-eval' [Iterative evaluation]:
 ;;
 ;; @ Don't use special forms that conditionally evaluate their
-;;   arguments, such as `let*', unless Eshell explicitly supports
-;;   them.  Eshell supports the following special forms: `catch',
-;;   `condition-case', `if', `let', `prog1', `progn', `quote', `setq',
-;;   `unwind-protect', and `while'.
+;;   arguments, such as `let*', unless Eshell explicitly supports them.
+;;   Eshell supports the following special forms: `and', `catch',
+;;   `condition-case', `if', `let', `or', `prog1', `progn', `quote',
+;;   `setq', `unwind-protect', and `while'.
 ;;
-;; @ The two `special' variables are `eshell-current-handles' and
+;; @ The two "special" variables are `eshell-current-handles' and
 ;;   `eshell-current-subjob-p'.  Bind them locally with a `let' if you
 ;;   need to change them.  Change them directly only if your intention
 ;;   is to change the calling environment.
@@ -802,6 +816,10 @@ returning it as (:eshell-background . PROCESSES)."
   `(let (eshell-current-subjob-p)
      (eshell-with-handles (,(not silent) 'append)
        ,object)))
+
+(defmacro eshell-command-success (command)
+  "Return non-nil if COMMAND exits successfully."
+  `(progn ,command (eshell-exit-success-p)))
 
 (defvar eshell-this-command-hook nil)
 
@@ -1182,6 +1200,18 @@ have been replaced by constants."
             (setcar form (car new-form))
             (setcdr form (cdr new-form))))
         (eshell-do-eval form synchronous-p))
+       ((memq (car form) '(and or))
+        (eshell-manipulate form (format-message "evaluating %s form" (car form))
+          (let* ((result (eshell-do-eval (car args) synchronous-p))
+                 (value (cadr result)))
+            (if (or (null (cdr args))
+                    (if (eq (car form) 'or) value (not value)))
+                ;; If this is the last sub-form or we short-circuited,
+                ;; just return the result.
+                result
+              ;; Otherwise, remove this sub-form and re-evaluate.
+              (setcdr form (cdr args))
+              (eshell-do-eval form synchronous-p)))))
        ((eq (car form) 'setcar)
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
 	(eval form))

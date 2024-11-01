@@ -176,6 +176,21 @@ bug#59469."
    (eshell-match-command-output "[ foo = bar ] && echo hi"
                                 "\\`\\'")))
 
+(ert-deftest esh-cmd-test/and-operator/output ()
+  "Test output with logical && operator."
+  (skip-unless (executable-find "sh"))
+  (with-temp-eshell
+   ;; Direct commands
+   (eshell-match-command-output "sh -c 'echo one; exit 1' && echo two"
+                                "\\`one\n\\'")
+   (eshell-match-command-output "echo one && echo two"
+                                "\\`one\ntwo\n\\'")
+   ;; Subcommands
+   (eshell-match-command-output "{ sh -c 'echo one; exit 1' } && echo two"
+                                "\\`one\n\\'")
+   (eshell-match-command-output "{ echo one } && echo two"
+                                "\\`one\ntwo\n\\'")))
+
 (ert-deftest esh-cmd-test/or-operator ()
   "Test logical || operator."
   (skip-unless (executable-find "["))
@@ -184,6 +199,21 @@ bug#59469."
                                 "\\`\\'")
    (eshell-match-command-output "[ foo = bar ] || echo hi"
                                 "hi\n")))
+
+(ert-deftest esh-cmd-test/or-operator/output ()
+  "Test output with logical || operator."
+  (skip-unless (executable-find "sh"))
+  (with-temp-eshell
+   ;; Direct commands
+   (eshell-match-command-output "sh -c 'echo one; exit 1' || echo two"
+                                "\\`one\ntwo\n\\'")
+   (eshell-match-command-output "echo one || echo two"
+                                "\\`one\n\\'")
+   ;; Subcommands
+   (eshell-match-command-output "{ sh -c 'echo one; exit 1' } || echo two"
+                                "\\`one\ntwo\n\\'")
+   (eshell-match-command-output "{ echo one } || echo two"
+                                "\\`one\n\\'")))
 
 
 ;; Pipelines
