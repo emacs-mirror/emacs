@@ -446,7 +446,11 @@ See `color-desaturate-hsl'."
 Given a color defined in terms of hue, saturation, and luminance
 \(arguments H, S, and L), return a color that is PERCENT lighter.
 Returns a list (HUE SATURATION LUMINANCE)."
-  (list H S (color-clamp (+ L (/ percent 100.0)))))
+  (let ((p (/ percent 100.0)))
+    (if (> p 0.0)
+        (setq L (* L (- 1.0 p)))
+      (setq p (- (* L (abs p)))))
+    (list H S (color-clamp (+ L p)))))
 
 (defun color-lighten-name (name percent)
   "Make a color with a specified NAME lighter by PERCENT.
