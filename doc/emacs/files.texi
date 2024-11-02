@@ -411,7 +411,7 @@ that was visited in the buffer.
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
 * Shadowing: File Shadowing.  Copying files to ``shadows'' automatically.
-* Time Stamps::         Emacs can update time stamps on saved files.
+* Time Stamps::         Emacs can update time stamps when a file is saved.
 @end menu
 
 @node Save Commands
@@ -997,33 +997,90 @@ File Shadowing is not available on MS Windows.
 @subsection Updating Time Stamps Automatically
 @cindex time stamps
 @cindex modification dates
-@cindex locale, date format
+@cindex last modified time
 
-You can arrange to put a time stamp in a file, so that it is updated
-automatically each time you edit and save the file.  The time stamp
-must be in the first eight lines of the file, and you should insert it
-like this:
+You can arrange to have a time stamp in a file be updated
+automatically each time you save the file.
+(A time stamp may also be called a date stamp or a last modified time.)
+Having a time stamp in the text of a file ensures that the time the file
+was written will be preserved even if the file is copied or transformed
+in a way that loses the file system's modification time.
+
+There are two steps to setting up automatic time stamping.
+First, you need to have a time stamp template
+somewhere in the first eight lines of the file.
+The template looks like this:
 
 @example
 Time-stamp: <>
 @end example
 
 @noindent
-or like this:
+or (your choice) like this:
 
 @example
 Time-stamp: " "
 @end example
 
+@noindent
+When time-stamping, Emacs will write the current time, date, and/or
+other info between the brackets or quotes.
+
 @findex time-stamp
-  Then add the function @code{time-stamp} to the hook
-@code{before-save-hook} (@pxref{Hooks}).  When you save the file, this
-function then automatically updates the time stamp with the current
-date and time.  You can also use the command @kbd{M-x time-stamp} to
-update the time stamp manually.  By default the time stamp is
+Second, add the function @code{time-stamp}
+to @code{before-save-hook} (@pxref{Hooks}).
+To do this, either customize the option @code{before-save-hook}
+(with @kbd{M-x customize-option}, @pxref{Specific Customization})
+or edit your init file adding this line:
+
+@example
+(add-hook 'before-save-hook 'time-stamp)
+@end example
+
+To enable automatic time-stamping for only a specific file, add the
+following line to a local variables list
+(@pxref{Specifying File Variables}) near the end of the file:
+
+@example
+eval: (add-hook 'before-save-hook 'time-stamp nil t)
+@end example
+
+To update the current buffer's time stamp once
+immediately, use the command @kbd{M-x time-stamp}.
+
+@vindex time-stamp-pattern
+To customize the time stamp in a particular file, set the
+variable @code{time-stamp-pattern} in that file's local variables list.
+You can change where the time stamp starts and ends and how the dynamic
+information is to be formatted; see the variable's built-in
+documentation for details.
+As a simple example, if this line occurs near the top of a file:
+
+@example
+\newcommand@{\yearpublished@}@{@}
+@end example
+
+@noindent
+then the following at the end of the file tells @code{time-stamp} how to
+identify and update that custom template:
+
+@example
+@group
+%% Local variables:
+%% time-stamp-pattern: "@{.yearpublished@}@{%Y@}"
+%% End:
+@end group
+@end example
+
+@vindex time-stamp-format
+By default the time stamp is
 formatted according to your locale setting (@pxref{Environment}) and
 time zone (@pxref{Time of Day,,, elisp, The Emacs Lisp Reference
-Manual}).  For customizations, see the Custom group @code{time-stamp}.
+Manual}).
+See the built-in documentation for the variable @code{time-stamp-format}
+for specifics and other variables that affect the formatting.
+
+For customizations, see the Custom group @code{time-stamp}.
 
 @node Reverting
 @section Reverting a Buffer
