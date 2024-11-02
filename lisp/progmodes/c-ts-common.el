@@ -336,7 +336,7 @@ and /* */ comments.  SOFT works the same as in
 	   (delete-horizontal-space)
 	   (if soft
 	       (insert-and-inherit ?\n)
-	     (newline (if allow-auto-fill nil 1))))))
+	     (newline  1)))))
     (cond
      ;; Line starts with //, or ///, or ////...
      ;; Or //! (used in rust).
