@@ -632,8 +632,10 @@ is @code{nil}, which means the character itself.
 Corresponds to Unicode language- and context-independent special upper-casing
 rules.  The value of this property is a string (which may be empty).  For
 example mapping for U+00DF @sc{latin small letter sharp s} is
-@code{"SS"}.  For characters with no special mapping, the value is @code{nil}
-which means @code{uppercase} property needs to be consulted instead.
+@code{"SS"}.  This mapping overrides the @code{uppercase} property, and
+thus the current case table.  For characters with no special mapping,
+the value is @code{nil}, which means @code{uppercase} property needs to
+be consulted instead.
 
 @item special-lowercase
 Corresponds to Unicode language- and context-independent special
@@ -641,16 +643,19 @@ lower-casing rules.  The value of this property is a string (which may
 be empty).  For example mapping for U+0130 @sc{latin capital letter i
 with dot above} the value is @code{"i\u0307"} (i.e. 2-character string
 consisting of @sc{latin small letter i} followed by U+0307
-@sc{combining dot above}).  For characters with no special mapping,
-the value is @code{nil} which means @code{lowercase} property needs to
-be consulted instead.
+@sc{combining dot above}).  This mapping overrides the @code{lowercase}
+property, and thus the current case table.  For characters with no
+special mapping, the value is @code{nil}, which means @code{lowercase}
+property needs to be consulted instead.
 
 @item special-titlecase
 Corresponds to Unicode unconditional special title-casing rules.  The value of
 this property is a string (which may be empty).  For example mapping for
-U+FB01 @sc{latin small ligature fi} the value is @code{"Fi"}.  For
-characters with no special mapping, the value is @code{nil} which means
-@code{titlecase} property needs to be consulted instead.
+U+FB01 @sc{latin small ligature fi} the value is @code{"Fi"}.  This
+mapping overrides the @code{titlecase} property, and thus the current
+case table.  For characters with no special mapping, the value is
+@code{nil}, which means @code{titlecase} property needs to be consulted
+instead.
 @end table
 
 @defun get-char-code-property char propname

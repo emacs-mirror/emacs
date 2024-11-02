@@ -1591,9 +1591,12 @@ using @code{string} function, before being passed to one of the casing
 functions.  Of course, no assumptions on the length of the result may
 be made.
 
-  Mapping for such special cases are taken from
-@code{special-uppercase}, @code{special-lowercase} and
-@code{special-titlecase} @xref{Character Properties}.
+  Other characters can also have special case-conversion rules.  They
+all have non-@code{nil} character properties @code{special-uppercase},
+@code{special-lowercase} or @code{special-titlecase} (@pxref{Character
+Properties}) defined by the Unicode Standard.  These properties define
+special case-conversion rules which override the current case table
+(@pxref{Case Tables}).
 
   @xref{Text Comparison}, for functions that compare strings; some of
 them ignore case differences, or can optionally ignore case differences.
@@ -1634,14 +1637,32 @@ correspondence.  There may be two different lower case letters with the
 same upper case equivalent.  In these cases, you need to specify the
 maps for both lower case and upper case.
 
-  The extra table @var{canonicalize} maps each character to a canonical
+  Some characters have special case-conversion rules defined for them,
+which by default override the current case table.  These characters have
+non-@code{nil} character properties @code{special-uppercase},
+@code{special-lowercase} or @code{special-titlecase} (@pxref{Character
+Properties}) defined by the Unicode Standard.  An example is U+00DF
+LATIN SMALL LETTER SHARP S, @ss{}, which by default up-cases to the
+string @code{"SS"}, not to U+1E9E LATIN CAPITAL LETTER SHARP S@.  To
+force these characters follow the case-table conversions, set the
+corresponding Unicode property to @code{nil}:
+
+@example
+ (upcase "@ss{}")
+  => "SS"
+ (put-char-code-property ?@ss{} 'special-uppercase nil)
+ (upcase "@ss{}")
+  => "ẞ"
+@end example
+
+  The extra slot @var{canonicalize} of a case table maps each character to a canonical
 equivalent; any two characters that are related by case-conversion have
 the same canonical equivalent character.  For example, since @samp{a}
 and @samp{A} are related by case-conversion, they should have the same
 canonical equivalent character (which should be either @samp{a} for both
 of them, or @samp{A} for both of them).
 
-  The extra table @var{equivalences} is a map that cyclically permutes
+  The extra slot @var{equivalences} is a map that cyclically permutes
 each equivalence class (of characters with the same canonical
 equivalent).  (For ordinary @acronym{ASCII}, this would map @samp{a} into
 @samp{A} and @samp{A} into @samp{a}, and likewise for each set of
