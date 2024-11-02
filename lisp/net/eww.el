@@ -664,8 +664,8 @@ HEADERS is unused."
     (let ((case-fold-search t))
       (save-excursion
         (goto-char (point-min))
-        ;; match basic <!doctype html> and also legacy variants as
-        ;; specified in link above - being purposely lax about it
+        ;; Match basic "<!doctype html>" and also legacy variants as
+        ;; specified in link above -- being purposely lax about it.
         (when (search-forward "<!doctype html" nil t)
           "text/html")))))
 
