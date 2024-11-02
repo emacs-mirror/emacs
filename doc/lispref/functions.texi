@@ -1510,10 +1510,7 @@ indirect-function}.
 @kindex void-function
 This returns the object in the function cell of @var{symbol}.  It does
 not check that the returned object is a legitimate function.
-
-If the function cell is void, the return value is @code{nil}.  It is
-impossible to distinguish between a function cell that is void and one
-set to @code{nil}.
+If the function is void, the return value is @code{nil}.
 
 @example
 @group
@@ -1533,9 +1530,9 @@ set to @code{nil}.
 @end defun
 
 @cindex void function cell
-  If you have never given a symbol any function definition, we say
-that that symbol's function cell is @dfn{void}.  In other words, the
-function cell does not have any Lisp object in it.  If you try to call
+  If you have never given a symbol any function definition, its function
+cell contains the default value @code{nil} and we say
+that that function is @dfn{void}.  If you try to call
 the symbol as a function, Emacs signals a @code{void-function} error.
 
   Unlike with void variables (@pxref{Void Variables}), a symbol's

@@ -33,7 +33,7 @@ incorrectly in rare cases.
 
 ---
 ** New configuration option '--disable-gc-mark-trace'.
-This disables the GC mark trace buffer for about 5 % better garbage
+This disables the GC mark trace buffer for about 5% better garbage
 collection performance.  Doing so may make it more difficult for Emacs
 developers to help finding GC-related bugs that you run into, which is
 why the mark trace buffer is enabled by default.

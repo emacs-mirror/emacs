@@ -100,11 +100,11 @@ the contents of a symbol's function cell, use the function
 property list.  To get a symbol's property list, use the function
 @code{symbol-plist}.  @xref{Symbol Properties}.
 
-  The function cell or the value cell may be @dfn{void}, which means
-that the cell does not reference any object.  (This is not the same
-thing as holding the symbol @code{void}, nor the same as holding the
-symbol @code{nil}.)  Examining a function or value cell that is void
-results in an error, such as @samp{Symbol's value as variable is void}.
+  The value cell may be @dfn{void}, which means that the cell does not
+reference any object.  (This is not the same thing as holding the symbol
+@code{void}, nor the same as holding the symbol @code{nil}.)  Examining
+a value cell that is void results in an error, such as @samp{Symbol's
+value as variable is void}.
 
   Because each symbol has separate value and function cells, variables
 names and function names do not conflict.  For example, the symbol
