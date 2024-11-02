@@ -2962,12 +2962,12 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
                p->which, p->cursor_p, p->overlay_p, p->wd, p->h, p->dh);
 
   /* Clear screen unless overlay.  */
-  if ( !p->overlay_p )
+  if (!p->overlay_p)
     {
       /* Work out the rectangle we will need to clear.  */
       clearRect = NSMakeRect (p->x, p->y, p->wd, p->h);
 
-      if ( p->bx >= 0 )
+      if (p->bx >= 0)
         clearRect = NSUnionRect (clearRect, NSMakeRect (p->bx, p->by, p->nx, p->ny));
 
       /* Handle partially visible rows.  */
@@ -2976,7 +2976,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       /* The visible portion of imageRect will always be contained
 	 within clearRect.  */
       ns_focus (f, &clearRect, 1);
-      if ( !NSIsEmptyRect (clearRect) )
+      if (!NSIsEmptyRect (clearRect))
         {
           NSTRACE_RECT ("clearRect", clearRect);
 
