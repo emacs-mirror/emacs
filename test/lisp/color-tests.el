@@ -62,6 +62,12 @@
   (should (equal (color-complement "#ffffffffffff") '(0.0 0.0 0.0)))
   (should (equal (color-complement "red") '(0.0 1.0 1.0))))
 
+(ert-deftest color-tests-blend ()
+  (should (equal (color-blend '(1.0 0.0 0.0) '(0.0 1.0 0.0)) '(0.5 0.5 0.0)))
+  (should (equal (color-blend '(1.0 1.0 1.0) '(0.0 1.0 0.0)) '(0.5 1.0 0.5)))
+  (should (equal (color-blend '(0.0 0.39215686274509803 0.0) '(0.9607843137254902 0.8705882352941177 0.7019607843137254))
+                 '(0.4803921568627451 0.6313725490196078 0.3509803921568627))))
+
 (ert-deftest color-tests-gradient ()
   (should-not (color-gradient '(0 0 0) '(255 255 255) 0))
   (should

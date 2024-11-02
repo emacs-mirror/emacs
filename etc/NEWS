@@ -732,6 +732,11 @@ restore the old behavior, you can set 'eshell-pwd-convert-function' to
 This function natively-compiles all Lisp files in a directory and in its
 sub-directories, recursively, which were not already natively-compiled.
 
+---
+** New function 'color-blend'.
+This function takes two RGB lists and optional ALPHA and returns an RGB
+list whose elements are blended in linear space proportional to ALPHA.
+
 +++
 ** The 'defcustom' ':local' keyword can now be 'permanent-only'.
 This means that the variable's 'permanent-local' property is set to t,
