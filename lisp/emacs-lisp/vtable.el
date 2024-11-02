@@ -213,17 +213,11 @@ See info node `(vtable)Top' for vtable documentation."
                   (funcall accessor face2)
                 (plist-get face2 slot))))
     (if (and col1 col2)
-        (vtable--color-blend col1 col2)
+        (apply #'color-rgb-to-hex
+               `(,@(color-blend (color-name-to-rgb col1)
+                                (color-name-to-rgb col2))
+                 2))
       (or col1 col2))))
-
-;;; FIXME: This is probably not the right way to blend two colors, is
-;;; it?
-(defun vtable--color-blend (color1 color2)
-  (cl-destructuring-bind (r g b)
-      (mapcar (lambda (n) (* (/ n 2) 255.0))
-              (cl-mapcar #'+ (color-name-to-rgb color1)
-                         (color-name-to-rgb color2)))
-    (format "#%02X%02X%02X" r g b)))
 
 ;;; Interface utility functions.
 
