@@ -400,12 +400,6 @@ substring that does not include newlines."
     ;; Keeping a work buffer around is more efficient than creating a
     ;; new temporary buffer.
     (with-work-buffer
-      ;; If `display-line-numbers' is enabled in internal
-      ;; buffers (e.g. globally), it breaks width calculation
-      ;; (bug#59311).  Disable `line-prefix' and `wrap-prefix',
-      ;; for the same reason.
-      (setq display-line-numbers nil
-            line-prefix nil wrap-prefix nil)
       (if buffer
           (setq-local face-remapping-alist
                       (with-current-buffer buffer
@@ -414,10 +408,17 @@ substring that does not include newlines."
       ;; Avoid deactivating the region as side effect.
       (let (deactivate-mark)
         (insert string))
+      ;; If `display-line-numbers' is enabled in internal
+      ;; buffers (e.g. globally), it breaks width calculation
+      ;; (bug#59311).  Disable `line-prefix' and `wrap-prefix',
+      ;; for the same reason.
+      (add-text-properties
+       (point-min) (point-max) '(display-line-numbers-disable t))
       ;; Prefer `remove-text-properties' to `propertize' to avoid
       ;; creating a new string on each call.
       (remove-text-properties
        (point-min) (point-max) '(line-prefix nil wrap-prefix nil))
+      (setq line-prefix nil wrap-prefix nil)
       (car (buffer-text-pixel-size nil nil t)))))
 
 ;;;###autoload
