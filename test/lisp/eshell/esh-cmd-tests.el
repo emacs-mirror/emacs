@@ -319,8 +319,15 @@ processes correctly."
 (ert-deftest esh-cmd-test/for-loop ()
   "Test invocation of a for loop."
   (with-temp-eshell
-   (eshell-match-command-output "for i in 5 { echo $i }"
-                                "5\n")))
+    (eshell-match-command-output "for i in 1 2 { echo $i }"
+                                 "1\n2\n")))
+
+(ert-deftest esh-cmd-test/for-loop-string ()
+  "Test invocation of a for loop with complex string arguments."
+  (let ((eshell-test-value "X"))
+    (with-temp-eshell
+      (eshell-match-command-output "for i in a b$eshell-test-value { echo $i }"
+                                   "a\nbX\n"))))
 
 (ert-deftest esh-cmd-test/for-loop-list ()
   "Test invocation of a for loop iterating over a list."
@@ -328,7 +335,13 @@ processes correctly."
    (eshell-match-command-output "for i in (list 1 2 (list 3 4)) { echo $i }"
                                 "1\n2\n(3 4)\n")))
 
-(ert-deftest esh-cmd-test/for-loop-multiple-args ()
+(ert-deftest esh-cmd-test/for-loop-vector ()
+  "Test invocation of a for loop iterating over a vector."
+  (with-temp-eshell
+    (eshell-match-command-output "for i in `[1 2 3] { echo $i }"
+                                 "1\n2\n3\n")))
+
+(ert-deftest esh-cmd-test/for-loop-mixed-args ()
   "Test invocation of a for loop iterating over multiple arguments."
   (with-temp-eshell
    (eshell-match-command-output "for i in 1 2 (list 3 4) { echo $i }"
@@ -347,13 +360,6 @@ processes correctly."
      (eshell-match-command-output
       "echo $name; for name in 3 { echo $name }; echo $name"
       "env-value\n3\nenv-value\n"))))
-
-(ert-deftest esh-cmd-test/for-loop-for-items-shadow ()
-  "Test that the variable `for-items' isn't shadowed inside for loops."
-  (with-temp-eshell
-   (with-no-warnings (setq-local for-items "hello"))
-   (eshell-match-command-output "for i in 1 { echo $for-items }"
-                                "hello\n")))
 
 (ert-deftest esh-cmd-test/for-loop-lisp-body ()
   "Test invocation of a for loop with a Lisp body form."
