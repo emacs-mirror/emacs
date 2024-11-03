@@ -2346,10 +2346,7 @@ enough space based on your settings and frame size." prefix-keys)
           (when (cdr page-echo) (funcall (cdr page-echo)))
           (which-key--show-popup (cons height width)))))
     ;; used for paging at top-level
-    (if (fboundp 'set-transient-map)
-        (set-transient-map (which-key--get-popup-map))
-      (with-no-warnings
-        (set-temporary-overlay-map (which-key--get-popup-map))))))
+    (set-transient-map (which-key--get-popup-map))))
 
 ;;; Paging functions
 
