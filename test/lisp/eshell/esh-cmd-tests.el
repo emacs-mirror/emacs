@@ -341,6 +341,21 @@ processes correctly."
     (eshell-match-command-output "for i in `[1 2 3] { echo $i }"
                                  "1\n2\n3\n")))
 
+(ert-deftest esh-cmd-test/for-loop-range ()
+  "Test invocation of a for loop iterating over a range."
+  (with-temp-eshell
+    (eshell-match-command-output "for i in 1..5 { echo $i }"
+                                 "1\n2\n3\n4\n")
+    (let ((eshell-test-value 2))
+      (eshell-match-command-output "for i in $eshell-test-value..5 { echo $i }"
+                                   "2\n3\n4\n"))
+    ;; Make sure range syntax only work when it's part of the literal
+    ;; syntax; a variable expanding to something that looks like a range
+    ;; doesn't count.
+    (let ((eshell-test-value "1..5"))
+      (eshell-match-command-output "for i in $eshell-test-value { echo $i }"
+                                   "1..5\n")))))
+
 (ert-deftest esh-cmd-test/for-loop-mixed-args ()
   "Test invocation of a for loop iterating over multiple arguments."
   (with-temp-eshell

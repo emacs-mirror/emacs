@@ -530,7 +530,19 @@ the second is ignored."
   "Iterate over the elements of each sequence in ARGS.
 If ARGS is not a sequence, treat it as a list of one element."
   (dolist (arg args)
+    (when (eshell--range-string-p arg)
+      (setq arg (eshell--string-to-range arg)))
     (cond
+     ((eshell-range-p arg)
+      (let ((i (eshell-range-begin arg))
+            (end (eshell-range-end arg)))
+        ;; NOTE: We could support unbounded ranges here, but those
+        ;; aren't very easy to use in Eshell yet.  (We'd need something
+        ;; like the "break" statement for "for" loops.)
+        (cl-assert (and i end))
+        (while (< i end)
+          (iter-yield i)
+          (cl-incf i))))
      ((stringp arg)
       (iter-yield arg))
      ((listp arg)

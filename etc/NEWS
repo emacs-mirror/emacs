@@ -281,6 +281,12 @@ where to send the standard error output.  See the "(eshell) Entry
 Points" node in the Eshell manual for more details.
 
 +++
+*** You can now loop over ranges of integers with the Eshell 'for' command.
+When passing a range like 'BEGIN..END' to the Eshell 'for' command,
+Eshell will now iterate over each integer between BEGIN and END, not
+including END.
+
++++
 *** Conditional statements in Eshell now use an 'else' keyword.
 Eshell now prefers the following form when writing conditionals:
 

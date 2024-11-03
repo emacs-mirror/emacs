@@ -1761,11 +1761,15 @@ satisfied.
 Repeatedly evaluate @var{subcommand} until @var{conditional} is
 satisfied.
 
-@item for @var{var} in @var{list}@dots{} @var{subcommand}
-Iterate over each element of @var{list}, storing the element in
-@var{var} and evaluating @var{subcommand}.  If @var{list} is not a list,
-treat it as a list of one element.  If you specify multiple @var{lists},
-this will iterate over each of them in turn.
+@item for @var{var} in @var{sequence}@dots{} @var{subcommand}
+Iterate over each element of @var{sequence}, storing the element in
+@var{var} and evaluating @var{subcommand}.  If @var{sequence} is a
+range of the form @code{@var{begin}..@var{end}}, iterate over each
+integer between @var{begin} and @var{end}, not including @var{end}.  If
+@var{sequence} is not a sequence, treat it as a list of one element.
+
+If you specify multiple @var{sequences}, this will iterate over each of
+them in turn.
 
 @end table
 
