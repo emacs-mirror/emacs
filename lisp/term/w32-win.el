@@ -488,6 +488,8 @@ also be textual."
    (mapconcat #'identity w32--textual-mime-types "\\|")
         (symbol-name mime-type)))
 
+(declare-function w32--get-clipboard-data-media "w32select.c")
+
 (defun w32--get-selection (&optional type data-type)
   (cond ((and (eq type 'CLIPBOARD)
               (eq data-type 'STRING))
