@@ -164,6 +164,11 @@ pair with 'completing-read', and removes it from the translation table.
 *** Emacs now supports Unicode version 16.0.
 
 ---
+*** New input method 'greek-polytonic'.
+This input method has support for polytonic and archaic Greek
+characters.
+
+---
 *** New language-environment and input method for Tifinagh.
 The Tifinagh script is used to write the Berber languages.
 
