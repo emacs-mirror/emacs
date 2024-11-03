@@ -178,6 +178,17 @@ characters.
 The Tifinagh script is used to write the Berber languages.
 
 ---
+*** New input methods for Northern Iroquoian languages.
+Input methods are now implemented for Haudenosaunee languages in the
+Northern Iroquoian language family: 'mohawk-postfix' (Mohawk
+[Kanien’kéha / Onkwehonwehnéha]), 'oneida-postfix' (Oneida [Onʌyota:ká:
+/ Ukwehuwehnéha]), 'cayuga-postfix' (Cayuga [Gayogo̱ho:nǫhnéha:ˀ]),
+'onondaga-postfix (Onondaga [[Onųdaʔgegáʔ]), and `seneca-postfix'
+[Onödowá’ga:’]).  Additionally, there is a general-purpose
+'haudenosaunee-postfix' input method to facilitate writing in the
+orthographies of the five languages simultaneously.
+
+---
 ** 'visual-wrap-prefix-mode' now supports variable-pitch fonts.
 When using 'visual-wrap-prefix-mode' in buffers with variable-pitch
 fonts, the wrapped text will now be lined up correctly so that it's
