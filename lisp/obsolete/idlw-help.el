@@ -6,6 +6,7 @@
 ;;          Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: idlwave
+;; Obsolete-since: 31.1
 
 ;; This file is part of GNU Emacs.
 
@@ -23,6 +24,11 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; NOTE: IDLWAVE has been moved to GNU ELPA.  The version bundled with
+;;       Emacs is out-of-date, marked as obsolete, and will be removed
+;;       in a future release.  Please use `M-x package-list' to install
+;;       IDLWAVE from GNU ELPA instead of using this version.
 
 ;; The help link information for IDLWAVE's online help feature for
 ;; system routines is extracted automatically from the IDL
