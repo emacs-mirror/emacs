@@ -3900,7 +3900,7 @@ you specify /."
 					       "sh" nil errbuf nil "-c"
 					       (concat cmd append item)))
 					0
-  	                                1)))
+                                      1)))
 		    ;;
 		    ;; Append additional tags
 		    (setq append " --append ")
@@ -4610,7 +4610,7 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
     (if (setq master-elt (assoc master-link linkfiles))
 	(if (eq (car linkfiles) master-elt)
 	    linkfiles
- 	  (cons master-elt (delq master-elt linkfiles)))
+	  (cons master-elt (delq master-elt linkfiles)))
       (push (list master-link) linkfiles))))
 
 (defun idlwave-convert-xml-clean-statement-aliases (aliases)
@@ -6326,7 +6326,7 @@ ARROW:  Location of the arrow"
   (idlwave-routines)
   (let* (;(bos (save-excursion (idlwave-beginning-of-statement) (point)))
          (bos (save-excursion (idlwave-start-of-substatement 'pre) (point)))
- 	 (func-entry (idlwave-what-function bos))
+         (func-entry (idlwave-what-function bos))
          (func (car func-entry))
          (func-class (nth 1 func-entry))
          (func-arrow (nth 2 func-entry))
