@@ -4831,9 +4831,9 @@ to make it easier to give an @code{enum} indentation like that of a
 @ssindex enum-intro
 @ssindex enum-close
 @ssindex enum-entry
-Line 2 is assigned @code{enum-open} sytax, and line 6
+Line 2 is assigned @code{enum-open} syntax, and line 6
 @code{enum-close}.  The first enum element on line 3 is assigned
-@code{enum-intro} sytax, and the remaining elements, on lines 4 and 5
+@code{enum-intro} syntax, and the remaining elements, on lines 4 and 5
 are assigned @code{enum-entry}.
 
 When the first enum element follows the @samp{@{} of the @code{enum},

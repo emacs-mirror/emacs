@@ -3667,7 +3667,7 @@ the compilation was successful return the compiled function."
   "Native compile if necessary all the .el files present in DIRECTORY.
 Each .el file is native-compiled if the corresponding .eln file is not
 found in any directory mentioned in `native-comp-eln-load-path'.
-The search within DIRECTORY is perfomed recursively."
+The search within DIRECTORY is performed recursively."
   (mapc (lambda (file)
 	  (unless (comp-lookup-eln file)
 	    (native-compile file)))

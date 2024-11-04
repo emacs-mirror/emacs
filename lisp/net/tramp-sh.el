@@ -3754,7 +3754,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 
       ;; When `tramp-mode' is not enabled, or the file name is not a
       ;; remote file name, we don't do anything.  Same for default
-      ;; file namne handlers.
+      ;; file name handlers.
       (tramp-run-real-handler operation args))))
 
 (defun tramp-sh-handle-file-notify-add-watch (file-name flags _callback)

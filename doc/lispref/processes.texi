@@ -2718,7 +2718,7 @@ If non-@code{nil}, the host's capability string.
 @item :type @var{symbol}
 The connection type: @samp{plain} or @samp{tls}.
 @item :error @var{symbol}
-A string describing any error encountered when perfoming
+A string describing any error encountered when performing
 @acronym{STARTTLS} upgrade.
 @end table
 

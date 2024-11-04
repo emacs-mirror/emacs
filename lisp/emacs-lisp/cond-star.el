@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; This library implements `cond*', an alternative to 'pcase'.
+;; This library implements `cond*', an alternative to `pcase'.
 
 ;; Here is the list of functions the generated code is known to call:
 ;; car, cdr, car-safe, cdr-safe, nth, nthcdr, null, eq, equal, eql, =,

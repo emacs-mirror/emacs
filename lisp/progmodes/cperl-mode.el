@@ -7894,7 +7894,7 @@ LEVEL us the current level during the recursive calls."
      ;;"[*/+-|&<.]+="
      )
    "\\|")
-  "Lisp Regular expression for things regularly occuring in a Perl regex.
+  "Lisp Regular expression for things regularly occurring in a Perl regex.
 If matches at the start of match found by `my-bad-c-style-regexp',
 insertion of a whitespace will not help.")
 

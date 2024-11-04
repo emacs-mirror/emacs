@@ -522,7 +522,7 @@ output."
                    ;; where this matters, using an external pipe
                    ;; operator (`*|') may work instead.
                    (cond
-                    ;; Delay signalling remote processes to prevent
+                    ;; Delay signaling remote processes to prevent
                     ;; "Forbidden reentrant call of Tramp".
                     ((process-get proc 'remote-pid)
                      (run-at-time 0 nil #'signal-process proc 'SIGPIPE))

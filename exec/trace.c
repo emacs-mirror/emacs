@@ -1917,7 +1917,7 @@ after_fork (pid_t pid)
       /* Request that the child stop upon the next `exec' system call,
 	 one of which is assumed to always be issued by the child, as
 	 below, but await the next stop, and examine its contents.
-	 Anciently, the syscall-stop preceeded events marked
+	 Anciently, the syscall-stop preceded events marked
 	 PTRACE_EVENT_SECCOMP, whereas this sequence is reversed in
 	 4.8+, and in releases with these changes backported.  */
 

@@ -267,7 +267,7 @@
         (should (string= (buffer-name) (format "127.0.0.1:%d" port)))
         (should-not (file-exists-p logserv))
         (should-not (file-exists-p logchan))
-        ;; Verify that truncation actally happens where it should.
+        ;; Verify that truncation actually happens where it should.
         (funcall assert-truncation expect)
         (should (file-exists-p logserv))))
 

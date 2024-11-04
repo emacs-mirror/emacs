@@ -1569,7 +1569,7 @@ Return the position of the first removed property, or nil."
 
 (defmacro c-clear-syntax-table-with-value-trim-caches (from to value)
   "Remove all `syntax-table' text-properties with value VALUE from [FROM, TO)
-and invalidate the four caches from the first postion, if any, where a
+and invalidate the four caches from the first position, if any, where a
 property was removed.  Return the position of the first property removed,
 if any, else nil.  POINT and the match data remain unchanged."
   (declare (debug t))

@@ -314,7 +314,7 @@
 
         (push (list (point)) bounds)
         (insert ; JOIN
-         ts "      " ; iniital `fill' indentation lacks properties
+         ts "      " ; initial `fill' indentation lacks properties
          #("*** You have joined channel #chan" 0 33
            (font-lock-face erc-notice-face))
          "\n")

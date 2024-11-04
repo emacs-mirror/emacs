@@ -892,7 +892,7 @@ w32font_otf_drive (struct font *font, Lisp_Object features,
    Windows fonts in Emacs's sources, this cannot be fixed in the the
    default fontset setup provided by Emacs: we cannot arrange for the
    "good" fonts to be used in all such cases, because that would mean
-   naming those fonts.  The solution for thes issues is to customize the
+   naming those fonts.  The solution for these issues is to customize the
    default fontset using set-fontset-font, to force Emacs to use a font
    known to support some characters.
 

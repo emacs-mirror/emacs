@@ -8058,7 +8058,7 @@ process sentinels.  They shall not disturb each other."
 	  ;; We want to see the timeout message.
 	  (tramp--test-instrument-test-case 3
 	    (sleep-for 2))
-	  ;; Session cancelled, no password in cache.
+	  ;; Session canceled, no password in cache.
 	  (should-not
 	   (password-in-cache-p
 	    (auth-source-format-cache-entry

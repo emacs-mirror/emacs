@@ -5820,7 +5820,7 @@ move the yanking point; just return the Nth kill forward."
 (defcustom kill-region-dwim nil
   "Behavior when `kill-region' is invoked without an active region.
 If set to nil (default), kill the region even if it is inactive,
-signalling an error if there is no region.
+signaling an error if there is no region.
 If set to `emacs-word', kill the last word as defined by the
 current major mode.
 If set to `unix-word', kill the last word in the style of a shell like
@@ -5860,7 +5860,7 @@ Supply two arguments, character positions BEG and END indicating the
  `region', the function ignores BEG and END, and kills the current
  region instead.  Interactively, REGION is always non-nil, and so
  this command always kills the current region.  It is possible to
- override this behavior by customising the user option
+ override this behavior by customizing the user option
  `kill-region-dwim'."
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.

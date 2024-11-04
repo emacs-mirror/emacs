@@ -29,7 +29,7 @@
 
 ;; NOTE: IDLWAVE has been moved to GNU ELPA.  The version bundled with
 ;;       Emacs is out-of-date, marked as obsolete, and will be removed
-;;       in a future release.  Please use `M-x package-list' to install
+;;       in a future release.  Please use `M-x list-packages' to install
 ;;       IDLWAVE from GNU ELPA instead of using this version.
 
 ;; This mode is for IDL version 5 or later.

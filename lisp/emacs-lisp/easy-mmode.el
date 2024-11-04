@@ -764,7 +764,7 @@ CSS contains a list of syntax specifications of the form (CHAR . SYNTAX)."
 ;;;
 
 (defun easy-mmode--prev (re name count &optional endfun narrowfun)
-  "Go to the COUNT'th previous occurence of RE.
+  "Go to the COUNT'th previous occurrence of RE.
 
 If none, error with NAME.
 
@@ -788,7 +788,7 @@ ENDFUN and NARROWFUN are treated like in `easy-mmode-define-navigation'."
       (when re-narrow (funcall narrowfun)))))
 
 (defun easy-mmode--next (re name count &optional endfun narrowfun)
-  "Go to the next COUNT'th occurence of RE.
+  "Go to the next COUNT'th occurrence of RE.
 
 If none, error with NAME.
 

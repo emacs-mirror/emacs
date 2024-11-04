@@ -722,7 +722,7 @@ get_bitmap_render_target (HDC hdc, int width, int height)
   if (!verify_hr (hr, "Failed to CreateBitmapRenderTarget"))
     return NULL;
 
-  /* We handle high dpi displays by incresing font size, so override
+  /* We handle high dpi displays by increasing font size, so override
      PixelsPerDip.  */
   brt->lpVtbl->SetPixelsPerDip (brt, 1.0);
 

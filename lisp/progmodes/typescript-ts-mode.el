@@ -87,7 +87,7 @@
 (defun typescript-ts-mode--check-dialect (dialect)
   (unless (or (eq dialect 'typescript) (eq dialect 'tsx))
     (signal 'typescript-ts-mode-wrong-dialect-error
-            (list "Unsupported dialect for typescript-ts-mode suplied" dialect))))
+            (list "Unsupported dialect for typescript-ts-mode supplied" dialect))))
 
 (defun tsx-ts-mode--indent-compatibility-b893426 ()
   "Indent rules helper, to handle different releases of tree-sitter-tsx.

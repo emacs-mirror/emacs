@@ -88,7 +88,7 @@ The Modus themes consist of eight themes, divided into four subgroups.
   are variants of the two main themes.  They slightly tone down the
   intensity of the background and provide a bit more color variety.
   ~modus-operandi-tinted~ has a set of base tones that are shades of
-  light ochre (earthly colors), while ~modus-vivendi-tinted~ gives a
+  light ocher (earthly colors), while ~modus-vivendi-tinted~ gives a
   night sky impression.
 
 - Deuteranopia themes :: ~modus-operandi-deuteranopia~ and its
@@ -1361,7 +1361,7 @@ value in some other application.
 :END:
 
 #+findex: modus-themes-get-color-value
-The fuction ~modus-themes-get-color-value~ can be called from Lisp to
+The function ~modus-themes-get-color-value~ can be called from Lisp to
 return the value of a color from the active Modus theme palette. It
 takea a =COLOR= argument and an optional =OVERRIDES=. It also accepts
 a third =THEME= argument, to get the color from the given theme.
@@ -2367,7 +2367,7 @@ until version 4.3.0.
 ;; was the default in versions of the Modus themes before 4.4.0
 (setq modus-themes-common-palette-overrides
       '((bg-prose-block-contents unspecified)
-        (bg-prose-block-delimiter unspeficied)
+        (bg-prose-block-delimiter unspecified)
         (fg-prose-block-delimiter fg-dim)))
 #+end_src
 
@@ -3365,7 +3365,7 @@ specification of that variable looks like this:
 
 With the exception of ~org-verbatim~ and ~org-code~ faces, everything else
 uses the corresponding type of emphasis: a bold typographic weight, or
-italicised, underlined, and struck through text.
+italicized, underlined, and struck through text.
 
 The best way for users to add some extra attributes, such as a
 foreground color, is to define their own faces and assign them to the
@@ -5407,7 +5407,7 @@ more effective than trying to do the same with either red or blue (the
 latter is the least effective in that regard).
 
 When we need to work with several colors, it is always better to have
-sufficient manoeuvring space, especially since we cannot pick arbitrary
+sufficient maneuvering space, especially since we cannot pick arbitrary
 colors but only those that satisfy the accessibility objectives of the
 themes.
 
@@ -5513,7 +5513,7 @@ it is already understood that one must follow the indicator or headline
 to view its contents and (ii) underlining everything would make the
 interface virtually unusable.
 
-Again, one must exercise judgement in order to avoid discrimination,
+Again, one must exercise judgment in order to avoid discrimination,
 where "discrimination" refers to:
 
 + The treatment of substantially different magnitudes as if they were of
@@ -5587,7 +5587,7 @@ the themes, which is partially fleshed out in this manual.
 
 With regard to the artistic aspect (where "art" qua skill may amount to
 an imprecise science), there is no hard-and-fast rule in effect as it
-requires one to exercize discretion and make decisions based on
+requires one to exercise discretion and make decisions based on
 context-dependent information or constraints.  As is true with most
 things in life, when in doubt, do not cling on to the letter of the law
 but try to understand its spirit.
