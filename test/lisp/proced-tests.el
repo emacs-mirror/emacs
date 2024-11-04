@@ -50,7 +50,11 @@
 (defun proced--assert-process-valid-cpu-refinement (cpu)
   "Fail unless the process at point could be present after a refinement using CPU."
   (proced--move-to-column "%CPU")
-  (>= (thing-at-point 'number) cpu))
+  (condition-case err
+      (>= (thing-at-point 'number) cpu)
+    (error
+     (ert-fail
+      (list err (proced--assert-process-valid-cpu-refinement-explainer cpu))))))
 
 (defun proced--assert-process-valid-cpu-refinement-explainer (cpu)
   "Explain the result of `proced--assert-process-valid-cpu-refinement'.
