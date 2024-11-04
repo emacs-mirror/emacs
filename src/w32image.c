@@ -42,6 +42,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 GdiplusStartup_Proc fn_GdiplusStartup;
 GdiplusShutdown_Proc fn_GdiplusShutdown;
+GdipCreateFromHDC_Proc fn_GdipCreateFromHDC;
+GdipDeleteGraphics_Proc fn_GdipDeleteGraphics;
 GdipGetPropertyItemSize_Proc fn_GdipGetPropertyItemSize;
 GdipGetPropertyItem_Proc fn_GdipGetPropertyItem;
 GdipImageGetFrameDimensionsCount_Proc fn_GdipImageGetFrameDimensionsCount;
@@ -53,6 +55,9 @@ GdipCreateBitmapFromStream_Proc fn_GdipCreateBitmapFromStream;
 GdipCreateBitmapFromScan0_Proc fn_GdipCreateBitmapFromScan0;
 SHCreateMemStream_Proc fn_SHCreateMemStream;
 GdipCreateHBITMAPFromBitmap_Proc fn_GdipCreateHBITMAPFromBitmap;
+GdipCreateBitmapFromHBITMAP_Proc fn_GdipCreateBitmapFromHBITMAP;
+GdipDrawImageRectRectI_Proc fn_GdipDrawImageRectRectI;
+GdipSetInterpolationMode_Proc fn_GdipSetInterpolationMode;
 GdipDisposeImage_Proc fn_GdipDisposeImage;
 GdipGetImageHeight_Proc fn_GdipGetImageHeight;
 GdipGetImageWidth_Proc fn_GdipGetImageWidth;
@@ -79,6 +84,14 @@ gdiplus_init (void)
   fn_GdiplusShutdown = (GdiplusShutdown_Proc)
     get_proc_addr (gdiplus_lib, "GdiplusShutdown");
   if (!fn_GdiplusShutdown)
+    return false;
+  fn_GdipCreateFromHDC = (GdipCreateFromHDC_Proc)
+    get_proc_addr (gdiplus_lib, "GdipCreateFromHDC");
+  if (!fn_GdipCreateFromHDC)
+    return false;
+  fn_GdipDeleteGraphics = (GdipDeleteGraphics_Proc)
+    get_proc_addr (gdiplus_lib, "GdipDeleteGraphics");
+  if (!fn_GdipDeleteGraphics)
     return false;
   fn_GdipGetPropertyItemSize = (GdipGetPropertyItemSize_Proc)
     get_proc_addr (gdiplus_lib, "GdipGetPropertyItemSize");
@@ -119,6 +132,18 @@ gdiplus_init (void)
   fn_GdipCreateHBITMAPFromBitmap = (GdipCreateHBITMAPFromBitmap_Proc)
     get_proc_addr (gdiplus_lib, "GdipCreateHBITMAPFromBitmap");
   if (!fn_GdipCreateHBITMAPFromBitmap)
+    return false;
+  fn_GdipCreateBitmapFromHBITMAP = (GdipCreateBitmapFromHBITMAP_Proc)
+    get_proc_addr (gdiplus_lib, "GdipCreateBitmapFromHBITMAP");
+  if (!fn_GdipCreateBitmapFromHBITMAP)
+    return false;
+  fn_GdipDrawImageRectRectI = (GdipDrawImageRectRectI_Proc)
+    get_proc_addr (gdiplus_lib, "GdipDrawImageRectRectI");
+  if (!fn_GdipDrawImageRectRectI)
+    return false;
+  fn_GdipSetInterpolationMode = (GdipSetInterpolationMode_Proc)
+    get_proc_addr (gdiplus_lib, "GdipSetInterpolationMode");
+  if (!fn_GdipSetInterpolationMode)
     return false;
   fn_GdipDisposeImage = (GdipDisposeImage_Proc)
     get_proc_addr (gdiplus_lib, "GdipDisposeImage");

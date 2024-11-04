@@ -838,6 +838,9 @@ current buffer, if the major mode supports it.  (Support for
 'yank-media' will be unavailable on MS-Windows if Emacs was configured
 '--without-native-image-api'.)
 
+---
+** Images on MS-Windows now support the :transform-smoothing flag.
+Bilinear interpolation with GDI+ is used to smooth images.
 
 
 ----------------------------------------------------------------------

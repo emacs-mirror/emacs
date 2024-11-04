@@ -24,6 +24,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "w32term.h"
 #include "w32common.h"	/* for OS version info */
+#include <wtypes.h>
+#include <gdiplus.h>
+#include "w32gdiplus.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -2106,16 +2109,53 @@ w32_draw_image_foreground (struct glyph_string *s)
 		    compat_hdc, s->slice.x, s->slice.y, SRCCOPY);
 	  else
 	    {
-	      int pmode = 0;
-	      /* Windows 9X doesn't support HALFTONE.  */
-	      if (os_subtype == OS_SUBTYPE_NT
-		  && (pmode = SetStretchBltMode (s->hdc, HALFTONE)) != 0)
-		SetBrushOrgEx (s->hdc, 0, 0, NULL);
-	      StretchBlt (s->hdc, x, y, s->slice.width, s->slice.height,
-			  compat_hdc, orig_slice_x, orig_slice_y,
-			  orig_slice_width, orig_slice_height, SRCCOPY);
-	      if (pmode)
-		SetStretchBltMode (s->hdc, pmode);
+#ifdef HAVE_NATIVE_IMAGE_API
+	      if (s->img->smoothing && w32_gdiplus_startup ())
+		{
+		  GpGraphics *graphics;
+		  if (GdipCreateFromHDC (s->hdc, &graphics) == Ok)
+		    {
+		      GpBitmap *gp_bitmap;
+		      /* Can't create a GpBitmap from a HBITMAP that was
+			 ever selected into a DC, so we need to copy.  */
+		      HBITMAP copy
+			= CopyImage (GetCurrentObject (compat_hdc, OBJ_BITMAP),
+				     IMAGE_BITMAP, 0, 0, 0);
+		      if (GdipCreateBitmapFromHBITMAP (copy, NULL,
+						       &gp_bitmap) == Ok)
+			{
+			  GdipSetInterpolationMode (graphics,
+						    InterpolationModeHighQualityBilinear);
+			  GdipDrawImageRectRectI (graphics,
+						  gp_bitmap, x, y,
+						  s->slice.width,
+						  s->slice.height,
+						  orig_slice_x,
+						  orig_slice_y,
+						  orig_slice_width,
+						  orig_slice_height,
+						  UnitPixel,
+						  NULL, NULL, NULL);
+			  GdipDisposeImage (gp_bitmap);
+			}
+		      DeleteObject (copy);
+		      GdipDeleteGraphics (graphics);
+		    }
+		}
+	      else
+#endif
+		{
+		  int pmode = 0;
+		  /* Windows 9X doesn't support HALFTONE.  */
+		  if (os_subtype == OS_SUBTYPE_NT
+		      && (pmode = SetStretchBltMode (s->hdc, HALFTONE)) != 0)
+		    SetBrushOrgEx (s->hdc, 0, 0, NULL);
+		  StretchBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+			      compat_hdc, orig_slice_x, orig_slice_y,
+			      orig_slice_width, orig_slice_height, SRCCOPY);
+		  if (pmode)
+		    SetStretchBltMode (s->hdc, pmode);
+		}
 	    }
 
 	  /* When the image has a mask, we can expect that at
