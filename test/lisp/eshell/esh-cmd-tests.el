@@ -354,7 +354,7 @@ processes correctly."
     ;; doesn't count.
     (let ((eshell-test-value "1..5"))
       (eshell-match-command-output "for i in $eshell-test-value { echo $i }"
-                                   "1..5\n")))))
+                                   "1..5\n"))))
 
 (ert-deftest esh-cmd-test/for-loop-mixed-args ()
   "Test invocation of a for loop iterating over multiple arguments."
