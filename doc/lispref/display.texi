@@ -6020,8 +6020,9 @@ is platform dependent, but should be equivalent to bilinear
 filtering.  Disabling smoothing will use the nearest neighbor
 algorithm.
 
+@vindex image-transform-smoothing
 If this property is not specified, @code{create-image} will use the
-@code{image-transform-smoothing} user option to say whether scaling
+@code{image-transform-smoothing} user option to say whether smoothing
 should be done or not.  This option can be @code{nil} (no smoothing),
 @code{t} (use smoothing) or a predicate function that's called with
 the image object as the only parameter, and should return either
@@ -7022,12 +7023,13 @@ Here is an example of using @code{image-load-path-for-library}:
 @end example
 @end defun
 
-@vindex image-scaling-factor
+@vindex image-scaling-factor, and automatic image scaling
 Images are automatically scaled when created based on the
 @code{image-scaling-factor} variable.  The value is either a floating
 point number (where numbers higher than 1 means to increase the size
 and lower means to shrink the size), or the symbol @code{auto}, which
-will compute a scaling factor based on the font pixel size.
+will compute a scaling factor based on the font pixel size.  @xref{Image
+Descriptors}.
 
 @node Showing Images
 @subsection Showing Images
