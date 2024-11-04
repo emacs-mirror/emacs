@@ -704,7 +704,7 @@ The function must satisfy this calling convention:
 ;; Each "ARG" is used as a prompt for a required argument.
 (defconst makefile-gnumake-functions-alist
   '(
-    ;; Text functions
+    ;; Functions for String Substitution and Analysis
     ("subst" "From" "To" "In")
     ("patsubst" "Pattern" "Replacement" "In")
     ("strip" "Text")
@@ -712,22 +712,42 @@ The function must satisfy this calling convention:
     ("filter" "Pattern" "Text")
     ("filter-out" "Pattern" "Text")
     ("sort" "List")
-    ;; Filename functions
+    ("word" "Index" "Text")
+    ("wordlist" "S" "E" "Text")
+    ("words" "Text")
+    ("firstword" "Text")
+    ("lastword" "Names")
+    ;; Functions for File Names
     ("dir" "Names")
     ("notdir" "Names")
     ("suffix" "Names")
     ("basename" "Names")
-    ("addprefix" "Prefix" "Names")
     ("addsuffix" "Suffix" "Names")
+    ("addprefix" "Prefix" "Names")
     ("join" "List 1" "List 2")
-    ("word" "Index" "Text")
-    ("words" "Text")
-    ("firstword" "Text")
     ("wildcard" "Pattern")
+    ("realpath" "Names")
+    ("abspath" "Names")
+    ;; Functions for Conditionals
+    ("if" "Condition" "Then-part" "Else-part")
+    ("or"  "Condition 1" "Condition 2" "Condition 3" "Condition 4")
+    ("and" "Condition 1" "Condition 2" "Condition 3" "Condition 4")
     ;; Misc functions
     ("foreach" "Variable" "List" "Text")
+    ("file" "Op" "Filename" "Text")
+    ("call" "Variable" "Param 1" "Param 2" "Param 3" "Param 4" "Param 5")
+    ("value" "Variable")
+    ("eval" "statement")
     ("origin" "Variable")
-    ("shell" "Command")))
+    ("flavor" "Variable")
+    ("shell" "Command")
+    ("guile" "Program")
+    ;; Functions that control make
+    ("error" "Text")
+    ("warning" "Text")
+    ("info" "Text")
+    )
+  "Alist of GNU Make functions and their arguments.")
 
 
 ;;; ------------------------------------------------------------
