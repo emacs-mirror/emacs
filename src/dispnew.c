@@ -3547,20 +3547,19 @@ neutralize_wide_char (struct frame *root, struct glyph_row *row, int x)
   if (x < 0 || x >= root->desired_matrix->matrix_w)
     return;
 
-  struct glyph *glyph = row->glyphs[0] + x;
+  struct glyph *glyph = row->glyphs[TEXT_AREA] + x;
   if (glyph->type == CHAR_GLYPH && CHARACTER_WIDTH (glyph->u.ch) > 1)
     {
-      struct glyph *row_start = row->glyphs[0];
-      struct glyph *row_limit = row_start + row->used[0];
-
       /* Glyph is somewhere in a sequence of glyphs for a wide
 	 character, find the start.  */
+      struct glyph *row_start = row->glyphs[TEXT_AREA];
       while (glyph > row_start && glyph->padding_p)
 	--glyph;
 
       /* Make everything in the sequence a space glyph.  */
       eassert (!glyph->padding_p);
       make_glyph_space (glyph);
+      struct glyph *row_limit = row_start + row->used[TEXT_AREA];
       for (++glyph; glyph < row_limit && glyph->padding_p; ++glyph)
 	make_glyph_space (glyph);
     }
