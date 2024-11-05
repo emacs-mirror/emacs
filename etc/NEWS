@@ -1134,8 +1134,14 @@ of seconds.  Crossfading can be toggled using the command
 This command displays information about the currently playing song or
 song at point in the "*MPC-Songs*" buffer.  The list of tags to display
 can be customized using the new user option 'mpc-song-viewer-tags' and
-the appearance of the list with the new faces 'mpc-song-viewer-tag',
-'mpc-song-viewer-value', and 'mpc-song-viewer-empty'.
+the appearance of the list with the new faces 'mpc-table-key',
+'mpc-table-value', and 'mpc-table-empty'.
+
+---
+*** New command 'mpc-server-stats'.
+This command displays information about the connected MPD server.  The
+appearance of the list can be customized with the new faces
+'mpc-table-key' and 'mpc-table-value'.
 
 ** VC
 
