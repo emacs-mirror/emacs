@@ -834,7 +834,9 @@ color Emoji font installed on your system for the 'emoji' script.
 +++
 ** Emacs on MS-Windows now supports 'yank-media'.
 This command inserts clipboard data of different formats into the
-current buffer, if the major mode supports it.
+current buffer, if the major mode supports it.  (Support for
+'yank-media' will be unavailable on MS-Windows if Emacs was configured
+'--without-native-image-api'.)
 
 
 
