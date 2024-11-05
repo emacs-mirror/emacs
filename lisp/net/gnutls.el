@@ -166,7 +166,7 @@ Third arg HOST is the name of the host to connect to, or its IP address.
 Fourth arg SERVICE is the name of the service desired, or an integer
 specifying a port number to connect to.
 Fifth arg PARAMETERS is an optional list of keyword/value pairs.
-Only :client-certificate, :nowait, and :coding keywords are
+Only :client-certificate, :nowait, :noquery, and :coding keywords are
 recognized, and have the same meaning as for
 `open-network-stream'.
 For historical reasons PARAMETERS can also be a symbol, which is
@@ -197,9 +197,11 @@ trust and key files, and priority string."
          (cert (network-stream-certificate host service parameters))
          (keylist (and cert (list cert)))
          (nowait (plist-get parameters :nowait))
+         (noquery (plist-get parameters :noquery))
          (process (open-network-stream
                    name buffer host service
                    :nowait nowait
+                   :noquery noquery
                    :tls-parameters
                    (and nowait
                         (cons 'gnutls-x509pki
