@@ -6382,12 +6382,10 @@ Convert file mode bits to string and set virtual device number.
 Set file uid and gid according to ID-FORMAT.  LOCALNAME is used
 to cache the result.  Return the modified ATTR."
   (declare (indent 3) (debug t))
-  `(with-tramp-file-property
-       ,vec ,localname (format "file-attributes-%s" (or ,id-format 'integer))
-     (when-let*
-	 ((attr ,attr)
-	  (result
-	   (with-tramp-file-property ,vec ,localname "file-attributes"
+  `(when-let*
+       ((result
+	 (with-tramp-file-property ,vec ,localname "file-attributes"
+	   (when-let* ((attr ,attr))
 	     (save-match-data
 	       ;; Remove ANSI control escape sequences from symlink.
 	       (when (stringp (car attr))
@@ -6480,14 +6478,14 @@ to cache the result.  Return the modified ATTR."
 		  (split-string (nth 12 attr) ":" 'omit)))
 	       ;; Remove optional entries.
 	       (setcdr (nthcdr 11 attr) nil)
-	       attr))))
+	       attr)))))
 
-       ;; Return normalized result.
-       (append (tramp-compat-take 2 result)
-	       (if (eq ,id-format 'string)
-		   (list (car (nth 2 result)) (car (nth 3 result)))
-		 (list (cdr (nth 2 result)) (cdr (nth 3 result))))
-	       (nthcdr 4 result)))))
+     ;; Return normalized result.
+     (append (tramp-compat-take 2 result)
+	     (if (eq ,id-format 'string)
+		 (list (car (nth 2 result)) (car (nth 3 result)))
+	       (list (cdr (nth 2 result)) (cdr (nth 3 result))))
+	     (nthcdr 4 result))))
 
 (defun tramp-get-home-directory (vec &optional user)
   "The remote home directory for connection VEC as local file name.
