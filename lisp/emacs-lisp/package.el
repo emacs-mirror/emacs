@@ -4537,6 +4537,153 @@ the `Version:' header."
                 (lm-header "version")))))))))
 
 
+;;;; Autosuggest
+
+(defconst package-autosuggest-database
+  (eval-when-compile
+    (with-temp-buffer
+      (insert-file-contents
+       (expand-file-name "package-autosuggest.eld" data-directory)"/home/phi/Source/emacs/etc/package-autosuggest.eld")
+      (read (current-buffer))))
+  "Database of hints for packages to suggest installing.")
+
+(define-minor-mode package-autosuggest-mode
+  "Enable the automatic suggestion and installation of packages."
+  :init-value 'mode-line :global t
+  :type '(choice (const :tag "Indicate in mode line" mode-line)
+                 (const :tag "Always prompt" always)
+                 (const :tag "Prompt only once" once)
+                 (const :tag "Indicate with message" message)
+                 (const :tag "Do not suggest anything" nil))
+  (funcall (if package-autosuggest-mode #'add-hook #'remove-hook)
+           'after-change-major-mode-hook
+           #'package--autosuggest-after-change-mode))
+
+(defun package--suggestion-applies-p (pkg-sug)
+  "Check if a suggestion PKG-SUG is applicable to the current buffer."
+  (pcase pkg-sug
+    (`(,(pred package-installed-p) . ,_) nil)
+    ((or `(,_ auto-mode-alist ,ext _)
+         `(,_ auto-mode-alist ,ext))
+     (and (string-match-p ext (buffer-name)) t))
+    ((or `(,_ magic-mode-alist ,mag _)
+         `(,_ magic-mode-alist ,mag))
+     (save-restriction
+       (widen)
+       (save-excursion
+         (goto-char (point-min))
+         (looking-at-p mag))))
+    ((or `(,_ interpreter-mode-alist ,magic _)
+         `(,_ interpreter-mode-alist ,magic))
+     (save-restriction
+       (widen)
+       (save-excursion
+         (goto-char (point-min))
+         (and (looking-at auto-mode-interpreter-regexp)
+              (string-match-p
+               (concat "\\`" (file-name-nondirectory (match-string 2)) "\\'")
+               magic)))))))
+
+(defun package--autosuggest-find-candidates ()
+  "Return a list of packages that might be interesting the current buffer."
+  (and package-autosuggest-mode
+       (let (suggetions)
+         (dolist (sug package-autosuggest-database)
+           (when (package--suggestion-applies-p sug)
+             (push sug suggetions)))
+         suggetions)))
+
+(defun package--autosuggest-install-and-enable (pkg-sug)
+  "Install and enable a package suggestion PKG-ENT.
+PKG-SUG has the same form as an element of
+`package-autosuggest-database'."
+  (let ((buffers-to-update '()))
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+        (when (and (eq major-mode 'fundamental-mode) (buffer-file-name)
+                   (package--suggestion-applies-p pkg-sug))
+          (push buf buffers-to-update))))
+    (package-install (car pkg-sug))
+    (dolist (buf buffers-to-update)
+      (with-demoted-errors "Failed to enable major mode: %S"
+        (with-current-buffer buf
+          (funcall-interactively (or (cadddr pkg-sug) (car pkg-sug))))))))
+
+(defvar package--autosuggest-suggested '()
+  "List of packages that have already been suggested.")
+
+(defvar package--autosugest-line-format
+  '(:eval (package--autosugest-line-format)))
+(put 'package--autosugest-line-format 'risky-local-variable t)
+
+(defface package-autosuggest-face
+  '((t :inherit (success)))
+  "Face to use in the mode line to highlight suggested packages."
+  :version "30.1")
+
+(defun package--autosugest-line-format ()
+  "Generate a mode-line string to indicate a suggested package."
+  `(,@(and-let* (((eq package-autosuggest-mode 'mode-line))
+                 (avail (seq-difference (package--autosuggest-find-candidates)
+                                        package--autosuggest-suggested)))
+        (propertize
+         (format "Install %s?"
+                 (mapconcat
+                  #'symbol-name
+                  (delete-dups (mapcar #'car avail))
+                  ", "))
+         'face 'package-autosuggest-face
+         'mouse-face 'mode-line-highlight
+         'help-echo "Click to install suggested package."
+         'keymap (let ((map (make-sparse-keymap)))
+                   (define-key map [mode-line down-mouse-1] #'package-autosuggest)
+                   map)))))
+
+(add-to-list
+ 'mode-line-misc-info
+ '(package-autosuggest-mode ("" package--autosugest-line-format)))
+
+(defun package--autosuggest-after-change-mode ()
+  "Hook function to suggest packages for installation."
+  (when-let* ((avail (seq-difference (package--autosuggest-find-candidates)
+                                     package--autosuggest-suggested))
+              (pkgs (mapconcat #'symbol-name
+                               (delete-dups (mapcar #'car avail))
+                               ", "))
+              (use-dialog-box t))
+    (pcase package-autosuggest-mode
+      ('mode-line
+       (force-mode-line-update t))
+      ('always
+       (when (yes-or-no-p (format "Install suggested packages (%s)?" pkgs))
+         (mapc #'package--autosuggest-install-and-enable avail)))
+      ('once
+       (when (yes-or-no-p (format "Install suggested packages (%s)?" pkgs))
+         (mapc #'package--autosuggest-install-and-enable avail))
+       (setq package--autosuggest-suggested (append avail package--autosuggest-suggested)))
+      ('message
+       (message
+        (substitute-command-keys
+         (format "Found suggested packages: %s.  Install using  \\[package-autosuggest]"
+                 pkgs)))))))
+
+(defun package-autosuggest ()
+  "Prompt the user for suggested packages."
+  (interactive)
+  (let* ((avail (or (package--autosuggest-find-candidates)
+                    (user-error "No suggestions found")))
+         (pkgs (completing-read-multiple
+                "Install suggested packages: " avail
+                nil t
+                (mapconcat #'symbol-name
+                           (delete-dups (mapcar #'car avail))
+                           ",")))
+         (choice (concat "\\`" (regexp-opt pkgs) "\\'")))
+    (dolist (ent avail)
+      (when (string-match-p choice (symbol-name (car ent)))
+        (package--autosuggest-install-and-enable ent)))))
+
+
 ;;;; Quickstart: precompute activation actions for faster start up.
 
 ;; Activating packages via `package-initialize' is costly: for N installed
