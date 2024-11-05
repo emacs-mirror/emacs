@@ -1,6 +1,6 @@
 ;;; winner.el --- Restore old window configurations  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
@@ -178,7 +178,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
       (setq winner-last-frames nil)
       (setq winner-last-command this-command))
     (dolist (frame winner-modified-list)
-      (winner-insert-if-new frame))
+      (if (frame-live-p frame)
+          (winner-insert-if-new frame)))
     (setq winner-modified-list nil)
     (winner-remember)))
 
@@ -260,7 +261,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 ;; Make sure point does not end up in the minibuffer and delete
 ;; windows displaying dead or boring buffers
-;; (c.f. `winner-boring-buffers') and `winner-boring-buffers-regexp'.
+;; (cf. `winner-boring-buffers') and `winner-boring-buffers-regexp'.
 ;; Return nil if all the windows should be deleted.  Preserve correct
 ;; points and marks.
 (defun winner-set (conf)

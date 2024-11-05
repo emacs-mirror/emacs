@@ -1,6 +1,6 @@
 ;;; nsm.el --- Network Security Manager  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: encryption, security, network
@@ -100,21 +100,20 @@ This means that no queries should be performed.")
 (defun nsm-verify-connection (process host port &optional
 				      save-fingerprint warn-unencrypted)
   "Verify the security status of PROCESS that's connected to HOST:PORT.
-If PROCESS is a gnutls connection, the certificate validity will
-be examined.  If it's a non-TLS connection, it may be compared
-against previous connections.  If the function determines that
-there is something odd about the connection, the user will be
-queried about what to do about it.
+If PROCESS is a GnuTLS connection, the certificate validity will be
+examined.  If it's a non-TLS connection, it may be compared against
+previous connections.  If the function determines that there is
+something odd about the connection, the user will be queried about what
+to do about it.
 
-The process is returned if everything is OK, and otherwise, the
-process will be deleted and nil is returned.
+Return the process if all the checks pass.  Otherwise, delete the
+process and return nil.
 
-If SAVE-FINGERPRINT, always save the fingerprint of the
-server (if the connection is a TLS connection).  This is useful
-to keep track of the TLS status of STARTTLS servers.
+If SAVE-FINGERPRINT, always save the fingerprint of the server (if the
+connection is a TLS connection).  This is useful to keep track of the
+TLS status of STARTTLS servers.
 
-If WARN-UNENCRYPTED, query the user if the connection is
-unencrypted."
+If WARN-UNENCRYPTED, query the user if the connection is unencrypted."
   (let* ((status (gnutls-peer-status process))
          (id (nsm-id host port))
          (settings (nsm-host-settings id)))
@@ -149,10 +148,11 @@ unencrypted."
     (dhe-prime-kx           medium)
     (sha1-sig               medium)
     (ecdsa-cbc-cipher       medium)
+    ;; Deprecated by NIST from 2016/2023 (see also CVE-2016-2183).
+    (3des-cipher            medium)
     ;; Towards TLS 1.3
     (dhe-kx                 high)
     (rsa-kx                 high)
-    (3des-cipher            high)
     (cbc-cipher             high))
   "This variable specifies what TLS connection checks to perform.
 It's an alist where the key is the name of the check, and the
@@ -169,13 +169,13 @@ otherwise.
 
 See also: `nsm-check-tls-connection', `nsm-save-host-names',
 `nsm-settings-file'"
-  :version "27.1"
   :type '(repeat (list (symbol :tag "Check function")
                        (choice :tag "Level"
                                :value medium
                                (const :tag "Low" low)
                                (const :tag "Medium" medium)
-                               (const :tag "High" high)))))
+                               (const :tag "High" high))))
+  :version "30.1")
 
 (defun nsm-save-fingerprint-maybe (host port status &rest _)
   "Save the certificate's fingerprint.
@@ -226,27 +226,18 @@ If `nsm-trust-local-network' is or returns non-nil, and if the
 host address is a localhost address, or in the same subnet as one
 of the local interfaces, this function returns nil.  Non-nil
 otherwise."
-  (let ((addresses (network-lookup-address-info host))
-        (network-interface-list (network-interface-list t))
-        (off-net t))
-    (when
-     (or (and (functionp nsm-trust-local-network)
-              (funcall nsm-trust-local-network))
-         nsm-trust-local-network)
-     (mapc
-      (lambda (ip)
-        (mapc
-         (lambda (info)
-           (let ((local-ip (nth 1 info))
-                 (mask (nth 3 info)))
-             (when
-                 (nsm-network-same-subnet (substring local-ip 0 -1)
-                                          (substring mask 0 -1)
-                                          (substring ip 0 -1))
-               (setq off-net nil))))
-         network-interface-list))
-      addresses))
-     off-net))
+  (not (and-let* (((or (and (functionp nsm-trust-local-network)
+                            (funcall nsm-trust-local-network))
+                       nsm-trust-local-network))
+                  (addresses (network-lookup-address-info host))
+                  (network-interface-list (network-interface-list t)))
+         (catch 'nsm-should-check
+           (dolist (ip addresses)
+             (dolist (info network-interface-list)
+               (when (nsm-network-same-subnet (substring (nth 1 info) 0 -1)
+                                              (substring (nth 3 info) 0 -1)
+                                              (substring ip 0 -1))
+                 (throw 'nsm-should-check t))))))))
 
 (defun nsm-check-tls-connection (process host port status settings)
   "Check TLS connection against potential security problems.
@@ -386,12 +377,11 @@ between the user and the server, to downgrade vulnerable TLS
 connections to insecure 512-bit export grade cryptography.
 
 The Logjam paper suggests using 1024-bit prime on the client to
-mitigate some effects of this attack, and upgrade to 2048-bit as
-soon as server configurations allow.  According to SSLLabs' SSL
-Pulse tracker, only about 75% of server support 2048-bit key
-exchange in June 2018[2].  To provide a balance between
-compatibility and security, this function only checks for a
-minimum key strength of 1024-bit.
+mitigate some effects of this attack, and upgrading to 2048-bit
+as soon as server configurations allow.  According to SSLLabs'
+SSL Pulse tracker the overwhelming majority of servers support
+2048-bit key exchange in October 2023[2].  This function
+therefore checks for a minimum key strength of 2048 bits.
 
 See also: `nsm-protocol-check--dhe-kx'
 
@@ -403,10 +393,10 @@ Diffie-Hellman Fails in Practice\", `https://weakdh.org/'
 `https://www.ssllabs.com/ssl-pulse/'"
   (let ((prime-bits (plist-get status :diffie-hellman-prime-bits)))
     (if (and (string-match "^\\bDHE\\b" (plist-get status :key-exchange))
-             (< prime-bits 1024))
+             (< prime-bits 2048))
         (format-message
          "Diffie-Hellman key strength (%s bits) too weak (%s bits)"
-         prime-bits 1024))))
+         prime-bits 2048))))
 
 (defun nsm-protocol-check--dhe-kx (_host _port status &optional _settings)
   "Check for existence of DH key exchange based on integer factorization.
@@ -484,7 +474,7 @@ because of MAC-then-encrypt.  This construction is vulnerable to
 padding oracle attacks[1].
 
 Since GnuTLS 3.4.0, the TLS encrypt-then-MAC extension[2] has
-been enabled by default[3]. If encrypt-then-MAC is negotiated,
+been enabled by default[3].  If encrypt-then-MAC is negotiated,
 this check has no effect.
 
 Reference:
@@ -550,14 +540,14 @@ Due to its use of 64-bit block size, it is known that a
 ciphertext collision is highly likely when 2^32 blocks are
 encrypted with the same key bundle under 3-key 3DES.  Practical
 birthday attacks of this kind have been demonstrated by Sweet32[1].
-As such, NIST is in the process of disallowing its use in TLS[2].
+As such, NIST has disallowed its use after December 31, 2023[2].
 
 [1]: Bhargavan, Leurent (2016).  \"On the Practical (In-)Security of
 64-bit Block Ciphers — Collision Attacks on HTTP over TLS and
 OpenVPN\", `https://sweet32.info/'
-[2]: NIST Information Technology Laboratory (Jul 2017).  \"Update to
-Current Use and Deprecation of TDEA\",
-`https://csrc.nist.gov/News/2017/Update-to-Current-Use-and-Deprecation-of-TDEA'"
+[2]: National Institute of Standards and Technology (Mar 2019).
+\"Transitioning the Use of Cryptographic Algorithms and Key
+Lengths\", `https://doi.org/10.6028/NIST.SP.800-131Ar2'"
   (let ((cipher (plist-get status :cipher)))
     (and (string-match "\\b3DES\\b" cipher)
          (format-message
@@ -826,7 +816,10 @@ protocol."
            (?n "next" "Next certificate")
            (?p "previous" "Previous certificate")
            (?q "quit" "Quit details view")))
-        (done nil))
+        (done nil)
+	(old-use-dialog-box use-dialog-box)
+	(use-dialog-box use-dialog-box)
+	(use-dialog-box-override use-dialog-box-override))
     (save-window-excursion
       ;; First format the certificate and warnings.
       (pop-to-buffer buffer)
@@ -859,14 +852,18 @@ protocol."
                              (read-multiple-choice "Continue connecting?"
                                                    accept-choices)))
               (setq buf (if show-details cert-buffer buffer))
-
               (cl-case (car answer)
                 (?q
+		 (setq use-dialog-box old-use-dialog-box)
                  ;; Exit the details window.
                  (set-window-buffer (get-buffer-window cert-buffer) buffer)
                  (setq show-details nil))
 
                 (?d
+		 ;; Dialog boxes should be suppressed, as they
+		 ;; obstruct the certificate details buffer.
+		 (setq use-dialog-box nil
+		       use-dialog-box-override nil)
                  ;; Enter the details window.
                  (set-window-buffer (get-buffer-window buffer) cert-buffer)
                  (with-current-buffer cert-buffer

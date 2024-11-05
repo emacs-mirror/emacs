@@ -1,8 +1,9 @@
 ;;; oclosure.el --- Open Closures       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -138,12 +139,15 @@
                (:include cl--class)
                (:copier nil))
   "Metaclass for OClosure classes."
+  ;; The `allparents' slot is used for the predicate that checks if a given
+  ;; object is an OClosure of a particular type.
   (allparents nil :read-only t :type (list-of symbol)))
 
 (setf (cl--find-class 'oclosure)
       (oclosure--class-make 'oclosure
-                            "The root parent of all OClosure classes"
-                            nil nil '(oclosure)))
+                            "The root parent of all OClosure types"
+                            nil (list (cl--find-class 'closure))
+                            '(oclosure)))
 (defun oclosure--p (oclosure)
   (not (not (oclosure-type oclosure))))
 
@@ -349,6 +353,7 @@ MUTABLE is a list of symbols indicating which of the BINDINGS
 should be mutable.
 No checking is performed."
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
+  (cl-assert lexical-binding)          ;Can't work in dynbind dialect.
   ;; FIXME: Fundamentally `oclosure-lambda' should be a special form.
   ;; We define it here as a macro which expands to something that
   ;; looks like "normal code" in order to avoid backward compatibility
@@ -426,75 +431,57 @@ ARGS and BODY are the same as for `lambda'."
 
 (defun oclosure--fix-type (_ignore oclosure)
   "Helper function to implement `oclosure-lambda' via a macro.
-This has 2 uses:
-- For interpreted code, this converts the representation of type information
-  by moving it from the docstring to the environment.
-- For compiled code, this is used as a marker which cconv uses to check that
-  immutable fields are indeed not mutated."
-  (if (byte-code-function-p oclosure)
-      ;; Actually, this should never happen since the `cconv.el' should have
-      ;; optimized away the call to this function.
-      oclosure
-    ;; For byte-coded functions, we store the type as a symbol in the docstring
-    ;; slot.  For interpreted functions, there's no specific docstring slot
-    ;; so `Ffunction' turns the symbol into a string.
-    ;; We thus have convert it back into a symbol (via `intern') and then
-    ;; stuff it into the environment part of the closure with a special
-    ;; marker so we can distinguish this entry from actual variables.
-    (cl-assert (eq 'closure (car-safe oclosure)))
-    (let ((typename (nth 3 oclosure))) ;; The "docstring".
-      (cl-assert (stringp typename))
-      (push (cons :type (intern typename))
-            (cadr oclosure))
-      oclosure)))
+This is used as a marker which cconv uses to check that
+immutable fields are indeed not mutated."
+  (cl-assert (closurep oclosure))
+  ;; This should happen only for interpreted closures since `cconv.el'
+  ;; should have optimized away the call to this function.
+  oclosure)
 
 (defun oclosure--copy (oclosure mutlist &rest args)
+  (cl-assert (closurep oclosure))
   (if (byte-code-function-p oclosure)
       (apply #'make-closure oclosure
              (if (null mutlist)
                  args
                (mapcar (lambda (arg) (if (pop mutlist) (list arg) arg)) args)))
-    (cl-assert (eq 'closure (car-safe oclosure))
-               nil "oclosure not closure: %S" oclosure)
-    (cl-assert (eq :type (caar (cadr oclosure))))
-    (let ((env (cadr oclosure)))
-      `(closure
-           (,(car env)
-            ,@(named-let loop ((env (cdr env)) (args args))
-                (when args
-                  (cons (cons (caar env) (car args))
-                        (loop (cdr env) (cdr args)))))
-            ,@(nthcdr (1+ (length args)) env))
-           ,@(nthcdr 2 oclosure)))))
+    (cl-assert (consp (aref oclosure 1)))
+    (cl-assert (null (aref oclosure 3)))
+    (cl-assert (symbolp (aref oclosure 4)))
+    (let ((env (aref oclosure 2)))
+      (make-interpreted-closure
+       (aref oclosure 0)
+       (aref oclosure 1)
+       (named-let loop ((env env) (args args))
+         (if (null args) env
+           (cons (cons (caar env) (car args))
+                 (loop (cdr env) (cdr args)))))
+       (aref oclosure 4)
+       (if (> (length oclosure) 5)
+           `(interactive ,(aref oclosure 5)))))))
 
 (defun oclosure--get (oclosure index mutable)
-  (if (byte-code-function-p oclosure)
-      (let* ((csts (aref oclosure 2))
-             (v (aref csts index)))
-        (if mutable (car v) v))
-    (cl-assert (eq 'closure (car-safe oclosure)))
-    (cl-assert (eq :type (caar (cadr oclosure))))
-    (cdr (nth (1+ index) (cadr oclosure)))))
+  (cl-assert (closurep oclosure))
+  (let* ((csts (aref oclosure 2)))
+    (if (vectorp csts)
+        (let ((v (aref csts index)))
+          (if mutable (car v) v))
+      (cdr (nth index csts)))))
 
 (defun oclosure--set (v oclosure index)
-  (if (byte-code-function-p oclosure)
-      (let* ((csts (aref oclosure 2))
-             (cell (aref csts index)))
-        (setcar cell v))
-    (cl-assert (eq 'closure (car-safe oclosure)))
-    (cl-assert (eq :type (caar (cadr oclosure))))
-    (setcdr (nth (1+ index) (cadr oclosure)) v)))
+  (cl-assert (closurep oclosure))
+  (let ((csts (aref oclosure 2)))
+    (if (vectorp csts)
+        (let ((cell (aref csts index)))
+          (setcar cell v))
+      (setcdr (nth index csts) v))))
 
 (defun oclosure-type (oclosure)
-  "Return the type of OCLOSURE, or nil if the arg is not a OClosure."
-  (if (byte-code-function-p oclosure)
-      (let ((type (and (> (length oclosure) 4) (aref oclosure 4))))
-        (if (symbolp type) type))
-    (and (eq 'closure (car-safe oclosure))
-         (let* ((env (car-safe (cdr oclosure)))
-                (first-var (car-safe env)))
-           (and (eq :type (car-safe first-var))
-                (cdr first-var))))))
+  "Return the type of OCLOSURE, or nil if the arg is not an OClosure."
+  (and (closurep oclosure)
+       (> (length oclosure) 4)
+       (let ((type (aref oclosure 4)))
+         (if (symbolp type) type))))
 
 (defconst oclosure--accessor-prototype
   ;; Use `oclosure--lambda' to circumvent a bootstrapping problem:

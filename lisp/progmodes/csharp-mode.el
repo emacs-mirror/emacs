@@ -1,6 +1,6 @@
 ;;; csharp-mode.el --- Support for editing C#  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;;              Jostein Kjønigsen <jostein@kjonigsen.net>
@@ -45,6 +45,8 @@
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-query-capture "treesit.c")
+(declare-function treesit-query-compile "treesit.c")
 
 (defgroup csharp nil
   "Major mode for editing C# code."
@@ -492,11 +494,22 @@ compilation and evaluation time conflicts."
        ;; Next non-whitespace character should be '{'
        (goto-char (c-point 'boi))
        (unless (eq (char-after) ?{)
-         (backward-up-list 1 t t))
+         (ignore-errors (backward-up-list 1 t t)))
        (save-excursion
-         ;; 'new' should be part of the line
+         ;; 'new' should be part of the line, but should not trigger if
+         ;; statement has already ended, like for 'var x = new X();'.
+         ;; Also, deal with the possible end of line obscured by a
+         ;; trailing comment.
          (goto-char (c-point 'iopl))
-         (looking-at ".*new.*")))
+         (when (looking-at-p ".*new.*")
+           (if (re-search-forward ";" (pos-eol) t 1)
+               ;; If the ';' is inside a comment, the statement hasn't
+               ;; likely ended, so we should accept as object init.
+               ;; Example:
+               ;; var x = new         // This should return true ;
+               ;; var x = new();      // This should return false ;
+               (nth 4 (syntax-ppss (point)))
+             t))))
      ;; Line should not already be terminated
      (save-excursion
        (goto-char (c-point 'eopl))
@@ -677,7 +690,9 @@ compilation and evaluation time conflicts."
      ((parent-is "binary_expression") parent 0)
      ((parent-is "block") parent-bol csharp-ts-mode-indent-offset)
      ((parent-is "local_function_statement") parent-bol 0)
-     ((parent-is "if_statement") parent-bol 0)
+     ((match "block" "if_statement") parent-bol 0)
+     ((match "else" "if_statement") parent-bol 0)
+     ((parent-is "if_statement") parent-bol csharp-ts-mode-indent-offset)
      ((parent-is "for_statement") parent-bol 0)
      ((parent-is "for_each_statement") parent-bol 0)
      ((parent-is "while_statement") parent-bol 0)
@@ -716,6 +731,52 @@ compilation and evaluation time conflicts."
     "readonly" "unmanaged")
   "C# keywords for tree-sitter font-locking.")
 
+(defun csharp-ts-mode--test-this-expression ()
+  "Return non-nil if (this_expression) is named in csharp grammar."
+  (ignore-errors
+    (treesit-query-compile 'c-sharp "(this_expression)" t)
+    t))
+
+(defun csharp-ts-mode--test-interpolated-string-text ()
+  "Return non-nil if (interpolated_string_text) is in the grammar."
+  (ignore-errors
+    (treesit-query-compile 'c-sharp "(interpolated_string_text)" t)
+    t))
+
+(defun csharp-ts-mode--test-type-constraint ()
+  "Return non-nil if (type_constraint) is in the grammar."
+  (ignore-errors
+    (treesit-query-compile 'c-sharp "(type_constraint)" t)
+    t))
+
+(defun csharp-ts-mode--test-type-of-expression ()
+  "Return non-nil if (type_of_expression) is in the grammar."
+  (ignore-errors
+    (treesit-query-compile 'c-sharp "(type_of_expression)" t)
+    t))
+
+(defun csharp-ts-mode--test-name-equals ()
+  "Return non-nil if (name_equals) is in the grammar."
+  (ignore-errors
+    (treesit-query-compile 'c-sharp "(name_equals)" t)
+    t))
+
+(defun csharp-ts-mode--test-if-directive ()
+  "Return non-nil if (if_directive) is in the grammar."
+  (ignore-errors
+    (treesit-query-compile 'c-sharp "(if_directive)" t)
+    t))
+
+(defun csharp-ts-mode--test-method-declaration-type-field ()
+  "Return non-nil if (method_declaration) has a type field."
+  (ignore-errors
+    (treesit-query-compile 'c-sharp "(method_declaration type: (_))" t)
+    t))
+
+(defvar csharp-ts-mode--type-field
+  (if (csharp-ts-mode--test-method-declaration-type-field)
+      'type: 'returns:))
+
 (defvar csharp-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'c-sharp
@@ -746,7 +807,9 @@ compilation and evaluation time conflicts."
    :feature 'keyword
    `([,@csharp-ts-mode--keywords] @font-lock-keyword-face
      (modifier) @font-lock-keyword-face
-     (this_expression) @font-lock-keyword-face)
+     ,@(if (csharp-ts-mode--test-this-expression)
+           '((this_expression) @font-lock-keyword-face)
+         '("this" @font-lock-keyword-face)))
 
    :language 'c-sharp
    :override t
@@ -772,18 +835,23 @@ compilation and evaluation time conflicts."
    :feature 'string
    `([(string_literal)
       (verbatim_string_literal)
-      (interpolated_string_text)
-      (interpolated_verbatim_string_text)
-      (character_literal)
-      "\""
-      "$\""
-      "@$\""
-      "$@\""] @font-lock-string-face)
+      ,@(if (csharp-ts-mode--test-interpolated-string-text)
+            '((interpolated_string_text)
+              (interpolated_verbatim_string_text)
+              (character_literal)
+              "\""
+              "$\""
+              "@$\""
+              "$@\"")
+          '((interpolated_string_expression)
+            (interpolation_start)
+            (interpolation_quote)))]
+     @font-lock-string-face)
 
    :language 'c-sharp
    :override t
    :feature 'type
-   '((predefined_type) @font-lock-type-face
+   `((predefined_type) @font-lock-type-face
      (implicit_type) @font-lock-type-face
      (nullable_type) @font-lock-type-face
      (type_parameter
@@ -802,10 +870,17 @@ compilation and evaluation time conflicts."
      (cast_expression (generic_name (identifier) @font-lock-type-face))
      ["operator"] @font-lock-type-face
      (type_parameter_constraints_clause
-      target: (identifier) @font-lock-type-face)
-     (type_constraint type: (identifier) @font-lock-type-face)
-     (type_constraint type: (generic_name (identifier) @font-lock-type-face))
-     (type_of_expression (identifier) @font-lock-type-face)
+      (identifier) @font-lock-type-face)
+     ,@(if (csharp-ts-mode--test-type-constraint)
+           '((type_constraint type: (identifier) @font-lock-type-face)
+             (type_constraint type: (generic_name (identifier) @font-lock-type-face)))
+         '((type_parameter_constraint (type type: (identifier) @font-lock-type-face))
+           (type_parameter_constraint (type type: (generic_name (identifier) @font-lock-type-face)))))
+
+     ,@(when (csharp-ts-mode--test-type-of-expression)
+         '((type_of_expression (identifier) @font-lock-type-face))
+         '((typeof_expression (identifier) @font-lock-type-face)))
+
      (object_creation_expression
       type: (identifier) @font-lock-type-face)
      (object_creation_expression
@@ -818,8 +893,9 @@ compilation and evaluation time conflicts."
    :override t
    `((qualified_name (identifier) @font-lock-type-face)
      (using_directive (identifier) @font-lock-type-face)
-     (using_directive (name_equals
-                       (identifier) @font-lock-type-face))
+     ,@(when (csharp-ts-mode--test-name-equals)
+         '((using_directive (name_equals
+                             (identifier) @font-lock-type-face))))
 
      (enum_declaration (identifier) @font-lock-type-face)
      (enum_member_declaration (identifier) @font-lock-variable-name-face)
@@ -847,10 +923,10 @@ compilation and evaluation time conflicts."
      ;;; Check if keyword void_keyword is available, then return the correct rule."
      ,@(condition-case nil
            (progn (treesit-query-capture 'csharp '((void_keyword) @capture))
-                  `((method_declaration type: [(identifier) (void_keyword)] @font-lock-type-face)))
+                  `((method_declaration ,csharp-ts-mode--type-field [(identifier) (void_keyword)] @font-lock-type-face)))
          (error
-          `((method_declaration type: [(identifier) (predefined_type)] @font-lock-type-face))))
-     (method_declaration type: (generic_name (identifier) @font-lock-type-face))
+          `((method_declaration ,csharp-ts-mode--type-field [(identifier) (predefined_type)] @font-lock-type-face))))
+     (method_declaration ,csharp-ts-mode--type-field (generic_name (identifier) @font-lock-type-face))
      (method_declaration name: (_) @font-lock-function-name-face)
 
      (catch_declaration
@@ -893,25 +969,45 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :feature 'directives
    :override t
-   '((if_directive
-      "if" @font-lock-preprocessor-face
-      (identifier) @font-lock-variable-use-face)
-     (elif_directive
-      "elif" @font-lock-preprocessor-face
-      (identifier) @font-lock-variable-use-face)
-     (else_directive) @font-lock-preprocessor-face
-     (endif_directive) @font-lock-preprocessor-face
-     (define_directive
-      "define" @font-lock-preprocessor-face
-      (identifier) @font-lock-variable-use-face)
-     (nullable_directive) @font-lock-preprocessor-face
-     (pragma_directive) @font-lock-preprocessor-face
-     (region_directive) @font-lock-preprocessor-face
-     (endregion_directive) @font-lock-preprocessor-face
-     (region_directive
-      (preproc_message) @font-lock-variable-use-face)
-     (endregion_directive
-      (preproc_message) @font-lock-variable-use-face))))
+   (if (csharp-ts-mode--test-if-directive)
+       '((if_directive
+          "if" @font-lock-preprocessor-face
+          (identifier) @font-lock-variable-use-face)
+         (elif_directive
+          "elif" @font-lock-preprocessor-face
+          (identifier) @font-lock-variable-use-face)
+         (else_directive) @font-lock-preprocessor-face
+         (endif_directive) @font-lock-preprocessor-face
+         (define_directive
+          "define" @font-lock-preprocessor-face
+          (identifier) @font-lock-variable-use-face)
+         (nullable_directive) @font-lock-preprocessor-face
+         (pragma_directive) @font-lock-preprocessor-face
+         (region_directive) @font-lock-preprocessor-face
+         (endregion_directive) @font-lock-preprocessor-face
+         (region_directive
+          (preproc_message) @font-lock-variable-use-face)
+         (endregion_directive
+          (preproc_message) @font-lock-variable-use-face))
+     '((preproc_if
+        "#if" @font-lock-preprocessor-face
+        (identifier) @font-lock-variable-use-face)
+       (preproc_elif
+        "#elif" @font-lock-preprocessor-face
+        (identifier) @font-lock-variable-use-face)
+       (preproc_else) @font-lock-preprocessor-face
+       "#endif" @font-lock-preprocessor-face
+       (preproc_define
+        "#define" @font-lock-preprocessor-face
+        (preproc_arg) @font-lock-variable-use-face)
+       (preproc_nullable) @font-lock-preprocessor-face
+       (preproc_pragma) @font-lock-preprocessor-face
+       (preproc_region) @font-lock-preprocessor-face
+       (preproc_endregion) @font-lock-preprocessor-face
+       (preproc_region
+        (preproc_arg) @font-lock-variable-use-face)
+       (preproc_endregion
+        (preproc_arg) @font-lock-variable-use-face)))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
@@ -953,15 +1049,17 @@ Key bindings:
     (error "Tree-sitter for C# isn't available"))
 
   ;; Tree-sitter.
-  (treesit-parser-create 'c-sharp)
+  (setq treesit-primary-parser (treesit-parser-create 'c-sharp))
 
   ;; Comments.
   (c-ts-common-comment-setup)
 
-  (setq-local treesit-text-type-regexp
-              (regexp-opt '("comment"
-                            "verbatim_string-literal"
-                            "interpolated_verbatim_string-text")))
+  (setq-local treesit-thing-settings
+              `((c-sharp
+                 (text
+                  ,(regexp-opt '("comment"
+                                 "verbatim_string-literal"
+                                 "interpolated_verbatim_string-text"))))))
 
   ;; Indent.
   (setq-local treesit-simple-indent-rules csharp-ts-mode--indent-rules)
@@ -994,6 +1092,8 @@ Key bindings:
   (treesit-major-mode-setup)
 
   (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-ts-mode)))
+
+(derived-mode-add-parents 'csharp-ts-mode '(csharp-mode))
 
 (provide 'csharp-mode)
 

@@ -54,9 +54,9 @@ combine them into a single entry, e.g.:
 https://lists.gnu.org/r/emacs-devel/2008-10/msg00414.html
 
 In Emacs tradition, we treat "point" as a proper name when it refers
-to the current editing location. It should not have an article.
+to the current editing location.  It should not have an article.
 
-Thus, it is incorrect to write, "The point does not move". It should
+Thus, it is incorrect to write, "The point does not move".  It should
 be, "Point does not move".
 
 If you see "the point" anywhere in Emacs documentation or comments,

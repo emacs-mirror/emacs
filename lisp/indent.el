@@ -1,6 +1,6 @@
 ;;; indent.el --- indentation commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1995, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1995, 2001-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -170,8 +170,7 @@ prefix argument is ignored."
    (t
     (let ((old-tick (buffer-chars-modified-tick))
           (old-point (point))
-	  (old-indent (current-indentation))
-          (syn (syntax-after (point))))
+	  (old-indent (current-indentation)))
 
       ;; Indent the line.
       (or (not (eq (indent--funcall-widened indent-line-function) 'noindent))
@@ -185,19 +184,14 @@ prefix argument is ignored."
        ((and (eq tab-always-indent 'complete)
              (eql old-point (point))
              (eql old-tick (buffer-chars-modified-tick))
-             (or (null tab-first-completion)
-                 (eq last-command this-command)
-                 (and (eq tab-first-completion 'eol)
-                      (eolp))
-                 (and (memq tab-first-completion
-                            '(word word-or-paren word-or-paren-or-punct))
-                      (not (eql 2 syn)))
-                 (and (memq tab-first-completion
-                            '(word-or-paren word-or-paren-or-punct))
-                      (not (or (eql 4 syn)
-                               (eql 5 syn))))
-                 (and (eq tab-first-completion 'word-or-paren-or-punct)
-                      (not (eql 1 syn)))))
+             (or (eq last-command this-command)
+                 (let ((syn (syntax-class (syntax-after (point)))))
+                   (pcase tab-first-completion
+                     ('nil t)
+                     ('eol (eolp))
+                     ('word (not (eql 2 syn)))
+                     ('word-or-paren (not (memq syn '(2 4 5))))
+                     ('word-or-paren-or-punct (not (memq syn '(2 4 5 1))))))))
         (completion-at-point))
 
        ;; If a prefix argument was given, rigidly indent the following
@@ -271,7 +265,7 @@ indentation by specifying a large negative ARG."
   (interactive "r\nP\np")
   (if (and (not arg) interactive)
       (set-transient-map indent-rigidly-map t #'deactivate-mark
-                         "Indent region with %k")
+                         "Type %k to indent region interactively")
     (save-excursion
       (goto-char end)
       (setq end (point-marker))

@@ -1,6 +1,6 @@
 ;;; print-tests.el --- tests for src/print.c         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -366,13 +366,6 @@ otherwise, use a different charset."
       (puthash 2 3 h)
       (remhash 1 h)
       (format "%S" h))))
-
-  (should
-   (string-match
-    "data ()"
-    (let ((h (make-hash-table)))
-      (let ((print-length 0))
-        (format "%S" h)))))
 
   (should
    (string-match

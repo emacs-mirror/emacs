@@ -1,5 +1,5 @@
 # ndk-build-helper-1.mk -- Helper for ndk-build.m4.
-# Copyright (C) 2023 Free Software Foundation, Inc.
+# Copyright (C) 2023-2024 Free Software Foundation, Inc.
 # This file is part of GNU Emacs.
 
 # GNU Emacs is free software: you can redistribute it and/or modify
@@ -35,9 +35,9 @@ NDK_CXX_FLAG_$(LOCAL_MODULE) :=
 
 $(info Building $(build_kind))
 $(info $(LOCAL_MODULE))
-$(info $(addprefix $(LOCAL_PATH)/,$(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES$(EMACS_ABI))))
+$(info $(addprefix $(LOCAL_PATH:%/=%)/,$(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES$(EMACS_ABI))))
 
-ifeq ($(findstring lib,$(LOCAL_MODULE)),lib)
+ifeq ($(filter-out lib%,$(LOCAL_MODULE)),)
 NDK_SO_NAMES = $(LOCAL_MODULE)_emacs.so
 else
 NDK_SO_NAMES = lib$(LOCAL_MODULE)_emacs.so
@@ -50,7 +50,7 @@ $$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_STATIC_LIBRARI
 endef
 
 define add-so-name
-ifeq ($(findstring lib,$(1)),lib)
+ifeq ($(filter-out lib%,$(1)),)
 NDK_SO_NAME = $(1)_emacs.so
 else
 NDK_SO_NAME = lib$(1)_emacs.so
@@ -94,7 +94,7 @@ endef
 # dependencies can be ignored while building a shared library, as they
 # will be linked in to the resulting shared object file later.
 
-SYSTEM_LIBRARIES = z libz libc c libdl dl stdc++ libstdc++ log liblog android libandroid
+SYSTEM_LIBRARIES = z libz libc c libdl dl stdc++ libstdc++ stlport libstlport gnustl libgnustl c++ libc++ log liblog android libandroid
 
 $(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES)),$(eval $(call add-so-name,$(module))))
 $(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES) $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_STATIC_LIBRARIES)),$(eval $(call add-includes,$(module))))
@@ -106,7 +106,7 @@ endif
 $(info $(foreach dir,$(NDK_INCLUDES),-I$(dir)))
 $(info $(LOCAL_EXPORT_CFLAGS))
 
-$(info $(LOCAL_EXPORT_LDFLAGS) $(abspath $(addprefix $(NDK_BUILD_DIR)/,$(NDK_A_NAMES))) -L$(abspath $(NDK_BUILD_DIR)) $(foreach soname,$(NDK_SO_NAMES),-l:$(soname)))
+$(info $(LOCAL_EXPORT_LDFLAGS) $(abspath $(addprefix $(NDK_BUILD_DIR:%/=%)/,$(NDK_A_NAMES))) -L$(abspath $(NDK_BUILD_DIR)) $(foreach soname,$(NDK_SO_NAMES),-l:$(soname)))
 $(info $(NDK_SO_NAMES))
 $(info $(NDK_CXX_FLAG_$(LOCAL_MODULE)))
 $(info End)

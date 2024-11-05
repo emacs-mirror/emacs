@@ -1,6 +1,6 @@
 ;;; mh-search.el --- MH-Search mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 1995, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Indexed search by Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -539,7 +539,7 @@ group of results."
 ;;; Search Menu
 
 (easy-menu-define
-  mh-pick-menu mh-search-mode-map "Menu for MH-E Search"
+  mh-pick-menu mh-search-mode-map "Menu for MH-E Search."
   '("Search"
     ["Perform Search"       mh-index-do-search t]
     ["Search with pick"     mh-pick-do-search t]))
@@ -594,8 +594,8 @@ as well.")
 (put 'mh-search-mode 'mode-class 'special)
 
 (define-derived-mode mh-search-mode fundamental-mode "MH-Search"
-  "Mode for creating search templates in MH-E.\\<mh-search-mode-map>
-
+  "Mode for creating search templates in MH-E.
+\\<mh-search-mode-map>
 Edit this template by entering your search criteria in an
 appropriate header field that is already there, or create a new
 field yourself. If the string you're looking for could be
@@ -1569,7 +1569,7 @@ If the folder returned doesn't exist then it is created."
     (save-excursion (mh-exec-cmd-quiet nil "rmf" chosen-name))
     (mh-exec-cmd-quiet nil "folder" "-create" "-fast" chosen-name)
     (mh-remove-from-sub-folders-cache chosen-name)
-    (when (boundp 'mh-speed-folder-map)
+    (when (and (boundp 'speedbar-buffer) speedbar-buffer)
       (mh-speed-add-folder chosen-name))
     chosen-name))
 

@@ -1,6 +1,6 @@
 /* MS-DOS specific C utilities.          -*- coding: cp850 -*-
 
-Copyright (C) 1993-1997, 1999-2023 Free Software Foundation, Inc.
+Copyright (C) 1993-1997, 1999-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -599,7 +599,7 @@ dos_set_window_size (int *rows, int *cols)
   *rows = ScreenRows ();
   *cols = ScreenCols ();
 
-  /* Update Emacs' notion of screen dimensions.  */
+  /* Update Emacs's notion of screen dimensions.  */
   screen_size_X = *cols;
   screen_size_Y = *rows;
   screen_size = *cols * *rows;
@@ -2662,7 +2662,7 @@ dos_rawgetc (void)
 	      static Lisp_Object last_mouse_window;
 
 	      mouse_window = window_from_coordinates
-		(SELECTED_FRAME (), mouse_last_x, mouse_last_y, 0, 0, 0);
+		(SELECTED_FRAME (), mouse_last_x, mouse_last_y, 0, 0, 0, 0);
 	      /* A window will be selected only when it is not
 		 selected now, and the last mouse movement event was
 		 not in it.  A minibuffer window will be selected iff
@@ -2811,14 +2811,10 @@ IT_menu_make_room (XMenu *menu)
   else if (menu->allocated == menu->count)
     {
       int count = menu->allocated = menu->allocated + 10;
-      menu->text
-	= (char **) xrealloc (menu->text, count * sizeof (char *));
-      menu->submenu
-	= (XMenu **) xrealloc (menu->submenu, count * sizeof (XMenu *));
-      menu->panenumber
-	= (int *) xrealloc (menu->panenumber, count * sizeof (int));
-      menu->help_text
-	= (const char **) xrealloc (menu->help_text, count * sizeof (char *));
+      menu->text = xrealloc (menu->text, count * sizeof (char *));
+      menu->submenu = xrealloc (menu->submenu, count * sizeof (XMenu *));
+      menu->panenumber = xrealloc (menu->panenumber, count * sizeof (int));
+      menu->help_text = xrealloc (menu->help_text, count * sizeof (char *));
     }
 }
 
@@ -2869,7 +2865,7 @@ IT_menu_calc_size (XMenu *menu, int *width, int *height)
   do							   \
     {							   \
       (GLYPH).type = CHAR_GLYPH;			   \
-      SET_CHAR_GLYPH ((GLYPH), CODE, FACE_ID, PADDING_P);  \
+      SET_CHAR_GLYPH (GLYPH, CODE, FACE_ID, PADDING_P);	   \
       (GLYPH).charpos = -1;				   \
     }							   \
   while (0)
@@ -3074,12 +3070,12 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   state = alloca (menu->panecount * sizeof (struct IT_menu_state));
   screensize = screen_size * 2;
   faces[0]
-    = lookup_derived_face (NULL, sf, intern ("msdos-menu-passive-face"),
+    = lookup_derived_face (NULL, sf, Qmsdos_menu_passive_face,
 			   DEFAULT_FACE_ID, 1);
   faces[1]
-    = lookup_derived_face (NULL, sf, intern ("msdos-menu-active-face"),
+    = lookup_derived_face (NULL, sf, Qmsdos_menu_active_face,
 			   DEFAULT_FACE_ID, 1);
-  selectface = intern ("msdos-menu-select-face");
+  selectface = Qmsdos_menu_select_face;
   faces[2] = lookup_derived_face (NULL, sf, selectface,
 				  faces[0], 1);
   faces[3] = lookup_derived_face (NULL, sf, selectface,
@@ -3744,7 +3740,7 @@ run_msdos_command (char **argv, const char *working_dir,
   *pl = '\0';
 
   cmd = Ffile_name_nondirectory (build_string (lowcase_argv0));
-  msshell = !NILP (Fmember (cmd, Fsymbol_value (intern ("msdos-shells"))))
+  msshell = !NILP (Fmember (cmd, Fsymbol_value (Qmsdos_shells)))
     && !strcmp ("-c", argv[1]);
   if (msshell)
     {
@@ -4328,6 +4324,11 @@ This variable is used only by MS-DOS terminals.  */);
   defsubr (&Smsdos_downcase_filename);
   defsubr (&Smsdos_remember_default_colors);
   defsubr (&Smsdos_set_mouse_buttons);
+
+  DEFSYM (Qmsdos_menu_passive_face, "msdos-menu-passive-face");
+  DEFSYM (Qmsdos_menu_active_face, "msdos-menu-active-face");
+  DEFSYM (Qmsdos_menu_select_face, "msdos-menu-select-face");
+  DEFSYM (Qmsdos_shells, "msdos-shells");
 }
 
 #endif /* MSDOS */

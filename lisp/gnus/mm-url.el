@@ -1,6 +1,6 @@
 ;;; mm-url.el --- a wrapper of url functions/commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 
@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 
-;; Some code is stolen from w3 and url packages. Some are moved from
+;; Some code is stolen from w3 and url packages.  Some are moved from
 ;; nnweb.
 
 ;; TODO: Support POST, cookie.

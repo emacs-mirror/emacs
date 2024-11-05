@@ -1,6 +1,6 @@
 ;;; forms.el --- Forms mode: edit a file as a form to fill in  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2024 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 
@@ -323,8 +323,8 @@
   "Non-nil means: visit the file in view (read-only) mode.
 This is set automatically if the file permissions don't let you write it.")
 
-(defvar forms-multi-line "\C-k" "\
-If not nil: use this character to separate multi-line fields (default C-k).")
+(defvar forms-multi-line "\C-k"
+  "If non-nil, use this character to separate multi-line fields (default \\`C-k').")
 
 (defcustom forms-forms-scroll nil
   "Non-nil means replace scroll-up/down commands in Forms mode.
@@ -343,7 +343,7 @@ suitable for forms processing.")
 
 (defvar forms-write-file-filter nil
   "The name of a function that is called before writing the data file.
-This can be used to undo the effects of `form-read-file-hook'.")
+This can be used to undo the effects of `forms-read-file-filter'.")
 
 (defvar forms-new-record-filter nil
   "The name of a function that is called when a new record is created.")

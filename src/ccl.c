@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 2001-2024 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -35,11 +35,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "keyboard.h"
 
-/* Avoid GCC 12 bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105784>.  */
-#if GNUC_PREREQ (12, 0, 0)
-# pragma GCC diagnostic ignored "-Wanalyzer-use-of-uninitialized-value"
-#endif
-
 /* Table of registered CCL programs.  Each element is a vector of
    NAME, CCL_PROG, RESOLVEDP, and UPDATEDP, where NAME (symbol) is the
    name of the program, CCL_PROG (vector) is the compiled code of the
@@ -51,7 +46,7 @@ static Lisp_Object Vccl_program_table;
 
 /* Return a hash table of id number ID.  */
 #define GET_HASH_TABLE(id) \
-  (XHASH_TABLE (XCDR (AREF (Vtranslation_hash_table_vector, (id)))))
+  XHASH_TABLE (XCDR (AREF (Vtranslation_hash_table_vector, id)))
 
 /* CCL (Code Conversion Language) is a simple language which has
    operations on one input buffer, one output buffer, and 7 registers.
@@ -609,7 +604,7 @@ while (0)
    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109579
    which causes GCC to mistakenly complain about
    popping the mapping stack.  */
-#if GNUC_PREREQ (13, 0, 0)
+#if __GNUC__ == 13
 # pragma GCC diagnostic ignored "-Wanalyzer-out-of-bounds"
 #endif
 
@@ -627,7 +622,7 @@ do								\
   {								\
     struct ccl_program called_ccl;				\
     if (stack_idx >= 256					\
-	|| ! setup_ccl_program (&called_ccl, (symbol)))		\
+	|| ! setup_ccl_program (&called_ccl, symbol))		\
       {								\
 	if (stack_idx > 0)					\
 	  {							\
@@ -818,7 +813,7 @@ while (0)
 
 #define CCL_DECODE_CHAR(id, code)	\
   ((id) == 0 ? (code)			\
-   : (charset = CHARSET_FROM_ID ((id)), DECODE_CHAR (charset, (code))))
+   : (charset = CHARSET_FROM_ID (id), DECODE_CHAR (charset, code)))
 
 /* Encode character C by some of charsets in CHARSET_LIST.  Set ID to
    the id of the used charset, ENCODED to the result of encoding.
@@ -828,9 +823,9 @@ while (0)
   do {								\
     unsigned ncode;						\
 								\
-    charset = char_charset ((c), (charset_list), &ncode);	\
+    charset = char_charset (c, charset_list, &ncode);		\
     if (! charset && ! NILP (charset_list))			\
-      charset = char_charset ((c), Qnil, &ncode);	  	\
+      charset = char_charset (c, Qnil, &ncode);			\
     if (charset)						\
       {								\
 	(id) = CHARSET_ID (charset);				\
@@ -873,7 +868,7 @@ static struct ccl_prog_stack ccl_prog_stack_struct[256];
 static inline Lisp_Object
 GET_TRANSLATION_TABLE (int id)
 {
-  return XCDR (XVECTOR (Vtranslation_table_vector)->contents[id]);
+  return XCDR (AREF (Vtranslation_table_vector, id));
 }
 
 void
@@ -1380,7 +1375,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 		eop = (FIXNUM_OVERFLOW_P (reg[RRR])
 		       ? -1
-		       : hash_lookup (h, make_fixnum (reg[RRR]), NULL));
+		       : hash_lookup (h, make_fixnum (reg[RRR])));
 		if (eop >= 0)
 		  {
 		    Lisp_Object opl;
@@ -1409,7 +1404,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 		eop = (FIXNUM_OVERFLOW_P (i)
 		       ? -1
-		       : hash_lookup (h, make_fixnum (i), NULL));
+		       : hash_lookup (h, make_fixnum (i)));
 		if (eop >= 0)
 		  {
 		    Lisp_Object opl;

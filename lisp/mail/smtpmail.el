@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1996, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: emacs-devel@gnu.org
@@ -638,7 +638,7 @@ USER and PASSWORD should be non-nil."
    235))
 
 (cl-defmethod smtpmail-try-auth-method
-  (process (_mech (eql xoauth2)) user password)
+  (process (_mech (eql 'xoauth2)) user password)
   (smtpmail-command-or-throw
    process
    (concat "AUTH XOAUTH2 "
@@ -800,11 +800,7 @@ Returns an error if the server cannot be contacted."
 		  (smtpmail-command-or-throw
 		   process (format "HELO %s" (smtpmail-fqdn)))
 		;; EHLO was successful, so we parse the extensions.
-		(dolist (line (delete
-			       ""
-			       (split-string
-				(plist-get (cdr result) :capabilities)
-				"\r\n")))
+		(dolist (line (delete "" (split-string capabilities "\r\n")))
 		  (let ((name
                          ;; Use ASCII case-table to prevent I
                          ;; downcasing to a dotless i under some
@@ -1057,8 +1053,8 @@ Returns an error if the server cannot be contacted."
     (while data-continue
       (with-current-buffer buffer
         (progress-reporter-update pr (point))
-        (setq sending-data (buffer-substring (line-beginning-position)
-                                             (line-end-position)))
+        (setq sending-data (buffer-substring-no-properties (line-beginning-position)
+                                                           (line-end-position)))
 	(end-of-line 2)
         (setq data-continue (not (eobp))))
       (smtpmail-send-data-1 process sending-data))

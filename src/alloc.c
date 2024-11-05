@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-2023 Free Software Foundation, Inc.
+Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -34,7 +34,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "intervals.h"
 #include "puresize.h"
-#include "sheap.h"
 #include "sysstdio.h"
 #include "systime.h"
 #include "character.h"
@@ -105,7 +104,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    or a new vector block is allocated (allocate_vector_from_block).
    Accordingly, objects reused from the free list are unpoisoned.
 
-   This feature can be disabled wtih the run-time flag
+   This feature can be disabled with the run-time flag
    `allow_user_poisoning' set to zero.  */
 #if ADDRESS_SANITIZER && defined HAVE_SANITIZER_ASAN_INTERFACE_H \
   && !defined GC_ASAN_POISON_OBJECTS
@@ -360,7 +359,15 @@ static struct gcstat
   object_ct total_floats, total_free_floats;
   object_ct total_intervals, total_free_intervals;
   object_ct total_buffers;
+
+  /* Size of the ancillary arrays of live hash-table and obarray objects.
+     The objects themselves are not included (counted as vectors above).  */
+  byte_ct total_hash_table_bytes;
 } gcstat;
+
+/* Total size of ancillary arrays of all allocated hash-table and obarray
+   objects, both dead and alive.  This number is always kept up-to-date.  */
+static ptrdiff_t hash_table_allocated_bytes = 0;
 
 /* Points to memory space allocated as "spare", to be freed if we run
    out of memory.  We keep one large block, four cons-blocks, and
@@ -413,31 +420,6 @@ static EMACS_INT gc_threshold;
 
 const char *pending_malloc_warning;
 
-/* Pointer sanity only on request.  FIXME: Code depending on
-   SUSPICIOUS_OBJECT_CHECKING is obsolete; remove it entirely.  */
-#ifdef ENABLE_CHECKING
-#define SUSPICIOUS_OBJECT_CHECKING 1
-#endif
-
-#ifdef SUSPICIOUS_OBJECT_CHECKING
-struct suspicious_free_record
-{
-  void *suspicious_object;
-  void *backtrace[128];
-};
-static void *suspicious_objects[32];
-static int suspicious_object_index;
-struct suspicious_free_record suspicious_free_history[64] EXTERNALLY_VISIBLE;
-static int suspicious_free_history_index;
-/* Find the first currently-monitored suspicious pointer in range
-   [begin,end) or NULL if no such pointer exists.  */
-static void *find_suspicious_object_in_range (void *begin, void *end);
-static void detect_suspicious_free (void *ptr);
-#else
-# define find_suspicious_object_in_range(begin, end) ((void *) NULL)
-# define detect_suspicious_free(ptr) ((void) 0)
-#endif
-
 /* Maximum amount of C stack to save when a GC happens.  */
 
 #ifndef MAX_SAVE_STACK
@@ -471,6 +453,7 @@ no_sanitize_memcpy (void *dest, void const *src, size_t size)
 
 #endif /* MAX_SAVE_STACK > 0 */
 
+static struct Lisp_Vector *allocate_clear_vector (ptrdiff_t, bool);
 static void unchain_finalizer (struct Lisp_Finalizer *);
 static void mark_terminals (void);
 static void gc_sweep (void);
@@ -686,10 +669,10 @@ malloc_warning (const char *str)
 void
 display_malloc_warning (void)
 {
-  call3 (intern ("display-warning"),
-	 intern ("alloc"),
+  call3 (Qdisplay_warning,
+	 Qalloc,
 	 build_string (pending_malloc_warning),
-	 intern (":emergency"));
+	 QCemergency);
   pending_malloc_warning = 0;
 }
 
@@ -726,7 +709,7 @@ buffer_memory_full (ptrdiff_t nbytes)
    where Emacs would crash if malloc returned a non-GCALIGNED pointer.  */
 enum { LISP_ALIGNMENT = alignof (union { union emacs_align_type x;
 					 GCALIGNED_UNION_MEMBER }) };
-verify (LISP_ALIGNMENT % GCALIGNMENT == 0);
+static_assert (LISP_ALIGNMENT % GCALIGNMENT == 0);
 
 /* True if malloc (N) is known to return storage suitably aligned for
    Lisp objects whenever N is a multiple of LISP_ALIGNMENT.  In
@@ -856,7 +839,7 @@ xfree (void *block)
 /* Other parts of Emacs pass large int values to allocator functions
    expecting ptrdiff_t.  This is portable in practice, but check it to
    be safe.  */
-verify (INT_MAX <= PTRDIFF_MAX);
+static_assert (INT_MAX <= PTRDIFF_MAX);
 
 
 /* Allocate an array of NITEMS items, each of size ITEM_SIZE.
@@ -1016,6 +999,7 @@ record_xmalloc (size_t size)
    allocated memory block (for strings, for conses, ...).  */
 
 #if ! USE_LSB_TAG
+extern void *lisp_malloc_loser;
 void *lisp_malloc_loser EXTERNALLY_VISIBLE;
 #endif
 
@@ -1092,7 +1076,7 @@ lisp_free (void *block)
 #else  /* !HAVE_UNEXEC */
 # define BLOCK_ALIGN (1 << 15)
 #endif
-verify (POWER_OF_2 (BLOCK_ALIGN));
+static_assert (POWER_OF_2 (BLOCK_ALIGN));
 
 /* Use aligned_alloc if it or a simple substitute is available.
    Aligned allocation is incompatible with unexmacosx.c, so don't use
@@ -1112,11 +1096,11 @@ aligned_alloc (size_t alignment, size_t size)
 {
   /* POSIX says the alignment must be a power-of-2 multiple of sizeof (void *).
      Verify this for all arguments this function is given.  */
-  verify (BLOCK_ALIGN % sizeof (void *) == 0
-	  && POWER_OF_2 (BLOCK_ALIGN / sizeof (void *)));
-  verify (MALLOC_IS_LISP_ALIGNED
-	  || (LISP_ALIGNMENT % sizeof (void *) == 0
-	      && POWER_OF_2 (LISP_ALIGNMENT / sizeof (void *))));
+  static_assert (BLOCK_ALIGN % sizeof (void *) == 0
+		 && POWER_OF_2 (BLOCK_ALIGN / sizeof (void *)));
+  static_assert (MALLOC_IS_LISP_ALIGNED
+		 || (LISP_ALIGNMENT % sizeof (void *) == 0
+		     && POWER_OF_2 (LISP_ALIGNMENT / sizeof (void *))));
   eassert (alignment == BLOCK_ALIGN
 	   || (!MALLOC_IS_LISP_ALIGNED && alignment == LISP_ALIGNMENT));
 
@@ -1237,7 +1221,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 #endif
 
 #ifdef USE_ALIGNED_ALLOC
-      verify (ABLOCKS_BYTES % BLOCK_ALIGN == 0);
+      static_assert (ABLOCKS_BYTES % BLOCK_ALIGN == 0);
       abase = base = aligned_alloc (BLOCK_ALIGN, ABLOCKS_BYTES);
 #else
       base = malloc (ABLOCKS_BYTES);
@@ -1421,8 +1405,8 @@ lmalloc (size_t size, bool clearit)
       if (laligned (p, size) && (MALLOC_0_IS_NONNULL || size || p))
 	return p;
       free (p);
-      size_t bigger = size + LISP_ALIGNMENT;
-      if (size < bigger)
+      size_t bigger;
+      if (!ckd_add (&bigger, size, LISP_ALIGNMENT))
 	size = bigger;
     }
 }
@@ -1435,8 +1419,8 @@ lrealloc (void *p, size_t size)
       p = realloc (p, size);
       if (laligned (p, size) && (size || p))
 	return p;
-      size_t bigger = size + LISP_ALIGNMENT;
-      if (size < bigger)
+      size_t bigger;
+      if (!ckd_add (&bigger, size, LISP_ALIGNMENT))
 	size = bigger;
     }
 }
@@ -1484,9 +1468,9 @@ static INTERVAL interval_free_list;
   __asan_unpoison_memory_region ((b)->intervals, \
 				 sizeof ((b)->intervals))
 # define ASAN_POISON_INTERVAL(i) \
-  __asan_poison_memory_region ((i), sizeof (*(i)))
+  __asan_poison_memory_region (i, sizeof *(i))
 # define ASAN_UNPOISON_INTERVAL(i) \
-  __asan_unpoison_memory_region ((i), sizeof (*(i)))
+  __asan_unpoison_memory_region (i, sizeof *(i))
 #else
 # define ASAN_POISON_INTERVAL_BLOCK(b) ((void) 0)
 # define ASAN_UNPOISON_INTERVAL_BLOCK(b) ((void) 0)
@@ -1770,25 +1754,25 @@ init_strings (void)
  */
 # define ASAN_PREPARE_DEAD_SDATA(s, size)                          \
   do {                                                             \
-    __asan_poison_memory_region ((s), sdata_size ((size)));        \
-    __asan_unpoison_memory_region (&(((s))->string),                 \
+    __asan_poison_memory_region (s, sdata_size (size));		   \
+    __asan_unpoison_memory_region (&(s)->string,		   \
 				   sizeof (struct Lisp_String *)); \
-    __asan_unpoison_memory_region (&SDATA_NBYTES ((s)),            \
-				   sizeof (SDATA_NBYTES ((s))));   \
+    __asan_unpoison_memory_region (&SDATA_NBYTES (s),		   \
+				   sizeof SDATA_NBYTES (s));	   \
    } while (false)
 /* Prepare s for storing string data for NBYTES bytes.  */
 # define ASAN_PREPARE_LIVE_SDATA(s, nbytes) \
-  __asan_unpoison_memory_region ((s), sdata_size ((nbytes)))
+  __asan_unpoison_memory_region (s, sdata_size (nbytes))
 # define ASAN_POISON_SBLOCK_DATA(b, size) \
-  __asan_poison_memory_region ((b)->data, (size))
+  __asan_poison_memory_region ((b)->data, size)
 # define ASAN_POISON_STRING_BLOCK(b) \
   __asan_poison_memory_region ((b)->strings, STRING_BLOCK_SIZE)
 # define ASAN_UNPOISON_STRING_BLOCK(b) \
   __asan_unpoison_memory_region ((b)->strings, STRING_BLOCK_SIZE)
 # define ASAN_POISON_STRING(s) \
-  __asan_poison_memory_region ((s), sizeof (*(s)))
+  __asan_poison_memory_region (s, sizeof *(s))
 # define ASAN_UNPOISON_STRING(s) \
-  __asan_unpoison_memory_region ((s), sizeof (*(s)))
+  __asan_unpoison_memory_region (s, sizeof *(s))
 #else
 # define ASAN_PREPARE_DEAD_SDATA(s, size) ((void) 0)
 # define ASAN_PREPARE_LIVE_SDATA(s, nbytes) ((void) 0)
@@ -2423,30 +2407,39 @@ bool_vector_fill (Lisp_Object a, Lisp_Object init)
   return a;
 }
 
+/* Return a newly allocated, bool vector of size NBITS.  If CLEARIT,
+   clear its slots; otherwise the vector's slots are uninitialized.  */
+
+Lisp_Object
+make_clear_bool_vector (EMACS_INT nbits, bool clearit)
+{
+  eassert (0 <= nbits && nbits <= BOOL_VECTOR_LENGTH_MAX);
+  Lisp_Object val;
+  ptrdiff_t words = bool_vector_words (nbits);
+  ptrdiff_t word_bytes = words * sizeof (bits_word);
+  ptrdiff_t needed_elements = ((bool_header_size - header_size + word_bytes
+				+ word_size - 1)
+			       / word_size);
+  struct Lisp_Bool_Vector *p
+    = (struct Lisp_Bool_Vector *) allocate_clear_vector (needed_elements,
+							 clearit);
+  /* Clear padding at end; but only if necessary, to avoid polluting the
+     data cache.  */
+  if (!clearit && nbits % BITS_PER_BITS_WORD != 0)
+    p->data[words - 1] = 0;
+
+  XSETVECTOR (val, p);
+  XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
+  p->size = nbits;
+  return val;
+}
+
 /* Return a newly allocated, uninitialized bool vector of size NBITS.  */
 
 Lisp_Object
 make_uninit_bool_vector (EMACS_INT nbits)
 {
-  Lisp_Object val;
-  EMACS_INT words = bool_vector_words (nbits);
-  EMACS_INT word_bytes = words * sizeof (bits_word);
-  EMACS_INT needed_elements = ((bool_header_size - header_size + word_bytes
-				+ word_size - 1)
-			       / word_size);
-  if (PTRDIFF_MAX < needed_elements)
-    memory_full (SIZE_MAX);
-  struct Lisp_Bool_Vector *p
-    = (struct Lisp_Bool_Vector *) allocate_vector (needed_elements);
-  XSETVECTOR (val, p);
-  XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0, 0);
-  p->size = nbits;
-
-  /* Clear padding at the end.  */
-  if (words)
-    p->data[words - 1] = 0;
-
-  return val;
+  return make_clear_bool_vector (nbits, false);
 }
 
 DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
@@ -2454,11 +2447,12 @@ DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
 LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   (Lisp_Object length, Lisp_Object init)
 {
-  Lisp_Object val;
-
   CHECK_FIXNAT (length);
-  val = make_uninit_bool_vector (XFIXNAT (length));
-  return bool_vector_fill (val, init);
+  EMACS_INT len = XFIXNAT (length);
+  if (BOOL_VECTOR_LENGTH_MAX < len)
+    memory_full (SIZE_MAX);
+  Lisp_Object val = make_clear_bool_vector (len, NILP (init));
+  return NILP (init) ? val : bool_vector_fill (val, init);
 }
 
 DEFUN ("bool-vector", Fbool_vector, Sbool_vector, 0, MANY, 0,
@@ -2467,13 +2461,12 @@ Allows any number of arguments, including zero.
 usage: (bool-vector &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t i;
-  Lisp_Object vector;
-
-  vector = make_uninit_bool_vector (nargs);
-  for (i = 0; i < nargs; i++)
-    bool_vector_set (vector, i, !NILP (args[i]));
-
+  if (BOOL_VECTOR_LENGTH_MAX < nargs)
+    memory_full (SIZE_MAX);
+  Lisp_Object vector = make_clear_bool_vector (nargs, true);
+  for (ptrdiff_t i = 0; i < nargs; i++)
+    if (!NILP (args[i]))
+      bool_vector_set (vector, i, true);
   return vector;
 }
 
@@ -2709,13 +2702,13 @@ struct float_block
 };
 
 #define XFLOAT_MARKED_P(fptr) \
-  GETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
+  GETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX (fptr))
 
 #define XFLOAT_MARK(fptr) \
-  SETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
+  SETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX (fptr))
 
 #define XFLOAT_UNMARK(fptr) \
-  UNSETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
+  UNSETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX (fptr))
 
 #if GC_ASAN_POISON_OBJECTS
 # define ASAN_POISON_FLOAT_BLOCK(fblk)         \
@@ -2725,9 +2718,9 @@ struct float_block
   __asan_unpoison_memory_region ((fblk)->floats, \
 				 sizeof ((fblk)->floats))
 # define ASAN_POISON_FLOAT(p) \
-  __asan_poison_memory_region ((p), sizeof (struct Lisp_Float))
+  __asan_poison_memory_region (p, sizeof (struct Lisp_Float))
 # define ASAN_UNPOISON_FLOAT(p) \
-  __asan_unpoison_memory_region ((p), sizeof (struct Lisp_Float))
+  __asan_unpoison_memory_region (p, sizeof (struct Lisp_Float))
 #else
 # define ASAN_POISON_FLOAT_BLOCK(fblk) ((void) 0)
 # define ASAN_UNPOISON_FLOAT_BLOCK(fblk) ((void) 0)
@@ -2821,13 +2814,13 @@ struct cons_block
 };
 
 #define XCONS_MARKED_P(fptr) \
-  GETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX ((fptr)))
+  GETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX (fptr))
 
 #define XMARK_CONS(fptr) \
-  SETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX ((fptr)))
+  SETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX (fptr))
 
 #define XUNMARK_CONS(fptr) \
-  UNSETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX ((fptr)))
+  UNSETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX (fptr))
 
 /* Minimum number of bytes of consing since GC before next GC,
    when memory is full.  */
@@ -2850,9 +2843,9 @@ static struct Lisp_Cons *cons_free_list;
 # define ASAN_POISON_CONS_BLOCK(b) \
   __asan_poison_memory_region ((b)->conses, sizeof ((b)->conses))
 # define ASAN_POISON_CONS(p) \
-  __asan_poison_memory_region ((p), sizeof (struct Lisp_Cons))
+  __asan_poison_memory_region (p, sizeof (struct Lisp_Cons))
 # define ASAN_UNPOISON_CONS(p) \
-  __asan_unpoison_memory_region ((p), sizeof (struct Lisp_Cons))
+  __asan_unpoison_memory_region (p, sizeof (struct Lisp_Cons))
 #else
 # define ASAN_POISON_CONS_BLOCK(b) ((void) 0)
 # define ASAN_POISON_CONS(p) ((void) 0)
@@ -3054,9 +3047,8 @@ enum { VECTOR_BLOCK_SIZE = 4096 };
 /* Vector size requests are a multiple of this.  */
 enum { roundup_size = COMMON_MULTIPLE (LISP_ALIGNMENT, word_size) };
 
-/* Verify assumptions described above.  */
-verify (VECTOR_BLOCK_SIZE % roundup_size == 0);
-verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
+/* Verify assumption described above.  */
+static_assert (VECTOR_BLOCK_SIZE % roundup_size == 0);
 
 /* Round up X to nearest mult-of-ROUNDUP_SIZE --- use at compile time.  */
 #define vroundup_ct(x) ROUNDUP (x, roundup_size)
@@ -3067,6 +3059,11 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 enum {VECTOR_BLOCK_BYTES = VECTOR_BLOCK_SIZE - vroundup_ct (sizeof (void *))};
 
+/* The current code expects to be able to represent an unused block by
+   a single PVEC_FREE object, whose size is limited by the header word.
+   (Of course we could use multiple such objects.)  */
+static_assert (VECTOR_BLOCK_BYTES <= (word_size << PSEUDOVECTOR_REST_BITS));
+
 /* Size of the minimal vector allocated from block.  */
 
 enum { VBLOCK_BYTES_MIN = vroundup_ct (header_size + sizeof (Lisp_Object)) };
@@ -3076,10 +3073,10 @@ enum { VBLOCK_BYTES_MIN = vroundup_ct (header_size + sizeof (Lisp_Object)) };
 enum { VBLOCK_BYTES_MAX = vroundup_ct ((VECTOR_BLOCK_BYTES / 2) - word_size) };
 
 /* We maintain one free list for each possible block-allocated
-   vector size, and this is the number of free lists we have.  */
-
-enum { VECTOR_MAX_FREE_LIST_INDEX =
-       (VECTOR_BLOCK_BYTES - VBLOCK_BYTES_MIN) / roundup_size + 1 };
+   vector size, one for blocks one word bigger,
+   and one for all free vectors larger than that.  */
+enum { VECTOR_FREE_LIST_ARRAY_SIZE =
+       (VBLOCK_BYTES_MAX - VBLOCK_BYTES_MIN) / roundup_size + 1 + 2 };
 
 /* Common shortcut to advance vector pointer over a block data.  */
 
@@ -3141,9 +3138,20 @@ struct vector_block
 static struct vector_block *vector_blocks;
 
 /* Vector free lists, where NTH item points to a chain of free
-   vectors of the same NBYTES size, so NTH == VINDEX (NBYTES).  */
+   vectors of the same NBYTES size, so NTH == VINDEX (NBYTES),
+   except for the last element which may contain larger vectors.
 
-static struct Lisp_Vector *vector_free_lists[VECTOR_MAX_FREE_LIST_INDEX];
+   I.e., for each vector V in vector_free_lists[I] the following holds:
+   - V has type PVEC_FREE
+   - V's total size in bytes, BS(V) = PVSIZE(V) * word_size + header_size
+   - For I < VECTOR_FREE_LIST_ARRAY_SIZE-1, VINDEX(BS(V)) = I
+   - For I = VECTOR_FREE_LIST_ARRAY_SIZE-1, VINDEX(BS(V)) ≥ I */
+static struct Lisp_Vector *vector_free_lists[VECTOR_FREE_LIST_ARRAY_SIZE];
+
+/* Index to the bucket in vector_free_lists into which we last inserted
+   or split a free vector.  We use this as a heuristic telling us where
+   to start looking for free vectors when the exact-size bucket is empty.  */
+static ptrdiff_t last_inserted_vector_free_idx = VECTOR_FREE_LIST_ARRAY_SIZE;
 
 /* Singly-linked list of large vectors.  */
 
@@ -3155,11 +3163,11 @@ Lisp_Object zero_vector;
 
 #if GC_ASAN_POISON_OBJECTS
 # define ASAN_POISON_VECTOR_CONTENTS(v, bytes) \
-  __asan_poison_memory_region ((v)->contents, (bytes))
+  __asan_poison_memory_region ((v)->contents, bytes)
 # define ASAN_UNPOISON_VECTOR_CONTENTS(v, bytes) \
-  __asan_unpoison_memory_region ((v)->contents, (bytes))
+  __asan_unpoison_memory_region ((v)->contents, bytes)
 # define ASAN_UNPOISON_VECTOR_BLOCK(b) \
-  __asan_unpoison_memory_region ((b)->data, sizeof ((b)->data))
+  __asan_unpoison_memory_region ((b)->data, sizeof (b)->data)
 #else
 # define ASAN_POISON_VECTOR_CONTENTS(v, bytes) ((void) 0)
 # define ASAN_UNPOISON_VECTOR_CONTENTS(v, bytes) ((void) 0)
@@ -3176,10 +3184,12 @@ setup_on_free_list (struct Lisp_Vector *v, ptrdiff_t nbytes)
   XSETPVECTYPESIZE (v, PVEC_FREE, 0, nwords);
   eassert (nbytes % roundup_size == 0);
   ptrdiff_t vindex = VINDEX (nbytes);
-  eassert (vindex < VECTOR_MAX_FREE_LIST_INDEX);
+  /* Anything too large goes into the last slot (overflow bin).  */
+  vindex = min(vindex, VECTOR_FREE_LIST_ARRAY_SIZE - 1);
   set_next_vector (v, vector_free_lists[vindex]);
   ASAN_POISON_VECTOR_CONTENTS (v, nbytes - header_size);
   vector_free_lists[vindex] = v;
+  last_inserted_vector_free_idx = vindex;
 }
 
 /* Get a new vector block.  */
@@ -3208,6 +3218,17 @@ init_vectors (void)
   staticpro (&zero_vector);
 }
 
+/* Memory footprint in bytes of a pseudovector other than a bool-vector.  */
+static ptrdiff_t
+pseudovector_nbytes (const union vectorlike_header *hdr)
+{
+  eassert (!PSEUDOVECTOR_TYPEP (hdr, PVEC_BOOL_VECTOR));
+  ptrdiff_t nwords = ((hdr->size & PSEUDOVECTOR_SIZE_MASK)
+		      + ((hdr->size & PSEUDOVECTOR_REST_MASK)
+			 >> PSEUDOVECTOR_SIZE_BITS));
+  return vroundup (header_size + word_size * nwords);
+}
+
 /* Allocate vector from a vector block.  */
 
 static struct Lisp_Vector *
@@ -3234,18 +3255,21 @@ allocate_vector_from_block (ptrdiff_t nbytes)
   /* Next, check free lists containing larger vectors.  Since
      we will split the result, we should have remaining space
      large enough to use for one-slot vector at least.  */
-  for (index = VINDEX (nbytes + VBLOCK_BYTES_MIN);
-       index < VECTOR_MAX_FREE_LIST_INDEX; index++)
+  for (index = max (VINDEX (nbytes + VBLOCK_BYTES_MIN),
+		    last_inserted_vector_free_idx);
+       index < VECTOR_FREE_LIST_ARRAY_SIZE; index++)
     if (vector_free_lists[index])
       {
 	/* This vector is larger than requested.  */
 	vector = vector_free_lists[index];
+	size_t vector_nbytes = pseudovector_nbytes (&vector->header);
+	eassert (vector_nbytes > nbytes);
 	ASAN_UNPOISON_VECTOR_CONTENTS (vector, nbytes - header_size);
 	vector_free_lists[index] = next_vector (vector);
 
 	/* Excess bytes are used for the smaller vector,
 	   which should be set on an appropriate free list.  */
-	restbytes = index * roundup_size + VBLOCK_BYTES_MIN - nbytes;
+	restbytes = vector_nbytes - nbytes;
 	eassert (restbytes % roundup_size == 0);
 #if GC_ASAN_POISON_OBJECTS
 	/* Ensure that accessing excess bytes does not trigger ASan.  */
@@ -3295,13 +3319,11 @@ vectorlike_nbytes (const union vectorlike_header *hdr)
 	  ptrdiff_t word_bytes = (bool_vector_words (bv->size)
 				  * sizeof (bits_word));
 	  ptrdiff_t boolvec_bytes = bool_header_size + word_bytes;
-	  verify (header_size <= bool_header_size);
+	  static_assert (header_size <= bool_header_size);
 	  nwords = (boolvec_bytes - header_size + word_size - 1) / word_size;
         }
       else
-	nwords = ((size & PSEUDOVECTOR_SIZE_MASK)
-		  + ((size & PSEUDOVECTOR_REST_MASK)
-		     >> PSEUDOVECTOR_SIZE_BITS));
+	return pseudovector_nbytes (hdr);
     }
   else
     nwords = size;
@@ -3323,94 +3345,159 @@ vectorlike_nbytes (const union vectorlike_header *hdr)
 static void
 cleanup_vector (struct Lisp_Vector *vector)
 {
-  detect_suspicious_free (vector);
-
-  if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_BIGNUM))
-    mpz_clear (PSEUDOVEC_STRUCT (vector, Lisp_Bignum)->value);
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_OVERLAY))
+  if ((vector->header.size & PSEUDOVECTOR_FLAG) == 0)
+    return;  /* nothing more to do for plain vectors */
+  switch (PSEUDOVECTOR_TYPE (vector))
     {
-      struct Lisp_Overlay *ol = PSEUDOVEC_STRUCT (vector, Lisp_Overlay);
-      xfree (ol->interval);
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FINALIZER))
-    unchain_finalizer (PSEUDOVEC_STRUCT (vector, Lisp_Finalizer));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_FONT))
-    {
-      if ((vector->header.size & PSEUDOVECTOR_SIZE_MASK) == FONT_OBJECT_MAX)
-	{
-	  struct font *font = PSEUDOVEC_STRUCT (vector, font);
-	  struct font_driver const *drv = font->driver;
+    case PVEC_BIGNUM:
+      mpz_clear (PSEUDOVEC_STRUCT (vector, Lisp_Bignum)->value);
+      break;
+    case PVEC_OVERLAY:
+      {
+	struct Lisp_Overlay *ol = PSEUDOVEC_STRUCT (vector, Lisp_Overlay);
+	xfree (ol->interval);
+      }
+      break;
+    case PVEC_FINALIZER:
+      unchain_finalizer (PSEUDOVEC_STRUCT (vector, Lisp_Finalizer));
+      break;
+    case PVEC_FONT:
+      {
+	if ((vector->header.size & PSEUDOVECTOR_SIZE_MASK) == FONT_OBJECT_MAX)
+	  {
+	    struct font *font = PSEUDOVEC_STRUCT (vector, font);
+	    struct font_driver const *drv = font->driver;
 
-	  /* The font driver might sometimes be NULL, e.g. if Emacs was
-	     interrupted before it had time to set it up.  */
-	  if (drv)
-	    {
-	      /* Attempt to catch subtle bugs like Bug#16140.  */
-	      eassert (valid_font_driver (drv));
-	      drv->close_font (font);
-	    }
-	}
+	    /* The font driver might sometimes be NULL, e.g. if Emacs was
+	       interrupted before it had time to set it up.  */
+	    if (drv)
+	      {
+		/* Attempt to catch subtle bugs like Bug#16140.  */
+		eassert (valid_font_driver (drv));
+		drv->close_font (font);
+	      }
+	  }
 
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-      /* The Android font driver needs the ability to associate extra
-	 information with font entities.  */
-      if (((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
-	   == FONT_ENTITY_MAX)
-	  && PSEUDOVEC_STRUCT (vector, font_entity)->is_android)
-	android_finalize_font_entity (PSEUDOVEC_STRUCT (vector, font_entity));
+	/* The Android font driver needs the ability to associate extra
+	   information with font entities.  */
+	if (((vector->header.size & PSEUDOVECTOR_SIZE_MASK)
+	     == FONT_ENTITY_MAX)
+	    && PSEUDOVEC_STRUCT (vector, font_entity)->is_android)
+	  android_finalize_font_entity (PSEUDOVEC_STRUCT (vector, font_entity));
 #endif
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_THREAD))
-    finalize_one_thread (PSEUDOVEC_STRUCT (vector, thread_state));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MUTEX))
-    finalize_one_mutex (PSEUDOVEC_STRUCT (vector, Lisp_Mutex));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_CONDVAR))
-    finalize_one_condvar (PSEUDOVEC_STRUCT (vector, Lisp_CondVar));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MARKER))
-    {
+      }
+      break;
+    case PVEC_THREAD:
+      finalize_one_thread (PSEUDOVEC_STRUCT (vector, thread_state));
+      break;
+    case PVEC_MUTEX:
+      finalize_one_mutex (PSEUDOVEC_STRUCT (vector, Lisp_Mutex));
+      break;
+    case PVEC_CONDVAR:
+      finalize_one_condvar (PSEUDOVEC_STRUCT (vector, Lisp_CondVar));
+      break;
+    case PVEC_MARKER:
       /* sweep_buffer should already have unchained this from its buffer.  */
       eassert (! PSEUDOVEC_STRUCT (vector, Lisp_Marker)->buffer);
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_USER_PTR))
-    {
-      struct Lisp_User_Ptr *uptr = PSEUDOVEC_STRUCT (vector, Lisp_User_Ptr);
-      if (uptr->finalizer)
-	uptr->finalizer (uptr->p);
-    }
+      break;
+    case PVEC_USER_PTR:
+      {
+	struct Lisp_User_Ptr *uptr = PSEUDOVEC_STRUCT (vector, Lisp_User_Ptr);
+	if (uptr->finalizer)
+	  uptr->finalizer (uptr->p);
+      }
+      break;
+    case PVEC_TS_PARSER:
 #ifdef HAVE_TREE_SITTER
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_TS_PARSER))
-    treesit_delete_parser (PSEUDOVEC_STRUCT (vector, Lisp_TS_Parser));
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_TS_COMPILED_QUERY))
-    treesit_delete_query (PSEUDOVEC_STRUCT (vector, Lisp_TS_Query));
+      treesit_delete_parser (PSEUDOVEC_STRUCT (vector, Lisp_TS_Parser));
 #endif
+      break;
+    case PVEC_TS_COMPILED_QUERY:
+#ifdef HAVE_TREE_SITTER
+      treesit_delete_query (PSEUDOVEC_STRUCT (vector, Lisp_TS_Query));
+#endif
+      break;
+    case PVEC_MODULE_FUNCTION:
 #ifdef HAVE_MODULES
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MODULE_FUNCTION))
-    {
-      ATTRIBUTE_MAY_ALIAS struct Lisp_Module_Function *function
-        = (struct Lisp_Module_Function *) vector;
-      module_finalize_function (function);
-    }
+      {
+	ATTRIBUTE_MAY_ALIAS struct Lisp_Module_Function *function
+	  = (struct Lisp_Module_Function *) vector;
+	module_finalize_function (function);
+      }
 #endif
+      break;
+    case PVEC_NATIVE_COMP_UNIT:
 #ifdef HAVE_NATIVE_COMP
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
-    {
-      struct Lisp_Native_Comp_Unit *cu =
-	PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
-      unload_comp_unit (cu);
-    }
-  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_SUBR))
-    {
-      struct Lisp_Subr *subr =
-	PSEUDOVEC_STRUCT (vector, Lisp_Subr);
-      if (!NILP (subr->native_comp_u))
-	{
-	  /* FIXME Alternative and non invasive solution to this
-	     cast?  */
-	  xfree ((char *)subr->symbol_name);
-	  xfree (subr->native_c_name);
-	}
-    }
+      {
+	struct Lisp_Native_Comp_Unit *cu =
+	  PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
+	unload_comp_unit (cu);
+      }
 #endif
+      break;
+    case PVEC_SUBR:
+#ifdef HAVE_NATIVE_COMP
+      {
+	struct Lisp_Subr *subr = PSEUDOVEC_STRUCT (vector, Lisp_Subr);
+	if (!NILP (subr->native_comp_u))
+	  {
+	    /* FIXME Alternative and non invasive solution to this cast?  */
+	    xfree ((char *)subr->symbol_name);
+	    xfree (subr->native_c_name);
+	  }
+      }
+#endif
+      break;
+    case PVEC_HASH_TABLE:
+      {
+	struct Lisp_Hash_Table *h = PSEUDOVEC_STRUCT (vector, Lisp_Hash_Table);
+	if (h->table_size > 0)
+	  {
+	    eassert (h->index_bits > 0);
+	    xfree (h->index);
+	    xfree (h->key_and_value);
+	    xfree (h->next);
+	    xfree (h->hash);
+	    ptrdiff_t bytes = (h->table_size * (2 * sizeof *h->key_and_value
+						+ sizeof *h->hash
+						+ sizeof *h->next)
+			       + hash_table_index_size (h) * sizeof *h->index);
+	    hash_table_allocated_bytes -= bytes;
+	  }
+      }
+      break;
+    case PVEC_OBARRAY:
+      {
+	struct Lisp_Obarray *o = PSEUDOVEC_STRUCT (vector, Lisp_Obarray);
+	xfree (o->buckets);
+	ptrdiff_t bytes = obarray_size (o) * sizeof *o->buckets;
+	hash_table_allocated_bytes -= bytes;
+      }
+      break;
+    /* Keep the switch exhaustive.  */
+    case PVEC_NORMAL_VECTOR:
+    case PVEC_FREE:
+    case PVEC_SYMBOL_WITH_POS:
+    case PVEC_MISC_PTR:
+    case PVEC_PROCESS:
+    case PVEC_FRAME:
+    case PVEC_WINDOW:
+    case PVEC_BOOL_VECTOR:
+    case PVEC_BUFFER:
+    case PVEC_TERMINAL:
+    case PVEC_WINDOW_CONFIGURATION:
+    case PVEC_OTHER:
+    case PVEC_XWIDGET:
+    case PVEC_XWIDGET_VIEW:
+    case PVEC_TS_NODE:
+    case PVEC_SQLITE:
+    case PVEC_CLOSURE:
+    case PVEC_CHAR_TABLE:
+    case PVEC_SUB_CHAR_TABLE:
+    case PVEC_RECORD:
+      break;
+    }
 }
 
 /* Reclaim space used by unmarked vectors.  */
@@ -3426,6 +3513,7 @@ sweep_vectors (void)
   gcstat.total_vectors = 0;
   gcstat.total_vector_slots = gcstat.total_free_vector_slots = 0;
   memset (vector_free_lists, 0, sizeof (vector_free_lists));
+  last_inserted_vector_free_idx = VECTOR_FREE_LIST_ARRAY_SIZE;
 
   /* Looking through vector blocks.  */
 
@@ -3510,6 +3598,8 @@ sweep_vectors (void)
 	  lisp_free (lv);
 	}
     }
+
+  gcstat.total_hash_table_bytes = hash_table_allocated_bytes;
 }
 
 /* Maximum number of elements in a vector.  This is a macro so that it
@@ -3558,9 +3648,6 @@ allocate_vectorlike (ptrdiff_t len, bool clearit)
   if (!mmap_lisp_allowed_p ())
     mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
-
-  if (find_suspicious_object_in_range (p, (char *) p + nbytes))
-    emacs_abort ();
 
   tally_consing (nbytes);
   vector_cells_consed += len;
@@ -3612,8 +3699,8 @@ allocate_pseudovector (int memlen, int lisplen,
   /* Catch bogus values.  */
   enum { size_max = (1 << PSEUDOVECTOR_SIZE_BITS) - 1 };
   enum { rest_max = (1 << PSEUDOVECTOR_REST_BITS) - 1 };
-  verify (size_max + rest_max <= VECTOR_ELTS_MAX);
-  eassert (0 <= tag && tag <= PVEC_FONT);
+  static_assert (size_max + rest_max <= VECTOR_ELTS_MAX);
+  eassert (0 <= tag && tag <= PVEC_TAG_MAX);
   eassert (0 <= lisplen && lisplen <= zerolen && zerolen <= memlen);
   eassert (lisplen <= size_max);
   eassert (memlen <= size_max + rest_max);
@@ -3737,17 +3824,17 @@ stack before executing the byte-code.
 usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  if (! ((FIXNUMP (args[COMPILED_ARGLIST])
-	  || CONSP (args[COMPILED_ARGLIST])
-	  || NILP (args[COMPILED_ARGLIST]))
-	 && STRINGP (args[COMPILED_BYTECODE])
-	 && !STRING_MULTIBYTE (args[COMPILED_BYTECODE])
-	 && VECTORP (args[COMPILED_CONSTANTS])
-	 && FIXNATP (args[COMPILED_STACK_DEPTH])))
+  if (! ((FIXNUMP (args[CLOSURE_ARGLIST])
+	  || CONSP (args[CLOSURE_ARGLIST])
+	  || NILP (args[CLOSURE_ARGLIST]))
+	 && STRINGP (args[CLOSURE_CODE])
+	 && !STRING_MULTIBYTE (args[CLOSURE_CODE])
+	 && VECTORP (args[CLOSURE_CONSTANTS])
+	 && FIXNATP (args[CLOSURE_STACK_DEPTH])))
     error ("Invalid byte-code object");
 
   /* Bytecode must be immovable.  */
-  pin_string (args[COMPILED_BYTECODE]);
+  pin_string (args[CLOSURE_CODE]);
 
   /* We used to purecopy everything here, if purify-flag was set.  This worked
      OK for Emacs-23, but with Emacs-24's lexical binding code, it can be
@@ -3757,7 +3844,7 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
      just wasteful and other times plainly wrong (e.g. those free vars may want
      to be setcar'd).  */
   Lisp_Object val = Fvector (nargs, args);
-  XSETPVECTYPE (XVECTOR (val), PVEC_COMPILED);
+  XSETPVECTYPE (XVECTOR (val), PVEC_CLOSURE);
   return val;
 }
 
@@ -3769,12 +3856,12 @@ usage: (make-closure PROTOTYPE &rest CLOSURE-VARS) */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object protofun = args[0];
-  CHECK_TYPE (COMPILEDP (protofun), Qbyte_code_function_p, protofun);
+  CHECK_TYPE (CLOSUREP (protofun), Qbyte_code_function_p, protofun);
 
   /* Create a copy of the constant vector, filling it with the closure
      variables in the beginning.  (The overwritten part should just
      contain placeholder values.) */
-  Lisp_Object proto_constvec = AREF (protofun, COMPILED_CONSTANTS);
+  Lisp_Object proto_constvec = AREF (protofun, CLOSURE_CONSTANTS);
   ptrdiff_t constsize = ASIZE (proto_constvec);
   ptrdiff_t nvars = nargs - 1;
   if (nvars > constsize)
@@ -3790,7 +3877,7 @@ usage: (make-closure PROTOTYPE &rest CLOSURE-VARS) */)
   struct Lisp_Vector *v = allocate_vectorlike (protosize, false);
   v->header = XVECTOR (protofun)->header;
   memcpy (v->contents, XVECTOR (protofun)->contents, protosize * word_size);
-  v->contents[COMPILED_CONSTANTS] = constvec;
+  v->contents[CLOSURE_CONSTANTS] = constvec;
   return make_lisp_ptr (v, Lisp_Vectorlike);
 }
 
@@ -3819,9 +3906,9 @@ struct symbol_block
 # define ASAN_UNPOISON_SYMBOL_BLOCK(s) \
   __asan_unpoison_memory_region ((s)->symbols, sizeof ((s)->symbols))
 # define ASAN_POISON_SYMBOL(sym) \
-  __asan_poison_memory_region ((sym), sizeof (*(sym)))
+  __asan_poison_memory_region (sym, sizeof *(sym))
 # define ASAN_UNPOISON_SYMBOL(sym) \
-  __asan_unpoison_memory_region ((sym), sizeof (*(sym)))
+  __asan_unpoison_memory_region (sym, sizeof *(sym))
 
 #else
 # define ASAN_POISON_SYMBOL_BLOCK(s) ((void) 0)
@@ -5565,6 +5652,29 @@ valid_lisp_object_p (Lisp_Object obj)
   return 0;
 }
 
+/* Like xmalloc, but makes allocation count toward the total consing
+   and hash table or obarray usage.
+   Return NULL for a zero-sized allocation.  */
+void *
+hash_table_alloc_bytes (ptrdiff_t nbytes)
+{
+  if (nbytes == 0)
+    return NULL;
+  tally_consing (nbytes);
+  hash_table_allocated_bytes += nbytes;
+  return xmalloc (nbytes);
+}
+
+/* Like xfree, but makes allocation count toward the total consing.  */
+void
+hash_table_free_bytes (void *p, ptrdiff_t nbytes)
+{
+  tally_consing (-nbytes);
+  hash_table_allocated_bytes -= nbytes;
+  xfree (p);
+}
+
+
 /***********************************************************************
 		       Pure Storage Management
  ***********************************************************************/
@@ -5846,30 +5956,35 @@ make_pure_vector (ptrdiff_t len)
 static struct Lisp_Hash_Table *
 purecopy_hash_table (struct Lisp_Hash_Table *table)
 {
-  eassert (NILP (table->weak));
+  eassert (table->weakness == Weak_None);
   eassert (table->purecopy);
 
   struct Lisp_Hash_Table *pure = pure_alloc (sizeof *pure, Lisp_Vectorlike);
-  struct hash_table_test pure_test = table->test;
+  *pure = *table;
+  pure->mutable = false;
 
-  /* Purecopy the hash table test.  */
-  pure_test.name = purecopy (table->test.name);
-  pure_test.user_hash_function = purecopy (table->test.user_hash_function);
-  pure_test.user_cmp_function = purecopy (table->test.user_cmp_function);
+  if (table->table_size > 0)
+    {
+      ptrdiff_t hash_bytes = table->table_size * sizeof *table->hash;
+      pure->hash = pure_alloc (hash_bytes, -(int)sizeof *table->hash);
+      memcpy (pure->hash, table->hash, hash_bytes);
 
-  pure->header = table->header;
-  pure->weak = purecopy (Qnil);
-  pure->hash = purecopy (table->hash);
-  pure->next = purecopy (table->next);
-  pure->index = purecopy (table->index);
-  pure->count = table->count;
-  pure->next_free = table->next_free;
-  pure->purecopy = table->purecopy;
-  eassert (!pure->mutable);
-  pure->rehash_threshold = table->rehash_threshold;
-  pure->rehash_size = table->rehash_size;
-  pure->key_and_value = purecopy (table->key_and_value);
-  pure->test = pure_test;
+      ptrdiff_t next_bytes = table->table_size * sizeof *table->next;
+      pure->next = pure_alloc (next_bytes, -(int)sizeof *table->next);
+      memcpy (pure->next, table->next, next_bytes);
+
+      ptrdiff_t nvalues = table->table_size * 2;
+      ptrdiff_t kv_bytes = nvalues * sizeof *table->key_and_value;
+      pure->key_and_value = pure_alloc (kv_bytes,
+					-(int)sizeof *table->key_and_value);
+      for (ptrdiff_t i = 0; i < nvalues; i++)
+	pure->key_and_value[i] = purecopy (table->key_and_value[i]);
+
+      ptrdiff_t index_bytes = hash_table_index_size (table)
+	                      * sizeof *table->index;
+      pure->index = pure_alloc (index_bytes, -(int)sizeof *table->index);
+      memcpy (pure->index, table->index, index_bytes);
+    }
 
   return pure;
 }
@@ -5929,7 +6044,7 @@ purecopy (Lisp_Object obj)
       /* Do not purify hash tables which haven't been defined with
          :purecopy as non-nil or are weak - they aren't guaranteed to
          not change.  */
-      if (!NILP (table->weak) || !table->purecopy)
+      if (table->weakness != Weak_None || !table->purecopy)
         {
           /* Instead, add the hash table to the list of pinned objects,
              so that it will be marked during GC.  */
@@ -5940,10 +6055,9 @@ purecopy (Lisp_Object obj)
           return obj; /* Don't hash cons it.  */
         }
 
-      struct Lisp_Hash_Table *h = purecopy_hash_table (table);
-      XSET_HASH_TABLE (obj, h);
+      obj = make_lisp_hash_table (purecopy_hash_table (table));
     }
-  else if (COMPILEDP (obj) || VECTORP (obj) || RECORDP (obj))
+  else if (CLOSUREP (obj) || VECTORP (obj) || RECORDP (obj))
     {
       struct Lisp_Vector *objp = XVECTOR (obj);
       ptrdiff_t nbytes = vector_nbytes (objp);
@@ -5956,7 +6070,7 @@ purecopy (Lisp_Object obj)
       for (i = 0; i < size; i++)
 	vec->contents[i] = purecopy (vec->contents[i]);
       /* Byte code strings must be pinned.  */
-      if (COMPILEDP (obj) && size >= 2 && STRINGP (vec->contents[1])
+      if (CLOSUREP (obj) && size >= 2 && STRINGP (vec->contents[1])
 	  && !STRING_MULTIBYTE (vec->contents[1]))
 	pin_string (vec->contents[1]);
       XSETVECTOR (obj, vec);
@@ -6053,6 +6167,7 @@ total_bytes_of_live_objects (void)
   tot += object_bytes (gcstat.total_floats, sizeof (struct Lisp_Float));
   tot += object_bytes (gcstat.total_intervals, sizeof (struct interval));
   tot += object_bytes (gcstat.total_strings, sizeof (struct Lisp_String));
+  tot += gcstat.total_hash_table_bytes;
   return tot;
 }
 
@@ -6197,11 +6312,10 @@ android_make_lisp_symbol (struct Lisp_Symbol *sym)
   intptr_t symoffset;
 
   symoffset = (intptr_t) sym;
-  INT_SUBTRACT_WRAPV (symoffset, (intptr_t) &lispsym,
-		      &symoffset);
+  ckd_sub (&symoffset, symoffset, (intptr_t) &lispsym);
 
   {
-    Lisp_Object a = TAG_PTR (Lisp_Symbol, symoffset);
+    Lisp_Object a = TAG_PTR_INITIALLY (Lisp_Symbol, symoffset);
     return a;
   }
 }
@@ -6500,6 +6614,9 @@ garbage_collect (void)
   mark_terminals ();
   mark_kboards ();
   mark_threads ();
+  mark_charset ();
+  mark_composite ();
+  mark_profiler ();
 #ifdef HAVE_PGTK
   mark_pgtkterm ();
 #endif
@@ -6531,10 +6648,11 @@ garbage_collect (void)
 #ifdef HAVE_NS
   mark_nsterm ();
 #endif
+  mark_fns ();
 
   /* Everything is now marked, except for the data in font caches,
      undo lists, and finalizers.  The first two are compacted by
-     removing an items which aren't reachable otherwise.  */
+     removing any items which aren't reachable otherwise.  */
 
   compact_font_caches ();
 
@@ -6595,13 +6713,6 @@ garbage_collect (void)
   image_prune_animation_caches (false);
 #endif
 
-  if (!NILP (Vpost_gc_hook))
-    {
-      specpdl_ref gc_count = inhibit_garbage_collection ();
-      safe_run_hooks (Qpost_gc_hook);
-      unbind_to (gc_count, Qnil);
-    }
-
   /* Accumulate statistics.  */
   if (FLOATP (Vgc_elapsed))
     {
@@ -6619,6 +6730,13 @@ garbage_collect (void)
       byte_ct tot_after = total_bytes_of_live_objects ();
       if (tot_after < tot_before)
 	malloc_probe (min (tot_before - tot_after, SIZE_MAX));
+    }
+
+  if (!NILP (Vpost_gc_hook))
+    {
+      specpdl_ref gc_count = inhibit_garbage_collection ();
+      safe_run_hooks (Qpost_gc_hook);
+      unbind_to (gc_count, Qnil);
     }
 }
 
@@ -6742,11 +6860,10 @@ mark_glyph_matrix (struct glyph_matrix *matrix)
       }
 }
 
-/* Whether to remember a few of the last marked values for debugging.  */
-#define GC_REMEMBER_LAST_MARKED 0
-
 #if GC_REMEMBER_LAST_MARKED
+/* Remember a few of the last marked values for debugging purposes.  */
 enum { LAST_MARKED_SIZE = 1 << 9 }; /* Must be a power of 2.  */
+extern Lisp_Object last_marked[LAST_MARKED_SIZE];
 Lisp_Object last_marked[LAST_MARKED_SIZE] EXTERNALLY_VISIBLE;
 static int last_marked_index;
 #endif
@@ -6891,47 +7008,6 @@ mark_face_cache (struct face_cache *c)
     }
 }
 
-NO_INLINE /* To reduce stack depth in mark_object.  */
-static void
-mark_localized_symbol (struct Lisp_Symbol *ptr)
-{
-  struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (ptr);
-  Lisp_Object where = blv->where;
-  /* If the value is set up for a killed buffer restore its global binding.  */
-  if ((BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where))))
-    swap_in_global_binding (ptr);
-  mark_object (blv->where);
-  mark_object (blv->valcell);
-  mark_object (blv->defcell);
-}
-
-/* Remove killed buffers or items whose car is a killed buffer from
-   LIST, and mark other items.  Return changed LIST, which is marked.  */
-
-static Lisp_Object
-mark_discard_killed_buffers (Lisp_Object list)
-{
-  Lisp_Object tail, *prev = &list;
-
-  for (tail = list; CONSP (tail) && !cons_marked_p (XCONS (tail));
-       tail = XCDR (tail))
-    {
-      Lisp_Object tem = XCAR (tail);
-      if (CONSP (tem))
-	tem = XCAR (tem);
-      if (BUFFERP (tem) && !BUFFER_LIVE_P (XBUFFER (tem)))
-	*prev = XCDR (tail);
-      else
-	{
-	  set_cons_marked (XCONS (tail));
-	  mark_object (XCAR (tail));
-	  prev = xcdr_addr (tail);
-	}
-    }
-  mark_object (tail);
-  return list;
-}
-
 static void
 mark_frame (struct Lisp_Vector *ptr)
 {
@@ -6957,10 +7033,18 @@ mark_frame (struct Lisp_Vector *ptr)
   mark_object (f->conversion.compose_region_start);
   mark_object (f->conversion.compose_region_end);
   mark_object (f->conversion.compose_region_overlay);
+  mark_object (f->conversion.field);
 
   for (tem = f->conversion.actions; tem; tem = tem->next)
     mark_object (tem->data);
 #endif
+
+#ifdef HAVE_WINDOW_SYSTEM
+  /* Mark this frame's image cache, though it might be common to several
+     frames with the same font size.  */
+  if (FRAME_IMAGE_CACHE (f))
+    mark_image_cache (FRAME_IMAGE_CACHE (f));
+#endif /* HAVE_WINDOW_SYSTEM */
 }
 
 static void
@@ -6978,15 +7062,6 @@ mark_window (struct Lisp_Vector *ptr)
       mark_glyph_matrix (w->current_matrix);
       mark_glyph_matrix (w->desired_matrix);
     }
-
-  /* Filter out killed buffers from both buffer lists
-     in attempt to help GC to reclaim killed buffers faster.
-     We can do it elsewhere for live windows, but this is the
-     best place to do it for dead windows.  */
-  wset_prev_buffers
-    (w, mark_discard_killed_buffers (w->prev_buffers));
-  wset_next_buffers
-    (w, mark_discard_killed_buffers (w->next_buffers));
 }
 
 /* Entry of the mark stack.  */
@@ -7209,23 +7284,29 @@ process_mark_stack (ptrdiff_t base_sp)
 	      case PVEC_HASH_TABLE:
 		{
 		  struct Lisp_Hash_Table *h = (struct Lisp_Hash_Table *)ptr;
-		  ptrdiff_t size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
 		  set_vector_marked (ptr);
-		  mark_stack_push_values (ptr->contents, size);
-		  mark_stack_push_value (h->test.name);
-		  mark_stack_push_value (h->test.user_hash_function);
-		  mark_stack_push_value (h->test.user_cmp_function);
-		  if (NILP (h->weak))
-		    mark_stack_push_value (h->key_and_value);
+		  if (h->weakness == Weak_None)
+		    /* The values pushed here may include
+		       HASH_UNUSED_ENTRY_KEY, which this function must
+		       cope with.  */
+		    mark_stack_push_values (h->key_and_value,
+					    2 * h->table_size);
 		  else
 		    {
-		      /* For weak tables, mark only the vector and not its
+		      /* For weak tables, don't mark the
 			 contents --- that's what makes it weak.  */
 		      eassert (h->next_weak == NULL);
 		      h->next_weak = weak_hash_tables;
 		      weak_hash_tables = h;
-		      set_vector_marked (XVECTOR (h->key_and_value));
 		    }
+		  break;
+		}
+
+	      case PVEC_OBARRAY:
+		{
+		  struct Lisp_Obarray *o = (struct Lisp_Obarray *)ptr;
+		  set_vector_marked (ptr);
+		  mark_stack_push_values (o->buckets, obarray_size (o));
 		  break;
 		}
 
@@ -7250,7 +7331,7 @@ process_mark_stack (ptrdiff_t base_sp)
 
 	      case PVEC_SUBR:
 #ifdef HAVE_NATIVE_COMP
-		if (SUBR_NATIVE_COMPILEDP (obj))
+		if (NATIVE_COMP_FUNCTIONP (obj))
 		  {
 		    set_vector_marked (ptr);
 		    struct Lisp_Subr *subr = XSUBR (obj);
@@ -7306,13 +7387,25 @@ process_mark_stack (ptrdiff_t base_sp)
 		  break;
 		}
 	      case SYMBOL_LOCALIZED:
-		mark_localized_symbol (ptr);
+		{
+		  struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (ptr);
+		  Lisp_Object where = blv->where;
+		  /* If the value is set up for a killed buffer,
+		     restore its global binding.  */
+		  if (BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where)))
+		    swap_in_global_binding (ptr);
+		  mark_stack_push_value (blv->where);
+		  mark_stack_push_value (blv->valcell);
+		  mark_stack_push_value (blv->defcell);
+		}
 		break;
 	      case SYMBOL_FORWARDED:
 		/* If the value is forwarded to a buffer or keyboard field,
 		   these are marked when we see the corresponding object.
 		   And if it's forwarded to a C variable, either it's not
-		   a Lisp_Object var, or it's staticpro'd already.  */
+		   a Lisp_Object var, or it's staticpro'd already, or it's
+		   reachable from font_style_table which is also
+		   staticpro'd.  */
 		break;
 	      default: emacs_abort ();
 	      }
@@ -7350,14 +7443,19 @@ process_mark_stack (ptrdiff_t base_sp)
 	  }
 
 	case Lisp_Float:
-	  CHECK_ALLOCATED_AND_LIVE (live_float_p, MEM_TYPE_FLOAT);
-	  /* Do not mark floats stored in a dump image: these floats are
-	     "cold" and do not have mark bits.  */
-	  if (pdumper_object_p (XFLOAT (obj)))
-	    eassert (pdumper_cold_object_p (XFLOAT (obj)));
-	  else if (!XFLOAT_MARKED_P (XFLOAT (obj)))
-	    XFLOAT_MARK (XFLOAT (obj));
-	  break;
+	  {
+	    struct Lisp_Float *f = XFLOAT (obj);
+	    if (!f)
+	      break;		/* for HASH_UNUSED_ENTRY_KEY */
+	    CHECK_ALLOCATED_AND_LIVE (live_float_p, MEM_TYPE_FLOAT);
+	    /* Do not mark floats stored in a dump image: these floats are
+	       "cold" and do not have mark bits.  */
+	    if (pdumper_object_p (f))
+	      eassert (pdumper_cold_object_p (f));
+	    else if (!XFLOAT_MARKED_P (f))
+	      XFLOAT_MARK (f);
+	    break;
+	  }
 
 	case_Lisp_Int:
 	  break;
@@ -7398,12 +7496,6 @@ mark_terminals (void)
   for (t = terminal_list; t; t = t->next_terminal)
     {
       eassert (t->name != NULL);
-#ifdef HAVE_WINDOW_SYSTEM
-      /* If a terminal object is reachable from a stacpro'ed object,
-	 it might have been marked already.  Make sure the image cache
-	 gets marked.  */
-      mark_image_cache (t->image_cache);
-#endif /* HAVE_WINDOW_SYSTEM */
       if (!vectorlike_marked_p (&t->header))
 	mark_vectorlike (&t->header);
     }
@@ -7433,7 +7525,7 @@ survives_gc_p (Lisp_Object obj)
 
     case Lisp_Vectorlike:
       survives_p =
-	(SUBRP (obj) && !SUBR_NATIVE_COMPILEDP (obj)) ||
+	(SUBRP (obj) && !NATIVE_COMP_FUNCTIONP (obj)) ||
 	vector_marked_p (XVECTOR (obj));
       break;
 
@@ -7898,11 +7990,11 @@ symbol_uses_obj (Lisp_Object symbol, Lisp_Object obj)
   return (EQ (val, obj)
 	  || EQ (sym->u.s.function, obj)
 	  || (!NILP (sym->u.s.function)
-	      && COMPILEDP (sym->u.s.function)
-	      && EQ (AREF (sym->u.s.function, COMPILED_BYTECODE), obj))
+	      && CLOSUREP (sym->u.s.function)
+	      && EQ (AREF (sym->u.s.function, CLOSURE_CODE), obj))
 	  || (!NILP (val)
-	      && COMPILEDP (val)
-	      && EQ (AREF (val, COMPILED_BYTECODE), obj)));
+	      && CLOSUREP (val)
+	      && EQ (AREF (val, CLOSURE_CODE), obj)));
 }
 
 /* Find at most FIND_MAX symbols which have OBJ as their value or
@@ -7951,78 +8043,6 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
 
   out:
    return unbind_to (gc_count, found);
-}
-
-#ifdef SUSPICIOUS_OBJECT_CHECKING
-
-static void *
-find_suspicious_object_in_range (void *begin, void *end)
-{
-  char *begin_a = begin;
-  char *end_a = end;
-  int i;
-
-  for (i = 0; i < ARRAYELTS (suspicious_objects); ++i)
-    {
-      char *suspicious_object = suspicious_objects[i];
-      if (begin_a <= suspicious_object && suspicious_object < end_a)
-	return suspicious_object;
-    }
-
-  return NULL;
-}
-
-static void
-note_suspicious_free (void *ptr)
-{
-  struct suspicious_free_record *rec;
-
-  rec = &suspicious_free_history[suspicious_free_history_index++];
-  if (suspicious_free_history_index ==
-      ARRAYELTS (suspicious_free_history))
-    {
-      suspicious_free_history_index = 0;
-    }
-
-  memset (rec, 0, sizeof (*rec));
-  rec->suspicious_object = ptr;
-  backtrace (&rec->backtrace[0], ARRAYELTS (rec->backtrace));
-}
-
-static void
-detect_suspicious_free (void *ptr)
-{
-  int i;
-
-  eassert (ptr != NULL);
-
-  for (i = 0; i < ARRAYELTS (suspicious_objects); ++i)
-    if (suspicious_objects[i] == ptr)
-      {
-        note_suspicious_free (ptr);
-        suspicious_objects[i] = NULL;
-      }
-}
-
-#endif /* SUSPICIOUS_OBJECT_CHECKING */
-
-DEFUN ("suspicious-object", Fsuspicious_object, Ssuspicious_object, 1, 1, 0,
-       doc: /* Return OBJ, maybe marking it for extra scrutiny.
-If Emacs is compiled with suspicious object checking, capture
-a stack trace when OBJ is freed in order to help track down
-garbage collection bugs.  Otherwise, do nothing and return OBJ.   */)
-   (Lisp_Object obj)
-{
-#ifdef SUSPICIOUS_OBJECT_CHECKING
-  /* Right now, we care only about vectors.  */
-  if (VECTORLIKEP (obj))
-    {
-      suspicious_objects[suspicious_object_index++] = XVECTOR (obj);
-      if (suspicious_object_index == ARRAYELTS (suspicious_objects))
-	suspicious_object_index = 0;
-    }
-#endif
-  return obj;
 }
 
 #ifdef ENABLE_CHECKING
@@ -8256,7 +8276,6 @@ N should be nonnegative.  */);
 #ifdef HAVE_MALLOC_TRIM
   defsubr (&Smalloc_trim);
 #endif
-  defsubr (&Ssuspicious_object);
 
   Lisp_Object watcher;
 
@@ -8273,8 +8292,13 @@ N should be nonnegative.  */);
        4, 4, "watch_gc_cons_percentage", {0}, lisp_h_Qnil}};
   XSETSUBR (watcher, &Swatch_gc_cons_percentage.s);
   Fadd_variable_watcher (Qgc_cons_percentage, watcher);
+  DEFSYM (Qalloc, "alloc");
+  DEFSYM (QCemergency, ":emergency");
 }
 
+/* The below is for being able to do platform-specific stuff in .gdbinit
+   without risking error messages from GDB about missing types and
+   variables on other platforms.  */
 #ifdef HAVE_X_WINDOWS
 enum defined_HAVE_X_WINDOWS { defined_HAVE_X_WINDOWS = true };
 #else
@@ -8287,12 +8311,18 @@ enum defined_HAVE_PGTK { defined_HAVE_PGTK = true };
 enum defined_HAVE_PGTK { defined_HAVE_PGTK = false };
 #endif
 
+#ifdef WINDOWSNT
+enum defined_WINDOWSNT { defined_WINDOWSNT = true };
+#else
+enum defined_WINDOWSNT { defined_WINDOWSNT = false };
+#endif
+
 /* When compiled with GCC, GDB might say "No enum type named
    pvec_type" if we don't have at least one symbol with that type, and
    then xbacktrace could fail.  Similarly for the other enums and
    their values.  Some non-GCC compilers don't like these constructs.  */
 #ifdef __GNUC__
-union
+extern union enums_for_gdb
 {
   enum CHARTAB_SIZE_BITS CHARTAB_SIZE_BITS;
   enum char_table_specials char_table_specials;
@@ -8300,12 +8330,14 @@ union
   enum CHECK_LISP_OBJECT_TYPE CHECK_LISP_OBJECT_TYPE;
   enum DEFAULT_HASH_SIZE DEFAULT_HASH_SIZE;
   enum Lisp_Bits Lisp_Bits;
-  enum Lisp_Compiled Lisp_Compiled;
+  enum Lisp_Closure Lisp_Closure;
   enum maxargs maxargs;
   enum MAX_ALLOCA MAX_ALLOCA;
   enum More_Lisp_Bits More_Lisp_Bits;
   enum pvec_type pvec_type;
   enum defined_HAVE_X_WINDOWS defined_HAVE_X_WINDOWS;
   enum defined_HAVE_PGTK defined_HAVE_PGTK;
-} const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
+  enum defined_WINDOWSNT defined_WINDOWSNT;
+} const gdb_make_enums_visible;
+union enums_for_gdb const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
 #endif	/* __GNUC__ */

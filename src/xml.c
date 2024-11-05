@@ -1,5 +1,5 @@
 /* Interface to libxml2.
-   Copyright (C) 2010-2023 Free Software Foundation, Inc.
+   Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -165,7 +165,7 @@ make_dom (xmlNode *node)
   else if (node->type == XML_COMMENT_NODE)
     {
       if (node->content)
-	return list3 (intern ("comment"), Qnil,
+	return list3 (Qcomment, Qnil,
 		      build_string ((char *) node->content));
       else
 	return Qnil;
@@ -353,4 +353,6 @@ syms_of_xml (void)
   defsubr (&Slibxml_parse_xml_region);
 #endif
   defsubr (&Slibxml_available_p);
+
+  DEFSYM (Qcomment, "comment");
 }

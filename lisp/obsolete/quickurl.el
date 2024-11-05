@@ -1,6 +1,6 @@
 ;;; quickurl.el --- insert a URL based on text at point in buffer  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Created: 1999-05-28
@@ -447,7 +447,7 @@ The key bindings for `quickurl-list-mode' are:
 
 (defun quickurl-list-populate-buffer ()
   "Populate the `quickurl-list' buffer."
-  (with-current-buffer (get-buffer quickurl-list-buffer-name)
+  (with-current-buffer quickurl-list-buffer-name
     (let* ((sizes (or (cl-loop for url in quickurl-urls
                                collect (length (quickurl-url-description url)))
                       (list 20)))

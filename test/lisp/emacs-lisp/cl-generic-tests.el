@@ -1,6 +1,6 @@
 ;;; cl-generic-tests.el --- Tests for cl-generic.el functionality  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -318,6 +318,19 @@ Edebug symbols (Bug#42672)."
      (error
       (and (eq 'error (car err))
            (string-match "Stray.*declare" (cadr err)))))))
+
+(cl-defmethod cl-generic-tests--print-quoted-method ((function (eql '4)))
+  (+ function 1))
+
+(ert-deftest cl-generic-tests--print-quoted ()
+  (with-temp-buffer
+    (cl--generic-describe 'cl-generic-tests--print-quoted-method)
+    (goto-char (point-min))
+    ;; Bug#54628: We don't want (function (eql '4)) to turn into #'(eql '4)
+    (should-not (re-search-forward "#'" nil t))
+    (goto-char (point-min))
+    ;; But we don't want (eql '4) to turn into (eql (quote 4)) either.
+    (should (re-search-forward "(eql '4)" nil t))))
 
 (provide 'cl-generic-tests)
 ;;; cl-generic-tests.el ends here

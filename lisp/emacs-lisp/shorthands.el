@@ -1,9 +1,10 @@
 ;;; shorthands.el --- Read code considering Elisp shorthands  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: lisp
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -51,27 +52,26 @@
   :version "28.1"
   :group 'font-lock-faces)
 
-(defun shorthands--mismatch-from-end (str1 str2)
-  (cl-loop with l1 = (length str1) with l2 = (length str2)
-           for i from 1
-           for i1 = (- l1 i) for i2 = (- l2 i)
-           while (and (>= i1 0) (>= i2 0) (eq (aref str1 i1) (aref str2 i2)))
-           finally (return (1- i))))
-
 (defun shorthands-font-lock-shorthands (limit)
+  "Font lock until LIMIT considering `read-symbol-shorthands'."
   (when read-symbol-shorthands
     (while (re-search-forward
             (concat "\\_<\\(" (rx lisp-mode-symbol) "\\)\\_>")
             limit t)
       (let* ((existing (get-text-property (match-beginning 1) 'face))
+             (print-name (match-string 1))
              (probe (and (not (memq existing '(font-lock-comment-face
                                                font-lock-string-face)))
-                         (intern-soft (match-string 1))))
-             (sname (and probe (symbol-name probe)))
-             (mm (and sname (shorthands--mismatch-from-end
-                             (match-string 1) sname))))
-        (unless (or (null mm) (= mm (length sname)))
-          (add-face-text-property (match-beginning 1) (1+ (- (match-end 1) mm))
+                         (intern-soft print-name)))
+             (symbol-name (and probe (symbol-name probe)))
+             (prefix (and symbol-name
+                          (not (string-equal print-name symbol-name))
+                          (car (assoc print-name
+                                      read-symbol-shorthands
+                                      #'string-prefix-p)))))
+        (when prefix
+          (add-face-text-property (match-beginning 1)
+                                  (+ (match-beginning 1) (length prefix))
                                   'elisp-shorthand-font-lock-face))))))
 
 (font-lock-add-keywords 'emacs-lisp-mode '((shorthands-font-lock-shorthands)) t)

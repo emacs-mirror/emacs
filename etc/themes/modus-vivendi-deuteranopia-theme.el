@@ -1,11 +1,11 @@
 ;;; modus-vivendi-deuteranopia-theme.el --- Deuteranopia-optimized theme with a black background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2023  Free Software Foundation, Inc.
+;; Copyright (C) 2019-2024  Free Software Foundation, Inc.
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
-;; Maintainer: Modus-Themes Development <~protesilaos/modus-themes@lists.sr.ht>
-;; URL: https://git.sr.ht/~protesilaos/modus-themes
-;; Mailing-List: https://lists.sr.ht/~protesilaos/modus-themes
+;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
+;; URL: https://github.com/protesilaos/modus-themes
+;; Keywords: faces, theme, accessibility
 
 ;; This file is part of GNU Emacs.
 
@@ -42,6 +42,7 @@
                (require-theme 'modus-themes t))
     (require 'modus-themes))
 
+;;;###theme-autoload
   (deftheme modus-vivendi-deuteranopia
     "Deuteranopia-optimized theme with a black background.
 This variant is optimized for users with red-green color
@@ -49,7 +50,10 @@ deficiency (deuteranopia).  It conforms with the highest
 legibility standard for color contrast between background and
 foreground in any given piece of text, which corresponds to a
 minimum contrast in relative luminance of 7:1 (WCAG AAA
-standard).")
+standard)."
+    :background-mode 'dark
+    :kind 'color-scheme
+    :family 'modus)
 
   (defconst modus-vivendi-deuteranopia-palette
     '(
@@ -68,7 +72,7 @@ standard).")
 
       (red             "#ff5f59")
       (red-warmer      "#ff6b55")
-      (red-cooler      "#ff7f9f")
+      (red-cooler      "#ff7f86")
       (red-faint       "#ff9580")
       (red-intense     "#ff5f5f")
       (green           "#44bc44")
@@ -123,18 +127,26 @@ standard).")
       (bg-magenta-subtle  "#552f5f")
       (bg-cyan-subtle     "#004065")
 
-      (bg-red-nuanced     "#2c0614")
-      (bg-green-nuanced   "#001904")
-      (bg-yellow-nuanced  "#221000")
-      (bg-blue-nuanced    "#0f0e39")
-      (bg-magenta-nuanced "#230631")
-      (bg-cyan-nuanced    "#041529")
+      (bg-red-nuanced     "#3a0c14")
+      (bg-green-nuanced   "#092f1f")
+      (bg-yellow-nuanced  "#381d0f")
+      (bg-blue-nuanced    "#12154a")
+      (bg-magenta-nuanced "#2f0c3f")
+      (bg-cyan-nuanced    "#042837")
 
-;;; Uncommon accent backgrounds
+;;; Uncommon accent background and foreground pairs
 
-      (bg-ochre    "#442c2f")
+      (bg-clay     "#49191a")
+      (fg-clay     "#f1b090")
+
+      (bg-ochre    "#462f20")
+      (fg-ochre    "#e0d09c")
+
       (bg-lavender "#38325c")
-      (bg-sage     "#0f3d30")
+      (fg-lavender "#dfc0f0")
+
+      (bg-sage     "#143e32")
+      (fg-sage     "#c3e7d4")
 
 ;;; Graphs
 
@@ -154,7 +166,7 @@ standard).")
 ;;; Special purpose
 
       (bg-completion       "#2f447f")
-      (bg-hover            "#004f70")
+      (bg-hover            "#45605e")
       (bg-hover-secondary  "#654a39")
       (bg-hl-line          "#2f3849")
       (bg-region           "#5a5a5a")
@@ -197,7 +209,7 @@ standard).")
 
       (bg-removed         "#3d3d00")
       (bg-removed-faint   "#281f00")
-      (bg-removed-refine  "#515100")
+      (bg-removed-refine  "#555500")
       (bg-removed-fringe  "#d0c03f")
       (fg-removed         "#d4d48f")
       (fg-removed-intense "#d0b05f")
@@ -207,6 +219,7 @@ standard).")
 ;;; Paren match
 
       (bg-paren-match        "#2f7f9f")
+      (fg-paren-match        fg-main)
       (bg-paren-expression   "#453040")
       (underline-paren-match unspecified)
 
@@ -236,21 +249,31 @@ standard).")
       (bg-prominent-note bg-cyan-intense)
       (fg-prominent-note fg-main)
 
+      (bg-active-argument bg-yellow-nuanced)
+      (fg-active-argument yellow-warmer)
+      (bg-active-value bg-blue-nuanced)
+      (fg-active-value blue-warmer)
+
 ;;;; Code mappings
 
+      (bracket fg-main)
       (builtin magenta-warmer)
       (comment yellow-cooler)
       (constant blue-cooler)
-      (docstring cyan-faint)
+      (delimiter fg-main)
       (docmarkup magenta-faint)
+      (docstring cyan-faint)
       (fnname magenta)
       (keyword magenta-cooler)
+      (number fg-main)
+      (operator fg-main)
       (preprocessor red-cooler)
+      (punctuation fg-main)
+      (rx-backslash blue-cooler)
+      (rx-construct yellow-cooler)
       (string blue-warmer)
       (type cyan-cooler)
       (variable cyan)
-      (rx-construct yellow-cooler)
-      (rx-backslash blue-cooler)
 
 ;;;; Accent mappings
 
@@ -281,13 +304,16 @@ standard).")
 
       (date-common cyan)
       (date-deadline yellow-warmer)
+      (date-deadline-subtle red-faint)
       (date-event fg-alt)
       (date-holiday yellow-warmer)
-      (date-now blue-faint)
+      (date-holiday-other blue)
+      (date-now fg-main)
       (date-range fg-alt)
       (date-scheduled yellow-cooler)
+      (date-scheduled-subtle yellow-faint)
       (date-weekday cyan)
-      (date-weekend yellow-faint)
+      (date-weekend magenta)
 
 ;;;; Line number mappings
 
@@ -337,16 +363,29 @@ standard).")
 
 ;;;; Prose mappings
 
-      (prose-block fg-dim)
-      (prose-code cyan-cooler)
+      (bg-prose-block-delimiter bg-dim)
+      (fg-prose-block-delimiter fg-dim)
+      (bg-prose-block-contents bg-dim)
+
+      (bg-prose-code unspecified)
+      (fg-prose-code cyan-cooler)
+
+      (bg-prose-macro unspecified)
+      (fg-prose-macro magenta-cooler)
+
+      (bg-prose-verbatim unspecified)
+      (fg-prose-verbatim magenta-warmer)
+
       (prose-done blue)
-      (prose-macro magenta-cooler)
+      (prose-todo yellow-warmer)
+
       (prose-metadata fg-dim)
       (prose-metadata-value fg-alt)
+
       (prose-table fg-alt)
+      (prose-table-formula yellow-warmer)
+
       (prose-tag magenta-faint)
-      (prose-todo yellow-warmer)
-      (prose-verbatim magenta-warmer)
 
 ;;;; Rainbow mappings
 
@@ -360,11 +399,64 @@ standard).")
       (rainbow-7 blue-faint)
       (rainbow-8 magenta-faint)
 
+;;;; Search mappings
+
+      (bg-search-current bg-yellow-intense)
+      (bg-search-lazy bg-blue-intense)
+      (bg-search-replace bg-magenta-intense)
+
+      (bg-search-rx-group-0 bg-cyan-intense)
+      (bg-search-rx-group-1 bg-magenta-intense)
+      (bg-search-rx-group-2 bg-blue-subtle)
+      (bg-search-rx-group-3 bg-yellow-subtle)
+
 ;;;; Space mappings
 
       (bg-space unspecified)
       (fg-space border)
       (bg-space-err bg-yellow-intense)
+
+;;;; Terminal mappings
+
+      (bg-term-black           "#000000")
+      (fg-term-black           "#000000")
+      (bg-term-black-bright    "#595959")
+      (fg-term-black-bright    "#595959")
+
+      (bg-term-red             red)
+      (fg-term-red             red)
+      (bg-term-red-bright      red-warmer)
+      (fg-term-red-bright      red-warmer)
+
+      (bg-term-green           green)
+      (fg-term-green           green)
+      (bg-term-green-bright    green-cooler)
+      (fg-term-green-bright    green-cooler)
+
+      (bg-term-yellow          yellow)
+      (fg-term-yellow          yellow)
+      (bg-term-yellow-bright   yellow-warmer)
+      (fg-term-yellow-bright   yellow-warmer)
+
+      (bg-term-blue            blue)
+      (fg-term-blue            blue)
+      (bg-term-blue-bright     blue-warmer)
+      (fg-term-blue-bright     blue-warmer)
+
+      (bg-term-magenta         magenta)
+      (fg-term-magenta         magenta)
+      (bg-term-magenta-bright  magenta-cooler)
+      (fg-term-magenta-bright  magenta-cooler)
+
+      (bg-term-cyan            cyan)
+      (fg-term-cyan            cyan)
+      (bg-term-cyan-bright     cyan-cooler)
+      (fg-term-cyan-bright     cyan-cooler)
+
+      (bg-term-white           "#a6a6a6")
+      (fg-term-white           "#a6a6a6")
+      (bg-term-white-bright    "#ffffff")
+      (fg-term-white-bright    "#ffffff")
 
 ;;;; Heading mappings
 
@@ -406,6 +498,19 @@ Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
 exists in the palette and is associated with a HEX-VALUE.")
 
+  (defcustom modus-vivendi-deuteranopia-palette-user nil
+    "Like the `modus-vivendi-deuteranopia-palette' for user-defined entries.
+This is meant to extend the palette with custom named colors and/or
+semantic palette mappings.  Those may then be used in combination with
+palette overrides (also see `modus-themes-common-palette-overrides' and
+`modus-vivendi-deuteranopia-palette-overrides')."
+    :group 'modus-themes
+    :package-version '(modus-themes . "4.5.0")
+    :type '(repeat (list symbol (choice symbol string)))
+    :set #'modus-themes--set-option
+    :initialize #'custom-initialize-default
+    :link '(info-link "(modus-themes) Option to extend the palette for use with overrides"))
+
   (defcustom modus-vivendi-deuteranopia-palette-overrides nil
     "Overrides for `modus-vivendi-deuteranopia-palette'.
 
@@ -434,8 +539,5 @@ represents."
                       modus-vivendi-deuteranopia-palette-overrides)
 
   (provide-theme 'modus-vivendi-deuteranopia))
-
-;;;###theme-autoload
-(put 'modus-vivendi-deuteranopia 'theme-properties '(:background-mode dark :kind color-scheme :family modus))
 
 ;;; modus-vivendi-deuteranopia-theme.el ends here

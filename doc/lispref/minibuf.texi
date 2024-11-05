@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Minibuffers
@@ -185,9 +185,11 @@ a starting position in the history list as well.  @xref{Minibuffer
 History}.
 
 If the variable @code{minibuffer-allow-text-properties} is
-non-@code{nil}, then the string that is returned includes whatever text
+non-@code{nil}, either let-bound or buffer-local in the minibuffer,
+then the string that is returned includes whatever text
 properties were present in the minibuffer.  Otherwise all the text
-properties are stripped when the value is returned.
+properties are stripped when the value is returned.  (By default this
+variable is @code{nil}.)
 
 @vindex minibuffer-prompt-properties
 The text properties in @code{minibuffer-prompt-properties} are applied
@@ -350,30 +352,36 @@ See @code{read-regexp} above for details of how these values are used.
 @end defopt
 
 @defvar minibuffer-allow-text-properties
-If this variable is @code{nil}, then @code{read-from-minibuffer}
-and @code{read-string} strip all text properties from the minibuffer
-input before returning it.  However,
-@code{read-no-blanks-input} (see below), as well as
-@code{read-minibuffer} and related functions (@pxref{Object from
-Minibuffer,, Reading Lisp Objects With the Minibuffer}), and all
-functions that do minibuffer input with completion, remove the @code{face}
-property unconditionally, regardless of the value of this variable.
+If this variable is @code{nil}, the default, then
+@code{read-from-minibuffer} and all functions that do minibuffer input
+strip all text properties from the minibuffer input before returning it.
 
-If this variable is non-@code{nil}, most text properties on strings
-from the completion table are preserved---but only on the part of the
-strings that were completed.
+However, @code{read-minibuffer} and related functions (@pxref{Object
+from Minibuffer,, Reading Lisp Objects With the Minibuffer}), remove the
+text properties unconditionally, regardless of the value of this
+variable.
+
+If this variable is non-@code{nil}, either let-bound or buffer-local in
+the minibuffer, then @code{read-from-minibuffer}, @code{read-string},
+and all related functions preserve text properties.  But functions that
+do minibuffer input with completion remove the @code{face} property
+while preserving other text properties.
 
 @lisp
-(let ((minibuffer-allow-text-properties t))
-  (completing-read "String: " (list (propertize "foobar" 'data 'zot))))
-=> #("foobar" 3 6 (data zot))
+(minibuffer-with-setup-hook
+    (lambda ()
+      (setq-local minibuffer-allow-text-properties t))
+  (completing-read
+   "String: " (list (propertize "foobar" 'face 'baz 'data 'zot))))
+=> #("foobar" 0 6 (data zot))
 @end lisp
 
 In this example, the user typed @samp{foo} and then hit the @kbd{TAB}
-key, so the text properties are only preserved on the last three
-characters.
+key, and all text properties are preserved except the @code{face}
+property.
 @end defvar
 
+@vindex minibuffer-mode-map
 @defvar minibuffer-local-map
 This
 @anchor{Definition of minibuffer-local-map}
@@ -414,6 +422,9 @@ default, it makes the following bindings:
 @code{file-cache-minibuffer-complete}
 @end ignore
 @end table
+
+@noindent
+The variable @code{minibuffer-mode-map} is an alias for this variable.
 @end defvar
 
 @defun read-no-blanks-input prompt &optional initial inherit-input-method
@@ -427,18 +438,6 @@ function, and passes the value of the @code{minibuffer-local-ns-map}
 keymap as the @var{keymap} argument for that function.  Since the keymap
 @code{minibuffer-local-ns-map} does not rebind @kbd{C-q}, it @emph{is}
 possible to put a space into the string, by quoting it.
-
-This function discards text properties, regardless of the value of
-@code{minibuffer-allow-text-properties}.
-
-@smallexample
-@group
-(read-no-blanks-input @var{prompt} @var{initial})
-@equiv{}
-(let (minibuffer-allow-text-properties)
-  (read-from-minibuffer @var{prompt} @var{initial} minibuffer-local-ns-map))
-@end group
-@end smallexample
 @end defun
 
 @c Slightly unfortunate name, suggesting it might be related to the
@@ -1560,7 +1559,7 @@ Interactively, or when @var{display} is non-@code{nil}, the return
 value is also displayed in the echo area.
 
 The optional arguments @var{foreground} and @var{face} control the
-appearence of the completion candidates in the @file{*Completions*}
+appearance of the completion candidates in the @file{*Completions*}
 buffer.  The candidates are displayed in the specified @var{face} but
 with different colors: if @var{foreground} is non-@code{nil}, the
 foreground color is changed to be the color of the candidate,
@@ -1874,10 +1873,31 @@ The value should be a list of completion styles (symbols).
 The value should be a value for @code{completion-cycle-threshold}
 (@pxref{Completion Options,,, emacs, The GNU Emacs Manual}) for this
 category.
+
+@item cycle-sort-function
+The function to sort entries when cycling.
+
+@item display-sort-function
+The function to sort entries in the @file{*Completions*} buffer.
+The possible values are: @code{nil}, which means to use either the
+sorting function from metadata or if that is @code{nil}, fall back to
+@code{completions-sort}; @code{identity}, which means not to sort at
+all, leaving the original order; or any other value out of those used
+in @code{completions-sort} (@pxref{Completion Options,,, emacs, The
+GNU Emacs Manual}).
+
+@item group-function
+The function to group completions.
+
+@item annotation-function
+The function to add annotations to completions.
+
+@item affixation-function
+The function to add prefixes and suffixes to completions.
 @end table
 
 @noindent
-Additional alist entries may be defined in the future.
+See @ref{Programmed Completion}, for a complete list of metadata entries.
 @end defopt
 
 @defvar completion-extra-properties
@@ -1887,6 +1907,12 @@ completion commands.  Its value should be a list of property and value
 pairs.  The following properties are supported:
 
 @table @code
+@item :category
+The value should be a symbol describing what kind of text the
+completion function is trying to complete.  If the symbol matches one
+of the keys in @code{completion-category-overrides} described above,
+the usual completion behavior is overridden.
+
 @item :annotation-function
 The value should be a function to add annotations in the completions
 buffer.  This function must accept one argument, a completion, and
@@ -1902,6 +1928,15 @@ completions, and should return a list of annotated completions.  Each
 element of the returned list must be a three-element list, the
 completion, a prefix string, and a suffix string.  This function takes
 priority over @code{:annotation-function}.
+
+@item :group-function
+The function to group completions.
+
+@item :display-sort-function
+The function to sort entries in the @file{*Completions*} buffer.
+
+@item :cycle-sort-function
+The function to sort entries when cycling.
 
 @item :exit-function
 The value should be a function to run after performing completion.
@@ -1981,6 +2016,7 @@ the piece of the prefix and suffix covered by the completion
 boundaries.  @xref{Basic Completion}, for the precise expected semantics
 of completion boundaries.
 
+@cindex completion metadata
 @item metadata
 This specifies a request for information about the state of the
 current completion.  The return value should have the form
@@ -1997,6 +2033,8 @@ The following is a list of metadata entries that a completion function
 may return in response to a @code{metadata} flag argument:
 
 @table @code
+@cindex @code{category}, in completion
+@cindex completion category
 @item category
 The value should be a symbol describing what kind of text the
 completion function is trying to complete.  If the symbol matches one
@@ -2519,6 +2557,14 @@ times match.
 The optional argument @var{default} specifies the default password to
 return if the user enters empty input.  If @var{default} is @code{nil},
 then @code{read-passwd} returns the null string in that case.
+
+This function uses @code{read-passwd-mode}, a minor mode.  It binds two
+keys in the minbuffer: @kbd{C-u} (@code{delete-minibuffer-contents})
+deletes the password, and @kbd{TAB}
+(@code{read-passwd--toggle-visibility}) toggles the visibility of the
+password.  There is also an additional icon in the mode-line's
+@code{global-mode-string}.  Clicking on this icon with @key{mouse-1}
+toggles the visibility of the password as well.
 @end defun
 
 @node Minibuffer Commands
@@ -2669,7 +2715,7 @@ variable instead (@pxref{Echo Area Customization}).
 
 The option @code{resize-mini-windows} does not affect the behavior of
 minibuffer-only frames (@pxref{Frame Layout}).  The following option
-allows to automatically resize such frames as well.
+enables automatically resizing such frames as well.
 
 @defopt resize-mini-frames
 If this is @code{nil}, minibuffer-only frames are never resized
@@ -2877,3 +2923,22 @@ This is the major mode used in inactive minibuffers.  It uses
 keymap @code{minibuffer-inactive-mode-map}.  This can be useful
 if the minibuffer is in a separate frame.  @xref{Minibuffers and Frames}.
 @end deffn
+
+@deffn Command minibuffer-regexp-mode
+This minor mode makes editing regular expressions in the minibuffer
+more convenient.  It highlight parens via @code{show-paren-mode} and
+@code{blink-matching-paren} in a user-friendly way, avoids reporting
+false paren mismatches, and makes sexp navigation more intuitive.
+@end deffn
+
+By default, only certain minibuffer prompts automatically activate the
+convenience features of @code{minibuffer-regexp-mode} when the
+minibuffer becomes active.  This list of prompts can be customized via
+@code{minibuffer-regexp-prompts}.
+
+@defopt minibuffer-regexp-prompts
+This variable holds the list of regular expressions for activating the
+features of @code{minibuffer-regexp-mode} in the minibuffer.  The
+mode's features will be activated only if the minibuffer prompt
+matches one of the regular expressions in the list.
+@end defopt

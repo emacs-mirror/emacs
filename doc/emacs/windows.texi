@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Windows
@@ -22,6 +22,7 @@ one frame.
 * Displaying Buffers::  How Emacs picks a window for displaying a buffer.
 * Window Convenience::  Convenience functions for window handling.
 * Tab Line::            Window tab line.
+* Window Tool Bar::     A tool bar that is attached to windows.
 @end menu
 
 @node Basic Window
@@ -287,7 +288,7 @@ Delete all windows in the selected frame except the selected window
 Delete the selected window and kill the buffer that was showing in it
 (@code{kill-buffer-and-window}).  The last character in this key
 sequence is a zero.
-@item M-x delete-windows-on @key{RET} @var{buffer} @key{RET}
+@item C-x w 0 @key{RET} @var{buffer} @key{RET}
 Delete windows showing the specified @var{buffer}.
 @item C-x ^
 Make selected window taller (@code{enlarge-window}).
@@ -299,7 +300,8 @@ Make selected window narrower (@code{shrink-window-horizontally}).
 Shrink this window if its buffer doesn't need so many lines
 (@code{shrink-window-if-larger-than-buffer}).
 @item C-x +
-Make all windows the same height (@code{balance-windows}).
+Balance the sizes of all the windows of the selected frame
+(@code{balance-windows}).
 @end table
 
 @kindex C-x 0
@@ -372,8 +374,11 @@ lines to other windows in the frame.
 
 @kindex C-x +
 @findex balance-windows
-  You can also use @kbd{C-x +} (@code{balance-windows}) to even out the
-heights of all the windows in the selected frame.
+  You can also use @kbd{C-x +} (@code{balance-windows}) to balance the
+sizes of all the windows of the selected frame (with the exception of
+the minibuffer window, @pxref{Minibuffer}).  This command makes each
+horizontal pair of adjacent windows the same height, and each vertical
+pair of adjacent windows the same width.
 
 @node Displaying Buffers
 @section Displaying a Buffer in a Window
@@ -410,6 +415,28 @@ key (@pxref{Pop Up Window}).
 selected window and (ii) prefer to either create a new frame or use a
 window on some other frame to display the desired buffer.  Several of
 these commands are bound in the @kbd{C-x 5} prefix key.
+
+@cindex dedicated window
+  Sometimes, a window is ``dedicated'' to its current buffer.
+@xref{Dedicated Windows,,, elisp, The Emacs Lisp Reference Manual}.
+@code{display-buffer} will avoid reusing dedicated windows most of the
+time.  This is indicated by a @samp{d} in the mode line (@pxref{Mode
+Line}).  A window can also be strongly dedicated, which prevents any
+changes to the buffer displayed in the window.  This is indicated by a
+@samp{D} in the mode line.
+
+Usually, dedicated windows are used to display specialized buffers,
+but dedication can sometimes be useful interactively.  For example,
+when viewing errors with @kbd{M-g M-n} @code{next-error}, newly
+displayed source code may replace a buffer you want to refer to.  If
+you dedicate a window to that buffer, the command (through
+@code{display-buffer}) will prefer to use a different window instead.
+
+@kindex C-x w d
+@findex toggle-window-dedicated
+  You can use the command @kbd{C-x w d} (@code{toggle-window-dedicated})
+to toggle whether the selected window is dedicated to the current
+buffer.  With a prefix argument, it makes the window strongly dedicated.
 
 @menu
 * Window Choice::   How @code{display-buffer} works.
@@ -642,7 +669,7 @@ to the window-local tab line of buffers, and clicking on the @kbd{x}
 icon of a tab deletes it.  The mouse wheel on the tab line scrolls
 the tabs horizontally.
 
-  Touch screen input (@pxref{Other Input Devices}) can also be used to
+  Touch screen input (@pxref{Other Input}) can also be used to
 interact with the ``tab line''.  Long-pressing (@pxref{Touchscreens})
 a tab will display a context menu with items that operate on the tab
 that was pressed; tapping a tab itself will result in switching to
@@ -667,3 +694,45 @@ Whereas tabs on the Tab Bar at the top of each frame are used to
 switch between window configurations containing several windows with buffers,
 tabs on the Tab Line at the top of each window are used to switch
 between buffers in the window.
+
+Also note that the tab line displays in the same space as the window
+tool bar, so only one of them can be displayed at any given time, unless
+you customize the value of @code{tab-line-format} in Lisp to add
+@w{@code{(:eval (tab-line-format))}} to @code{tab-line-format}.
+@xref{Mode Line Format,,, elisp, The Emacs Lisp Reference Manual}.
+
+
+@node Window Tool Bar
+@section Window Tool Bar
+
+@cindex window tool bar
+@cindex mode, window tool bar
+@cindex tool bar, attached to window
+
+@findex global-window-tool-bar-mode
+  The command @code{global-window-tool-bar-mode} toggles the display of
+a tool bar at the top of each window.  When enabled, multiple windows
+can display their own tool bar simultaneously.  To conserve space, a
+window tool bar is hidden if there are no buttons to show, i.e. if
+@code{tool-bar-map} is @code{nil}.
+
+@findex window-tool-bar-mode
+If you want to toggle the display of a window tool bar for only some
+buffers, run the command @code{window-tool-bar-mode} in those buffers.
+This is useful to put in a mode hook.  For example, if you want the window
+tool bar to appear only for buffers that do not represent files and have
+a custom tool bar, you could add the following code to your init file
+(@pxref{Init File}):
+
+@example
+(add-hook 'special-mode-hook 'window-tool-bar-mode)
+@end example
+
+Emacs can also display a single tool bar at the top of frames
+(@pxref{Tool Bars}).
+
+Note that the window tool bar displays in the same space as the tab
+line, so only one of them can be displayed at any given time, unless you
+customize the value of @code{tab-line-format} to add @w{@code{(:eval
+(window-tool-bar-string))}} to @code{tab-line-format}.  @xref{Mode Line
+Format,,, elisp, The Emacs Lisp Reference Manual}.

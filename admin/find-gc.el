@@ -1,6 +1,6 @@
 ;;; find-gc.el --- detect functions that call the garbage collector  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 

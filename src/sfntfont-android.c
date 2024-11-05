@@ -1,6 +1,6 @@
 /* sfnt format font driver for Android.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -78,7 +78,7 @@ static size_t max_scanline_buffer_size;
     {								\
       size_t _size;						\
 								\
-      if (INT_MULTIPLY_WRAPV (height, stride, &_size))		\
+      if (ckd_mul (&_size, height, stride))			\
 	memory_full (SIZE_MAX);					\
 								\
       if (_size < MAX_ALLOCA)					\
@@ -112,7 +112,7 @@ static size_t max_scanline_buffer_size;
       size_t _size;						\
       void *_temp;						\
 								\
-      if (INT_MULTIPLY_WRAPV (height, stride, &_size))		\
+      if (ckd_mul (&_size, height, stride))			\
 	memory_full (SIZE_MAX);					\
 								\
       if (_size > scanline_buffer.buffer_size)			\
@@ -503,6 +503,10 @@ sfntfont_android_put_glyphs (struct glyph_string *s, int from,
 
   if (with_background)
     {
+      /* The background should have been filled in advance if a stipple
+	 is enabled.  */
+      eassert (s->gc->fill_style != ANDROID_FILL_OPAQUE_STIPPLED);
+
       /* Fill the background.  First, offset the background rectangle
 	 to become relative from text_rectangle.x,
 	 text_rectangle.y.  */
@@ -746,29 +750,54 @@ syms_of_sfntfont_android_for_pdumper (void)
 void
 init_sfntfont_android (void)
 {
+  int api_level;
+
   if (!android_init_gui)
     return;
 
-  /* Make sure to pick the right Sans Serif font depending on what
+  api_level = android_get_current_api_level ();
+
+  /* Make sure to pick the proper Sans Serif and Serif fonts for the
      version of Android the device is running.  */
-  if (android_get_current_api_level () >= 15)
+
+  if (api_level >= 21)
+    /* Android 5.0 and later distribute Noto Serif in lieu of Droid
+       Serif.  */
     Vsfnt_default_family_alist
-      = list3 (Fcons (build_string ("Monospace"),
+      = list4 (Fcons (build_string ("Monospace"),
 		      build_string ("Droid Sans Mono")),
 	       /* Android doesn't come with a Monospace Serif font, so
 		  this will have to do.  */
 	       Fcons (build_string ("Monospace Serif"),
 		      build_string ("Droid Sans Mono")),
 	       Fcons (build_string ("Sans Serif"),
-		      build_string ("Roboto")));
+		      build_string ("Roboto")),
+	       Fcons (build_string ("DejaVu Serif"),
+		      build_string ("Noto Serif")));
+  else if (api_level >= 14)
+    /* Android 4.0 and later distribute Roboto in lieu of Droid
+       Sans.  */
+    Vsfnt_default_family_alist
+      = list4 (Fcons (build_string ("Monospace"),
+		      build_string ("Droid Sans Mono")),
+	       /* Android doesn't come with a Monospace Serif font, so
+		  this will have to do.  */
+	       Fcons (build_string ("Monospace Serif"),
+		      build_string ("Droid Sans Mono")),
+	       Fcons (build_string ("Sans Serif"),
+		      build_string ("Roboto")),
+	       Fcons (build_string ("DejaVu Serif"),
+		      build_string ("Droid Serif")));
   else
     Vsfnt_default_family_alist
-      = list3 (Fcons (build_string ("Monospace"),
+      = list4 (Fcons (build_string ("Monospace"),
 		      build_string ("Droid Sans Mono")),
 	       Fcons (build_string ("Monospace Serif"),
 		      build_string ("Droid Sans Mono")),
 	       Fcons (build_string ("Sans Serif"),
-		      build_string ("Droid Sans")));
+		      build_string ("Droid Sans")),
+	       Fcons (build_string ("DejaVu Serif"),
+		      build_string ("Droid Serif")));
 
   /* Set up the user fonts directory.  This directory is ``fonts'' in
      the Emacs files directory.  */

@@ -1,6 +1,6 @@
 ;;; nnimap.el --- IMAP interface for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Simon Josefsson <simon@josefsson.org>
@@ -51,7 +51,7 @@
 
 (defvoo nnimap-server-port nil
   "The IMAP port used.
-If nnimap-stream is `ssl', this will default to `imaps'.  If not,
+If `nnimap-stream' is `ssl', this will default to `imaps'.  If not,
 it will default to `imap'.")
 
 (defvoo nnimap-use-namespaces nil
@@ -59,7 +59,7 @@ it will default to `imap'.")
 If in Gnus your folder names in all start with (e.g.) `INBOX',
 you probably want to set this to t.  The effects of this are
 purely cosmetic, but changing this variable will affect the
-names of your nnimap groups. ")
+names of your nnimap groups.")
 
 (defvoo nnimap-stream 'undecided
   "How nnimap talks to the IMAP server.
@@ -97,20 +97,20 @@ Uses the same syntax as `nnmail-split-methods'.")
 (defvoo nnimap-authenticator nil
   "How nnimap authenticate itself to the server.
 Possible choices are nil (use default methods), `anonymous',
-`login', `plain' and `cram-md5'.")
+`login', `plain', `cram-md5' and `xoauth2'.")
 
 (defvoo nnimap-expunge 'on-exit
   "When to expunge deleted messages.
 If `never', deleted articles are marked with the IMAP \\Delete
-flag but not automatically expunged. If `immediately', deleted
+flag but not automatically expunged.  If `immediately', deleted
 articles are immediately expunged (this requires the server to
-support the UID EXPUNGE command). If `on-exit', deleted articles
+support the UID EXPUNGE command).  If `on-exit', deleted articles
 are flagged, and all flagged articles are expunged when the group
 is closed.
 
 For backwards compatibility, this variable may also be set to t
-or nil. If the server supports UID EXPUNGE, both t and nil are
-equivalent to `immediately'. If the server does not support UID
+or nil.  If the server supports UID EXPUNGE, both t and nil are
+equivalent to `immediately'.  If the server does not support UID
 EXPUNGE nil is equivalent to `never', while t will immediately
 expunge ALL articles that are currently flagged as deleted
 (i.e., potentially not only the article that was just deleted).")
@@ -918,10 +918,10 @@ during splitting, which may be slow."
 	    (nnimap-finish-retrieve-group-infos server info sequences
 						t)
 	    (setq active (nth 2 (assoc group nnimap-current-infos)))))
-	(setq active (or active '(0 . 1)))
+	(setq active (or active '(1 . 0)))
 	(erase-buffer)
 	(insert (format "211 %d %d %d %S\n"
-			(- (cdr active) (car active))
+			(max (1+ (- (cdr active) (car active))) 0)
 			(car active)
 			(cdr active)
 			group))

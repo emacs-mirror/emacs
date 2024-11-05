@@ -1,6 +1,6 @@
 ;;; cvs-status.el --- major mode for browsing `cvs status' output -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs status tree vc tools
@@ -352,10 +352,8 @@ the list is a three-string list TAG, KIND, REV."
 	(delete-region pt (point)))
       tags)))
 
-(defvar font-lock-mode)
 ;; (defun cvs-refontify (beg end)
-;;   (when (and font-lock-mode
-;; 	        (fboundp 'font-lock-fontify-region))
+;;   (when font-lock-mode
 ;;     (font-lock-fontify-region (1- beg) (1+ end))))
 
 (defun cvs-status-trees ()

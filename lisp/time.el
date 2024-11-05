@@ -1,6 +1,6 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2023 Free Software
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -239,8 +239,8 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 	 (timer display-time-timer)
 	 ;; Compute the time when this timer will run again, next.
 	 (next-time (timer-relative-time
-		     (list (aref timer 1) (aref timer 2) (aref timer 3))
-		     (* 5 (aref timer 4)) 0)))
+		     (timer--time timer)
+		     (* 5 (timer--repeat-delay timer)) 0)))
     ;; If the activation time is not in the future,
     ;; skip executions until we reach a time in the future.
     ;; This avoids a long pause if Emacs has been suspended for hours.
@@ -452,14 +452,18 @@ runs the normal hook `display-time-hook' after each update."
     ("America/New_York" "New York")
     ("Europe/London" "London")
     ("Europe/Paris" "Paris")
-    ("Asia/Calcutta" "Bangalore")
+    ("Asia/Kolkata" "Bangalore")
     ("Asia/Tokyo" "Tokyo"))
   "Alist of zoneinfo-style time zones and places for `world-clock'.
 Each element has the form (TIMEZONE LABEL).
 TIMEZONE should be a string of the form AREA/LOCATION, where AREA is
 the name of a region -- a continent or ocean, and LOCATION is the name
 of a specific location, e.g., a city, within that region.
-LABEL is a string to display as the label of that TIMEZONE's time."
+LABEL is a string to display as the label of that TIMEZONE's time.
+
+This option has effect only on systems that support Posix-style
+zoneinfo files specified as CONTINENT/CITY.  In particular,
+MS-Windows doesn't support that; use `legacy-style-world-list' instead."
   :type '(repeat (list string string))
   :version "23.1")
 
@@ -478,7 +482,10 @@ TIMEZONE should be a string of the form:
 
 See the documentation of the TZ environment variable on your system,
 for more details about the format of TIMEZONE.
-LABEL is a string to display as the label of that TIMEZONE's time."
+LABEL is a string to display as the label of that TIMEZONE's time
+
+This is the only option that has effect on MS-Windows, where you also
+cannot specify the [offset][,date[/time],date[/time]] part."
   :type '(repeat (list string string))
   :version "23.1")
 
@@ -541,7 +548,7 @@ If the value is t instead of an alist, use the value of
 (defun world-clock-copy-time-as-kill ()
   "Copy current line into the kill ring."
   (interactive nil world-clock-mode)
-  (when-let ((str (buffer-substring-no-properties (pos-bol) (pos-eol))))
+  (when-let* ((str (buffer-substring-no-properties (pos-bol) (pos-eol))))
     (kill-new str)
     (message str)))
 
@@ -589,9 +596,9 @@ See `world-clock'."
 (defun world-clock ()
   "Display a world clock buffer with times in various time zones.
 The variable `world-clock-list' specifies which time zones to use.
-To turn off the world time display, go to the window and type `\\[quit-window]'."
+To turn off the world time display, go to the window and type \\[quit-window]."
   (interactive)
-  (if-let ((buffer (get-buffer world-clock-buffer-name)))
+  (if-let* ((buffer (get-buffer world-clock-buffer-name)))
       (pop-to-buffer buffer)
     (pop-to-buffer world-clock-buffer-name)
     (when world-clock-timer-enable
@@ -611,7 +618,7 @@ To turn off the world time display, go to the window and type `\\[quit-window]'.
 (defun world-clock-update (&optional _arg _noconfirm)
   "Update the `world-clock' buffer."
   (if (get-buffer world-clock-buffer-name)
-      (with-current-buffer (get-buffer world-clock-buffer-name)
+      (with-current-buffer world-clock-buffer-name
         (let ((op (point)))
           (world-clock-display (time--display-world-list))
           (goto-char op)))

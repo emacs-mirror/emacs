@@ -1,6 +1,6 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -233,9 +233,11 @@ Already submitted bugs can be found in the Emacs bug tracker:
           (set-frame-parameter nil 'unsplittable nil))
       (error nil))
     (compose-mail report-emacs-bug-address topic)
+    (rfc822-goto-eoh)
+    (insert "X-Debbugs-Cc: \n")
     ;; The rest of this does not execute if the user was asked to
     ;; confirm and said no.
-    (when (eq major-mode 'message-mode)
+    (when (derived-mode-p 'message-mode)
       ;; Message-mode sorts the headers before sending.  We sort now so
       ;; that report-emacs-bug-orig-text remains valid.  (Bug#5178)
       (message-sort-headers)
@@ -491,7 +493,7 @@ and send the mail again%s."
           (re-search-forward "^From: " nil t)
 	  (error "Please edit the From address and try again"))))
   ;; Bury the help buffer (if it's shown).
-  (when-let ((help (get-buffer "*Bug Help*")))
+  (when-let* ((help (get-buffer "*Bug Help*")))
     (when (get-buffer-window help)
       (quit-window nil (get-buffer-window help)))))
 
@@ -509,7 +511,7 @@ Message buffer where you can explain more about the patch."
      (list (read-string (format-prompt "This patch is about" guess)
                         nil nil guess)
            file)))
-  (switch-to-buffer "*Patch Help*")
+  (pop-to-buffer-same-window "*Patch Help*")
   (let ((inhibit-read-only t))
     (erase-buffer)
     (insert "Thank you for considering submitting a patch to the Emacs project.\n\n"
@@ -530,6 +532,8 @@ Message buffer where you can explain more about the patch."
     (view-mode 1)
     (button-mode 1))
   (compose-mail-other-window report-emacs-bug-address subject)
+  (rfc822-goto-eoh)
+  (insert "X-Debbugs-Cc: \n")
   (message-goto-body)
   (insert "\n\n\n")
   (emacs-build-description)
@@ -545,7 +549,7 @@ Message buffer where you can explain more about the patch."
   (message-add-action
    (lambda ()
      ;; Bury the help buffer (if it's shown).
-     (when-let ((help (get-buffer "*Patch Help*")))
+     (when-let* ((help (get-buffer "*Patch Help*")))
        (when (get-buffer-window help)
          (quit-window nil (get-buffer-window help)))))
    'send))

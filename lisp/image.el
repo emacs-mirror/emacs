@@ -1,6 +1,6 @@
 ;;; image.el --- image API  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: multimedia
@@ -38,7 +38,7 @@
 (defconst image-type-header-regexps
   `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
     ("\\`P[1-6]\\(?:\
-\\(?:\\(?:#[^\r\n]*[\r\n]\\)*[[:space:]]\\)+\
+\\(?:\\(?:#[^\r\n]*[\r\n]\\)*[ \t\r\n]\\)+\
 \\(?:\\(?:#[^\r\n]*[\r\n]\\)*[0-9]\\)+\
 \\)\\{2\\}" . pbm)
     ("\\`GIF8[79]a" . gif)
@@ -136,18 +136,6 @@ Subdirectories are not automatically included in the search."
   :type '(repeat (choice directory variable))
   :initialize #'custom-initialize-delay)
 
-(defcustom image-scaling-factor 'auto
-  "When displaying images, apply this scaling factor before displaying.
-This is not supported for all image types, and is mostly useful
-when you have a high-resolution monitor.
-The value is either a floating point number (where numbers higher
-than 1 means to increase the size and lower means to shrink the
-size), or the symbol `auto', which will compute a scaling factor
-based on the font pixel size."
-  :type '(choice number
-                 (const :tag "Automatically compute" auto))
-  :version "26.1")
-
 (defcustom image-transform-smoothing #'image--default-smoothing
   "Whether to do smoothing when applying transforms to images.
 Common transforms are rescaling and rotation.
@@ -192,6 +180,29 @@ or \"ffmpeg\") is installed."
         "r" #'image-rotate
         "h" #'image-flip-horizontally
         "v" #'image-flip-vertically))
+
+(defun image-context-menu (menu click)
+  "Populate MENU with image-related commands at CLICK."
+  (when (mouse-posn-property (event-start click) 'display)
+    (define-key menu [image-separator] menu-bar-separator)
+    (let ((easy-menu (make-sparse-keymap "Image")))
+      (easy-menu-define nil easy-menu nil
+        '("Image"
+          ["Zoom In" image-increase-size
+           :help "Enlarge the image"]
+          ["Zoom Out" image-decrease-size
+           :help "Shrink the image"]
+          ["Rotate Clockwise" image-rotate
+           :help "Rotate the image"]
+          ["Flip horizontally" image-flip-horizontally
+           :help "Flip horizontally"]
+          ["Flip vertically" image-flip-vertically
+           :help "Flip vertically"]))
+      (dolist (item (reverse (lookup-key easy-menu [menu-bar image])))
+        (when (consp item)
+          (define-key menu (vector (car item)) (cdr item))))))
+
+  menu)
 
 (defun image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
@@ -494,9 +505,13 @@ use its file extension as image type.
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
 
 Optional PROPS are additional image attributes to assign to the image,
-like, e.g. `:mask MASK'.  If the property `:scale' is not given and the
-display has a high resolution (more exactly, when the average width of a
-character in the default font is more than 10 pixels), the image is
+like, e.g. `:mask MASK'.  See Info node `(elisp)Image Descriptors' for
+the list of supported properties; see the nodes following that node
+for properties specific to certain image types.
+
+If the property `:scale' is not given and the display has a high
+resolution (more exactly, when the average width of a character
+in the default font is more than 10 pixels), the image is
 automatically scaled up in proportion to the default font.
 
 Value is the image created, or nil if images of type TYPE are not supported.
@@ -505,7 +520,7 @@ Images should not be larger than specified by `max-image-size'."
   (let ((data-format
          ;; Pass the image format, if any, if this is data.
          (and data-p (or (plist-get props :format) t))))
-    ;; It is x_find_image_file in image.c that sets the search path.
+    ;; It is `x_find_image_fd' in image.c that sets the search path.
     (setq type (ignore-error unknown-image-type
                  (image-type file-or-data type data-format)))
     ;; If we have external image conversion switched on (for exotic,
@@ -521,26 +536,40 @@ Images should not be larger than specified by `max-image-size'."
                          file-or-data)
                    (and (not (plist-get props :scale))
                         ;; Add default scaling.
-                        (list :scale
-                              (image-compute-scaling-factor
-                               image-scaling-factor)))
+                        (list :scale 'default))
 	           props)))
       ;; Add default smoothing.
       (unless (plist-member props :transform-smoothing)
-        (setq image (nconc image
-                           (list :transform-smoothing
-                                 (pcase image-transform-smoothing
-                                   ('t t)
-                                   ('nil nil)
-                                   (func (funcall func image)))))))
+        (let* ((func image-transform-smoothing)
+               (value (or (eq func t)
+                          (and func (funcall func image)))))
+          (unless (eq value 'lambda)
+            (setq image (nconc image
+                               (list :transform-smoothing
+                                     value))))))
+      ;; Add original map from map.
+      (when (and (plist-get props :map)
+                 (not (plist-get props :original-map)))
+        (setq image (nconc image (list :original-map
+                                       (image--compute-original-map image)))))
+      ;; Add map from original map.
+      (when (and (plist-get props :original-map)
+                 (not (plist-get props :map)))
+        (setq image (nconc image (list :map
+                                       (image--compute-map image)))))
       image)))
 
 (defun image--default-smoothing (image)
-  "Say whether IMAGE should be smoothed when transformed."
+  "Say whether IMAGE should be smoothed when transformed.
+Return `lambda' if the decision should be deferred to the time IMAGE is
+loaded."
   (let* ((props (nthcdr 5 image))
          (scaling (plist-get props :scale))
          (rotation (plist-get props :rotation)))
     (cond
+     ;; The scale of the image won't be available until
+     ;; `image_set_transform', and as such, defer to its judgment.
+     ((eq scaling 'default) 'lambda)
      ;; We always smooth when scaling down and small upwards scaling.
      ((and scaling (< scaling 2))
       t)
@@ -571,14 +600,22 @@ Internal use only."
 Properties can be set with
 
   (setf (image-property IMAGE PROPERTY) VALUE)
-If VALUE is nil, PROPERTY is removed from IMAGE."
+If VALUE is nil, PROPERTY is removed from IMAGE.
+
+See Info node `(elisp)Image Descriptors' for the list of
+supported properties; see the nodes following that node for
+properties specific to certain image types."
   (declare (gv-setter image--set-property))
   (plist-get (cdr image) property))
 
 (defun image-compute-scaling-factor (&optional scaling)
   "Compute the scaling factor based on SCALING.
 If a number, use that.  If it's `auto', compute the factor.
-If nil, use the `image-scaling-factor' variable."
+If nil, use the `image-scaling-factor' variable.
+
+This function is provided for the benefit of Lisp code that
+must compute this factor; it does not affect Emacs's scaling
+of images."
   (unless scaling
     (setq scaling image-scaling-factor))
   (cond
@@ -601,7 +638,9 @@ IMAGE must be an image created with `create-image' or `defimage'.
 IMAGE is displayed by putting an overlay into the current buffer with a
 `before-string' STRING that has a `display' property whose value is the
 image.  STRING defaults to \"x\" if it's nil or omitted.
-The overlay created by this function has the `put-image' property set to t.
+Upon success, this function returns the created overlay with its
+`put-image' property set to t.
+
 POS may be an integer or marker.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
@@ -620,6 +659,7 @@ means display it in the right marginal area."
       (overlay-put overlay 'put-image t)
       (overlay-put overlay 'before-string string)
       (overlay-put overlay 'keymap image-map)
+      (overlay-put overlay 'context-menu-functions '(image-context-menu))
       overlay)))
 
 
@@ -672,8 +712,9 @@ is non-nil, this is inhibited."
 				   inhibit-isearch ,inhibit-isearch
                                    keymap ,(if slice
                                                image-slice-map
-                                             image-map)))))
-
+                                             image-map)
+                                   context-menu-functions
+                                   (image-context-menu)))))
 
 ;;;###autoload
 (defun insert-sliced-image (image &optional string area rows cols)
@@ -709,7 +750,9 @@ The image is automatically split into ROWS x COLS slices."
 	  (add-text-properties start (point)
 			       `(display ,(list (list 'slice x y dx dy) image)
 					 rear-nonsticky (display keymap)
-                                         keymap ,image-slice-map))
+                                         keymap ,image-slice-map
+                                         context-menu-functions
+                                         (image-context-menu)))
 	  (setq x (+ x dx))))
       (setq x 0.0
 	    y (+ y dy))
@@ -759,21 +802,25 @@ BUFFER nil or omitted means use the current buffer."
 
 ;;;###autoload
 (defun find-image (specs &optional cache)
-  "Find an image, choosing one of a list of image specifications.
+  "Find an image that satisfies one of a list of image specifications.
 
 SPECS is a list of image specifications.
 
-Each image specification in SPECS is a property list.  The contents of
-a specification are image type dependent.  All specifications must at
-least contain either the property `:file FILE' or `:data DATA',
-where FILE is the file to load the image from, and DATA is a string
-containing the actual image data.  If the property `:type TYPE' is
-omitted or nil, try to determine the image type from its first few
+Each image specification in SPECS is a property list.  The
+contents of a specification are image type dependent; see the
+info node `(elisp)Image Descriptors' for details.  All specifications
+must at least contain either the property `:file FILE' or `:data DATA',
+where FILE is the file from which to load the image, and DATA is a
+string containing the actual image data.  If the property `:type TYPE'
+is omitted or nil, try to determine the image type from its first few
 bytes of image data.  If that doesn't work, and the property `:file
-FILE' provide a file name, use its file extension as image type.
-If `:type TYPE' is provided, it must match the actual type
-determined for FILE or DATA by `create-image'.  Return nil if no
-specification is satisfied.
+FILE' provide a file name, use its file extension as indication of the
+image type.  If `:type TYPE' is provided, it must match the actual type
+determined for FILE or DATA by `create-image'.
+
+The function returns the image specification for the first specification
+in the list whose TYPE is supported and FILE, if specified, exists.  It
+returns nil if no specification in the list can be satisfied.
 
 If CACHE is non-nil, results are cached and returned on subsequent calls.
 
@@ -1169,7 +1216,10 @@ has no effect."
 If N is 3, then the image size will be increased by 30%.  More
 generally, the image size is multiplied by 1 plus N divided by 10.
 N defaults to 2, which increases the image size by 20%.
-POSITION can be a buffer position or a marker, and defaults to point."
+POSITION can be a buffer position or a marker, and defaults to point.
+
+When user option `image-recompute-map-p' is non-nil, the image's `:map'
+is recomputed to fit the newly transformed image."
   (interactive "P")
   (image--delayed-change-size (if n
                                   (1+ (/ (prefix-numeric-value n) 10.0))
@@ -1181,7 +1231,7 @@ POSITION can be a buffer position or a marker, and defaults to point."
 (defun image--delayed-change-size (size position)
   ;; Wait for a bit of idle-time before actually performing the change,
   ;; so as to batch together sequences of closely consecutive size changes.
-  ;; `image--change-size' just changes one value in a plist.  The actual
+  ;; `image--change-size' just changes two values in a plist.  The actual
   ;; image resizing happens later during redisplay.  So if those
   ;; consecutive calls happen without any redisplay between them,
   ;; the costly operation of image resizing should happen only once.
@@ -1192,7 +1242,10 @@ POSITION can be a buffer position or a marker, and defaults to point."
 If N is 3, then the image size will be decreased by 30%.  More
 generally, the image size is multiplied by 1 minus N divided by 10.
 N defaults to 2, which decreases the image size by 20%.
-POSITION can be a buffer position or a marker, and defaults to point."
+POSITION can be a buffer position or a marker, and defaults to point.
+
+When user option `image-recompute-map-p' is non-nil, the image's `:map'
+is recomputed to fit the newly transformed image."
   (interactive "P")
   (image--delayed-change-size (if n
                                   (- 1 (/ (prefix-numeric-value n) 10.0))
@@ -1204,7 +1257,10 @@ POSITION can be a buffer position or a marker, and defaults to point."
 (defun image-mouse-increase-size (&optional event)
   "Increase the image size using the mouse-gesture EVENT.
 This increases the size of the image at the position specified by
-EVENT, if any, by the default factor used by `image-increase-size'."
+EVENT, if any, by the default factor used by `image-increase-size'.
+
+When user option `image-recompute-map-p' is non-nil, the image's `:map'
+is recomputed to fit the newly transformed image."
   (interactive "e")
   (when (listp event)
     (save-window-excursion
@@ -1214,7 +1270,10 @@ EVENT, if any, by the default factor used by `image-increase-size'."
 (defun image-mouse-decrease-size (&optional event)
   "Decrease the image size using the mouse-gesture EVENT.
 This decreases the size of the image at the position specified by
-EVENT, if any, by the default factor used by `image-decrease-size'."
+EVENT, if any, by the default factor used by `image-decrease-size'.
+
+When user option `image-recompute-map-p' is non-nil, the image's `:map'
+is recomputed to fit the newly transformed image."
   (interactive "e")
   (when (listp event)
     (save-window-excursion
@@ -1265,7 +1324,9 @@ POSITION can be a buffer position or a marker, and defaults to point."
          (new-image (image--image-without-parameters image))
          (scale (image--current-scaling image new-image)))
     (setcdr image (cdr new-image))
-    (plist-put (cdr image) :scale (* scale factor))))
+    (plist-put (cdr image) :scale (* scale factor))
+    (when (and (image-property image :original-map) image-recompute-map-p)
+      (setf (image-property image :map) (image--compute-map image)))))
 
 (defun image--image-without-parameters (image)
   (cons (pop image)
@@ -1292,7 +1353,10 @@ POSITION can be a buffer position or a marker, and defaults to point."
 If nil, ANGLE defaults to 90.  Interactively, rotate the image 90
 degrees clockwise with no prefix argument, and counter-clockwise
 with a prefix argument.  Note that most image types support
-rotations by only multiples of 90 degrees."
+rotations by only multiples of 90 degrees.
+
+When user option `image-recompute-map-p' is non-nil, the image's `:map'
+is recomputed to fit the newly transformed image."
   (interactive (and current-prefix-arg '(-90)))
   (let ((image (image--get-imagemagick-and-warn)))
     (setf (image-property image :rotation)
@@ -1300,7 +1364,9 @@ rotations by only multiples of 90 degrees."
                          (or angle 90))
                       ;; We don't want to exceed 360 degrees rotation,
                       ;; because it's not seen as valid in Exif data.
-                      360))))
+                      360)))
+    (when (and (image-property image :original-map) image-recompute-map-p)
+      (setf (image-property image :map) (image--compute-map image))))
   (set-transient-map image--repeat-map nil nil
                      "Use %k for further adjustments"))
 
@@ -1321,22 +1387,215 @@ changing the displayed image size does not affect the saved image."
                     (read-file-name "Write image to file: ")))))
 
 (defun image-flip-horizontally ()
-  "Horizontally flip the image under point."
+  "Horizontally flip the image under point.
+
+When user option `image-recompute-map-p' is non-nil, the image's `:map'
+is recomputed to fit the newly transformed image."
   (interactive)
   (let ((image (image--get-image)))
     (image-flush image)
     (setf (image-property image :flip)
-          (not (image-property image :flip)))))
+          (not (image-property image :flip)))
+    (when (and (image-property image :original-map) image-recompute-map-p)
+      (setf (image-property image :map) (image--compute-map image)))))
 
 (defun image-flip-vertically ()
-  "Vertically flip the image under point."
+  "Vertically flip the image under point.
+
+When user option `image-recompute-map-p' is non-nil, the image's `:map'
+is recomputed to fit the newly transformed image."
   (interactive)
   (let ((image (image--get-image)))
     (image-rotate 180)
     (setf (image-property image :flip)
-          (not (image-property image :flip)))))
+          (not (image-property image :flip)))
+    (when (and (image-property image :original-map) image-recompute-map-p)
+      (setf (image-property image :map) (image--compute-map image)))))
 
 (define-obsolete-function-alias 'image-refresh #'image-flush "29.1")
+
+;;; Map transformation
+
+(defcustom image-recompute-map-p t
+  "Recompute image map when scaling, rotating, or flipping an image."
+  :type 'boolean
+  :version "30.1")
+
+(defsubst image--compute-rotation (image)
+  "Return the current rotation of IMAGE, or 0 if no rotation.
+Also return nil if rotation is not a multiples of 90 degrees (0, 90,
+180[-180] and 270[-90])."
+  (let ((degrees (or (image-property image :rotation) 0)))
+    (and (= 0 (mod degrees 1))
+         (car (memql (truncate (mod degrees 360)) '(0 90 180 270))))))
+
+(defun image--compute-map (image)
+  "Compute map for IMAGE suitable to be used as its :map property.
+Return a copy of :original-map transformed based on IMAGE's :scale,
+:rotation, and :flip.  When IMAGE's :original-map is nil, return nil.
+When :rotation is not a multiple of 90, return copy of :original-map."
+  (when-let* ((map (image-property image :original-map)))
+    (setq map (copy-tree map t))
+    (let* ((size (image-size image t))
+           ;; The image can be scaled for many reasons (:scale,
+           ;; :max-width, etc), so using `image--current-scaling' to
+           ;; calculate the current scaling is the correct method.  But,
+           ;; since each call to `image_size' is expensive, the code is
+           ;; duplicated here to save the a call to `image-size'.
+           (scale (/ (float (car size))
+                     (car (image-size
+                           (image--image-without-parameters image) t))))
+           (rotation (image--compute-rotation image))
+           ;; Image is flipped only if rotation is a multiple of 90,
+           ;; including 0.
+           (flip (and rotation (image-property image :flip))))
+      ;; SIZE fits MAP after transformations.  Scale MAP before flip and
+      ;; rotate operations, since both need MAP to fit SIZE.
+      (unless (= scale 1)
+        (image--scale-map map scale))
+      ;; In rendered images, rotation is always applied before flip.
+      (when (memql rotation '(90 180 270))
+        (image--rotate-map
+         map rotation (if (= rotation 180)
+                          size
+                        ;; If rotated ±90°, swap width and height.
+                        (cons (cdr size) (car size)))))
+      ;; After rotation, there's no need to swap width and height.
+      (when flip
+        (image--flip-map map size)))
+    map))
+
+(defun image--compute-original-map (image)
+  "Return original map for IMAGE.
+If IMAGE lacks :map property, return nil.
+When there is no transformation, return copy of :map."
+  (when-let* ((original-map (image-property image :map)))
+    (setq original-map (copy-tree original-map t))
+    (let* ((size (image-size image t))
+           ;; The image can be scaled for many reasons (:scale,
+           ;; :max-width, etc), so using `image--current-scaling' to
+           ;; calculate the current scaling is the correct method.  But,
+           ;; since each call to `image_size' is expensive, the code is
+           ;; duplicated here to save the a call to `image-size'.
+           (scale (/ (float (car size))
+                     (car (image-size
+                           (image--image-without-parameters image) t))))
+           (rotation (image--compute-rotation image))
+           ;; Image is flipped only if rotation is a multiple of 90
+           ;; including 0.
+           (flip (and rotation (image-property image :flip))))
+      ;; In rendered images, rotation is always applied before flip.
+      ;; To undo the transformation, flip before rotating.  SIZE fits
+      ;; ORIGINAL-MAP before transformations are applied.  Therefore,
+      ;; scale ORIGINAL-MAP after flip and rotate operations, since
+      ;; both need ORIGINAL-MAP to fit SIZE.
+      ;; In rendered images, rotation is always applied before flip.
+      (when flip
+        (image--flip-map original-map size))
+      (when (memql rotation '(90 180 270))
+        (image--rotate-map original-map (- rotation) size))
+      (unless (= scale 1)
+        (image--scale-map original-map (/ 1.0 scale))))
+    original-map))
+
+(defun image--scale-map (map scale)
+  "Scale MAP according to SCALE.
+Destructively modifies and returns MAP."
+  (pcase-dolist (`(,`(,type . ,coords) ,_id ,_plist) map)
+    (pcase-exhaustive type
+      ('rect
+       (setf (caar coords) (round (* (caar coords) scale)))
+       (setf (cdar coords) (round (* (cdar coords) scale)))
+       (setf (cadr coords) (round (* (cadr coords) scale)))
+       (setf (cddr coords) (round (* (cddr coords) scale))))
+      ('circle
+       (setf (caar coords) (round (* (caar coords) scale)))
+       (setf (cdar coords) (round (* (cdar coords) scale)))
+       (setcdr coords (round (* (cdr coords) scale))))
+      ('poly
+       (dotimes (i (length coords))
+         (aset coords i
+               (round (* (aref coords i) scale)))))))
+  map)
+
+(defun image--rotate-map (map rotation size)
+  "Rotate MAP according to ROTATION and SIZE.
+ROTATION must be a non-zero multiple of 90.
+Destructively modifies and returns MAP."
+  (setq rotation (mod rotation 360))
+  (pcase-dolist (`(,`(,type . ,coords) ,_id ,_plist) map)
+    (pcase-exhaustive type
+      ('rect
+       (let ( x0 y0  ; New upper left corner
+              x1 y1) ; New bottom right corner
+         (pcase rotation ; Set new corners to...
+           (90 ; ...old bottom left and upper right
+            (setq x0 (caar coords) y0 (cddr coords)
+                  x1 (cadr coords) y1 (cdar coords)))
+           (180 ; ...old bottom right and upper left
+            (setq x0 (cadr coords) y0 (cddr coords)
+                  x1 (caar coords) y1 (cdar coords)))
+           (270 ; ...old upper right and bottom left
+            (setq x0 (cadr coords) y0 (cdar coords)
+                  x1 (caar coords) y1 (cddr coords))))
+         (setcar coords (image--rotate-coord x0 y0 rotation size))
+         (setcdr coords (image--rotate-coord x1 y1 rotation size))))
+      ('circle
+       (setcar coords (image--rotate-coord
+                       (caar coords) (cdar coords) rotation size)))
+      ('poly
+       (dotimes (i (length coords))
+         (when (= 0 (% i 2))
+           (pcase-let ((`(,x . ,y)
+                        (image--rotate-coord
+                         (aref coords i) (aref coords (1+ i)) rotation size)))
+             (aset coords i x)
+             (aset coords (1+ i) y)))))))
+  map)
+
+(defun image--rotate-coord (x y angle size)
+  "Rotate coordinates X and Y by ANGLE in image of SIZE.
+ANGLE must be a multiple of 90 in [90 180 270].  Returns a cons cell of
+rounded coordinates (X1 Y1)."
+  (pcase-let* ((radian (* (/ angle 180.0) float-pi))
+               (`(,width . ,height) size)
+               ;; y is positive, but we are in the bottom-right quadrant
+               (y (- y))
+               ;; Rotate clockwise
+               (x1 (+ (* (sin radian) y) (* (cos radian) x)))
+               (y1 (- (* (cos radian) y) (* (sin radian) x)))
+               ;; Translate image back into bottom-right quadrant
+               (`(,x1 . ,y1)
+                (pcase (truncate (mod angle 360))
+                  (90 ; Translate right by height
+                   (cons (+ x1 height) y1))
+                  (180 ; Translate right by width and down by height
+                   (cons (+ x1 width) (- y1 height)))
+                  (270 ; Translate down by width
+                   (cons x1 (- y1 width)))))
+               ;; Invert y1 to make both x1 and y1 positive
+               (y1 (- y1)))
+    (cons (round x1) (round y1))))
+
+(defun image--flip-map (map size)
+  "Horizontally flip MAP according to SIZE.
+Destructively modifies and returns MAP."
+  (pcase-dolist (`(,`(,type . ,coords) ,_id ,_plist) map)
+    (pcase-exhaustive type
+      ('rect
+       (let ((x0 (- (car size) (cadr coords)))
+             (y0 (cdar coords))
+             (x1 (- (car size) (caar coords)))
+             (y1 (cddr coords)))
+         (setcar coords (cons x0 y0))
+         (setcdr coords (cons x1 y1))))
+      ('circle
+       (setf (caar coords) (- (car size) (caar coords))))
+      ('poly
+       (dotimes (i (length coords))
+         (when (= 0 (% i 2))
+           (aset coords i (- (car size) (aref coords i))))))))
+  map)
 
 (provide 'image)
 

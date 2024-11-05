@@ -1,6 +1,6 @@
 ;;; perl-mode-tests.el --- Test for perl-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -28,7 +28,24 @@
     (font-lock-ensure (point-min) (point-max))
     (should (equal (get-text-property 4 'face) 'font-lock-variable-name-face))))
 
-;;;; Re-use cperl-mode tests
+(ert-deftest perl-test-bug-34245 ()
+  "Test correct indentation after a hanging paren, with and without comments."
+  (with-temp-buffer
+    (perl-mode)
+    (insert "my @foo = (\n\"bar\",\n\"baz\",\n);")
+    (insert "\n\n")
+    (insert "my @ofoo = (\t\t# A comment.\n\"obar\",\n\"obaz\",\n);")
+    (indent-region (point-min) (point-max))
+    (goto-char (point-min))
+    (forward-line)
+    (skip-chars-forward " \t")
+    (should (equal (current-column) perl-indent-level))
+    (search-forward "# A comment.")
+    (forward-line)
+    (skip-chars-forward " \t")
+    (should (equal (current-column) perl-indent-level))))
+
+;;;; Reuse cperl-mode tests
 
 (defvar cperl-test-mode)
 (setq cperl-test-mode #'perl-mode)

@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2000-2023 Free Software
+;; Copyright (C) 1993-1994, 1996-1997, 2000-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -114,6 +114,74 @@ appended when the minibuffer frame is created."
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))
   :group 'frames)
+
+(defun frame-deletable-p (&optional frame)
+  "Return non-nil if specified FRAME can be safely deleted.
+FRAME must be a live frame and defaults to the selected frame.
+
+FRAME cannot be safely deleted in the following cases:
+
+- FRAME is the only visible or iconified frame.
+
+- FRAME hosts the active minibuffer window that does not follow the
+  selected frame.
+
+- All other visible or iconified frames are either child frames or have
+  a non-nil `delete-before' parameter.
+
+- FRAME or one of its descendants hosts the minibuffer window of a frame
+  that is not a descendant of FRAME.
+
+This covers most cases where `delete-frame' might fail when called from
+top-level.  It does not catch some special cases like, for example,
+deleting a frame during a drag-and-drop operation.  In any such case, it
+will be better to wrap the `delete-frame' call in a `condition-case'
+form."
+  (setq frame (window-normalize-frame frame))
+  (let ((active-minibuffer-window (active-minibuffer-window))
+	deletable)
+    (catch 'deletable
+      (when (and active-minibuffer-window
+		 (eq (window-frame active-minibuffer-window) frame)
+		 (not (eq (default-toplevel-value
+			   'minibuffer-follows-selected-frame)
+			  t)))
+	(setq deletable nil)
+	(throw 'deletable nil))
+
+      (let ((frames (delq frame (frame-list))))
+	(dolist (other frames)
+	  ;; A suitable "other" frame must be either visible or
+	  ;; iconified.  Child frames and frames with a non-nil
+	  ;; 'delete-before' parameter do not qualify as other frame -
+	  ;; either of these will depend on a "suitable" frame found in
+	  ;; this loop.
+	  (unless (or (frame-parent other)
+		      (frame-parameter other 'delete-before)
+		      (not (frame-visible-p other)))
+	    (setq deletable t))
+
+	  ;; Some frame not descending from FRAME may use the minibuffer
+	  ;; window of FRAME or the minibuffer window of a frame
+	  ;; descending from FRAME.
+	  (when (let* ((minibuffer-window (minibuffer-window other))
+		       (minibuffer-frame
+			(and minibuffer-window
+			     (window-frame minibuffer-window))))
+		  (and minibuffer-frame
+		       ;; If the other frame is a descendant of
+		       ;; FRAME, it will be deleted together with
+		       ;; FRAME ...
+		       (not (frame-ancestor-p frame other))
+		       ;; ... but otherwise the other frame must
+		       ;; neither use FRAME nor any descendant of
+		       ;; it as minibuffer frame.
+		       (or (eq minibuffer-frame frame)
+			   (frame-ancestor-p frame minibuffer-frame))))
+	    (setq deletable nil)
+	    (throw 'deletable nil))))
+
+      deletable)))
 
 (defun handle-delete-frame (event)
   "Handle delete-frame events from the X server."
@@ -2021,7 +2089,7 @@ workarea attribute."
 (declare-function android-frame-list-z-order "androidfns.c" (&optional display))
 
 (defun frame-list-z-order (&optional display)
-  "Return list of Emacs' frames, in Z (stacking) order.
+  "Return list of Emacs's frames, in Z (stacking) order.
 The optional argument DISPLAY specifies which display to poll.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
@@ -2906,7 +2974,7 @@ Values smaller than 0.2 sec are treated as 0.2 sec."
   "How many times to blink before using a solid cursor on NS, X, and MS-Windows.
 Use 0 or negative value to blink forever."
   :version "24.4"
-  :type 'natnum
+  :type 'integer
   :group 'cursor)
 
 (defvar blink-cursor-blinks-done 1

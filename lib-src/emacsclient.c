@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-2023 Free Software Foundation, Inc.
+Copyright (C) 1986-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -68,7 +68,6 @@ char *w32_getenv (const char *);
 
 #define DEFAULT_TIMEOUT (30)
 
-#include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
 #include <inttypes.h>
@@ -83,6 +82,7 @@ char *w32_getenv (const char *);
 #include <unistd.h>
 
 #include <attribute.h>
+#include <c-ctype.h>
 #include <filename.h>
 #include <intprops.h>
 #include <min-max.h>
@@ -173,6 +173,7 @@ static struct option const longopts[] =
   { "version",	no_argument,	   NULL, 'V' },
   { "tty",	no_argument,       NULL, 't' },
   { "nw",	no_argument,       NULL, 't' },
+  { "no-window-system",	no_argument, NULL, 't' },
   { "create-frame", no_argument,   NULL, 'c' },
   { "reuse-frame", no_argument,   NULL, 'r' },
   { "alternate-editor", required_argument, NULL, 'a' },
@@ -618,6 +619,7 @@ decode_options (int argc, char **argv)
      display in DISPLAY (if any).  */
   if (create_frame && !tty && !display)
     {
+#ifndef HAVE_ANDROID
       /* Set these here so we use a default_display only when the user
          didn't give us an explicit display.  */
 #if defined (NS_IMPL_COCOA)
@@ -626,16 +628,22 @@ decode_options (int argc, char **argv)
       alt_display = "w32";
 #elif defined (HAVE_HAIKU)
       alt_display = "be";
-#elif defined (HAVE_ANDROID)
-      alt_display = "android";
-#endif
+#endif /* NS_IMPL_COCOA */
 
 #ifdef HAVE_PGTK
       display = egetenv ("WAYLAND_DISPLAY");
       alt_display = egetenv ("DISPLAY");
-#else
+#else /* !HAVE_PGTK */
       display = egetenv ("DISPLAY");
-#endif
+#endif /* HAVE_PGTK */
+#else /* HAVE_ANDROID */
+      /* Disregard the DISPLAY environment variable under Android.
+         Several terminal emulator programs furnish their own X
+         servers and set DISPLAY, but an Android build is incapable of
+         displaying X frames.  */
+      alt_display = NULL;
+      display = "android";
+#endif /* !HAVE_ANDROID */
     }
 
   if (!display)
@@ -683,7 +691,8 @@ Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
 The following OPTIONS are accepted:\n\
 -V, --version		Just print version info and return\n\
 -H, --help    		Print this usage information message\n\
--nw, -t, --tty 		Open a new Emacs frame on the current terminal\n\
+-nw, -t, --tty, --no-window-system\n\
+			Open a new Emacs frame on the current terminal\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
 -r, --reuse-frame	Create a new frame if none exists, otherwise\n\
@@ -1453,8 +1462,8 @@ local_sockname (int s, char sockname[socknamesize], int tmpdirlen,
      this user's directory and does not let others write to it; this
      fends off some symlink attacks.  To avoid races, keep the parent
      directory open while checking.  */
-  char *emacsdirend = sockname + tmpdirlen + suffixlen -
-    strlen(server_name) - 1;
+  char *emacsdirend = (sockname + tmpdirlen + suffixlen
+		       - strlen (server_name) - 1);
   *emacsdirend = '\0';
   int dir = open (sockname, O_PATH | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
   *emacsdirend = '/';
@@ -1498,6 +1507,7 @@ set_local_socket (char const *server_name)
     }
   else
     {
+#ifndef HAVE_ANDROID
       /* socket_name is a file name component.  */
       char const *xdg_runtime_dir = egetenv ("XDG_RUNTIME_DIR");
       if (xdg_runtime_dir)
@@ -1527,10 +1537,35 @@ set_local_socket (char const *server_name)
 	      if (tmpdirlen < 0)
 		tmpdirlen = snprintf (sockname, socknamesize, "/tmp");
 	    }
+
 	  sock_status = local_sockname (s, sockname, tmpdirlen,
 					uid, server_name);
 	  tmpdir_used = true;
 	}
+#else /* HAVE_ANDROID */
+      char const *tmpdir;
+      int socknamelen;
+      uintmax_t uidmax;
+
+      /* The TMPDIR of any process to which this binary is
+	 accessible must be reserved for Emacs, so the checks in
+	 local_sockname and the like are redundant.  */
+      tmpdir = egetenv ("TMPDIR");
+
+      /* Resort to the usual location of the cache directory, though
+	 this location is not guaranteed to remain stable over
+	 future releases of Android.  */
+      if (!tmpdir)
+	tmpdir = "/data/data/org.gnu.emacs/cache";
+
+      uidmax = uid;
+      socknamelen = snprintf (sockname, socknamesize,
+			      "%s/emacs%"PRIuMAX"/%s",
+			      tmpdir, uidmax, server_name);
+      sock_status = (0 <= socknamelen && socknamelen < socknamesize
+		     ? connect_socket (AT_FDCWD, sockname, s, 0)
+		     : ENAMETOOLONG);
+#endif /* !HAVE_ANDROID */
     }
 
   if (sock_status == 0)
@@ -2089,7 +2124,7 @@ main (int argc, char **argv)
 	      unsigned char c;
 	      do
 		c = *++p;
-	      while (isdigit (c) || c == ':');
+	      while (c_isdigit (c) || c == ':');
 
 	      if (c == 0)
                 {
@@ -2101,7 +2136,7 @@ main (int argc, char **argv)
             }
 #ifdef WINDOWSNT
 	  else if (! IS_ABSOLUTE_FILE_NAME (argv[i])
-		   && (isalpha (argv[i][0]) && argv[i][1] == ':'))
+		   && (c_isalpha (argv[i][0]) && argv[i][1] == ':'))
 	    /* Windows can have a different default directory for each
 	       drive, so the cwd passed via "-dir" is not sufficient
 	       to account for that.

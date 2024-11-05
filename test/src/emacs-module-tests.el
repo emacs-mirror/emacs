@@ -1,6 +1,6 @@
 ;;; emacs-module-tests.el --- Test GNU Emacs modules.  -*- lexical-binding: t; -*-
 
-;; Copyright 2015-2023 Free Software Foundation, Inc.
+;; Copyright 2015-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -114,15 +114,14 @@ changes."
 
 (ert-deftest mod-test-non-local-exit-signal-test ()
   (should-error (mod-test-signal))
-  (let (debugger-args backtrace)
+  (let (handler-err backtrace)
     (should-error
-     (let ((debugger (lambda (&rest args)
-                       (setq debugger-args args
-                             backtrace (with-output-to-string (backtrace)))
-                       (cl-incf num-nonmacro-input-events)))
-           (debug-on-signal t))
+     (handler-bind
+         ((error (lambda (err)
+                   (setq handler-err err
+                         backtrace (with-output-to-string (backtrace))))))
        (mod-test-signal)))
-    (should (equal debugger-args '(error (error . 56))))
+    (should (equal handler-err '(error . 56)))
     (should (string-match-p
              (rx bol "  mod-test-signal()" eol)
              backtrace))))
@@ -316,7 +315,7 @@ local reference."
         (replace-match "`src/emacs-module-resources/"))
       (should (equal
                (buffer-substring-no-properties 1 (point-max))
-               (format "a module function in `src/emacs-module-resources/mod-test%s'.
+               (format "a module-function in `src/emacs-module-resources/mod-test%s'.
 
 (mod-test-sum a b)
 
@@ -457,7 +456,7 @@ See Bug#36226."
 
 (ert-deftest module/async-pipe ()
   "Check that writing data from another thread works."
-  (skip-unless (not (eq system-type 'windows-nt))) ; FIXME!
+  (skip-when (eq system-type 'windows-nt)) ; FIXME!
   (with-temp-buffer
     (let ((process (make-pipe-process :name "module/async-pipe"
                                       :buffer (current-buffer)

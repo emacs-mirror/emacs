@@ -1,12 +1,15 @@
 ;;; map.el --- Map manipulation functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions, lisp
 ;; Version: 3.3.1
 ;; Package-Requires: ((emacs "26"))
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -605,18 +608,30 @@ This allows using default values for `map-elt', which can't be
 done using `pcase--flip'.
 
 KEY is the key sought in the map.  DEFAULT is the default value."
+  ;; It's obsolete in Emacs>29, but `map.el' is distributed via GNU ELPA
+  ;; for earlier Emacsen.
+  (declare (obsolete _ "30.1"))
   `(map-elt ,map ,key ,default))
 
 (defun map--make-pcase-bindings (args)
   "Return a list of pcase bindings from ARGS to the elements of a map."
-  (mapcar (lambda (elt)
-            (cond ((consp elt)
-                   `(app (map--pcase-map-elt ,(car elt) ,(caddr elt))
-                         ,(cadr elt)))
-                  ((keywordp elt)
-                   (let ((var (intern (substring (symbol-name elt) 1))))
-                     `(app (pcase--flip map-elt ,elt) ,var)))
-                  (t `(app (pcase--flip map-elt ',elt) ,elt))))
+  (mapcar (if (< emacs-major-version 30)
+              (lambda (elt)
+                (cond ((consp elt)
+                       `(app (map--pcase-map-elt ,(car elt) ,(caddr elt))
+                             ,(cadr elt)))
+                      ((keywordp elt)
+                       (let ((var (intern (substring (symbol-name elt) 1))))
+                         `(app (pcase--flip map-elt ,elt) ,var)))
+                      (t `(app (pcase--flip map-elt ',elt) ,elt))))
+            (lambda (elt)
+              (cond ((consp elt)
+                     `(app (map-elt _ ,(car elt) ,(caddr elt))
+                           ,(cadr elt)))
+                    ((keywordp elt)
+                     (let ((var (intern (substring (symbol-name elt) 1))))
+                       `(app (map-elt _ ,elt) ,var)))
+                    (t `(app (map-elt _ ',elt) ,elt)))))
           args))
 
 (defun map--make-pcase-patterns (args)

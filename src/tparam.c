@@ -1,5 +1,5 @@
 /* Merge parameters into a termcap entry string.
-   Copyright (C) 1985, 1987, 1993, 1995, 2000-2008, 2013-2023 Free
+   Copyright (C) 1985, 1987, 1993, 1995, 2000-2008, 2013-2024 Free
    Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
@@ -183,7 +183,7 @@ tparam1 (const char *string, char *outstring, int len,
 	      argp++;
 	      break;
 
-	    case 'b':		/* %b means back up one arg (and re-use it).  */
+	    case 'b':		/* %b means back up one arg (and reuse it).  */
 	      argp--;
 	      break;
 

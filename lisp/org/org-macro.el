@@ -1,9 +1,9 @@
 ;;; org-macro.el --- Macro Replacement Code for Org  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 
 ;; This file is part of GNU Emacs.
 
@@ -57,14 +57,17 @@
 (declare-function org-collect-keywords "org" (keywords &optional unique directory))
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-context "org-element" (&optional element))
-(declare-function org-element-copy "org-element" (datum))
+(declare-function org-element-copy "org-element-ast" (datum))
 (declare-function org-element-macro-parser "org-element" ())
 (declare-function org-element-keyword-parser "org-element" (limit affiliated))
-(declare-function org-element-put-property "org-element" (element property value))
+(declare-function org-element-put-property "org-element-ast" (node property value))
 (declare-function org-element-parse-secondary-string "org-element" (string restriction &optional parent))
-(declare-function org-element-property "org-element" (property element))
+(declare-function org-element-property "org-element-ast" (property node))
+(declare-function org-element-begin "org-element" (node))
+(declare-function org-element-end "org-element" (node))
 (declare-function org-element-restriction "org-element" (element))
-(declare-function org-element-type "org-element" (element))
+(declare-function org-element-type "org-element-ast" (node &optional anonymous))
+(declare-function org-element-type-p "org-element-ast" (node types))
 (declare-function org-entry-get "org" (pom property &optional inherit literal-nil))
 (declare-function org-file-contents "org" (file &optional noerror nocache))
 (declare-function org-in-commented-heading-p "org" (&optional no-inheritance element))
@@ -109,6 +112,13 @@ previous one, unless VALUE is nil.  Return the updated list."
   (let ((new-templates nil))
     (pcase-dolist (`(,name . ,value) templates)
       (let ((old-definition (assoc name new-templates)))
+        ;; This code can be evaluated unconditionally, as a part of
+        ;; loading Org mode.  We *must not* evaluate any code present
+        ;; inside the Org buffer while loading.  Org buffers may come
+        ;; from various sources, like received email messages from
+        ;; potentially malicious senders.  Org mode might be used to
+        ;; preview such messages and no code evaluation from inside the
+        ;; received Org text should ever happen without user consent.
         (when (and (stringp value) (string-match-p "\\`(eval\\>" value))
           ;; Pre-process the evaluation form for faster macro expansion.
           (let* ((args (org-macro--makeargs value))
@@ -121,7 +131,7 @@ previous one, unless VALUE is nil.  Return the updated list."
 		      (cadr (read value))
 		    (error
                      (user-error "Invalid definition for macro %S" name)))))
-	    (setq value (eval (macroexpand-all `(lambda ,args ,body)) t))))
+	    (setq value `(lambda ,args ,body))))
         (cond ((and value old-definition) (setcdr old-definition value))
 	      (old-definition)
 	      (t (push (cons name (or value "")) new-templates)))))
@@ -254,7 +264,7 @@ a definition in TEMPLATES."
              (org-element-put-property macro :parent nil)
 	     (let* ((key (org-element-property :key macro))
 		    (value (org-macro-expand macro templates))
-		    (begin (org-element-property :begin macro))
+		    (begin (org-element-begin macro))
 		    (signature (list begin
 				     macro
 				     (org-element-property :args macro))))
@@ -268,7 +278,7 @@ a definition in TEMPLATES."
 		      (delete-region
 		       begin
 		       ;; Preserve white spaces after the macro.
-		       (progn (goto-char (org-element-property :end macro))
+		       (progn (goto-char (org-element-end macro))
 			      (skip-chars-backward " \t")
 			      (point)))
 		      ;; Leave point before replacement in case of
@@ -330,14 +340,14 @@ Return a list of arguments, as strings.  This is the opposite of
   "Find PROPERTY's value at LOCATION.
 PROPERTY is a string.  LOCATION is a search string, as expected
 by `org-link-search', or the empty string."
-  (save-excursion
-    (when (org-string-nw-p location)
-      (condition-case _
-	  (let ((org-link-search-must-match-exact-headline t))
-	    (org-link-search location nil t))
-        (error
-	 (error "Macro property failed: cannot find location %s" location))))
-    (org-entry-get nil property 'selective)))
+  (org-with-wide-buffer
+   (when (org-string-nw-p location)
+     (condition-case _
+	 (let ((org-link-search-must-match-exact-headline t))
+	   (org-link-search location nil t))
+       (error
+	(error "Macro property failed: cannot find location %s" location))))
+   (org-entry-get nil property 'selective)))
 
 (defun org-macro--find-keyword-value (name &optional collect)
   "Find value for keyword NAME in current buffer.
@@ -352,7 +362,7 @@ in the buffer."
       (catch :exit
 	(while (re-search-forward regexp nil t)
 	  (let ((element (org-with-point-at (match-beginning 0) (org-element-keyword-parser (line-end-position) (list (match-beginning 0))))))
-	    (when (eq 'keyword (org-element-type element))
+	    (when (org-element-type-p element 'keyword)
 	      (let ((value (org-element-property :value element)))
 		(if (not collect) (throw :exit value)
 		  (setq result (concat result " " value)))))))
@@ -366,10 +376,13 @@ Return value as a string."
 		value (org-element-restriction 'keyword))))
     (if (and (consp date)
 	     (not (cdr date))
-	     (eq 'timestamp (org-element-type (car date))))
+	     (org-element-type-p (car date) 'timestamp))
 	(format "(eval (if (org-string-nw-p $1) %s %S))"
 		(format "(org-format-timestamp '%S $1)"
-			(org-element-copy (car date)))
+			(org-element-put-property
+                         (org-element-copy (car date))
+                         ;; Remove non-printable.
+                         :buffer nil))
 		value)
       value)))
 

@@ -1,6 +1,6 @@
 ;;; dired-tests.el --- Test suite. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -189,7 +189,9 @@
 (ert-deftest dired-test-bug27243-02 ()
   "Test for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27243#28 ."
   (ert-with-temp-directory test-dir
-    (let ((dired-auto-revert-buffer t) buffers)
+    (let ((dired-auto-revert-buffer t)
+          (dired-free-space nil)
+          buffers)
       ;; On MS-Windows, get rid of 8+3 short names in test-dir, if the
       ;; corresponding long file names exist, otherwise such names trip
       ;; string comparisons below.
@@ -270,8 +272,8 @@
   "Test for https://debbugs.gnu.org/27631 ."
   ;; For dired using 'ls' emulation we test for this bug in
   ;; ls-lisp-tests.el and em-ls-tests.el.
-  (skip-unless (and (not (featurep 'ls-lisp))
-                    (not (featurep 'eshell))))
+  (skip-unless (not (or (featurep 'ls-lisp)
+                        (featurep 'eshell))))
   (ert-with-temp-directory dir
     (let* ((dir1 (expand-file-name "dir1" dir))
            (dir2 (expand-file-name "dir2" dir))
@@ -521,6 +523,52 @@
                            testdir nil "[0-9]" t nil 50))))))
       (when (file-directory-p testdir)
         (delete-directory testdir t)))))
+
+(ert-deftest dired-test-hide-absolute-location-enabled ()
+  "Test for https://debbugs.gnu.org/72272 ."
+  (let* ((dired-hide-details-hide-absolute-location t)
+         (dir-name (expand-file-name "lisp" source-directory))
+         (buffer (prog1 (dired (list dir-name "dired.el" "play"))
+                   (dired-insert-subdir (file-name-concat default-directory
+                                                          "play")))))
+    (unwind-protect
+        (progn
+          (goto-char (point-min))
+          (re-search-forward dired-subdir-regexp)
+          (goto-char (match-beginning 1))
+          (should (equal "lisp" (file-name-nondirectory
+                                 (directory-file-name (dired-get-subdir)))))
+          (should (equal 'dired-hide-details-absolute-location
+                         (get-text-property (match-beginning 1) 'invisible)))
+          (re-search-forward dired-subdir-regexp)
+          (goto-char (match-beginning 1))
+          (should (equal "play" (file-name-nondirectory
+                                 (directory-file-name (dired-get-subdir)))))
+          (should (equal 'dired-hide-details-absolute-location
+                         (get-text-property (match-beginning 1) 'invisible))))
+      (kill-buffer buffer))))
+
+(ert-deftest dired-test-hide-absolute-location-disabled ()
+  "Test for https://debbugs.gnu.org/72272 ."
+  (let* ((dired-hide-details-hide-absolute-location nil)
+         (dir-name (expand-file-name "lisp" source-directory))
+         (buffer (prog1 (dired (list dir-name "dired.el" "play"))
+                   (dired-insert-subdir (file-name-concat default-directory
+                                                          "play")))))
+    (unwind-protect
+        (progn
+          (goto-char (point-min))
+          (re-search-forward dired-subdir-regexp)
+          (goto-char (match-beginning 1))
+          (should (equal "lisp" (file-name-nondirectory
+                                 (directory-file-name (dired-get-subdir)))))
+          (should-not (get-text-property (match-beginning 1) 'invisible))
+          (re-search-forward dired-subdir-regexp)
+          (goto-char (match-beginning 1))
+          (should (equal "play" (file-name-nondirectory
+                                 (directory-file-name (dired-get-subdir)))))
+          (should-not (get-text-property (match-beginning 1) 'invisible)))
+      (kill-buffer buffer))))
 
 ;; `dired-insert-directory' output tests.
 (let* ((data-dir "insert-directory")

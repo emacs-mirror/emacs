@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,11 +24,13 @@ import android.content.Context;
 import android.text.InputType;
 
 import android.view.ContextMenu;
+import android.view.DragEvent;
 import android.view.View;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.WindowInsets;
 
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
@@ -43,13 +45,17 @@ import android.graphics.Paint;
 import android.os.Build;
 import android.util.Log;
 
+import java.util.Arrays;
+
 /* This is an Android view which has a back and front buffer.  When
    swapBuffers is called, the back buffer is swapped to the front
-   buffer, and any damage is invalidated.  frontBitmap and backBitmap
-   are modified and used both from the UI and the Emacs thread.  As a
-   result, there is a lock held during all drawing operations.
+   buffer, and any damage is invalidated.  A front buffer bitmap defined
+   in EmacsSurfaceView, and the write buffer in this file, are modified
+   and used both from the UI and the Emacs thread.  As a result, there
+   is a lock held during all drawing operations.
 
-   It is also a ViewGroup, as it also lays out children.  */
+   It is also a ViewGroup, so that it may also manage the layout of its
+   children.  */
 
 public final class EmacsView extends ViewGroup
   implements ViewTreeObserver.OnGlobalLayoutListener
@@ -82,14 +88,14 @@ public final class EmacsView extends ViewGroup
   /* Whether or not a popup is active.  */
   private boolean popupActive;
 
+  /* Whether the back buffer has been updated since the last swap.  */
+  private boolean unswapped;
+
   /* The current context menu.  */
   private EmacsContextMenu contextMenu;
 
   /* The last measured width and height.  */
   private int measuredWidth, measuredHeight;
-
-  /* Object acting as a lock for those values.  */
-  private Object dimensionsLock;
 
   /* The serial of the last clip rectangle change.  */
   private long lastClipSerial;
@@ -147,9 +153,6 @@ public final class EmacsView extends ViewGroup
 
     /* Add this view as its own global layout listener.  */
     getViewTreeObserver ().addOnGlobalLayoutListener (this);
-
-    /* Create an object used as a lock.  */
-    this.dimensionsLock = new Object ();
   }
 
   private void
@@ -158,12 +161,9 @@ public final class EmacsView extends ViewGroup
     Bitmap oldBitmap;
     int measuredWidth, measuredHeight;
 
-    synchronized (dimensionsLock)
-      {
-	/* Load measuredWidth and measuredHeight.  */
-	measuredWidth = this.measuredWidth;
-	measuredHeight = this.measuredHeight;
-      }
+    /* Load measuredWidth and measuredHeight.  */
+    measuredWidth = this.measuredWidth;
+    measuredHeight = this.measuredHeight;
 
     if (measuredWidth == 0 || measuredHeight == 0)
       return;
@@ -200,19 +200,19 @@ public final class EmacsView extends ViewGroup
        rectangle ID.  */
     lastClipSerial = 0;
 
-    /* Copy over the contents of the old bitmap.  */
-    if (oldBitmap != null)
-      canvas.drawBitmap (oldBitmap, 0f, 0f, new Paint ());
-
+    /* Clear the bitmap reallocation flag.  */
     bitmapDirty = false;
 
-    /* Explicitly free the old bitmap's memory.  */
-
+    /* Explicitly free the old bitmap's memory.  The bitmap might
+       continue to be referenced by canvas or JNI objects returned by
+       getBitmap or getCanvas, but the underlying storage will not be
+       released until such references disappear.  See
+       BitmapWrapper::freePixels in hwui/jni/Bitmap.cpp.  */
     if (oldBitmap != null)
       oldBitmap.recycle ();
 
-    /* Some Android versions still don't free the bitmap until the
-       next GC.  */
+    /* Some Android versions still refuse to release the bitmap until
+       the next GC.  */
     Runtime.getRuntime ().gc ();
   }
 
@@ -225,8 +225,14 @@ public final class EmacsView extends ViewGroup
   public synchronized Bitmap
   getBitmap ()
   {
-    if (bitmapDirty || bitmap == null)
+    /* Never alter the bitmap if modifications have been received that
+       are still to be copied to the front buffer, as this indicates
+       that redisplay is in the process of copying matrix contents to
+       the glass, and such events as generally prompt a complete
+       regeneration of the frame's contents might not be processed.  */
+    if (!unswapped && (bitmapDirty || bitmap == null))
       handleDirtyBitmap ();
+    unswapped = true;
 
     return bitmap;
   }
@@ -236,11 +242,12 @@ public final class EmacsView extends ViewGroup
   {
     int i;
 
-    if (bitmapDirty || bitmap == null)
+    if (!unswapped && (bitmapDirty || bitmap == null))
       handleDirtyBitmap ();
 
     if (canvas == null)
       return null;
+    unswapped = true;
 
     /* Update clip rectangles if necessary.  */
     if (gc.clipRectID != lastClipSerial)
@@ -258,16 +265,6 @@ public final class EmacsView extends ViewGroup
       }
 
     return canvas;
-  }
-
-  public void
-  prepareForLayout (int wantedWidth, int wantedHeight)
-  {
-    synchronized (dimensionsLock)
-      {
-	measuredWidth = wantedWidth;
-	measuredHeight = wantedWidth;
-      }
   }
 
   @Override
@@ -302,9 +299,29 @@ public final class EmacsView extends ViewGroup
     super.setMeasuredDimension (width, height);
   }
 
+  /* Return whether this view's window is focused.  This is made
+     necessary by Android 11's unreliable dispatch of
+     onWindowFocusChanged prior to gesture navigation away from a
+     frame.  */
+
+  public boolean
+  checkWindowFocus ()
+  {
+    EmacsActivity activity;
+    Object consumer;
+
+    consumer = window.getAttachedConsumer ();
+
+    if (!(consumer instanceof EmacsActivity))
+      return false;
+
+    activity = (EmacsActivity) consumer;
+    return activity.hasWindowFocus ();
+  }
+
   /* Note that the monitor lock for the window must never be held from
-     within the lock for the view, because the window also locks the
-     other way around.  */
+     within that for the view, because the window acquires locks in the
+     opposite direction.  */
 
   @Override
   protected void
@@ -315,11 +332,12 @@ public final class EmacsView extends ViewGroup
     View child;
     Rect windowRect;
     boolean needExpose;
+    WindowInsets rootWindowInsets;
 
     count = getChildCount ();
     needExpose = false;
 
-    synchronized (dimensionsLock)
+    synchronized (this)
       {
 	/* Load measuredWidth and measuredHeight.  */
 	oldMeasuredWidth = measuredWidth;
@@ -328,28 +346,54 @@ public final class EmacsView extends ViewGroup
 	/* Set measuredWidth and measuredHeight.  */
 	measuredWidth = right - left;
 	measuredHeight = bottom - top;
-      }
 
-    /* Dirty the back buffer if the layout change resulted in the view
-       being resized.  */
+	/* If oldMeasuredHeight or oldMeasuredWidth are wrong, set
+	   changed to true as well.  */
 
-    if (changed && (right - left != oldMeasuredWidth
-		    || bottom - top != oldMeasuredHeight))
-      {
-	explicitlyDirtyBitmap ();
+	if (right - left != oldMeasuredWidth
+	    || bottom - top != oldMeasuredHeight)
+	  changed = true;
 
-	/* Expose the window upon a change in the view's size.  */
+	/* Dirty the back buffer if the layout change resulted in the view
+	   being resized.  */
 
-	if (right - left > oldMeasuredWidth
-	    || bottom - top > oldMeasuredHeight)
-	  needExpose = true;
+	if (changed)
+	  {
+	    /* Expose the window upon a change in the view's size that
+	       prompts the creation of a new bitmap.  */
+	    bitmapDirty = needExpose = true;
+
+	    /* This might return NULL if this view is not attached.  */
+	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+	      {
+		/* If a toplevel view is focused and
+		   isCurrentlyTextEditor is enabled when the IME is
+		   hidden, clear isCurrentlyTextEditor so it isn't shown
+		   again if the user dismisses Emacs before
+		   returning.  */
+		rootWindowInsets = getRootWindowInsets ();
+
+		if (isCurrentlyTextEditor
+		    && rootWindowInsets != null
+		    && isAttachedToWindow
+		    && !rootWindowInsets.isVisible (WindowInsets.Type.ime ())
+		    /* N.B. that the keyboard is dismissed during
+		       gesture navigation under Android 30, but the
+		       system is quite temperamental regarding whether
+		       the window is focused at that point.  Ideally
+		       isCurrentlyTextEditor shouldn't be reset in that
+		       case, but detecting that situation appears to be
+		       impossible.  Sigh.  */
+		    && (window == EmacsActivity.focusedWindow
+			&& hasWindowFocus ()))
+		  isCurrentlyTextEditor = false;
+	      }
+	  }
       }
 
     for (i = 0; i < count; ++i)
       {
 	child = getChildAt (i);
-
-	Log.d (TAG, "onLayout: " + child);
 
 	if (child == surfaceView)
 	  child.layout (0, 0, right - left, bottom - top);
@@ -374,7 +418,7 @@ public final class EmacsView extends ViewGroup
 	window.viewLayout (left, top, right, bottom);
       }
 
-    if (needExpose)
+    if (needExpose && isAttachedToWindow)
       EmacsNative.sendExpose (this.window.handle, 0, 0,
 			      right - left, bottom - top);
   }
@@ -386,6 +430,43 @@ public final class EmacsView extends ViewGroup
     damageRegion.union (damageRect);
   }
 
+  /* This function enables damage to be recorded without consing a new
+     Rect object.  */
+
+  public void
+  damageRect (int left, int top, int right, int bottom)
+  {
+    EmacsService.checkEmacsThread ();
+    damageRegion.op (left, top, right, bottom, Region.Op.UNION);
+  }
+
+  /* Complete deferred reconfiguration of the front buffer after a
+     buffer swap completes, and generate Expose events for the same.  */
+
+  private void
+  postSwapBuffers ()
+  {
+    if (!unswapped)
+      return;
+
+    unswapped = false;
+
+    /* If the bitmap is dirty, reconfigure the bitmap and
+       generate an Expose event to produce its contents.  */
+
+    if ((bitmapDirty || bitmap == null)
+	/* Do not generate Expose events if handleDirtyBitmap will
+	   not create a valid bitmap, or the consequent buffer swap
+	   will produce another event, ad infinitum.  */
+	&& isAttachedToWindow && measuredWidth != 0
+	&& measuredHeight != 0)
+      {
+	handleDirtyBitmap ();
+	EmacsNative.sendExpose (this.window.handle, 0, 0,
+				measuredWidth, measuredHeight);
+      }
+  }
+
   /* This method is called from both the UI thread and the Emacs
      thread.  */
 
@@ -394,7 +475,6 @@ public final class EmacsView extends ViewGroup
   {
     Canvas canvas;
     Rect damageRect;
-    Bitmap bitmap;
 
     /* Make sure this function is called only from the Emacs
        thread.  */
@@ -405,60 +485,88 @@ public final class EmacsView extends ViewGroup
     /* Now see if there is a damage region.  */
 
     if (damageRegion.isEmpty ())
-      return;
+      {
+	postSwapBuffers ();
+	return;
+      }
 
     /* And extract and clear the damage region.  */
 
     damageRect = damageRegion.getBounds ();
     damageRegion.setEmpty ();
 
-    bitmap = getBitmap ();
+    synchronized (this)
+      {
+	/* Transfer the bitmap to the surface view, then invalidate
+	   it.  */
+	surfaceView.setBitmap (bitmap, damageRect);
+	postSwapBuffers ();
+      }
+  }
 
-    /* Transfer the bitmap to the surface view, then invalidate
-       it.  */
-    surfaceView.setBitmap (bitmap, damageRect);
+  @Override
+  public boolean
+  onKeyPreIme (int keyCode, KeyEvent event)
+  {
+    /* Several Android systems intercept key events representing
+       C-SPC.  Avert this by detecting C-SPC events here and relaying
+       them directly to onKeyDown.
+
+       Make this optional though, since some input methods also
+       leverage C-SPC as a shortcut for switching languages.  */
+
+    if ((keyCode == KeyEvent.KEYCODE_SPACE
+	 && (window.eventModifiers (event)
+	     & KeyEvent.META_CTRL_MASK) != 0)
+	&& !EmacsNative.shouldForwardCtrlSpace ())
+      return onKeyDown (keyCode, event);
+
+    return super.onKeyPreIme (keyCode, event);
   }
 
   @Override
   public boolean
   onKeyDown (int keyCode, KeyEvent event)
   {
-    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
-	&& !EmacsNative.shouldForwardMultimediaButtons ())
-      return false;
+    if (((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	 && !EmacsNative.shouldForwardMultimediaButtons ())
+	|| keyCode == KeyEvent.KEYCODE_SCROLL_LOCK
+	|| keyCode == KeyEvent.KEYCODE_NUM_LOCK)
+      return super.onKeyDown (keyCode, event);
 
-    window.onKeyDown (keyCode, event);
-    return true;
+    return window.onKeyDown (keyCode, event);
   }
 
   @Override
   public boolean
   onKeyMultiple (int keyCode, int repeatCount, KeyEvent event)
   {
-    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
-	&& !EmacsNative.shouldForwardMultimediaButtons ())
-      return false;
+    if (((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	 && !EmacsNative.shouldForwardMultimediaButtons ())
+	|| keyCode == KeyEvent.KEYCODE_SCROLL_LOCK
+	|| keyCode == KeyEvent.KEYCODE_NUM_LOCK)
+      return super.onKeyMultiple (keyCode, repeatCount, event);
 
-    window.onKeyDown (keyCode, event);
-    return true;
+    return window.onKeyDown (keyCode, event);
   }
 
   @Override
   public boolean
   onKeyUp (int keyCode, KeyEvent event)
   {
-    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
-	&& !EmacsNative.shouldForwardMultimediaButtons ())
-      return false;
+    if (((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	  || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	 && !EmacsNative.shouldForwardMultimediaButtons ())
+	|| keyCode == KeyEvent.KEYCODE_SCROLL_LOCK
+	|| keyCode == KeyEvent.KEYCODE_NUM_LOCK)
+      return super.onKeyUp (keyCode, event);
 
-    window.onKeyUp (keyCode, event);
-    return true;
+    return window.onKeyUp (keyCode, event);
   }
 
   @Override
@@ -485,6 +593,21 @@ public final class EmacsView extends ViewGroup
     return window.onTouchEvent (motion);
   }
 
+  @Override
+  public boolean
+  onDragEvent (DragEvent drag)
+  {
+    /* Inter-program drag and drop isn't supported under Android 23
+       and earlier.  */
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+      return false;
+
+    return window.onDragEvent (drag);
+  }
+
+
+
   private void
   moveChildToBack (View child)
   {
@@ -498,12 +621,12 @@ public final class EmacsView extends ViewGroup
 
 	/* The view at 0 is the surface view.  */
 	attachViewToParent (child, 1,
-			    child.getLayoutParams());
+			    child.getLayoutParams ());
       }
   }
 
-  /* The following two functions must not be called if the view has no
-     parent, or is parented to an activity.  */
+  /* The following four functions must not be called if the view has
+     no parent, or is parented to an activity.  */
 
   public void
   raise ()
@@ -511,8 +634,6 @@ public final class EmacsView extends ViewGroup
     EmacsView parent;
 
     parent = (EmacsView) getParent ();
-
-    Log.d (TAG, "raise: parent " + parent);
 
     if (parent.indexOfChild (this)
 	== parent.getChildCount () - 1)
@@ -528,12 +649,44 @@ public final class EmacsView extends ViewGroup
 
     parent = (EmacsView) getParent ();
 
-    Log.d (TAG, "lower: parent " + parent);
-
     if (parent.indexOfChild (this) == 1)
       return;
 
     parent.moveChildToBack (this);
+  }
+
+  public void
+  moveAbove (EmacsView view)
+  {
+    EmacsView parent;
+    int index;
+
+    parent = (EmacsView) getParent ();
+
+    if (parent != view.getParent ())
+      throw new IllegalStateException ("Moving view above non-sibling");
+
+    index = parent.indexOfChild (this);
+    parent.detachViewFromParent (index);
+    index = parent.indexOfChild (view);
+    parent.attachViewToParent (this, index + 1, getLayoutParams ());
+  }
+
+  public void
+  moveBelow (EmacsView view)
+  {
+    EmacsView parent;
+    int index;
+
+    parent = (EmacsView) getParent ();
+
+    if (parent != view.getParent ())
+      throw new IllegalStateException ("Moving view above non-sibling");
+
+    index = parent.indexOfChild (this);
+    parent.detachViewFromParent (index);
+    index = parent.indexOfChild (view);
+    parent.attachViewToParent (this, index, getLayoutParams ());
   }
 
   @Override
@@ -553,11 +706,15 @@ public final class EmacsView extends ViewGroup
     if (popupActive && !force)
       return false;
 
+    /* Android will permanently cease to display any popup menus at
+       all if the list of menu items is empty.  Prevent this by
+       promptly returning if there are no menu items.  */
+
+    if (menu.menuItems.isEmpty ())
+      return false;
+
     contextMenu = menu;
     popupActive = true;
-
-    Log.d (TAG, "popupMenu: " + menu + " @" + xPosition
-	   + ", " + yPosition + " " + force);
 
     /* Use showContextMenu (float, float) on N to get actual popup
        behavior.  */
@@ -577,12 +734,12 @@ public final class EmacsView extends ViewGroup
     contextMenu = null;
     popupActive = false;
 
-    /* It is not possible to know with 100% certainty which activity
-       is currently displaying the context menu.  Loop through each
-       activity and call `closeContextMenu' instead.  */
+    /* It is not possible to know with 100% certainty which activity is
+       currently displaying the context menu.  Loop over each activity
+       and call `closeContextMenu' instead.  */
 
-    for (EmacsWindowAttachmentManager.WindowConsumer consumer
-	   : EmacsWindowAttachmentManager.MANAGER.consumers)
+    for (EmacsWindowManager.WindowConsumer consumer
+	   : EmacsWindowManager.MANAGER.consumers)
       {
 	if (consumer instanceof EmacsActivity)
 	  ((EmacsActivity) consumer).closeContextMenu ();
@@ -593,40 +750,46 @@ public final class EmacsView extends ViewGroup
   public synchronized void
   onDetachedFromWindow ()
   {
+    Bitmap savedBitmap;
+
+    savedBitmap = bitmap;
     isAttachedToWindow = false;
+    bitmap = null;
+    canvas = null;
+
+    surfaceView.setBitmap (null, null);
 
     /* Recycle the bitmap and call GC.  */
 
-    if (bitmap != null)
-      bitmap.recycle ();
-
-    bitmap = null;
-    canvas = null;
-    surfaceView.setBitmap (null, null);
+    if (savedBitmap != null)
+      savedBitmap.recycle ();
 
     /* Collect the bitmap storage; it could be large.  */
     Runtime.getRuntime ().gc ();
-
     super.onDetachedFromWindow ();
   }
 
   @Override
-  public synchronized void
+  public void
   onAttachedToWindow ()
   {
-    isAttachedToWindow = true;
-
-    /* Dirty the bitmap, as it was destroyed when onDetachedFromWindow
-       was called.  */
-    bitmapDirty = true;
-
-    synchronized (dimensionsLock)
+    synchronized (this)
       {
-	/* Now expose the view contents again.  */
-	EmacsNative.sendExpose (this.window.handle, 0, 0,
-				measuredWidth, measuredHeight);
+	isAttachedToWindow = true;
+
+	/* Dirty the bitmap, as it was destroyed when
+	   onDetachedFromWindow was called.  */
+	bitmapDirty = true;
+
+	/* Rather than unconditionally generating an exposure event upon
+	   window attachment, avoid delivering successive Exposure
+	   events if the size of the window has changed but is still to
+	   be reported by clearing the measured width and height, and
+	   requesting another layout computation.  */
+	measuredWidth = measuredHeight = 0;
       }
 
+    requestLayout ();
     super.onAttachedToWindow ();
   }
 
@@ -694,14 +857,14 @@ public final class EmacsView extends ViewGroup
 
     selection = EmacsService.viewGetSelection (window.handle);
 
-    if (selection != null)
-      Log.d (TAG, "onCreateInputConnection: current selection is: "
-	     + selection[0] + ", by " + selection[1]);
-    else
-      {
-	Log.d (TAG, "onCreateInputConnection: current selection could"
-	       + " not be retrieved.");
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, ("onCreateInputConnection: "
+		   + (selection != null
+		      ? Arrays.toString (selection)
+		      : "(unavailable)")));
 
+    if (selection == null)
+      {
 	/* If the selection could not be obtained, return 0 by 0.
 	   However, ask for the selection position to be updated as
 	   soon as possible.  */
@@ -710,8 +873,12 @@ public final class EmacsView extends ViewGroup
 	EmacsNative.requestSelectionUpdate (window.handle);
       }
 
-    if (mode == EmacsService.IC_MODE_ACTION)
+    if (mode == EmacsService.IC_MODE_ACTION
+	|| mode == EmacsService.IC_MODE_PASSWORD)
       info.imeOptions |= EditorInfo.IME_ACTION_DONE;
+
+    if (mode == EmacsService.IC_MODE_PASSWORD)
+      info.inputType  |= InputType.TYPE_TEXT_VARIATION_PASSWORD;
 
     /* Set the initial selection fields.  */
     info.initialSelStart = selection[0];
@@ -748,13 +915,13 @@ public final class EmacsView extends ViewGroup
     return true;
   }
 
-  public synchronized void
+  public void
   setICMode (int icMode)
   {
     this.icMode = icMode;
   }
 
-  public synchronized int
+  public int
   getICMode ()
   {
     return icMode;
@@ -773,5 +940,34 @@ public final class EmacsView extends ViewGroup
     getLocationInWindow (locations);
     window.notifyContentRectPosition (locations[0],
 				      locations[1]);
+  }
+
+  @Override
+  public WindowInsets
+  onApplyWindowInsets (WindowInsets insets)
+  {
+    WindowInsets rootWindowInsets;
+
+    /* This function is called when window insets change, which
+       encompasses input method visibility changes under Android 30
+       and later.  If a toplevel view is focused and
+       isCurrentlyTextEditor is enabled when the IME is hidden, clear
+       isCurrentlyTextEditor so it isn't shown again if the user
+       dismisses Emacs before returning.  */
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R)
+      return super.onApplyWindowInsets (insets);
+
+    /* This might return NULL if this view is not attached.  */
+    rootWindowInsets = getRootWindowInsets ();
+
+    if (isCurrentlyTextEditor
+	&& rootWindowInsets != null
+	&& isAttachedToWindow
+	&& !rootWindowInsets.isVisible (WindowInsets.Type.ime ())
+	&& window == EmacsActivity.focusedWindow)
+      isCurrentlyTextEditor = false;
+
+    return super.onApplyWindowInsets (insets);
   }
 };

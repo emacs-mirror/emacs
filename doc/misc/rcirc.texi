@@ -6,7 +6,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2006--2023 Free Software Foundation, Inc.
+Copyright @copyright{} 2006--2024 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -835,7 +835,7 @@ window @code{rcirc} considers is controlled by the
 
 @vindex rcirc-omit-unless-requested
 Certain messages can be omitted by default, unless the user manual
-requests them. For example, if you don't want to display @code{TOPIC}
+requests them.  For example, if you don't want to display @code{TOPIC}
 and @code{NAMES} messages, after reconnecting, you can configure
 @code{rcirc-omit-unless-requested} to hide:
 
@@ -929,6 +929,7 @@ Manual}, for details.
 @cindex date time
 @cindex format time stamp
 @vindex rcirc-time-format
+@vindex rcirc-log-time-format
 
 @code{rcirc-time-format} is the format used for the time stamp.  Here's
 how to include the date in the time stamp:
@@ -936,6 +937,9 @@ how to include the date in the time stamp:
 @example
 (setopt rcirc-time-format "%Y-%m-%d %H:%M ")
 @end example
+
+For log files, a different time format can be specified using the
+@code{rcirc-log-time-format} user option.
 
 @findex rcirc-when
 If you don't wish to use verbose time formatting all the time, you can

@@ -1,6 +1,6 @@
 ;;; quail.el --- provides simple input method for multilingual text  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2024 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1324,17 +1324,23 @@ If STR has `advice' text property, append the following special event:
                ;; binding in `universal-argument-map' just return
                ;; (list KEY), otherwise act as if there was no
                ;; overriding map.
-               (or (not (eq (cadr overriding-terminal-local-map)
-                            universal-argument-map))
-                   (lookup-key overriding-terminal-local-map (vector key))))
+               ;; We used to do that only for `universal-argument-map',
+               ;; but according to bug#68338 this should also apply to
+               ;; other transient maps.  Let's hope it's OK to apply it
+               ;; to all `overriding-terminal-local-map's.
+               (lookup-key overriding-terminal-local-map (vector key)))
 	  overriding-local-map)
       (list key)
     (quail-setup-overlays (quail-conversion-keymap))
     (with-silent-modifications
       (unwind-protect
-	  (let ((input-string (if (quail-conversion-keymap)
+	  (let* (;; `with-silent-modifications' inhibits the modification
+                 ;; hooks, but that's a part of `with-silent-modifications'
+                 ;; we don't actually want here (bug#70541).
+		 (inhibit-modification-hooks nil)
+		 (input-string (if (quail-conversion-keymap)
 				  (quail-start-conversion key)
-				(quail-start-translation key))))
+				  (quail-start-translation key))))
 	    (setq quail-guidance-str "")
 	    (when (and (stringp input-string)
 		       (> (length input-string) 0))
@@ -1869,10 +1875,9 @@ sequence counting from the head."
 
 (defsubst quail-point-in-conversion-region ()
   "Return non-nil value if the point is in conversion region of Quail mode."
-  (let (start pos)
-    (and (setq start (overlay-start quail-conv-overlay))
-	 (>= (setq pos (point)) start)
-	 (<= pos (overlay-end quail-conv-overlay)))))
+  (let ((start (overlay-start quail-conv-overlay)))
+    (and start
+	 (<= start (point) (overlay-end quail-conv-overlay)))))
 
 (defun quail-conversion-backward-char ()
   (interactive)

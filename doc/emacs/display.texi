@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2024 Free Software
 @c Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -174,6 +174,9 @@ The commands @kbd{M-x scroll-up-line} and @kbd{M-x scroll-down-line}
 scroll the current window by one line at a time.  If you intend to use
 any of these commands, you might want to give them key bindings
 (@pxref{Init Rebinding}).
+
+  On graphical displays, you can also scroll a window using the scroll
+bar; @pxref{Scroll Bars}.
 
 @node Recentering
 @section Recentering
@@ -404,6 +407,10 @@ than the amount you previously set by @code{scroll-left}.  When
 @code{auto-hscroll-mode} is set to @code{current-line}, all the lines
 other than the one showing the cursor will be scrolled by that minimal
 amount.
+
+  On graphical displays, you can scroll a window horizontally using
+the horizontal scroll bar, if you turn on the optional
+@code{horizontal-scroll-bar-mode}; @pxref{Scroll Bars}.
 
 @node Narrowing
 @section Narrowing
@@ -740,7 +747,7 @@ frame:
 This is the base face used for the mode lines, as well as header lines
 and for menu bars when toolkit menus are not used.  By default, it's
 drawn with shadows for a raised effect on graphical displays, and
-drawn as the inverse of the default face on non-windowed terminals.
+drawn as the inverse of the default face on text terminals.
 
 The @code{mode-line-active} and @code{mode-line-inactive} faces (which
 are the ones used on the mode lines) inherit from this face.
@@ -1986,6 +1993,7 @@ the fringe indicates truncation at either end of the line.  On text
 terminals, this is indicated with @samp{$} signs in the rightmost
 and/or leftmost columns.
 
+@kindex C-x x t
 @vindex truncate-lines
 @findex toggle-truncate-lines
   Horizontal scrolling automatically causes line truncation
@@ -2010,9 +2018,10 @@ line truncation.  @xref{Split Window}, for the variable
 @section Visual Line Mode
 
 @cindex word wrap
-  Another alternative to ordinary line continuation is to use
-@dfn{word wrap}.  Here, each long logical line is divided into two or
-more screen lines, like in ordinary line continuation.  However, Emacs
+  Another alternative to ordinary line continuation
+(@pxref{Continuation Lines}) is to use @dfn{word wrap}.  Here, each
+long logical line is divided into two or more screen lines, or
+``visual lines'', like in ordinary line continuation.  However, Emacs
 attempts to wrap the line at word boundaries near the right window
 edge.  (If the line's direction is right-to-left, it is wrapped at the
 left window edge instead.)  This makes the text easier to read, as
@@ -2189,7 +2198,7 @@ The line numbers are displayed in a special face @code{line-number}.
 The current line number is displayed in a different face,
 @code{line-number-current-line}, so you can make the current line's
 number have a distinct appearance, which will help locating the line
-showing point. Additional faces @code{line-number-major-tick} and
+showing point.  Additional faces @code{line-number-major-tick} and
 @code{line-number-minor-tick} can be used to highlight the line numbers
 of lines which are a multiple of certain numbers.  Customize
 @code{display-line-numbers-major-tick} and
@@ -2207,6 +2216,14 @@ to make the screen blink.
 keys; its value is the number of seconds of pause required to cause echoing
 to start, or zero, meaning don't echo at all.  The value takes effect when
 there is something to echo.  @xref{Echo Area}.
+
+@vindex echo-keystrokes-help
+  If the variable @code{echo-keystrokes-help} is non-@code{nil} (the
+default), the multi-character key sequence echo shown according to
+@code{echo-keystrokes} will include a short help text about keys which
+will invoke @code{describe-prefix-bindings} (@pxref{Misc Help}) to show
+the list of commands for the prefix you already typed.  For a related
+help facility, see @ref{which-key}.
 
 @cindex mouse pointer
 @cindex hourglass pointer display

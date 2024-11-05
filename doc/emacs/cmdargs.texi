@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Emacs Invocation
@@ -309,6 +309,9 @@ This is like @samp{--script}, but suppresses loading the init files
 reaches the end of the script, it exits Emacs and uses the value of
 the final form as the exit value from the script (if the final value
 is numerical).  Otherwise, it will always exit with a zero value.
+Note that when Emacs reads the Lisp code in this case, it ignores any
+file-local variables (@pxref{Specifying File Variables}), both in the
+first line and in a local-variables section near the end of the file.
 
 @item --no-build-details
 @opindex --no-build-details
@@ -348,6 +351,16 @@ Do not include the @file{site-lisp} directories in @code{load-path}
 @item --init-directory
 @opindex --init-directory
 Specify the directory to use when looking for the Emacs init files.
+Note that this merely overrides the value of
+@file{user-emacs-directory}, the directory which Emacs usually
+determines as side effect of searching for your init file (@pxref{Find
+Init}), but does not change the search for the @file{~/.emacs} init
+file.  In particular, if there's no @file{init.el} file in the directory
+named by this option, Emacs will find and use @file{init.el} it would
+have used without this option (but will search for your other per-user
+Emacs files in the directory specified by this option).  If you want to
+force Emacs to use @file{init.el} file in this directory, make sure it
+exists there before starting Emacs with this option.
 
 @item --no-splash
 @opindex --no-splash
@@ -636,6 +649,11 @@ environment, Emacs sets it based on the system-wide default.  You can
 set this in the ``Regional Settings'' Control Panel on some versions
 of MS-Windows, and in the ``Language and Region'' System Preference on
 macOS.
+
+When running a GUI session on Android, @env{LANG} is set to a fixed
+value, but the language and locale environment is derived from the
+system's ``Languages & Input'' preferences.  @xref{Android
+Environment}.
 
 The value of the @env{LC_CTYPE} category is
 matched against entries in @code{locale-language-names},
@@ -1009,7 +1027,21 @@ there is no mode that supports @var{num} colors, Emacs acts as if
 @var{num} were 0, i.e., it uses the terminal's default color support
 mode.
 @end table
+
+This option has no effect on MS-Windows and MS-DOS.
+
+@cindex colors on character terminal, changing during session
+@cindex character terminal, change color mode
+@vindex tty-color-mode@r{, frame parameter}
 If @var{mode} is omitted, it defaults to @var{ansi8}.
+
+The color mode can be changed dynamically during a running Emacs
+session: the current mode is available via the @code{tty-color-mode}
+frame parameter, and it can be changed by modifying that frame
+parameter.@footnote{
+This does not work on MS-Windows and MS-DOS text-mode terminals.
+}  This means you can also specify the initial value via
+@code{default-frame-alist} instead of the command-line option.
 @end table
 
   For example, to use a coral mouse cursor and a slate blue text cursor,

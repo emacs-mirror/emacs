@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs's AUTHORS file  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -48,27 +48,40 @@ files.")
     ("Alexander Gramiak" "Alex Gramiak")
     ("Alexandru Harsanyi" "Alex Harsanyi")
     ("Álvar Jesús Ibeas Martín" "Álvar Ibeas")
+    (nil "ambihelical")
     ("Andrea Corallo" "AndreaCorallo")
+    ("Andrii Kolomoiets" "andreyk\\.mad@gmail\\.com")
     ("Andrew Csillag" "Drew Csillag")
     ("Andrew G Cohen" "Andrew Cohen")
     ("Anna M. Bigatti" "Anna Bigatti")
     ("Aurélien Aptel" "Aurelien Aptel")
-    ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
+    ("Azeem Hasan" "Rahguzar" "rahguzar@zohomail\\.eu")
+    ("Barry A. Warsaw" "Barry A\\. Warsaw, Century Computing, Inc\\."
      "Barry A. Warsaw, ITB" "Barry Warsaw")
     ("Bastien Guerry" "Bastien .*bzg")
+    ("Benjamin Carlsson" "glacials" "ben@twos\\.dev")
+    ("Benjamin Schwerdtner" "Benjamin\\.Schwerdtner@gmail\\.com" "Ben Schw")
     ("Bill Carpenter" "WJ Carpenter")
-    ("Bill Mann" "William F. Mann")
-    ("Bill Rozas" "Guillermo J. Rozas")
-    (nil "binjo.cn@gmail.com")
-    (nil "bug-gnu-emacs@gnu.org")  ; mistake
+    ("Bill Mann" "William F\\. Mann")
+    ("Bill Rozas" "Guillermo J\\. Rozas")
+    ("Billy Zheng" "vil963@gmail\\.com")
+    (nil "binjo\\.cn@gmail\\.com")
+    (nil "BlaCk_Void" "alstjr7375@daum\\.net")
+    (nil "bug-gnu-emacs@gnu\\.org")  ; mistake
     ("Björn Torkelsson" "Bjorn Torkelsson")
-    ("Brian Fox" "Brian J. Fox")
+    (nil "brandon\\.irizarry@gmail\\.com")
+    ("Brian Fox" "Brian J\\. Fox")
     ("Brian P Templeton" "BT Templeton")
-    ("Brian Sniffen" "Brian T. Sniffen")
+    ("Brian Sniffen" "Brian T\\. Sniffen")
+    (nil "brotzeitmacher@gmail\\.com")
     (nil "castor@my-dejanews")
-    (nil "chengang31@gmail.com")
+    (nil "chengang31@gmail\\.com")
     (nil "chuntaro")
     ("Clément Pit-Claudel" "Clément Pit--Claudel")
+    (nil "Cristian" "crstml@libero\\.it")
+    ("Le Trung Dan" "daanturo@gmail\\.com" "Daanturo")
+    (nil "D\\.K" "beerandhot@gmail\\.com")
+    ("Daniel Freeman" "dannyfreeman")
     ("David Abrahams" "Dave Abrahams")
     ("David J. Biesack" "David Biesack")
     ("David De La Harpe Golden" "David Golden")
@@ -77,11 +90,11 @@ files.")
     ("David Kågedal" "David K..edal")
     ("David M. Koppelman" "David Koppelman")
     ("David M. Smith" "David Smith" "David M Smith")
-    ("David O'Toole" "David T. O'Toole")
-    (nil "dalanicolai")
+    ("David O'Toole" "David T\\. O'Toole")
+    ("Daniel Laurens Nicolai" "dalanicolai")
     (nil "deech@deech")
-    ("Deepak Goel" "D. Goel")
-    ("Earl Hyatt" "Earl" "ej32u@protonmail.com")
+    ("Deepak Goel" "D\\. Goel")
+    ("Earl Hyatt" "Earl" "ej32u@protonmail\\.com")
     ("Ed L. Cashin" "Ed L Cashin")
     ("Edward M. Reingold" "Ed\\(ward\\( M\\)?\\)? Reingold" "Reingold Edward M")
     ("Emilio C. Lopes" "Emilio Lopes")
@@ -90,18 +103,29 @@ files.")
     ("Etienne Prud’Homme" "Etienne Prud'Homme")
     ("Fabián Ezequiel Gallina" "Fabian Ezequiel Gallina" "Fabi.n E\\. Gallina")
     (nil "felix.*EmacsWiki")
+    (nil "felix\\.dick@web\\.de")
+    ("Felicián Németh" "Felician Nemeth")
     (nil "foudfou")
+    ("Feraidoon Mehri"
+     "NightMachinary"
+     "rudiwillalwaysloveyou@gmail\\.com" "fifymehry@gmail\\.com")
     ("Francis Litterio" "Fran Litterio")
-    ("Francis J. Wright" "Dr Francis J. Wright" "Francis Wright")
+    ("Francis J. Wright" "Dr Francis J\\. Wright" "Francis Wright")
     ("François Pinard" "Francois Pinard")
     ("Francesco Potortì" "Francesco Potorti" "Francesco Potorti`")
     ("Frederic Pierresteguy" "Fred Pierresteguy")
     (nil "^FSF")
+    (nil "galeo")
+    ("Garid Zorigoo" "garid3000" "garidzorigoo@gmail\\.com")
     ("Gerd Möllmann" "Gerd Moellmann")
+    (nil "haqle314")
+    ("Grégoire Jadi" "Gregoire Jadi")
     ("Hallvard B. Furuseth" "Hallvard B Furuseth" "Hallvard Furuseth")
+    (nil "hokomo@airmail\\.cc" "hokomo")
     ("Hrvoje Nikšić" "Hrvoje Niksic")
     ("Ian Dunn" "^Ian D\\>")
     ;; lisp/org/ChangeLog.1 2010-11-11.
+    ("Ignacio Casso" "ignacio\\.decasso@imdea\\.org" "ignaciocasso@hotmail\\.com")
     (nil "immerrr")
     (nil "aaa bbb")
     (nil "Code Extracted") ; lisp/newcomment.el's "Author:" header
@@ -109,6 +133,7 @@ files.")
     ("J. Alexander Branham" "Alex Branham")
     ("Jaeyoun Chung" "Jae-youn Chung" "Jae-you Chung" "Chung Jae-youn")
     ("Jan Djärv" "Jan D\\>" "Jan Djarv")
+    ("Jan Synáček" "Jan Synacek")
     ("João Távora" "João Tãvora")
     ("Jay K. Adams" "Jay Adams")
     ("J.D. Smith" "Jd Smith")
@@ -118,7 +143,10 @@ files.")
     ("Jérémie Courrèges-Anglas" "Jeremie Courreges-Anglas")
     ("Jeremy Bertram Maitin-Shepard" "Jeremy Maitin-Shepard")
     ("Jérémy Compostella" "Jeremy Compostella")
+    (nil "jgarte@" "jgart")
+    (nil "jicksaw@pm\\.me" "jicksaw")
     ("Jimmy Aguilar Mena" "Ergus")
+    ("Jindřich Makovička" "Jindrich Makovicka")
     ("Johan Bockgård" "Johan Bockgard")
     ("John F. Carr" "John F Carr")
     ("John J Foerch" "John Foerch")
@@ -130,19 +158,28 @@ files.")
     ("Joseph M. Kelsey" "Joe Kelsey")	; FIXME ?
     ("Juan León Lahoz García" "Juan-Leon Lahoz Garcia")
     ("Jürgen Hötzel" "Juergen Hoetzel")
+    ("Justin Burkett" "justbur" "justin@burkett\\.cc")
     (nil "k3tu0isui")
+    (nil "kby@tilde\\.team")
     ("K. Shane Hartman" "Shane Hartman")
     ("Kai Großjohann" "Kai Grossjohann")
-    ("Karl Berry" "K. Berry")
+    ("Karl Berry" "K\\. Berry")
     ("Károly Lőrentey" "Károly Lőrentey" "Lőrentey Károly")
     ("Kazushi Marukawa" "Kazushi (Jam) Marukawa")
     ("Ken Manheimer" "Kenneth Manheimer")
     ("Kenichi Handa" "Ken'ichi Handa" "Kenichi HANDA" "K\\. Handa")
-    ("Kevin Greiner" "Kevin J. Greiner")
+    ("Kevin Greiner" "Kevin J\\. Greiner")
     ("Kim F. Storm" "Kim Storm")
-    ("Kyle Jones" "Kyle E. Jones")
+    ("Kjartan Óli Ágústsson" "Kjartan Oli Agustsson")
+    ;; The dash is a kludge, so this contributor is not ignored.
+    ("kobarity-" "kobarity@gmail\\.com")
+    ("Koen van Greevenbroek" "realcomplex" "koenvg@posteo\\.net")
+    ("Kyle Jones" "Kyle E\\. Jones")
     ("Lars Magne Ingebrigtsen" "Lars Ingebrigtsen")
-    (nil "LynX@bk.ru")
+    ("Laurence Warne" "lWarne" "laurencewarne@gmail\\.com")
+    (nil "lensplaysgames@gmail\\.com")
+    (nil "lorniu@gmail\\.com")
+    (nil "LynX@bk\\.ru")
     (nil "lu4nx")
     ("Marcus G. Daniels" "Marcus Daniels")
     ("Mark D. Baushke" "Mark D Baushke")
@@ -154,25 +191,35 @@ files.")
     ("Matt Swift" "Matthew Swift")
     ("Mattias Engdegård" "Mattias Engdegard")
     (nil "^Madhu")
-    (nil "mu@magi.net.ru")
+    (nil "mu@magi\\.net\\.ru")
     ("Maxime Edouard Robert Froumentin" "Max Froumentin")
     ("Michael R. Mauger" "Michael Mauger")
     ("Michael D. Ernst" "Michael Ernst")
     ("Michaël Cadilhac" "Michael Cadilhac")
-    ("Michael I. Bushnell" "Michael I Bushnell" "Michael I. Bushnell, p/BSG")
+    ("Michael I. Bushnell" "Michael I Bushnell" "Michael I\\. Bushnell, p/BSG")
     ("Michael R. Cook" "Michael Cook")
-    ("Michael Sperber" "Mike Sperber" "Michael Sperber \\[Mr. Preprocessor\\]")
+    ("Michael Sperber" "Mike Sperber" "Michael Sperber \\[Mr\\. Preprocessor\\]")
     ("Michalis V" "^mvar")
-    ("Miha Rihtaršič" "Miha Rihtarsic")
+    ("Miha Rihtaršič" "Miha Rihtarsic" "miha@kamnitnik\\.top" "miha")
+    (nil "mikpom" "mikpom@mikpom\\.ru")
     ("Mikio Nakajima" "Nakajima Mikio")
+    (nil "montag451@laposte\\.net")
+    ("Morgan Smith" "Morgan J\\. Smith")
+    ("Mou Tong" "mou\\.tong@outlook\\.com")
+    (nil "na@aisrntairetnraoitn")
+    (nil "nibon7@163\\.com")
     ("Nelson Jose dos Santos Ferreira" "Nelson Ferreira")
+    ("Noah Peart" "noah\\.v\\.peart@gmail\\.com")
     ("Noorul Islam" "Noorul Islam K M")
 ;;;    ("Tetsurou Okazaki" "OKAZAKI Tetsurou") ; FIXME?
+    (nil "odanoburu@")
+    ("Xie Qi" "one\\.last\\.kiss@outlook\\.com" "shynur")
+    ("Cao ZhenXiang" "mail@ookami\\.one")
     ("Óscar Fuentes" "Oscar Fuentes")
     (nil "pillule")
-    (nil "psyberbits@gmail.com")
+    (nil "psyberbits@gmail\\.com")
     ("Paul Eggert" "Paul R\\. Eggert")
-    ("Pavel Janík" "Pavel Janík Ml." "Pavel Janik Ml." "Pavel Janik")
+    ("Pavel Janík" "Pavel Janík Ml\\." "Pavel Janik Ml\\." "Pavel Janik")
     ("Pavel Kobiakov" "Pavel Kobyakov")
     ("Per Abrahamsen" "Per Abhiddenware")
     ("Per Starbäck" "Per Starback")
@@ -182,15 +229,19 @@ files.")
     ("Philip Kaludercic" "Philip K\\." "Philip K")
     ("Philipp Stephani" "Philipp .*phst@google")
     ("Piotr Zieliński" "Piotr Zielinski")
-    ("Po Lu" "Po Lu Via" "Your Name")   ; looks like a mistake
+    ("Po Lu" "Po Lu Via")               ; looks like a mistake
+    ("Po Lu" "oldosfan" "luangruo@yahoo\\.com")
     ("Przemysław Wojnowski" "Przemyslaw Wojnowski")
-    ("R. Bernstein" "rb@dustyfeet.com")
+    ("Qifan Wang" "LdBeth" "andpuke@foxmail\\.com")
+    ("R. Bernstein" "rb@dustyfeet\\.com")
     ("Rainer Schöpf" "Rainer Schoepf")
     ("Raja R. Harinath" "Raja R Harinath")
     ("Rasmus Pank Roulund" "Rasmus .*rasmus@gmx")
+    (nil "rbrtb@")
     ("Richard G. Bielawski" "Richard G Bielawski" "Richard Bielawski")
     ("Richard King" "Dick King")
-    ("Richard M. Stallman" "Richard Stallman" "rms@gnu.org")
+    ("Richard M. Stallman" "Richard Stallman" "rms@gnu\\.org")
+    (nil "webmaster@robario\\.com")
     ("Robert J. Chassell" "Bob Chassell")
     ("Roberto Huelga Díaz" "Roberto Huelga")
     ("Rodney J. Whitby" "Rod Whitby")
@@ -198,19 +249,24 @@ files.")
     ("Ron Schnell" "Ronnie Schnell")
     ("Rui-Tao Dong" "Rui-Tao Dong ~{6-HpLN~}")
     ("Ryan Thompson" "Ryan .*rct@thompsonclan")
+    (nil "rvs314")
     (nil "rzl24ozi")
     ("Sacha Chua" "Sandra Jean Chua")
     ("Sam Steingold" "Sam Shteingold")
     ("Satyaki Das" "Indexed search by Satyaki Das")
     ("Sébastien Vauban" "Sebastien Vauban")
     ("Sergey Litvinov" "Litvinov Sergey")
-    ("Simen Heggestøyl" "simenheg@gmail.com")
-    (nil "prime.wizard")
+    ("Simen Heggestøyl" "simenheg@gmail\\.com")
+    (nil "prime\\.wizard")
     ("Shun-ichi Goto" "Shun-ichi GOTO")
+    ;; The trailing dash is a kludge, so this contributor is not ignored.
+    ("skykanin-" "skykanin@users\\.noreply\\.github\\.com")
     ;; There are other Stefans.
 ;;;    ("Stefan Monnier" "Stefan")
+    (nil "ssnnoo")
     ("Steven L. Baur" "SL Baur" "Steven L Baur")
     ("Stewart M. Clamen" "Stewart Clamen")
+    (nil "StrawberryTea" "look@strawberrytea\\.xyz")
     ("Stuart D. Herring" "Stuart Herring" "Davis Herring")
     ("T.V. Raman" "T\\. V\\. Raman")
     ("Taichi Kawabata" "KAWABATA,? Taichi")
@@ -222,31 +278,39 @@ files.")
     ("Thomas Dye" "Tom Dye")
     ("Thomas Horsley" "Tom Horsley")	; FIXME ?
     ("Thomas Wurgler" "Tom Wurgler")
+    (nil "thuna\\.cing@gmail\\.com")
     ("Toby Cubitt" "Toby S\\. Cubitt")
     ("Tomohiko Morioka" "MORIOKA Tomohiko")
     ("Torbjörn Axelsson" "Torbjvrn Axelsson")
     ("Torbjörn Einarsson" "Torbj.*rn Einarsson")
     ("Toru Tomabechi" "Toru TOMABECHI")
+    ("Toshi Umehara" "niceume" "toshi@niceume\\.com")
     ("Tsugutomo Enami" "enami tsugutomo")
     ("Ulrich Müller" "Ulrich Mueller")
     (nil "vividsnow")
+    (nil "Valenoern" "valenoern@distributary\\.network")
     ("Vincent Del Vecchio" "Vince Del Vecchio")
+    ("M Visuwesh" "visuweshm@gmail\\.com")
+    (nil "vjoki@")
+    (nil "whatacold@gmail\\.com")
     ("William M. Perry" "Bill Perry")
-    ("Wlodzimierz Bzyl" "W.*dek Bzyl")
+    ("Włodzimierz Bzyl" "W.*dek Bzyl")
     (nil "xyblor")
+    ("Yilkal Argaw" "yilkalargaw" "yilkalargawworkneh@gmail\\.com")
     ("Yoni Rabkin" "Yoni Rabkin Katzenell")
     ("Yoshinori Koseki" "KOSEKI Yoshinori" "小関 吉則")
+    ("Yuzhana Ego" "YugaEgo" "yet@ego\\.team")
     ("Yutaka NIIBE" "NIIBE Yutaka")
     (nil "stardiviner")
-    (nil "lin.sun")
+    (nil "lin\\.sun")
     ("Nitish Chinta" "nitishch")
     ("Carlos Pita" "memeplex")
     ("Vinicius Jose Latorre" "viniciusjl")
     ("Gaby Launay" "galaunay")
     ("Dick R. Chiang" "dickmao")
-    ("Lin Zhou" "georgealbert@qq.com")
-    (nil "yan@metatem.net")
-    (nil "gnu_lists@halloleo.hailmail.net")
+    ("Lin Zhou" "georgealbert@qq\\.com")
+    (nil "yan@metatem\\.net")
+    (nil "gnu_lists@halloleo\\.hailmail\\.net")
     )
   "Alist of author aliases.
 
@@ -524,6 +588,9 @@ Changes to files matching one of the regexps in this list are not listed.")
     "obsolete/options.el"
     "obsolete/old-whitespace.el"
     "obsolete/lucid.el"
+    "lisp/obsolete/fast-lock.el"
+    "lisp/obsolete/lazy-lock.el"
+    "lisp/obsolete/pc-mode.el"
     ;; ada-mode has been deleted, now in GNU ELPA
     "ada-mode.texi"
     "doc/misc/ada-mode.texi"
@@ -553,7 +620,75 @@ Changes to files matching one of the regexps in this list are not listed.")
     "lisp/org/ob-J.el"
     ;; Removed -- for now.
     "test/src/doc-tests.el"
-    )
+    "xcompile"
+    "java/org/gnu/emacs/EmacsPaintQueue.java"
+    "java/org/gnu/emacs/EmacsPaintReq.java"
+    "xcompile/lib/unistd.c"
+    "xcompile/lib/open.c"
+    "xcompile/lib/fpending.c"
+    "xcompile/lib/gnulib.mk.in"
+    "cross/lib/math.h"
+    "cross/ndk-build/ndk-build.in"
+    "cross/lib/stdalign.in.h"
+    "cross/lib/_Noreturn.h"
+    "test/lisp/tramp-tests.el"
+    "lib/vasnprintf.c"
+    "lib/isnan.c"
+    "cross/lib/verify.h"
+    "cross/lib/libc-config.h"
+    "cross/lib/cdefs.h"
+    "java/org/gnu/emacs/EmacsEditable.java"
+    "lib/math.h"
+    "cross/lib/vasnprintf.c"
+    "cross/lib/openat-proc.c"
+    "lib/math.in.h"
+    "cross/lib/string.in.h"
+    "cross/lib/stpncpy.c"
+    "cross/lib/limits.in.h"
+    "cross/lib/getopt-pfx-core.h"
+    "cross/lib/unistd.in.h"
+    "INSTALL.android"
+    "lisp/eshell/em-arg.el"
+    "test/lisp/erc/resources/base/renick/regain/normal.eld"
+    "test/lisp/erc/resources/fill/snapshots/merge-wrap-indicator-post-01.eld"
+    "if-11.cc"
+    "if-11.res"
+    "java/org/gnu/emacs/EmacsWindowAttachmentManager.java"
+    "lisp/gnus/legacy-gnus-agent.el"
+    "legacy-gnus-agent.el"
+    "admin/coccinelle/xsave.cocci"
+    "coccinelle/xsave.cocci"
+    "register-tests.el"
+    "feat" "build" "docs" "chore"
+    "nt/ftime-nostartup.bat" "ftime-nostartup.bat"
+    "nt/ftime.bat" "ftime.bat"
+    "java/org/gnu/emacs/EmacsCopyArea.java"
+    "test/lisp/erc/resources/base/renick/regain/normal-again.eld"
+    "test/lisp/erc/resources/base/commands/motd.eld"
+    "cross/lib/math.in.h"
+    "lib/strncpy.c"
+    "cross/lib/isnan.c"
+    "lib/count-one-bits.c"
+    "lib/count-one-bits.h"
+    "lib/count-trailing-zeros.c"
+    "lib/count-trailing-zeros.h"
+    "lib/count-leading-zeros.h"
+    "lib/count-leading-zeros.c"
+    "lisp/org/ob-asymptote.el"
+    "lisp/org/ob-io.el"
+    "lisp/org/ob-shen.el"
+    "lisp/progmodes/ada-stmt.el"
+    "lib-src/profile.c"
+    "doc/misc/gnus-overrides.texi"
+    "etc/CENSORSHIP" "etc/FTP" "etc/GNU" "etc/LINUX-GNU" "etc/MORE.STUFF" "etc/ORDERS"
+    "etc/THE-GNU-PROJECT" "etc/WHY-FREE"
+    "lisp/obsolete/options.el"
+    "etc/emacs.appdata.xml"
+    "lisp/obsolete/sregex.el"
+    "lisp/org/ob-picolisp.el"
+    "lisp/obsolete/levents.el"
+    "lisp/obsolete/lucid.el"
+    "lisp/obsolete/old-whitespace.el")
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
 
@@ -778,8 +913,11 @@ Changes to files in this list are not listed.")
     ("Garrett Wollman" :changed "sendmail.el")
     ("Dale R. Worley" :changed "mail-extr.el")
     ("Jamie Zawinski" :changed "bytecode.c" :wrote "tar-mode.el"
-     :cowrote "disass.el"))
-  "Actions taken from the original, manually (un)maintained AUTHORS file.")
+     :cowrote "disass.el")
+    ("Andrea Corallo" :wrote "comp.c"))
+  "Manual fixes to the list of actions taken.
+These are mostly taken from the original, manually (un)maintained
+AUTHORS file.  There are also some more recent manual additions.")
 
 
 (defconst authors-valid-file-names
@@ -920,9 +1058,30 @@ Changes to files in this list are not listed.")
     "emacsclient.c" "etags.c" "hexl.c" "make-docfile.c" "movemail.c"
     "test-distrib.c" "testfile"
     "tpu-edt.doc"			; see below
+    ;; etc/images/gnus/
+    "etc/images/gnus/important.pbm"
+    "etc/images/gnus/receipt.pbm"
+    "etc/images/gnus/unimportant.pbm"
     "iso-swed.el"
+    ;; lisp/obsolete/
     "lisp/obsolete/vc-mcvs.el"
     "obsolete/vc-mcvs.el"
+    "lisp/obsolete/patcomp.el"
+    "lisp/obsolete/abbrevlist.el"
+    "lisp/obsolete/assoc.el"
+    "obsolete/assoc.el"
+    "lisp/obsolete/complete.el"
+    "lisp/obsolete/cust-print.el"
+    "lisp/obsolete/erc-hecomplete.el"
+    "lisp/obsolete/mailpost.el"
+    "obsolete/mailpost.el"
+    "lisp/obsolete/mouse-sel.el"
+    "lisp/obsolete/old-emacs-lock.el"
+    "obsolete/old-emacs-lock.el"
+    "lisp/obsolete/patcomp.el"
+    "lisp/obsolete/pc-select.el"
+    "lisp/obsolete/s-region.el"
+    "obsolete/pc-select.el"
     "nnwarchive.el"
     "nnultimate.el"
     "nnslashdot.el"
@@ -958,7 +1117,41 @@ Changes to files in this list are not listed.")
     "flymake-ui.el"
     "pinentry.el"
     "ledit.el"
-    "lmenu.el")
+    "lmenu.el"
+    "src/pgtkselect.h"
+    "test/manual/noverlay/many-errors.h"
+    "lisp/better-pixel-scroll.el"
+    "test/infra/default-gitlab-ci.yml"
+    "test/infra/test-jobs-generator.sh"
+    "org-install.el"
+    ;; use-package stuff removed after it was added
+    "etc/USE-PACKAGE-NEWS"
+    "lisp/use-package/bind-chord.el"
+    "lisp/use-package/use-package-chords.el"
+    "lisp/use-package/use-package-chords-tests.el"
+    "test/lisp/use-package/use-package-chords-tests.el"
+    ;; Eglot stuff removed after it was added
+    "README.mdown"
+    "README.md"
+    ".travis.yml"
+    ;; Tree-sitter stuff
+    "admin/notes/tree-sitter/html-manual/Parser_002dbased-Font-Lock.html"
+    "admin/notes/tree-sitter/html-manual/Parsing-Program-Source.html"
+    "admin/notes/tree-sitter/html-manual/build-manual.sh"
+    "admin/notes/tree-sitter/html-manual/Accessing-Node.html"
+    "admin/notes/tree-sitter/html-manual/Language-Definitions.html"
+    "admin/notes/tree-sitter/html-manual/Multiple-Languages.html"
+    "admin/notes/tree-sitter/html-manual/Parser_002dbased-Indentation.html"
+    "admin/notes/tree-sitter/html-manual/Pattern-Matching.html"
+    "admin/notes/tree-sitter/html-manual/Retrieving-Node.html"
+    "admin/notes/tree-sitter/html-manual/Tree_002dsitter-C-API.html"
+    "admin/notes/tree-sitter/html-manual/Using-Parser.html"
+    "admin/notes/tree-sitter/html-manual/manual.css"
+    "admin/notes/tree-sitter/build-module/build.sh"
+    "admin/notes/tree-sitter/build-module/batch.sh"
+    "doc/misc/gnus-coding.texi"
+    "gnus-coding.texi"
+    )
   "File names which are valid, but no longer exist (or cannot be found)
 in the repository.")
 
@@ -1337,7 +1530,188 @@ in the repository.")
     ("test/lisp/url/url-handlers-test.el" . "url-handlers-tests.el")
     ("test/src/dired-tests.el" . "dired-tests.el")
     (".dir-locals.el" . ".dir-locals.el")
-    )
+    ;; use-package files that were moved when use-package was added:
+    ("use-package.texi" . "use-package.texi")
+    ("use-package-core.el" . "use-package-core.el")
+    ("bind-key.el" . "use-package-bind-key.el")
+    ("use-package.el" . "use-package.el")
+    ("use-package-tests.el" . "use-package-tests.el")
+    ;; pgtk stuff which used incorrect file names
+    ("pgtkmenu.c" . "pgtkmenu.c")
+    ("pgtk-win.el" . "pgtk-win.el")
+    ("pgtkfns.c" . "pgtkfns.c")
+    ("pgtkterm.c" . "pgtkterm.c")
+    ("pgtkterm.h" . "pgtkterm.h")
+    ("../src/pgtkfns.c" . "pgtkfns.c")
+    ("../src/pgtkterm.c" . "pgtkterm.c")
+    ("../src/pgtkterm.h" . "pgtkterm.h")
+    ("../src/atimer.c" . "atimer.c")
+    ("../src/gtkutil.c" . "gtkutil.c")
+    ("../src/image.c" . "image.c")
+    ("../lisp/faces.el" . "faces.el")
+    ("../src/pgkterm.h" . "pgkterm.h")
+    ("pgkterm.c" . "pgkterm.c")
+    ("../src/emacsgtkfixed.c" . "emacsgtkfixed.c")
+    ("../src/xfaces.c" . "xfaces.c")
+    ("../src/pgtkgui.h" . "pgtkgui.h")
+    ("../src/dispextern.h" . "dispextern.h")
+    ("../src/menu.c" . "menu.c")
+    ("../lisp/net/browse-url.el" . "browse-url.el")
+    ;; miscellany
+    ("nsterm.m" . "nsterm.m")
+    ("jsonrpc.el" . "jsonrpc.el")
+    ("jsonrpc-tests.el" . "jsonrpc-tests.el")
+    ("jrpc.el" . "jsonrpc.el")
+    ("eldoc.el" . "eldoc.el")
+    ("lisp/progmodes/ts-mode.el" . "typescript-ts-mode.el")
+    ("icalendar-tests.el" . "icalendar-tests.el")
+    ("lisp/progmodes/css-ts-mode.el" . "css-mode.el")
+    ("lisp/erc/erc-tests.el" . "erc-tests.el")
+    ("lisp/erc/erc-scenarios-base-reconnect.el" . "erc-scenarios-base-reconnect.el")
+    ("test/lisp/erc-tests.el" . "erc-tests.el")
+    ("eglot.el" . "eglot.el")
+    ("eglot-tests.el" . "eglot-tests.el")
+    ("NEWS.md" . "EGLOT-NEWS")
+    ("test/lisp/comp-tests.el" . "comp-tests.el")
+    ("package-vc.el" . "package-vc.el")
+    ("package.el" . "package.el")
+    ("lisp/net/tramp-docker.el" . "tramp-container.el")
+    ("xterm.c" . "xterm.c")
+    ("lisp/osc.el" . "ansi-osc.el")
+    ("test/lisp/osc-tests.el" . "ansi-osc-tests.el")
+    ("lisp/ansi-osc.el" . "ansi-osc-tests.el")
+    ("test/lisp/thumbs-tests.el" . "thumbs-tests.el")
+    ("rmail.el" . "rmail.el")
+    ("window.el" . "window.el")
+    ("nsmenu.m" . "nsmenu.m")
+    ("nsfont.m" . "nsfont.m")
+    ("nsfns.m" . "nsfns.m")
+    ("src/nsterm.c" . "nsterm.m")
+    ("subr.el" . "subr.el")
+    ("test/lisp/image-dired-tests.el" . "image-dired-tests.el")
+    ("modus-themes.org" . "modus-themes.org")
+    ("emacs-authors-mode.el" . "emacs-authors-mode.el")
+    ("lisp/textmodes/etc-authors-mode.el" . "emacs-authors-mode.el")
+    ("bytecomp.el" . "bytecomp.el")
+    ("test/lisp/makesum-tests.el" . "makesum-tests.el")
+    ("rcirc.el" . "rcirc.el")
+    ("haiku_support.cc" . "haiku_support.cc")
+    ("gnus-art.el" . "gnus-art.el")
+    ("mh-mime.el" . "mh-mime.el")
+    ("terminal.c" . "terminal.c")
+    ("eudc.texi" . "eudc.texi")
+    ("gnus-search.el" . "gnus-search.el")
+    ("lisp/gnus-search.el" . "gnus-search.el")
+    ("ETAGS_good_1" . "ETAGS_good_1")
+    ("ETAGS_good_2" . "ETAGS_good_2")
+    ("ETAGS_good_3" . "ETAGS_good_3")
+    ("ETAGS_good_4" . "ETAGS_good_4")
+    ("ETAGS_good_5" . "ETAGS_good_5")
+    ("ETAGS_good_6" . "ETAGS_good_6")
+    ("test/lisp/eshell-em-script-tests.el" . "eshell-em-script-tests.el")
+    ("test/lisp/eshell-em-glob-tests.el" . "eshell-em-glob-tests.el")
+    ("lisp/eshell/esh-var-tests.el" . "esh-var-tests.el")
+    ("test/lisp/eshell/esh-var-test.el" . "esh-var-tests.el")
+    ("gnus-logic.el" . "gnus-logic.el")
+    ("sh-script.el" . "sh-script.el")
+    ("repeat.el" . "repeat.el")
+    ("files.el" . "files.el")
+    ("lisp/emacs-lisp/generate-file.el" . "generate-lisp-file.el")
+    ("pp.el" . "pp.el")
+    ("src/help-fns.el" . "help-fns.el")
+    ("print.c" . "print.c")
+    ("shell.el" . "shell.el")
+    ("xdisp.c" . "xdisp.c")
+    ("haikufns.c" . "haikufns.c")
+    ("haikuterm.c" . "haikuterm.c")
+    ("haikumenu.c" . "haikumenu.c")
+    ("haikufont.c" . "haikufont.c")
+    ("src/haiku_support.c" . "haiku_support.cc")
+    ("src/haiku_draw_support.c" . "haiku_draw_support.cc")
+    ("haiku-win.el" . "haiku-win.el")
+    ("elisp-mode.el" . "elisp-mode.el")
+    ("doc-view.el" . "doc-view.el")
+    ("src/lisp/net/rcirc.el" . "rcirc.el")
+    ("project.el" . "project.el")
+    ("emacsbug.el" . "emacsbug.el")
+    ("timefns.c" . "timefns.c")
+    ("xwidget.c" . "xwidget.c")
+    ("src/xwidget.el" . "xwidget.el")
+    ("lisp/net/lisp/net/tramp-sshfs.el" . "tramp-sshfs.el")
+    ("tramp-sudoedit.el" . "tramp-sudoedit.el")
+    ("test/lisp/mail/undigest.el" . "undigest-tests.el")
+    ("Activate.c" . "Activate.c")
+    ("quail.el" . "quail.el")
+    ("sed1v2.inp" . "sed1v2.inp")
+    ("ruby-parenless-call-arguments-indent.rb" . "ruby-parenless-call-arguments-indent.rb")
+    ("commands.texi" . "doc/lispref/commands.texi")
+    ("message.el" . "message.el")
+    ("lisp/debug-early.el" . "debug-early.el")
+    ("tabulated-list.el" . "tabulated-list.el")
+    ("mouse.el" . "mouse.el")
+    ("hi-lock.el" . "hi-lock.el")
+    ("man.el" . "man.el")
+    ("doc/emacs/frames.tex" . "frames.texi")
+    ("lisp/emacs-list/eieio-compat.el" . "eieio-compat.el")
+    ("epa.el" . "epa.el")
+    ("lisp/emacs-lisp/macroexpand.el" . "macroexp.el")
+    ("src/pixel-scroll.el" . "pixel-scroll.el")
+    ("test/lisp/mh-e/mh-utils.el" . "mh-utils-tests.el")
+    ("compile.el" . "compile.el")
+    ("compile-tests.el" . "compile-tests.el")
+    ("Makefile.in" . "Makefile.in")
+    ("Makefie.in" . "Makefile.in")
+    ("test/lisp/net/netrc-tests.el" . "auth-source-tests.el")
+    ("test/lisp/ert-x-tests.el" . "ert-x-tests.el")
+    ("lisp/mh-e-mh-scan.el" . "mh-scan.el")
+    ("lisp/progmodes/c-fonts.el" . "cc-fonts.el")
+    ("lisp/emacs/lisp/cl-generic.el" . "cl-generic.el")
+    ("doc/lisprefdisplay.texi" . "display.texi")
+    ("erc.el" . "erc.el")
+    ("erc-tests.el" . "erc-tests.el")
+    ("vc/vc-mtn.el" . "vc-mtn.el")
+    ("net/rlogin.el" . "rlogin.el")
+    ("emacs-lisp/eieio-compat.el" . "eieio-compat.el")
+    ("mh-compat.el" . "mh-compat.el")
+    ("url-about.el" . "url-about.el")
+    ("url-dired.el" . "url-dired.el")
+    ("lisp/text-modes/tex-mode.el" . "tex-mode.el")
+    ("editfns.c" . "editfns.c")
+    ("lisp/thumbs.el" . "thumbs.el")
+    ("lisp/linum.el" . "linum.el")
+    ("lisp/image-dired.el" . "image-dired.el")
+    ("lisp/url/url-about.el" . "url-about.el")
+    ("lisp/url/url-dired.el" . "url-dired.el")
+    ("lisp/ps-def.el" . "ps-def.el")
+    ("lisp/net/quickurl.el" . "quickurl.el")
+    ("lisp/vc/vc-mtn.el" . "vc-mtn.el")
+    ("lisp/mail/uce.el" . "uce.el")
+    ("test/lisp/progmodes/csharp-ts-mode-tests.el" . "csharp-mode.el")
+    ("lisp/makesum.el" . "makesum.el")
+    ("lisp/mh-e/mh-compat.el" . "mh-compat.el")
+    ("lisp/net/rlogin.el" . "rlogin.el")
+    ("lisp/emacs-lisp/autoload.el" . "autoload.el")
+    ("lisp/emacs-lisp/eieio-compat.el" . "eieio-compat.el")
+    ("autoarg.el" . "autoarg.el")
+    ("xcompile/Makefile.in" . "cross/Makefile.in")
+    ("xcompile/README" . "cross/README")
+    ("xcompile/langinfo.h" . "cross/langinfo.h")
+    ("xcompile/verbose.mk.android" . "cross/verbose.mk.android")
+    ("test/lisp/peg-tests.el" . "test/lisp/progmodes/peg-tests.el")
+    ("doc/lispref/type_hierarchy.txt" . "doc/lispref/elisp_type_hierarchy.txt")
+    ("doc/lispref/type_hierarchy.jpg" . "doc/lispref/elisp_type_hierarchy.jpg")
+    ("etc/syncdoc-type-hierarchy.el" . "admin/syncdoc-type-hierarchy.el")
+    ("doc/lang/fr/misc/ses-fr.texi" . "doc/translations/fr/misc/ses-fr.texi")
+    ("lisp/use-package/bind-key.el" . "lisp/bind-key.el")
+    ("lisp/autoarg.el" . "lisp/obsolete/autoarg.el")
+    ("lisp/url/url-ns.el" . "lisp/obsolete/url-ns.el")
+    ("lisp/mail/rfc2368.el" . "lisp/obsolete/mail/rfc2368.el")
+    ("lisp/vt-control.el" . "lisp/obsolete/vt-control.el")
+    ("lisp/cedet/inversion.el" . "lisp/obsolete/inversion.el")
+    ("lisp/emacs-lisp/tcover-unsafep.el" . "test/lisp/emacs-lisp/unsafep-tests.el")
+    ("lisp/vt100-led.el" . "lisp/obsolete/vt100-led.el")
+    ("lisp/mail/metamail.el" . "lisp/obsolete/metamail.el")
+    ("lisp/sb-image.el" . "lisp/obsolete/sb-image.el"))
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
 

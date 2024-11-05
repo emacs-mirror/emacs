@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -33,14 +33,9 @@ public abstract class EmacsHandleObject
   /* Whether or not this handle has been destroyed.  */
   volatile boolean destroyed;
 
-  /* The handle associated with this object.  */
-  public short handle;
-
-  public
-  EmacsHandleObject (short handle)
-  {
-    this.handle = handle;
-  }
+  /* The handle associated with this object, set in
+     android_globalize_reference.  */
+  public long handle;
 
   public void
   destroyHandle () throws IllegalStateException

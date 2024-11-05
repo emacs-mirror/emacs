@@ -1,6 +1,6 @@
 ;;; cc-bytecomp.el --- compile time setup for proper compilation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author:     Martin Stjernholm
 ;; Maintainer: bug-cc-mode@gnu.org

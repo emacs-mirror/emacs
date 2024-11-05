@@ -1,5 +1,5 @@
 /* Definitions for keyboard macro interpretation in GNU Emacs.
-   Copyright (C) 1985, 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -46,5 +46,10 @@ extern void finalize_kbd_macro_chars (void);
 /* Store a character into kbd macro being defined */
 
 extern void store_kbd_macro_char (Lisp_Object);
+
+/* Whether the execution of a macro has reached its end.
+   This should be called only while executing a macro.  */
+
+extern bool at_end_of_macro_p (void);
 
 #endif /* EMACS_MACROS_H */

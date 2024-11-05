@@ -1,6 +1,6 @@
 ;;; mml.el --- A package for parsing and validating MML documents  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -233,6 +233,10 @@ part.  This is for the internal use, you should never modify the value.")
 					      (if (eq (car-safe tag) 'certfile)
 						  (cdr tag)))
 					    taginfo)))
+               (chainfiles (delq nil (mapcar (lambda (tag)
+                                               (if (eq (car-safe tag) 'chainfile)
+                                                   (cdr tag)))
+                                             taginfo)))
 	       (recipients (cdr (assq 'recipients taginfo)))
 	       (sender (cdr (assq 'sender taginfo)))
 	       (location (cdr (assq 'tag-location taginfo)))
@@ -267,6 +271,10 @@ part.  This is for the internal use, you should never modify the value.")
 			    (mapcar (lambda (certfile)
 				      (list "certfile" certfile))
 				    certfiles))
+                   ,@(apply #'append
+                            (mapcar (lambda (chainfile)
+                                      (list "chainfile" chainfile))
+                                    chainfiles))
 		   ,(if recipients "recipients")
 		   ,recipients
 		   ,(if sender "sender")
@@ -499,7 +507,7 @@ type detected."
       (when (and (consp (car cont))
 		 (= (length cont) 1)
 		 content-type)
-        (when-let ((spec (assq 'type (cdr (car cont)))))
+        (when-let* ((spec (assq 'type (cdr (car cont)))))
 	  (setcdr spec content-type)))
       (when (fboundp 'libxml-parse-html-region)
 	(setq cont (mapcar #'mml-expand-all-html-into-multipart-related cont)))
@@ -935,7 +943,7 @@ type detected."
       (when parameters
 	(let ((cont (copy-sequence cont)))
 	  ;; Set the file name to what's specified by the user.
-	  (when-let ((recipient-filename (cdr (assq 'recipient-filename cont))))
+	  (when-let* ((recipient-filename (cdr (assq 'recipient-filename cont))))
 	    (setcdr cont
 		    (cons (cons 'filename recipient-filename)
 			  (cdr cont))))
@@ -1031,6 +1039,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     (message-remove-header "Content-Transfer-Encoding")))
 
 (autoload 'message-encode-message-body "message")
+(autoload 'message-narrow-to-headers-or-head "message")
 (declare-function message-narrow-to-headers-or-head "message" ())
 
 ;;;###autoload
@@ -1369,9 +1378,9 @@ If not set, `default-directory' will be used."
 ;;; Attachment functions.
 
 (defcustom mml-dnd-protocol-alist
-  '(("^file:///" . mml-dnd-attach-file)
-    ("^file://"  . dnd-open-file)
-    ("^file:"    . mml-dnd-attach-file))
+  '(("^file:///" . mml-dnd-attach-file) ; GNOME, KDE, and suchlike.
+    ("^file:/[^/]" . mml-dnd-attach-file) ; Motif, other systems.
+    ("^file:[^/]" . mml-dnd-attach-file)) ; MS-Windows.
   "The functions to call when a drop in `mml-mode' is made.
 See `dnd-protocol-alist' for more information.  When nil, behave
 as in other buffers."
@@ -1460,29 +1469,36 @@ will be computed and used."
 		 (file-name-nondirectory file)))
       (goto-char at-end))))
 
-(defun mml-dnd-attach-file (uri _action)
-  "Attach a drag and drop file.
+(defun mml-dnd-attach-file (uris _action)
+  "Attach a drag and drop URIS, a list of local file URIs.
 
-Ask for type, description or disposition according to
-`mml-dnd-attach-options'."
-  (let ((file (dnd-get-local-file-name uri t)))
-    (when (and file (file-regular-p file))
-      (let ((mml-dnd-attach-options mml-dnd-attach-options)
-	    type description disposition)
-	(setq mml-dnd-attach-options
-	      (when (and (eq mml-dnd-attach-options t)
-			 (not
-			  (y-or-n-p
-			   "Use default type, disposition and description? ")))
-		'(type description disposition)))
-	(when (or (memq 'type mml-dnd-attach-options)
-		  (memq 'disposition mml-dnd-attach-options))
-	  (setq type (mml-minibuffer-read-type file)))
-	(when (memq 'description mml-dnd-attach-options)
-	  (setq description (mml-minibuffer-read-description)))
-	(when (memq 'disposition mml-dnd-attach-options)
-	  (setq disposition (mml-minibuffer-read-disposition type nil file)))
-	(mml-attach-file file type description disposition)))))
+Query whether to use the types, dispositions and descriptions
+default for each URL, subject to `mml-dnd-attach-options'.
+
+Return the action `private', communicating to the drop source
+that the file has been attached."
+  (let (file (mml-dnd-attach-options mml-dnd-attach-options))
+    (setq mml-dnd-attach-options
+	  (when (and (eq mml-dnd-attach-options t)
+		     (not
+		      (y-or-n-p
+		       "Use default type, disposition and description? ")))
+	    '(type description disposition)))
+    (dolist (uri uris)
+      (setq file (dnd-get-local-file-name uri t))
+      (when (and file (file-regular-p file))
+        (let (type description disposition)
+	  (when (or (memq 'type mml-dnd-attach-options)
+		    (memq 'disposition mml-dnd-attach-options))
+	    (setq type (mml-minibuffer-read-type file)))
+	  (when (memq 'description mml-dnd-attach-options)
+	    (setq description (mml-minibuffer-read-description)))
+	  (when (memq 'disposition mml-dnd-attach-options)
+	    (setq disposition (mml-minibuffer-read-disposition type nil file)))
+	  (mml-attach-file file type description disposition)))))
+  'private)
+
+(put 'mml-dnd-attach-file 'dnd-multiple-handler t)
 
 (defun mml-attach-buffer (buffer &optional type description disposition filename)
   "Attach a buffer to the outgoing MIME message.

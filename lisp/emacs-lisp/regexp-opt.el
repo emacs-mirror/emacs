@@ -1,6 +1,6 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2024 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -130,7 +130,8 @@ usually more efficient than that of a simplified version:
      (concat (car parens)
              (mapconcat \\='regexp-quote strings \"\\\\|\")
              (cdr parens))))"
-  (declare (pure t) (side-effect-free t))
+  (declare (ftype (function (list &optional t) string))
+           (pure t) (side-effect-free t))
   (save-match-data
     ;; Recurse on the sorted list.
     (let* ((max-lisp-eval-depth 10000)

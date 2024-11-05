@@ -30,7 +30,7 @@
  (0 ":irc.foonet.org NOTICE tester :[09:56:57] This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect.")
  (0 ":irc.foonet.org 305 tester :You are no longer marked as being away"))
 
-((mode 1 "MODE #foo")
+((mode 10 "MODE #foo")
  (0 ":irc.foonet.org 324 tester #foo +nt")
  (0 ":irc.foonet.org 329 tester #foo 1622454985")
  (0.1 ":alice!~u@gq7yjr7gsu7nn.irc PRIVMSG #foo :bob: Farewell, pretty lady: you must hold the credit of your father.")

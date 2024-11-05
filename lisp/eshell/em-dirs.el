@@ -1,6 +1,6 @@
 ;;; em-dirs.el --- directory navigation commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -47,7 +47,7 @@
 (require 'ring)
 (require 'esh-opt)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-dirs nil
   "Directory navigation involves changing directories, examining the
@@ -253,26 +253,20 @@ Thus, this does not include the current directory.")
     (throw 'eshell-replace-command
 	   (eshell-parse-command "cd" (flatten-tree args)))))
 
-(defun eshell-expand-user-reference-1 (file)
+(defun eshell-expand-user-reference (file)
   "Expand a user reference in FILE to its real directory name."
   (replace-regexp-in-string
    (rx bos (group "~" (*? anychar)) (or "/" eos))
    #'expand-file-name file))
 
-(defun eshell-expand-user-reference (file)
-  "Expand a user reference in FILE to its real directory name.
-FILE can be either a string or a list of strings to expand."
-  ;; If the argument was a glob pattern, then FILE is a list, so
-  ;; expand each element of the glob's resulting list.
-  (if (listp file)
-      (mapcar #'eshell-expand-user-reference-1 file)
-    (eshell-expand-user-reference-1 file)))
-
 (defun eshell-parse-user-reference ()
   "An argument beginning with ~ is a filename to be expanded."
   (when (and (not eshell-current-argument)
+             (not eshell-current-quoted)
              (eq (char-after) ?~))
-    (add-to-list 'eshell-current-modifiers #'eshell-expand-user-reference)
+    ;; Apply this modifier fairly early so it happens before things
+    ;; like glob expansion.
+    (add-hook 'eshell-current-modifiers #'eshell-expand-user-reference -50)
     (forward-char)
     (char-to-string (char-before))))
 
@@ -323,16 +317,15 @@ FILE can be either a string or a list of strings to expand."
                    (`(boundaries . ,suffix)
                     `(boundaries 0 . ,(string-search "/" suffix))))))))))
 
-(defun eshell/pwd (&rest _args)
+(defun eshell/pwd ()
   "Change output from `pwd' to be cleaner."
-  (let* ((path default-directory)
-	 (len (length path)))
-    (if (and (> len 1)
-	     (eq (aref path (1- len)) ?/)
-	     (not (and (eshell-under-windows-p)
-		       (string-match "\\`[A-Za-z]:[\\/]\\'" path))))
-	(setq path (substring path 0 (1- (length path)))))
-    (funcall (or eshell-pwd-convert-function #'identity) path)))
+  (let ((dir default-directory))
+    (when (and (eq (aref dir (1- (length dir))) ?/)
+               (not (and (eshell-under-windows-p)
+                         (string-match "\\`[A-Za-z]:[\\/]\\'" dir)))
+               (length> (file-local-name dir) 1))
+      (setq dir (substring dir 0 -1)))
+    (funcall (or eshell-pwd-convert-function #'identity) dir)))
 
 (defun eshell-expand-multiple-dots (filename)
   ;; FIXME: This advice recommendation is rather odd: it's somewhat
@@ -406,13 +399,12 @@ in the minibuffer:
 		(index 0))
 	    (if (= len 0)
 		(error "Directory ring empty"))
-	    (eshell-init-print-buffer)
-	    (while (< index len)
-	      (eshell-buffered-print
-	       (concat (number-to-string index) ": "
-		       (ring-ref eshell-last-dir-ring index) "\n"))
-	      (setq index (1+ index)))
-	    (eshell-flush)
+            (eshell-with-buffered-print
+              (while (< index len)
+                (eshell-buffered-print
+                 (concat (number-to-string index) ": "
+                         (ring-ref eshell-last-dir-ring index) "\n"))
+                (setq index (1+ index))))
 	    (setq handled t)))))
      (path
       (setq path (eshell-expand-multiple-dots path))))
@@ -434,8 +426,7 @@ in the minibuffer:
           (let ((eshell-last-command-name)
                 (eshell-last-command-status)
                 (eshell-last-arguments))
-            (eshell-protect
-             (eshell-plain-command "ls" (cdr args)))))
+            (eshell-plain-command "ls" (cdr args))))
 	nil))))
 
 (put 'eshell/cd 'eshell-no-numeric-conversions t)
@@ -605,9 +596,4 @@ in the minibuffer:
 			 'no-message))))))))
 
 (provide 'em-dirs)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-dirs.el ends here

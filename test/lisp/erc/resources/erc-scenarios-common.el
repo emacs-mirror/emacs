@@ -1,6 +1,6 @@
 ;;; erc-scenarios-common.el --- Common helpers for ERC scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -61,6 +61,25 @@
 ;; always associated with the fake network FooNet, while nicks Joe and
 ;; Mike are always on BarNet.  (Networks are sometimes downcased.)
 ;;
+;; Environment variables:
+;;
+;;  `ERC_TESTS_GRAPHICAL': Internal variable to unskip those few tests
+;;   capable of running consecutively while interactive on a graphical
+;;   display.  This triggers both the tests and the suite to commence
+;;   with teardown activities normally skipped to allow for inspection
+;;   while interactive.  This is also handy when needing to quickly
+;;   run `ert-results-rerun-test-at-point-debugging-errors' on a
+;;   failing test because you don't have to go around hunting for and
+;;   killing associated buffers and processes.
+;;
+;;  `ERC_TESTS_GRAPHICAL_ALL': Currently targets a single "meta" test,
+;;   `erc-scenarios-internal--run-interactive-all', that runs all
+;;   tests tagged `:erc--graphical' in an interactive subprocess.
+;;
+;;  `ERC_TESTS_SUBPROCESS': Used internally to detect nested tests.
+;;
+;;  `ERC_D_DEBUG': Tells `erc-d' to emit debugging info to stderr.
+;;
 ;; XXX This file should *not* contain any test cases.
 
 ;;; Code:
@@ -75,7 +94,8 @@
 (require 'erc)
 
 (eval-when-compile (require 'erc-join)
-                   (require 'erc-services))
+                   (require 'erc-services)
+                   (require 'erc-fill))
 
 (declare-function erc-network "erc-networks")
 (defvar erc-network)
@@ -91,6 +111,7 @@
 
 (defvar erc-scenarios-common-dialog nil)
 (defvar erc-scenarios-common-extra-teardown nil)
+(defvar erc-scenarios-common--graphical-p nil)
 
 (defun erc-scenarios-common--add-silence ()
   (advice-add #'erc-login :around #'erc-d-t-silence-around)
@@ -110,7 +131,11 @@
 
 (eval-and-compile
   (defun erc-scenarios-common--make-bindings (bindings)
-    `((erc-d-u-canned-dialog-dir (expand-file-name
+    `((erc-scenarios-common--graphical-p
+       (and (or erc-scenarios-common--graphical-p
+                (memq :erc--graphical (ert-test-tags (ert-running-test))))
+            (not (and noninteractive (ert-skip "Interactive only")))))
+      (erc-d-u-canned-dialog-dir (expand-file-name
                                   (or erc-scenarios-common-dialog
                                       (cadr (assq 'erc-scenarios-common-dialog
                                                   ',bindings)))
@@ -119,13 +144,17 @@
                          (quit . ,(erc-quit/part-reason-default))
                          (erc-version . ,erc-version)))
       (erc-modules (copy-sequence erc-modules))
-      (inhibit-interaction t)
+      (debug-on-error t)
+      (inhibit-interaction noninteractive)
       (auth-source-do-cache nil)
       (timer-list (copy-sequence timer-list))
+      (timer-idle-list (copy-sequence timer-idle-list))
       (erc-auth-source-parameters-join-function nil)
+      (erc-fill--wrap-scrolltobottom-exempt-p t)
       (erc-autojoin-channels-alist nil)
       (erc-server-auto-reconnect nil)
       (erc-after-connect nil)
+      (erc-last-input-time 0)
       (erc-d-linger-secs 10)
       ,@bindings)))
 
@@ -138,20 +167,26 @@ disabled by BODY.  Other defaults common to these test cases are added
 below and can be overridden, except when wanting the \"real\" default
 value, which must be looked up or captured outside of the calling form.
 
+When running tests tagged as serially runnable while interactive
+and the flag `erc-scenarios-common--graphical-p' is non-nil, run
+teardown tasks normally inhibited when interactive.  That is,
+behave almost as if `noninteractive' were also non-nil, and
+ensure buffers and other resources are destroyed on completion.
+
 Dialog resource directories are located by expanding the variable
 `erc-scenarios-common-dialog' or its value in BINDINGS."
   (declare (indent 1))
 
   (let* ((orig-autojoin-mode (make-symbol "orig-autojoin-mode"))
          (combined `((,orig-autojoin-mode (bound-and-true-p erc-autojoin-mode))
-                    ,@(erc-scenarios-common--make-bindings bindings))))
+                     ,@(erc-scenarios-common--make-bindings bindings))))
 
     `(erc-d-t-with-cleanup (,@combined)
 
          (ert-info ("Restore autojoin, etc., kill ERC buffers")
            (dolist (buf (buffer-list))
-             (when-let ((erc-d-u--process-buffer)
-                        (proc (get-buffer-process buf)))
+             (when-let* ((erc-d-u--process-buffer)
+                         (proc (get-buffer-process buf)))
                (delete-process proc)))
 
            (erc-scenarios-common--remove-silence)
@@ -160,12 +195,14 @@ Dialog resource directories are located by expanding the variable
              (ert-info ("Running extra teardown")
                (funcall erc-scenarios-common-extra-teardown)))
 
+           (erc-buffer-do #'erc-scenarios-common--assert-date-stamps)
            (when (and (boundp 'erc-autojoin-mode)
                       (not (eq erc-autojoin-mode ,orig-autojoin-mode)))
              (erc-autojoin-mode (if ,orig-autojoin-mode +1 -1)))
 
-           (when noninteractive
-             (erc-scenarios-common--print-trace)
+           (when (or noninteractive erc-scenarios-common--graphical-p)
+             (when noninteractive
+               (erc-scenarios-common--print-trace))
              (erc-d-t-kill-related-buffers)
              (delete-other-windows)))
 
@@ -178,10 +215,123 @@ Dialog resource directories are located by expanding the variable
                (erc-d-t-search-for 3 "Starting")))))
 
        (ert-info ("Activate erc-debug-irc-protocol")
-         (unless (and noninteractive (not erc-debug-irc-protocol))
+         (unless (and (or noninteractive erc-scenarios-common--graphical-p)
+                      (not erc-debug-irc-protocol))
            (erc-toggle-debug-irc-protocol)))
 
        ,@body)))
+
+(defvar erc-scenarios-common--term-size '(34 . 80))
+(declare-function term-char-mode "term" nil)
+(declare-function term-line-mode "term" nil)
+
+;; Much of this concerns accommodating test environments outside of
+;; the emacs.git tree, such as CI jobs running ERC's ELPA-package on
+;; older Emacsen.  See also `erc-tests--assert-printed-in-subprocess'.
+(defun erc-scenarios-common--run-in-term (&optional debug)
+  (require 'term)
+  (let* ((default-directory (or (getenv "EMACS_TEST_DIRECTORY")
+                                (expand-file-name
+                                 ".." erc-scenarios-common--resources-dir)))
+         ;; In the emacs.git tree, "HOME" will be "/nonexistent", which
+         ;; is fine because we don't need any ELPA packages.
+         (process-environment (cons "ERC_TESTS_SUBPROCESS=1"
+                                    process-environment))
+         (name (ert-test-name (ert-running-test)))
+         (temp-file (make-temp-file "erc-term-test-"))
+         (cmd `(let ((stats 1))
+                 (setq enable-dir-local-variables nil)
+                 (unwind-protect
+                     (setq stats (ert-run-tests-batch ',name))
+                   (unless ',debug
+                     (let ((buf (with-current-buffer (messages-buffer)
+                                  (buffer-string))))
+                       (with-temp-file ,temp-file
+                         (insert buf)))
+                     (kill-emacs (ert-stats-completed-unexpected stats))))))
+         ;; The `ert-test' object in Emacs 29 has a `file-name' field.
+         (file-name (symbol-file name 'ert--test))
+         (default-directory (expand-file-name (file-name-directory file-name)))
+         (package (if-let* ((found (getenv "ERC_PACKAGE_NAME"))
+                            ((string-prefix-p "erc-" found)))
+                      (intern found)
+                    'erc))
+         (init (and-let* ((found (getenv "ERC_TESTS_INIT"))
+                          (files (split-string found ",")))
+                 (mapcan (lambda (f) (list "-l" f)) files)))
+         (setup `(progn
+                   ,@(and (not init) (featurep 'compat)
+                          `((require 'package)
+                            (let ((package-load-list
+                                   '((compat t) (,package t))))
+                              (package-initialize))))
+                   (require 'erc)
+                   (cl-assert (equal erc-version ,erc-version) t)))
+         ;; Make subprocess terminal bigger than controlling.
+         (buf (cl-letf (((symbol-function 'window-screen-lines)
+                         (lambda () (car erc-scenarios-common--term-size)))
+                        ((symbol-function 'window-max-chars-per-line)
+                         (lambda () (cdr erc-scenarios-common--term-size))))
+                (apply #'make-term (symbol-name name)
+                       (expand-file-name invocation-name invocation-directory)
+                       nil `(,@(or init '("-Q")) "-nw"
+                             "-eval" ,(format "%S" setup)
+                             "-l" ,file-name
+                             "-eval" ,(format "%S" cmd)))))
+         (proc (get-buffer-process buf))
+         (err (lambda ()
+                (with-temp-buffer
+                  (insert-file-contents temp-file)
+                  (message "Subprocess: %s" (buffer-string))
+                  (delete-file temp-file)))))
+    (unless noninteractive
+      (set-window-buffer (selected-window) buf)
+      (delete-other-windows))
+    (with-current-buffer buf
+      (set-process-query-on-exit-flag proc nil)
+      (unless noninteractive (term-char-mode))
+      (erc-d-t-wait-for 30 (process-live-p proc))
+      (while (accept-process-output proc))
+      (term-line-mode)
+      (goto-char (point-min))
+      ;; Otherwise gives process exited abnormally with exit-code >0
+      (unless (search-forward (format "Process %s finished" name) nil t)
+        (funcall err)
+        (ert-fail (when (search-forward "exited" nil t)
+                    (buffer-substring-no-properties (line-beginning-position)
+                                                    (line-end-position)))))
+      (delete-file temp-file)
+      (when noninteractive
+        (kill-buffer)))))
+
+(defvar erc-scenarios-common-interactive-debug-term-p nil
+  "Non-nil means run test in an inferior Emacs, even if interactive.")
+
+(defmacro erc-scenarios-common-with-noninteractive-in-term (&rest body)
+  "Run BODY via `erc-scenarios-common-with-cleanup' in a `term' subprocess.
+Also do so when `erc-scenarios-common-interactive-debug-term-p'
+is non-nil.  When debugging, leave the `term-mode' buffer around
+for inspection and name it after the test, bounded by asterisks.
+When debugging, ensure the test always fails, as a reminder to
+disable `erc-scenarios-common-interactive-debug-term-p'.
+
+See Info node `(emacs) Term Mode' for the various commands."
+  (declare (indent 1))
+  `(if (and (or erc-scenarios-common-interactive-debug-term-p
+                noninteractive)
+            (not (getenv "ERC_TESTS_SUBPROCESS")))
+       (progn
+         (when (memq system-type '(windows-nt ms-dos cygwin haiku))
+           (ert-skip "System must be UNIX-like"))
+         (erc-scenarios-common--run-in-term
+          erc-scenarios-common-interactive-debug-term-p))
+     (erc-scenarios-common-with-cleanup ,@body)))
+
+(defun erc-scenarios-common--assert-date-stamps ()
+  "Ensure all date stamps are accounted for."
+  (dolist (stamp erc-stamp--date-stamps)
+    (should (eq 'datestamp (get-text-property (erc-stamp--date-marker stamp)
+                                              'erc--msg)))))
 
 (defun erc-scenarios-common-assert-initial-buf-name (id port)
   ;; Assert no limbo period when explicit ID given
@@ -209,8 +359,110 @@ Dialog resource directories are located by expanding the variable
     (insert str)
     (erc-send-current-line)))
 
+(defun erc-scenarios-common--at-win-end-p (&optional window)
+  (= (window-body-height window)
+     (count-screen-lines (window-start window) (point-max) nil window)))
+
+(defun erc-scenarios-common--above-win-end-p (&optional window)
+  (> (window-body-height window)
+     (count-screen-lines (window-start window) (point-max))))
+
+(defun erc-scenarios-common--prompt-past-win-end-p (&optional window)
+  (< (window-body-height window)
+     (count-screen-lines (window-start window) (point-max))))
+
+(defun erc-scenarios-common--recenter-top-bottom-around (orig &rest args)
+  (let (this-command last-command) (apply orig args)))
+
+(defun erc-scenarios-common--recenter-top-bottom ()
+  (advice-add 'recenter-top-bottom
+              :around #'erc-scenarios-common--recenter-top-bottom-around)
+  (execute-kbd-macro "\C-l")
+  (advice-remove 'recenter-top-bottom
+                 #'erc-scenarios-common--recenter-top-bottom-around))
+
 
 ;;;; Fixtures
+
+(defun erc-scenarios-common-scrolltobottom--normal (test)
+  (erc-scenarios-common-with-noninteractive-in-term
+      ((erc-scenarios-common-dialog "scrolltobottom")
+       (dumb-server (erc-d-run "localhost" t 'help))
+       (port (process-contact dumb-server :service))
+       (erc-modules `(scrolltobottom fill-wrap ,@erc-modules))
+       (erc-server-flood-penalty 0.1)
+       (expect (erc-d-t-make-expecter)))
+
+    (ert-info ("Connect")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :full-name "tester"
+                                :nick "tester")
+        (funcall expect 10 "debug mode")))
+
+    (with-current-buffer "foonet"
+      (should (looking-at " and"))
+      (set-window-buffer nil (current-buffer))
+      (delete-other-windows)
+      (split-window-below 15)
+      (recenter 0)
+
+      (ert-info ("Moving into prompt in other window triggers scroll")
+        (with-selected-window (next-window)
+          (should-not (erc-scenarios-common--at-win-end-p))
+          (goto-char (1- erc-insert-marker))
+          (execute-kbd-macro "\C-n")
+          ;; Ensure point is at prompt and aligned to bottom.
+          (should (erc-scenarios-common--at-win-end-p))))
+
+      (ert-info ("Module `move-to-prompt' still works")
+        ;; Prompt is somewhere in the middle of the window.
+        (should (erc-scenarios-common--above-win-end-p))
+        ;; Hitting a self-insert key triggers `move-to-prompt' as well
+        ;; as a scroll (to bottom).
+        (execute-kbd-macro "hi")
+        ;; Prompt and input appear on last line of window.
+        (should (erc-scenarios-common--at-win-end-p)))
+
+      (ert-info ("Command `recenter-top-bottom' disallowed at prompt")
+        ;; Hitting C-l does not recenter the window.
+        (erc-scenarios-common--recenter-top-bottom)
+        (should (erc-scenarios-common--at-win-end-p))
+        (erc-scenarios-common--recenter-top-bottom)
+        (should (erc-scenarios-common--at-win-end-p)))
+
+      (ert-info ("Command `beginning-of-buffer' allowed at prompt")
+        ;; Hitting C-< goes to beginning of buffer.
+        (call-interactively #'beginning-of-buffer)
+        (should (= 1 (point)))
+        (redisplay)
+        (should (zerop (count-screen-lines (window-start) (point))))
+        (should (erc-scenarios-common--prompt-past-win-end-p)))
+
+      (ert-info ("New message doesn't trigger scroll when away from prompt")
+        ;; Arriving insertions don't trigger a scroll when away from the
+        ;; prompt.  New output not seen.
+        (erc-cmd-MSG "NickServ help register")
+        (save-excursion (erc-d-t-search-for 10 "End of NickServ"))
+        (should (= 1 (point)))
+        (redisplay)
+        (should (zerop (count-screen-lines (window-start) (window-point))))
+        (should (erc-scenarios-common--prompt-past-win-end-p)))
+
+      (funcall test)
+
+      (ert-info ("New message does trigger a scroll when at prompt")
+        ;; Recenter so prompt is above rather than at window's end.
+        (funcall expect 10 "If you are currently logged in")
+        (recenter 0)
+        ;; Prompt is somewhere in the middle of the window.
+        (erc-d-t-wait-for 10 (erc-scenarios-common--above-win-end-p))
+        (erc-scenarios-common-say "/msg NickServ help identify")
+        ;; New arriving messages trigger a snap when inserted.
+        (erc-d-t-wait-for 10 (erc-scenarios-common--at-win-end-p))
+        (funcall expect 10 "IDENTIFY lets you login"))
+
+      (erc-scrolltobottom-mode -1))))
 
 (cl-defun erc-scenarios-common--base-network-id-bouncer
     ((&key autop foo-id bar-id after
@@ -248,7 +500,7 @@ buffer-naming collisions involving bouncers in ERC."
                                            :id foo-id))
         (setq erc-server-process-foo erc-server-process)
         (erc-scenarios-common-assert-initial-buf-name foo-id port)
-        (erc-d-t-wait-for 3 (eq (erc-network) 'foonet))
+        (erc-d-t-wait-for 6 (eq (erc-network) 'foonet))
         (erc-d-t-wait-for 3 (string= (buffer-name) serv-buf-foo))
         (funcall expect 5 "foonet")))
 
@@ -367,7 +619,7 @@ buffer-naming collisions involving bouncers in ERC."
                                 :password "changeme"
                                 :full-name "tester")
         (erc-scenarios-common-assert-initial-buf-name nil port)
-        (erc-d-t-wait-for 3 (eq (erc-network) 'foonet))
+        (erc-d-t-wait-for 6 (eq (erc-network) 'foonet))
         (erc-d-t-wait-for 3 (string= (buffer-name) "foonet"))
         (funcall expect 5 "foonet")))
 
@@ -447,10 +699,17 @@ Bug#48598: 28.0.50; buffer-naming collisions involving bouncers in ERC."
       (with-current-buffer erc-server-buffer-foo (erc-cmd-JOIN "#chan"))
       (with-current-buffer (erc-d-t-wait-for 5 (get-buffer "#chan"))
         (funcall expect 5 "vile thing")
-        (erc-cmd-QUIT "")))
+        (erc-cmd-QUIT "")
 
-    (erc-d-t-wait-for 2 "Foonet connection deceased"
-      (not (erc-server-process-alive erc-server-buffer-foo)))
+        (ert-info ("Prompt hidden in channel buffer upon quitting")
+          (erc-d-t-wait-for 10 (erc--prompt-hidden-p))
+          (should (overlays-in erc-insert-marker erc-input-marker)))))
+
+    (with-current-buffer erc-server-buffer-foo
+      (ert-info ("Prompt hidden after process dies in server buffer")
+        (erc-d-t-wait-for 2 (not (erc-server-process-alive)))
+        (erc-d-t-wait-for 10 (erc--prompt-hidden-p))
+        (should (overlays-in erc-insert-marker erc-input-marker))))
 
     (should (equal erc-autojoin-channels-alist
                    (if foo-id '((oofnet "#chan")) '((foonet "#chan")))))
@@ -499,6 +758,10 @@ Bug#48598: 28.0.50; buffer-naming collisions involving bouncers in ERC."
         (setq erc-server-process-foo erc-server-process)
         (erc-d-t-wait-for 2 (eq erc-network 'foonet))
         (should (string= (buffer-name) (if foo-id "oofnet" "foonet")))
+
+        (ert-info ("Prompt unhidden")
+          (should-not (erc--prompt-hidden-p))
+          (should-not (overlays-in erc-insert-marker erc-input-marker)))
         (funcall expect 5 "foonet")))
 
     (ert-info ("#chan@foonet is clean, no cross-contamination")
@@ -506,7 +769,11 @@ Bug#48598: 28.0.50; buffer-naming collisions involving bouncers in ERC."
         (erc-d-t-wait-for 3 (eq erc-server-process erc-server-process-foo))
         (funcall expect 3 "<bob>")
         (erc-d-t-absent-for 0.1 "<joe>")
-        (funcall expect 10 "not given me")))
+        (funcall expect 30 "not given me")
+
+        (ert-info ("Prompt unhidden")
+          (should-not (erc--prompt-hidden-p))
+          (should-not (overlays-in erc-insert-marker erc-input-marker)))))
 
     (ert-info ("All #chan@barnet output received")
       (with-current-buffer chan-buf-bar

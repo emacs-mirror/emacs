@@ -1,5 +1,5 @@
 /* Input event support for Emacs on the Microsoft Windows API.
-   Copyright (C) 1992-1993, 1995, 2001-2023 Free Software Foundation,
+   Copyright (C) 1992-1993, 1995, 2001-2024 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -496,7 +496,7 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 	    if (!NILP (Vmouse_autoselect_window))
 	      {
 		Lisp_Object mouse_window = window_from_coordinates (f, mx, my,
-								    0, 0, 0);
+								    0, 0, 0, 0);
 		/* A window will be selected only when it is not
 		   selected now, and the last mouse movement event was
 		   not in it.  A minibuffer window will be selected iff

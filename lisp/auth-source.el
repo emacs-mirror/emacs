@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -41,6 +41,7 @@
 
 (require 'json)
 (require 'password-cache)
+(require 'icons)
 
 (require 'cl-lib)
 (require 'eieio)
@@ -233,8 +234,8 @@ EPA/EPG set up, the file will be encrypted and decrypted
 automatically.  See Info node `(epa)Encrypting/decrypting gpg files'
 for details.
 
-It's best to customize this with `\\[customize-variable]' because the choices
-can get pretty complex."
+It's best to customize this with \\[customize-variable] because
+the choices can get pretty complex."
   :version "26.1" ; neither new nor changed default
   :type `(repeat :tag "Authentication Sources"
                  (choice
@@ -330,7 +331,6 @@ If the value is not a list, symmetric encryption will be used."
 
 (defun auth-source-read-char-choice (prompt choices)
   "Read one of CHOICES by `read-char-choice', or `read-char'.
-`dropdown-list' support is disabled because it doesn't work reliably.
 Only one of CHOICES will be returned.  The PROMPT is augmented
 with \"[a/b/c] \" if CHOICES is \(?a ?b ?c)."
   (when choices
@@ -387,7 +387,6 @@ soon as a function returns non-nil.")
       (cond
        ((equal extension "plist")
         (auth-source-backend
-         source
          :source source
          :type 'plstore
          :search-function #'auth-source-plstore-search
@@ -395,13 +394,11 @@ soon as a function returns non-nil.")
          :data (plstore-open source)))
        ((member-ignore-case extension '("json"))
         (auth-source-backend
-         source
          :source source
          :type 'json
          :search-function #'auth-source-json-search))
        (t
         (auth-source-backend
-         source
          :source source
          :type 'netrc
          :search-function #'auth-source-netrc-search
@@ -449,7 +446,6 @@ soon as a function returns non-nil.")
         (setq source (symbol-name source)))
 
       (auth-source-backend
-       (format "Mac OS Keychain (%s)" source)
        :source source
        :type keychain-type
        :search-function #'auth-source-macos-keychain-search
@@ -490,7 +486,6 @@ soon as a function returns non-nil.")
 
       (if (featurep 'secrets)
           (auth-source-backend
-           (format "Secrets API (%s)" source)
            :source source
            :type 'secrets
            :search-function #'auth-source-secrets-search
@@ -498,7 +493,6 @@ soon as a function returns non-nil.")
         (auth-source-do-warn
          "auth-source-backend-parse: no Secrets API, ignoring spec: %S" entry)
         (auth-source-backend
-         (format "Ignored Secrets API (%s)" source)
          :source ""
          :type 'ignore))))))
 
@@ -899,8 +893,7 @@ Remove trailing \": \"."
 (defun auth-source-ensure-strings (values)
   (if (eq values t)
       values
-    (unless (listp values)
-      (setq values (list values)))
+    (setq values (ensure-list values))
     (mapcar (lambda (value)
 	      (if (numberp value)
 		  (format "%s" value)
@@ -1699,7 +1692,7 @@ authentication tokens:
     items))
 
 (cl-defun auth-source-secrets-create (&rest spec
-                                      &key backend host port create
+                                      &key backend host port create user
                                       &allow-other-keys)
   (let* ((base-required '(host user port secret label))
          ;; we know (because of an assertion in auth-source-search) that the
@@ -1707,6 +1700,7 @@ authentication tokens:
          (create-extra (if (eq t create) nil create))
          (current-data (car (auth-source-search :max 1
                                                 :host host
+                                                :user user
                                                 :port port)))
          (required (append base-required create-extra))
          (collection (oref backend source))
@@ -1953,18 +1947,20 @@ entries for git.gnus.org:
          (returned-keys (delete-dups (append
 				      '(:host :login :port :secret)
 				      search-keys)))
-         ;; Extract host and port from spec
+         ;; Extract host, port and user from spec
          (hosts (plist-get spec :host))
-         (hosts (if (and hosts (listp hosts)) hosts `(,hosts)))
+         (hosts (if (consp hosts) hosts `(,hosts)))
          (ports (plist-get spec :port))
-         (ports (if (and ports (listp ports)) ports `(,ports)))
+         (ports (if (consp ports) ports `(,ports)))
          (users (plist-get spec :user))
-         (users (if (and users (listp users)) users `(,users)))
+         (users (if (consp users) users `(,users)))
          ;; Loop through all combinations of host/port and pass each of these to
-         ;; auth-source-macos-keychain-search-items
+         ;; auth-source-macos-keychain-search-items.  Convert numeric port to
+         ;; string (bug#68376).
          (items (catch 'match
                   (dolist (host hosts)
                     (dolist (port ports)
+                      (when (numberp port) (setq port (number-to-string port)))
                       (dolist (user users)
                         (let ((items (apply
                                       #'auth-source-macos-keychain-search-items
@@ -1991,7 +1987,7 @@ entries for git.gnus.org:
 
 
 (defun auth-source--decode-octal-string (string)
-  "Convert octal STRING to utf-8 string.  E.g: \"a\134b\" to \"a\b\"."
+  "Convert octal STRING to utf-8 string.  E.g.: \"a\\134b\" to \"a\\b\"."
   (let ((list (string-to-list string))
         (size (length string)))
     (decode-coding-string
@@ -2026,7 +2022,7 @@ entries for git.gnus.org:
     (when port
       (if keychain-generic
           (setq args (append args (list "-s" port)))
-        (setq args (append args (if (string-match "[0-9]+" port)
+        (setq args (append args (if (string-match-p "\\`[[:digit:]]+\\'" port)
                                     (list "-P" port)
                                   (list "-r" (substring
                                               (format "%-4s" port)
@@ -2167,7 +2163,7 @@ entries for git.gnus.org:
     items))
 
 (cl-defun auth-source-plstore-create (&rest spec
-                                      &key backend host port create
+                                      &key backend host port create user
                                       &allow-other-keys)
   (let* ((base-required '(host user port secret))
          (base-secret '(secret))
@@ -2177,9 +2173,11 @@ entries for git.gnus.org:
          (create-extra-secret (plist-get create :encrypted))
          (create-extra (if (eq t create) nil
                          (or (append (plist-get create :unencrypted)
-                                     create-extra-secret) create)))
+                                     create-extra-secret)
+                             create)))
          (current-data (car (auth-source-search :max 1
                                                 :host host
+                                                :user user
                                                 :port port)))
          (required (append base-required create-extra))
          (required-secret (append base-secret create-extra-secret))
@@ -2446,6 +2444,169 @@ point is moved into the passwords (see `authinfo-hide-elements').
       (overlay-put overlay 'display
                    (propertize "****" 'face 'font-lock-doc-face))
     (overlay-put overlay 'display nil)))
+
+;; It would be preferable to use "👁" ("\N{EYE}").  However, there is
+;; no corresponding Unicode char with a slash.  So we use symbols as
+;; fallback only, with "⦵" ("\N{CIRCLE WITH HORIZONTAL BAR}") for
+;; hiding the password.
+(define-icon read-passwd--show-password-icon nil
+  '((image "reveal.svg" "reveal.pbm" :height (0.8 . em))
+    (symbol "👁")
+    (text "<o>"))
+  "Mode line icon to show a hidden password."
+  :group mode-line-faces
+  :version "30.1"
+  :help-echo "mouse-1: Toggle password visibility")
+
+(define-icon read-passwd--hide-password-icon nil
+  '((image "conceal.svg" "conceal.pbm" :height (0.8 . em))
+    (symbol "⦵")
+    (text "<\\>"))
+  "Mode line icon to hide a visible password."
+  :group mode-line-faces
+  :version "30.1"
+  :help-echo "mouse-1: Toggle password visibility")
+
+(defvar read-passwd--mode-line-icon nil
+  "Propertized mode line icon for showing/hiding passwords.")
+
+(defvar read-passwd--hide-password t
+  "Toggle whether password should be hidden in minibuffer.")
+
+(defun read-passwd--hide-password ()
+  "Make password in minibuffer hidden or visible."
+  (let ((beg (minibuffer-prompt-end)))
+    (dotimes (i (1+ (- (buffer-size) beg)))
+      (if read-passwd--hide-password
+          (put-text-property
+           (+ i beg) (+ 1 i beg) 'display (string (or read-hide-char ?*)))
+        (remove-list-of-text-properties (+ i beg) (+ 1 i beg) '(display)))
+      (put-text-property
+       (+ i beg) (+ 1 i beg)
+       'help-echo "C-u: Clear password\nTAB: Toggle password visibility"))))
+
+(defun read-passwd-toggle-visibility ()
+  "Toggle minibuffer contents visibility.
+Adapt also mode line."
+  (interactive)
+  (let ((win (active-minibuffer-window)))
+    (unless win (error "No active minibuffer"))
+    ;; FIXME: In case of a recursive minibuffer, this may select the wrong
+    ;; mini-buffer.
+    (with-current-buffer (window-buffer win)
+      (when (memq 'read-passwd-mode local-minor-modes)
+        (setq read-passwd--hide-password (not read-passwd--hide-password))
+        (setq read-passwd--mode-line-icon
+              `(:propertize
+                ,(if icon-preference
+                     (icon-string
+                      (if read-passwd--hide-password
+                          'read-passwd--show-password-icon
+                        'read-passwd--hide-password-icon))
+                   "")
+                mouse-face mode-line-highlight
+                keymap
+                ,(eval-when-compile
+                   (let ((map (make-sparse-keymap)))
+                     (define-key map [mode-line mouse-1]
+                                 #'read-passwd-toggle-visibility)
+                     map))))
+        (force-mode-line-update 'all)
+        (read-passwd--hide-password)))))
+
+(defvar read-passwd-map
+  ;; BEWARE: `defconst' would purecopy it, breaking the sharing with
+  ;; minibuffer-local-map along the way!
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map "\C-u" #'delete-minibuffer-contents) ;bug#12570
+    (define-key map "\t" #'read-passwd-toggle-visibility)
+    map)
+  "Keymap used while reading passwords.")
+
+(define-minor-mode read-passwd-mode
+  "Toggle visibility of password in minibuffer."
+  :group 'mode-line
+  :group 'minibuffer
+  :keymap read-passwd-map
+  :version "30.1"
+
+  (setq read-passwd--hide-password nil)
+  (or global-mode-string (setq global-mode-string '("")))
+
+  (let ((mode-string '(:eval read-passwd--mode-line-icon)))
+    (if read-passwd-mode
+        ;; Add `read-passwd--mode-line-icon'.
+        (or (member mode-string global-mode-string)
+            (setq global-mode-string
+	          (append global-mode-string (list mode-string))))
+      ;; Remove `read-passwd--mode-line-icon'.
+      (setq global-mode-string
+	    (delete mode-string global-mode-string))))
+
+  (when read-passwd-mode
+    (read-passwd-toggle-visibility)))
+
+(defvar overriding-text-conversion-style)
+
+;;;###autoload
+(defun read-passwd (prompt &optional confirm default)
+  "Read a password, prompting with PROMPT, and return it.
+If optional CONFIRM is non-nil, read the password twice to make sure.
+Optional DEFAULT is a default password to use instead of empty input.
+
+This function echoes `*' for each character that the user types.
+You could let-bind `read-hide-char' to another hiding character, though.
+
+Once the caller uses the password, it can erase the password
+by doing (clear-string STRING)."
+  (if confirm
+      (let (success)
+        (while (not success)
+          (let ((first (read-passwd prompt nil default))
+                (second (read-passwd "Confirm password: " nil default)))
+            (if (equal first second)
+                (progn
+                  (and (arrayp second) (not (eq first second)) (clear-string second))
+                  (setq success first))
+              (and (arrayp first) (clear-string first))
+              (and (arrayp second) (clear-string second))
+              (message "Password not repeated accurately; please start over")
+              (sit-for 1))))
+        success)
+    (let (minibuf)
+      (minibuffer-with-setup-hook
+          (lambda ()
+            (setq minibuf (current-buffer))
+            ;; Turn off electricity.
+            (setq-local post-self-insert-hook nil)
+            (setq-local buffer-undo-list t)
+            (setq-local select-active-regions nil)
+            (use-local-map read-passwd-map)
+            (setq-local inhibit-modification-hooks nil) ;bug#15501.
+	    (setq-local show-paren-mode nil)		;bug#16091.
+            (setq-local inhibit--record-char t)
+            (read-passwd-mode 1)
+            (add-hook 'post-command-hook #'read-passwd--hide-password nil t))
+        (unwind-protect
+            (let ((enable-recursive-minibuffers t)
+		  (read-hide-char (or read-hide-char ?*))
+                  (overriding-text-conversion-style 'password))
+              (read-string prompt nil t default)) ; t = "no history"
+          (when (buffer-live-p minibuf)
+            (with-current-buffer minibuf
+              (read-passwd-mode -1)
+              ;; Not sure why but it seems that there might be cases where the
+              ;; minibuffer is not always properly reset later on, so undo
+              ;; whatever we've done here (bug#11392).
+              (remove-hook 'post-command-hook
+                           #'read-passwd--hide-password 'local)
+              (kill-local-variable 'post-self-insert-hook)
+              ;; And of course, don't keep the sensitive data around.
+              (erase-buffer)
+              ;; Then restore the previous text conversion style.
+              (when (fboundp 'set-text-conversion-style)
+                (set-text-conversion-style text-conversion-style)))))))))
 
 (provide 'auth-source)
 

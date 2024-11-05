@@ -1,6 +1,6 @@
 /* Program execution for Emacs.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -148,6 +148,20 @@ struct exec_tracee
   /* The next process being traced.  */
   struct exec_tracee *next;
 
+  /* Address of any stack pointer to restore after system call
+     completion.  */
+  USER_WORD sp;
+
+  /* Name of the executable being run.  */
+  char *exec_file;
+
+  /* Pointer to a storage area holding instructions for loading an
+     executable if an `exec' system call is outstanding, or NULL.  */
+  char *exec_data;
+
+  /* Number of bytes in exec_data.  */
+  size_t data_size;
+
   /* The thread ID of this process.  */
   pid_t pid;
 
@@ -158,11 +172,6 @@ struct exec_tracee
   /* Whether or not the tracee has been created but is not yet
      processed by `handle_clone'.  */
   bool new_child : 1;
-
-#ifndef REENTRANT
-  /* Name of the executable being run.  */
-  char *exec_file;
-#endif /* !REENTRANT */
 };
 
 
@@ -176,6 +185,7 @@ extern int aarch64_set_regs (pid_t, USER_REGS_STRUCT *, bool);
 
 
 
+extern char *format_pid (char *, unsigned int);
 extern USER_WORD user_alloca (struct exec_tracee *, USER_REGS_STRUCT *,
 			      USER_REGS_STRUCT *, USER_WORD);
 extern int user_copy (struct exec_tracee *, const unsigned char *,

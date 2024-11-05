@@ -1,12 +1,15 @@
 ;;; svg.el --- SVG image creation functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Felix E. Klee <felix.klee@inka.de>
 ;; Keywords: image
 ;; Version: 1.1
 ;; Package-Requires: ((emacs "25"))
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -328,7 +331,6 @@ If the SVG is later changed, the image will also be updated."
         (insert (format " %s=\"%s\"" (car attr) (cdr attr)))))
     (insert ">")
     (dolist (elem (nthcdr 2 dom))
-      (insert " ")
       (svg-print elem))
     (insert (format "</%s>" (car dom)))))
 

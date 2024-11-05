@@ -1,6 +1,6 @@
 ;;; pcase-tests.el --- Test suite for pcase macro.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -73,7 +73,24 @@
     (should-not (pcase-tests-grep 'member exp))))
 
 (ert-deftest pcase-tests-vectors ()
-  (should (equal (pcase [1 2] (`[,x] 1) (`[,x ,y] (+ x y))) 3)))
+  (should (equal (pcase [1 2] (`[,x] 1) (`[,x ,y] (+ x y))) 3))
+  (should (pcase [1 2] (`[1 ,'2] t)))
+  (should (pcase '(1 2) (`(1 ,'2) t))))
+
+(ert-deftest pcase-tests-quote-optimization ()
+  ;; FIXME: We could/should also test that we get a corresponding
+  ;; "shadowed branch" warning.
+  (should-not (pcase-tests-grep
+               'FOO (macroexpand '(pcase EXP
+                                    (`(,_ . ,_) (BAR))
+                                    ('(a b) (FOO))))))
+  (let ((exp1 (macroexpand '(pcase EXP
+                              (`((,(or 'a1 'b1))) (FOO1))
+                              ('(c) (FOO2))
+                              ('(d) (FOO3))))))
+    (should (= 1 (with-temp-buffer (prin1 exp1 (current-buffer))
+                                   (goto-char (point-min))
+                                   (count-matches "(FOO3)"))))))
 
 (ert-deftest pcase-tests-bug14773 ()
   (let ((f (lambda (x)
@@ -159,5 +176,19 @@
 
   (should-error (pcase-setq a)
                 :type '(wrong-number-of-arguments)))
+
+(ert-deftest pcase-tests-mutually-exclusive ()
+  (dolist (x '((functionp consp nil)
+               (functionp stringp t)
+               (compiled-function-p consp t)
+               (keywordp symbolp nil)
+               (keywordp symbol-with-pos-p nil)
+               (keywordp stringp t)))
+    (if (nth 2 x)
+        (should (pcase--mutually-exclusive-p (nth 0 x) (nth 1 x)))
+      (should-not (pcase--mutually-exclusive-p (nth 0 x) (nth 1 x))))
+    (if (nth 2 x)
+        (should (pcase--mutually-exclusive-p (nth 1 x) (nth 0 x)))
+      (should-not (pcase--mutually-exclusive-p (nth 1 x) (nth 0 x))))))
 
 ;;; pcase-tests.el ends here.

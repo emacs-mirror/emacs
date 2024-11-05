@@ -1,6 +1,6 @@
-@c -*- mode: texinfo; coding: utf-8 -*-
+@c -*- mode: texinfo -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998--1999, 2001--2023 Free Software Foundation, Inc.
+@c Copyright (C) 1998--1999, 2001--2024 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Non-ASCII Characters
 @chapter Non-@acronym{ASCII} Characters
@@ -133,7 +133,7 @@ This function is similar to @code{position-bytes}, but instead of byte
 position in the current buffer it returns the offset from the
 beginning of the current buffer's file of the byte that corresponds to
 the given character @var{position} in the buffer.  The conversion
-requires to know how the text is encoded in the buffer's file; this is
+requires knowing how the text is encoded in the buffer's file; this is
 what the @var{coding-system} argument is for, defaulting to the value
 of @code{buffer-file-coding-system}.  The optional argument
 @var{quality} specifies how accurate the result should be; it should
@@ -435,6 +435,11 @@ This function returns @code{nil} if @var{string} does not name a character.
 @end example
 @end defun
 
+@defun char-to-name char
+This function returns the Unicode name of @var{char}.  It returns
+@code{nil} if @var{char} is not a character or has no Unicode name.
+@end defun
+
 @defun get-byte &optional pos string
 This function returns the byte at character position @var{pos} in the
 current buffer.  If the current buffer is unibyte, this is literally
@@ -627,8 +632,10 @@ is @code{nil}, which means the character itself.
 Corresponds to Unicode language- and context-independent special upper-casing
 rules.  The value of this property is a string (which may be empty).  For
 example mapping for U+00DF @sc{latin small letter sharp s} is
-@code{"SS"}.  For characters with no special mapping, the value is @code{nil}
-which means @code{uppercase} property needs to be consulted instead.
+@code{"SS"}.  This mapping overrides the @code{uppercase} property, and
+thus the current case table.  For characters with no special mapping,
+the value is @code{nil}, which means @code{uppercase} property needs to
+be consulted instead.
 
 @item special-lowercase
 Corresponds to Unicode language- and context-independent special
@@ -636,16 +643,19 @@ lower-casing rules.  The value of this property is a string (which may
 be empty).  For example mapping for U+0130 @sc{latin capital letter i
 with dot above} the value is @code{"i\u0307"} (i.e. 2-character string
 consisting of @sc{latin small letter i} followed by U+0307
-@sc{combining dot above}).  For characters with no special mapping,
-the value is @code{nil} which means @code{lowercase} property needs to
-be consulted instead.
+@sc{combining dot above}).  This mapping overrides the @code{lowercase}
+property, and thus the current case table.  For characters with no
+special mapping, the value is @code{nil}, which means @code{lowercase}
+property needs to be consulted instead.
 
 @item special-titlecase
 Corresponds to Unicode unconditional special title-casing rules.  The value of
 this property is a string (which may be empty).  For example mapping for
-U+FB01 @sc{latin small ligature fi} the value is @code{"Fi"}.  For
-characters with no special mapping, the value is @code{nil} which means
-@code{titlecase} property needs to be consulted instead.
+U+FB01 @sc{latin small ligature fi} the value is @code{"Fi"}.  This
+mapping overrides the @code{titlecase} property, and thus the current
+case table.  For characters with no special mapping, the value is
+@code{nil}, which means @code{titlecase} property needs to be consulted
+instead.
 @end table
 
 @defun get-char-code-property char propname
@@ -727,7 +737,7 @@ character, a symbol whose name is the script to which the character
 belongs, according to the Unicode Standard classification of the
 Unicode code space into script-specific blocks.  This char-table has a
 single extra slot whose value is the list of all script symbols.  Note
-that Emacs' classification of characters into scripts is not a 1-for-1
+that Emacs's classification of characters into scripts is not a 1-for-1
 reflection of the Unicode standard, e.g. there is no @samp{symbol}
 script in Unicode.
 @end defvar
@@ -1130,7 +1140,10 @@ conversion happens, but different in that the result is multibyte
 data.  The name @code{emacs-internal} is an alias for
 @code{utf-8-emacs-unix} (so it forces no conversion of end-of-line,
 unlike @code{utf-8-emacs}, which can decode all 3 kinds of
-end-of-line conventions).
+end-of-line conventions).  Since this coding system can represent all
+the characters supported by Emacs in its buffers and strings, we
+recommend using it whenever saving text for internal purposes, such as
+caching.
 
 @defun coding-system-get coding-system property
 This function returns the specified property of the coding system
@@ -1181,7 +1194,7 @@ the text to be written cannot be safely encoded using the coding system
 specified by this variable, these operations select an alternative
 encoding by calling the function @code{select-safe-coding-system}
 (@pxref{User-Chosen Coding Systems}).  If selecting a different encoding
-requires to ask the user to specify a coding system,
+requires asking the user to specify a coding system,
 @code{buffer-file-coding-system} is updated to the newly selected coding
 system.
 
@@ -1654,6 +1667,9 @@ argument, @var{size}, which tells it how many characters to look at,
 starting from point.  If the function succeeds in determining a coding
 system for the file, it should return that coding system.  Otherwise,
 it should return @code{nil}.
+Each function can also find the name of the file to which
+the buffer's content belong in the variable
+@code{auto-coding-file-name}.
 
 The functions in this list could be called either when the file is
 visited and Emacs wants to decode its contents, and/or when the file's
@@ -1981,7 +1997,7 @@ original text:
 @example
 @group
 (decode-coding-string "Gr\374ss Gott" 'latin-1)
-     @result{} #("Grüss Gott" 0 9 (charset iso-8859-1))
+     @result{} #("Gr@"uss Gott" 0 9 (charset iso-8859-1))
 @end group
 @end example
 @end defun

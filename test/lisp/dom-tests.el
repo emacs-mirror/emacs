@@ -1,6 +1,6 @@
 ;;; dom-tests.el --- Tests for dom.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -208,6 +208,16 @@ child results in an error."
     (with-temp-buffer
       (dom-pp node t)
       (should (equal (buffer-string) "(\"foo\" nil)")))))
+
+(ert-deftest dom-tests-print ()
+  "Test that `dom-print' correctly encodes HTML reserved characters."
+  (with-temp-buffer
+    (dom-print '(samp ((class . "samp")) "<div class=\"default\"> </div>"))
+    (should (equal
+             (buffer-string)
+             (concat "<samp class=\"samp\">"
+                     "&lt;div class=&quot;default&quot;&gt; &lt;/div&gt;"
+                     "</samp>")))))
 
 (ert-deftest dom-test-search ()
   (let ((dom '(a nil (b nil (c nil)))))

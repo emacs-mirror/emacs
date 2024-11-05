@@ -1,6 +1,6 @@
 ;;; erc-services.el --- Identify to NickServ  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2004, 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; URL: https://www.emacswiki.org/emacs/ErcNickserv
@@ -22,6 +22,13 @@
 
 ;;; Commentary:
 
+;; As of ERC 5.6, this library's main module, `services', mainly
+;; concerns itself with authenticating to legacy IRC servers.  If your
+;; server supports SASL or CERTFP, please use one of those instead.
+;; See (info "(erc) client-certificate") and (info "(erc) SASL") for
+;; details.  Note that this library also contains the local module
+;; `services-regain' as well as standalone utility functions.
+
 ;; There are two ways to go about identifying yourself automatically to
 ;; NickServ with this module.  The more secure way is to listen for identify
 ;; requests from the user NickServ.  Another way is to identify yourself to
@@ -37,10 +44,7 @@
 
 ;; Usage:
 ;;
-;; Put into your .emacs:
-;;
-;; (require 'erc-services)
-;; (erc-services-mode 1)
+;; Customize the option `erc-modules' to include `services'.
 ;;
 ;; Add your nickname and NickServ password to `erc-nickserv-passwords'.
 ;; Using the Libera.Chat network as an example:
@@ -50,10 +54,7 @@
 ;;
 ;; The default automatic identification mode is autodetection of NickServ
 ;; identify requests.  Set the variable `erc-nickserv-identify-mode' if
-;; you'd like to change this behavior.  You can also change the way
-;; automatic identification is handled by using:
-;;
-;; M-x erc-nickserv-identify-mode
+;; you'd like to change this behavior.
 ;;
 ;; If you'd rather not identify yourself automatically but would like access
 ;; to the functions contained in this file, just load this file without
@@ -169,7 +170,7 @@ You can also use \\[erc-nickserv-identify-mode] to change modes."
   :type 'boolean)
 
 (defcustom erc-use-auth-source-for-nickserv-password nil
-  "Query auth-source for a password when identifiying to NickServ.
+  "Query auth-source for a password when identifying to NickServ.
 Passwords from `erc-nickserv-passwords' take precedence.  See
 function `erc-nickserv-get-password'."
   :version "28.1"
@@ -309,21 +310,26 @@ Example of use:
      "/msg\\s-NickServ\\s-IDENTIFY\\s-\^_password"
      "NickServ@services.slashnet.org"
      "IDENTIFY" nil nil nil))
-   "Alist of NickServer details, sorted by network.
+  "Alist of NickServer details, sorted by network.
 Every element in the list has the form
-  (SYMBOL NICKSERV REGEXP NICK KEYWORD USE-CURRENT ANSWER SUCCESS-REGEXP)
+  (NETWORK SENDER INSTRUCT-RX NICK SUBCMD YOUR-NICK-P ANSWER SUCCESS-RX)
 
-SYMBOL is a network identifier, a symbol, as used in `erc-networks-alist'.
-NICKSERV is the description of the nickserv in the form nick!user@host.
-REGEXP is a regular expression matching the message from nickserv.
-NICK is nickserv's nickname.  Use nick@server where necessary/possible.
-KEYWORD is the keyword to use in the reply message to identify yourself.
-USE-CURRENT indicates whether the current nickname must be used when
-  identifying.
-ANSWER is the command to use for the answer.  The default is `privmsg'.
-SUCCESS-REGEXP is a regular expression matching the message nickserv
-  sends when you've successfully identified.
-The last two elements are optional."
+NETWORK is a network identifier, a symbol, as used in `erc-networks-alist'.
+SENDER is the exact nick!user@host \"source\" for \"NOTICE\" messages
+indicating success or requesting that the user identify.
+INSTRUCT-RX is a regular expression matching a \"NOTICE\" from the
+  services bot instructing the user to identify.  It must be non-null
+  when the option `erc-nickserv-identify-mode' is set to `autodetect'.
+  When it's `both', and this field is non-null, ERC will forgo
+  identifying on nick changes and after connecting.
+NICK is the nickname of the services bot to use when issuing commands.
+SUBCMD is the bot command for identifying, typically \"IDENTIFY\".
+YOUR-NICK-P indicates whether to send the user's current nickname before
+  their password when identifying.
+ANSWER is the command to use for the answer.  The default is \"PRIVMSG\".
+SUCCESS-RX is a regular expression matching the message NickServ sends
+  when you've successfully identified.
+The last two elements are optional, as are others, where implied."
    :type '(repeat
 	   (list :tag "Nickserv data"
 		 (symbol :tag "Network name")
@@ -572,13 +578,13 @@ as needed."
   (letrec ((attempts 3)
            (on-notice
             (lambda (_proc parsed)
-              (when-let ((nick (erc-extract-nick
-                                (erc-response.sender parsed)))
-                         ((erc-nick-equal-p nick "nickserv"))
-                         (contents (erc-response.contents parsed))
-                         (case-fold-search t)
-                         ((string-match (rx (or "ghost" "is not online"))
-                                        contents)))
+              (when-let* ((nick (erc-extract-nick
+                                 (erc-response.sender parsed)))
+                          ((erc-nick-equal-p nick "nickserv"))
+                          (contents (erc-response.contents parsed))
+                          (case-fold-search t)
+                          ((string-match (rx (or "ghost" "is not online"))
+                                         contents)))
                 (setq attempts 1)
                 (erc-server-send (concat "NICK " want) 'force))
               (when (zerop (cl-decf attempts))

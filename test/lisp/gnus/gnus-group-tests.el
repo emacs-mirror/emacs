@@ -1,6 +1,6 @@
 ;;; gnus-group-tests.el --- Tests for gnus-group.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,7 @@
      ;; This is a very aggressive shortening of the left hand side.
      ("nnimap+email@banana.salesman.example.com:234" . "email@banana:234")
      ("nntp+some.where.edu:soc.motss" . "some:s.motss")
-     ("nntp+news.gmane.org:gmane.emacs.gnus.general" . "news:g.e.g.general")
+     ("nntp+news.gmane.io:gmane.emacs.gnus.general" . "news:g.e.g.general")
      ("nntp+news.gnus.org:gmane.text.docbook.apps" . "news:g.t.d.apps")
 
      ;; nnimap groups.

@@ -1,6 +1,6 @@
 ;;; yaml-ts-mode.el --- tree-sitter support for YAML  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author     : Randy Taylor <dev@rjt.dev>
 ;; Maintainer : Randy Taylor <dev@rjt.dev>
@@ -30,6 +30,9 @@
 (require 'treesit)
 
 (declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-type "treesit.c")
 
 (defvar yaml-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
@@ -117,6 +120,27 @@
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `yaml-ts-mode'.")
 
+(defun yaml-ts-mode--fill-paragraph (&optional justify)
+  "Fill paragraph.
+Behaves like `fill-paragraph', but respects block node
+boundaries.  JUSTIFY is passed to `fill-paragraph'."
+  (interactive "*P")
+  (save-restriction
+    (widen)
+    (let ((node (treesit-node-at (point))))
+      (if (member (treesit-node-type node) '("block_scalar" "comment"))
+        (let* ((start (treesit-node-start node))
+               (end (treesit-node-end node))
+               (start-marker (point-marker))
+               (fill-paragraph-function nil))
+          (save-excursion
+            (goto-char start)
+            (forward-line)
+            (move-marker start-marker (point))
+            (narrow-to-region (point) end))
+          (fill-region start-marker end justify))
+        t))))
+
 ;;;###autoload
 (define-derived-mode yaml-ts-mode text-mode "YAML"
   "Major mode for editing YAML, powered by tree-sitter."
@@ -124,7 +148,7 @@
   :syntax-table yaml-ts-mode--syntax-table
 
   (when (treesit-ready-p 'yaml)
-    (treesit-parser-create 'yaml)
+    (setq treesit-primary-parser (treesit-parser-create 'yaml))
 
     ;; Comments.
     (setq-local comment-start "# ")
@@ -141,7 +165,11 @@
                   (constant escape-sequence number property)
                   (bracket delimiter error misc-punctuation)))
 
+    (setq-local fill-paragraph-function #'yaml-ts-mode--fill-paragraph)
+
     (treesit-major-mode-setup)))
+
+(derived-mode-add-parents 'yaml-ts-mode '(yaml-mode))
 
 (if (treesit-ready-p 'yaml)
     (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode)))

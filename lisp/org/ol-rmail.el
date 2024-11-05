@@ -1,9 +1,9 @@
 ;;; ol-rmail.el --- Links to Rmail Messages          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
@@ -51,7 +51,7 @@
 			 :store #'org-rmail-store-link)
 
 ;; Implementation
-(defun org-rmail-store-link ()
+(defun org-rmail-store-link (&optional _interactive?)
   "Store a link to an Rmail folder or message."
   (when (or (eq major-mode 'rmail-mode)
 	    (eq major-mode 'rmail-summary-mode))

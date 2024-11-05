@@ -1,6 +1,6 @@
 /* Subtract two struct timespec values.
 
-   Copyright (C) 2011-2023 Free Software Foundation, Inc.
+   Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,28 +30,17 @@
 struct timespec
 timespec_sub (struct timespec a, struct timespec b)
 {
-  time_t rs = a.tv_sec;
-  time_t bs = b.tv_sec;
-  int ns = a.tv_nsec - b.tv_nsec;
-  int rns = ns;
-
-  if (ns < 0)
+  int nsdiff = a.tv_nsec - b.tv_nsec;
+  int borrow = nsdiff < 0;
+  time_t rs;
+  int rns;
+  bool v = ckd_sub (&rs, a.tv_sec, b.tv_sec);
+  if (v == ckd_sub (&rs, rs, borrow))
+    rns = nsdiff + TIMESPEC_HZ * borrow;
+  else
     {
-      rns = ns + TIMESPEC_HZ;
-      time_t bs1;
-      if (!ckd_add (&bs1, bs, 1))
-        bs = bs1;
-      else if (- TYPE_SIGNED (time_t) < rs)
-        rs--;
-      else
-        goto low_overflow;
-    }
-
-  if (ckd_sub (&rs, rs, bs))
-    {
-      if (0 < bs)
+      if ((TYPE_MINIMUM (time_t) + TYPE_MAXIMUM (time_t)) / 2 < rs)
         {
-        low_overflow:
           rs = TYPE_MINIMUM (time_t);
           rns = 0;
         }

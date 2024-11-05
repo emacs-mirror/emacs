@@ -26,7 +26,10 @@ Andrew G Cohen <cohen@andy.bu.edu>
 Andrew G Cohen <cohen@andy.bu.edu> <cohen@bu.edu>
 Arash Esbati <arash@gnu.org> <arash.esbati@gmail.com>
 Arash Esbati <arash@gnu.org> <esbati@gmx.de>
+Arni Magnusson <thisisarni@gmail.com> <arnima@hafro.is>
 Artur Malabarba <bruce.connor.am@gmail.com> <am12548@it055607.users.bris.ac.uk>
+Artur Malabarba <bruce.connor.am@gmail.com> Artur Malabarba <address@hidden>
+Basil L. Contovounesios <basil@contovou.net> <contovob@tcd.ie>
 Bastien Guerry <bzg@gnu.org>
 Bastien Guerry <bzg@gnu.org> <bastien1@free.fr>
 Bastien Guerry <bzg@gnu.org> <bzg@altern.org>
@@ -60,7 +63,7 @@ Era Eriksson <era+emacs@iki.fi> <era+emacsbugs@iki.fi>
 Eric Ludlam <zappo@gnu.org>
 Eric Ludlam <zappo@gnu.org> <eric@siege-engine.com>
 Eric Ludlam <zappo@gnu.org> <ericludlam@gmail.com>
-Eric S. Raymond <esr@thyrsus.com>
+Eric S. Raymond <esr@thyrsus.com> <esr@snark.thyrsus.com>
 Etienne Prud’homme <e.e.f.prudhomme@gmail.com>
 Fabián Ezequiel Gallina <fgallina@gnu.org> <fgallina@cuca>
 Fabián Ezequiel Gallina <fgallina@gnu.org> <galli.87@gmail.com>
@@ -89,11 +92,13 @@ Joakim Verona <joakim@verona.se> <root@exodia.verona.se>
 John Wiegley <johnw@newartisans.com> <jwiegley@gmail.com>
 Jose A. Ortega Ruiz <jao@gnu.org>
 João Távora <joaotavora@gmail.com>
+João Távora <joaotavora@gmail.com> <capitaomorte@archlinux2022.linuxvmimages.local>
 Julien Danjou <julien@danjou.info> <jd@dex.adm.naquadah.org>
 Julien Danjou <julien@danjou.info> Julien Danjou <jd@abydos>
 Juri Linkov <juri@linkov.net> <juri@jurta.org>
 Jérémy Compostella <jeremy.compostella@gmail.com>
 Jürgen Hötzel <juergen@archlinux.org>
+Justin Burkett <justin@burkett.cc>
 Karl Fogel <kfogel@red-bean.com> <karl.fogel@canonical.com>
 Katsumi Yamaoka <yamaoka@jpl.org> <katsumi@flagship2>
 Kaushal Modi <kaushal.modi@gmail.com>
@@ -113,6 +118,7 @@ Lars Ingebrigtsen <larsi@gnus.org> <larsi@quimbies.gnus.org>
 Lars Ingebrigtsen <larsi@gnus.org> <larsi@stories.gnus.org>
 Laurence Warne <laurencewarne@gmail.com>
 Lin Sun <lin.sun@zoom.us>
+Liu Hui <liuhui1610@gmail.com> <ilupin@users.noreply.github.com>
 Ludovic Courtès <ludo@gnu.org>
 Luke Lee <luke.yx.lee@gmail.com>
 Martin Rudalics <rudalics@gmx.at>
@@ -121,11 +127,12 @@ Masatake YAMATO <yamato@redhat.com> <jet@gyve.org>
 Matt Armstrong <matt@rfc20.org> <marmstrong@google.com>
 Matt Armstrong <matt@rfc20.org> <matt@mdeb>
 Mattias Engdegård <mattiase@acm.org>
+Mattias Engdegård <mattiase@acm.org> <mattias.engdegard@gmail.com>
 Maxim Nikulin <manikulin@gmail.com>
 Michael Albinus <michael.albinus@gmx.de> <albinus@detlef>
 Michalis V <mvar.40k@gmail.com>
 Miha Rihtaršič <miha@kamnitnik.top>
-Morgan J. Smith <Morgan.J.Smith@outlook.com>
+Morgan Smith <Morgan.J.Smith@outlook.com>
 Nick Drozd <nicholasdrozd@gmail.com>
 Nicolas Petton <nicolas@petton.fr> <petton.nicolas@gmail.com>
 Nitish Chandra <nitishchandrachinta@gmail.com>
@@ -142,8 +149,7 @@ Philip Kaludercic <philipk@posteo.net>
 Philip Kaludercic <philipk@posteo.net> <philip.kaludercic@fau.de>
 Philip Kaludercic <philipk@posteo.net> <philip@icterid>
 Philip Kaludercic <philipk@posteo.net> <philip@warpmail.net>
-Philipp Stephani <phst@google.com>
-Philipp Stephani <phst@google.com> Philipp Stephani <p.stephani2@gmail.com>
+Philipp Stephani <p.stephani2@gmail.com>
 Phillip Lord <phillip.lord@russet.org.uk> <phillip.lord@newcastle.ac.uk>
 Pierre Lorenzon <devel@pollock-nageoire.net>
 Pieter van Oostrum <pieter@vanoostrum.org> <pieter-l@vanoostrum.org>
@@ -160,8 +166,8 @@ Ronnie Schnell <ronnie@driver-aces.com>
 Ryan C. Thompson <rct@thompsonclan.org>
 Sam Steingold <sds@gnu.org> <sdsg@amazon.com>
 Simen Heggestøyl <simenheg@runbox.com>
-Simen Heggestøyl <simenheg@runbox.com> <simenheg@ifi.uio.no>
 Simen Heggestøyl <simenheg@runbox.com> <simenheg@gmail.com>
+Simen Heggestøyl <simenheg@runbox.com> <simenheg@ifi.uio.no>
 Simon Josefsson <simon@josefsson.org> <jas@extundo.com>
 Stefan Kangas <stefankangas@gmail.com> <stefan@marxist.se>
 Stefan Monnier <monnier@iro.umontreal.ca> <monnier@IRO.UMontreal.CA>
@@ -189,6 +195,7 @@ Wolfgang Scherer <wolfgang.scherer@gmx.de> <Wolfgang.Scherer@gmx.de>
 Xi Lu <lx@shellcodes.org>
 Xue Fuqiao <xfq.free@gmail.com> <xfq@gnu.org>
 Yilkal Argaw <yilkalargawworkneh@gmail.com>
+Yuan Fu <casouri@gmail.com> <yuan@debian-BULLSEYE-live-builder-AMD64>
 Yuuki Harano <masm+github@masm11.me> <masm@masm11.ddo.jp>
 Óscar Fuentes <ofv@wanadoo.es>
 İ. Göktuğ Kayaalp <self@gkayaalp.com>

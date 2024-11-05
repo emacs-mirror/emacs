@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Dired
@@ -141,6 +141,10 @@ characters well.  If you have many such files, you may consider adding
 @samp{-b} to @code{dired-listing-switches}.  This will quote all
 special characters and allow Dired to handle them better.  (You can
 also use the @kbd{C-u C-x d} command to add @samp{-b} temporarily.)
+
+@code{dired-listing-switches} can be declared as connection-local
+variable to adjust it to match what a remote system expects
+(@pxref{Connection Variables}).
 
 @vindex dired-switches-in-mode-line
   Dired displays in the mode line an indication of what were the
@@ -799,15 +803,22 @@ The @code{dired-keep-marker-copy} user option controls how this
 command handles file marking.  The default is to mark all new copies
 of files with a @samp{C} mark.
 
-@item D
 @findex dired-do-delete
 @kindex D @r{(Dired)}
+@item D
 Delete the specified files (@code{dired-do-delete}).  This is like the
 shell command @code{rm}.
 
 Like the other commands in this section, this command operates on the
 @emph{marked} files, or the next @var{n} files.  By contrast, @kbd{x}
 (@code{dired-do-flagged-delete}) deletes all @dfn{flagged} files.
+
+@findex dired-do-open
+@kindex E @r{(Dired)}
+@item E
+``Open'' the specified files using an external program (@code{dired-do-open}).
+The program is selected according to the system conventions, as
+determined by the variable @code{shell-command-guess-open}.
 
 @findex dired-do-rename
 @kindex R @r{(Dired)}
@@ -1163,11 +1174,20 @@ guessing off.  The elements of @code{dired-guess-shell-alist-user}
 (defined by the user) will override these rules.
 @end defvar
 
+@defvar dired-guess-shell-alist-optional
+This variable is like @code{dired-guess-shell-alist-default} but
+contains external viewers and players for various media formats.
+Setting this to @code{nil} turns guessing off.  The variables
+@code{dired-guess-shell-alist-user} and
+@code{dired-guess-shell-alist-default} will override these rules.
+@end defvar
+
 @defvar dired-guess-shell-alist-user
 If non-@code{nil}, this variable specifies the user-defined alist of
 file regexps and their suggested commands.  These rules take
-precedence over the predefined rules in the variable
-@code{dired-guess-shell-alist-default} when
+precedence over the predefined rules in the variables
+@code{dired-guess-shell-alist-default} and
+@code{dired-guess-shell-alist-optional} when
 @code{dired-do-shell-command} is run).  The default is @code{nil}.
 
 Each element of the alist looks like
@@ -1667,6 +1687,45 @@ directory, and displays them all in the thumbnail buffer.  The
 thumbnails are generated in the background and are loaded as they
 become available.
 
+@vindex image-dired-thumbnail-storage
+  Image-Dired supports three methods of generating and storing
+thumbnails, controlled by the value of the option
+@code{image-dired-thumbnail-storage}:
+
+@table @code
+@vindex image-dired-dir
+@vindex image-dired-thumb-naming
+@item image-dired
+This method stores thumbnails as JPEG images in a single directory
+specified by the variable @code{image-dired-dir}.  This is the default.
+The names of the thumbnail files are in this case constructed according
+to the value of @code{image-dired-thumb-naming}.
+@item standard
+@itemx standard-large
+@itemx standard-x-large
+@itemx standard-xx-large
+These methods, mandated by the
+@url{https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html,
+Thumbnail Managing Standard}, store thumbnails as @acronym{PNG} images
+under the @file{thumbnails} subdirectory of the directory specified by
+the environment variable @env{XDG_CACHE_HOME} (which defaults to
+@file{~/.cache}).
+@item per-directory
+This method stores the thumbnails of each directory in a
+@file{.image-dired} subdirectory of that directory, as @acronym{jpeg}
+images.
+@end table
+
+@vindex image-dired-thumb-size
+  You can control the size of the thumbnail images by customizing the
+variable @code{image-dired-thumb-size}.  The default is 128 pixels.
+This variable is in effect only for the first and the third method of
+thumbnail storage described above; the Thumbnail Managing Standard uses
+fixed sizes determined by the method: @code{standard} uses 128 pixels,
+@code{standard-large} 256 pixels, etc.  If you change the size after
+some thumbnails were already created, you need to erase the thumbnail
+files from their directory to have the new size take effect.
+
 @findex image-dired-display-this
 @findex image-dired-display-next
 @findex image-dired-display-previous
@@ -1724,6 +1783,13 @@ a comment from Dired (@code{image-dired-dired-comment-files}).
 @kbd{C-t e} will bring a buffer to edit comment and tags
 (@code{image-dired-dired-edit-comment-and-tags}).
 
+@findex image-dired-thumbnail-set-image-description
+  If you have the @command{exiftool} program installed, you can set the
+@acronym{EXIF} @samp{ImageDescription} tag of an image file by invoking
+the @code{image-dired-thumbnail-set-image-description} command with
+point at the thumbnail of the image file.  This command prompts for the
+description of the image, and adds the @acronym{EXIF} tag to it.
+
 @vindex image-dired-thumb-visible-marks
   Files that are marked in Dired will also be marked in Image-Dired if
 @code{image-dired-thumb-visible-marks} is non-@code{nil} (which is the
@@ -1750,6 +1816,16 @@ the directory name, and will include in that line the space used by
 the files in the current directory as well as the available disk
 space.  If you set this to @code{nil}, the available disk space
 information will not be displayed at all.
+
+@vindex dired-check-symlinks
+  Dired fontifies the items in the Dired buffer.  If the
+@code{default-directory} of that buffer is remote, this might be
+expensive for symbolic links, because their @code{file-truename} needs
+to be accessed.  To avoid slowdown in Dired due to this, set user option
+@code{dired-check-symlinks} to @code{nil} for remote directories which
+suffer from a slow connection.  It can be declared as connection-local
+variable to match how a remote system is connectable (@pxref{Connection
+Variables}).
 
 @kindex + @r{(Dired)}
 @findex dired-create-directory

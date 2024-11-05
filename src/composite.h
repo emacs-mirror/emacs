@@ -1,5 +1,5 @@
 /* Header for composite sequence handler.
-   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 2001-2024 Free Software Foundation, Inc.
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -84,23 +84,20 @@ composition_registered_p (Lisp_Object prop)
    ? XCDR (XCDR (XCDR (prop)))			\
    : CONSP (prop) ? XCDR (prop) : Qnil)
 
+#define COMPOSITION_KEY(cmp) (cmp)->key
+
 /* Return the Nth glyph of composition specified by CMP.  CMP is a
    pointer to `struct composition'.  */
 #define COMPOSITION_GLYPH(cmp, n)					\
-  XFIXNUM (XVECTOR (XVECTOR (XHASH_TABLE (composition_hash_table)		\
-			  ->key_and_value)				\
-		 ->contents[cmp->hash_index * 2])			\
-	->contents[cmp->method == COMPOSITION_WITH_RULE_ALTCHARS	\
-		  ? (n) * 2 : (n)])
+  XFIXNUM (AREF (COMPOSITION_KEY (cmp),					\
+		 (cmp)->method == COMPOSITION_WITH_RULE_ALTCHARS	\
+		 ? (n) * 2 : (n)))
 
 /* Return the encoded composition rule to compose the Nth glyph of
    rule-base composition specified by CMP.  CMP is a pointer to
    `struct composition'. */
-#define COMPOSITION_RULE(cmp, n)				\
-  XFIXNUM (XVECTOR (XVECTOR (XHASH_TABLE (composition_hash_table)	\
-			  ->key_and_value)			\
-		 ->contents[cmp->hash_index * 2])		\
-	->contents[(n) * 2 - 1])
+#define COMPOSITION_RULE(cmp, n)					\
+  XFIXNUM (AREF (COMPOSITION_KEY (cmp), (n) * 2 - 1))
 
 /* Decode encoded composition rule RULE_CODE into GREF (global
    reference point code), NREF (new ref. point code).  Don't check RULE_CODE;
@@ -165,8 +162,8 @@ struct composition {
   /* Method of the composition.  */
   enum composition_method method;
 
-  /* Index to the composition hash table.  */
-  ptrdiff_t hash_index;
+  /* The key under which it's found in the composition hash table.  */
+  Lisp_Object key;
 
   /* For which font we have calculated the remaining members.  The
      actual type is device dependent.  */
@@ -202,6 +199,7 @@ extern bool find_composition (ptrdiff_t, ptrdiff_t, ptrdiff_t *, ptrdiff_t *,
 extern void update_compositions (ptrdiff_t, ptrdiff_t, int);
 extern void make_composition_value_copy (Lisp_Object);
 extern void syms_of_composite (void);
+extern void mark_composite (void);
 extern void compose_text (ptrdiff_t, ptrdiff_t, Lisp_Object, Lisp_Object,
                           Lisp_Object);
 
@@ -262,8 +260,8 @@ composition_valid_p (ptrdiff_t start, ptrdiff_t end, Lisp_Object prop)
 #define LGSTRING_CHAR(lgs, i) AREF (LGSTRING_HEADER (lgs), (i) + 1)
 #define LGSTRING_CHAR_LEN(lgs) (ASIZE (LGSTRING_HEADER (lgs)) - 1)
 
-#define LGSTRING_SET_FONT(lgs, val) ASET (LGSTRING_HEADER (lgs), 0, (val))
-#define LGSTRING_SET_CHAR(lgs, i, c) ASET (LGSTRING_HEADER (lgs), (i) + 1, (c))
+#define LGSTRING_SET_FONT(lgs, val) ASET (LGSTRING_HEADER (lgs), 0, val)
+#define LGSTRING_SET_CHAR(lgs, i, c) ASET (LGSTRING_HEADER (lgs), (i) + 1, c)
 
 #define LGSTRING_ID(lgs) AREF (lgs, 1)
 #define LGSTRING_SET_ID(lgs, id) ASET (lgs, 1, id)
@@ -272,9 +270,9 @@ composition_valid_p (ptrdiff_t start, ptrdiff_t end, Lisp_Object prop)
    LGSTRING can hold.  This is NOT the actual number of valid LGLYPHs;
    to find the latter, walk the glyphs returned by LGSTRING_GLYPH
    until the first one that is nil.  */
-#define LGSTRING_GLYPH_LEN(lgs) (ASIZE ((lgs)) - 2)
-#define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 2)
-#define LGSTRING_SET_GLYPH(lgs, idx, val) ASET ((lgs), (idx) + 2, (val))
+#define LGSTRING_GLYPH_LEN(lgs) (ASIZE (lgs) - 2)
+#define LGSTRING_GLYPH(lgs, idx) AREF (lgs, (idx) + 2)
+#define LGSTRING_SET_GLYPH(lgs, idx, val) ASET (lgs, (idx) + 2, val)
 INLINE Lisp_Object *
 lgstring_glyph_addr (Lisp_Object lgs, ptrdiff_t idx)
 {
@@ -300,33 +298,33 @@ enum lglyph_indices
    contributed to the glyph (since there isn't a 1:1 correspondence
    between composed characters and the font glyphs).  */
 #define LGLYPH_NEW() make_nil_vector (LGLYPH_SIZE)
-#define LGLYPH_FROM(g) XFIXNUM (AREF ((g), LGLYPH_IX_FROM))
-#define LGLYPH_TO(g) XFIXNUM (AREF ((g), LGLYPH_IX_TO))
-#define LGLYPH_CHAR(g) XFIXNUM (AREF ((g), LGLYPH_IX_CHAR))
+#define LGLYPH_FROM(g) XFIXNUM (AREF (g, LGLYPH_IX_FROM))
+#define LGLYPH_TO(g) XFIXNUM (AREF (g, LGLYPH_IX_TO))
+#define LGLYPH_CHAR(g) XFIXNUM (AREF (g, LGLYPH_IX_CHAR))
 #define LGLYPH_CODE(g)						\
-  (NILP (AREF ((g), LGLYPH_IX_CODE))				\
+  (NILP (AREF (g, LGLYPH_IX_CODE))				\
    ? FONT_INVALID_CODE						\
    : cons_to_unsigned (AREF (g, LGLYPH_IX_CODE), TYPE_MAXIMUM (unsigned)))
-#define LGLYPH_WIDTH(g) XFIXNUM (AREF ((g), LGLYPH_IX_WIDTH))
-#define LGLYPH_LBEARING(g) XFIXNUM (AREF ((g), LGLYPH_IX_LBEARING))
-#define LGLYPH_RBEARING(g) XFIXNUM (AREF ((g), LGLYPH_IX_RBEARING))
-#define LGLYPH_ASCENT(g) XFIXNUM (AREF ((g), LGLYPH_IX_ASCENT))
-#define LGLYPH_DESCENT(g) XFIXNUM (AREF ((g), LGLYPH_IX_DESCENT))
-#define LGLYPH_ADJUSTMENT(g) AREF ((g), LGLYPH_IX_ADJUSTMENT)
-#define LGLYPH_SET_FROM(g, val) ASET ((g), LGLYPH_IX_FROM, make_fixnum (val))
-#define LGLYPH_SET_TO(g, val) ASET ((g), LGLYPH_IX_TO, make_fixnum (val))
-#define LGLYPH_SET_CHAR(g, val) ASET ((g), LGLYPH_IX_CHAR, make_fixnum (val))
+#define LGLYPH_WIDTH(g) XFIXNUM (AREF (g, LGLYPH_IX_WIDTH))
+#define LGLYPH_LBEARING(g) XFIXNUM (AREF (g, LGLYPH_IX_LBEARING))
+#define LGLYPH_RBEARING(g) XFIXNUM (AREF (g, LGLYPH_IX_RBEARING))
+#define LGLYPH_ASCENT(g) XFIXNUM (AREF (g, LGLYPH_IX_ASCENT))
+#define LGLYPH_DESCENT(g) XFIXNUM (AREF (g, LGLYPH_IX_DESCENT))
+#define LGLYPH_ADJUSTMENT(g) AREF (g, LGLYPH_IX_ADJUSTMENT)
+#define LGLYPH_SET_FROM(g, val) ASET (g, LGLYPH_IX_FROM, make_fixnum (val))
+#define LGLYPH_SET_TO(g, val) ASET (g, LGLYPH_IX_TO, make_fixnum (val))
+#define LGLYPH_SET_CHAR(g, val) ASET (g, LGLYPH_IX_CHAR, make_fixnum (val))
 /* Callers must assure that VAL is not negative!  */
 #define LGLYPH_SET_CODE(g, val)						\
   ASET (g, LGLYPH_IX_CODE,						\
 	val == FONT_INVALID_CODE ? Qnil : INT_TO_INTEGER (val))
 
-#define LGLYPH_SET_WIDTH(g, val) ASET ((g), LGLYPH_IX_WIDTH, make_fixnum (val))
-#define LGLYPH_SET_LBEARING(g, val) ASET ((g), LGLYPH_IX_LBEARING, make_fixnum (val))
-#define LGLYPH_SET_RBEARING(g, val) ASET ((g), LGLYPH_IX_RBEARING, make_fixnum (val))
-#define LGLYPH_SET_ASCENT(g, val) ASET ((g), LGLYPH_IX_ASCENT, make_fixnum (val))
-#define LGLYPH_SET_DESCENT(g, val) ASET ((g), LGLYPH_IX_DESCENT, make_fixnum (val))
-#define LGLYPH_SET_ADJUSTMENT(g, val) ASET ((g), LGLYPH_IX_ADJUSTMENT, (val))
+#define LGLYPH_SET_WIDTH(g, val) ASET (g, LGLYPH_IX_WIDTH, make_fixnum (val))
+#define LGLYPH_SET_LBEARING(g, val) ASET (g, LGLYPH_IX_LBEARING, make_fixnum (val))
+#define LGLYPH_SET_RBEARING(g, val) ASET (g, LGLYPH_IX_RBEARING, make_fixnum (val))
+#define LGLYPH_SET_ASCENT(g, val) ASET (g, LGLYPH_IX_ASCENT, make_fixnum (val))
+#define LGLYPH_SET_DESCENT(g, val) ASET (g, LGLYPH_IX_DESCENT, make_fixnum (val))
+#define LGLYPH_SET_ADJUSTMENT(g, val) ASET (g, LGLYPH_IX_ADJUSTMENT, val)
 
 #define LGLYPH_XOFF(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
 			? XFIXNUM (AREF (LGLYPH_ADJUSTMENT (g), 0)) : 0)

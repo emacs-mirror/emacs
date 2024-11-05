@@ -1,6 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -825,7 +825,7 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 
 (defun reb-restart-font-lock ()
   "Restart `font-lock-mode' to fit current regexp format."
-  (with-current-buffer (get-buffer reb-buffer)
+  (with-current-buffer reb-buffer
     (let ((font-lock-is-on font-lock-mode))
       (font-lock-mode -1)
       (kill-local-variable 'font-lock-set-defaults)

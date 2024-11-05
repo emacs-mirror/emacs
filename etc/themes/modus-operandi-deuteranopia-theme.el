@@ -1,11 +1,10 @@
 ;;; modus-operandi-deuteranopia-theme.el --- Deuteranopia-optimized theme with a white background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2023  Free Software Foundation, Inc.
+;; Copyright (C) 2019-2024  Free Software Foundation, Inc.
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
-;; Maintainer: Modus-Themes Development <~protesilaos/modus-themes@lists.sr.ht>
-;; URL: https://git.sr.ht/~protesilaos/modus-themes
-;; Mailing-List: https://lists.sr.ht/~protesilaos/modus-themes
+;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
+;; URL: https://github.com/protesilaos/modus-themes
 ;; Keywords: faces, theme, accessibility
 
 ;; This file is part of GNU Emacs.
@@ -43,6 +42,7 @@
                (require-theme 'modus-themes t))
     (require 'modus-themes))
 
+;;;###theme-autoload
   (deftheme modus-operandi-deuteranopia
     "Deuteranopia-optimized theme with a white background.
 This variant is optimized for users with red-green color
@@ -50,14 +50,17 @@ deficiency (deuteranopia).  It conforms with the highest
 legibility standard for color contrast between background and
 foreground in any given piece of text, which corresponds to a
 minimum contrast in relative luminance of 7:1 (WCAG AAA
-standard).")
+standard)."
+    :background-mode 'light
+    :kind 'color-scheme
+    :family 'modus)
 
   (defconst modus-operandi-deuteranopia-palette
     '(
 ;;; Basic values
 
       (bg-main          "#ffffff")
-      (bg-dim           "#f0f0f0")
+      (bg-dim           "#f2f2f2")
       (fg-main          "#000000")
       (fg-dim           "#595959")
       (fg-alt           "#193668")
@@ -124,29 +127,37 @@ standard).")
       (bg-magenta-subtle  "#ffddff")
       (bg-cyan-subtle     "#bfefff")
 
-      (bg-red-nuanced     "#fff1f0")
-      (bg-green-nuanced   "#ecf7ed")
-      (bg-yellow-nuanced  "#fff3da")
-      (bg-blue-nuanced    "#f3f3ff")
-      (bg-magenta-nuanced "#fdf0ff")
-      (bg-cyan-nuanced    "#ebf6fa")
+      (bg-red-nuanced     "#ffe8e8")
+      (bg-green-nuanced   "#e0f6e0")
+      (bg-yellow-nuanced  "#f8f0d0")
+      (bg-blue-nuanced    "#ecedff")
+      (bg-magenta-nuanced "#f8e6f5")
+      (bg-cyan-nuanced    "#e0f2fa")
 
-;;; Uncommon accent backgrounds
+;;; Uncommon accent background and foreground pairs
 
-      (bg-ochre    "#f0e0cc")
-      (bg-lavender "#dfdbfa")
+      (bg-clay     "#f1c8b5")
+      (fg-clay     "#63192a")
+
+      (bg-ochre    "#f0e3c0")
+      (fg-ochre    "#573a30")
+
+      (bg-lavender "#dfcdfa")
+      (fg-lavender "#443379")
+
       (bg-sage     "#c0e7d4")
+      (fg-sage     "#124b41")
 
 ;;; Graphs
 
       (bg-graph-red-0     "#d0b029")
       (bg-graph-red-1     "#e0cab4")
-      (bg-graph-green-0   "#8ad080")
+      (bg-graph-green-0   "#8ac050")
       (bg-graph-green-1   "#afdfa5")
       (bg-graph-yellow-0  "#ffcf00")
       (bg-graph-yellow-1  "#f9ff00")
       (bg-graph-blue-0    "#7f9fff")
-      (bg-graph-blue-1    "#9fc6ff")
+      (bg-graph-blue-1    "#afd0ff")
       (bg-graph-magenta-0 "#b0b0d0")
       (bg-graph-magenta-1 "#d0dfdf")
       (bg-graph-cyan-0    "#6faad9")
@@ -155,7 +166,7 @@ standard).")
 ;;; Special purpose
 
       (bg-completion       "#c0deff")
-      (bg-hover            "#97dfed")
+      (bg-hover            "#b2e4dc")
       (bg-hover-secondary  "#f5d0a0")
       (bg-hl-line          "#dae5ec")
       (bg-region           "#bdbdbd")
@@ -198,7 +209,7 @@ standard).")
 
       (bg-removed         "#f4f099")
       (bg-removed-faint   "#f6f6b7")
-      (bg-removed-refine  "#f0e56f")
+      (bg-removed-refine  "#ede06f")
       (bg-removed-fringe  "#c0b200")
       (fg-removed         "#553d00")
       (fg-removed-intense "#7f6f00")
@@ -208,6 +219,7 @@ standard).")
 ;;; Paren match
 
       (bg-paren-match        "#5fcfff")
+      (fg-paren-match        fg-main)
       (bg-paren-expression   "#efd3f5")
       (underline-paren-match unspecified)
 
@@ -237,21 +249,31 @@ standard).")
       (bg-prominent-note bg-cyan-intense)
       (fg-prominent-note fg-main)
 
+      (bg-active-argument bg-yellow-nuanced)
+      (fg-active-argument yellow-warmer)
+      (bg-active-value bg-blue-nuanced)
+      (fg-active-value blue-warmer)
+
 ;;;; Code mappings
 
+      (bracket fg-main)
       (builtin magenta-warmer)
       (comment yellow-cooler)
       (constant blue-cooler)
-      (docstring green-faint)
+      (delimiter fg-main)
       (docmarkup magenta-faint)
+      (docstring green-faint)
       (fnname magenta)
       (keyword magenta-cooler)
+      (number fg-main)
+      (operator fg-main)
       (preprocessor red-cooler)
+      (punctuation fg-main)
+      (rx-backslash blue-cooler)
+      (rx-construct yellow-cooler)
       (string blue-warmer)
       (type cyan-cooler)
       (variable cyan)
-      (rx-construct yellow-cooler)
-      (rx-backslash blue-cooler)
 
 ;;;; Accent mappings
 
@@ -282,13 +304,16 @@ standard).")
 
       (date-common cyan)
       (date-deadline yellow-warmer)
+      (date-deadline-subtle red-faint)
       (date-event fg-alt)
       (date-holiday yellow-warmer)
-      (date-now blue-faint)
+      (date-holiday-other blue)
+      (date-now fg-main)
       (date-range fg-alt)
       (date-scheduled yellow-cooler)
+      (date-scheduled-subtle yellow-faint)
       (date-weekday cyan)
-      (date-weekend yellow-faint)
+      (date-weekend magenta)
 
 ;;;; Line number mappings
 
@@ -338,16 +363,29 @@ standard).")
 
 ;;;; Prose mappings
 
-      (prose-block fg-dim)
-      (prose-code cyan-cooler)
+      (bg-prose-block-delimiter bg-dim)
+      (fg-prose-block-delimiter fg-dim)
+      (bg-prose-block-contents bg-dim)
+
+      (bg-prose-code unspecified)
+      (fg-prose-code cyan-cooler)
+
+      (bg-prose-macro unspecified)
+      (fg-prose-macro magenta-cooler)
+
+      (bg-prose-verbatim unspecified)
+      (fg-prose-verbatim magenta-warmer)
+
       (prose-done blue)
-      (prose-macro magenta-cooler)
+      (prose-todo yellow-warmer)
+
       (prose-metadata fg-dim)
       (prose-metadata-value fg-alt)
+
       (prose-table fg-alt)
+      (prose-table-formula yellow-warmer)
+
       (prose-tag magenta-faint)
-      (prose-todo yellow-warmer)
-      (prose-verbatim magenta-warmer)
 
 ;;;; Rainbow mappings
 
@@ -361,11 +399,64 @@ standard).")
       (rainbow-7 yellow-faint)
       (rainbow-8 cyan)
 
+;;;; Search mappings
+
+      (bg-search-current bg-yellow-intense)
+      (bg-search-lazy bg-blue-intense)
+      (bg-search-replace bg-magenta-intense)
+
+      (bg-search-rx-group-0 bg-cyan-intense)
+      (bg-search-rx-group-1 bg-magenta-intense)
+      (bg-search-rx-group-2 bg-blue-subtle)
+      (bg-search-rx-group-3 bg-yellow-subtle)
+
 ;;;; Space mappings
 
       (bg-space unspecified)
       (fg-space border)
       (bg-space-err bg-yellow-intense)
+
+;;;; Terminal mappings
+
+      (bg-term-black           "#000000")
+      (fg-term-black           "#000000")
+      (bg-term-black-bright    "#595959")
+      (fg-term-black-bright    "#595959")
+
+      (bg-term-red             red)
+      (fg-term-red             red)
+      (bg-term-red-bright      red-warmer)
+      (fg-term-red-bright      red-warmer)
+
+      (bg-term-green           green)
+      (fg-term-green           green)
+      (bg-term-green-bright    green-cooler)
+      (fg-term-green-bright    green-cooler)
+
+      (bg-term-yellow          yellow)
+      (fg-term-yellow          yellow)
+      (bg-term-yellow-bright   yellow-warmer)
+      (fg-term-yellow-bright   yellow-warmer)
+
+      (bg-term-blue            blue)
+      (fg-term-blue            blue)
+      (bg-term-blue-bright     blue-warmer)
+      (fg-term-blue-bright     blue-warmer)
+
+      (bg-term-magenta         magenta)
+      (fg-term-magenta         magenta)
+      (bg-term-magenta-bright  magenta-cooler)
+      (fg-term-magenta-bright  magenta-cooler)
+
+      (bg-term-cyan            cyan)
+      (fg-term-cyan            cyan)
+      (bg-term-cyan-bright     cyan-cooler)
+      (fg-term-cyan-bright     cyan-cooler)
+
+      (bg-term-white           "#a6a6a6")
+      (fg-term-white           "#a6a6a6")
+      (bg-term-white-bright    "#ffffff")
+      (fg-term-white-bright    "#ffffff")
 
 ;;;; Heading mappings
 
@@ -407,6 +498,19 @@ Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
 exists in the palette and is associated with a HEX-VALUE.")
 
+  (defcustom modus-operandi-deuteranopia-palette-user nil
+    "Like the `modus-operandi-deuteranopia-palette' for user-defined entries.
+This is meant to extend the palette with custom named colors and/or
+semantic palette mappings.  Those may then be used in combination with
+palette overrides (also see `modus-themes-common-palette-overrides' and
+`modus-operandi-deuteranopia-palette-overrides')."
+    :group 'modus-themes
+    :package-version '(modus-themes . "4.5.0")
+    :type '(repeat (list symbol (choice symbol string)))
+    :set #'modus-themes--set-option
+    :initialize #'custom-initialize-default
+    :link '(info-link "(modus-themes) Option to extend the palette for use with overrides"))
+
   (defcustom modus-operandi-deuteranopia-palette-overrides nil
     "Overrides for `modus-operandi-deuteranopia-palette'.
 
@@ -435,8 +539,5 @@ represents."
                       modus-operandi-deuteranopia-palette-overrides)
 
   (provide-theme 'modus-operandi-deuteranopia))
-
-;;;###theme-autoload
-(put 'modus-operandi-deuteranopia 'theme-properties '(:background-mode light :kind color-scheme :family modus))
 
 ;;; modus-operandi-deuteranopia-theme.el ends here

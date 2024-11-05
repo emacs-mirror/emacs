@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Copyright (C) 2008-2023 Free Software Foundation, Inc.
+Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -693,5 +693,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
         <string>Emacs requires permission to access the Downloads folder.</string>
         <key>NSRemovableVolumesUsageDescription</key>
         <string>Emacs requires permission to access files on Removable Volumes.</string>
+        <key>NSSpeechRecognitionUsageDescription</key>
+        <string>Emacs requires permission to handle any speech recognition.</string>
 </dict>
 </plist>

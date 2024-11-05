@@ -1,5 +1,5 @@
 /* Fringe handling (split from xdisp.c).
-   Copyright (C) 1985-1988, 1993-1995, 1997-2023 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1997-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1813,7 +1813,7 @@ init_fringe (void)
 
   fringe_bitmaps = xzalloc (max_fringe_bitmaps * sizeof *fringe_bitmaps);
 
-  verify (NIL_IS_ZERO);
+  static_assert (NIL_IS_ZERO);
   fringe_faces = xzalloc (max_fringe_bitmaps * sizeof *fringe_faces);
 }
 

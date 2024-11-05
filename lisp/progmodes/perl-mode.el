@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990, 1994, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: emacs-devel@gnu.org
@@ -46,10 +46,6 @@
 ;; move past leading white space; delete an empty comment; reindent a
 ;; comment; move to end of line; create an empty comment; tell you that
 ;; the line ends in a quoted string, or has a # which should be a \#.
-
-;; If your machine is slow, you may want to remove some of the bindings
-;; to perl-electric-terminator.  I changed the indenting defaults to be
-;; what Larry Wall uses in perl/lib, but left in all the options.
 
 ;; I also tuned a few things:  comments and labels starting in column
 ;; zero are left there by perl-indent-exp; perl-beginning-of-function
@@ -227,7 +223,10 @@
             "\\|=>"
             "\\|[?:.,;|&*=!~({[]"
             "\\|[^-+][-+]"    ;Bug#42168: `+' is intro but `++' isn't!
-            "\\|\\(^\\)\\)[ \t\n]*")))
+            "\\|\\(^\\)\\)[ \t\n]*"))
+
+  (defconst perl--format-regexp "^[ \t]*format.*=[ \t]*\\(\n\\)"
+  "Regexp to match the start of a format declaration."))
 
 (defun perl-syntax-propertize-function (start end)
   (let ((case-fold-search nil))
@@ -252,11 +251,20 @@
       ;; correctly the \() construct (Bug#11996) as well as references
       ;; to string values.
       ("\\(\\\\\\)['`\"($]" (1 (unless (nth 3 (syntax-ppss))
-                                       (string-to-syntax "."))))
+                                 (string-to-syntax "."))))
+      ;; A "$" in Perl code must escape the next char to protect against
+      ;; misinterpreting Perl's punctuation variables as unbalanced
+      ;; quotes or parens.  This is not needed in strings and broken in
+      ;; the special case of "$\"" (Bug#69604).  Make "$" a punctuation
+      ;; char in strings.
+      ("\\$" (0 (if (save-excursion
+                      (nth 3 (syntax-ppss (match-beginning 0))))
+                    (string-to-syntax ".")
+                  (string-to-syntax "/"))))
       ;; Handle funny names like $DB'stop.
       ("\\$ ?{?\\^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
       ;; format statements
-      ("^[ \t]*format.*=[ \t]*\\(\n\\)"
+      (perl--format-regexp
        (1 (prog1 "\"" (perl-syntax-propertize-special-constructs end))))
       ;; Propertize perl prototype chars `$%&*;+@\[]' as punctuation
       ;; in `sub' arg-specs like `sub myfun ($)' and `sub ($)'.  But
@@ -469,7 +477,7 @@
 		      (scan-error (goto-char startpos) nil))
 		  (not (or (nth 8 (parse-partial-sexp
 				   ;; Since we don't know if point is within
-				   ;; the first or the scond arg, we have to
+				   ;; the first or the second arg, we have to
 				   ;; start from the beginning.
 				   (if twoargs (1+ (nth 8 state)) (point))
 				   limit nil nil state 'syntax-table))
@@ -515,7 +523,7 @@
 				     (string-to-syntax "|e")
 				   (string-to-syntax "\"e")))
 	      (forward-char 1)
-	      ;; Re-use perl-syntax-propertize-special-constructs to handle the
+	      ;; Reuse perl-syntax-propertize-special-constructs to handle the
 	      ;; second part (the first delimiter of second part can't be
 	      ;; preceded by "s" or "tr" or "y", so it will not be considered
 	      ;; as twoarg).
@@ -648,7 +656,7 @@ create a new comment."
 ;;; Flymake support
 (defcustom perl-flymake-command '("perl" "-w" "-c")
   "External tool used to check Perl source code.
-This is a non empty list of strings, the checker tool possibly
+This is a non-empty list of strings: the checker tool possibly
 followed by required arguments.  Once launched it will receive
 the Perl source to be checked as its standard input."
   :version "26.1"
@@ -950,6 +958,17 @@ changed by, or (parse-state) if line starts in a quoted string."
 	(goto-char (- (point-max) pos)))
     shift-amt))
 
+(defun perl--end-of-format-p ()
+  "Non-nil if point is at the end of a format declaration, skipping whitespace."
+  (save-excursion
+    (skip-chars-backward " \t\n")
+    (beginning-of-line)
+    (when-let* ((comm (and (looking-at "^\\.$")
+                           (nth 8 (syntax-ppss)))))
+      (goto-char comm)
+      (beginning-of-line)
+      (looking-at perl--format-regexp))))
+
 (defun perl-continuation-line-p ()
   "Move to end of previous line and return non-nil if continued."
   ;; Statement level.  Is it a continuation or a new statement?
@@ -963,12 +982,13 @@ changed by, or (parse-state) if line starts in a quoted string."
     (beginning-of-line)
     (perl-backward-to-noncomment))
   ;; Now we get the answer.
-  (unless (memq (preceding-char) '(?\; ?\} ?\{))
+  (unless (or (memq (preceding-char) '(?\; ?\} ?\{))
+              (perl--end-of-format-p))
     (preceding-char)))
 
 (defun perl-hanging-paren-p ()
   "Non-nil if we are right after a hanging parenthesis-like char."
-  (and (looking-at "[ \t]*$")
+  (and (looking-at "[ \t]*\\(?:#.*\\)?$")
        (save-excursion
 	 (skip-syntax-backward " (") (not (bolp)))))
 
@@ -1003,7 +1023,9 @@ Returns (parse-state) if line starts inside a string."
 	   (state (syntax-ppss))
 	   (containing-sexp (nth 1 state))
 	   ;; Don't auto-indent in a quoted string or a here-document.
-	   (unindentable (or (nth 3 state) (eq 2 (nth 7 state)))))
+           (unindentable (or (nth 3 state) (eq 2 (nth 7 state))))
+           (format (and (nth 3 state)
+                        (char-equal (nth 3 state) ?\n))))
       (when (and (eq t (nth 3 state))
                  (save-excursion
                    (goto-char (nth 8 state))
@@ -1013,7 +1035,7 @@ Returns (parse-state) if line starts inside a string."
         (setq unindentable nil)
         (setq containing-sexp (nth 8 state)))
       (cond
-       (unindentable 'noindent)
+       (unindentable (if format 0 'noindent))
        ((null containing-sexp)          ; Line is at top level.
         (skip-chars-forward " \t\f")
         (if (memq (following-char)
@@ -1022,7 +1044,8 @@ Returns (parse-state) if line starts inside a string."
           ;; indent a little if this is a continuation line
           (perl-backward-to-noncomment)
           (if (or (bobp)
-                  (memq (preceding-char) '(?\; ?\})))
+                  (memq (preceding-char) '(?\; ?\}))
+                  (perl--end-of-format-p))
               0 perl-continued-statement-offset)))
        ((/= (char-after containing-sexp) ?{)
         ;; line is expression, not statement:
@@ -1105,16 +1128,9 @@ Returns (parse-state) if line starts inside a string."
             ;; Move back over whitespace before the openbrace.
             ;; If openbrace is not first nonwhite thing on the line,
             ;; add the perl-brace-imaginary-offset.
-            (progn (skip-chars-backward " \t")
-                   (if (bolp) 0 perl-brace-imaginary-offset))
-            ;; If the openbrace is preceded by a parenthesized exp,
-            ;; move to the beginning of that;
-            ;; possibly a different line
-            (progn
-              (if (eq (preceding-char) ?\))
-                  (forward-sexp -1))
-              ;; Get initial indentation of the line we are on.
-              (current-indentation)))))))))
+            (save-excursion (skip-chars-backward " \t")
+                            (if (bolp) 0 perl-brace-imaginary-offset))
+            (perl-indent-new-calculate 'virtual))))))))
 
 (defun perl-backward-to-noncomment ()
   "Move point backward to after the first non-white-space, skipping comments."

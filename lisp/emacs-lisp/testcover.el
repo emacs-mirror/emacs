@@ -1,6 +1,6 @@
 ;;; testcover.el --- Visual code-coverage tool  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: lisp utility
@@ -469,7 +469,7 @@ or return multiple values."
      ;; form to look odd. See bug#25316.
      'testcover-1value)
 
-    (`(\` ,bq-form)
+    (`(,'\` ,bq-form)
      (testcover-analyze-coverage-backquote-form bq-form))
 
     ((or 't 'nil (pred keywordp))
@@ -548,7 +548,7 @@ FORM is treated as if it will be evaluated."
        'testcover-1value))
     ((pred atom)
      'testcover-1value)
-    (`(\` ,bq-form)
+    (`(,'\` ,bq-form)
      (testcover-analyze-coverage-backquote-form bq-form))
     (`(defconst ,sym ,val . ,_)
      (push sym testcover-module-constants)

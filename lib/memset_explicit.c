@@ -1,5 +1,5 @@
 /* Erase sensitive data from memory.
-   Copyright 2022-2023 Free Software Foundation, Inc.
+   Copyright 2022-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -16,11 +16,7 @@
 
 #include <config.h>
 
-/* memset_s need this define */
-#if HAVE_MEMSET_S
-# define __STDC_WANT_LIB_EXT1__ 1
-#endif
-
+/* Specification.  */
 #include <string.h>
 
 /* Set S's bytes to C, where S has LEN bytes.  The compiler will not

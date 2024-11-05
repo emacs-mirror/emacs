@@ -1,6 +1,6 @@
 ;;; semantic/senator.el --- SEmantic NAvigaTOR  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -85,8 +85,8 @@ tag, where possible."
 
 (defcustom senator-highlight-found nil
   "If non-nil, Senator commands momentarily highlight found tags."
-  :type 'boolean)
-(make-variable-buffer-local 'senator-highlight-found)
+  :type 'boolean
+  :local t)
 
 ;;; Faces
 (defface senator-momentary-highlight-face

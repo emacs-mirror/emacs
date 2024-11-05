@@ -1,6 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -2285,14 +2285,16 @@ If FORCE is non-nil, the .newsrc file is read."
                       ;; doesn't change with each release) and the
                       ;; function that must be applied to convert the
                       ;; previous version into the current version.
-                      '(("September Gnus v0.1" nil
-                         gnus-convert-old-ticks)
-                        ("Oort Gnus v0.08"     "legacy-gnus-agent"
-                         gnus-agent-convert-to-compressed-agentview)
-                        ("Gnus v5.10.7"        "legacy-gnus-agent"
-                         gnus-agent-unlist-expire-days)
-                        ("Gnus v5.10.7"        "legacy-gnus-agent"
-                         gnus-agent-unhook-expire-days)))
+                      '(;;These all date back to 2004 or earlier!
+                        ;; ("September Gnus v0.1" nil
+                        ;;  gnus-convert-old-ticks)
+                        ;; ("Oort Gnus v0.08"     "legacy-gnus-agent"
+                        ;;  gnus-agent-convert-to-compressed-agentview)
+                        ;; ("Gnus v5.10.7"        "legacy-gnus-agent"
+                        ;;  gnus-agent-unlist-expire-days)
+                        ;; ("Gnus v5.10.7"        "legacy-gnus-agent"
+                        ;;  gnus-agent-unhook-expire-days)
+                        ))
               #'car-less-than-car)))
         ;; Skip converters older than the file version
         (while (and converters (>= fcv (caar converters)))

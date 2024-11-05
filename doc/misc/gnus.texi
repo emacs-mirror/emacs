@@ -8,7 +8,7 @@
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 1995--2023 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2024 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -715,6 +715,7 @@ Browsing the Web
 
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
+* Atom::                        Reading Atom Syndication Format feeds.
 
 Other Sources
 
@@ -975,6 +976,7 @@ Back End Interface
 * Writing New Back Ends::       Extending old back ends.
 * Hooking New Back Ends Into Gnus::  What has to be done on the Gnus end.
 * Mail-like Back Ends::         Some tips on mail back ends.
+* Web Feed Back Ends::          Easily defining back ends for web feeds.
 
 Various File Formats
 
@@ -3216,7 +3218,7 @@ if address "sender" "sieve-admin@@extundo.com" @{
 @end example
 
 To generate tests for multiple email-addresses use a group parameter
-like @code{(sieve address "sender" ("name@@one.org" else@@two.org"))}.
+like @code{(sieve address "sender" ("name@@one.org" "else@@two.org"))}.
 When generating a sieve script (@pxref{Sieve Commands}) Sieve code
 like the following is generated:
 
@@ -3372,7 +3374,7 @@ You can define different sorting to different groups via
 group by reverse date to see the latest news at the top and an
 @acronym{RSS} group by subject.  In this example, the first group is the
 Debian daily news group @code{gmane.linux.debian.user.news} from
-news.gmane.org.  The @acronym{RSS} group corresponds to the Debian
+news.gmane.io.  The @acronym{RSS} group corresponds to the Debian
 weekly news RSS feed
 @url{https://packages.debian.org/unstable/newpkg_main.en.rdf},
 @xref{RSS}.
@@ -4426,7 +4428,7 @@ A select method can be very long, like:
 
 @lisp
 (nntp "gmane"
-      (nntp-address "news.gmane.org")
+      (nntp-address "news.gmane.io")
       (nntp-end-of-line "\n")
       (nntp-open-connection-function
        nntp-open-via-rlogin-and-telnet)
@@ -5832,10 +5834,11 @@ message to the mailing list, and include the original message
 @kindex S v @r{(Summary)}
 @findex gnus-summary-very-wide-reply
 Mail a very wide reply to the author of the current article
-(@code{gnus-summary-wide-reply}).  A @dfn{very wide reply} is a reply
-that goes out to all people listed in the @code{To}, @code{From} (or
-@code{Reply-To}) and @code{Cc} headers in all the process/prefixed
-articles.  This command uses the process/prefix convention.
+(@code{gnus-summary-very-wide-reply}).  A @dfn{very wide reply} is a
+reply that goes out to all people listed in the @code{To}, @code{From}
+(or @code{Reply-To}) and @code{Cc} headers in all the process/prefixed
+articles.  This command uses the process/prefix convention.  If given a
+prefix argument, the body of the current article will also be yanked.
 
 @item S V
 @kindex S V @r{(Summary)}
@@ -5868,15 +5871,23 @@ original message but ignore the @code{Reply-To} field
 @findex gnus-summary-mail-forward
 @c @icon{gnus-summary-mail-forward}
 Forward the current article to some other person
-(@code{gnus-summary-mail-forward}).  If no prefix is given, the message
-is forwarded according to the value of (@code{message-forward-as-mime})
-and (@code{message-forward-show-mml}); if the prefix is 1, decode the
-message and forward directly inline; if the prefix is 2, forward message
-as an rfc822 @acronym{MIME} section; if the prefix is 3, decode message and
-forward as an rfc822 @acronym{MIME} section; if the prefix is 4, forward message
-directly inline; otherwise, the message is forwarded as no prefix given
-but use the flipped value of (@code{message-forward-as-mime}).  By
-default, the forwarded message is inlined into the mail.
+(@code{gnus-summary-mail-forward}).  If no prefix is given, the
+message is forwarded according to the value of
+(@code{message-forward-as-mime}) and
+(@code{message-forward-show-mml}); if the prefix is 1, decode the
+message and forward directly inline; if the prefix is 2, forward
+message as an rfc822 @acronym{MIME} section; if the prefix is 3,
+decode message and forward as an rfc822 @acronym{MIME} section; if the
+prefix is 4, forward message directly inline; otherwise, the message
+is forwarded as no prefix given but use the negated value of
+(@code{message-forward-as-mime}).  By default, the forwarded message
+is inlined into the mail.
+
+Which headers from the original message are included in the forwarded
+message is determined by options specific to @code{message-mode},
+@pxref{Forwarding,,, message}.  In addition, this command can be given
+the symbolic prefix @samp{a}, using @kbd{M-i a}, to include most original
+headers.
 
 @item S m
 @itemx m
@@ -6234,13 +6245,6 @@ For example, @code{(gnus-delay-initialize nil t)} means to do nothing.
 Presumably, you want to use the demon for sending due delayed articles.
 Just don't forget to set that up :-)
 @end table
-
-When delaying an article with @kbd{C-c C-j}, Message mode will
-automatically add a @code{"Date"} header with the current time.  In
-many cases you probably want the @code{"Date"} header to reflect the
-time the message is sent instead.  To do this, you have to delete
-@code{Date} from @code{message-draft-headers}.
-
 
 @node Marking Articles
 @section Marking Articles
@@ -7279,7 +7283,7 @@ The server has to support @acronym{NOV} for any of this to work.
 @cindex Gmane, @code{gnus-fetch-old-headers}
 This feature can seriously impact performance it ignores all locally
 cached header entries.  Setting it to @code{t} for groups for a server
-that doesn't expire articles (such as news.gmane.org), leads to very
+that doesn't expire articles (such as news.gmane.io), leads to very
 slow summary generation.
 
 @item gnus-fetch-old-ephemeral-headers
@@ -7418,6 +7422,22 @@ meaningful.  Here's one example:
        (concat (match-string 1 id) "@@" (match-string 2 id))
        header))))
 @end lisp
+
+And another example:  the protonmail bridge adds fake message-ids to
+@code{References} in message headers, which can confuse threading.  To
+remove these spurious ids
+
+@lisp
+(setq gnus-alter-header-function 'fix-protonmail-references)
+
+(defun fix-protonmail-references (header)
+  (setf (mail-header-references header)
+        (mapconcat
+         #'(lambda (x) (if (string-search "protonmail.internalid" x) "" x))
+         (gnus-split-references (mail-header-references header)) " "))
+  header)
+
+ @end lisp
 
 @end table
 
@@ -10538,7 +10558,7 @@ course, it'll make group entry somewhat slow.
 
 @vindex gnus-refer-thread-use-search
 If @code{gnus-refer-thread-use-search} is @code{nil} (the default)
-then thread-referral only looks for articles in the current group. If
+then thread-referral only looks for articles in the current group.  If
 this variable is @code{t} the server to which the current group
 belongs is searched (provided that searching is available for the
 server's backend).  If this variable is a list of servers, each server
@@ -11493,7 +11513,7 @@ even with @sc{xover} by registering the @code{Xref} lines of all
 articles you actually read, but if you kill the articles, or just mark
 them as read without reading them, Gnus will not get a chance to snoop
 the @code{Xref} lines out of these articles, and will be unable to use
-the cross reference mechanism.
+the cross-reference mechanism.
 
 @cindex LIST overview.fmt
 @cindex overview.fmt
@@ -12055,7 +12075,7 @@ article buffer.  There are many methods for doing that, but two of
 them are kind of default methods.
 
 If your Emacs copy has been built with libxml2 support, then Gnus uses
-Emacs' built-in, plain elisp Simple HTML Renderer @code{shr}
+Emacs's built-in, plain elisp Simple HTML Renderer @code{shr}
 @footnote{@code{shr} displays colors as declared in the @acronym{HTML}
 article but tries to adjust them in order to be readable.  If you
 prefer more contrast, @xref{FAQ 4-16}.} which is also used by Emacs'
@@ -14686,7 +14706,7 @@ Here's a complete example @code{nnimap} backend with a client-side
 
 If you're using Google's Gmail, you may want to see your Gmail labels
 when reading your mail.  Gnus can give you this information if you ask
-for @samp{X-GM-LABELS} in the variable @code{gnus-extra-headers}. For
+for @samp{X-GM-LABELS} in the variable @code{gnus-extra-headers}.  For
 example:
 
 @example
@@ -15367,7 +15387,7 @@ corresponding keywords.
 
 @item :mailbox
 The name of the mailbox to get mail from.  The default is @samp{INBOX}
-which normally is the mailbox which receives incoming mail. Instead of
+which normally is the mailbox which receives incoming mail.  Instead of
 a single mailbox, this can be a list of mailboxes to fetch mail from.
 
 @item :predicate
@@ -17250,6 +17270,7 @@ interfaces to these sources.
 @menu
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
+* Atom::                        Reading Atom Syndication Format feeds.
 @end menu
 
 The main caveat with all these web sources is that they probably won't
@@ -17493,6 +17514,42 @@ Parameters}) in order to display @samp{text/html} parts only in
  '("\\`nnrss:" (mm-discouraged-alternatives nil)))
 @end lisp
 
+
+@node Atom
+@subsection Atom
+@cindex nnatom
+@cindex Atom
+
+Some web sites provide an Atom Syndication Format feed.  Atom is a web
+feed format similar in function to RDF Site Summary (@pxref{RSS}).
+
+The @code{nnatom} back end allows you to add HTTP or local Atom feeds as
+Gnus servers, by adding them to @code{gnus-secondary-select-methods} or
+as foreign servers by pressing "B" in the @file{*Group*} buffer, for
+example (@pxref{Finding the News}).  The address of each server is its
+feed's location (though the address shouldn't be prefixed with <http://> or
+<https://>) and each server contains a single group which holds the
+feed's entries.
+
+Features of @code{nnatom} include:
+
+@itemize @bullet
+
+@item
+Server data is saved per-server in the @file{atom} sub-directory of
+@file{gnus-directory}.
+
+@item
+An article part is generated for both the summary and the content for
+each entry in the feed.  Content of all MIME types should be displayed
+correctly through Gnus (as long as they are supported and the feed
+specifies a MIME type).
+
+@item
+Article modification and publish dates are tracked, and articles are
+updated if changed.
+
+@end itemize
 
 @node Other Sources
 @section Other Sources
@@ -18020,7 +18077,7 @@ Here is an example:
  (nnselect-args
   . [["nnimap+work:mail" 595 100]
      ["nnimap+home:sent" 223 100]
-     ["nntp+news.gmane.org:gmane.emacs.gnus.general" 23666 100]]))
+     ["nntp+news.gmane.io:gmane.emacs.gnus.general" 23666 100]]))
 @end lisp
 
 The function is the identity and the argument is just the list of
@@ -19785,7 +19842,8 @@ may ask:
 @table @dfn
 @item If I read an article while plugged, do they get entered into the Agent?
 
-@strong{No}.  If you want this behavior, add
+Yes, because of the default value of
+@code{gnus-agent-eagerly-store-articles}.  An alternative is to add
 @code{gnus-agent-fetch-selected-article} to
 @code{gnus-select-article-hook}.
 
@@ -19805,7 +19863,7 @@ locally stored articles.
 @chapter Scoring
 @cindex scoring
 
-Other people use @dfn{kill files} (@pxref{Kill Files}, but we here at
+Other people use @dfn{kill files} (@pxref{Kill Files}), but we here at
 Gnus Towers like scoring better than killing, so we'd rather switch
 than fight.  Scoring and score files processing are more powerful and
 faster than processing of kill files.  Scoring also does something
@@ -20036,6 +20094,9 @@ Regexp matching.
 @item date
 @table @kbd
 
+@item r
+Regexp matching.
+
 @item b
 Before date.
 
@@ -20044,6 +20105,12 @@ After date.
 
 @item n
 This date.
+
+@item <
+Less than days.
+
+@item >
+Greater than days.
 @end table
 
 @item number
@@ -20347,7 +20414,7 @@ Anyway, if you'd like to dig into it yourself, here's an example:
  (read-only nil)
  (orphan -10)
  (adapt t)
- (files "/hom/larsi/News/gnu.SCORE")
+ (files "/home/larsi/News/gnu.SCORE")
  (exclude-files "all.SCORE")
  (local (gnus-newsgroup-auto-expire t)
         (gnus-summary-make-false-root empty))
@@ -20535,7 +20602,7 @@ key will lead to creation of @file{ADAPT} files.)
 @cindex score file atoms
 @item score-fn
 The value of this entry should be one or more user-defined function
-names in parentheses. Each function will be called in order and the
+names in parentheses.  Each function will be called in order and the
 returned value is required to be an integer.
 
 @example
@@ -21596,7 +21663,7 @@ Search Groups}).
 Search queries can be specified one of two ways: either using the
 syntax of the engine responsible for the group you're searching, or
 using Gnus' generalized search syntax.  Set the option
-@code{gnus-search-use-parsed-queries} to a non-@code{nil} value to used the
+@code{gnus-search-use-parsed-queries} to a non-@code{nil} value to use the
 generalized syntax.  The advantage of this syntax is that, if you have
 multiple backends indexed by different engines, you don't need to
 remember which one you're searching---it's also possible to issue the
@@ -22288,7 +22355,7 @@ calling @code{nnmairix-search} with @samp{f:From}.
 @item G G o
 @kindex G G o @r{(Summary)}
 @findex nnmairix-goto-original-article
-(Only in @code{nnmairix} groups!) Tries determine the group this article
+(Only in @code{nnmairix} groups!)  Tries to determine the group this article
 originally came from and displays the article in this group, so that,
 e.g., replying to this article the correct posting styles/group
 parameters are applied (@code{nnmairix-goto-original-article}).  This
@@ -24526,8 +24593,8 @@ that is needed.  It can also contain @samp{(@var{addr} @var{string}
 @var{amount})} cells, where the @var{string} is the string to use
 (normally the email address or newsgroup name is used).
 
-@item hashcash-path
-@vindex hashcash-path
+@item hashcash-program
+@vindex hashcash-program
 Where the @code{hashcash} binary is installed.  This variable should
 be automatically set by @code{executable-find}, but if it's @code{nil}
 (usually because the @code{hashcash} binary is not in your path)
@@ -24841,7 +24908,7 @@ ends such as Bogofilter (@pxref{Bogofilter}) and the Spam Statistics
 package (@pxref{Spam Statistics Filtering}).
 
 The spam and ham processors that apply to each group are determined by
-the group's@code{spam-process} group parameter.  If this group
+the group's @code{spam-process} group parameter.  If this group
 parameter is not defined, they are determined by the variable
 @code{gnus-spam-process-newsgroups}.
 
@@ -25155,9 +25222,9 @@ groups as spam and reports the to Gmane at group exit:
 @end lisp
 
 Additionally, I use @code{(setq spam-report-gmane-use-article-number nil)}
-because I don't read the groups directly from news.gmane.org, but
+because I don't read the groups directly from news.gmane.io, but
 through my local news server (leafnode).  I.e., the article numbers are
-not the same as on news.gmane.org, thus @code{spam-report.el} has to check
+not the same as on news.gmane.io, thus @code{spam-report.el} has to check
 the @code{X-Report-Spam} header to find the correct number.
 
 @node Spam Back Ends
@@ -25341,7 +25408,7 @@ added to a group's @code{spam-process} parameter, the spam-marked
 articles groups will be reported to the Gmane administrators via a
 HTTP request.
 
-Gmane was formerly found at @uref{http://gmane.org}.
+Gmane is at @uref{https://gmane.io}.
 
 @emph{WARNING}
 
@@ -26434,12 +26501,12 @@ lines:
 (setq gnus-refer-article-method
       '(current
         (nnregistry)
-        (nnweb "gmane" (nnweb-type gmane))))
+        (nnweb "google" (nnweb-type google))))
 @end example
 
 The example above instructs Gnus to first look up the article in the
 current group, or, alternatively, using the registry, and finally, if
-all else fails, using Gmane.
+all else fails, using Google.
 
 @node Fancy splitting to parent
 @subsection Fancy splitting to parent
@@ -26574,13 +26641,13 @@ data across multiple machines.
 
 Very often, you want all your marks (what articles you've read, which
 ones were important, and so on) to be synchronized between several
-machines. With IMAP, that's built into the protocol, so you can read
+machines.  With IMAP, that's built into the protocol, so you can read
 nnimap groups from many machines and they are automatically
-synchronized. But NNTP, nnrss, and many other backends do not store
+synchronized.  But NNTP, nnrss, and many other backends do not store
 marks, so you have to do it locally.
 
 The Gnus Cloud package stores the marks, plus any files you choose, on
-an IMAP server in a special folder. It's like a
+an IMAP server in a special folder.  It's like a
 DropTorrentSyncBoxOakTree(TM).@footnote{The name ``Gnus Cloud''
 parodizes but otherwise has little to do with ``cloud computing'', a
 @url{https://www.gnu.org/philosophy/words-to-avoid.html#CloudComputing,
@@ -26594,17 +26661,17 @@ misleading term normally best avoided}.}
 @node Gnus Cloud Setup
 @subsection Gnus Cloud Setup
 
-Setting up the Gnus Cloud takes less than a minute. From the Group
+Setting up the Gnus Cloud takes less than a minute.  From the Group
 buffer:
 
-Press @kbd{^} to go to the Server buffer. Here you'll see all the
+Press @kbd{^} to go to the Server buffer.  Here you'll see all the
 servers that Gnus knows. @xref{Server Buffer}.
 
 Then press @kbd{i} to mark any servers as cloud-synchronized (their marks are synchronized).
 
 Then press @kbd{I} to mark a single server as the cloud host (it must
 be an IMAP server, and will host a special IMAP folder with all the
-synchronization data). This will set the variable
+synchronization data).  This will set the variable
 @code{gnus-cloud-method} (using the Customize facilities), then ask
 you to optionally upload your first CloudSynchronizationDataPack(TM).
 
@@ -26624,37 +26691,37 @@ Download the latest Gnus Cloud data.
 @item ~ ~
 @findex gnus-cloud-upload-all-data
 @cindex cloud, download
-Upload the local Gnus Cloud data. Creates a new
+Upload the local Gnus Cloud data.  Creates a new
 CloudSynchronizationDataPack(TM).
 
 @end table
 
-But wait, there's more. Of course there's more. So much more. You can
+But wait, there's more.  Of course there's more.  So much more.  You can
 customize all of the following.
 
 @defvar gnus-cloud-synced-files
 These are the files that will be part of every
-CloudSynchronizationDataPack(TM). They are included in every upload,
-so don't synchronize a lot of large files. Files under 100Kb are best.
+CloudSynchronizationDataPack(TM).  They are included in every upload,
+so don't synchronize a lot of large files.  Files under 100Kb are best.
 @end defvar
 
 @defvar gnus-cloud-storage-method
-This is a choice from several storage methods. It's highly recommended
-to use the EPG facilities. It will be automatic if have GnuPG
-installed and EPG loaded. Otherwise, you could use Base64+gzip,
+This is a choice from several storage methods.  It's highly recommended
+to use the EPG facilities.  It will be automatic if have GnuPG
+installed and EPG loaded.  Otherwise, you could use Base64+gzip,
 Base64, or no encoding.
 @end defvar
 
 @defvar gnus-cloud-interactive
 When this is set, and by default it is, the Gnus Cloud package will
-ask you for confirmation here and there. Leave it on until you're
+ask you for confirmation here and there.  Leave it on until you're
 comfortable with the package.
 @end defvar
 
 
 @defvar gnus-cloud-method
 The name of the IMAP server to store the
-CloudSynchronizationDataPack(TM)s. It's easiest to set this from the
+CloudSynchronizationDataPack(TM)s.  It's easiest to set this from the
 Server buffer (@pxref{Gnus Cloud Setup}).
 @end defvar
 
@@ -26693,9 +26760,12 @@ buffers.  It is enabled with
 @table @kbd
 @item C-c C-m C-a
 @findex gnus-dired-attach
+@vindex gnus-dired-attach-at-end
 @cindex attachments, selection via dired
 Send dired's marked files as an attachment (@code{gnus-dired-attach}).
-You will be prompted for a message buffer.
+The function prompts for a message buffer, and by default attaches files
+to the end of that buffer; customize @code{gnus-dired-attach-at-end} to
+place the attachments at point instead.
 
 @item C-c C-m C-l
 @findex gnus-dired-find-file-mailcap
@@ -28808,7 +28878,7 @@ be read correctly in Emacs 22 and below.  If you want to use Gnus across
 different Emacs versions, you may set @code{mm-auto-save-coding-system}
 to @code{emacs-mule}.
 @c FIXME: Untested.  (Or did anyone test it?)
-@c Cf. http://thread.gmane.org/gmane.emacs.gnus.general/66251/focus=66344
+@c Cf. http://thread.gmane.org/gmane.emacs.gnus.general/66251/focus=66344 [dead link]
 
 @item Lisp files are now installed in @file{.../site-lisp/gnus/} by default.
 It defaulted to @file{.../site-lisp/} formerly.  In addition to this,
@@ -29321,13 +29391,13 @@ have names like @samp{gnu.emacs.gnus}.
 You can also have any number of foreign groups active at the same
 time.  These are groups that use non-native non-secondary back ends
 for getting news.  Foreign groups have names like
-@samp{nntp+news.gmane.org:gmane.emacs.gnus.devel}.
+@samp{nntp+news.gmane.io:gmane.emacs.gnus.devel}.
 
 @item secondary
 @cindex secondary
 Secondary back ends are somewhere half-way between being native and
 being foreign, but they mostly act like they are native, but they, too
-have names like @samp{nntp+news.gmane.org:gmane.emacs.gnus.devel}.
+have names like @samp{nntp+news.gmane.io:gmane.emacs.gnus.devel}.
 
 @item article
 @cindex article
@@ -29992,6 +30062,7 @@ In the examples and definitions I will refer to the imaginary back end
 * Writing New Back Ends::       Extending old back ends.
 * Hooking New Back Ends Into Gnus::  What has to be done on the Gnus end.
 * Mail-like Back Ends::         Some tips on mail back ends.
+* Web Feed Back Ends::          Easily defining back ends for web feeds.
 @end menu
 
 
@@ -30763,6 +30834,43 @@ this:
 (("a-group" (1 . 10))
  ("some-group" (34 . 39)))
 @end example
+
+
+@node Web Feed Back Ends
+@subsubsection Web Feed Back Ends
+
+If you want to write a back end for a new type of web feed (RSS,
+Atom), or some other type of feed, an ``abstract'' back end
+(@code{nnfeed}) exists to enable the creation of such back ends with
+minimal knowledge of Gnus.
+
+@code{nnfeed} defines a generic parser, which uses functions stored in
+server variables to parse information from a feed (@code{nnfeed}
+itself doesn't actually define any such functions though).
+
+The data parsed from the feed is stored in server variables (and
+stored per-feed in a sub-directory of @option{gnus-directory} whose name
+corresponds to the name of the back end).
+
+A Gnus back end interface is also defined, which uses the data parsed
+from the feed.
+
+Therefore, a new back end only needs to inherit from @code{nnfeed},
+define (fairly) generic parsing functions for the feed type and setup
+the required server variables.
+
+@code{nnfeed} was originally created to support Atom Syndication
+Format feeds (@pxref{Atom}), but is very generic (as of writing this,
+no standard web feed exists which can meaningfully use all the
+features supported): it supports multiple groups contained in a single
+feed, it allows for situations when the entire feed can't (or
+shouldn't) be read ahead of time and it allows for very advanced
+customization of the actual printing of articles from parsed data
+(while providing a reasonably powerful default method).
+
+Further implementation details are available in the documentation
+strings of the various @code{nnfeed-*} server variables and
+the commentary and other comments of @file{nnfeed.el}.
 
 
 @node Score File Syntax

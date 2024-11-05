@@ -1,6 +1,6 @@
 ;;; nadvice.el --- Light-weight advice primitives for Elisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions, lisp, tools
@@ -185,22 +185,22 @@ DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
 (defun advice--interactive-form-1 (function)
   "Like `interactive-form' but preserves the static context if needed."
   (let ((if (interactive-form function)))
-    (if (or (null if) (not (eq 'closure (car-safe function))))
+    (if (not (and if (interpreted-function-p function)))
         if
       (cl-assert (eq 'interactive (car if)))
       (let ((form (cadr if)))
-        (if (macroexp-const-p form)
+        (if (macroexp-const-p form)     ;Common case: a string.
             if
           ;; The interactive is expected to be run in the static context
           ;; that the function captured.
-          (let ((ctx (nth 1 function)))
+          (let ((ctx (aref function 2)))
             `(interactive
               ,(let* ((f (if (eq 'function (car-safe form)) (cadr form) form)))
                  ;; If the form jut returns a function, preserve the fact that
                  ;; it just returns a function, which is an info we use in
                  ;; `advice--make-interactive-form'.
                  (if (eq 'lambda (car-safe f))
-                     `',(eval form ctx)
+                     (eval form ctx)
                    `(eval ',form ',ctx))))))))))
 
 (defun advice--interactive-form (function)
@@ -292,14 +292,13 @@ HOW is a symbol to select an entry in `advice--how-alist'."
                               (equal function (cdr (assq 'name props))))
                           (list (advice--remove-function rest function)))))))
 
-(defvar advice--buffer-local-function-sample nil
-  "Keeps an example of the special \"run the default value\" functions.
-These functions play the same role as t in buffer-local hooks, and to recognize
-them, we keep a sample here against which to compare.  Each instance is
-different, but `function-equal' will hopefully ignore those differences.")
+(oclosure-define (advice--forward
+                  (:predicate advice--forward-p))
+  "Redirect to the global value of a var.
+These functions act like the t special value in buffer-local hooks.")
 
 (defun advice--set-buffer-local (var val)
-  (if (function-equal val advice--buffer-local-function-sample)
+  (if (advice--forward-p val)
       (kill-local-variable var)
     (set (make-local-variable var) val)))
 
@@ -308,11 +307,10 @@ different, but `function-equal' will hopefully ignore those differences.")
   "Buffer-local value of VAR, presumed to contain a function."
   (declare (gv-setter advice--set-buffer-local))
   (if (local-variable-p var) (symbol-value var)
-    (setq advice--buffer-local-function-sample
-          ;; This function acts like the t special value in buffer-local hooks.
-          ;; FIXME: Provide an `advice-bottom' function that's like
-          ;; `advice-cd*r' but also follows through this proxy.
-          (lambda (&rest args) (apply (default-value var) args)))))
+    ;; FIXME: Provide an `advice-bottom' function that's like
+    ;; `advice--cd*r' but also follows through this proxy.
+    (oclosure-lambda (advice--forward) (&rest args)
+      (apply (default-value var) args))))
 
 (eval-and-compile
   (defun advice--normalize-place (place)
@@ -391,26 +389,8 @@ is also interactive.  There are 3 cases:
   `(advice--add-function ,how (gv-ref ,(advice--normalize-place place))
                          ,function ,props))
 
-(declare-function comp-subr-trampoline-install "comp")
-
 ;;;###autoload
 (defun advice--add-function (how ref function props)
-  (when (and (featurep 'native-compile)
-             (subr-primitive-p (gv-deref ref)))
-    (let ((subr-name (intern (subr-name (gv-deref ref)))))
-      ;; Requiring the native compiler to advice `macroexpand' cause a
-      ;; circular dependency in eager macro expansion.  uniquify is
-      ;; advising `rename-buffer' while being loaded in loadup.el.
-      ;; This would require the whole native compiler machinery but we
-      ;; don't want to include it in the dump.  Because these two
-      ;; functions are already handled in
-      ;; `native-comp-never-optimize-functions' we hack the problem
-      ;; this way for now :/
-      (unless (memq subr-name '(macroexpand rename-buffer))
-        ;; Must require explicitly as during bootstrap we have no
-        ;; autoloads.
-        (require 'comp)
-        (comp-subr-trampoline-install subr-name))))
   (let* ((name (cdr (assq 'name props)))
          (a (advice--member-p (or name function) (if name t) (gv-deref ref))))
     (when a
@@ -529,8 +509,6 @@ HOW can be one of:
 <<>>"
   ;; TODO:
   ;; - record the advice location, to display in describe-function.
-  ;; - change all defadvice in lisp/**/*.el.
-  ;; - obsolete advice.el.
   (let* ((f (symbol-function symbol))
 	 (nf (advice--normalize symbol f)))
     (unless (eq f nf) (fset symbol nf))
@@ -561,6 +539,32 @@ Contrary to `remove-function', this also works when SYMBOL is a macro
 or an autoload and it preserves `fboundp'.
 Instead of the actual function to remove, FUNCTION can also be the `name'
 of the piece of advice."
+  (interactive
+   (let* ((pred (lambda (sym) (advice--p (advice--symbol-function sym))))
+          (default (when-let* ((f (function-called-at-point))
+                               ((funcall pred f)))
+                     (symbol-name f)))
+          (prompt (format-prompt "Remove advice from function" default))
+          (symbol (intern (completing-read prompt obarray pred t nil nil default)))
+          advices)
+     (advice-mapc (lambda (f p)
+                    (let ((k (or (alist-get 'name p) f)))
+                      (push (cons
+                             ;; "name" (string) and 'name (symbol) are
+                             ;; considered different names so we use
+                             ;; `prin1-to-string' even if the name is
+                             ;; a string to distinguish between these
+                             ;; two cases.
+                             (prin1-to-string k)
+                             ;; We use `k' here instead of `f' because
+                             ;; the same advice can have multiple
+                             ;; names.
+                             k)
+                            advices)))
+                  symbol)
+     (list symbol (cdr (assoc-string
+                        (completing-read "Advice to remove: " advices nil t)
+                        advices)))))
   (let ((f (symbol-function symbol)))
     (remove-function (cond ;This is `advice--symbol-function' but as a "place".
                       ((get symbol 'advice--pending)
@@ -580,9 +584,9 @@ of the piece of advice."
 ;;;###autoload
 (defmacro define-advice (symbol args &rest body)
   "Define an advice and add it to function named SYMBOL.
-See `advice-add' and `add-function' for explanation on the
-arguments.  Note if NAME is nil the advice is anonymous;
-otherwise it is named `SYMBOL@NAME'.
+See `advice-add' and `add-function' for explanation of the
+arguments.  If NAME is non-nil, the advice is named `SYMBOL@NAME'
+and installed with the name NAME; otherwise, the advice is anonymous.
 
 \(fn SYMBOL (HOW LAMBDA-LIST &optional NAME DEPTH) &rest BODY)"
   (declare (indent 2) (doc-string 3) (debug (sexp sexp def-body)))
@@ -593,7 +597,9 @@ otherwise it is named `SYMBOL@NAME'.
          (lambda-list   (nth 1 args))
          (name          (nth 2 args))
          (depth         (nth 3 args))
-         (props         (and depth `((depth . ,depth))))
+         (props         (append
+                         (and depth `((depth . ,depth)))
+                         (and name `((name . ,name)))))
          (advice (cond ((null name) `(lambda ,lambda-list ,@body))
                        ((or (stringp name) (symbolp name))
                         (intern (format "%s@%s" symbol name)))

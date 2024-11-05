@@ -1,6 +1,6 @@
 /* sig2str.h -- convert between signal names and numbers
 
-   Copyright (C) 2002, 2005, 2009-2023 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005, 2009-2024 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,27 +18,6 @@
 /* Written by Paul Eggert.  */
 
 #include <signal.h>
-
-/* Don't override system declarations of SIG2STR_MAX, sig2str, str2sig.  */
-#ifndef SIG2STR_MAX
-
-# include "intprops.h"
-
-/* Size of a buffer needed to hold a signal name like "HUP".  */
-# define SIG2STR_MAX (sizeof "SIGRTMAX" + INT_STRLEN_BOUND (int) - 1)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int sig2str (int, char *);
-int str2sig (char const *, int *);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
 
 /* An upper bound on signal numbers allowed by the system.  */
 

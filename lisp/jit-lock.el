@@ -1,6 +1,6 @@
 ;;; jit-lock.el --- just-in-time fontification  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Keywords: faces files
@@ -90,7 +90,8 @@ See also `jit-lock-stealth-nice'."
   :type 'boolean)
 
 
-(defvaralias 'jit-lock-defer-contextually 'jit-lock-contextually)
+(define-obsolete-variable-alias 'jit-lock-defer-contextually
+  'jit-lock-contextually "30.1")
 (defcustom jit-lock-contextually 'syntax-driven
   "If non-nil, fontification should be syntactically true.
 If nil, refontification occurs only on lines that were modified.  This
@@ -499,6 +500,7 @@ This applies to the buffer associated with marker START."
          (setq start (point-min) end (max start end)))
        ;; Don't cause refontification (it's already been done), but just do
        ;; some random buffer change, so as to force redisplay.
+       (put-text-property start end 'fontified nil)
        (put-text-property start end 'fontified t)))))
 
 ;;; Stealth fontification.

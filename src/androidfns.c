@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "lisp.h"
 #include "android.h"
@@ -27,11 +28,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "buffer.h"
 #include "androidgui.h"
+#include "pdumper.h"
 
 #ifndef ANDROID_STUBIFY
-
-/* Some kind of reference count for the image cache.  */
-static ptrdiff_t image_cache_refcount;
 
 /* The frame of the currently visible tooltip, or nil if none.  */
 static Lisp_Object tip_frame;
@@ -210,18 +209,90 @@ android_set_parent_frame (struct frame *f, Lisp_Object new_value,
   FRAME_TERMINAL (f)->fullscreen_hook (f);
 }
 
+/* Set the WM name to NAME for frame F. Also set the icon name.
+   If the frame already has an icon name, use that, otherwise set the
+   icon name to NAME.  */
+
+static void
+android_set_name_internal (struct frame *f, Lisp_Object name)
+{
+  jstring java_name;
+
+  if (FRAME_ANDROID_WINDOW (f))
+    {
+      java_name = android_build_string (name, NULL);
+      android_set_wm_name (FRAME_ANDROID_WINDOW (f), java_name);
+      ANDROID_DELETE_LOCAL_REF (java_name);
+    }
+}
+
+/* Change the name of frame F to NAME.  If NAME is nil, set F's name to
+       x_id_name.
+
+   If EXPLICIT is true, that indicates that lisp code is setting the
+       name; if NAME is a string, set F's name to NAME and set
+       F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
+
+   If EXPLICIT is false, that indicates that Emacs redisplay code is
+       suggesting a new name, which lisp code should override; if
+       F->explicit_name is set, ignore the new name; otherwise, set it.  */
+
+static void
+android_set_name (struct frame *f, Lisp_Object name, bool explicit)
+{
+  /* Make sure that requests from lisp code override requests from
+     Emacs redisplay code.  */
+  if (explicit)
+    {
+      /* If we're switching from explicit to implicit, we had better
+	 update the mode lines and thereby update the title.  */
+      if (f->explicit_name && NILP (name))
+	update_mode_lines = 37;
+
+      f->explicit_name = ! NILP (name);
+    }
+  else if (f->explicit_name)
+    return;
+
+  /* If NAME is nil, set the name to the x_id_name.  */
+  if (NILP (name))
+    {
+      /* Check for no change needed in this very common case
+	 before we do any consing.  */
+      if (!strcmp (FRAME_DISPLAY_INFO (f)->x_id_name,
+		   SSDATA (f->name)))
+	return;
+      name = build_string (FRAME_DISPLAY_INFO (f)->x_id_name);
+    }
+  else
+    CHECK_STRING (name);
+
+  /* Don't change the name if it's already NAME.  */
+  if (! NILP (Fstring_equal (name, f->name)))
+    return;
+
+  fset_name (f, name);
+
+  /* For setting the frame title, the title parameter should override
+     the name parameter.  */
+  if (! NILP (f->title))
+    name = f->title;
+
+  android_set_name_internal (f, name);
+}
+
 void
 android_implicitly_set_name (struct frame *f, Lisp_Object arg,
 			     Lisp_Object oldval)
 {
-
+  android_set_name (f, arg, false);
 }
 
 void
 android_explicitly_set_name (struct frame *f, Lisp_Object arg,
 			     Lisp_Object oldval)
 {
-
+  android_set_name (f, arg, true);
 }
 
 /* Set the number of lines used for the tool bar of frame F to VALUE.
@@ -367,7 +438,15 @@ android_change_tab_bar_height (struct frame *f, int height)
      the tab bar by even 1 pixel, FRAME_TAB_BAR_LINES will be changed,
      leading to the tab bar height being incorrectly set upon the next
      call to android_set_font.  (bug#59285) */
+
   lines = height / unit;
+
+  /* Even so, HEIGHT might be less than unit if the tab bar face is
+     not so tall as the frame's font height; which if true lines will
+     be set to 0 and the tab bar will thus vanish.  */
+
+  if (lines == 0 && height != 0)
+    lines = 1;
 
   /* Make sure we redisplay all windows in this frame.  */
   fset_redisplay (f);
@@ -572,17 +651,6 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (NILP (Fmemq (frame, Vframe_list)))
     {
-      /* If the frame's image cache refcount is still the same as our
-	 private shadow variable, it means we are unwinding a frame
-	 for which we didn't yet call init_frame_faces, where the
-	 refcount is incremented.  Therefore, we increment it here, so
-	 that free_frame_faces, called in x_free_frame_resources
-	 below, will not mistakenly decrement the counter that was not
-	 incremented yet to account for this new frame.  */
-      if (FRAME_IMAGE_CACHE (f) != NULL
-	  && FRAME_IMAGE_CACHE (f)->refcount == image_cache_refcount)
-	FRAME_IMAGE_CACHE (f)->refcount++;
-
       android_free_frame_resources (f);
       free_glyphs (f);
       return Qt;
@@ -861,10 +929,6 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   register_font_driver (&androidfont_driver, f);
   register_font_driver (&android_sfntfont_driver, f);
-
-  image_cache_refcount = (FRAME_IMAGE_CACHE (f)
-			  ? FRAME_IMAGE_CACHE (f)->refcount
-			  : 0);
 
   gui_default_parameter (f, parms, Qfont_backend, Qnil,
                          "fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -1193,7 +1257,10 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
-  return Qt;
+  struct android_display_info *dpyinfo;
+
+  dpyinfo = check_android_display_info (terminal);
+  return dpyinfo->n_planes > 8 ? Qt : Qnil;
 }
 
 DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p,
@@ -1201,7 +1268,11 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
-  return Qnil;
+  struct android_display_info *dpyinfo;
+
+  dpyinfo = check_android_display_info (terminal);
+  return (dpyinfo->n_planes > 1 && dpyinfo->n_planes <= 8
+	  ? Qt : Qnil);
 }
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width,
@@ -1303,6 +1374,7 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
+  check_android_display_info (terminal);
   return make_fixnum (android_get_mm_width ());
 #endif
 }
@@ -1315,6 +1387,7 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height,
   error ("Android cross-compilation stub called!");
   return Qnil;
 #else
+  check_android_display_info (terminal);
   return make_fixnum (android_get_mm_height ());
 #endif
 }
@@ -1326,9 +1399,9 @@ DEFUN ("x-display-backing-store", Fx_display_backing_store,
 {
   check_android_display_info (terminal);
 
-  /* The Java part is implemented in a way that it always does the
-     equivalent of backing store.  */
-  return Qalways;
+  /* Window contents are preserved insofar as they remain mapped, in a
+     fashion tantamount to WhenMapped.  */
+  return Qwhen_mapped;
 }
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
@@ -1336,7 +1409,12 @@ DEFUN ("x-display-visual-class", Fx_display_visual_class,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
-  check_android_display_info (terminal);
+  struct android_display_info *dpyinfo;
+
+  dpyinfo = check_android_display_info (terminal);
+
+  if (dpyinfo->n_planes < 24)
+    return Qstatic_gray;
 
   return Qtrue_color;
 }
@@ -1393,6 +1471,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #else
   struct MonitorInfo monitor;
 
+  check_android_display_info (terminal);
   memset (&monitor, 0, sizeof monitor);
   monitor.geom.width = android_get_screen_width ();
   monitor.geom.height = android_get_screen_height ();
@@ -1591,7 +1670,8 @@ and width values are in pixels.
 #endif
 }
 
-DEFUN ("android-frame-edges", Fandroid_frame_edges, Sandroid_frame_edges, 0, 2, 0,
+DEFUN ("android-frame-edges", Fandroid_frame_edges,
+       Sandroid_frame_edges, 0, 2, 0,
        doc: /* Return edge coordinates of FRAME.
 FRAME must be a live frame and defaults to the selected one.  The return
 value is a list of the form (LEFT, TOP, RIGHT, BOTTOM).  All values are
@@ -1660,7 +1740,7 @@ android_frame_list_z_order (struct android_display_info *dpyinfo,
 
 DEFUN ("android-frame-list-z-order", Fandroid_frame_list_z_order,
        Sandroid_frame_list_z_order, 0, 1, 0,
-       doc: /* Return list of Emacs' frames, in Z (stacking) order.
+       doc: /* Return list of Emacs's frames, in Z (stacking) order.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be either a frame or a display name (a string).  If
 omitted or nil, that stands for the selected frame's display.  Return
@@ -1693,6 +1773,28 @@ TERMINAL is a frame.  */)
 #endif
 }
 
+#ifndef ANDROID_STUBIFY
+
+static void
+android_frame_restack (struct frame *f1, struct frame *f2,
+		       bool above_flag)
+{
+  android_window window1;
+  struct android_window_changes wc;
+  unsigned long mask;
+
+  window1 = FRAME_ANDROID_WINDOW (f1);
+  wc.sibling = FRAME_ANDROID_WINDOW (f2);
+  wc.stack_mode = above_flag ? ANDROID_ABOVE : ANDROID_BELOW;
+  mask = ANDROID_CW_SIBLING | ANDROID_CW_STACK_MODE;
+
+  block_input ();
+  android_reconfigure_wm_window (window1, mask, &wc);
+  unblock_input ();
+}
+
+#endif /* !ANDROID_STUBIFY */
+
 DEFUN ("android-frame-restack", Fandroid_frame_restack,
        Sandroid_frame_restack, 2, 3, 0,
        doc: /* Restack FRAME1 below FRAME2.
@@ -1709,19 +1811,25 @@ that of FRAME2.  Hence the position of FRAME2 in its display's Z
 \(stacking) order relative to all other frames excluding FRAME1 remains
 unaltered.
 
-The Android system refuses to restack windows, so this does not
-work.  */)
-  (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object frame3)
+Android does not facilitate restacking top-level windows managed by
+its own window manager; nor is it possible to restack frames that are
+children of different parents.  Consequently, this function only
+functions when FRAME1 and FRAME2 are both child frames subordinate to
+the same parent frame.  */)
+  (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object above)
 {
 #ifdef ANDROID_STUBIFY
   error ("Android cross-compilation stub called!");
   return Qnil;
-#else
-  /* This is not supported on Android because of limitations in the
-     platform that prevent ViewGroups from restacking
-     SurfaceViews.  */
-  return Qnil;
-#endif
+#else /* !ANDROID_STUBIFY */
+  struct frame *f1 = decode_live_frame (frame1);
+  struct frame *f2 = decode_live_frame (frame2);
+
+  if (!(FRAME_ANDROID_WINDOW (f1) && FRAME_ANDROID_WINDOW (f2)))
+    error ("Cannot restack frames");
+  android_frame_restack (f1, f2, !NILP (above));
+  return Qt;
+#endif /* ANDROID_STUBIFY */
 }
 
 DEFUN ("android-mouse-absolute-pixel-position",
@@ -1767,7 +1875,16 @@ Android, so there is no equivalent of `x-open-connection'.  */)
   terminal = Qnil;
 
   if (x_display_list)
-    XSETTERMINAL (terminal, x_display_list->terminal);
+    {
+      XSETTERMINAL (terminal, x_display_list->terminal);
+
+      /* Update the display's bit depth from
+	 `android_display_planes'.  */
+      x_display_list->n_planes
+	= (android_display_planes > 8
+	   ? 24 : (android_display_planes > 1
+		   ? android_display_planes : 1));
+    }
 
   return terminal;
 #endif
@@ -1890,12 +2007,6 @@ android_create_tip_frame (struct android_display_info *dpyinfo,
 
   register_font_driver (&androidfont_driver, f);
   register_font_driver (&android_sfntfont_driver, f);
-
-  image_cache_refcount
-    = FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
-#ifdef GLYPH_DEBUG
-  dpyinfo_refcount = dpyinfo->reference_count;
-#endif /* GLYPH_DEBUG */
 
   gui_default_parameter (f, parms, Qfont_backend, Qnil,
                          "fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -2252,6 +2363,57 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
 	  goto start_timer;
 	}
+      else if (tooltip_reuse_hidden_frame && BASE_EQ (frame, tip_last_frame))
+	{
+	  bool delete = false;
+	  Lisp_Object tail, elt, parm, last;
+
+	  /* Check if every parameter in PARMS has the same value in
+	     tip_last_parms.  This may destruct tip_last_parms which,
+	     however, will be recreated below.  */
+	  for (tail = parms; CONSP (tail); tail = XCDR (tail))
+	    {
+	      elt = XCAR (tail);
+	      parm = CAR (elt);
+	      /* The left, top, right and bottom parameters are handled
+		 by compute_tip_xy so they can be ignored here.  */
+	      if (!EQ (parm, Qleft) && !EQ (parm, Qtop)
+		  && !EQ (parm, Qright) && !EQ (parm, Qbottom))
+		{
+		  last = Fassq (parm, tip_last_parms);
+		  if (NILP (Fequal (CDR (elt), CDR (last))))
+		    {
+		      /* We lost, delete the old tooltip.  */
+		      delete = true;
+		      break;
+		    }
+		  else
+		    tip_last_parms
+		      = call2 (Qassq_delete_all, parm, tip_last_parms);
+		}
+	      else
+		tip_last_parms
+		  = call2 (Qassq_delete_all, parm, tip_last_parms);
+	    }
+
+	  /* Now check if every parameter in what is left of
+	     tip_last_parms with a non-nil value has an association in
+	     PARMS.  */
+	  for (tail = tip_last_parms; CONSP (tail); tail = XCDR (tail))
+	    {
+	      elt = XCAR (tail);
+	      parm = CAR (elt);
+	      if (!EQ (parm, Qleft) && !EQ (parm, Qtop) && !EQ (parm, Qright)
+		  && !EQ (parm, Qbottom) && !NILP (CDR (elt)))
+		{
+		  /* We lost, delete the old tooltip.  */
+		  delete = true;
+		  break;
+		}
+	    }
+
+	  android_hide_tip (delete);
+	}
       else
 	android_hide_tip (true);
     }
@@ -2384,9 +2546,16 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   /* Garbage the tip frame too.  */
   SET_FRAME_GARBAGED (tip_f);
 
+  /* Block input around `update_single_window' and `flush_frame', lest a
+     ConfigureNotify and Expose event arrive during the update, and set
+     flags, e.g. garbaged_p, that are cleared once the update completes,
+     leaving the requested exposure or configuration outstanding.  */
+  block_input ();
   w->must_be_updated_p = true;
   update_single_window (w);
   flush_frame (tip_f);
+  unblock_input ();
+
   set_buffer_internal_1 (old_buffer);
   unbind_to (count_1, Qnil);
   windows_or_buffers_changed = old_windows_or_buffers_changed;
@@ -2418,7 +2587,7 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 #endif /* 0 */
   return Qnil;
 #else /* !ANDROID_STUBIFY */
-  return android_hide_tip (true);
+  return android_hide_tip (!tooltip_reuse_hidden_frame);
 #endif /* ANDROID_STUBIFY */
 }
 
@@ -2439,6 +2608,25 @@ there is no mouse.  */)
 #else
   return Qnil;
 #endif
+}
+
+DEFUN ("android-detect-keyboard", Fandroid_detect_keyboard,
+       Sandroid_detect_keyboard, 0, 0, 0,
+       doc: /* Return whether a keyboard is connected.
+Return non-nil if a key is connected to this computer, or nil
+if there is no keyboard.  */)
+  (void)
+{
+#ifndef ANDROID_STUBIFY
+  /* If no display connection is present, just return nil.  */
+
+  if (!android_init_gui)
+    return Qnil;
+
+  return android_detect_keyboard () ? Qt : Qnil;
+#else /* ANDROID_STUBIFY */
+  return Qt;
+#endif /* ANDROID_STUBIFY */
 }
 
 DEFUN ("android-toggle-on-screen-keyboard",
@@ -2862,6 +3050,8 @@ android_set_title (struct frame *f, Lisp_Object name,
     name = f->name;
   else
     CHECK_STRING (name);
+
+  android_set_name_internal (f, name);
 }
 
 static void
@@ -3041,7 +3231,7 @@ for more details about these values.  */)
 
 
 
-/* Directory access requests.  */
+/* SAF directory access management.  */
 
 DEFUN ("android-request-directory-access", Fandroid_request_directory_access,
        Sandroid_request_directory_access, 0, 0, "",
@@ -3062,6 +3252,50 @@ within the directory `/content/storage'.  */)
     return Qnil;
 
   android_request_directory_access ();
+  return Qnil;
+}
+
+
+
+/* Functions concerning storage permissions.  */
+
+DEFUN ("android-external-storage-available-p",
+       Fandroid_external_storage_available_p,
+       Sandroid_external_storage_available_p, 0, 0, 0,
+       doc: /* Return non-nil if Emacs is entitled to access external storage.
+Return nil if the requisite permissions for external storage access
+have not been granted to Emacs, t otherwise.  Such permissions can be
+requested by means of the `android-request-storage-access'
+command.
+
+External storage on Android encompasses the `/sdcard' and
+`/storage/emulated' directories, access to which is denied to programs
+absent these permissions.  */)
+  (void)
+{
+  /* Implement a rather undependable fallback when no GUI is
+     available.  */
+  if (!android_init_gui)
+    return Ffile_accessible_directory_p (build_string ("/sdcard"));
+
+  return android_external_storage_available_p () ? Qt : Qnil;
+}
+
+DEFUN ("android-request-storage-access", Fandroid_request_storage_access,
+       Sandroid_request_storage_access, 0, 0, "",
+       doc: /* Request permissions to access external storage.
+
+Return nil regardless of whether access permissions are granted or not,
+immediately after displaying the permissions request dialog.
+
+Use `android-external-storage-available-p' (which see) to verify
+whether Emacs has actually received such access permissions.  */)
+  (void)
+{
+  if (!android_init_gui)
+    return Qnil;
+
+  android_request_storage_access ();
   return Qnil;
 }
 
@@ -3093,16 +3327,253 @@ android_set_preeditarea (struct window *w, int x, int y)
 				     y + w->phys_cursor_height);
 }
 
+
+
+/* Debugging.  */
+
+DEFUN ("android-recreate-activity", Fandroid_recreate_activity,
+       Sandroid_recreate_activity, 0, 0, "",
+       doc: /* Recreate the activity attached to the current frame.
+This function exists for debugging purposes and is of no interest to
+users.  */)
+  (void)
+{
+  struct frame *f;
+
+  f = decode_window_system_frame (Qnil);
+  android_recreate_activity (FRAME_ANDROID_WINDOW (f));
+  return Qnil;
+}
+
 #endif /* !ANDROID_STUBIFY */
 
 
+
+#ifndef ANDROID_STUBIFY
+
+static void
+syms_of_androidfns_for_pdumper (void)
+{
+  jclass locale;
+  jmethodID method;
+  jobject object;
+  jstring string;
+  Lisp_Object language, country, script, variant;
+  const char *data;
+  FILE *fd;
+  char *line;
+  size_t size;
+  long pid;
+
+  /* Find the Locale class.  */
+
+  locale = (*android_java_env)->FindClass (android_java_env,
+					   "java/util/Locale");
+  if (!locale)
+    emacs_abort ();
+
+  /* And the method from which the default locale can be
+     extracted.  */
+
+  method = (*android_java_env)->GetStaticMethodID (android_java_env,
+						   locale,
+						   "getDefault",
+						   "()Ljava/util/Locale;");
+  if (!method)
+    emacs_abort ();
+
+  /* Retrieve the default locale.  */
+
+  object = (*android_java_env)->CallStaticObjectMethod (android_java_env,
+							locale, method);
+  android_exception_check_1 (locale);
+
+  if (!object)
+    emacs_abort ();
+
+  /* Retrieve its language field.  Each of these methods is liable to
+     return the empty string, though if language is empty, the locale
+     is malformed.  */
+
+  method = (*android_java_env)->GetMethodID (android_java_env, locale,
+					     "getLanguage",
+					     "()Ljava/lang/String;");
+  if (!method)
+    emacs_abort ();
+
+  string = (*android_java_env)->CallObjectMethod (android_java_env, object,
+						  method);
+  android_exception_check_2 (object, locale);
+
+  if (!string)
+    language = empty_unibyte_string;
+  else
+    {
+      data = (*android_java_env)->GetStringUTFChars (android_java_env,
+						     string, NULL);
+      android_exception_check_3 (object, locale, string);
+
+      if (!data)
+	language = empty_unibyte_string;
+      else
+	{
+	  language = build_unibyte_string (data);
+	  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+						      string, data);
+	}
+    }
+
+  /* Delete the reference to this string.  */
+  ANDROID_DELETE_LOCAL_REF (string);
+
+  /* Proceed to retrieve the country code.  */
+
+  method = (*android_java_env)->GetMethodID (android_java_env, locale,
+					     "getCountry",
+					     "()Ljava/lang/String;");
+  if (!method)
+    emacs_abort ();
+
+  string = (*android_java_env)->CallObjectMethod (android_java_env, object,
+						  method);
+  android_exception_check_2 (object, locale);
+
+  if (!string)
+    country = empty_unibyte_string;
+  else
+    {
+      data = (*android_java_env)->GetStringUTFChars (android_java_env,
+						     string, NULL);
+      android_exception_check_3 (object, locale, string);
+
+      if (!data)
+	country = empty_unibyte_string;
+      else
+	{
+	  country = build_unibyte_string (data);
+	  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+						      string, data);
+	}
+    }
+
+  ANDROID_DELETE_LOCAL_REF (string);
+
+  /* Proceed to retrieve the script.  */
+
+  if (android_get_current_api_level () < 21)
+    script = empty_unibyte_string;
+  else
+    {
+      method = (*android_java_env)->GetMethodID (android_java_env, locale,
+						 "getScript",
+						 "()Ljava/lang/String;");
+      if (!method)
+	emacs_abort ();
+
+      string = (*android_java_env)->CallObjectMethod (android_java_env,
+						      object, method);
+      android_exception_check_2 (object, locale);
+
+      if (!string)
+	script = empty_unibyte_string;
+      else
+	{
+	  data = (*android_java_env)->GetStringUTFChars (android_java_env,
+							 string, NULL);
+	  android_exception_check_3 (object, locale, string);
+
+	  if (!data)
+	    script = empty_unibyte_string;
+	  else
+	    {
+	      script = build_unibyte_string (data);
+	      (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+							  string, data);
+	    }
+	}
+
+      ANDROID_DELETE_LOCAL_REF (string);
+    }
+
+  /* And variant.  */
+
+  method = (*android_java_env)->GetMethodID (android_java_env, locale,
+					     "getVariant",
+					     "()Ljava/lang/String;");
+  if (!method)
+    emacs_abort ();
+
+  string = (*android_java_env)->CallObjectMethod (android_java_env, object,
+						  method);
+  android_exception_check_2 (object, locale);
+
+  if (!string)
+    variant = empty_unibyte_string;
+  else
+    {
+      data = (*android_java_env)->GetStringUTFChars (android_java_env,
+						     string, NULL);
+      android_exception_check_3 (object, locale, string);
+
+      if (!data)
+        variant = empty_unibyte_string;
+      else
+	{
+	  variant = build_unibyte_string (data);
+	  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+						      string, data);
+	}
+    }
+
+  /* Delete the reference to this string.  */
+  ANDROID_DELETE_LOCAL_REF (string);
+
+  /* And other remaining local references.  */
+  ANDROID_DELETE_LOCAL_REF (object);
+  ANDROID_DELETE_LOCAL_REF (locale);
+
+  /* Set Vandroid_os_language.  */
+  Vandroid_os_language = list4 (language, country, script, variant);
+
+  /* Detect whether Emacs is running under libloader.so or another
+     process tracing mechanism, and disable `android_use_exec_loader' if
+     so, leaving subprocesses started by Emacs to the care of that
+     loader instance.  */
+
+  if (android_get_current_api_level () >= 29) /* Q */
+    {
+      fd = fopen ("/proc/self/status", "r");
+      if (!fd)
+	return;
+
+      line = NULL;
+      while (getline (&line, &size, fd) != -1)
+	{
+	  if (strncmp (line, "TracerPid:", sizeof "TracerPid:" - 1))
+	    continue;
+
+	  pid = atol (line + sizeof "TracerPid:" - 1);
+
+	  if (pid)
+	    android_use_exec_loader = false;
+
+	  break;
+	}
+
+      free (line);
+      fclose (fd);
+    }
+}
+
+#endif /* ANDROID_STUBIFY */
 
 void
 syms_of_androidfns (void)
 {
   /* Miscellaneous symbols used by some functions here.  */
   DEFSYM (Qtrue_color, "true-color");
-  DEFSYM (Qalways, "always");
+  DEFSYM (Qstatic_gray, "static-color");
+  DEFSYM (Qwhen_mapped, "when-mapped");
 
   DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
     doc: /* SKIP: real text in xfns.c.  */);
@@ -3205,6 +3676,19 @@ Note that if you set this, you will no longer be able to quit Emacs
 using the volume down button.  */);
   android_pass_multimedia_buttons_to_system = false;
 
+  DEFVAR_BOOL ("android-intercept-control-space",
+	       android_intercept_control_space,
+    doc: /* Whether Emacs should intercept C-SPC.
+When this variable is set, Emacs intercepts C-SPC events as they are
+delivered to a frame before they are registered and filtered by the
+input method.
+
+For no apparent purpose, Android input methods customarily discard SPC
+events with the Ctrl modifier set without delivering them to Emacs
+afterwards, which is an impediment to typing key sequences
+incorporating such keys.  */);
+  android_intercept_control_space = true;
+
   DEFVAR_BOOL ("android-use-exec-loader", android_use_exec_loader,
     doc: /* Whether or not to bypass system restrictions on program execution.
 
@@ -3218,6 +3702,33 @@ restrictions.
 
 This option has no effect on Android 9 and earlier.  */);
   android_use_exec_loader = true;
+
+  DEFVAR_INT ("android-keyboard-bell-duration",
+	      android_keyboard_bell_duration,
+    doc: /* Number of milliseconds to vibrate after ringing the keyboard bell.
+The keyboard bell under Android systems takes the form of a vibrating
+element that is activated for a given number of milliseconds upon the
+bell being rung.  */);
+  android_keyboard_bell_duration = 50;
+
+  DEFVAR_LISP ("android-os-language", Vandroid_os_language,
+    doc: /* A list representing the configured system language on Android.
+This list has four elements: LANGUAGE, COUNTRY, SCRIPT and VARIANT, where:
+
+LANGUAGE and COUNTRY are ISO language and country codes identical to
+those found in POSIX locale specifications.
+
+SCRIPT is an ISO 15924 script tag, representing the script used
+if available, or if required to disambiguate between distinct
+writing systems for the same combination of language and country.
+
+VARIANT is an arbitrary string representing the variant of the
+LANGUAGE or SCRIPT.
+
+Each of these fields might be empty or nil, but the locale is invalid
+if LANGUAGE is empty.  Users of this variable should consider the
+language to be US English if LANGUAGE is empty.  */);
+  Vandroid_os_language = Qnil;
 
   /* Functions defined.  */
   defsubr (&Sx_create_frame);
@@ -3246,12 +3757,16 @@ This option has no effect on Android 9 and earlier.  */);
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
   defsubr (&Sandroid_detect_mouse);
+  defsubr (&Sandroid_detect_keyboard);
   defsubr (&Sandroid_toggle_on_screen_keyboard);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);
 #ifndef ANDROID_STUBIFY
   defsubr (&Sandroid_query_battery);
   defsubr (&Sandroid_request_directory_access);
+  defsubr (&Sandroid_external_storage_available_p);
+  defsubr (&Sandroid_request_storage_access);
+  defsubr (&Sandroid_recreate_activity);
 
   tip_timer = Qnil;
   staticpro (&tip_timer);
@@ -3267,5 +3782,7 @@ This option has no effect on Android 9 and earlier.  */);
   staticpro (&tip_dx);
   tip_dy = Qnil;
   staticpro (&tip_dy);
+
+  pdumper_do_now_and_after_load (syms_of_androidfns_for_pdumper);
 #endif /* !ANDROID_STUBIFY */
 }

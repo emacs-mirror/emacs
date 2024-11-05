@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2023 Free Software Foundation,
+   Copyright (C) 1989, 1993-1994, 1998-2024 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -84,7 +84,7 @@ typedef GtkWidget *xt_or_gtk_widget;
 #undef XSync
 /* gdk_window_process_all_updates is deprecated in GDK 3.22.  */
 #if GTK_CHECK_VERSION (3, 22, 0)
-#define XSync(d, b) do { XSync ((d), (b)); } while (false)
+#define XSync(d, b) do { XSync (d, b); } while (false)
 #else
 #define XSync(d, b) do { gdk_window_process_all_updates (); \
                          XSync (d, b);  } while (false)
@@ -305,6 +305,15 @@ enum xi_touch_ownership
 
 struct xi_touch_point_t
 {
+  /* The detail code reported to Lisp.  */
+  EMACS_INT local_detail;
+
+  /* The frame associated with this touch point.  */
+  struct frame *frame;
+
+  /* The next touch point in this list.  */
+  struct xi_touch_point_t *next;
+
   /* The touchpoint detail.  */
   int number;
 
@@ -314,12 +323,6 @@ struct xi_touch_point_t
 
   /* The last known rounded X and Y positions of the touchpoint.  */
   int x, y;
-
-  /* The frame associated with this touch point.  */
-  struct frame *frame;
-
-  /* The next touch point in this list.  */
-  struct xi_touch_point_t *next;
 };
 
 #endif
@@ -993,6 +996,8 @@ extern int popup_activated_flag;
 /* This is a chain of structures for all the X displays currently in use.  */
 extern struct x_display_info *x_display_list;
 
+extern struct x_display_info *x_dpyinfo (Display *)
+  ATTRIBUTE_RETURNS_NONNULL;
 extern struct x_display_info *x_display_info_for_display (Display *);
 extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
 extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
@@ -1402,7 +1407,7 @@ extern void x_mark_frame_dirty (struct frame *f);
    code after any drawing command, but we can run code whenever
    someone asks for the handle necessary to draw.  */
 #define FRAME_X_DRAWABLE(f)                             \
-  (x_mark_frame_dirty ((f)), FRAME_X_RAW_DRAWABLE ((f)))
+  (x_mark_frame_dirty (f), FRAME_X_RAW_DRAWABLE (f))
 
 #ifdef HAVE_XDBE
 #define FRAME_X_DOUBLE_BUFFERED_P(f)            \
@@ -1447,7 +1452,7 @@ extern void x_mark_frame_dirty (struct frame *f);
          FRAME_X_WINDOW (f))
 
 #else /* !USE_GTK */
-#define FRAME_OUTER_WINDOW(f) (FRAME_X_WINDOW (f))
+#define FRAME_OUTER_WINDOW(f) FRAME_X_WINDOW (f)
 #endif /* !USE_GTK */
 #endif
 
@@ -1725,6 +1730,7 @@ SELECTION_EVENT_DISPLAY (struct selection_input_event *ev)
 
 /* From xfns.c.  */
 
+extern frame_parm_handler x_frame_parm_handlers[];
 extern void x_free_gcs (struct frame *);
 extern void x_relative_mouse_position (struct frame *, int *, int *);
 extern void x_real_pos_and_offsets (struct frame *, int *, int *, int *,

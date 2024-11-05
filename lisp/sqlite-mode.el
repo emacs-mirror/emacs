@@ -1,6 +1,6 @@
 ;;; sqlite-mode.el --- Mode for examining sqlite3 database files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -33,6 +33,7 @@
 (declare-function sqlite-finalize "sqlite.c")
 (declare-function sqlite-select "sqlite.c")
 (declare-function sqlite-open "sqlite.c")
+(declare-function sqlite-close "sqlite.c")
 
 (defvar-keymap sqlite-mode-map
   "g" #'sqlite-mode-list-tables
@@ -41,7 +42,7 @@
   "DEL" #'sqlite-mode-delete)
 
 (define-derived-mode sqlite-mode special-mode "Sqlite"
-  "This mode lists the contents of an .sqlite3 file"
+  "This mode lists the contents of an .sqlite3 file."
   :interactive nil
   (buffer-disable-undo)
   (setq-local buffer-read-only t
@@ -63,6 +64,7 @@
   (setq-local sqlite--db (sqlite-open file))
   (unless (sqlitep sqlite--db)
     (error "`sqlite-open' failed to open SQLite file"))
+  (add-hook 'kill-buffer-hook (lambda () (sqlite-close sqlite--db)) nil t)
   (sqlite-mode-list-tables))
 
 (defun sqlite-mode-list-tables ()
@@ -135,22 +137,7 @@
 
 (defun sqlite-mode--column-names (table)
   "Return a list of the column names for TABLE."
-  (let ((sql
-         (caar
-          (sqlite-select
-           sqlite--db
-           "select sql from sqlite_master where tbl_name = ? AND type = 'table'"
-           (list table)))))
-    (with-temp-buffer
-      (insert sql)
-      (mapcar #'string-trim
-              (split-string
-               ;; Extract the args to CREATE TABLE.  Point is
-               ;; currently at its end.
-               (buffer-substring
-                (1- (point))                          ; right before )
-                (1+ (progn (backward-sexp) (point)))) ; right after (
-               ",")))))
+  (mapcar (lambda (row) (nth 1 row)) (sqlite-select sqlite--db (format "pragma table_info(%s)" table))))
 
 (defun sqlite-mode-list-data ()
   "List the data from the table under point."

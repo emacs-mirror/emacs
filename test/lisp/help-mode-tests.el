@@ -1,6 +1,6 @@
 ;;; help-mode-tests.el --- Tests for help-mode.el    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -92,7 +92,7 @@ Lisp concepts such as car, cdr, cons cell and list.")
 
 (ert-deftest help-mode-tests-xref-on-pp ()
   (with-temp-buffer
-    (insert (pp '(cons fill-column)))
+    (pp '(cons fill-column) (current-buffer))
     (help-xref-on-pp (point-min) (point-max))
     (goto-char (point-min))
     (search-forward "co")

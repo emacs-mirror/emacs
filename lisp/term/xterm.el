@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -725,7 +725,7 @@ Return the pasted text as a string."
         ;; `tty-set-up-initial-frame-faces' only once, but that
         ;; caused the light background faces to be computed
         ;; incorrectly.  See:
-        ;; http://permalink.gmane.org/gmane.emacs.devel/119627
+        ;; https://lists.gnu.org/r/emacs-devel/2010-01/msg00439.html
         (when recompute-faces
           (tty-set-up-initial-frame-faces))))))
 

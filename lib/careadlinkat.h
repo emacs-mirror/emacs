@@ -1,6 +1,6 @@
 /* Read symbolic links into a buffer without size limitation, relative to fd.
 
-   Copyright (C) 2011-2023 Free Software Foundation, Inc.
+   Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -27,6 +27,11 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 struct allocator;
 
@@ -67,6 +72,11 @@ char *careadlinkat (int fd, char const *filename,
 # ifndef AT_FDCWD
 #  define AT_FDCWD (-3041965)
 # endif
+#endif
+
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* _GL_CAREADLINKAT_H */

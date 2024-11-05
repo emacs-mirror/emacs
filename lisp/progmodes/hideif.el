@@ -1,6 +1,6 @@
 ;;; hideif.el --- hides selected code within ifdef  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988, 1994, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Brian Marick
 ;;	Daniel LaLiberte <liberte@holonexus.org>
@@ -390,7 +390,7 @@ If there is a marked region from START to END it only shows the symbols within."
 (defun hif-after-revert-function ()
   (and hide-ifdef-mode hide-ifdef-hiding
        (hide-ifdefs nil nil t)))
-(add-hook 'after-revert-hook 'hif-after-revert-function)
+(add-hook 'after-revert-hook #'hif-after-revert-function)
 
 (defun hif-end-of-line ()
   "Find the end-point of line concatenation."
@@ -400,7 +400,7 @@ If there is a marked region from START to END it only shows the symbols within."
     (end-of-line 2)))
 
 (defun hif-merge-ifdef-region (start end)
-  "This function merges nearby ifdef regions to form a bigger overlay.
+  "Merge nearby ifdef regions to form a bigger overlay.
 The region is defined by START and END.  This will decrease the number of
 overlays created."
   ;; Generally there is no need to call itself recursively since there should
@@ -474,7 +474,7 @@ Everything including these lines is made invisible."
 
 (defun hif-eval (form)
   "Evaluate hideif internal representation."
-  (let ((val (eval form)))
+  (let ((val (eval form t)))
     (if (stringp val)
         (or (get-text-property 0 'hif-value val)
             val)
@@ -542,7 +542,7 @@ that form should be displayed.")
 (defconst hif-cpp-prefix      "\\(^\\|\r\\)?[ \t]*#[ \t]*")
 (defconst hif-ifxdef-regexp   (concat hif-cpp-prefix "if\\(n\\)?def"))
 (defconst hif-ifndef-regexp   (concat hif-cpp-prefix "ifndef"))
-(defconst hif-ifx-regexp      (concat hif-cpp-prefix "if\\((\\|\\(n?def\\)?[ \t]+\\)"))
+(defvar hif-ifx-regexp      (concat hif-cpp-prefix "if\\((\\|\\(n?def\\)?[ \t]+\\)"))
 (defconst hif-elif-regexp     (concat hif-cpp-prefix "elif"))
 (defconst hif-else-regexp     (concat hif-cpp-prefix "else"))
 (defconst hif-endif-regexp    (concat hif-cpp-prefix "endif"))
@@ -679,7 +679,7 @@ that form should be displayed.")
     ("..." . hif-etc)
     ("defined" . hif-defined)))
 
-(defconst hif-valid-token-list (mapcar 'cdr hif-token-alist))
+(defconst hif-valid-token-list (mapcar #'cdr hif-token-alist))
 
 (defconst hif-token-regexp
   ;; The ordering of regexp grouping is crucial to `hif-strtok'
@@ -690,7 +690,7 @@ that form should be displayed.")
    ;; decimal/octal:
    "\\|\\(\\([+-]?[0-9']+\\(\\.[0-9']*\\)?\\)\\([eE][+-]?[0-9]+\\)?"
    hif-numtype-suffix-regexp "?\\)"
-   "\\|" (regexp-opt (mapcar 'car hif-token-alist) t)
+   "\\|" (regexp-opt (mapcar #'car hif-token-alist) t)
    "\\|\\(\\w+\\)"))
 
 ;; C++11 Unicode string literals (L"" u8"" u"" U"" R"" LR"" u8R"" uR"")
@@ -867,7 +867,7 @@ Assuming we've just performed a `hif-token-regexp' lookup."
 
      (t
       (setq hif-simple-token-only nil)
-      (intern-safe string)))))
+      (hif--intern-safe string)))))
 
 (defun hif-backward-comment (&optional start end)
   "If we're currently within a C(++) comment, skip them backwards."
@@ -1448,7 +1448,7 @@ This macro cannot be evaluated alone without parameters input."
    (t
     (error "Invalid token to stringify"))))
 
-(defun intern-safe (str)
+(defun hif--intern-safe (str)
   (if (stringp str)
       (intern str)))
 
@@ -1750,7 +1750,7 @@ and `+='...)."
                ;; Split REM-BODY @ __VA_ARGS__ into LEFT and right
                (setq part nil)
                (if (zerop va)
-                   (setq left nil ; __VA_ARGS__ trimed
+                   (setq left nil ; __VA_ARGS__ trimmed
                          rem-body (cdr rem-body))
                  (setq left rem-body
                        rem-body (cdr (nthcdr va rem-body))) ; _V_ removed
@@ -1801,7 +1801,7 @@ and `+='...)."
                    actual-parms nil)))
 
           (t
-           (error "Interal error: impossible case."))))
+           (error "Internal error: impossible case"))))
 
        (pop actual-parms)
        while actual-parms) ; end cl-loop
@@ -2407,7 +2407,7 @@ first arg will be `hif-etc'."
                       'c99 t)))
        ((eq token 'hif-comma)
         (if etc
-            (error "Syntax error: no comma allowed after `...'.")))
+            (error "Syntax error: no comma allowed after `...'")))
        (t
         (push token result))))
     (setq result (nreverse result))

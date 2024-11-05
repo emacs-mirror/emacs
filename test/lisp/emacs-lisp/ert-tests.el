@@ -1,6 +1,6 @@
 ;;; ert-tests.el --- ERT's self-tests  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 
@@ -93,16 +93,6 @@ failed or if there was a problem."
                      '(ert-test-failed "failure message"))
               t))))
 
-(ert-deftest ert-test-fail-debug-with-condition-case ()
-  (let ((test (make-ert-test :body (lambda () (ert-fail "failure message")))))
-    (condition-case condition
-        (progn
-          (let ((ert-debug-on-error t))
-            (ert-run-test test))
-          (cl-assert nil))
-      ((error)
-       (cl-assert (equal condition '(ert-test-failed "failure message")) t)))))
-
 (ert-deftest ert-test-fail-debug-with-debugger-1 ()
   (let ((test (make-ert-test :body (lambda () (ert-fail "failure message")))))
     (let ((debugger (lambda (&rest _args)
@@ -145,16 +135,6 @@ failed or if there was a problem."
       (cl-assert (equal (ert-test-result-with-condition-condition result)
                      '(error "Error message"))
               t))))
-
-(ert-deftest ert-test-error-debug ()
-  (let ((test (make-ert-test :body (lambda () (error "Error message")))))
-    (condition-case condition
-        (progn
-          (let ((ert-debug-on-error t))
-            (ert-run-test test))
-          (cl-assert nil))
-      ((error)
-       (cl-assert (equal condition '(error "Error message")) t)))))
 
 
 ;;; Test that `should' works.
@@ -304,6 +284,20 @@ failed or if there was a problem."
   (cl-macrolet ((test () (error "Foo")))
     (should-error (test))))
 
+(ert-deftest ert-test-skip-when ()
+  ;; Don't skip.
+  (let ((test (make-ert-test :body (lambda () (skip-when nil)))))
+    (let ((result (ert-run-test test)))
+      (should (ert-test-passed-p result))))
+  ;; Skip.
+  (let ((test (make-ert-test :body (lambda () (skip-when t)))))
+    (let ((result (ert-run-test test)))
+      (should (ert-test-skipped-p result))))
+  ;; Skip in case of error.
+  (let ((test (make-ert-test :body (lambda () (skip-when (error "Foo"))))))
+    (let ((result (ert-run-test test)))
+      (should (ert-test-skipped-p result)))))
+
 (ert-deftest ert-test-skip-unless ()
   ;; Don't skip.
   (let ((test (make-ert-test :body (lambda () (skip-unless t)))))
@@ -345,14 +339,10 @@ This macro is used to test if macroexpansion in `should' works."
      (,(lambda () (let ((_x t)) (should (error "Foo"))))
       (error "Foo")))
    do
-   (let ((test (make-ert-test :body body)))
-     (condition-case actual-condition
-         (progn
-           (let ((ert-debug-on-error t))
-             (ert-run-test test))
-           (cl-assert nil))
-       ((error)
-        (should (equal actual-condition expected-condition)))))))
+   (let* ((test (make-ert-test :body body))
+          (result (ert-run-test test)))
+     (should (ert-test-failed-p result))
+     (should (equal (ert-test-failed-condition result) expected-condition)))))
 
 (defun ert-test--which-file ()
   "Dummy function to help test `symbol-file' for tests.")
@@ -378,9 +368,9 @@ This macro is used to test if macroexpansion in `should' works."
          (result (ert-run-test test)))
     (should (ert-test-failed-p result))
     (should (memq (backtrace-frame-fun (car (ert-test-failed-backtrace result)))
-                  ;;; This is `ert-fail' on nativecomp and `signal'
-                  ;;; otherwise.  It's not clear whether that's a bug
-                  ;;; or not (bug#51308).
+                  ;; This is `ert-fail' on nativecomp and `signal'
+                  ;; otherwise.  It's not clear whether that's a bug
+                  ;; or not (bug#51308).
                   '(ert-fail signal)))))
 
 (ert-deftest ert-test-messages ()
@@ -866,7 +856,6 @@ This macro is used to test if macroexpansion in `should' works."
 
 (ert-deftest ert-test-with-demoted-errors ()
   "Check that ERT correctly handles `with-demoted-errors'."
-  :expected-result :failed  ;; FIXME!  Bug#11218
   (should-not (with-demoted-errors "FOO: %S" (error "Foo"))))
 
 (ert-deftest ert-test-fail-inside-should ()
@@ -886,6 +875,60 @@ This macro is used to test if macroexpansion in `should' works."
 (ert-deftest ert-test-get-explainer ()
   (should (eq (ert--get-explainer 'string-equal) 'ert--explain-string-equal))
   (should (eq (ert--get-explainer 'string=) 'ert--explain-string-equal)))
+
+(ert-deftest ert--pp-with-indentation-and-newline ()
+  :tags '(:causes-redisplay)
+  (let ((failing-test (make-ert-test
+                       :name 'failing-test
+                       :body (lambda ()
+                               (should (equal '((:one "1" :three "3" :two "2"))
+                                              '((:one "1")))))))
+        (want-body "\
+Selector: <failing-test>
+Passed:  0
+Failed:  1 (1 unexpected)
+Skipped: 0
+Total:   1/1
+
+Started at:   @@TIMESTAMP@@
+Finished.
+Finished at:  @@TIMESTAMP@@
+
+F
+
+F failing-test
+    (ert-test-failed
+     ((should (equal '((:one \"1\" :three \"3\" :two \"2\")) '((:one \"1\"))))
+      :form (equal ((:one \"1\" :three \"3\" :two \"2\")) ((:one \"1\"))) :value
+      nil :explanation
+      (list-elt 0
+                (proper-lists-of-different-length 6 2
+                                                  (:one \"1\" :three \"3\"
+                                                        :two \"2\")
+                                                  (:one \"1\")
+                                                  first-mismatch-at 2))))
+\n\n")
+        (want-msg "Ran 1 tests, 0 results were as expected, 1 unexpected")
+        (buffer-name (generate-new-buffer-name " *ert-test-run-tests*")))
+    (cl-letf* ((ert-debug-on-error nil)
+               (ert--output-buffer-name buffer-name)
+               (messages nil)
+               ((symbol-function 'message)
+                (lambda (format-string &rest args)
+                  (push (apply #'format format-string args) messages)))
+               ((symbol-function 'ert--format-time-iso8601)
+                (lambda (_) "@@TIMESTAMP@@")))
+      (save-window-excursion
+        (unwind-protect
+            (let ((fill-column 70))
+              (ert-run-tests-interactively failing-test)
+              (should (equal (list want-msg) messages))
+              (should (equal (string-replace "\t" "        "
+                                             (with-current-buffer buffer-name
+                                               (buffer-string)))
+                             want-body)))
+          (when noninteractive
+            (kill-buffer buffer-name)))))))
 
 (provide 'ert-tests)
 

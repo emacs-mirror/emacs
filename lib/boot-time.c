@@ -1,5 +1,5 @@
 /* Determine the time when the machine last booted.
-   Copyright (C) 2023 Free Software Foundation, Inc.
+   Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -41,6 +41,12 @@
 
 #if HAVE_OS_H
 # include <OS.h>
+#endif
+
+#if defined _WIN32 && ! defined __CYGWIN__
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+# include <sys/time.h>
 #endif
 
 #include "idx.h"
@@ -203,7 +209,14 @@ get_boot_time_uncached (struct timespec *p_boot_time)
     }
 #  endif
 
-# else /* old FreeBSD, OpenBSD, native Windows */
+# else /* Adélie Linux, old FreeBSD, OpenBSD, native Windows */
+
+#  if defined __linux__ && !defined __ANDROID__
+  /* Workaround for Adélie Linux:  */
+  get_linux_boot_time_fallback (&found_boot_time);
+  if (found_boot_time.tv_sec == 0)
+    get_linux_boot_time_final_fallback (&found_boot_time);
+#  endif
 
 #  if defined __OpenBSD__
   /* Workaround for OpenBSD:  */
@@ -240,6 +253,10 @@ get_boot_time_uncached (struct timespec *p_boot_time)
     {
       /* Workaround for Windows:  */
       get_windows_boot_time (&found_boot_time);
+#  ifndef __CYGWIN__
+      if (found_boot_time.tv_sec == 0)
+        get_windows_boot_time_fallback (&found_boot_time);
+#  endif
     }
 # endif
 

@@ -1,6 +1,6 @@
 ;;; srecode/extract.el --- Extract content from previously inserted macro.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -33,7 +33,7 @@
 ;; or deep template calls can be extracted.
 ;;
 ;; This code was specifically written for srecode-document, which
-;; wants to extract user written text, and re-use it in a reformatted
+;; wants to extract user written text, and reuse it in a reformatted
 ;; comment.
 
 (require 'srecode)

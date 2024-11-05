@@ -1,6 +1,6 @@
 /* emacs-module.c - Module loading and runtime implementation
 
-Copyright (C) 2015-2023 Free Software Foundation, Inc.
+Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -94,12 +94,6 @@ To add a new module function, proceed as follows:
 #include "thread.h"
 
 #include <intprops.h>
-#include <verify.h>
-
-/* Work around GCC bug 83162.  */
-#if GNUC_PREREQ (4, 3, 0)
-# pragma GCC diagnostic ignored "-Wclobbered"
-#endif
 
 /* We use different strategies for allocating the user-visible objects
    (struct emacs_runtime, emacs_env, emacs_value), depending on
@@ -273,14 +267,17 @@ module_decode_utf_8 (const char *str, ptrdiff_t len)
       module_out_of_memory (env);					\
       return retval;							\
     }									\
-  struct handler *internal_cleanup                                      \
+  emacs_env *env_volatile = env;					\
+  struct handler *volatile internal_cleanup				\
     = internal_handler;                                                 \
-  if (sys_setjmp (internal_cleanup->jmp))                               \
+  if (sys_setjmp (internal_handler->jmp))				\
     {									\
+      emacs_env *env = env_volatile;					\
+      struct handler *internal_handler = internal_cleanup;	\
       module_handle_nonlocal_exit (env,                                 \
-                                   internal_cleanup->nonlocal_exit,     \
-                                   internal_cleanup->val);              \
-      module_reset_handlerlist (internal_cleanup);			\
+				   internal_handler->nonlocal_exit,     \
+				   internal_handler->val);              \
+      module_reset_handlerlist (internal_handler);			\
       return retval;							\
     }									\
   do { } while (false)
@@ -410,12 +407,9 @@ module_global_reference_p (emacs_value v, ptrdiff_t *n)
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
   /* Note that we can't use `hash_lookup' because V might be a local
      reference that's identical to some global reference.  */
-  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
-    {
-      if (!BASE_EQ (HASH_KEY (h, i), Qunbound)
-          && &XMODULE_GLOBAL_REFERENCE (HASH_VALUE (h, i))->value == v)
-        return true;
-    }
+  DOHASH (h, k, val)
+    if (&XMODULE_GLOBAL_REFERENCE (val)->value == v)
+      return true;
   /* Only used for debugging, so we don't care about overflow, just
      make sure the operation is defined.  */
   ckd_add (n, *n, h->count);
@@ -427,8 +421,9 @@ module_make_global_ref (emacs_env *env, emacs_value value)
 {
   MODULE_FUNCTION_BEGIN (NULL);
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
-  Lisp_Object new_obj = value_to_lisp (value), hashcode;
-  ptrdiff_t i = hash_lookup (h, new_obj, &hashcode);
+  Lisp_Object new_obj = value_to_lisp (value);
+  hash_hash_t hashcode;
+  ptrdiff_t i = hash_lookup_get_hash (h, new_obj, &hashcode);
 
   /* Note: This approach requires the garbage collector to never move
      objects.  */
@@ -467,7 +462,7 @@ module_free_global_ref (emacs_env *env, emacs_value global_value)
   MODULE_FUNCTION_BEGIN ();
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
   Lisp_Object obj = value_to_lisp (global_value);
-  ptrdiff_t i = hash_lookup (h, obj, NULL);
+  ptrdiff_t i = hash_lookup (h, obj);
 
   if (module_assertions)
     {
@@ -1038,15 +1033,24 @@ import/export overhead on most platforms.
 
 /* Verify that emacs_limb_t indeed has unique object
    representations.  */
-verify (CHAR_BIT == 8);
-verify ((sizeof (emacs_limb_t) == 4 && EMACS_LIMB_MAX == 0xFFFFFFFF)
-        || (sizeof (emacs_limb_t) == 8
-            && EMACS_LIMB_MAX == 0xFFFFFFFFFFFFFFFF));
+static_assert (CHAR_BIT == 8);
+static_assert ((sizeof (emacs_limb_t) == 4 && EMACS_LIMB_MAX == 0xFFFFFFFF)
+	       || (sizeof (emacs_limb_t) == 8
+		   && EMACS_LIMB_MAX == 0xFFFFFFFFFFFFFFFF));
 
 static bool
 module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
                             ptrdiff_t *count, emacs_limb_t *magnitude)
 {
+#if GCC_LINT && __GNUC__ && !__clang__
+  /* These useless assignments pacify GCC 14.2.1 x86-64
+     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=21161>.  */
+  {
+    int *volatile sign_volatile = sign;
+    sign = sign_volatile;
+  }
+#endif
+
   MODULE_FUNCTION_BEGIN (false);
   Lisp_Object o = value_to_lisp (arg);
   CHECK_INTEGER (o);
@@ -1079,7 +1083,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
          suffice.  */
       EMACS_UINT u;
       enum { required = (sizeof u + size - 1) / size };
-      verify (0 < required && +required <= module_bignum_count_max);
+      static_assert (0 < required && +required <= module_bignum_count_max);
       if (magnitude == NULL)
         {
           *count = required;
@@ -1099,7 +1103,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
         u = (EMACS_UINT) x;
       else
         u = -(EMACS_UINT) x;
-      verify (required * bits < PTRDIFF_MAX);
+      static_assert (required * bits < PTRDIFF_MAX);
       for (ptrdiff_t i = 0; i < required; ++i)
         magnitude[i] = (emacs_limb_t) (u >> (i * bits));
       MODULE_INTERNAL_CLEANUP ();
@@ -1268,7 +1272,15 @@ funcall_module (Lisp_Object function, ptrdiff_t nargs, Lisp_Object *arglist)
   record_unwind_protect_module (SPECPDL_MODULE_ENVIRONMENT, env);
 
   USE_SAFE_ALLOCA;
-  emacs_value *args = nargs > 0 ? SAFE_ALLOCA (nargs * sizeof *args) : NULL;
+  emacs_value *args;
+  /* FIXME: Is this (nargs <= 0) test needed?  Either omit it and call
+     SAFE_NALLOCA unconditionally, or fix this comment to explain why
+     the test is needed.  */
+  if (nargs <= 0)
+    args = NULL;
+  else
+    SAFE_NALLOCA (args, 1, nargs);
+
   for (ptrdiff_t i = 0; i < nargs; ++i)
     {
       args[i] = lisp_to_value (env, arglist[i]);
@@ -1697,9 +1709,7 @@ syms_of_module (void)
 {
   staticpro (&Vmodule_refs_hash);
   Vmodule_refs_hash
-    = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE,
-		       DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
-		       Qnil, false);
+    = make_hash_table (&hashtest_eq, DEFAULT_HASH_SIZE, Weak_None, false);
 
   DEFSYM (Qmodule_load_failed, "module-load-failed");
   Fput (Qmodule_load_failed, Qerror_conditions,

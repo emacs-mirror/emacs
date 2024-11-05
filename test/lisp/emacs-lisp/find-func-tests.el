@@ -1,6 +1,6 @@
 ;;; find-func-tests.el --- Unit tests for find-func.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -32,7 +32,7 @@
 (ert-deftest find-func-tests--library-completion () ;bug#43393
   ;; FIXME: How can we make this work in batch (see also
   ;; `mule-cmds--test-universal-coding-system-argument')?
-  ;; (skip-unless (not noninteractive))
+  ;; (skip-when noninteractive)
   ;; Check that `partial-completion' works when completing library names.
   (should (equal "org/org"
                  (ert-simulate-keys

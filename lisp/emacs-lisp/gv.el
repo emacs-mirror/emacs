@@ -1,6 +1,6 @@
 ;;; gv.el --- generalized variables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -411,7 +411,6 @@ The return value is the last VAL in the list.
 (gv-define-setter buffer-local-value (val var buf)
   (macroexp-let2 nil v val
     `(with-current-buffer ,buf (set (make-local-variable ,var) ,v))))
-(make-obsolete-generalized-variable 'buffer-local-value nil "29.1")
 
 (gv-define-expander alist-get
   (lambda (do key alist &optional default remove testfn)
@@ -639,7 +638,7 @@ REF must have been previously obtained with `gv-ref'."
 
 ;;; Generalized variables.
 
-;; You'd think noone would write `(setf (error ...) ..)' but it
+;; You'd think no one would write `(setf (error ...) ..)' but it
 ;; appears naturally as the result of macroexpansion of things like
 ;; (setf (pcase-exhaustive ...)).
 ;; We could generalize this to `throw' and `signal', but it seems
@@ -821,18 +820,6 @@ REF must have been previously obtained with `gv-ref'."
                      (,v ,(funcall setter val))
                      ((eq ,getter ,val) ,(funcall setter `(not ,val))))))))))
 (make-obsolete-generalized-variable 'eq nil "29.1")
-
-(gv-define-expander substring
-  (lambda (do place from &optional to)
-    (gv-letplace (getter setter) place
-      (macroexp-let2* nil ((start from) (end to))
-        (funcall do `(substring ,getter ,start ,end)
-                 (lambda (v)
-                   (macroexp-let2 nil v v
-                     `(progn
-                        ,(funcall setter `(cl--set-substring
-                                           ,getter ,start ,end ,v))
-                        ,v))))))))
 
 (provide 'gv)
 ;;; gv.el ends here

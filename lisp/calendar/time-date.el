@@ -1,6 +1,6 @@
 ;;; time-date.el --- Date and time handling functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -145,30 +145,24 @@ it is assumed that PICO was omitted and should be treated as zero."
 (autoload 'timezone-make-date-arpa-standard "timezone")
 
 ;;;###autoload
-;; `parse-time-string' isn't sufficiently general or robust.  It fails
-;; to grok some of the formats that timezone does (e.g. dodgy
-;; post-2000 stuff from some Elms) and either fails or returns bogus
-;; values.  timezone-make-date-arpa-standard should help.
 (defun date-to-time (date)
   "Parse a string DATE that represents a date-time and return a time value.
 DATE should be in one of the forms recognized by `parse-time-string'.
-If DATE lacks timezone information, GMT is assumed."
+If DATE lacks time zone information, local time is assumed."
   (condition-case err
+      ;; Parse DATE. If it contains a year, use defaults for other components.
+      ;; Then encode the result; this signals an error if the year is missing,
+      ;; because encode-time signals if crucial time components are nil.
+      ;; This heuristic uses local time if the string lacks time zone info,
+      ;; because encode-time treats a nil time zone as local time.
       (let ((parsed (parse-time-string date)))
 	(when (decoded-time-year parsed)
 	  (decoded-time-set-defaults parsed))
 	(encode-time parsed))
     (error
-     (let ((overflow-error '(error "Specified time is not representable")))
-       (if (equal err overflow-error)
-	   (signal (car err) (cdr err))
-	 (condition-case err
-	     (encode-time (parse-time-string
-			   (timezone-make-date-arpa-standard date)))
-	   (error
-	    (if (equal err overflow-error)
-		(signal (car err) (cdr err))
-	      (error "Invalid date: %s" date)))))))))
+     (if (equal err '(error "Specified time is not representable"))
+	 (signal (car err) (cdr err))
+       (error "Invalid date: %s" date)))))
 
 ;;;###autoload
 (defalias 'time-to-seconds #'float-time)
@@ -181,7 +175,10 @@ If DATE lacks timezone information, GMT is assumed."
 
 ;;;###autoload
 (defun days-to-time (days)
-  "Convert DAYS into a time value."
+  "Convert Emacs-epoch DAYS into a time value.
+Note that this does not use the same epoch as `time-to-days'; you
+must subtract (time-to-days 0) first to convert, and may get nil
+if the result is before the start."
   ;; FIXME: We should likely just pass `t' to `time-convert'.
   ;; All uses I could find in Emacs, GNU ELPA, and NonGNU ELPA can handle
   ;; any valid time representation as return value.
@@ -243,7 +240,7 @@ DATE1 and DATE2 should be date-time strings."
 
 ;;;###autoload
 (defun time-to-days (time)
-  "The absolute date corresponding to TIME, a time value.
+  "The absolute pseudo-Gregorian date for TIME, a time value.
 The absolute date is the number of days elapsed since the imaginary
 Gregorian date Sunday, December 31, 1 BC."
   (let* ((tim (decode-time time))
@@ -341,8 +338,11 @@ right of \"%x\", trailing zero units are not output."
              string)
         (cond
          ((string-equal spec "z")
-          (setq chop-leading (and leading-zeropos
-                                  (min leading-zeropos (match-beginning 0)))))
+          (setq chop-leading
+                (if leading-zeropos
+                    (min leading-zeropos (match-beginning 0))
+                  ;; The entire spec is zero, get past "%z" to last 0.
+                  (+ 2 (match-beginning 0)))))
          ((string-equal spec "x")
           (setq chop-trailing t))
          (t
@@ -405,6 +405,7 @@ right of \"%x\", trailing zero units are not output."
   "Formatting used by the function `seconds-to-string'.")
 ;;;###autoload
 (defun seconds-to-string (delay)
+  ;; FIXME: There's a similar (tho fancier) function in mastodon.el!
   "Convert the time interval in seconds to a short string."
   (cond ((> 0 delay) (concat "-" (seconds-to-string (- delay))))
         ((= 0 delay) "0s")

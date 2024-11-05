@@ -1,6 +1,6 @@
 ;;; erc-d-t.el --- ERT helpers for ERC test server -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -38,11 +38,11 @@
       (when (and (boundp 'erc-server-flood-timer)
                  (timerp erc-server-flood-timer))
         (cancel-timer erc-server-flood-timer))
-      (when-let ((proc (get-buffer-process buf)))
+      (when-let* ((proc (get-buffer-process buf)))
         (delete-process proc))
       (when (buffer-live-p buf)
         (kill-buffer buf))))
-  (while (when-let ((buf (pop erc-d-u--canned-buffers)))
+  (while (when-let* ((buf (pop erc-d-u--canned-buffers)))
            (kill-buffer buf))))
 
 (defun erc-d-t-silence-around (orig &rest args)
@@ -74,14 +74,16 @@ returning."
                (push o procs)))
            (dolist (proc procs)
              (delete-process proc)
-             (when-let ((buf (process-buffer proc)))
+             (when-let* ((buf (process-buffer proc)))
                (push buf bufs)))
            (dolist (buf bufs)
-             (when-let ((proc (get-buffer-process buf)))
+             (when-let* ((proc (get-buffer-process buf)))
                (delete-process proc))
              (when (bufferp buf)
                (ignore-errors (kill-buffer buf)))))
          (sleep-for erc-d-t-cleanup-sleep-secs)))))
+
+(defvar erc-d-t--wait-message-prefix "Awaiting: ")
 
 (defmacro erc-d-t-wait-for (max-secs msg &rest body)
   "Wait for BODY to become non-nil.
@@ -99,7 +101,7 @@ be desirable."
   (let ((inverted (make-symbol "inverted"))
         (time-out (make-symbol "time-out"))
         (result (make-symbol "result")))
-    `(ert-info ((concat "Awaiting: " ,msg))
+    `(ert-info ((concat erc-d-t--wait-message-prefix ,msg))
        (let ((,time-out (abs ,max-secs))
              (,inverted (< ,max-secs 0))
              (,result ',result))
@@ -120,7 +122,8 @@ On failure, emit MSG."
   (unless (or (stringp msg) (memq (car-safe msg) '(format concat)))
     (push msg body)
     (setq msg (prin1-to-string body)))
-  `(erc-d-t-wait-for (- (abs ,max-secs)) ,msg (not (progn ,@body))))
+  `(let ((erc-d-t--wait-message-prefix "Sustaining: "))
+     (erc-d-t-wait-for (- (abs ,max-secs)) ,msg (not (progn ,@body)))))
 
 (defun erc-d-t-search-for (timeout text &optional from on-success)
   "Wait for TEXT to appear in current buffer before TIMEOUT secs.
@@ -154,6 +157,7 @@ ON-SUCCESS, is nonexistent.  To reset, specify a FROM argument."
   (let (positions)
     (lambda (timeout text &optional reset-from)
       (let* ((pos (cdr (assq (current-buffer) positions)))
+             (erc-d-t--wait-message-prefix (and (< timeout 0) "Sustaining: "))
              (cb (lambda ()
                    (unless pos
                      (push (cons (current-buffer) (setq pos (make-marker)))

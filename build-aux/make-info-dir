@@ -2,7 +2,7 @@
 
 ### make-info-dir - create info/dir, for systems without install-info
 
-## Copyright (C) 2013-2023 Free Software Foundation, Inc.
+## Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 ## Maintainer: emacs-devel@gnu.org
@@ -33,7 +33,8 @@
 
 ## Header contains non-printing characters, so this is more
 ## reliable than using awk.
-cat <"${1?}" || exit
+test $# -ge 2 || exit 1
+cat <"$1"
 shift
 
 exec "${AWK-awk}" '
@@ -85,7 +86,7 @@ exec "${AWK-awk}" '
       for (dircat = 0; dircat < ntopics && topic[dircat] != $0; dircat++)
         continue;
     }
-    if (tolower($0) ~ /^#\+texinfo_dir_title/) {
+    if (tolower($0) ~ /^#\+(texinfo_dir_title|texinfo_dir_name)/) {
       sub(/^#[^:]*: /, "")
       ## Note this does not fill any long descriptions.
       data[dircat] = data[dircat] sprintf("* %-30s", ($0 ". "))
@@ -101,4 +102,4 @@ exec "${AWK-awk}" '
       if (data[dircat])
         printf "\n%s\n%s", topic[dircat], data[dircat]
   }
-' "${@?}"
+' "$@"

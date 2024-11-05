@@ -1,6 +1,6 @@
 ;;; auth-source-tests.el --- Tests for auth-source.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Damien Cassou <damien@cassou.me>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -33,8 +33,8 @@
 (require 'secrets)
 
 (defun auth-source-ensure-ignored-backend (source)
-    (auth-source-validate-backend source '((:source . "")
-                                           (:type . ignore))))
+    (auth-source-validate-backend source '((source . "")
+                                           (type . ignore))))
 
 (defun auth-source-validate-backend (source validation-alist)
   (let ((backend (auth-source-backend-parse source)))
@@ -44,84 +44,101 @@
 
 (ert-deftest auth-source-backend-parse-macos-keychain ()
   (auth-source-validate-backend '(:source (:macos-keychain-generic foobar))
-                                '((:source . "foobar")
-                                  (:type . macos-keychain-generic)
-                                  (:search-function . auth-source-macos-keychain-search)
-                                  (:create-function . auth-source-macos-keychain-create))))
+                                '((source . "foobar")
+                                  (type . macos-keychain-generic)
+                                  (search-function . auth-source-macos-keychain-search)
+                                  (create-function . auth-source-macos-keychain-create))))
 
 (ert-deftest auth-source-backend-parse-macos-keychain-generic-string ()
   (auth-source-validate-backend "macos-keychain-generic:foobar"
-                                '((:source . "foobar")
-                                  (:type . macos-keychain-generic)
-                                  (:search-function . auth-source-macos-keychain-search)
-                                  (:create-function . auth-source-macos-keychain-create))))
+                                '((source . "foobar")
+                                  (type . macos-keychain-generic)
+                                  (search-function
+                                   . auth-source-macos-keychain-search)
+                                  (create-function
+                                   . auth-source-macos-keychain-create))))
 
 (ert-deftest auth-source-backend-parse-macos-keychain-internet-string ()
   (auth-source-validate-backend "macos-keychain-internet:foobar"
-                                '((:source . "foobar")
-                                  (:type . macos-keychain-internet)
-                                  (:search-function . auth-source-macos-keychain-search)
-                                  (:create-function . auth-source-macos-keychain-create))))
+                                '((source . "foobar")
+                                  (type . macos-keychain-internet)
+                                  (search-function
+                                   . auth-source-macos-keychain-search)
+                                  (create-function
+                                   . auth-source-macos-keychain-create))))
 
 (ert-deftest auth-source-backend-parse-macos-keychain-internet-symbol ()
   (auth-source-validate-backend 'macos-keychain-internet
-                                '((:source . "default")
-                                  (:type . macos-keychain-internet)
-                                  (:search-function . auth-source-macos-keychain-search)
-                                  (:create-function . auth-source-macos-keychain-create))))
+                                '((source . "default")
+                                  (type . macos-keychain-internet)
+                                  (search-function
+                                   . auth-source-macos-keychain-search)
+                                  (create-function
+                                   . auth-source-macos-keychain-create))))
 
 (ert-deftest auth-source-backend-parse-macos-keychain-generic-symbol ()
   (auth-source-validate-backend 'macos-keychain-generic
-                                '((:source . "default")
-                                  (:type . macos-keychain-generic)
-                                  (:search-function . auth-source-macos-keychain-search)
-                                  (:create-function . auth-source-macos-keychain-create))))
+                                '((source . "default")
+                                  (type . macos-keychain-generic)
+                                  (search-function
+                                   . auth-source-macos-keychain-search)
+                                  (create-function
+                                   . auth-source-macos-keychain-create))))
 
 (ert-deftest auth-source-backend-parse-macos-keychain-internet-default-string ()
   (auth-source-validate-backend 'macos-keychain-internet
-                                '((:source . "default")
-                                  (:type . macos-keychain-internet)
-                                  (:search-function . auth-source-macos-keychain-search)
-                                  (:create-function . auth-source-macos-keychain-create))))
+                                '((source . "default")
+                                  (type . macos-keychain-internet)
+                                  (search-function
+                                   . auth-source-macos-keychain-search)
+                                  (create-function
+                                   . auth-source-macos-keychain-create))))
 
 (ert-deftest auth-source-backend-parse-plstore ()
   (auth-source-validate-backend '(:source "foo.plist")
-                                '((:source . "foo.plist")
-                                  (:type . plstore)
-                                  (:search-function . auth-source-plstore-search)
-                                  (:create-function . auth-source-plstore-create))))
+                                '((source . "foo.plist")
+                                  (type . plstore)
+                                  (search-function . auth-source-plstore-search)
+                                  (create-function
+                                   . auth-source-plstore-create))))
 
 (ert-deftest auth-source-backend-parse-netrc ()
   (auth-source-validate-backend '(:source "foo")
-                                '((:source . "foo")
-                                  (:type . netrc)
-                                  (:search-function . auth-source-netrc-search)
-                                  (:create-function . auth-source-netrc-create))))
+                                '((source . "foo")
+                                  (type . netrc)
+                                  (search-function . auth-source-netrc-search)
+                                  (create-function
+                                   . auth-source-netrc-create))))
 
 (ert-deftest auth-source-backend-parse-netrc-string ()
   (auth-source-validate-backend "foo"
-                                '((:source . "foo")
-                                  (:type . netrc)
-                                  (:search-function . auth-source-netrc-search)
-                                  (:create-function . auth-source-netrc-create))))
+                                '((source . "foo")
+                                  (type . netrc)
+                                  (search-function . auth-source-netrc-search)
+                                  (create-function
+                                   . auth-source-netrc-create))))
 
 (ert-deftest auth-source-backend-parse-secrets ()
   (provide 'secrets) ; simulates the presence of the `secrets' package
   (let ((secrets-enabled t))
     (auth-source-validate-backend '(:source (:secrets "foo"))
-                                  '((:source . "foo")
-                                    (:type . secrets)
-                                    (:search-function . auth-source-secrets-search)
-                                    (:create-function . auth-source-secrets-create)))))
+                                  '((source . "foo")
+                                    (type . secrets)
+                                    (search-function
+                                     . auth-source-secrets-search)
+                                    (create-function
+                                     . auth-source-secrets-create)))))
 
 (ert-deftest auth-source-backend-parse-secrets-strings ()
   (provide 'secrets) ; simulates the presence of the `secrets' package
   (let ((secrets-enabled t))
     (auth-source-validate-backend "secrets:foo"
-                                  '((:source . "foo")
-                                    (:type . secrets)
-                                    (:search-function . auth-source-secrets-search)
-                                    (:create-function . auth-source-secrets-create)))))
+                                  '((source . "foo")
+                                    (type . secrets)
+                                    (search-function
+                                     . auth-source-secrets-search)
+                                    (create-function
+                                     . auth-source-secrets-create)))))
 
 (ert-deftest auth-source-backend-parse-secrets-alias ()
   (provide 'secrets) ; simulates the presence of the `secrets' package
@@ -129,10 +146,12 @@
     ;; Redefine `secrets-get-alias' to map 'foo to "foo"
     (cl-letf (((symbol-function 'secrets-get-alias) (lambda (_) "foo")))
       (auth-source-validate-backend '(:source (:secrets foo))
-                                    '((:source . "foo")
-                                      (:type . secrets)
-                                      (:search-function . auth-source-secrets-search)
-                                      (:create-function . auth-source-secrets-create))))))
+                                    '((source . "foo")
+                                      (type . secrets)
+                                      (search-function
+                                       . auth-source-secrets-search)
+                                      (create-function
+                                       . auth-source-secrets-create))))))
 
 (ert-deftest auth-source-backend-parse-secrets-symbol ()
   (provide 'secrets) ; simulates the presence of the `secrets' package
@@ -140,10 +159,12 @@
     ;; Redefine `secrets-get-alias' to map 'default to "foo"
     (cl-letf (((symbol-function 'secrets-get-alias) (lambda (_) "foo")))
       (auth-source-validate-backend 'default
-                                    '((:source . "foo")
-                                      (:type . secrets)
-                                      (:search-function . auth-source-secrets-search)
-                                      (:create-function . auth-source-secrets-create))))))
+                                    '((source . "foo")
+                                      (type . secrets)
+                                      (search-function
+                                       . auth-source-secrets-search)
+                                      (create-function
+                                       . auth-source-secrets-create))))))
 
 (ert-deftest auth-source-backend-parse-secrets-no-alias ()
   (provide 'secrets) ; simulates the presence of the `secrets' package
@@ -152,10 +173,12 @@
     ;; "Login" is used by default
     (cl-letf (((symbol-function 'secrets-get-alias) (lambda (_) nil)))
       (auth-source-validate-backend '(:source (:secrets foo))
-                                    '((:source . "Login")
-                                      (:type . secrets)
-                                      (:search-function . auth-source-secrets-search)
-                                      (:create-function . auth-source-secrets-create))))))
+                                    '((source . "Login")
+                                      (type . secrets)
+                                      (search-function
+                                       . auth-source-secrets-search)
+                                      (create-function
+                                       . auth-source-secrets-create))))))
 
 (ert-deftest auth-source-backend-parse-invalid-or-nil-source ()
   (provide 'secrets) ; simulates the presence of the `secrets' package
@@ -411,7 +434,7 @@ machine c1 port c2 user c3 password c4\n"
       ;; this is actually the same as `auth-source-search'.
       (should (equal found expected)))))
 
-(ert-deftest test-netrc-credentials ()
+(ert-deftest auth-source-test-netrc-credentials ()
   (let ((data (auth-source-netrc-parse-all (ert-resource-file "authinfo"))))
     (should data)
     (let ((imap (seq-find (lambda (elem)
@@ -427,7 +450,7 @@ machine c1 port c2 user c3 password c4\n"
       (should (equal (cdr (assoc "login" imap)) "jrh"))
       (should (equal (cdr (assoc "password" imap)) "*baz*")))))
 
-(ert-deftest test-netrc-credentials-2 ()
+(ert-deftest auth-source-test-netrc-credentials-2 ()
   (let ((data (auth-source-netrc-parse-all
                (ert-resource-file "netrc-folding"))))
     (should
@@ -435,25 +458,33 @@ machine c1 port c2 user c3 password c4\n"
             '((("machine" . "XM") ("login" . "XL") ("password" . "XP"))
               (("machine" . "YM") ("login" . "YL") ("password" . "YP")))))))
 
-(ert-deftest test-macos-keychain-search ()
+(ert-deftest auth-source-test-macos-keychain-search ()
   "Test if the constructed command line arglist is correct."
   (let ((auth-sources '(macos-keychain-internet macos-keychain-generic)))
     ;; Redefine `call-process' to check command line arguments.
     (cl-letf (((symbol-function 'call-process)
                (lambda (_program _infile _destination _display
                                  &rest args)
-                 ;; Arguments must be all strings
+                 ;; Arguments must be all strings.
                  (should (cl-every #'stringp args))
-                 ;; Argument number should be even
+                 ;; Argument number should be even.
                  (should (cl-evenp (length args)))
-                 (should (cond ((string= (car args) "find-internet-password")
-                                (let ((protocol (cl-member "-r" args :test #'string=)))
-                                  (if protocol
-                                      (= 4 (length (cadr protocol)))
-                                    t)))
-                               ((string= (car args) "find-generic-password")
-                                t))))))
-      (auth-source-search :user '("a" "b") :host '("example.org") :port '("irc" "ftp" "https")))))
+                 (should
+                  (cond
+                   ((string= (car args) "find-internet-password")
+                    (let ((protocol-r (cl-member "-r" args :test #'string=))
+                          (protocol-P (cl-member "-P" args :test #'string=)))
+                      (cond (protocol-r
+                             (= 4 (length (cadr protocol-r))))
+                            (protocol-P
+                             (string-match-p
+                              "\\`[[:digit:]]+\\'" (cadr protocol-P)))
+                            (t))))
+                   ((string= (car args) "find-generic-password")
+                    t))))))
+      (auth-source-search
+       :user '("a" "b") :host '("example.org")
+       :port '("irc" "ftp" "https" 123)))))
 
 (provide 'auth-source-tests)
 ;;; auth-source-tests.el ends here

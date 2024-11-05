@@ -1,8 +1,8 @@
 ;;; org-mobile.el --- Code for Asymmetric Sync With a Mobile Device -*- lexical-binding: t; -*-
-;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
@@ -392,7 +392,7 @@ agenda view showing the flagged items."
 	  (org-agenda nil "?"))))))
 
 (defun org-mobile-check-setup ()
-  "Check if org-mobile-directory has been set up."
+  "Check if `org-mobile-directory' has been set up."
   (org-mobile-cleanup-encryption-tempfile)
   (unless (and org-directory
 	       (stringp org-directory)
@@ -470,7 +470,7 @@ agenda view showing the flagged items."
       (insert "#+TAGS: " (mapconcat 'identity tags " ") "\n")
       (insert "#+ALLPRIORITIES: " org-mobile-allpriorities "\n")
       (when (file-exists-p (expand-file-name
-			    org-mobile-directory "agendas.org"))
+			    "agendas.org" org-mobile-directory))
 	(insert "* [[file:agendas.org][Agenda Views]]\n"))
       (pcase-dolist (`(,_ . ,link-name) files-alist)
 	(insert (format "* [[file:%s][%s]]\n" link-name link-name)))
@@ -627,11 +627,11 @@ The table of checksums is written to the file mobile-checksums."
 	  (setq short (get-text-property (point) 'short-heading))
 	  (when (and short (looking-at ".+"))
 	    (replace-match short nil t)
-	    (beginning-of-line 1))
+	    (forward-line 0))
 	  (when app
 	    (end-of-line 1)
 	    (insert app)
-	    (beginning-of-line 1))
+	    (forward-line 0))
 	  (insert "* "))
 	 ((get-text-property (point) 'org-agenda-date-header)
 	  (setq in-date t)
@@ -649,7 +649,7 @@ The table of checksums is written to the file mobile-checksums."
                                       (line-end-position))))
                 (delete-region (line-beginning-position) (line-end-position))
 		(insert line "<before>" prefix "</before>")
-		(beginning-of-line 1))
+		(forward-line 0))
 	    (and (looking-at "[ \t]+") (replace-match "")))
 	  (insert (if in-date "***  " "**  "))
 	  (end-of-line 1)
@@ -666,7 +666,7 @@ The table of checksums is written to the file mobile-checksums."
 			      (org-mobile-get-outline-path-link m))))
 	      (insert "   :PROPERTIES:\n   :ORIGINAL_ID: " id
 		      "\n   :END:\n")))))
-	(beginning-of-line 2))
+	(forward-line 1))
       (push (cons "agendas.org" (md5 (buffer-string)))
 	    org-mobile-checksum-files))
     (message "Agenda written to Org file %s" file)))
@@ -1057,7 +1057,7 @@ be returned that indicates what went wrong."
 	      (goto-char (match-beginning 4))
 	      (insert new)
 	      (delete-region (point) (+ (point) (length current)))
-	      (org-align-tags))
+	      (when org-auto-align-tags (org-align-tags)))
 	     (t
 	      (error
 	       "Heading changed in the mobile device and on the computer")))))))
@@ -1071,7 +1071,7 @@ be returned that indicates what went wrong."
 	    (end-of-line 1)
 	    (org-insert-heading-respect-content t)
 	    (org-demote))
-	(beginning-of-line)
+	(forward-line 0)
 	(insert "* "))
       (insert new))
 

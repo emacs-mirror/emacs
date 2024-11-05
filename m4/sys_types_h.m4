@@ -1,5 +1,6 @@
-# sys_types_h.m4 serial 13
-dnl Copyright (C) 2011-2023 Free Software Foundation, Inc.
+# sys_types_h.m4
+# serial 14
+dnl Copyright (C) 2011-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -21,6 +22,9 @@ AC_DEFUN_ONCE([gl_SYS_TYPES_H],
 
   dnl Whether to override the 'off_t' type.
   AC_REQUIRE([gl_TYPE_OFF_T])
+
+  dnl Whether to define the 'off64_t' type.
+  AC_REQUIRE([gl_TYPE_OFF64_T])
 
   dnl Whether to override the 'dev_t' and 'ino_t' types.
   m4_ifdef([gl_WINDOWS_STAT_INODES], [

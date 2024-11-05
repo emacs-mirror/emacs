@@ -1,6 +1,6 @@
 ;;; dns.el --- Domain Name Service lookups  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network comm
@@ -359,7 +359,7 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
     result))
 
 ;;; Interface functions.
-(defvar dns-cache (make-vector 4096 0))
+(defvar dns-cache (obarray-make 4096))
 
 (defun dns-query-cached (name &optional type fullp reversep)
   (let* ((key (format "%s:%s:%s:%s" name type fullp reversep))

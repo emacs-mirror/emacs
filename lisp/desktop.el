@@ -1,6 +1,6 @@
 ;;; desktop.el --- save partial status of Emacs when killed -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1995, 1997, 2000-2023 Free Software Foundation,
+;; Copyright (C) 1993-1995, 1997, 2000-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -122,7 +122,7 @@
 ;; things you did not mean to keep.  Use M-x desktop-clear RET.
 
 ;; Thanks to  hetrick@phys.uva.nl (Jim Hetrick)      for useful ideas.
-;;            avk@rtsg.mot.com (Andrew V. Klein)     for a dired tip.
+;;            avk@rtsg.mot.com (Andrew V. Klein)     for a Dired tip.
 ;;            chris@tecc.co.uk (Chris Boucher)       for a mark tip.
 ;;            f89-kam@nada.kth.se (Klas Mellbourn)   for a mh-e tip.
 ;;            kifer@cs.stonybrook.edu (M. Kifer)     for a bug hunt.
@@ -163,13 +163,22 @@ Used at desktop read to provide backward compatibility.")
 (define-minor-mode desktop-save-mode
   "Toggle desktop saving (Desktop Save mode).
 
-When Desktop Save mode is enabled, the state of Emacs is saved from
-one session to another.  In particular, Emacs will save the desktop when
-it exits (this may prompt you; see the option `desktop-save').  The next
-time Emacs starts, if this mode is active it will restore the desktop.
+When Desktop Save mode is enabled, the state of Emacs is saved from one
+session to another.  The saved Emacs \"desktop configuration\" includes the
+buffers, their file names, major modes, buffer positions, window and frame
+configuration, and some important global variables.
 
-To manually save the desktop at any time, use the command `\\[desktop-save]'.
-To load it, use `\\[desktop-read]'.
+To enable this feature for future sessions, customize `desktop-save-mode'
+to t, or add this line in your init file:
+
+    (desktop-save-mode 1)
+
+When this mode is enabled, Emacs will save the desktop when it exits
+(this may prompt you, see the option `desktop-save').  The next time
+Emacs starts, if this mode is active it will restore the desktop.
+
+To manually save the desktop at any time, use the command \\[desktop-save].
+To load it, use \\[desktop-read].
 
 Once a desktop file exists, Emacs will auto-save it according to the
 option `desktop-auto-save-timeout'.
@@ -287,13 +296,13 @@ If nil, just print error messages in the message buffer."
 (defcustom desktop-no-desktop-file-hook nil
   "Normal hook run when `desktop-read' can't find a desktop file.
 Run in the directory in which the desktop file was sought.
-May be used to show a dired buffer."
+May be used to show a Dired buffer."
   :type 'hook
   :group 'desktop
   :version "22.1")
 
 (defcustom desktop-not-loaded-hook nil
-  "Normal hook run when the user declines to re-use a desktop file.
+  "Normal hook run when the user declines to reuse a desktop file.
 Run in the directory in which the desktop file was found.
 May be used to deal with accidental multiple Emacs jobs."
   :type 'hook
@@ -455,7 +464,7 @@ If nil, deletes existing frames.
 If `keep', keeps existing frames and does not reuse them."
   :type '(choice (const :tag "Reuse existing frames" t)
 		 (const :tag "Delete existing frames" nil)
-		 (const :tag "Keep existing frames" :keep))
+		 (const :tag "Keep existing frames" keep))
   :group 'desktop
   :version "24.4")
 
@@ -690,7 +699,7 @@ DIRNAME omitted or nil means use `desktop-dirname'."
 
 (defun desktop--emacs-pid-running-p (pid)
   "Return non-nil if an Emacs process whose ID is PID might still be running."
-  (when-let ((attr (process-attributes pid)))
+  (when-let* ((attr (process-attributes pid)))
     (let ((proc-cmd (alist-get 'comm attr))
           (my-cmd (file-name-nondirectory (car command-line-args)))
           (case-fold-search t))

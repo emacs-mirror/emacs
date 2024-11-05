@@ -1,15 +1,13 @@
-# serial 44
+# nanosleep.m4
+# serial 47
+dnl Copyright (C) 1999-2001, 2003-2024 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
 
 dnl From Jim Meyering.
 dnl Check for the nanosleep function.
 dnl If not found, use the supplied replacement.
-dnl
-
-# Copyright (C) 1999-2001, 2003-2023 Free Software Foundation, Inc.
-
-# This file is free software; the Free Software Foundation
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.
 
 AC_DEFUN([gl_FUNC_NANOSLEEP],
 [
@@ -21,7 +19,7 @@ AC_DEFUN([gl_FUNC_NANOSLEEP],
 
  AC_CHECK_DECLS_ONCE([alarm])
 
- nanosleep_save_libs=$LIBS
+ gl_saved_LIBS=$LIBS
 
  # Solaris 2.5.1 needs -lposix4 to get the nanosleep function.
  # Solaris 7 prefers the library name -lrt to the obsolescent name -lposix4.
@@ -116,11 +114,18 @@ AC_DEFUN([gl_FUNC_NANOSLEEP],
         *)     gl_cv_func_nanosleep=no ;;
         esac],
        [case "$host_os" in
-          linux*) # Guess it halfway works when the kernel is Linux.
+            # Guess it halfway works when the kernel is Linux.
+          linux*)
             gl_cv_func_nanosleep='guessing no (mishandles large arguments)' ;;
-          mingw*) # Guess no on native Windows.
+            # Midipix generally emulates the Linux system calls,
+            # but here it handles large arguments correctly.
+          midipix*)
+            gl_cv_func_nanosleep='guessing yes' ;;
+            # Guess no on native Windows.
+          mingw* | windows*)
             gl_cv_func_nanosleep='guessing no' ;;
-          *)      # If we don't know, obey --enable-cross-guesses.
+            # If we don't know, obey --enable-cross-guesses.
+          *)
             gl_cv_func_nanosleep="$gl_cross_guess_normal" ;;
         esac
        ])
@@ -140,7 +145,7 @@ AC_DEFUN([gl_FUNC_NANOSLEEP],
  else
    HAVE_NANOSLEEP=0
  fi
- LIBS=$nanosleep_save_libs
+ LIBS=$gl_saved_LIBS
 
  # For backward compatibility.
  LIB_NANOSLEEP="$NANOSLEEP_LIB"

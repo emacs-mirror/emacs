@@ -1,6 +1,6 @@
 ;;; ld-script.el --- GNU linker script editing mode for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO <yamato@redhat.com>
 ;; Keywords: languages, faces

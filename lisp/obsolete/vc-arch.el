@@ -1,6 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>

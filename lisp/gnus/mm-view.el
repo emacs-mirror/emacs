@@ -1,6 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -105,17 +105,17 @@ This is only used if `mm-inline-large-images' is set to
      (lambda ()
        (let ((inhibit-read-only t))
 	 (remove-images b b)
-	 (delete-region b (1+ b)))))))
+	 (delete-region b (+ b 2)))))))
 
 (defvar mm-w3m-setup nil
-  "Whether gnus-article-mode has been setup to use emacs-w3m.")
+  "Whether `gnus-article-mode' has been setup to use emacs-w3m.")
 
 ;; External.
 (declare-function w3m-detect-meta-charset "ext:w3m" ())
 (declare-function w3m-region "ext:w3m" (start end &optional url charset))
 
 (defun mm-setup-w3m ()
-  "Setup gnus-article-mode to use emacs-w3m."
+  "Setup `gnus-article-mode' to use emacs-w3m."
   (unless mm-w3m-setup
     (require 'w3m)
     (unless (assq 'gnus-article-mode w3m-cid-retrieve-function-alist)
@@ -487,8 +487,6 @@ after inserting the part."
 	     (let ((inhibit-read-only t))
 	       (delete-region beg end)))))))))
 
-;; Shut up byte-compiler.
-(defvar font-lock-mode-hook)
 (defun mm-display-inline-fontify (handle &optional mode)
   "Insert HANDLE inline fontifying with MODE.
 If MODE is not set, try to find mode automatically."
@@ -504,6 +502,7 @@ If MODE is not set, try to find mode automatically."
 	  (setq coding-system (mm-find-buffer-file-coding-system)))
 	(setq text (buffer-string))))
     (with-temp-buffer
+      (setq untrusted-content t)
       (insert (cond ((eq charset 'gnus-decoded)
 		     (with-current-buffer (mm-handle-buffer handle)
 		       (buffer-string)))

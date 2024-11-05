@@ -1,6 +1,10 @@
 Code:
   (lambda ()
     (shell-script-mode)
+    (unless sh-indent-supported-here
+      (ert-skip
+       '((skip-unless sh-indent-supported-here)
+	 :form sh-indent-supported-here :value nil)))
     (indent-region (point-min) (point-max)))
 
 Name: sh-indents1
@@ -37,4 +41,11 @@ if test ;then
     something
 fi
 other
+=-=-=
+
+Name: sh-indents5
+
+=-=
+for i do echo 1; done
+for i; do echo 1; done
 =-=-=

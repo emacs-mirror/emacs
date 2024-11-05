@@ -18,7 +18,7 @@
  (0 ":irc.foonet.org 266 chester 3 4 :Current global users 3, max 4")
  (0 ":irc.foonet.org 422 chester :MOTD File is missing"))
 
-((mode-user 1.2 "MODE chester +i")
+((mode-user 10 "MODE chester +i")
  (0 ":irc.foonet.org 221 chester +i")
  (0 ":irc.foonet.org NOTICE chester :This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect."))
 

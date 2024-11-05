@@ -1,6 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools
@@ -785,8 +785,7 @@ MARK-FILES should be a list of absolute filenames."
 
 (defun vc-dir-mark-state-files (states)
   "Mark files that are in the state specified by the list in STATES."
-  (unless (listp states)
-    (setq states (list states)))
+  (setq states (ensure-list states))
   (ewoc-map
    (lambda (filearg)
      (when (memq (vc-dir-fileinfo->state filearg) states)
@@ -1457,9 +1456,9 @@ These are the commands available for use in the file status buffer:
     (let ((use-vc-backend backend))
       (vc-dir-mode)
       ;; Activate the backend-specific minor mode, if any.
-      (when-let ((minor-mode
-                  (intern-soft (format "vc-dir-%s-mode"
-                                       (downcase (symbol-name backend))))))
+      (when-let* ((minor-mode
+                   (intern-soft (format "vc-dir-%s-mode"
+                                        (downcase (symbol-name backend))))))
         (funcall minor-mode 1)))))
 
 (defun vc-default-dir-extra-headers (_backend _dir)

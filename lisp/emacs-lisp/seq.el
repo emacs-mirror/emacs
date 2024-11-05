@@ -1,13 +1,12 @@
 ;;; seq.el --- Sequence manipulation functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2024 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
-;; Keywords: sequences
-;; Version: 2.23
-;; Package: seq
-
 ;; Maintainer: emacs-devel@gnu.org
+;; Keywords: sequences
+;; Version: 2.24
+;; Package: seq
 
 ;; This file is part of GNU Emacs.
 
@@ -38,9 +37,6 @@
 ;; the sequence as their second argument.  All other functions take
 ;; the sequence as their first argument.
 ;;
-;; While seq.el version 1.8 is in GNU ELPA for convenience, seq.el
-;; version 2.0 requires Emacs>=25.1.
-;;
 ;; seq.el can be extended to support new type of sequences.  Here are
 ;; the generic functions that must be implemented by new seq types:
 ;; - `seq-elt'
@@ -51,10 +47,16 @@
 ;; - `seq-into-sequence'
 ;; - `seq-copy'
 ;; - `seq-into'
-;;
-;; All functions are tested in test/lisp/emacs-lisp/seq-tests.el
 
 ;;; Code:
+
+;; Note regarding the `seq' package on GNU ELPA:
+;;
+;; It was decided not to bother upgrading seq beyond 2.24 on GNU ELPA.
+;; The main purpose of the GNU ELPA package was to encourage adoption
+;; and accommodate changes more easily, but it's mature enough that
+;; changes are fairly slow.  Thus, we can now rely on "the usual"
+;; solutions to deal with compatibility issues.  (Bug#60990)
 
 (eval-when-compile (require 'cl-generic))
 
@@ -359,8 +361,7 @@ the result.
 
 The result is a sequence of the same type as SEQUENCE."
   (seq-concatenate
-   (let ((type (type-of sequence)))
-     (if (eq type 'cons) 'list type))
+   (if (listp sequence) 'list (type-of sequence))
    (seq-subseq sequence 0 n)
    (seq-subseq sequence (1+ n))))
 
@@ -616,12 +617,12 @@ SEQUENCE must be a sequence of numbers or markers."
       (unless rest-marker
         (pcase name
           (`&rest
-           (progn (push `(app (pcase--flip seq-drop ,index)
+           (progn (push `(app (seq-drop _ ,index)
                               ,(seq--elt-safe args (1+ index)))
                         bindings)
                   (setq rest-marker t)))
           (_
-           (push `(app (pcase--flip seq--elt-safe ,index) ,name) bindings))))
+           (push `(app (seq--elt-safe _ ,index) ,name) bindings))))
       (setq index (1+ index)))
     bindings))
 

@@ -1,4 +1,4 @@
-# Copyright 2023 Free Software Foundation, Inc.
+# Copyright 2023-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -20,7 +20,7 @@
 # which actually builds targets.
 
 # List of system libraries to ignore.
-NDK_SYSTEM_LIBRARIES = z libz libc c libdl dl stdc++ libstdc++ log liblog android libandroid
+NDK_SYSTEM_LIBRARIES = z libz libc c libdl dl stdc++ libstdc++ stlport libstlport gnustl libgnustl c++ libc++ log liblog android libandroid
 
 # Save information.
 NDK_LOCAL_PATH_$(LOCAL_MODULE) := $(LOCAL_PATH)
@@ -32,7 +32,9 @@ NDK_LOCAL_EXPORT_C_INCLUDES_$(LOCAL_MODULE) := $(LOCAL_EXPORT_C_INCLUDES) $(LOCA
 NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) :=
 NDK_WHOLE_A_NAMES_$(LOCAL_MODULE) :=
 NDK_LOCAL_SO_NAMES_$(LOCAL_MODULE) :=
-NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) :=
+
+# Linker options enabling 16k page sizes.
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) := $(NDK_BUILD_SO_LDFLAGS)
 
 # List of all dependencies resolved for this module thus far.
 # Used to avoid infinite recursion.
@@ -50,7 +52,6 @@ ifeq ($$(filter $(1)$(and $(3),whole),$$(NDK_RESOLVED_CFLAGS_$(LOCAL_MODULE))),)
 # Always mark this module's cflags as having been resolved, even if
 # this is a whole library.
 NDK_RESOLVED_CFLAGS_$(LOCAL_MODULE) += $(1)
-
 NDK_CFLAGS_$(LOCAL_MODULE) += $(NDK_LOCAL_EXPORT_CFLAGS_$(1))
 NDK_CFLAGS_$(LOCAL_MODULE) += $(addprefix -I,$(NDK_LOCAL_EXPORT_C_INCLUDES_$(1)))
 endif
@@ -90,11 +91,35 @@ endif
 
 # Likewise for libstdc++.
 ifeq ($(strip $(1)),libstdc++)
-NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lstdc++
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
 endif
 
-ifeq ($(strip $(1)),dl)
-NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -lstdc++
+ifeq ($(strip $(1)),stdc++)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),libstlport)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),stlport)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),libgnustl)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),gnustl)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),libc++)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
+endif
+
+ifeq ($(strip $(1)),c++)
+NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += $(NDK_BUILD_CXX_LDFLAGS)
 endif
 
 # Likewise for liblog.
@@ -116,7 +141,7 @@ NDK_SO_EXTRA_FLAGS_$(LOCAL_MODULE) += -landroid
 endif
 
 ifeq ($(findstring $(1),$(NDK_SYSTEM_LIBRARIES))$(2)$(3),)
-ifneq ($(findstring lib,$(1)),)
+ifeq ($(filter-out lib%,$(1)),)
 NDK_LOCAL_SO_NAMES_$(LOCAL_MODULE) += $(1)_emacs.so
 else
 NDK_LOCAL_SO_NAMES_$(LOCAL_MODULE) += lib$(1)_emacs.so
@@ -124,7 +149,7 @@ endif
 endif
 
 ifneq ($(2),)
-ifneq ($(findstring lib,$(1)),)
+ifeq ($(filter-out lib%,$(1)),)
 NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) += $(1).a
 else
 NDK_LOCAL_A_NAMES_$(LOCAL_MODULE) += lib$(1).a
@@ -132,7 +157,7 @@ endif
 endif
 
 ifneq ($(3),)
-ifneq ($(findstring lib,$(1)),)
+ifeq ($(filter-out lib%,$(1)),)
 NDK_WHOLE_A_NAMES_$(LOCAL_MODULE) += $(1).a
 else
 NDK_WHOLE_A_NAMES_$(LOCAL_MODULE) += lib$(1).a

@@ -1,6 +1,6 @@
 ;;; srecode/fields.el --- Handling type-in fields in a buffer.  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -70,7 +70,7 @@ Once an insertion set is done, these fields will be activated.")
 (defclass srecode-overlaid ()
   ((overlay :documentation
 	    "Overlay representing this field.
-The overlay will crossreference this object.")
+The overlay will cross-reference this object.")
    )
   "An object that gets automatically bound to an overlay.
 Has virtual :start and :end initializers.")

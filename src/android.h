@@ -1,6 +1,6 @@
 /* Android initialization for GNU Emacs.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,11 +24,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    a table of function pointers.  */
 
 #ifndef _ANDROID_H_
+#define _ANDROID_H_
+
 #ifndef ANDROID_STUBIFY
 #include <jni.h>
 #include <pwd.h>
 
 #include <sys/stat.h>
+#include <sys/select.h>
+
 #include <dirent.h>
 #include <stdio.h>
 
@@ -51,10 +55,26 @@ extern char *android_user_full_name (struct passwd *);
 
 
 
+/* Structure describing the android.os.ParcelFileDescriptor class used
+   to wrap file descriptors sent over IPC.  */
+
+struct android_parcel_file_descriptor_class
+{
+  jclass class;
+  jmethodID close;
+  jmethodID get_fd;
+  jmethodID detach_fd;
+};
+
+/* The ParcelFileDescriptor class.  */
+extern struct android_parcel_file_descriptor_class fd_class;
+
+extern void android_init_fd_class (JNIEnv *);
+
 /* File I/O operations.  Many of these are defined in
    androidvfs.c.  */
 
-extern const char *android_is_special_directory (const char *, const char *);
+extern bool android_is_special_directory (const char *, const char *);
 extern const char *android_get_home_directory (void);
 
 extern void android_vfs_init (JNIEnv *, jobject);
@@ -75,22 +95,17 @@ extern int android_renameat_noreplace (int, const char *,
 				       int, const char *);
 extern int android_rename (const char *, const char *);
 extern int android_fchmodat (int, const char *, mode_t, int);
+extern ssize_t android_readlinkat (int, const char *restrict, char *restrict,
+				   size_t);
 
 
 
 extern double android_pixel_density_x, android_pixel_density_y;
 extern double android_scaled_pixel_density;
 
-enum android_handle_type
-  {
-    ANDROID_HANDLE_WINDOW,
-    ANDROID_HANDLE_GCONTEXT,
-    ANDROID_HANDLE_PIXMAP,
-    ANDROID_HANDLE_CURSOR,
-  };
+static_assert (sizeof (android_handle) == sizeof (jobject));
+#define android_resolve_handle(handle) ((jobject) (handle))
 
-extern jobject android_resolve_handle (android_handle,
-				       enum android_handle_type);
 extern unsigned char *android_lock_bitmap (android_drawable,
 					   AndroidBitmapInfo *,
 					   jobject *);
@@ -101,18 +116,24 @@ extern int android_get_screen_height (void);
 extern int android_get_mm_width (void);
 extern int android_get_mm_height (void);
 extern bool android_detect_mouse (void);
+extern bool android_detect_keyboard (void);
 
 extern void android_set_dont_focus_on_map (android_window, bool);
 extern void android_set_dont_accept_focus (android_window, bool);
+extern void android_set_wm_name (android_window, jstring);
 
 extern int android_verify_jni_string (const char *);
-extern jstring android_build_string (Lisp_Object);
+extern jstring android_build_string (Lisp_Object, ...);
 extern jstring android_build_jstring (const char *);
 extern void android_exception_check (void);
 extern void android_exception_check_1 (jobject);
 extern void android_exception_check_2 (jobject, jobject);
 extern void android_exception_check_3 (jobject, jobject, jobject);
 extern void android_exception_check_4 (jobject, jobject, jobject, jobject);
+extern void android_exception_check_5 (jobject, jobject, jobject, jobject,
+				       jobject);
+extern void android_exception_check_6 (jobject, jobject, jobject, jobject,
+				       jobject, jobject);
 extern void android_exception_check_nonnull (void *, jobject);
 extern void android_exception_check_nonnull_1 (void *, jobject, jobject);
 
@@ -121,6 +142,8 @@ extern void android_wait_event (void);
 extern void android_toggle_on_screen_keyboard (android_window, bool);
 extern _Noreturn void android_restart_emacs (void);
 extern int android_request_directory_access (void);
+extern bool android_external_storage_available_p (void);
+extern void android_request_storage_access (void);
 extern int android_get_current_api_level (void)
   __attribute__ ((pure));
 
@@ -221,6 +244,7 @@ extern void android_display_toast (const char *);
 
 /* Event loop functions.  */
 
+extern void android_check_query (void);
 extern void android_check_query_urgent (void);
 extern int android_run_in_emacs_thread (void (*) (void *), void *);
 extern void android_write_event (union android_event *);
@@ -236,7 +260,7 @@ extern int android_rewrite_spawn_argv (const char ***);
 
 /* Define a substitute for use during Emacs compilation.  */
 
-#define android_is_special_directory(name, dir) ((const char *) NULL)
+#define android_is_special_directory(name, dir) (false)
 
 #endif /* !ANDROID_STUBIFY */
 
@@ -254,13 +278,12 @@ struct android_emacs_service
   jmethodID draw_rectangle;
   jmethodID draw_line;
   jmethodID draw_point;
-  jmethodID clear_window;
-  jmethodID clear_area;
   jmethodID ring_bell;
   jmethodID query_tree;
   jmethodID get_screen_width;
   jmethodID get_screen_height;
   jmethodID detect_mouse;
+  jmethodID detect_keyboard;
   jmethodID name_keysym;
   jmethodID browse_url;
   jmethodID restart_emacs;
@@ -287,9 +310,20 @@ struct android_emacs_service
   jmethodID rename_document;
   jmethodID move_document;
   jmethodID valid_authority;
+  jmethodID external_storage_available;
+  jmethodID request_storage_access;
+  jmethodID cancel_notification;
+  jmethodID relinquish_uri_rights;
 };
 
 extern JNIEnv *android_java_env;
+
+#ifdef THREADS_ENABLED
+extern JavaVM *android_jvm;
+#endif /* THREADS_ENABLED */
+
+/* The Java String class.  */
+extern jclass java_string_class;
 
 /* The EmacsService object.  */
 extern jobject emacs_service;
@@ -297,9 +331,13 @@ extern jobject emacs_service;
 /* Various methods associated with the EmacsService.  */
 extern struct android_emacs_service service_class;
 
+/* The time at which Emacs was installed, which also supplies the
+   mtime of asset files.  */
+extern struct timespec emacs_installation_time;
+
 #define ANDROID_DELETE_LOCAL_REF(ref)				\
   ((*android_java_env)->DeleteLocalRef (android_java_env,	\
-					(ref)))
+					ref))
 
 #define NATIVE_NAME(name) Java_org_gnu_emacs_EmacsNative_##name
 

@@ -1,6 +1,6 @@
 ;;; glyphless-mode.el --- minor mode for displaying glyphless characters  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -30,7 +30,6 @@ The value can be any of the groups supported by
 `all', for all glyphless characters."
   :version "29.1"
   :type '(repeat (choice (const :tag "All" all)
-                         (const :tag "No font" no-font)
                          (const :tag "C0 Control" c0-control)
                          (const :tag "C1 Control" c1-control)
                          (const :tag "Format Control" format-control)

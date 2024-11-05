@@ -15,7 +15,7 @@
 @end direntry
 
 @copying
-Copyright @copyright{} 2008, 2010--2023 Free Software Foundation, Inc.
+Copyright @copyright{} 2008, 2010--2024 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -203,11 +203,14 @@ different Emacs versions.
 @cindex interactive testing
 
 @findex ert
-You can run the tests that are currently defined in your Emacs with
-the command @kbd{M-x ert @key{RET} t @key{RET}}.  (For an
-explanation of the @code{t} argument, @pxref{Test Selectors}.) ERT will pop
-up a new buffer, the ERT results buffer, showing the results of the
-tests run.  It looks like this:
+@findex ert-run-tests-interactively
+You can run the tests that are currently defined in your Emacs with the
+command @kbd{M-x ert @key{RET} t @key{RET}} (which is an alias of
+@code{ert-run-tests-interactively}).  The @code{t} argument means to run
+all the defined tests, see @ref{Test Selectors}, which also explains how
+to run only some specific part of the tests.  ERT will pop up a new
+buffer, the ERT results buffer, showing the results of the tests run.
+It looks like this:
 
 @example
 Selector: t
@@ -474,7 +477,7 @@ to Common Lisp's type specifier syntax:
 @item @code{:failed} and @code{:passed} select tests according to their most recent result.
 @item @code{:expected}, @code{:unexpected} select tests according to their most recent result.
 @item A string is a regular expression that selects all tests with matching names.
-@item A test (i.e., an object of @code{ert-test} data type) selects that test.
+@item A test (i.e., an object of @code{ert-test} data type, see its doc string for details) selects that test.
 @item A symbol selects the test that the symbol names.
 @item @code{(member @var{tests}...)} selects the elements of
 @var{tests}, a list of tests or symbols naming tests.
@@ -526,6 +529,7 @@ to find where a test was defined if the test was loaded from a file.
 * Tests and Their Environment:: Don't depend on customizations; no side effects.
 * Useful Techniques::           Some examples.
 * erts files::                  Files containing many buffer tests.
+* Syntax Highlighting Tests::   Tests for face assignment.
 @end menu
 
 
@@ -658,11 +662,30 @@ versions, specific architectures, etc.:
 @cindex skipping tests
 @cindex test preconditions
 @cindex preconditions of a test
+@findex skip-when
+@findex skip-unless
 Sometimes, it doesn't make sense to run a test due to missing
 preconditions.  A required Emacs feature might not be compiled in, the
 function to be tested could call an external binary which might not be
-available on the test machine, you name it.  In this case, the macro
-@code{skip-unless} could be used to skip the test:
+available on the test machine, you name it.  In this case, the macros
+@code{skip-when} or @code{skip-unless} could be used to skip the
+test.@footnote{The @code{skip-when} macro was added in Emacs 30.1.  If
+you need your tests to be compatible with older versions of Emacs, use
+@code{skip-unless} instead.}
+
+@noindent
+For example, this test is skipped on MS-Windows and macOS:
+
+@lisp
+(ert-deftest test-gnu-linux ()
+  "A test that is not relevant on MS-Windows and macOS."
+  (skip-when (memq system-type '(windows-nt ns))
+  ...))
+@end lisp
+
+@noindent
+This test is skipped if the feature @samp{dbusbind} is not present in
+the running Emacs:
 
 @lisp
 (ert-deftest test-dbus ()
@@ -766,7 +789,6 @@ Here's a more complicated test:
 @end lisp
 
 @findex make-ert-test
-@findex ert-equal-including-properties
 This test creates a test object using @code{make-ert-test} whose body
 will immediately signal failure.  It then runs that test and asserts
 that it fails.  Then, it creates a temporary buffer and invokes
@@ -775,7 +797,7 @@ to the current buffer.  Finally, it extracts the first line from the
 buffer and asserts that it matches what we expect.  It uses
 @code{buffer-substring-no-properties} and @code{equal} to ignore text
 properties; for a test that takes properties into account,
-@code{buffer-substring} and @code{ert-equal-including-properties}
+@code{buffer-substring} and @code{equal-including-properties}
 could be used instead.
 
 The reason why this test only checks the first line of the backtrace
@@ -923,6 +945,137 @@ non-@code{nil} value, the test will be skipped.
 If you need to use the literal line single line @samp{=-=} in a test
 section, you can quote it with a @samp{\} character.
 
+@node Syntax Highlighting Tests
+@section Syntax Highlighting Tests
+
+Syntax highlighting is normally provided by the Font Lock minor mode
+that assigns face properties to parts of the buffer.  The
+@code{ert-font-lock} package makes it possible to introduce unit tests
+checking face assignment.  Test assertions are included in code-level
+comments directly and can be read either from inline strings or files.
+The parser expects the input string to contain at least one assertion.
+
+Test assertion parser extracts tests from comment-only lines.  Every
+comment assertion line starts either with a caret (@samp{^}) or an arrow
+(@samp{<-}).  A single caret/arrow or carets should be followed
+immediately by the name of a face or a list of faces to be checked
+against the @code{:face} property at point.
+
+The test then checks if the first non-assertion column above the caret
+contains a face expected by the assertion:
+
+@example
+var variable = 11;
+//   ^ font-lock-variable-name-face
+//             ^ font-lock-literal-face
+//               ^ font-lock-punctuation-face
+// this is not an assertion, it's just a comment
+//   ^ font-lock-comment-face
+
+// multiple carets per line
+// ^^^^     ^    ^ font-lock-comment-face
+@end example
+
+Both symbol-only @code{:face} property values and assertion face values
+are normalized to single element lists so assertions below are
+equivalent:
+
+@example
+// single
+// ^ font-lock-comment-face
+// single
+// ^ (font-lock-comment-face)
+@end example
+
+Assertions can be negated:
+
+@example
+var variable = 11;
+//  ^ !font-lock-comment-face
+@end example
+
+It is possible to specify face lists in assertions:
+
+@example
+// TODO
+// ^^^^ (font-lock-comment-face hl-todo)
+     var test = 1;
+// ^    ()
+// ^    nil
+//   negation works as expected
+//   ^  !nil
+@end example
+
+The arrow (@samp{<-}) means that the first non-empty column of the
+assertion line will be used for the check:
+
+@example
+var variable = 1;
+// <- font-lock-keyword-face
+  11;
+   // <- font-lock-literal-face
+@end example
+
+@findex ert-font-lock-test-string
+
+The @code{ert-font-lock-test-string} function extracts ERT assertions
+from an inline string.  The @code{javascript-mode} symbol below
+specifies the major mode used for comments and font locking:
+
+@lisp
+(ert-deftest test-font-lock-test-string--correct ()
+  (ert-font-lock-test-string
+   "
+var abc = function(d) @{
+// <- font-lock-keyword-face
+//   ^ font-lock-variable-name-face
+    //        ^ font-lock-keyword-face
+    //             ^ font-lock-variable-name-face
+@};
+"
+   'javascript-mode))
+@end lisp
+
+@findex ert-font-lock-test-file
+
+It is also possible to extract test assertions from a file:
+
+@lisp
+(ert-deftest test-font-lock-test-file--correct ()
+  (ert-font-lock-test-file
+   (ert-resource-file "correct.js")
+   'javascript-mode))
+@end lisp
+
+@findex ert-font-lock-deftest
+
+The @code{ert-font-lock-deftest} macro simplifies inline test
+definition:
+
+@lisp
+(ert-font-lock-deftest test-macro-test--inline
+    emacs-lisp-mode
+  "
+(defun fun ())
+;; ^ font-lock-keyword-face
+;;      ^ font-lock-function-name-face")
+@end lisp
+
+@findex ert-font-lock-deftest-file
+
+The @code{ert-font-lock-deftest-file} macro reads assertions from a
+file:
+
+@lisp
+(ert-font-lock-deftest-file test-macro-test--file
+    "Test reading correct assertions from a file"
+  javascript-mode
+  "correct.js")
+@end lisp
+
+The @code{ert-font-lock-deftest} and @code{ert-font-lock-deftest-file}
+macros accept the same keyword parameters as @code{ert-deftest} i.e.,
+@code{:tag} and @code{:expected-result}.
 
 @node How to Debug Tests
 @chapter How to Debug Tests

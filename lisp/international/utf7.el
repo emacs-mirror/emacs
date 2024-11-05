@@ -1,6 +1,6 @@
 ;;; utf7.el --- UTF-7 encoding/decoding for Emacs   -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Jon K Hellan <hellan@acm.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -63,7 +63,6 @@
 
 ;;; Code:
 
-(require 'base64)
 (require 'mm-util)
 
 (defconst utf7-direct-encoding-chars " -%'-*,-[]-}"

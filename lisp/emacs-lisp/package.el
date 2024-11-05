@@ -1,6 +1,6 @@
 ;;; package.el --- Simple package system for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;         Daniel Hackney <dan@haxney.org>
@@ -178,7 +178,13 @@ with \"-q\").
 
 Even if the value is nil, you can type \\[package-initialize] to
 make installed packages available at any time, or you can
-call (package-activate-all) in your init-file."
+call (package-activate-all) in your init-file.
+
+Note that this variable must be set to a non-default value in
+your early-init file, as the variable's value is used before
+loading the regular init file.  Therefore, if you customize it
+via Customize, you should save your customized setting into
+your `early-init-file'."
   :type 'boolean
   :version "24.1")
 
@@ -856,22 +862,22 @@ byte-compilation of the new package to fail."
                             (cl-remove-if-not #'stringp
                                               (mapcar #'car load-history)))))
       (dolist (file files)
-        (when-let ((library (package--library-stem
-                             (file-relative-name file dir)))
-                   (canonical (locate-library library nil effective-path))
-                   (truename (file-truename canonical))
-                   ;; Normally, all files in a package are compiled by
-                   ;; now, but don't assume that.  E.g. different
-                   ;; versions can add or remove `no-byte-compile'.
-                   (altname (if (string-suffix-p ".el" truename)
-                                (replace-regexp-in-string
-                                 "\\.el\\'" ".elc" truename t)
-                              (replace-regexp-in-string
-                               "\\.elc\\'" ".el" truename t)))
-                   (found (or (member truename history)
-                              (and (not (string= altname truename))
-                                   (member altname history))))
-                   (recent-index (length found)))
+        (when-let* ((library (package--library-stem
+                              (file-relative-name file dir)))
+                    (canonical (locate-library library nil effective-path))
+                    (truename (file-truename canonical))
+                    ;; Normally, all files in a package are compiled by
+                    ;; now, but don't assume that.  E.g. different
+                    ;; versions can add or remove `no-byte-compile'.
+                    (altname (if (string-suffix-p ".el" truename)
+                                 (replace-regexp-in-string
+                                  "\\.el\\'" ".elc" truename t)
+                               (replace-regexp-in-string
+                                "\\.elc\\'" ".el" truename t)))
+                    (found (or (member truename history)
+                               (and (not (string= altname truename))
+                                    (member altname history))))
+                    (recent-index (length found)))
           (unless (equal (file-name-base library)
                          (format "%s-autoloads" (package-desc-name pkg-desc)))
             (push (cons (expand-file-name library dir) recent-index) result))))
@@ -1158,32 +1164,14 @@ Signal an error if the entire string was not used."
                (error "Can't read whole string"))
       (end-of-file expr))))
 
-(defun package--prepare-dependencies (deps)
-  "Turn DEPS into an acceptable list of dependencies.
-
-Any parts missing a version string get a default version string
-of \"0\" (meaning any version) and an appropriate level of lists
-is wrapped around any parts requiring it."
-  (cond
-   ((not (listp deps))
-    (error "Invalid requirement specifier: %S" deps))
-   (t (mapcar (lambda (dep)
-                (cond
-                 ((symbolp dep) `(,dep "0"))
-                 ((stringp dep)
-                  (error "Invalid requirement specifier: %S" dep))
-                 ((and (listp dep) (null (cdr dep)))
-                  (list (car dep) "0"))
-                 (t dep)))
-              deps))))
-
 (declare-function lm-header "lisp-mnt" (header))
-(declare-function lm-header-multiline "lisp-mnt" (header))
-(declare-function lm-homepage "lisp-mnt" (&optional file))
+(declare-function lm-package-requires "lisp-mnt" (&optional file))
+(declare-function lm-website "lisp-mnt" (&optional file))
 (declare-function lm-keywords-list "lisp-mnt" (&optional file))
 (declare-function lm-maintainers "lisp-mnt" (&optional file))
 (declare-function lm-maintainer "lisp-mnt" (&optional file))
 (declare-function lm-authors "lisp-mnt" (&optional file))
+(declare-function lm-package-needs-footer-line "lisp-mnt" (&optional file))
 
 (defun package-buffer-info ()
   "Return a `package-desc' describing the package in the current buffer.
@@ -1197,17 +1185,18 @@ boundaries."
   (let ((file-name (match-string-no-properties 1))
         (desc      (match-string-no-properties 2))
         (start     (line-beginning-position)))
+    (require 'lisp-mnt)
     ;; This warning was added in Emacs 27.1, and should be removed at
     ;; the earliest in version 31.1.  The idea is to phase out the
     ;; requirement for a "footer line" without unduly impacting users
     ;; on earlier Emacs versions.  See Bug#26490 for more details.
     (unless (search-forward (concat ";;; " file-name ".el ends here") nil 'move)
-      (lwarn '(package package-format) :warning
-             "Package lacks a terminating comment"))
+      (when (lm-package-needs-footer-line)
+        (lwarn '(package package-format) :warning
+               "Package lacks a terminating comment")))
     ;; Try to include a trailing newline.
     (forward-line)
     (narrow-to-region start (point))
-    (require 'lisp-mnt)
     ;; Use some headers we've invented to drive the process.
     (let* (;; Prefer Package-Version; if defined, the package author
            ;; probably wants us to use it.  Otherwise try Version.
@@ -1222,9 +1211,7 @@ boundaries."
            (error "Package lacks a \"Version\" or \"Package-Version\" header")))
       (package-desc-from-define
        file-name pkg-version desc
-       (and-let* ((require-lines (lm-header-multiline "package-requires")))
-         (package--prepare-dependencies
-          (package-read-from-string (mapconcat #'identity require-lines " "))))
+       (lm-package-requires)
        :kind 'single
        :url website
        :keywords keywords
@@ -1733,18 +1720,26 @@ The variable `package-load-list' controls which packages to load."
                    package-quickstart-file))))
     ;; The quickstart file presumes that it has a blank slate,
     ;; so don't use it if we already activated some packages.
-    (if (and qs (not (bound-and-true-p package-activated-list)))
-        ;; Skip load-source-file-function which would slow us down by a factor
-        ;; 2 when loading the .el file (this assumes we were careful to
-        ;; save this file so it doesn't need any decoding).
-        (let ((load-source-file-function nil))
-          (unless (boundp 'package-activated-list)
-            (setq package-activated-list nil))
-          (load qs nil 'nomessage))
-      (require 'package)
-      (package--activate-all)))))
+    (or (and qs (not (bound-and-true-p package-activated-list))
+             ;; Skip `load-source-file-function' which would slow us down by
+             ;; a factor 2 when loading the .el file (this assumes we were
+             ;; careful to save this file so it doesn't need any decoding).
+             (with-demoted-errors "Error during quickstart: %S"
+               (let ((load-source-file-function nil))
+                 (unless (boundp 'package-activated-list)
+                   (setq package-activated-list nil))
+                 (load qs nil 'nomessage)
+                 t)))
+        (progn
+          (require 'package)
+          ;; Silence the "unknown function" warning when this is compiled
+          ;; inside `loaddefs.el'.
+          ;; FIXME: We use `with-no-warnings' because the effect of
+          ;; `declare-function' is currently not scoped, so if we use
+          ;; it here, we end up with a redefinition warning instead :-)
+          (with-no-warnings
+            (package--activate-all)))))))
 
-;;;###autoload
 (defun package--activate-all ()
   (dolist (elt (package--alist))
     (condition-case err
@@ -1995,8 +1990,11 @@ Used to populate `package-selected-packages'."
 
 (defun package--save-selected-packages (&optional value)
   "Set and save `package-selected-packages' to VALUE."
-  (when value
-    (setq package-selected-packages value))
+  (when (or value after-init-time)
+    ;; It is valid to set it to nil, for example when the last package
+    ;; is uninstalled.  But it shouldn't be done at init time, to
+    ;; avoid overwriting configurations that haven't yet been loaded.
+    (setq package-selected-packages (sort value #'string<)))
   (if after-init-time
       (customize-save-variable 'package-selected-packages package-selected-packages)
     (add-hook 'after-init-hook #'package--save-selected-packages)))
@@ -2343,12 +2341,25 @@ from ELPA by either using `\\[package-upgrade]' or
       (mapc #'package-upgrade upgradeable))))
 
 (defun package--dependencies (pkg)
-  "Return a list of all dependencies PKG has.
-This is done recursively."
-  ;; Can we have circular dependencies?  Assume "nope".
-  (when-let* ((desc (cadr (assq pkg package-archive-contents)))
-              (deps (mapcar #'car (package-desc-reqs desc))))
-    (delete-dups (apply #'nconc deps (mapcar #'package--dependencies deps)))))
+  "Return a list of all transitive dependencies of PKG.
+If PKG is a package descriptor, the return value is a list of
+package descriptors.  If PKG is a symbol designating a package,
+the return value is a list of symbols designating packages."
+  (when-let* ((desc (if (package-desc-p pkg) pkg
+                      (cadr (assq pkg package-archive-contents)))))
+    ;; Can we have circular dependencies?  Assume "nope".
+    (let ((all (named-let more ((pkg-desc desc))
+                 (let (deps)
+                   (dolist (req (package-desc-reqs pkg-desc))
+                     (setq deps (nconc
+                                 (catch 'found
+                                   (dolist (p (apply #'append (mapcar #'cdr (package--alist))))
+                                     (when (and (string= (car req) (package-desc-name p))
+                                                (version-list-<= (cadr req) (package-desc-version p)))
+                                       (throw 'found (more p)))))
+                                 deps)))
+                   (delete-dups (cons pkg-desc deps))))))
+      (remq pkg (mapcar (if (package-desc-p pkg) #'identity #'package-desc-name) all)))))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.
@@ -2482,7 +2493,9 @@ Clean-up the corresponding .eln files if Emacs is native
 compiled."
   (when (featurep 'native-compile)
     (cl-loop
-     for file in (directory-files-recursively dir "\\.el\\'")
+     for file in (directory-files-recursively dir
+                                              ;; Exclude lockfiles
+                                              (rx bos (or (and "." (not "#")) (not ".")) (* nonl) ".el" eos))
      do (comp-clean-up-stale-eln (comp-el-to-eln-filename file))))
   (if (file-symlink-p (directory-file-name dir))
       (delete-file (directory-file-name dir))
@@ -2514,8 +2527,12 @@ If NOSAVE is non-nil, the package is not removed from
                                            nil t)))
        (list (cdr (assoc package-name package-table))
              current-prefix-arg nil))))
-  (let ((dir (package-desc-dir pkg-desc))
-        (name (package-desc-name pkg-desc))
+  (let* ((dir (package-desc-dir pkg-desc))
+         (name (package-desc-name pkg-desc))
+         (new-package-alist (let ((pkgs (assq name package-alist)))
+                              (if (null (remove pkg-desc (cdr pkgs)))
+                                  (remq pkgs package-alist)
+                                package-alist)))
         pkg-used-elsewhere-by)
     ;; If the user is trying to delete this package, they definitely
     ;; don't want it marked as selected, so we remove it from
@@ -2534,7 +2551,8 @@ If NOSAVE is non-nil, the package is not removed from
                   (package-desc-full-name pkg-desc)))
           ((and (null force)
                 (setq pkg-used-elsewhere-by
-                      (package--used-elsewhere-p pkg-desc)))
+                      (let ((package-alist new-package-alist))
+                        (package--used-elsewhere-p pkg-desc)))) ;See bug#65475
            ;; Don't delete packages used as dependency elsewhere.
            (error "Package `%s' is used by `%s' as dependency, not deleting"
                   (package-desc-full-name pkg-desc)
@@ -2555,10 +2573,7 @@ If NOSAVE is non-nil, the package is not removed from
                (when (file-exists-p file)
                  (delete-file file))))
            ;; Update package-alist.
-           (let ((pkgs (assq name package-alist)))
-             (delete pkg-desc pkgs)
-             (unless (cdr pkgs)
-               (setq package-alist (delq pkgs package-alist))))
+           (setq package-alist new-package-alist)
            (package--quickstart-maybe-refresh)
            (message "Package `%s' deleted."
                     (package-desc-full-name pkg-desc))))))
@@ -2608,7 +2623,8 @@ This is meant to be used only in the case the byte-compiled files
 are invalid due to changed byte-code, macros or the like."
   (interactive)
   (pcase-dolist (`(_ ,pkg-desc) package-alist)
-    (package-recompile pkg-desc)))
+    (with-demoted-errors "Error while recompiling: %S"
+      (package-recompile pkg-desc))))
 
 ;;;###autoload
 (defun package-autoremove ()
@@ -2635,6 +2651,57 @@ will be deleted."
                     (package-delete (cadr (assq p package-alist)) t))
                   removable))
         (message "Nothing to autoremove")))))
+
+(defun package-isolate (packages &optional temp-init)
+  "Start an uncustomized Emacs and only load a set of PACKAGES.
+If TEMP-INIT is non-nil, or when invoked with a prefix argument,
+the Emacs user directory is set to a temporary directory."
+  (interactive
+   (cl-loop for p in (cl-loop for p in (package--alist) append (cdr p))
+	    unless (package-built-in-p p)
+	    collect (cons (package-desc-full-name p) p) into table
+	    finally return
+	    (list (cl-loop for c in (completing-read-multiple
+                                     "Isolate packages: " table
+                                     nil t)
+		           collect (alist-get c table nil nil #'string=))
+                  current-prefix-arg)))
+  (let* ((name (concat "package-isolate-"
+                       (mapconcat #'package-desc-full-name packages ",")))
+         (all-packages (delete-consecutive-dups
+                        (sort (append packages (mapcan #'package--dependencies packages))
+                              (lambda (p0 p1)
+                                (string< (package-desc-name p0) (package-desc-name p1))))))
+         initial-scratch-message package-load-list)
+    (with-temp-buffer
+      (insert ";; This is an isolated testing environment, with these packages enabled:\n\n")
+      (dolist (package all-packages)
+        (push (list (package-desc-name package)
+                    (package-version-join (package-desc-version package)))
+              package-load-list)
+        (insert ";; - " (package-desc-full-name package))
+        (unless (memq package packages)
+          (insert " (dependency)"))
+        (insert "\n"))
+      (insert "\n")
+      (setq initial-scratch-message (buffer-string)))
+    (apply #'start-process (concat "*" name "*") nil
+           (list (expand-file-name invocation-name invocation-directory)
+                 "--quick" "--debug-init"
+                 "--init-directory" (if temp-init
+                                        (make-temp-file name t)
+                                      user-emacs-directory)
+                 (format "--eval=%S"
+                         `(progn
+                            (setq initial-scratch-message ,initial-scratch-message)
+
+                            (require 'package)
+                            ,@(mapcar
+                               (lambda (dir)
+                                 `(add-to-list 'package-directory-list ,dir))
+                               (cons package-user-dir package-directory-list))
+                            (setq package-load-list ',package-load-list)
+                            (package-activate-all)))))))
 
 
 ;;;; Package description buffer.
@@ -2751,8 +2818,7 @@ Helper function for `describe-package'."
          (status (if desc (package-desc-status desc) "orphan"))
          (incompatible-reason (package--incompatible-p desc))
          (signed (if desc (package-desc-signed desc)))
-         (maintainers (or (cdr (assoc :maintainers extras))
-                          (cdr (assoc :maintainer extras))))
+         (maintainers (cdr (assoc :maintainer extras)))
          (authors (cdr (assoc :authors extras)))
          (news (and-let* (pkg-dir
                           ((not built-in))
@@ -2888,7 +2954,7 @@ Helper function for `describe-package'."
         (insert " "))
       (insert "\n"))
     (when maintainers
-      (unless (proper-list-p maintainers)
+      (unless (and (listp (car maintainers)) (listp (cdr maintainers)))
         (setq maintainers (list maintainers)))
       (package--print-help-section
           (if (cdr maintainers) "Maintainers" "Maintainer"))
@@ -4017,8 +4083,8 @@ invocations."
 (defun package-menu--version-predicate (A B)
   "Predicate to sort \"*Packages*\" buffer by the version column.
 This is used for `tabulated-list-format' in `package-menu-mode'."
-  (let ((vA (or (version-to-list (aref (cadr A) 1)) '(0)))
-        (vB (or (version-to-list (aref (cadr B) 1)) '(0))))
+  (let ((vA (or (ignore-error error (version-to-list (aref (cadr A) 1))) '(0)))
+        (vB (or (ignore-error error (version-to-list (aref (cadr B) 1))) '(0))))
     (if (version-list-= vA vB)
         (package-menu--name-predicate A B)
       (version-list-< vA vB))))
@@ -4552,8 +4618,8 @@ activations need to be changed, such as when `package-load-list' is modified."
                 (let ((load-suffixes '(".el" ".elc")))
                   (locate-library (package--autoloads-file-name pkg))))
                (pfile (prin1-to-string file)))
-          (insert "(let ((load-true-file-name " pfile ")\
-\(load-file-name " pfile "))\n")
+          (insert "(let* ((load-file-name " pfile ")\
+\(load-true-file-name load-file-name))\n")
           (insert-file-contents file)
           ;; Fixup the special #$ reader form and throw away comments.
           (while (re-search-forward "#\\$\\|^;\\(.*\n\\)" nil 'move)
@@ -4646,18 +4712,23 @@ will be signaled in that case."
   (let* ((name (package-desc-name pkg-desc))
          (extras (package-desc-extras pkg-desc))
          (maint (alist-get :maintainer extras)))
+    (unless (listp (cdr maint))
+      (setq maint (list maint)))
     (cond
      ((and (null maint) (null no-error))
       (user-error "Package `%s' has no explicit maintainer" name))
      ((and (not (progn
                   (require 'ietf-drums)
-                  (ietf-drums-parse-address (cdr maint))))
+                  (ietf-drums-parse-address (cdar maint))))
            (null no-error))
       (user-error "Package `%s' has no maintainer address" name))
-     ((not (null maint))
+     (t
       (with-temp-buffer
-        (package--print-email-button maint)
-        (string-trim (substring-no-properties (buffer-string))))))))
+        (mapc #'package--print-email-button maint)
+        (replace-regexp-in-string
+         "\n" ", " (string-trim
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))))
 
 ;;;###autoload
 (defun package-report-bug (desc)
@@ -4667,19 +4738,19 @@ DESC must be a `package-desc' object."
                package-menu-mode)
   (let ((maint (package-maintainers desc))
         (name (symbol-name (package-desc-name desc)))
+        (pkgdir (package-desc-dir desc))
         vars)
-    (dolist-with-progress-reporter (group custom-current-group-alist)
-        "Scanning for modified user options..."
-      (when (and (car group)
-                 (file-in-directory-p (car group) (package-desc-dir desc)))
-        (dolist (ent (get (cdr group) 'custom-group))
-          (when (and (custom-variable-p (car ent))
-                     (boundp (car ent))
-                     (not (eq (if (fboundp 'custom--standard-value)
-                                  (custom--standard-value (car ent))
-                                (eval (car (get (car ent) 'standard-value)) t))
-                              (default-toplevel-value (car ent)))))
-            (push (car ent) vars)))))
+    (when pkgdir
+      (dolist-with-progress-reporter (group custom-current-group-alist)
+          "Scanning for modified user options..."
+        (when (and (car group)
+                   (file-in-directory-p (car group) pkgdir))
+          (dolist (ent (get (cdr group) 'custom-group))
+            (when (and (custom-variable-p (car ent))
+                       (boundp (car ent))
+                       (not (eq (custom--standard-value (car ent))
+                                (default-toplevel-value (car ent)))))
+              (push (car ent) vars))))))
     (dlet ((reporter-prompt-for-summary-p t))
       (reporter-submit-bug-report maint name vars))))
 

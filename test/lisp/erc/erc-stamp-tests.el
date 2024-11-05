@@ -1,6 +1,6 @@
 ;;; erc-stamp-tests.el --- Tests for erc-stamp.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -20,9 +20,13 @@
 ;;; Commentary:
 
 ;;; Code:
-(require 'ert-x)
 (require 'erc-stamp)
 (require 'erc-goodies) ; for `erc-make-read-only'
+
+(require 'ert-x)
+(eval-and-compile
+  (let ((load-path (cons (ert-resource-directory) load-path)))
+    (require 'erc-tests-common)))
 
 ;; These display-oriented tests are brittle because many factors
 ;; influence how text properties are applied.  We should just
@@ -42,11 +46,9 @@
 
     (with-current-buffer (get-buffer-create "*erc-stamp-tests--insert-right*")
       (erc-mode)
-      (erc-munge-invisibility-spec)
+      (erc-stamp--manage-local-options-state)
       (erc--initialize-markers (point) nil)
-      (setq erc-server-process (start-process "p" (current-buffer)
-                                              "sleep" "1"))
-      (set-process-query-on-exit-flag erc-server-process nil)
+      (erc-tests-common-init-server-proc "sleep" "1")
 
       (funcall test)
 
@@ -166,11 +168,11 @@
            (put-text-property 0 (length msg) 'wrap-prefix 10 msg)
            (erc-display-message nil nil (current-buffer) msg)))
        (goto-char (point-min))
-       ;; Space not added (treated as opaque string).
-       (should (search-forward "msg one[" nil t))
-       ;; Field covers stamp alone
+       ;; Leading space added as part of the stamp's field.
+       (should (search-forward "msg one [" nil t))
+       ;; Field covers stamp and space.
        (should (eql ?e (char-before (field-beginning (point)))))
-       ;; Vanity props extended
+       ;; Vanity props extended.
        (should (get-text-property (field-beginning (point)) 'wrap-prefix))
        (should (get-text-property (1+ (field-beginning (point))) 'wrap-prefix))
        (should (get-text-property (1- (field-end (point))) 'wrap-prefix))
@@ -181,10 +183,10 @@
              (erc-timestamp-right-column 20))
          (let ((msg (erc-format-privmessage "bob" "tttt wwww oooo" nil t)))
            (erc-display-message nil nil (current-buffer) msg)))
-       ;; No hard wrap
-       (should (search-forward "oooo[" nil t))
-       ;; Field starts at format string (right bracket)
-       (should (eql ?\[ (char-after (field-beginning (point)))))
+       ;; No hard wrap.
+       (should (search-forward "oooo [" nil t))
+       ;; Field starts at managed space before format string.
+       (should (eql ?\s (char-after (field-beginning (point)))))
        (should (eql ?\n (char-after (field-end (point)))))))))
 
 ;; This concerns a proposed partial reversal of the changes resulting
@@ -223,17 +225,17 @@
         (erc-timestamp-intangible t) ; default changed to nil in 2014
         (erc-hide-timestamps t)
         (erc-insert-timestamp-function 'erc-insert-timestamp-left)
-        (erc-server-process (start-process "true" (current-buffer) "true"))
         (erc-insert-modify-hook '(erc-make-read-only erc-add-timestamp))
         msg
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
     (should (not cursor-sensor-inhibit))
-    (set-process-query-on-exit-flag erc-server-process nil)
+
     (erc-mode)
+    (erc-tests-common-init-server-proc "true")
     (with-current-buffer (get-buffer-create "*erc-timestamp-intangible*")
       (erc-mode)
       (erc--initialize-markers (point) nil)
-      (erc-munge-invisibility-spec)
+      (erc-stamp--manage-local-options-state)
       (erc-display-message nil 'notice (current-buffer) "Welcome")
       ;;
       ;; Pretend `fill' is active and that these lines are
@@ -273,5 +275,196 @@
 
       (when noninteractive
         (kill-buffer)))))
+
+(ert-deftest erc-echo-timestamp ()
+  :tags (and (null (getenv "CI")) '(:unstable))
+
+  (should-not erc-echo-timestamps)
+  (should-not erc-stamp--last-stamp)
+  (insert (propertize "a" 'erc--ts 433483200 'erc--msg 'msg) "bc")
+  (goto-char (point-min))
+  (let ((inhibit-message t)
+        (erc-echo-timestamp-format "%Y-%m-%d %H:%M:%S %Z")
+        (erc-echo-timestamp-zone (list (* 60 60 -4) "EDT")))
+
+    ;; No-op when non-interactive and option is nil
+    (should-not (erc--echo-ts-csf nil nil 'entered))
+    (should-not erc-stamp--last-stamp)
+
+    ;; Non-interactive (cursor sensor function)
+    (let ((erc-echo-timestamps t))
+      (should (equal (erc--echo-ts-csf nil nil 'entered)
+                     "1983-09-27 00:00:00 EDT")))
+    (should (= 433483200 erc-stamp--last-stamp))
+
+    ;; Interactive
+    (should (equal (call-interactively #'erc-echo-timestamp)
+                   "1983-09-27 00:00:00 EDT"))
+    ;; Interactive with zone
+    (let ((current-prefix-arg '(4)))
+      (should (member (call-interactively #'erc-echo-timestamp)
+                      '("1983-09-27 04:00:00 GMT"
+                        "1983-09-27 04:00:00 UTC"))))
+    (let ((current-prefix-arg -7))
+      (should (equal (call-interactively #'erc-echo-timestamp)
+                     "1983-09-26 21:00:00 -07")))))
+
+(defun erc-stamp-tests--assert-get-inserted-msg/stamp (test-fn)
+  (let ((erc-insert-modify-hook erc-insert-modify-hook)
+        (erc-insert-timestamp-function 'erc-insert-timestamp-right)
+        (erc-timestamp-use-align-to 0)
+        (erc-timestamp-format "[00:00]"))
+    (cl-pushnew 'erc-add-timestamp erc-insert-modify-hook)
+    (erc-tests-common-get-inserted-msg-setup))
+  (goto-char 19)
+  (should (looking-back (rx "<bob> hi [00:00]")))
+  (erc-tests-common-assert-get-inserted-msg 3 19 test-fn))
+
+(ert-deftest erc--get-inserted-msg-beg/stamp ()
+  (erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
+
+(ert-deftest erc--get-inserted-msg-beg/readonly/stamp ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 3 (erc--get-inserted-msg-beg arg))))))
+
+(ert-deftest erc--get-inserted-msg-end/stamp ()
+  (erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 19 (erc--get-inserted-msg-end arg))))))
+
+(ert-deftest erc--get-inserted-msg-end/readonly/stamp ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg) (should (= 19 (erc--get-inserted-msg-end arg))))))
+
+(ert-deftest erc--get-inserted-msg-bounds/stamp ()
+  (erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg)
+     (should (equal '(3 . 19) (erc--get-inserted-msg-bounds arg))))))
+
+(ert-deftest erc--get-inserted-msg-bounds/readonly/stamp ()
+  (erc-tests-common-assert-get-inserted-msg-readonly-with
+   #'erc-stamp-tests--assert-get-inserted-msg/stamp
+   (lambda (arg)
+     (should (equal '(3 . 19) (erc--get-inserted-msg-bounds arg))))))
+
+(ert-deftest erc-stamp--dedupe-date-stamps-from-target-buffer ()
+  (unless (>= emacs-major-version 29)
+    (ert-skip "Requires hz-ticks lisp time format"))
+  (let ((erc-modules erc-modules)
+        (erc-stamp--tz t))
+    (erc-tests-common-make-server-buf)
+    (erc-stamp-mode +1)
+
+    ;; Create two buffers with an overlapping date stamp.
+    (with-current-buffer (erc--open-target "#chan@old")
+      (let ((erc-stamp--current-time '(1690761600001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-07-31T00:00:00.001Z"))
+      (let ((erc-stamp--current-time '(1690761601001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "0.0"))
+
+      (let ((erc-stamp--current-time '(1690848000001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-08-01T00:00:00.001Z"))
+      (let ((erc-stamp--current-time '(1690848001001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "1.0"))
+      (let ((erc-stamp--current-time '(1690848060001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "1.1"))
+
+      (let ((erc-stamp--current-time '(1690934400001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-08-02T00:00:00.001Z"))
+      (let ((erc-stamp--current-time '(1690934401001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "2.0"))
+      (let ((erc-stamp--current-time '(1690956000001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "2.6")))
+
+    (with-current-buffer (erc--open-target "#chan@new")
+      (let ((erc-stamp--current-time '(1690956001001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-08-02T06:00:01.001Z"))
+      (let ((erc-stamp--current-time '(1690963200001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "2.8"))
+
+      (let ((erc-stamp--current-time '(1691020800001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-08-03T00:00:00.001Z"))
+      (let ((erc-stamp--current-time '(1691020801001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "3.0"))
+      (let ((erc-stamp--current-time '(1691053200001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "3.9"))
+
+      (let ((erc-stamp--current-time '(1691107200001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer)
+                                          "2023-08-04T00:00:00.001Z"))
+      (let ((erc-stamp--current-time '(1691107201001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "4.0"))
+      (let ((erc-stamp--current-time '(1691110800001 . 1000)))
+        (erc-tests-common-display-message nil 'notice (current-buffer) "4.1")))
+
+    (erc-stamp--dedupe-date-stamps-from-target-buffer
+     #'erc-networks--transplant-buffer-content
+     (get-buffer "#chan@old")
+     (get-buffer "#chan@new"))
+
+    ;; Ensure the "model", `erc-stamp--date-stamps', matches reality
+    ;; in the buffer's contents.
+    (with-current-buffer "#chan@new"
+      (let ((stamps erc-stamp--date-stamps))
+        (goto-char 3)
+        (should (looking-at (rx "\n[Mon Jul 31 2023]")))
+        (should (= (erc--get-inserted-msg-beg (point))
+                   (erc-stamp--date-marker (pop stamps))))
+        (goto-char (1+ (match-end 0)))
+        (should (looking-at (rx "*** 2023-07-31T00:00:00.001Z")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 0.0")))
+        (forward-line 1)
+
+        (should (looking-at (rx "\n[Tue Aug  1 2023]")))
+        (should (= (erc--get-inserted-msg-beg (point))
+                   (erc-stamp--date-marker (pop stamps))))
+        (goto-char (1+ (match-end 0)))
+        (should (looking-at (rx "*** 2023-08-01T00:00:00.001Z")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 1.0")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 1.1")))
+        (forward-line 1)
+
+        (should (looking-at (rx "\n[Wed Aug  2 2023]")))
+        (should (= (erc--get-inserted-msg-beg (point))
+                   (erc-stamp--date-marker (pop stamps))))
+        (goto-char (1+ (match-end 0)))
+        (should (looking-at (rx "*** 2023-08-02T00:00:00.001Z")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 2.0")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 2.6")))
+        (forward-line 1)
+        (should (looking-at
+                 (rx "*** Grafting buffer `#chan@new' onto `#chan@old'")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 2023-08-02T06:00:01.001Z")))
+        (forward-line 1)
+        (should (looking-at (rx "*** 2.8")))
+        (forward-line 1)
+
+        (should (looking-at (rx "\n[Thu Aug  3 2023]")))
+        (should (= (erc--get-inserted-msg-beg (point))
+                   (erc-stamp--date-marker (pop stamps))))
+        (goto-char (1+ (match-end 0)))
+        (should (looking-at (rx "*** 2023-08-03T00:00:00.001Z")))
+        (forward-line 3) ; ...
+
+        (should (looking-at (rx "\n[Fri Aug  4 2023]")))
+        (should (= (erc--get-inserted-msg-beg (point))
+                   (erc-stamp--date-marker (pop stamps))))
+        (should-not stamps))))
+
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
 
 ;;; erc-stamp-tests.el ends here

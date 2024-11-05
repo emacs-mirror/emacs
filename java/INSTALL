@@ -1,5 +1,5 @@
 Installation instructions for Android
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please read the entirety of this file before attempting to build Emacs
@@ -39,7 +39,7 @@ script like so:
 Replacing the paths in the command line above with:
 
   - the path to the `android.jar' headers which come with the Android
-    SDK.  They must correspond to Android version 13 (API level 33).
+    SDK.  They must correspond to Android version 15 (API level 35).
 
   - the path to the C compiler in the Android NDK, for the kind of CPU
     you are building Emacs to run on.
@@ -48,8 +48,8 @@ Replacing the paths in the command line above with:
     such as `aapt', `apksigner', and `d8'.  These are used to build
     the application package.
 
-Where the type of CPU can either be `armeabi', `armv7*', `i686',
-`x86_64', `mips', or `mips64'.
+Where the type of CPU can either be `aarch64', `armeabi', `armv7*',
+`i686', `x86_64', `mips', or `mips64'.
 
 After the configuration process completes, you may run:
 
@@ -87,13 +87,13 @@ necessary for compiling Emacs.
 
 It is imperative that Emacs is compiled using the headers for the
 exact API level that it is written for.  This is currently API level
-33, so the correct android.jar archive is located within a directory
-whose name begins with `android-33'.  Minor revisions to the headers
+35, so the correct android.jar archive is located within a directory
+whose name begins with `android-35'.  Minor revisions to the headers
 are inconsequential towards the Emacs compilation process; if there is
-a directory named `android-33-extN' (where N represents a revision to
+a directory named `android-35-extN' (where N represents a revision to
 the Android SDK), whether you provide `configure' with that
 directory's android.jar or the android.jar contained within the
-directory named `android-33' is of no special importance.
+directory named `android-35' is of no special importance.
 
 The ndk directory contains one subdirectory for each version of the
 Android NDK installed.  This directory in turn contains the C and C++
@@ -111,12 +111,12 @@ supplied by the NDK.  The C compiler is then positioned within
 `prebuilt/*/bin' inside that directory.
 
 The build-tools directory holds subdirectories containing the utility
-programs used to convert class files output by the Java compiler to
-the DEX format employed by Android.  There is one subdirectory for
-each version of the build tools, but the version you opt for is not of
+programs used to convert class files output by the Java compiler to the
+DEX format employed by Android.  There is one subdirectory for each
+version of the build tools, but the version you opt for is not of
 paramount significance: if your version does not work, configure will
 protest, so install a newer one.  We anticipate that most recent
-releases will work, such as those from the 33.0.x and 34.0.x series.
+releases will work, such as those from the 34.0.x, and 35.0.x series.
 
 
 BUILDING WITH OLD NDK VERSIONS
@@ -139,10 +139,10 @@ compiler.  For example:
 
   ./configure [...] \
      ANDROID_CC="i686-linux-android-gcc \
-		 --sysroot=/path/to/ndk/platforms/android-14/arch-x86/"
-     ANDROID_CFLAGS="-isystem /path/to/ndk/sysroot/usr/include \
-		     -isystem /path/to/ndk/sysroot/usr/include/i686-linux-android \
-		     -D__ANDROID_API__=14"
+		 --sysroot=/path/to/ndk/platforms/android-14/arch-x86/
+		 -isystem /path/to/ndk/sysroot/usr/include \
+		 -isystem /path/to/ndk/sysroot/usr/include/i686-linux-android \
+		 -D__ANDROID_API__=14"
 
 Where __ANDROID_API__ and the version identifier in
 "platforms/android-14" defines the version of Android you are building
@@ -158,37 +158,53 @@ the NDK r10b or later.  We wanted to make Emacs work on even older
 versions of Android, but they are missing the required JNI graphics
 library that allows Emacs to display text from C code.
 
-Due to an extremely nasty bug in the Android 2.2 system, the generated
-Emacs package cannot be compressed in builds for Android 2.2.  As a
-result, the Emacs package will be approximately 100 megabytes larger
-than a compressed package for a newer version of Android.
+There is an extremely nasty bug in the Android 2.2 system, the upshot of
+which is that large files within the generated Emacs package cannot be
+compressed in builds for Android 2.2, so that the Emacs package will be
+approximately 15 megabytes larger than a compressed package for a newer
+version of Android.  For such systems the `zip' utility is also required
+to produce packages that will not be misinterpreted by the package
+manager.
 
 
 BUILDING C++ DEPENDENCIES
 
-With a new version of the NDK, dependencies containing C++ code should
-build without any futher configuration.  However, older versions
-require that you use the ``make_standalone_toolchain.py'' script in
-the NDK distribution to create a ``standalone toolchain'', and use
-that instead, in order for C++ headers to be found.
+In normal circumstances, Emacs should automatically detect and configure
+one of the C++ standard libraries part of the NDK when such a library is
+required to build a dependency specified under `--with-ndk-path'.
 
-See https://developer.android.com/ndk/guides/standalone_toolchain for
-more details; when a ``standalone toolchain'' is specified, the
-configure script will try to determine the location of the C++
-compiler based on the C compiler specified.  If that automatic
-detection does not work, you can specify a C++ compiler yourself, like
-so:
+Nevertheless, this process is not infallible, and with certain versions
+of the NDK is liable to fail to locate a C++ compiler, requiring that
+you run the `make_standalone_toolchain.py' script in the NDK
+distribution to create a ``standalone toolchain'' and substitute the
+same for the regular compiler toolchain.  See
+https://developer.android.com/ndk/guides/standalone_toolchain for
+further details.
 
-  ./configure --with-ndk-cxx=/path/to/toolchain/bin/i686-linux-android-g++
-
-Some versions of the NDK have a bug, where GCC fails to locate
-``stddef.h'' after being copied to a standalone toolchain.  To work
-around this problem (which normally exhibits itself when building C++
-code), add:
+Some versions of the NDK that ship GCC 4.9.x exhibit a bug where the
+compiler cannot locate `stddef.h' after being copied to a standalone
+toolchain.  To work around this problem, add:
 
    -isystem /path/to/toolchain/include/c++/4.9.x
 
 to ANDROID_CFLAGS.
+
+
+16 KB PAGE SIZES
+
+New Android devices might be configured with kernels that only support
+16 KB page sizes, rendering them liable not to run Emacs binaries, and
+those of other programs, that are not properly compiled for such an
+environment.  Ideally, `configure' will automatically detect toolchain
+and compiler support for this configuration, and diagnose its absence by
+a warning message, but Emacs cannot diagnose the mismatch if the NDK
+toolchain supports 16 KB page sizes while the shared object implementing
+the C++ standard library does not, and Emacs binaries generated by such
+a combination will crash at startup on those devices.
+
+As such, you are advised to build Emacs with the NDK r27 or better, if
+producing binaries to run on aarch64 or x86_64 devices and Android 15 or
+future releases.
 
 
 DEBUG AND RELEASE BUILDS
@@ -272,14 +288,13 @@ When building for Intel systems, some ``ndk-build'' modules require
 the Netwide Assembler, usually installed under ``nasm'', to be present
 on the system that is building Emacs.
 
-Google, Inc. has adapted many common Emacs dependencies to use the
-`ndk-build' system.  Here is a non-exhaustive list of what is known to
-work, along with what has to be patched to make them work:
+Google has adapted several Emacs dependencies to use the `ndk-build'
+system, many of which require patches to function under an Emacs
+environment.  As such, it is generally the wiser choice to use our ports
+in their place, but the following list and patches are still provided
+for reference.
 
   libpng	- https://android.googlesource.com/platform/external/libpng
-  libwebp	- https://android.googlesource.com/platform/external/webp
-     (You must apply the patch at the end of this file for the resulting
-      binary to work on armv7 devices.)
   giflib	- https://android.googlesource.com/platform/external/giflib
      (You must add LOCAL_EXPORT_CFLAGS := -I$(LOCAL_PATH) before
       its Android.mk includes $(BUILD_STATIC_LIBRARY))
@@ -299,6 +314,8 @@ work, along with what has to be patched to make them work:
       the following three dependencies.)
   libpackagelistparser
     https://android.googlesource.com/platform/system/core/+/refs/heads/nougat-mr1-dev/libpackagelistparser/
+    (You must add LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/include before
+      its Android.mk includes $(BUILD_SHARED_LIBRARY))
   libpcre	- https://android.googlesource.com/platform/external/pcre
   libcrypto	- https://android.googlesource.com/platform/external/boringssl
      (You must apply the patch at the end of this file when building for
@@ -307,15 +324,14 @@ work, along with what has to be patched to make them work:
 Many of these dependencies have been migrated over to the
 ``Android.bp'' build system now used to build Android itself.
 However, the old ``Android.mk'' Makefiles are still present in older
-branches, and can be easily adapte to newer versions.
+branches, and can be easily adapted to newer versions.
 
 In addition, some Emacs dependencies provide `ndk-build' support
 themselves:
 
-  libjansson	- https://github.com/akheron/jansson
-    (You must add LOCAL_EXPORT_INCLUDES := $(LOCAL_C_INCLUDES) before
-     its Android.mk includes $(BUILD_SHARED_LIBRARY), then copy
-     android/jansson_config.h to android/jansson_private_config.h.)
+  libwebp	- https://android.googlesource.com/platform/external/webp
+     (You must apply the patch at the end of this file for the resulting
+      binary to work on armv7 devices.)
 
 Emacs developers have ported the following dependencies to ARM Android
 systems:
@@ -328,6 +344,15 @@ systems:
     (Please see the section TREE-SITTER near the end of this file.)
   harfbuzz  	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
     (Please see the section HARFBUZZ near the end of this file.)
+  libxml2       - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section LIBXML2 near the end of this file.)
+  libjpeg-turbo - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+  giflib        - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+  libtiff       - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+  libpng        - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section IMAGE LIBRARIES near the end of this file.)
+  libselinux - https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section SELINUX near the end of this file.)
 
 And other developers have ported the following dependencies to Android
 systems:
@@ -355,14 +380,99 @@ To build Emacs with GnuTLS, you must unpack each of the following tar
 archives in that site:
 
   gmp-6.2.1-emacs.tgz
-  gnutls-3.7.8-emacs.tar.gz
+  gnutls-3.8.5-emacs.tar.gz
+    (or gnutls-3.8.5-emacs-armv7a.tar.gz on 32-bit systems)
   libtasn1-4.19.0-emacs.tar.gz
   p11-kit-0.24.1-emacs.tar.gz
   nettle-3.8-emacs.tar.gz
 
-and add the resulting folders to ``--with-ndk-path''.  Note that you
-should not try to build these packages separately using any
-`configure' script or Makefiles inside.
+and add the resulting folders to ``--with-ndk-path''.  Do not attempt to
+build these packages separately by means of `configure' scripts or
+Makefiles inside.
+
+
+LIBXML2
+
+A copy of libxml2 adapted for the same build system is provided under
+the name:
+
+  libxml2-2.12.4-emacs.tar.gz
+
+In contrast to the version distributed by Google, internationalization
+is disabled, which eliminates the dependency on icu4c (and by extension
+a C++ compiler).
+
+
+IMAGE LIBRARIES
+
+ndk-build enabled versions of image libraries required by Emacs are also
+provided as:
+
+  giflib-5.2.1-emacs.tar.gz
+  libjpeg-turbo-3.0.2-emacs.tar.gz
+  libpng-1.6.41-emacs.tar.gz
+  tiff-4.5.1-emacs.tar.gz
+
+Of which all but libjpeg-turbo-3.0.2-emacs.tar.gz should compile on
+every supported Android system and toolchain; where the latter does not
+compile, i.e. old armeabi toolchains, Google's version is a suitable
+substitute.
+
+Of the three remaining image-related dependencies, libwebp provides
+upstream support for ndk-build, ImageMagick has been ported by
+interested third-party developers, and librsvg is addressed below.
+
+
+LIBRSVG
+
+Librsvg 2.40.21, the final release in the librsvg 2.40.x series, the
+last to be implemented in C, is provided as:
+
+  librsvg-2.40.21-emacs.tar.gz
+
+and has been lightly edited for compatibility with environments where
+Pango cannot provide fonts, with the obvious caveat that text cannot be
+displayed with the resulting librsvg binary.  Among numerous
+dependencies are PCRE, and:
+
+  libiconv-1.17-emacs.tar.gz
+  libffi-3.4.5-emacs.tar.gz
+  pango-1.38.1-emacs.tar.gz
+  glib-2.33.14-emacs.tar.gz
+  libcroco-0.6.13-emacs.tar.gz
+  pixman-0.38.4-emacs.tar.gz
+  libxml2-2.12.4-emacs.tar.gz
+  gdk-pixbuf-2.22.1-emacs.tar.gz
+  giflib-5.2.1-emacs.tar.gz
+  libjpeg-turbo-3.0.2-emacs.tar.gz
+  libpng-1.6.41-emacs.tar.gz
+  tiff-4.5.1-emacs.tar.gz
+  cairo-1.16.0-emacs.tar.gz
+
+which must be individually unpacked and their contents provided on the
+command line, as with other dependencies.  They will introduce
+approximately 8 MiB's worth of shared libraries into the finished
+application package.  It is unlikely that later releases of librsvg will
+ever be ported, as they have migrated to a different implementation
+language.
+
+No effort has been expended on providing the latest and greatest of
+these dependencies either; rather, the versions chosen are often the
+earliest versions required by their dependents, these being the smaller
+of all available versions, and generally more straightforward to port.
+
+
+SELINUX
+
+The upstream version of libselinux is available as:
+
+  libselinux-3.6-emacs.tar.gz
+
+and compiles on toolchains configured for Android 4.3 and later, which
+are the earliest Android releases to support SELinux.  Its principal
+advantage over Google's edition is the absence of Android-specific
+modifications that create dependencies on libpackagelistparser and
+libcrypto; Google's pcre remains a requirement.
 
 
 TREE-SITTER
@@ -382,7 +492,9 @@ A copy of HarfBuzz modified to build with the ndk-build system can
 also be found at that URL.  To build Emacs with HarfBuzz, you must
 unpack the following tar archive in that site:
 
-  harfbuzz-7.1.0-emacs.tar.gz
+  harfbuzz-7.1.0-emacs.tar.gz (when building for Android >4.3
+  			       with 21.0.x or later of the NDK)
+  harfbuzz-1.7.7.tar.gz	      (earlier NDK or platform releases)
 
 and add the resulting folder to ``--with-ndk-build''.
 
@@ -404,14 +516,14 @@ libxml2 before it can be built for Emacs.  In addition, you must also
 revert the commit `edb5870767fed8712a9b77ef34097209b61ab2db'.
 
 diff --git a/Android.mk b/Android.mk
-index 07c7b372..24f67e49 100644
+index 07c7b372..2494274f 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -80,6 +80,7 @@ LOCAL_SHARED_LIBRARIES := libicuuc
  LOCAL_MODULE:= libxml2
  LOCAL_CLANG := true
  LOCAL_ADDITIONAL_DEPENDENCIES += $(LOCAL_PATH)/Android.mk
-+LOCAL_EXPORT_C_INCLUDES += $(LOCAL_PATH)
++LOCAL_EXPORT_C_INCLUDES += $(LOCAL_PATH)/include
  include $(BUILD_SHARED_LIBRARY)
  
  # For the host

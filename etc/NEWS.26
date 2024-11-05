@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2016-2023 Free Software Foundation, Inc.
+Copyright (C) 2016-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -38,7 +38,7 @@ in its NEWS.)
 
 ** Installing Emacs now installs the emacs-module.h file.
 The emacs-module.h file is now installed in the system-wide include
-directory as part of the Emacs installation.  This allows to build
+directory as part of the Emacs installation.  This allows building
 Emacs modules outside of the Emacs source tree.
 
 
@@ -537,7 +537,7 @@ use the local Emacs to edit remote files via Tramp.  See the node
 "(emacs) emacsclient Options" in the user manual for the details.
 
 *** Emacsclient now accepts command-line options in ALTERNATE_EDITOR
-and '--alternate-editor'. For example, ALTERNATE_EDITOR="emacs -Q -nw".
+and '--alternate-editor'.  For example, ALTERNATE_EDITOR="emacs -Q -nw".
 Arguments may be quoted "like this", so that for example an absolute
 path containing a space may be specified; quote escaping is not
 supported.

@@ -1,6 +1,6 @@
 /* System definitions for code taken from the GNU C Library
 
-   Copyright 2017-2023 Free Software Foundation, Inc.
+   Copyright 2017-2024 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -48,6 +48,11 @@
 
 /* From glibc <features.h>.  */
 
+#if defined __clang__
+  /* clang really only groks GNU C 4.2, regardless of its value of __GNUC__.  */
+# undef __GNUC_PREREQ
+# define __GNUC_PREREQ(maj, min) ((maj) < 4 + ((min) <= 2))
+#endif
 #ifndef __GNUC_PREREQ
 # if defined __GNUC__ && defined __GNUC_MINOR__
 #  define __GNUC_PREREQ(maj, min) ((maj) < __GNUC__ + ((min) <= __GNUC_MINOR__))

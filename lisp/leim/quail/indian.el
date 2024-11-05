@@ -1,6 +1,6 @@
 ;;; indian.el --- Quail packages for inputting Indian  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: KAWABATA, Taichi <kawabata@m17n.org>
 
@@ -154,8 +154,8 @@ strings that describe how to insert CONSONANT."
   (setq consonants
      (sort consonants
          (lambda (x y)
-           (or (seq-position (car x) quail-tamil-itrans--consonant-order) 1000)
-           (or (seq-position (car y) quail-tamil-itrans--consonant-order) 1000))))
+           (< (or (seq-position quail-tamil-itrans--consonant-order (car x)) 1000)
+              (or (seq-position quail-tamil-itrans--consonant-order (car y)) 1000)))))
   (let ((virama #x0BCD)
 	clm)
     (with-temp-buffer
@@ -476,7 +476,7 @@ Full key sequences are listed below:"
 (defgroup tamil-input nil
   "Translation rules for the Tamil input method."
   :prefix "tamil-"
-  :group 'leim)
+  :group 'quail)
 
 (defcustom tamil-translation-rules
   ;; Vowels.

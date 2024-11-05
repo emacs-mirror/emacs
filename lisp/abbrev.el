@@ -1,6 +1,6 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: abbrev convenience
@@ -122,6 +122,9 @@ Otherwise display all the abbrevs."
     found))
 
 (defun prepare-abbrev-list-buffer (&optional local)
+  "Return buffer listing abbreviations and expansions for each abbrev table.
+
+If LOCAL is non-nil, include in the buffer only the local abbrevs."
   (let ((local-table local-abbrev-table))
     (with-current-buffer (get-buffer-create "*Abbrevs*")
       (erase-buffer)
@@ -333,6 +336,20 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
   (add-abbrev global-abbrev-table "Global" arg))
 
 (defun add-abbrev (table type arg)
+  "Define abbrev in TABLE, whose expansion is ARG words before point.
+Read the abbreviation from the minibuffer, with prompt TYPE.
+
+ARG of zero means the entire region is the expansion.
+
+A negative ARG means to undefine the specified abbrev.
+
+TYPE is an arbitrary string used to prompt user for the kind of
+abbrev, such as \"Global\", \"Mode\".  (This has no influence on the
+choice of the actual TABLE).
+
+See `inverse-add-abbrev' for the opposite task.
+
+Don't use this function in a Lisp program; use `define-abbrev' instead."
   (let ((exp
          (cond
           ((or (and (null arg) (use-region-p))
@@ -353,7 +370,7 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
     (if (or (null exp)
 	    (not (abbrev-expansion name table))
 	    (y-or-n-p (format "%s expands into \"%s\"; redefine? "
-			      name (abbrev-expansion name table))))
+                              name (abbrev-expansion name table))))
 	(define-abbrev table (downcase name) exp))))
 
 (defun inverse-add-mode-abbrev (n)
@@ -393,6 +410,19 @@ to define an abbrev by specifying the abbreviation in the minibuffer."
   (inverse-add-abbrev global-abbrev-table "Global" n))
 
 (defun inverse-add-abbrev (table type arg)
+  "Define the word before point as an abbrev in TABLE.
+Read the expansion from the minibuffer, using prompt TYPE, define
+the abbrev, and then expand the abbreviation in the current
+buffer.
+
+ARG means use the ARG-th word before point as the abbreviation.
+Negative ARG means use the ARG-th word after point.
+
+TYPE is an arbitrary string used to prompt user for the kind of
+abbrev, such as \"Global\", \"Mode\".  (This has no influence on the
+choice of the actual TABLE).
+
+See also `add-abbrev', which performs the opposite task."
   (let (name exp start end)
     (save-excursion
       (forward-word (1+ (- arg)))
@@ -572,8 +602,7 @@ It is nil if the abbrev has already been unexpanded.")
   "Undefine all abbrevs in abbrev table TABLE, leaving TABLE empty."
   (setq abbrevs-changed t)
   (let* ((sym (obarray-get table "")))
-    (dotimes (i (length table))
-      (aset table i 0))
+    (obarray-clear table)
     ;; Preserve the table's properties.
     (cl-assert sym)
     (let ((newsym (obarray-put table "")))
@@ -691,7 +720,7 @@ either a single abbrev table or a list of abbrev tables."
   ;; to treat the distinction between a single table and a list of tables.
   (cond
    ((consp tables) tables)
-   ((vectorp tables) (list tables))
+   ((obarrayp tables) (list tables))
    (t
     (let ((tables (if (listp local-abbrev-table)
                       (append local-abbrev-table
@@ -1102,6 +1131,8 @@ Presumes that `standard-output' points to `current-buffer'."
   (insert ")\n"))
 
 (defun abbrev--describe (sym)
+  "Describe abbrev SYM.
+Print on `standard-output' the abbrev, count of use, expansion."
   (when (symbol-value sym)
     (prin1 (symbol-name sym))
     (if (null (abbrev-get sym :system))
@@ -1243,11 +1274,12 @@ which see."
   (setq font-lock-multiline nil))
 
 (defun abbrev--possibly-save (query &optional arg)
+  "Hook function for use by `save-some-buffers-functions'.
+
+Maybe save abbrevs, and record whether we either saved them or asked to."
   ;; Query mode.
   (if (eq query 'query)
       (and save-abbrevs abbrevs-changed)
-    ;; Maybe save abbrevs, and record whether we either saved them or
-    ;; asked to.
     (and save-abbrevs
          abbrevs-changed
          (prog1

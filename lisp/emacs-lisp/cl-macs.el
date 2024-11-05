@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Old-Version: 2.02
@@ -101,6 +101,7 @@
     (and (> size 0) (1- size))))
 
 (defun cl--simple-exprs-p (xs)
+  "Map `cl--simple-expr-p' to each element of list XS."
   (while (and xs (cl--simple-expr-p (car xs)))
     (setq xs (cdr xs)))
   (not xs))
@@ -116,8 +117,10 @@
 	     (while (and (setq x (cdr x)) (cl--safe-expr-p (car x))))
 	     (null x)))))
 
-;;; Check if constant (i.e., no side effects or dependencies).
 (defun cl--const-expr-p (x)
+  "Check if X is constant (i.e., no side effects or dependencies).
+
+See `macroexp-const-p' for similar functionality without cl-lib dependency."
   (cond ((consp x)
 	 (or (eq (car x) 'quote)
 	     (and (memq (car x) '(function cl-function))
@@ -389,7 +392,7 @@ more details.
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug
             ;; Same as defun but use cl-lambda-list.
-            (&define [&name sexp]   ;Allow (setf ...) additionally to symbols.
+            (&define [&name symbolp]
                      cl-lambda-list
                      cl-declarations-or-string
                      [&optional ("interactive" interactive)]
@@ -1465,6 +1468,7 @@ For more details, see Info node `(cl)Loop Facility'.
 			  (t (setq buf (cl--pop2 cl--loop-args)))))
 		  (if (and (consp var) (symbolp (car var)) (symbolp (cdr var)))
 		      (setq var1 (car var) var2 (cdr var))
+		    (push (list var nil) loop-for-bindings)
 		    (push (list var `(cons ,var1 ,var2)) loop-for-sets))
 		  (cl--loop-set-iterator-function
                    'intervals (lambda (body)
@@ -2075,6 +2079,13 @@ info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
+           ;; The first (symbolp form) case doesn't use `&name' because
+           ;; it's hard to associate this name with the body of the function
+           ;; that `form' will return (bug#65344).
+           ;; We could try and use a `&name' for those cases where the
+           ;; body of the function can be found, (e.g. the form wraps
+           ;; some `prog1/progn/let' around the final `lambda'), but it's
+           ;; not clear it's worth the trouble.
            (debug ((&rest [&or (symbolp form)
                                (&define [&name symbolp "@cl-flet@"]
                                         [&name [] gensym] ;Make it unique!
@@ -2239,7 +2250,7 @@ Like `cl-flet' but the definitions can refer to previous ones.
 ;;;###autoload
 (defmacro cl-labels (bindings &rest body)
   "Make local (recursive) function definitions.
-+BINDINGS is a list of definitions of the form (FUNC ARGLIST BODY...) where
+BINDINGS is a list of definitions of the form (FUNC ARGLIST BODY...) where
 FUNC is the function name, ARGLIST its arguments, and BODY the
 forms of the function body.  FUNC is defined in any BODY, as well
 as FORM, so you can write recursive and mutually recursive
@@ -2494,7 +2505,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
 (defmacro cl-once-only (names &rest body)
   "Generate code to evaluate each of NAMES just once in BODY.
 
-This macro helps with writing other macros.  Each of names is
+This macro helps with writing other macros.  Each of NAMES is
 either (NAME FORM) or NAME, which latter means (NAME NAME).
 During macroexpansion, each NAME is bound to an uninterned
 symbol.  The expansion evaluates each FORM and binds it to the
@@ -2923,7 +2934,14 @@ The function's arguments should be treated as immutable.
              ,(if (memq '&key args)
                   `(&whole cl-whole &cl-quote ,@args)
                 (cons '&cl-quote args))
-             ,(format "compiler-macro for inlining `%s'." name)
+             ;; NB.  This will produce incorrect results in some
+             ;; cases, as our coding conventions says that the first
+             ;; line must be a full sentence.  However, if we don't
+             ;; word wrap we will have byte-compiler warnings about
+             ;; overly long docstrings.  So we can't have a perfect
+             ;; result here, and choose to avoid the byte-compiler
+             ;; warnings.
+             ,(internal--format-docstring-line "compiler-macro for `%s'." name)
              (cl--defsubst-expand
               ',argns '(cl-block ,name ,@(cdr (macroexp-parse-body body)))
               nil
@@ -2992,6 +3010,7 @@ To see the documentation for a defined struct type, use
              ;; All the above is for the following def-form.
              &rest &or symbolp (symbolp &optional def-form &rest sexp))))
   (let* ((name (if (consp struct) (car struct) struct))
+	 (warning nil)
 	 (opts (cdr-safe struct))
 	 (slots nil)
 	 (defaults nil)
@@ -3076,8 +3095,15 @@ To see the documentation for a defined struct type, use
 	       (setq descs (nconc (make-list (car args) '(cl-skip-slot))
 				  descs)))
 	      (t
-	       (error "Structure option %s unrecognized" opt)))))
-    (unless (or include-name type)
+	       (setq warning
+	             (macroexp-warn-and-return
+	              (format "Structure option %S unrecognized" opt)
+	              warning nil nil (list opt struct)))))))
+    (unless (or include-name type
+                ;; Don't create a bogus parent to `cl-structure-object'
+                ;; while compiling the (cl-defstruct cl-structure-object ..)
+                ;; in `cl-preloaded.el'.
+                (eq name cl--struct-default-parent))
       (setq include-name cl--struct-default-parent))
     (when include-name (setq include (cl--struct-get-class include-name)))
     (if print-func
@@ -3172,18 +3198,30 @@ To see the documentation for a defined struct type, use
               ;; The arg "cl-x" is referenced by name in e.g. pred-form
 	      ;; and pred-check, so changing it is not straightforward.
 	      (push `(,defsym ,accessor (cl-x)
-                       ,(concat
-                         ;; NB.  This will produce incorrect results
-                         ;; in some cases, as our coding conventions
-                         ;; says that the first line must be a full
-                         ;; sentence.  However, if we don't word wrap
-                         ;; we will have byte-compiler warnings about
-                         ;; overly long docstrings.  So we can't have
-                         ;; a perfect result here, and choose to avoid
-                         ;; the byte-compiler warnings.
-                         (internal--format-docstring-line
-                          "Access slot \"%s\" of `%s' struct CL-X." slot name)
-                         (if doc (concat "\n" doc) ""))
+                       ,(let ((long-docstring
+                               (format "Access slot \"%s\" of `%s' struct CL-X." slot name)))
+                          (concat
+                           ;; NB.  This will produce incorrect results
+                           ;; in some cases, as our coding conventions
+                           ;; says that the first line must be a full
+                           ;; sentence.  However, if we don't word
+                           ;; wrap we will have byte-compiler warnings
+                           ;; about overly long docstrings.  So we
+                           ;; can't have a perfect result here, and
+                           ;; choose to avoid the byte-compiler
+                           ;; warnings.
+                           (if (>= (length long-docstring)
+                                   (or (bound-and-true-p
+                                        byte-compile-docstring-max-column)
+                                       80))
+                               (concat
+                                (internal--format-docstring-line
+                                 "Access slot \"%s\" of CL-X." slot)
+                                "\n"
+                                (internal--format-docstring-line
+                                 "Struct CL-X is a `%s'." name))
+                             (internal--format-docstring-line long-docstring))
+                           (if doc (concat "\n" doc) "")))
                        (declare (side-effect-free t))
                        ,access-body)
                     forms)
@@ -3259,7 +3297,16 @@ To see the documentation for a defined struct type, use
 	(push `(,cldefsym ,cname
                    (&cl-defs (nil ,@descs) ,@args)
                  ,(if (stringp doc) doc
-                    (format "Constructor for objects of type `%s'." name))
+                    ;; NB.  This will produce incorrect results in
+                    ;; some cases, as our coding conventions says that
+                    ;; the first line must be a full sentence.
+                    ;; However, if we don't word wrap we will have
+                    ;; byte-compiler warnings about overly long
+                    ;; docstrings.  So we can't have a perfect result
+                    ;; here, and choose to avoid the byte-compiler
+                    ;; warnings.
+                    (internal--format-docstring-line
+                     "Constructor for objects of type `%s'." name))
                  ,@(if (cl--safe-expr-p `(progn ,@(mapcar #'cl-second descs)))
                        '((declare (side-effect-free t))))
                  (,con-fun ,@make))
@@ -3290,22 +3337,10 @@ To see the documentation for a defined struct type, use
          (cl-struct-define ',name ,docstring ',include-name
                            ',(or type 'record) ,(eq named t) ',descs
                            ',tag-symbol ',tag ',print-auto))
+       ,warning
        ',name)))
 
 ;;; Add cl-struct support to pcase
-
-;;In use by comp.el
-(defun cl--struct-all-parents (class)
-  (when (cl--struct-class-p class)
-    (let ((res ())
-          (classes (list class)))
-      ;; BFS precedence.
-      (while (let ((class (pop classes)))
-               (push class res)
-               (setq classes
-                     (append classes
-                             (cl--class-parents class)))))
-      (nreverse res))))
 
 ;;;###autoload
 (pcase-defmacro cl-struct (type &rest fields)
@@ -3314,14 +3349,14 @@ Elements of FIELDS can be of the form (NAME PAT) in which case the
 contents of field NAME is matched against PAT, or they can be of
 the form NAME which is a shorthand for (NAME NAME)."
   (declare (debug (sexp &rest [&or (sexp pcase-PAT) sexp])))
-  `(and (pred (pcase--flip cl-typep ',type))
+  `(and (pred (cl-typep _ ',type))
         ,@(mapcar
            (lambda (field)
              (let* ((name (if (consp field) (car field) field))
                     (pat (if (consp field) (cadr field) field)))
                `(app ,(if (eq (cl-struct-sequence-type type) 'list)
                           `(nth ,(cl-struct-slot-offset type name))
-                        `(pcase--flip aref ,(cl-struct-slot-offset type name)))
+                        `(aref _ ,(cl-struct-slot-offset type name)))
                      ,pat)))
            fields)))
 
@@ -3338,13 +3373,13 @@ the form NAME which is a shorthand for (NAME NAME)."
   "Extra special cases for `cl-typep' predicates."
   (let* ((x1 pred1) (x2 pred2)
          (t1
-          (and (eq 'pcase--flip (car-safe x1)) (setq x1 (cdr x1))
-               (eq 'cl-typep (car-safe x1))    (setq x1 (cdr x1))
+          (and (eq 'cl-typep (car-safe x1))    (setq x1 (cdr x1))
+               (eq '_ (car-safe x1))           (setq x1 (cdr x1))
                (null (cdr-safe x1))            (setq x1 (car x1))
                (eq 'quote (car-safe x1))       (cadr x1)))
          (t2
-          (and (eq 'pcase--flip (car-safe x2)) (setq x2 (cdr x2))
-               (eq 'cl-typep (car-safe x2))    (setq x2 (cdr x2))
+          (and (eq 'cl-typep (car-safe x2))    (setq x2 (cdr x2))
+               (eq '_ (car-safe x2))           (setq x2 (cdr x2))
                (null (cdr-safe x2))            (setq x2 (car x2))
                (eq 'quote (car-safe x2))       (cadr x2))))
     (or
@@ -3352,8 +3387,8 @@ the form NAME which is a shorthand for (NAME NAME)."
           (let ((c1 (cl--find-class t1))
                 (c2 (cl--find-class t2)))
             (and c1 c2
-                 (not (or (memq c1 (cl--struct-all-parents c2))
-                          (memq c2 (cl--struct-all-parents c1)))))))
+                 (not (or (memq t1 (cl--class-allparents c2))
+                          (memq t2 (cl--class-allparents c1)))))))
      (let ((c1 (and (symbolp t1) (cl--find-class t1))))
        (and c1 (cl--struct-class-p c1)
             (funcall orig (cl--defstruct-predicate t1)
@@ -3430,49 +3465,26 @@ Of course, we really can't know that for sure, so it's just a heuristic."
            (or (cdr (assq sym byte-compile-function-environment))
                (cdr (assq sym macroexpand-all-environment))))))
 
+;; Please keep it in sync with `comp-known-predicates'.
 (pcase-dolist (`(,type . ,pred)
                ;; Mostly kept in alphabetical order.
-               '((array		. arrayp)
-                 (atom		. atom)
-                 (base-char	. characterp)
-                 (bignum	. bignump)
-                 (boolean	. booleanp)
-                 (bool-vector	. bool-vector-p)
-                 (buffer	. bufferp)
-                 (byte-code-function . byte-code-function-p)
-                 (character	. natnump)
-                 (char-table	. char-table-p)
-                 (command	. commandp)
-                 (compiled-function . compiled-function-p)
-                 (hash-table	. hash-table-p)
-                 (cons		. consp)
-                 (fixnum	. fixnump)
-                 (float		. floatp)
-                 (frame		. framep)
-                 (function	. functionp)
-                 (integer	. integerp)
-                 (keyword	. keywordp)
+               ;; These aren't defined via `cl--define-built-in-type'.
+               '((base-char	. characterp) ;Could be subtype of `fixnum'.
+                 (character	. natnump)    ;Could be subtype of `fixnum'.
+                 (command	. commandp)   ;Subtype of closure & subr.
+                 (keyword	. keywordp)   ;Would need `keyword-with-pos`.
+                 (natnum	. natnump)    ;Subtype of fixnum & bignum.
+                 (real		. numberp)    ;Not clear where it would fit.
+                 ;; This one is redundant, but we keep it to silence a
+                 ;; warning during the early bootstrap when `cl-seq.el' gets
+                 ;; loaded before `cl-preloaded.el' is defined.
                  (list		. listp)
-                 (marker	. markerp)
-                 (natnum	. natnump)
-                 (number	. numberp)
-                 (null		. null)
-                 (overlay	. overlayp)
-                 (process	. processp)
-                 (real		. numberp)
-                 (sequence	. sequencep)
-                 (subr		. subrp)
-                 (string	. stringp)
-                 (symbol	. symbolp)
-                 (vector	. vectorp)
-                 (window	. windowp)
-                 ;; FIXME: Do we really want to consider this a type?
-                 (integer-or-marker . integer-or-marker-p)
                  ))
   (put type 'cl-deftype-satisfies pred))
 
 ;;;###autoload
 (define-inline cl-typep (val type)
+  "Return t if VAL is of type TYPE, nil otherwise."
   (inline-letevals (val)
     (pcase (inline-const-val type)
       ((and `(,name . ,args) (guard (get name 'cl-deftype-handler)))
@@ -3585,7 +3597,8 @@ possible.  Unlike regular macros, BODY can decide to \"punt\" and leave the
 original function call alone by declaring an initial `&whole foo' parameter
 and then returning foo."
   ;; Like `cl-defmacro', but with the `&whole' special case.
-  (declare (debug (&define name cl-macro-list
+  (declare (debug (&define [&name symbolp "@cl-compiler-macro"]
+                           cl-macro-list
                            cl-declarations-or-string def-body))
            (indent 2))
   (let ((p args) (res nil))
@@ -3690,7 +3703,7 @@ macro that returns its `&whole' argument."
 
 ;;; Things that are inline.
 (cl-proclaim '(inline cl-acons cl-map cl-notany cl-notevery cl-revappend
-                      cl-nreconc gethash))
+               cl-nreconc))
 
 ;;; Things that are side-effect-free.
 (mapc (lambda (x) (function-put x 'side-effect-free t))
@@ -3707,7 +3720,7 @@ macro that returns its `&whole' argument."
 (mapc (lambda (x) (function-put x 'important-return-value t))
        '(
          ;; Functions that are side-effect-free except for the
-         ;; behaviour of functions passed as argument.
+         ;; behavior of functions passed as argument.
          cl-mapcar cl-mapcan cl-maplist cl-map cl-mapcon
          cl-reduce
          cl-assoc cl-assoc-if cl-assoc-if-not
@@ -3786,7 +3799,8 @@ STRUCT-TYPE and SLOT-NAME are symbols.  INST is a structure instance."
 (pcase-defmacro cl-type (type)
   "Pcase pattern that matches objects of TYPE.
 TYPE is a type descriptor as accepted by `cl-typep', which see."
-  `(pred (pcase--flip cl-typep ',type)))
+  `(pred (cl-typep _ ',type)))
+
 
 ;; Local variables:
 ;; generated-autoload-file: "cl-loaddefs.el"

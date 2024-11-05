@@ -1,6 +1,6 @@
 ;;; mule-conf.el --- configure multilingual environment  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2024 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
@@ -709,7 +709,7 @@
 ;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
 (define-charset-alias 'cp866u 'cp1125)
 
-;; Fixme: C.f. iconv, https://czyborra.com/charsets/codepages.html
+;; FIXME: Cf. iconv, https://czyborra.com/charsets/codepages.html
 ;; shows this as not ASCII compatible, with various graphics in
 ;; 0x01-0x1F.
 (define-charset 'cp437

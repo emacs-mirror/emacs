@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,13 +19,19 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,9 +47,11 @@ import android.view.KeyEvent;
 import android.view.inputmethod.CursorAnchorInfo;
 import android.view.inputmethod.ExtractedText;
 
+import android.app.AlarmManager;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 
 import android.content.ClipboardManager;
@@ -53,28 +61,32 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.UriPermission;
 
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager.ApplicationInfoFlags;
 import android.content.pm.PackageManager;
 
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 
 import android.hardware.input.InputManager;
 
 import android.net.Uri;
 
 import android.os.BatteryManager;
+import android.os.Binder;
 import android.os.Build;
-import android.os.Looper;
-import android.os.IBinder;
+import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
+import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.VibratorManager;
-import android.os.VibrationEffect;
 
 import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
+import android.provider.OpenableColumns;
+import android.provider.Settings;
 
 import android.util.Log;
 import android.util.DisplayMetrics;
@@ -91,9 +103,9 @@ public final class EmacsService extends Service
   /* The started Emacs service object.  */
   public static EmacsService SERVICE;
 
-  /* If non-NULL, an extra argument to pass to
+  /* If non-NULL, an array of extra arguments to pass to
      `android_emacs_init'.  */
-  public static String extraStartupArgument;
+  public static String[] extraStartupArguments;
 
   /* The thread running Emacs C code.  */
   private EmacsThread thread;
@@ -105,9 +117,10 @@ public final class EmacsService extends Service
   private ContentResolver resolver;
 
   /* Keep this in synch with androidgui.h.  */
-  public static final int IC_MODE_NULL   = 0;
-  public static final int IC_MODE_ACTION = 1;
-  public static final int IC_MODE_TEXT   = 2;
+  public static final int IC_MODE_NULL     = 0;
+  public static final int IC_MODE_ACTION   = 1;
+  public static final int IC_MODE_TEXT     = 2;
+  public static final int IC_MODE_PASSWORD = 3;
 
   /* Display metrics used by font backends.  */
   public DisplayMetrics metrics;
@@ -130,6 +143,13 @@ public final class EmacsService extends Service
   /* Thread used to query document providers, or null if it hasn't
      been created yet.  */
   private EmacsSafThread storageThread;
+
+  /* The Thread object representing the Android user interface
+     thread.  */
+  private Thread mainThread;
+
+  /* "Resources" object required by GContext bookkeeping.  */
+  public static Resources resources;
 
   static
   {
@@ -168,11 +188,11 @@ public final class EmacsService extends Service
 	manager = (NotificationManager) tem;
 	infoBlurb = ("This notification is displayed to keep Emacs"
 		     + " running while it is in the background.  You"
-		     + " may disable it if you want;"
+		     + " may disable it if you wish;"
 		     + " see (emacs)Android Environment.");
 	channel
-	  = new NotificationChannel ("emacs", "Emacs persistent notification",
-				     NotificationManager.IMPORTANCE_DEFAULT);
+	  = new NotificationChannel ("emacs", "Emacs Background Service",
+				     NotificationManager.IMPORTANCE_LOW);
 	manager.createNotificationChannel (channel);
 	notification = (new Notification.Builder (this, "emacs")
 			.setContentTitle ("Emacs")
@@ -193,34 +213,19 @@ public final class EmacsService extends Service
     return null;
   }
 
+  /* Return the display density, adjusted in accord with the user's
+     text scaling preferences.  */
+
   @SuppressWarnings ("deprecation")
-  private String
-  getApkFile ()
+  private static float
+  getScaledDensity (DisplayMetrics metrics)
   {
-    PackageManager manager;
-    ApplicationInfo info;
-
-    manager = getPackageManager ();
-
-    try
-      {
-	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
-	  info = manager.getApplicationInfo ("org.gnu.emacs", 0);
-	else
-	  info = manager.getApplicationInfo ("org.gnu.emacs",
-					     ApplicationInfoFlags.of (0));
-
-	/* Return an empty string upon failure.  */
-
-	if (info.sourceDir != null)
-	  return info.sourceDir;
-
-	return "";
-      }
-    catch (Exception e)
-      {
-	return "";
-      }
+    /* The scaled density has been made obsolete by the introduction
+       of non-linear text scaling in Android 34, where there is no
+       longer a fixed relation between point and pixel sizes, but
+       remains useful, considering that Emacs does not support
+       non-linear text scaling.  */
+    return metrics.scaledDensity;
   }
 
   @Override
@@ -235,21 +240,25 @@ public final class EmacsService extends Service
     final double scaledDensity;
     double tempScaledDensity;
 
+    super.onCreate ();
+
     SERVICE = this;
+    resources = getResources ();
     handler = new Handler (Looper.getMainLooper ());
     manager = getAssets ();
     app_context = getApplicationContext ();
-    metrics = getResources ().getDisplayMetrics ();
+    metrics = resources.getDisplayMetrics ();
     pixelDensityX = metrics.xdpi;
     pixelDensityY = metrics.ydpi;
-    tempScaledDensity = ((metrics.scaledDensity
+    tempScaledDensity = ((getScaledDensity (metrics)
 			  / metrics.density)
 			 * pixelDensityX);
     resolver = getContentResolver ();
+    mainThread = Thread.currentThread ();
 
-    /* If the density used to compute the text size is lesser than
-       160, there's likely a bug with display density computation.
-       Reset it to 160 in that case.
+    /* If the density used to compute the text size is smaller than 160,
+       there's likely a bug with display density computation.  Reset it
+       to 160 in that case.
 
        Note that Android uses 160 ``dpi'' as the density where 1 point
        corresponds to 1 pixel, not 72 or 96 as used elsewhere.  This
@@ -262,6 +271,10 @@ public final class EmacsService extends Service
        the nested function below.  */
     scaledDensity = tempScaledDensity;
 
+    /* Remove all tasks from previous Emacs sessions but the task
+       created by the system at startup.  */
+    EmacsWindowManager.MANAGER.removeOldTasks (this);
+
     try
       {
 	/* Configure Emacs with the asset manager and other necessary
@@ -273,11 +286,13 @@ public final class EmacsService extends Service
 	/* Now provide this application's apk file, so a recursive
 	   invocation of app_process (through android-emacs) can
 	   find EmacsNoninteractive.  */
-	classPath = getApkFile ();
+	classPath = EmacsApplication.apkFileName;
 
 	Log.d (TAG, "Initializing Emacs, where filesDir = " + filesDir
 	       + ", libDir = " + libDir + ", and classPath = " + classPath
-	       + "; fileToOpen = " + EmacsOpenActivity.fileToOpen
+	       + "; args = " + (extraStartupArguments != null
+				? Arrays.toString (extraStartupArguments)
+				: "(none)")
 	       + "; display density: " + pixelDensityX + " by "
 	       + pixelDensityY + " scaled to " + scaledDensity);
 
@@ -294,9 +309,7 @@ public final class EmacsService extends Service
 					  classPath, EmacsService.this,
 					  Build.VERSION.SDK_INT);
 	    }
-	  }, extraStartupArgument,
-	  /* If any file needs to be opened, open it now.  */
-	  EmacsOpenActivity.fileToOpen);
+	  }, extraStartupArguments);
 	thread.start ();
       }
     catch (IOException exception)
@@ -304,6 +317,30 @@ public final class EmacsService extends Service
 	EmacsNative.emacsAbort ();
 	return;
       }
+  }
+
+  /* The native functions the subsequent two functions call do nothing
+     in the infrequent case the Emacs thread is awaiting a response
+     for the main thread.  Caveat emptor! */
+
+  @Override
+  public void
+  onDestroy ()
+  {
+    /* This function is called immediately before the system kills
+       Emacs.  In this respect, it is rather akin to a SIGDANGER
+       signal, so force an auto-save accordingly.  */
+
+    EmacsNative.shutDownEmacs ();
+    super.onDestroy ();
+  }
+
+  @Override
+  public void
+  onLowMemory ()
+  {
+    EmacsNative.onLowMemory ();
+    super.onLowMemory ();
   }
 
 
@@ -322,52 +359,62 @@ public final class EmacsService extends Service
 		final boolean isFocusedByDefault)
   {
     Runnable runnable;
-    final EmacsHolder<EmacsView> view;
+    FutureTask<EmacsView> task;
 
-    view = new EmacsHolder<EmacsView> ();
-
-    runnable = new Runnable () {
+    task = new FutureTask<EmacsView> (new Callable<EmacsView> () {
 	@Override
-	public void
-	run ()
+	public EmacsView
+	call ()
 	{
-	  synchronized (this)
-	    {
-	      view.thing = new EmacsView (window);
-	      view.thing.setVisibility (visibility);
+	  EmacsView view;
 
-	      /* The following function is only present on Android 26
-		 or later.  */
-	      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-		view.thing.setFocusedByDefault (isFocusedByDefault);
+	  view = new EmacsView (window);
+	  view.setVisibility (visibility);
 
-	      notify ();
-	    }
+	  /* The following function is only present on Android 26
+	     or later.  */
+	  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+	    view.setFocusedByDefault (isFocusedByDefault);
+
+	  return view;
 	}
-      };
+      });
 
-    syncRunnable (runnable);
-    return view.thing;
+    return EmacsService.<EmacsView>syncRunnable (task);
   }
 
   public void
   getLocationOnScreen (final EmacsView view, final int[] coordinates)
   {
-    Runnable runnable;
+    FutureTask<Void> task;
 
-    runnable = new Runnable () {
-	public void
-	run ()
+    task = new FutureTask<Void> (new Callable<Void> () {
+	public Void
+	call ()
 	{
-	  synchronized (this)
-	    {
-	      view.getLocationOnScreen (coordinates);
-	      notify ();
-	    }
+	  view.getLocationOnScreen (coordinates);
+	  return null;
 	}
-      };
+      });
 
-    syncRunnable (runnable);
+    EmacsService.<Void>syncRunnable (task);
+  }
+
+  public void
+  getLocationInWindow (final EmacsView view, final int[] coordinates)
+  {
+    FutureTask<Void> task;
+
+    task = new FutureTask<Void> (new Callable<Void> () {
+	public Void
+	call ()
+	{
+	  view.getLocationInWindow (coordinates);
+	  return null;
+	}
+      });
+
+    EmacsService.<Void>syncRunnable (task);
   }
 
 
@@ -377,7 +424,13 @@ public final class EmacsService extends Service
   {
     if (DEBUG_THREADS)
       {
-	if (Thread.currentThread () instanceof EmacsThread)
+	/* When SERVICE is NULL, Emacs is being executed non-interactively.  */
+	if (SERVICE == null
+	    /* It was previously assumed that only instances of
+	       `EmacsThread' were valid for graphics calls, but this is
+	       no longer true now that Lisp threads can be attached to
+	       the JVM.  */
+	    || (Thread.currentThread () != SERVICE.mainThread))
 	  return;
 
 	throw new RuntimeException ("Emacs thread function"
@@ -431,29 +484,15 @@ public final class EmacsService extends Service
     EmacsDrawPoint.perform (drawable, gc, x, y);
   }
 
-  public void
-  clearWindow (EmacsWindow window)
-  {
-    checkEmacsThread ();
-    window.clearWindow ();
-  }
-
-  public void
-  clearArea (EmacsWindow window, int x, int y, int width,
-	     int height)
-  {
-    checkEmacsThread ();
-    window.clearArea (x, y, width, height);
-  }
-
   @SuppressWarnings ("deprecation")
   public void
-  ringBell ()
+  ringBell (int duration)
   {
     Vibrator vibrator;
     VibrationEffect effect;
     VibratorManager vibratorManager;
     Object tem;
+    int amplitude;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
       {
@@ -467,37 +506,40 @@ public final class EmacsService extends Service
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
       {
+	amplitude = VibrationEffect.DEFAULT_AMPLITUDE;
 	effect
-	  = VibrationEffect.createOneShot (50,
-					   VibrationEffect.DEFAULT_AMPLITUDE);
+	  = VibrationEffect.createOneShot (duration, amplitude);
 	vibrator.vibrate (effect);
       }
     else
-      vibrator.vibrate (50);
+      vibrator.vibrate (duration);
   }
 
-  public short[]
+  public long[]
   queryTree (EmacsWindow window)
   {
-    short[] array;
+    long[] array;
     List<EmacsWindow> windowList;
     int i;
 
     if (window == null)
       /* Just return all the windows without a parent.  */
-      windowList = EmacsWindowAttachmentManager.MANAGER.copyWindows ();
+      windowList = EmacsWindowManager.MANAGER.copyWindows ();
     else
       windowList = window.children;
 
-    array = new short[windowList.size () + 1];
-    i = 1;
+    synchronized (windowList)
+      {
+	array = new long[windowList.size () + 1];
+	i = 1;
 
-    array[0] = (window == null
-		? 0 : (window.parent != null
-		       ? window.parent.handle : 0));
+	array[0] = (window == null
+		    ? 0 : (window.parent != null
+			   ? window.parent.handle : 0));
 
-    for (EmacsWindow treeWindow : windowList)
-      array[i++] = treeWindow.handle;
+	for (EmacsWindow treeWindow : windowList)
+	  array[i++] = treeWindow.handle;
+      }
 
     return array;
   }
@@ -571,6 +613,15 @@ public final class EmacsService extends Service
     return false;
   }
 
+  public boolean
+  detectKeyboard ()
+  {
+    Configuration configuration;
+
+    configuration = getResources ().getConfiguration ();
+    return configuration.keyboard != Configuration.KEYBOARD_NOKEYS;
+  }
+
   public String
   nameKeysym (int keysym)
   {
@@ -599,7 +650,7 @@ public final class EmacsService extends Service
 	  context.startService (new Intent (context,
 					    EmacsService.class));
 	else
-	  /* Display the permanant notification and start Emacs as a
+	  /* Display the permanent notification and start Emacs as a
 	     foreground service.  */
 	  context.startForegroundService (new Intent (context,
 						      EmacsService.class));
@@ -643,13 +694,18 @@ public final class EmacsService extends Service
 							  uri.getPath ());
 	      }
 
-	    Log.d (TAG, ("browseUri: browsing " + url
-			 + " --> " + uri.getPath ()
-			 + " --> " + uri));
-
 	    intent = new Intent (Intent.ACTION_VIEW, uri);
+
+	    /* Set several flags on the Intent prompting the system to
+	       permit the recipient to read and edit the URI
+	       indefinitely.  */
+
 	    intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK
-			     | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			     | Intent.FLAG_GRANT_READ_URI_PERMISSION
+			     | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+	      intent.addFlags (Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
 	  }
 	else
 	  {
@@ -661,7 +717,7 @@ public final class EmacsService extends Service
 	    /* Display a list of programs able to send this URL.  */
 	    intent = Intent.createChooser (intent, "Send");
 
-	    /* Apparently flags need to be set after a choser is
+	    /* Apparently flags need to be set after a chooser is
 	       created.  */
 	    intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK);
 	  }
@@ -684,69 +740,80 @@ public final class EmacsService extends Service
   public ClipboardManager
   getClipboardManager ()
   {
-    final EmacsHolder<ClipboardManager> manager;
-    Runnable runnable;
+    FutureTask<Object> task;
 
-    manager = new EmacsHolder<ClipboardManager> ();
-
-    runnable = new Runnable () {
-	public void
-	run ()
+    task = new FutureTask<Object> (new Callable<Object> () {
+	public Object
+	call ()
 	{
-	  Object tem;
-
-	  synchronized (this)
-	    {
-	      tem = getSystemService (Context.CLIPBOARD_SERVICE);
-	      manager.thing = (ClipboardManager) tem;
-	      notify ();
-	    }
+	  return getSystemService (Context.CLIPBOARD_SERVICE);
 	}
-      };
+      });
 
-    syncRunnable (runnable);
-    return manager.thing;
+    return (ClipboardManager) EmacsService.<Object>syncRunnable (task);
   }
 
   public void
   restartEmacs ()
   {
     Intent intent;
+    PendingIntent pending;
+    AlarmManager manager;
 
     intent = new Intent (this, EmacsActivity.class);
     intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK
 		     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-    startActivity (intent);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+      startActivity (intent);
+    else
+      {
+	/* Experimentation has established that Android 4.3 and earlier
+	   versions do not attempt to recreate a process when it crashes
+	   immediately after requesting that an intent for itself be
+	   started.  Schedule an intent to start some time after Emacs
+	   exits instead.  */
+
+	pending = PendingIntent.getActivity (this, 0, intent, 0);
+	manager = (AlarmManager) getSystemService (Context.ALARM_SERVICE);
+	manager.set (AlarmManager.RTC, System.currentTimeMillis () + 100,
+		     pending);
+      }
+
     System.exit (0);
   }
 
-  /* Wait synchronously for the specified RUNNABLE to complete in the
-     UI thread.  Must be called from the Emacs thread.  */
+  /* Wait synchronously for the specified TASK to complete in the UI
+     thread, then return its result.  Must be called from the Emacs
+     thread.  */
 
-  public static void
-  syncRunnable (Runnable runnable)
+  public static <V> V
+  syncRunnable (FutureTask<V> task)
   {
+    V object;
+
     EmacsNative.beginSynchronous ();
+    SERVICE.runOnUiThread (task);
 
-    synchronized (runnable)
+    try
       {
-	SERVICE.runOnUiThread (runnable);
-
-	while (true)
-	  {
-	    try
-	      {
-		runnable.wait ();
-		break;
-	      }
-	    catch (InterruptedException e)
-	      {
-		continue;
-	      }
-	  }
+	object = task.get ();
+      }
+    catch (ExecutionException exception)
+      {
+	/* Wrap this exception in a RuntimeException and signal it to
+	   the caller.  */
+	throw new RuntimeException (exception.getCause ());
+      }
+    catch (InterruptedException exception)
+      {
+	EmacsNative.emacsAbort ();
+	object = null;
       }
 
     EmacsNative.endSynchronous ();
+
+    return object;
   }
 
 
@@ -780,7 +847,7 @@ public final class EmacsService extends Service
   }
 
   public static int[]
-  viewGetSelection (short window)
+  viewGetSelection (long window)
   {
     int[] selection;
 
@@ -832,11 +899,19 @@ public final class EmacsService extends Service
     if (DEBUG_IC)
       Log.d (TAG, "resetIC: " + window + ", " + icMode);
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-	&& (oldMode = window.view.getICMode ()) == icMode
-	/* Don't do this if there is currently no input
-	   connection.  */
-	&& oldMode != IC_MODE_NULL)
+    oldMode = window.view.getICMode ();
+
+    /* If it's not necessary to reset the input connection for ICMODE to
+       take effect, return immediately.  */
+    if (oldMode == IC_MODE_NULL && icMode == IC_MODE_NULL)
+      {
+	if (DEBUG_IC)
+	  Log.d (TAG, "resetIC: redundant invocation ignored");
+	return;
+      }
+
+    if (oldMode == icMode
+	&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
       {
 	if (DEBUG_IC)
 	  Log.d (TAG, "resetIC: calling invalidateInput");
@@ -884,8 +959,6 @@ public final class EmacsService extends Service
 					0);
     info = builder.build ();
 
-
-
     if (DEBUG_IC)
       Log.d (TAG, ("updateCursorAnchorInfo: " + x + " " + y
 		   + " " + yBaseline + "-" + yBottom));
@@ -903,15 +976,18 @@ public final class EmacsService extends Service
      string; make it writable if WRITABLE, and readable if READABLE.
      Truncate the file if TRUNCATE.
 
-     Value is the resulting file descriptor or -1 upon failure.  */
+     Value is the resulting file descriptor, -1, or an exception will be
+     raised.  */
 
   public int
-  openContentUri (byte[] bytes, boolean writable, boolean readable,
+  openContentUri (String uri, boolean writable, boolean readable,
 		  boolean truncate)
+    throws FileNotFoundException, IOException
   {
     String name, mode;
     ParcelFileDescriptor fd;
     int i;
+    Uri uriObject;
 
     /* Figure out the file access mode.  */
 
@@ -926,38 +1002,27 @@ public final class EmacsService extends Service
     if (truncate)
       mode += "t";
 
-    /* Try to open an associated ParcelFileDescriptor.  */
+    /* Decode the URI.  It might be possible for a perverse user to
+       construct a content file name that Android finds unparsable, so
+       punt if the result is NULL.  */
 
-    try
-      {
-	/* The usual file name encoding question rears its ugly head
-	   again.  */
+    uriObject = Uri.parse (uri);
+    if (uriObject == null)
+      return -1;
 
-	name = new String (bytes, "UTF-8");
-	fd = resolver.openFileDescriptor (Uri.parse (name), mode);
+    /* Try to open a corresponding ParcelFileDescriptor.  Though
+       `fd.detachFd' is exclusive to Honeycomb and up, this function is
+       never called on systems older than KitKat, which is Emacs's
+       minimum requirement for access to /content/by-authority.  */
 
-	/* Use detachFd on newer versions of Android or plain old
-	   dup.  */
+    fd = resolver.openFileDescriptor (uriObject, mode);
+    if (fd == null)
+      return -1;
 
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1)
-	  {
-	    i = fd.detachFd ();
-	    fd.close ();
+    i = fd.detachFd ();
+    fd.close ();
 
-	    return i;
-	  }
-	else
-	  {
-	    i = EmacsNative.dup (fd.getFd ());
-	    fd.close ();
-
-	    return i;
-	  }
-      }
-    catch (Exception exception)
-      {
-	return -1;
-      }
+    return i;
   }
 
   /* Return whether Emacs is directly permitted to access the
@@ -968,12 +1033,17 @@ public final class EmacsService extends Service
   public boolean
   checkContentUri (String name, boolean readable, boolean writable)
   {
-    String mode;
-    ParcelFileDescriptor fd;
     Uri uri;
     int rc, flags;
 
+    /* Decode the URI.  It might be possible that perverse user should
+       construct a content file name that Android finds unparsable, so
+       punt if the result is NULL.  */
+
     uri = Uri.parse (name);
+    if (uri == null)
+      return false;
+
     flags = 0;
 
     if (readable)
@@ -982,8 +1052,64 @@ public final class EmacsService extends Service
     if (writable)
       flags |= Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 
-    rc = checkCallingUriPermission (uri, flags);
+    /* checkCallingUriPermission deals with permissions held by callers
+       of functions over the Binder IPC mechanism as contrasted with
+       Emacs itself, while getCallingPid and getCallingUid, despite the
+       class where they reside, return the process credentials against
+       which the system will actually test URIs being opened.  */
+
+    rc = checkUriPermission (uri, Binder.getCallingPid (),
+			     Binder.getCallingUid (), flags);
     return rc == PackageManager.PERMISSION_GRANTED;
+  }
+
+  /* Return a 8 character checksum for the string STRING, after encoding
+     as UTF-8 data.  */
+
+  private static String
+  getDisplayNameHash (String string)
+  {
+    byte[] encoded;
+    ByteArrayOutputStream stream;
+    int i, ch;
+
+    /* Much of the VFS code expects file names to be encoded as modified
+       UTF-8 data, but Android's JNI implementation produces (while not
+       accepting!) regular UTF-8 sequences for all characters, even
+       non-Emoji ones.  With no documentation to this effect, save for
+       two comments nestled in the source code of the Java virtual
+       machine, it is not sound to assume that this behavior will not be
+       revised in future or modified releases of Android, and as such,
+       encode STRING into modified UTF-8 by hand, to protect against
+       future changes in this respect.  */
+
+    stream = new ByteArrayOutputStream ();
+
+    for (i = 0; i < string.length (); ++i)
+      {
+	ch = string.charAt (i);
+
+	if (ch != 0 && ch <= 127)
+	  stream.write (ch);
+	else if (ch <= 2047)
+	  {
+	    stream.write (0xc0 | (0x1f & (ch >> 6)));
+	    stream.write (0x80 | (0x3f & ch));
+	  }
+	else
+	  {
+	    stream.write (0xe0 | (0x0f & (ch >> 12)));
+	    stream.write (0x80 | (0x3f & (ch >> 6)));
+	    stream.write (0x80 | (0x3f & ch));
+	  }
+      }
+
+    encoded = stream.toByteArray ();
+
+    /* Closing a ByteArrayOutputStream has no effect.
+       encoded.close ();  */
+
+    return EmacsNative.displayNameHash (encoded);
   }
 
   /* Build a content file name for URI.
@@ -992,16 +1118,59 @@ public final class EmacsService extends Service
      pseudo-directory that `android_get_content_name' can then
      transform back into an encoded URI.
 
+     If a display name can be requested from URI (using the resolver
+     RESOLVER), append it to this file name.
+
      A content name consists of any number of unencoded path segments
      separated by `/' characters, possibly followed by a question mark
      and an encoded query string.  */
 
   public static String
-  buildContentName (Uri uri)
+  buildContentName (Uri uri, ContentResolver resolver)
   {
     StringBuilder builder;
+    String displayName;
+    Cursor cursor;
+    int column;
 
-    builder = new StringBuilder ("/content/by-authority/");
+    displayName = null;
+    cursor      = null;
+
+    try
+      {
+	cursor = resolver.query (uri, null, null, null, null);
+
+	if (cursor != null)
+	  {
+	    cursor.moveToFirst ();
+	    column
+	      = cursor.getColumnIndexOrThrow (OpenableColumns.DISPLAY_NAME);
+	    displayName
+	      = cursor.getString (column);
+
+	    /* Verify that the display name is valid, i.e. it
+	       contains no characters unsuitable for a file name and
+	       is nonempty.  */
+	    if (displayName.isEmpty () || displayName.contains ("/"))
+	      displayName = null;
+	  }
+      }
+    catch (Exception e)
+      {
+	/* Ignored.  */
+      }
+    finally
+      {
+	if (cursor != null)
+	  cursor.close ();
+      }
+
+    /* If a display name is available, at this point it should be the
+       value of displayName.  */
+
+    builder = new StringBuilder (displayName != null
+				 ? "/content/by-authority-named/"
+				 : "/content/by-authority/");
     builder.append (uri.getAuthority ());
 
     /* First, append each path segment.  */
@@ -1017,6 +1186,16 @@ public final class EmacsService extends Service
 
     if (uri.getEncodedQuery () != null)
       builder.append ('?').append (uri.getEncodedQuery ());
+
+    /* Append the display name.  */
+
+    if (displayName != null)
+      {
+	builder.append ('/');
+	builder.append (getDisplayNameHash (displayName));
+	builder.append ('/');
+	builder.append (displayName);
+      }
 
     return builder.toString ();
   }
@@ -1049,7 +1228,7 @@ public final class EmacsService extends Service
     temp = battery.getIntExtra (BatteryManager.EXTRA_TEMPERATURE, 0);
 
     return new long[] { capacity, chargeCounter, currentAvg,
-			currentNow, remaining, status, plugged,
+			currentNow, status, remaining, plugged,
 			temp, };
   }
 
@@ -1126,7 +1305,7 @@ public final class EmacsService extends Service
       }
 
     return new long[] { capacity, chargeCounter, currentAvg,
-			currentNow, remaining, status, plugged,
+			currentNow, status, remaining, plugged,
 			temp, };
   }
 
@@ -1137,8 +1316,10 @@ public final class EmacsService extends Service
     if (DEBUG_IC)
       Log.d (TAG, "updateExtractedText: @" + token + ", " + text);
 
+    icBeginSynchronous ();
     window.view.imManager.updateExtractedText (window.view,
 					       token, text);
+    icEndSynchronous ();
   }
 
 
@@ -1180,71 +1361,61 @@ public final class EmacsService extends Service
   public int
   requestDirectoryAccess ()
   {
-    Runnable runnable;
-    final EmacsHolder<Integer> rc;
+    FutureTask<Integer> task;
 
     /* Return 1 if Android is too old to support this feature.  */
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
       return 1;
 
-    rc = new EmacsHolder<Integer> ();
-    rc.thing = Integer.valueOf (1);
-
-    runnable = new Runnable () {
+    task = new FutureTask<Integer> (new Callable<Integer> () {
 	@Override
-	public void
-	run ()
+	public Integer
+        call ()
 	{
 	  EmacsActivity activity;
 	  Intent intent;
-	  int id;
+	  int id, rc;
 
-	  synchronized (this)
+	  /* Try to obtain an activity that will receive the response
+	     from the file chooser dialog.  */
+
+	  if (EmacsActivity.focusedActivities.isEmpty ())
 	    {
-	      /* Try to obtain an activity that will receive the
-		 response from the file chooser dialog.  */
+	      /* If focusedActivities is empty then this dialog may
+		 have been displayed immediately after another popup
+		 dialog was dismissed.  Try the EmacsActivity to be
+		 focused.  */
 
-	      if (EmacsActivity.focusedActivities.isEmpty ())
-		{
-		  /* If focusedActivities is empty then this dialog
-		     may have been displayed immediately after another
-		     popup dialog was dismissed.  Try the
-		     EmacsActivity to be focused.  */
+	      activity = EmacsActivity.lastFocusedActivity;
 
-		  activity = EmacsActivity.lastFocusedActivity;
-
-		  if (activity == null)
-		    {
-		      /* Still no luck.  Return failure.  */
-		      notify ();
-		      return;
-		    }
-		}
-	      else
-		activity = EmacsActivity.focusedActivities.get (0);
-
-	      /* Now create the intent.  */
-	      intent = new Intent (Intent.ACTION_OPEN_DOCUMENT_TREE);
-
-	      try
-		{
-		  id = EmacsActivity.ACCEPT_DOCUMENT_TREE;
-		  activity.startActivityForResult (intent, id, null);
-		  rc.thing = Integer.valueOf (0);
-		}
-	      catch (Exception e)
-		{
-		  e.printStackTrace ();
-		}
-
-	      notify ();
+	      if (activity == null)
+		/* Still no luck.  Return failure.  */
+		return 1;
 	    }
-	}
-      };
+	  else
+	    activity = EmacsActivity.focusedActivities.get (0);
 
-    syncRunnable (runnable);
-    return rc.thing;
+	  /* Now create the intent.  */
+	  intent = new Intent (Intent.ACTION_OPEN_DOCUMENT_TREE);
+	  rc = 1;
+
+	  try
+	    {
+	      id = EmacsActivity.ACCEPT_DOCUMENT_TREE;
+	      activity.startActivityForResult (intent, id, null);
+	      rc = 0;
+	    }
+	  catch (Exception e)
+	    {
+	      e.printStackTrace ();
+	    }
+
+	  return rc;
+	}
+      });
+
+    return EmacsService.<Integer>syncRunnable (task);
   }
 
   /* Return an array of each tree provided by the document PROVIDER
@@ -1254,21 +1425,11 @@ public final class EmacsService extends Service
      otherwise.  */
 
   public String[]
-  getDocumentTrees (byte provider[])
+  getDocumentTrees (String provider)
   {
-    String providerName;
     List<String> treeList;
     List<UriPermission> permissions;
     Uri uri;
-
-    try
-      {
-	providerName = new String (provider, "US-ASCII");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	return null;
-      }
 
     permissions = resolver.getPersistedUriPermissions ();
     treeList = new ArrayList<String> ();
@@ -1278,7 +1439,7 @@ public final class EmacsService extends Service
 	uri = permission.getUri ();
 
 	if (DocumentsContract.isTreeUri (uri)
-	    && uri.getAuthority ().equals (providerName)
+	    && uri.getAuthority ().equals (provider)
 	    && permission.isReadPermission ())
 	  /* Make sure the tree document ID is encoded.  Refrain from
 	     encoding characters such as +:&?#, since they don't
@@ -1288,6 +1449,9 @@ public final class EmacsService extends Service
 				    " +:&?#"));
       }
 
+    /* The empty string array that is ostensibly allocated to provide
+       the first argument provides just the type of the array to be
+       returned.  */
     return treeList.toArray (new String[0]);
   }
 
@@ -1310,7 +1474,7 @@ public final class EmacsService extends Service
      of OperationCanceledException, SecurityException,
      FileNotFoundException, or UnsupportedOperationException.  */
 
-  private int
+  public int
   documentIdFromName (String tree_uri, String name, String[] id_return)
   {
     /* Start the thread used to run SAF requests if it isn't already
@@ -1807,5 +1971,165 @@ public final class EmacsService extends Service
       }
 
     return false;
+  }
+
+  /* Relinquish authorization for read and write access to the provided
+     URI, which is generally a reference to a directory tree.  */
+
+  public void
+  relinquishUriRights (String uri)
+  {
+    Uri uri1;
+    int flags;
+
+    uri1 = Uri.parse (uri);
+    flags = (Intent.FLAG_GRANT_READ_URI_PERMISSION
+	     | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+    resolver.releasePersistableUriPermission (uri1, flags);
+  }
+
+
+
+  /* Functions for detecting and requesting storage permissions.  */
+
+  public boolean
+  externalStorageAvailable ()
+  {
+    final String readPermission;
+
+    readPermission = "android.permission.READ_EXTERNAL_STORAGE";
+
+    return (Build.VERSION.SDK_INT < Build.VERSION_CODES.R
+	    ? (checkSelfPermission (readPermission)
+	       == PackageManager.PERMISSION_GRANTED)
+	    : Environment.isExternalStorageManager ());
+  }
+
+  private void
+  requestStorageAccess23 ()
+  {
+    Runnable runnable;
+
+    runnable = new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  EmacsActivity activity;
+	  String permission, permission1;
+
+	  permission = "android.permission.READ_EXTERNAL_STORAGE";
+	  permission1 = "android.permission.WRITE_EXTERNAL_STORAGE";
+
+	  /* Find an activity that is entitled to display a permission
+	     request dialog.  */
+
+	  if (EmacsActivity.focusedActivities.isEmpty ())
+	    {
+	      /* If focusedActivities is empty then this dialog may
+		 have been displayed immediately after another popup
+		 dialog was dismissed.  Try the EmacsActivity to be
+		 focused.  */
+
+	      activity = EmacsActivity.lastFocusedActivity;
+
+	      if (activity == null)
+		{
+		  /* Still no luck.  Return failure.  */
+		  return;
+		}
+	    }
+	  else
+	    activity = EmacsActivity.focusedActivities.get (0);
+
+	  /* Now request these permissions.  */
+	  activity.requestPermissions (new String[] { permission,
+						      permission1, },
+				       0);
+	}
+      };
+
+    runOnUiThread (runnable);
+  }
+
+  private void
+  requestStorageAccess30 ()
+  {
+    Runnable runnable;
+    final Intent intent;
+
+    intent
+      = new Intent (Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+		    Uri.parse ("package:org.gnu.emacs"));
+
+    runnable = new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  EmacsActivity activity;
+
+	  /* Find an activity that is entitled to display a permission
+	     request dialog.  */
+
+	  if (EmacsActivity.focusedActivities.isEmpty ())
+	    {
+	      /* If focusedActivities is empty then this dialog may
+		 have been displayed immediately after another popup
+		 dialog was dismissed.  Try the EmacsActivity to be
+		 focused.  */
+
+	      activity = EmacsActivity.lastFocusedActivity;
+
+	      if (activity == null)
+		{
+		  /* Still no luck.  Return failure.  */
+		  return;
+		}
+	    }
+	  else
+	    activity = EmacsActivity.focusedActivities.get (0);
+
+	  /* Now request these permissions.  */
+
+	  activity.startActivity (intent);
+	}
+      };
+
+    runOnUiThread (runnable);
+  }
+
+  public void
+  requestStorageAccess ()
+  {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R)
+      requestStorageAccess23 ();
+    else
+      requestStorageAccess30 ();
+  }
+
+
+
+  /* Notification miscellany.  */
+
+  /* Cancel any notification displayed with the tag TAG.  */
+
+  public void
+  cancelNotification (final String string)
+  {
+    Object tem;
+    final NotificationManager manager;
+
+    tem = getSystemService (Context.NOTIFICATION_SERVICE);
+    manager = (NotificationManager) tem;
+
+    runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  manager.cancel (string, 2);
+	}
+      });
   }
 };

@@ -1,6 +1,6 @@
 ;;; nnrss.el --- interfacing with RSS  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: RSS
@@ -629,7 +629,7 @@ which RSS 2.0 allows."
 	       (assoc 'href
 		      (nnrss-discover-feed
 		       (read-string
-			(format "URL to search for %s: " group) "http://")))))
+                        (format "URL to search for %s: " group) "https://")))))
 	(let ((pair (assoc-string group nnrss-server-data)))
 	  (if pair
 	      (setcdr (cdr pair) (list url))

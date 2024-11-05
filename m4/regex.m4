@@ -1,10 +1,9 @@
-# serial 74
-
-# Copyright (C) 1996-2001, 2003-2023 Free Software Foundation, Inc.
-#
-# This file is free software; the Free Software Foundation
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.
+# regex.m4
+# serial 75
+dnl Copyright (C) 1996-2001, 2003-2024 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
 
 dnl Initially derived from code in GNU grep.
 dnl Mostly written by Jim Meyering.
@@ -327,10 +326,10 @@ AC_DEFUN([gl_REGEX],
         [gl_cv_func_re_compile_pattern_working=yes],
         [gl_cv_func_re_compile_pattern_working=no],
         [case "$host_os" in
-                   # Guess no on native Windows.
-           mingw*) gl_cv_func_re_compile_pattern_working="guessing no" ;;
-                   # Otherwise obey --enable-cross-guesses.
-           *)      gl_cv_func_re_compile_pattern_working="$gl_cross_guess_normal" ;;
+                              # Guess no on native Windows.
+           mingw* | windows*) gl_cv_func_re_compile_pattern_working="guessing no" ;;
+                              # Otherwise obey --enable-cross-guesses.
+           *)                 gl_cv_func_re_compile_pattern_working="$gl_cross_guess_normal" ;;
          esac
         ])
       ])

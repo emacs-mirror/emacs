@@ -1,6 +1,6 @@
 ;;; cc-styles.el --- support for styles in CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2024 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -441,7 +441,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 	 (symname (symbol-name langelem))
 	 (defstr  (format "(default %s): " oldoff))
 	 (errmsg  (concat "Offset must be int, func, var, vector, list, "
-			  "or [+,-,++,--,*,/] "
+			  "a syntactic symbol, or [+,-,++,--,*,/] "
 			  defstr))
 	 (prompt (concat symname " offset " defstr))
 	 (keymap (make-sparse-keymap))

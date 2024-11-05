@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1989-2024 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;;	Daniel Pfeiffer <occitan@esperanto.org> (rewrite)
@@ -734,7 +734,10 @@ the output includes key-bindings of commands."
         ;; FIXME: Print information about each individual method: both
         ;; its docstring and specializers (bug#21422).
         ('cl-defmethod (push (cadr x) provides))
-	(_ (push (or (cdr-safe x) x) symbols))))
+        ;; FIXME: Add extension point (bug#72616).
+	(_ (let ((sym (or (cdr-safe x) x)))
+	     (and sym (symbolp sym)
+	          (push sym symbols))))))
     (let ((apropos-pattern "") ;Dummy binding for apropos-symbols-internal.
           (text
            (concat

@@ -1,6 +1,6 @@
 ;;; man-tests.el --- Test suite for man.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; Author: Wolfgang Jenkner <wjenkner@inode.at>
 ;; Keywords: help, internal, unix
@@ -160,6 +160,24 @@ DESCRIPTION
           (search-forward "#include <stdarg.h>")
           (let ((button (button-at (match-beginning 0))))
             (should (and button (eq 'Man-xref-header-file (button-type button))))))))))
+
+(ert-deftest man-tests-Man-translate-references ()
+  (should (equal (Man-translate-references "basename")
+                 (if (memq system-type '(ms-dos windows-nt))
+                     "\"basename\""
+                     "basename")))
+  (should (equal (Man-translate-references "basename(3)")
+                 "3 basename"))
+  (should (equal (Man-translate-references "basename(3v)")
+                 "3v basename"))
+  (should (equal (Man-translate-references ";id")
+                 (if (memq system-type '(ms-dos windows-nt))
+                     "\";id\""
+                   "\\;id")))
+  (should (equal (Man-translate-references "-k basename")
+                 (if (memq system-type '(ms-dos windows-nt))
+                     "\"-k\" \"basename\""
+                   "-k basename"))))
 
 (provide 'man-tests)
 

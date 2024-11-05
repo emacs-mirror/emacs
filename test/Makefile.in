@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2010-2023 Free Software Foundation, Inc.
+# Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -92,6 +92,10 @@ export TEST_LOAD_EL ?= \
 # Additional settings for ert.
 ert_opts =
 
+# Supply a path to local tree-sitter installations, as we run tests
+# without a valid HOME.
+ert_opts += --eval "(setq treesit-extra-load-path '(\"$(HOME)/.emacs.d/tree-sitter\"))"
+
 # Maximum length of lines in ert backtraces; nil for no limit.
 # (if empty, use the default ert-batch-backtrace-right-margin).
 TEST_BACKTRACE_LINE_LENGTH =
@@ -166,7 +170,7 @@ WRITE_LOG = > $@ 2>&1 || { STAT=$$?; cat $@; exit $$STAT; }
 endif
 ## On Emba, always show logs for certain problematic tests.
 ifdef EMACS_EMBA_CI
-lisp/filenotify-tests.log lisp/net/tramp-tests.log src/emacs-module-tests.log \
+lisp/filenotify-tests.log lisp/net/tramp-tests.log \
 : WRITE_LOG = 2>&1 | tee $@
 endif
 

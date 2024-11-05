@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1993, 1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1993, 1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Tips
@@ -43,6 +43,7 @@ in batch mode, e.g., with a command run by @kbd{@w{M-x compile
 @section Emacs Lisp Coding Conventions
 
 @cindex coding conventions in Emacs Lisp
+@cindex conventions for Emacs Lisp programs
   Here are conventions that you should follow when writing Emacs Lisp
 code intended for widespread use:
 
@@ -97,7 +98,7 @@ alternative common prefixes, so long as they make sense.
 @item
 We recommend enabling @code{lexical-binding} in new code, and
 converting existing Emacs Lisp code to enable @code{lexical-binding}
-if it doesn't already.  @xref{Using Lexical Binding}.
+if it doesn't already.  @xref{Selecting Lisp Dialect}.
 
 @item
 Put a call to @code{provide} at the end of each separate Lisp file.
@@ -264,6 +265,7 @@ which are lists of directory names.
 @node Key Binding Conventions
 @section Key Binding Conventions
 @cindex key binding, conventions for
+@cindex conventions for key bindings
 
 @itemize @bullet
 @item
@@ -345,6 +347,7 @@ after @key{ESC}.  In these states, you should define @kbd{@key{ESC}
 @node Programming Tips
 @section Emacs Programming Tips
 @cindex programming conventions
+@cindex conventions for Emacs programming
 
   Following these conventions will make your program fit better
 into Emacs when it runs.
@@ -477,6 +480,7 @@ buffer and let the user switch back at will.  @xref{Recursive Editing}.
 @section Tips for Making Compiled Code Fast
 @cindex execution speed
 @cindex speedups
+@cindex tips for faster Lisp code
 
   Here are ways of improving the execution speed of byte-compiled
 Lisp programs.
@@ -531,6 +535,7 @@ the speed.  @xref{Inline Functions}.
 @node Warning Tips
 @section Tips for Avoiding Compiler Warnings
 @cindex byte compiler warnings, how to avoid
+@cindex warnings from byte compiler
 
 @itemize @bullet
 @item
@@ -585,6 +590,8 @@ is to put it inside @code{with-no-warnings}.  @xref{Compiler Errors}.
 @node Documentation Tips
 @section Tips for Documentation Strings
 @cindex documentation strings, conventions and tips
+@cindex tips for documentation strings
+@cindex conventions for documentation strings
 
 @findex checkdoc-minor-mode
   Here are some tips and conventions for the writing of documentation
@@ -604,7 +611,7 @@ little space in a running Emacs.
 @item
 Format the documentation string so that it fits in an Emacs window on an
 80-column screen.  It is a good idea for most lines to be no wider than
-60 characters.  The first line should not be wider than 67 characters
+60 characters.  The first line should not be wider than 74 characters,
 or it will look bad in the output of @code{apropos}.
 
 @vindex emacs-lisp-docstring-fill-column
@@ -624,7 +631,12 @@ first line with a capital letter and end it with a period.
 
 For a function, the first line should briefly answer the question,
 ``What does this function do?''  For a variable, the first line should
-briefly answer the question, ``What does this value mean?''
+briefly answer the question, ``What does this value mean?''  Prefer to
+answer these questions in a way that will make sense to users and
+callers of the function or the variable.  In particular, do @emph{not}
+tell what the function does by enumerating the actions of its code;
+instead, describe the role of these actions and the function's
+contract.
 
 Don't limit the documentation string to one line; use as many lines as
 you need to explain the details of how to use the function or
@@ -638,11 +650,11 @@ include before the first blank line so as to make this display useful.
 
 @item
 The first line should mention all the important arguments of the
-function, and should mention them in the order that they are written
-in a function call.  If the function has many arguments, then it is
-not feasible to mention them all in the first line; in that case, the
-first line should mention the first few arguments, including the most
-important arguments.
+function (in particular, the mandatory arguments), and should mention
+them in the order that they are written in a function call.  If the
+function has many arguments, then it is not feasible to mention them
+all in the first line; in that case, the first line should mention the
+first few arguments, including the most important arguments.
 
 @item
 When a function's documentation string mentions the value of an argument
@@ -822,13 +834,15 @@ it substitutes whatever key is currently bound to @code{forward-char}.
 user has moved key bindings.)  @xref{Keys in Documentation}.
 
 @item
-In documentation strings for a major mode, you will want to refer to the
-key bindings of that mode's local map, rather than global ones.
+In documentation strings for a major mode, you will want to refer to
+the key bindings of that mode's local map, rather than global ones.
 Therefore, use the construct @samp{\\<@dots{}>} once in the
 documentation string to specify which key map to use.  Do this before
-the first use of @samp{\\[@dots{}]}.  The text inside the
-@samp{\\<@dots{}>} should be the name of the variable containing the
-local keymap for the major mode.
+the first use of @samp{\\[@dots{}]}, and not in the middle of a
+sentence (since if the map is not loaded, the reference to the map
+will be replaced with a sentence saying the map is not currently
+defined).  The text inside the @samp{\\<@dots{}>} should be the name
+of the variable containing the local keymap for the major mode.
 
 Each use of @samp{\\[@dots{}]} slows the display of the documentation
 string by a tiny amount.  If you use a lot of them, these tiny
@@ -915,6 +929,7 @@ versions, there is no need for this work-around.
 @node Comment Tips
 @section Tips on Writing Comments
 @cindex comments, Lisp convention for
+@cindex conventions for Lisp comments
 
   We recommend these conventions for comments:
 
@@ -1030,6 +1045,7 @@ semicolons.
 @section Conventional Headers for Emacs Libraries
 @cindex header comments
 @cindex library header comments
+@cindex conventions for library header comments
 
   Emacs has conventions for using special comments in Lisp libraries
 to divide them into sections and give information such as who wrote
@@ -1041,7 +1057,7 @@ explains these conventions, starting with an example:
 @group
 ;;; foo.el --- Support for the Foo programming language  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2021 Your Name
+;; Copyright (C) 2010-2024 Your Name
 @end group
 
 ;; Author: Your Name <yourname@@example.com>
@@ -1071,11 +1087,11 @@ set more variables in the @samp{-*-} specification, add it after
 @code{lexical-binding}.  If this would make the first line too long, use
 a Local Variables section at the end of the file.
 
-  The copyright notice usually lists your name (if you wrote the
-file).  If you have an employer who claims copyright on your work, you
-might need to list them instead.  Do not say that the copyright holder
-is the Free Software Foundation (or that the file is part of GNU
-Emacs) unless your file has been accepted into the Emacs distribution.
+  The copyright notice usually lists your name (if you wrote the file).
+If you have an employer who claims copyright on your work, you might
+need to list them instead.  Do not say that the copyright holder is the
+Free Software Foundation (or that the file is part of GNU Emacs) unless
+your file has been accepted into the Emacs distribution or GNU ELPA.
 For more information on the form of copyright and license notices, see
 @uref{https://www.gnu.org/licenses/gpl-howto.html, the guide on the GNU
 website}.
@@ -1142,8 +1158,8 @@ the place to write arbitrary keywords that describe their package,
 rather than just the relevant Finder keywords.
 
 @item URL
-@itemx Homepage
-These lines state the website of the library.
+This line states the website of the library.  @samp{Homepage} is a
+deprecated alternative to @samp{URL}.
 
 @item Package-Version
 If @samp{Version} is not suitable for use by the package manager, then
@@ -1168,6 +1184,21 @@ element) is equivalent to entry with version "0".  For instance:
 @smallexample
 ;; Package-Requires: ((gnus "1.0") (bubbles "2.7.2") cl-lib (seq))
 @end smallexample
+
+Packages that don't need to support Emacs versions older than Emacs 27
+can have the @samp{Package-Requires} header split across multiple
+lines, like this:
+
+@smallexample
+@group
+;; Package-Requires: ((emacs "27.1")
+;;                    (compat "29.1.4.1"))
+@end group
+@end smallexample
+
+@noindent
+Note that with this format, you still need to start the list on the
+same line as @samp{Package-Requires}.
 
 The package code automatically defines a package named @samp{emacs}
 with the version number of the currently running Emacs.  This can be

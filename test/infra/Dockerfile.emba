@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023 Free Software Foundation, Inc.
+# Copyright (C) 2021-2024 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
 #
@@ -24,12 +24,12 @@
 # Maintainer: Ted Zlatanov <tzz@lifelogs.com>
 # URL: https://emba.gnu.org/emacs/emacs
 
-FROM debian:bullseye as emacs-base
+FROM debian:bookworm as emacs-base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
       libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libdbus-1-dev libacl1-dev acl git texinfo gdb \
+      libxml2-dev libdbus-1-dev libacl1-dev acl git texinfo gdb \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-base as emacs-inotify
@@ -45,7 +45,7 @@ WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure
 # 'make -j4 bootstrap' does not work reliably.
-RUN make bootstrap
+RUN make -j `nproc` bootstrap
 
 FROM emacs-base as emacs-filenotify-gio
 
@@ -58,41 +58,52 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-file-notification=gfile
-RUN make bootstrap
+RUN make -j `nproc` bootstrap
 
-# Debian bullseye doesn't provide proper packages.  So we use Debian
-# sid for this.
-FROM debian:sid as emacs-eglot
+FROM emacs-base as emacs-eglot
 
-# This corresponds to emacs-base.
+# Install clangd, tsserver.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libdbus-1-dev libacl1-dev acl git texinfo gdb \
+      clangd node-typescript \
     && rm -rf /var/lib/apt/lists/*
 
-# Install clangd.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      clangd \
-    && rm -rf /var/lib/apt/lists/*
+# eclipse-jdt-ls is planned as Java language server.
+# See <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1024246>.
+
+# The following LSP servers exist as snap packages.  However, snap
+# cannot be used inside containers.  We keep this here for reference.
+
+# # Install snapd.
+# RUN apt-get update && \
+#     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+#       snapd \
+#     && rm -rf /var/lib/apt/lists/*
+# RUN snap install core
+
+# # Install rust-analyzer.
+# RUN snap install rust-analyzer --beta
+
+# # Install typescript-language-server.
+# RUN snap install typescript-language-server
+
+# # Install vscode-json-languageserver.
+# RUN snap install vscode-json-languageserver
 
 COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure
-RUN make bootstrap
+RUN make -j `nproc` bootstrap
 
-# Debian bullseye doesn't provide proper packages.  So we use Debian
-# sid for this.
-FROM debian:sid as emacs-tree-sitter
+# # Install company and yasnippet.
+# RUN mkdir /root/.emacs.d
+# RUN src/emacs --batch \
+#     --eval '(setq url-debug 0 debug-on-error t)' \
+#     --eval '(package-install (quote company))' \
+#     --eval '(package-install (quote yasnippet))'
 
-# This corresponds to emacs-base.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libdbus-1-dev libacl1-dev acl git texinfo gdb \
-    && rm -rf /var/lib/apt/lists/*
+FROM emacs-base as emacs-tree-sitter
 
 # Install tree-sitter library.
 RUN apt-get update && \
@@ -104,7 +115,7 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-tree-sitter
-RUN make bootstrap
+RUN make -j `nproc` bootstrap
 
 # Install language grammars.
 RUN mkdir -p /root/.emacs.d/tree-sitter
@@ -116,6 +127,7 @@ RUN src/emacs -Q --batch \
       treesit-language-source-alist \
       (quote ((bash "https://github.com/tree-sitter/tree-sitter-bash") \
       (c "https://github.com/tree-sitter/tree-sitter-c") \
+      (c-sharp "https://github.com/tree-sitter/tree-sitter-c-sharp") \
       (cpp "https://github.com/tree-sitter/tree-sitter-cpp") \
       (css "https://github.com/tree-sitter/tree-sitter-css") \
       (elixir "https://github.com/elixir-lang/tree-sitter-elixir") \
@@ -126,8 +138,10 @@ RUN src/emacs -Q --batch \
       (java "https://github.com/tree-sitter/tree-sitter-java") \
       (javascript "https://github.com/tree-sitter/tree-sitter-javascript") \
       (json "https://github.com/tree-sitter/tree-sitter-json") \
+      (lua "https://github.com/tree-sitter-grammars/tree-sitter-lua") \
       (python "https://github.com/tree-sitter/tree-sitter-python") \
       (ruby "https://github.com/tree-sitter/tree-sitter-ruby") \
+      (rust "https://github.com/tree-sitter/tree-sitter-rust") \
       (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src") \
       (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))))' \
     --eval '(dolist (lang (mapcar (quote car) treesit-language-source-alist)) \
@@ -144,14 +158,14 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-ns
-RUN make bootstrap
+RUN make -j `nproc` bootstrap
 
 FROM emacs-base as emacs-native-comp
 
 # The libgccjit version must correspond to the gcc version.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      libgccjit-10-dev zlib1g-dev \
+      libgccjit-12-dev zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-native-comp as emacs-native-comp-speed0
@@ -160,7 +174,7 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-native-compilation
-RUN make bootstrap -j2 \
+RUN make -j `nproc` bootstrap \
       NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"'
 
 FROM emacs-native-comp as emacs-native-comp-speed1
@@ -169,7 +183,7 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-native-compilation
-RUN make bootstrap -j2 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
+RUN make -j `nproc` bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
 
 FROM emacs-native-comp as emacs-native-comp-speed2
 
@@ -177,4 +191,4 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-native-compilation
-RUN make bootstrap -j2
+RUN make -j `nproc` bootstrap

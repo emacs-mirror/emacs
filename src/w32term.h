@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -58,6 +58,7 @@ struct w32_bitmap_record
 {
   Emacs_Pixmap pixmap;
   char *file;
+  Emacs_Pixmap stipple;
   HINSTANCE hinst; /* Used to load the file */
   int refcount;
   /* Record some info about this pixmap.  */
@@ -271,6 +272,7 @@ extern const char *w32_get_string_resource (void *v_rdb,
 
 /* w32fns.c */
 extern void w32_default_font_parameter (struct frame* f, Lisp_Object parms);
+extern Lisp_Object w32_process_dnd_data (int format, void *pDataObj);
 
 
 #define PIX_TYPE COLORREF
@@ -433,6 +435,22 @@ struct w32_output
 
   /* Whether or not this frame should be double buffered.  */
   unsigned want_paint_buffer : 1;
+
+#define MAX_TOUCH_POINTS 10
+  /* Array of dwIDs of presently active touch points, or -1 when
+     unpopulated.  */
+  int touch_ids[MAX_TOUCH_POINTS];
+
+  /* X and Y coordinates of active touchpoints.  */
+  LONG touch_x[MAX_TOUCH_POINTS], touch_y[MAX_TOUCH_POINTS];
+
+  /* Base value for touch point identifiers registered by this
+     frame.  */
+  EMACS_INT touch_base;
+
+  /* Windows identifier of any touch point reserved for the tool bar, or
+     -1.  */
+  DWORD tool_bar_dwID;
 };
 
 extern struct w32_output w32term_display;
@@ -693,7 +711,9 @@ do { \
 #define WM_EMACS_INPUT_READY           (WM_EMACS_START + 24)
 #define WM_EMACS_FILENOTIFY            (WM_EMACS_START + 25)
 #define WM_EMACS_IME_STATUS            (WM_EMACS_START + 26)
-#define WM_EMACS_END                   (WM_EMACS_START + 27)
+#define WM_EMACS_DRAGOVER              (WM_EMACS_START + 27)
+#define WM_EMACS_DROP                  (WM_EMACS_START + 28)
+#define WM_EMACS_END                   (WM_EMACS_START + 29)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)
@@ -779,8 +799,9 @@ extern bool w32_image_rotations_p (void);
 
 #ifdef WINDOWSNT
 /* Keyboard hooks.  */
-extern void setup_w32_kbdhook (void);
+extern void setup_w32_kbdhook (HWND);
 extern void remove_w32_kbdhook (void);
+extern void reset_w32_kbdhook_state (void);
 extern int check_w32_winkey_state (int);
 #define w32_kbdhook_active (os_subtype != OS_SUBTYPE_9X)
 #else
@@ -907,6 +928,9 @@ extern void syms_of_w32fns (void);
 extern void globals_of_w32menu (void);
 extern void globals_of_w32fns (void);
 extern void globals_of_w32notify (void);
+
+extern void syms_of_w32image (void);
+extern void globals_of_w32image (void);
 
 extern void w32_init_main_thread (void);
 

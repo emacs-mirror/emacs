@@ -1,6 +1,6 @@
 ;;; autorevert.el --- revert buffers when files on disk change  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1999, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Keywords: convenience
@@ -370,6 +370,9 @@ buffer.")
   "Non-nil when file has been modified on the file system.
 This has been reported by a file notification event.")
 
+(defvar-local auto-revert--last-time 0 ;; Epoch.
+  "The last time of buffer was reverted.")
+
 (defvar auto-revert-debug nil
   "Use for debug messages.")
 
@@ -401,7 +404,8 @@ Use `auto-revert-tail-mode' if you know that the file will only grow
 without being changed in the part that is already in the buffer."
   :group 'auto-revert :lighter auto-revert-mode-text
   (if auto-revert-mode
-      (when (not (memq (current-buffer) auto-revert-buffer-list))
+      (when (and (not (buffer-base-buffer (current-buffer)))
+                 (not (memq (current-buffer) auto-revert-buffer-list)))
         (push (current-buffer) auto-revert-buffer-list)
         (add-hook
          'kill-buffer-hook
@@ -639,7 +643,10 @@ will use an up-to-date value of `auto-revert-interval'."
 
 (defun auto-revert-notify-rm-watch ()
   "Disable file notification for current buffer's associated file."
-  (when-let ((desc auto-revert-notify-watch-descriptor))
+  (when-let* ((desc
+               ;; Don't disable notifications if this is an indirect buffer.
+               (and (null (buffer-base-buffer))
+                    auto-revert-notify-watch-descriptor)))
     (setq auto-revert--buffer-by-watch-descriptor
           (assoc-delete-all desc auto-revert--buffer-by-watch-descriptor))
     (ignore-errors
@@ -745,13 +752,16 @@ system.")
               ;; Mark buffer modified.
               (setq auto-revert-notify-modified-p t)
 
-              ;; Revert the buffer now if we're not locked out.
+              ;; Lock out the buffer.
               (unless auto-revert--lockout-timer
-                (auto-revert-handler)
                 (setq auto-revert--lockout-timer
                       (run-with-timer
                        auto-revert--lockout-interval nil
-                       #'auto-revert--end-lockout buffer))))))))))
+                       #'auto-revert--end-lockout buffer))
+                ;; Revert it when first entry or it was reverted intervals ago.
+                (when (> (float-time (time-since auto-revert--last-time))
+                         auto-revert--lockout-interval)
+                  (auto-revert-handler))))))))))
 
 (defun auto-revert--end-lockout (buffer)
   "End the lockout period after a notification.
@@ -797,7 +807,8 @@ This is an internal function used by Auto-Revert Mode."
                               #'buffer-stale--default-function)
                           t))))
          eob eoblist)
-    (setq auto-revert-notify-modified-p nil)
+    (setq auto-revert-notify-modified-p nil
+          auto-revert--last-time (current-time))
     (when revert
       (when (and auto-revert-verbose
                  (not (eq revert 'fast)))

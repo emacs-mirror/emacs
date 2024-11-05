@@ -1,5 +1,5 @@
 /* hbfont.c -- Platform-independent support for HarfBuzz font driver.
-   Copyright (C) 2019-2023 Free Software Foundation, Inc.
+   Copyright (C) 2019-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -551,6 +551,8 @@ hbfont_shape (Lisp_Object lgstring, Lisp_Object direction)
 	  if (buf_reversed)
 	    cluster_offset = to - from;
 	}
+
+      eassume (0 <= from);
 
       /* All the glyphs in a cluster have the same values of FROM and TO.  */
       LGLYPH_SET_FROM (lglyph, from);

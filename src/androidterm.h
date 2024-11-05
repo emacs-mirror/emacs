@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "dispextern.h"
 #include "font.h"
+#include "termhooks.h"
 
 struct android_bitmap_record
 {
@@ -76,8 +77,9 @@ struct android_display_info
   /* Mouse highlight information.  */
   Mouse_HLInfo mouse_highlight;
 
-  /* Number of planes on this screen.  Always 24.  */
-  int n_planes;
+  /* Number of planes on this screen, and the same for the purposes of
+     image processing.  */
+  int n_planes, n_image_planes;
 
   /* Mask of things causing the mouse to be grabbed.  */
   int grabbed;
@@ -87,6 +89,9 @@ struct android_display_info
 
   /* Minimum font height over all fonts in font_table.  */
   int smallest_font_height;
+
+  /* Default name for all frames on this display.  */
+  char *x_id_name;
 
   /* The number of fonts opened for this display.  */
   int n_fonts;
@@ -262,7 +267,7 @@ struct android_output
      text''.  */
   int extracted_text_flags;
 
-  /* Token asssociated with that request.  */
+  /* Token associated with that request.  */
   int extracted_text_token;
 
   /* The number of characters of extracted text wanted by the IM.  */
@@ -298,8 +303,8 @@ enum
    code after any drawing command, but code can be run whenever
    someone asks for the handle necessary to draw.  */
 #define FRAME_ANDROID_DRAWABLE(f)			\
-  (((f))->output_data.android->need_buffer_flip = true, \
-   FRAME_ANDROID_WINDOW ((f)))
+  ((f)->output_data.android->need_buffer_flip = true, \
+   FRAME_ANDROID_WINDOW (f))
 
 /* Return whether or not the frame F has been completely drawn.  Used
    while handling async input.  */
@@ -390,6 +395,7 @@ extern struct android_display_info *x_display_list;
 
 /* From androidfns.c.  */
 
+extern frame_parm_handler android_frame_parm_handlers[];
 extern void android_free_gcs (struct frame *);
 extern void android_default_font_parameter (struct frame *, Lisp_Object);
 extern void android_set_preeditarea (struct window *, int, int);
@@ -460,12 +466,20 @@ extern void sfntfont_android_shrink_scanline_buffer (void);
 extern void init_sfntfont_android (void);
 extern void syms_of_sfntfont_android (void);
 
-/* Defined in androidselect.c  */
+/* Defined in androidselect.c.  */
 
 #ifndef ANDROID_STUBIFY
 
+extern void android_notification_deleted (struct android_notification_event *,
+					  struct input_event *);
+extern void android_notification_action (struct android_notification_event *,
+					 struct input_event *, Lisp_Object);
+
 extern void init_androidselect (void);
 extern void syms_of_androidselect (void);
+
+/* Defined in androidvfs.c.  */
+extern void syms_of_androidvfs (void);
 
 #endif
 

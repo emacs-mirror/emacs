@@ -1,6 +1,6 @@
 /* Test the interval data-structure in itree.c.
 
-Copyright (c) 2017-2023 Free Software Foundation, Inc.
+Copyright (c) 2017-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

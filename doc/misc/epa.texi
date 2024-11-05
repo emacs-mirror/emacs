@@ -10,7 +10,7 @@
 @copying
 This file describes EasyPG Assistant @value{VERSION}.
 
-Copyright @copyright{} 2007--2023 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2024 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -289,6 +289,15 @@ also ask you whether or not to sign the text before encryption and if
 you answered yes, it will let you select the signing keys.
 @end deffn
 
+@defvar epa-keys-select-method
+This variable controls the method used for key selection in
+@code{epa-select-keys}.  The default value @code{buffer} pops up a
+special buffer where you can select the keys.  If the value is
+@code{minibuffer}, @code{epa-select-keys} will instead prompt for the
+keys in the minibuffer, where you should type the keys separated by
+commas.
+@end defvar
+
 @node Cryptographic operations on files
 @section Cryptographic Operations on Files
 @cindex cryptographic operations on files
@@ -456,9 +465,9 @@ public key, it does not prompt for a passphrase for the buffer save,
 but it will prompt for your passphrase for file reads every now and
 then, depending on the GnuPG Agent cache configuration.
 
-@cindex tempory files created by easypg assistant
+@cindex temporary files created by easypg assistant
 To encrypt and decrypt files as described above EasyPG Assistant under
-certain circumstances uses intermediate tempory files that contain the
+certain circumstances uses intermediate temporary files that contain the
 plain-text contents of the files it processes.  EasyPG Assistant
 creates them below the directory returned by function
 @code{temporary-file-directory} (@pxref{Unique File Names, ,
@@ -639,6 +648,9 @@ Options, , Option Summary, gnupg, Using the GNU Privacy Guard}.
 Customize variable @code{epg-pinentry-mode} to @code{loopback} in
 Emacs.
 @end enumerate
+
+Note that loopback Pinentry does not work with @command{gpgsm},
+therefore EasyPG will ignore this setting for it.
 
 There are other options available to use Emacs as Pinentry, you might
 come across a Pinentry called @command{pinentry-emacs} or

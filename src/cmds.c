@@ -1,6 +1,6 @@
 /* Simple built-in editing commands.
 
-Copyright (C) 1985, 1993-1998, 2001-2023 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1998, 2001-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -278,6 +278,8 @@ a non-nil value for the inserted character.  At the end, it runs
   /* Backward compatibility.  */
   if (NILP (c))
     c = last_command_event;
+  else
+    last_command_event = c;
 
   if (XFIXNUM (n) < 0)
     error ("Negative repetition argument %"pI"d", XFIXNUM (n));
@@ -288,14 +290,15 @@ a non-nil value for the inserted character.  At the end, it runs
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (c))
     bitch_at_user ();
-  else {
-    int character = translate_char (Vtranslation_table_for_input,
-				    XFIXNUM (c));
-    int val = internal_self_insert (character, XFIXNAT (n));
-    if (val == 2)
-      Fset (Qundo_auto__this_command_amalgamating, Qnil);
-    frame_make_pointer_invisible (SELECTED_FRAME ());
-  }
+  else
+    {
+      int character = translate_char (Vtranslation_table_for_input,
+				      XFIXNUM (c));
+      int val = internal_self_insert (character, XFIXNAT (n));
+      if (val == 2)
+	Fset (Qundo_auto__this_command_amalgamating, Qnil);
+      frame_make_pointer_invisible (SELECTED_FRAME ());
+    }
 
   return Qnil;
 }
@@ -428,7 +431,7 @@ internal_self_insert (int c, EMACS_INT n)
 	  && SYMBOLP (XSYMBOL (sym)->u.s.function))
 	{
 	  Lisp_Object prop;
-	  prop = Fget (XSYMBOL (sym)->u.s.function, intern ("no-self-insert"));
+	  prop = Fget (XSYMBOL (sym)->u.s.function, Qno_self_insert);
 	  if (! NILP (prop))
 	    return 1;
 	}
@@ -507,6 +510,7 @@ syms_of_cmds (void)
   DEFSYM (Qundo_auto_amalgamate, "undo-auto-amalgamate");
   DEFSYM (Qundo_auto__this_command_amalgamating,
           "undo-auto--this-command-amalgamating");
+  DEFSYM (Qno_self_insert, "no-self-insert");
 
   DEFSYM (Qkill_forward_chars, "kill-forward-chars");
 

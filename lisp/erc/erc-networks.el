@@ -1,6 +1,6 @@
 ;;; erc-networks.el --- IRC networks  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002, 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004-2024 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -42,31 +42,25 @@
 
 (defvar erc--target)
 (defvar erc-insert-marker)
-(defvar erc-kill-buffer-hook)
-(defvar erc-kill-server-hook)
 (defvar erc-modules)
 (defvar erc-rename-buffers)
 (defvar erc-reuse-buffers)
 (defvar erc-server-announced-name)
 (defvar erc-server-connected)
-(defvar erc-server-parameters)
 (defvar erc-server-process)
-(defvar erc-session-server)
 
-(declare-function erc--default-target "erc" nil)
 (declare-function erc--get-isupport-entry "erc-backend" (key &optional single))
+(declare-function erc--insert-admin-message "erc" (&rest args))
 (declare-function erc-buffer-filter "erc" (predicate &optional proc))
 (declare-function erc-current-nick "erc" nil)
 (declare-function erc-display-error-notice "erc" (parsed string))
 (declare-function erc-display-message "erc" (parsed type buffer msg &rest args))
-(declare-function erc-error "erc" (&rest args))
 (declare-function erc-get-buffer "erc" (target &optional proc))
-(declare-function erc-server-buffer "erc" nil)
 (declare-function erc-server-process-alive "erc-backend" (&optional buffer))
 (declare-function erc-set-active-buffer "erc" (buffer))
 
 (declare-function erc-button--display-error-notice-with-keys
-                  (parsed &rest strings))
+                  (maybe-buffer &rest strings))
 
 ;; Variables
 
@@ -479,7 +473,7 @@ NET is a symbol indicating to which network from `erc-networks-alist'
   this server corresponds,
 HOST is the server's hostname, and (TLS-)PORTS is either a
 number, a list of numbers, or a list of port ranges."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(alist :key-type (string :tag "Name")
 		:value-type
 		(group symbol (string :tag "Hostname")
@@ -756,9 +750,8 @@ number, a list of numbers, or a list of port ranges."
 Each network is a list (NET MATCHER) where
 NET is a symbol naming that IRC network and
 MATCHER is used to find a corresponding network to a server while
-  connected to it.  If it is regexp, it's used to match against
-  `erc-server-announced-name'.  It can also be a function (predicate).
-  Then it is executed with the server buffer as current buffer."
+connected to it.  If it is a regexp, it's used to match against
+`erc-server-announced-name'."
   :type '(repeat
 	  (list :tag "Network"
 		(symbol :tag "Network name")
@@ -911,8 +904,8 @@ aside) that aren't also `eq'.")
 
 (defun erc-networks--id-qualifying-init-parts ()
   "Return opaque list of atoms to serve as canonical identifier."
-  (when-let ((network (erc-network))
-             (nick (erc-current-nick)))
+  (when-let* ((network (erc-network))
+              (nick (erc-current-nick)))
     (vector network (erc-downcase nick))))
 
 (defvar erc-networks--id-sep "/"
@@ -992,12 +985,11 @@ object."
                                       (erc-networks--id-qualifying-len nid))
   (erc-networks--rename-server-buffer (or proc erc-server-process) parsed)
   (erc-networks--shrink-ids-and-buffer-names-any)
-  (erc-with-all-buffers-of-server
-      erc-server-process #'erc--default-target
-      (when-let* ((new-name (erc-networks--reconcile-buffer-names erc--target
-                                                                  nid))
-                  ((not (equal (buffer-name) new-name))))
-        (rename-buffer new-name 'unique))))
+  (erc-with-all-buffers-of-server erc-server-process #'erc-target
+    (when-let*
+        ((new-name (erc-networks--reconcile-buffer-names erc--target nid))
+         ((not (equal (buffer-name) new-name))))
+      (rename-buffer new-name 'unique))))
 
 (cl-defgeneric erc-networks--id-ensure-comparable (self other)
   "Take measures to ensure two net identities are in comparable states.")
@@ -1010,7 +1002,7 @@ object."
   ((nid erc-networks--id-qualifying) (other erc-networks--id-qualifying))
   "Grow NID along with that of the current buffer.
 Rename the current buffer if its NID has grown."
-  (when-let ((n (erc-networks--id-qualifying-prefix-length other nid)))
+  (when-let* ((n (erc-networks--id-qualifying-prefix-length other nid)))
     (while (and (<= (erc-networks--id-qualifying-len nid) n)
                 (erc-networks--id-qualifying-grow-id nid)))
     ;; Grow and rename a visited buffer and all its targets
@@ -1132,10 +1124,27 @@ TARGET to be an `erc--target' object."
      (lambda ()
        (when (and erc--target (eq (erc--target-symbol erc--target)
                                   (erc--target-symbol target)))
-         (let ((oursp (if (erc--target-channel-local-p target)
-                          (equal announced erc-server-announced-name)
-                        (erc-networks--id-equal-p identity erc-networks--id))))
-           (funcall (if oursp on-dupe on-collision))))))))
+         ;; When a server sends administrative queries immediately
+         ;; after connection registration and before the session has a
+         ;; net-id, the buffer remains orphaned until reassociated
+         ;; here retroactively.
+         (unless erc-networks--id
+           (let ((id (erc-with-server-buffer erc-networks--id))
+                 (server-buffer (process-buffer erc-server-process)))
+             (apply #'erc-button--display-error-notice-with-keys
+                    server-buffer
+                    (concat "Missing network session (ID) for %S. "
+                            (if id "Using `%S' from %S." "Ignoring."))
+                    (current-buffer)
+                    (and id (list (erc-networks--id-symbol
+                                   (setq erc-networks--id id))
+                                  server-buffer)))))
+         (when erc-networks--id
+           (let ((oursp (if (erc--target-channel-local-p target)
+                            (equal announced erc-server-announced-name)
+                          (erc-networks--id-equal-p identity
+                                                    erc-networks--id))))
+             (funcall (if oursp on-dupe on-collision)))))))))
 
 (defconst erc-networks--qualified-sep "@"
   "Separator used for naming a target buffer.")
@@ -1232,6 +1241,8 @@ Use the server parameter NETWORK if provided, otherwise parse the
 server name and search for a match in `erc-networks-alist'."
   ;; The server made it easy for us and told us the name of the NETWORK
   (declare (obsolete "maybe see `erc-networks--determine'" "29.1"))
+  (defvar erc-server-parameters)
+  (defvar erc-session-server)
   (let ((network-name (cdr (assoc "NETWORK" erc-server-parameters))))
     (if network-name
 	(intern network-name)
@@ -1295,17 +1306,16 @@ shutting down the connection."
                          erc-network)))
      (erc-display-message parsed 'notice nil m)
      nil)
-    ((and
-      (guard (eq erc-network erc-networks--name-missing-sentinel))
-      ;; This can happen theoretically, e.g., when adjusting settings
-      ;; on a proxy service that partially impersonates IRC but isn't
-      ;; currently conveying anything through to a real network.  The
-      ;; service may send a 422 but no NETWORK param (or *any* 005s).
-      (let m (concat "Failed to determine network.  Please set entry for \""
-                     erc-server-announced-name "\" in `erc-networks-alist'"
-                     " or consider calling `erc-tls' with the keyword `:id'."
-                     "  See Info:\"(erc) Network Identifier\" for more.")))
-     (erc-display-error-notice parsed m)
+    ((guard (eq erc-network erc-networks--name-missing-sentinel))
+     ;; This can happen theoretically, e.g., when adjusting settings
+     ;; on a proxy service that partially impersonates IRC but isn't
+     ;; currently conveying anything through to a real network.  The
+     ;; service may send a 422 but no NETWORK param (or *any* 005s).
+     (erc-button--display-error-notice-with-keys
+      "Failed to determine network. Please set entry for \""
+      erc-server-announced-name "\" in `erc-networks-alist' or consider"
+      " calling `erc-tls' with the keyword `:id'."
+      " See Info:\"(erc) Network Identifier\" for more.")
      (if erc-networks--allow-unknown-network
          (progn
            (erc-display-error-notice
@@ -1325,9 +1335,9 @@ Copy source (prefix) from MOTD-ish message as a last resort."
   (unless erc-server-announced-name
     (require 'erc-button)
     (erc-button--display-error-notice-with-keys
-     parsed "Failed to determine server name.  Using \""
+     "Failed to determine server name. Using \""
      (setq erc-server-announced-name (erc-response.sender parsed)) "\" instead"
-     ".  If this was unexpected, consider reporting it via \\[erc-bug]" "."))
+     ". If this was unexpected, consider reporting it via \\[erc-bug]."))
   nil)
 
 (defun erc-unset-network-name (_nick _ip _reason)
@@ -1336,24 +1346,38 @@ Copy source (prefix) from MOTD-ish message as a last resort."
   (setq erc-network nil)
   nil)
 
-;; TODO add note in Commentary saying that this module is considered a
-;; core module and that it's as much about buffer naming and network
-;; identity as anything else.
+(defun erc-networks--transplant-buffer-content (src dest)
+  "Insert buffer SRC's contents into DEST, above its contents."
+  (with-silent-modifications
+    (let ((content (with-current-buffer src
+                     (cl-assert (not (buffer-narrowed-p)))
+                     (erc--insert-admin-message 'graft ?n dest ?o src)
+                     (buffer-substring (point-min) erc-insert-marker))))
+      (with-current-buffer dest
+        (save-excursion
+          (save-restriction
+            (cl-assert (not (buffer-narrowed-p)))
+            (goto-char (point-min))
+            (while (and (eql ?\n (char-after (point)))
+                        (null (text-properties-at (point))))
+              (delete-char 1))
+            (insert-before-markers content)))))))
 
-(defun erc-networks--insert-transplanted-content (content)
-  (let ((inhibit-read-only t)
-        (buffer-undo-list t))
-    (save-excursion
-      (save-restriction
-        (widen)
-        (goto-char (point-min))
-        (insert-before-markers content)))))
+(defvar erc-networks--transplant-target-buffer-function
+  #'erc-networks--transplant-buffer-content
+  "Function to rename and merge the contents of two target buffers.
+Called with the donating buffer to be killed and buffer to receive the
+transplant.  Consuming modules can leave a marker at the beginning of
+the latter buffer to access the insertion point, if needing to do things
+like adjust invisibility properties, etc.")
+
+(defvar erc-networks--target-transplant-in-progress-p nil
+  "Non-nil when merging target buffers.")
 
 ;; This should run whenever a network identity is updated.
-
 (defun erc-networks--reclaim-orphaned-target-buffers (new-proc nid announced)
   "Visit disowned buffers for same NID and associate with NEW-PROC.
-ANNOUNCED is the server's reported host name."
+Expect ANNOUNCED to be the server's reported host name."
   (erc-buffer-filter
    (lambda ()
      (when (and erc--target
@@ -1363,20 +1387,26 @@ ANNOUNCED is the server's reported host name."
                     (string= erc-server-announced-name announced)))
        ;; If a target buffer exists for the current process, kill this
        ;; stale one after transplanting its content; else reinstate.
-       (if-let ((existing (erc-get-buffer
-                           (erc--target-string erc--target) new-proc)))
+       (if-let* ((actual (erc-get-buffer (erc--target-string erc--target)
+                                         new-proc))
+                 (erc-networks--target-transplant-in-progress-p t))
            (progn
-             (widen)
-             (let ((content (buffer-substring (point-min)
-                                              erc-insert-marker)))
-               (kill-buffer) ; allow target-buf renaming hook to run
-               (with-current-buffer existing
-                 (erc-networks--ensure-unique-target-buffer-name)
-                 (erc-networks--insert-transplanted-content content))))
+             (funcall erc-networks--transplant-target-buffer-function
+                      (current-buffer) actual)
+             (kill-buffer (current-buffer))
+             (with-current-buffer actual
+               (erc-networks--ensure-unique-target-buffer-name)))
          (setq erc-server-process new-proc
                erc-server-connected t
                erc-networks--id nid))))))
 
+;; For existing buffers, `erc-open' reinitializes a core set of local
+;; variables in addition to some text, such as the prompt.  It expects
+;; module activation functions to do the same for assets they manage.
+;; However, "stateful" modules, whose functionality depends on the
+;; evolution of a buffer's content, may need to reconcile state during
+;; a merge.  An example might be a module that provides consistent
+;; timestamps: it should ensure time values don't decrease.
 (defvar erc-networks--copy-server-buffer-functions nil
   "Abnormal hook run in new server buffers when deduping.
 Passed the existing buffer to be killed, whose contents have
@@ -1384,24 +1414,18 @@ already been copied over to the current, replacement buffer.")
 
 (defun erc-networks--copy-over-server-buffer-contents (existing name)
   "Kill off existing server buffer after copying its contents.
-Must be called from the replacement buffer."
-  ;; ERC expects `erc-open' to be idempotent when setting up local
-  ;; vars and other context properties for a new identity.  Thus, it's
-  ;; unlikely we'll have to copy anything else over besides text.  And
-  ;; no reconciling of user tables, etc. happens during a normal
-  ;; reconnect, so we should be fine just sticking to text. (Right?)
-  (let ((text (with-current-buffer existing
-                ;; This `erc-networks--id' should be
-                ;; `erc-networks--id-equal-p' to caller's network
-                ;; identity and older if not eq.
-                ;;
-                ;; `erc-server-process' should be set but dead
-                ;; and eq `get-buffer-process' unless latter nil
-                (delete-process erc-server-process)
-                (buffer-substring (point-min) erc-insert-marker)))
-        erc-kill-server-hook
-        erc-kill-buffer-hook)
-    (erc-networks--insert-transplanted-content text)
+Expect to be called from the replacement buffer."
+  (defvar erc-kill-buffer-hook)
+  (defvar erc-kill-server-hook)
+  ;; The following observations from ERC 5.5 regarding the buffer
+  ;; `existing' were thought at the time to be invariants:
+  ;; - `erc-networks--id' is `erc-networks--id-equal-p' to the
+  ;;    caller's network identity and older if not `eq'.
+  ;; - `erc-server-process' should be set (local) but dead and `eq' to
+  ;;    the result of `get-buffer-process' unless the latter is nil.
+  (delete-process (buffer-local-value 'erc-server-process existing))
+  (erc-networks--transplant-buffer-content existing (current-buffer))
+  (let (erc-kill-server-hook erc-kill-buffer-hook)
     (run-hook-with-args 'erc-networks--copy-server-buffer-functions existing)
     (kill-buffer name)))
 
@@ -1508,7 +1532,7 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
                                proc)
       (require 'erc-button)
       (erc-button--display-error-notice-with-keys
-       parsed "Unexpected state detected.  Please report via \\[erc-bug].")))
+       "Unexpected state detected. Please report via \\[erc-bug].")))
 
   ;; For now, retain compatibility with erc-server-NNN-functions.
   (or (erc-networks--ensure-announced proc parsed)
@@ -1569,7 +1593,7 @@ return the host alone sans URL formatting (for compatibility)."
 					 erc-server-alist)))))
          (s-choose (lambda (entry)
                      (and (equal (nth 1 entry) net)
-                          (if-let ((b (string-search ": " (car entry))))
+                          (if-let* ((b (string-search ": " (car entry))))
                               (cons (format "%s (%s)" (nth 2 entry)
                                             (substring (car entry) (+ b 2)))
                                     (cdr entry))
@@ -1590,14 +1614,29 @@ return the host alone sans URL formatting (for compatibility)."
   '((pals Libera.Chat ("kensanata" "shapr" "anti\\(fuchs\\|gone\\)"))
     (format-nick-function (Libera.Chat "#emacs") erc-format-@nick))
   "Experimental: Alist of configuration options.
+
+WARNING: this variable is a vestige from a long-abandoned
+experiment.  ERC may redefine it using the same name for any
+purpose at any time.
+
 The format is (VARNAME SCOPE VALUE) where
 VARNAME is a symbol identifying the configuration option,
 SCOPE is either a symbol which identifies an entry from
   `erc-networks-alist' or a list (NET TARGET) where NET is a network symbol and
   TARGET is a string identifying the channel/query target.
 VALUE is the options value.")
+(make-obsolete-variable 'erc-settings
+                        "temporarily deprecated for later repurposing" "30.1")
 
 (defun erc-get (var &optional net target)
+  "Retrieve configuration values from `erc-settings'.
+
+WARNING: this function is a non-functioning remnant from a
+long-abandoned experiment.  ERC may redefine it using the same
+name for any purpose at any time.
+
+\(fn &rest UNKNOWN)"
+  (declare (obsolete "temporarily deprecated for later repurposing" "30.1"))
   (let ((items erc-settings)
 	elt val)
     (while items

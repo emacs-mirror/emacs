@@ -10,7 +10,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007--2023 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2024 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -41,7 +41,7 @@ modify this GNU manual.''
 @contents
 
 
-@node Top, Overview, (dir), (dir)
+@node Top
 @top D-Bus integration in Emacs
 
 This manual documents an API for usage of D-Bus in Emacs.  D-Bus is a
@@ -1083,8 +1083,8 @@ elements of this array.  Example:
 
 @defun dbus-string-to-byte-array string
 Sometimes, D-Bus methods require as input parameter an array of bytes,
-instead of a string.  If it is guaranteed, that @var{string} is a
-UTF-8 string, this function performs the conversion.  Example:
+instead of a string.  This function converts @var{string} into an array
+of bytes of the UTF-8 encoding of @var{string}.  Example:
 
 @lisp
 (dbus-string-to-byte-array "/etc/hosts")
@@ -1154,11 +1154,11 @@ The signal @code{PropertyModified}, discussed as an example in
 (@var{integer} ((@var{string} @var{bool} @var{bool}) (@var{string} @var{bool} @var{bool}) @dots{}))
 @end lisp
 
-@defun dbus-byte-array-to-string byte-array &optional multibyte
+@defun dbus-byte-array-to-string byte-array
 If a D-Bus method or signal returns an array of bytes, which are known
-to represent a UTF-8 string, this function converts @var{byte-array}
-to the corresponding string.  The string is unibyte encoded, unless
-@var{multibyte} is non-@code{nil}.  Example:
+to represent a UTF-8 string, this function converts @var{byte-array} to
+the corresponding Lisp string.  The contents of @var{byte-array} should
+be the byte sequence of a UTF-8 encoded string.  Example:
 
 @lisp
 (dbus-byte-array-to-string '(47 101 116 99 47 104 111 115 116 115))
@@ -1208,7 +1208,7 @@ which carries the input parameters to the object owning the method to
 be called, and a reply message returning the resulting output
 parameters from the object.
 
-@defun dbus-call-method bus service path interface method &optional :timeout timeout &rest args
+@defun dbus-call-method bus service path interface method &optional :timeout timeout :authorizable auth &rest args
 @anchor{dbus-call-method}
 This function calls @var{method} on the D-Bus @var{bus}.  @var{bus} is
 either the keyword @code{:system} or the keyword @code{:session}.
@@ -1222,6 +1222,10 @@ If the parameter @code{:timeout} is given, the following integer
 method call must return.  The default value is 25,000.  If the method
 call doesn't return in time, a D-Bus error is raised (@pxref{Errors
 and Events}).
+
+If the parameter @code{:authorizable} is given and the following
+@var{auth} is non-@code{nil}, the invoked method may interactively
+prompt the user for authorization.  The default is @code{nil}.
 
 The remaining arguments @var{args} are passed to @var{method} as
 arguments.  They are converted into D-Bus types as described in
@@ -1255,7 +1259,7 @@ object.  Example:
 @end lisp
 
 With the @code{dbus-introspect} function it is possible to explore the
-interfaces of @samp{org.freedesktop.Hal} service. It offers the
+interfaces of @samp{org.freedesktop.Hal} service.  It offers the
 interfaces @samp{org.freedesktop.Hal.Manager} for the object at the
 path @samp{/org/freedesktop/Hal/Manager} as well as the interface
 @samp{org.freedesktop.Hal.Device} for all objects prefixed with the
@@ -1302,7 +1306,7 @@ emulate the @code{lshal} command on GNU/Linux systems:
 @cindex method calls, asynchronous
 @cindex asynchronous method calls
 
-@defun dbus-call-method-asynchronously bus service path interface method handler &optional :timeout timeout &rest args
+@defun dbus-call-method-asynchronously bus service path interface method handler &optional :timeout timeout :authorizable auth &rest args
 This function calls @var{method} on the D-Bus @var{bus}
 asynchronously.  @var{bus} is either the keyword @code{:system} or the
 keyword @code{:session}.
@@ -1320,6 +1324,10 @@ If the parameter @code{:timeout} is given, the following integer
 reply message must arrive.  The default value is 25,000.  If there is
 no reply message in time, a D-Bus error is raised (@pxref{Errors and
 Events}).
+
+If the parameter @code{:authorizable} is given and the following
+@var{auth} is non-@code{nil}, the invoked method may interactively
+prompt the user for authorization.  The default is @code{nil}.
 
 The remaining arguments @var{args} are passed to @var{method} as
 arguments.  They are converted into D-Bus types as described in
@@ -1418,6 +1426,9 @@ The name @var{service} does not exist on the bus.
 @item :not-owner
 We are not an owner of the name @var{service}.
 @end table
+
+When @var{service} is not a known name but a unique name, the function
+returns @code{nil}.
 @end defun
 
 When a name has been chosen, Emacs can offer its own methods, which
@@ -1967,7 +1978,7 @@ If this variable is non-@code{nil}, D-Bus specific debug messages are raised.
 Input parameters of @code{dbus-call-method},
 @code{dbus-call-method-asynchronously}, @code{dbus-send-signal},
 @code{dbus-register-method}, @code{dbus-register-property} and
-@code{dbus-register-signal} are checked for correct D-Bus types. If
+@code{dbus-register-signal} are checked for correct D-Bus types.  If
 there is a type mismatch, the Lisp error @code{wrong-type-argument}
 @code{D-Bus @var{arg}} is raised.
 

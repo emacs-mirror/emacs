@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Processes
@@ -134,8 +134,8 @@ but all the 3 primitives allow optionally to direct the standard error
 stream to a different destination.
 
 @cindex program arguments
-  All three of the subprocess-creating functions allow to specify
-command-line arguments for the process to run. For @code{call-process}
+  All three of the subprocess-creating functions allow specifying
+command-line arguments for the process to run.  For @code{call-process}
 and @code{call-process-region}, these come in the form of a
 @code{&rest} argument, @var{args}.  For @code{make-process}, both the
 program to run and its command-line arguments are specified as a list
@@ -191,17 +191,18 @@ the function returns just the value of the variable @code{exec-path}.
 @vindex hexl-program-name
 @vindex emacsclient-program-name
 @vindex movemail-program-name
-@vindex ebrowse-program-manem
-  When starting a program that is part of the Emacs distribution,
-you must take into account that the program may have been renamed in
-order to comply with executable naming restrictions present on the
-system.
+@vindex ebrowse-program-name
+@vindex rcs2log-program-name
+  When starting a program that is part of the Emacs distribution, you
+must take into account that the program may have been renamed in order
+to comply with executable naming restrictions present on the system.
 
   Instead of starting @command{ctags}, for example, you should specify
 the value of @code{ctags-program-name} instead.  Likewise, instead of
 starting @command{movemail}, you must start
 @code{movemail-program-name}, and the same goes for @command{etags},
-@command{hexl}, @command{emacsclient}, and @command{ebrowse}.
+@command{hexl}, @command{emacsclient}, @code{rcs2log}, and
+@command{ebrowse}.
 
 @node Shell Arguments
 @section Shell Arguments
@@ -519,7 +520,7 @@ This user option indicates whether a call of @code{process-file}
 returns a string describing the signal interrupting a remote process.
 
 When a process returns an exit code greater than 128, it is
-interpreted as a signal.  @code{process-file} requires to return a
+interpreted as a signal.  @code{process-file} requires returning a
 string describing this signal.
 
 Since there are processes violating this rule, returning exit codes
@@ -615,11 +616,24 @@ is similar than @code{call-process-region}, with process being a shell.
 The arguments @code{delete}, @code{destination} and the return value
 are like in @code{call-process-region}.
 Note that this function doesn't accept additional arguments.
+
+If @var{command} names a shell (e.g., via @code{shell-file-name}), keep
+in mind that behavior of various shells when commands are piped to their
+standard input is shell- and system-dependent, and thus non-portable.
+The differences are especially prominent when the region includes more
+than one line, i.e.@: when piping to a shell commands with embedded
+newlines.  Lisp programs using this technique will therefore need to
+format the text in the region differently, according to the expectations
+of the shell.
 @end defun
 
 @defun shell-command-to-string command
 This function executes @var{command} (a string) as a shell command,
-then returns the command's output as a string.
+then returns the command's output as a string.  If @var{command}
+actually includes more than one command, the behavior depends on the
+shell to be invoked (determined by @code{shell-file-name} for local
+commands).  In particular, the separator between the commands cannot be
+a newline on MS-Windows; use @samp{&&} instead.
 @end defun
 
 @c There is also shell-command-on-region, but that is more of a user
@@ -680,13 +694,13 @@ This function is the basic low-level primitive for starting
 asynchronous subprocesses.  It returns a process object representing
 the subprocess.  Compared to the more high-level @code{start-process},
 described below, it takes keyword arguments, is more flexible, and
-allows to specify process filters and sentinels in a single call.
+enables you to specify process filters and sentinels in a single call.
 
 The arguments @var{args} are a list of keyword/argument pairs.
 Omitting a keyword is always equivalent to specifying it with value
 @code{nil}.  Here are the meaningful keywords:
 
-@table @asis
+@table @code
 @item :name @var{name}
 Use the string @var{name} as the process name; if a process with this
 name already exists, then @var{name} is modified (by appending
@@ -816,7 +830,7 @@ Omitting a keyword is always equivalent to specifying it with value
 
 Here are the meaningful keywords:
 
-@table @asis
+@table @code
 @item :name @var{name}
 Use the string @var{name} as the process name.  As with
 @code{make-process}, it is modified if necessary to make it unique.
@@ -943,6 +957,7 @@ example the function @code{ange-ftp-hook-function}).  In such cases,
 this function does nothing and returns @code{nil}.
 @end defun
 
+@vindex shell-file-name
 @defun start-process-shell-command name buffer-or-name command
 This function is like @code{start-process}, except that it uses a
 shell to execute the specified @var{command}.  The argument
@@ -1515,6 +1530,9 @@ If @var{process} is a process object which contains the property
 @code{remote-pid}, or @var{process} is a number and @var{remote} is a
 remote file name, @var{process} is interpreted as process on the
 respective remote host, which will be the process to signal.
+
+If @var{process} is a string, it is interpreted as process object with
+the respective process name, or as a number.
 @end deffn
 
 Sometimes, it is necessary to send a signal to a non-local
@@ -1659,8 +1677,10 @@ from previous output.
 @defun set-process-buffer process buffer
 This function sets the buffer associated with @var{process} to
 @var{buffer}.  If @var{buffer} is @code{nil}, the process becomes
-associated with no buffer; if non-@code{nil}, the process mark will be
-set to point to the end of @var{buffer}.
+associated with no buffer; if non-@code{nil} and different from the
+buffer associated with the process, the process mark will be set to
+point to the end of @var{buffer} (unless the process mark is already
+associated with @var{buffer}).
 @end defun
 
 @defun get-buffer-process buffer-or-name
@@ -1775,7 +1795,7 @@ program was running when the filter function was started.  However, if
 This makes it possible to use the Lisp debugger to debug filter
 functions.  @xref{Debugger}.  If an error is caught, Emacs pauses for
 @code{process-error-pause-time} seconds so that the user sees the
-error.  @xref{Asynchronous Processes}
+error.  @xref{Asynchronous Processes}.
 
   Many filter functions sometimes (or always) insert the output in the
 process's buffer, mimicking the actions of the default filter.
@@ -2181,7 +2201,7 @@ programs was running when the sentinel was started.  However, if
 This makes it possible to use the Lisp debugger to debug the
 sentinel.  @xref{Debugger}.  If an error is caught, Emacs pauses for
 @code{process-error-pause-time} seconds so that the user sees the
-error.  @xref{Asynchronous Processes}
+error.  @xref{Asynchronous Processes}.
 
   While a sentinel is running, the process sentinel is temporarily
 set to @code{nil} so that the sentinel won't run recursively.
@@ -2633,7 +2653,7 @@ and @samp{:capability-command} are supplied, try to upgrade to an encrypted
 connection via @acronym{STARTTLS}.  If that fails, retain the
 unencrypted connection.
 @item starttls
-As for @code{nil}, but if @acronym{STARTTLS} fails drop the connection.
+As for @code{nil}, but if @acronym{STARTTLS} fails, drop the connection.
 @item shell
 A shell connection.
 @end table
@@ -2644,9 +2664,9 @@ doing a @samp{plain} connection.
 
 @item :capability-command @var{capability-command}
 Command to query the host capabilities.  This can either be a string
-(which will then be sent verbatim to the server), or a function
-(called with a single parameter; the "greeting" from the server when
-connecting), and should return a string.
+(which will then be sent verbatim to the server) or a function
+(called with a single parameter: the ``greeting'' from the server when
+connecting) that should return a string.
 
 @item :end-of-command @var{regexp}
 @itemx :end-of-capability @var{regexp}
@@ -2655,8 +2675,8 @@ command @var{capability-command}.  The latter defaults to the former.
 
 @item :starttls-function @var{function}
 Function of one argument (the response to @var{capability-command}),
-which returns either @code{nil}, or the command to activate @acronym{STARTTLS}
-if supported.
+which returns either @code{nil} or the command to activate
+@acronym{STARTTLS}, if supported.
 
 @item :success @var{regexp}
 Regular expression matching a successful @acronym{STARTTLS} negotiation.
@@ -2684,8 +2704,9 @@ enable automatic queries of @code{auth-source} when
 
 @item :return-list @var{cons-or-nil}
 The return value of this function.  If omitted or @code{nil}, return a
-process object.  Otherwise, a cons of the form @code{(@var{process-object}
-. @var{plist})}, where @var{plist} has keywords:
+process object.  Otherwise, a cons of the form
+@w{@code{(@var{process-object} . @var{plist})}}, where @var{plist} can
+include the following keywords:
 
 @table @code
 @item :greeting @var{string-or-nil}
@@ -2698,11 +2719,12 @@ The connection type: @samp{plain} or @samp{tls}.
 
 @item :shell-command @var{string-or-nil}
 If the connection @code{type} is @code{shell}, this parameter will be
-interpreted as a format-spec string that will be executed to make the
-connection.  The specs available are @samp{%s} for the host name and
-@samp{%p} for the port number.  For instance, if you want to first ssh
-to @samp{gateway} before making a plain connection, then this
-parameter could be something like @samp{ssh gateway nc %s %p}.
+interpreted as a format-spec string (@pxref{Custom Format Strings})
+that will be executed to make the connection.  The specs available are
+@samp{%s} for the host name and @samp{%p} for the port number.  For
+instance, if you want to first ssh to @samp{gateway} before making a
+plain connection, then this parameter's value could be something like
+@samp{ssh gateway nc %s %p}.
 
 @end table
 
@@ -2820,7 +2842,7 @@ equivalent to specifying it with value @code{nil}, except for
 are the meaningful keywords (those corresponding to network options
 are listed in the following section):
 
-@table @asis
+@table @code
 @item :name @var{name}
 Use the string @var{name} as the process name.  It is modified if
 necessary to make it unique.
@@ -3009,7 +3031,7 @@ modify these options later, using @code{set-network-process-option}.
 connections, so you will need to set the necessary options for each
 child connection as it is created.
 
-@table @asis
+@table @code
 @item :bindtodevice @var{device-name}
 If @var{device-name} is a non-empty string identifying a network
 interface name (see @code{network-interface-list}), only handle

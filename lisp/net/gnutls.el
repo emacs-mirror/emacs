@@ -1,6 +1,6 @@
 ;;; gnutls.el --- Support SSL/TLS connections through GnuTLS  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
@@ -96,7 +96,7 @@ Security'."
           (repeat :tag "List of hostname regexps with flags for each"
            (list
             (choice :tag "Hostname"
-                    (const ".*" :tag "Any hostname")
+                    (const :tag "Any hostname" ".*")
                     regexp)
             (set (const :trustfiles)
                  (const :hostname))))))
@@ -111,6 +111,10 @@ Security'."
     "/usr/local/share/certs/ca-root-nss.crt" ; FreeBSD
     "/etc/ssl/cert.pem"                      ; macOS, Dragora, Parabola
     "/etc/certs/ca-certificates.crt"         ; OpenIndiana
+    "/system/etc/security/cacerts/*"	     ; Android system
+    "/system/etc/security/cacerts_supl/*"    ; Android, supplementary
+    "/system/etc/security/cacerts_google/*"  ; Android, Google
+    "/data/misc/user/0/cacerts-added/*"	     ; Android, user-specified (?)
     )
   "List of CA bundle location filenames or a function returning said list.
 If a file path contains glob wildcards, they will be expanded.

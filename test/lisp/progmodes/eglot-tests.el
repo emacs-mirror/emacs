@@ -1,6 +1,6 @@
 ;;; eglot-tests.el --- Tests for eglot.el            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: tests
@@ -136,9 +136,11 @@ directory hierarchy."
                                           (jsonrpc-events-buffer server)))))
                   (cond (noninteractive
                          (dolist (buffer buffers)
-                           (eglot--test-message "contents of `%s':" (buffer-name buffer))
-                           (princ (with-current-buffer buffer (buffer-string))
-                                  'external-debugging-output)))
+                           (eglot--test-message "contents of `%s' %S:" (buffer-name buffer) buffer)
+                           (if (buffer-live-p buffer)
+                               (princ (with-current-buffer buffer (buffer-string))
+                                      'external-debugging-output)
+                             (princ "Killed\n" #'external-debugging-output))))
                         (t
                          (eglot--test-message "Preserved for inspection: %s"
                                               (mapconcat #'buffer-name buffers ", "))))))))
@@ -199,40 +201,40 @@ directory hierarchy."
                               &rest body)
   "Run BODY saving LSP JSON messages in variables, most recent first."
   (declare (indent 1) (debug (sexp &rest form)))
-  (let ((log-event-ad-sym (make-symbol "eglot--event-sniff")))
-    `(unwind-protect
-         (let ,(delq nil (list server-requests
-                               server-notifications
-                               server-replies
-                               client-requests
-                               client-notifications
-                               client-replies))
-           (advice-add
-            #'jsonrpc--log-event :before
-            (lambda (_proc message &optional type)
-              (cl-destructuring-bind (&key method id _error &allow-other-keys)
-                  message
-                (let ((req-p (and method id))
-                      (notif-p method)
-                      (reply-p id))
-                  (cond
-                   ((eq type 'server)
-                    (cond (req-p ,(when server-requests
-                                    `(push message ,server-requests)))
-                          (notif-p ,(when server-notifications
-                                      `(push message ,server-notifications)))
-                          (reply-p ,(when server-replies
-                                      `(push message ,server-replies)))))
-                   ((eq type 'client)
-                    (cond (req-p ,(when client-requests
-                                    `(push message ,client-requests)))
-                          (notif-p ,(when client-notifications
-                                      `(push message ,client-notifications)))
-                          (reply-p ,(when client-replies
-                                      `(push message ,client-replies)))))))))
-            '((name . ,log-event-ad-sym)))
-           ,@body)
-       (advice-remove #'jsonrpc--log-event ',log-event-ad-sym))))
+  (let ((log-event-hook-sym (make-symbol "eglot--event-sniff")))
+    `(let* (,@(delq nil (list server-requests
+                              server-notifications
+                              server-replies
+                              client-requests
+                              client-notifications
+                              client-replies)))
+       (cl-flet ((,log-event-hook-sym (_connection
+                                       origin
+                                       &key _json kind message _foreign-message
+                                       &allow-other-keys)
+                   (let ((req-p (eq kind 'request))
+                         (notif-p (eq kind 'notification))
+                         (reply-p (eql kind 'reply)))
+                     (cond
+                      ((eq origin 'server)
+                       (cond (req-p ,(when server-requests
+                                       `(push message ,server-requests)))
+                             (notif-p ,(when server-notifications
+                                         `(push message ,server-notifications)))
+                             (reply-p ,(when server-replies
+                                         `(push message ,server-replies)))))
+                      ((eq origin 'client)
+                       (cond (req-p ,(when client-requests
+                                       `(push message ,client-requests)))
+                             (notif-p ,(when client-notifications
+                                         `(push message ,client-notifications)))
+                             (reply-p ,(when client-replies
+                                         `(push message ,client-replies)))))))))
+         (unwind-protect
+             (progn
+               (add-hook 'jsonrpc-event-hook #',log-event-hook-sym t)
+               ,@body)
+           (remove-hook 'jsonrpc-event-hook #',log-event-hook-sym))))))
 
 (cl-defmacro eglot--wait-for ((events-sym &optional (timeout 1) message) args &body body)
   (declare (indent 2) (debug (sexp sexp sexp &rest form)))
@@ -415,7 +417,7 @@ directory hierarchy."
             (and (string= method "workspace/didChangeWatchedFiles")
                  (cl-destructuring-bind (&key uri type)
                      (elt (plist-get params :changes) 0)
-                   (and (string= (eglot--path-to-uri "Cargo.toml") uri)
+                   (and (string= (eglot-path-to-uri "Cargo.toml") uri)
                         (= type 3))))))))))
 
 (ert-deftest eglot-test-basic-diagnostics ()
@@ -435,6 +437,56 @@ directory hierarchy."
         (goto-char (point-min))
         (flymake-goto-next-error 1 '() t)
         (should (eq 'flymake-error (face-at-point)))))))
+
+(ert-deftest eglot-test-basic-symlink ()
+  "Test basic symlink support."
+  (skip-unless (executable-find "clangd"))
+  ;; MS-Windows either fails symlink creation or pops up UAC prompts.
+  (skip-when (eq system-type 'windows-nt))
+  (eglot--with-fixture
+      `(("symlink-project" .
+         (("main.cpp" . "#include\"foo.h\"\nint main() { return foo(); }")
+          ("foo.h" . "int foo();"))))
+    (with-current-buffer
+        (find-file-noselect "symlink-project/main.cpp")
+      (make-symbolic-link "main.cpp" "mainlink.cpp")
+      (eglot--tests-connect)
+      (eglot--sniffing (:client-notifications c-notifs)
+        (let ((eglot-autoshutdown nil)) (kill-buffer (current-buffer)))
+        (eglot--wait-for (c-notifs 10)
+            (&key method &allow-other-keys)
+          (and (string= method "textDocument/didClose")))))
+    (eglot--sniffing (:client-notifications c-notifs)
+      (with-current-buffer
+          (find-file-noselect "symlink-project/main.cpp")
+        (should (eglot-current-server)))
+      (eglot--wait-for (c-notifs 10)
+          (&rest whole &key params method &allow-other-keys)
+        (and (string= method "textDocument/didOpen")
+             (string-match "main.cpp$"
+                           (plist-get (plist-get params :textDocument)
+                                      :uri)))))
+    ;; This last segment is deactivated, because it's likely not needed.
+    ;; The only way the server would answer with '3' references is if we
+    ;; had erroneously sent a 'didOpen' for anything other than
+    ;; `main.cpp', but if we got this far is because we've just asserted
+    ;; that we didn't.
+    (when nil
+      (with-current-buffer
+          (find-file-noselect "symlink-project/foo.h")
+        ;; Give clangd some time to settle its analysis so it can
+        ;; accurately respond to `textDocument/references'
+        (sleep-for 3)
+        (search-forward "foo")
+        (eglot--sniffing (:server-replies s-replies)
+          (call-interactively 'xref-find-references)
+          (eglot--wait-for (s-replies 10)
+              (&key method result &allow-other-keys)
+            ;; Expect xref buffer to not contain duplicate references to
+            ;; main.cpp and mainlink.cpp.  If it did, 'result's length
+            ;; would be 3.
+            (and (string= method "textDocument/references")
+                 (= (length result) 2))))))))
 
 (ert-deftest eglot-test-diagnostic-tags-unnecessary-code ()
   "Test rendering of diagnostics tagged \"unnecessary\"."
@@ -537,6 +589,18 @@ directory hierarchy."
     (eglot--wait-for (s-notifs 20) (&key method &allow-other-keys)
       (string= method "textDocument/publishDiagnostics"))))
 
+(defun eglot--wait-for-rust-analyzer ()
+  (eglot--sniffing (:server-notifications s-notifs)
+    (should (eglot--tests-connect))
+    (eglot--wait-for (s-notifs 20) (&key method params &allow-other-keys)
+      (and
+       (string= method "$/progress")
+       "rustAnalyzer/Indexing"
+       (equal params
+              '(:token "rustAnalyzer/Indexing" :value
+                       ;; Could wait for :kind "end" instead, but it's 2 more seconds.
+                       (:kind "begin" :title "Indexing" :cancellable :json-false :percentage 0)))))))
+
 (ert-deftest eglot-test-basic-completions ()
   "Test basic autocompletion in a clangd LSP."
   (skip-unless (executable-find "clangd"))
@@ -544,14 +608,25 @@ directory hierarchy."
       `(("project" . (("coiso.c" . "#include <stdio.h>\nint main () {fprin"))))
     (with-current-buffer
         (eglot--find-file-noselect "project/coiso.c")
-      (eglot--sniffing (:server-notifications s-notifs)
-        (eglot--wait-for-clangd)
-        (eglot--wait-for (s-notifs 20) (&key method &allow-other-keys)
-          (string= method "textDocument/publishDiagnostics")))
+      (eglot--wait-for-clangd)
       (goto-char (point-max))
       (completion-at-point)
       (message (buffer-string))
       (should (looking-back "fprintf.?")))))
+
+(ert-deftest eglot-test-common-prefix-completion ()
+  "Test completion appending the common prefix."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("coiso.c" .
+                       ,(concat "int foo_bar; int foo_bar_baz;"
+                                "int main() {foo")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (goto-char (point-max))
+      (completion-at-point)
+      (should (looking-back "{foo_bar")))))
 
 (ert-deftest eglot-test-non-unique-completions ()
   "Test completion resulting in 'Complete, but not unique'."
@@ -572,19 +647,101 @@ directory hierarchy."
         (forward-line -1)
         (should (looking-at "Complete, but not unique")))))))
 
+(ert-deftest eglot-test-stop-completion-on-nonprefix ()
+  "Test completion also resulting in 'Complete, but not unique'."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("coiso.c" .
+                       ,(concat "int foot; int footer; int fo_obar;"
+                                "int main() {foo")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (goto-char (point-max))
+      (completion-at-point)
+      (should (looking-back "foo")))))
+
+(ert-deftest eglot-test-try-completion-nomatch ()
+  "Test completion table with non-matching input, returning nil."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("coiso.c" .
+                       ,(concat "int main() {abc")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (goto-char (point-max))
+      (should
+       (null
+        (completion-try-completion
+         "abc"
+         (nth 2 (eglot-completion-at-point)) nil 3))))))
+
+(ert-deftest eglot-test-try-completion-inside-symbol ()
+  "Test completion table inside symbol, with only prefix matching."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("coiso.c" .
+                       ,(concat
+                         "int foobar;"
+                         "int main() {foo123")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (goto-char (- (point-max) 3))
+      (when (buffer-live-p "*Completions*")
+        (kill-buffer "*Completions*"))
+      (completion-at-point)
+      (should (looking-back "foo"))
+      (should (looking-at "123"))
+      (should (get-buffer "*Completions*"))
+      )))
+
+(ert-deftest eglot-test-rust-completion-exit-function ()
+  "Ensure that the rust-analyzer exit function creates the expected contents."
+  (skip-unless (executable-find "rust-analyzer"))
+  (skip-unless (executable-find "cargo"))
+  (eglot--with-fixture
+      '(("cmpl-project" .
+         (("main.rs" .
+           "fn test() -> i32 { let v: usize = 1; v.count_on1234.1234567890;"))))
+    (with-current-buffer
+        (eglot--find-file-noselect "cmpl-project/main.rs")
+      (should (zerop (shell-command "cargo init")))
+      (eglot--tests-connect)
+      (goto-char (point-min))
+      (search-forward "v.count_on")
+      (let ((minibuffer-message-timeout 0)
+            ;; Fail at (ding) if completion fails.
+            (executing-kbd-macro t))
+        (when (buffer-live-p "*Completions*")
+          (kill-buffer "*Completions*"))
+        ;; The design is pretty brittle, we'll need to monitor the
+        ;; language server for changes in behavior.
+        (eglot--wait-for-rust-analyzer)
+        (completion-at-point)
+        (should (looking-back "\\.count_on"))
+        (should (get-buffer "*Completions*"))
+        (minibuffer-next-completion 1)
+        (minibuffer-choose-completion t))
+      (should
+       (equal
+        "fn test() -> i32 { let v: usize = 1; v.count_ones.1234567890;"
+        (buffer-string))))))
+
 (ert-deftest eglot-test-basic-xref ()
   "Test basic xref functionality in a clangd LSP."
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
-      `(("project" . (("coiso.c" .
-                       ,(concat "int foo=42; int fooey;"
-                                "int main() {foo=82;}")))))
-    (with-current-buffer
-        (eglot--find-file-noselect "project/coiso.c")
-      (should (eglot--tests-connect))
-      (search-forward "{foo")
-      (call-interactively 'xref-find-definitions)
-      (should (looking-at "foo=42")))))
+   `(("project" . (("coiso.c" .
+                    ,(concat "int foo=42; int fooey;"
+                             "int main() {foo=82;}")))))
+   (with-current-buffer
+       (eglot--find-file-noselect "project/coiso.c")
+     (should (eglot--tests-connect))
+     (search-forward "{foo")
+     (call-interactively 'xref-find-definitions)
+     (should (looking-at "foo=42")))))
 
 (defvar eglot--test-c-buffer
   "\
@@ -824,6 +981,12 @@ int main() {
         (should (looking-back "\"foo.bar\": \""))
         (should (looking-at "fb\"$"))))))
 
+(defun eglot-tests--get (object path)
+  (dolist (op path)
+    (setq object (if (natnump op) (aref object op)
+                  (plist-get object op))))
+  object)
+
 (defun eglot-tests--lsp-abiding-column-1 ()
   (eglot--with-fixture
       '(("project" .
@@ -840,7 +1003,11 @@ int main() {
           (insert "p ")
           (eglot--signal-textDocument/didChange)
           (eglot--wait-for (c-notifs 2) (&key params &allow-other-keys)
-            (should (equal 71 (cadddr (cadadr (aref (cadddr params) 0))))))
+            (message "PARAMS=%S" params)
+            (should (equal 71 (eglot-tests--get
+                               params
+                               '(:contentChanges 0
+                                 :range :start :character)))))
           (beginning-of-line)
           (should (eq eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos))
           (funcall eglot-move-to-linepos-function 71)
@@ -927,7 +1094,7 @@ int main() {
         (should-error (apply #'eglot--connect (eglot--guess-contact)))))))
 
 (ert-deftest eglot-test-capabilities ()
-  "Unit test for `eglot--server-capable'."
+  "Unit test for `eglot-server-capable'."
   (cl-letf (((symbol-function 'eglot--capabilities)
              (lambda (_dummy)
                ;; test data lifted from Golangserver example at
@@ -942,11 +1109,11 @@ int main() {
                      :xdefinitionProvider t :xworkspaceSymbolByProperties t)))
             ((symbol-function 'eglot--current-server-or-lose)
              (lambda () nil)))
-    (should (eql 2 (eglot--server-capable :textDocumentSync)))
-    (should (eglot--server-capable :completionProvider :triggerCharacters))
-    (should (equal '(:triggerCharacters ["."]) (eglot--server-capable :completionProvider)))
-    (should-not (eglot--server-capable :foobarbaz))
-    (should-not (eglot--server-capable :textDocumentSync :foobarbaz))))
+    (should (eql 2 (eglot-server-capable :textDocumentSync)))
+    (should (eglot-server-capable :completionProvider :triggerCharacters))
+    (should (equal '(:triggerCharacters ["."]) (eglot-server-capable :completionProvider)))
+    (should-not (eglot-server-capable :foobarbaz))
+    (should-not (eglot-server-capable :textDocumentSync :foobarbaz))))
 
 (defmacro eglot--without-interface-warnings (&rest body)
   (let ((eglot-strict-mode nil))
@@ -1178,8 +1345,8 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
     (let ((eglot-server-programs '(((baz-mode (foo-mode :language-id "bar"))
                                     . ("prog-executable")))))
       (eglot--guessing-contact (_ nil _ _ modes guessed-langs)
-        (should (equal guessed-langs '("bar" "baz")))
-        (should (equal modes '(foo-mode baz-mode)))))))
+        (should (equal guessed-langs '("baz" "bar")))
+        (should (equal modes '(baz-mode foo-mode)))))))
 
 (defun eglot--glob-match (glob str)
   (funcall (eglot--glob-compile glob t t) str))
@@ -1227,13 +1394,19 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
   ;; (should (eglot--glob-match "{foo,bar}/**" "foo"))
   ;; (should (eglot--glob-match "{foo,bar}/**" "bar"))
 
-  ;; VSCode also supports nested blobs.  Do we care?
+  ;; VSCode also supports nested blobs.  Do we care?  Apparently yes:
+  ;; github#1403
   ;;
-  ;; (should (eglot--glob-match "{**/*.d.ts,**/*.js}" "/testing/foo.js"))
-  ;; (should (eglot--glob-match "{**/*.d.ts,**/*.js}" "testing/foo.d.ts"))
-  ;; (should (eglot--glob-match "{**/*.d.ts,**/*.js,foo.[0-9]}" "foo.5"))
-  ;; (should (eglot--glob-match "prefix/{**/*.d.ts,**/*.js,foo.[0-9]}" "prefix/foo.8"))
-  )
+  (should (eglot--glob-match "{**/*.d.ts,**/*.js}" "/testing/foo.js"))
+  (should (eglot--glob-match "{**/*.d.ts,**/*.js}" "testing/foo.d.ts"))
+  (should (eglot--glob-match "{**/*.d.ts,**/*.js,foo.[0-9]}" "foo.5"))
+  (should-not (eglot--glob-match "{**/*.d.ts,**/*.js,foo.[0-4]}" "foo.5"))
+  (should (eglot--glob-match "prefix/{**/*.d.ts,**/*.js,foo.[0-9]}"
+                             "prefix/foo.8"))
+  (should (eglot--glob-match "prefix/{**/*.js,**/foo.[0-9]}.suffix"
+                             "prefix/a/b/c/d/foo.5.suffix"))
+  (should (eglot--glob-match "prefix/{**/*.js,**/foo.[0-9]}.suffix"
+                             "prefix/a/b/c/d/foo.js.suffix")))
 
 (defvar tramp-histfile-override)
 (defun eglot--call-with-tramp-test (fn)
@@ -1276,9 +1449,9 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
 (ert-deftest eglot-test-path-to-uri-windows ()
   (skip-unless (eq system-type 'windows-nt))
   (should (string-prefix-p "file:///"
-                           (eglot--path-to-uri "c:/Users/Foo/bar.lisp")))
+                           (eglot-path-to-uri "c:/Users/Foo/bar.lisp")))
   (should (string-suffix-p "c%3A/Users/Foo/bar.lisp"
-                           (eglot--path-to-uri "c:/Users/Foo/bar.lisp"))))
+                           (eglot-path-to-uri "c:/Users/Foo/bar.lisp"))))
 
 (ert-deftest eglot-test-same-server-multi-mode ()
   "Check single LSP instance manages multiple modes in same project."

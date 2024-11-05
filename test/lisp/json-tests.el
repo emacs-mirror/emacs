@@ -1,6 +1,6 @@
 ;;; json-tests.el --- Test suite for json.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 

@@ -1,9 +1,8 @@
 ;;; newst-ticker.el --- mode line ticker for newsticker.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
-;; Filename:    newst-ticker.el
 ;; URL:         https://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
 ;; Package:     newsticker

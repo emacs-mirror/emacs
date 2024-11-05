@@ -1,5 +1,5 @@
 /* Binary mode I/O.
-   Copyright (C) 2001, 2003, 2005, 2008-2023 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2003, 2005, 2008-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -55,6 +55,11 @@ __gl_setmode (_GL_UNUSED int fd, _GL_UNUSED int mode)
 }
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /* Set FD's mode to MODE, which should be either O_TEXT or O_BINARY.
    Return the old mode if successful, -1 (setting errno) on failure.
    Ordinarily this function would be called 'setmode', since that is
@@ -73,6 +78,11 @@ set_binary_mode (int fd, int mode)
 
 /* This macro is obsolescent.  */
 #define SET_BINARY(fd) ((void) set_binary_mode (fd, O_BINARY))
+
+
+#ifdef __cplusplus
+}
+#endif
 
 _GL_INLINE_HEADER_END
 

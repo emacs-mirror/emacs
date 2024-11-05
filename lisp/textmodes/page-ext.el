@@ -1,10 +1,10 @@
 ;;; page-ext.el --- extended page handling commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1990-2024 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell <bob@gnu.org>
 ;; (according to ack.texi)
-;; Keywords: wp data
+;; Keywords: text data
 
 ;; This file is part of GNU Emacs.
 
@@ -119,8 +119,8 @@
 ;;
 ;;     FSF
 ;;     Free Software Foundation
-;;     51 Franklin Street, Fifth Floor
-;;     Boston, MA 02110-1301  USA.
+;;     31 Milk Street, # 960789
+;;     Boston, MA 02196  USA.
 ;;     (617) 542-5942
 ;;     gnu@gnu.org
 ;;
@@ -486,7 +486,7 @@ contain matches to the regexp.)")
 
 (define-obsolete-function-alias 'set-page-delimiter #'pages-set-delimiter "27.1")
 (defun pages-set-delimiter (regexp reset-p &optional interactively)
-  "Set buffer local value of page-delimiter to REGEXP.
+  "Set buffer local value of `page-delimiter' to REGEXP.
 Called interactively with a prefix argument, reset `page-delimiter' to
 its original value.
 

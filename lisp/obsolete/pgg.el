@@ -1,6 +1,6 @@
 ;;; pgg.el --- glue for the various PGP implementations.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2000, 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2024 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Symmetric encryption added by: Sascha Wilde <wilde@sha-bang.de>
@@ -85,9 +85,9 @@ is true, or else the output buffer is displayed."
       (set-buffer standard-output)
       (insert-buffer-substring pgg-errors-buffer))))
 
-(defvar pgg-passphrase-cache (make-vector 7 0))
+(defvar pgg-passphrase-cache (obarray-make 7))
 
-(defvar pgg-pending-timers (make-vector 7 0)
+(defvar pgg-pending-timers (obarray-make 7)
   "Hash table for managing scheduled pgg cache management timers.
 
 We associate key and timer, so the timer can be canceled if a new

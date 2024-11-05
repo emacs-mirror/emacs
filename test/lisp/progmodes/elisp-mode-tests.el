@@ -1,6 +1,6 @@
 ;;; elisp-mode-tests.el --- Tests for emacs-lisp-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
@@ -109,6 +109,14 @@
         (should (member "backup-inhibited" comps))
         (should-not (member "backup-buffer" comps))))))
 
+(ert-deftest elisp-completes-functions-after-empty-let-bindings ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(let () (ba")
+    (let ((comps (elisp--test-completions)))
+      (should (member "backup-buffer" comps))
+      (should-not (member "backup-inhibited" comps)))))
+
 (ert-deftest elisp-completes-functions-after-let-bindings-2 ()
   (with-temp-buffer
     (emacs-lisp-mode)
@@ -128,7 +136,7 @@
 
 (ert-deftest eval-last-sexp-print-format-sym-echo ()
   ;; We can only check the echo area when running interactive.
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (with-temp-buffer
     (let ((current-prefix-arg nil))
       (erase-buffer) (insert "t") (message nil)
@@ -147,7 +155,7 @@
       (should (equal (buffer-string) "?A65 (#o101, #x41, ?A)")))))
 
 (ert-deftest eval-last-sexp-print-format-small-int-echo ()
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (with-temp-buffer
     (let ((current-prefix-arg nil))
       (erase-buffer) (insert "?A") (message nil)
@@ -171,7 +179,7 @@
         (should (equal (buffer-string) "?B66 (#o102, #x42, ?B)"))))))
 
 (ert-deftest eval-last-sexp-print-format-large-int-echo ()
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (with-temp-buffer
     (let ((eval-expression-print-maximum-character ?A))
       (let ((current-prefix-arg nil))
@@ -186,7 +194,7 @@
 ;;; eval-defun
 
 (ert-deftest eval-defun-prints-edebug-when-instrumented ()
-  (skip-unless (not noninteractive))
+  (skip-when noninteractive)
   (with-temp-buffer
     (let ((current-prefix-arg '(4)))
       (erase-buffer) (insert "(defun foo ())") (message nil)
@@ -1130,6 +1138,15 @@ evaluation of BODY."
                       (lambda ()
                         (emacs-lisp-mode)
                         (indent-region (point-min) (point-max)))))
+
+(ert-deftest elisp-tests-syntax-propertize ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(a '@)")                   ;bug#24542
+    (should (equal (scan-sexps (+ (point-min) 3) 1) (1- (point-max))))
+    (erase-buffer)
+    (insert "(a ,@)")
+    (should-error (scan-sexps (+ (point-min) 3) 1))))
 
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

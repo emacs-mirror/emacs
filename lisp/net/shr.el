@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -57,6 +57,20 @@ and Emacs supports it, then the images will be rescaled down to
 fit these criteria."
   :version "24.1"
   :type 'float)
+
+(defcustom shr-sliced-image-height 0.9
+  "How tall images can be before slicing in relation to the window they're in.
+A value of 0.7 means that images are allowed to take up 70% of the
+height of the window before being sliced by `insert-sliced-image'.  If
+nil, never slice images.
+
+Sliced images allow for more intuitive scrolling up/down by letting you
+scroll past each slice, instead of jumping past the entire image.
+Alternately, you can use `pixel-scroll-precision-mode' to scroll
+pixel-wise past images, in which case you can set this option to nil."
+  :version "31.1"
+  :type '(choice (const :tag "Never slice images")
+                 float))
 
 (defcustom shr-allowed-images nil
   "If non-nil, only images that match this regexp are displayed.
@@ -163,6 +177,67 @@ the specpdl size.  If nil, just give up."
   :version "28.1"
   :type 'boolean)
 
+(defcustom shr-fill-text t
+  "Non-nil means to fill the text according to the width of the window.
+If nil, text is not filled, and `visual-line-mode' can be used to reflow text."
+  :version "30.1"
+  :type 'boolean)
+
+
+(defcustom shr-sup-raise-factor 0.2
+  "The value of raise property for superscripts.
+Should be a non-negative float number between 0 and 1."
+  :version "30.1"
+  :type 'float)
+
+(defcustom shr-sub-raise-factor -0.2
+  "The value of raise property for subscripts.
+Should be a non-positive float number between 0 and 1."
+  :version "30.1"
+  :type 'float)
+
+(defcustom shr-image-ascent 100
+  "The value to be used for :ascent property when inserting images."
+  :version "30.1"
+  :type 'integer)
+
+(defcustom shr-max-inline-image-size nil
+  "If non-nil, determines when the images can be displayed inline.
+If nil, images are never displayed inline.
+
+It non-nil, it should be cons (WIDTH . HEIGHT).
+
+WIDTH can be an integer which is interpreted as number of pixels.  If the width
+of an image exceeds this amount, the image is displayed on a separate line.
+WIDTH can also be floating point number, in which case the image is displayed
+inline if it occupies less than this fraction of window width.
+
+HEIGHT can be also be an integer or a floating point number.  If it is an
+integer and the pixel height of an image exceeds it, the image image is
+displayed on a separate line.  If it is a float number , the limit is
+interpreted as a multiple of the height of default font."
+  :version "30.1"
+  :type '(choice (const nil) (cons number number)))
+
+(defcustom shr-image-zoom-levels '(fit original fill-height)
+  "A list of image zoom levels to cycle through with `shr-zoom-image'.
+The first element in the list is the initial zoom level.  Each element
+can be one of the following symbols:
+
+* `fit': Display the image at its original size as requested by the
+  page, shrinking it to fit in the current window if necessary.
+* `original': Display the image at its original size as requested by the
+  page.
+* `image': Display the image at its full size (ignoring the width/height
+  specified by the HTML).
+* `fill-height': Display the image zoomed to fill the height of the
+current window."
+  :version "31.1"
+  :type '(set (const :tag "Fit to window size" fit)
+              (const :tag "Original size" original)
+              (const :tag "Full image size" image)
+              (const :tag "Fill window height" fill-height)))
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -239,6 +314,14 @@ temporarily blinks with this face."
   '((t :background "yellow" :foreground "black"))
   "Face used for <mark> elements."
   :version "29.1")
+
+(defface shr-sliced-image
+  '((t :underline nil :overline nil))
+  "Face used for sliced images.
+This face should remove any unsightly decorations from sliced images.
+Otherwise, decorations like underlines from links would normally show on
+every slice."
+  :version "30.1")
 
 (defcustom shr-inhibit-images nil
   "If non-nil, inhibit loading images."
@@ -557,39 +640,60 @@ the URL of the image to the kill buffer instead."
 		    (list (current-buffer) (1- (point)) (point-marker))
 		    t))))
 
-(defun shr-zoom-image ()
-  "Toggle the image size.
-The size will be rotated between the default size, the original
-size, and full-buffer size."
-  (interactive)
-  (let ((url (get-text-property (point) 'image-url))
-	(size (get-text-property (point) 'image-size))
-	(buffer-read-only nil))
+(defvar shr-image-zoom-level-alist
+  `((fit         "Zoom to fit"                shr-rescale-image)
+    (original    "Zoom to original size"      shr--image-zoom-original-size)
+    (image       "Zoom to full image size"    shr--image-zoom-image-size)
+    (fill-height "Zoom to fill window height" shr--image-zoom-fill-height))
+  "An alist of possible image zoom levels.
+Each element is of the form (SYMBOL DESC FUNCTION).  SYMBOL is the
+symbol identifying this level, as used by `shr-image-zoom-levels' (which
+see).  DESC is a string describing the level.
+
+FUNCTION is a function that returns a properly-zoomed image; it takes
+the following arguments:
+
+* DATA: The image data in string form.
+* CONTENT-TYPE: The content-type of the image, if any.
+* WIDTH: The width as specified by the HTML \"width\" attribute, if any.
+* HEIGHT: The height as specified by the HTML \"height\" attribute, if
+  any.")
+
+(defun shr-zoom-image (&optional position zoom-level)
+  "Change the zoom level of the image at POSITION.
+
+The size will cycle through the default size, the original size, and
+full-buffer size."
+  (interactive "d")
+  (unless position (setq position (point)))
+  (let ((url (get-text-property position 'image-url)))
     (if (not url)
 	(message "No image under point")
-      ;; Delete the old picture.
-      (while (get-text-property (point) 'image-url)
-	(forward-char -1))
-      (forward-char 1)
-      (let ((start (point)))
-	(while (get-text-property (point) 'image-url)
-	  (forward-char 1))
-	(forward-char -1)
-	(put-text-property start (point) 'display nil)
-	(when (> (- (point) start) 2)
-	  (delete-region start (1- (point)))))
-      (message "Inserting %s..." url)
-      (url-retrieve url #'shr-image-fetched
-		    (list (current-buffer) (1- (point)) (point-marker)
-			  (list (cons 'size
-				      (cond ((or (eq size 'default)
-						 (null size))
-					     'original)
-					    ((eq size 'original)
-					     'full)
-					    ((eq size 'full)
-					     'default)))))
-		    t))))
+      (unless zoom-level
+        (let ((last-zoom (get-text-property position 'image-zoom)))
+          (setq zoom-level (or (cadr (memq last-zoom shr-image-zoom-levels))
+                               (car shr-image-zoom-levels)))))
+      (let* ((end (or (next-single-property-change position 'image-url)
+                      (point-max)))
+             (start (or (previous-single-property-change end 'image-url)
+                        (point-min)))
+             (dom-size (get-text-property position 'image-dom-size))
+             (flags `( :zoom   ,zoom-level
+                       :width  ,(car dom-size)
+                       :height ,(cdr dom-size)))
+             (buffer-read-only nil))
+        ;; Delete the old picture.
+        (put-text-property start end 'display nil)
+        (message "%s" (cadr (assq zoom-level shr-image-zoom-level-alist)))
+        (if (and (not shr-ignore-cache)
+                 (url-is-cached url))
+            (shr-replace-image (shr-get-image-data url) start
+                               (set-marker (make-marker) end) flags)
+          (url-retrieve url #'shr-image-fetched
+                        `(,(current-buffer) ,start
+                          ,(set-marker (make-marker) end)
+                          ,flags)
+                        t))))))
 
 ;;; Utility functions.
 
@@ -647,7 +751,7 @@ size, and full-buffer size."
              (funcall function dom))
             (t
              (shr-generic dom)))
-      (when-let ((id (dom-attr dom 'id)))
+      (when-let* ((id (dom-attr dom 'id)))
         (push (cons id (set-marker (make-marker) start)) shr--link-targets))
       ;; If style is set, then this node has set the color.
       (when style
@@ -697,7 +801,8 @@ size, and full-buffer size."
     (replace-match " " t t)))
 
 (defun shr-insert (text)
-  (when (and (not (bolp))
+  (when (and (not shr-max-inline-image-size)
+	     (not (bolp))
 	     (get-text-property (1- (point)) 'image-url))
     (insert "\n"))
   (cond
@@ -741,8 +846,9 @@ size, and full-buffer size."
 			       (or shr-current-font 'shr-text)))))))))
 
 (defun shr-fill-lines (start end)
-  (if (<= shr-internal-width 0)
-      nil
+  "Indent and fill text from START to END.
+When `shr-fill-text' is nil, only indent."
+  (unless (<= shr-internal-width 0)
     (save-restriction
       (narrow-to-region start end)
       (goto-char start)
@@ -764,6 +870,8 @@ size, and full-buffer size."
       (forward-char 1))))
 
 (defun shr-fill-line ()
+  "Indent and fill the current line.
+When `shr-fill-text' is nil, only indent."
   (let ((shr-indentation (or (get-text-property (point) 'shr-indentation)
                              shr-indentation))
 	(continuation (get-text-property
@@ -778,9 +886,11 @@ size, and full-buffer size."
 			   `,(shr-face-background face))))
     (setq start (point))
     (setq shr-indentation (or continuation shr-indentation))
-    ;; If we have an indentation that's wider than the width we're
-    ;; trying to fill to, then just give up and don't do any filling.
-    (when (< shr-indentation shr-internal-width)
+    ;; Fill the current line, unless `shr-fill-text' is unset, or we
+    ;; have an indentation that's wider than the width we're trying to
+    ;; fill to.
+    (when (and shr-fill-text
+               (< shr-indentation shr-internal-width))
       (shr-vertical-motion shr-internal-width)
       (when (looking-at " $")
         (delete-region (point) (line-end-position)))
@@ -828,6 +938,11 @@ size, and full-buffer size."
         (when (looking-at " $")
 	  (delete-region (point) (line-end-position)))))))
 
+(defun shr-adaptive-fill-function ()
+  "Return a fill prefix for the paragraph at point."
+  (when-let* ((prefix (get-text-property (point) 'shr-prefix-length)))
+    (buffer-substring (point) (+ (point) prefix))))
+
 (defun shr-parse-base (url)
   ;; Always chop off anchors.
   (when (string-match "#.*" url)
@@ -835,7 +950,7 @@ size, and full-buffer size."
   ;; NB: <base href=""> URI may itself be relative to the document's URI.
   (setq url (shr-expand-url url))
   (let* ((parsed (url-generic-parse-url url))
-	 (local (url-filename parsed)))
+	 (local (or (url-filename parsed) "")))
     (setf (url-filename parsed) "")
     ;; Chop off the bit after the last slash.
     (when (string-match "\\`\\(.*/\\)[^/]+\\'" local)
@@ -931,11 +1046,24 @@ size, and full-buffer size."
 
 (defun shr-indent ()
   (when (> shr-indentation 0)
-    (if (not shr-use-fonts)
-        (insert-char ?\s shr-indentation)
-      (insert ?\s)
-      (put-text-property (1- (point)) (point)
-                         'display `(space :width (,shr-indentation))))))
+    (let ((start (point))
+          (prefix (or (get-text-property (point) 'shr-prefix-length) 0)))
+      (if (not shr-use-fonts)
+          (insert-char ?\s shr-indentation)
+        (insert ?\s)
+        ;; Set the specified space width in units of the average-width
+        ;; of the current font, like (N . width).  That way, the
+        ;; indentation is calculated correctly when using
+        ;; `text-scale-adjust'.
+        (let ((avg-space (propertize (buffer-substring (1- (point)) (point))
+                                     'display '(space :width 1))))
+          (put-text-property
+           (1- (point)) (point) 'display
+           `(space :width (,(/ (float shr-indentation)
+                               (string-pixel-width avg-space (current-buffer)))
+                           . width)))))
+      (put-text-property start (+ (point) prefix)
+                         'shr-prefix-length (+ prefix (- (point) start))))))
 
 (defun shr-fontize-dom (dom &rest types)
   (let ((start (point)))
@@ -1004,6 +1132,25 @@ the mouse click event."
 		    (expand-file-name (file-name-nondirectory url)
 				      directory)))))
 
+(defun shr-replace-image (data start end &optional flags)
+  (save-excursion
+    (save-restriction
+      (widen)
+      (let ((alt (buffer-substring start end))
+	    (properties (text-properties-at start))
+            ;; We don't want to record these changes.
+            (buffer-undo-list t)
+	    (inhibit-read-only t))
+        (remove-overlays start end)
+	(delete-region start end)
+	(goto-char start)
+	(funcall shr-put-image-function data alt flags)
+	(while properties
+	  (let ((type (pop properties))
+		(value (pop properties)))
+	    (unless (memq type '(display image-zoom))
+	      (put-text-property start (point) type value))))))))
+
 (defun shr-image-fetched (status buffer start end &optional flags)
   (let ((image-buffer (current-buffer)))
     (when (and (buffer-name buffer)
@@ -1014,22 +1161,7 @@ the mouse click event."
 		(search-forward "\r\n\r\n" nil t))
 	(let ((data (shr-parse-image-data)))
 	  (with-current-buffer buffer
-	    (save-excursion
-	      (save-restriction
-		(widen)
-		(let ((alt (buffer-substring start end))
-		      (properties (text-properties-at start))
-                      ;; We don't want to record these changes.
-                      (buffer-undo-list t)
-		      (inhibit-read-only t))
-		  (delete-region start end)
-		  (goto-char start)
-		  (funcall shr-put-image-function data alt flags)
-		  (while properties
-		    (let ((type (pop properties))
-			  (value (pop properties)))
-		      (unless (memq type '(display image-size))
-			(put-text-property start (point) type value)))))))))))
+	    (shr-replace-image data start end flags)))))
     (kill-buffer image-buffer)))
 
 (defun shr-image-from-data (data)
@@ -1049,49 +1181,88 @@ the mouse click event."
 (declare-function image-size "image.c" (spec &optional pixels frame))
 (declare-function image-animate "image" (image &optional index limit position))
 
+(defun shr--inline-image-p (image)
+  "Return non-nil if IMAGE should be displayed inline."
+  (when shr-max-inline-image-size
+    (let ((size (image-size image t))
+	  (max-width (car shr-max-inline-image-size))
+	  (max-height (cdr shr-max-inline-image-size)))
+      (unless (integerp max-width)
+	(setq max-width (* max-width (window-width nil t))))
+      (unless (integerp max-height)
+	(setq max-height (* max-height (frame-char-height))))
+      (and (< (car size) max-width)
+	   (< (cdr size) max-height)))))
+
 (defun shr-put-image (spec alt &optional flags)
   "Insert image SPEC with a string ALT.  Return image.
 SPEC is either an image data blob, or a list where the first
-element is the data blob and the second element is the content-type."
+element is the data blob and the second element is the content-type.
+
+FLAGS is a property list specifying optional parameters for the image.
+You can specify the following optional properties:
+
+* `:zoom': The zoom level for the image.  One of `default', `original',
+  or `full'.
+* `:width': The width of the image as specified by the HTML \"width\"
+  attribute.
+* `:height': The height of the image as specified by the HTML
+  \"height\" attribute."
   (if (display-graphic-p)
-      (let* ((size (cdr (assq 'size flags)))
+      (let* ((zoom (or (plist-get flags :zoom)
+                       (car shr-image-zoom-levels)))
+             (zoom-function (or (nth 2 (assq zoom shr-image-zoom-level-alist))
+                                (error "Unrecognized zoom level %s" zoom)))
 	     (data (if (consp spec)
 		       (car spec)
 		     spec))
 	     (content-type (and (consp spec)
 				(cadr spec)))
 	     (start (point))
-	     (image (cond
-		     ((eq size 'original)
-		      (create-image data nil t :ascent 100
-				    :format content-type))
-		     ((eq content-type 'image/svg+xml)
-                      (when (image-type-available-p 'svg)
-		        (create-image data 'svg t :ascent 100)))
-		     ((eq size 'full)
-		      (ignore-errors
-			(shr-rescale-image data content-type
-                                           (plist-get flags :width)
-                                           (plist-get flags :height))))
-		     (t
-		      (ignore-errors
-			(shr-rescale-image data content-type
-                                           (plist-get flags :width)
-                                           (plist-get flags :height)))))))
+	     (image (ignore-errors
+                      (funcall zoom-function data content-type
+                               (plist-get flags :width)
+                               (plist-get flags :height)))))
         (when image
+          ;; The trailing space can confuse shr-insert into not
+          ;; putting any space after inline images.
+          ;; ALT may be nil when visiting image URLs in eww
+          ;; (bug#67764).
+          (setq alt (string-trim (or alt "")))
+          (when (length= alt 0) (setq alt "*"))
 	  ;; When inserting big-ish pictures, put them at the
 	  ;; beginning of the line.
-	  (when (and (> (current-column) 0)
-		     (> (car (image-size image t)) 400))
-	    (insert "\n"))
-          (let ((image-pos (point)))
-	    (if (eq size 'original)
-	        (insert-sliced-image image (or alt "*") nil 20 1)
-	      (insert-image image (or alt "*")))
-	    (put-text-property start (point) 'image-size size)
-	    (when (and shr-image-animate
-                       (cdr (image-multi-frame-p image)))
-              (image-animate image nil 60 image-pos))))
+	  (let ((inline (shr--inline-image-p image)))
+	    (when (and (> (current-column) 0)
+		     (not inline))
+		(insert "\n"))
+	    (let ((image-pos (point))
+                  image-height body-height)
+	      (if (and shr-sliced-image-height
+                       (setq image-height (cdr (image-size image t))
+                             body-height (window-body-height
+                                          (get-buffer-window (current-buffer))
+                                          t))
+                       (> (/ image-height body-height 1.0)
+                          shr-sliced-image-height))
+                  ;; Normally, we try to keep the buffer text the same
+                  ;; by preserving ALT.  With a sliced image, we have to
+                  ;; repeat the text for each line, so we can't do that.
+                  ;; Just use "*" for the string to insert instead.
+                  (progn
+                    (insert-sliced-image
+                     image "*" nil (/ image-height (default-line-height)) 1)
+                    (let ((overlay (make-overlay start (point))))
+                      ;; Avoid displaying unsightly decorations on the
+                      ;; image slices.
+                      (overlay-put overlay 'face 'shr-sliced-image)))
+		(insert-image image alt))
+	      (put-text-property start (point) 'image-zoom zoom)
+	      (when (and (not inline) shr-max-inline-image-size)
+		(insert "\n"))
+	      (when (and shr-image-animate
+			 (cdr (image-multi-frame-p image)))
+		(image-animate image nil 60 image-pos)))))
 	image)
     (insert (or alt ""))))
 
@@ -1114,7 +1285,7 @@ The size of the displayed image will not exceed
 MAX-WIDTH/MAX-HEIGHT.  If not given, use the current window
 width/height instead."
   (if (not (get-buffer-window (current-buffer) t))
-      (create-image data nil t :ascent 100)
+      (create-image data nil t :ascent shr-image-ascent)
     (let* ((edges (window-inside-pixel-edges
                    (get-buffer-window (current-buffer))))
            (max-width (truncate (* shr-max-image-proportion
@@ -1124,27 +1295,33 @@ width/height instead."
                                     (or max-height
                                         (- (nth 3 edges) (nth 1 edges))))))
            (scaling (image-compute-scaling-factor image-scaling-factor)))
-      (when (or (and width
-                     (> width max-width))
-                (and height
-                     (> height max-height)))
-        (setq width nil
-              height nil))
-      (if (and width height
-               (< (* width scaling) max-width)
-               (< (* height scaling) max-height))
-          (create-image
-           data (shr--image-type) t
-           :ascent 100
-           :width width
-           :height height
-           :format content-type)
-        (create-image
-         data (shr--image-type) t
-         :ascent 100
-         :max-width max-width
-         :max-height max-height
-         :format content-type)))))
+      (when (and width (> (* width scaling) max-width))
+        (setq width nil))
+      (when (and height (> (* height scaling) max-height))
+        (setq height nil))
+      (create-image
+       data (shr--image-type) t
+       :ascent shr-image-ascent
+       :width width
+       :height height
+       :max-width max-width
+       :max-height max-height
+       :format content-type))))
+
+(defun shr--image-zoom-original-size (data content-type width height)
+  (create-image data (shr--image-type) t :ascent shr-image-ascent
+                :width width :height height :format content-type))
+
+(defun shr--image-zoom-image-size (data content-type _width _height)
+  (create-image data nil t :ascent shr-image-ascent :format content-type))
+
+(defun shr--image-zoom-fill-height (data content-type _width _height)
+  (let* ((edges (window-inside-pixel-edges
+                 (get-buffer-window (current-buffer))))
+         (height (truncate (* shr-max-image-proportion
+                              (- (nth 3 edges) (nth 1 edges))))))
+    (create-image data (shr--image-type) t :ascent shr-image-ascent
+                  :height height :format content-type)))
 
 ;; url-cache-extract autoloads url-cache.
 (declare-function url-cache-create-filename "url-cache" (url))
@@ -1210,7 +1387,11 @@ START, and END.  Note that START and END should be markers."
 
 (defun shr-heading (dom &rest types)
   (shr-ensure-paragraph)
-  (apply #'shr-fontize-dom dom types)
+  (let ((start (point))
+	(level (string-to-number
+		(string-remove-prefix "shr-h" (symbol-name (car types))))))
+   (apply #'shr-fontize-dom dom types)
+   (put-text-property start (pos-eol) 'outline-level level))
   (shr-ensure-paragraph))
 
 (defun shr-urlify (start url &optional title)
@@ -1369,25 +1550,105 @@ ones, in case fg and bg are nil."
 	(shr-dom-print elem)))))
   (insert (format "</%s>" (dom-tag dom))))
 
+(defconst shr-correct-attribute-case
+  '((attributename . attributeName)
+    (attributetype . attributeType)
+    (basefrequency . baseFrequency)
+    (baseprofile . baseProfile)
+    (calcmode . calcMode)
+    (clippathunits . clipPathUnits)
+    (diffuseconstant . diffuseConstant)
+    (edgemode . edgeMode)
+    (filterunits . filterUnits)
+    (glyphref . glyphRef)
+    (gradienttransform . gradientTransform)
+    (gradientunits . gradientUnits)
+    (kernelmatrix . kernelMatrix)
+    (kernelunitlength . kernelUnitLength)
+    (keypoints . keyPoints)
+    (keysplines . keySplines)
+    (keytimes . keyTimes)
+    (lengthadjust . lengthAdjust)
+    (limitingconeangle . limitingConeAngle)
+    (markerheight . markerHeight)
+    (markerunits . markerUnits)
+    (markerwidth . markerWidth)
+    (maskcontentunits . maskContentUnits)
+    (maskunits . maskUnits)
+    (numoctaves . numOctaves)
+    (pathlength . pathLength)
+    (patterncontentunits . patternContentUnits)
+    (patterntransform . patternTransform)
+    (patternunits . patternUnits)
+    (pointsatx . pointsAtX)
+    (pointsaty . pointsAtY)
+    (pointsatz . pointsAtZ)
+    (preservealpha . preserveAlpha)
+    (preserveaspectratio . preserveAspectRatio)
+    (primitiveunits . primitiveUnits)
+    (refx . refX)
+    (refy . refY)
+    (repeatcount . repeatCount)
+    (repeatdur . repeatDur)
+    (requiredextensions . requiredExtensions)
+    (requiredfeatures . requiredFeatures)
+    (specularconstant . specularConstant)
+    (specularexponent . specularExponent)
+    (spreadmethod . spreadMethod)
+    (startoffset . startOffset)
+    (stddeviation . stdDeviation)
+    (stitchtiles . stitchTiles)
+    (surfacescale . surfaceScale)
+    (systemlanguage . systemLanguage)
+    (tablevalues . tableValues)
+    (targetx . targetX)
+    (targety . targetY)
+    (textlength . textLength)
+    (viewbox . viewBox)
+    (viewtarget . viewTarget)
+    (xchannelselector . xChannelSelector)
+    (ychannelselector . yChannelSelector)
+    (zoomandpan . zoomAndPan))
+  "Attributes for correcting the case in SVG and MathML.
+Based on https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inforeign .")
+
+(defun shr-correct-dom-case (dom)
+  "Correct the case for SVG segments."
+  (dolist (attr (dom-attributes dom))
+    (when-let* ((rep (assoc-default (car attr) shr-correct-attribute-case)))
+      (setcar attr rep)))
+  (dolist (child (dom-children dom))
+    (when (consp child)
+      (shr-correct-dom-case child)))
+  dom)
+
 (defun shr-tag-svg (dom)
   (when (and (image-type-available-p 'svg)
 	     (not shr-inhibit-images)
              (dom-attr dom 'width)
              (dom-attr dom 'height))
-    (funcall shr-put-image-function (list (shr-dom-to-xml dom 'utf-8)
-                                          'image/svg+xml)
+    (funcall shr-put-image-function
+	     (list (shr-dom-to-xml (shr-correct-dom-case dom) 'utf-8)
+                   'image/svg+xml)
 	     "SVG Image")))
 
 (defun shr-tag-sup (dom)
   (let ((start (point)))
     (shr-generic dom)
-    (put-text-property start (point) 'display '(raise 0.2))
+    (put-text-property start (point) 'display `(raise ,shr-sup-raise-factor))
     (add-face-text-property start (point) 'shr-sup)))
 
 (defun shr-tag-sub (dom)
+  ;; Why would a subscript be at the beginning of a line?  It does
+  ;; happen sometimes because of a <br> tag and the intent seems to be
+  ;; alignment of subscript and superscript but I don't think that is
+  ;; possible in Emacs.  So we remove the newline in that case.
+  (when (bolp)
+    (forward-char -1)
+    (delete-char 1))
   (let ((start (point)))
     (shr-generic dom)
-    (put-text-property start (point) 'display '(raise -0.2))
+    (put-text-property start (point) 'display `(raise ,shr-sub-raise-factor))
     (add-face-text-property start (point) 'shr-sup)))
 
 (defun shr-tag-p (dom)
@@ -1495,13 +1756,13 @@ ones, in case fg and bg are nil."
                   (funcall shr-url-transformer (shr-expand-url url))
                   title)
       ;; Check whether the URL is suspicious.
-      (when-let ((warning (or (textsec-suspicious-p
-                               (shr-expand-url url) 'url)
-                              (textsec-suspicious-p
-                               (cons (shr-expand-url url)
-                                     (buffer-substring (or shr-start start)
-                                                       (point)))
-                               'link))))
+      (when-let* ((warning (or (textsec-suspicious-p
+                                (shr-expand-url url) 'url)
+                               (textsec-suspicious-p
+                                (cons (shr-expand-url url)
+                                      (buffer-substring (or shr-start start)
+                                                        (point)))
+                                'link))))
         (add-text-properties (or shr-start start) (point)
                              (list 'face '(shr-link textsec-suspicious)))
         (insert (propertize "⚠️" 'help-echo warning))))))
@@ -1652,7 +1913,8 @@ The preference is a float determined from `shr-prefer-media-type'."
 	    (and dom
 		 (or (> (length (dom-attr dom 'src)) 0)
                      (> (length (dom-attr dom 'srcset)) 0))))
-    (when (> (current-column) 0)
+    (when (and (not shr-max-inline-image-size)
+	       (> (current-column) 0))
       (insert "\n"))
     (let ((alt (dom-attr dom 'alt))
           (width (shr-string-number (dom-attr dom 'width)))
@@ -1700,11 +1962,12 @@ The preference is a float determined from `shr-prefer-media-type'."
 	    (let ((file (url-cache-create-filename url)))
 	      (when (file-exists-p file)
 		(delete-file file))))
-          (when (image-type-available-p 'svg)
-            (insert-image
-             (shr-make-placeholder-image dom)
-             (or alt "")))
-          (insert " ")
+          (if (image-type-available-p 'svg)
+              (insert-image
+               (shr-make-placeholder-image dom)
+               (or (string-trim alt) ""))
+            ;; No SVG support.  Just use a space as our placeholder.
+            (insert " "))
 	  (url-queue-retrieve
            url #'shr-image-fetched
 	   (list (current-buffer) start (set-marker (make-marker) (point))
@@ -1715,6 +1978,7 @@ The preference is a float determined from `shr-prefer-media-type'."
 	  (put-text-property start (point) 'keymap shr-image-map)
 	  (put-text-property start (point) 'shr-alt alt)
 	  (put-text-property start (point) 'image-url url)
+	  (put-text-property start (point) 'image-dom-size (cons width height))
 	  (put-text-property start (point) 'image-displayer
 			     (shr-image-displayer shr-content-function))
 	  (put-text-property start (point) 'help-echo
@@ -1840,7 +2104,7 @@ BASE is the URL of the HTML being rendered."
     (svg-rectangle svg 0 0 width height :gradient "background"
                    :stroke-width 2 :stroke-color "black")
     (let ((image (svg-image svg :scale 1)))
-      (setf (image-property image :ascent) 100)
+      (setf (image-property image :ascent) shr-image-ascent)
       image)))
 
 (defun shr-tag-pre (dom)
@@ -2000,6 +2264,53 @@ BASE is the URL of the HTML being rendered."
   (shr-generic dom)
   (insert ?\N{POP DIRECTIONAL ISOLATE}))
 
+(defun shr-tag-math (dom)
+  ;; Sometimes a math element contains a plain text annotation
+  ;; (typically TeX notation) in addition to MathML markup.  If we pass
+  ;; that to `dom-generic', the formula is printed twice.  So we select
+  ;; only the annotation if available.
+  (shr-generic
+   (thread-first
+     dom
+     (dom-child-by-tag 'semantics)
+     (dom-child-by-tag 'annotation)
+     (or dom))))
+
+;;; Outline Support
+(defun shr-outline-search (&optional bound move backward looking-at)
+  "A function that can be used as `outline-search-function' for rendered html.
+See `outline-search-function' for BOUND, MOVE, BACKWARD and LOOKING-AT."
+  (if looking-at
+      (get-text-property (point) 'outline-level)
+    (let ((heading-found nil)
+	  (bound (or bound
+		     (if backward (point-min) (point-max)))))
+      (save-excursion
+	(when (and (not (bolp))
+		   (get-text-property (point) 'outline-level))
+	  (forward-line (if backward -1 1)))
+	(if backward
+	    (unless (get-text-property (point) 'outline-level)
+	      (goto-char (or (previous-single-property-change
+			      (point) 'outline-level nil bound)
+			     bound)))
+	  (goto-char (or (text-property-not-all (point) bound 'outline-level nil)
+			 bound)))
+	(goto-char (pos-bol))
+	(when (get-text-property (point) 'outline-level)
+	  (setq heading-found (point))))
+      (if heading-found
+	  (progn
+	    (set-match-data (list heading-found heading-found))
+	    (goto-char heading-found))
+	(when move
+	  (goto-char bound)
+	  nil)))))
+
+(defun shr-outline-level ()
+  "Function to be used as `outline-level' with `shr-outline-search'."
+  (get-text-property (point) 'outline-level))
+
 ;;; Table rendering algorithm.
 
 ;; Table rendering is the only complicated thing here.  We do this by
@@ -2056,8 +2367,9 @@ BASE is the URL of the HTML being rendered."
 (defun shr--fix-tbody (tbody)
   (nconc (list 'tbody (dom-attributes tbody))
          (cl-loop for child in (dom-children tbody)
-                  collect (if (or (stringp child)
-                                  (not (eq (dom-tag child) 'tr)))
+		  for tag = (and (not (stringp child)) (dom-tag child))
+		  unless (or (eq tag 'thead) (eq tag 'tfoot))
+		  collect (if (not (eq tag 'tr))
                               (list 'tr nil (list 'td nil child))
                             child))))
 
@@ -2617,11 +2929,12 @@ flags that control whether to collect or render objects."
     columns))
 
 (defun shr-count (dom elem)
+  ;; This is faster than `seq-count', and shr can use it.
   (let ((i 0))
     (dolist (sub (dom-children dom))
       (when (and (not (stringp sub))
-		 (eq (dom-tag sub) elem))
-	(setq i (1+ i))))
+                 (eq (dom-tag sub) elem))
+        (setq i (1+ i))))
     i))
 
 (defun shr-max-columns (dom)

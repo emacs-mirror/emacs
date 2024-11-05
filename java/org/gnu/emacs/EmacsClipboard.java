@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
+import android.content.res.AssetFileDescriptor;
 import android.os.Build;
 
 /* This class provides helper code for accessing the clipboard,
@@ -26,13 +27,13 @@ import android.os.Build;
 
 public abstract class EmacsClipboard
 {
-  public abstract void setClipboard (byte[] bytes);
+  public abstract void setClipboard (String string);
   public abstract int ownsClipboard ();
   public abstract boolean clipboardExists ();
-  public abstract byte[] getClipboard ();
+  public abstract String getClipboard ();
 
-  public abstract byte[][] getClipboardTargets ();
-  public abstract long[] getClipboardData (byte[] target);
+  public abstract String[] getClipboardTargets ();
+  public abstract AssetFileDescriptor getClipboardData (String target);
 
   /* Create the correct kind of clipboard for this system.  */
 

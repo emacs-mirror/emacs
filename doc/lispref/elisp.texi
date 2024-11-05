@@ -99,7 +99,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifclear
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990--1996, 1998--2023 Free Software Foundation,
+Copyright @copyright{} 1990--1996, 1998--2024 Free Software Foundation,
 Inc.
 
 @quotation
@@ -140,8 +140,8 @@ developing GNU and promoting software freedom.''
 
 @sp 2
 Published by the Free Software Foundation @*
-51 Franklin St, Fifth Floor @*
-Boston, MA 02110-1301 @*
+31 Milk Street, # 960789 @*
+Boston, MA 02196 @*
 USA @*
 ISBN 1-882114-74-4
 
@@ -222,6 +222,7 @@ To view this manual in other formats, click
 * Non-ASCII Characters::    Non-ASCII text in buffers and strings.
 * Searching and Matching::  Searching buffers for strings or regexps.
 * Syntax Tables::           The syntax table controls word and list parsing.
+* Parsing Expression Grammars:: Parsing structured buffer text.
 * Parsing Program Source::  Generate syntax tree for program sources.
 * Abbrevs::                 How Abbrev mode works, and its data structures.
 
@@ -235,7 +236,7 @@ To view this manual in other formats, click
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 28.
+* Antinews::                Info for users downgrading to Emacs 29.
 * GNU Free Documentation License:: The license for this documentation.
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
@@ -300,6 +301,7 @@ Lisp Data Types
 * Type Predicates::         Tests related to types.
 * Equality Predicates::     Tests of equality between any two objects.
 * Mutability::              Some objects should not be modified.
+* Type Hierarchy::          Type Hierarchy of Emacs Lisp objects.
 
 Programming Types
 
@@ -321,7 +323,7 @@ Programming Types
 * Macro Type::          A method of expanding an expression into another
                           expression, more fundamental but less pretty.
 * Primitive Function Type::     A function written in C, callable from Lisp.
-* Byte-Code Type::      A function written in Lisp, then compiled.
+* Closure Type::        A function written in Lisp, then compiled.
 * Record Type::         Compound objects with programmer-defined types.
 * Type Descriptors::    Objects holding information about types.
 * Autoload Type::       A type used for automatically loading seldom-used
@@ -534,10 +536,10 @@ Variables
 
 Scoping Rules for Variable Bindings
 
-* Dynamic Binding::         The default for binding local variables in Emacs.
+* Lexical Binding::         The standard type of local variable binding.
+* Dynamic Binding::         A different type of local variable binding.
 * Dynamic Binding Tips::    Avoiding problems with dynamic binding.
-* Lexical Binding::         A different type of local variable binding.
-* Using Lexical Binding::   How to enable lexical binding.
+* Selecting Lisp Dialect::   How to select the Emacs Lisp dialect to use.
 * Converting to Lexical Binding:: Convert existing code to lexical binding.
 
 Buffer-Local Variables
@@ -653,10 +655,9 @@ Byte Compilation
 * Speed of Byte-Code::      An example of speedup from byte compilation.
 * Compilation Functions::   Byte compilation functions.
 * Docs and Compilation::    Dynamic loading of documentation strings.
-* Dynamic Loading::         Dynamic loading of individual functions.
 * Eval During Compile::     Code to be evaluated when you compile.
 * Compiler Errors::         Handling compiler error messages.
-* Byte-Code Objects::       The data type used for byte-compiled functions.
+* Closure Objects::         The data type used for byte-compiled functions.
 * Disassembly::             Disassembling byte-code; how to read byte-code.
 
 Native Compilation
@@ -884,6 +885,7 @@ Major and Minor Modes
 * Minor Modes::        Defining minor modes.
 * Mode Line Format::   Customizing the text that appears in the mode line.
 * Imenu::              Providing a menu of definitions made in a buffer.
+* Outline Minor Mode:: Outline mode to use with other major modes.
 * Font Lock Mode::     How modes can highlight text according to syntax.
 * Auto-Indentation::   How to teach Emacs to indent for a major mode.
 * Desktop Save Mode::  How modes can have buffer state saved between
@@ -923,6 +925,7 @@ Mode Line Format
 * %-Constructs::            Putting information into a mode line.
 * Properties in Mode::      Using text properties in the mode line.
 * Header Lines::            Like a mode line, but at the top.
+* Tab Lines::               A line that is above the header line.
 * Emulating Mode Line::     Formatting text as the mode line would.
 
 Font Lock Mode
@@ -1364,6 +1367,12 @@ Syntax Tables
 * Syntax Table Internals::  How syntax table information is stored.
 * Categories::              Another way of classifying character syntax.
 
+Parsing Expression Grammars
+
+* PEX Definitions::         The syntax of PEX rules
+* Parsing Actions::         Running actions upon successful parsing.
+* Writing PEG Rules::       Tips for writing parsing rules.
+
 Parsing Program Source
 
 * Language Grammar::         Loading tree-sitter language grammar.
@@ -1719,6 +1728,7 @@ Object Internals
 
 @include searching.texi
 @include syntax.texi
+@include peg.texi
 @include parsing.texi
 @include abbrevs.texi
 @include threads.texi

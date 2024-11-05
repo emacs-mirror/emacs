@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -154,7 +154,7 @@ If this variable is nil, no such courtesy message will be added."
   :type '(radio string (const nil)))
 
 (defcustom message-ignored-bounced-headers
-  "^\\(Received\\|Return-Path\\|Delivered-To\\):"
+  "^\\(Received\\|Return-Path\\|Delivered-To\\|DKIM-Signature\\|X-Hashcash\\):"
   "Regexp that matches headers to be removed in resent bounced mail."
   :group 'message-interface
   :type 'regexp)
@@ -747,16 +747,14 @@ default is system dependent and determined by the function
 `message-send-mail-function'.
 
 See also `send-mail-function'."
-  :type '(radio (function-item message--default-send-mail-function
-		               :tag "Use send-mail-function")
+  :type '(radio (function-item message--default-send-mail-function)
 		(function-item message-send-mail-with-sendmail)
 		(function-item message-send-mail-with-mh)
 		(function-item message-send-mail-with-qmail)
 		(function-item message-smtpmail-send-it)
-		(function-item smtpmail-send-it)
+                (function-item :doc "Use SMTPmail package." smtpmail-send-it)
 		(function-item feedmail-send-it)
-		(function-item message-send-mail-with-mailclient
-			       :tag "Use Mailclient package")
+                (function-item message-send-mail-with-mailclient)
  		(function :tag "Other"))
   :group 'message-sending
   :version "27.1"
@@ -911,8 +909,10 @@ installations, which are rare these days."
 (defcustom message-sendmail-envelope-from
   'obey-mail-envelope-from
   "Envelope-from when sending mail with sendmail.
-If this is nil, use `user-mail-address'.  If it is the symbol
-`header', use the From: header of the message."
+If this is `obey-mail-envelope-from', then use
+`mail-envelope-from' to decide what to do.  If it is nil, use
+`user-mail-address'.  If it is the symbol `header', use the
+\"From:\" header of the message."
   :version "27.1"
   :type '(choice (string :tag "From name")
 		 (const :tag "Use From: header from message" header)
@@ -1145,7 +1145,8 @@ Note that these functions use `mail-citation-hook' if that is non-nil."
 This can also be a list of functions.  Each function can find the
 citation between (point) and (mark t).  And each function should leave
 point and mark around the citation text as modified."
-  :type 'function
+  :type '(choice function
+                 (repeat function))
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
@@ -1406,8 +1407,9 @@ This can also be a list of values."
   :group 'message
   :link '(custom-manual "(message)Mail Aliases")
   :type '(choice (const :tag "Use Mailabbrev" abbrev)
-		 (const :tag "Use ecomplete" ecomplete)
-		 (const :tag "No expansion" nil)))
+                 (const :tag "Use ecomplete" ecomplete)
+                 (set (const :tag "Use Mailabbrev" abbrev)
+                      (const :tag "Use ecomplete" ecomplete))))
 
 (defcustom message-self-insert-commands '(self-insert-command)
   "List of `self-insert-command's used to trigger ecomplete.
@@ -1451,8 +1453,9 @@ If a function email is passed as the argument."
   :group 'message
   :link '(custom-manual "(message)Wide Reply")
   :type '(choice (const :tag "Yourself" nil)
-		 regexp
-		 (repeat :tag "Regexp List" regexp)))
+                 regexp
+                 (repeat :tag "Regexp List" regexp)
+                 function))
 
 (defsubst message-dont-reply-to-names ()
   (if (functionp message-dont-reply-to-names)
@@ -1873,9 +1876,13 @@ downcased."
   :type '(repeat (repeat string)))
 
 (defcustom message-mail-user-agent nil
-  "Like `mail-user-agent'.
-Except if it is nil, use Gnus native MUA; if it is t, use
-`mail-user-agent'."
+  "Your preferred package for composing and sending email when using message.el.
+Like `mail-user-agent' (which see), this specifies the package you prefer
+to use for composing and sending email messages.
+The value can be anything accepted by `mail-user-agent', and in addition
+it can be nil or t.  If the value is nil, use the Gnus native Mail User
+Agent (MUA); if it is t, use the value of `mail-user-agent'.
+For more about mail user agents, see Info node `(emacs)Mail Methods'"
   :version "22.1"
   :type '(radio (const :tag "Gnus native"
 		       :format "%t\n"
@@ -2838,11 +2845,11 @@ will not be inserted."
 			(const :tag "No ID" nil))
 		(choice (string :tag "Key")
 			(const :tag "No Key" nil))
-		(choice (other :tag "None" nil)
-			(const :tag "Unprotected" "unprotected")
+                (choice (const :tag "Unprotected" "unprotected")
 			(const :tag "Sign" "sign")
 			(const :tag "Encrypt" "encrypt")
-			(const :tag "Sign and Encrypt" "signencrypt"))))
+                        (const :tag "Sign and Encrypt" "signencrypt")
+                        (other :tag "None" nil))))
   :version "28.1")
 
 (defun message-add-openpgp-header ()
@@ -4927,8 +4934,8 @@ If you always want Gnus to send messages in one piece, set
               (let ((addr (message-fetch-field hdr)))
 	        (when (stringp addr)
 	          (dolist (address (mail-header-parse-addresses addr t))
-	            (when-let ((warning (textsec-suspicious-p
-                                         address 'email-address-header)))
+	            (when-let* ((warning (textsec-suspicious-p
+                                          address 'email-address-header)))
 	              (unless (y-or-n-p
 		               (format "Suspicious address: %s; send anyway?"
                                        warning))
@@ -5761,8 +5768,10 @@ The result is a fixnum."
       (with-temp-buffer
 	(insert-buffer-substring buf)
 	(message-clone-locals buf)
-	;; Avoid re-doing things like GPG-encoding secret parts.
-	(if (not encoded-cache)
+	;; Avoid re-doing things like GPG-encoding secret parts, unless
+	;; the user has requested that attachments be externalized, in
+	;; which case we have to re-encode the message body.
+	(if (or mml-externalize-attachments (not encoded-cache))
 	    (message-encode-message-body)
 	  (erase-buffer)
 	  (insert encoded-cache))
@@ -6243,8 +6252,7 @@ subscribed address (and not the additional To and Cc header contents)."
 	    (widen)))))))
 
 (defun message-idna-to-ascii-rhs ()
-  "Possibly IDNA encode non-ASCII domain names in From:, To: and Cc: headers.
-See `message-idna-encode'."
+  "Possibly IDNA encode non-ASCII domain names in From:, To: and Cc: headers."
   (interactive nil message-mode)
   (when message-use-idna
     (save-excursion
@@ -6593,12 +6601,11 @@ they are."
     (widen)
     (forward-line 1)
     (unless (looking-at "$")
-      (forward-line 2)))
-   (sit-for 0)))
+      (forward-line 2))))
+  (sit-for 0))
 
 (defcustom message-beginning-of-line t
-  "Whether \\<message-mode-map>\\[message-beginning-of-line]\
- goes to beginning of header values."
+  "Whether \\<message-mode-map>\\[message-beginning-of-line] goes to beginning of header values."
   :version "22.1"
   :group 'message-buffers
   :link '(custom-manual "(message)Movement")
@@ -6660,7 +6667,7 @@ beginning of line.
 When called without a prefix argument, header value spanning
 multiple lines is treated as a single line.  Otherwise, even if
 N is 1, when point is on a continuation header line, it will be
-moved to the beginning "
+moved to the beginning."
   (interactive "^p" message-mode)
   (cond
    ;; Go to beginning of header or beginning of line.
@@ -7707,10 +7714,7 @@ the message."
 		""))
 	(when message-wash-forwarded-subjects
 	  (setq subject (message-wash-subject subject)))
-	;; Make sure funcs is a list.
-	(and funcs
-	     (not (listp funcs))
-	     (setq funcs (list funcs)))
+        (setq funcs (ensure-list funcs))
 	;; Apply funcs in order, passing subject generated by previous
 	;; func to the next one.
 	(dolist (func funcs)
@@ -8211,7 +8215,6 @@ which specify the range to operate on."
 It can be either a list or a symbol referring to a list.  See
 `gmm-tool-bar-from-list' for the format of the list.  The
 default key map is `message-mode-map'."
-  :type '(repeat gmm-tool-bar-list-item)
   :type '(choice (repeat :tag "User defined list" gmm-tool-bar-item)
 		 (symbol))
   :version "29.1"
@@ -8609,7 +8612,6 @@ From headers in the original article."
   (let ((regexps (if (stringp message-hidden-headers)
 		     (list message-hidden-headers)
 		   message-hidden-headers))
-	(inhibit-modification-hooks t)
 	end-of-headers)
     (when regexps
       (save-excursion
@@ -8975,32 +8977,61 @@ used to take the screenshot."
     retval))
 
 ;;;###autoload
-(defun message-mailto (&optional url)
+(defun message-mailto (&optional url subject body file-attachments)
   "Command to parse command line mailto: links.
 This is meant to be used for MIME handlers: Setting the handler
 for \"x-scheme-handler/mailto;\" to \"emacs -f message-mailto %u\"
 will then start up Emacs ready to compose mail.  For emacsclient use
-  emacsclient -e \\='(message-mailto \"%u\")'"
+  emacsclient -e \\='(message-mailto \"%u\")'
+
+To facilitate the use of this function within window systems that
+provide message subject, body and attachments independent of URL
+itself, the arguments SUBJECT, BODY and FILE-ATTACHMENTS may also
+provide alternative message subject and body text, which is
+inserted in lieu of nothing if URL does not incorporate such
+information itself, and a list of files to insert as attachments
+to the E-mail."
   (interactive)
   ;; <a href="mailto:someone@example.com?subject=This%20is%20the%20subject&cc=someone_else@example.com&body=This%20is%20the%20body">Send email</a>
   (message-mail)
-  (message-mailto-1 (or url (pop command-line-args-left))))
+  (message-mailto-1 (or url (pop command-line-args-left))
+                    subject body file-attachments))
 
-(defun message-mailto-1 (url)
-  (let ((args (message-parse-mailto-url url)))
+(defun message-mailto-1 (url &optional subject body file-attachments)
+  (let ((args (message-parse-mailto-url url))
+        (need-body nil) (need-subject nil))
     (dolist (arg args)
       (unless (equal (car arg) "body")
 	(message-position-on-field (capitalize (car arg)))
 	(insert (string-replace
 		 "\r\n" "\n"
 		 (mapconcat #'identity (reverse (cdr arg)) ", ")))))
-    (when (assoc "body" args)
-      (message-goto-body)
-      (dolist (body (cdr (assoc "body" args)))
-	(insert body "\n")))
+    (if (assoc "body" args)
+        (progn
+          (message-goto-body)
+          (dolist (body (cdr (assoc "body" args)))
+	    (insert body "\n")))
+
+      (setq need-body t))
     (if (assoc "subject" args)
 	(message-goto-body)
-      (message-goto-subject))))
+      (setq need-subject t)
+      (message-goto-subject))
+    ;; If either one of need-subject and need-body is non-nil then
+    ;; attempt to insert the absent information from an external
+    ;; SUBJECT or BODY.
+    (when (or need-body need-subject)
+      (when (and need-body body)
+        (message-goto-body)
+        (insert body))
+      (when (and need-subject subject)
+        (message-goto-subject)
+        (insert subject)
+        (message-goto-body)))
+    ;; Subsequently insert each attachment enumerated within
+    ;; FILE-ATTACHMENTS.
+    (dolist (file file-attachments)
+      (mml-attach-file file nil 'attachment))))
 
 (provide 'message)
 

@@ -1,6 +1,6 @@
 ;;; process-tests.el --- Testing the process facilities -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -231,7 +231,7 @@ process to complete."
   (with-timeout (60 (ert-fail "Test timed out"))
   ;; Frequent random (?) failures on hydra.nixos.org, with no process output.
   ;; Maybe this test should be tagged unstable?  See bug#31214.
-  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
+  (skip-when (getenv "EMACS_HYDRA_CI"))
   (with-temp-buffer
     (let ((process (make-process
                     :name "mix-stderr"
@@ -462,7 +462,9 @@ See Bug#30460."
         (ipv6-addrs
          '("fe80::1" "e301::203:1" "e301:203::1"
            "e301:0203::1" "::1" "::0"
-           "0343:1:2::3" "343:001:2::3")))
+           "0343:1:2::3" "343:001:2::3"))
+        (invalid-values
+         '(1 a 1.0)))
     (dolist (a ipv4-invalid-addrs)
       (should-not (network-lookup-address-info a nil 'numeric))
       (should-not (network-lookup-address-info a 'ipv4 'numeric)))
@@ -471,6 +473,8 @@ See Bug#30460."
     (dolist (a ipv4-addrs)
       (should (network-lookup-address-info a nil 'numeric))
       (should (network-lookup-address-info a 'ipv4 'numeric)))
+    (dolist (a invalid-values)
+      (should-error (network-lookup-address-info a)))
     (when (ipv6-is-available)
       (dolist (a ipv4-addrs)
         (should-not (network-lookup-address-info a 'ipv6 'numeric)))
@@ -723,7 +727,7 @@ FD_SETSIZE file descriptors (Bug#24325)."
   (skip-unless (featurep 'make-network-process '(:server t)))
   (skip-unless (featurep 'make-network-process '(:family local)))
   ;; Avoid hang due to connect/accept handshake on Cygwin (bug#49496).
-  (skip-unless (not (eq system-type 'cygwin)))
+  (skip-when (eq system-type 'cygwin))
   (with-timeout (60 (ert-fail "Test timed out"))
     (ert-with-temp-directory directory
       (process-tests--with-processes processes
@@ -763,7 +767,7 @@ FD_SETSIZE file descriptors (Bug#24325)."
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
   ;; This test cannot be run if PTYs aren't supported.
-  (skip-unless (not (eq system-type 'windows-nt)))
+  (skip-when (eq system-type 'windows-nt))
   (with-timeout (60 (ert-fail "Test timed out"))
     (process-tests--with-processes processes
       ;; In order to use `make-serial-process', we need to create some
@@ -942,8 +946,8 @@ COMMAND must be a list returned by
 (defun process-tests--emacs-command ()
   "Return a command to reinvoke the current Emacs instance.
 Return nil if that doesn't appear to be possible."
-  (when-let ((binary (process-tests--emacs-binary))
-             (dump (process-tests--dump-file)))
+  (when-let* ((binary (process-tests--emacs-binary))
+              (dump (process-tests--dump-file)))
     (cons binary
           (unless (eq dump :not-needed)
             (list (concat "--dump-file="
@@ -958,18 +962,18 @@ Return nil if that can't be determined."
        (stringp invocation-directory)
        (not (file-remote-p invocation-directory))
        (file-name-absolute-p invocation-directory)
-       (when-let ((file (process-tests--usable-file-for-reinvoke
-                         (expand-file-name invocation-name
-                                           invocation-directory))))
+       (when-let* ((file (process-tests--usable-file-for-reinvoke
+                          (expand-file-name invocation-name
+                                            invocation-directory))))
          (and (file-executable-p file) file))))
 
 (defun process-tests--dump-file ()
   "Return the filename of the dump file used to start Emacs.
 Return nil if that can't be determined.  Return `:not-needed' if
 Emacs wasn't started with a dump file."
-  (if-let ((stats (and (fboundp 'pdumper-stats) (pdumper-stats))))
-      (when-let ((file (process-tests--usable-file-for-reinvoke
-                        (cdr (assq 'dump-file-name stats)))))
+  (if-let* ((stats (and (fboundp 'pdumper-stats) (pdumper-stats))))
+      (when-let* ((file (process-tests--usable-file-for-reinvoke
+                         (cdr (assq 'dump-file-name stats)))))
         (and (file-readable-p file) file))
     :not-needed))
 

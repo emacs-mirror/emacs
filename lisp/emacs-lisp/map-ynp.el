@@ -1,6 +1,6 @@
 ;;; map-ynp.el --- general-purpose boolean question-asker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-1995, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1995, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -35,6 +35,9 @@
 ;;; Code:
 
 (declare-function x-popup-dialog "menu.c" (position contents &optional header))
+(declare-function set-text-conversion-style "textconv.c")
+
+(defvar overriding-text-conversion-style)
 
 (defun map-y-or-n-p (prompter actor list &optional help action-alist
 			      no-cursor-in-echo-area)
@@ -168,16 +171,25 @@ The function's value is the number of actions taken."
 				(key-description (vector help-char)))
 		       (if minibuffer-auto-raise
 			   (raise-frame (window-frame (minibuffer-window))))
-		       (while (progn
-				(setq char (read-event))
-				;; If we get -1, from end of keyboard
-				;; macro, try again.
-                                (equal char -1)))
+                       (unwind-protect
+                           ;; We want to inhibit text conversion here,
+                           ;; because it gets in the way when system
+                           ;; input methods are installed.  See
+                           ;; https://lists.gnu.org/archive/html/emacs-devel/2024-05/msg00441.html
+                           ;; for the details.
+                           (let ((overriding-text-conversion-style nil))
+                             (when (fboundp 'set-text-conversion-style)
+                               (set-text-conversion-style text-conversion-style))
+		             (setq char (read-event)))
+                         (when (fboundp 'set-text-conversion-style)
+                           (set-text-conversion-style text-conversion-style)))
 		       ;; Show the answer to the question.
 		       (message "%s(y, n, !, ., q, %sor %s) %s"
 				prompt user-keys
 				(key-description (vector help-char))
-				(single-key-description char)))
+				(if (equal char -1)
+                                    "[end-of-keyboard-macro]"
+                                  (single-key-description char))))
 		     (setq def (lookup-key map (vector char))))
 		   (cond ((eq def 'exit)
 			  (setq next (lambda () nil)))

@@ -21,7 +21,7 @@ without express or implied warranty.
 
 
 /*
-Copyright (C) 1993, 1996, 2001-2023 Free Software Foundation, Inc.
+Copyright (C) 1993, 1996, 2001-2024 Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -809,7 +809,7 @@ _XMRecomputeSelection(register Display *display, register XMenu *menu, register 
 /*
  * _XMTransToOrigin - Internal subroutine to translate the point at
  *		      the center of the current pane and selection to the
- *		      the menu origin.
+ *		      menu origin.
  *
  *	WARNING! ******	Be certain that all menu dependencies have been
  *			recomputed before calling this routine or

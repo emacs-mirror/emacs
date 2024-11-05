@@ -1,5 +1,5 @@
 /* Definitions for asynchronous process control in GNU Emacs.
-   Copyright (C) 1985, 1994, 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 2001-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -153,6 +153,8 @@ struct Lisp_Process
     unsigned int adaptive_read_buffering : 2;
     /* Skip reading this process on next read.  */
     bool_bf read_output_skip : 1;
+    /* Maximum number of bytes to read in a single chunk. */
+    ptrdiff_t readmax;
     /* True means kill silently if Emacs is exited.
        This is the inverse of the `query-on-exit' flag.  */
     bool_bf kill_without_query : 1;

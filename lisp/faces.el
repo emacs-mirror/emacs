@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -100,7 +100,7 @@ a font height that isn't optimal."
 ;; which are generally available.
 (defcustom face-font-family-alternatives
   (mapcar (lambda (arg) (mapcar 'purecopy arg))
-  '(("Monospace" "courier" "fixed")
+  '(("Monospace" "Cascadia Code" "Lucida Console" "courier" "fixed")
 
     ;; Monospace Serif is an Emacs invention, intended to work around
     ;; portability problems when using Courier.  It should work well
@@ -133,7 +133,10 @@ a font height that isn't optimal."
     ;; This is present for backward compatibility.
     ("courier" "CMU Typewriter Text" "fixed")
 
-    ("Sans Serif" "helv" "helvetica" "arial" "fixed")
+    ("Sans Serif"
+     ;; https://en.wikipedia.org/wiki/List_of_typefaces_included_with_Microsoft_Windows
+     "Calibri" "Tahoma" "Lucida Sans Unicode"
+     "helv" "helvetica" "arial" "fixed")
     ("helv" "helvetica" "arial" "fixed")))
   "Alist of alternative font family names.
 Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
@@ -651,11 +654,11 @@ Optional argument INHERIT is passed to `face-attribute'."
 If FACE is a face-alias, get the documentation for the target face."
   (let ((alias (get face 'face-alias)))
     (if alias
-        (let ((doc (get alias 'face-documentation)))
+        (let ((doc (documentation-property alias 'face-documentation)))
 	  (format "%s is an alias for the face `%s'.%s" face alias
                   (if doc (format "\n%s" doc)
                     "")))
-      (get face 'face-documentation))))
+      (documentation-property face 'face-documentation))))
 
 
 (defun set-face-documentation (face string)
@@ -1118,8 +1121,7 @@ element of DEFAULT is returned.  If DEFAULT isn't a list, but
 MULTIPLE is non-nil, a one-element list containing DEFAULT is
 returned.  Otherwise, DEFAULT is returned verbatim."
   (let (defaults)
-    (unless (listp default)
-      (setq default (list default)))
+    (setq default (ensure-list default))
     (when default
       (setq default
             (if multiple
@@ -1146,16 +1148,16 @@ returned.  Otherwise, DEFAULT is returned verbatim."
                       (format-prompt prompt default)
                     (format "%s: " prompt)))
           (completion-extra-properties
-           '(:affixation-function
-             (lambda (faces)
-               (mapcar
-                (lambda (face)
-                  (list face
-                        (concat (propertize read-face-name-sample-text
-                                            'face face)
-                                "\t")
-                        ""))
-                faces))))
+           `(:affixation-function
+             ,(lambda (faces)
+                (mapcar
+                 (lambda (face)
+                   (list face
+                         (concat (propertize read-face-name-sample-text
+                                             'face face)
+                                 "\t")
+                         ""))
+                 faces))))
           aliasfaces nonaliasfaces faces)
       ;; Build up the completion tables.
       (mapatoms (lambda (s)
@@ -2095,7 +2097,7 @@ do that, use `get-text-property' and `get-char-property'."
   (let (faces)
     (when text
       ;; Try to get a face name from the buffer.
-      (when-let ((face (thing-at-point 'face)))
+      (when-let* ((face (thing-at-point 'face)))
         (push face faces)))
     ;; Add the named faces that the `read-face-name' or `face' property uses.
     (let ((faceprop (or (get-char-property (point) 'read-face-name)
@@ -2441,7 +2443,10 @@ If you set `term-file-prefix' to nil, this function does nothing."
   '((((supports :slant italic))
      :slant italic)
     (((supports :underline t))
-     :underline t)
+     ;; Include italic, even if it isn't supported by the default
+     ;; font, because this face could be merged with another face
+     ;; which uses font that does have an italic variant.
+     :underline t :slant italic)
     (t
      ;; Default to italic, even if it doesn't appear to be supported,
      ;; because in some cases the display engine will do its own
@@ -2458,7 +2463,9 @@ If you set `term-file-prefix' to nil, this function does nothing."
 (defface underline
   '((((supports :underline t))
      :underline t)
-    (((supports :weight bold))
+    ;; Include underline, for when this face is merged with another
+    ;; whose font does support underline.
+    (((supports :weight bold :underline t))
      :weight bold)
     (t :underline t))
   "Basic underlined face."

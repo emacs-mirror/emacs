@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text
@@ -843,10 +843,17 @@ range of text to upper case or to lower case.
 @table @kbd
 @item M-l
 Convert following word to lower case (@code{downcase-word}).
+@item M-- M-l
+Convert previous/last word to lower case.  Note: @kbd{Meta--} is
+Meta-minus.
 @item M-u
 Convert following word to upper case (@code{upcase-word}).
+@item M-- M-u
+Convert previous/last last word to all upper case.
 @item M-c
 Capitalize the following word (@code{capitalize-word}).
+@item M-- M-c
+Convert previous/last last word to lower case with capital initial.
 @item C-x C-l
 Convert region to lower case (@code{downcase-region}).
 @item C-x C-u
@@ -873,10 +880,11 @@ from all upper case to mixed case, because you can move through the
 text using @kbd{M-l}, @kbd{M-u} or @kbd{M-c} on each word as
 appropriate, occasionally using @kbd{M-f} instead to skip a word.
 
-  When given a negative argument, the word case conversion commands apply
-to the appropriate number of words before point, but do not move point.
-This is convenient when you have just typed a word in the wrong case: you
-can give the case conversion command and continue typing.
+  When given a negative argument, as in @w{@kbd{C-u - 5 M-c}}, the
+word case-conversion commands apply to the appropriate number of words
+before point, but do not move point.  This is convenient when you have
+just typed a word in the wrong case: you can give the case conversion
+command, like @kbd{M-- M-u}, and continue typing.
 
   If a word case conversion command is given in the middle of a word,
 it applies only to the part of the word which follows point.  (This is
@@ -943,12 +951,15 @@ situations where you shouldn't change the major mode---in mail
 composition, for instance.
 
 @kindex M-TAB @r{(Text mode)}
-  Text mode binds @kbd{M-@key{TAB}} to @code{ispell-complete-word}.
-This command performs completion of the partial word in the buffer
-before point, using the spelling dictionary as the space of possible
-words.  @xref{Spelling}.  If your window manager defines
-@kbd{M-@key{TAB}} to switch windows, you can type @kbd{@key{ESC}
-@key{TAB}} or @kbd{C-M-i} instead.
+@findex completion-at-point@r{, in Text Mode}
+@vindex text-mode-ispell-word-completion
+  The command @kbd{M-@key{TAB}} (@code{completion-at-point}) performs
+completion of the partial word in the buffer before point, using the
+spelling dictionary as the space of possible words by default.
+@xref{Spelling}.  If your window manager defines @kbd{M-@key{TAB}} to
+switch windows, you can type @kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i}
+instead.  To disable this completion, customize the variable
+@code{text-mode-ispell-word-completion} to the @code{nil} value.
 
 @vindex text-mode-hook
   Entering Text mode runs the mode hook @code{text-mode-hook}
@@ -1024,10 +1035,11 @@ addition to ellipsis, to show that a section is hidden.  Clicking the
 mouse on the button toggles display of the section.  If the value of
 this variable is @code{insert}, the buttons are inserted directly into
 the buffer text, so @key{RET} on the button will also toggle display
-of the section, like a mouse click does.  If the value is
-@code{in-margins}, Outline minor mode will use the window margins to
-indicate that a section is hidden.  The buttons are customizable as icons
-(@pxref{Icons}).
+of the section, like a mouse click does.  Using the value @code{insert}
+is not recommended in editable buffers because it modifies them.
+If the value is @code{in-margins}, Outline minor mode will use the
+window margins to indicate that a section is hidden.  The buttons are
+customizable as icons (@pxref{Icons}).
 
 @vindex outline-minor-mode-cycle
   If the @code{outline-minor-mode-cycle} user option is
@@ -1095,6 +1107,12 @@ that the length of the text matched on a chapter heading is shorter,
 so that Outline mode will know that sections are contained in
 chapters.  This works as long as no other command starts with
 @samp{@@chap}.
+
+@vindex outline-search-function
+  Instead of setting the variable @code{outline-regexp}, you can set
+the variable @code{outline-search-function} to a function that
+matches the current heading and searches for the next one
+(@pxref{Outline Minor Mode,,,elisp, the Emacs Lisp Reference Manual}).
 
 @vindex outline-level
   You can explicitly specify a rule for calculating the level of a
@@ -1190,6 +1208,12 @@ Hide everything except the top @var{n} levels of heading lines
 Hide everything except for the heading or body that point is in, plus
 the headings leading up from there to the top level of the outline
 (@code{outline-hide-other}).
+@item C-c / h @var{regexp} @key{RET}
+Hide bodies of headings that match @var{regexp}
+(@code{outline-hide-by-heading-regexp}).
+@item C-c / s @var{regexp} @key{RET}
+Show bodies of headings that match @var{regexp}
+(@code{outline-show-by-heading-regexp}).
 @end table
 
 @findex outline-hide-entry
@@ -1234,6 +1258,16 @@ everything except the entry that point is in, plus its parents (the
 headers leading up from there to top level in the outline) and the top
 level headings.  It also reveals body lines preceding the first
 heading in the buffer.
+
+@findex outline-hide-by-heading-regexp
+@findex outline-show-by-heading-regexp
+@kindex C-c / h @r{(Outline mode)}
+@kindex C-c / s @r{(Outline mode)}
+  The command @kbd{C-c / h} (@code{outline-hide-by-heading-regexp})
+prompts for a regular expression, and hides all the body lines of
+headings which match the regular expression.  The command @kbd{C-c / s}
+likewise prompts for a regular expression, and reveals the bodies of
+matching headings.
 
 @findex outline-hide-body
 @findex outline-show-all
@@ -1361,6 +1395,14 @@ exits all folds.
   To cancel the narrowing of a fold without hiding the text and
 subheadings, specify a negative argument.  For example, @w{@kbd{M--2 C-c
 C-x}} exits two folds and leaves the text and subheadings exposed.
+
+@findex foldout-widen-to-current-fold
+  While working within a fold, you may wish to use Emacs's standard
+narrowing commands such as @kbd{C-x n n} (@code{narrow-to-region}) or
+@kbd{C-x n d} (@code{narrow-to-defun}).  After using these commands,
+@code{foldout-widen-to-current-fold}) allows you to widen back to the
+current fold level, rather than the entire buffer.  If you're not
+currently in a fold, it behaves like @code{widen}.
 
   Foldout mode also provides mouse commands for entering and exiting
 folds, and for showing and hiding text:
@@ -1910,7 +1952,7 @@ files needed by @TeX{} for cross-references; these commands are generally
 not suitable for running the final copy in which all of the cross-references
 need to be correct.
 
-  When you want the auxiliary files for cross references, use @kbd{C-c
+  When you want the auxiliary files for cross-references, use @kbd{C-c
 C-f} (@code{tex-file}) which runs @TeX{} on the current buffer's file,
 in that file's directory.  Before running @TeX{}, it offers to save any
 modified buffers.  Generally, you need to use (@code{tex-file}) twice to

@@ -1,5 +1,5 @@
 /* provide a replacement fdopendir function
-   Copyright (C) 2004-2023 Free Software Foundation, Inc.
+   Copyright (C) 2004-2024 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,42 +41,6 @@ fdopendir (int fd)
   DIR *dirp = name ? opendir (name) : NULL;
   if (dirp != NULL)
     dirp->fd_to_close = fd;
-  return dirp;
-}
-
-# elif defined __KLIBC__
-
-#  include <InnoTekLIBC/backend.h>
-
-DIR *
-fdopendir (int fd)
-{
-  char path[_MAX_PATH];
-  DIR *dirp;
-
-  /* Get a path from fd */
-  if (__libc_Back_ioFHToPath (fd, path, sizeof (path)))
-    return NULL;
-
-  dirp = opendir (path);
-  if (!dirp)
-    return NULL;
-
-  /* Unregister fd registered by opendir() */
-  _gl_unregister_dirp_fd (dirfd (dirp));
-
-  /* Register our fd */
-  if (_gl_register_dirp_fd (fd, dirp))
-    {
-      int saved_errno = errno;
-
-      closedir (dirp);
-
-      errno = saved_errno;
-
-      dirp = NULL;
-    }
-
   return dirp;
 }
 

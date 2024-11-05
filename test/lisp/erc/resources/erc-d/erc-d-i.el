@@ -1,6 +1,6 @@
 ;;; erc-d-i.el --- IRC helpers for ERC test server -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'subr-x)
 
 (cl-defstruct (erc-d-i-message (:conc-name erc-d-i-message.))
   "Identical to `erc-response'.
@@ -107,12 +108,13 @@ With DECODE, decode as UTF-8 text."
                 (u (substring s 1 m)))
       (setf (erc-d-i-message.tags mes) (erc-d-i--validate-tags u)
             s (substring s (1+ m))))
-    (if-let* ((m (string-match " :" s))
+    (if-let* ((m (string-search " :" s))
               (other-toks (split-string (substring s 0 m) " " t))
               (rest (substring s (+ 2 m))))
         (setf (erc-d-i-message.contents mes) rest
               tokens (nconc other-toks (list rest)))
-      (setq tokens (split-string s " " t " ")))
+      (setf tokens (split-string s " " t " ")
+            (erc-d-i-message.contents mes) (car (last tokens))))
     (when (and tokens (eq ?: (aref (car tokens) 0)))
       (setf (erc-d-i-message.sender mes) (substring (pop tokens) 1)))
     (setf (erc-d-i-message.command mes) (or (pop tokens) "")

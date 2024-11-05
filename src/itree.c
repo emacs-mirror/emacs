@@ -1,6 +1,6 @@
 /* This file implements an efficient interval data-structure.
 
-Copyright (C) 2017-2023 Free Software Foundation, Inc.
+Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -64,7 +64,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    ==== FIXME: bug#58342 some important operations remain slow ===
 
-   The amortized costs of Emacs' previous-overlay-change and
+   The amortized costs of Emacs's previous-overlay-change and
    next-overlay-change functions are O(N) with this data structure.
    The root problem is that we only have an order for the BEG field,
    but not the END.  The previous/next overlay change operations need
@@ -74,7 +74,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
    Consider the case where next-overlay-change is called at POS, all
    interval BEG positions are less than pos POS and all interval END
-   posistions are after.  These END positions have no order, and so
+   positions are after.  These END positions have no order, and so
    *every* interval must be examined.  This is at least O(N).  The
    previous-overlay-change case is similar.  The root issue is that
    the iterative "narrowing" approach is not guaranteed to reduce the
@@ -278,7 +278,7 @@ check_subtree (struct itree_node *node,
 
    This runs in constant time when ENABLE_OVERLAY_CHECKING is 0
    (i.e. Emacs is not configured with
-   "--enable_checking=yes,overlays").  In this mode it can't check all
+   "--enable-checking=yes,overlays").  In this mode it can't check all
    the invariants.  When ENABLE_OVERLAY_CHECKING is 1 it checks the
    entire tree and validates all invariants.
 */
@@ -1211,7 +1211,7 @@ itree_node_intersects (const struct itree_node *node,
    `ITER->begin..ITER->end`) so it will also return some nodes which aren't in
    that narrowing simply because they may have children which are.
 
-   The code itself is very unsatifactory because the code of each one
+   The code itself is very unsatisfactory because the code of each one
    of the supported traversals seems completely different from the others.
    If someone knows how to make it more uniform and "obviously correct",
    please make yourself heard.  */

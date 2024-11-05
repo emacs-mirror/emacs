@@ -1,6 +1,6 @@
 /* Memory allocators such as malloc+free.
 
-   Copyright (C) 2011-2023 Free Software Foundation, Inc.
+   Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -21,6 +21,11 @@
 #define _GL_ALLOCATOR_H
 
 #include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* An object describing a memory allocator family.  */
 
@@ -54,5 +59,10 @@ struct allocator
 
 /* An allocator using the stdlib functions and a null DIE function.  */
 extern struct allocator const stdlib_allocator;
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _GL_ALLOCATOR_H */

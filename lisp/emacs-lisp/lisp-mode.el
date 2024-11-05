@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -30,11 +30,6 @@
 
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))
-
-(defvar font-lock-comment-face)
-(defvar font-lock-doc-face)
-(defvar font-lock-keywords-case-fold-search)
-(defvar font-lock-string-face)
 
 (define-abbrev-table 'lisp-mode-abbrev-table ()
   "Abbrev table for Lisp mode.")
@@ -348,7 +343,7 @@ This will generate compile-time constants from BINDINGS."
      (lisp-vdefs '("defvar"))
      (lisp-kw '("cond" "if" "while" "let" "let*" "progn" "prog1"
                 "prog2" "lambda" "unwind-protect" "condition-case"
-                "when" "unless" "with-output-to-string"
+                "when" "unless" "with-output-to-string" "handler-bind"
                 "ignore-errors" "dotimes" "dolist" "declare"))
      (lisp-errs '("warn" "error" "signal"))
      ;; Elisp constructs.  Now they are update dynamically
@@ -381,7 +376,7 @@ This will generate compile-time constants from BINDINGS."
      (cl-kw '("block" "break" "case" "ccase" "compiler-let" "ctypecase"
               "declaim" "destructuring-bind" "do" "do*"
               "ecase" "etypecase" "eval-when" "flet" "flet*"
-              "go" "handler-case" "handler-bind" "in-package" ;; "inline"
+              "go" "handler-case" "in-package" ;; "inline"
               "labels" "letf" "locally" "loop"
               "macrolet" "multiple-value-bind" "multiple-value-prog1"
               "proclaim" "prog" "prog*" "progv"
@@ -1158,7 +1153,7 @@ is the buffer position of the start of the containing expression."
 (defun lisp--local-defform-body-p (state)
   "Return non-nil when at local definition body according to STATE.
 STATE is the `parse-partial-sexp' state for current position."
-  (when-let ((start-of-innermost-containing-list (nth 1 state)))
+  (when-let* ((start-of-innermost-containing-list (nth 1 state)))
     (let* ((parents (nth 9 state))
            (first-cons-after (cdr parents))
            (second-cons-after (cdr first-cons-after))
@@ -1176,11 +1171,11 @@ STATE is the `parse-partial-sexp' state for current position."
         (let (local-definitions-starting-point)
           (and (save-excursion
                  (goto-char (1+ second-order-parent))
-                 (when-let ((head (ignore-errors
-                                    ;; FIXME: This does not distinguish
-                                    ;; between reading nil and a read error.
-                                    ;; We don't care but still, better fix this.
-                                    (read (current-buffer)))))
+                 (when-let* ((head (ignore-errors
+                                     ;; FIXME: This does not distinguish
+                                     ;; between reading nil and a read error.
+                                     ;; We don't care but still, better fix this.
+                                     (read (current-buffer)))))
                    (when (memq head '( cl-flet cl-labels cl-macrolet cl-flet*
                                        cl-symbol-macrolet))
                      ;; In what follows, we rely on (point) returning non-nil.
@@ -1351,10 +1346,7 @@ Lisp function does not specify a special indentation."
 (put 'catch 'lisp-indent-function 1)
 (put 'condition-case 'lisp-indent-function 2)
 (put 'handler-case 'lisp-indent-function 1) ;CL
-(put 'handler-bind 'lisp-indent-function 1) ;CL
 (put 'unwind-protect 'lisp-indent-function 1)
-(put 'with-output-to-temp-buffer 'lisp-indent-function 1)
-(put 'closure 'lisp-indent-function 2)
 
 (defun indent-sexp (&optional endpos)
   "Indent each line of the list starting just after point.
@@ -1426,14 +1418,15 @@ A prefix argument specifies pretty-printing."
 
 ;;;; Lisp paragraph filling commands.
 
-(defcustom emacs-lisp-docstring-fill-column 65
+(defcustom emacs-lisp-docstring-fill-column 72
   "Value of `fill-column' to use when filling a docstring.
 Any non-integer value means do not use a different value of
 `fill-column' when filling docstrings."
   :type '(choice (integer)
                  (const :tag "Use the current `fill-column'" t))
   :safe (lambda (x) (or (eq x t) (integerp x)))
-  :group 'lisp)
+  :group 'lisp
+  :version "30.1")
 
 (defun lisp-fill-paragraph (&optional justify)
   "Like \\[fill-paragraph], but handle Emacs Lisp comments and docstrings.

@@ -1,5 +1,5 @@
 /* A C macro for declaring that a function does not return.
-   Copyright (C) 2011-2023 Free Software Foundation, Inc.
+   Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -34,7 +34,7 @@
 # elif ((!defined __cplusplus || defined __clang__) \
         && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) \
             || (!defined __STRICT_ANSI__ \
-                && (4 < __GNUC__ + (7 <= __GNUC_MINOR__) \
+                && (4 < __GNUC__ + (7 <= __GNUC_MINOR__) && !defined __clang__ \
                     || (defined __apple_build_version__ \
                         ? 6000000 <= __apple_build_version__ \
                         : 3 < __clang_major__ + (5 <= __clang_minor__))))))

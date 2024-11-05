@@ -1,6 +1,6 @@
 ;;; subr-x.el --- extra Lisp functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -158,20 +158,22 @@ removed."
     (string-trim (replace-regexp-in-string blank " " string t t)
                  blank blank)))
 
-(defun string-fill (string length)
-  "Try to word-wrap STRING so that no lines are longer than LENGTH.
-Wrapping is done where there is whitespace.  If there are
-individual words in STRING that are longer than LENGTH, the
-result will have lines that are longer than LENGTH."
+;;;###autoload
+(defun string-fill (string width)
+  "Try to word-wrap STRING so that it displays with lines no wider than WIDTH.
+STRING is wrapped where there is whitespace in it.  If there are
+individual words in STRING that are wider than WIDTH, the result
+will have lines that are wider than WIDTH."
   (declare (important-return-value t))
   (with-temp-buffer
     (insert string)
     (goto-char (point-min))
-    (let ((fill-column length)
+    (let ((fill-column width)
           (adaptive-fill-mode nil))
       (fill-region (point-min) (point-max)))
     (buffer-string)))
 
+;;;###autoload
 (defun string-limit (string length &optional end coding-system)
   "Return a substring of STRING that is (up to) LENGTH characters long.
 If STRING is shorter than or equal to LENGTH characters, return the
@@ -253,6 +255,7 @@ than this function."
      (end (substring string (- (length string) length)))
      (t (substring string 0 length)))))
 
+;;;###autoload
 (defun string-pad (string length &optional padding start)
   "Pad STRING to LENGTH using PADDING.
 If PADDING is nil, the space character is used.  If not nil, it
@@ -272,6 +275,7 @@ the string."
           (start (concat (make-string pad-length (or padding ?\s)) string))
           (t (concat string (make-string pad-length (or padding ?\s)))))))
 
+;;;###autoload
 (defun string-chop-newline (string)
   "Remove the final newline (if any) from STRING."
   (declare (pure t) (side-effect-free t))
@@ -312,9 +316,13 @@ it makes no sense to convert it to a string using
 Like `let', bind variables in BINDINGS and then evaluate BODY,
 but with the twist that BODY can evaluate itself recursively by
 calling NAME, where the arguments passed to NAME are used
-as the new values of the bound variables in the recursive invocation."
+as the new values of the bound variables in the recursive invocation.
+
+This construct can only be used with lexical binding."
   (declare (indent 2) (debug (symbolp (&rest (symbolp form)) body)))
   (require 'cl-lib)
+  (unless lexical-binding
+    (error "`named-let' requires lexical binding"))
   (let ((fargs (mapcar (lambda (b) (if (consp b) (car b) b)) bindings))
         (aargs (mapcar (lambda (b) (if (consp b) (cadr b))) bindings)))
     ;; According to the Scheme semantics of named let, `name' is not in scope
@@ -328,24 +336,88 @@ as the new values of the bound variables in the recursive invocation."
       (cl-labels ((,name ,fargs . ,body)) #',name)
       . ,aargs)))
 
+(defvar work-buffer--list nil)
+(defvar work-buffer-limit 10
+  "Maximum number of reusable work buffers.
+When this limit is exceeded, newly allocated work buffers are
+automatically killed, which means that in a such case
+`with-work-buffer' becomes equivalent to `with-temp-buffer'.")
+
+(defsubst work-buffer--get ()
+  "Get a work buffer."
+  (let ((buffer (pop work-buffer--list)))
+    (if (buffer-live-p buffer)
+        buffer
+      (generate-new-buffer " *work*" t))))
+
+(defun work-buffer--release (buffer)
+  "Release work BUFFER."
+  (if (buffer-live-p buffer)
+      (with-current-buffer buffer
+        ;; Flush BUFFER before making it available again, i.e. clear
+        ;; its contents, remove all overlays and buffer-local
+        ;; variables.  Is it enough to safely reuse the buffer?
+        (let ((inhibit-read-only t)
+              ;; Avoid deactivating the region as side effect.
+              deactivate-mark)
+          (erase-buffer))
+        (delete-all-overlays)
+        (let (change-major-mode-hook)
+          (kill-all-local-variables t))
+        ;; Make the buffer available again.
+        (push buffer work-buffer--list)))
+  ;; If the maximum number of reusable work buffers is exceeded, kill
+  ;; work buffer in excess, taking into account that the limit could
+  ;; have been let-bound to temporarily increase its value.
+  (when (> (length work-buffer--list) work-buffer-limit)
+    (mapc #'kill-buffer (nthcdr work-buffer-limit work-buffer--list))
+    (setq work-buffer--list (ntake work-buffer-limit work-buffer--list))))
+
 ;;;###autoload
-(defun string-pixel-width (string)
-  "Return the width of STRING in pixels."
+(defmacro with-work-buffer (&rest body)
+  "Create a work buffer, and evaluate BODY there like `progn'.
+Like `with-temp-buffer', but reuse an already created temporary
+buffer when possible, instead of creating a new one on each call."
+  (declare (indent 0) (debug t))
+  (let ((work-buffer (make-symbol "work-buffer")))
+    `(let ((,work-buffer (work-buffer--get)))
+       (with-current-buffer ,work-buffer
+         (unwind-protect
+             (progn ,@body)
+           (work-buffer--release ,work-buffer))))))
+
+;;;###autoload
+(defun string-pixel-width (string &optional buffer)
+  "Return the width of STRING in pixels.
+If BUFFER is non-nil, use the face remappings from that buffer when
+determining the width.
+If you call this function to measure pixel width of a string
+with embedded newlines, it returns the width of the widest
+substring that does not include newlines."
   (declare (important-return-value t))
   (if (zerop (length string))
       0
     ;; Keeping a work buffer around is more efficient than creating a
     ;; new temporary buffer.
-    (with-current-buffer (get-buffer-create " *string-pixel-width*")
-      ;; If `display-line-numbers-mode' is enabled in internal
-      ;; buffers, it breaks width calculation, so disable it (bug#59311)
-      (when (bound-and-true-p display-line-numbers-mode)
-        (display-line-numbers-mode -1))
-      (delete-region (point-min) (point-max))
-      ;; Disable line-prefix and wrap-prefix, for the same reason.
-      (setq line-prefix nil
-	    wrap-prefix nil)
-      (insert (propertize string 'line-prefix nil 'wrap-prefix nil))
+    (with-work-buffer
+      ;; If `display-line-numbers' is enabled in internal
+      ;; buffers (e.g. globally), it breaks width calculation
+      ;; (bug#59311).  Disable `line-prefix' and `wrap-prefix',
+      ;; for the same reason.
+      (setq display-line-numbers nil
+            line-prefix nil wrap-prefix nil)
+      (if buffer
+          (setq-local face-remapping-alist
+                      (with-current-buffer buffer
+                        face-remapping-alist))
+        (kill-local-variable 'face-remapping-alist))
+      ;; Avoid deactivating the region as side effect.
+      (let (deactivate-mark)
+        (insert string))
+      ;; Prefer `remove-text-properties' to `propertize' to avoid
+      ;; creating a new string on each call.
+      (remove-text-properties
+       (point-min) (point-max) '(line-prefix nil wrap-prefix nil))
       (car (buffer-text-pixel-size nil nil t)))))
 
 ;;;###autoload
@@ -407,7 +479,7 @@ this defaults to the current buffer."
                  (t
                   disp)))
           ;; Remove any old instances.
-          (when-let ((old (assoc prop disp)))
+          (when-let* ((old (assoc prop disp)))
             (setq disp (delete old disp)))
           (setq disp (cons (list prop value) disp))
           (when vector

@@ -1,6 +1,6 @@
 ### @configure_input@
 
-## Copyright (C) 2012-2023 Free Software Foundation, Inc.
+## Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -46,11 +46,7 @@ ns_check_file = @ns_appdir@/@ns_check_file@
 
 .PHONY: all
 
-ifeq ($(DUMPING),pdumper)
-ns_pdmp_target = ${ns_applibexecdir}/Emacs.pdmp
-endif
-
-all: ${ns_appdir} ${ns_appbindir}/Emacs ${ns_pdmp_target}
+all: ${ns_appdir} ${ns_appbindir}/Emacs
 
 ${ns_check_file}: ${ns_appdir}
 
@@ -70,12 +66,6 @@ ${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
 ${ns_appbindir}/Emacs: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}
 	${MKDIR_P} ${ns_appbindir}
 	cp -f ../src/emacs${EXEEXT} $@
-
-# FIXME: Don't install the dump file into the app bundle when
-# self-contained install is disabled.
-${ns_applibexecdir}/Emacs.pdmp: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}.pdmp
-	${MKDIR_P} ${ns_applibexecdir}
-	cp -f ../src/emacs${EXEEXT}.pdmp $@
 
 .PHONY: FORCE
 

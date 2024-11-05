@@ -23,12 +23,12 @@
 
 ((~join-foo 3.2 "JOIN #foo")
  (0 "@time=" now " :tester!~tester@localhost JOIN #foo")
- (0 "@time=" now " :irc.example.org 353 alice = #foo :+alice!~alice@example.com @%+bob!~bob@example.org")
+ (0 "@time=" now " :irc.example.org 353 alice = #foo :+alice @bob")
  (0 "@time=" now " :irc.example.org 366 alice #foo :End of NAMES list"))
 
 ((~join-bar 1.2 "JOIN #bar")
  (0 "@time=" now " :tester!~tester@localhost JOIN #bar")
- (0 "@time=" now " :irc.example.org 353 alice = #bar :+alice!~alice@example.com @%+bob!~bob@example.org")
+ (0 "@time=" now " :irc.example.org 353 alice = #bar :+alice @bob")
  (0 "@time=" now " :irc.example.org 366 alice #bar :End of NAMES list"))
 
 ((~mode-foo 3.2 "MODE #foo")

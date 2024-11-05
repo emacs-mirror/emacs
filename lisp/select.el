@@ -1,6 +1,6 @@
 ;;; select.el --- lisp portion of standard selection support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -49,27 +49,28 @@ the current system default encoding on 9x/Me, `utf-16le-dos'
 \(Unicode) on NT/W2K/XP, and `iso-latin-1-dos' on MS-DOS.
 
 For X Windows:
-When sending text via selection and clipboard, if the target
-data-type matches this coding system according to the table
-below, it is used for encoding the text.  Otherwise (including
-the case that this variable is nil), a proper coding system is
-selected as below:
 
-data-type	coding system
----------	-------------
-UTF8_STRING	utf-8
-COMPOUND_TEXT	compound-text-with-extensions
-STRING		iso-latin-1
-C_STRING	raw-text-unix
+This coding system replaces that of the default coding system
+selection text is encoded by in reaction to a request for the
+polymorphic `TEXT' selection target when its base coding system
+is compatible with `compound-text' and the text being encoded
+cannot be rendered Latin-1 without loss of information.
 
-When receiving text, if this coding system is non-nil, it is used
-for decoding regardless of the data-type.  If this is nil, a
-proper coding system is used according to the data-type as above.
+It also replaces the coding system by which calls to
+`gui-get-selection' decode selection requests for text data
+types, which are enumerated below beside their respective coding
+systems otherwise used.
+
+DATA TYPE			CODING SYSTEM
+-------------------------- 	-------------
+UTF8_STRING			utf-8
+text/plain\\;charset=utf-8	utf-8
+COMPOUND_TEXT			compound-text-with-extensions
+STRING				iso-latin-1
+C_STRING			raw-text-unix
 
 See also the documentation of the variable `x-select-request-type' how
-to control which data-type to request for receiving text.
-
-The default value is nil."
+to control which data-type to request for receiving text."
   :type 'coding-system
   :group 'mule
   ;; Default was compound-text-with-extensions in 22.x (pre-unicode).
@@ -152,7 +153,7 @@ systems that support it, save the selection timestamp too."
 (defun gui--clipboard-selection-unchanged-p (text)
   "Check whether the clipboard selection has changed.
 Compare the selection text, passed as argument, with the text
-from the last saved selection. For window systems that support
+from the last saved selection.  For window systems that support
 it, compare the selection timestamp too."
   (and
    (equal text gui--last-selected-text-clipboard)

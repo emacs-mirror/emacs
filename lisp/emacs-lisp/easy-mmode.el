@@ -1,6 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -91,7 +91,7 @@ Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `%s'.
+evaluate %s.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.")
@@ -128,11 +128,14 @@ it is disabled.")
                         easy-mmode--arg-docstring
                         (if global "global " "")
                         mode-pretty-name
-                        ;; Avoid having quotes turn into pretty quotes.
-                        (string-replace "'" "\\='" (format "%S" getter)))))
+                        (concat
+                         (if (symbolp getter) "the variable ")
+                         (format "`%s'"
+                                 ;; Avoid having quotes turn into pretty quotes.
+                                 (string-replace "'" "\\='" (format "%S" getter)))))))
           (let ((start (point)))
             (insert argdoc)
-            (when (fboundp 'fill-region)
+            (when (fboundp 'fill-region) ;Don't break bootstrap!
               (fill-region start (point) 'left t))))
         ;; Finally, insert the keymap.
         (when (and (boundp keymap-sym)
@@ -493,11 +496,8 @@ on if the hook has explicitly disabled it.
 	 (extra-keywords nil)
          (MODE-variable mode)
 	 (MODE-buffers (intern (concat global-mode-name "-buffers")))
-	 (MODE-enable-in-buffers
-	  (intern (concat global-mode-name "-enable-in-buffers")))
-	 (MODE-check-buffers
-	  (intern (concat global-mode-name "-check-buffers")))
-	 (MODE-cmhh (intern (concat global-mode-name "-cmhh")))
+	 (MODE-enable-in-buffer
+	  (intern (concat global-mode-name "-enable-in-buffer")))
 	 (minor-MODE-hook (intern (concat mode-name "-hook")))
 	 (MODE-set-explicitly (intern (concat mode-name "-set-explicitly")))
 	 (MODE-major-mode (intern (concat (symbol-name mode) "-major-mode")))
@@ -527,7 +527,8 @@ on if the hook has explicitly disabled it.
        (progn
          (put ',global-mode 'globalized-minor-mode t)
          :autoload-end
-         (defvar-local ,MODE-major-mode nil))
+         (defvar-local ,MODE-major-mode nil)
+         ,@(when predicate `((defvar ,MODE-predicate))))
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
          ,(concat (format "Toggle %s in all buffers.\n" pretty-name)
@@ -557,14 +558,9 @@ Disable the mode if ARG is a negative number.\n\n"
 
 	 ;; Setup hook to handle future mode changes and new buffers.
 	 (if ,global-mode
-	     (progn
-	       (add-hook 'after-change-major-mode-hook
-			 #',MODE-enable-in-buffers)
-	       (add-hook 'find-file-hook #',MODE-check-buffers)
-	       (add-hook 'change-major-mode-hook #',MODE-cmhh))
-	   (remove-hook 'after-change-major-mode-hook #',MODE-enable-in-buffers)
-	   (remove-hook 'find-file-hook #',MODE-check-buffers)
-	   (remove-hook 'change-major-mode-hook #',MODE-cmhh))
+	     (add-hook 'after-change-major-mode-hook
+		       #',MODE-enable-in-buffer)
+	   (remove-hook 'after-change-major-mode-hook #',MODE-enable-in-buffer))
 
 	 ;; Go through existing buffers.
 	 (dolist (buf (buffer-list))
@@ -588,7 +584,20 @@ modes derived from `text-mode'\".  An element with value t means \"use\"
 and nil means \"don't use\".  There's an implicit nil at the end of the
 list."
                       mode)
-             :type '(repeat sexp)
+             :type '(choice
+                     (const :tag "Enable in all major modes" t)
+                     (const :tag "Don't enable in any major mode" nil)
+                     (repeat
+                      :tag "Rules (earlier takes precedence)..."
+                      (choice
+                       (const :tag "Enable in all (other) modes" t)
+                       (const :tag "Don't enable in any (other) mode" nil)
+                       (symbol :value fundamental-mode
+                               :tag "Enable in major mode")
+                       (cons :tag "Don't enable in major modes"
+                             (const :tag "Don't enable in..." not)
+                             (repeat (symbol :value fundamental-mode
+                                             :tag "Major mode"))))))
              ,@group))
 
        ;; Autoloading define-globalized-minor-mode autoloads everything
@@ -609,36 +618,19 @@ list."
        ;; List of buffers left to process.
        (defvar ,MODE-buffers nil)
 
-       ;; The function that calls TURN-ON in each buffer.
-       (defun ,MODE-enable-in-buffers ()
-         (let ((buffers ,MODE-buffers))
-           ;; Clear MODE-buffers to avoid scanning the same list of
-           ;; buffers in recursive calls to MODE-enable-in-buffers.
-           ;; Otherwise it could lead to infinite recursion.
-           (setq ,MODE-buffers nil)
-           (dolist (buf buffers)
-             (when (buffer-live-p buf)
-               (with-current-buffer buf
-                 (unless ,MODE-set-explicitly
-                   (unless (eq ,MODE-major-mode major-mode)
-                     (if ,MODE-variable
-                         (progn
-                           (,mode -1)
-                           (funcall ,turn-on-function))
-                       (funcall ,turn-on-function))))
-                 (setq ,MODE-major-mode major-mode))))))
-       (put ',MODE-enable-in-buffers 'definition-name ',global-mode)
-
-       (defun ,MODE-check-buffers ()
-	 (,MODE-enable-in-buffers)
-	 (remove-hook 'post-command-hook #',MODE-check-buffers))
-       (put ',MODE-check-buffers 'definition-name ',global-mode)
-
-       ;; The function that catches kill-all-local-variables.
-       (defun ,MODE-cmhh ()
-	 (add-to-list ',MODE-buffers (current-buffer))
-	 (add-hook 'post-command-hook #',MODE-check-buffers))
-       (put ',MODE-cmhh 'definition-name ',global-mode))))
+       ;; The function that calls TURN-ON in the current buffer.
+       (defun ,MODE-enable-in-buffer ()
+         ;; Remove ourselves from the list of pending buffers.
+         (setq ,MODE-buffers (delq (current-buffer) ,MODE-buffers))
+         (unless ,MODE-set-explicitly
+           (unless (eq ,MODE-major-mode major-mode)
+             (if ,MODE-variable
+                 (progn
+                   (,mode -1)
+                   (funcall ,turn-on-function))
+               (funcall ,turn-on-function))))
+         (setq ,MODE-major-mode major-mode))
+       (put ',MODE-enable-in-buffer 'definition-name ',global-mode))))
 
 (defun easy-mmode--globalized-predicate-p (predicate)
   (cond
@@ -661,7 +653,7 @@ list."
           (throw 'found nil))
          ((and (consp elem)
                (eq (car elem) 'not))
-          (when (apply #'derived-mode-p (cdr elem))
+          (when (derived-mode-p (cdr elem))
             (throw 'found nil)))
          ((symbolp elem)
           (when (derived-mode-p elem)
@@ -771,6 +763,59 @@ CSS contains a list of syntax specifications of the form (CHAR . SYNTAX)."
 ;;; easy-mmode-define-navigation
 ;;;
 
+(defun easy-mmode--prev (re name count &optional endfun narrowfun)
+  "Go to the COUNT'th previous occurence of RE.
+
+If none, error with NAME.
+
+ENDFUN and NARROWFUN are treated like in `easy-mmode-define-navigation'."
+  (unless count (setq count 1))
+  (if (< count 0) (easy-mmode--next re name (- count) endfun narrowfun)
+    (let ((re-narrow (and narrowfun (prog1 (buffer-narrowed-p) (widen)))))
+      ;; If point is inside a match for RE, move to its beginning like
+      ;; `backward-sexp' and other movement commands.
+      (when (and (not (zerop count))
+                 (save-excursion
+                   ;; Make sure we're out of the current match if any.
+                   (goto-char (if (re-search-backward re nil t 1)
+                                  (match-end 0) (point-min)))
+                   (re-search-forward re nil t 1))
+                 (< (match-beginning 0) (point) (match-end 0)))
+        (goto-char (match-beginning 0))
+        (setq count (1- count)))
+      (unless (re-search-backward re nil t count)
+        (user-error "No previous %s" name))
+      (when re-narrow (funcall narrowfun)))))
+
+(defun easy-mmode--next (re name count &optional endfun narrowfun)
+  "Go to the next COUNT'th occurence of RE.
+
+If none, error with NAME.
+
+ENDFUN and NARROWFUN are treated like in `easy-mmode-define-navigation'."
+  (unless count (setq count 1))
+  (if (< count 0) (easy-mmode--prev re name (- count) endfun narrowfun)
+    (if (looking-at re) (setq count (1+ count)))
+    (let ((re-narrow (and narrowfun (prog1 (buffer-narrowed-p) (widen)))))
+      (if (not (re-search-forward re nil t count))
+          (if (looking-at re)
+              (goto-char (or (if endfun (funcall endfun)) (point-max)))
+            (user-error "No next %s" name))
+        (goto-char (match-beginning 0))
+        (when (and (eq (current-buffer) (window-buffer))
+                   (called-interactively-p 'interactive))
+          (let ((endpt (or (save-excursion
+                             (if endfun (funcall endfun)
+                               (re-search-forward re nil t 2)))
+                           (point-max))))
+            (unless (pos-visible-in-window-p endpt nil t)
+              (let ((ws (window-start)))
+                (recenter '(0))
+                (if (< (window-start) ws)
+                    ;; recenter scrolled in the wrong direction!
+                    (set-window-start nil ws)))))))
+      (when re-narrow (funcall narrowfun)))))
+
 (defmacro easy-mmode-define-navigation (base re &optional name endfun narrowfun
                                              &rest body)
   "Define BASE-next and BASE-prev to navigate in the buffer.
@@ -788,53 +833,23 @@ BODY is executed after moving to the destination location."
   (let* ((base-name (symbol-name base))
 	 (prev-sym (intern (concat base-name "-prev")))
 	 (next-sym (intern (concat base-name "-next")))
-         (when-narrowed
-          (lambda (body)
-            (if (null narrowfun) body
-              `(let ((was-narrowed (prog1 (buffer-narrowed-p) (widen))))
-                 ,body
-                 (when was-narrowed (funcall #',narrowfun)))))))
+         (endfun (when endfun `#',endfun))
+         (narrowfun (when narrowfun `#',narrowfun)))
     (unless name (setq name base-name))
-    ;; FIXME: Move most of those functions's bodies to helper functions!
     `(progn
        (defun ,next-sym (&optional count)
 	 ,(format "Go to the next COUNT'th %s.
 Interactively, COUNT is the prefix numeric argument, and defaults to 1." name)
 	 (interactive "p")
-	 (unless count (setq count 1))
-	 (if (< count 0) (,prev-sym (- count))
-	   (if (looking-at ,re) (setq count (1+ count)))
-           ,(funcall when-narrowed
-             `(if (not (re-search-forward ,re nil t count))
-                  (if (looking-at ,re)
-                      (goto-char (or ,(if endfun `(funcall #',endfun)) (point-max)))
-                    (user-error "No next %s" ,name))
-                (goto-char (match-beginning 0))
-                (when (and (eq (current-buffer) (window-buffer))
-                           (called-interactively-p 'interactive))
-                  (let ((endpt (or (save-excursion
-                                     ,(if endfun `(funcall #',endfun)
-                                        `(re-search-forward ,re nil t 2)))
-                                   (point-max))))
-                    (unless (pos-visible-in-window-p endpt nil t)
-                      (let ((ws (window-start)))
-                        (recenter '(0))
-                        (if (< (window-start) ws)
-                            ;; recenter scrolled in the wrong direction!
-                            (set-window-start nil ws))))))))
-           ,@body))
+         (easy-mmode--next ,re ,name count ,endfun ,narrowfun)
+         ,@body)
        (put ',next-sym 'definition-name ',base)
        (defun ,prev-sym (&optional count)
 	 ,(format "Go to the previous COUNT'th %s.
-Interactively, COUNT is the prefix numeric argument, and defaults to 1."
-                  (or name base-name))
+Interactively, COUNT is the prefix numeric argument, and defaults to 1." name)
 	 (interactive "p")
-	 (unless count (setq count 1))
-	 (if (< count 0) (,next-sym (- count))
-           ,(funcall when-narrowed
-             `(unless (re-search-backward ,re nil t count)
-                (user-error "No previous %s" ,name)))
-           ,@body))
+         (easy-mmode--prev ,re ,name count ,endfun ,narrowfun)
+         ,@body)
        (put ',prev-sym 'definition-name ',base))))
 
 ;; When deleting these two, also delete them from loaddefs-gen.el.

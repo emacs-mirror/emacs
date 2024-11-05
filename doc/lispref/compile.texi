@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 2001--2023 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1994, 2001--2024 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Byte Compilation
 @chapter Byte Compilation
@@ -35,10 +35,9 @@ variable binding for @code{no-byte-compile} into it, like this:
 * Speed of Byte-Code::          An example of speedup from byte compilation.
 * Compilation Functions::       Byte compilation functions.
 * Docs and Compilation::        Dynamic loading of documentation strings.
-* Dynamic Loading::             Dynamic loading of individual functions.
 * Eval During Compile::         Code to be evaluated when you compile.
 * Compiler Errors::             Handling compiler error messages.
-* Byte-Code Objects::           The data type used for byte-compiled functions.
+* Closure Objects::             The data type used for byte-compiled functions.
 * Disassembly::                 Disassembling byte-code; how to read byte-code.
 @end menu
 
@@ -121,7 +120,7 @@ replacing the previous definition with the compiled one.  The function
 definition of @var{symbol} must be the actual code for the function;
 @code{byte-compile} does not handle function indirection.  The return
 value is the byte-code function object which is the compiled
-definition of @var{symbol} (@pxref{Byte-Code Objects}).
+definition of @var{symbol} (@pxref{Closure Objects}).
 
 @example
 @group
@@ -289,71 +288,6 @@ stands for the name of this file, as a string.  Do not use these
 constructs in Lisp source files; they are not designed to be clear to
 humans reading the file.
 
-@node Dynamic Loading
-@section Dynamic Loading of Individual Functions
-
-@cindex dynamic loading of functions
-@cindex lazy loading
-  When you compile a file, you can optionally enable the @dfn{dynamic
-function loading} feature (also known as @dfn{lazy loading}).  With
-dynamic function loading, loading the file doesn't fully read the
-function definitions in the file.  Instead, each function definition
-contains a place-holder which refers to the file.  The first time each
-function is called, it reads the full definition from the file, to
-replace the place-holder.
-
-  The advantage of dynamic function loading is that loading the file
-should become faster.  This is a good thing for a file which contains
-many separate user-callable functions, if using one of them does not
-imply you will probably also use the rest.  A specialized mode which
-provides many keyboard commands often has that usage pattern: a user may
-invoke the mode, but use only a few of the commands it provides.
-
-  The dynamic loading feature has certain disadvantages:
-
-@itemize @bullet
-@item
-If you delete or move the compiled file after loading it, Emacs can no
-longer load the remaining function definitions not already loaded.
-
-@item
-If you alter the compiled file (such as by compiling a new version),
-then trying to load any function not already loaded will usually yield
-nonsense results.
-@end itemize
-
-  These problems will never happen in normal circumstances with
-installed Emacs files.  But they are quite likely to happen with Lisp
-files that you are changing.  The easiest way to prevent these problems
-is to reload the new compiled file immediately after each recompilation.
-
-  @emph{Experience shows that using dynamic function loading provides
-benefits that are hardly measurable, so this feature is deprecated
-since Emacs 27.1.}
-
-  The byte compiler uses the dynamic function loading feature if the
-variable @code{byte-compile-dynamic} is non-@code{nil} at compilation
-time.  Do not set this variable globally, since dynamic loading is
-desirable only for certain files.  Instead, enable the feature for
-specific source files with file-local variable bindings.  For example,
-you could do it by writing this text in the source file's first line:
-
-@example
--*-byte-compile-dynamic: t;-*-
-@end example
-
-@defvar byte-compile-dynamic
-If this is non-@code{nil}, the byte compiler generates compiled files
-that are set up for dynamic function loading.
-@end defvar
-
-@defun fetch-bytecode function
-If @var{function} is a byte-code function object, this immediately
-finishes loading the byte code of @var{function} from its
-byte-compiled file, if it is not fully loaded already.  Otherwise,
-it does nothing.  It always returns @var{function}.
-@end defun
-
 @node Eval During Compile
 @section Evaluation During Compilation
 @cindex eval during compilation
@@ -400,8 +334,8 @@ If you have a constant that needs some calculation to produce,
 @code{eval-when-compile} can do that at compile-time.  For example,
 
 @lisp
-(defvar my-regexp
-  (eval-when-compile (regexp-opt '("aaa" "aba" "abb"))))
+(defvar gauss-schoolboy-problem
+  (eval-when-compile (apply #'+ (number-sequence 1 100))))
 @end lisp
 
 @cindex macros, at compile time
@@ -422,7 +356,7 @@ execution of the compiled file.  For example,
 @lisp
 (eval-when-compile
   (unless (fboundp 'some-new-thing)
-    (defmacro 'some-new-thing ()
+    (defmacro some-new-thing ()
       (compatibility code))))
 @end lisp
 
@@ -553,21 +487,22 @@ string for details.
 using @code{error}.  If so, set @code{byte-compile-error-on-warn} to a
 non-@code{nil} value.
 
-@node Byte-Code Objects
-@section Byte-Code Function Objects
+@node Closure Objects
+@section Closure Function Objects
 @cindex compiled function
 @cindex byte-code function
 @cindex byte-code object
 
-  Byte-compiled functions have a special data type: they are
-@dfn{byte-code function objects}.  Whenever such an object appears as
-a function to be called, Emacs uses the byte-code interpreter to
-execute the byte-code.
+  Byte-compiled functions use a special data type: they are closures.
+Closures are used both for byte-compiled Lisp functions as well as for
+interpreted Lisp functions.  Whenever such an object appears as
+a function to be called, Emacs uses the appropriate interpreter to
+execute either the byte-code or the non-compiled Lisp code.
 
-  Internally, a byte-code function object is much like a vector; its
+  Internally, a closure is much like a vector; its
 elements can be accessed using @code{aref}.  Its printed
 representation is like that for a vector, with an additional @samp{#}
-before the opening @samp{[}.  It must have at least four elements;
+before the opening @samp{[}.  It must have at least three elements;
 there is no maximum number, but only the first six elements have any
 normal use.  They are:
 
@@ -581,20 +516,28 @@ zero to 6, and the maximum number of arguments in bits 8 to 14.  If
 the argument list uses @code{&rest}, then bit 7 is set; otherwise it's
 cleared.
 
-If @var{argdesc} is a list, the arguments will be dynamically bound
+When the closure is a byte-code function,
+if @var{argdesc} is a list, the arguments will be dynamically bound
 before executing the byte code.  If @var{argdesc} is an integer, the
 arguments will be instead pushed onto the stack of the byte-code
 interpreter, before executing the code.
 
-@item byte-code
-The string containing the byte-code instructions.
+@item code
+For interpreted functions, this element is the (non-empty) list of Lisp
+forms that make up the function's body.  For byte-compiled functions, it
+is the string containing the byte-code instructions.
 
 @item constants
-The vector of Lisp objects referenced by the byte code.  These include
-symbols used as function names and variable names.
+For byte-compiled functions, this holds the vector of Lisp objects
+referenced by the byte code.  These include symbols used as function
+names and variable names.
+For interpreted functions, this is @code{nil} if the function is using the old
+dynamically scoped dialect of Emacs Lisp, and otherwise it holds the
+function's lexical environment.
 
 @item stacksize
-The maximum stack size this function needs.
+The maximum stack size this function needs.  This element is left unused
+for interpreted functions.
 
 @item docstring
 The documentation string (if any); otherwise, @code{nil}.  The value may
@@ -624,14 +567,28 @@ representation.  It is the definition of the command
 @code{make-byte-code}:
 
 @defun make-byte-code &rest elements
-This function constructs and returns a byte-code function object
-with @var{elements} as its elements.
+This function constructs and returns a closure which represents the
+byte-code function object with @var{elements} as its elements.
 @end defun
 
   You should not try to come up with the elements for a byte-code
 function yourself, because if they are inconsistent, Emacs may crash
 when you call the function.  Always leave it to the byte compiler to
 create these objects; it makes the elements consistent (we hope).
+
+The primitive way to create an interpreted function is with
+@code{make-interpreted-closure}:
+
+@defun make-interpreted-closure args body env &optional docstring iform
+This function constructs and returns a closure representing the
+interpreted function with arguments @var{args} and whose body is made of
+@var{body} which must be a non-@code{nil} list of Lisp forms.  @var{env} is the
+lexical environment in the same form as used with @code{eval}
+(@pxref{Eval}).  The documentation @var{docstring} if non-@code{nil} should be
+a string, and the interactive form @var{iform} if non-@code{nil} should be of
+the form @w{@code{(interactive @var{arg-descriptor})}} (@pxref{Using
+Interactive}).
+@end defun
 
 @node Disassembly
 @section Disassembled Byte-Code
@@ -661,7 +618,7 @@ name of an existing buffer.  Then the output goes there, at point, and
 point is left before the output.
 
 The argument @var{object} can be a function name, a lambda expression
-(@pxref{Lambda Expressions}), or a byte-code object (@pxref{Byte-Code
+(@pxref{Lambda Expressions}), or a byte-code object (@pxref{Closure
 Objects}).  If it is a lambda expression, @code{disassemble} compiles
 it and disassembles the resulting compiled code.
 @end deffn
@@ -801,9 +758,9 @@ Compilation, the previous chapter}, Emacs can also optionally compile
 Lisp function definitions into a true compiled code, known as
 @dfn{native code}.  This feature uses the @file{libgccjit} library,
 which is part of the GCC distribution, and requires that Emacs be
-built with support for using that library.  It also requires to have
-GCC and Binutils (the assembler and linker) available on your system
-for you to be able to native-compile Lisp code.
+built with support for using that library.  It also requires GCC and
+Binutils (the assembler and linker) to be available on your system for
+you to be able to native-compile Lisp code.
 
 @vindex native-compile@r{, a Lisp feature}
   To determine whether the current Emacs process can produce and load
@@ -831,9 +788,9 @@ produced by earlier or later Emacs versions; native compilation of the
 same Lisp code by a different Emacs version will usually produce a
 natively-compiled library under a unique file name that only that
 version of Emacs will be able to load.  However, the use of unique
-file names allows to have in the same directory several versions of
-the same Lisp library natively-compiled by several different versions
-of Emacs.
+file names enables several versions of the same Lisp library
+natively-compiled by several different versions of Emacs to be placed
+within the same directory.
 
 @vindex no-native-compile
   A non-@code{nil} file-local variable binding of
@@ -878,8 +835,7 @@ well.
    You can natively-compile either a single function or macro
 definition, or a whole file of Lisp code, with the
 @code{native-compile} function.  Natively-compiling a file will
-produce both the corresponding @file{.elc} file with byte code and the
-@file{.eln} file with native code.
+produce the @file{.eln} file with native code.
 
 @findex native-comp-limple-mode
 @vindex native-comp-verbose
@@ -971,6 +927,26 @@ compilation subprocesses in parallel, under the control of
 Variables}).
 @end defun
 
+@defun native-compile-directory directory
+This function compiles into native code all the @file{*.el} files in the
+specified @var{directory} and, recursively, in all of its
+subdirectories, if a corresponding @file{.eln} file could not be found
+in any of the directories mentioned in the
+@code{native-comp-eln-load-path} list (@pxref{Library Search}).
+@end defun
+
+@deffn Command emacs-lisp-native-compile
+This command compiles the file visited by the current buffer into
+native code, if the file was changed since the last time it was
+natively-compiled.
+@end deffn
+
+@deffn Command emacs-lisp-native-compile-and-load
+This command compiles the file visited by the current buffer into
+native code, like @code{emacs-lisp-native-compile}, but it also loads
+the native code when the compilation finishes.
+@end deffn
+
   The following function allows Lisp programs to test whether
 native-compilation is available at runtime.
 
@@ -1019,6 +995,26 @@ form, @pxref{Declare Form}.)
 The default value is 2.
 @end defopt
 
+@anchor{compilation-safety}
+@defopt compilation-safety
+This variable specifies the safety level to be used for the emitted
+native code.  The value should be a number, either 0 or 1 with the
+following meanings:
+
+@table @asis
+@item 0
+Emitted code can misbehave (up to even crashing Emacs) if a function's
+declaration does not describe correctly what the function does or how it
+is called, and the function is natively compiled.
+@item 1
+Emitted code must be generated in a safe manner even if functions are
+mis-declared.
+@end table
+
+This can also be controlled at a function granularity, by using the
+@code{safety} @code{declare} form, @pxref{Declare Form}.
+@end defopt
+
 @defopt native-comp-debug
 This variable specifies the level of debugging information produced by
 native-compilation.  Its value should be a number between zero and 3,
@@ -1036,6 +1032,9 @@ Like 1, and in addition dump pseudo-C code.
 Like 2, and in addition dump the GCC intermediate passes and
 @file{libgccjit} log file.
 @end table
+
+When generated, the pseudo-C code is deposited in the same directory
+as the corresponding @file{.eln} file.
 @end defopt
 
 @defopt native-comp-verbose
@@ -1116,7 +1115,7 @@ functions provided by the @file{.elc} file.
 @end defvar
 
 @cindex trampolines, in native compilation
-  Setting the value of @code{native-comp-jit-compilation} to@code{nil}
+  Setting the value of @code{native-comp-jit-compilation} to @code{nil}
 disables JIT native compilation.  However, even when JIT native
 compilation is disabled, Emacs might still need to start asynchronous
 native compilation subprocesses to produce @dfn{trampolines}.  To

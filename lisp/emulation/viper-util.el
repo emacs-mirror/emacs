@@ -1,6 +1,6 @@
 ;;; viper-util.el --- Utilities used by viper.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -1135,8 +1135,8 @@ This option is appropriate if you like Emacs-style words."
   :type '(radio (const strict-vi) (const reformed-vi)
 		 (const extended) (const emacs))
   :set #'viper-set-syntax-preference
+  :local t
   :group 'viper)
-(make-variable-buffer-local 'viper-syntax-preference)
 
 
 ;; addl-chars are characters to be temporarily considered as alphanumerical

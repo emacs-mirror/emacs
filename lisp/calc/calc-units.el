@@ -1,6 +1,6 @@
 ;;; calc-units.el --- unit conversion functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -32,7 +32,7 @@
 
 ;;; Units operations.
 
-;;; Units table last updated 9-Jan-91 by Ulrich Mueller (ulm@vsnhd1.cern.ch)
+;;; Units table updated 9-Jan-91 by Ulrich Müller (ulm@vsnhd1.cern.ch)
 ;;; with some additions by Przemek Klosowski (przemek@rrdstrad.nist.gov)
 ;;; Updated April 2002 by Jochen Küpper
 
@@ -43,11 +43,12 @@
 ;;;             Measures, by François Cardarelli)
 ;;; All conversions are exact unless otherwise noted.
 
-;; CODATA values updated February 2016, using 2014 adjustment
-;; https://arxiv.org/pdf/1507.07956.pdf
-
 ;; Updated November 2018 for the redefinition of the SI
-;; https://www.bipm.org/utils/en/pdf/CGPM/Draft-Resolution-A-EN.pdf
+;; https://www.bipm.org/en/committees/cg/cgpm/26-2018/resolution-1
+
+;; CODATA values last updated June 2024, using 2022 adjustment:
+;; P. J. Mohr, E. Tiesinga, D. B. Newell, and B. N. Taylor (2024-05-08),
+;; https://pml.nist.gov/cuu/Constants/
 
 (defvar math-standard-units
   '( ;; Length
@@ -57,12 +58,13 @@
     ( ft      "12 in"                "Foot")
     ( yd      "3 ft"                 "Yard" )
     ( mi      "5280 ft"              "Mile" )
-    ( au      "149597870691. m"      "Astronomical Unit" nil
-              "149597870691 m (*)")
-              ;; (approx) NASA JPL (https://neo.jpl.nasa.gov/glossary/au.html)
+    ( au      "149597870700 m"       "Astronomical Unit")
+              ;; "149 597 870 700 m exactly"
+              ;; http://www.iau.org/static/resolutions/IAU2012_English.pdf
     ( lyr     "c yr"                 "Light Year" )
-    ( pc      "3.0856775854*10^16 m" "Parsec  (**)" nil
-              "3.0856775854 10^16 m (*)") ;; (approx) ESUWM
+    ( pc      "(648000/pi) au"       "Parsec (**)")
+              ;; "The parsec is defined as exactly (648 000/π) au"
+              ;; http://www.iau.org/static/resolutions/IAU2015_English.pdf
     ( nmi     "1852 m"               "Nautical Mile" )
     ( fath    "6 ft"                 "Fathom" )
     ( fur     "660 ft"               "Furlong")
@@ -121,7 +123,6 @@
     ( mph     "mi/hr"                "*Miles per hour" )
     ( kph     "km/hr"                "Kilometers per hour" )
     ( knot    "nmi/hr"               "Knot" )
-    ( c       "299792458 m/s"        "Speed of light" ) ;; SI definition
 
     ;; Acceleration
     ( ga      "980665*10^(-5) m/s^2" "*\"g\" acceleration" nil
@@ -142,8 +143,8 @@
               "31.10347680 g") ;; ESUWM, 1/12 exact value for lbt
     ( ct      "(2/10) g"             "Carat" nil
               "0.2 g") ;; ESUWM
-    ( u       "1.660539040*10^(-27) kg"    "Unified atomic mass" nil
-              "1.660539040 10^-27 kg (*)");;(approx) CODATA
+    ( u       "1.66053906892*10^(-27) kg"    "Unified atomic mass" nil
+              "1.66053906892 10^-27 kg (*)") ;; (approx) CODATA
 
     ;; Force
     ( N       "m kg/s^2"             "*Newton" )
@@ -181,9 +182,9 @@
     ( hpm     "75 m kgf/s"           "Metric Horsepower") ;;ESUWM
 
     ;; Temperature
-    ( K       nil                    "*Degree Kelvin"     K )
-    ( dK      "K"                    "Degree Kelvin"      K )
-    ( degK    "K"                    "Degree Kelvin"      K )
+    ( K       nil                    "*Kelvin"            K )
+    ;; FIXME: Add °C and °F, but it requires that we sort out input etc for
+    ;; the ° sign.
     ( dC      "K"                    "Degree Celsius"     C )
     ( degC    "K"                    "Degree Celsius"     C )
     ( dF      "(5/9) K"              "Degree Fahrenheit"  F )
@@ -209,9 +210,6 @@
     ( A       nil                     "*Ampere" )
     ( C       "A s"                   "Coulomb" )
     ( Fdy     "ech Nav"               "Faraday" )
-    ( e       "ech"                   "Elementary charge" )
-    ( ech     "1.602176634*10^(-19) C"    "Elementary charge" nil
-              "1.602176634 10^-19 C")     ;; SI definition
     ( V       "W/A"                   "Volt" )
     ( ohm     "V/A"                   "Ohm" )
     ( Ω       "ohm"                   "Ohm" )
@@ -258,57 +256,82 @@
     ;; Solid angle
     ( sr      nil                      "*Steradian" )
 
-    ;; Other physical quantities
-    ;; Unless otherwise mentioned, the values are from CODATA,
-    ;; and are approximate.
-    ( h       "6.62607015*10^(-34) J s"     "*Planck's constant" nil
-              "6.62607015 10^-34 J s")      ;; SI definition
-    ( hbar    "h / (2 pi)"                  "Planck's constant" ) ;; Exact
+    ;; Constants defining the International System of Units (SI)
+    ( c       "299792458 m/s"               "*Speed of light" )
+    ( h       "6.62607015*10^(-34) J s"     "Planck constant" nil
+              "6.62607015 10^-34 J s")
+    ( ech     "1.602176634*10^(-19) C"      "Elementary charge" nil
+              "1.602176634 10^-19 C")
+    ( e       "ech"                         "Elementary charge" nil
+              "1.602176634 10^-19 C")
+    ( k       "1.380649*10^(-23) J/K"       "Boltzmann constant" nil
+              "1.380649 10^-23 J/K")
+    ( Nav     "6.02214076*10^(23) / mol"    "Avogadro constant" nil
+              "6.02214076 10^23 / mol")
+
+    ;; Derived physical constants
+    ( hbar    "h / (2 pi)"                  "*Reduced Planck constant" )
     ;; After the 2018 SI redefinition, eps0 and mu0 are measured quantities,
     ;; and mu0 no longer has the previous exact value of 4 pi 10^(-7) H/m.
     ( eps0    "ech^2 / (2 alpha h c)"       "Permittivity of vacuum" )
     ( ε0      "eps0"                        "Permittivity of vacuum" )
-    ( mu0     "1 / (eps0 c^2)"              "Permeability of vacuum") ;; Exact
-    ( μ0      "mu0"                         "Permeability of vacuum") ;; Exact
-    ( G       "6.67408*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil
-              "6.67408 10^-11 m^3/(kg s^2) (*)")
-    ( Nav     "6.02214076*10^(23) / mol"    "Avogadro's constant" nil
-              "6.02214076 10^23 / mol")     ;; SI definition
-    ( me      "9.10938356*10^(-31) kg"      "Electron rest mass" nil
-              "9.10938356 10^-31 kg (*)")
-    ( mp      "1.672621898*10^(-27) kg"     "Proton rest mass" nil
-              "1.672621898 10^-27 kg (*)")
-    ( mn      "1.674927471*10^(-27) kg"     "Neutron rest mass" nil
-              "1.674927471 10^-27 kg (*)")
-    ( mmu     "1.883531594*10^(-28) kg"      "Muon rest mass" nil
-              "1.883531594 10^-28 kg (*)")
-    ( mμ      "mmu"                         "Muon rest mass" nil
-              "1.883531594 10^-28 kg (*)")
-    ( Ryd     "10973731.568508 /m"          "Rydberg's constant" nil
-              "10973731.568508 /m (*)")
-    ( k       "1.380649*10^(-23) J/K"       "Boltzmann's constant" nil
-              "1.380649 10^-23 J/K")        ;; SI definition
+    ( mu0     "1 / (eps0 c^2)"              "Permeability of vacuum")
+    ( μ0      "mu0"                         "Permeability of vacuum")
     ( sigma   "2 pi^5 k^4 / (15 h^3 c^2)"   "Stefan-Boltzmann constant")
     ( σ       "sigma"                       "Stefan-Boltzmann constant")
-    ( alpha   "7.2973525664*10^(-3)"        "Fine structure constant" nil
-              "7.2973525664 10^-3 (*)")
-    ( α       "alpha"                        "Fine structure constant" nil
-              "7.2973525664 10^-3 (*)")
-    ( muB     "927.4009994*10^(-26) J/T"     "Bohr magneton" nil
-              "927.4009994 10^-26 J/T (*)")
-    ( muN     "5.050783699*10^(-27) J/T"     "Nuclear magneton" nil
-              "5.050783699 10^-27 J/T (*)")
-    ( mue     "-928.4764620*10^(-26) J/T"    "Electron magnetic moment" nil
-              "-928.4764620 10^-26 J/T (*)")
-    ( mup     "1.4106067873*10^(-26) J/T"    "Proton magnetic moment" nil
-              "1.4106067873 10^-26 J/T (*)")
-    ( R0      "Nav k"                       "Molar gas constant") ;; Exact
-    ( V0      "22.710947*10^(-3) m^3/mol"   "Standard volume of ideal gas" nil
-              "22.710947 10^-3 m^3/mol (*)")
+    ( R0      "Nav k"                       "Molar gas constant" )
+    ( V0      "R0 273.15 K / 10^5 Pa"       "Standard volume of ideal gas" )
+              ;; IUPAC 1982 standard temperature and pressure
+
+    ;; Other physical quantities
+    ;; Values are from CODATA, and are approximate.
+    ( G       "6.67430*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil
+              "6.67430 10^-11 m^3/(kg s^2) (*)")
+    ( me      "9.1093837139*10^(-31) kg"    "Electron rest mass" nil
+              "9.1093837139 10^-31 kg (*)")
+    ( mp      "1.67262192595*10^(-27) kg"   "Proton rest mass" nil
+              "1.67262192595 10^-27 kg (*)")
+    ( mn      "1.67492750056*10^(-27) kg"   "Neutron rest mass" nil
+              "1.67492750056 10^-27 kg (*)")
+    ( mmu     "1.883531627*10^(-28) kg"     "Muon rest mass" nil
+              "1.883531627 10^-28 kg (*)")
+    ( mμ      "mmu"                         "Muon rest mass" nil
+              "1.883531627 10^-28 kg (*)")
+    ( Ryd     "10973731.568157 /m"          "Rydberg constant" nil
+              "10973731.568157 /m (*)")
+    ( alpha   "7.2973525643*10^(-3)"        "Fine structure constant" nil
+              "7.2973525643 10^-3 (*)")
+    ( α       "alpha"                       "Fine structure constant" nil
+              "7.2973525643 10^-3 (*)")
+    ( muB     "9.2740100657*10^(-24) J/T"   "Bohr magneton" nil
+              "9.2740100657 10^-24 J/T (*)")
+    ( muN     "5.0507837393*10^(-27) J/T"   "Nuclear magneton" nil
+              "5.0507837393 10^-27 J/T (*)")
+    ( mue     "-9.2847646917*10^(-24) J/T"  "Electron magnetic moment" nil
+              "-9.2847646917 10^-24 J/T (*)")
+    ( mup     "1.41060679545*10^(-26) J/T"  "Proton magnetic moment" nil
+              "1.41060679545 10^-26 J/T (*)")
+
     ;; Logarithmic units
     ( Np      nil    "*Neper")
-    ( dB      "(ln(10)/20) Np" "decibel")))
+    ( dB      "(ln(10)/20) Np" "decibel"))
+  "List of predefined units for Calc.
 
+Each element is (NAME DEF DESC TEMP-UNIT HUMAN-DEF), where:
+
+NAME      is the unit symbol.
+DEF       is a string defining the unit as a Calc expression; nil if base unit.
+DESC      is a string describing the unit (to a human reader).
+          A leading asterisk indicates that the unit is first in its group.
+TEMP-UNIT is `K', `C' or `F' for temperature units and is used to identify
+          the unit when doing absolute temperature conversion
+          (`calc-convert-temperature').  For other units, nil.
+HUMAN-DEF is a string defining the unit (to a human reader).
+          If absent or nil, DEF is used.
+
+(*) in HUMAN-DEF means that the definition is approximate, otherwise exact.
+(**) in DESC means that the unit name is different in TeX and LaTeX
+     display modes.")
 
 (defvar math-additional-units nil
   "Additional units table for user-defined units.

@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft Windows API.
-   Copyright (C) 2007-2023 Free Software Foundation, Inc.
+   Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -430,7 +430,7 @@ w32font_encode_char (struct font *font, int c)
 }
 
 /* w32 implementation of text_extents for font backend.
-   Perform the size computation of glyphs of FONT and fillin members
+   Perform the size computation of glyphs of FONT and fill in members
    of METRICS.  The glyphs are specified by their glyph codes in
    CODE (length NGLYPHS).  Apparently metrics can be NULL, in this
    case just return the overall width.  */
@@ -451,6 +451,10 @@ w32font_text_extents (struct font *font, const unsigned *code,
   struct w32font_info *w32_font = (struct w32font_info *) font;
 
   memset (metrics, 0, sizeof (struct font_metrics));
+
+  if (w32_use_direct_write (w32_font)
+      && w32_dwrite_text_extents (font, code, nglyphs, metrics))
+    return;
 
   for (i = 0, first = true; i < nglyphs; i++)
     {
@@ -706,22 +710,31 @@ w32font_draw (struct glyph_string *s, int from, int to,
       int i;
 
       for (i = 0; i < len; i++)
-	{
-	  WCHAR c = s->char2b[from + i] & 0xFFFF;
-	  ExtTextOutW (s->hdc, x + i, y, options, NULL, &c, 1, NULL);
-	}
+	if (!w32_use_direct_write (w32font)
+	    || !w32_dwrite_draw (s->hdc, x, y, s->char2b + from, 1,
+				 GetTextColor (s->hdc), s->font))
+	  {
+	    WCHAR c = s->char2b[from + i] & 0xFFFF;
+	    ExtTextOutW (s->hdc, x + i, y, options, NULL, &c, 1, NULL);
+	  }
     }
   else
     {
-      /* The number of glyphs in a glyph_string cannot be larger than
-	 the maximum value of the 'used' member of a glyph_row, so we
-	 are OK using alloca here.  */
-      eassert (len <= SHRT_MAX);
-      WCHAR *chars = alloca (len * sizeof (WCHAR));
-      int j;
-      for (j = 0; j < len; j++)
-	chars[j] = s->char2b[from + j] & 0xFFFF;
-      ExtTextOutW (s->hdc, x, y, options, NULL, chars, len, NULL);
+      if (!w32_use_direct_write (w32font)
+	  || !w32_dwrite_draw (s->hdc, x, y,
+			       s->char2b + from, len, GetTextColor (s->hdc),
+			       s->font))
+	{
+	  /* The number of glyphs in a glyph_string cannot be larger than
+	     the maximum value of the 'used' member of a glyph_row, so we
+	     are OK using alloca here.  */
+	  eassert (len <= SHRT_MAX);
+	  WCHAR *chars = alloca (len * sizeof (WCHAR));
+	  int j;
+	  for (j = 0; j < len; j++)
+	    chars[j] = s->char2b[from + j] & 0xFFFF;
+	  ExtTextOutW (s->hdc, x, y, options, NULL, chars, len, NULL);
+	}
     }
 
   /* Restore clip region.  */
@@ -808,6 +821,93 @@ w32font_otf_drive (struct font *font, Lisp_Object features,
                    Lisp_Object gstring_out, int idx,
                    bool alternate_subst);
   */
+
+/* Notes about the way fonts are found on MS-Windows when we have a
+   character unsupported by the default font.
+
+   Since we don't use Fontconfig on MS-Windows, we cannot efficiently
+   search for fonts which support certain characters, because Windows
+   doesn't store this information anywhere, and we can only know whether
+   a font supports some character if we actually open the font, which is
+   expensive and slow.  Instead, we rely on font information Windows
+   exposes to the API we use to enumerate available fonts,
+   EnumFontFamiliesEx.  This information includes two bitmapped attributes:
+
+     USB (which stands for Unicode Subset Bitfields) -- this is an array
+         of 4 32-bit values, 128 bits in total, where each bit
+         corresponds to some block (sometimes several related blocks) of
+         Unicode codepoints which the font claims to support.
+     CSB (which stands for Codepage Bitfields) -- this is an array of 2
+	 32-bit values (64 bits), where each bit corresponds to some
+	 codepage whose characters the font claims to support.
+
+   When Emacs needs to find a font for a character, it enumerates the
+   available fonts, filtering the fonts by examining these bitmaps and a
+   few other font attributes.  The script of the character is converted
+   to the corresponding bits in USB, and a font that has any of these
+   bits set is deemed as a candidate; see font_supported_scripts, which
+   is called by font_matches_spec.  The problem with this strategy is
+   twofold:
+
+    - Some Unicode blocks have no USB bits.  For the scripts
+      corresponding to those blocks we use a small cache of fonts known
+      to support those script.  This cache is calculated once, and needs
+      not be recalculated as long as no fonts are installed or deleted
+      (it can be saved in your init file and reused for the following
+      sessions).  See the function w32-find-non-USB-fonts.  Note that
+      for that function to work well, 'script-representative-chars'
+      should include the important characters for each script which has
+      no USB bits defined.
+
+    - Some fonts claim support for a block, but don't support it well.
+      Other fonts support some blocks very well, but don't set the
+      corresponding USB bits for the blocks.  For these we use some
+      heuristics:
+
+      . For few fonts that claim coverage, but don't provide it, we
+	either recognize them by name and reject their false claims, or
+	let users set face-ignored-fonts to ignore those fonts.
+
+      . For fonts that support some blocks very well, but don't set
+	their USB bits, we examine the CSB bits instead.  This is
+	particularly important for some CJK fonts with good support in
+	the SIP area: they only set the SIP bit (bit 57) in the USB.  We
+	consider those as candidates for CJK scripts ('han', 'kana',
+	etc.) if the CSB bits are set for the corresponding CJK
+	codepages.
+
+   Eventually, some characters could still appear as "tofu" (a box with
+   the character's hex codepoint), even though a font might be available
+   on the system which supports the character.  This is because the
+   above strategy, with all its heuristics and tricks, sometimes fails.
+   For example, it could fail if the system has several fonts installed
+   whose coverage of some blocks is incomplete -- Emacs could select
+   such a font based on its USB bits, and realize the font has no glyph
+   for a character only when it's too late.  This happens because when
+   several fonts claim coverage of the same Unicode block, Emacs on
+   Windows has no way of preferring one over the other, if they all
+   support the same values of size, weight, and slant.  So Emacs usually
+   selects the first such candidate, which could lack glyphs for the
+   characters Emacs needs to display.  Since we avoid naming non-free
+   Windows fonts in Emacs's sources, this cannot be fixed in the the
+   default fontset setup provided by Emacs: we cannot arrange for the
+   "good" fonts to be used in all such cases, because that would mean
+   naming those fonts.  The solution for thes issues is to customize the
+   default fontset using set-fontset-font, to force Emacs to use a font
+   known to support some characters.
+
+   One other Windows-specific issue is the fact that some Windows fonts
+   have hyphens in their names.  Emacs generally follows the XLFD
+   specifications, where a hyphen is used as separator between segments
+   of a font spec.  There are few places in the code in font.c where
+   Emacs handles such font names specially, and it currently knows about
+   font names documented for Windows versions up to and including 11.
+   See this page for the latest update:
+
+     https://learn.microsoft.com/en-us/typography/fonts/windows_11_font_list
+
+   If more fonts are added to Windows that have hyphens in their names,
+   the code in font.c will need to be updated.  */
 
 /* Internal implementation of w32font_list.
    Additional parameter opentype_only restricts the returned fonts to
@@ -1072,7 +1172,7 @@ w32font_open_internal (struct frame *f, Lisp_Object font_entity,
      name to be usable in x-list-fonts. Eventually we expect to change
      x-list-fonts and other places that use fonts so that this can be
      an fcname or similar.  */
-  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
+  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil, Qt);
 
   return 1;
 }
@@ -1196,15 +1296,15 @@ w32_enumfont_pattern_entity (Lisp_Object frame,
   if (EQ (backend, Quniscribe) && (full_type & NTMFLAGS_OPENTYPE))
     tem = Qopentype;
   else if (font_type & TRUETYPE_FONTTYPE)
-    tem = intern ("truetype");
+    tem = Qtruetype;
   else if (full_type & NTM_PS_OPENTYPE)
     tem = Qpostscript;
   else if (full_type & NTM_TYPE1)
-    tem = intern ("type1");
+    tem = Qtype1;
   else if (font_type & RASTER_FONTTYPE)
-    tem = intern ("w32bitmap");
+    tem = Qw32bitmap;
   else
-    tem = intern ("w32vector");
+    tem = Qw32vector;
 
   font_put_extra (entity, QCformat, tem);
 
@@ -1455,22 +1555,34 @@ static int
 w32font_coverage_ok (FONTSIGNATURE * coverage, BYTE charset)
 {
   DWORD subrange1 = coverage->fsUsb[1];
+  DWORD codepages0 = coverage->fsCsb[0];
 
 #define SUBRANGE1_HAN_MASK 0x08000000
 #define SUBRANGE1_HANGEUL_MASK 0x01000000
 #define SUBRANGE1_JAPANESE_MASK (0x00060000 | SUBRANGE1_HAN_MASK)
+#define SUBRANGE1_SIP_MASK 0x02000000
 
+/* We consider the coverage to be OK if either (a) subrange1 has the
+   bits set that correspond to CHARSET, or (b) subrange1 indicates SIP
+   support and codepages0 has one or more bits set corresponding to
+   CHARSET.  */
   if (charset == GB2312_CHARSET || charset == CHINESEBIG5_CHARSET)
     {
-      return (subrange1 & SUBRANGE1_HAN_MASK) == SUBRANGE1_HAN_MASK;
+      return ((subrange1 & SUBRANGE1_HAN_MASK) == SUBRANGE1_HAN_MASK
+	      || ((subrange1 & SUBRANGE1_SIP_MASK) != 0
+		  && (codepages0 & CSB_CHINESE) != 0));
     }
   else if (charset == SHIFTJIS_CHARSET)
     {
-      return (subrange1 & SUBRANGE1_JAPANESE_MASK) == SUBRANGE1_JAPANESE_MASK;
+      return ((subrange1 & SUBRANGE1_JAPANESE_MASK) == SUBRANGE1_JAPANESE_MASK
+	      || ((subrange1 & SUBRANGE1_SIP_MASK) != 0
+		  && (codepages0 & CSB_JAPANESE) != 0));
     }
   else if (charset == HANGEUL_CHARSET)
     {
-      return (subrange1 & SUBRANGE1_HANGEUL_MASK) == SUBRANGE1_HANGEUL_MASK;
+      return ((subrange1 & SUBRANGE1_HANGEUL_MASK) == SUBRANGE1_HANGEUL_MASK
+	      || ((subrange1 & SUBRANGE1_SIP_MASK) != 0
+		  && (codepages0 & CSB_KOREAN) != 0));
     }
 
   return 1;
@@ -1620,11 +1732,18 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 	}
       /* unicode-sip fonts must contain characters in Unicode plane 2.
 	 so look for bit 57 (surrogates) in the Unicode subranges, plus
-	 the bits for CJK ranges that include those characters.  */
+	 the bits for CJK ranges that include those characters or CJK
+	 bits in code-page bit fields..  */
       else if (EQ (spec_charset, Qunicode_sip))
 	{
-	  if (!(physical_font->ntmFontSig.fsUsb[1] & 0x02000000)
-	      || !(physical_font->ntmFontSig.fsUsb[1] & 0x28000000))
+	  if (!((physical_font->ntmFontSig.fsUsb[1] & 0x02000000)
+		&& ((physical_font->ntmFontSig.fsUsb[1] & 0x28000000)
+		    /* Some CJK fonts with very good coverage of SIP
+                       characters have only the 0x02000000 bit in USB
+                       set, so we allow them if their code-page bits
+                       indicate support for CJK character sets.  */
+		    || (physical_font->ntmFontSig.fsCsb[0]
+			& (CSB_CHINESE | CSB_JAPANESE | CSB_KOREAN)))))
 	    return 1;
 	}
 
@@ -2265,14 +2384,14 @@ font_supported_scripts (FONTSIGNATURE * sig)
   /* Match a single subrange. SYM is set if bit N is set in subranges.  */
 #define SUBRANGE(n,sym) \
   if (subranges[(n) / 32] & (1U << ((n) % 32))) \
-    supported = Fcons ((sym), supported)
+    supported = Fcons (sym, supported)
 
   /* Match multiple subranges. SYM is set if any MASK bit is set in
      subranges[0 - 3].  */
 #define MASK_ANY(mask0,mask1,mask2,mask3,sym)      \
   if ((subranges[0] & (mask0)) || (subranges[1] & (mask1))     \
       || (subranges[2] & (mask2)) || (subranges[3] & (mask3))) \
-    supported = Fcons ((sym), supported)
+    supported = Fcons (sym, supported)
 
   /* 0: ASCII (a.k.a. "Basic Latin"),
      1: Latin-1 supplement, 2: Latin Extended A, 3: Latin Extended B,
@@ -2328,7 +2447,18 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (53, Qphags_pa);
   /* 54: Enclosed CJK letters and months, 55: CJK Compatibility.  */
   SUBRANGE (56, Qhangul);
-  /* 57: Surrogates.  */
+  /* 57: Non-BMP.  Processed specially: Several fonts that support CJK
+     Ideographs Extensions and other extensions, set just this bit and
+     Latin, and nothing else.  */
+  if (subranges[57 / 32] & (1U << (57 % 32)))
+    {
+      if ((sig->fsCsb[0] & CSB_CHINESE))
+	supported = Fcons (Qhan, supported);
+      if ((sig->fsCsb[0] & CSB_JAPANESE))
+	supported = Fcons (Qkana, supported);
+      if ((sig->fsCsb[0] & CSB_KOREAN))
+	supported = Fcons (Qhangul, supported);
+    }
   SUBRANGE (58, Qphoenician);
   SUBRANGE (59, Qhan); /* There are others, but this is the main one.  */
   SUBRANGE (59, Qideographic_description); /* Windows lumps this in.  */
@@ -2385,7 +2515,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (97, Qglagolitic);
   SUBRANGE (98, Qtifinagh);
   /* 99: Yijing Hexagrams.  */
-  SUBRANGE (99, Qhan);
+  SUBRANGE (99, Qcjk_misc);
   SUBRANGE (100, Qsyloti_nagri);
   SUBRANGE (101, Qlinear_b);
   SUBRANGE (101, Qaegean_number);
@@ -2772,6 +2902,12 @@ syms_of_w32font (void)
   DEFSYM (Qstandard, "standard");
   DEFSYM (Qsubpixel, "subpixel");
   DEFSYM (Qnatural, "natural");
+
+  /* Font formats.  */
+  DEFSYM (Qtruetype, "truetype");
+  DEFSYM (Qtype1, "type1");
+  DEFSYM (Qw32bitmap, "w32bitmap");
+  DEFSYM (Qw32vector, "w32vector");
 
   /* Languages  */
   DEFSYM (Qzh, "zh");

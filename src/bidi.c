@@ -1,6 +1,6 @@
 /* Low-level bidirectional buffer/string-scanning functions for GNU Emacs.
 
-Copyright (C) 2000-2001, 2004-2005, 2009-2023 Free Software Foundation,
+Copyright (C) 2000-2001, 2004-2005, 2009-2024 Free Software Foundation,
 Inc.
 
 Author: Eli Zaretskii <eliz@gnu.org>
@@ -420,7 +420,7 @@ bidi_paired_bracket_type (int c)
 static void
 bidi_set_sos_type (struct bidi_it *bidi_it, int level_before, int level_after)
 {
-  int higher_level = (level_before > level_after ? level_before : level_after);
+  int higher_level = max (level_before, level_after);
 
   /* FIXME: should the default sos direction be user selectable?  */
   bidi_it->sos = ((higher_level & 1) != 0 ? R2L : L2R); /* X10 */
@@ -566,7 +566,7 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
    RTL characters in the offending line of text.  */
 /* Do we need to allow customization of this limit?  */
 #define BIDI_CACHE_MAX_ELTS_PER_SLOT 50000
-verify (BIDI_CACHE_CHUNK < BIDI_CACHE_MAX_ELTS_PER_SLOT);
+static_assert (BIDI_CACHE_CHUNK < BIDI_CACHE_MAX_ELTS_PER_SLOT);
 static ptrdiff_t bidi_cache_max_elts = BIDI_CACHE_MAX_ELTS_PER_SLOT;
 static struct bidi_it *bidi_cache;
 static ptrdiff_t bidi_cache_size = 0;
@@ -751,6 +751,19 @@ bidi_cache_find_level_change (int level, int dir, bool before)
 	}
     }
 
+  return -1;
+}
+
+/* Find the previous character position where LEVEL changes to a lower
+   one.  Return -1 if not found (which really shouldn't happen if this
+   function is called on a backward scan).  */
+ptrdiff_t
+bidi_level_start (int level)
+{
+  ptrdiff_t slot = bidi_cache_find_level_change (level, -1, true);
+
+  if (slot >= 0)
+    return bidi_cache[slot].charpos;
   return -1;
 }
 
@@ -2613,7 +2626,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
       ptrdiff_t pairing_pos;
       int idx_at_entry = bidi_cache_idx;
 
-      verify (MAX_BPA_STACK >= 100);
+      static_assert (MAX_BPA_STACK >= 100);
       bidi_copy_it (&saved_it, bidi_it);
       /* bidi_cache_iterator_state refuses to cache on backward scans,
 	 and bidi_cache_fetch_state doesn't bring scan_dir from the
@@ -2908,7 +2921,6 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
     }
   else if (bidi_it->bracket_pairing_pos != eob)
     {
-      eassert (bidi_it->resolved_level == -1);
       /* If the cached state shows an increase of embedding level due
 	 to an isolate initiator, we need to update the 1st cached
 	 state of the next run of the current isolating sequence with
@@ -2917,6 +2929,7 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
       if (bidi_it->level_stack[bidi_it->stack_idx].level > prev_level
 	  && ISOLATE_STATUS (bidi_it, bidi_it->stack_idx))
 	{
+	  eassert (bidi_it->resolved_level == -1);
 	  bidi_record_type_for_neutral (&prev_for_neutral, prev_level, 0);
 	  bidi_record_type_for_neutral (&next_for_neutral, prev_level, 1);
 	}
@@ -2931,6 +2944,7 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
 	    }
 	  else if (bidi_it->bracket_pairing_pos == -1)
 	    {
+	      eassert (bidi_it->resolved_level == -1);
 	      /* Higher levels were not BPA-resolved yet, even if
 		 cached by bidi_find_bracket_pairs.  Force application
 		 of BPA to the new level now.  */

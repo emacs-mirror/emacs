@@ -1,6 +1,6 @@
 ;;; qp-tests.el --- Tests for qp.el  -*- lexical-binding:t; coding:utf-8 -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefankangas@gmail.com>
 

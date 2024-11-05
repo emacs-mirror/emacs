@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--2023 Free Software Foundation, Inc.
+@c Copyright (C) 1985--2024 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
@@ -399,18 +399,18 @@ vulnerable to a variety of attacks, and you may want to avoid using
 these if what you're doing requires higher security.  (This is the
 @code{ssl} check in @code{network-security-protocol-checks}).
 
+@item Triple DES (or @acronym{3DES}) cipher
+The @acronym{3DES} stream cipher provides at most 112 bits of
+effective security, and a major security vulnerability in it was
+disclosed in 2016 (CVE-2016-2183).  It has been deprecated by NIST in
+all applications from late 2023 onwards.  (This is the
+@code{3des-cipher} check in @code{network-security-protocol-checks}).
 @end table
 
 If @code{network-security-level} is @code{high}, the following checks
 will be made, in addition to the above:
 
 @table @asis
-@item @acronym{3DES} cipher
-The @acronym{3DES} stream cipher provides at most 112 bits of
-effective security, which is considered to be towards the low end.
-(This is the @code{3des} check in
-@code{network-security-protocol-checks}).
-
 @item a validated certificate changes the public key
 Servers change their keys occasionally, and that is normally nothing
 to be concerned about.  However, if you are worried that your network
@@ -488,15 +488,16 @@ mode or DocView minor mode, repeating @kbd{C-c C-c}
 underlying file contents.
 
 @findex doc-view-open-text
-  When you visit a file which would normally be handled by DocView
-mode but some requirement is not met (e.g., you operate in a terminal
-frame or Emacs has no PNG support), you are queried if you want to
-view the document's contents as plain text.  If you confirm, the
-buffer is put in text mode and DocView minor mode is activated.  Thus,
-by typing @kbd{C-c C-c} you switch to the fallback mode.  With another
+  When you visit a file which would normally be handled by DocView mode
+but some requirement is not met (e.g., you operate in a terminal frame
+or Emacs has no PNG support), Emacs asks if you want to view the
+document's contents as plain text.  If you answer yes, Emacs turns on
+Text mode in the buffer and activates DocView minor mode.  Thus, by
+typing @kbd{C-c C-c}, you switch to this fallback mode.  With another
 @kbd{C-c C-c} you return to DocView mode.  The plain text contents can
-also be displayed from within DocView mode by typing @kbd{C-c C-t}
-(@code{doc-view-open-text}).
+also be displayed in a separate buffer named like the original document
+buffer with suffix @code{/text} by typing @kbd{C-c C-t}
+(@code{doc-view-open-text}) from within DocView mode.
 
   You can explicitly enable DocView mode with the command @kbd{M-x
 doc-view-mode}.  You can toggle DocView minor mode with @kbd{M-x
@@ -580,17 +581,31 @@ you instead want the image to be re-rendered at the new size, set
 default size for DocView, customize the variable
 @code{doc-view-resolution}.
 
-@vindex doc-view-imenu-enabled
 @vindex doc-view-imenu-flatten
 @vindex doc-view-imenu-format
-  When the @command{mutool} program is available, DocView will use it
-to generate entries for an outline menu, making it accessible via the
-@code{imenu} facility (@pxref{Imenu}).  To disable this functionality
-even when @command{mutool} can be found on your system, customize the
-variable @code{doc-view-imenu-enabled} to the @code{nil} value.  You
-can further customize how @code{imenu} items are formatted and
-displayed using the variables @code{doc-view-imenu-format} and
-@code{doc-view-flatten}.
+@vindex doc-view-djvused-program
+  DocView can generate an outline menu for PDF and DjVu documents using
+the @command{mutool} and the @command{djvused} programs, respectively,
+when they are available.  The outline for Open Document Format files as
+used by OpenOffice and LibreOffice are also generated using the
+@command{mutool} after they are converted to PDF.  This uses the
+@code{imenu} facility (@pxref{Imenu}).  You can customize how the
+@code{imenu} items for this outline are formatted and displayed using
+the variables @code{doc-view-imenu-format} and
+@code{doc-view-imenu-flatten}.  The filename of the @command{djvused}
+program can be customized by changing the
+@code{doc-view-djvused-program} user option.
+
+@cindex registers, in DocView mode
+@findex doc-view-page-to-register
+@findex doc-view-jump-to-register
+@kindex m @r{(DocView mode)}
+@kindex ' @r{(DocView mode)}
+  You can save the current page to a register with @kbd{m}
+(@code{doc-view-page-to-register}) (@pxref{Registers}).  However, these
+registers are not shared across buffers and stay local to the DocView
+buffer.  You can later jump to the saved page with @kbd{'}
+(@code{doc-view-jump-to-register}).
 
 @node DocView Searching
 @subsection DocView Searching
@@ -1331,16 +1346,18 @@ buffer, or even killing large parts of it, does not affect the history
 that these commands access.
 
 @vindex comint-input-ring-file-name
+@vindex shell-history-file-name
+@cindex @env{HISTFILE} environment variable
   Some shells store their command histories in files so that you can
-refer to commands from previous shell sessions.  Emacs reads
-the command history file for your chosen shell, to initialize its own
-command history.  The file name is @file{~/.bash_history} for bash,
-@file{~/.sh_history} for ksh, and @file{~/.history} for other shells.
-
-@vindex tramp-histfile-override
-  If you run the shell on a remote host, this setting might be
-overwritten by the variable @code{tramp-histfile-override}.  It is
-recommended to set this variable to @code{nil}.
+refer to commands from previous shell sessions.  Emacs reads the command
+history file for your chosen shell, to initialize its own command
+history.  The history file name is the string specified in
+@code{shell-history-file-name}.  If that user option is @code{t}, the
+command history is not read.  If the value is @code{nil}, the command
+history is read from the file specified in environment variable
+@env{HISTFILE}, or from @file{~/.bash_history} for bash,
+@file{~/.sh_history} for ksh, @file{~/.zsh_history"} for zsh, or
+@file{~/.history} for other shells.
 
 @node Shell History Copying
 @subsubsection Shell History Copying
@@ -2078,6 +2095,18 @@ files.  When this option is given, the arguments to
 @command{emacsclient} are interpreted as a list of expressions to
 evaluate, @emph{not} as a list of files to visit.
 
+@vindex server-eval-args-left
+Passing complex Lisp expression via the @option{--eval} command-line
+option sometimes requires elaborate escaping of characters special to
+the shell.  To avoid this, you can pass arguments to Lisp functions in
+your expression as additional separate arguments to
+@command{emacsclient}, and use @var{server-eval-args-left} in the
+expression to access those arguments.  Be careful to have your
+expression remove the processed arguments from
+@var{server-eval-args-left} regardless of whether your code succeeds,
+for example by using @code{pop}, otherwise Emacs will attempt to
+evaluate those arguments as separate Lisp expressions.
+
 @item -f @var{server-file}
 @itemx --server-file=@var{server-file}
 Specify a server file (@pxref{TCP Emacs server}) for connecting to an
@@ -2143,10 +2172,11 @@ overrides the environment variable.)
 @item -t
 @itemx --tty
 @itemx -nw
+@itemx --no-window-system
 Create a new client frame on the current text terminal, instead of
 using an existing Emacs frame.  This behaves just like the @samp{-c}
 option, described above, except that it creates a text terminal frame
-(@pxref{Non-Window Terminals}).
+(@pxref{Text Terminals}).
 
 On MS-Windows, @samp{-t} behaves just like @samp{-c} if the Emacs
 server is using the graphical display, but if the Emacs server is
@@ -2154,12 +2184,13 @@ running on a text terminal, it creates a new frame in the current text
 terminal.
 
 @item -T @var{tramp-prefix}
-@itemx --tramp-prefix=@var{tramp-prefix}
+@itemx --tramp=@var{tramp-prefix}
 Set the prefix to add to filenames for Emacs to locate files on remote
 machines (@pxref{Remote Files}) using TRAMP (@pxref{Top, The Tramp
 Manual,, tramp, The Tramp Manual}).  This is mostly useful in
-combination with using the Emacs server over TCP (@pxref{TCP Emacs
-server}).  By ssh-forwarding the listening port and making the
+combination with using the Emacs server from a remote host.  By
+ssh-forwarding the listening socket, or ssh-forwarding the listening
+port @pxref{TCP Emacs server} and making the
 @var{server-file} available on a remote machine, programs on the
 remote machine can use @command{emacsclient} as the value for the
 @env{EDITOR} and similar environment variables, but instead of talking
@@ -2171,18 +2202,39 @@ Setting the environment variable @env{EMACSCLIENT_TRAMP} has the same
 effect as using the @samp{-T} option.  If both are specified, the
 command-line option takes precedence.
 
-For example, assume two hosts, @samp{local} and @samp{remote}, and
-that the local Emacs listens on tcp port 12345.  Assume further that
+For example, assume two hosts, @samp{local} and @samp{remote}.
+
+@example
+local$ ssh -R "/home/%r/.emacs.socket":"$@{XDG_RUNTIME_DIR:-$@{TMPDIR:-/tmp@}/emacs%i@}$@{XDG_RUNTIME_DIR:+/emacs@}/server" remote
+remote$ export EMACS_SOCKET_NAME=$HOME/.emacs.socket
+remote$ export EMACSCLIENT_TRAMP=/ssh:remote:
+remote$ export EDITOR=emacsclient
+remote$ $EDITOR /tmp/foo.txt #Should open in local emacs.
+@end example
+
+If you are using a platform where @command{emacsclient} does not use
+Unix domain sockets (i.e., MS-Windows), or your SSH implementation is
+not able to forward them (e.g., OpenSSH before version 6.7), you can
+forward a TCP port instead.  In this example, assume that the local
+Emacs listens on tcp port 12345.  Assume further that
 @file{/home} is on a shared file system, so that the server file
 @file{~/.emacs.d/server/server} is readable on both hosts.
 
 @example
 local$ ssh -R12345:localhost:12345 remote
-remote$ export EDITOR="emacsclient \
-        --server-file=server \
-        --tramp=/ssh:remote:"
+remote$ export EMACS_SERVER_FILE=server
+remote$ export EMACSCLIENT_TRAMP=/ssh:remote:
+remote$ export EDITOR=emacsclient
 remote$ $EDITOR /tmp/foo.txt #Should open in local emacs.
 @end example
+
+@item -V
+@itemx --version
+Print version information and exit.
+
+@item -H
+@itemx --help
+Print usage information message and exit.
 
 @end table
 
@@ -2812,13 +2864,14 @@ frame parameters you don't want to be restored; they will then be set
 according to your customizations in the init file.
 
 @vindex desktop-files-not-to-save
-@vindex remote-file-name-access-timeout
+@vindex remote-file-name-access-timeout@r{, and desktop restoring}
   Information about buffers visiting remote files is not saved by
 default.  Customize the variable @code{desktop-files-not-to-save} to
 change this.  In this case, you might also consider customizing
 @code{remote-file-name-access-timeout}, which is the number of
 seconds after which buffer restoration of a remote file is
-stopped.  This prevents Emacs being blocked.
+stopped.  This prevents Emacs from being blocked when restoring sessions
+that visited remote files.
 
 @vindex desktop-restore-eager
   By default, all the buffers in the desktop are restored in one go.
@@ -2839,8 +2892,11 @@ want it to preserve certain buffers, customize the variable
 @code{desktop-clear-preserve-buffers-regexp}, whose value is a regular
 expression matching the names of buffers not to kill.
 
+@vindex desktop-globals-to-save
   If you want to save minibuffer history from one session to
-another, use the @code{savehist} library.
+another, use the @code{savehist} library.  You can also save selected
+minibuffer-history variables as part of @code{desktop-save-mode} if
+you add those variables to the value of @code{desktop-globals-to-save}.
 
 @node Recursive Edit
 @section Recursive Editing Levels
@@ -2993,6 +3049,15 @@ containing a list of pages previously loaded by the current WebKit
 buffer, and lets you navigate to those pages by hitting @kbd{RET}.
 
 It is bound to @kbd{H}.
+
+@vindex xwidget-webkit-disable-javascript
+@cindex disabling javascript in webkit buffers
+  JavaScript is enabled by default inside WebKit buffers, which could be
+undesirable, as Web sites often use it to track your online activity.
+You can disable JavaScript in WebKit buffers by customizing the variable
+@code{xwidget-webkit-disable-javascript} to a non-@code{nil} value.
+You must kill all WebKit buffers for this setting to take effect, after
+it is changed.
 
 @node Browse-URL
 @subsection  Following URLs

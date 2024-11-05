@@ -1,6 +1,6 @@
 ;;; semantic/symref.el --- Symbol Reference API  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -81,8 +81,8 @@
 The tool symbol can be `detect', or a symbol that is the name of
 a tool that can be used for symbol referencing."
   :type 'symbol
+  :local t
   :group 'semantic)
-(make-variable-buffer-local 'semantic-symref-tool)
 
 ;;; TOOL SETUP
 ;;

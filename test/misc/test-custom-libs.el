@@ -1,6 +1,6 @@
 ;;; test-custom-libs.el --- Test custom loads  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -39,7 +39,7 @@
   :tags '(:expensive-test)
   :expected-result :failed ; FIXME: See above.
   ;; This test is very slow, and IMO not worth the time it takes.
-  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
+  (skip-when (getenv "EMACS_HYDRA_CI"))
   (skip-unless (file-readable-p custom-test-admin-cus-test))
   (load custom-test-admin-cus-test)
   (cus-test-libs t)

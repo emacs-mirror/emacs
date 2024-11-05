@@ -1,6 +1,6 @@
 ;;; tramp-archive-tests.el --- Tests of file archive access  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -33,51 +33,7 @@
 (require 'tramp-archive)
 (defvar tramp-persistency-file-name)
 
-;; `ert-resource-file' was introduced in Emacs 28.1.
-(unless (macrop 'ert-resource-file)
-  (eval-and-compile
-    (defvar ert-resource-directory-format "%s-resources/"
-      "Format for `ert-resource-directory'.")
-    (defvar ert-resource-directory-trim-left-regexp ""
-      "Regexp for `string-trim' (left) used by `ert-resource-directory'.")
-    (defvar ert-resource-directory-trim-right-regexp
-      (rx (? "-test" (? "s")) ".el")
-      "Regexp for `string-trim' (right) used by `ert-resource-directory'.")
-
-    (defmacro ert-resource-directory ()
-      "Return absolute file name of the resource directory for this file.
-
-The path to the resource directory is the \"resources\" directory
-in the same directory as the test file.
-
-If that directory doesn't exist, use the directory named like the
-test file but formatted by `ert-resource-directory-format' and trimmed
-using `string-trim' with arguments
-`ert-resource-directory-trim-left-regexp' and
-`ert-resource-directory-trim-right-regexp'.  The default values mean
-that if called from a test file named \"foo-tests.el\", return
-the absolute file name for \"foo-resources\"."
-      `(let* ((testfile ,(or (bound-and-true-p byte-compile-current-file)
-                             (and load-in-progress load-file-name)
-                             buffer-file-name))
-              (default-directory (file-name-directory testfile)))
-	 (file-truename
-	  (if (file-accessible-directory-p "resources/")
-              (expand-file-name "resources/")
-            (expand-file-name
-             (format
-	      ert-resource-directory-format
-              (string-trim testfile
-			   ert-resource-directory-trim-left-regexp
-			   ert-resource-directory-trim-right-regexp)))))))
-
-    (defmacro ert-resource-file (file)
-      "Return file name of resource file named FILE.
-A resource file is in the resource directory as per
-`ert-resource-directory'."
-      `(expand-file-name ,file (ert-resource-directory)))))
-
-(defconst tramp-archive-test-file-archive (ert-resource-file "foo.tar.gz")
+(defvar tramp-archive-test-file-archive (ert-resource-file "foo.tar.gz")
   "The test file archive.")
 
 (defun tramp-archive-test-file-archive-hexlified ()
@@ -86,7 +42,7 @@ Do not hexlify \"/\".  This hexlified string is used in `file:///' URLs."
   (let* ((url-unreserved-chars (cons ?/ url-unreserved-chars)))
     (url-hexify-string tramp-archive-test-file-archive)))
 
-(defconst tramp-archive-test-archive
+(defvar tramp-archive-test-archive
   (file-name-as-directory tramp-archive-test-file-archive)
   "The test archive.")
 
@@ -120,12 +76,6 @@ the origin of the temporary TMPFILE, have no write permissions."
      #'tramp-archive--test-delete
      (directory-files tmpfile 'full directory-files-no-dot-files-regexp))
     (delete-directory tmpfile)))
-
-(defun tramp-archive--test-emacs28-p ()
-  "Check for Emacs version >= 28.1.
-Some semantics has been changed for there, without new functions or
-variables, so we check the Emacs version directly."
-  (>= emacs-major-version 28))
 
 (ert-deftest tramp-archive-test00-availability ()
   "Test availability of archive file name functions."
@@ -881,7 +831,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (let ((fsi (file-system-info tramp-archive-test-archive)))
     (skip-unless fsi)
     (should (and (consp fsi)
-		 (tramp-compat-length= fsi 3)
+		 (length= fsi 3)
 		 (numberp (nth 0 fsi))
 		 ;; FREE and AVAIL are always 0.
 		 (zerop (nth 1 fsi))
@@ -895,11 +845,16 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless (and (fboundp 'file-user-uid)
                     (fboundp 'file-group-gid)))
 
-  (let ((default-directory tramp-archive-test-archive))
-    ;; `file-user-uid' and `file-group-gid' exist since Emacs 30.1.
-    ;; We don't want to see compiler warnings for older Emacsen.
-    (should (integerp (with-no-warnings (file-user-uid))))
-    (should (integerp (with-no-warnings (file-group-gid))))))
+  ;; `file-user-uid' and `file-group-gid' exist since Emacs 30.1.
+  ;; We don't want to see compiler warnings for older Emacsen.
+  (let* ((default-directory tramp-archive-test-archive)
+	 (uid (with-no-warnings (file-user-uid)))
+	 (gid (with-no-warnings (file-group-gid))))
+    (should (integerp uid))
+    (should (integerp gid))
+    (let ((default-directory tramp-archive-test-file-archive))
+      (should (equal uid (with-no-warnings (file-user-uid))))
+      (should (equal gid (with-no-warnings (file-group-gid)))))))
 
 (ert-deftest tramp-archive-test48-auto-load ()
   "Check that `tramp-archive' autoloads properly."
@@ -920,13 +875,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
       (dolist (default-directory
 		(append
 		 `(,temporary-file-directory)
-		 ;;  Starting Emacs in a directory which has
-		 ;; `tramp-archive-file-name-regexp' syntax is
-		 ;; supported only with Emacs > 27.2 (sigh!).
-		 ;; (Bug#48476)
-                 (and (tramp-archive--test-emacs28-p)
-		      `(,(file-name-as-directory
-			  tramp-archive-test-directory)))))
+		 `(,(file-name-as-directory tramp-archive-test-directory))))
 	(dolist (file `("/mock::foo" ,(concat tramp-archive-test-archive "foo")))
           (should
            (string-match

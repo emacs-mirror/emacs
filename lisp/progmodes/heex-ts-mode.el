@@ -1,6 +1,6 @@
 ;;; heex-ts-mode.el --- Major mode for Heex with tree-sitter support -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Wilhelm H Kirschbaum <wkirschbaum@gmail.com>
 ;; Created: November 2022
@@ -64,16 +64,18 @@
   (let ((offset heex-ts-indent-offset))
     `((heex
        ((parent-is "fragment")
-        (lambda (node parent &rest _)
+        (lambda (_node _parent bol &rest _)
           ;; If HEEx is embedded indent to parent
           ;; otherwise indent to the bol.
           (if (eq (treesit-language-at (point-min)) 'heex)
               (point-min)
             (save-excursion
-              (goto-char (treesit-node-start parent))
+              (goto-char (treesit-node-start
+                          (treesit-node-at bol 'elixir)))
               (back-to-indentation)
               (point))
-            )) 0)
+            ))
+        0)
        ((node-is "end_tag") parent-bol 0)
        ((node-is "end_component") parent-bol 0)
        ((node-is "end_slot") parent-bol 0)
@@ -146,11 +148,12 @@ With ARG, do it many times.  Negative ARG means move backward."
   :group 'heex-ts
 
   (when (treesit-ready-p 'heex)
-    (treesit-parser-create 'heex)
+    (setq treesit-primary-parser (treesit-parser-create 'heex))
 
     ;; Comments
-    (setq-local treesit-text-type-regexp
-                (regexp-opt '("comment" "text")))
+    (setq-local treesit-thing-settings
+                `((heex
+                   (text ,(regexp-opt '("comment" "text"))))))
 
     (setq-local forward-sexp-function #'heex-ts--forward-sexp)
 
@@ -165,6 +168,16 @@ With ARG, do it many times.  Negative ARG means move backward."
                   ("Slot" "\\`slot\\'" nil nil)
                   ("Tag" "\\`tag\\'" nil nil)))
 
+    ;; Outline minor mode
+    ;; `heex-ts-mode' inherits from `html-mode' that sets
+    ;; regexp-based outline variables.  So need to restore
+    ;; the default values of outline variables to be able
+    ;; to use `treesit-outline-predicate' derived
+    ;; from `treesit-simple-imenu-settings' above.
+    (kill-local-variable 'outline-heading-end-regexp)
+    (kill-local-variable 'outline-regexp)
+    (kill-local-variable 'outline-level)
+
     (setq-local treesit-font-lock-settings heex-ts--font-lock-settings)
 
     (setq-local treesit-simple-indent-rules heex-ts--indent-rules)
@@ -175,6 +188,8 @@ With ARG, do it many times.  Negative ARG means move backward."
                   () ()))
 
     (treesit-major-mode-setup)))
+
+(derived-mode-add-parents 'heex-ts-mode '(heex-mode))
 
 (if (treesit-ready-p 'heex)
     ;; Both .heex and the deprecated .leex files should work

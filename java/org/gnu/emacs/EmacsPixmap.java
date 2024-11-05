@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -34,7 +34,7 @@ public final class EmacsPixmap extends EmacsHandleObject
 {
   /* The depth of the bitmap.  This is not actually used, just defined
      in order to be consistent with X.  */
-  public int depth, width, height;
+  public final int depth, width, height;
 
   /* The bitmap itself.  */
   public Bitmap bitmap;
@@ -44,45 +44,16 @@ public final class EmacsPixmap extends EmacsHandleObject
 
   /* Whether or not GC should be explicitly triggered upon
      release.  */
-  private boolean needCollect;
+  private final boolean needCollect;
 
   /* ID used to determine whether or not the GC clip rects
      changed.  */
   private long gcClipRectID;
 
   public
-  EmacsPixmap (short handle, int colors[], int width,
-	       int height, int depth)
+  EmacsPixmap (int width, int height, int depth)
   {
-    super (handle);
-
-    if (depth != 1 && depth != 24)
-      throw new IllegalArgumentException ("Invalid depth specified"
-					  + " for pixmap: " + depth);
-
-    switch (depth)
-      {
-      case 1:
-	bitmap = Bitmap.createBitmap (colors, width, height,
-				      Bitmap.Config.ALPHA_8);
-	break;
-
-      case 24:
-	bitmap = Bitmap.createBitmap (colors, width, height,
-				      Bitmap.Config.ARGB_8888);
-	bitmap.setHasAlpha (false);
-	break;
-      }
-
-    this.width = width;
-    this.height = height;
-    this.depth = depth;
-  }
-
-  public
-  EmacsPixmap (short handle, int width, int height, int depth)
-  {
-    super (handle);
+    super ();
 
     if (depth != 1 && depth != 24)
       throw new IllegalArgumentException ("Invalid depth specified"
@@ -167,6 +138,13 @@ public final class EmacsPixmap extends EmacsHandleObject
   @Override
   public void
   damageRect (Rect damageRect)
+  {
+
+  }
+
+  @Override
+  public void
+  damageRect (int left, int top, int right, int bottom)
   {
 
   }

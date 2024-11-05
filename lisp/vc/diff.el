@@ -1,6 +1,6 @@
 ;;; diff.el --- run `diff'  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2023 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2001-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Frank Bresz
@@ -165,7 +165,7 @@ returns the buffer used."
   (unless (bufferp new) (setq new (expand-file-name new)))
   (unless (bufferp old) (setq old (expand-file-name old)))
   (or switches (setq switches diff-switches)) ; If not specified, use default.
-  (unless (listp switches) (setq switches (list switches)))
+  (setq switches (ensure-list switches))
   (or buf (setq buf (get-buffer-create "*Diff*")))
   (diff-check-labels)
   (let* ((old-alt (diff-file-local-copy old))

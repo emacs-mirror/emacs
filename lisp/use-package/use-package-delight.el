@@ -1,6 +1,6 @@
 ;;; use-package-delight.el --- Support for the :delight keyword  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
@@ -80,8 +80,6 @@
      body
      `((if (fboundp 'delight)
            (delight '(,@args)))))))
-
-(add-to-list 'use-package-keywords :delight t)
 
 (provide 'use-package-delight)
 

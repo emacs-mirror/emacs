@@ -1,6 +1,6 @@
 ;;; thumbs.el --- Thumbnails previewer for images files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
 
 ;; Author: Jean-Philippe Theberge <jphiltheberge@videotron.ca>
 ;; Maintainer: emacs-devel@gnu.org

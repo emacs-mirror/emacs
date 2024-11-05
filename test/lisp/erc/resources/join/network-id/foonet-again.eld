@@ -43,4 +43,4 @@
  (0.1 ":bob!~u@q6ddatxcq6txy.irc PRIVMSG #chan :alice: But we are spirits of another sort.")
  (0.1 ":alice!~u@q6ddatxcq6txy.irc PRIVMSG #chan :bob: It was not given me, nor I did not buy it."))
 
-((linger 6 LINGER))
+((linger 30 LINGER))

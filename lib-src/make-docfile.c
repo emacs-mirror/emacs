@@ -1,6 +1,6 @@
 /* Generate doc-string file for GNU Emacs from source files.
 
-Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2023 Free Software
+Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2024 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -660,11 +660,11 @@ close_emacs_globals (ptrdiff_t num_symbols)
   printf (("};\n"
 	   "extern struct emacs_globals globals;\n"
 	   "\n"
-	   "#ifndef DEFINE_SYMBOLS\n"
-	   "extern\n"
-	   "#endif\n"
-	   "struct Lisp_Symbol lispsym[%td];\n"),
-	  num_symbols);
+	   "extern struct Lisp_Symbol lispsym[%td];\n"
+	   "#ifdef DEFINE_SYMBOLS\n"
+	   "struct Lisp_Symbol lispsym[%td];\n"
+	   "#endif\n"),
+	  num_symbols, num_symbols);
 }
 
 static void

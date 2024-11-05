@@ -1,6 +1,6 @@
 ;;; parse-time-tests.el --- Test suite for parse-time.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 

@@ -1,6 +1,6 @@
 ;;; semantic/fw.el --- Framework for Semantic  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -434,9 +434,8 @@ FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'."
 ;;       ))
 ;;   "Highlighted Semantic keywords.")
 
-;; (when (fboundp 'font-lock-add-keywords)
-;;   (font-lock-add-keywords 'emacs-lisp-mode
-;;                           semantic-fw-font-lock-keywords))
+;; (font-lock-add-keywords 'emacs-lisp-mode
+;;                         semantic-fw-font-lock-keywords)
 
 
 (provide 'semantic/fw)

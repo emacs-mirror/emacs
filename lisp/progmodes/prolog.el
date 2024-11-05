@@ -1,6 +1,6 @@
 ;;; prolog.el --- major mode for Prolog (and Mercury) -*- lexical-binding:t -*-
 
-;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011-2023 Free
+;; Copyright (C) 1986-1987, 1997-1999, 2002-2003, 2011-2024 Free
 ;; Software Foundation, Inc.
 
 ;; Authors: Emil Åström <emil_astrom(at)hotmail(dot)com>
@@ -1148,7 +1148,7 @@ line and comments can also be enclosed in /* ... */.
 If an optional argument SYSTEM is non-nil, set up mode for the given system.
 
 To find out what version of Prolog mode you are running, enter
-`\\[prolog-mode-version]'.
+\\[prolog-mode-version].
 
 Commands:
 \\{prolog-mode-map}"
@@ -1268,7 +1268,7 @@ imitating normal Unix input editing.
 \\[comint-quit-subjob] sends quit signal, likewise.
 
 To find out what version of Prolog mode you are running, enter
-`\\[prolog-mode-version]'."
+\\[prolog-mode-version]."
   (require 'compile)
   (setq comint-input-filter 'prolog-input-filter)
   (setq mode-line-process '(": %s"))

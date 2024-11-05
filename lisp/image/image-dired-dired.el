@@ -1,10 +1,11 @@
 ;;; image-dired-dired.el --- Dired specific commands for Image-Dired  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
 
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 ;; Maintainer: Stefan Kangas <stefankangas@gmail.com>
 ;; Keywords: multimedia
+;; Package: image-dired
 
 ;; This file is part of GNU Emacs.
 
@@ -382,7 +383,7 @@ matching tag will be marked in the Dired buffer."
                       (file-name-directory curr-file)))
         (setq curr-file (file-name-nondirectory curr-file))
         (goto-char (point-min))
-        (when (search-forward-regexp (format "\\s %s$" curr-file) nil t)
+        (when (search-forward-regexp (format "\\s %s[*@]?$" curr-file) nil t)
           (setq hits (+ hits 1))
           (dired-mark 1))))
     (message "%d files with matching tag marked" hits)))

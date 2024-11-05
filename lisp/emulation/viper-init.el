@@ -1,6 +1,6 @@
 ;;; viper-init.el --- some common definitions for Viper  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -257,11 +257,11 @@ that deletes a file.")
 
 (defvar viper-expert-level (if (boundp 'viper-expert-level) viper-expert-level 0)
   "User's expert level.
-The minor mode viper-vi-diehard-minor-mode is in effect when
-viper-expert-level is 1 or 2 or when viper-want-emacs-keys-in-vi is t.
-The minor mode viper-insert-diehard-minor-mode is in effect when
-viper-expert-level is 1 or 2 or if viper-want-emacs-keys-in-insert is t.
-Use `\\[viper-set-expert-level]' to change this.")
+The minor mode `viper-vi-diehard-minor-mode' is in effect when
+`viper-expert-level' is 1 or 2 or when `viper-want-emacs-keys-in-vi' is t.
+The minor mode `viper-insert-diehard-minor-mode' is in effect when
+`viper-expert-level' is 1 or 2 or if `viper-want-emacs-keys-in-insert' is t.
+Use \\[viper-set-expert-level] to change this.")
 
 ;; Max expert level supported by Viper.  This is NOT a user option.
 ;; It is here to make it hard for the user from resetting it.
@@ -698,8 +698,8 @@ If nil, the cursor will move backwards without deleting anything."
   "List of file and buffer names to consider related to the current buffer.
 Related buffers can be cycled through via :R and :P commands."
   :type 'boolean
+  :local 'permanent-only
   :group 'viper-misc)
-(put 'viper-related-files-and-buffers-ring 'permanent-local t)
 
 ;; Used to find out if we are done with searching the current buffer.
 (defvar-local viper-local-search-start-marker nil)

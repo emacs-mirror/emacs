@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Basic
@@ -360,15 +360,15 @@ preserve the horizontal position, as usual.
 
 @vindex line-move-visual
   When a line of text in the buffer is longer than the width of the
-window, Emacs usually displays it on two or more @dfn{screen lines}.
-For convenience, @kbd{C-n} and @kbd{C-p} move point by screen lines,
-as do the equivalent keys @kbd{@key{down}} and @kbd{@key{up}}.  You
-can force these commands to move according to @dfn{logical lines}
-(i.e., according to the text lines in the buffer) by setting the
-variable @code{line-move-visual} to @code{nil}; if a logical line
-occupies multiple screen lines, the cursor then skips over the
-additional screen lines.  For details, see @ref{Continuation Lines}.
-@xref{Variables}, for how to set variables such as
+window, Emacs usually displays it on two or more @dfn{screen lines},
+a.k.a.@: @dfn{visual lines}.  For convenience, @kbd{C-n} and @kbd{C-p}
+move point by screen lines, as do the equivalent keys @kbd{@key{down}}
+and @kbd{@key{up}}.  You can force these commands to move according to
+@dfn{logical lines} (i.e., according to the text lines in the buffer)
+by setting the variable @code{line-move-visual} to @code{nil}; if a
+logical line occupies multiple screen lines, the cursor then skips
+over the additional screen lines.  For details, see @ref{Continuation
+Lines}.  @xref{Variables}, for how to set variables such as
 @code{line-move-visual}.
 
   Unlike @kbd{C-n} and @kbd{C-p}, most of the Emacs commands that work
@@ -406,8 +406,8 @@ Delete the character before point, or the region if it is active
 (@code{delete-backward-char}).
 
 @item @key{Delete}
-Delete the character after point, or the region if it is active
-(@code{delete-forward-char}).
+Delete the character or grapheme cluster after point, or the region if
+it is active (@code{delete-forward-char}).
 
 @item C-d
 Delete the character after point (@code{delete-char}).
@@ -438,11 +438,18 @@ with the @key{Delete} key; we will discuss @key{Delete} momentarily.)
 On some text terminals, Emacs may not recognize the @key{DEL} key
 properly.  @xref{DEL Does Not Delete}, if you encounter this problem.
 
+@cindex grapheme cluster, deletion
+@cindex delete entire grapheme cluster
   The @key{Delete} (@code{delete-forward-char}) command deletes in the
 opposite direction: it deletes the character after point, i.e., the
 character under the cursor.  If point was at the end of a line, this
 joins the following line onto this one.  Like @kbd{@key{DEL}}, it
 deletes the text in the region if the region is active (@pxref{Mark}).
+If the character after point is composed with following characters and
+displayed as a single display unit, a so-called @dfn{grapheme cluster}
+representing the entire sequence, @key{Delete} deletes the entire
+sequence in one go.  This is in contrast to @key{DEL} which always
+deletes a single character, even if the character is composed.
 
   @kbd{C-d} (@code{delete-char}) deletes the character after point,
 similar to @key{Delete}, but regardless of whether the region is
@@ -596,10 +603,13 @@ lines, if any exists.
 @cindex wrapping
 @cindex line wrapping
 @cindex fringes, and continuation lines
+@cindex logical line
+@cindex screen line
+@cindex visual line
   Sometimes, a line of text in the buffer---a @dfn{logical line}---is
 too long to fit in the window, and Emacs displays it as two or more
-@dfn{screen lines}.  This is called @dfn{line wrapping} or
-@dfn{continuation}, and the long logical line is called a
+@dfn{screen lines}, or @dfn{visual lines}.  This is called @dfn{line
+wrapping} or @dfn{continuation}, and the long logical line is called a
 @dfn{continued line}.  On a graphical display, Emacs indicates line
 wrapping with small bent arrows in the left and right window fringes.
 On a text terminal, Emacs indicates line wrapping by displaying a
@@ -626,6 +636,18 @@ can be difficult to read.  The usual solution is to break your lines
 before they get too long, by inserting newlines.  If you prefer, you
 can make Emacs insert a newline automatically when a line gets too
 long, by using Auto Fill mode.  @xref{Filling}.
+
+@cindex continuation lines, visual wrap prefix
+@findex visual-wrap-prefix-mode
+@findex global-visual-wrap-prefix-mode
+  Normally, the first character of each continuation line is
+positioned at the beginning of the screen line where it is displayed.
+The minor mode @code{visual-wrap-prefix-mode} and its global
+counterpart (@pxref{Minor Modes}) @code{global-visual-wrap-prefix-mode}
+arranges for continuation lines to be indented on display using a fill
+prefix (@pxref{Fill Prefix}) automatically computed from each line's
+surrounding context.  These prefixes are display-only feature, and do
+not change the buffer text in any way.
 
   Sometimes, you may need to edit files containing many long logical
 lines, and it may not be practical to break them all up by adding

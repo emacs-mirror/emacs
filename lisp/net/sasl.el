@@ -1,6 +1,6 @@
 ;;; sasl.el --- SASL client framework  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@gnu.org>
 ;; Keywords: SASL
@@ -219,7 +219,7 @@ It contain at least 64 bits of entropy."
 		 (not (string= authenticator-name name)))
 	    (concat authenticator-name "\0" name "\0" passphrase)
 	  (concat "\0" name "\0" passphrase))
-      (fillarray passphrase 0))))
+      (clear-string passphrase))))
 
 (put 'sasl-plain 'sasl-mechanism
      (sasl-make-mechanism "PLAIN" sasl-plain-steps))

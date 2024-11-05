@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2023 Free
+;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2024 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -32,9 +32,6 @@
   (require 'compare-w)
   (require 'cl-lib)
   (require 'skeleton))
-
-(defvar font-lock-comment-face)
-(defvar font-lock-doc-face)
 
 (require 'shell)
 (require 'compile)
@@ -213,6 +210,7 @@ otherwise, the file name, preceded by a space, is added at the end.
 
 If the value is a form, it is evaluated to get the command to use."
   :type '(choice (const nil) string sexp)
+  :risky t
   :group 'tex-view)
 
 ;;;###autoload
@@ -312,7 +310,7 @@ Should be a simple file name with no extension or directory specification.")
 
 (defvar tex-print-file nil
   "File name that \\[tex-print] prints.
-Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
+Set by \\[tex-region], \\[tex-buffer], \\[tex-file] and \\[tex-compile].")
 
 (defvar tex-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -514,17 +512,26 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	   ;; This would allow highlighting \newcommand\CMD but requires
 	   ;; adapting subgroup numbers below.
 	   ;; (arg "\\(?:{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)\\|\\\\[a-z*]+\\)"))
-           (inbraces-re (lambda (re)
-                          (concat "\\(?:[^{}\\]\\|\\\\.\\|" re "\\)")))
-	   (arg (concat "{\\(" (funcall inbraces-re "{[^}]*}") "+\\)")))
-      `( ;; Highlight $$math$$ and $math$.
+           (inbraces-re
+            (lambda (n) ;; Level of nesting of braces we should support.
+              (let ((re "[^}]"))
+                (dotimes (_ n)
+                  (setq re
+                        (concat "\\(?:[^{}\\]\\|\\\\.\\|{" re "*}\\)")))
+                re)))
+	   (arg (concat "{\\(" (funcall inbraces-re 2) "+\\)")))
+      `(;; Verbatim-like args.
+        ;; Do it first, because we don't want to highlight them
+        ;; in comments (bug#68827), but we do want to highlight them
+        ;; in $math$.
+        (,(concat slash verbish opt arg) 3 'tex-verbatim keep)
+        ;; Highlight $$math$$ and $math$.
         ;; This is done at the very beginning so as to interact with the other
         ;; keywords in the same way as comments and strings.
         (,(concat "\\$\\$?\\(?:[^$\\{}]\\|\\\\.\\|{"
-                  (funcall inbraces-re
-                           (concat "{" (funcall inbraces-re "{[^}]*}") "*}"))
+                  (funcall inbraces-re 6)
                   "*}\\)+\\$?\\$")
-         (0 'tex-math))
+         (0 'tex-math keep))
         ;; Heading args.
         (,(concat slash headings "\\*?" opt arg)
          ;; If ARG ends up matching too much (if the {} don't match, e.g.)
@@ -546,8 +553,6 @@ An alternative value is \" . \", if you use a font with a narrow period."
         (,(concat slash variables " *" arg) 2 font-lock-variable-name-face)
         ;; Include args.
         (,(concat slash includes opt arg) 3 font-lock-builtin-face)
-        ;; Verbatim-like args.
-        (,(concat slash verbish opt arg) 3 'tex-verbatim t)
         ;; Definitions.  I think.
         ("^[ \t]*\\\\def *\\\\\\(\\(\\w\\|@\\)+\\)"
 	 1 font-lock-function-name-face))))
@@ -605,14 +610,14 @@ An alternative value is \" . \", if you use a font with a narrow period."
         (list (concat (regexp-opt '("``" "\"<" "\"`" "<<" "«") t)
                       "\\(\\(.\\|\n\\)+?\\)"
                       (regexp-opt `("''" "\">" "\"'" ">>" "»") t))
-              '(1 font-lock-keyword-face)
-              '(2 font-lock-string-face)
-              '(4 font-lock-keyword-face))
+              '(1 'font-lock-keyword-face)
+              '(2 'font-lock-string-face)
+              '(4 'font-lock-keyword-face))
 	;;
 	;; Command names, special and general.
 	(cons (concat slash specials-1) 'font-lock-warning-face)
 	(list (concat "\\(" slash specials-2 "\\)\\([^a-zA-Z@]\\|\\'\\)")
-	      1 'font-lock-warning-face)
+	      '(1 'font-lock-warning-face))
 	(concat slash general)
 	;;
 	;; Font environments.  It seems a bit dubious to use `bold' etc. faces
@@ -632,6 +637,14 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	      3 '(tex-font-lock-append-prop 'bold) 'append)))))
    "Gaudy expressions to highlight in TeX modes.")
 
+(defvar-local tex-expl-region-list nil
+  "List of region boundaries where expl3 syntax is active.
+It will be nil in buffers visiting files which use expl3 syntax
+throughout, for example, expl3 classes or packages.")
+
+(defvar-local tex-expl-buffer-p nil
+  "Non-nil in buffers using expl3 syntax throughout.")
+
 (defun tex-font-lock-suscript (pos)
   (unless (or (memq (get-text-property pos 'face)
 		    '(font-lock-constant-face font-lock-builtin-face
@@ -641,7 +654,17 @@ An alternative value is \" . \", if you use a font with a narrow period."
 		    (pos pos))
 		(while (eq (char-before pos) ?\\)
 		  (setq pos (1- pos) odd (not odd)))
-		odd))
+		odd)
+              ;; Check if POS is in an expl3 syntax region or an expl3 buffer
+              (when (eq (char-after pos) ?_)
+                (or tex-expl-buffer-p
+                    (and
+                     tex-expl-region-list
+                     (catch 'result
+                       (dolist (range tex-expl-region-list)
+                         (and (> pos (car range))
+                              (< pos (cdr range))
+                              (throw 'result t))))))))
     (if (eq (char-after pos) ?_)
 	`(face subscript display (raise ,(car tex-font-script-display)))
       `(face superscript display (raise ,(cadr tex-font-script-display))))))
@@ -680,7 +703,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 (eval-when-compile
   (defconst tex-syntax-propertize-rules
     (syntax-propertize-precompile-rules
-    ("\\\\verb\\**\\([^a-z@*]\\)"
+     ("\\\\verb\\**\\([^a-z@*]\\)"
       (1 (prog1 "\""
            (tex-font-lock-verb
             (match-beginning 0) (char-after (match-beginning 1))))))))
@@ -764,7 +787,7 @@ automatically inserts its partner."
                            (regexp-quote (buffer-substring arg-start arg-end)))
                       (text-clone-create arg-start arg-end))))))))
       (scan-error nil)
-      (error (message "Error in latex-env-before-change: %s" err)))))
+      (error (message "Error in latex-env-before-change: %S" err)))))
 
 (defun tex-font-lock-unfontify-region (beg end)
   (font-lock-default-unfontify-region beg end)
@@ -852,7 +875,7 @@ START is the position of the \\ and DELIM is the delimiter char."
   (let ((char (nth 3 state)))
     (cond
      ((not char)
-      (if (eq 2 (nth 7 state)) 'tex-verbatim font-lock-comment-face))
+      (if (eq 2 (nth 7 state)) 'tex-verbatim 'font-lock-comment-face))
      ((eq char ?$) 'tex-math)
      ;; A \verb element.
      (t 'tex-verbatim))))
@@ -1032,14 +1055,20 @@ says which mode to use."
                  ;; `tex--guess-mode' really tries to guess the *type* of file,
                  ;; so we still need to consult `major-mode-remap-alist'
                  ;; to see which mode to use for that type.
-                 (alist-get mode major-mode-remap-alist mode))))))
+                 (major-mode-remap mode))))))
 
-;; The following three autoloaded aliases appear to conflict with
-;; AUCTeX.  We keep those confusing aliases for those users who may
-;; have files annotated with -*- LaTeX -*- (e.g. because they received
+;; Support files annotated with -*- LaTeX -*- (e.g. because they received
 ;; them from someone using AUCTeX).
-;; FIXME: Turn them into autoloads so that AUCTeX can override them
-;; with its own autoloads?  Or maybe rely on `major-mode-remap-alist'?
+;;;###autoload (add-to-list 'major-mode-remap-defaults '(TeX-mode . tex-mode))
+;;;###autoload (add-to-list 'major-mode-remap-defaults '(plain-TeX-mode . plain-tex-mode))
+;;;###autoload (add-to-list 'major-mode-remap-defaults '(LaTeX-mode . latex-mode))
+
+;; FIXME: These aliases conflict with AUCTeX, but we still need them
+;; because of packages out there which call these functions directly.
+;; They should be patched to use `major-mode-remap'.
+;; It would be nice to mark them obsolete somehow to encourage using
+;; something else, but the obsolete declaration would become invalid
+;; and confusing when AUCTeX *is* installed.
 ;;;###autoload (defalias 'TeX-mode #'tex-mode)
 ;;;###autoload (defalias 'plain-TeX-mode #'plain-tex-mode)
 ;;;###autoload (defalias 'LaTeX-mode #'latex-mode)
@@ -1265,8 +1294,8 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq-local facemenu-end-add-face "}")
   (setq-local facemenu-remove-face-function t)
   (setq-local font-lock-defaults
-	      '((tex-font-lock-keywords tex-font-lock-keywords-1
-                                        tex-font-lock-keywords-2 tex-font-lock-keywords-3)
+	      '(( tex-font-lock-keywords tex-font-lock-keywords-1
+                  tex-font-lock-keywords-2 tex-font-lock-keywords-3)
 		nil nil nil nil
 		;; Who ever uses that anyway ???
 		(font-lock-mark-block-function . mark-paragraph)
@@ -1279,8 +1308,16 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
                 #'tex--prettify-symbols-compose-p)
   (setq-local syntax-propertize-function
 	      (syntax-propertize-rules latex-syntax-propertize-rules))
+  ;; Don't add extra processing to `syntax-propertize' in files where
+  ;; expl3 syntax is always active.
+  :after-hook (progn (tex-expl-buffer-parse)
+                     (unless tex-expl-buffer-p
+                       (add-hook 'syntax-propertize-extend-region-functions
+                                 #'tex-expl-region-set nil t)))
   ;; TABs in verbatim environments don't do what you think.
   (setq-local indent-tabs-mode nil)
+  ;; Set up xref backend in TeX buffers.
+  (add-hook 'xref-backend-functions #'tex--xref-backend nil t)
   ;; Other vars that should be buffer-local.
   (make-local-variable 'tex-command)
   (make-local-variable 'tex-start-of-header)
@@ -1926,6 +1963,36 @@ Mark is left at original location."
 		(forward-sexp 1))))))
       (message "%s words" count))))
 
+(defun tex-expl-buffer-parse ()
+  "Identify buffers using expl3 syntax throughout."
+  (save-excursion
+    (goto-char (point-min))
+    (when (tex-search-noncomment
+           (re-search-forward
+            "\\\\\\(?:ExplFile\\|ProvidesExpl\\|__xparse_file\\)"
+            nil t))
+      (setq tex-expl-buffer-p t))))
+
+(defun tex-expl-region-set (_beg _end)
+  "Create a list of regions where expl3 syntax is active.
+This function updates the list whenever `syntax-propertize' runs, and
+stores it in the buffer-local variable `tex-expl-region-list'.  The list
+will always be nil when the buffer visits an expl3 file, for example, an
+expl3 class or package, where the entire file uses expl3 syntax."
+  (unless syntax-ppss--updated-cache;; Stop forward search running twice.
+    (setq tex-expl-region-list nil)
+    ;; Leaving this test here allows users to set `tex-expl-buffer-p'
+    ;; independently of the mode's automatic detection of an expl3 file.
+    (unless tex-expl-buffer-p
+      (goto-char (point-min))
+      (let ((case-fold-search nil))
+        (while (tex-search-noncomment
+                (search-forward "\\ExplSyntaxOn" nil t))
+          (let ((new-beg (point))
+                (new-end (or (tex-search-noncomment
+                              (search-forward "\\ExplSyntaxOff" nil t))
+                             (point-max))))
+            (push (cons new-beg new-end) tex-expl-region-list)))))))
 
 
 ;;; Invoking TeX in an inferior shell.
@@ -2025,7 +2092,8 @@ In the tex shell buffer this command behaves like `comint-send-input'."
 
 (defun tex-display-shell ()
   "Make the TeX shell buffer visible in a window."
-  (display-buffer (tex-shell-buf) display-tex-shell-buffer-action)
+  (with-suppressed-warnings ((obsolete display-tex-shell-buffer-action))
+    (display-buffer (tex-shell-buf) display-tex-shell-buffer-action))
   (tex-recenter-output-buffer nil))
 
 (defun tex-shell-sentinel (proc _msg)
@@ -2137,12 +2205,15 @@ If NOT-ALL is non-nil, save the `.dvi' file."
                   t "%r.pdf"))
               '("pdf" "xe" "lua"))
     ((concat tex-command
+             " " tex-start-options
 	     " " (if (< 0 (length tex-start-commands))
 		     (shell-quote-argument tex-start-commands))
              " %f")
      t "%r.dvi")
     ("xdvi %r &" "%r.dvi")
     ("\\doc-view \"%r.pdf\"" "%r.pdf")
+    ("evince %r.pdf &" "%r.pdf")
+    ("mupdf %r.pdf &" "%r.pdf")
     ("xpdf %r.pdf &" "%r.pdf")
     ("gv %r.ps &" "%r.ps")
     ("yap %r &" "%r.dvi")
@@ -2461,6 +2532,7 @@ Only applies the FSPEC to the args part of FORMAT."
       (if (tex-shell-running)
           (tex-kill-job)
         (tex-start-shell))
+      (setq tex-print-file (expand-file-name (tex-main-file)))
       (tex-send-tex-command cmd dir))))
 
 (defun tex-start-tex (command file &optional dir)
@@ -2677,17 +2749,18 @@ This function is more useful than \\[tex-buffer] when you need the
 The last line of the buffer is displayed on
 line LINE of the window, or centered if LINE is nil."
   (interactive "P")
-  (let ((tex-shell (get-buffer "*tex-shell*"))
-	(window))
+  (let ((tex-shell (get-buffer "*tex-shell*")))
     (if (null tex-shell)
 	(message "No TeX output buffer")
-      (setq window (display-buffer tex-shell display-tex-shell-buffer-action))
-      (with-selected-window window
-	(bury-buffer tex-shell)
-	(goto-char (point-max))
-	(recenter (if linenum
-		      (prefix-numeric-value linenum)
-		    (/ (window-height) 2)))))))
+      (when-let* ((window
+                   (with-suppressed-warnings ((obsolete display-tex-shell-buffer-action))
+                     (display-buffer tex-shell display-tex-shell-buffer-action))))
+        (with-selected-window window
+	  (bury-buffer tex-shell)
+	  (goto-char (point-max))
+	  (recenter (if linenum
+		        (prefix-numeric-value linenum)
+		      (/ (window-height) 2))))))))
 
 (defcustom tex-print-file-extension ".dvi"
   "The TeX-compiled file extension for viewing and printing.
@@ -3728,6 +3801,267 @@ There might be text before point."
                    (kill-buffer (process-buffer process)))))))
       (process-send-region tex-chktex--process (point-min) (point-max))
       (process-send-eof tex-chktex--process))))
+
+
+;;; Xref backend
+
+;; Here we lightly adapt the default etags backend for xref so that
+;; the main xref user commands (including `xref-find-definitions',
+;; `xref-find-apropos', and `xref-find-references' [on M-., C-M-., and
+;; M-?, respectively]) work in TeX buffers.  The only methods we
+;; actually modify are `xref-backend-identifier-at-point' and
+;; `xref-backend-references'.  Many of the complications here, and in
+;; `etags' itself, are due to the necessity of parsing both the old
+;; TeX syntax and the new expl3 syntax, which will continue to appear
+;; together in documents for the foreseeable future.  Synchronizing
+;; Emacs and `etags' this way aims to improve the user experience "out
+;; of the box."
+
+;; Populate `semantic-symref-filepattern-alist' for the in-tree modes;
+;; AUCTeX is doing the same for its modes.
+(with-eval-after-load 'semantic/symref/grep
+  (defvar semantic-symref-filepattern-alist)
+  (push '(latex-mode "*.[tT]e[xX]" "*.ltx" "*.sty" "*.cl[so]"
+                     "*.bbl" "*.drv" "*.hva")
+        semantic-symref-filepattern-alist)
+  (push '(plain-tex-mode "*.[tT]e[xX]" "*.ins")
+        semantic-symref-filepattern-alist)
+  (push '(doctex-mode "*.dtx") semantic-symref-filepattern-alist))
+
+(defun tex--xref-backend () 'tex-etags)
+
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql 'tex-etags)))
+  (require 'etags)
+  (tex--thing-at-point))
+
+;; The detection of `_' and `:' is a primitive method for determining
+;; whether point is on an expl3 construct.  It may fail in some
+;; instances.
+(defun tex--thing-at-point ()
+  "Demarcate `thing-at-point' for the TeX `xref' backend."
+  (let ((bounds (tex--bounds-of-symbol-at-point)))
+    (when bounds
+      (let ((texsym (buffer-substring-no-properties (car bounds) (cdr bounds))))
+        (if (and (not (string-match-p "reference" (symbol-name this-command)))
+                 (seq-contains-p texsym ?_)
+                 (seq-contains-p texsym ?:))
+            (seq-take texsym (seq-position texsym ?:))
+          texsym)))))
+
+(defun tex-thingatpt--beginning-of-symbol ()
+  (and
+   (re-search-backward "[][\\{}\"*`'#=&()%,|$[:cntrl:][:blank:]]" nil t)
+   (forward-char)))
+
+(defun tex-thingatpt--end-of-symbol ()
+  (and
+   (re-search-forward "[][\\{}\"*`'#=&()%,|$[:cntrl:][:blank:]]" nil t)
+   (backward-char)))
+
+(defun tex--bounds-of-symbol-at-point ()
+  "Simplify `bounds-of-thing-at-point' for TeX `xref' backend."
+  (let ((orig (point)))
+    (ignore-errors
+      (save-excursion
+        (tex-thingatpt--end-of-symbol)
+        (tex-thingatpt--beginning-of-symbol)
+        (let ((beg (point)))
+          (if (<= beg orig)
+              (let ((real-end
+                     (progn
+                       (tex-thingatpt--end-of-symbol)
+                       (point))))
+                (cond ((and (<= orig real-end) (< beg real-end))
+                       (cons beg real-end))
+                      ((and (= orig real-end) (= beg real-end))
+                       (cons beg (1+ beg)))))))))));; For 1-char TeX commands.
+
+(cl-defmethod xref-backend-identifier-completion-table ((_backend
+                                                         (eql 'tex-etags)))
+  (xref-backend-identifier-completion-table 'etags))
+
+(cl-defmethod xref-backend-identifier-completion-ignore-case ((_backend
+                                                               (eql
+                                                                'tex-etags)))
+  (xref-backend-identifier-completion-ignore-case 'etags))
+
+(cl-defmethod xref-backend-definitions ((_backend (eql 'tex-etags)) symbol)
+  (xref-backend-definitions 'etags symbol))
+
+(cl-defmethod xref-backend-apropos ((_backend (eql 'tex-etags)) pattern)
+  (xref-backend-apropos 'etags pattern))
+
+;; The `xref-backend-references' method requires more code than the
+;; others for at least two main reasons: TeX authors have typically been
+;; free in their invention of new file types with new suffixes, and they
+;; have also tended sometimes to include non-symbol characters in
+;; command names.  When combined with the default Semantic Symbol
+;; Reference API, these two characteristics of TeX code mean that a
+;; command like `xref-find-references' would often fail to find any hits
+;; for a symbol at point, including the one under point in the current
+;; buffer, or it would find only some instances and skip others.
+
+(defun tex-find-references-syntax-table ()
+  (let ((st (if (boundp 'TeX-mode-syntax-table)
+                 (make-syntax-table TeX-mode-syntax-table)
+               (make-syntax-table tex-mode-syntax-table))))
+    st))
+
+(defvar tex--xref-syntax-fun nil)
+
+(defun tex-xref-syntax-function (str beg end)
+  "Provide a bespoke `syntax-propertize-function' for \\[xref-find-references]."
+  (let* (grpb tempstr
+              (shrtstr (if end
+                           (progn
+                             (setq tempstr (seq-take str (1- (length str))))
+                             (if beg
+                                 (setq tempstr (seq-drop tempstr 1))
+                               tempstr))
+                         (seq-drop str 1)))
+              (grpa (if (and beg end)
+                        (prog1
+                            (list 1 "_")
+                          (setq grpb (list 2 "_")))
+                      (list 1 "_")))
+              (re (concat beg (regexp-quote shrtstr) end))
+              (temp-rule (if grpb
+                             (list re grpa grpb)
+                           (list re grpa))))
+    ;; Simple benchmarks suggested that the speed-up from compiling this
+    ;; function was nearly nil, so `eval' and its non-byte-compiled
+    ;; function remain.
+    (setq tex--xref-syntax-fun (eval
+                                `(syntax-propertize-rules ,temp-rule)))))
+
+(defun tex--collect-file-extensions ()
+  "Gather TeX file extensions from `auto-mode-alist'."
+  (let* ((mlist (when (rassq major-mode auto-mode-alist)
+                  (seq-filter
+                   (lambda (elt)
+                     (eq (cdr elt) major-mode))
+                   auto-mode-alist)))
+         (lcsym (intern-soft (downcase (symbol-name major-mode))))
+         (lclist (and lcsym
+                      (not (eq lcsym major-mode))
+                      (rassq lcsym auto-mode-alist)
+                      (seq-filter
+                       (lambda (elt)
+                         (eq (cdr elt) lcsym))
+                       auto-mode-alist)))
+         (shortsym (when (stringp mode-name)
+                     (intern-soft (concat (string-trim-right mode-name "/.*")
+                                          "-mode"))))
+         (lcshortsym (when (stringp mode-name)
+                       (intern-soft (downcase
+                                     (concat
+                                      (string-trim-right mode-name "/.*")
+                                      "-mode")))))
+         (shlist (and shortsym
+                      (not (eq shortsym major-mode))
+                      (not (eq shortsym lcsym))
+                      (rassq shortsym auto-mode-alist)
+                      (seq-filter
+                       (lambda (elt)
+                         (eq (cdr elt) shortsym))
+                       auto-mode-alist)))
+         (lcshlist (and lcshortsym
+                        (not (eq lcshortsym major-mode))
+                        (not (eq lcshortsym lcsym))
+                        (rassq lcshortsym auto-mode-alist)
+                        (seq-filter
+                         (lambda (elt)
+                           (eq (cdr elt) lcshortsym))
+                         auto-mode-alist)))
+         (exts (when (or mlist lclist shlist lcshlist)
+                 (seq-union (seq-map #'car lclist)
+                            (seq-union (seq-map #'car mlist)
+                                       (seq-union (seq-map #'car lcshlist)
+                                                  (seq-map #'car shlist))))))
+         (ed-exts (when exts
+                    (seq-map
+                     (lambda (elt)
+                       (concat "*" (string-trim  elt "\\\\" "\\\\'")))
+                     exts))))
+    ed-exts))
+
+(defvar tex--buffers-list nil)
+(defvar-local tex--old-syntax-function nil)
+
+(cl-defmethod xref-backend-references ((_backend (eql 'tex-etags)) identifier)
+  "Find references of IDENTIFIER in TeX buffers and files."
+  (require 'semantic/symref/grep)
+  (defvar semantic-symref-filepattern-alist)
+  (let (bufs texbufs
+             (mode major-mode))
+    (dolist (buf (buffer-list))
+      (if (eq (buffer-local-value 'major-mode buf) mode)
+          (push buf bufs)
+        (when (string-match-p ".*\\.[tT]e[xX]" (buffer-name buf))
+          (push buf texbufs))))
+    (unless (seq-set-equal-p tex--buffers-list bufs)
+      (let* ((amalist (tex--collect-file-extensions))
+             (extlist (alist-get mode semantic-symref-filepattern-alist))
+             (extlist-new (seq-uniq
+                           (seq-union amalist extlist #'string-match-p))))
+        (setq tex--buffers-list bufs)
+        (dolist (buf bufs)
+          (when-let* ((fbuf (buffer-file-name buf))
+                      (ext (file-name-extension fbuf))
+                      (finext (concat "*." ext))
+                      ((not (seq-find (lambda (elt) (string-match-p elt finext))
+                                      extlist-new)))
+                      ((push finext extlist-new)))))
+        (unless (seq-set-equal-p extlist-new extlist)
+          (setf (alist-get mode semantic-symref-filepattern-alist)
+                extlist-new))))
+    (let* (setsyntax
+           (punct (with-syntax-table (tex-find-references-syntax-table)
+                    (seq-positions identifier (list ?w ?_)
+                                   (lambda (elt sycode)
+                                     (not (memq (char-syntax elt) sycode))))))
+           (end (and punct
+                     (memq (1- (length identifier)) punct)
+                     (> (length identifier) 1)
+                     (concat "\\("
+                             (regexp-quote
+                              (string (elt identifier
+                                           (1- (length identifier)))))
+                             "\\)")))
+           (beg (and punct
+                     (memq 0 punct)
+                     (concat "\\("
+                             (regexp-quote (string (elt identifier 0)))
+                             "\\)")))
+           (text-mode-hook
+            (if (or end beg)
+                (progn
+                  (tex-xref-syntax-function identifier beg end)
+                  (setq setsyntax (lambda ()
+                                    (setq-local syntax-propertize-function
+                                                tex--xref-syntax-fun)
+                                    (setq-local TeX-style-hook-applied-p t)))
+                  (cons setsyntax text-mode-hook))
+              text-mode-hook)))
+      (unless (memq 'doctex-mode (derived-mode-all-parents mode))
+        (setq bufs (append texbufs bufs)))
+      (when (or end beg)
+        (dolist (buf bufs)
+          (with-current-buffer buf
+            (unless (local-variable-p 'tex--old-syntax-function)
+              (setq tex--old-syntax-function syntax-propertize-function))
+            (setq-local syntax-propertize-function
+                        tex--xref-syntax-fun)
+            (syntax-ppss-flush-cache (point-min)))))
+      (unwind-protect
+          (xref-backend-references nil identifier)
+        (when (or end beg)
+          (dolist (buf bufs)
+            (with-current-buffer buf
+              (when buffer-file-truename
+                (setq-local syntax-propertize-function
+                            tex--old-syntax-function)
+                (syntax-ppss-flush-cache (point-min))))))))))
 
 (make-obsolete-variable 'tex-mode-load-hook
                         "use `with-eval-after-load' instead." "28.1")

@@ -1,6 +1,6 @@
 ;;; auth-source-pass.el --- Integrate auth-source with password-store -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015, 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2017-2024 Free Software Foundation, Inc.
 
 ;; Author: Damien Cassou <damien@cassou.me>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -88,7 +88,7 @@ HOST, USER, PORT, REQUIRE, and MAX."
         (auth-source-pass-extra-query-keywords
          (auth-source-pass--build-result-many host port user require max))
         (t
-         (when-let ((result (auth-source-pass--build-result host port user)))
+         (when-let* ((result (auth-source-pass--build-result host port user)))
            (list result)))))
 
 (defun auth-source-pass--build-result (hosts port user)
@@ -122,9 +122,9 @@ HOSTS can be a string or a list of strings."
 
 (defun auth-source-pass--build-result-many (hosts ports users require max)
   "Return multiple `auth-source-pass--build-result' values."
-  (unless (listp hosts) (setq hosts (list hosts)))
-  (unless (listp users) (setq users (list users)))
-  (unless (listp ports) (setq ports (list ports)))
+  (setq hosts (ensure-list hosts))
+  (setq users (ensure-list users))
+  (setq ports (ensure-list ports))
   (let* ((auth-source-pass--match-regexp (auth-source-pass--match-regexp
                                           auth-source-pass-port-separator))
          (rv (auth-source-pass--find-match-many hosts users ports
@@ -220,7 +220,7 @@ CONTENTS is the contents of a password-store formatted file."
   (let ((lines (cdr (split-string contents "\n" t "[ \t]+"))))
     (seq-remove #'null
                 (mapcar (lambda (line)
-                          (when-let ((pos (seq-position line ?:)))
+                          (when-let* ((pos (seq-position line ?:)))
                             (cons (string-trim (substring line 0 pos))
                                   (string-trim (substring line (1+ pos))))))
                         lines))))
@@ -271,11 +271,12 @@ HOSTS can be a string or a list of strings."
                            n)))
              seen)))
 
-(defun auth-source-pass--match-parts (parts key value require)
-  (let ((mv (plist-get parts key)))
-    (if (memq key require)
-        (and value (equal mv value))
-      (or (not value) (not mv) (equal mv value)))))
+(defun auth-source-pass--match-parts (cache key reference require)
+  (let ((value (plist-get cache key)))
+    (cond ((memq key require)
+           (if reference (equal value reference) value))
+          ((and value reference) (equal value reference))
+          (t))))
 
 (defun auth-source-pass--find-match-many (hosts users ports require max)
   "Return plists for valid combinations of HOSTS, USERS, PORTS."
@@ -296,11 +297,11 @@ HOSTS can be a string or a list of strings."
                      ((equal host (plist-get m :host)))
                      ((auth-source-pass--match-parts m :port port require))
                      ((auth-source-pass--match-parts m :user user require))
-                     (parsed (auth-source-pass-parse-entry e))
                      ;; For now, ignore body-content pairs, if any,
                      ;; from `auth-source-pass--parse-data'.
-                     (secret (or (auth-source-pass--get-attr 'secret parsed)
-                                 (not (memq :secret require)))))
+                     (secret (let ((parsed (auth-source-pass-parse-entry e)))
+                               (or (auth-source-pass--get-attr 'secret parsed)
+                                   (not (memq :secret require))))))
                   (push
                    `( :host ,host ; prefer user-provided :host over h
                       ,@(and-let* ((u (plist-get m :user))) (list :user u))

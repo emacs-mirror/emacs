@@ -1,5 +1,5 @@
 /* Declarations for `malloc' and friends.
-   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2023 Free
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2024 Free
    Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 
@@ -47,11 +47,15 @@ License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef __MALLOC_HOOK_VOLATILE
 # define __MALLOC_HOOK_VOLATILE volatile
 #endif
-#ifndef HAVE_MALLOC_H
+#if !defined HAVE_MALLOC_H						\
+  || (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 34)
 extern void (*__MALLOC_HOOK_VOLATILE __after_morecore_hook) (void);
-extern void (*__MALLOC_HOOK_VOLATILE __malloc_initialize_hook) (void);
 extern void *(*__morecore) (ptrdiff_t);
-#endif
+#endif /* !defined HAVE_MALLOC_H || glibc >= 2.34 */
+#if !defined HAVE_MALLOC_H						\
+  || (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 24)
+extern void (*__MALLOC_HOOK_VOLATILE __malloc_initialize_hook) (void);
+#endif /* !defined HAVE_MALLOC_H || glibc >= 2.24 */
 
 /* If HYBRID_MALLOC is defined, then temacs will use malloc,
    realloc... as defined in this file (and renamed gmalloc,

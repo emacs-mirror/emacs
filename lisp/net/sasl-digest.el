@@ -1,6 +1,6 @@
 ;;; sasl-digest.el --- DIGEST-MD5 module for the SASL client framework  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;;	Kenichi OKADA <okada@opaopa.org>
@@ -107,7 +107,7 @@ charset algorithm cipher-opts auth-param)."
 	     (concat "AUTHENTICATE:" digest-uri
 		     (if (member qop '("auth-int" "auth-conf"))
 			 ":00000000000000000000000000000000")))))))
-      (fillarray passphrase 0))))
+      (clear-string passphrase))))
 
 (defun sasl-digest-md5-response (client step)
   (let* ((plist

@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dancol@dancol.org>
@@ -62,7 +62,6 @@
   (require 'rx))
 
 (defvar ido-cur-list)
-(defvar electric-layout-rules)
 (declare-function ido-mode "ido" (&optional arg))
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
@@ -671,15 +670,6 @@ This variable is like `sgml-attribute-offset'."
   :version "27.1"
   :type 'integer
   :safe 'integerp)
-
-;;; Keymap
-
-(defvar-keymap js-mode-map
-  :doc "Keymap for `js-mode'."
-  "M-." #'js-find-symbol)
-
-(defvar js-ts-mode-map (copy-keymap js-mode-map)
-  "Keymap used in `js-ts-mode'.")
 
 ;;; Syntax table and parsing
 
@@ -2502,7 +2492,7 @@ Returns t if successful, nil if no term was found."
       t)))
 
 (defun js--chained-expression-p ()
-  "A helper for js--proper-indentation that handles chained expressions.
+  "Helper for `js--proper-indentation' that handles chained expressions.
 A chained expression is when the current line starts with '.' and the
 previous line also has a '.' expression.
 This function returns the indentation for the current line if it is
@@ -3427,6 +3417,26 @@ This function is intended for use in `after-change-functions'."
 
 ;;; Tree sitter integration
 
+(defun js--treesit-font-lock-compatibility-definition-feature ()
+  "Font lock helper, to handle different releases of tree-sitter-javascript.
+Check if a node type is available, then return the right font lock rules
+for \"definition\" feature."
+  (condition-case nil
+      (progn (treesit-query-capture 'javascript '((function_expression) @cap))
+             ;; Starting from version 0.20.2 of the grammar.
+             '((function_expression
+                name: (identifier) @font-lock-function-name-face)
+               (variable_declarator
+                name: (identifier) @font-lock-function-name-face
+                value: [(function_expression) (arrow_function)])))
+    (error
+     ;; An older version of the grammar.
+     '((function
+        name: (identifier) @font-lock-function-name-face)
+       (variable_declarator
+        name: (identifier) @font-lock-function-name-face
+        value: [(function) (arrow_function)])))))
+
 (defun js-jsx--treesit-indent-compatibility-bb1f97b ()
   "Indent rules helper, to handle different releases of tree-sitter-javascript.
 Check if a node type is available, then return the right indent rules."
@@ -3472,6 +3482,11 @@ Check if a node type is available, then return the right indent rules."
        ((parent-is "class_body") parent-bol js-indent-level)
        ((parent-is ,switch-case) parent-bol js-indent-level)
        ((parent-is "statement_block") parent-bol js-indent-level)
+       ((match "while" "do_statement") parent-bol 0)
+       ((match "else" "if_statement") parent-bol 0)
+       ((parent-is ,(rx (or (seq (or "if" "for" "for_in" "while" "do") "_statement")
+                            "else_clause")))
+        parent-bol js-indent-level)
 
        ;; JSX
        ,@(js-jsx--treesit-indent-compatibility-bb1f97b)
@@ -3501,41 +3516,12 @@ Check if a node type is available, then return the right indent rules."
     "&&" "||" "!")
   "JavaScript operators for tree-sitter font-locking.")
 
-(defun js-jsx--treesit-font-lock-compatibility-bb1f97b ()
-  "Font lock rules helper, to handle different releases of tree-sitter-javascript.
-Check if a node type is available, then return the right font lock rules."
-  ;; handle commit bb1f97b
-  (condition-case nil
-      (progn (treesit-query-capture 'javascript '((member_expression) @capture))
-	     '((jsx_opening_element
-		[(member_expression (identifier)) (identifier)]
-		@font-lock-function-call-face)
-
-	       (jsx_closing_element
-		[(member_expression (identifier)) (identifier)]
-		@font-lock-function-call-face)
-
-	       (jsx_self_closing_element
-		[(member_expression (identifier)) (identifier)]
-		@font-lock-function-call-face)))
-    (error '((jsx_opening_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @font-lock-function-call-face)
-
-	     (jsx_closing_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @font-lock-function-call-face)
-
-	     (jsx_self_closing_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @font-lock-function-call-face)))))
-
 (defvar js--treesit-font-lock-settings
   (treesit-font-lock-rules
 
    :language 'javascript
    :feature 'comment
-   '((comment) @font-lock-comment-face)
+   '([(comment) (hash_bang_line)] @font-lock-comment-face)
 
    :language 'javascript
    :feature 'constant
@@ -3562,8 +3548,7 @@ Check if a node type is available, then return the right font lock rules."
 
    :language 'javascript
    :feature 'definition
-   '((function
-      name: (identifier) @font-lock-function-name-face)
+   `(,@(js--treesit-font-lock-compatibility-definition-feature)
 
      (class_declaration
       name: (identifier) @font-lock-type-face)
@@ -3574,21 +3559,13 @@ Check if a node type is available, then return the right font lock rules."
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
 
-     (method_definition
-      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
-
-     (arrow_function
-      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
-
-     (function_declaration
-      parameters: (formal_parameters (identifier) @font-lock-variable-name-face))
+     (formal_parameters
+      [(identifier) @font-lock-variable-name-face
+       (array_pattern (identifier) @font-lock-variable-name-face)
+       (object_pattern (shorthand_property_identifier_pattern) @font-lock-variable-name-face)])
 
      (variable_declarator
       name: (identifier) @font-lock-variable-name-face)
-
-     (variable_declarator
-      name: (identifier) @font-lock-function-name-face
-      value: [(function) (arrow_function)])
 
      (variable_declarator
       name: [(array_pattern (identifier) @font-lock-variable-name-face)
@@ -3609,16 +3586,6 @@ Check if a node type is available, then return the right font lock rules."
      (import_clause (namespace_import (identifier) @font-lock-variable-name-face)))
 
    :language 'javascript
-   :feature 'property
-   '(((property_identifier) @font-lock-property-use-face
-      (:pred js--treesit-property-not-function-p
-             @font-lock-property-use-face))
-
-     (pair value: (identifier) @font-lock-variable-use-face)
-
-     ((shorthand_property_identifier) @font-lock-property-use-face))
-
-   :language 'javascript
    :feature 'assignment
    '((assignment_expression
       left: (_) @js--treesit-fontify-assignment-lhs))
@@ -3629,18 +3596,20 @@ Check if a node type is available, then return the right font lock rules."
       function: [(identifier) @font-lock-function-call-face
                  (member_expression
                   property:
-                  (property_identifier) @font-lock-function-call-face)])
-     (method_definition
-      name: (property_identifier) @font-lock-function-name-face)
-     (function_declaration
-      name: (identifier) @font-lock-function-call-face)
-     (function
-      name: (identifier) @font-lock-function-name-face))
+                  (property_identifier) @font-lock-function-call-face)]))
 
    :language 'javascript
    :feature 'jsx
-   (append (js-jsx--treesit-font-lock-compatibility-bb1f97b)
-	   '((jsx_attribute (property_identifier) @font-lock-constant-face)))
+   '((jsx_opening_element name: (_) @font-lock-function-call-face)
+     (jsx_closing_element name: (_) @font-lock-function-call-face)
+     (jsx_self_closing_element name: (_) @font-lock-function-call-face)
+     (jsx_attribute (property_identifier) @font-lock-constant-face))
+
+   :language 'javascript
+   :feature 'property
+   '(((property_identifier) @font-lock-property-use-face)
+     (pair value: (identifier) @font-lock-variable-use-face)
+     ((shorthand_property_identifier) @font-lock-property-use-face))
 
    :language 'javascript
    :feature 'number
@@ -3664,7 +3633,33 @@ Check if a node type is available, then return the right font lock rules."
    :language 'javascript
    :feature 'escape-sequence
    :override t
-   '((escape_sequence) @font-lock-escape-face))
+   '((escape_sequence) @font-lock-escape-face)
+
+   ;; "document" should be first, to avoid overlap.
+   :language 'jsdoc
+   :override t
+   :feature 'document
+   '((document) @font-lock-doc-face)
+
+   :language 'jsdoc
+   :override t
+   :feature 'keyword
+   '((tag_name) @font-lock-constant-face)
+
+   :language 'jsdoc
+   :override t
+   :feature 'bracket
+   '((["{" "}"]) @font-lock-bracket-face)
+
+   :language 'jsdoc
+   :override t
+   :feature 'property
+   '((type) @font-lock-type-face)
+
+   :language 'jsdoc
+   :override t
+   :feature 'definition
+   '((identifier) @font-lock-variable-name-face))
   "Tree-sitter font-lock settings.")
 
 (defun js--fontify-template-string (node override start end &rest _)
@@ -3693,18 +3688,11 @@ OVERRIDE is the override flag described in
       (setq font-beg (treesit-node-end child)
             child (treesit-node-next-sibling child)))))
 
-(defun js--treesit-property-not-function-p (node)
-  "Check that NODE, a property_identifier, is not used as a function."
-  (not (equal (treesit-node-type
-               (treesit-node-parent ; Maybe call_expression.
-                (treesit-node-parent ; Maybe member_expression.
-                 node)))
-              "call_expression")))
-
 (defvar js--treesit-lhs-identifier-query
   (when (treesit-available-p)
     (treesit-query-compile 'javascript '((identifier) @id
-                                         (property_identifier) @id)))
+                                         (property_identifier) @id
+                                         (shorthand_property_identifier_pattern) @id)))
   "Query that captures identifier and query_identifier.")
 
 (defun js--treesit-fontify-assignment-lhs (node override start end &rest _)
@@ -3716,7 +3704,8 @@ For OVERRIDE, START, END, see `treesit-font-lock-rules'."
      (treesit-node-start node) (treesit-node-end node)
      (pcase (treesit-node-type node)
        ("identifier" 'font-lock-variable-use-face)
-       ("property_identifier" 'font-lock-property-use-face))
+       ("property_identifier" 'font-lock-property-use-face)
+       ("shorthand_property_identifier_pattern" 'font-lock-variable-use-face))
      override start end)))
 
 (defun js--treesit-defun-name (node)
@@ -3753,6 +3742,9 @@ Currently there are `js-mode' and `js-ts-mode'."
 (define-derived-mode js-mode js-base-mode "JavaScript"
   "Major mode for editing JavaScript."
   :group 'js
+  (js--mode-setup))
+
+(defun js--mode-setup ()
   ;; Ensure all CC Mode "lang variables" are set to valid values.
   (c-init-language-vars js-mode)
   (setq-local indent-line-function #'js-indent-line)
@@ -3858,19 +3850,24 @@ Currently there are `js-mode' and `js-ts-mode'."
     "jsx_element"
     "jsx_self_closing_element")
   "Nodes that designate sentences in JavaScript.
-See `treesit-sentence-type-regexp' for more information.")
+See `treesit-thing-settings' for more information.")
 
 (defvar js--treesit-sexp-nodes
   '("expression"
+    "parenthesized_expression"
+    "formal_parameters"
     "pattern"
     "array"
     "function"
     "string"
+    "template_string"
+    "template_substitution"
     "escape"
     "template"
     "regex"
     "number"
     "identifier"
+    "property_identifier"
     "this"
     "super"
     "true"
@@ -3879,9 +3876,17 @@ See `treesit-sentence-type-regexp' for more information.")
     "undefined"
     "arguments"
     "pair"
-    "jsx")
+    "jsx"
+    "statement_block"
+    "object"
+    "object_pattern"
+    "named_imports"
+    "class_body")
   "Nodes that designate sexps in JavaScript.
-See `treesit-sexp-type-regexp' for more information.")
+See `treesit-thing-settings' for more information.")
+
+(defvar js--treesit-jsdoc-beginning-regexp (rx bos "/**")
+  "Regular expression matching the beginning of a jsdoc block comment.")
 
 ;;;###autoload
 (define-derived-mode js-ts-mode js-base-mode "JavaScript"
@@ -3900,18 +3905,16 @@ See `treesit-sexp-type-regexp' for more information.")
     (c-ts-common-comment-setup)
     (setq-local comment-multi-line t)
 
-    (setq-local treesit-text-type-regexp
-                (regexp-opt '("comment"
-                              "template_string")))
-
     ;; Electric-indent.
     (setq-local electric-indent-chars
                 (append "{}():;,<>/" electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
     (setq-local electric-layout-rules
 	        '((?\; . after) (?\{ . after) (?\} . before)))
+    (setq-local syntax-propertize-function #'js-ts--syntax-propertize)
 
     ;; Tree-sitter setup.
-    (treesit-parser-create 'javascript)
+    (setq-local treesit-primary-parser (treesit-parser-create 'javascript))
+
     ;; Indent.
     (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
     ;; Navigation.
@@ -3923,20 +3926,32 @@ See `treesit-sexp-type-regexp' for more information.")
                         "lexical_declaration")))
     (setq-local treesit-defun-name-function #'js--treesit-defun-name)
 
-    (setq-local treesit-sentence-type-regexp
-                (regexp-opt js--treesit-sentence-nodes))
-
-    (setq-local treesit-sexp-type-regexp
-                (regexp-opt js--treesit-sexp-nodes))
+    (setq-local treesit-thing-settings
+                `((javascript
+                   (sexp ,(js--regexp-opt-symbol js--treesit-sexp-nodes))
+                   (sentence ,(js--regexp-opt-symbol js--treesit-sentence-nodes))
+                   (text ,(js--regexp-opt-symbol '("comment"
+                                                   "string_fragment"))))))
 
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '(( comment definition)
+                '(( comment document definition)
                   ( keyword string)
                   ( assignment constant escape-sequence jsx number
                     pattern string-interpolation)
                   ( bracket delimiter function operator property)))
+
+    (when (treesit-ready-p 'jsdoc t)
+      (setq-local treesit-range-settings
+                  (treesit-range-rules
+                   :embed 'jsdoc
+                   :host 'javascript
+                   :local t
+                   `(((comment) @capture (:match ,js--treesit-jsdoc-beginning-regexp @capture)))))
+
+      (setq c-ts-common--comment-regexp (rx (or "comment" "line_comment" "block_comment" "description"))))
+
     ;; Imenu
     (setq-local treesit-simple-imenu-settings
                 `(("Function" "\\`function_declaration\\'" nil nil)
@@ -3951,8 +3966,37 @@ See `treesit-sexp-type-regexp' for more information.")
     (add-to-list 'auto-mode-alist
                  '("\\(\\.js[mx]\\|\\.har\\)\\'" . js-ts-mode))))
 
+(derived-mode-add-parents 'js-ts-mode '(js-mode))
+
+(defvar js-ts--s-p-query
+  (when (treesit-available-p)
+    (treesit-query-compile 'javascript
+                           '(((regex pattern: (regex_pattern) @regexp))
+                             ((variable_declarator value: (jsx_element) @jsx))
+                             ((assignment_expression right: (jsx_element) @jsx))
+                             ((arguments (jsx_element) @jsx))
+                             ((parenthesized_expression (jsx_element) @jsx))
+                             ((return_statement (jsx_element) @jsx))))))
+
+(defun js-ts--syntax-propertize (beg end)
+  (let ((captures (treesit-query-capture 'javascript js-ts--s-p-query beg end)))
+    (pcase-dolist (`(,name . ,node) captures)
+      (let* ((ns (treesit-node-start node))
+             (ne (treesit-node-end node))
+             (syntax (pcase-exhaustive name
+                       ('regexp
+                        (cl-decf ns)
+                        (cl-incf ne)
+                        (string-to-syntax "\"/"))
+                       ('jsx
+                        (string-to-syntax "|")))))
+        (put-text-property ns (1+ ns) 'syntax-table syntax)
+        (put-text-property (1- ne) ne 'syntax-table syntax)))))
+
 ;;;###autoload
-(define-derived-mode js-json-mode js-mode "JSON"
+(define-derived-mode js-json-mode prog-mode "JSON"
+  :syntax-table js-mode-syntax-table
+  (js--mode-setup) ;Reuse most of `js-mode', but not as parent (bug#67463).
   (setq-local js-enabled-frameworks nil)
   ;; Speed up `syntax-ppss': JSON files can be big but can't hold
   ;; regexp matchers nor #! thingies (and `js-enabled-frameworks' is nil).

@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,6 +22,9 @@ package org.gnu.emacs;
 import java.util.List;
 import java.util.ArrayList;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+
 import android.content.Context;
 import android.content.Intent;
 
@@ -36,7 +39,7 @@ import android.view.SubMenu;
 import android.util.Log;
 
 /* Context menu implementation.  This object is built from JNI and
-   describes a menu hiearchy.  Then, `inflate' can turn it into an
+   describes a menu hierarchy.  Then, `inflate' can turn it into an
    Android menu, which can be turned into a popup (or other kind of)
    menu.  */
 
@@ -72,8 +75,6 @@ public final class EmacsContextMenu
     public boolean
     onMenuItemClick (MenuItem item)
     {
-      Log.d (TAG, "onMenuItemClick: " + itemName + " (" + itemID + ")");
-
       if (subMenu != null)
 	{
 	  /* Android 6.0 and earlier don't support nested submenus
@@ -81,8 +82,6 @@ public final class EmacsContextMenu
 
 	  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
 	    {
-	      Log.d (TAG, "onMenuItemClick: displaying submenu " + subMenu);
-
 	      /* Still set wasSubmenuSelected -- if not set, the
 		 dismissal of this context menu will result in a
 		 context menu event being sent.  */
@@ -109,8 +108,8 @@ public final class EmacsContextMenu
 	     will normally confuse Emacs into thinking that the
 	     context menu has been dismissed.  Wrong!
 
-	     Setting this flag makes EmacsActivity to only handle
-	     SubMenuBuilder being closed, which always means the menu
+	     Setting this flag prompts EmacsActivity to only handle
+	     SubMenuBuilders being closed, which always means the menu
 	     has actually been dismissed.
 
 	     However, these extraneous events aren't sent on devices
@@ -122,8 +121,7 @@ public final class EmacsContextMenu
 	}
 
       /* Send a context menu event.  */
-      EmacsNative.sendContextMenu ((short) 0, itemID,
-				   lastMenuEventSerial);
+      EmacsNative.sendContextMenu (0, itemID, lastMenuEventSerial);
 
       /* Say that an item has already been selected.  */
       itemAlreadySelected = true;
@@ -348,28 +346,41 @@ public final class EmacsContextMenu
   display (final EmacsWindow window, final int xPosition,
 	   final int yPosition, final int serial)
   {
-    Runnable runnable;
-    final EmacsHolder<Boolean> rc;
+    FutureTask<Boolean> task;
 
-    rc = new EmacsHolder<Boolean> ();
-    rc.thing = false;
+    /* Android will permanently cease to display any popup menus at
+       all if the list of menu items is empty.  Prevent this by
+       promptly returning if there are no menu items.  */
 
-    runnable = new Runnable () {
+    if (menuItems.isEmpty ())
+      return false;
+
+    task = new FutureTask<Boolean> (new Callable<Boolean> () {
 	@Override
-	public void
-	run ()
+	public Boolean
+	call ()
 	{
-	  synchronized (this)
-	    {
-	      lastMenuEventSerial = serial;
-	      rc.thing = display1 (window, xPosition, yPosition);
-	      notify ();
-	    }
-	}
-      };
+	  boolean rc;
 
-    EmacsService.syncRunnable (runnable);
-    return rc.thing;
+	  lastMenuEventSerial = serial;
+	  rc = display1 (window, xPosition, yPosition);
+
+	  /* Android 3.0 to Android 7.0 perform duplicate calls to
+	     onContextMenuClosed the second time a context menu is
+	     dismissed.  Since the second call after such a dismissal is
+	     otherwise liable to prematurely cancel any context menu
+	     displayed immediately afterwards, ignore calls received
+	     within 150 milliseconds of this menu's being displayed.  */
+
+	  if (rc && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB
+	      && Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+	    wasSubmenuSelected = System.currentTimeMillis () - 150;
+
+	  return rc;
+	}
+      });
+
+    return EmacsService.<Boolean>syncRunnable (task);
   }
 
   /* Dismiss this context menu.  WINDOW is the window where the

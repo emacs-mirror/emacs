@@ -1,6 +1,6 @@
 ;;; esh-ext-tests.el --- esh-ext test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -102,7 +102,7 @@
          ;; Check the value of $INSIDE_EMACS using `sh' in order to
          ;; delay variable expansion.
          (eshell-match-command-output
-          (format "/:%s -c 'echo $INSIDE_EMACS'" cmd)
+          (format "/local:%s -c 'echo $INSIDE_EMACS'" cmd)
           "eshell\n"))))))
 
 ;; esh-ext-tests.el ends here

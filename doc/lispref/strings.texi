@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Strings and Characters
@@ -43,7 +43,7 @@ integer is a character or not is determined only by how it is used.
 Emacs.
 
   A string is a fixed sequence of characters.  It is a type of
-sequence called a @dfn{array}, meaning that its length is fixed and
+sequence called an @dfn{array}, meaning that its length is fixed and
 cannot be altered once it is created (@pxref{Sequences Arrays
 Vectors}).  Unlike in C, Emacs Lisp strings are @emph{not} terminated
 by a distinguished character code.
@@ -406,11 +406,12 @@ that matches @var{trim-right} from @var{string}.  Both regexps
 default to @samp{[ \t\n\r]+}.
 @end defun
 
-@defun string-fill string length
-Attempt to Word-wrap @var{string} so that no lines are longer than
-@var{length}.  Filling is done on whitespace boundaries only.  If
-there are individual words that are longer than @var{length}, these
-will not be shortened.
+@defun string-fill string width
+Attempt to Word-wrap @var{string} so that it displays with lines no
+wider than @var{width}.  Filling is done on whitespace boundaries only.
+If there are individual words that are longer than @var{width}, these
+will not be shortened, and therefore @var{string} might be shown with
+lines wider than @var{width} in that case.
 @end defun
 
 @defun string-limit string length &optional end coding-system
@@ -473,28 +474,12 @@ needed, but we recommend to always make sure @var{string} is multibyte
 Representations}), if @var{char} is a non-@acronym{ASCII} character, not
 a raw byte.
 
-  A more powerful function is @code{store-substring}:
-
-@defun store-substring string idx obj
-This function alters part of the contents of the specified @var{string},
-by storing @var{obj} starting at character index @var{idx}.  The
-argument @var{obj} may be either a character (in which case the function
-behaves exactly as @code{aset}) or a (smaller) string.  If @var{obj}
-is a multibyte string, we recommend to make sure @var{string} is also
-multibyte, even if it's pure-@acronym{ASCII}.
-
-Since it is impossible to change the number of characters in an
-existing string, it is an error if @var{obj} consists of more
-characters than would fit in @var{string} starting at character index
-@var{idx}.
-@end defun
-
   To clear out a string that contained a password, use
 @code{clear-string}:
 
 @defun clear-string string
 This makes @var{string} a unibyte string and clears its contents to
-zeros.  It may also change @var{string}'s length.
+null characters.  It may also change @var{string}'s length.
 @end defun
 
 @need 2000
@@ -502,7 +487,9 @@ zeros.  It may also change @var{string}'s length.
 @section Comparison of Characters and Strings
 @cindex string equality
 @cindex text comparison
+@cindex string comparison
 
+@cindex compare characters
 @defun char-equal character1 character2
 This function returns @code{t} if the arguments represent the same
 character, @code{nil} otherwise.  This function ignores differences
@@ -517,7 +504,8 @@ in case if @code{case-fold-search} is non-@code{nil}.
 @end example
 @end defun
 
-@defun string= string1 string2
+@cindex compare strings
+@defun string-equal string1 string2
 This function returns @code{t} if the characters of the two strings
 match exactly.  Symbols are also allowed as arguments, in which case
 the symbol names are used.  Case is always significant, regardless of
@@ -528,27 +516,28 @@ This function is equivalent to @code{equal} for comparing two strings
 the two strings are ignored; use @code{equal-including-properties} if
 you need to distinguish between strings that differ only in their text
 properties.  However, unlike @code{equal}, if either argument is not a
-string or symbol, @code{string=} signals an error.
+string or symbol, @code{string-equal} signals an error.
 
 @example
-(string= "abc" "abc")
+(string-equal "abc" "abc")
      @result{} t
-(string= "abc" "ABC")
+(string-equal "abc" "ABC")
      @result{} nil
-(string= "ab" "ABC")
+(string-equal "ab" "ABC")
      @result{} nil
 @end example
 
 A unibyte and a multibyte string are equal in the sense of
-@code{string=} if and only if they contain the same sequence of
+@code{string-equal} if and only if they contain the same sequence of
 character codes all being in the range 0--127 (@acronym{ASCII}).
 @xref{Text Representations}.
 @end defun
 
-@defun string-equal string1 string2
-@code{string-equal} is another name for @code{string=}.
+@defun string= string1 string2
+@code{string=} is another name for @code{string-equal}.
 @end defun
 
+@cindex case-insensitive string comparison
 @defun string-equal-ignore-case string1 string2
 @code{string-equal-ignore-case} compares strings ignoring case
 differences, like @code{char-equal} when @code{case-fold-search} is
@@ -612,8 +601,8 @@ that collation implements.
 @end defun
 
 @cindex lexical comparison of strings
-@defun string< string1 string2
-@c (findex string< causes problems for permuted index!!)
+@anchor{definition of string-lessp}
+@defun string-lessp string1 string2
 This function compares two strings a character at a time.  It
 scans both the strings at the same time to find the first pair of corresponding
 characters that do not match.  If the lesser character of these two is
@@ -632,11 +621,11 @@ multibyte non-@acronym{ASCII} character (@pxref{Text Representations}).
 
 @example
 @group
-(string< "abc" "abd")
+(string-lessp "abc" "abd")
      @result{} t
-(string< "abd" "abc")
+(string-lessp "abd" "abc")
      @result{} nil
-(string< "123" "abc")
+(string-lessp "123" "abc")
      @result{} t
 @end group
 @end example
@@ -648,15 +637,15 @@ no characters is less than any other string.
 
 @example
 @group
-(string< "" "abc")
+(string-lessp "" "abc")
      @result{} t
-(string< "ab" "abc")
+(string-lessp "ab" "abc")
      @result{} t
-(string< "abc" "")
+(string-lessp "abc" "")
      @result{} nil
-(string< "abc" "ab")
+(string-lessp "abc" "ab")
      @result{} nil
-(string< "" "")
+(string-lessp "" "")
      @result{} nil
 @end group
 @end example
@@ -665,8 +654,8 @@ Symbols are also allowed as arguments, in which case their print names
 are compared.
 @end defun
 
-@defun string-lessp string1 string2
-@code{string-lessp} is another name for @code{string<}.
+@defun string< string1 string2
+@code{string<} is another name for @code{string-lessp}.
 @end defun
 
 @defun string-greaterp string1 string2
@@ -675,7 +664,12 @@ This function returns the result of comparing @var{string1} and
 @code{(string-lessp @var{string2} @var{string1})}.
 @end defun
 
+@defun string> string1 string2
+@code{string>} is another name for @code{string-greaterp}.
+@end defun
+
 @cindex locale-dependent string comparison
+@cindex string collation
 @defun string-collate-lessp string1 string2 &optional locale ignore-case
 This function returns @code{t} if @var{string1} is less than
 @var{string2} in collation order of the specified @var{locale}, which
@@ -691,7 +685,8 @@ for sorting (@pxref{Sequence Functions}):
 
 @example
 @group
-(sort (list "11" "12" "1 1" "1 2" "1.1" "1.2") 'string-collate-lessp)
+(sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
+       :lessp #'string-collate-lessp)
      @result{} ("11" "1 1" "1.1" "12" "1 2" "1.2")
 @end group
 @end example
@@ -708,8 +703,8 @@ systems.  The @var{locale} value of @code{"POSIX"} or @code{"C"} lets
 
 @example
 @group
-(sort (list "11" "12" "1 1" "1 2" "1.1" "1.2")
-      (lambda (s1 s2) (string-collate-lessp s1 s2 "POSIX")))
+(sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
+      :lessp (lambda (s1 s2) (string-collate-lessp s1 s2 "POSIX")))
      @result{} ("1 1" "1 2" "1.1" "1.2" "11" "12")
 @end group
 @end example
@@ -729,6 +724,8 @@ If your system does not support a locale environment, this function
 behaves like @code{string-lessp}.
 @end defun
 
+@cindex version comparison
+@cindex comparing version strings
 @defun string-version-lessp string1 string2
 This function compares strings lexicographically, except it treats
 sequences of numerical characters as if they comprised a base-ten
@@ -737,6 +734,7 @@ number, and then compares the numbers.  So @samp{foo2.png} is
 @samp{12} is lexicographically ``smaller'' than @samp{2}.
 @end defun
 
+@cindex string starts with prefix
 @defun string-prefix-p string1 string2 &optional ignore-case
 This function returns non-@code{nil} if @var{string1} is a prefix of
 @var{string2}; i.e., if @var{string2} starts with @var{string1}.  If
@@ -744,6 +742,7 @@ the optional argument @var{ignore-case} is non-@code{nil}, the
 comparison ignores case differences.
 @end defun
 
+@cindex string ends with suffix
 @defun string-suffix-p suffix string &optional ignore-case
 This function returns non-@code{nil} if @var{suffix} is a suffix of
 @var{string}; i.e., if @var{string} ends with @var{suffix}.  If the
@@ -754,7 +753,7 @@ ignores case differences.
 @defun string-search needle haystack &optional start-pos
 Return the position of the first instance of @var{needle} in
 @var{haystack}, both of which are strings.  If @var{start-pos} is
-non-@code{nil}, start searching from that position in @var{needle}.
+non-@code{nil}, start searching from that position in @var{haystack}.
 Return @code{nil} if no match was found.
 This function only considers the characters in the strings when doing
 the comparison; text properties are ignored.  Matching is always
@@ -898,9 +897,6 @@ interpreted as a number, this function returns 0.
 (string-to-number "1e5")
      @result{} 100000.0
 @end example
-
-@findex string-to-int
-@code{string-to-int} is an obsolete alias for this function.
 @end defun
 
 @defun char-to-string character
@@ -1369,7 +1365,7 @@ given width and precision, if specified.
 
 @item >
 This flag causes the substitution to be truncated on the right to the
-given width, if specified.
+given width and precision, if specified.
 
 @item ^
 This flag converts the substituted text to upper case (@pxref{Case
@@ -1508,9 +1504,12 @@ has been capitalized.  This means that the first character of each
 word is converted to upper case, and the rest are converted to lower
 case.
 
+@vindex case-symbols-as-words
 The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax
-table (@pxref{Syntax Class Table}).
+table (@pxref{Syntax Class Table}); if @code{case-symbols-as-words}
+is non-@code{nil}, characters assigned to the symbol constituent syntax
+class are also considered as word constituent.
 
 When @var{string-or-char} is a character, this function does the same
 thing as @code{upcase}.
@@ -1540,9 +1539,9 @@ letters other than the initials.  It returns a new string whose
 contents are a copy of @var{string-or-char}, in which each word has
 had its initial letter converted to upper case.
 
-The definition of a word is any sequence of consecutive characters that
-are assigned to the word constituent syntax class in the current syntax
-table (@pxref{Syntax Class Table}).
+The definition of a word for this function is the same as described
+for @code{capitalize} above, and @code{case-symbols-as-words} has the
+same effect on word constituent characters.
 
 When the argument to @code{upcase-initials} is a character,
 @code{upcase-initials} has the same result as @code{upcase}.
@@ -1592,9 +1591,12 @@ using @code{string} function, before being passed to one of the casing
 functions.  Of course, no assumptions on the length of the result may
 be made.
 
-  Mapping for such special cases are taken from
-@code{special-uppercase}, @code{special-lowercase} and
-@code{special-titlecase} @xref{Character Properties}.
+  Other characters can also have special case-conversion rules.  They
+all have non-@code{nil} character properties @code{special-uppercase},
+@code{special-lowercase} or @code{special-titlecase} (@pxref{Character
+Properties}) defined by the Unicode Standard.  These properties define
+special case-conversion rules which override the current case table
+(@pxref{Case Tables}).
 
   @xref{Text Comparison}, for functions that compare strings; some of
 them ignore case differences, or can optionally ignore case differences.
@@ -1635,14 +1637,32 @@ correspondence.  There may be two different lower case letters with the
 same upper case equivalent.  In these cases, you need to specify the
 maps for both lower case and upper case.
 
-  The extra table @var{canonicalize} maps each character to a canonical
+  Some characters have special case-conversion rules defined for them,
+which by default override the current case table.  These characters have
+non-@code{nil} character properties @code{special-uppercase},
+@code{special-lowercase} or @code{special-titlecase} (@pxref{Character
+Properties}) defined by the Unicode Standard.  An example is U+00DF
+LATIN SMALL LETTER SHARP S, @ss{}, which by default up-cases to the
+string @code{"SS"}, not to U+1E9E LATIN CAPITAL LETTER SHARP S@.  To
+force these characters follow the case-table conversions, set the
+corresponding Unicode property to @code{nil}:
+
+@example
+ (upcase "@ss{}")
+  => "SS"
+ (put-char-code-property ?@ss{} 'special-uppercase nil)
+ (upcase "@ss{}")
+  => "ẞ"
+@end example
+
+  The extra slot @var{canonicalize} of a case table maps each character to a canonical
 equivalent; any two characters that are related by case-conversion have
 the same canonical equivalent character.  For example, since @samp{a}
 and @samp{A} are related by case-conversion, they should have the same
 canonical equivalent character (which should be either @samp{a} for both
 of them, or @samp{A} for both of them).
 
-  The extra table @var{equivalences} is a map that cyclically permutes
+  The extra slot @var{equivalences} is a map that cyclically permutes
 each equivalence class (of characters with the same canonical
 equivalent).  (For ordinary @acronym{ASCII}, this would map @samp{a} into
 @samp{A} and @samp{A} into @samp{a}, and likewise for each set of
@@ -1692,7 +1712,7 @@ Exits}).
   Some language environments modify the case conversions of
 @acronym{ASCII} characters; for example, in the Turkish language
 environment, the @acronym{ASCII} capital I is downcased into
-a Turkish dotless i (@samp{ı}).  This can interfere with code that requires
+a Turkish dotless i (@samp{@dotless{i}}).  This can interfere with code that requires
 ordinary @acronym{ASCII} case conversion, such as implementations of
 @acronym{ASCII}-based network protocols.  In that case, use the
 @code{with-case-table} macro with the variable @var{ascii-case-table},

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -226,6 +226,8 @@ value that you set.  You can ignore the information about variables
 until you are interested in customizing them.  Then read the basic
 information on variables (@pxref{Variables}) and the information about
 specific variables will make sense.
+
+@include input.texi
 
 @ifnottex
 @lowersections

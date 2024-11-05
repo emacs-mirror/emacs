@@ -1,6 +1,6 @@
 ;;; completion.el --- dynamic word-completion code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1990-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1990-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: abbrev convenience
@@ -65,7 +65,7 @@
 ;;---------------------
 ;;
 ;;   A "word" is any string containing characters with either word or symbol
-;; syntax.  [E.G. Any alphanumeric string with hyphens, underscores, etc.]
+;; syntax.  [E.g., any alphanumeric string with hyphens, underscores, etc.]
 ;; Unless you change the constants, you must type at least three characters
 ;; for the word to be recognized.  Only words longer than 6 characters are
 ;; saved.
@@ -322,9 +322,11 @@ This can be time consuming."
   :type 'boolean)
 
 (defcustom completion-search-distance 15000
-  "How far to search in the buffer when looking for completions.
-In number of characters.  If nil, search the whole buffer."
-  :type 'integer)
+  "How far in the buffer to search when looking for completions.
+Limit is measured in characters.  If nil, search the whole buffer."
+  :type '(choice
+          (const :tag "No limit" nil)
+          (integer :tag "Limit in characters")))
 
 (defcustom completions-merging-modes '(lisp c)
   "List of modes {`c' or `lisp'} for automatic completions merging.
@@ -873,11 +875,11 @@ This is sensitive to `case-fold-search'."
 ;; GNU implements obarrays
 (defconst cmpl-obarray-length 511)
 
-(defvar cmpl-prefix-obarray (make-vector cmpl-obarray-length 0)
+(defvar cmpl-prefix-obarray (obarray-make cmpl-obarray-length)
   "An obarray used to store the downcased completion prefixes.
 Each symbol is bound to a list of completion entries.")
 
-(defvar cmpl-obarray (make-vector cmpl-obarray-length 0)
+(defvar cmpl-obarray (obarray-make cmpl-obarray-length)
   "An obarray used to store the downcased completions.
 Each symbol is bound to a single completion entry.")
 
@@ -960,8 +962,8 @@ Each symbol is bound to a single completion entry.")
 (defun clear-all-completions ()
   "Initialize the completion storage.  All existing completions are lost."
   (interactive)
-  (setq cmpl-prefix-obarray (make-vector cmpl-obarray-length 0))
-  (setq cmpl-obarray (make-vector cmpl-obarray-length 0)))
+  (setq cmpl-prefix-obarray (obarray-make cmpl-obarray-length))
+  (setq cmpl-obarray (obarray-make cmpl-obarray-length)))
 
 (defun list-all-completions ()
   "Return a list of all the known completion entries."
@@ -990,7 +992,7 @@ Each symbol is bound to a single completion entry.")
 ;; Updating the database
 ;;-----------------------------------------------
 ;;
-;;   These are the internal functions used to update the datebase
+;;   These are the internal functions used to update the database
 ;;
 ;;
 (defvar completion-to-accept nil
@@ -2131,7 +2133,25 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 
 ;;;###autoload
 (define-minor-mode dynamic-completion-mode
-  "Toggle dynamic word-completion on or off."
+  "Toggle dynamic word-completion on or off.
+
+When this minor mode is turned on, typing \\`M-RET' or \\`C-RET'
+invokes the command `complete', which completes the word or
+symbol at point using the record of words/symbols you used
+previously and the previously-inserted completions.  Typing
+a word or moving point across it constitutes \"using\" the
+word.
+
+By default, the database of all the dynamic completions that
+were inserted by \\[complete] is saved on the file specified
+by `save-completions-file-name' when you exit Emacs, and will
+be loaded from that file when this mode is enabled in a future
+Emacs session.
+
+The following important options control the various aspects of
+this mode: `enable-completion', `save-completions-flag', and
+`save-completions-retention-time'.  Few other less important
+options can be found in the `completion' group."
   :global t
   ;; This is always good, not specific to dynamic-completion-mode.
   (define-key function-key-map [C-return] [?\C-\r])

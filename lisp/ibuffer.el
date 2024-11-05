@@ -1,6 +1,6 @@
 ;;; ibuffer.el --- operate on buffers like dired  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -832,7 +832,7 @@ width and the longest string in LIST."
       (let ((pt (save-excursion
 		  (mouse-set-point event)
 		  (point))))
-        (if-let ((it (get-text-property (point) 'ibuffer-filter-group-name)))
+        (if-let* ((it (get-text-property (point) 'ibuffer-filter-group-name)))
 	    (ibuffer-toggle-marks it)
 	  (goto-char pt)
 	  (let ((mark (ibuffer-current-mark)))
@@ -1263,7 +1263,7 @@ become unmarked.
 If point is on a group name, then this function operates on that
 group."
   (interactive)
-  (when-let ((it (get-text-property (point) 'ibuffer-filter-group-name)))
+  (when-let* ((it (get-text-property (point) 'ibuffer-filter-group-name)))
     (setq group it))
   (let ((count
 	 (ibuffer-map-lines
@@ -1336,7 +1336,7 @@ If point is on a group name, this function operates on that group."
   (when (and movement (< movement 0))
     (setq arg (- arg)))
   (ibuffer-forward-line 0)
-  (if-let ((it (get-text-property (point) 'ibuffer-filter-group-name)))
+  (if-let* ((it (get-text-property (point) 'ibuffer-filter-group-name)))
       (progn
 	(require 'ibuf-ext)
 	(ibuffer-mark-on-buffer #'identity mark it))
@@ -1540,7 +1540,7 @@ If point is on a group name, this function operates on that group."
 		    ;; `ibuffer-inline-columns' alist and insert it
 		    ;; into our generated code.  Otherwise, we just
 		    ;; generate a call to the column function.
-                    (if-let ((it (assq sym ibuffer-inline-columns)))
+                    (if-let* ((it (assq sym ibuffer-inline-columns)))
 			(nth 1 it)
 		      `(or (,sym buffer mark) "")))
 		   ;; You're not expected to understand this.  Hell, I
@@ -1737,7 +1737,7 @@ If point is on a group name, this function operates on that group."
        (cond ((zerop total) "No processes")
 	     ((= 1 total) "1 process")
 	     (t (format "%d processes" total))))))
-  (if-let ((it (get-buffer-process buffer)))
+  (if-let* ((it (get-buffer-process buffer)))
       (format "(%s %s)" it (process-status it))
     ""))
 
@@ -1872,7 +1872,8 @@ the buffer object itself and the current mark symbol."
 	    (let ((result
 		   (if (buffer-live-p (ibuffer-current-buffer))
 		       (when (or (null group)
-                                 (when-let ((it (get-text-property (point) 'ibuffer-filter-group)))
+                                 (when-let* ((it (get-text-property
+                                                  (point) 'ibuffer-filter-group)))
                                    (equal group it)))
 			 (save-excursion
 			   (funcall function
@@ -1897,7 +1898,19 @@ the buffer object itself and the current mark symbol."
 		    (t
 		     (cl-incf ibuffer-map-lines-count)
 		     (forward-line 1)))))
-	  ibuffer-map-lines-count)
+	  ;; With `ibuffer-auto-mode' enabled, `ibuffer-expert' nil
+	  ;; and more than one marked buffer lines, the preceding loop
+	  ;; counts the automatically popped up (and hence not
+	  ;; user-marked) buffer "*Ibuffer confirmation*".  Since
+	  ;; Ibuffer reports how many marked buffers lines were acted
+	  ;; upon, and in this case the reported count would be too
+	  ;; high by one, we decrement the count to avoid the
+	  ;; confusing message (see bug#64230).
+          (if (and (featurep 'ibuf-ext) ibuffer-auto-mode
+                   (> ibuffer-map-lines-count 1)
+                   (not ibuffer-expert))
+              (1- ibuffer-map-lines-count)
+            ibuffer-map-lines-count))
       (progn
 	(setq buffer-read-only t)
 	(unless nomodify
@@ -2361,137 +2374,138 @@ In Ibuffer, you can conveniently perform many operations on the
 currently open buffers, in addition to filtering your view to a
 particular subset of them, and sorting by various criteria.
 
-Operations on marked buffers:
+Operations on marked buffers (see \"Marking commands\" below
+ for how to mark buffers):
 \\<ibuffer-mode-map>
-  `\\[ibuffer-do-save]' - Save the marked buffers.
-  `\\[ibuffer-do-view]' - View the marked buffers in the selected frame.
-  `\\[ibuffer-do-view-other-frame]' - View the marked buffers in another frame.
-  `\\[ibuffer-do-revert]' - Revert the marked buffers.
-  `\\[ibuffer-do-toggle-read-only]' - Toggle read-only state of marked buffers.
-  `\\[ibuffer-do-toggle-lock]' - Toggle lock state of marked buffers.
-  `\\[ibuffer-do-delete]' - Kill the marked buffers.
-  `\\[ibuffer-do-isearch]' - Do incremental search in the marked buffers.
-  `\\[ibuffer-do-isearch-regexp]' - Isearch for regexp in the marked buffers.
-  `\\[ibuffer-do-replace-regexp]' - Replace by regexp in each of the marked
-          buffers.
-  `\\[ibuffer-do-query-replace]' - Query replace in each of the marked buffers.
-  `\\[ibuffer-do-query-replace-regexp]' - As above, with a regular expression.
-  `\\[ibuffer-do-print]' - Print the marked buffers.
-  `\\[ibuffer-do-occur]' - List lines in all marked buffers which match
-          a given regexp (like the function `occur').
-  `\\[ibuffer-do-shell-command-pipe]' - Pipe the contents of the marked
-          buffers to a shell command.
-  `\\[ibuffer-do-shell-command-pipe-replace]' - Replace the contents of the marked
-          buffers with the output of a shell command.
-  `\\[ibuffer-do-shell-command-file]' - Run a shell command with the
-          buffer's file as an argument.
-  `\\[ibuffer-do-eval]' - Evaluate a form in each of the marked buffers.  This
-          is a very flexible command.  For example, if you want to make all
-          of the marked buffers read-only, try using (read-only-mode 1) as
-          the input form.
-  `\\[ibuffer-do-view-and-eval]' - As above, but view each buffer while the form
-          is evaluated.
-  `\\[ibuffer-do-kill-lines]' - Remove the marked lines from the *Ibuffer* buffer,
-          but don't kill the associated buffer.
-  `\\[ibuffer-do-kill-on-deletion-marks]' - Kill all buffers marked for deletion.
+  \\[ibuffer-do-save] - Save the marked buffers.
+  \\[ibuffer-do-view] - View the marked buffers in the selected frame.
+  \\[ibuffer-do-view-other-frame] - View the marked buffers in another frame.
+  \\[ibuffer-do-revert] - Revert the marked buffers.
+  \\[ibuffer-do-toggle-read-only] - Toggle read-only state of marked buffers.
+  \\[ibuffer-do-toggle-lock] - Toggle lock state of marked buffers.
+  \\[ibuffer-do-delete] - Kill the marked buffers.
+  \\[ibuffer-do-isearch] - Do incremental search in the marked buffers.
+  \\[ibuffer-do-isearch-regexp] - Isearch for regexp in the marked buffers.
+  \\[ibuffer-do-replace-regexp] - Replace by regexp in each of the marked
+        buffers.
+  \\[ibuffer-do-query-replace] - Query replace in each of the marked buffers.
+  \\[ibuffer-do-query-replace-regexp] - As above, with a regular expression.
+  \\[ibuffer-do-print] - Print the marked buffers.
+  \\[ibuffer-do-occur] - List lines in all marked buffers which match
+        a given regexp (like the function `occur').
+  \\[ibuffer-do-shell-command-pipe] - Pipe the contents of the marked
+        buffers to a shell command.
+  \\[ibuffer-do-shell-command-pipe-replace] - Replace the contents of the marked
+        buffers with the output of a shell command.
+  \\[ibuffer-do-shell-command-file] - Run a shell command with the
+        buffer's file as an argument.
+  \\[ibuffer-do-eval] - Evaluate a form in each of the marked buffers.  This
+        is a very flexible command.  For example, if you want to make all
+        of the marked buffers read-only, try using (read-only-mode 1) as
+        the input form.
+  \\[ibuffer-do-view-and-eval] - As above, but view each buffer while the form
+        is evaluated.
+  \\[ibuffer-do-kill-lines] - Remove the marked lines from the *Ibuffer* buffer,
+        but don't kill the associated buffer.
+  \\[ibuffer-do-kill-on-deletion-marks] - Kill all buffers marked for deletion.
 
 Marking commands:
 
-  `\\[ibuffer-mark-forward]' - Mark the buffer at point.
-  `\\[ibuffer-toggle-marks]' - Unmark all currently marked buffers, and mark
-          all unmarked buffers.
-  `\\[ibuffer-change-marks]' - Change the mark used on marked buffers.
-  `\\[ibuffer-unmark-forward]' - Unmark the buffer at point.
-  `\\[ibuffer-unmark-backward]' - Unmark the previous buffer.
-  `\\[ibuffer-unmark-all]' - Unmark buffers marked with MARK.
-  `\\[ibuffer-unmark-all-marks]' - Unmark all marked buffers.
-  `\\[ibuffer-mark-by-mode]' - Mark buffers by major mode.
-  `\\[ibuffer-mark-unsaved-buffers]' - Mark all \"unsaved\" buffers.
-          This means that the buffer is modified, and has an associated file.
-  `\\[ibuffer-mark-modified-buffers]' - Mark all modified buffers,
-          regardless of whether they have an associated file.
-  `\\[ibuffer-mark-special-buffers]' - Mark all buffers whose name begins and
-          ends with `*'.
-  `\\[ibuffer-mark-dissociated-buffers]' - Mark all buffers which have
-          an associated file, but that file doesn't currently exist.
-  `\\[ibuffer-mark-read-only-buffers]' - Mark all read-only buffers.
-  `\\[ibuffer-mark-dired-buffers]' - Mark buffers in `dired-mode'.
-  `\\[ibuffer-mark-help-buffers]' - Mark buffers in `help-mode', `apropos-mode', etc.
-  `\\[ibuffer-mark-old-buffers]' - Mark buffers older than `ibuffer-old-time'.
-  `\\[ibuffer-mark-for-delete]' - Mark the buffer at point for deletion.
-  `\\[ibuffer-mark-by-name-regexp]' - Mark buffers by their name, using a regexp.
-  `\\[ibuffer-mark-by-mode-regexp]' - Mark buffers by their major mode, using a regexp.
-  `\\[ibuffer-mark-by-file-name-regexp]' - Mark buffers by their filename, using a regexp.
-  `\\[ibuffer-mark-by-content-regexp]' - Mark buffers by their content, using a regexp.
-  `\\[ibuffer-mark-by-locked]' - Mark all locked buffers.
+  \\[ibuffer-mark-forward] - Mark the buffer at point.
+  \\[ibuffer-toggle-marks] - Unmark all currently marked buffers, and mark
+        all unmarked buffers.
+  \\[ibuffer-change-marks] - Change the mark used on marked buffers.
+  \\[ibuffer-unmark-forward] - Unmark the buffer at point.
+  \\[ibuffer-unmark-backward] - Unmark the previous buffer.
+  \\[ibuffer-unmark-all] - Unmark buffers marked with MARK.
+  \\[ibuffer-unmark-all-marks] - Unmark all marked buffers.
+  \\[ibuffer-mark-by-mode] - Mark buffers by major mode.
+  \\[ibuffer-mark-unsaved-buffers] - Mark all \"unsaved\" buffers.
+        This means that the buffer is modified, and has an associated file.
+  \\[ibuffer-mark-modified-buffers] - Mark all modified buffers,
+        regardless of whether they have an associated file.
+  \\[ibuffer-mark-special-buffers] - Mark all buffers whose name begins and
+        ends with `*'.
+  \\[ibuffer-mark-dissociated-buffers] - Mark all buffers which have
+        an associated file, but that file doesn't currently exist.
+  \\[ibuffer-mark-read-only-buffers] - Mark all read-only buffers.
+  \\[ibuffer-mark-dired-buffers] - Mark buffers in `dired-mode'.
+  \\[ibuffer-mark-help-buffers] - Mark buffers in `help-mode', `apropos-mode', etc.
+  \\[ibuffer-mark-old-buffers] - Mark buffers older than `ibuffer-old-time'.
+  \\[ibuffer-mark-for-delete] - Mark the buffer at point for deletion.
+  \\[ibuffer-mark-by-name-regexp] - Mark buffers by their name, using a regexp.
+  \\[ibuffer-mark-by-mode-regexp] - Mark buffers by their major mode, using a regexp.
+  \\[ibuffer-mark-by-file-name-regexp] - Mark buffers by their filename, using a regexp.
+  \\[ibuffer-mark-by-content-regexp] - Mark buffers by their content, using a regexp.
+  \\[ibuffer-mark-by-locked] - Mark all locked buffers.
 
 Filtering commands:
 
-  `\\[ibuffer-filter-chosen-by-completion]' - Select and apply filter chosen by completion.
-  `\\[ibuffer-filter-by-mode]' - Add a filter by any major mode.
-  `\\[ibuffer-filter-by-used-mode]' - Add a filter by a major mode now in use.
-  `\\[ibuffer-filter-by-derived-mode]' - Add a filter by derived mode.
-  `\\[ibuffer-filter-by-name]' - Add a filter by buffer name.
-  `\\[ibuffer-filter-by-content]' - Add a filter by buffer content.
-  `\\[ibuffer-filter-by-basename]' - Add a filter by basename.
-  `\\[ibuffer-filter-by-directory]' - Add a filter by directory name.
-  `\\[ibuffer-filter-by-filename]' - Add a filter by filename.
-  `\\[ibuffer-filter-by-file-extension]' - Add a filter by file extension.
-  `\\[ibuffer-filter-by-modified]' - Add a filter by modified buffers.
-  `\\[ibuffer-filter-by-predicate]' - Add a filter by an arbitrary Lisp predicate.
-  `\\[ibuffer-filter-by-size-gt]' - Add a filter by buffer size.
-  `\\[ibuffer-filter-by-size-lt]' - Add a filter by buffer size.
-  `\\[ibuffer-filter-by-starred-name]' - Add a filter by special buffers.
-  `\\[ibuffer-filter-by-visiting-file]' - Add a filter by buffers visiting files.
-  `\\[ibuffer-save-filters]' - Save the current filters with a name.
-  `\\[ibuffer-switch-to-saved-filters]' - Switch to previously saved filters.
-  `\\[ibuffer-add-saved-filters]' - Add saved filters to current filters.
-  `\\[ibuffer-and-filter]' - Replace the top two filters with their logical AND.
-  `\\[ibuffer-or-filter]' - Replace the top two filters with their logical OR.
-  `\\[ibuffer-pop-filter]' - Remove the top filter.
-  `\\[ibuffer-negate-filter]' - Invert the logical sense of the top filter.
-  `\\[ibuffer-decompose-filter]' - Break down the topmost filter.
-  `\\[ibuffer-filter-disable]' - Remove all filtering currently in effect.
+  \\[ibuffer-filter-chosen-by-completion] - Select and apply filter chosen by completion.
+  \\[ibuffer-filter-by-mode] - Add a filter by any major mode.
+  \\[ibuffer-filter-by-used-mode] - Add a filter by a major mode now in use.
+  \\[ibuffer-filter-by-derived-mode] - Add a filter by derived mode.
+  \\[ibuffer-filter-by-name] - Add a filter by buffer name.
+  \\[ibuffer-filter-by-content] - Add a filter by buffer content.
+  \\[ibuffer-filter-by-basename] - Add a filter by basename.
+  \\[ibuffer-filter-by-directory] - Add a filter by directory name.
+  \\[ibuffer-filter-by-filename] - Add a filter by filename.
+  \\[ibuffer-filter-by-file-extension] - Add a filter by file extension.
+  \\[ibuffer-filter-by-modified] - Add a filter by modified buffers.
+  \\[ibuffer-filter-by-predicate] - Add a filter by an arbitrary Lisp predicate.
+  \\[ibuffer-filter-by-size-gt] - Add a filter by buffer size.
+  \\[ibuffer-filter-by-size-lt] - Add a filter by buffer size.
+  \\[ibuffer-filter-by-starred-name] - Add a filter by special buffers.
+  \\[ibuffer-filter-by-visiting-file] - Add a filter by buffers visiting files.
+  \\[ibuffer-save-filters] - Save the current filters with a name.
+  \\[ibuffer-switch-to-saved-filters] - Switch to previously saved filters.
+  \\[ibuffer-add-saved-filters] - Add saved filters to current filters.
+  \\[ibuffer-and-filter] - Replace the top two filters with their logical AND.
+  \\[ibuffer-or-filter] - Replace the top two filters with their logical OR.
+  \\[ibuffer-pop-filter] - Remove the top filter.
+  \\[ibuffer-negate-filter] - Invert the logical sense of the top filter.
+  \\[ibuffer-decompose-filter] - Break down the topmost filter.
+  \\[ibuffer-filter-disable] - Remove all filtering currently in effect.
 
 Filter group commands:
 
-  `\\[ibuffer-filters-to-filter-group]' - Create filter group from filters.
-  `\\[ibuffer-pop-filter-group]' - Remove top filter group.
-  `\\[ibuffer-forward-filter-group]' - Move to the next filter group.
-  `\\[ibuffer-backward-filter-group]' - Move to the previous filter group.
-  `\\[ibuffer-clear-filter-groups]' - Remove all active filter groups.
-  `\\[ibuffer-save-filter-groups]' - Save the current groups with a name.
-  `\\[ibuffer-switch-to-saved-filter-groups]' - Restore previously saved groups.
-  `\\[ibuffer-delete-saved-filter-groups]' - Delete previously saved groups.
+  \\[ibuffer-filters-to-filter-group] - Create filter group from filters.
+  \\[ibuffer-pop-filter-group] - Remove top filter group.
+  \\[ibuffer-forward-filter-group] - Move to the next filter group.
+  \\[ibuffer-backward-filter-group] - Move to the previous filter group.
+  \\[ibuffer-clear-filter-groups] - Remove all active filter groups.
+  \\[ibuffer-save-filter-groups] - Save the current groups with a name.
+  \\[ibuffer-switch-to-saved-filter-groups] - Restore previously saved groups.
+  \\[ibuffer-delete-saved-filter-groups] - Delete previously saved groups.
 
 Sorting commands:
 
-  `\\[ibuffer-toggle-sorting-mode]' - Rotate between the various sorting modes.
-  `\\[ibuffer-invert-sorting]' - Reverse the current sorting order.
-  `\\[ibuffer-do-sort-by-alphabetic]' - Sort the buffers lexicographically.
-  `\\[ibuffer-do-sort-by-filename/process]' - Sort the buffers by the file name.
-  `\\[ibuffer-do-sort-by-recency]' - Sort the buffers by last viewing time.
-  `\\[ibuffer-do-sort-by-size]' - Sort the buffers by size.
-  `\\[ibuffer-do-sort-by-major-mode]' - Sort the buffers by major mode.
+  \\[ibuffer-toggle-sorting-mode] - Rotate between the various sorting modes.
+  \\[ibuffer-invert-sorting] - Reverse the current sorting order.
+  \\[ibuffer-do-sort-by-alphabetic] - Sort the buffers lexicographically.
+  \\[ibuffer-do-sort-by-filename/process] - Sort the buffers by the file name.
+  \\[ibuffer-do-sort-by-recency] - Sort the buffers by last viewing time.
+  \\[ibuffer-do-sort-by-size] - Sort the buffers by size.
+  \\[ibuffer-do-sort-by-major-mode] - Sort the buffers by major mode.
 
 Other commands:
 
-  `\\[ibuffer-update]' - Regenerate the list of all buffers.
-          Prefix arg means to toggle whether buffers that match
-          `ibuffer-maybe-show-predicates' should be displayed.
-  `\\[ibuffer-auto-mode]' - Toggle automatic updates.
+  \\[ibuffer-update] - Regenerate the list of all buffers.
+        Prefix arg means to toggle whether buffers that match
+        `ibuffer-maybe-show-predicates' should be displayed.
+  \\[ibuffer-auto-mode] - Toggle automatic updates.
 
-  `\\[ibuffer-switch-format]' - Change the current display format.
-  `\\[forward-line]' - Move point to the next line.
-  `\\[previous-line]' - Move point to the previous line.
-  `\\[describe-mode]' - This help.
-  `\\[ibuffer-diff-with-file]' - View the differences between this buffer
-          and its associated file.
-  `\\[ibuffer-visit-buffer]' - View the buffer on this line.
-  `\\[ibuffer-visit-buffer-other-window]' - As above, but in another window.
-  `\\[ibuffer-visit-buffer-other-window-noselect]' - As both above, but don't select
-          the new window.
-  `\\[ibuffer-bury-buffer]' - Bury (not kill!) the buffer on this line.
+  \\[ibuffer-switch-format] - Change the current display format.
+  \\[forward-line] - Move point to the next line.
+  \\[previous-line] - Move point to the previous line.
+  \\[describe-mode] - This help.
+  \\[ibuffer-diff-with-file] - View the differences between this buffer
+        and its associated file.
+  \\[ibuffer-visit-buffer] - View the buffer on this line.
+  \\[ibuffer-visit-buffer-other-window] - As above, but in another window.
+  \\[ibuffer-visit-buffer-other-window-noselect] - As both above, but don't select
+        the new window.
+  \\[ibuffer-bury-buffer] - Bury (not kill!) the buffer on this line.
 
 ** Information on Filtering:
 
@@ -2512,7 +2526,7 @@ with \"gnus\".  You can accomplish this via:
   \\[ibuffer-filter-by-name] ^gnus RET
 
 Additionally, you can OR the top two filters together with
-`\\[ibuffer-or-filters]'.  To see all buffers in either
+\\[ibuffer-or-filters].  To see all buffers in either
 `emacs-lisp-mode' or `lisp-interaction-mode', type:
 
   \\[ibuffer-filter-by-mode] emacs-lisp-mode RET
@@ -2522,9 +2536,9 @@ Additionally, you can OR the top two filters together with
 Filters can also be saved and restored using mnemonic names: see the
 functions `ibuffer-save-filters' and `ibuffer-switch-to-saved-filters'.
 
-To remove the top filter on the stack, use `\\[ibuffer-pop-filter]', and
+To remove the top filter on the stack, use \\[ibuffer-pop-filter], and
 to disable all filtering currently in effect, use
-`\\[ibuffer-filter-disable]'.
+\\[ibuffer-filter-disable].
 
 ** Filter Groups:
 
@@ -2532,7 +2546,7 @@ Once one has mastered filters, the next logical step up is \"filter
 groups\".  A filter group is basically a named group of buffers which
 match a filter, which are displayed together in an Ibuffer buffer.  To
 create a filter group, simply use the regular functions to create a
-filter, and then type `\\[ibuffer-filters-to-filter-group]'.
+filter, and then type \\[ibuffer-filters-to-filter-group].
 
 A quick example will make things clearer.  Suppose that one wants to
 group all of one's Emacs Lisp buffers together.  To do this, type:
@@ -2550,7 +2564,7 @@ multiple filter groups; instead, the first filter group is used.  The
 filter groups are displayed in this order of precedence.
 
 You may rearrange filter groups by using the usual pair
-`\\[ibuffer-kill-line]' and `\\[ibuffer-yank]'.  Yanked groups
+\\[ibuffer-kill-line] and \\[ibuffer-yank].  Yanked groups
 will be inserted before the group at point."
   ;; Include state info next to the mode name.
   (setq-local mode-line-process

@@ -1,6 +1,6 @@
 ;;; scroll-bar.el --- window system-independent scroll bar support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1995, 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware
@@ -172,7 +172,7 @@ created in the future."
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.
-With ARG, turn vertical scroll bars on if and only if ARG is positive.
+With ARG, turn on vertical scroll bars if and only if ARG is positive.
 The variable `scroll-bar-mode' controls which side the scroll bars are on
 when they are turned on; if it is nil, they go on the left."
   (interactive "P")
@@ -188,7 +188,7 @@ when they are turned on; if it is nil, they go on the left."
 
 (defun toggle-horizontal-scroll-bar (arg)
   "Toggle whether or not the selected frame has horizontal scroll bars.
-With ARG, turn vertical scroll bars on if and only if ARG is positive."
+With ARG, turn on horizontal scroll bars if and only if ARG is positive."
   (interactive "P")
   (if (null arg)
       (setq arg

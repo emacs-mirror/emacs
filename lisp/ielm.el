@@ -1,6 +1,6 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -109,6 +109,13 @@ will be inserted after the prompt, moving the input to the next line.
 This gives more frame width for large indented sexps, and allows functions
 such as `edebug-defun' to work with such inputs."
   :type 'boolean)
+
+(defcustom ielm-history-file-name
+  (locate-user-emacs-file "ielm-history.eld")
+  "If non-nil, name of the file to read/write IELM input history."
+  :type '(choice (const :tag "Disable input history" nil)
+                 file)
+  :version "30.1")
 
 (defvaralias 'inferior-emacs-lisp-mode-hook 'ielm-mode-hook)
 (defcustom ielm-mode-hook nil
@@ -491,8 +498,7 @@ addition to `comint-indirect-setup-hook', run this hook with the
 indirect buffer as the current buffer after its setup is done.
 This can be used to further customize fontification and other
 behavior of the indirect buffer."
-  :type 'boolean
-  :safe 'booleanp
+  :type 'hook
   :version "29.1")
 
 (defun ielm-indirect-setup-hook ()
@@ -503,6 +509,17 @@ behavior of the indirect buffer."
   (let ((end (copy-marker (apply orig-fun beg args) t)))
     (funcall pp-default-function beg end)
     end))
+
+;;; Input history
+
+(defvar ielm--exit nil
+  "Function to call when Emacs is killed.")
+
+(defun ielm--input-history-writer (buf)
+  "Return a function writing IELM input history to BUF."
+  (lambda ()
+    (with-current-buffer buf
+      (comint-write-input-ring))))
 
 ;;; Major mode
 
@@ -605,6 +622,17 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (add-hook 'comint-indirect-setup-hook
             #'ielm-indirect-setup-hook 'append t)
   (setq comint-indirect-setup-function #'emacs-lisp-mode)
+
+  ;; Input history
+  (setq-local comint-input-ring-file-name ielm-history-file-name)
+  (setq-local ielm--exit (ielm--input-history-writer (current-buffer)))
+  (setq-local kill-buffer-hook
+              (lambda ()
+                (funcall ielm--exit)
+                (remove-hook 'kill-emacs-hook ielm--exit)))
+  (unless noninteractive
+    (add-hook 'kill-emacs-hook ielm--exit))
+  (comint-read-input-ring t)
 
   ;; A dummy process to keep comint happy. It will never get any input
   (unless (comint-check-proc (current-buffer))

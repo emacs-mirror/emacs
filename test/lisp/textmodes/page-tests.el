@@ -1,6 +1,6 @@
 ;;; page-tests.el --- Tests for page.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2024 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -106,10 +106,14 @@
     (insert "foo\n\nbar\n\nbaz")
     (goto-char (point-min))
     (should (equal (page--what-page) '(1 1)))
+    (forward-char)
+    (should (equal (page--what-page) '(1 1)))
     (forward-page)
+    (should (equal (page--what-page) '(2 1)))
+    (forward-line)
     (should (equal (page--what-page) '(2 2)))
     (forward-page)
-    (should (equal (page--what-page) '(3 4)))))
+    (should (equal (page--what-page) '(3 1)))))
 
 
 ;;; page-tests.el ends here

@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search
@@ -407,8 +407,11 @@ characters, that disables character folding during that search.
 @cindex invisible text, searching for
 @kindex M-s i @r{(Incremental search)}
 @findex isearch-toggle-invisible
-  To toggle whether or not invisible text is searched, type
-@kbd{M-s i} (@code{isearch-toggle-invisible}).  @xref{Outline Search}.
+  To toggle whether or not the search will find text made invisible by
+overlays, type @kbd{M-s i} (@code{isearch-toggle-invisible}).
+@xref{Outline Search}.  To make all incremental searches find matches
+inside invisible text, whether due to text properties or overlay
+properties, customize @code{search-invisible} to the value @code{t}.
 
 @kindex M-r @r{(Incremental Search)}
 @kindex M-s r @r{(Incremental Search)}
@@ -781,6 +784,7 @@ matching}) has no effect on them.
 @vindex eww-search-prefix
 @cindex Internet search
 @cindex search Internet for keywords
+@cindex web search
   To search the Web for the text in region, type @kbd{M-s M-w}.  This
 command performs an Internet search for the words in region using the
 search engine whose @acronym{URL} is specified by the variable
@@ -788,6 +792,46 @@ search engine whose @acronym{URL} is specified by the variable
 Wowser Manual}).  If the region is not active, or doesn't contain any
 words, this command prompts the user for a URL or keywords to search.
 
+@findex dictionary-search
+@findex dictionary
+@findex dictionary-tooltip-mode
+@cindex dictionary server protocol (DICT)
+@cindex word definition search
+@vindex dictionary-server
+  You can also search for definitions of a word by querying dictionary
+servers via the @sc{dict} protocol defined by @acronym{RFC} 2229.  Emacs
+includes a client for this protocol.  Type @w{@kbd{M-x dictionary-search
+@key{RET}}} to connect to a @sc{dict} server and ask it to provide the
+available definitions of a word.  This command prompts for the word to
+look up, using the word at point as the default, then asks the @sc{dict}
+server to provide the definitions of that word in one or more
+dictionaries.  By default, the command first tries to connect to the
+@sc{dict} server installed on the local host, and if that fails, it
+tries @file{dict.org} after asking for confirmation; customize the variable
+@code{dictionary-server} to specify, as a string, the URL of a single
+server to use (use @samp{localhost} if you want to query only the local
+server).  Normally, @code{dictionary-search} tells the server to look up
+the word in all the dictionaries available to the server, but if you
+invoke the command with a prefix argument, it will prompt for a single
+dictionary to use.  The list of dictionaries available to a server can
+be displayed by pressing the @samp{Select dictionary} button shown in
+the @file{*Dictionary*} buffer, described below.
+
+  The first time you use @code{dictionary-search}, it creates a new
+@file{*Dictionary*} buffer and turns on a special mode in it.  The
+buffer shows buttons for selecting a dictionary, searching a definition
+of another word, etc.  Subsequent @code{dictionary-search} commands
+reuse this buffer.  To create another such buffer (e.g., to look up
+other words, perhaps in another dictionary), type @w{@kbd{M-x dictionary
+@key{RET}}}.
+
+  If you turn on @code{dictionary-tooltip-mode} in a buffer, Emacs will
+look up the definitions of the word at mouse pointer and show those
+definitions in a tool tip.  This is handy when you are reading text with
+many words about whose meaning you are unsure.
+
+  For other options of dictionary-search, see the @code{dictionary}
+customization group (@pxref{Specific Customization}).
 
 @node Symbol Search
 @section Symbol Search
@@ -1159,6 +1203,8 @@ surrounding @samp{\( @dots{} \)} grouping can limit the grouping power of
 
 Full backtracking capability exists to handle multiple uses of @samp{\|}.
 
+@cindex sub-expressions, in regular expressions
+@cindex grouping, in regular expressions
 @item \( @dots{} \)
 is a grouping construct that serves three purposes:
 
@@ -1659,6 +1705,7 @@ command's first argument.  If @code{case-fold-search} is set to
 @code{nil}, case is always significant in all searches.
 
 @vindex case-replace
+@cindex case preservation in replace commands
   In addition, when the second argument of a replace command is all or
 partly lower case, replacement commands try to preserve the case
 pattern of each occurrence.  Thus, the command
@@ -1672,7 +1719,27 @@ replaces a lower case @samp{foo} with a lower case @samp{bar}, an
 all-caps @samp{FOO} with @samp{BAR}, and a capitalized @samp{Foo} with
 @samp{Bar}.  (These three alternatives---lower case, all caps, and
 capitalized, are the only ones that @code{replace-string} can
-distinguish.)
+distinguish.)  Note that Emacs decides whether to up-case or capitalize
+the replacement text by analyzing each word in the text being
+replaced, and will preserve the letter-case of the replaced text only
+if @emph{all} of its words use the same letter-case.  Thus, the
+command
+
+@example
+M-x replace-string @key{RET} foo bar @key{RET} baz quux @key{RET}
+@end example
+
+@noindent
+replaces @samp{Foo Bar} with @samp{Baz Quux} because both words in
+@samp{Foo Bar} are capitalized.  By contrast, the same command
+replaces @samp{Foo bar} with @samp{baz quux}, i.e.@: it leaves the
+letter-case of the replacement text unchanged, since the two words in
+@samp{Foo bar} use different capitalization.  What exactly is
+considered a ``word'' depends on the syntax tables that are in effect
+in the current buffer (@pxref{Syntax Tables,,, elisp, The Emacs Lisp
+Reference Manual}); thus, @samp{Foo_Bar} is two words in Text mode,
+but could be a single word in some major mode that supports a
+programming language.
 
   If upper-case letters are used in the replacement string, they remain
 upper case every time that text is inserted.  If upper-case letters are
@@ -1709,7 +1776,7 @@ This command finds occurrences of @samp{foo} one by one, displays each
 occurrence and asks you whether to replace it.  Aside from querying,
 @code{query-replace} works just like @code{replace-string}
 (@pxref{Unconditional Replace}).  In particular, it preserves case
-provided @code{case-replace} is non-@code{nil}, as it normally is
+provided that @code{case-replace} is non-@code{nil}, as it normally is
 (@pxref{Replacement and Lax Matches}).  A numeric argument means to
 consider only occurrences that are bounded by word-delimiter
 characters.  A negative prefix argument replaces backward.

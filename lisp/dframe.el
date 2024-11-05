@@ -1,6 +1,6 @@
 ;;; dframe.el --- dedicate frame support modes  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -683,6 +683,8 @@ Must be bound to event E."
     (if (not (bolp)) (forward-char -1))
     (sit-for 0)
     (popup-menu (mouse-menu-major-mode-map) e)))
+
+(put 'dframe-popup-kludge 'mouse-1-menu-command t)
 
 ;;; Interactive user functions for the mouse
 ;;

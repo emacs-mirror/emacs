@@ -1,6 +1,6 @@
 ;;; vc-cvs-tests.el --- tests for vc/vc-cvs.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; Author: Olivier Certner <olce.emacs@certner.fr>
 ;; Maintainer: emacs-devel@gnu.org

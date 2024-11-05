@@ -1,6 +1,6 @@
 ;;; filenotify-tests.el --- Tests of file notifications  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -74,8 +74,8 @@
 (defvar file-notify--test-events nil)
 (defvar file-notify--test-monitors nil)
 
-(defun file-notify--test-read-event ()
-  "Read one event.
+(defun file-notify--test-wait-event ()
+  "Wait for one event.
 There are different timeouts for local and remote file notification libraries."
   (read-event
    nil nil
@@ -87,7 +87,8 @@ There are different timeouts for local and remote file notification libraries."
     ;; for any monitor.
     ((file-notify--test-monitor) 7)
     ((file-remote-p temporary-file-directory) 0.1)
-    (t 0.01))))
+    (t 0.01)))
+  nil)
 
 (defun file-notify--test-timeout ()
   "Timeout to wait for arriving a bunch of events, in seconds."
@@ -103,7 +104,7 @@ There are different timeouts for local and remote file notification libraries."
 TIMEOUT is the maximum time to wait for, in seconds."
   `(with-timeout (,timeout (ignore))
      (while (null ,until)
-       (file-notify--test-read-event))))
+       (file-notify--test-wait-event))))
 
 (defun file-notify--test-no-descriptors ()
   "Check that `file-notify-descriptors' is an empty hash table.
@@ -277,6 +278,9 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    (ert-test (ert-get-test ',test))
             vc-handled-backends)
        (skip-unless (file-notify--test-remote-enabled))
+       ;; These tests do not work for remote gio/GInotifyFileMonitor.
+       ;; Needs further investigation.
+       (skip-when (string-equal (file-notify--test-library) "gio"))
        (tramp-cleanup-connection
 	(tramp-dissect-file-name temporary-file-directory) nil 'keep-password)
        (funcall (ert-test-body ert-test)))))
@@ -452,7 +456,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
       ;; Check, that removing watch descriptors out of order do not
       ;; harm.  This fails on cygwin because of timing issues unless a
       ;; long `sit-for' is added before the call to
-      ;; `file-notify--test-read-event'.
+      ;; `file-notify--test-wait-event'.
       (unless (eq system-type 'cygwin)
         (let (results)
           (cl-flet ((first-callback (event)
@@ -480,7 +484,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
             ;; Remove first watch.
             (file-notify-rm-watch file-notify--test-desc)
             ;; Only the second callback shall run.
-	    (file-notify--test-read-event)
+	    (file-notify--test-wait-event)
             (delete-file file-notify--test-tmpfile)
             (file-notify--test-wait-for-events
              (file-notify--test-timeout) results)
@@ -622,7 +626,7 @@ delivered."
            (cons 'file-notify while-no-input-ignore-events))
           create-lockfiles)
      ;; Flush pending actions.
-     (file-notify--test-read-event)
+     (file-notify--test-wait-event)
      (file-notify--test-wait-for-events
       (file-notify--test-timeout)
       (not (input-pending-p)))
@@ -671,7 +675,7 @@ delivered."
              (t '(created changed deleted stopped)))
           (write-region
            "another text" nil file-notify--test-tmpfile nil 'no-message)
-          (file-notify--test-read-event)
+          (file-notify--test-wait-event)
           (delete-file file-notify--test-tmpfile))
         (file-notify-rm-watch file-notify--test-desc)
 
@@ -707,7 +711,7 @@ delivered."
 		  (changed changed deleted stopped))))
           (write-region
            "another text" nil file-notify--test-tmpfile nil 'no-message)
-          (file-notify--test-read-event)
+          (file-notify--test-wait-event)
           (delete-file file-notify--test-tmpfile))
         (file-notify-rm-watch file-notify--test-desc)
 
@@ -755,7 +759,7 @@ delivered."
 	     (t '(created changed deleted deleted stopped)))
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
-	  (file-notify--test-read-event)
+	  (file-notify--test-wait-event)
           (delete-directory file-notify--test-tmpdir 'recursive))
         (file-notify-rm-watch file-notify--test-desc)
 
@@ -805,14 +809,14 @@ delivered."
 		  deleted deleted deleted stopped)))
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
-	  (file-notify--test-read-event)
+	  (file-notify--test-wait-event)
 	  (copy-file file-notify--test-tmpfile file-notify--test-tmpfile1)
 	  ;; The next two events shall not be visible.
-	  (file-notify--test-read-event)
+	  (file-notify--test-wait-event)
 	  (set-file-modes file-notify--test-tmpfile 000 'nofollow)
-	  (file-notify--test-read-event)
+	  (file-notify--test-wait-event)
 	  (set-file-times file-notify--test-tmpfile '(0 0) 'nofollow)
-	  (file-notify--test-read-event)
+	  (file-notify--test-wait-event)
           (delete-directory file-notify--test-tmpdir 'recursive))
         (file-notify-rm-watch file-notify--test-desc)
 
@@ -860,10 +864,10 @@ delivered."
 	     (t '(created changed renamed deleted deleted stopped)))
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
-	  (file-notify--test-read-event)
+	  (file-notify--test-wait-event)
 	  (rename-file file-notify--test-tmpfile file-notify--test-tmpfile1)
 	  ;; After the rename, we won't get events anymore.
-	  (file-notify--test-read-event)
+	  (file-notify--test-wait-event)
           (delete-directory file-notify--test-tmpdir 'recursive))
         (file-notify-rm-watch file-notify--test-desc)
 
@@ -912,11 +916,11 @@ delivered."
 	     (t '(attribute-changed attribute-changed)))
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
-	  (file-notify--test-read-event)
+	  (file-notify--test-wait-event)
 	  (set-file-modes file-notify--test-tmpfile 000 'nofollow)
-	  (file-notify--test-read-event)
+	  (file-notify--test-wait-event)
 	  (set-file-times file-notify--test-tmpfile '(0 0) 'nofollow)
-	  (file-notify--test-read-event)
+	  (file-notify--test-wait-event)
 	  (delete-file file-notify--test-tmpfile))
         (file-notify-rm-watch file-notify--test-desc)
 
@@ -973,8 +977,7 @@ delivered."
             (setq file-notify--test-desc auto-revert-notify-watch-descriptor)
 
 	    ;; GKqueueFileMonitor does not report the `changed' event.
-	    (skip-unless
-             (not (eq (file-notify--test-monitor) 'GKqueueFileMonitor)))
+	    (skip-when (eq (file-notify--test-monitor) 'GKqueueFileMonitor))
 
 	    ;; Check, that file notification has been used.
 	    (should auto-revert-mode)
@@ -1088,7 +1091,7 @@ delivered."
 		  (changed changed deleted stopped))))
           (write-region
            "another text" nil file-notify--test-tmpfile nil 'no-message)
-	  (file-notify--test-read-event)
+	  (file-notify--test-wait-event)
 	  (delete-file file-notify--test-tmpfile))
 	;; After deleting the file, the descriptor is not valid anymore.
         (should-not (file-notify-valid-p file-notify--test-desc))
@@ -1135,7 +1138,7 @@ delivered."
 	       (t '(created changed deleted deleted stopped)))
 	    (write-region
 	     "any text" nil file-notify--test-tmpfile nil 'no-message)
-	    (file-notify--test-read-event)
+	    (file-notify--test-wait-event)
 	    (delete-directory file-notify--test-tmpdir 'recursive))
 	  ;; After deleting the parent directory, the descriptor must
 	  ;; not be valid anymore.
@@ -1248,9 +1251,9 @@ delivered."
           (let ((source-file-list source-file-list)
                 (target-file-list target-file-list))
             (while (and source-file-list target-file-list)
-              (file-notify--test-read-event)
+              (file-notify--test-wait-event)
               (write-region "" nil (pop source-file-list) nil 'no-message)
-              (file-notify--test-read-event)
+              (file-notify--test-wait-event)
               (write-region "" nil (pop target-file-list) nil 'no-message))))
         (file-notify--test-with-actions
 	    (cond
@@ -1273,11 +1276,11 @@ delivered."
           (let ((source-file-list source-file-list)
                 (target-file-list target-file-list))
             (while (and source-file-list target-file-list)
-              (file-notify--test-read-event)
+              (file-notify--test-wait-event)
               (rename-file (pop source-file-list) (pop target-file-list) t))))
         (file-notify--test-with-actions (make-list n 'deleted)
           (dolist (file target-file-list)
-            (file-notify--test-read-event)
+            (file-notify--test-wait-event)
             (delete-file file)))
         (delete-directory file-notify--test-tmpfile)
         (if (or (string-equal (file-notify--test-library) "w32notify")
@@ -1465,7 +1468,7 @@ the file watch."
 		;; does not report the `changed' event.
                 (make-list (/ n 2) 'created)))
             (dotimes (i n)
-              (file-notify--test-read-event)
+              (file-notify--test-wait-event)
               (if (zerop (mod i 2))
                   (write-region
                    "any text" nil file-notify--test-tmpfile1 t 'no-message)
@@ -1583,7 +1586,7 @@ the file watch."
   :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
   ;; This test does not work for kqueue (yet).
-  (skip-unless (not (string-equal (file-notify--test-library) "kqueue")))
+  (skip-when (string-equal (file-notify--test-library) "kqueue"))
 
   (setq file-notify--test-tmpfile (file-notify--test-make-temp-name)
         file-notify--test-tmpfile1 (file-notify--test-make-temp-name))
@@ -1707,6 +1710,71 @@ the file watch."
 
 (file-notify--deftest-remote file-notify-test11-symlinks
   "Check `file-notify-test11-symlinks' for remote files.")
+
+(ert-deftest file-notify-test12-unmount ()
+  "Check that file notification stop after unmounting the filesystem."
+  :tags '(:expensive-test)
+  (skip-unless (file-notify--test-local-enabled))
+  ;; This test does not work for w32notify.
+  (skip-when (string-equal (file-notify--test-library) "w32notify"))
+
+  (unwind-protect
+      (progn
+	(setq file-notify--test-tmpfile (file-notify--test-make-temp-name))
+	;; File monitors like kqueue insist, that the watched file
+	;; exists.  Directory monitors are not bound to this
+	;; restriction.
+	(when (string-equal (file-notify--test-library) "kqueue")
+	  (write-region
+	   "any text" nil file-notify--test-tmpfile nil 'no-message))
+
+	(should
+	 (setq file-notify--test-desc
+	       (file-notify--test-add-watch
+                file-notify--test-tmpfile
+                '(attribute-change change) #'file-notify--test-event-handler)))
+        (should (file-notify-valid-p file-notify--test-desc))
+
+        ;; Unmounting the filesystem should stop watching.
+        (file-notify--test-with-actions '(stopped)
+          ;; We emulate unmounting by calling
+          ;; `file-notify-handle-event' with a corresponding event.
+          (file-notify-handle-event
+           (make-file-notify
+            :-event
+            (list file-notify--test-desc
+                  (pcase (file-notify--test-library)
+                    ((or "inotify" "inotifywait") '(unmount isdir))
+                    ((or "gfilenotify" "gio") '(unmounted))
+                    ("kqueue" '(revoke))
+                    (err (ert-fail (format "Library %s not supported" err))))
+                  (pcase (file-notify--test-library)
+                    ("kqueue" (file-local-name file-notify--test-tmpfile))
+                    (_ (file-local-name file-notify--test-tmpdir)))
+                  ;; In the inotify case, there is a 4th slot `cookie'.
+                  ;; Since it is unused for `unmount', we ignore it.
+                  )
+            :-callback
+            (pcase (file-notify--test-library)
+              ("inotify" #'file-notify--callback-inotify)
+              ("gfilenotify" #'file-notify--callback-gfilenotify)
+              ("kqueue" #'file-notify--callback-kqueue)
+              ((or "inotifywait" "gio") #'file-notify-callback)
+              (err (ert-fail (format "Library %s not supported" err)))))))
+
+        ;; The watch has been stopped.
+        (should-not (file-notify-valid-p file-notify--test-desc))
+
+        ;; The environment shall be cleaned up.
+        (when (string-equal (file-notify--test-library) "kqueue")
+          (delete-file file-notify--test-tmpfile))
+        (file-notify--test-cleanup-p))
+
+    ;; Cleanup.
+    (file-notify--test-cleanup)))
+
+(file-notify--deftest-remote file-notify-test12-unmount
+  "Check `file-notify-test12-unmount' for remote files.")
 
 (defun file-notify-test-all (&optional interactive)
   "Run all tests for \\[file-notify]."

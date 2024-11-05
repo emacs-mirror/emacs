@@ -1,6 +1,6 @@
 ;;; misc-lang.el --- support for miscellaneous languages (characters)  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -363,6 +363,19 @@ language environment."))
        (vector "[\u1820-\u18AF][\u200C\u200D]" 0 'font-shape-gstring)
        (vector "[\u1820-\u18AF\u202F\u180B-\u180F\u1807]+"
                0 'font-shape-gstring)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Tifinagh
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(set-language-info-alist
+ "Tifinagh"
+ '((charset unicode)
+   (coding-system utf-8)
+   (coding-priority utf-8)
+   (input-method . "tifinagh")
+   (sample-text . "Tifinagh	ⴰⵣⵓⵍ")
+   (documentation . "Tifinagh a script used to write the Berber languages."))
+ '("Misc"))
 
 (provide 'misc-lang)
 

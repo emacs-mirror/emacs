@@ -1,5 +1,5 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2024 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -149,7 +149,8 @@ static Lisp_Object
 get_adstyle_property (FcPattern *p)
 {
   FcChar8 *fcstr;
-  char *str, *end;
+  char *str, *end, *tmp;
+  size_t i;
   Lisp_Object adstyle;
 
 #ifdef FC_FONTFORMAT
@@ -168,7 +169,18 @@ get_adstyle_property (FcPattern *p)
       || matching_prefix (str, end - str, "Oblique")
       || matching_prefix (str, end - str, "Italic"))
     return Qnil;
-  adstyle = font_intern_prop (str, end - str, 1);
+  /* The characters `-', `?', `*', and `"' are not representable in XLFDs
+     and therefore must be replaced by substitutes.  (bug#70989) */
+  USE_SAFE_ALLOCA;
+  tmp = SAFE_ALLOCA (end - str);
+  for (i = 0; i < end - str; ++i)
+    tmp[i] = ((str[i] != '?'
+	       && str[i] != '*'
+	       && str[i] != '"'
+	       && str[i] != '-')
+	      ? str[i] : ' ');
+  adstyle = font_intern_prop (tmp, end - str, 1);
+  SAFE_FREE ();
   if (font_style_to_value (FONT_WIDTH_INDEX, adstyle, 0) >= 0)
     return Qnil;
   return adstyle;
@@ -646,6 +658,11 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
 }
 
 #if defined HAVE_XFT && defined FC_COLOR
+#if (XFT_MAJOR < 2						\
+    || (XFT_MAJOR == 2 && (XFT_MINOR < 3			\
+			   || (XFT_MINOR == 3			\
+			       && XFT_REVISION < 6))))
+
 static bool
 xft_color_font_whitelisted_p (const char *family)
 {
@@ -663,7 +680,9 @@ xft_color_font_whitelisted_p (const char *family)
 
   return false;
 }
-#endif
+
+#endif /* Xft < 2.3.6 */
+#endif /* HAVE_XFT && FC_COLOR */
 
 static FcPattern *
 ftfont_spec_pattern (Lisp_Object spec, char *otlayout,
@@ -803,14 +822,19 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout,
       && ! FcPatternAddBool (pattern, FC_SCALABLE, scalable ? FcTrue : FcFalse))
     goto err;
 #if defined HAVE_XFT && defined FC_COLOR
-  /* We really don't like color fonts, they cause Xft crashes.  See
-     Bug#30874.  */
+#if (XFT_MAJOR < 2						\
+     || (XFT_MAJOR == 2 && (XFT_MINOR < 3			\
+			    || (XFT_MINOR == 3			\
+				&& XFT_REVISION < 6))))
+  /* We really don't like color fonts, they cause Xft crashes with
+     releases older than 2.3.6.  See Bug#30874.  */
   if (xft_ignore_color_fonts
       && (NILP (AREF (spec, FONT_FAMILY_INDEX))
 	  || NILP (Vxft_color_font_whitelist))
       && ! FcPatternAddBool (pattern, FC_COLOR, FcFalse))
     goto err;
-#endif
+#endif /* Xft < 2.3.6 */
+#endif /* HAVE_XFT && FC_COLOR */
 
   goto finish;
 
@@ -947,6 +971,10 @@ ftfont_list (struct frame *f, Lisp_Object spec)
     {
       Lisp_Object entity;
 #if defined HAVE_XFT && defined FC_COLOR
+#if (XFT_MAJOR < 2						\
+     || (XFT_MAJOR == 2 && (XFT_MINOR < 3			\
+			    || (XFT_MINOR == 3			\
+				&& XFT_REVISION < 6))))
       {
         /* Some fonts, notably NotoColorEmoji, have an FC_COLOR value
            that's neither FcTrue nor FcFalse, which means FcFontList
@@ -963,7 +991,8 @@ ftfont_list (struct frame *f, Lisp_Object spec)
             == FcResultMatch && b != FcFalse)
             continue;
       }
-#endif
+#endif /* Xft < 2.3.6 */
+#endif /* HAVE_XFT && FC_COLOR */
       if (spacing >= 0)
 	{
 	  int this;
@@ -1572,6 +1601,12 @@ ftfont_glyph_metrics (FT_Face ft_face, int c, int *advance, int *lbearing,
   if (FT_Load_Glyph (ft_face, c, FT_LOAD_DEFAULT) == 0)
     {
       FT_Glyph_Metrics *m = &ft_face->glyph->metrics;
+
+      /* At first glance this might appear to truncate the glyph's
+	 horizontal advance, but FreeType internally rounds the
+	 advance width to a pixel boundary prior to returning these
+	 metrics.  */
+
       *advance = m->horiAdvance >> 6;
       *lbearing = m->horiBearingX >> 6;
       *rbearing = (m->horiBearingX + m->width) >> 6;
@@ -2024,7 +2059,6 @@ ftfont_drive_otf (MFLTFont *font,
   int i, j, gidx;
   OTF_Glyph *otfg;
   char script[5], *langsys = NULL;
-  char *gsub_features = NULL, *gpos_features = NULL;
   OTF_Feature *features;
 
   if (len == 0)
@@ -2038,6 +2072,7 @@ ftfont_drive_otf (MFLTFont *font,
       OTF_tag_name (spec->langsys, langsys);
     }
 
+  char *gfeatures[2] = {NULL, NULL};
   USE_SAFE_ALLOCA;
   for (i = 0; i < 2; i++)
     {
@@ -2046,11 +2081,10 @@ ftfont_drive_otf (MFLTFont *font,
       if (spec->features[i] && spec->features[i][1] != 0xFFFFFFFF)
 	{
 	  for (j = 0; spec->features[i][j]; j++);
+	  if (j == 0)
+	    continue;
 	  SAFE_NALLOCA (p, 6, j);
-	  if (i == 0)
-	    gsub_features = p;
-	  else
-	    gpos_features = p;
+	  gfeatures[i] = p;
 	  for (j = 0; spec->features[i][j]; j++)
 	    {
 	      if (spec->features[i][j] == 0xFFFFFFFF)
@@ -2065,6 +2099,7 @@ ftfont_drive_otf (MFLTFont *font,
 	  *--p = '\0';
 	}
     }
+  char *gsub_features = gfeatures[0], *gpos_features = gfeatures[1];
 
   setup_otf_gstring (len);
   for (i = 0; i < len; i++)

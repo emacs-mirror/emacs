@@ -1,6 +1,6 @@
 ;;; ansi-color.el --- translate ANSI escape sequences into faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Version: 3.4.2
@@ -532,7 +532,7 @@ This function can be added to `comint-preoutput-filter-functions'."
     (while (setq end (string-match ansi-color-control-seq-regexp string start))
       (let ((esc-end (match-end 0)))
         ;; Colorize the old block from start to end using old face.
-        (when-let ((face (ansi-color--face-vec-face face-vec)))
+        (when-let* ((face (ansi-color--face-vec-face face-vec)))
           (put-text-property start end 'font-lock-face
                              face string))
         (push (substring string start end) result)
@@ -550,7 +550,7 @@ This function can be added to `comint-preoutput-filter-functions'."
                  (when (<= cur-pos esc-end)
                    (string-to-number (match-string 1 string))))))))))
     ;; if the rest of the string should have a face, put it there
-    (when-let ((face (ansi-color--face-vec-face face-vec)))
+    (when-let* ((face (ansi-color--face-vec-face face-vec)))
       (put-text-property start (length string)
                          'font-lock-face face string))
     ;; save context, add the remainder of the string to the result
@@ -565,12 +565,11 @@ This function can be added to `comint-preoutput-filter-functions'."
 
 (defun ansi-color--ensure-context (context-sym position)
   "Return CONTEXT-SYM's value as a valid context.
-If it is nil, set CONTEXT-SYM's value to a new context and return
-it. Context is a list of the form as described in
-`ansi-color-context' if POSITION is nil, or
-`ansi-color-context-region' if POSITION is non-nil.
+If it is nil, set CONTEXT-SYM's value to a new context and return it.
+Context is a list of the form as described in `ansi-color-context' if
+POSITION is nil, or `ansi-color-context-region' if POSITION is non-nil.
 
-If CONTEXT-SYM's value is already non-nil, return it. If its
+If CONTEXT-SYM's value is already non-nil, return it.  If its
 marker doesn't point anywhere yet, position it before character
 number POSITION, if non-nil."
   (let ((context (symbol-value context-sym)))
@@ -598,7 +597,7 @@ code.  It is usually stored as the car of the variable
          (bright (and ansi-color-bold-is-bright (aref basic-faces 1)))
          (faces nil))
 
-    (when-let ((fg (car colors)))
+    (when-let* ((fg (car colors)))
       (push
        `(:foreground
          ,(or (ansi-color--code-as-hex fg)
@@ -609,7 +608,7 @@ code.  It is usually stored as the car of the variable
                      (mod fg 8))
                nil 'default)))
        faces))
-    (when-let ((bg (cadr colors)))
+    (when-let* ((bg (cadr colors)))
       (push
        `(:background
          ,(or (ansi-color--code-as-hex bg)

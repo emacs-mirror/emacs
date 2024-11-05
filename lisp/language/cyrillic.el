@@ -1,6 +1,6 @@
 ;;; cyrillic.el --- support for Cyrillic -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1998, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2024 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -33,23 +33,12 @@
 ;; are converted to Unicode internally.  See
 ;; <URL:http://www.ecma.ch/ecma1/STAND/ECMA-113.HTM>.  For more info
 ;; on Cyrillic charsets, see
-;; <URL:https://czyborra.com/charsets/cyrillic.html>.  The KOI and
-;; Alternativnyj coding systems should live in code-pages.el, but
-;; they've always been preloaded and the coding system autoload
-;; mechanism didn't get accepted, so they have to stay here and
-;; duplicate code-pages stuff.
+;; <URL:https://czyborra.com/charsets/cyrillic.html>.
 
 ;; Note that 8859-5 maps directly onto the Unicode Cyrillic block,
-;; apart from codepoints 160 (NBSP, c.f. U+0400), 173 (soft hyphen,
-;; c.f. U+04OD) and 253 (section sign, c.f U+045D).  The KOI-8 and
+;; apart from codepoints 160 (NBSP, cf. U+0400), 173 (soft hyphen,
+;; cf. U+04OD) and 253 (section sign, cf. U+045D).  The KOI-8 and
 ;; Alternativnyj coding systems encode both 8859-5 and Unicode.
-;; ucs-tables.el provides unification for cyrillic-iso-8bit.
-
-;; Customizing `utf-fragment-on-decoding' allows decoding characters
-;; from KOI and Alternativnyj into 8859-5 where that's possible.
-;; cyrillic-iso8859-5 characters take half as much space in the buffer
-;; as the mule-unicode-0100-24ff equivalents, though that's probably
-;; not normally a big deal.
 
 ;;; Code:
 

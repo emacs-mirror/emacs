@@ -1,6 +1,6 @@
 ;;; erc-compat.el --- ERC compatibility code for older Emacsen  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2003, 2005-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2024 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -31,51 +31,11 @@
 
 ;;; Code:
 
-(require 'compat nil 'noerror)
+(require 'compat)
 (eval-when-compile (require 'cl-lib))
 
-;; Except for the "erc-" namespacing, these two definitions should be
-;; continuously updated to match the latest upstream ones verbatim.
-;; Although they're pretty simple, it's likely not worth checking for
-;; and possibly deferring to the non-prefixed versions.
-;;
-;; BEGIN Compat macros
-
-;;;; Macros for extended compatibility function calls
-
-(defmacro erc-compat-function (fun)
-  "Return compatibility function symbol for FUN.
-
-If the Emacs version provides a sufficiently recent version of
-FUN, the symbol FUN is returned itself.  Otherwise the macro
-returns the symbol of a compatibility function which supports the
-behavior and calling convention of the current stable Emacs
-version.  For example Compat 29.1 will provide compatibility
-functions which implement the behavior and calling convention of
-Emacs 29.1.
-
-See also `compat-call' to directly call compatibility functions."
-  (let ((compat (intern (format "compat--%s" fun))))
-    `#',(if (fboundp compat) compat fun)))
-
-(defmacro erc-compat-call (fun &rest args)
-  "Call compatibility function or macro FUN with ARGS.
-
-A good example function is `plist-get' which was extended with an
-additional predicate argument in Emacs 29.1.  The compatibility
-function, which supports this additional argument, can be
-obtained via (compat-function plist-get) and called
-via (compat-call plist-get plist prop predicate).  It is not
-possible to directly call (plist-get plist prop predicate) on
-Emacs older than 29.1, since the original `plist-get' function
-does not yet support the predicate argument.  Note that the
-Compat library never overrides existing functions.
-
-See also `compat-function' to lookup compatibility functions."
-  (let ((compat (intern (format "compat--%s" fun))))
-    `(,(if (fboundp compat) compat fun) ,@args)))
-
-;; END Compat macros
+(define-obsolete-function-alias 'erc-compat-function #'compat-function "30.1")
+(define-obsolete-function-alias 'erc-compat-call #'compat-call "30.1")
 
 ;;;###autoload(autoload 'erc-define-minor-mode "erc-compat")
 (define-obsolete-function-alias 'erc-define-minor-mode
@@ -102,7 +62,7 @@ See `erc-encoding-coding-alist'."
 
 (defun erc-set-write-file-functions (new-val)
   (declare (obsolete nil "28.1"))
-  (set (make-local-variable 'write-file-functions) new-val))
+  (setq-local write-file-functions new-val))
 
 (defvar erc-emacs-build-time
   (if (or (stringp emacs-build-time) (not emacs-build-time))
@@ -443,6 +403,53 @@ If START or END is negative, it counts from the end."
                             u r))
                  (cons '("\\`irc6?s?://" . erc-compat--29-browse-url-irc)
                        existing))))))
+
+;; We can't store (TICKS . HZ) style timestamps on 27 and 28 because
+;; `time-less-p' and friends do
+;;
+;;   message("obsolete timestamp with cdr ...", ...)
+;;   decode_lisp_time(_, WARN_OBSOLETE_TIMESTAMPS, ...)
+;;   lisp_time_struct(...)
+;;   time_cmp(...)
+;;
+;; which spams *Messages* (and stderr when running the test suite).
+(defmacro erc-compat--current-lisp-time ()
+  "Return `current-time' as a (TICKS . HZ) pair on 29+."
+  (if (>= emacs-major-version 29)
+      '(let (current-time-list) (current-time))
+    '(current-time)))
+
+(defmacro erc-compat--defer-format-spec-in-buffer (&rest spec)
+  "Transform SPEC forms into functions that run in the current buffer.
+For convenience, ensure function wrappers return \"\" as a
+fallback."
+  (cl-check-type (car spec) cons)
+  (let ((buffer (make-symbol "buffer")))
+    `(let ((,buffer (current-buffer)))
+       ,(list '\`
+              (mapcar
+               (pcase-lambda (`(,k . ,v))
+                 (cons k
+                       (list '\,(if (>= emacs-major-version 29)
+                                    `(lambda ()
+                                       (or (if (eq ,buffer (current-buffer))
+                                               ,v
+                                             (with-current-buffer ,buffer
+                                               ,v))
+                                           ""))
+                                  `(or ,v "")))))
+               spec)))))
+
+
+;;;; Misc 31.1
+
+(defun erc-compat--window-no-other-p (window)
+  ;; See bug#73706.
+  (if (fboundp 'window-no-other-p)
+      (window-no-other-p window)
+    (setq window (window-normalize-window window t))
+    (and (not ignore-window-parameters)
+         (window-parameter window 'no-other-window))))
 
 
 (provide 'erc-compat)

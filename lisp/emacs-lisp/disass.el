@@ -1,6 +1,6 @@
 ;;; disass.el --- disassembler for compiled Emacs Lisp code  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1986, 1991, 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1991, 2002-2024 Free Software Foundation, Inc.
 
 ;; Author: Doug Cutting <doug@csli.stanford.edu>
 ;;	Jamie Zawinski <jwz@lucid.com>
@@ -54,7 +54,7 @@
 (defun disassemble (object &optional buffer indent interactive-p)
   "Print disassembled code for OBJECT in (optional) BUFFER.
 OBJECT can be a symbol defined as a function, or a function itself
-\(a lambda expression or a compiled-function object).
+\(a lambda expression or a byte-code-function object).
 If OBJECT is not already compiled, we compile it, but do not
 redefine OBJECT if it is a symbol."
   (interactive
@@ -64,13 +64,16 @@ redefine OBJECT if it is a symbol."
                                     obarray 'fboundp t nil nil def))
            nil 0 t)))
   (let ((lb lexical-binding))
-    (if (and (consp object) (not (functionp object)))
-        (setq object `(lambda () ,object)))
+    (when (and (consp object) (not (eq (car object) 'lambda)))
+      (setq object
+            (if (eq (car object) 'byte-code)
+                (apply #'make-byte-code 0 (cdr object))
+              `(lambda () ,object))))
     (or indent (setq indent 0))		;Default indent to zero
     (save-excursion
       (if (or interactive-p (null buffer))
 	  (with-output-to-temp-buffer "*Disassemble*"
-	    (set-buffer "*Disassemble*")
+	    (set-buffer standard-output)
             (let ((lexical-binding lb))
 	      (disassemble-internal object indent (not interactive-p))))
         (set-buffer buffer)
@@ -88,21 +91,20 @@ redefine OBJECT if it is a symbol."
 	args)
     (setq obj (autoload-do-load obj name))
     (if (subrp obj)
-        (if (and (fboundp 'subr-native-elisp-p)
-                 (subr-native-elisp-p obj))
+        (if (and (fboundp 'native-comp-function-p)
+                 (native-comp-function-p obj))
             (progn
               (require 'comp)
-              (call-process "objdump" nil (current-buffer) t "-S"
-                            (native-comp-unit-file (subr-native-comp-unit obj)))
+              (let ((eln (native-comp-unit-file (subr-native-comp-unit obj))))
+                (if (file-exists-p eln)
+                    (call-process "objdump" nil (current-buffer) t "-S" eln)
+                  (error "Missing eln file for #<subr %s>" name)))
               (goto-char (point-min))
-              (re-search-forward (concat "^.*"
+              (re-search-forward (concat "^.*<_?"
                                          (regexp-quote
-                                          (concat "<"
-                                                  (when (eq system-type 'darwin)
-                                                    "_")
-                                                  (comp-c-func-name
-                                                   (subr-name obj) "F" t)
-                                                  ">:"))))
+                                          (comp-c-func-name
+                                           (subr-name obj) "F" t))
+                                         ">:"))
               (beginning-of-line)
               (delete-region (point-min) (point))
               (when (re-search-forward "^.*<.*>:" nil t 2)
@@ -114,23 +116,19 @@ redefine OBJECT if it is a symbol."
     (if (eq (car-safe obj) 'macro)	;Handle macros.
 	(setq macro t
 	      obj (cdr obj)))
-    (if (eq (car-safe obj) 'byte-code)
-	(setq obj `(lambda () ,obj)))
-    (when (consp obj)
+    (when (or (consp obj) (interpreted-function-p obj))
       (unless (functionp obj) (error "Not a function"))
-      (if (assq 'byte-code obj)
-          nil
-        (if interactive-p (message (if name
-                                       "Compiling %s's definition..."
-                                     "Compiling definition...")
-                                   name))
-        (setq obj (byte-compile obj))
-        (if interactive-p (message "Done compiling.  Disassembling..."))))
+      (if interactive-p (message (if name
+                                     "Compiling %s's definition..."
+                                   "Compiling definition...")
+                                 name))
+      (setq obj (byte-compile obj))
+      (if interactive-p (message "Done compiling.  Disassembling...")))
     (cond ((consp obj)
 	   (setq args (help-function-arglist obj))	;save arg list
 	   (setq obj (cdr obj))		;throw lambda away
 	   (setq obj (cdr obj)))
-	  ((byte-code-function-p obj)
+	  ((closurep obj)
 	   (setq args (help-function-arglist obj)))
           (t (error "Compilation failed")))
     (if (zerop indent) ; not a nested function
@@ -172,14 +170,14 @@ redefine OBJECT if it is a symbol."
 	      (let ((print-escape-newlines t))
 		(prin1 interactive (current-buffer))))
 	    (insert "\n"))))
-    (cond ((and (consp obj) (assq 'byte-code obj))
-	   (disassemble-1 (assq 'byte-code obj) indent))
-	  ((byte-code-function-p obj)
+    (cond ((byte-code-function-p obj)
 	   (disassemble-1 obj indent))
 	  (t
 	   (insert "Uncompiled body:  ")
 	   (let ((print-escape-newlines t))
-	     (prin1 (macroexp-progn obj)
+	     (prin1 (macroexp-progn (if (interpreted-function-p obj)
+		                        (aref obj 1)
+		                      obj))
 		    (current-buffer))))))
   (if interactive-p
       (message "")))
@@ -192,8 +190,6 @@ OBJ should be a call to BYTE-CODE generated by the byte compiler."
     (if (consp obj)
 	(setq bytes (car (cdr obj))		;the byte code
 	      constvec (car (cdr (cdr obj))))	;constant vector
-      ;; If it is lazy-loaded, load it now
-      (fetch-bytecode obj)
       (setq bytes (aref obj 1)
 	    constvec (aref obj 2)))
     (cl-assert (not (multibyte-string-p bytes)))
@@ -253,29 +249,22 @@ OBJ should be a call to BYTE-CODE generated by the byte compiler."
                  ;; if the succeeding op is byte-switch, display the jump table
                  ;; used
 		 (cond ((eq (car-safe (car-safe (cdr lap))) 'byte-switch)
-                         (insert (format "<jump-table-%s (" (hash-table-test arg)))
-                         (let ((first-time t))
-                           (maphash #'(lambda (value tag)
-                                        (if first-time
-                                            (setq first-time nil)
-                                          (insert " "))
-                                        (insert (format "%s %s" value (cadr tag))))
-                                    arg))
-                         (insert ")>"))
-                  ;; if the value of the constant is compiled code, then
-                  ;; recursively disassemble it.
-                  ((or (byte-code-function-p arg)
-			    (and (consp arg) (functionp arg)
-				 (assq 'byte-code arg))
+                        (insert (format "<jump-table-%s (" (hash-table-test arg)))
+                        (let ((first-time t))
+                          (maphash #'(lambda (value tag)
+                                       (if first-time
+                                           (setq first-time nil)
+                                         (insert " "))
+                                       (insert (format "%s %s" value (cadr tag))))
+                                   arg))
+                        (insert ")>"))
+                       ;; if the value of the constant is compiled code, then
+                       ;; recursively disassemble it.
+                       ((or (byte-code-function-p arg)
 			    (and (eq (car-safe arg) 'macro)
-				 (or (byte-code-function-p (cdr arg))
-				     (and (consp (cdr arg))
-                                          (functionp (cdr arg))
-					  (assq 'byte-code (cdr arg))))))
+				 (byte-code-function-p (cdr arg))))
 			(cond ((byte-code-function-p arg)
-			       (insert "<compiled-function>\n"))
-			      ((functionp arg)
-			       (insert "<compiled lambda>"))
+			       (insert "<byte-code-function>\n"))
 			      (t (insert "<compiled macro>\n")))
 			(disassemble-internal
 			 arg
@@ -287,8 +276,10 @@ OBJ should be a call to BYTE-CODE generated by the byte compiler."
 			 arg
 			 (+ indent disassemble-recursive-indent)))
 		       ((eq (car-safe (car-safe arg)) 'byte-code)
+			;; FIXME: I'm 99% sure bytecomp never generates
+			;; this any more.
 			(insert "(<byte code>...)\n")
-			(mapc ;recurse on list of byte-code objects
+			(mapc      ;Recurse on list of byte-code objects.
 			 (lambda (obj)
                            (disassemble-1
                             obj
@@ -301,6 +292,23 @@ OBJ should be a call to BYTE-CODE generated by the byte compiler."
 		)
 	  (insert "\n")))))
   nil)
+
+(defun re-disassemble (regexp &optional case-table)
+  "Describe the compiled form of REGEXP in a separate window.
+If CASE-TABLE is non-nil, use it as translation table for case-folding.
+
+This function is mainly intended for maintenance of Emacs itself
+and may change at any time.  It requires Emacs to be built with
+`--enable-checking'."
+  (interactive "XRegexp (Lisp expression): ")
+  (let ((desc (with-temp-buffer
+                (when case-table
+                  (set-case-table case-table))
+                (let ((case-fold-search (and case-table t)))
+                  (re--describe-compiled regexp)))))
+    (with-output-to-temp-buffer "*Regexp-disassemble*"
+      (with-current-buffer standard-output
+        (insert desc)))))
 
 (provide 'disass)
 

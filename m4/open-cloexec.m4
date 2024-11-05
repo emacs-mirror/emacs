@@ -1,9 +1,11 @@
-# Test whether O_CLOEXEC is defined.
-
-dnl Copyright 2017-2023 Free Software Foundation, Inc.
+# open-cloexec.m4
+# serial 1
+dnl Copyright 2017-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+
+# Test whether O_CLOEXEC is defined.
 
 AC_DEFUN([gl_PREPROC_O_CLOEXEC],
 [

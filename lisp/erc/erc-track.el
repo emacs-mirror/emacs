@@ -1,6 +1,6 @@
 ;;; erc-track.el --- Track modified channel buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -161,23 +161,48 @@ The faces used are the same as used for text in the buffers.
 \(e.g. `erc-pal-face' is used if a pal sent a message to that channel.)"
   :type 'boolean)
 
+;; In an emergency, users can opt out of this migration with:
+;;
+;;   (put 'erc-track-faces-priority-list 'erc-track--obsolete-faces t)
+;;   (put 'erc-track-faces-normal-list 'erc-track--obsolete-faces t)
+;;
+(defun erc-track--massage-nick-button-faces (sym val &optional set-fn)
+  "Transform VAL of face-list option SYM to remove/replace obsolete items.
+Use `set'-compatible SET-FN when given.  Record any migrations as cons
+cells of (OLD . NEW) in the symbol property `erc-track--obsolete-faces'
+of SYM."
+  (let* ((oldface '(erc-nick-default-face erc-default-face))
+         (newface '(erc-button-nick-default-face erc-default-face))
+         (migrations (get sym 'erc-track--obsolete-faces))
+         (new (if migrations
+                  val
+                (delq nil
+                      (mapcar
+                       (lambda (f)
+                         (if (equal f oldface)
+                             (setf (alist-get oldface migrations
+                                              nil nil #'equal)
+                                   (and (not (member newface val)) newface))
+                           f))
+                       val)))))
+    (when migrations
+      (put sym 'erc-track--obsolete-faces migrations))
+    (if set-fn (funcall set-fn sym new) (set-default sym new))))
+
 (defcustom erc-track-faces-priority-list
   '(erc-error-face
-    (erc-nick-default-face erc-current-nick-face)
     erc-current-nick-face
     erc-keyword-face
-    (erc-nick-default-face erc-pal-face)
     erc-pal-face
     erc-nick-msg-face
     erc-direct-msg-face
     (erc-button erc-default-face)
-    (erc-nick-default-face erc-dangerous-host-face)
     erc-dangerous-host-face
     erc-nick-default-face
-    (erc-nick-default-face erc-default-face)
+    (erc-button-nick-default-face erc-nick-default-face)
+    (erc-button-nick-default-face erc-default-face)
     erc-default-face
     erc-action-face
-    (erc-nick-default-face erc-fool-face)
     erc-fool-face
     erc-notice-face
     erc-input-face
@@ -188,6 +213,8 @@ be highlighted using that face.  The first matching face is used.
 
 Note that ERC prioritizes certain faces reserved for critical
 messages regardless of this option's value."
+  :package-version '(ERC . "5.6.1")
+  :set #'erc-track--massage-nick-button-faces
   :type (erc--with-dependent-type-match
          (repeat (choice face (repeat :tag "Combination" face)))
          erc-button))
@@ -209,11 +236,12 @@ setting this variable might not be very useful."
 
 (defcustom erc-track-faces-normal-list
   '((erc-button erc-default-face)
-    (erc-nick-default-face erc-dangerous-host-face)
     erc-dangerous-host-face
     erc-nick-default-face
-    (erc-nick-default-face erc-default-face)
+    (erc-button-nick-default-face erc-nick-default-face)
+    (erc-button-nick-default-face erc-default-face)
     erc-default-face
+    erc-notice-face
     erc-action-face)
   "A list of faces considered to be part of normal conversations.
 This list is used to highlight active buffer names in the mode line.
@@ -224,9 +252,26 @@ the buffer name will be highlighted using the face from the
 message.  This gives a rough indication that active conversations
 are occurring in these channels.
 
+Note that ERC makes a copy of this option when initializing the
+module.  To see your changes reflected mid-session, cycle
+\\[erc-track-mode].
+
 The effect may be disabled by setting this variable to nil."
-  :type '(repeat (choice face
-			 (repeat :tag "Combination" face))))
+  :package-version '(ERC . "5.6.1")
+  :set #'erc-track--massage-nick-button-faces
+  :type (erc--with-dependent-type-match
+         (repeat (choice face (repeat :tag "Combination" face)))
+         erc-button))
+
+(defvar erc-track-ignore-normal-contenders-p nil
+  "Compatibility flag to promote only exclusively new \"normal\" faces.
+When non-nil, revert to pre-5.6 behavior in which only a current
+mode-line face that both outranks and is absent from the current
+message is eligible for replacement by a fellow face from
+`erc-track-faces-normal-list' that does appear in the message.
+By extension, when enabled, never replace the current, reigning
+mode-line face if it's present in the current message.  May be
+incompatible with modules introduced after ERC 5.5.")
 
 (defcustom erc-track-position-in-mode-line 'before-modes
   "Where to show modified channel information in the mode-line.
@@ -343,6 +388,37 @@ See `erc-track-position-in-mode-line' for possible values."
 		      t))))
 
 ;;; Shortening of names
+
+(defvar erc-track--shortened-names nil
+  "A cons of the last novel name-shortening params and the result.
+The CAR is a hash of environmental inputs such as options and
+parameters passed to `erc-track-shorten-function'.  Its effect is
+only really noticeable during batch processing.")
+
+(defvar erc-track--shortened-names-current-hash nil)
+
+(defun erc-track--shortened-names-set (_ shortened)
+  "Remember SHORTENED names with hash of contextual params."
+  (cl-assert erc-track--shortened-names-current-hash)
+  (setq erc-track--shortened-names
+        (cons erc-track--shortened-names-current-hash shortened)))
+
+(defun erc-track--shortened-names-get (channel-names)
+  "Cache CHANNEL-NAMES with various contextual parameters.
+For now, omit relevant options like `erc-track-shorten-start' and
+friends, even though they do affect the outcome, because they
+likely change too infrequently to matter over sub-second
+intervals and are unlikely to be let-bound or set locally."
+  (when-let* ((hash (setq erc-track--shortened-names-current-hash
+                          (sxhash-equal (list channel-names
+                                              (buffer-list)
+                                              erc-track-shorten-function))))
+              (erc-track--shortened-names)
+              ((= hash (car erc-track--shortened-names))))
+    (cdr erc-track--shortened-names)))
+
+(gv-define-simple-setter erc-track--shortened-names-get
+                         erc-track--shortened-names-set)
 
 (defun erc-track-shorten-names (channel-names)
   "Call `erc-unique-channel-names' with the correct parameters.
@@ -518,6 +594,9 @@ keybindings will not do anything useful."
 	 (progn
 	   (add-hook 'window-configuration-change-hook #'erc-user-is-active)
 	   (add-hook 'erc-send-completed-hook #'erc-user-is-active)
+           ;; FIXME find out why this uses `erc-server-001-functions'.
+           ;; `erc-user-is-active' runs when `erc-server-connected' is
+           ;; non-nil.  But this hook usually only runs when it's nil.
 	   (add-hook 'erc-server-001-functions #'erc-user-is-active))
        (erc-track-add-to-mode-line erc-track-position-in-mode-line)
        (erc-update-mode-line)
@@ -528,6 +607,8 @@ keybindings will not do anything useful."
      ;; enable the tracking keybindings
      (add-hook 'erc-connect-pre-hook #'erc-track-minor-mode-maybe)
      (erc-track-minor-mode-maybe))
+   (add-hook 'erc-mode-hook #'erc-track--setup)
+   (unless erc--updating-modules-p (erc-buffer-do #'erc-track--setup))
    (add-hook 'erc-networks--copy-server-buffer-functions
              #'erc-track--replace-killed-buffer))
   ;; Disable:
@@ -539,6 +620,7 @@ keybindings will not do anything useful."
 			#'erc-user-is-active)
 	   (remove-hook 'erc-send-completed-hook #'erc-user-is-active)
 	   (remove-hook 'erc-server-001-functions #'erc-user-is-active)
+           ;; FIXME remove this if unused.
 	   (remove-hook 'erc-timer-hook #'erc-user-is-active))
        (remove-hook 'window-configuration-change-hook
 		    #'erc-window-configuration-change)
@@ -548,9 +630,12 @@ keybindings will not do anything useful."
      (remove-hook 'erc-connect-pre-hook #'erc-track-minor-mode-maybe)
      (when erc-track-minor-mode
        (erc-track-minor-mode -1)))
+   (remove-hook 'erc-mode-hook #'erc-track--setup)
+   (erc-buffer-do #'erc-track--setup)
    (remove-hook 'erc-networks--copy-server-buffer-functions
                 #'erc-track--replace-killed-buffer)))
 
+;; FIXME move this above the module definition.
 (defcustom erc-track-when-inactive nil
   "Enable channel tracking even for visible buffers, if you are inactive."
   :type 'boolean
@@ -561,6 +646,81 @@ keybindings will not do anything useful."
 	       (set sym val)
 	       (erc-track-enable))
 	   (set sym val))))
+
+(defvar-local erc-track--priority-faces nil
+  "Local copy of `erc-track-faces-priority-list' as a hash table.
+Keys are faces and values are rank integers (smaller is more important).")
+
+(defvar-local erc-track--normal-faces nil
+  "Local copy of `erc-track-faces-normal-list' as a hash table.
+Keys and values are faces.  The table is weak valued so it can double as
+a buttonizing cache.  See `erc-button-add-button' and `erc--merge-prop'.")
+
+(defun erc-track--setup ()
+  "Initialize a buffer for use with the `track' module.
+If this is a server buffer or either `erc-track-faces-normal-list' or
+`erc-track-faces-priority-list' is locally bound, create a new cache
+table with corresponding local variable `erc-track--normal-faces' or
+`erc-track--priority-faces'.  Otherwise, in target buffers with no local
+binding, set the cache variable's local value to that of server's."
+  (if erc-track-mode
+      (let (warnp)
+        ;; Don't bother warning users who've disabled `button'.
+        (unless (or erc--target
+                    (not (or (bound-and-true-p erc-button-mode)
+                             (memq 'button erc-modules))))
+          (dolist (opt '(erc-track-faces-normal-list
+                         erc-track-faces-priority-list))
+            (when (local-variable-p opt)
+              (erc-track--massage-nick-button-faces opt (symbol-value opt)
+                                                    #'set))
+            (when-let* ((migrations (get opt 'erc-track--obsolete-faces))
+                        ((consp migrations)))
+              (push (cons opt
+                          (mapcar (pcase-lambda (`(,old . ,new))
+                                    (format (if new "changed %s to %s"
+                                              "removed %s")
+                                            old new))
+                                  migrations))
+                    warnp)
+              (put opt 'erc-track--obsolete-faces nil)))
+          (when warnp
+            (pcase-dolist (`(,opt . ,migrations) warnp)
+              (erc--warn-once-before-connect 'erc-track-mode
+                "Option `%S' contains "
+                (if (cdr migrations) "obsolete items." "an obsolete item.")
+                " ERC has done the following for the current session: %s."
+                " Please review these changes and, if convinced,"
+                " silence this message by saving the current value."
+                opt (string-join migrations ", ")))))
+        ;; Set `erc-track--priority-faces' cache to new or shared value.
+        (let* ((localp (and erc--target
+                            (local-variable-p 'erc-track-faces-priority-list)))
+               (existing (erc-with-server-buffer erc-track--priority-faces))
+               (table (or (and (not localp) existing)
+                          (let ((p 0))
+                            (map-into
+                             (mapcar (lambda (f) (cons f (cl-incf p)))
+                                     (append erc-track--attn-faces
+                                             erc-track-faces-priority-list))
+                             `(hash-table :test equal))))))
+          (setq erc-track--priority-faces table)
+          (unless (or localp existing)
+            (erc-with-server-buffer (setq erc-track--priority-faces table))))
+        ;; Likewise for `erc-track--normal-faces' cache.
+        (let* ((localp (and erc--target
+                            (local-variable-p 'erc-track-faces-normal-list)))
+               (existing (erc-with-server-buffer erc-track--normal-faces))
+               (table (or (and (not localp) existing)
+                          (map-into (mapcar (lambda (f) (cons f f))
+                                            erc-track-faces-normal-list)
+                                    `(hash-table :test equal
+                                                 :weakness value)))))
+          (setq erc-track--normal-faces table)
+          (unless (or localp existing)
+            (erc-with-server-buffer (setq erc-track--normal-faces table)))))
+    (kill-local-variable 'erc-track--priority-faces)
+    (kill-local-variable 'erc-track--normal-faces)))
 
 ;;; Visibility
 
@@ -641,7 +801,7 @@ the number of unread messages, according to variables
 `erc-track-showcount' and `erc-track-showcount-string'.
 
 If `erc-track-use-faces' is true and FACES are provided, format
-STRING with them. When the mouse hovers above the button, STRING
+STRING with them.  When the mouse hovers above the button, STRING
 is displayed according to `erc-track-mouse-face'."
   ;; We define a new sparse keymap every time, because 1. this data
   ;; structure is very small, the alternative would require us to
@@ -649,7 +809,7 @@ is displayed according to `erc-track-mouse-face'."
   ;; (really?), 3. the defun needs to switch to BUFFER, so we would
   ;; need to save that value somewhere.
   (let ((map (make-sparse-keymap))
-	(name (if erc-track-showcount
+        (name (if (and count erc-track-showcount)
 		  (concat string
 			  erc-track-showcount-string
 			  (int-to-string count))
@@ -705,10 +865,13 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
                                            (or (buffer-name buf)
                                                ""))
 					 buffers))
-		     (short-names (if (functionp erc-track-shorten-function)
-				      (funcall erc-track-shorten-function
-					       long-names)
-				    long-names))
+                     (erc-track--shortened-names-current-hash nil)
+                     (short-names
+                      (if (functionp erc-track-shorten-function)
+                          (with-memoization
+                              (erc-track--shortened-names-get long-names)
+                            (funcall erc-track-shorten-function long-names))
+                        long-names))
 		     strings)
 		(while buffers
 		  (when (car short-names)
@@ -766,7 +929,12 @@ instead.  This has the effect of allowing the current mode line
 face, if a member of `erc-track-faces-normal-list', to be
 replaced with another with lower priority face from NEW-FACES, if
 that face with highest priority in NEW-FACES is also a member of
-`erc-track-faces-normal-list'."
+`erc-track-faces-normal-list'.
+
+To put it another way, when CUR-FACE outranks all NEW-FACES and
+doesn't appear among them, it's eligible to be replaced with a
+fellow \"normal\" from NEW-FACES.  But if it does appear among
+them, it can't be replaced."
   (let ((choice (catch 'face
                   (dolist (candidate erc-track-faces-priority-list)
                     (when (or (equal candidate cur-face)
@@ -785,6 +953,63 @@ that face with highest priority in NEW-FACES is also a member of
               choice))
         choice))))
 
+(defvar erc-track--alt-normals-function nil
+  "A function to possibly elect a \"normal\" face.
+Called with the current incumbent and the worthiest new contender
+followed by all new contending faces, ranked faces, and so-called
+\"normal\" faces.  See `erc-track--select-mode-line-face' for their
+meanings and expected types.  This function should return a face or nil.")
+
+(defun erc-track--select-mode-line-face (cur-face new-faces ranks normals)
+  "Return CUR-FACE or a replacement for displaying in the mode-line, or nil.
+Expect NEW-FACES to be a cons cell whose car is a hash table mapping
+faces present in the applicable region to t and whose cdr is its car's
+contents ordered from most recently seen (later in the buffer) to
+earliest.  Expect RANKS to be a cons cell whose car is a hash table
+similar to `erc-track--priority-faces' and whose cdr is a list of
+prioritized faces resembling `erc-track-faces-priority-list'.  Expect
+NORMALS to be a hash table mapping faces to themselves.  In general, act
+identically to `erc-track-select-mode-line-face', except appeal to
+`erc-track--alt-normals-function' if it's non-nil, and fall back on
+reconsidering only NEW-FACES appearing in NORMALS when CUR-FACE is
+itself \"normal\" and outranks all NEW-FACES.  That is, choose the first
+among RANKS in both NEW-FACES and NORMALS not equal to CUR-FACE.
+Failing that, choose the first face in both NEW-FACES and NORMALS."
+  (cl-check-type erc-track-ignore-normal-contenders-p null)
+  (cl-check-type new-faces cons)
+  ;; Choose the highest ranked face in `erc-track-faces-priority-list'
+  ;; that's either `cur-face' itself or one appearing in the region
+  ;; being processed.
+  (when-let* ((choice (catch 'face
+                        (dolist (candidate (cdr ranks))
+                          (when (or (equal candidate cur-face)
+                                    (gethash candidate (car new-faces)))
+                            (throw 'face candidate))))))
+    (or (and erc-track--alt-normals-function
+             (funcall erc-track--alt-normals-function
+                      cur-face choice new-faces ranks normals))
+        ;; If `choice' is still `cur-face' and also a "normal", attempt
+        ;; to choose another normal in order to produce the flickering
+        ;; effect mentioned in the doc of `erc-track-faces-normal-list'.
+        (and (equal choice cur-face)
+             (gethash choice normals)
+             (catch 'face
+               ;; If ranked "normal" faces other than `choice' appear in
+               ;; the region, return the most important one.
+               (progn
+                 (dolist (candidate (cdr ranks))
+                   (when (and (not (equal candidate choice))
+                              (gethash candidate (car new-faces))
+                              (gethash choice normals))
+                     (throw 'face candidate)))
+                 ;; Otherwise, go with any "normal" face other than
+                 ;; `choice' in the region.
+                 (dolist (candidate (cdr new-faces))
+                   (when (and (not (equal candidate choice))
+                              (gethash candidate normals))
+                     (throw 'face candidate))))))
+        choice)))
+
 (defun erc-track-modified-channels ()
   "Hook function for `erc-insert-post-hook'.
 Check if the current buffer should be added to the mode line as a
@@ -795,11 +1020,15 @@ the current buffer is in `erc-mode'."
     (if (and (not (erc-buffer-visible (current-buffer)))
 	     (not (member this-channel erc-track-exclude))
 	     (not (and erc-track-exclude-server-buffer
-		       (erc-server-buffer-p)))
-	     (not (erc-message-type-member
-		   (or (erc-find-parsed-property)
-		       (point-min))
-		   erc-track-exclude-types)))
+                       ;; FIXME either use `erc--server-buffer-p' or
+                       ;; explain why that's unwise.
+                       (erc-server-or-unjoined-channel-buffer-p)))
+             (not (let ((parsed (erc-find-parsed-property)))
+                    (or (erc-message-type-member (or parsed (point-min))
+                                                 erc-track-exclude-types)
+                        ;; Skip certain non-server-sent messages.
+                        (and (not parsed)
+                             (erc--memq-msg-prop 'erc--skip 'track))))))
 	;; If the active buffer is not visible (not shown in a
 	;; window), and not to be excluded, determine the kinds of
 	;; faces used in the current message, and unless the user
@@ -811,31 +1040,53 @@ the current buffer is in `erc-mode'."
 	;; (in the car), change its face attribute (in the cddr) if
 	;; necessary.  See `erc-modified-channels-alist' for the
 	;; exact data structure used.
-        (let ((faces (erc-faces-in (buffer-string)))
-              (erc-track-faces-priority-list
-               `(,@erc-track--attn-faces ,@erc-track-faces-priority-list)))
-	  (unless (and
-		   (or (eq erc-track-priority-faces-only 'all)
-		       (member this-channel erc-track-priority-faces-only))
-		   (not (catch 'found
-			  (dolist (f faces)
-			    (when (member f erc-track-faces-priority-list)
-			      (throw 'found t))))))
+        (when-let*
+            ((faces (if erc-track-ignore-normal-contenders-p
+                        (erc-faces-in (buffer-string))
+                      (erc-track--collect-faces-in)))
+             (normals erc-track--normal-faces)
+             (erc-track-faces-priority-list
+              `(,@erc-track--attn-faces ,@erc-track-faces-priority-list))
+             (ranks (cons erc-track--priority-faces
+                          erc-track-faces-priority-list))
+             ((not (and
+                    (or (eq erc-track-priority-faces-only 'all)
+                        (member this-channel erc-track-priority-faces-only))
+                    ;; Iterate over the shorter of `ranks' and `faces'.
+                    (let* ((r>fp (or erc-track-ignore-normal-contenders-p
+                                     (> (hash-table-count (car ranks))
+                                        (hash-table-count (car faces)))))
+                           (elems (cond ((not r>fp) (cdr ranks)) ; f>=r
+                                        (erc-track-ignore-normal-contenders-p
+                                         faces)
+                                        ((cdr faces))))
+                           (table (if r>fp (car ranks) (car faces))))
+                      (not (catch 'found
+                             (dolist (f elems)
+                               (when (gethash f table)
+                                 (throw 'found t))))))))))
+          (progn ; FIXME remove `progn' on next major edit
 	    (if (not (assq (current-buffer) erc-modified-channels-alist))
 		;; Add buffer, faces and counts
 		(setq erc-modified-channels-alist
 		      (cons (cons (current-buffer)
 				  (cons
-                                   1 (erc-track-select-mode-line-face
-                                      nil faces)))
+                                   1 (if erc-track-ignore-normal-contenders-p
+                                         (erc-track-select-mode-line-face
+                                          nil faces)
+                                       (erc-track--select-mode-line-face
+                                        nil faces ranks normals))))
 			    erc-modified-channels-alist))
 	      ;; Else modify the face for the buffer, if necessary.
-	      (when faces
+              (when (or erc-track-ignore-normal-contenders-p (cdr faces))
 		(let* ((cell (assq (current-buffer)
 				   erc-modified-channels-alist))
 		       (old-face (cddr cell))
-		       (new-face (erc-track-select-mode-line-face
-                                  old-face faces)))
+                       (new-face (if erc-track-ignore-normal-contenders-p
+                                     (erc-track-select-mode-line-face
+                                      old-face faces)
+                                   (erc-track--select-mode-line-face
+                                    old-face faces ranks normals))))
 		  (setcdr cell (cons (1+ (cadr cell)) new-face)))))
 	    ;; And display it
 	    (erc-modified-channels-display)))
@@ -863,6 +1114,30 @@ the current buffer is in `erc-mode'."
 	   (not (member cur faces))
 	   (push cur faces)))
     faces))
+
+(defvar erc-track--face-reject-function nil
+  "Function called with face in current buffer to massage or reject.")
+
+(defun erc-track--collect-faces-in ()
+  "Collect all faces in the (presumably narrowed) current buffer.
+Return a cons cell of a hash table and a list ordered from most recently
+seen to least."
+  (let* ((prop (if noninteractive 'font-lock-face 'face))
+         (p (text-property-not-all (point-min) (point-max) prop nil))
+         (seen (and p (make-hash-table :test #'equal)))
+         (faces (make-hash-table :test #'equal))
+         (rfaces ()))
+    (while p
+      (when-let* ((cur (get-text-property p prop)))
+        (unless (gethash cur seen)
+          (puthash cur t seen)
+          (when erc-track--face-reject-function
+            (setq cur (funcall erc-track--face-reject-function cur)))
+          (when cur
+            (push cur rfaces)
+            (puthash cur t faces))))
+      (setq p (next-single-property-change p prop)))
+    (cons faces rfaces)))
 
 ;;; Buffer switching
 
@@ -939,8 +1214,8 @@ unless any passes.")
                                    (current-buffer))
 	     (setq erc-track-last-non-erc-buffer (current-buffer)))
 	   ;; and jump to the next active channel
-           (if-let ((buf (erc-track-get-active-buffer arg))
-                    ((buffer-live-p buf)))
+           (if-let* ((buf (erc-track-get-active-buffer arg))
+                     ((buffer-live-p buf)))
                (funcall fun buf)
              (erc-modified-channels-update)
              (erc-track--switch-buffer fun arg)))
@@ -969,7 +1244,7 @@ reverse it."
   (erc-track--switch-buffer 'switch-to-buffer-other-window arg))
 
 (defun erc-track--replace-killed-buffer (existing)
-  (when-let ((found (assq existing erc-modified-channels-alist)))
+  (when-let* ((found (assq existing erc-modified-channels-alist)))
     (setcar found (current-buffer))))
 
 (provide 'erc-track)

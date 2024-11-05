@@ -1,6 +1,6 @@
 ;;; em-script-tests.el --- em-script test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'esh-mode)
 (require 'eshell)
 (require 'em-script)
@@ -32,6 +33,9 @@
          (expand-file-name "eshell-tests-helpers"
                            (file-name-directory (or load-file-name
                                                     default-directory))))
+
+(defvar eshell-execute-file-output)
+
 ;;; Tests:
 
 (ert-deftest em-script-test/source-script ()
@@ -63,6 +67,19 @@
         "\\`\\'"))
       (should (equal (buffer-string) "hibye")))))
 
+(ert-deftest em-script-test/source-script/background ()
+  "Test sourcing a script in the background."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-file temp-file
+    :text "*echo hi\nif {[ foo = foo ]} {*echo bye}"
+    (eshell-with-temp-buffer bufname "old"
+      (with-temp-eshell
+       (eshell-match-command-output
+        (format "source %s > #<%s> &" temp-file bufname)
+        "\\`\\'")
+       (eshell-wait-for-subprocess t))
+      (should (equal (buffer-string) "hi\nbye\n")))))
+
 (ert-deftest em-script-test/source-script/arg-vars ()
   "Test sourcing script with $0, $1, ... variables."
   (ert-with-temp-file temp-file :text "printnl $0 \"$1 $2\""
@@ -80,5 +97,62 @@
                                   "a\n")
      (eshell-match-command-output (format "source %s a b c" temp-file)
                                   "a\nb\nc\n"))))
+
+(ert-deftest em-script-test/execute-file ()
+  "Test running an Eshell script file via `eshell-execute-file'."
+  (ert-with-temp-file temp-file
+    :text "echo hi\necho bye"
+    (with-temp-buffer
+      (with-temp-eshell-settings
+        (eshell-execute-file temp-file nil t))
+      (should (equal (buffer-string) "hibye")))))
+
+(ert-deftest em-script-test/execute-file/args ()
+  "Test running an Eshell script file with args via `eshell-execute-file'."
+  (ert-with-temp-file temp-file
+    :text "+ $@*"
+    (with-temp-buffer
+      (with-temp-eshell-settings
+        (eshell-execute-file temp-file '(1 2 3) t))
+      (should (equal (buffer-string) "6")))))
+
+(ert-deftest em-script-test/execute-file/output-file ()
+  "Test `eshell-execute-file' redirecting to a file."
+  (ert-with-temp-file temp-file :text "echo more"
+    (ert-with-temp-file output-file :text "initial"
+      (with-temp-eshell-settings
+        (eshell-execute-file temp-file nil output-file))
+      (should (equal (eshell-test-file-string output-file) "moreinitial")))))
+
+(ert-deftest em-script-test/execute-file/output-symbol ()
+  "Test `eshell-execute-file' redirecting to a symbol."
+  (ert-with-temp-file temp-file :text "echo hi\necho bye"
+    (with-temp-eshell-settings
+      (eshell-execute-file temp-file nil 'eshell-execute-file-output))
+    (should (equal eshell-execute-file-output "hibye"))))
+
+(ert-deftest em-script-test/batch-file ()
+  "Test running an Eshell script file as a batch script."
+  (ert-with-temp-file temp-file
+    :text "echo hi"
+    (with-temp-buffer
+      (with-temp-eshell-settings
+       (call-process (expand-file-name invocation-name invocation-directory)
+                     nil '(t nil) nil
+                     "--batch" "-f" "eshell-batch-file" temp-file))
+      (should (equal (buffer-string) "hi\n")))))
+
+(ert-deftest em-script-test/batch-file/shebang ()
+  "Test running an Eshell script file as a batch script via a shebang."
+  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (ert-with-temp-file temp-file
+    :text (format
+           "#!/usr/bin/env -S %s --batch -f eshell-batch-file\necho hi"
+           (expand-file-name invocation-name invocation-directory))
+    (set-file-modes temp-file #o744)
+    (with-temp-buffer
+      (with-temp-eshell-settings
+        (call-process temp-file nil '(t nil)))
+      (should (equal (buffer-string) "hi\n")))))
 
 ;; em-script-tests.el ends here

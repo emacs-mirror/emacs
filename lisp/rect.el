@@ -1,6 +1,6 @@
 ;;; rect.el --- rectangle functions for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1999-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: Didier Verna <didier@didierverna.net>
 ;; Keywords: internal
@@ -212,7 +212,10 @@ The returned value has the form of (WIDTH . HEIGHT)."
       (cons width height))))
 
 (defun delete-rectangle-line (startcol endcol fill)
-  (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
+  ;; We use >= here, not =, for characters that use more than one
+  ;; column on display, when STARTCOL is in the middle of such a
+  ;; character.
+  (when (>= (move-to-column startcol (if fill t 'coerce)) startcol)
     (delete-region (point)
 		   (progn (move-to-column endcol 'coerce)
 			  (point)))))
@@ -279,7 +282,8 @@ When called from a program the rectangle's corners are START and END.
 With a prefix (or a FILL) argument, also fill lines where nothing has
 to be deleted."
   (interactive "*r\nP")
-  (apply-on-rectangle 'delete-rectangle-line start end fill))
+  (let (indent-tabs-mode)
+    (apply-on-rectangle 'delete-rectangle-line start end fill)))
 
 ;;;###autoload
 (defun delete-extract-rectangle (start end &optional fill)
@@ -334,7 +338,8 @@ you can use this command to copy text from a read-only buffer.
 even beep.)"
   (interactive "r\nP")
   (condition-case nil
-      (setq killed-rectangle (delete-extract-rectangle start end fill))
+      (let (indent-tabs-mode)
+        (setq killed-rectangle (delete-extract-rectangle start end fill)))
     ((buffer-read-only text-read-only)
      (setq deactivate-mark t)
      (setq killed-rectangle (extract-rectangle start end))
@@ -761,7 +766,17 @@ Ignores `line-move-visual'."
    ((not rectangle-mark-mode)
     (funcall orig))
    (t
-    (apply #'min (mapcar #'car (region-bounds))))))
+    (save-excursion
+      (let* ((pt (point))
+             (mk (mark))
+             (start (min pt mk))
+             (end (max pt mk))
+             (cols (rectangle--pos-cols start end))
+             (startcol (car cols))
+             (endcol (cdr cols)))
+        (goto-char start)
+        (move-to-column (min startcol endcol))
+        (point))))))
 
 (defun rectangle--region-end (orig)
   "Like `region-end' but supports rectangular regions."
@@ -769,7 +784,17 @@ Ignores `line-move-visual'."
    ((not rectangle-mark-mode)
     (funcall orig))
    (t
-    (apply #'max (mapcar #'cdr (region-bounds))))))
+    (save-excursion
+      (let* ((pt (point))
+             (mk (mark))
+             (start (min pt mk))
+             (end (max pt mk))
+             (cols (rectangle--pos-cols start end))
+             (startcol (car cols))
+             (endcol (cdr cols)))
+        (goto-char end)
+        (move-to-column (max startcol endcol))
+        (point))))))
 
 (defun rectangle--extract-region (orig &optional delete)
   (cond
@@ -832,102 +857,130 @@ Ignores `line-move-visual'."
          (eq (nth 1 rol) (buffer-chars-modified-tick))
          (eq start (nth 2 rol))
          (eq end (nth 3 rol))
-         (equal (rectangle--crutches) (nth 4 rol)))
+         (equal (rectangle--crutches) (nth 4 rol))
+         ;; Check point explicitly so that `exchange-point-and-mark'
+         ;; triggers overlay recomputation.
+         (eq (nth 5 rol) (point)))
     rol)
    (t
     (save-excursion
-      (let* ((nrol nil)
+      (let* ((pt (point))
+             (nrol nil)
              (old (if (eq 'rectangle (car-safe rol))
-                      (nthcdr 5 rol)
+                      (nthcdr 6 rol)
                     (funcall redisplay-unhighlight-region-function rol)
                     nil)))
         (cl-assert (eq (window-buffer window) (current-buffer)))
         ;; `rectangle--pos-cols' looks up the `selected-window's parameter!
         (with-selected-window window
-          (apply-on-rectangle
-           (lambda (leftcol rightcol)
-             (let* ((mleft (move-to-column leftcol))
-                    (left (point))
-                    ;; BEWARE: In the presence of other overlays with
-                    ;; before/after/display-strings, this happens to move to
-                    ;; the column "as if the overlays were not applied", which
-                    ;; is sometimes what we want, tho it can be
-                    ;; considered a bug in move-to-column (it should arguably
-                    ;; pay attention to the before/after-string/display
-                    ;; properties when computing the column).
-                    (mright (move-to-column rightcol))
-                    (right (point))
-                    (ol
-                     (if (not old)
-                         (let ((ol (make-overlay left right)))
-                           (overlay-put ol 'window window)
-                           (overlay-put ol 'face 'region)
-                           ol)
-                       (let ((ol (pop old)))
-                         (move-overlay ol left right (current-buffer))
-                         ol))))
-               ;; `move-to-column' may stop before the column (if bumping into
-               ;; EOL) or overshoot it a little, when column is in the middle
-               ;; of a char.
-               (cond
-                ((< mleft leftcol)      ;`leftcol' is past EOL.
-                 (overlay-put ol 'before-string (rectangle--space-to leftcol))
-                 (setq mright (max mright leftcol)))
-                ((and (> mleft leftcol) ;`leftcol' is in the middle of a char.
-                      (eq (char-before left) ?\t))
-                 (setq left (1- left))
-                 (move-overlay ol left right)
-                 (goto-char left)
-                 (overlay-put ol 'before-string (rectangle--space-to leftcol)))
-                ((overlay-get ol 'before-string)
-                 (overlay-put ol 'before-string nil)))
-               (cond
-                ;; While doing rectangle--string-preview, the two sets of
-                ;; overlays steps on the other's toes.  I fixed some of the
-                ;; problems, but others remain.  The main one is the two
-                ;; (rectangle--space-to rightcol) below which try to virtually
-                ;; insert missing text, but during "preview", the text is not
-                ;; missing (it's provided by preview's own overlay).
-                (rectangle--string-preview-state
-                 (if (overlay-get ol 'after-string)
-                     (overlay-put ol 'after-string nil)))
-                ((< mright rightcol)    ;`rightcol' is past EOL.
-                 (let ((str (rectangle--space-to rightcol)))
-                   (put-text-property 0 (length str) 'face 'region str)
-                   ;; If cursor happens to be here, draw it at the right place.
-                   (rectangle--place-cursor leftcol left str)
-                   (overlay-put ol 'after-string str)))
-                ((and (> mright rightcol) ;`rightcol's in the middle of a char.
-                      (eq (char-before right) ?\t))
-                 (setq right (1- right))
-                 (move-overlay ol left right)
-                 (if (= rightcol leftcol)
-                     (overlay-put ol 'after-string nil)
-                   (goto-char right)
-                   (let ((str (rectangle--space-to rightcol)))
-                     (put-text-property 0 (length str) 'face 'region str)
-                     (when (= left right)
-                       (rectangle--place-cursor leftcol left str))
-                     (overlay-put ol 'after-string str))))
-                ((overlay-get ol 'after-string)
-                 (overlay-put ol 'after-string nil)))
-               (when (and (= leftcol rightcol) (display-graphic-p))
-                 ;; Make zero-width rectangles visible!
-                 (overlay-put ol 'after-string
-                              (concat (propertize " "
-                                                  'face '(region (:height 0.2)))
-                                      (overlay-get ol 'after-string))))
-               (push ol nrol)))
-           start end))
+          (let* ((cols (rectangle--pos-cols start end))
+                 (startcol (car cols))
+                 (endcol (cdr cols))
+                 (leftcol (min startcol endcol))
+                 (rightcol (max startcol endcol))
+                 ;; We don't know what lines will actually be displayed,
+                 ;; so add highlight overlays on lines within the window
+                 ;; height from point.
+                 (height (window-height))
+                 (start-pt (max start (progn (forward-line (- height))
+                                             (point))))
+                 (end-pt (min end (progn (goto-char pt)
+                                         (forward-line height)
+                                         (point)))))
+            (goto-char start-pt)
+            (beginning-of-line)
+            (while
+                (let* ((mleft (move-to-column leftcol))
+                       (left (point))
+                       ;; BEWARE: In the presence of other overlays with
+                       ;; before/after/display-strings, this happens to move to
+                       ;; the column "as if the overlays were not applied",
+                       ;; which is sometimes what we want, tho it can be
+                       ;; considered a bug in move-to-column (it should
+                       ;; arguably pay attention to the
+                       ;; before/after-string/display properties when computing
+                       ;; the column).
+                       (mright (move-to-column rightcol))
+                       (right (point))
+                       (ol
+                        (if (not old)
+                            (let ((ol (make-overlay left right)))
+                              (overlay-put ol 'window window)
+                              (overlay-put ol 'face 'region)
+                              ol)
+                          (let ((ol (pop old)))
+                            (move-overlay ol left right (current-buffer))
+                            ol))))
+                  ;; `move-to-column' may stop before the column (if bumping
+                  ;; into EOL) or overshoot it a little, when column is in the
+                  ;; middle of a char.
+                  (cond
+                   ((< mleft leftcol)      ;`leftcol' is past EOL.
+                    (overlay-put ol 'before-string
+                                 (rectangle--space-to leftcol))
+                    (setq mright (max mright leftcol)))
+                   ((and (> mleft leftcol) ;`leftcol' is in the middle of a char
+                         (eq (char-before left) ?\t))
+                    (setq left (1- left))
+                    (move-overlay ol left right)
+                    (goto-char left)
+                    (overlay-put ol 'before-string
+                                 (rectangle--space-to leftcol)))
+                   ((overlay-get ol 'before-string)
+                    (overlay-put ol 'before-string nil)))
+                  (cond
+                   ;; While doing rectangle--string-preview, the two sets of
+                   ;; overlays steps on the other's toes.  I fixed some of the
+                   ;; problems, but others remain.  The main one is the two
+                   ;; (rectangle--space-to rightcol) below which try to
+                   ;; virtually insert missing text, but during "preview", the
+                   ;; text is not missing (it's provided by preview's own
+                   ;; overlay).
+                   (rectangle--string-preview-state
+                    (if (overlay-get ol 'after-string)
+                        (overlay-put ol 'after-string nil)))
+                   ((< mright rightcol)    ;`rightcol' is past EOL.
+                    (let ((str (rectangle--space-to rightcol)))
+                      (put-text-property 0 (length str) 'face 'region str)
+                      ;; If cursor happens to be here, draw it at the right
+                      ;; place.
+                      (rectangle--place-cursor leftcol left str)
+                      (overlay-put ol 'after-string str)))
+                   ((and (> mright rightcol) ;`rightcol' in the middle of a char
+                         (eq (char-before right) ?\t))
+                    (setq right (1- right))
+                    (move-overlay ol left right)
+                    (if (= rightcol leftcol)
+                        (overlay-put ol 'after-string nil)
+                      (goto-char right)
+                      (let ((str (rectangle--space-to rightcol)))
+                        (put-text-property 0 (length str) 'face 'region str)
+                        (when (= left right)
+                          (rectangle--place-cursor leftcol left str))
+                        (overlay-put ol 'after-string str))))
+                   ((overlay-get ol 'after-string)
+                    (overlay-put ol 'after-string nil)))
+                  (when (and (= leftcol rightcol) (display-graphic-p))
+                    ;; Make zero-width rectangles visible!
+                    (overlay-put ol 'after-string
+                                 (concat (propertize
+                                          " " 'face '(region (:height 0.2)))
+                                         (overlay-get ol 'after-string))))
+                  (push ol nrol)
+                  (and (zerop (forward-line 1))
+                       (bolp)
+                       (<= (point) end-pt))))
+            )
+          )
         (mapc #'delete-overlay old)
         `(rectangle ,(buffer-chars-modified-tick)
-                    ,start ,end ,(rectangle--crutches)
+                    ,start ,end ,(rectangle--crutches) ,pt
                     ,@nrol))))))
 
 (defun rectangle--unhighlight-for-redisplay (orig rol)
   (if (not (eq 'rectangle (car-safe rol)))
       (funcall orig rol)
-    (mapc #'delete-overlay (nthcdr 5 rol))
+    (mapc #'delete-overlay (nthcdr 6 rol))
     (setcar (cdr rol) nil)))
 
 (defun rectangle--duplicate-right (n displacement)

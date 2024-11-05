@@ -1,6 +1,6 @@
 ;;; filelock-tests.el --- test file locking -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(require 'cl-macs)
+(require 'cl-lib)
 (require 'ert)
 (require 'ert-x)
 (require 'seq)
@@ -68,7 +68,7 @@ unavailable to Lisp."
   "Spoil the lock file for FILE-NAME.
 Cause Emacs to report errors for various file locking operations
 on FILE-NAME going forward.  Create a file that is incompatible
-with Emacs' file locking protocol, but uses the same name as
+with Emacs's file locking protocol, but uses the same name as
 FILE-NAME's lock file.  A directory file is used, which is
 portable in practice."
   (make-directory (filelock-tests--make-lock-name file-name)))
@@ -109,7 +109,7 @@ the case)."
 
 (ert-deftest filelock-tests-lock-spoiled ()
   "Check `lock-buffer'."
-  (skip-unless (not (eq system-type 'ms-dos))) ; no filelock support
+  (skip-when (eq system-type 'ms-dos)) ; no filelock support
   (filelock-tests--fixture
    (filelock-tests--spoil-lock-file buffer-file-truename)
    ;; FIXME: errors when locking a file are ignored; should they be?
@@ -119,7 +119,7 @@ the case)."
 
 (ert-deftest filelock-tests-file-locked-p-spoiled ()
   "Check that `file-locked-p' fails if the lockfile is \"spoiled\"."
-  (skip-unless (not (eq system-type 'ms-dos))) ; no filelock support
+  (skip-when (eq system-type 'ms-dos)) ; no filelock support
   (filelock-tests--fixture
    (filelock-tests--spoil-lock-file buffer-file-truename)
    (let ((err (should-error (file-locked-p (buffer-file-name)))))
@@ -130,7 +130,7 @@ the case)."
 
 (ert-deftest filelock-tests-unlock-spoiled ()
   "Check that `unlock-buffer' fails if the lockfile is \"spoiled\"."
-  (skip-unless (not (eq system-type 'ms-dos))) ; no filelock support
+  (skip-when (eq system-type 'ms-dos)) ; no filelock support
   (filelock-tests--fixture
    ;; Set the buffer modified with file locking temporarily disabled.
    (let ((create-lockfiles nil))
@@ -150,7 +150,7 @@ the case)."
 
 (ert-deftest filelock-tests-kill-buffer-spoiled ()
   "Check that `kill-buffer' fails if a lockfile is \"spoiled\"."
-  (skip-unless (not (eq system-type 'ms-dos))) ; no filelock support
+  (skip-when (eq system-type 'ms-dos)) ; no filelock support
   (filelock-tests--fixture
    ;; Set the buffer modified with file locking temporarily disabled.
    (let ((create-lockfiles nil))
@@ -176,7 +176,7 @@ the case)."
 
 (ert-deftest filelock-tests-detect-external-change ()
   "Check that an external file modification is reported."
-  (skip-unless (not (eq system-type 'ms-dos))) ; no filelock support
+  (skip-when (eq system-type 'ms-dos)) ; no filelock support
   (skip-unless (executable-find "touch"))
   (skip-unless (executable-find "echo"))
   (dolist (cl '(t nil))

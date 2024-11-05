@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.  26-Mar-1986
 
-Copyright (C) 1985-1986, 2006-2023 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 2006-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -1355,7 +1355,7 @@ This is because -batch (see above) is now used in building Emacs.
  There are probably some Mocklisp constructs that are not handled.
  If you encounter one, feel free to report the failure as a bug.
  The construct will be handled in a future Emacs release, if that is not
- not too hard to do.
+ too hard to do.
 
  Note that lisp code converted from Mocklisp code will not necessarily
  run as fast as code specifically written for GNU Emacs, nor will it use

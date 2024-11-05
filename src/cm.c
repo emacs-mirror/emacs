@@ -1,5 +1,5 @@
 /* Cursor motion subroutines for GNU Emacs.
-   Copyright (C) 1985, 1995, 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1995, 2001-2024 Free Software Foundation, Inc.
     based primarily on public domain code written by Chris Torek
 
 This file is part of GNU Emacs.
@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "cm.h"
+#include "frame.h"
 #include "sysstdio.h"
 #include "termchar.h"
 #include "tparam.h"
@@ -111,6 +112,10 @@ addcol (tty, n) {
 void
 cmcheckmagic (struct tty_display_info *tty)
 {
+  /* If we have an unhandled SIGWINCH, we don't really know what our
+     up-to-date frame dimensions are.  */
+  if (frame_size_change_delayed (XFRAME (tty->top_frame)))
+    return;
   if (curX (tty) == FrameCols (tty))
     {
       if (!MagicWrap (tty) || curY (tty) >= FrameRows (tty) - 1)
@@ -188,7 +193,7 @@ calccost (struct tty_display_info *tty,
             tabcost;
     register const char *p;
 
-    /* If have just wrapped on a terminal with xn,
+    /* If we have just wrapped on a terminal with xn,
        don't believe the cursor position: give up here
        and force use of absolute positioning.  */
 
@@ -311,6 +316,8 @@ losecursor (void)
 #define	USEHOME	1
 #define	USELL	2
 #define	USECR	3
+
+/* Move the cursor to (ROW, COL), by computing the optimal way.  */
 
 void
 cmgoto (struct tty_display_info *tty, int row, int col)

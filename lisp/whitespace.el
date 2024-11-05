@@ -1,9 +1,9 @@
 ;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Keywords: data, wp
+;; Keywords: data, text
 ;; Version: 13.2.2
 ;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
@@ -739,7 +739,7 @@ This variable is used when `whitespace-style' includes
 
 (defcustom whitespace-indentation-regexp
   '("^\t*\\(\\( \\{%d\\}\\)+\\)[^\n\t]"
-    . "^ *\\(\t+\\)[^\n]")
+    . "^ *\\(\t+\\).")
   "Regexps to match indentation whitespace that should be visualized.
 
 The value should be a cons whose car specifies the regexp to match
@@ -1026,8 +1026,8 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
           ((eq whitespace-global-modes t))
           ((listp whitespace-global-modes)
            (if (eq (car-safe whitespace-global-modes) 'not)
-               (not (apply #'derived-mode-p (cdr whitespace-global-modes)))
-             (apply #'derived-mode-p whitespace-global-modes)))
+               (not (derived-mode-p (cdr whitespace-global-modes)))
+             (derived-mode-p whitespace-global-modes)))
           (t nil))
          ;; ...we have a display (not running a batch job)
          (not noninteractive)
@@ -1465,6 +1465,11 @@ The problems cleaned up are:
    If `whitespace-style' includes the value
    `space-after-tab::space', replace TABs by SPACEs.
 
+5. missing newline at end of file.
+   If `whitespace-style' includes the value `missing-newline-at-eof',
+   and the cleanup region includes the end of file, add a final newline
+   if it is not there already.
+
 See `whitespace-style', `indent-tabs-mode' and `tab-width' for
 documentation."
   (interactive "@r")
@@ -1545,7 +1550,16 @@ documentation."
          ((memq 'space-before-tab::space whitespace-style)
           (whitespace-replace-action
            'untabify rstart rend
-           whitespace-space-before-tab-regexp 2))))
+           whitespace-space-before-tab-regexp 2)))
+        ;; PROBLEM 5: missing newline at end of file
+        (and (memq 'missing-newline-at-eof whitespace-style)
+             (> (point-max) (point-min))
+             (= (point-max) (without-restriction (point-max)))
+             (/= (char-before (point-max)) ?\n)
+             (not (and (eq selective-display t)
+                       (= (char-before (point-max)) ?\r)))
+             (goto-char (point-max))
+             (ignore-errors (insert "\n"))))
       (set-marker rend nil))))		; point marker to nowhere
 
 
@@ -1738,7 +1752,7 @@ cleaning up these problems."
                        ((eq (car option) 'space-after-tab::space)
                         (whitespace-space-after-tab-regexp 'space))
                        ((eq (car option) 'missing-newline-at-eof)
-                        "[^\n]\\'")
+                        ".\\'")
                        (t
                         (cdr option)))))
                  (when (re-search-forward regexp rend t)
@@ -1774,10 +1788,10 @@ cleaning up these problems."
               (when has-bogus
                 (goto-char (point-max))
                 (insert (substitute-command-keys
-                         " Type `\\[whitespace-cleanup]'")
+                         " Type \\[whitespace-cleanup]")
                         " to cleanup the buffer.\n\n"
                         (substitute-command-keys
-                         " Type `\\[whitespace-cleanup-region]'")
+                         " Type \\[whitespace-cleanup-region]")
                         " to cleanup a region.\n\n"))
               (whitespace-display-window (current-buffer))))))
       has-bogus)))
@@ -2174,14 +2188,14 @@ resultant list will be returned."
               1 whitespace-space-after-tab t)))
        ,@(when (memq 'missing-newline-at-eof whitespace-active-style)
            ;; Show missing newline.
-           `(("[^\n]\\'" 0
-              ;; Don't mark the end of the buffer is point is there --
+           `((".\\'" 0
+              ;; Don't mark the end of the buffer if point is there --
               ;; it probably means that the user is typing something
               ;; at the end of the buffer.
               (and (/= whitespace-point (point-max))
                    'whitespace-missing-newline-at-eof)
-              t)))))
-    (font-lock-add-keywords nil whitespace-font-lock-keywords t)
+              prepend)))))
+    (font-lock-add-keywords nil whitespace-font-lock-keywords 'append)
     (font-lock-flush)))
 
 
@@ -2319,10 +2333,22 @@ Also refontify when necessary."
         (font-lock-flush whitespace-eob-marker (1+ (buffer-size)))))
     (setq-local whitespace-buffer-changed nil)
     (setq whitespace-point (point))	; current point position
-    (let ((refontify (and (eolp) ; It is at end of line ...
-                          ;; ... with trailing SPACE or TAB
-                          (or (memq (preceding-char) '(?\s ?\t)))
-                          (line-beginning-position)))
+    (let ((refontify (or (and (eolp) ; It is at end of line ...
+                              ;; ... with trailing SPACE or TAB
+                              (or (memq (preceding-char) '(?\s ?\t)))
+                              (line-beginning-position))
+                         (and (memq 'missing-newline-at-eof
+                                    ;; If user requested to highlight
+                                    ;; EOB without a newline...
+                                    whitespace-active-style)
+                              ;; ...and the buffer is not empty...
+                              (not (= (point-min) (point-max)))
+                              (= (point-max) (without-restriction (point-max)))
+                              ;; ...and no newline at EOB...
+                              (not (eq (char-before (point-max)) ?\n))
+                              ;; ...then refontify the last character in
+                              ;; the buffer
+                              (max (1- (point-max)) (point-min)))))
           (ostart (overlay-start whitespace-point--used)))
       (cond
        ((not refontify)
@@ -2474,7 +2500,7 @@ purposes)."
   (let ((i (length vec)))
     (when (> i 0)
       (while (and (>= (setq i (1- i)) 0)
-		  (whitespace-char-valid-p (aref vec i))))
+		  (whitespace-char-valid-p (glyph-char (aref vec i)))))
       (< i 0))))
 
 

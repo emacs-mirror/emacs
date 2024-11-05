@@ -1,6 +1,6 @@
 ;;; uniquify-tests.el --- Tests for uniquify         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; Author: Spencer Baugh <sbaugh@janestreet.com>
 
@@ -129,6 +129,7 @@ uniquify-trailing-separator-p is ignored"
 (require 'project)
 (ert-deftest uniquify-project-transform ()
   "`project-uniquify-dirname-transform' works"
+  (skip-unless (project-current nil source-directory))
   (let ((uniquify-dirname-transform #'project-uniquify-dirname-transform)
         (project-vc-name "foo1/bar")
         bufs)

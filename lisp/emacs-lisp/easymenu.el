@@ -1,6 +1,6 @@
 ;;; easymenu.el --- support the easymenu interface for defining a menu  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1996, 1998-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998-2024 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 ;; Author: Richard Stallman <rms@gnu.org>
@@ -38,7 +38,8 @@
 (defmacro easy-menu-define (symbol maps doc menu)
   "Define a pop-up menu and/or menu bar menu specified by MENU.
 If SYMBOL is non-nil, define SYMBOL as a function to pop up the
-submenu defined by MENU, with DOC as its doc string.
+submenu defined by MENU, with DOC as its doc string.  Also define
+SYMBOL as a variable whose value is the menu.
 
 MAPS, if non-nil, should be a keymap or a list of keymaps; add
 the submenu defined by MENU to the keymap or each of the keymaps,

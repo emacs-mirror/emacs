@@ -1,6 +1,6 @@
 ;;; bug-reference.el --- buttonize bug references  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 21 Mar 2007
@@ -34,6 +34,8 @@
 ;; URL link is followed by invoking C-c RET or mouse-2.
 
 ;;; Code:
+
+(require 'thingatpt)
 
 (defgroup bug-reference nil
   "Hyperlinking references to bug reports."
@@ -194,7 +196,10 @@ subexpression 10."
                              (funcall bug-reference-url-format)))))))
       ;; Delete remaining but unused overlays.
       (dolist (ov overlays)
-        (delete-overlay ov)))))
+        (delete-overlay ov))
+      ;; Signal the bounds we actually fontified to jit-lock to allow for
+      ;; optimizations (bug#70796).
+      `(jit-lock-bounds ,beg-line . ,end-line))))
 
 ;; Taken from button.el.
 (defun bug-reference-push-button (&optional pos _use-mouse-action)
@@ -375,15 +380,15 @@ URL-REGEXP against the VCS URL and returns the value to be set as
 Test each configuration in `bug-reference-setup-from-vc-alist'
 and `bug-reference--setup-from-vc-alist' and apply it if
 applicable."
-  (when-let ((file-or-dir (or buffer-file-name
-                              ;; Catches modes such as vc-dir and Magit.
-                              default-directory))
-             (backend (vc-responsible-backend file-or-dir t))
-             (url (seq-some (lambda (remote)
-                              (ignore-errors
-                                (vc-call-backend backend 'repository-url
-                                                 file-or-dir remote)))
-                            '("upstream" nil))))
+  (when-let* ((file-or-dir (or buffer-file-name
+                               ;; Catches modes such as vc-dir and Magit.
+                               default-directory))
+              (backend (vc-responsible-backend file-or-dir t))
+              (url (seq-some (lambda (remote)
+                               (ignore-errors
+                                 (vc-call-backend backend 'repository-url
+                                                  file-or-dir remote)))
+                             '("upstream" nil))))
     (seq-some (lambda (config)
                 (apply #'bug-reference-maybe-setup-from-vc url config))
               (append bug-reference-setup-from-vc-alist
@@ -465,10 +470,10 @@ and set it if applicable."
 (defun bug-reference--try-setup-gnus-article ()
   (when (and bug-reference-mode ;; Only if enabled in article buffers.
              (derived-mode-p
-              'gnus-article-mode
-              ;; Apparently, gnus-article-prepare-hook is run in the
-              ;; summary buffer...
-              'gnus-summary-mode)
+              '(gnus-article-mode
+                ;; Apparently, `gnus-article-prepare-hook' is run in the
+                ;; summary buffer...
+                gnus-summary-mode))
              gnus-article-buffer
              gnus-original-article-buffer
              (buffer-live-p (get-buffer gnus-article-buffer))
@@ -491,7 +496,7 @@ and set it if applicable."
         ;; the values of the From, To, and Cc headers.
         (let (header-values)
           (with-current-buffer
-              (get-buffer gnus-original-article-buffer)
+              gnus-original-article-buffer
             (save-excursion
               (goto-char (point-min))
               ;; The Newsgroup is omitted because we already matched
@@ -530,7 +535,7 @@ From, and Cc against HEADER-REGEXP in
   "An alist for setting up `bug-reference-mode' in IRC modes.
 
 This takes action if `bug-reference-mode' is enabled in IRC
-channels using one of Emacs' IRC clients.  Currently, rcirc and
+channels using one of Emacs's IRC clients.  Currently, rcirc and
 ERC are supported.
 
 Each element has the form
@@ -654,16 +659,50 @@ have been run, the auto-setup is inhibited.")
         (run-hook-with-args-until-success
          'bug-reference-auto-setup-functions)))))
 
+(defun bug-reference--url-at-point ()
+  "`thing-at-point' provider function."
+  (thing-at-point-for-char-property 'bug-reference-url))
+
+(defun bug-reference--forward-url (backward)
+  "`forward-thing' provider function."
+  (forward-thing-for-char-property 'bug-reference-url backward))
+
+(defun bug-reference--bounds-of-url-at-point ()
+  "`bounds-of-thing-at-point' provider function."
+  (bounds-of-thing-at-point-for-char-property 'bug-reference-url))
+
+(defun bug-reference--init (enable)
+  (if enable
+      (progn
+        (jit-lock-register #'bug-reference-fontify)
+        (setq-local thing-at-point-provider-alist
+                    (cons '(url . bug-reference--url-at-point)
+                          thing-at-point-provider-alist))
+        (setq-local forward-thing-provider-alist
+                    (cons '(url . bug-reference--forward-url)
+                          forward-thing-provider-alist))
+        (setq-local bounds-of-thing-at-point-provider-alist
+                    (cons '(url . bug-reference--bounds-of-url-at-point)
+                          bounds-of-thing-at-point-provider-alist)))
+    (jit-lock-unregister #'bug-reference-fontify)
+    (setq thing-at-point-provider-alist
+          (delete '((url . bug-reference--url-at-point))
+                  thing-at-point-provider-alist))
+    (setq forward-thing-provider-alist
+          (delete '((url . bug-reference--forward-url))
+                  forward-thing-provider-alist))
+    (setq bounds-of-thing-at-point-provider-alist
+          (delete '((url . bug-reference--bounds-of-url-at-point))
+                  bounds-of-thing-at-point-provider-alist))
+    (save-restriction
+      (widen)
+      (bug-reference-unfontify (point-min) (point-max)))))
+
 ;;;###autoload
 (define-minor-mode bug-reference-mode
   "Toggle hyperlinking bug references in the buffer (Bug Reference mode)."
   :after-hook (bug-reference--run-auto-setup)
-  (if bug-reference-mode
-      (jit-lock-register #'bug-reference-fontify)
-    (jit-lock-unregister #'bug-reference-fontify)
-    (save-restriction
-      (widen)
-      (bug-reference-unfontify (point-min) (point-max)))))
+  (bug-reference--init bug-reference-mode))
 
 (defun bug-reference-mode-force-auto-setup ()
   "Enable `bug-reference-mode' and force auto-setup.
@@ -673,7 +712,7 @@ set already.  This function sets the latter to nil
 buffer-locally, so that the auto-setup will always run.
 
 This is mostly intended for MUA modes like `rmail-mode' where the
-same buffer is re-used for different contexts."
+same buffer is reused for different contexts."
   (setq-local bug-reference-url-format nil)
   (bug-reference-mode))
 
@@ -681,12 +720,7 @@ same buffer is re-used for different contexts."
 (define-minor-mode bug-reference-prog-mode
   "Like `bug-reference-mode', but only buttonize in comments and strings."
   :after-hook (bug-reference--run-auto-setup)
-  (if bug-reference-prog-mode
-      (jit-lock-register #'bug-reference-fontify)
-    (jit-lock-unregister #'bug-reference-fontify)
-    (save-restriction
-      (widen)
-      (bug-reference-unfontify (point-min) (point-max)))))
+  (bug-reference--init bug-reference-prog-mode))
 
 (provide 'bug-reference)
 ;;; bug-reference.el ends here

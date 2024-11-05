@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1994, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Read and Print
@@ -970,7 +970,7 @@ you can use, see the variable's documentation string.
 @defvar print-integers-as-characters
 When this variable is non-@code{nil}, integers that represent
 graphic base characters will be printed using Lisp character syntax
-(@pxref{Basic Char Syntax}). Other numbers are printed the usual way.
+(@pxref{Basic Char Syntax}).  Other numbers are printed the usual way.
 For example, the list @code{(4 65 -1 10)} would be printed as
 @samp{(4 ?A -1 ?\n)}.
 
@@ -995,7 +995,7 @@ less natural and is less compact.
 @cindex overrides, in output functions
 @cindex output variables, overriding
 
-The previous section (@pxref{Output Functions}) lists the numerous
+The previous section (@pxref{Output Variables}) lists the numerous
 variables that control how the Emacs Lisp printer formats data for
 outputs.  These are generally available for users to change, but
 sometimes you want to output data in the default format, or override

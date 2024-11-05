@@ -17,14 +17,14 @@
  (0. ":irc.foonet.org 266 tester 3 3 :Current global users 3, max 3")
  (0. ":irc.foonet.org 422 tester :MOTD File is missing"))
 
-((mode-user 1.2 "MODE tester +i")
+((mode-user 4 "MODE tester +i")
  (0. ":irc.foonet.org 221 tester +Zi")
  (0. ":irc.foonet.org 306 tester :You have been marked as being away")
  (0 ":tester!~u@awyxgybtkx7uq.irc JOIN #chan")
- (0 ":irc.foonet.org 353 alice = #chan :+alice!~alice@example.com @%+bob!~bob@example.org")
+ (0 ":irc.foonet.org 353 alice = #chan :+alice @bob")
  (0 ":irc.foonet.org 366 alice #chan :End of NAMES list"))
 
-((mode 2 "MODE #chan")
+((mode 3 "MODE #chan")
  (0 ":irc.foonet.org 324 tester #chan +nt")
  (0 ":irc.foonet.org 329 tester #chan 1620805269")
  (0.1 ":alice!~u@awyxgybtkx7uq.irc PRIVMSG #chan :bob: Yes, a dozen; and as many to the vantage, as would store the world they played for.")

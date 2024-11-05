@@ -1,6 +1,6 @@
 #!/usr/bin/awk -f
 
-## Copyright (C) 2015-2023 Free Software Foundation, Inc.
+## Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 ## Maintainer: emacs-devel@gnu.org
@@ -57,9 +57,11 @@ BEGIN {
     alias["block elements"] = "symbol"
     alias["miscellaneous symbols"] = "symbol"
     alias["symbols for legacy computing"] = "symbol"
+    alias["symbols for legacy computing supplement"] = "symbol"
     alias["cjk strokes"] = "cjk-misc"
     alias["cjk symbols and punctuation"] = "cjk-misc"
     alias["halfwidth and fullwidth forms"] = "cjk-misc"
+    alias["yijing hexagram symbols"] = "cjk-misc"
     alias["common indic number forms"] = "north-indic-number"
 
     tohex["a"] = 10
@@ -94,7 +96,7 @@ function name2alias(name   , w, w2) {
     if (alias[name]) return alias[name]
     else if (name ~ /for symbols/) return "symbol"
     else if (name ~ /latin|combining .* marks|spacing modifier|tone letters|alphabetic presentation/) return "latin"
-    else if (name ~ /cjk|yijing|enclosed ideograph|kangxi/) return "han"
+    else if (name ~ /cjk|enclosed ideograph|kangxi/) return "han"
     else if (name ~ /arabic/) return "arabic"
     else if (name ~ /^greek/) return "greek"
     else if (name ~ /^coptic/) return "coptic"
@@ -144,6 +146,19 @@ FILENAME ~ "Blocks.txt" && /^[0-9A-F]/ {
     start[i] = fix_start[s] ? fix_start[s] : s
     end[i] = fix_end[e] ? fix_end[e]: e
     name[i] = $0
+
+    # Hard-coded splits that must be processed before name2alias and
+    # before combining same-named adjacent ranges.
+    if (start[i] == "3300") # See Scripts.txt
+    {
+	end[i] = "3357"
+	name[i] = "Katakana"
+	alt[i] = "kana"
+	i++
+	start[i] = "3358"
+	end[i] = "33FF"
+	name[i] = "CJK Compatibility"
+    }
 
     alt[i] = name2alias(name[i])
 
@@ -263,6 +278,10 @@ END {
     print "    (or (memq (nth 2 elt) script-list)"
     print "	(setq script-list (cons (nth 2 elt) script-list))))"
     print "  (set-char-table-extra-slot char-script-table 0 (nreverse script-list)))"
-    print "\n"
-    print "(provide 'charscript)"
+    print "\n(map-char-table"
+    print " (lambda (ch script)"
+    print "   (and (eq script 'symbol)"
+    print "	(modify-category-entry ch ?5)))"
+    print " char-script-table)"
+    print "\n(provide 'charscript)"
 }

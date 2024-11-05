@@ -1,6 +1,6 @@
 /* Internals for openat-like functions.
 
-   Copyright (C) 2005-2006, 2009-2023 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2009-2024 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,11 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* Maximum number of bytes that it is safe to allocate as a single
    array on the stack, and that is known as a compile-time constant.
@@ -60,5 +65,10 @@ char *openat_proc_name (char buf[OPENAT_BUFFER_SIZE], int fd, char const *file);
 int at_func2 (int fd1, char const *file1,
               int fd2, char const *file2,
               int (*func) (char const *file1, char const *file2));
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _GL_HEADER_OPENAT_PRIV */

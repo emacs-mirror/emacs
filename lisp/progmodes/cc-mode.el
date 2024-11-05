@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2024 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -186,8 +186,7 @@
 		     (with-current-buffer b
 		       c-buffer-is-cc-mode))
 		(throw 'found nil)))
-	  (remove-hook 'post-command-hook 'c-post-command)
-	  (remove-hook 'post-gc-hook 'c-post-gc-hook)))
+	  (remove-hook 'post-command-hook 'c-post-command t)))
       (c-save-buffer-state ()
 	(c-clear-char-properties (point-min) (point-max) 'category)
 	(c-clear-char-properties (point-min) (point-max) 'syntax-table)
@@ -256,8 +255,11 @@ control).  See \"cc-mode.el\" for more info."
 	(put 'c-initialize-cc-mode initprop c-initialization-ok))))
 
   ;; Set up text conversion, for Emacs >= 30.0
+  ;; This is needed here because CC-mode's implementation of
+  ;; electricity does not rely on `post-self-insert-hook' (which is
+  ;; already handled adequately by `analyze-text-conversion').
   (when (boundp 'post-text-conversion-hook)
-    (add-hook 'post-text-conversion-hook #'c-post-text-conversion))
+    (add-hook 'post-text-conversion-hook #'c-post-text-conversion nil t))
 
   (unless new-style-init
     (c-init-language-vars-for 'c-mode)))
@@ -655,7 +657,7 @@ that requires a literal mode spec at compile time."
   ;; Initialize the cache for `c-looking-at-or-maybe-in-bracelist'.
   (setq c-laomib-cache nil)
   ;; Initialize the three literal sub-caches.
-  (c-truncate-lit-pos-cache 1)
+  (c-truncate-lit-pos/state-cache 1)
   ;; Initialize the cache of brace pairs, and opening braces/brackets/parens.
   (c-state-cache-init)
   ;; Initialize the "brace stack" cache.
@@ -758,7 +760,7 @@ that requires a literal mode spec at compile time."
   ;; would do since font-lock uses a(n implicit) depth of 0) so we don't need
   ;; c-after-font-lock-init.
   (add-hook 'after-change-functions 'c-after-change nil t)
-  (add-hook 'post-command-hook 'c-post-command)
+  (add-hook 'post-command-hook 'c-post-command nil t)
 
   (when (boundp 'font-lock-extend-after-change-region-function)
     (set (make-local-variable 'font-lock-extend-after-change-region-function)
@@ -1020,8 +1022,8 @@ Note that the style variables are always made local to the buffer."
       (setq m-beg (point))
       (c-end-of-macro)
       (when c-ml-string-opener-re
-	(save-excursion (c-depropertize-ml-strings-in-region m-beg (point))))
-      (c-clear-char-property-with-value m-beg (point) 'syntax-table '(1)))
+	(save-excursion (c-depropertize-ml-strings-in-region m-beg (point)))
+	(c-clear-syntax-table-with-value-trim-caches m-beg (point) '(1))))
 
     (while (and (< (point) end)
 		(setq ss-found
@@ -1032,17 +1034,17 @@ Note that the style variables are always made local to the buffer."
     (when (and ss-found (> (point) end))
       (when c-ml-string-opener-re
 	(save-excursion (c-depropertize-ml-strings-in-region m-beg (point))))
-      (c-clear-char-property-with-value m-beg (point) 'syntax-table '(1)))
+      (c-clear-syntax-table-with-value-trim-caches m-beg (point) '(1)))
 
     (while (and (< (point) c-new-END)
-		(search-forward-regexp c-anchored-cpp-prefix c-new-END 'bound))
+		(search-forward-regexp c-anchored-cpp-prefix
+				       c-new-END 'bound))
       (goto-char (match-beginning 1))
       (setq m-beg (point))
       (c-end-of-macro)
       (when c-ml-string-opener-re
 	(save-excursion (c-depropertize-ml-strings-in-region m-beg (point))))
-      (c-clear-char-property-with-value
-       m-beg (point) 'syntax-table '(1)))))
+      (c-clear-syntax-table-with-value-trim-caches m-beg (point) '(1)))))
 
 (defun c-extend-region-for-CPP (_beg _end)
   ;; Adjust `c-new-BEG', `c-new-END' respectively to the beginning and end of
@@ -1123,7 +1125,7 @@ Note that the style variables are always made local to the buffer."
 	    (setq s (parse-partial-sexp beg end -1))
 	    (cond
 	     ((< (nth 0 s) 0)		; found an unmated ),},]
-	      (c-put-char-property (1- (point)) 'syntax-table '(1))
+	      (c-put-syntax-table-trim-caches (1- (point)) '(1))
 	      t)
 	     ;; Unbalanced strings are now handled by
 	     ;; `c-before-change-check-unbalanced-strings', etc.
@@ -1131,7 +1133,7 @@ Note that the style variables are always made local to the buffer."
 	     ;;  (c-put-char-property (nth 8 s) 'syntax-table '(1))
 	     ;;  t)
 	     ((> (nth 0 s) 0)		; In a (,{,[
-	      (c-put-char-property (nth 1 s) 'syntax-table '(1))
+	      (c-put-syntax-table-trim-caches (nth 1 s) '(1))
 	      t)
 	     (t nil)))))))
 
@@ -1279,7 +1281,9 @@ Note that the style variables are always made local to the buffer."
   ;; VALUE (which should not be nil).
   ;; `(let ((-pos- ,pos)
   ;;	 (-value- ,value))
-  (c-put-char-property pos 'syntax-table value)
+  (if (equal value '(15))
+      (c-put-string-fence pos)
+    (c-put-syntax-table-trim-caches pos value))
   (c-put-char-property pos 'c-fl-syn-tab value)
   (cond
    ((null c-min-syn-tab-mkr)
@@ -1290,12 +1294,11 @@ Note that the style variables are always made local to the buffer."
    ((null c-max-syn-tab-mkr)
     (setq c-max-syn-tab-mkr (copy-marker (1+ pos) nil)))
    ((>= pos c-max-syn-tab-mkr)
-    (move-marker c-max-syn-tab-mkr (1+ pos))))
-  (c-truncate-lit-pos-cache pos))
+    (move-marker c-max-syn-tab-mkr (1+ pos)))))
 
 (defun c-clear-syn-tab (pos)
   ;; Remove both the 'syntax-table and `c-fl-syn-tab properties at POS.
-     (c-clear-char-property pos 'syntax-table)
+     (c-clear-syntax-table-trim-caches pos)
      (c-clear-char-property pos 'c-fl-syn-tab)
      (when c-min-syn-tab-mkr
        (if (and (eq pos (marker-position c-min-syn-tab-mkr))
@@ -1316,12 +1319,15 @@ Note that the style variables are always made local to the buffer."
 			    pos
 			  (c-previous-single-property-change
 			   pos 'c-fl-syn-tab nil (1+ c-min-syn-tab-mkr)))))))
-     (c-truncate-lit-pos-cache pos))
+     (c-truncate-lit-pos/state-cache pos))
 
 (defun c-clear-string-fences ()
   ;; Clear syntax-table text properties which are "mirrored" by c-fl-syn-tab
   ;; text properties.  However, any such " character which ends up not being
   ;; balanced by another " is left with a '(1) syntax-table property.
+  ;; Note we don't truncate the caches in this function, since it is only
+  ;; called before leaving CC Mode, and the text properties will be restored
+  ;; by `c-restore-string-fences' before we continue in CC Mode.
   (when
       (and c-min-syn-tab-mkr c-max-syn-tab-mkr)
     (c-save-buffer-state (s pos)  ; Prevent text property stuff causing change
@@ -1372,14 +1378,21 @@ Note that the style variables are always made local to the buffer."
 		       (not (nth 3 s))
 		       (c-get-char-property (1- (point)) 'c-fl-syn-tab))
 		    (c-put-char-property pos 'syntax-table '(1))
-		    (c-put-char-properties (1+ pos) (c-point 'eol pos)
-					   'syntax-table '(1)))
+		    ;; Remove syntax-table text properties from template
+		    ;; delimiters.
+		    (c-clear-char-property-with-value
+		     (1+ pos) (c-point 'eol pos)
+		     'syntax-table c-<-as-paren-syntax)
+		    (c-clear-char-property-with-value
+		     (1+ pos) (c-point 'eol pos)
+		     'syntax-table c->-as-paren-syntax))
 		  (setq pos (point)))
 	      (setq pos (1+ pos)))))))))
 
 (defun c-restore-string-fences ()
   ;; Restore any syntax-table text properties which are "mirrored" by
   ;; c-fl-syn-tab text properties.
+  ;; We don't truncate the caches here.  See `c-clear-string-fences'.
   (when (and c-min-syn-tab-mkr c-max-syn-tab-mkr)
     (c-save-buffer-state ; Prevent text property stuff causing change function
 			 ; invocation.
@@ -1763,14 +1776,14 @@ position of `after-change-functions'.")
 (defconst c-maybe-quoted-number-head
   (concat
    "\\(0\\("
-       "\\([Xx]\\([[:xdigit:]]\\('[[:xdigit:]]\\|[[:xdigit:]]\\)*'?\\)?\\)"
+       "[Xx]\\([[:xdigit:]]\\('?[[:xdigit:]]\\)*\\)?"
        "\\|"
-       "\\([Bb]\\([01]\\('[01]\\|[01]\\)*'?\\)?\\)"
+       "[Bb]\\([01]\\('?[01]\\)*\\)?"
        "\\|"
-       "\\('[0-7]\\|[0-7]\\)*'?"
+       "\\('?[0-7]\\)*"
        "\\)"
    "\\|"
-       "[1-9]\\('[0-9]\\|[0-9]\\)*'?"
+       "[1-9]\\('?[0-9]\\)*"
    "\\)")
   "Regexp matching the head of a numeric literal, including with digit separators.")
 
@@ -1797,11 +1810,11 @@ position of `after-change-functions'.")
 (defconst c-maybe-quoted-number-tail
   (concat
    "\\("
-       "\\([xX']?[[:xdigit:]]\\('[[:xdigit:]]\\|[[:xdigit:]]\\)*\\)"
+       "\\([xX']?[[:xdigit:]]\\('?[[:xdigit:]]\\)*\\)"
    "\\|"
-       "\\([bB']?[01]\\('[01]\\|[01]\\)*\\)"
+       "\\([bB']?[01]\\('?[01]\\)*\\)"
    "\\|"
-       "\\('?[0-9]\\('[0-9]\\|[0-9]\\)*\\)"
+       "\\('?[0-9]\\)+"
    "\\)")
   "Regexp matching the tail of a numeric literal, including with digit separators.
 Note that this is a strict tail, so won't match, e.g. \"0x....\".")
@@ -1817,14 +1830,14 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 (defconst c-maybe-quoted-number
   (concat
    "\\(0\\("
-       "\\([Xx][[:xdigit:]]\\('[[:xdigit:]]\\|[[:xdigit:]]\\)*\\)"
+       "\\([Xx][[:xdigit:]]\\('?[[:xdigit:]]\\)*\\)"
        "\\|"
-       "\\([Bb][01]\\('[01]\\|[01]\\)*\\)"
+       "\\([Bb][01]\\('?[01]\\)*\\)"
        "\\|"
-       "\\('[0-7]\\|[0-7]\\)*"
+       "\\('?[0-7]\\)*"
        "\\)"
    "\\|"
-       "[1-9]\\('[0-9]\\|[0-9]\\)*"
+       "[1-9]\\('?[0-9]\\)*"
    "\\)")
   "Regexp matching a numeric literal, including with digit separators.")
 
@@ -1936,12 +1949,8 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
     (goto-char c-new-BEG)
     (when (c-search-forward-char-property-with-value-on-char
 	   'syntax-table '(1) ?\' c-new-END)
-      (c-invalidate-state-cache (1- (point)))
-      (c-truncate-lit-pos-cache (1- (point)))
-      (c-clear-char-property-with-value-on-char
-       (1- (point)) c-new-END
-       'syntax-table '(1)
-       ?')
+      (c-clear-syntax-table-with-value-on-char-trim-caches
+       (1- (point)) c-new-END '(1) ?')
       ;; Remove the c-digit-separator text property from the same "'"s.
       (when c-has-quoted-numbers
 	(c-clear-char-property-with-value-on-char
@@ -1968,10 +1977,8 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 	      ((c-quoted-number-straddling-point)
 	       (setq num-beg (match-beginning 0)
 		     num-end (match-end 0))
-	       (c-invalidate-state-cache num-beg)
-	       (c-truncate-lit-pos-cache num-beg)
-	       (c-put-char-properties-on-char num-beg num-end
-					      'syntax-table '(1) ?')
+	       (c-put-syntax-table-properties-on-char-trim-caches
+		num-beg num-end '(1) ?')
 	       (c-put-char-properties-on-char num-beg num-end
 					      'c-digit-separator t ?')
 	       (goto-char num-end))
@@ -1980,15 +1987,11 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 \\)'") ; balanced quoted expression.
 	       (goto-char (match-end 0)))
 	      ((looking-at "\\\\'")	; Anomalous construct.
-	       (c-invalidate-state-cache (1- (point)))
-	       (c-truncate-lit-pos-cache (1- (point)))
-	       (c-put-char-properties-on-char (1- (point)) (+ (point) 2)
-					      'syntax-table '(1) ?')
-	       (goto-char (match-end 0)))
+	       (c-truncate-lit-pos/state-cache (1- (point)))
+	       (c-put-syntax-table-properties-on-char-trim-caches
+		(1- (point)) (+ (point) 2) '(1) ?'))
 	      (t
-	       (c-invalidate-state-cache (1- (point)))
-	       (c-truncate-lit-pos-cache (1- (point)))
-	       (c-put-char-property (1- (point)) 'syntax-table '(1))))
+	       (c-put-syntax-table-trim-caches (1- (point)) '(1))))
 	;; Prevent the next `c-quoted-number-straddling-point' getting
 	;; confused by already processed single quotes.
 	(narrow-to-region (point) (point-max))))))
@@ -2004,6 +2007,70 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 ;; define a type.
 (defvar c-new-id-is-type nil)
 (make-variable-buffer-local 'c-new-id-is-type)
+
+(defun c-before-change-include-<> (beg end)
+  "Remove category/syntax-table properties from each #include <..>.
+In particular, from the < and > characters which have been marked as parens
+using these properties.  This is done on every such #include <..> with a
+portion between BEG and END.
+
+This function is used solely as a member of
+`c-get-state-before-change-functions' where it should appear early, before
+`c-depropertize-CPP'.  It should be used only together with
+`c-after-change-include-<>'."
+  (c-save-buffer-state ((search-end (progn (goto-char end)
+					   (c-end-of-macro)
+					   (point)))
+			hash-pos)
+    (goto-char beg)
+    (c-beginning-of-macro)
+    (while (and (< (point) search-end)
+		(search-forward-regexp c-cpp-include-key search-end 'bound)
+		(setq hash-pos (match-beginning 0)))
+      (save-restriction
+	(narrow-to-region (point-min) (c-point 'eoll))
+	(c-forward-comments))
+      (when (and (< (point) search-end)
+		 (looking-at "\\s(")
+		 (looking-at "\\(<\\)[^>\n\r]*\\(>\\)?")
+		 (not (cdr (c-semi-pp-to-literal hash-pos))))
+	(c-unmark-<->-as-paren (match-beginning 1))
+	(when (< hash-pos c-new-BEG)
+	  (setq c-new-BEG hash-pos))
+	(when (match-beginning 2)
+	  (c-unmark-<->-as-paren (match-beginning 2))
+	  (when (> (match-end 2) c-new-END)
+	    (setq c-new-END (match-end 2))))))))
+
+(defun c-after-change-include-<> (beg end _old-len)
+  "Apply category/syntax-table properties to each #include <..>.
+In particular, to the < and > characters to mark them as matching parens
+using these properties.  This is done on every such #include <..> with a
+portion between BEG and END.
+
+This function is used solely as a member of
+`c-before-font-lock-functions' where is should appear late, but before
+`c-neutralize-syntax-in-CPP'.  It should be used only together with
+`c-before-change-include-<>'."
+  (c-save-buffer-state ((search-end (progn (goto-char end)
+					   (c-end-of-macro)
+					   (point)))
+			hash-pos)
+    (goto-char beg)
+    (c-beginning-of-macro)
+    (while (and (< (point) search-end)
+		(search-forward-regexp c-cpp-include-key search-end 'bound)
+		(setq hash-pos (match-beginning 0)))
+      (save-restriction
+	(narrow-to-region (point-min) (c-point 'eoll))
+	(c-forward-comments))
+      (when (and (< (point) search-end)
+		 (looking-at "\\(<\\)[^>\n\r]*\\(>\\)")
+		 (not (cdr (c-semi-pp-to-literal (match-beginning 0)))))
+	(c-mark-<-as-paren (match-beginning 1))
+	(when (< hash-pos c-new-BEG) (setq c-new-BEG hash-pos))
+	(c-mark->-as-paren (match-beginning 2))
+	(when (> (match-end 2) c-new-END) (setq c-new-END (match-end 2)))))))
 
 (defun c-before-change-fix-comment-escapes (beg end)
   "Remove punctuation syntax-table text properties from C/C++ comment markers.
@@ -2025,12 +2092,10 @@ with // and /*, not more generic line and block comments."
       (if (eq (cadr end-state) 'c)
 	  (when (search-forward "\\*/"
 				(or (cdr (caddr end-state)) (point-max)) t)
-	    (c-clear-char-property (match-beginning 0) 'syntax-table)
-	    (c-truncate-lit-pos-cache (match-beginning 0)))
+	    (c-clear-syntax-table-trim-caches (match-beginning 0)))
 	(while (search-forward "\\\\\n"
 			       (or (cdr (caddr end-state)) (point-max)) t)
-	  (c-clear-char-property (match-beginning 0) 'syntax-table)
-	  (c-truncate-lit-pos-cache (match-beginning 0)))))))
+	  (c-clear-syntax-table-trim-caches (match-beginning 0)))))))
 
 (defun c-after-change-fix-comment-escapes (beg end _old-len)
   "Apply punctuation syntax-table text properties to C/C++ comment markers.
@@ -2062,8 +2127,7 @@ with // and /*, not more generic line and block comments."
 	      (match-beginning 3))
 	     ((eq (cadr state) 'c++)
 	      (match-beginning 2)))
-	(c-put-char-property (match-beginning 0) 'syntax-table '(1))
-	(c-truncate-lit-pos-cache (match-beginning 0))))
+	(c-put-syntax-table-trim-caches (match-beginning 0) '(1))))
 
     (goto-char end)
     (setq state (c-semi-pp-to-literal (point)))
@@ -2071,8 +2135,7 @@ with // and /*, not more generic line and block comments."
      ((eq (cadr state) 'c)
       (when (search-forward "*/" nil t)
 	(when (eq (char-before (match-beginning 0)) ?\\)
-	  (c-put-char-property (1- (match-beginning 0)) 'syntax-table '(1))
-	  (c-truncate-lit-pos-cache (1- (match-beginning 0))))))
+	  (c-put-syntax-table-trim-caches (1- (match-beginning 0)) '(1)))))
      ((eq (cadr state) 'c++)
       (while
 	  (progn
@@ -2080,8 +2143,7 @@ with // and /*, not more generic line and block comments."
 	    (and (eq (char-before) ?\\)
 		 (progn
 		   (when (eq (char-before (1- (point))) ?\\)
-		     (c-put-char-property (- (point) 2) 'syntax-table '(1))
-		     (c-truncate-lit-pos-cache (1- (point))))
+		     (c-put-syntax-table-trim-caches (- (point) 2) '(1)))
 		   t)
 		 (not (eobp))))
 	(forward-char))))))
@@ -2267,11 +2329,11 @@ with // and /*, not more generic line and block comments."
 		     c-get-state-before-change-functions))
 
 	   (c-laomib-invalidate-cache beg end))))
-     (c-truncate-lit-pos-cache beg)
+     (c-truncate-lit-pos/state-cache beg)
      ;; The following must be done here rather than in `c-after-change'
      ;; because newly inserted parens would foul up the invalidation
      ;; algorithm.
-     (c-invalidate-state-cache beg)
+     (c-invalidate-state-cache)
      ;; The following must happen after the previous, which likely alters
      ;; the macro cache.
      (when c-opt-cpp-symbol
@@ -2452,7 +2514,7 @@ with // and /*, not more generic line and block comments."
 			   (backward-char)
 			   (setq pseudo (c-cheap-inside-bracelist-p (c-parse-state)))))))
 	       (goto-char pseudo))
-	     t)
+	     (or pseudo (bobp) (> (point) bod-lim)))
 	   ;; Move forward to the start of the next declaration.
 	   (progn (c-forward-syntactic-ws)
 		  ;; Have we got stuck in a comment at EOB?
@@ -2891,15 +2953,19 @@ This function attempts to use file contents to determine whether
 the code is C or C++ and based on that chooses whether to enable
 `c-mode' or `c++-mode'."
   (interactive)
-  (if (save-excursion
-        (save-restriction
-          (save-match-data
-            (widen)
-            (goto-char (point-min))
-            (re-search-forward c-or-c++-mode--regexp
-                               (+ (point) c-guess-region-max) t))))
-      (c++-mode)
-    (c-mode)))
+  (let ((mode
+	 (if (save-excursion
+	       (save-restriction
+		 (save-match-data
+		   (widen)
+		   (goto-char (point-min))
+		   (re-search-forward c-or-c++-mode--regexp
+				      (+ (point) c-guess-region-max) t))))
+	     'c++-mode
+	   'c-mode)))
+    (funcall (if (fboundp 'major-mode-remap)
+		 (major-mode-remap mode)
+	       mode))))
 
 
 ;; Support for C++
@@ -3310,6 +3376,22 @@ Key bindings:
 	      (insert "Package: " c-mode-bug-package)))
 	(insert (format "Buffer Style: %s\nc-emacs-features: %s\n"
 			style c-features)))))))
+
+
+;; Make entries in `major-mode-remap-defaults' to ensure that when CC
+;; Mode has been loaded, the symbols `c-mode' etc., will call CC Mode's
+;; modes rather than c-ts-mode etc..
+(when (boundp 'major-mode-remap-defaults)
+  (add-to-list 'major-mode-remap-defaults '(c++-mode . c++-ts-mode))
+  (add-to-list 'major-mode-remap-defaults '(c-mode . c-ts-mode))
+  (add-to-list 'major-mode-remap-defaults '(c-or-c++-mode . c-or-c++-ts-mode))
+  (let (entry)
+    (dolist (mode '(c-mode c++-mode c-or-c++-mode))
+      (if (and (setq entry (assq mode major-mode-remap-defaults))
+	       (null (cdr entry)))
+	  (setq major-mode-remap-defaults
+		(delq entry major-mode-remap-defaults)))
+      (push (cons mode nil) major-mode-remap-defaults))))
 
 
 (cc-provide 'cc-mode)

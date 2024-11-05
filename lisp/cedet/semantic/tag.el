@@ -1,6 +1,6 @@
 ;;; semantic/tag.el --- Tag creation and access  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2005, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -348,6 +348,9 @@ If TAG is unlinked, but has a :filename property, then that is used."
 	   )
     ;; If an error occurs, then it most certainly is not a tag.
     (error nil)))
+
+;; Used in `semantic-utest-ia.el'.
+(cl-deftype semantic-tag () `(satisfies semantic-tag-p))
 
 (defsubst semantic-tag-of-class-p (tag class)
   "Return non-nil if class of TAG is CLASS."

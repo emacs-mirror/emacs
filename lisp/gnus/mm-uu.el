@@ -1,6 +1,6 @@
 ;;; mm-uu.el --- Return uu stuff as mm handles  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: postscript uudecode binhex shar forward gnatsweb pgp
@@ -173,7 +173,7 @@ This can be either \"inline\" or \"attachment\".")
      ,#'mm-uu-diff-test)
     (git-format-patch
      "^diff --git "
-     "^-- "
+     "^$"
      ,#'mm-uu-diff-extract
      nil
      ,#'mm-uu-diff-test)

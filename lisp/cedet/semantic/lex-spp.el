@@ -1,6 +1,6 @@
 ;;; semantic/lex-spp.el --- Semantic Lexical Pre-processor  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -153,13 +153,13 @@ The search priority is:
   "Return the dynamic macro map for the current buffer."
   (or semantic-lex-spp-dynamic-macro-symbol-obarray
       (setq semantic-lex-spp-dynamic-macro-symbol-obarray
-	    (make-vector 13 0))))
+	    (obarray-make 13))))
 
 (defsubst semantic-lex-spp-dynamic-map-stack ()
   "Return the dynamic macro map for the current buffer."
   (or semantic-lex-spp-dynamic-macro-symbol-obarray-stack
       (setq semantic-lex-spp-dynamic-macro-symbol-obarray-stack
-	    (make-vector 13 0))))
+	    (obarray-make 13))))
 
 (defun semantic-lex-spp-value-valid-p (value)
   "Return non-nil if VALUE is valid."
@@ -260,7 +260,7 @@ NAME is the name of the spp macro symbol to define.
 REPLACEMENT a string that would be substituted in for NAME."
 
   ;; Create the symbol hash table
-  (let ((semantic-lex-spp-macro-symbol-obarray (make-vector 13 0))
+  (let ((semantic-lex-spp-macro-symbol-obarray (obarray-make 13))
         spec)
     ;; fill it with stuff
     (while specs
@@ -434,8 +434,7 @@ continue processing recursively."
 	       (symbolp (car (car val))))
 	  (mapconcat (lambda (subtok)
 		       (semantic-lex-spp-one-token-to-txt subtok))
-		     val
-		     ""))
+		     val))
 	 ;; If val is nil, that's probably wrong.
 	 ;; Found a system header case where this was true.
 	 ((null val) "")
@@ -699,8 +698,7 @@ be merged recursively."
 		 (message "Invalid merge macro encountered; \
 will return empty string instead.")
 		 "")))
-	     txt
-	     ""))
+	     txt))
 
 (defun semantic-lex-spp-find-closing-macro ()
   "Find next macro which closes a scope through a close-paren.

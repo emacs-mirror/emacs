@@ -1,6 +1,6 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2023 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
@@ -227,7 +227,7 @@ URL-encoded before it's used."
 (defun url-retrieve-synchronously (url &optional silent inhibit-cookies timeout)
   "Retrieve URL synchronously.
 Return the buffer containing the data, or nil if there are no data
-associated with it (the case for dired, info, or mailto URLs that need
+associated with it (the case for Dired, info, or mailto URLs that need
 no further processing).  URL is either a string or a parsed URL.
 
 If SILENT is non-nil, don't do any messaging while retrieving.
@@ -235,7 +235,8 @@ If INHIBIT-COOKIES is non-nil, refuse to store cookies.  If
 TIMEOUT is passed, it should be a number that says (in seconds)
 how long to wait for a response before giving up."
   (url-do-setup)
-  (let* (url-asynchronous
+  (let* (;; Ensure we can stop during connection setup (bug#71295).
+         (url-asynchronous (not (null timeout)))
          data-buffer
          (callback (lambda (&rest _args)
                      (setq data-buffer (current-buffer))
@@ -258,9 +259,9 @@ how long to wait for a response before giving up."
 	      (url-debug 'retrieval
 		         "Spinning in url-retrieve-synchronously: nil (%S)"
 		         proc-buffer)
-              (when-let ((redirect-buffer
-                          (buffer-local-value 'url-redirect-buffer
-                                              proc-buffer)))
+              (when-let* ((redirect-buffer
+                           (buffer-local-value 'url-redirect-buffer
+                                               proc-buffer)))
                 (unless (eq redirect-buffer proc-buffer)
                   (url-debug
                    'retrieval "Redirect in url-retrieve-synchronously: %S -> %S"
@@ -269,7 +270,7 @@ how long to wait for a response before giving up."
                     (kill-buffer proc-buffer))
                   ;; Accommodate hack in commit 55d1d8b.
                   (setq proc-buffer redirect-buffer)))
-              (when-let ((proc (get-buffer-process proc-buffer)))
+              (when-let* ((proc (get-buffer-process proc-buffer)))
                 (when (memq (process-status proc)
                             '(closed exit signal failed))
                   ;; Process sentinel vagaries occasionally cause

@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999--2023 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999--2024 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International
 @chapter International Character Set Support
@@ -1657,6 +1657,16 @@ used.  Some examples are:
                   'han (font-spec :registry "big5")
                   nil 'prepend)
 
+@cindex emoji font
+;; Use "Noto Color Emoji" for the emoji script (this is the default).
+(set-fontset-font "fontset-default" 'emoji
+                  '("Noto Color Emoji" . "iso10646-1")
+                  nil 'prepend)
+
+;; Display the "heart" character using a color font.
+(set-fontset-font "fontset-default"
+                  #x2764 "Noto Color Emoji")
+
 ;; Use MyPrivateFont for the Unicode private use area.
 (set-fontset-font "fontset-default"  '(#xe000 . #xf8ff)
                   "MyPrivateFont")
@@ -1670,6 +1680,11 @@ used.  Some examples are:
 (set-fontset-font "fontset-startup" nil "DejaVu Sans Mono"
                   nil 'append)
 @end example
+
+@vindex use-default-font-for-symbols
+When modifying the fontset for the @code{symbol} script, the value of
+@code{use-default-font-for-symbols} will affect whether the fontset is
+actually used.
 
 @noindent
 @xref{Fontsets, , , elisp, GNU Emacs Lisp Reference Manual}, for more
@@ -1867,6 +1882,12 @@ they too are defined to compose with the following character, once
 @code{iso-transl} is loaded.
 
 Use @kbd{C-x 8 C-h} to list all the available @kbd{C-x 8} translations.
+
+The set of translations available can be extended with certain
+language-specific characters using the @kbd{M-x iso-transl-set-language}
+command.  Current supported languages are: @samp{French}, @samp{German},
+@samp{Portuguese}, @samp{Spanish}, and @samp{Esperanto}.  See
+@code{iso-transl-language-alist} for details.
 @end itemize
 
 @node Charsets

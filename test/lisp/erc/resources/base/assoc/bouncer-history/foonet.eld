@@ -17,7 +17,7 @@
  (0 ":irc.foonet.org 266 tester 3 3 :Current global users 3, max 3")
  (0 ":irc.foonet.org 422 tester :MOTD File is missing"))
 
-((mode-user 3.2 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  ;; No mode answer ^
  (0 ":irc.znc.in 306 tester :You have been marked as being away")
  (0 ":tester!~u@nvfhxvqm92rm6.irc JOIN #chan")
@@ -39,7 +39,7 @@
  (0 ":irc.foonet.org NOTICE tester :[07:00:32] This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect.")
  (0 ":irc.foonet.org 305 tester :You are no longer marked as being away"))
 
-((mode 6 "MODE #chan")
+((mode 10 "MODE #chan")
  (0 ":irc.foonet.org 324 tester #chan +nt")
  (0 ":irc.foonet.org 329 tester #chan 1619593200")
  (0.9 ":alice!~u@svpn88yjcdj42.irc PRIVMSG #chan :bob: Grows, lives, and dies, in single blessedness.")

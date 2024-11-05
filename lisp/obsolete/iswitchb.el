@@ -1,6 +1,6 @@
 ;;; iswitchb.el --- switch between buffers using substrings  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1997, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Keywords: completion convenience
@@ -370,7 +370,7 @@ See documentation of `walk-windows' for useful values."
 This hook is run during minibuffer setup if `iswitchb' is active.
 For instance:
 \(add-hook \\='iswitchb-minibuffer-setup-hook
-	  \\='\(lambda () (set (make-local-variable \\='max-mini-window-height) 3)))
+          \\='\(lambda () (setq-local max-mini-window-height 3)))
 will constrain the minibuffer to a maximum height of 3 lines when
 iswitchb is running."
   :type 'hook)
@@ -410,10 +410,9 @@ Its value is one of `samewindow', `otherwindow', `display', `otherframe',
 `maybe-frame' or `always-frame'.  See `iswitchb-default-method' for
 details of values.")
 
-(defvar iswitchb-eoinput 1
+(defvar-local iswitchb-eoinput 1
   "Point where minibuffer input ends and completion info begins.
 Copied from `icomplete-eoinput'.")
-(make-variable-buffer-local 'iswitchb-eoinput)
 
 (defvar iswitchb-buflist nil
   "Stores the current list of buffers that will be searched through.
@@ -1262,7 +1261,7 @@ Modified from `icomplete-completions'."
   "Set up minibuffer for `iswitchb-buffer'.
 Copied from `icomplete-minibuffer-setup-hook'."
   (when (iswitchb-entryfn-p)
-    (set (make-local-variable 'iswitchb-use-mycompletion) t)
+    (setq-local iswitchb-use-mycompletion t)
     (add-hook 'pre-command-hook #'iswitchb-pre-command nil t)
     (add-hook 'post-command-hook #'iswitchb-post-command nil t)
     (run-hooks 'iswitchb-minibuffer-setup-hook)))

@@ -1,6 +1,6 @@
 ;;; lisp-tests.el --- Test Lisp editing commands     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; Author: Aaron S. Hawley <aaron.s.hawley@gmail.com>
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>

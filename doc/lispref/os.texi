@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node System Interface
@@ -811,9 +811,6 @@ before suspending Emacs, or this function signals an error.
 
 If @var{string} is non-@code{nil}, its characters are sent to Emacs's
 superior shell, to be read as terminal input.
-@c FIXME?  It seems to me that shell does echo STRING.
-The characters in @var{string} are not echoed by the superior shell;
-only the results appear.
 
 Before suspending, @code{suspend-emacs} runs the normal hook
 @code{suspend-hook}.  After the user resumes Emacs,
@@ -849,7 +846,8 @@ Really suspend? @kbd{y}
 
 @group
 ---------- Parent Shell ----------
-bash$ /home/username
+bash$ pwd
+/home/username
 bash$ fg
 @end group
 
@@ -859,9 +857,13 @@ Resumed!
 @end group
 @end smallexample
 
-@c FIXME?  AFAICS, it is echoed.
-Note that @samp{pwd} is not echoed after Emacs is suspended.  But it
-is read and executed by the shell.
+Note that on some operating systems, sending @var{string} to the Emacs
+parent shell might require special privileges, in which case it might
+silently fail to send @var{string} to the shell for execution.  On other
+systems this is not supported, and Emacs will signal an error if you
+try.  Also, @var{string} might not be echoed, even if it is executed by
+the shell.  So we don't recommend relying on this feature in portable
+Lisp programs.
 @end deffn
 
 @defvar suspend-hook
@@ -1788,8 +1790,8 @@ Conversion}).
 This function parses the time-string @var{string} and returns the
 corresponding Lisp timestamp.  The argument @var{string} should represent
 a date-time, and should be in one of the forms recognized by
-@code{parse-time-string} (see below).  This function assumes Universal
-Time if @var{string} lacks explicit time zone information,
+@code{parse-time-string} (see below).  This function assumes local time
+if @var{string} lacks explicit time zone information,
 and assumes earliest values if @var{string} lacks month, day, or time.
 The operating system limits the range of time and zone values.
 @end defun
@@ -1800,19 +1802,66 @@ structure (@pxref{Time Conversion}).  The argument @var{string} should
 resemble an RFC 822 (or later) or ISO 8601 string, like ``Fri, 25 Mar
 2016 16:24:56 +0100'' or ``1998-09-12T12:21:54-0200'', but this
 function will attempt to parse less well-formed time strings as well.
+It parses an incomplete string like ``2024-08-13'' to an incomplete
+structure like @samp{(nil nil nil 13 8 2024 nil -1 nil)}, in which
+an unknown DST value is @minus{}1 and other unknown values are @code{nil}.
+
+Note that, unlike @code{decode-time} (@pxref{Time Conversion}), this
+function does not interpret the time string, and in particular the
+values of daylight-saving and timezone or UTC offset parts of the
+@var{string} argument do not affect the returned value of date and time,
+they only affect the last two members of the returned decoded time
+structure.  For example, if the time-zone information is present in
+@var{string}, the decoded time structure will include it; otherwise the
+time-zone member of the returned value will be @code{nil}.  In other
+words, this function simply parses the textual representation of date
+and time into separate numerical values, and doesn't care whether the
+input time is local or UTC.
+
+If a Lisp program passes the return value of this function to some other
+time-related API, it should make sure the @code{nil} members of the
+decoded time structure are interpreted correctly, and in particular the
+lack of time-zone information is interpreted as UTC or local time,
+according to the needs of the calling program.
 @end defun
 
 @vindex ISO 8601 date/time strings
 @defun iso8601-parse string
 For a more strict function (that will error out upon invalid input),
-this function can be used instead.  It can parse all variants of
-the ISO 8601 standard, so in addition to the formats mentioned above,
-it also parses things like ``1998W45-3'' (week number) and
-``1998-245'' (ordinal day number).  To parse durations, there's
+Lisp programs can use this function instead.  It can parse all variants
+of the ISO 8601 standard, so in addition to the formats mentioned above,
+it also parses things like ``1998W45-3'' (week number) and ``1998-245''
+(ordinal day number).  To parse durations, there's
 @code{iso8601-parse-duration}, and to parse intervals, there's
-@code{iso8601-parse-interval}.  All these functions return decoded
-time structures, except the final one, which returns three of them
-(the start, the end, and the duration).
+@code{iso8601-parse-interval}.  All these functions return decoded time
+structures, except the final one, which returns three of them (the
+start, the end, and the duration).
+Like @code{parse-time-string}, this function does not interpret the time
+string, and in particular the time-zone designator or UTC offset that is
+part of the @var{string} argument does not affect the returned value of
+date and time, it only affects the last two members of the returned
+decoded time structure.  The ISO 8601 standard specifies that date/time
+strings that do not include information about UTC relation are assumed
+to be in local time, but this function does not do that, because it
+doesn't interpret the time values.  For example, if the time-zone
+information is present in @var{string}, the decoded time structure will
+include it; otherwise the time-zone member of the returned value will be
+@code{nil}.  In other words, this function simply parses the textual
+representation of date and time into separate numerical values, and
+doesn't care whether the input time is local or UTC.
+@end defun
+
+@defun iso8601-parse-duration string
+This function parses an ISO 8601 time duration @var{string}
+and returns a decoded time structure.
+@c FIXME: example? behavior on incomplete input?
+@end defun
+
+@defun iso8601-parse-interval string
+This function parses an ISO 8601 time interval @var{string}
+and returns three decoded time structures
+representing the start, the end, and the duration.
+@c FIXME: example? behavior on incomplete input?
 @end defun
 
 @defun format-time-string format-string &optional time zone
@@ -2125,6 +2174,14 @@ Here is how to add a number of seconds to a time value:
 This function returns the number of days between the beginning of year
 1 and @var{time-value}, assuming the default time zone.
 The operating system limits the range of time and zone values.
+@end defun
+
+@defun days-to-time days
+This is not quite the inverse of the @code{time-to-days} function, as
+it uses the Emacs epoch (instead of the year 1) for historical
+reasons.  To get the inverse, subtract @code{(time-to-days 0)} from
+@var{days}, in which case @code{days-to-time} may return @code{nil} if
+@var{days} is negative.
 @end defun
 
 @defun time-to-day-in-year time-value
@@ -2751,6 +2808,35 @@ way to specify the programs to run is with @samp{-l @var{file}}, which
 loads the library named @var{file}, or @samp{-f @var{function}}, which
 calls @var{function} with no arguments, or @samp{--eval=@var{form}}.
 
+@defvar noninteractive
+This variable is non-@code{nil} when Emacs is running in batch mode.
+@end defvar
+
+  If the specified Lisp program signals an unhandled error in batch
+mode, Emacs exits with a non-zero exit status after invoking the Lisp
+debugger which shows the Lisp backtrace (@pxref{Invoking the
+Debugger}) on the standard error stream:
+
+@example
+$ emacs -Q --batch --eval '(error "foo")'; echo $?
+
+@group
+Error: error ("foo")
+mapbacktrace(#f(compiled-function (evald func args flags) #<bytecode -0x4f85c5
+7c45e2f81>))
+debug-early-backtrace()
+debug-early(error (error "foo"))
+signal(error ("foo"))
+error("foo")
+eval((error "foo") t)
+command-line-1(("--eval" "(error \"foo\")"))
+command-line()
+normal-top-level()
+@end group
+foo
+255
+@end example
+
   Any Lisp program output that would normally go to the echo area,
 either using @code{message}, or using @code{prin1}, etc., with
 @code{t} as the stream (@pxref{Output Streams}), goes instead to
@@ -2768,25 +2854,13 @@ if it is non-@code{nil}; this can be overridden by binding
 @code{coding-system-for-write} to a coding system of you choice
 (@pxref{Explicit Encoding}).
 
+@vindex gc-cons-percentage@r{, in batch mode}
 In batch mode, Emacs will enlarge the value of the
 @code{gc-cons-percentage} variable from the default of @samp{0.1} up to
 @samp{1.0}.  Batch jobs that are supposed to run for a long time
 should adjust the limit back down again, because this means that less
 garbage collection will be performed by default (and more memory
 consumed).
-
-@defvar noninteractive
-This variable is non-@code{nil} when Emacs is running in batch mode.
-@end defvar
-
-If Emacs exits due to signaling an error in batch mode, the exit
-status of the Emacs command is non-zero:
-
-@example
-$ emacs -Q --batch --eval '(error "foo")'; echo $?
-foo
-255
-@end example
 
 @node Session Management
 @section Session Management
@@ -2850,8 +2924,8 @@ Emacs is restarted by the session manager.
 @cindex notifications, on desktop
 
 Emacs is able to send @dfn{notifications} on systems that support the
-freedesktop.org Desktop Notifications Specification, MS-Windows, and
-Haiku.
+freedesktop.org Desktop Notifications Specification, MS-Windows,
+Haiku, and Android.
 
 In order to use this functionality on POSIX hosts, Emacs must have
 been compiled with D-Bus support, and the @code{notifications} library
@@ -2920,7 +2994,7 @@ interpreted as icon name.
 
 @item :category @var{category}
 The type of notification this is, a string.  See the
-@uref{https://developer.gnome.org/notification-spec/#categories,
+@url{https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html#categories,
 Desktop Notifications Specification} for a list of standard
 categories.
 
@@ -3200,6 +3274,72 @@ be exploited as the @code{:replaces-id} parameter to a subsequent call
 to this function.
 @end defun
 
+@cindex desktop notifications, Android
+When Emacs is built as an Android application package, displaying
+notifications is facilitated by the function
+@code{android-notifications-notify}.  This function does not feature
+call-backs, and has several idiosyncrasies, when compared to
+@code{notifications-notify}.
+
+@defun android-notifications-notify &rest params
+This function displays a desktop notification.  @var{params} is a list
+of parameters analogous to its namesake in
+@code{notifications-notify}.  The parameters are:
+
+@table @code
+@item :title @var{title}
+@item :body @var{body}
+@item :replaces-id @var{replaces-id}
+@item :on-action @var{on-action}
+@item :on-cancel @var{on-close}
+@item :actions @var{actions}
+@item :timeout @var{timeout}
+@item :resident @var{resident}
+These have the same meaning as they do when used in calls to
+@code{notifications-notify}, except that no more than three non-default
+actions will be displayed.
+
+@item :urgency @var{urgency}
+The set of accepted values for @var{urgency} is the same as with
+@code{notifications-notify}, but the urgency applies to all
+notifications displayed with the defined @var{group}, except under
+Android 7.1 and earlier.
+
+@item :group @var{group}
+@var{group} is a string that designates a category to which the
+notification sent will belong.  This category is reproduced within the
+system's notification settings menus, but is ignored under Android 7.1
+and earlier.
+
+If @var{group} is nil or not present within @var{params}, it is
+replaced by the string @samp{"Desktop Notifications"}.
+
+Callers should provide one stable combination of @var{urgency} and
+@var{group} for each kind of notification they send, given that the
+system may elect to disregard @var{urgency} if it does not match that
+of any notification previously delivered to @var{group}.
+
+@item :icon @var{icon}
+This parameter controls the symbolic icon the notification will be
+displayed with.  Its value is a string designating an icon within the
+@code{android.R.drawable} system package.  See
+@uref{https://developer.android.com/reference/android/R.drawable,R.drawable
+| Android Developers} for a list of such icons.
+
+If it is not provided within @var{params} or @var{icon} does not
+exist, it defaults to @samp{"ic_dialog_alert"}.
+@end table
+
+It returns a number identifying the notification, which may be
+supplied as the @code{:replaces-id} parameter to a later call to this
+function.
+
+If Emacs is not afforded the permission to display notifications
+(@pxref{Android Environment,,, emacs, The GNU Emacs Manual}) under
+Android 13 and later, any notifications sent will be silently
+disregarded.
+@end defun
+
 @node File Notifications
 @section Notifications on File Changes
 @cindex file notifications
@@ -3295,7 +3435,8 @@ reliably report file attribute changes when watching a directory.
 The @code{stopped} event means that watching the file has been
 discontinued.  This could be because @code{file-notify-rm-watch} was
 called (see below), or because the file being watched was deleted, or
-due to another error reported from the underlying library which makes
+because the filesystem of the file being watched was unmounted, or due
+to another error reported from the underlying library which makes
 further watching impossible.
 
 @var{file} and @var{file1} are the name of the file(s) whose event is

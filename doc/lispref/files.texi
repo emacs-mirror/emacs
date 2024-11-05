@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Files
@@ -1299,7 +1299,8 @@ and modification.
 This function returns @code{t} if the file @var{filename1} is
 newer than file @var{filename2}.  If @var{filename1} does not
 exist, it returns @code{nil}.  If @var{filename1} does exist, but
-@var{filename2} does not, it returns @code{t}.
+@var{filename2} does not, it returns @code{t}.  Otherwise, it compares
+the times of last modification of the files.
 
 In the following example, assume that the file @file{aug-19} was written
 on the 19th, @file{aug-20} was written on the 20th, and the file
@@ -1803,7 +1804,7 @@ If @var{newname} exists, then it must be an empty directory if
 @var{oldname} is a directory and a non-directory otherwise.
 @end deffn
 
-@deffn Command copy-file oldname newname &optional ok-if-already-exists time preserve-uid-gid preserve-extended-attributes
+@deffn Command copy-file oldname newname &optional ok-if-already-exists time preserve-uid-gid preserve-permissions
 This command copies the file @var{oldname} to @var{newname}.  An
 error is signaled if @var{oldname} is not a regular file.  If @var{newname}
 names a directory, it copies @var{oldname} into that directory,
@@ -1871,9 +1872,10 @@ multiple names, it continues to exist under the other names.  If
 @var{filename} is a symbolic link, @code{delete-file} deletes only the
 symbolic link and not its target.
 
-A suitable kind of @code{file-error} error is signaled if the file
-does not exist, or is not deletable.  (On GNU and other POSIX-like
-systems, a file is deletable if its directory is writable.)
+The command signals a suitable kind of @code{file-error} error if
+@var{filename} cannot be deleted.  (On GNU and other POSIX-like
+systems, a file can be deleted if its directory is writable.)  If the
+file does not exist, this command will not signal any error.
 
 If the optional argument @var{trash} is non-@code{nil} and the
 variable @code{delete-by-moving-to-trash} is non-@code{nil}, this
@@ -2707,7 +2709,7 @@ file names (@pxref{Magic File Names}).
 
 @defmac file-name-unquote name
 This macro removes the quotation prefix @samp{/:} from the file
-@var{name}, if any. If @var{name} is a remote file name, the local
+@var{name}, if any.  If @var{name} is a remote file name, the local
 part of @var{name} is unquoted.
 @end defmac
 
@@ -2739,7 +2741,7 @@ This function creates a temporary file and returns its name.  Emacs
 creates the temporary file's name by adding to @var{prefix} some
 random characters that are different in each Emacs job.  The result is
 guaranteed to be a newly created file, containing @var{text} if that's
-given as a string and empty otherwise. On MS-DOS, this function can
+given as a string and empty otherwise.  On MS-DOS, this function can
 truncate @var{prefix} to fit into the 8+3 file-name limits.  If
 @var{prefix} is a relative file name, it is expanded against
 @code{temporary-file-directory}.
@@ -3623,10 +3625,18 @@ ensure this principle is valid.
 
 @var{identification} specifies which part of the identifier shall be
 returned as string.  @var{identification} can be the symbol
-@code{method}, @code{user} or @code{host}; any other value is handled
-like @code{nil} and means to return the complete identifier string.
-In the example above, the remote @code{user} identifier string would
-be @code{root}.
+@code{method}, @code{user}, @code{host} or @code{localname}; any other
+value is handled like @code{nil} and means to return the complete
+identifier string.  In the example above, the remote @code{user}
+identifier string would be @code{root}.
+
+If the remote @var{file} does not contain a method, a user name, or a
+host name, the respective default value is returned.  The string
+returned for @var{identification} @code{localname} can differ depending
+on whether there is an existing connection.  File name handler specific
+implementations could support further @var{identification} symbols;
+@xref{Top, Tramp, Tramp, tramp}, for example, knows also the @code{hop}
+symbol.
 
 If @var{connected} is non-@code{nil}, this function returns @code{nil}
 even if @var{filename} is remote, if Emacs has no network connection

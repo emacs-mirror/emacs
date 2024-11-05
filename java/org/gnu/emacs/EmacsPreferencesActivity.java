@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,6 +28,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Build;
 
+import android.view.View;
+
 import android.widget.Toast;
 
 import android.preference.*;
@@ -38,8 +40,9 @@ import android.preference.*;
    option, which would not be possible otherwise, as there is no
    command line on Android.
 
-   Android provides a preferences activity, but it is deprecated.
-   Unfortunately, there is no alternative that looks the same way.  */
+   This file extends a deprecated preferences activity, but no suitable
+   alternative exists that is identical in appearance to system settings
+   forms.  */
 
 @SuppressWarnings ("deprecation")
 public class EmacsPreferencesActivity extends PreferenceActivity
@@ -56,7 +59,8 @@ public class EmacsPreferencesActivity extends PreferenceActivity
     intent = new Intent (this, EmacsActivity.class);
     intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK
 		     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-    intent.putExtra ("org.gnu.emacs.STARTUP_ARGUMENT", "--quick");
+    intent.putExtra (EmacsActivity.EXTRA_STARTUP_ARGUMENTS,
+		     new String[] {"--quick", });
     startActivity (intent);
     System.exit (0);
   }
@@ -73,7 +77,8 @@ public class EmacsPreferencesActivity extends PreferenceActivity
     intent = new Intent (this, EmacsActivity.class);
     intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK
 		     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-    intent.putExtra ("org.gnu.emacs.STARTUP_ARGUMENT", "--debug-init");
+    intent.putExtra (EmacsActivity.EXTRA_STARTUP_ARGUMENTS,
+		     new String[] {"--debug-init", });
     startActivity (intent);
     System.exit (0);
   }
@@ -112,6 +117,7 @@ public class EmacsPreferencesActivity extends PreferenceActivity
   {
     Preference tem;
     Preference.OnPreferenceClickListener listener;
+    View view;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
       setTheme (android.R.style.Theme_DeviceDefault_Settings);
@@ -164,5 +170,13 @@ public class EmacsPreferencesActivity extends PreferenceActivity
       };
 
     tem.setOnPreferenceClickListener (listener);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM)
+      {
+	/* Align the list view to system windows, or they will be
+	   obstructed by the title bar.  */
+	view = this.getListView ();
+	view.setFitsSystemWindows (true);
+      }
   }
 };

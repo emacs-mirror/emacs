@@ -1,13 +1,13 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1995-1996, 1998, 2001-2023 Free Software
+;; Copyright (C) 1992, 1995-1996, 1998, 2001-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>,
 ;;             F.Potorti@cnuce.cnr.it
-;; Keywords: wp, hypermedia, comm, languages
+;; Keywords: text, hypermedia, comm, languages
 
 ;; This file is part of GNU Emacs.
 
@@ -533,6 +533,7 @@ an optional alist of possible values."
   "Add \"face\" tags with `facemenu-keymap' commands."
   (let ((tag-face (ensure-list (cdr (assq face sgml-face-tag-alist)))))
     (cond (tag-face
+           (require 'skeleton)
 	   (setq tag-face (funcall skeleton-transformation-function tag-face))
            (setq facemenu-end-add-face
                  (mapconcat (lambda (f) (concat "</" f ">")) (reverse tag-face)))
@@ -851,6 +852,7 @@ If QUIET, do not print a message when there are no attributes for TAG."
             (setq alist (cons '("class") alist)))
           (unless (assoc-string "id" alist)
             (setq alist (cons '("id") alist))))
+        (require 'skeleton)
 	(if (stringp (car alist))
 	    (progn
 	      (insert (if (eq (preceding-char) ?\s) "" ?\s)
@@ -923,7 +925,7 @@ With prefix argument, only self insert."
   "Skip to beginning of tag or matching opening tag if present.
 With prefix argument ARG, repeat this ARG times.
 Return non-nil if we skipped over matched tags."
-  (interactive "p")
+  (interactive "^p")
   ;; FIXME: use sgml-get-context or something similar.
   (let ((return t))
     (while (>= arg 1)
@@ -1036,7 +1038,7 @@ an opening markup tag automatically updates the closing tag."
   "Skip to end of tag or matching closing tag if present.
 With prefix argument ARG, repeat this ARG times.
 Return t if after a closing tag."
-  (interactive "p")
+  (interactive "^p")
   ;; FIXME: Use sgml-get-context or something similar.
   ;; It currently might jump to an unrelated </P> if the <P>
   ;; we're skipping has no matching </P>.
@@ -1203,7 +1205,7 @@ and move to the line in the SGML document that caused it."
 		      (or sgml-saved-validate-command
 			  (concat sgml-validate-command
 				  " "
-                                  (when-let ((name (buffer-file-name)))
+                                  (when-let* ((name (buffer-file-name)))
 				    (shell-quote-argument
 				     (file-name-nondirectory name))))))))
   (setq sgml-saved-validate-command command)
@@ -1418,7 +1420,7 @@ Leave point at the beginning of the tag."
 	(with-syntax-table sgml-tag-syntax-table
 	  (let ((pos (point)))
 	    (condition-case nil
-                ;; FIXME: This does not correctly skip over PI an CDATA tags.
+                ;; FIXME: This does not correctly skip over PI and CDATA tags.
 		(sgml-forward-sexp 1)
 	      (scan-error
 	       ;; This < seems to be just a spurious one, let's ignore it.
@@ -1820,6 +1822,7 @@ This takes effect when first loading the library.")
     (define-key map "\C-c\C-c#" #'html-id-anchor)
     (define-key map "\C-c\C-ci" #'html-image)
     (when html-quick-keys
+      (define-key map "\C-cp" #'html-paragraph)
       (define-key map "\C-c-" #'html-horizontal-rule)
       (define-key map "\C-cd" #'html-div)
       (define-key map "\C-co" #'html-ordered-list)
@@ -2433,14 +2436,14 @@ To work around that, do:
 (defun html-mode--complete-at-point ()
   ;; Complete a tag like <colg etc.
   (or
-   (when-let ((tag (save-excursion
-                     (and (looking-back "<\\([^ \t\n]*\\)"
-                                        (line-beginning-position))
-                          (match-string 1)))))
+   (when-let* ((tag (save-excursion
+                      (and (looking-back "<\\([^ \t\n]*\\)"
+                                         (line-beginning-position))
+                           (match-string 1)))))
      (list (match-beginning 1) (point)
            (mapcar #'car html-tag-alist)))
    ;; Complete params like <colgroup ali etc.
-   (when-let ((tag (save-excursion (sgml-beginning-of-tag)))
+   (when-let* ((tag (save-excursion (sgml-beginning-of-tag)))
               (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
               (param (save-excursion
                        (and (looking-back "[ \t\n]\\([^= \t\n]*\\)"
@@ -2449,14 +2452,14 @@ To work around that, do:
      (list (match-beginning 1) (point)
            (mapcar #'car params)))
    ;; Complete param values like <colgroup align=mi etc.
-   (when-let ((tag (save-excursion (sgml-beginning-of-tag)))
-              (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
-              (param (save-excursion
-                       (and (looking-back
-                             "[ \t\n]\\([^= \t\n]+\\)=\\([^= \t\n]*\\)"
-                             (line-beginning-position))
-                            (match-string 1))))
-              (values (cdr (assoc param params))))
+   (when-let* ((tag (save-excursion (sgml-beginning-of-tag)))
+               (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
+               (param (save-excursion
+                        (and (looking-back
+                              "[ \t\n]\\([^= \t\n]+\\)=\\([^= \t\n]*\\)"
+                              (line-beginning-position))
+                             (match-string 1))))
+               (values (cdr (assoc param params))))
      (list (match-beginning 2) (point)
            (mapcar #'car values)))))
 
@@ -2469,14 +2472,13 @@ To work around that, do:
 (defun html-mode--image-yank-handler (type image)
   (let ((file (read-file-name (format "Save %s image to: " type))))
     (when (file-directory-p file)
-      (user-error "%s is a directory"))
+      (user-error "%s is a directory" file))
     (when (and (file-exists-p file)
                (not (yes-or-no-p (format "%s exists; overwrite?" file))))
-      (user-error "%s exists"))
-    (with-temp-buffer
-      (set-buffer-multibyte nil)
-      (insert image)
-      (write-region (point-min) (point-max) file))
+      (user-error "%s exists" file))
+    (let ((coding-system-for-write 'emacs-internal))
+      (with-temp-file file
+        (insert image)))
     (insert (format "<img src=%S>\n" (file-relative-name file)))
     (insert-image
      (create-image file (mailcap-mime-type-to-extension type) nil

@@ -1,6 +1,6 @@
 /** test-fmt.cpp --- Signatures, and format answers for testing
  *
- * Copyright (C) 2012, 2016, 2019-2023 Free Software Foundation, Inc.
+ * Copyright (C) 2012, 2016, 2019-2024 Free Software Foundation, Inc.
  *
  * Author: Eric M. Ludlam <zappo@gnu.org>
  *

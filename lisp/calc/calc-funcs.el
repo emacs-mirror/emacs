@@ -1,6 +1,6 @@
 ;;; calc-funcs.el --- well-known functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -897,7 +897,7 @@
 ;;;   Bn = n! bn
 ;;;   bn = - sum_k=0^n-1 bk / (n-k+1)!
 
-;;; A faster method would be to use "tangent numbers", c.f., Concrete
+;;; A faster method would be to use "tangent numbers", cf., Concrete
 ;;; Mathematics pg. 273.
 
 

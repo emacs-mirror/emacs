@@ -1,6 +1,6 @@
 ;;; octave.el --- editing octave source files under emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2024 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;;	   John Eaton <jwe@octave.org>
@@ -536,8 +536,6 @@ Non-nil means always go to the next Octave code line after sending."
       (put-text-property (match-beginning 1) (match-end 1)
                          'syntax-table (string-to-syntax "\"'")))))
 
-(defvar electric-layout-rules)
-
 ;; FIXME: cc-mode.el also adds an entry for .m files, mapping them to
 ;; objc-mode.  We here rely on the fact that loaddefs.el is filled in
 ;; alphabetical order, so cc-mode.el comes before octave-mode.el, which lets
@@ -768,7 +766,7 @@ Key bindings:
   (setq-local comint-prompt-read-only inferior-octave-prompt-read-only)
   (add-hook 'comint-input-filter-functions
             'inferior-octave-directory-tracker nil t)
-  ;; http://thread.gmane.org/gmane.comp.gnu.octave.general/48572
+  ;; http://thread.gmane.org/gmane.comp.gnu.octave.general/48572 [dead link]
   (add-hook 'window-configuration-change-hook
             'inferior-octave-track-window-width-change nil t)
   (setq-local compilation-error-regexp-alist inferior-octave-error-regexp-alist)
@@ -1007,7 +1005,7 @@ directory and makes this the current buffer's default directory."
 (defvar inferior-octave-last-column-width nil)
 
 (defun inferior-octave-track-window-width-change ()
-  ;; http://thread.gmane.org/gmane.comp.gnu.octave.general/48572
+  ;; http://thread.gmane.org/gmane.comp.gnu.octave.general/48572 [dead link]
   (let ((width (max inferior-octave-minimal-columns (window-width))))
     (unless (eq inferior-octave-last-column-width width)
       (setq-local inferior-octave-last-column-width width)

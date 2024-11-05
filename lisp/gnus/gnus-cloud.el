@@ -1,6 +1,6 @@
 ;;; gnus-cloud.el --- storing and retrieving data via IMAP  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail
@@ -148,6 +148,7 @@ easy interactive way to set this from the Server buffer."
 
 (defun gnus-cloud-decode-data ()
   (cond
+   ;; FIXME: Duplicated value in ‘cond’: base64-gzip.
    ((memq gnus-cloud-storage-method '(base64 base64-gzip))
     (base64-decode-region (point-min) (point-max)))
 

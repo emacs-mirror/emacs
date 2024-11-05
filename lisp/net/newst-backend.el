@@ -1,9 +1,8 @@
 ;;; newst-backend.el --- Retrieval backend for newsticker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
-;; Filename:    newst-backend.el
 ;; URL:         https://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
 ;; Package:     newsticker
@@ -221,7 +220,7 @@ which apply for this feed only, overriding the value of
 (defcustom newsticker-retrieval-method
   'intern
   "Method for retrieving news from the web, either `intern' or `extern'.
-Default value `intern' uses Emacs' built-in asynchronous download
+Default value `intern' uses Emacs's built-in asynchronous download
 capabilities (`url-retrieve').  If set to `extern' the external
 program wget is used, see `newsticker-wget-name'."
   :type '(choice :tag "Method"
@@ -618,13 +617,13 @@ If URL is nil it is searched at point."
                    (end-of-line)
                    (and
                     (re-search-backward
-                     "http://"
+                     (rx "http" (? "s") "://")
                      (if (> (point) (+ (point-min) 100))
                          (- (point) 100)
                        (point-min))
                      t)
                     (re-search-forward
-                     "http://[-a-zA-Z0-9&/_.]*"
+                     (rx "http" (? "s") "://" (zero-or-more (any "-a-zA-Z0-9&/_.")))
                      (if (< (point) (- (point-max) 200))
                          (+ (point) 200)
                        (point-max))
@@ -1675,15 +1674,6 @@ Sat, 07 Sep 2002 00:00:01 GMT
                       (car error-data) (cdr error-data))
              nil))))
     nil))
-
-;; FIXME: Can this be replaced by seq-intersection?
-(defun newsticker--lists-intersect-p (list1 list2)
-  "Return t if LIST1 and LIST2 share elements."
-  (let ((result nil))
-    (dolist (elt list1)
-      (if (memq elt list2)
-          (setq result t)))
-    result))
 
 (defun newsticker--update-process-ids ()
   "Update list of ids of active newsticker processes.

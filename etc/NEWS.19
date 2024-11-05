@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.  1992.
 
-Copyright (C) 1993-1995, 2001, 2006-2023 Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001, 2006-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -2112,13 +2112,13 @@ deletion) now accept a prefix argument which serves as a repeat count.
 
 *** Reference keys can now be entered with TAB completion.  All
 reference keys defined in that buffer and all labels that appear in
-crossreference entries are object to completion.
+cross-reference entries are object to completion.
 
 *** Braces are supported as field delimiters in addition to quotes.
 BibTeX entries may have brace-delimited and quote-delimited fields
 intermixed.  The delimiters generated for new entries are specified by
 the variables 'bibtex-field-left-delimiter' and
-'bibtex-field-right-delimiter' on a buffer-local basis. Those variables
+'bibtex-field-right-delimiter' on a buffer-local basis.  Those variables
 default to braces, since it is easier to put quote accented characters
 (as the german umlauts) into a brace-delimited entry.
 

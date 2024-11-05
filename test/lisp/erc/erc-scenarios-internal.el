@@ -1,6 +1,6 @@
 ;;; erc-scenarios-internal.el --- Proxy file for erc-d tests -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,8 +24,37 @@
   (when (and (getenv "EMACS_TEST_DIRECTORY")
              (getenv "EMACS_TEST_JUNIT_REPORT"))
     (setq ert-load-file-name (or (macroexp-file-name) buffer-file-name)))
-  (let ((load-path (cons (expand-file-name "erc-d" (ert-resource-directory))
-                         load-path)))
-    (load "erc-d-tests" nil 'silent)))
+  (let ((load-path `(,(expand-file-name "erc-d" (ert-resource-directory))
+                     ,(ert-resource-directory)
+                     ,@load-path)))
+    ;; Run all tests in ./resources/erc-d/erc-d-tests.el.
+    (load "erc-d-tests" nil 'silent)
+    (require 'erc-tests-common)))
+
+;; Run all tests tagged `:erc--graphical' in an "interactive"
+;; subprocess.  Time out after 90 seconds.
+(ert-deftest erc-scenarios-internal--run-graphical-all ()
+  :tags '(:expensive-test :unstable)
+  (unless (and (getenv "ERC_TESTS_GRAPHICAL_ALL")
+               (not (getenv "ERC_TESTS_GRAPHICAL"))
+               (not (getenv "CI")))
+    (ert-skip "Environmental conditions unmet"))
+
+  (let* ((default-directory (expand-file-name "../" (ert-resource-directory)))
+         (libs (directory-files default-directory 'full (rx ".el" eot)))
+         (process-environment (cons "ERC_TESTS_GRAPHICAL=1"
+                                    process-environment))
+         (program '(progn (ert (quote (tag :erc--graphical)))
+                          (with-current-buffer ert--output-buffer-name
+                            (kill-emacs (ert--stats-failed-unexpected
+                                         ert--results-stats)))))
+         (proc (erc-tests-common-create-subprocess program
+                                                   '( "-L" "." "-l" "ert")
+                                                   libs)))
+
+    (erc-d-t-wait-for 90 "interactive tests to complete"
+      (not (process-live-p proc)))
+
+    (should (zerop (process-exit-status proc)))))
 
 ;;; erc-scenarios-internal.el ends here

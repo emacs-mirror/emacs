@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Command Loop
@@ -710,29 +710,77 @@ context.
 @node Generic Commands
 @subsection Select among Command Alternatives
 @cindex generic commands
-@cindex alternatives, defining
+@cindex alternative commands, defining
 
-The macro @code{define-alternatives} can be used to define
-@dfn{generic commands}.  These are interactive functions whose
-implementation can be selected from several alternatives, as a matter
-of user preference.
+Sometimes it is useful to define a command that serves as a ``generic
+dispatcher'' capable of invoking one of a set of commands according to
+the user's needs.  For example, imagine that you want to define a
+command named @samp{open} that can ``open'' and display several
+different types of objects.  Or you could have a command named
+@samp{mua} (which stands for Mail User Agent) that can read and send
+email using one of several email backends, such as Rmail, Gnus, or
+MH-E.  The macro @code{define-alternatives} can be used to define such
+@dfn{generic commands}.  A generic command is an interactive function
+whose implementation can be selected from several alternatives, as a
+matter of user preference.
 
 @defmac define-alternatives command &rest customizations
-Define the new command @var{command}, a symbol.
+This macro defines the new generic @var{command}, which can have
+several alternative implementations.  The argument @var{command}
+should be an unquoted symbol.
 
-When a user runs @kbd{M-x @var{command} @key{RET}} for the first time,
-Emacs prompts for which real form of the command to use, and records
-the selection by way of a custom variable.  Using a prefix argument
-repeats this process of choosing an alternative.
+When invoked, the macro creates an interactive Lisp closure
+(@pxref{Closures}).  When the user runs @w{@kbd{M-x @var{command}
+@key{RET}}} for the first time, Emacs asks to select one of the
+alternative implementations of @var{command}, offering completion for
+the names of these alternatives.  These names come from the user
+option whose name is @code{@var{command}-alternatives}, which the
+macro creates (if it didn't exist before).  To be useful, this
+variable's value should be an alist whose elements have the form
+@w{@code{(@var{alt-name} . @var{alt-func})}}, where @var{alt-name} is
+the name of the alternative and @var{alt-func} is the interactive
+function to be called if this alternative is selected.  When the user
+selects an alternative, Emacs remembers the selection, and will
+thereafter automatically call that selected alternative without
+prompting when the user invokes @kbd{M-x @var{command}} again.  To
+choose a different alternative, type @w{@kbd{C-u M-x @var{command}
+@key{RET}}}--then Emacs will again prompt for one of the alternatives,
+and the selection will override the previous one.
 
-The variable @code{@var{command}-alternatives} should contain an alist
-with alternative implementations of @var{command}.
-Until this variable is set, @code{define-alternatives} has no effect.
+The variable @code{@var{command}-alternatives} can be created before
+calling @code{define-alternatives}, with the appropriate values;
+otherwise the macro creates the variable with a @code{nil} value, and
+it should then be populated with the associations describing the
+alternatives.  Packages that wish to provide their own implementation
+of an existing generic command can use @code{autoload} cookies
+(@pxref{Autoload}) to add to the alist, for example:
 
-If @var{customizations} is non-@code{nil}, it should consist of
-alternating @code{defcustom} keywords (typically @code{:group} and
-@code{:version}) and values to add to the declaration of
-@code{@var{command}-alternatives}.
+@lisp
+;;;###autoload (push '("My name" . my-foo-symbol) foo-alternatives
+@end lisp
+
+If the optional argument @var{customizations} is non-@code{nil}, it
+should consist of alternating @code{defcustom} keywords (typically
+@code{:group} and @code{:version}) and values to add to the definition
+of the @code{defcustom} @code{@var{command}-alternatives}.
+
+Here is an example of a simple generic dispatcher command named
+@code{open} with 3 alternative implementations:
+
+@example
+@group
+(define-alternatives open
+  :group 'files
+  :version "42.1")
+@end group
+@group
+(setq open-alternatives
+      '(("file" . find-file)
+	("directory" . dired)
+	("hexl" . hexl-find-file)))
+@end group
+@end example
+
 @end defmac
 
 @node Interactive Call
@@ -1693,7 +1741,7 @@ this is @code{nil}.
 @item @var{dx}, @var{dy}
 These are the pixel offsets of the click relative to the top left
 corner of the @var{object}'s glyph that is the nearest one to the
-click. The relevant @var{object}s can be either a buffer, or a string,
+click.  The relevant @var{object}s can be either a buffer, or a string,
 or an image, see above.  If @var{object} is @code{nil} or a string,
 the coordinates are relative to the top left corner of the character
 glyph clicked on.  Note that the offsets are always zero on text-mode
@@ -1806,20 +1854,19 @@ represented in Lisp as lists.  The lists record both the starting mouse
 position and the final position, like this:
 
 @example
-(@var{event-type}
- (@var{window1} START-POSITION)
- (@var{window2} END-POSITION))
+(@var{event-type} @var{start-position} @var{end-position})
 @end example
 
 For a drag event, the name of the symbol @var{event-type} contains the
 prefix @samp{drag-}.  For example, dragging the mouse with button 2
 held down generates a @code{drag-mouse-2} event.  The second and third
-elements of the event give the starting and ending position of the
-drag, as mouse position lists (@pxref{Click Events}).  You can access
-the second element of any mouse event in the same way.  However, the
-drag event may end outside the boundaries of the frame that was
-initially selected.  In that case, the third element's position list
-contains that frame in place of a window.
+elements of the event, @var{start-position} and @var{end-position} in
+the foregoing illustration, are set to the start and end positions of
+the drag as mouse position lists (@pxref{Click Events}).  You can
+access the second element of any mouse event in the same way.
+However, the drag event may end outside the boundaries of the frame
+that was initially selected.  In that case, the third element's
+position list contains that frame in place of a window.
 
 The @samp{drag-} prefix follows the modifier key prefixes such as
 @samp{C-} and @samp{M-}.
@@ -2059,8 +2106,9 @@ When no command is bound to @code{touchscreen-begin},
 translate key sequences containing touch screen events into ordinary
 mouse events (@pxref{Mouse Events}.)  Since Emacs doesn't support
 distinguishing events originating from separate mouse devices, it
-assumes that only one touchpoint is active while translation takes
-place; breaking this assumption may lead to unexpected behavior.
+assumes that a maximum of two touchpoints are active while translation
+takes place, and does not place any guarantees on the results of event
+translation when that restriction is overstepped.
 
 Emacs applies two different strategies for translating touch events
 into mouse events, contingent on factors such as the commands bound to
@@ -2080,7 +2128,7 @@ motion and mouse motion.
 However, some commands bound to
 @code{down-mouse-1}--@code{mouse-drag-region}, for example--either
 conflict with defined touch screen gestures (such as ``long-press to
-drag''), or with user expectations for touch input, and shouldn't
+drag''), or with user expectations for touch input, and should not
 subject the touch sequence to simple translation.  If a command whose
 name contains the property (@pxref{Symbol Properties})
 @code{ignored-mouse-command} is encountered or there is no command
@@ -2098,19 +2146,35 @@ compromise for packages which assume @code{mouse-drag-region} has
 already set point to the location of any mouse click and selected the
 window where it took place.
 
-To prevent unwanted @code{mouse-1} events arriving after a mouse menu
-is dismissed (@pxref{Mouse Menus}), Emacs also avoids simple
+To prevent unwanted @code{mouse-1} events from arriving after a mouse
+menu is dismissed (@pxref{Mouse Menus}), Emacs also disables simple
 translation if @code{down-mouse-1} is bound to a keymap, making it a
 prefix key.  In lieu of simple translation, it translates the closing
-@code{touchscreen-end} to a @code{down-mouse-1} event with the
-starting position of the touch sequence, consequentially displaying
-the mouse menu.
+@code{touchscreen-end} to a @code{down-mouse-1} event with the starting
+position of the touch sequence, consequently displaying the mouse menu.
+
+@vindex @code{touch-screen-simple-mouse-conversion}
+Simple conversion will be enabled without regard to the existence of
+command or menu bindings if the variable
+@code{touch-screen-simple-mouse-conversion} is bound or set to a
+non-@code{nil} value, as, for example, it may be by a caller of
+@code{read-key} expecting to receive @code{mouse-movement} and
+@code{drag-mouse-1} events.
 
 @cindex @code{mouse-1-menu-command}, a symbol property
 Since certain commands are also bound to @code{down-mouse-1} for the
 purpose of displaying pop-up menus, Emacs additionally behaves as
 illustrated in the last paragraph if @code{down-mouse-1} is bound to a
 command whose name has the property @code{mouse-1-menu-command}.
+
+@cindex pinch-to-zoom touchscreen gesture translation
+When a second touch point is registered as a touch point is already
+being translated, gesture translation is terminated, and the distance
+from the second touch point (the @dfn{ancillary tool}) to the first is
+measured.  Subsequent motion from either of those touch points will
+yield @code{touchscreen-pinch} events incorporating the ratio formed
+by the distance between their new positions and the distance measured
+at the outset, as illustrated in the following table.
 
 @cindex touchscreen gesture events
 If touch gestures are detected during translation, one of the
@@ -2148,8 +2212,36 @@ position of the touchpoint.
 @item (touchscreen-restart-drag @var{posn})
 This event is sent upon the start of a touch sequence resulting in the
 continuation of a ``drag-to-select'' gesture (subject to the
-aformentioned user option) with @var{posn} set to the position list of
+aforementioned user option) with @var{posn} set to the position list of
 the initial @code{touchscreen-begin} event within that touch sequence.
+
+@cindex @code{touchscreen-pinch} event
+@item (touchscreen-pinch @var{posn} @var{ratio} @var{pan-x} @var{pan-y} @var{ratio-diff})
+This event is delivered upon significant changes to the positions of
+either active touch point when an ancillary tool is active.
+
+@var{posn} is a mouse position list for the midpoint of a line drawn
+from the ancillary tool to the other touch point being observed.
+
+@var{ratio} is the distance between both touch points being observed
+divided by that distance when the ancillary point was first
+registered; which is to say, the scale of the ``pinch'' gesture.
+
+@var{pan-x} and @var{pan-y} are the difference between the pixel
+position of @var{posn} and this position within the last event
+delivered appertaining to this series of touch events, or in the case
+that no such event exists, the centerpoint between both touch points
+when the ancillary tool was first registered.
+
+@var{ratio-diff} is the difference between this event's ratio and
+@var{ratio} in the last event delivered; it is @var{ratio} if no such
+event exists.
+
+Such events are sent when the magnitude of the changes they represent
+will yield a @var{ratio} which differs by more than @code{0.2} from
+that in the previous event, or the sum of @var{pan-x} and @var{pan-y}
+will surpass half the frame's character width in pixels (@pxref{Frame
+Font}).
 @end table
 
 @cindex handling touch screen events
@@ -2160,7 +2252,7 @@ below is from commands bound directly to @code{touchscreen-begin}
 events; they allow responding to commonly used touch screen gestures
 separately from mouse event translation.
 
-@defun touch-screen-track-tap event &optional update data
+@defun touch-screen-track-tap event &optional update data threshold
 This function is used to track a single ``tap'' gesture originating
 from the @code{touchscreen-begin} event @var{event}, often used to
 set the point or to activate a button.  It waits for a
@@ -2172,6 +2264,14 @@ contains at least one touchpoint with the same identifier as in
 @var{event}, the function @var{update} is called with two arguments,
 the list of touchpoints in that @code{touchscreen-update} event, and
 @var{data}.
+
+If @var{threshold} is non-@code{nil} and such an event indicates that
+the touchpoint represented by @var{event} has moved beyond a threshold
+of either @var{threshold} or 10 pixels if it is not a number from the
+position of @var{event}, @code{nil} is returned and mouse event
+translation is resumed for that touchpoint, so as not to impede the
+recognition of any subsequent touchscreen gesture arising from its
+sequence.
 
 If any other event arrives in the mean time, @code{nil} is returned.
 The caller should not perform any action in that case.
@@ -2210,15 +2310,34 @@ touch sequence after it is called.
 @subsection Focus Events
 @cindex focus event
 
-Window systems provide general ways for the user to control which window
-gets keyboard input.  This choice of window is called the @dfn{focus}.
-When the user does something to switch between Emacs frames, that
-generates a @dfn{focus event}.  The normal definition of a focus event,
-in the global keymap, is to select a new frame within Emacs, as the user
-would expect.  @xref{Input Focus}, which also describes hooks related
-to focus events.
+This section talks about both window systems and Emacs frames.  When
+talking about just ``frames'' or ``windows'', it refers to Emacs frames
+and Emacs windows.  When talking about window system windows, which are
+also Emacs frames, this section always says ``window system window''.
 
-Focus events are represented in Lisp as lists that look like this:
+@noindent
+Window systems provide general ways for the user to control which window
+system window, or Emacs frame, gets keyboard input.  This choice of
+window system window is called the @dfn{focus}.  When the user does
+something to switch between Emacs frames, that generates a @dfn{focus
+event}.  Emacs also generates focus events when using
+@var{mouse-autoselect-window} to switch between Emacs windows within
+Emacs frames.
+
+A focus event in the middle of a key sequence would garble the
+sequence.  So Emacs never generates a focus event in the middle of a key
+sequence.  If the user changes focus in the middle of a key
+sequence---that is, after a prefix key---then Emacs reorders the events
+so that the focus event comes either before or after the multi-event key
+sequence, and not within it.
+
+@subsubheading Focus events for frames
+
+The normal definition of a focus event that switches frames, in the
+global keymap, is to select that new frame within Emacs, as the user
+would expect.  @xref{Input Focus}, which also describes hooks related to
+focus events for frames.  Focus events for frames are represented in
+Lisp as lists that look like this:
 
 @example
 (switch-frame @var{new-frame})
@@ -2228,19 +2347,28 @@ Focus events are represented in Lisp as lists that look like this:
 where @var{new-frame} is the frame switched to.
 
 Some X window managers are set up so that just moving the mouse into a
-window is enough to set the focus there.  Usually, there is no need
-for a Lisp program to know about the focus change until some other
-kind of input arrives.  Emacs generates a focus event only when the
-user actually types a keyboard key or presses a mouse button in the
-new frame; just moving the mouse between frames does not generate a
-focus event.
+frame is enough to set the focus there.  Usually, there is no need for a
+Lisp program to know about the focus change until some other kind of
+input arrives.  Emacs generates a focus event only when the user
+actually types a keyboard key or presses a mouse button in the new
+frame; just moving the mouse between frames does not generate a focus
+event.
 
-A focus event in the middle of a key sequence would garble the
-sequence.  So Emacs never generates a focus event in the middle of a key
-sequence.  If the user changes focus in the middle of a key
-sequence---that is, after a prefix key---then Emacs reorders the events
-so that the focus event comes either before or after the multi-event key
-sequence, and not within it.
+@subsubheading Focus events for windows
+
+When @var{mouse-autoselect-window} is set, moving the mouse over a new
+window within a frame can also switch the selected window.  @xref{Mouse
+Window Auto-selection}, which describes the behavior for different
+values.  When the mouse is moved over a new window, a focus event for
+switching windows is generated.  Focus events for windows are
+represented in Lisp as lists that look like this:
+
+@example
+(select-window @var{new-window})
+@end example
+
+@noindent
+where @var{new-window} is the window switched to.
 
 @node Xwidget Events
 @subsection Xwidget events
@@ -2371,7 +2499,7 @@ buffer-local variable @code{text-conversion-style}, which determines
 how an input method that wishes to make edits to buffer contents will
 behave.
 
-This variable can have one of three values:
+This variable can have one of four values:
 
 @table @code
 @item nil
@@ -2381,6 +2509,13 @@ events will be sent instead of text conversion events.
 @item action
 This means that the input method will be enabled, but @key{RET} will
 be sent whenever the input method wants to insert a new line.
+
+@item password
+This is largely identical to @code{action}, but also requests an input
+method capable of inserting ASCII characters, and instructs it not to
+save input in locations from which it might be subsequently retrieved
+by features of the input method that cannot handle sensitive
+information, such as text suggestions.
 
 @item t
 This, or any other value, means that the input method will be enabled
@@ -2433,46 +2568,63 @@ mouse cursor when the finger moved off the mouse wheel.
 @cindex @code{wheel-down} event
 @item (wheel-up @var{position} @var{clicks} @var{lines} @var{pixel-delta})
 @itemx (wheel-down @var{position} @var{clicks} @var{lines} @var{pixel-delta})
-These kinds of event are generated by moving a mouse wheel.  The
+These events are generated by moving a mouse wheel.  The
 @var{position} element is a mouse position list (@pxref{Click
 Events}), specifying the position of the mouse cursor when the event
 occurred.
 
+@vindex mwheel-coalesce-scroll-events
 @var{clicks}, if present, is the number of times that the wheel was
 moved in quick succession.  @xref{Repeat Events}.  @var{lines}, if
-present and not @code{nil}, is the number of screen lines that should
-be scrolled.  @var{pixel-delta}, if present, is a cons cell of the
-form @w{@code{(@var{x} . @var{y})}}, where @var{x} and @var{y} are the
-numbers of pixels by which to scroll in each axis, a.k.a.@:
-@dfn{pixelwise deltas}.
+present and not @code{nil}, is the positive number of screen lines
+that should be scrolled (either up, when the event is @code{wheel-up},
+or down when the event is @code{wheel-down}).  @var{pixel-delta}, if
+present, is a cons cell of the form @w{@code{(@var{x} . @var{y})}},
+where @var{x} and @var{y} are the numbers of pixels by which to scroll
+in each axis, a.k.a.@: @dfn{pixelwise deltas}.  Usually, only one of
+the two will be non-zero, the other will be either zero or very close
+to zero; the larger number indicates the axis to scroll the window.
+When the variable @code{mwheel-coalesce-scroll-events} is @code{nil},
+the scroll commands ignore the @var{lines} element, even if it's
+non-@code{nil}, and use the @var{pixel-delta} data instead; in that
+case, the direction of scrolling is determined by the sign of the
+pixelwise deltas, and the direction (up or down) implied by the event
+kind is ignored.
 
 @cindex pixel-resolution wheel events
 You can use these @var{x} and @var{y} pixelwise deltas to determine
 how much the mouse wheel has actually moved at pixel resolution.  For
 example, the pixelwise deltas could be used to scroll the display at
 pixel resolution, exactly according to the user's turning the mouse
-wheel.
+wheel.  This pixelwise scrolling is possible only when
+@code{mwheel-coalesce-scroll-events} is @code{nil}, and in general the
+@var{pixel-delta} data is not generated when that variable is
+non-@code{nil}.
 
 @vindex mouse-wheel-up-event
 @vindex mouse-wheel-down-event
-This kind of event is generated only on some kinds of systems.  On
-some systems, @code{mouse-4} and @code{mouse-5} are used instead.  For
-portable code, use the variables @code{mouse-wheel-up-event},
-@code{mouse-wheel-up-alternate-event}, @code{mouse-wheel-down-event}
-and @code{mouse-wheel-down-alternate-event} defined in
-@file{mwheel.el} to determine what event types to expect for the mouse
-wheel.
+The @code{wheel-up} and @code{wheel-down} events are generated only on
+some kinds of systems.  On other systems, other events like @code{mouse-4} and
+@code{mouse-5} are used instead.  Portable code should handle both
+@code{wheel-up} and @code{wheel-down} events as well as the events
+specified in the variables @code{mouse-wheel-up-event} and
+@code{mouse-wheel-down-event}, defined in @file{mwheel.el}.
+Beware that for historical reasons the @code{mouse-wheel-@emph{up}-event}
+is the variable that holds an event that should be handled similarly to
+@code{wheel-@emph{down}} and vice versa.
 
 @vindex mouse-wheel-left-event
 @vindex mouse-wheel-right-event
-Similarly, some mice can generate @code{mouse-wheel-left-event} and
-@code{mouse-wheel-right-event} and can be used to scroll if
-@code{mouse-wheel-tilt-scroll} is non-@code{nil}.  However, some mice
-also generate other events at the same time as they're generating
-these scroll events which may get in the way.  The way to fix this is
-generally to unbind these events (for instance, @code{mouse-6} or
-@code{mouse-7}, but this is very hardware and operating system
-dependent).
+The same holds for the  horizontal wheel movements which are usually
+represented by @code{wheel-left} and @code{wheel-right} events, but
+for which portable code should also obey the variables
+@code{mouse-wheel-left-event} and @code{mouse-wheel-right-event},
+defined in @file{mwheel.el}.
+However, some mice also generate other events at the same time as
+they're generating these scroll events which may get in the way.
+The way to fix this is generally to unbind these events (for instance,
+@code{mouse-6} or @code{mouse-7}, but this is very hardware and
+operating system dependent).
 
 @cindex @code{pinch} event
 @item (pinch @var{position} @var{dx} @var{dy} @var{scale} @var{angle})
@@ -2699,16 +2851,6 @@ the @code{track-mouse} macro, that produces an event like this:
 
 @smallexample
 (mouse-movement (#<frame *ielm* 0x102849a30> nil (563 . 205) 532301936))
-@end smallexample
-
-To handle a SIGUSR1 signal, define an interactive function, and
-bind it to the @code{signal usr1} event sequence:
-
-@smallexample
-(defun usr1-handler ()
-  (interactive)
-  (message "Got USR1 signal"))
-(keymap-global-set "<signal> <usr1>" 'usr1-handler)
 @end smallexample
 
 @node Classifying Events
@@ -3223,7 +3365,7 @@ one key sequence.
 The argument @var{disable-text-conversion}, if non-@code{nil}, means
 that system input methods will not directly perform edits to buffer
 text while this key sequence is being read; user input will always
-generated individual key events instead.  @xref{Misc Events} for more
+generated individual key events instead.  @xref{Misc Events}, for more
 about text conversion.
 
 In the following example, Emacs displays the prompt @samp{?} in the
@@ -3603,8 +3745,11 @@ if you want to translate characters after input methods operate.
 
 @defun key-translate from to
 This function modifies @code{keyboard-translate-table} to translate
-character code @var{from} into character code @var{to}.  It creates
-the keyboard translate table if necessary.
+character code @var{from} into character code @var{to}.  It creates the
+keyboard translate table if necessary.  Both @var{from} and @var{to}
+should be strings that satisfy @code{key-valid-p} (@pxref{Key
+Sequences}).  If @var{to} is @code{nil}, the function removes any
+existing translation for @var{from}.
 @end defun
 
   Here's an example of using the @code{keyboard-translate-table} to
@@ -3628,7 +3773,10 @@ character as far as keyboard translation is concerned, but it has the
 same usual meaning.
 
   @xref{Translation Keymaps}, for mechanisms that translate event sequences
-at the level of @code{read-key-sequence}.
+at the level of @code{read-key-sequence}.  If you need to translate
+input events that are not characters (i.e., @code{characterp} returns
+@code{nil} for them), you must use the event translation mechanism
+described there.
 
 @node Invoking the Input Method
 @subsection Invoking the Input Method
@@ -3917,26 +4065,19 @@ the timeout elapses).
 In batch mode (@pxref{Batch Mode}), @code{sit-for} cannot be
 interrupted, even by input from the standard input descriptor.  It is
 thus equivalent to @code{sleep-for}, which is described below.
-
-It is also possible to call @code{sit-for} with three arguments,
-as @code{(sit-for @var{seconds} @var{millisec} @var{nodisp})},
-but that is considered obsolete.
 @end defun
 
-@defun sleep-for seconds &optional millisec
+@defun sleep-for seconds
 This function simply pauses for @var{seconds} seconds without updating
 the display.  It pays no attention to available input.  It returns
 @code{nil}.
 
 The argument @var{seconds} need not be an integer.  If it is floating
 point, @code{sleep-for} waits for a fractional number of seconds.
-Some systems support only a whole number of seconds; on these systems,
-@var{seconds} is rounded down.
 
-The optional argument @var{millisec} specifies an additional waiting
-period measured in milliseconds.  This adds to the period specified by
-@var{seconds}.  If the system doesn't support waiting fractions of a
-second, you get an error if you specify nonzero @var{millisec}.
+It is also possible to call @code{sleep-for} with two arguments,
+as @code{(sleep-for @var{seconds} @var{millisec})},
+but that is considered obsolete and will be removed in the future.
 
 Use @code{sleep-for} when you wish to guarantee a delay.
 @end defun

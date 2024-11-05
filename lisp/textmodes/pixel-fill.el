@@ -1,6 +1,6 @@
 ;;; pixel-fill.el --- variable pitch filling functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: filling
@@ -73,39 +73,41 @@ lines that are visually wider than PIXEL-WIDTH.
 If START isn't at the start of a line, the horizontal position of
 START, converted to pixel units, will be used as the indentation
 prefix on subsequent lines."
-  (save-excursion
-    (goto-char start)
-    (let ((indentation
-           (car (window-text-pixel-size nil (line-beginning-position)
-                                        (point))))
-          (newline-end nil))
-      (when (> indentation pixel-width)
-        (error "The indentation (%s) is wider than the fill width (%s)"
-               indentation pixel-width))
-      (save-restriction
-        (narrow-to-region start end)
-        (goto-char (point-max))
-        (when (looking-back "\n[ \t]*" (point-min))
-          (setq newline-end t))
-        (goto-char (point-min))
-        ;; First replace all whitespace with space.
-        (while (re-search-forward "[ \t\n]+" nil t)
-          (cond
-           ((or (= (match-beginning 0) start)
-                (= (match-end 0) end))
-            (delete-region (match-beginning 0) (match-end 0)))
-           ;; If there's just a single space here, don't replace.
-           ((not (and (= (- (match-end 0) (match-beginning 0)) 1)
-                      (= (char-after (match-beginning 0)) ?\s)))
-            (replace-match
-             ;; We need to use a space that has an appropriate width.
-             (propertize " " 'face
-                         (get-text-property (match-beginning 0) 'face))))))
-        (goto-char start)
-        (pixel-fill--fill-line pixel-width indentation)
-        (goto-char (point-max))
-        (when newline-end
-          (insert "\n"))))))
+  (save-window-excursion
+    (set-window-buffer nil (current-buffer))
+    (save-excursion
+      (goto-char start)
+      (let ((indentation
+             (car (window-text-pixel-size nil (line-beginning-position)
+                                          (point))))
+            (newline-end nil))
+        (when (> indentation pixel-width)
+          (error "The indentation (%s) is wider than the fill width (%s)"
+                 indentation pixel-width))
+        (save-restriction
+          (narrow-to-region start end)
+          (goto-char (point-max))
+          (when (looking-back "\n[ \t]*" (point-min))
+            (setq newline-end t))
+          (goto-char (point-min))
+          ;; First replace all whitespace with space.
+          (while (re-search-forward "[ \t\n]+" nil t)
+            (cond
+             ((or (= (match-beginning 0) start)
+                  (= (match-end 0) end))
+              (delete-region (match-beginning 0) (match-end 0)))
+             ;; If there's just a single space here, don't replace.
+             ((not (and (= (- (match-end 0) (match-beginning 0)) 1)
+                        (= (char-after (match-beginning 0)) ?\s)))
+              (replace-match
+               ;; We need to use a space that has an appropriate width.
+               (propertize " " 'face
+                           (get-text-property (match-beginning 0) 'face))))))
+          (goto-char start)
+          (pixel-fill--fill-line pixel-width indentation)
+          (goto-char (point-max))
+          (when newline-end
+            (insert "\n")))))))
 
 (defun pixel-fill--goto-pixel (width)
   (vertical-motion (cons (/ width (frame-char-width)) 0)))

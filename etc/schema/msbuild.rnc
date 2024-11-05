@@ -1,0 +1,1041 @@
+default namespace = ""
+namespace ns1 = "http://schemas.microsoft.com/developer/msbuild/2003"
+
+start = Project | ns1.Project
+Project =
+  element Project {
+    attribute Sdk { text }?,
+    (text
+     | ItemGroup
+     | PropertyGroup
+     | element Import {
+         attribute Project { text }
+       }
+     | element ProjectExtensions {
+         element VisualStudio {
+           element FlavorProperties {
+             attribute GUID { text },
+             element WebProjectProperties {
+               element UseIIS { xsd:NCName },
+               element AutoAssignPort { xsd:NCName },
+               element DevelopmentServerPort { xsd:integer },
+               element DevelopmentServerVPath { text },
+               element IISUrl { xsd:anyURI },
+               element NTLMAuthentication { xsd:NCName },
+               element UseCustomServer { xsd:NCName },
+               element CustomServerUrl { empty },
+               element SaveServerSettingsInUserFile { xsd:NCName }
+             }
+           }
+           | element UserProperties {
+               attribute configuration_4bicepconfig_1json__JsonSchema {
+                 xsd:anyURI
+               }
+             }
+         }
+       }
+     | element Target {
+         attribute AfterTargets { xsd:NCName }?,
+         attribute BeforeTargets { xsd:NCName }?,
+         attribute Condition { text }?,
+         attribute DependsOnTargets { text }?,
+         attribute Inputs { text }?,
+         attribute Name { xsd:NCName },
+         attribute Outputs { text }?,
+         (PropertyGroup
+          | (element RemoveDir {
+               attribute Condition { text },
+               attribute Directories { text }
+             },
+             element Delete {
+               attribute Condition { text },
+               attribute Files { text }
+             }))?,
+         (ItemGroup
+          | element Error {
+              attribute Condition { text },
+              attribute Text { text }
+            }
+          | element Exec {
+              attribute Command { text },
+              attribute Condition { text }?,
+              attribute ContinueOnError { xsd:boolean }?,
+              attribute EnvironmentVariables { text }?,
+              attribute WorkingDirectory { text }?,
+              element Output {
+                attribute PropertyName { xsd:NCName },
+                attribute TaskParameter { xsd:NCName }
+              }?
+            }
+          | element MakeDir {
+              attribute Directories { text }
+            }
+          | element Message {
+              attribute Condition { text }?,
+              attribute Importance { xsd:NCName },
+              attribute Text { text }
+            })*,
+         (element Copy {
+            attribute DestinationFolder { text },
+            attribute SourceFiles { text }
+          }
+          | element MSBuild {
+              attribute BuildInParallel { xsd:boolean },
+              attribute Projects { text },
+              attribute Properties { text },
+              attribute Targets { xsd:NCName }
+            })?
+       })+
+  }
+ns1.Project =
+  element ns1:Project {
+    attribute DefaultTargets { xsd:NCName }?,
+    attribute ToolsVersion { xsd:decimal }?,
+    (text
+     | ns1.ItemGroup
+     | ns1.PropertyGroup
+     | element ns1:Choose {
+         element ns1:When {
+           attribute Condition { text },
+           (ns1.PropertyGroup | ns1.ItemGroup+)
+         }+,
+         element ns1:Otherwise { ns1.ItemGroup }?
+       }
+     | element ns1:Import {
+         attribute Condition { text }?,
+         attribute Label { xsd:NCName }?,
+         attribute Project { text }
+       }
+     | element ns1:ProjectExtensions {
+         element ns1:VisualStudio {
+           element ns1:FlavorProperties {
+             attribute GUID { text },
+             (element ns1:WebProjectProperties {
+                (element ns1:UseIIS { xsd:NCName },
+                 element ns1:AutoAssignPort { xsd:NCName },
+                 element ns1:DevelopmentServerPort { xsd:integer },
+                 element ns1:DevelopmentServerVPath { text },
+                 element ns1:IISUrl { xsd:anyURI },
+                 element ns1:NTLMAuthentication { xsd:NCName },
+                 element ns1:UseCustomServer { xsd:NCName },
+                 element ns1:CustomServerUrl { empty })?,
+                element ns1:SaveServerSettingsInUserFile { xsd:NCName }
+              }
+              | (element ns1:ProjectProperties {
+                   attribute AddItemTemplatesGuid { text },
+                   attribute ApplicationType { xsd:NCName },
+                   attribute DebugInfoExeName { text },
+                   attribute HostName { xsd:NCName },
+                   attribute HostPackage { text },
+                   attribute Language { xsd:NCName },
+                   attribute OfficeVersion { xsd:decimal },
+                   attribute TemplatesPath { xsd:NCName },
+                   attribute VstxVersion { xsd:decimal }
+                 },
+                 element ns1:Host {
+                   attribute GeneratedCodeNamespace { xsd:NCName },
+                   attribute IconIndex { xsd:integer },
+                   attribute Name { xsd:NCName },
+                   attribute PublishedHash { text },
+                   element ns1:HostItem {
+                     attribute Blueprint { xsd:NCName },
+                     attribute CanActivate { xsd:boolean },
+                     attribute CanonicalName { xsd:NCName },
+                     attribute Code { xsd:NCName },
+                     attribute GeneratedCode { xsd:NCName },
+                     attribute IconIndex { xsd:integer },
+                     attribute Name { xsd:NCName },
+                     attribute PublishedHash { text }
+                   }
+                 }))
+           }
+           | element ns1:UserProperties {
+               attribute Name { xsd:NCName }
+             }
+         }
+       }
+     | element ns1:Target {
+         attribute AfterTargets { xsd:NCName }?,
+         attribute BeforeTargets { xsd:NCName }?,
+         attribute Condition { text }?,
+         attribute Name { xsd:NCName },
+         attribute Outputs { text }?,
+         (ns1.PropertyGroup
+          | element ns1:Error {
+              attribute Condition { text },
+              attribute HelpKeyword { xsd:NCName },
+              attribute Text { text }
+            }*
+          | (ns1.ItemGroup
+             | element ns1:MakeDir {
+                 attribute Directories { text }
+               }
+             | element ns1:WriteCodeFragment {
+                 attribute AssemblyAttributes { text },
+                 attribute Language { text },
+                 attribute OutputFile { text }
+               })*),
+         (element ns1:Copy {
+            attribute ContinueOnError { xsd:boolean }?,
+            attribute DestinationFolder { text },
+            attribute OverwriteReadOnlyFiles { xsd:NCName },
+            attribute SourceFiles { text }
+          }
+          | element ns1:CreateItem {
+              attribute Exclude { text }?,
+              attribute Include { text },
+              ns1.Output
+            }
+          | element ns1:Delete {
+              attribute Files { text },
+              attribute TreatErrorsAsWarnings { xsd:NCName }
+            }
+          | element ns1:Exec {
+              attribute Command { text },
+              attribute WorkingDirectory { text }?
+            }
+          | element ns1:GetVersionParts {
+              attribute AssemblyPath { text },
+              ns1.Output+
+            }
+          | element ns1:Message {
+              attribute Importance { xsd:NCName }?,
+              attribute Text { text }
+            }
+          | element ns1:TokenReplace {
+              attribute Condition { text }?,
+              attribute Destination { text },
+              attribute Path { text },
+              attribute Replacement { text },
+              attribute Token { text }
+            })*,
+         element ns1:CallTarget {
+           attribute Condition { text }?,
+           attribute Targets { xsd:NCName }
+         }?
+       }
+     | element ns1:UsingTask {
+         attribute AssemblyFile { text },
+         attribute TaskFactory { xsd:NCName },
+         attribute TaskName { xsd:NCName },
+         element ns1:ParameterGroup {
+           (element ns1:Path {
+              attribute ParameterType { xsd:NCName },
+              attribute Required { xsd:boolean }
+            },
+            element ns1:Destination {
+              attribute ParameterType { xsd:NCName },
+              attribute Required { xsd:boolean }
+            },
+            element ns1:Token {
+              attribute ParameterType { xsd:NCName },
+              attribute Required { xsd:boolean }
+            },
+            element ns1:Replacement {
+              attribute ParameterType { xsd:NCName },
+              attribute Required { xsd:boolean }
+            })
+           | (element ns1:AssemblyPath {
+                attribute ParameterType { xsd:NCName },
+                attribute Required { xsd:boolean }
+              },
+              element ns1:MajorVersion {
+                attribute Output { xsd:boolean },
+                attribute ParameterType { xsd:NCName }
+              },
+              element ns1:MinorVersion {
+                attribute Output { xsd:boolean },
+                attribute ParameterType { xsd:NCName }
+              },
+              element ns1:BuildVersion {
+                attribute Output { xsd:boolean },
+                attribute ParameterType { xsd:NCName }
+              },
+              element ns1:RevisionVersion {
+                attribute Output { xsd:boolean },
+                attribute ParameterType { xsd:NCName }
+              })
+         },
+         element ns1:Task {
+           element ns1:Using {
+             attribute Namespace { xsd:NCName }
+           }?,
+           element ns1:Code {
+             attribute Language { xsd:NCName },
+             attribute Type { xsd:NCName },
+             text
+           }
+         }
+       })+
+  }
+PropertyGroup =
+  element PropertyGroup {
+    attribute Condition { text }?,
+    attribute Label { xsd:NCName }?,
+    element TargetFrameworks { text }?,
+    (element DotnetMonoRepoVersion { xsd:NMTOKEN }
+     | (element CFBundleName { text },
+        element CFBundleDisplayName { text },
+        element CFBundleIdentifier { xsd:NCName },
+        element CFBundleVersion { xsd:NMTOKEN },
+        element CFBundleShortVersionString { xsd:NMTOKEN },
+        element CFBundlePackageType { xsd:NCName },
+        element CFBundleExecutable { xsd:NCName },
+        element CFBundleIconFile { xsd:NCName },
+        element NSPrincipalClass { xsd:NCName },
+        element NSHighResolutionCapable { xsd:boolean }))?,
+    (element SoAssemblyFileVersion {
+       attribute Condition { text },
+       xsd:NMTOKEN
+     },
+     element SoReleaseVersion {
+       attribute Condition { text },
+       text
+     })?,
+    (element AccelerateBuildsInVisualStudio { xsd:boolean }
+     | element AddLicenseAsEmbeddedResource { xsd:boolean }
+     | element AddNoticeAsEmbeddedResource { xsd:boolean }
+     | element AnalysisMode { xsd:NCName }
+     | element ApiName {
+         attribute Condition { text },
+         xsd:NCName
+       }
+     | element AppConfig { xsd:NCName }
+     | element AppendTargetFrameworkToOutputPath { xsd:boolean }
+     | element ApplicationIcon { text }
+     | element ApplicationManifest { xsd:NCName }
+     | element AspNetCoreHostingModel { xsd:NCName }
+     | element AssemblyName { text }
+     | element AssemblyOriginatorKeyFile { text }
+     | element AssemblyTitle { text }
+     | element AssemblyVersion { xsd:NMTOKEN }
+     | element Authors { text }
+     | element AutoGenerateBindingRedirects {
+         attribute Condition { text }?,
+         xsd:boolean
+       }
+     | element AzureFunctionsVersion { xsd:NCName }
+     | element BicepCompileAfterTargets { xsd:NCName }
+     | element BicepCompileBeforeTargets { xsd:NCName }
+     | element BootstrapperEnabled { xsd:boolean }
+     | element BuildOutputTargetFolder { xsd:NCName }
+     | element BuildServerSideRenderer { xsd:boolean }
+     | element BuiltInComInteropSupport { xsd:boolean }
+     | element CentralPackageTransitivePinningEnabled { xsd:boolean }
+     | element CodeAnalysisTreatWarningsAsErrors { xsd:boolean }
+     | element Company { text }
+     | element CopyLocalLockFileAssemblies { xsd:boolean }
+     | element Copyright { text }
+     | element DebugType {
+         attribute Condition { text }?,
+         xsd:NCName
+       }
+     | element DefaultItemExcludes { text }
+     | element DefineConstants { text }
+     | element DelaySign { xsd:boolean }
+     | element Description { text }
+     | element Deterministic { xsd:boolean }
+     | element DisableImplicitNuGetFallbackFolder { xsd:boolean }
+     | element DisableTransitiveProjectReferences { xsd:boolean }
+     | element DockerDefaultTargetOS { xsd:NCName }
+     | element DockerfileContext { text }
+     | element EmbedUntrackedSources { xsd:boolean }
+     | element EnableCompressionInSingleFile { xsd:boolean }
+     | element EnableDefaultCompileItems { xsd:boolean }
+     | element EnableDefaultEmbeddedResourceItems { xsd:boolean }
+     | element EnableMSTestRunner { xsd:boolean }
+     | element EnableNETAnalyzers { xsd:boolean }
+     | element EnableNuget { xsd:boolean }
+     | element EnableTrimAnalyzer { xsd:boolean }
+     | element EnforceCodeStyleInBuild { xsd:boolean }
+     | element ErrorReport { xsd:NCName }
+     | element FileVersion { xsd:NMTOKEN }
+     | element FindInvalidProjectReferences { xsd:boolean }
+     | element GenerateAssemblyInfo { xsd:boolean }
+     | element GenerateBindingRedirectsOutputType { xsd:boolean }
+     | element GenerateDocumentationFile { xsd:NCName }
+     | element GeneratePackageOnBuild { xsd:NCName }
+     | element GenerateResourceUsePreserializedResources { xsd:boolean }
+     | element ImplicitUsings { xsd:NCName }
+     | element IncludeNativeLibrariesForSelfExtract { xsd:boolean }
+     | element IncludeSymbols { xsd:boolean }
+     | element IsPackable { xsd:boolean }
+     | element LangVersion { xsd:NMTOKEN }
+     | element ManagePackageVersionsCentrally { xsd:boolean }
+     | element MapFileExtensions { xsd:boolean }
+     | element NoPackageAnalysis { xsd:boolean }
+     | element NoWarn { text }
+     | element Nullable { xsd:NCName }
+     | element Optimize { xsd:boolean }
+     | element OutputPath { text }
+     | element OutputType { xsd:NCName }
+     | element PackAsTool { xsd:boolean }
+     | element PackageIcon { text }
+     | element PackageIconUrl { empty }
+     | element PackageId { text }
+     | element PackageLicenseFile { xsd:NCName }
+     | element PackageProjectUrl { xsd:anyURI }
+     | element PackageReleaseNotes { text }
+     | element PackageTags { text }
+     | element PlatformTarget { xsd:NCName }
+     | element Platforms { text }
+     | element Prefer32Bit { xsd:boolean }
+     | element ProduceReferenceAssembly { xsd:NCName }
+     | element Product { text }
+     | element ProjectGuid { text }
+     | element PublishRepositoryUrl { xsd:boolean }
+     | element PublishSingleFile { xsd:boolean }
+     | element RepositoryType { empty }
+     | element RepositoryUrl { empty }
+     | element RestoreLockedMode {
+         attribute Condition { text },
+         xsd:boolean
+       }
+     | element RestorePackagesWithLockFile { xsd:boolean }
+     | element RestoreProjectStyle { xsd:NCName }
+     | element RootNamespace { text }
+     | element RunPostBuildEvent { xsd:NCName }
+     | element RunSettingsFilePath { text }
+     | element RuntimeIdentifier { xsd:NCName }
+     | element RuntimeIdentifiers {
+         attribute Condition { text }?,
+         text
+       }
+     | element SatelliteResourceLanguages { xsd:NCName }
+     | element SelfContained { xsd:boolean }
+     | element SignAssembly { xsd:NCName }
+     | element SoVersionOptions { xsd:NCName }
+     | element SpaRoot { text }
+     | element StartupObject { xsd:NCName }
+     | element Summary { text }
+     | element SupportedOSPlatformVersion { xsd:decimal }
+     | element SuppressTrimAnalysisWarnings { xsd:boolean }
+     | element SymbolPackageFormat { xsd:NCName }
+     | element TargetFramework { text }
+     | element Title { text }
+     | element ToolCommandName { xsd:NCName }
+     | element TreatWarningsAsErrors { xsd:boolean }
+     | element TrimMode { xsd:NCName }
+     | element TypeScriptCompileBlocked {
+         attribute Condition { text }?,
+         xsd:boolean
+       }
+     | element TypeScriptToolsVersion { xsd:NCName }
+     | element UseAppHost { xsd:boolean }
+     | element UseApplicationTrust { xsd:boolean }
+     | element UseWPF { xsd:boolean }
+     | element UseWindowsForms { xsd:boolean }
+     | element UserSecretsId { text }
+     | element Version {
+         attribute Condition { text }?,
+         text
+       }
+     | element WarningsAsErrors { text }
+     | element WarningsNotAsErrors { text }
+     | element WasmMainJSPath { text })*,
+    (element PackageRequireLicenseAcceptance { xsd:boolean }
+     | element _FunctionsSkipCleanOutput { xsd:boolean }
+     | (element OutDir { text },
+        element ExcludeXmlAssemblyFiles { xsd:boolean }))?,
+    element EnableUnsafeBinaryFormatterSerialization { xsd:boolean }?,
+    (element AssemblySearchPaths { text }
+     | element AvaloniaUseCompiledBindingsByDefault { xsd:boolean }
+     | element BaseOutputPath { text }
+     | element BicepOutputStyle { xsd:NCName }
+     | element ContinuousIntegrationBuild { xsd:boolean }
+     | element DebugSymbols { xsd:boolean }
+     | element DefaultDocumentationIncludeUndocumentedItems {
+         xsd:boolean
+       }
+     | element DscZipFile { text }
+     | element EnableNoticeInPublishOutput { xsd:boolean }
+     | element GenerateDocumentation { xsd:boolean }
+     | element IncludeAllContentForSelfExtract { xsd:boolean }
+     | element IsTestProject { xsd:boolean }
+     | element NetSdk { xsd:NCName }
+     | element ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch {
+         xsd:NCName
+       }
+     | element ShouldIncludeNativeSkiaSharp { xsd:NCName }
+     | element TargetsForTfmSpecificBuildOutput { text }
+     | (element SccProjectName { xsd:NCName },
+        element SccProvider { xsd:NCName },
+        element SccAuxPath { xsd:NCName },
+        element SccLocalPath { xsd:NCName })
+     | (element GenerateNoticePackageVersion { xsd:NMTOKEN },
+        element GenerateNoticeRetryCount { xsd:integer },
+        element GenerateNoticeBatchSize { xsd:integer },
+        element GenerateNoticeUseLocalFile {
+          attribute Condition { text },
+          xsd:boolean
+        },
+        element GenerateNoticeUpdateLocalFile {
+          attribute Condition { text },
+          xsd:boolean
+        })
+     | (element RunNswag { xsd:boolean },
+        element RunNodeBuild { xsd:boolean })
+     | (element PublishTrimmed { xsd:boolean },
+        element JsonSerializerIsReflectionEnabledByDefault {
+          xsd:boolean
+        })
+     | (element ApplicationId { xsd:NCName },
+        element ApplicationVersion { xsd:integer },
+        element ApplicationDisplayVersion { xsd:decimal },
+        element AndroidPackageFormat { xsd:NCName },
+        element AndroidEnableProfiledAot { xsd:NCName })
+     | (element DefaultDocumentationFolder { text },
+        element DefaultDocumentationLinksBaseUrl { text },
+        element DefaultDocumentationLinksOutputFile { text },
+        element DefaultDocumentationExternLinksFiles { text },
+        element DefaultDocumentationConfigurationFile { text }))?,
+    element ServiceName { xsd:NCName }?,
+    (element RazorLangVersion { xsd:decimal }
+     | (element WebRoot { text },
+        element WebProjectFile { text },
+        element WebOutputPath { text }))?,
+    element ClientName { text }?,
+    element DisableDataAnnotationsParam { text }?,
+    (element AvaloniaVersion { xsd:NMTOKEN }
+     | element ContinuePackingAfterGeneratingNuspec { xsd:boolean }
+     | ((element NSwagGenerateExceptionClasses { xsd:boolean }
+         | element WrapResponseMethods { text })+,
+        element NSwagOptions { text })
+     | (element DeployDefaultTargetFrameworkVersion { xsd:decimal },
+        element VisualStudioVersion {
+          attribute Condition { text },
+          xsd:decimal
+        }))?
+  }
+ItemGroup =
+  element ItemGroup {
+    attribute Condition { text }?,
+    (element ApiClientGen {
+       attribute Include { xsd:NCName }
+     }
+     | element AvaloniaXaml {
+         attribute Remove { text }
+       }
+     | element BuildOutputInPackage {
+         attribute Include { text },
+         attribute TargetPath { text }
+       }
+     | element InternalsVisibleTo {
+         attribute Condition { text },
+         attribute Include { text }
+       }
+     | element ProjectsToPublish {
+         attribute Include { text }
+       }
+     | element Service {
+         attribute Include { text }
+       }
+     | element _ReferenceCopyLocalPaths {
+         attribute Include { text }
+       }
+     | element ClaimsRequirement {
+         attribute Include { xsd:NCName }
+       }*),
+    element WCFMetadata {
+      attribute Include { text }
+    }?,
+    (element AdditionalFiles {
+       attribute Remove { text }
+     }
+     | element SourceRoot {
+         attribute Include { text }
+       }
+     | element ApiClient {
+         attribute Include { xsd:NCName }
+       }*),
+    element FrameworkReference {
+      attribute Include { xsd:NCName }
+    }?,
+    (element COMReference {
+       attribute Include { xsd:NCName },
+       element Guid { text },
+       element VersionMajor { xsd:integer },
+       element VersionMinor { xsd:integer },
+       element Lcid { xsd:integer },
+       element WrapperTool { xsd:NCName },
+       element Isolated { xsd:NCName },
+       EmbedInteropTypes
+     }
+     | element TrimmerRootDescriptor {
+         attribute Include { xsd:NCName }
+       }
+     | element Watch {
+         attribute Exclude { text }?,
+         attribute Include { text }?,
+         attribute Remove { text }?
+       }*
+     | element AvaloniaResource {
+         attribute Include { text }?,
+         attribute Remove { text }?
+       }*
+     | element OpenApiReference {
+         attribute ClassName { text }?,
+         attribute Include { text },
+         attribute Namespace { text }?,
+         attribute Options { text }?,
+         element CodeGenerator { xsd:NCName }?
+       }*),
+    element Bicep {
+      attribute Exclude { text }?,
+      attribute Include { text }?,
+      attribute NoBuild { xsd:boolean }?,
+      attribute OutputFile { text }?,
+      attribute Update { text }?,
+      element OutputFile { text }?
+    }*,
+    (element Folder {
+       attribute Include { text }
+     }*
+     | element BicepParam {
+         attribute Include { text }
+       }*),
+    (element Compile {
+       attribute Include { text }?,
+       attribute Link { xsd:NCName }?,
+       attribute Remove { text }?,
+       attribute Update { text }?,
+       Link?,
+       (DependentUpon
+        | element AutoGen { xsd:NCName }
+        | element DesignTime { xsd:NCName })*,
+       (SubType
+        | element DesignTimeSharedInput { xsd:NCName })?
+     }
+     | element Content {
+         attribute CopyToOutputDirectory { xsd:NCName }?,
+         attribute CopyToPublishDirectory { xsd:NCName }?,
+         attribute Exclude { text }?,
+         attribute Include { text }?,
+         attribute Link { text }?,
+         attribute PackagePath { text }?,
+         attribute Remove { text }?,
+         attribute Update { text }?,
+         Link?,
+         (CopyToOutputDirectory
+          | CopyToPublishDirectory
+          | DependentUpon
+          | ExcludeFromSingleFile
+          | SubType)*
+       }
+     | element EmbeddedResource {
+         attribute Condition { text }?,
+         attribute Include { text }?,
+         attribute Link { text }?,
+         attribute LogicalName { text }?,
+         attribute Remove { text }?,
+         attribute Update { text }?,
+         attribute WithCulture { xsd:boolean }?,
+         CopyToOutputDirectory?,
+         element CustomToolNamespace { xsd:NCName }?,
+         element LogicalName { text }?,
+         (Generator | LastGenOutput)*,
+         SubType?,
+         Link?,
+         (DependentUpon
+          | element WithCulture { xsd:boolean })?
+       }
+     | element None {
+         attribute CopyToOutputDirectory { xsd:NCName }?,
+         attribute CopyToPublishDirectory { xsd:NCName }?,
+         attribute Exclude { text }?,
+         attribute Include { text }?,
+         attribute Link { xsd:NCName }?,
+         attribute Pack { xsd:boolean }?,
+         attribute PackagePath { text }?,
+         attribute Remove { text }?,
+         attribute Update { text }?,
+         Generator?,
+         (LastGenOutput
+          | SubType
+          | (element Pack { xsd:NCName }
+             | element PackagePath { empty })*),
+         CopyToOutputDirectory?,
+         (CopyToPublishDirectory | DependentUpon)?
+       }
+     | element Resource {
+         attribute Include { text }
+       }
+     | element WCFMetadataStorage {
+         attribute Include { text }
+       })*,
+    (element AndroidResource {
+       attribute Include { xsd:NCName },
+       Link
+     }
+     | element DesignData {
+         attribute Include { text }
+       }
+     | element WasmExtraFilesToDeploy {
+         attribute Include { text }
+       }
+     | element Using {
+         attribute Alias { xsd:NCName }?,
+         attribute Include { xsd:NCName }
+       }*
+     | element DocumentName {
+         attribute Include { xsd:NCName }
+       }*
+     | (element PackageDownload {
+          attribute Include { xsd:NCName },
+          attribute Version { text }
+        }
+        | element PackageReference {
+            attribute Condition { text }?,
+            attribute ExcludeAssets { xsd:NCName }?,
+            attribute Include { text },
+            attribute PrivateAssets { xsd:NCName }?,
+            attribute Version { text }?,
+            (element IncludeAssets { text }
+             | element PrivateAssets { xsd:NCName })*
+          }
+        | element ProjectReference {
+            attribute Include { text }?,
+            attribute PrivateAssets { xsd:NCName }?,
+            attribute Remove { xsd:NCName }?,
+            (element Properties { text }
+             | (Project,
+                element Name { xsd:NCName }))?
+          }
+        | element Reference {
+            attribute Include { text },
+            (EmbedInteropTypes
+             | element HintPath {
+                 attribute Condition { text }?,
+                 text
+               }
+             | element Private { xsd:NCName }
+             | element SpecificVersion { xsd:NCName })*
+          })*
+     | (element DistFiles {
+          attribute Condition { text }?,
+          attribute Include { text }
+        }+,
+        element ResolvedFileToPublish {
+          attribute Exclude { text },
+          attribute Include { text },
+          element RelativePath { text },
+          CopyToPublishDirectory,
+          ExcludeFromSingleFile?
+        })
+     | element TypeScriptCompile {
+         attribute Include { text }?,
+         attribute Remove { text }?,
+         DependentUpon?
+       }*
+     | element Page {
+         attribute Generator { xsd:NMTOKEN }?,
+         attribute Include { text }?,
+         attribute Remove { text }?,
+         attribute SubType { xsd:NCName }?
+       }*)
+  }
+ns1.PropertyGroup =
+  element ns1:PropertyGroup {
+    attribute Condition { text }?,
+    (element ns1:NugetFolder { text },
+     element ns1:BuildFolder { text })?,
+    element ns1:SoReleaseVersion { text }?,
+    (element ns1:ApplicationManifest { xsd:NCName }
+     | element ns1:ErrorText { text }
+     | element ns1:__paket__NETStandard_Library_targets { text })?,
+    element ns1:PreBuildEvent {
+      attribute Condition { text }?,
+      text
+    }?,
+    element ns1:__paket__MSTest_TestFramework_targets { text }?,
+    element ns1:SoLegacyVersion { xsd:NCName }?,
+    element ns1:SoBetaTag { empty }?,
+    element ns1:ComputerName { text }?,
+    element ns1:__paket__MSTest_TestAdapter_props { text }?,
+    element ns1:__paket__MSTest_TestAdapter_targets { text }?,
+    element ns1:MinimumVisualStudioVersion { xsd:decimal }?,
+    (element ns1:AppDesignerFolder { xsd:NCName }
+     | element ns1:ApplicationRevision { xsd:integer }
+     | element ns1:ApplicationVersion { text }
+     | element ns1:AssemblyName { xsd:NCName }
+     | element ns1:AssemblyOriginatorKeyFile { text }
+     | element ns1:AutoGenerateBindingRedirects { xsd:boolean }
+     | element ns1:AutoIncrementApplicationRevision { xsd:boolean }
+     | element ns1:BootstrapperEnabled { xsd:boolean }
+     | element ns1:CodeAnalysisRuleSet { text }
+     | element ns1:Configuration {
+         attribute Condition { text },
+         xsd:NCName
+       }
+     | element ns1:DebugSymbols { xsd:boolean }
+     | element ns1:DebugType { xsd:NCName }
+     | element ns1:DefineConstants { text }
+     | element ns1:DependsOnNETStandard { xsd:NCName }
+     | element ns1:Deterministic { xsd:boolean }
+     | element ns1:DocumentationFile { text }
+     | element ns1:EnableUnmanagedDebugging { xsd:boolean }
+     | element ns1:ErrorReport { xsd:NCName }
+     | element ns1:FileAlignment { xsd:integer }
+     | element ns1:FileUpgradeFlags { empty }
+     | element ns1:FindInvalidProjectReferences { xsd:boolean }
+     | element ns1:FriendlyName { xsd:NCName }
+     | element ns1:GenerateBindingRedirectsOutputType { xsd:boolean }
+     | element ns1:IISExpressAnonymousAuthentication { empty }
+     | element ns1:IISExpressSSLPort { text }
+     | element ns1:IISExpressUseClassicPipelineMode { empty }
+     | element ns1:IISExpressWindowsAuthentication { empty }
+     | element ns1:Install { xsd:boolean }
+     | element ns1:InstallFrom { xsd:NCName }
+     | element ns1:InstallUrl { empty }
+     | element ns1:IsCodedUITest { xsd:NCName }
+     | element ns1:IsWebBootstrapper { xsd:NCName }
+     | element ns1:LoadBehavior { xsd:integer }
+     | element ns1:ManifestCertificateThumbprint { text }
+     | element ns1:ManifestKeyFile { text }
+     | element ns1:MapFileExtensions { xsd:boolean }
+     | element ns1:NoStandardLibraries { xsd:boolean }
+     | element ns1:NoWarn { text }
+     | element ns1:NuGetPackageImportStamp { empty }
+     | element ns1:NugetExe { text }
+     | element ns1:OfficeApplicationDescription { empty }
+     | element ns1:OldToolsVersion { xsd:decimal }
+     | element ns1:Optimize { xsd:boolean }
+     | element ns1:OutputPath { text }
+     | element ns1:OutputType { xsd:NCName }
+     | element ns1:PackageDestinationDirectory { text }
+     | element ns1:Platform {
+         attribute Condition { text },
+         xsd:NCName
+       }
+     | element ns1:PlatformTarget { xsd:NCName }
+     | element ns1:Prefer32Bit { xsd:boolean }
+     | element ns1:ProductName { xsd:NCName }
+     | element ns1:ProductVersion { text }
+     | element ns1:ProjectGuid { text }
+     | element ns1:ProjectTypeGuids { text }
+     | element ns1:PublishUrl { text }
+     | element ns1:PublisherName { empty }
+     | element ns1:ReferencePath { text }
+     | element ns1:RestorePackages { xsd:boolean }
+     | element ns1:RootNamespace { xsd:NCName }
+     | element ns1:RunPostBuildEvent { xsd:NCName }
+     | element ns1:SccAuxPath { xsd:anyURI }
+     | element ns1:SccLocalPath { xsd:NMTOKEN }
+     | element ns1:SccProjectName { text }
+     | element ns1:SccProvider { text }
+     | element ns1:SchemaVersion { xsd:decimal }
+     | element ns1:SignAssembly { xsd:boolean }
+     | element ns1:SignManifests { xsd:boolean }
+     | element ns1:SolutionDir {
+         attribute Condition { text },
+         text
+       }
+     | element ns1:StartupObject { empty }
+     | element ns1:SupportUrl { empty }
+     | element ns1:TargetCulture { xsd:NCName }
+     | element ns1:TargetFrameworkProfile { text }
+     | element ns1:TargetFrameworkVersion { xsd:NCName }
+     | element ns1:TargetVsixContainerName { xsd:NCName }
+     | element ns1:TestProjectType { xsd:NCName }
+     | element ns1:TypeScriptCompileBlocked { xsd:boolean }
+     | element ns1:TypeScriptToolsVersion { xsd:decimal }
+     | element ns1:UpdateEnabled { xsd:boolean }
+     | element ns1:UpdateInterval { xsd:integer }
+     | element ns1:UpdateIntervalUnits { xsd:NCName }
+     | element ns1:UpdateMode { xsd:NCName }
+     | element ns1:UpdatePeriodically { xsd:boolean }
+     | element ns1:UpdateRequired { xsd:boolean }
+     | element ns1:UpgradeBackupLocation { empty }
+     | element ns1:Use64BitIISExpress { empty }
+     | element ns1:UseApplicationTrust { xsd:boolean }
+     | element ns1:UseGlobalApplicationHostFile { empty }
+     | element ns1:UseIISExpress { xsd:boolean }
+     | element ns1:UseVSHostingProcess { xsd:boolean }
+     | element ns1:VSTO_TrustAssembliesLocation { xsd:boolean }
+     | element ns1:VSToolsPath {
+         attribute Condition { text },
+         text
+       }
+     | element ns1:VisualStudioVersion {
+         attribute Condition { text },
+         xsd:decimal
+       }
+     | element ns1:WarningLevel { xsd:integer }
+     | element ns1:WcfConfigValidationEnabled { xsd:NCName })*,
+    element ns1:UseCodebase { xsd:boolean }?,
+    element ns1:GeneratePkgDefFile { xsd:boolean }?,
+    (element ns1:CopyBuildOutputToOutputDirectory { xsd:boolean }
+     | element ns1:CopyOutputSymbolsToOutputDirectory { xsd:boolean }
+     | element ns1:CopyVsixManifestToOutput { xsd:boolean }
+     | element ns1:CreateVsixContainer { xsd:boolean }
+     | element ns1:DeployExtension { xsd:boolean }
+     | element ns1:DeployVSTemplates { xsd:boolean }
+     | element ns1:IncludeAssemblyInVSIXContainer { xsd:boolean }
+     | element ns1:IncludeDebugSymbolsInLocalVSIXDeployment {
+         xsd:boolean
+       }
+     | element ns1:IncludeDebugSymbolsInVSIXContainer { xsd:boolean }
+     | element ns1:RuntimeIdentifier { xsd:NCName })*,
+    (element ns1:ApplicationIcon { xsd:NCName }
+     | element ns1:OfficeApplication { xsd:NCName }
+     | element ns1:PostBuildEvent {
+         attribute Condition { text }?,
+         text
+       }*
+     | (element ns1:StartAction { xsd:NCName },
+        element ns1:StartProgram {
+          attribute Condition { text },
+          text
+        },
+        element ns1:StartArguments { text },
+        element ns1:EnableNoticeInVisualStudioVsix { xsd:boolean }))
+  }
+ns1.ItemGroup =
+  element ns1:ItemGroup {
+    (element ns1:AssemblyAttributes {
+       attribute Include { xsd:NCName },
+       element ns1:_Parameter1 { text }
+     }
+     | element ns1:COMReference {
+         attribute Include { xsd:NCName },
+         element ns1:Guid { text },
+         element ns1:VersionMajor { xsd:integer },
+         element ns1:VersionMinor { xsd:integer },
+         element ns1:Lcid { xsd:integer },
+         element ns1:WrapperTool { xsd:NCName },
+         element ns1:Isolated { xsd:NCName },
+         ns1.EmbedInteropTypes
+       }
+     | element ns1:WCFMetadata {
+         attribute Include { text }
+       }
+     | element ns1:ProjectReference {
+         attribute Include { text },
+         ns1.Project,
+         element ns1:Name { xsd:NCName },
+         (ns1.VSIXSubPath,
+          element ns1:ReferenceOutputAssembly { xsd:boolean })?,
+         element ns1:IncludeOutputGroupsInVSIX { text }?,
+         element ns1:IncludeOutputGroupsInVSIXLocalOnly { text }?
+       }*
+     | element ns1:Folder {
+         attribute Include { text }
+       }*),
+    element ns1:VSTemplate {
+      attribute Include { xsd:NCName },
+      element ns1:OutputSubPath { xsd:NCName }?,
+      ns1.SubType
+    }*,
+    (element ns1:CodeAnalysisDependentAssemblyPaths {
+       attribute Condition { text },
+       attribute Include { text },
+       element ns1:Visible { xsd:NCName }
+     }
+     | element ns1:PackageSourceDirectory {
+         attribute Include { text }
+       }
+     | element ns1:WebReferences {
+         attribute Include { text }
+       }
+     | element ns1:Page {
+         attribute Include { text },
+         ns1.Generator,
+         ns1.SubType
+       }*
+     | element ns1:Reference {
+         attribute Include { text },
+         element ns1:RequiredTargetFramework { xsd:decimal }?,
+         element ns1:SpecificVersion { xsd:NCName }?,
+         ns1.EmbedInteropTypes?,
+         element ns1:HintPath { text }?,
+         element ns1:Private { xsd:NCName }?,
+         ns1.Paket?
+       }*
+     | element ns1:VSIXSourceItem {
+         attribute Exclude { text }?,
+         attribute Include { text },
+         attribute VSIXSubPath { xsd:NCName }?,
+         ns1.VSIXSubPath?
+       }*
+     | element ns1:PackageReference {
+         attribute Include { xsd:NCName },
+         attribute Version { text }?,
+         element ns1:Version { xsd:NMTOKEN }?,
+         element ns1:IncludeAssets { text }?,
+         element ns1:PrivateAssets { xsd:NCName }?
+       }*
+     | element ns1:Analyzer {
+         attribute Include { text },
+         ns1.Paket
+       }*),
+    element ns1:ApplicationDefinition {
+      attribute Include { xsd:NCName },
+      ns1.Generator,
+      ns1.SubType
+    }?,
+    (element ns1:Compile {
+       attribute Include { text },
+       element ns1:AutoGen { xsd:NCName }?,
+       ns1.Link?,
+       (ns1.DependentUpon
+        | element ns1:DesignTime { xsd:NCName }
+        | element ns1:DesignTimeSharedInput { xsd:NCName })*,
+       ns1.SubType?
+     }
+     | element ns1:Content {
+         attribute Include { text },
+         element ns1:IncludeInVSIX { xsd:boolean }?,
+         (ns1.CopyToOutputDirectory | ns1.DependentUpon | ns1.SubType)?
+       }
+     | element ns1:EmbeddedResource {
+         attribute Include { text },
+         (ns1.Generator, ns1.LastGenOutput)?,
+         (ns1.DependentUpon | ns1.SubType)?
+       }
+     | element ns1:EntityDeploy {
+         attribute Include { xsd:NCName },
+         ns1.Generator,
+         ns1.LastGenOutput
+       }
+     | element ns1:None {
+         attribute Include { text },
+         (ns1.Generator, ns1.LastGenOutput)?,
+         (ns1.DependentUpon | ns1.Link)?,
+         ns1.CopyToOutputDirectory?,
+         ns1.SubType?
+       }
+     | element ns1:Resource {
+         attribute Include { text }
+       })*,
+    (element ns1:AppDesigner {
+       attribute Include { text }
+     }
+     | element ns1:Service {
+         attribute Include { text }
+       }*)
+  }
+ns1.Output =
+  element ns1:Output {
+    attribute ItemName { xsd:NCName }?,
+    attribute PropertyName { xsd:NCName }?,
+    attribute TaskParameter { xsd:NCName }
+  }
+EmbedInteropTypes = element EmbedInteropTypes { xsd:NCName }
+Generator = element Generator { text }
+SubType = element SubType { text }
+LastGenOutput = element LastGenOutput { xsd:NCName }
+CopyToOutputDirectory = element CopyToOutputDirectory { xsd:NCName }
+DependentUpon = element DependentUpon { text }
+CopyToPublishDirectory = element CopyToPublishDirectory { xsd:NCName }
+Link = element Link { text }
+ExcludeFromSingleFile = element ExcludeFromSingleFile { xsd:boolean }
+ns1.VSIXSubPath = element ns1:VSIXSubPath { xsd:NCName }
+ns1.EmbedInteropTypes = element ns1:EmbedInteropTypes { xsd:NCName }
+ns1.SubType = element ns1:SubType { xsd:NCName }
+ns1.Generator = element ns1:Generator { xsd:NMTOKEN }
+ns1.Paket = element ns1:Paket { xsd:NCName }
+ns1.LastGenOutput = element ns1:LastGenOutput { xsd:NCName }
+ns1.DependentUpon = element ns1:DependentUpon { xsd:NCName }
+ns1.Link = element ns1:Link { text }
+ns1.CopyToOutputDirectory =
+  element ns1:CopyToOutputDirectory { xsd:NCName }

@@ -1,6 +1,6 @@
 ;;; uniquify.el --- unique buffer names dependent on file name -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1995-1997, 2001-2023 Free Software Foundation,
+;; Copyright (C) 1989, 1995-1997, 2001-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Dick King <king@reasoning.com>
@@ -28,7 +28,7 @@
 
 ;; Emacs's traditional method for making buffer names unique adds <2>, <3>,
 ;; etc. to the end of (all but one of) the buffers.  This file replaces
-;; that behavior, for buffers visiting files and dired buffers, with a
+;; that behavior, for buffers visiting files and Dired buffers, with a
 ;; uniquification that adds parts of the file name until the buffer names
 ;; are unique.  For instance, buffers visiting /u/mernst/tmp/Makefile and
 ;; /usr/projects/zaphod/Makefile would be named Makefile|tmp and
@@ -148,7 +148,7 @@ file name components (default \"\\\")."
   :type '(choice (const nil) string))
 
 (defcustom uniquify-trailing-separator-p nil
-  "If non-nil, add a file name separator to dired buffer names.
+  "If non-nil, add a file name separator to Dired buffer names.
 If `uniquify-buffer-name-style' is `forward', add the separator at the end;
 if it is `reverse', add the separator at the beginning; otherwise, this
 variable is ignored."
@@ -187,9 +187,9 @@ name will then be used to uniquify the buffer's name.
 
 To include components from the `project-name' of the buffer, set
 this variable to `project-uniquify-dirname-transform'."
-  :type '(choice (function-item :tag "Use directory name as-is" identity)
+  :type `(choice (function-item :tag "Use directory name as-is" identity)
                  (function-item :tag "Include project name in directory name"
-                                #'project-uniquify-dirname-transform)
+                                ,#'project-uniquify-dirname-transform)
                  function)
   :version "30.1"
   :group 'uniquify)

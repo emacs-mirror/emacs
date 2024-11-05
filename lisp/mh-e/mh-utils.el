@@ -1,6 +1,6 @@
 ;;; mh-utils.el --- MH-E general utilities  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2023 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -795,7 +795,7 @@ used in searching."
              (message "Creating %s" folder-name)
              (mh-exec-cmd-error nil "folder" folder-name)
              (mh-remove-from-sub-folders-cache folder-name)
-             (when (boundp 'mh-speed-folder-map)
+             (when (and (boundp 'speedbar-buffer) speedbar-buffer)
                (mh-speed-add-folder folder-name))
              (message "Creating %s...done" folder-name))
             (new-file-flag

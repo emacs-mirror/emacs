@@ -1,6 +1,6 @@
 ;;; minibuffer-tests.el --- Tests for completion functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -33,14 +33,13 @@
 
 (ert-deftest completion-test1 ()
   (with-temp-buffer
-    (cl-flet* ((test/completion-table (_string _pred action)
-                                      (if (eq action 'lambda)
-                                          nil
-                                        "test: "))
+    (cl-flet* ((test/completion-table (string pred action)
+                 (let ((completion-ignore-case t))
+                   (complete-with-action action '("test: ") string pred)))
                (test/completion-at-point ()
-                                         (list (copy-marker (point-min))
-                                               (copy-marker (point))
-                                               #'test/completion-table)))
+                 (list (copy-marker (point-min))
+                       (copy-marker (point))
+                       #'test/completion-table)))
       (let ((completion-at-point-functions (list #'test/completion-at-point)))
         (insert "TEST")
         (completion-at-point)
@@ -139,7 +138,7 @@
 (defun test-completion-all-sorted-completions (base def history-var history-list)
   (with-temp-buffer
     (insert base)
-    (cl-letf (((symbol-function #'minibufferp) (lambda (&rest _) t)))
+    (cl-letf (((symbol-function #'minibufferp) #'always))
       (let ((completion-styles '(basic))
             (completion-category-defaults nil)
             (completion-category-overrides nil)
@@ -190,7 +189,8 @@
 
 (defun completion--pcm-score (comp)
   "Get `completion-score' from COMP."
-  (get-text-property 0 'completion-score comp))
+  ;; FIXME, uses minibuffer.el implementation details
+  (completion--flex-score comp completion-pcm--regexp))
 
 (defun completion--pcm-first-difference-pos (comp)
   "Get `completions-first-difference' from COMP."
@@ -200,6 +200,13 @@
            when (eq (get-text-property pos 'face comp)
                     'completions-first-difference)
            return pos))
+
+(ert-deftest completion-test--pcm-bug38458 ()
+  (should (equal (let ((completion-ignore-case t))
+                   (completion-pcm--merge-try '("tes" point "ing")
+                                              '("Testing" "testing")
+                                              "" ""))
+           '("testing" . 4))))
 
 (ert-deftest completion-pcm-test-1 ()
   ;; Point is at end, this does not match anything
@@ -297,6 +304,26 @@
             (car (completion-substring-all-completions
                   "jab" '("dabjabstabby" "many") nil 3)))
            6)))
+
+(ert-deftest completion-substring-test-5 ()
+  ;; Normally a `prefix' wildcard ignores the common prefix to its
+  ;; left, since it only grows the common suffix; but if that common
+  ;; prefix is also a common suffix, it should be included.
+  (should (equal
+           (completion-pcm--merge-try '(prefix "b") '("ab" "sab") "" "")
+           '("ab" . 2)))
+  (should (equal
+           (completion-pcm--merge-try '(prefix "b") '("ab" "ab") "" "")
+           '("ab" . 2)))
+  ;; When there's a fixed string before `prefix', that fixed string
+  ;; should always be included.
+  (should (equal
+           (completion-pcm--merge-try '("a" prefix "b") '("axb" "ayb") "" "")
+           '("ab" . 2)))
+  ;; substring completion should successfully complete the entire string
+  (should (equal
+           (completion-substring-try-completion "b" '("ab" "ab") nil 0)
+           '("ab" . 2))))
 
 (ert-deftest completion-flex-test-1 ()
   ;; Fuzzy match
@@ -407,6 +434,21 @@
       (next-completion 5)
       (should (equal "ac" (get-text-property (point) 'completion--string)))
       (previous-completion 5)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+
+      (first-completion)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (next-line-completion 2)
+      (should (equal "ac" (get-text-property (point) 'completion--string)))
+      (next-line-completion 5)
+      (should (equal "ac" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 5)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (goto-char (point-min))
+      (next-line-completion 5)
+      (should (equal "ac" (get-text-property (point) 'completion--string)))
+      (goto-char (point-min))
+      (previous-line-completion 5)
       (should (equal "aa" (get-text-property (point) 'completion--string)))))
   (let ((completion-auto-wrap t))
     (completing-read-with-minibuffer-setup
@@ -420,7 +462,36 @@
       (next-completion 1)
       (should (equal "aa" (get-text-property (point) 'completion--string)))
       (previous-completion 1)
+      (should (equal "ac" (get-text-property (point) 'completion--string)))
+
+      (first-completion)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (next-line-completion 2)
+      (should (equal "ac" (get-text-property (point) 'completion--string)))
+      (next-line-completion 1)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 1)
+      (should (equal "ac" (get-text-property (point) 'completion--string)))
+      (goto-char (point-min))
+      (next-line-completion 4)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (goto-char (point-min))
+      (previous-line-completion 4)
       (should (equal "ac" (get-text-property (point) 'completion--string))))))
+
+(ert-deftest completion-next-line-multline-test ()
+  (let ((completion-auto-wrap t))
+    (completing-read-with-minibuffer-setup
+     '("a\na" "a\nb" "ac")
+     (insert "a")
+     (minibuffer-completion-help)
+     (switch-to-completions)
+     (goto-char (point-min))
+     (next-line-completion 5)
+     (should (equal "a\nb" (get-text-property (point) 'completion--string)))
+     (goto-char (point-min))
+     (previous-line-completion 5)
+     (should (equal "a\nb" (get-text-property (point) 'completion--string))))))
 
 (ert-deftest completions-header-format-test ()
   (let ((completion-show-help nil)
@@ -441,6 +512,16 @@
       (should (equal "ac" (get-text-property (point) 'completion--string)))
       (next-completion 1)
       (should (equal "aa" (get-text-property (point) 'completion--string)))
+
+      (next-line-completion 2)
+      (should (equal "ac" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 2)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 1)
+      (should (equal "ac" (get-text-property (point) 'completion--string)))
+      (next-line-completion 1)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+
       ;; Fixed in bug#55430
       (execute-kbd-macro (kbd "C-u RET"))
       (should (equal (minibuffer-contents) "aa")))
@@ -452,11 +533,11 @@
 
 (ert-deftest completions-affixation-navigation-test ()
   (let ((completion-extra-properties
-         '(:affixation-function
-           (lambda (completions)
-             (mapcar (lambda (c)
-                       (list c "prefix " " suffix"))
-                     completions)))))
+         `(:affixation-function
+           ,(lambda (completions)
+              (mapcar (lambda (c)
+                        (list c "prefix " " suffix"))
+                      completions)))))
     (completing-read-with-minibuffer-setup
         '("aa" "ab" "ac")
       (insert "a")
@@ -475,8 +556,99 @@
       ;; Fixed in bug#54374
       (goto-char (1- (point-max)))
       (should-not (equal 'highlight (get-text-property (point) 'mouse-face)))
+
+      (first-completion)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (let ((completion-auto-wrap t))
+        (next-line-completion 3))
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (let ((completion-auto-wrap nil))
+        (next-line-completion 3))
+      (should (equal "ac" (get-text-property (point) 'completion--string)))
+
       (execute-kbd-macro (kbd "C-u RET"))
       (should (equal (minibuffer-contents) "ac")))))
+
+(ert-deftest completions-group-navigation-test ()
+  (completing-read-with-minibuffer-setup
+      (lambda (string pred action)
+	(if (eq action 'metadata)
+	    `(metadata
+	      (group-function
+	       . ,(lambda (name transform)
+                    (if transform
+                        name
+                      (pcase name
+                        (`"aa1" "Group 1")
+                        (`"aa2" "Group 1")
+                        (`"aa3" "Group 1")
+                        (`"aa4" "Group 1")
+                        (`"ab1" "Group 2")
+                        (`"ac1" "Group 3")
+                        (`"ac2" "Group 3")))))
+	      (category . unicode-name))
+	  (complete-with-action action '("aa1" "aa2" "aa3" "aa4" "ab1" "ac1" "ac2")
+                                string pred)))
+    (insert "a")
+    (minibuffer-completion-help)
+    (switch-to-completions)
+    (should (equal "aa1" (get-text-property (point) 'completion--string)))
+    (let ((completion-auto-wrap t))
+      (next-completion 7))
+    (should (equal "aa1" (get-text-property (point) 'completion--string)))
+    (let ((completion-auto-wrap nil))
+      (next-completion 7))
+    (should (equal "ac2" (get-text-property (point) 'completion--string)))
+
+    (let ((completion-auto-wrap t))
+      ;; First column
+      (first-completion)
+      (next-line-completion 1)
+      (should (equal "aa4" (get-text-property (point) 'completion--string)))
+      (next-line-completion 3)
+      (should (equal "aa1" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 2)
+      (should (equal "ab1" (get-text-property (point) 'completion--string)))
+
+      ;; Second column
+      (first-completion)
+      (next-completion 1)
+      (should (equal "aa2" (get-text-property (point) 'completion--string)))
+      (next-line-completion 1)
+      (should (equal "ac2" (get-text-property (point) 'completion--string)))
+      (next-line-completion 1)
+      (should (equal "aa2" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 1)
+      (should (equal "ac2" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 1)
+      (should (equal "aa2" (get-text-property (point) 'completion--string)))
+
+      ;; Third column
+      (first-completion)
+      (next-completion 2)
+      (should (equal "aa3" (get-text-property (point) 'completion--string)))
+      (next-line-completion 1)
+      (should (equal "aa3" (get-text-property (point) 'completion--string))))
+
+    (let ((completion-auto-wrap nil))
+      (first-completion)
+      (next-line-completion 7)
+      (should (equal "ac2" (get-text-property (point) 'completion--string)))
+      (previous-line-completion 7)
+      (should (equal "aa1" (get-text-property (point) 'completion--string))))))
+
+(ert-deftest completion-cycle ()
+  (completing-read-with-minibuffer-setup '("aaa" "bbb" "ccc")
+    (let ((completion-cycle-threshold t))
+      (execute-kbd-macro (kbd "TAB TAB TAB"))
+      (should (equal (minibuffer-contents) "ccc")))))
+
+(ert-deftest minibuffer-next-completion ()
+  (let ((default-directory (ert-resource-directory)))
+    (completing-read-with-minibuffer-setup #'read-file-name-internal
+      (insert "d/")
+      (execute-kbd-macro (kbd "M-<down> M-<down> M-<down>"))
+      (should (equal "data/minibuffer-test-cttq$$tion" (minibuffer-contents))))))
 
 (provide 'minibuffer-tests)
 ;;; minibuffer-tests.el ends here

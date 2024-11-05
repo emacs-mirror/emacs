@@ -1,6 +1,6 @@
 # Files that Git should ignore in the Emacs source directory.
 
-# Copyright 2009-2023 Free Software Foundation, Inc.
+# Copyright 2009-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -18,14 +18,15 @@
 # along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
-# Currently we assume only Git 1.7.1 (April 2010) or later, so this
-# file does not rely on "**" in patterns.  The "**" feature was added
-# in Git 1.8.2 (March 2013).
-
-
-# Personal customization.
-.dir-locals-2.el
-.no-advice-on-failure
+# Ignore all dot-files except for those under version control.
+.*
+!.clang-format
+!.clangd
+!.dir-locals.el
+!.gitattributes
+!.gitignore
+!.gitlab-ci.yml
+!.mailmap
 
 # Built by 'autogen.sh'.
 /aclocal.m4
@@ -66,6 +67,10 @@ java/org/gnu/emacs/*.class
 # Built by `aapt'.
 java/org/gnu/emacs/R.java
 
+# Built by `make'.
+java/org/gnu/emacs/EmacsConfig.java
+java/cf-stamp
+
 # Built by `config.status'.
 java/AndroidManifest.xml
 
@@ -74,6 +79,7 @@ lib/alloca.h
 lib/assert.h
 lib/byteswap.h
 lib/dirent.h
+lib/endian.h
 lib/errno.h
 lib/execinfo.h
 lib/fcntl.h
@@ -114,8 +120,8 @@ cross/ndk-build/ndk-build.mk
 cross/ndk-build/*.o
 
 # Lisp-level sources built by 'make'.
-*cus-load.el
-*loaddefs.el
+lisp/**/*cus-load.el
+lisp/**/*loaddefs.el
 lisp/cedet/semantic/bovine/c-by.el
 lisp/cedet/semantic/bovine/make-by.el
 lisp/cedet/semantic/bovine/scm-by.el
@@ -124,9 +130,11 @@ lisp/cedet/semantic/wisent/js-wy.el
 lisp/cedet/semantic/wisent/python-wy.el
 lisp/cedet/srecode/srt-wy.el
 lisp/cedet/semantic/grammar-wy.el
+lisp/eshell/esh-module-loaddefs.el
 lisp/eshell/esh-groups.el
 lisp/finder-inf.el
 lisp/leim/ja-dic/
+leim/small-ja-dic-option
 lisp/leim/leim-list.el
 lisp/leim/quail/4Corner.el
 lisp/leim/quail/ARRAY30.el
@@ -313,7 +321,6 @@ gnustmp*
 *.orig
 *.swp
 *~
-.#*
 \#*\#
 ChangeLog
 [0-9]*.patch
@@ -362,20 +369,14 @@ lib-src/seccomp-filter-exec.pfc
 # Ignore directory made by admin/make-manuals.
 /manual/
 
-# Ignore Finder files on MacOS.
-.DS_Store
-
-# Ignore a directory used by dap-mode.
-.vscode
 /test/gmp.h
-
-# GDB history
-.gdb_history
-_gdb_history
 
 # Files ignored in exec/.
 exec/aclocal.m4
+exec/config.guess
+exec/config.sub
 exec/config.status
+exec/install-sh
 exec/loader
 exec/test
 exec/exec1

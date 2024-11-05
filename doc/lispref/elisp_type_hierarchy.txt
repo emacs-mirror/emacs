@@ -1,0 +1,33 @@
+| Type                | Derived Types                                             |
+|---------------------+-----------------------------------------------------------|
+| boolean             | null                                                      |
+| integer             | fixnum bignum                                             |
+| accessor            | oclosure-accessor                                         |
+| cl--class           | cl-structure-class oclosure--class built-in-class         |
+| vector              | timer                                                     |
+| cons                | ppss decoded-time                                         |
+| number              | integer float                                             |
+| integer-or-marker   | integer marker                                            |
+| number-or-marker    | number integer-or-marker                                  |
+| array               | vector string bool-vector char-table                      |
+| oclosure            | accessor advice cconv--interactive-helper advice--forward |
+|                     | save-some-buffers-function cl--generic-nnm                |
+| cl-structure-object | cl--class xref-elisp-location org-cite-processor          |
+|                     | cl--generic-method cl--random-state register-preview-info |
+|                     | cl--generic cl-slot-descriptor uniquify-item registerv    |
+|                     | isearch--state cl--generic-generalizer lisp-indent-state  |
+| record              | cl-structure-object                                       |
+| symbol              | boolean symbol-with-pos                                   |
+| subr                | primitive-function subr-native-elisp special-form         |
+| compiled-function   | primitive-function subr-native-elisp byte-code-function   |
+| function            | oclosure compiled-function interpreted-function           |
+|                     | module-function                                           |
+| list                | null cons                                                 |
+| sequence            | array list                                                |
+| atom                | number-or-marker array record symbol subr function mutex  |
+|                     | font-spec frame tree-sitter-compiled-query                |
+|                     | tree-sitter-node font-entity finalizer tree-sitter-parser |
+|                     | hash-table window-configuration user-ptr overlay process  |
+|                     | font-object obarray condvar buffer terminal thread window |
+|                     | native-comp-unit                                          |
+| t                   | sequence atom                                             |

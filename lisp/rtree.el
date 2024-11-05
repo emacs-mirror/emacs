@@ -1,6 +1,6 @@
 ;;; rtree.el --- functions for manipulating range trees  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 

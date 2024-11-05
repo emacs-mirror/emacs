@@ -1,6 +1,6 @@
 /* Font back-end driver for the GNUstep window system.
    See font.h
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -337,8 +337,8 @@ ns_spec_to_descriptor (Lisp_Object font_spec)
       if (EQ (tem, Qitalic) || EQ (tem, Qoblique))
 	[tdict setObject: [NSNumber numberWithFloat: 1.0]
 		  forKey: NSFontSlantTrait];
-      else if (EQ (tem, intern ("reverse-italic"))
-	       || EQ (tem, intern ("reverse-oblique")))
+      else if (EQ (tem, Qreverse_italic)
+	       || EQ (tem, Qreverse_oblique))
 	[tdict setObject: [NSNumber numberWithFloat: -1.0]
 		  forKey: NSFontSlantTrait];
       else
@@ -451,7 +451,7 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
       FONT_SET_STYLE (font_entity, FONT_SLANT_INDEX,
 		      data.slant == GS_FONT_SLANT_ITALIC
 		      ? Qitalic : (data.slant == GS_FONT_SLANT_REVERSE_ITALIC
-				   ? intern ("reverse-italic") : Qnormal));
+				   ? Qreverse_italic : Qnormal));
     }
   else
     FONT_SET_STYLE (font_entity, FONT_SLANT_INDEX, Qnormal);
@@ -461,7 +461,7 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
       FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
 		      data.width == GS_FONT_WIDTH_CONDENSED
 		      ? Qcondensed : (data.width == GS_FONT_WIDTH_EXPANDED
-				      ? intern ("expanded") : Qnormal));
+				      ? Qexpanded : Qnormal));
     }
   else
     FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX, Qnormal);
@@ -601,7 +601,7 @@ static NSString
 {
     Lisp_Object script = assq_no_quit (XCAR (otf), Votf_script_alist);
     return CONSP (script)
-	? [NSString stringWithLispString: SYMBOL_NAME (XCDR ((script)))]
+	? [NSString stringWithLispString: SYMBOL_NAME (XCDR (script))]
 	: @"";
 }
 
@@ -1035,7 +1035,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
     font->underline_position = lrint (font_info->underpos);
     font->underline_thickness = lrint (font_info->underwidth);
 
-    font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
+    font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil, Qnil);
     font->props[FONT_FULLNAME_INDEX] = build_unibyte_string (font_info->name);
   }
   unblock_input ();
@@ -1180,21 +1180,12 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     {
       NSRect br = NSMakeRect (x, y - FONT_BASE (s->font),
 			      s->width, FONT_HEIGHT (s->font));
-
-      if (!s->face->stipple)
-	{
-	  if (s->hl != DRAW_CURSOR)
-	    [(NS_FACE_BACKGROUND (face) != 0
-	      ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
-	      : FRAME_BACKGROUND_COLOR (s->f)) set];
-	  else
-	    [FRAME_CURSOR_COLOR (s->f) set];
-	}
+      if (s->hl != DRAW_CURSOR)
+	[(NS_FACE_BACKGROUND (face) != 0
+	  ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
+	  : FRAME_BACKGROUND_COLOR (s->f)) set];
       else
-        {
-          struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
-          [[dpyinfo->bitmaps[face->stipple-1].img stippleMask] set];
-        }
+	[FRAME_CURSOR_COLOR (s->f) set];
       NSRectFill (br);
     }
 
@@ -1753,7 +1744,6 @@ void
 syms_of_nsfont (void)
 {
   DEFSYM (Qcondensed, "condensed");
-  DEFSYM (Qexpanded, "expanded");
   DEFSYM (Qmedium, "medium");
 
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
@@ -1761,6 +1751,11 @@ syms_of_nsfont (void)
   Vns_reg_to_script = Qnil;
 
   pdumper_do_now_and_after_load (syms_of_nsfont_for_pdumper);
+
+  /* Font slant styles.  */
+  DEFSYM (Qreverse_italic, "reverse-italic");
+  DEFSYM (Qreverse_oblique, "reverse-oblique");
+  DEFSYM (Qexpanded, "expanded");
 }
 
 static void

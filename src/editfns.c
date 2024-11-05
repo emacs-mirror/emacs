@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.                 -*- coding: utf-8 -*-
 
-Copyright (C) 1985-2023 Free Software Foundation, Inc.
+Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -46,7 +46,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <c-ctype.h>
 #include <intprops.h>
 #include <stdlib.h>
-#include <verify.h>
 
 #include "composite.h"
 #include "intervals.h"
@@ -272,24 +271,6 @@ If you set the marker not to point anywhere, the buffer will have no mark.  */)
 }
 
 
-/* Find all the overlays in the current buffer that touch position POS.
-   Return the number found, and store them in a vector in VEC
-   of length LEN.
-
-   Note: this can return overlays that do not touch POS.  The caller
-   should filter these out. */
-
-static ptrdiff_t
-overlays_around (ptrdiff_t pos, Lisp_Object *vec, ptrdiff_t len)
-{
-  /* Find all potentially rear-advance overlays at (POS - 1).  Find
-     all overlays at POS, so end at (POS + 1).  Find even empty
-     overlays, which due to the way 'overlays-in' works implies that
-     we might also fetch empty overlays starting at (POS + 1).  */
-  return overlays_in (pos - 1, pos + 1, false, &vec, &len,
-		      true, false, NULL);
-}
-
 DEFUN ("get-pos-property", Fget_pos_property, Sget_pos_property, 2, 3, 0,
        doc: /* Return the value of POSITION's property PROP, in OBJECT.
 Almost identical to `get-char-property' except for the following difference:
@@ -315,53 +296,44 @@ at POSITION.  */)
   else
     {
       EMACS_INT posn = XFIXNUM (position);
-      ptrdiff_t noverlays;
-      Lisp_Object *overlay_vec, tem;
+      Lisp_Object tem;
       struct buffer *obuf = current_buffer;
-      USE_SAFE_ALLOCA;
+      struct itree_node *node;
+      struct sortvec items[2];
+      struct buffer *b = XBUFFER (object);
+      struct sortvec *result = NULL;
+      Lisp_Object res = Qnil;
 
-      set_buffer_temp (XBUFFER (object));
+      set_buffer_temp (b);
 
-      /* First try with room for 40 overlays.  */
-      Lisp_Object overlay_vecbuf[40];
-      noverlays = ARRAYELTS (overlay_vecbuf);
-      overlay_vec = overlay_vecbuf;
-      noverlays = overlays_around (posn, overlay_vec, noverlays);
-
-      /* If there are more than 40,
-	 make enough space for all, and try again.  */
-      if (ARRAYELTS (overlay_vecbuf) < noverlays)
+      ITREE_FOREACH (node, b->overlays, posn - 1, posn + 1, ASCENDING)
 	{
-	  SAFE_ALLOCA_LISP (overlay_vec, noverlays);
-	  noverlays = overlays_around (posn, overlay_vec, noverlays);
-	}
-      noverlays = sort_overlays (overlay_vec, noverlays, NULL);
+	  Lisp_Object ol = node->data;
+	  tem = Foverlay_get (ol, prop);
+	  if (NILP (tem)
+	      /* Check the overlay is indeed active at point.  */
+	      || ((node->begin == posn
+		   && OVERLAY_FRONT_ADVANCE_P (ol))
+		  || (node->end == posn
+		      && ! OVERLAY_REAR_ADVANCE_P (ol))
+		  || node->begin > posn
+		  || node->end < posn))
+	    /* The overlay will not cover a char inserted at point.  */
+	    continue;
 
+	  struct sortvec *this = (result == items ? items + 1 : items);
+          if (NILP (res)
+              || (make_sortvec_item (this, node->data),
+                  compare_overlays (result, this) < 0))
+            {
+              result = this;
+              res = tem;
+            }
+	}
       set_buffer_temp (obuf);
 
-      /* Now check the overlays in order of decreasing priority.  */
-      while (--noverlays >= 0)
-	{
-	  Lisp_Object ol = overlay_vec[noverlays];
-	  tem = Foverlay_get (ol, prop);
-	  if (!NILP (tem))
-	    {
-	      /* Check the overlay is indeed active at point.  */
-	      if ((OVERLAY_START (ol) == posn
-		   && OVERLAY_FRONT_ADVANCE_P (ol))
-		  || (OVERLAY_END (ol) == posn
-		      && ! OVERLAY_REAR_ADVANCE_P (ol))
-		  || OVERLAY_START (ol) > posn
-		  || OVERLAY_END (ol) < posn)
-		; /* The overlay will not cover a char inserted at point.  */
-	      else
-		{
-		  SAFE_FREE ();
-		  return tem;
-		}
-	    }
-	}
-      SAFE_FREE ();
+      if (!NILP (res))
+        return res;
 
       { /* Now check the text properties.  */
 	int stickiness = text_property_stickiness (prop, position, object);
@@ -397,7 +369,7 @@ at POSITION.  */)
    Either BEG or END may be 0, in which case the corresponding value
    is not stored.  */
 
-static void
+void
 find_field (Lisp_Object pos, Lisp_Object merge_at_boundary,
 	    Lisp_Object beg_limit,
 	    ptrdiff_t *beg, Lisp_Object end_limit, ptrdiff_t *end)
@@ -727,6 +699,7 @@ This function does not move point.  Also see `line-beginning-position'.  */)
 DEFUN ("line-beginning-position",
        Fline_beginning_position, Sline_beginning_position, 0, 1, 0,
        doc: /* Return the position of the first character in the current line/field.
+With optional argument N non-nil, move forward N - 1 lines first.
 This function is like `pos-bol' (which see), but respects fields.
 
 This function constrains the returned position to the current field
@@ -1273,11 +1246,10 @@ is in general a comma-separated list.  */)
   if (!pw)
     return Qnil;
 
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-  p = android_user_full_name (pw);
-#else
   p = USER_FULL_NAME;
-#endif
+  if (!p)
+    return Qnil;
+
   /* Chop off everything after the first comma, since 'pw_gecos' is a
      comma-separated list. */
   q = strchr (p, ',');
@@ -1784,7 +1756,7 @@ determines whether case is significant or ignored.  */)
   register EMACS_INT begp1, endp1, begp2, endp2, temp;
   register struct buffer *bp1, *bp2;
   register Lisp_Object trt
-    = (!NILP (BVAR (current_buffer, case_fold_search))
+    = (!NILP (Vcase_fold_search)
        ? BVAR (current_buffer, case_canon_table) : Qnil);
   ptrdiff_t chars = 0;
   ptrdiff_t i1, i2, i1_byte, i2_byte;
@@ -1907,7 +1879,7 @@ determines whether case is significant or ignored.  */)
 #define USE_HEURISTIC
 
 #define XVECREF_YVECREF_EQUAL(ctx, xoff, yoff)  \
-  buffer_chars_equal ((ctx), (xoff), (yoff))
+  buffer_chars_equal (ctx, xoff, yoff)
 
 #define OFFSET ptrdiff_t
 
@@ -2780,7 +2752,7 @@ labeled_restrictions_pop (Lisp_Object buf)
   Lisp_Object restrictions = assq_no_quit (buf, labeled_restrictions);
   if (NILP (restrictions))
     return;
-  if (EQ (labeled_restrictions_peek_label (buf), Qoutermost_restriction))
+  if (BASE_EQ (labeled_restrictions_peek_label (buf), Qoutermost_restriction))
     labeled_restrictions_remove (buf);
   else
     XSETCDR (restrictions, list1 (XCDR (XCAR (XCDR (restrictions)))));
@@ -2876,9 +2848,9 @@ void
 labeled_narrow_to_region (Lisp_Object begv, Lisp_Object zv,
 			  Lisp_Object label)
 {
-  Finternal__labeled_narrow_to_region (begv, zv, label);
   record_unwind_protect (restore_point_unwind, Fpoint_marker ());
   record_unwind_protect (unwind_labeled_narrow_to_region, label);
+  Finternal__labeled_narrow_to_region (begv, zv, label);
 }
 
 DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
@@ -2920,7 +2892,7 @@ To gain access to other portions of the buffer, use
 	 current_buffer are the bounds that were set by the user, no
 	 labeled restriction is in effect in current_buffer anymore:
 	 remove it from the labeled_restrictions alist.  */
-      if (EQ (label, Qoutermost_restriction))
+      if (BASE_EQ (label, Qoutermost_restriction))
 	labeled_restrictions_pop (buf);
     }
   /* Changing the buffer bounds invalidates any recorded current column.  */
@@ -3435,7 +3407,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
    SPRINTF_BUFSIZE = (sizeof "-." + (LDBL_MAX_10_EXP + 1)
 		      + USEFUL_PRECISION_MAX)
   };
-  verify (USEFUL_PRECISION_MAX > 0);
+  static_assert (USEFUL_PRECISION_MAX > 0);
 
   ptrdiff_t n;		/* The number of the next arg to substitute.  */
   char initial_buffer[1000 + SPRINTF_BUFSIZE];
@@ -4366,7 +4338,7 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
 
   if (XFIXNUM (c1) == XFIXNUM (c2))
     return Qt;
-  if (NILP (BVAR (current_buffer, case_fold_search)))
+  if (NILP (Vcase_fold_search))
     return Qnil;
 
   i1 = XFIXNAT (c1);

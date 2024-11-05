@@ -1,6 +1,6 @@
 ;;; ol-doi.el --- DOI links support in Org           -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 
@@ -40,7 +40,8 @@
 
 (defun org-link-doi-open (path arg)
   "Open a \"doi\" type link.
-PATH is a the path to search for, as a string."
+PATH is a the path to search for, as a string.
+ARG is passed to `browse-url'."
   (browse-url (url-encode-url (concat org-link-doi-server-url path)) arg))
 
 (defun org-link-doi-export (path desc backend info)

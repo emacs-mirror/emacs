@@ -1,4 +1,4 @@
-/* Copyright (C) 2018-2023 Free Software Foundation, Inc.
+/* Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -44,6 +44,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "thread.h"
 #include "bignum.h"
+#include "treesit.h"
 
 #ifdef CHECK_STRUCTS
 # include "dmpstruct.h"
@@ -98,11 +99,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    are the same size and have the same layout, and where bytes have
    eight bits --- that is, a general-purpose computer made after 1990.
    Also require Lisp_Object to be at least as wide as pointers.  */
-verify (sizeof (ptrdiff_t) == sizeof (void *));
-verify (sizeof (intptr_t) == sizeof (ptrdiff_t));
-verify (sizeof (void (*) (void)) == sizeof (void *));
-verify (sizeof (ptrdiff_t) <= sizeof (Lisp_Object));
-verify (sizeof (ptrdiff_t) <= sizeof (EMACS_INT));
+static_assert (sizeof (ptrdiff_t) == sizeof (void *));
+static_assert (sizeof (intptr_t) == sizeof (ptrdiff_t));
+static_assert (sizeof (void (*) (void)) == sizeof (void *));
+static_assert (sizeof (ptrdiff_t) <= sizeof (Lisp_Object));
+static_assert (sizeof (ptrdiff_t) <= sizeof (EMACS_INT));
 
 static size_t
 divide_round_up (size_t x, size_t y)
@@ -275,15 +276,15 @@ enum
    DUMP_RELOC_OFFSET_BITS = DUMP_OFF_WIDTH - DUMP_RELOC_TYPE_BITS
   };
 
-verify (RELOC_DUMP_TO_EMACS_LV + 8 < (1 << DUMP_RELOC_TYPE_BITS));
-verify (DUMP_ALIGNMENT >= GCALIGNMENT);
+static_assert (RELOC_DUMP_TO_EMACS_LV + 8 < (1 << DUMP_RELOC_TYPE_BITS));
+static_assert (DUMP_ALIGNMENT >= GCALIGNMENT);
 
 struct dump_reloc
 {
   unsigned int raw_offset : DUMP_RELOC_OFFSET_BITS;
   ENUM_BF (dump_reloc_type) type : DUMP_RELOC_TYPE_BITS;
 };
-verify (sizeof (struct dump_reloc) == sizeof (dump_off));
+static_assert (sizeof (struct dump_reloc) == sizeof (dump_off));
 
 /* Set the type of a dump relocation.
 
@@ -931,7 +932,7 @@ dump_note_reachable (struct dump_context *ctx, Lisp_Object object)
 static void *
 dump_object_emacs_ptr (Lisp_Object lv)
 {
-  if (SUBRP (lv) && !SUBR_NATIVE_COMPILEDP (lv))
+  if (SUBRP (lv) && !NATIVE_COMP_FUNCTIONP (lv))
     return XSUBR (lv);
   if (dump_builtin_symbol_p (lv))
     return XSYMBOL (lv);
@@ -1226,7 +1227,7 @@ dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
      dump_tailq_length (&dump_queue->zero_weight_objects),
      dump_tailq_length (&dump_queue->one_weight_normal_objects),
      dump_tailq_length (&dump_queue->one_weight_strong_objects),
-     XHASH_TABLE (dump_queue->link_weights)->count);
+     (ptrdiff_t) XHASH_TABLE (dump_queue->link_weights)->count);
 
   static const int nr_candidates = 3;
   struct candidate
@@ -1331,13 +1332,7 @@ dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
 static bool
 dump_object_needs_dumping_p (Lisp_Object object)
 {
-  /* Some objects, like symbols, are self-representing because they
-     have invariant bit patterns, but sometimes these objects have
-     associated data too, and these data-carrying objects need to be
-     included in the dump despite all references to them being
-     bitwise-invariant.  */
-  return (!dump_object_self_representing_p (object)
-	  || dump_object_emacs_ptr (object));
+  return !(FIXNUMP (object));
 }
 
 static void
@@ -1864,11 +1859,10 @@ dump_field_lv_or_rawptr (struct dump_context *ctx,
 
 /* Set a pointer field on an output object during dump.
 
-   CTX is the dump context.  OFFSET is the offset at which the current
-   object starts.  OUT is a pointer to the dump output object.
-   IN_START is the start of the current Emacs object.  IN_FIELD is a
-   pointer to the field in that object.  TYPE is the type of pointer
-   to which IN_FIELD points.
+   CTX is the dump context.  OUT is a pointer to the dump output
+   object.  IN_START is the start of the current Emacs object.
+   IN_FIELD is a pointer to the field in that object.  TYPE is the
+   type of pointer to which IN_FIELD points.
  */
 static void
 dump_field_lv_rawptr (struct dump_context *ctx,
@@ -1883,8 +1877,7 @@ dump_field_lv_rawptr (struct dump_context *ctx,
 
 /* Set a Lisp_Object field on an output object during dump.
 
-   CTX is a dump context.  OFFSET is the offset at which the current
-   object starts.  OUT is a pointer to the dump output object.
+   CTX is a dump context.  OUT is a pointer to the dump output object.
    IN_START is the start of the current Emacs object.  IN_FIELD is a
    pointer to a Lisp_Object field in that object.
 
@@ -2133,8 +2126,7 @@ dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
 }
 
 static dump_off
-dump_interval_node (struct dump_context *ctx, struct itree_node *node,
-                    dump_off parent_offset)
+dump_interval_node (struct dump_context *ctx, struct itree_node *node)
 {
 #if CHECK_STRUCTS && !defined (HASH_itree_node_50DE304F13)
 # error "itree_node changed. See CHECK_STRUCTS comment in config.h."
@@ -2144,9 +2136,9 @@ dump_interval_node (struct dump_context *ctx, struct itree_node *node,
   if (node->parent)
     dump_field_fixup_later (ctx, &out, node, &node->parent);
   if (node->left)
-    dump_field_fixup_later (ctx, &out, node, &node->parent);
+    dump_field_fixup_later (ctx, &out, node, &node->left);
   if (node->right)
-    dump_field_fixup_later (ctx, &out, node, &node->parent);
+    dump_field_fixup_later (ctx, &out, node, &node->right);
   DUMP_FIELD_COPY (&out, node, begin);
   DUMP_FIELD_COPY (&out, node, end);
   DUMP_FIELD_COPY (&out, node, limit);
@@ -2161,17 +2153,17 @@ dump_interval_node (struct dump_context *ctx, struct itree_node *node,
       dump_remember_fixup_ptr_raw
 	(ctx,
 	 offset + dump_offsetof (struct itree_node, parent),
-	 dump_interval_node (ctx, node->parent, offset));
+	 dump_interval_node (ctx, node->parent));
   if (node->left)
       dump_remember_fixup_ptr_raw
 	(ctx,
 	 offset + dump_offsetof (struct itree_node, left),
-	 dump_interval_node (ctx, node->left, offset));
+	 dump_interval_node (ctx, node->left));
   if (node->right)
       dump_remember_fixup_ptr_raw
 	(ctx,
 	 offset + dump_offsetof (struct itree_node, right),
-	 dump_interval_node (ctx, node->right, offset));
+	 dump_interval_node (ctx, node->right));
   return offset;
 }
 
@@ -2188,7 +2180,7 @@ dump_overlay (struct dump_context *ctx, const struct Lisp_Overlay *overlay)
   dump_remember_fixup_ptr_raw
     (ctx,
      offset + dump_offsetof (struct Lisp_Overlay, interval),
-     dump_interval_node (ctx, overlay->interval, offset));
+     dump_interval_node (ctx, overlay->interval));
   return offset;
 }
 
@@ -2217,11 +2209,26 @@ dump_finalizer (struct dump_context *ctx,
   /* Do _not_ call dump_pseudovector_lisp_fields here: we dump the
      only Lisp field, finalizer->function, manually, so we can give it
      a low weight.  */
-  dump_field_lv (ctx, &out, finalizer, &finalizer->function, WEIGHT_NONE);
-  dump_field_finalizer_ref (ctx, &out, finalizer, &finalizer->prev);
-  dump_field_finalizer_ref (ctx, &out, finalizer, &finalizer->next);
+  dump_field_lv (ctx, out, finalizer, &finalizer->function, WEIGHT_NONE);
+  dump_field_finalizer_ref (ctx, out, finalizer, &finalizer->prev);
+  dump_field_finalizer_ref (ctx, out, finalizer, &finalizer->next);
   return finish_dump_pvec (ctx, &out->header);
 }
+
+#ifdef HAVE_TREE_SITTER
+static dump_off
+dump_treesit_compiled_query (struct dump_context *ctx,
+			     struct Lisp_TS_Query *query)
+{
+  START_DUMP_PVEC (ctx, &query->header, struct Lisp_TS_Query, out);
+  dump_field_lv (ctx, &out->language, query, &query->language, WEIGHT_STRONG);
+  dump_field_lv (ctx, &out->source, query, &query->source, WEIGHT_STRONG);
+  /* These will be recompiled after load from dump.  */
+  out->query = NULL;
+  out->cursor = NULL;
+  return finish_dump_pvec (ctx, &out->header);
+}
+#endif
 
 struct bignum_reload_info
 {
@@ -2237,7 +2244,7 @@ dump_bignum (struct dump_context *ctx, Lisp_Object object)
 #endif
   const struct Lisp_Bignum *bignum = XBIGNUM (object);
   START_DUMP_PVEC (ctx, &bignum->header, struct Lisp_Bignum, out);
-  verify (sizeof (out->value) >= sizeof (struct bignum_reload_info));
+  static_assert (sizeof (out->value) >= sizeof (struct bignum_reload_info));
   dump_field_fixup_later (ctx, out, bignum, xbignum_val (object));
   dump_off bignum_offset = finish_dump_pvec (ctx, &out->header);
   if (ctx->flags.dump_object_contents)
@@ -2555,7 +2562,7 @@ static dump_off
 dump_vectorlike_generic (struct dump_context *ctx,
 			 const union vectorlike_header *header)
 {
-#if CHECK_STRUCTS && !defined (HASH_vectorlike_header_00A5A4BFB2)
+#if CHECK_STRUCTS && !defined (HASH_vectorlike_header_785E52047B)
 # error "vectorlike_header changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = (const struct Lisp_Vector *) header;
@@ -2646,73 +2653,88 @@ dump_vectorlike_generic (struct dump_context *ctx,
   return offset;
 }
 
-/* Return a vector of KEY, VALUE pairs in the given hash table H.  The
-   first H->count pairs are valid, and the rest are unbound.  */
-static Lisp_Object
+/* Return a vector of KEY, VALUE pairs in the given hash table H.
+   No room for growth is included.  */
+static Lisp_Object *
 hash_table_contents (struct Lisp_Hash_Table *h)
 {
-  if (h->test.hashfn == hashfn_user_defined)
-    error ("cannot dump hash tables with user-defined tests");  /* Bug#36769 */
-
-  ptrdiff_t size = HASH_TABLE_SIZE (h);
-  Lisp_Object key_and_value = make_uninit_vector (2 * size);
+  ptrdiff_t size = h->count;
+  Lisp_Object *key_and_value = hash_table_alloc_bytes (2 * size
+						       * sizeof *key_and_value);
   ptrdiff_t n = 0;
 
-  /* Make sure key_and_value ends up in the same order; charset.c
-     relies on it by expecting hash table indices to stay constant
-     across the dump.  */
-  for (ptrdiff_t i = 0; i < size; i++)
-    if (!NILP (HASH_HASH (h, i)))
-      {
-	ASET (key_and_value, n++, HASH_KEY (h, i));
-	ASET (key_and_value, n++, HASH_VALUE (h, i));
-      }
-
-  while (n < 2 * size)
+  DOHASH (h, k, v)
     {
-      ASET (key_and_value, n++, Qunbound);
-      ASET (key_and_value, n++, Qnil);
+      key_and_value[n++] = k;
+      key_and_value[n++] = v;
     }
 
   return key_and_value;
 }
 
-static dump_off
+static void
 dump_hash_table_list (struct dump_context *ctx)
 {
   if (!NILP (ctx->hash_tables))
-    return dump_object (ctx, CALLN (Fapply, Qvector, ctx->hash_tables));
-  else
-    return 0;
+    dump_object (ctx, CALLN (Fvconcat, ctx->hash_tables));
 }
 
+static hash_table_std_test_t
+hash_table_std_test (const struct hash_table_test *t)
+{
+  if (BASE_EQ (t->name, Qeq))
+    return Test_eq;
+  if (BASE_EQ (t->name, Qeql))
+    return Test_eql;
+  if (BASE_EQ (t->name, Qequal))
+    return Test_equal;
+  error ("cannot dump hash tables with user-defined tests");  /* Bug#36769 */
+}
+
+/* Compact contents and discard inessential information from a hash table,
+   preparing it for dumping.
+   See `hash_table_thaw' for the code that restores the object to a usable
+   state. */
 static void
 hash_table_freeze (struct Lisp_Hash_Table *h)
 {
-  ptrdiff_t npairs = ASIZE (h->key_and_value) / 2;
   h->key_and_value = hash_table_contents (h);
-  h->next = h->hash = make_fixnum (npairs);
-  h->index = make_fixnum (ASIZE (h->index));
-  h->next_free = (npairs == h->count ? -1 : h->count);
-}
-
-static void
-hash_table_thaw (Lisp_Object hash)
-{
-  struct Lisp_Hash_Table *h = XHASH_TABLE (hash);
-  h->hash = make_nil_vector (XFIXNUM (h->hash));
-  h->next = Fmake_vector (h->next, make_fixnum (-1));
-  h->index = Fmake_vector (h->index, make_fixnum (-1));
-
-  hash_table_rehash (hash);
+  h->next = NULL;
+  h->hash = NULL;
+  h->index = NULL;
+  h->table_size = 0;
+  h->index_bits = 0;
+  h->frozen_test = hash_table_std_test (h->test);
+  h->test = NULL;
 }
 
 static dump_off
-dump_hash_table (struct dump_context *ctx,
-                 Lisp_Object object,
-                 dump_off offset)
+dump_hash_table_contents (struct dump_context *ctx, struct Lisp_Hash_Table *h)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_6D63EDB618
+  dump_align_output (ctx, DUMP_ALIGNMENT);
+  dump_off start_offset = ctx->offset;
+  ptrdiff_t n = 2 * h->count;
+
+  struct dump_flags old_flags = ctx->flags;
+  ctx->flags.pack_objects = true;
+
+  for (ptrdiff_t i = 0; i < n; i++)
+    {
+      Lisp_Object out;
+      const Lisp_Object *slot = &h->key_and_value[i];
+      dump_object_start (ctx, &out, sizeof out);
+      dump_field_lv (ctx, &out, slot, slot, WEIGHT_STRONG);
+      dump_object_finish (ctx, &out, sizeof out);
+    }
+
+  ctx->flags = old_flags;
+  return start_offset;
+}
+
+static dump_off
+dump_hash_table (struct dump_context *ctx, Lisp_Object object)
+{
+#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_0360833954
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);
@@ -2724,30 +2746,72 @@ dump_hash_table (struct dump_context *ctx,
 
   START_DUMP_PVEC (ctx, &hash->header, struct Lisp_Hash_Table, out);
   dump_pseudovector_lisp_fields (ctx, &out->header, &hash->header);
-  /* TODO: dump the hash bucket vectors synchronously here to keep
-     them as close to the hash table as possible.  */
   DUMP_FIELD_COPY (out, hash, count);
-  DUMP_FIELD_COPY (out, hash, next_free);
+  DUMP_FIELD_COPY (out, hash, weakness);
   DUMP_FIELD_COPY (out, hash, purecopy);
   DUMP_FIELD_COPY (out, hash, mutable);
-  DUMP_FIELD_COPY (out, hash, rehash_threshold);
-  DUMP_FIELD_COPY (out, hash, rehash_size);
-  dump_field_lv (ctx, out, hash, &hash->key_and_value, WEIGHT_STRONG);
-  dump_field_lv (ctx, out, hash, &hash->test.name, WEIGHT_STRONG);
-  dump_field_lv (ctx, out, hash, &hash->test.user_hash_function,
-                 WEIGHT_STRONG);
-  dump_field_lv (ctx, out, hash, &hash->test.user_cmp_function,
-                 WEIGHT_STRONG);
-  dump_field_emacs_ptr (ctx, out, hash, &hash->test.cmpfn);
-  dump_field_emacs_ptr (ctx, out, hash, &hash->test.hashfn);
+  DUMP_FIELD_COPY (out, hash, frozen_test);
+  if (hash->key_and_value)
+    dump_field_fixup_later (ctx, out, hash, &hash->key_and_value);
   eassert (hash->next_weak == NULL);
-  return finish_dump_pvec (ctx, &out->header);
+  dump_off offset = finish_dump_pvec (ctx, &out->header);
+  if (hash->key_and_value)
+    dump_remember_fixup_ptr_raw
+      (ctx,
+       offset + dump_offsetof (struct Lisp_Hash_Table, key_and_value),
+       dump_hash_table_contents (ctx, hash));
+  return offset;
+}
+
+static dump_off
+dump_obarray_buckets (struct dump_context *ctx, const struct Lisp_Obarray *o)
+{
+  dump_align_output (ctx, DUMP_ALIGNMENT);
+  dump_off start_offset = ctx->offset;
+  ptrdiff_t n = obarray_size (o);
+
+  struct dump_flags old_flags = ctx->flags;
+  ctx->flags.pack_objects = true;
+
+  for (ptrdiff_t i = 0; i < n; i++)
+    {
+      Lisp_Object out;
+      const Lisp_Object *slot = &o->buckets[i];
+      dump_object_start (ctx, &out, sizeof out);
+      dump_field_lv (ctx, &out, slot, slot, WEIGHT_STRONG);
+      dump_object_finish (ctx, &out, sizeof out);
+    }
+
+  ctx->flags = old_flags;
+  return start_offset;
+}
+
+static dump_off
+dump_obarray (struct dump_context *ctx, Lisp_Object object)
+{
+#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_D2757E61AD
+# error "Lisp_Obarray changed. See CHECK_STRUCTS comment in config.h."
+#endif
+  const struct Lisp_Obarray *in_oa = XOBARRAY (object);
+  struct Lisp_Obarray munged_oa = *in_oa;
+  struct Lisp_Obarray *oa = &munged_oa;
+  START_DUMP_PVEC (ctx, &oa->header, struct Lisp_Obarray, out);
+  dump_pseudovector_lisp_fields (ctx, &out->header, &oa->header);
+  DUMP_FIELD_COPY (out, oa, count);
+  DUMP_FIELD_COPY (out, oa, size_bits);
+  dump_field_fixup_later (ctx, out, oa, &oa->buckets);
+  dump_off offset = finish_dump_pvec (ctx, &out->header);
+  dump_remember_fixup_ptr_raw
+    (ctx,
+     offset + dump_offsetof (struct Lisp_Obarray, buckets),
+     dump_obarray_buckets (ctx, oa));
+  return offset;
 }
 
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_6C25F9C3BC
+#if CHECK_STRUCTS && !defined HASH_buffer_B02F648B82
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;
@@ -2759,6 +2823,7 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
   else
     eassert (buffer->window_count == -1);
   buffer->local_minor_modes_ = Qnil;
+  buffer->last_name_ = Qnil;
   buffer->last_selected_window_ = Qnil;
   buffer->display_count_ = make_fixnum (0);
   buffer->clip_changed = 0;
@@ -2862,8 +2927,10 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
   DUMP_FIELD_COPY (out, buffer, long_line_optimizations_p);
 
   if (!itree_empty_p (buffer->overlays))
-    /* We haven't implemented the code to dump overlays.  */
-    emacs_abort ();
+    {
+      /* We haven't implemented the code to dump overlays.  */
+      error ("dumping overlays is not yet implemented");
+    }
   else
     out->overlays = NULL;
 
@@ -2906,17 +2973,17 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   dump_object_start (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, subr, header.size);
 #ifdef HAVE_NATIVE_COMP
-  bool native_comp = !NILP (subr->native_comp_u);
+  bool non_primitive = !NILP (subr->native_comp_u);
 #else
-  bool native_comp = false;
+  bool non_primitive = false;
 #endif
-  if (native_comp)
+  if (non_primitive)
     out.function.a0 = NULL;
   else
     dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
   DUMP_FIELD_COPY (&out, subr, min_args);
   DUMP_FIELD_COPY (&out, subr, max_args);
-  if (native_comp)
+  if (non_primitive)
     {
       dump_field_fixup_later (ctx, &out, subr, &subr->symbol_name);
       dump_remember_cold_op (ctx,
@@ -2941,7 +3008,7 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   dump_field_lv (ctx, &out, subr, &subr->type, WEIGHT_NORMAL);
 #endif
   dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
-  if (native_comp && ctx->flags.dump_object_contents)
+  if (non_primitive && ctx->flags.dump_object_contents)
     /* We'll do the final addr relocation during VERY_LATE_RELOCS time
        after the compilation units has been loaded. */
     dump_push (&ctx->dump_relocs[VERY_LATE_RELOCS],
@@ -2956,7 +3023,7 @@ dump_native_comp_unit (struct dump_context *ctx,
 		       struct Lisp_Native_Comp_Unit *comp_u)
 {
   if (!CONSP (comp_u->file))
-    error ("Trying to dump non fixed-up eln file");
+    error ("trying to dump non fixed-up eln file");
 
   /* Have function documentation always lazy loaded to optimize load-time.  */
   comp_u->data_fdoc_v = Qnil;
@@ -2998,11 +3065,12 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_pvec_type_5F2059C47E
+#if CHECK_STRUCTS && !defined HASH_pvec_type_99104541E2
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);
-  switch (PSEUDOVECTOR_TYPE (v))
+  enum pvec_type ptype = PSEUDOVECTOR_TYPE (v);
+  switch (ptype)
     {
     case PVEC_FONT:
       /* There are three kinds of font objects that all use PVEC_FONT,
@@ -3015,80 +3083,69 @@ dump_vectorlike (struct dump_context *ctx,
         error_unsupported_dump_object(ctx, lv, "font");
       FALLTHROUGH;
     case PVEC_NORMAL_VECTOR:
-    case PVEC_COMPILED:
+    case PVEC_CLOSURE:
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
-      offset = dump_vectorlike_generic (ctx, &v->header);
-      break;
+      return dump_vectorlike_generic (ctx, &v->header);
     case PVEC_BOOL_VECTOR:
-      offset = dump_bool_vector(ctx, v);
-      break;
+      return dump_bool_vector(ctx, v);
     case PVEC_HASH_TABLE:
-      offset = dump_hash_table (ctx, lv, offset);
-      break;
+      return dump_hash_table (ctx, lv);
+    case PVEC_OBARRAY:
+      return dump_obarray (ctx, lv);
     case PVEC_BUFFER:
-      offset = dump_buffer (ctx, XBUFFER (lv));
-      break;
+      return dump_buffer (ctx, XBUFFER (lv));
     case PVEC_SUBR:
-      offset = dump_subr (ctx, XSUBR (lv));
-      break;
+      return dump_subr (ctx, XSUBR (lv));
     case PVEC_FRAME:
     case PVEC_WINDOW:
     case PVEC_PROCESS:
     case PVEC_TERMINAL:
-      offset = dump_nilled_pseudovec (ctx, &v->header);
-      break;
+      return dump_nilled_pseudovec (ctx, &v->header);
     case PVEC_MARKER:
-      offset = dump_marker (ctx, XMARKER (lv));
-      break;
+      return dump_marker (ctx, XMARKER (lv));
     case PVEC_OVERLAY:
-      offset = dump_overlay (ctx, XOVERLAY (lv));
-      break;
+      return dump_overlay (ctx, XOVERLAY (lv));
     case PVEC_FINALIZER:
-      offset = dump_finalizer (ctx, XFINALIZER (lv));
-      break;
+      return dump_finalizer (ctx, XFINALIZER (lv));
     case PVEC_BIGNUM:
-      offset = dump_bignum (ctx, lv);
-      break;
-#ifdef HAVE_NATIVE_COMP
+      return dump_bignum (ctx, lv);
     case PVEC_NATIVE_COMP_UNIT:
-      offset = dump_native_comp_unit (ctx, XNATIVE_COMP_UNIT (lv));
-      break;
+#ifdef HAVE_NATIVE_COMP
+      return dump_native_comp_unit (ctx, XNATIVE_COMP_UNIT (lv));
 #endif
-    case PVEC_WINDOW_CONFIGURATION:
-      error_unsupported_dump_object (ctx, lv, "window configuration");
-    case PVEC_OTHER:
-      error_unsupported_dump_object (ctx, lv, "other?!");
-    case PVEC_XWIDGET:
-      error_unsupported_dump_object (ctx, lv, "xwidget");
-    case PVEC_XWIDGET_VIEW:
-      error_unsupported_dump_object (ctx, lv, "xwidget view");
-    case PVEC_MISC_PTR:
-    case PVEC_USER_PTR:
-      error_unsupported_dump_object (ctx, lv, "smuggled pointers");
+      break;
     case PVEC_THREAD:
       if (main_thread_p (v))
         {
           eassert (dump_object_emacs_ptr (lv));
           return DUMP_OBJECT_IS_RUNTIME_MAGIC;
         }
-      error_unsupported_dump_object (ctx, lv, "thread");
+      break;
+    case PVEC_TS_COMPILED_QUERY:
+#ifdef HAVE_TREE_SITTER
+      return dump_treesit_compiled_query (ctx, XTS_COMPILED_QUERY (lv));
+#endif
+    case PVEC_WINDOW_CONFIGURATION:
+    case PVEC_OTHER:
+    case PVEC_XWIDGET:
+    case PVEC_XWIDGET_VIEW:
+    case PVEC_MISC_PTR:
+    case PVEC_USER_PTR:
     case PVEC_MUTEX:
-      error_unsupported_dump_object (ctx, lv, "mutex");
     case PVEC_CONDVAR:
-      error_unsupported_dump_object (ctx, lv, "condvar");
     case PVEC_SQLITE:
-      error_unsupported_dump_object (ctx, lv, "sqlite");
     case PVEC_MODULE_FUNCTION:
-      error_unsupported_dump_object (ctx, lv, "module function");
     case PVEC_SYMBOL_WITH_POS:
-      error_unsupported_dump_object (ctx, lv, "symbol with pos");
-    default:
-      error_unsupported_dump_object(ctx, lv, "weird pseudovector");
+    case PVEC_FREE:
+    case PVEC_TS_PARSER:
+    case PVEC_TS_NODE:
+      break;
     }
-
-  return offset;
+  char msg[60];
+  snprintf (msg, sizeof msg, "pseudovector type %d", (int) ptype);
+  error_unsupported_dump_object (ctx, lv, msg);
 }
 
 /* Add an object to the dump.
@@ -3218,37 +3275,42 @@ dump_object_for_offset (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_charset (struct dump_context *ctx, int cs_i)
 {
-#if CHECK_STRUCTS && !defined (HASH_charset_317C49E291)
+#if CHECK_STRUCTS && !defined (HASH_charset_E31F4B5D96)
 # error "charset changed. See CHECK_STRUCTS comment in config.h."
 #endif
-  dump_align_output (ctx, alignof (struct charset));
+  /* We can't change the alignment here, because ctx->offset is what
+     will be used for the whole array.  */
+  eassert (ctx->offset % alignof (struct charset) == 0);
   const struct charset *cs = charset_table + cs_i;
   struct charset out;
   dump_object_start (ctx, &out, sizeof (out));
-  DUMP_FIELD_COPY (&out, cs, id);
-  DUMP_FIELD_COPY (&out, cs, hash_index);
-  DUMP_FIELD_COPY (&out, cs, dimension);
-  memcpy (out.code_space, &cs->code_space, sizeof (cs->code_space));
-  if (cs_i < charset_table_used && cs->code_space_mask)
-    dump_field_fixup_later (ctx, &out, cs, &cs->code_space_mask);
-  DUMP_FIELD_COPY (&out, cs, code_linear_p);
-  DUMP_FIELD_COPY (&out, cs, iso_chars_96);
-  DUMP_FIELD_COPY (&out, cs, ascii_compatible_p);
-  DUMP_FIELD_COPY (&out, cs, supplementary_p);
-  DUMP_FIELD_COPY (&out, cs, compact_codes_p);
-  DUMP_FIELD_COPY (&out, cs, unified_p);
-  DUMP_FIELD_COPY (&out, cs, iso_final);
-  DUMP_FIELD_COPY (&out, cs, iso_revision);
-  DUMP_FIELD_COPY (&out, cs, emacs_mule_id);
-  DUMP_FIELD_COPY (&out, cs, method);
-  DUMP_FIELD_COPY (&out, cs, min_code);
-  DUMP_FIELD_COPY (&out, cs, max_code);
-  DUMP_FIELD_COPY (&out, cs, char_index_offset);
-  DUMP_FIELD_COPY (&out, cs, min_char);
-  DUMP_FIELD_COPY (&out, cs, max_char);
-  DUMP_FIELD_COPY (&out, cs, invalid_code);
-  memcpy (out.fast_map, &cs->fast_map, sizeof (cs->fast_map));
-  DUMP_FIELD_COPY (&out, cs, code_offset);
+  if (cs_i < charset_table_used) /* Don't look at uninitialized data.  */
+    {
+      DUMP_FIELD_COPY (&out, cs, id);
+      dump_field_lv (ctx, &out, cs, &cs->attributes, WEIGHT_NORMAL);
+      DUMP_FIELD_COPY (&out, cs, dimension);
+      memcpy (out.code_space, &cs->code_space, sizeof (cs->code_space));
+      if (cs->code_space_mask)
+        dump_field_fixup_later (ctx, &out, cs, &cs->code_space_mask);
+      DUMP_FIELD_COPY (&out, cs, code_linear_p);
+      DUMP_FIELD_COPY (&out, cs, iso_chars_96);
+      DUMP_FIELD_COPY (&out, cs, ascii_compatible_p);
+      DUMP_FIELD_COPY (&out, cs, supplementary_p);
+      DUMP_FIELD_COPY (&out, cs, compact_codes_p);
+      DUMP_FIELD_COPY (&out, cs, unified_p);
+      DUMP_FIELD_COPY (&out, cs, iso_final);
+      DUMP_FIELD_COPY (&out, cs, iso_revision);
+      DUMP_FIELD_COPY (&out, cs, emacs_mule_id);
+      DUMP_FIELD_COPY (&out, cs, method);
+      DUMP_FIELD_COPY (&out, cs, min_code);
+      DUMP_FIELD_COPY (&out, cs, max_code);
+      DUMP_FIELD_COPY (&out, cs, char_index_offset);
+      DUMP_FIELD_COPY (&out, cs, min_char);
+      DUMP_FIELD_COPY (&out, cs, max_char);
+      DUMP_FIELD_COPY (&out, cs, invalid_code);
+      memcpy (out.fast_map, &cs->fast_map, sizeof (cs->fast_map));
+      DUMP_FIELD_COPY (&out, cs, code_offset);
+    }
   dump_off offset = dump_object_finish (ctx, &out, sizeof (out));
   if (cs_i < charset_table_used && cs->code_space_mask)
     dump_remember_cold_op (ctx, COLD_OP_CHARSET,
@@ -3262,14 +3324,17 @@ dump_charset_table (struct dump_context *ctx)
 {
   struct dump_flags old_flags = ctx->flags;
   ctx->flags.pack_objects = true;
-  dump_align_output (ctx, DUMP_ALIGNMENT);
+  dump_align_output (ctx, alignof (struct charset));
   dump_off offset = ctx->offset;
+  if (dump_set_referrer (ctx))
+    ctx->current_referrer = build_string ("charset_table");
   /* We are dumping the entire table, not just the used slots, because
      otherwise when we restore from the pdump file, the actual size of
      the table will be smaller than charset_table_size, and we will
      crash if/when a new charset is defined.  */
   for (int i = 0; i < charset_table_size; ++i)
     dump_charset (ctx, i);
+  dump_clear_referrer (ctx);
   dump_emacs_reloc_to_dump_ptr_raw (ctx, &charset_table, offset);
   ctx->flags = old_flags;
   return offset;
@@ -3321,7 +3386,7 @@ dump_sort_copied_objects (struct dump_context *ctx)
      file and the copy into Emacs in-order, where prefetch will be
      most effective.  */
   ctx->copied_queue =
-    Fsort (Fnreverse (ctx->copied_queue),
+    CALLN (Fsort, Fnreverse (ctx->copied_queue),
            Qdump_emacs_portable__sort_predicate_copied);
 }
 
@@ -3888,7 +3953,7 @@ drain_reloc_list (struct dump_context *ctx,
 {
   struct dump_flags old_flags = ctx->flags;
   ctx->flags.pack_objects = true;
-  Lisp_Object relocs = Fsort (Fnreverse (*reloc_list),
+  Lisp_Object relocs = CALLN (Fsort, Fnreverse (*reloc_list),
                               Qdump_emacs_portable__sort_predicate);
   *reloc_list = Qnil;
   dump_align_output (ctx, max (alignof (struct dump_reloc),
@@ -3941,7 +4006,7 @@ dump_do_fixup (struct dump_context *ctx,
       /* Dump wants a pointer to a Lisp object.
          If DUMP_FIXUP_LISP_OBJECT_RAW, we should stick a C pointer in
          the dump; otherwise, a Lisp_Object.  */
-      if (SUBRP (arg) && !SUBR_NATIVE_COMPILEDP (arg))
+      if (SUBRP (arg) && !NATIVE_COMP_FUNCTIONP (arg))
         {
           dump_value = emacs_offset (XSUBR (arg));
           if (type == DUMP_FIXUP_LISP_OBJECT)
@@ -4010,7 +4075,7 @@ static void
 dump_do_fixups (struct dump_context *ctx)
 {
   dump_off saved_offset = ctx->offset;
-  Lisp_Object fixups = Fsort (Fnreverse (ctx->fixups),
+  Lisp_Object fixups = CALLN (Fsort, Fnreverse (ctx->fixups),
                               Qdump_emacs_portable__sort_predicate);
   Lisp_Object prev_fixup = Qnil;
   ctx->fixups = Qnil;
@@ -4090,6 +4155,10 @@ types.  */)
   if (!NILP (XCDR (Fall_threads ())))
     error ("No other Lisp threads can be running when this function is called");
 
+#ifdef HAVE_NATIVE_COMP
+  CALLN (Ffuncall, intern_c_string ("load--fixup-all-elns"));
+#endif
+
   check_pure_size ();
 
   /* Clear out any detritus in memory.  */
@@ -4105,7 +4174,7 @@ types.  */)
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line
      and set up to work with X windows if appropriate.  */
-  Lisp_Object symbol = intern ("command-line-processed");
+  Lisp_Object symbol = Qcommand_line_processed;
   specbind (symbol, Qnil);
 
   CHECK_STRING (filename);
@@ -4179,11 +4248,11 @@ types.  */)
                         O_RDWR | O_TRUNC | O_CREAT, 0666);
   if (ctx->fd < 0)
     report_file_error ("Opening dump output", filename);
-  verify (sizeof (ctx->header.magic) == sizeof (dump_magic));
+  static_assert (sizeof (ctx->header.magic) == sizeof (dump_magic));
   memcpy (&ctx->header.magic, dump_magic, sizeof (dump_magic));
   ctx->header.magic[0] = '!'; /* Note that dump is incomplete.  */
 
-  verify (sizeof (fingerprint) == sizeof (ctx->header.fingerprint));
+  static_assert (sizeof (fingerprint) == sizeof (ctx->header.fingerprint));
   for (int i = 0; i < sizeof fingerprint; i++)
     ctx->header.fingerprint[i] = fingerprint[i];
 
@@ -4221,22 +4290,19 @@ types.  */)
       dump_drain_deferred_symbols (ctx);
       dump_drain_normal_queue (ctx);
     }
-  while (!dump_queue_empty_p (&ctx->dump_queue)
-	 || !NILP (ctx->deferred_hash_tables)
-	 || !NILP (ctx->deferred_symbols));
+  while (!(dump_queue_empty_p (&ctx->dump_queue)
+	   && NILP (ctx->deferred_hash_tables)
+	   && NILP (ctx->deferred_symbols)));
 
   ctx->header.hash_list = ctx->offset;
   dump_hash_table_list (ctx);
 
-  do
-    {
-      dump_drain_deferred_hash_tables (ctx);
-      dump_drain_deferred_symbols (ctx);
-      dump_drain_normal_queue (ctx);
-    }
-  while (!dump_queue_empty_p (&ctx->dump_queue)
-	 || !NILP (ctx->deferred_hash_tables)
-	 || !NILP (ctx->deferred_symbols));
+  /* dump_hash_table_list just adds a new vector to the dump but all
+     its content should already have been in the dump, so it doesn't
+     add anything to any queue.  */
+  eassert (dump_queue_empty_p (&ctx->dump_queue)
+	   && NILP (ctx->deferred_hash_tables)
+	   && NILP (ctx->deferred_symbols));
 
   dump_sort_copied_objects (ctx);
 
@@ -5350,11 +5416,11 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  dump_ptr (dump_base, reloc_offset);
 	comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
 	if (STRINGP (comp_u->file))
-	  error ("Trying to load incoherent dumped eln file %s",
+	  error ("trying to load incoherent dumped eln file %s",
 		 SSDATA (comp_u->file));
 
 	if (!CONSP (comp_u->file))
-	  error ("Incoherent compilation unit for dump was dumped");
+	  error ("incoherent compilation unit for dump was dumped");
 
 	/* emacs_execdir is always unibyte, but the file names in
 	   comp_u->file could be multibyte, so we need to encode
@@ -5456,7 +5522,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
       {
         struct Lisp_Bignum *bignum = dump_ptr (dump_base, reloc_offset);
         struct bignum_reload_info reload_info;
-        verify (sizeof (reload_info) <= sizeof (*bignum_val (bignum)));
+	static_assert (sizeof (reload_info) <= sizeof (*bignum_val (bignum)));
         memcpy (&reload_info, bignum_val (bignum), sizeof (reload_info));
         const mp_limb_t *limbs =
           dump_ptr (dump_base, reload_info.data_location);
@@ -5593,10 +5659,7 @@ pdumper_load (const char *dump_filename, char *argv0)
 
   struct dump_header header_buf = { 0 };
   struct dump_header *header = &header_buf;
-  struct dump_memory_map sections[NUMBER_DUMP_SECTIONS];
-
-  /* Use memset instead of "= { 0 }" to work around GCC bug 105961.  */
-  memset (sections, 0, sizeof sections);
+  struct dump_memory_map sections[NUMBER_DUMP_SECTIONS] = { 0 };
 
   const struct timespec start_time = current_timespec ();
   char *dump_filename_copy;
@@ -5650,7 +5713,7 @@ pdumper_load (const char *dump_filename, char *argv0)
     }
 
   err = PDUMPER_LOAD_VERSION_MISMATCH;
-  verify (sizeof (header->fingerprint) == sizeof (fingerprint));
+  static_assert (sizeof (header->fingerprint) == sizeof (fingerprint));
   unsigned char desired[sizeof fingerprint];
   for (int i = 0; i < sizeof fingerprint; i++)
     desired[i] = fingerprint[i];

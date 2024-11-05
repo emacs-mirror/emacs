@@ -1,6 +1,6 @@
 ;;; sun.el --- keybinding for standard default sunterm keys  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1987, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Jeff Peck <peck@sun.com>
 ;; Keywords: terminals

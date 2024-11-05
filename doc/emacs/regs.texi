@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Registers
@@ -16,9 +16,8 @@ jump back to that position once or many times.
 we will denote by @var{r}; @var{r} can be a letter (such as @samp{a})
 or a number (such as @samp{1}); case matters, so register @samp{a} is
 not the same as register @samp{A}.  You can also set a register in
-non-alphanumeric characters, for instance @samp{*} or @samp{C-d}.
-Note, it's not possible to set a register in @samp{C-g} or @samp{ESC},
-because these keys are reserved for quitting (@pxref{Quitting}).
+non-alphanumeric characters, for instance @samp{C-d} by using for
+example @key{C-q} @samp{C-d}.
 
 @findex view-register
   A register can store a position, a piece of text, a rectangle, a
@@ -33,14 +32,58 @@ view-register}:
 Display a description of what register @var{r} contains.
 @end table
 
-@vindex register-preview-delay
+
 @cindex preview of registers
-  All of the commands that prompt for a register will display a
-preview window that lists the existing registers (if there are
-any) after a short delay.  To change the length of the delay,
-customize @code{register-preview-delay}.  To prevent this display, set
-that option to @code{nil}.  You can explicitly request a preview
-window by pressing @kbd{C-h} or @key{F1}.
+@vindex register-use-preview
+  All of the commands that prompt for a register will by default
+display a preview window that lists the existing registers (if there
+are any) and their current values, after a short delay.  This and
+other aspects of prompting for a register can be customized by setting
+the value of @code{register-use-preview}, which can have the following
+values:
+
+@table @code
+@vindex register-preview-delay
+@item traditional
+With this value, which is the default, Emacs behaves like it did in
+all the versions before Emacs 29: it shows a preview of existing registers
+after a delay, and lets you overwrite the values of existing registers
+by typing a single character, the name of the register.  The preview
+appears after the delay determined by the customizable variable
+@code{register-preview-delay}, which specifies the delay in seconds;
+setting it to @code{nil} disables the preview (but you can still
+explicitly request a preview window by pressing @kbd{C-h} or
+@key{F1} when Emacs prompts for a register).
+
+@item t
+This value requests a more flexible preview of existing registers.
+The preview appears immediately when Emacs prompts for a register
+(thus @code{register-preview-delay} has no effect), and the preview
+window provides navigation: by using @kbd{C-n} and @kbd{C-p} (or the
+@kbd{@key{UP}} and @kbd{@key{DOWN}} arrow keys), you can move between
+the registers in the preview window.  To overwrite the value of an
+existing registers in this mode, you need to type @key{RET} after
+selecting the register by navigation or typing its name.
+
+In addition, the registers shown by the preview are filtered according
+to the command that popped the preview: for example, the preview shown
+by @code{insert-register} will only show registers whose values can be
+inserted into the buffer, omitting registers which hold window
+configurations, positions, and other un-insertable values.
+
+@item insist
+This value is like @code{t}, but in addition you can press the same
+key as the name of register one more time to exit the minibuffer,
+instead of pressing @key{RET}.
+
+@item nil
+This value requests behavior similar to @code{traditional}, but the
+preview is shown without delay, and is filtered according to the
+command.
+
+@item never
+This value is like @code{nil}, but it disables the preview.
+@end table
 
   @dfn{Bookmarks} record files and positions in them, so you can
 return to those positions when you look at the file again.  Bookmarks
@@ -247,40 +290,39 @@ numeric argument stores zero in the register.
 @cindex saving file name in a register
 @cindex saving buffer name in a register
 
-  If you visit certain file names frequently, you can visit them more
-conveniently if you put their names in registers.  Here's the Lisp code
-used to put a file @var{name} into register @var{r}:
+@table @kbd
+@item C-x r F @var{r}
+Store the currently visited file or directory in register
+@var{r} (@code{file-to-register}).
+@item C-x r B @var{r}
+Store the currently visited buffer in register
+@var{r} (@code{buffer-to-register}).
+@end table
 
-@smallexample
-(set-register @var{r} '(file . @var{name}))
-@end smallexample
+If you visit certain files or buffers frequently, you can visit them
+more conveniently if you put their names in registers.
 
-@need 3000
-@noindent
-For example,
+@kindex C-x r F
+@findex file-to-register
+        Typing @kbd{C-x r F} (@code{file-to-register}), followed by a
+character @kbd{@var{r}}, saves a reference to the currently visited file
+in register @var{r}.  You can then visit the file using
+@code{jump-to-register} by typing @kbd{C-x r j} @var{r}. With a prefix
+argument, @code{file-to-register} prompts for a file name to store in
+the register.
 
-@smallexample
-(set-register ?z '(file . "/gd/gnu/emacs/19.0/src/ChangeLog"))
-@end smallexample
+@kindex C-x r B
+@findex buffer-to-register
+        Typing @kbd{C-x r B} (@code{buffer-to-register}), followed by a
+character @kbd{@var{r}}, saves a reference to the currently visited buffer
+in register @var{r}.  You can then revisit the buffer using
+@code{jump-to-register}. With a prefix argument, @code{buffer-to-register}
+prompts for a buffer name to store in the register.
 
-@noindent
-puts the file name shown in register @samp{z}.
-
-  To visit the file whose name is in register @var{r}, type @kbd{C-x r j
-@var{r}}.  (This is the same command used to jump to a position or
-restore a frame configuration.)
-
-  Similarly, if there are certain buffers you visit frequently, you
-can put their names in registers.  For instance, if you visit the
-@samp{*Messages*} buffer often, you can use the following snippet to
-put that buffer into the @samp{m} register:
-
-@smallexample
-(set-register ?m '(buffer . "*Messages*"))
-@end smallexample
-
-  To switch to the buffer whose name is in register @var{r}, type
-@kbd{C-x r j @var{r}}.
+        If you store a buffer name which is visiting a file in a
+register, and the buffer is then closed, the register is automatically
+converted to a file reference, allowing you to quickly re-open the
+closed file.
 
 @node Keyboard Macro Registers
 @section Keyboard Macro Registers
@@ -337,8 +379,19 @@ Save all the current bookmark values in the default bookmark file.
 @kbd{C-x r m}, which sets a bookmark using the visited file name as
 the default for the bookmark name.  If you name each bookmark after
 the file it points to, then you can conveniently revisit any of those
-files with @kbd{C-x r b}, and move to the position of the bookmark at
-the same time.
+files with @kbd{C-x r b} (@code{bookmark-jump}), and move to the
+position of the bookmark at the same time.
+
+@vindex bookmark-fringe-mark
+  In addition to recording the current position, on graphical displays
+@kbd{C-x r m} places a special image on the left fringe
+(@pxref{Fringes}) of the screen line corresponding to the recorded
+position, to indicate that there's a bookmark there.  This can be
+controlled by the user option @code{bookmark-fringe-mark}: customize
+it to @code{nil} to disable the fringe mark.  The default value is
+@code{bookmark-mark}, which is the bitmap used for this purpose.  When
+you later use @kbd{C-x r b} to jump back to the bookmark, the fringe
+mark will be again shown on the fringe.
 
 @kindex C-x r M
 @findex bookmark-set-no-overwrite

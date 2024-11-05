@@ -1,6 +1,6 @@
 ;;; tramp-sudoedit.el --- Functions for accessing under root permissions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; The "sudoedit" Tramp method allows to edit a file as a different
+;; The "sudoedit" Tramp method enables editing a file as a different
 ;; user on the local host.  Contrary to the "sudo" method, all magic
 ;; file name functions are implemented by single "sudo ..."  commands.
 ;; The purpose is to make editing such a file as secure as possible;
@@ -161,15 +161,15 @@ See `tramp-actions-before-shell' for more info.")
 ;;;###tramp-autoload
 (defsubst tramp-sudoedit-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME for SUDOEDIT."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (string= (tramp-file-name-method vec) tramp-sudoedit-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((string= (tramp-file-name-method vec) tramp-sudoedit-method)))))
 
 ;;;###tramp-autoload
 (defun tramp-sudoedit-file-name-handler (operation &rest args)
   "Invoke the SUDOEDIT handler for OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (if-let ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
+  (if-let* ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)
@@ -274,8 +274,8 @@ absolute file names."
 		     (not (directory-name-p newname)))
 	    (tramp-error v 'file-error "File is a directory %s" newname))
 
-	  (if (or (and (file-remote-p filename) (not t1))
-		  (and (file-remote-p newname)  (not t2)))
+	  (if (or (and (tramp-tramp-file-p filename) (not t1))
+		  (and (tramp-tramp-file-p newname)  (not t2)))
 	      ;; We cannot copy or rename directly.
 	      (let ((tmpfile (tramp-compat-make-temp-file filename)))
 		(if (eq op 'copy)
@@ -296,7 +296,7 @@ absolute file names."
 
 	  ;; When `newname' is local, we must change the ownership to
 	  ;; the local user.
-	  (unless (file-remote-p newname)
+	  (unless (tramp-tramp-file-p newname)
 	    (tramp-set-file-uid-gid
 	     (concat (file-remote-p filename) newname)
 	     (tramp-get-local-uid 'integer)
@@ -305,7 +305,7 @@ absolute file names."
 	  ;; Set the time and mode. Mask possible errors.
 	  (when keep-date
 	    (ignore-errors
-	      (tramp-compat-set-file-times
+	      (set-file-times
 	       newname file-times (unless ok-if-already-exists 'nofollow))
 	      (set-file-modes newname file-modes)))
 
@@ -371,7 +371,7 @@ the result will be a local, non-Tramp, file name."
     (setq name "."))
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
-    (setq name (tramp-compat-file-name-concat dir name)))
+    (setq name (file-name-concat dir name)))
   ;; If NAME is not a Tramp file, run the real handler.
   (if (not (tramp-tramp-file-p name))
       (tramp-run-real-handler #'expand-file-name (list name))
@@ -381,6 +381,9 @@ the result will be a local, non-Tramp, file name."
       ;; but to the root home directory.
       (when (tramp-string-empty-or-nil-p localname)
 	(setq localname "~"))
+      ;; Tilde expansion shall be possible also for quoted localname.
+      (when (string-prefix-p "~" (file-name-unquote localname))
+	(setq localname (file-name-unquote localname)))
       (unless (file-name-absolute-p localname)
 	(setq localname (format "~%s/%s" user localname)))
       (when (string-match
@@ -472,7 +475,7 @@ the result will be a local, non-Tramp, file name."
     (with-tramp-file-property v localname "file-executable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-file-property-p v localname "file-attributes")
+      (if (tramp-use-file-attributes v)
 	  (or (tramp-check-cached-permissions v ?x)
 	      (tramp-check-cached-permissions v ?s))
 	(tramp-sudoedit-send-command
@@ -486,7 +489,7 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (ignore-error file-missing
+  (tramp-skeleton-file-name-all-completions filename directory
     (all-completions
      filename
      (with-parsed-tramp-file-name (expand-file-name directory) nil
@@ -500,13 +503,11 @@ the result will be a local, non-Tramp, file name."
 	    (if (ignore-errors (file-directory-p (expand-file-name f directory)))
 		(file-name-as-directory f)
 	      f))
-	  (delq
-	   nil
-	   (mapcar
-	    (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
-	    (split-string
-	     (tramp-get-buffer-string (tramp-get-connection-buffer v))
-	     "\n" 'omit)))))))))
+	  (mapcar
+	   (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
+	   (split-string
+	    (tramp-get-buffer-string (tramp-get-connection-buffer v))
+	    "\n" 'omit))))))))
 
 (defun tramp-sudoedit-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
@@ -514,7 +515,7 @@ the result will be a local, non-Tramp, file name."
     (with-tramp-file-property v localname "file-readable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-file-property-p v localname "file-attributes")
+      (if (tramp-use-file-attributes v)
 	  (tramp-handle-file-readable-p filename)
 	(tramp-sudoedit-send-command
 	 v "test" "-r" (file-name-unquote localname))))))
@@ -599,7 +600,7 @@ the result will be a local, non-Tramp, file name."
       (if (file-exists-p filename)
 	  ;; Examine `file-attributes' cache to see if request can be
 	  ;; satisfied without remote operation.
-	  (if (tramp-file-property-p v localname "file-attributes")
+	  (if (tramp-use-file-attributes v)
 	      (tramp-check-cached-permissions v ?w)
 	    (tramp-sudoedit-send-command
 	     v "test" "-w" (file-name-unquote localname)))
@@ -770,7 +771,7 @@ in case of error, t otherwise."
 		     (tramp-get-connection-name vec) (current-buffer)
 		     (append
 		      (tramp-expand-args
-		       vec 'tramp-sudo-login
+		       vec 'tramp-sudo-login nil
 		       ?h (or (tramp-file-name-host vec) "")
 		       ?u (or (tramp-file-name-user vec) ""))
 		      (flatten-tree args))))

@@ -1,6 +1,6 @@
 ;;; ispell.el --- interface to spell checkers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1995, 1997-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2024 Free Software Foundation, Inc.
 
 ;; Author: Ken Stevens <k.stevens@ieee.org>
 
@@ -219,8 +219,9 @@ This is also used by `ispell-lookup-words' and `ispell-complete-word'."
   :type '(choice file (const :tag "None" nil)))
 
 (defcustom ispell-complete-word-dict nil
-  "Plain word-list dictionary used for word completion if
-different from `ispell-alternate-dictionary'.
+  "Plain word-list dictionary used for word completion.
+This word-list is used if it is different from
+`ispell-alternate-dictionary'.
 This is also used by `ispell-lookup-words' and `ispell-complete-word'."
   :type '(choice file (const :tag "None" nil)))
 
@@ -345,11 +346,10 @@ calling \\[ispell-change-dictionary] with that value.  This variable
 is automatically set when defined in the file with either
 `ispell-dictionary-keyword' or the Local Variable syntax."
   :type '(choice string
-                 (const :tag "default" nil)))
+                 (const :tag "default" nil))
+  :local t)
 ;;;###autoload
 (put 'ispell-local-dictionary 'safe-local-variable 'string-or-null-p)
-
-(make-variable-buffer-local 'ispell-local-dictionary)
 
 (defcustom ispell-dictionary nil
   "Default dictionary to use if `ispell-local-dictionary' is nil."
@@ -376,10 +376,8 @@ such as \"&amp;\".  See `ispell-html-skip-alists' for more details.
 
 This variable affects spell-checking of HTML, XML, and SGML files."
   :type '(choice (const :tag "always" t) (const :tag "never" nil)
-                 (const :tag "use-mode-name" use-mode-name)))
-
-(make-variable-buffer-local 'ispell-skip-html)
-
+                 (const :tag "use-mode-name" use-mode-name))
+  :local t)
 
 (defcustom ispell-local-dictionary-alist nil
   "List of local or customized dictionary definitions.
@@ -522,7 +520,12 @@ re-start Emacs."
      "[^A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]"
      "[']" nil ("-C") "~list" iso-8859-1)
     ("hebrew" "[\340\341\342\343\344\345\346\347\350\351\353\352\354\356\355\360\357\361\362\364\363\367\366\365\370\371\372]" "[^\340\341\342\343\344\345\346\347\350\351\353\352\354\356\355\360\357\361\362\364\363\367\366\365\370\371\372]" "" nil ("-B") nil cp1255))
-  "Base value for `ispell-dictionary-alist'.")
+  "Base value for `ispell-dictionary-alist'.
+
+Note that when the speller program is \"aspell\" or \"hunspell\",
+some parts of the database, notably OTHERCHARS, will be overridden
+by parsing the dictionary data files, see `ispell-aspell-find-dictionary'
+and `ispell-parse-hunspell-affix-file'.")
 
 (defvar ispell-dictionary-alist nil
   "An alist of dictionaries and their associated parameters.
@@ -577,7 +580,11 @@ when the language uses non-ASCII characters.
 Note that with \"ispell\" as the speller, the CASECHARS and
 OTHERCHARS slots of the alist should contain the same character
 set as casechars and otherchars in the LANGUAGE.aff file \(e.g.,
-english.aff).  Aspell and Hunspell don't have this limitation.")
+english.aff).  Aspell and Hunspell don't have this limitation.
+Also, when the speller program is \"aspell\" or \"hunspell\",
+some parts of the database, notably OTHERCHARS, will be determined
+by parsing the dictionary data files, see `ispell-aspell-find-dictionary'
+and `ispell-parse-hunspell-affix-file'.")
 
 (defvar ispell-really-aspell nil
   "Non-nil if we can use Aspell extensions.")
@@ -630,8 +637,8 @@ this would require some extra guessing in `ispell-aspell-find-dictionary'.")
     ("slovenian"     "sl_SI")
     ("svenska"       "sv_SE")
     ("hebrew"        "he_IL"))
-  "Alist with known matching locales for standard dict names in
-`ispell-dictionary-base-alist'.")
+  "Alist with known matching locales for standard dict names.
+Standard dict names are defined in `ispell-dictionary-base-alist'.")
 
 
 ;;; **********************************************************************
@@ -640,8 +647,8 @@ this would require some extra guessing in `ispell-aspell-find-dictionary'.")
 
 (defun ispell-check-version (&optional interactivep)
   "Ensure that `ispell-program-name' is valid and has the correct version.
-Returns version number if called interactively.
-Otherwise returns the library directory name, if that is defined."
+Return version number if called interactively, or if INTERACTIVEP is non-nil.
+Otherwise return the library directory name, if that is defined."
   ;; This is a little wasteful as we actually launch ispell twice: once
   ;; to make sure it's the right version, and once for real.  But people
   ;; get confused by version mismatches *all* the time (and I've got the
@@ -750,14 +757,16 @@ Otherwise returns the library directory name, if that is defined."
      ,@body))
 
 (defun ispell-call-process (&rest args)
-  "Like `call-process', but defend against bad `default-directory'."
+  "Like `call-process', but defend against bad `default-directory'.
+ARGS are passed to `call-process'."
   (ispell-with-safe-default-directory
-    (apply 'call-process args)))
+    (apply #'call-process args)))
 
 (defun ispell-call-process-region (&rest args)
-  "Like `call-process-region', but defend against bad `default-directory'."
+  "Like `call-process-region', but defend against bad `default-directory'.
+ARGS are passed to `call-process'."
   (ispell-with-safe-default-directory
-    (apply 'call-process-region args)))
+    (apply #'call-process-region args)))
 
 (defvar ispell-debug-buffer)
 
@@ -847,10 +856,9 @@ Assumes that value contains no whitespace."
     (car (split-string (buffer-string)))))
 
 (defun ispell-aspell-find-dictionary (dict-name)
-  "For Aspell dictionary DICT-NAME, return a list of parameters if an
-associated data file is found or nil otherwise.  List format is that
-of `ispell-dictionary-base-alist' elements."
-
+  "Return the list of parameters for an Aspell dictionary DICT-NAME.
+List format is that of `ispell-dictionary-base-alist' elements.  Return
+nil if no associated data file is found for the dictionary."
   ;; Make sure `ispell-aspell-dict-dir' is defined
   (or ispell-aspell-dict-dir
       (setq ispell-aspell-dict-dir
@@ -1508,23 +1516,30 @@ This is passed to the Ispell process using the `-p' switch.")
         (decode-coding-string str (ispell-get-coding-system) t))))
 
 (defun ispell-get-casechars ()
+  "Return CASECHARS of a dictionary."
   (ispell-get-decoded-string 1))
 (defun ispell-get-not-casechars ()
+  "Return NOT-CASECHARS of a dictionary."
   (ispell-get-decoded-string 2))
 (defun ispell-get-otherchars ()
+  "Return OTHERCHARS of a dictionary."
   (ispell-get-decoded-string 3))
 (defun ispell-get-many-otherchars-p ()
+  "Return MANY-OTHERCHARS of a dictionary."
   (nth 4 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
 	     (assoc ispell-current-dictionary ispell-dictionary-alist))))
 (defun ispell-get-ispell-args ()
+  "Return ARGS of a dictionary."
   (nth 5 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
 	     (assoc ispell-current-dictionary ispell-dictionary-alist))))
 (defun ispell-get-extended-character-mode ()
+  "Return extended character mode of a dictionary."
   (if ispell-really-hunspell     ;; hunspell treats ~word as ordinary words
       nil                        ;; in pipe mode. Disable extended-char-mode
     (nth 6 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
 	       (assoc ispell-current-dictionary ispell-dictionary-alist)))))
 (defun ispell-get-coding-system ()
+  "Return encoding of a dictionary."
   (nth 7 (or (assoc ispell-current-dictionary ispell-local-dictionary-alist)
 	     (assoc ispell-current-dictionary ispell-dictionary-alist))))
 
@@ -1598,8 +1613,8 @@ a `~' followed by an extended-character mode -- such as `~.tex'.
 The last occurring definition in the buffer will be used.")
 
 (defun ispell--\\w-filter (char)
-  "Return CHAR in a string when CHAR doesn't have \"word\" syntax,
-nil otherwise.  CHAR must be a character."
+  "Return CHAR as a string when CHAR doesn't have \"word\" syntax.
+CHAR must be a valid character.  Return nil otherwise."
   (let ((str (string char)))
     (and
      (not (string-match "\\w" str))
@@ -1747,6 +1762,7 @@ Ispell is then restarted because the local words could conflict.")
 
 (defvar-local ispell-buffer-session-localwords nil
   "List of words accepted for session in this buffer.")
+(put 'ispell-buffer-session-localwords 'safe-local-variable #'list-of-strings-p)
 
 (defvar ispell-parser 'use-mode-name
   "Indicates whether ispell should parse the current buffer as TeX Code.
@@ -1899,6 +1915,7 @@ resume interrupted spell-checking of a buffer or region.
 
 Interactively, in Transient Mark mode when the mark is active, call
 `ispell-region' to check the active region for spelling errors.
+Non-interactively, this happens if REGION is non-nil.
 
 Word syntax is controlled by the definition of the chosen dictionary,
 which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'.
@@ -2043,7 +2060,9 @@ many times (see the doc string of `ispell-dictionary-alist' for details
 about otherchars).
 
 Word syntax is controlled by the definition of the chosen dictionary,
-which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'."
+which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'.
+EXTRA-OTHERCHARS, if non-nil, is the set of extra characters to add
+to the dictionary's OTHERCHARS."
   (ispell-set-spellchecker-params)    ; Initialize variables and dicts alists
   (let* ((ispell-casechars (ispell-get-casechars))
 	 (ispell-not-casechars (ispell-get-not-casechars))
@@ -2107,7 +2126,11 @@ which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'."
 ;;;###autoload
 (defun ispell-pdict-save (&optional no-query force-save)
   "Check to see if the personal dictionary has been modified.
-If so, ask if it needs to be saved."
+If so, ask if it needs to be saved.
+If NO-QUERY is non-nil, save the personal dictionary without asking.
+Interactively, if `ispell-silently-savep' is non-nil, don't ask.
+If FORCE-SAVE is non-nil, suggest to save the personal dictionary even
+if not modified; this always happens interactively."
   (interactive (list ispell-silently-savep t))
   (if (and ispell-pdict-modified-p (listp ispell-pdict-modified-p))
       (setq ispell-pdict-modified-p (car ispell-pdict-modified-p)))
@@ -2126,19 +2149,20 @@ It is called once per iteration, before displaying a prompt to
 the user.")
 
 (defun ispell-command-loop (miss guess word start end)
-  "Display possible corrections from list MISS.
+  "Display possible corrections from MISS using GUESS for WORD in START..END.
+MISS lists possible corrections.
 GUESS lists possibly valid affix construction of WORD.
-Returns nil to keep word.
-Returns 0 to insert locally into buffer-local dictionary.
-Returns string for new chosen word.
-Returns list for new replacement word (will be rechecked).
-  Query-replace when list length is 2.
-  Automatic query-replace when second element is `query-replace'.
-Highlights the word, which is assumed to run from START to END.
+Return nil to keep the word unchanged.
+Return 0 to insert locally into buffer-local dictionary.
+Return a string for the chosen replacement word.
+Return a list for new replacement word (will be rechecked).
+  Use `query-replace' when list length is 2.
+  Automatic `query-replace' when second element is `query-replace'.
+Highlight the word, which is assumed to run from START to END.
 Global `ispell-pdict-modified-p' becomes a list where the only value
 indicates whether the dictionary has been modified when option `a'
 or `i' is used.
-Global `ispell-quit' set to start location to continue spell session."
+Global `ispell-quit' is set to start location to continue spell session."
   (let ((count ?0)
 	(choices miss)
 	(window-min-height (min window-min-height
@@ -2389,7 +2413,7 @@ Global `ispell-quit' set to start location to continue spell session."
 			    (progn
 			      (set-marker ispell-recursive-edit-marker nil)
 			      (error
-			       "Cannot continue ispell from this buffer.")))
+                               "Cannot continue ispell from this buffer")))
 			(set-marker ispell-recursive-edit-marker nil)))
 		    (list word nil))	; recheck starting at this word.
 		   ((= char ?\C-z)
@@ -2423,23 +2447,23 @@ Global `ispell-quit' set to start location to continue spell session."
 Selections are:
 
 \\`0'..\\`9'  Replace the word with a digit offered in the *Choices* buffer.
-\\`SPC'   Accept word this time.
-\\`i'     Accept word and insert into private dictionary.
-\\`a'     Accept word for this session.
-\\`A'     Accept word and place in `buffer-local dictionary'.
-\\`r'     Replace word with typed-in value.  Rechecked.
-\\`R'     Replace word with typed-in value.  Query-replaced in buffer.  Rechecked.
-\\`?'     Show these commands.
-\\`x'     Exit spelling buffer.  Move cursor to original point.
-\\`X'     Exit spelling buffer.  Leaves cursor at the current point, and permits
-        the aborted check to be completed later.
-\\`q'     Quit spelling session (Kills ispell process).
-\\`l'     Look up typed-in replacement in alternate dictionary.  Wildcards okay.
-\\`u'     Like \\`i', but the word is lower-cased first.
-\\`m'     Place typed-in value in personal dictionary, then recheck current word.
-\\`C-l'   Redraw screen.
-\\`C-r'   Recursive edit.
-\\`C-z'   Suspend Emacs or iconify frame."
+\\`SPC' Accept word this time.
+\\`i'   Accept word and insert into private dictionary.
+\\`a'   Accept word for this session.
+\\`A'   Accept word and place in `buffer-local dictionary'.
+\\`r'   Replace word with typed-in value.  Rechecked.
+\\`R'   Replace word with typed-in value.  Query-replaced in buffer.  Rechecked.
+\\`?'   Show these commands.
+\\`x'   Exit spelling buffer.  Move cursor to original point.
+\\`X'   Exit spelling buffer.  Leaves cursor at the current point, and permits
+         the aborted check to be completed later.
+\\`q'   Quit spelling session (Kills ispell process).
+\\`l'   Look up typed-in replacement in alternate dictionary.  Wildcards okay.
+\\`u'   Like \\`i', but the word is lower-cased first.
+\\`m'   Place typed-in value in personal dictionary, then recheck current word.
+\\`C-l' Redraw screen.
+\\`C-r' Recursive edit.
+\\`C-z' Suspend Emacs or iconify frame."
 
   (if (equal ispell-help-in-bufferp 'electric)
       (progn
@@ -2523,9 +2547,9 @@ this function signals an error."
 
   (if lookup-dict
       (unless (file-readable-p lookup-dict)
-	(error "lookup-words error: Unreadable or missing plain word-list %s."
+        (error "ispell-lookup-words: Unreadable or missing plain word-list %s"
 	       lookup-dict))
-    (error (concat "lookup-words error: No plain word-list found at system"
+    (error (concat "ispell-lookup-words: No plain word-list found at system"
                    "default locations.  "
                    "Customize `ispell-alternate-dictionary' to set yours.")))
 
@@ -2590,7 +2614,9 @@ this function signals an error."
 ;;   in this case treats the next input received as fresh input.
 
 (defun ispell-filter (_process output)
-  "Output filter function for ispell, grep, and look."
+  "Filter function for ispell, grep, and look, process OUTPUT from subprocess.
+OUTPUT can contain multiple lines, part of a single line, or both.
+OUTPUT must end with a newline."
   (let ((start 0)
 	(continue t)
 	end)
@@ -2695,6 +2721,10 @@ The variable `ispell-highlight-face' selects the face to use for highlighting."
 
 
 (defun ispell-highlight-spelling-error (start end &optional highlight refresh)
+  "Highlight spelling error between START and END.
+Optional argument HIGHLIGHT, if non-nil, means to highlight mis-spelling.
+See `ispell-highlight-spelling-error-generic' for the meaning of optional
+argument REFRESH, which is passed to that function as the 4th argument."
   (if (display-color-p)
       (ispell-highlight-spelling-error-overlay start end highlight)
     (ispell-highlight-spelling-error-generic start end highlight refresh)))
@@ -3010,10 +3040,10 @@ With CLEAR, buffer session localwords are cleaned."
 ;;;###autoload
 (defun ispell-change-dictionary (dict &optional arg)
   "Change to dictionary DICT for Ispell.
-With a prefix arg, set it \"globally\", for all buffers.
-Without a prefix arg, set it \"locally\", just for this buffer.
+If ARG is non-nil (interactively, the prefix arg), set it \"globally\",
+for all buffers.  Otherwise, set it \"locally\", just for this buffer.
 
-By just answering RET you can find out what the current dictionary is."
+By just answering RET you can find out the name of the current dictionary."
   (interactive
    (list (completing-read
 	  "Use new dictionary (RET for current, SPC to complete): "
@@ -3076,7 +3106,7 @@ when needed."
 
 ;;;###autoload
 (defun ispell-region (reg-start reg-end &optional recheckp shift)
-  "Interactively check a region for spelling errors.
+  "Interactively check region between REG-START and REG-END for spelling errors.
 Leave the mark at the last misspelled word that the user was queried about.
 
 Return nil if spell session was terminated, otherwise returns shift offset
@@ -3287,9 +3317,7 @@ Generated from `ispell-tex-skip-alists'."
    "\\|"
    ;; keys wrapped in begin{}
    (mapconcat (lambda (lst)
-                (concat "\\\\begin[ \t\n]*{[ \t\n]*"
-                        (car lst)
-                        "[ \t\n]*}"))
+                (concat "\\\\begin[ \t\n]*{" (car lst) "}"))
 	      (car (cdr ispell-tex-skip-alists))
 	      "\\|")))
 
@@ -3331,10 +3359,12 @@ Must be called after `ispell-buffer-local-parsing' due to dependence on mode."
 
 
 (defun ispell-ignore-fcc (start end)
-  "Delete the Fcc: message header when large attachments are included.
-Return value nil if file with large attachments is saved.
+  "Query whether to delete Fcc header due to attachment between START and END.
+Query the user whether Fcc header should be deleted when large attachments are
+included in the message.
+Return nil if email with large attachments should be saved.
 This can be used to avoid multiple questions for multiple large attachments.
-Returns point to starting location afterwards."
+Return point to starting location afterwards."
   (let ((result t))
     (if (and ispell-checking-message ispell-message-fcc-skip)
 	(if (< ispell-message-fcc-skip (- end start))
@@ -3410,8 +3440,8 @@ Point is placed at end of skipped region."
 
 
 (defun ispell-get-line (start end in-comment)
-  "Grab the next line of data.
-Returns a string with the line data."
+  "Grab the next line of text between START and END.
+Return a string with the line data."
   (let ((ispell-casechars (ispell-get-casechars))
 	string)
     (cond				; LOOK AT THIS LINE AND SKIP OR PROCESS
@@ -3679,6 +3709,27 @@ If APPEND is non-nil, don't erase previous debugging output."
 	  (if (>= column (- (window-width) 2))
 	      (scroll-left (max (- column (window-width) -3) 10)))))))
 
+;;;###autoload
+(defun ispell-completion-at-point ()
+  "Word completion function for use in `completion-at-point-functions'."
+  (pcase (bounds-of-thing-at-point 'word)
+    (`(,beg . ,end)
+     (when (and (< beg (point)) (<= (point) end))
+       (let* ((word (buffer-substring-no-properties beg end))
+              (len (length word))
+              (inhibit-message t)
+              (all (cons word (ispell-lookup-words word)))
+              (cur all))
+         (while cur
+           (unless (string-prefix-p word (car cur))
+             (setcar cur (concat word (substring (car cur) len))))
+           (while (when-let* ((next (cadr cur)))
+                    (not (string-prefix-p word next t)))
+             (setcdr cur (cddr cur)))
+           (setq cur (cdr cur)))
+         (list beg end (cdr all)
+               :exclusive 'no))))))
+
 
 ;;; Interactive word completion.
 ;; Forces "previous-word" processing.  Do we want to make this selectable?
@@ -3695,7 +3746,6 @@ This command uses a word-list file specified
 by `ispell-alternate-dictionary' or by `ispell-complete-word-dict';
 if none of those name an existing word-list file, this command
 signals an error."
-  ;; FIXME: completion-at-point-function.
   (interactive "P")
   (let ((case-fold-search-val case-fold-search)
 	(word (ispell-get-word nil "\\*")) ; force "previous-word" processing.
@@ -3838,7 +3888,8 @@ Otherwise, it must be a function which is called to get the limit.")
 
 
 (defun ispell-mime-multipartp (&optional limit)
-  "Return multipart message start boundary or nil if none."
+  "Return the start boundary of a multipart message, or nil if none.
+LIMIT is passed to `re-search-forward', which see."
   ;; caller must ensure `case-fold-search' is set to t
   (and
    (re-search-forward
@@ -3862,10 +3913,12 @@ Otherwise, it must be a function which is called to get the limit.")
 
 
 (defun ispell-mime-skip-part (boundary)
-  "Move point across header, or entire MIME part if message is encoded.
+  "Move point across text that matches BOUNDARY, or across entire message.
+BOUNDARY, if non-nil, specifies the part of the message to skip, either
+the header, or entire MIME part if the message is encoded.
 All specified types except `7bit' `8bit' and `quoted-printable' are considered
 encoded and therefore skipped.  See rfc 1521, 2183, ...
-If no boundary is given, then entire message is skipped.
+If BOUNDARY is nil, the entire message is skipped.
 
 This starts one line ABOVE the MIME content messages, on the boundary marker,
 for operation with the generic region-skipping code.
@@ -3946,7 +3999,7 @@ in your init file:
    (add-hook \\='mail-send-hook  #\\='ispell-message)
    (add-hook \\='mh-before-send-letter-hook #\\='ispell-message)
 
-You can bind this to the key C-c i in GNUS or mail by adding to
+You can bind this to a key in GNUS or mail by adding to
 `news-reply-mode-hook' or `mail-mode-hook' the following lambda expression:
    (lambda () (local-set-key \"\\C-ci\" \\='ispell-message))"
   (interactive)
@@ -3973,7 +4026,8 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 		       (point-max)))
 		    (t (min (point-max) (funcall ispell-message-text-end))))))
 	   (default-prefix   ; Vanilla cite prefix (just used for cite-regexp)
-	     (if (ispell-non-empty-string mail-yank-prefix)
+	     (if mail-yank-prefix
+                 (ispell-non-empty-string mail-yank-prefix)
 	       "   \\|\t"))
 	   (cite-regexp			;Prefix of quoted text
 	    (cond
@@ -4028,6 +4082,10 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	    (if (re-search-forward "^Subject: *" end-of-headers t)
 		(progn
 		  (goto-char (match-end 0))
+                  ;; Don't spell-check Subject if it comes from a
+                  ;; received message: "Re:" indicates this is a reply
+                  ;; to someone else's message, "[...]" indicates this
+                  ;; is a subject of a forwarded message.
 		  (if (and (not (looking-at ".*\\<Re\\>"))
 			   (not (looking-at "\\[")))
 		      (progn

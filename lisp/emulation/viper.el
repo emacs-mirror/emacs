@@ -3,7 +3,7 @@
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 
-;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
@@ -388,7 +388,6 @@ widget."
     idl-mode
 
     perl-mode
-    cperl-mode
     javascript-mode
     tcl-mode
     python-mode
@@ -487,7 +486,7 @@ unless it is coming up in a wrong Viper state."
   "List specifying how to modify the various major modes to enable some Viperisms.
 The list has the structure: ((mode viper-state keymap) (mode viper-state
 keymap) ...).  If `mode' is on the list, the `keymap' will be made active (on
-the minor-mode-map-alist) in the specified viper state.
+the `minor-mode-map-alist') in the specified viper state.
 If you change this list, have to restart Emacs for the change to take effect.
 However, if you did the change through the customization widget, then Emacs
 needs to be restarted only if you deleted a triple mode-state-keymap from the
@@ -593,8 +592,8 @@ This startup message appears whenever you load Viper, unless you type \\`y' now.
 		    ))
 	      (viper-set-expert-level 'dont-change-unless)))
 
-	(or (apply #'derived-mode-p viper-emacs-state-mode-list) ; don't switch to Vi
-	    (apply #'derived-mode-p viper-insert-state-mode-list) ; don't switch
+	(or (derived-mode-p viper-emacs-state-mode-list) ; don't switch to Vi
+	    (derived-mode-p viper-insert-state-mode-list) ; don't switch
 	    (viper-change-state-to-vi))
 	))
 
@@ -607,9 +606,9 @@ This startup message appears whenever you load Viper, unless you type \\`y' now.
 ;; that are not listed in viper-vi-state-mode-list
 (defun viper-this-major-mode-requires-vi-state (mode)
   (let ((major-mode mode))
-    (cond ((apply #'derived-mode-p viper-vi-state-mode-list) t)
-          ((apply #'derived-mode-p viper-emacs-state-mode-list) nil)
-          ((apply #'derived-mode-p viper-insert-state-mode-list) nil)
+    (cond ((derived-mode-p viper-vi-state-mode-list) t)
+          ((derived-mode-p viper-emacs-state-mode-list) nil)
+          ((derived-mode-p viper-insert-state-mode-list) nil)
           (t (and (eq (key-binding "a") 'self-insert-command)
                   (eq (key-binding " ") 'self-insert-command))))))
 

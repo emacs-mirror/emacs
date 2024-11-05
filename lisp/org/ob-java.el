@@ -1,6 +1,6 @@
 ;;; ob-java.el --- org-babel functions for java evaluation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;          Dan Davison
@@ -341,9 +341,13 @@ is simplest to expand the code block from the inside out."
          (imports-val (assq :imports params))
          (imports (if imports-val
                       (split-string (org-babel-read (cdr imports-val) nil) " ")
-                    nil)))
+                    nil))
+         (prologue (cdr (assq :prologue params)))
+         (epilogue (cdr (assq :epilogue params))))
     (with-temp-buffer
+      (when prologue (insert prologue "\n"))
       (insert body)
+      (when epilogue (insert "\n" epilogue))
 
       ;; wrap main.  If there are methods defined, but no main method
       ;; and no class, wrap everything in a generic main method.

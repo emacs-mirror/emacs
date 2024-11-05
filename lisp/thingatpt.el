@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- get the `thing' at point  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1998, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Maintainer: emacs-devel@gnu.org
@@ -52,7 +52,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (provide 'thingatpt)
 
 (defvar thing-at-point-provider-alist nil
@@ -76,6 +75,28 @@ question.
 `existing-filename', `url', `email', `uuid', `word', `sentence',
 `whitespace', `line', `face' and `page'.")
 
+(defvar forward-thing-provider-alist nil
+  "Alist of providers for moving forward to the end of the next \"thing\".
+This variable can be set globally, or appended to buffer-locally by
+modes, to provide functions that will move forward to the end of a
+\"thing\" at point.  Each function should take a single argument
+BACKWARD, which is non-nil if the function should instead move to the
+beginning of the previous thing.  The provider for \"thing\" that moves
+point by the smallest non-zero distance wins.
+
+You can use this variable in much the same way as
+`thing-at-point-provider-alist' (which see).")
+
+(defvar bounds-of-thing-at-point-provider-alist nil
+  "Alist of providers to return the bounds of a \"thing\" at point.
+This variable can be set globally, or appended to buffer-locally by
+modes, to provide functions that will return the bounds of a \"thing\"
+at point.  The first provider for the \"thing\" that returns a non-nil
+value wins.
+
+You can use this variable in much the same way as
+`thing-at-point-provider-alist' (which see).")
+
 ;; Basic movement
 
 ;;;###autoload
@@ -85,11 +106,36 @@ THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun', `number',
 `filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', and `page'."
-  (let ((forward-op (or (get thing 'forward-op)
-			(intern-soft (format "forward-%s" thing)))))
-    (if (functionp forward-op)
-	(funcall forward-op (or n 1))
-      (error "Can't determine how to move over a %s" thing))))
+  (setq n (or n 1))
+  (if (assq thing forward-thing-provider-alist)
+      (let* ((backward (< n 0))
+             (reducer (if backward #'max #'min))
+             (limit (if backward (point-min) (point-max))))
+        (catch 'done
+          (dotimes (_ (abs n))
+            ;; Find the provider that moves point the smallest non-zero
+            ;; amount, and use that to update point.
+            (let ((new-point (seq-reduce
+                              (lambda (value elt)
+                                (if (eq (car elt) thing)
+                                    (save-excursion
+                                      (funcall (cdr elt) backward)
+                                      (if value
+                                          (funcall reducer value (point))
+                                        (point)))
+                                  value))
+                              forward-thing-provider-alist nil)))
+            (if (and new-point (/= new-point (point)))
+                (goto-char new-point)
+              ;; If we didn't move point, move to our limit (min or max
+              ;; point), and terminate.
+              (goto-char limit)
+              (throw 'done t))))))
+    (let ((forward-op (or (get thing 'forward-op)
+                          (intern-soft (format "forward-%s" thing)))))
+      (if (functionp forward-op)
+          (funcall forward-op n)
+        (error "Can't determine how to move over a %s" thing)))))
 
 ;; General routines
 
@@ -107,6 +153,10 @@ valid THING.
 Return a cons cell (START . END) giving the start and end
 positions of the thing found."
   (cond
+   ((seq-some (lambda (elt)
+                (and (eq (car elt) thing)
+                     (funcall (cdr elt))))
+                bounds-of-thing-at-point-provider-alist))
    ((get thing 'bounds-of-thing-at-point)
     (funcall (get thing 'bounds-of-thing-at-point)))
    ;; If the buffer is totally empty, give up.
@@ -175,11 +225,14 @@ See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING."
   (let ((text
          (cond
-          ((cl-loop for (pthing . function) in thing-at-point-provider-alist
-                    when (eq pthing thing)
-                    for result = (funcall function)
-                    when result
-                    return result))
+          ((let ((alist thing-at-point-provider-alist)
+                 elt result)
+             (while (and alist (null result))
+               (setq elt (car alist)
+                     alist (cdr alist))
+               (and (eq (car elt) thing)
+                    (setq result (funcall (cdr elt)))))
+             result))
           ((get thing 'thing-at-point)
            (funcall (get thing 'thing-at-point)))
           (t
@@ -355,7 +408,7 @@ E.g.:
 
 (defun thing-at-point-file-at-point (&optional _lax _bounds)
   "Return the name of the existing file at point."
-  (when-let ((filename (thing-at-point 'filename)))
+  (when-let* ((filename (thing-at-point 'filename)))
     (setq filename (expand-file-name filename))
     (and (file-exists-p filename)
          filename)))
@@ -370,7 +423,7 @@ E.g.:
 
 (defun thing-at-point-face-at-point (&optional _lax _bounds)
   "Return the name of the face at point as a symbol."
-  (when-let ((face (thing-at-point 'symbol)))
+  (when-let* ((face (thing-at-point 'symbol)))
     (and (facep face) (intern face))))
 
 (put 'face 'thing-at-point 'thing-at-point-face-at-point)
@@ -565,9 +618,9 @@ looks like an email address, \"ftp://\" if it starts with
 	 ;; If it looks like ftp.example.com. treat it as ftp.
 	 (if (string-match "\\`ftp\\." str)
 	     (setq str (concat "ftp://" str)))
-	 ;; If it looks like www.example.com. treat it as http.
+         ;; If it looks like www.example.com. treat it as https.
 	 (if (string-match "\\`www\\." str)
-	     (setq str (concat "http://" str)))
+             (setq str (concat "https://" str)))
 	 ;; Otherwise, it just isn't a URI.
 	 (setq str nil)))
       str)))
@@ -617,40 +670,24 @@ point.
 
 Optional argument DISTANCE limits search for REGEXP forward and
 back from point."
-  (save-excursion
-    (let ((old-point (point))
-	  (forward-bound (and distance (+ (point) distance)))
-	  (backward-bound (and distance (- (point) distance)))
-	  match prev-pos new-pos)
-      (and (looking-at regexp)
-	   (>= (match-end 0) old-point)
-	   (setq match (point)))
-      ;; Search back repeatedly from end of next match.
-      ;; This may fail if next match ends before this match does.
-      (re-search-forward regexp forward-bound 'limit)
-      (setq prev-pos (point))
-      (while (and (setq new-pos (re-search-backward regexp backward-bound t))
-                  ;; Avoid inflooping with some regexps, such as "^",
-                  ;; matching which never moves point.
-                  (< new-pos prev-pos)
-		  (or (> (match-beginning 0) old-point)
-		      (and (looking-at regexp)	; Extend match-end past search start
-			   (>= (match-end 0) old-point)
-			   (setq match (point))))))
-      (if (not match) nil
-	(goto-char match)
-	;; Back up a char at a time in case search skipped
-	;; intermediate match straddling search start pos.
-	(while (and (not (bobp))
-		    (progn (backward-char 1) (looking-at regexp))
-		    (>= (match-end 0) old-point)
-		    (setq match (point))))
-	(goto-char match)
-	(looking-at regexp)))))
+  (let* ((old (point))
+         (beg (if distance (max (point-min) (- old distance)) (point-min)))
+         (end (if distance (min (point-max) (+ old distance))))
+         prev match)
+    (save-excursion
+      (goto-char beg)
+      (while (and (setq prev (point)
+                        match (re-search-forward regexp end t))
+                  (< (match-end 0) old))
+        (goto-char (match-beginning 0))
+        ;; Avoid inflooping when `regexp' matches the empty string.
+        (unless (< prev (point)) (forward-char))))
+    (and match (<= (match-beginning 0) old (match-end 0)))))
+
 
 ;;   Email addresses
 (defvar thing-at-point-email-regexp
-  "<?[-+_~a-zA-Z0-9][-+_.~:a-zA-Z0-9]*@[-a-zA-Z0-9]+[-.a-zA-Z0-9]*>?"
+  "<?[-+_~a-zA-Z0-9/][-+_.~:a-zA-Z0-9/]*@[-a-zA-Z0-9]+[-.a-zA-Z0-9]*>?"
   "A regular expression probably matching an email address.
 This does not match the real name portion, only the address, optionally
 with angle brackets.")
@@ -741,7 +778,10 @@ Signal an error if the entire string was not used."
 
 ;;;###autoload
 (defun sexp-at-point ()
-  "Return the sexp at point, or nil if none is found."
+  "Return the sexp at point, or nil if none is found.
+This is for returning the Lisp object represented by text at point;
+use (thing-at-point \\='sexp) instead if you rather want the balanced
+expression at point regardless of Lisp syntax."
   (form-at-point 'sexp))
 ;;;###autoload
 (defun symbol-at-point ()
@@ -749,20 +789,33 @@ Signal an error if the entire string was not used."
   (let ((thing (thing-at-point 'symbol)))
     (if thing (intern thing))))
 
+(defvar thing-at-point-decimal-regexp
+  "-?[0-9]+\\.?[0-9]*"
+  "A regexp matching a decimal number.")
+
+(defvar thing-at-point-hexadecimal-regexp
+  "\\(0x\\|#x\\)\\([a-fA-F0-9]+\\)"
+  "A regexp matching a hexadecimal number.")
+
 ;;;###autoload
 (defun number-at-point ()
   "Return the number at point, or nil if none is found.
 Decimal numbers like \"14\" or \"-14.5\", as well as hex numbers
 like \"0xBEEF09\" or \"#xBEEF09\", are recognized."
   (cond
-   ((thing-at-point-looking-at "\\(0x\\|#x\\)\\([a-fA-F0-9]+\\)" 500)
+   ((thing-at-point-looking-at thing-at-point-hexadecimal-regexp 500)
     (string-to-number
      (buffer-substring (match-beginning 2) (match-end 2))
      16))
-   ((thing-at-point-looking-at "-?[0-9]+\\.?[0-9]*" 500)
+   ((thing-at-point-looking-at thing-at-point-decimal-regexp 500)
     (string-to-number
      (buffer-substring (match-beginning 0) (match-end 0))))))
 
+(put 'number 'bounds-of-thing-at-point
+     (lambda ()
+       (and (or (thing-at-point-looking-at thing-at-point-hexadecimal-regexp 500)
+                (thing-at-point-looking-at thing-at-point-decimal-regexp 500))
+            (cons (match-beginning 0) (match-end 0)))))
 (put 'number 'forward-op 'forward-word)
 (put 'number 'thing-at-point 'number-at-point)
 
@@ -775,5 +828,51 @@ treated as white space."
     (save-excursion
       (goto-char (or (nth 8 ppss) (point)))
       (form-at-point 'list 'listp))))
+
+;; Provider helper functions
+
+(defun thing-at-point-for-char-property (property)
+  "Return the \"thing\" at point.
+Each \"thing\" is a region of text with the specified text PROPERTY (or
+overlay) set."
+  (or (get-char-property (point) property)
+      (and (> (point) (point-min))
+           (get-char-property (1- (point)) property))))
+
+(autoload 'text-property-search-forward "text-property-search")
+(autoload 'text-property-search-backward "text-property-search")
+(autoload 'prop-match-beginning "text-property-search")
+(autoload 'prop-match-end "text-property-search")
+
+(defun forward-thing-for-char-property (property &optional backward)
+  "Move forward to the end of the next \"thing\".
+If BACKWARD is non-nil, move backward to the beginning of the previous
+\"thing\" instead.  Each \"thing\" is a region of text with the
+specified text PROPERTY (or overlay) set."
+  (let ((bounds (bounds-of-thing-at-point-for-char-property property)))
+    (if backward
+        (if (and bounds (> (point) (car bounds)))
+            (goto-char (car bounds))
+          (goto-char (previous-single-char-property-change (point) property))
+          (unless (get-char-property (point) property)
+            (goto-char (previous-single-char-property-change
+                        (point) property))))
+      (if (and bounds (< (point) (cdr bounds)))
+          (goto-char (cdr bounds))
+        (unless (get-char-property (point) property)
+          (goto-char (next-single-char-property-change (point) property)))
+        (goto-char (next-single-char-property-change (point) property))))))
+
+(defun bounds-of-thing-at-point-for-char-property (property)
+  "Determine the start and end buffer locations for the \"thing\" at point.
+The \"thing\" is a region of text with the specified text PROPERTY (or
+overlay) set."
+  (let ((pos (point)))
+    (when (or (get-char-property pos property)
+              (and (> pos (point-min))
+                   (get-char-property (setq pos (1- pos)) property)))
+      (cons (previous-single-char-property-change
+             (min (1+ pos) (point-max)) property)
+            (next-single-char-property-change pos property)))))
 
 ;;; thingatpt.el ends here

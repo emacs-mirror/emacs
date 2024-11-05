@@ -1,6 +1,6 @@
 /* Set file access and modification times.
 
-   Copyright (C) 2003-2023 Free Software Foundation, Inc.
+   Copyright (C) 2003-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -220,7 +220,7 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
   if (0 <= utimensat_works_really)
     {
       int result;
-# if __linux__ || __sun
+# if defined __linux__ || defined __sun || defined __NetBSD__
       /* As recently as Linux kernel 2.6.32 (Dec 2009), several file
          systems (xfs, ntfs-3g) have bugs with a single UTIME_OMIT,
          but work if both times are either explicitly specified or
@@ -230,9 +230,10 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
          where UTIME_OMIT would have worked.
 
          The same bug occurs in Solaris 11.1 (Apr 2013).
+         The same bug occurs in NetBSD 10.0 (May 2024).
 
-         FIXME: Simplify this for Linux in 2016 and for Solaris in
-         2024, when file system bugs are no longer common.  */
+         FIXME: Simplify this in 2024, when these file system bugs are
+         no longer common on Gnulib target platforms.  */
       if (adjustment_needed == 2)
         {
           if (fd < 0 ? stat (file, &st) : fstat (fd, &st))
@@ -440,7 +441,7 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
 #  endif
         if (futimes (fd, t) == 0)
           {
-#  if __linux__ && __GLIBC__
+#  if defined __linux__ && defined __GLIBC__
             /* Work around a longstanding glibc bug, still present as
                of 2010-12-27.  On older Linux kernels that lack both
                utimensat and utimes, glibc's futimes rounds instead of
@@ -515,6 +516,7 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
   }
 }
 
+#if !HAVE_UTIMENS
 /* Set the access and modification timestamps of FILE to be
    TIMESPEC[0] and TIMESPEC[1], respectively.  */
 int
@@ -522,7 +524,9 @@ utimens (char const *file, struct timespec const timespec[2])
 {
   return fdutimens (-1, file, timespec);
 }
+#endif
 
+#if !HAVE_LUTIMENS
 /* Set the access and modification timestamps of FILE to be
    TIMESPEC[0] and TIMESPEC[1], respectively, without dereferencing
    symlinks.  Fail with ENOSYS if the platform does not support
@@ -553,7 +557,7 @@ lutimens (char const *file, struct timespec const timespec[2])
   if (0 <= lutimensat_works_really)
     {
       int result;
-# if __linux__ || __sun
+# if defined __linux__ || defined __sun || defined __NetBSD__
       /* As recently as Linux kernel 2.6.32 (Dec 2009), several file
          systems (xfs, ntfs-3g) have bugs with a single UTIME_OMIT,
          but work if both times are either explicitly specified or
@@ -563,6 +567,7 @@ lutimens (char const *file, struct timespec const timespec[2])
          UTIME_OMIT would have worked.
 
          The same bug occurs in Solaris 11.1 (Apr 2013).
+         The same bug occurs in NetBSD 10.0 (May 2024).
 
          FIXME: Simplify this for Linux in 2016 and for Solaris in
          2024, when file system bugs are no longer common.  */
@@ -644,3 +649,4 @@ lutimens (char const *file, struct timespec const timespec[2])
   errno = ENOSYS;
   return -1;
 }
+#endif

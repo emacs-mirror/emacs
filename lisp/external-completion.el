@@ -1,11 +1,14 @@
 ;;; external-completion.el --- Let external tools control completion style  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
 ;; Version: 0.1
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; Keywords:
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -37,7 +40,7 @@
 ;; other in `completion-styles' are ignored.
 ;;
 ;; This compromise is for speed: all other styles need the full data
-;; set to be available in Emacs' addressing space, which is often slow
+;; set to be available in Emacs's addressing space, which is often slow
 ;; if not completely unfeasible.
 ;;
 ;; To make use of the `external' style the function
@@ -72,7 +75,7 @@ function links CATEGORY to the style `external', by modifying
 set in `completion-styles'.
 
 LOOKUP is a function taking a string PATTERN and a number
-POINT. The function should contact the tool and return a list of
+POINT.  The function should contact the tool and return a list of
 strings representing the completions for PATTERN given that POINT
 is the location of point within it.  LOOKUP decides if PATTERN is
 interpreted as a substring, a regular expression, or any other
@@ -123,7 +126,7 @@ EXPANDED-PATTERN."
         (pcase action
           (`metadata
            `(metadata (category . ,category) . ,metadata))
-          ;; Note: the `--tryc' `--allc' suffixes are made akward on
+          ;; Note: the `--tryc' `--allc' suffixes are made awkward on
           ;; purpose, so it's easy to pick them apart from the jungle
           ;; of combinations of "try" and "all" and "completion" that
           ;; inhabit Emacs's completion logic.

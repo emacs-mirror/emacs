@@ -1,7 +1,7 @@
 ;; -*- mode: lisp-data; -*-
-((pass 1 "PASS :barnet:changeme"))
-((nick 1 "NICK tester"))
-((user 2 "USER user 0 * :tester")
+((pass 10 "PASS :barnet:changeme"))
+((nick 10 "NICK tester"))
+((user 10 "USER user 0 * :tester")
  (0 ":irc.barnet.org 001 tester :Welcome to the barnet IRC Network tester")
  (0 ":irc.barnet.org 002 tester :Your host is irc.barnet.org, running version oragono-2.6.0-7481bf0385b95b16")
  (0 ":irc.barnet.org 003 tester :This server was created Sun, 25 Apr 2021 11:28:28 UTC")

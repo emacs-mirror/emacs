@@ -1,11 +1,11 @@
 ;;; handwrite.el --- turns your emacs buffer into a handwritten document  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Author: Danny Roozendaal (was: <danny@tvs.kun.nl>)
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: October 21 1996
-;; Keywords: wp, print, postscript, cursive writing
+;; Keywords: text, print, postscript, cursive writing
 
 ;; This file is part of GNU Emacs.
 

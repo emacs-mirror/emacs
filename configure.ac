@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2023 Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2024 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -23,7 +23,7 @@ dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.65])
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
-AC_INIT([GNU Emacs], [30.0.50], [bug-gnu-emacs@gnu.org], [],
+AC_INIT([GNU Emacs], [31.0.50], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
 if test "$XCONFIGURE" = "android"; then
@@ -40,7 +40,13 @@ if test "$XCONFIGURE" = "android"; then
   CFLAGS="$ANDROID_CFLAGS -Werror=implicit-function-declaration"
   # Don't explicitly enable support for large files unless Emacs is
   # being built for API 21 or later.  Otherwise, mmap does not work.
+  #
+  # Moreover, 64-bit variants of file IO functions in the C library are
+  # liable to fail with ENOSYS or EINVAL on earlier API versions, and as
+  # such their definitions must be explicitly disabled on NDK releases
+  # that enable them by default.
   AS_IF([test "$ANDROID_SDK" -lt "21"], [
+    CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=32"
     enable_largefile=no
     enable_year2038=no])
 fi
@@ -171,7 +177,6 @@ AS_IF([test "$XCONFIGURE" = "android"],[
   # Make sure to pass through the CFLAGS, as older versions of the
   # NDK require them to be able to find system includes.
   with_ndk_path="$android_ndk_path"
-  with_ndk_cxx_shared="$android_ndk_cxx_shared"
   with_ndk_cxx="$android_ndk_cxx"
   ndk_INIT([$android_abi], [$ANDROID_SDK], [cross/ndk-build],
            [$ANDROID_CFLAGS])
@@ -192,11 +197,17 @@ AS_IF([test "$XCONFIGURE" = "android"],[
 
   AC_MSG_NOTICE([configuring in `exec'])
 
+  # Derive a name for a cache file for this configure script from the
+  # current, if specified.
+  exec_cache_file=
+  AS_CASE([$cache_file], [/dev/null | ""], [],
+    [[[\\/]* | ?:[\\/]*]], [exec_cache_file="--cache-file=$cache_file.2"],
+    [*], [exec_cache_file="--cache-file=../$cache_file.2"])
   OLDCWD=`pwd`
   cd exec
   $CONFIG_SHELL $emacs_srcdir/exec/configure		\
 		--host=$host "CC=$CC" "LD=$CC" "AS=$CC"	\
-		"AR=$AR" "CFLAGS=$CFLAGS"
+		"AR=$AR" "CFLAGS=$CFLAGS" $exec_cache_file
   emacs_val=$?
   cd $OLDCWD
 
@@ -306,7 +317,7 @@ AC_DEFUN([OPTION_DEFAULT_OFF], [dnl
 
 dnl OPTION_DEFAULT_IFAVAILABLE(NAME, HELP-STRING)
 dnl Create a new --with option that defaults to 'ifavailable',
-dnl unless it is overriden by $with_features being equal to 'no'.
+dnl unless it is overridden by $with_features being equal to 'no'.
 dnl NAME is the base name of the option.  The shell variable with_NAME
 dnl   will be set to either the user's value (if the option is
 dnl   specified; 'yes' for a plain --with-NAME) or to 'ifavailable' (if the
@@ -549,7 +560,6 @@ OPTION_DEFAULT_OFF([cairo-xcb], [use XCB surfaces for Cairo support])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
 OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
 OPTION_DEFAULT_ON([native-image-api], [don't use native image APIs (GDI+ on Windows)])
-OPTION_DEFAULT_IFAVAILABLE([json], [compile with native JSON support])
 OPTION_DEFAULT_IFAVAILABLE([tree-sitter], [compile with tree-sitter])
 
 OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
@@ -772,6 +782,17 @@ AS_IF([test "$with_android" = no || test -n "$XCONFIGURE"],[
     [android_enable_checking=yes
      export android_enable_checking])])
 
+AC_ARG_ENABLE([gc-mark-trace],
+ [AS_HELP_STRING([--disable-gc-mark-trace],
+                 [disable the mark trace buffer used for debugging the Emacs
+                 garbage collector])],
+ [ac_enable_gc_mark_trace="${enableval}"],
+ [ac_enable_gc_mark_trace=yes])
+if test "x$ac_enable_gc_mark_trace" = xyes ; then
+   AC_DEFINE([GC_REMEMBER_LAST_MARKED], [1],
+   [Define to 1 to enable GC mark trace buffer.])
+fi
+
 dnl The name of this option is unfortunate.  It predates, and has no
 dnl relation to, the "sampling-based elisp profiler" added in 24.3.
 dnl Actually, it stops it working.
@@ -858,6 +879,7 @@ ANDROID_ABI=
 WARN_JAVAFLAGS=
 ANDROID_SHARED_USER_ID=
 ANDROID_SHARED_USER_NAME=
+IS_D8_R8=
 
 # This is a list of Makefiles that have alternative versions for
 # Android.
@@ -873,6 +895,7 @@ AC_ARG_VAR([JAVAC], [Java compiler path.  Used for Android.])
 AC_ARG_VAR([JARSIGNER], [Java package signer path.  Used for Android.])
 AC_ARG_VAR([APKSIGNER], [Android package signer path.  Used for Android.])
 AC_ARG_VAR([SDK_BUILD_TOOLS], [Path to the Android SDK build tools.])
+AC_ARG_VAR([ZIP], [Path to the `zip' utility.])
 
 if test "$with_android" = "yes"; then
    AC_MSG_ERROR([Please specify the path to the Android.jar file, like so:
@@ -941,7 +964,7 @@ a valid path to android.jar.  See config.log for more details.])
   fi
 
   AC_CACHE_CHECK([whether android.jar is new enough],
-    [emacs_cv_android_s_or_later],
+    [emacs_cv_android_v_or_later],
     AS_IF([rm -f conftest.class
 cat << EOF > conftest.java
 
@@ -949,18 +972,18 @@ import android.os.Build;
 
 class conftest
 {
-  private static int test = Build.VERSION_CODES.TIRAMISU;
+  private static int test = Build.VERSION_CODES.VANILLA_ICE_CREAM;
 }
 
 EOF
 ("$JAVAC" -classpath "$with_android" -target 1.7 -source 1.7 conftest.java \
   -d . >&AS_MESSAGE_LOG_FD 2>&1) && test -s conftest.class && rm -f conftest.class],
-          [emacs_cv_android_s_or_later=yes],
-          [emacs_cv_android_s_or_later=no]))
+          [emacs_cv_android_v_or_later=yes],
+          [emacs_cv_android_v_or_later=no]))
 
-  if test "$emacs_cv_android_s_or_later" = "no"; then
+  if test "$emacs_cv_android_v_or_later" = "no"; then
     AC_MSG_ERROR([Emacs must be built with an android.jar file produced for \
-Android 13 (Tiramisu) or later.])
+Android 15 (Vanilla Ice Cream) or later.])
   fi
 
   dnl See if the Java compiler supports the `--release' option which
@@ -1020,10 +1043,25 @@ Please verify that the path to the SDK build tools you specified is correct])
   fi
 
   AC_PATH_PROGS([D8], [d8], [], "${SDK_BUILD_TOOLS}:$PATH")
-  if test "D8" = ""; then
+  if test "$D8" = ""; then
     AC_MSG_ERROR([The Android dexer was not found.
 Please verify that the path to the SDK build tools you specified is correct])
   fi
+
+  # Locate any d8.jar within the SDK build tools directory.  The R8
+  # optimizing compiler is also present in this bundle, and it generates
+  # far superior code.
+  emacs_val=`which $D8`
+  emacs_val=`AS_DIRNAME([$emacs_val])`/lib/d8.jar
+  AS_IF([test -f "$emacs_val"],
+    [AC_CACHE_CHECK([whether d8.jar coresident with d8 binary provides r8],
+       [emacs_cv_d8_provides_r8],
+       [AS_IF([java -cp "$emacs_val" com.android.tools.r8.R8 --help &>/dev/null],
+         [emacs_cv_d8_provides_r8=yes], [emacs_cv_d8_provides_r8=no])])])
+  AS_IF([test "$emacs_cv_d8_provides_r8" = "yes"],
+    # And substitute it for D8 if present.
+    [D8="java -cp $emacs_val com.android.tools.r8.R8"
+     IS_D8_R8=yes])
 
   AC_PATH_PROGS([ZIPALIGN], [zipalign], [], "${SDK_BUILD_TOOLS}:$PATH")
   if test "ZIPALIGN" = ""; then
@@ -1152,6 +1190,10 @@ main (void)
    foo = "emacs_api_32";
 #elif __ANDROID_API__ < 34
    foo = "emacs_api_33";
+#elif __ANDROID_API__ < 35
+   foo = "emacs_api_34";
+#elif __ANDROID_API__ < 36
+   foo = "emacs_api_35";
 #else
    foo = "emacs_api_future";
 #endif
@@ -1201,8 +1243,13 @@ package will likely install on older systems but crash on startup.])
   ANDROID_SDK_8_OR_EARLIER=
   if test "$android_sdk" -le "8"; then
      ANDROID_SDK_8_OR_EARLIER=yes
+     AC_CHECK_PROGS([ZIP], [zip])
+     AS_IF([test -z "$ZIP"],
+       [AC_MSG_ERROR([The `zip' utility is required for generating \
+packages targeting Android 2.2.])])
   fi
   AC_SUBST([ANDROID_SDK_8_OR_EARLIER])
+  AC_SUBST([ZIP])
 
   # Save confdefs.h and config.log for now.
   mv -f confdefs.h _confdefs.h
@@ -1215,7 +1262,6 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-png=$with_png"
   passthrough="$passthrough --with-webp=$with_webp"
   passthrough="$passthrough --with-gif=$with_gif"
-  passthrough="$passthrough --with-json=$with_json"
   passthrough="$passthrough --with-jpeg=$with_jpeg"
   passthrough="$passthrough --with-xml2=$with_xml2"
   passthrough="$passthrough --with-sqlite3=$with_sqlite3"
@@ -1229,10 +1275,17 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-mailutils=$with_mailutils"
   passthrough="$passthrough --with-pop=$with_pop"
   passthrough="$passthrough --with-harfbuzz=$with_harfbuzz"
+  passthrough="$passthrough --with-threads=$with_threads"
+  passthrough="$passthrough --with-rsvg=$with_rsvg"
 
-  # Now pass through some checking options.
+  # Now pass through some checking-related options.
   emacs_val="--enable-check-lisp-object-type=$enable_check_lisp_object_type"
   passthrough="$passthrough $emacs_val"
+
+  # And derive a name for the recursive configure invocation's cache
+  # file if one should be specified for this.
+  AS_IF([test -n "$cache_file" && test "$cache_file" != "/dev/null"],
+    [passthrough="$passthrough --cache-file=$cache_file.1"])
 
   AS_IF([test "x$with_mailutils" = "xyes"], [emacs_use_mailutils=yes])
   AC_SUBST([emacs_use_mailutils])
@@ -1240,7 +1293,6 @@ package will likely install on older systems but crash on startup.])
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC"		\
          ANDROID_SDK="$android_sdk" android_abi=$android_abi	\
 	 android_ndk_path="$with_ndk_path"		     	\
-	 android_ndk_cxx_shared="$with_ndk_cxx_shared"	     	\
 	 android_ndk_cxx="$android_ndk_cxx"			\
 	 $CONFIG_SHELL $0 $passthrough], [],
     [AC_MSG_ERROR([Failed to cross-configure Emacs for android.])])
@@ -1282,6 +1334,7 @@ AC_SUBST([D8])
 AC_SUBST([ZIPALIGN])
 AC_SUBST([ANDROID_JAR])
 AC_SUBST([ANDROID_ABI])
+AC_SUBST([IS_D8_R8])
 
 if test "$XCONFIGURE" = "android"; then
   ANDROID=yes
@@ -1304,7 +1357,6 @@ if test "$ANDROID" = "yes"; then
     with_png=no
     with_webp=no
     with_gif=no
-    with_json=no
     with_jpeg=no
     with_xml2=no
     with_sqlite3=no
@@ -1318,9 +1370,11 @@ if test "$ANDROID" = "yes"; then
     with_mailutils=no
     with_pop=no
     with_harfbuzz=no
+    with_native_compilation=no
+    with_threads=no
+    with_rsvg=no
   fi
 
-  with_rsvg=no
   with_libsystemd=no
   with_cairo=no
   with_xft=no
@@ -1328,7 +1382,6 @@ if test "$ANDROID" = "yes"; then
   with_gpm=no
   with_dbus=no
   with_gsettings=no
-  with_threads=no
   with_ns=no
 
   # zlib is available in android.
@@ -1471,7 +1524,11 @@ case "${canonical}" in
       *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
-		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
+		# Also, GCC 14 turns on implicit-function-declaration
+		# error by default, which fails configure tests where our
+		# emulation of Posix headers defines only the minimal
+		# stuff we actually need.
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc -Wno-error=implicit-function-declaration"
 		;;
       *-sysv4.2uw* )		opsys=unixware ;;
       *-sysv5uw* )		opsys=unixware ;;
@@ -1486,7 +1543,7 @@ case "${canonical}" in
       *-mingw* )
 		opsys=mingw32
 		# MinGW overrides and adds some system headers in nt/inc.
-		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc -Wno-error=implicit-function-declaration"
 		;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
@@ -1562,11 +1619,21 @@ AC_DEFUN([gt_TYPE_WINT_T],
 AC_DEFUN_ONCE([gl_STDLIB_H],
   [AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
    gl_NEXT_HEADERS([stdlib.h])])
+# Emacs does not need to check for off64_t.
+AC_DEFUN([gl_TYPE_OFF64_T],
+  [HAVE_OFF64_T=1
+   AC_SUBST([HAVE_OFF64_T])])
 
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.
 gl_EARLY
-ndk_LATE
+
+# ndk_LATE must be enclosed in this conditional to prevent the
+# AC_PROG_CXX it indirectly requires from being expanded at top level.
+if test "$ndk_INITIALIZED" = "yes"; then
+  ndk_LATE_EARLY
+  ndk_LATE
+fi
 
 if test "$ac_test_CFLAGS" != set; then
   # It's helpful to have C macros available to GDB, so prefer -g3 to -g
@@ -1664,13 +1731,13 @@ AC_ARG_ENABLE([gcc-warnings],
    # however, if there is also a .tarball-version file it is probably
    # just a release imported into Git for patch management.
    gl_gcc_warnings=no
-   if test -d "$srcdir"/.git && test ! -f "$srcdir"/.tarball-version; then
-      # Clang typically identifies itself as GCC 4.2 or something similar
-      # even if it is recent enough to accept the warnings we enable.
-      AS_IF([test "$emacs_cv_clang" = yes],
-         [gl_gcc_warnings=warn-only],
-         [gl_GCC_VERSION_IFELSE([5], [3], [gl_gcc_warnings=warn-only])])
-   fi])
+   AS_IF([test -d "$srcdir"/.git || test -f "$srcdir"/.git],
+     [AS_IF([test -f "$srcdir"/.tarball-version], [],
+	# Clang typically identifies itself as GCC 4.2 or something similar
+	# even if it is recent enough to accept the warnings we enable.
+	[AS_IF([test "$emacs_cv_clang" = yes],
+	   [gl_gcc_warnings=warn-only],
+	   [gl_GCC_VERSION_IFELSE([5], [3], [gl_gcc_warnings=warn-only])])])])])
 
 NATIVE_COMPILATION_AOT=no
 AC_ARG_WITH([native-compilation],
@@ -1691,7 +1758,7 @@ AC_ARG_WITH([native-compilation],
      *)      AC_MSG_ERROR([bad value $withval for native-compilation option]) ;;
    esac
    with_native_compilation=$withval],
-  [with_native_compilation=no]
+  [with_native_compilation=default]
 )
 AC_SUBST([NATIVE_COMPILATION_AOT])
 
@@ -1713,7 +1780,6 @@ AS_IF([test $gl_gcc_warnings = no],
   AS_IF([test "$emacs_cv_clang" = yes],
    [
      # Turn off some warnings if supported.
-     gl_WARN_ADD([-Wno-switch])
      gl_WARN_ADD([-Wno-pointer-sign])
      gl_WARN_ADD([-Wno-string-plus-int])
      gl_WARN_ADD([-Wno-unknown-attributes])
@@ -1744,7 +1810,6 @@ AS_IF([test $gl_gcc_warnings = no],
   nw="$nw -Wcast-align=strict"      # Emacs is tricky with pointers.
   nw="$nw -Wduplicated-branches"    # Too many false alarms
   nw="$nw -Wformat-overflow=2"      # False alarms due to GCC bug 110333
-  nw="$nw -Wsystem-headers"         # Don't let system headers trigger warnings
   nw="$nw -Woverlength-strings"     # Not a problem these days
   nw="$nw -Wvla"                    # Emacs uses <vla.h>.
   nw="$nw -Wunused-const-variable=2" # lisp.h declares const objects.
@@ -2016,7 +2081,7 @@ AC_CACHE_CHECK([for 'find' args to delete a file],
   [if touch conftest.tmp && find conftest.tmp -delete 2>/dev/null &&
       test ! -f conftest.tmp
    then emacs_cv_find_delete="-delete"
-   else emacs_cv_find_delete="-exec rm -f {} ';'"
+   else emacs_cv_find_delete="-exec rm -f {} +"
    fi])
 FIND_DELETE=$emacs_cv_find_delete
 AC_SUBST([FIND_DELETE])
@@ -2281,6 +2346,51 @@ case $canonical in
     fi
   ;;
 esac
+
+AC_CACHE_CHECK([for flags to work around GCC bug 58416],
+  [emacs_cv_gcc_bug_58416_CFLAGS],
+  [emacs_cv_gcc_bug_58416_CFLAGS='none needed'
+   AS_CASE([$canonical],
+     [[i[3456]86-* | x86_64-*]],
+       [AS_IF([test "$GCC" = yes],
+	  [old_CFLAGS=$CFLAGS
+	   # If no flags are needed (e.g., not GCC 4+), don't use any.
+	   # Otherwise, use -mfpmath=sse if already assuming SSE2.
+	   # Otherwise, use -fno-tree-sra.
+	   for emacs_cv_gcc_bug_58416_CFLAGS in \
+	       'none needed' -mfpmath=sse -fno-tree-sra
+	   do
+	     AS_CASE([$emacs_cv_gcc_bug_58416_CFLAGS],
+	       ['none needed'], [],
+	       [-fno-tree-sra], [break],
+	       [CFLAGS="$old_CFLAGS $emacs_cv_gcc_bug_58416_CFLAGS"])
+	     AC_COMPILE_IFELSE(
+	       [AC_LANG_DEFINES_PROVIDED
+		[/* Work around GCC bug with double in unions on x86,
+		    where the generated insns copy non-floating-point data
+		    via fldl/fstpl instruction pairs.  This can misbehave
+		    the data's bit pattern looks like a NaN.  See, e.g.:
+		       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58416#c10
+		       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71460
+		       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93271
+		       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114659
+		    Problem observed with 'gcc -m32' with GCC 14.1.1
+		    20240607 (Red Hat 14.1.1-5) on x86-64.  */
+		 #include <float.h>
+		 #if \
+		     (4 <= __GNUC__ && __GNUC__ <= 14 && !defined __clang__ \
+		      && (defined __i386__ || defined __x86_64__) \
+		      && ! (0 <= FLT_EVAL_METHOD && FLT_EVAL_METHOD <= 1))
+		 # error "GCC bug 58416 is possibly present"
+		 #endif
+	       ]],
+	       [break])
+	   done
+	   CFLAGS=$old_CFLAGS])])])
+AS_CASE([$emacs_cv_gcc_bug_58416_CFLAGS],
+  [-*],
+    [C_SWITCH_MACHINE="$C_SWITCH_MACHINE $emacs_cv_gcc_bug_58416_CFLAGS"])
+
 AC_SUBST([C_SWITCH_MACHINE])
 
 C_SWITCH_SYSTEM=
@@ -2334,6 +2444,7 @@ fi
 AC_DEFUN([AC_TYPE_SIZE_T])
 # Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
 AC_DEFUN([AC_TYPE_UID_T])
+ac_cv_type_gid_t=yes # AC_TYPE_GETGROUPS needs this in Autoconf 2.72.
 
 # Check for all math.h functions that Emacs uses; on some platforms,
 # -lm is needed for some of these functions.
@@ -2431,11 +2542,6 @@ AC_SUBST([LIB_MATH])
 AC_DEFINE_UNQUOTED([SYSTEM_TYPE], ["$SYSTEM_TYPE"],
   [The type of system you are compiling for; sets 'system-type'.])
 AC_SUBST([SYSTEM_TYPE])
-
-# Check for pw_gecos in struct passwd; this is known to be missing on
-# Android.
-
-AC_CHECK_MEMBERS([struct passwd.pw_gecos], [], [], [#include <pwd.h>])
 
 pre_PKG_CONFIG_CFLAGS=$CFLAGS
 pre_PKG_CONFIG_LIBS=$LIBS
@@ -2721,6 +2827,17 @@ AC_SUBST([ANDROID_LDFLAGS])
 AC_SUBST([ANDROID_BUILD_CFLAGS])
 AC_SUBST([ANDROID_SHARED_USER_ID])
 AC_SUBST([ANDROID_SHARED_USER_NAME])
+
+# Check for pw_gecos in struct passwd; this is known to be missing on
+# Android.
+
+AH_TEMPLATE([USER_FULL_NAME], [How to get a user's full name.])
+AC_CHECK_MEMBERS([struct passwd.pw_gecos], [], [], [#include <pwd.h>])
+AS_IF([test x"$REALLY_ANDROID" = "xyes"],
+  [AC_DEFINE([USER_FULL_NAME], [android_user_full_name (pw)])],
+  [AS_IF([test x"$ac_cv_member_struct_passwd_pw_gecos" = "xyes"],
+    [AC_DEFINE([USER_FULL_NAME], [pw->pw_gecos])],
+    [AC_DEFINE([USER_FULL_NAME], [NULL])])])
 
 if test "${with_pgtk}" = "yes"; then
   window_system=pgtk
@@ -3055,7 +3172,7 @@ if test "${HAVE_W32}" = "yes"; then
   AC_CHECK_TOOL([WINDRES], [windres],
                 [AC_MSG_ERROR([No resource compiler found.])])
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
-  W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o w32cygwinx.o"
+  W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o w32dwrite.o w32cygwinx.o"
   EMACSRES="emacs.res"
   case "$canonical" in
     x86_64-*-*) EMACS_MANIFEST="emacs-x64.manifest" ;;
@@ -3084,7 +3201,7 @@ if test "${HAVE_W32}" = "yes"; then
       NATIVE_IMAGE_API="yes (w32)"
       W32_OBJ="$W32_OBJ w32image.o"
     fi
-    W32_LIBS="$W32_LIBS -lwinmm -lusp10 -lgdi32 -lcomdlg32"
+    W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32"
     W32_RES_LINK="\$(EMACSRES)"
     CLIENTRES="emacsclient.res"
@@ -3517,10 +3634,13 @@ fi
 HAVE_RSVG=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" \
    || test "${opsys}" = "mingw32" || test "${HAVE_BE_APP}" = "yes" \
-   || test "${window_system}" = "pgtk"; then
+   || test "${window_system}" = "pgtk" \
+   || test "${REALLY_ANDROID}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.14.0
-    RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
+    AS_IF([test "${REALLY_ANDROID}" = "yes"],
+      [RSVG_MODULE="librsvg"],
+      [RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"])
 
     EMACS_CHECK_MODULES([RSVG], [$RSVG_MODULE])
     AC_SUBST([RSVG_CFLAGS])
@@ -3856,6 +3976,8 @@ if test "${with_dbus}" = "yes"; then
      dnl dbus_watch_get_unix_fd has been introduced in D-Bus 1.1.1.
      dnl dbus_type_is_valid and dbus_validate_* have been introduced in
      dnl D-Bus 1.5.12.
+     dnl dbus_message_set_allow_interactive_authorization was introduced
+     dnl in D-Bus 1.8.10.
      OLD_LIBS=$LIBS
      LIBS="$LIBS $DBUS_LIBS"
      AC_CHECK_FUNCS([dbus_watch_get_unix_fd \
@@ -3863,7 +3985,8 @@ if test "${with_dbus}" = "yes"; then
 		    dbus_validate_bus_name \
                     dbus_validate_path \
 		    dbus_validate_interface \
-		    dbus_validate_member])
+		    dbus_validate_member \
+                    dbus_message_set_allow_interactive_authorization])
      LIBS=$OLD_LIBS
      DBUS_OBJ=dbusbind.o
    fi
@@ -3997,27 +4120,6 @@ fi
 AC_SUBST([LIBSYSTEMD_LIBS])
 AC_SUBST([LIBSYSTEMD_CFLAGS])
 
-HAVE_JSON=no
-JSON_OBJ=
-
-if test "${with_json}" != no; then
-  EMACS_CHECK_MODULES([JSON], [jansson >= 2.7],
-    [HAVE_JSON=yes], [HAVE_JSON=no])
-  if test "${HAVE_JSON}" = yes; then
-    AC_DEFINE([HAVE_JSON], [1], [Define if using Jansson.])
-    JSON_OBJ=json.o
-  fi
-
-  # Windows loads libjansson dynamically
-  if test "${opsys}" = "mingw32"; then
-    JSON_LIBS=
-  fi
-fi
-
-AC_SUBST([JSON_LIBS])
-AC_SUBST([JSON_CFLAGS])
-AC_SUBST([JSON_OBJ])
-
 HAVE_TREE_SITTER=no
 TREE_SITTER_OBJ=
 NEED_DYNLIB=no
@@ -4084,40 +4186,42 @@ case $with_file_notification,$opsys in
     fi ;;
 esac
 
-dnl inotify is available only on GNU/Linux.
+dnl inotify is available only on Linux-kernel based systems.
 case $with_file_notification,$NOTIFY_OBJ in
   inotify, | yes,)
     AC_CHECK_HEADER([sys/inotify.h])
     if test "$ac_cv_header_sys_inotify_h" = yes ; then
-	AC_CHECK_FUNC([inotify_init1])
-	if test "$ac_cv_func_inotify_init1" = yes; then
+	AC_CHECK_FUNCS([inotify_init inotify_init1])
+	if test "$ac_cv_func_inotify_init" = yes; then
 	  AC_DEFINE([HAVE_INOTIFY], [1], [Define to 1 to use inotify.])
 	  NOTIFY_OBJ=inotify.o
-	  NOTIFY_SUMMARY="yes -lglibc (inotify)"
+	  NOTIFY_SUMMARY="yes (inotify)"
        fi
     fi ;;
 esac
 
-dnl kqueue is available on BSD-like systems.
-case $with_file_notification,$NOTIFY_OBJ in
-  kqueue,* | yes,)
-    EMACS_CHECK_MODULES([KQUEUE], [libkqueue])
-    if test "$HAVE_KQUEUE" = "yes"; then
-       AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
-       CPPFLAGS="$CPPFLAGS -I/usr/include/kqueue"
-       NOTIFY_CFLAGS=$KQUEUE_CFLAGS
-       NOTIFY_LIBS=$KQUEUE_LIBS
-       NOTIFY_OBJ=kqueue.o
-       NOTIFY_SUMMARY="yes -lkqueue"
-    else
-       AC_SEARCH_LIBS([kqueue], [])
-       if test "$ac_cv_search_kqueue" != no; then
-	 AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
-	 NOTIFY_OBJ=kqueue.o
-	 NOTIFY_SUMMARY="yes (kqueue)"
-       fi
-    fi ;;
-esac
+AS_IF([test "$opsys" != "haiku"], [
+ dnl kqueue is available on BSD-like systems and Haiku, but Haiku's
+ dnl implementation cannot monitor filesystem activity.
+ case $with_file_notification,$NOTIFY_OBJ in
+   kqueue,* | yes,)
+     EMACS_CHECK_MODULES([KQUEUE], [libkqueue])
+     if test "$HAVE_KQUEUE" = "yes"; then
+	AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
+	CPPFLAGS="$CPPFLAGS -I/usr/include/kqueue"
+	NOTIFY_CFLAGS=$KQUEUE_CFLAGS
+	NOTIFY_LIBS=$KQUEUE_LIBS
+	NOTIFY_OBJ=kqueue.o
+	NOTIFY_SUMMARY="yes -lkqueue"
+     else
+	AC_SEARCH_LIBS([kqueue], [])
+	if test "$ac_cv_search_kqueue" != no; then
+	  AC_DEFINE([HAVE_KQUEUE], [1], [Define to 1 to use kqueue.])
+	  NOTIFY_OBJ=kqueue.o
+	  NOTIFY_SUMMARY="yes (kqueue)"
+	fi
+     fi ;;
+ esac])
 
 dnl g_file_monitor exists since glib 2.18.  G_FILE_MONITOR_EVENT_MOVED
 dnl has been added in glib 2.24.  It has been tested under
@@ -4414,10 +4518,11 @@ XWIDGETS_OBJ=
 if test "$with_xwidgets" != "no"; then
   if test "$USE_GTK_TOOLKIT" = "GTK3" && test "$window_system" != "none"; then
     WEBKIT_REQUIRED=2.12
-    WEBKIT_MODULES="webkit2gtk-4.1 >= $WEBKIT_REQUIRED"
+    WEBKIT_BROKEN=2.41.92
+    WEBKIT_MODULES="webkit2gtk-4.1 >= $WEBKIT_REQUIRED webkit2gtk-4.1 < $WEBKIT_BROKEN"
     EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
     if test "$HAVE_WEBKIT" = "no"; then
-      WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED"
+      WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED webkit2gtk-4.0 < $WEBKIT_BROKEN"
       EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
     fi
     HAVE_XWIDGETS=$HAVE_WEBKIT
@@ -5026,12 +5131,14 @@ AC_SUBST_FILE([module_env_snippet_27])
 AC_SUBST_FILE([module_env_snippet_28])
 AC_SUBST_FILE([module_env_snippet_29])
 AC_SUBST_FILE([module_env_snippet_30])
+AC_SUBST_FILE([module_env_snippet_31])
 module_env_snippet_25="$srcdir/src/module-env-25.h"
 module_env_snippet_26="$srcdir/src/module-env-26.h"
 module_env_snippet_27="$srcdir/src/module-env-27.h"
 module_env_snippet_28="$srcdir/src/module-env-28.h"
 module_env_snippet_29="$srcdir/src/module-env-29.h"
 module_env_snippet_30="$srcdir/src/module-env-30.h"
+module_env_snippet_31="$srcdir/src/module-env-31.h"
 emacs_major_version=`AS_ECHO([$PACKAGE_VERSION]) | sed 's/[[.]].*//'`
 AC_SUBST([emacs_major_version])
 
@@ -5076,20 +5183,20 @@ AC_DEFUN([libgccjit_smoke_test], [
         return 0;
       }]])])
 
-AC_DEFUN([libgccjit_not_found], [
+AC_DEFUN([libgccjit_not_found_err], [
   AC_MSG_ERROR([ELisp native compiler was requested, but libgccjit was not found.
 Please try installing libgccjit or a similar package.
 If you are sure you want Emacs be compiled without ELisp native compiler,
 pass the --without-native-compilation option to configure.])])
 
-AC_DEFUN([libgccjit_dev_not_found], [
+AC_DEFUN([libgccjit_dev_not_found_err], [
   AC_MSG_ERROR([ELisp native compiler was requested, but libgccjit header files were
 not found.
 Please try installing libgccjit-dev or a similar package.
 If you are sure you want Emacs be compiled without ELisp native compiler,
 pass the --without-native-compilation option to configure.])])
 
-AC_DEFUN([libgccjit_broken], [
+AC_DEFUN([libgccjit_broken_err], [
   AC_MSG_ERROR([The installed libgccjit failed to compile and run a test program using
 the libgccjit library; see config.log for the details of the failure.
 The test program can be found here:
@@ -5112,6 +5219,58 @@ if test "$canonical" = i686-pc-cygwin; then
 If you really want to try it anyway, use the configure option
 '--with-cygwin32-native-compilation'.])
   fi
+fi
+
+AC_DEFUN([libgccjit_not_found], [
+  AC_MSG_WARN([Elisp native compiler can't be enabled as libgccjit was not
+found.
+Please try installing libgccjit or a similar package if you want to have it
+enabled.])
+
+  with_native_compilation=no
+])
+
+AC_DEFUN([libgccjit_dev_not_found], [
+  AC_MSG_WARN([Elisp native compiler can't be enabled as libgccjit header files
+were not found.
+Please try installing libgccjit-dev or a similar package if you want to have it
+enabled.])
+
+  with_native_compilation=no
+])
+
+AC_DEFUN([libgccjit_broken], [
+  AC_MSG_WARN([Elisp native compiler can't be enabled as the installed libgccjit
+failed to compile and run a test program using the libgccjit library; see
+config.log for the details of the failure.
+The test program can be found here:
+<https://gcc.gnu.org/onlinedocs/jit/intro/tutorial01.html>.
+You can try compiling it yourself to investigate the issues.
+Please report the issue to your distribution if libgccjit was installed
+through that.
+You can find the instructions on how to compile and install libgccjit from
+source on this site:
+<https://gcc.gnu.org/wiki/JIT>.])
+
+  with_native_compilation=no])
+
+if test "$with_features" = "no" \
+   && test "${with_native_compilation}" = "default"; then
+  with_native_compilation=no
+fi
+
+if test "${with_native_compilation}" = "default"; then
+    # Check if libgccjit is available.
+    AC_CHECK_LIB([gccjit], [gcc_jit_context_acquire],
+      [], [libgccjit_not_found])
+    AC_CHECK_HEADERS([libgccjit.h], [], [libgccjit_dev_not_found])
+    if test "${with_native_compilation}" != "no"; then
+      # Check if libgccjit really works.
+      AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken])
+    fi
+    if test "$with_unexec" = yes; then
+      with_native_compilation=no
+    fi
 fi
 
 if test "${with_native_compilation}" != "no"; then
@@ -5161,18 +5320,22 @@ if test "${with_native_compilation}" != "no"; then
       fi
     fi
 
-    # Check if libgccjit is available.
-    AC_CHECK_LIB([gccjit], [gcc_jit_context_acquire],
-      [], [libgccjit_not_found])
-    AC_CHECK_HEADERS([libgccjit.h], [], [libgccjit_dev_not_found])
-    # Check if libgccjit really works.
-    AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken])
+    # In the default case we already checked
+    if test "${with_native_compilation}" != "default"; then
+      # Check if libgccjit is available.
+      AC_CHECK_LIB([gccjit], [gcc_jit_context_acquire],
+        [], [libgccjit_not_found_err])
+      AC_CHECK_HEADERS([libgccjit.h], [], [libgccjit_dev_not_found_err])
+      # Check if libgccjit really works.
+      AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken_err])
+    fi
     HAVE_NATIVE_COMP=yes
     case "${opsys}" in
       # mingw32 loads the library dynamically.
       mingw32) ;;
-      # OpenBSD doesn't have libdl, all the functions are in libc
-      netbsd|openbsd)
+      # Neither NetBSD, OpenBSD nor Haiku have libdl, with all dynamic
+      # linker functions placed within libc.
+      netbsd|openbsd|haiku)
         LIBGCCJIT_LIBS="-lgccjit" ;;
       darwin)
         LIBGCCJIT_CFLAGS="${MAC_CFLAGS}"
@@ -5405,11 +5568,6 @@ case $with_gnutls,$HAVE_GNUTLS in
   no,* | ifavailable,* | *,yes) ;;
   *) MISSING="$MISSING gnutls"
      WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-gnutls=ifavailable";;
-esac
-case $with_json,$HAVE_JSON in
-  no,* | ifavailable,* | *,yes) ;;
-  *) MISSING="$MISSING json"
-     WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-json=ifavailable";;
 esac
 case $with_tree_sitter,$HAVE_TREE_SITTER in
   no,* | ifavailable,* | *,yes) ;;
@@ -5841,18 +5999,20 @@ LIBS="$LIB_PTHREAD $LIB_MATH $LIBS"
 AC_CHECK_FUNCS([accept4 fchdir gethostname \
 getrusage get_current_dir_name \
 lrand48 random rint tcdrain trunc \
-select getpagesize setlocale newlocale \
+select getpagesize newlocale \
 getrlimit setrlimit shutdown \
 pthread_sigmask strsignal setitimer \
 sendto recvfrom getsockname getifaddrs freeifaddrs \
 gai_strerror sync \
 endpwent getgrent endgrent \
-renameat2 \
 cfmakeraw cfsetspeed __executable_start log2 pthread_setname_np \
 pthread_set_name_np])
 
 # getpwent is not present in older versions of Android.  (bug#65319)
 gl_CHECK_FUNCS_ANDROID([getpwent], [[#include <pwd.h>]])
+
+# renameat2 is not present in older versions of Android.
+gl_CHECK_FUNCS_ANDROID([renameat2], [[#include <stdio.h>]])
 
 if test "$ac_cv_func_cfmakeraw" != "yes"; then
   # On some systems (Android), cfmakeraw is inline, so AC_CHECK_FUNCS
@@ -6263,7 +6423,7 @@ AC_FUNC_FORK
 
 dnl AC_CHECK_FUNCS_ONCE wouldn’t be right for snprintf, which needs
 dnl the current CFLAGS etc.
-AC_CHECK_FUNCS([snprintf])
+AC_CHECK_FUNCS([snprintf open_memstream])
 
 dnl posix_spawn.  The chdir and setsid functionality is relatively
 dnl recent, so we check for it specifically.
@@ -6396,9 +6556,6 @@ AC_SUBST([SEPCHAR])
 dnl Everybody supports this, except MS-DOS.
 AC_DEFINE([subprocesses], [1], [Define to enable asynchronous subprocesses.])
 
-AC_DEFINE([USER_FULL_NAME], [pw->pw_gecos], [How to get a user's full name.])
-
-
 AC_DEFINE([DIRECTORY_SEP], ['/'],
   [Character that separates directories in a file name.])
 
@@ -6513,7 +6670,7 @@ case $opsys in
 esac
 
 case $opsys in
-  gnu-* | solaris | cygwin )
+  gnu-* | android | solaris | cygwin )
     dnl FIXME Can't we test if this exists (eg /proc/$$)?
     AC_DEFINE([HAVE_PROCFS], [1], [Define if you have the /proc filesystem.])
   ;;
@@ -6960,6 +7117,9 @@ AC_CACHE_CHECK([for usable FIONREAD], [emacs_cv_usable_FIONREAD],
 			    #ifdef USG5_4
 			    # include <sys/filio.h>
 			    #endif
+			    #ifdef HAVE_UNISTD_H
+			    # include <unistd.h> /* defines ioctl() on Solaris */
+			    #endif
 			  ]],
 			  [[int foo = ioctl (0, FIONREAD, &foo);]])],
 	 [emacs_cv_usable_FIONREAD=yes],
@@ -7034,13 +7194,10 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2023 Free Software Foundation, Inc."
+copyright="Copyright (C) 2024 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED([COPYRIGHT], ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST([copyright])
-
-# This is needed for gnulib's printf modules.
-CFLAGS="$CFLAGS -DHAVE_CONFIG_H"
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
@@ -7408,6 +7565,8 @@ case "$opsys" in
 
   mingw32)
    ## Is it any better under MinGW64 to relocate emacs into higher addresses?
+   ## If the values of -image-base are modified, the corresponding
+   ## values of DEFAULT_IMAGE_BASE in w32fns.c should be kept in sync.
    case "$canonical" in
      x86_64-*-*) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x400000000 -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;
      *) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;
@@ -7513,8 +7672,7 @@ send your change to bug-gnu-emacs@gnu.org])])])
 
 AH_TOP([/* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2021
-  Free Software Foundation, Inc.
+Copyright (C) 1988-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7590,7 +7748,7 @@ Configured for '${canonical}'.
 optsep=
 emacs_config_features=
 for opt in ACL BE_APP CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
- HARFBUZZ IMAGEMAGICK JPEG JSON LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
+ HARFBUZZ IMAGEMAGICK JPEG LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
  M17N_FLT MODULES NATIVE_COMP NOTIFY NS OLDXMENU PDUMPER PGTK PNG RSVG SECCOMP \
  SOUND SQLITE3 THREADS TIFF TOOLKIT_SCROLL_BARS TREE_SITTER \
  UNEXEC WEBP X11 XAW3D XDBE XFT XIM XINPUT2 XPM XWIDGETS X_TOOLKIT \
@@ -7666,7 +7824,6 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use -lotf?                                   ${HAVE_LIBOTF}
   Does Emacs use -lxft?                                   ${HAVE_XFT}
   Does Emacs use -lsystemd?                               ${HAVE_LIBSYSTEMD}
-  Does Emacs use -ljansson?                               ${HAVE_JSON}
   Does Emacs use -ltree-sitter?                           ${HAVE_TREE_SITTER}
   Does Emacs use the GMP library?                         ${HAVE_GMP}
   Does Emacs directly use zlib?                           ${HAVE_ZLIB}

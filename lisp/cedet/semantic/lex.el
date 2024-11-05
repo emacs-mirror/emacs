@@ -1,6 +1,6 @@
 ;;; semantic/lex.el --- Lexical Analyzer builder  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -259,7 +259,7 @@ If optional argument PROPSPECS is non-nil, then interpret it, and
 apply those properties.
 PROPSPECS must be a list of (NAME PROPERTY VALUE) elements."
   ;; Create the symbol hash table
-  (let ((semantic-flex-keywords-obarray (make-vector 13 0))
+  (let ((semantic-flex-keywords-obarray (obarray-make 13))
         spec)
     ;; fill it with stuff
     (while specs
@@ -416,7 +416,7 @@ If optional argument PROPSPECS is non-nil, then interpret it, and
 apply those properties.
 PROPSPECS must be a list of (TYPE PROPERTY VALUE)."
   ;; Create the symbol hash table
-  (let* ((semantic-lex-types-obarray (make-vector 13 0))
+  (let* ((semantic-lex-types-obarray (obarray-make 13))
          spec type tokens token alist default)
     ;; fill it with stuff
     (while specs

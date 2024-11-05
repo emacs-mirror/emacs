@@ -1,5 +1,5 @@
 /* Haiku window system support.  Hey Emacs, this is -*- C++ -*-
-   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -690,6 +690,8 @@ extern int be_get_display_planes (void);
 extern int be_get_display_color_cells (void);
 extern bool be_is_display_grayscale (void);
 extern void be_warp_pointer (int, int);
+
+extern bool haiku_should_pass_control_tab_to_system (void);
 
 extern void EmacsView_set_up_double_buffering (void *);
 extern void EmacsView_disable_double_buffering (void *);

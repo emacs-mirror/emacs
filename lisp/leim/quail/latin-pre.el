@@ -1,6 +1,6 @@
 ;;; latin-pre.el --- Quail packages for inputting various European characters  -*-coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2024 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -789,9 +789,9 @@ and Silesian (both Steuer and Ślabikŏrzowy szrajbōnek) scripts."
  ("'Z" ?Ź)
  (".z" ?ż)
  (".Z" ?Ż)
- ;; Explicit input of prefix characters. Normally, to input a prefix
- ;; character itself, one needs to press <Tab>. Definitions below
- ;; allow to input those characters by entering them twice.
+ ;; Explicit input of prefix characters.  Normally, to input a prefix
+ ;; character itself, one needs to press <Tab>.  Definitions below
+ ;; allow inputting those characters by entering them twice.
  ("//" ?/)
  ("\\\\" ?\\)
  ("~~" ?~)
@@ -1107,6 +1107,9 @@ of characters from a single Latin-N charset.
     macron   |   -    | -a -> ā  -/e -> ǣ  -- -> ¯
   dot above  |   / .  | /g -> ġ   .g -> ġ
     misc     | \" ~ /  | \"s -> ß  ~d -> ð  ~t -> þ  /a -> å  /e -> æ  /o -> ø
+             |   [    | [\\=' -> ‘  [\" -> “
+             |   ]    | ]\\=' -> ’  ]\" -> ”
+             |   ,    | ,\\=' -> ‚  ,\" -> „
    symbol    |   ~    | ~> -> »  ~< -> «  ~! -> ¡  ~? -> ¿  ~~ -> ¸
    symbol    |  _ /   | _o -> º  _a -> ª  // -> °  /\\ -> ×  _y -> ¥
    symbol    |   ^    | ^r -> ®  ^t -> ™  ^c -> ©  ^1 -> ¹  ^2 -> ²  ^3 -> ³
@@ -1132,6 +1135,12 @@ of characters from a single Latin-N charset.
  ("-y" ?ȳ)
  ("' " ?')
  ("''" ?´)
+ ("['" ?‘)
+ ("]'" ?’)
+ ("[\"" ?“)
+ ("]\"" ?”)
+ (",\"" ?„)
+ (",'" ?‚)
  ("'A" ?Á)
  ("'E" ?É)
  ("'I" ?Í)
@@ -1295,8 +1304,10 @@ of characters from a single Latin-N charset.
  ("~-" ?­)
  ("~." ?·)
  ("~<" ?\«)
+ ("~~<" ?\‹)
  ("~=" ?¯)
  ("~>" ?\»)
+ ("~~>" ?\›)
  ("~?" ?¿)
  ("~A" ?Ã)
  ("~A" ?Ă)

@@ -1,5 +1,5 @@
 /* A GNU-like <dirent.h>.
-   Copyright (C) 2006-2023 Free Software Foundation, Inc.
+   Copyright (C) 2006-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -78,7 +78,7 @@ typedef struct gl_directory DIR;
    that can be freed by passing them as the Ith argument to the
    function F.  */
 #ifndef _GL_ATTRIBUTE_DEALLOC
-# if __GNUC__ >= 11
+# if __GNUC__ >= 11 && !defined __clang__
 #  define _GL_ATTRIBUTE_DEALLOC(f, i) __attribute__ ((__malloc__ (f, i)))
 # else
 #  define _GL_ATTRIBUTE_DEALLOC(f, i)
@@ -122,11 +122,11 @@ typedef struct gl_directory DIR;
 #   define closedir rpl_closedir
 #   define GNULIB_defined_closedir 1
 #  endif
-_GL_FUNCDECL_RPL (closedir, int, (DIR *dirp) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (closedir, int, (DIR *dirp), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (closedir, int, (DIR *dirp));
 # else
 #  if !@HAVE_CLOSEDIR@
-_GL_FUNCDECL_SYS (closedir, int, (DIR *dirp) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (closedir, int, (DIR *dirp), _GL_ARG_NONNULL ((1)));
 #  endif
 _GL_CXXALIAS_SYS (closedir, int, (DIR *dirp));
 # endif
@@ -147,14 +147,14 @@ _GL_WARN_ON_USE (closedir, "closedir is not portable - "
 #   define GNULIB_defined_opendir 1
 #  endif
 _GL_FUNCDECL_RPL (opendir, DIR *,
-                  (const char *dir_name)
+                  (const char *dir_name),
                   _GL_ARG_NONNULL ((1))
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC (closedir, 1));
 _GL_CXXALIAS_RPL (opendir, DIR *, (const char *dir_name));
 # else
-#  if !@HAVE_OPENDIR@ || __GNUC__ >= 11
+#  if !@HAVE_OPENDIR@ || (__GNUC__ >= 11 && !defined __clang__)
 _GL_FUNCDECL_SYS (opendir, DIR *,
-                  (const char *dir_name)
+                  (const char *dir_name),
                   _GL_ARG_NONNULL ((1))
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC (closedir, 1));
 #  endif
@@ -162,11 +162,12 @@ _GL_CXXALIAS_SYS (opendir, DIR *, (const char *dir_name));
 # endif
 _GL_CXXALIASWARN (opendir);
 #else
-# if @GNULIB_CLOSEDIR@ && !GNULIB_defined_DIR && __GNUC__ >= 11 && !defined opendir
+# if @GNULIB_CLOSEDIR@ && !GNULIB_defined_DIR \
+     && (__GNUC__ >= 11 && !defined __clang__) && !defined opendir
 /* For -Wmismatched-dealloc: Associate opendir with closedir or
    rpl_closedir.  */
 _GL_FUNCDECL_SYS (opendir, DIR *,
-                  (const char *dir_name)
+                  (const char *dir_name),
                   _GL_ARG_NONNULL ((1))
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC (closedir, 1));
 # endif
@@ -185,11 +186,11 @@ _GL_WARN_ON_USE (opendir, "opendir is not portable - "
 #   undef readdir
 #   define readdir rpl_readdir
 #  endif
-_GL_FUNCDECL_RPL (readdir, struct dirent *, (DIR *dirp) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (readdir, struct dirent *, (DIR *dirp), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (readdir, struct dirent *, (DIR *dirp));
 # else
 #  if !@HAVE_READDIR@
-_GL_FUNCDECL_SYS (readdir, struct dirent *, (DIR *dirp) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (readdir, struct dirent *, (DIR *dirp), _GL_ARG_NONNULL ((1)));
 #  endif
 _GL_CXXALIAS_SYS (readdir, struct dirent *, (DIR *dirp));
 # endif
@@ -208,11 +209,11 @@ _GL_WARN_ON_USE (readdir, "readdir is not portable - "
 #   undef rewinddir
 #   define rewinddir rpl_rewinddir
 #  endif
-_GL_FUNCDECL_RPL (rewinddir, void, (DIR *dirp) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (rewinddir, void, (DIR *dirp), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (rewinddir, void, (DIR *dirp));
 # else
 #  if !@HAVE_REWINDDIR@
-_GL_FUNCDECL_SYS (rewinddir, void, (DIR *dirp) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (rewinddir, void, (DIR *dirp), _GL_ARG_NONNULL ((1)));
 #  endif
 _GL_CXXALIAS_SYS (rewinddir, void, (DIR *dirp));
 # endif
@@ -234,15 +235,9 @@ _GL_WARN_ON_USE (rewinddir, "rewinddir is not portable - "
 #   undef dirfd
 #   define dirfd rpl_dirfd
 #  endif
-_GL_FUNCDECL_RPL (dirfd, int, (DIR *) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_RPL (dirfd, int, (DIR *), _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (dirfd, int, (DIR *));
 
-#  ifdef __KLIBC__
-/* Gnulib internal hooks needed to maintain the dirfd metadata.  */
-_GL_EXTERN_C int _gl_register_dirp_fd (int fd, DIR *dirp)
-     _GL_ARG_NONNULL ((2));
-_GL_EXTERN_C void _gl_unregister_dirp_fd (int fd);
-#  endif
 # else
 #  if defined __cplusplus && defined GNULIB_NAMESPACE && defined dirfd
     /* dirfd is defined as a macro and not as a function.
@@ -251,7 +246,7 @@ static inline int (dirfd) (DIR *dp) { return dirfd (dp); }
 #   undef dirfd
 #  endif
 #  if !(@HAVE_DECL_DIRFD@ || defined dirfd)
-_GL_FUNCDECL_SYS (dirfd, int, (DIR *) _GL_ARG_NONNULL ((1)));
+_GL_FUNCDECL_SYS (dirfd, int, (DIR *), _GL_ARG_NONNULL ((1)));
 #  endif
 _GL_CXXALIAS_SYS (dirfd, int, (DIR *));
 # endif
@@ -276,24 +271,26 @@ _GL_WARN_ON_USE (dirfd, "dirfd is unportable - "
 #   define fdopendir rpl_fdopendir
 #  endif
 _GL_FUNCDECL_RPL (fdopendir, DIR *,
-                  (int fd)
+                  (int fd),
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC (closedir, 1));
 _GL_CXXALIAS_RPL (fdopendir, DIR *, (int fd));
 # else
-#  if !@HAVE_FDOPENDIR@ || !@HAVE_DECL_FDOPENDIR@ || __GNUC__ >= 11
+#  if !@HAVE_FDOPENDIR@ || !@HAVE_DECL_FDOPENDIR@ \
+      || (__GNUC__ >= 11 && !defined __clang__)
 _GL_FUNCDECL_SYS (fdopendir, DIR *,
-                  (int fd)
+                  (int fd),
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC (closedir, 1));
 #  endif
 _GL_CXXALIAS_SYS (fdopendir, DIR *, (int fd));
 # endif
 _GL_CXXALIASWARN (fdopendir);
 #else
-# if @GNULIB_CLOSEDIR@ && __GNUC__ >= 11 && !defined fdopendir
+# if @GNULIB_CLOSEDIR@ \
+     && (__GNUC__ >= 11 && !defined __clang__) && !defined fdopendir
 /* For -Wmismatched-dealloc: Associate fdopendir with closedir or
    rpl_closedir.  */
 _GL_FUNCDECL_SYS (fdopendir, DIR *,
-                  (int fd)
+                  (int fd),
                   _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC (closedir, 1));
 # endif
 # if defined GNULIB_POSIXCHECK
@@ -314,7 +311,7 @@ _GL_WARN_ON_USE (fdopendir, "fdopendir is unportable - "
 _GL_FUNCDECL_SYS (scandir, int,
                   (const char *dir, struct dirent ***namelist,
                    int (*filter) (const struct dirent *),
-                   int (*cmp) (const struct dirent **, const struct dirent **))
+                   int (*cmp) (const struct dirent **, const struct dirent **)),
                   _GL_ARG_NONNULL ((1, 2, 4)));
 # endif
 /* Need to cast, because on glibc systems, the fourth parameter is
@@ -336,7 +333,7 @@ _GL_WARN_ON_USE (scandir, "scandir is unportable - "
 /* Compare two 'struct dirent' entries alphabetically.  */
 # if !@HAVE_ALPHASORT@
 _GL_FUNCDECL_SYS (alphasort, int,
-                  (const struct dirent **, const struct dirent **)
+                  (const struct dirent **, const struct dirent **),
                   _GL_ATTRIBUTE_PURE
                   _GL_ARG_NONNULL ((1, 2)));
 # endif

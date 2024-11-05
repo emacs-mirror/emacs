@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,29 +19,23 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-/* This class makes the Emacs server work reasonably on Android.
+/* Opening external documents on Android.
 
-   There is no way to make the Unix socket publicly available on
-   Android.
+   This activity is registered as an application capable of opening text
+   files and files in several other formats that Emacs understands, and
+   assumes responsibility for deriving file names from the files
+   provided to `onCreate', potentially copying them to temporary
+   directories in the process, and invoking `emacsclient' with suitable
+   arguments to open the same.  In this respect, it fills the role of
+   `etc/emacs.desktop' on XDG systems.
 
-   Instead, this activity tries to connect to the Emacs server, to
-   make it open files the system asks Emacs to open, and to emulate
-   some reasonable behavior when Emacs has not yet started.
+   It is also registered as a handler for mailto URIs, in which capacity
+   it constructs invocations of `emacsclient' so as to start
+   `message-mailto' with their contents and attachments, much like
+   `etc/emacs-mail.desktop'.
 
-   First, Emacs registers itself as an application that can open text
-   and image files.
-
-   Then, when the user is asked to open a file and selects ``Emacs''
-   as the application that will open the file, the system pops up a
-   window, this activity, and calls the `onCreate' function.
-
-   `onCreate' then tries very to find the file name of the file that
-   was selected, and give it to emacsclient.
-
-   If emacsclient successfully opens the file, then this activity
-   starts EmacsActivity (to bring it on to the screen); otherwise, it
-   displays the output of emacsclient or any error message that occurs
-   and exits.  */
+   As with all other activities, it is registered in the package
+   manifest file.  */
 
 import android.app.AlertDialog;
 import android.app.Activity;
@@ -55,6 +49,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.os.Parcelable;
 
 import android.util.Log;
 
@@ -67,16 +62,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
+import java.util.List;
+
 public final class EmacsOpenActivity extends Activity
   implements DialogInterface.OnClickListener,
   DialogInterface.OnCancelListener
 {
   private static final String TAG = "EmacsOpenActivity";
-
-  /* The name of any file that should be opened as EmacsThread starts
-     Emacs.  This is never cleared, even if EmacsOpenActivity is
-     started a second time, as EmacsThread only starts once.  */
-  public static String fileToOpen;
 
   /* Any currently focused EmacsOpenActivity.  Used to show pop ups
      while the activity is active and Emacs doesn't have permission to
@@ -213,12 +205,13 @@ public final class EmacsOpenActivity extends Activity
     dialog.show ();
   }
 
-  /* Check that the specified FILE is readable.  If Android 4.4 or
-     later is being used, return URI formatted into a `/content/' file
-     name.
+  /* Check that the specified FILE is non-NULL and readable.
 
      If it is not, then copy the file in FD to a location in the
-     system cache directory and return the name of that file.  */
+     system cache directory and return the name of that file.
+
+     Alternatively, return URI formatted into a `/content/' file name
+     if the system runs Android 4.4 or later.  */
 
   private String
   checkReadableOrCopy (String file, ParcelFileDescriptor fd,
@@ -232,24 +225,34 @@ public final class EmacsOpenActivity extends Activity
     int read;
     String content;
 
-    Log.d (TAG, "checkReadableOrCopy: " + file);
+    if (file != null)
+      {
+	inFile = new File (file);
 
-    inFile = new File (file);
+	if (inFile.canRead ())
+	  return file;
 
-    if (inFile.canRead ())
-      return file;
-
-    Log.d (TAG, "checkReadableOrCopy: NO");
+	content = inFile.getName ();
+      }
+    else
+      /* content is the name of this content file if the next branch
+	 is not taken.  */
+      content = uri.getLastPathSegment ();
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
       {
-	content = EmacsService.buildContentName (uri);
-	Log.d (TAG, "checkReadableOrCopy: " + content);
+	content = EmacsService.buildContentName (uri, getContentResolver ());
 	return content;
       }
 
+    /* The file is unnamed if content is NULL.  Generate a unique
+       name with the current time as a reference.  */
+
+    if (content == null)
+      content = "content." + System.currentTimeMillis () / 1000;
+
     /* inFile is now the file being written to.  */
-    inFile = new File (getCacheDir (), inFile.getName ());
+    inFile = new File (getCacheDir (), content);
     buffer = new byte[4098];
 
     /* Initialize both streams to NULL.  */
@@ -331,8 +334,14 @@ public final class EmacsOpenActivity extends Activity
       });
   }
 
+  /* Start `emacsclient' with the provided list of ARGUMENTS, after
+     ARGUMENTS[0] is replaced with the name of the emacsclient binary.
+
+     Create a new thread to await its completion, subsequently
+     reporting any errors that arise to the user.  */
+
   public void
-  startEmacsClient (String fileName)
+  startEmacsClient (String[] arguments)
   {
     String libDir;
     ProcessBuilder builder;
@@ -341,23 +350,10 @@ public final class EmacsOpenActivity extends Activity
     File file;
     Intent intent;
 
-    /* If the Emacs service is not running, then start Emacs and make
-       it open this file.  */
-
-    if (EmacsService.SERVICE == null)
-      {
-	fileToOpen = fileName;
-	intent = new Intent (EmacsOpenActivity.this,
-			     EmacsActivity.class);
-	finish ();
-	startActivity (intent);
-	return;
-      }
-
     libDir = EmacsService.getLibraryDirectory (this);
-    builder = new ProcessBuilder (libDir + "/libemacsclient.so",
-				  fileName, "--reuse-frame",
-				  "--timeout=10", "--no-wait");
+    arguments[0] = libDir + "/libemacsclient.so";
+
+    builder = new ProcessBuilder (arguments);
 
     /* Redirection is unfortunately not possible in Android 7 and
        earlier.  */
@@ -392,6 +388,7 @@ public final class EmacsOpenActivity extends Activity
      Finally, display any error message, transfer the focus to an
      Emacs frame, and finish the activity.  */
 
+  @SuppressWarnings ("deprecation") /* getParcelableExtra */
   @Override
   public void
   onCreate (Bundle savedInstanceState)
@@ -402,13 +399,20 @@ public final class EmacsOpenActivity extends Activity
     ContentResolver resolver;
     ParcelFileDescriptor fd;
     byte[] names;
-    String errorBlurb;
+    String errorBlurb, scheme;
+    String subjectString, textString, attachmentString;
+    CharSequence tem;
+    String tem1;
+    String[] emails;
+    StringBuilder builder;
+    List<Parcelable> list;
 
     super.onCreate (savedInstanceState);
 
     /* Obtain the intent that started Emacs.  */
     intent = getIntent ();
     action = intent.getAction ();
+    resolver = getContentResolver ();
 
     if (action == null)
       {
@@ -418,9 +422,11 @@ public final class EmacsOpenActivity extends Activity
 
     /* Now see if the action specified is supported by Emacs.  */
 
-    if (action.equals ("android.intent.action.VIEW")
-	|| action.equals ("android.intent.action.EDIT")
-	|| action.equals ("android.intent.action.PICK"))
+    if (action.equals (Intent.ACTION_VIEW)
+	|| action.equals (Intent.ACTION_EDIT)
+	|| action.equals (Intent.ACTION_PICK)
+	|| action.equals (Intent.ACTION_SEND)
+	|| action.equals (Intent.ACTION_SENDTO))
       {
 	/* Obtain the URI of the action.  */
 	uri = intent.getData ();
@@ -431,22 +437,198 @@ public final class EmacsOpenActivity extends Activity
 	    return;
 	  }
 
+	scheme = uri.getScheme ();
+
+	/* It is possible for scheme to be NULL, under Android 2.3 at
+	   least.  */
+
+	if (scheme == null)
+	  return;
+
+	/* If URL is a mailto URI, call `message-mailto' much the same
+	   way emacsclient-mail.desktop does.  */
+
+	if (scheme.equals ("mailto"))
+	  {
+	    /* Escape the special characters $ and " before enclosing
+	       the string within the `message-mailto' wrapper.  */
+	    fileName = uri.toString ();
+
+	    /* If fileName is merely mailto: (absent either an email
+	       address or content), then the program launching Emacs
+	       conceivably provided such an URI to exclude non-email
+	       programs from the Share dialog.  Intents created thus
+	       might hold the recipient email as a string array, which
+	       is non-standard behavior.  */
+
+	    if (fileName.equals ("mailto:") || fileName.equals ("mailto://"))
+	      {
+	        emails = intent.getStringArrayExtra (Intent.EXTRA_EMAIL);
+
+		if (emails[0] != null && emails.length > 0)
+		  fileName = "mailto:" + emails[0];
+	      }
+
+	    /* Subsequently, escape fileName such that it is rendered
+	       safe to append to the command line.  */
+
+	    fileName = (fileName
+			.replace ("\\", "\\\\")
+			.replace ("\"", "\\\"")
+			.replace ("$", "\\$"));
+
+	    fileName = "(message-mailto \"" + fileName + "\" ";
+
+	    /* Parse the intent itself to ascertain if any
+	       non-standard subject, body, or something else of the
+	       like is set.  Such fields, non-standard as they are,
+	       yield to fields provided within the URL itself; refer
+	       to message-mailto.  */
+
+	    textString = attachmentString = subjectString = "()";
+
+	    tem = intent.getCharSequenceExtra (Intent.EXTRA_SUBJECT);
+
+	    if (tem != null)
+	      subjectString = ("\"" + (tem.toString ()
+				       .replace ("\\", "\\\\")
+				       .replace ("\"", "\\\"")
+				       .replace ("$", "\\$"))
+			       + "\" ");
+
+	    tem = intent.getCharSequenceExtra (Intent.EXTRA_TEXT);
+
+	    if (tem != null)
+	      textString = ("\"" + (tem.toString ()
+				    .replace ("\\", "\\\\")
+				    .replace ("\"", "\\\"")
+				    .replace ("$", "\\$"))
+			    + "\" ");
+
+	    /* Producing a list of attachments is prey to two
+	       mannerisms of the system: in the first instance, these
+	       attachments are content URIs which don't allude to
+	       their content types; and in the second instance, they
+	       are either a list of such URIs or one individual URI,
+	       subject to the type of the intent itself.  */
+
+	    if (Intent.ACTION_SEND.equals (action))
+	      {
+		/* The attachment in this case is a single content
+		   URI.  */
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+		  uri = intent.getParcelableExtra (Intent.EXTRA_STREAM,
+						   Uri.class);
+		else
+		  uri = intent.getParcelableExtra (Intent.EXTRA_STREAM);
+
+		if ((scheme = uri.getScheme ()) != null
+		    && scheme.equals ("content")
+		    && (Build.VERSION.SDK_INT
+			>= Build.VERSION_CODES.KITKAT))
+		  {
+		    tem1 = EmacsService.buildContentName (uri, resolver);
+		    attachmentString = ("'(\"" + (tem1.replace ("\\", "\\\\")
+						  .replace ("\"", "\\\"")
+						  .replace ("$", "\\$"))
+					+ "\")");
+		  }
+		else if (scheme != null && scheme.equals ("file"))
+		  {
+		    tem1 = uri.getPath ();
+		    attachmentString = ("'(\"" + (tem1.replace ("\\", "\\\\")
+						  .replace ("\"", "\\\"")
+						  .replace ("$", "\\$"))
+					+ "\")");
+		  }
+	      }
+	    else
+	      {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+		  list
+		    = intent.getParcelableArrayListExtra (Intent.EXTRA_STREAM,
+							  Parcelable.class);
+		else
+		  list
+		    = intent.getParcelableArrayListExtra (Intent.EXTRA_STREAM);
+
+		if (list != null)
+		  {
+		    builder = new StringBuilder ("'(");
+
+		    for (Parcelable parcelable : list)
+		      {
+			if (!(parcelable instanceof Uri))
+			  continue;
+
+			uri = (Uri) parcelable;
+
+			if (uri != null
+			    && (scheme = uri.getScheme ()) != null
+			    && scheme.equals ("content")
+			    && (Build.VERSION.SDK_INT
+				>= Build.VERSION_CODES.KITKAT))
+			  {
+			    tem1
+			      = EmacsService.buildContentName (uri, resolver);
+			    builder.append ("\"");
+			    builder.append (tem1.replace ("\\", "\\\\")
+					    .replace ("\"", "\\\"")
+					    .replace ("$", "\\$"));
+			    builder.append ("\"");
+			  }
+			else if (scheme != null
+				 && scheme.equals ("file"))
+			  {
+			    tem1 = uri.getPath ();
+			    builder.append ("\"");
+			    builder.append (tem1.replace ("\\", "\\\\")
+					    .replace ("\"", "\\\"")
+					    .replace ("$", "\\$"));
+			    builder.append ("\"");
+			  }
+		      }
+
+		    builder.append (")");
+		    attachmentString = builder.toString ();
+		  }
+	      }
+
+	    fileName += subjectString;
+	    fileName += textString;
+	    fileName += attachmentString;
+	    fileName += ")";
+
+	    /* Execute emacsclient in order to execute this code.  */
+	    currentActivity = this;
+	    startEmacsClient (new String[] { "--timeout=10", "--no-wait",
+					     "--eval", fileName, });
+	    return;
+	  }
+
 	/* Now, try to get the file name.  */
 
-	if (uri.getScheme ().equals ("file"))
+	if (scheme.equals ("file"))
 	  fileName = uri.getPath ();
 	else
 	  {
 	    fileName = null;
 
-	    if (uri.getScheme ().equals ("content"))
+	    if (scheme.equals ("content")
+		/* Retrieving the native file descriptor of a
+		   ParcelFileDescriptor requires Honeycomb MR1, and
+		   proceeding without this capability is pointless on
+		   systems before KitKat, since Emacs doesn't support
+		   opening content files on those.  */
+		&& (Build.VERSION.SDK_INT
+		    >= Build.VERSION_CODES.HONEYCOMB_MR1))
 	      {
 		/* This is one of the annoying Android ``content''
 		   URIs.  Most of the time, there is actually an
 		   underlying file, but it cannot be found without
 		   opening the file and doing readlink on its file
 		   descriptor in /proc/self/fd.  */
-		resolver = getContentResolver ();
 		fd = null;
 
 		try
@@ -469,6 +651,14 @@ public final class EmacsOpenActivity extends Activity
 		  {
 		    /* Do nothing.  */
 		  }
+		catch (SecurityException exception)
+		  {
+		    /* This means Emacs lacks the rights to open this
+		       file.  Display the error message and exit.  */
+		    displayFailureDialog ("Error opening file",
+					  exception.toString ());
+		    return;
+		  }
 
 		if (fd != null)
 		  {
@@ -482,6 +672,10 @@ public final class EmacsOpenActivity extends Activity
 		      }
 		  }
 	      }
+	    else if (scheme.equals ("org-protocol"))
+	      /* URL is an org-protocol:// link, which is meant to be
+		 directly relayed to emacsclient.  */
+	      fileName = uri.toString ();
 
 	    if (fileName == null)
 	      {
@@ -493,11 +687,26 @@ public final class EmacsOpenActivity extends Activity
 	      }
 	  }
 
+	/* If the Emacs service is not running, then start Emacs and make
+	   it open this file.  */
+
+	if (EmacsService.SERVICE == null)
+	  {
+	    intent = new Intent (EmacsOpenActivity.this,
+				 EmacsActivity.class);
+	    intent.putExtra (EmacsActivity.EXTRA_STARTUP_ARGUMENTS,
+			     new String [] { fileName, });
+	    finish ();
+	    startActivity (intent);
+	    return;
+	  }
+
 	/* And start emacsclient.  Set `currentActivity' to this now.
 	   Presumably, it will shortly become capable of displaying
 	   dialogs.  */
 	currentActivity = this;
-	startEmacsClient (fileName);
+	startEmacsClient (new String[] { "--timeout=10", "--no-wait",
+					 "--reuse-frame", fileName, });
       }
     else
       finish ();
@@ -509,8 +718,6 @@ public final class EmacsOpenActivity extends Activity
   public void
   onDestroy ()
   {
-    Log.d (TAG, "onDestroy: " + this);
-
     /* Clear `currentActivity' if it refers to the activity being
        destroyed.  */
 
@@ -524,9 +731,6 @@ public final class EmacsOpenActivity extends Activity
   public void
   onWindowFocusChanged (boolean isFocused)
   {
-    Log.d (TAG, "onWindowFocusChanged: " + this + ", is now focused: "
-	   + isFocused);
-
     if (isFocused)
       currentActivity = this;
     else if (currentActivity == this)
@@ -539,8 +743,6 @@ public final class EmacsOpenActivity extends Activity
   public void
   onPause ()
   {
-    Log.d (TAG, "onPause: " + this);
-
     /* XXX: clear currentActivity here as well; I don't know whether
        or not onWindowFocusChanged is always called prior to this.  */
 

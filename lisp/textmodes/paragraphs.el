@@ -1,10 +1,10 @@
 ;;; paragraphs.el --- paragraph and sentence parsing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2023 Free Software
+;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
-;; Keywords: wp
+;; Keywords: text
 ;; Package: emacs
 
 ;; This file is part of GNU Emacs.
@@ -118,8 +118,28 @@ text indented by a margin setting."
 
 (defcustom sentence-end-double-space t
   "Non-nil means a single space does not end a sentence.
-This is relevant for filling.  See also `sentence-end-without-period'
-and `colon-double-space'.
+This user option affects fill commands and sentence commands.
+
+If this variable is non-nil, Emacs considers a period followed by two
+spaces or by a newline as the end of a sentence.  This means that:
+
+    1. The fill commands will not break a line after a period followed
+       by just one space.
+
+    2. The sentence commands stop only for double spaces.
+
+If this variable is nil, Emacs considers a period followed by one space
+or by a newline as the end of a sentence.  This means that:
+
+    1. The fill commands will break a line after a period followed by
+       one space, and put just one space after each period.
+
+    2. The sentence commands stop for single spaces.
+
+For more details, see Info node `(emacs) Fill Commands' and Info
+node `(emacs) Sentences'.
+
+See also `sentence-end-without-period' and `colon-double-space'.
 
 This value is used by the function `sentence-end' to construct the
 regexp describing the end of a sentence, when the value of the variable

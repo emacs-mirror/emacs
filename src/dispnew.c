@@ -1,6 +1,6 @@
 /* Updating of data structures for redisplay.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2023 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2024 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -134,8 +134,8 @@ static struct frame *frame_matrix_frame;
 
 static int window_to_frame_vpos (struct window *, int);
 static int window_to_frame_hpos (struct window *, int);
-#define WINDOW_TO_FRAME_VPOS(W, VPOS) window_to_frame_vpos ((W), (VPOS))
-#define WINDOW_TO_FRAME_HPOS(W, HPOS) window_to_frame_hpos ((W), (HPOS))
+#define WINDOW_TO_FRAME_VPOS(W, VPOS) window_to_frame_vpos (W, VPOS)
+#define WINDOW_TO_FRAME_HPOS(W, HPOS) window_to_frame_hpos (W, HPOS)
 
 /* One element of the ring buffer containing redisplay history
    information.  */
@@ -1851,6 +1851,7 @@ adjust_frame_glyphs (struct frame *f)
       eassert (FRAME_INITIAL_P (f)
 	       || noninteractive
 	       || !initialized
+	       || !f->terminal->name /* frame is being deleted */
 	       || (f->current_matrix
 		   && f->current_matrix->nrows > 0
 		   && f->current_matrix->rows
@@ -2643,7 +2644,8 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 #ifdef GLYPH_DEBUG
 	  /* Window row window_y must be a slice of frame row
 	     frame_y.  */
-	  eassert (glyph_row_slice_p (window_row, frame_row));
+	  eassert (frame_size_change_delayed (XFRAME (w->frame))
+		   || glyph_row_slice_p (window_row, frame_row));
 
 	  /* If rows are in sync, we don't have to copy glyphs because
 	     frame and window share glyphs.  */
@@ -3149,7 +3151,8 @@ window_to_frame_vpos (struct window *w, int vpos)
   eassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
   eassert (vpos >= 0 && vpos <= w->desired_matrix->nrows);
   vpos += WINDOW_TOP_EDGE_LINE (w);
-  eassert (vpos >= 0 && vpos <= FRAME_TOTAL_LINES (XFRAME (w->frame)));
+  eassert (frame_size_change_delayed (XFRAME (w->frame))
+	   || (vpos >= 0 && vpos <= FRAME_TOTAL_LINES (XFRAME (w->frame))));
   return vpos;
 }
 
@@ -4664,7 +4667,7 @@ scrolling_window (struct window *w, int tab_line_p)
      13, then next_almost_prime_increment_max would be 14, e.g.,
      because next_almost_prime (113) would be 127.  */
   {
-    verify (NEXT_ALMOST_PRIME_LIMIT == 11);
+    static_assert (NEXT_ALMOST_PRIME_LIMIT == 11);
     enum { next_almost_prime_increment_max = 10 };
     ptrdiff_t row_table_max =
       (min (PTRDIFF_MAX, SIZE_MAX) / (3 * sizeof *row_table)
@@ -5115,8 +5118,8 @@ scrolling (struct frame *frame)
   int free_at_end_vpos = height;
   struct glyph_matrix *current_matrix = frame->current_matrix;
   struct glyph_matrix *desired_matrix = frame->desired_matrix;
-  verify (sizeof (int) <= sizeof (unsigned));
-  verify (alignof (unsigned) % alignof (int) == 0);
+  static_assert (sizeof (int) <= sizeof (unsigned));
+  static_assert (alignof (unsigned) % alignof (int) == 0);
   unsigned *old_hash;
   USE_SAFE_ALLOCA;
   SAFE_NALLOCA (old_hash, 4, height);
@@ -5240,7 +5243,7 @@ count_match (struct glyph *str1, struct glyph *end1, struct glyph *str2, struct 
 /* Char insertion/deletion cost vector, from term.c */
 
 #ifndef HAVE_ANDROID
-#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_TOTAL_COLS ((f))])
+#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_TOTAL_COLS (f)])
 #endif
 
 
@@ -5260,6 +5263,11 @@ update_frame_line (struct frame *f, int vpos, bool updating_menu_p)
   bool write_spaces_p = FRAME_MUST_WRITE_SPACES (f);
   bool colored_spaces_p = (FACE_FROM_ID (f, DEFAULT_FACE_ID)->background
 			   != FACE_TTY_DEFAULT_BG_COLOR);
+
+  /* This should never happen, but evidently sometimes does if one
+     resizes the frame quickly enough.  Prevent aborts in cmcheckmagic.  */
+  if (vpos >= FRAME_TOTAL_LINES (f))
+    return;
 
   if (colored_spaces_p)
     write_spaces_p = 1;
@@ -6078,6 +6086,15 @@ change_frame_size (struct frame *f, int new_width, int new_height,
   else
     change_frame_size_1 (f, new_width, new_height, pretend, delay, safe);
 }
+
+/* Return non-zero if we delayed size-changes of frame F and haven't
+   handled them yet, which means we cannot be sure about the exact
+   dimensions of our frames.  */
+bool
+frame_size_change_delayed (struct frame *f)
+{
+  return (delayed_size_change || f->new_size_p);
+}
 
 /***********************************************************************
 		   Terminal Related Lisp Functions
@@ -6206,9 +6223,9 @@ bitch_at_user (void)
 DEFUN ("sleep-for", Fsleep_for, Ssleep_for, 1, 2, 0,
        doc: /* Pause, without updating display, for SECONDS seconds.
 SECONDS may be a floating-point value, meaning that you can wait for a
-fraction of a second.  Optional second arg MILLISECONDS specifies an
-additional wait period, in milliseconds; this is for backwards compatibility.
-\(Not all operating systems support waiting for a fraction of a second.)  */)
+fraction of a second.
+An optional second arg MILLISECONDS can be provided but is deprecated:
+it specifies an additional wait period, in milliseconds.  */)
   (Lisp_Object seconds, Lisp_Object milliseconds)
 {
   double duration = extract_float (seconds);
@@ -6503,7 +6520,7 @@ init_faces_initial (void)
 
   FRAME_FOREGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_FG_COLOR;
   FRAME_BACKGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_BG_COLOR;
-  call0 (intern ("tty-set-up-initial-frame-faces"));
+  call0 (Qtty_set_up_initial_frame_faces);
 }
 
 /* Initialization done when Emacs fork is started, before doing stty.
@@ -6849,6 +6866,7 @@ The value is a symbol:
  `pc' for a direct-write MS-DOS frame.
  `pgtk' for an Emacs frame using pure GTK facilities.
  `haiku' for an Emacs frame running in Haiku.
+ `android' for an Emacs frame running in Android.
 
 Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'

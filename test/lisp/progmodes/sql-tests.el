@@ -1,6 +1,6 @@
 ;;; sql-tests.el --- Tests for sql.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:

@@ -1,6 +1,6 @@
 ;;; erc-d-u.el --- Helpers for ERC test server -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -74,6 +74,7 @@
   (let ((hunks (erc-d-u-scan-e-sd info))
         (pos (erc-d-u-scan-e-pos info)))
     (or (and (erc-d-u-scan-d-hunks hunks)
+             (buffer-live-p (erc-d-u-scan-d-buf hunks))
              (with-current-buffer (erc-d-u-scan-d-buf hunks)
                (goto-char pos)
                (condition-case _err
@@ -149,7 +150,7 @@ of zero or more response specs."
   (erc-d-u--canned-read dialog))
 
 (defun erc-d-u--read-exchange-slowly (num orig info)
-  (when-let ((spec (funcall orig info)))
+  (when-let* ((spec (funcall orig info)))
     (when (symbolp (car spec))
       (setf spec (copy-sequence spec)
             (nth 1 spec) (cond ((functionp num) (funcall num (nth 1 spec)))

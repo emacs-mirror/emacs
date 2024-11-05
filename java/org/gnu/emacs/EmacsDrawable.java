@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,6 +27,7 @@ public interface EmacsDrawable
 {
   public Canvas lockCanvas (EmacsGC gc);
   public void damageRect (Rect damageRect);
+  public void damageRect (int left, int top, int right, int bottom);
   public Bitmap getBitmap ();
   public boolean isDestroyed ();
 };

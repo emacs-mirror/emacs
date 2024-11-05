@@ -1,6 +1,6 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2024 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -733,9 +733,10 @@ various buffer change hooks."
 
 (defmacro c-forward-syntactic-ws (&optional limit)
   "Forward skip over syntactic whitespace.
-Syntactic whitespace is defined as whitespace characters, comments,
-and preprocessor directives.  However if point starts inside a comment
-or preprocessor directive, the content of it is not treated as
+Syntactic whitespace is defined as whitespace characters with
+whitespace (or comment-end) syntax, comments, and preprocessor
+directives.  However if point starts inside a comment or
+preprocessor directive, the content of it is not treated as
 whitespace.
 
 LIMIT sets an upper limit of the forward movement, if specified.  If
@@ -755,9 +756,10 @@ comment at the start of cc-engine.el for more info."
 
 (defmacro c-backward-syntactic-ws (&optional limit)
   "Backward skip over syntactic whitespace.
-Syntactic whitespace is defined as whitespace characters, comments,
-and preprocessor directives.  However if point starts inside a comment
-or preprocessor directive, the content of it is not treated as
+Syntactic whitespace is defined as whitespace characters with
+whitespace (or comment-end) syntax, comments, and preprocessor
+directives.  However if point starts inside a comment or
+preprocessor directive, the content of it is not treated as
 whitespace.
 
 LIMIT sets a lower limit of the backward movement, if specified.  If
@@ -925,7 +927,8 @@ be after it."
      (when dest (goto-char dest) t)))
 
 (defmacro c-beginning-of-defun-1 ()
-  ;; Wrapper around beginning-of-defun.
+  ;; Wrapper around beginning-of-defun.  Note that the return value from this
+  ;; macro has no significance.
   ;;
   ;; NOTE: This function should contain the only explicit use of
   ;; beginning-of-defun in CC Mode.  Eventually something better than
@@ -938,44 +941,49 @@ be after it."
   ;; `c-parse-state'.
 
   `(progn
-     (if (and ,(fboundp 'buffer-syntactic-context-depth)
-	      c-enable-xemacs-performance-kludge-p)
-	 ,(when (fboundp 'buffer-syntactic-context-depth)
-	    ;; XEmacs only.  This can improve the performance of
-	    ;; c-parse-state to between 3 and 60 times faster when
-	    ;; braces are hung.  It can also degrade performance by
-	    ;; about as much when braces are not hung.
-	    '(let (beginning-of-defun-function end-of-defun-function
-					       pos)
-	       (while (not pos)
-		 (save-restriction
-		   (widen)
-		   (setq pos (c-safe-scan-lists
-			      (point) -1 (buffer-syntactic-context-depth))))
-		 (cond
-		  ((bobp) (setq pos (point-min)))
-		  ((not pos)
-		   (let ((distance (skip-chars-backward "^{")))
-		     ;; unbalanced parenthesis, while invalid C code,
-		     ;; shouldn't cause an infloop!  See unbal.c
-		     (when (zerop distance)
-		       ;; Punt!
-		       (beginning-of-defun)
-		       (setq pos (point)))))
-		  ((= pos 0))
-		  ((not (eq (char-after pos) ?{))
-		   (goto-char pos)
-		   (setq pos nil))
-		  ))
-	       (goto-char pos)))
-       ;; Emacs, which doesn't have buffer-syntactic-context-depth
-       (let (beginning-of-defun-function end-of-defun-function)
-	 (beginning-of-defun)))
-     ;; if defun-prompt-regexp is non-nil, b-o-d won't leave us at the
-     ;; open brace.
-     (and defun-prompt-regexp
-	  (looking-at defun-prompt-regexp)
-	  (goto-char (match-end 0)))))
+     (while
+	 (progn
+	   (if (and ,(fboundp 'buffer-syntactic-context-depth)
+		    c-enable-xemacs-performance-kludge-p)
+	       ,(when (fboundp 'buffer-syntactic-context-depth)
+		  ;; XEmacs only.  This can improve the performance of
+		  ;; c-parse-state to between 3 and 60 times faster when
+		  ;; braces are hung.  It can also degrade performance by
+		  ;; about as much when braces are not hung.
+		  '(let (beginning-of-defun-function end-of-defun-function
+						     pos)
+		     (while (not pos)
+		       (save-restriction
+			 (widen)
+			 (setq pos (c-safe-scan-lists
+				    (point) -1 (buffer-syntactic-context-depth))))
+		       (cond
+			((bobp) (setq pos (point-min)))
+			((not pos)
+			 (let ((distance (skip-chars-backward "^{")))
+			   ;; unbalanced parenthesis, while invalid C code,
+			   ;; shouldn't cause an infloop!  See unbal.c
+			   (when (zerop distance)
+			     ;; Punt!
+			     (beginning-of-defun)
+			     (setq pos (point)))))
+			((= pos 0))
+			((not (eq (char-after pos) ?{))
+			 (goto-char pos)
+			 (setq pos nil))
+			))
+		     (goto-char pos)))
+	     ;; Emacs, which doesn't have buffer-syntactic-context-depth
+	     (let (beginning-of-defun-function end-of-defun-function)
+	       (beginning-of-defun)))
+	   (and (not (bobp))
+		;; if defun-prompt-regexp is non-nil, b-o-d won't leave us at
+		;; the open brace.
+		defun-prompt-regexp
+		(looking-at (concat defun-prompt-regexp "\\s("))
+		(or (not (eq (char-before (match-end 0)) ?{))
+		    (progn (goto-char (1- (match-end 0)))
+			   nil)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1102,6 +1110,38 @@ continuations."
 		   (eq (char-before) ?\\)))
        (backward-char))))
 
+(defmacro c-skip-ws-chars-forward (string &optional lim)
+  ;; Move point forward, stopping before a char which isn't in STRING, or a
+  ;; char whose syntax isn't whitespace or comment-end, or at pos LIM.
+  ;; Note that \n usually has comment-end syntax.
+  ;;
+  ;; Returns the distance traveled, either zero or positive.
+  (declare (debug t))
+  `(let ((-lim- ,lim)
+	 (here (point))
+	 count)
+     (setq count (skip-chars-forward ,string -lim-))
+     (when (> count 0)
+       (goto-char here)
+       (setq count (skip-syntax-forward " >" (+ here count))))
+     count))
+
+(defmacro c-skip-ws-chars-backward (string &optional lim)
+  ;; Move point backward, stopping after a char which isn't in STRING, or a
+  ;; char whose syntax isn't whitespace or comment-end, or at pos LIM.  Note
+  ;; that \n usually has comment-end syntax.
+  ;;
+  ;; Returns the distance traveled, either zero or negative.
+  (declare (debug t))
+  `(let ((-lim- ,lim)
+	 (here (point))
+	 count)
+     (setq count (skip-chars-backward ,string -lim-))
+     (when (< count 0)
+       (goto-char here)
+       (setq count (skip-syntax-backward " >" (+ here count))))
+     count))
+
 (eval-and-compile
   (defvar c-langs-are-parametric nil))
 
@@ -1208,6 +1248,25 @@ MODE is either a mode symbol or a list of mode symbols."
 	   `((setq c-syntax-table-hwm (min c-syntax-table-hwm -pos-))))
        (put-text-property -pos- (1+ -pos-) ',property ,value))))
 
+(defmacro c-put-syntax-table-trim-caches (pos value)
+  ;; Put a 'syntax-table property with VALUE at POS.  Also invalidate four
+  ;; caches from the position POS.
+  (declare (debug t))
+  `(let ((-pos- ,pos))
+     (c-put-char-property -pos- 'syntax-table ,value)
+     (c-truncate-lit-pos/state-cache -pos-)))
+
+(defmacro c-put-string-fence (pos)
+  ;; Put the string-fence syntax-table text property at POS.
+  ;; Since the character there cannot then count as syntactic whitespace,
+  ;; clear the properties `c-is-sws' and `c-in-sws' (see functions
+  ;; `c-forward-sws' and `c-backward-sws' in cc-engine.el for details).
+  (declare (debug t))
+  `(let ((-pos- ,pos))
+     (c-put-char-property -pos- 'syntax-table '(15))
+     (c-clear-char-property -pos- 'c-is-sws)
+     (c-clear-char-property -pos- 'c-in-sws)))
+
 (eval-and-compile
   ;; Constant to decide at compilation time whether to use category
   ;; properties.  Currently (2010-03) they're available only on GNU
@@ -1282,6 +1341,14 @@ MODE is either a mode symbol or a list of mode symbols."
 	 ;; Emacs < 21.
 	 `(c-clear-char-property-fun ,pos ',property))))
 
+(defmacro c-clear-syntax-table-trim-caches (pos)
+  ;; Remove the 'syntax-table property at POS and invalidate the four caches
+  ;; from that position.
+  (declare (debug t))
+  `(let ((-pos- ,pos))
+     (c-clear-char-property -pos- 'syntax-table)
+     (c-truncate-lit-pos/state-cache -pos-)))
+
 (defmacro c-min-property-position (from to property)
   ;; Return the first position in the range [FROM to) where the text property
   ;; PROPERTY is set, or `most-positive-fixnum' if there is no such position.
@@ -1298,27 +1365,19 @@ MODE is either a mode symbol or a list of mode symbols."
       (most-positive-fixnum))))
 
 (defmacro c-put-char-properties (from to property value)
-  ;; FIXME!!!  Doc comment here!
+  ;; Put the given PROPERTY with the given VALUE on the characters between
+  ;; FROM and TO.  PROPERTY is assumed to be constant.  The return value is
+  ;; undefined.
+  ;;
+  ;; This macro does hidden buffer changes.
   (declare (debug t))
   (setq property (eval property))
-  `(let ((-to- ,to) (-from- ,from))
-     ,(if c-use-extents
-	  ;; XEmacs
-	  `(progn
-	     (map-extents (lambda (ext ignored)
-			    (delete-extent ext))
-			  nil -from- -to- nil nil ',property)
-	     (set-extent-properties (make-extent -from- -to-)
-				    (cons property
-					  (cons ,value
-						'(start-open t
-							     end-open t)))))
-	;; Emacs
-	`(progn
+  `(let ((-from- ,from))
+	 (progn
 	   ,@(when (and (fboundp 'syntax-ppss)
 			(eq `,property 'syntax-table))
 	       `((setq c-syntax-table-hwm (min c-syntax-table-hwm -from-))))
-	   (put-text-property -from- -to- ',property ,value)))))
+	   (put-text-property -from- ,to ',property ,value))))
 
 (defmacro c-clear-char-properties (from to property)
   ;; Remove all the occurrences of the given property in the given
@@ -1344,7 +1403,8 @@ MODE is either a mode symbol or a list of mode symbols."
 	     (c-use-extents
 	      ;; XEmacs
 	      `(map-extents (lambda (ext ignored)
-				(delete-extent ext))
+				(delete-extent ext)
+				nil) ; To prevent exit from `map-extents'.
 			    nil ret -to- nil nil ',property))
 	     ((and (fboundp 'syntax-ppss)
 		   (eq property 'syntax-table))
@@ -1358,6 +1418,15 @@ MODE is either a mode symbol or a list of mode symbols."
 	      `(remove-text-properties ret -to- '(,property nil))))
 	   ret)
        nil)))
+
+(defmacro c-clear-syntax-table-properties-trim-caches (from to)
+  ;; Remove all occurrences of the 'syntax-table property in (FROM TO) and
+  ;; invalidate the four caches from the first position from which the
+  ;; property was removed, if any.
+  (declare (debug t))
+  `(let ((first (c-clear-char-properties ,from ,to 'syntax-table)))
+     (when first
+       (c-truncate-lit-pos/state-cache first))))
 
 (defmacro c-clear-syn-tab-properties (from to)
   ;; Remove all occurrences of the `syntax-table' and `c-fl-syn-tab' text
@@ -1449,8 +1518,10 @@ point is then left undefined."
   "Remove all text-properties PROPERTY from the region (FROM, TO)
 which have the value VALUE, as tested by `equal'.  These
 properties are assumed to be over individual characters, having
-been put there by `c-put-char-property'.  POINT remains unchanged."
-  (let ((place from) end-place)
+been put there by `c-put-char-property'.  POINT remains unchanged.
+Return the position of the first removed property, if any, or nil."
+  (let ((place from) end-place
+	first)
     (while			  ; loop round occurrences of (PROPERTY VALUE)
 	(progn
 	  (while	   ; loop round changes in PROPERTY till we find VALUE
@@ -1463,24 +1534,50 @@ been put there by `c-put-char-property'.  POINT remains unchanged."
 	(setq c-syntax-table-hwm (min c-syntax-table-hwm place)))
       (setq end-place (c-next-single-property-change place property nil to))
       (remove-text-properties place end-place (list property nil))
+      (unless first (setq first place))
       ;; Do we have to do anything with stickiness here?
-      (setq place end-place))))
+      (setq place end-place))
+    first))
 
 (defmacro c-clear-char-property-with-value (from to property value)
   "Remove all text-properties PROPERTY from the region [FROM, TO)
 which have the value VALUE, as tested by `equal'.  These
 properties are assumed to be over individual characters, having
-been put there by `c-put-char-property'.  POINT remains unchanged."
+been put there by `c-put-char-property'.  POINT remains unchanged.
+Return the position of the first removed property, or nil."
   (declare (debug t))
   (if c-use-extents
     ;; XEmacs
-      `(let ((-property- ,property))
+      `(let ((-property- ,property)
+	     (first (1+ (point-max))))
 	 (map-extents (lambda (ext val)
-			(if (equal (extent-property ext -property-) val)
-			    (delete-extent ext)))
-		      nil ,from ,to ,value nil -property-))
-    ;; GNU Emacs
+			;; In the following, the test on the extent's property
+			;; is probably redundant.  See documentation of
+			;; `map-extents'.  NO it's NOT!  This automatic check
+			;; would require another argument to `map-extents',
+			;; but the test would use `eq', not `equal', so it's
+			;; no good.  :-(
+			(when (equal (extent-property ext -property-) val)
+			  (setq first (min first
+					   (extent-start-position ext)))
+			  (delete-extent ext))
+			nil)
+		      nil ,from ,to ,value nil -property-)
+	 (and (<= first (point-max)) first))
+    ;; Gnu Emacs
     `(c-clear-char-property-with-value-function ,from ,to ,property ,value)))
+
+(defmacro c-clear-syntax-table-with-value-trim-caches (from to value)
+  "Remove all `syntax-table' text-properties with value VALUE from [FROM, TO)
+and invalidate the four caches from the first postion, if any, where a
+property was removed.  Return the position of the first property removed,
+if any, else nil.  POINT and the match data remain unchanged."
+  (declare (debug t))
+  `(let ((first
+	  (c-clear-char-property-with-value ,from ,to 'syntax-table ,value)))
+     (when first
+       (c-truncate-lit-pos/state-cache first))
+     first))
 
 (defmacro c-search-forward-char-property-with-value-on-char
     (property value char &optional limit)
@@ -1577,7 +1674,8 @@ property, or nil."
 	(or first
 	    (progn (setq first place)
 		   (when (eq property 'syntax-table)
-		     (setq c-syntax-table-hwm (min c-syntax-table-hwm place))))))
+		     (setq c-syntax-table-hwm
+			   (min c-syntax-table-hwm place))))))
       ;; Do we have to do anything with stickiness here?
       (setq place (1+ place)))
     first))
@@ -1596,26 +1694,46 @@ property, or nil."
 	     (-char- ,char)
 	     (first (1+ (point-max))))
 	 (map-extents (lambda (ext val)
-			(when (and (equal (extent-property ext -property-) val)
+			;; In the following, the test on the extent's property
+			;; is probably redundant.  See documentation of
+			;; map-extents.  NO!  See
+			;; `c-clear-char-property-with-value'.
+			(when (and (equal (extent-property ext -property-)
+					  val)
 				   (eq (char-after
 					(extent-start-position ext))
 				       -char-))
 			  (setq first (min first (extent-start-position ext)))
-			  (delete-extent ext)))
+			  (delete-extent ext))
+			nil)
 		      nil ,from ,to ,value nil -property-)
 	 (and (<= first (point-max)) first))
-    ;; GNU Emacs
+    ;; Gnu Emacs
     `(c-clear-char-property-with-value-on-char-function ,from ,to ,property
 							,value ,char)))
+
+(defmacro c-clear-syntax-table-with-value-on-char-trim-caches
+    (from to value char)
+  "Remove all `syntax-table' properties with VALUE on CHAR in [FROM, TO),
+as tested by `equal', and invalidate the four caches from the first position,
+if any, where a property was removed.  POINT and the match data remain
+unchanged."
+  (declare (debug t))
+  `(let ((first (c-clear-char-property-with-value-on-char
+		 ,from ,to 'syntax-table ,value ,char)))
+     (when first
+       (c-truncate-lit-pos/state-cache first))))
 
 (defmacro c-put-char-properties-on-char (from to property value char)
   ;; This needs to be a macro because `property' passed to
   ;; `c-put-char-property' must be a constant.
   "Put the text property PROPERTY with value VALUE on characters
-with value CHAR in the region [FROM to)."
+with value CHAR in the region [FROM to).  Return the position of the
+first char changed, if any, else nil."
   (declare (debug t))
   `(let ((skip-string (concat "^" (list ,char)))
-	 (-to- ,to))
+	 (-to- ,to)
+	 first)
      (save-excursion
        (goto-char ,from)
        (while (progn (skip-chars-forward skip-string -to-)
@@ -1624,8 +1742,20 @@ with value CHAR in the region [FROM to)."
 		      (eq (eval property) 'syntax-table))
 	     `((setq c-syntax-table-hwm (min c-syntax-table-hwm (point)))))
 	 (c-put-char-property (point) ,property ,value)
-	 (forward-char)))))
+	 (when (not first) (setq first (point)))
+	 (forward-char)))
+     first))
 
+(defmacro c-put-syntax-table-properties-on-char-trim-caches
+    (from to value char)
+  "Put a `syntax-table' text property with value VALUE on all characters
+with value CHAR in the region [FROM to), and invalidate the four caches
+from the first position, if any, where a property was put."
+  (declare (debug t))
+  `(let ((first (c-put-char-properties-on-char
+		 ,from ,to 'syntax-table ,value ,char)))
+     (when first
+       (c-truncate-lit-pos/state-cache first))))
 
 ;; Miscellaneous macro(s)
 (defvar c-string-fences-set-flag nil)
@@ -2382,7 +2512,7 @@ system."
     (error "Unknown base mode `%s'" base-mode))
   (put mode 'c-fallback-mode base-mode))
 
-(defvar c-lang-constants (make-vector 151 0))
+(defvar c-lang-constants (obarray-make 151))
 ;;   Obarray used as a cache to keep track of the language constants.
 ;; The constants stored are those defined by `c-lang-defconst' and the values
 ;; computed by `c-lang-const'.  It's mostly used at compile time but it's not
@@ -2587,7 +2717,7 @@ constant.  A file is identified by its base name."
 
     ;; Clear the evaluated values that depend on this source.
     (let ((agenda (get sym 'dependents))
-	  (visited (make-vector 101 0))
+	  (visited (obarray-make 101))
 	  ptr)
       (while agenda
 	(setq sym (car agenda)

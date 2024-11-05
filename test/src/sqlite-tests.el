@@ -1,6 +1,6 @@
 ;;; sqlite-tests.el --- Tests for sqlite.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -37,6 +37,7 @@
 (declare-function sqlite-open "sqlite.c")
 (declare-function sqlite-load-extension "sqlite.c")
 (declare-function sqlite-version "sqlite.c")
+(declare-function sqlite-execute-batch "sqlite.c")
 
 (ert-deftest sqlite-select ()
   (skip-unless (sqlite-available-p))
@@ -260,5 +261,31 @@
         (sqlite-execute db "INSERT INTO people1 (first, last) values (?, ?) RETURNING people_id, first"
 		        '("Joe" "Doe"))
         '((1 "Joe")))))))
+
+(ert-deftest sqlite-multiple-statements ()
+  (skip-unless (sqlite-available-p))
+  (let ((db (sqlite-open nil))
+        (query (with-temp-buffer
+                 (insert "-- -*- sql-product: sqlite -*-
+
+-- I 💘 emojis
+
+CREATE TABLE settings (
+  name TEXT NOT NULL,
+  value TEXT,
+  section TEXT NOT NULL,
+  PRIMARY KEY (section, name)
+);
+
+CREATE TABLE tags📎 (
+  name TEXT PRIMARY KEY NOT NULL
+);
+
+-- CREATE TABLE todo_states (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
+")
+                 (buffer-string))))
+    (sqlite-execute-batch db query)
+    (should (equal '(("settings") ("tags📎"))
+                   (sqlite-select db "select name from sqlite_master where type = 'table' and name not like 'sqlite_%' order by name")))))
 
 ;;; sqlite-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; nnfolder.el --- mail folder access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2024 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;      ShengHuo Zhu <zsh@cs.rochester.edu> (adding NOV)

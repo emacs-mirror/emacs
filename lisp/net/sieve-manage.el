@@ -1,6 +1,6 @@
 ;;; sieve-manage.el --- Implementation of the managesieve protocol in elisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;         Albert Krewinkel <tarleb@moltkeplatz.de>
@@ -171,14 +171,15 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
   "Append ARGS to sieve-manage log buffer.
 
 ARGS can be a string or a list of strings.
-The buffer to use for logging is specifified via
-`sieve-manage-log'. If it is nil, logging is disabled."
+The buffer to use for logging is specified via `sieve-manage-log'.
+If it is nil, logging is disabled."
   (when sieve-manage-log
     (with-current-buffer (or (get-buffer sieve-manage-log)
                              (with-current-buffer
                                  (get-buffer-create sieve-manage-log)
                                (set-buffer-multibyte nil)
-                               (buffer-disable-undo)))
+                               (buffer-disable-undo)
+                               (current-buffer)))
       (goto-char (point-max))
       (apply #'insert args))))
 
@@ -511,7 +512,7 @@ If NAME is nil, return the full server list of capabilities."
     (while (not pos)
       (setq pos (search-forward-regexp pattern nil t))
       (goto-char (point-min))
-      (sleep-for 0 50))
+      (sleep-for 0.05))
     pos))
 
 (defun sieve-manage-drop-next-answer ()

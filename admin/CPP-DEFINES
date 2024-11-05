@@ -25,6 +25,9 @@ SOLARIS2
 USG
 USG5_4
 HAIKU		Compiling on Haiku.
+__ANDROID__	Compiling for the Android operating system.
+__ANDROID_API__ A numerical "API level" indicating the version of
+		Android being compiled for; see http://apilevels.com.
 
 ** Distinguishing GUIs **
 
@@ -35,10 +38,14 @@ NS_IMPL_COCOA	Compile support for Cocoa (Apple) implementation of NS GUI API.
 HAVE_X11	Compile support for the X11 GUI.
 HAVE_PGTK	Compile support for using GTK itself without directly using X Windows APIs.
 HAVE_HAIKU	Compile support for the Haiku window system.
-HAVE_X_WINDOWS	Compile support for X Window system
-  (It looks like, nowadays, if HAVE_X11 is set, HAVE_X_WINDOWS must
-   be, and vice versa.  At least, this is true for configure, and
-   msdos; not sure about nt.)
+HAVE_X_WINDOWS	Compile support for X Window system.  Equivalent to HAVE_X11.
+HAVE_ANDROID    Compiling the Android GUI interface.  Enough of this
+		code is compiled for the build machine cross-compiling
+		the Android port to produce an Emacs binary that can
+		run Lisp code in batch mode, for the purpose of running
+		the byte-compiler.
+ANDROID_STUBIFY The Android GUI interface is being compiled for the build
+		machine, as above.
 
 ** X Windows features **
 HAVE_X11R6	Whether or not the system has X11R6.  (Always defined.)

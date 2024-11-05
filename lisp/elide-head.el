@@ -1,6 +1,6 @@
 ;;; elide-head.el --- hide headers in files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: outlines tools
@@ -68,7 +68,7 @@
                      "http" (? "s") "://www.gnu.org/licenses"
                      (? "/") (? ">") (? " "))
                 (seq "Boston," delim "MA" delim
-                     (or "02111-1307" "02110-1301" "02111-1301")
+                     (or "02111-1307" "02110-1301" "02111-1301" "02196")
                      (? ",") delim
                      "USA")
                 "675 Mass Ave, Cambridge, MA 02139, USA")

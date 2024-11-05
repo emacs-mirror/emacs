@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,6 +22,9 @@ package org.gnu.emacs;
 import java.util.List;
 import java.util.ArrayList;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+
 import android.app.AlertDialog;
 
 import android.content.Context;
@@ -41,6 +44,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.FrameLayout;
 
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -88,10 +92,8 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     public void
     onClick (View view)
     {
-      Log.d (TAG, "onClicked " + this);
-
       wasButtonClicked = true;
-      EmacsNative.sendContextMenu ((short) 0, id, menuEventSerial);
+      EmacsNative.sendContextMenu (0, id, menuEventSerial);
       dismissDialog.dismiss ();
     }
 
@@ -99,10 +101,8 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     public void
     onClick (DialogInterface dialog, int which)
     {
-      Log.d (TAG, "onClicked " + this);
-
       wasButtonClicked = true;
-      EmacsNative.sendContextMenu ((short) 0, id, menuEventSerial);
+      EmacsNative.sendContextMenu (0, id, menuEventSerial);
     }
   };
 
@@ -161,6 +161,13 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     Theme theme;
     TypedArray attributes;
     Window window;
+
+    /* Wrap the context within a style wrapper.  Any dialog properties
+       tied to EmacsStyle (such as those applied by the system ``dark
+       theme'') will thus affect the dialog irrespective of whether
+       CONTEXT is an activity or the service.  */
+
+    context = new ContextThemeWrapper (context, R.style.EmacsStyle);
 
     size = buttons.size ();
     styleId = -1;
@@ -300,10 +307,6 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
 	   work, then any focused EmacsOpenActivity, and finally the
 	   last EmacsActivity to be focused.  */
 
-	Log.d (TAG, "display1: no focused activities...");
-	Log.d (TAG, ("display1: EmacsOpenActivity.currentActivity: "
-		     + EmacsOpenActivity.currentActivity));
-
 	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
 	    || Settings.canDrawOverlays (EmacsService.SERVICE))
 	  context = EmacsService.SERVICE;
@@ -320,8 +323,6 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
 	 foreground, as this allows the dialog to be dismissed more
 	 consistently.  */
       context = EmacsActivity.focusedActivities.get (0);
-
-    Log.d (TAG, "display1: using context " + context);
 
     dialog = dismissDialog = toAlertDialog (context);
 
@@ -390,26 +391,18 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
   public boolean
   display ()
   {
-    Runnable runnable;
-    final EmacsHolder<Boolean> rc;
+    FutureTask<Boolean> task;
 
-    rc = new EmacsHolder<Boolean> ();
-    rc.thing = false;
-    runnable = new Runnable () {
+    task = new FutureTask<Boolean> (new Callable<Boolean> () {
 	@Override
-	public void
-	run ()
+	public Boolean
+	call ()
 	{
-	  synchronized (this)
-	    {
-	      rc.thing = display1 ();
-	      notify ();
-	    }
+	  return display1 ();
 	}
-      };
+      });
 
-    EmacsService.syncRunnable (runnable);
-    return rc.thing;
+    return EmacsService.<Boolean>syncRunnable (task);
   }
 
 
@@ -418,11 +411,9 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
   public void
   onDismiss (DialogInterface dialog)
   {
-    Log.d (TAG, "onDismiss: " + this);
-
     if (wasButtonClicked)
       return;
 
-    EmacsNative.sendContextMenu ((short) 0, 0, menuEventSerial);
+    EmacsNative.sendContextMenu (0, 0, menuEventSerial);
   }
 };

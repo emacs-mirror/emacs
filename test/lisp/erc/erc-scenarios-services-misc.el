@@ -1,6 +1,6 @@
 ;;; erc-scenarios-services-misc.el --- Services-misc scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -186,7 +186,7 @@
         (funcall expect 10 "Last login from")
         (funcall expect 10 "Your new nickname is tester")))
 
-    (with-current-buffer (get-buffer "#test")
+    (with-current-buffer "#test"
       (funcall expect 10 "tester ")
       (funcall expect 10 "was created on"))))
 

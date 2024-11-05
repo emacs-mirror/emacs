@@ -1,6 +1,6 @@
 ;;; minibuf-tests.el --- tests for minibuf.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -34,7 +34,7 @@
   (let ((num 0))
     (mapcar (lambda (str) (cons str (cl-incf num))) list)))
 (defun minibuf-tests--strings-to-obarray (list)
-  (let ((ob (make-vector 7 0)))
+  (let ((ob (obarray-make 7)))
     (mapc (lambda (str) (intern str ob)) list)
     ob))
 (defun minibuf-tests--strings-to-string-hashtable (list)
@@ -60,6 +60,9 @@
 
 
 ;;; Testing functions that are agnostic to type of COLLECTION.
+
+(defun minibuf-tests--set-equal (a b)
+  (null (cl-set-exclusive-or a b :test #'equal)))
 
 (defun minibuf-tests--try-completion (xform-collection)
   (let* ((abcdef (funcall xform-collection '("abc" "def")))
@@ -101,7 +104,8 @@
   (let* ((abcdef (funcall xform-collection '("abc" "def")))
          (+abba  (funcall xform-collection '("abc" "abba" "def"))))
     (should (equal (all-completions "a" abcdef) '("abc")))
-    (should (equal (all-completions "a" +abba) '("abc" "abba")))
+    (should (minibuf-tests--set-equal (all-completions "a" +abba)
+                                      '("abc" "abba")))
     (should (equal (all-completions "abc" +abba) '("abc")))
     (should (equal (all-completions "abcd" +abba) nil))))
 
@@ -111,7 +115,8 @@
          (+abba  (funcall xform-collection '("abc" "abba" "def")))
          (+abba-member (funcall collection-member +abba)))
     (should (equal (all-completions "a" abcdef abcdef-member) '("abc")))
-    (should (equal (all-completions "a" +abba +abba-member) '("abc" "abba")))
+    (should (minibuf-tests--set-equal (all-completions "a" +abba +abba-member)
+                                      '("abc" "abba")))
     (should (equal (all-completions "abc" +abba +abba-member) '("abc")))
     (should (equal (all-completions "abcd" +abba +abba-member) nil))
     (should-not (all-completions "a" abcdef #'ignore))
@@ -124,7 +129,8 @@
         (+abba  (funcall xform-collection '("abc" "abba" "def"))))
     (let ((completion-regexp-list '(".")))
       (should (equal (all-completions "a" abcdef) '("abc")))
-      (should (equal (all-completions "a" +abba) '("abc" "abba")))
+      (should (minibuf-tests--set-equal (all-completions "a" +abba)
+                                        '("abc" "abba")))
       (should (equal (all-completions "abc" +abba) '("abc")))
       (should (equal (all-completions "abcd" +abba) nil)))
     (let ((completion-regexp-list '("X")))

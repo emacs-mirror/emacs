@@ -1,5 +1,5 @@
 /* Android window system support.
-   Copyright (C) 2023 Free Software Foundation, Inc.
+   Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef _ANDROID_GUI_H_
 #define _ANDROID_GUI_H_
 
+#include <stdint.h>
+
 struct android_char_struct
 {
   int rbearing;
@@ -30,7 +32,8 @@ struct android_char_struct
 
 typedef struct android_char_struct XCharStruct;
 
-typedef unsigned short android_handle;
+/* Handles are but JNI handles cast to intptr_t.  */
+typedef intptr_t android_handle;
 
 typedef android_handle android_pixmap, Emacs_Pixmap;
 typedef android_handle android_window, Emacs_Window;
@@ -56,7 +59,7 @@ struct android_point
 enum android_gc_function
   {
     ANDROID_GC_COPY	= 0,
-    ANDROID_GC_XOR	= 1,
+    ANDROID_GC_INVERT	= 1,
   };
 
 enum android_gc_value_mask
@@ -71,12 +74,22 @@ enum android_gc_value_mask
     ANDROID_GC_FILL_STYLE	  = (1 << 7),
     ANDROID_GC_TILE_STIP_X_ORIGIN = (1 << 8),
     ANDROID_GC_TILE_STIP_Y_ORIGIN = (1 << 9),
+    ANDROID_GC_LINE_STYLE	  = (1 << 10),
+    ANDROID_GC_LINE_WIDTH	  = (1 << 11),
+    ANDROID_GC_DASH_LIST	  = (1 << 12),
+    ANDROID_GC_DASH_OFFSET	  = (1 << 13),
   };
 
 enum android_fill_style
   {
     ANDROID_FILL_SOLID		 = 0,
     ANDROID_FILL_OPAQUE_STIPPLED = 1,
+  };
+
+enum android_line_style
+  {
+    ANDROID_LINE_SOLID		 = 0,
+    ANDROID_LINE_ON_OFF_DASH	 = 1,
   };
 
 enum android_window_value_mask
@@ -114,6 +127,18 @@ struct android_gc_values
 
   /* The tile-stipple X and Y origins.  */
   int ts_x_origin, ts_y_origin;
+
+  /* The line style.  */
+  enum android_line_style line_style;
+
+  /* The line width.  */
+  int line_width;
+
+  /* Offset in pixels into the dash pattern specified below.  */
+  int dash_offset;
+
+  /* One integer providing both segments of a even-odd dash pattern.  */
+  int dash;
 };
 
 /* X-like graphics context structure.  This is implemented in
@@ -152,6 +177,18 @@ struct android_gc
 
   /* The tile-stipple X and Y origins.  */
   int ts_x_origin, ts_y_origin;
+
+  /* The line style.  */
+  enum android_line_style line_style;
+
+  /* The line width.  */
+  int line_width;
+
+  /* Offset in pixels into the dash pattern specified below.  */
+  int dash_offset;
+
+  /* The segments of an even/odd dash pattern.  */
+  int *dashes, n_segments;
 };
 
 enum android_swap_action
@@ -179,8 +216,6 @@ struct android_swap_info
 };
 
 #define NativeRectangle			Emacs_Rectangle
-#define CONVERT_TO_NATIVE_RECT(xr, nr)	((xr) = (nr))
-#define CONVERT_FROM_EMACS_RECT(xr, nr) ((nr) = (xr))
 
 #define STORE_NATIVE_RECT(nr, rx, ry, rwidth, rheight)	\
   ((nr).x = (rx), (nr).y = (ry),			\
@@ -248,6 +283,11 @@ enum android_event_type
     ANDROID_CONTEXT_MENU,
     ANDROID_EXPOSE,
     ANDROID_INPUT_METHOD,
+    ANDROID_DND_DRAG_EVENT,
+    ANDROID_DND_URI_EVENT,
+    ANDROID_DND_TEXT_EVENT,
+    ANDROID_NOTIFICATION_DELETED,
+    ANDROID_NOTIFICATION_ACTION,
   };
 
 struct android_any_event
@@ -463,6 +503,7 @@ enum android_ime_operation
     ANDROID_IME_END_BATCH_EDIT,
     ANDROID_IME_REQUEST_SELECTION_UPDATE,
     ANDROID_IME_REQUEST_CURSOR_UPDATES,
+    ANDROID_IME_REPLACE_TEXT,
   };
 
 enum
@@ -509,6 +550,51 @@ struct android_ime_event
   unsigned long counter;
 };
 
+struct android_dnd_event
+{
+  /* Type of the event.  */
+  enum android_event_type type;
+
+  /* The event serial.  */
+  unsigned long serial;
+
+  /* The window that gave rise to the event.  */
+  android_window window;
+
+  /* X and Y coordinates of the event.  */
+  int x, y;
+
+  /* Data tied to this event, such as a URI or clipboard string.
+     Must be deallocated with `free'.  */
+  unsigned short *uri_or_string;
+
+  /* Length of that data.  */
+  size_t length;
+};
+
+struct android_notification_event
+{
+  /* Type of the event.  */
+  enum android_event_type type;
+
+  /* The event serial.  */
+  unsigned long serial;
+
+  /* The window that gave rise to the event (None).  */
+  android_window window;
+
+  /* The identifier of the notification whose status changed.
+     Must be deallocated with `free'.  */
+  char *tag;
+
+  /* The action that was activated, if any.  Must be deallocated with
+     `free'.  */
+  unsigned short *action;
+
+  /* Length of that data.  */
+  size_t length;
+};
+
 union android_event
 {
   enum android_event_type type;
@@ -540,6 +626,15 @@ union android_event
 
   /* This is used to dispatch input method editing requests.  */
   struct android_ime_event ime;
+
+  /* There is no analog under X because Android defines a strict DND
+     protocol, whereas there exist several competing X protocols
+     implemented in terms of X client messages.  */
+  struct android_dnd_event dnd;
+
+  /* X provides no equivalent interface for displaying
+     notifications.  */
+  struct android_notification_event notification;
 };
 
 enum
@@ -558,10 +653,38 @@ enum android_lookup_status
 
 enum android_ic_mode
   {
-    ANDROID_IC_MODE_NULL   = 0,
-    ANDROID_IC_MODE_ACTION = 1,
-    ANDROID_IC_MODE_TEXT   = 2,
+    ANDROID_IC_MODE_NULL     = 0,
+    ANDROID_IC_MODE_ACTION   = 1,
+    ANDROID_IC_MODE_TEXT     = 2,
+    ANDROID_IC_MODE_PASSWORD = 3,
   };
+
+enum android_stack_mode
+  {
+    ANDROID_ABOVE = 0,
+    ANDROID_BELOW = 1,
+  };
+
+enum android_wc_value_mask
+  {
+    ANDROID_CW_SIBLING	  = 0,
+    ANDROID_CW_STACK_MODE = 1,
+  };
+
+struct android_window_changes
+{
+  android_window sibling;
+  enum android_stack_mode stack_mode;
+};
+
+struct android_compose_status
+{
+  /* Accent character to be combined with another.  */
+  unsigned int accent;
+
+  /* Number of characters matched.  */
+  int chars_matched;
+};
 
 extern int android_pending (void);
 extern void android_next_event (union android_event *);
@@ -587,6 +710,7 @@ extern void android_set_clip_rectangles (struct android_gc *,
 					 int, int,
 					 struct android_rectangle *,
 					 int);
+extern void android_set_dashes (struct android_gc *, int, int *, int);
 extern void android_change_gc (struct android_gc *,
 			       enum android_gc_value_mask,
 			       struct android_gc_values *);
@@ -642,6 +766,9 @@ extern void android_bell (void);
 extern void android_set_input_focus (android_window, unsigned long);
 extern void android_raise_window (android_window);
 extern void android_lower_window (android_window);
+extern void android_reconfigure_wm_window (android_window,
+					   enum android_wc_value_mask,
+					   struct android_window_changes *);
 extern int android_query_tree (android_window, android_window *,
 			       android_window *, android_window **,
 			       unsigned int *);
@@ -655,7 +782,9 @@ extern void android_translate_coordinates (android_window, int,
 					   int, int *, int *);
 extern int android_wc_lookup_string (android_key_pressed_event *,
 				     wchar_t *, int, int *,
-				     enum android_lookup_status *);
+				     enum android_lookup_status *,
+				     struct android_compose_status *);
+extern void android_recreate_activity (android_window);
 extern void android_update_ic (android_window, ptrdiff_t, ptrdiff_t,
 			       ptrdiff_t, ptrdiff_t);
 extern void android_reset_ic (android_window, enum android_ic_mode);

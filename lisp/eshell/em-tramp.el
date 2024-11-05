@@ -1,6 +1,6 @@
 ;;; em-tramp.el --- Eshell features that require Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Aidan Gauland <aidalgol@no8wireless.co.nz>
 
@@ -35,7 +35,7 @@
 
 ;; There are no items in this custom group, but eshell modules (ab)use
 ;; custom groups.
-;;;###autoload
+;;;###esh-module-autoload
 (progn
  (defgroup eshell-tramp nil
    "This module defines commands that use Tramp in a way that is
@@ -121,12 +121,11 @@ Uses the system sudo through Tramp's sudo method."
      :usage "[(-u | --user) USER] (-s | --shell) | COMMAND
 Execute a COMMAND as the superuser or another USER.")
    (let ((dir (eshell--method-wrap-directory default-directory "sudo" user)))
-     (if shell
-         (throw 'eshell-replace-command
-                (eshell-parse-command "cd" (list dir)))
-       (throw 'eshell-external
-              (let ((default-directory dir))
-                (eshell-named-command (car args) (cdr args))))))))
+     (throw 'eshell-replace-command
+            (if shell
+                (eshell-parse-command "cd" (list dir))
+              `(let ((default-directory ,dir))
+                 (eshell-named-command ',(car args) ',(cdr args))))))))
 
 (put 'eshell/sudo 'eshell-no-numeric-conversions t)
 
@@ -144,19 +143,13 @@ Uses the system doas through Tramp's doas method."
      :usage "[(-u | --user) USER] (-s | --shell) | COMMAND
 Execute a COMMAND as the superuser or another USER.")
    (let ((dir (eshell--method-wrap-directory default-directory "doas" user)))
-     (if shell
-         (throw 'eshell-replace-command
-                (eshell-parse-command "cd" (list dir)))
-       (throw 'eshell-external
-              (let ((default-directory dir))
-                (eshell-named-command (car args) (cdr args))))))))
+     (throw 'eshell-replace-command
+            (if shell
+                (eshell-parse-command "cd" (list dir))
+              `(let ((default-directory ,dir))
+                 (eshell-named-command ',(car args) ',(cdr args))))))))
 
 (put 'eshell/doas 'eshell-no-numeric-conversions t)
 
 (provide 'em-tramp)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-tramp.el ends here

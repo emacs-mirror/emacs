@@ -1,6 +1,6 @@
 ;;; em-prompt-tests.el --- em-prompt test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -32,7 +32,15 @@
                            (file-name-directory (or load-file-name
                                                     default-directory))))
 
+(defmacro em-prompt-test--with-multiline (&rest body)
+  "Execute BODY with a multiline Eshell prompt."
+  `(let ((eshell-prompt-function (lambda () "multiline prompt\n$ ")))
+     ,@body))
+
 ;;; Tests:
+
+
+;; Prompt output
 
 (ert-deftest em-prompt-test/field-properties ()
   "Check that field properties are properly set on Eshell output/prompts."
@@ -80,64 +88,152 @@ This tests the case when `eshell-highlight-prompt' is nil."
                 (apply #'propertize "hello\n"
                        eshell-command-output-properties)))))))
 
-(defmacro em-prompt-test--with-multiline (&rest body)
-  "Execute BODY with a multiline Eshell prompt."
-  `(let ((eshell-prompt-function (lambda () "multiline prompt\n$ ")))
-     ,@body))
+(ert-deftest em-prompt-test/after-failure ()
+  "Check that current prompt shows the exit code of the last failed command."
+  (with-temp-eshell
+   (let ((debug-on-error nil))
+     (eshell-insert-command "(zerop \"foo\")"))
+   (let ((current-prompt (field-string (1- (point)))))
+     (should (equal-including-properties
+              current-prompt
+              (propertize
+               (concat (directory-file-name default-directory)
+                       (unless (eshell-exit-success-p)
+                         (format " [%d]" eshell-last-command-status))
+                       (if (= (file-user-uid) 0) " # " " $ "))
+               'read-only t
+               'field 'prompt
+               'font-lock-face 'eshell-prompt
+               'front-sticky '(read-only field font-lock-face)
+               'rear-nonsticky '(read-only field font-lock-face)))))))
 
-(defun em-prompt-test/next-previous-prompt-with ()
+
+;; Prompt navigation
+
+(defun em-prompt-test/next-previous-prompt-1 ()
   "Helper for checking forward/backward navigation of old prompts."
   (with-temp-eshell
    (eshell-insert-command "echo one")
    (eshell-insert-command "echo two")
    (eshell-insert-command "echo three")
+   (let ((debug-on-error nil))          ; A failed command.
+     (eshell-insert-command "(zerop \"foo\")"))
    (insert "echo fou")                  ; A partially-entered command.
-   ;; Go back one prompt.
-   (eshell-previous-prompt 1)
-   (should (equal (eshell-get-old-input) "echo three"))
-   ;; Go back two prompts, starting from the end of this line.
-   (end-of-line)
-   (eshell-previous-prompt 2)
-   (should (equal (eshell-get-old-input) "echo one"))
-   ;; Go forward three prompts.
-   (eshell-next-prompt 3)
-   (should (equal (eshell-get-old-input) "echo fou"))))
+   (ert-info ("Go back one prompt")
+     (eshell-previous-prompt)
+     (should (equal (point) (field-beginning)))
+     (should (equal (field-string) "(zerop \"foo\")\n")))
+   (ert-info ("Go back three prompts, starting from the end of the input")
+     (end-of-line)
+     (eshell-previous-prompt 3)
+     (should (equal (point) (field-beginning)))
+     (should (equal (field-string) "echo one\n")))
+   (ert-info ("Go to the current prompt, starting from the end of the input")
+     (end-of-line)
+     (eshell-previous-prompt 0)
+     (should (equal (point) (field-beginning)))
+     (should (equal (field-string) "echo one\n")))
+   (ert-info ("Go forward one prompt")
+     (eshell-next-prompt)
+     (should (equal (point) (field-beginning)))
+     (should (equal (field-string) "echo two\n")))
+   (ert-info ("Go forward three prompts")
+     (eshell-next-prompt 3)
+     (should (equal (point) (field-beginning)))
+     (should (equal (field-string) "echo fou")))
+   (ert-info ("Go back one prompt, starting from the beginning of the line")
+     (forward-line 0)
+     (eshell-previous-prompt 1)
+     (should (equal (point) (field-beginning)))
+     (should (equal (field-string) "(zerop \"foo\")\n")))
+   (ert-info ("Go back one prompt, starting from the previous prompt's output")
+     (forward-line -1)
+     (eshell-previous-prompt 1)
+     (should (equal (point) (field-beginning)))
+     (should (equal (field-string) "echo three\n")))))
 
 (ert-deftest em-prompt-test/next-previous-prompt ()
   "Check that navigating forward/backward through old prompts works correctly."
-  (em-prompt-test/next-previous-prompt-with))
+  (em-prompt-test/next-previous-prompt-1))
 
-(ert-deftest em-prompt-test/next-previous-prompt-multiline ()
+(ert-deftest em-prompt-test/next-previous-prompt/multiline ()
   "Check old prompt forward/backward navigation for multiline prompts."
   (em-prompt-test--with-multiline
-   (em-prompt-test/next-previous-prompt-with)))
+   (em-prompt-test/next-previous-prompt-1)))
 
-(defun em-prompt-test/forward-backward-matching-input-with ()
+(defun em-prompt-test/forward-backward-paragraph-1 ()
+  "Helper for checking forward/backward navigation by paragraphs."
+  (with-temp-eshell
+    (cl-flet ((at-prompt-for-command-p (command)
+                (and (equal (point) (field-beginning))
+                     (equal (get-text-property (point) 'field) 'prompt)
+                     (save-excursion
+                       (goto-char (field-end))
+                       (equal (field-string) command)))))
+      (eshell-insert-command "echo 'high five'")
+      (eshell-insert-command "echo 'up high\n\ndown low'")
+      (eshell-insert-command "echo 'too slow'")
+      (insert "echo goodby")            ; A partially-entered command.
+      (ert-info ("Go back to the last prompt")
+        (eshell-backward-paragraph)
+        (should (at-prompt-for-command-p "echo goodby")))
+      (ert-info ("Go back to the paragraph break")
+        (eshell-backward-paragraph 2)
+        (should (looking-at "\ndown low\n")))
+      (ert-info ("Go forward to the third prompt")
+        (eshell-forward-paragraph)
+        (should (at-prompt-for-command-p "echo 'too slow'\n")))
+      (ert-info ("Go backward to before the first prompt")
+        (eshell-backward-paragraph 5)
+        (should (looking-back "Welcome to the Emacs shell\n")))
+      (ert-info ("Go backward to the beginning of the buffer")
+        (eshell-backward-paragraph)
+        (should (bobp)))
+      (ert-info ("Go forward to the second prompt")
+        (eshell-forward-paragraph 3)
+        (should (at-prompt-for-command-p "echo 'up high\n\ndown low'\n"))))))
+
+(ert-deftest em-prompt-test/forward-backward-paragraph ()
+  "Check that navigating forward/backward through paragraphs works correctly."
+  (em-prompt-test/forward-backward-paragraph-1))
+
+(ert-deftest em-prompt-test/forward-backward-paragraph/multiline ()
+  "Check paragraph forward/backward navigation for multiline prompts."
+  (em-prompt-test--with-multiline
+   (em-prompt-test/forward-backward-paragraph-1)))
+
+(defun em-prompt-test/forward-backward-matching-input-1 ()
   "Helper for checking forward/backward navigation via regexps."
   (with-temp-eshell
    (eshell-insert-command "echo one")
    (eshell-insert-command "printnl something else")
    (eshell-insert-command "echo two")
    (eshell-insert-command "echo three")
+   (let ((debug-on-error nil))          ; A failed command.
+     (eshell-insert-command "(zerop \"foo\")"))
    (insert "echo fou")                  ; A partially-entered command.
-   ;; Go back one prompt.
-   (eshell-backward-matching-input "echo" 1)
-   (should (equal (eshell-get-old-input) "echo three"))
-   ;; Go back two prompts, starting from the end of this line.
-   (end-of-line)
-   (eshell-backward-matching-input "echo" 2)
-   (should (equal (eshell-get-old-input) "echo one"))
-   ;; Go forward three prompts.
-   (eshell-forward-matching-input "echo" 3)
-   (should (equal (eshell-get-old-input) "echo fou"))))
+   (ert-info ("Search for \"echo\", back one prompt")
+     (eshell-backward-matching-input "echo" 1)
+     (should (equal (point) (field-beginning)))
+     (should (equal (field-string) "echo three\n")))
+   (ert-info ((concat "Search for \"echo\", back two prompts, "
+                      "starting from the end of this line"))
+     (end-of-line)
+     (eshell-backward-matching-input "echo" 2)
+     (should (equal (point) (field-beginning)))
+     (should (equal (field-string) "echo one\n")))
+   (ert-info ("Search for \"echo\", forward three prompts")
+     (eshell-forward-matching-input "echo" 3)
+     (should (equal (point) (field-beginning)))
+     (should (equal (field-string) "echo fou")))))
 
 (ert-deftest em-prompt-test/forward-backward-matching-input ()
   "Check that navigating forward/backward via regexps works correctly."
-  (em-prompt-test/forward-backward-matching-input-with))
+  (em-prompt-test/forward-backward-matching-input-1))
 
 (ert-deftest em-prompt-test/forward-backward-matching-input-multiline ()
   "Check forward/backward regexp navigation for multiline prompts."
   (em-prompt-test--with-multiline
-   (em-prompt-test/forward-backward-matching-input-with)))
+   (em-prompt-test/forward-backward-matching-input-1)))
 
 ;;; em-prompt-tests.el ends here

@@ -1,6 +1,10 @@
 ;;; keymap.el --- Keymap functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
+
+;; Maintainer: emacs-devel@gnu.org
+;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -78,7 +82,11 @@ called from Lisp, COMMAND can be anything that `keymap-set' accepts
 as its DEFINITION argument.
 
 If COMMAND is a string (which can only happen when this function is
-callled from Lisp), it must satisfy `key-valid-p'.
+called from Lisp), it must satisfy `key-valid-p'.
+
+The `key-description' convenience function converts a simple
+string of characters to an equivalent form that is acceptable for
+COMMAND.
 
 Note that if KEY has a local binding in the current buffer,
 that local binding will continue to shadow any global binding
@@ -102,7 +110,11 @@ called from Lisp, COMMAND can be anything that `keymap-set' accepts
 as its DEFINITION argument.
 
 If COMMAND is a string (which can only happen when this function is
-callled from Lisp), it must satisfy `key-valid-p'.
+called from Lisp), it must satisfy `key-valid-p'.
+
+The `key-description' convenience function converts a simple
+string of characters to an equivalent form that is acceptable for
+COMMAND.
 
 The binding goes in the current buffer's local keymap, which in most
 cases is shared with all other buffers in the same major mode."
@@ -256,7 +268,7 @@ returned by \\[describe-key] (`describe-key')."
                         (setq word (concat (match-string 1 word)
                                            (match-string 3 word)))
                         (not (string-match
-                              "\\<\\(NUL\\|RET\\|LFD\\|ESC\\|SPC\\|DEL\\)$"
+                              "\\<\\(NUL\\|RET\\|LFD\\|TAB\\|ESC\\|SPC\\|DEL\\)$"
                               word))))
                  (setq key (list (intern word))))
                 ((or (equal word "REM") (string-match "^;;" word))
@@ -375,18 +387,92 @@ which is
 
 (defun key-translate (from to)
   "Translate character FROM to TO on the current terminal.
+
 This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it.
 
-Both KEY and TO should be specified by strings that satisfy `key-valid-p'."
+Both FROM and TO should be specified by strings that satisfy `key-valid-p'.
+If TO is nil, remove any existing translation for FROM.
+
+Interactively, prompt for FROM and TO with `read-char'."
   (declare (compiler-macro
             (lambda (form) (keymap--compile-check from to) form)))
+  ;; Using `key-description' is a necessary evil here, so that the
+  ;; values can be passed to keymap-* functions, even though those
+  ;; functions immediately undo it with `key-parse'.
+  (interactive `(,(key-description `[,(read-char "From: ")])
+                 ,(key-description `[,(read-char "To: ")])))
   (keymap--check from)
-  (keymap--check to)
-  (or (char-table-p keyboard-translate-table)
-      (setq keyboard-translate-table
-	    (make-char-table 'keyboard-translate-table nil)))
-  (aset keyboard-translate-table (key-parse from) (key-parse to)))
+  (when to
+    (keymap--check to))
+  (let ((from-key (key-parse from))
+        (to-key (and to (key-parse to))))
+    (cond
+     ((= (length from-key) 0)
+      (error "FROM key is empty"))
+     ((> (length from-key) 1)
+      (error "FROM key %s is not a single key" from)))
+    (cond
+     ((and to (= (length to-key) 0))
+      (error "TO key is empty"))
+     ((and to (> (length to-key) 1))
+      (error "TO key %s is not a single key" to)))
+    (or (char-table-p keyboard-translate-table)
+        (setq keyboard-translate-table
+              (make-char-table 'keyboard-translate-table nil)))
+    (aset keyboard-translate-table
+          (aref from-key 0)
+          (and to (aref to-key 0)))))
+
+(defun key-translate-select ()
+  "Prompt for a current keyboard translation pair with `completing-read'.
+
+Each pair is formatted as \"FROM -> TO\".
+
+Return the \"FROM\" as a key string."
+  (let* ((formatted-trans-alist nil)
+         ;; Alignment helpers
+         (pad 0)
+         (key-code-func
+          (lambda (kc trans)
+            (let* ((desc (key-description `[,kc]))
+                   (len (length desc)))
+              (when (> len pad)
+                (setq pad len))
+              (push
+               `(,desc . ,(key-description `[,trans]))
+               formatted-trans-alist))))
+         (format-func
+          (lambda (pair) ;; (key . value)
+            (format
+             "%s -> %s"
+             (string-pad (key-description `[,(car pair)]) pad)
+             (key-description `[,(cdr pair)])))))
+    ;; Set `pad' and `formatted-trans-alist'
+    (map-char-table
+     (lambda (chr trans)
+       (if (characterp chr)
+           (funcall key-code-func chr trans)
+         (require 'range)
+         (declare-function range-map "range" (func range))
+         (range-map
+          (lambda (kc) (funcall key-code-func kc trans))
+          chr)))
+     keyboard-translate-table)
+    (car
+     (split-string
+      (completing-read
+       "Key Translation: "
+       (mapcar format-func formatted-trans-alist)
+       nil t)))))
+
+(defun key-translate-remove (from)
+  "Remove translation of FROM from `keyboard-translate-table'.
+
+FROM must satisfy `key-valid-p'.  If FROM has no entry in
+`keyboard-translate-table', this has no effect."
+  (interactive (list (key-translate-select)))
+  (key-translate from nil))
 
 (defun keymap-lookup (keymap key &optional accept-default no-remap position)
   "Return the binding for command KEY in KEYMAP.
@@ -442,7 +528,7 @@ If optional argument ACCEPT-DEFAULT is non-nil, recognize default
 bindings; see the description of `keymap-lookup' for more details
 about this."
   (declare (compiler-macro (lambda (form) (keymap--compile-check keys) form)))
-  (when-let ((map (current-local-map)))
+  (when-let* ((map (current-local-map)))
     (keymap-lookup map keys accept-default)))
 
 (defun keymap-global-lookup (keys &optional accept-default message)
@@ -571,9 +657,15 @@ should be a MENU form as accepted by `easy-menu-define'.
           (let ((def (pop definitions)))
             (if (eq key :menu)
                 (easy-menu-define nil keymap "" def)
-              (if (member key seen-keys)
-                  (error "Duplicate definition for key: %S %s" key keymap)
-                (push key seen-keys))
+              (when (member key seen-keys)
+                ;; Since the keys can be computed dynamically, it can
+                ;; very well happen that we get duplicate definitions
+                ;; due to some unfortunate configuration rather than
+                ;; due to an actual bug.  While such duplicates are
+                ;; not desirable, they shouldn't prevent the users
+                ;; from getting their job done.
+                (message "Duplicate definition for key: %S %s" key keymap))
+              (push key seen-keys)
               (keymap-set keymap key def)))))
       keymap)))
 
@@ -591,10 +683,11 @@ non-nil, all commands in the map will have the `repeat-map'
 symbol property.
 
 More control is available over which commands are repeatable; the
-value can also be a property list with properties `:enter' and
-`:exit', for example:
+value can also be a property list with properties `:enter',
+`:exit' and `:hints', for example:
 
-     :repeat (:enter (commands ...) :exit (commands ...))
+     :repeat (:enter (commands ...) :exit (commands ...)
+              :hints ((command . \"hint\") ...))
 
 `:enter' specifies the list of additional commands that only
 enter `repeat-mode'.  When the list is empty, then only the
@@ -608,6 +701,10 @@ list is empty, no commands in the map exit `repeat-mode'.
 Specifying a list of commands is useful when those commands exist
 in this specific map, but should not have the `repeat-map' symbol
 property.
+
+`:hints' is a list of cons pairs where car is a command and
+cdr is a string that is displayed alongside of the repeatable key
+in the echo area.
 
 \(fn VARIABLE-NAME &key DOC FULL PARENT SUPPRESS NAME PREFIX KEYMAP REPEAT &rest [KEY DEFINITION]...)"
   (declare (indent 1))
@@ -648,7 +745,9 @@ property.
           (setq def (pop defs))
           (when (and (memq (car def) '(function quote))
                      (not (memq (cadr def) (plist-get repeat :exit))))
-            (push `(put ,def 'repeat-map ',variable-name) props)))))
+            (push `(put ,def 'repeat-map ',variable-name) props)))
+        (dolist (def (plist-get repeat :hints))
+          (push `(put ',(car def) 'repeat-hint ',(cdr def)) props))))
 
     (let ((defvar-form
            `(defvar ,variable-name

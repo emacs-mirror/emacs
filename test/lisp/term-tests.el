@@ -1,6 +1,6 @@
 ;;; term-tests.el --- tests for term.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017, 2019-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017, 2019-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -28,25 +28,18 @@
 (defvar term-height)                    ; Number of lines in window.
 (defvar term-width)                     ; Number of columns in window.
 
-(defvar yellow-fg-props
-  `( :foreground ,(face-foreground 'term-color-yellow nil 'default)
-     :background "unspecified-bg" :inverse-video nil))
-(defvar yellow-bg-props
-  `( :foreground "unspecified-fg"
-     :background ,(face-background 'term-color-yellow nil 'default)
-     :inverse-video nil))
-(defvar bright-yellow-fg-props
-  `( :foreground ,(face-foreground 'term-color-bright-yellow nil 'default)
-     :background "unspecified-bg" :inverse-video nil))
-(defvar bright-yellow-bg-props
-  `( :foreground "unspecified-fg"
-     :background ,(face-background 'term-color-bright-yellow nil 'default)
-     :inverse-video nil))
-(defvar custom-color-fg-props
-  `( :foreground "#87FFFF"
-     :background "unspecified-bg" :inverse-video nil))
+(defconst yellow-fg-props
+  `(:foreground ,(face-foreground 'term-color-yellow nil 'default)))
+(defconst yellow-bg-props
+  `(:background ,(face-background 'term-color-yellow nil 'default)))
+(defconst bright-yellow-fg-props
+  `(:foreground ,(face-foreground 'term-color-bright-yellow nil 'default)))
+(defconst bright-yellow-bg-props
+  `(:background ,(face-background 'term-color-bright-yellow nil 'default)))
+(defconst custom-color-fg-props
+  `(:foreground "#87FFFF"))
 
-(defvar ansi-test-strings
+(defconst ansi-test-strings
   `(("\e[33mHello World\e[0m"
      ,(propertize "Hello World" 'font-lock-face `(,yellow-fg-props)))
     ("\e[43mHello World\e[0m"
@@ -110,7 +103,7 @@
         (buffer-substring (point-min) (point-max))))))
 
 (ert-deftest term-simple-lines ()
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (let ((str "\
 first line\r
 next line\r\n"))
@@ -118,14 +111,14 @@ next line\r\n"))
                    (string-replace "\r" "" str)))))
 
 (ert-deftest term-carriage-return ()
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (let ((str "\
 first line\r_next line\r\n"))
     (should (equal (term-test-screen-from-input 40 12 str)
                    "_next line\n"))))
 
 (ert-deftest term-line-wrap ()
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (should (string-match-p
            ;; Don't be strict about trailing whitespace.
            "\\`a\\{40\\}\na\\{20\\} *\\'"
@@ -137,7 +130,7 @@ first line\r_next line\r\n"))
                                                 (list str str))))))
 
 (ert-deftest term-colors ()
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (pcase-dolist (`(,str ,expected) ansi-test-strings)
     (let ((result (term-test-screen-from-input 40 12 str)))
       (should (equal result expected))
@@ -145,7 +138,7 @@ first line\r_next line\r\n"))
                      (text-properties-at 0 expected))))))
 
 (ert-deftest term-colors-bold-is-bright ()
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (let ((ansi-color-bold-is-bright t))
     (pcase-dolist (`(,str ,expected ,bright-expected) ansi-test-strings)
       (let ((expected (or bright-expected expected))
@@ -155,7 +148,7 @@ first line\r_next line\r\n"))
                        (text-properties-at 0 expected)))))))
 
 (ert-deftest term-cursor-movement ()
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   ;; Absolute positioning.
   (should (equal "ab\ncd"
                  (term-test-screen-from-input
@@ -186,7 +179,7 @@ first line\r_next line\r\n"))
                                 "\e[D\e[Da")))))
 
 (ert-deftest term-scrolling-region ()
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (should (equal "\
 line3
 line4
@@ -338,7 +331,7 @@ line6\r
 line7")))))
 
 (ert-deftest term-set-directory ()
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (let ((term-ansi-at-user (user-real-login-name)))
     (should (equal (term-test-screen-from-input
                     40 12 "\eAnSiTc /foo/\n" 'default-directory)
@@ -354,7 +347,7 @@ A real-life example is the default zsh prompt which writes spaces
 to the end of line (triggering line-wrapping state), and then
 sends a carriage return followed by another space to overwrite
 the first character of the line."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (let* ((width 10)
          (strs (list "x" (make-string (1- width) ?_)
                      "\r_")))
@@ -364,7 +357,7 @@ the first character of the line."
 (ert-deftest term-to-margin ()
   "Test cursor movement at the scroll margin.
 This is a reduced example from GNU nano's initial screen."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (let* ((width 10)
          (x (make-string width ?x))
          (y (make-string width ?y)))

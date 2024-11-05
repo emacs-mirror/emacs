@@ -1,10 +1,11 @@
-# serial 11
-# See if we need to provide utimensat replacement.
-
-dnl Copyright (C) 2009-2023 Free Software Foundation, Inc.
+# utimensat.m4
+# serial 12
+dnl Copyright (C) 2009-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+
+# See if we need to provide utimensat replacement.
 
 # Written by Eric Blake.
 
@@ -82,6 +83,9 @@ AC_DEFUN([gl_FUNC_UTIMENSAT],
          [case "$host_os" in
             # Guess yes on Linux or glibc systems.
             linux-* | linux | *-gnu* | gnu*)
+              gl_cv_func_utimensat_works="guessing yes" ;;
+            # Guess yes on systems that emulate the Linux system calls.
+            midipix*)
               gl_cv_func_utimensat_works="guessing yes" ;;
             # Guess 'nearly' on AIX.
             aix*)

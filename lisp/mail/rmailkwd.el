@@ -1,6 +1,6 @@
 ;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1988, 1994, 2001-2023 Free Software Foundation,
+;; Copyright (C) 1985, 1988, 1994, 2001-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -31,7 +31,7 @@
 ;; Global to all RMAIL buffers.  It exists for the sake of completion.
 ;; It is better to use strings with the label functions and let them
 ;; worry about making the label.
-(defvar rmail-label-obarray (make-vector 47 0)
+(defvar rmail-label-obarray (obarray-make 47)
   "Obarray of labels used by Rmail.
 `rmail-read-label' uses this to offer completion.")
 

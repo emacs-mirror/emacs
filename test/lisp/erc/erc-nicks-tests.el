@@ -1,6 +1,6 @@
 ;;; erc-nicks-tests.el --- Tests for erc-nicks  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -30,8 +30,11 @@
 
 ;;; Code:
 
-(require 'ert-x)
 (require 'erc-nicks)
+(require 'ert-x)
+(eval-and-compile
+  (let ((load-path (cons (ert-resource-directory) load-path)))
+    (require 'erc-tests-common)))
 
 ;; This function replicates the behavior of older "invert" strategy
 ;; implementations from EmacsWiki, etc.  The values for the lower and
@@ -409,7 +412,7 @@
              (push-button)
              (should (search-forward-regexp
                       (rx "Foreground: #" (group (+ xdigit)) eol)))
-             (forward-button 1)
+             (forward-button 2) ; skip Inherit:...
              (push-button))
 
            (ert-info ("First entry's sample is rendered correctly")
@@ -493,7 +496,7 @@
     (should (equal (erc-nicks--gen-key-from-format-spec "bob")
                    "bob@Libera.Chat/tester"))))
 
-(ert-deftest erc-nicks--create-pool ()
+(ert-deftest erc-nicks--create-culled-pool ()
   (let ((erc-nicks--bg-luminance 1.0)
         (erc-nicks--bg-mode-value 'light)
         (erc-nicks--fg-rgb '(0.0 0.0 0.0))
@@ -502,37 +505,334 @@
         (erc-nicks--colors-rejects '(t)))
 
     ;; Reject
-    (should-not (erc-nicks--create-pool '(erc-nicks-invert) '("white")))
+    (should-not (erc-nicks--create-culled-pool '(erc-nicks-invert) '("white")))
     (should (equal (pop erc-nicks--colors-rejects) "white")) ; too close
-    (should-not (erc-nicks--create-pool '(erc-nicks-cap-contrast) '("black")))
+    (should-not
+     (erc-nicks--create-culled-pool '(erc-nicks-cap-contrast) '("black")))
     (should (equal (pop erc-nicks--colors-rejects) "black")) ; too far
-    (should-not (erc-nicks--create-pool '(erc-nicks-ensaturate) '("white")))
+    (should-not
+     (erc-nicks--create-culled-pool '(erc-nicks-ensaturate) '("white")))
     (should (equal (pop erc-nicks--colors-rejects) "white")) ; lacks color
-    (should-not (erc-nicks--create-pool '(erc-nicks-ensaturate) '("red")))
+    (should-not
+     (erc-nicks--create-culled-pool '(erc-nicks-ensaturate) '("red")))
     (should (equal (pop erc-nicks--colors-rejects) "red")) ; too much color
 
     ;; Safe
-    (should
-     (equal (erc-nicks--create-pool '(erc-nicks-invert) '("black"))
-            '("black")))
-    (should
-     (equal (erc-nicks--create-pool '(erc-nicks-add-contrast) '("black"))
-            '("black")))
-    (should
-     (equal (erc-nicks--create-pool '(erc-nicks-cap-contrast) '("white"))
-            '("white")))
+    (should (equal (erc-nicks--create-culled-pool '(erc-nicks-invert)
+                                                  '("black"))
+                   '("black")))
+    (should (equal (erc-nicks--create-culled-pool '(erc-nicks-add-contrast)
+                                                  '("black"))
+                   '("black")))
+    (should (equal (erc-nicks--create-culled-pool '(erc-nicks-cap-contrast)
+                                                  '("white"))
+                   '("white")))
     (let ((erc-nicks-saturation-range '(0.5 . 1.0)))
-      (should
-       (equal (erc-nicks--create-pool '(erc-nicks-ensaturate) '("green"))
-              '("green"))))
+      (should (equal (erc-nicks--create-culled-pool '(erc-nicks-ensaturate)
+                                                    '("green"))
+                     '("green"))))
     (let ((erc-nicks-saturation-range '(0.0 . 0.5)))
-      (should
-       (equal (erc-nicks--create-pool '(erc-nicks-ensaturate) '("gray"))
-              '("gray"))))
+      (should (equal (erc-nicks--create-culled-pool '(erc-nicks-ensaturate)
+                                                    '("gray"))
+                     '("gray"))))
     (unless noninteractive
-      (should
-       (equal (erc-nicks--create-pool '(erc-nicks-ensaturate) '("firebrick"))
-              '("firebrick"))))
+      (should (equal (erc-nicks--create-culled-pool '(erc-nicks-ensaturate)
+                                                    '("firebrick"))
+                     '("firebrick"))))
     (should (equal erc-nicks--colors-rejects '(t)))))
+
+(ert-deftest erc-nicks--create-coerced-pool ()
+  (let ((erc-nicks--bg-luminance 1.0)
+        (erc-nicks--bg-mode-value 'light)
+        (erc-nicks--fg-rgb '(0.0 0.0 0.0))
+        (erc-nicks-bg-color "white")
+        (num-colors (length (defined-colors)))
+        ;;
+        (erc-nicks--colors-rejects '(t)))
+
+    ;; Deduplication.
+    (when (= 8 num-colors)
+      (should (equal (erc-nicks--create-coerced-pool '(erc-nicks-ensaturate)
+                                                     '("#ee0000" "#f80000"))
+                     '("red")))
+      (should (equal (pop erc-nicks--colors-rejects) "#f80000")))
+
+    ;; "Coercion" in Xterm.
+    (unless noninteractive
+      (when (= 665 num-colors)
+        (pcase-dolist (`(,adjustments ,candidates ,result)
+                       '(((erc-nicks-invert) ("white") ("gray10"))
+                         ((erc-nicks-cap-contrast) ("black") ("gray20"))
+                         ((erc-nicks-ensaturate) ("white") ("lavenderblush2"))
+                         ((erc-nicks-ensaturate) ("red") ("firebrick"))))
+          (should (equal (erc-nicks--create-coerced-pool adjustments
+                                                         candidates)
+                         result)))))
+
+    (should (equal erc-nicks--colors-rejects '(t)))))
+
+(declare-function erc-track-modified-channels "erc-track" ())
+
+(defun erc-nicks-tests--track-faces (test)
+  (require 'erc-track)
+  (defvar erc-modified-channels-alist)
+  (defvar erc-track--normal-faces)
+
+  (erc-tests-common-make-server-buf)
+  (erc-nicks-mode +1)
+
+  (let ((erc-modules (cons 'nicks erc-modules))
+        ;; Pretend these faces were added in response-handling during
+        ;; insertion modification by buttonizing hooks.  See
+        ;; `erc-nicks--highlight-button'.
+        (add-face (lambda (face)
+                    (erc-nicks--remember-face-for-track ; speaker
+                     (list face 'erc-nick-default-face))
+                    (erc-nicks--remember-face-for-track ; mention
+                     (list face 'erc-default-face))))
+        ;;
+        bob-face alice-face assert-result)
+
+    (with-current-buffer (erc--open-target "#chan")
+      (should erc-nicks-mode)
+      (should (setq bob-face (erc-nicks--get-face "bob" "bob@foonet")))
+      (should (setq alice-face (erc-nicks--get-face "alice" "alice@foonet")))
+
+      (erc-tests-common-track-modified-channels-sans-setup
+
+       (lambda (set-faces)
+
+         (setq assert-result ; fixture binds `erc-modified-channels-alist'
+               (lambda (result)
+                 (should (equal (alist-get (current-buffer)
+                                           erc-modified-channels-alist)
+                                result))))
+
+         (funcall test set-faces assert-result add-face
+                  bob-face alice-face)))))
+
+  (erc-tests-common-kill-buffers))
+
+(ert-deftest erc-nicks-track-faces/prioritize ()
+  (should (eq erc-nicks-track-faces 'prioritize))
+  (erc-nicks-tests--track-faces
+   (lambda (set-faces assert-result add-face bob-face alice-face)
+
+     (defvar erc-track--alt-normals-function)
+     (should erc-track--alt-normals-function)
+
+     (funcall add-face bob-face)
+     (funcall add-face alice-face)
+
+     ;; Simulate a JOIN.
+     (funcall set-faces '(erc-notice-face))
+     (erc-track-modified-channels)
+     (funcall assert-result '(1 . erc-notice-face))
+
+     ;; Someone speaks, and the mode-line changes to a `nicks' owned
+     ;; composite face for the speaker.
+     (funcall set-faces `(erc-timestamp-face
+                          (,bob-face erc-nick-default-face)
+                          erc-default-face))
+     (erc-track-modified-channels)
+     (funcall assert-result `(2 ,bob-face erc-nick-default-face))
+
+     ;; That same someone speaks, and the mode-line indicator changes to
+     ;; another "normal" face in the message body.
+     (funcall set-faces `(erc-timestamp-face
+                          (,bob-face erc-nick-default-face)
+                          erc-default-face))
+     (erc-track-modified-channels)
+     (funcall assert-result '(3 . erc-default-face))
+
+     ;; And yet again, which results in the indicator going back to one.
+     (funcall set-faces `(erc-timestamp-face
+                          (,bob-face erc-nick-default-face)
+                          erc-default-face))
+     (erc-track-modified-channels)
+     (funcall assert-result `(4 ,bob-face erc-nick-default-face))
+
+     ;; Now the same person mentions another server user, resulting in a
+     ;; change to *that* `nicks' owned face because it appears later in
+     ;; the message content (timestamp is last).
+     (funcall set-faces `(erc-timestamp-face
+                          (,alice-face erc-default-face)
+                          (,bob-face erc-nick-default-face)
+                          erc-default-face))
+     (erc-track-modified-channels)
+     (funcall assert-result `(5 ,alice-face erc-default-face))
+
+     ;; The mentioned user replies, mentioning the mentioner.  But
+     ;; instead of the normal "normals" processing preferring the ranked
+     ;; `erc-default-face', the `erc-nicks-track-faces' logic kicks in
+     ;; via `erc-track--alt-normals-function' and provides a `nicks'
+     ;; owned replacement.
+     (funcall set-faces `(erc-timestamp-face
+                          (,bob-face erc-default-face)
+                          (,alice-face erc-nick-default-face)
+                          erc-default-face))
+     (erc-track-modified-channels)
+     (funcall assert-result `(6 ,bob-face erc-default-face))
+
+     ;; Finally, another notice arrives.
+     (funcall set-faces '(erc-notice-face))
+     (erc-track-modified-channels)
+     (funcall assert-result '(7 . erc-notice-face)))))
+
+(ert-deftest erc-nicks-track-faces/defer ()
+  (should (eq erc-nicks-track-faces 'prioritize))
+  (let ((erc-nicks-track-faces 'defer))
+    (erc-nicks-tests--track-faces
+     (lambda (set-faces assert-result add-face bob-face alice-face)
+
+       (funcall add-face bob-face)
+       (funcall add-face alice-face)
+
+       ;; Simulate a JOIN.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (funcall assert-result '(1 . erc-notice-face))
+
+       ;; Someone speaks, and the mode-line indicator changes to the
+       ;; highest ranked face in the message.  (All `nicks' owned faces
+       ;; are unranked).
+       (funcall set-faces `(erc-timestamp-face
+                            (,bob-face erc-nick-default-face)
+                            erc-default-face))
+       (erc-track-modified-channels)
+       (funcall assert-result `(2 . erc-default-face))
+
+       ;; That same someone speaks, and the mode-line indicator changes
+       ;; to a `nicks' owned face.  It first reaches for the highest
+       ;; ranked face in the message but then applies the "normals"
+       ;; rules, resulting in a promoted alternate.
+       (funcall set-faces `(erc-timestamp-face
+                            (,bob-face erc-nick-default-face)
+                            erc-default-face))
+       (erc-track-modified-channels)
+       (funcall assert-result `(3 ,bob-face erc-nick-default-face))
+
+       ;; And yet again, which results in the indicator going back to one.
+       (funcall set-faces `(erc-timestamp-face
+                            (,bob-face erc-nick-default-face)
+                            erc-default-face))
+       (erc-track-modified-channels)
+       (funcall assert-result '(4 . erc-default-face))
+
+       ;; The same person mentions another server user, resulting in a
+       ;; change to that `nicks' owned face because the logic from
+       ;; 3. again applies.
+       (funcall set-faces `(erc-timestamp-face
+                            (,alice-face erc-default-face)
+                            (,bob-face erc-nick-default-face)
+                            erc-default-face))
+       (erc-track-modified-channels)
+       (funcall assert-result `(5 ,alice-face erc-default-face))
+
+       ;; The mentioned user replies, mentioning the mentioner.
+       ;; However, the `nicks' module does not intercede in the decision
+       ;; making to overrule the ranked nominee.
+       (funcall set-faces `(erc-timestamp-face
+                            (,bob-face erc-default-face)
+                            (,alice-face erc-nick-default-face)
+                            erc-default-face))
+       (erc-track-modified-channels)
+       (funcall assert-result '(6 . erc-default-face))
+
+       ;; Finally, another notice arrives.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (funcall assert-result '(7 . erc-notice-face))))))
+
+(ert-deftest erc-nicks-track-faces/nil ()
+  (should (eq erc-nicks-track-faces 'prioritize))
+  (let (erc-nicks-track-faces)
+    (erc-nicks-tests--track-faces
+     (lambda (set-faces assert-result _ bob-face alice-face)
+
+       (defvar erc-track--face-reject-function)
+       (should erc-track--face-reject-function)
+
+       ;; Simulate a JOIN.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (funcall assert-result '(1 . erc-notice-face))
+
+       ;; Someone speaks, and the mode-line indicator changes to the
+       ;; only ranked face in the message.
+       (funcall set-faces `(erc-timestamp-face
+                            (,bob-face erc-nick-default-face)
+                            erc-default-face))
+       (erc-track-modified-channels)
+       (funcall assert-result `(2 . erc-default-face))
+
+       ;; That same someone speaks, and since no other "normals" exist
+       ;; in the message, the indicator is not updated.
+       (funcall set-faces `(erc-timestamp-face
+                            (,bob-face erc-nick-default-face)
+                            erc-default-face))
+       (erc-track-modified-channels)
+       (funcall assert-result '(3 . erc-default-face))
+
+       ;; Now the same person mentions another server user, but the same
+       ;; logic applies, and the indicator is not updated.
+       (funcall set-faces `(erc-timestamp-face
+                            (,alice-face erc-default-face)
+                            (,bob-face erc-nick-default-face)
+                            erc-default-face))
+       (erc-track-modified-channels)
+       (funcall assert-result `(4 . erc-default-face))
+
+       ;; Finally, another notice arrives.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (funcall assert-result '(5 . erc-notice-face))))))
+
+(ert-deftest erc-nicks-track-faces/t ()
+  (should (eq erc-nicks-track-faces 'prioritize))
+  (let ((erc-nicks-track-faces t))
+    (erc-nicks-tests--track-faces
+     (lambda (set-faces assert-result add-face bob-face alice-face)
+
+       (defvar erc-track--alt-normals-function)
+       (should erc-track--alt-normals-function)
+
+       (funcall add-face bob-face)
+       (funcall add-face alice-face)
+
+       ;; Simulate a JOIN.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (funcall assert-result '(1 . erc-notice-face))
+
+       ;; Someone speaks, and the mode-line indicator changes to that
+       ;; someone's `nicks'-owned face.
+       (funcall set-faces `(erc-timestamp-face
+                            (,bob-face erc-nick-default-face)
+                            erc-default-face))
+       (erc-track-modified-channels)
+       (funcall assert-result `(2 ,bob-face erc-nick-default-face))
+
+       ;; That same someone speaks, and though one other "normal" exists
+       ;; in the message, `erc-default-face', no update occurs.
+       (funcall set-faces `(erc-timestamp-face
+                            (,bob-face erc-nick-default-face)
+                            erc-default-face))
+       (erc-track-modified-channels)
+       (funcall assert-result `(3 ,bob-face erc-nick-default-face))
+
+       ;; Another server user speaks, mentioning the previous speaker,
+       ;; and the indicator is updated to reflect the new speaker.
+       (funcall set-faces `(erc-timestamp-face
+                            (,bob-face erc-default-face) ; bob:
+                            (,alice-face erc-nick-default-face) ; <alice>
+                            erc-default-face))
+       (erc-track-modified-channels)
+       (funcall assert-result `(4 ,alice-face erc-nick-default-face))
+
+       ;; Finally, another notice arrives.
+       (funcall set-faces '(erc-notice-face))
+       (erc-track-modified-channels)
+       (funcall assert-result '(5 . erc-notice-face))))))
 
 ;;; erc-nicks-tests.el ends here

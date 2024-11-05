@@ -1,6 +1,6 @@
 ;;; org-plot.el --- Support for Plotting from Org -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
 ;; Maintainer: TEC <orgmode@tec.tecosaur.net>
@@ -641,9 +641,13 @@ manner suitable for prepending to a user-specified script."
 If not given options will be taken from the +PLOT
 line directly before or after the table."
   (interactive)
-  (require 'gnuplot)
+  (org-require-package 'gnuplot)
   (save-window-excursion
-    (delete-other-windows)
+    ;; `gnuplot-send-buffer-to-gnuplot' will display *gnuplot* buffer
+    ;; if `gnuplot-display-process' is non-nil.  Make it visible while
+    ;; gnuplot is processing the data, preferably as a split, and
+    ;; restore old window configuration after gnuplot finishes.
+    (ignore-errors (delete-other-windows))
     (when (get-buffer "*gnuplot*") ; reset *gnuplot* if it already running
       (with-current-buffer "*gnuplot*"
 	(goto-char (point-max))))

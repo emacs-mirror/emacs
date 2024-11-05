@@ -1,9 +1,10 @@
 ;;; image-dired-util.el --- util functions for Image-Dired  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
 
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 ;; Maintainer: Stefan Kangas <stefankangas@gmail.com>
+;; Package: image-dired
 
 ;; This file is part of GNU Emacs.
 
@@ -124,7 +125,7 @@ See also `image-dired-thumbnail-storage' and
 
 (defun image-dired-file-name-at-point ()
   "Get abbreviated file name for thumbnail or display image at point."
-  (when-let ((f (image-dired-original-file-name)))
+  (when-let* ((f (image-dired-original-file-name)))
     (abbreviate-file-name f)))
 
 (defun image-dired-associated-dired-buffer ()
@@ -189,6 +190,8 @@ Should be used by commands in `image-dired-thumbnail-mode'."
 (defun image-dired-image-at-point-p ()
   "Return non-nil if there is an `image-dired' thumbnail at point."
   (get-text-property (point) 'image-dired-thumbnail))
+
+(declare-function clear-image-cache "image.c" (&optional filter))
 
 (defun image-dired-update-thumbnail-at-point ()
   "Update the thumbnail at point if the original image file has been modified.

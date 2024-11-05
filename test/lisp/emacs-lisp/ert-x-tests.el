@@ -1,6 +1,6 @@
 ;;; ert-x-tests.el --- Tests for ert-x.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008, 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2024 Free Software Foundation, Inc.
 
 ;; Author: Phil Hagelberg
 ;; 	   Christian Ohler <ohler@gnu.org>
@@ -308,7 +308,7 @@ desired effect."
                 (cl-loop for i below 3 do
                          (message "%s" i)))
               ;; Uses the implicit messages buffer truncation implemented
-              ;; in Emacs' C core.
+              ;; in Emacs's C core.
               (c (x)
                 (ert-with-buffer-renamed ("*Messages*")
                   (let ((message-log-max x))

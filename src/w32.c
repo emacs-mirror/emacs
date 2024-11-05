@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1994-1995, 2000-2023 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 2000-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,7 +32,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <io.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <ctype.h>
 #include <signal.h>
 #include <sys/file.h>
 #include <time.h>	/* must be before nt/inc/sys/time.h, for MinGW64 */
@@ -264,6 +263,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 
 #include <wincrypt.h>
 
+#include <c-ctype.h>
 #include <c-strcase.h>
 #include <utimens.h>	/* for fdutimens */
 
@@ -2558,7 +2558,7 @@ parse_root (const char * name, const char ** pPath)
     return 0;
 
   /* find the root name of the volume if given */
-  if (isalpha (name[0]) && name[1] == ':')
+  if (c_isalpha (name[0]) && name[1] == ':')
     {
       /* skip past drive specifier */
       name += 2;
@@ -2572,7 +2572,7 @@ parse_root (const char * name, const char ** pPath)
       name += 2;
       do
         {
-	  if (IS_DIRECTORY_SEP (*name) && --slashes == 0)
+	  if (!*name || (IS_DIRECTORY_SEP (*name) && --slashes == 0))
 	    break;
 	  name++;
 	}
@@ -3311,7 +3311,7 @@ static BOOL fixed_drives[26];
    at least for non-local drives.  Info for fixed drives is never stale.  */
 #define DRIVE_INDEX( c ) ( (c) <= 'Z' ? (c) - 'A' : (c) - 'a' )
 #define VOLINFO_STILL_VALID( root_dir, info )		\
-  ( ( isalpha (root_dir[0]) &&				\
+  ( ( c_isalpha (root_dir[0]) &&				\
       fixed_drives[ DRIVE_INDEX (root_dir[0]) ] )	\
     || GetTickCount () - info->timestamp < 10000 )
 
@@ -3380,7 +3380,7 @@ GetCachedVolumeInformation (char * root_dir)
      involve network access, and so is extremely quick).  */
 
   /* Map drive letter to UNC if remote. */
-  if (isalpha (root_dir[0]) && !fixed[DRIVE_INDEX (root_dir[0])])
+  if (c_isalpha (root_dir[0]) && !fixed[DRIVE_INDEX (root_dir[0])])
     {
       char remote_name[ 256 ];
       char drive[3] = { root_dir[0], ':' };
@@ -3595,9 +3595,9 @@ map_w32_filename (const char * name, const char ** pPath)
 	    default:
 	      if ( left && 'A' <= c && c <= 'Z' )
 	        {
-		  *str++ = tolower (c);	/* map to lower case (looks nicer) */
+		  *str++ = c_tolower (c); /* map to lower case (looks nicer) */
 		  left--;
-		  dots = 0;		/* started a path component */
+		  dots = 0;		  /* started a path component */
 		}
 	      break;
 	    }
@@ -4652,6 +4652,14 @@ sys_open (const char * path, int oflag, int mode)
 	res = _wopen (mpath_w, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
       if (res < 0)
 	res = _wopen (mpath_w, oflag | _O_NOINHERIT, mode);
+      if (res < 0 && errno == EACCES)
+	{
+	  DWORD attributes = GetFileAttributesW (mpath_w);
+
+	  if (attributes != INVALID_FILE_ATTRIBUTES
+	      && (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+	    errno = EISDIR;
+	}
     }
   else
     {
@@ -4662,6 +4670,14 @@ sys_open (const char * path, int oflag, int mode)
 	res = _open (mpath_a, (oflag & ~_O_CREAT) | _O_NOINHERIT, mode);
       if (res < 0)
 	res = _open (mpath_a, oflag | _O_NOINHERIT, mode);
+      if (res < 0 && errno == EACCES)
+	{
+	  DWORD attributes = GetFileAttributesA (mpath_a);
+
+	  if (attributes != INVALID_FILE_ATTRIBUTES
+	      && (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+	    errno = EISDIR;
+	}
     }
 
   return res;
@@ -4724,10 +4740,11 @@ int
 sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 {
   BOOL result;
-  char temp[MAX_UTF8_PATH], temp_a[MAX_PATH];;
+  char temp[MAX_UTF8_PATH], temp_a[MAX_PATH];
   int newname_dev;
   int oldname_dev;
   bool have_temp_a = false;
+  char oldname_a[MAX_PATH];
 
   /* MoveFile on Windows 95 doesn't correctly change the short file name
      alias in a number of circumstances (it is not easy to predict when
@@ -4744,6 +4761,15 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 
   strcpy (temp, map_w32_filename (oldname, NULL));
 
+  /* 'rename' (which calls MoveFileW) renames the _target_ of the
+     symlink, which is different from Posix behavior and not what we
+     want here.  So in that case we pretend this is a cross-device move,
+     for which Frename_file already has a workaround.  */
+  if (is_symlink (temp))
+    {
+      errno = EXDEV;
+      return -1;
+    }
   /* volume_info is set indirectly by map_w32_filename.  */
   oldname_dev = volume_info.serialnum;
 
@@ -4752,7 +4778,6 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
       char * o;
       char * p;
       int    i = 0;
-      char oldname_a[MAX_PATH];
 
       oldname = map_w32_filename (oldname, NULL);
       filename_to_ansi (oldname, oldname_a);
@@ -4828,7 +4853,7 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 	      DWORD attributes_new;
 
 	      if (_wchmod (newname_w, 0666) != 0)
-		return result;
+		goto return_result;
 	      attributes_old = GetFileAttributesW (temp_w);
 	      attributes_new = GetFileAttributesW (newname_w);
 	      if (attributes_old != -1 && attributes_new != -1
@@ -4839,15 +4864,16 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 		    errno = ENOTDIR;
 		  else
 		    errno = EISDIR;
-		  return -1;
+		  result = -1;
+		  goto return_result;
 		}
 	      if ((attributes_new & FILE_ATTRIBUTE_DIRECTORY) != 0)
 		{
 		  if (_wrmdir (newname_w) != 0)
-		    return result;
+		    goto return_result;
 		}
 	      else if (_wunlink (newname_w) != 0)
-		return result;
+		goto return_result;
 	      result = _wrename (temp_w, newname_w);
 	    }
 	  else if (w32err == ERROR_PRIVILEGE_NOT_HELD
@@ -4886,7 +4912,7 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 	      DWORD attributes_new;
 
 	      if (_chmod (newname_a, 0666) != 0)
-		return result;
+		goto return_result;
 	      attributes_old = GetFileAttributesA (temp_a);
 	      attributes_new = GetFileAttributesA (newname_a);
 	      if (attributes_old != -1 && attributes_new != -1
@@ -4897,21 +4923,39 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 		    errno = ENOTDIR;
 		  else
 		    errno = EISDIR;
-		  return -1;
+		  result = -1;
+		  goto return_result;
 		}
 	      if ((attributes_new & FILE_ATTRIBUTE_DIRECTORY) != 0)
 		{
 		  if (_rmdir (newname_a) != 0)
-		    return result;
+		    goto return_result;
 		}
 	      else if (_unlink (newname_a) != 0)
-		return result;
+		goto return_result;
 	      result = rename (temp_a, newname_a);
 	    }
 	  else if (w32err == ERROR_PRIVILEGE_NOT_HELD
 		   && is_symlink (temp))
 	    errno = EPERM;
 	}
+    }
+
+ return_result:
+  /* This label is also invoked on failure, and on Windows 9X, restores
+     the initial name of files that will have been renamed in
+     preparation for being moved.  It ought to be valid to rename temp_a
+     to its previous name, just as it would, but for the failure, have
+     been renamed to the target.  */
+
+  if (have_temp_a && result)
+    {
+      int save_errno = errno;
+
+      /* XXX: what if a new file has replaced oldname_a in the
+	 meantime?  */
+      rename (temp_a, oldname_a);
+      errno = save_errno;
     }
 
   return result;
@@ -9387,7 +9431,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 	 break them into smaller chunks.  See the Comments section of
 	 the MSDN documentation of WriteFile for details behind the
 	 choice of the value of CHUNK below.  See also the thread
-	 http://thread.gmane.org/gmane.comp.version-control.git/145294
+	 http://thread.gmane.org/gmane.comp.version-control.git/145294 [dead link]
 	 in the git mailing list.  */
       const unsigned char *p = buffer;
       const bool is_pipe = (fd < MAXDESC
@@ -9414,7 +9458,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
       errno = 0;
       while (count > 0)
 	{
-	  unsigned this_chunk = count < chunk ? count : chunk;
+	  unsigned this_chunk = min (count, chunk);
 	  int n = _write (fd, p, this_chunk);
 
 	  if (n > 0)
@@ -10177,7 +10221,7 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
 	retval = Fnreverse (val);
 	break;
       default:
-	error ("unsupported registry data type: %d", (int)vtype);
+	error ("Unsupported registry data type: %d", (int)vtype);
     }
 
   xfree (pvalue);
@@ -10392,10 +10436,15 @@ check_windows_init_file (void)
     }
 }
 
+/* from w32fns.c */
+extern void remove_w32_kbdhook (void);
+
 void
 term_ntproc (int ignored)
 {
   (void)ignored;
+
+  remove_w32_kbdhook ();
 
   term_timers ();
 
@@ -10431,6 +10480,21 @@ init_ntproc (int dumping)
   /* Initial preparation for subprocess support: replace our standard
      handles with non-inheritable versions. */
   {
+
+#ifdef _UCRT
+    /* The non-UCRT code below relies on MSVCRT-only behavior, whereby
+       _fdopen reuses the first unused FILE slot, whereas UCRT skips the
+       first 3 slots, which correspond to stdin/stdout/stderr.  That
+       makes it impossible in the UCRT build to open these 3 streams
+       once they are closed.  So we use SetHandleInformation instead,
+       which is available on all versions of Windows that have UCRT.  */
+    SetHandleInformation (GetStdHandle(STD_INPUT_HANDLE),
+			  HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation (GetStdHandle(STD_OUTPUT_HANDLE),
+			  HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation (GetStdHandle(STD_ERROR_HANDLE),
+			  HANDLE_FLAG_INHERIT, 0);
+#else	/* !_UCRT */
     HANDLE parent;
     HANDLE stdin_save =  INVALID_HANDLE_VALUE;
     HANDLE stdout_save = INVALID_HANDLE_VALUE;
@@ -10438,8 +10502,8 @@ init_ntproc (int dumping)
 
     parent = GetCurrentProcess ();
 
-    /* ignore errors when duplicating and closing; typically the
-       handles will be invalid when running as a gui program. */
+    /* Ignore errors when duplicating and closing; typically the
+       handles will be invalid when running as a gui program.  */
     DuplicateHandle (parent,
 		     GetStdHandle (STD_INPUT_HANDLE),
 		     parent,
@@ -10485,6 +10549,7 @@ init_ntproc (int dumping)
     else
       _open ("nul", O_TEXT | O_NOINHERIT | O_WRONLY);
     _fdopen (2, "w");
+#endif	/* !_UCRT */
   }
 
   /* unfortunately, atexit depends on implementation of malloc */
@@ -10584,6 +10649,7 @@ maybe_load_unicows_dll (void)
 	  pWideCharToMultiByte = (WideCharToMultiByte_Proc)
             get_proc_addr (ret, "WideCharToMultiByte");
           multiByteToWideCharFlags = MB_ERR_INVALID_CHARS;
+	  load_unicows_dll_for_w32fns (ret);
 	  return ret;
 	}
       else
@@ -10618,6 +10684,7 @@ maybe_load_unicows_dll (void)
         multiByteToWideCharFlags = 0;
       else
         multiByteToWideCharFlags = MB_ERR_INVALID_CHARS;
+      load_unicows_dll_for_w32fns (NULL);
       return LoadLibrary ("Gdi32.dll");
     }
 }
@@ -10927,10 +10994,6 @@ globals_of_w32 (void)
 #endif
 
   w32_crypto_hprov = (HCRYPTPROV)0;
-
-  /* We need to forget about libraries that were loaded during the
-     dumping process (e.g. libgccjit) */
-  Vlibrary_cache = Qnil;
 }
 
 /* For make-serial-process  */

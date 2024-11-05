@@ -1,6 +1,6 @@
 /* Functions for the X Window System.
 
-Copyright (C) 1989, 1992-2023 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -127,7 +127,6 @@ extern LWLIB_ID widget_id_tick;
 
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
 
-static ptrdiff_t image_cache_refcount;
 #ifdef GLYPH_DEBUG
 static int dpyinfo_refcount;
 #endif
@@ -1407,9 +1406,9 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       if (cursor_data.error_cursor >= 0)
 	bad_cursor_name = mouse_cursor_types[cursor_data.error_cursor].name;
       if (bad_cursor_name)
-	error ("bad %s pointer cursor: %s", bad_cursor_name, xmessage);
+	error ("Bad %s pointer cursor: %s", bad_cursor_name, xmessage);
       else
-	error ("can't set cursor shape: %s", xmessage);
+	error ("Can't set cursor shape: %s", xmessage);
     }
 
   x_uncatch_errors_after_check ();
@@ -1792,6 +1791,11 @@ x_change_tab_bar_height (struct frame *f, int height)
      leading to the tab bar height being incorrectly set upon the next
      call to x_set_font.  (bug#59285) */
   int lines = height / unit;
+
+  /* Even so, HEIGHT might be less than unit if the tab bar face is
+     not so tall as the frame's font height; which if true lines will
+     be set to 0 and the tab bar will thus vanish.  */
+
   if (lines == 0 && height != 0)
     lines = 1;
 
@@ -3912,11 +3916,12 @@ xic_string_conversion_callback (XIC ic, XPointer client_data,
   return;
 
  failure:
-  /* Return a string of length 0 using the C library malloc.  This
+  /* Return a string of length 0 using the C library malloc (1)
+     (not malloc (0), to pacify gcc -Walloc-size).  This
      assumes XFree is able to free data allocated with our malloc
      wrapper.  */
   call_data->text->length = 0;
-  call_data->text->string.mbs = malloc (0);
+  call_data->text->string.mbs = malloc (1);
 }
 
 #endif /* HAVE_X_I18N */
@@ -4021,6 +4026,7 @@ initial_set_up_x_back_buffer (struct frame *f)
 }
 
 #if defined HAVE_XINPUT2
+
 static void
 setup_xi_event_mask (struct frame *f)
 {
@@ -4069,8 +4075,7 @@ setup_xi_event_mask (struct frame *f)
       XISetMask (m, XI_GesturePinchEnd);
     }
 #endif /* HAVE_XINPUT2_4 */
-  XISelectEvents (FRAME_X_DISPLAY (f),
-		  FRAME_X_WINDOW (f),
+  XISelectEvents (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  &mask, 1);
 
   /* Fortunately `xi_masks' isn't used on GTK 3, where we really have
@@ -4085,11 +4090,8 @@ setup_xi_event_mask (struct frame *f)
 #ifdef USE_X_TOOLKIT
   XISetMask (m, XI_KeyPress);
   XISetMask (m, XI_KeyRelease);
-  XISetMask (m, XI_FocusIn);
-  XISetMask (m, XI_FocusOut);
 
-  XISelectEvents (FRAME_X_DISPLAY (f),
-		  FRAME_OUTER_WINDOW (f),
+  XISelectEvents (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		  &mask, 1);
   memset (m, 0, l);
 #endif /* USE_X_TOOLKIT */
@@ -4135,6 +4137,7 @@ setup_xi_event_mask (struct frame *f)
 
   unblock_input ();
 }
+
 #endif
 
 #ifdef USE_X_TOOLKIT
@@ -4750,29 +4753,13 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (NILP (Fmemq (frame, Vframe_list)))
     {
-#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
-      struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-#endif
-
-      /* If the frame's image cache refcount is still the same as our
-	 private shadow variable, it means we are unwinding a frame
-	 for which we didn't yet call init_frame_faces, where the
-	 refcount is incremented.  Therefore, we increment it here, so
-	 that free_frame_faces, called in x_free_frame_resources
-	 below, will not mistakenly decrement the counter that was not
-	 incremented yet to account for this new frame.  */
-      if (FRAME_IMAGE_CACHE (f) != NULL
-	  && FRAME_IMAGE_CACHE (f)->refcount == image_cache_refcount)
-	FRAME_IMAGE_CACHE (f)->refcount++;
-
       x_free_frame_resources (f);
       free_glyphs (f);
-
 #if defined GLYPH_DEBUG && defined ENABLE_CHECKING
       /* Check that reference counts are indeed correct.  */
+      struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
       eassert (dpyinfo->reference_count == dpyinfo_refcount);
-      eassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
-#endif
+#endif /* GLYPH_DEBUG && ENABLE_CHECKING */
       return Qt;
     }
 
@@ -5108,9 +5095,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #endif	/* HAVE_FREETYPE */
 #endif	/* not USE_CAIRO */
   register_font_driver (&xfont_driver, f);
-
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
 #ifdef GLYPH_DEBUG
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
@@ -6543,10 +6527,7 @@ void
 xlw_monitor_dimensions_at_pos (Display *dpy, Screen *screen, int src_x,
 			       int src_y, int *x, int *y, int *width, int *height)
 {
-  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
-
-  if (!dpyinfo)
-    emacs_abort ();
+  struct x_display_info *dpyinfo = x_dpyinfo (dpy);
 
   block_input ();
   xlw_monitor_dimensions_at_pos_1 (dpyinfo, screen, src_x, src_y,
@@ -7079,7 +7060,7 @@ x_frame_list_z_order (struct x_display_info *dpyinfo, Window window)
 
 DEFUN ("x-frame-list-z-order", Fx_frame_list_z_order,
        Sx_frame_list_z_order, 0, 1, 0,
-       doc: /* Return list of Emacs' frames, in Z (stacking) order.
+       doc: /* Return list of Emacs's frames, in Z (stacking) order.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be either a frame or a display name (a string).  If
 omitted or nil, that stands for the selected frame's display.  Return
@@ -7380,7 +7361,7 @@ that mouse buttons are being held down, such as immediately after a
   else
     signal_error ("Invalid drag-and-drop action", action);
 
-  target_atoms = SAFE_ALLOCA (ntargets * sizeof *target_atoms);
+  SAFE_NALLOCA (target_atoms, 1, ntargets);
 
   /* Catch errors since interning lots of targets can potentially
      generate a BadAlloc error.  */
@@ -8483,8 +8464,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 #endif	/* not USE_CAIRO */
   register_font_driver (&xfont_driver, f);
 
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
 #ifdef GLYPH_DEBUG
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
@@ -9298,9 +9277,19 @@ Text larger than the specified size is clipped.  */)
   x_cr_update_surface_desired_size (tip_f, width, height);
 #endif	/* USE_CAIRO */
 
+  /* Garbage the tip frame too.  */
+  SET_FRAME_GARBAGED (tip_f);
+
+  /* Block input around `update_single_window' and `flush_frame', lest a
+     ConfigureNotify and Expose event arrive during the update, and set
+     flags, e.g. garbaged_p, that are cleared once the update completes,
+     leaving the requested exposure or configuration outstanding.  */
+  block_input ();
   w->must_be_updated_p = true;
   update_single_window (w);
   flush_frame (tip_f);
+  unblock_input ();
+
   set_buffer_internal_1 (old_buffer);
   unbind_to (count_1, Qnil);
   windows_or_buffers_changed = old_windows_or_buffers_changed;
@@ -9865,7 +9854,7 @@ unless TYPE is `png'.  */)
 
       XSETFRAME (frame, f);
       if (!FRAME_VISIBLE_P (f))
-	error ("Frames to be exported must be visible.");
+	error ("Frames to be exported must be visible");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);
@@ -9879,7 +9868,7 @@ unless TYPE is `png'.  */)
   if (EQ (type, Qpng))
     {
       if (!NILP (XCDR (frames)))
-	error ("PNG export cannot handle multiple frames.");
+	error ("PNG export cannot handle multiple frames");
       surface_type = CAIRO_SURFACE_TYPE_IMAGE;
     }
   else
@@ -9894,7 +9883,7 @@ unless TYPE is `png'.  */)
     {
       /* For now, we stick to SVG 1.1.  */
       if (!NILP (XCDR (frames)))
-	error ("SVG export cannot handle multiple frames.");
+	error ("SVG export cannot handle multiple frames");
       surface_type = CAIRO_SURFACE_TYPE_SVG;
     }
   else
@@ -9968,7 +9957,7 @@ Note: Text drawn with the `x' font backend is shown with hollow boxes.  */)
 
       XSETFRAME (frame, f);
       if (!FRAME_VISIBLE_P (f))
-	error ("Frames to be printed must be visible.");
+	error ("Frames to be printed must be visible");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);
@@ -10210,10 +10199,7 @@ XkbFreeNames (XkbDescPtr xkb, unsigned int which, Bool free_map)
 int
 XDisplayCells (Display *dpy, int screen_number)
 {
-  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
-
-  if (!dpyinfo)
-    emacs_abort ();
+  struct x_display_info *dpyinfo = x_dpyinfo (dpy);
 
   /* Not strictly correct, since the display could be using a
      non-default visual, but it satisfies the callers we need to care

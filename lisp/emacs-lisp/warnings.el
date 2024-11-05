@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -106,6 +106,7 @@ so only the element (FOO) will match it."
   :type '(repeat (repeat symbol))
   :version "22.1")
 
+;;;###autoload
 (defcustom warning-suppress-types nil
   "List of warning types not to display immediately.
 If any element of this list matches the TYPE argument to `display-warning',
@@ -119,6 +120,14 @@ so only the element (FOO) will match it.
 See also `warning-suppress-log-types'."
   :type '(repeat (repeat symbol))
   :version "22.1")
+
+(defcustom warning-display-at-bottom t
+  "Display the warning buffer at the bottom of the screen.
+The output window will be scrolled to the bottom of the buffer
+to show the last warning message."
+  :type 'boolean
+  :version "30.1")
+
 
 ;; The autoload cookie is so that programs can bind this variable
 ;; safely, testing the existing value, before they call one of the
@@ -224,10 +233,14 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
              (?q "quit and do nothing"))))
     (?y
      (customize-save-variable 'warning-suppress-log-types
-                              (cons (list type) warning-suppress-log-types)))
+                              (if (consp type)
+                                  (cons type warning-suppress-log-types)
+                                (cons (list type) warning-suppress-log-types))))
     (?n
      (customize-save-variable 'warning-suppress-types
-                              (cons (list type) warning-suppress-types)))
+                              (if (consp type)
+                                  (cons type warning-suppress-types)
+                                (cons (list type) warning-suppress-types))))
     (_ (message "Exiting"))))
 
 ;;;###autoload
@@ -272,7 +285,7 @@ entirely by setting `warning-suppress-types' or
     (unless buffer-name
       (setq buffer-name "*Warnings*"))
     (with-suppressed-warnings ((obsolete warning-level-aliases))
-      (when-let ((new (cdr (assq level warning-level-aliases))))
+      (when-let* ((new (cdr (assq level warning-level-aliases))))
         (warn "Warning level `%s' is obsolete; use `%s' instead" level new)
         (setq level new)))
     (or (< (warning-numeric-level level)
@@ -357,10 +370,21 @@ entirely by setting `warning-suppress-types' or
 		 (or (< (warning-numeric-level level)
 			(warning-numeric-level warning-minimum-level))
 		     (warning-suppress-p type warning-suppress-types)
-		     (let ((window (display-buffer buffer)))
-		       (when (and (markerp warning-series)
+		     (let ((window (display-buffer
+				    buffer
+				    (when warning-display-at-bottom
+				      '(display-buffer--maybe-at-bottom
+					(window-height . (lambda (window)
+					  (fit-window-to-buffer window 10)))
+					(category . warning))))))
+		       (when (and window (markerp warning-series)
 				  (eq (marker-buffer warning-series) buffer))
 			 (set-window-start window warning-series))
+		       (when (and window warning-display-at-bottom)
+			 (with-selected-window window
+			   (goto-char (point-max))
+			   (forward-line -1)
+			   (recenter -1)))
 		       (sit-for 0)))))))))
 
 ;; Use \\<special-mode-map> so that help-enable-autoload can do its thing.

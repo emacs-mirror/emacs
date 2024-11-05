@@ -1,6 +1,6 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2023 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -85,7 +85,7 @@ Integer values will in effect be rounded up to the nearest multiple of
 
 (defvar nnheader-read-timeout
   (if (memq system-type '(windows-nt cygwin))
-      ;; http://thread.gmane.org/v9655t3pjo.fsf@marauder.physik.uni-ulm.de
+      ;; http://thread.gmane.org/v9655t3pjo.fsf@marauder.physik.uni-ulm.de [dead link]
       ;;
       ;; IIRC, values lower than 1.0 didn't/don't work on Windows/DOS.
       ;;
@@ -1016,7 +1016,7 @@ See `find-file-noselect' for the arguments."
   (nnheader-skeleton-replace from to t))
 
 (defun nnheader-strip-cr ()
-  "Strip all \r's from the current buffer."
+  "Strip all \\r's from the current buffer."
   (nnheader-skeleton-replace "\r"))
 
 (define-obsolete-function-alias 'nnheader-cancel-timer 'cancel-timer "27.1")

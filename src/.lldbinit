@@ -1,5 +1,5 @@
 # -*- mode: shell-script -*-
-# Copyright (C) 2022-2023 Free Software Foundation, Inc.
+# Copyright (C) 2022-2024 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -29,5 +29,8 @@ script -- sys.path.append('../etc')
 
 # Load our Python files
 command script import emacs_lldb
+
+# Print with children provider, depth 2.
+command alias xprint frame variable -P 2
 
 # end.

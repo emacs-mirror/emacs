@@ -1,6 +1,6 @@
 /* Generic frame functions.
 
-Copyright (C) 1993-1995, 1997, 1999-2023 Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 1997, 1999-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -282,7 +282,7 @@ The value is a symbol:
  `pc' for a direct-write MS-DOS frame.
  `pgtk' for an Emacs frame using pure GTK facilities.
  `haiku' for an Emacs frame running in Haiku.
- `android' for an Emacs frame running in Android/
+ `android' for an Emacs frame running in Android.
 
 FRAME defaults to the currently selected frame.
 
@@ -983,6 +983,8 @@ make_frame (bool mini_p)
   f->tooltip = false;
   f->was_invisible = false;
   f->child_frame_border_width = -1;
+  f->face_cache = NULL;
+  f->image_cache = NULL;
   f->last_tab_bar_item = -1;
 #ifndef HAVE_EXT_TOOL_BAR
   f->last_tool_bar_item = -1;
@@ -1001,6 +1003,7 @@ make_frame (bool mini_p)
   f->conversion.compose_region_start = Qnil;
   f->conversion.compose_region_end = Qnil;
   f->conversion.compose_region_overlay = Qnil;
+  f->conversion.field = Qnil;
   f->conversion.batch_edit_count = 0;
   f->conversion.batch_edit_flags = 0;
   f->conversion.actions = NULL;
@@ -1040,8 +1043,7 @@ make_frame (bool mini_p)
   rw->pixel_height = rw->total_lines * FRAME_LINE_HEIGHT (f);
 
   fset_face_hash_table
-    (f, make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE, DEFAULT_REHASH_SIZE,
-                         DEFAULT_REHASH_THRESHOLD, Qnil, false));
+    (f, make_hash_table (&hashtest_eq, DEFAULT_HASH_SIZE, Weak_None, false));
 
   if (mini_p)
     {
@@ -1114,12 +1116,12 @@ make_frame_without_minibuffer (Lisp_Object mini_window, KBOARD *kb,
       if (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
 	  || ! FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame))))
 	{
-          Lisp_Object frame_dummy;
+	  Lisp_Object initial_frame;
 
-          XSETFRAME (frame_dummy, f);
 	  /* If there's no minibuffer frame to use, create one.  */
-	  kset_default_minibuffer_frame
-	    (kb, call1 (intern ("make-initial-minibuffer-frame"), display));
+	  initial_frame = call1 (Qmake_initial_minibuffer_frame,
+				 display);
+	  kset_default_minibuffer_frame (kb, initial_frame);
 	}
 
       mini_window
@@ -2149,7 +2151,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       x_clipboard_manager_save_frame (frame);
 #endif
 
-      safe_call2 (Qrun_hook_with_args, Qdelete_frame_functions, frame);
+      safe_calln (Qrun_hook_with_args, Qdelete_frame_functions, frame);
     }
 
   /* delete_frame_functions may have deleted any frame, including this
@@ -2212,12 +2214,15 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	}
 #ifdef NS_IMPL_COCOA
       else
-	/* Under NS, there is no system mechanism for choosing a new
-	   window to get focus -- it is left to application code.
-	   So the portion of THIS application interfacing with NS
-	   needs to know about it.  We call Fraise_frame, but the
-	   purpose is really to transfer focus.  */
-	Fraise_frame (frame1);
+	{
+	  /* Under NS, there is no system mechanism for choosing a new
+	     window to get focus -- it is left to application code.
+	     So the portion of THIS application interfacing with NS
+	     needs to make the frame we switch to the key window.  */
+	  struct frame *f1 = XFRAME (frame1);
+	  if (FRAME_NS_P (f1))
+	    ns_make_frame_key_window (f1);
+	}
 #endif
 
       do_switch_frame (frame1, 0, 1, Qnil);
@@ -2458,7 +2463,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       = Fcons (list3 (Qrun_hook_with_args, Qafter_delete_frame_functions, frame),
 	       pending_funcalls);
   else
-    safe_call2 (Qrun_hook_with_args, Qafter_delete_frame_functions, frame);
+    safe_calln (Qrun_hook_with_args, Qafter_delete_frame_functions, frame);
 
   if (!NILP (minibuffer_child_frame))
     /* If minibuffer_child_frame is non-nil, it was FRAME's minibuffer
@@ -4729,7 +4734,7 @@ void
 gui_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   Lisp_Object font_object;
-  int fontset = -1;
+  int fontset = -1, iwidth;
 
   /* Set the frame parameter back to the old value because we may
      fail to use ARG as the new parameter value.  */
@@ -4807,6 +4812,35 @@ gui_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   f->n_tab_bar_rows = 0;
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;
+
+  /* Re-initialize F's image cache.  Since `set_new_font_hook' might
+     have changed the frame's column width, by which images are scaled,
+     it might likewise need to be assigned a different image cache, or
+     have its existing cache adjusted, if by coincidence it is its sole
+     user.  */
+
+  iwidth = max (10, FRAME_COLUMN_WIDTH (f));
+  if (FRAME_IMAGE_CACHE (f)
+      && (iwidth != FRAME_IMAGE_CACHE (f)->scaling_col_width))
+    {
+      eassert (FRAME_IMAGE_CACHE (f)->refcount >= 1);
+      if (FRAME_IMAGE_CACHE (f)->refcount == 1)
+	{
+	  /* This frame is the only user of this image cache.  */
+	  FRAME_IMAGE_CACHE (f)->scaling_col_width = iwidth;
+	  /* Clean F's image cache of images whose values are derived
+	     from the font width.  */
+	  clear_image_cache (f, Qauto);
+	}
+      else
+	{
+	  /* Release the current image cache, and reuse or allocate a
+	     new image cache with IWIDTH.  */
+	  FRAME_IMAGE_CACHE (f)->refcount--;
+	  FRAME_IMAGE_CACHE (f) = share_image_cache (f);
+	  FRAME_IMAGE_CACHE (f)->refcount++;
+	}
+    }
 
   /* Ensure we redraw it.  */
   clear_current_matrices (f);
@@ -6265,6 +6299,7 @@ syms_of_frame (void)
   DEFSYM (Qframe_windows_min_size, "frame-windows-min-size");
   DEFSYM (Qframe_monitor_attributes, "frame-monitor-attributes");
   DEFSYM (Qwindow__pixel_to_total, "window--pixel-to-total");
+  DEFSYM (Qmake_initial_minibuffer_frame, "make-initial-minibuffer-frame");
   DEFSYM (Qexplicit_name, "explicit-name");
   DEFSYM (Qheight, "height");
   DEFSYM (Qicon, "icon");
@@ -6381,6 +6416,7 @@ syms_of_frame (void)
   DEFSYM (Qchild_frame_border_width, "child-frame-border-width");
   DEFSYM (Qinternal_border_width, "internal-border-width");
   DEFSYM (Qleft_fringe, "left-fringe");
+  DEFSYM (Qleft_fringe_help, "left-fringe-help");
   DEFSYM (Qline_spacing, "line-spacing");
   DEFSYM (Qmenu_bar_lines, "menu-bar-lines");
   DEFSYM (Qtab_bar_lines, "tab-bar-lines");
@@ -6388,6 +6424,7 @@ syms_of_frame (void)
   DEFSYM (Qname, "name");
   DEFSYM (Qright_divider_width, "right-divider-width");
   DEFSYM (Qright_fringe, "right-fringe");
+  DEFSYM (Qright_fringe_help, "right-fringe-help");
   DEFSYM (Qscreen_gamma, "screen-gamma");
   DEFSYM (Qscroll_bar_background, "scroll-bar-background");
   DEFSYM (Qscroll_bar_foreground, "scroll-bar-foreground");

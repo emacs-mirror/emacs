@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 1997-1998, 2001-2023 Free Software Foundation,
+;; Copyright (C) 1995, 1997-1998, 2001-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
@@ -231,13 +231,27 @@ Archive and member name will be added."
   :group 'archive)
 
 (defcustom archive-zip-extract
-  (cond ((executable-find "unzip")   '("unzip" "-qq" "-c"))
+  (cond ((executable-find "unzip")
+         (if (and (eq system-type 'android)
+                  ;; Mind that the unzip provided by Android
+                  ;; does not understand -qq or -c, their
+                  ;; functions being assumed by -q and -p
+                  ;; respectively.  Furthermore, the user
+                  ;; might install an unzip executable
+                  ;; distinct from the system-provided unzip,
+                  ;; and such situations must be detected as
+                  ;; well.
+                  (member (executable-find "unzip")
+                          '("/bin/unzip"
+                            "/system/bin/unzip")))
+             '("unzip" "-q" "-p")
+           '("unzip" "-qq" "-c")))
 	(archive-7z-program          `(,archive-7z-program "x" "-so"))
 	((executable-find "pkunzip") '("pkunzip" "-e" "-o-"))
 	(t                           '("unzip" "-qq" "-c")))
   "Program and its options to run in order to extract a zip file member.
-Extraction should happen to standard output.  Archive and member name will
-be added."
+Extraction should happen to standard output.  Archive and member
+name will be added."
   :type '(list (string :tag "Program")
 	       (repeat :tag "Options"
 		       :inline t
@@ -549,6 +563,8 @@ Its value is an `archive--file-desc'.")
 (defvar-local archive-files nil
   "Vector of `archive--file-desc' objects.")
 
+(defvar tar-archive-from-tar nil)
+
 ;; -------------------------------------------------------------------------
 ;;; Section: Support functions.
 
@@ -740,7 +756,8 @@ archive.
 	;; on local filesystem.  Treat such archives as remote.
 	(or archive-remote
 	    (setq archive-remote
-		  (or (string-match archive-remote-regexp (buffer-file-name))
+		  (or tar-archive-from-tar ; was included in a tar archive
+                      (string-match archive-remote-regexp (buffer-file-name))
 		      (string-match file-name-invalid-regexp
 				    (buffer-file-name)))))
 
@@ -906,6 +923,9 @@ If FNAME can be uniquely created in DIR, it is returned unaltered.
 If FNAME is something our underlying filesystem can't grok, or if another
 file by that name already exists in DIR, a unique new name is generated
 using `make-temp-file', and the generated name is returned."
+  (if (file-name-absolute-p fname)
+      ;; We need a file name relative to the filesystem root.
+      (setq fname (substring fname (1+ (string-search "/" fname)))))
   (let ((fullname (expand-file-name fname dir))
 	(alien (string-match file-name-invalid-regexp fname))
 	(tmpfile
@@ -1055,7 +1075,7 @@ return nil.  Otherwise point is returned."
     (while (and (not found)
                 (not (eobp)))
       (forward-line 1)
-      (when-let ((descr (archive-get-descr t)))
+      (when-let* ((descr (archive-get-descr t)))
         (when (equal (archive--file-desc-ext-file-name descr) file)
           (setq found t))))
     (if (not found)
@@ -1077,7 +1097,7 @@ return nil.  Otherwise point is returned."
                          (beginning-of-line)
                          (bobp)))))
       (archive-next-line n)
-      (when-let ((descr (archive-get-descr t)))
+      (when-let* ((descr (archive-get-descr t)))
         (let ((candidate (archive--file-desc-ext-file-name descr))
               (buffer (current-buffer)))
           (when (and candidate
@@ -1165,6 +1185,9 @@ NEW-NAME."
          (buffer (get-buffer bufname))
          (just-created nil)
 	 (file-name-coding archive-file-name-coding-system))
+      (or archive-remote
+          (and (local-variable-p 'tar-archive-from-tar)
+               (setq archive-remote tar-archive-from-tar)))
       (if (and buffer
 	       (string= (buffer-file-name buffer) arcfilename))
           nil
@@ -2026,6 +2049,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (setq p (+ p (point-min)))
     (while (string= "PK\001\002" (buffer-substring p (+ p 4)))
       (let* ((creator (get-byte (+ p 5)))
+             (gpflags (archive-l-e (+ p 8) 2))
 	     ;; (method  (archive-l-e (+ p 10) 2))
              (modtime (archive-l-e (+ p 12) 2))
              (moddate (archive-l-e (+ p 14) 2))
@@ -2037,7 +2061,12 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
              (efnname (let ((str (buffer-substring (+ p 46) (+ p 46 fnlen))))
 			(decode-coding-string
 			 str
-                         (or (if (and w32-fname-encoding
+                         ;; Bit 11 of general purpose bit flags (bytes
+                         ;; 8-9) of Central Directory: 1 means UTF-8
+                         ;; encoded file names.
+                         (or (if (/= 0 (logand gpflags #x0800))
+                                 'utf-8-unix)
+                             (if (and w32-fname-encoding
                                       (memq creator
                                             ;; This should be just 10 and
                                             ;; 14, but InfoZip uses 0 and
@@ -2088,16 +2117,14 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
    (t
     (archive-extract-by-stdout
      archive
-     ;; unzip expands wildcards in NAME, so we need to quote it.  But
-     ;; not on DOS/Windows, since that fails extraction on those
-     ;; systems (unless w32-quote-process-args is nil), and file names
-     ;; with wildcards in zip archives don't work there anyway.
-     ;; FIXME: Does pkunzip need similar treatment?
-     (if (and (or (not (memq system-type '(windows-nt ms-dos)))
-		  (and (boundp 'w32-quote-process-args)
-		       (null w32-quote-process-args)))
-	      (equal (car archive-zip-extract) "unzip"))
-	 (shell-quote-argument name)
+     ;; unzip expands wildcard characters in NAME, so we need to quote
+     ;; wildcard characters in a special way: replace each such
+     ;; character C with a single-character alternative [C].  We
+     ;; cannot use 'shell-quote-argument' here because that doesn't
+     ;; protect wildcard characters from being expanded by unzip
+     ;; itself.
+     (if (equal (car archive-zip-extract) "unzip")
+         (replace-regexp-in-string "[[?*]" "[\\&]" name)
        name)
      archive-zip-extract))))
 

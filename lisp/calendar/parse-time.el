@@ -1,6 +1,6 @@
 ;;; parse-time.el --- parsing time strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util
@@ -157,6 +157,12 @@ return a \"likely\" value even for somewhat malformed strings.
 The values returned are identical to those of `decode-time', but
 any unknown values other than DST are returned as nil, and an
 unknown DST value is returned as -1.
+Note that, unlike `decode-time', this function does not interpret
+the time string, and in particular the values of DST and TZ do not
+affect the returned value of date and time, they only affect the
+last two members of the returned value.  This function simply
+parses the textual representation of date and time into separate
+numerical values, and doesn't care whether the time is local or UTC.
 
 See `decode-time' for the meaning of FORM."
   (condition-case ()
@@ -208,7 +214,7 @@ This function is like `parse-time-string' except that it returns
 a Lisp timestamp when successful.
 
 See `decode-time' for the meaning of FORM."
-  (when-let ((time (parse-time-string date-string form)))
+  (when-let* ((time (parse-time-string date-string form)))
     (encode-time time)))
 
 (provide 'parse-time)

@@ -1,9 +1,9 @@
 ;;; nxml-mode.el --- a new XML mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2004, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: James Clark
-;; Keywords: wp, hypermedia, languages, XML
+;; Keywords: text, hypermedia, languages, XML
 
 ;; This file is part of GNU Emacs.
 
@@ -390,7 +390,6 @@ reference.")
   "C-c C-u" #'nxml-insert-named-char
   "C-c C-o" nxml-outline-prefix-map
   "/"       #'nxml-electric-slash
-  "M-TAB"   #'completion-at-point
   "S-<mouse-2>" #'nxml-mouse-hide-direct-text-content)
 
 (defvar nxml-font-lock-keywords
@@ -532,6 +531,7 @@ Many aspects this mode can be customized using
   (setq-local comment-end-skip "[ \t\r\n]*-->")
   (setq-local comment-line-break-function #'nxml-newline-and-indent)
   (setq-local comment-quote-nested-function #'nxml-comment-quote-nested)
+  (setq-local comment-continue "") ; avoid double-hyphens as a padding
   (save-excursion
     (save-restriction
       (widen)

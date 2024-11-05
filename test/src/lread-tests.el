@@ -1,6 +1,6 @@
 ;;; lread-tests.el --- tests for lread.c -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -173,6 +173,17 @@ literals (Bug#20852)."
     (should (string-suffix-p "/somelib2.el" (caar load-history)))
     (load "somelib" nil t)
     (should (string-suffix-p "/somelib.el" (caar load-history)))))
+
+(ert-deftest lread-test-bug70702 ()
+  "Test for certain wholesome error messages from `read'."
+  (setq eval-expression-debug-on-error nil)
+  (setq ert-debug-on-error nil)
+  (with-temp-buffer
+    (goto-char (point-min))
+    (insert "#<symbol lambda at 10>")
+    (goto-char (point-min))
+    (should (equal (should-error (read (current-buffer)))
+                   '(invalid-read-syntax "#<" 1 2)))))
 
 (ert-deftest lread-lread--substitute-object-in-subtree ()
   (let ((x (cons 0 1)))

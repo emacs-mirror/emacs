@@ -2,7 +2,7 @@
 
    Copyright (C) 1995 Ian Jackson <iwj10@cus.cam.ac.uk>
    Copyright (C) 2001 Anthony Towns <aj@azure.humbug.org.au>
-   Copyright (C) 2008-2023 Free Software Foundation, Inc.
+   Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -26,6 +26,11 @@
 #endif
 
 #include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* Compare strings A and B as file names containing version numbers,
    and return an integer that is negative, zero, or positive depending
@@ -79,5 +84,10 @@ int filevercmp (char const *a, char const *b) _GL_ATTRIBUTE_PURE;
    terminated by '\0', and similarly for BLEN.  */
 int filenvercmp (char const *a, ptrdiff_t alen, char const *b, ptrdiff_t blen)
   _GL_ATTRIBUTE_PURE;
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FILEVERCMP_H */

@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2014-2023 Free Software Foundation, Inc.
+Copyright (C) 2014-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -1158,6 +1158,11 @@ few or no entries have changed.
 
 * New Modes and Packages in Emacs 25.1
 
+** New preloaded package 'obarray'
+
+Provides obarray operations under the 'obarray-' prefix, such as
+'obarray-make', 'obarrayp', and 'obarray-map'.
+
 ** pinentry.el allows GnuPG passphrase to be prompted through the
 minibuffer instead of a graphical dialog, depending on whether the gpg
 command is called from Emacs (i.e., INSIDE_EMACS environment variable
@@ -1499,7 +1504,7 @@ permissions set to temporary values (e.g., for creating private files).
 system's name has changed or if the Emacs process has changed systems.
 To avoid long waits it no longer consults DNS to canonicalize the name
 (in some cases this may affect generated message-id headers - customize
-'message-user-fqdn' if this bothers you). The variable 'system-name'
+'message-user-fqdn' if this bothers you).  The variable 'system-name'
 is now obsolete.
 
 ** Function 'write-region' no longer outputs "Wrote FILE" in batch mode.

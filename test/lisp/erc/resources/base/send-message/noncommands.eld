@@ -1,0 +1,52 @@
+;; -*- mode: lisp-data; -*-
+((nick 10 "NICK tester"))
+((user 10 "USER user 0 * :tester")
+ (0.00 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")
+ (0.01 ":irc.foonet.org 002 tester :Your host is irc.foonet.org, running version ergo-v2.11.1")
+ (0.01 ":irc.foonet.org 003 tester :This server was created Sun, 12 Nov 2023 17:40:20 UTC")
+ (0.01 ":irc.foonet.org 004 tester irc.foonet.org ergo-v2.11.1 BERTZios CEIMRUabefhiklmnoqstuv Iabefhkloqv")
+ (0.00 ":irc.foonet.org 005 tester AWAYLEN=390 BOT=B CASEMAPPING=ascii CHANLIMIT=#:100 CHANMODES=Ibe,k,fl,CEMRUimnstu CHANNELLEN=64 CHANTYPES=# CHATHISTORY=1000 ELIST=U EXCEPTS EXTBAN=,m FORWARD=f INVEX :are supported by this server")
+ (0.02 ":irc.foonet.org 005 tester KICKLEN=390 MAXLIST=beI:60 MAXTARGETS=4 MODES MONITOR=100 NETWORK=foonet NICKLEN=32 PREFIX=(qaohv)~&@%+ STATUSMSG=~&@%+ TARGMAX=NAMES:1,LIST:1,KICK:,WHOIS:1,USERHOST:10,PRIVMSG:4,TAGMSG:4,NOTICE:4,MONITOR:100 TOPICLEN=390 UTF8ONLY WHOX :are supported by this server")
+ (0.01 ":irc.foonet.org 005 tester draft/CHATHISTORY=1000 :are supported by this server")
+ (0.01 ":irc.foonet.org 251 tester :There are 0 users and 4 invisible on 1 server(s)")
+ (0.01 ":irc.foonet.org 252 tester 0 :IRC Operators online")
+ (0.01 ":irc.foonet.org 253 tester 0 :unregistered connections")
+ (0.01 ":irc.foonet.org 254 tester 2 :channels formed")
+ (0.01 ":irc.foonet.org 255 tester :I have 4 clients and 0 servers")
+ (0.01 ":irc.foonet.org 265 tester 4 4 :Current local users 4, max 4")
+ (0.01 ":irc.foonet.org 266 tester 4 4 :Current global users 4, max 4")
+ (0.02 ":irc.foonet.org 422 tester :MOTD File is missing")
+ (0.00 ":irc.foonet.org 221 tester +i")
+ (0.01 ":irc.foonet.org NOTICE tester :This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect."))
+
+((mode-tester 10 "MODE tester +i"))
+
+((join-chan 10 "JOIN #chan")
+ (0.00 ":irc.foonet.org 221 tester +i")
+ (0.01 ":tester!~u@ggpg6r3a68wak.irc JOIN #chan")
+ (0.03 ":irc.foonet.org 353 tester = #chan :@fsbot bob alice tester")
+ (0.01 ":irc.foonet.org 366 tester #chan :End of NAMES list")
+ (0.00 ":bob!~u@cjn7mjwx57gbi.irc PRIVMSG #chan :tester, welcome!")
+ (0.01 ":alice!~u@cjn7mjwx57gbi.irc PRIVMSG #chan :tester, welcome!"))
+
+((mode-chan 10 "MODE #chan")
+ (0.00 ":irc.foonet.org 324 tester #chan +Cnt")
+ (0.02 ":irc.foonet.org 329 tester #chan 1699810829")
+ (0.01 ":alice!~u@cjn7mjwx57gbi.irc PRIVMSG #chan :bob: To prove him false that says I love thee not.")
+ (0.02 ":bob!~u@cjn7mjwx57gbi.irc PRIVMSG #chan :alice: For hands, to do Rome service, are but vain."))
+
+((privmsg-action 10 "PRIVMSG #chan :\1ACTION sad\1")
+ (0.07 ":alice!~u@cjn7mjwx57gbi.irc PRIVMSG #chan :bob: Spotted, detested, and abominable."))
+
+((privmsg-me 10 "PRIVMSG #chan :/me sad")
+ (0.03 ":bob!~u@cjn7mjwx57gbi.irc PRIVMSG #chan :Marcus, my brother! 'tis sad Titus calls."))
+
+((privmsg-sv 10 "PRIVMSG #chan :I'm using ERC " (+ (not " ")) " with GNU Emacs")
+ (0.07 ":bob!~u@cjn7mjwx57gbi.irc PRIVMSG #chan :alice: You still wrangle with her, Boyet, and she strikes at the brow."))
+
+((privmsg-sm 10 "PRIVMSG #chan :I'm using the following modules: `erc-autojoin-mode', ")
+ (0.04 ":alice!~u@cjn7mjwx57gbi.irc PRIVMSG #chan :No, not till Thursday; there is time enough."))
+
+((quit 10 "QUIT :\2ERC\2")
+ (0.05 ":tester!~u@ggpg6r3a68wak.irc QUIT :Quit: \2ERC\2 5.x (IRC client for GNU Emacs)")
+ (0.02 "ERROR :Quit: \2ERC\2 5.x (IRC client for GNU Emacs)"))

@@ -1,5 +1,5 @@
 /* unexec for GNU Emacs on Windows NT.
-   Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -660,14 +660,14 @@ unexec (const char *new_name, const char *old_name)
     nt_header = (PIMAGE_NT_HEADERS) ((char *) dos_header + dos_header->e_lfanew);
 
     nt_header->OptionalHeader.CheckSum = 0;
-//    nt_header->FileHeader.TimeDateStamp = time (NULL);
-//    dos_header->e_cp = size / 512;
-//    nt_header->OptionalHeader.SizeOfImage = size;
+   /* nt_header->FileHeader.TimeDateStamp = time (NULL); */
+   /* dos_header->e_cp = size / 512; */
+   /* nt_header->OptionalHeader.SizeOfImage = size; */
 
     pfnCheckSumMappedFile = (void *) GetProcAddress (hImagehelp, "CheckSumMappedFile");
     if (pfnCheckSumMappedFile)
       {
-//	nt_header->FileHeader.TimeDateStamp = time (NULL);
+	/* nt_header->FileHeader.TimeDateStamp = time (NULL); */
 	pfnCheckSumMappedFile (out_file.file_base,
 			       out_file.size,
 			       &headersum,

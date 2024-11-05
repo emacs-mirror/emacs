@@ -1,0 +1,25 @@
+TREE-SITTER PERFORMANCE NOTES -*- org -*-
+
+* Facts
+
+Incremental parsing of a few characters worth of edit usually takes
+less than 0.1ms.  If it takes longer than that, something is wrong.
+There’s one time where I found tree-sitter-c takes ~30ms to
+incremental parse.  Updating to the latest version of tree-sitter-c
+solves it, so I didn’t investigate further.
+
+The ranges set for a parser doesn’t grow when you insert text into a
+range, so you have to update the ranges every time before
+parsing.  Fortunately, changing ranges doesn’t invalidate incremental
+parsing, so there isn’t any performance lost in update ranges
+frequently.
+
+* Experiments
+
+Using regexp by default in treesit-simple-indent-rules seems wasteful,
+so I tried replacing all string-match-p to equal in
+treesit-simple-indent-presets, and indent xdisp.c for a comparison.
+Turns out using regexp by default is faster: regexp-based indent took
+45s and equal-based indent took 75s.
+
+I could be missing something, further experiments are welcome.

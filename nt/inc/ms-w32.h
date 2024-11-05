@@ -1,6 +1,6 @@
 /* System description file for Windows NT.
 
-Copyright (C) 1993-1995, 2001-2023 Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -208,7 +208,7 @@ extern struct tm * sys_localtime (const time_t *);
 
 /* Unlike MS and mingw.org, MinGW64 doesn't define gai_strerror as an
    inline function in a system header file, and instead seems to
-   require to link against ws2_32.a.  But we don't want to link with
+   require linking against ws2_32.a.  But we don't want to link with
    -lws2_32, as that would make Emacs dependent on the respective DLL.
    So MinGW64 is amply punished here by the following:  */
 #undef HAVE_GAI_STRERROR
@@ -256,8 +256,7 @@ extern void w32_reset_stack_overflow_guard (void);
 #define fopen   sys_fopen
 #define link    sys_link
 #define localtime sys_localtime
-#undef read
-#define read    sys_read
+/* We redirect 'read' below, after including io.h, see bug#73444.  */
 #define rename  sys_rename
 #define rmdir   sys_rmdir
 #define select  sys_select
@@ -379,6 +378,11 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #ifndef fileno
 #define fileno	  _fileno
 #endif
+
+/* Here we redirect CRT's 'read' to our own implementation, see bug#73444.  */
+#undef read
+#define read    sys_read
+int sys_read (int, char *, unsigned int);
 
 /* Defines that we need that aren't in the standard signal.h.  */
 #define SIGHUP  1               /* Hang up */
@@ -603,7 +607,7 @@ typedef unsigned int EMACS_UINT;
 
    Starting with MSVC 5.0, we must also place the uninitialized data
    into its own section.  VC5 intermingles uninitialized data from the CRT
-   between Emacs' static uninitialized data and its public uninitialized
+   between Emacs's static uninitialized data and its public uninitialized
    data.  A separate .bss section for Emacs groups both static and
    public uninitialized together.
 

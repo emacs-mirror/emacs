@@ -1,6 +1,6 @@
 ;;; delim-col.el --- prettify all columns in a region or rectangle  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Old-Version: 2.1

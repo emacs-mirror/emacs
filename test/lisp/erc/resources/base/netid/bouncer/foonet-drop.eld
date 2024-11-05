@@ -1,5 +1,5 @@
 ;; -*- mode: lisp-data; -*-
-((pass 1 "PASS :foonet:changeme"))
+((pass 10 "PASS :foonet:changeme"))
 ((nick 1 "NICK tester"))
 ((user 1 "USER user 0 * :tester")
  (0 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")
@@ -22,14 +22,14 @@
  (0 ":irc.znc.in 306 tester :You have been marked as being away")
  (0 ":irc.foonet.org 305 tester :You are no longer marked as being away"))
 
-((join 1 "JOIN #chan")
+((join 10 "JOIN #chan")
  (0 ":tester!~u@ertp7idh9jtgi.irc JOIN #chan")
  (0 ":irc.foonet.org 353 tester = #chan :@alice bob tester")
  (0 ":irc.foonet.org 366 tester #chan :End of NAMES list")
  (0.1 ":alice!~u@ertp7idh9jtgi.irc PRIVMSG #chan :tester, welcome!")
  (0 ":bob!~u@ertp7idh9jtgi.irc PRIVMSG #chan :tester, welcome!"))
 
-((mode 1 "MODE #chan")
+((mode 10 "MODE #chan")
  (0 ":irc.foonet.org 324 tester #chan +nt")
  (0 ":irc.foonet.org 329 tester #chan 1620805271")
  (0.1 ":alice!~u@ertp7idh9jtgi.irc PRIVMSG #chan :bob: He cannot be heard of. Out of doubt he is transported.")

@@ -8,7 +8,7 @@
 @include emacsver.texi
 
 @copying
-Copyright @copyright{} 2001--2023 Free Software Foundation, Inc.@*
+Copyright @copyright{} 2001--2024 Free Software Foundation, Inc.@*
 Copyright @copyright{} 1994--2000 Reuven M. Lerner@*
 Copyright @copyright{} 1992--1993 Steven Byrnes@*
 Copyright @copyright{} 1990--1992 Joseph Brian Wells@*
@@ -48,7 +48,7 @@ itself allows free copying and redistribution.
 
 @contents
 
-@node Top, FAQ notation, (dir), (dir)
+@node Top
 @top The GNU Emacs FAQ
 
 This is the GNU Emacs FAQ.
@@ -847,6 +847,7 @@ in the Emacs development repository (@pxref{Latest version of Emacs}).
 @menu
 * Origin of the term Emacs::
 * Latest version of Emacs::
+* New in Emacs 30::
 * New in Emacs 29::
 * New in Emacs 28::
 * New in Emacs 27::
@@ -920,6 +921,90 @@ Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  You can give
 this command a prefix argument to read about which features were new
 in older versions.
 
+
+@node New in Emacs 30
+@section What is different about Emacs 30?
+@cindex Differences between Emacs 29 and Emacs 30
+@cindex Emacs 30, new features in
+
+Here's a list of the most important changes in Emacs 30 as compared to
+Emacs 29.  The full list is too long to fit here, but can be read in the
+Emacs @file{NEWS} file by typing @kbd{C-h n} inside Emacs.
+
+@itemize
+@item
+Native compilation is now enabled by default.  When Emacs is built on a
+machine with @samp{libgccjit}, this will improve Emacs performance in
+many typical workloads.
+
+@item
+Emacs has been ported to the Android operating system.  See the file
+@file{java/INSTALL} in the Emacs source distribution for details on how
+to build it.
+
+@item
+Numerous performance improvements, for example in parsing JSON, reading
+data from subprocesses, handling output from Eshell and in Shell mode, X
+selection requests, remote files, and so on.
+
+@item
+Native JSON support is now always available; libjansson is no longer
+used.
+
+@item
+New major modes based on the
+@uref{https://tree-sitter.github.io/tree-sitter/, tree-sitter library}
+library for editing Elixir, HEEx, HTML, Lua, and PHP.
+
+@item
+Support for the EditorConfig standard has been added, an editor-neutral
+way to provide directory local (project-wide) settings.  It is enabled
+via a new global minor mode @code{editorconfig-mode} which makes Emacs
+obey the @file{.editorconfig} files.
+
+@item
+Support for touchscreens has been improved.  On systems that understand
+them (at present X, Android, PGTK, and MS-Windows), many touch screen
+gestures are now implemented and translated into mouse or gesture
+events, and support for tapping tool bar buttons and opening menus has
+been added.
+
+@item
+Tool bar tweaks.  The new minor mode @code{window-tool-bar-mode}
+provides a per-window toolbar.  Toolbars can be placed on the bottom of
+a frame by setting the @code{tool-bar-position} variable on all window
+systems but GNUStep and macOS.
+
+@item
+The @samp{which-key} package from GNU ELPA is now included in Emacs.
+After enabling the minor mode mode @code{which-key-mode}, if you enter
+@kbd{C-x} and wait for one second, the minibuffer will expand with all
+available key bindings that follow @kbd{C-x} (or as many as space
+allows).
+
+@item
+New global minor mode @code{kill-ring-deindent-mode}.  When enabled,
+text being saved to the kill ring will be de-indented by the column
+number at its start.
+
+@item
+New minor mode @code{visual-wrap-prefix-mode}.  Unlike @kbd{M-q}, the
+indentation only happens on display, and doesn't change the buffer text
+in any way.
+
+@item
+Automatic regeneration of TAGS files using the new global minor mode
+@code{etags-regen-mode}.
+
+@item
+Improved warnings from the byte-code compiler to aid Lisp developers.
+
+@item
+Support for underline colors on TTY frames.
+
+@end itemize
+
+
 @node New in Emacs 29
 @section What is different about Emacs 29?
 @cindex Differences between Emacs 28 and Emacs 29
@@ -928,6 +1013,9 @@ in older versions.
 Here's a list of the most important changes in Emacs 29 as compared to
 Emacs 28 (the full list is too long, and can be read in the Emacs
 @file{NEWS} file by typing @kbd{C-h n} inside Emacs).
+
+Note that Emacs 29.3 and 29.4 both contained important security fixes.
+Upgrading is particularly important if you use Emacs as a mail client.
 
 @itemize
 @item
@@ -1121,8 +1209,8 @@ feature, when you need to insert a single special character.
 allows selection of one of the previous kills.
 
 @item
-New minor mode @code{repeat-mode} allows to repeat commands with fewer
-keystrokes.
+New minor mode @code{repeat-mode} enables repeating commands with
+fewer keystrokes.
 
 @item
 Among the many internal changes in this release, we would like to
@@ -1718,10 +1806,10 @@ is better to write ``Emacs and XEmacs.''
 * Deleting menus and menu options::
 * Turning on syntax highlighting::
 * Scrolling only one line::
-* Editing MS-DOS files::
+* Editing Windows files::
 * Filling paragraphs with a single space::
 * Escape sequences in shell output::
-* Fullscreen mode on MS-Windows::
+* Start Emacs maximized::
 * Emacs in a Linux console::
 @end menu
 
@@ -1786,11 +1874,31 @@ customize, with completion.
 
 Colors and faces are supported in non-windowed mode, i.e., on Unix and
 GNU/Linux text-only terminals and consoles, and when invoked as
-@samp{emacs -nw} on X, MS-DOS and MS-Windows.  Emacs automatically
+@samp{emacs -nw} on X, MS-Windows and MS-DOS.  Emacs automatically
 detects color support at startup and uses it if available.  If you
 think that your terminal supports colors, but Emacs won't use them,
 check the @code{termcap} entry for your display type for color-related
 capabilities.
+
+If by contrast you wish to @emph{disable} tty color support, either
+start emacs with the @samp{--color=no} command-line option, or ensure
+that the frame parameter @code{tty-color-mode} is @code{no}, e.g. by
+putting the following in your init file:
+
+@lisp
+(push '(tty-color-mode . no) default-frame-alist)
+@end lisp
+
+@noindent
+To disable tty color support in the @emph{current} frame you can
+evaluate:
+
+@lisp
+(set-frame-parameter nil 'tty-color-mode 'no)
+@end lisp
+
+Note that this currently doesn't work on MS-Windows and MS-DOS, whose
+text-mode terminals always use the fixed number of 16 text colors.
 
 The command @kbd{M-x list-colors-display} pops up a window which
 exhibits all the colors Emacs knows about on the current display.
@@ -2832,9 +2940,12 @@ This may be inconvenient in some setups, so Emacs has mechanisms for
 changing the locations of all these files.
 
 @table @code
-@item auto-save-file-name-transforms (@pxref{Auto-Saving,,,elisp, GNU Emacs Lisp Reference Manual}).
-@item lock-file-name-transforms (@pxref{File Locks,,,elisp, GNU Emacs Lisp Reference Manual}).
-@item backup-directory-alist (@pxref{Making Backups,,,elisp, GNU Emacs Lisp Reference Manual}).
+@item auto-save-file-name-transforms
+(@pxref{Auto-Saving,,,elisp, GNU Emacs Lisp Reference Manual}).
+@item lock-file-name-transforms
+(@pxref{File Locks,,,elisp, GNU Emacs Lisp Reference Manual}).
+@item backup-directory-alist
+(@pxref{Making Backups,,,elisp, GNU Emacs Lisp Reference Manual}).
 @end table
 
 For instance, to write all these things to
@@ -3070,22 +3181,22 @@ Alternatively, use the following Lisp form in your init file
 (setq scroll-conservatively most-positive-fixnum)
 @end lisp
 
-@node Editing MS-DOS files
-@section How can I edit MS-DOS files using Emacs?
-@cindex Editing MS-DOS files
-@cindex MS-DOS files, editing
+@node Editing Windows files
+@section How can I edit Windows files using Emacs?
 @cindex Microsoft files, editing
 @cindex Windows files, editing
+@cindex Editing MS-DOS files
+@cindex MS-DOS files, editing
 
-Detection and handling of MS-DOS (and Windows) files is performed
-transparently.  You can open MS-DOS files on a Unix system, edit it,
+Detection and handling of Windows (and MS-DOS) files is performed
+transparently.  You can open Windows files on a Unix system, edit it,
 and save it without having to worry about the file format.
 
-When editing an MS-DOS style file, the mode line will indicate that it
-is a DOS file.  On Unix and GNU/Linux systems, and also on a Macintosh,
-the string @samp{(DOS)} will appear near the left edge of the mode line;
-on DOS and Windows, where the DOS end-of-line (EOL) format is the
-default, a backslash (@samp{\}) will appear in the mode line.
+When editing a Windows style file, the mode line will indicate that it
+is a Windows file.  On GNU/Linux, Unix and macOS systems, the string
+@samp{(DOS)} will appear near the left edge of the mode line; on Windows
+and MS-DOS, where the DOS end-of-line (EOL) format is the default, a
+backslash (@samp{\}) will appear in the mode line.
 
 @node Filling paragraphs with a single space
 @section How can I tell Emacs to fill paragraphs with a single space after each period?
@@ -3110,45 +3221,24 @@ prints using ANSI color escape sequences.  Emacs includes the
 @code{ansi-color} package, which lets Shell mode recognize these
 escape sequences.  It is enabled by default.
 
-@node Fullscreen mode on MS-Windows
-@section How can I start Emacs in fullscreen mode on MS-Windows?
+@node Start Emacs maximized
+@section How can I start Emacs in full screen?
 @cindex Maximize frame
 @cindex Fullscreen mode
 
-Beginning with Emacs 24.4 either run Emacs with the @samp{--maximized}
-command-line option or put the following form in your init file
-(@pxref{Setting up a customization file}):
+Run Emacs with the @samp{--maximized} command-line option or put the
+following form at the top of your early init file (@pxref{Early Init
+File,,, emacs, The GNU Emacs Manual}).
 
 @lisp
-(add-hook 'emacs-startup-hook 'toggle-frame-maximized)
+(push '(fullscreen . maximized) default-frame-alist)
 @end lisp
 
-With older versions use the function @code{w32-send-sys-command}.  For
-example, you can put the following in your init file:
-
-@lisp
-(add-hook 'emacs-startup-hook
-          (lambda () (w32-send-sys-command ?\xF030)))
-@end lisp
-
-To avoid the slightly distracting visual effect of Emacs starting with
-its default frame size and then growing to fullscreen, you can add an
-@samp{Emacs.Geometry} entry to the Windows Registry settings.  @xref{X
-Resources,,, emacs, The GNU Emacs Manual}.  To compute the correct
-values for width and height you use in the Registry settings, first
-maximize the Emacs frame and then evaluate @code{(frame-height)} and
-@code{(frame-width)} with @kbd{M-:}.
-
-Alternatively, you can avoid the visual effect of Emacs changing its
-frame size entirely in your init file (i.e., without using the
-Registry), like this:
-
-@lisp
-(setq frame-resize-pixelwise t)
-(set-frame-position nil 0 0)
-(set-frame-size nil (display-pixel-width) (display-pixel-height) t)
-@end lisp
-
+Note that while some customizations of @code{default-frame-alist}
+could have undesirable effects when modified in the early init file,
+it is okay to do it in this particular case.  Adding it to the top of
+your normal init file will also work, but leads to a visible resizing
+of the window that some find distracting.
 
 @node Emacs in a Linux console
 @section How can I alleviate the limitations of the Linux console?
@@ -3156,9 +3246,9 @@ Registry), like this:
 
 If possible, we recommend running Emacs inside @command{fbterm}, when
 in a Linux console.  This brings the Linux console on par with most
-terminal emulators under X.  To do this, install @command{fbterm}, for
-example with the package manager of your GNU/Linux distribution, and
-execute the command
+terminal emulators under X@.  To do this, install @command{fbterm},
+for example with the package manager of your GNU/Linux distribution,
+and execute the command
 
 @example
 $ fbterm
@@ -3301,12 +3391,12 @@ Emacs has an inherent fixed limitation on the size of buffers.  This
 limit is stricter than the maximum size of objects supported by other
 programs on the same architecture.
 
-The maximum buffer size on 32-bit machines is 512 MBytes.  If Emacs
-was built using the @code{--with-wide-int} flag, the maximum buffer
-size on 32-bit machines is 2 GB.
+The maximum buffer size on 64-bit machines is 2.3 exabytes
+(@code{most-positive-fixnum}).
 
-Emacs compiled on a 64-bit machine can handle much larger buffers; up
-to @code{most-positive-fixnum} (2.3 exabytes).
+Emacs compiled on a 32-bit machine can handle buffers up to 512
+MBytes.  If Emacs was built using the @code{--with-wide-int} flag, the
+maximum buffer size on 32-bit machines is 2 GB.
 
 Due to things like decoding of multibyte characters, you can only
 visit files with a size that is roughly half the buffer size limit.
@@ -3595,6 +3685,21 @@ you use the package system (e.g. @code{M-x list-packages}) with third
 party archives.  Use only third parties that you can trust!
 
 @item
+Using an out-of-date Emacs version.
+
+For security purposes, we recommend always using the latest officially
+released version of Emacs.  Using old versions of Emacs might put your
+security at risk, as newer versions occasionally include important
+security fixes.  Please review the Emacs release notes and the
+@file{etc/NEWS} file for details.
+
+Upgrading to the most recent version is particularly important if you
+use Emacs as a mail client, or to edit files that come from untrusted
+sources.  You should be able to install the latest version of Emacs
+through your system's package manager, and it is always available at
+@uref{https://www.gnu.org/software/emacs/, the Emacs website}.
+
+@item
 The @code{file-local-variable} feature.  (Yes, a risk, but easy to
 change.)
 
@@ -3607,7 +3712,7 @@ feature.
 
 Emacs has a list of local variables that are known to be safe to set.
 If a file tries to set any variable outside this list, it asks the
-user to confirm whether the variables should be set. You can also tell
+user to confirm whether the variables should be set.  You can also tell
 Emacs whether to allow the evaluation of Emacs Lisp code found at the
 bottom of files by setting the variable @code{enable-local-eval}.
 
@@ -3750,7 +3855,7 @@ in the distribution.
 To build Emacs from source for MS-DOS, see the instructions in the file
 @file{msdos/INSTALL} in the distribution.  The DOS port builds and runs
 on plain DOS, and also on all versions of MS-Windows from version 3.X
-onwards, including Windows XP and Vista. Pre-built binaries may be
+onwards, including Windows XP and Vista.  Pre-built binaries may be
 available at
 @uref{https://www.delorie.com/pub/djgpp/current/v2gnu/emacs.README}
 
@@ -3839,13 +3944,28 @@ description of what they do and how they should be used.
 
 The easiest way to add more features to your Emacs is to use the
 command @kbd{M-x list-packages}.  This contacts the
-@uref{https://elpa.gnu.org, GNU ELPA} (``Emacs Lisp Package Archive'')
-server and fetches the list of additional packages that it offers.
-These are GNU packages that are available for use with Emacs, but are
-distributed separately from Emacs itself, for reasons of space, etc.
-You can browse the resulting @file{*Packages*} buffer to see what is
-available, and then Emacs can automatically download and install the
-packages that you select.  @xref{Packages,,, emacs, The GNU Emacs Manual}.
+@uref{https://elpa.gnu.org, GNU ELPA} and
+@uref{https://elpa.nongnu.org, NonGNU ELPA} (``Emacs Lisp Package
+Archive'') servers and fetches the list of additional packages that
+they offer.  You can browse the resulting @file{*Packages*} buffer to
+see what is available, and then Emacs can automatically download and
+install the packages that you select.  @xref{Packages,,, emacs, The
+GNU Emacs Manual}.
+
+GNU ELPA contains GNU packages that are available for use with Emacs,
+but are distributed separately from Emacs itself, for reasons of
+space, etc.  NonGNU ELPA contains a selection of third-party packages
+that can not be included in GNU ELPA because their copyright has not
+yet been assigned to the Free Software Foundation.@footnote{For more
+information, see @uref{https://www.gnu.org/licenses/why-assign.html,
+Why the FSF Gets Copyright Assignments from Contributors}.}
+
+The @uref{https://lists.gnu.org/mailman/listinfo/gnu-emacs-sources,
+GNU Emacs sources mailing list} is automatically sent an email when a
+new version of a GNU ELPA or NonGNU ELPA package is
+released.@footnote{It used to be an official place where people could
+post or announce their extensions to Emacs.  That is still allowed,
+but exceedingly rare these days.}
 
 There are other Emacs Lisp package archives.  To use additional
 archives, you can customize the @code{package-archives} variable.
@@ -3855,14 +3975,10 @@ correctness and safety of the code, or they may give only cursory
 attention.
 
 Also, packages hosted on these other archives may encourage or require
-you to install and use other nonfree programs.  Unless you can verify
+you to install and use nonfree programs.  Unless you can verify
 that a package is free software, and that it functions without
 installing any nonfree software, we recommend for your freedom's sake
 that you stay away from it.
-
-The @uref{https://lists.gnu.org/mailman/listinfo/gnu-emacs-sources,
-GNU Emacs sources mailing list} is an official place where people can
-post or announce their extensions to Emacs.
 
 The @uref{https://emacswiki.org, Emacs Wiki} contains pointers to some
 additional extensions.  @uref{https://wikemacs.org, WikEmacs} is an
@@ -3870,8 +3986,8 @@ alternative wiki for Emacs.
 
 It is impossible for us to list here all the sites that offer Emacs
 Lisp packages.  If you are interested in a specific feature, then
-after checking Emacs itself and GNU ELPA, a web search is often the
-best way to find results.
+after checking Emacs itself, GNU ELPA, and NonGNU ELPA, a web search
+is often the best way to find results.
 
 @node Spell-checkers
 @section Spell-checkers
@@ -3949,6 +4065,7 @@ information is available from
 * Compose Character::
 * Binding combinations of modifiers and function keys::
 * Meta key does not work in xterm::
+* Some Ctrl-modified keys do not work on xterm::
 @end menu
 
 @node Binding keys to commands
@@ -4420,6 +4537,25 @@ You might have to replace @samp{Meta} with @samp{Alt}.
 
 @end itemize
 
+@node Some Ctrl-modified keys do not work on xterm
+@section Why don't some keys like @kbd{C-.} work on xterm?
+
+If your @code{xterm} version is 216 or newer, you should have keys like
+@kbd{C-.} and @kbd{C-,} if you add the following resource specification
+to your @file{~/.Xdefaults}:
+
+@example
+ XTerm.VT100.modifyOtherKeys: 1
+@end example
+
+@noindent
+If you want to use @code{uxterm}, also add the following:
+
+@example
+ UXTerm.VT100.modifyOtherKeys: 1
+@end example
+
+
 @c ------------------------------------------------------------
 @node Alternate character sets
 @chapter Alternate character sets
@@ -4443,7 +4579,7 @@ display or is invoked with @samp{emacs -nw}, you typically need to use
 @code{set-terminal-coding-system} to tell Emacs what the terminal can
 display, even after setting the language environment; otherwise
 non-@acronym{ASCII} characters will display as @samp{?}.  On other operating
-systems, such as MS-DOS and MS-Windows, Emacs queries the OS about the
+systems, such as MS-Windows and MS-DOS, Emacs queries the OS about the
 character set supported by the display, and sets up the required
 terminal coding system automatically.
 
@@ -4665,14 +4801,14 @@ these systems, you should configure @code{movemail} to use @code{flock}.
 Ron Isaacson says: When you hit
 @kbd{r} to reply in Rmail, by default it Ccs all of the original
 recipients (everyone on the original @samp{To} and @samp{CC}
-lists). With a prefix argument (i.e., typing @kbd{C-u} before @kbd{r}),
+lists).  With a prefix argument (i.e., typing @kbd{C-u} before @kbd{r}),
 it replies only to the sender.  However, going through the whole
 @kbd{C-u} business every time you want to reply is a pain.  This is the
 best fix I've been able to come up with:
 
 @lisp
 (defun rmail-reply-t ()
-  "Reply only to the sender of the current message. (See rmail-reply.)"
+  "Reply only to the sender of the current message.  (See rmail-reply.)"
   (interactive)
   (rmail-reply t))
 

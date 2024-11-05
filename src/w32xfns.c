@@ -1,5 +1,5 @@
 /* Functions taken directly from X sources for use with the Microsoft Windows API.
-   Copyright (C) 1989, 1992-1995, 1999, 2001-2023 Free Software
+   Copyright (C) 1989, 1992-1995, 1999, 2001-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -22,6 +22,20 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <windows.h>
 #include <windowsx.h>
+
+#ifdef WINDOWSNT
+/* Override API version to get the required functionality.  */
+# undef _WIN32_WINNT
+# define _WIN32_WINNT 0x0501
+/* mingw.org's MinGW headers mistakenly omit this enumeration: */
+# ifndef MINGW_W64
+typedef enum _WTS_VIRTUAL_CLASS {
+  WTSVirtualClientData,
+  WTSVirtualFileHandle
+} WTS_VIRTUAL_CLASS;
+# endif
+#include <wtsapi32.h>	/* for WM_WTSSESSION_CHANGE, WTS_SESSION_LOCK */
+#endif	/* WINDOWSNT */
 
 #include "lisp.h"
 #include "frame.h"
@@ -413,8 +427,18 @@ drain_message_queue (void)
 
   while (PeekMessage (&msg, NULL, 0, 0, PM_REMOVE))
     {
-      if (msg.message == WM_EMACS_FILENOTIFY)
-	retval = 1;
+      switch (msg.message)
+	{
+#ifdef WINDOWSNT
+	case WM_WTSSESSION_CHANGE:
+	  if (msg.wParam == WTS_SESSION_LOCK)
+	    reset_w32_kbdhook_state ();
+	  break;
+#endif
+	case WM_EMACS_FILENOTIFY:
+	  retval = 1;
+	  break;
+	}
       TranslateMessage (&msg);
       DispatchMessage (&msg);
     }

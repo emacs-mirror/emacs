@@ -1,6 +1,6 @@
 ;;; pp.el --- pretty printer for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1993, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
 ;; Keywords: lisp
@@ -25,7 +25,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(defvar font-lock-verbose)
 
 (defgroup pp nil
   "Pretty printer for Emacs Lisp."
@@ -167,12 +166,19 @@ it inserts and pretty-prints that arg at point."
   (interactive "r")
   (if (null end) (pp--object beg #'pp-fill)
     (goto-char beg)
-    (let ((end (copy-marker end t))
-          (newline (lambda ()
-                     (skip-chars-forward ")]}")
-                     (unless (save-excursion (skip-chars-forward " \t") (eolp))
-                       (insert "\n")
-                       (indent-according-to-mode)))))
+    (let* ((end (copy-marker end t))
+           (avoid-unbreakable
+            (lambda ()
+              (and (memq (char-before) '(?# ?s ?f))
+                   (memq (char-after) '(?\[ ?\())
+                   (looking-back "#[sf]?" (- (point) 2))
+                   (goto-char (match-beginning 0)))))
+           (newline (lambda ()
+                      (skip-chars-forward ")]}")
+                      (unless (save-excursion (skip-chars-forward " \t") (eolp))
+                        (funcall avoid-unbreakable)
+                        (insert "\n")
+                        (indent-according-to-mode)))))
       (while (progn (forward-comment (point-max))
                     (< (point) end))
         (let ((beg (point))
@@ -194,11 +200,18 @@ it inserts and pretty-prints that arg at point."
                    (and
                     (save-excursion
                       (goto-char beg)
-                      (if (save-excursion (skip-chars-backward " \t({[',")
-                                          (bolp))
-                          ;; The sexp was already on its own line.
-                          nil
-                        (skip-chars-backward " \t")
+                      ;; We skip backward over open parens because cutting
+                      ;; the line right after an open paren does not help
+                      ;; reduce the indentation depth.
+                      ;; Similarly, we prefer to cut before a "." than after
+                      ;; it because it reduces the indentation depth.
+                      (while
+                          (progn
+                            (funcall avoid-unbreakable)
+                            (not (zerop (skip-chars-backward " \t({[',.")))))
+                      (if (bolp)
+                          ;; The sexp already starts on its own line.
+                          (progn (goto-char beg) nil)
                         (setq beg (copy-marker beg t))
                         (if paired (setq paired (copy-marker paired t)))
                         ;; We could try to undo this insertion if it
@@ -263,7 +276,7 @@ Non-interactively can also be called with a single argument, in which
 case that argument will be inserted pretty-printed at point."
   (interactive "r")
   (if (null end) (pp--object beg #'pp-29)
-    (save-restriction beg end
+    (with-restriction beg end
       (goto-char (point-min))
       (while (not (eobp))
         (cond
@@ -295,17 +308,24 @@ can handle, whenever this is possible.
 Uses the pretty-printing code specified in `pp-default-function'.
 
 Output stream is STREAM, or value of `standard-output' (which see)."
-  (cond
-   ((and (eq (or stream standard-output) (current-buffer))
-         ;; Make sure the current buffer is setup sanely.
-         (eq (syntax-table) emacs-lisp-mode-syntax-table)
-         (eq indent-line-function #'lisp-indent-line))
-    ;; Skip the buffer->string->buffer middle man.
-    (funcall pp-default-function object)
-    ;; Preserve old behavior of (usually) finishing with a newline.
-    (unless (bolp) (insert "\n")))
-   (t
-    (princ (pp-to-string object) (or stream standard-output)))))
+  (let ((stream (or stream standard-output)))
+    (cond
+     ((and (eq stream (current-buffer))
+           ;; Make sure the current buffer is setup sanely.
+           (eq (syntax-table) emacs-lisp-mode-syntax-table)
+           (eq indent-line-function #'lisp-indent-line))
+      ;; Skip the buffer->string->buffer middle man.
+      (funcall pp-default-function object)
+      ;; Preserve old behavior of (usually) finishing with a newline.
+      (unless (bolp) (insert "\n")))
+     (t
+      (save-current-buffer
+        (when (bufferp stream) (set-buffer stream))
+        (let ((begin (point))
+              (cols (current-column)))
+          (princ (pp-to-string object) (or stream standard-output))
+          (when (and (> cols 0) (bufferp stream))
+            (indent-rigidly begin (point) cols))))))))
 
 ;;;###autoload
 (defun pp-display-expression (expression out-buffer-name &optional lisp)
@@ -314,7 +334,8 @@ If LISP, format with `pp-emacs-lisp-code'; use `pp' otherwise.
 
 If a temporary buffer is needed for representation, it will be named
 after OUT-BUFFER-NAME."
-  (let* ((old-show-function temp-buffer-show-function)
+  (let* ((lexical lexical-binding)
+         (old-show-function temp-buffer-show-function)
 	 ;; Use this function to display the buffer.
 	 ;; This function either decides not to display it at all
 	 ;; or displays it in the usual way.
@@ -344,8 +365,26 @@ after OUT-BUFFER-NAME."
         (pp expression))
       (with-current-buffer standard-output
 	(emacs-lisp-mode)
+        (setq lexical-binding lexical)
 	(setq buffer-read-only nil)
         (setq-local font-lock-verbose nil)))))
+
+(defun pp-insert-short-sexp (sexp &optional width)
+  "Insert a short description of SEXP in the current buffer.
+WIDTH is the maximum width to use for it and it defaults to the
+space available between point and the window margin."
+  (let ((printed (format "%S" sexp)))
+    (if (and (not (string-search "\n" printed))
+	     (<= (string-width printed)
+	         (or width (- (window-width) (current-column)))))
+	(insert printed)
+      (insert-text-button
+       "[Show]"
+       'follow-link t
+       'action (lambda (&rest _ignore)
+                 ;; FIXME: Why "eval output"?
+                 (pp-display-expression sexp "*Pp Eval Output*"))
+       'help-echo "mouse-2, RET: pretty print value in another buffer"))))
 
 ;;;###autoload
 (defun pp-eval-expression (expression)
@@ -431,35 +470,44 @@ the bounds of a region containing Lisp code to pretty-print."
           (replace-match ""))
         (insert-into-buffer obuf)))))
 
+(defvar pp--quoting-syntaxes
+  `((quote    . "'")
+    (function . "#'")
+    (,backquote-backquote-symbol . "`")
+    (,backquote-unquote-symbol   . ",")
+    (,backquote-splice-symbol    . ",@")))
+
+(defun pp--quoted-or-unquoted-form-p (cons)
+  ;; Return non-nil when CONS has one of the forms 'X, `X, ,X or ,@X
+  (let ((head (car cons)))
+    (and (symbolp head)
+         (assq head pp--quoting-syntaxes)
+         (let ((rest (cdr cons)))
+           (and (consp rest) (null (cdr rest)))))))
+
 (defun pp--insert-lisp (sexp)
   (cl-case (type-of sexp)
     (vector (pp--format-vector sexp))
     (cons (cond
            ((consp (cdr sexp))
-            (if (and (length= sexp 2)
-                     (memq (car sexp) '(quote function)))
-                (cond
-                 ((symbolp (cadr sexp))
-                  (let ((print-quoted t))
-                    (prin1 sexp (current-buffer))))
-                 ((consp (cadr sexp))
-                  (insert (if (eq (car sexp) 'quote)
-                              "'" "#'"))
-                  (pp--format-list (cadr sexp)
-                                   (set-marker (make-marker) (1- (point))))))
-              (pp--format-list sexp)))
+            (let ((head (car sexp)))
+              (if-let* (((null (cddr sexp)))
+                        (syntax-entry (assq head pp--quoting-syntaxes)))
+                  (progn
+                    (insert (cdr syntax-entry))
+                    (pp--insert-lisp (cadr sexp)))
+                (pp--format-list sexp))))
            (t
-            (prin1 sexp (current-buffer)))))
+            (pp--format-list sexp))))
     ;; Print some of the smaller integers as characters, perhaps?
     (integer
      (if (<= ?0 sexp ?z)
-         (let ((print-integers-as-characters t))
-           (princ sexp (current-buffer)))
-       (princ sexp (current-buffer))))
+         (princ (prin1-char sexp) (current-buffer))
+       (prin1 sexp (current-buffer))))
     (string
      (let ((print-escape-newlines t))
        (prin1 sexp (current-buffer))))
-    (otherwise (princ sexp (current-buffer)))))
+    (otherwise (prin1 sexp (current-buffer)))))
 
 (defun pp--format-vector (sexp)
   (insert "[")
@@ -469,15 +517,29 @@ the bounds of a region containing Lisp code to pretty-print."
   (insert "]"))
 
 (defun pp--format-list (sexp &optional start)
-  (if (and (symbolp (car sexp))
-           (not pp--inhibit-function-formatting)
-           (not (keywordp (car sexp))))
+  (if (not (let ((head (car sexp)))
+             (or pp--inhibit-function-formatting
+                 (not (symbolp head))
+                 (keywordp head)
+                 (let ((l sexp))
+                   (catch 'not-funcall
+                     (while l
+                       (when (or
+                              (atom l) ; SEXP is a dotted list
+                              ;; Does SEXP have a form like (ELT... . ,X) ?
+                              (pp--quoted-or-unquoted-form-p l))
+                         (throw 'not-funcall t))
+                       (setq l (cdr l)))
+                     nil)))))
       (pp--format-function sexp)
     (insert "(")
     (pp--insert start (pop sexp))
     (while sexp
       (if (consp sexp)
-          (pp--insert " " (pop sexp))
+          (if (not (pp--quoted-or-unquoted-form-p sexp))
+              (pp--insert " " (pop sexp))
+            (pp--insert " . " sexp)
+            (setq sexp nil))
         (pp--insert " . " sexp)
         (setq sexp nil)))
     (insert ")")))
@@ -522,7 +584,8 @@ the bounds of a region containing Lisp code to pretty-print."
     (unless (consp edebug)
       (setq edebug nil))
     (if (and (consp (car edebug))
-             (eq (caar edebug) '&rest))
+             (eq (caar edebug) '&rest)
+             (proper-list-p (car sexp)))
         (pp--insert-binding (pop sexp))
       (if (null (car sexp))
           (insert "()")

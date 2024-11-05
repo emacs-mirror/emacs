@@ -1,9 +1,9 @@
 ;;; printing.el --- printing utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2001, 2003-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Keywords: wp, print, PostScript
+;; Keywords: text, print, PostScript
 ;; Old-Version: 6.9.3
 ;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
@@ -1148,8 +1148,7 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
 
 (defun pr-menu-get-item (name-list)
   ;; NAME-LIST is a string or a list of strings.
-  (or (listp name-list)
-      (setq name-list (list name-list)))
+  (setq name-list (ensure-list name-list))
   (and name-list
        (let* ((reversed (reverse name-list))
 	      (name (easy-menu-intern (car reversed)))
@@ -1321,10 +1320,10 @@ ENTRY		It's a symbol, used to identify this entry.
 			Unix system.
 
 		`cygwin'	this entry is used when Emacs is running on Windows
-			95/98/NT/2000 with Cygwin.
+                        98/NT/2000 with Cygwin.
 
 		`windows'	this entry is used when Emacs is running on Windows
-			95/98/NT/2000.
+                        98/NT/2000.
 
 DIRECTORY	It should be a string or a symbol.  If it's a symbol, it should
 		exist an equal entry in `pr-path-alist'.  If it's a string,
@@ -1664,7 +1663,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 			(pr-gs-device . (my-gs-device t))
 
 This variable should be modified by customization engine.  If this variable is
-modified by other means (for example, a lisp function), use `pr-update-menus'
+modified by other means (for example, a Lisp function), use `pr-update-menus'
 function (see it for documentation) to update PostScript printer menu.
 
 Examples:
@@ -1859,8 +1858,7 @@ Useful links:
   `http://pages.cs.wisc.edu/~ghost/gv/gv_doc/gv.html'
 
 * MacGSView (Mac OS)
-  `http://pages.cs.wisc.edu/~ghost/macos/index.htm'
-"
+  `http://pages.cs.wisc.edu/~ghost/macos/index.htm'"
   :type '(string :tag "Ghostview Utility"))
 
 
@@ -1884,8 +1882,7 @@ Useful links:
   `https://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
 
 * Printer compatibility
-  `https://www.cs.wisc.edu/~ghost/doc/printer.htm'
-"
+  `https://www.cs.wisc.edu/~ghost/doc/printer.htm'"
   :type '(string :tag "Ghostscript Utility"))
 
 
@@ -1925,8 +1922,7 @@ Useful links:
   `https://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
 
 * Printer compatibility
-  `https://www.cs.wisc.edu/~ghost/doc/printer.htm'
-"
+  `https://www.cs.wisc.edu/~ghost/doc/printer.htm'"
   :type '(repeat (string :tag "Ghostscript Switch")))
 
 
@@ -2336,7 +2332,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 
 		   (set VARIABLE (eval VALUE))
 
-		Note that VALUE can be any valid lisp expression.  So, don't
+                Note that VALUE can be any valid Lisp expression.  So, don't
 		forget to quote symbols and constant lists.
 		If VARIABLE is the special keyword `inherits-from:', VALUE must
 		be a symbol name setting defined in `pr-setting-database' from
@@ -2348,7 +2344,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 			(pr-gs-device . (my-gs-device t))
 
 This variable should be modified by customization engine.  If this variable is
-modified by other means (for example, a lisp function), use `pr-update-menus'
+modified by other means (for example, a Lisp function), use `pr-update-menus'
 function (see it for documentation) to update PostScript utility menu.
 
 NOTE: Don't forget to download and install the utilities declared on
@@ -5463,7 +5459,7 @@ otherwise, gives an error.
 When using `pr-path-alist' to find COMMAND, the entries `cygwin', `windows' and
 `unix' are used (see `pr-path-alist' for documentation).
 
-If Emacs is running on Windows 95/98/NT/2000, tries to find COMMAND,
+If Emacs is running on Windows 98/NT/2000, tries to find COMMAND,
 COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (if (string= command "")
       command
@@ -5519,7 +5515,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	  (setq ext (cdr ext)
 		found nil))
 	found)
-    ;; non-windows systems
+    ;; non-Windows systems
     (and (file-regular-p cmd)
 	 (file-executable-p cmd)
 	 cmd)))

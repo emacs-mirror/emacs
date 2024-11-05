@@ -1,6 +1,6 @@
 ;;; esh-var.el --- handling of variables  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -162,6 +162,13 @@ if they are quoted with a backslash."
     ("COLUMNS" ,(lambda () (window-body-width nil 'remap)) t t)
     ("LINES" ,(lambda () (window-body-height nil 'remap)) t t)
     ("INSIDE_EMACS" eshell-inside-emacs t)
+    ("PAGER" (,(lambda () (or comint-pager (getenv "PAGER")))
+              . ,(lambda (_ value)
+                   ;; When unsetting PAGER, be sure to clear its value
+                   ;; from `process-environment' too.
+                   (unless value (setenv "PAGER"))
+                   (setq comint-pager value)))
+     t t)
     ("UID" ,(lambda () (file-user-uid)) nil t)
     ("GID" ,(lambda () (file-group-gid)) nil t)
 
@@ -248,6 +255,20 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
 (defvar-keymap eshell-var-mode-map
   "C-c M-v" #'eshell-insert-envvar)
 
+;;; Internal Variables:
+
+(defvar eshell-in-local-scope-p nil
+  "Non-nil if the current command has a local variable scope.
+This is set to t in `eshell-local-variable-bindings' (which see).")
+
+(defvar eshell-local-variable-bindings
+  '((eshell-in-local-scope-p t)
+    (process-environment (eshell-copy-environment))
+    (eshell-variable-aliases-list eshell-variable-aliases-list)
+    (eshell-path-env-list eshell-path-env-list)
+    (comint-pager comint-pager))
+  "A list of `let' bindings for local variable (and subcommand) environments.")
+
 ;;; Functions:
 
 (define-minor-mode eshell-var-mode
@@ -262,12 +283,12 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
   ;; changing a variable will affect all of Emacs.
   (unless eshell-modify-global-environment
     (setq-local process-environment (eshell-copy-environment)))
+  (make-local-variable 'comint-pager)
   (setq-local eshell-subcommand-bindings
-              (append
-               '((process-environment (eshell-copy-environment))
-                 (eshell-variable-aliases-list eshell-variable-aliases-list)
-                 (eshell-path-env-list eshell-path-env-list))
-               eshell-subcommand-bindings))
+              (append eshell-local-variable-bindings
+                      eshell-subcommand-bindings))
+  (setq-local eshell-complex-commands
+	      (append '("env") eshell-complex-commands))
 
   (setq-local eshell-special-chars-inside-quoting
        (append eshell-special-chars-inside-quoting '(?$)))
@@ -285,45 +306,36 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
     (add-hook 'pcomplete-try-first-hook
 	      #'eshell-complete-variable-assignment nil t)))
 
+(defun eshell-parse-local-variables (args)
+  "Parse a list of ARGS, looking for variable assignments.
+Variable assignments are of the form \"VAR=value\".  If ARGS
+begins with any such assignments, throw `eshell-replace-command'
+with a form that will temporarily set those variables.
+Otherwise, return nil."
+  ;; Handle local variable settings by let-binding the entries in
+  ;; `eshell-local-variable-bindings' and calling `eshell-set-variable'
+  ;; for each variable before the command is invoked.
+  (let ((setvar "\\`\\([A-Za-z_][A-Za-z0-9_]*\\)=\\(.*\\)\\'")
+        (head (car args))
+        (rest (cdr args)))
+    (when (and (stringp head) (string-match setvar head))
+      (throw 'eshell-replace-command
+             `(let ,eshell-local-variable-bindings
+                ,@(let (locals)
+                    (while (and (stringp head)
+                                (string-match setvar head))
+                      (push `(eshell-set-variable
+                              ,(match-string 1 head)
+                              ,(match-string 2 head))
+                            locals)
+                      (setq head (pop rest)))
+                    (nreverse locals))
+                 (eshell-named-command ,head ',rest))))))
+
 (defun eshell-handle-local-variables ()
   "Allow for the syntax `VAR=val <command> <args>'."
-  ;; strip off any null commands, which can only happen if a variable
-  ;; evaluates to nil, such as "$var x", where `var' is nil.  The
-  ;; command name in that case becomes `x', for compatibility with
-  ;; most regular shells (the difference is that they do an
-  ;; interpolation pass before the argument parsing pass, but Eshell
-  ;; does both at the same time).
-  (while (and (not eshell-last-command-name)
-	      eshell-last-arguments)
-    (setq eshell-last-command-name (car eshell-last-arguments)
-	  eshell-last-arguments (cdr eshell-last-arguments)))
-  (let ((setvar "\\`\\([A-Za-z_][A-Za-z0-9_]*\\)=\\(.*\\)\\'")
-	(command (eshell-stringify eshell-last-command-name))
-	(args eshell-last-arguments))
-    ;; local variable settings (such as 'CFLAGS=-O2 make') are handled
-    ;; by making the whole command into a subcommand, and calling
-    ;; setenv immediately before the command is invoked.  This means
-    ;; that 'BLAH=x cd blah' won't work exactly as expected, but that
-    ;; is by no means a typical use of local environment variables.
-    (if (and command (string-match setvar command))
-	(throw
-	 'eshell-replace-command
-	 (list
-	  'eshell-as-subcommand
-	  (append
-	   (list 'progn)
-	   (let ((l (list t)))
-	     (while (string-match setvar command)
-	       (nconc
-		l (list
-                   (list 'eshell-set-variable
-                         (match-string 1 command)
-                         (match-string 2 command))))
-	       (setq command (eshell-stringify (car args))
-		     args (cdr args)))
-	     (cdr l))
-	   (list (list 'eshell-named-command
-		       command (list 'quote args)))))))))
+  (eshell-parse-local-variables (cons eshell-last-command-name
+                                      eshell-last-arguments)))
 
 (defun eshell-interpolate-variable ()
   "Parse a variable interpolation.
@@ -413,19 +425,22 @@ the values of nil for each."
 					       obarray #'boundp))
 	      (pcomplete-here))))
 
-;; FIXME the real "env" command does more than this, it runs a program
-;; in a modified environment.
 (defun eshell/env (&rest args)
   "Implementation of `env' in Lisp."
-  (eshell-init-print-buffer)
   (eshell-eval-using-options
    "env" args
-   '((?h "help" nil nil "show this usage screen")
+   '(;; FIXME: Support more "env" options, like "--unset".
+     (?h "help" nil nil "show this usage screen")
      :external "env"
-     :usage "<no arguments>")
-   (dolist (setting (sort (eshell-environment-variables) 'string-lessp))
-     (eshell-buffered-print setting "\n"))
-   (eshell-flush)))
+     :parse-leading-options-only
+     :usage "[NAME=VALUE]... [COMMAND]...")
+   (if args
+       (or (eshell-parse-local-variables args)
+           (throw 'eshell-replace-command
+                  `(eshell-named-command ,(car args) ',(cdr args))))
+     (eshell-with-buffered-print
+       (dolist (setting (sort (eshell-environment-variables) 'string-lessp))
+         (eshell-buffered-print setting "\n"))))))
 
 (defun eshell-insert-envvar (envvar-name)
   "Insert ENVVAR-NAME into the current buffer at point."
@@ -480,7 +495,7 @@ process any indices that come after the variable reference."
       (if splice
           (setq value `(eshell-list-to-string ,value)
                 splice nil)
-        (setq value `(eshell-stringify ,value))))
+        (setq value `(eshell-stringify ,value t))))
     (setq value `(eshell-escape-arg ,value))
     (when splice
       (setq value `(eshell-splice-args ,value)))
@@ -539,24 +554,22 @@ Possible variable references are:
              (subcmd (or (eshell-unescape-inner-double-quote end)
                          (cons (point) end))))
         (prog1
-            `(let ((eshell-current-handles
-                    (eshell-create-handles ,temp 'overwrite)))
-               (progn
-                 (eshell-as-subcommand
-                  ,(let ((eshell-current-quoted nil))
-                     (eshell-parse-command subcmd)))
-                 (ignore
-                  (nconc eshell-this-command-hook
-                         ;; Quote this lambda; it will be evaluated by
-                         ;; `eshell-do-eval', which requires very
-                         ;; particular forms in order to work
-                         ;; properly.  See bug#54190.
-                         (list (function
-                                (lambda ()
-                                  (delete-file ,temp)
-                                  (when-let ((buffer (get-file-buffer ,temp)))
-                                    (kill-buffer buffer)))))))
-                 (eshell-apply-indices ,temp indices ,eshell-current-quoted)))
+            `(eshell-with-handles (,temp 'overwrite)
+               (eshell-as-subcommand
+                ,(let ((eshell-current-quoted nil))
+                   (eshell-parse-command subcmd)))
+               (ignore
+                (nconc eshell-this-command-hook
+                       ;; Quote this lambda; it will be evaluated by
+                       ;; `eshell-do-eval', which requires very
+                       ;; particular forms in order to work
+                       ;; properly.  See bug#54190.
+                       (list (function
+                              (lambda ()
+                                (delete-file ,temp)
+                                (when-let* ((buffer (get-file-buffer ,temp)))
+                                  (kill-buffer buffer)))))))
+               (eshell-apply-indices ,temp indices ,eshell-current-quoted))
           (goto-char (1+ end))))))
    ((eq (char-after) ?\()
     (condition-case nil
@@ -574,11 +587,11 @@ Possible variable references are:
         (or (eshell-unescape-inner-double-quote (point-max))
             (cons (point) (point-max)))
       (let (name)
-        (when-let ((delim
-                    (catch 'eshell-incomplete
-                      (ignore (setq name (if (eq (char-after) ?\')
-                                             (eshell-parse-literal-quote)
-                                           (eshell-parse-double-quote)))))))
+        (when-let* ((delim
+                     (catch 'eshell-incomplete
+                       (ignore (setq name (if (eq (char-after) ?\')
+                                              (eshell-parse-literal-quote)
+                                            (eshell-parse-double-quote)))))))
           (throw 'eshell-incomplete (concat "$" delim)))
         (when name
           `(eshell-get-variable ,(eval name) indices ,eshell-current-quoted)))))
@@ -593,8 +606,6 @@ Possible variable references are:
       (goto-char (match-end 0))))
    (t
     (error "Invalid variable reference"))))
-
-(defvar eshell-glob-function)
 
 (defun eshell-parse-indices ()
   "Parse and return a list of index-lists.
@@ -612,7 +623,7 @@ For example, \"[0 1][2]\" becomes:
 	  (forward-char)
           (eshell-with-temp-command (or (eshell-unescape-inner-double-quote end)
                                         (cons (point) end))
-	    (let (eshell-glob-function (eshell-current-quoted nil))
+	    (let ((eshell-current-quoted nil))
 	      (setq indices (cons (eshell-parse-arguments
                                    (point-min) (point-max))
 				  indices))))
@@ -630,24 +641,13 @@ in the cons is nil.
 
 Otherwise (including if INDEX is not a string), return
 the original value of INDEX."
-  (save-match-data
-    (cond
-     ((and (stringp index) (get-text-property 0 'number index))
-      (string-to-number index))
-     ((and (stringp index)
-           (not (text-property-any 0 (length index) 'escaped t index))
-           (string-match (rx string-start
-                             (group-n 1 (? (regexp eshell-integer-regexp)))
-                             ".."
-                             (group-n 2 (? (regexp eshell-integer-regexp)))
-                             string-end)
-                         index))
-      (let ((begin (match-string 1 index))
-            (end (match-string 2 index)))
-        (cons (unless (string-empty-p begin) (string-to-number begin))
-              (unless (string-empty-p end) (string-to-number end)))))
-     (t
-      index))))
+  (cond
+   ((eshell--numeric-string-p index)
+    (string-to-number index))
+   ((eshell--range-string-p index)
+    (eshell--string-to-range index))
+   (t
+    index)))
 
 (defun eshell-eval-indices (indices)
   "Evaluate INDICES, a list of index-lists generated by `eshell-parse-indices'."
@@ -657,13 +657,15 @@ the original value of INDEX."
 (defun eshell-prepare-indices (indices)
   "Prepare INDICES to be evaluated by Eshell.
 INDICES is a list of index-lists generated by `eshell-parse-indices'."
-  `(list ,@(mapcar (lambda (idx-list) (cons 'list idx-list)) indices)))
+  `(list ,@(mapcar (lambda (idx-list)
+                     (cons 'list (mapcar #'eshell-term-as-value idx-list)))
+                   indices)))
 
 (defun eshell-get-variable (name &optional indices quoted)
   "Get the value for the variable NAME.
 INDICES is a list of index-lists (see `eshell-parse-indices').
 If QUOTED is non-nil, this was invoked inside double-quotes."
-  (if-let ((alias (assoc name eshell-variable-aliases-list)))
+  (if-let* ((alias (assoc name eshell-variable-aliases-list)))
       (let ((target (nth 1 alias)))
         (when (and (not (functionp target))
                    (consp target))
@@ -702,7 +704,7 @@ If QUOTED is non-nil, this was invoked inside double-quotes."
 NAME can be a string (in which case it refers to an environment
 variable or variable alias) or a symbol (in which case it refers
 to a Lisp variable)."
-  (if-let ((alias (assoc name eshell-variable-aliases-list)))
+  (if-let* ((alias (assoc name eshell-variable-aliases-list)))
       (let ((target (nth 1 alias)))
         (cond
          ((functionp target)
@@ -713,7 +715,7 @@ to a Lisp variable)."
          ((functionp target)
           (funcall target nil value))
          ((null target)
-          (unless eshell-in-subcommand-p
+          (unless eshell-in-local-scope-p
             (error "Variable `%s' is not settable" (eshell-stringify name)))
           (push `(,name ,(lambda () value) t t)
                 eshell-variable-aliases-list)
@@ -750,11 +752,10 @@ Otherwise, each INT-OR-NAME refers to an element of the list value.
 Integers imply a direct index, and names, an associate lookup using
 `assoc'.
 
-If QUOTED is non-nil, this was invoked inside double-quotes.
-This affects the behavior of splitting strings: without quoting,
-the split values are converted to numbers via
-`eshell-convert-to-number' if possible; with quoting, they're
-left as strings.
+If QUOTED is non-nil, this was invoked inside double-quotes.  This
+affects the behavior of splitting strings: without quoting, the split
+values are marked as numbers via `eshell-mark-numeric-string' if
+possible; with quoting, they're left as plain strings.
 
 For example, to retrieve the second element of a user's record in
 '/etc/passwd', the variable reference would look like:
@@ -770,7 +771,7 @@ For example, to retrieve the second element of a user's record in
                 refs (cdr refs)))
         (setq value (split-string value separator))
         (unless quoted
-          (setq value (mapcar #'eshell-convert-to-number value)))))
+          (setq value (mapcar #'eshell-mark-numeric-string value)))))
     (cond
      ((< (length refs) 0)
       (error "Invalid array variable index: %s"
@@ -783,14 +784,6 @@ For example, to retrieve the second element of a user's record in
           (push (eshell-index-value value ref) new-value))
         (setq value (nreverse new-value)))))))
 
-(pcase-defmacro eshell-index-range (start end)
-  "A pattern that matches an Eshell index range.
-EXPVAL should be a cons cell, with each slot containing either an
-integer or nil.  If this matches, bind the values of the sltos to
-START and END."
-  (list '\` (cons (list '\, `(and (or (pred integerp) (pred null)) ,start))
-                  (list '\, `(and (or (pred integerp) (pred null)) ,end)))))
-
 (defun eshell-index-value (value index)
   "Reference VALUE using the given INDEX."
   (let ((parsed-index (eshell-parse-index index)))
@@ -798,15 +791,17 @@ START and END."
         (pcase parsed-index
           ((pred integerp)
            (ring-ref value parsed-index))
-          ((eshell-index-range start end)
+          ((pred eshell-range-p)
            (let* ((len (ring-length value))
-                  (real-start (mod (or start 0) len))
+                  (begin (eshell-range-begin parsed-index))
+                  (end (eshell-range-end parsed-index))
+                  (real-begin (mod (or begin 0) len))
                   (real-end (mod (or end len) len)))
              (when (and (eq real-end 0)
                         (not (eq end 0)))
                (setq real-end len))
              (ring-convert-sequence-to-ring
-              (seq-subseq (ring-elements value) real-start real-end))))
+              (seq-subseq (ring-elements value) real-begin real-end))))
           (_
            (error "Invalid index for ring: %s" index)))
       (pcase parsed-index
@@ -814,8 +809,9 @@ START and END."
          (when (< parsed-index 0)
            (setq parsed-index (+ parsed-index (length value))))
          (seq-elt value parsed-index))
-        ((eshell-index-range start end)
-         (seq-subseq value (or start 0) end))
+        ((pred eshell-range-p)
+         (seq-subseq value (or (eshell-range-begin parsed-index) 0)
+                     (eshell-range-end parsed-index)))
         (_
          ;; INDEX is some non-integer value, so treat VALUE as an alist.
          (cdr (assoc parsed-index value)))))))
@@ -827,10 +823,10 @@ START and END."
   (let ((arg (pcomplete-actual-arg)))
     (when (string-match
            (rx "$" (? (or "#" "@"))
-               (? (or (group-n 1 (regexp eshell-variable-name-regexp)
-                               string-end)
-                      (seq (group-n 2 (or "'" "\""))
-                           (group-n 1 (+ anychar))))))
+               (or (group-n 1 (? (regexp eshell-variable-name-regexp))
+                            string-end)
+                   (seq (group-n 2 (or "'" "\""))
+                        (group-n 1 (+ anychar)))))
            arg)
       (setq pcomplete-stub (substring arg (match-beginning 1)))
       (let ((delimiter (match-string 2 arg)))

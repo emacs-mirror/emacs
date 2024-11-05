@@ -1,4 +1,4 @@
-/* Copyright (C) 1985-1988, 1990, 1992, 1999-2023 Free Software
+/* Copyright (C) 1985-1988, 1990, 1992, 1999-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -181,10 +181,9 @@ typedef struct {
 /* The code often converts ElfW (Half) values like e_shentsize to ptrdiff_t;
    check that this doesn't lose information.  */
 #include <intprops.h>
-#include <verify.h>
-verify ((! TYPE_SIGNED (ElfW (Half))
-	 || PTRDIFF_MIN <= TYPE_MINIMUM (ElfW (Half)))
-	&& TYPE_MAXIMUM (ElfW (Half)) <= PTRDIFF_MAX);
+static_assert ((! TYPE_SIGNED (ElfW (Half))
+		|| PTRDIFF_MIN <= TYPE_MINIMUM (ElfW (Half)))
+	       && TYPE_MAXIMUM (ElfW (Half)) <= PTRDIFF_MAX);
 
 #ifdef UNEXELF_DEBUG
 # define DEBUG_LOG(expr) fprintf (stderr, #expr " 0x%"PRIxMAX"\n", \
@@ -306,6 +305,8 @@ unexec (const char *new_name, const char *old_name)
 	old_bss_seg = seg;
     }
   eassume (old_bss_seg);
+  if (!old_bss_seg)
+    emacs_abort ();
 
   /* Note that old_bss_addr may be lower than the first bss section
      address, since the section may need aligning.  */

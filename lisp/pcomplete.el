@@ -1,6 +1,6 @@
 ;;; pcomplete.el --- programmable completion -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes abbrev
@@ -137,6 +137,11 @@
 (defcustom pcomplete-dir-ignore nil
   "A regexp of names to be disregarded during directory completion."
   :type '(choice regexp (const :tag "None" nil)))
+
+(defcustom pcomplete-remote-file-ignore nil
+  "Whether to ignore remote file names."
+  :version "30.1"
+  :type 'boolean)
 
 (define-obsolete-variable-alias 'pcomplete-ignore-case 'completion-ignore-case
   "28.1")
@@ -465,6 +470,8 @@ Same as `pcomplete' but using the standard completion UI."
            ;; rely less on c-t-subvert.
            (beg (max (- (point) (length pcomplete-stub))
                      argbeg))
+           (end (point))
+           tmp
            buftext)
       ;; Try and improve our guess of `beg' in case the difference
       ;; between pcomplete-stub and the buffer's text is simply due to
@@ -472,11 +479,19 @@ Same as `pcomplete' but using the standard completion UI."
       ;; indispensable but reduces the reliance on c-t-subvert and
       ;; improves corner case behaviors.
       (while (progn (setq buftext (pcomplete-unquote-argument
-                                   (buffer-substring beg (point))))
+                                   (buffer-substring beg end)))
                     (and (> beg argbeg)
                          (> (length pcomplete-stub) (length buftext))))
         (setq beg (max argbeg (- beg (- (length pcomplete-stub)
                                         (length buftext))))))
+      ;; Try and improve our guess of `end' in case it's not point.
+      (while (and (< (length buftext) (length pcomplete-stub))
+                  (< end (point-max))
+                  (string-prefix-p (setq tmp (pcomplete-unquote-argument
+                                              (buffer-substring beg (1+ end))))
+                                   pcomplete-stub))
+        (setq end (1+ end))
+        (setq buftext tmp))
       (when completions
         (let ((table
                (completion-table-with-quoting
@@ -510,7 +525,7 @@ Same as `pcomplete' but using the standard completion UI."
                            seen)))))))
           (when completion-ignore-case
             (setq table (completion-table-case-fold table)))
-          (list beg (point) table
+          (list beg end table
                 :annotation-function
                 (lambda (cand)
                   (when (stringp cand)
@@ -670,35 +685,13 @@ parts of the list.
 
 The OFFSET argument is added to/taken away from the index that will be
 used.  This is really only useful with `first' and `last', for
-accessing absolute argument positions.
-
-When the argument has been transformed into something that is not
-a string by `pcomplete-parse-arguments-function', the text
-representation of the argument, namely what the user actually
-typed in, is returned, and the value of the argument is stored in
-the pcomplete-arg-value text property of that string."
-  (let ((arg
-         (nth (+ (pcase index
-	           ('first 0)
-	           ('last  pcomplete-last)
-	           (_      (- pcomplete-index (or index 0))))
-	         (or offset 0))
-              pcomplete-args)))
-    (if (or (stringp arg)
-            ;; FIXME: 'last' is handled specially in Emacs 29, because
-            ;; 'pcomplete-parse-arguments' accepts a list of strings
-            ;; (which are completion candidates) as return value for
-            ;; (pcomplete-arg 'last).  See below: "it means it's a
-            ;; list of completions computed during parsing,
-            ;; e.g. Eshell uses that to turn globs into lists of
-            ;; completions".  This special case will be dealt with
-            ;; differently in Emacs 30: the pcomplete-arg-value
-            ;; property will be used by 'pcomplete-parse-arguments'.
-            (eq index 'last))
-        arg
-      (propertize
-       (car (split-string (pcomplete-actual-arg index offset)))
-       'pcomplete-arg-value arg))))
+accessing absolute argument positions."
+  (nth (+ (pcase index
+            ('first 0)
+            ('last  pcomplete-last)
+            (_      (- pcomplete-index (or index 0))))
+          (or offset 0))
+       pcomplete-args))
 
 (defun pcomplete-begin (&optional index offset)
   "Return the beginning position of the INDEXth argument.
@@ -909,14 +902,16 @@ this is `comint-dynamic-complete-functions'."
                      (and dir-ignore (string-match dir-ignore file))
                    (and file-ignore (string-match file-ignore file))))))))
          (reg-pred (if regexp (lambda (file) (string-match regexp file))))
-         (pred (cond
-                ((null (or ign-pred reg-pred))  predicate)
-                ((null (or ign-pred predicate)) reg-pred)
-                ((null (or reg-pred predicate)) ign-pred)
-                (t (lambda (f)
+         ;; `completion-file-name-table' calls `file-exists-p' when
+         ;; the predicate is nil.
+         ;; So likewise, defer to PREDICATE if it's there, else take
+         ;; ourselves to be responsible for calling `file-exists-p'.
+         (pred (if (or ign-pred reg-pred)
+                   (lambda (f)
                      (and (or (null reg-pred)  (funcall reg-pred f))
                           (or (null ign-pred)  (funcall ign-pred f))
-                          (or (null predicate) (funcall predicate f))))))))
+                          (funcall (or predicate #'file-exists-p) f)))
+                 predicate)))
     (lambda (s p a)
       (if (and (eq a 'metadata) pcomplete-compare-entry-function)
           `(metadata (cycle-sort-function
@@ -924,7 +919,10 @@ this is `comint-dynamic-complete-functions'."
                            (sort comps pcomplete-compare-entry-function)))
                      ,@(cdr (completion-file-name-table s p a)))
         (let ((completion-ignored-extensions nil)
-	      (completion-ignore-case completion-ignore-case))
+	      (completion-ignore-case completion-ignore-case)
+              (tramp-mode (and tramp-mode (not pcomplete-remote-file-ignore)))
+              (non-essential (not (file-remote-p s)))
+              (minibuffer-completing-file-name (not (file-remote-p s))))
           (completion-table-with-predicate
            #'comint-completion-file-name-table pred 'strict s p a))))))
 
@@ -1142,7 +1140,7 @@ Typing SPC flushes the help buffer."
   (let (event)
     (prog1
         (catch 'done
-          (while (with-current-buffer (get-buffer "*Completions*")
+          (while (with-current-buffer "*Completions*"
                    (setq event (read-event)))
             (cond
              ((eq event ?\s)
@@ -1322,7 +1320,8 @@ If specific documentation can't be given, be generic."
   "Sort and remove multiples in SEQUENCE.
 Sequence should be a vector or list of strings."
   (sort (seq-uniq sequence) #'string-lessp))
-(define-obsolete-function-alias 'pcomplete-uniqify-list #'pcomplete-uniquify-list "27.1")
+(define-obsolete-function-alias
+  'pcomplete-uniqify-list #'pcomplete-uniquify-list "27.1")
 
 (defun pcomplete-process-result (cmd &rest args)
   "Call CMD using `call-process' and return the simplest result."

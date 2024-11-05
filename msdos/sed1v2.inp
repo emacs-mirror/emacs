@@ -2,7 +2,7 @@
 # Configuration script for src/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1996-1997, 1999-2023 Free Software Foundation, Inc.
+# Copyright (C) 1996-1997, 1999-2024 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -175,9 +175,6 @@ s/ *@WEBP_LIBS@//
 /^CANNOT_DUMP *=/s/@CANNOT_DUMP@/no/
 /^W32_OBJ *=/s/@W32_OBJ@//
 /^W32_LIBS *=/s/@W32_LIBS@//
-/^JSON_OBJ *=/s/@JSON_OBJ@//
-/^JSON_CFLAGS *=/s/@JSON_CFLAGS@//
-/^JSON_LIBS *=/s/@JSON_LIBS@//
 /^LIBGCCJIT_OBJ *=/s/@LIBGCCJIT_OBJ@//
 /^LIBGCCJIT_CFLAGS *=/s/@LIBGCCJIT_CFLAGS@//
 /^LIBGCCJIT_LIBS *=/s/@LIBGCCJIT_LIBS@//

@@ -1,6 +1,6 @@
 ;;; gnus-dired.el --- utility functions where gnus and dired meet  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2024 Free Software Foundation, Inc.
 
 ;; Authors: Benjamin Rutt <brutt@bloomington.in.us>,
 ;;          Shenghuo Zhu <zsh@cs.rochester.edu>
@@ -24,15 +24,15 @@
 ;;; Commentary:
 
 ;; This package provides utility functions for intersections of gnus
-;; and dired.  To enable the gnus-dired-mode minor mode which will
+;; and Dired.  To enable the gnus-dired-mode minor mode which will
 ;; have the effect of installing keybindings in dired-mode, place the
 ;; following in your ~/.gnus:
 
 ;; (require 'gnus-dired) ;, isn't needed due to autoload cookies
 ;; (add-hook 'dired-mode-hook #'turn-on-gnus-dired-mode)
 
-;; Note that if you visit dired buffers before your ~/.gnus file has
-;; been read, those dired buffers won't have the keybindings in
+;; Note that if you visit Dired buffers before your ~/.gnus file has
+;; been read, those Dired buffers won't have the keybindings in
 ;; effect.  To get around that problem, you may want to add the above
 ;; statements to your ~/.emacs instead.
 
@@ -81,7 +81,7 @@ See `mail-user-agent' for more information."
 		(function :tag "Other")))
 
 (define-minor-mode gnus-dired-mode
-  "Minor mode for intersections of gnus and dired.
+  "Minor mode for intersections of gnus and Dired.
 
 \\{gnus-dired-mode-map}"
   :keymap gnus-dired-mode-map
@@ -111,9 +111,15 @@ See `mail-user-agent' for more information."
 
 (autoload 'gnus-completing-read "gnus-util")
 
+(defcustom gnus-dired-attach-at-end t
+  "Non-nil means that files should be attached at the end of a buffer."
+  :group 'mail ;; dired?
+  :version "30.1"
+  :type 'boolean)
+
 ;; Method to attach files to a mail composition.
 (defun gnus-dired-attach (files-to-attach)
-  "Attach dired's marked files to a gnus message composition.
+  "Attach Dired's marked files to a gnus message composition.
 If called non-interactively, FILES-TO-ATTACH should be a list of
 filenames."
   (interactive
@@ -161,7 +167,8 @@ filenames."
 
       ;; set buffer to destination buffer, and attach files
       (set-buffer destination)
-      (goto-char (point-max))		;attach at end of buffer
+      (when gnus-dired-attach-at-end
+        (goto-char (point-max)))		;attach at end of buffer
       (while files-to-attach
 	(mml-attach-file (car files-to-attach)
 			 (or (mm-default-file-type (car files-to-attach))
@@ -173,7 +180,7 @@ filenames."
 (autoload 'mailcap-parse-mailcaps "mailcap" "" t)
 
 (defun gnus-dired-find-file-mailcap (&optional file-name arg)
-  "In dired, visit FILE-NAME according to the mailcap file.
+  "In Dired, visit FILE-NAME according to the mailcap file.
 If ARG is non-nil, open it in a new buffer."
   (interactive (list
 		(file-name-sans-versions (dired-get-filename) t)
@@ -208,7 +215,7 @@ If ARG is non-nil, open it in a new buffer."
               "File no longer exists; type \\`g' to update Dired buffer")))))
 
 (defun gnus-dired-print (&optional file-name print-to)
-  "In dired, print FILE-NAME according to the mailcap file.
+  "In Dired, print FILE-NAME according to the mailcap file.
 
 If there is no print command, print in a PostScript image.  If the
 optional argument PRINT-TO is nil, send the image to the printer.

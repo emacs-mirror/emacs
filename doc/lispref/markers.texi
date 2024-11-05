@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Markers
@@ -281,6 +281,14 @@ marker object.
 @defun marker-position marker
 This function returns the position that @var{marker} points to, or
 @code{nil} if it points nowhere.
+@end defun
+
+@defun marker-last-position marker
+This function returns the last known position of @var{marker} in its
+buffer.  It behaves like @code{marker-position} with one exception: if
+the buffer of @var{marker} has been killed, it returns the last position
+of @var{marker} in that buffer before the buffer was killed, instead of
+returning @code{nil}.
 @end defun
 
 @defun marker-buffer marker

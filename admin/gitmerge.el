@@ -1,6 +1,6 @@
 ;;; gitmerge.el --- help merge one Emacs branch into another  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 ;; Authors: David Engster <deng@randomsample.de>
 ;;          Stefan Monnier <monnier@iro.umontreal.ca>
@@ -111,10 +111,10 @@ If nil, the function `gitmerge-default-branch' guesses.")
 
 (defvar gitmerge-mode-font-lock-keywords
   `((,gitmerge-log-regexp
-     (1 font-lock-warning-face)
-     (2 font-lock-constant-face)
-     (3 font-lock-builtin-face)
-     (4 font-lock-comment-face))))
+     (1 'font-lock-warning-face)
+     (2 'font-lock-constant-face)
+     (3 'font-lock-builtin-face)
+     (4 'font-lock-comment-face))))
 
 (defvar gitmerge--commits nil)
 (defvar gitmerge--from nil)

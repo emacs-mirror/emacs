@@ -1,6 +1,6 @@
 ;;; em-pred.el --- argument predicates and modifiers (ala zsh)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -48,7 +48,7 @@
 
 (require 'esh-mode)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-pred nil
   "This module allows for predicates to be applied to globbing
@@ -261,8 +261,8 @@ respectively.")
 
 (defun eshell-pred-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the predicate/modifier code."
-  (add-hook 'eshell-parse-argument-hook
-	    #'eshell-parse-arg-modifier t t)
+  ;; Make sure this function runs before `eshell-parse-glob-chars'.
+  (add-hook 'eshell-parse-argument-hook #'eshell-parse-arg-modifier 50 t)
   (eshell-pred-mode))
 
 (defun eshell-apply-modifiers (lst predicates modifiers string-desc)
@@ -301,16 +301,15 @@ This function is specially for adding onto `eshell-parse-argument-hook'."
                    (modifiers (eshell-parse-modifiers))
 		   (preds (car modifiers))
 		   (mods (cdr modifiers)))
-	      (if (or preds mods)
-		  ;; has to go at the end, which is only natural since
-		  ;; syntactically it can only occur at the end
-		  (setq eshell-current-modifiers
-			(append
-			 eshell-current-modifiers
-			 (list
-			  (lambda (lst)
-			    (eshell-apply-modifiers
-			     lst preds mods modifier-string))))))))
+              (when (or preds mods)
+                ;; Has to go near the end (but before
+                ;; `eshell-splice-args'), which is only natural since
+                ;; syntactically it can only occur at the end.
+                (add-hook 'eshell-current-modifiers
+                          (lambda (lst)
+                            (eshell-apply-modifiers
+                             lst preds mods modifier-string))
+                          90))))
 	  (goto-char (1+ end))
 	  (eshell-finish-arg))))))
 
@@ -418,7 +417,7 @@ delimiter.
 If CHAINED-P is true, then another delimited modifier argument
 will immediately follow this one.  In this case, when the opening
 and closing delimiters are the same, update point to be just
-before the closing delimiter. This allows modifiers like
+before the closing delimiter.  This allows modifiers like
 `:s/match/repl' to work as expected."
   (when-let* ((open (char-after))
               (close (cdr (assoc open eshell-pred-delimiter-pairs)))
@@ -443,7 +442,7 @@ before the closing delimiter. This allows modifiers like
       (error "Unknown %s name specified for modifier `%c'"
 	     mod-type mod-char))
     (lambda (file)
-      (when-let ((attrs (file-attributes file)))
+      (when-let* ((attrs (file-attributes file)))
 	(= (nth attr-index attrs) ugid)))))
 
 (defun eshell-pred-file-time (mod-char mod-type attr-index)
@@ -468,7 +467,7 @@ before the closing delimiter. This allows modifiers like
                 (list #'time-less-p
                       (lambda (a b) (time-less-p b a))
                       #'time-equal-p)))
-    (if-let ((number (eshell-get-numeric-modifier-argument)))
+    (if-let* ((number (eshell-get-numeric-modifier-argument)))
         (setq when (time-since (* number quantum)))
       (let* ((file (or (eshell-get-delimited-modifier-argument)
                        (error "Malformed %s time modifier `%c'"
@@ -477,7 +476,7 @@ before the closing delimiter. This allows modifiers like
                         (error "Cannot stat file `%s'" file))))
         (setq when (nth attr-index attrs))))
     (lambda (file)
-      (when-let ((attrs (file-attributes file)))
+      (when-let* ((attrs (file-attributes file)))
         (funcall qual when (nth attr-index attrs))))))
 
 (defun eshell-pred-file-type (type)
@@ -493,13 +492,13 @@ that `ls -l' will show in the first column of its display."
 		 '(?b ?c)
 	       (list type))))
     (lambda (file)
-      (when-let ((attrs (eshell-file-attributes (directory-file-name file))))
+      (when-let* ((attrs (eshell-file-attributes (directory-file-name file))))
 	(memq (aref (file-attribute-modes attrs) 0) set)))))
 
 (defsubst eshell-pred-file-mode (mode)
   "Return a test which tests that MODE pertains to the file."
   (lambda (file)
-    (when-let ((modes (file-modes file 'nofollow)))
+    (when-let* ((modes (file-modes file 'nofollow)))
       (not (zerop (logand mode modes))))))
 
 (defun eshell-pred-file-links ()
@@ -508,7 +507,7 @@ that `ls -l' will show in the first column of its display."
         (amount (or (eshell-get-numeric-modifier-argument)
                     (error "Invalid file link count modifier `l'"))))
     (lambda (file)
-      (when-let ((attrs (eshell-file-attributes file)))
+      (when-let* ((attrs (eshell-file-attributes file)))
 	  (funcall qual (file-attribute-link-number attrs) amount)))))
 
 (defun eshell-pred-file-size ()
@@ -529,7 +528,7 @@ that `ls -l' will show in the first column of its display."
                         (error "Invalid file size modifier `L'"))
                     quantum))
     (lambda (file)
-      (when-let ((attrs (eshell-file-attributes file)))
+      (when-let* ((attrs (eshell-file-attributes file)))
 	(funcall qual (file-attribute-size attrs) amount)))))
 
 (defun eshell-pred-substitute (&optional repeat)
@@ -577,9 +576,4 @@ If INVERT-P is non-nil, include only members not matching a regexp."
        lst))))
 
 (provide 'em-pred)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-pred.el ends here

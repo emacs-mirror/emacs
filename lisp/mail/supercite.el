@@ -1,6 +1,6 @@
 ;;; supercite.el --- minor mode for citing mail and news replies  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2024 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -727,7 +727,7 @@ If optional ATTRIBS-P is non-nil, the key/value pair is placed in
 
 ;; mail header nuking
 (defvar sc-mail-last-header-nuked-p nil
-  "True if the last header was nuked.")
+  "Non-nil if the last header was nuked.")
 
 (defun sc-mail-nuke-line ()
   "Nuke the current mail header line."
@@ -817,7 +817,7 @@ If there was no mail header with FIELD as its key, return the value of
 
 (defun sc-mail-field-query (arg)
   "View the value of a mail field.
-With `\\[universal-argument]', prompts for action on mail field.
+With \\[universal-argument], prompts for action on mail field.
 Action can be one of: View, Modify, Add, or Delete."
   (interactive "P")
   (let* ((alist '(("view" . ?v) ("modify" . ?m) ("add" . ?a) ("delete" . ?d)))
@@ -1244,9 +1244,7 @@ to the auto-selected attribution string."
 
 
 ;; ======================================================================
-;; filladapt hooks for supercite 3.1. you shouldn't need anything
-;; extra to make gin-mode understand supercited lines.  Even this
-;; stuff might not be entirely necessary...
+;; filladapt hooks for supercite 3.1.
 
 (defun sc-cite-regexp (&optional root-regexp)
   "Return a regexp describing a Supercited line.
@@ -1710,7 +1708,7 @@ Numeric ARG indicates which header style from `sc-rewrite-header-list'
 to use when rewriting the header.  No supplied ARG indicates use of
 `sc-preferred-header-style'.
 
-With just `\\[universal-argument]', electric reference insert mode is
+With just \\[universal-argument], electric reference insert mode is
 entered, regardless of the value of `sc-electric-references-p'.  See
 `sc-electric-mode' for more information."
   (interactive "P")
@@ -1930,7 +1928,7 @@ With numeric ARG, inserts that many new lines."
 
 (defun sc-insert-citation (arg)
   "Insert citation string at beginning of current line if not already cited.
-With `\\[universal-argument]' insert citation even if line is already
+With \\[universal-argument] insert citation even if line is already
 cited."
   (interactive "P")
   (save-excursion

@@ -1770,7 +1770,7 @@
 	(jit-lock--debug-fontifying): New var.
 	(jit-lock--debug-fontify): New function.
 	* subr.el (condition-case-unless-debug): Don't prevent catching the
-	error, just let the debbugger run.
+	error, just let the debugger run.
 	* emacs-lisp/timer.el (timer-event-handler): Don't prevent debugging
 	timer code and don't drop errors silently.
 
@@ -2573,7 +2573,7 @@
 
 	* progmodes/grep.el (rgrep): Escape command line.  Sometimes, it
 	is too long for Tramp.  See discussion in
-	<http://thread.gmane.org/gmane.emacs.tramp/8233/focus=8244>.
+	<http://thread.gmane.org/gmane.emacs.tramp/8233/focus=8244>. [dead link]
 
 	* progmodes/compile.el (compilation-start): Remove line escape
 	template.
@@ -4784,7 +4784,7 @@
 	Convert to defcustom.
 	(gdb-get-source-file): Don't bind pop-up-windows.
 
-	* progmodes/gud.el (gud-display-line): Don't specially re-use
+	* progmodes/gud.el (gud-display-line): Don't specially reuse
 	other frames for the gdb-mi case (Bug#12648).
 
 2012-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -15382,7 +15382,7 @@
 	* calendar/calendar.el (calendar-mode):
 	Locally set scroll-margin to 0.  (Bug#10379)
 
-2012-01-06  Ulrich Mueller  <ulm@gentoo.org>
+2012-01-06  Ulrich Müller  <ulm@gentoo.org>
 
 	* play/doctor.el (doctor-death): Escape "," characters.  (Bug#10370)
 
@@ -17133,7 +17133,7 @@
 	(mouse-drag-vertical-line): Call mouse-drag-line.
 	* window.el (window-at-side-p, windows-at-side): New functions.
 
-2011-10-21  Ulrich Mueller  <ulm@gentoo.org>
+2011-10-21  Ulrich Müller  <ulm@gentoo.org>
 
 	* tar-mode.el (tar-grind-file-mode):
 	Fix handling of setuid/setgid, handle sticky bit.  (Bug#9817)
@@ -25198,7 +25198,7 @@
 	* emacs-lisp/package-x.el (package-upload-buffer-internal):
 	Use `equal' for upload base check.
 
-2011-03-08  Arni Magnusson  <arnima@hafro.is>  (tiny change)
+2011-03-08  Arni Magnusson  <thisisarni@gmail.com>  (tiny change)
 
 	* textmodes/texinfo.el (texinfo-environments):
 	Add deftypecv, deftypeivar, deftypemethod, deftypeop, html.  (Bug#2783)
@@ -25222,7 +25222,7 @@ See ChangeLog.15 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2023 Free Software Foundation, Inc.
+  Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

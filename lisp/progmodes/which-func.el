@@ -1,6 +1,6 @@
 ;;; which-func.el --- print current function in mode line  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2024 Free Software Foundation, Inc.
 
 ;; Author: Alex Rezinsky <alexr@msil.sps.mot.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -107,6 +107,18 @@ long time to send the information, you can use this option to delay
 activation of Which Function until Imenu is used for the first time."
   :type 'integer)
 
+(defcustom which-func-update-delay
+  ;; Backwards-compatibility: if users had changed this before
+  ;; `idle-update-delay' was declared obsolete, let's respect that.
+  (with-suppressed-warnings ((obsolete idle-update-delay))
+    idle-update-delay) ; 0.5
+  "Idle time delay before `which-function-mode` updates its display.
+When point moves, wait this many seconds after Emacs becomes idle before
+doing an update."
+  :type 'number
+  :group 'display
+  :version "30.1")
+
 (defvar which-func-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-1] 'beginning-of-defun)
@@ -208,21 +220,28 @@ non-nil.")
 (add-hook 'after-change-major-mode-hook #'which-func-ff-hook t)
 
 (defun which-func-try-to-enable ()
-  (unless (or (not which-function-mode)
-              (local-variable-p 'which-func-mode))
-    (setq which-func-mode (or (eq which-func-modes t)
-                              (member major-mode which-func-modes)))
-    (setq which-func--use-mode-line
-          (member which-func-display '(mode mode-and-header)))
-    (setq which-func--use-header-line
-          (member which-func-display '(header mode-and-header)))
-    (when (and which-func-mode which-func--use-header-line)
+  (when which-function-mode
+    (unless (local-variable-p 'which-func-mode)
+      (setq which-func-mode (or (eq which-func-modes t)
+                                (derived-mode-p which-func-modes)))
+      (setq which-func--use-mode-line
+            (member which-func-display '(mode mode-and-header)))
+      (setq which-func--use-header-line
+            (member which-func-display '(header mode-and-header))))
+    ;; We might need to re-add which-func-format to the header line,
+    ;; if which-function-mode was toggled off and on.
+    (when (and which-func-mode which-func--use-header-line
+               (listp header-line-format))
       (add-to-list 'header-line-format '("" which-func-format " ")))))
 
-(defun which-func--disable ()
-  (when (and which-func-mode which-func--use-header-line)
+(defun which-func--header-line-remove ()
+  (when (and which-func-mode which-func--use-header-line
+             (listp header-line-format))
     (setq header-line-format
-          (delete '("" which-func-format " ") header-line-format)))
+          (delete '("" which-func-format " ") header-line-format))))
+
+(defun which-func--disable ()
+  (which-func--header-line-remove)
   (setq which-func-mode nil))
 
 (defun which-func-ff-hook ()
@@ -232,7 +251,7 @@ It creates the Imenu index for the buffer, if necessary."
 
   (condition-case err
       (if (and which-func-mode
-	       (not (member major-mode which-func-non-auto-modes))
+               (not (derived-mode-p which-func-non-auto-modes))
 	       (or (null which-func-maxout)
 		   (< buffer-saved-size which-func-maxout)
 		   (= which-func-maxout 0)))
@@ -286,11 +305,13 @@ in certain major modes."
     (cancel-timer which-func-update-timer))
   (setq which-func-update-timer nil)
   (when which-function-mode
-    ;;Turn it on.
+    ;; Turn it on.
     (setq which-func-update-timer
-          (run-with-idle-timer idle-update-delay t #'which-func-update))
-    (dolist (buf (buffer-list))
-      (with-current-buffer buf (which-func-try-to-enable)))))
+          (run-with-idle-timer which-func-update-delay t #'which-func-update)))
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (which-func--header-line-remove)
+      (which-func-ff-hook))))
 
 (defvar which-function-imenu-failed nil
   "Locally t in a buffer if `imenu--make-index-alist' found nothing there.")

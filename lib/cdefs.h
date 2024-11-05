@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2023 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2024 Free Software Foundation, Inc.
    Copyright The GNU Toolchain Authors.
    This file is part of the GNU C Library.
 
@@ -42,8 +42,8 @@
 #if (defined __has_attribute \
      && (!defined __clang_minor__ \
          || (defined __apple_build_version__ \
-             ? 6000000 <= __apple_build_version__ \
-             : 3 < __clang_major__ + (5 <= __clang_minor__))))
+             ? 7000000 <= __apple_build_version__ \
+             : 5 <= __clang_major__)))
 # define __glibc_has_attribute(attr) __has_attribute (attr)
 #else
 # define __glibc_has_attribute(attr) 0
@@ -83,7 +83,7 @@
 #  define __NTH(fct)	__attribute__ ((__nothrow__ __LEAF)) fct
 #  define __NTHNL(fct)  __attribute__ ((__nothrow__)) fct
 # else
-#  if defined __cplusplus && (__GNUC_PREREQ (2,8) || __clang_major >= 4)
+#  if defined __cplusplus && (__GNUC_PREREQ (2,8) || __clang_major__ >= 4)
 #   if __cplusplus >= 201103L
 #    define __THROW	noexcept (true)
 #   else

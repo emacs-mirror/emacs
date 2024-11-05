@@ -1,6 +1,6 @@
 /* String conversion support for graphics terminals.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    They may then request that the text editor remove or substitute
    that text for something else, for example when providing the
    ability to ``undo'' or ``edit'' previously composed text.  This is
-   most commonly seen in input methods for CJK laguages for X Windows,
+   most commonly seen in input methods for CJK languages for X Windows,
    and is extensively used throughout Android by input methods for all
    kinds of scripts.
 
@@ -78,14 +78,14 @@ enum textconv_batch_edit_flags
 
 
 
-/* Copy the portion of the current buffer described by BEG, BEG_BYTE,
-   END, END_BYTE to the buffer BUFFER, which is END_BYTE - BEG_BYTEs
-   long.  */
+/* Copy the portion of the current buffer's text described by BEG,
+   BEG_BYTE, END, END_BYTE to the char * buffer BUFFER, which should
+   be at least END_BYTE - BEG_BYTEs long.  */
 
 static void
-copy_buffer (ptrdiff_t beg, ptrdiff_t beg_byte,
-	     ptrdiff_t end, ptrdiff_t end_byte,
-	     char *buffer)
+copy_buffer_text (ptrdiff_t beg, ptrdiff_t beg_byte,
+		  ptrdiff_t end, ptrdiff_t end_byte,
+		  char *buffer)
 {
   ptrdiff_t beg0, end0, beg1, end1, size;
 
@@ -130,7 +130,7 @@ get_mark (void)
   return -1;
 }
 
-/* Like Fselect_window.  However, if WINDOW is a mini buffer window
+/* Like Fselect_window.  However, if WINDOW is a minibuffer window
    but not the active minibuffer window, select its frame's selected
    window instead.  */
 
@@ -141,6 +141,10 @@ select_window (Lisp_Object window, Lisp_Object norecord)
 
   w = XWINDOW (window);
 
+  /* Work around GCC bug 114893
+     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114893>.  */
+  eassume (w);
+
   if (MINI_WINDOW_P (w)
       && WINDOW_LIVE_P (window)
       && !EQ (window, Factive_minibuffer_window ()))
@@ -149,11 +153,20 @@ select_window (Lisp_Object window, Lisp_Object norecord)
   Fselect_window (window, norecord);
 }
 
+/* Restore the selected window WINDOW.  */
+
+static void
+restore_selected_window (Lisp_Object window)
+{
+  /* FIXME: not sure what to do if WINDOW has been deleted.  */
+  select_window (window, Qt);
+}
+
 /* Perform the text conversion operation specified in QUERY and return
    the results.
 
-   Find the text between QUERY->position from point on F's selected
-   window and QUERY->factor times QUERY->direction from that
+   Find the text between QUERY->position from point on frame F's
+   selected window and QUERY->factor times QUERY->direction from that
    position.  Return it in QUERY->text.
 
    If QUERY->position is TYPE_MINIMUM (EMACS_INT) or EMACS_INT_MAX,
@@ -163,8 +176,9 @@ select_window (Lisp_Object window, Lisp_Object norecord)
    Then, either delete that text from the buffer if QUERY->operation
    is TEXTCONV_SUBSTITUTION, or return 0.
 
-   If FLAGS & TEXTCONV_SKIP_CONVERSION_REGION, then first move PT past
-   the conversion region in the specified direction if it is inside.
+   If FLAGS & TEXTCONV_SKIP_CONVERSION_REGION, then first move point
+   past the conversion region in the specified direction if it is
+   inside.
 
    Value is 0 if QUERY->operation was not TEXTCONV_SUBSTITUTION
    or if deleting the text was successful, and 1 otherwise.  */
@@ -183,6 +197,7 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
      selected window.  */
   count = SPECPDL_INDEX ();
   record_unwind_protect_excursion ();
+  record_unwind_protect (restore_selected_window, selected_window);
 
   /* Inhibit quitting.  */
   specbind (Qinhibit_quit, Qt);
@@ -193,6 +208,15 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 		  ? f->old_selected_window
 		  : f->selected_window), Qt);
   w = XWINDOW (selected_window);
+
+  /* Narrow to the field, if any.  */
+  if (!NILP (f->conversion.field))
+    {
+      record_unwind_protect (save_restriction_restore,
+			     save_restriction_save ());
+      Fnarrow_to_region (XCAR (f->conversion.field),
+			 XCAR (XCDR (f->conversion.field)));
+    }
 
   /* Now find the appropriate text bounds for QUERY.  First, move
      point QUERY->position steps forward or backwards.  */
@@ -291,7 +315,7 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
       break;
 
     case TEXTCONV_FORWARD_WORD:
-      /* Move forward by query->factor word.  */
+      /* Move forward by query->factor words.  */
       end = scan_words (pos, (EMACS_INT) query->factor);
 
       if (!end)
@@ -305,7 +329,7 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
       break;
 
     case TEXTCONV_BACKWARD_WORD:
-      /* Move backwards by query->factor word.  */
+      /* Move backwards by query->factor words.  */
       end = scan_words (pos, 0 - (EMACS_INT) query->factor);
 
       if (!end)
@@ -392,7 +416,7 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 
   /* Return the string first.  */
   buffer = xmalloc (end_byte - pos_byte);
-  copy_buffer (pos, pos_byte, end, end_byte, buffer);
+  copy_buffer_text (pos, pos_byte, end, end_byte, buffer);
   query->text.text = buffer;
   query->text.length = end - pos;
   query->text.bytes = end_byte - pos_byte;
@@ -418,8 +442,8 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
   return 0;
 }
 
-/* Update the overlay displaying the conversion area on F after a
-   change to the conversion region.  */
+/* Update the overlay displaying the conversion area on frame F after
+   a change to the conversion region.  */
 
 static void
 sync_overlay (struct frame *f)
@@ -449,7 +473,7 @@ sync_overlay (struct frame *f)
 }
 
 /* Record a change to the current buffer as a result of an
-   asynchronous text conversion operation on F.
+   asynchronous text conversion operation.
 
    Consult the doc string of `text-conversion-edits' for the meaning
    of BEG, END, and EPHEMERAL.  */
@@ -487,7 +511,18 @@ record_buffer_change (ptrdiff_t beg, ptrdiff_t end,
 	     Vtext_conversion_edits);
 }
 
-/* Reset F's text conversion state.  Delete any overlays or
+/* Reset text conversion state of frame F, and resume text conversion.
+   Delete any overlays or markers inside.  */
+
+void
+reset_frame_conversion (struct frame *f)
+{
+  reset_frame_state (f);
+  if (text_interface && FRAME_WINDOW_P (f) && FRAME_VISIBLE_P (f))
+    text_interface->reset (f);
+}
+
+/* Reset text conversion state of frame F.  Delete any overlays or
    markers inside.  */
 
 void
@@ -529,6 +564,15 @@ reset_frame_state (struct frame *f)
   /* Clear batch edit state.  */
   f->conversion.batch_edit_count = 0;
   f->conversion.batch_edit_flags = 0;
+
+  /* Clear active field.  */
+  if (!NILP (f->conversion.field))
+    {
+      Fset_marker (XCAR (f->conversion.field), Qnil, Qnil);
+      Fset_marker (XCAR (XCDR (f->conversion.field)), Qnil,
+		   Qnil);
+    }
+  f->conversion.field = Qnil;
 }
 
 /* Return whether or not there are pending edits from an input method
@@ -552,19 +596,10 @@ detect_conversion_events (void)
   return false;
 }
 
-/* Restore the selected window WINDOW.  */
-
-static void
-restore_selected_window (Lisp_Object window)
-{
-  /* FIXME: not sure what to do if WINDOW has been deleted.  */
-  select_window (window, Qt);
-}
-
 /* Commit the given text in the composing region.  If there is no
-   composing region, then insert the text after F's selected window's
-   last point instead, unless the mark is active.  Finally, remove the
-   composing region.
+   composing region, then insert the text after frame F's selected
+   window's last point instead, unless the mark is active.  Finally,
+   remove the composing region.
 
    If the mark is active, delete the text between mark and point.
 
@@ -580,7 +615,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
   ptrdiff_t wanted, start, end, mark;
   struct window *w;
 
-  /* If F's old selected window is no longer live, fail.  */
+  /* If F's old selected window is no longer alive, fail.  */
 
   if (!WINDOW_LIVE_P (f->old_selected_window))
     return;
@@ -598,6 +633,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
      otherwise.  */
 
   mark = get_mark ();
+  TEXTCONV_DEBUG ("the mark is: %zd", mark);
   if (MARKERP (f->conversion.compose_region_start) || mark != -1)
     {
       /* Replace its contents.  Set START and END to the start and end
@@ -614,6 +650,15 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	  start = min (mark, PT);
 	  end = max (mark, PT);
 	}
+
+      TEXTCONV_DEBUG ("replacing text in composing region: %zd, %zd",
+		      start, end);
+
+      /* If it transpires that the start of the compose region is not
+	 point, move point there.  */
+
+      if (start != PT)
+	set_point (start);
 
       /* Now delete whatever needs to go.  */
 
@@ -634,7 +679,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	  record_buffer_change (start, PT, text);
 	}
 
-      /* Move to a the position specified in POSITION.  */
+      /* Move to the position specified in POSITION.  */
 
       if (position <= 0)
 	{
@@ -642,8 +687,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	     start of the text that was inserted.  */
 	  wanted = start;
 
-	  if (INT_ADD_WRAPV (wanted, position, &wanted)
-	      || wanted < BEGV)
+	  if (ckd_add (&wanted, wanted, position) || wanted < BEGV)
 	    wanted = BEGV;
 
 	  if (wanted > ZV)
@@ -657,8 +701,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	     TEXT.  */
 	  wanted = PT;
 
-	  if (INT_ADD_WRAPV (wanted, position - 1, &wanted)
-	      || wanted > ZV)
+	  if (ckd_add (&wanted, wanted, position - 1) || wanted > ZV)
 	    wanted = ZV;
 
 	  if (wanted < BEGV)
@@ -705,8 +748,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 
       if (position <= 0)
 	{
-	  if (INT_ADD_WRAPV (wanted, position, &wanted)
-	      || wanted < BEGV)
+	  if (ckd_add (&wanted, wanted, position) || wanted < BEGV)
 	    wanted = BEGV;
 
 	  if (wanted > ZV)
@@ -718,8 +760,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	{
 	  wanted = PT;
 
-	  if (INT_ADD_WRAPV (wanted, position - 1, &wanted)
-	      || wanted > ZV)
+	  if (ckd_add (&wanted, wanted, position - 1) || wanted > ZV)
 	    wanted = ZV;
 
 	  if (wanted < BEGV)
@@ -769,7 +810,7 @@ really_finish_composing_text (struct frame *f, bool update)
   TEXTCONV_DEBUG ("conversion region removed");
 }
 
-/* Set the composing text on F to TEXT.  Then, move point to an
+/* Set the composing text on frame F to TEXT.  Then, move point to an
    appropriate position relative to POSITION, and call
    `compose_region_changed' in the text conversion interface should
    point not have been changed relative to F's old selected window's
@@ -863,8 +904,7 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
     {
       wanted = start;
 
-      if (INT_SUBTRACT_WRAPV (wanted, position, &wanted)
-	  || wanted < BEGV)
+      if (ckd_sub (&wanted, wanted, position) || wanted < BEGV)
 	wanted = BEGV;
 
       if (wanted > ZV)
@@ -878,8 +918,7 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
       /* end should be PT after the edit.  */
       eassert (end == PT);
 
-      if (INT_ADD_WRAPV (wanted, position - 1, &wanted)
-	  || wanted > ZV)
+      if (ckd_add (&wanted, wanted, position - 1) || wanted > ZV)
 	wanted = ZV;
 
       if (wanted < BEGV)
@@ -927,8 +966,8 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
   unbind_to (count, Qnil);
 }
 
-/* Set the composing region to START by END.  Make it that it is not
-   already set.  */
+/* Set the composing region of frame F to START by END.  Make it if
+   it is not already set.  */
 
 static void
 really_set_composing_region (struct frame *f, ptrdiff_t start,
@@ -986,8 +1025,8 @@ really_set_composing_region (struct frame *f, ptrdiff_t start,
 }
 
 /* Delete LEFT and RIGHT chars around point or the active mark,
-   whichever is larger, avoiding the composing region if
-   necessary.  */
+   whichever is larger, in frame F's selected window, avoiding the
+   composing region if necessary.  */
 
 static void
 really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
@@ -1010,6 +1049,15 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
   /* Temporarily switch to F's selected window at the time of the last
      redisplay.  */
   select_window (f->old_selected_window, Qt);
+
+  /* Narrow to the field, if any.  */
+  if (!NILP (f->conversion.field))
+    {
+      record_unwind_protect (save_restriction_restore,
+			     save_restriction_save ());
+      Fnarrow_to_region (XCAR (f->conversion.field),
+			 XCAR (XCDR (f->conversion.field)));
+    }
 
   /* Figure out where to start deleting from.  */
 
@@ -1077,13 +1125,128 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
   unbind_to (count, Qnil);
 }
 
-/* Update the interface with F's new point and mark.  If a batch edit
-   is in progress, schedule the update for when it finishes
+/* Save the confines of the field surrounding point in w into F's text
+   conversion state.  If NOTIFY_COMPOSE, notify the input method of
+   changes to the composition region if they arise in this process.  */
+
+static void
+locate_and_save_position_in_field (struct frame *f, struct window *w,
+				   bool notify_compose)
+{
+  Lisp_Object pos, window, c1, c2;
+  specpdl_ref count;
+  ptrdiff_t beg, end, cstart, cend, newstart, newend;
+
+  /* Set the current buffer to W's.  */
+  count = SPECPDL_INDEX ();
+
+  /* The current buffer must be saved, not merely the selected
+     window.  */
+  record_unwind_protect_excursion ();
+  record_unwind_protect (restore_selected_window, selected_window);
+  XSETWINDOW (window, w);
+  select_window (window, Qt);
+
+  /* Search for a field around the current editing position; this should
+     also serve to confine text conversion to the visible region.  */
+  XSETFASTINT (pos, min (max (w->ephemeral_last_point, BEGV), ZV));
+  find_field (pos, Qnil, Qnil, &beg, Qnil, &end);
+
+  /* If beg is 1 and end is ZV, disable the active field entirely.  */
+  if (beg == 1 && end == ZV)
+    {
+      f->conversion.field = Qnil;
+      goto exit;
+    }
+
+  /* Don't cons if a pair already exists.  */
+  if (!NILP (f->conversion.field))
+    {
+      c1 = f->conversion.field;
+      c2 = XCDR (c1);
+      Fset_marker (XCAR (c1), make_fixed_natnum (beg), Qnil);
+      Fset_marker (XCAR (c2), make_fixed_natnum (end), Qnil);
+      XSETCDR (c2, window);
+    }
+  else
+    {
+      c1 = build_marker (current_buffer, beg, CHAR_TO_BYTE (beg));
+      c2 = build_marker (current_buffer, end, CHAR_TO_BYTE (end));
+      Fset_marker_insertion_type (c2, Qt);
+      f->conversion.field = Fcons (c1, Fcons (c2, window));
+    }
+
+  /* If the composition region is active and oversteps the active field,
+     restrict it to the same.  */
+
+  if (!NILP (f->conversion.compose_region_start))
+    {
+      cstart = marker_position (f->conversion.compose_region_start);
+      cend   = marker_position (f->conversion.compose_region_end);
+
+      if (cend < beg || cstart > end)
+	{
+	  /* Remove the composition region in whole.  */
+	  /* Make the composition region markers point elsewhere.  */
+
+	  if (!NILP (f->conversion.compose_region_start))
+	    {
+	      Fset_marker (f->conversion.compose_region_start, Qnil, Qnil);
+	      Fset_marker (f->conversion.compose_region_end, Qnil, Qnil);
+	      f->conversion.compose_region_start = Qnil;
+	      f->conversion.compose_region_end = Qnil;
+	    }
+
+	  /* Delete the composition region overlay.  */
+
+	  if (!NILP (f->conversion.compose_region_overlay))
+	    Fdelete_overlay (f->conversion.compose_region_overlay);
+
+	  TEXTCONV_DEBUG ("removing composing region outside active field");
+	}
+      else
+	{
+	  newstart = max (beg, min (cstart, end));
+	  newend   = max (beg, min (cend, end));
+
+	  if (newstart != cstart || newend != cend)
+	    {
+	      TEXTCONV_DEBUG ("confined composing region to %td, %td",
+			      newstart, newend);
+	      Fset_marker (f->conversion.compose_region_start,
+			   make_fixed_natnum (newstart), Qnil);
+	      Fset_marker (f->conversion.compose_region_end,
+			   make_fixed_natnum (newend), Qnil);
+	    }
+	  else
+	    notify_compose = false;
+	}
+    }
+  else
+    notify_compose = false;
+
+  if (notify_compose
+      && text_interface->compose_region_changed)
+    {
+      if (f->conversion.batch_edit_count > 0)
+	f->conversion.batch_edit_flags |= PENDING_COMPOSE_CHANGE;
+      else
+	text_interface->compose_region_changed (f);
+    }
+
+ exit:
+  unbind_to (count, Qnil);
+}
+
+/* Update the interface with frame F's new point and mark.  If a batch
+   edit is in progress, schedule the update for when it finishes
    instead.  */
 
 static void
 really_request_point_update (struct frame *f)
 {
+  struct window *w;
+
   /* If F's old selected window is no longer live, fail.  */
 
   if (!WINDOW_LIVE_P (f->old_selected_window))
@@ -1092,15 +1255,17 @@ really_request_point_update (struct frame *f)
   if (f->conversion.batch_edit_count > 0)
     f->conversion.batch_edit_flags |= PENDING_POINT_CHANGE;
   else if (text_interface && text_interface->point_changed)
-    text_interface->point_changed (f,
-				   XWINDOW (f->old_selected_window),
-				   current_buffer);
+    {
+      w = XWINDOW (f->old_selected_window);
+      locate_and_save_position_in_field (f, w, false);
+      text_interface->point_changed (f, w, current_buffer);
+    }
 }
 
-/* Set point in F to POSITION.  If MARK is not POSITION, activate the
-   mark and set MARK to that as well.
+/* Set point in frame F's selected window to POSITION.  If MARK is not
+   at POSITION, activate the mark and set MARK to that as well.
 
-   If it has not changed, signal an update through the text input
+   If point was not changed, signal an update through the text input
    interface, which is necessary for the IME to acknowledge that the
    change has completed.  */
 
@@ -1129,9 +1294,11 @@ really_set_point_and_mark (struct frame *f, ptrdiff_t point,
       if (f->conversion.batch_edit_count > 0)
 	f->conversion.batch_edit_flags |= PENDING_POINT_CHANGE;
       else if (text_interface && text_interface->point_changed)
-	text_interface->point_changed (f,
-				       XWINDOW (f->old_selected_window),
-				       current_buffer);
+	{
+	  w = XWINDOW (f->old_selected_window);
+	  locate_and_save_position_in_field (f, w, false);
+	  text_interface->point_changed (f, w, current_buffer);
+	}
     }
   else
     /* Set the point.  */
@@ -1150,6 +1317,133 @@ really_set_point_and_mark (struct frame *f, ptrdiff_t point,
   TEXTCONV_DEBUG ("set point and mark: %td %td",
 		  PT, get_mark ());
 
+  unbind_to (count, Qnil);
+}
+
+/* Remove the composing region.  Replace the text between START and
+   END in F's selected window with TEXT, then set point to POSITION
+   relative to it.  If the mark is active, deactivate it.  */
+
+static void
+really_replace_text (struct frame *f, ptrdiff_t start, ptrdiff_t end,
+		     Lisp_Object text, ptrdiff_t position)
+{
+  specpdl_ref count;
+  ptrdiff_t new_start, new_end, wanted;
+  struct window *w;
+
+  /* If F's old selected window is no longer alive, fail.  */
+
+  if (!WINDOW_LIVE_P (f->old_selected_window))
+    return;
+
+  count = SPECPDL_INDEX ();
+  record_unwind_protect (restore_selected_window,
+			 selected_window);
+
+  /* Make the composition region markers point elsewhere.  */
+
+  if (!NILP (f->conversion.compose_region_start))
+    {
+      Fset_marker (f->conversion.compose_region_start, Qnil, Qnil);
+      Fset_marker (f->conversion.compose_region_end, Qnil, Qnil);
+      f->conversion.compose_region_start = Qnil;
+      f->conversion.compose_region_end = Qnil;
+
+      /* Notify the IME of an update to the composition region,
+	 inasmuch as the point might not change if START and END are
+	 identical and TEXT is empty, among other circumstances.  */
+
+      if (text_interface
+	  && text_interface->compose_region_changed)
+	(*text_interface->compose_region_changed) (f);
+    }
+
+  /* Delete the composition region overlay.  */
+
+  if (!NILP (f->conversion.compose_region_overlay))
+    Fdelete_overlay (f->conversion.compose_region_overlay);
+
+  /* Temporarily switch to F's selected window at the time of the last
+     redisplay.  */
+  select_window (f->old_selected_window, Qt);
+
+  /* Sort START and END by magnitude.  */
+  new_start = min (start, end);
+  new_end   = max (start, end);
+
+  /* Now constrain both to the accessible region.  */
+
+  if (new_start < BEGV)
+    new_start = BEGV;
+  else if (new_start > ZV)
+    new_start = ZV;
+
+  if (new_end < BEGV)
+    new_end = BEGV;
+  else if (new_end > ZV)
+    new_end = ZV;
+
+  start = new_start;
+  end   = new_end;
+
+  /* This should deactivate the mark.  */
+  call0 (Qdeactivate_mark);
+
+  /* Go to start.  */
+  set_point (start);
+
+  /* Now delete the text in between, and save PT before TEXT is
+     inserted.  */
+  del_range_1 (start, end, true, false);
+  record_buffer_change (start, start, Qt);
+  wanted = PT;
+
+  /* So long as TEXT isn't empty, insert it now.  */
+
+  if (SCHARS (text))
+    {
+      /* Insert the new text.  Make sure to inherit text properties
+	 from the surroundings: if this doesn't happen, CC Mode
+	 fontification might grow confused and become very slow.  */
+
+      insert_from_string (text, 0, 0, SCHARS (text),
+			  SBYTES (text), true);
+      record_buffer_change (start, PT, text);
+    }
+
+  /* Now, move point to the position designated by POSITION.  */
+
+  if (position <= 0)
+    {
+      if (ckd_add (&wanted, wanted, position) || wanted < BEGV)
+	wanted = BEGV;
+
+      if (wanted > ZV)
+	wanted = ZV;
+
+      set_point (wanted);
+    }
+  else
+    {
+      wanted = PT;
+
+      if (ckd_add (&wanted, wanted, position - 1) || wanted > ZV)
+	wanted = ZV;
+
+      if (wanted < BEGV)
+	wanted = BEGV;
+
+      set_point (wanted);
+    }
+
+  /* Print some debugging information.  */
+  TEXTCONV_DEBUG ("text inserted: %s, point now: %zd",
+		  SSDATA (text), PT);
+
+  /* Update the ephemeral last point.  */
+  w = XWINDOW (selected_window);
+  w->ephemeral_last_point = PT;
   unbind_to (count, Qnil);
 }
 
@@ -1173,9 +1467,9 @@ struct complete_edit_check_context
   bool check;
 };
 
-/* If CONTEXT->check is false, then update W's ephemeral last point
-   and give it to the input method, the assumption being that an
-   editing operation signalled.  */
+/* Convert PTR to CONTEXT.  If CONTEXT->check is false, then update
+   CONTEXT->w's ephemeral last point and give it to the input method,
+   the assumption being that an editing operation signaled.  */
 
 static void
 complete_edit_check (void *ptr)
@@ -1203,7 +1497,10 @@ complete_edit_check (void *ptr)
 	  if (f->conversion.batch_edit_count > 0)
 	    f->conversion.batch_edit_flags |= PENDING_POINT_CHANGE;
 	  else
-	    text_interface->point_changed (f, context->w, NULL);
+	    {
+	      locate_and_save_position_in_field (f, context->w, false);
+	      text_interface->point_changed (f, context->w, NULL);
+	    }
 	}
     }
 }
@@ -1243,7 +1540,7 @@ handle_pending_conversion_events_1 (struct frame *f,
      or not the editing operation completed successfully.  */
   context.check = false;
 
-  /* Make sure completion is signalled.  */
+  /* Make sure completion is signaled.  */
   count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (complete_edit, &token);
   w = NULL;
@@ -1272,7 +1569,10 @@ handle_pending_conversion_events_1 (struct frame *f,
 	break;
 
       if (f->conversion.batch_edit_flags & PENDING_POINT_CHANGE)
-	text_interface->point_changed (f, w, buffer);
+	{
+	  locate_and_save_position_in_field (f, w, false);
+	  text_interface->point_changed (f, w, buffer);
+	}
 
       if (f->conversion.batch_edit_flags & PENDING_COMPOSE_CHANGE)
 	text_interface->compose_region_changed (f);
@@ -1323,6 +1623,13 @@ handle_pending_conversion_events_1 (struct frame *f,
 
       if (w)
 	w->ephemeral_last_point = window_point (w);
+      break;
+
+    case TEXTCONV_REPLACE_TEXT:
+      really_replace_text (f, XFIXNUM (XCAR (data)),
+			   XFIXNUM (XCAR (XCDR (data))),
+			   XCAR (XCDR (XCDR (data))),
+			   XFIXNUM (XCAR (XCDR (XCDR (XCDR (data))))));
       break;
     }
 
@@ -1394,7 +1701,10 @@ handle_pending_conversion_events (void)
 		  if (f->conversion.batch_edit_count > 0)
 		    f->conversion.batch_edit_flags |= PENDING_POINT_CHANGE;
 		  else
-		    text_interface->point_changed (f, NULL, NULL);
+		    {
+		      locate_and_save_position_in_field (f, w, false);
+		      text_interface->point_changed (f, NULL, NULL);
+		    }
 		}
 
 	      last_point = w->ephemeral_last_point;
@@ -1429,8 +1739,41 @@ handle_pending_conversion_events (void)
   unbind_to (count, Qnil);
 }
 
-/* Start a ``batch edit'' in F.  During a batch edit, point_changed
-   will not be called until the batch edit ends.
+/* Return the confines of the field to which editing operations on frame
+   F should be constrained in *BEG and *END.  Should no field be active,
+   set *END to PTRDIFF_MAX.  */
+
+void
+get_conversion_field (struct frame *f, ptrdiff_t *beg, ptrdiff_t *end)
+{
+  Lisp_Object c1, c2;
+  struct window *w;
+
+  if (!NILP (f->conversion.field))
+    {
+      c1 = f->conversion.field;
+      c2 = XCDR (c1);
+
+      if (!EQ (XCDR (c2), f->old_selected_window))
+	{
+	  /* Update this outdated field location.  */
+	  w = XWINDOW (f->old_selected_window);
+	  locate_and_save_position_in_field (f, w, true);
+	  get_conversion_field (f, beg, end);
+	  return;
+	}
+
+      *beg = marker_position (XCAR (c1));
+      *end = marker_position (XCAR (c2));
+      return;
+    }
+
+  *beg = 1;
+  *end = PTRDIFF_MAX;
+}
+
+/* Start a ``batch edit'' in frame F.  During a batch edit,
+   point_changed will not be called until the batch edit ends.
 
    Process the actual operation in the event loop in keyboard.c; then,
    call `notify_conversion' in the text conversion interface with
@@ -1473,8 +1816,9 @@ end_batch_edit (struct frame *f, unsigned long counter)
   input_pending = true;
 }
 
-/* Insert the specified STRING into F's current buffer's composition
-   region, and set point to POSITION relative to STRING.
+/* Insert the specified STRING into frame F's selected-window's
+   buffer's composition region, and set point to POSITION relative to
+   STRING.
 
    If there is no composition region, use the active region instead.
    If that doesn't exist either, insert STRING after point.
@@ -1498,8 +1842,9 @@ commit_text (struct frame *f, Lisp_Object string,
   input_pending = true;
 }
 
-/* Remove the composition region and its overlay from F's current
-   buffer.  Leave the text being composed intact.
+/* Remove the composition region and its overlay from frame F's
+   selected-window's current buffer.  Leave the text being composed
+   intact.
 
    If UPDATE, call `compose_region_changed' after the region is
    removed.
@@ -1557,7 +1902,8 @@ set_composing_text (struct frame *f, Lisp_Object object,
 }
 
 /* Make the region between START and END the currently active
-   ``composing region''.
+   ``composing region'' on frame F.  Which of START and END is the
+   larger value is not significant.
 
    The ``composing region'' is a region of text in the buffer that is
    about to undergo editing by the input method.  */
@@ -1567,17 +1913,22 @@ set_composing_region (struct frame *f, ptrdiff_t start,
 		      ptrdiff_t end, unsigned long counter)
 {
   struct text_conversion_action *action, **last;
+  ptrdiff_t field_start, field_end, temp;
 
-  if (start > MOST_POSITIVE_FIXNUM)
-    start = MOST_POSITIVE_FIXNUM;
+  if (start > end)
+    {
+      temp  = end;
+      end   = start;
+      start = temp;
+    }
 
-  if (end > MOST_POSITIVE_FIXNUM)
-    end = MOST_POSITIVE_FIXNUM;
+  get_conversion_field (f, &field_start, &field_end);
+  start = min (start + field_start - 1, MOST_POSITIVE_FIXNUM);
+  end = max (start, min (end + field_start - 1, field_end));
 
   action = xmalloc (sizeof *action);
   action->operation = TEXTCONV_SET_COMPOSING_REGION;
-  action->data = Fcons (make_fixnum (start),
-			make_fixnum (end));
+  action->data = Fcons (make_fixnum (start), make_fixnum (end));
   action->next = NULL;
   action->counter = counter;
   for (last = &f->conversion.actions; *last; last = &(*last)->next)
@@ -1586,7 +1937,8 @@ set_composing_region (struct frame *f, ptrdiff_t start,
   input_pending = true;
 }
 
-/* Move point in F's selected buffer to POINT and maybe push MARK.
+/* Move point in frame F's selected-window's buffer to POINT and maybe
+   push MARK.
 
    COUNTER means the same as in `start_batch_edit'.  */
 
@@ -1595,9 +1947,13 @@ textconv_set_point_and_mark (struct frame *f, ptrdiff_t point,
 			     ptrdiff_t mark, unsigned long counter)
 {
   struct text_conversion_action *action, **last;
+  ptrdiff_t field_start, field_end;
 
-  if (point > MOST_POSITIVE_FIXNUM)
-    point = MOST_POSITIVE_FIXNUM;
+  get_conversion_field (f, &field_start, &field_end);
+  point = min (max (point + field_start - 1, field_start),
+	       field_end);
+  mark = min (max (mark + field_start - 1, field_start),
+	      field_end);
 
   action = xmalloc (sizeof *action);
   action->operation = TEXTCONV_SET_POINT_AND_MARK;
@@ -1611,8 +1967,8 @@ textconv_set_point_and_mark (struct frame *f, ptrdiff_t point,
   input_pending = true;
 }
 
-/* Delete LEFT and RIGHT characters around point in F's old selected
-   window.  */
+/* Delete LEFT and RIGHT characters around point in frame F's old
+   selected window.  */
 
 void
 delete_surrounding_text (struct frame *f, ptrdiff_t left,
@@ -1632,8 +1988,9 @@ delete_surrounding_text (struct frame *f, ptrdiff_t left,
   input_pending = true;
 }
 
-/* Request an immediate call to INTERFACE->point_changed with the new
-   details of F's region unless a batch edit is in progress.  */
+/* Request an immediate call to TEXT_INTERFACE->point_changed with the
+   new details of frame F's region unless a batch edit is in
+   progress.  */
 
 void
 request_point_update (struct frame *f, unsigned long counter)
@@ -1651,8 +2008,8 @@ request_point_update (struct frame *f, unsigned long counter)
   input_pending = true;
 }
 
-/* Request that text conversion on F pause until the keyboard buffer
-   becomes empty.
+/* Request that text conversion on frame F pause until the keyboard
+   buffer becomes empty.
 
    Use this function to ensure that edits associated with a keyboard
    event complete before the text conversion edits after the barrier
@@ -1674,19 +2031,55 @@ textconv_barrier (struct frame *f, unsigned long counter)
   input_pending = true;
 }
 
-/* Return N characters of text around point in F's old selected
+/* Remove the composing region.  Replace the text between START and END
+   (whose order, as in `set_composing_region', is not significant)
+   within F's selected window with TEXT; deactivate the mark if it is
+   active.  Subsequently, set point to POSITION relative to TEXT, as
+   `commit_text' would.  */
+
+void
+replace_text (struct frame *f, ptrdiff_t start, ptrdiff_t end,
+	      Lisp_Object text, ptrdiff_t position,
+	      unsigned long counter)
+{
+  struct text_conversion_action *action, **last;
+  ptrdiff_t field_start, field_end, temp;
+
+  if (start > end)
+    {
+      temp  = end;
+      end   = start;
+      start = temp;
+    }
+
+  get_conversion_field (f, &field_start, &field_end);
+  start = min (start + field_start - 1, MOST_POSITIVE_FIXNUM);
+  end = max (start, min (end + field_start - 1, field_end));
+
+  action = xmalloc (sizeof *action);
+  action->operation = TEXTCONV_REPLACE_TEXT;
+  action->data = list4 (make_fixnum (start), make_fixnum (end),
+			text, make_fixnum (position));
+  action->next = NULL;
+  action->counter = counter;
+  for (last = &f->conversion.actions; *last; last = &(*last)->next)
+    ;;
+  *last = action;
+  input_pending = true;
+}
+
+/* Return N characters of text around point in frame F's old selected
    window.
 
    If N is -1, return the text between point and mark instead, given
    that the mark is active.
 
-   Set *N to the actual number of characters returned, *START_RETURN
-   to the position of the first character returned, *START_OFFSET to
-   the offset of the lesser of mark and point within that text,
-   *END_OFFSET to the greater of mark and point within that text, and
-   *LENGTH to the actual number of characters returned, *BYTES to the
-   actual number of bytes returned, and *MARK_ACTIVE to whether or not
-   the mark is active.
+   Set *START_RETURN to the position of the first character returned,
+   *START_OFFSET to the offset of the lesser of mark and point within
+   that text, *END_OFFSET to the greater of mark and point within that
+   text, and *LENGTH to the actual number of characters returned,
+   *BYTES to the actual number of bytes returned, and *MARK_ACTIVE to
+   whether or not the mark is active.
 
    Value is NULL upon failure, and a malloced string upon success.  */
 
@@ -1700,6 +2093,7 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
   specpdl_ref count;
   ptrdiff_t start, end, start_byte, end_byte, mark;
   char *buffer;
+  ptrdiff_t field_start, field_end;
 
   if (!WINDOW_LIVE_P (f->old_selected_window))
     return NULL;
@@ -1708,6 +2102,7 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
      selected window.  */
   count = SPECPDL_INDEX ();
   record_unwind_protect_excursion ();
+  record_unwind_protect (restore_selected_window, selected_window);
 
   /* Inhibit quitting.  */
   specbind (Qinhibit_quit, Qt);
@@ -1749,6 +2144,15 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
 	goto finish;
     }
 
+  /* Narrow to the field, if any.  */
+  if (!NILP (f->conversion.field))
+    {
+      record_unwind_protect (save_restriction_restore,
+			     save_restriction_save ());
+      Fnarrow_to_region (XCAR (f->conversion.field),
+			 XCAR (XCDR (f->conversion.field)));
+    }
+
   start = max (start, BEGV);
   end = min (end, ZV);
 
@@ -1763,8 +2167,7 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
 
   /* Extract the text from the buffer.  */
   buffer = xmalloc (end_byte - start_byte);
-  copy_buffer (start, start_byte, end, end_byte,
-	       buffer);
+  copy_buffer_text (start, start_byte, end, end_byte, buffer);
 
   /* Get the mark.  If it's not active, use PT.  */
 
@@ -1778,7 +2181,8 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
     }
 
   /* Return the offsets.  */
-  *start_return = start;
+  get_conversion_field (f, &field_start, &field_end);
+  *start_return = max (1, start - field_start + 1);
   *start_offset = min (mark - start, PT - start);
   *end_offset = max (mark - start, PT - start);
   *length = end - start;
@@ -1792,7 +2196,8 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
   return buffer;
 }
 
-/* Return the text between the positions PT - LEFT and PT + RIGHT.  If
+/* Return the text between the positions pt - LEFT and pt + RIGHT,
+   where pt is the position of point in frame F's selected window.  If
    the mark is active, return the range of text relative to the bounds
    of the region instead.
 
@@ -1810,6 +2215,7 @@ get_surrounding_text (struct frame *f, ptrdiff_t left,
 {
   specpdl_ref count;
   ptrdiff_t start, end, start_byte, end_byte, mark, temp;
+  ptrdiff_t field_start, field_end;
   char *buffer;
 
   if (!WINDOW_LIVE_P (f->old_selected_window))
@@ -1819,6 +2225,7 @@ get_surrounding_text (struct frame *f, ptrdiff_t left,
      selected window.  */
   count = SPECPDL_INDEX ();
   record_unwind_protect_excursion ();
+  record_unwind_protect (restore_selected_window, selected_window);
 
   /* Inhibit quitting.  */
   specbind (Qinhibit_quit, Qt);
@@ -1850,9 +2257,18 @@ get_surrounding_text (struct frame *f, ptrdiff_t left,
 
   /* And subtract left and right.  */
 
-  if (INT_SUBTRACT_WRAPV (start, left, &start)
-      || INT_ADD_WRAPV (end, right, &end))
+  if (ckd_sub (&start, start, left)
+      || ckd_add (&end, end, right))
     goto finish;
+
+  /* Narrow to the field, if any.  */
+  if (!NILP (f->conversion.field))
+    {
+      record_unwind_protect (save_restriction_restore,
+			     save_restriction_save ());
+      Fnarrow_to_region (XCAR (f->conversion.field),
+			 XCAR (XCDR (f->conversion.field)));
+    }
 
   start = max (start, BEGV);
   end = min (end, ZV);
@@ -1868,8 +2284,7 @@ get_surrounding_text (struct frame *f, ptrdiff_t left,
 
   /* Extract the text from the buffer.  */
   buffer = xmalloc (end_byte - start_byte);
-  copy_buffer (start, start_byte, end, end_byte,
-	       buffer);
+  copy_buffer_text (start, start_byte, end, end_byte, buffer);
 
   /* Get the mark.  If it's not active, use PT.  */
 
@@ -1881,7 +2296,8 @@ get_surrounding_text (struct frame *f, ptrdiff_t left,
   /* Return the offsets.  Unlike `get_extracted_text', this need not
      sort mark and point.  */
 
-  *offset = start;
+  get_conversion_field (f, &field_start, &field_end);
+  *offset = max (1, start - field_start + 1);
   *start_return = mark - start;
   *end_return = PT - start;
   *length = end - start;
@@ -1907,7 +2323,7 @@ conversion_disabled_p (void)
 /* Window system interface.  These are called from the rest of
    Emacs.  */
 
-/* Notice that F's selected window has been set from redisplay.
+/* Notice that frame F's selected window has been set from redisplay.
    Reset F's input method state.  */
 
 void
@@ -1934,11 +2350,11 @@ report_selected_window_change (struct frame *f)
   text_interface->reset (f);
 }
 
-/* Notice that the point in F's selected window's current buffer has
+/* Notice that point in frame F's selected window's current buffer has
    changed.
 
-   F is the frame whose selected window was changed, W is the window
-   in question, and BUFFER is that window's current buffer.
+   F is the frame whose selected window was changed, WINDOW is the
+   window in question, and BUFFER is that window's buffer.
 
    Tell the text conversion interface about the change; it will likely
    pass the information on to the system input method.  */
@@ -1953,7 +2369,10 @@ report_point_change (struct frame *f, struct window *window,
   if (f->conversion.batch_edit_count > 0)
     f->conversion.batch_edit_flags |= PENDING_POINT_CHANGE;
   else
-    text_interface->point_changed (f, window, buffer);
+    {
+      locate_and_save_position_in_field (f, window, false);
+      text_interface->point_changed (f, window, buffer);
+    }
 }
 
 /* Temporarily disable text conversion.  Must be paired with a
@@ -2081,10 +2500,11 @@ check_postponed_buffers (void)
 
 DEFUN ("set-text-conversion-style", Fset_text_conversion_style,
        Sset_text_conversion_style, 1, 2, 0,
-       doc: /* Set the text conversion style in the current buffer.
+       doc: /* Set the current buffer's text conversion style to VALUE.
 
-Set `text-conversion-style' to VALUE, then force any input method
-editing frame displaying this buffer to stop itself.
+After setting `text-conversion-style', force input methods
+editing in a selected window displaying this buffer on any frame
+to stop themselves.
 
 This can lead to a significant amount of time being taken by the input
 method resetting itself, so you should not use this function lightly;
@@ -2110,7 +2530,7 @@ replacement key sequence returned starts a new key sequence and makes
   if (!text_interface)
     return Qnil;
 
-  /* If there are any seleted windows displaying this buffer, reset
+  /* If there are any selected windows displaying this buffer, reset
      text conversion on their associated frames.  */
 
   if (buffer_window_count (current_buffer))
@@ -2137,8 +2557,11 @@ replacement key sequence returned starts a new key sequence and makes
 
 	  if (WINDOW_LIVE_P (f->old_selected_window)
 	      && FRAME_WINDOW_P (f)
-	      && EQ (XWINDOW (f->old_selected_window)->contents,
-		     buffer))
+	      && (EQ (XWINDOW (f->old_selected_window)->contents,
+		      buffer)
+		  /* Always reset the text conversion style of the
+		     selected frame.  */
+		  || (f == SELECTED_FRAME ())))
 	    {
 	      block_input ();
 	      reset_frame_state (f);
@@ -2157,6 +2580,7 @@ void
 syms_of_textconv (void)
 {
   DEFSYM (Qaction, "action");
+  DEFSYM (Qpassword, "password");
   DEFSYM (Qtext_conversion, "text-conversion");
   DEFSYM (Qpush_mark, "push-mark");
   DEFSYM (Qunderline, "underline");
@@ -2164,13 +2588,13 @@ syms_of_textconv (void)
 	  "overriding-text-conversion-style");
 
   DEFVAR_LISP ("text-conversion-edits", Vtext_conversion_edits,
-    doc: /* List of buffers that were last edited as a result of text conversion.
+    doc: /* List of buffers last edited as a result of text conversion.
 
 This list can be used while handling a `text-conversion' event to
 determine which changes have taken place.
 
-Each element of the list describes a single edit in a buffer, of the
-form:
+Each element of the list describes a single edit in a buffer, and
+is of the form:
 
     (BUFFER BEG END EPHEMERAL)
 
@@ -2186,8 +2610,9 @@ as indenting or automatically filling text, should not take place.
 Otherwise, it is either a string containing text that was inserted,
 text deleted before point, or nil if text was deleted after point.
 
-The list contents are ordered later edits first, so you must iterate
-through the list in reverse.  */);
+The list contents are arranged in the reverse of the order of editing,
+i.e. latest edit first, so you must iterate through the list in
+reverse.  */);
   Vtext_conversion_edits = Qnil;
 
   DEFVAR_LISP ("overriding-text-conversion-style",
@@ -2195,14 +2620,14 @@ through the list in reverse.  */);
     doc: /* Non-buffer local version of `text-conversion-style'.
 
 If this variable is the symbol `lambda', it means to consult the
-buffer local variable `text-conversion-style' to determine whether or
-not to activate the input method.  Otherwise, its value is used in
-preference to any buffer local value of `text-conversion-style'.  */);
+buffer-local value of `text-conversion-style' to determine whether or
+not to activate the input method.  Otherwise, the value is used in
+preference to any buffer-local value of `text-conversion-style'.  */);
   Voverriding_text_conversion_style = Qlambda;
 
   DEFVAR_LISP ("text-conversion-face", Vtext_conversion_face,
     doc: /* Face in which to display temporary edits by an input method.
-nil means to display no indication of a temporary edit.  */);
+The value nil means to display no indication of a temporary edit.  */);
   Vtext_conversion_face = Qunderline;
 
   defsubr (&Sset_text_conversion_style);

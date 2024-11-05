@@ -1,6 +1,6 @@
 ;;; em-rebind.el --- rebind keys when point is at current input  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -25,7 +25,7 @@
 
 (require 'esh-mode)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-rebind nil
   "This module allows for special keybindings that only take effect
@@ -250,9 +250,4 @@ input."
       (eshell-delete-backward-char (- arg)))))
 
 (provide 'em-rebind)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-rebind.el ends here

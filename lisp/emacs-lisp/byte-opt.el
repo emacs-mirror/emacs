@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -164,7 +164,7 @@ Earlier variables shadow later ones with the same name.")
        ;; The byte-code will be really inlined in byte-compile-unfold-bcf.
        (byte-compile--check-arity-bytecode form fn)
        `(,fn ,@(cdr form)))
-      ((or `(lambda . ,_) `(closure . ,_))
+      ((pred interpreted-function-p)
        ;; While byte-compile-unfold-bcf can inline dynbind byte-code into
        ;; letbind byte-code (or any other combination for that matter), we
        ;; can only inline dynbind source into dynbind source or lexbind
@@ -217,10 +217,10 @@ This indicates the loop discovery phase.")
 
 (defvar byte-optimize--aliased-vars nil
   "List of variables which may be aliased by other lexical variables.
-If an entry in `byte-optimize--lexvars' has another variable as its VALUE,
-then that other variable must be in this list.
-This variable thus carries no essential information but is maintained
-for speeding up processing.")
+Each element is (NAME . ALIAS) where NAME is the aliased variable
+and ALIAS the variable record (in the format described for
+`byte-optimize--lexvars') for an alias, which may have NAME as its VALUE.
+There can be multiple entries for the same NAME if it has several aliases.")
 
 (defun byte-optimize--substitutable-p (expr)
   "Whether EXPR is a constant that can be propagated."
@@ -440,7 +440,7 @@ for speeding up processing.")
 
       (`(unwind-protect ,protected-expr :fun-body ,unwind-fun)
        ;; FIXME: The return value of UNWIND-FUN is never used so we
-       ;; could potentially optimise it for-effect, but we don't do
+       ;; could potentially optimize it for-effect, but we don't do
        ;; that right no.
        `(,fn ,(byte-optimize-form protected-expr for-effect)
              :fun-body ,(byte-optimize-form unwind-fun)))
@@ -462,13 +462,17 @@ for speeding up processing.")
            (setcar (cdr lexvar) t)    ; Mark variable to be kept.
            (setcdr (cdr lexvar) nil)  ; Inhibit further substitution.
 
-           (when (memq var byte-optimize--aliased-vars)
-             ;; Cancel aliasing of variables aliased to this one.
-             (dolist (v byte-optimize--lexvars)
-               (when (eq (nth 2 v) var)
-                 ;; V is bound to VAR but VAR is now mutated:
-                 ;; cancel aliasing.
-                 (setcdr (cdr v) nil)))))
+           ;; Cancel substitution of variables aliasing this one.
+           (let ((aliased-vars byte-optimize--aliased-vars))
+             (while
+                 (let ((alias (assq var aliased-vars)))
+                   (and alias
+                        (progn
+                          ;; Found a variable bound to VAR but VAR is
+                          ;; now mutated; cancel aliasing.
+                          (setcdr (cddr alias) nil)
+                          (setq aliased-vars (cdr (memq alias aliased-vars)))
+                          t))))))
          `(,fn ,var ,value)))
 
       (`(defvar ,(and (pred symbolp) name) . ,rest)
@@ -478,15 +482,8 @@ for speeding up processing.")
          (push name byte-optimize--dynamic-vars)
          `(,fn ,name . ,optimized-rest)))
 
-      (`(,(pred byte-code-function-p) . ,exps)
-       (cons fn (mapcar #'byte-optimize-form exps)))
-
-      (`(,(pred (not symbolp)) . ,_)
-       (byte-compile-warn-x form "`%s' is a malformed function" fn)
-       form)
-
       ((guard (when for-effect
-		(if-let ((tmp (byte-opt--fget fn 'side-effect-free)))
+		(if-let* ((tmp (byte-opt--fget fn 'side-effect-free)))
 		    (or byte-compile-delete-errors
 		        (eq tmp 'error-free)))))
        (byte-compile-log "  %s called for effect; deleted" fn)
@@ -587,7 +584,6 @@ for speeding up processing.")
       (let* ((byte-optimize--lexvars byte-optimize--lexvars)
              (byte-optimize--aliased-vars byte-optimize--aliased-vars)
              (new-lexvars nil)
-             (new-aliased-vars nil)
              (let-vars nil)
              (body (cdr form))
              (bindings (car form)))
@@ -597,7 +593,7 @@ for speeding up processing.")
                  (expr (byte-optimize-form (cadr binding) nil)))
             (setq bindings (cdr bindings))
             (when (and (eq head 'let*)
-                       (memq name byte-optimize--aliased-vars))
+                       (assq name byte-optimize--aliased-vars))
               ;; New variable shadows an aliased variable -- α-rename
               ;; it in this and all subsequent bindings.
               (let ((new-name (make-symbol (symbol-name name))))
@@ -610,14 +606,12 @@ for speeding up processing.")
                               bindings))
                 (setq body (byte-optimize--rename-var-body name new-name body))
                 (setq name new-name)))
-            (let* ((aliased nil)
-                   (value (and
-                           (or (byte-optimize--substitutable-p expr)
-                               ;; Aliasing another lexvar.
-                               (setq aliased
-                                     (and (symbolp expr)
-                                          (assq expr byte-optimize--lexvars))))
-                           (list expr)))
+            (let* ((aliased
+                    ;; Aliasing another lexvar.
+                    (and (symbolp expr) (assq expr byte-optimize--lexvars)))
+                   (value (and (or aliased
+                                   (byte-optimize--substitutable-p expr))
+                               (list expr)))
                    (lexical (not (or (special-variable-p name)
                                      (memq name byte-compile-bound-variables)
                                      (memq name byte-optimize--dynamic-vars))))
@@ -626,20 +620,16 @@ for speeding up processing.")
               (when lexinfo
                 (push lexinfo (if (eq head 'let*)
                                   byte-optimize--lexvars
-                                new-lexvars)))
-              (when aliased
-                (push expr (if (eq head 'let*)
-                               byte-optimize--aliased-vars
-                             new-aliased-vars))))))
+                                new-lexvars))
+                (when aliased
+                  (push (cons expr lexinfo) byte-optimize--aliased-vars))))))
 
-        (setq byte-optimize--aliased-vars
-              (append new-aliased-vars byte-optimize--aliased-vars))
         (when (and (eq head 'let) byte-optimize--aliased-vars)
           ;; Find new variables that shadow aliased variables.
           (let ((shadowing-vars nil))
             (dolist (lexvar new-lexvars)
               (let ((name (car lexvar)))
-                (when (and (memq name byte-optimize--aliased-vars)
+                (when (and (assq name byte-optimize--aliased-vars)
                            (not (memq name shadowing-vars)))
                   (push name shadowing-vars))))
             ;; α-rename them
@@ -817,8 +807,29 @@ for speeding up processing.")
   (or (not form)   ; assume (quote nil) always being normalized to nil
       (and (consp form)
            (let ((head (car form)))
-             ;; FIXME: There are many other expressions that are statically nil.
-             (cond ((memq head '(while ignore)) t)
+             (cond ((memq head
+                          ;; Some forms that are statically nil.
+                          ;; FIXME: Replace with a function property?
+                          '( while ignore
+                             insert insert-and-inherit insert-before-markers
+                             insert-before-markers-and-inherit
+                             insert-char insert-byte insert-buffer-substring
+                             delete-region delete-char
+                             widen narrow-to-region transpose-regions
+                             forward-char backward-char
+                             beginning-of-line end-of-line
+                             erase-buffer buffer-swap-text
+                             delete-overlay delete-all-overlays
+                             remhash
+                             maphash
+                             map-charset-chars map-char-table
+                             mapbacktrace
+                             mapatoms
+                             ding beep sleep-for
+                             json-insert
+                             set-match-data
+                             ))
+                    t)
                    ((eq head 'if)
                     (and (byte-compile-nilconstp (nth 2 form))
                          (byte-compile-nilconstp (car (last (cdddr form))))))
@@ -980,7 +991,7 @@ for speeding up processing.")
     (list (car form) (nth 2 form) (nth 1 form)))))
 
 (defun byte-opt--nary-comparison (form)
-  "Optimise n-ary comparisons such as `=', `<' etc."
+  "Optimize n-ary comparisons such as `=', `<' etc."
   (let ((nargs (length (cdr form))))
     (cond
      ((= nargs 1)
@@ -995,7 +1006,7 @@ for speeding up processing.")
         (if (memq nil (mapcar #'macroexp-copyable-p (cddr form)))
             ;; At least one arg beyond the first is non-constant non-variable:
             ;; create temporaries for all args to guard against side-effects.
-            ;; The optimiser will eliminate trivial bindings later.
+            ;; The optimizer will eliminate trivial bindings later.
             (let ((i 1))
               (dolist (arg (cdr form))
                 (let ((var (make-symbol (format "arg%d" i))))
@@ -1399,13 +1410,14 @@ See Info node `(elisp) Integer Basics'."
       form)))
 
 (defun byte-optimize-not (form)
-  (and (= (length form) 2)
-       (let ((arg (nth 1 form)))
-         (cond ((null arg) t)
-               ((macroexp-const-p arg) nil)
-               ((byte-compile-nilconstp arg) `(progn ,arg t))
-               ((byte-compile-trueconstp arg) `(progn ,arg nil))
-               (t form)))))
+  (if (= (length form) 2)
+      (let ((arg (nth 1 form)))
+        (cond ((null arg) t)
+              ((macroexp-const-p arg) nil)
+              ((byte-compile-nilconstp arg) `(progn ,arg t))
+              ((byte-compile-trueconstp arg) `(progn ,arg nil))
+              (t form)))
+    form))
 
 (put 'and   'byte-optimizer #'byte-optimize-and)
 (put 'or    'byte-optimizer #'byte-optimize-or)
@@ -1434,7 +1446,8 @@ See Info node `(elisp) Integer Basics'."
 
 (defun byte-optimize-apply (form)
   (let ((len (length form)))
-    (if (>= len 2)
+    ;; Single-arg `apply' is an abomination that we don't bother optimizing.
+    (if (> len 2)
         (let ((fn (nth 1 form))
 	      (last (nth (1- len) form)))
           (cond
@@ -1465,7 +1478,7 @@ See Info node `(elisp) Integer Basics'."
 (put 'let* 'byte-optimizer #'byte-optimize-letX)
 (defun byte-optimize-letX (form)
   (pcase form
-    ;; No bindings.
+    ;; Bindings list is empty.
     (`(,_ () . ,body)
      `(progn . ,body))
 
@@ -1475,7 +1488,7 @@ See Info node `(elisp) Integer Basics'."
          `(progn ,@(mapcar #'cadr bindings) ,const)
        `(,head ,(butlast bindings) ,(cadar (last bindings)) ,const)))
 
-    ;; Body is last variable.
+    ;; Body does nothing but return the last variable in bindings.
     (`(,head ,(and bindings
                    (let last-var (caar (last bindings))))
              ,(and last-var             ; non-linear pattern
@@ -1500,13 +1513,15 @@ See Info node `(elisp) Integer Basics'."
 (put 'nthcdr 'byte-optimizer #'byte-optimize-nthcdr)
 (defun byte-optimize-nthcdr (form)
   (if (= (safe-length form) 3)
-      (if (memq (nth 1 form) '(0 1 2))
-	  (let ((count (nth 1 form)))
-	    (setq form (nth 2 form))
-	    (while (>= (setq count (1- count)) 0)
-	      (setq form (list 'cdr form)))
-	    form)
-	form)
+      (let ((count (nth 1 form)))
+        (cond ((and (integerp count) (<= count 3))
+	       (setq form (nth 2 form))
+	       (while (>= (setq count (1- count)) 0)
+	         (setq form (list 'cdr form)))
+	       form)
+              ((not (eq (car form) 'nthcdr))
+               (cons 'nthcdr (cdr form)))  ; use the nthcdr byte-op
+              (t form)))
     form))
 
 (put 'cons 'byte-optimizer #'byte-optimize-cons)
@@ -1760,7 +1775,7 @@ See Info node `(elisp) Integer Basics'."
          string-version-lessp
          substring substring-no-properties
          sxhash-eq sxhash-eql sxhash-equal sxhash-equal-including-properties
-         take vconcat
+         take value< vconcat
          ;; frame.c
          frame-ancestor-p frame-bottom-divider-width frame-char-height
          frame-char-width frame-child-frame-border-width frame-focus
@@ -1858,12 +1873,14 @@ See Info node `(elisp) Integer Basics'."
          charsetp
          ;; data.c
          arrayp atom bare-symbol-p bool-vector-p bufferp byte-code-function-p
+         interpreted-function-p closurep
          byteorder car-safe cdr-safe char-or-string-p char-table-p
          condition-variable-p consp eq floatp indirect-function
          integer-or-marker-p integerp keywordp listp markerp
-         module-function-p multibyte-string-p mutexp natnump nlistp null
+         module-function-p multibyte-string-p mutexp native-comp-function-p
+         natnump nlistp null
          number-or-marker-p numberp recordp remove-pos-from-symbol
-         sequencep stringp subr-native-elisp-p subrp symbol-with-pos-p symbolp
+         sequencep stringp subrp symbol-with-pos-p symbolp
          threadp type-of user-ptrp vector-or-char-table-p vectorp wholenump
          ;; editfns.c
          bobp bolp buffer-size buffer-string current-message emacs-pid
@@ -1961,7 +1978,7 @@ See Info node `(elisp) Integer Basics'."
          hash-table-p identity length length< length=
          length> member memq memql nth nthcdr proper-list-p rassoc rassq
          safe-length string-bytes string-distance string-equal string-lessp
-         string-search string-version-lessp take
+         string-search string-version-lessp take value<
          ;; search.c
          regexp-quote
          ;; syntax.c
@@ -3101,7 +3118,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 ;;
 (eval-when-compile
  (or (compiled-function-p (symbol-function 'byte-optimize-form))
-     (assq 'byte-code (symbol-function 'byte-optimize-form))
      (let ((byte-optimize nil)
 	   (byte-compile-warnings nil))
        (mapc (lambda (x)

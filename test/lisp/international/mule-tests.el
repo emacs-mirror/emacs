@@ -1,6 +1,6 @@
 ;;; mule-tests.el --- unit tests for mule.el         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,6 +24,8 @@
 ;;; Code:
 
 (require 'ert-x)                        ;For `ert-simulate-keys'.
+
+(defconst mule-tests--dir (file-name-directory (macroexp-file-name)))
 
 (ert-deftest find-auto-coding--bug27391 ()
   "Check that Bug#27391 is fixed."
@@ -49,6 +51,30 @@
                        (kbd "C-x RET c u t f - 8 RET C-u C-u c a b RET")
                      (read-string "prompt:"))))))
 
+;;Bug#65997, ensure that old-names haven't overridden new names.
+(ert-deftest mule-cmds-tests--ucs-names-old-name-override ()
+  (let (code-points)
+    (dotimes (u (1+ (max-char 'ucs)))
+      (when-let* ((name (get-char-code-property u 'name))
+                  (c (char-from-name name)))
+        (when (and (not (<= #xD800 u #xDFFF))
+                   (not (= c u)))
+          (push (format "%X" u) code-points))))
+    (setq code-points (nreverse code-points))
+    (should (null code-points))))
+
+;; Bug#65997, ensure that all codepoints with names are in '(ucs-names)'.
+(ert-deftest mule-cmds-tests--ucs-names-missing-names ()
+  (let (code-points)
+    (dotimes (u (1+ (max-char 'ucs)))
+      (when-let* ((name (get-char-code-property u 'name)))
+        (when (and (not (<= #xD800 u #xDFFF))
+                   (not (<= #x18800 u #x18AFF))
+                   (not (char-from-name name)))
+          (push (format "%X" u) code-points))))
+    (setq code-points (nreverse code-points))
+    (should (null code-points))))
+
 (ert-deftest mule-utf-7 ()
   ;; utf-7 and utf-7-imap are not ASCII-compatible.
   (should-not (coding-system-get 'utf-7 :ascii-compatible-p))
@@ -70,12 +96,29 @@
   ;; The chinese-hz encoding is not ASCII compatible.
   (should-not (coding-system-get 'chinese-hz :ascii-compatible-p)))
 
+(defun mule-tests--auto-coding (_size)
+  (when (and (stringp auto-coding-file-name)
+             (string-match-p "\\.utf-16le\\'" auto-coding-file-name))
+    'utf-16le-with-signature))
+
+(ert-deftest mule-tests--auto-coding-functions ()
+  (unwind-protect
+      (progn
+        (add-hook 'auto-coding-functions #'mule-tests--auto-coding)
+        (with-temp-buffer
+          (insert-file-contents
+           (expand-file-name "mule-util-resources/test.utf-16le"
+                             mule-tests--dir))
+          (goto-char (point-min))
+          (should (search-forward "été" nil t))))
+    (remove-hook 'auto-coding-functions #'mule-tests--auto-coding)))
+
 ;;; Testing `sgml-html-meta-auto-coding-function'.
 
-(defconst sgml-html-meta-pre "<!doctype html><html><head>"
+(defvar sgml-html-meta-pre "<!doctype html><html><head>"
   "The beginning of a minimal HTML document.")
 
-(defconst sgml-html-meta-post "</head></html>"
+(defvar sgml-html-meta-post "</head></html>"
   "The end of a minimal HTML document.")
 
 (defun sgml-html-meta-run (coding-system)

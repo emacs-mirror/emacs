@@ -1,6 +1,6 @@
 ;; cc-fonts.el --- font lock support for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             2002- Martin Stjernholm
@@ -556,34 +556,23 @@ stuff.  Used on level 1 and higher."
 
 	      ;; Fontify filenames in #include <...> as strings.
 	      ,@(when (c-lang-const c-cpp-include-directives)
-		  (let* ((re (c-make-keywords-re nil
-			       (c-lang-const c-cpp-include-directives)))
-			 (re-depth (regexp-opt-depth re)))
-		    ;; We used to use a font-lock "anchored matcher" here for
-		    ;; the paren syntax.  This failed when the ">" was at EOL,
-		    ;; since `font-lock-fontify-anchored-keywords' terminated
-		    ;; its loop at EOL without executing our lambda form at
-		    ;; all.
-		    `((,(c-make-font-lock-search-function
-			 (concat noncontinued-line-end
-				 (c-lang-const c-opt-cpp-prefix)
-				 re
-				 (c-lang-const c-syntactic-ws)
-				 "\\(<\\([^>\n\r]*\\)>?\\)")
-			 `(,(+ ncle-depth re-depth sws-depth
-			       (if (featurep 'xemacs) 2 1)
-			       )
-			   font-lock-string-face t)
-			 `((let ((beg (match-beginning
-				       ,(+ ncle-depth re-depth sws-depth 1)))
-				 (end (1- (match-end ,(+ ncle-depth re-depth
-							 sws-depth 1)))))
-			     (if (eq (char-after end) ?>)
-				 (progn
-				   (c-mark-<-as-paren beg)
-				   (c-mark->-as-paren end))
-			       (c-unmark-<->-as-paren beg)))
-			   nil))))))
+		  ;; We used to use a font-lock "anchored matcher" here for
+		  ;; the paren syntax.  This failed when the ">" was at EOL,
+		  ;; since `font-lock-fontify-anchored-keywords' terminated
+		  ;; its loop at EOL without executing our lambda form at all.
+		  ;; (2024-10): The paren syntax is now handled in
+		  ;; before/after-change functions.
+		  `((,(concat noncontinued-line-end
+			      "\\("	; To make the next ^ special.
+			      (c-lang-const c-cpp-include-key)
+			      "\\)"
+			      (c-lang-const c-syntactic-ws)
+			      "\\(<\\([^>\n\r]*\\)>?\\)")
+		     ,(+ ncle-depth 1
+			 (regexp-opt-depth (c-lang-const c-cpp-include-key))
+			 sws-depth
+			 (if (featurep 'xemacs) 2 1))
+		     font-lock-string-face t)))
 
 	      ;; #define.
 	      ,@(when (c-lang-const c-opt-cpp-macro-define)
@@ -1112,7 +1101,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; 'c-decl-type-start (according to TYPES).  Stop at LIMIT.
   ;;
   ;; If TYPES is t, fontify all identifiers as types; if it is a number, a
-  ;; buffer position, additionally set the `c-deftype' text property on the
+  ;; buffer position, additionally set the `c-typedef' text property on the
   ;; keyword at that position; if it is nil fontify as either variables or
   ;; functions, otherwise TYPES is a face to use.  If NOT-TOP is non-nil, we
   ;; are not at the top-level ("top-level" includes being directly inside a
@@ -1283,11 +1272,12 @@ casts and declarations are fontified.  Used on level 2 and higher."
       (c-put-char-property (1- match-pos) 'c-type
 			   'c-decl-arg-start)
       (cons 'decl nil))
-     ;; We're inside a brace list.
+     ;; We're inside a brace list/enum list.
      ((and (eq (char-before match-pos) ?{)
-	   (c-inside-bracelist-p (1- match-pos)
-				 (cdr (c-parse-state))
-				 nil))
+	   (or (c-at-enum-brace (1- match-pos))
+	       (c-inside-bracelist-p (1- match-pos)
+				     (cdr (c-parse-state))
+				     nil)))
       (c-put-char-property (1- match-pos) 'c-type
 			   'c-not-decl)
       (cons 'not-decl nil))
@@ -1388,8 +1378,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				  (memq type '(c-decl-arg-start
 					       c-decl-type-start))))))))
 		      ((and (zerop (c-backward-token-2))
-			    (looking-at c-fun-name-substitute-key)
-			    (not (eq (char-after (match-end 0)) ?_))))))))))
+			    (looking-at c-fun-name-substitute-key)))))))))
       ;; Cache the result of this test for next time around.
       (c-put-char-property (1- match-pos) 'c-type 'c-decl-arg-start)
       (cons 'decl nil))
@@ -1759,9 +1748,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; Fontification".
   (while (and (< (point) limit)
 	      (search-forward-regexp c-enum-clause-introduction-re limit t))
-    (when (save-excursion
-	    (backward-char)
-	    (c-backward-over-enum-header))
+    (when (c-at-enum-brace (1- (point)))
       (c-forward-syntactic-ws)
       (c-font-lock-declarators limit t nil t)))
   nil)
@@ -1785,9 +1772,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
       (when (and
 	     encl-pos
 	     (eq (char-after encl-pos) ?\{)
-	     (save-excursion
-	       (goto-char encl-pos)
-	       (c-backward-over-enum-header)))
+	     (c-at-enum-brace encl-pos))
 	(c-syntactic-skip-backward "^{," nil t)
 	(c-put-char-property (1- (point)) 'c-type 'c-decl-id-start)
 
@@ -2470,7 +2455,7 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 generic casts and declarations are fontified.  Used on level 2 and
 higher."
 
-  t `(,@(when (c-lang-const c-brace-list-decl-kwds)
+  t `(,@(when (c-lang-const c-enum-list-kwds)
       ;; Fontify the remaining identifiers inside an enum list when we start
       ;; inside it.
 	  '(c-font-lock-enum-tail

@@ -1,4 +1,4 @@
-# Copyright (C) 1992-1998, 2000-2023 Free Software Foundation, Inc.
+# Copyright (C) 1992-1998, 2000-2024 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -14,6 +14,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+# If you don't want messages from GDB to interfere with ordinary editing
+# whenever it creates a subprocess, uncomment the following line.
+### set print inferior-events off
 
 # Force loading of symbols, enough to give us VALBITS etc.
 set $dummy = main + 8
@@ -818,15 +822,22 @@ Print $ as a frame pointer.
 This command assumes $ is an Emacs Lisp frame value.
 end
 
-define xcompiled
+define xclosure
   xgetptr $
   print (struct Lisp_Vector *) $ptr
   output ($->contents[0])@($->header.size & 0xff)
   echo \n
 end
+document xclosure
+Print $ as a function pointer.
+This command assumes that $ is an Emacs Lisp byte-code or interpreted function value.
+end
+
+define xcompiled
+  xclosure
+end
 document xcompiled
-Print $ as a compiled function pointer.
-This command assumes that $ is an Emacs Lisp compiled value.
+Obsolete alias for "xclosure".
 end
 
 define xwindow
@@ -913,6 +924,36 @@ end
 document xhashtable
 Set $ as a hash table pointer.
 This command assumes that $ is an Emacs Lisp hash table value.
+end
+
+define xtsparser
+  xgetptr $
+  print (struct Lisp_TS_Parser *) $ptr
+  output *$
+  echo \n
+end
+document xtsparser
+Print the address of the treesit-parser which the Lisp_Object $ points to.
+end
+
+define xtsnode
+  xgetptr $
+  print (struct Lisp_TS_Node *) $ptr
+  output *$
+  echo \n
+end
+document xtsnode
+Print the address of the treesit-node which the Lisp_Object $ points to.
+end
+
+define xtsquery
+  xgetptr $
+  print (struct Lisp_TS_Query *) $ptr
+  output *$
+  echo \n
+end
+document xtsquery
+Print the address of the treesit-query which the Lisp_Object $ points to.
 end
 
 define xcons
@@ -1034,8 +1075,8 @@ define xpr
       if $vec == PVEC_FRAME
 	xframe
       end
-      if $vec == PVEC_COMPILED
-	xcompiled
+      if $vec == PVEC_CLOSURE
+	xclosure
       end
       if $vec == PVEC_WINDOW
 	xwindow
@@ -1057,6 +1098,15 @@ define xpr
       end
       if $vec == PVEC_HASH_TABLE
 	xhashtable
+      end
+      if $vec == PVEC_TS_PARSER
+	xtsparser
+      end
+      if $vec == PVEC_TS_NODE
+	xtsnode
+      end
+      if $vec == PVEC_TS_QUERY
+	xtsquery
       end
     else
       xvector
@@ -1258,6 +1308,11 @@ if defined_HAVE_X_WINDOWS
   break x_error_quitter
 end
 
+if defined_WINDOWSNT
+  while kbdhook.hook_count > 0
+    call remove_w32_kbdhook()
+  end
+end
 
 # Put the Python code at the end of .gdbinit so that if GDB does not
 # support Python, GDB will do all the above initializations before

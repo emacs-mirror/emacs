@@ -1,6 +1,6 @@
 ;;; image-dired.el --- use dired to browse and manipulate your images -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
 
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 ;; Maintainer: Stefan Kangas <stefankangas@gmail.com>
@@ -663,7 +663,7 @@ only useful if `image-dired-track-movement' is nil."
     (image-dired--with-dired-buffer
       (if (not (dired-goto-file file-name))
           (message "Could not find image in Dired buffer for tracking")
-        (when-let (window (image-dired-get-buffer-window (current-buffer)))
+        (when-let* ((window (image-dired-get-buffer-window (current-buffer))))
           (set-window-point window (point)))))))
 
 (defun image-dired-toggle-movement-tracking ()
@@ -724,21 +724,22 @@ On reaching end or beginning of buffer, stop and show a message."
               (not (if reverse (bobp) (eobp))))
     (forward-char (if reverse -1 1))))
 
-(defmacro image-dired--movement-command (to &optional reverse)
-  `(progn
-     (goto-char ,to)
-     (image-dired--movement-ensure-point-pos ,reverse)
-     (when image-dired-track-movement
-       (image-dired-track-original-file))
-     (image-dired--update-header-line)))
+(defun image-dired--update-after-move (reverse)
+  "Book-keeping after move."
+  (image-dired--movement-ensure-point-pos reverse)
+  (when image-dired-track-movement
+    (image-dired-track-original-file))
+  (image-dired--update-header-line))
 
-(defmacro image-dired--movement-command-line (&optional reverse)
-  `(image-dired--movement-command
-     (let ((goal-column (current-column)))
-       (forward-line ,(if reverse -1 1))
-       (move-to-column goal-column)
-       (point))
-     ,reverse))
+(defun image-dired--movement-command (to &optional reverse)
+  (goto-char to)
+  (image-dired--update-after-move reverse))
+
+(defun image-dired--movement-command-line (&optional reverse)
+  (let ((goal-column (current-column)))
+    (forward-line (if reverse -1 1))
+    (move-to-column goal-column)
+    (image-dired--update-after-move reverse)))
 
 (defun image-dired-next-line ()
   "Move to next line in the thumbnail buffer."
@@ -775,10 +776,7 @@ On reaching end or beginning of buffer, stop and show a message."
   (let ((goal-column (current-column)))
     (if down (scroll-down) (scroll-up))
     (move-to-column goal-column)
-    (image-dired--movement-ensure-point-pos down)
-    (when image-dired-track-movement
-      (image-dired-track-original-file))
-    (image-dired--update-header-line)))
+    (image-dired--update-after-move down)))
 
 (defun image-dired-scroll-up ()
   (interactive nil image-dired-thumbnail-mode)
@@ -865,7 +863,7 @@ for.  The default is to look for `dired-marker-char'."
   "Run BODY in associated Dired buffer with point on current file's line.
 Should be called from commands in `image-dired-thumbnail-mode'."
   (declare (indent defun) (debug t))
-  `(if-let ((file-name (image-dired-original-file-name)))
+  `(if-let* ((file-name (image-dired-original-file-name)))
        (image-dired--with-dired-buffer
          (when (dired-goto-file file-name)
            ,@body))
@@ -873,9 +871,9 @@ Should be called from commands in `image-dired-thumbnail-mode'."
 
 (defmacro image-dired--with-thumbnail-buffer (&rest body)
   (declare (indent defun) (debug t))
-  `(if-let ((buf (get-buffer image-dired-thumbnail-buffer)))
+  `(if-let* ((buf (get-buffer image-dired-thumbnail-buffer)))
        (with-current-buffer buf
-         (if-let ((win (get-buffer-window buf)))
+         (if-let* ((win (get-buffer-window buf)))
              (with-selected-window win
                ,@body)
            ,@body))
@@ -934,7 +932,7 @@ You probably want to use this together with
 `image-dired-track-original-file'."
   (interactive nil image-dired-thumbnail-mode)
   (image-dired--with-dired-buffer
-    (if-let ((window (image-dired-get-buffer-window (current-buffer))))
+    (if-let* ((window (image-dired-get-buffer-window (current-buffer))))
         (progn
           (if (not (equal (selected-frame) (window-frame window)))
               (select-frame-set-input-focus (window-frame window)))
@@ -1080,7 +1078,7 @@ Resized or in full-size."
 (defcustom image-dired-slideshow-delay 5.0
   "Seconds to wait before showing the next image in a slideshow.
 This is used by `image-dired-slideshow-start'."
-  :type 'float
+  :type 'number
   :version "29.1")
 
 (define-obsolete-variable-alias 'image-dired-slideshow-timer
@@ -1092,7 +1090,7 @@ This is used by `image-dired-slideshow-start'."
 
 (defun image-dired--slideshow-step ()
   "Step to the next image in a slideshow."
-  (if-let ((buf (get-buffer image-dired-thumbnail-buffer)))
+  (if-let* ((buf (get-buffer image-dired-thumbnail-buffer)))
       (with-current-buffer buf
         (image-dired-display-next))
     (image-dired--slideshow-stop)))
@@ -1241,6 +1239,8 @@ Ask user how many thumbnails should be displayed per row."
 
 ;;; Display image from thumbnail buffer
 
+(declare-function w32-shell-execute "w32fns.c")
+
 (defun image-dired-thumbnail-display-external ()
   "Display original image for thumbnail at point using external viewer.
 The viewer command is specified by `image-dired-external-viewer'."
@@ -1250,9 +1250,15 @@ The viewer command is specified by `image-dired-external-viewer'."
         (message "No thumbnail at point")
       (if (not file)
           (message "No original file name found")
-        (apply #'start-process "image-dired-thumb-external" nil
-               (append (string-split image-dired-external-viewer " ")
-                       (list file)))))))
+        (cond
+         ((stringp image-dired-external-viewer)
+          (apply #'start-process "image-dired-thumb-external" nil
+                 (append (string-split image-dired-external-viewer " ")
+                         (list file))))
+         ((eq system-type 'windows-nt)
+          (w32-shell-execute "open" file))
+         (t
+          (error "`image-dired-external-viewer' does not name an image viewer program")))))))
 
 (defun image-dired-display-image (file &optional _ignored)
   "Display image FILE in the image buffer window.
@@ -1266,7 +1272,7 @@ which is based on `image-mode'."
         (cur-win (selected-window)))
     (when buf
       (kill-buffer buf))
-    (when-let ((buf (find-file-noselect file nil t)))
+    (when-let* ((buf (find-file-noselect file nil t)))
       (pop-to-buffer buf)
       (rename-buffer image-dired-display-image-buffer)
       (if (string-match (image-file-name-regexp) file)
@@ -1758,6 +1764,28 @@ Dired."
           (setcdr image-dired-tag-file-list
                   (cons (list tag file) (cdr image-dired-tag-file-list))))
       (setq image-dired-tag-file-list (list (list tag file))))))
+
+(defun image-dired-tag-thumbnail-remove ()
+  "Remove tag from current or marked thumbnails."
+  (interactive nil image-dired-thumbnail-mode)
+  (let ((tag (completing-read "Tag to remove: " image-dired-tag-history
+                              nil nil nil 'image-dired-tag-history)))
+    (image-dired--with-marked
+     (image-dired-remove-tag (image-dired-original-file-name) tag)
+     (image-dired-update-property
+      'tags (image-dired-list-tags (image-dired-original-file-name))))))
+
+(defun image-dired-tag-thumbnail ()
+  "Tag current or marked thumbnails."
+  (interactive nil image-dired-thumbnail-mode)
+  (let ((tag (completing-read
+              "Tags to add (separate tags with a semicolon): "
+              image-dired-tag-history nil nil nil 'image-dired-tag-history)))
+    (image-dired--with-marked
+     (image-dired-write-tags
+      (list (cons (image-dired-original-file-name) tag)))
+     (image-dired-update-property
+      'tags (image-dired-list-tags (image-dired-original-file-name))))))
 
 (defvar image-dired-slideshow-count 0
   "Keeping track on number of images in slideshow.")

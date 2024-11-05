@@ -1,6 +1,6 @@
 ;; -*- mode: lisp-data; -*-
-((nick 1 "NICK tester"))
-((user 1 "USER user 0 * :tester")
+((nick 10 "NICK tester"))
+((user 10 "USER user 0 * :tester")
  (0.1 ":irc.foonet.org 001 dummy :Welcome to the foonet IRC Network dummy")
  (0.0 ":irc.foonet.org 002 dummy :Your host is irc.foonet.org, running version oragono-2.6.1-937b9b02368748e5")
  (0.0 ":irc.foonet.org 003 dummy :This server was created Fri, 24 Sep 2021 01:38:36 UTC")
@@ -22,10 +22,10 @@
  (0.01 ":bob!~u@ecnnh95wr67pv.net PRIVMSG dummy :back?")
  )
 
-((mode-user 1.2 "MODE dummy +i")
+((mode-user 10 "MODE dummy +i")
  (0.0 ":irc.foonet.org 221 dummy +i")
  (0.0 ":irc.foonet.org NOTICE dummy :This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect."))
 
-((renick 42.6 "NICK tester")
+((renick 10 "NICK tester")
  (0.01 ":dummy!~u@rpaau95je67ci.irc NICK tester")
  (0.0 ":NickServ!NickServ@localhost NOTICE dummy :You're now logged in as tester"))

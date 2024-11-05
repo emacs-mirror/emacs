@@ -7,7 +7,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001--2023 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2024 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -55,6 +55,7 @@ modify this GNU manual.''
 
 @menu
 * Overview::             Basics, usage, organization, naming conventions.
+* Printing::             Human friendly printing with @code{cl-prin1}.
 * Program Structure::    Arglists, @code{cl-eval-when}.
 * Predicates::           Type predicates and equality predicates.
 * Control Structure::    Assignment, conditionals, blocks, looping.
@@ -257,6 +258,161 @@ and @code{:key} is not used.
 
 @noindent
 [3] Only for one sequence argument or two list arguments.
+
+@node Printing
+@chapter Printing
+
+@noindent
+This chapter describes some enhancements to Emacs Lisp's
+@dfn{printing}, the action of representing Lisp objects in text form.
+The functions documented here are intended to produce output more for
+human readers than the standard printing functions such as
+@code{prin1} and @code{princ} (@pxref{Output Functions,,,elisp,GNU
+Emacs Lisp Reference Manual}).
+
+Several of these functions have a parameter @var{stream}; this
+specifies what to do with the characters printing produces.  For
+example, it might be a buffer, a marker, @code{nil} (meaning use
+standard output), or @code{t} (use the echo area).  @xref{Output
+Streams,,,elisp,GNU Emacs Lisp Reference Manual}, for a full
+description.
+
+@defvar cl-print-readably
+When this variable is non-@code{nil}, @code{cl-prin1} and other
+functions described here try to produce output which can later be read
+by the Lisp reader (@pxref{Input Functions,,,elisp,GNU Emacs Lisp
+Reference Manual}).
+@end defvar
+
+@defvar cl-print-compiled
+This variable controls how to print byte-compiled functions.  Valid
+values are:
+@table @code
+@item nil
+The default: Just an internal hex identifier is printed.
+@item static
+The internal hex identifier together with the function's constant
+vector are printed.
+@item disassemble
+The byte code gets disassembled.
+@item raw
+The raw form of the function is printed by @code{prin1}.
+@end table
+
+Sometimes, a button is set on the output to allow you to disassemble
+the function.  See @code{cl-print-compile-button}.
+@end defvar
+
+@defvar cl-print-compile-button
+When this variable is non-@code{nil} and a byte-compiled function has
+been printed to a buffer, you can click with the mouse or type
+@key{RET} on that output to disassemble the code.  This doesn't apply
+when @code{cl-print-compiled} is set to @code{disassemble}.
+@end defvar
+
+@defvar cl-print-string-length
+The maximum length of a string to print before abbreviating it.  A
+value of @code{nil}, the default, means no limit.
+
+When the CL printing functions abbreviate a string, they print the
+first @code{cl-print-string-length} characters of the string, followed
+by ``@enddots{}''.  When the printing is to a buffer, you can click
+with the mouse or type @key{RET} on this ellipsis to expand the
+string.
+
+This variable has effect only in the @code{cl-prin*} functions, not in
+primitives such as @code{prin1}.
+@end defvar
+
+@defun cl-prin1 object &option stream
+@code{cl-print1} prints @var{object} on @var{stream} (see above)
+according to its type and the settings described above.  The variables
+@code{print-length} and @code{print-level} and the other standard
+Emacs settings also affect the printing (@pxref{Output
+Variables,,,elisp,GNU Emacs Lisp Reference Manual}).
+@end defun
+
+@defun cl-prin1-to-string object
+This function is like @code{cl-prin1}, except the output characters
+are returned as a string from this function rather than being passed
+to a stream.
+@end defun
+
+@defun cl-print-to-string-with-limit print-function value limit
+This function returns a string containing a printed representation of
+@var{value}.  It attempts to get the length of the returned string
+under @var{limit} characters with successively more restrictive
+settings of @code{print-level}, @code{print-length}, and
+@code{cl-print-string-length}.  It uses @var{print-function} to print,
+a function which should take the arguments @var{value} and a stream
+(see above), and which should respect @code{print-length},
+@code{print-level}, and @code{cl-print-string-length}.  @var{limit}
+may be @code{nil} or zero, in which case @var{print-function} will be
+called with these settings bound to @code{nil}; it can also be
+@code{t}, in which case @var{print-function} will be called with their
+current values.
+
+Use this function with @code{cl-prin1} to print an object, possibly
+abbreviating it with one or more ellipses to fit within the size
+limit.
+@end defun
+
+@defun cl-print-object object stream
+This function prints @var{object} on @var{stream} (see above).  It is
+actually a @code{cl-defgeneric} (@pxref{Generic Functions,,,elisp,GNU
+Emacs Lisp Reference Manual}), which is defined for several types of
+@var{object}.  Normally, you just call @code{cl-prin1} to print an
+@var{object} rather than calling this function directly.
+
+You can write @code{cl-print-object} @code{cl-defmethod}s for other
+types of @var{object}, thus extending @code{cl-prin1}.  If such a
+method uses ellipses, you should also write a
+@code{cl-print-object-contents} method for the same type.  For
+examples of these methods, see @file{emacs-lisp/cl-print.el} in the
+Emacs source directory.
+@end defun
+
+@defun cl-print-object-contents object start stream
+This function replaces an ellipsis in @var{stream} beginning at
+@var{start} with the text from the partially printed @var{object} it
+represents.  It is also a @code{cl-defgeneric} defined for several
+types of @var{object}.  @var{stream} is a buffer containing the text
+with the ellipsis.  @var{start} specifies the starting position of the
+ellipsis in a manner dependent on the type; it will have been obtained
+from a text property on the ellipsis, having been put there by
+@code{cl-print-insert-ellipsis}.
+@end defun
+
+@defun cl-print-insert-ellipsis object start stream
+This function prints an ellipsis (``@dots{}'') to @var{stream} (see
+above).  When @var{stream} is a buffer, the ellipsis will be given the
+@code{cl-print-ellipsis} text property.  The value of the text
+property will contain state (including @var{start}) in order to print
+the elided part of @var{object} later.  @var{start} should be
+@code{nil} if the whole @var{object} is being elided, otherwise it
+should be an index or other pointer into the internals of @var{object}
+which can be passed to @code{cl-print-object-contents} at a later
+time.
+@end defun
+
+@defvar cl-print-expand-ellipsis-function
+This variable holds a function which expands an ellipsis in the
+current buffer.  The function takes four arguments: @var{begin} and
+@var{end}, which are the bounds of the ellipsis; @var{value}, which is
+the value of the @code{cl-print-ellipsis} text property on the
+ellipsis (typically set earlier by @code{cl-prin1}); and
+@var{line-length}, the desired maximum length of the output.  Its
+return value is the buffer position after the expanded text.
+@end defvar
+
+@deffn Command cl-print-expand-ellipsis &optional button
+This command expands the ellipsis at point.  Non-interactively, if
+@var{button} is non-@code{nil}, it should be either a buffer position
+or a button made by @code{cl-print-insert-ellipsis}
+(@pxref{Buttons,,,elisp,GNU Emacs Lisp Reference Manual}), which
+indicates the position of the ellipsis.  The return value is the
+buffer position after the expanded text.
+@end deffn
 
 @node Program Structure
 @chapter Program Structure
@@ -704,7 +860,7 @@ Thus @code{(cl-typep @var{object} 'null)} is equivalent to
 
 @item
 The type symbol @code{atom} represents all objects that are not cons
-cells. Thus @code{(cl-typep @var{object} 'atom)} is equivalent to
+cells.  Thus @code{(cl-typep @var{object} 'atom)} is equivalent to
 @code{(atom @var{object})}.
 
 @item
@@ -1238,10 +1394,15 @@ of variables.
 
 @defmac cl-flet (bindings@dots{}) forms@dots{}
 This form establishes @code{let}-style bindings for functions rather
-than values.  Each @var{binding} must be a list of the form
-@samp{(@var{name} @var{arglist} @var{body}@dots{})}.  Within
-@var{forms}, any reference to the function @var{name} uses the local
-definition instead of the global one.
+than values.  Each @var{binding} must be a list of one of two forms:
+either @w{@code{(@var{name} @var{expr})}} or @w{@code{(@var{name}
+@var{arglist} @var{body}@dots{})}}.  The @var{name} is the name of the
+function, @var{expr} is an expression which returns the function value
+to which the corresponding @var{name} should be bound, and
+@var{arglist} and @var{body} are the argument list and the body of the
+function to bind to @var{name}.  Within @var{forms}, any reference to
+the function @var{name} uses the local definition provided by
+@var{bindings} instead of the global one.
 
 A ``reference'' to a function name is either a call to that function,
 or a use of its name quoted by @code{function} to be passed on to,
@@ -1266,7 +1427,7 @@ the function bindings can be recursive.  The scoping is lexical,
 but you can only capture functions in closures if
 @code{lexical-binding} is @code{t}.
 @xref{Closures,,,elisp,GNU Emacs Lisp Reference Manual}, and
-@ref{Using Lexical Binding,,,elisp,GNU Emacs Lisp Reference Manual}.
+@ref{Selecting Lisp Dialect,,,elisp,GNU Emacs Lisp Reference Manual}.
 
 Lexical scoping means that all references to the named
 functions must appear physically within the body of the
@@ -2030,7 +2191,7 @@ term restricts the search to just the specified property.  The
 Properties,,,elisp}.
 
 @item for @var{var} being the frames
-This clause iterates over all Emacs frames. The clause @code{screens} is
+This clause iterates over all Emacs frames.  The clause @code{screens} is
 a synonym for @code{frames}.  The frames are visited in
 @code{next-frame} order starting from @code{selected-frame}.
 

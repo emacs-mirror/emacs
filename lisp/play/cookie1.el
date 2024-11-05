@@ -1,6 +1,6 @@
 ;;; cookie1.el --- retrieve random phrases from fortune cookie files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -65,7 +65,7 @@
 (defconst cookie-delimiter "\n%%\n\\|\n%\n\\|\0"
   "Delimiter used to separate cookie file entries.")
 
-(defvar cookie-cache (make-vector 511 0)
+(defvar cookie-cache (obarray-make 511)
   "Cache of cookie files that have already been snarfed.")
 
 (defun cookie-check-file (file)

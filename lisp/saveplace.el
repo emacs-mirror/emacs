@@ -1,6 +1,6 @@
 ;;; saveplace.el --- automatically save place in files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -151,12 +151,14 @@ different hosts.
 Changing this option requires rewriting `save-place-alist' with
 corresponding file name format, therefore setting this option
 just using `setq' may cause out-of-sync problems.  You should use
-either `setopt' or M-x customize-variable to set this option."
+either `setopt' or \\[customize-variable] to set this option."
   :type 'boolean
   :set (lambda (sym val)
          (set-default sym val)
          (or save-place-loaded (save-place-load-alist-from-file))
-         (let ((fun (if val #'abbreviate-file-name #'expand-file-name)))
+         (let ((fun (if val #'abbreviate-file-name #'expand-file-name))
+               ;; Don't expand file names for non-existing remote connections.
+               (non-essential t))
            (setq save-place-alist
                  (cl-delete-duplicates
                   (cl-loop for (k . v) in save-place-alist
@@ -196,12 +198,13 @@ removable and network volumes."
 
 (defcustom save-place-ignore-files-regexp
   "\\(?:COMMIT_EDITMSG\\|hg-editor-[[:alnum:]]+\\.txt\\|svn-commit\\.tmp\\|bzr_log\\.[[:alnum:]]+\\)$"
-  "Regexp matching files for which no position should be recorded.
-Useful for temporary file such as commit message files that are
-automatically created by the VCS.  If set to nil, this feature is
-disabled, i.e., the position is recorded for all files."
+  "Regexp matching files whose positions should not be recorded.
+Useful to exclude temporary files, such as commit message files that are
+automatically created by VCSes.  If set to nil, this feature is
+disabled, i.e., no files are excluded."
   :version "24.1"
-  :type 'regexp)
+  :type '(choice (const :tag "Don't exclude any files" nil)
+                 regexp))
 
 (declare-function dired-current-directory "dired" (&optional localp))
 
@@ -413,22 +416,22 @@ It runs the hook `save-place-after-find-file-hook'."
   "Position point in a Dired buffer according to its saved place.
 This is run via `dired-initial-position-hook', which see."
   (or save-place-loaded (save-place-load-alist-from-file))
-  (when-let ((directory (and (derived-mode-p 'dired-mode)
-                             (boundp 'dired-subdir-alist)
-			     dired-subdir-alist
-			     (dired-current-directory)))
-             (item (expand-file-name (if (consp directory)
-					 (car directory)
-				       directory)))
-	     (cell (assoc (if save-place-abbreviate-file-names
-                              (abbreviate-file-name item) item)
-		          save-place-alist)))
+  (when-let* ((directory (and (derived-mode-p 'dired-mode)
+                              (boundp 'dired-subdir-alist)
+			      dired-subdir-alist
+			      (dired-current-directory)))
+              (item (expand-file-name (if (consp directory)
+					  (car directory)
+				        directory)))
+	      (cell (assoc (if save-place-abbreviate-file-names
+                               (abbreviate-file-name item) item)
+		           save-place-alist)))
     (or revert-buffer-in-progress-p
         (cond
 	 ((integerp (cdr cell))
 	  (goto-char (cdr cell)))
 	 ((listp (cdr cell))
-          (when-let ((elt (assq 'dired-filename (cdr cell))))
+          (when-let* ((elt (assq 'dired-filename (cdr cell))))
             (dired-goto-file (expand-file-name (cdr elt)))))))
     ;; and make sure it will be saved again for later
     (setq save-place-mode t)))

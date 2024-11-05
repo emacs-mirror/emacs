@@ -1,6 +1,6 @@
 ;;; erc-speedbar.el --- Speedbar support for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2004, 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2004, 2006-2024 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Contributor: Eric M. Ludlam <zappo@gnu.org>
@@ -54,7 +54,7 @@ node `(speedbar) Top' for more about the underlying integration."
 
 (defcustom erc-speedbar-nicknames-window-width 18
   "Default width of the nicknames sidebar (in columns)."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type 'integer)
 
 (defcustom erc-speedbar-sort-users-type 'activity
@@ -69,7 +69,7 @@ nil            - Do not sort users"
 
 (defcustom erc-speedbar-hide-mode-topic 'headerline
   "Hide mode and topic lines."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const :tag "Always show" nil)
                  (const :tag "Always hide" t)
                  (const :tag "Omit when headerline visible" headerline)))
@@ -81,7 +81,7 @@ When the value is t, ERC uses `erc-current-nick-face' if
 When using the `nicks' module, you can see your nick as it
 appears to others by coordinating with the option
 `erc-nicks-skip-faces'."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice face (const :tag "Current nick or own speaker face" t)))
 
 (defvar erc-speedbar-key-map nil
@@ -133,14 +133,26 @@ This will add a speedbar major display mode."
 (defun erc-speedbar-buttons (buffer)
   "Create buttons for speedbar in BUFFER."
   (erase-buffer)
-  (let (serverp chanp queryp)
+  (let (serverp chanp queryp queries-current-p)
     (with-current-buffer buffer
-      (setq serverp (erc-server-buffer-p))
+      ;; The function `dframe-help-echo' checks the default value of
+      ;; `dframe-help-echo-function' when deciding whether to visit
+      ;; the buffer and fire the callback.  This works in normal
+      ;; speedbar frames because the event handler runs in the
+      ;; `window-buffer' of the active frame.  But in our hacked
+      ;; version, where the frame is hidden, `speedbar-item-info'
+      ;; never runs without this workaround.
+      (setq-local dframe-help-echo-function #'ignore)
+      (setq serverp (erc--server-buffer-p))
       (setq chanp (erc-channel-p (erc-default-target)))
-      (setq queryp (erc-query-buffer-p)))
-    (cond (serverp
+      (setq queryp (erc-query-buffer-p)
+            queries-current-p (erc--queries-current-p)))
+    (defvar erc-nickbar-mode)
+    (cond ((and erc-nickbar-mode (null (get-buffer-window speedbar-buffer)))
+           (run-at-time 0 nil #'erc-nickbar-mode -1))
+          (serverp
 	   (erc-speedbar-channel-buttons nil 0 buffer))
-	  (chanp
+          ((or chanp (and queryp queries-current-p))
 	   (erc-speedbar-insert-target buffer 0)
 	   (forward-line -1)
 	   (erc-speedbar-expand-channel "+" buffer 0))
@@ -194,7 +206,8 @@ This will add a speedbar major display mode."
 	  t)))))
 
 (defun erc-speedbar-insert-target (buffer depth)
-  (if (erc--target-channel-p (buffer-local-value 'erc--target buffer))
+  (if (with-current-buffer buffer
+        (or (erc--target-channel-p erc--target) (erc--queries-current-p)))
       (progn
         (speedbar-make-tag-line
          'bracket ?+ 'erc-speedbar-expand-channel buffer
@@ -207,10 +220,16 @@ This will add a speedbar major display mode."
             (speedbar-add-indicator (format "(%d)" (hash-table-count table)))
             (rx "(" (+ (any "0-9")) ")"))))
     ;; Query target
+    (cl-assert (erc-query-buffer-p buffer))
     (speedbar-make-tag-line
-     nil nil nil nil
+     'bracket ?? nil nil
      (buffer-name buffer) 'erc-speedbar-goto-buffer buffer nil
      depth)))
+
+(defconst erc-speedbar--fmt-sentinel (gensym "erc-speedbar-")
+  "Symbol for identifying a nonstandard `speedbar-token' text property.
+When encountered, ERC assumes the value's tail contains
+`format'-compatible args.")
 
 (defun erc-speedbar-expand-channel (text channel indent)
   "For the line matching TEXT, in CHANNEL, expand or contract a line.
@@ -221,35 +240,17 @@ INDENT is the current indentation level."
     (speedbar-with-writable
      (save-excursion
        (end-of-line) (forward-char 1)
-       (let ((modes (with-current-buffer channel
-		      (concat (apply #'concat
-				     erc-channel-modes)
-			      (cond
-			       ((and erc-channel-user-limit
-				     erc-channel-key)
-				(if erc-show-channel-key-p
-				    (format "lk %.0f %s"
-					    erc-channel-user-limit
-					    erc-channel-key)
-				  (format "kl %.0f" erc-channel-user-limit)))
-			       (erc-channel-user-limit
-				;; Emacs has no bignums
-				(format "l %.0f" erc-channel-user-limit))
-			       (erc-channel-key
-				(if erc-show-channel-key-p
-				    (format "k %s" erc-channel-key)
-				  "k"))
-			       (t "")))))
+       (let ((modes (buffer-local-value 'erc--mode-line-mode-string channel))
 	     (topic (erc-controls-interpret
 		     (with-current-buffer channel erc-channel-topic))))
-	 (speedbar-make-tag-line
-	  'angle ?i nil nil
-	  (concat "Modes: +" modes) nil nil nil
-	  (1+ indent))
+         (when modes
+           (speedbar-make-tag-line
+            'angle ?m nil (list erc-speedbar--fmt-sentinel "Mode: %s" modes)
+            modes nil nil 'erc-notice-face (1+ indent)))
 	 (unless (string= topic "")
 	   (speedbar-make-tag-line
-	    'angle ?i nil nil
-	    (concat "Topic: " topic) nil nil nil
+            'angle ?t nil (list erc-speedbar--fmt-sentinel  "Topic: %s" topic)
+            topic nil nil 'erc-notice-face
 	    (1+ indent)))
          (unless (pcase erc-speedbar-hide-mode-topic
                    ('nil 'show)
@@ -293,15 +294,9 @@ composed or anonymous, or nil.")
                   'erc-current-nick-face
                 'erc-my-nick-face))
           (v v))
-      ;; FIXME overload `erc-channel-user-owner-p' and friends to
-      ;; accept an `erc-channel-user' object and replace this unrolled
-      ;; stuff with a single call to `erc-get-user-mode-prefix'.
-      (and cuser (or (erc-channel-user-owner cuser)
-                     (erc-channel-user-admin cuser)
-                     (erc-channel-user-op cuser)
-                     (erc-channel-user-halfop cuser)
-                     (erc-channel-user-voice cuser))
-           erc-button-nickname-face))))
+      (or (and cuser (not (zerop (erc-channel-user-status cuser)))
+               erc-button-nickname-face)
+          'erc-default-face))))
 
 (defun erc-speedbar--on-click (nick sbtoken _indent)
   ;; 0: finger, 1: name, 2: info, 3: buffer-name
@@ -324,9 +319,9 @@ a list of four items: the userhost, the GECOS, the current
 	 (info (erc-server-user-info user))
 	 (login (erc-server-user-login user))
 	 (name (erc-server-user-full-name user))
-	 (voice (and cuser (erc-channel-user-voice cuser)))
-	 (op (and cuser (erc-channel-user-op cuser)))
-	 (nick-str (concat (if op "@" "") (if voice "+" "") nick))
+         (nick-str (concat (with-current-buffer (or buffer (current-buffer))
+                             (erc-get-channel-membership-prefix cuser))
+                           nick))
 	 (finger (concat login (when (or login host) "@") host))
          (sbtoken (list finger name info (buffer-name buffer))))
     (if (or login host name info) ; we want to be expandable
@@ -428,6 +423,13 @@ The INDENT level is ignored."
 	   (message "%s: %s" txt (car data)))
 	  ((bufferp data)
 	   (message "Channel: %s" txt))
+          ;; Print help if line has a non-standard ([-+?=]) button
+          ;; char and a `speedbar-token' property with a known CAR.
+          ((and-let* ((p (text-property-not-all (pos-bol) (pos-eol)
+                                                'speedbar-token nil))
+                      (v (get-text-property p 'speedbar-token))
+                      ((eq erc-speedbar--fmt-sentinel (car v))))
+             (apply #'message (cdr v))))
 	  (t
 	   (message "%s" txt)))))
 
@@ -439,14 +441,17 @@ The INDENT level is ignored."
 (defvar erc-status-sidebar-buffer-name)
 (declare-function erc-status-sidebar-set-window-preserve-size
                   "erc-status-sidebar" nil)
-(declare-function erc-status-sidebar-mode--unhook "erc-status-sidebar" nil)
 
 (defvar erc-speedbar--buffer-options
   '((speedbar-update-flag . t)
     (speedbar-use-images . nil)
     (speedbar-hide-button-brackets-flag . t)))
 
-(defvar erc-speedbar--hidden-speedbar-frame nil)
+(defvar erc-speedbar--hidden-speedbar-frame nil
+  "The original `speedbar-frame', which `erc-nickbar-mode' deletes.
+It keeps a reference to it in order to run upstream teardown
+procedures without having to create a dummy frame for that
+purpose.")
 
 (defun erc-speedbar--emulate-sidebar-set-window-preserve-size ()
   (let ((erc-status-sidebar-buffer-name (buffer-name speedbar-buffer))
@@ -454,10 +459,7 @@ The INDENT level is ignored."
          `(display-buffer-in-side-window
            . ((side . right)
               (window-width . ,erc-speedbar-nicknames-window-width)))))
-    (erc-status-sidebar-set-window-preserve-size)
-    (when-let ((window (get-buffer-window speedbar-buffer)))
-      (set-window-parameter window 'no-other-window nil)
-      (internal-show-cursor window t))))
+    (erc-status-sidebar-set-window-preserve-size)))
 
 (defun erc-speedbar--status-sidebar-mode--unhook ()
   "Remove hooks installed by `erc-status-sidebar-mode'."
@@ -465,11 +467,13 @@ The INDENT level is ignored."
                #'erc-speedbar--emulate-sidebar-set-window-preserve-size))
 
 (defun erc-speedbar--emulate-sidebar ()
+  "Perform local setup for `erc-nickbar-mode' in a new `speedbar-buffer'."
   (require 'erc-status-sidebar)
   (cl-assert speedbar-frame)
   (cl-assert (eq speedbar-buffer (current-buffer)))
   (cl-assert (eq speedbar-frame (selected-frame)))
   (setq erc-speedbar--hidden-speedbar-frame speedbar-frame
+        ;; In Emacs 27, this is not `local-variable-if-set-p'.
         dframe-controlled #'erc-speedbar--dframe-controlled)
   (add-hook 'window-configuration-change-hook
             #'erc-speedbar--emulate-sidebar-set-window-preserve-size nil t)
@@ -483,115 +487,180 @@ The INDENT level is ignored."
       (add-function :around (local 'erc-speedbar--nick-face-function)
                     #'erc-speedbar--compose-nicks-face))))
 
-(defun erc-speedbar--toggle-nicknames-sidebar (arg)
-  (let ((force (numberp arg)))
-    (if speedbar-buffer
-        (progn
-          (cl-assert (buffer-live-p speedbar-buffer))
-          (if (or (and force (< arg 0))
-                  (and (not force) (get-buffer-window speedbar-buffer nil)))
-              (erc-speedbar-close-nicknames-window nil)
-            (when (or (not force) (>= arg 0))
-              (with-selected-frame speedbar-frame
-                (erc-speedbar--emulate-sidebar-set-window-preserve-size)))))
-      (when (or (not force) (>= arg 0))
-        (let ((speedbar-frame-parameters (backquote-list*
-                                          '(visibility . nil)
-                                          '(no-other-frame . t)
-                                          speedbar-frame-parameters))
-              (speedbar-after-create-hook #'erc-speedbar--emulate-sidebar))
-          (erc-speedbar-browser)
-          ;; If we put the remaining parts in the "create hook" along
-          ;; with everything else, the frame with `window-main-window'
-          ;; gets raised and steals focus if you've switched away from
-          ;; Emacs in the meantime.
-          (make-frame-invisible speedbar-frame)
-          (select-frame (setq speedbar-frame (previous-frame)))
-          (erc-speedbar--emulate-sidebar-set-window-preserve-size))))))
+(defun erc-speedbar--handle-delete-frame (event)
+  "Disable the nickbar if EVENT is deleting the proxy frame."
+  (when (and speedbar-frame
+             (cdr (frame-list))
+             (pcase event
+               (`(delete-frame (,frame)) (eq frame speedbar-frame))))
+    (erc-nickbar-mode -1)))
 
-(defun erc-speedbar--ensure (&optional force)
-  (when (or (erc-server-buffer) force)
-    (when erc-track-mode
-      (cl-pushnew '(derived-mode . speedbar-mode)
-                  erc-track--switch-fallback-blockers :test #'equal))
-    (erc-speedbar--toggle-nicknames-sidebar +1)
-    (speedbar-enable-update)))
+(defun erc-speedbar--ensure (&optional forcep)
+  "Perform common setup for `erc-nickbar-mode'.
+Without FORCEP, return early when the calling context isn't
+associated with an ERC session."
+  (save-excursion
+    (when (or (erc-server-buffer) forcep)
+      (when erc-track-mode
+        (cl-pushnew '(derived-mode . speedbar-mode)
+                    erc-track--switch-fallback-blockers :test #'equal))
+      (unless speedbar-update-flag
+        (erc-button--display-error-notice-with-keys
+         (erc-server-buffer)
+         "Module `nickbar' needs `speedbar-update-flag' to be non-nil"
+         (and (not (display-graphic-p)) " in text terminals")
+         ". Setting to t for the current Emacs session."
+         " Customize it permanently to avoid this message.")
+        (setq speedbar-update-flag t))
+      (when-let* (((null speedbar-buffer))
+                  (speedbar-frame-parameters (backquote-list*
+                                              '(visibility . nil)
+                                              '(no-other-frame . t)
+                                              speedbar-frame-parameters))
+                  (speedbar-after-create-hook #'erc-speedbar--emulate-sidebar)
+                  (original-frame (selected-frame)))
+        (erc-install-speedbar-variables)
+        ;; Run before toggling mode to prevent timer from being
+        ;; created twice.
+        (speedbar-change-initial-expansion-list "ERC")
+        (speedbar-frame-mode 1)
+        ;; The setup steps below can't go in the "create hook" because
+        ;; the frame with `window-main-window' will be raised and
+        ;; steal focus if you switch away from Emacs in the meantime.
+        (let ((frame speedbar-frame))
+          (cl-assert (not (eq speedbar-frame original-frame)))
+          (select-frame (setq speedbar-frame original-frame))
+          (delete-frame frame))
+        ;; Allow deleting (our) `speedbar-frame' with the mouse.
+        (with-current-buffer speedbar-buffer
+          (kill-local-variable 'dframe-delete-frame-function)
+          (setq dframe-delete-frame-function
+                #'erc-speedbar--handle-delete-frame)))
+      (with-selected-frame speedbar-frame
+        (erc-speedbar--emulate-sidebar-set-window-preserve-size)
+        (erc-speedbar-toggle-nicknames-window-lock -1))
+      (cl-assert (null (cdr (erc-speedbar--get-timers))))
+      (with-current-buffer speedbar-buffer
+        (setq speedbar-update-flag t)
+        (speedbar-set-mode-line-format)))))
+
+(defvar erc-speedbar--force-update-interval-secs 5
+  "Speedbar update period.")
+
+(defvar-local erc-speedbar--last-ran nil
+  "When non-nil, a Lisp timestamp updated when the speedbar timer runs.")
+
+(defun erc-speedbar--prod-dframe-timer (&rest _)
+  "Refresh speedbar if dormant for `erc-speedbar--force-update-interval-secs'."
+  (when (buffer-live-p speedbar-buffer)
+    (with-current-buffer speedbar-buffer
+      (when
+          (and dframe-timer
+               (or (null erc-speedbar--last-ran)
+                   (time-less-p erc-speedbar--last-ran
+                                (time-subtract
+                                 (current-time)
+                                 erc-speedbar--force-update-interval-secs))))
+        (run-at-time 0 nil #'dframe-timer-fn))))
+  nil)
+
+(defun erc-speedbar--reset-last-ran-on-timer ()
+  "Reset `erc-speedbar--last-ran'."
+  (when speedbar-buffer
+    (with-current-buffer speedbar-buffer
+      (setq erc-speedbar--last-ran (current-time)))))
 
 ;;;###autoload(autoload 'erc-nickbar-mode "erc-speedbar" nil t)
 (define-erc-module nickbar nil
-  "Show nicknames in a side window.
+  "Show nicknames for current target buffer in a side window.
 When enabling, create a speedbar session if one doesn't exist and
 show its buffer in an `erc-status-sidebar' window instead of a
-separate frame.  When disabling, close the window or, with a
-negative prefix arg, destroy the session.
+separate frame.  If ERC doesn't yet have any live connections,
+defer activation until such time.  This means the variable
+`erc-nickbar-mode' may be t even though no actual speedbar yet
+exists.  When disabling, destroy the speedbar session.
 
-WARNING: this module may produce unwanted side effects, like the
-raising of frames or the stealing of input focus.  If you witness
-such an occurrence, and can reproduce it, please file a bug
-report with \\[erc-bug]."
+For controlling whether the speedbar window is selectable with
+`other-window', see `erc-nickbar-toggle-nicknames-window-lock'."
   ((add-hook 'erc--setup-buffer-hook #'erc-speedbar--ensure)
+   (add-hook 'speedbar-timer-hook #'erc-speedbar--reset-last-ran-on-timer)
+   (add-hook 'erc-insert-post-hook #'erc-speedbar--prod-dframe-timer)
+   (add-hook 'erc-server-PONG-functions #'erc-speedbar--prod-dframe-timer)
    (erc-speedbar--ensure)
    (unless (or erc--updating-modules-p
-               (and-let* ((speedbar-buffer)
-                          (win (get-buffer-window speedbar-buffer 'all-frames))
-                          ((eq speedbar-frame (window-frame win))))))
-     (if speedbar-buffer
-         (erc-speedbar--ensure 'force)
-       (setq erc-nickbar-mode nil)
-       (when (derived-mode-p 'erc-mode)
-         (erc-error "Not initializing `erc-nickbar-mode' in %s"
-                    (current-buffer))))))
+               (and speedbar-buffer
+                    (eq speedbar-frame
+                        (window-frame (get-buffer-window speedbar-buffer t)))))
+     (when-let* ((buf (or (and (derived-mode-p 'erc-mode) (current-buffer))
+                          (car (erc-buffer-filter #'erc--server-buffer-p)))))
+       (with-current-buffer buf
+         (erc-speedbar--ensure 'forcep)))))
   ((remove-hook 'erc--setup-buffer-hook #'erc-speedbar--ensure)
-   (speedbar-disable-update)
+   (remove-hook 'speedbar-timer-hook #'erc-speedbar--reset-last-ran-on-timer)
+   (remove-hook 'erc-insert-post-hook #'erc-speedbar--prod-dframe-timer)
+   (remove-hook 'erc-server-PONG-functions #'erc-speedbar--prod-dframe-timer)
    (when erc-track-mode
      (setq erc-track--switch-fallback-blockers
            (remove '(derived-mode . speedbar-mode)
                    erc-track--switch-fallback-blockers)))
-   (erc-speedbar--toggle-nicknames-sidebar -1)
-   (when-let ((arg erc--module-toggle-prefix-arg)
-              ((numberp arg))
-              ((< arg 0)))
-     (erc-speedbar-close-nicknames-window 'kill))))
+   ;; `speedbar-buffer' may be nil if the mode was never enabled, such
+   ;; as when disabling the module through Customize after startup.
+   (when speedbar-buffer
+     ;; Close associated windows and stop updating but leave timer.
+     (dolist (window (get-buffer-window-list speedbar-buffer nil t))
+       (unless (frame-root-window-p window)
+         (when erc-speedbar--hidden-speedbar-frame
+           (cl-assert (not (eq (window-frame window)
+                               erc-speedbar--hidden-speedbar-frame))))
+         (delete-window window)))
+     (with-current-buffer speedbar-buffer
+       (setq speedbar-update-flag nil)
+       (speedbar-set-mode-line-format)
+       (unless (eq erc--module-toggle-prefix-arg most-negative-fixnum)
+         (dframe-close-frame))))))
+
+(defun erc-speedbar--get-timers ()
+  (cl-remove #'dframe-timer-fn timer-idle-list
+             :key #'timer--function
+             :test-not #'eq))
 
 (defun erc-speedbar--dframe-controlled (arg)
+  (when speedbar-buffer
+    (cl-assert (eq speedbar-buffer (current-buffer))))
   (when (and erc-speedbar--hidden-speedbar-frame (numberp arg) (< arg 0))
     (when erc-nickbar-mode
-      (erc-nickbar-mode -1))
+      (erc-nickbar-mode most-negative-fixnum))
     (setq speedbar-frame erc-speedbar--hidden-speedbar-frame
           erc-speedbar--hidden-speedbar-frame nil)
-    ;; It's unknown whether leaving the frame invisible interferes
-    ;; with the upstream teardown procedure.
-    (when (display-graphic-p)
-      (make-frame-visible speedbar-frame))
-    (speedbar-frame-mode arg)
-    (when speedbar-buffer
-      (kill-buffer speedbar-buffer)
-      (setq speedbar-buffer nil))))
+    (speedbar-frame-mode arg) ; -1
+    ;; As of Emacs 29, `dframe-set-timer' can't remove `dframe-timer'.
+    (cl-assert (= 1 (length (erc-speedbar--get-timers))) t)
+    (cancel-function-timers #'dframe-timer-fn)
+    ;; `dframe-close-frame' kills the buffer but no function in
+    ;; erc-speedbar.el resets this to nil.
+    (setq erc-speedbar--hidden-speedbar-frame nil
+          speedbar-buffer nil
+          speedbar-frame nil)))
 
-(defun erc-speedbar-toggle-nicknames-window-lock ()
-  "Toggle whether nicknames window is selectable with \\[other-window]."
-  (interactive)
+(defun erc-speedbar-toggle-nicknames-window-lock (arg)
+  "Toggle whether nicknames window is selectable with \\[other-window].
+When ARG is a number, lock the window if non-negative.  Otherwise,
+unlock the window."
+  (interactive "P")
   (unless erc-nickbar-mode
     (user-error "`erc-nickbar-mode' inactive"))
-  (when-let ((window (get-buffer-window speedbar-buffer)))
-    (let ((val (window-parameter window 'no-other-window)))
-      (set-window-parameter window 'no-other-window (not val))
-      (message "nick-window: %s" (if val "selectable" "protected")))))
-
-(defun erc-speedbar-close-nicknames-window (kill)
-  (interactive "P")
-  (if kill
+  (when-let* ((window (get-buffer-window speedbar-buffer)))
+    (let ((val (cond ((natnump arg) t)
+                     ((integerp arg) nil)
+                     (t (not (erc-compat--window-no-other-p window))))))
       (with-current-buffer speedbar-buffer
-        (dframe-close-frame)
-        (cl-assert (not erc-nickbar-mode))
-        (setq erc-speedbar--hidden-speedbar-frame nil))
-    (dolist (window (get-buffer-window-list speedbar-buffer nil t))
-      (unless (frame-root-window-p window)
-        (when erc-speedbar--hidden-speedbar-frame
-          (cl-assert (not (eq (window-frame window)
-                              erc-speedbar--hidden-speedbar-frame))))
-        (delete-window window)))))
+        (setq cursor-type (not val)))
+      (set-window-parameter window 'no-other-window val)
+      (unless (numberp arg)
+        (message "nick-window: %s" (if val "protected" "selectable"))))))
 
+(defalias 'erc-nickbar-toggle-nicknames-window-lock
+  #'erc-speedbar-toggle-nicknames-window-lock)
 
 ;;;; Nicks integration
 
@@ -600,10 +669,10 @@ report with \\[erc-bug]."
 (defun erc-speedbar--compose-nicks-face (orig buffer user cuser)
   (require 'erc-nicks)
   (let ((rv (funcall orig buffer user cuser)))
-    (if-let ((nick (erc-server-user-nickname user))
-             (face (with-current-buffer buffer
-                     (erc-nicks--highlight nick rv)))
-             ((not (eq face erc-button-nickname-face))))
+    (if-let* ((nick (erc-server-user-nickname user))
+              (face (with-current-buffer buffer
+                      (erc-nicks--highlight nick rv)))
+              ((not (eq face erc-button-nickname-face))))
         (cons face (ensure-list rv))
       rv)))
 

@@ -1,6 +1,6 @@
 ;;; thingatpt-tests.el --- tests for thing-at-point.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -85,16 +85,18 @@
     ("<foo@example.com>" 5 email "<foo@example.com>")
     ("<foo@example.com>" 16 email "<foo@example.com>")
     ("<foo@example.com>" 17 email "<foo@example.com>")
-    ;; email adresses containing numbers
+    ;; email addresses containing numbers
     ("foo1@example.com" 1 email "foo1@example.com")
     ("1foo@example.com" 1 email "1foo@example.com")
     ("11@example.com" 1 email "11@example.com")
     ("1@example.com" 1 email "1@example.com")
-    ;; email adresses user portion containing dots
+    ;; email addresses user portion containing dots
     ("foo.bar@example.com" 1 email "foo.bar@example.com")
+    ("foo.bar@example.com" 5 email "foo.bar@example.com")
+    ("  fo.ba@example.com" 6 email "fo.ba@example.com")
     (".foobar@example.com" 1 email nil)
     (".foobar@example.com" 2 email "foobar@example.com")
-    ;; email adresses domain portion containing dots and dashes
+    ;; email addresses domain portion containing dots and dashes
     ("foobar@.example.com" 1 email nil)
     ("foobar@-example.com" 1 email "foobar@-example.com")
     ;; These are illegal, but thingatpt doesn't yet handle them
@@ -180,6 +182,13 @@ position to retrieve THING.")
       (should (thing-at-point-looking-at "2abcd"))
       (should (equal (match-data) m2)))))
 
+(ert-deftest thing-at-point-looking-at-overlapping-matches ()
+  (with-temp-buffer
+    (insert "foo.bar.baz")
+    (goto-char (point-max))
+    (should (thing-at-point-looking-at "[a-z]+\\.[a-z]+"))
+    (should (string= "bar.baz" (match-string 0)))))
+
 (ert-deftest test-symbol-thing-1 ()
   (with-temp-buffer
     (insert "foo bar zot")
@@ -248,5 +257,94 @@ position to retrieve THING.")
   (should (equal (test--number "0xf00" 1) 3840))
   (should (equal (test--number "0xf00" 2) 3840))
   (should (equal (test--number "0xf00" 3) 3840)))
+
+(ert-deftest thing-at-point-providers ()
+  (with-temp-buffer
+    (setq-local
+     thing-at-point-provider-alist
+     `((url . ,(lambda () (thing-at-point-for-char-property 'foo-url)))
+       (url . ,(lambda () (thing-at-point-for-char-property 'bar-url)))))
+    (insert (propertize "hello" 'foo-url "foo.com") "\ngoodbye")
+    (overlay-put (make-overlay 7 14) 'bar-url "bar.com")
+    (goto-char (point-min))
+    ;; Get the URL using the first provider.
+    (should (equal (thing-at-point 'url) "foo.com"))
+    (should (equal (thing-at-point 'word) "hello"))
+    (goto-char 6)                       ; Go to the end of "hello".
+    (should (equal (thing-at-point 'url) "foo.com"))
+    (goto-char (point-max))
+    ;; Get the URL using the second provider.
+    (should (equal (thing-at-point 'url) "bar.com"))))
+
+(ert-deftest forward-thing-providers ()
+  (with-temp-buffer
+    (setq-local
+     forward-thing-provider-alist
+     `((url . ,(lambda (n) (forward-thing-for-char-property 'foo-url n)))
+       (url . ,(lambda (n) (forward-thing-for-char-property 'bar-url n)))))
+    (insert (propertize "hello" 'foo-url "foo.com") "there\ngoodbye")
+    (overlay-put (make-overlay 12 19) 'bar-url "bar.com")
+    (goto-char (point-min))
+    (forward-thing 'url)                ; Move past the first URL.
+    (should (= (point) 6))
+    (forward-thing 'url)                ; Move past the second URL.
+    (should (= (point) 19))
+    (forward-thing 'url -1)             ; Move backwards past the second URL.
+    (should (= (point) 12))
+    (forward-thing 'url -1)             ; Move backwards past the first URL.
+    (should (= (point) 1))
+    (forward-thing 'word)               ; Move past the first word.
+    (should (= (point) 11))))
+
+(ert-deftest bounds-of-thing-at-point-providers ()
+  (with-temp-buffer
+    (setq-local
+     bounds-of-thing-at-point-provider-alist
+     `((url . ,(lambda ()
+                 (bounds-of-thing-at-point-for-char-property 'foo-url)))
+       (url . ,(lambda ()
+                 (bounds-of-thing-at-point-for-char-property 'bar-url)))))
+    (insert (propertize "hello" 'foo-url "foo.com") "there\ngoodbye")
+    (overlay-put (make-overlay 12 19) 'bar-url "bar.com")
+    (goto-char (point-min))
+    ;; Look for a URL, using the first provider above.
+    (should (equal (bounds-of-thing-at-point 'url) '(1 . 6)))
+    (should (eq (save-excursion (beginning-of-thing 'url)) 1))
+    (should (eq (save-excursion (end-of-thing 'url)) 6))
+    ;; Look for a word, which should *not* use our provider above.
+    (should (equal (bounds-of-thing-at-point 'word) '(1 . 11)))
+    (should (eq (save-excursion (beginning-of-thing 'word)) 1))
+    (should (eq (save-excursion (end-of-thing 'word)) 11))
+    (goto-char (point-max))
+    ;; Look for a URL, using the second provider above.
+    (should (equal (bounds-of-thing-at-point 'url) '(12 . 19)))
+    (should (eq (save-excursion (beginning-of-thing 'url)) 12))
+    (should (eq (save-excursion (end-of-thing 'url)) 19))))
+
+(ert-deftest consecutive-things-at-point ()
+  (with-temp-buffer
+    (setq-local
+     thing-at-point-provider-alist
+     `((url . ,(lambda () (thing-at-point-for-char-property 'url))))
+     forward-thing-provider-alist
+     `((url . ,(lambda (n) (forward-thing-for-char-property 'url n))))
+     bounds-of-thing-at-point-provider-alist
+     `((url . ,(lambda () (bounds-of-thing-at-point-for-char-property 'url)))))
+    (insert (propertize "one" 'url "foo.com")
+            (propertize "two" 'url "bar.com")
+            (propertize "three" 'url "baz.com"))
+    (goto-char 4)                       ; Go to the end of "one".
+    (should (equal (thing-at-point 'url) "bar.com"))
+    (should (equal (bounds-of-thing-at-point 'url) '(4 . 7)))
+    (forward-thing 'url)
+    (should (= (point) 7))
+    (should (equal (thing-at-point 'url) "baz.com"))
+    (should (equal (bounds-of-thing-at-point 'url) '(7 . 12)))
+    (forward-thing 'url)
+    (should (= (point) 12))
+    (forward-thing 'url -2)
+    (should (= (point) 4))
+    (should (equal (thing-at-point 'url) "bar.com"))
+    (should (equal (bounds-of-thing-at-point 'url) '(4 . 7)))))
 
 ;;; thingatpt-tests.el ends here

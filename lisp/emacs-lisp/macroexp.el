@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -37,7 +37,14 @@ most deeply nested form.
 Normally a form is manually pushed onto the list at the beginning
 of `byte-compile-form', etc., and manually popped off at its end.
 This is to preserve the data in it in the event of a
-condition-case handling a signaled error.")
+`condition-case' handling a signaled error.")
+
+(defmacro macroexp--with-extended-form-stack (expr &rest body)
+  "Evaluate BODY with EXPR pushed onto `byte-compile-form-stack'."
+  (declare (indent 1)
+           (debug (sexp body)))
+  `(let ((byte-compile-form-stack (cons ,expr byte-compile-form-stack)))
+     ,@body))
 
 ;; Bound by the top-level `macroexpand-all', and modified to include any
 ;; macros defined by `defmacro'.
@@ -105,13 +112,21 @@ each clause."
 	(macroexp--all-forms clause skip)
       clause)))
 
+(defvar macroexp-inhibit-compiler-macros nil
+  "Inhibit application of compiler macros if non-nil.")
+
 (defun macroexp--compiler-macro (handler form)
-  (condition-case-unless-debug err
-      (apply handler form (cdr form))
-    (error
-     (message "Warning: Optimization failure for %S: Handler: %S\n%S"
-              (car form) handler err)
-     form)))
+  "Apply compiler macro HANDLER to FORM and return the result.
+Unless `macroexp-inhibit-compiler-macros' is non-nil, in which
+case return FORM unchanged."
+  (if macroexp-inhibit-compiler-macros
+      form
+    (condition-case-unless-debug err
+        (apply handler form (cdr form))
+      (error
+       (message "Warning: Optimization failure for %S: Handler: %S\n%S"
+                (car form) handler err)
+       form))))
 
 (defun macroexp--funcall-if-compiled (_form)
   "Pseudo function used internally by macroexp to delay warnings.
@@ -314,8 +329,7 @@ Only valid during macro-expansion."
   "Expand all macros in FORM.
 This is an internal version of `macroexpand-all'.
 Assumes the caller has bound `macroexpand-all-environment'."
-  (push form byte-compile-form-stack)
-  (prog1
+  (macroexp--with-extended-form-stack form
       (if (eq (car-safe form) 'backquote-list*)
           ;; Special-case `backquote-list*', as it is normally a macro that
           ;; generates exceedingly deep expansions from relatively shallow input
@@ -330,7 +344,34 @@ Assumes the caller has bound `macroexpand-all-environment'."
         (let ((fn (car-safe form)))
           (pcase form
             (`(cond . ,clauses)
-             (macroexp--cons fn (macroexp--all-clauses clauses) form))
+             ;; Check for rubbish clauses at the end before macro-expansion,
+             ;; to avoid nuisance warnings from clauses that become
+             ;; unconditional through that process.
+             ;; FIXME: this strategy is defeated by forced `macroexpand-all',
+             ;; such as in `cl-flet'.  Haven't seen that in the wild, though.
+             (let ((default-tail nil)
+                   (n 0)
+                   (rest clauses))
+               (while (cdr rest)
+                 (let ((c (car-safe (car rest))))
+                   (when (cond ((consp c) (and (memq (car c) '(quote function))
+                                               (cadr c)))
+                               ((symbolp c) (or (eq c t) (keywordp c)))
+                               (t t))
+                     ;; This is unquestionably a default clause.
+                     (setq default-tail (cdr rest))
+                     (setq clauses (take (1+ n) clauses))  ; trim the tail
+                     (setq rest nil)))
+                 (setq n (1+ n))
+                 (setq rest (cdr rest)))
+               (let ((expanded-form
+                      (macroexp--cons fn (macroexp--all-clauses clauses) form)))
+                 (if default-tail
+                     (macroexp-warn-and-return
+                      (format-message
+                       "Useless clause following default `cond' clause")
+                      expanded-form '(suspicious cond) t default-tail)
+                   expanded-form))))
             (`(condition-case . ,(or `(,err ,body . ,handlers) pcase--dontcare))
              (let ((exp-body (macroexp--expand-all body)))
                (if handlers
@@ -473,8 +514,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                              newform
                            (macroexp--expand-all form)))
                      (macroexp--expand-all newform))))))
-            (_ form))))
-    (pop byte-compile-form-stack)))
+            (_ form))))))
 
 ;;;###autoload
 (defun macroexpand-all (form &optional environment)
@@ -498,11 +538,17 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 (defun macroexp-parse-body (body)
   "Parse a function BODY into (DECLARATIONS . EXPS)."
   (let ((decls ()))
-    (while (and (cdr body)
-                (let ((e (car body)))
-                  (or (stringp e)
-                      (memq (car-safe e)
-                            '(:documentation declare interactive cl-declare)))))
+    (while
+        (and body
+             (let ((e (car body)))
+               (or (and (stringp e)
+                        ;; If there is only a string literal with
+                        ;; nothing following, we consider this to be
+                        ;; part of the body (the return value) rather
+                        ;; than a declaration at this point.
+                        (cdr body))
+                   (memq (car-safe e)
+                         '(:documentation declare interactive cl-declare)))))
       (push (pop body) decls))
     (cons (nreverse decls) body)))
 
@@ -785,7 +831,7 @@ test of free variables in the following ways:
           (if full-p
               (macroexpand--all-toplevel form)
             (macroexpand form)))
-      (error
+      ((debug error)
        ;; Hopefully this shouldn't happen thanks to the cycle detection,
        ;; but in case it does happen, let's catch the error and give the
        ;; code a chance to macro-expand later.

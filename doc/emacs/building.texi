@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building
@@ -477,6 +477,14 @@ non-@code{nil} if the buffer is to be saved).  Any other
 non-@code{nil} value means that all buffers should be saved without
 asking.  The default is @code{ask}.
 
+@vindex grep-use-headings
+@vindex grep-heading@r{ face}
+  By default, grep matches are shown with the file names prefixed to
+each line.  But if the variable @code{grep-use-headings} is customized
+to a non-@code{nil} value, the matches are split into sections, one
+section for each file with matches, and the file names are shown in the
+section headings using a special face @code{grep-heading}.
+
 @findex grep-find
 @findex find-grep
   The command @kbd{M-x grep-find} (also available as @kbd{M-x
@@ -519,6 +527,16 @@ interactively toggle viewing the concealed part by typing @kbd{M-x
 grep-find-toggle-abbreviation}.  To disable this abbreviation of the
 shell commands, customize the option @code{grep-find-abbreviate} to a
 @code{nil} value.
+
+@findex grep-change-to-grep-edit-mode
+@cindex Grep Edit mode
+@cindex mode, Grep Edit
+  Typing @kbd{e} in the @file{*grep*} buffer makes the buffer writable
+and enters the Grep Edit mode.  Similar to Occur Edit mode (@pxref{Other
+Repeating Search}), you can edit the matching lines reported by
+@code{grep} and have those changes reflected in the buffer visiting the
+originating file.  Type @kbd{C-c C-c} to leave the Grep Edit mode and
+return to the Grep mode.
 
 @node Flymake
 @section Finding Syntax Errors On The Fly
@@ -567,7 +585,7 @@ see the Flymake Info manual, which is distributed with Emacs.
 
 The GUD (Grand Unified Debugger) library provides an Emacs interface
 to a wide variety of symbolic debuggers.  It can run the GNU Debugger
-(GDB), as well as DBX, SDB, XDB, Guile REPL debug commands, Perl's
+(GDB), as well as LLDB, DBX, SDB, XDB, Guile REPL debug commands, Perl's
 debugging mode, the Python debugger PDB, and the Java Debugger JDB.
 
   Emacs provides a special interface to GDB, which uses extra Emacs
@@ -608,6 +626,10 @@ exists, switch to it; otherwise, create the buffer and switch to it.
 
 The other commands in this list do the same, for other debugger
 programs.
+
+@item M-x lldb
+@findex lldb
+Run the LLDB debugger.
 
 @item M-x perldb
 @findex perldb
@@ -698,10 +720,23 @@ which edited source line corresponds to the line reported by the
 debugger subprocess.  To update this information, you typically have
 to recompile and restart the program.
 
+@cindex GUD and hl-line-mode
+@cindex highlighting execution lines in GUD
+@vindex gud-highlight-current-line
+  Moreover, GUD is capable of visually demarcating the current
+execution line within the window text itself in one of two fashions:
+the first takes effect when the user option
+@code{gud-highlight-current-line} is enabled, and displays that line
+in an overlay whose appearance is provided by the face
+@code{gud-highlight-current-line-face}.  The other takes effect when
+HL Line Mode (@pxref{Cursor Display}) is enabled, and moves the
+overlay introduced by HL Line Mode briefly to the execution line,
+until a subsequent editing command repositions it back beneath the
+cursor.
+
 @cindex GUD Tooltip mode
 @cindex mode, GUD Tooltip
 @findex gud-tooltip-mode
-@vindex gud-tooltip-echo-area
   GUD Tooltip mode is a global minor mode that adds tooltip support to
 GUD@.  To toggle this mode, type @kbd{M-x gud-tooltip-mode}.  It is
 disabled by default.  If enabled, you can move the mouse pointer over a
@@ -713,10 +748,8 @@ you can tell Emacs more explicitly what expression to evaluate by
 dragging the mouse over the expression, then leaving the mouse inside
 the marked area.  The GUD Tooltip mode takes effect in the GUD
 interaction buffer, and in all source buffers with major modes listed
-in the variable @code{gud-tooltip-modes}.  If the variable
-@code{gud-tooltip-echo-area} is non-@code{nil}, or if you turned off
-the tooltip mode, values are shown in the echo area instead of a
-tooltip.
+in the variable @code{gud-tooltip-modes}.  If you turned off the
+tooltip mode, values are shown in the echo area instead of a tooltip.
 
   When using GUD Tooltip mode with @kbd{M-x gud-gdb}, displaying an
 expression's value in GDB can sometimes expand a macro, potentially
@@ -1298,6 +1331,10 @@ of output to its standard output, you may wish to separate its I/O
 from interaction with GDB.  Use the command @w{@kbd{M-x
 gdb-display-io-buffer}} to show a window with a buffer to which Emacs
 redirects the input and output from the program you are debugging.
+However, if the variable @code{gdb-display-io-buffer} is @code{nil},
+Emacs will not create nor display a separate I/O buffer, but will
+instead redirect the program's interaction to the GUD interaction
+buffer.
 
 @findex gdb-display-registers-buffer
 @item Registers Buffer
@@ -1662,9 +1699,9 @@ command or function is invoked.  For example:
 
   Note that installing a package using @code{package-install}
 (@pxref{Package Installation}) takes care of placing the package's
-Lisp files in a directory where Emacs will find it, and also writes
-the necessary initialization code into your init files, making the
-above manual customizations unnecessary.
+Lisp files in a directory where Emacs will find it, and also extends
+@code{load-path} as needed, making the above manual customizations
+unnecessary for such packages.
 
 @node Lisp Eval
 @section Evaluating Emacs Lisp Expressions

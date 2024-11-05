@@ -1,6 +1,6 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -33,6 +33,10 @@
 ;; ?roff requests that are most commonly used in man pages.  However,
 ;; the emulation is modified to include the reformatting done by the
 ;; Emacs `man' command.  No hyphenation is performed.
+
+;; Note that `M-x woman' doesn’t yet support the latest features of
+;; modern man pages, so we recommend using `M-x man' if that is
+;; available on your system.
 
 ;; Advantages
 
@@ -88,7 +92,7 @@
 ;; (add-hook 'dired-mode-hook
 ;;          (lambda ()
 ;;            (define-key dired-mode-map "W" 'woman-dired-find-file)))
-;; and open the directory containing the man page file using dired,
+;; and open the directory containing the man page file using Dired,
 ;; put the cursor on the file, and press `W'.
 
 ;; In each case, the result should (!) be a buffer in Man mode showing
@@ -98,7 +102,7 @@
 ;; manual-browsing facility rather than `WoMan' -- this is
 ;; intentional!)
 
-;; (By default, WoMan will automatically define the dired keys "W" and
+;; (By default, WoMan will automatically define the Dired keys "W" and
 ;; "w" when it loads, but only if they are not already defined.  This
 ;; behavior is controlled by the user option `woman-dired-keys'.
 ;; Note that the `dired-x' (dired extra) package binds
@@ -1149,7 +1153,11 @@ speed.  With a prefix argument, force the caches to be
 updated (e.g. to re-interpret the current directory).
 
 Used non-interactively, arguments are optional: if given then TOPIC
-should be a topic string and non-nil RE-CACHE forces re-caching."
+should be a topic string and non-nil RE-CACHE forces re-caching.
+
+Note that `M-x woman' doesn’t yet support the latest features of
+modern man pages, so we recommend using `M-x man' if that is
+available on your system."
   (interactive (list nil current-prefix-arg))
   ;; The following test is for non-interactive calls via emacsclient, etc.
   (if (or (not (stringp topic)) (string-match-p "\\S " topic))
@@ -1338,8 +1346,8 @@ PATH-DIRS should be a list of general manual directories (like
 manual directory regexps (like `woman-path').
 Ignore any paths that are unreadable or not directories."
   ;; Allow each path to be a single string or a list of strings:
-  (if (not (listp path-dirs)) (setq path-dirs (list path-dirs)))
-  (if (not (listp path-regexps)) (setq path-regexps (list path-regexps)))
+  (setq path-dirs (ensure-list path-dirs))
+  (setq path-regexps (ensure-list path-regexps))
   (let (head dirs path)
     (dolist (dir path-dirs)
       (when (consp dir)
@@ -1518,7 +1526,7 @@ Also make each path-info component into a list.
       (woman-dired-define-key key)))
 
 (defun woman-dired-define-keys ()
-  "Define dired keys to run WoMan according to `woman-dired-keys'."
+  "Define Dired keys to run WoMan according to `woman-dired-keys'."
   (if woman-dired-keys
       (if (listp woman-dired-keys)
 	  (mapc #'woman-dired-define-key woman-dired-keys)
@@ -1536,7 +1544,7 @@ Also make each path-info component into a list.
 
 ;;;###autoload
 (defun woman-dired-find-file ()
-  "In dired, run the WoMan man-page browser on this file."
+  "In Dired, run the WoMan man-page browser on this file."
   (interactive)
   (woman-find-file (dired-get-filename)))
 
@@ -2081,8 +2089,6 @@ European characters."
 
 ;;; The main decoding driver:
 
-(defvar font-lock-mode)			; for the compiler
-
 (defun woman-decode-buffer ()
   "Decode a buffer in UN*X man-page source format.
 No external programs are used."
@@ -2560,7 +2566,8 @@ If DELETE is non-nil then delete from point."
 		       ;; "\\(\\\\{\\)\\|\\(\n[.']\\)?[ \t]*\\\\}[ \t]*"
 		       ;; Interpret bogus `el \}' as `el \{',
 		       ;; especially for Tcl/Tk man pages:
-		       "\\(\\\\{\\|el[ \t]*\\\\}\\)\\|\\(\n[.']\\)?[ \t]*\\\\}[ \t]*")
+		       "\\(\\\\{\\|el[ \t]*\\\\}\\)\\|\\(\n[.']\\)?[ \t]*\\\\}[ \t]*"
+                       nil t)
 		      (match-beginning 1))
 	       (re-search-forward "\\\\}"))
 	     (delete-region (if delete from (match-beginning 0)) (point))

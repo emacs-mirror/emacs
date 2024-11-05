@@ -1,6 +1,6 @@
 ;;; ls-lisp-tests.el --- tests for ls-lisp.el  -*- lexical-binding: t-*-
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 ;; Keywords:
@@ -29,12 +29,45 @@
 (require 'ls-lisp)
 (require 'dired)
 
-(ert-deftest ls-lisp-unload ()
-  "Test for https://debbugs.gnu.org/xxxxx ."
-  (should (advice-member-p 'ls-lisp--insert-directory 'insert-directory))
-  (unload-feature 'ls-lisp 'force)
-  (should-not (advice-member-p 'ls-lisp--insert-directory 'insert-directory))
-  (require 'ls-lisp))
+(defvar dired-find-subdir)
+(ert-deftest ls-lisp-test-bug70271 ()
+  "Test for https://debbugs.gnu.org/70271 ."
+  (ert-with-temp-file
+   fpath
+   :suffix "bug70271"
+   (let* ((dir (file-name-directory fpath))
+          (attributes (file-attributes fpath))
+          (dired-find-subdir t)
+          ls-lisp-use-insert-directory-program buf ts str)
+     (unwind-protect
+         (progn
+           (setq ts (file-attribute-access-time attributes))
+           (with-current-buffer
+               (dired-internal-noselect dir "-la --time=ctime")
+             (setq buf (current-buffer)
+                   str (format-time-string "%H:%M" ts))
+             (goto-char (point-min))
+             (should (search-forward-regexp str nil t))
+             (kill-buffer))
+           (setq ts (- (float-time) 60))
+           (set-file-times fpath ts)
+           (with-current-buffer
+               (dired-internal-noselect dir "-la --sort=time")
+             (setq buf (current-buffer)
+                   str (format-time-string "%H:%M" ts))
+             (goto-char (point-min))
+             (should (search-forward-regexp str nil t))
+             (kill-buffer))
+           (setq ts (- (float-time) 120))
+           (set-file-times fpath ts)
+           (with-current-buffer
+               (dired-internal-noselect dir "-la --time=atime")
+             (setq buf (current-buffer)
+                   str (format-time-string "%H:%M" ts))
+             (goto-char (point-min))
+             (should (search-forward-regexp str nil t))
+             (kill-buffer)))
+       (when (buffer-live-p buf) (kill-buffer buf))))))
 
 (ert-deftest ls-lisp-test-bug27762 ()
   "Test for https://debbugs.gnu.org/27762 ."

@@ -1,8 +1,9 @@
 ;;; c-ts-common.el --- Utilities for C like Languages  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; Maintainer : 付禹安 (Yuan Fu) <casouri@gmail.com>
+;; Package    : emacs
 ;; Keywords   : c c++ java javascript rust languages tree-sitter
 
 ;; This file is part of GNU Emacs.
@@ -36,9 +37,8 @@
 ;;
 ;; For indenting statements:
 ;;
-;; - Set `c-ts-common-indent-offset',
-;;   `c-ts-common-indent-block-type-regexp', and
-;;   `c-ts-common-indent-bracketless-type-regexp', then use simple-indent
+;; - Set `c-ts-common-indent-offset', and
+;;   `c-ts-common-indent-type-regexp-alist', then use simple-indent
 ;;   offset `c-ts-common-statement-offset' in
 ;;   `treesit-simple-indent-rules'.
 
@@ -115,7 +115,7 @@ non-whitespace characters of the current line."
   "Regexp pattern that matches a comment in C-like languages.")
 
 (defun c-ts-common--fill-paragraph (&optional arg)
-  "Fillling function for `c-ts-common'.
+  "Filling function for `c-ts-common'.
 ARG is passed to `fill-paragraph'."
   (interactive "*P")
   (save-restriction
@@ -123,9 +123,16 @@ ARG is passed to `fill-paragraph'."
     (let ((node (treesit-node-at (point))))
       (when (string-match-p c-ts-common--comment-regexp
                             (treesit-node-type node))
-        (if (save-excursion
-              (goto-char (treesit-node-start node))
-              (looking-at "//"))
+        (if (or (save-excursion
+                  (goto-char (treesit-node-start node))
+                  (looking-at "//"))
+                ;; In rust, NODE will be the body of a comment, and the
+                ;; parent will be the whole comment.
+                (if-let* ((start (treesit-node-start
+                                  (treesit-node-parent node))))
+                    (save-excursion
+                      (goto-char start)
+                      (looking-at "//"))))
             (fill-comment-paragraph arg)
           (c-ts-common--fill-block-comment arg)))
       ;; Return t so `fill-paragraph' doesn't attempt to fill by
@@ -133,7 +140,7 @@ ARG is passed to `fill-paragraph'."
       t)))
 
 (defun c-ts-common--fill-block-comment (&optional arg)
-  "Fillling function for block comments.
+  "Filling function for block comments.
 ARG is passed to `fill-paragraph'.  Assume point is in a block
 comment."
   (let* ((node (treesit-node-at (point)))
@@ -144,18 +151,19 @@ comment."
          (orig-point (point-marker))
          (start-marker (point-marker))
          (end-marker nil)
-         (end-len 0))
+         (end-len 0)
+         (end-mask-done nil))
     (move-marker start-marker start)
-    ;; We mask "/*" and the space before "*/" like
-    ;; `c-fill-paragraph' does.
+    ;; If the first line is /* followed by non-text, exclude this line
+    ;; from filling.
     (atomic-change-group
-      ;; Mask "/*".
       (goto-char start)
       (when (looking-at (rx (* (syntax whitespace))
-                            (group "/") "*"))
-        (goto-char (match-beginning 1))
-        (move-marker start-marker (point))
-        (replace-match " " nil nil nil 1))
+                            (group "/") "*"
+                            (* (or "*" "=" "-" "/" (syntax whitespace)))
+                            eol))
+        (forward-line)
+        (move-marker start-marker (point)))
 
       ;; Include whitespaces before /*.
       (goto-char start)
@@ -172,6 +180,7 @@ comment."
         (goto-char (match-beginning 1))
         (setq end-marker (point-marker))
         (setq end-len (- (match-end 1) (match-beginning 1)))
+        (setq end-mask-done t)
         (replace-match (make-string end-len ?x)
                        nil nil nil 1))
 
@@ -179,9 +188,9 @@ comment."
       ;; filling region.
       (when (not end-marker)
         (goto-char end)
-        (when (looking-back (rx "*/") 2)
-          (backward-char 2)
-          (skip-syntax-backward "-")
+        (forward-line 0)
+        (when (looking-at (rx (* (or (syntax whitespace) "*" "=" "-"))
+                              "*/" eol))
           (setq end (point))))
 
       ;; Let `fill-paragraph' do its thing.
@@ -199,15 +208,62 @@ comment."
         (fill-region (max start-marker para-start) (min end para-end) arg))
 
       ;; Unmask.
-      (when start-marker
-        (goto-char start-marker)
-        (delete-char 1)
-        (insert "/"))
-      (when end-marker
+      (when (and end-marker end-mask-done)
         (goto-char end-marker)
         (delete-region (point) (+ end-len (point)))
         (insert (make-string end-len ?\s)))
       (goto-char orig-point))))
+
+(defun c-ts-common--adaptive-fill-prefix ()
+  "Returns the appropriate fill-prefix for this paragraph.
+
+This function should be called at BOL.  Used by
+`adaptive-fill-function'."
+  (cond
+   ;; (1)
+   ;; If current line is /* and next line is * -> prefix is *.
+   ;; Eg:
+   ;; /* xxx       =>   /* xxx
+   ;;  * xxx xxx         * xxx
+   ;;                    * xxx
+   ;; If current line is /* and next line isn't * or doesn't exist ->
+   ;; prefix is whitespace.
+   ;; Eg:
+   ;; /* xxx xxx */  =>  /* xxx
+   ;;                       xxx */
+   ((and (looking-at (rx (* (syntax whitespace))
+                         "/*"
+                         (* "*")
+                         (* (syntax whitespace))))
+         (let ((whitespaces (make-string (length (match-string 0)) ?\s)))
+           (save-excursion
+             (if (and (eq (forward-line) 0)
+                      (looking-at (rx (* (syntax whitespace))
+                                      "*"
+                                      (* (syntax whitespace)))))
+                 (match-string 0)
+               whitespaces)))))
+   ;; (2)
+   ;; Current line: //, ///, ////...
+   ;; Prefix: same.
+   ((looking-at (rx (* (syntax whitespace))
+                    "//"
+                    (* "/")
+                    (* (syntax whitespace))))
+    (match-string 0))
+   ;; (3)
+   ;; Current line: *, |, -
+   ;; Prefix: same.
+   ;; This branch must return the same prefix as branch (1), as the
+   ;; second line in the paragraph; then the whole paragraph will use *
+   ;; as the prefix.
+   ((looking-at (rx (* (syntax whitespace))
+                    (or "*" "|" "-")
+                    (* (syntax whitespace))))
+    (match-string 0))
+   ;; Other: let `adaptive-fill-regexp' and
+   ;; `adaptive-fill-first-line-regexp' decide.
+   (t nil)))
 
 (defun c-ts-common-comment-setup ()
   "Set up local variables for C-like comment.
@@ -221,7 +277,9 @@ Set up:
  - `adaptive-fill-first-line-regexp'
  - `paragraph-start'
  - `paragraph-separate'
- - `fill-paragraph-function'"
+ - `fill-paragraph-function'
+ - `comment-line-break-function'
+ - `comment-multi-line'"
   (setq-local comment-start "// ")
   (setq-local comment-end "")
   (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
@@ -232,31 +290,15 @@ Set up:
                   (group (or (syntax comment-end)
                              (seq (+ "*") "/")))))
   (setq-local adaptive-fill-mode t)
-  ;; This matches (1) empty spaces (the default), (2) "//", (3) "*",
-  ;; but do not match "/*", because we don't want to use "/*" as
-  ;; prefix when filling.  (Actually, it doesn't matter, because
-  ;; `comment-start-skip' matches "/*" which will cause
-  ;; `fill-context-prefix' to use "/*" as a prefix for filling, that's
-  ;; why we mask the "/*" in `c-ts-common--fill-paragraph'.)
-  (setq-local adaptive-fill-regexp
-              (concat (rx (* (syntax whitespace))
-                          (group (or (seq "/" (+ "/")) (* "*"))))
-                      adaptive-fill-regexp))
-  ;; Note the missing * comparing to `adaptive-fill-regexp'.  The
-  ;; reason for its absence is a bit convoluted to explain.  Suffice
-  ;; to say that without it, filling a single line paragraph that
-  ;; starts with /* doesn't insert * at the beginning of each
-  ;; following line, and filling a multi-line paragraph whose first
-  ;; two lines start with * does insert * at the beginning of each
-  ;; following line.  If you know how does adaptive filling works, you
-  ;; know what I mean.
+  (setq-local adaptive-fill-function #'c-ts-common--adaptive-fill-prefix)
+  ;; Always accept * or | as prefix, even if there's only one line in
+  ;; the paragraph.
   (setq-local adaptive-fill-first-line-regexp
               (rx bos
-                  (seq (* (syntax whitespace))
-                       (group (seq "/" (+ "/")))
-                       (* (syntax whitespace)))
+                  (* (syntax whitespace))
+                  (or "*" "|")
+                  (* (syntax whitespace))
                   eos))
-  ;; Same as `adaptive-fill-regexp'.
   (setq-local paragraph-start
               (rx (or (seq (* (syntax whitespace))
                            (group (or (seq "/" (+ "/")) (* "*")))
@@ -267,7 +309,105 @@ Set up:
                            eol)
                       "\f")))
   (setq-local paragraph-separate paragraph-start)
-  (setq-local fill-paragraph-function #'c-ts-common--fill-paragraph))
+  (setq-local fill-paragraph-function #'c-ts-common--fill-paragraph)
+
+  (setq-local comment-line-break-function
+              #'c-ts-common-comment-indent-new-line)
+  (setq-local comment-multi-line t))
+
+(defun c-ts-common-comment-indent-new-line (&optional soft)
+  "Break line at point and indent, continuing comment if within one.
+
+This is like `comment-indent-new-line', but specialized for C-style //
+and /* */ comments.  SOFT works the same as in
+`comment-indent-new-line'."
+  ;; I want to experiment with explicitly listing out all each cases and
+  ;; handle them separately, as opposed to fiddling with `comment-start'
+  ;; and friends.  This will have more duplicate code and will be less
+  ;; generic, but in the same time might save us from writing cryptic
+  ;; code to handle all sorts of edge cases.
+  ;;
+  ;; For this command, let's try to make it basic: if the current line
+  ;; is a // comment, insert a newline and a // prefix; if the current
+  ;; line is in a /* comment, insert a newline and a * prefix.  No
+  ;; auto-fill or other smart features.
+  (let ((insert-line-break
+         (lambda ()
+	   (delete-horizontal-space)
+	   (if soft
+	       (insert-and-inherit ?\n)
+	     (newline  1)))))
+    (cond
+     ;; Line starts with //, or ///, or ////...
+     ;; Or //! (used in rust).
+     ((save-excursion
+        (beginning-of-line)
+        (re-search-forward
+         (rx "//" (group (* (any "/!")) (* " ")))
+         (line-end-position)
+         t nil))
+      (let ((offset (- (match-beginning 0) (line-beginning-position)))
+            (whitespaces (match-string 1)))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert (make-string offset ?\s) "//" whitespaces)))
+
+     ;; Line starts with /* or /**.
+     ((save-excursion
+        (beginning-of-line)
+        (re-search-forward
+         (rx "/*" (group (? "*") (* " ")))
+         (line-end-position)
+         t nil))
+      (let ((offset (- (match-beginning 0) (line-beginning-position)))
+            (whitespace-and-star-len (length (match-string 1))))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert
+         (make-string offset ?\s)
+         " *"
+         (make-string whitespace-and-star-len ?\s))))
+
+     ;; Line starts with *.
+     ((save-excursion
+        (beginning-of-line)
+        (looking-at (rx (group (* " ") (any "*|") (* " ")))))
+      (let ((prefix (match-string 1)))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert prefix)))
+
+     ;; Line starts with whitespaces or no space.  This is basically the
+     ;; default case since (rx (* " ")) matches anything.
+     ((save-excursion
+        (beginning-of-line)
+        (looking-at (rx (* " "))))
+      (let ((whitespaces (match-string 0)))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert whitespaces))))))
+
+;; Font locking using doxygen parser
+(defvar c-ts-mode-doxygen-comment-font-lock-settings
+  (treesit-font-lock-rules
+   :language 'doxygen
+   :feature 'document
+   :override t
+   '((document) @font-lock-doc-face)
+
+   :language 'doxygen
+   :override t
+   :feature 'keyword
+   '((tag_name) @font-lock-constant-face
+     (storageclass) @font-lock-constant-face)
+
+   :language 'doxygen
+   :override t
+   :feature 'definition
+   '((tag (identifier) @font-lock-variable-name-face)
+     (function (identifier) @font-lock-function-name-face)
+     (function_link) @font-lock-function-name-face))
+  "Tree-sitter font lock rules for doxygen like comment styles.")
 
 ;;; Statement indent
 
@@ -330,9 +470,9 @@ If NODE is nil, return nil."
 Assumes the anchor is (point-min), i.e., the 0th column.
 
 This function basically counts the number of block nodes (i.e.,
-brackets) (defined by `c-ts-common-indent-block-type-regexp')
+brackets) (see `c-ts-common-indent-type-regexp-alist')
 between NODE and the root node (not counting NODE itself), and
-multiply that by `c-ts-common-indent-offset'.
+multiplies that by `c-ts-common-indent-offset'.
 
 To support GNU style, on each block level, this function also
 checks whether the opening bracket { is on its own line, if so,

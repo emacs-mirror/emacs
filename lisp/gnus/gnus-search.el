@@ -1,6 +1,6 @@
 ;;; gnus-search.el --- Search facilities for Gnus    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 
@@ -135,8 +135,7 @@ transformed."
   'gnus-search-ignored-newsgroups "28.1")
 
 (defcustom gnus-search-ignored-newsgroups ""
-  "A regexp to match newsgroups in the active file that should
-be skipped when searching."
+  "Regexp matching newsgroups in the active file to skip when searching."
   :version "24.1"
   :type 'regexp)
 
@@ -357,7 +356,7 @@ This can also be set per-server."
 
 (defcustom gnus-search-mu-switches nil
   "A list of strings, to be given as additional arguments to mu.
-Note that this should be a list. I.e., do NOT use the following:
+Note that this should be a list.  I.e., do NOT use the following:
     (setq gnus-search-mu-switches \"-u -r\")
 Instead, use this:
     (setq gnus-search-mu-switches \\='(\"-u\" \"-r\"))
@@ -367,7 +366,7 @@ This can also be set per-server."
 
 (defcustom gnus-search-mu-remove-prefix (expand-file-name "~/Mail/")
   "A prefix to remove from the mu results to get a group name.
-Usually this will be set to the path to your mail directory. This
+Usually this will be set to the path to your mail directory.  This
 can also be set per-server."
   :version "29.1"
   :type 'directory)
@@ -1002,17 +1001,18 @@ Responsible for handling and, or, and parenthetical expressions.")
 
 (defsubst gnus-search-single-p (query)
   "Return t if QUERY is a search for a single message."
-  (let ((q (alist-get 'parsed-query query)))
-    (and (= (length q ) 1)
-	 (consp (car-safe q))
-	 (eq (caar q) 'id))))
+  (unless (alist-get 'thread query)
+    (let ((q (alist-get 'parsed-query query)))
+      (and (= (length q ) 1)
+	   (consp (car-safe q))
+	   (eq (caar q) 'id)))))
 
 (cl-defmethod gnus-search-transform ((engine gnus-search-engine)
 				     (query list))
   (let (clauses)
     (mapc
      (lambda (item)
-       (when-let ((expr (gnus-search-transform-expression engine item)))
+       (when-let* ((expr (gnus-search-transform-expression engine item)))
 	 (push expr clauses)))
      query)
     (mapconcat #'identity (reverse clauses) " ")))
@@ -1434,6 +1434,9 @@ Returns a list of [group article score] vectors."
                     ""))
         (groups (mapcar #'gnus-group-short-name groups))
 	artlist article group)
+    (when (>= gnus-verbose 7)
+      (gnus-message 7 "Search engine returned %d results"
+                    (car (buffer-line-statistics))))
     (goto-char (point-min))
     ;; Prep prefix, we want to at least be removing the root
     ;; filesystem separator.
@@ -1447,7 +1450,7 @@ Returns a list of [group article score] vectors."
 	(when (and f-name
                    (file-readable-p f-name)
 		   (null (file-directory-p f-name)))
-          ;; `expand-file-name' canoncalizes the file name,
+          ;; `expand-file-name' canonicalizes the file name,
           ;; specifically collapsing multiple consecutive directory
           ;; separators.
           (setq f-name (expand-file-name f-name)
@@ -1483,8 +1486,12 @@ Returns a list of [group article score] vectors."
 	    (push (list f-name article group score)
                   artlist)))))
     ;; Are we running an additional grep query?
-    (when-let ((grep-reg (alist-get 'grep query)))
+    (when-let* ((grep-reg (alist-get 'grep query)))
       (setq artlist (gnus-search-grep-search engine artlist grep-reg)))
+
+    (when (>= gnus-verbose 7)
+      (gnus-message 7 "Gnus search returning %d results"
+                    (length artlist)))
     ;; Munge into the list of vectors expected by nnselect.
     (mapcar (pcase-lambda (`(,_ ,article ,group ,score))
               (vector
@@ -1710,9 +1717,9 @@ cross our fingers for the rest of it."
   (let (clauses)
     (mapc
      (lambda (item)
-       (when-let ((expr (if (consp (car-safe item))
-			    (gnus-search-transform engine item)
-			  (gnus-search-transform-expression engine item))))
+       (when-let* ((expr (if (consp (car-safe item))
+			     (gnus-search-transform engine item)
+			   (gnus-search-transform-expression engine item))))
 	 (push expr clauses)))
      query)
     (mapconcat #'identity (reverse clauses) " ")))
@@ -2134,8 +2141,8 @@ remaining string, then adds all that to the top-level spec."
 		      (assoc-string srv gnus-search-engine-instance-alist t))
 		     (nth 1 engine-config)
 		     (cdr-safe (assoc (car method) gnus-search-default-engines))
-		     (when-let ((old (assoc 'nnir-search-engine
-					    (cddr method))))
+		     (when-let* ((old (assoc 'nnir-search-engine
+					     (cddr method))))
 		       (nnheader-message
 			8 "\"nnir-search-engine\" is no longer a valid parameter")
 		       (nth 1 old))))
@@ -2178,7 +2185,7 @@ remaining string, then adds all that to the top-level spec."
 
 (defun gnus-search-thread (header &optional group server)
   "Find articles in the thread containing HEADER from GROUP on SERVER.
-If gnus-refer-thread-use-search is nil only the current group is
+If `gnus-refer-thread-use-search' is nil only the current group is
 checked for articles; if t all groups on the server containing
 the article's group will be searched; if a list then all servers
 in this list will be searched.  If possible the newly found

@@ -1,6 +1,6 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2024 Free Software Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
 ;;         Noah Friedman <friedman@prep.ai.mit.edu>
@@ -131,9 +131,8 @@ Looks like:
     (open-network-stream procname buffer addr port
                          :type (and (plist-get entry :secure) 'tls))))
 
-(erc-define-catalog
- 'english
- '((dcc-chat-discarded
+(erc--define-catalog english
+  ((dcc-chat-discarded
     . "DCC: previous chat request from %n (%u@%h) discarded")
    (dcc-chat-ended . "DCC: chat with %n ended %t: %e")
    (dcc-chat-no-request . "DCC: chat request from %n not found")
@@ -174,7 +173,7 @@ ARGS is a plist.  Return nil on no match.
 
 The property :nick is treated specially, if it contains a `!' character,
 it is treated as a nick!user@host string, and compared with the :nick property
-value of the individual elements using string-equal.  Otherwise it is
+value of the individual elements using `string-equal'.  Otherwise it is
 compared with `erc-nick-equal-p' which is IRC case-insensitive."
   (let ((list erc-dcc-list)
         result test)
@@ -620,7 +619,7 @@ It lists the current state of `erc-dcc-list' in an easy to read manner."
                            (buffer-live-p (get-buffer (plist-get elt :file)))
                            (plist-member elt :size))
                       (let ((byte-count (with-current-buffer
-                                            (get-buffer (plist-get elt :file))
+                                            (plist-get elt :file)
                                           (+ (buffer-size) 0.0
                                              erc-dcc-byte-count))))
                         (format " (%d%%)"
@@ -714,8 +713,8 @@ It extracts the information about the dcc request and adds it to
              (port (match-string 4 query))
              (size (match-string 5 query))
              (sub (substring (match-string 6 query) 0 -4))
-             (secure (seq-contains-p sub ?S #'eq))
-             (turbo (seq-contains-p sub ?T #'eq)))
+             (secure (string-search "S" sub))
+             (turbo (string-search "T" sub)))
         ;; FIXME: a warning really should also be sent
         ;; if the ip address != the host the dcc sender is on.
         (erc-display-message
@@ -1252,14 +1251,16 @@ other client."
 (defun erc-dcc-chat-parse-output (proc str)
   (save-match-data
     (let ((posn 0)
+          (erc--msg-prop-overrides `((erc--spkr . ,erc-dcc-from)))
+          (nick (propertize (erc--speakerize-nick erc-dcc-from)
+                            'font-lock-face 'erc-nick-default-face))
           line)
       (while (string-match "\n" str posn)
         (setq line (substring str posn (match-beginning 0)))
         (setq posn (match-end 0))
         (erc-display-message
          nil nil proc
-         'dcc-chat-privmsg ?n (propertize erc-dcc-from 'font-lock-face
-                                          'erc-nick-default-face) ?m line))
+         'dcc-chat-privmsg ?n nick ?m line))
       (setq erc-dcc-unprocessed-output (substring str posn)))))
 
 (defun erc-dcc-chat-buffer-killed ()

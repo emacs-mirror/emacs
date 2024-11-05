@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1995, 1999-2023 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1999-2024 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -914,7 +914,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       /* If the caller required, let the buffer inherit the
 	 coding-system used to decode the process output.  */
       if (inherit_process_coding_system)
-	call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
+	call1 (Qafter_insert_file_set_buffer_file_coding_system,
 	       make_fixnum (total_read));
     }
 
@@ -1041,7 +1041,7 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
   {
     specpdl_ref count1 = SPECPDL_INDEX ();
 
-    specbind (intern ("coding-system-for-write"), val);
+    specbind (Qcoding_system_for_write, val);
     /* POSIX lets mk[s]temp use "."; don't invoke jka-compr if we
        happen to get a ".Z" suffix.  */
     specbind (Qfile_name_handler_alist, Qnil);
@@ -1721,7 +1721,7 @@ getenv_internal (const char *var, ptrdiff_t varlen, char **value,
 			 Vprocess_environment))
     return *value ? 1 : 0;
 
-  /* On Windows we make some modifications to Emacs' environment
+  /* On Windows we make some modifications to Emacs's environment
      without recording them in Vprocess_environment.  */
 #ifdef WINDOWSNT
   {
@@ -1735,6 +1735,10 @@ getenv_internal (const char *var, ptrdiff_t varlen, char **value,
   }
 #endif
 
+  /* Setting DISPLAY under Android hinders attempts to display other
+     programs within X servers that are available for Android.  */
+
+#ifndef HAVE_ANDROID
   /* For DISPLAY try to get the values from the frame or the initial env.  */
   if (strcmp (var, "DISPLAY") == 0)
     {
@@ -1747,12 +1751,13 @@ getenv_internal (const char *var, ptrdiff_t varlen, char **value,
 	  *valuelen = SBYTES (display);
 	  return 1;
 	}
-#endif
+#endif /* !HAVE_PGTK */
       /* If still not found, Look for DISPLAY in Vinitial_environment.  */
       if (getenv_internal_1 (var, varlen, value, valuelen,
 			     Vinitial_environment))
 	return *value ? 1 : 0;
     }
+#endif /* !HAVE_ANDROID */
 
   return 0;
 }
@@ -1845,7 +1850,9 @@ make_environment_block (Lisp_Object current_dir)
     register char **new_env;
     char **p, **q;
     register int new_length;
+#ifndef HAVE_ANDROID
     Lisp_Object display = Qnil;
+#endif /* !HAVE_ANDROID */
 
     new_length = 0;
 
@@ -1853,14 +1860,20 @@ make_environment_block (Lisp_Object current_dir)
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
       {
+#ifndef HAVE_ANDROID
 	if (strncmp (SSDATA (XCAR (tem)), "DISPLAY", 7) == 0
 	    && (SDATA (XCAR (tem)) [7] == '\0'
 		|| SDATA (XCAR (tem)) [7] == '='))
 	  /* DISPLAY is specified in process-environment.  */
 	  display = Qt;
+#endif /* !HAVE_ANDROID */
 	new_length++;
       }
 
+    /* Setting DISPLAY under Android hinders attempts to display other
+       programs within X servers that are available for Android.  */
+
+#ifndef HAVE_ANDROID
     /* If not provided yet, use the frame's DISPLAY.  */
     if (NILP (display))
       {
@@ -1875,7 +1888,7 @@ make_environment_block (Lisp_Object current_dir)
 	    && strcmp (G_OBJECT_TYPE_NAME (FRAME_X_DISPLAY (SELECTED_FRAME ())),
 		       "GdkX11Display"))
 	  tmp = Qnil;
-#endif
+#endif /* HAVE_PGTK */
 
 	if (!STRINGP (tmp) && CONSP (Vinitial_environment))
 	  /* If still not found, Look for DISPLAY in Vinitial_environment.  */
@@ -1887,6 +1900,7 @@ make_environment_block (Lisp_Object current_dir)
 	    new_length++;
 	  }
       }
+#endif /* !HAVE_ANDROID */
 
     /* new_length + 2 to include PWD and terminating 0.  */
     env = new_env = xnmalloc (new_length + 2, sizeof *env);
@@ -1896,6 +1910,7 @@ make_environment_block (Lisp_Object current_dir)
     if (egetenv ("PWD"))
       *new_env++ = pwd_var;
 
+#ifndef HAVE_ANDROID
     if (STRINGP (display))
       {
 	char *vdata = xmalloc (sizeof "DISPLAY=" + SBYTES (display));
@@ -1903,6 +1918,7 @@ make_environment_block (Lisp_Object current_dir)
 	lispstpcpy (stpcpy (vdata, "DISPLAY="), display);
 	new_env = add_env (env, new_env, vdata);
       }
+#endif /* !HAVE_ANDROID */
 
     /* Overrides.  */
     for (tem = Vprocess_environment;
@@ -2216,7 +2232,22 @@ the system.  */);
   Vebrowse_program_name = build_pure_c_string ("libebrowse.so");
 #endif
 
+  DEFVAR_LISP ("rcs2log-program-name", Vrcs2log_program_name,
+    doc: /* Name of the `rcs2log' program distributed with Emacs.
+Use this instead of calling `rcs2log' directly, as `rcs2log'
+may have been renamed to comply with executable naming restrictions on
+the system.  */);
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+  Vrcs2log_program_name = build_pure_c_string ("rcs2log");
+#else /* HAVE_ANDROID && !ANDROID_STUBIFY */
+  Vrcs2log_program_name = build_pure_c_string ("librcs2log.so");
+#endif /* !HAVE_ANDROID || ANDROID_STUBIFY */
+
   defsubr (&Scall_process);
   defsubr (&Sgetenv_internal);
   defsubr (&Scall_process_region);
+
+  DEFSYM (Qafter_insert_file_set_buffer_file_coding_system,
+	  "after-insert-file-set-buffer-file-coding-system");
+  DEFSYM (Qcoding_system_for_write, "coding-system-for-write");
 }

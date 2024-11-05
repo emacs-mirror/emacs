@@ -1,6 +1,6 @@
 ;;; icalendar-tests.el --- Test suite for icalendar.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2005, 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2008-2024 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        March 2005
@@ -68,7 +68,7 @@
     (with-temp-buffer
       (insert diary-string)
       (icalendar-export-region (point-min) (point-max) file))
-    (with-current-buffer (get-buffer "*icalendar-errors*")
+    (with-current-buffer "*icalendar-errors*"
       (buffer-string))))
 
 ;; ======================================================================
@@ -368,6 +368,9 @@ END:VTIMEZONE
 		     (icalendar--datestring-to-isodate "2008 05 31")))
     (should (string= "20080602"
 		     (icalendar--datestring-to-isodate "2008 05 31" 2)))
+    ;; Bug#69894
+    (should (string= "20240319"
+		     (icalendar--datestring-to-isodate "2024-03-19")))
 
     ;; numeric european
     (setq calendar-date-style 'european)

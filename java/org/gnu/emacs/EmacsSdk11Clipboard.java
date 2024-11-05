@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -71,10 +71,6 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
   public synchronized void
   onPrimaryClipChanged ()
   {
-    Log.d (TAG, ("onPrimaryClipChanged: "
-		 + monitoredClipboardChangedCount
-		 + " " + clipboardChangedCount));
-
     /* Increment monitoredClipboardChangeCount.  If it is now greater
        than clipboardChangedCount, then Emacs no longer owns the
        clipboard.  */
@@ -90,32 +86,23 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
       }
   }
 
-  /* Set the clipboard text to CLIPBOARD, a string in UTF-8
-     encoding.  */
+  /* Save the STRING into the clipboard by way of text copied by the
+     user.  */
 
   @Override
   public synchronized void
-  setClipboard (byte[] bytes)
+  setClipboard (String string)
   {
     ClipData data;
-    String string;
 
-    try
-      {
-	string = new String (bytes, "UTF-8");
-	data = ClipData.newPlainText ("Emacs", string);
-	manager.setPrimaryClip (data);
-	ownsClipboard = true;
+    data = ClipData.newPlainText ("Emacs", string);
+    manager.setPrimaryClip (data);
+    ownsClipboard = true;
 
-	/* onPrimaryClipChanged will be called again.  Use this
-	   variable to keep track of how many times the clipboard has
-	   been changed.  */
-	++clipboardChangedCount;
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	Log.w (TAG, "setClipboard: " + exception);
-      }
+    /* onPrimaryClipChanged will be called again.  Use this
+       variable to keep track of how many times the clipboard has
+       been changed.  */
+    ++clipboardChangedCount;
   }
 
   /* Return whether or not Emacs owns the clipboard.  Value is 1 if
@@ -145,7 +132,7 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
      NULL if no content is available.  */
 
   @Override
-  public byte[]
+  public String
   getClipboard ()
   {
     ClipData clip;
@@ -158,48 +145,35 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
       return null;
 
     context = EmacsService.SERVICE;
-
-    try
-      {
-	text = clip.getItemAt (0).coerceToText (context);
-	return text.toString ().getBytes ("UTF-8");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	Log.w (TAG, "getClipboard: " + exception);
-      }
-
-    return null;
+    text = clip.getItemAt (0).coerceToText (context);
+    return text.toString ();
   }
 
   /* Return an array of targets currently provided by the
      clipboard, or NULL if there are none.  */
 
   @Override
-  public byte[][]
+  public String[]
   getClipboardTargets ()
   {
     ClipData clip;
     ClipDescription description;
-    byte[][] typeArray;
+    String[] typeArray;
     int i;
 
     /* N.B. that Android calls the clipboard the ``primary clip''; it
        is not related to the X primary selection.  */
     clip = manager.getPrimaryClip ();
+
+    if (clip == null)
+      return null;
+
     description = clip.getDescription ();
     i = description.getMimeTypeCount ();
-    typeArray = new byte[i][i];
+    typeArray = new String[i];
 
-    try
-      {
-	for (i = 0; i < description.getMimeTypeCount (); ++i)
-	  typeArray[i] = description.getMimeType (i).getBytes ("UTF-8");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	return null;
-      }
+    for (i = 0; i < description.getMimeTypeCount (); ++i)
+      typeArray[i] = description.getMimeType (i);
 
     return typeArray;
   }
@@ -207,9 +181,10 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
   /* Return the clipboard data for the given target, or NULL if it
      does not exist.
 
-     Value is normally an array of three longs: the file descriptor,
-     the start offset of the data, and its length; length may be
-     AssetFileDescriptor.UNKOWN_LENGTH, meaning that the data extends
+     Value is normally an asset file descriptor, which in turn holds
+     three important values: the file descriptor, the start offset of
+     the data, and its length; length may be
+     AssetFileDescriptor.UNKNOWN_LENGTH, meaning that the data extends
      from that offset to the end of the file.
 
      Do not use this function to open text targets; use `getClipboard'
@@ -217,34 +192,21 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
      solely of a URI.  */
 
   @Override
-  public long[]
-  getClipboardData (byte[] target)
+  public AssetFileDescriptor
+  getClipboardData (String target)
   {
     ClipData data;
     String mimeType;
-    int fd;
     AssetFileDescriptor assetFd;
     Uri uri;
-    long[] value;
-
-    /* Decode the target given by Emacs.  */
-    try
-      {
-	mimeType = new String (target, "UTF-8");
-      }
-    catch (UnsupportedEncodingException exception)
-      {
-	return null;
-      }
-
-    Log.d (TAG, "getClipboardData: "+ mimeType);
 
     /* Now obtain the clipboard data and the data corresponding to
        that MIME type.  */
 
+    mimeType = target;
     data = manager.getPrimaryClip ();
 
-    if (data.getItemCount () < 1)
+    if (data == null || data.getItemCount () < 1)
       return null;
 
     try
@@ -254,37 +216,18 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
 	if (uri == null)
 	  return null;
 
-	Log.d (TAG, "getClipboardData: "+ uri);
-
 	/* Now open the file descriptor.  */
 	assetFd = resolver.openTypedAssetFileDescriptor (uri, mimeType,
 							 null);
-
-	/* Duplicate the file descriptor.  */
-	fd = assetFd.getParcelFileDescriptor ().getFd ();
-	fd = EmacsNative.dup (fd);
-
-	/* Return the relevant information.  */
-	value = new long[] { fd, assetFd.getStartOffset (),
-			     assetFd.getLength (), };
-
-	/* Close the original offset.  */
-	assetFd.close ();
-
-	Log.d (TAG, "getClipboardData: "+ value);
+	return assetFd;
+      }
+    catch (SecurityException e)
+      {
+	return null;
       }
     catch (FileNotFoundException e)
       {
 	return null;
       }
-    catch (IOException e)
-      {
-	return null;
-      }
-
-    /* Don't return value if the file descriptor couldn't be
-       created.  */
-
-    return fd != -1 ? value : null;
   }
 };

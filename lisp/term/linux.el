@@ -13,9 +13,13 @@
   ;; Compositions confuse cursor movement.
   (setq-default auto-composition-mode "linux")
 
+  ;; Ensure additional terminal setup is done when `gpm-mouse-mode' is
+  ;; enabled.
+  (ignore-errors (when gpm-mouse-mode (gpm-mouse-mode 1)))
+
   ;; Don't translate ESC TAB to backtab as directed by ncurses-6.3.
   (define-key input-decode-map "\e\t" nil)
-  
+
   ;; Make Latin-1 input characters work, too.
   ;; Meta will continue to work, because the kernel turns that into Escape.
 

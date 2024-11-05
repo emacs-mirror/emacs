@@ -1,5 +1,5 @@
 /* Proxy shell designed for use with Emacs on Windows 95 and NT.
-   Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 1997, 2001-2024 Free Software Foundation, Inc.
 
    Accepts subset of Unix sh(1) command-line options, for compatibility
    with elisp code written for Unix.  When possible, executes external
@@ -37,6 +37,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>  /* getenv */
 #include <string.h>  /* strlen */
 #include <ctype.h>   /* isspace, isalpha */
+
+/* UCRT has a C99-compatible snprintf, and _snprintf is defined inline
+   in stdio.h, which we don't want to include here.  Since the
+   differences in behavior between snprintf and _snprintf don't matter
+   in this file, we take the easy way out.  */
+#ifdef _UCRT
+# define _snprintf snprintf
+#endif
 
 /* We don't want to include stdio.h because we are already duplicating
    lots of it here */

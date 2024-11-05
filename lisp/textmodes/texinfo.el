@@ -1,6 +1,6 @@
 ;;; texinfo.el --- major mode for editing Texinfo files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2023 Free Software
+;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Robert J. Chassell

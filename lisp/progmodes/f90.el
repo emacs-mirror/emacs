@@ -1,6 +1,6 @@
 ;;; f90.el --- Fortran-90 mode (free format)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Torbjörn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -159,7 +159,6 @@
 ;; 3. Labels for "else" statements (F2003)?
 
 (defvar comment-auto-fill-only-comments)
-(defvar font-lock-keywords)
 
 ;; User options
 

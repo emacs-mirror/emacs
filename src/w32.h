@@ -2,7 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -170,6 +170,7 @@ extern void release_listen_threads (void);
 extern void init_ntproc (int);
 extern void term_ntproc (int);
 extern HANDLE maybe_load_unicows_dll (void);
+extern void load_unicows_dll_for_w32fns (HMODULE);
 extern void globals_of_w32 (void);
 
 extern void term_timers (void);

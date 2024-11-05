@@ -1,6 +1,6 @@
 ;;; sasl-cram.el --- CRAM-MD5 module for the SASL client framework  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@gnu.org>
 ;;	Kenichi OKADA <okada@opaopa.org>
@@ -42,7 +42,7 @@
 	(concat (sasl-client-name client) " "
 		(encode-hex-string
 		 (hmac-md5 (sasl-step-data step) passphrase)))
-      (fillarray passphrase 0))))
+      (clear-string passphrase))))
 
 (put 'sasl-cram 'sasl-mechanism
      (sasl-make-mechanism "CRAM-MD5" sasl-cram-md5-steps))

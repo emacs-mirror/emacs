@@ -2,7 +2,7 @@
 # Generate or update a C file containing an increasing counter
 # variable.
 #
-# Copyright (C) 2023 Free Software Foundation, Inc.
+# Copyright (C) 2023-2024 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.  GNU Emacs is free software: you can
 # redistribute it and/or modify it under the terms of the GNU General
@@ -36,6 +36,7 @@ cat > $1 <<EOF
 #define EXPORT __attribute__ ((visibility ("default")))
 #endif /* HAVE_ANDROID */
 
+extern int emacs_shortlisp_counter;
 #ifdef EXPORT
 EXPORT
 #endif /* EXPORT */

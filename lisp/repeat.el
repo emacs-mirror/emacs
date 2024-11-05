@@ -1,6 +1,6 @@
 ;;; repeat.el --- convenient way to repeat the previous command  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Will Mengarini <seldon@eskimo.com>
 ;; Created: Mo 02 Mar 98
@@ -384,14 +384,14 @@ When non-nil, and the last typed key (with or without modifiers)
 doesn't exist in the keymap specified by the `repeat-map' property
 of the command, don't activate that keymap for the next command.
 Thus, when this is non-nil, only the same keys among repeatable
-keys are allowed in the repeating sequence. For example, with a
+keys are allowed in the repeating sequence.  For example, with a
 non-nil value, only \\`C-x u u' repeats undo, whereas \\`C-/ u' doesn't.
 
 You can also set the property `repeat-check-key' on the command symbol.
 This property can override the value of this variable.
 When the variable value is non-nil, but the property value is `no',
 then don't check the last key.  Also when the variable value is nil,
-but the property value is `t', then check the last key."
+but the property value is t, then check the last key."
   :type 'boolean
   :group 'repeat
   :version "28.1")
@@ -553,20 +553,27 @@ This function can be used to force exit of repetition while it's active."
 (defun repeat-echo-message-string (keymap)
   "Return a string with the list of repeating keys in KEYMAP."
   (let (keys)
-    (map-keymap (lambda (key cmd) (and cmd (push key keys))) keymap)
-    (format-message "Repeat with %s%s"
-                    (mapconcat (lambda (key)
-                                 (substitute-command-keys
-                                  (format "\\`%s'"
-                                          (key-description (vector key)))))
-                               keys ", ")
-                    (if repeat-exit-key
-                        (substitute-command-keys
-                         (format ", or exit with \\`%s'"
-                                 (if (key-valid-p repeat-exit-key)
-                                     repeat-exit-key
-                                   (key-description repeat-exit-key))))
-                      ""))))
+    (map-keymap (lambda (key cmd) (and cmd (push (cons key cmd) keys)))
+                keymap)
+    (format-message
+     "Repeat with %s%s"
+     (mapconcat (lambda (key-cmd)
+                  (let ((key (car key-cmd))
+                        (cmd (cdr key-cmd)))
+                    (if-let* ((hint (and (symbolp cmd)
+                                         (get cmd 'repeat-hint))))
+                        ;; Reuse `read-multiple-choice' formatting.
+                        (cdr (rmc--add-key-description (list key hint)))
+                      (propertize (key-description (vector key))
+                                  'face 'read-multiple-choice-face))))
+                keys ", ")
+     (if repeat-exit-key
+         (substitute-command-keys
+          (format ", or exit with \\`%s'"
+                  (if (key-valid-p repeat-exit-key)
+                      repeat-exit-key
+                    (key-description repeat-exit-key))))
+       ""))))
 
 (defun repeat-echo-message (keymap)
   "Display in the echo area the repeating keys defined by KEYMAP.

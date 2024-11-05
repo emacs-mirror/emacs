@@ -1,6 +1,6 @@
 ;;; button.el --- clickable buttons -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: extensions, hypermedia
@@ -80,8 +80,15 @@ Mode-specific keymaps may want to use this as their parent keymap."
   "<touchscreen-down>" #'push-button)
 
 (define-minor-mode button-mode
-  "A minor mode for navigating to buttons with the TAB key."
-  :keymap button-buffer-map)
+  "A minor mode for navigating to buttons with the TAB key.
+
+Disabling the mode will remove all buttons in the current buffer."
+  :keymap button-buffer-map
+  (when (not button-mode)
+    (save-excursion
+      (save-restriction
+        (widen)
+        (unbuttonize-region (point-min) (point-max))))))
 
 ;; Default properties for buttons.
 (put 'default-button 'face 'button)
@@ -492,10 +499,10 @@ pushing a button, use the `button-describe' command."
 	    (if str-button
 	        ;; mode-line, header-line, or display string event.
 	        (button-activate str t)
-              (if (eq (car pos) 'touchscreen-down)
+              (if (eq (car-safe pos) 'touchscreen-down)
                   ;; If touch-screen-track tap returns nil, then the
-                  ;; tap was cancelled.
-                  (when (touch-screen-track-tap pos)
+                  ;; tap was canceled.
+                  (when (touch-screen-track-tap pos nil nil t)
                     (push-button (posn-point posn) t))
                 (push-button (posn-point posn) t))))))
     ;; POS is just normal position
@@ -663,9 +670,21 @@ itself will be used instead as the function argument.
 
 If HELP-ECHO, use that as the `help-echo' property.
 
-Also see `buttonize'."
+Also see `buttonize' and `unbuttonize-region'."
   (add-text-properties start end (button--properties callback data help-echo))
   (add-face-text-property start end 'button t))
+
+(defun unbuttonize-region (start end)
+  "Remove all the buttons between START and END.
+This removes both text-property and overlay based buttons."
+  (dolist (o (overlays-in start end))
+    (when (overlay-get o 'button)
+      (delete-overlay o)))
+  (with-silent-modifications
+    (remove-text-properties start end
+                            (button--properties nil nil nil))
+    (add-face-text-property start end
+                            'button nil)))
 
 (provide 'button)
 

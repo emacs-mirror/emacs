@@ -1,6 +1,6 @@
 ;;; thread-tests.el --- Test suite for thread.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell <gazally@runbox.com>
 ;; Keywords: threads
@@ -88,7 +88,7 @@
 
 (ert-deftest thread-tests-list-threads-error-when-not-configured ()
   "Signal an error running `list-threads' if threads are not configured."
-  (skip-unless (not (featurep 'threads)))
+  (skip-when (featurep 'threads))
   (should-error (list-threads)))
 
 (provide 'thread-tests)

@@ -1,6 +1,6 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2024 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -123,9 +123,16 @@ encryption is used."
 	      (cons "Opening input file" (cdr error))))))
 
 (defun epa--wrong-password-p (context)
+  "Return whether a wrong password caused the error in CONTEXT."
   (let ((error-string (epg-context-error-output context)))
+    ;; Use a strict regexp here that really only matches "wrong
+    ;; passphrase" errors to avoid hiding diagnostic information
+    ;; (bug#65316).  Below regexp also can fail to match non-English
+    ;; messages, since at least the "decryption failed" part of it
+    ;; seems to be localized.  But since this means false negatives
+    ;; this is probably OK.
     (and (string-match
-          "decryption failed: \\(Bad session key\\|No secret key\\)"
+          "decryption failed: \\(Bad session key\\|Bad passphrase\\)"
           error-string)
          (match-string 1 error-string))))
 
@@ -170,7 +177,7 @@ encryption is used."
 			(nth 3 error)))
 	     (let ((exists (file-exists-p local-file)))
 	       (when exists
-                 (if-let ((wrong-password (epa--wrong-password-p context)))
+                 (if-let* ((wrong-password (epa--wrong-password-p context)))
                      ;; Don't display the *error* buffer if we just
                      ;; have a wrong password; let the later error
                      ;; handler notify the user.
@@ -260,7 +267,14 @@ encryption is used."
   (setq file (expand-file-name file))
   (let* ((coding-system (or coding-system-for-write
 			    (if (fboundp 'select-safe-coding-system)
-			        (let ((buffer-file-name file))
+                                ;; This is needed because
+                                ;; `auto-coding-alist' has
+                                ;; `no-conversion' for *.gpg files,
+                                ;; which would otherwise force
+                                ;; `select-safe-coding-system' return
+                                ;; `no-conversion'.
+			        (let ((buffer-file-name
+                                       (file-name-sans-extension file)))
 				  (select-safe-coding-system
 				   (point-min) (point-max)))
 			      buffer-file-coding-system)))

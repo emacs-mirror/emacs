@@ -1,6 +1,6 @@
 ;;; crm.el --- read multiple strings with completion  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1993-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-2024 Free Software Foundation, Inc.
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: completion, minibuffer, multiple elements
@@ -238,6 +238,11 @@ with empty strings removed."
   (let* ((map (if require-match
                   crm-local-must-match-map
                 crm-local-completion-map))
+         (map (if minibuffer-visible-completions
+                  (make-composed-keymap
+                   (list minibuffer-visible-completions-map
+                         map))
+                map))
          input)
     (minibuffer-with-setup-hook
         (lambda ()

@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer and completion functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -150,21 +150,29 @@ The metadata of a completion table should be constant between two boundaries."
                        minibuffer-completion-table
                        minibuffer-completion-predicate))
 
-(defun completion-metadata-get (metadata prop)
-  (cdr (assq prop metadata)))
+(defun completion--metadata-get-1 (metadata prop)
+  (or (alist-get prop metadata)
+      (plist-get completion-extra-properties
+                 ;; Cache the keyword
+                 (or (get prop 'completion-extra-properties--keyword)
+                     (put prop 'completion-extra-properties--keyword
+                          (intern (concat ":" (symbol-name prop))))))))
 
-(defun completion--some (fun xs)
-  "Apply FUN to each element of XS in turn.
-Return the first non-nil returned value.
-Like CL's `some'."
-  (let ((firsterror nil)
-        res)
-    (while (and (not res) xs)
-      (condition-case-unless-debug err
-          (setq res (funcall fun (pop xs)))
-        (error (unless firsterror (setq firsterror err)) nil)))
-    (or res
-        (if firsterror (signal (car firsterror) (cdr firsterror))))))
+(defun completion-metadata-get (metadata prop)
+  "Get property PROP from completion METADATA.
+If the metadata specifies a completion category, the variables
+`completion-category-overrides' and
+`completion-category-defaults' take precedence for
+category-specific overrides.  If the completion metadata does not
+specify the property, the `completion-extra-properties' plist is
+consulted.  Note that the keys of the
+`completion-extra-properties' plist are keyword symbols, not
+plain symbols."
+  (if-let* (((not (eq prop 'category)))
+            (cat (completion--metadata-get-1 metadata 'category))
+            (over (completion--category-override cat prop)))
+      (cdr over)
+    (completion--metadata-get-1 metadata prop)))
 
 (defun complete-with-action (action collection string predicate)
   "Perform completion according to ACTION.
@@ -313,7 +321,7 @@ the form (concat S2 S)."
            ;; Predicates are called differently depending on the nature of
            ;; the completion table :-(
            (cond
-            ((vectorp table)            ;Obarray.
+            ((obarrayp table)
              (lambda (sym) (funcall pred (concat prefix (symbol-name sym)))))
             ((hash-table-p table)
              (lambda (s _v) (funcall pred (concat prefix s))))
@@ -426,9 +434,9 @@ obeys predicates."
   ;; is returned by TABLE2 (because TABLE1 returned an empty list).
   ;; Same potential problem if any of the tables use quoting.
   (lambda (string pred action)
-    (completion--some (lambda (table)
-                        (complete-with-action action table string pred))
-                      tables)))
+    (seq-some (lambda (table)
+                (complete-with-action action table string pred))
+              tables)))
 
 (defun completion-table-merge (&rest tables)
   "Create a completion table that collects completions from all TABLES."
@@ -451,9 +459,9 @@ obeys predicates."
                                 (all-completions string table pred))
                               tables)))
      (t
-      (completion--some (lambda (table)
-                          (complete-with-action action table string pred))
-                        tables)))))
+      (seq-some (lambda (table)
+                  (complete-with-action action table string pred))
+                tables)))))
 
 (defun completion-table-with-quoting (table unquote requote)
   ;; A difficult part of completion-with-quoting is to map positions in the
@@ -690,6 +698,17 @@ for use at QPOS."
                                              'completions-common-part)
                                qprefix))))
                         (qcompletion (concat qprefix qnew)))
+                   ;; Some completion tables (including this one) pass
+                   ;; along necessary information as text properties
+                   ;; on the first character of the completion.  Make
+                   ;; sure the quoted completion has these properties
+                   ;; too.
+                   (add-text-properties 0 1 (text-properties-at 0 completion)
+                                        qcompletion)
+                   ;; Attach unquoted completion string, which is needed
+                   ;; to score the completion in `completion--flex-score'.
+                   (put-text-property 0 1 'completion--unquoted
+                                      completion qcompletion)
 		   ;; FIXME: Similarly here, Cygwin's mapping trips this
 		   ;; assertion.
                    ;;(cl-assert
@@ -963,6 +982,8 @@ is at its default value `grow-only'."
                (reverse multi-message-list)
                multi-message-separator)))
 
+(defvar touch-screen-current-tool)
+
 (defun clear-minibuffer-message ()
   "Clear message temporarily shown in the minibuffer.
 Intended to be called via `clear-message-function'."
@@ -977,7 +998,7 @@ Intended to be called via `clear-message-function'."
   ;; progress, because a preview message might currently be displayed
   ;; in the echo area.  FIXME: find some way to place this in
   ;; touch-screen.el.
-  (if (and touch-screen-preview-select
+  (if (and (bound-and-true-p touch-screen-preview-select)
            (eq (nth 3 touch-screen-current-tool) 'drag))
       'dont-clear-message
     ;; Return nil telling the caller that the message
@@ -1098,8 +1119,10 @@ and DOC describes the way this style of completion works.")
     widget))
 
 (defconst completion--styles-type
-  `(repeat :tag "insert a new menu to add more styles"
-           (choice :convert-widget completion--update-styles-options)))
+  '(repeat :tag "insert a new menu to add more styles"
+           (single-or-list
+            (choice :convert-widget completion--update-styles-options)
+            (repeat :tag "Variable overrides" (group variable sexp)))))
 
 (defconst completion--cycling-threshold-type
   '(choice (const :tag "No cycling" nil)
@@ -1120,12 +1143,20 @@ and DOC describes the way this style of completion works.")
     ;; and simply add "bar" to the end of the result.
     emacs22)
   "List of completion styles to use.
-The available styles are listed in `completion-styles-alist'.
+An element should be a symbol which is listed in
+`completion-styles-alist'.
+
+An element can also be a list of the form
+(STYLE ((VARIABLE VALUE) ...))
+STYLE must be a symbol listed in `completion-styles-alist', followed by
+a `let'-style list of variable/value pairs.  VARIABLE will be bound to
+VALUE (without evaluating it) while the style is handling completion.
+This allows repeating the same style with different configurations.
 
 Note that `completion-category-overrides' may override these
 styles for specific categories, such as files, buffers, etc."
   :type completion--styles-type
-  :version "23.1")
+  :version "31.1")
 
 (defvar completion-category-defaults
   '((buffer (styles . (basic substring)))
@@ -1135,29 +1166,48 @@ styles for specific categories, such as files, buffers, etc."
     (project-file (styles . (substring)))
     (xref-location (styles . (substring)))
     (info-menu (styles . (basic substring)))
-    (symbol-help (styles . (basic shorthand substring))))
+    (symbol-help (styles . (basic shorthand substring)))
+    (calendar-month (display-sort-function . identity)))
   "Default settings for specific completion categories.
+
 Each entry has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
 - `cycle': the `completion-cycle-threshold' to use for that category.
+- `cycle-sort-function': function to sort entries when cycling.
+- `display-sort-function': function to sort entries in *Completions*.
+- `group-function': function for grouping the completion candidates.
+- `annotation-function': function to add annotations in *Completions*.
+- `affixation-function': function to prepend/append a prefix/suffix.
+
 Categories are symbols such as `buffer' and `file', used when
 completing buffer and file names, respectively.
 
 Also see `completion-category-overrides'.")
 
 (defcustom completion-category-overrides nil
-  "List of category-specific user overrides for completion styles.
+  "List of category-specific user overrides for completion metadata.
+
 Each override has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:
 - `styles': the list of `completion-styles' to use for that category.
 - `cycle': the `completion-cycle-threshold' to use for that category.
+- `cycle-sort-function': function to sort entries when cycling.
+- `display-sort-function': nil means to use either the sorting
+function from metadata, or if that is nil, fall back to `completions-sort';
+`identity' disables sorting and keeps the original order; and other
+possible values are the same as in `completions-sort'.
+- `group-function': function for grouping the completion candidates.
+- `annotation-function': function to add annotations in *Completions*.
+- `affixation-function': function to prepend/append a prefix/suffix.
+See more description of metadata in `completion-metadata'.
+
 Categories are symbols such as `buffer' and `file', used when
 completing buffer and file names, respectively.
 
 If a property in a category is specified by this variable, it
 overrides the default specified in `completion-category-defaults'."
-  :version "25.1"
+  :version "31.1"
   :type `(alist :key-type (choice :tag "Category"
 				  (const buffer)
                                   (const file)
@@ -1171,7 +1221,33 @@ overrides the default specified in `completion-category-defaults'."
 		 ,completion--styles-type)
            (cons :tag "Completion Cycling"
 		 (const :tag "Select one value from the menu." cycle)
-                 ,completion--cycling-threshold-type))))
+                 ,completion--cycling-threshold-type)
+           (cons :tag "Cycle Sorting"
+                 (const :tag "Select one value from the menu."
+                        cycle-sort-function)
+                 (choice (function :tag "Custom function")))
+           (cons :tag "Completion Sorting"
+                 (const :tag "Select one value from the menu."
+                        display-sort-function)
+                 (choice (const :tag "Use default" nil)
+                         (const :tag "No sorting" identity)
+                         (const :tag "Alphabetical sorting"
+                                minibuffer-sort-alphabetically)
+                         (const :tag "Historical sorting"
+                                minibuffer-sort-by-history)
+                         (function :tag "Custom function")))
+           (cons :tag "Completion Groups"
+                 (const :tag "Select one value from the menu."
+                        group-function)
+                 (choice (function :tag "Custom function")))
+           (cons :tag "Completion Annotation"
+                 (const :tag "Select one value from the menu."
+                        annotation-function)
+                 (choice (function :tag "Custom function")))
+           (cons :tag "Completion Affixation"
+                 (const :tag "Select one value from the menu."
+                        affixation-function)
+                 (choice (function :tag "Custom function"))))))
 
 (defun completion--category-override (category tag)
   (or (assq tag (cdr (assq category completion-category-overrides)))
@@ -1216,13 +1292,20 @@ overrides the default specified in `completion-category-defaults'."
               (cl-assert (<= point (length string)))
               (pop new))))
          (result-and-style
-          (completion--some
+          (seq-some
            (lambda (style)
-             (let ((probe (funcall
-                           (or (nth n (assq style completion-styles-alist))
-                               (error "Invalid completion style %s" style))
-                           string table pred point)))
-               (and probe (cons probe style))))
+             (let (symbols values)
+               (when (consp style)
+                 (dolist (binding (cadr style))
+                   (push (car binding) symbols)
+                   (push (cadr binding) values))
+                 (setq style (car style)))
+               (cl-progv symbols values
+                 (let ((probe (funcall
+                               (or (nth n (assq style completion-styles-alist))
+                                   (error "Invalid completion style %s" style))
+                               string table pred point)))
+                   (and probe (cons probe style))))))
            (completion--styles md)))
          (adjust-fn (get (cdr result-and-style) 'completion--adjust-metadata)))
     (when (and adjust-fn metadata)
@@ -1247,6 +1330,7 @@ Only the elements of table that satisfy predicate PRED are considered.
 POINT is the position of point within STRING.
 The return value is a list of completions and may contain the base-size
 in the last `cdr'."
+  (setq completion-lazy-hilit-fn nil)
   ;; FIXME: We need to additionally return the info needed for the
   ;; second part of completion-base-position.
   (completion--nth-completion 2 string table pred point metadata))
@@ -1315,14 +1399,29 @@ completion candidates than this number."
 (defcustom completions-sort 'alphabetical
   "Sort candidates in the *Completions* buffer.
 
-The value can be nil to disable sorting, `alphabetical' for
-alphabetical sorting or a custom sorting function.  The sorting
-function takes and returns a list of completion candidate
-strings."
+Completion candidates in the *Completions* buffer are sorted
+depending on the value.
+
+If it's nil, sorting is disabled.
+If it's the symbol `alphabetical', candidates are sorted by
+`minibuffer-sort-alphabetically'.
+If it's the symbol `historical', candidates are sorted by
+`minibuffer-sort-by-history', which first sorts alphabetically,
+and then rearranges the order according to the order of the
+candidates in the minibuffer history.
+If it's a function, the function is called to sort the candidates.
+The sorting function takes a list of completion candidate
+strings, which it may modify; it should return a sorted list,
+which may be the same.
+
+If the completion-specific metadata provides a
+`display-sort-function', that function overrides the value of
+this variable."
   :type '(choice (const :tag "No sorting" nil)
                  (const :tag "Alphabetical sorting" alphabetical)
+                 (const :tag "Historical sorting" historical)
                  (function :tag "Custom function"))
-  :version "29.1")
+  :version "30.1")
 
 (defcustom completions-group nil
   "Enable grouping of completion candidates in the *Completions* buffer.
@@ -1569,11 +1668,12 @@ scroll the window of possible completions."
    (t (prog1 (pcase (completion--do-completion beg end)
                (#b000 nil)
                (_     t))
-        (when (and (eq completion-auto-select t)
-                   (window-live-p minibuffer-scroll-window)
-                   (eq t (frame-visible-p (window-frame minibuffer-scroll-window))))
-          ;; When the completion list window was displayed, select it.
-          (switch-to-completions))))))
+        (if (window-live-p minibuffer-scroll-window)
+            (and (eq completion-auto-select t)
+                 (eq t (frame-visible-p (window-frame minibuffer-scroll-window)))
+                 ;; When the completion list window was displayed, select it.
+                 (switch-to-completions))
+          (completion-in-region-mode -1))))))
 
 (defun completion--cache-all-sorted-completions (beg end comps)
   (add-hook 'after-change-functions
@@ -1646,6 +1746,44 @@ Remove completion BASE prefix string from history elements."
                    (when (string-prefix-p base c)
                      (substring c base-size)))
                  hist)))))
+
+(defun minibuffer-sort-alphabetically (completions)
+  "Sort COMPLETIONS alphabetically.
+
+COMPLETIONS are sorted alphabetically by `string-lessp'.
+
+This is a suitable function to use for `completions-sort' or to
+include as `display-sort-function' in completion metadata."
+  (sort completions #'string-lessp))
+
+(defvar minibuffer-completion-base nil
+  "The base for the current completion.
+
+This is the part of the current minibuffer input which comes
+before the current completion field, as determined by
+`completion-boundaries'.  This is primarily relevant for file
+names, where this is the directory component of the file name.")
+
+(defun minibuffer-sort-by-history (completions)
+  "Sort COMPLETIONS by their position in `minibuffer-history-variable'.
+
+COMPLETIONS are sorted first by `minibuffer-sort-alphbetically',
+then any elements occurring in the minibuffer history list are
+moved to the front based on the chronological order they occur in
+the history.  If a history variable hasn't been specified for
+this call of `completing-read', COMPLETIONS are sorted only by
+`minibuffer-sort-alphbetically'.
+
+This is a suitable function to use for `completions-sort' or to
+include as `display-sort-function' in completion metadata."
+  (let ((alphabetized (sort completions #'string-lessp)))
+    ;; Only use history when it's specific to these completions.
+    (if (eq minibuffer-history-variable
+            (default-value minibuffer-history-variable))
+        alphabetized
+      (minibuffer--sort-by-position
+       (minibuffer--sort-preprocess-history minibuffer-completion-base)
+       alphabetized))))
 
 (defun minibuffer--group-by (group-fun sort-fun elems)
   "Group ELEMS by GROUP-FUN and sort groups by SORT-FUN."
@@ -1849,10 +1987,13 @@ appear to be a match."
    ;; Allow user to specify null string
    ((= beg end) (funcall exit-function))
    ;; The CONFIRM argument is a predicate.
-   ((and (functionp minibuffer-completion-confirm)
-         (funcall minibuffer-completion-confirm
-                  (buffer-substring beg end)))
-    (funcall exit-function))
+   ((functionp minibuffer-completion-confirm)
+    (if (funcall minibuffer-completion-confirm
+                 (buffer-substring beg end))
+        (funcall exit-function)
+      (unless completion-fail-discreetly
+	(ding)
+	(completion--message "No match"))))
    ;; See if we have a completion from the table.
    ((test-completion (buffer-substring beg end)
                      minibuffer-completion-table
@@ -2251,34 +2392,38 @@ This adds the face `completions-common-part' to the first
 It returns a list with font-lock properties applied to each element,
 and with BASE-SIZE appended as the last element."
   (when completions
-    (let ((com-str-len (- prefix-len (or base-size 0))))
-      (nconc
-       (mapcar
-        (lambda (elem)
-          (let ((str
-                 ;; Don't modify the string itself, but a copy, since the
-                 ;; string may be read-only or used for other purposes.
-                 ;; Furthermore, since `completions' may come from
-                 ;; display-completion-list, `elem' may be a list.
-                 (if (consp elem)
-                     (car (setq elem (cons (copy-sequence (car elem))
-                                           (cdr elem))))
-                   (setq elem (copy-sequence elem)))))
-            (font-lock-prepend-text-property
-             0
-             ;; If completion-boundaries returns incorrect
-             ;; values, all-completions may return strings
-             ;; that don't contain the prefix.
-             (min com-str-len (length str))
-             'face 'completions-common-part str)
-            (if (> (length str) com-str-len)
-                (font-lock-prepend-text-property com-str-len (1+ com-str-len)
-                                                 'face
-                                                 'completions-first-difference
-                                                 str)))
-          elem)
-        completions)
-       base-size))))
+    (let* ((com-str-len (- prefix-len (or base-size 0)))
+           (hilit-fn
+            (lambda (str)
+              (font-lock-prepend-text-property
+               0
+               ;; If completion-boundaries returns incorrect values,
+               ;; all-completions may return strings that don't contain
+               ;; the prefix.
+               (min com-str-len (length str))
+               'face 'completions-common-part str)
+              (when (> (length str) com-str-len)
+                (font-lock-prepend-text-property
+                 com-str-len (1+ com-str-len)
+                 'face 'completions-first-difference str))
+              str)))
+      (if completion-lazy-hilit
+          (setq completion-lazy-hilit-fn hilit-fn)
+        (setq completions
+              (mapcar
+               (lambda (elem)
+                 ;; Don't modify the string itself, but a copy, since
+                 ;; the string may be read-only or used for other
+                 ;; purposes.  Furthermore, since `completions' may come
+                 ;; from display-completion-list, `elem' may be a list.
+                 (funcall hilit-fn
+                          (if (consp elem)
+                              (car (setq elem (cons (copy-sequence (car elem))
+                                                    (cdr elem))))
+                            (setq elem (copy-sequence elem))))
+                 elem)
+               completions)))
+      (nconc completions base-size))))
 
 (defun display-completion-list (completions &optional common-substring group-fun)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
@@ -2310,8 +2455,11 @@ candidates."
 
     (with-current-buffer standard-output
       (goto-char (point-max))
-      (when completions-header-format
-        (insert (format completions-header-format (length completions))))
+      (if completions-header-format
+          (insert (format completions-header-format (length completions)))
+        (unless completion-show-help
+          ;; Ensure beginning-of-buffer isn't a completion.
+          (insert (propertize "\n" 'face '(:height 0)))))
       (completion--insert-strings completions group-fun)))
 
   (run-hooks 'completion-setup-hook)
@@ -2320,6 +2468,9 @@ candidates."
 (defvar completion-extra-properties nil
   "Property list of extra properties of the current completion job.
 These include:
+
+`:category': the kind of objects returned by `all-completions'.
+   Used by `completion-category-overrides'.
 
 `:annotation-function': Function to annotate the completions buffer.
    The function must accept one argument, a completion string,
@@ -2335,6 +2486,15 @@ These include:
    prefix and suffix.  This function takes priority over
    `:annotation-function' when both are provided, so only this
    function is used.
+
+`:group-function': Function for grouping the completion candidates.
+
+`:display-sort-function': Function to sort entries in *Completions*.
+
+`:cycle-sort-function': Function to sort entries when cycling.
+
+See more information about these functions above
+in `completion-metadata'.
 
 `:exit-function': Function to run after completion is performed.
 
@@ -2378,6 +2538,36 @@ These include:
         (resize-temp-buffer-window win))
     (fit-window-to-buffer win completions-max-height)))
 
+(defcustom completion-auto-deselect t
+  "If non-nil, deselect current completion candidate when you type in minibuffer.
+
+A non-nil value means that after typing at the minibuffer prompt,
+any completion candidate highlighted in *Completions* window (to
+indicate that it is the selected candidate) will be un-highlighted,
+and point in the *Completions* window will be moved off such a candidate.
+This means that `RET' (`minibuffer-choose-completion-or-exit') will exit
+the minibuffer with the minibuffer's current contents, instead of the
+selected completion candidate."
+  :type '(choice (const :tag "Candidates in *Completions* stay selected as you type" nil)
+                 (const :tag "Typing deselects any completion candidate in *Completions*" t))
+  :version "30.1")
+
+(defun completions--deselect ()
+  "If point is in a completion candidate, move to just after the end of it.
+
+The candidate will still be chosen by `choose-completion' unless
+`choose-completion-deselect-if-after' is non-nil."
+  (when (get-text-property (point) 'completion--string)
+    (goto-char (or (next-single-property-change (point) 'completion--string)
+                   (point-max)))))
+
+(defun completions--after-change (_start _end _old-len)
+  "Update displayed *Completions* buffer after change in buffer contents."
+  (when completion-auto-deselect
+    (when-let* ((window (get-buffer-window "*Completions*" 0)))
+      (with-selected-window window
+        (completions--deselect)))))
+
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
@@ -2400,6 +2590,7 @@ These include:
           ;; If there are no completions, or if the current input is already
           ;; the sole completion, then hide (previous&stale) completions.
           (minibuffer-hide-completions)
+          (remove-hook 'after-change-functions #'completions--after-change t)
           (if completions
               (completion--message "Sole completion")
             (unless completion-fail-discreetly
@@ -2409,24 +2600,27 @@ These include:
       (let* ((last (last completions))
              (base-size (or (cdr last) 0))
              (prefix (unless (zerop base-size) (substring string 0 base-size)))
-             (base-prefix (buffer-substring (minibuffer--completion-prompt-end)
-                                            (+ start base-size)))
-             (base-suffix
-              (if (eq (alist-get 'category (cdr md)) 'file)
-                  (buffer-substring (save-excursion (or (search-forward "/" nil t) (point-max)))
-                                    (point-max))
-                ""))
+             (minibuffer-completion-base (substring string 0 base-size))
+             (ctable minibuffer-completion-table)
+             (cpred minibuffer-completion-predicate)
+             (cprops completion-extra-properties)
+             (field-end
+              (save-excursion
+                (forward-char
+                 (cdr (completion-boundaries (buffer-substring start (point))
+                                             ctable
+                                             cpred
+                                             (buffer-substring (point) end))))
+                (point)))
+             (field-char (and (< field-end end) (char-after field-end)))
+             (base-position (list (+ start base-size) field-end))
              (all-md (completion--metadata (buffer-substring-no-properties
                                             start (point))
                                            base-size md
-                                           minibuffer-completion-table
-                                           minibuffer-completion-predicate))
-             (ann-fun (or (completion-metadata-get all-md 'annotation-function)
-                          (plist-get completion-extra-properties
-                                     :annotation-function)))
-             (aff-fun (or (completion-metadata-get all-md 'affixation-function)
-                          (plist-get completion-extra-properties
-                                     :affixation-function)))
+                                           ctable
+                                           cpred))
+             (ann-fun (completion-metadata-get all-md 'annotation-function))
+             (aff-fun (completion-metadata-get all-md 'affixation-function))
              (sort-fun (completion-metadata-get all-md 'display-sort-function))
              (group-fun (completion-metadata-get all-md 'group-function))
              (mainbuf (current-buffer))
@@ -2455,6 +2649,8 @@ These include:
             (body-function
              . ,#'(lambda (_window)
                     (with-current-buffer mainbuf
+                      (when completion-auto-deselect
+                        (add-hook 'after-change-functions #'completions--after-change nil t))
                       ;; Remove the base-size tail because `sort' requires a properly
                       ;; nil-terminated list.
                       (when last (setcdr last nil))
@@ -2468,7 +2664,8 @@ These include:
                                             (funcall sort-fun completions)
                                           (pcase completions-sort
                                             ('nil completions)
-                                            ('alphabetical (sort completions #'string-lessp))
+                                            ('alphabetical (minibuffer-sort-alphabetically completions))
+                                            ('historical (minibuffer-sort-by-history completions))
                                             (_ (funcall completions-sort completions)))))
 
                       ;; After sorting, group the candidates using the
@@ -2499,35 +2696,35 @@ These include:
                                       completions))))
 
                       (with-current-buffer standard-output
-                        (setq-local completion-base-position
-                             (list (+ start base-size)
-                                   ;; FIXME: We should pay attention to completion
-                                   ;; boundaries here, but currently
-                                   ;; completion-all-completions does not give us the
-                                   ;; necessary information.
-                                   end))
-                        (setq-local completion-base-affixes
-                                    (list base-prefix base-suffix))
+                        (setq-local completion-base-position base-position)
                         (setq-local completion-list-insert-choice-function
-                             (let ((ctable minibuffer-completion-table)
-                                   (cpred minibuffer-completion-predicate)
-                                   (cprops completion-extra-properties))
                                (lambda (start end choice)
-                                 (if (and (stringp start) (stringp end))
-                                     (progn
-                                       (delete-minibuffer-contents)
-                                       (insert start choice)
-                                       ;; Keep point after completion before suffix
-                                       (save-excursion (insert end)))
-                                   (unless (or (zerop (length prefix))
-                                               (equal prefix
-                                                      (buffer-substring-no-properties
-                                                       (max (point-min)
-                                                            (- start (length prefix)))
-                                                       start)))
-                                     (message "*Completions* out of date"))
-                                   ;; FIXME: Use `md' to do quoting&terminator here.
-                                   (completion--replace start end choice))
+                                 (unless (or (zerop (length prefix))
+                                             (equal prefix
+                                                    (buffer-substring-no-properties
+                                                     (max (point-min)
+                                                          (- start (length prefix)))
+                                                     start)))
+                                   (message "*Completions* out of date"))
+                                 (when (> (point) end)
+                                   ;; Completion suffix has changed, have to adapt.
+                                   (setq end (+ end
+                                                (cdr (completion-boundaries
+                                                      (concat prefix choice) ctable cpred
+                                                      (buffer-substring end (point))))))
+                                   ;; Stopped before some field boundary.
+                                   (when (> (point) end)
+                                     (setq field-char (char-after end))))
+                                 (when (and field-char
+                                            (= (aref choice (1- (length choice)))
+                                               field-char))
+                                   (setq end (1+ end)))
+                                 ;; Tried to use a marker to track buffer changes
+                                 ;; but that clashed with another existing marker.
+                                 (cl-decf (nth 1 base-position)
+                                          (- end start (length choice)))
+                                 ;; FIXME: Use `md' to do quoting&terminator here.
+                                 (completion--replace start (min end (point-max)) choice)
                                  (let* ((minibuffer-completion-table ctable)
                                         (minibuffer-completion-predicate cpred)
                                         (completion-extra-properties cprops)
@@ -2538,7 +2735,7 @@ These include:
                                    ;; completion is not finished.
                                    (completion--done result
                                                      (if (eq (car bounds) (length result))
-                                                         'exact 'finished)))))))
+                                                         'exact 'finished))))))
 
                       (display-completion-list completions nil group-fun)))))
           nil)))
@@ -2720,8 +2917,14 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
 	  completion-in-region-mode-predicate)
     (setq-local minibuffer-completion-auto-choose nil)
     (add-hook 'post-command-hook #'completion-in-region--postch)
-    (push `(completion-in-region-mode . ,completion-in-region-mode-map)
-          minor-mode-overriding-map-alist)))
+    (let* ((keymap completion-in-region-mode-map)
+           (keymap (if minibuffer-visible-completions
+                       (make-composed-keymap
+                        (list minibuffer-visible-completions-map
+                              keymap))
+                     keymap)))
+      (push `(completion-in-region-mode . ,keymap)
+            minor-mode-overriding-map-alist))))
 
 ;; Define-minor-mode added our keymap to minor-mode-map-alist, but we want it
 ;; on minor-mode-overriding-map-alist instead.
@@ -2966,8 +3169,56 @@ the mode hook of this mode."
   :interactive nil
   ;; Enable text conversion, but always make sure `RET' does
   ;; something.
-  (setq text-conversion-style 'action))
+  (setq text-conversion-style 'action)
+  (when minibuffer-visible-completions
+    (setq-local minibuffer-completion-auto-choose nil)))
 
+(defcustom minibuffer-visible-completions nil
+  "Whether candidates shown in *Completions* can be navigated from minibuffer.
+When non-nil, if the *Completions* buffer is displayed in a window,
+you can use the arrow keys in the minibuffer to move the cursor in
+the window showing the *Completions* buffer.  Typing `RET' selects
+the highlighted completion candidate.
+If the *Completions* buffer is not displayed on the screen, or this
+variable is nil, the arrow keys move point in the minibuffer as usual,
+and `RET' accepts the input typed into the minibuffer."
+  :type 'boolean
+  :version "30.1")
+
+(defvar minibuffer-visible-completions--always-bind nil
+  "If non-nil, force the `minibuffer-visible-completions' bindings on.")
+
+(defun minibuffer-visible-completions--filter (cmd)
+  "Return CMD if `minibuffer-visible-completions' bindings should be active."
+  (if minibuffer-visible-completions--always-bind
+      cmd
+    (when-let* ((window (get-buffer-window "*Completions*" 0)))
+      (when (and (eq (buffer-local-value 'completion-reference-buffer
+                                         (window-buffer window))
+                     (window-buffer (active-minibuffer-window)))
+                 (if (eq cmd #'minibuffer-choose-completion-or-exit)
+                     (with-current-buffer (window-buffer window)
+                       (get-text-property (point) 'completion--string))
+                   t))
+        cmd))))
+
+(defun minibuffer-visible-completions--bind (binding)
+  "Use BINDING when completions are visible.
+Return an item that is enabled only when a window
+displaying the *Completions* buffer exists."
+  `(menu-item
+    "" ,binding
+    :filter ,#'minibuffer-visible-completions--filter))
+
+(defvar-keymap minibuffer-visible-completions-map
+  :doc "Local keymap for minibuffer input with visible completions."
+  "<left>"  (minibuffer-visible-completions--bind #'minibuffer-previous-completion)
+  "<right>" (minibuffer-visible-completions--bind #'minibuffer-next-completion)
+  "<up>"    (minibuffer-visible-completions--bind #'minibuffer-previous-line-completion)
+  "<down>"  (minibuffer-visible-completions--bind #'minibuffer-next-line-completion)
+  "RET"     (minibuffer-visible-completions--bind #'minibuffer-choose-completion-or-exit)
+  "C-g"     (minibuffer-visible-completions--bind #'minibuffer-hide-completions))
+
 ;;; Completion tables.
 
 (defun minibuffer--double-dollars (str)
@@ -3109,7 +3360,7 @@ same as `substitute-in-file-name'."
     (file-error nil)))               ;PCM often calls with invalid directories.
 
 (defun completion--sifn-requote (upos qstr)
-  ;; We're looking for `qpos' such that:
+  ;; We're looking for (the largest) `qpos' such that:
   ;; (equal (substring (substitute-in-file-name qstr) 0 upos)
   ;;        (substitute-in-file-name (substring qstr 0 qpos)))
   ;; Big problem here: we have to reverse engineer substitute-in-file-name to
@@ -3139,11 +3390,13 @@ same as `substitute-in-file-name'."
       ;; Main assumption: nothing after qpos should affect the text before upos,
       ;; so we can work our way backward from the end of qstr, one character
       ;; at a time.
-      ;; Second assumptions: If qpos is far from the end this can be a bit slow,
+      ;; Second assumption: If qpos is far from the end this can be a bit slow,
       ;; so we speed it up by doing a first loop that skips a word at a time.
       ;; This word-sized loop is careful not to cut in the middle of env-vars.
       (while (let ((boundary (string-match "\\(\\$+{?\\)?\\w+\\W*\\'" qstr)))
                (and boundary
+                    ;; Try and make sure we keep the largest `qpos' (bug#72176).
+                    (not (string-match-p "/[/~]" qstr boundary))
                     (progn
                       (setq qprefix (substring qstr 0 boundary))
                       (string-prefix-p uprefix
@@ -3268,9 +3521,10 @@ Fourth arg MUSTMATCH can take the following values:
   input, but she needs to confirm her choice if she called
   `minibuffer-complete' right before `minibuffer-complete-and-exit'
   and the input is not an existing file.
-- a function, which will be called with the input as the
-  argument.  If the function returns a non-nil value, the
-  minibuffer is exited with that argument as the value.
+- a function, which will be called with a single argument, the
+  input unquoted by `substitute-in-file-name', which see.  If the
+  function returns a non-nil value, the minibuffer is exited with
+  that argument as the value.
 - anything else behaves like t except that typing RET does not exit if it
   does non-null completion.
 
@@ -3359,7 +3613,13 @@ See `read-file-name' for the meaning of the arguments."
     (let ((ignore-case read-file-name-completion-ignore-case)
           (minibuffer-completing-file-name t)
           (pred (or predicate 'file-exists-p))
-          (add-to-history nil))
+          (add-to-history nil)
+          (require-match (if (functionp mustmatch)
+                             (lambda (input)
+                               (funcall mustmatch
+                                        ;; User-supplied MUSTMATCH expects an unquoted filename
+                                        (substitute-in-file-name input)))
+                           mustmatch)))
 
       (let* ((val
               (if (or (not (next-read-file-uses-dialog-p))
@@ -3395,7 +3655,7 @@ See `read-file-name' for the meaning of the arguments."
 				   (read-file-name--defaults dir initial))))
 			  (set-syntax-table minibuffer-local-filename-syntax))
                       (completing-read prompt 'read-file-name-internal
-                                       pred mustmatch insdef
+                                       pred require-match insdef
                                        'file-name-history default-filename)))
                 ;; If DEFAULT-FILENAME not supplied and DIR contains
                 ;; a file name, split it.
@@ -3489,8 +3749,13 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
 (defun completion-emacs22-try-completion (string table pred point)
   (let ((suffix (substring string point))
         (completion (try-completion (substring string 0 point) table pred)))
-    (if (not (stringp completion))
-        completion
+    (cond
+     ((eq completion t)
+      (if (equal "" suffix)
+          t
+        (cons string point)))
+     ((not (stringp completion)) completion)
+     (t
       ;; Merge a trailing / in completion with a / after point.
       ;; We used to only do it for word completion, but it seems to make
       ;; sense for all completions.
@@ -3504,7 +3769,7 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
                (eq ?/ (aref suffix 0)))
           ;; This leaves point after the / .
           (setq suffix (substring suffix 1)))
-      (cons (concat completion suffix) (length completion)))))
+      (cons (concat completion suffix) (length completion))))))
 
 (defun completion-emacs22-all-completions (string table pred point)
   (let ((beforepoint (substring string 0 point)))
@@ -3570,7 +3835,9 @@ Return the new suffix."
                             'point
                             (substring afterpoint 0 (cdr bounds)))))
          (all (completion-pcm--all-completions prefix pattern table pred)))
-    (completion-hilit-commonality all point (car bounds))))
+    (when all
+      (nconc (completion-pcm--hilit-commonality pattern all)
+             (car bounds)))))
 
 ;;; Partial-completion-mode style completion.
 
@@ -3617,6 +3884,21 @@ the commands start with a \"-\" or a SPC."
 	   (unless (member elem '(point ""))
 	     (setq trivial nil)))
 	 trivial)))
+
+(defcustom completion-pcm-leading-wildcard nil
+  "If non-nil, partial-completion completes as if there's a leading wildcard.
+
+If nil (the default), partial-completion requires a matching completion
+alternative to have the same beginning as the first \"word\" in the
+minibuffer text, where \"word\" is determined by
+`completion-pcm-word-delimiters'.
+
+If non-nil, partial-completion allows any string of characters to occur
+at the beginning of a completion alternative, as if a wildcard such as
+\"*\" was present at the beginning of the minibuffer text.  This makes
+partial-completion behave more like the substring completion style."
+  :version "31.1"
+  :type 'boolean)
 
 (defun completion-pcm--string->pattern (string &optional point)
   "Split STRING into a pattern.
@@ -3668,7 +3950,11 @@ or a symbol, see `completion-pcm--merge-completions'."
       (when (> (length string) p0)
         (if pending (push pending pattern))
         (push (substring string p0) pattern))
-      (nreverse pattern))))
+      (setq pattern (nreverse pattern))
+      (when completion-pcm-leading-wildcard
+        (when (stringp (car pattern))
+          (push 'prefix pattern)))
+      pattern)))
 
 (defun completion-pcm--optimize-pattern (p)
   ;; Remove empty strings in a separate phase since otherwise a ""
@@ -3698,7 +3984,7 @@ or a symbol, see `completion-pcm--merge-completions'."
                      (t
                       (let ((re (if (eq x 'any-delim)
                                     (concat completion-pcm--delim-wild-regex "*?")
-                                  ".*?")))
+                                  "[^z-a]*?")))
                         (if (if (consp group) (memq x group) group)
                             (concat "\\(" re "\\)")
                           re)))))
@@ -3762,108 +4048,204 @@ one large \"hole\" and a clumped-together \"oo\" match) higher
 than the latter (which has two \"holes\" and three
 one-letter-long matches).")
 
+(defvar completion-lazy-hilit nil
+  "If non-nil, request lazy highlighting of completion candidates.
+
+Lisp programs (a.k.a. \"front ends\") that present completion
+candidates may opt to bind this variable to a non-nil value when
+calling functions (such as `completion-all-completions') which
+produce completion candidates.  This tells the underlying
+completion styles that they do not need to fontify (i.e.,
+propertize with the `face' property) completion candidates in a
+way that highlights the matching parts.  Then it is the front end
+which presents the candidates that becomes responsible for this
+fontification.  The front end does that by calling the function
+`completion-lazy-hilit' on each completion candidate that is to be
+displayed to the user.
+
+Note that only some completion styles take advantage of this
+variable for optimization purposes.  Other styles will ignore the
+hint and fontify eagerly as usual.  It is still safe for a
+front end to call `completion-lazy-hilit' in these situations.
+
+To author a completion style that takes advantage of this variable,
+see `completion-lazy-hilit-fn' and `completion-pcm--hilit-commonality'.")
+
+(defvar completion-lazy-hilit-fn nil
+  "Fontification function set by lazy-highlighting completions styles.
+When a given style wants to enable support for `completion-lazy-hilit'
+\(which see), that style should set this variable to a function of one
+argument.  It will be called with each completion candidate, a string, to
+be displayed to the user, and should destructively propertize these
+strings with the `face' property.")
+
+(defun completion-lazy-hilit (str)
+  "Return a copy of completion candidate STR that is `face'-propertized.
+See documentation of the variable `completion-lazy-hilit' for more
+details."
+  (if (and completion-lazy-hilit completion-lazy-hilit-fn)
+      (funcall completion-lazy-hilit-fn (copy-sequence str))
+    str))
+
+(defun completion--hilit-from-re (string regexp &optional point-idx)
+  "Fontify STRING using REGEXP POINT-IDX.
+Uses `completions-common-part' and `completions-first-difference'
+faces to fontify STRING.
+POINT-IDX is the position of point in the presumed \"PCM\" pattern
+from which REGEXP was generated."
+  (let* ((md (and regexp (string-match regexp string) (cddr (match-data t))))
+         (pos (if point-idx (match-beginning point-idx) (match-end 0)))
+         (me (and md (match-end 0)))
+         (from 0))
+    (while md
+      (add-face-text-property from (pop md)
+                              'completions-common-part nil string)
+      (setq from (pop md)))
+    (if (and (numberp pos) (> (length string) pos))
+        (add-face-text-property
+         pos (1+ pos)
+         'completions-first-difference
+         nil string))
+    (unless (or (not me) (= from me))
+      (add-face-text-property from me 'completions-common-part nil string))
+    string))
+
+(defun completion--flex-score-1 (md-groups match-end len)
+  "Compute matching score of completion.
+The score lies in the range between 0 and 1, where 1 corresponds to
+the full match.
+MD-GROUPS is the \"group\"  part of the match data.
+MATCH-END is the end of the match.
+LEN is the length of the completion string."
+  (let* ((from 0)
+         ;; To understand how this works, consider these simple
+         ;; ascii diagrams showing how the pattern "foo"
+         ;; flex-matches "fabrobazo", "fbarbazoo" and
+         ;; "barfoobaz":
+
+         ;;      f abr o baz o
+         ;;      + --- + --- +
+
+         ;;      f barbaz oo
+         ;;      + ------ ++
+
+         ;;      bar foo baz
+         ;;          +++
+
+         ;; "+" indicates parts where the pattern matched.  A
+         ;; "hole" in the middle of the string is indicated by
+         ;; "-".  Note that there are no "holes" near the edges
+         ;; of the string.  The completion score is a number
+         ;; bound by (0..1] (i.e., larger than (but not equal
+         ;; to) zero, and smaller or equal to one): the higher
+         ;; the better and only a perfect match (pattern equals
+         ;; string) will have score 1.  The formula takes the
+         ;; form of a quotient.  For the numerator, we use the
+         ;; number of +, i.e. the length of the pattern.  For
+         ;; the denominator, it first computes
+         ;;
+         ;;     hole_i_contrib = 1 + (Li-1)^(1/tightness)
+         ;;
+         ;; , for each hole "i" of length "Li", where tightness
+         ;; is given by `flex-score-match-tightness'.  The
+         ;; final value for the denominator is then given by:
+         ;;
+         ;;    (SUM_across_i(hole_i_contrib) + 1) * len
+         ;;
+         ;; , where "len" is the string's length.
+         (score-numerator 0)
+         (score-denominator 0)
+         (last-b 0))
+    (while (and md-groups (car md-groups))
+      (let ((a from)
+            (b (pop md-groups)))
+        (setq
+         score-numerator   (+ score-numerator (- b a)))
+        (unless (or (= a last-b)
+                    (zerop last-b)
+                    (= a len))
+          (setq
+           score-denominator (+ score-denominator
+                                1
+                                (expt (- a last-b 1)
+                                      (/ 1.0
+                                         flex-score-match-tightness)))))
+        (setq
+         last-b              b))
+      (setq from (pop md-groups)))
+    ;; If `pattern' doesn't have an explicit trailing any, the
+    ;; regex `re' won't produce match data representing the
+    ;; region after the match.  We need to account to account
+    ;; for that extra bit of match (bug#42149).
+    (unless (= from match-end)
+      (let ((a from)
+            (b match-end))
+        (setq
+         score-numerator   (+ score-numerator (- b a)))
+        (unless (or (= a last-b)
+                    (zerop last-b)
+                    (= a len))
+          (setq
+           score-denominator (+ score-denominator
+                                1
+                                (expt (- a last-b 1)
+                                      (/ 1.0
+                                         flex-score-match-tightness)))))
+        (setq
+         last-b              b)))
+    (/ score-numerator (* len (1+ score-denominator)) 1.0)))
+
+(defvar completion--flex-score-last-md nil
+  "Helper variable for `completion--flex-score'.")
+
+(defun completion--flex-score (str re &optional dont-error)
+  "Compute flex score of completion STR based on RE.
+If DONT-ERROR, just return nil if RE doesn't match STR."
+  (let ((case-fold-search completion-ignore-case))
+    (cond ((string-match re str)
+           (let* ((match-end (match-end 0))
+                  (md (cddr
+                       (setq
+                        completion--flex-score-last-md
+                        (match-data t completion--flex-score-last-md)))))
+             (completion--flex-score-1 md match-end (length str))))
+          ((not dont-error)
+           (error "Internal error: %s does not match %s" re str)))))
+
+(defvar completion-pcm--regexp nil
+  "Regexp from PCM pattern in `completion-pcm--hilit-commonality'.")
+
 (defun completion-pcm--hilit-commonality (pattern completions)
   "Show where and how well PATTERN matches COMPLETIONS.
 PATTERN, a list of symbols and strings as seen
 `completion-pcm--merge-completions', is assumed to match every
-string in COMPLETIONS.  Return a deep copy of COMPLETIONS where
-each string is propertized with `completion-score', a number
-between 0 and 1, and with faces `completions-common-part',
-`completions-first-difference' in the relevant segments."
+string in COMPLETIONS.
+
+If `completion-lazy-hilit' is nil, return a deep copy of
+COMPLETIONS where each string is propertized with
+`completion-score', a number between 0 and 1, and with faces
+`completions-common-part', `completions-first-difference' in the
+relevant segments.
+
+Else, if `completion-lazy-hilit' is t, return COMPLETIONS
+unchanged, but setup a suitable `completion-lazy-hilit-fn' (which
+see) for later lazy highlighting."
+  (setq completion-pcm--regexp nil
+        completion-lazy-hilit-fn nil)
   (cond
    ((and completions (cl-loop for e in pattern thereis (stringp e)))
     (let* ((re (completion-pcm--pattern->regex pattern 'group))
-           (point-idx (completion-pcm--pattern-point-idx pattern))
-           (case-fold-search completion-ignore-case)
-           last-md)
-      (mapcar
-       (lambda (str)
-	 ;; Don't modify the string itself.
-         (setq str (copy-sequence str))
-         (unless (string-match re str)
-           (error "Internal error: %s does not match %s" re str))
-         (let* ((pos (if point-idx (match-beginning point-idx) (match-end 0)))
-                (match-end (match-end 0))
-                (md (cddr (setq last-md (match-data t last-md))))
-                (from 0)
-                (end (length str))
-                ;; To understand how this works, consider these simple
-                ;; ascii diagrams showing how the pattern "foo"
-                ;; flex-matches "fabrobazo", "fbarbazoo" and
-                ;; "barfoobaz":
-
-                ;;      f abr o baz o
-                ;;      + --- + --- +
-
-                ;;      f barbaz oo
-                ;;      + ------ ++
-
-                ;;      bar foo baz
-                ;;          +++
-
-                ;; "+" indicates parts where the pattern matched.  A
-                ;; "hole" in the middle of the string is indicated by
-                ;; "-".  Note that there are no "holes" near the edges
-                ;; of the string.  The completion score is a number
-                ;; bound by (0..1] (i.e., larger than (but not equal
-                ;; to) zero, and smaller or equal to one): the higher
-                ;; the better and only a perfect match (pattern equals
-                ;; string) will have score 1.  The formula takes the
-                ;; form of a quotient.  For the numerator, we use the
-                ;; number of +, i.e. the length of the pattern.  For
-                ;; the denominator, it first computes
-                ;;
-                ;;     hole_i_contrib = 1 + (Li-1)^(1/tightness)
-                ;;
-                ;; , for each hole "i" of length "Li", where tightness
-                ;; is given by `flex-score-match-tightness'.  The
-                ;; final value for the denominator is then given by:
-                ;;
-                ;;    (SUM_across_i(hole_i_contrib) + 1) * len
-                ;;
-                ;; , where "len" is the string's length.
-                (score-numerator 0)
-                (score-denominator 0)
-                (last-b 0)
-                (update-score-and-face
-                 (lambda (a b)
-                   "Update score and face given match range (A B)."
-                   (add-face-text-property a b
-                                           'completions-common-part
-                                           nil str)
-                   (setq
-                    score-numerator   (+ score-numerator (- b a)))
-                   (unless (or (= a last-b)
-                               (zerop last-b)
-                               (= a (length str)))
-                     (setq
-                      score-denominator (+ score-denominator
-                                           1
-                                           (expt (- a last-b 1)
-                                                 (/ 1.0
-                                                    flex-score-match-tightness)))))
-                   (setq
-                    last-b              b))))
-           (while md
-             (funcall update-score-and-face from (pop md))
-             (setq from (pop md)))
-           ;; If `pattern' doesn't have an explicit trailing any, the
-           ;; regex `re' won't produce match data representing the
-           ;; region after the match.  We need to account to account
-           ;; for that extra bit of match (bug#42149).
-           (unless (= from match-end)
-             (funcall update-score-and-face from match-end))
-           (if (> (length str) pos)
-               (add-face-text-property
-                pos (1+ pos)
-                'completions-first-difference
-                nil str))
-           (unless (zerop (length str))
-             (put-text-property
-              0 1 'completion-score
-              (/ score-numerator (* end (1+ score-denominator)) 1.0) str)))
-         str)
-       completions)))
+           (point-idx (completion-pcm--pattern-point-idx pattern)))
+      (setq completion-pcm--regexp re)
+      (cond (completion-lazy-hilit
+             (setq completion-lazy-hilit-fn
+                   (lambda (str) (completion--hilit-from-re str re point-idx)))
+             completions)
+            (t
+             (mapcar
+              (lambda (str)
+                (completion--hilit-from-re (copy-sequence str) re point-idx))
+              completions)))))
    (t completions)))
 
 (defun completion-pcm--find-all-completions (string table pred point
@@ -4038,16 +4420,21 @@ the same set of elements."
                      (unique (or (and (eq prefix t) (setq prefix fixed))
                                  (and (stringp prefix)
                                       (eq t (try-completion prefix comps))))))
-                (unless (or (eq elem 'prefix)
-                            (equal prefix ""))
-                  (push prefix res))
                 ;; If there's only one completion, `elem' is not useful
                 ;; any more: it can only match the empty string.
                 ;; FIXME: in some cases, it may be necessary to turn an
                 ;; `any' into a `star' because the surrounding context has
                 ;; changed such that string->pattern wouldn't add an `any'
                 ;; here any more.
-                (unless unique
+                (if unique
+                    ;; If the common prefix is unique, it also is a common
+                    ;; suffix, so we should add it for `prefix' elements.
+                    (push prefix res)
+                  ;; `prefix' only wants to include the fixed part before the
+                  ;; wildcard, not the result of growing that fixed part.
+                  (when (eq elem 'prefix)
+                    (setq prefix fixed))
+                  (push prefix res)
                   (push elem res)
                   ;; Extract common suffix additionally to common prefix.
                   ;; Don't do it for `any' since it could lead to a merged
@@ -4198,36 +4585,39 @@ that is non-nil."
 
 (defun completion--flex-adjust-metadata (metadata)
   "If `flex' is actually doing filtering, adjust sorting."
-  (let ((flex-is-filtering-p
-         ;; JT@2019-12-23: FIXME: this is kinda wrong.  What we need
-         ;; to test here is "some input that actually leads/led to
-         ;; flex filtering", not "something after the minibuffer
-         ;; prompt".  E.g. The latter is always true for file
-         ;; searches, meaning we'll be doing extra work when we
-         ;; needn't.
-         (or (not (window-minibuffer-p))
-             (> (point-max) (minibuffer-prompt-end))))
+  (let ((flex-is-filtering-p completion-pcm--regexp)
         (existing-dsf
          (completion-metadata-get metadata 'display-sort-function))
         (existing-csf
          (completion-metadata-get metadata 'cycle-sort-function)))
     (cl-flet
-        ((compose-flex-sort-fn
-          (existing-sort-fn) ; wish `cl-flet' had proper indentation...
-          (lambda (completions)
-            (sort
-             (funcall existing-sort-fn completions)
-             (lambda (c1 c2)
-               (let ((s1 (get-text-property 0 'completion-score c1))
-                     (s2 (get-text-property 0 'completion-score c2)))
-                 (> (or s1 0) (or s2 0))))))))
+        ((compose-flex-sort-fn (existing-sort-fn)
+           (lambda (completions)
+             (let* ((sorted (sort
+                             (mapcar
+                              (lambda (str)
+                                (cons
+                                 (- (completion--flex-score
+                                     (or (get-text-property
+                                          0 'completion--unquoted str)
+                                         str)
+                                     completion-pcm--regexp))
+                                 str))
+                              (if existing-sort-fn
+                                  (funcall existing-sort-fn completions)
+                                completions))
+                             #'car-less-than-car))
+                    (cell sorted))
+               ;; Reuse the list
+               (while cell
+                 (setcar cell (cdar cell))
+                 (pop cell))
+               sorted))))
       `(metadata
         ,@(and flex-is-filtering-p
-               `((display-sort-function
-                  . ,(compose-flex-sort-fn (or existing-dsf #'identity)))))
+               `((display-sort-function . ,(compose-flex-sort-fn existing-dsf))))
         ,@(and flex-is-filtering-p
-               `((cycle-sort-function
-                  . ,(compose-flex-sort-fn (or existing-csf #'identity)))))
+               `((cycle-sort-function . ,(compose-flex-sort-fn existing-csf))))
         ,@(cdr metadata)))))
 
 (defun completion-flex--make-flex-pattern (pattern)
@@ -4381,6 +4771,11 @@ See `completing-read' for the meaning of the arguments."
                     ;; in minibuffer-local-filename-completion-map can
                     ;; override bindings in base-keymap.
                     base-keymap)))
+         (keymap (if minibuffer-visible-completions
+                     (make-composed-keymap
+                      (list minibuffer-visible-completions-map
+                            keymap))
+                   keymap))
          (buffer (current-buffer))
          (c-i-c completion-ignore-case)
          (result
@@ -4500,39 +4895,72 @@ selected by these commands to the minibuffer."
   :type 'boolean
   :version "29.1")
 
-(defun minibuffer-next-completion (&optional n)
+(defun minibuffer-next-completion (&optional n vertical)
   "Move to the next item in its completions window from the minibuffer.
+When the optional argument VERTICAL is non-nil, move vertically
+to the next item on the next line using `next-line-completion'.
+Otherwise, move to the next item horizontally using `next-completion'.
 When `minibuffer-completion-auto-choose' is non-nil, then also
-insert the selected completion to the minibuffer."
+insert the selected completion candidate to the minibuffer."
   (interactive "p")
   (let ((auto-choose minibuffer-completion-auto-choose))
     (with-minibuffer-completions-window
       (when completions-highlight-face
         (setq-local cursor-face-highlight-nonselected-window t))
-      (next-completion (or n 1))
+      (if vertical
+          (next-line-completion (or n 1))
+        (next-completion (or n 1)))
       (when auto-choose
-        (let ((completion-use-base-affixes t))
+        (let ((completion-auto-deselect nil))
           (choose-completion nil t t))))))
 
 (defun minibuffer-previous-completion (&optional n)
   "Move to the previous item in its completions window from the minibuffer.
 When `minibuffer-completion-auto-choose' is non-nil, then also
-insert the selected completion to the minibuffer."
+insert the selected completion candidate to the minibuffer."
   (interactive "p")
   (minibuffer-next-completion (- (or n 1))))
 
+(defun minibuffer-next-line-completion (&optional n)
+  "Move to the next completion line from the minibuffer.
+This means to move to the completion candidate on the next line
+in the *Completions* buffer while point stays in the minibuffer.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion candidate to the minibuffer."
+  (interactive "p")
+  (minibuffer-next-completion (or n 1) t))
+
+(defun minibuffer-previous-line-completion (&optional n)
+  "Move to the previous completion line from the minibuffer.
+This means to move to the completion candidate on the previous line
+in the *Completions* buffer while point stays in the minibuffer.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion candidate to the minibuffer."
+  (interactive "p")
+  (minibuffer-next-completion (- (or n 1)) t))
+
 (defun minibuffer-choose-completion (&optional no-exit no-quit)
   "Run `choose-completion' from the minibuffer in its completions window.
-With prefix argument NO-EXIT, insert the completion at point to the
-minibuffer, but don't exit the minibuffer.  When the prefix argument
+With prefix argument NO-EXIT, insert the completion candidate at point to
+the minibuffer, but don't exit the minibuffer.  When the prefix argument
 is not provided, then whether to exit the minibuffer depends on the value
 of `completion-no-auto-exit'.
-If NO-QUIT is non-nil, insert the completion at point to the
+If NO-QUIT is non-nil, insert the completion candidate at point to the
 minibuffer, but don't quit the completions window."
   (interactive "P")
-    (with-minibuffer-completions-window
-    (let ((completion-use-base-affixes t))
-      (choose-completion nil no-exit no-quit))))
+  (with-minibuffer-completions-window
+    (choose-completion nil no-exit no-quit)))
+
+(defun minibuffer-choose-completion-or-exit (&optional no-exit no-quit)
+  "Choose the completion from the minibuffer or exit the minibuffer.
+When `minibuffer-choose-completion' can't find a completion candidate
+in the completions window, then exit the minibuffer using its present
+contents."
+  (interactive "P")
+  (condition-case nil
+      (let ((choose-completion-deselect-if-after t))
+        (minibuffer-choose-completion no-exit no-quit))
+    (error (minibuffer-complete-and-exit))))
 
 (defun minibuffer-complete-history ()
   "Complete the minibuffer history as far as possible.
@@ -4549,13 +4977,15 @@ instead of the default completion table."
                       history)
             (user-error "No history available"))))
     ;; FIXME: Can we make it work for CRM?
-    (completion-in-region
-     (minibuffer--completion-prompt-end) (point-max)
-     (lambda (string pred action)
-       (if (eq action 'metadata)
-           '(metadata (display-sort-function . identity)
-                      (cycle-sort-function . identity))
-         (complete-with-action action completions string pred))))))
+    (let ((completion-in-region-mode-predicate
+           (lambda () (get-buffer-window "*Completions*" 0))))
+      (completion-in-region
+       (minibuffer--completion-prompt-end) (point-max)
+       (lambda (string pred action)
+         (if (eq action 'metadata)
+             '(metadata (display-sort-function . identity)
+                        (cycle-sort-function . identity))
+           (complete-with-action action completions string pred)))))))
 
 (defun minibuffer-complete-defaults ()
   "Complete minibuffer defaults as far as possible.
@@ -4566,7 +4996,9 @@ instead of the completion table."
              (functionp minibuffer-default-add-function))
     (setq minibuffer-default-add-done t
           minibuffer-default (funcall minibuffer-default-add-function)))
-  (let ((completions (ensure-list minibuffer-default)))
+  (let ((completions (ensure-list minibuffer-default))
+        (completion-in-region-mode-predicate
+         (lambda () (get-buffer-window "*Completions*" 0))))
     (completion-in-region
      (minibuffer--completion-prompt-end) (point-max)
      (lambda (string pred action)
@@ -4654,7 +5086,7 @@ This is run upon minibuffer setup."
 (defun minibuffer-exit-on-screen-keyboard ()
   "Hide the on-screen keyboard if it was displayed.
 Hide the on-screen keyboard in a timer set to run in 0.1 seconds.
-It will be cancelled if the minibuffer is displayed again within
+It will be canceled if the minibuffer is displayed again within
 that timeframe.
 
 Do not hide the on screen keyboard inside a recursive edit.
@@ -4673,6 +5105,179 @@ The latter is implemented in `touch-screen.el'."
 
 (add-hook 'minibuffer-setup-hook #'minibuffer-setup-on-screen-keyboard)
 (add-hook 'minibuffer-exit-hook #'minibuffer-exit-on-screen-keyboard)
+
+(defvar minibuffer-regexp-mode)
+
+(defun minibuffer--regexp-propertize ()
+  "In current minibuffer propertize parens and slashes in regexps.
+Put punctuation `syntax-table' property on selected paren and
+backslash characters in current buffer to make `show-paren-mode'
+and `blink-matching-paren' more user-friendly."
+  (let (in-char-alt-p)
+    (save-excursion
+      (with-silent-modifications
+        (remove-text-properties (point-min) (point-max) '(syntax-table nil))
+        (goto-char (point-min))
+        (while (re-search-forward
+                (rx (| (group "\\\\")
+                       (: "\\" (| (group (in "(){}"))
+                                  (group "[")
+                                  (group "]")))
+                       (group "[:" (+ (in "A-Za-z")) ":]")
+                       (group "[")
+                       (group "]")
+                       (group (in "(){}"))))
+	        (point-max) 'noerror)
+	  (cond
+           ((match-beginning 1))                ; \\, skip
+           ((match-beginning 2)			; \( \) \{ \}
+            (if in-char-alt-p
+	        ;; Within character alternative, set symbol syntax for
+	        ;; paren only.
+                (put-text-property (1- (point)) (point) 'syntax-table '(3))
+	      ;; Not within character alternative, set symbol syntax for
+	      ;; backslash only.
+              (put-text-property (- (point) 2) (1- (point)) 'syntax-table '(3))))
+	   ((match-beginning 3)			; \[
+            (if in-char-alt-p
+                (progn
+	          ;; Set symbol syntax for backslash.
+                  (put-text-property (- (point) 2) (1- (point)) 'syntax-table '(3))
+                  ;; Re-read bracket we might be before a character class.
+                  (backward-char))
+	      ;; Set symbol syntax for bracket.
+	      (put-text-property (1- (point)) (point) 'syntax-table '(3))))
+	   ((match-beginning 4)			; \]
+            (if in-char-alt-p
+                (progn
+                  ;; Within character alternative, set symbol syntax for
+	          ;; backslash, exit alternative.
+                  (put-text-property (- (point) 2) (1- (point)) 'syntax-table '(3))
+	          (setq in-char-alt-p nil))
+	      ;; Not within character alternative, set symbol syntax for
+	      ;; bracket.
+	      (put-text-property (1- (point)) (point) 'syntax-table '(3))))
+	   ((match-beginning 5))         ; POSIX character class, skip
+	   ((match-beginning 6)          ; [
+	    (if in-char-alt-p
+	        ;; Within character alternative, set symbol syntax.
+	        (put-text-property (1- (point)) (point) 'syntax-table '(3))
+	      ;; Start new character alternative.
+	      (setq in-char-alt-p t)
+              ;; Looking for immediately following non-closing ].
+	      (when (looking-at "\\^?\\]")
+	        ;; Non-special right bracket, set symbol syntax.
+	        (goto-char (match-end 0))
+	        (put-text-property (1- (point)) (point) 'syntax-table '(3)))))
+	   ((match-beginning 7)			; ]
+            (if in-char-alt-p
+                (setq in-char-alt-p nil)
+              ;; The only warning we can emit before RET.
+	      (message "Not in character alternative")))
+	   ((match-beginning 8)                 ; (){}
+	    ;; Plain parenthesis or brace, set symbol syntax.
+	    (put-text-property (1- (point)) (point) 'syntax-table '(3)))))))))
+
+;; The following variable is set by 'minibuffer--regexp-before-change'.
+;; If non-nil, either 'minibuffer--regexp-post-self-insert' or
+;; 'minibuffer--regexp-after-change', whichever comes next, will
+;; propertize the minibuffer via 'minibuffer--regexp-propertize' and
+;; reset this variable to nil, avoiding to propertize the buffer twice.
+(defvar-local minibuffer--regexp-primed nil
+  "Non-nil when minibuffer contents change.")
+
+(defun minibuffer--regexp-before-change (_a _b)
+  "`minibuffer-regexp-mode' function on `before-change-functions'."
+  (setq minibuffer--regexp-primed t))
+
+(defun minibuffer--regexp-after-change (_a _b _c)
+  "`minibuffer-regexp-mode' function on `after-change-functions'."
+  (when minibuffer--regexp-primed
+    (setq minibuffer--regexp-primed nil)
+    (minibuffer--regexp-propertize)))
+
+(defun minibuffer--regexp-post-self-insert ()
+  "`minibuffer-regexp-mode' function on `post-self-insert-hook'."
+  (when minibuffer--regexp-primed
+    (setq minibuffer--regexp-primed nil)
+    (minibuffer--regexp-propertize)))
+
+(defvar minibuffer--regexp-prompt-regexp
+  "\\(?:Posix search\\|RE search\\|Search for regexp\\|Query replace regexp\\)"
+  "Regular expression compiled from `minibuffer-regexp-prompts'.")
+
+(defcustom minibuffer-regexp-prompts
+  '("Posix search" "RE search" "Search for regexp" "Query replace regexp")
+  "List of regular expressions that trigger `minibuffer-regexp-mode' features.
+The features of `minibuffer-regexp-mode' will be activated in a minibuffer
+interaction if and only if a prompt matching some regexp in this list
+appears at the beginning of the minibuffer.
+
+Setting this variable directly with `setq' has no effect; instead,
+either use \\[customize-option] interactively or use `setopt'."
+  :type '(repeat (string :tag "Prompt"))
+  :set (lambda (sym val)
+	 (set-default sym val)
+         (when val
+           (setq minibuffer--regexp-prompt-regexp
+                 (concat "\\(?:" (mapconcat 'regexp-quote val "\\|") "\\)"))))
+  :version "30.1")
+
+(defun minibuffer--regexp-setup ()
+  "Function to activate`minibuffer-regexp-mode' in current buffer.
+Run by `minibuffer-setup-hook'."
+  (if (and minibuffer-regexp-mode
+           (save-excursion
+             (goto-char (point-min))
+             (looking-at minibuffer--regexp-prompt-regexp)))
+      (progn
+        (setq-local parse-sexp-lookup-properties t)
+        (add-hook 'before-change-functions #'minibuffer--regexp-before-change nil t)
+        (add-hook 'after-change-functions #'minibuffer--regexp-after-change nil t)
+        (add-hook 'post-self-insert-hook #'minibuffer--regexp-post-self-insert nil t))
+    ;; Make sure.
+    (minibuffer--regexp-exit)))
+
+(defun minibuffer--regexp-exit ()
+  "Function to deactivate `minibuffer-regexp-mode' in current buffer.
+Run by `minibuffer-exit-hook'."
+  (with-silent-modifications
+    (remove-text-properties (point-min) (point-max) '(syntax-table nil)))
+  (setq-local parse-sexp-lookup-properties nil)
+  (remove-hook 'before-change-functions #'minibuffer--regexp-before-change t)
+  (remove-hook 'after-change-functions #'minibuffer--regexp-after-change t)
+  (remove-hook 'post-self-insert-hook #'minibuffer--regexp-post-self-insert t))
+
+(define-minor-mode minibuffer-regexp-mode
+  "Minor mode for editing regular expressions in the minibuffer.
+Highlight parens via `show-paren-mode' and `blink-matching-paren'
+in a user-friendly way, avoid reporting alleged paren mismatches
+and make sexp navigation more intuitive.
+
+The list of prompts activating this mode in specific minibuffer
+interactions is customizable via `minibuffer-regexp-prompts'."
+  :global t
+  :initialize 'custom-initialize-delay
+  :init-value t
+  (if minibuffer-regexp-mode
+      (progn
+        (add-hook 'minibuffer-setup-hook #'minibuffer--regexp-setup)
+        (add-hook 'minibuffer-exit-hook #'minibuffer--regexp-exit))
+    ;; Clean up - why is Vminibuffer_list not available in Lisp?
+    (dolist (buffer (buffer-list))
+      (when (and (minibufferp)
+                 parse-sexp-lookup-properties
+                 (with-current-buffer buffer
+                   (save-excursion
+                     (goto-char (point-min))
+                     (looking-at minibuffer--regexp-prompt-regexp))))
+        (with-current-buffer buffer
+          (with-silent-modifications
+            (remove-text-properties
+             (point-min) (point-max) '(syntax-table nil)))
+          (setq-local parse-sexp-lookup-properties t))))
+    (remove-hook 'minibuffer-setup-hook #'minibuffer--regexp-setup)
+    (remove-hook 'minibuffer-exit-hook #'minibuffer--regexp-exit)))
 
 (provide 'minibuffer)
 

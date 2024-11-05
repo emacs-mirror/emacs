@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2000-2023 Free Software Foundation, Inc.
+# Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -95,6 +95,8 @@ COMPILE_FIRST = \
 ifeq ($(HAVE_NATIVE_COMP),yes)
 COMPILE_FIRST += $(lisp)/emacs-lisp/comp.elc
 COMPILE_FIRST += $(lisp)/emacs-lisp/comp-cstr.elc
+COMPILE_FIRST += $(lisp)/emacs-lisp/comp-common.elc
+COMPILE_FIRST += $(lisp)/emacs-lisp/comp-run.elc
 endif
 COMPILE_FIRST += $(lisp)/emacs-lisp/loaddefs-gen.elc
 COMPILE_FIRST += $(lisp)/emacs-lisp/radix-tree.elc
@@ -538,19 +540,14 @@ check-defun-dups:
 # dependency in cc-*.elc files on the macros in other cc-*.el and the
 # version string in cc-defs.el.
 $(lisp)/progmodes/cc-align.elc\
- $(lisp)/progmodes/cc-cmds.elc $(lisp)/progmodes/cc-compat.elc\
- $(lisp)/progmodes/cc-engine.elc $(lisp)/progmodes/cc-fonts.elc\
- $(lisp)/progmodes/cc-langs.elc $(lisp)/progmodes/cc-menus.elc\
- $(lisp)/progmodes/cc-mode.elc $(lisp)/progmodes/cc-styles.elc\
- $(lisp)/progmodes/cc-vars.elc: \
+ $(lisp)/progmodes/cc-cmds.elc $(lisp)/progmodes/cc-engine.elc \
+ $(lisp)/progmodes/cc-fonts.elc $(lisp)/progmodes/cc-langs.elc \
+ $(lisp)/progmodes/cc-menus.elc $(lisp)/progmodes/cc-mode.elc \
+ $(lisp)/progmodes/cc-styles.elc $(lisp)/progmodes/cc-vars.elc: \
    $(lisp)/progmodes/cc-bytecomp.elc $(lisp)/progmodes/cc-defs.elc
 
 $(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-cmds.elc: \
    $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-engine.elc
-
-$(lisp)/progmodes/cc-compat.elc: \
-   $(lisp)/progmodes/cc-vars.elc $(lisp)/progmodes/cc-styles.elc \
-   $(lisp)/progmodes/cc-engine.elc
 
 $(lisp)/progmodes/cc-defs.elc: $(lisp)/progmodes/cc-bytecomp.elc
 

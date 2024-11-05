@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1993-1996, 2000-2023 Free Software Foundation,
+;; Copyright (C) 1985, 1993-1996, 2000-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -52,7 +52,7 @@ Setting this option to nil might speed up the generation of summaries."
 
 (defcustom rmail-summary-progressively-narrow nil
   "Non-nil means progressively narrow the set of messages produced by summary.
-This allows to apply the summary criteria on top one another,
+This enables you to apply the summary criteria on top one another,
 thus progressively narrowing the selection of the messages produced
 by each summary criteria.
 For example, applying `rmail-summary-by-senders' on top
@@ -83,6 +83,11 @@ commands consecutively.  Filled by
 Message A is parent of message B if the id of A appears in the
 \"References\" or \"In-reply-to\" fields of B, or if A is the first
 message with the same \"Subject\" as B.  First element is ignored.")
+
+(defcustom rmail-summary-starting-message 1
+  "Message number to start summarizing at."
+  :type 'integer
+  :group 'rmail-summary)
 
 (defvar rmail-summary-message-descendants-vector nil
   "Vector that holds the direct descendants of each message.
@@ -436,19 +441,21 @@ headers of the messages."
     (unless (and rmail-summary-message-parents-vector
 		 (= (length rmail-summary-message-parents-vector)
 		    (1+ rmail-total-messages)))
-      (rmail-summary-fill-message-parents-and-descs-vectors))
-    (let ((enc-msgs (make-bool-vector (1+ rmail-total-messages) nil)))
-      (rmail-summary--walk-thread-message-recursively msgnum enc-msgs)
-      (rmail-new-summary (format "thread containing message %d" msgnum)
-			 (list 'rmail-summary-by-thread msgnum)
-			 (if (and rmail-summary-progressively-narrow
-				  (rmail-summary--exists-1))
-			     (lambda (msg _msgnum)
-			       (and (aref rmail-summary-currently-displayed-msgs msg)
-				    (aref enc-msgs msg)))
+      (rmail-summary-fill-message-parents-and-descs-vectors)))
+  (let ((enc-msgs
+         (with-current-buffer rmail-buffer
+           (make-bool-vector (1+ rmail-total-messages) nil))))
+    (rmail-summary--walk-thread-message-recursively msgnum enc-msgs)
+    (rmail-new-summary (format "thread containing message %d" msgnum)
+		       (list 'rmail-summary-by-thread msgnum)
+		       (if (and rmail-summary-progressively-narrow
+				(rmail-summary--exists-1))
 			   (lambda (msg _msgnum)
-                             (aref enc-msgs msg)))
-			 msgnum))))
+			     (and (aref rmail-summary-currently-displayed-msgs msg)
+				  (aref enc-msgs msg)))
+			 (lambda (msg _msgnum)
+                           (aref enc-msgs msg)))
+		       msgnum)))
 
 ;;;###autoload
 (defun rmail-summary-by-labels (labels)
@@ -698,7 +705,7 @@ message."
 	(sumbuf (rmail-get-create-summary-buffer)))
     ;; Scan the messages, getting their summary strings
     ;; and putting the list of them in SUMMARY-MSGS.
-    (let ((msgnum 1)
+    (let ((msgnum rmail-summary-starting-message)
 	  (main-buffer (current-buffer))
 	  (total rmail-total-messages)
 	  (inhibit-read-only t))

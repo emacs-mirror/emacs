@@ -1,6 +1,6 @@
 ;;; cus-face.el --- customization support for faces  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
@@ -32,7 +32,7 @@
 (defun custom-declare-face (face spec doc &rest args)
   "Like `defface', but with FACE evaluated as a normal argument."
   (when (and doc
-             (not (stringp doc)))
+             (not (documentation-stringp doc)))
     (error "Invalid (or missing) doc string %S" doc))
   (unless (get face 'face-defface-spec)
     (face-spec-set face (purecopy spec) 'face-defface-spec)
@@ -141,7 +141,10 @@
 		   (const :format "" :value :style)
 		   (choice :tag "Style"
 			   (const :tag "Line" line)
-			   (const :tag "Wave" wave))
+			   (const :tag "Double line" double-line)
+			   (const :tag "Wave" wave)
+			   (const :tag "Dots" dots)
+			   (const :tag "Dashes" dashes))
                    (const :format "" :value :position)
                    (choice :tag "Position"
                            (const :tag "At Default Position" nil)

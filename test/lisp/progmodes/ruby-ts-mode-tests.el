@@ -1,6 +1,6 @@
 ;;; ruby-mode-tests.el --- Test suite for ruby-mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -275,8 +275,8 @@ The whitespace before and including \"|\" on each line is removed."
                  expected))))))
 
 (defmacro ruby-ts-resource-file (file)
-  `(when-let ((testfile ,(or (macroexp-file-name)
-                             buffer-file-name)))
+  `(when-let* ((testfile ,(or (macroexp-file-name)
+                              buffer-file-name)))
      (let ((default-directory (file-name-directory testfile)))
        (file-truename
         (expand-file-name (format "ruby-mode-resources/%s" ,file))))))
@@ -326,6 +326,7 @@ The whitespace before and including \"|\" on each line is removed."
 (ruby-ts-deftest-indent "ruby-method-call-indent.rb")
 (ruby-ts-deftest-indent "ruby-method-params-indent.rb")
 (ruby-ts-deftest-indent "ruby-parenless-call-arguments-indent.rb")
+(ruby-ts-deftest-indent "ruby-bracketed-args-indent.rb")
 
 (provide 'ruby-ts-mode-tests)
 

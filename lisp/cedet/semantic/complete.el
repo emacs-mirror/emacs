@@ -1,6 +1,6 @@
 ;;; semantic/complete.el --- Routines for performing tag completion  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2005, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -913,7 +913,7 @@ tags.")
    (cache :initform nil
 	  :type (or null semanticdb-find-result-with-nil)
 	  :documentation "Cache of tags.
-These tags are re-used during a completion session.
+These tags are reused during a completion session.
 Sometimes these tags are cached between completion sessions.")
    (last-all-completions :initarg nil
 			 :type semanticdb-find-result-with-nil
@@ -1046,7 +1046,7 @@ Output must be in semanticdb Find result format."
 		     (and last-prefix (string-prefix-p last-prefix prefix t)))
 		 ;; We have the same prefix, or last-prefix is a
 		 ;; substring of the of new prefix, in which case we are
-		 ;; refining our symbol so just re-use cache.
+		 ;; refining our symbol so just reuse cache.
 		 (oref obj last-all-completions))
 		((and last-prefix
 		      (> (length prefix) 1)
@@ -1407,7 +1407,7 @@ This object type doesn't do focus, so will never have a focus object."
   ()
   "Display options in *Completions* buffer.
 Traditional display mechanism for a list of possible completions.
-Completions are showin in a new buffer and listed with the ability
+Completions are shown in a new buffer and listed with the ability
 to click on the items to aid in completion.")
 
 (define-obsolete-function-alias 'semantic-displayor-show-request

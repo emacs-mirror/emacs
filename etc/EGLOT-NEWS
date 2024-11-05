@@ -1,6 +1,6 @@
 Eglot NEWS                                                     -*- outline -*-
 
-Copyright (C) 2018-2023 Free Software Foundation, Inc.
+Copyright (C) 2018-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Eglot bug reports to 'bug-gnu-emacs@gnu.org', and Cc (or
@@ -20,6 +20,80 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes in upcoming Eglot
 
+** Disable workDoneProgress if eglot-report-progress is nil
+
+Eglot will now try to not register $/progress messages from the server
+when the defcustom is set to nil.  This requires a restart of the server
+for the change to take effect.
+
+** LSP MarkedString interface is now supported (bug#71353)
+
+Some servers still use this deprecated interface for communicating
+documentation snippets.
+
+** Fixes to completion logic (bug#68699, github#1339, github#1349)
+
+These affect mostly the "vanilla" frontend to completions (invoked with
+C-M-i).
+
+** More strict completion expansion (bug#72705).
+
+It ensures that "expand common" commands (such as C-M-i or TAB in
+third-party frontends) don't result in fewer completions than before
+they are called.
+
+** Experimental support for Eglot-only subprojects (github#1337)
+
+Useful for complex projects with subprojects needing different language
+servers.  See associated github issue
+https://github.com/joaotavora/eglot/discussions/1337 for examples.
+
+** New servers have been added to 'eglot-server-programs'.
+
+- blueprint (bug#70015)
+- BasedPyright (bug#69925)
+- move-analyzer (bug#69796)
+- millet
+- nushell (bug#68823)
+
+
+* Changes in Eglot 1.17 (25/1/2024)
+
+** Fixes to completion (github#847, github#1349)
+
+** Fix code-action gathering for some servers (github#847)
+
+** Experimental support for Eglot-only subprojects
+
+Until project.el's support for subprojects improves, github#1337
+describes a reasonably sane way to configure nested sub-projects
+within a larger one just for Eglot purposes.
+
+
+* Changes in Eglot 1.16 (27/12/2023)
+
+** Code actions can be previewed in diff format
+
+The variable 'eglot-confirm-server-edits' replaces the obsolete
+'eglot-confirm-server-initiated-edits' and brings about a new
+confirmation model for code actions, making it possible to have only
+certain commands require user confirmation.  It allows a temporary
+'diff-mode' buffer to display the proposed changes, so the user can
+apply them one by one.  See bug#60338.
+
+** Completion sorting has been fixed
+
+In some situations, Eglot was not respecting the completion sort order
+decided by the language server, falling back on the sort order
+determined by the 'flex' completion style instead.  See github#1306.
+
+** Improve mouse invocation of code actions
+
+When invoking code actions by middle clicking with the mouse on
+Flymake diagnostics, it was often the case that Eglot didn't request
+code actions correctly and thus no actions were offered to the user.
+This has been fixed.  See github#1295.
+
 ** Optimized file-watching capability
 
 Some servers, like the Pyright language server, issue too many file
@@ -27,11 +101,43 @@ watching requests.  This change slightly reduces the number of file
 watcher objects requested from the operating system, which can be a
 problem, particularly on Mac OS.  See github#1228 and github#1226.
 
-** Fixed "onTypeFormatting" feature
+** Faster, more accurate, event logging
+
+The Eglot events buffer takes advantage of new functionality in
+Jsonrpc 1.23.  By default, Lisp-style printing of JSON-RPC message (a
+common cause of performance degradation) is disabled.  The full
+original JSON message is presented instead.  See new variable
+'eglot-events-buffer-config', which replaces the obsolete
+'eglot-events-buffer-size'.
+
+** 'textdocument/onTypeFormatting' feature has been fixed
 
 For 'newline' commands, Eglot sometimes sent the wrong character code
-to the server.  Also made this feature less chatty in the mode-line
+to the server.  Also this feature is now less chatty in the mode-line
 and messages buffer.
+
+** Partial fix C-M-i "middle-of-symbol" completions (github#1339)
+
+** Add "Extending Eglot" section to manual
+
+** Fixed Elisp interface 'eglot-lsp-context' (github#1336, github#1337)
+
+** Supports LSP's 'window/showRequest' (bug#62116)
+
+** The self-upgrade command is now called 'eglot-upgrade-eglot'
+
+** Newly added directories also watched (github#1228)
+
+** Send correct ':language-id' for JavaScript server (bug#67150)
+
+** New servers have been added to 'eglot-server-programs'.
+
+- nls (bug#63603)
+- nixd (bug#64214)
+- lexical (bug#65359)
+- terraform-ls (bug#65671)
+- ruff-lsp (bug#67441)
+- uiua (bug#67850)
 
 
 * Changes in Eglot 1.15 (29/4/2023)

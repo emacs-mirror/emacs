@@ -1,6 +1,6 @@
 ;;; lisp.el --- Lisp editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2000-2023 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2000-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -36,14 +36,19 @@ This is only necessary if the opening paren or brace is not in column 0.
 See function `beginning-of-defun'."
   :type '(choice (const nil)
 		 regexp)
+  :local t
   :group 'lisp)
-(make-variable-buffer-local 'defun-prompt-regexp)
 
 (defcustom parens-require-spaces t
   "If non-nil, add whitespace as needed when inserting parentheses.
 This affects `insert-parentheses' and `insert-pair'."
   :type 'boolean
   :group 'lisp)
+
+(defun forward-sexp-default-function (&optional arg)
+  "Default function for `forward-sexp-function'."
+  (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
+  (if (< arg 0) (backward-prefix-chars)))
 
 (defvar forward-sexp-function nil
   ;; FIXME:
@@ -76,8 +81,7 @@ report errors as appropriate for this kind of usage."
     (or arg (setq arg 1))
     (if forward-sexp-function
         (funcall forward-sexp-function arg)
-      (goto-char (or (scan-sexps (point) arg) (buffer-end arg)))
-      (if (< arg 0) (backward-prefix-chars)))))
+      (forward-sexp-default-function arg))))
 
 (defun backward-sexp (&optional arg interactive)
   "Move backward across one balanced expression (sexp).
@@ -93,7 +97,7 @@ report errors as appropriate for this kind of usage."
 
 (defun mark-sexp (&optional arg allow-extend)
   "Set mark ARG sexps from point or move mark one sexp.
-When called from Lisp with ALLOW-EXTEND ommitted or nil, mark is
+When called from Lisp with ALLOW-EXTEND omitted or nil, mark is
 set ARG sexps from point.
 With ARG and ALLOW-EXTEND both non-nil (interactively, with prefix
 argument), the place to which mark goes is the same place \\[forward-sexp]
@@ -422,7 +426,8 @@ of a defun, nil if it failed to find one."
 				       "\\(?:" defun-prompt-regexp "\\)\\s(")
 			     "^\\s(")
 			                      nil 'move arg))
-                    (nth 8 (syntax-ppss))))
+                    (save-match-data
+                      (nth 8 (syntax-ppss)))))
            found)
 	 (progn (goto-char (1- (match-end 0)))
                 t)))
@@ -529,7 +534,8 @@ major mode's decisions about context.")
   "Return the \"far end\" position of the buffer, in direction ARG.
 If ARG is positive, that's the end of the buffer.
 Otherwise, that's the beginning of the buffer."
-  (declare (side-effect-free error-free))
+  (declare (ftype (function ((or number marker)) integer))
+           (side-effect-free error-free))
   (if (> arg 0) (point-max) (point-min)))
 
 (defun end-of-defun (&optional arg interactive)
@@ -844,10 +850,18 @@ It's used by the command `delete-pair'.  The value 0 disables blinking."
   :group 'lisp
   :version "28.1")
 
+(defcustom delete-pair-push-mark nil
+  "Non-nil means `delete-pair' pushes mark at end of delimited region."
+  :type 'boolean
+  :group 'lisp
+  :version "31.1")
+
 (defun delete-pair (&optional arg)
   "Delete a pair of characters enclosing ARG sexps that follow point.
 A negative ARG deletes a pair around the preceding ARG sexps instead.
-The option `delete-pair-blink-delay' can disable blinking."
+The option `delete-pair-blink-delay' can disable blinking.  With
+`delete-pair-push-mark' enabled, pushes a mark at the end of the
+enclosed region."
   (interactive "P")
   (if arg
       (setq arg (prefix-numeric-value arg))
@@ -881,7 +895,9 @@ The option `delete-pair-blink-delay' can disable blinking."
 	  (when (and (numberp delete-pair-blink-delay)
 		     (> delete-pair-blink-delay 0))
 	    (sit-for delete-pair-blink-delay))
-	  (delete-char -1)))
+	  (delete-char -1)
+	  (when delete-pair-push-mark
+	    (push-mark))))
       (delete-char 1))))
 
 (defun raise-sexp (&optional n)

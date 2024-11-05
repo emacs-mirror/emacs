@@ -1,6 +1,6 @@
 # Configurations for ../lib/gnulib.mk.
 #
-# Copyright 2017-2023 Free Software Foundation, Inc.
+# Copyright 2017-2024 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@ OMIT_GNULIB_MODULE_allocator = true
 OMIT_GNULIB_MODULE_at-internal = true
 OMIT_GNULIB_MODULE_canonicalize-lgpl = true
 OMIT_GNULIB_MODULE_careadlinkat = true
+OMIT_GNULIB_MODULE_copy-file-range = true
 OMIT_GNULIB_MODULE_dirent = true
 OMIT_GNULIB_MODULE_dirfd = true
 OMIT_GNULIB_MODULE_fchmodat = true

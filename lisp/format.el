@@ -1,6 +1,6 @@
 ;;; format.el --- read and save files in multiple formats  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1995, 1997, 1999, 2001-2023 Free Software
+;; Copyright (C) 1994-1995, 1997, 1999, 2001-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
@@ -90,9 +90,9 @@
 	   ;; FROM-FN used to call the "diac" command which is not widely
 	   ;; available and apparently not under a free software license:
 	   ;; https://nm.wu-wien.ac.at/nm/download/file/diac4.tar.gz
-	   ;; Reliable round-trip conversion is not possible anyway
-	   ;; and would be by heuristic method, so use nil for now.
-	   nil iso-iso2duden t nil)
+	   ;; Reliable round-trip conversion is not possible anyway and
+	   ;; would be by heuristic method, so make it write-only for now.
+	   iso-cvt-write-only iso-iso2duden t nil)
     (de646 ,(purecopy "German ASCII (ISO 646)")
 	   nil
 	   ,(purecopy "iconv -f iso646-de -t utf-8")
@@ -295,7 +295,7 @@ For most purposes, consider using `format-decode-region' instead."
 			  (setq try format-alist))
 		      (setq try (cdr try))))))
 	    ;; Deal with given format(s)
-	    (or (listp format) (setq format (list format)))
+            (setq format (ensure-list format))
 	    (let ((do format) f)
 	      (while do
 		(or (setq f (assq (car do) format-alist))

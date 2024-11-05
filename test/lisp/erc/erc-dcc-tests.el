@@ -1,6 +1,6 @@
 ;;; erc-dcc-tests.el --- Tests for erc-dcc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -243,7 +243,7 @@
      (delete-region (point) (point-max))
      (insert "/dcc get -")
      (call-interactively #'completion-at-point)
-     (with-current-buffer (get-buffer "*Completions*")
+     (with-current-buffer "*Completions*"
        (goto-char (point-min))
        (search-forward "-s")
        (search-forward "-t"))
@@ -264,7 +264,7 @@
      (delete-region (point) (point-max))
      (insert "/dcc get -")
      (call-interactively #'completion-at-point)
-     (with-current-buffer (get-buffer "*Completions*")
+     (with-current-buffer "*Completions*"
        (goto-char (point-min))
        (search-forward "-s")
        (search-forward "-t"))
@@ -289,7 +289,7 @@
      (delete-region (point) (point-max))
      (insert "/dcc get -")
      (call-interactively #'completion-at-point)
-     (with-current-buffer (get-buffer "*Completions*")
+     (with-current-buffer "*Completions*"
        (goto-char (point-min))
        (search-forward "-s")
        (search-forward "-t"))

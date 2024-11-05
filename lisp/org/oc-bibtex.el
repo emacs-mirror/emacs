@@ -1,6 +1,6 @@
 ;;; oc-bibtex.el --- Vanilla citation processor for LaTeX -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 
@@ -41,7 +41,7 @@
 
 (require 'oc)
 
-(declare-function org-element-property "org-element" (property element))
+(declare-function org-element-property "org-element-ast" (property node))
 
 (declare-function org-export-data "org-export" (data info))
 

@@ -1,11 +1,11 @@
 ;;; modus-operandi-tinted-theme.el --- Elegant, highly legible theme with a light ochre background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2023  Free Software Foundation, Inc.
+;; Copyright (C) 2019-2024  Free Software Foundation, Inc.
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
-;; Maintainer: Modus-Themes Development <~protesilaos/modus-themes@lists.sr.ht>
-;; URL: https://git.sr.ht/~protesilaos/modus-themes
-;; Mailing-List: https://lists.sr.ht/~protesilaos/modus-themes
+;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
+;; URL: https://github.com/protesilaos/modus-themes
+;; Keywords: faces, theme, accessibility
 
 ;; This file is part of GNU Emacs.
 
@@ -42,19 +42,23 @@
                (require-theme 'modus-themes t))
     (require 'modus-themes))
 
+;;;###theme-autoload
   (deftheme modus-operandi-tinted
     "Elegant, highly legible theme with a light ochre background.
 Conforms with the highest legibility standard for color contrast
 between background and foreground in any given piece of text,
 which corresponds to a minimum contrast in relative luminance of
-7:1 (WCAG AAA standard).")
+7:1 (WCAG AAA standard)."
+    :background-mode 'light
+    :kind 'color-scheme
+    :family 'modus)
 
   (defconst modus-operandi-tinted-palette
     '(
 ;;; Basic values
 
       (bg-main          "#fbf7f0")
-      (bg-dim           "#ede7db")
+      (bg-dim           "#efe9dd")
       (fg-main          "#000000")
       (fg-dim           "#595959")
       (fg-alt           "#193668")
@@ -121,29 +125,37 @@ which corresponds to a minimum contrast in relative luminance of
       (bg-magenta-subtle  "#ffddff")
       (bg-cyan-subtle     "#bfefff")
 
-      (bg-red-nuanced     "#ffe8f0")
-      (bg-green-nuanced   "#e0f5e0")
-      (bg-yellow-nuanced  "#f9ead0")
-      (bg-blue-nuanced    "#ebebff")
-      (bg-magenta-nuanced "#f6e7ff")
-      (bg-cyan-nuanced    "#e1f3fc")
+      (bg-red-nuanced     "#ffe8e8")
+      (bg-green-nuanced   "#e0f6e0")
+      (bg-yellow-nuanced  "#f8f0d0")
+      (bg-blue-nuanced    "#ecedff")
+      (bg-magenta-nuanced "#f8e6f5")
+      (bg-cyan-nuanced    "#e0f2fa")
 
-;;; Uncommon accent backgrounds
+;;; Uncommon accent background and foreground pairs
 
-      (bg-ochre    "#f0e0cc")
-      (bg-lavender "#dfdbfa")
+      (bg-clay     "#f1c8b5")
+      (fg-clay     "#63192a")
+
+      (bg-ochre    "#f0e3c0")
+      (fg-ochre    "#573a30")
+
+      (bg-lavender "#dfcdfa")
+      (fg-lavender "#443379")
+
       (bg-sage     "#c0e7d4")
+      (fg-sage     "#124b41")
 
 ;;; Graphs
 
       (bg-graph-red-0     "#ef7969")
       (bg-graph-red-1     "#ffaab4")
-      (bg-graph-green-0   "#2fe029")
+      (bg-graph-green-0   "#45c050")
       (bg-graph-green-1   "#75ef30")
       (bg-graph-yellow-0  "#ffcf00")
       (bg-graph-yellow-1  "#f9ff00")
       (bg-graph-blue-0    "#7f90ff")
-      (bg-graph-blue-1    "#9fc6ff")
+      (bg-graph-blue-1    "#a6c0ff")
       (bg-graph-magenta-0 "#e07fff")
       (bg-graph-magenta-1 "#fad0ff")
       (bg-graph-cyan-0    "#70d3f0")
@@ -152,7 +164,7 @@ which corresponds to a minimum contrast in relative luminance of
 ;;; Special purpose
 
       (bg-completion       "#f0c1cf")
-      (bg-hover            "#94d4ff")
+      (bg-hover            "#b2e4dc")
       (bg-hover-secondary  "#f5d0a0")
       (bg-hl-line          "#f1d5d0")
       (bg-region           "#c2bcb5")
@@ -205,6 +217,7 @@ which corresponds to a minimum contrast in relative luminance of
 ;;; Paren match
 
       (bg-paren-match        "#7fdfcf")
+      (fg-paren-match        fg-main)
       (bg-paren-expression   "#efd3f5")
       (underline-paren-match unspecified)
 
@@ -213,9 +226,9 @@ which corresponds to a minimum contrast in relative luminance of
 ;;;; General mappings
 
       (fringe bg-dim)
-      (cursor red)
+      (cursor red-intense)
 
-      (keybind blue-cooler)
+      (keybind red)
       (name magenta)
       (identifier yellow-cooler)
 
@@ -234,21 +247,31 @@ which corresponds to a minimum contrast in relative luminance of
       (bg-prominent-note bg-cyan-intense)
       (fg-prominent-note fg-main)
 
+      (bg-active-argument bg-yellow-nuanced)
+      (fg-active-argument yellow-warmer)
+      (bg-active-value bg-cyan-nuanced)
+      (fg-active-value cyan-warmer)
+
 ;;;; Code mappings
 
+      (bracket fg-main)
       (builtin magenta-warmer)
       (comment red-faint)
       (constant blue-cooler)
-      (docstring green-faint)
+      (delimiter fg-main)
       (docmarkup magenta-faint)
+      (docstring green-faint)
       (fnname magenta)
       (keyword magenta-cooler)
+      (number fg-main)
+      (operator fg-main)
       (preprocessor red-cooler)
+      (punctuation fg-main)
+      (rx-backslash magenta)
+      (rx-construct green-cooler)
       (string blue-warmer)
       (type cyan-cooler)
       (variable cyan)
-      (rx-construct green-cooler)
-      (rx-backslash magenta)
 
 ;;;; Accent mappings
 
@@ -278,14 +301,17 @@ which corresponds to a minimum contrast in relative luminance of
 ;;;; Date mappings
 
       (date-common cyan)
-      (date-deadline red)
+      (date-deadline red-cooler)
+      (date-deadline-subtle red-faint)
       (date-event fg-alt)
-      (date-holiday red-cooler)
+      (date-holiday red)
+      (date-holiday-other blue)
       (date-now fg-main)
       (date-range fg-alt)
-      (date-scheduled yellow-warmer)
+      (date-scheduled yellow)
+      (date-scheduled-subtle yellow-faint)
       (date-weekday cyan)
-      (date-weekend red-faint)
+      (date-weekend magenta)
 
 ;;;; Line number mappings
 
@@ -335,16 +361,29 @@ which corresponds to a minimum contrast in relative luminance of
 
 ;;;; Prose mappings
 
-      (prose-block fg-dim)
-      (prose-code green-cooler)
+      (bg-prose-block-delimiter bg-dim)
+      (fg-prose-block-delimiter fg-dim)
+      (bg-prose-block-contents bg-dim)
+
+      (bg-prose-code unspecified)
+      (fg-prose-code cyan-cooler)
+
+      (bg-prose-macro unspecified)
+      (fg-prose-macro magenta-cooler)
+
+      (bg-prose-verbatim unspecified)
+      (fg-prose-verbatim magenta-warmer)
+
       (prose-done green)
-      (prose-macro magenta-cooler)
+      (prose-todo red)
+
       (prose-metadata fg-dim)
       (prose-metadata-value fg-alt)
+
       (prose-table fg-alt)
+      (prose-table-formula magenta-warmer)
+
       (prose-tag magenta-faint)
-      (prose-todo red)
-      (prose-verbatim magenta-warmer)
 
 ;;;; Rainbow mappings
 
@@ -358,11 +397,64 @@ which corresponds to a minimum contrast in relative luminance of
       (rainbow-7 blue-warmer)
       (rainbow-8 magenta-warmer)
 
+;;;; Search mappings
+
+      (bg-search-current bg-yellow-intense)
+      (bg-search-lazy bg-cyan-intense)
+      (bg-search-replace bg-red-intense)
+
+      (bg-search-rx-group-0 bg-blue-intense)
+      (bg-search-rx-group-1 bg-green-intense)
+      (bg-search-rx-group-2 bg-red-subtle)
+      (bg-search-rx-group-3 bg-magenta-subtle)
+
 ;;;; Space mappings
 
       (bg-space unspecified)
       (fg-space border)
       (bg-space-err bg-red-intense)
+
+;;;; Terminal mappings
+
+      (bg-term-black           "#000000")
+      (fg-term-black           "#000000")
+      (bg-term-black-bright    "#595959")
+      (fg-term-black-bright    "#595959")
+
+      (bg-term-red             red)
+      (fg-term-red             red)
+      (bg-term-red-bright      red-warmer)
+      (fg-term-red-bright      red-warmer)
+
+      (bg-term-green           green)
+      (fg-term-green           green)
+      (bg-term-green-bright    green-cooler)
+      (fg-term-green-bright    green-cooler)
+
+      (bg-term-yellow          yellow)
+      (fg-term-yellow          yellow)
+      (bg-term-yellow-bright   yellow-warmer)
+      (fg-term-yellow-bright   yellow-warmer)
+
+      (bg-term-blue            blue)
+      (fg-term-blue            blue)
+      (bg-term-blue-bright     blue-warmer)
+      (fg-term-blue-bright     blue-warmer)
+
+      (bg-term-magenta         magenta)
+      (fg-term-magenta         magenta)
+      (bg-term-magenta-bright  magenta-cooler)
+      (fg-term-magenta-bright  magenta-cooler)
+
+      (bg-term-cyan            cyan)
+      (fg-term-cyan            cyan)
+      (bg-term-cyan-bright     cyan-cooler)
+      (fg-term-cyan-bright     cyan-cooler)
+
+      (bg-term-white           "#a6a6a6")
+      (fg-term-white           "#a6a6a6")
+      (bg-term-white-bright    "#ffffff")
+      (fg-term-white-bright    "#ffffff")
 
 ;;;; Heading mappings
 
@@ -404,6 +496,19 @@ Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
 exists in the palette and is associated with a HEX-VALUE.")
 
+  (defcustom modus-operandi-tinted-palette-user nil
+    "Like the `modus-operandi-tinted-palette' for user-defined entries.
+This is meant to extend the palette with custom named colors and/or
+semantic palette mappings.  Those may then be used in combination with
+palette overrides (also see `modus-themes-common-palette-overrides' and
+`modus-operandi-tinted-palette-overrides')."
+    :group 'modus-themes
+    :package-version '(modus-themes . "4.5.0")
+    :type '(repeat (list symbol (choice symbol string)))
+    :set #'modus-themes--set-option
+    :initialize #'custom-initialize-default
+    :link '(info-link "(modus-themes) Option to extend the palette for use with overrides"))
+
   (defcustom modus-operandi-tinted-palette-overrides nil
     "Overrides for `modus-operandi-tinted-palette'.
 
@@ -432,8 +537,5 @@ represents."
                       modus-operandi-tinted-palette-overrides)
 
   (provide-theme 'modus-operandi-tinted))
-
-;;;###theme-autoload
-(put 'modus-operandi-tinted 'theme-properties '(:background-mode light :kind color-scheme :family modus))
 
 ;;; modus-operandi-tinted-theme.el ends here

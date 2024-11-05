@@ -1,6 +1,6 @@
 ;;; casefiddle-tests.el --- tests for casefiddle.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2016, 2018-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2016, 2018-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -293,5 +293,17 @@
     ;; This does not work -- it produces "Indıa".
     ;;(should (string-equal (capitalize "indIá") "İndıa"))
     ))
+
+(defun casefiddle-tests--check-syms (init with-words with-symbols)
+  (let ((case-symbols-as-words nil))
+    (should (string-equal (upcase-initials init) with-words)))
+  (let ((case-symbols-as-words t))
+    (should (string-equal (upcase-initials init) with-symbols))))
+
+(ert-deftest casefiddle-case-symbols-as-words ()
+  (casefiddle-tests--check-syms "Aa_bb Cc_dd" "Aa_Bb Cc_Dd" "Aa_bb Cc_dd")
+  (casefiddle-tests--check-syms "Aa_bb cc_DD" "Aa_Bb Cc_DD" "Aa_bb Cc_DD")
+  (casefiddle-tests--check-syms "aa_bb cc_dd" "Aa_Bb Cc_Dd" "Aa_bb Cc_dd")
+  (casefiddle-tests--check-syms "Aa_Bb Cc_Dd" "Aa_Bb Cc_Dd" "Aa_Bb Cc_Dd"))
 
 ;;; casefiddle-tests.el ends here

@@ -1,5 +1,5 @@
 /* Header for coding system handler.
-   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 2001-2024 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -166,35 +166,35 @@ enum coding_attr_index
 
 /* Return the name of a coding system specified by ID.  */
 #define CODING_ID_NAME(id) \
-  (HASH_KEY (XHASH_TABLE (Vcoding_system_hash_table), id))
+  HASH_KEY (XHASH_TABLE (Vcoding_system_hash_table), id)
 
 /* Return the attribute vector of a coding system specified by ID.  */
 
 #define CODING_ID_ATTRS(id)	\
-  (AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 0))
+  AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 0)
 
 /* Return the list of aliases of a coding system specified by ID.  */
 
 #define CODING_ID_ALIASES(id)	\
-  (AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 1))
+  AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 1)
 
 /* Return the eol-type of a coding system specified by ID.  */
 
 #define CODING_ID_EOL_TYPE(id)	\
-  (AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 2))
+  AREF (HASH_VALUE (XHASH_TABLE (Vcoding_system_hash_table), id), 2)
 
 
 /* Return the spec vector of CODING_SYSTEM_SYMBOL.  */
 
 #define CODING_SYSTEM_SPEC(coding_system_symbol)	\
-  (Fgethash (coding_system_symbol, Vcoding_system_hash_table, Qnil))
+  Fgethash (coding_system_symbol, Vcoding_system_hash_table, Qnil)
 
 
 /* Return the ID of CODING_SYSTEM_SYMBOL.  */
 
 #define CODING_SYSTEM_ID(coding_system_symbol)			\
   hash_lookup (XHASH_TABLE (Vcoding_system_hash_table),		\
-	       coding_system_symbol, NULL)
+	       coding_system_symbol)
 
 /* Return true if CODING_SYSTEM_SYMBOL is a coding system.  */
 
@@ -209,7 +209,7 @@ enum coding_attr_index
   do {							\
     if (CODING_SYSTEM_ID (x) < 0			\
 	&& NILP (Fcheck_coding_system (x)))		\
-      wrong_type_argument (Qcoding_system_p, (x));	\
+      wrong_type_argument (Qcoding_system_p, x);	\
   } while (false)
 
 
@@ -225,7 +225,7 @@ enum coding_attr_index
 	spec = CODING_SYSTEM_SPEC (x);			\
       }							\
     if (NILP (spec))					\
-      wrong_type_argument (Qcoding_system_p, (x));	\
+      wrong_type_argument (Qcoding_system_p, x);	\
   } while (false)
 
 
@@ -242,7 +242,7 @@ enum coding_attr_index
 	  id = CODING_SYSTEM_ID (x);				\
 	}							\
       if (id < 0)						\
-	wrong_type_argument (Qcoding_system_p, (x));	\
+	wrong_type_argument (Qcoding_system_p, x);		\
     } while (false)
 
 
@@ -427,6 +427,11 @@ struct coding_system
 
   /* Set to true if charbuf contains an annotation.  */
   bool_bf annotated : 1;
+
+  /* True if the decoded text should be inserted before markers in the
+     output buffer, if `dst_object' is a buffer.  Currently used only
+     when reading output from subprocesses.  */
+  bool_bf insert_before_markers : 1;
 
   /* Used internally in coding.c.  See the comment of detect_ascii.  */
   unsigned eol_seen : 3;
@@ -745,10 +750,9 @@ extern Lisp_Object from_unicode_buffer (const wchar_t *wstr);
 
 #define decode_coding_c_string(coding, src, bytes, dst_object)		\
   do {									\
-    (coding)->source = (src);						\
-    (coding)->src_chars = (coding)->src_bytes = (bytes);		\
-    decode_coding_object ((coding), Qnil, 0, 0, (bytes), (bytes),	\
-			  (dst_object));				\
+    (coding)->source = src;						\
+    (coding)->src_chars = (coding)->src_bytes = bytes;			\
+    decode_coding_object (coding, Qnil, 0, 0, bytes, bytes, dst_object); \
   } while (false)
 
 

@@ -1,5 +1,5 @@
 /* Filesystem notifications support with glib API.
-   Copyright (C) 2013-2023 Free Software Foundation, Inc.
+   Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -88,7 +88,9 @@ dir_monitor_callback (GFileMonitor *monitor,
 	   && !NILP (Fmember (symbol, list5 (Qchanged, Qchanges_done_hint,
 					     Qdeleted, Qcreated, Qmoved))))
 	  || (!NILP (Fmember (Qattribute_change, flags))
-	      && EQ (symbol, Qattribute_changed)))
+	      && EQ (symbol, Qattribute_changed))
+	  || (!NILP (Fmember (Qwatch_mounts, flags))
+	      && EQ (symbol, Qunmounted)))
 	{
 	  /* Construct an event.  */
 	  EVENT_INIT (event);
@@ -105,8 +107,8 @@ dir_monitor_callback (GFileMonitor *monitor,
 	  /* XD_DEBUG_MESSAGE ("%s", XD_OBJECT_TO_STRING (event.arg));  */
 	}
 
-      /* Cancel monitor if file or directory is deleted.  */
-      if (!NILP (Fmember (symbol, list2 (Qdeleted, Qmoved)))
+      /* Cancel monitor if file or directory is deleted or unmounted.  */
+      if (!NILP (Fmember (symbol, list3 (Qdeleted, Qmoved, Qunmounted)))
 	  && strcmp (name, SSDATA (XCAR (XCDR (watch_object)))) == 0
 	  && !g_file_monitor_is_cancelled (monitor))
 	g_file_monitor_cancel (monitor);

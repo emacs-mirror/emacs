@@ -1,6 +1,6 @@
 ;;; hanja-util.el --- Korean Hanja util module  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: Jihyun Cho <jihyun.jo@gmail.com>
 ;; Keywords: multilingual, input method, Korean, Hanja
@@ -6437,7 +6437,7 @@ character.  This variable is initialized by `hanja-init-load'.")
     (message "")))
 
 ;; List of current conversion status.
-;; The first element is the strating position of shown list.
+;; The first element is the starting position of shown list.
 ;; It is a group number each split by `hanja-list-width'.
 ;; The second element is the position of selected element.
 ;; The third element is a list of suitable Hanja candidate.
@@ -6479,11 +6479,7 @@ character.  This variable is initialized by `hanja-init-load'.")
     map)
   "Keymap for Hanja (Korean Hanja Converter).")
 
-(defun hanja-filter (condp lst)
-  "Construct a list from the elements of LST for which CONDP returns true."
-  (delq
-   nil
-   (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
+(define-obsolete-function-alias 'hanja-filter #'seq-filter "30.1")
 
 (defun hanja-list-prev-group ()
   "Select the previous group of hangul->hanja conversions."
@@ -6570,12 +6566,12 @@ The value is a hanja character that is selected interactively."
            0 0
            ;; Filter characters that can not be decoded.
            ;; Maybe it can not represent characters in current terminal coding.
-           (hanja-filter (lambda (x) (car x))
-                         (mapcar (lambda (c)
-                                   (if (listp c)
-                                       (cons (car c) (cdr c))
-                                     (list c)))
-                                 (aref hanja-table char)))))
+           (seq-filter #'car
+                       (mapcar (lambda (c)
+                                 (if (listp c)
+                                     (cons (car c) (cdr c))
+                                   (list c)))
+                               (aref hanja-table char)))))
     (unwind-protect
 	(when (aref hanja-conversions 2)
 	  (catch 'exit-input-loop

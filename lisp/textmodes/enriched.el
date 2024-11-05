@@ -1,9 +1,9 @@
 ;;; enriched.el --- read and save files in text/enriched format  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1996, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
-;; Keywords: wp, faces
+;; Keywords: text, faces
 
 ;; This file is part of GNU Emacs.
 
@@ -146,7 +146,7 @@ them and their old values to `enriched-old-bindings'."
   :type 'hook)
 
 (defcustom enriched-allow-eval-in-display-props nil
-  "If non-nil allow to evaluate arbitrary forms in display properties.
+  "If non-nil, allow evaluating arbitrary forms in display properties.
 
 Enriched mode recognizes display properties of text stored using
 an extension command to the text/enriched format, \"x-display\".
@@ -453,7 +453,12 @@ Any \"<<\" strings encountered are converted to \"<\".
 Return value is \(begin end name positive-p), or nil if none was found."
   (while (and (search-forward "<" nil 1)
 	      (progn (goto-char (match-beginning 0))
-		     (not (looking-at enriched-annotation-regexp))))
+                     ;; Make sure we are not inside a string, where any
+                     ;; matches for 'enriched-annotation-regexp' are
+                     ;; false positives.  This happens, for example, in
+                     ;; display properties that specify SVG images.
+                     (or (nth 3 (syntax-ppss))
+		         (not (looking-at enriched-annotation-regexp)))))
     (forward-char 1)
     (if (eq ?< (char-after (point)))
 	(delete-char 1)

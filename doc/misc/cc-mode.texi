@@ -167,7 +167,7 @@ CC Mode
 @copying
 This manual is for CC Mode in Emacs.
 
-Copyright @copyright{} 1995--2023 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2024 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -182,7 +182,7 @@ modify this GNU manual.''
 @end quotation
 @end copying
 
-@comment Info directory entry for use by install-info. The indentation
+@comment Info directory entry for use by install-info.  The indentation
 @comment here is by request from the FSF folks.
 @dircategory Emacs editing modes
 @direntry
@@ -324,6 +324,7 @@ Syntactic Symbols
 * Conditional Construct Symbols::
 * Switch Statement Symbols::
 * Brace List Symbols::
+* Enum Symbols::
 * External Scope Symbols::
 * Paren List Symbols::
 * Literal Symbols::
@@ -835,12 +836,14 @@ Emacs Manual}, for fuller details.  @code{comment-region} isn't
 actually part of @ccmode{}; it is given a @ccmode{} binding for
 convenience.
 
-@item @kbd{M-;} (@code{comment-dwim} or @code{indent-for-comment} @footnote{The name of this command varies between (X)Emacs versions.})
+@item @kbd{M-;} (@code{comment-dwim} or @code{indent-for-comment})
 @kindex M-;
 @findex comment-dwim
 @findex indent-for-comment
 Insert a comment at the end of the current line, if none is there
-already.  Then reindent the comment according to @code{comment-column}
+already@footnote{The name of this command varies between (X)Emacs
+versions.}.  Then reindent the comment according to
+@code{comment-column}
 @ifclear XEMACS
 (@pxref{Options for Comments,,, emacs, GNU Emacs Manual})
 @end ifclear
@@ -1221,15 +1224,17 @@ also suppresses auto-newline mode.
 Toggle auto-newline minor mode.  When the command turns the mode on,
 it also enables electric minor mode.
 
-@item @kbd{M-x c-toggle-hungry-state}@footnote{Prior to @ccmode{} 5.31, this command was bound to @kbd{C-c C-d}.}
+@item @kbd{M-x c-toggle-hungry-state}
 @findex c-toggle-hungry-state
 @findex toggle-hungry-state @r{(c-)}
-Toggle hungry-delete minor mode.
+Toggle hungry-delete minor mode@footnote{Prior to @ccmode{} 5.31, this
+command was bound to @kbd{C-c C-d}.}.
 
-@item @kbd{M-x c-toggle-auto-hungry-state}@footnote{Prior to @ccmode{} 5.31, this command was bound to @kbd{C-c C-t}.}
+@item @kbd{M-x c-toggle-auto-hungry-state}
 @findex c-toggle-auto-hungry-state
 @findex toggle-auto-hungry-state @r{(c-)}
-Toggle both auto-newline and hungry delete minor modes.
+Toggle both auto-newline and hungry delete minor modes@footnote{Prior to
+@ccmode{} 5.31, this command was bound to @kbd{C-c C-t}.}.
 
 @item @kbd{C-c C-w} (@code{M-x subword-mode})
 @kindex C-c C-w
@@ -1425,7 +1430,7 @@ continuation of the preceding @code{if}.
 @findex abbrev-mode
 @cindex Abbrev mode
 @ccmode{} uses Abbrev mode (@pxref{Abbrevs,,,@emacsman{}, @emacsmantitle{}})
-to accomplish this. It's therefore turned on by default in all language
+to accomplish this.  It's therefore turned on by default in all language
 modes except IDL mode, since CORBA IDL doesn't have any statements.
 @end deffn
 
@@ -1569,7 +1574,7 @@ perform @code{c-hungry-delete-backwards} and
 rather than using the minor mode toggling.
 
 @table @asis
-@item @kbd{C-c C-@key{DEL}}, or @kbd{C-c @key{DEL}} (@code{c-hungry-delete-backwards})@footnote{This command was formerly known as @code{c-hungry-backspace}.}
+@item @kbd{C-c C-@key{DEL}}, or @kbd{C-c @key{DEL}} (@code{c-hungry-delete-backwards})
 @kindex C-c C-Backspace
 @kindex C-c Backspace
 @kindex C-c C-DEL
@@ -1580,7 +1585,8 @@ Delete any amount of whitespace in the backwards direction (regardless
 whether hungry-delete mode is enabled or not).  This command is bound
 to both @kbd{C-c C-@key{DEL}} and @kbd{C-c @key{DEL}}, since the more
 natural one, @kbd{C-c C-@key{DEL}}, is sometimes difficult to type at
-a character terminal.
+a character terminal@footnote{This command was formerly known as
+@code{c-hungry-backspace}.}.
 
 @item @kbd{C-c C-d}, @kbd{C-c C-@key{DELETE}}, or @kbd{C-c @key{DELETE}} (@code{c-hungry-delete-forward})
 @kindex C-c C-d
@@ -2699,7 +2705,7 @@ for C code in GNU programs.
 
 @item k&r
 @cindex K&R style
-The classic Kernighan and Ritchie style for C code. If you're looking
+The classic Kernighan and Ritchie style for C code.  If you're looking
 for the style used in the 2nd edition of their book ``The C
 Programming Language'', then check out the @code{stroustrup} style.
 
@@ -4190,17 +4196,19 @@ More detailed descriptions of these symbols, together with snippets of
 source code to which they apply, appear in the examples in the
 subsections below.  Note that, in the interests of brevity, the anchor
 position associated with most syntactic symbols is @emph{not}
-specified.  In cases of doubt, type @kbd{C-c C-s} on a pertinent
-line---this highlights the anchor position.
+specified@footnote{These are briefly specified in comments in
+@code{(defvar c-offsets-alist ...)} in the source file
+@file{cc-vars.el}}.  In cases of doubt, type @kbd{C-c C-s} on a
+pertinent line---this highlights the anchor position.
 
 @ssindex -open symbols
 @ssindex -close symbols
-@ssindex -block-intro symbols
+@ssindex -intro symbols
 The syntactic symbols which indicate brace constructs follow a general
 naming convention.  When a line begins with an open or close brace,
 its syntactic symbol will contain the suffix @code{-open} or
 @code{-close} respectively.  The first line within the brace block
-construct will contain the suffix @code{-block-intro}.
+construct will contain the suffix @code{-intro}.
 
 @ssindex -intro symbols
 @ssindex -cont symbols
@@ -4271,18 +4279,26 @@ Statement block open brace.  @ref{Literal Symbols}.
 @item block-close
 Statement block close brace.  @ref{Conditional Construct Symbols}.
 @item brace-list-open
-Open brace of an enum or static array list.  @ref{Brace List Symbols}.
+Open brace of a static array list.  @ref{Brace List Symbols}.
 @item brace-list-close
-Close brace of an enum or static array list.  @ref{Brace List Symbols}.
+Close brace of a static array list.  @ref{Brace List Symbols}.
 @item brace-list-intro
-First line after the opening @samp{@{} in an enum or static array
-list.  @ref{Brace List Symbols}.
+First line after the opening @samp{@{} in a static array list.
+@ref{Brace List Symbols}.
 @item brace-list-entry
-Subsequent lines in an enum or static array list.  @ref{Brace List
-Symbols}.
+Subsequent lines in a static array list.  @ref{Brace List Symbols}.
 @item brace-entry-open
-Subsequent lines in an enum or static array list where the line begins
-with an open brace.  @ref{Brace List Symbols}.
+Subsequent lines in a static array list where the line begins with an
+open brace.  @ref{Brace List Symbols}.
+@item enum-open
+Open brace of an enum list.  @ref{Brace List Symbols}.
+@item enum-close
+Close brace of an enum list.  @ref{Brace List Symbols}.
+@item enum-intro
+First line after the opening @samp{@{} in an enum list.  @ref{Brace
+List Symbols}.
+@item enum-entry
+Subsequent lines in an enum ilst.  @ref{Brace List Symbols}.
 @item statement
 A statement.  @ref{Function Symbols}.
 @item statement-cont
@@ -4412,6 +4428,7 @@ Java.  @ref{Java Symbols}.
 * Conditional Construct Symbols::
 * Switch Statement Symbols::
 * Brace List Symbols::
+* Enum Symbols::
 * External Scope Symbols::
 * Paren List Symbols::
 * Literal Symbols::
@@ -4506,6 +4523,13 @@ for C and Objective-C@.  For consistency, structs in all supported
 languages are syntactically equivalent to classes.  Note however that
 the keyword @code{class} is meaningless in C and Objective-C.}.
 Similarly, line 18 is assigned @code{class-close} syntax.
+
+Note that @code{class-open} and @code{class-close} syntactic elements
+have two anchor points.  The first is the position of the beginning of
+the statement, the second is the position of the keyword which defines
+the construct (e.g.  @code{class}).  These are usually the same
+position, but differ when the statement starts off with
+@code{template} (C++ Mode) or @code{generic} (Java Mode) or similar.
 
 @ssindex inher-intro
 @ssindex inher-cont
@@ -4719,12 +4743,14 @@ block; it is given @code{statement-case-open} syntax.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @cindex brace lists
-There are a set of syntactic symbols that are used to recognize
+There is a set of syntactic symbols that is used to recognize
 constructs inside of brace lists.  A brace list is defined as an
-@code{enum} or aggregate initializer list, such as might statically
-initialize an array of structs.  The three special aggregate constructs
-in Pike, @code{(@{ @})}, @code{([ ])} and @code{(< >)}, are treated as
-brace lists too.  An example:
+aggregate initializer list, such as might statically initialize an
+array of structs.  Note that an @code{enum} construct is (since
+2024-09) no longer parsed as a brace list.  Instead it now has its own
+syntactic symbols.  @ref{Enum Symbols}.  The three special aggregate
+constructs in Pike, @code{(@{ @})}, @code{([ ])} and @code{(< >)}, are
+treated as brace lists too.  An example:
 
 @example
  1: static char* ingredients[] =
@@ -4778,6 +4804,54 @@ preserve the behavior resulting from the former syntactic analysis by
 giving @code{brace-list-entry} an offset of
 @code{c-lineup-under-anchor} (@pxref{Misc Line-Up}).}, and
 @code{brace-list-entry} anchored on the @samp{1} of line 8.
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Enum Symbols
+@subsection Enum Symbols
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+@cindex enum symbols
+There is a set of syntactic symbols that characterize the components
+of @code{enum} constructs.  These are very like the brace list
+symbols@footnote{Indeed an @code{enum} used to be parsed with these
+other symbols.  The two types of construct were separated in 2024-09
+to make it easier to give an @code{enum} indentation like that of a
+@code{class}.} (@pxref{Brace List Symbols}).
+
+@example
+ 1: enum test
+ 2: @{
+ 3:   GOOD,
+ 4:   BETTER,
+ 5:   BEST
+ 6: @};
+@end example
+
+@ssindex enum-open
+@ssindex enum-intro
+@ssindex enum-close
+@ssindex enum-entry
+Line 2 is assigned @code{enum-open} sytax, and line 6
+@code{enum-close}.  The first enum element on line 3 is assigned
+@code{enum-intro} sytax, and the remaining elements, on lines 4 and 5
+are assigned @code{enum-entry}.
+
+When the first enum element follows the @samp{@{} of the @code{enum},
+all on the opening line of the construct, the parsing is a little more
+involved.
+
+@example
+ 1: enum test @{ GOOD,
+ 2:   BETTER,
+ 3:   BEST
+ 4: @};
+@end example
+
+Here, line 2 is assigned a syntactic context with two elements:
+@code{enum-intro} anchored on the beginning of indentation of line 1,
+and @code{enum-entry} anchored on the first element @code{GOOD} on
+line 1.  Line 3 is @code{enum-entry} and line 4 @code{enum-close} as
+you'd expect.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    External Scope Symbols
@@ -5121,7 +5195,7 @@ started on line 2.  Lines 4 and 5 get the syntaxes
 though part of a function.
 
 Note that the @code{requires} on Line 3 begins a @dfn{requires
-expression}, not a a requires clause, hence its components are not
+expression}, not a requires clause, hence its components are not
 assigned @code{constraint-cont}.  See
 @url{https://en.cppreference.com/w/cpp/language/requires}.
 
@@ -5397,9 +5471,10 @@ only a few entries.  @xref{Style Variables}.
 
 The offset specification associated with any particular syntactic
 symbol can be an integer, a variable name, a vector, a function or
-lambda expression, a list, or one of the following special symbols:
-@code{+}, @code{-}, @code{++}, @code{--}, @code{*}, or @code{/}.  The
-meanings of these values are described in detail below.
+lambda expression, another syntactic symbol, a list, or one of the
+following special symbols: @code{+}, @code{-}, @code{++}, @code{--},
+@code{*}, or @code{/}.  The meanings of these values are described in
+detail below.
 
 Here is an example fragment of a @code{c-offsets-alist}, showing some
 of these kinds of offsets:
@@ -5491,6 +5566,12 @@ evaluated as an offset specification.  Functions are useful when more
 context than just the syntactic symbol is needed to get the desired
 indentation.  @xref{Line-Up Functions}, and @ref{Custom Line-Up}, for
 details about them.
+
+@item Another syntactic symbol
+The offset of that other syntactic symbol will be used.  This is
+useful for making sure that two distinct syntactic symbols cause the
+same indentation.  By default, @code{enum-open} has the value
+@code{class-open}.
 
 @item A symbol with a variable binding
 If the symbol also has a function binding, the function takes
@@ -5779,7 +5860,8 @@ open parenthesis of the argument list, the indentation is
 discussion of this ``DWIM'' measure.
 
 @workswith Almost all symbols, but are typically most useful on
-@code{arglist-close}, @code{brace-list-close}, @code{arglist-cont} and
+@code{arglist-close}, @code{brace-list-close},
+@code{enum-close}, @code{arglist-cont} and
 @code{arglist-cont-nonempty}.
 @end defun
 
@@ -5935,7 +6017,7 @@ indents relative to the surrounding block just like
 @code{c-lineup-whitesmith-in-block}.
 
 @workswith @code{brace-list-entry}, @code{brace-entry-open},
-@code{statement}, @code{arglist-cont}.
+@code{enum-entry}, @code{statement}, @code{arglist-cont}.
 @end defun
 
 @comment ------------------------------------------------------------
@@ -5971,7 +6053,8 @@ In the first case the indentation is kept unchanged, in the second
 
 @workswith @code{defun-close}, @code{defun-block-intro},
 @code{inline-close}, @code{block-close}, @code{brace-list-close},
-@code{brace-list-intro}, @code{statement-block-intro},
+@code{brace-list-intro},
+@code{enum-close}, @code{enum-intro}, @code{statement-block-intro},
 @code{arglist-intro}, @code{arglist-cont-nonempty},
 @code{arglist-close}, and all @code{in*} symbols, e.g., @code{inclass}
 and @code{inextern-lang}.
@@ -6023,8 +6106,8 @@ Line up a line to just after the open paren of the surrounding paren or
 brace block.
 
 @workswith @code{defun-block-intro}, @code{brace-list-intro},
-@code{statement-block-intro}, @code{statement-case-intro},
-@code{arglist-intro}.
+@code{enum-intro}, @code{statement-block-intro},
+@code{statement-case-intro}, @code{arglist-intro}.
 @end defun
 
 @comment ------------------------------------------------------------
@@ -6271,8 +6354,8 @@ returned if there's no template argument on the first line.
 
 @defun c-lineup-template-args-indented-from-margin
 @findex lineup-template-args-indented-from-margin (c-)
-Indent a template argument line `c-basic-offset' from the left-hand
-margin of the line with the containing <.
+Indent a template argument line @code{c-basic-offset} from the
+left-hand margin of the line with the containing <.
 
 @workswith @code{template-args-cont}.
 @end defun
@@ -7579,7 +7662,7 @@ Started}.
 @kindex C-M-\
 @emph{How do I reindent the whole file?}
 
-Visit the file and hit @kbd{C-x h} to mark the whole buffer. Then hit
+Visit the file and hit @kbd{C-x h} to mark the whole buffer.  Then hit
 @kbd{C-M-\}.  @xref{Indentation Commands}.
 
 @item

@@ -18,7 +18,7 @@
  (0 ":irc.foonet.org 266 tester 3 3 :Current global users 3, max 3")
  (0 ":irc.foonet.org 422 tester :MOTD File is missing"))
 
-((mode-user 3.2 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  (0 ":irc.foonet.org 221 tester +i")
  (0 ":irc.foonet.org NOTICE tester :This server is still in debug mode."))
 
@@ -32,13 +32,13 @@
  (0 ":irc.foonet.org 353 tester = #spam :alice tester @bob")
  (0 ":irc.foonet.org 366 tester #spam :End of NAMES list"))
 
-((~mode-chan 4 "MODE #chan")
+((~mode-chan 10 "MODE #chan")
  (0 ":irc.foonet.org 324 tester #chan +nt")
  (0 ":irc.foonet.org 329 tester #chan 1620104779")
  (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #chan :alice: But, as it seems, did violence on herself.")
  (0.1 ":alice!~u@rz2v467q4rwhy.irc PRIVMSG #chan :bob: Well, this is the forest of Arden."))
 
-((mode-spam 4 "MODE #spam")
+((mode-spam 20 "MODE #spam")
  (0 ":irc.foonet.org 324 tester #spam +nt")
  (0 ":irc.foonet.org 329 tester #spam 1620104779")
  (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #spam :alice: Signior Iachimo will not from it. Pray, let us follow 'em.")

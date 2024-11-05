@@ -1,6 +1,6 @@
 ;;; eshell.el --- the Emacs command shell  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -176,7 +176,7 @@
   (require 'cl-lib))
 (require 'esh-util)
 (require 'esh-module)                   ;For eshell-using-module
-(require 'esh-proc)                     ;For eshell-wait-for-process
+(require 'esh-proc)                     ;For eshell-wait-for-processes
 (require 'esh-io)                       ;For eshell-last-command-status
 (require 'esh-cmd)
 
@@ -216,6 +216,34 @@ named \"*eshell*<2>\"."
   :type 'string
   :group 'eshell)
 
+(defcustom eshell-command-async-buffer 'confirm-new-buffer
+  "What to do when the output buffer is used by another shell command.
+This option specifies how to resolve the conflict where a new command
+wants to direct its output to the buffer whose name is stored
+in `eshell-command-buffer-name-async', but that buffer is already
+taken by another running shell command.
+
+The value `confirm-kill-process' is used to ask for confirmation before
+killing the already running process and running a new process in the
+same buffer, `confirm-new-buffer' for confirmation before running the
+command in a new buffer with a name other than the default buffer name,
+`new-buffer' for doing the same without confirmation,
+`confirm-rename-buffer' for confirmation before renaming the existing
+output buffer and running a new command in the default buffer,
+`rename-buffer' for doing the same without confirmation."
+  :type '(choice (const :tag "Confirm killing of running command"
+                        confirm-kill-process)
+                 (const :tag "Confirm creation of a new buffer"
+                        confirm-new-buffer)
+                 (const :tag "Create a new buffer"
+                        new-buffer)
+                 (const :tag "Confirm renaming of existing buffer"
+                        confirm-rename-buffer)
+                 (const :tag "Rename the existing buffer"
+                        rename-buffer))
+  :group 'eshell
+  :version "31.1")
+
 ;;;_* Running Eshell
 ;;
 ;; There are only three commands used to invoke Eshell.  The first two
@@ -250,19 +278,32 @@ information on Eshell, see Info node `(eshell)Top'."
 		   (t
 		    (get-buffer-create eshell-buffer-name)))))
     (cl-assert (and buf (buffer-live-p buf)))
-    (pop-to-buffer buf display-comint-buffer-action)
+    (with-suppressed-warnings ((obsolete display-comint-buffer-action))
+      (pop-to-buffer buf display-comint-buffer-action))
     (unless (derived-mode-p 'eshell-mode)
       (eshell-mode))
     buf))
+
+(declare-function eshell-add-input-to-history "em-hist" (input))
+(declare-function eshell--save-history "em-hist" ())
+
+(defun eshell-command-mode-exit ()
+  "Exit the `eshell-commad-mode' minibuffer and save Eshell history."
+  (interactive)
+  (when (eshell-using-module 'eshell-hist)
+    (eshell-add-input-to-history
+     (buffer-substring (minibuffer-prompt-end) (point-max)))
+    (eshell--save-history))
+  (exit-minibuffer))
 
 (define-minor-mode eshell-command-mode
   "Minor mode for `eshell-command' input.
 \\{eshell-command-mode-map}"
   :keymap (let ((map (make-sparse-keymap)))
-            (define-key map [(control ?g)] 'abort-recursive-edit)
-            (define-key map [(control ?m)] 'exit-minibuffer)
-            (define-key map [(control ?j)] 'exit-minibuffer)
-            (define-key map [(meta control ?m)] 'exit-minibuffer)
+            (define-key map [(control ?g)] #'abort-recursive-edit)
+            (define-key map [(control ?m)] #'eshell-command-mode-exit)
+            (define-key map [(control ?j)] #'eshell-command-mode-exit)
+            (define-key map [(meta control ?m)] #'eshell-command-mode-exit)
             map))
 
 (define-obsolete-function-alias 'eshell-return-exits-minibuffer
@@ -280,49 +321,90 @@ information on Eshell, see Info node `(eshell)Top'."
     (minibuffer-with-setup-hook (lambda ()
                                   (eshell-mode)
                                   (eshell-command-mode +1))
-      (let ((command (read-from-minibuffer prompt)))
-        (when (eshell-using-module 'eshell-hist)
-          (eshell-add-input-to-history command))
-        command))))
+      (read-from-minibuffer prompt))))
+
+(defvar eshell-command-buffer-name-async "*Eshell Async Command Output*")
+(defvar eshell-command-buffer-name-sync "*Eshell Command Output*")
 
 ;;;###autoload
-(defun eshell-command (command &optional to-current-buffer)
+(defun eshell-command (command &optional output-target error-target)
   "Execute the Eshell command string COMMAND.
-If TO-CURRENT-BUFFER is non-nil (interactively, with the prefix
-argument), then insert output into the current buffer at point."
+If OUTPUT-TARGET is t (interactively, with the prefix argument), write
+the command's standard output to the current buffer at point.  If nil,
+write the output to a new output buffer.  For any other value, output to
+that Eshell target (see `eshell-get-target').
+
+ERROR-TARGET is similar to OUTPUT-TARGET, except that it controls where
+to write standard error, and a nil value means to write standard error
+to the same place as standard output.  (To suppress standard error, you
+can write to the Eshell virtual target \"/dev/null\".)
+
+When \"&\" is added at end of command, the command is async and its
+output appears in a specific buffer.  You can customize
+`eshell-command-async-buffer' to specify what to do when this output
+buffer is already taken by another running shell command."
   (interactive (list (eshell-read-command)
-                     current-prefix-arg))
+                     (not (not current-prefix-arg))))
   (save-excursion
-    (let ((stdout (if to-current-buffer (current-buffer) t))
+    (let ((stdout (cond ((eq output-target t) (current-buffer))
+                        ((not output-target) t)
+                        (t output-target)))
+          (stderr (if (eq error-target t) (current-buffer) error-target))
           (buf (set-buffer (generate-new-buffer " *eshell cmd*")))
 	  (eshell-non-interactive-p t))
       (eshell-mode)
       (let* ((proc (eshell-eval-command
-                    `(let ((eshell-current-handles
-                            (eshell-create-handles ,stdout 'insert))
-                           (eshell-current-subjob-p))
-		       ,(eshell-parse-command command))))
-	     intr
-	     (bufname (if (eq (car-safe proc) :eshell-background)
-			  "*Eshell Async Command Output*"
-			(setq intr t)
-			"*Eshell Command Output*")))
-	(if (buffer-live-p (get-buffer bufname))
-	    (kill-buffer bufname))
-	(rename-buffer bufname)
+                    `(eshell-with-handles (',stdout 'insert ',stderr 'insert)
+                       (let ((eshell-current-subjob-p))
+		         ,(eshell-parse-command command)))
+                    command))
+             (async (eq (car-safe proc) :eshell-background))
+             (bufname (cond
+                       ((not (eq stdout t)) nil)
+                       (async eshell-command-buffer-name-async)
+                       (t eshell-command-buffer-name-sync)))
+             unique)
+        (when bufname
+          (when (buffer-live-p (get-buffer bufname))
+            (cond
+             ((with-current-buffer bufname
+                (and (null eshell-foreground-command)
+                     (null eshell-background-commands)))
+              ;; The old buffer is done executing; kill it so we can
+              ;; take its place.
+              (kill-buffer bufname))
+             ((eq eshell-command-async-buffer 'confirm-kill-process)
+              (shell-command--same-buffer-confirm "Kill it")
+              (with-current-buffer bufname
+                ;; Stop all the processes in the old buffer (there may
+                ;; be several).
+                (eshell-round-robin-kill))
+              (kill-buffer bufname))
+             ((eq eshell-command-async-buffer 'confirm-new-buffer)
+              (shell-command--same-buffer-confirm "Use a new buffer")
+              (setq unique t))
+             ((eq eshell-command-async-buffer 'new-buffer)
+              (setq unique t))
+             ((eq eshell-command-async-buffer 'confirm-rename-buffer)
+              (shell-command--same-buffer-confirm "Rename it")
+              (with-current-buffer bufname
+                (rename-uniquely)))
+             ((eq eshell-command-async-buffer 'rename-buffer)
+              (with-current-buffer bufname
+                (rename-uniquely)))))
+          (rename-buffer bufname unique))
 	;; things get a little coarse here, since the desire is to
 	;; make the output as attractive as possible, with no
 	;; extraneous newlines
-	(when intr
-	  (if (eshell-interactive-process-p)
-	      (eshell-wait-for-process (eshell-tail-process)))
-	  (cl-assert (not (eshell-interactive-process-p)))
+        (unless async
+	  (funcall #'eshell-wait-for-processes (cadr eshell-foreground-command))
+	  (cl-assert (not eshell-foreground-command))
 	  (goto-char (point-max))
 	  (while (and (bolp) (not (bobp)))
 	    (delete-char -1)))
 	(cl-assert (and buf (buffer-live-p buf)))
-	(unless to-current-buffer
-	  (let ((len (if (not intr) 2
+        (unless bufname
+          (let ((len (if async 2
 		       (count-lines (point-min) (point-max)))))
 	    (cond
 	     ((= len 0)
@@ -338,7 +420,7 @@ argument), then insert output into the current buffer at point."
 		;; cause the output buffer to take up as little screen
 		;; real-estate as possible, if temp buffer resizing is
 		;; enabled
-		(and intr temp-buffer-resize-mode
+                (and (not async) temp-buffer-resize-mode
 		     (resize-temp-buffer-window)))))))))))
 
 ;;;###autoload
@@ -356,6 +438,7 @@ corresponding to a successful execution."
     (with-temp-buffer
       (let ((eshell-non-interactive-p t))
 	(eshell-mode)
+        (eshell-debug-command-start command)
 	(let ((result (eshell-do-eval
 		       (list 'eshell-commands
 			     (list 'eshell-command-to-value

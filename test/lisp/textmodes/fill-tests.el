@@ -1,9 +1,9 @@
 ;;; fill-tests.el --- ERT tests for fill.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
 ;; Author:     Marcin Borkowski <mbork@mbork.pl>
-;; Keywords:   text, wp
+;; Keywords:   text
 
 ;; This file is part of GNU Emacs.
 

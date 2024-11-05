@@ -1,6 +1,6 @@
 ;;; css-mode.el --- Major mode to edit CSS files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>
@@ -1814,7 +1814,7 @@ can also be used to fill comments.
     (setq-local font-lock-fontify-region-function #'css--fontify-region)
 
     ;; Tree-sitter specific setup.
-    (treesit-parser-create 'css)
+    (setq treesit-primary-parser (treesit-parser-create 'css))
     (setq-local treesit-simple-indent-rules css--treesit-indent-rules)
     (setq-local treesit-defun-type-regexp "rule_set")
     (setq-local treesit-defun-name-function #'css--treesit-defun-name)
@@ -1829,6 +1829,8 @@ can also be used to fill comments.
     (treesit-major-mode-setup)
 
     (add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))))
+
+(derived-mode-add-parents 'css-ts-mode '(css-mode))
 
 ;;;###autoload
 (define-derived-mode css-mode css-base-mode "CSS"

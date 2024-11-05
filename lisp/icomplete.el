@@ -1,6 +1,6 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Created: Mar 1993 Ken Manheimer, klm@nist.gov - first release to usenet
@@ -139,9 +139,17 @@ See `icomplete-delay-completions-threshold'."
   :type 'integer)
 
 (defcustom icomplete-in-buffer nil
-  "If non-nil, also use Icomplete when completing in non-mini buffers.
+  "If non-nil, use Icomplete when completing in buffers other than minibuffer.
 This affects commands like `completion-in-region', but not commands
-that use their own completions setup."
+that use their own completions setup.
+
+If you would prefer to see only Icomplete's in-buffer display, but do
+not want the \"*Completions*\" buffer to pop up in those cases, add
+this advice to your init file:
+
+  (advice-add \\='completion-at-point
+              :after #\\='minibuffer-hide-completions)
+"
   :type 'boolean)
 
 (defcustom icomplete-minibuffer-setup-hook nil
@@ -722,7 +730,8 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
              ;; Check if still in the right buffer (bug#61308)
              (or (window-minibuffer-p) completion-in-region--data)
              (icomplete-simple-completing-p)) ;Shouldn't be necessary.
-    (let ((saved-point (point)))
+    (let ((saved-point (point))
+          (completion-lazy-hilit t))
       (save-excursion
         (goto-char (icomplete--field-end))
         ;; Insert the match-status information:
@@ -788,10 +797,8 @@ and SUFFIX, if non-nil, are obtained from `affixation-function' or
 `group-function'.  Consecutive `equal' sections are avoided.
 COMP is the element in PROSPECTS or a transformation also given
 by `group-function''s second \"transformation\" protocol."
-  (let* ((aff-fun (or (completion-metadata-get md 'affixation-function)
-                      (plist-get completion-extra-properties :affixation-function)))
-         (ann-fun (or (completion-metadata-get md 'annotation-function)
-                      (plist-get completion-extra-properties :annotation-function)))
+  (let* ((aff-fun (completion-metadata-get md 'affixation-function))
+         (ann-fun (completion-metadata-get md 'annotation-function))
          (grp-fun (and completions-group
                        (completion-metadata-get md 'group-function)))
          (annotated
@@ -901,7 +908,7 @@ by `group-function''s second \"transformation\" protocol."
                                 'icomplete-selected-match 'append comp)
      collect (concat prefix
                      (make-string (- max-prefix-len (length prefix)) ? )
-                     comp
+                     (completion-lazy-hilit comp)
                      (make-string (- max-comp-len (length comp)) ? )
                      suffix)
      into lines-aux
@@ -1008,7 +1015,11 @@ matches exist."
                                   (or determ (concat open-bracket close-bracket)))
                                  (string-width icomplete-separator)
                                  (+ 2 (string-width ellipsis)) ;; take {…} into account
-                                 (string-width (buffer-string))))
+                                 (string-width
+                                  (buffer-substring (save-excursion
+                                                      (goto-char (icomplete--field-beg))
+                                                      (pos-bol))
+                                                    (icomplete--field-end)))))
                (prospects-max
                 ;; Max total length to use, including the minibuffer content.
                 (* (+ icomplete-prospects-height
@@ -1058,7 +1069,8 @@ matches exist."
                   (setq determ (concat open-bracket "" close-bracket)))
                 (while (and comps (not limit))
                   (setq comp
-                        (if prefix-len (substring (car comps) prefix-len) (car comps))
+                        (let ((cur (completion-lazy-hilit (car comps))))
+                          (if prefix-len (substring cur prefix-len) cur))
                         comps (cdr comps))
                   (setq prospects-len
                         (+ (string-width comp)

@@ -1,8 +1,8 @@
 ;; -*- mode: lisp-data; -*-
 ((pass 10 "PASS :foonet:changeme"))
-((nick 1 "NICK tester"))
+((nick 10 "NICK tester"))
 
-((user 1 "USER user 0 * :tester")
+((user 10 "USER user 0 * :tester")
  (0 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")
  (0 ":irc.foonet.org 002 tester :Your host is irc.foonet.org, running version oragono-2.6.0-7481bf0385b95b16")
  (0 ":irc.foonet.org 003 tester :This server was created Mon, 10 May 2021 00:58:22 UTC")

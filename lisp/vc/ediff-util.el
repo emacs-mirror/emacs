@@ -1,6 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -1269,36 +1269,28 @@ which see."
     (or (display-graphic-p)
 	(user-error "Emacs is not running as a window application"))
 
-  (cond ((eq ediff-window-setup-function #'ediff-setup-windows-multiframe)
-	 (setq ediff-multiframe nil)
-	 (setq window-setup-func #'ediff-setup-windows-plain)
-         (message "ediff is now in `plain' mode"))
-	((eq ediff-window-setup-function #'ediff-setup-windows-plain)
-	 (if (and (ediff-buffer-live-p ediff-control-buffer)
-		  (window-live-p ediff-control-window))
-	     (set-window-dedicated-p ediff-control-window nil))
-	 (setq ediff-multiframe t)
-	 (setq window-setup-func #'ediff-setup-windows-multiframe)
-         (message "ediff is now in `multiframe' mode"))
-	(t
-	 (if (and (ediff-buffer-live-p ediff-control-buffer)
-		  (window-live-p ediff-control-window))
-	     (set-window-dedicated-p ediff-control-window nil))
-	 (setq ediff-multiframe t)
-	 (setq window-setup-func #'ediff-setup-windows-multiframe))
-         (message "ediff is now in `multiframe' mode"))
+    (cond ((eq ediff-window-setup-function #'ediff-setup-windows-multiframe)
+           (setq ediff-multiframe nil)
+           (setq window-setup-func #'ediff-setup-windows-plain)
+           (message "ediff is now in `plain' mode"))
+          (t ; (eq ediff-window-setup-function #'ediff-setup-windows-plain)
+           (if (and (ediff-buffer-live-p ediff-control-buffer)
+                    (window-live-p ediff-control-window))
+               (set-window-dedicated-p ediff-control-window nil))
+           (setq ediff-multiframe t)
+           (setq window-setup-func #'ediff-setup-windows-multiframe)
+           (message "ediff is now in `multiframe' mode")))
 
-  ;; change default
-  (setq-default ediff-window-setup-function window-setup-func)
-  ;; change in all active ediff sessions
-  (mapc (lambda(buf) (ediff-with-current-buffer buf
-		       (setq ediff-window-setup-function window-setup-func
-			     ediff-window-B nil)))
-	ediff-session-registry)
-  (if (ediff-in-control-buffer-p)
-      (progn
-	(set-window-dedicated-p (selected-window) nil)
-	(ediff-recenter 'no-rehighlight)))))
+    ;; change default
+    (setq-default ediff-window-setup-function window-setup-func)
+    ;; change in all active ediff sessions
+    (mapc (lambda (buf) (ediff-with-current-buffer buf
+                          (setq ediff-window-setup-function window-setup-func
+                                ediff-window-B nil)))
+          ediff-session-registry)
+    (when (ediff-in-control-buffer-p)
+      (set-window-dedicated-p (selected-window) nil)
+      (ediff-recenter 'no-rehighlight))))
 
 
 ;;;###autoload
@@ -1898,8 +1890,8 @@ current point position in the specified buffer."
 
 (defun ediff-diff-to-diff (arg &optional keys)
   "Copy buffer-X'th difference region to buffer Y (X,Y are A, B, or C).
-With numerical prefix argument ARG, copy the difference specified
-in the arg.
+With numerical prefix argument ARG, copy the difference specified in the
+arg.  With prefix `\\[universal-argument]', copy all differences.
 Otherwise, copy the difference given by `ediff-current-difference'.
 This command assumes it is bound to a 2-character key sequence, `ab', `ba',
 `ac', etc., which is used to determine the types of buffers to be used for
@@ -1912,17 +1904,23 @@ command keys."
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
   (or keys (setq keys (this-command-keys)))
-  (if (eq arg '-) (setq arg -1)) ; translate neg arg to -1
-  (if (numberp arg) (ediff-jump-to-difference arg))
+  (if (equal arg '(4))
+      ;; copy all differences with `C-u' prefix
+      (let ((n 0))
+        (while (ediff-valid-difference-p n)
+          (ediff-diff-to-diff (1+ n) keys)
+          (setq n (1+ n))))
+    (if (eq arg '-) (setq arg -1))      ; translate neg arg to -1
+    (if (numberp arg) (ediff-jump-to-difference arg))
 
-  (let* ((char1 (aref keys 0))
-	 (char2 (aref keys 1))
-	 ediff-verbose-p)
-    (ediff-copy-diff ediff-current-difference
-		     (ediff-char-to-buftype char1)
-		     (ediff-char-to-buftype char2))
-    ;; recenter with rehighlighting, but no messages
-    (ediff-recenter)))
+    (let* ((char1 (aref keys 0))
+	   (char2 (aref keys 1))
+	   ediff-verbose-p)
+      (ediff-copy-diff ediff-current-difference
+		       (ediff-char-to-buftype char1)
+		       (ediff-char-to-buftype char2))
+      ;; recenter with rehighlighting, but no messages
+      (ediff-recenter))))
 
 (defun ediff-copy-A-to-B (arg)
   "Copy ARGth difference region from buffer A to B.
@@ -3138,16 +3136,15 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 		   ;; e.g., if file name ends with .Z or .gz
                    ;; This is needed so that patches produced by ediff will
 		   ;; have more meaningful names
-		   (ediff-make-empty-tmp-file short-f))
+                   (make-temp-file short-f))
 		  (prefix
 		   ;; Prefix is most often the same as the file name for the
-		   ;; variant.  Here we are trying to use the original file
-		   ;; name but in the temp directory.
-		   (ediff-make-empty-tmp-file f 'keep-name))
+                   ;; variant.
+                   (make-temp-file f))
 		  (t
 		   ;; If don't care about name, add some random stuff
 		   ;; to proposed file name.
-		   (ediff-make-empty-tmp-file short-f))))
+                   (make-temp-file short-f))))
 
     ;; create the file
     (ediff-with-current-buffer buff
@@ -3158,28 +3155,6 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 		    'no-message)
       (set-file-modes f ediff-temp-file-mode)
       (expand-file-name f))))
-
-;; Create a temporary file.
-;; The returned file name (created by appending some random characters at the
-;; end of PROPOSED-NAME is guaranteed to point to a newly created empty file.
-;; This is a replacement for make-temp-name, which eliminates a security hole.
-;; If KEEP-PROPOSED-NAME isn't nil, try to keep PROPOSED-NAME, unless such file
-;; already exists.
-;; It is a modified version of make-temp-file in emacs 20.5
-(defun ediff-make-empty-tmp-file (proposed-name &optional keep-proposed-name)
-  (let ((file proposed-name))
-    (while (condition-case ()
-               (progn
-		 (if (or (file-exists-p file) (not keep-proposed-name))
-		     (setq file (make-temp-name proposed-name)))
-                 (write-region "" nil file nil 'silent nil 'excl)
-                 nil)
-            (file-already-exists t))
-      ;; the file was somehow created by someone else between
-      ;; `make-temp-name' and `write-region', let's try again.
-      nil)
-    file))
-
 
 ;; Make sure the current buffer (for a file) has the same contents as the
 ;; file on disk, and attempt to remedy the situation if not.
@@ -3741,7 +3716,7 @@ Ediff Control Panel to restore highlighting."
 ;; these buffers).
 ;; EXCL-BUFF-LIST is an exclusion list.
 (defun ediff-other-buffer (excl-buff-lst)
-  (or (listp excl-buff-lst) (setq excl-buff-lst (list excl-buff-lst)))
+  (setq excl-buff-lst (ensure-list excl-buff-lst))
   (let* ((all-buffers (nconc (ediff-get-selected-buffers) (buffer-list)))
 	 ;; we compute this the second time because we need to do memq on it
 	 ;; later, and nconc above will break it. Either this or use slow
@@ -4143,6 +4118,10 @@ Mail anyway? (y or n) ")
 (define-obsolete-function-alias 'ediff-union #'seq-union "28.1")
 (define-obsolete-function-alias 'ediff-intersection #'seq-intersection "28.1")
 (define-obsolete-function-alias 'ediff-set-difference #'seq-difference "28.1")
+
+(defun ediff-make-empty-tmp-file (prefix &optional _ignored)
+  (declare (obsolete make-temp-file "30.1"))
+  (make-temp-file prefix))
 
 (run-hooks 'ediff-load-hook)
 

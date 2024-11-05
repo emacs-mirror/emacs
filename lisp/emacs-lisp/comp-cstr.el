@@ -1,6 +1,6 @@
 ;;; comp-cstr.el --- native compiler constraint library -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <acorallo@gnu.org>
 ;; Keywords: lisp
@@ -36,15 +36,9 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'cl-macs)
+(require 'cl-extra) ;HACK: For `cl-find-class' when `cl-loaddefs' is missing.
 
-(defconst comp--typeof-builtin-types (mapcar (lambda (x)
-                                               (append x '(t)))
-                                             cl--typeof-types)
-  ;; TODO can we just add t in `cl--typeof-types'?
-  "Like `cl--typeof-types' but with t as common supertype.")
-
-(cl-defstruct (comp-cstr (:constructor comp-type-to-cstr
+(cl-defstruct (comp-cstr (:constructor comp--type-to-cstr
                                        (type &aux
 					     (null (eq type 'null))
                                              (integer (eq type 'integer))
@@ -55,7 +49,7 @@
 						       '(nil)))
                                              (range (when integer
                                                       '((- . +))))))
-                         (:constructor comp-value-to-cstr
+                         (:constructor comp--value-to-cstr
                                        (value &aux
                                               (integer (integerp value))
                                               (valset (unless integer
@@ -63,7 +57,7 @@
                                               (range (when integer
                                                        `((,value . ,value))))
                                               (typeset ())))
-                         (:constructor comp-irange-to-cstr
+                         (:constructor comp--irange-to-cstr
                                        (irange &aux
                                                (range (list irange))
                                                (typeset ())))
@@ -89,30 +83,29 @@ Integer values are handled in the `range' slot.")
 
 (defun comp--cl-class-hierarchy (x)
   "Given a class name `x' return its hierarchy."
-  `(,@(mapcar #'cl--struct-class-name (cl--struct-all-parents
-                                       (cl--struct-get-class x)))
-    atom
-    t))
+  (cl--class-allparents (cl--find-class x)))
 
 (defun comp--all-classes ()
   "Return all non built-in type names currently defined."
   (let (res)
     (mapatoms (lambda (x)
-                (when (cl-find-class x)
+                (when-let* ((class (cl-find-class x))
+                            ;; Ignore EIEIO classes as they can be
+                            ;; redefined at runtime.
+                            (gate (not (eq 'eieio--class (type-of class)))))
                   (push x res)))
               obarray)
     res))
 
 (defun comp--compute-typeof-types ()
-  (append comp--typeof-builtin-types
-          (mapcar #'comp--cl-class-hierarchy (comp--all-classes))))
+  (mapcar #'comp--cl-class-hierarchy (comp--all-classes)))
 
 (defun comp--compute--pred-type-h ()
   (cl-loop with h = (make-hash-table :test #'eq)
 	   for class-name in (comp--all-classes)
            for pred = (get class-name 'cl-deftype-satisfies)
            when pred
-             do (puthash pred class-name h)
+           do (puthash pred (comp--type-to-cstr class-name) h)
 	   finally return h))
 
 (cl-defstruct comp-cstr-ctxt
@@ -124,20 +117,20 @@ Integer values are handled in the `range' slot.")
                :documentation "Hash pred -> type.")
   (union-typesets-mem (make-hash-table :test #'equal) :type hash-table
                       :documentation "Serve memoization for
-`comp-union-typesets'.")
+`comp--union-typesets'.")
   ;; TODO we should be able to just cons hash this.
   (common-supertype-mem (make-hash-table :test #'equal) :type hash-table
                         :documentation "Serve memoization for
-`comp-common-supertype'.")
+`comp-ctxt-common-supertype-mem'.")
   (subtype-p-mem (make-hash-table :test #'equal) :type hash-table
                  :documentation "Serve memoization for
 `comp-cstr-ctxt-subtype-p-mem'.")
   (union-1-mem-no-range (make-hash-table :test #'equal) :type hash-table
                         :documentation "Serve memoization for
-`comp-cstr-union-1'.")
+`comp--cstr-union-1'.")
   (union-1-mem-range (make-hash-table :test #'equal) :type hash-table
                      :documentation "Serve memoization for
-`comp-cstr-union-1'.")
+`comp--cstr-union-1'.")
   (intersection-mem (make-hash-table :test #'equal) :type hash-table
                     :documentation "Serve memoization for
 `intersection-mem'."))
@@ -165,7 +158,7 @@ defined types."
                       `(comp-cstr-neg ,x)))
      ,@body))
 
-(defun comp-cstr-copy (cstr)
+(defun comp--cstr-copy (cstr)
   "Return a deep copy of CSTR."
   (with-comp-cstr-accessors
     (make-comp-cstr :typeset (copy-sequence (typeset cstr))
@@ -197,7 +190,7 @@ defined types."
          (null (neg cstr))
          (equal (valset cstr) '(nil)))))
 
-(defun comp-cstrs-homogeneous (cstrs)
+(defun comp--cstrs-homogeneous (cstrs)
   "Check if constraints CSTRS are all homogeneously negated or non-negated.
 Return `pos' if they are all positive, `neg' if they are all
 negated or nil otherwise."
@@ -212,7 +205,7 @@ negated or nil otherwise."
     ((zerop n-neg) (cl-return 'pos))
     ((zerop n-pos) (cl-return 'neg)))))
 
-(defun comp-split-pos-neg (cstrs)
+(defun comp--split-pos-neg (cstrs)
   "Split constraints CSTRS into non-negated and negated.
 Return them as multiple value."
   (cl-loop
@@ -227,108 +220,147 @@ Return them as multiple value."
 ;; builds.
 (defvar comp-ctxt nil)
 
-(defvar comp-cstr-one (comp-value-to-cstr 1)
+(defvar comp-cstr-one (comp--value-to-cstr 1)
   "Represent the integer immediate one.")
 
-(defvar comp-cstr-t (comp-type-to-cstr t)
+(defvar comp-cstr-t (comp--type-to-cstr t)
   "Represent the superclass t.")
 
 
 ;;; Value handling.
 
-(defun comp-normalize-valset (valset)
+(defun comp--normalize-valset (valset)
   "Sort and remove duplicates from VALSET then return it."
-  (cl-sort (cl-remove-duplicates valset :test #'eq)
-           (lambda (x y)
-             (cond
-              ((and (symbolp x) (symbolp y))
-               (string< x y))
-              ((and (symbolp x) (not (symbolp y)))
-               t)
-              ((and (not (symbolp x)) (symbolp y))
-               nil)
-              (t
-               (< (sxhash-equal x)
-                  (sxhash-equal y)))))))
+  ;; Sort valset as much as possible (by type and by value for symbols
+  ;; and strings) to increase cache hits.  But refrain to use
+  ;; `sxhash-equal' to be reproducible across on different builds.
+  (cl-loop
+   with vals = (cl-remove-duplicates valset :test #'eq)
+   with type-val = (cl-loop
+                    for type in (cl-remove-duplicates (mapcar #'cl-type-of vals)
+                                                      :test #'eq)
+                    collect (cons type nil))
+   for x in vals
+   do (push x (cdr (assq (cl-type-of x) type-val)))
+   finally return (cl-loop
+                   for (type . values) in (cl-sort type-val #'string< :key #'car)
+                   append (if (memq type '(symbol string))
+                              (cl-sort values #'string<)
+                            values))))
 
-(defun comp-union-valsets (&rest valsets)
+(defun comp--union-valsets (&rest valsets)
   "Union values present into VALSETS."
-  (comp-normalize-valset (cl-reduce #'cl-union valsets)))
+  (comp--normalize-valset (cl-reduce #'cl-union valsets)))
 
-(defun comp-intersection-valsets (&rest valsets)
+(defun comp--intersection-valsets (&rest valsets)
   "Union values present into VALSETS."
-  (comp-normalize-valset (cl-reduce #'cl-intersection valsets)))
+  (comp--normalize-valset (cl-reduce #'cl-intersection valsets)))
 
 
 ;;; Type handling.
 
-(defun comp-normalize-typeset (typeset)
-  "Sort TYPESET and return it."
-  (cl-sort (cl-remove-duplicates typeset)
-           (lambda (x y)
-             (string-lessp (symbol-name x)
-                           (symbol-name y)))))
+(defun comp--sym-lessp (x y)
+  "Like `string-lessp' but for symbol names."
+  (string-lessp (symbol-name x)
+                (symbol-name y)))
 
-(defun comp-supertypes (type)
-  "Return a list of pairs (supertype . hierarchy-level) for TYPE."
-  (cl-loop
-   named outer
-   with found = nil
-   for l in (comp-cstr-ctxt-typeof-types comp-ctxt)
-   do (cl-loop
-       for x in l
-       for i from (length l) downto 0
-       when (eq type x)
-         do (setf found t)
-       when found
-         collect `(,x . ,i) into res
-       finally (when found
-                 (cl-return-from outer res)))))
-
-(defun comp-common-supertype-2 (type1 type2)
-  "Return the first common supertype of TYPE1 TYPE2."
-  (when-let ((types (cl-intersection
-                     (comp-supertypes type1)
-                     (comp-supertypes type2)
-                     :key #'car)))
-    (car (cl-reduce (lambda (x y)
-                      (if (> (cdr x) (cdr y)) x y))
-                    types))))
-
-(defun comp-common-supertype (&rest types)
-  "Return the first common supertype of TYPES."
-  (or (gethash types (comp-cstr-ctxt-common-supertype-mem comp-ctxt))
-      (puthash types
-               (cl-reduce #'comp-common-supertype-2 types)
-               (comp-cstr-ctxt-common-supertype-mem comp-ctxt))))
+(defun comp--direct-supertypes (type)
+  (when (symbolp type) ;; FIXME: Can this test ever fail?
+    (let* ((class (cl--find-class type))
+           (parents (if class (cl--class-parents class))))
+      (mapcar #'cl--class-name parents))))
 
 (defsubst comp-subtype-p (type1 type2)
   "Return t if TYPE1 is a subtype of TYPE2 or nil otherwise."
   (let ((types (cons type1 type2)))
     (or (gethash types (comp-cstr-ctxt-subtype-p-mem comp-ctxt))
         (puthash types
-                 (eq (comp-common-supertype-2 type1 type2) type2)
+                 (memq type2 (comp-supertypes type1))
                  (comp-cstr-ctxt-subtype-p-mem comp-ctxt)))))
 
-(defun comp-union-typesets (&rest typesets)
+(defun comp--normalize-typeset0 (typeset)
+  ;; For every type search its supertypes.  If all the subtypes of a
+  ;; supertype are presents remove all of them, add the identified
+  ;; supertype and restart.
+  ;; FIXME: The intention is to return a 100% equivalent but simpler
+  ;; typeset, but this is only the case when the supertype is abstract
+  ;; and "final/closed" (i.e. can't have new subtypes).
+  (when typeset
+    (while (eq 'restart
+               (cl-loop
+                named main
+                for sup in (cl-remove-duplicates
+                            (apply #'append
+                                   (mapcar #'comp--direct-supertypes typeset)))
+                for subs = (comp--direct-subtypes sup)
+                when (and (length> subs 1) ;; If there's only one sub do
+                                           ;; nothing as we want to
+                                           ;; return the most specific
+                                           ;; type.
+                          (cl-every (lambda (sub)
+                                      (cl-some (lambda (type)
+                                                 (comp-subtype-p sub type))
+                                               typeset))
+                                    subs))
+                do (progn
+                     (setq typeset (cons sup (cl-set-difference typeset subs)))
+                     (cl-return-from main 'restart)))))
+    typeset))
+
+(defun comp--normalize-typeset (typeset)
+  "Sort TYPESET and return it."
+  (cl-sort (comp--normalize-typeset0 (cl-remove-duplicates typeset)) #'comp--sym-lessp))
+
+(defun comp--direct-subtypes (type)
+  "Return all the direct subtypes of TYPE."
+  ;; TODO: memoize.
+  (let ((subtypes ()))
+    (dolist (j (comp-cstr-ctxt-typeof-types comp-ctxt))
+      (let ((occur (memq type j)))
+        (when occur
+          (while (not (eq j occur))
+            (let ((candidate (pop j)))
+              (when (and (not (memq candidate subtypes))
+                         (memq type (comp--direct-supertypes candidate)))
+                (push candidate subtypes)))))))
+    (cl-sort subtypes #'comp--sym-lessp)))
+
+(defun comp--intersection (list1 list2)
+  "Like `cl-intersection` but preserves the order of one of its args."
+  (if (equal list1 list2) list1
+    (let ((res nil))
+      (while list2
+	(if (memq (car list2) list1)
+	    (push (car list2) res))
+	(pop list2))
+      (nreverse res))))
+
+(defun comp-supertypes (type)
+  "Return the ordered list of supertypes of TYPE."
+  (or (assq type (comp-cstr-ctxt-typeof-types comp-ctxt))
+      (error "Type %S missing from typeof-types!" type)))
+
+(defun comp--union-typesets (&rest typesets)
   "Union types present into TYPESETS."
   (or (gethash typesets (comp-cstr-ctxt-union-typesets-mem comp-ctxt))
       (puthash typesets
                (cl-loop
-                with types = (apply #'append typesets)
+                ;; List of (TYPE . SUPERTYPES)", ordered from
+                ;; "most general" to "least general"
+                with typess = (sort (mapcar #'comp-supertypes
+                                            (apply #'append typesets))
+                                    (lambda (l1 l2)
+                                      (<= (length l1) (length l2))))
                 with res = '()
-                for lane in (comp-cstr-ctxt-typeof-types comp-ctxt)
-                do (cl-loop
-                    with last = nil
-                    for x in lane
-                    when (memq x types)
-                      do (setf last x)
-                    finally (when last
-                              (push last res)))
-                finally return (comp-normalize-typeset res))
+                for types in typess
+                ;; Don't keep this type if it's a subtype of one of
+                ;; the other types.
+                unless (comp--intersection types res)
+                do (push (car types) res)
+                finally return (comp--normalize-typeset res))
                (comp-cstr-ctxt-union-typesets-mem comp-ctxt))))
 
-(defun comp-intersect-two-typesets (t1 t2)
+(defun comp--intersect-two-typesets (t1 t2)
   "Intersect typesets T1 and T2."
   (with-comp-cstr-accessors
     (cl-loop
@@ -342,13 +374,13 @@ Return them as multiple value."
                     other-types)
       collect type))))
 
-(defun comp-intersect-typesets (&rest typesets)
+(defun comp--intersect-typesets (&rest typesets)
   "Intersect types present into TYPESETS."
   (unless (cl-some #'null typesets)
     (if (length= typesets 1)
         (car typesets)
-      (comp-normalize-typeset
-       (cl-reduce #'comp-intersect-two-typesets typesets)))))
+      (comp--normalize-typeset
+       (cl-reduce #'comp--intersect-two-typesets typesets)))))
 
 
 ;;; Integer range handling
@@ -398,7 +430,7 @@ Return them as multiple value."
   "Greater entry in RANGE."
   (cdar (last range)))
 
-(defun comp-range-union (&rest ranges)
+(defun comp--range-union (&rest ranges)
   "Combine integer intervals RANGES by union set operation."
   (cl-loop
    with all-ranges = (apply #'append ranges)
@@ -424,7 +456,7 @@ Return them as multiple value."
    (cl-decf nest)
    finally return (reverse res)))
 
-(defun comp-range-intersection (&rest ranges)
+(defun comp--range-intersection (&rest ranges)
   "Combine integer intervals RANGES by intersecting."
   (cl-loop
    with all-ranges = (apply #'append ranges)
@@ -456,7 +488,7 @@ Return them as multiple value."
    (cl-decf nest)
    finally return (reverse res)))
 
-(defun comp-range-negation (range)
+(defun comp--range-negation (range)
   "Negate range RANGE."
   (if (null range)
       '((- . +))
@@ -482,22 +514,22 @@ Return them as multiple value."
                                 '(float))
               (valset dst) ()
               (range dst) (if (range old-dst)
-                              (comp-range-intersection (range old-dst)
+                              (comp--range-intersection (range old-dst)
                                                        ext-range)
                             ext-range)
               (neg dst) nil)
       (comp-cstr-shallow-copy dst old-dst))))
 
 (defmacro comp-cstr-set-range-for-arithm (dst src1 src2 &rest range-body)
-  ;; Prevent some code duplication for `comp-cstr-add-2'
-  ;; `comp-cstr-sub-2'.
+  ;; Prevent some code duplication for `comp--cstr-add-2'
+  ;; `comp--cstr-sub-2'.
   (declare (debug (range-body))
            (indent defun))
   `(with-comp-cstr-accessors
      (if (or (neg src1) (neg src2))
          (setf (typeset ,dst) '(number))
-       (when-let ((r1 (range ,src1))
-                  (r2 (range ,src2)))
+       (when-let* ((r1 (range ,src1))
+                   (r2 (range ,src2)))
          (let* ((l1 (comp-cstr-smallest-in-range r1))
                 (l2 (comp-cstr-smallest-in-range r2))
                 (h1 (comp-cstr-greatest-in-range r1))
@@ -509,12 +541,12 @@ Return them as multiple value."
                                   '(float))
                  (range ,dst) ,@range-body))))))
 
-(defun comp-cstr-add-2 (dst src1 src2)
+(defun comp--cstr-add-2 (dst src1 src2)
   "Sum SRC1 and SRC2 into DST."
   (comp-cstr-set-range-for-arithm dst src1 src2
     `((,(comp-range-+ l1 l2) . ,(comp-range-+ h1 h2)))))
 
-(defun comp-cstr-sub-2 (dst src1 src2)
+(defun comp--cstr-sub-2 (dst src1 src2)
   "Subtract SRC1 and SRC2 into DST."
   (comp-cstr-set-range-for-arithm dst src1 src2
     (let ((l (comp-range-- l1 h2))
@@ -526,17 +558,17 @@ Return them as multiple value."
 
 ;;; Union specific code.
 
-(defun comp-cstr-union-homogeneous-no-range (dst &rest srcs)
+(defun comp--cstr-union-homogeneous-no-range (dst &rest srcs)
   "As `comp-cstr-union' but excluding the irange component.
 All SRCS constraints must be homogeneously negated or non-negated."
 
   ;; Type propagation.
   (setf (comp-cstr-typeset dst)
-        (apply #'comp-union-typesets (mapcar #'comp-cstr-typeset srcs)))
+        (apply #'comp--union-typesets (mapcar #'comp-cstr-typeset srcs)))
 
   ;; Value propagation.
   (setf (comp-cstr-valset dst)
-        (comp-normalize-valset
+        (comp--normalize-valset
          (cl-loop
           with values = (mapcar #'comp-cstr-valset srcs)
           ;; TODO sort.
@@ -545,18 +577,18 @@ All SRCS constraints must be homogeneously negated or non-negated."
           ;; We propagate only values those types are not already
           ;; into typeset.
           when (cl-notany (lambda (x)
-                            (comp-subtype-p (type-of v) x))
+                            (comp-subtype-p (cl-type-of v) x))
                           (comp-cstr-typeset dst))
           collect v)))
 
   dst)
 
-(defun comp-cstr-union-homogeneous (range dst &rest srcs)
+(defun comp--cstr-union-homogeneous (range dst &rest srcs)
   "Combine SRCS by union set operation setting the result in DST.
 Do range propagation when RANGE is non-nil.
 All SRCS constraints must be homogeneously negated or non-negated.
 DST is returned."
-  (apply #'comp-cstr-union-homogeneous-no-range dst srcs)
+  (apply #'comp--cstr-union-homogeneous-no-range dst srcs)
   ;; Range propagation.
   (setf (comp-cstr-neg dst)
         (when srcs
@@ -567,15 +599,15 @@ DST is returned."
                            (comp-subtype-p 'integer x))
                          (comp-cstr-typeset dst))
           (if range
-              (apply #'comp-range-union
+              (apply #'comp--range-union
                      (mapcar #'comp-cstr-range srcs))
             '((- . +)))))
   dst)
 
-(cl-defun comp-cstr-union-1-no-mem (range &rest srcs)
+(cl-defun comp--cstr-union-1-no-mem (range &rest srcs)
   "Combine SRCS by union set operation setting the result in DST.
 Do range propagation when RANGE is non-nil.
-Non memoized version of `comp-cstr-union-1'.
+Non memoized version of `comp--cstr-union-1'.
 DST is returned."
   (with-comp-cstr-accessors
     (let ((dst (make-comp-cstr)))
@@ -584,22 +616,22 @@ DST is returned."
                                (valset dst) ()
                                (range dst) ()
                                (neg dst) nil)
-                         (cl-return-from comp-cstr-union-1-no-mem dst)))
+                         (cl-return-from comp--cstr-union-1-no-mem dst)))
 
         ;; Check first if we are in the simple case of all input non-negate
         ;; or negated so we don't have to cons.
-        (when-let ((res (comp-cstrs-homogeneous srcs)))
-          (apply #'comp-cstr-union-homogeneous range dst srcs)
-          (cl-return-from comp-cstr-union-1-no-mem dst))
+        (when-let* ((res (comp--cstrs-homogeneous srcs)))
+          (apply #'comp--cstr-union-homogeneous range dst srcs)
+          (cl-return-from comp--cstr-union-1-no-mem dst))
 
         ;; Some are negated and some are not
-        (cl-multiple-value-bind (positives negatives) (comp-split-pos-neg srcs)
-          (let* ((pos (apply #'comp-cstr-union-homogeneous range
+        (cl-multiple-value-bind (positives negatives) (comp--split-pos-neg srcs)
+          (let* ((pos (apply #'comp--cstr-union-homogeneous range
                              (make-comp-cstr) positives))
                  ;; We'll always use neg as result as this is almost
                  ;; always necessary for describing open intervals
                  ;; resulting from negated constraints.
-                 (neg (apply #'comp-cstr-union-homogeneous range
+                 (neg (apply #'comp--cstr-union-homogeneous range
                              (make-comp-cstr :neg t) negatives)))
             ;; Type propagation.
             (when (and (typeset pos)
@@ -630,11 +662,11 @@ DST is returned."
                                  (typeset neg)))
               (comp-cstr-shallow-copy dst pos)
               (setf (neg dst) nil)
-              (cl-return-from comp-cstr-union-1-no-mem dst))
+              (cl-return-from comp--cstr-union-1-no-mem dst))
 
             ;; Verify disjoint condition between positive types and
             ;; negative types coming from values, in case give-up.
-            (let ((neg-value-types (nconc (mapcar #'type-of (valset neg))
+            (let ((neg-value-types (nconc (mapcar #'cl-type-of (valset neg))
                                           (when (range neg)
                                             '(integer)))))
               (when (cl-some (lambda (x)
@@ -648,14 +680,14 @@ DST is returned."
             ;; Value propagation.
             (cond
              ((and (valset pos) (valset neg)
-                   (equal (comp-union-valsets (valset pos) (valset neg))
+                   (equal (comp--union-valsets (valset pos) (valset neg))
                           (valset pos)))
               ;; Pos is a superset of neg.
               (give-up))
              ((cl-some (lambda (x)
                          (cl-some (lambda (y)
                                     (comp-subtype-p y x))
-                                  (mapcar #'type-of (valset pos))))
+                                  (mapcar #'cl-type-of (valset pos))))
                        (typeset neg))
               (give-up))
              (t
@@ -671,9 +703,9 @@ DST is returned."
                        (equal (range pos) (range neg)))
                   (give-up)
                 (setf (range neg)
-                      (comp-range-negation
-                       (comp-range-union
-                        (comp-range-negation (range neg))
+                      (comp--range-negation
+                       (comp--range-union
+                        (comp--range-negation (range neg))
                         (range pos))))))
 
             (comp-cstr-shallow-copy dst (if (comp-cstr-empty-p neg)
@@ -689,7 +721,7 @@ DST is returned."
 
       dst)))
 
-(defun comp-cstr-union-1 (range dst &rest srcs)
+(defun comp--cstr-union-1 (range dst &rest srcs)
   "Combine SRCS by union set operation setting the result in DST.
 Do range propagation when RANGE is non-nil.
 DST is returned."
@@ -699,8 +731,8 @@ DST is returned."
                     (comp-cstr-ctxt-union-1-mem-no-range comp-ctxt)))
            (res (or (gethash srcs mem-h)
                     (puthash
-                     (mapcar #'comp-cstr-copy srcs)
-                     (apply #'comp-cstr-union-1-no-mem range srcs)
+                     (mapcar #'comp--cstr-copy srcs)
+                     (apply #'comp--cstr-union-1-no-mem range srcs)
                      mem-h))))
       (comp-cstr-shallow-copy dst res)
       res)))
@@ -722,19 +754,19 @@ DST is returned."
 
     ;; Type propagation.
     (setf (typeset dst)
-          (apply #'comp-intersect-typesets
+          (apply #'comp--intersect-typesets
                  (mapcar #'comp-cstr-typeset srcs)))
 
     ;; Value propagation.
     (setf (valset dst)
-          (comp-normalize-valset
+          (comp--normalize-valset
            (cl-loop
             for src in srcs
             append
             (cl-loop
              for val in (valset src)
              ;; If (member value) is subtypep of all other sources then
-             ;; is good to be colleted.
+             ;; is good to be collected.
              when (cl-every (lambda (s)
                               (or (memql val (valset s))
                                   (cl-some (lambda (type)
@@ -750,7 +782,7 @@ DST is returned."
           (unless (cl-some (lambda (type)
                              (comp-subtype-p 'integer type))
                            (typeset dst))
-            (apply #'comp-range-intersection
+            (apply #'comp--range-intersection
                    (cl-loop
                     for src in srcs
                     ;; Collect effective ranges.
@@ -773,14 +805,14 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                                     (range dst) ()
                                     (neg dst) nil)
                               (cl-return-from comp-cstr-intersection-no-mem dst)))
-        (when-let ((res (comp-cstrs-homogeneous srcs)))
+        (when-let* ((res (comp--cstrs-homogeneous srcs)))
           (if (eq res 'neg)
-              (apply #'comp-cstr-union-homogeneous t dst srcs)
+              (apply #'comp--cstr-union-homogeneous t dst srcs)
             (apply #'comp-cstr-intersection-homogeneous dst srcs))
           (cl-return-from comp-cstr-intersection-no-mem dst))
 
         ;; Some are negated and some are not
-        (cl-multiple-value-bind (positives negatives) (comp-split-pos-neg srcs)
+        (cl-multiple-value-bind (positives negatives) (comp--split-pos-neg srcs)
           (let* ((pos (apply #'comp-cstr-intersection-homogeneous
                              (make-comp-cstr) positives))
                  (neg (apply #'comp-cstr-intersection-homogeneous
@@ -818,7 +850,7 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                            (comp-subtype-p neg-type pos-type))
                    do (cl-loop
                        with found
-                       for (type . _) in (comp-supertypes neg-type)
+                       for type in (comp-supertypes neg-type)
                        when found
                          collect type into res
                        when (eq type pos-type)
@@ -828,8 +860,8 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                          do (setf found t))))
 
             (setf (range pos)
-                  (comp-range-intersection (range pos)
-                                           (comp-range-negation (range neg)))
+                  (comp--range-intersection (range pos)
+                                           (comp--range-negation (range neg)))
                   (valset pos)
                   (cl-set-difference (valset pos) (valset neg)))
 
@@ -882,8 +914,10 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
 (defun comp-cstr-fixnum-p (cstr)
   "Return t if CSTR is certainly a fixnum."
   (with-comp-cstr-accessors
-    (when (null (neg cstr))
-      (when-let (range (range cstr))
+    (when (and (null (neg cstr))
+               (null (valset cstr))
+               (null (typeset cstr)))
+      (when-let* ((range (range cstr)))
         (let* ((low (caar range))
                (high (cdar (last range))))
           (unless (or (eq low '-)
@@ -892,17 +926,6 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                       (> high most-positive-fixnum))
             t))))))
 
-(defun comp-cstr-symbol-p (cstr)
-  "Return t if CSTR is certainly a symbol."
-  (with-comp-cstr-accessors
-    (and (null (range cstr))
-         (null (neg cstr))
-         (or (and (null (valset cstr))
-                  (equal (typeset cstr) '(symbol)))
-             (and (or (null (typeset cstr))
-                      (equal (typeset cstr) '(symbol)))
-                  (cl-every #'symbolp (valset cstr)))))))
-
 (defsubst comp-cstr-cons-p (cstr)
   "Return t if CSTR is certainly a cons."
   (with-comp-cstr-accessors
@@ -910,6 +933,37 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
          (null (range cstr))
          (null (neg cstr))
          (equal (typeset cstr) '(cons)))))
+
+(defun comp-cstr-type-p (cstr type)
+  "Return t if CSTR is certainly of type TYPE."
+  ;; Only basic types are valid input.
+  (cl-assert (symbolp type))
+  (when
+      (with-comp-cstr-accessors
+        (cl-case type
+          (integer
+           (if (or (valset cstr) (neg cstr))
+               nil
+             (or (equal (typeset cstr) '(integer))
+                 (and (range cstr)
+                      (or (null (typeset cstr))
+                          (equal (typeset cstr) '(integer)))))))
+          (t
+           (if-let* ((pred (get type 'cl-deftype-satisfies)))
+               (and (null (range cstr))
+                    (null (neg cstr))
+                    (if (null (typeset cstr))
+                        (and (valset cstr)
+                             (cl-every pred (valset cstr)))
+                      (when (equal (typeset cstr) `(,type))
+                        ;; (valset cstr) can be nil as well.
+                        (cl-every pred (valset cstr)))))
+             (error "Unknown predicate for type %s" type)))))
+    t))
+
+(defun comp-cstr-symbol-p (cstr)
+  "Return t if CSTR is certainly a symbol."
+  (comp-cstr-type-p cstr 'symbol))
 
 ;; Move to comp.el?
 (defsubst comp-cstr-cl-tag-p (cstr)
@@ -1020,30 +1074,30 @@ SRC can be either a comp-cstr or an integer."
 
 (defun comp-cstr-add (dst srcs)
   "Sum SRCS into DST."
-  (comp-cstr-add-2 dst (cl-first srcs) (cl-second srcs))
+  (comp--cstr-add-2 dst (cl-first srcs) (cl-second srcs))
   (cl-loop
    for src in (nthcdr 2 srcs)
-   do (comp-cstr-add-2 dst dst src)))
+   do (comp--cstr-add-2 dst dst src)))
 
 (defun comp-cstr-sub (dst srcs)
   "Subtract SRCS into DST."
-  (comp-cstr-sub-2 dst (cl-first srcs) (cl-second srcs))
+  (comp--cstr-sub-2 dst (cl-first srcs) (cl-second srcs))
   (cl-loop
    for src in (nthcdr 2 srcs)
-   do (comp-cstr-sub-2 dst dst src)))
+   do (comp--cstr-sub-2 dst dst src)))
 
 (defun comp-cstr-union-no-range (dst &rest srcs)
   "Combine SRCS by union set operation setting the result in DST.
 Do not propagate the range component.
 DST is returned."
-  (apply #'comp-cstr-union-1 nil dst srcs))
+  (apply #'comp--cstr-union-1 nil dst srcs))
 
 (defun comp-cstr-union (dst &rest srcs)
   "Combine SRCS by union set operation setting the result in DST.
 DST is returned."
-  (apply #'comp-cstr-union-1 t dst srcs))
+  (apply #'comp--cstr-union-1 t dst srcs))
 
-(defun comp-cstr-union-make (&rest srcs)
+(defun comp--cstr-union-make (&rest srcs)
   "Combine SRCS by union set operation and return a new constraint."
   (apply #'comp-cstr-union (make-comp-cstr) srcs))
 
@@ -1054,7 +1108,7 @@ DST is returned."
     (let* ((mem-h (comp-cstr-ctxt-intersection-mem comp-ctxt))
            (res (or (gethash srcs mem-h)
                     (puthash
-                     (mapcar #'comp-cstr-copy srcs)
+                     (mapcar #'comp--cstr-copy srcs)
                      (apply #'comp-cstr-intersection-no-mem srcs)
                      mem-h))))
       (comp-cstr-shallow-copy dst res)
@@ -1078,9 +1132,9 @@ DST is returned."
         (cl-loop for v in (valset dst)
                  unless (symbolp v)
                    do (push v strip-values)
-                      (push (type-of v) strip-types))
+                      (push (cl-type-of v) strip-types))
         (when strip-values
-          (setf (typeset dst) (comp-union-typesets (typeset dst) strip-types)
+          (setf (typeset dst) (comp--union-typesets (typeset dst) strip-types)
                 (valset dst) (cl-set-difference (valset dst) strip-values)))
         (cl-loop for (l . h) in (range dst)
                  when (or (bignump l) (bignump h))
@@ -1088,7 +1142,7 @@ DST is returned."
                     (cl-return))))
     dst))
 
-(defun comp-cstr-intersection-make (&rest srcs)
+(defun comp--cstr-intersection-make (&rest srcs)
   "Combine SRCS by intersection set operation and return a new constraint."
   (apply #'comp-cstr-intersection (make-comp-cstr) srcs))
 
@@ -1147,33 +1201,33 @@ FN non-nil indicates we are parsing a function lambda list."
     ('nil
      (make-comp-cstr :typeset ()))
     ('fixnum
-     (comp-irange-to-cstr `(,most-negative-fixnum . ,most-positive-fixnum)))
+     (comp--irange-to-cstr `(,most-negative-fixnum . ,most-positive-fixnum)))
     ('boolean
      (comp-type-spec-to-cstr '(member t nil)))
     ('integer
-     (comp-irange-to-cstr '(- . +)))
-    ('null (comp-value-to-cstr nil))
+     (comp--irange-to-cstr '(- . +)))
+    ('null (comp--value-to-cstr nil))
     ((pred atom)
-     (comp-type-to-cstr type-spec))
+     (comp--type-to-cstr type-spec))
     (`(or . ,rest)
-     (apply #'comp-cstr-union-make
+     (apply #'comp--cstr-union-make
             (mapcar #'comp-type-spec-to-cstr rest)))
     (`(and . ,rest)
-     (apply #'comp-cstr-intersection-make
+     (apply #'comp--cstr-intersection-make
             (mapcar #'comp-type-spec-to-cstr rest)))
     (`(not  ,cstr)
      (comp-cstr-negation-make (comp-type-spec-to-cstr cstr)))
     (`(integer ,(and (pred integerp) l) ,(and (pred integerp) h))
-     (comp-irange-to-cstr `(,l . ,h)))
+     (comp--irange-to-cstr `(,l . ,h)))
     (`(integer * ,(and (pred integerp) h))
-     (comp-irange-to-cstr `(- . ,h)))
+     (comp--irange-to-cstr `(- . ,h)))
     (`(integer ,(and (pred integerp) l) *)
-     (comp-irange-to-cstr `(,l . +)))
+     (comp--irange-to-cstr `(,l . +)))
     (`(float ,(pred comp-star-or-num-p) ,(pred comp-star-or-num-p))
      ;; No float range support :/
-     (comp-type-to-cstr 'float))
+     (comp--type-to-cstr 'float))
     (`(member . ,rest)
-     (apply #'comp-cstr-union-make (mapcar #'comp-value-to-cstr rest)))
+     (apply #'comp--cstr-union-make (mapcar #'comp--value-to-cstr rest)))
     (`(function ,args ,ret)
      (make-comp-cstr-f
       :args (mapcar (lambda (x)

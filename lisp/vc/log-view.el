@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools, vc
@@ -111,6 +111,7 @@
 
 (require 'pcvs-util)
 (require 'easy-mmode)
+(require 'log-edit)
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-diff-internal "vc")
 
@@ -163,14 +164,14 @@
      :help "Go to the previous count'th log message"]
     ["Next File"  log-view-file-next
      :help "Go to the next count'th file"
-     :active (derived-mode-p vc-cvs-log-view-mode
-                             vc-rcs-log-view-mode
-                             vc-sccs-log-view-mode)]
+     :active (derived-mode-p 'vc-cvs-log-view-mode
+                             'vc-rcs-log-view-mode
+                             'vc-sccs-log-view-mode)]
     ["Previous File"  log-view-file-prev
      :help "Go to the previous count'th file"
-     :active (derived-mode-p vc-cvs-log-view-mode
-                             vc-rcs-log-view-mode
-                             vc-sccs-log-view-mode)]))
+     :active (derived-mode-p 'vc-cvs-log-view-mode
+                             'vc-rcs-log-view-mode
+                             'vc-sccs-log-view-mode)]))
 
 (defvar log-view-mode-hook nil
   "Hook run at the end of `log-view-mode'.")
@@ -516,7 +517,8 @@ If called interactively, visit the version at point."
     (switch-to-buffer (vc-find-revision (if log-view-per-file-logs
 					    (log-view-current-file)
 					  (car log-view-vc-fileset))
-					(log-view-current-tag)))))
+					(log-view-current-tag)
+                                        log-view-vc-backend))))
 
 
 (defun log-view-extract-comment ()
@@ -542,11 +544,43 @@ If called interactively, visit the version at point."
 (defun log-view-modify-change-comment ()
   "Edit the change comment displayed at point."
   (interactive)
-  (vc-modify-change-comment (list (if log-view-per-file-logs
-				      (log-view-current-file)
-				    (car log-view-vc-fileset)))
-			    (log-view-current-tag)
-			    (log-view-extract-comment)))
+  (let* ((files (list (if log-view-per-file-logs
+			  (log-view-current-file)
+		        (car log-view-vc-fileset))))
+         (rev (log-view-current-tag))
+         ;; `log-view-extract-comment' is the legacy code for this; the
+         ;; `get-change-comment' backend action is the new way to do it.
+         ;;
+         ;; FIXME: Eventually the older backends should have
+         ;; implementations of `get-change-comment' because that ought
+         ;; to be more robust than the approach taken by
+         ;; `log-view-extract-comment'.  Then we can delete the latter.
+         ;; See discussion in bug#64055.  --spwhitton
+         ;;
+         ;; FIXME: We should implement backend actions
+         ;; `get-change-comment' and `modify-change-comment' for bzr and
+         ;; Hg, so that this command works for those backends.
+         ;; As discussed in bug#64055, `get-change-comment' is required,
+         ;; and parsing the old comment out of the Log View buffer will
+         ;; not do.  This is because for these backends there are
+         ;; `vc-*-log-switches' variables which can change what gets put
+         ;; in the Log View buffers and break any Lisp parsing attempt.
+         (comment (condition-case _
+                      (vc-call-backend log-view-vc-backend
+                                       'get-change-comment files rev)
+                    (vc-not-supported (log-view-extract-comment)))))
+    (when (memq 'log-edit-insert-message-template log-edit-hook)
+      (let* ((first-newline (string-match "\n" comment))
+             (summary (substring comment 0 first-newline))
+             (rest (and first-newline
+                        (substring comment (1+ first-newline)))))
+        (setq comment
+              ;; As we are part of the VC subsystem I think we are
+              ;; entitled to call a \\`log-edit--' function.
+              ;; --spwhitton
+              (concat (log-edit--make-header-line "Summary" summary)
+                      (if (length> rest 0) rest "\n")))))
+    (vc-modify-change-comment files rev comment)))
 
 (defun log-view-annotate-version (pos)
   "Annotate the version at POS.
@@ -562,7 +596,8 @@ If called interactively, annotate the version at point."
     (vc-annotate (if log-view-per-file-logs
 		     (log-view-current-file)
 		   (car log-view-vc-fileset))
-		 (log-view-current-tag))))
+		 (log-view-current-tag)
+                 nil nil nil log-view-vc-backend)))
 
 ;;
 ;; diff

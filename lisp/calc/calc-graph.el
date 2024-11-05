@@ -1,6 +1,6 @@
 ;;; calc-graph.el --- graph output functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -1417,7 +1417,9 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
   "Send ARGS to Gnuplot.
 Returns nil if Gnuplot signaled an error."
   (calc-graph-init)
-  (let ((cmd (concat (mapconcat 'identity args " ") "\n")))
+  ;; We prepend the newline to work around a bug in Gnuplot, whereby it
+  ;; sometimes does not display the plot, see bug#72778.
+  (let ((cmd (concat "\n" (mapconcat 'identity args " ") "\n")))
     (or (calc-graph-w32-p)
 	(accept-process-output))
     (with-current-buffer calc-gnuplot-buffer

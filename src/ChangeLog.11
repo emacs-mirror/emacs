@@ -2029,7 +2029,7 @@
 	(update_frame_tool_bar): Calculate tool-bar style once per call.
 	Instead of hiding text labels, omit them.  Don't use
 	xg_show_toolbar_item; create new GtkToolItems from scratch if
-	necessary, instead of trying to re-use them.  This avoids an
+	necessary, instead of trying to reuse them.  This avoids an
 	annoying animation when changing tool-bars.
 
 2010-12-31  Jan Djärv  <jan.h.d@swipnet.se>
@@ -2048,7 +2048,7 @@
 	(ns_set_name): Call ns_set_name_internal.
 	(x_explicitly_set_name): Remove call to ns_set_name_iconic.
 	(x_implicitly_set_name): Ditto.
-	(x_set_title): Remove commet about EXPLICIT.  Call ns_set_name_internal.
+	(x_set_title): Remove comment about EXPLICIT.  Call ns_set_name_internal.
 	(ns_set_name_as_filename): Encode name with ENCODE_UTF_8 (Bug#7517).
 
 2010-12-29  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
@@ -6278,7 +6278,7 @@
 2010-07-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_initialize): Add new argument RAISE_ERROR, which
-	allows to suppress errors when polling in Emacs' main loop.
+	allows suppressing errors when polling in Emacs' main loop.
 	(Fdbus_init_bus, Fdbus_get_unique_name, Fdbus_call_method)
 	(Fdbus_call_method_asynchronously, Fdbus_method_return_internal)
 	(Fdbus_method_error_internal, Fdbus_send_signal)
@@ -9435,7 +9435,7 @@
 	continuation line, and start looking for a suitable row from
 	there.
 
-	* term.c (append_glyph): Reverse glyphs by pre-pending them,
+	* term.c (append_glyph): Reverse glyphs by prepending them,
 	rather than appending, if the glyph_row's reversed_p flag is set.
 	Set the resolved_level and bidi_type members of each glyph.
 
@@ -12876,7 +12876,7 @@
 
 	* editfns.c (Ftranspose_regions): Doc fix (Bug#3248).
 
-2009-05-10  Ulrich Mueller  <ulm@gentoo.org>
+2009-05-10  Ulrich Müller  <ulm@gentoo.org>
 
 	* s/gnu-linux.h: Make GCPROs and UNGCPRO no-ops also on SuperH.
 
@@ -12978,7 +12978,7 @@
 	* process.c (create_process): Clean up merger residues of
 	2008-07-17 change.
 
-2009-04-29  Ulrich Mueller  <ulm@gentoo.org>
+2009-04-29  Ulrich Müller  <ulm@gentoo.org>
 
 	* lread.c (Vread_circle): New variable.
 	(read1): Disable recursive read if Vread_circle is nil.
@@ -14860,7 +14860,7 @@
 
 	* process.c (Fsystem_process_attributes, syms_of_process):
 	Fix typo in name of Ssystem_process_attributes.
-	Reported by Ulrich Mueller <ulm@kph.uni-mainz.de>.
+	Reported by Ulrich Müller <ulm@kph.uni-mainz.de>.
 
 2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -15356,7 +15356,7 @@
 	* keyboard.c (command_loop_1): Handle NORECORD in call of
 	Fselect_frame (currently ifdefd).
 
-2008-11-02  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+2008-11-02  Ulrich Müller  <ulm@kph.uni-mainz.de>
 
 	* emacs.c (USAGE2): Untabify.
 
@@ -15626,7 +15626,7 @@
 	(Fset_window_buffer): Respect any non-nil dedicated value for
 	window.  Rename "buffer" argument to "buffer_or_name".
 
-2008-10-18  Ulrich Mueller  <ulm@gentoo.org>
+2008-10-18  Ulrich Müller  <ulm@gentoo.org>
 
 	* m/sh3.h: New file, machine description for SuperH.
 
@@ -20180,7 +20180,7 @@
 	(CHECK_FONT_GET_OBJECT): Likewise.
 	(XFONT_SPEC, XFONT_ENTITY, XFONT_OBJECT, XSETFONT): New macros.
 	(PT_PER_INCH, POINT_TO_PIXEL, PIXEL_TO_POINT): Move from font.h.
-	(struct font_driver): New members case_sensitive anc check.
+	(struct font_driver): New members case_sensitive and check.
 	Type of the member list and open changed.
 	(enable_font_backend, font_symbolic_weight, font_symbolic_slant)
 	(font_symbolic_width, font_find_object, font_get_spec)
@@ -23405,7 +23405,7 @@
 	* Makefile.in (lisp): Add ${lispsource}language/tai-viet.el.
 	(shortlisp): Add ../lisp/language/tai-viet.el.
 
-2008-02-01  Ulrich Mueller  <ulm@gentoo.org>
+2008-02-01  Ulrich Müller  <ulm@gentoo.org>
 
 	* Makefile.in (${lispsource}international/charprop.el): Depend on
 	temacs${EXEEXT}.
@@ -31385,7 +31385,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2023 Free Software Foundation, Inc.
+  Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

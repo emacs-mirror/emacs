@@ -1,0 +1,2 @@
+var abc = function(d) {
+};

@@ -1,7 +1,7 @@
 ;; -*- mode: lisp-data; -*-
-((pass 1 "PASS :changeme"))
-((nick 1 "NICK tester"))
-((user 1 "USER user 0 * :tester")
+((pass 10 "PASS :changeme"))
+((nick 10 "NICK tester"))
+((user 10 "USER user 0 * :tester")
  (0 ":irc.foonet.org 001 tester :Welcome to the foonet IRC Network tester")
  (0 ":irc.foonet.org 002 tester :Your host is irc.foonet.org, running version oragono-2.6.0-7481bf0385b95b16")
  (0 ":irc.foonet.org 003 tester :This server was created Tue, 04 May 2021 05:06:18 UTC")
@@ -18,16 +18,16 @@
  (0 ":irc.foonet.org 266 tester 3 3 :Current global users 3, max 3")
  (0 ":irc.foonet.org 422 tester :MOTD File is missing"))
 
-((mode-user 8 "MODE tester +i")
+((mode-user 10 "MODE tester +i")
  (0 ":irc.foonet.org 221 tester +i")
  (0 ":irc.foonet.org NOTICE tester :This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect."))
 
-((join 2 "JOIN #chan")
+((join 10 "JOIN #chan")
  (0 ":tester!~u@9g6b728983yd2.irc JOIN #chan")
  (0 ":irc.foonet.org 353 tester = #chan :alice tester @bob")
  (0 ":irc.foonet.org 366 tester #chan :End of NAMES list"))
 
-((mode 2 "MODE #chan")
+((mode 10 "MODE #chan")
  (0 ":irc.foonet.org 324 tester #chan +nt")
  (0 ":irc.foonet.org 329 tester #chan 1620104779")
  (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #chan :tester, welcome!")

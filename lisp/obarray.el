@@ -1,6 +1,6 @@
 ;;; obarray.el --- obarray functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: obarray functions
@@ -27,24 +27,13 @@
 
 ;;; Code:
 
-(defconst obarray-default-size 59
-  "The value 59 is an arbitrary prime number that gives a good hash.")
+(defconst obarray-default-size 4)
+(make-obsolete-variable 'obarray-default-size
+                        "obarrays now grow automatically." "30.1")
 
-(defun obarray-make (&optional size)
-  "Return a new obarray of size SIZE or `obarray-default-size'."
-  (let ((size (or size obarray-default-size)))
-    (if (< 0 size)
-        (make-vector size 0)
-      (signal 'wrong-type-argument '(size 0)))))
-
-(defun obarray-size (ob)
-  "Return the number of slots of obarray OB."
-  (length ob))
-
-(defun obarrayp (object)
-  "Return t if OBJECT is an obarray."
-  (and (vectorp object)
-       (< 0 (length object))))
+(defun obarray-size (_ob)
+  (declare (obsolete "obarrays now grow automatically." "30.1"))
+  obarray-default-size)
 
 ;; Don’t use obarray as a variable name to avoid shadowing.
 (defun obarray-get (ob name)
@@ -54,7 +43,7 @@ Return nil otherwise."
 
 (defun obarray-put (ob name)
   "Return symbol named NAME from obarray OB.
-Creates and adds the symbol if doesn't exist."
+Creates and adds the symbol if it doesn't exist."
   (intern name ob))
 
 (defun obarray-remove (ob name)

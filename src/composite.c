@@ -1,5 +1,5 @@
 /* Composite sequence support.
-   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 2001-2024 Free Software Foundation, Inc.
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -166,7 +166,7 @@ ptrdiff_t
 get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 		    Lisp_Object prop, Lisp_Object string)
 {
-  Lisp_Object id, length, components, key, *key_contents, hash_code;
+  Lisp_Object id, length, components, key, *key_contents;
   ptrdiff_t glyph_len;
   struct Lisp_Hash_Table *hash_table = XHASH_TABLE (composition_hash_table);
   ptrdiff_t hash_index;
@@ -240,7 +240,8 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
   else
     goto invalid_composition;
 
-  hash_index = hash_lookup (hash_table, key, &hash_code);
+  hash_hash_t hash_code;
+  hash_index = hash_lookup_get_hash (hash_table, key, &hash_code);
   if (hash_index >= 0)
     {
       /* We have already registered the same composition.  Change PROP
@@ -320,7 +321,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
   cmp = xmalloc (sizeof *cmp);
 
   cmp->method = method;
-  cmp->hash_index = hash_index;
+  cmp->key = key;
   cmp->glyph_len = glyph_len;
   cmp->offsets = xnmalloc (glyph_len, 2 * sizeof *cmp->offsets);
   cmp->font = NULL;
@@ -642,10 +643,7 @@ static Lisp_Object gstring_hash_table;
 Lisp_Object
 composition_gstring_lookup_cache (Lisp_Object header)
 {
-  struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
-  ptrdiff_t i = hash_lookup (h, header, NULL);
-
-  return (i >= 0 ? HASH_VALUE (h, i) : Qnil);
+  return Fgethash (header, gstring_hash_table, Qnil);
 }
 
 Lisp_Object
@@ -653,7 +651,7 @@ composition_gstring_put_cache (Lisp_Object gstring, ptrdiff_t len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   Lisp_Object header = LGSTRING_HEADER (gstring);
-  Lisp_Object hash = h->test.hashfn (header, h);
+  EMACS_UINT hash = hash_from_key (h, header);
   if (len < 0)
     {
       ptrdiff_t glyph_len = LGSTRING_GLYPH_LEN (gstring);
@@ -675,7 +673,7 @@ Lisp_Object
 composition_gstring_from_id (ptrdiff_t id)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
-
+  /* FIXME: The stability of this value depends on the hash table internals!  */
   return HASH_VALUE (h, id);
 }
 
@@ -686,18 +684,9 @@ composition_gstring_cache_clear_font (Lisp_Object font_object)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
 
-  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
-    {
-      Lisp_Object k = HASH_KEY (h, i);
-
-      if (!BASE_EQ (k, Qunbound))
-	{
-	  Lisp_Object gstring = HASH_VALUE (h, i);
-
-	  if (EQ (LGSTRING_FONT (gstring), font_object))
-	    hash_remove_from_table (h, k);
-	}
-    }
+  DOHASH (h, k, gstring)
+    if (EQ (LGSTRING_FONT (gstring), font_object))
+      hash_remove_from_table (h, k);
 }
 
 DEFUN ("clear-composition-cache", Fclear_composition_cache,
@@ -987,7 +976,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
       if (NILP (string))
 	record_unwind_protect (restore_point_unwind,
 			       build_marker (current_buffer, pt, pt_byte));
-      lgstring = safe_call (7, Vauto_composition_function, AREF (rule, 2),
+      lgstring = safe_calln (Vauto_composition_function, AREF (rule, 2),
 			    pos, make_fixnum (to), font_object, string,
 			    direction);
     }
@@ -1158,12 +1147,12 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
     }
   else if (charpos > endpos)
     {
-      /* Search backward for a pattern that may be composed and the
-	 position of (possibly) the last character of the match is
+      /* Search backward for a pattern that may be composed such that
+	 the position of (possibly) the last character of the match is
 	 closest to (but not after) START.  The reason for the last
-	 character is that set_iterator_to_next works in reverse order,
-	 and thus we must stop at the last character for composition
-	 check.  */
+	 character is that set_iterator_to_next works in reverse
+	 order, and thus we must stop at the last character for
+	 composition check.  */
       unsigned char *p;
       int len;
       /* Limit byte position used in fast_looking_at.  This is the
@@ -1176,6 +1165,22 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
 	p = SDATA (string) + bytepos;
       c = string_char_and_length (p, &len);
       limit = bytepos + len;
+      /* The algorithmic idea behind the loop below is somewhat tricky
+         and subtle.  Keep in mind that any arbitrarily long sequence
+         of composable characters can potentially be composed to end
+         at or before START.  So the fact that we find a character C
+         before START that can be composed with several following
+         characters does not mean we can exit the loop, because some
+         character before C could also be composed, yielding a longer
+         composed sequence which ends closer to START.  And since a
+         composition can be arbitrarily long, it is very important to
+         know where to stop the search back, because the default --
+         BEGV -- could be VERY far away.  Since searching back is only
+         needed when delivering bidirectional text reordered for
+         display, and since no character composition can ever cross
+         into another embedding level, the search could end when it
+         gets to the end of the current embedding level, but this
+         limit should be imposed by the caller.   */
       while (char_composable_p (c))
 	{
 	  val = CHAR_TABLE_REF (Vcomposition_function_table, c);
@@ -2159,6 +2164,16 @@ of the way buffer text is examined for matching one of the rules.  */)
 }
 
 
+/* Not strictly necessary, because all those "keys" are also
+   reachable from `composition_hash_table`.  */
+void
+mark_composite (void)
+{
+  for (int i = 0; i < n_compositions; i++)
+    mark_object (composition_table[i]->key);
+}
+
+
 void
 syms_of_composite (void)
 {

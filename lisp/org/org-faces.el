@@ -1,9 +1,9 @@
 ;;; org-faces.el --- Face definitions -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
-;; Keywords: outlines, hypermedia, calendar, wp
+;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
@@ -389,6 +389,10 @@ changes."
   "Face used for tables."
   :group 'org-faces)
 
+(defface org-table-row '((t :inherit org-table))
+  "Face used to fontify whole table rows (including newlines and indentation)."
+  :group 'org-faces)
+
 (defface org-table-header '((t :inherit org-table
 			       :background "LightGray"
 			       :foreground "Black"))
@@ -660,6 +664,10 @@ month and 365.24 days for a year)."
   "Face used for agenda entries that come from the Emacs diary."
   :group 'org-faces)
 
+(defface org-agenda-calendar-daterange '((t :inherit default))
+  "Face used to show entries with a date range in the agenda."
+  :group 'org-faces)
+
 (defface org-agenda-calendar-event '((t :inherit default))
   "Face used to show events and appointments in the agenda."
   :group 'org-faces)
@@ -675,15 +683,15 @@ month and 365.24 days for a year)."
 (defcustom org-n-level-faces (length org-level-faces)
   "The number of different faces to be used for headlines.
 Org mode defines 8 different headline faces, so this can be at most 8.
-If it is less than 8, the level-1 face gets re-used for level N+1 etc."
+If it is less than 8, the level-1 face gets reused for level N+1 etc."
   :type 'integer
   :group 'org-faces)
 
 (defcustom org-cycle-level-faces t
   "Non-nil means level styles cycle after level `org-n-level-faces'.
 Then so level org-n-level-faces+1 is styled like level 1.
-If nil, then all levels >= org-n-level-faces are styled like
-level org-n-level-faces."
+If nil, then all levels >= `org-n-level-faces' are styled like
+level `org-n-level-faces'."
   :group 'org-appearance
   :group 'org-faces
   :version "24.1"

@@ -1,9 +1,9 @@
 ;;; ebnf2ps.el --- translate an EBNF to a syntactic chart on PostScript  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
-;; Keywords: wp, ebnf, PostScript
+;; Keywords: text, ebnf, PostScript
 ;; Old-Version: 4.4
 ;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
@@ -5247,7 +5247,7 @@ killed after process termination."
        (or ebnf-fonts-required
 	   (setq ebnf-fonts-required
 		 (mapconcat #'identity
-			    (ps-remove-duplicates
+			    (delete-dups
 			     (mapcar #'ebnf-font-name-select
 				     (list ebnf-production-font
 					   ebnf-terminal-font

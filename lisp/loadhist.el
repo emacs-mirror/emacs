@@ -1,6 +1,6 @@
 ;;; loadhist.el --- lisp functions for working with feature groups  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -108,7 +108,8 @@ from a file."
                               features))
                      features)))))
 
-(defvaralias 'loadhist-hook-functions 'unload-feature-special-hooks)
+(define-obsolete-variable-alias 'loadhist-hook-functions
+  'unload-feature-special-hooks "30.1")
 (defvar unload-feature-special-hooks
   '(after-change-functions after-insert-file-functions
     after-make-frame-functions auto-coding-functions
@@ -148,14 +149,14 @@ documentation of `unload-feature' for details.")
   (save-current-buffer
     (dolist (buffer (buffer-list))
       (set-buffer buffer)
-      (let ((proposed major-mode))
+      (let ((proposed (derived-mode-all-parents major-mode)))
         ;; Look for a predecessor mode not defined in the feature we're processing
-        (while (and proposed (rassq proposed unload-function-defs-list))
-          (setq proposed (get proposed 'derived-mode-parent)))
-        (unless (eq proposed major-mode)
+        (while (and proposed (rassq (car proposed) unload-function-defs-list))
+          (setq proposed (cdr proposed)))
+        (unless (eq (car proposed) major-mode)
           ;; Two cases: either proposed is nil, and we want to switch to fundamental
           ;; mode, or proposed is not nil and not major-mode, and so we use it.
-          (funcall (or proposed 'fundamental-mode)))))))
+          (funcall (or (car proposed) 'fundamental-mode)))))))
 
 (defvar loadhist-unload-filename nil)
 

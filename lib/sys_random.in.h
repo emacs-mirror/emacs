@@ -1,5 +1,5 @@
 /* Substitute for <sys/random.h>.
-   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+   Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -45,7 +45,8 @@
 #ifndef _@GUARD_PREFIX@_SYS_RANDOM_H
 #define _@GUARD_PREFIX@_SYS_RANDOM_H
 
-/* This file uses GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+/* This file uses _GL_ATTRIBUTE_NODISCARD, GNULIB_POSIXCHECK,
+   HAVE_RAW_DECL_*.  */
 #if !_GL_CONFIG_H_INCLUDED
  #error "Please include config.h first."
 #endif
@@ -76,15 +77,15 @@
 #   define getrandom rpl_getrandom
 #  endif
 _GL_FUNCDECL_RPL (getrandom, ssize_t,
-                  (void *buffer, size_t length, unsigned int flags)
-                  _GL_ARG_NONNULL ((1)));
+                  (void *buffer, size_t length, unsigned int flags),
+                  _GL_ARG_NONNULL ((1)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (getrandom, ssize_t,
                   (void *buffer, size_t length, unsigned int flags));
 # else
 #  if !@HAVE_GETRANDOM@
 _GL_FUNCDECL_SYS (getrandom, ssize_t,
-                  (void *buffer, size_t length, unsigned int flags)
-                  _GL_ARG_NONNULL ((1)));
+                  (void *buffer, size_t length, unsigned int flags),
+                  _GL_ARG_NONNULL ((1)) _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (getrandom, ssize_t,
                   (void *buffer, size_t length, unsigned int flags));

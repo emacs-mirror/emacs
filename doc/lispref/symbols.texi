@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Symbols
@@ -100,11 +100,11 @@ the contents of a symbol's function cell, use the function
 property list.  To get a symbol's property list, use the function
 @code{symbol-plist}.  @xref{Symbol Properties}.
 
-  The function cell or the value cell may be @dfn{void}, which means
-that the cell does not reference any object.  (This is not the same
-thing as holding the symbol @code{void}, nor the same as holding the
-symbol @code{nil}.)  Examining a function or value cell that is void
-results in an error, such as @samp{Symbol's value as variable is void}.
+  The value cell may be @dfn{void}, which means that the cell does not
+reference any object.  (This is not the same thing as holding the symbol
+@code{void}, nor the same as holding the symbol @code{nil}.)  Examining
+a value cell that is void results in an error, such as @samp{Symbol's
+value as variable is void}.
 
   Because each symbol has separate value and function cells, variables
 names and function names do not conflict.  For example, the symbol
@@ -177,34 +177,16 @@ know how Lisp reads them.  Lisp must ensure that it finds the same
 symbol every time it reads the same sequence of characters in the same
 context.  Failure to do so would cause complete confusion.
 
-@cindex symbol name hashing
-@cindex hashing
 @cindex obarray
-@cindex bucket (in obarray)
   When the Lisp reader encounters a name that references a symbol in
-the source code, it reads all the characters of that name.  Then it
-looks up that name in a table called an @dfn{obarray} to find the
-symbol that the programmer meant.  The technique used in this lookup
-is called ``hashing'', an efficient method of looking something up by
-converting a sequence of characters to a number, known as a ``hash
-code''.  For example, instead of searching a telephone book cover to
-cover when looking up Jan Jones, you start with the J's and go from
-there.  That is a simple version of hashing.  Each element of the
-obarray is a @dfn{bucket} which holds all the symbols with a given
-hash code; to look for a given name, it is sufficient to look through
-all the symbols in the bucket for that name's hash code.  (The same
-idea is used for general Emacs hash tables, but they are a different
-data type; see @ref{Hash Tables}.)
+the source code, it looks up that name in a table called an @dfn{obarray}
+to find the symbol that the programmer meant.  An obarray is an unordered
+container of symbols, indexed by name.
 
-When looking up names, the Lisp reader also considers ``shorthands''.
+The Lisp reader also considers ``shorthands''.
 If the programmer supplied them, this allows the reader to find a
 symbol even if its name isn't present in its full form in the source
-code.  Of course, the reader needs to be aware of some pre-established
-context about such shorthands, much as one needs context to be to able
-to refer uniquely to Jan Jones by just the name ``Jan'': it's probably
-fine when amongst the Joneses, or when Jan has been mentioned
-recently, but very ambiguous in any other situation.
-@xref{Shorthands}.
+code.  @xref{Shorthands}.
 
 @cindex interning
   If a symbol with the desired name is found, the reader uses that
@@ -236,23 +218,6 @@ to gain access to it is by finding it in some other object or as the
 value of a variable.  Uninterned symbols are sometimes useful in
 generating Lisp code, see below.
 
-  In Emacs Lisp, an obarray is actually a vector.  Each element of the
-vector is a bucket; its value is either an interned symbol whose name
-hashes to that bucket, or 0 if the bucket is empty.  Each interned
-symbol has an internal link (invisible to the user) to the next symbol
-in the bucket.  Because these links are invisible, there is no way to
-find all the symbols in an obarray except using @code{mapatoms} (below).
-The order of symbols in a bucket is not significant.
-
-  In an empty obarray, every element is 0, so you can create an obarray
-with @code{(make-vector @var{length} 0)}.  @strong{This is the only
-valid way to create an obarray.}  Prime numbers as lengths tend
-to result in good hashing; lengths one less than a power of two are also
-good.
-
-  @strong{Do not try to put symbols in an obarray yourself.}  This does
-not work---only @code{intern} can enter a symbol in an obarray properly.
-
 @cindex CL note---symbol in obarrays
 @quotation
 @b{Common Lisp note:} Unlike Common Lisp, Emacs Lisp does not provide
@@ -262,9 +227,21 @@ Emacs Lisp provides a different namespacing system called
 ``shorthands'' (@pxref{Shorthands}).
 @end quotation
 
+@defun obarray-make &optional size
+This function creates and returns a new obarray.
+The optional @var{size} may be used to specify the number of symbols
+that it is expected to hold, but since obarrays grow automatically
+as needed, this rarely provides any benefit.
+@end defun
+
+@defun obarrayp object
+This function returns @code{t} if @var{object} is an obarray,
+@code{nil} otherwise.
+@end defun
+
   Most of the functions below take a name and sometimes an obarray as
 arguments.  A @code{wrong-type-argument} error is signaled if the name
-is not a string, or if the obarray is not a vector.
+is not a string, or if the obarray is not an obarray object.
 
 @defun symbol-name symbol
 This function returns the string that is @var{symbol}'s name.  For example:
@@ -414,6 +391,10 @@ the obarray which has that name.  If there is no such symbol,
 
 If @code{unintern} does delete a symbol, it returns @code{t}.  Otherwise
 it returns @code{nil}.
+@end defun
+
+@defun obarray-clear obarray
+This function removes all symbols from @var{obarray}.
 @end defun
 
 @node Symbol Properties
@@ -675,7 +656,7 @@ name} (@pxref{Symbol Components}).
 
 It is useful to think of shorthands as @emph{abbreviating} the full
 names of intended symbols.  Despite this, do not confuse shorthands with the
-Abbrev system @pxref{Abbrevs}.
+Abbrev system (@pxref{Abbrevs}).
 
 @cindex namespace etiquette
 Shorthands make Emacs Lisp's @dfn{namespacing etiquette} easier to work
@@ -761,6 +742,23 @@ instead of @code{snu-}.
 ;; End:
 @end example
 
+Note that if you have two shorthands in the same file where one is the
+prefix of the other, the longer shorthand will be attempted first.
+This happens regardless of the order you specify shorthands in the
+local variables section of your file.
+
+@example
+'(
+  t//foo ; reads to 'my-tricks--foo', not 'my-tricks-/foo'
+  t/foo  ; reads to 'my-tricks-foo'
+  )
+
+;; Local Variables:
+;; read-symbol-shorthands: (("t/" . "my-tricks-")
+;;                          ("t//" . "my-tricks--")
+;; End:
+@end example
+
 @subsection Exceptions
 
 There are two exceptions to rules governing Shorthand transformations:
@@ -782,11 +780,19 @@ Symbol forms whose names start with @samp{#_} are not transformed.
 @cindex symbol with position
 
 @cindex bare symbol
-A @dfn{symbol with position} is a symbol, the @dfn{bare symbol},
-together with an unsigned integer called the @dfn{position}.  These
-objects are intended for use by the byte compiler, which records in
-them the position of each symbol occurrence and uses those positions
-in warning and error messages.
+A @dfn{symbol with position} is a symbol, called the @dfn{bare symbol},
+together with a nonnegative fixnum called the @dfn{position}.
+Even though a symbol with position often acts like its bare symbol,
+it is not a symbol: instead, it is an object that has both a bare symbol
+and a position.  Because symbols with position are not symbols,
+they don't have entries in the obarray, though their bare symbols
+typically do (@pxref{Creating Symbols}).
+
+The byte compiler uses symbols with position,
+records in them the position of each symbol occurrence, and uses those
+positions in warning and error messages.  They shouldn't normally be
+used otherwise.  Doing so can cause unexpected results with basic
+Emacs functions such as @code{eq} and @code{equal}.
 
 The printed representation of a symbol with position uses the hash
 notation outlined in @ref{Printed Representation}.  It looks like
@@ -796,13 +802,19 @@ just the bare symbol to be printed by binding the variable
 operation.  The byte compiler does this before writing its output to
 the compiled Lisp file.
 
-For most purposes, when the flag variable
-@code{symbols-with-pos-enabled} is non-@code{nil}, symbols with
-positions behave just as bare symbols do.  For example, @samp{(eq
-#<symbol foo at 12345> foo)} has a value @code{t} when that variable
-is set (but @code{nil} when it isn't set).  Most of the time in Emacs this
-variable is @code{nil}, but the byte compiler binds it to @code{t}
-when it runs.
+When the flag variable @code{symbols-with-pos-enabled} is non-@code{nil},
+a symbol with position ordinarily behaves like its bare symbol.
+For example, @samp{(eq (position-symbol 'foo 12345) 'foo)} yields @code{t},
+and @code{equal} likewise treats a symbol with position as its bare symbol.
+
+When @code{symbols-with-pos-enabled} is @code{nil}, symbols with
+position behave as themselves, not as symbols.  For example, @samp{(eq
+(position-symbol 'foo 12345) 'foo)} yields @code{nil}, and @code{equal}
+likewise treats a symbol with position as not equal to its bare symbol.
+
+Most of the time in Emacs @code{symbols-with-pos-enabled} is
+@code{nil}, but the byte compiler and the native compiler bind it to
+@code{t} when they run and Emacs runs a little more slowly in this case.
 
 Typically, symbols with position are created by the byte compiler
 calling the reader function @code{read-positioning-symbols}
@@ -810,36 +822,44 @@ calling the reader function @code{read-positioning-symbols}
 @code{position-symbol}.
 
 @defvar symbols-with-pos-enabled
-When this variable is non-@code{nil}, symbols with position behave
-like the contained bare symbol.  Emacs runs a little more slowly in
-this case.
+This variable affects the behavior of symbols with position when they
+are not being printed and are not arguments to one of the functions
+defined later in this section.  When this variable is non-@code{nil},
+such a symbol with position behaves like its bare symbol; otherwise it
+behaves as itself, not as a symbol.
 @end defvar
 
 @defvar print-symbols-bare
-When bound to non-@code{nil}, the Lisp printer prints only the bare symbol of
-a symbol with position, ignoring the position.
+When bound to non-@code{nil}, the Lisp printer prints only the bare
+symbol of a symbol with position, ignoring the position.
+Otherwise a symbol with position prints as itself, not as a symbol.
 @end defvar
 
-@defun symbol-with-pos-p symbol.
-This function returns @code{t} if @var{symbol} is a symbol with
+@defun symbol-with-pos-p object
+This function returns @code{t} if @var{object} is a symbol with
 position, @code{nil} otherwise.
+Unlike @code{symbolp}, this function ignores @code{symbols-with-pos-enabled}.
 @end defun
 
-@defun bare-symbol symbol
-This function returns the bare symbol contained in @var{symbol}, or
-@var{symbol} itself if it is already a bare symbol.  For any other
-type of object, it signals an error.
+@defun bare-symbol sym
+This function returns the bare symbol of the symbol with
+position @var{sym}, or @var{sym} itself if it is already a symbol.
+For any other type of object, it signals an error.
+This function ignores @code{symbols-with-pos-enabled}.
 @end defun
 
-@defun symbol-with-pos-pos symbol
-This function returns the position, a number, from a symbol with
-position.  For any other type of object, it signals an error.
+@defun symbol-with-pos-pos sympos
+This function returns the position, a nonnegative fixnum, from the symbol with
+position @var{sympos}.  For any other type of object, it signals an error.
+This function ignores @code{symbols-with-pos-enabled}.
 @end defun
 
 @defun position-symbol sym pos
-Make a new symbol with position.  @var{sym} is either a bare symbol or
-a symbol with position, and supplies the symbol part of the new
-object.  @var{pos} is either an integer which becomes the number part
-of the new object, or a symbol with position whose position is used.
+Make a new symbol with position.  The new object's bare symbol is taken
+from @var{sym}, which is either a symbol, or a symbol with position
+whose bare symbol is used.  The new object's position is taken from
+@var{pos}, which is either a nonnegative fixnum, or a symbol with
+position whose position is used.
 Emacs signals an error if either argument is invalid.
+This function ignores @code{symbols-with-pos-enabled}.
 @end defun

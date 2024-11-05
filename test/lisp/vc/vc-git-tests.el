@@ -1,6 +1,6 @@
 ;;; vc-git-tests.el --- tests for vc/vc-git.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
 
 ;; Author: Justin Schell <justinmschell@gmail.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -24,6 +24,9 @@
 
 ;;; Code:
 
+(require 'ert-x)
+(require 'vc)
+(require 'vc-dir)
 (require 'vc-git)
 
 (ert-deftest vc-git-test-program-version-general ()
@@ -80,5 +83,111 @@
                (vc-git-annotate-time)))
     (should-not (vc-git-annotate-time))
     (should-not (vc-git-annotate-time))))
+
+(defmacro vc-git-test--with-repo (name &rest body)
+  "Initialize a repository in a temporary directory and evaluate BODY.
+
+The current directory will be set to the top of that repository; NAME
+will be bound to that directory's file name.  Once BODY exits, the
+directory will be deleted.
+
+Some dummy environment variables will be set for the duration of BODY to
+allow `git commit' to determine identities for authors and committers."
+  (declare (indent 1))
+  `(ert-with-temp-directory ,name
+     (let ((default-directory ,name)
+           (process-environment (append '("EMAIL=john@doe.ee"
+                                          "GIT_AUTHOR_NAME=A"
+                                          "GIT_COMMITTER_NAME=C")
+                                        process-environment)))
+       (vc-create-repo 'Git)
+       ,@body)))
+
+(defun vc-git-test--run (&rest args)
+  "Run git ARGS…, check for non-zero status, and return output."
+  (with-temp-buffer
+    (apply 'vc-git-command t 0 nil args)
+    (buffer-string)))
+
+(defun vc-git-test--start-branch ()
+  "Get a branch started in a freshly initialized repository.
+
+This returns the name of the current branch, so that tests can remain
+agnostic of init.defaultbranch."
+  (write-region "hello" nil "README")
+  (vc-git-test--run "add" "README")
+  (vc-git-test--run "commit" "-mFirst")
+  (string-trim (vc-git-test--run "branch" "--show-current")))
+
+(defun vc-git-test--dir-headers (headers)
+  "Return an alist of header values for the current `vc-dir' buffer.
+
+HEADERS should be a list of (NAME ...) strings.  This function will
+return a list of (NAME . VALUE) pairs, where VALUE is nil if the header
+is absent."
+  ;; FIXME: to reproduce interactive sessions faithfully, we would need
+  ;; to wait for the dir-status-files process to terminate; have not
+  ;; found a reliable way to do this.  As a workaround, kill pending
+  ;; processes and revert the `vc-dir' buffer.
+  (vc-dir-kill-dir-status-process)
+  (revert-buffer)
+  (mapcar
+   (lambda (header)
+     (let* ((pattern
+             (rx bol
+                 (literal header) (* space) ": " (group (+ nonl))
+                 eol))
+            (value (and (goto-char (point-min))
+                        (re-search-forward pattern nil t)
+                        (match-string 1))))
+       (cons header value)))
+   headers))
+
+(ert-deftest vc-git-test-dir-branch-headers ()
+  "Check that `vc-dir' shows expected branch-related headers."
+  (skip-unless (executable-find vc-git-program))
+  ;; Create a repository that will serve as the "remote".
+  (vc-git-test--with-repo origin-repo
+    (let ((main-branch (vc-git-test--start-branch)))
+      ;; 'git clone' this repository and test things in this clone.
+      (ert-with-temp-directory clone-repo
+        (vc-git-test--run "clone" origin-repo clone-repo)
+        (vc-dir clone-repo)
+        (should
+         (equal
+          (vc-git-test--dir-headers
+           '("Branch" "Tracking" "Remote"))
+          `(("Branch"   . ,main-branch)
+            ("Tracking" . ,(concat "origin/" main-branch))
+            ("Remote"   . ,origin-repo))))
+        ;; Checkout a new branch: no tracking information.
+        (vc-git-test--run "checkout" "-b" "feature/foo" main-branch)
+        (should
+         (equal
+          (vc-git-test--dir-headers
+           '("Branch" "Tracking" "Remote"))
+          '(("Branch"   . "feature/foo")
+            ("Tracking" . nil)
+            ("Remote"   . nil))))
+        ;; Push with '--set-upstream origin': tracking information
+        ;; should be updated.
+        (vc-git-test--run "push" "--set-upstream" "origin" "feature/foo")
+        (should
+         (equal
+          (vc-git-test--dir-headers
+           '("Branch" "Tracking" "Remote"))
+          `(("Branch"   . "feature/foo")
+            ("Tracking" . "origin/feature/foo")
+            ("Remote"   . ,origin-repo))))
+        ;; Checkout a new branch tracking the _local_ main branch.
+        ;; Bug#68183.
+        (vc-git-test--run "checkout" "-b" "feature/bar" "--track" main-branch)
+        (should
+         (equal
+          (vc-git-test--dir-headers
+           '("Branch" "Tracking" "Remote"))
+          `(("Branch"   . "feature/bar")
+            ("Tracking" . ,main-branch)
+            ("Remote"   . "none (tracking local branch)"))))))))
 
 ;;; vc-git-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; webjump-tests.el --- Tests for webjump.el        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -58,7 +58,7 @@
 (ert-deftest webjump-tests-url-fix ()
   (should (equal (webjump-url-fix nil) ""))
   (should (equal (webjump-url-fix "/tmp/") "file:///tmp/"))
-  (should (equal (webjump-url-fix "gnu.org") "http://gnu.org/"))
+  (should (equal (webjump-url-fix "gnu.org") "https://gnu.org/"))
   (should (equal (webjump-url-fix "ftp.x.org") "ftp://ftp.x.org/"))
   (should (equal (webjump-url-fix "https://gnu.org")
                  "https://gnu.org/")))

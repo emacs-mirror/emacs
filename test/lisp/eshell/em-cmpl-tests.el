@@ -1,6 +1,6 @@
 ;;; em-cmpl-tests.el --- em-cmpl test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -175,18 +175,18 @@ ACTUAL and EXPECTED should both be lists of strings."
    (ert-with-temp-directory default-directory
      (write-region nil nil (expand-file-name "file.txt"))
      (write-region nil nil (expand-file-name "file.el"))
+     ;; Complete the first time.  This should insert the common prefix
+     ;; of our completions.
      (should (equal (eshell-insert-and-complete "echo fi")
                     "echo file."))
+     ;; Make sure the completions buffer isn't displayed.
+     (should-not (get-buffer-window "*Completions*"))
      ;; Now try completing again.
      (let ((minibuffer-message-timeout 0)
            (inhibit-message t))
        (completion-at-point))
-     ;; FIXME: We can't use `current-message' here.
-     (with-current-buffer (messages-buffer)
-       (save-excursion
-         (goto-char (point-max))
-         (forward-line -1)
-         (should (looking-at "Complete, but not unique")))))))
+     ;; This time, we should display the completions buffer.
+     (should (get-buffer-window "*Completions*")))))
 
 (ert-deftest em-cmpl-test/file-completion/glob ()
   "Test completion of file names using a glob."
@@ -243,14 +243,17 @@ See <lisp/eshell/esh-cmd.el>."
                   "echo $(eshell/echo"))))
 
 (ert-deftest em-cmpl-test/special-ref-completion/type ()
-  "Test completion of the start of special references like \"#<buffer\".
+  "Test completion of the start of special reference types like \"#<buffer\".
 See <lisp/eshell/esh-arg.el>."
   (with-temp-eshell
    (should (equal (eshell-insert-and-complete "echo hi > #<buf")
                   "echo hi > #<buffer ")))
   (with-temp-eshell
    (should (equal (eshell-insert-and-complete "echo hi > #<proc")
-                  "echo hi > #<process "))))
+                  "echo hi > #<process ")))
+  (with-temp-eshell
+   (should (equal (eshell-insert-and-complete "echo hi > #<mark")
+                  "echo hi > #<marker "))))
 
 (ert-deftest em-cmpl-test/special-ref-completion/implicit-buffer ()
   "Test completion of special references like \"#<buf>\".
@@ -281,6 +284,31 @@ See <lisp/eshell/esh-arg.el>."
        (should (equal (eshell-insert-and-complete "echo hi > #<buffer anoth")
                       (format "echo hi > #<buffer %s> "
                               (string-replace " " "\\ " bufname))))))))
+
+(ert-deftest em-cmpl-test/special-ref-completion/marker ()
+  "Test completion of special references like \"#<marker 1 buf>\".
+See <lisp/eshell/esh-arg.el>."
+  (let (bufname)
+    (with-temp-buffer
+      (setq bufname (rename-buffer "my-buffer" t))
+      ;; Complete the buffer name in various forms.
+      (with-temp-eshell
+       (should (equal (eshell-insert-and-complete
+                       "echo hi > #<marker 1 my-buf")
+                      (format "echo hi > #<marker 1 %s> " bufname))))
+      (with-temp-eshell
+       (should (equal (eshell-insert-and-complete
+                       "echo hi > #<marker 1 #<my-buf")
+                      (format "echo hi > #<marker 1 #<%s>> " bufname))))
+      (with-temp-eshell
+       (should (equal (eshell-insert-and-complete
+                       "echo hi > #<marker 1 #<buffer my-buf")
+                      (format "echo hi > #<marker 1 #<buffer %s>> " bufname))))
+      ;; Partially-complete the "buffer" type name.
+      (with-temp-eshell
+       (should (equal (eshell-insert-and-complete
+                       "echo hi > #<marker 1 #<buf")
+                      "echo hi > #<marker 1 #<buffer "))))))
 
 (ert-deftest em-cmpl-test/variable-ref-completion ()
   "Test completion of variable references like \"$var\".

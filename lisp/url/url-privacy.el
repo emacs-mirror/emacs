@@ -1,6 +1,6 @@
 ;;; url-privacy.el --- Global history tracking for URL package  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2024 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -58,16 +58,6 @@
             ('pgtk "PureGTK")
 	    ('tty "TTY")
 	    (_ nil)))))
-
-  (setq url-personal-mail-address (or url-personal-mail-address
-				      user-mail-address
-				      (format "%s@%s"  (user-real-login-name)
-					      (system-name))))
-
-  (if (or (memq url-privacy-level '(paranoid high))
-	  (and (listp url-privacy-level)
-	       (memq 'email url-privacy-level)))
-      (setq url-personal-mail-address nil))
 
   (setq url-os-type
 	(cond

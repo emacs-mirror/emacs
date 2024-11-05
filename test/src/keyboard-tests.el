@@ -1,6 +1,6 @@
 ;;; keyboard-tests.el --- Tests for keyboard.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,6 +23,11 @@
 
 (ert-deftest keyboard-unread-command-events ()
   "Test `unread-command-events'."
+  ;; Avoid hang on Cygwin; see bug#65325.
+  (skip-unless (or (not (eq system-type 'cygwin))
+                   (featurep 'gfilenotify)
+                   (featurep 'dbus)
+                   (featurep 'threads)))
   (let ((unread-command-events nil))
     (should (equal (progn (push ?\C-a unread-command-events)
                           (read-event nil nil 1))

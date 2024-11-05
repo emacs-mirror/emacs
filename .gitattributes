@@ -1,6 +1,6 @@
 # Attributes of Emacs files in the Git repository.
 
-# Copyright 2015-2023 Free Software Foundation, Inc.
+# Copyright 2015-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -116,3 +116,7 @@ build-aux/msys-to-w32 diff=shell
 build-aux/update-subdirs diff=shell
 lib-src/rcs2log diff=shell
 /make-dist diff=shell
+
+# This file contains in-line diffs, which can include trailing
+# whitespace.
+java/INSTALL -whitespace

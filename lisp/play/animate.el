@@ -1,6 +1,6 @@
 ;;; animate.el --- make text dance  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: Richard Stallman <rms@gnu.org>
 ;; Keywords: games
@@ -102,7 +102,7 @@
   "Total number of seconds to wait in between steps.
 This is added to the total time it takes to run `animate-string'
 to ensure that the animation is not too fast to be seen."
-  :type 'float
+  :type 'number
   :version "29.1")
 
 (defvar animation-buffer-name nil

@@ -85,6 +85,10 @@ foo(foo, bar:
 foo(foo, :bar =>
     tee)
 
+foo = %w[
+  asd
+]
+
 # Local Variables:
 # mode: ruby-ts
 # ruby-after-operator-indent: t

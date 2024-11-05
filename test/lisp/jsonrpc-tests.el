@@ -1,6 +1,6 @@
 ;;; jsonrpc-tests.el --- tests for jsonrpc.el        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: tests
@@ -103,15 +103,18 @@
                         (process-get listen-server 'handlers))))))))
 
 (cl-defmacro jsonrpc--with-emacsrpc-fixture ((endpoint-sym) &body body)
+  (declare (indent 1))
   `(jsonrpc--call-with-emacsrpc-fixture (lambda (,endpoint-sym) ,@body)))
 
 (ert-deftest returns-3 ()
   "A basic test for adding two numbers in our test RPC."
+  (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-emacsrpc-fixture (conn)
     (should (= 3 (jsonrpc-request conn '+ [1 2])))))
 
 (ert-deftest errors-with--32601 ()
   "Errors with -32601"
+  (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-emacsrpc-fixture (conn)
     (condition-case err
         (progn
@@ -122,6 +125,7 @@
 
 (ert-deftest signals-an--32603-JSONRPC-error ()
   "Signals an -32603 JSONRPC error."
+  (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-emacsrpc-fixture (conn)
     (condition-case err
         (let ((jsonrpc-inhibit-debug-on-error t))
@@ -132,6 +136,7 @@
 
 (ert-deftest times-out ()
   "Request for 3-sec sit-for with 1-sec timeout times out."
+  (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-emacsrpc-fixture (conn)
     (should-error
      (jsonrpc-request conn 'sit-for [3] :timeout 1))))
@@ -139,25 +144,19 @@
 (ert-deftest doesnt-time-out ()
   :tags '(:expensive-test)
   "Request for 1-sec sit-for with 2-sec timeout succeeds."
+  (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-emacsrpc-fixture (conn)
     (jsonrpc-request conn 'sit-for [1] :timeout 2)))
 
 (ert-deftest stretching-it-but-works ()
   "Vector of numbers or vector of vector of numbers are serialized."
+  (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-emacsrpc-fixture (conn)
     ;; (vconcat [1 2 3] [3 4 5]) => [1 2 3 3 4 5] which can be
     ;; serialized.
     (should (equal
              [1 2 3 3 4 5]
              (jsonrpc-request conn 'vconcat [[1 2 3] [3 4 5]])))))
-
-(ert-deftest json-el-cant-serialize-this ()
-  "Can't serialize a response that is half-vector/half-list."
-  (jsonrpc--with-emacsrpc-fixture (conn)
-                                  (should-error
-                                   ;; (append [1 2 3] [3 4 5]) => (1 2 3 . [3 4 5]), which can't be
-                                   ;; serialized
-                                   (jsonrpc-request conn 'append [[1 2 3] [3 4 5]]))))
 
 (cl-defmethod jsonrpc-connection-ready-p
   ((conn jsonrpc--test-client) what)
@@ -168,6 +167,7 @@
 (ert-deftest deferred-action-toolate ()
   :tags '(:expensive-test)
   "Deferred request fails because no one clears the flag."
+  (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-emacsrpc-fixture (conn)
     (should-error
      (jsonrpc-request conn '+ [1 2]
@@ -180,6 +180,7 @@
 (ert-deftest deferred-action-intime ()
   :tags '(:expensive-test)
   "Deferred request barely makes it after event clears a flag."
+  (skip-when (eq system-type 'windows-nt))
   ;; Send an async request, which returns immediately. However the
   ;; success fun which sets the flag only runs after some time.
   (jsonrpc--with-emacsrpc-fixture (conn)
@@ -198,6 +199,7 @@
 (ert-deftest deferred-action-complex-tests ()
   :tags '(:expensive-test)
   "Test a more complex situation with deferred requests."
+  (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-emacsrpc-fixture (conn)
     (let (n-deferred-1
           n-deferred-2

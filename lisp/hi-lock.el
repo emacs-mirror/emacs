@@ -1,6 +1,6 @@
 ;;; hi-lock.el --- minor mode for interactive automatic highlighting  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: David M. Koppelman <koppel@ece.lsu.edu>
 ;; Keywords: faces, minor-mode, matching, display
@@ -122,9 +122,10 @@ calls."
   "Specify when hi-lock should use patterns found in file.
 If `ask', prompt when patterns found in buffer; if bound to a function,
 use patterns when function returns t (function is called with patterns
-as first argument); if nil or `never' or anything else, don't use file
-patterns."
+as first argument); if `always', use file patterns without prompt;
+if nil or `never' or anything else, don't use file patterns."
   :type '(choice (const :tag "Do not use file patterns" never)
+                 (const :tag "Always use file patterns" always)
                  (const :tag "Ask about file patterns" ask)
                  (function :tag "Function to check file patterns"))
   :group 'hi-lock
@@ -334,8 +335,8 @@ which can be called interactively, are:
   (See `font-lock-keywords'.)  They may be edited and re-loaded with \\[hi-lock-find-patterns],
   any valid `font-lock-keywords' form is acceptable.  When a file is
   loaded the patterns are read if `hi-lock-file-patterns-policy' is
-  `ask' and the user responds y to the prompt, or if
-  `hi-lock-file-patterns-policy' is bound to a function and that
+  `always', or if it's `ask' and the user responds y to the prompt,
+  or if `hi-lock-file-patterns-policy' is bound to a function and that
   function returns t.
 
 \\[hi-lock-find-patterns]
@@ -376,7 +377,9 @@ use (hi-lock-mode 1) for individual buffers.")))
 	(hi-lock-find-patterns)
         (add-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook nil t)
         ;; Remove regexps from font-lock-keywords (bug#13891).
-	(add-hook 'change-major-mode-hook (lambda () (hi-lock-mode -1)) nil t))
+	(add-hook 'change-major-mode-hook (lambda () (hi-lock-mode -1)) nil t)
+	(add-hook 'revert-buffer-restore-functions
+		  #'hi-lock-revert-buffer-rehighlight nil t))
     ;; Turned off.
     (when (or hi-lock-interactive-patterns
 	      hi-lock-file-patterns)
@@ -390,7 +393,9 @@ use (hi-lock-mode 1) for individual buffers.")))
       (remove-overlays nil nil 'hi-lock-overlay t)
       (font-lock-flush))
     (define-key-after menu-bar-edit-menu [hi-lock] nil)
-    (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook t)))
+    (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook t)
+    (remove-hook 'revert-buffer-restore-functions
+		 #'hi-lock-revert-buffer-rehighlight t)))
 
 ;;;###autoload
 (define-globalized-minor-mode global-hi-lock-mode
@@ -746,7 +751,7 @@ with completion and history."
 
 (defvar hi-lock-use-overlays nil
   "Whether to always use overlays instead of font-lock rules.
-When font-lock-mode is enabled and the buffer specifies font-lock rules,
+When `font-lock-mode' is enabled and the buffer specifies font-lock rules,
 highlighting is performed by adding new font-lock rules to the existing ones,
 so when new matching strings are added, they are highlighted by font-lock.
 Otherwise, overlays are used, but new highlighting overlays are not added
@@ -764,6 +769,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
   ;; Hashcons the regexp, so it can be passed to remove-overlays later.
   (setq regexp (hi-lock--hashcons regexp))
   (setq subexp (or subexp 0))
+  (when lighter (setq lighter (propertize lighter 'regexp regexp)))
   (let ((pattern (list (lambda (limit)
                          (let ((case-fold-search case-fold)
                                (search-spaces-regexp spaces-regexp))
@@ -848,6 +854,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
                    (funcall hi-lock-file-patterns-policy all-patterns))
                   ((eq hi-lock-file-patterns-policy 'ask)
                    (y-or-n-p "Add patterns from this buffer to hi-lock? "))
+                  ((eq hi-lock-file-patterns-policy 'always) t)
                   (t nil)))
         (hi-lock-set-file-patterns all-patterns)
         (if (called-interactively-p 'interactive)
@@ -858,6 +865,35 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
   (when font-lock-fontified
     (font-lock-add-keywords nil hi-lock-file-patterns t)
     (font-lock-add-keywords nil hi-lock-interactive-patterns t)))
+
+(defun hi-lock-revert-buffer-rehighlight ()
+  "Rehighlight hi-lock patterns after `revert-buffer'.
+Apply the previous patterns after reverting the buffer."
+  (when (or hi-lock-interactive-lighters hi-lock-file-patterns)
+    (let ((patterns hi-lock-interactive-lighters)
+          (policy (if hi-lock-file-patterns 'always 'never))
+          rehighlight)
+      (lambda ()
+        ;; When using revert-buffer without preserve-modes
+        (unless hi-lock-mode
+          ;; Don't ask about file patterns again
+          (let ((hi-lock-file-patterns-policy policy))
+            (hi-lock-mode 1))
+          (setq rehighlight t))
+        ;; When using hi-lock overlays, then need to update them
+        (unless (and font-lock-mode (font-lock-specified-p major-mode)
+                     (not hi-lock-use-overlays))
+          (hi-lock-unface-buffer t)
+          (setq rehighlight t))
+        (when rehighlight
+          (setq hi-lock--unused-faces hi-lock-face-defaults)
+          (dolist (pattern (reverse patterns))
+            (let ((face (hi-lock-keyword->face (cdr pattern))))
+              (highlight-regexp (or (get-text-property 0 'regexp (car pattern))
+                                    (car pattern))
+                                face nil (car pattern))
+              (setq hi-lock--unused-faces
+                    (remove (face-name face) hi-lock--unused-faces)))))))))
 
 (defvar hi-lock--hashcons-hash
   (make-hash-table :test 'equal :weakness t)

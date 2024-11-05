@@ -1,6 +1,6 @@
 -*- outline -*-
 
-Copyright (C) 2013-2023 Free Software Foundation, Inc.
+Copyright (C) 2013-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 NOTES FOR EMACS WWW PAGES
@@ -85,7 +85,7 @@ permanent redirects, and changes go live more-or-less straight away.
 This method is useful for making cross-references to non-Emacs manuals
 work; see manual/.htaccess in the repository.  You only have to add a
 single redirect for every given external manual, you can redirect
-html_node to hmtl_node and html_mono to html_mono.
+html_node to html_node and html_mono to html_mono.
 
 * Why CVS?
 

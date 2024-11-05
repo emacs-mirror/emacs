@@ -1,6 +1,6 @@
 ;;; cc-awk.el --- AWK specific code within cc-mode. -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1994, 1996, 2000-2023 Free Software Foundation,
+;; Copyright (C) 1988, 1994, 1996, 2000-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Alan Mackenzie <acm@muc.de> (originally based on awk-mode.el)
@@ -754,21 +754,21 @@
   (if (eq (char-after beg) ?_) (setq beg (1+ beg)))
 
   ;; First put the properties on the delimiters.
-  (cond ((eq end (point-max))           ; string/regexp terminated by EOB
-         (c-put-char-property beg 'syntax-table '(15))) ; (15) = "string fence"
-        ((/= (char-after beg) (char-after end)) ; missing end delimiter
-         (c-put-char-property beg 'syntax-table '(15))
-         (c-put-char-property end 'syntax-table '(15)))
-        ((eq (char-after beg) ?/)       ; Properly bracketed regexp
-         (c-put-char-property beg 'syntax-table '(7)) ; (7) = "string"
-         (c-put-char-property end 'syntax-table '(7)))
-        (t))                       ; Properly bracketed string: Nothing to do.
+  (cond ((eq end (point-max))	        ; string/regexp terminated by EOB
+	 (c-put-string-fence beg))
+	((/= (char-after beg) (char-after end)) ; missing end delimiter
+	 (c-put-string-fence beg)
+	 (c-put-string-fence end))
+	((eq (char-after beg) ?/)	; Properly bracketed regexp
+	 (c-put-char-property beg 'syntax-table '(7)) ; (7) = "string"
+	 (c-put-syntax-table-trim-caches end '(7)))
+	(t))                       ; Properly bracketed string: Nothing to do.
   ;; Now change the properties of any escaped "s in the string to punctuation.
   (save-excursion
     (goto-char (1+ beg))
     (or (eobp)
-        (while (search-forward "\"" end t)
-          (c-put-char-property (1- (point)) 'syntax-table '(1))))))
+	(while (search-forward "\"" end t)
+	  (c-put-syntax-table-trim-caches (1- (point)) '(1))))))
 
 (defun c-awk-syntax-tablify-string ()
   ;; Point is at the opening " or _" of a string.  Set the syntax-table
@@ -861,7 +861,7 @@
   (let (anchor
 	(anchor-state-/div nil)) ; t means a following / would be a div sign.
     (c-awk-beginning-of-logical-line) ; ACM 2002/7/21.  This is probably redundant.
-    (c-clear-char-properties (point) lim 'syntax-table)
+    (c-clear-syntax-table-properties-trim-caches (point) lim)
     ;; Once round the next loop for each string, regexp, or div sign
     (while (progn
              ;; Skip any "harmless" lines before the next tricky one.
@@ -990,7 +990,7 @@
 		 "ERRNO" "FIELDWIDTHS" "FILENAME" "FNR" "FPAT" "FS" "FUNCTAB"
 		 "IGNORECASE" "LINT" "NF" "NR" "OFMT" "OFS" "ORS" "PREC"
 		 "PROCINFO" "RLENGTH" "ROUNDMODE" "RS" "RSTART" "RT" "SUBSEP"
-		 "SYNTAB" "TEXTDOMAIN") t) "\\>")
+		 "SYMTAB" "TEXTDOMAIN") t) "\\>")
       'font-lock-variable-name-face)
 
      ;; Special file names.  (acm, 2002/7/22)
@@ -1011,9 +1011,11 @@ std\\(err\\|in\\|out\\)\\|user\\)\\)\\>\
      ;; Do the same (almost) with
      ;; (regexp-opt '("/inet/tcp/lport/rhost/rport" "/inet/udp/lport/rhost/rport"
      ;;                 "/inet/raw/lport/rhost/rport") 'words)
+     ;; , replacing "inet" with "inet[46]?"
+     ;; , replacing "lport", "rhost", and "rport" with "[[:alnum:]]+".
      ;; This cannot be combined with the above pattern, because the match number
      ;; for the (optional) closing \" would then exceed 9.
-     '("\\(\"/inet/\\(\\(raw\\|\\(tc\\|ud\\)p\\)/lport/rhost/rport\\)\\)\\>\
+     '("\\(\"/inet[46]?/\\(\\(raw\\|\\(tc\\|ud\\)p\\)/[[:alnum:]]+/[[:alnum:]]+/[[:alnum:]]+\\)\\)\\>\
 \\(\\(\"\\)\\|\\([^\"/\n\r][^\"\n\r]*\\)?$\\)"
        (1 font-lock-variable-name-face t)
        (6 font-lock-variable-name-face t t))
@@ -1035,8 +1037,8 @@ std\\(err\\|in\\|out\\)\\|user\\)\\)\\>\
 		  '("adump" "and" "asort" "asorti" "atan2" "bindtextdomain" "close"
 		    "compl" "cos" "dcgettext" "dcngettext" "exp" "extension" "fflush"
 		    "gensub" "gsub" "index" "int" "isarray" "length" "log" "lshift"
-		    "match" "mktime" "or" "patsplit" "print" "printf" "rand" "rshift"
-		    "sin" "split" "sprintf" "sqrt" "srand" "stopme"
+		    "match" "mkbool" "mktime" "or" "patsplit" "print" "printf" "rand"
+		    "rshift" "sin" "split" "sprintf" "sqrt" "srand" "stopme"
 		    "strftime" "strtonum" "sub" "substr"  "system"
 		    "systime" "tolower" "toupper" "typeof" "xor")
 		  t)

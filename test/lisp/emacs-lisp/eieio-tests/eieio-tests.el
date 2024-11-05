@@ -1,6 +1,6 @@
 ;;; eieio-tests.el --- eieio test routines -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2003, 2005-2010, 2012-2023 Free Software
+;; Copyright (C) 1999-2003, 2005-2010, 2012-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -1011,24 +1011,24 @@ Subclasses to override slot attributes."))
          (B (clone A :b "bb"))
          (C (clone B :a "aa")))
 
-    (should (string= "aa" (oref C :a)))
-    (should (string= "bb" (oref C :b)))
+    (should (string= "aa" (oref C a)))
+    (should (string= "bb" (oref C b)))
 
-    (should (slot-boundp A :a))
-    (should-not (slot-boundp A :b))
-    (should-not (slot-boundp A :c))
+    (should (slot-boundp A 'a))
+    (should-not (slot-boundp A 'b))
+    (should-not (slot-boundp A 'c))
 
-    (should-not (slot-boundp B :a))
-    (should (slot-boundp B :b))
-    (should-not (slot-boundp A :c))
+    (should-not (slot-boundp B 'a))
+    (should (slot-boundp B 'b))
+    (should-not (slot-boundp A 'c))
 
-    (should (slot-boundp C :a))
-    (should-not (slot-boundp C :b))
-    (should-not (slot-boundp C :c))
+    (should (slot-boundp C 'a))
+    (should-not (slot-boundp C 'b))
+    (should-not (slot-boundp C 'c))
 
-    (should (eieio-instance-inheritor-slot-boundp C :a))
-    (should (eieio-instance-inheritor-slot-boundp C :b))
-    (should-not (eieio-instance-inheritor-slot-boundp C :c))))
+    (should (eieio-instance-inheritor-slot-boundp C 'a))
+    (should (eieio-instance-inheritor-slot-boundp C 'b))
+    (should-not (eieio-instance-inheritor-slot-boundp C 'c))))
 
 ;;;; Interaction with defstruct
 
@@ -1045,6 +1045,27 @@ Subclasses to override slot attributes."))
     (setf (slot-value x 'a) 1)
     (should (eq (eieio-test--struct-a x) 1))
     (should-error (setf (slot-value x 'c) 3) :type 'eieio-read-only)))
+
+(defclass foo-bug-66938 (eieio-instance-inheritor)
+  ((x :initarg :x
+      :accessor ref-x
+      :reader get-x))
+  "A class to test that delegation occurs under certain
+circumstances when using an accessor function, as it would when
+using the reader function.")
+
+(ert-deftest eieio-test-use-accessor-function-with-cloned-object ()
+  "The class FOO-BUG-66938 is a subclass of
+`eieio-instance-inheritor'. Therefore, given an instance OBJ1 of
+FOO-BUG-66938, and a clone (OBJ2), OBJ2 should delegate to OBJ1
+when accessing an unbound slot.
+
+In particular, its behavior should be identical to that of the
+reader function, when reading a slot."
+  (let* ((obj1 (foo-bug-66938 :x 4))
+         (obj2 (clone obj1)))
+    (should (eql (ref-x obj2) 4))
+    (should (eql (get-x obj2) (ref-x obj2)))))
 
 (provide 'eieio-tests)
 

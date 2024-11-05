@@ -1,6 +1,6 @@
 ;;; eieio-opt.el --- eieio optional functions (debug, printing, speedbar)  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996, 1998-2003, 2005, 2008-2023 Free Software
+;; Copyright (C) 1996, 1998-2003, 2005, 2008-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -50,7 +50,7 @@ variable `eieio-default-superclass'."
   (if (not root-class) (setq root-class 'eieio-default-superclass))
   (cl-check-type root-class class)
   (display-buffer (get-buffer-create "*EIEIO OBJECT BROWSE*") t)
-  (with-current-buffer (get-buffer "*EIEIO OBJECT BROWSE*")
+  (with-current-buffer "*EIEIO OBJECT BROWSE*"
     (erase-buffer)
     (goto-char 0)
     (eieio-browse-tree root-class "" "")

@@ -1,6 +1,6 @@
 ;;; ob-eshell.el --- Babel Functions for Eshell      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
 
 ;; Author: stardiviner <numbchild@gmail.com>
 ;; Maintainer: stardiviner <numbchild@gmail.com>
@@ -47,11 +47,12 @@
   "Execute a block of Eshell code BODY with PARAMS.
 This function is called by `org-babel-execute-src-block'.
 
-The BODY can be any code which allowed executed in Eshell.
-Eshell allow to execute normal shell command and Elisp code.
-More details please reference Eshell Info.
+The BODY argument is code which can be executed in Eshell.
+Eshell allows executing normal shell command and Elisp code.
+For more details, see Info node `(eshell) Top'.
 
-The PARAMS are variables assignments."
+The PARAMS argument is passed to
+`org-babel-expand-body:generic' (which see)."
   (let* ((session (org-babel-eshell-initiate-session
 		   (cdr (assq :session params))))
 	 (full-body (org-babel-expand-body:generic
@@ -94,10 +95,11 @@ The PARAMS are variables assignments."
     session))
 
 (defun org-babel-variable-assignments:eshell (params)
-  "Convert ob-eshell :var specified variables into Eshell variables assignments."
+  "Convert ob-eshell variables from PARAMS into Eshell variables assignments."
   (mapcar
    (lambda (pair)
-     (format "(setq %s %S)" (car pair) (cdr pair)))
+     ;; Use `ignore' to suppress value in the command output.
+     (format "(ignore (setq %s %S))" (car pair) (cdr pair)))
    (org-babel--get-vars params)))
 
 (defun org-babel-load-session:eshell (session body params)

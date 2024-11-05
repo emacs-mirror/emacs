@@ -1,6 +1,6 @@
 ;;; dbus.el --- Elisp bindings for D-Bus. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -192,6 +192,10 @@ See /usr/include/dbus-1.0/dbus/dbus-protocol.h.")
 (defconst dbus-error-failed (concat dbus-error-dbus ".Failed")
   "A generic error; \"something went wrong\" - see the error message for more.")
 
+(defconst dbus-error-interactive-authorization-required
+  (concat dbus-error-dbus ".InteractiveAuthorizationRequired")
+  "Interactive authentication required.")
+
 (defconst dbus-error-invalid-args (concat dbus-error-dbus ".InvalidArgs")
   "Invalid arguments passed to a method call.")
 
@@ -243,7 +247,9 @@ Otherwise, return result of last form in BODY, or all other errors."
        (progn ,@body)
      (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
 
-(defvar dbus-event-error-functions '(dbus-notice-synchronous-call-errors)
+(defvar dbus-event-error-functions
+  '(dbus-notice-synchronous-call-errors
+    dbus-warn-interactive-authorization-required)
   "Functions to be called when a D-Bus error happens in the event handler.
 Every function must accept two arguments, the event and the error variable
 caught in `condition-case' by `dbus-error'.")
@@ -270,7 +276,7 @@ The result will be made available in `dbus-return-values-table'."
          (result (gethash key dbus-return-values-table)))
     (when (consp result)
       (setcar result :complete)
-      (setcdr result (if (= (length args) 1) (car args) args)))))
+      (setcdr result (if (length= args 1) (car args) args)))))
 
 (defun dbus-notice-synchronous-call-errors (ev er)
   "Detect errors resulting from pending synchronous calls."
@@ -281,6 +287,18 @@ The result will be made available in `dbus-return-values-table'."
     (when (consp result)
       (setcar result :error)
       (setcdr result er))))
+
+(defun dbus-warn-interactive-authorization-required (ev er)
+  "Detect `dbus-error-interactive-authorization-required'."
+  (when  (string-equal (cadr er) dbus-error-interactive-authorization-required)
+    (lwarn 'dbus :warning "%S" (cdr er))
+    (let* ((key (list :serial
+		      (dbus-event-bus-name ev)
+		      (dbus-event-serial-number ev)))
+           (result (gethash key dbus-return-values-table)))
+      (when (consp result)
+        (setcar result :complete)
+        (setcdr result nil)))))
 
 (defun dbus-call-method (bus service path interface method &rest args)
   "Call METHOD on the D-Bus BUS.
@@ -296,6 +314,10 @@ If the parameter `:timeout' is given, the following integer
 TIMEOUT specifies the maximum number of milliseconds before the
 method call must return.  The default value is 25,000.  If the
 method call doesn't return in time, a D-Bus error is raised.
+
+If the parameter `:authorizable' is given and the following AUTH
+is non-nil, the invoked method may interactively prompt the user
+for authorization.  The default is nil.
 
 All other arguments ARGS are passed to METHOD as arguments.  They are
 converted into D-Bus types via the following rules:
@@ -371,11 +393,7 @@ object is returned instead of a list containing this single Lisp object.
 	 (apply
           #'dbus-message-internal dbus-message-type-method-call
           bus service path interface method #'dbus-call-method-handler args))
-        (result (unless executing-kbd-macro (cons :pending nil))))
-
-    ;; While executing a keyboard macro, we run into an infinite loop,
-    ;; receiving the event -1.  So we don't try to get the result.
-    ;; (Bug#62018)
+        (result (cons :pending nil)))
 
     ;; Wait until `dbus-call-method-handler' has put the result into
     ;; `dbus-return-values-table'.  If no timeout is given, use the
@@ -430,6 +448,10 @@ If the parameter `:timeout' is given, the following integer
 TIMEOUT specifies the maximum number of milliseconds before the
 method call must return.  The default value is 25,000.  If the
 method call doesn't return in time, a D-Bus error is raised.
+
+If the parameter `:authorizable' is given and the following AUTH
+is non-nil, the invoked method may interactively prompt the user
+for authorization.  The default is nil.
 
 All other arguments ARGS are passed to METHOD as arguments.  They are
 converted into D-Bus types via the following rules:
@@ -686,7 +708,9 @@ operation.  One of the following keywords is returned:
 `:non-existent': Service name does not exist on this bus.
 
 `:not-owner': We are neither the primary owner nor waiting in the
-queue of this service."
+queue of this service.
+
+When SERVICE is not a known name but a unique name, the function returns nil."
 
   (maphash
    (lambda (key value)
@@ -698,14 +722,17 @@ queue of this service."
 		 (puthash key (delete elt value) dbus-registered-objects-table)
 	       (remhash key dbus-registered-objects-table)))))))
    dbus-registered-objects-table)
-  (let ((reply (dbus-call-method
-		bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
-		"ReleaseName" service)))
-    (pcase reply
-      (1 :released)
-      (2 :non-existent)
-      (3 :not-owner)
-      (_ (signal 'dbus-error (list "Could not unregister service" service))))))
+
+  (unless (string-prefix-p ":" service)
+    (let ((reply (dbus-call-method
+		  bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+		  "ReleaseName" service)))
+      (pcase reply
+        (1 :released)
+        (2 :non-existent)
+        (3 :not-owner)
+        (_ (signal
+            'dbus-error (list "Could not unregister service" service)))))))
 
 (defun dbus-register-signal
   (bus service path interface signal handler &rest args)
@@ -772,7 +799,7 @@ Example:
     ;; Signals are sent always with the unique name as sender.  Note:
     ;; the unique name of `dbus-service-dbus' is that string itself.
     (if (and (stringp service)
-	     (not (zerop (length service)))
+	     (length> service 0)
 	     (not (string-equal service dbus-service-dbus))
              (/= (string-to-char service) ?:))
 	(setq uname (dbus-get-name-owner bus service))
@@ -993,20 +1020,26 @@ association to the service from D-Bus."
 
 (defun dbus-string-to-byte-array (string)
   "Transform STRING to list (:array :byte C1 :byte C2 ...).
-STRING shall be UTF-8 coded."
-  (if (zerop (length string))
+The resulting byte array contains the raw bytes of the UTF-8 encoded
+STRING."
+  (if (length= string 0)
       '(:array :signature "y")
-    (cons :array (mapcan (lambda (c) (list :byte c)) string))))
+    (cons :array
+          (mapcan (lambda (c) (list :byte c))
+                  (let (last-coding-system-used)
+                    (encode-coding-string string 'utf-8 'nocopy))))))
 
-(defun dbus-byte-array-to-string (byte-array &optional multibyte)
-  "Transform BYTE-ARRAY into UTF-8 coded string.
-BYTE-ARRAY must be a list of structure (c1 c2 ...), or a byte
-array as produced by `dbus-string-to-byte-array'.  The resulting
-string is unibyte encoded, unless MULTIBYTE is non-nil."
-  (apply
-   (if multibyte #'string #'unibyte-string)
-   (unless (equal byte-array '(:array :signature "y"))
-     (seq-filter #'characterp byte-array))))
+(defun dbus-byte-array-to-string (byte-array &optional _multibyte)
+  "Transform BYTE-ARRAY with UTF-8 byte sequence into a string.
+BYTE-ARRAY must be a list of structure (c1 c2 ...), or a byte array as
+produced by `dbus-string-to-byte-array', and the individual bytes must
+be a valid UTF-8 byte sequence."
+  (declare (advertised-calling-convention (byte-array) "30.1"))
+  (if-let* ((bytes (seq-filter #'characterp byte-array))
+            (string (apply #'unibyte-string bytes)))
+      (let (last-coding-system-used)
+        (decode-coding-string string 'utf-8 'nocopy))
+    ""))
 
 (defun dbus-escape-as-identifier (string)
   "Escape an arbitrary STRING so it follows the rules for a C identifier.
@@ -1025,7 +1058,7 @@ escaped to \"_\".
 
 Returns the escaped string.  Algorithm taken from
 telepathy-glib's `tp_escape_as_identifier'."
-  (if (zerop (length string))
+  (if (length= string 0)
       "_"
     (replace-regexp-in-string
      "\\`[0-9]\\|[^A-Za-z0-9]"
@@ -2067,7 +2100,7 @@ either a method name, a signal name, or an error name."
   "Goto D-Bus message with the same serial number."
   (interactive)
   (when (mouse-event-p last-input-event) (mouse-set-point last-input-event))
-  (when-let ((point (get-text-property (point) 'dbus-serial)))
+  (when-let* ((point (get-text-property (point) 'dbus-serial)))
     (goto-char point)))
 
 (defun dbus-monitor-handler (&rest _args)

@@ -1,6 +1,6 @@
 ;;; esh-var-tests.el --- esh-var test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -35,6 +35,8 @@
                                                     default-directory))))
 
 (defvar eshell-test-value nil)
+(defvar eshell-test-begin nil)
+(defvar eshell-test-end nil)
 
 ;;; Tests:
 
@@ -111,7 +113,11 @@ nil, use FUNCTION instead."
     (eshell-command-result-equal
      "echo $eshell-test-value[1..4 -2..]"
      (list (funcall range-function '("one" "two" "three"))
-           (funcall range-function '("three" "four"))))))
+           (funcall range-function '("three" "four"))))
+    (let ((eshell-test-begin 1) (eshell-test-end 4))
+      (eshell-command-result-equal
+       "echo $eshell-test-value[$eshell-test-begin..$eshell-test-end]"
+       (funcall range-function '("one" "two" "three"))))))
 
 (ert-deftest esh-var-test/interp-var-indices/list ()
   "Interpolate list variable with indices."
@@ -190,6 +196,9 @@ nil, use FUNCTION instead."
      "zero")
     (eshell-command-result-equal
      "echo $eshell-test-value[${*echo 0} ${*echo 2}]"
+     '("zero" "two"))
+    (eshell-command-result-equal
+     "echo $eshell-test-value[{*echo 0} {*echo 2}]"
      '("zero" "two"))))
 
 (ert-deftest esh-var-test/interp-var-length-list ()
@@ -214,7 +223,8 @@ nil, use FUNCTION instead."
   "Splice-interpolate list variable."
   (let ((eshell-test-value '(1 2 3)))
     (eshell-command-result-equal "echo a $@eshell-test-value z"
-                                 '("a" 1 2 3 "z"))))
+                                 '("a" 1 2 3 "z"))
+    (should (equal eshell-test-value '(1 2 3)))))
 
 (ert-deftest esh-var-test/interp-var-splice-concat ()
   "Splice-interpolate and concat list variable."
@@ -228,7 +238,7 @@ nil, use FUNCTION instead."
     ;; into the first value of the non-spliced list.
     (eshell-command-result-equal
      "echo it is $@'eshell-test-value'$eshell-test-value"
-     '("it" "is" 1 2 (31 2 3)))))
+     '("it" "is" 1 2 ("31" 2 3)))))
 
 (ert-deftest esh-var-test/interp-lisp ()
   "Interpolate Lisp form evaluation."
@@ -277,12 +287,16 @@ nil, use FUNCTION instead."
   (eshell-command-result-equal "+ ${+ 1 2}3 3" 36)
   (eshell-command-result-equal "echo ${*echo \"foo\nbar\"}-baz"
                                '("foo" "bar-baz"))
-  ;; Concatenating to a number in a list should produce a number...
+  ;; Concatenating to a number in a list should produce a numeric value...
   (eshell-command-result-equal "echo ${*echo \"1\n2\"}3"
+                               '("1" "23"))
+  (eshell-command-result-equal "echo $@{*echo \"1\n2\"}3"
                                '(1 23))
   ;; ... but concatenating to a string that looks like a number in a list
   ;; should produce a string.
   (eshell-command-result-equal "echo ${*echo \"hi\n2\"}3"
+                               '("hi" "23"))
+  (eshell-command-result-equal "echo $@{*echo \"hi\n2\"}3"
                                '("hi" "23")))
 
 (ert-deftest esh-var-test/interp-concat-cmd2 ()
@@ -421,7 +435,8 @@ nil, use FUNCTION instead."
   "Splice-interpolate list variable inside double-quotes."
   (let ((eshell-test-value '(1 2 3)))
     (eshell-command-result-equal "echo a \"$@eshell-test-value\" z"
-                                 '("a" "1 2 3" "z"))))
+                                 '("a" "1 2 3" "z"))
+    (should (equal eshell-test-value '(1 2 3)))))
 
 (ert-deftest esh-var-test/quoted-interp-var-splice-concat ()
   "Splice-interpolate and concat list variable inside double-quotes"
@@ -436,7 +451,7 @@ nil, use FUNCTION instead."
 
 (ert-deftest esh-var-test/quoted-interp-lisp-indices ()
   "Interpolate Lisp form evaluation with index."
-  (eshell-command-result-equal "concat \"$(list 1 2)[1]\" cool"
+  (eshell-command-result-equal "funcall concat \"$(list 1 2)[1]\" cool"
                                "2cool"))
 
 (ert-deftest esh-var-test/quoted-interp-cmd ()
@@ -446,7 +461,7 @@ nil, use FUNCTION instead."
 
 (ert-deftest esh-var-test/quoted-interp-cmd-indices ()
   "Interpolate command result with index inside double-quotes."
-  (eshell-command-result-equal "concat \"${listify 1 2}[1]\" cool"
+  (eshell-command-result-equal "funcall concat \"${listify 1 2}[1]\" cool"
                                "2cool"))
 
 (ert-deftest esh-var-test/quoted-interp-temp-cmd ()
@@ -488,11 +503,16 @@ nil, use FUNCTION instead."
 
 (ert-deftest esh-var-test/interp-convert-var-split-indices ()
   "Interpolate and convert string variable with indices."
-  ;; Check that numeric forms are converted to numbers.
+  ;; Check that numeric forms are marked as numeric.
   (let ((eshell-test-value "000 010 020 030 040"))
+    ;; `eshell/echo' converts numeric strings to Lisp numbers...
     (eshell-command-result-equal "echo $eshell-test-value[0]"
                                  0)
+    ;; ... but not lists of numeric strings...
     (eshell-command-result-equal "echo $eshell-test-value[0 2]"
+                                 '("000" "020"))
+    ;; ... unless each element is a separate argument to `eshell/echo'.
+    (eshell-command-result-equal "echo $@eshell-test-value[0 2]"
                                  '(0 20)))
   ;; Check that multiline forms are preserved as-is.
   (let ((eshell-test-value "foo\nbar:baz\n"))
@@ -504,17 +524,22 @@ nil, use FUNCTION instead."
 (ert-deftest esh-var-test/interp-convert-quoted-var-number ()
   "Interpolate numeric quoted numeric variable."
   (let ((eshell-test-value 123))
-    (eshell-command-result-equal "type-of $'eshell-test-value'"
+    (eshell-command-result-equal "funcall type-of $'eshell-test-value'"
                                  'integer)
-    (eshell-command-result-equal "type-of $\"eshell-test-value\""
+    (eshell-command-result-equal "funcall type-of $\"eshell-test-value\""
                                  'integer)))
 
 (ert-deftest esh-var-test/interp-convert-quoted-var-split-indices ()
   "Interpolate and convert quoted string variable with indices."
   (let ((eshell-test-value "000 010 020 030 040"))
+    ;; `eshell/echo' converts numeric strings to Lisp numbers...
     (eshell-command-result-equal "echo $'eshell-test-value'[0]"
                                  0)
+    ;; ... but not lists of numeric strings...
     (eshell-command-result-equal "echo $'eshell-test-value'[0 2]"
+                                 '("000" "020"))
+    ;; ... unless each element is a separate argument to `eshell/echo'.
+    (eshell-command-result-equal "echo $@'eshell-test-value'[0 2]"
                                  '(0 20))))
 
 (ert-deftest esh-var-test/interp-convert-cmd-string-newline ()
@@ -527,9 +552,13 @@ nil, use FUNCTION instead."
                                '("foo" "bar"))
   ;; Numeric output should be converted to numbers...
   (eshell-command-result-equal "echo ${echo \"01\n02\n03\"}"
+                               '("01" "02" "03"))
+  (eshell-command-result-equal "echo $@{echo \"01\n02\n03\"}"
                                '(1 2 3))
   ;; ... but only if every line is numeric.
   (eshell-command-result-equal "echo ${echo \"01\n02\nhi\"}"
+                               '("01" "02" "hi"))
+  (eshell-command-result-equal "echo $@{echo \"01\n02\nhi\"}"
                                '("01" "02" "hi")))
 
 (ert-deftest esh-var-test/interp-convert-cmd-number ()
@@ -538,15 +567,20 @@ nil, use FUNCTION instead."
 
 (ert-deftest esh-var-test/interp-convert-cmd-split-indices ()
   "Interpolate command result with indices."
+  ;; `eshell/echo' converts numeric strings to Lisp numbers...
   (eshell-command-result-equal "echo ${echo \"000 010 020\"}[0]"
                                0)
+  ;; ... but not lists of numeric strings...
   (eshell-command-result-equal "echo ${echo \"000 010 020\"}[0 2]"
+                               '("000" "020"))
+  ;; ... unless each element is a separate argument to `eshell/echo'.
+  (eshell-command-result-equal "echo $@{echo \"000 010 020\"}[0 2]"
                                '(0 20)))
 
 (ert-deftest esh-var-test/quoted-interp-convert-var-number ()
   "Interpolate numeric variable inside double-quotes."
   (let ((eshell-test-value 123))
-    (eshell-command-result-equal "type-of \"$eshell-test-value\""
+    (eshell-command-result-equal "funcall type-of \"$eshell-test-value\""
                                  'string)))
 
 (ert-deftest esh-var-test/quoted-interp-convert-var-split-indices ()
@@ -560,10 +594,11 @@ nil, use FUNCTION instead."
 (ert-deftest esh-var-test/quoted-interp-convert-quoted-var-number ()
   "Interpolate numeric quoted variable inside double-quotes."
   (let ((eshell-test-value 123))
-    (eshell-command-result-equal "type-of \"$'eshell-test-value'\""
+    (eshell-command-result-equal "funcall type-of \"$'eshell-test-value'\""
                                  'string)
-    (eshell-command-result-equal "type-of \"$\\\"eshell-test-value\\\"\""
-                                 'string)))
+    (eshell-command-result-equal
+     "funcall type-of \"$\\\"eshell-test-value\\\"\""
+     'string)))
 
 (ert-deftest esh-var-test/quoted-interp-convert-quoted-var-split-indices ()
   "Interpolate quoted string variable with indices inside double-quotes."
@@ -644,6 +679,34 @@ nil, use FUNCTION instead."
    (push "VAR=value" process-environment)
    (eshell-match-command-output "VAR=hello env" "VAR=hello\n")
    (should (equal (getenv "VAR") "value"))))
+
+(ert-deftest esh-var-test/local-variables/skip-nil ()
+  "Test that Eshell skips leading nil arguments after local variable setting."
+  (with-temp-eshell
+   (push "VAR=value" process-environment)
+   (eshell-match-command-output "VAR=hello $eshell-test-value env"
+                                "VAR=hello\n")
+   (should (equal (getenv "VAR") "value"))))
+
+(ert-deftest esh-var-test/local-variables/cd ()
+  "Test that \"VAR=value cd DIR\" properly changes the directory."
+  (let ((parent-directory (file-name-directory
+                           (directory-file-name default-directory))))
+    (with-temp-eshell
+     (eshell-insert-command "VAR=hello cd ..")
+     (should (equal default-directory parent-directory)))))
+
+(ert-deftest esh-var-test/local-variables/env ()
+  "Test that \"env VAR=value command\" temporarily sets variables."
+  (with-temp-eshell
+   (push "VAR=value" process-environment)
+   (eshell-match-command-output "env VAR=hello env" "VAR=hello\n")
+   (should (equal (getenv "VAR") "value"))))
+
+(ert-deftest esh-var-test/local-variables/env/no-locals ()
+  "Test that \"env command\" works like \"command\"."
+  (with-temp-eshell
+   (eshell-match-command-output "env echo hi" "\\`hi\n")))
 
 
 ;; Variable aliases
@@ -766,6 +829,52 @@ it, since the setter is nil."
    (eshell-match-command-output "echo $INSIDE_EMACS[, 1]"
                                 "eshell")))
 
+(ert-deftest esh-var-test/pager-var/default ()
+  "Test that retrieving the default value of $PAGER works.
+This should be the value of `comint-pager' if non-nil, otherwise
+the value of the $PAGER env var."
+  (let ((comint-pager nil)
+        (process-environment (cons "PAGER=cat" process-environment)))
+    (eshell-command-result-equal "echo $PAGER" "cat")
+    (setq comint-pager "less")
+    (eshell-command-result-equal "echo $PAGER" "less")))
+
+(ert-deftest esh-var-test/pager-var/set ()
+  "Test that setting $PAGER in Eshell overrides the default value."
+  (let ((comint-pager nil)
+        (process-environment (cons "PAGER=cat" process-environment)))
+    (with-temp-eshell
+     (eshell-match-command-output "set PAGER bat" "bat")
+     (eshell-match-command-output "echo $PAGER" "bat"))
+    (setq comint-pager "less")
+    (with-temp-eshell
+     (eshell-match-command-output "set PAGER bat" "bat")
+     (eshell-match-command-output "echo $PAGER" "bat"))))
+
+(ert-deftest esh-var-test/pager-var/unset ()
+  "Test that unsetting $PAGER in Eshell overrides the default value."
+  (let ((comint-pager nil)
+        (process-environment (cons "PAGER=cat" process-environment)))
+    (with-temp-eshell
+     (eshell-insert-command "unset PAGER")
+     (eshell-match-command-output "echo $PAGER" "\\`\\'"))
+    (setq comint-pager "less")
+    (with-temp-eshell
+     (eshell-insert-command "unset PAGER")
+     (eshell-match-command-output "echo $PAGER" "\\`\\'"))))
+
+(ert-deftest esh-var-test/pager-var/set-locally ()
+  "Test setting $PAGER temporarily for a single command."
+  (let ((comint-pager nil)
+        (process-environment (cons "PAGER=cat" process-environment)))
+    (with-temp-eshell
+     (eshell-match-command-output "PAGER=bat env" "PAGER=bat\n")
+     (eshell-match-command-output "echo $PAGER" "cat"))
+    (setq comint-pager "less")
+    (with-temp-eshell
+     (eshell-match-command-output "PAGER=bat env" "PAGER=bat\n")
+     (eshell-match-command-output "echo $PAGER" "less"))))
+
 (ert-deftest esh-var-test/path-var/local-directory ()
   "Test using $PATH in a local directory."
   (let ((expected-path (string-join (eshell-get-path t) (path-separator))))
@@ -785,26 +894,31 @@ it, since the setter is nil."
   (let* ((path-to-set-list '("/some/path" "/other/path"))
          (path-to-set (string-join path-to-set-list (path-separator))))
     (with-temp-eshell
-     (eshell-match-command-output (concat "set PATH " path-to-set)
-                                  (concat path-to-set "\n"))
-     (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
-     (should (equal (eshell-get-path t) path-to-set-list)))))
+      ;; Quote PATH value, because on Windows path-separator is ';'.
+      (eshell-match-command-output
+       (concat "set PATH " (eshell-quote-argument path-to-set) "")
+       (concat path-to-set "\n"))
+      (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
+      (should (equal (eshell-get-path t) path-to-set-list)))))
 
 (ert-deftest esh-var-test/path-var/set-locally ()
   "Test setting $PATH temporarily for a single command."
   (let* ((path-to-set-list '("/some/path" "/other/path"))
          (path-to-set (string-join path-to-set-list (path-separator))))
     (with-temp-eshell
-     (eshell-match-command-output (concat "set PATH " path-to-set)
-                                  (concat path-to-set "\n"))
-     (eshell-match-command-output "PATH=/local/path env"
-                                  "PATH=/local/path\n")
-     ;; After the last command, the previous $PATH value should be restored.
-     (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
-     (should (equal (eshell-get-path t) path-to-set-list)))))
+      ;; As above, quote PATH value.
+      (eshell-match-command-output
+       (concat "set PATH " (eshell-quote-argument path-to-set) "")
+       (concat path-to-set "\n"))
+      (eshell-match-command-output "PATH=/local/path env"
+                                   "PATH=/local/path\n")
+      ;; After the last command, the previous $PATH value should be restored.
+      (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
+      (should (equal (eshell-get-path t) path-to-set-list)))))
 
 (ert-deftest esh-var-test/path-var/preserve-across-hosts ()
   "Test that $PATH can be set independently on multiple hosts."
+  (skip-unless (not (eq system-type 'windows-nt)))
   (let ((local-directory default-directory)
         local-path remote-path)
     (with-temp-eshell
@@ -836,11 +950,11 @@ it, since the setter is nil."
 (ert-deftest esh-var-test/last-status-var-lisp-command ()
   "Test using the \"last exit status\" ($?) variable with a Lisp command."
   (with-temp-eshell
-   (eshell-match-command-output "zerop 0; echo $?"
+   (eshell-match-command-output "funcall zerop 0; echo $?"
                                 "t\n0\n")
-   (eshell-match-command-output "zerop 1; echo $?"
+   (eshell-match-command-output "funcall zerop 1; echo $?"
                                 "0\n")
-   (eshell-match-command-output "zerop foo; echo $?"
+   (eshell-match-command-output "funcall zerop foo; echo $?"
                                 "1\n" nil t)))
 
 (ert-deftest esh-var-test/last-status-var-lisp-form ()
@@ -903,10 +1017,10 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
   "Test using the \"last result\" ($$) variable with split indices."
   (with-temp-eshell
    (eshell-match-command-output
-    "string-join (list \"01\" \"02\") :; + $$[: 1] 3"
+    "funcall string-join (list \"01\" \"02\") :; + $$[: 1] 3"
     "01:02\n5\n")
    (eshell-match-command-output
-    "string-join (list \"01\" \"02\") :; echo \"$$[: 1]\""
+    "funcall string-join (list \"01\" \"02\") :; echo \"$$[: 1]\""
     "01:02\n02\n")))
 
 (ert-deftest esh-var-test/last-arg-var ()
@@ -926,9 +1040,11 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
 (ert-deftest esh-var-test/last-arg-var-split-indices ()
   "Test using the \"last arg\" ($_) variable with split indices."
   (with-temp-eshell
-   (eshell-match-command-output "concat 01:02 03:04; + $_[0][: 1] 5"
-                                "01:0203:04\n7\n")
-   (eshell-match-command-output "concat 01:02 03:04; echo \"$_[0][: 1]\""
-                                "01:0203:04\n02\n")))
+   (eshell-match-command-output
+    "funcall concat 01:02 03:04; + $_[1][: 1] 5"
+    "01:0203:04\n7\n")
+   (eshell-match-command-output
+    "funcall concat 01:02 03:04; echo \"$_[1][: 1]\""
+    "01:0203:04\n02\n")))
 
 ;; esh-var-tests.el ends here

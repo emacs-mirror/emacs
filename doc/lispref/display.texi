@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2023 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2024 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -148,7 +148,8 @@ boundary.  @xref{Filling}.
 
    On a graphical display, tiny arrow images in the window fringes
 indicate truncated and continued lines (@pxref{Fringes}).  On a text
-terminal, a @samp{$} in the rightmost column of the window indicates
+terminal, and on a graphical display when @code{fringe-mode} was
+turned off, a @samp{$} in the rightmost column of the window indicates
 truncation; a @samp{\} on the rightmost column indicates a line that
 wraps.  (The display table can specify alternate characters to use
 for this; @pxref{Display Tables}).
@@ -191,7 +192,9 @@ never used.)  Its value may be a string or an image (@pxref{Other
 Display Specs}), or a stretch of whitespace such as specified by the
 @code{:width} or @code{:align-to} display properties (@pxref{Specified
 Space}).  The value is interpreted in the same way as a @code{display}
-text property.  @xref{Display Property}.
+text property, with one important difference: the horizontal position
+specified by @code{:align-to} is measured from the visual beginning of
+the screen line.  @xref{Display Property}.
 
 A wrap prefix may also be specified for regions of text, using the
 @code{wrap-prefix} text or overlay property.  This takes precedence
@@ -1656,15 +1659,47 @@ overlay.
 @end defun
 
 @defun remove-overlays &optional start end name value
-This function removes all the overlays between @var{start} and
-@var{end} whose property @var{name} has the specified @var{value}.  It
-can move the endpoints of the overlays in the region, or split them.
+This function clears the text in the region between @var{start} and
+@var{end} of any overlays whose property named @var{name} has the
+specified @var{value}, such that no such overlay will affect the text in
+the region.  To do this, the function can remove overlays in the region,
+or move their endpoints, or split them, or do some combination of these.
+Specifically:
 
-If @var{name} is omitted or @code{nil}, it means to delete all overlays in
-the specified region.  If @var{start} and/or @var{end} are omitted or
-@code{nil}, that means the beginning and end of the buffer respectively.
-Therefore, @code{(remove-overlays)} removes all the overlays in the
-current buffer.
+@itemize @bullet
+@item
+Overlays that start at or after @var{start} and end before @var{end}
+will be removed completely.
+
+@item
+Overlays that start before @var{start} and end after @var{start}, but
+before @var{end}, will be altered so that they end at @var{start}.
+
+@item
+Overlays that start at or after @var{start} and end after @var{end} will
+be altered so that they start at @var{end}.
+
+@item
+Overlays that start before @var{start} and end after @var{end} will be
+split into two overlays: one that ends at @var{start} and the other that
+begins at @var{end}.
+@end itemize
+
+If @var{name} is omitted or @code{nil}, it means to delete/modify all
+overlays that affect text in the specified region.  If @var{start}
+and/or @var{end} are omitted or @code{nil}, they default to the
+beginning and end of the buffer, respectively.  Therefore,
+@code{(remove-overlays)} removes all the overlays in the current buffer.
+
+Values of the named overlay property are compared using @code{eq}, which
+is important if the values are anything but symbols or fixnums
+(@pxref{Equality Predicates}).  It means the values passed to the
+function must be the same values used to set the overlay property, not
+their copies; objects which are different will not compare equal even if
+they have identical contents.
+
+The optional arguments @var{name} and @var{value} should either both be
+passed and non-@code{nil}, or both omitted or @code{nil}.
 @end defun
 
 @defun copy-overlay overlay
@@ -1821,8 +1856,8 @@ where the @var{primary} value is used as described above, and
 @var{secondary} is the fallback value used when @var{primary} and the
 nesting considerations fail to resolve the precedence between
 overlays.  In particular, priority value @w{@code{(nil . @var{n})}},
-with @var{n} a positive integer, allows to have the overlays ordered
-by priority when necessary without completely overriding other
+with @var{n} a positive integer, enables you to have the overlays
+ordered by priority when necessary without completely overriding other
 overlays.
 
 Currently, all overlays take priority over text properties.
@@ -2203,7 +2238,7 @@ displayed in a given window.  This function is used by
 it contains.
 
 @defun window-text-pixel-size &optional window from to x-limit y-limit mode-lines ignore-line-at-end
-This function returns the size of the text of @var{window}'s buffer in
+This function returns the dimensions of the text of @var{window}'s buffer in
 pixels.  @var{window} must be a live window and defaults to the
 selected one.  The return value is a cons of the maximum pixel-width
 of any text line and the maximum pixel-height of all text lines.  This
@@ -2350,9 +2385,15 @@ The optional arguments @var{x-limit} and @var{y-limit} have the same
 meaning as with @code{window-text-pixel-size}.
 @end defun
 
-@defun string-pixel-width string
+@defun string-pixel-width string &optional buffer
 This is a convenience function that uses @code{window-text-pixel-size}
-to compute the width of @var{string} (in pixels).
+to compute the width of @var{string} (in pixels).  Caveat: if you call
+this function to measure the width of a string with embedded newlines,
+it will then return the width of the widest substring that does not
+include newlines.  The meaning of this result is the widest line taken
+by the string if inserted into a buffer.  If @var{buffer} is
+non-@code{nil}, use any face remappings (@pxref{Face Remapping}) from
+that buffer when computing the width of @var{string}.
 @end defun
 
 @defun line-pixel-height
@@ -2685,12 +2726,17 @@ Underline in color @var{color}, a string specifying a color.
 @var{color} is either a string, or the symbol @code{foreground-color},
 meaning the foreground color of the face.  Omitting the attribute
 @code{:color} means to use the foreground color of the face.
-@var{style} should be a symbol @code{line} or @code{wave}, meaning to
-use a straight or wavy line.  Omitting the attribute @code{:style}
-means to use a straight line.  @var{position}, if non-@code{nil}, means to
-display the underline at the descent of the text, instead of at the
-baseline level.  If it is a number, then it specifies the amount of
-pixels above the descent to display the underline.
+@var{style} is a symbol which sets the line-style to of the underline.
+It should be one of @code{line}, @code{double-line}, @code{wave},
+@code{dots}, or @code{dashes}.  GUI frames under most window systems
+support all the aforementioned underline styles, while on text terminals
+@code{double-line}, @code{wave} and @code{dots} are contingent on the
+availability of the @code{Smulx} or @code{Su} terminfo capabilities.
+Omitting the attribute @code{:style} means to use a straight line.
+@var{position}, if non-@code{nil}, means to display the underline at the
+descent of the text, instead of at the baseline level.  If it is a
+number, then it specifies the amount of pixels above the descent to
+display the underline.
 @end table
 
 @cindex overlined text
@@ -2723,29 +2769,34 @@ Draw a box with lines of width 1, in the foreground color.
 Draw a box with lines of width 1, in color @var{color}.
 
 @item @code{(:line-width (@var{vwidth} . @var{hwidth}) :color @var{color} :style @var{style})}
-You can explicitly specify all aspects of the box with a plist on this
+You can explicitly specify all aspects of the box with a plist of this
 form.  Any element in this plist can be omitted.
 
-The values @var{vwidth} and @var{hwidth} specifies respectively the
+The values of @var{vwidth} and @var{hwidth} specify respectively the
 width of the vertical and horizontal lines to draw; they default to (1
 . 1).  A negative horizontal or vertical width @minus{}@var{n} means
 to draw a line of width @var{n} that occupies the space of the
 underlying text, thus avoiding any increase in the character height or
-width. For simplification the width could be specified with only a
+width.  For simplification the width could be specified with only a
 single number @var{n} instead of a list, such case is equivalent to
 @code{((abs @var{n}) . @var{n})}.
 
-The value @var{style} specifies whether to draw a 3D box.  If it is
+The value of @var{color} specifies the color to draw with.  The default
+is the background color of the face for 3D boxes and
+@code{flat-button}, and the foreground color of the face for other
+boxes.
+
+The value of @var{style} specifies whether to draw a 3D box.  If it is
 @code{released-button}, the box looks like a 3D button that is not
 being pressed.  If it is @code{pressed-button}, the box looks like a
 3D button that is being pressed.  If it is @code{nil},
 @code{flat-button} or omitted, a plain 2D box is used.
-
-The value @var{color} specifies the color to draw with.  The default
-is the background color of the face for 3D boxes and
-@code{flat-button}, and the foreground color of the face for other
-boxes.
 @end table
+
+If you use the @code{:box} face attribute on strings displayed instead
+of buffer text via the @code{display} text property, special
+considerations might apply if the surrounding buffer text also has the
+@code{:box} face attribute.  @xref{Replacing Specs}.
 
 @item :inverse-video
 Whether or not characters should be displayed in inverse video.  The
@@ -3976,9 +4027,13 @@ in the range @var{from} and @var{to} (inclusive).
 @var{characters} may be a charset symbol (@pxref{Character Sets}).  In
 that case, use @var{font-spec} for all the characters in the charset.
 
+@vindex use-default-font-for-symbols
 @var{characters} may be a script symbol (@pxref{Character Properties,
 char-script-table}).  In that case, use @var{font-spec} for all the
-characters belonging to the script.
+characters belonging to the script.  See also
+@code{use-default-font-for-symbols}, which affects font selection
+when @var{characters} specify or belong to the @code{symbol} script
+(which includes symbol and punctuation characters).
 
 @var{characters} may be @code{nil}, which means to use @var{font-spec}
 for any character in @var{fontset} for which no font-spec is
@@ -4016,6 +4071,14 @@ the charset @code{japanese-jisx0208}:
 (set-fontset-font t 'japanese-jisx0208
                   (font-spec :family "Kochi Gothic"))
 @end smallexample
+
+Note that this function should generally be called from the user's
+init files, and more generally before any of @var{characters} were
+displayed in the current Emacs session.  That's because for some
+scripts, Emacs caches the way they are displayed, and the cached
+information includes the font used for them -- once these characters
+are displayed once, the cached font will continue to be used
+regardless of changes in the fontsets.
 @end defun
 
 @defun char-displayable-p char
@@ -4254,14 +4317,20 @@ key-attribute pairs may be omitted from the list if they are not
 specified by @var{font}.
 @end defun
 
-@defun font-xlfd-name font &optional fold-wildcards
+@defun font-xlfd-name font &optional fold-wildcards long-xlfds
 This function returns the XLFD (X Logical Font Descriptor), a string,
 matching @var{font}.  @xref{Fonts,,, emacs, The GNU Emacs Manual}, for
-information about XLFDs.  If the name is too long for an XLFD (which
-can contain at most 255 characters), the function returns @code{nil}.
+information about XLFDs.
 
 If the optional argument @var{fold-wildcards} is non-@code{nil},
 consecutive wildcards in the XLFD are folded into one.
+
+If the optional argument @var{long-xlfds} is omitted or @code{nil},
+then the function returns @code{nil} if the XLFD would exceed 255
+characters in length; this is for compatibility with the X protocol,
+which mandates that XLFDs are restricted to that length.  If
+@var{long-xlfds} is non-@code{nil}, this restriction is lifted, and
+the function can return XLFDs of any length.
 @end defun
 
 The following two functions return important information about a font.
@@ -4311,9 +4380,10 @@ should be equal to the value of @var{height} above.
 The width, in pixels, of the font's space character.
 
 @item average-width
-The average width of the font characters.  If this is zero, Emacs uses
-the value of @var{space-width} instead, when it calculates text layout
-on display.
+The average width of the font characters.  Emacs uses this for
+calculating text layout on display; if the value of @var{average-width}
+is zero, Emacs uses the value of @var{space-width} instead for those
+purposes.
 
 @item filename
 The file name of the font as a string.  This can be @code{nil} if the
@@ -5153,8 +5223,10 @@ specifications.
 This convenience function can be used to get a specific display
 property, no matter whether the @code{display} property is a vector, a
 list or a simple property.  This is like @code{get-text-property}
-(@pxref{Examining Properties}), but works on the @code{display}
-property only.
+(@pxref{Examining Properties}), but works on the @code{display} property
+only.  For properties with a single value (e.g.@: @code{height}, this
+returns the value itself; for properties with a list of values (e.g.@:
+@code{slice}), this returns the list of values.
 
 @var{position} is the position in the buffer or string to examine, and
 @var{prop} is the @code{display} property to return.  The optional
@@ -5259,6 +5331,34 @@ characters get a second string (@code{concat} creates a new string
 object), so they are replaced with one @samp{A}; and so on.  Thus, the
 ten characters appear as five A's.
 
+@cindex box face attribute, and @code{display} properties
+Note: Using @code{:box} face attribute (@pxref{Face Attributes}) on a
+replacing @code{display} string that is adjacent to normal text with
+the same @code{:box} style can lead to display artifacts when moving
+the cursor across the text with this face attribute.  These can be
+avoided by applying the @code{:box} attribute directly to the text
+being replaced, rather than (or in addition to) the @code{display}
+string itself.  Here's an example:
+
+@smallexample
+@group
+;; Causes display artifacts when moving the cursor across text
+(progn
+  (put-text-property 1 2 'display (propertize "  [" 'face '(:box t)))
+  (put-text-property 2 3 'face '(:box t))
+  (put-text-property 3 4 'display (propertize "]  " 'face '(:box t))))
+@end group
+
+@group
+;; No display artifacts due to `:box'
+(progn
+  (add-text-properties 1 2 '(face (:box t) display "  ["))
+  (put-text-property 2 3 'face '(:box t))
+  (add-text-properties 3 4 '(face (:box t) display "]  ")))
+@end group
+@end smallexample
+
+
 @node Specified Space
 @subsection Specified Spaces
 @cindex spaces, specified height or width
@@ -5299,7 +5399,9 @@ Scrolling}), @var{hpos} is measured from the beginning of the logical
 line, not from the visual beginning of the screen line.  This way,
 alignment produced by @code{:align-to} is consistent with functions
 that count columns, such as @code{current-column} and
-@code{move-to-column} (@pxref{Columns}).
+@code{move-to-column} (@pxref{Columns}).  (There's a single exception
+from this rule: when @code{:align-to} is used to specify whitespace of
+the @code{wrap-prefix} variable or text property, @pxref{Truncation}.)
 @end table
 
   You should use one and only one of the above properties.  You can
@@ -5494,6 +5596,10 @@ for that line, instead of the characters that have the display
 specification.  The optional @var{face} specifies the face whose
 colors are to be used for the bitmap display.  @xref{Fringe Bitmaps},
 for the details.
+
+It also possible to add context help for fringe bitmaps through the
+@code{show-help-function} mechanism by using @code{left-fringe-help} and
+@code{right-fringe-help} text properties (@pxref{Special Properties}).
 
 @item (space-width @var{factor})
 This display specification affects all the space characters within the
@@ -5782,8 +5888,11 @@ either an integer, which represents the dimension in pixels, or a pair
 length in @dfn{ems}@footnote{In typography an em is a distance
 equivalent to the height of the type.  For example when using 12 point
 type 1 em is equal to 12 points.  Its use ensures distances and type
-remain proportional.}.  One em is equivalent to the height of the font
-and @var{value} may be an integer or a float.
+remain proportional.}.  One em is equivalent to the size of the font
+and @var{value} may be an integer or a float.  Also, dimension can be
+specified in @code{(@var{value} . ch)} and @code{(@var{value} . cw)}
+forms, where @code{ch} means height of the canonical character and
+@code{cw} means width of the canonical character.
 
   The following is a list of properties that are meaningful for all
 image types (there are also properties which are meaningful only for
@@ -5871,15 +5980,30 @@ parameters is a useful way of saying ``display this image as large as
 possible, but no larger than the available display area''.
 
 @item :scale @var{scale}
-This should be a number, where values higher than 1 means to increase
-the size, and lower means to decrease the size, by multiplying both
-the width and height.  For instance, a value of 0.25 will make the
-image a quarter size of what it originally was.  If the scaling makes
-the image larger than specified by @code{:max-width} or
-@code{:max-height}, the resulting size will not exceed those two
-values.  If both @code{:scale} and @code{:height}/@code{:width} are
-specified, the height/width will be adjusted by the specified scaling
-factor.
+This should be a scaling factor for the image, a number.  Values higher
+than 1 mean to increase the image size, and lower values mean to
+decrease the size, by multiplying both the width and height of the image
+by the factor.  For instance, a value of 0.25 will make the image a
+quarter size of what it originally was.  If the scaling makes the image
+larger than specified by @code{:max-width} or @code{:max-height}, the
+resulting size will not exceed those two values.  If both @code{:scale}
+and @code{:height}/@code{:width} are specified, the height/width will be
+adjusted by the specified scaling factor.
+
+@vindex image-scaling-factor
+The value of @var{scale} can also be the symbol @code{default}, which
+means to use the value of @code{image-scaling-factor}.  If that value is
+a number, it is the scale factor to use; if it is @code{auto} (the
+default), it means to compute the scaling factor based on pixel size of
+the font used by the frame's default face (@pxref{Low-Level Font}).
+Specifically, if the pixel width of the default face's font is greater
+than 10, the image is enlarged by the factor computed as the ratio of
+the font width to 10; if the font width is 10 pixels or less, the image
+is not scaled.  For example, if the default font's width is 15, the
+image will be scaled by the factor 1.5.
+
+If @var{scale} is not provided, @code{create-image} scales the image
+according to the value of @code{image-scaling-factor}.
 
 @item :rotation @var{angle}
 Specifies a rotation angle in degrees.  Only multiples of 90 degrees
@@ -6042,6 +6166,7 @@ event is composed by combining the @var{id} of the hot-spot with the
 mouse event; for instance, @code{[area4 mouse-1]} if the hot-spot's
 @var{id} is @code{area4}.
 
+@findex image-compute-scaling-factor
 Note that the map's coordinates should reflect the displayed image
 after all transforms have been done (rotation, scaling and so on), and
 also note that Emacs (by default) performs auto-scaling of images, so
@@ -6049,6 +6174,30 @@ to make things match up, you should either specify @code{:scale 1.0}
 when creating the image, or use the result of
 @code{image-compute-scaling-factor} to compute the elements of the
 map.
+
+When an image's @code{:scale}, @code{:rotation}, or @code{:flip} is
+changed, @code{:map} will be recomputed based on the value of
+@code{:original-map} and the values of those transformation.
+
+@item :original-map @var{original-map}
+@cindex original image map
+This specifies the untransformed image map which will be used to
+recompute @code{:map} after the image's @code{:scale}, @code{:rotation},
+or @code{:flip} is changed.
+
+If @code{:original-map} is not specified when creating an image with
+@code{create-image}, it will be computed based on the supplied
+@code{:map}, as well as any of @code{:scale}, @code{:rotation}, or
+@code{:flip} which are non-@code{nil}.
+
+Conversely, if @code{:original-map} is specified but @code{:map} is not,
+@code{:map} will be computed based on @code{:original-map},
+@code{:scale}, @code{:rotation}, and @code{:flip}.
+
+@defopt image-recompute-map-p
+Set this user option to nil to prevent Emacs from automatically
+recomputing an image @code{:map} based on its @code{:original-map}.
+@end defopt
 @end table
 
 @defun image-mask-p spec &optional frame
@@ -6568,7 +6717,7 @@ Draw vertical lines.
 @end deffn
 
 @deffn Command curveto coordinate-sets
-Using the first element in @var{coordinate-sets}, draw a cubic Bézier
+Using the first element in @var{coordinate-sets}, draw a cubic B@'ezier
 curve from the current point.  If there are multiple coordinate sets,
 draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x1} @var{y1} @var{x2} @var{y2} @var{x} @var{y})}, where
@@ -6585,7 +6734,7 @@ beginning and at the end, respectively.
 @end deffn
 
 @deffn Command smooth-curveto coordinate-sets
-Using the first element in @var{coordinate-sets}, draw a cubic Bézier
+Using the first element in @var{coordinate-sets}, draw a cubic B@'ezier
 curve from the current point.  If there are multiple coordinate sets,
 draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x2} @var{y2} @var{x} @var{y})}, where @w{(@var{x},
@@ -6606,7 +6755,7 @@ coincides with the current point.
 
 @deffn Command quadratic-bezier-curveto coordinate-sets
 Using the first element in @var{coordinate-sets}, draw a quadratic
-Bézier curve from the current point.  If there are multiple coordinate
+B@'ezier curve from the current point.  If there are multiple coordinate
 sets, draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x1} @var{y1} @var{x} @var{y})}, where @w{(@var{x},
 @var{y})} is the curve's end point and @w{(@var{x1}, @var{y1})} is the
@@ -6624,7 +6773,7 @@ control point.
 
 @deffn Command smooth-quadratic-bezier-curveto coordinate-sets
 Using the first element in @var{coordinate-sets}, draw a quadratic
-Bézier curve from the current point.  If there are multiple coordinate
+B@'ezier curve from the current point.  If there are multiple coordinate
 sets, draw a polybezier.  Each coordinate set is a list of the form
 @code{(@var{x} @var{y})}, where @w{(@var{x}, @var{y})} is the curve's
 end point.  The control point is the reflection of the control point
@@ -6760,10 +6909,14 @@ from the file's name.
 The remaining arguments, @var{props}, specify additional image
 properties---for example,
 
-@c ':heuristic-mask' is not documented?
 @example
-(create-image "foo.xpm" 'xpm nil :heuristic-mask t)
+(create-image "foo.xpm" 'xpm nil :mask 'heuristic)
 @end example
+
+@noindent
+@xref{Image Descriptors}, for the list of supported properties.  Some
+properties are specific to certain image types, and are described in
+subsections specific to those types.
 
 The function returns @code{nil} if images of this type are not
 supported.  Otherwise it returns an image descriptor.
@@ -6951,7 +7104,9 @@ buffer's text.
 
 Internally, this function creates an overlay, and gives it a
 @code{before-string} property containing text that has a @code{display}
-property whose value is the image.  (Whew! that was a mouthful@dots{})
+property whose value is the image.  (Whew! that was a mouthful@dots{}).
+It returns the created overlay upon success, and also sets its
+@code{put-image} property to @code{t}.
 @end defun
 
 @defun remove-images start end &optional buffer
@@ -7806,6 +7961,20 @@ will be called when the user clicks on the button.  The optional
 is called.  If @code{nil}, the button is used as the parameter instead.
 @end defun
 
+@defun buttonize-region start end callback &optional data help-echo
+Sometimes it's more convenient to convert existing text in a buffer to a
+button instead of inserting new text.  This function makes the region
+between @var{start} and @var{end} into a button.  Arguments
+@var{callback} and @var{data} have the same meanings as for
+@code{buttonize}.  Optional argument @var{help-echo} is used as the
+@code{help-echo} property of the button.
+@end defun
+
+@defun unbuttonize-region start end
+This function removes all buttons between @var{start} and @var{end} in
+the current buffer (both overlay and text-property based ones).
+@end defun
+
 @node Manipulating Buttons
 @subsection Manipulating Buttons
 @cindex manipulating buttons
@@ -7886,6 +8055,7 @@ These are commands and functions for locating and operating on
 buttons in an Emacs buffer.
 
 @cindex buffer-button-map
+@findex button-mode
 @code{push-button} is the command that a user uses to actually push
 a button, and is bound by default in the button itself to @key{RET}
 and to @key{mouse-2} using a local keymap in the button's overlay or
@@ -7896,7 +8066,8 @@ additionally available in the keymap stored in
 @code{button-buffer-map} as a parent keymap for its keymap.
 Alternatively, the @code{button-mode} can be switched on for much the
 same effect: It's a minor mode that does nothing else than install
-@code{button-buffer-map} as a minor mode keymap.
+@code{button-buffer-map} as a minor mode keymap (note that disabling
+@code{button-mode} will remove all the buttons in the current buffer).
 
 If the button has a non-@code{nil} @code{follow-link} property, and
 @code{mouse-1-click-follows-link} is set, a quick @key{mouse-1} click
@@ -8725,8 +8896,8 @@ hexadecimal notation.
 Display a box containing that string.  The string should contain at
 most 6 @acronym{ASCII} characters.  As an exception, if the string
 includes just one character, on text-mode terminals that character
-will be displayed without a box; this allows to handle such
-``acronyms'' as a replacement character for characters that cannot be
+will be displayed without a box; this enables treating such
+``acronyms'' as replacement characters for characters that cannot be
 displayed by the terminal.
 
 @item a cons cell @code{(@var{graphical} . @var{text})}
@@ -9022,7 +9193,7 @@ Bidirectionality'' class implementation of the @acronym{UBA},
 consistent with the requirements of the Unicode Standard v9.0.  Note,
 however, that the way Emacs displays continuation lines when text
 direction is opposite to the base paragraph direction deviates from
-the UBA, which requires to perform line wrapping before reordering
+the UBA, which requires performing line wrapping before reordering
 text for display.
 
 @defvar bidi-display-reordering

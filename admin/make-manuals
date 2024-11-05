@@ -1,7 +1,7 @@
 #!/bin/bash
 ### make-manuals - create the Emacs manuals to upload to the gnu.org website
 
-## Copyright 2018-2023 Free Software Foundation, Inc.
+## Copyright 2018-2024 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 ## Maintainer: emacs-devel@gnu.org
@@ -95,7 +95,7 @@ tempfile="$(emacs_mktemp)"
 
 if [ -e $outdir ]; then
     ## Speed up repeat invocation.
-    echo "Re-using existing $outdir/ directory"
+    echo "Reusing existing $outdir/ directory"
 
 else
 

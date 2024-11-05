@@ -1,4 +1,4 @@
-# Copyright 2023 Free Software Foundation, Inc.
+# Copyright 2023-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -110,7 +110,7 @@ NDK_CFLAGS ::= -mthumb
 endif
 endif
 
-ifeq ($(findstring lib,$(LOCAL_MODULE)),lib)
+ifeq ($(filter-out lib%,$(LOCAL_MODULE)),)
 LOCAL_MODULE_FILENAME := $(LOCAL_MODULE)
 else
 LOCAL_MODULE_FILENAME := lib$(LOCAL_MODULE)

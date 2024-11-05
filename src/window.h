@@ -1,5 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985-1986, 1993, 1995, 1997-2023 Free Software
+   Copyright (C) 1985-1986, 1993, 1995, 1997-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -142,6 +142,12 @@ struct window
        as well.  */
     Lisp_Object contents;
 
+    /* A list of <buffer, window-start, window-point> triples listing
+       buffers previously shown in this window.  */
+    Lisp_Object prev_buffers;
+    /* List of buffers re-shown in this window.  */
+    Lisp_Object next_buffers;
+
     /* The old buffer of this window, set to this window's buffer by
        run_window_change_functions every time it sees this window.
        Unused for internal windows.  */
@@ -205,6 +211,9 @@ struct window
     /* An alist with parameters.  */
     Lisp_Object window_parameters;
 
+    /* `cursor-type' to use in this window.  */
+    Lisp_Object cursor_type;
+
     /* The help echo text for this window.  Qnil if there's none.  */
     Lisp_Object mode_line_help_echo;
 
@@ -214,14 +223,6 @@ struct window
     /* Glyph matrices.  */
     struct glyph_matrix *current_matrix;
     struct glyph_matrix *desired_matrix;
-
-    /* The two Lisp_Object fields below are marked in a special way,
-       which is why they're placed after `current_matrix'.  */
-    /* A list of <buffer, window-start, window-point> triples listing
-       buffers previously shown in this window.  */
-    Lisp_Object prev_buffers;
-    /* List of buffers re-shown in this window.  */
-    Lisp_Object next_buffers;
 
     /* Number saying how recently window was selected.  */
     EMACS_INT use_time;
@@ -292,7 +293,7 @@ struct window
 
        `last_point' is normally used during redisplay to indicate the
        position of point as seem by the input method.  However, it is
-       not updated if consequtive conversions are processed at the
+       not updated if consecutive conversions are processed at the
        same time.
 
        This `ephemeral_last_point' field is either the last point as
@@ -543,6 +544,12 @@ wset_horizontal_scroll_bar_type (struct window *w, Lisp_Object val)
 }
 
 INLINE void
+wset_cursor_type (struct window *w, Lisp_Object val)
+{
+  w->cursor_type = val;
+}
+
+INLINE void
 wset_prev_buffers (struct window *w, Lisp_Object val)
 {
   w->prev_buffers = val;
@@ -595,11 +602,11 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* Non-nil if window W is leaf window (has a buffer).  */
 #define WINDOW_LEAF_P(W) \
-  (BUFFERP ((W)->contents))
+  BUFFERP ((W)->contents)
 
 /* Non-nil if window W is internal (is a parent window).  */
 #define WINDOW_INTERNAL_P(W) \
-  (WINDOWP ((W)->contents))
+  WINDOWP ((W)->contents)
 
 /* True if window W is a horizontal combination of windows.  */
 #define WINDOW_HORIZONTAL_COMBINATION_P(W) \
@@ -610,7 +617,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
   (WINDOW_INTERNAL_P (W) && !(W)->horizontal)
 
 /* Window W's XFRAME.  */
-#define WINDOW_XFRAME(W) (XFRAME (WINDOW_FRAME ((W))))
+#define WINDOW_XFRAME(W) XFRAME (WINDOW_FRAME (W))
 
 /* Whether window W is a pseudo window.  */
 #define WINDOW_PSEUDO_P(W) ((W)->pseudo_window_p)
@@ -630,11 +637,11 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* Return the canonical column width of the frame of window W.  */
 #define WINDOW_FRAME_COLUMN_WIDTH(W) \
-  (FRAME_COLUMN_WIDTH (WINDOW_XFRAME ((W))))
+  FRAME_COLUMN_WIDTH (WINDOW_XFRAME (W))
 
 /* Return the canonical line height of the frame of window W.  */
 #define WINDOW_FRAME_LINE_HEIGHT(W) \
-  (FRAME_LINE_HEIGHT (WINDOW_XFRAME ((W))))
+  FRAME_LINE_HEIGHT (WINDOW_XFRAME (W))
 
 /* Return the pixel width of window W.  This includes dividers, scroll
    bars, fringes and margins, if any.  */
@@ -666,7 +673,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #define MIN_SAFE_WINDOW_HEIGHT (1)
 
 #define MIN_SAFE_WINDOW_PIXEL_HEIGHT(W) \
-  (WINDOW_FRAME_LINE_HEIGHT (W))
+  WINDOW_FRAME_LINE_HEIGHT (W)
 
 /* True if window W has no other windows to its left on its frame.  */
 #define WINDOW_LEFTMOST_P(W)			\
@@ -1011,7 +1018,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 /* Height in pixels of the mode line.
    May be zero if W doesn't have a mode line.  */
 #define WINDOW_MODE_LINE_HEIGHT(W)	\
-  (window_wants_mode_line ((W))		\
+  (window_wants_mode_line (W)		\
    ? CURRENT_MODE_LINE_HEIGHT (W)	\
    : 0)
 
@@ -1049,7 +1056,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 /* Pixel height of window W without mode and header/tab line and bottom
    divider.  */
 #define WINDOW_BOX_TEXT_HEIGHT(W)	\
-  (WINDOW_PIXEL_HEIGHT ((W))		\
+  (WINDOW_PIXEL_HEIGHT (W)		\
    - WINDOW_BOTTOM_DIVIDER_WIDTH (W)	\
    - WINDOW_SCROLL_BAR_AREA_HEIGHT (W)	\
    - WINDOW_MODE_LINE_HEIGHT (W)	\
@@ -1065,7 +1072,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* Convert window W relative pixel X to frame pixel coordinates.  */
 #define WINDOW_TO_FRAME_PIXEL_X(W, X)	\
-  ((X) + WINDOW_BOX_LEFT_EDGE_X ((W)))
+  ((X) + WINDOW_BOX_LEFT_EDGE_X (W))
 
 /* Convert window W relative pixel Y to frame pixel coordinates.  */
 #define WINDOW_TO_FRAME_PIXEL_Y(W, Y)		\
@@ -1073,7 +1080,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* Convert frame relative pixel X to window relative pixel X.  */
 #define FRAME_TO_WINDOW_PIXEL_X(W, X)		\
-  ((X) - WINDOW_BOX_LEFT_EDGE_X ((W)))
+  ((X) - WINDOW_BOX_LEFT_EDGE_X (W))
 
 /* Convert frame relative pixel Y to window relative pixel Y.  */
 #define FRAME_TO_WINDOW_PIXEL_Y(W, Y)		\
@@ -1082,7 +1089,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 /* Convert a text area relative x-position in window W to frame X
    pixel coordinates.  */
 #define WINDOW_TEXT_TO_FRAME_PIXEL_X(W, X)	\
-  (window_box_left ((W), TEXT_AREA) + (X))
+  window_box_left (W, TEXT_AREA) + (X)
 
 /* This is the window in which the terminal's cursor should be left when
    nothing is being done with it.  This must always be a leaf window, and its
@@ -1111,7 +1118,7 @@ extern Lisp_Object minibuf_selected_window;
 
 extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
-                                            enum window_part *, bool, bool);
+                                            enum window_part *, bool, bool, bool);
 extern void resize_frame_windows (struct frame *, int, bool);
 extern void restore_window_configuration (Lisp_Object);
 extern void delete_all_child_windows (Lisp_Object);
@@ -1219,6 +1226,7 @@ extern void replace_buffer_in_windows_safely (Lisp_Object);
 extern void wset_buffer (struct window *, Lisp_Object);
 extern bool window_outdated (struct window *);
 extern ptrdiff_t window_point (struct window *w);
+extern void window_discard_buffer_from_dead_windows (Lisp_Object);
 extern void init_window_once (void);
 extern void init_window (void);
 extern void syms_of_window (void);

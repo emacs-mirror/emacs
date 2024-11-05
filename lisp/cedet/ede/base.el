@@ -1,6 +1,6 @@
 ;;; ede/base.el --- Baseclasses for EDE  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -312,7 +312,8 @@ All specific project types must derive from this project."
   "File containing the list of projects EDE has viewed.
 If set to nil, then the cache is not saved."
   :group 'ede
-  :type 'file)
+  :type '(choice (const :tag "Don't save the cache" nil)
+                 file))
 
 (defvar ede-project-cache-files nil
   "List of project files EDE has seen before.")

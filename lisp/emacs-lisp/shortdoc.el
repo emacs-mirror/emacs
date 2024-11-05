@@ -1,6 +1,6 @@
 ;;; shortdoc.el --- Short function summaries  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Keywords: lisp, help
 ;; Package: emacs
@@ -49,6 +49,17 @@
 (defface shortdoc-section
   '((t :inherit variable-pitch))
   "Face used for a section.")
+
+;;;###autoload
+(defun shortdoc--check (group functions)
+  (let ((keywords '( :no-manual :args :eval :no-eval :no-value :no-eval*
+                     :result :result-string :eg-result :eg-result-string :doc)))
+    (dolist (f functions)
+      (when (consp f)
+        (dolist (x f)
+          (when (and (keywordp x) (not (memq x keywords)))
+            (error "Shortdoc %s function `%s': bad keyword `%s'"
+                   group (car f) x)))))))
 
 ;;;###autoload
 (progn
@@ -118,6 +129,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
 `:no-eval*', `:result', `:result-string', `:eg-result' and
 `:eg-result-string' properties."
     (declare (indent defun))
+    (shortdoc--check group functions)
     `(progn
        (setq shortdoc--groups (delq (assq ',group shortdoc--groups)
                                     shortdoc--groups))
@@ -572,10 +584,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :result-string "#s(hash-table ...)")
   (hash-table-count
    :no-eval (hash-table-count table)
-   :eg-result 15)
-  (hash-table-size
-   :no-eval (hash-table-size table)
-   :eg-result 65))
+   :eg-result 15))
 
 (define-short-documentation-group list
   "Making Lists"
@@ -718,7 +727,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (plist-get '(a 1 b 2 c 3) 'b))
   (plist-put
    :no-eval (setq plist (plist-put plist 'd 4))
-   :eq-result (a 1 b 2 c 3 d 4))
+   :eg-result (a 1 b 2 c 3 d 4))
   (plist-member
    :eval (plist-member '(a 1 b 2 c 3) 'b))
   "Data About Lists"
@@ -738,9 +747,13 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (intern
    :eval (intern "abc"))
   (intern-soft
+   :eval (intern-soft "list")
    :eval (intern-soft "Phooey!"))
   (make-symbol
    :eval (make-symbol "abc"))
+  (gensym
+   :no-eval (gensym)
+   :eg-result g37)
   "Comparing symbols"
   (eq
    :eval (eq 'abc 'abc)
@@ -751,7 +764,20 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (equal 'abc 'abc))
   "Name"
   (symbol-name
-   :eval (symbol-name 'abc)))
+   :eval (symbol-name 'abc))
+  "Obarrays"
+  (obarray-make
+   :eval (obarray-make))
+  (obarrayp
+   :eval (obarrayp (obarray-make))
+   :eval (obarrayp nil))
+  (unintern
+   :no-eval (unintern "abc" my-obarray)
+   :eg-result t)
+  (mapatoms
+   :no-eval (mapatoms (lambda (symbol) (print symbol)) my-obarray))
+  (obarray-clear
+   :no-eval (obarray-clear my-obarray)))
 
 (define-short-documentation-group comparison
   "General-purpose"
@@ -1388,7 +1414,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (set-text-properties
    :no-eval (set-text-properties (point) (1+ (point)) '(face error)))
   (add-face-text-property
-   (add-face-text-property START END '(:foreground "green")))
+   :no-eval (add-face-text-property START END '(:foreground "green")))
   (propertize
    :eval (propertize "foo" 'face 'italic 'mouse-face 'bold-italic))
   "Searching for Text Properties"
@@ -1755,7 +1781,7 @@ With prefix numeric argument ARG, do it that many times."
   (interactive)
   (save-excursion
     (goto-char (pos-bol))
-    (when-let* ((re (rx bol "(" (group (+ (not (in " "))))))
+    (when-let* ((re (rx bol "(" (group (+ (not (in " )"))))))
                 (string
                  (and (or (looking-at re)
                           (re-search-backward re nil t))

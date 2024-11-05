@@ -1,6 +1,6 @@
 ;;; rmailmm.el --- MIME decoding and display stuff for RMAIL  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2024 Free Software Foundation, Inc.
 
 ;; Author: Alexander Pohoyda
 ;;	Alex Schroeder
@@ -170,7 +170,7 @@ The value is usually nil, and bound to non-nil while inserting
 MIME entities.")
 
 (defvar rmail-mime-searching nil
-  "Bound to T inside `rmail-search-mime-message' to suppress expensive
+  "Bound to t inside `rmail-search-mime-message' to suppress expensive
 operations such as HTML decoding")
 
 ;;; MIME-entity object
@@ -579,7 +579,13 @@ HEADER is a header component of a MIME-entity object (see
 	       (ignore-errors (base64-decode-region pos (point))))
 	      ((string= transfer-encoding "quoted-printable")
 	       (quoted-printable-decode-region pos (point))))))
-    (decode-coding-region pos (point) coding-system)
+    ;; If the text is empty, we don't have anything to decode.
+    (and (/= pos (point))
+         (decode-coding-region
+          pos (point)
+          ;; Use -dos decoding, to remove ^M characters left from base64
+          ;; or rogue qp-encoded text.
+          (coding-system-change-eol-conversion coding-system 1)))
     (if (and
 	 (or (not rmail-mime-coding-system) (consp rmail-mime-coding-system))
 	 (not (eq (coding-system-base coding-system) 'us-ascii)))
@@ -691,7 +697,11 @@ HEADER is a header component of a MIME-entity object (see
 	    (if (and (eq coding-system 'undecided)
 		     (not (null coding-system-for-read)))
 		(setq coding-system coding-system-for-read))))
-      (decode-coding-region (point-min) (point) coding-system)
+      (decode-coding-region
+       (point-min) (point)
+       ;; Use -dos decoding, to remove ^M characters left from base64 or
+       ;; rogue qp-encoded text.
+       (coding-system-change-eol-conversion coding-system 1))
       (if (and
 	   (or (not rmail-mime-coding-system) (consp rmail-mime-coding-system))
 	   (not (eq (coding-system-base coding-system) 'us-ascii)))

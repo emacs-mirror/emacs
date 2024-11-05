@@ -1,6 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -109,8 +109,8 @@ can set the value for a particular mode using that mode's hook.
 Comments might be indented to a different value in order not to go beyond
 `comment-fill-column' or in order to align them with surrounding comments."
   :type 'integer
+  :local t
   :group 'comment)
-(make-variable-buffer-local 'comment-column)
 ;;;###autoload
 (put 'comment-column 'safe-local-variable 'integerp)
 

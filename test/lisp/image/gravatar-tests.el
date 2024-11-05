@@ -1,6 +1,6 @@
 ;;; gravatar-tests.el --- tests for gravatar.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -50,7 +50,7 @@
       (should (equal (gravatar--query-string) "r=g&d=404")))
     (let ((gravatar-default-image "https://foo/bar.png"))
       (should (equal (gravatar--query-string)
-                     "r=g&d=https%3A%2F%2Ffoo%2Fbar.png")))))
+                     "r=g&d=https://foo/bar.png")))))
 
 (ert-deftest gravatar-force-default ()
   "Test query strings for `gravatar-force-default'."

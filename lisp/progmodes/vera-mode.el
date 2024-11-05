@@ -1,11 +1,11 @@
 ;;; vera-mode.el --- major mode for editing Vera files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2024 Free Software Foundation, Inc.
 
 ;; Author:      Reto Zimmermann <reto@gnu.org>
 ;; Version:     2.28
 ;; Keywords:    languages vera
-;; WWW:         https://guest.iis.ee.ethz.ch/~zimmi/emacs/vera-mode.html
+;; URL:         https://iis-people.ee.ethz.ch/~zimmi/emacs/vera-mode.html
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 18/3/2008, and the maintainer agreed that when a bug is

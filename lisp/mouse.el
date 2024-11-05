@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware, mouse
@@ -35,7 +35,7 @@
 (put 'track-mouse 'lisp-indent-function 0)
 
 (defgroup mouse nil
-  "Input from the mouse."  ;; "Mouse support."
+  "Input from the mouse."
   :group 'environment
   :group 'editing)
 
@@ -132,6 +132,19 @@ This option is only supported on X, Haiku and Nextstep (GNUstep
 or macOS)."
   :type 'boolean
   :version "29.1")
+
+(defcustom mouse-wheel-buttons
+  '((4 . wheel-up) (5 . wheel-down) (6 . wheel-left) (7 . wheel-right))
+  "How to remap mouse button numbers to wheel events.
+This is an alist of (NUMBER . SYMBOL) used to remap old-style mouse wheel
+events represented as mouse button events.  It remaps mouse button
+NUMBER to the event SYMBOL.  SYMBOL must be one of `wheel-up', `wheel-down',
+`wheel-left', or `wheel-right'.
+This is used only for events that come from sources known to generate such
+events, such as X11 events when XInput2 is not used, or events coming from
+a text terminal."
+  :type '(alist)
+  :version "30.1")
 
 (defvar mouse--last-down nil)
 
@@ -393,6 +406,7 @@ and should return the same menu with changes such as added new menu items."
                   (function-item context-menu-local)
                   (function-item context-menu-minor)
                   (function-item context-menu-buffers)
+                  (function-item context-menu-project)
                   (function-item context-menu-vc)
                   (function-item context-menu-ffap)
                   (function-item hi-lock-context-menu)
@@ -414,13 +428,17 @@ Each function receives the menu and the mouse click event
 and returns the same menu after adding own menu items to the composite menu.
 When there is a text property `context-menu-function' at CLICK,
 it overrides all functions from `context-menu-functions'.
+Whereas the property `context-menu-functions' doesn't override
+the variable `context-menu-functions', but adds menus from the
+list in the property after adding menus from the variable.
 At the end, it's possible to modify the final menu by specifying
 the function `context-menu-filter-function'."
   (let* ((menu (make-sparse-keymap (propertize "Context Menu" 'hide t)))
          (click (or click last-input-event))
-         (window (posn-window (event-start click)))
-         (fun (mouse-posn-property (event-start click)
-                                   'context-menu-function)))
+         (start (event-start click))
+         (window (posn-window start))
+         (fun (mouse-posn-property start 'context-menu-function))
+         (funs (mouse-posn-property start 'context-menu-functions)))
 
     (unless (eq (selected-window) window)
       (select-window window))
@@ -430,7 +448,9 @@ the function `context-menu-filter-function'."
       (run-hook-wrapped 'context-menu-functions
                         (lambda (fun)
                           (setq menu (funcall fun menu click))
-                          nil)))
+                          nil))
+      (dolist (fun funs)
+        (setq menu (funcall fun menu click))))
 
     ;; Remove duplicate separators as well as ones at the beginning or
     ;; end of the menu.
@@ -525,6 +545,12 @@ Some context functions add menu items below the separator."
                   (define-key-after menu (vector key)
                     (copy-sequence binding))))
               (mouse-buffer-menu-keymap))
+  menu)
+
+(defun context-menu-project (menu _click)
+  "Populate MENU with project commands."
+  (define-key-after menu [separator-project] menu-bar-separator)
+  (define-key-after menu [project-menu] menu-bar-project-item)
   menu)
 
 (defun context-menu-vc (menu _click)
@@ -1829,10 +1855,11 @@ The region will be defined with mark and point."
              map)
            t (lambda ()
                (funcall cleanup)
-               ;; Don't deactivate the mark when the context menu was invoked
-               ;; by down-mouse-3 immediately after down-mouse-1 and without
-               ;; releasing the mouse button with mouse-1. This allows to use
-               ;; region-related context menu to operate on the selected region.
+               ;; Don't deactivate the mark when the context menu was
+               ;; invoked by down-mouse-3 immediately after
+               ;; down-mouse-1 and without releasing the mouse button
+               ;; with mouse-1.  This enables region-related context
+               ;; menu to operate on the selected region.
                (unless (and context-menu-mode
                             (eq (car-safe (aref (this-command-keys-vector) 0))
                                 'down-mouse-3))

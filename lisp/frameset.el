@@ -1,6 +1,6 @@
 ;;; frameset.el --- save and restore frame and window setup -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;; Keywords: convenience
@@ -179,7 +179,7 @@ Properties can be set with
 
 ;; What's the deal with these "filter alists"?
 ;;
-;; Let's say that Emacs' frame parameters were never designed as a tool to
+;; Let's say that Emacs's frame parameters were never designed as a tool to
 ;; precisely record (or restore) a frame's state.  They grew organically,
 ;; and their uses and behaviors reflect their history.  In using them to
 ;; implement framesets, the unwary implementer, or the prospective package
@@ -200,7 +200,7 @@ Properties can be set with
 ;; - can be ignored by window managers (most positional args, like `height',
 ;;   `width', `left' and `top', and others, like `auto-raise', `auto-lower')
 ;; - can be set externally in X resources or Window registry (again, most
-;;   positional parameters, and also `toolbar-lines', `menu-bar-lines' etc.)
+;;   positional parameters, and also `tool-bar-lines', `menu-bar-lines' etc.)
 ;, - can contain references to live objects (`buffer-list', `minibuffer') or
 ;;   code (`buffer-predicate')
 ;; - are set automatically, and cannot be changed (`window-id', `parent-id'),
@@ -277,7 +277,7 @@ Properties can be set with
 ;;   display they do no harm, but they clutter the parameter alist.
 ;;
 ;; - `minibuffer': It can contain a reference to a live window, which cannot
-;;   be serialized.  Because of Emacs' idiosyncratic treatment of this
+;;   be serialized.  Because of Emacs's idiosyncratic treatment of this
 ;;   parameter, frames created with (minibuffer . t) have a parameter
 ;;   (minibuffer . #<window...>), while frames created with
 ;;   (minibuffer . #<window...>) have (minibuffer . nil), which is madness

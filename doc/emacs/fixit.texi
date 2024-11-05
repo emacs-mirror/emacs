@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Fixit
@@ -274,6 +274,9 @@ you can control which one is used by customizing the variable
 @item M-$
 Check and correct spelling of the word at point (@code{ispell-word}).
 If the region is active, do it for all words in the region instead.
+@item C-u M-$
+If a previous spelling operation was interrupted, continue that
+operation (@code{ispell-continue}).
 @item M-x ispell
 Check and correct spelling of all words in the buffer.  If the region
 is active, do it for all words in the region instead.
@@ -295,8 +298,8 @@ Kill the spell-checker subprocess.
 @item M-@key{TAB}
 @itemx @key{ESC} @key{TAB}
 @itemx C-M-i
-Complete the word before point based on the spelling dictionary
-(@code{ispell-complete-word}).
+Complete the word before point based on the spelling dictionary and
+other completion sources (@code{completion-at-point}).
 @item M-x flyspell-mode
 Enable Flyspell mode, which highlights all misspelled words.
 @item M-x flyspell-prog-mode
@@ -305,12 +308,16 @@ Enable Flyspell mode for comments and strings only.
 
 @kindex M-$
 @findex ispell-word
+@findex ispell-continue
   To check the spelling of the word around or before point, and
 optionally correct it as well, type @kbd{M-$} (@code{ispell-word}).
 If a region is active, @kbd{M-$} checks the spelling of all words
 within the region.  @xref{Mark}.  (When Transient Mark mode is off,
 @kbd{M-$} always acts on the word around or before point, ignoring the
-region; @pxref{Disabled Transient Mark}.)
+region; @pxref{Disabled Transient Mark}.)  When invoked with a prefix
+argument, @kbd{C-u M-$}, this calls @code{ispell-continue}, which
+continues the spelling operation, if any, which was interrupted with
+@kbd{X} or @kbd{C-g}.
 
 @findex ispell
 @findex ispell-buffer
@@ -383,9 +390,9 @@ wildcard.
 
 @item C-g
 @itemx X
-Quit interactive spell-checking, leaving point at the word that was
-being checked.  You can restart checking again afterward with @w{@kbd{C-u
-M-$}}.
+Interrupt the interactive spell-checking, leaving point at the word
+that was being checked.  You can restart checking again afterward with
+@w{@kbd{C-u M-$}}.
 
 @item x
 Quit interactive spell-checking and move point back to where it was
@@ -394,18 +401,28 @@ when you started spell-checking.
 @item q
 Quit interactive spell-checking and kill the spell-checker subprocess.
 
+@item C-r
+Enter recursive-edit (@pxref{Recursive Edit}).  When you exit
+recursive-edit with @kbd{C-M-c}, the interactive spell-checking will
+resume.  This allows you to consult the buffer text without
+interrupting the spell-checking.  Do @emph{not} modify the buffer in
+the recursive editing, and especially don't modify the misspelled
+word, as the edits will be undone when you exit recursive-edit.  If
+you need to edit the misspelled word, use @kbd{r} or @kbd{R} instead,
+or use @kbd{X}, edit the buffer, then resume with @w{@kbd{C-u M-$}}.
+
+@item C-z
+Suspend Emacs or iconify the selected frame.
+
 @item ?
 Show the list of options.
 @end table
 
-@findex ispell-complete-word
-  In Text mode and related modes, @kbd{M-@key{TAB}}
-(@code{ispell-complete-word}) performs in-buffer completion based on
-spelling correction.  Insert the beginning of a word, and then type
-@kbd{M-@key{TAB}}; this shows a list of completions.  (If your
+  Use the command @kbd{M-@key{TAB}} (@code{completion-at-point}) to
+complete the word at point.  Insert the beginning of a word, and then
+type @kbd{M-@key{TAB}} to select from a list of completions.  (If your
 window manager intercepts @kbd{M-@key{TAB}}, type @w{@kbd{@key{ESC}
-@key{TAB}}} or @kbd{C-M-i}.)  Each completion is listed with a digit or
-character; type that digit or character to choose it.
+@key{TAB}}} or @kbd{C-M-i}.)
 
 @cindex @code{ispell} program
 @findex ispell-kill-ispell
@@ -433,6 +450,30 @@ dictionary is specified by the variable
 spelling program looks for a personal dictionary in a default
 location, which is specific to each spell-checker.
 
+@cindex spell-checking different languages
+@cindex language for spell-checking
+  Usually, a dictionary used by a spell-checker is for a specific
+language.  The default language is determined from your system's
+environment and locale.  Both the standard dictionary and your personal
+dictionary should be changed if you want to spell-check text in a
+different language.  You can use the @code{ispell-change-dictionary}
+command for that.
+
+@cindex spell-checking multi-lingual text
+@findex ispell-hunspell-add-multi-dic
+  Hunspell is special in that it supports spell-checking using several
+different dictionaries in parallel.  To use this feature, invoke the
+@kbd{M-x ispell-hunspell-add-multi-dic} command before you start using
+Hunspell for a particular combination of dictionaries.  This command
+prompts for the dictionary combination, which should be a
+comma-separated list of language-specific dictionary names, such as
+@samp{en_US,de_DE,ru_RU}.  Thereafter, you can spell-check text which
+mixes these languages without changing the dictionaries each time.
+(Caveat: when several languages use the same script, it is possible that
+a word that is mis-spelled in one language is found as a valid spelling
+in the dictionary of another language; in that case, the mis-spelled
+word might be missed.)
+
 @vindex ispell-complete-word-dict
   A separate dictionary is used for word completion.  The variable
 @code{ispell-complete-word-dict} specifies the file name of this
@@ -455,6 +496,13 @@ that, as Flyspell mode needs to check each word across which you move,
 it will slow down cursor motion and scrolling commands.  It also
 doesn't automatically check the text you didn't type or move across;
 use @code{flyspell-region} or @code{flyspell-buffer} for that.
+
+@vindex flyspell-check-changes
+  Normally, Flyspell mode highlights misspelled words that you typed or
+modified, but also words you move across without changing them.  But if
+you customize the variable @code{flyspell-check-changes} to a
+non-@code{nil} value, Flyspell mode will check only the words you typed
+or edited in some way.
 
 @findex flyspell-correct-word
 @findex flyspell-auto-correct-word

@@ -1,6 +1,6 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1994, 2001-2023 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1994, 2001-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -67,9 +67,10 @@ If nil, the feature is disabled, i.e., all commands work normally.")
                "Here's the first part of its description:\n\n")
               ;; Keep only the first paragraph of the documentation.
               (with-temp-buffer
-                (insert (condition-case ()
-                            (documentation cmd)
-                          (error "<< not documented >>")))
+                (insert (or (condition-case ()
+			        (documentation cmd)
+			      (error nil))
+			    "<< not documented >>"))
                 (goto-char (point-min))
                 (when (search-forward "\n\n" nil t)
                   (delete-region (match-beginning 0) (point-max)))

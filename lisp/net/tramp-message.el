@@ -1,6 +1,6 @@
 ;;; tramp-message.el --- Tramp messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -32,9 +32,8 @@
 ;;   This buffer is created when `tramp-verbose' is greater than or
 ;;   equal 4.  It contains all messages with a level up to `tramp-verbose'.
 ;;
-;;   When `tramp-debug-command-messages' is non-nil and
-;;   `tramp-verbose' is greater than or equal 6, the buffer contains
-;;   all messages with level 6 and the entry/exit messages of
+;;   When `tramp-debug-command-messages' is non-nil, the buffer
+;;   contains all messages with level 6 and the entry/exit messages of
 ;;   `tramp-file-name-handler'.  This is intended to analyze which
 ;;   remote commands are sent for a given file name operation.
 ;;
@@ -54,6 +53,8 @@
 (declare-function tramp-file-name-host-port "tramp")
 (declare-function tramp-file-name-user-domain "tramp")
 (declare-function tramp-get-default-directory "tramp")
+(defvar tramp-repository-branch)
+(defvar tramp-repository-version)
 
 ;;;###tramp-autoload
 (defcustom tramp-verbose 3
@@ -73,7 +74,8 @@ Any level x includes messages for all levels 1 .. x-1.  The levels are
 10  traces (huge)
 11  call traces (maintainer only)."
   :group 'tramp
-  :type 'integer)
+  :type 'integer
+  :link '(info-link :tag "Tramp manual" "(tramp) Traces and Profiles"))
 
 (defcustom tramp-debug-to-file nil
   "Whether Tramp debug messages shall be saved to file.
@@ -81,14 +83,16 @@ The debug file has the same name as the debug buffer, written to
 `tramp-compat-temporary-file-directory'."
   :group 'tramp
   :version "28.1"
-  :type 'boolean)
+  :type 'boolean
+  :link '(info-link :tag "Tramp manual" "(tramp) Traces and Profiles"))
 
 (defcustom tramp-debug-command-messages nil
   "Whether to write only command messages to the debug buffer.
-This has only effect if `tramp-verbose' is greater than or equal 6."
+This increases `tramp-verbose' to 6 if necessary."
   :group 'tramp
   :version "30.1"
-  :type 'boolean)
+  :type 'boolean
+  :link '(info-link :tag "Tramp manual" "(tramp) Traces and Profiles"))
 
 (defconst tramp-debug-outline-regexp
   (rx ;; Timestamp.
@@ -123,12 +127,11 @@ The outline level is equal to the verbosity of the Tramp message."
   (declare (tramp-suppress-trace t))
   (1+ (string-to-number (match-string 3))))
 
-;; This function takes action since Emacs 28.1, when
-;; `read-extended-command-predicate' is set to
-;; `command-completion-default-include-p'.
+;; This function takes action, when `read-extended-command-predicate'
+;; is set to `command-completion-default-include-p'.
 (defun tramp-debug-buffer-command-completion-p (_symbol buffer)
   "A predicate for Tramp interactive commands.
-They are completed by \"M-x TAB\" only in Tramp debug buffers."
+They are completed by `M-x TAB' only in Tramp debug buffers."
   (declare (tramp-suppress-trace t))
   (with-current-buffer buffer
     (string-equal
@@ -137,9 +140,8 @@ They are completed by \"M-x TAB\" only in Tramp debug buffers."
 
 (defun tramp-setup-debug-buffer ()
   "Function to setup debug buffers."
-  (declare (tramp-suppress-trace t))
-  ;; (declare (completion tramp-debug-buffer-command-completion-p)
-  ;; 	   (tramp-suppress-trace t))
+  (declare (completion tramp-debug-buffer-command-completion-p)
+           (tramp-suppress-trace t))
   (interactive)
   (set-buffer-file-coding-system 'utf-8)
   (setq buffer-undo-list t)
@@ -165,10 +167,6 @@ They are completed by \"M-x TAB\" only in Tramp debug buffers."
   (local-set-key "\M-n" 'clone-buffer)
   (add-hook 'clone-buffer-hook #'tramp-setup-debug-buffer nil 'local))
 
-(function-put
- #'tramp-setup-debug-buffer 'completion-predicate
- #'tramp-debug-buffer-command-completion-p)
-
 (defun tramp-debug-buffer-name (vec)
   "A name for the debug buffer of VEC."
   (declare (tramp-suppress-trace t))
@@ -191,13 +189,13 @@ They are completed by \"M-x TAB\" only in Tramp debug buffers."
   "Get the debug file name for VEC."
   (declare (tramp-suppress-trace t))
   (expand-file-name
-   (tramp-compat-string-replace "/" " " (tramp-debug-buffer-name vec))
+   (string-replace "/" " " (tramp-debug-buffer-name vec))
    tramp-compat-temporary-file-directory))
 
 (defun tramp-trace-buffer-name (vec)
   "A name for the trace buffer for VEC."
   (declare (tramp-suppress-trace t))
-   (tramp-compat-string-replace "*debug" "*trace" (tramp-debug-buffer-name vec)))
+  (string-replace "*debug" "*trace" (tramp-debug-buffer-name vec)))
 
 (defvar tramp-trace-functions nil
   "A list of non-Tramp functions to be traced with `tramp-verbose' > 10.")
@@ -237,9 +235,12 @@ ARGUMENTS to actually emit the message (if applicable)."
 		  tramp-trace-functions))
 	      (unless (get elt 'tramp-suppress-trace)
 		(trace-function-background elt (tramp-trace-buffer-name vec)))))
-	  ;; Delete debug file.
+	  ;; Delete debug file.  Announce its further existence.
 	  (when (and tramp-debug-to-file (tramp-get-debug-file-name vec))
-	    (ignore-errors (delete-file (tramp-get-debug-file-name vec)))))
+	    (ignore-errors (delete-file (tramp-get-debug-file-name vec)))
+	    (let ((message-log-max t))
+	      (message
+	       "Tramp debug file is %s" (tramp-get-debug-file-name vec)))))
 	(unless (bolp)
 	  (insert "\n"))
 	;; Timestamp.
@@ -298,43 +299,47 @@ control string and the remaining ARGUMENTS to actually emit the message (if
 applicable)."
   ;; (declare (tramp-suppress-trace t))
   (ignore-errors
-    (when (<= level tramp-verbose)
-      ;; Display only when there is a minimum level, and the progress
-      ;; reporter doesn't suppress further messages.
-      (when (and (<= level 3) (null tramp-inhibit-progress-reporter))
-	(apply #'message
-	       (concat
-		(cond
-		 ((= level 0) "")
-		 ((= level 1) "")
-		 ((= level 2) "Warning: ")
-		 (t           "Tramp: "))
-		fmt-string)
-	       arguments))
-      ;; Log only when there is a minimum level.
-      (when (>= tramp-verbose 4)
-	(let ((tramp-verbose 0))
-	  ;; Append connection buffer for error messages, if exists.
-	  (when (= level 1)
-	    (ignore-errors
-	      (setq fmt-string (concat fmt-string "\n%s")
-		    arguments
-		    (append
-		     arguments
-		     `(,(tramp-get-buffer-string
-			 (if (processp vec-or-proc)
-			     (process-buffer vec-or-proc)
-			   (tramp-get-connection-buffer
-			    vec-or-proc 'dont-create))))))))
-	  ;; Translate proc to vec.
-	  (when (processp vec-or-proc)
-	    (setq vec-or-proc (process-get vec-or-proc 'tramp-vector))))
-	;; Do it.
-	(when (and (tramp-file-name-p vec-or-proc)
-		   (or (null tramp-debug-command-messages) (= level 6)))
-	  (apply #'tramp-debug-message
-		 vec-or-proc
-		 (concat (format "(%d) # " level) fmt-string)
+    (let ((tramp-verbose
+	   (if tramp-debug-command-messages
+	       (max tramp-verbose 6) tramp-verbose)))
+      (when (<= level tramp-verbose)
+	;; Log only when there is a minimum level.
+	(when (>= tramp-verbose 4)
+	  (let ((tramp-verbose 0))
+	    ;; Append connection buffer for error messages, if exists.
+	    (when (= level 1)
+	      (ignore-errors
+		(setq fmt-string (concat fmt-string "\n%s")
+		      arguments
+		      (append
+		       arguments
+		       `(,(tramp-get-buffer-string
+			   (if (processp vec-or-proc)
+			       (process-buffer vec-or-proc)
+			     (tramp-get-connection-buffer
+			      vec-or-proc 'dont-create))))))))
+	    ;; Translate proc to vec.  Handle nil vec.
+	    (when (processp vec-or-proc)
+	      (setq vec-or-proc (process-get vec-or-proc 'tramp-vector)))
+	    (setq vec-or-proc (tramp-file-name-unify vec-or-proc)))
+	  ;; Do it.
+	  (when (and (tramp-file-name-p vec-or-proc)
+		     (or (null tramp-debug-command-messages) (= level 6)))
+	    (apply #'tramp-debug-message
+		   vec-or-proc
+		   (concat (format "(%d) # " level) fmt-string)
+		   arguments)))
+	;; Display only when there is a minimum level, and the
+	;; progress reporter doesn't suppress further messages.
+	(when (and (<= level 3) (null tramp-inhibit-progress-reporter))
+	  (apply #'message
+		 (concat
+		  (cond
+		   ((= level 0) "")
+		   ((= level 1) "")
+		   ((= level 2) "Warning: ")
+		   (t           "Tramp: "))
+		  fmt-string)
 		 arguments))))))
 
 ;; We cannot use the `declare' form for `tramp-suppress-trace' in
@@ -347,12 +352,13 @@ applicable)."
 If VEC-OR-PROC is nil, the buffer *debug tramp* is used.  FORCE
 forces the backtrace even if `tramp-verbose' is less than 10.
 This function is meant for debugging purposes."
+  (declare (tramp-suppress-trace t))
   (let ((tramp-verbose (if force 10 tramp-verbose)))
     (when (>= tramp-verbose 10)
-      (if vec-or-proc
-	  (tramp-message
-	   vec-or-proc 10 "\n%s" (with-output-to-string (backtrace)))
-	(with-output-to-temp-buffer "*debug tramp*" (backtrace))))))
+      (tramp-message
+       ;; In batch-mode, we want to see it on stderr.
+       vec-or-proc (if (and force noninteractive) 1 10)
+       "\n%s" (with-output-to-string (backtrace))))))
 
 (defsubst tramp-error (vec-or-proc signal fmt-string &rest arguments)
   "Emit an error.
@@ -360,6 +366,7 @@ VEC-OR-PROC identifies the connection to use, SIGNAL is the
 signal identifier to be raised, remaining arguments passed to
 `tramp-message'.  Finally, signal SIGNAL is raised with
 FMT-STRING and ARGUMENTS."
+  (declare (tramp-suppress-trace t))
   (let (signal-hook-function)
     (tramp-backtrace vec-or-proc)
     (unless arguments
@@ -368,13 +375,12 @@ FMT-STRING and ARGUMENTS."
       ;; character, as in smb domain spec.
       (setq arguments (list fmt-string)
 	    fmt-string "%s"))
-    (when vec-or-proc
-      (tramp-message
-       vec-or-proc 1 "%s"
-       (error-message-string
-	(list signal
-	      (get signal 'error-message)
-	      (apply #'format-message fmt-string arguments)))))
+    (tramp-message
+     vec-or-proc 1 "%s"
+     (error-message-string
+      (list signal
+	    (get signal 'error-message)
+	    (apply #'format-message fmt-string arguments))))
     (signal signal (list (substring-no-properties
 			  (apply #'format-message fmt-string arguments))))))
 
@@ -388,6 +394,7 @@ tramp-tests.el.")
   "Emit an error, and show BUF.
 If BUF is nil, show the connection buf.  Wait for 30\", or until
 an input event arrives.  The other arguments are passed to `tramp-error'."
+  (declare (tramp-suppress-trace t))
   (save-window-excursion
     (let* ((buf (or (and (bufferp buf) buf)
 		    (and (processp vec-or-proc) (process-buffer vec-or-proc))
@@ -414,13 +421,14 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	    ;; Show buffer.
 	    (pop-to-buffer buf)
 	    (discard-input)
-	    (sit-for tramp-error-show-message-timeout)))
+	    (sit-for tramp-error-show-message-timeout 'nodisp)))
 	;; Reset timestamp.  It would be wrong after waiting for a while.
 	(when (tramp-file-name-equal-p vec (car tramp-current-connection))
 	  (setcdr tramp-current-connection (current-time)))))))
 
 (defsubst tramp-user-error (vec-or-proc fmt-string &rest arguments)
   "Signal a user error (or \"pilot error\")."
+  (declare (tramp-suppress-trace t))
   (unwind-protect
       (apply #'tramp-error vec-or-proc 'user-error fmt-string arguments)
     ;; Save exit.
@@ -435,7 +443,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	;; `tramp-error' does not show messages.  So we must do it ourselves.
 	(apply #'message fmt-string arguments)
 	(discard-input)
-	(sit-for tramp-error-show-message-timeout)
+	(sit-for tramp-error-show-message-timeout 'nodisp)
 	;; Reset timestamp.  It would be wrong after waiting for a while.
 	(when
 	    (tramp-file-name-equal-p vec-or-proc (car tramp-current-connection))
@@ -451,6 +459,15 @@ the resulting error message."
     `(condition-case-unless-debug ,err
          (progn ,@body)
        (error (tramp-message ,vec-or-proc 3 ,format ,err) nil))))
+
+(defsubst tramp-warning (vec-or-proc fmt-string &rest arguments)
+  "Show a warning.
+VEC-OR-PROC identifies the connection to use, remaining arguments passed
+to `tramp-message'."
+  (declare (tramp-suppress-trace t))
+  (let (signal-hook-function)
+    (apply 'tramp-message vec-or-proc 2 fmt-string arguments)
+    (lwarn 'tramp :warning fmt-string arguments)))
 
 (defun tramp-test-message (fmt-string &rest arguments)
   "Emit a Tramp message according `default-directory'."
@@ -468,7 +485,7 @@ the resulting error message."
   "Goto the linked message in debug buffer at place."
   (declare (tramp-suppress-trace t))
   (when (mouse-event-p last-input-event) (mouse-set-point last-input-event))
-  (when-let ((point (button-get button 'position)))
+  (when-let* ((point (button-get button 'position)))
     (goto-char point)))
 
 (define-button-type 'tramp-debug-button-type
@@ -512,7 +529,7 @@ This shouldn't be changed globally, but let-bind where needed.")
 Bound in `tramp-*-file-name-handler' functions.")
 
 (defun tramp-debug-message-buttonize (position)
-  "Buttonize function in current buffer, at next line starting after POSTION."
+  "Buttonize function in current buffer, at next line starting after POSITION."
   (declare (tramp-suppress-trace t))
   (save-excursion
     (goto-char position)
@@ -531,7 +548,7 @@ Bound in `tramp-*-file-name-handler' functions.")
 If BODY does not raise a debug message, MESSAGE is ignored."
   (declare (indent 2) (debug t))
   (let ((result (make-symbol "result")))
-    `(if (and tramp-debug-command-messages (>= tramp-verbose 6))
+    `(if tramp-debug-command-messages
 	 (save-match-data
 	   (let ((tramp-debug-nesting
 		  (concat tramp-debug-nesting "#"))

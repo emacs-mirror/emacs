@@ -1,6 +1,6 @@
 ;;; calendar.el --- calendar functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988-1995, 1997, 2000-2023 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 2000-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -1985,7 +1985,7 @@ Gregorian date Sunday, December 31, 1 BC.  This function does not
 handle dates in years BC."
   ;; For an explanation, see the footnote on page 384 of "Calendrical
   ;; Calculations, Part II: Three Historical Calendars" by
-  ;; E. M. Reingold, N. Dershowitz, and S. M.  Clamen,
+  ;; E. M. Reingold, N. Dershowitz, and S. M. Clamen,
   ;; Software--Practice and Experience, Volume 23, Number 4 (April,
   ;; 1993), pages 383-404 <https://doi.org/10.1002/spe.4380230404>
   ;; <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.42.6421&rep=rep1&type=pdf>.
@@ -2337,10 +2337,12 @@ returned is (month year)."
          (defmon (aref month-array (1- (calendar-extract-month default-date))))
          (completion-ignore-case t)
          (month (cdr (assoc-string
-                      (completing-read
-                       (format-prompt "Month name" defmon)
-                       (append month-array nil)
-                       nil t nil nil defmon)
+                      (let ((completion-extra-properties
+                             '(:category calendar-month)))
+                        (completing-read
+                         (format-prompt "Month name" defmon)
+                         (append month-array nil)
+                         nil t nil nil defmon))
                       (calendar-make-alist month-array 1) t)))
          (defday (calendar-extract-day default-date))
          (last (calendar-last-day-of-month month year)))
@@ -2495,7 +2497,7 @@ ATTRLIST is a list with elements of the form :face face :foreground color."
     (if (not faceinfo)
         ;; No attributes to apply, so just use an existing-face.
         face
-      ;; FIXME should we be using numbered temp-faces, re-using where poss?
+      ;; FIXME should we be using numbered temp-faces, reusing where poss?
       (setq temp-face
             (make-symbol
              (concat ":caltemp"

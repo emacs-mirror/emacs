@@ -6789,8 +6789,8 @@
 2006-09-04  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-gpg.el (pgg-gpg-process-region): Revert two patches from Satyaki
-	Das.  http://article.gmane.org/gmane.emacs.gnus.general/49947
-	http://article.gmane.org/gmane.emacs.gnus.general/50457
+	Das.  http://article.gmane.org/gmane.emacs.gnus.general/49947 [dead link]
+	http://article.gmane.org/gmane.emacs.gnus.general/50457 [dead link]
 
 2006-09-03  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -10678,7 +10678,7 @@
 	for root variables.
 
 	* progmodes/gdb-ui.el (gdb-pc-address): Rename from gdb-frame-address.
-	(gdb-frame-address): Re-use to identify frame for watch expression.
+	(gdb-frame-address): Reuse to identify frame for watch expression.
 	(gdb-var-list, gdb-var-create-handler): Add frame address for root
 	variables.
 	(gdb-init-1, gdb-source, gdb-post-prompt)
@@ -15827,7 +15827,7 @@
 
 	* progmodes/cc-cmds.el (c-hungry-delete): New function to fix
 	<delete> key behavior in XEmacs according to `delete-forward-p'.
-	C.f. `c-electric-delete'.
+	Cf. `c-electric-delete'.
 
 2005-12-08  Alan Mackenzie  <acm@muc.de>
 
@@ -32867,7 +32867,7 @@
 	(reftex-index-switch-index-tag): Add `redo' to arguments of
 	`reftex-display-index'.
 	(reftex-index-make-phrase-regexp): Fix bug with case-sensitive
-	indexing.  Fix bug with matching is there is a quote before or
+	indexing.  Fix bug with matching if there is a quote before or
 	after the word.
 
 	* textmodes/reftex-cite.el (reftex-all-used-citation-keys):
@@ -33335,7 +33335,7 @@ See ChangeLog.11 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2005-2023 Free Software Foundation, Inc.
+    Copyright (C) 2005-2024 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

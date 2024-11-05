@@ -1,6 +1,6 @@
 ;;; fontset.el --- commands for handling fontset  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2024 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -88,6 +88,7 @@
 	("iso10646-1$" . (unicode-bmp . nil))
 	("iso10646.indian-1" . (unicode-bmp . nil))
 	("unicode-bmp" . (unicode-bmp . nil))
+        ("unicode-sip" . (unicode-sip . nil)) ; used by w32font.c
 	("abobe-symbol" . symbol)
 	("sisheng_cwnn" . chinese-sisheng)
 	("mulearabic-0" . arabic-digit)
@@ -199,6 +200,7 @@
         (tai-tham #x1A20 #x1A55 #x1A61 #x1A80)
 	(symbol . [#x201C #x2200 #x2500])
 	(braille #x2800)
+        (tifinagh #x2D30 #x2D60)
 	(ideographic-description #x2FF0)
         ;; Noto Sans Phags Pa is broken and reuses the CJK misc code
         ;; points for some of its own characters.  Add one actual CJK
@@ -207,7 +209,7 @@
 	(kana #x304B)
 	(bopomofo #x3105)
 	(kanbun #x319D)
-	(han #x5B57)
+	(han #x3410 #x4e10 #x5B57 #xfe30 #xf900)
 	(yi #xA288)
         (syloti-nagri #xA807 #xA823 #xA82C)
         (rejang #xA930 #xA947 #xA95F)
@@ -235,6 +237,7 @@
 	(elbasan #x10500)
 	(caucasian-albanian #x10530)
 	(vithkuqi #x10570)
+        (todhri #x105C0 #x105ED)
 	(linear-a #x10600)
 	(cypriot-syllabary #x10800)
 	(palmyrene #x10860)
@@ -244,6 +247,7 @@
 	(kharoshthi #x10A00)
 	(manichaean #x10AC0)
 	(hanifi-rohingya #x10D00 #x10D24 #x10D39)
+        (garay #x10D50 #x10D70 #x10D4A #x10D41)
 	(yezidi #x10E80)
 	(old-sogdian #x10F00)
 	(sogdian #x10F30)
@@ -257,6 +261,7 @@
 	(khojki #x11200)
 	(khudawadi #x112B0)
 	(grantha #x11315 #x1133E #x11374)
+        (tulu-tigalari #x11380 #x113B8)
 	(newa #x11400)
 	(tirhuta #x11481 #x1148F #x114D0)
 	(siddham #x1158E #x115AF #x115D4)
@@ -269,6 +274,7 @@
 	(zanabazar-square #x11A00)
 	(soyombo #x11A50)
 	(pau-cin-hau #x11AC0)
+        (sunuwar #x11BC0 #x11BF1)
 	(bhaiksuki #x11C00)
 	(marchen #x11C72)
 	(masaram-gondi #x11D00)
@@ -278,10 +284,12 @@
 	(cuneiform #x12000)
 	(cypro-minoan #x12F90)
 	(egyptian #x13000)
+        (gurung-khema #x16100 #x1611E #x16131)
 	(mro #x16A40)
 	(tangsa #x16A70 #x16AC0)
 	(bassa-vah #x16AD0)
 	(pahawh-hmong #x16B11)
+        (kirat-rai #x16D43 #x16D63 #x16D71)
 	(medefaidrin #x16E40)
 	(tangut #x17000)
 	(khitan-small-script #x18B00)
@@ -298,6 +306,7 @@
 	(toto #x1E290 #x1E295 #x1E2AD)
 	(wancho #x1E2C0 #x1E2E8 #x1E2EF)
         (nag-mundari #x1E4D0 #x1E4EB #x1E4F0)
+        (ol-onal #x1E5D0 #x1E5F2)
 	(mende-kikakui #x1E810 #x1E8A6)
 	(adlam #x1E900 #x1E943)
 	(indic-siyaq-number #x1EC71 #x1EC9F)
@@ -309,7 +318,7 @@
 
 (defvar otf-script-alist)
 
-;; The below was synchronized with the latest Sep 12, 2021 version of
+;; The below was synchronized with the latest May 31, 2024 version of
 ;; https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags
 (setq otf-script-alist
       '((adlm . adlam)
@@ -354,6 +363,7 @@
 	(elba . elbasan)
 	(elym . elymaic)
 	(ethi . ethiopic)
+        (gara . garay)
 	(geor . georgian)
 	(glag . glagolitic)
 	(goth . gothic)
@@ -364,6 +374,7 @@
 	(gong . gunjala-gondi)
 	(guru . gurmukhi)
 	(gur2 . gurmukhi)
+        (gukh . gurung-khema)
 	(hani . han)
 	(hang . hangul)
 	(jamo . hangul) ; Not recommended; use 'hang' instead.
@@ -386,6 +397,7 @@
 	(khmr . khmer)
 	(khoj . khojki)
 	(sind . khudawadi)
+        (krai . kirat-rai)
 	(lao\  . lao)
 	(latn . latin)
 	(lepc . lepcha)
@@ -426,6 +438,7 @@
 	(hmnp . nyiakeng-puachue-hmong)
 	(ogam . ogham)
 	(olck . ol-chiki)
+        (omao . ol-onal)
 	(ital . old-italic)
 	(xpeo . old-persian)
 	(narb . old-north-arabian)
@@ -459,6 +472,7 @@
 	(sora . sora-sompeng)
 	(soyo . soyombo)
 	(sund . sundanese)
+        (sunu . sunuwar)
 	(sylo . syloti-nagri)
 	(syrc . syriac)
 	(tglg . tagalog)
@@ -479,7 +493,9 @@
 	(tibt . tibetan)
 	(tfng . tifinagh)
 	(tirh . tirhuta)
+        (todr . todhri)
         (toto . toto)
+        (tutg . tulu-tigalari)
 	(ugar . ugaritic)
         (vith . vithkuqi)
 	(vai\  . vai)
@@ -645,8 +661,14 @@
 	       (nil . "microsoft-cp1251")
 	       (nil . "koi8-r"))
 
-     (arabic ,(font-spec :registry "iso10646-1"
-			 :otf '(arab nil (init medi fina liga)))
+     (arabic ,(if (featurep 'android)
+                  ;; The Android font driver does not support the
+                  ;; detection of OTF tags but all fonts installed on
+                  ;; Android with Arabic characters provide shaping
+                  ;; information required for displaying Arabic text.
+                  (font-spec :registry "iso10646-1" :script 'arabic)
+                (font-spec :registry "iso10646-1"
+			   :otf '(arab nil (init medi fina liga))))
 	     (nil . "MuleArabic-0")
 	     (nil . "MuleArabic-1")
 	     (nil . "MuleArabic-2")
@@ -657,7 +679,9 @@
      (hebrew ,(font-spec :registry "iso10646-1" :script 'hebrew)
 	     (nil . "ISO8859-8"))
 
-     (khmer ,(font-spec :registry "iso10646-1" :otf '(khmr nil (pres))))
+     (khmer ,(if (featurep 'android)
+                 (font-spec :registry "iso10646-1" :script 'khmer)
+               (font-spec :registry "iso10646-1" :otf '(khmr nil (pres)))))
 
      (kana (nil . "JISX0208*")
 	   (nil . "GB2312.1980-0")
@@ -689,10 +713,11 @@
 	  (nil . "JISX0213.2004-1")
 	  ,(font-spec :registry "iso10646-1" :lang 'ja)
 	  ,(font-spec :registry "iso10646-1" :lang 'zh)
-          ;; This is required, as otherwise many TrueType fonts with
-          ;; CJK characters but no corresponding ``design language''
-          ;; declaration can't be found.
-          ,(font-spec :registry "iso10646-1" :script 'han))
+          ;; This is required on Android, as otherwise many TrueType
+          ;; fonts with CJK characters but no corresponding ``design
+          ;; language'' declaration can't be found.
+          ,@(and (featurep 'android)
+                 (list (font-spec :registry "iso10646-1" :script 'han))))
 
      (cjk-misc (nil . "GB2312.1980-0")
 	       (nil . "JISX0208*")
@@ -715,7 +740,9 @@
                ;; This is required, as otherwise many TrueType fonts
                ;; with CJK characters but no corresponding ``design
                ;; language'' declaration can't be found.
-               ,(font-spec :registry "iso10646-1" :script 'cjk-misc))
+               ,@(and (featurep 'android)
+                      (list (font-spec :registry "iso10646-1"
+                                       :script 'cjk-misc))))
 
      (hangul (nil . "KSC5601.1987-0")
 	     ,(font-spec :registry "iso10646-1" :lang 'ko))
@@ -841,6 +868,17 @@
 		    pahawh-hmong
 		    medefaidrin
                     znamenny-musical-notation
+                    khudawadi
+                    khojki
+                    mahajani
+                    sogdian
+                    old-sogdian
+                    nabataean
+                    palmyrene
+                    linear-a
+                    linear-b
+                    caucasian-albanian
+                    elbasan
 		    byzantine-musical-symbol
 		    musical-symbol
 		    ancient-greek-musical-notation
@@ -851,14 +889,26 @@
                     wancho
                     nag-mundari
                     mende-kikakui
+                    nyiakeng-puachue-hmong
+                    mro
+                    masaram-gondi
+                    pau-cin-hau
+                    soyombo
+                    zanabazar-square
+                    warang-citi
+                    dogra
+                    takri
 		    adlam
+                    tifinagh
                     tai-tham
                     indic-siyaq-number
                     ottoman-siyaq-number
 		    mahjong-tile
 		    domino-tile
                     emoji
-                    chess-symbol))
+                    chess-symbol
+                    garay
+                    sunuwar))
     (set-fontset-font "fontset-default"
 		      script (font-spec :registry "iso10646-1" :script script)
 		      nil 'append))

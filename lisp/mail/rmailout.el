@@ -1,6 +1,6 @@
 ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1987, 1993-1994, 2001-2023 Free Software
+;; Copyright (C) 1985, 1987, 1993-1994, 2001-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -453,7 +453,7 @@ display message number MSG."
       (narrow-to-region (point-max) (point-max)))
     (insert-buffer-substring tembuf)
     (rmail-count-new-messages t)
-    ;; FIXME should re-use existing windows.
+    ;; FIXME should reuse existing windows.
     (if (rmail-summary-exists)
 	(rmail-select-summary (rmail-update-summary)))
     (rmail-show-message-1 msg)))

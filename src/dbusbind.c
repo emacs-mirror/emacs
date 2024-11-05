@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007-2023 Free Software Foundation, Inc.
+   Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -474,7 +474,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 	  subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
 	  xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
 	  if (strcmp (subsig, x) != 0)
-	    wrong_type_argument (intern ("D-Bus"), CAR_SAFE (elt));
+	    wrong_type_argument (QD_Bus, CAR_SAFE (elt));
 	  elt = CDR_SAFE (XD_NEXT_VALUE (elt));
 	}
 
@@ -493,8 +493,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
 
       if (!NILP (CDR_SAFE (XD_NEXT_VALUE (elt))))
-	wrong_type_argument (intern ("D-Bus"),
-			     CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
+	wrong_type_argument (QD_Bus, CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
 
       sprintf (signature, "%c", dtype);
       break;
@@ -528,7 +527,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 
       /* Check the parent object type.  */
       if (parent_type != DBUS_TYPE_ARRAY)
-	wrong_type_argument (intern ("D-Bus"), object);
+	wrong_type_argument (QD_Bus, object);
 
       /* Compose the signature from the elements.  It is enclosed by
 	 curly braces.  */
@@ -542,7 +541,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       xd_signature_cat (signature, x);
 
       if (!XD_BASIC_DBUS_TYPE (subtype))
-	wrong_type_argument (intern ("D-Bus"), CAR_SAFE (XD_NEXT_VALUE (elt)));
+	wrong_type_argument (QD_Bus, CAR_SAFE (XD_NEXT_VALUE (elt)));
 
       /* Second element.  */
       elt = CDR_SAFE (XD_NEXT_VALUE (elt));
@@ -552,15 +551,14 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       xd_signature_cat (signature, x);
 
       if (!NILP (CDR_SAFE (XD_NEXT_VALUE (elt))))
-	wrong_type_argument (intern ("D-Bus"),
-			     CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
+	wrong_type_argument (QD_Bus, CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
 
       /* Closing signature.  */
       xd_signature_cat (signature, DBUS_DICT_ENTRY_END_CHAR_AS_STRING);
       break;
 
     default:
-      wrong_type_argument (intern ("D-Bus"), object);
+      wrong_type_argument (QD_Bus, object);
     }
 
   XD_DEBUG_MESSAGE ("%s", signature);
@@ -1316,7 +1314,7 @@ The following usages are expected:
 `dbus-call-method', `dbus-call-method-asynchronously':
   (dbus-message-internal
     dbus-message-type-method-call BUS SERVICE PATH INTERFACE METHOD HANDLER
-    &optional :timeout TIMEOUT &rest ARGS)
+    &optional :timeout TIMEOUT :authorizable AUTH &rest ARGS)
 
 `dbus-send-signal':
   (dbus-message-internal
@@ -1480,7 +1478,7 @@ usage: (dbus-message-internal &rest REST)  */)
 	     bus or an unknown name, we regard it as broadcast message
 	     due to backward compatibility.  */
 	  if (dbus_bus_name_has_owner (connection, SSDATA (service), NULL))
-	    uname = call2 (intern ("dbus-get-name-owner"), bus, service);
+	    uname = call2 (Qdbus_get_name_owner, bus, service);
 	  else
 	    uname = Qnil;
 
@@ -1514,12 +1512,38 @@ usage: (dbus-message-internal &rest REST)  */)
 	XD_SIGNAL1 (build_string ("Unable to create an error message"));
     }
 
-  /* Check for timeout parameter.  */
-  if ((count + 2 <= nargs) && EQ (args[count], QCtimeout))
+  while ((count + 2 <= nargs))
     {
-      CHECK_FIXNAT (args[count+1]);
-      timeout = min (XFIXNAT (args[count+1]), INT_MAX);
-      count = count+2;
+      /* Check for timeout parameter.  */
+      if (EQ (args[count], QCtimeout))
+        {
+	  if (mtype != DBUS_MESSAGE_TYPE_METHOD_CALL)
+	    XD_SIGNAL1
+	      (build_string (":timeout is only supported on method calls"));
+
+          CHECK_FIXNAT (args[count+1]);
+          timeout = min (XFIXNAT (args[count+1]), INT_MAX);
+          count = count + 2;
+	}
+      /* Check for authorizable parameter.  */
+      else if (EQ (args[count], QCauthorizable))
+        {
+	  if (mtype != DBUS_MESSAGE_TYPE_METHOD_CALL)
+	    XD_SIGNAL1
+	      (build_string (":authorizable is only supported on method calls"));
+
+	  /* Ignore this keyword if unsupported.  */
+#ifdef HAVE_DBUS_MESSAGE_SET_ALLOW_INTERACTIVE_AUTHORIZATION
+	  dbus_message_set_allow_interactive_authorization
+	    (dmessage, NILP (args[count+1]) ? FALSE : TRUE);
+#else
+	  XD_DEBUG_MESSAGE (":authorizable not supported");
+#endif
+
+          count = count + 2;
+	}
+      else break;
+
     }
 
   /* Initialize parameter list of message.  */
@@ -1688,6 +1712,22 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       key = list4 (mtype == DBUS_MESSAGE_TYPE_METHOD_CALL ? QCmethod : QCsignal,
 		   bus, build_string (interface), build_string (member));
       value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
+
+      /* A signal could be registered with a nil interface or member.  */
+      if (mtype == DBUS_MESSAGE_TYPE_SIGNAL)
+	{
+	  key = list4 (QCsignal, bus, Qnil, build_string (member));
+	  value = CALLN (Fappend, value,
+			 Fgethash (key, Vdbus_registered_objects_table, Qnil));
+
+	  key = list4 (QCsignal, bus, build_string (interface), Qnil);
+	  value = CALLN (Fappend, value,
+			 Fgethash (key, Vdbus_registered_objects_table, Qnil));
+
+	  key = list4 (QCsignal, bus, Qnil, Qnil);
+	  value = CALLN (Fappend, value,
+			 Fgethash (key, Vdbus_registered_objects_table, Qnil));
+	}
 
       /* Loop over the registered functions.  Construct an event.  */
       for (; !NILP (value); value = CDR_SAFE (value))
@@ -1870,6 +1910,7 @@ syms_of_dbusbind (void)
 	list2 (Qdbus_error, Qerror));
   Fput (Qdbus_error, Qerror_message,
 	build_pure_c_string ("D-Bus error"));
+  DEFSYM (QD_Bus, "D-Bus");
 
   /* Lisp symbols of the system and session buses.  */
   DEFSYM (QCsystem, ":system");
@@ -1879,6 +1920,9 @@ syms_of_dbusbind (void)
 
   /* Lisp symbol for method call timeout.  */
   DEFSYM (QCtimeout, ":timeout");
+
+  /* Lisp symbol for method interactive authorization.  */
+  DEFSYM (QCauthorizable, ":authorizable");
 
   /* Lisp symbols of D-Bus types.  */
   DEFSYM (QCbyte, ":byte");
@@ -1907,6 +1951,9 @@ syms_of_dbusbind (void)
   DEFSYM (QCmethod, ":method");
   DEFSYM (QCsignal, ":signal");
   DEFSYM (QCmonitor, ":monitor");
+
+  /* Miscellaneous Lisp symbols.  */
+  DEFSYM (Qdbus_get_name_owner, "dbus-get-name-owner");
 
   DEFVAR_LISP ("dbus-compiled-version",
 	       Vdbus_compiled_version,

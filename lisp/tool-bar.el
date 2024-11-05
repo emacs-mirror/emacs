@@ -1,6 +1,6 @@
 ;;; tool-bar.el --- setting up the tool bar  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: mouse frames
@@ -100,7 +100,9 @@ parameter is set to `top', and above the tool bar it is set to
 (defconst tool-bar-keymap-cache (make-hash-table :test #'equal))
 
 (defsubst tool-bar--cache-key ()
-  (cons (frame-terminal) (sxhash-eq tool-bar-map)))
+  (cons (frame-terminal)
+        (sxhash-eq (if tool-bar-always-show-default (default-value 'tool-bar-map)
+                     tool-bar-map))))
 
 (defsubst tool-bar--secondary-cache-key ()
   (cons (frame-terminal) (sxhash-eq secondary-tool-bar-map)))
@@ -165,6 +167,8 @@ color capability and based on the available image libraries."
             base-keymap)
       base-keymap)))
 
+;; This function should return binds even if images can not be
+;; displayed so the tool bar can still be displayed on terminals.
 (defun tool-bar-make-keymap-1 (&optional map)
   "Generate an actual keymap from `tool-bar-map', without caching.
 MAP is either a keymap to use as a source for menu items, or nil,
@@ -180,17 +184,18 @@ in which case the value of `tool-bar-map' is used instead."
 			 (consp image-exp)
 			 (not (eq (car image-exp) 'image))
 			 (fboundp (car image-exp)))
-		(if (not (display-images-p))
-		    (setq bind nil)
-		  (let ((image (eval image-exp)))
-		    (unless (and image (image-mask-p image))
-		      (setq image (append image '(:mask heuristic))))
-		    (setq bind (copy-sequence bind)
-			  plist (nthcdr (if (consp (nth 4 bind)) 5 4)
-					bind))
-		    (plist-put plist :image image))))
+		(let ((image (and (display-images-p)
+                                  (eval image-exp))))
+		  (unless (and image (image-mask-p image))
+		    (setq image (append image '(:mask heuristic))))
+		  (setq bind (copy-sequence bind)
+			plist (nthcdr (if (consp (nth 4 bind)) 5 4)
+				      bind))
+		  (plist-put plist :image image)))
 	      bind))
-	  (or map tool-bar-map)))
+	  (or map
+              (if tool-bar-always-show-default (default-value 'tool-bar-map)
+                tool-bar-map))))
 
 ;;;###autoload
 (defun tool-bar-add-item (icon def key &rest props)
@@ -359,11 +364,12 @@ holds a keymap."
 (if (featurep 'move-toolbar)
     (defcustom tool-bar-position 'top
       "Specify on which side the tool bar shall be.
-Possible values are `top' (tool bar on top), `bottom' (tool bar at bottom),
-`left' (tool bar on left) and `right' (tool bar on right).
-This option has effect only on graphical frames and only
-if Emacs was built with GTK.
-Customize `tool-bar-mode' if you want to show or hide the tool bar."
+Possible values are `top' (tool bar on top), `bottom' (tool bar at
+bottom), `left' (tool bar on left) and `right' (tool bar on right).
+This option takes effect only on graphical frames, the values `left' and
+`right' only if Emacs was built with GTK, and `bottom' only on systems
+besides Nextstep.  Customize `tool-bar-mode' if you want to show or hide
+the tool bar."
       :version "24.1"
       :type '(choice (const top)
 		     (const bottom)
@@ -375,6 +381,15 @@ Customize `tool-bar-mode' if you want to show or hide the tool bar."
 	     (set-default sym val)
 	     (modify-all-frames-parameters
 	      (list (cons 'tool-bar-position val))))))
+
+(defcustom tool-bar-always-show-default nil
+  "If non-nil, `tool-bar-mode' only shows the default tool bar.
+This works well when also using `global-window-tool-bar-mode' to
+display buffer-specific tool bars."
+  :type 'boolean
+  :group 'frames
+  :group 'mouse
+  :version "30.1")
 
 
 

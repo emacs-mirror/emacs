@@ -1,6 +1,6 @@
 ;;; format-spec.el --- format arbitrary formatting strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: tools
@@ -38,7 +38,7 @@ For instance:
                  (?l . \"ls\")))
 
 Each %-spec may contain optional flag, width, and precision
-modifiers, as follows:
+specifiers, as follows:
 
   %<flags><width><precision>character
 
@@ -51,7 +51,7 @@ The following flags are allowed:
 * ^: Convert to upper case.
 * _: Convert to lower case.
 
-The width and truncation modifiers behave like the corresponding
+The width and precision specifiers behave like the corresponding
 ones in `format' when applied to %s.
 
 For example, \"%<010b\" means \"substitute into the output the
@@ -145,7 +145,7 @@ is returned, where each format spec is its own element."
   "Return STR formatted according to FLAGS, WIDTH, and TRUNC.
 FLAGS is a list of keywords as returned by
 `format-spec--parse-flags'.  WIDTH and TRUNC are either nil or
-string widths corresponding to `format-spec' modifiers."
+string widths corresponding to `format-spec' specifiers."
   (let (diff str-width)
     ;; Truncate original string first, like `format' does.
     (when trunc

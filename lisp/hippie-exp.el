@@ -1,6 +1,6 @@
 ;;; hippie-exp.el --- expand text trying various ways to find its expansion  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
 ;; Maintainer: emacs-devel@gnu.org

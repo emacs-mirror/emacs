@@ -1,6 +1,6 @@
 ;;; em-extpipe-tests.el --- em-extpipe test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Sean Whitton <spwhitton@spwhitton.name>
 
@@ -40,7 +40,7 @@
          ((should-parse (expected)
             `(let ((shell-file-name "sh")
                    (shell-command-switch "-c"))
-               ;; Strip `eshell-trap-errors'.
+               ;; Strip `eshell-do-command'.
                (should (equal ,expected
                               (cadadr (eshell-parse-command input))))))
           (with-substitute-for-temp (&rest body)
@@ -55,7 +55,9 @@
                              "temp\\([^>]\\|\\'\\)" temp
                              (string-replace
                               "#<buffer temp>"
-                              (concat "#<buffer " (buffer-name temp-buffer) ">")
+                              (format "#<buffer %s>"
+                                      (eshell-quote-argument
+                                       (buffer-name temp-buffer)))
                               input))))
                        ,@body)
                    (when (buffer-name temp-buffer)
@@ -110,7 +112,7 @@
    '(progn
       (ignore
        (eshell-set-output-handle 1 'overwrite
-				 (get-buffer-create "temp")))
+				 (eshell-get-buffer "temp")))
       (eshell-named-command "sh"
 			    (list "-c" "echo \"bar\" | rev"))))
   (with-substitute-for-temp
@@ -133,7 +135,7 @@
    '(progn
       (ignore
        (eshell-set-output-handle 1 'overwrite
-				 (get-buffer-create "quux")))
+				 (eshell-get-buffer "quux")))
       (ignore
        (eshell-set-output-handle 1 'append
 				 (get-process "other")))
@@ -179,7 +181,11 @@
   (skip-unless (executable-find "tac"))
   (should-parse '(eshell-named-command "sh" (list "-c" "tac <temp")))
   (with-substitute-for-temp
-   (with-temp-buffer (insert "bar\nbaz\n") (write-file temp))
+   (with-temp-buffer
+     (insert "bar\nbaz\n")
+     ;; Some versions of 'tac' on MS-Windows need Unix EOLs...
+     (let ((coding-system-for-write 'unix))
+       (write-file temp)))
    (eshell-match-command-output input "baz\nbar")))
 
 (em-extpipe-tests--deftest em-extpipe-test-15 "echo \"bar\" *| cat"

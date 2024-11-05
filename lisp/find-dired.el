@@ -1,6 +1,6 @@
 ;;; find-dired.el --- run a `find' command and dired the output  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -76,7 +76,7 @@ than the latter."
 This is a cons of two strings (FIND-OPTION . LS-SWITCHES).
 FIND-OPTION is the option (or options) passed to `find' to produce
 a file listing in the desired format.  LS-SWITCHES is a set of
-`ls' switches that tell dired how to parse the output of `find'.
+`ls' switches that tell Dired how to parse the output of `find'.
 
 The two options must be set to compatible values.
 For example, to use human-readable file sizes with GNU ls:
@@ -120,7 +120,8 @@ them for `find-ls-option'."
   :group 'find-dired)
 
 (defcustom find-grep-options
-  (if (or (eq system-type 'berkeley-unix)
+  (if (or (and (eq system-type 'berkeley-unix)
+               (not (string-match "openbsd" system-configuration)))
 	  (string-match "solaris2" system-configuration))
       "-s" "-q")
   "Option to grep to be as silent as possible.
@@ -172,6 +173,11 @@ The command run (after changing into DIR) is essentially
 
 except that the car of the variable `find-ls-option' specifies what to
 use in place of \"-ls\" as the final argument.
+
+If your `find' program is not a GNU Find, the columns in the produced
+Dired display might fail to align.  We recommend to install GNU Find in
+those cases (you may need to customize the value of `find-program' if
+you do so), which attempts to align the columns.
 
 Collect output in the \"*Find*\" buffer.  To kill the job before
 it finishes, type \\[kill-find].
@@ -425,9 +431,9 @@ specifies what to use in place of \"-ls\" as the final argument."
   "Sort entries in *Find* buffer by file name lexicographically."
   (sort-subr nil 'forward-line 'end-of-line
              (lambda ()
-               (when-let ((start
-                           (next-single-property-change
-                            (point) 'dired-filename)))
+               (when-let* ((start
+                            (next-single-property-change
+                             (point) 'dired-filename)))
                (buffer-substring-no-properties start (line-end-position))))))
 
 

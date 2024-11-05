@@ -1,6 +1,6 @@
 ;;; nnmail.el --- mail support functions for the Gnus mail backends  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -33,6 +33,7 @@
 (require 'mail-source)
 (require 'mm-util)
 (require 'gnus-int)
+(require 'browse-url)
 
 (autoload 'mail-send-and-exit "sendmail" nil t)
 
@@ -601,7 +602,7 @@ These will be logged to the \"*nnmail split*\" buffer."
 
 (defvar nnmail-incoming-coding-system
   mm-text-coding-system
-  "Coding system used in reading inbox")
+  "Coding system used in reading inbox.")
 
 (defcustom nnmail-pathname-coding-system nil
   "Coding system for file name."
@@ -627,7 +628,7 @@ These will be logged to the \"*nnmail split*\" buffer."
   (concat
    (let ((dir (file-name-as-directory (expand-file-name dir))))
      (setq group (nnheader-replace-duplicate-chars-in-string
-		  (nnheader-replace-chars-in-string group ?/ ?_)
+		  (browse-url-url-encode-chars group "[/%]")
 		  ?. ?_))
      (setq group (nnheader-translate-file-chars group))
      ;; If this directory exists, we use it directly.
@@ -667,7 +668,9 @@ nn*-request-list should have been called before calling this function."
 		  (cond ((symbolp group)
 			 (symbol-name group))
 			((numberp group)
-			 (number-to-string group))))
+			 (number-to-string group))
+                        ((stringp group)
+			 group)))
 	    (if (and (numberp (setq max (read buffer)))
 		     (numberp (setq min (read buffer))))
 		(push (list group (cons min max))
@@ -1303,7 +1306,7 @@ See `nnmail-ignore-broken-references'."
   :type 'regexp)
 
 (defun nnmail-ignore-broken-references ()
-  "Ignore the References line and use In-Reply-To
+  "Ignore the References line and use In-Reply-To.
 
 Eudora has a broken References line, but an OK In-Reply-To."
   (goto-char (point-min))

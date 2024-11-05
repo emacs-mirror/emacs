@@ -1,6 +1,6 @@
 ;;; info-xref.el --- check external references in an Info document -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
 
 ;; Author: Kevin Ryde <user42@zip.com.au>
 ;; Keywords: docs
@@ -79,9 +79,11 @@ If removing the last \"-<NUM>\" from the filename gives a file
 which exists, then consider FILENAME a subfile.  This is an
 imperfect test, probably ought to open up the purported top file
 and see what subfiles it says."
-  (and (string-match "\\`\\(\\([^-]*-\\)*[^-]*\\)-[0-9]+\\(.*\\)\\'" filename)
-       (file-exists-p (concat (match-string 1 filename)
-                              (match-string 3 filename)))))
+  (let ((nondir (file-name-nondirectory filename)))
+    (and (string-match "\\`\\(\\([^-]*-\\)*[^-]*\\)-[0-9]+\\(.*\\)\\'" nondir)
+         (file-exists-p (concat (file-name-directory filename)
+                                (match-string 1 nondir)
+                                (match-string 3 nondir))))))
 
 (defmacro info-xref-with-file (filename &rest body)
   ;; checkdoc-params: (filename body)

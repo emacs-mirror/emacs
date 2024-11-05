@@ -1,6 +1,6 @@
 ;;; tramp-archive.el --- Tramp archive manager  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -387,6 +387,8 @@ arguments to pass to the OPERATION."
 ;;;###autoload
 (progn (defun tramp-register-archive-autoload-file-name-handler ()
   "Add archive file name handler to `file-name-handler-alist'."
+  ;; Do not use read syntax #' for `tramp-archive-file-name-handler', it
+  ;; isn't autoloaded.
   (when (and tramp-archive-enabled
              (not
               (rassq 'tramp-archive-file-name-handler file-name-handler-alist)))
@@ -443,7 +445,7 @@ arguments to pass to the OPERATION."
   (and (tramp-archive-file-name-p name)
        (match-string 2 name)))
 
-(defvar tramp-archive-hash (make-hash-table :test 'equal)
+(defvar tramp-archive-hash (make-hash-table :test #'equal)
   "Hash table for archive local copies.
 The hash key is the archive name.  The value is a cons of the
 used `tramp-file-name' structure for tramp-gvfs, and the file
@@ -600,7 +602,7 @@ offered."
 (defun tramp-archive-handle-directory-file-name (directory)
   "Like `directory-file-name' for file archives."
   (with-parsed-tramp-archive-file-name directory nil
-    (if (and (tramp-compat-length> localname 0)
+    (if (and (length> localname 0)
 	     (eq (aref localname (1- (length localname))) ?/)
 	     (not (string= localname "/")))
 	(substring directory 0 -1)

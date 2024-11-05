@@ -1,6 +1,6 @@
 /* The lwlib interface to Motif widgets.
 
-Copyright (C) 1994-1997, 1999-2023 Free Software Foundation, Inc.
+Copyright (C) 1994-1997, 1999-2024 Free Software Foundation, Inc.
 Copyright (C) 1992 Lucid, Inc.
 
 This file is part of the Lucid Widget Library.
@@ -703,7 +703,7 @@ update_one_menu_entry (widget_instance* instance,
 	      ac = 0;
 	      XtSetArg (al [ac], XmNsubMenuId, menu); ac++;
 	      /* Non-zero values don't work reliably in
-		 conjunction with Emacs' event loop */
+		 conjunction with Emacs's event loop */
 	      XtSetArg (al [ac], XmNmappingDelay, 0); ac++;
 #ifdef XmNpositionIndex /* This is undefined on SCO ODT 2.0.  */
 	      /* Tell Motif to put it in the right place */

@@ -1,6 +1,6 @@
 /* emacs-module.h - GNU Emacs module API.
 
-Copyright (C) 2015-2023 Free Software Foundation, Inc.
+Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -196,6 +196,23 @@ struct emacs_env_30
 @module_env_snippet_29@
 
 @module_env_snippet_30@
+};
+
+struct emacs_env_31
+{
+@module_env_snippet_25@
+
+@module_env_snippet_26@
+
+@module_env_snippet_27@
+
+@module_env_snippet_28@
+
+@module_env_snippet_29@
+
+@module_env_snippet_30@
+
+@module_env_snippet_31@
 };
 
 /* Every module should define a function as follows.  */

@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -567,9 +567,8 @@ If nil, differences are highlighted using ASCII flags, ediff-before-flag
 and ediff-after-flag.  On a non-window system, differences are always
 highlighted using ASCII flags."
   :type 'boolean
+  :local 'permanent
   :group 'ediff-highlighting)
-(make-variable-buffer-local 'ediff-use-faces)
-(put 'ediff-use-faces 'permanent-local t)
 
 ;; this indicates that diff regions are word-size, so fine diffs are
 ;; permanently nixed; used in ediff-windows-wordwise and ediff-regions-wordwise
@@ -594,7 +593,7 @@ highlighted using ASCII flags."
 (ediff-defvar-local ediff-visible-bounds nil)
 
 (ediff-defvar-local ediff-start-narrowed t
-  "Non-nil means start narrowed, if doing ediff-windows-* or ediff-regions-*")
+  "Non-nil means start narrowed, if doing ediff-windows-* or ediff-regions-*.")
 (ediff-defvar-local ediff-quit-widened t
   "Non-nil means: when finished, Ediff widens buffers A/B.
 Actually, Ediff restores the scope of visibility that existed at startup.")
@@ -611,9 +610,8 @@ reverses the meaning of this variable."
 Otherwise, all difference regions are highlighted, but the selected region is
 shown in brighter colors."
   :type 'boolean
+  :local 'permanent
   :group 'ediff-highlighting)
-(make-variable-buffer-local 'ediff-highlight-all-diffs)
-(put 'ediff-highlight-all-diffs 'permanent-local t)
 
 
 (ediff-defvar-local ediff-control-buffer-suffix nil
@@ -624,13 +622,13 @@ It's a number rather than string.")
 
 
 (ediff-defvar-local ediff-buffer-values-orig-A nil
-  "The original values of ediff-protected-variables for buffer A.")
+  "The original values of `ediff-protected-variables' for buffer A.")
 (ediff-defvar-local ediff-buffer-values-orig-B nil
-  "The original values of ediff-protected-variables for buffer B.")
+  "The original values of `ediff-protected-variables' for buffer B.")
 (ediff-defvar-local ediff-buffer-values-orig-C nil
-  "The original values of ediff-protected-variables for buffer C.")
+  "The original values of `ediff-protected-variables' for buffer C.")
 (ediff-defvar-local ediff-buffer-values-orig-Ancestor nil
-  "The original values of ediff-protected-variables for buffer Ancestor.")
+  "The original values of `ediff-protected-variables' for buffer Ancestor.")
 
 (defconst ediff-buffer-values-orig-alist
   '((A . ediff-buffer-values-orig-A)
@@ -1200,8 +1198,8 @@ save.  Anything else means save automatically only if the merge
 job is part of a group of jobs, such as `ediff-merge-directory'
 or `ediff-merge-directory-revisions'."
   :type '(choice (const nil) (const t) (const group-jobs-only))
+  :local t
   :group 'ediff-merge)
-(make-variable-buffer-local 'ediff-autostore-merges)
 
 (ediff-defvar-local ediff-merge-store-file nil
   "File where the result of the merge is to be saved.  Internal.")
@@ -1451,7 +1449,7 @@ This default should work without changes."
     (ediff-abbreviate-file-name (file-name-directory dir))))
 
 (defsubst ediff-nonempty-string-p (string)
-  (and (stringp string) (string-empty-p string)))
+  (and (stringp string) (not (string-empty-p string))))
 
 (defun ediff-abbrev-jobname (jobname)
   (cond ((eq jobname 'ediff-directories)

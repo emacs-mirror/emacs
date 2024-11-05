@@ -1,6 +1,6 @@
 ;;; info.el --- Info package for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
@@ -212,6 +212,54 @@ a version of Emacs without installing it.")
   "List of additional directories to search for Info documentation files.
 These directories are searched after those in `Info-directory-list'."
   :type '(repeat directory))
+
+(defcustom Info-url-alist
+  '((("auth" "autotype" "bovine" "calc" "ccmode" "cl" "dbus" "dired-x"
+      "ebrowse" "ede" "ediff" "edt" "efaq" "efaq-w32" "eglot" "eieio"
+      "eintr" "elisp" "emacs" "emacs-gnutls" "emacs-mime" "epa" "erc"
+      "ert" "eshell" "eudc" "eww" "flymake" "forms" "gnus"
+      "htmlfontify" "idlwave" "ido" "info" "mairix-el" "message"
+      "mh-e" "modus-themes" "newsticker" "nxml-mode" "octave-mode"
+      "org" "pcl-cvs" "pgg" "rcirc" "reftex" "remember" "sasl" "sc"
+      "semantic" "ses" "sieve" "smtpmail" "speedbar" "srecode"
+      "todo-mode" "tramp" "transient" "url" "use-package" "vhdl-mode"
+      "viper" "vtable" "widget" "wisent" "woman") .
+     "https://www.gnu.org/software/emacs/manual/html_node/%m/%e"))
+  "Alist telling `Info-mode' where manuals are accessible online.
+
+Each element of this list has the form (MANUALs . URL-SPEC).
+MANUALs represents the name of one or more manuals.  It can
+either be a string or a list of strings.  URL-SPEC can be a
+string in which the substring \"%m\" will be expanded to the
+manual-name and \"%n\" to the node-name.  \"%e\" will expand to
+the URL-encoded node-name, including the `.html' extension; in
+case of the Top node, it will expand to the empty string.  (The
+URL-encoding of the node-name mimics GNU Texinfo, as documented
+at Info node `(texinfo)HTML Xref Node Name Expansion'.)
+Alternatively, URL-SPEC can be a function which is given
+manual-name, node-name and URL-encoded node-name as arguments,
+and is expected to return the corresponding URL as a string.
+
+This variable particularly affects the command
+`Info-goto-node-web', which see.
+
+The default value of this variable refers to the official,
+HTTPS-accessible HTML-representations of all manuals that Emacs
+includes.  These URLs refer to the most recently released version
+of Emacs, disregarding the version of the running Emacs.  In
+other words, the content of your local Info node and the
+associated online node may differ.  The resource represented by
+the generated URL may even be not found by the gnu.org server."
+  :version "30.1"
+  :type '(alist
+           :tag "Mapping from manual-name(s) to URL-specification"
+           :key-type (choice
+                       (string :tag "A single manual-name")
+                       (repeat :tag "List of manual-names" string))
+           :value-type (choice
+                         (string :tag "URL-specification string")
+                         (function
+                           :tag "URL-specification function"))))
 
 (defcustom Info-scroll-prefer-subnodes nil
   "If non-nil, \\<Info-mode-map>\\[Info-scroll-up] in a menu visits subnodes.
@@ -452,6 +500,7 @@ or `Info-virtual-nodes'."
        (".info.bz2"  . ("bzip2" "-dc"))
        (".info.xz"   . "unxz")
        (".info.zst"  . ("zstd" "-dc"))
+       (".info.lz"   . ("lzip" "-dc"))
        (".info"      . nil)
        ("-info.Z"    . "uncompress")
        ("-info.Y"    . "unyabba")
@@ -460,6 +509,7 @@ or `Info-virtual-nodes'."
        ("-info.z"    . "gunzip")
        ("-info.xz"   . "unxz")
        ("-info.zst"  . ("zstd" "-dc"))
+       ("-info.lz"   . ("lzip" "-dc"))
        ("-info"      . nil)
        ("/index.Z"   . "uncompress")
        ("/index.Y"   . "unyabba")
@@ -468,6 +518,7 @@ or `Info-virtual-nodes'."
        ("/index.bz2" . ("bzip2" "-dc"))
        ("/index.xz"  . "unxz")
        ("/index.zst" . ("zstd" "-dc"))
+       ("/index.lz"  . ("lzip" "-dc"))
        ("/index"     . nil)
        (".Z"         . "uncompress")
        (".Y"         . "unyabba")
@@ -476,6 +527,7 @@ or `Info-virtual-nodes'."
        (".bz2"       . ("bzip2" "-dc"))
        (".xz"        . "unxz")
        (".zst"       . ("zstd" "-dc"))
+       (".lz"        . ("lzip" "-dc"))
        (""           . nil)))
   "List of file name suffixes and associated decoding commands.
 Each entry should be (SUFFIX . STRING); the file is given to
@@ -615,7 +667,7 @@ in `Info-file-supports-index-cookies-list'."
 	  (goto-char (point-min))
 	  (condition-case ()
 	      (if (and (re-search-forward
-			"makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
+                        "\\(?:makeinfo\\|texi2any\\)[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
 			(line-beginning-position 4) t)
 		       (not (version< (match-string 1) "4.7")))
 		  (setq found t))
@@ -732,8 +784,51 @@ in `Info-file-supports-index-cookies-list'."
 		    (read-file-name "Info file name: " nil nil t))
 		(if (numberp current-prefix-arg)
 		    (format "*info*<%s>" current-prefix-arg))))
-  (info-setup file-or-node
-	      (switch-to-buffer-other-window (or buffer "*info*"))))
+  (info-pop-to-buffer file-or-node buffer t))
+
+(defun info-pop-to-buffer (&optional file-or-node buffer-or-name other-window)
+  "Put Info node FILE-OR-NODE in specified buffer and display it.
+Optional argument FILE-OR-NODE is as for `info'.
+
+If the optional argument BUFFER-OR-NAME is a buffer, use that
+buffer.  If it is a string, use that string as the name of the
+buffer, creating it if it does not exist.  Otherwise, use a
+buffer with the name `*info*', creating it if it does not exist.
+
+Optional argument OTHER-WINDOW nil means to prefer the selected
+window.  OTHER-WINDOW non-nil means to prefer another window.
+Select the window used, if it has been made."
+  (let ((buffer (cond
+		 ((bufferp buffer-or-name)
+		  buffer-or-name)
+		 ((stringp buffer-or-name)
+		  (get-buffer-create buffer-or-name))
+		 (t
+		  (get-buffer-create "*info*")))))
+    (with-current-buffer buffer
+      (unless (derived-mode-p 'Info-mode)
+	(Info-mode))
+
+      (if file-or-node
+	  ;; If argument already contains parentheses, don't add another set
+	  ;; since the argument will then be parsed improperly.  This also
+	  ;; has the added benefit of allowing node names to be included
+	  ;; following the parenthesized filename.
+	  (Info-goto-node
+	   (if (and (stringp file-or-node) (string-match "(.*)" file-or-node))
+	       file-or-node
+             (concat "(" file-or-node ")")))
+	(if (and (zerop (buffer-size))
+		 (null Info-history))
+	    ;; If we just created the Info buffer, go to the directory.
+	    (Info-directory))))
+
+    (when-let* ((window (display-buffer buffer
+			                (if other-window
+				            '(nil (inhibit-same-window . t))
+			                  '(display-buffer-same-window)))))
+      (select-window window))))
+
 
 ;;;###autoload (put 'info 'info-file (purecopy "emacs"))
 ;;;###autoload
@@ -768,8 +863,8 @@ See a list of available Info commands in `Info-mode'."
     ;; of names that might have been wrapped (in emails, etc.).
     (setq file-or-node
           (string-replace "\n" " " file-or-node)))
-  (info-setup file-or-node
-	      (pop-to-buffer-same-window (or buffer "*info*"))))
+
+  (info-pop-to-buffer file-or-node buffer))
 
 (defun info-setup (file-or-node buffer)
   "Display Info node FILE-OR-NODE in BUFFER."
@@ -788,6 +883,8 @@ See a list of available Info commands in `Info-mode'."
 	     (null Info-history))
 	;; If we just created the Info buffer, go to the directory.
 	(Info-directory))))
+
+(make-obsolete 'info-setup "use `info-pop-to-buffer' instead" "30.1")
 
 ;;;###autoload
 (defun info-emacs-manual ()
@@ -927,13 +1024,55 @@ If NOERROR, inhibit error messages when we can't find the node."
   (setq nodename (info--node-canonicalize-whitespace nodename))
   (setq filename (Info-find-file filename noerror))
   ;; Go into Info buffer.
-  (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
+  (or (derived-mode-p 'Info-mode) (info-pop-to-buffer filename))
   ;; Record the node we are leaving, if we were in one.
   (and (not no-going-back)
        Info-current-file
        (push (list Info-current-file Info-current-node (point))
              Info-history))
   (Info-find-node-2 filename nodename no-going-back strict-case))
+
+(defun Info--record-tag-table (nodename)
+  "If the current Info file has a tag table, record its location for NODENAME.
+
+This creates a tag-table buffer, sets `Info-tag-table-buffer' to
+name that buffer, and records the buffer and the tag table in
+the marker `Info-tag-table-buffer'.  If the Info file has no
+tag table, or if NODENAME is \"*\", the function sets the marker
+to nil to indicate the tag table is not available/relevant.
+
+The function assumes that the Info buffer is widened, and does
+not preserve point."
+  (goto-char (point-max))
+  (forward-line -8)
+  ;; Use string-equal, not equal, to ignore text props.
+  (if (not (or (string-equal nodename "*")
+	       (not
+		(search-forward "\^_\nEnd tag table\n" nil t))))
+      (let (pos)
+	;; We have a tag table.  Find its beginning.
+	;; Is this an indirect file?
+	(search-backward "\nTag table:\n")
+	(setq pos (point))
+	(if (save-excursion
+	      (forward-line 2)
+	      (looking-at "(Indirect)\n"))
+	    ;; It is indirect.  Copy it to another buffer
+	    ;; and record that the tag table is in that buffer.
+	    (let ((buf (current-buffer))
+		  (tagbuf
+		   (or Info-tag-table-buffer
+		       (generate-new-buffer " *info tag table*"))))
+	      (setq Info-tag-table-buffer tagbuf)
+	      (with-current-buffer tagbuf
+		(buffer-disable-undo (current-buffer))
+		(setq case-fold-search t)
+		(erase-buffer)
+		(insert-buffer-substring buf))
+	      (set-marker Info-tag-table-marker
+			  (match-end 0) tagbuf))
+	  (set-marker Info-tag-table-marker pos)))
+    (set-marker Info-tag-table-marker nil)))
 
 ;;;###autoload
 (defun Info-on-current-buffer (&optional nodename)
@@ -951,13 +1090,14 @@ otherwise, that defaults to `Top'."
         (or buffer-file-name
             ;; If called on a non-file buffer, make a fake file name.
             (concat default-directory (buffer-name))))
+  (Info--record-tag-table nodename)
   (Info-find-node-2 nil nodename))
 
 (defun Info-revert-find-node (filename nodename)
   "Go to an Info node FILENAME and NODENAME, re-reading disk contents.
 When *info* is already displaying FILENAME and NODENAME, the window position
 is preserved, if possible."
-  (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
+  (or (derived-mode-p 'Info-mode) (info-pop-to-buffer filename))
   (let ((old-filename Info-current-file)
 	(old-nodename Info-current-node)
 	(window-selected (eq (selected-window) (get-buffer-window)))
@@ -1113,36 +1253,7 @@ is non-nil)."
 		 (Info-file-supports-index-cookies filename))
 
 	    ;; See whether file has a tag table.  Record the location if yes.
-	    (goto-char (point-max))
-	    (forward-line -8)
-	    ;; Use string-equal, not equal, to ignore text props.
-	    (if (not (or (string-equal nodename "*")
-			 (not
-			  (search-forward "\^_\nEnd tag table\n" nil t))))
-		(let (pos)
-		  ;; We have a tag table.  Find its beginning.
-		  ;; Is this an indirect file?
-		  (search-backward "\nTag table:\n")
-		  (setq pos (point))
-		  (if (save-excursion
-			(forward-line 2)
-			(looking-at "(Indirect)\n"))
-		      ;; It is indirect.  Copy it to another buffer
-		      ;; and record that the tag table is in that buffer.
-		      (let ((buf (current-buffer))
-			    (tagbuf
-			     (or Info-tag-table-buffer
-				 (generate-new-buffer " *info tag table*"))))
-			(setq Info-tag-table-buffer tagbuf)
-			(with-current-buffer tagbuf
-			  (buffer-disable-undo (current-buffer))
-			  (setq case-fold-search t)
-			  (erase-buffer)
-			  (insert-buffer-substring buf))
-			(set-marker Info-tag-table-marker
-				    (match-end 0) tagbuf))
-		    (set-marker Info-tag-table-marker pos)))
-	      (set-marker Info-tag-table-marker nil))
+            (Info--record-tag-table nodename)
 	    (setq Info-current-file filename)
 	    )))
 
@@ -1787,38 +1898,72 @@ By default, go to the current Info node."
   (interactive (list (Info-read-node-name
                       "Go to node (default current page): " Info-current-node))
                Info-mode)
-  (browse-url-button-open-url
-   (Info-url-for-node (format "(%s)%s" (file-name-sans-extension
-                                        (file-name-nondirectory
-                                         Info-current-file))
-                              node))))
+  (let (filename)
+    (string-match "\\s *\\((\\s *\\([^\t)]*\\)\\s *)\\s *\\|\\)\\(.*\\)"
+		  node)
+    (setq filename (if (= (match-beginning 1) (match-end 1))
+		       ""
+		     (match-string 2 node))
+	  node (match-string 3 node))
+    (let ((trim (string-match "\\s +\\'" filename)))
+      (if trim (setq filename (substring filename 0 trim))))
+    (let ((trim (string-match "\\s +\\'" node)))
+      (if trim (setq node (substring node 0 trim))))
+    (if (equal filename "")
+        (setq filename (file-name-sans-extension (file-name-nondirectory
+                                                  Info-current-file))))
+    (if (equal node "")
+        (setq node "Top"))
+    (browse-url-button-open-url
+     (Info-url-for-node (format "(%s)%s" filename node)))))
 
 (defun Info-url-for-node (node)
-  "Return a URL for NODE, a node in the GNU Emacs or Elisp manual.
-NODE should be a string on the form \"(manual)Node\".  Only emacs
-and elisp manuals are supported."
-  (unless (string-match "\\`(\\(.+\\))\\(.+\\)\\'" node)
-    (error "Invalid node name %s" node))
-  (let ((manual (match-string 1 node))
-        (node (match-string 2 node)))
-    (unless (member manual '("emacs" "elisp"))
-      (error "Only emacs/elisp manuals are supported"))
-    ;; Encode a bunch of characters the way that makeinfo does.
-    (setq node
-          (mapconcat (lambda (ch)
-                       (if (or (< ch 32)        ; ^@^A-^Z^[^\^]^^^-
-                               (<= 33 ch 47)    ; !"#$%&'()*+,-./
-                               (<= 58 ch 64)    ; :;<=>?@
-                               (<= 91 ch 96)    ; [\]_`
-                               (<= 123 ch 127)) ; {|}~ DEL
-                           (format "_00%x" ch)
-                         (char-to-string ch)))
-                     node
-                     ""))
-    (concat "https://www.gnu.org/software/emacs/manual/html_node/"
-            manual "/"
-            (url-hexify-string (string-replace " " "-" node))
-            ".html")))
+  "Return the URL corresponding to NODE.
+
+NODE should be a string of the form \"(manual)Node\"."
+  ;; GNU Texinfo skips whitespaces and newlines between the closing
+  ;; parenthesis and the node-name, i.e. space, tab, line feed and
+  ;; carriage return.
+  (unless (string-match "\\`(\\(.+\\))[ \t\n\r]*\\(.+\\)\\'" node)
+    (error "Invalid node-name %s" node))
+  ;; Use `if-let*' instead of `let*' so we check if an association was
+  ;; found.
+  (if-let* ((manual (match-string 1 node))
+             (node (match-string 2 node))
+             (association (seq-find
+                            (lambda (pair)
+                              (seq-contains-p (ensure-list (car pair))
+                                manual #'string-equal-ignore-case))
+                            Info-url-alist))
+             (url-spec (cdr association))
+             (encoded-node
+               ;; Reproduce GNU Texinfo's way of URL-encoding.
+               ;; (info "(texinfo) HTML Xref Node Name Expansion")
+               (if (equal node "Top")
+                 ""
+                 (concat
+                   (url-hexify-string
+                     (string-replace " " "-"
+                       (mapconcat
+                         (lambda (ch)
+                           (if (or (< ch 32)      ; ^@^A-^Z^[^\^]^^^-
+                                 (<= 33 ch 47)    ; !"#$%&'()*+,-./
+                                 (<= 58 ch 64)    ; :;<=>?@
+                                 (<= 91 ch 96)    ; [\]_`
+                                 (<= 123 ch 127)) ; {|}~ DEL
+                             (format "_00%x" ch)
+                             (char-to-string ch)))
+                         node "")))
+                   ".html"))))
+    (cond
+      ((stringp url-spec)
+        (format-spec url-spec
+          `((?m . ,manual) (?n . ,node) (?e . ,encoded-node))))
+      ((functionp url-spec)
+        (funcall url-spec manual node encoded-node))
+      (t (error "URL-specification neither string nor function")))
+    (error "No URL-specification associated with manual-name `%s'"
+      manual)))
 
 (defvar Info-read-node-completion-table)
 
@@ -1875,7 +2020,7 @@ See `completing-read' for a description of arguments and usage."
          (lambda (string pred action)
            (complete-with-action
             action
-            (when-let ((file2 (Info-find-file file1 'noerror t)))
+            (when-let* ((file2 (Info-find-file file1 'noerror t)))
               (Info-build-node-completions file2))
             string pred))
 	 nodename predicate code))))
@@ -2041,7 +2186,7 @@ If DIRECTION is `backward', search in the reverse direction."
                       (re-search-forward regexp nil t))
               (signal 'user-search-failed (list regexp))))))
 
-      (if (and bound (not found))
+      (if (and (or bound (not Info-current-subfile)) (not found))
           (signal 'user-search-failed (list regexp)))
 
       (unless (or found bound)
@@ -2275,7 +2420,7 @@ This command doesn't descend into sub-nodes, like \\<Info-mode-map>\\[Info-forwa
   (interactive nil Info-mode)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
+    (or (derived-mode-p 'Info-mode) (info-pop-to-buffer))
     (Info-goto-node (Info-extract-pointer "next"))))
 
 (defun Info-prev ()
@@ -2284,7 +2429,7 @@ This command doesn't go up to the parent node, like \\<Info-mode-map>\\[Info-bac
   (interactive nil Info-mode)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
+    (or (derived-mode-p 'Info-mode) (info-pop-to-buffer))
     (Info-goto-node (Info-extract-pointer "prev[ious]*" "previous"))))
 
 (defun Info-up (&optional same-file)
@@ -2293,7 +2438,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   (interactive nil Info-mode)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
+    (or (derived-mode-p 'Info-mode) (info-pop-to-buffer))
     (let ((old-node Info-current-node)
 	  (old-file Info-current-file)
 	  (node (Info-extract-pointer "up")) p)
@@ -3930,8 +4075,8 @@ ERRORSTRING optional fourth argument, controls action on no match:
 		 (error "No %s around position %d" errorstring pos))))))))
 
 (defun Info-mouse-follow-nearest-node (click)
-  "\\<Info-mode-map>Follow a node reference near point.
-Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where you click.
+  "Follow a node reference near point.
+\\<Info-mode-map>Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where you click.
 At end of the node's text, moves to the next node, or up if none."
   (interactive "e" Info-mode)
   (mouse-set-point click)
@@ -4530,7 +4675,7 @@ Advanced commands:
 
 (defvar Info-file-list-for-emacs
   '("ediff" "eudc" "forms" "gnus" "info" ("Info" . "info") ("mh" . "mh-e")
-    "sc" "message" ("dired" . "dired-x") "viper" "vip" "idlwave"
+    "sc" "message" ("dired" . "dired-x") "viper" "idlwave"
     ("c" . "ccmode") ("c++" . "ccmode") ("objc" . "ccmode")
     ("java" . "ccmode") ("idl" . "ccmode") ("pike" . "ccmode")
     ("skeleton" . "autotype") ("auto-insert" . "autotype")
@@ -4663,7 +4808,15 @@ Interactively, if the binding is `execute-extended-command', a command is read.
 The command is found by looking up in Emacs manual's indices
 or in another manual found via COMMAND's `info-file' property or
 the variable `Info-file-list-for-emacs'."
-  (interactive "kFind documentation for key: ")
+  (interactive
+   (let ((enable-disabled-menus-and-buttons t)
+         (cursor-in-echo-area t)
+         ;; Showing the list of key sequences makes no sense when they
+         ;; asked about a key sequence.
+         (echo-keystrokes-help nil)
+         (prompt (propertize "Find documentation for key: "
+                              'face 'minibuffer-prompt)))
+     (list (read-key-sequence prompt nil nil 'can-return-switch-frame))))
   (let ((command (key-binding key)))
     (cond ((null command)
 	   (message "%s is undefined" (key-description key)))
@@ -4671,8 +4824,14 @@ the variable `Info-file-list-for-emacs'."
 		(eq command 'execute-extended-command))
 	   (Info-goto-emacs-command-node
 	    (read-command "Find documentation for command: ")))
+          ((symbolp command)
+           (Info-goto-emacs-command-node command))
 	  (t
-	   (Info-goto-emacs-command-node command)))))
+	   (message
+            (substitute-command-keys
+             (format
+              "\\`%s' invokes an anonymous command defined with `lambda'"
+              (key-description key))))))))
 
 (defvar Info-link-keymap
   (let ((keymap (make-sparse-keymap)))
@@ -4739,6 +4898,19 @@ first line or header line, and for breadcrumb links.")
     ;; 				    'font-lock-face 'header-line line)
     line))
 
+(defvar Info--dont-hide-references
+  '(("texinfo" "Cross Reference Commands"))
+  "Manuals and nodes where `Info-hide-note-references' should be ignored.
+This is an alist whose elements should be of the form
+
+      (MANUAL NODE...)
+
+where MANUAL is the basename of an Info manual's main file, and NODEs
+are one or more nodes in MANUAL where info.el should not hide
+cross-references even in `Info-hide-note-references' is non-nil.
+This is because some rare nodes describe how cross-references work,
+and so should be rendered as makeinfo produced them.")
+
 (defun Info-fontify-node ()
   "Fontify the node."
   (save-excursion
@@ -4756,6 +4928,16 @@ first line or header line, and for breadcrumb links.")
                  (or (eq Info-fontify-maximum-menu-size t)
 		     (< (- (point-max) (point-min))
 			Info-fontify-maximum-menu-size))))
+           ;; Disable Info-hide-note-references in nodes that are
+           ;; incompatible with that feature.
+           (Info-hide-note-references
+            (if (member Info-current-node
+                        (assoc-string
+                         (file-name-sans-extension
+                          (file-name-nondirectory Info-current-file))
+                         Info--dont-hide-references))
+                nil
+              Info-hide-note-references))
            rbeg rend)
 
       ;; Fontify header line
@@ -5470,7 +5652,7 @@ completion alternatives to currently visited manuals."
                 (raise-frame (window-frame window))
                 (select-frame-set-input-focus (window-frame window))
                 (select-window window))
-	    (switch-to-buffer found)))
+	    (info-pop-to-buffer nil found)))
       ;; The buffer doesn't exist; create it.
       (info-initialize)
       (info (Info-find-file manual)
@@ -5507,7 +5689,9 @@ completion alternatives to currently visited manuals."
 			   (all-completions
 			    ""
 			    (apply-partially #'Info-read-node-name-2
-					     Info-directory-list
+					     (append
+                                              Info-directory-list
+                                              Info-additional-directory-list)
 					     (mapcar #'car Info-suffix-list))))))))
 
 (provide 'info)

@@ -1,6 +1,6 @@
 ;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/macOS window system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2005-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2005-2024 Free Software Foundation, Inc.
 
 ;; Authors: Carl Edman
 ;;	Christian Limpach
@@ -520,11 +520,12 @@ string dropped into the current buffer."
       (goto-char (posn-point (event-start event)))
       (cond ((or (memq 'ns-drag-operation-generic operations)
                  (memq 'ns-drag-operation-copy operations))
-             ;; Perform the default/copy action.
-             (dolist (data objects)
-               (dnd-handle-one-url window 'private (if (eq type 'file)
-                                                       (concat "file:" data)
-                                                     data))))
+             (let ((urls (if (eq type 'file) (mapcar
+                                              (lambda (file)
+                                                (concat "file:" file))
+                                              objects)
+                           objects)))
+               (dnd-handle-multiple-urls window urls 'private)))
             (t
              ;; Insert the text as is.
              (dnd-insert-text window 'private string))))))

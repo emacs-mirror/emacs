@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -175,16 +175,9 @@
   "Support for editing files."
   :group 'emacs)
 
-(defgroup wp nil
-  "Support for editing text files.
-Use group `text' for this instead.  This group is deprecated."
-  :group 'emacs)
-
 (defgroup text nil
   "Support for editing text files."
-  :group 'emacs
-  ;; Inherit from deprecated `wp' for compatibility, for now.
-  :group 'wp)
+  :group 'emacs)
 
 (defgroup data nil
   "Support for editing binary data files."
@@ -511,6 +504,13 @@ WIDGET is the widget to apply the filter entries of MENU on."
 	  (push (cons name action) result)
 	(push name result)))
     (nreverse result)))
+
+(defun custom--editable-field-p (widget)
+  "Non-nil if WIDGET is an editable-field widget, or inherits from it."
+  (let ((type (widget-type widget)))
+    (while (and type (not (eq type 'editable-field)))
+      (setq type (widget-type (get type 'widget-type))))
+    type))
 
 ;;; Unlispify.
 
@@ -973,8 +973,7 @@ it as the third element in the list."
 	  (let ((prop (get var 'variable-interactive))
 		(type (get var 'custom-type))
 		(prompt (format prompt-val var)))
-	    (unless (listp type)
-	      (setq type (list type)))
+            (setq type (ensure-list type))
 	    (cond (prop
 		   ;; Use VAR's `variable-interactive' property
 		   ;; as an interactive spec for prompting.
@@ -1054,6 +1053,11 @@ This is like `setq', but is meant for user options instead of
 plain variables.  This means that `setopt' will execute any
 `custom-set' form associated with VARIABLE.
 
+Note that `setopt' will emit a warning if the type of a VALUE
+does not match the type of the corresponding VARIABLE as
+declared by `defcustom'.  (VARIABLE will be assigned the value
+even if it doesn't match the type.)
+
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
   (unless (zerop (mod (length pairs) 2))
@@ -1071,9 +1075,10 @@ plain variables.  This means that `setopt' will execute any
 (defun setopt--set (variable value)
   (custom-load-symbol variable)
   ;; Check that the type is correct.
-  (when-let ((type (get variable 'custom-type)))
+  (when-let* ((type (get variable 'custom-type)))
     (unless (widget-apply (widget-convert type) :match value)
-      (warn "Value `%S' does not match type %s" value type)))
+      (warn "Value `%S' for variable `%s' does not match its type \"%s\""
+            value variable type)))
   (put variable 'custom-check-value (list value))
   (funcall (or (get variable 'custom-set) #'set-default) variable value))
 
@@ -1153,14 +1158,15 @@ argument or if the current major mode has no known group, prompt
 for the MODE to customize."
   (interactive
    (list
-    (let ((completion-regexp-list '("-mode\\'"))
-	  (group (custom-group-of-mode major-mode)))
+    (let ((group (custom-group-of-mode major-mode)))
       (if (and group (not current-prefix-arg))
 	  major-mode
 	(intern
 	 (completing-read (format-prompt "Mode" (and group major-mode))
 			  obarray
-			  'custom-group-of-mode
+			  (lambda (s)
+			    (and (string-match "-mode\\'" (symbol-name s))
+			         (custom-group-of-mode s)))
 			  t nil nil (if group (symbol-name major-mode))))))))
   (customize-group (custom-group-of-mode mode)))
 
@@ -1222,6 +1228,41 @@ If OTHER-WINDOW is non-nil, display in another window."
       (message "`%s' is an alias for `%s'" symbol basevar))))
 
 ;;;###autoload
+(defun customize-toggle-option (symbol)
+  "Toggle the value of boolean option SYMBOL for this session."
+  (interactive (let ((prompt "Toggle boolean option: ") opts)
+                 (mapatoms
+                  (lambda (sym)
+                    (when (eq (get sym 'custom-type) 'boolean)
+                      (push sym opts))))
+                 (list (intern (completing-read prompt opts nil nil nil nil
+                                                (symbol-at-point))))))
+  (let* ((setter (or (get symbol 'custom-set) #'set-default))
+         (getter (or (get symbol 'custom-get) #'symbol-value))
+         (value (condition-case nil
+                    (funcall getter symbol)
+                  (void-variable (error "`%s' is not bound" symbol))))
+         (type (get symbol 'custom-type)))
+    (cond
+     ((eq type 'boolean))
+     ((and (null type)
+           (yes-or-no-p
+            (format "`%s' doesn't have a type, and has the value %S.  \
+Proceed to toggle?" symbol value))))
+     ((yes-or-no-p
+       (format "`%s' is of type %s, and has the value %S.  \
+Proceed to toggle?"
+               symbol type value)))
+     ((error "Abort toggling of option `%s'" symbol)))
+    (message "%s user options `%s'."
+             (if (funcall setter symbol (not value))
+                 "Enabled" "Disabled")
+             symbol)))
+
+;;;###autoload
+(defalias 'toggle-option #'customize-toggle-option)
+
+;;;###autoload
 (defalias 'customize-variable-other-window 'customize-option-other-window)
 
 ;;;###autoload
@@ -1238,7 +1279,7 @@ Show the buffer in another window, but don't select it."
     (unless (eq symbol basevar)
       (message "`%s' is an alias for `%s'" symbol basevar))))
 
-(defvar customize-changed-options-previous-release "29.1"
+(defvar customize-changed-options-previous-release "30.1"
   "Version for `customize-changed' to refer back to by default.")
 
 ;; Packages will update this variable, so make it available.
@@ -2209,24 +2250,33 @@ and `face'."
 ;;; The `custom' Widget.
 
 (defface custom-button
-  '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
+  '((((type x w32 ns haiku pgtk android) (class color)
+      (min-colors 88))	; Like default mode line
      :box (:line-width 2 :style released-button)
-     :background "lightgrey" :foreground "black"))
+     :background "lightgrey" :foreground "black")
+    (((type x w32 ns haiku pgtk android))
+     :box (:line-width 2 :style released-button)
+     :background "white" :foreground "black"))
   "Face for custom buffer buttons if `custom-raised-buttons' is non-nil."
-  :version "21.1"
+  :version "30.1"
   :group 'custom-faces)
 
 (defface custom-button-mouse
-  '((((type x w32 ns haiku pgtk android) (class color))
+  '((((type x w32 ns haiku pgtk android) (class color)
+      (min-colors 88))
      :box (:line-width 2 :style released-button)
      :background "grey90" :foreground "black")
+    (((type x w32 ns haiku pgtk android))
+     :box (:line-width 2 :style released-button)
+     ;; Either light gray or a stipple pattern.
+     :background "gray20" :foreground "black")
     (t
      ;; This is for text terminals that support mouse, like GPM mouse
      ;; or the MS-DOS terminal: inverse-video makes the button stand
      ;; out on mouse-over.
      :inverse-video t))
   "Mouse face for custom buffer buttons if `custom-raised-buttons' is non-nil."
-  :version "22.1"
+  :version "30.1"
   :group 'custom-faces)
 
 (defface custom-button-unraised
@@ -2242,12 +2292,16 @@ and `face'."
       (if custom-raised-buttons 'custom-button-mouse 'highlight))
 
 (defface custom-button-pressed
-  '((((type x w32 ns haiku pgtk android) (class color))
+  '((((type x w32 ns haiku pgtk android) (class color grayscale))
      :box (:line-width 2 :style pressed-button)
      :background "lightgrey" :foreground "black")
+    (((type x w32 ns haiku pgtk android))
+     :box (:line-width 2 :style pressed-button)
+     ;; Either light gray or a stipple pattern.
+     :background "gray20" :foreground "black")
     (t :inverse-video t))
   "Face for pressed custom buttons if `custom-raised-buttons' is non-nil."
-  :version "21.1"
+  :version "30.1"
   :group 'custom-faces)
 
 (defface custom-button-pressed-unraised
@@ -4149,7 +4203,10 @@ Optional EVENT is the location for the menu."
       ;; If recreating a widget that may have been edited by the user, remember
       ;; to always save the edited value into the :shown-value property, so
       ;; we use that value for the recreated widget.  (Bug#44331)
-      (widget-put widget :shown-value (custom-face-widget-to-spec widget))
+      (let ((child (car (widget-get widget :children))))
+        (if (eq (widget-type child) 'custom-face-edit)
+            (widget-put widget :shown-value `((t ,(widget-value child))))
+          (widget-put widget :shown-value (widget-value child))))
       (custom-face-edit-all widget)
       (widget-put widget :shown-value nil) ; Reset it after we used it.
       (custom-face-mark-to-save widget)
@@ -4912,10 +4969,17 @@ if only the first line of the docstring is shown."))
             ;; can cause problems when read back, so print them
             ;; readably.  (Bug#52554)
             (print-escape-control-characters t))
-        (atomic-change-group
-	  (custom-save-variables)
-	  (custom-save-faces)
-          (custom-save-icons)))
+        ;; Insert lexical cookie, but only if the buffer is empty.
+        (save-restriction
+          (widen)
+          (atomic-change-group
+            (when (eq (point-min) (point-max))
+              (save-excursion
+                (goto-char (point-min))
+                (insert ";;; -*- lexical-binding: t -*-\n")))
+	    (custom-save-variables)
+	    (custom-save-faces)
+            (custom-save-icons))))
       (let ((file-precious-flag t))
 	(save-buffer))
       (if old-buffer
@@ -5145,8 +5209,7 @@ This function does not save the buffer."
 (defun custom-variable-menu-create (_widget symbol)
   "Ignoring WIDGET, create a menu entry for customization variable SYMBOL."
   (let ((type (get symbol 'custom-type)))
-    (unless (listp type)
-      (setq type (list type)))
+    (setq type (ensure-list type))
     (if (and type (widget-get type :custom-menu))
 	(widget-apply type :custom-menu symbol)
       (vector (custom-unlispify-menu-entry symbol)
@@ -5306,6 +5369,12 @@ If several parents are listed, go to the first of them."
     (setq-local widget-link-suffix ""))
   (setq show-trailing-whitespace nil))
 
+(defvar touch-screen-keyboard-function) ; In touch-screen.el.
+
+(defun Custom-display-on-screen-keyboard-p ()
+  "Return whether it is okay to display the virtual keyboard at point."
+  (get-char-property (point) 'field))
+
 (define-derived-mode Custom-mode nil "Custom"
   "Major mode for editing customization buffers.
 
@@ -5343,6 +5412,9 @@ if that value is non-nil."
   (setq-local custom--invocation-options nil
               custom--hidden-state 'hidden)
   (setq-local revert-buffer-function #'custom--revert-buffer)
+  (setq-local text-conversion-style 'action)
+  (setq-local touch-screen-keyboard-function
+              #'Custom-display-on-screen-keyboard-p)
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)
   (custom--initialize-widget-variables)
@@ -5365,11 +5437,6 @@ The following properties have special meanings for this widget:
 :hidden-states should be a list of widget states for which the
   widget's initial contents are to be hidden.
 
-:custom-form should be a symbol describing how to display and
-  edit the variable---either `edit' (using edit widgets),
-  `lisp' (as a Lisp sexp), or `mismatch' (should not happen);
-  if nil, use the return value of `custom-variable-default-form'.
-
 :shown-value, if non-nil, should be a list whose `car' is the
   variable value to display in place of the current value.
 
@@ -5382,11 +5449,86 @@ The following properties have special meanings for this widget:
   :custom-category 'option
   :custom-state nil
   :custom-form nil
-  :value-create 'custom-icon-value-create
+  :value-create #'custom-icon-value-create
   :hidden-states '(standard)
-  :custom-set 'custom-icon-set
-  :custom-reset-current 'custom-redraw
-  :custom-reset-saved 'custom-variable-reset-saved)
+  :action #'custom-icon-action
+  :custom-set #'custom-icon-set
+  :custom-mark-to-save #'custom-icon-mark-to-save
+  :custom-reset-current #'custom-redraw
+  :custom-reset-saved #'custom-icon-reset-saved
+  :custom-state-set-and-redraw #'custom-icon-state-set-and-redraw
+  :custom-reset-standard #'custom-icon-reset-standard
+  :custom-mark-to-reset-standard #'custom-icon-mark-to-reset-standard)
+
+(defun custom-icon-mark-to-save (widget)
+  "Mark user customization for icon edited by WIDGET to be saved later."
+  (let* ((icon (widget-value widget))
+         (value (custom--icons-widget-value
+                 (car (widget-get widget :children)))))
+    (custom-push-theme 'theme-icon icon 'user 'set value)))
+
+(defun custom-icon-reset-saved (widget)
+  "Restore icon customized by WIDGET to the icon's default attributes.
+
+If there's a theme value for the icon, resets to that.  Otherwise, resets to
+its standard value."
+  (let* ((icon (widget-value widget)))
+    (custom-push-theme 'theme-icon icon 'user 'reset)
+    (custom-icon-state-set widget)
+    (custom-redraw widget)))
+
+(defun custom-icon-state-set-and-redraw (widget)
+  "Set state of icon widget WIDGET and redraw it with up-to-date settings."
+  (custom-icon-state-set widget)
+  (custom-redraw-magic widget))
+
+(defun custom-icon-reset-standard (widget)
+  "Reset icon edited by WIDGET to its standard value."
+  (let* ((icon (widget-value widget))
+         (themes (get icon 'theme-icon)))
+    (dolist (theme themes)
+      (custom-push-theme 'theme-icon icon (car theme) 'reset))
+    (custom-save-all))
+  (widget-put widget :custom-state 'unknown)
+  (custom-redraw widget))
+
+(defun custom-icon-mark-to-reset-standard (widget)
+  "Reset icon edited by WIDGET to its standard value."
+  ;; Don't mark for now, there aren't that many icons.
+  (custom-icon-reset-standard widget))
+
+(defvar custom-icon-extended-menu
+  (let ((map (make-sparse-keymap)))
+    (define-key-after map [custom-icon-set]
+      '(menu-item "Set for Current Session" custom-icon-set
+                  :enable (eq (widget-get custom-actioned-widget :custom-state)
+                              'modified)))
+    (when (or custom-file init-file-user)
+      (define-key-after map [custom-icon-save]
+        '(menu-item "Save for Future Sessions" custom-icon-save
+                    :enable (memq
+                             (widget-get custom-actioned-widget :custom-state)
+                             '(modified set changed)))))
+    (define-key-after map [custom-redraw]
+      '(menu-item "Undo Edits" custom-redraw
+                  :enable (memq
+                           (widget-get custom-actioned-widget :custom-state)
+                           '(modified changed))))
+    (define-key-after map [custom-icon-reset-saved]
+      '(menu-item "Revert This Session's Customization"
+                  custom-icon-reset-saved
+                  :enable (memq
+                           (widget-get custom-actioned-widget :custom-state)
+                           '(modified set changed rogue))))
+    (when (or custom-file init-file-user)
+      (define-key-after map [custom-icon-reset-standard]
+        '(menu-item "Erase Customization" custom-icon-reset-standard
+                    :enable (memq
+                             (widget-get custom-actioned-widget :custom-state)
+                             '(modified set changed saved rogue)))))
+    map)
+  "A menu for `custom-icon' widgets.
+Used in `custom-icon-action' to show a menu to the user.")
 
 (defun custom-icon-value-create (widget)
   "Here is where you edit the icon's specification."
@@ -5516,6 +5658,24 @@ The following properties have special meanings for this widget:
 	  (custom-add-parent-links widget))
 	(custom-add-see-also widget)))))
 
+(defun custom-icon-action (widget &optional event)
+  "Show the menu for `custom-icon' WIDGET.
+Optional EVENT is the location for the menu."
+  (if (eq (widget-get widget :custom-state) 'hidden)
+      (custom-toggle-hide widget)
+    (unless (eq (widget-get widget :custom-state) 'modified)
+      (custom-icon-state-set widget))
+    (custom-redraw-magic widget)
+    (let* ((completion-ignore-case t)
+           (custom-actioned-widget widget)
+           (answer (widget-choose (concat "Operation on "
+                                          (custom-unlispify-tag-name
+                                           (widget-get widget :value)))
+                                  custom-icon-extended-menu
+                                  event)))
+      (when answer
+        (funcall answer widget)))))
+
 (defun custom-toggle-hide-icon (visibility-widget &rest _ignore)
   "Toggle the visibility of a `custom-icon' parent widget.
 By default, this signals an error if the parent has unsaved
@@ -5552,10 +5712,21 @@ changes."
       (user-error "Cannot update hidden icon"))
 
     (setq val (custom--icons-widget-value child))
-    (unless (equal val (icon-complete-spec symbol))
-      (custom-variable-backup-value widget))
+    ;; FIXME: What was the intention here?
+    ;; (unless (equal val (icon-complete-spec symbol))
+    ;;   (custom-variable-backup-value widget))
     (custom-push-theme 'theme-icon symbol 'user 'set val)
-    (custom-redraw-magic widget)))
+    (custom-redraw widget)))
+
+(defun custom-icon-save (widget)
+  "Save value of icon edited by widget WIDGET."
+  (custom-set-icons (cons (widget-value widget)
+                          (list
+                           (custom--icons-widget-value
+                            (car (widget-get widget :children))))))
+  (custom-save-all)
+  (custom-icon-state-set widget)
+  (custom-redraw-magic widget))
 
 ;;;###autoload
 (defun customize-icon (icon)
@@ -5643,6 +5814,288 @@ This stores EXP (without evaluating it) as the saved spec for SYMBOL."
           (insert "  '")
           (prin1 value (current-buffer)))
         (insert ")\n")))))
+
+;;; Directory Local Variables.
+;; The following code provides an Easy Customization interface to manage
+;; `.dir-locals.el' files.
+;; The main command is `customize-dirlocals'.  It presents a Custom-like buffer
+;; but with a few tweaks.  Variables are inserted in a repeat widget, and
+;; update its associated widget (the one for editing the value) upon the user
+;; hitting RET or TABbing out of it.
+;; This is unlike the `cus-theme.el' interface for editing themes, that prompts
+;; the user for the variable to then create the appropriate widget.
+(defvar-local custom-dirlocals-widget nil
+  "Widget that holds the dir-locals customizations.")
+
+(defvar-local custom-dirlocals-file-widget nil
+  "Widget that holds the name of the dir-locals file being customized.")
+
+(defvar-keymap custom-dirlocals-map
+  :doc "Keymap used in the \"*Customize Dirlocals*\" buffer."
+  :full t
+  :parent widget-keymap
+  "SPC"     #'scroll-up-command
+  "S-SPC"   #'scroll-down-command
+  "DEL"     #'scroll-down-command
+  "C-x C-s" #'Custom-dirlocals-save
+  "q"       #'Custom-buffer-done
+  "n"       #'widget-forward
+  "p"       #'widget-backward)
+
+(defvar custom-dirlocals-field-map
+  (let ((map (copy-keymap custom-field-keymap)))
+    (define-key map "\C-x\C-s" #'Custom-dirlocals-save)
+    (define-key map "\C-m" #'widget-field-activate)
+    map)
+  "Keymap for the editable fields in the \"*Customize Dirlocals*\" buffer .")
+
+(defvar custom-dirlocals-commands
+  '((" Save Settings " Custom-dirlocals-save t
+     "Save Settings to the dir-locals file." "save" "Save" t)
+    (" Undo Edits " Custom-dirlocals-revert-buffer t
+     "Revert buffer, undoing any editions."
+     "refresh" "Undo" t)
+    (" Help for Customize " Custom-help t "Get help for using Customize."
+     "help" "Help" t)
+    (" Exit " Custom-buffer-done t "Exit Customize." "exit" "Exit" t))
+  "Alist of specifications for Customize menu items, tool bar icons and buttons.
+See `custom-commands' for further explanation.")
+
+(easy-menu-define
+  Custom-dirlocals-menu (list custom-dirlocals-map
+                              custom-dirlocals-field-map)
+  "Menu used in dirlocals customization buffers."
+  (nconc (list "Custom"
+               (customize-menu-create 'customize))
+         (mapcar (lambda (arg)
+                   (let ((tag     (nth 0 arg))
+                         (command (nth 1 arg))
+                         (visible (nth 2 arg))
+                         (help    (nth 3 arg))
+                         (active  (nth 6 arg)))
+                     (vector tag command :visible (eval visible)
+                             :active `(eq t ',active)
+                             :help help)))
+                 custom-dirlocals-commands)))
+
+(defvar custom-dirlocals-tool-bar-map nil
+  "Keymap for the toolbar in \"*Customize Dirlocals*\" buffer.")
+
+(define-widget 'custom-dirlocals-key 'menu-choice
+  "Menu to choose between possible keys in a dir-locals file.
+
+Possible values are nil, a symbol (standing for a major mode) or a directory
+name."
+  :tag "Specification"
+  :value nil
+  :help-echo "Select a key for the dir-locals specification."
+  :args '((const :tag "All modes" nil)
+          (symbol :tag "Major mode" fundamental-mode)
+          (directory :tag "Subdirectory")))
+
+(define-widget 'custom-dynamic-cons 'cons
+  "A cons widget that changes its 2nd type based on the 1st type."
+  :value-create #'custom-dynamic-cons-value-create)
+
+(defun custom-dynamic-cons-value-create (widget)
+  "Select an appropriate 2nd type for the cons WIDGET and create WIDGET.
+
+The appropriate types are:
+- A symbol, if the value to represent is a minor-mode.
+- A boolean, if the value to represent is either the unibyte value or the
+  subdirs value.
+- A widget type suitable for editing a variable, in case of specifying a
+  variable's value.
+- A sexp widget, if none of the above happens."
+  (let* ((args (widget-get widget :args))
+         (value (widget-get widget :value))
+         (val (car value)))
+    (cond
+     ((eq val 'mode) (setf (nth 1 args)
+                           '(symbol :keymap custom-dirlocals-field-map
+                                    :tag "Minor mode")))
+     ((eq val 'unibyte) (setf (nth 1 args) '(boolean)))
+     ((eq val 'subdirs) (setf (nth 1 args) '(boolean)))
+     ((custom-variable-p val)
+      (let ((w (widget-convert (custom-variable-type val))))
+        (when (custom--editable-field-p w)
+          (widget-put w :keymap custom-dirlocals-field-map))
+        (setf (nth 1 args) w)))
+     (t (setf (nth 1 args) '(sexp :keymap custom-dirlocals-field-map))))
+    (widget-put (nth 0 args) :keymap custom-dirlocals-field-map)
+    (widget-group-value-create widget)))
+
+(defun custom-dirlocals-maybe-update-cons ()
+  "If focusing out from the first widget in a cons widget, update its value."
+  (when-let* ((w (widget-at)))
+    (when (widget-get w :custom-dirlocals-symbol)
+      (widget-value-set (widget-get w :parent)
+                        (cons (widget-value w) ""))
+      (widget-setup))))
+
+(define-widget 'custom-dirlocals 'editable-list
+  "An editable list to edit settings in a dir-locals file."
+  :entry-format "%i %d %v"
+  :insert-button-args '(:help-echo "Insert new specification here.")
+  :append-button-args '(:help-echo "Append new specification here.")
+  :delete-button-args '(:help-echo "Delete this specification.")
+  :args '((group :format "%v"
+                 custom-dirlocals-key
+                 (repeat
+                  :tag "Settings"
+                  :inline t
+                  (custom-dynamic-cons
+                   :tag "Setting"
+                   (symbol :action custom-dirlocals-symbol-action
+                           :custom-dirlocals-symbol t)
+                   ;; Will change according to the option being customized.
+                   (sexp :tag "Value"))))))
+
+(defun custom-dirlocals-symbol-action (widget &optional _event)
+  "Action for the symbol WIDGET.
+
+Sets the value of its parent, a cons widget, in order to create an
+appropriate widget to edit the value of WIDGET.
+
+Moves point into the widget that holds the value."
+  (setq widget (or widget (widget-at)))
+  (widget-value-set (widget-get widget :parent)
+                    (cons (widget-value widget) ""))
+  (widget-setup)
+  (widget-forward 1))
+
+(defun custom-dirlocals-change-file (widget &optional _event)
+  "Switch to a buffer to customize the dir-locals file in WIDGET."
+  (customize-dirlocals (expand-file-name (widget-value widget))))
+
+(defun custom-dirlocals--set-widget-vars ()
+  "Set local variables for the Widget library."
+  (custom--initialize-widget-variables)
+  (add-hook 'widget-forward-hook #'custom-dirlocals-maybe-update-cons nil t))
+
+(defmacro custom-dirlocals-with-buffer (&rest body)
+  "Arrange to execute BODY in a \"*Customize Dirlocals*\" buffer."
+  ;; We don't use `custom-buffer-create' because the settings here
+  ;; don't go into the `custom-file'.
+  `(progn
+     (switch-to-buffer "*Customize Dirlocals*")
+     (kill-all-local-variables)
+     (let ((inhibit-read-only t))
+       (erase-buffer))
+     (remove-overlays)
+     (custom-dirlocals--set-widget-vars)
+     ,@body
+     (setq-local tool-bar-map
+                 (or custom-dirlocals-tool-bar-map
+                     ;; Set up `custom-dirlocals-tool-bar-map'.
+                     (let ((map (make-sparse-keymap)))
+                       (mapc
+                        (lambda (arg)
+                          (tool-bar-local-item-from-menu
+                           (nth 1 arg) (nth 4 arg) map custom-dirlocals-map
+                           :label (nth 5 arg)))
+                        custom-dirlocals-commands)
+                       (setq custom-dirlocals-tool-bar-map map))))
+     (setq-local revert-buffer-function #'Custom-dirlocals-revert-buffer)
+     (use-local-map custom-dirlocals-map)
+     (widget-setup)))
+
+(defun custom-dirlocals-get-options ()
+  "Return all options inside a custom-dirlocals widget."
+  (let* ((groups (widget-get custom-dirlocals-widget :children))
+         (repeats (mapcar (lambda (group)
+                            (nth 1 (widget-get group :children)))
+                          groups)))
+    (mapcan (lambda (repeat)
+              (mapcar (lambda (w)
+                        (nth 1 (widget-get w :children)))
+                      (widget-get repeat :children)))
+            repeats)))
+
+(defun custom-dirlocals-validate ()
+  "Non-nil if all customization options validate.
+
+If at least an option doesn't validate, signals an error and moves point
+to the widget with the invalid value."
+  (dolist (opt (custom-dirlocals-get-options))
+    (when-let* ((w (widget-apply opt :validate)))
+      (goto-char (widget-get w :from))
+      (error "%s" (widget-get w :error))))
+  t)
+
+(defun Custom-dirlocals-revert-buffer (&rest _ignored)
+  "Revert the buffer for Directory Local Variables customization."
+  (interactive)
+  (customize-dirlocals (widget-get custom-dirlocals-file-widget :value)))
+
+(defun Custom-dirlocals-save (&rest _ignore)
+  "Save the settings to the dir-locals file being customized."
+  (interactive)
+  (when (custom-dirlocals-validate)
+    (let* ((file (widget-value custom-dirlocals-file-widget))
+           (old (widget-get custom-dirlocals-widget :value))
+           (dirlocals (widget-value custom-dirlocals-widget)))
+      (dolist (spec old)
+        (let ((mode (car spec))
+              (settings (cdr spec)))
+          (dolist (setting settings)
+            (delete-dir-local-variable mode (car setting) file))))
+      (dolist (spec dirlocals)
+        (let ((mode (car spec))
+              (settings (cdr spec)))
+          (dolist (setting (reverse settings))
+            (when (memq (car setting) '(mode eval))
+              (delete-dir-local-variable mode (car setting) file))
+            (add-dir-local-variable mode (car setting) (cdr setting) file)))))
+    ;; Write the dir-locals file and kill its buffer, to come back to
+    ;; our own buffer.
+    (write-file (expand-file-name buffer-file-name) nil)
+    (kill-buffer)))
+
+;;;###autoload
+(defun customize-dirlocals (&optional filename)
+  "Customize Directory Local Variables in the current directory.
+
+With optional argument FILENAME non-nil, customize the `.dir-locals.el' file
+that FILENAME specifies."
+  (interactive)
+  (let* ((file (or filename (expand-file-name ".dir-locals.el")))
+         (dirlocals (when (file-exists-p file)
+                      (with-current-buffer (find-file-noselect file)
+                        (goto-char (point-min))
+                        (prog1
+                            (condition-case _
+                                (read (current-buffer))
+                              (end-of-file nil))
+                          (kill-buffer))))))
+    (custom-dirlocals-with-buffer
+     (widget-insert
+      "This buffer is for customizing the Directory Local Variables in:\n")
+     (setq custom-dirlocals-file-widget
+           (widget-create `(file :action ,#'custom-dirlocals-change-file
+                                 ,file)))
+     (widget-insert
+      (substitute-command-keys
+       "
+To select another file, edit the above field and hit RET.
+
+After you enter a user option name under the symbol field,
+be sure to press \\`RET' or \\`TAB', so that the field that holds the
+value changes to an appropriate field for the option.
+
+Type \\`C-x C-s' when you've finished editing it, to save the
+settings to the file."))
+     (widget-insert "\n\n\n")
+     (widget-create 'push-button :tag " Revert "
+                    :action #'Custom-dirlocals-revert-buffer)
+     (widget-insert " ")
+     (widget-create 'push-button :tag " Save Settings "
+                    :action #'Custom-dirlocals-save)
+     (widget-insert "\n\n")
+     (setq custom-dirlocals-widget
+           (widget-create 'custom-dirlocals :value dirlocals))
+     (setq default-directory (file-name-directory file))
+     (goto-char (point-min)))))
 
 (provide 'cus-edit)
 

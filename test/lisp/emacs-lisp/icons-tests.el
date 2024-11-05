@@ -1,6 +1,6 @@
 ;;; icons-tests.el --- Tests for icons.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -54,7 +54,7 @@
     (enable-theme 'test-icons-theme)
     (should (equal (icon-string 'icon-test1) "<"))))
 
-(ert-deftest test-icon-inheretance ()
+(ert-deftest test-icon-inheritance ()
   (let ((icon-preference '(image emoji symbol text)))
     (should (equal (icon-string 'icon-test2) ">")))
   (let ((icon-preference '(text)))

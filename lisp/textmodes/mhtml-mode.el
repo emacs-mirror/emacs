@@ -1,8 +1,8 @@
 ;;; mhtml-mode.el --- HTML editing mode that handles CSS and JS -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
-;; Keywords: wp, hypermedia, comm, languages
+;; Keywords: text, hypermedia, comm, languages
 
 ;; This file is part of GNU Emacs.
 
@@ -86,7 +86,7 @@ code();
   "Regexp matching the prefix of buffer-locals we want to capture.")
 
 (defun mhtml--construct-submode (mode &rest args)
-  "A wrapper for make-mhtml--submode that computes the buffer-local variables."
+  "A wrapper for `make-mhtml--submode' that computes the buffer-local variables."
   (let ((captured-locals nil)
         (crucial-captured-locals nil)
         (submode (apply #'make-mhtml--submode args)))
@@ -359,7 +359,7 @@ the rules from `css-mode'."
   (add-hook 'before-change-functions #'c-foreign-truncate-lit-pos-cache nil t)
 
   ;; This is sort of a prog-mode as well as a text mode.
-  (run-hooks 'prog-mode-hook))
+  (run-mode-hooks 'prog-mode-hook))
 
 (put 'mhtml-mode 'flyspell-mode-predicate #'mhtml--flyspell-check-word)
 

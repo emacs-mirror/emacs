@@ -43,4 +43,4 @@
  (0.1 ":alice!~u@ertp7idh9jtgi.irc PRIVMSG #chan :bob: Orlando, my liege; the youngest son of Sir Rowland de Boys.")
  (0.1 ":bob!~u@ertp7idh9jtgi.irc PRIVMSG #chan :alice: The ape is dead, and I must conjure him."))
 
-((linger 1 LINGER))
+((linger 2 LINGER))

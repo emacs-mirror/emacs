@@ -1,12 +1,12 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
 ;; Keywords:    languages vhdl
-;; WWW:         https://guest.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html
+;; URL:         https://iis-people.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 18/3/2008, and the maintainer agreed that when a bug is
@@ -457,7 +457,7 @@ If no file name at all is printed out, set both \"File Message\" entries to 0
 \(a default file name message will be printed out instead, does not work in
 XEmacs).
 
-A compiler is selected for syntax analysis (`\\[vhdl-compile]') by
+A compiler is selected for syntax analysis (\\[vhdl-compile]) by
 assigning its name to option `vhdl-compiler'.
 
 Please send any missing or erroneous compiler properties to the maintainer for
@@ -1106,14 +1106,14 @@ For more information on format strings, see the documentation for the
 (defcustom vhdl-modify-date-prefix-string "-- Last update: "
   "Prefix string of modification date in VHDL file header.
 If actualization of the modification date is called (menu,
-`\\[vhdl-template-modify]'), this string is searched and the rest
+\\[vhdl-template-modify]), this string is searched and the rest
 of the line replaced by the current date."
   :type 'string
   :group 'vhdl-header)
 
 (defcustom vhdl-modify-date-on-saving t
   "Non-nil means update the modification date when the buffer is saved.
-Calls function `\\[vhdl-template-modify]').
+Calls function \\[vhdl-template-modify]).
 
 NOTE: Activate the new setting in a VHDL buffer by using the menu entry
       \"Activate Options\"."
@@ -2338,10 +2338,13 @@ Ignore byte-compiler warnings you might see."
 
 (defun vhdl-run-when-idle (secs repeat function)
   "Wait until idle, then run FUNCTION."
-  (if (fboundp 'start-itimer)
+  (if (fboundp 'start-itimer) ;;XEmacs
       (start-itimer "vhdl-mode" function secs repeat t)
     ;; explicitly activate timer (necessary when Emacs is already idle)
-    (aset (run-with-idle-timer secs repeat function) 0 nil)))
+    (let ((timer (run-with-idle-timer secs repeat function)))
+      ;; `run-with-idle-timer' already sets the `triggered' flag to nil,
+      ;; at least since Emacs-24.
+      (if (< emacs-major-version 24) (aset timer 0 nil)))))
 
 (defun vhdl-warning-when-idle (&rest args)
   "Wait until idle, then print out warning STRING and beep."
@@ -4469,7 +4472,7 @@ Usage:
     according to option `vhdl-argument-list-indent'.
 
       If option `vhdl-indent-tabs-mode' is nil, spaces are used instead of
-    tabs.  `\\[tabify]' and `\\[untabify]' allow the conversion of spaces to
+    tabs.  \\[tabify] and \\[untabify] allow the conversion of spaces to
     tabs and vice versa.
 
       Syntax-based indentation can be very slow in large files.  Option
@@ -4780,7 +4783,7 @@ Usage:
     `vhdl-highlight-translate-off' is non-nil.
 
       For documentation and customization of the used colors see
-    customization group `vhdl-highlight-faces' (`\\[customize-group]').  For
+    customization group `vhdl-highlight-faces' (\\[customize-group]).  For
     highlighting of matching parenthesis, see customization group
     `paren-showing'.  Automatic buffer highlighting is turned on/off by
     option `global-font-lock-mode' (`font-lock-auto-fontify' in XEmacs).
@@ -4840,14 +4843,14 @@ Usage:
     sessions using the \"Save Options\" menu entry.
 
       Options and their detailed descriptions can also be accessed by using
-    the \"Customize\" menu entry or the command `\\[customize-option]'
-    (`\\[customize-group]' for groups).  Some customizations only take effect
+    the \"Customize\" menu entry or the command \\[customize-option]
+    (\\[customize-group] for groups).  Some customizations only take effect
     after some action (read the NOTE in the option documentation).
     Customization can also be done globally (i.e. site-wide, read the
     INSTALL file).
 
       Not all options are described in this documentation, so go and see
-    what other useful user options there are (`\\[vhdl-customize]' or menu)!
+    what other useful user options there are (\\[vhdl-customize] or menu)!
 
 
   FILE EXTENSIONS:
@@ -4876,7 +4879,7 @@ Usage:
 Maintenance:
 ------------
 
-To submit a bug report, enter `\\[vhdl-submit-bug-report]' within VHDL Mode.
+To submit a bug report, enter \\[vhdl-submit-bug-report] within VHDL Mode.
 Add a description of the problem and include a reproducible test case.
 
 Questions and enhancement requests can be sent to <reto@gnu.org>.
@@ -8398,6 +8401,44 @@ buffer."
      (message "Updating sensitivity lists...done")))
   (when noninteractive (save-buffer)))
 
+(defun vhdl--re2-region (beg-re end-re)
+  "Return a function searching for a region delimited by a pair of regexps.
+BEG-RE and END-RE are the regexps delimiting the region to search for."
+  (lambda (proc-end)
+     (when (vhdl-re-search-forward beg-re proc-end t)
+       (save-excursion
+	 (vhdl-re-search-forward end-re proc-end t)))))
+
+(defconst vhdl--signal-regions-functions
+  (list
+   ;; right-hand side of signal/variable assignment
+   ;; (special case: "<=" is relational operator in a condition)
+   (vhdl--re2-region "[<:]="
+                     ";\\|\\<\\(then\\|loop\\|report\\|severity\\|is\\)\\>")
+   ;; if condition
+   (vhdl--re2-region "^\\s-*if\\>" "\\<then\\>")
+   ;; elsif condition
+   (vhdl--re2-region "\\<elsif\\>" "\\<then\\>")
+   ;; while loop condition
+   (vhdl--re2-region "^\\s-*while\\>" "\\<loop\\>")
+   ;; exit/next condition
+   (vhdl--re2-region "\\<\\(exit\\|next\\)\\s-+\\w+\\s-+when\\>" ";")
+   ;; assert condition
+   (vhdl--re2-region "\\<assert\\>" "\\(\\<report\\>\\|\\<severity\\>\\|;\\)")
+   ;; case expression
+   (vhdl--re2-region "^\\s-*case\\>" "\\<is\\>")
+   ;; parameter list of procedure call, array index
+   (lambda (proc-end)
+     (when (re-search-forward "^\\s-*\\(\\w\\|\\.\\)+[ \t\n\r\f]*(" proc-end t)
+       (forward-char -1)
+       (save-excursion
+	 (forward-sexp)
+	 (while (looking-at "(") (forward-sexp)) (point)))))
+  "Define syntactic regions where signals are read.
+Each function is called with one arg (a limit for the (forward) search) and
+should return either nil or the end position of the region (in which case
+point will be set to its beginning).")
+
 (defun vhdl-update-sensitivity-list ()
   "Update sensitivity list."
     (let ((proc-beg (point))
@@ -8418,35 +8459,6 @@ buffer."
 	(let
 	    ;; scan for visible signals
 	    ((visible-list (vhdl-get-visible-signals))
-	     ;; define syntactic regions where signals are read
-	     (scan-regions-list
-	      `(;; right-hand side of signal/variable assignment
-		;; (special case: "<=" is relational operator in a condition)
-		((vhdl-re-search-forward "[<:]=" ,proc-end t)
-		 (vhdl-re-search-forward ";\\|\\<\\(then\\|loop\\|report\\|severity\\|is\\)\\>" ,proc-end t))
-		;; if condition
-		((vhdl-re-search-forward "^\\s-*if\\>" ,proc-end t)
-		 (vhdl-re-search-forward "\\<then\\>" ,proc-end t))
-		;; elsif condition
-		((vhdl-re-search-forward "\\<elsif\\>" ,proc-end t)
-		 (vhdl-re-search-forward "\\<then\\>" ,proc-end t))
-		;; while loop condition
-		((vhdl-re-search-forward "^\\s-*while\\>" ,proc-end t)
-		 (vhdl-re-search-forward "\\<loop\\>" ,proc-end t))
-		;; exit/next condition
-		((vhdl-re-search-forward "\\<\\(exit\\|next\\)\\s-+\\w+\\s-+when\\>" ,proc-end t)
-		 (vhdl-re-search-forward ";" ,proc-end t))
-		;; assert condition
-		((vhdl-re-search-forward "\\<assert\\>" ,proc-end t)
-		 (vhdl-re-search-forward "\\(\\<report\\>\\|\\<severity\\>\\|;\\)" ,proc-end t))
-		;; case expression
-		((vhdl-re-search-forward "^\\s-*case\\>" ,proc-end t)
-		 (vhdl-re-search-forward "\\<is\\>" ,proc-end t))
-		;; parameter list of procedure call, array index
-		((and (re-search-forward "^\\s-*\\(\\w\\|\\.\\)+[ \t\n\r\f]*(" ,proc-end t)
-		      (1- (point)))
-		 (progn (backward-char) (forward-sexp)
-			(while (looking-at "(") (forward-sexp)) (point)))))
 	     name field read-list sens-list signal-list tmp-list
 	     sens-beg sens-end beg end margin)
 	  ;; scan for signals in old sensitivity list
@@ -8475,11 +8487,9 @@ buffer."
 	      (push (cons end (point)) seq-region-list)
 	      (beginning-of-line)))
 	  ;; scan for signals read in process
-	  (while scan-regions-list
+	  (dolist (scan-fun vhdl--signal-regions-functions)
 	    (goto-char proc-mid)
-	    (while (and (setq beg (eval (nth 0 (car scan-regions-list))))
-			(setq end (eval (nth 1 (car scan-regions-list)))))
-	      (goto-char beg)
+	    (while (setq end (funcall scan-fun proc-end))
 	      (unless (or (vhdl-in-literal)
 			  (and seq-region-list
 			       (let ((tmp-list seq-region-list))
@@ -8518,8 +8528,7 @@ buffer."
 					    (car tmp-list))
 			  (setq read-list (delete (car tmp-list) read-list)))
 			(setq tmp-list (cdr tmp-list)))))
-		  (goto-char (match-end 1)))))
-	    (setq scan-regions-list (cdr scan-regions-list)))
+		  (goto-char (match-end 1))))))
 	  ;; update sensitivity list
 	  (goto-char sens-beg)
 	  (if sens-end
@@ -11769,8 +11778,8 @@ reflected in a subsequent paste operation."
 		(setq comment (substring type (match-beginning 2)))
 		(setq type (substring type 0 (match-beginning 1))))
 	      ;; strip of trailing group-comment
-	      (string-match "\\(\\(\\s-*\\S-+\\)+\\)\\s-*" type)
-	      (setq type (substring type 0 (match-end 1)))
+              (when (string-match "\\S-\\s-*\\'" type)
+	        (setq type (substring type 0 (1+ (match-beginning 0)))))
 	      ;; parse initialization expression
 	      (setq init nil)
 	      (when (vhdl-parse-string ":=[ \t\n\r\f]*" t)
@@ -11844,8 +11853,8 @@ reflected in a subsequent paste operation."
 		(setq comment (substring type (match-beginning 2)))
 		(setq type (substring type 0 (match-beginning 1))))
 	      ;; strip of trailing group-comment
-	      (string-match "\\(\\(\\s-*\\S-+\\)+\\)\\s-*" type)
-	      (setq type (substring type 0 (match-end 1)))
+              (when (string-match "\\S-\\s-*\\'" type)
+	        (setq type (substring type 0 (1+ (match-beginning 0)))))
 	      (vhdl-forward-syntactic-ws)
 	      (setq end-of-list (vhdl-parse-string ")" t))
 	      (vhdl-parse-string "\\s-*;\\s-*")
@@ -12580,8 +12589,8 @@ reflected in a subsequent paste operation."
 	      (setq comment (substring type (match-beginning 2)))
 	      (setq type (substring type 0 (match-beginning 1))))
 	    ;; strip off trailing group-comment
-	    (string-match "\\(\\(\\s-*\\S-+\\)+\\)\\s-*" type)
-	    (setq type (substring type 0 (match-end 1)))
+            (when (string-match "\\S-\\s-*\\'" type)
+	      (setq type (substring type 0 (1+ (match-beginning 0)))))
 	    ;; parse initialization expression
 	    (setq init nil)
 	    (when (vhdl-parse-string ":=[ \t\n\r\f]*" t)
@@ -12621,8 +12630,9 @@ reflected in a subsequent paste operation."
 		(setq return-comment (substring return-type (match-beginning 2)))
 		(setq return-type (substring return-type 0 (match-beginning 1))))
 	      ;; strip of trailing group-comment
-	      (string-match "\\(\\(\\s-*\\S-+\\)+\\)\\s-*" return-type)
-	      (setq return-type (substring return-type 0 (match-end 1)))
+              (when (string-match "\\S-\\s-*\\'" return-type)
+	        (setq return-type
+                      (substring return-type 0 (1+ (match-beginning 0)))))
 	      ;; parse return comment
 	      (unless return-comment
 		(setq return-comment (and (vhdl-parse-string "--\\s-*\\([^\n]*\\)" t)
@@ -14977,9 +14987,9 @@ otherwise use cached data."
   (vhdl-aput 'vhdl-directory-alist directory (list (list directory))))
 
 (defun vhdl-speedbar-insert-hierarchy ( ent-alist-arg conf-alist-arg
-                                        package-alist ent-inst-list depth)
-  "Insert hierarchy of ENT-ALIST-ARG, CONF-ALIST-ARG, and PACKAGE-ALIST."
-  (if (not (or ent-alist-arg conf-alist-arg package-alist))
+                                        pkg-alist ent-inst-list depth)
+  "Insert hierarchy of ENT-ALIST-ARG, CONF-ALIST-ARG, and PKG-ALIST."
+  (if (not (or ent-alist-arg conf-alist-arg pkg-alist))
       (vhdl-speedbar-make-title-line "No VHDL design units!" depth)
     (let ((ent-alist ent-alist-arg)
           (conf-alist conf-alist-arg)
@@ -15009,15 +15019,15 @@ otherwise use cached data."
 	 'vhdl-speedbar-configuration-face depth)
 	(setq conf-alist (cdr conf-alist)))
       ;; insert packages
-      (when package-alist (vhdl-speedbar-make-title-line "Packages:" depth))
-      (while package-alist
-	(setq pack-entry (car package-alist))
+      (when pkg-alist (vhdl-speedbar-make-title-line "Packages:" depth))
+      (while pkg-alist
+	(setq pack-entry (car pkg-alist))
 	(vhdl-speedbar-make-pack-line
 	 (nth 0 pack-entry) (nth 1 pack-entry)
 	 (cons (nth 2 pack-entry) (nth 3 pack-entry))
 	 (cons (nth 7 pack-entry) (nth 8 pack-entry))
 	 depth)
-	(setq package-alist (cdr package-alist))))))
+	(setq pkg-alist (cdr pkg-alist))))))
 
 (declare-function speedbar-line-directory "speedbar" (&optional depth))
 

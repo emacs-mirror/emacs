@@ -1,6 +1,6 @@
 ;;; erc-match.el --- Highlight messages matching certain regexps  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -53,13 +53,14 @@ they are hidden or highlighted.  This is controlled via the variables
 you can decide whether the entire message or only the sending nick is
 highlighted."
   ((add-hook 'erc-insert-modify-hook #'erc-match-message 50)
-   (add-hook 'erc-mode-hook #'erc-match--modify-invisibility-spec)
-   (unless erc--updating-modules-p
-     (erc-buffer-do #'erc-match--modify-invisibility-spec))
+   (add-hook 'erc-mode-hook #'erc-match--setup)
+   (unless erc--updating-modules-p (erc-buffer-do #'erc-match--setup))
+   (add-hook 'erc-insert-post-hook #'erc-match--on-insert-post 50)
    (erc--modify-local-map t "C-c C-k" #'erc-go-to-log-matches-buffer))
   ((remove-hook 'erc-insert-modify-hook #'erc-match-message)
-   (remove-hook 'erc-mode-hook #'erc-match--modify-invisibility-spec)
-   (erc-match--modify-invisibility-spec)
+   (remove-hook 'erc-insert-post-hook #'erc-match--on-insert-post)
+   (remove-hook 'erc-mode-hook #'erc-match--setup)
+   (erc-buffer-do #'erc-match--setup)
    (erc--modify-local-map nil "C-c C-k" #'erc-go-to-log-matches-buffer)))
 
 ;; Remaining customizations
@@ -117,11 +118,21 @@ The following values are allowed:
 
     nil       - do not highlight the message at all
     `nick'    - highlight pal's nickname only
-    `message' - highlight the entire message from pal
+    \\+`message' - highlight the full message body from a matching pal
     `all'     - highlight the entire message (including the nick)
                 from pal
 
-Any other value disables pal highlighting altogether."
+A value of `nick' only highlights a matching sender's nick in the
+bracketed speaker portion of the message.  A value of \\+`message'
+basically highlights its complement: the message-body alone, after the
+speaker tag.  All values for this option require a matching sender to be
+an actual user on the network \(or a bot/service) as opposed to a host
+name, such as that of the server itself \(e.g. \"irc.gnu.org\").  When
+patterns from other user-based categories \(namely, \\+`fool' and
+\\+`dangerous-host') also match, the behavior is undefined.  However, in
+ERC 5.6, `erc-dangerous-host-face' is known to clobber `erc-fool-face',
+which in turn clobbers `erc-pal-face'.  \(Other effects, such as
+\\+`fool'-related invisibility may not survive such collisions.)"
   :type '(choice (const nil)
 		 (const nick)
                  (const message)
@@ -129,17 +140,18 @@ Any other value disables pal highlighting altogether."
 
 (defcustom erc-fool-highlight-type 'nick
   "Determines how to highlight messages by fools.
-See `erc-fools'.
+Unlike with the \\+`pal' and \\+`dangerous-host' categories, ERC doesn't
+only attempt to match associated patterns (here, from `erc-fools')
+against a message's sender, it also checks for matches in traditional
+IRC-style \"mentions\" in which a speaker addresses a USER directly:
 
-The following values are allowed:
+  <speaker> USER: hi.
+  <speaker> USER, hi.
 
-    nil       - do not highlight the message at all
-    `nick'    - highlight fool's nickname only
-    `message' - highlight the entire message from fool
-    `all'     - highlight the entire message (including the nick)
-                from fool
-
-Any other value disables fool highlighting altogether."
+However, at present, this option doesn't offer a means of highlighting
+matched mentions alone.  See `erc-pal-highlight-type' for a summary of
+possible values and additional details common to categories like
+\\+`fool' that normally match against a message's sender."
   :type '(choice (const nil)
 		 (const nick)
                  (const message)
@@ -164,16 +176,10 @@ Any other value disables keyword highlighting altogether."
 
 (defcustom erc-dangerous-host-highlight-type 'nick
   "Determines how to highlight messages by nicks from dangerous-hosts.
-See `erc-dangerous-hosts'.
-
-The following values are allowed:
-
-    `nick'    - highlight nick from dangerous-host only
-    `message' - highlight the entire message from dangerous-host
-    `all'     - highlight the entire message (including the nick)
-                from dangerous-host
-
-Any other value disables dangerous-host highlighting altogether."
+Use option `erc-dangerous-hosts' to specify patterns.  See
+`erc-pal-highlight-type' for a summary of possible values as well as
+additional details common to categories like \\+`dangerous-host' that
+normally match against a message's sender."
   :type '(choice (const nil)
 		 (const nick)
                  (const message)
@@ -234,10 +240,14 @@ for beeping to work."
 
 (defcustom erc-text-matched-hook '(erc-log-matches)
   "Abnormal hook for visiting text matching a predefined \"type\".
-ERC calls members with the arguments (MATCH-TYPE NUH MESSAGE),
-where MATCH-TYPE is one of the symbols `current-nick', `keyword',
-`pal', `dangerous-host', `fool', and NUH is an `erc-response'
-sender, like bob!~bob@example.org."
+ERC calls members with the arguments (MATCH-TYPE NUH MESSAGE), where
+MATCH-TYPE is a symbol among `current-nick', `keyword', `pal',
+`dangerous-host', and `fool'; and NUH is an `erc-response' sender, like
+\"bob!~bob@example.org\" or an IRC command prefixed with the string
+\"Server:\", as in \"Server:353\".  MESSAGE is the current incarnation
+of the just-inserted message minus a leading speaker, like \"<bob> \".
+For traditional reasons, MESSAGE always includes a leading
+`erc-notice-prefix' and a trailing newline."
   :options '(erc-log-matches erc-hide-fools erc-beep-on-match)
   :type 'hook)
 
@@ -490,7 +500,9 @@ Use this defun with `erc-insert-modify-hook'."
          (message (buffer-substring message-beg (point-max))))
     (when (and vector
 	       (not (and erc-match-exclude-server-buffer
-			 (erc-server-buffer-p))))
+                         ;; FIXME replace with `erc--server-buffer-p'
+                         ;; or explain why that's unwise.
+                         (erc-server-or-unjoined-channel-buffer-p))))
       (mapc
        (lambda (match-type)
 	 (goto-char (point-min))
@@ -657,7 +669,20 @@ See `erc-log-match-format'."
 
 (defun erc-hide-fools (match-type _nickuserhost _message)
   "Hide comments from designated fools."
-  (when (eq match-type 'fool)
+  (when (and erc--msg-props (eq match-type 'fool))
+    (puthash 'erc--invisible 'erc-match-fool erc--msg-props)))
+
+;; FIXME remove, make public, or only add locally.
+;;
+;; ERC modules typically don't add internal functions to public hooks
+;; globally.  However, ERC 5.6 will likely include a general
+;; (internal) facility for adding invisible props, which will obviate
+;; the need for this function.  IOW, leaving this internal for now is
+;; an attempt to avoid the hassle of the deprecation process.
+(defun erc-match--on-insert-post ()
+  "Hide messages marked with the `erc--invisible' prop."
+  (when (erc--check-msg-prop 'erc--invisible 'erc-match-fool)
+    (remhash 'erc--invisible erc--msg-props)
     (erc--hide-message 'match-fools)))
 
 (defun erc-beep-on-match (match-type _nickuserhost _message)
@@ -666,33 +691,20 @@ This function is meant to be called from `erc-text-matched-hook'."
   (when (member match-type erc-beep-match-types)
     (beep)))
 
-(defun erc-match--modify-invisibility-spec ()
+(defun erc-match--setup ()
   "Add an `erc-match' property to the local spec."
   ;; Hopefully, this will be extended to do the same for other
   ;; invisible properties managed by this module.
   (if erc-match-mode
       (erc-match-toggle-hidden-fools +1)
-    (erc-with-all-buffers-of-server nil nil
-      (erc-match-toggle-hidden-fools -1))))
+    (erc-match-toggle-hidden-fools -1)))
 
 (defun erc-match-toggle-hidden-fools (arg)
   "Toggle fool visibility.
 Expect the function `erc-hide-fools' or similar to be present in
 `erc-text-matched-hook'."
   (interactive "P")
-  (erc-match--toggle-hidden 'match-fools arg))
-
-(defun erc-match--toggle-hidden (prop arg)
-  "Toggle invisibility for spec member PROP.
-Treat ARG in a manner similar to mode toggles defined by
-`define-minor-mode'."
-  (when arg
-    (setq arg (prefix-numeric-value arg)))
-  (if (memq prop (ensure-list buffer-invisibility-spec))
-      (unless (natnump arg)
-        (remove-from-invisibility-spec prop))
-    (when (or (not arg) (natnump arg))
-      (add-to-invisibility-spec prop))))
+  (erc--toggle-hidden 'match-fools arg))
 
 (provide 'erc-match)
 

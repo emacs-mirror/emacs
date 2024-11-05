@@ -1,6 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1986-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: outlines
@@ -34,7 +34,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 (require 'icons)
 
 (defgroup outlines nil
@@ -92,6 +94,8 @@ imitate the function `looking-at'.")
     (define-key map "\C-o" 'outline-hide-other)
     (define-key map "\C-^" 'outline-move-subtree-up)
     (define-key map "\C-v" 'outline-move-subtree-down)
+    (keymap-set map "/ s" #'outline-show-by-heading-regexp)
+    (keymap-set map "/ h" #'outline-hide-by-heading-regexp)
     (define-key map [(control ?<)] 'outline-promote)
     (define-key map [(control ?>)] 'outline-demote)
     (define-key map "\C-m" 'outline-insert-heading)
@@ -260,7 +264,7 @@ non-nil and point is located on the heading line.")
   '(
     ;; Highlight headings according to the level.
     (eval . (list (or outline-search-function
-                      (concat "^\\(?:" outline-regexp "\\).*"))
+                      (concat "^\\(?:" outline-regexp "\\).*" outline-heading-end-regexp))
                   0 '(if outline-minor-mode
                          (if outline-minor-mode-highlight
                              (list 'face (outline-font-lock-face)))
@@ -314,12 +318,15 @@ These buttons can be used to hide and show the body under the heading.
 When the value is `insert', additional placeholders for buttons are
 inserted to the buffer, so buttons are not only clickable,
 but also typing `RET' on them can hide and show the body.
+Using the value `insert' is not recommended in editable
+buffers because it modifies them.
 When the value is `in-margins', then clickable buttons are
 displayed in the margins before the headings.
-When the value is `t', clickable buttons are displayed
-in the buffer before the headings.  The values `t' and
+When the value is t, clickable buttons are displayed
+in the buffer before the headings.  The values t and
 `in-margins' can be used in editing buffers because they
 don't modify the buffer."
+  ;; The value `insert' is not intended to be customizable.
   :type '(choice (const :tag "Do not use outline buttons" nil)
                  (const :tag "Show outline buttons in margins" in-margins)
                  (const :tag "Show outline buttons in buffer" t))
@@ -569,16 +576,27 @@ See the command `outline-mode' for more information on this mode."
               (progn
                 (font-lock-add-keywords nil outline-font-lock-keywords t)
                 (font-lock-flush))
-            (outline-minor-mode-highlight-buffer)))
+            (progn
+              (outline-minor-mode-highlight-buffer)
+              (add-hook 'revert-buffer-restore-functions
+                        #'outline-revert-buffer-rehighlight nil t))))
         (outline--fix-up-all-buttons)
 	;; Turn off this mode if we change major modes.
 	(add-hook 'change-major-mode-hook
 		  (lambda () (outline-minor-mode -1))
 		  nil t)
+        (add-hook 'revert-buffer-restore-functions
+                  #'outline-revert-buffer-restore-visibility nil t)
         (setq-local line-move-ignore-invisible t)
 	;; Cause use of ellipses for invisible text.
 	(add-to-invisibility-spec '(outline . t))
 	(outline-apply-default-state))
+    (remove-hook 'after-change-functions
+                 #'outline--fix-buttons-after-change t)
+    (remove-hook 'revert-buffer-restore-functions
+                 #'outline-revert-buffer-restore-visibility t)
+    (remove-hook 'revert-buffer-restore-functions
+                 #'outline-revert-buffer-rehighlight t)
     (setq line-move-ignore-invisible nil)
     ;; Cause use of ellipses for invisible text.
     (remove-from-invisibility-spec '(outline . t))
@@ -683,7 +701,7 @@ If POS is nil, use `point' instead."
 (defun outline-back-to-heading (&optional invisible-ok)
   "Move to previous heading line, or beg of this line if it's a heading.
 Only visible heading lines are considered, unless INVISIBLE-OK is non-nil."
-  (beginning-of-line)
+  (forward-line 0)
   (or (outline-on-heading-p invisible-ok)
       (let (found)
 	(save-excursion
@@ -702,7 +720,7 @@ Only visible heading lines are considered, unless INVISIBLE-OK is non-nil."
   "Return t if point is on a (visible) heading line.
 If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
   (save-excursion
-    (beginning-of-line)
+    (forward-line 0)
     (and (bolp) (or invisible-ok (not (outline-invisible-p)))
 	 (if outline-search-function
              (funcall outline-search-function nil nil nil t)
@@ -722,7 +740,7 @@ If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
 		(not (string-match (concat "\\`\\(?:" outline-regexp "\\)")
 				   (concat head " "))))
       (setq head (concat head " ")))
-    (unless (bolp) (end-of-line) (newline))
+    (unless (bolp) (goto-char (pos-eol)) (newline))
     (insert head)
     (unless (eolp)
       (save-excursion (newline-and-indent)))
@@ -938,9 +956,7 @@ With ARG, repeats or can move backward if negative.
 A heading line is one that starts with a `*' (or that
 `outline-regexp' matches)."
   (interactive "p")
-  (if (< arg 0)
-      (beginning-of-line)
-    (end-of-line))
+  (goto-char (if (< arg 0) (pos-bol) (pos-eol)))
   (let ((regexp (unless outline-search-function
                   (concat "^\\(?:" outline-regexp "\\)")))
         found-heading-p)
@@ -960,7 +976,7 @@ A heading line is one that starts with a `*' (or that
                           (re-search-forward regexp nil 'move)))
 		  (outline-invisible-p (match-beginning 0))))
       (setq arg (1- arg)))
-    (if found-heading-p (beginning-of-line))))
+    (if found-heading-p (forward-line 0))))
 
 (defun outline-previous-visible-heading (arg)
   "Move to the previous heading line.
@@ -977,7 +993,7 @@ This puts point at the start of the current subtree, and mark at the end."
   (let ((beg))
     (if (outline-on-heading-p)
 	;; we are already looking at a heading
-	(beginning-of-line)
+        (forward-line 0)
       ;; else go back to previous heading
       (outline-previous-visible-heading 1))
     (setq beg (point))
@@ -1180,7 +1196,7 @@ of the current heading, or to 1 if the current line is not a heading."
 		(cond
 		 (current-prefix-arg (prefix-numeric-value current-prefix-arg))
 		 ((save-excursion
-                    (beginning-of-line)
+                    (forward-line 0)
 		    (if outline-search-function
                         (funcall outline-search-function nil nil nil t)
                       (looking-at outline-regexp)))
@@ -1240,7 +1256,7 @@ This also unhides the top heading-less body, if any."
   (interactive)
   (save-excursion
     (outline-back-to-heading)
-    (if (not (outline-invisible-p (line-end-position)))
+    (if (not (outline-invisible-p (pos-eol)))
         (outline-hide-subtree)
       (outline-show-children)
       (outline-show-entry))))
@@ -1660,6 +1676,97 @@ LEVEL, decides of subtree visibility according to
          beg end)))
     (run-hooks 'outline-view-change-hook)))
 
+(defun outline-show-by-heading-regexp (regexp)
+  "Show outlines whose headings match REGEXP."
+  (interactive (list (read-regexp "Regexp to show outlines")))
+  (let (outline-view-change-hook)
+    (outline-map-region
+     (lambda ()
+       (when (string-match-p regexp (buffer-substring (pos-bol) (pos-eol)))
+         (outline-show-branches) ;; To reveal all parent headings
+         (outline-show-entry)))
+     (point-min) (point-max)))
+  (run-hooks 'outline-view-change-hook))
+
+(defun outline-hide-by-heading-regexp (regexp)
+  "Hide outlines whose headings match REGEXP."
+  (interactive (list (read-regexp "Regexp to hide outlines")))
+  (let (outline-view-change-hook)
+    (outline-map-region
+     (lambda ()
+       (when (string-match-p regexp (buffer-substring (pos-bol) (pos-eol)))
+         (outline-hide-subtree)))
+     (point-min) (point-max)))
+  (run-hooks 'outline-view-change-hook))
+
+(defun outline--hidden-headings-paths ()
+  "Return a hash with headings of currently hidden outlines.
+Every hash key is a list whose elements compose a complete path
+of headings descending from the top level down to the bottom level.
+This is useful to save the hidden outlines and restore them later
+after reverting the buffer.  Also return the outline where point
+was located before reverting the buffer."
+  (let* ((paths (make-hash-table :test #'equal))
+         path current-path
+         (current-heading-p (outline-on-heading-p))
+         (current-beg (when current-heading-p (pos-bol)))
+         (current-end (when current-heading-p (pos-eol))))
+    (outline-map-region
+     (lambda ()
+       (let* ((level (funcall outline-level))
+              (heading (buffer-substring-no-properties (pos-bol) (pos-eol))))
+         (while (and path (>= (cdar path) level))
+           (pop path))
+         (push (cons heading level) path)
+         (when (save-excursion
+                 (outline-end-of-heading)
+                 (seq-some (lambda (o) (eq (overlay-get o 'invisible)
+                                           'outline))
+                           (overlays-at (point))))
+           (setf (gethash (mapcar #'car path) paths) t))
+         (when (and current-heading-p (<= current-beg (point) current-end))
+           (setq current-path (mapcar #'car path)))))
+     (point-min) (point-max))
+    (list paths current-path)))
+
+(defun outline--hidden-headings-restore-paths (paths current-path)
+  "Restore hidden outlines from a hash of hidden headings.
+This is useful after reverting the buffer to restore the outlines
+hidden by `outline--hidden-headings-paths'.  Also restore point
+on the same outline where point was before reverting the buffer."
+  (let (path current-point outline-view-change-hook)
+    (outline-map-region
+     (lambda ()
+       (let* ((level (funcall outline-level))
+              (heading (buffer-substring (pos-bol) (pos-eol))))
+         (while (and path (>= (cdar path) level))
+           (pop path))
+         (push (cons heading level) path)
+         (when (gethash (mapcar #'car path) paths)
+           (outline-hide-subtree))
+         (when (and current-path (equal current-path (mapcar #'car path)))
+           (setq current-point (point)))))
+     (point-min) (point-max))
+    (when current-point (goto-char current-point))))
+
+(defun outline-revert-buffer-restore-visibility ()
+  "Preserve visibility when reverting buffer under `outline-minor-mode'.
+This function restores the visibility of outlines after the buffer
+under `outline-minor-mode' is reverted by `revert-buffer'."
+  (let ((paths (outline--hidden-headings-paths)))
+    (unless (and (hash-table-empty-p (nth 0 paths))
+                 (null (nth 1 paths)))
+      (lambda ()
+        (outline--hidden-headings-restore-paths
+         (nth 0 paths) (nth 1 paths))))))
+
+(defun outline-revert-buffer-rehighlight ()
+  "Rehighlight outlines when reverting buffer under `outline-minor-mode'.
+This function rehighlights outlines after the buffer under
+`outline-minor-mode' is reverted by `revert-buffer' when font-lock
+can't update highlighting for `outline-minor-mode-highlight'."
+  (lambda () (outline-minor-mode-highlight-buffer)))
+
 
 ;;; Visibility cycling
 
@@ -1749,8 +1856,8 @@ With a prefix argument, show headings up to that LEVEL."
     (save-excursion
       (goto-char (point-min))
       (while (not (or (eq top-level 1) (eobp)))
-        (when-let ((level (and (outline-on-heading-p t)
-                               (funcall outline-level))))
+        (when-let* ((level (and (outline-on-heading-p t)
+                                (funcall outline-level))))
           (when (< level (or top-level most-positive-fixnum))
             (setq top-level (max level 1))))
         (outline-next-heading)))
@@ -1831,7 +1938,7 @@ With a prefix argument, show headings up to that LEVEL."
 (defun outline--insert-button (type)
   (with-silent-modifications
     (save-excursion
-      (beginning-of-line)
+      (forward-line 0)
       (let ((icon (nth (if (eq type 'close) 1 0) outline--button-icons))
             (o (seq-find (lambda (o) (overlay-get o 'outline-button))
                          (overlays-at (point)))))
@@ -1839,7 +1946,7 @@ With a prefix argument, show headings up to that LEVEL."
           (when (eq outline-minor-mode-use-buttons 'insert)
             (let ((inhibit-read-only t))
               (insert (apply #'propertize "  " (text-properties-at (point))))
-              (beginning-of-line)))
+              (forward-line 0)))
           (setq o (make-overlay (point) (1+ (point))))
           (overlay-put o 'outline-button t)
           (overlay-put o 'evaporate t))
@@ -1863,7 +1970,7 @@ With a prefix argument, show headings up to that LEVEL."
     (when from
       (save-excursion
         (goto-char from)
-        (setq from (line-beginning-position))))
+        (setq from (pos-bol))))
     (outline-map-region
      (lambda ()
        (let ((close-p (save-excursion

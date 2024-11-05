@@ -1,5 +1,5 @@
 /* Markers: examining, setting and deleting.
-   Copyright (C) 1985, 1997-1998, 2001-2023 Free Software Foundation,
+   Copyright (C) 1985, 1997-1998, 2001-2024 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -19,6 +19,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+
+/* Work around GCC bug 113253.  */
+#if __GNUC__ == 13 && __GNUC_MINOR__ < 3
+# pragma GCC diagnostic ignored "-Wanalyzer-deref-before-check"
+#endif
 
 #include "lisp.h"
 #include "character.h"
@@ -197,19 +202,15 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
   if (b == cached_buffer && BUF_MODIFF (b) == cached_modiff)
     CONSIDER (cached_charpos, cached_bytepos);
 
-  for (tail = BUF_MARKERS (b); tail; tail = tail->next)
-    {
-      CONSIDER (tail->charpos, tail->bytepos);
-
-      /* If we are down to a range of 50 chars,
-	 don't bother checking any other markers;
-	 scan the intervening chars directly now.  */
-      if (best_above - charpos < distance
-          || charpos - best_below < distance)
-	break;
-      else
-        distance += BYTECHAR_DISTANCE_INCREMENT;
-    }
+  for (tail = BUF_MARKERS (b);
+       /* If we are down to a range of DISTANCE chars,
+          don't bother checking any other markers;
+          scan the intervening chars directly now.  */
+       tail && !(best_above - charpos < distance
+		 || charpos - best_below < distance);
+       tail = tail->next,
+       distance += BYTECHAR_DISTANCE_INCREMENT)
+    CONSIDER (tail->charpos, tail->bytepos);
 
   /* We get here if we did not exactly hit one of the known places.
      We have one known above and one known below.
@@ -349,19 +350,15 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
   if (b == cached_buffer && BUF_MODIFF (b) == cached_modiff)
     CONSIDER (cached_bytepos, cached_charpos);
 
-  for (tail = BUF_MARKERS (b); tail; tail = tail->next)
-    {
-      CONSIDER (tail->bytepos, tail->charpos);
-
-      /* If we are down to a range of 50 chars,
-	 don't bother checking any other markers;
-	 scan the intervening chars directly now.  */
-      if (best_above - bytepos < distance
-          || bytepos - best_below < distance)
-	break;
-      else
-        distance += BYTECHAR_DISTANCE_INCREMENT;
-    }
+  for (tail = BUF_MARKERS (b);
+       /* If we are down to a range of DISTANCE bytes,
+          don't bother checking any other markers;
+          scan the intervening chars directly now.  */
+       tail && !(best_above_byte - bytepos < distance
+		 || bytepos - best_below_byte < distance);
+       tail = tail->next,
+       distance += BYTECHAR_DISTANCE_INCREMENT)
+    CONSIDER (tail->bytepos, tail->charpos);
 
   /* We get here if we did not exactly hit one of the known places.
      We have one known above and one known below.
@@ -456,6 +453,18 @@ DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
     return make_fixnum (XMARKER (marker)->charpos);
 
   return Qnil;
+}
+
+DEFUN ("marker-last-position", Fmarker_last_position, Smarker_last_position, 1, 1, 0,
+       doc: /* Return last position of MARKER in its buffer.
+This is like `marker-position' with one exception:  If the buffer of
+MARKER is dead, it returns the last position of MARKER in that buffer
+before it was killed.  */)
+  (Lisp_Object marker)
+{
+  CHECK_MARKER (marker);
+
+  return make_fixnum (XMARKER (marker)->charpos);
 }
 
 /* Change M so it points to B at CHARPOS and BYTEPOS.  */
@@ -825,6 +834,7 @@ void
 syms_of_marker (void)
 {
   defsubr (&Smarker_position);
+  defsubr (&Smarker_last_position);
   defsubr (&Smarker_buffer);
   defsubr (&Sset_marker);
   defsubr (&Scopy_marker);

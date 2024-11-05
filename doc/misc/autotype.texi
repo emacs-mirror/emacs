@@ -11,7 +11,7 @@
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994--1995, 1999, 2001--2023 Free Software
+Copyright @copyright{} 1994--1995, 1999, 2001--2024 Free Software
 Foundation, Inc.
 
 @quotation
@@ -276,10 +276,10 @@ empty file is visited.  This is accomplished by putting
 @code{auto-insert-alist}.  The @sc{car} of each element of this list
 is either a mode name, making the element applicable when a buffer is
 in that mode, or a string, which is a regexp matched against a
-buffer's file name (the latter allows to distinguish between different
-kinds of files that have the same mode in Emacs).  The @sc{car} of an
-element may also be a cons cell, consisting of mode name or regexp, as
-above, and an additional descriptive string.
+buffer's file name (the latter enables you to distinguish between
+different kinds of files that have the same mode in Emacs).  The
+@sc{car} of an element may also be a cons cell, consisting of mode
+name or regexp, as above, and an additional descriptive string.
 
   When a matching element is found, the @sc{cdr} says what to do.  It may
 be a string, which is a file name, whose contents are to be inserted, if
@@ -290,7 +290,7 @@ be inserted.
   It can also be a function, which allows doing various things.  The function
 can simply insert some text, indeed, it can be skeleton command (@pxref{Using
 Skeletons}).  It can be a lambda function which will for example conditionally
-call another function.  Or it can even reset the mode for the buffer. If you
+call another function.  Or it can even reset the mode for the buffer.  If you
 want to perform several such actions in order, you use a vector, i.e., several
 of the above elements between square brackets (@samp{[@r{@dots{}}]}).
 

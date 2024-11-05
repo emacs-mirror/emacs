@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2023 Free Software
-@c Foundation, Inc.
+@c Copyright (C) 1985--2024 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
 @chapter Frames and Graphical Displays
@@ -30,9 +29,9 @@ displays (@pxref{Exiting}).  To close just the selected frame, type
 frames.  On text terminals, many of these features are unavailable.
 However, it is still possible to create multiple frames on text
 terminals; such frames are displayed one at a time, filling the entire
-terminal screen (@pxref{Non-Window Terminals}).  It is also possible
-to use the mouse on some text terminals (@pxref{Text-Only Mouse}, for
-doing so on GNU and Unix systems; and
+terminal screen (@pxref{Text Terminals}).  It is also possible to use
+the mouse on some text terminals (@pxref{Text-Only Mouse}, for doing
+so on GNU and Unix systems; and
 @iftex
 @pxref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},
 @end iftex
@@ -62,7 +61,7 @@ for doing so on MS-DOS).  Menus are supported on all text terminals.
 * Dialog Boxes::        Controlling use of dialog boxes.
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Preventing the mouse pointer from obscuring text.
-* Non-Window Terminals::  Multiple frames on terminals that show only one.
+* Text Terminals::      Multiple frames on terminals that show only one.
 * Text-Only Mouse::     Using the mouse in text terminals.
 @end menu
 
@@ -593,7 +592,7 @@ the ordinary, interactive frames are deleted.  In this case, @kbd{C-x
 
   The @kbd{C-x 5 1} (@code{delete-other-frames}) command deletes all
 other frames on the current terminal (this terminal refers to either a
-graphical display, or a text terminal; @pxref{Non-Window Terminals}).
+graphical display, or a text terminal; @pxref{Text Terminals}).
 If the Emacs session has frames open on other graphical displays or
 text terminals, those are not deleted.
 
@@ -1147,11 +1146,11 @@ text or moving point with a keyboard command will usually bring it back
 into view.
 
 @findex horizontal-scroll-bar-mode
-  To toggle the use of horizontal scroll bars, type @kbd{M-x
-horizontal-scroll-bar-mode}.  This command applies to all frames,
+  To toggle the use of horizontal scroll bars, type @w{@kbd{M-x
+horizontal-scroll-bar-mode}}.  This command applies to all frames,
 including frames yet to be created.  To toggle horizontal scroll bars
-for just the selected frame, use the command @kbd{M-x
-toggle-horizontal-scroll-bar}.
+for just the selected frame, use the command @w{@kbd{M-x
+toggle-horizontal-scroll-bar}}.
 
 @vindex horizontal-scroll-bar-mode
   To control the use of horizontal scroll bars at startup, customize the
@@ -1296,16 +1295,22 @@ menus' visual appearance.
 @node Tool Bars
 @section Tool Bars
 @cindex tool bar mode
+@cindex tool bar, attached to frame
 @cindex mode, Tool Bar
 @cindex icons, toolbar
 
-  On graphical displays, Emacs puts a @dfn{tool bar} at the top of
-each frame, just below the menu bar.  This is a row of icons which you
-can click on with the mouse to invoke various commands.
+  On graphical displays, Emacs puts a @dfn{tool bar} at the top of each
+frame, just below the menu bar.  This is a row of buttons with icons
+which you can click on with the mouse to invoke various commands.  Emacs
+can also optionally display a tool bar at the top of each window
+(@pxref{Window Tool Bar}).
 
+@vindex tool-bar-always-show-default
   The global (default) tool bar contains general commands.  Some major
 modes define their own tool bars; whenever a buffer with such a major
-mode is current, the mode's tool bar replaces the global tool bar.
+mode is current, the mode's tool bar replaces the global tool bar.  To
+prevent this replacement from happening, customize the variable
+@code{tool-bar-always-show-default}.
 
 @findex tool-bar-mode
 @vindex tool-bar-mode
@@ -1408,9 +1413,10 @@ the number of tabs created on each frame.
 
 @findex toggle-frame-tab-bar
   To toggle the use of the Tab Bar only on the selected frame, type
-@kbd{M-x toggle-frame-tab-bar}.  This command allows to enable the
-display of the Tab Bar on some frames and disable it on others,
-regardless of the values of @code{tab-bar-mode} and @code{tab-bar-show}.
+@kbd{M-x toggle-frame-tab-bar}.  This command facilitates selectively
+enabling the Tab Bar on some frames while keeping it disabled on
+others, irrespective of the values of @code{tab-bar-mode} and
+@code{tab-bar-show}.
 
 @kindex C-x t
   The prefix key @kbd{C-x t} is analogous to @kbd{C-x 5}.
@@ -1537,7 +1543,7 @@ After customizing the variable @code{tab-bar-select-tab-modifiers} to
 specify one or more @var{modifier} keys, you can select a tab by its
 ordinal number using one of the specified modifiers in combination
 with the tab number to select.  The number 9 can be used to select the
-last tab. You can select any modifiers supported by Emacs,
+last tab.  You can select any modifiers supported by Emacs,
 @pxref{Modifier Keys}.  To display the tab number alongside the tab
 name, you can customize another variable @code{tab-bar-tab-hints}.
 This will help you decide which numerical key to press to select the
@@ -1586,14 +1592,13 @@ the items that operate on the clicked tab.  Dragging the tab with
 wheel scrolling switches to the next or previous tab.  Holding down
 the @key{SHIFT} key during scrolling moves the tab to the left or right.
 
-  Touch screen input (@pxref{Other Input Devices}) can also be used to
-operate on tabs.  Long-pressing (@pxref{Touchscreens}) a tab will
-display a context menu with items that operate on the tab that was
-pressed, and long-pressing the tab bar itself will display a context
-menu which lets you create and remove tabs; tapping a tab itself will
-result in that tab's window configuration being selected, and tapping
-a button on the tab bar will behave as if it was clicked with
-@kbd{mouse-1}.
+  Touch screen input (@pxref{Other Input}) can also be used to operate
+on tabs.  Long-pressing (@pxref{Touchscreens}) a tab will display a
+context menu with items that operate on the tab that was pressed, and
+long-pressing the tab bar itself will display a context menu which
+lets you create and remove tabs; tapping a tab itself will result in
+that tab's window configuration being selected, and tapping a button
+on the tab bar will behave as if it was clicked with @kbd{mouse-1}.
 
 @findex tab-bar-history-mode
   You can enable @code{tab-bar-history-mode} to remember window
@@ -1764,8 +1769,8 @@ You can also use the command @kbd{M-x mouse-avoidance-mode} to enable
 the mode.  Whenever Mouse Avoidance mode moves the mouse, it also
 raises the frame.
 
-@node Non-Window Terminals
-@section Non-Window Terminals
+@node Text Terminals
+@section Text Terminals
 @cindex text terminal
 
   On a text terminal, Emacs can display only one Emacs frame at a

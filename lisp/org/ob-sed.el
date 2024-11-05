@@ -1,6 +1,6 @@
 ;;; ob-sed.el --- Babel Functions for Sed Scripts    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Bjarte Johansen
 ;; Keywords: literate programming, reproducible research
@@ -65,7 +65,7 @@
 BODY is the source inside a sed source block and PARAMS is an
 association list over the source block configurations.  This
 function is called by `org-babel-execute-src-block'."
-  (message "Executing sed source code block")
+  (unless noninteractive (message "Executing sed source code block"))
   (let* ((result-params (cdr (assq :result-params params)))
          (cmd-line (cdr (assq :cmd-line params)))
          (in-file (cdr (assq :in-file params)))

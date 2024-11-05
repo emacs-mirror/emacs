@@ -1,6 +1,6 @@
 ;;; smime.el --- S/MIME support library  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: SMIME X.509 PEM OpenSSL
@@ -261,7 +261,7 @@ password under `cache-key'."
 If signing fails, the buffer is not modified.  Region is assumed to
 have proper MIME tags.  KEYFILE is expected to contain a PEM encoded
 private key and certificate as its car, and a list of additional
-certificates to include in its caar.  If no additional certificates is
+certificates to include in its cadr.  If no additional certificates are
 included, KEYFILE may be the file containing the PEM encoded private
 key and certificate itself."
   (smime-new-details-buffer)
@@ -327,7 +327,10 @@ is expected to contain of a PEM encoded certificate."
 
 (defun smime-sign-buffer (&optional keyfile buffer)
   "S/MIME sign BUFFER with key in KEYFILE.
-KEYFILE should contain a PEM encoded key and certificate."
+KEYFILE is expected to contain a PEM encoded private key and certificate
+as its car, and a list of additional certificates to include in its
+cadr.  If no additional certificates are included, KEYFILE may be the
+file containing the PEM encoded private key and certificate itself."
   (interactive)
   (with-current-buffer (or buffer (current-buffer))
     (unless (smime-sign-region

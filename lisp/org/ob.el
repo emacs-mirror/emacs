@@ -1,6 +1,6 @@
 ;;; ob.el --- Working with Code Blocks in Org        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -20,6 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
 
 ;;; Code:
 

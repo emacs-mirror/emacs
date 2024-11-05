@@ -1,6 +1,6 @@
 ;;; buff-menu.el --- Interface for viewing and manipulating buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -95,10 +95,54 @@ as it is by default."
   :group 'Buffer-menu
   :version "22.1")
 
+(defcustom Buffer-menu-group-by nil
+  "If non-nil, functions to call to divide buffer-menu buffers into groups.
+When customized to a function, this function should return names
+of all levels for each entry.
+When customized to a list of functions, then each function defines
+the group name at each nested level of multiple levels.
+Each function is called with one argument: a list of entries in the same
+format as in `tabulated-list-entries', and should return a list in the
+format suitable for `tabulated-list-groups'.  Also, when this variable
+is non-nil, `outline-minor-mode' is enabled in the Buffer Menu and you
+can use Outline minor mode commands to show/hide groups of buffers,
+according to the value of `outline-regexp'.
+The default options can group by a mode, and by a root directory of
+a project or just `default-directory'.
+If this is nil, buffers are not divided into groups."
+  :type '(choice (const :tag "No grouping" nil)
+                 (function :tag "Custom function")
+                 (repeat :tag "Use levels"
+                  (choice
+                   (const :tag "Group by project root or directory"
+                          Buffer-menu-group-by-root)
+                   (const :tag "Group by mode"
+                          Buffer-menu-group-by-mode)
+                   (function :tag "Custom level function"))))
+  :group 'Buffer-menu
+  :version "30.1")
+
+(defcustom Buffer-menu-group-sort-by nil
+  "If non-nil, function to sort buffer-menu groups by name.
+Each function is called with two arguments: an alist of groups
+where an alist key is a group name and also the level as a number,
+and should return the same alist where groups are sorted.
+If this is nil, group names are unsorted."
+  :type '(choice (const :tag "No group sorting" nil)
+                 (const :tag "Sort groups alphabetically"
+                        Buffer-menu-group-sort-alphabetically)
+                 (function :tag "Custom function"))
+  :group 'Buffer-menu
+  :version "30.1")
+
 (defvar-local Buffer-menu-files-only nil
   "Non-nil if the current Buffer Menu lists only file buffers.
 This is set by the prefix argument to `buffer-menu' and related
 commands.")
+
+(defvar-local Buffer-menu-show-internal nil
+  "Non-nil if the current Buffer Menu lists internal buffers.
+Internal buffers are those whose names start with a space.")
 
 (defvar-local Buffer-menu-filter-predicate nil
   "Function to filter out buffers in the buffer list.
@@ -140,6 +184,7 @@ then the buffer will be displayed in the buffer list.")
   "V"           #'Buffer-menu-view
   "O"           #'Buffer-menu-view-other-window
   "T"           #'Buffer-menu-toggle-files-only
+  "I"           #'Buffer-menu-toggle-internal
   "M-s a C-s"   #'Buffer-menu-isearch-buffers
   "M-s a C-M-s" #'Buffer-menu-isearch-buffers-regexp
   "M-s a C-o"   #'Buffer-menu-multi-occur
@@ -197,6 +242,10 @@ then the buffer will be displayed in the buffer list.")
      :help "Toggle whether the current buffer-menu displays only file buffers"
      :style toggle
      :selected Buffer-menu-files-only]
+    ["Show Internal Buffers" Buffer-menu-toggle-internal
+     :help "Toggle whether the current buffer-menu displays internal buffers"
+     :style toggle
+     :selected Buffer-menu-show-internal]
     "---"
     ["Refresh" revert-buffer
      :help "Refresh the *Buffer List* buffer contents"]
@@ -317,6 +366,11 @@ ARG, show only buffers that are visiting files."
   (interactive "P")
   (display-buffer (list-buffers-noselect arg)))
 
+(defun Buffer-menu--selection-message ()
+  (message (cond (Buffer-menu-files-only "Showing only file-visiting buffers.")
+                 (Buffer-menu-show-internal "Showing all buffers.")
+	         (t "Showing all buffers except internal ones."))))
+
 (defun Buffer-menu-toggle-files-only (arg)
   "Toggle whether the current `buffer-menu' displays only file buffers.
 With a positive ARG, display only file buffers.  With zero or
@@ -325,9 +379,18 @@ negative ARG, display other buffers as well."
   (setq Buffer-menu-files-only
 	(cond ((not arg) (not Buffer-menu-files-only))
 	      ((> (prefix-numeric-value arg) 0) t)))
-  (message (if Buffer-menu-files-only
-	       "Showing only file-visiting buffers."
-	     "Showing all non-internal buffers."))
+  (Buffer-menu--selection-message)
+  (revert-buffer))
+
+(defun Buffer-menu-toggle-internal (arg)
+  "Toggle whether the current `buffer-menu' displays internal buffers.
+With a positive ARG, don't show internal buffers.  With zero or
+negative ARG, display internal buffers as well."
+  (interactive "P" Buffer-menu-mode)
+  (setq Buffer-menu-show-internal
+	(cond ((not arg) (not Buffer-menu-show-internal))
+	      ((> (prefix-numeric-value arg) 0) t)))
+  (Buffer-menu--selection-message)
   (revert-buffer))
 
 (define-obsolete-function-alias 'Buffer-menu-sort 'tabulated-list-sort
@@ -364,19 +427,50 @@ is nil or omitted, and signal an error otherwise."
 
 ;;; Commands for modifying Buffer Menu entries.
 
+(defvar outline-minor-mode)
+(declare-function outline-on-heading-p "outline" (&optional invisible-ok))
+(declare-function outline-end-of-subtree "outline" ())
+(declare-function outline-previous-heading "outline" ())
+
 (defun Buffer-menu-mark ()
   "Mark the Buffer menu entry at point for later display.
-It will be displayed by the \\<Buffer-menu-mode-map>\\[Buffer-menu-select] command."
+It will be displayed by the \\<Buffer-menu-mode-map>\\[Buffer-menu-select] command.
+When `outline-minor-mode' is enabled and point is on the outline
+heading line, this command will mark all entries in the outline."
   (interactive nil Buffer-menu-mode)
-  (tabulated-list-set-col 0 (char-to-string Buffer-menu-marker-char) t)
-  (forward-line))
+  (cond ((tabulated-list-get-id)
+         (tabulated-list-set-col 0 (char-to-string Buffer-menu-marker-char) t)
+         (forward-line))
+        ((and (bound-and-true-p outline-minor-mode) (outline-on-heading-p))
+         (let ((limit (save-excursion (outline-end-of-subtree) (point)))
+               ;; Skip outline subheadings on recursive calls
+               (outline-minor-mode nil))
+           (forward-line)
+           (while (< (point) limit)
+             (Buffer-menu-mark))))
+        (t (forward-line))))
 
 (defun Buffer-menu-unmark (&optional backup)
   "Cancel all requested operations on buffer on this line and move down.
-Optional prefix arg means move up."
+Optional prefix arg means move up.
+When `outline-minor-mode' is enabled and point is on the outline
+heading line, this command will unmark all entries in the outline."
   (interactive "P" Buffer-menu-mode)
-  (Buffer-menu--unmark)
-  (forward-line (if backup -1 1)))
+  (cond ((tabulated-list-get-id)
+         (Buffer-menu--unmark)
+         (forward-line (if backup -1 1)))
+        ((and (bound-and-true-p outline-minor-mode) (outline-on-heading-p))
+         (let ((old-pos (point))
+               (limit (save-excursion (outline-end-of-subtree) (point)))
+               ;; Skip outline subheadings on recursive calls
+               (outline-minor-mode nil))
+           (forward-line)
+           (while (< (point) limit)
+             (Buffer-menu-unmark))
+           (when backup
+             (goto-char old-pos)
+             (outline-previous-heading))))
+        (t (forward-line (if backup -1 1)))))
 
 (defun Buffer-menu-unmark-all-buffers (mark)
   "Cancel a requested operation on all buffers.
@@ -385,14 +479,12 @@ When called interactively prompt for MARK;  RET remove all marks."
   (interactive "cRemove marks (RET means all):" Buffer-menu-mode)
   (save-excursion
     (goto-char (point-min))
-    (when (tabulated-list-header-overlay-p)
-      (forward-line))
     (while (not (eobp))
-      (let ((xmarks (list (aref (tabulated-list-get-entry) 0)
-                          (aref (tabulated-list-get-entry) 2))))
-        (when (or (char-equal mark ?\r)
-                  (member (char-to-string mark) xmarks))
-          (Buffer-menu--unmark)))
+      (when-let* ((entry (tabulated-list-get-entry)))
+        (let ((xmarks (list (aref entry 0) (aref entry 2))))
+          (when (or (char-equal mark ?\r)
+                    (member (char-to-string mark) xmarks))
+            (Buffer-menu--unmark))))
       (forward-line))))
 
 (defun Buffer-menu-unmark-all ()
@@ -404,7 +496,10 @@ When called interactively prompt for MARK;  RET remove all marks."
   "Move up and cancel all requested operations on buffer on line above."
   (interactive nil Buffer-menu-mode)
   (forward-line -1)
-  (Buffer-menu--unmark))
+  (while (and (not (tabulated-list-get-id)) (not (bobp)))
+    (forward-line -1))
+  (unless (bobp)
+    (Buffer-menu--unmark)))
 
 (defun Buffer-menu--unmark ()
   (tabulated-list-set-col 0 " " t)
@@ -416,41 +511,66 @@ When called interactively prompt for MARK;  RET remove all marks."
 
 (defun Buffer-menu-delete (&optional arg)
   "Mark the buffer on this Buffer Menu buffer line for deletion.
-A subsequent \\<Buffer-menu-mode-map>`\\[Buffer-menu-execute]' command
+A subsequent \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command \
 will delete it.
 
 If prefix argument ARG is non-nil, it specifies the number of
-buffers to delete; a negative ARG means to delete backwards."
+buffers to delete; a negative ARG means to delete backwards.
+
+When `outline-minor-mode' is enabled and point is on the outline
+heading line, this command will mark all entries in the outline.
+However, ARG is not supported in this case."
   (interactive "p" Buffer-menu-mode)
-  (if (or (null arg) (= arg 0))
-      (setq arg 1))
-  (while (> arg 0)
-    (when (Buffer-menu-buffer)
-      (tabulated-list-set-col 0 (char-to-string Buffer-menu-del-char) t))
-    (forward-line 1)
-    (setq arg (1- arg)))
-  (while (< arg 0)
-    (when (Buffer-menu-buffer)
-      (tabulated-list-set-col 0 (char-to-string Buffer-menu-del-char) t))
-    (forward-line -1)
-    (setq arg (1+ arg))))
+  (cond
+   ((and (bound-and-true-p outline-minor-mode) (outline-on-heading-p))
+    (let ((limit (save-excursion (outline-end-of-subtree) (point)))
+          ;; Skip outline subheadings on recursive calls
+          (outline-minor-mode nil))
+      (forward-line)
+      (while (< (point) limit)
+        (Buffer-menu-delete))))
+   (t
+    (if (or (null arg) (= arg 0))
+        (setq arg 1))
+    (while (> arg 0)
+      (when (Buffer-menu-buffer)
+        (tabulated-list-set-col 0 (char-to-string Buffer-menu-del-char) t))
+      (forward-line 1)
+      (setq arg (1- arg)))
+
+    (while (< arg 0)
+      (when (Buffer-menu-buffer)
+        (tabulated-list-set-col 0 (char-to-string Buffer-menu-del-char) t))
+      (forward-line -1)
+      (setq arg (1+ arg))))))
 
 (defun Buffer-menu-delete-backwards (&optional arg)
   "Mark the buffer on this Buffer Menu line for deletion, and move up.
-A subsequent \\<Buffer-menu-mode-map>`\\[Buffer-menu-execute]'
-command will delete the marked buffer.  Prefix ARG means move
-that many lines."
+A subsequent \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command \
+will delete the marked buffer.  Prefix ARG
+ means move that many lines."
   (interactive "p" Buffer-menu-mode)
   (Buffer-menu-delete (- (or arg 1))))
 
 (defun Buffer-menu-save ()
   "Mark the buffer on this Buffer Menu line for saving.
-A subsequent \\<Buffer-menu-mode-map>`\\[Buffer-menu-execute]' command
-will save it."
+A subsequent \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] \
+command will save it.
+When `outline-minor-mode' is enabled and point is on the outline
+heading line, this command will mark all entries in the outline."
   (interactive nil Buffer-menu-mode)
-  (when (Buffer-menu-buffer)
-    (tabulated-list-set-col 2 "S" t)
-    (forward-line 1)))
+  (cond ((tabulated-list-get-id)
+         (when (Buffer-menu-buffer)
+           (tabulated-list-set-col 2 "S" t))
+         (forward-line))
+        ((and (bound-and-true-p outline-minor-mode) (outline-on-heading-p))
+         (let ((limit (save-excursion (outline-end-of-subtree) (point)))
+               ;; Skip outline subheadings on recursive calls
+               (outline-minor-mode nil))
+           (forward-line)
+           (while (< (point) limit)
+             (Buffer-menu-save))))
+        (t (forward-line))))
 
 (defun Buffer-menu-not-modified (&optional arg)
   "Mark the buffer on this line as unmodified (no changes to save).
@@ -463,8 +583,8 @@ it as modified."
 
 (defun Buffer-menu-execute ()
   "Save and/or delete marked buffers in the Buffer Menu.
-Buffers marked with \\<Buffer-menu-mode-map>`\\[Buffer-menu-save]' are saved.
-Buffers marked with \\<Buffer-menu-mode-map>`\\[Buffer-menu-delete]' are deleted."
+Buffers marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-save] are saved.
+Buffers marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-delete] are deleted."
   (interactive nil Buffer-menu-mode)
   (save-excursion
     (Buffer-menu-beginning)
@@ -492,7 +612,7 @@ Buffers marked with \\<Buffer-menu-mode-map>`\\[Buffer-menu-delete]' are deleted
 
 (defun Buffer-menu-select ()
   "Select this line's buffer; also, display buffers marked with `>'.
-You can mark buffers with the \\<Buffer-menu-mode-map>`\\[Buffer-menu-mark]' command.
+You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] command.
 
 This command deletes and replaces all the previously existing windows
 in the selected frame, and will remove any marks."
@@ -515,15 +635,16 @@ in the selected frame, and will remove any marks."
 (defun Buffer-menu-marked-buffers (&optional unmark)
   "Return the list of buffers marked with `Buffer-menu-mark'.
 If UNMARK is non-nil, unmark them."
-  (let (buffers)
-    (Buffer-menu-beginning)
-    (while (re-search-forward "^>" nil t)
-      (let ((buffer (Buffer-menu-buffer)))
-	(if (and buffer unmark)
-	    (tabulated-list-set-col 0 " " t))
-	(if (buffer-live-p buffer)
-	    (push buffer buffers))))
-    (nreverse buffers)))
+  (save-excursion
+    (let (buffers)
+      (Buffer-menu-beginning)
+      (while (re-search-forward "^>" nil t)
+        (let ((buffer (Buffer-menu-buffer)))
+	  (if (and buffer unmark)
+	      (tabulated-list-set-col 0 " " t))
+	  (if (buffer-live-p buffer)
+	      (push buffer buffers))))
+      (nreverse buffers))))
 
 (defun Buffer-menu-isearch-buffers ()
   "Search for a string through all marked buffers using Isearch."
@@ -569,13 +690,17 @@ If UNMARK is non-nil, unmark them."
 (defun Buffer-menu-other-window ()
   "Select this line's buffer in other window, leaving buffer menu visible."
   (interactive nil Buffer-menu-mode)
-  (switch-to-buffer-other-window (Buffer-menu-buffer t)))
+  (let ((display-buffer-overriding-action
+         '(nil (inhibit-same-window . t))))
+    (switch-to-buffer-other-window (Buffer-menu-buffer t))))
 
 (defun Buffer-menu-switch-other-window ()
   "Make the other window select this line's buffer.
 The current window remains selected."
   (interactive nil Buffer-menu-mode)
-  (display-buffer (Buffer-menu-buffer t) t))
+  (let ((display-buffer-overriding-action
+         '(nil (inhibit-same-window . t))))
+    (display-buffer (Buffer-menu-buffer t) t)))
 
 (defun Buffer-menu-2-window ()
   "Select this line's buffer, with previous buffer in second window."
@@ -647,7 +772,11 @@ See more at `Buffer-menu-filter-predicate'."
       (setq Buffer-menu-buffer-list buffer-list)
       (setq Buffer-menu-filter-predicate filter-predicate)
       (list-buffers--refresh buffer-list old-buffer)
-      (tabulated-list-print))
+      (tabulated-list-print)
+      (when tabulated-list-groups
+        (setq-local outline-minor-mode-cycle t
+                    outline-minor-mode-highlight t)
+        (outline-minor-mode 1)))
     buffer))
 
 (defun Buffer-menu-mouse-select (event)
@@ -667,6 +796,7 @@ See more at `Buffer-menu-filter-predicate'."
         (marked-buffers (Buffer-menu-marked-buffers))
         (buffer-menu-buffer (current-buffer))
 	(show-non-file (not Buffer-menu-files-only))
+        (show-internal Buffer-menu-show-internal)
 	(filter-predicate (and (functionp Buffer-menu-filter-predicate)
 			       Buffer-menu-filter-predicate))
 	entries name-width)
@@ -686,7 +816,8 @@ See more at `Buffer-menu-filter-predicate'."
 	       (file buffer-file-name))
 	  (when (and (buffer-live-p buffer)
 		     (or buffer-list
-			 (and (or (not (string= (substring name 0 1) " "))
+			 (and (or show-internal
+                                  (not (string= (substring name 0 1) " "))
                                   file)
 			      (not (eq buffer buffer-menu-buffer))
 			      (or file show-non-file)
@@ -721,7 +852,17 @@ See more at `Buffer-menu-filter-predicate'."
 		  `("Mode" ,Buffer-menu-mode-width t)
 		  '("File" 1 t)))
     (setq tabulated-list-use-header-line Buffer-menu-use-header-line)
-    (setq tabulated-list-entries (nreverse entries)))
+    (setq tabulated-list-entries (nreverse entries))
+    (setq tabulated-list-groups
+          (tabulated-list-groups
+           tabulated-list-entries
+           `(:path-function
+             ,(if (functionp Buffer-menu-group-by)
+                  Buffer-menu-group-by
+                (lambda (entry)
+                  (list (mapcar (lambda (f) (funcall f entry))
+                                Buffer-menu-group-by))))
+             :sort-function ,Buffer-menu-group-sort-by))))
   (tabulated-list-init-header))
 
 (defun tabulated-list-entry-size-> (entry1 entry2)
@@ -739,5 +880,22 @@ See more at `Buffer-menu-filter-predicate'."
 	((bound-and-true-p list-buffers-directory)
          (abbreviate-file-name list-buffers-directory))
 	(t "")))
+
+(defun Buffer-menu-group-by-mode (entry)
+  (let ((mode (aref (cadr entry) 5)))
+    (or (cdr (seq-find (lambda (group)
+                         (string-match-p (car group) mode))
+                       mouse-buffer-menu-mode-groups))
+        mode)))
+
+(declare-function project-root "project" (project))
+(defun Buffer-menu-group-by-root (entry)
+  (with-current-buffer (car entry)
+    (if-let* ((project (project-current)))
+        (project-root project)
+      default-directory)))
+
+(defun Buffer-menu-group-sort-alphabetically (groups _level)
+  (sort groups :in-place t :key #'car))
 
 ;;; buff-menu.el ends here

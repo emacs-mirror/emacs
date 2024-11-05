@@ -1,7 +1,7 @@
 /* A general interface to the widgets of different toolkits.
 
 Copyright (C) 1992, 1993 Lucid, Inc.
-Copyright (C) 1994-1996, 1999-2023 Free Software Foundation, Inc.
+Copyright (C) 1994-1996, 1999-2024 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -60,12 +60,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* List of all widgets managed by the library. */
 static widget_info*
 all_widget_info = NULL;
-
-#ifdef USE_MOTIF
-const char *lwlib_toolkit_type = "motif";
-#else
-const char *lwlib_toolkit_type = "lucid";
-#endif
 
 static widget_value *merge_widget_value (widget_value *,
                                          widget_value *,

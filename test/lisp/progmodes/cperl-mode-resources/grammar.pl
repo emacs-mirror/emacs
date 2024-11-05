@@ -192,6 +192,21 @@ class Class::Class 0.01 {
     method init_again (@with_parameters) {
 	...;
     }
+
+    # A false positive
+    my $class_false;
 }
 
+=head1 Perl 5.40 brings new stuff
+
+The __CLASS__ token (only for fontification) and the :reader
+method-generator for classes are available with Perl 5.40.
+
+=cut
+
+class With::Readers {
+    field $simple;
+    field $auto_reader :reader;
+    field $named_reader :reader(named);
+}
 1;

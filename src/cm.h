@@ -1,5 +1,5 @@
 /* Cursor motion calculation definitions for GNU Emacs
-   Copyright (C) 1985, 1989, 2001-2023 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1989, 2001-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

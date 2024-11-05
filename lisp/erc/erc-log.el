@@ -1,6 +1,6 @@
 ;;; erc-log.el --- Logging facilities for ERC.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
 
 ;; Author: Lawrence Mitchell <wence@gmx.li>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -231,7 +231,7 @@ also be a predicate function.  To only log when you are not set away, use:
    (add-hook 'erc-part-hook #'erc-conditional-save-buffer)
    ;; append, so that 'erc-initialize-log-marker runs first
    (add-hook 'erc-connect-pre-hook #'erc-log-setup-logging 'append)
-   (add-hook 'erc--pre-clear-functions #'erc-save-buffer-in-logs)
+   ;; FIXME use proper local "setup" function and major-mode hook.
    (dolist (buffer (erc-buffer-list))
      (erc-log-setup-logging buffer))
    (erc--modify-local-map t "C-c C-l" #'erc-save-buffer-in-logs))
@@ -244,7 +244,6 @@ also be a predicate function.  To only log when you are not set away, use:
    (remove-hook 'erc-quit-hook #'erc-conditional-save-queries)
    (remove-hook 'erc-part-hook #'erc-conditional-save-buffer)
    (remove-hook 'erc-connect-pre-hook #'erc-log-setup-logging)
-   (remove-hook 'erc--pre-clear-functions #'erc-save-buffer-in-logs)
    (dolist (buffer (erc-buffer-list))
      (erc-log-disable-logging buffer))
    (erc--modify-local-map nil "C-c C-l" #'erc-save-buffer-in-logs)))
@@ -259,6 +258,8 @@ The current buffer is given by BUFFER."
       (auto-save-mode -1)
       (setq buffer-file-name nil)
       (add-hook 'write-file-functions #'erc-save-buffer-in-logs nil t)
+      (add-function :before (local 'erc--clear-function)
+                    #'erc-log--save-on-clear '((depth . 50)))
       (when erc-log-insert-log-on-open
 	(ignore-errors
 	  (save-excursion
@@ -271,16 +272,17 @@ The current buffer is given by BUFFER."
   "Disable logging in BUFFER."
   (when (erc-logging-enabled buffer)
     (with-current-buffer buffer
+      (remove-function (local 'erc--clear-function) #'erc-log--save-on-clear)
       (setq buffer-offer-save nil
 	    erc-enable-logging nil))))
 
 (defun erc-log-all-but-server-buffers (buffer)
   "Return t if logging should be enabled in BUFFER.
-Returns nil if `erc-server-buffer-p' returns t."
+Return nil if BUFFER is a server buffer."
   (save-excursion
     (save-window-excursion
       (set-buffer buffer)
-      (not (erc-server-buffer-p)))))
+      (not (erc--server-buffer-p)))))
 
 (defun erc-save-query-buffers (process)
   "Save all buffers of the given PROCESS."
@@ -289,8 +291,8 @@ Returns nil if `erc-server-buffer-p' returns t."
 				  (erc-save-buffer-in-logs)))
 
 (defun erc-conditional-save-buffer (buffer)
-  "Save Query BUFFER if `erc-save-queries-on-quit' is t."
-  (when erc-save-buffer-on-part
+  "Save channel BUFFER if it and `erc-save-buffer-on-part' are non-nil."
+  (when (and buffer erc-save-buffer-on-part)
     (erc-save-buffer-in-logs buffer)))
 
 (defun erc-conditional-save-queries (process)
@@ -305,6 +307,10 @@ Returns nil if `erc-server-buffer-p' returns t."
     (erc-save-buffer-in-logs buffer)))
 
 (defvar erc-log--save-in-progress-p nil)
+;; The function `erc-directory-writable-p' may signal when HOME is not
+;; writable, such as when running the test suite (/nonexistent).  This
+;; flag tells `erc-logging-enabled' to use `file-writable-p' instead.
+(defvar erc-log--check-writable-nocreate-p nil)
 
 ;;;###autoload
 (defun erc-logging-enabled (&optional buffer)
@@ -317,7 +323,9 @@ is writable (it will be created as necessary) and
   (and erc-log-channels-directory
        (not erc-log--save-in-progress-p)
        (or (functionp erc-log-channels-directory)
-	   (erc-directory-writable-p erc-log-channels-directory))
+           (if erc-log--check-writable-nocreate-p
+               (file-writable-p erc-log-channels-directory)
+             (erc-directory-writable-p erc-log-channels-directory)))
        (if (functionp erc-enable-logging)
 	   (funcall erc-enable-logging buffer)
 	 (buffer-local-value 'erc-enable-logging buffer))))
@@ -352,13 +360,13 @@ The result is converted to lowercase, as IRC is case-insensitive."
 	 erc-log-channels-directory)))))
 
 (defun erc-generate-log-file-name-with-date (buffer &rest _ignore)
-  "This function computes a short log file name.
+  "Compute a short log file name with the current date.
 The name of the log file is composed of BUFFER and the current date.
 This function is a possible value for `erc-generate-log-file-name-function'."
   (concat (buffer-name buffer) "-" (format-time-string "%Y-%m-%d") ".txt"))
 
 (defun erc-generate-log-file-name-short (buffer &rest _ignore)
-  "This function computes a short log file name.
+  "Compute a short log file name.
 In fact, it only uses the buffer name of the BUFFER argument, so
 you can affect that using `rename-buffer' and the-like.  This
 function is a possible value for
@@ -415,6 +423,7 @@ You can save every individual message by putting this function on
 	    (widen)
 	    ;; early on in the initialization, don't try and write the log out
 	    (when (and (markerp erc-last-saved-position)
+                       (null erc--insert-marker) ; suppress when splicing
 		       (> erc-insert-marker (1+ erc-last-saved-position)))
 	      (let ((start (1+ (marker-position erc-last-saved-position)))
 		    (end (marker-position erc-insert-marker)))
@@ -430,7 +439,8 @@ You can save every individual message by putting this function on
 	      (if (and erc-truncate-buffer-on-save
 		       (called-interactively-p 'interactive))
                   (let ((erc-log--save-in-progress-p t))
-                    (erc-cmd-CLEAR)
+                    (save-excursion (goto-char erc-insert-marker)
+                                    (erc-cmd-CLEAR))
                     (erc-button--display-error-notice-with-keys
                      (erc-server-buffer) "Option `%s' is deprecated."
                      " Use /CLEAR instead." 'erc-truncate-buffer-on-save))
@@ -444,6 +454,18 @@ You can save every individual message by putting this function on
 			     (1- (marker-position erc-insert-marker)))))
 	    (set-buffer-modified-p nil))))))
   t)
+
+(defun erc-log--save-on-clear (_ end)
+  (erc-save-buffer-in-logs end))
+
+;; This exists to avoid littering erc-truncate.el with forward
+;; declarations needed only for a compatibility check.
+(defun erc-log--check-legacy-implicit-enabling-by-truncate ()
+  "Return non-nil when conditions for legacy \"implicit\" activation are met.
+This only concerns the \\+`truncate' module."
+  (and (not (or erc-log-mode (memq 'log erc-modules)))
+       (let ((erc-log--check-writable-nocreate-p t))
+         (erc-logging-enabled))))
 
 (provide 'erc-log)
 

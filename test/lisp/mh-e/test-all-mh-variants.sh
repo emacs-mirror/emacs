@@ -1,7 +1,7 @@
 #! /bin/bash
 # Run the mh-utils-tests against all MH variants found on this system.
 
-# Copyright (C) 2021-2023 Free Software Foundation, Inc.
+# Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -81,8 +81,10 @@ for path in "${mh_sys_path[@]}"; do
     fi
     echo "**  Testing with PATH $path"
     ((++tests_total))
+    # The LD_LIBRARY_PATH setting is needed
+    # to run locally installed Mailutils.
     TEST_MH_PATH=$path TEST_MH_DEBUG=$debug \
-    HOME=/nonexistent \
+    LD_LIBRARY_PATH=/usr/local/lib HOME=/nonexistent \
     "${emacs[@]}" -l ert \
         --eval "(setq load-prefer-newer t)" \
         --eval "(load \"$PWD/test/lisp/mh-e/mh-utils-tests\" nil t)" \

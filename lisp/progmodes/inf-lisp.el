@@ -1,6 +1,6 @@
 ;;; inf-lisp.el --- an inferior-lisp mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1988-2024 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes, lisp
@@ -308,7 +308,8 @@ quoted using shell quote syntax.
 			   "inferior-lisp" (car cmdlist) nil (cdr cmdlist)))
 	(inferior-lisp-mode)))
   (setq inferior-lisp-buffer "*inferior-lisp*")
-  (pop-to-buffer "*inferior-lisp*" display-comint-buffer-action))
+  (with-suppressed-warnings ((obsolete display-comint-buffer-action))
+    (pop-to-buffer "*inferior-lisp*" display-comint-buffer-action)))
 
 ;;;###autoload
 (defalias 'run-lisp 'inferior-lisp)
@@ -346,7 +347,7 @@ The actually processing is done by DO-STRING and DO-REGION
 DEFVAR forms reset the variables to the init values."
   (save-excursion
     ;; Find the end of the defun this way to avoid having the region
-    ;; possibly end with a comment (it there'a a comment after the
+    ;; possibly end with a comment (it there's a comment after the
     ;; final parenthesis).
     (beginning-of-defun)
     (forward-sexp)

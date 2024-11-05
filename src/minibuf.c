@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
 
-Copyright (C) 1985-1986, 1993-2023 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -63,7 +63,7 @@ Lisp_Object last_minibuf_string;
 
 static Lisp_Object minibuf_prompt;
 
-/* The frame containinug the most recently opened Minibuffer.  This is
+/* The frame containing the most recently opened minibuffer.  This is
    used only when `minibuffer-follows-selected-frame' is neither nil
    nor t.  */
 
@@ -160,16 +160,15 @@ zip_minibuffer_stacks (Lisp_Object dest_window, Lisp_Object source_window)
       set_window_buffer (dest_window, sw->contents, 0, 0);
       Fset_window_start (dest_window, Fwindow_start (source_window), Qnil);
       Fset_window_point (dest_window, Fwindow_point (source_window));
-      dw->prev_buffers = sw->prev_buffers;
+      wset_prev_buffers (dw, sw->prev_buffers);
       set_window_buffer (source_window, nth_minibuffer (0), 0, 0);
-      sw->prev_buffers = Qnil;
+      wset_prev_buffers (sw, Qnil);
       return;
     }
 
-  if (live_minibuffer_p (dw->contents))
-    call1 (Qpush_window_buffer_onto_prev, dest_window);
-  if (live_minibuffer_p (sw->contents))
-    call1 (Qpush_window_buffer_onto_prev, source_window);
+  call1 (Qrecord_window_buffer, dest_window);
+  call1 (Qrecord_window_buffer, source_window);
+
   acc = merge_c (dw->prev_buffers, sw->prev_buffers, minibuffer_ent_greater);
 
   if (!NILP (acc))
@@ -180,8 +179,9 @@ zip_minibuffer_stacks (Lisp_Object dest_window, Lisp_Object source_window)
       Fset_window_start (dest_window, Fcar (Fcdr (d_ent)), Qnil);
       Fset_window_point (dest_window, Fcar (Fcdr (Fcdr (d_ent))));
     }
-  dw->prev_buffers = acc;
-  sw->prev_buffers = Qnil;
+
+  wset_prev_buffers (dw, acc);
+  wset_prev_buffers (sw, Qnil);
   set_window_buffer (source_window, nth_minibuffer (0), 0, 0);
 }
 
@@ -494,12 +494,11 @@ confirm the aborting of the current minibuffer and all contained ones.  */)
 	     to abort any extra non-minibuffer recursive edits.  Thus,
 	     the number of recursive edits we have to abort equals the
 	     number of minibuffers we have to abort.  */
-	  CALLN (Ffuncall, intern ("minibuffer-quit-recursive-edit"),
-		 array[1]);
+	  call1 (Qminibuffer_quit_recursive_edit, array[1]);
 	}
     }
   else
-    CALLN (Ffuncall, intern ("minibuffer-quit-recursive-edit"));
+    call0 (Qminibuffer_quit_recursive_edit);
   return Qnil;
 }
 
@@ -564,7 +563,8 @@ If the current buffer is not a minibuffer, return its entire contents.  */)
 
    DEFALT specifies the default value for the sake of history commands.
 
-   If ALLOW_PROPS, do not throw away text properties.
+   If ALLOW_PROPS or `minibuffer-allow-text-properties' (possibly
+   buffer-local) is non-nil, do not throw away text properties.
 
    if INHERIT_INPUT_METHOD, the minibuffer inherits the
    current input method.  */
@@ -688,8 +688,8 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 				    Fframe_first_window (MB_frame), Qnil);
     }
   MB_frame = XWINDOW (XFRAME (selected_frame)->minibuffer_window)->frame;
-  if (live_minibuffer_p (XWINDOW (minibuf_window)->contents))
-    call1 (Qpush_window_buffer_onto_prev, minibuf_window);
+
+  call1 (Qrecord_window_buffer, minibuf_window);
 
   record_unwind_protect_void (minibuffer_unwind);
   if (read_minibuffer_restore_windows)
@@ -929,7 +929,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   /* Make minibuffer contents into a string.  */
   Fset_buffer (minibuffer);
-  if (allow_props)
+  if (allow_props || minibuffer_allow_text_properties)
     val = Fminibuffer_contents ();
   else
     val = Fminibuffer_contents_no_properties ();
@@ -1248,27 +1248,36 @@ static void
 minibuffer_unwind (void)
 {
   struct frame *f;
-  struct window *w;
-  Lisp_Object window;
-  Lisp_Object entry;
 
   if (NILP (exp_MB_frame)) return; /* "Can't happen." */
   f = XFRAME (exp_MB_frame);
-  window = f->minibuffer_window;
-  w = XWINDOW (window);
   if (FRAME_LIVE_P (f))
     {
-      /* minibuf_window = sf->minibuffer_window; */
-      if (!NILP (w->prev_buffers))
+      Lisp_Object window = f->minibuffer_window;
+
+      if (WINDOW_LIVE_P (window))
 	{
-	  entry = Fcar (w->prev_buffers);
-	  w->prev_buffers = Fcdr (w->prev_buffers);
-	  set_window_buffer (window, Fcar (entry), 0, 0);
-	  Fset_window_start (window, Fcar (Fcdr (entry)), Qnil);
-	  Fset_window_point (window, Fcar (Fcdr (Fcdr (entry))));
+	  struct window *w = XWINDOW (window);
+
+	  /* minibuf_window = sf->minibuffer_window; */
+	  if (!NILP (w->prev_buffers))
+	    {
+	      Lisp_Object entry = Fcar (w->prev_buffers);
+
+	      if (BUFFERP (Fcar (entry))
+		  && BUFFER_LIVE_P (XBUFFER (Fcar (entry))))
+		{
+		  wset_prev_buffers (w, Fcdr (w->prev_buffers));
+		  set_window_buffer (window, Fcar (entry), 0, 0);
+		  Fset_window_start (window, Fcar (Fcdr (entry)), Qnil);
+		  Fset_window_point (window, Fcar (Fcdr (Fcdr (entry))));
+		}
+	      else
+		set_window_buffer (window, nth_minibuffer (0), 0, 0);
+	    }
+	  else
+	    set_window_buffer (window, nth_minibuffer (0), 0, 0);
 	}
-      else
-	set_window_buffer (window, nth_minibuffer (0), 0, 0);
     }
 }
 
@@ -1322,7 +1331,8 @@ Sixth arg DEFAULT-VALUE, if non-nil, should be a string, which is used
 Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
  the current input method and the setting of `enable-multibyte-characters'.
 
-If the variable `minibuffer-allow-text-properties' is non-nil,
+If the variable `minibuffer-allow-text-properties' is non-nil
+ (either let-bound or buffer-local in the minibuffer),
  then the string which is returned includes whatever text properties
  were present in the minibuffer.  Otherwise the value has no text properties.
 
@@ -1366,6 +1376,20 @@ and some related functions, which use zero-indexing for POSITION.  */)
     histvar = Qminibuffer_history;
   if (NILP (histpos))
     XSETFASTINT (histpos, 0);
+
+#ifdef HAVE_TEXT_CONVERSION
+  /* If overriding-text-conversion-style is set, assume that it was
+     changed prior to this call and force text conversion to be reset,
+     since redisplay might conclude that the value was retained
+     unmodified from a previous call to Fread_from_minibuffer as the
+     selected window will not have changed.  */
+  if (!EQ (Voverriding_text_conversion_style, Qlambda)
+      /* Separate minibuffer frames are not material here, since they
+         will already be selected if the situation that this is meant to
+         prevent is possible.  */
+      && FRAME_WINDOW_P (SELECTED_FRAME ()))
+    reset_frame_conversion (SELECTED_FRAME ());
+#endif /* HAVE_TEXT_CONVERSION */
 
   val = read_minibuf (keymap, initial_contents, prompt,
 		      !NILP (read),
@@ -1525,12 +1549,12 @@ function, instead of the usual behavior.  */)
 					      STRING_MULTIBYTE (prompt));
 	    }
 
-	  prompt = CALLN (Ffuncall, intern("format-prompt"),
+	  prompt = CALLN (Ffuncall, Qformat_prompt,
 			  prompt,
 			  CONSP (def) ? XCAR (def) : def);
 	}
 
-      result = Fcompleting_read (prompt, intern ("internal-complete-buffer"),
+      result = Fcompleting_read (prompt, Qinternal_complete_buffer,
 				 predicate, require_match, Qnil,
 				 Qbuffer_name_history, def, Qnil);
     }
@@ -1615,13 +1639,15 @@ or from one of the possible completions.  */)
   ptrdiff_t bestmatchsize = 0;
   /* These are in bytes, too.  */
   ptrdiff_t compare, matchsize;
+  if (VECTORP (collection))
+    collection = check_obarray (collection);
   enum { function_table, list_table, obarray_table, hash_table}
     type = (HASH_TABLE_P (collection) ? hash_table
-	    : VECTORP (collection) ? obarray_table
+	    : OBARRAYP (collection) ? obarray_table
 	    : ((NILP (collection)
 		|| (CONSP (collection) && !FUNCTIONP (collection)))
 	       ? list_table : function_table));
-  ptrdiff_t idx = 0, obsize = 0;
+  ptrdiff_t idx = 0;
   int matchcount = 0;
   Lisp_Object bucket, zero, end, tem;
 
@@ -1634,12 +1660,9 @@ or from one of the possible completions.  */)
 
   /* If COLLECTION is not a list, set TAIL just for gc pro.  */
   tail = collection;
+  obarray_iter_t obit;
   if (type == obarray_table)
-    {
-      collection = check_obarray (collection);
-      obsize = ASIZE (collection);
-      bucket = AREF (collection, idx);
-    }
+    obit = make_obarray_iter (XOBARRAY (collection));
 
   while (1)
     {
@@ -1658,30 +1681,16 @@ or from one of the possible completions.  */)
 	}
       else if (type == obarray_table)
 	{
-	  if (!EQ (bucket, zero))
-	    {
-	      if (!SYMBOLP (bucket))
-		error ("Bad data in guts of obarray");
-	      elt = bucket;
-	      eltstring = elt;
-	      if (XSYMBOL (bucket)->u.s.next)
-		XSETSYMBOL (bucket, XSYMBOL (bucket)->u.s.next);
-	      else
-		XSETFASTINT (bucket, 0);
-	    }
-	  else if (++idx >= obsize)
+	  if (obarray_iter_at_end (&obit))
 	    break;
-	  else
-	    {
-	      bucket = AREF (collection, idx);
-	      continue;
-	    }
+	  elt = eltstring = obarray_iter_symbol (&obit);
+	  obarray_iter_step (&obit);
 	}
       else /* if (type == hash_table) */
 	{
 	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && BASE_EQ (HASH_KEY (XHASH_TABLE (collection), idx),
-			     Qunbound))
+		 && hash_unused_entry_key_p (HASH_KEY (XHASH_TABLE (collection),
+						       idx)))
 	    idx++;
 	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
@@ -1716,11 +1725,12 @@ or from one of the possible completions.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else
 		{
-		  tem = (type == hash_table
-			 ? call2 (predicate, elt,
-				  HASH_VALUE (XHASH_TABLE (collection),
-					      idx - 1))
-			 : call1 (predicate, elt));
+		  if (type == hash_table)
+		    tem = call2 (predicate, elt,
+				 HASH_VALUE (XHASH_TABLE (collection),
+					     idx - 1));
+		  else
+		    tem = call1 (predicate, elt);
 		}
 	      if (NILP (tem)) continue;
 	    }
@@ -1858,10 +1868,15 @@ with a space are ignored unless STRING itself starts with a space.  */)
 {
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
-  int type = HASH_TABLE_P (collection) ? 3
-    : VECTORP (collection) ? 2
-    : NILP (collection) || (CONSP (collection) && !FUNCTIONP (collection));
-  ptrdiff_t idx = 0, obsize = 0;
+  if (VECTORP (collection))
+    collection = check_obarray (collection);
+  int type = (HASH_TABLE_P (collection)
+	      ? 3 : (OBARRAYP (collection)
+		     ? 2 : ((NILP (collection)
+			     || (CONSP (collection)
+				 && !FUNCTIONP (collection)))
+			    ? 1 : 0)));
+  ptrdiff_t idx = 0;
   Lisp_Object bucket, tem, zero;
 
   CHECK_STRING (string);
@@ -1872,12 +1887,9 @@ with a space are ignored unless STRING itself starts with a space.  */)
 
   /* If COLLECTION is not a list, set TAIL just for gc pro.  */
   tail = collection;
+  obarray_iter_t obit;
   if (type == 2)
-    {
-      collection = check_obarray (collection);
-      obsize = ASIZE (collection);
-      bucket = AREF (collection, idx);
-    }
+    obit = make_obarray_iter (XOBARRAY (collection));
 
   while (1)
     {
@@ -1896,30 +1908,16 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	}
       else if (type == 2)
 	{
-	  if (!EQ (bucket, zero))
-	    {
-	      if (!SYMBOLP (bucket))
-		error ("Bad data in guts of obarray");
-	      elt = bucket;
-	      eltstring = elt;
-	      if (XSYMBOL (bucket)->u.s.next)
-		XSETSYMBOL (bucket, XSYMBOL (bucket)->u.s.next);
-	      else
-		XSETFASTINT (bucket, 0);
-	    }
-	  else if (++idx >= obsize)
+	  if (obarray_iter_at_end (&obit))
 	    break;
-	  else
-	    {
-	      bucket = AREF (collection, idx);
-	      continue;
-	    }
+	  elt = eltstring = obarray_iter_symbol (&obit);
+	  obarray_iter_step (&obit);
 	}
       else /* if (type == 3) */
 	{
 	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && BASE_EQ (HASH_KEY (XHASH_TABLE (collection), idx),
-			     Qunbound))
+		 && hash_unused_entry_key_p (HASH_KEY (XHASH_TABLE (collection),
+						       idx)))
 	    idx++;
 	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
@@ -1961,10 +1959,12 @@ with a space are ignored unless STRING itself starts with a space.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else
 		{
-		  tem = type == 3
-		    ? call2 (predicate, elt,
-			     HASH_VALUE (XHASH_TABLE (collection), idx - 1))
-		    : call1 (predicate, elt);
+		  if (type == 3)
+		    tem = call2 (predicate, elt,
+				 HASH_VALUE (XHASH_TABLE (collection),
+					     idx - 1));
+		  else
+		    tem = call1 (predicate, elt);
 		}
 	      if (NILP (tem)) continue;
 	    }
@@ -2042,7 +2042,7 @@ See also `completing-read-function'.  */)
   (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
 {
   return CALLN (Ffuncall,
-		Fsymbol_value (intern ("completing-read-function")),
+		Fsymbol_value (Qcompleting_read_function),
 		prompt, collection, predicate, require_match, initial_input,
 		hist, def, inherit_input_method);
 }
@@ -2059,8 +2059,7 @@ If COLLECTION is a function, it is called with three arguments:
 the values STRING, PREDICATE and `lambda'.  */)
   (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
-  Lisp_Object tail, tem = Qnil;
-  ptrdiff_t i = 0;
+  Lisp_Object tem = Qnil, arg = Qnil;
 
   CHECK_STRING (string);
 
@@ -2070,61 +2069,56 @@ the values STRING, PREDICATE and `lambda'.  */)
       if (NILP (tem))
 	return Qnil;
     }
-  else if (VECTORP (collection))
+  else if (OBARRAYP (collection) || VECTORP (collection))
     {
+      collection = check_obarray (collection);
       /* Bypass intern-soft as that loses for nil.  */
       tem = oblookup (collection,
 		      SSDATA (string),
 		      SCHARS (string),
 		      SBYTES (string));
-      if (completion_ignore_case && !SYMBOLP (tem))
-	{
-	  for (i = ASIZE (collection) - 1; i >= 0; i--)
-	    {
-	      tail = AREF (collection, i);
-	      if (SYMBOLP (tail))
-		while (1)
-		  {
-		    if (BASE_EQ (Fcompare_strings (string, make_fixnum (0),
-						   Qnil,
-						   Fsymbol_name (tail),
-						   make_fixnum (0) , Qnil, Qt),
-				 Qt))
-		      {
-			tem = tail;
-			break;
-		      }
-		    if (XSYMBOL (tail)->u.s.next == 0)
-		      break;
-		    XSETSYMBOL (tail, XSYMBOL (tail)->u.s.next);
-		  }
-	    }
-	}
+      if (completion_ignore_case && !BARE_SYMBOL_P (tem))
+	DOOBARRAY (XOBARRAY (collection), it)
+	  {
+	    Lisp_Object obj = obarray_iter_symbol (&it);
+	    if (BASE_EQ (Fcompare_strings (string, make_fixnum (0),
+					   Qnil,
+					   Fsymbol_name (obj),
+					   make_fixnum (0) , Qnil, Qt),
+			 Qt))
+	      {
+		tem = obj;
+		break;
+	      }
+	  }
 
-      if (!SYMBOLP (tem))
+      if (!BARE_SYMBOL_P (tem))
 	return Qnil;
     }
   else if (HASH_TABLE_P (collection))
     {
       struct Lisp_Hash_Table *h = XHASH_TABLE (collection);
-      i = hash_lookup (h, string, NULL);
+      ptrdiff_t i = hash_lookup (h, string);
       if (i >= 0)
         {
           tem = HASH_KEY (h, i);
+          arg = HASH_VALUE (h, i);
           goto found_matching_key;
         }
       else
-	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
+	DOHASH (h, k, v)
           {
-            tem = HASH_KEY (h, i);
-            if (BASE_EQ (tem, Qunbound)) continue;
+            tem = k;
             Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
             if (!STRINGP (strkey)) continue;
             if (BASE_EQ (Fcompare_strings (string, Qnil, Qnil,
 					   strkey, Qnil, Qnil,
 					   completion_ignore_case ? Qt : Qnil),
-                    Qt))
-              goto found_matching_key;
+			 Qt))
+	      {
+                arg = v;
+                goto found_matching_key;
+              }
           }
       return Qnil;
     found_matching_key: ;
@@ -2141,7 +2135,7 @@ the values STRING, PREDICATE and `lambda'.  */)
   if (!NILP (predicate))
     {
       return HASH_TABLE_P (collection)
-	? call2 (predicate, tem, HASH_VALUE (XHASH_TABLE (collection), i))
+	? call2 (predicate, tem, arg)
 	: call1 (predicate, tem);
     }
   else
@@ -2320,7 +2314,6 @@ syms_of_minibuf (void)
 
   DEFSYM (Qcurrent_input_method, "current-input-method");
   DEFSYM (Qactivate_input_method, "activate-input-method");
-  DEFSYM (Qcase_fold_search, "case-fold-search");
   DEFSYM (Qmetadata, "metadata");
   DEFSYM (Qcycle_sort_function, "cycle-sort-function");
 
@@ -2482,9 +2475,10 @@ basic completion functions like `try-completion' and `all-completions'.  */);
   DEFVAR_BOOL ("minibuffer-allow-text-properties",
 	       minibuffer_allow_text_properties,
 	       doc: /* Non-nil means `read-from-minibuffer' should not discard text properties.
-This also affects `read-string', but it does not affect `read-minibuffer',
-`read-no-blanks-input', or any of the functions that do minibuffer input
-with completion; they always discard text properties.  */);
+The value could be let-bound or buffer-local in the minibuffer.
+This also affects `read-string', or any of the functions that do
+minibuffer input with completion, but it does not affect `read-minibuffer'
+that always discards text properties.  */);
   minibuffer_allow_text_properties = 0;
 
   DEFVAR_LISP ("minibuffer-prompt-properties", Vminibuffer_prompt_properties,
@@ -2548,4 +2542,8 @@ showing the *Completions* buffer, if any.  */);
   defsubr (&Stest_completion);
   defsubr (&Sassoc_string);
   defsubr (&Scompleting_read);
+  DEFSYM (Qminibuffer_quit_recursive_edit, "minibuffer-quit-recursive-edit");
+  DEFSYM (Qinternal_complete_buffer, "internal-complete-buffer");
+  DEFSYM (Qcompleting_read_function, "completing-read-function");
+  DEFSYM (Qformat_prompt, "format-prompt");
 }

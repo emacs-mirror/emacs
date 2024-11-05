@@ -1,6 +1,6 @@
 ;;; nnmairix.el --- Mairix back end for Gnus, the Emacs newsreader  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: David Engster <deng@randomsample.de>
 ;; Keywords: mail searching
@@ -35,7 +35,7 @@
 
 ;; Commentary on the code: nnmairix sits between Gnus and the "real"
 ;; back end which handles the mail (currently nnml, nnimap and
-;; nnmaildir were tested). I know this is all a bit hacky, but so far
+;; nnmaildir were tested).  I know this is all a bit hacky, but so far
 ;; it works for me.  This is the first back end I've written for Gnus,
 ;; so I'd appreciate any comments, suggestions, bug reports (and, of
 ;; course, patches) for improving nnmairix.
@@ -368,8 +368,9 @@ wrong count of total articles shown by Gnus.")
 its maildir mail folders (e.g. the Dovecot IMAP server or mutt).")
 
 (defvoo nnmairix-default-group nil
-  "Default search group.  This is the group which is used for all
-temporary searches, e.g. nnmairix-search.")
+  "Default search group.
+This is the group which is used for all temporary searches,
+e.g. nnmairix-search.")
 
 ;;; === Internal variables
 
@@ -741,8 +742,7 @@ called interactively, user will be asked for parameters."
   (when (and (stringp query)
 	     (string-match "\\s-" query))
     (setq query (split-string query)))
-  (when (not (listp query))
-    (setq query (list query)))
+  (setq query (ensure-list query))
   (when (and server group query)
     (let ((groupname (gnus-group-prefixed-name group server))
           ) ;; info

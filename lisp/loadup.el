@@ -1,6 +1,6 @@
-;;; loadup.el --- load up standardly loaded Lisp files for Emacs  -*- lexical-binding: t; -*-
+;;; loadup.el --- load up always-loaded Lisp files for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2023 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -191,6 +191,23 @@
   (setq definition-prefixes new))
 
 (load "button")                  ;After loaddefs, because of define-minor-mode!
+
+(when (interpreted-function-p (symbol-function 'add-hook))
+  ;; `subr.el' is needed early and hence can't use macros like `setf'
+  ;; liberally.  Yet, it does use such macros in code that it knows will not
+  ;; be executed too early, such as `add-hook'.  Usually, by the time we
+  ;; run that code, either `subr.el' was already compiled to start with
+  ;; or on the contrary many files aren't compiled yet and have thus caused
+  ;; macro packages like `gv' to be loaded.  But not always.
+  ;; The specific error we're trying to work around, here, occurs when
+  ;; `cl-preloaded's `provide' ends up (because of an `eval-after-load')
+  ;; calling `add-hook' which burps with a "void-function setf" on
+  ;; (setf (get hook 'hook--depth-alist) depth-sym)'.
+  ;; FIXME: We should probably split `subr.el' into one that's loaded early
+  ;; where we refrain from using macros like `setf', and another loaded later
+  ;; where we can blissfully `require' packages like `gv'.
+  (require 'gv))
+
 (load "emacs-lisp/cl-preloaded")
 (load "emacs-lisp/oclosure")          ;Used by cl-generic
 (load "obarray")        ;abbrev.el is implemented in terms of obarrays.
@@ -248,7 +265,7 @@
 (load "simple")
 (load "emacs-lisp/seq")
 (load "emacs-lisp/nadvice")
-(load "minibuffer") ;Needs cl-generic (and define-minor-mode).
+(load "minibuffer") ; Needs cl-generic, seq (and define-minor-mode).
 (load "frame")
 (load "startup")
 (load "term/tty-colors")
@@ -298,12 +315,9 @@
 (if (featurep 'dynamic-setting)
     (load "dynamic-setting"))
 
-;; touch-screen.el is tiny and is used liberally throughout the button
-;; code etc, so it may as well be preloaded everywhere.
-(load "touch-screen")
-
 (if (featurep 'x)
     (progn
+      (load "touch-screen")
       (load "x-dnd")
       (load "term/common-win")
       (load "term/x-win")))
@@ -316,6 +330,7 @@
 (if (featurep 'android)
     (progn
       (load "ls-lisp")
+      (load "touch-screen")
       (load "term/common-win")
       (load "term/android-win")))
 
@@ -329,7 +344,8 @@
       (when (eq system-type 'windows-nt)
         (load "w32-fns")
         (load "ls-lisp")
-        (load "dos-w32"))))
+        (load "dos-w32"))
+      (load "touch-screen")))
 (if (eq system-type 'ms-dos)
     (progn
       (load "dos-w32")
@@ -354,6 +370,7 @@
 (if (featurep 'pgtk)
     (progn
       (load "pgtk-dnd")
+      (load "touch-screen")
       (load "term/common-win")
       (load "term/pgtk-win")))
 (if (fboundp 'x-create-frame)
@@ -389,6 +406,9 @@
     (load "tooltip"))
 (load "international/iso-transl") ; Binds Alt-[ and friends.
 
+;; Used by `kill-buffer', for instance.
+(load "emacs-lisp/rmc")
+
 ;; This file doesn't exist when building a development version of Emacs
 ;; from the repository.  It is generated just after temacs is built.
 (load "leim/leim-list.el" t)
@@ -408,8 +428,17 @@
       (message "Warning: Change in load-path due to site-load will be \
 lost after dumping")))
 
-;; Used by `kill-buffer', for instance.
-(load "emacs-lisp/rmc")
+;; Actively check for advised functions during preload since:
+;; - advices in Emacs's core are generally considered bad style;
+;; - `Snarf-documentation' looses docstrings of primitives advised
+;;   during preload (bug#66032#20).
+(mapatoms
+ (lambda (f)
+   (and (advice--p (symbol-function f))
+        ;; Don't make it an error because it's not serious enough and
+        ;; it can be annoying during development.  Also there are still
+        ;; circumstances where we use advice on preloaded functions.
+        (message "Warning: Advice installed on preloaded function %S" f))))
 
 ;; Make sure default-directory is unibyte when dumping.  This is
 ;; because we cannot decode and encode it correctly (since the locale
@@ -496,23 +525,23 @@ lost after dumping")))
 ;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
-(defvar comp-subr-arities-h)
-(when (featurep 'native-compile)
-  ;; Save the arity for all primitives so the compiler can always
-  ;; retrive it even in case of redefinition.
-  (mapatoms (lambda (f)
-              (when (subr-primitive-p (symbol-function f))
-                (puthash f (func-arity f) comp-subr-arities-h))))
-  ;; Fix the compilation unit filename to have it working when
-  ;; installed or if the source directory got moved.  This is set to be
-  ;; a pair in the form of:
-  ;;     (rel-filename-from-install-bin . rel-filename-from-local-bin).
-  (let ((bin-dest-dir (cadr (member "--bin-dest" command-line-args)))
-        (eln-dest-dir (cadr (member "--eln-dest" command-line-args))))
-    (when (and bin-dest-dir eln-dest-dir)
+(defvar load--bin-dest-dir nil
+  "Store the original value passed by \"--bin-dest\" during dump.
+Internal use only.")
+(defvar load--eln-dest-dir nil
+  "Store the original value passed by \"--eln-dest\" during dump.
+Internal use only.")
+
+(defun load--fixup-all-elns ()
+  "Fix all compilation unit filename.
+This to have it working when installed or if Emacs source
+directory got moved.  This is set to be a pair in the form of:
+\(rel-filename-from-install-bin . rel-filename-from-local-bin)."
+  (when (and load--bin-dest-dir load--eln-dest-dir)
       (setq eln-dest-dir
-            (concat eln-dest-dir "native-lisp/" comp-native-version-dir "/"))
+          (concat load--eln-dest-dir "native-lisp/" comp-native-version-dir "/"))
       (maphash (lambda (_ cu)
+               (when (stringp (native-comp-unit-file cu))
                  (let* ((file (native-comp-unit-file cu))
                         (preloaded (equal (substring (file-name-directory file)
                                                      -10 -1)
@@ -529,10 +558,20 @@ lost after dumping")))
                                           (file-name-nondirectory
                                            file)
                                           eln-dest-dir-eff)
-                                         bin-dest-dir)
+                                         load--bin-dest-dir)
                      ;; Relative filename from the built uninstalled binary.
-                     (file-relative-name file invocation-directory)))))
-	       comp-loaded-comp-units-h)))
+                     (file-relative-name file invocation-directory))))))
+	     comp-loaded-comp-units-h)))
+
+(defvar comp-subr-arities-h)
+(when (featurep 'native-compile)
+  ;; Save the arity for all primitives so the compiler can always
+  ;; retrieve it even in case of redefinition.
+  (mapatoms (lambda (f)
+              (when (subr-primitive-p (symbol-function f))
+                (puthash f (func-arity f) comp-subr-arities-h))))
+  (setq load--bin-dest-dir (cadr (member "--bin-dest" command-line-args)))
+  (setq load--eln-dest-dir (cadr (member "--eln-dest" command-line-args)))
   ;; Set up the mechanism to allow inhibiting native-comp via
   ;; file-local variables.
   (defvar comp--no-native-compile (make-hash-table :test #'equal)))
@@ -615,6 +654,8 @@ lost after dumping")))
           (unwind-protect
               (let ((tmp-dump-mode dump-mode)
                     (dump-mode nil)
+                    ;; Set `lexical-binding' to nil by default
+                    ;; in the dumped Emacs.
                     (lexical-binding nil))
                 (if (member tmp-dump-mode '("pdump" "pbootstrap"))
                     (dump-emacs-portable (expand-file-name output invocation-directory))

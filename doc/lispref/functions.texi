@@ -1,6 +1,6 @@
-@c -*- mode: texinfo; coding: utf-8 -*-
+@c -*- mode: texinfo -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Functions
@@ -130,7 +130,7 @@ it also encloses an environment of lexical variable bindings.
 
 @item byte-code function
 A function that has been compiled by the byte compiler.
-@xref{Byte-Code Type}.
+@xref{Closure Type}.
 
 @item autoload object
 @cindex autoload object
@@ -186,8 +186,8 @@ their code.
 @end defun
 
 @noindent
-Unlike @code{functionp}, the next three functions do @emph{not} treat
-a symbol as its function definition.
+Unlike @code{functionp}, the next functions do @emph{not} treat a symbol
+as its function definition.
 
 @defun subrp object
 This function returns @code{t} if @var{object} is a built-in function
@@ -227,11 +227,35 @@ Compilation}), or natively-compiled (@pxref{Native Compilation}), or
 a function loaded from a dynamic module (@pxref{Dynamic Modules}).
 @end defun
 
+@defun interpreted-function-p object
+This function returns @code{t} if @var{object} is an interpreted function.
+@end defun
+
+@defun closurep object
+This function returns @code{t} if @var{object} is a closure, which is
+a particular kind of function object.  Currently closures are used
+for all byte-code functions and all interpreted functions.
+@end defun
+
 @defun subr-arity subr
 This works like @code{func-arity}, but only for built-in functions and
 without symbol indirection.  It signals an error for non-built-in
 functions.  We recommend to use @code{func-arity} instead.
 @end defun
+
+@defun cl-functionp object
+This function is like @code{functionp}, except it returns @code{nil} for
+lists and symbols.
+@end defun
+
+@findex subr-primitive-p
+@defun primitive-function-p object
+This function returns @code{t} if @var{object} is a built-in primitive
+written in C (@pxref{Primitive Function Type}).  Note that special forms
+are explicitly excluded, as they are not functions.  Use
+@code{subr-primitive-p} if you need to recognize special forms as well.
+@end defun
+
 
 @node Lambda Expressions
 @section Lambda Expressions
@@ -498,13 +522,12 @@ indentation of the following lines is inside the string; what looks
 nice in the source code will look ugly when displayed by the help
 commands.
 
-  You may wonder how the documentation string could be optional, since
-there are required components of the function that follow it (the body).
-Since evaluation of a string returns that string, without any side effects,
-it has no effect if it is not the last form in the body.  Thus, in
-practice, there is no confusion between the first form of the body and the
-documentation string; if the only body form is a string then it serves both
-as the return value and as the documentation.
+  A documentation string must always be followed by at least one Lisp
+expression; otherwise, it is not a documentation string at all but the
+single expression of the body and used as the return value.
+When there is no meaningful value to return from a function, it is
+standard practice to return @code{nil} by adding it after the
+documentation string.
 
   The last line of the documentation string can specify calling
 conventions different from the actual function arguments.  Write
@@ -532,6 +555,40 @@ Instead, use the @code{advertised-calling-convention} declaration
 (@pxref{Obsolete Functions}), because these two will cause the byte
 compiler emit a warning message when it compiles Lisp programs which
 use the deprecated calling convention.
+
+@ifnottex
+The @code{(fn)} feature is typically used in the following situations:
+
+@itemize @minus
+@item To spell out arguments and their purposes in a macro or a function.  Example:
+
+@example
+(defmacro lambda (&rest cdr)
+  "@dots{}
+\(fn ARGS [DOCSTRING] [INTERACTIVE] BODY)"@dots{})
+@end example
+
+@item To provide a more detailed description and names of arguments.  Example:
+
+@example
+(defmacro macroexp--accumulate (var+list &rest body)
+  "@dots{}
+\(fn (VAR LIST) BODY@dots{})"
+  (declare (indent 1))
+  (let ((var (car var+list))
+	  (list (cadr var+list))
+@dots{})))
+@end example
+
+@item To better explain the purpose of a @code{defalias}.  Example:
+
+@example
+(defalias 'abbrev-get 'get
+  "@dots{}
+\(fn ABBREV PROP)")
+@end example
+@end itemize
+@end ifnottex
 
 @cindex computed documentation string
 @kindex :documentation
@@ -948,8 +1005,8 @@ lists) and call them using @code{funcall} or @code{apply}.  Functions
 that accept function arguments are often called @dfn{functionals}.
 
   Sometimes, when you call a functional, it is useful to supply a no-op
-function as the argument.  Here are two different kinds of no-op
-function:
+function as the argument.  Here are three different kinds of no-op
+functions:
 
 @defun identity argument
 This function returns @var{argument} and has no side effects.
@@ -1103,8 +1160,7 @@ Functions}).  @xref{describe-symbols example}, for a realistic example
 of this.
 
   When defining a lambda expression that is to be used as an anonymous
-function, you can in principle use any method to construct the list.
-But typically you should use the @code{lambda} macro, or the
+function, you should use the @code{lambda} macro, or the
 @code{function} special form, or the @code{#'} read syntax:
 
 @defmac lambda args [doc] [interactive] body@dots{}
@@ -1112,17 +1168,18 @@ This macro returns an anonymous function with argument list
 @var{args}, documentation string @var{doc} (if any), interactive spec
 @var{interactive} (if any), and body forms given by @var{body}.
 
-Under dynamic binding, this macro effectively makes @code{lambda}
-forms self-quoting: evaluating a form whose @sc{car} is @code{lambda}
-yields the form itself:
+For example, this macro makes @code{lambda} forms almost self-quoting:
+evaluating a form whose @sc{car} is @code{lambda} yields a value that is
+almost like the form itself:
 
 @example
 (lambda (x) (* x x))
-     @result{} (lambda (x) (* x x))
+     @result{} #f(lambda (x) :dynbind (* x x))
 @end example
 
-Note that when evaluating under lexical binding the result is a
-closure object (@pxref{Closures}).
+When evaluating under lexical binding the result is a similar
+closure object, where the @code{:dynbind} marker is replaced by the
+captured variables (@pxref{Closures}).
 
 The @code{lambda} form has one other effect: it tells the Emacs
 evaluator and byte-compiler that its argument is a function, by using
@@ -1131,8 +1188,8 @@ evaluator and byte-compiler that its argument is a function, by using
 
 @defspec function function-object
 @cindex function quoting
-This special form returns @var{function-object} without evaluating it.
-In this, it is similar to @code{quote} (@pxref{Quoting}).  But unlike
+This special form returns the function value of the @var{function-object}.
+In many ways, it is similar to @code{quote} (@pxref{Quoting}).  But unlike
 @code{quote}, it also serves as a note to the Emacs evaluator and
 byte-compiler that @var{function-object} is intended to be used as a
 function.  Assuming @var{function-object} is a valid lambda
@@ -1453,16 +1510,13 @@ indirect-function}.
 @kindex void-function
 This returns the object in the function cell of @var{symbol}.  It does
 not check that the returned object is a legitimate function.
-
-If the function cell is void, the return value is @code{nil}.  To
-distinguish between a function cell that is void and one set to
-@code{nil}, use @code{fboundp} (see below).
+If the function is void, the return value is @code{nil}.
 
 @example
 @group
 (defun bar (n) (+ n 2))
 (symbol-function 'bar)
-     @result{} (lambda (n) (+ n 2))
+     @result{} #f(lambda (n) [t] (+ n 2))
 @end group
 @group
 (fset 'baz 'bar)
@@ -1476,29 +1530,29 @@ distinguish between a function cell that is void and one set to
 @end defun
 
 @cindex void function cell
-  If you have never given a symbol any function definition, we say
-that that symbol's function cell is @dfn{void}.  In other words, the
-function cell does not have any Lisp object in it.  If you try to call
+  If you have never given a symbol any function definition, its function
+cell contains the default value @code{nil} and we say
+that that function is @dfn{void}.  If you try to call
 the symbol as a function, Emacs signals a @code{void-function} error.
 
-  Note that void is not the same as @code{nil} or the symbol
-@code{void}.  The symbols @code{nil} and @code{void} are Lisp objects,
-and can be stored into a function cell just as any other object can be
-(and @code{void} can be a valid function if you define it with
-@code{defun}).  A void function cell contains no object whatsoever.
+  Unlike with void variables (@pxref{Void Variables}), a symbol's
+function cell that contains @code{nil} is indistinguishable from the
+function's being void.  Note that void is not the same as the symbol
+@code{void}: @code{void} can be a valid function if you define it with
+@code{defun}.
 
   You can test the voidness of a symbol's function definition with
 @code{fboundp}.  After you have given a symbol a function definition, you
 can make it void once more using @code{fmakunbound}.
 
 @defun fboundp symbol
-This function returns @code{t} if the symbol has an object in its
-function cell, @code{nil} otherwise.  It does not check that the object
-is a legitimate function.
+This function returns @code{t} if the symbol has a non-@code{nil} object
+in its function cell, @code{nil} otherwise.  It does not check that the
+object is a legitimate function.
 @end defun
 
 @defun fmakunbound symbol
-This function makes @var{symbol}'s function cell void, so that a
+This function makes @var{symbol}'s function cell @code{nil}, so that a
 subsequent attempt to access this cell will cause a
 @code{void-function} error.  It returns @var{symbol}.  (See also
 @code{makunbound}, in @ref{Void Variables}.)
@@ -1575,7 +1629,7 @@ argument list and body forms as the remaining elements:
 @example
 ;; @r{lexical binding is enabled.}
 (lambda (x) (* x x))
-     @result{} (closure (t) (x) (* x x))
+     @result{} #f(lambda (x) [t] (* x x))
 @end example
 
 @noindent
@@ -1994,9 +2048,16 @@ advice.  Advice can also cause confusion in debugging, if the person doing the
 debugging does not notice or remember that the function has been modified
 by advice.
 
-  For these reasons, advice should be reserved for the cases where you
-cannot modify a function's behavior in any other way.  If it is
-possible to do the same thing via a hook, that is preferable
+  Note that the problems are not due to advice per se, but to the act
+of modifying a named function.  It is even more problematic to modify
+a named function via lower-level primitives like @code{fset},
+@code{defalias}, or @code{cl-letf}.  From that point of view, advice
+is the better way to modify a named function because it keeps track of
+the modifications, so they can be listed and undone.
+
+  Modifying a named function should be reserved for
+the cases where you cannot modify Emacs's behavior in any other way.
+If it is possible to do the same thing via a hook, that is preferable
 (@pxref{Hooks}).  If you simply want to change what a particular key
 does, it may be better to write a new command, and remap the old
 command's key bindings to the new one (@pxref{Remapping Commands}).
@@ -2025,9 +2086,10 @@ code) obey the advice and other calls (from C code) do not.
 
 @defmac define-advice symbol (where lambda-list &optional name depth) &rest body
 This macro defines a piece of advice and adds it to the function named
-@var{symbol}.  The advice is an anonymous function if @var{name} is
-@code{nil} or a function named @code{symbol@@name}.  See
-@code{advice-add} for explanation of other arguments.
+@var{symbol}.  If @var{name} is non-@code{nil}, the advice is named
+@code{@var{symbol}@@@var{name}} and installed with the name @var{name}; otherwise,
+the advice is anonymous.  See @code{advice-add} for explanation of
+other arguments.
 @end defmac
 
 @defun advice-add symbol where function &optional props
@@ -2036,10 +2098,12 @@ Add the advice @var{function} to the named function @var{symbol}.
 (@pxref{Core Advising Primitives}).
 @end defun
 
-@defun advice-remove symbol function
+@deffn Command advice-remove symbol function
 Remove the advice @var{function} from the named function @var{symbol}.
-@var{function} can also be the @code{name} of a piece of advice.
-@end defun
+@var{function} can also be the @code{name} of a piece of advice.  When
+called interactively, prompt for both an advised @var{function} and
+the advice to remove.
+@end deffn
 
 @defun advice-member-p function symbol
 Return non-@code{nil} if the advice @var{function} is already in the named
@@ -2171,13 +2235,13 @@ More specifically, the composition of the two functions behaves like:
 @cindex old advices, porting
 @c NB: The following index entries deliberately avoid ``old'',
 @c an adjective that does not come to mind for those who grew up
-@c on ‘defadvice’ et al.  For those folks, that way is ``current''.
+@c on `defadvice' et al.  For those folks, that way is ``current''.
 @c They discover its oldness reading this node.
 @cindex advices, porting from @code{defadvice}
 @findex defadvice
 @findex ad-activate
 
-A lot of code uses the old @code{defadvice} mechanism, which is largely made
+A lot of code uses the old @code{defadvice} mechanism, which has been made
 obsolete by the new @code{advice-add}, whose implementation and semantics is
 significantly simpler.
 
@@ -2357,8 +2421,8 @@ accepted three arguments, like this
   (sit-for seconds milliseconds nodisp)
 @end example
 
-However, calling @code{sit-for} this way is considered obsolete
-(@pxref{Waiting}).  The old calling convention is deprecated like
+During a transition period, the function accepted those three
+arguments, but declared this old calling convention as deprecated like
 this:
 
 @example
@@ -2656,6 +2720,67 @@ native code emitted for the function.  In particular, if @var{n} is
 @minus{}1, native compilation of the function will emit bytecode
 instead of native code for the function.
 
+@item (safety @var{n})
+Specify the value of @code{compilation-safety} in effect for this
+function.  This allows function-level control of the safety level used
+for the code emitted for the function (@pxref{Native-Compilation
+Variables}).
+
+@item (ftype @var{type} &optional @var{function})
+Declare @var{type} to be the type of this function.  This is used for
+documentation by @code{describe-function}.  Also it can be used by the
+native compiler (@pxref{Native Compilation}) for improving code
+generation and for deriving more precisely the type of other functions
+without type declaration.
+
+@var{type} is a type specifier in the form @w{@code{(function
+(ARG-1-TYPE ... ARG-N-TYPE) RETURN-TYPE)}}.  Argument types can be
+interleaved with symbols @code{&optional} and @code{&rest} to match the
+function's arguments (@pxref{Argument List}).
+
+@var{function} if present should be the name of function being defined.
+
+Here's an example of using @code{ftype} inside @code{declare} to declare
+a function @code{positive-p} that takes an argument of type @var{number}
+and return a @var{boolean}:
+
+@lisp
+@group
+(defun positive-p (x)
+  (declare (ftype (function (number) boolean)))
+  (when (> x 0)
+    t))
+@end group
+@end lisp
+
+Similarly this declares a function @code{cons-or-number} that: expects a
+first argument being a @var{cons} or a @var{number}, a second optional
+argument of type @var{string} and return one of the symbols
+@code{is-cons} or @code{is-number}:
+
+@lisp
+@group
+(defun cons-or-number (x &optional err-msg)
+  (declare (ftype (function ((or cons number) &optional string)
+			    (member is-cons is-number))))
+  (if (consp x)
+      'is-cons
+    (if (numberp x)
+	'is-number
+      (error (or err-msg "Unexpected input")))))
+@end group
+@end lisp
+
+For description of additional types, see @ref{Lisp Data Types}).
+
+Declaring a function with an incorrect type produces undefined behavior
+and could lead to unexpected results or might even crash Emacs when
+natively-compiled code is loaded, if it was compiled with
+@code{compilation-safety} level of zero (@pxref{compilation-safety}).
+Note also that when redefining (or advising) a type-declared function,
+the replacement should respect the original signature to avoid such
+undefined behavior.
+
 @item no-font-lock-keyword
 This is valid for macros only.  Macros with this declaration are
 highlighted by font-lock (@pxref{Font Lock Mode}) as normal functions,
@@ -2677,7 +2802,7 @@ defined in other files which would be loaded if that code is run.  For
 example, byte-compiling @file{simple.el} used to warn:
 
 @example
-simple.el:8727:1:Warning: the function ‘shell-mode’ is not known to be
+simple.el:8727:1:Warning: the function `shell-mode' is not known to be
     defined.
 @end example
 

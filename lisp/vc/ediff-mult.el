@@ -1,6 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2024 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -43,7 +43,7 @@
 ;;                                 (...) ...)
 ;;         The function ediff-make-new-meta-list-element can be used to create
 ;;         2nd and subsequent elements of that list (i.e., after the
-;;         description header). See ediff-make-new-meta-list-element for the
+;;         description header).  See ediff-make-new-meta-list-element for the
 ;;         explanation of the two nil placeholders in such elements.
 ;;
 ;;         There is API for extracting the components of the members of the

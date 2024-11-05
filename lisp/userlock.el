@@ -1,6 +1,6 @@
 ;;; userlock.el --- handle file access contention between multiple users  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Richard King
 ;; (according to authors.el)
@@ -64,10 +64,11 @@ in any way you like."
 			  (match-string 0 opponent)))
 	      opponent))
       (while (null answer)
+	(when noninteractive
+          (signal 'file-locked (list file opponent "Cannot resolve lock conflict in batch mode")))
         (message (substitute-command-keys
                   "%s locked by %s: (\\`s', \\`q', \\`p', \\`?')? ")
                  short-file short-opponent)
-	(if noninteractive (error "Cannot resolve lock conflict in batch mode"))
 	(let ((tem (let ((inhibit-quit t)
 			 (cursor-in-echo-area t))
 		     (prog1 (downcase (read-char))

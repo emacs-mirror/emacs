@@ -1,6 +1,6 @@
 /* MS-DOS specific Lisp utilities.  Coded by Manabu Higashida, 1991.
    Major changes May-July 1993 Morten Welinder (only 10% original code left)
-   Copyright (C) 1991, 1993, 1996-1998, 2001-2023 Free Software
+   Copyright (C) 1991, 1993, 1996-1998, 2001-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -563,7 +563,7 @@ system_process_attributes (Lisp_Object pid)
       attrs = Fcons (Fcons (Qtime, tem), attrs);
       attrs = Fcons (Fcons (Qthcount, make_fixnum (1)), attrs);
       attrs = Fcons (Fcons (Qstart,
-			    Fsymbol_value (intern ("before-init-time"))),
+			    Fsymbol_value (Qbefore_init_time)),
 		     attrs);
       attrs = Fcons (Fcons (Qvsize,
 			    INT_TO_INTEGER ((unsigned long) sbrk (0) / 1024)),
@@ -652,10 +652,7 @@ dos_memory_info (unsigned long *totalram, unsigned long *freeram,
     mem2 *= 4096;
   /* Surely, the available memory is at least what we have physically
      available, right?  */
-  if (mem1 >= mem2)
-    freemem = mem1;
-  else
-    freemem = mem2;
+  freemem = max (mem1, mem2);
   *freeram = freemem;
   *totalswap =
     ((long)info.max_pages_in_paging_file == -1L)
@@ -797,5 +794,6 @@ If non-zero, this variable contains the character to be returned when the
 decimal point key in the numeric keypad is pressed when Num Lock is on.
 If zero, the decimal point key returns the country code specific value.  */);
   dos_decimal_point = 0;
+  DEFSYM (Qbefore_init_time, "before-init-time");
 }
 #endif /* MSDOS */

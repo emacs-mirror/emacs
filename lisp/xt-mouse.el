@@ -1,6 +1,6 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -58,14 +58,23 @@ https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
     (let* ((event (xterm-mouse-event extension))
 	   (ev-command (nth 0 event))
 	   (ev-data    (nth 1 event))
+	   (ev-window  (nth 0 ev-data))
 	   (ev-where   (nth 1 ev-data))
+	   (last-window (terminal-parameter nil 'xterm-mouse-last-window))
 	   (vec (vector event))
 	   (is-move (eq 'mouse-movement ev-command))
 	   (is-down (string-match "down-" (symbol-name ev-command))))
 
-      ;; Mouse events symbols must have an 'event-kind property with
-      ;; the value 'mouse-click.
-      (when ev-command (put ev-command 'event-kind 'mouse-click))
+      ;; Mouse events symbols must have an 'event-kind property set.
+      ;; Most of them use the value 'mouse-click, but 'mouse-movement has
+      ;; a different value.  See head_table in keyboard.c. (bug#67457)
+      (when ev-command (put ev-command 'event-kind
+                            (if (eq ev-command 'mouse-movement)
+                                'mouse-movement
+                              'mouse-click)))
+
+      ;; remember window of current mouse position
+      (set-terminal-parameter nil 'xterm-mouse-last-window ev-window)
 
       (cond
        ((null event) nil)		;Unknown/bogus byte sequence!
@@ -78,10 +87,22 @@ https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	vec)
        (is-move
         (xterm-mouse--handle-mouse-movement)
-        (if track-mouse vec
-          ;; Mouse movement events are currently supposed to be
-          ;; suppressed.  Return no event.
-          []))
+        ;; after mouse movement autoselect the mouse window, but ...
+	(cond ((and mouse-autoselect-window
+                    ;; ignore modeline, tab-bar, menu-bar and so forth ...
+		    (windowp ev-window)
+                    ;; and don't deselect the minibuffer ...
+                    (not (window-minibuffer-p (selected-window)))
+                    ;; and select only, if mouse is over a new window ...
+                    (not (eq ev-window last-window))
+                    ;; which is different from the selected window
+		    (not (eq ev-window (selected-window))))
+	       (put 'select-window 'event-kind 'switch-frame)
+	       (push `(select-window (,ev-window)) unread-command-events)
+               [])
+	       ;;(vector `(select-window (,ev-window))))
+              (track-mouse vec)
+              (t [])))
        (t
 	(let* ((down (terminal-parameter nil 'xterm-mouse-last-down))
 	       (down-data (nth 1 down))
@@ -226,13 +247,18 @@ single byte."
              ;; Spurious release event without previous button-down
              ;; event: assume, that the last button was button 1.
              (t 1)))
-       (sym (if move 'mouse-movement
-              (intern (concat (if ctrl "C-" "")
-                              (if meta "M-" "")
-                              (if shift "S-" "")
-                              (if down "down-" "")
-                              "mouse-"
-                              (number-to-string btn))))))
+       (sym
+        (if move 'mouse-movement
+          (intern
+           (concat
+            (if ctrl "C-" "")
+            (if meta "M-" "")
+            (if shift "S-" "")
+            (if down "down-" "")
+            (let ((remap (alist-get btn mouse-wheel-buttons)))
+              (if remap
+                  (symbol-name remap)
+                (format "mouse-%d" btn))))))))
     (list sym (1- x) (1- y))))
 
 (defun xterm-mouse--set-click-count (event click-count)

@@ -1,6 +1,6 @@
 ;;; subr-tests.el --- Tests for subr.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -345,18 +345,54 @@
 
 ;;;; Mode hooks.
 
-(defalias 'subr-tests--parent-mode
-  (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
+(defalias 'subr-tests--parent-mode #'prog-mode)
 
+(define-derived-mode subr-tests--derived-mode-1 prog-mode "test")
+(define-derived-mode subr-tests--derived-mode-2 subr-tests--parent-mode "test")
 (ert-deftest provided-mode-derived-p ()
   ;; base case: `derived-mode' directly derives `prog-mode'
-  (should (progn
-            (define-derived-mode derived-mode prog-mode "test")
-            (provided-mode-derived-p 'derived-mode 'prog-mode)))
-  ;; edge case: `derived-mode' derives an alias of `prog-mode'
-  (should (progn
-            (define-derived-mode derived-mode subr-tests--parent-mode "test")
-            (provided-mode-derived-p 'derived-mode 'prog-mode))))
+  (should (provided-mode-derived-p 'subr-tests--derived-mode-1 'prog-mode))
+  ;; Edge cases: aliases along the derivation.
+  (should (provided-mode-derived-p 'subr-tests--parent-mode
+                                   'subr-tests--parent-mode))
+  (should (provided-mode-derived-p 'subr-tests--derived-mode-2
+                                   'subr-tests--parent-mode))
+  (should (provided-mode-derived-p 'subr-tests--derived-mode-2 'prog-mode)))
+
+
+(define-derived-mode subr-tests--mode-A subr-tests--derived-mode-1 "t")
+(define-derived-mode subr-tests--mode-B subr-tests--mode-A "t")
+(defalias 'subr-tests--mode-C #'subr-tests--mode-B)
+(derived-mode-add-parents 'subr-tests--mode-A '(subr-tests--mode-C))
+
+(ert-deftest subr-tests--derived-mode-add-parents ()
+  ;; The Right Answer is somewhat unclear in the presence of cycles,
+  ;; but let's make sure we get tolerable answers.
+  ;; FIXME: Currently `prog-mode' doesn't always end up at the end :-(
+  (let ((set-equal (lambda (a b)
+                     (not (or (cl-set-difference a b)
+                              (cl-set-difference b a))))))
+    (dolist (mode '(subr-tests--mode-A subr-tests--mode-B subr-tests--mode-C))
+      (should (eq (derived-mode-all-parents mode)
+                  (derived-mode-all-parents mode)))
+      (should (eq mode (car (derived-mode-all-parents mode))))
+      (should (funcall set-equal
+                       (derived-mode-all-parents mode)
+                       '(subr-tests--mode-A subr-tests--mode-B prog-mode
+                         subr-tests--mode-C subr-tests--derived-mode-1))))))
+
+(ert-deftest subr-tests--merge-ordered-lists ()
+  (should (equal (merge-ordered-lists
+                  '((B A) (C A) (D B) (E D C))
+                  (lambda (_) (error "cycle")))
+                 '(E D B C A)))
+  (should (equal (merge-ordered-lists
+                  '((E D C) (B A) (C A) (D B))
+                  (lambda (_) (error "cycle")))
+                 '(E D C B A)))
+  (should-error (merge-ordered-lists
+                 '((E C D) (B A) (A C) (D B))
+                 (lambda (_) (error "cycle")))))
 
 (ert-deftest number-sequence-test ()
   (should (= (length
@@ -708,7 +744,14 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
                                  (+ subr-tests-var1 subr-tests-var2)))
                  '(let* ((subr-tests-var1 1)
                          (subr-tests-var2 subr-tests-var1))
-                    (+ subr-tests-var1 subr-tests-var2)))))
+                    (+ subr-tests-var1 subr-tests-var2))))
+  ;; Check that the init expression can be omitted, as in `let'/`let*'.
+  (should (equal (letrec ((a (lambda () (funcall c)))
+                          (b)
+                          (c (lambda () b)))
+                   (setq b 'ok)
+                   (funcall a))
+                 'ok)))
 
 (defvar subr-tests--hook nil)
 
@@ -1286,6 +1329,54 @@ final or penultimate step during initialization."))
     (should (equal (condition-case-unless-debug x (error "")
                      (t x) (:success (1+ x)))
                    '(error "")))))
+
+(ert-deftest subr--subst-char-in-string ()
+  ;; Cross-validate `subst-char-in-string' with `string-replace',
+  ;; which should produce the same results when there are no properties.
+  (dolist (str '("ananas" "na\x80ma\x80s" "hétérogénéité"
+                 "Ω, Ω, Ω" "é-\x80-\x80"))
+    (dolist (mb '(nil t))
+      (unless (and (not mb) (multibyte-string-p str))
+        (let ((str (if (and mb (not (multibyte-string-p str)))
+                       (string-to-multibyte str)
+                     str)))
+          (dolist (inplace '(nil t))
+            (dolist (from '(?a ?é ?Ω #x80 #x3fff80))
+              (dolist (to '(?o ?á ?ƒ ?☃ #x1313f #xff #x3fffc9))
+                ;; Can't put a non-byte value in a non-ASCII unibyte string.
+                (unless (and (not mb) (> to #xff)
+                             (not (string-match-p (rx bos (* ascii) eos) str)))
+                  (let* ((in (copy-sequence str))
+                         (ref (if (and (not mb) (> from #xff))
+                                  in    ; nothing to replace
+                                (string-replace
+                                 (if (and (not mb) (<= from #xff))
+                                     (unibyte-string from)
+                                   (string from))
+                                 (if (and (not mb) (<= to #xff))
+                                     (unibyte-string to)
+                                   (string to))
+                                 in)))
+                         (out (subst-char-in-string from to in inplace)))
+                    (should (equal out ref))
+                    (if inplace
+                        (should (eq out in))
+                      (should (equal in str))))))))))))
+
+  ;; Verify that properties are preserved.
+  (dolist (str (list "cocoa" (string-to-multibyte "cocoa") "écalé"))
+    (dolist (from '(?a ?o ?c ?é))
+      (dolist (to '(?i ?à ?☃))
+        (let ((in (copy-sequence str)))
+          (put-text-property 0 5 'alpha 1 in)
+          (put-text-property 1 4 'beta 2 in)
+          (put-text-property 0 2 'gamma 3 in)
+          (put-text-property 1 4 'delta 4 in)
+          (put-text-property 2 3 'epsilon 5 in)
+          (let* ((props-in (copy-tree (object-intervals in)))
+                 (out (subst-char-in-string from to in))
+                 (props-out (object-intervals out)))
+            (should (equal props-out props-in))))))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

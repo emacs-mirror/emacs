@@ -1,6 +1,6 @@
 ;;; eshell-tests-helpers.el --- Eshell test suite helpers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -30,6 +30,8 @@
 (require 'esh-mode)
 (require 'eshell)
 
+(defvar eshell-aliases-file nil)
+(defvar eshell-command-aliases-list nil)
 (defvar eshell-history-file-name nil)
 (defvar eshell-last-dir-ring-file-name nil)
 
@@ -47,16 +49,32 @@ beginning of the test file."
      (file-directory-p ert-remote-temporary-file-directory)
      (file-writable-p ert-remote-temporary-file-directory))))
 
+(defmacro with-temp-eshell-settings (&rest body)
+  "Configure Eshell to leave no trace behind, and then evaluate BODY."
+  (declare (indent 0))
+  `(ert-with-temp-directory eshell-directory-name
+     (let (;; We want no history file, so prevent Eshell from falling
+           ;; back on $HISTFILE.
+           (process-environment (cons "HISTFILE" process-environment))
+           ;; Enable process debug instrumentation.  We may be able to
+           ;; remove this eventually once we're confident that all the
+           ;; process bugs have been worked out.  (At that point, we can
+           ;; just enable this selectively when needed.)  See also
+           ;; `eshell-test-command-result' below.
+           (eshell-debug-command (cons 'process eshell-debug-command))
+           (eshell-aliases-file nil)
+           (eshell-command-aliases-list nil)
+           (eshell-history-file-name nil)
+           (eshell-last-dir-ring-file-name nil)
+           (eshell-module-loading-messages nil))
+       ,@body)))
+
 (defmacro with-temp-eshell (&rest body)
   "Evaluate BODY in a temporary Eshell buffer."
+  (declare (indent 0))
   `(save-current-buffer
-     (ert-with-temp-directory eshell-directory-name
-       (let* (;; We want no history file, so prevent Eshell from falling
-              ;; back on $HISTFILE.
-              (process-environment (cons "HISTFILE" process-environment))
-              (eshell-history-file-name nil)
-              (eshell-last-dir-ring-file-name nil)
-              (eshell-buffer (eshell t)))
+     (with-temp-eshell-settings
+       (let ((eshell-buffer (eshell t)))
          (unwind-protect
              (with-current-buffer eshell-buffer
                ,@body)
@@ -96,6 +114,13 @@ raise an error."
    (lambda ()
      (not (if all eshell-process-list (eshell-interactive-process-p))))))
 
+(defun eshell-get-debug-logs ()
+  "Get debug command logs for displaying on test failures."
+  (when (get-buffer eshell-debug-command-buffer)
+    (let ((separator (make-string 40 ?-)))
+      (with-current-buffer eshell-debug-command-buffer
+        (string-replace "\f" separator (buffer-string))))))
+
 (defun eshell-insert-command (command &optional func)
   "Insert a COMMAND at the end of the buffer.
 After inserting, call FUNC.  If FUNC is nil, instead call
@@ -113,6 +138,12 @@ After inserting, call FUNC.  If FUNC is nil, instead call
   "Return the output of the last Eshell command."
   (buffer-substring-no-properties
    (eshell-beginning-of-output) (eshell-end-of-output)))
+
+(defun eshell-test-file-string (file)
+  "Return the contents of FILE as a string."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (buffer-string)))
 
 (defun eshell-match-output (regexp)
   "Test whether the output of the last command matches REGEXP."
@@ -135,17 +166,21 @@ FUNC is the function to call after inserting the text (see
 
 If IGNORE-ERRORS is non-nil, ignore any errors signaled when
 inserting the command."
-  (let ((debug-on-error (and (not ignore-errors) debug-on-error)))
-    (eshell-insert-command command func))
-  (eshell-wait-for-subprocess)
-  (should (eshell-match-output regexp)))
+  (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
+    (let ((debug-on-error (and (not ignore-errors) debug-on-error)))
+      (eshell-insert-command command func))
+    (eshell-wait-for-subprocess)
+    (should (eshell-match-output regexp))))
 
 (defvar eshell-history-file-name)
 
 (defun eshell-test-command-result (command)
   "Like `eshell-command-result', but not using HOME."
   (ert-with-temp-directory eshell-directory-name
-    (let ((eshell-history-file-name nil))
+    (let ((eshell-history-file-name nil)
+          ;; Enable process debug instrumentation.  See
+          ;; `with-temp-eshell' above.
+          (eshell-debug-command (cons 'process eshell-debug-command)))
       (eshell-command-result command))))
 
 (defun eshell-command-result--equal (_command actual expected)
@@ -164,10 +199,34 @@ inserting the command."
 
 (defun eshell-command-result-equal (command result)
   "Execute COMMAND non-interactively and compare it to RESULT."
-  (should (eshell-command-result--equal
-           command
-           (eshell-test-command-result command)
-           result)))
+  (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
+    (let ((eshell-module-loading-messages nil))
+      (should (eshell-command-result--equal
+               command
+               (eshell-test-command-result command)
+               result)))))
+
+(defun eshell-command-result--match (_command regexp actual)
+  "Compare the ACTUAL result of a COMMAND with REGEXP."
+  (string-match regexp actual))
+
+(defun eshell-command-result--match-explainer (command regexp actual)
+  "Explain the result of `eshell-command-result--match'."
+  `(mismatched-result
+    (command ,command)
+    (result ,actual)
+    (regexp ,regexp)))
+
+(put 'eshell-command-result--match 'ert-explainer
+     #'eshell-command-result--match-explainer)
+
+(defun eshell-command-result-match (command regexp)
+  "Execute COMMAND non-interactively and compare it to REGEXP."
+  (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
+    (let ((eshell-module-loading-messages nil))
+      (should (eshell-command-result--match
+               command regexp
+               (eshell-test-command-result command))))))
 
 (provide 'eshell-tests-helpers)
 

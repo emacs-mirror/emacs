@@ -1,6 +1,6 @@
 ;;; erc-scenarios-status-sidebar.el --- erc-sidebar/speedbar tests -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -64,8 +64,7 @@
         (let ((obuf (window-buffer))) ; *scratch*
           (set-window-buffer (selected-window) "#foo")
           (erc-d-t-wait-for 5
-              (when noninteractive
-                (erc-status-sidebar-refresh))
+              (erc-status-sidebar-refresh)
             (with-current-buffer "*ERC Status*"
               (and (marker-position erc-status-sidebar--active-marker)
                    (goto-char erc-status-sidebar--active-marker)
@@ -94,16 +93,19 @@
 ;; terminal, and we lack a fixture for that.  Please try running this
 ;; test interactively with both graphical Emacs and non.
 (declare-function erc-nickbar-mode "erc-speedbar" (arg))
-(declare-function erc-speedbar-close-nicknames-window "erc-speedbar" (kill))
+(declare-function erc-speedbar--get-timers "erc-speedbar" nil)
 (declare-function speedbar-timer-fn "speedbar" nil)
 (defvar erc-nickbar-mode)
 (defvar speedbar-buffer)
 
+;; FIXME move to own file because it takes 20+ seconds, uncompiled.
 (ert-deftest erc-scenarios-status-sidebar--nickbar ()
-  :tags '(:unstable :expensive-test)
-  (when noninteractive (ert-skip "Interactive only"))
+  :tags `(:expensive-test :unstable ,@(and (getenv "ERC_TESTS_GRAPHICAL")
+                                           '(:erc--graphical)))
+  (when (and noninteractive (= emacs-major-version 27))
+    (ert-skip "Hangs on Emacs 27, asking for input"))
 
-  (erc-scenarios-common-with-cleanup
+  (erc-scenarios-common-with-noninteractive-in-term
       ((erc-scenarios-common-dialog "base/gapless-connect")
        (erc-server-flood-penalty 0.1)
        (erc-server-flood-penalty erc-server-flood-penalty)
@@ -154,16 +156,21 @@
       (ert-info ("Core toggle and kill commands work")
         ;; Avoid using API, e.g., `erc-status-sidebar-buffer-exists-p',
         ;; etc. for testing commands that call those same functions.
-        (erc-nickbar-mode -1)
-        (should-not (and speedbar-buffer
-                         (get-buffer-window speedbar-buffer)))
+        (call-interactively #'erc-nickbar-mode)
+        (should-not erc-nickbar-mode)
+        (should-not speedbar-buffer)
+        (should-not (get-buffer " SPEEDBAR"))
+
         (erc-nickbar-mode +1)
-        (should (and speedbar-buffer
-                     (get-buffer-window speedbar-buffer)))
+        (should (and speedbar-buffer (get-buffer-window speedbar-buffer)))
+        (should (eq speedbar-buffer (get-buffer " SPEEDBAR")))
         (should (get-buffer " SPEEDBAR"))
-        (erc-speedbar-close-nicknames-window 'kill)
+
+        (erc-nickbar-mode -1)
         (should-not (get-buffer " SPEEDBAR"))
         (should-not erc-nickbar-mode)
-        (should-not (cdr (frame-list)))))))
+        (should-not (cdr (frame-list)))))
+
+    (should-not (erc-speedbar--get-timers))))
 
 ;;; erc-scenarios-status-sidebar.el ends here

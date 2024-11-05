@@ -1,6 +1,6 @@
 ;;; mh-folder.el --- MH-Folder mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2003, 2005-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2024 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
@@ -454,11 +454,10 @@ FACE is the font-lock face used to display the matching scan lines."
   (let ((cache (intern (format "mh-folder-%s-seq-cache" prefix)))
         (func (intern (format "mh-folder-font-lock-%s" prefix))))
     `(progn
-       (defvar ,cache nil
+       (defvar-local ,cache nil
          "Internal cache variable used for font-lock in MH-E.
 Should only be non-nil through font-lock stepping, and nil once
 font-lock is done highlighting.")
-       (make-variable-buffer-local ',cache)
 
        (defun ,func (limit)
          "Return unseen message lines to font-lock between point and LIMIT."
@@ -520,8 +519,8 @@ font-lock is done highlighting.")
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
 (define-derived-mode mh-folder-mode fundamental-mode "MH-Folder"
-  "Major MH-E mode for \"editing\" an MH folder scan listing.\\<mh-folder-mode-map>
-
+  "Major MH-E mode for \"editing\" an MH folder scan listing.
+\\<mh-folder-mode-map>
 You can show the message the cursor is pointing to, and step through
 the messages. Messages can be marked for deletion or refiling into
 another folder; these commands are executed all at once with a

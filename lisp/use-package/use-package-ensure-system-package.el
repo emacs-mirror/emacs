@@ -1,13 +1,11 @@
 ;;; use-package-ensure-system-package.el --- auto install system packages  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Justin Talbott <justin@waymondo.com>
 ;; Keywords: convenience, tools, extensions
 ;; URL: https://github.com/waymondo/use-package-ensure-system-package
-;; Version: 0.2
 ;; Package-Requires: ((use-package "2.1") (system-packages "1.0.4"))
-;; Filename: use-package-ensure-system-package.el
 
 ;; This file is part of GNU Emacs.
 

@@ -1,5 +1,5 @@
 %{
-/*	Copyright (C) 1990, 1992-1993, 2016-2023 Free Software Foundation,
+/*	Copyright (C) 1990, 1992-1993, 2016-2024 Free Software Foundation,
  *	Inc.
 
 This file is part of Oleo, the GNU Spreadsheet.

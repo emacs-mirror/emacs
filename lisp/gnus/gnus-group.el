@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -286,10 +286,10 @@ If you want to modify the group buffer, you can use this hook."
   :type 'hook)
 
 (defcustom gnus-useful-groups
-  '(("(ding) mailing list mirrored at gmane.org"
+  '(("(ding) mailing list mirrored at gmane.io"
      "gmane.emacs.gnus.general"
      (nntp "Gmane"
-	   (nntp-address "news.gmane.org")))
+           (nntp-address "news.gmane.io")))
     ("Gnus bug archive"
      "gnus.gnus-bug"
      (nntp "news.gnus.org"
@@ -1064,11 +1064,11 @@ When FORCE, rebuild the tool bar."
 All normal editing commands are switched off.
 \\<gnus-group-mode-map>
 The group buffer lists (some of) the groups available.  For instance,
-`\\[gnus-group-list-groups]' will list all subscribed groups with unread articles, while `\\[gnus-group-list-zombies]'
+\\[gnus-group-list-groups] will list all subscribed groups with unread articles, while \\[gnus-group-list-zombies]
 lists all zombie groups.
 
-Groups that are displayed can be entered with `\\[gnus-group-read-group]'.  To subscribe
-to a group not displayed, type `\\[gnus-group-toggle-subscription]'.
+Groups that are displayed can be entered with \\[gnus-group-read-group].  To subscribe
+to a group not displayed, type \\[gnus-group-toggle-subscription].
 
 For more in-depth information on this mode, read the manual (`\\[gnus-info-find-node]').
 
@@ -1436,14 +1436,8 @@ if it is a string, only list groups matching REGEXP."
 
 ;; Moving through the Group buffer (in topic mode) e.g. with C-n doesn't
 ;; update the state (enabled/disabled) of the icon `gnus-group-describe-group'
-;; automatically.  After `C-l' the state is correct.  See the following report
-;; on emacs-devel
-;; <http://thread.gmane.org/v9acdmrcse.fsf@marauder.physik.uni-ulm.de>:
-;; From: Reiner Steib
-;; Subject: tool bar icons not updated according to :active condition
-;; Newsgroups: gmane.emacs.devel
-;; Date: Mon, 23 Jan 2006 19:59:13 +0100
-;; Message-ID: <v9acdmrcse.fsf@marauder.physik.uni-ulm.de>
+;; automatically.  After `C-l' the state is correct.
+;; See: https://lists.gnu.org/r/emacs-devel/2006-01/msg00853.html
 
 ;; Using `redraw-frame' (see `gnus-tool-bar-update') in Emacs might
 ;; be confusing, so maybe we shouldn't call it by default.
@@ -1751,17 +1745,17 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
       gnus-level-killed))
 
 (defun gnus-group-search-forward (&optional backward all level first-too)
-  "Find the next newsgroup with unread articles.
-If BACKWARD is non-nil, find the previous newsgroup instead.
-If ALL is non-nil, just find any newsgroup.
-If LEVEL is non-nil, find group with level LEVEL, or higher if no such
-group exists.
-If FIRST-TOO, the current line is also eligible as a target."
+  "Move point to the next newsgroup with unread articles.
+If BACKWARD is non-nil, move to the previous newsgroup instead.
+If ALL is non-nil, consider any newsgroup, not only those with
+unread articles.  If LEVEL is non-nil, find group with level
+LEVEL, or higher if no such group exists.  If FIRST-TOO, the
+current line is also eligible as a target."
   (let ((way (if backward -1 1))
 	(low gnus-level-killed)
 	(beg (point))
 	pos found lev)
-    (if (and backward (progn (beginning-of-line)) (bobp))
+    (if (and backward (progn (beginning-of-line) (bobp)))
 	nil
       (unless first-too
 	(forward-line way))
@@ -2336,7 +2330,7 @@ Valid input formats include:
     (cond
      ;; URLs providing `group', `start' and `range':
      ((string-match
-       ;; http://thread.gmane.org/gmane.emacs.devel/86326/focus=86525
+       ;; http://thread.gmane.org/gmane.emacs.devel/86326/focus=86525 [dead link]
        "^http://thread\\.gmane\\.org/\\([^/]+\\)/\\([0-9]+\\)/focus=\\([0-9]+\\)$"
        url)
       (setq group (match-string 1 url)
@@ -2347,7 +2341,7 @@ Valid input formats include:
 		     start -1)))
      ;; URLs providing `group' and `start':
      ((or (string-match
-	   ;; http://article.gmane.org/gmane.comp.gnu.make.bugs/3584
+           ;; http://article.gmane.org/gmane.comp.gnu.make.bugs/3584 [dead link]
 	   "^http://\\(?:thread\\|article\\|permalink\\)\\.gmane\\.org/\\([^/]+\\)/\\([0-9]+\\)"
 	   url)
 	  (string-match
@@ -2355,7 +2349,7 @@ Valid input formats include:
 	   "^\\(?:nntp\\|news\\)://news\\.gmane\\.org/\\([^/]+\\)/\\([0-9]+\\)"
 	   url)
 	  (string-match
-	   ;; http://news.gmane.org/group/gmane.emacs.gnus.general/thread=65099/force_load=t
+           ;; http://news.gmane.org/group/gmane.emacs.gnus.general/thread=65099/force_load=t [dead link]
 	   "^http://news\\.gmane\\.org/group/\\([^/]+\\)/thread=\\([0-9]+\\)"
 	   url))
       (setq group (match-string 1 url)
@@ -4644,7 +4638,7 @@ and the second element is the address."
   "Mark ARTICLE in GROUP with MARK, whether the group is displayed or not."
   (let ((buffer (gnus-summary-buffer-name group)))
     (if (gnus-buffer-live-p buffer)
-	(with-current-buffer (get-buffer buffer)
+	(with-current-buffer buffer
 	  (gnus-summary-add-mark article mark))
       (gnus-add-marked-articles group (cdr (assq mark gnus-article-mark-lists))
 				(list article)))))

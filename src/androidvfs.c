@@ -1,6 +1,6 @@
 /* Android virtual file-system support for GNU Emacs.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,24 +26,30 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <minmax.h>
 #include <string.h>
+#include <systime.h>
 #include <semaphore.h>
 
 #include <sys/stat.h>
 #include <sys/mman.h>
 
 #include <stat-time.h>
+#include <md5.h>
 
 #include <linux/ashmem.h>
 
 #include "android.h"
+#include "androidterm.h"
 #include "systime.h"
 #include "blockinput.h"
+#include "coding.h"
 
 #if __ANDROID_API__ >= 9
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
+#define OLD_ANDROID_ASSETS 0
 #else /* __ANDROID_API__ < 9 */
 #include "android-asset.h"
+#define OLD_ANDROID_ASSETS 1
 #endif /* __ANDROID_API__ >= 9 */
 
 #include <android/log.h>
@@ -197,9 +203,10 @@ struct android_vops
      Value is otherwise the same as `rename'.  */
   int (*rename) (struct android_vnode *, struct android_vnode *, bool);
 
-  /* Return statistics for the specified VNODE.
-     Value and errno are the same as with Unix `stat'.  */
-  int (*stat) (struct android_vnode *, struct stat *);
+  /* Return statistics for the specified VNODE, and FLAGS, as in a call
+     to `fstatat'.  Value and errno are the same as with Unix
+     `stat'.  */
+  int (*stat) (struct android_vnode *, struct stat *, int);
 
   /* Return whether or not VNODE is accessible.
      Value, errno and MODE are the same as with Unix `access'.  */
@@ -213,6 +220,10 @@ struct android_vops
      to the delegating at-func, and is probably
      AT_SYMLINK_NOFOLLOW.  */
   int (*chmod) (struct android_vnode *, mode_t, int);
+
+  /* Return the target of VNODE if it is a symbolic link, or -1.
+     Value and errno are the same as with `readlink'.  */
+  ssize_t (*readlink) (struct android_vnode *, char *, size_t);
 
   /* Open the specified VNODE as a directory.
      Value is a ``directory handle'', or NULL upon failure.  */
@@ -242,7 +253,13 @@ struct android_special_vnode
   /* Function called to create the initial vnode from the rest of the
      component.  */
   struct android_vnode *(*initial) (char *, size_t);
+
+  /* If non-nil, an encoding system into which file name buffers are to
+     be re-encoded before being handed to VFS functions.  */
+  Lisp_Object special_coding_system;
 };
+
+static_assert (NIL_IS_ZERO); /* special_coding_system above.  */
 
 enum android_vnode_type
   {
@@ -250,6 +267,7 @@ enum android_vnode_type
     ANDROID_VNODE_AFS,
     ANDROID_VNODE_CONTENT,
     ANDROID_VNODE_CONTENT_AUTHORITY,
+    ANDROID_VNODE_CONTENT_AUTHORITY_NAMED,
     ANDROID_VNODE_SAF_ROOT,
     ANDROID_VNODE_SAF_TREE,
     ANDROID_VNODE_SAF_FILE,
@@ -275,19 +293,8 @@ struct emacs_directory_entry_class
   jfieldID d_name;
 };
 
-/* Structure describing the android.os.ParcelFileDescriptor class used
-   to wrap file descriptors sent over IPC.  */
-
-struct android_parcel_file_descriptor_class
-{
-  jclass class;
-  jmethodID close;
-  jmethodID get_fd;
-  jmethodID detach_fd;
-};
-
 /* The java.lang.String class.  */
-static jclass java_string_class;
+jclass java_string_class;
 
 /* Fields and methods associated with the Cursor class.  */
 static struct android_cursor_class cursor_class;
@@ -298,7 +305,7 @@ static struct emacs_directory_entry_class entry_class;
 
 /* Fields and methods associated with the ParcelFileDescriptor
    class.  */
-static struct android_parcel_file_descriptor_class fd_class;
+struct android_parcel_file_descriptor_class fd_class;
 
 /* Global references to several exception classes.  */
 static jclass file_not_found_exception, security_exception;
@@ -365,13 +372,18 @@ android_init_entry_class (JNIEnv *env)
 }
 
 
-/* Initialize `fd_class' using the given JNI environment ENV.  Calling
-   this function is not necessary on Android 4.4 and earlier.  */
+/* Initialize `fd_class' using the given JNI environment ENV.  Called on
+   API 12 (Android 3.1) and later by androidselect.c and on 5.0 and
+   later in this file.  */
 
-static void
+void
 android_init_fd_class (JNIEnv *env)
 {
   jclass old;
+  static bool fd_class_initialized;
+
+  if (fd_class_initialized)
+    return;
 
   fd_class.class
     = (*env)->FindClass (env, "android/os/ParcelFileDescriptor");
@@ -394,9 +406,21 @@ android_init_fd_class (JNIEnv *env)
   FIND_METHOD (get_fd, "getFd", "()I");
   FIND_METHOD (detach_fd, "detachFd", "()I");
 #undef FIND_METHOD
+
+  fd_class_initialized = true;
 }
 
 
+
+/* Account for SAF file names two times as large as PATH_MAX; larger
+   values are prohibitively slow, but smaller values can't face up to
+   some long file names within several nested layers of directories.
+
+   Buffers holding components or other similar file name constituents
+   which don't represent SAF files must continue to use PATH_MAX, for
+   that is the restriction imposed by the Unix file system.  */
+
+#define EMACS_PATH_MAX (PATH_MAX * 2)
 
 /* Delete redundant instances of `.' and `..' from NAME in-place.
    NAME must be *LENGTH long, excluding a mandatory trailing NULL
@@ -435,7 +459,7 @@ static char *
 android_vfs_canonicalize_name (char *name, size_t *length)
 {
   size_t nellipsis, i;
-  char *last_component, *prev_component, *fill, *orig_name;
+  char *last_component, *prec_component, *fill, *orig_name;
   size_t size;
 
   /* Special case described in the last paragraph of the comment
@@ -451,8 +475,8 @@ android_vfs_canonicalize_name (char *name, size_t *length)
 
   nellipsis = 0; /* Number of ellipsis encountered within the current
 		    file name component, or -1.  */
-  prev_component = NULL; /* Pointer to the separator character of
-			    the component immediately before the
+  prec_component = NULL; /* Pointer to the separator character of the
+			    component immediately preceding the
 			    component currently being written.  */
   last_component = name; /* Pointer to the separator character of
 			    the component currently being read.  */
@@ -479,31 +503,36 @@ android_vfs_canonicalize_name (char *name, size_t *length)
 	    {
 	      /* .. */
 
-	      if (!prev_component)
-		goto parent_vnode;
+	      if (!prec_component)
+		{
+		  /* Return the content of the component, i.e. the text
+		     _after_ this separator.  */
+		  i++;
+		  goto parent_vnode;
+		}
 
 	      /* Return to the last component.  */
-	      fill = prev_component;
+	      fill = prec_component;
 
-	      /* Restore last_component to prev_component, and
-		 prev_component back to the component before that.  */
-	      last_component = prev_component;
+	      /* Restore last_component to prec_component, and
+		 prec_component back to the component before that.  */
+	      last_component = prec_component;
 
-	      if (last_component != name)
-		prev_component = memrchr (name, '/',
-					  last_component - name - 1);
+	      if (last_component != orig_name)
+		prec_component = memrchr (orig_name, '/',
+					  last_component - orig_name - 1);
 	      else
-		prev_component = NULL;
+		prec_component = NULL;
 
-	      /* prev_component may now be NULL.  If last_component is
-		 the same as NAME, then fill has really been returned
-		 to the beginning of the string, so leave it be.  But
-		 if it's something else, then it must be the first
-		 separator character in the string, so set
-		 prev_component to NAME itself.  */
+	      /* prec_component may now be NULL.  If last_component is
+		 identical to the initial value of NAME, then fill has
+		 really been returned to the beginning of the string, so
+		 leave it be.  But if it's something else, then it must
+		 be the first separator character in the string, so set
+		 prec_component to this initial value itself.  */
 
-	      if (!prev_component && last_component != name)
-		prev_component = name;
+	      if (!prec_component && last_component != orig_name)
+		prec_component = orig_name;
 	    }
 	  else if (nellipsis == 1)
 	    /* If it's ., return to this component.  */
@@ -513,7 +542,7 @@ android_vfs_canonicalize_name (char *name, size_t *length)
 	      /* Record the position of the last directory separator,
 		 so NAME can be overwritten from there onwards if `..'
 		 or `.' are encountered.  */
-	      prev_component = last_component;
+	      prec_component = last_component;
 	      last_component = fill;
 	    }
 
@@ -545,12 +574,12 @@ android_vfs_canonicalize_name (char *name, size_t *length)
     {
       /* .. */
 
-      if (!prev_component)
+      if (!prec_component)
 	/* Look up the rest of the vnode in its parent.  */
 	goto parent_vnode;
 
       /* Return to the last component.  */
-      fill = prev_component;
+      fill = prec_component;
       nellipsis = -2;
     }
   else if (nellipsis == 1)
@@ -621,10 +650,12 @@ static int android_unix_symlink (const char *, struct android_vnode *);
 static int android_unix_rmdir (struct android_vnode *);
 static int android_unix_rename (struct android_vnode *,
 				struct android_vnode *, bool);
-static int android_unix_stat (struct android_vnode *, struct stat *);
+static int android_unix_stat (struct android_vnode *, struct stat *, int);
 static int android_unix_access (struct android_vnode *, int);
 static int android_unix_mkdir (struct android_vnode *, mode_t);
 static int android_unix_chmod (struct android_vnode *, mode_t, int);
+static ssize_t android_unix_readlink (struct android_vnode *, char *,
+				      size_t);
 static struct android_vdir *android_unix_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with Unix filesystem VFS
@@ -643,6 +674,7 @@ static struct android_vops unix_vfs_ops =
     android_unix_access,
     android_unix_mkdir,
     android_unix_chmod,
+    android_unix_readlink,
     android_unix_opendir,
   };
 
@@ -658,19 +690,20 @@ android_unix_name (struct android_vnode *vnode, char *name,
   input = (struct android_unix_vnode *) vnode;
   remainder = android_vfs_canonicalize_name (name, &length);
 
-  /* If remainder is set, it's a name relative to the parent
-     vnode.  */
+  /* If remainder is set, it's a name relative to the parent vnode.  */
   if (remainder)
     goto parent_vnode;
 
   /* Create a new unix vnode.  */
   vp = xmalloc (sizeof *vp);
 
-  /* If name is empty, duplicate the current vnode.  */
+  /* If name is empty, duplicate the current vnode, but reset its file
+     operation vector to that for Unix vnodes.  */
 
   if (length < 1)
     {
       memcpy (vp, vnode, sizeof *vp);
+      vp->vnode.ops = &unix_vfs_ops;
       vp->name = xstrdup (vp->name);
       return &vp->vnode;
     }
@@ -722,7 +755,7 @@ android_unix_name (struct android_vnode *vnode, char *name,
     vnode = &root_vnode.vnode;
   else
     {
-      /* Create a temporary asset vnode within the parent and use it
+      /* Create a temporary unix vnode within the parent and use it
          instead.  First, establish the length of vp->name before its
          last component.  */
 
@@ -757,7 +790,9 @@ android_unix_name (struct android_vnode *vnode, char *name,
       return vnode;
     }
 
-  return (*vnode->ops->name) (vnode, remainder, strlen (remainder));
+  /* Virtual directories must be ignored in accessing the root directory
+     through a Unix subdirectory of the root, as, `/../' */
+  return android_unix_name (vnode, remainder, strlen (remainder));
 }
 
 /* Create a Unix vnode representing the given file NAME.  Use this
@@ -862,12 +897,13 @@ android_unix_rename (struct android_vnode *src,
 }
 
 static int
-android_unix_stat (struct android_vnode *vnode, struct stat *statb)
+android_unix_stat (struct android_vnode *vnode, struct stat *statb,
+		   int flags)
 {
   struct android_unix_vnode *vp;
 
   vp = (struct android_unix_vnode *) vnode;
-  return stat (vp->name, statb);
+  return fstatat (AT_FDCWD, vp->name, statb, flags);
 }
 
 static int
@@ -896,6 +932,16 @@ android_unix_chmod (struct android_vnode *vnode, mode_t mode,
 
   vp = (struct android_unix_vnode *) vnode;
   return fchmodat (AT_FDCWD, vp->name, mode, flags);
+}
+
+static ssize_t
+android_unix_readlink (struct android_vnode *vnode, char *buffer,
+		       size_t size)
+{
+  struct android_unix_vnode *vp;
+
+  vp = (struct android_unix_vnode *) vnode;
+  return readlink (vp->name, buffer, size);
 }
 
 static struct dirent *
@@ -967,7 +1013,7 @@ static AAssetManager *asset_manager;
 /* Read an unaligned (32-bit) long from the address POINTER.  */
 
 static unsigned int
-android_extract_long (char *pointer)
+android_extract_long (const char *pointer)
 {
   unsigned int number;
 
@@ -988,26 +1034,33 @@ android_extract_long (char *pointer)
    directory.  */
 
 static const char *
-android_scan_directory_tree (char *file, size_t *limit_return)
+android_scan_directory_tree (const char *file, size_t *limit_return)
 {
-  char *token, *saveptr, *copy, *copy1, *start, *max, *limit;
-  size_t token_length, ntokens, i;
-  char *tokens[10];
+  char *token, *saveptr, *copy, *start, *max, *limit;
+  size_t token_length, ntokens, i, len;
+  char *tokens[20];
 
   USE_SAFE_ALLOCA;
 
-  /* Skip past the 5 byte header.  */
+  /* Skip past the 5 or 9 byte header.  */
+#if !OLD_ANDROID_ASSETS
   start = (char *) directory_tree + 5;
+#else /* OLD_ANDROID_ASSETS */
+  start = (char *) directory_tree + 9;
+#endif /* OLD_ANDROID_ASSETS */
 
   /* Figure out the current limit.  */
   limit = (char *) directory_tree + directory_tree_size;
 
   /* Now, split `file' into tokens, with the delimiter being the file
-     name separator.  Look for the file and seek past it.  */
+     name separator.  Look for the file and seek past it.  Create a copy
+     of FILE for the enjoyment of `strtok_r'.  */
 
   ntokens = 0;
   saveptr = NULL;
-  copy = copy1 = xstrdup (file);
+  len = strlen (file) + 1;
+  copy = SAFE_ALLOCA (len);
+  memcpy (copy, file, len);
   memset (tokens, 0, sizeof tokens);
 
   while ((token = strtok_r (copy, "/", &saveptr)))
@@ -1016,18 +1069,13 @@ android_scan_directory_tree (char *file, size_t *limit_return)
 
       /* Make sure ntokens is within bounds.  */
       if (ntokens == ARRAYELTS (tokens))
-	{
-	  xfree (copy1);
-	  goto fail;
-	}
+	goto fail;
 
-      tokens[ntokens] = SAFE_ALLOCA (strlen (token) + 1);
-      memcpy (tokens[ntokens], token, strlen (token) + 1);
+      len = strlen (token) + 1;
+      tokens[ntokens] = SAFE_ALLOCA (len);
+      memcpy (tokens[ntokens], token, len);
       ntokens++;
     }
-
-  /* Free the copy created for strtok_r.  */
-  xfree (copy1);
 
   /* If there are no tokens, just return the start of the directory
      tree.  */
@@ -1066,9 +1114,9 @@ android_scan_directory_tree (char *file, size_t *limit_return)
 	{
 	  /* They probably match.  Find the NULL byte.  It must be
 	     either one byte past start + token_length, with the last
-	     byte a trailing slash (indicating that it is a
-	     directory), or just start + token_length.  Return 4 bytes
-	     past the next NULL byte.  */
+	     byte a trailing slash (indicating that it is a directory),
+	     or just start + token_length.  Return 4 or 8 bytes past the
+	     next NULL byte.  */
 
 	  max = memchr (start, 0, limit - start);
 
@@ -1081,13 +1129,14 @@ android_scan_directory_tree (char *file, size_t *limit_return)
 	     last token.  Otherwise, set it as start and the limit as
 	     start + the offset and continue the loop.  */
 
-	  if (max && max + 5 <= limit)
+	  if (max && max + (OLD_ANDROID_ASSETS ? 9 : 5) <= limit)
 	    {
 	      if (i < ntokens - 1)
 		{
-		  start = max + 5;
+		  start = max + (OLD_ANDROID_ASSETS ? 9 : 5);
 		  limit = ((char *) directory_tree
-			   + android_extract_long (max + 1));
+			   + android_extract_long (max + (OLD_ANDROID_ASSETS
+							  ? 5 : 1)));
 
 		  /* Make sure limit is still in range.  */
 		  if (limit > directory_tree + directory_tree_size
@@ -1105,10 +1154,12 @@ android_scan_directory_tree (char *file, size_t *limit_return)
 		{
 		  /* Figure out the limit.  */
 		  if (limit_return)
-		    *limit_return = android_extract_long (max + 1);
+		    *limit_return
+		      = android_extract_long (max + (OLD_ANDROID_ASSETS
+						     ? 5 : 1));
 
 		  /* Go to the end of this file.  */
-		  max += 5;
+		  max += (OLD_ANDROID_ASSETS ? 9 : 5);
 		}
 
 	      SAFE_FREE ();
@@ -1129,11 +1180,12 @@ android_scan_directory_tree (char *file, size_t *limit_return)
 
       start = memchr (start, 0, limit - start);
 
-      if (!start || start + 5 > limit)
+      if (!start || start + (OLD_ANDROID_ASSETS ? 9 : 5) > limit)
 	goto fail;
 
       start = ((char *) directory_tree
-	       + android_extract_long (start + 1));
+	       + android_extract_long (start
+				       + (OLD_ANDROID_ASSETS ? 5 : 1)));
 
       /* Make sure start is still in bounds.  */
 
@@ -1160,13 +1212,20 @@ android_is_directory (const char *dir)
 {
   /* If the directory is the directory tree, then it is a
      directory.  */
-  if (dir == directory_tree + 5)
+  if (dir == directory_tree + (OLD_ANDROID_ASSETS ? 9 : 5))
     return true;
 
+#if !OLD_ANDROID_ASSETS
   /* Otherwise, look 5 bytes behind.  If it is `/', then it is a
      directory.  */
   return (dir - 6 >= directory_tree
 	  && *(dir - 6) == '/');
+#else /* OLD_ANDROID_ASSETS */
+  /* Otherwise, look 9 bytes behind.  If it is `/', then it is a
+     directory.  */
+  return (dir - 10 >= directory_tree
+	  && *(dir - 10) == '/');
+#endif /* OLD_ANDROID_ASSETS */
 }
 
 /* Initialize asset retrieval.  ENV should be a JNI environment for
@@ -1200,6 +1259,7 @@ android_init_assets (JNIEnv *env, jobject manager)
   /* Now figure out how big the directory tree is, and compare the
      first few bytes.  */
   directory_tree_size = AAsset_getLength (asset);
+#if !OLD_ANDROID_ASSETS
   if (directory_tree_size < 5
       || memcmp (directory_tree, "EMACS", 5))
     {
@@ -1207,6 +1267,15 @@ android_init_assets (JNIEnv *env, jobject manager)
 			   "Directory tree has bad magic");
       emacs_abort ();
     }
+#else /* OLD_ANDROID_ASSETS */
+  if (directory_tree_size < 9
+      || memcmp (directory_tree, "EMACS____", 9))
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "Directory tree has bad magic");
+      emacs_abort ();
+    }
+#endif /* OLD_ANDROID_ASSETS */
 
   /* Hold a VM reference to the asset manager to prevent the native
      object from being deleted.  */
@@ -1254,7 +1323,7 @@ android_hack_asset_fd_fallback (AAsset *asset)
   if (fd < 0)
     return -1;
 
-  if (unlink (filename))
+  if (unlink (filename) && errno != ENOENT)
     goto fail;
 
   if (ftruncate (fd, size))
@@ -1602,10 +1671,12 @@ static int android_afs_symlink (const char *, struct android_vnode *);
 static int android_afs_rmdir (struct android_vnode *);
 static int android_afs_rename (struct android_vnode *,
 			       struct android_vnode *, bool);
-static int android_afs_stat (struct android_vnode *, struct stat *);
+static int android_afs_stat (struct android_vnode *, struct stat *, int);
 static int android_afs_access (struct android_vnode *, int);
 static int android_afs_mkdir (struct android_vnode *, mode_t);
 static int android_afs_chmod (struct android_vnode *, mode_t, int);
+static ssize_t android_afs_readlink (struct android_vnode *, char *,
+				     size_t);
 static struct android_vdir *android_afs_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with asset VFS nodes.  */
@@ -1623,6 +1694,7 @@ static struct android_vops afs_vfs_ops =
     android_afs_access,
     android_afs_mkdir,
     android_afs_chmod,
+    android_afs_readlink,
     android_afs_opendir,
   };
 
@@ -1900,6 +1972,21 @@ android_afs_open (struct android_vnode *vnode, int flags,
       /* Size of the file.  */
       info->statb.st_size = AAsset_getLength (asset);
 
+      /* If the installation date can be ascertained, return that as
+	 the file's modification time.  */
+
+      if (timespec_valid_p (emacs_installation_time))
+	{
+#ifdef STAT_TIMESPEC
+	  STAT_TIMESPEC (&info->statb, st_mtim) = emacs_installation_time;
+#else /* !STAT_TIMESPEC */
+          /* Headers supplied by the NDK r10b contain a `struct stat'
+	     without POSIX fields for nano-second timestamps.  */
+	  info->statb.st_mtime = emacs_installation_time.tv_sec;
+	  info->statb.st_mtime_nsec = emacs_installation_time.tv_nsec;
+#endif /* STAT_TIMESPEC */
+	}
+
       /* Chain info onto afs_file_descriptors.  */
       afs_file_descriptors = info;
 
@@ -2005,7 +2092,8 @@ android_afs_rename (struct android_vnode *src, struct android_vnode *dst,
 }
 
 static int
-android_afs_stat (struct android_vnode *vnode, struct stat *statb)
+android_afs_stat (struct android_vnode *vnode, struct stat *statb,
+		  int flags)
 {
   const char *dir;
   struct android_afs_vnode *vp;
@@ -2038,7 +2126,7 @@ android_afs_stat (struct android_vnode *vnode, struct stat *statb)
       /* Concoct a nonexistent device and an inode number.  */
       statb->st_dev = -1;
       statb->st_ino = 0;
-      return 0;
+      goto set_file_times;
     }
 
   /* AASSET_MODE_STREAMING is fastest here.  */
@@ -2063,6 +2151,24 @@ android_afs_stat (struct android_vnode *vnode, struct stat *statb)
 
   /* Close the asset.  */
   AAsset_close (asset_desc);
+
+ set_file_times:
+
+  /* If the installation date can be ascertained, return that as the
+     file's modification time.  */
+
+  if (timespec_valid_p (emacs_installation_time))
+    {
+#ifdef STAT_TIMESPEC
+      STAT_TIMESPEC (statb, st_mtim) = emacs_installation_time;
+#else /* !STAT_TIMESPEC */
+      /* Headers supplied by the NDK r10b contain a `struct stat'
+	 without POSIX fields for nano-second timestamps.  */
+      statb->st_mtime = emacs_installation_time.tv_sec;
+      statb->st_mtime_nsec = emacs_installation_time.tv_nsec;
+#endif /* STAT_TIMESPEC */
+    }
+
   return 0;
 }
 
@@ -2139,6 +2245,28 @@ android_afs_chmod (struct android_vnode *vnode, mode_t mode,
   return -1;
 }
 
+static ssize_t
+android_afs_readlink (struct android_vnode *vnode, char *buffer,
+		      size_t size)
+{
+  struct android_afs_vnode *vp;
+  const char *dir;
+
+  vp = (struct android_afs_vnode *) vnode;
+  dir = android_scan_directory_tree (vp->name, NULL);
+
+  /* As there are no symlinks in /assets, just return -1 with errno
+     set to a reasonable value contingent upon whether VP->name
+     actually exists.  */
+
+  if (dir)
+    errno = EINVAL;
+  else
+    errno = ENOENT;
+
+  return -1;
+}
+
 static struct dirent *
 android_afs_readdir (struct android_vdir *vdir)
 {
@@ -2197,8 +2325,13 @@ android_afs_readdir (struct android_vdir *vdir)
     dirent.d_type = DT_REG;
 
   /* Forward dir->asset_dir to the file past last.  */
+#if !OLD_ANDROID_ASSETS
   dir->asset_dir = ((char *) directory_tree
 		    + android_extract_long ((char *) last));
+#else /* OLD_ANDROID_ASSETS */
+  dir->asset_dir = ((char *) directory_tree
+		    + android_extract_long ((char *) last + 4));
+#endif /* OLD_ANDROID_ASSETS */
 
   return &dirent;
 }
@@ -2302,8 +2435,8 @@ android_afs_opendir (struct android_vnode *vnode)
      and as such can be exactly one byte past directory_tree.  */
   if (dir->asset_limit > directory_tree + directory_tree_size)
     {
-      xfree (dir);
       xfree (dir->asset_file);
+      xfree (dir);
       errno = EACCES;
       return NULL;
     }
@@ -2351,6 +2484,7 @@ struct android_content_vdir
 };
 
 static struct android_vnode *android_authority_initial (char *, size_t);
+static struct android_vnode *android_authority_initial_name (char *, size_t);
 static struct android_vnode *android_saf_root_initial (char *, size_t);
 
 /* Content provider meta-interface.  This implements a vnode at
@@ -2361,9 +2495,9 @@ static struct android_vnode *android_saf_root_initial (char *, size_t);
    a list of each directory tree Emacs has been granted permanent
    access to through the Storage Access Framework.
 
-   /content/by-authority exists on Android 4.4 and later; it contains
-   no directories, but provides a `name' function that converts
-   children into content URIs.  */
+   /content/by-authority and /content/by-authority-named exists on
+   Android 4.4 and later; it contains no directories, but provides a
+   `name' function that converts children into content URIs.  */
 
 static struct android_vnode *android_content_name (struct android_vnode *,
 						   char *, size_t);
@@ -2375,10 +2509,12 @@ static int android_content_symlink (const char *, struct android_vnode *);
 static int android_content_rmdir (struct android_vnode *);
 static int android_content_rename (struct android_vnode *,
 				   struct android_vnode *, bool);
-static int android_content_stat (struct android_vnode *, struct stat *);
+static int android_content_stat (struct android_vnode *, struct stat *, int);
 static int android_content_access (struct android_vnode *, int);
 static int android_content_mkdir (struct android_vnode *, mode_t);
 static int android_content_chmod (struct android_vnode *, mode_t, int);
+static ssize_t android_content_readlink (struct android_vnode *, char *,
+					 size_t);
 static struct android_vdir *android_content_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with the content VFS node.  */
@@ -2396,6 +2532,7 @@ static struct android_vops content_vfs_ops =
     android_content_access,
     android_content_mkdir,
     android_content_chmod,
+    android_content_readlink,
     android_content_opendir,
   };
 
@@ -2403,7 +2540,7 @@ static struct android_vops content_vfs_ops =
 
 static const char *content_directory_contents[] =
   {
-    "storage", "by-authority",
+    "storage", "by-authority", "by-authority-named",
   };
 
 /* Chain consisting of all open content directory streams.  */
@@ -2421,8 +2558,9 @@ android_content_name (struct android_vnode *vnode, char *name,
   int api;
 
   static struct android_special_vnode content_vnodes[] = {
-    { "storage", 7, android_saf_root_initial,        },
-    { "by-authority", 12, android_authority_initial, },
+    { "storage", 7, android_saf_root_initial,			},
+    { "by-authority", 12, android_authority_initial,		},
+    { "by-authority-named", 18, android_authority_initial_name,	},
   };
 
   /* Canonicalize NAME.  */
@@ -2461,10 +2599,11 @@ android_content_name (struct android_vnode *vnode, char *name,
     component_end++;
 
   /* Now, find out if the first component is a special vnode; if so,
-     call its root lookup function with the rest of NAME there.  */
+     call its root lookup function with the rest of NAME there.  What is
+     more, content files are inaccessible in the absence of a GUI.  */
 
-  if (api < 19)
-    i = 2;
+  if (api < 19 || !android_init_gui)
+    i = 3;
   else if (api < 21)
     i = 1;
   else
@@ -2561,7 +2700,7 @@ android_content_rename (struct android_vnode *src,
 
 static int
 android_content_stat (struct android_vnode *vnode,
-		      struct stat *statb)
+		      struct stat *statb, int flags)
 {
   memset (statb, 0, sizeof *statb);
 
@@ -2600,7 +2739,7 @@ static int
 android_content_mkdir (struct android_vnode *vnode, mode_t mode)
 {
   errno = EEXIST;
-  return 0;
+  return -1;
 }
 
 static int
@@ -2608,7 +2747,15 @@ android_content_chmod (struct android_vnode *vnode, mode_t mode,
 		       int flags)
 {
   errno = EACCES;
-  return 0;
+  return -1;
+}
+
+static ssize_t
+android_content_readlink (struct android_vnode *vnode, char *buffer,
+			  size_t size)
+{
+  errno = EINVAL;
+  return -1;
 }
 
 static struct dirent *
@@ -2710,7 +2857,7 @@ android_content_opendir (struct android_vnode *vnode)
   /* Android 4.3 and earlier don't support /content/by-authority.  */
 
   if (api < 19)
-    dir->next_name++;
+    dir->next_name += 2;
 
   /* Link this stream onto the list of all content directory
      streams.  */
@@ -2760,18 +2907,59 @@ android_content_initial (char *name, size_t length)
 
 
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#else /* GNUC */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+#endif /* __clang__ */
+
 /* Content URI management functions.  */
+
+JNIEXPORT jstring JNICALL
+NATIVE_NAME (displayNameHash) (JNIEnv *env, jobject object,
+			       jbyteArray display_name)
+{
+  char checksum[9], block[MD5_DIGEST_SIZE];
+  jbyte *data;
+
+  data = (*env)->GetByteArrayElements (env, display_name, NULL);
+  if (!data)
+    return NULL;
+
+  /* Hash the buffer.  */
+  md5_buffer ((char *) data, (*env)->GetArrayLength (env, display_name),
+	      block);
+  (*env)->ReleaseByteArrayElements (env, display_name, data, JNI_ABORT);
+
+  /* Generate the digest string.  */
+  hexbuf_digest (checksum, (char *) block, 4);
+  checksum[8] = '\0';
+  return (*env)->NewStringUTF (env, checksum);
+}
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /* GNUC */
+#pragma GCC diagnostic pop
+#endif /* __clang__ */
 
 /* Return the content URI corresponding to a `/content/by-authority'
    file name, or NULL if it is invalid for some reason.  FILENAME
    should be relative to /content/by-authority, with no leading
-   directory separator character.  */
+   directory separator character.
+
+   WITH_CHECKSUM should be true if FILENAME contains a display name and
+   a checksum for that display name.  */
 
 static char *
-android_get_content_name (const char *filename)
+android_get_content_name (const char *filename, bool with_checksum)
 {
   char *fill, *buffer;
   size_t length;
+  char checksum[9], new_checksum[9], block[MD5_DIGEST_SIZE];
+  const char *p2, *p1;
 
   /* Make sure FILENAME isn't obviously invalid: it must contain an
      authority name and a file name component.  */
@@ -2793,11 +2981,55 @@ android_get_content_name (const char *filename)
       return NULL;
     }
 
+  if (!with_checksum)
+    goto no_checksum;
+
+  /* Content file names hold two components providing a display name and
+     a short checksum that protects against files being opened under
+     display names besides those provided in the content file name at
+     the time of generation.  */
+
+  p1 = strrchr (filename, '/'); /* Display name.  */
+  p2 = memrchr (filename, '/', p1 - filename); /* Start of checksum.  */
+
+  /* If the name be excessively short or the checksum of an invalid
+     length, return.  */
+  if (!p2 || (p1 - p2) != 9)
+    {
+      errno = ENOENT;
+      return NULL;
+    }
+
+  /* Copy the checksum into CHECKSUM.  */
+  memcpy (checksum, p2 + 1, 8);
+  new_checksum[8] = checksum[8] = '\0';
+
+  /* Hash this string and store 8 bytes of the resulting digest into
+     new_checksum.  */
+  md5_buffer (p1 + 1, strlen (p1 + 1), block);
+  hexbuf_digest (new_checksum, (char *) block, 4);
+
+  /* Compare both checksums.  */
+  if (strcmp (new_checksum, checksum))
+    {
+      errno = ENOENT;
+      return NULL;
+    }
+
+  /* Remove the checksum and file display name from the URI.  */
+  length = p2 - filename;
+
+ no_checksum:
+  if (length > INT_MAX)
+    {
+      errno = ENOMEM;
+      return NULL;
+    }
+
   /* Prefix FILENAME with content:// and return the buffer containing
      that URI.  */
-
-  buffer = xmalloc (sizeof "content://" + length);
-  sprintf (buffer, "content://%s", filename);
+  buffer = xmalloc (sizeof "content://" + length + 1);
+  sprintf (buffer, "content://%.*s", (int) length, filename);
   return buffer;
 }
 
@@ -2810,10 +3042,8 @@ static bool
 android_check_content_access (const char *uri, int mode)
 {
   jobject string;
-  size_t length;
   jboolean rc, read, write;
-
-  length = strlen (uri);
+  jmethodID method;
 
   string = (*android_java_env)->NewStringUTF (android_java_env, uri);
   android_exception_check ();
@@ -2823,11 +3053,13 @@ android_check_content_access (const char *uri, int mode)
 
   read = (bool) (mode & R_OK || (mode == F_OK));
   write = (bool) (mode & W_OK);
+  method = service_class.check_content_uri;
 
-  rc = (*android_java_env)->CallBooleanMethod (android_java_env,
-					       emacs_service,
-					       service_class.check_content_uri,
-					       string, read, write);
+  rc = (*android_java_env)->CallNonvirtualBooleanMethod (android_java_env,
+							 emacs_service,
+							 service_class.class,
+							 method, string, read,
+							 write);
   android_exception_check_1 (string);
   ANDROID_DELETE_LOCAL_REF (string);
   return rc;
@@ -2835,9 +3067,138 @@ android_check_content_access (const char *uri, int mode)
 
 
 
+/* Functions shared by authority and SAF nodes.  */
+
+/* Check for JNI exceptions, clear them, and set errno accordingly.
+   Also, free each of the N local references given as arguments if an
+   exception takes place.
+
+   Value is 1 if an exception has taken place, 0 otherwise.
+
+   If the exception thrown derives from FileNotFoundException, set
+   errno to ENOENT.
+
+   If the exception thrown derives from SecurityException, set errno
+   to EACCES.
+
+   If the exception thrown derives from OperationCanceledException,
+   set errno to EINTR.
+
+   If the exception thrown derives from UnsupportedOperationException,
+   set errno to ENOSYS.
+
+   If the exception thrown derives from OutOfMemoryException, call
+   `memory_full'.
+
+   If the exception thrown is anything else, set errno to EIO.  */
+
+static int
+android_saf_exception_check (int n, ...)
+{
+  jthrowable exception;
+  JNIEnv *env;
+  va_list ap;
+  int new_errno;
+
+  env = android_java_env;
+  va_start (ap, n);
+
+  /* First, check for an exception.  */
+
+  if (!(*env)->ExceptionCheck (env))
+    {
+      /* No exception has taken place.  Return 0.  */
+      va_end (ap);
+      return 0;
+    }
+
+  /* Print the exception.  */
+  (*env)->ExceptionDescribe (env);
+
+  exception = (*env)->ExceptionOccurred (env);
+
+  if (!exception)
+    /* JNI couldn't return a local reference to the exception.  */
+    memory_full (0);
+
+  /* Clear the exception, making it safe to subsequently call other
+     JNI functions.  */
+  (*env)->ExceptionClear (env);
+
+  /* Delete each of the N arguments.  */
+
+  while (n > 0)
+    {
+      ANDROID_DELETE_LOCAL_REF (va_arg (ap, jobject));
+      n--;
+    }
+
+  /* Now set errno or signal memory_full as required.  */
+
+  if ((*env)->IsInstanceOf (env, (jobject) exception,
+			    file_not_found_exception))
+    new_errno = ENOENT;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 security_exception))
+    new_errno = EACCES;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 operation_canceled_exception))
+    new_errno = EINTR;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 unsupported_operation_exception))
+    new_errno = ENOSYS;
+  else if ((*env)->IsInstanceOf (env, (jobject) exception,
+				 out_of_memory_error))
+    {
+      ANDROID_DELETE_LOCAL_REF ((jobject) exception);
+      memory_full (0);
+    }
+  else
+    new_errno = EIO;
+
+  /* expression is still a local reference! */
+  ANDROID_DELETE_LOCAL_REF ((jobject) exception);
+  errno = new_errno;
+  va_end (ap);
+  return 1;
+}
+
+/* Verify that OBJECT is non-NULL.  If NULL, free each of the N local
+   references given as arguments, and clear exceptions.
+
+   Value is 1 if it be NULL, 0 otherwise.  */
+
+static int
+android_saf_check_nonnull (const void *object, int n, ...)
+{
+  va_list ap;
+
+  if (object)
+    return 0;
+
+  va_start (ap, n);
+
+  /* Clear the active exception, making it safe to subsequently call
+     other JNI functions.  */
+  (*android_java_env)->ExceptionClear (android_java_env);
+
+  /* Delete each of the N arguments.  */
+
+  while (n > 0)
+    {
+      ANDROID_DELETE_LOCAL_REF (va_arg (ap, jobject));
+      n--;
+    }
+
+  va_end (ap);
+  return 1;
+}
+
+
+
 /* Content authority-based vnode implementation.
 
-   /contents/by-authority is a simple vnode implementation that converts
+   /content/by-authority is a simple vnode implementation that converts
    components to content:// URIs.
 
    It does not canonicalize file names by removing parent directory
@@ -2864,10 +3225,12 @@ static int android_authority_symlink (const char *, struct android_vnode *);
 static int android_authority_rmdir (struct android_vnode *);
 static int android_authority_rename (struct android_vnode *,
 				     struct android_vnode *, bool);
-static int android_authority_stat (struct android_vnode *, struct stat *);
+static int android_authority_stat (struct android_vnode *, struct stat *, int);
 static int android_authority_access (struct android_vnode *, int);
 static int android_authority_mkdir (struct android_vnode *, mode_t);
 static int android_authority_chmod (struct android_vnode *, mode_t, int);
+static ssize_t android_authority_readlink (struct android_vnode *, char *,
+					   size_t);
 static struct android_vdir *android_authority_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with the content VFS node.  */
@@ -2885,6 +3248,7 @@ static struct android_vops authority_vfs_ops =
     android_authority_access,
     android_authority_mkdir,
     android_authority_chmod,
+    android_authority_readlink,
     android_authority_opendir,
   };
 
@@ -2926,13 +3290,31 @@ android_authority_name (struct android_vnode *vnode, char *name,
       if (*name == '/')
 	name++, length -= 1;
 
-      /* NAME must be a valid JNI string, so that it can be encoded
-	 properly.  */
+      /* If the provided URI is a directory, return NULL and set errno
+	 to ENOTDIR.  Content files are never directories.  */
+
+      if (name[length - 1] == '/')
+	{
+	  errno = ENOTDIR;
+	  return NULL;
+	}
+
+      /* If the URI is not a valid JNI string, return immediately.  This
+	 should not be possible, since /content file names are encoded
+	 into JNI strings at the naming stage; the check is performed
+	 only out of an abundance of caution.  */
 
       if (android_verify_jni_string (name))
 	goto no_entry;
 
-      uri_name = android_get_content_name (name);
+      if (vp->vnode.type == ANDROID_VNODE_CONTENT_AUTHORITY_NAMED)
+	/* This indicates that the two trailing components of NAME
+	   provide a checksum and a file display name, to be verified,
+	   then excluded from the content URI.  */
+	uri_name = android_get_content_name (name, true);
+      else
+	uri_name = android_get_content_name (name, false);
+
       if (!uri_name)
 	goto error;
 
@@ -2958,9 +3340,9 @@ android_authority_open (struct android_vnode *vnode, int flags,
 			AAsset **asset)
 {
   struct android_authority_vnode *vp;
-  size_t length;
   jobject string;
   int fd;
+  JNIEnv *env;
 
   vp = (struct android_authority_vnode *) vnode;
 
@@ -2972,43 +3354,29 @@ android_authority_open (struct android_vnode *vnode, int flags,
       return -1;
     }
 
-  /* Allocate a buffer to hold the file name.  */
-  length = strlen (vp->uri);
-  string = (*android_java_env)->NewByteArray (android_java_env,
-					      length);
-  if (!string)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      errno = ENOMEM;
-      return -1;
-    }
+  /* Save the JNI environment within `env', to make wrapping
+     subsequent lines referencing CallNonvirtualIntMethod
+     feasible.  */
+  env = android_java_env;
 
-  /* Copy the URI into this byte array.  */
-  (*android_java_env)->SetByteArrayRegion (android_java_env,
-					   string, 0, length,
-					   (jbyte *) vp->uri);
+  /* Allocate a JNI string to hold VP->uri.  */
+  string = (*env)->NewStringUTF (env, vp->uri);
+  android_exception_check ();
 
   /* Try to open the file descriptor.  */
-
-  fd
-    = (*android_java_env)->CallIntMethod (android_java_env,
-					  emacs_service,
-					  service_class.open_content_uri,
-					  string,
-					  (jboolean) ((mode & O_WRONLY
-						       || mode & O_RDWR)
-						      != 0),
-					  (jboolean) !(mode & O_WRONLY),
-					  (jboolean) ((mode & O_TRUNC)
-						      != 0));
-
-  if ((*android_java_env)->ExceptionCheck (android_java_env))
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      errno = ENOMEM;
-      ANDROID_DELETE_LOCAL_REF (string);
-      return -1;
-    }
+  fd = (*env)->CallNonvirtualIntMethod (env, emacs_service,
+					service_class.class,
+					service_class.open_content_uri,
+					string,
+					(jboolean) ((mode & O_WRONLY
+						     || mode & O_RDWR)
+						    != 0),
+					(jboolean) !(mode & O_WRONLY),
+					(jboolean) ((mode & O_TRUNC)
+						    != 0));
+  if (android_saf_exception_check (1, string))
+    return -1;
+  ANDROID_DELETE_LOCAL_REF (string);
 
   /* If fd is -1, just assume that the file does not exist,
      and return -1 with errno set to ENOENT.  */
@@ -3016,17 +3384,11 @@ android_authority_open (struct android_vnode *vnode, int flags,
   if (fd == -1)
     {
       errno = ENOENT;
-      goto skip;
+      return -1;
     }
 
   if (mode & O_CLOEXEC)
     android_close_on_exec (fd);
-
- skip:
-  ANDROID_DELETE_LOCAL_REF (string);
-
-  if (fd == -1)
-    return -1;
 
   *fd_return = fd;
   return 0;
@@ -3088,7 +3450,7 @@ android_authority_rename (struct android_vnode *src,
 
 static int
 android_authority_stat (struct android_vnode *vnode,
-			struct stat *statb)
+			struct stat *statb, int flags)
 {
   int rc, fd, save_errno;
   struct android_authority_vnode *vp;
@@ -3179,6 +3541,14 @@ android_authority_chmod (struct android_vnode *vnode, mode_t mode,
   return -1;
 }
 
+static ssize_t
+android_authority_readlink (struct android_vnode *vnode, char *buffer,
+			    size_t size)
+{
+  errno = EINVAL;
+  return -1;
+}
+
 static struct android_vdir *
 android_authority_opendir (struct android_vnode *vnode)
 {
@@ -3210,6 +3580,32 @@ android_authority_initial (char *name, size_t length)
 
   temp.vnode.ops = &authority_vfs_ops;
   temp.vnode.type = ANDROID_VNODE_CONTENT_AUTHORITY;
+  temp.vnode.flags = 0;
+  temp.uri = NULL;
+
+  return android_authority_name (&temp.vnode, name, length);
+}
+
+/* Find the vnode designated by NAME relative to the root of the
+   by-authority-named directory.
+
+   If NAME is empty or a single leading separator character, return
+   a vnode representing the by-authority directory itself.
+
+   Otherwise, represent the remainder of NAME as a URI (without
+   normalizing it) and return a vnode corresponding to that.
+
+   Value may also be NULL with errno set if the designated vnode is
+   not available, such as when Android windowing has not been
+   initialized.  */
+
+static struct android_vnode *
+android_authority_initial_name (char *name, size_t length)
+{
+  struct android_authority_vnode temp;
+
+  temp.vnode.ops = &authority_vfs_ops;
+  temp.vnode.type = ANDROID_VNODE_CONTENT_AUTHORITY_NAMED;
   temp.vnode.flags = 0;
   temp.uri = NULL;
 
@@ -3281,10 +3677,12 @@ static int android_saf_root_symlink (const char *, struct android_vnode *);
 static int android_saf_root_rmdir (struct android_vnode *);
 static int android_saf_root_rename (struct android_vnode *,
 				    struct android_vnode *, bool);
-static int android_saf_root_stat (struct android_vnode *, struct stat *);
+static int android_saf_root_stat (struct android_vnode *, struct stat *, int);
 static int android_saf_root_access (struct android_vnode *, int);
 static int android_saf_root_mkdir (struct android_vnode *, mode_t);
 static int android_saf_root_chmod (struct android_vnode *, mode_t, int);
+static ssize_t android_saf_root_readlink (struct android_vnode *, char *,
+					  size_t);
 static struct android_vdir *android_saf_root_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with the SAF root VFS node.  */
@@ -3302,6 +3700,7 @@ static struct android_vops saf_root_vfs_ops =
     android_saf_root_access,
     android_saf_root_mkdir,
     android_saf_root_chmod,
+    android_saf_root_readlink,
     android_saf_root_opendir,
   };
 
@@ -3506,7 +3905,7 @@ android_saf_root_rename (struct android_vnode *src,
 
 static int
 android_saf_root_stat (struct android_vnode *vnode,
-		       struct stat *statb)
+		       struct stat *statb, int flags)
 {
   struct android_saf_root_vnode *vp;
 
@@ -3588,6 +3987,14 @@ android_saf_root_chmod (struct android_vnode *vnode, mode_t mode,
   return -1;
 }
 
+static ssize_t
+android_saf_root_readlink (struct android_vnode *vnode, char *buffer,
+			   size_t size)
+{
+  errno = EINVAL;
+  return -1;
+}
+
 static struct dirent *
 android_saf_root_readdir (struct android_vdir *vdir)
 {
@@ -3617,7 +4024,8 @@ android_saf_root_readdir (struct android_vdir *vdir)
 						  NULL);
   android_exception_check_nonnull ((void *) chars, string);
 
-  /* Figure out how large it is, and then resize dirent to fit.  */
+  /* Figure out how large it is, and then resize dirent to fit--this
+     string is always ASCII.  */
   length = strlen (chars) + 1;
   size   = offsetof (struct dirent, d_name) + length;
   dirent = xrealloc (dirent, size);
@@ -3700,7 +4108,7 @@ android_saf_root_opendir (struct android_vnode *vnode)
   struct android_saf_root_vnode *vp;
   jobjectArray array;
   jmethodID method;
-  jbyteArray authority;
+  jstring authority;
   struct android_saf_root_vdir *dir;
   size_t length;
 
@@ -3710,14 +4118,9 @@ android_saf_root_opendir (struct android_vnode *vnode)
     {
       /* Build a string containing the authority.  */
       length = strlen (vp->authority);
-      authority = (*android_java_env)->NewByteArray (android_java_env,
-						     length);
+      authority = (*android_java_env)->NewStringUTF (android_java_env,
+						     vp->authority);
       android_exception_check ();
-
-      /* Copy the authority name to that byte array.  */
-      (*android_java_env)->SetByteArrayRegion (android_java_env,
-					       authority, 0, length,
-					       (jbyte *) vp->authority);
 
       /* Acquire a list of every tree provided by this authority.  */
 
@@ -3850,96 +4253,6 @@ android_saf_root_get_directory (int dirfd)
    thread.  */
 static bool inside_saf_critical_section;
 
-/* Check for JNI exceptions, clear them, and set errno accordingly.
-   Also, free each of the N local references given as arguments if an
-   exception takes place.
-
-   Value is 1 if an exception has taken place, 0 otherwise.
-
-   If the exception thrown derives from FileNotFoundException, set
-   errno to ENOENT.
-
-   If the exception thrown derives from SecurityException, set errno
-   to EACCES.
-
-   If the exception thrown derives from OperationCanceledException,
-   set errno to EINTR.
-
-   If the exception thrown derives from UnsupportedOperationException,
-   set errno to ENOSYS.
-
-   If the exception thrown derives from OutOfMemoryException, call
-   `memory_full'.
-
-   If the exception thrown is anything else, set errno to EIO.  */
-
-static int
-android_saf_exception_check (int n, ...)
-{
-  jthrowable exception;
-  JNIEnv *env;
-  va_list ap;
-  int new_errno;
-
-  env = android_java_env;
-  va_start (ap, n);
-
-  /* First, check for an exception.  */
-
-  if (!(*env)->ExceptionCheck (env))
-    /* No exception has taken place.  Return 0.  */
-    return 0;
-
-  /* Print the exception.  */
-  (*env)->ExceptionDescribe (env);
-
-  exception = (*env)->ExceptionOccurred (env);
-
-  if (!exception)
-    /* JNI couldn't return a local reference to the exception.  */
-    memory_full (0);
-
-  /* Clear the exception, making it safe to subsequently call other
-     JNI functions.  */
-  (*env)->ExceptionClear (env);
-
-  /* Delete each of the N arguments.  */
-
-  while (n > 0)
-    {
-      ANDROID_DELETE_LOCAL_REF (va_arg (ap, jobject));
-      n--;
-    }
-
-  /* Now set errno or signal memory_full as required.  */
-
-  if ((*env)->IsInstanceOf (env, (jobject) exception,
-			    file_not_found_exception))
-    new_errno = ENOENT;
-  else if ((*env)->IsInstanceOf (env, (jobject) exception,
-				 security_exception))
-    new_errno = EACCES;
-  else if ((*env)->IsInstanceOf (env, (jobject) exception,
-				 operation_canceled_exception))
-    new_errno = EINTR;
-  else if ((*env)->IsInstanceOf (env, (jobject) exception,
-				 unsupported_operation_exception))
-    new_errno = ENOSYS;
-  else if ((*env)->IsInstanceOf (env, (jobject) exception,
-				 out_of_memory_error))
-    {
-      ANDROID_DELETE_LOCAL_REF ((jobject) exception);
-      memory_full (0);
-    }
-  else
-    new_errno = EIO;
-
-  /* expression is still a local reference! */
-  ANDROID_DELETE_LOCAL_REF ((jobject) exception);
-  errno = new_errno;
-  return 1;
-}
-
 /* Return file status for the document designated by ID_NAME within
    the document tree identified by URI_NAME.
 
@@ -4044,8 +4357,8 @@ android_saf_stat (const char *uri_name, const char *id_name,
   return 0;
 }
 
-/* Detect if Emacs has access to the document designated by the the
-   documen ID ID_NAME within the tree URI_NAME.  If ID_NAME is NULL,
+/* Detect if Emacs has access to the document designated by the
+   document ID ID_NAME within the tree URI_NAME.  If ID_NAME is NULL,
    use the document ID in URI_NAME itself.
 
    If WRITABLE, also check that the file is writable, which is true
@@ -4161,10 +4474,11 @@ android_saf_delete_document (const char *tree, const char *doc_id,
 
   /* Now, try to delete the document.  */
   method = service_class.delete_document;
-  rc = (*android_java_env)->CallIntMethod (android_java_env,
-					   emacs_service,
-					   method, uri, id,
-					   name);
+  rc = (*android_java_env)->CallNonvirtualIntMethod (android_java_env,
+						     emacs_service,
+						     service_class.class,
+						     method, uri, id,
+						     name);
 
   if (android_saf_exception_check (3, id, uri, name))
     return -1;
@@ -4319,11 +4633,13 @@ android_saf_move_document (const char *uri, char **doc_id,
 
   /* Do the rename.  */
   method = service_class.move_document;
-  result = (*android_java_env)->CallObjectMethod (android_java_env,
-						  emacs_service,
-						  method, uri1,
-						  doc_id1, dir_name1,
-						  dst_id1, src_id1);
+  result
+    = (*android_java_env)->CallNonvirtualObjectMethod (android_java_env,
+						       emacs_service,
+						       service_class.class,
+						       method, uri1,
+						       doc_id1, dir_name1,
+						       dst_id1, src_id1);
   if (android_saf_exception_check (5, src_id1, dst_id1, dir_name1,
 				   doc_id1, uri1))
     {
@@ -4425,10 +4741,12 @@ static int android_saf_tree_symlink (const char *, struct android_vnode *);
 static int android_saf_tree_rmdir (struct android_vnode *);
 static int android_saf_tree_rename (struct android_vnode *,
 				    struct android_vnode *, bool);
-static int android_saf_tree_stat (struct android_vnode *, struct stat *);
+static int android_saf_tree_stat (struct android_vnode *, struct stat *, int);
 static int android_saf_tree_access (struct android_vnode *, int);
 static int android_saf_tree_mkdir (struct android_vnode *, mode_t);
 static int android_saf_tree_chmod (struct android_vnode *, mode_t, int);
+static ssize_t android_saf_tree_readlink (struct android_vnode *, char *,
+					  size_t);
 static struct android_vdir *android_saf_tree_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with SAF tree VFS nodes.  */
@@ -4446,6 +4764,7 @@ static struct android_vops saf_tree_vfs_ops =
     android_saf_tree_access,
     android_saf_tree_mkdir,
     android_saf_tree_chmod,
+    android_saf_tree_readlink,
     android_saf_tree_opendir,
   };
 
@@ -4728,7 +5047,7 @@ android_saf_tree_name (struct android_vnode *vnode, char *name,
       root.vnode.type = ANDROID_VNODE_SAF_ROOT;
       root.vnode.flags = 0;
 
-      /* Find the authority from the URI.  */
+      /* Derive the authority from the URI.  */
 
       fill = (char *) vp->tree_uri;
 
@@ -4860,7 +5179,7 @@ android_saf_tree_rename (struct android_vnode *src,
 {
   char *last, *dst_last;
   struct android_saf_tree_vnode *vp, *vdst;
-  char path[PATH_MAX], path1[PATH_MAX];
+  char path[EMACS_PATH_MAX], path1[EMACS_PATH_MAX];
   char *fill, *dst_id;
   int rc;
 
@@ -4946,8 +5265,8 @@ android_saf_tree_rename (struct android_vnode *src,
       /* The names of the source and destination directories will have
 	 to be copied to path.  */
 
-      if (last - vp->name >= PATH_MAX
-	  || dst_last - vdst->name >= PATH_MAX)
+      if (last - vp->name >= EMACS_PATH_MAX
+	  || dst_last - vdst->name >= EMACS_PATH_MAX)
 	{
 	  errno = ENAMETOOLONG;
 	  return -1;
@@ -5061,7 +5380,7 @@ android_saf_tree_rename (struct android_vnode *src,
      directory is required, as it provides the directory whose entries
      will be modified.  */
 
-  if (last - vp->name >= PATH_MAX)
+  if (last - vp->name >= EMACS_PATH_MAX)
     {
       errno = ENAMETOOLONG;
       return -1;
@@ -5085,7 +5404,7 @@ android_saf_tree_rename (struct android_vnode *src,
 
 static int
 android_saf_tree_stat (struct android_vnode *vnode,
-		       struct stat *statb)
+		       struct stat *statb, int flags)
 {
   struct android_saf_tree_vnode *vp;
 
@@ -5139,6 +5458,16 @@ android_saf_tree_chmod (struct android_vnode *vnode, mode_t mode,
   /* Otherwise, no further action is necessary, as SAF nodes already
      pretend to be S_IRUSR | S_IWUSR.  */
   return 0;
+}
+
+static ssize_t
+android_saf_tree_readlink (struct android_vnode *vnode, char *buffer,
+			   size_t size)
+{
+  /* Return EINVAL.  Symlinks aren't exposed to clients by the
+     SAF.  */
+  errno = EINVAL;
+  return -1;
 }
 
 /* Open a database Cursor containing each directory entry within the
@@ -5209,6 +5538,7 @@ android_saf_tree_readdir (struct android_vdir *vdir)
   jmethodID method;
   size_t length, size;
   const char *chars;
+  struct coding_system coding;
 
   dir = (struct android_saf_tree_vdir *) vdir;
 
@@ -5256,9 +5586,24 @@ android_saf_tree_readdir (struct android_vdir *vdir)
 						  NULL);
   android_exception_check_nonnull ((void *) chars, d_name);
 
-  /* Figure out how large it is, and then resize dirent to fit.  */
-  length = strlen (chars) + 1;
-  size   = offsetof (struct dirent, d_name) + length;
+  /* Decode this JNI string into utf-8-emacs; see
+     android_vfs_convert_name for considerations regarding coding
+     systems.  */
+  length = strlen (chars);
+  setup_coding_system (Qandroid_jni, &coding);
+  coding.mode |= CODING_MODE_LAST_BLOCK;
+  coding.source = (const unsigned char *) chars;
+  coding.dst_bytes = 0;
+  coding.destination = NULL;
+  decode_coding_object (&coding, Qnil, 0, 0, length, length, Qnil);
+
+  /* Release the string data and the local reference to STRING.  */
+  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+					      (jstring) d_name,
+					      chars);
+
+  /* Resize dirent to accommodate the decoded text.  */
+  size   = offsetof (struct dirent, d_name) + 1 + coding.produced;
   dirent = xrealloc (dirent, size);
 
   /* Clear dirent.  */
@@ -5270,12 +5615,12 @@ android_saf_tree_readdir (struct android_vdir *vdir)
   dirent->d_off = 0;
   dirent->d_reclen = size;
   dirent->d_type = d_type ? DT_DIR : DT_UNKNOWN;
-  strcpy (dirent->d_name, chars);
+  memcpy (dirent->d_name, coding.destination, coding.produced);
+  dirent->d_name[coding.produced] = '\0';
 
-  /* Release the string data and the local reference to STRING.  */
-  (*android_java_env)->ReleaseStringUTFChars (android_java_env,
-					      (jstring) d_name,
-					      chars);
+  /* Free the coding system destination buffer.  */
+  xfree (coding.destination);
+
   ANDROID_DELETE_LOCAL_REF (d_name);
   return dirent;
 }
@@ -5292,6 +5637,10 @@ android_saf_tree_closedir (struct android_vdir *vdir)
   free (dir->name);
 
   /* Yes, DIR->cursor is a local reference.  */
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       dir->cursor,
+				       cursor_class.close);
+  (*android_java_env)->ExceptionClear (android_java_env);
   ANDROID_DELETE_LOCAL_REF (dir->cursor);
 
   /* If the ``directory file descriptor'' has been opened, close
@@ -5340,7 +5689,7 @@ android_saf_tree_opendir (struct android_vnode *vnode)
   struct android_saf_tree_vdir *dir;
   char *fill, *end;
   jobject cursor;
-  char component[PATH_MAX];
+  char component[EMACS_PATH_MAX];
 
   vp = (struct android_saf_tree_vnode *) vnode;
 
@@ -5352,7 +5701,7 @@ android_saf_tree_opendir (struct android_vnode *vnode)
   dir->vdir.closedir = android_saf_tree_closedir;
   dir->vdir.dirfd = android_saf_tree_dirfd;
 
-  /* Find the authority from the URI.  */
+  /* Derive the authority from the URI.  */
 
   fill = (char *) vp->tree_uri;
 
@@ -5370,7 +5719,7 @@ android_saf_tree_opendir (struct android_vnode *vnode)
   if (!end)
     emacs_abort ();
 
-  if (end - fill >= PATH_MAX)
+  if (end - fill >= EMACS_PATH_MAX)
     {
       errno = ENAMETOOLONG;
       xfree (dir);
@@ -5397,8 +5746,8 @@ android_saf_tree_opendir (struct android_vnode *vnode)
 
   if (!cursor)
     {
-      xfree (dir);
       xfree (dir->name);
+      xfree (dir);
       return NULL;
     }
 
@@ -5565,6 +5914,7 @@ static struct android_vops saf_file_vfs_ops =
     android_saf_tree_access,
     android_saf_tree_mkdir,
     android_saf_tree_chmod,
+    android_saf_tree_readlink,
     android_saf_file_opendir,
   };
 
@@ -5841,10 +6191,12 @@ static int android_saf_new_symlink (const char *, struct android_vnode *);
 static int android_saf_new_rmdir (struct android_vnode *);
 static int android_saf_new_rename (struct android_vnode *,
 				   struct android_vnode *, bool);
-static int android_saf_new_stat (struct android_vnode *, struct stat *);
+static int android_saf_new_stat (struct android_vnode *, struct stat *, int);
 static int android_saf_new_access (struct android_vnode *, int);
 static int android_saf_new_mkdir (struct android_vnode *, mode_t);
 static int android_saf_new_chmod (struct android_vnode *, mode_t, int);
+static ssize_t android_saf_new_readlink (struct android_vnode *, char *,
+					 size_t);
 static struct android_vdir *android_saf_new_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with SAF new VFS nodes.  */
@@ -5862,6 +6214,7 @@ static struct android_vops saf_new_vfs_ops =
     android_saf_new_access,
     android_saf_new_mkdir,
     android_saf_new_chmod,
+    android_saf_new_readlink,
     android_saf_new_opendir,
   };
 
@@ -6017,7 +6370,7 @@ android_saf_new_rename (struct android_vnode *src,
 
 static int
 android_saf_new_stat (struct android_vnode *vnode,
-		      struct stat *statb)
+		      struct stat *statb, int flags)
 {
   errno = ENOENT;
   return -1;
@@ -6107,7 +6460,7 @@ android_saf_new_mkdir (struct android_vnode *vnode, mode_t mode)
   new_doc_id = (*android_java_env)->GetStringUTFChars (android_java_env,
 						       new_id, NULL);
 
-  if (android_saf_exception_check (3, name, id, uri))
+  if (android_saf_check_nonnull (new_doc_id, 3, name, id, uri))
     return -1;
 
   xfree (vp->document_id);
@@ -6126,6 +6479,14 @@ android_saf_new_mkdir (struct android_vnode *vnode, mode_t mode)
 static int
 android_saf_new_chmod (struct android_vnode *vnode, mode_t mode,
 		       int flags)
+{
+  errno = ENOENT;
+  return -1;
+}
+
+static ssize_t
+android_saf_new_readlink (struct android_vnode *vnode, char *buffer,
+			  size_t size)
 {
   errno = ENOENT;
   return -1;
@@ -6157,6 +6518,8 @@ static sem_t saf_completion_sem;
 JNIEXPORT jint JNICALL
 NATIVE_NAME (safSyncAndReadInput) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   while (sem_wait (&saf_completion_sem) < 0)
     {
       if (input_blocked_p ())
@@ -6178,6 +6541,8 @@ NATIVE_NAME (safSyncAndReadInput) (JNIEnv *env, jobject object)
 JNIEXPORT void JNICALL
 NATIVE_NAME (safSync) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   while (sem_wait (&saf_completion_sem) < 0)
     process_pending_signals ();
 }
@@ -6185,12 +6550,16 @@ NATIVE_NAME (safSync) (JNIEnv *env, jobject object)
 JNIEXPORT void JNICALL
 NATIVE_NAME (safPostRequest) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   sem_post (&saf_completion_sem);
 }
 
 JNIEXPORT jboolean JNICALL
 NATIVE_NAME (ftruncate) (JNIEnv *env, jobject object, jint fd)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   if (ftruncate (fd, 0) < 0)
     return false;
 
@@ -6210,11 +6579,33 @@ NATIVE_NAME (ftruncate) (JNIEnv *env, jobject object, jint fd)
 
 
 /* Root vnode.  This vnode represents the root inode, and is a regular
-   Unix vnode with modifications to `name' that make it return asset
-   vnodes.  */
+   Unix vnode with modifications to `name' so that it returns asset and
+   content vnodes, and to `opendir', so that asset and content vnodes
+   are read from the root directory, whether or not Emacs holds rights
+   to access the underlying filesystem.  */
+
+struct android_root_vdir
+{
+  /* The directory function table.  */
+  struct android_vdir vdir;
+
+  /* The directory stream, or NULL if it could not be opened.  */
+  DIR *directory;
+
+  /* Index of the next directory to return in `special_vnodes'.  */
+  int index;
+};
+
+/* File descriptor for instances of the foregoing structure when the
+   true root is unavailable.  */
+static int root_fd = -1;
+
+/* Number of open instances referencing this file descriptor.  */
+static ptrdiff_t root_fd_references;
 
 static struct android_vnode *android_root_name (struct android_vnode *,
 						char *, size_t);
+static struct android_vdir *android_root_opendir (struct android_vnode *);
 
 /* Vector of VFS operations associated with Unix root filesystem VFS
    nodes.  */
@@ -6232,7 +6623,8 @@ static struct android_vops root_vfs_ops =
     android_unix_access,
     android_unix_mkdir,
     android_unix_chmod,
-    android_unix_opendir,
+    android_unix_readlink,
+    android_root_opendir,
   };
 
 /* Array of special named vnodes.  */
@@ -6240,8 +6632,31 @@ static struct android_vops root_vfs_ops =
 static struct android_special_vnode special_vnodes[] =
   {
     { "assets",  6, android_afs_initial,	},
-    { "content", 7, android_content_initial,	},
+    { "content", 7, android_content_initial,
+      LISPSYM_INITIALLY (Qandroid_jni),		},
   };
+
+/* Convert the file name NAME from Emacs's internal character encoding
+   to CODING, and return a Lisp string with the data so produced.
+
+   Calling this function creates an implicit assumption that
+   `file-name-coding-system' is compatible with `utf-8-emacs', which is
+   not unacceptable as users with cause to modify
+   file-name-coding-system should be aware and prepared for adverse
+   consequences affecting files stored on different filesystems,
+   including virtual ones.  */
+
+static Lisp_Object
+android_vfs_convert_name (const char *name, Lisp_Object coding)
+{
+  Lisp_Object name1;
+
+  /* Convert the contents of the buffer after BUFFER_END from the file
+     name coding system to special->special_coding_system.  */
+  name1 = build_string (name);
+  name1 = code_convert_string (name1, coding, Qt, true, true, true);
+  return name1;
+}
 
 static struct android_vnode *
 android_root_name (struct android_vnode *vnode, char *name,
@@ -6250,6 +6665,9 @@ android_root_name (struct android_vnode *vnode, char *name,
   char *component_end;
   struct android_special_vnode *special;
   size_t i;
+  Lisp_Object file_name;
+  struct android_vnode *vp;
+  struct android_unix_vnode *unix_vp;
 
   /* Skip any leading separator in NAME.  */
 
@@ -6264,7 +6682,7 @@ android_root_name (struct android_vnode *vnode, char *name,
   if (!component_end)
     component_end = name + length;
   else
-    /* Move past the spearator character.  */
+    /* Move past the separator character.  */
     component_end++;
 
   /* Now, find out if the first component is a special vnode; if so,
@@ -6276,8 +6694,29 @@ android_root_name (struct android_vnode *vnode, char *name,
 
       if (component_end - name == special->length
 	  && !memcmp (special->name, name, special->length))
-	return (*special->initial) (component_end,
-				    length - special->length);
+	{
+	  if (!NILP (special->special_coding_system))
+	    {
+	      USE_SAFE_ALLOCA;
+
+	      file_name
+		= android_vfs_convert_name (component_end,
+					    special->special_coding_system);
+
+	      /* Allocate a buffer and copy file_name into the same.  */
+	      length = SBYTES (file_name) + 1;
+	      name = SAFE_ALLOCA (length);
+
+	      /* Copy the trailing NULL byte also.  */
+	      memcpy (name, SDATA (file_name), length);
+	      vp = (*special->initial) (name, length - 1);
+	      SAFE_FREE ();
+	      return vp;
+	    }
+
+	  return (*special->initial) (component_end,
+				      length - special->length);
+	}
 
       /* Detect the case where a special is named with a trailing
 	 directory separator.  */
@@ -6285,24 +6724,143 @@ android_root_name (struct android_vnode *vnode, char *name,
       if (component_end - name == special->length + 1
 	  && !memcmp (special->name, name, special->length)
 	  && name[special->length] == '/')
-	/* Make sure to include the directory separator.  */
-	return (*special->initial) (component_end - 1,
-				    length - special->length);
+	{
+	  if (!NILP (special->special_coding_system))
+	    {
+	      USE_SAFE_ALLOCA;
+
+	      file_name
+		= android_vfs_convert_name (component_end - 1,
+					    special->special_coding_system);
+
+	      /* Allocate a buffer and copy file_name into the same.  */
+	      length = SBYTES (file_name) + 1;
+	      name = SAFE_ALLOCA (length);
+
+	      /* Copy the trailing NULL byte also.  */
+	      memcpy (name, SDATA (file_name), length);
+	      vp = (*special->initial) (name, length - 1);
+	      SAFE_FREE ();
+	      return vp;
+	    }
+
+	  /* Make sure to include the directory separator.  */
+	  return (*special->initial) (component_end - 1,
+				      length - special->length);
+	}
     }
 
-  /* Otherwise, continue searching for a vnode normally.  */
+  /* Otherwise, continue searching for a vnode normally, but duplicate
+     the vnode manually if length is 0, as `android_unix_name' resets
+     the vnode operation vector in copies.  */
+
+  if (!length)
+    {
+      unix_vp = xmalloc (sizeof *unix_vp);
+      memcpy (unix_vp, vnode, sizeof *unix_vp);
+      unix_vp->name = xstrdup (unix_vp->name);
+      return &unix_vp->vnode;
+    }
+
   return android_unix_name (vnode, name, length);
+}
+
+static struct dirent *
+android_root_readdir (struct android_vdir *vdir)
+{
+  struct android_root_vdir *dir;
+  static struct dirent dirent, *p;
+
+  dir = (struct android_root_vdir *) vdir;
+  p   = dir->directory ? readdir (dir->directory) : NULL;
+
+  if (p || dir->index >= ARRAYELTS (special_vnodes))
+    return p;
+
+  dirent.d_ino = 0;
+  dirent.d_off = 0;
+  dirent.d_reclen = sizeof dirent;
+  dirent.d_type = DT_DIR;
+
+  /* No element in special_vnode must overflow dirent.d_name.  */
+  strcpy ((char *) &dirent.d_name,
+	  special_vnodes[dir->index++].name);
+  return &dirent;
+}
+
+static void
+android_root_closedir (struct android_vdir *vdir)
+{
+  struct android_root_vdir *dir;
+
+  dir = (struct android_root_vdir *) vdir;
+
+  if (dir->directory)
+    closedir (dir->directory);
+
+  if (root_fd_references--)
+    ;
+  else
+    {
+      /* Close root_fd, for which no references remain.  */
+      close (root_fd);
+      root_fd = -1;
+    }
+
+  xfree (vdir);
+}
+
+static int
+android_root_dirfd (struct android_vdir *vdir)
+{
+  eassert (root_fd != -1);
+  return root_fd;
+}
+
+static struct android_vdir *
+android_root_opendir (struct android_vnode *vnode)
+{
+  struct android_unix_vnode *vp;
+  struct android_root_vdir *dir;
+  DIR *directory;
+
+  /* Try to opendir the vnode.  */
+  vp = (struct android_unix_vnode *) vnode;
+
+  directory = opendir (vp->name);
+
+  /* Proceed with the remaining code if directory is nil, in which event
+     directory functions will simply forgo listing files inside the real
+     root directory.  */
+
+  dir = xmalloc (sizeof *dir);
+  dir->vdir.readdir = android_root_readdir;
+  dir->vdir.closedir = android_root_closedir;
+  dir->vdir.dirfd = android_root_dirfd;
+  dir->directory = directory;
+  dir->index = 0;
+
+  /* Allocate a temporary file descriptor for this ersatz root.  This is
+     required regardless of the value of DIRECTORY, as android_fstatat
+     and co. will not defer to the VFS layer if a directory file
+     descriptor is not known to be special.  */
+  if (root_fd < 0)
+    root_fd = open ("/dev/null", O_RDONLY | O_CLOEXEC);
+  root_fd_references++;
+
+  return &dir->vdir;
 }
 
 
 
 /* File system lookup.  */
 
-/* Look up the vnode that designates NAME, a file name that is at
-   least N bytes.
+/* Look up the vnode that designates NAME, a file name that is at least
+   N bytes, converting between different file name coding systems as
+   necessary.
 
    NAME may be either an absolute file name or a name relative to the
-   current working directory.  It must not be longer than PATH_MAX
+   current working directory.  It must not be longer than EMACS_PATH_MAX
    bytes.
 
    Value is NULL upon failure with errno set accordingly, or the
@@ -6311,14 +6869,14 @@ android_root_name (struct android_vnode *vnode, char *name,
 static struct android_vnode *
 android_name_file (const char *name)
 {
-  char buffer[PATH_MAX + 1], *head;
+  char buffer[EMACS_PATH_MAX + 1], *head;
   const char *end;
   size_t len;
   int nslash, c;
   struct android_vnode *vp;
 
   len = strlen (name);
-  if (len > PATH_MAX)
+  if (len > EMACS_PATH_MAX)
     {
       errno = ENAMETOOLONG;
       return NULL;
@@ -6404,22 +6962,16 @@ android_vfs_init (JNIEnv *env, jobject manager)
 
   /* Initialize some required classes.  */
   java_string_class = (*env)->FindClass (env, "java/lang/String");
-  assert (java_string_class);
+  eassert (java_string_class);
 
   old = java_string_class;
   java_string_class = (jclass) (*env)->NewGlobalRef (env,
 						     java_string_class);
-  assert (java_string_class);
+  eassert (java_string_class);
   (*env)->DeleteLocalRef (env, old);
 
-  /* And initialize those used on Android 5.0 and later.  */
-
-  if (android_get_current_api_level () < 21)
+  if (android_get_current_api_level () < 19)
     return;
-
-  android_init_cursor_class (env);
-  android_init_entry_class (env);
-  android_init_fd_class (env);
 
   /* Initialize each of the exception classes used by
      `android_saf_exception_check'.  */
@@ -6448,6 +7000,15 @@ android_vfs_init (JNIEnv *env, jobject manager)
   out_of_memory_error = (*env)->NewGlobalRef (env, old);
   (*env)->DeleteLocalRef (env, old);
   eassert (out_of_memory_error);
+
+  /* And initialize those used on Android 5.0 and later.  */
+
+  if (android_get_current_api_level () < 21)
+    return;
+
+  android_init_cursor_class (env);
+  android_init_entry_class (env);
+  android_init_fd_class (env);
 
   /* Initialize the semaphore used to wait for SAF operations to
      complete.  */
@@ -6840,6 +7401,14 @@ android_fstatat_1 (int dirfd, const char *filename,
       return 0;
     }
 
+  /* /foo... */
+
+  if (root_fd >= 0 && dirfd == root_fd)
+    {
+      snprintf (buffer, size, "/%s", filename);
+      return 0;
+    }
+
   return 1;
 }
 
@@ -6856,7 +7425,7 @@ int
 android_fstatat (int dirfd, const char *restrict pathname,
 		 struct stat *restrict statbuf, int flags)
 {
-  char buffer[PATH_MAX + 1];
+  char buffer[EMACS_PATH_MAX + 1];
   struct android_vnode *vp;
   int rc;
 
@@ -6870,7 +7439,7 @@ android_fstatat (int dirfd, const char *restrict pathname,
   /* Now establish whether DIRFD is a file descriptor corresponding to
      an open VFS directory stream.  */
 
-  if (!android_fstatat_1 (dirfd, pathname, buffer, PATH_MAX + 1))
+  if (!android_fstatat_1 (dirfd, pathname, buffer, EMACS_PATH_MAX + 1))
     {
       pathname = buffer;
       goto vfs;
@@ -6884,7 +7453,7 @@ android_fstatat (int dirfd, const char *restrict pathname,
   if (!vp)
     return -1;
 
-  rc = (*vp->ops->stat) (vp, statbuf);
+  rc = (*vp->ops->stat) (vp, statbuf, flags);
   (*vp->ops->close) (vp);
   return rc;
 }
@@ -6896,7 +7465,7 @@ int
 android_faccessat (int dirfd, const char *restrict pathname,
 		   int mode, int flags)
 {
-  char buffer[PATH_MAX + 1];
+  char buffer[EMACS_PATH_MAX + 1];
   struct android_vnode *vp;
   int rc;
 
@@ -6910,7 +7479,7 @@ android_faccessat (int dirfd, const char *restrict pathname,
   /* Now establish whether DIRFD is a file descriptor corresponding to
      an open VFS directory stream.  */
 
-  if (!android_fstatat_1 (dirfd, pathname, buffer, PATH_MAX + 1))
+  if (!android_fstatat_1 (dirfd, pathname, buffer, EMACS_PATH_MAX + 1))
     {
       pathname = buffer;
       goto vfs;
@@ -6936,7 +7505,7 @@ int
 android_fchmodat (int dirfd, const char *pathname, mode_t mode,
 		  int flags)
 {
-  char buffer[PATH_MAX + 1];
+  char buffer[EMACS_PATH_MAX + 1];
   struct android_vnode *vp;
   int rc;
 
@@ -6946,7 +7515,7 @@ android_fchmodat (int dirfd, const char *pathname, mode_t mode,
   /* Now establish whether DIRFD is a file descriptor corresponding to
      an open VFS directory stream.  */
 
-  if (!android_fstatat_1 (dirfd, pathname, buffer, PATH_MAX + 1))
+  if (!android_fstatat_1 (dirfd, pathname, buffer, EMACS_PATH_MAX + 1))
     {
       pathname = buffer;
       goto vfs;
@@ -6965,6 +7534,42 @@ android_fchmodat (int dirfd, const char *pathname, mode_t mode,
   return rc;
 }
 
+/* Like `android_fstatat', but return the target of any symbolic link
+   at PATHNAME instead of checking file status.  */
+
+ssize_t
+android_readlinkat (int dirfd, const char *restrict pathname,
+		    char *restrict buf, size_t bufsiz)
+{
+  char buffer[EMACS_PATH_MAX + 1];
+  struct android_vnode *vp;
+  ssize_t rc;
+
+  if (dirfd == AT_FDCWD || pathname[0] == '/')
+    goto vfs;
+
+  /* Now establish whether DIRFD is a file descriptor corresponding to
+     an open VFS directory stream.  */
+
+  if (!android_fstatat_1 (dirfd, pathname, buffer, EMACS_PATH_MAX + 1))
+    {
+      pathname = buffer;
+      goto vfs;
+    }
+
+  /* Fall back to readlinkat.  */
+  return readlinkat (dirfd, pathname, buf, bufsiz);
+
+ vfs:
+  vp = android_name_file (pathname);
+  if (!vp)
+    return -1;
+
+  rc = (*vp->ops->readlink) (vp, buf, bufsiz);
+  (*vp->ops->close) (vp);
+  return rc;
+}
+
 /* Like `fdopen', but if FD is a parcel file descriptor, ``detach'' it
    from the original.
 
@@ -6973,7 +7578,7 @@ android_fchmodat (int dirfd, const char *pathname, mode_t mode,
    while file streams also require ownership over file descriptors
    they are created on behalf of.
 
-   Detaching the parcel file descriptor linked to FD consequentially
+   Detaching the parcel file descriptor linked to FD consequently
    prevents the owner from being notified when it is eventually
    closed, but for now that hasn't been demonstrated to be problematic
    yet, as Emacs doesn't write to file streams.  */
@@ -7207,6 +7812,21 @@ android_asset_fstat (struct android_fd_or_asset asset,
   statb->st_uid = 0;
   statb->st_gid = 0;
 
+  /* If the installation date can be ascertained, return that as the
+     file's modification time.  */
+
+  if (timespec_valid_p (emacs_installation_time))
+    {
+#ifdef STAT_TIMESPEC
+      STAT_TIMESPEC (statb, st_mtim) = emacs_installation_time;
+#else /* !STAT_TIMESPEC */
+      /* Headers supplied by the NDK r10b contain a `struct stat'
+	 without POSIX fields for nano-second timestamps.  */
+      statb->st_mtime = emacs_installation_time.tv_sec;
+      statb->st_mtime_nsec = emacs_installation_time.tv_nsec;
+#endif /* STAT_TIMESPEC */
+    }
+
   /* Size of the file.  */
   statb->st_size = AAsset_getLength (asset.asset);
   return 0;
@@ -7262,4 +7882,69 @@ void
 android_closedir (struct android_vdir *dirp)
 {
   return (*dirp->closedir) (dirp);
+}
+
+
+
+DEFUN ("android-relinquish-directory-access",
+       Fandroid_relinquish_directory_access,
+       Sandroid_relinquish_directory_access, 1, 1,
+       "DDirectory: ",
+       doc: /* Relinquish access to the provided directory.
+DIRECTORY must be the toplevel directory of an open SAF volume (i.e., a
+file under /content/storage), or one of its inferiors.  Once the command
+completes, the SAF directory holding this directory will vanish, but no
+files will be removed.  */)
+  (Lisp_Object file)
+{
+  struct android_vnode *vp;
+  struct android_saf_tree_vnode *saf_tree;
+  jstring string;
+  jmethodID method;
+
+  if (android_get_current_api_level () < 21)
+    error ("Emacs can only access or relinquish application storage on"
+	   " Android 5.0 and later");
+
+  if (!android_init_gui)
+    return Qnil;
+
+  file = ENCODE_FILE (Fexpand_file_name (file, Qnil));
+
+  if (!NILP (call1 (Qfile_remote_p, file)))
+    signal_error ("Cannot relinquish access to remote file", file);
+
+  vp = android_name_file (SSDATA (file));
+
+  if (!vp)
+    report_file_error ("Relinquishing directory", file);
+
+  if (vp->type != ANDROID_VNODE_SAF_TREE)
+    {
+      (*vp->ops->close) (vp);
+      signal_error ("Access to this directory cannot be relinquished",
+		    file);
+    }
+
+  saf_tree = (struct android_saf_tree_vnode *) vp;
+  string   = android_build_jstring (saf_tree->tree_uri);
+  method   = service_class.relinquish_uri_rights;
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 method, string);
+  (*vp->ops->close) (vp);
+  android_exception_check_1 (string);
+  ANDROID_DELETE_LOCAL_REF (string);
+  return Qnil;
+}
+
+
+
+void
+syms_of_androidvfs (void)
+{
+  DEFSYM (Qandroid_jni, "android-jni");
+
+  defsubr (&Sandroid_relinquish_directory_access);
 }

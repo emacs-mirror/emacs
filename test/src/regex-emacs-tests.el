@@ -1,6 +1,6 @@
 ;;; regex-emacs-tests.el --- tests for regex-emacs.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -555,10 +555,10 @@ known/benign differences in behavior.")
 
 (defconst regex-tests-PTESTS-whitelist
   [
-   ;; emacs doesn't see DEL (0x7f) as a [:cntrl:] character
+   ;; Emacs doesn't see DEL (0x7f) as a [:cntrl:] character
    138
 
-   ;; emacs doesn't barf on weird ranges such as [b-a], but simply
+   ;; Emacs doesn't barf on weird ranges such as [b-a], but simply
    ;; fails to match
    168
   ]
@@ -872,19 +872,47 @@ This evaluates the TESTS test cases from glibc."
   (should (equal (string-match "\\`\\(?:ab\\)*\\'" "a") nil))
   (should (equal (string-match "\\`a\\{2\\}*\\'" "a") nil)))
 
-(ert-deftest regexp-tests-backtrack-optimization () ;bug#61514
+(ert-deftest regexp-tests-backtrack-optimization ()
   ;; Make sure we don't use up the regexp stack needlessly.
   (with-current-buffer (get-buffer-create "*bug*")
     (erase-buffer)
     (insert (make-string 1000000 ?x) "=")
     (goto-char (point-min))
+    ;; Make sure we do perform the optimization (if we don't, the
+    ;; below will burp with regexp-stack-overflow). ;bug#61514
     (should (looking-at "x*=*"))
     (should (looking-at "x*\\(=\\|:\\)"))
     (should (looking-at "x*\\(=\\|:\\)*"))
-    (should (looking-at "x*=*?"))))
+    (should (looking-at "x*=*?"))
+    ;; relint suppression: Repetition of expression matching an empty string
+    (should (looking-at "x*\\(=*\\|h\\)*?"))
+    ;; relint suppression: Repetition of expression matching an empty string
+    (should (looking-at "x*\\(=*\\|h\\)*"))
+    ;; relint suppression: Repetition of expression matching an empty string
+    (should (looking-at "x*\\(=*?\\|h\\)*"))
+    ;; relint suppression: Repetition of expression matching an empty string
+    (should (looking-at "x*\\(=*?\\|h\\)*?"))
+    ;; relint suppression: Repetition of expression matching an empty string
+    (should (looking-at "x*\\(=*\\|h\\)+?"))
+    ;; relint suppression: Repetition of expression matching an empty string
+    (should (looking-at "x*\\(=*\\|h\\)+"))
+    ;; relint suppression: Repetition of expression matching an empty string
+    (should (looking-at "x*\\(=*?\\|h\\)+"))
+    ;; relint suppression: Repetition of expression matching an empty string
+    (should (looking-at "x*\\(=*?\\|h\\)+?"))
+    (should (looking-at "x*\\(=+\\|h\\)+?"))
+    (should (looking-at "x*\\(=+\\|h\\)+"))
+    (should (looking-at "x*\\(=+?\\|h\\)+"))
+    (should (looking-at "x*\\(=+?\\|h\\)+?"))
+    ;; Regression check for overly optimistic optimization.
+    (should (eq 0 (string-match "\\(ca*\\|ab\\)+d" "cabd")))
+    (should (string-match "\\(aa*\\|b\\)*c" "ababc"))
+    (should (string-match " \\sw*\\bfoo" " foo"))
+    (should (string-match ".*\\>" "hello "))
+    ))
 
 (ert-deftest regexp-tests-zero-width-assertion-repetition ()
-  ;; Check compatibility behaviour with repetition operators after
+  ;; Check compatibility behavior with repetition operators after
   ;; certain zero-width assertions (bug#64128).
 
   ;; This function is just to hide ugly regexps from relint so that it
@@ -964,5 +992,10 @@ This evaluates the TESTS test cases from glibc."
                      (goto-char (point-min))
                      (re-search-forward re nil t))
                    nil))))
+
+(ert-deftest regex-tests-mutual-exclusive-inf-rec ()
+  ;; Regression test for bug#65726, where this crashed Emacs.
+  ;; relint suppression: Repetition of expression matching an empty string
+  (should (equal (string-match "a*\\(?:c\\|b*\\)*" "a") 0)))
 
 ;;; regex-emacs-tests.el ends here

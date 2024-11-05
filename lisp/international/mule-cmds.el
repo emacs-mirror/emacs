@@ -1,6 +1,6 @@
 ;;; mule-cmds.el --- commands for multilingual environment  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2024 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -350,9 +350,10 @@ This also sets the following values:
       if CODING-SYSTEM is ASCII-compatible"
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
-
-  (if (eq system-type 'darwin)
-      ;; The file-name coding system on Darwin systems is always utf-8.
+  (if (or (eq system-type 'darwin)
+          (eq system-type 'android))
+      ;; The file-name coding system on Darwin and Android systems is
+      ;; always UTF-8.
       (setq default-file-name-coding-system 'utf-8-unix)
     (if (and (or (not coding-system)
 		 (coding-system-get coding-system 'ascii-compatible-p)))
@@ -736,7 +737,7 @@ DEFAULT is the coding system to use by default in the query."
 			  (format "string \"%s\"." from)
 			(format-message "buffer `%s'." bufname)))
 	    (insert
-	     "These default coding systems were tried to encode"
+	     "These default coding systems were tried to safely encode"
 	     (if (stringp from)
 		 (concat " \"" (if (> (length from) 10)
 				   (concat (substring from 0 10) "...\"")
@@ -757,9 +758,9 @@ e.g., for sending an email message.\n ")
 	      (insert (if rejected "The other coding systems"
 			"However, each of them")
 		      (substitute-command-keys
-		       " encountered characters it couldn't encode:\n"))
+		       " encountered characters it couldn't encode safely:\n"))
 	      (dolist (coding unsafe)
-		(insert (format "  %s cannot encode these:" (car coding)))
+		(insert (format "  %s cannot safely encode these:" (car coding)))
 		(let ((i 0)
 		      (func1
                        (lambda (bufname pos)
@@ -868,8 +869,7 @@ overrides ACCEPT-DEFAULT-P.
 
 Kludgy feature: if FROM is a string, the string is the target text,
 and TO is ignored."
-  (if (not (listp default-coding-system))
-      (setq default-coding-system (list default-coding-system)))
+  (setq default-coding-system (ensure-list default-coding-system))
 
   (let ((no-other-defaults nil)
 	auto-cs)
@@ -2160,7 +2160,9 @@ See `set-language-info-alist' for use in programs."
   (interactive
    (list (read-language-name
 	  'documentation
-	  (format-prompt "Describe language environment" current-language-environment))))
+	  (format-prompt "Describe language environment"
+                         current-language-environment)
+          current-language-environment)))
   (let ((help-buffer-under-preparation t))
     (if (null language-name)
 	(setq language-name current-language-environment))
@@ -3095,6 +3097,10 @@ on encoding."
 (defun ucs-names ()
   "Return table of CHAR-NAME keys and CHAR-CODE values cached in `ucs-names'."
   (or ucs-names
+      ;; Sometimes these ranges will need adjusting as codepoints are
+      ;; added to unicode.  The test case
+      ;; 'mule-cmds-tests--ucs-names-missing-names' will tell you
+      ;; which are missing (Bug#65997).
       (let ((ranges
 	     '((#x0000 . #x33FF)
 	       ;; (#x3400 . #x4DBF) CJK Ideographs Extension A
@@ -3102,25 +3108,28 @@ on encoding."
 	       ;; (#x4E00 . #x9FFF) CJK Unified Ideographs
 	       (#xA000 . #xD7FF)
 	       ;; (#xD800 . #xF8FF) Surrogate/Private
-	       (#xFB00 . #x134FF)
-	       ;; (#x13500 . #x143FF) unused
+	       (#xFB00 . #x143FA)
                (#x14400 . #x14646)
-	       ;; (#x14647 . #x167FF) unused
+	       ;; (#x14647 . #x160FF) unused
+               (#x16100 . #x16139)
+               ;; (#x1613A . #x167FF) unused
 	       (#x16800 . #x16F9F)
-               (#x16FE0 . #x16FE3)
+               (#x16FE0 . #x16FF1)
                ;; (#x17000 . #x187FF) Tangut Ideographs
                ;; (#x18800 . #x18AFF) Tangut Components
                ;; (#x18B00 . #x18CFF) Khitan Small Script
                ;; (#x18D00 . #x18D0F) Tangut Ideograph Supplement
 	       ;; (#x18D10 . #x1AFEF) unused
-	       (#x1AFF0 . #x1B12F)
-               ;; (#x1B130 . #x1B14F) unused
+	       (#x1AFF0 . #x1B122)
+               ;; (#x1B123 . #x1B131) unused
+               (#x1B132 . #x1B132)
+               ;; (#x1B133 . #x1B14F) unused
                (#x1B150 . #x1B16F)
                (#x1B170 . #x1B2FF)
 	       ;; (#x1B300 . #x1BBFF) unused
                (#x1BC00 . #x1BCAF)
-	       ;; (#x1BCB0 . #x1CEFF) unused
-	       (#x1CF00 . #x1FFFF)
+	       ;; (#x1BCB0 . #x1CBFF) unused
+               (#x1CC00 . #x1FFFF)
 	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unused
 	       (#xE0000 . #xE01FF)))
             (gc-cons-threshold (max gc-cons-threshold 10000000))
@@ -3131,12 +3140,16 @@ on encoding."
 	    (while (<= c end)
 	      (let ((new-name (get-char-code-property c 'name))
 		    (old-name (get-char-code-property c 'old-name)))
-	        ;; In theory this code could end up pushing an "old-name" that
-	        ;; shadows a "new-name" but in practice every time an
-	        ;; `old-name' conflicts with a `new-name', the newer one has a
-	        ;; higher code, so it gets pushed later!
+                ;; This code used to push both old-name and new-name
+                ;; on the assumption that the new-name codepoint would
+                ;; always be higher, which was true for a long time.
+                ;; As of at latest 2023-09-15, this is no longer true,
+                ;; so we now skip the old-name if it conflicts with an
+                ;; existing new-name (Bug#65997).
 	        (if new-name (puthash new-name c names))
-	        (if old-name (puthash old-name c names))
+                (when (and old-name
+                           (not (gethash old-name names)))
+                  (puthash old-name c names))
                 ;; Unicode uses the spelling "lamda" in character
                 ;; names, instead of "lambda", due to "preferences
                 ;; expressed by the Greek National Body" (Bug#30513).
@@ -3170,6 +3183,13 @@ on encoding."
     (let* ((char (gethash name ucs-names))
            (script (and char (aref char-script-table char))))
       (if script (symbol-name script) "ungrouped"))))
+
+(defun char-to-name (char)
+  "Return the Unicode name for CHAR, if it has one, else nil.
+Return nil if CHAR is not a character."
+  (and (characterp char)
+       (or (get-char-code-property char 'name)
+           (get-char-code-property char 'old-name))))
 
 (defun char-from-name (string &optional ignore-case)
   "Return a character as a number from its Unicode name STRING.

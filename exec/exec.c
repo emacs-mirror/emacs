@@ -1,6 +1,6 @@
 /* Program execution for Emacs.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,7 +24,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <assert.h>
 #include <string.h>
-#include <ctype.h>
 #include <stdlib.h>
 
 #include <sys/ptrace.h>
@@ -116,11 +115,11 @@ check_interpreter (const char *name, int fd, const char **extra)
 
   /* Strip leading whitespace.  */
   start = buffer;
-  while (*start && ((unsigned char) *start) < 128 && isspace (*start))
+  while (start < buffer + rc && (*start == ' ' || *start == '\t'))
     ++start;
 
   /* Look for a newline character.  */
-  end = memchr (start, '\n', rc);
+  end = memchr (start, '\n', buffer + rc - start);
 
   if (!end)
     goto fail;
@@ -130,11 +129,12 @@ check_interpreter (const char *name, int fd, const char **extra)
   *end = '\0';
 
   /* Now look for any whitespace characters.  */
-  ws = strchr (start, ' ');
+  for (ws = start; *ws && *ws != ' ' && *ws != '\t'; ws++)
+    continue;
 
   /* If there's no whitespace, return the entire start.  */
 
-  if (!ws)
+  if (!*ws)
     {
       if (lseek (fd, 0, SEEK_SET))
 	goto fail;
@@ -292,7 +292,9 @@ write_load_command (program_header *header, bool use_alternate,
   struct exec_map_command command1;
   USER_WORD start, end;
   bool need_command1;
+#ifndef PAGE_MASK
   static long pagesize;
+#endif /* !PAGE_MASK */
 
   /* First, write the commands necessary to map the specified segment
      itself.
@@ -306,14 +308,14 @@ write_load_command (program_header *header, bool use_alternate,
 #ifdef HAVE_GETPAGESIZE
   if (!pagesize)
     pagesize = getpagesize ();
-#else /* HAVE_GETPAGESIZE */
+#else /* !HAVE_GETPAGESIZE */
   if (!pagesize)
     pagesize = sysconf (_SC_PAGESIZE);
+#endif /* !HAVE_GETPAGESIZE */
 
 #define PAGE_MASK (~(pagesize - 1))
 #define PAGE_SIZE (pagesize)
-#endif /* HAVE_GETPAGESIZE */
-#endif /* PAGE_MASK */
+#endif /* !PAGE_MASK */
 
   start = header->p_vaddr & PAGE_MASK;
   end = ((header->p_vaddr + header->p_filesz
@@ -865,7 +867,7 @@ insert_args (struct exec_tracee *tracee, USER_REGS_STRUCT *regs,
    result in *IN, and return a pointer to the byte after the
    result.  REM should be NULL.  */
 
-static char *
+char *
 format_pid (char *in, unsigned int pid)
 {
   unsigned int digits[32], *fill;
@@ -894,10 +896,6 @@ format_pid (char *in, unsigned int pid)
    the file NAME for the given TRACEE.  First, see if the file starts
    with #!; in that case, find the program to open and use that
    instead.
-
-   If REENTRANT is not defined, NAME is actually a buffer of size
-   PATH_MAX + 80.  In that case, copy over the file name actually
-   opened.
 
    Next, read the executable header, and add the necessary memory
    mappings for each file.  Finally, return the action data and its
@@ -978,9 +976,7 @@ exec_0 (char *name, struct exec_tracee *tracee,
 	  memcpy (rewrite, name, strnlen (name, remaining));
 
 	  /* Replace name with buffer1.  */
-#ifndef REENTRANT
 	  strcpy (name, buffer1);
-#endif /* REENTRANT */
 	}
     }
 

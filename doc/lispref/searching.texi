@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Searching and Matching
@@ -1028,13 +1028,13 @@ programming language:
 
 @example
 @group
-(rx "/*"                          ; Initial /*
+(rx "/*"                    ; Initial /*
     (zero-or-more
-     (or (not (any "*"))          ;  Either non-*,
-         (seq "*"                 ;  or * followed by
-              (not (any "/")))))  ;  non-/
-    (one-or-more "*")             ; At least one star,
-    "/")                          ; and the final /
+     (or (not "*")          ;  Either non-*,
+         (seq "*"           ;  or * followed by
+              (not "/"))))  ;     non-/
+    (one-or-more "*")       ; At least one star,
+    "/")                    ; and the final /
 @end group
 @end example
 
@@ -1771,7 +1771,7 @@ required for @code{rx-to-string} to work.  Example:
 
 Another difference from @code{rx-let} is that the @var{bindings} are
 dynamically scoped, and thus also available in functions called from
-@var{body}. However, they are not visible inside functions defined in
+@var{body}.  However, they are not visible inside functions defined in
 @var{body}.
 @end defmac
 
@@ -1919,7 +1919,7 @@ symptoms less likely and help alleviate problems that do arise.
 @itemize
 @item
 Anchor regexps at the beginning of a line, string or buffer using
-zero-width assertions (@samp{^} and @code{\`}). This takes advantage
+zero-width assertions (@samp{^} and @code{\`}).  This takes advantage
 of fast paths in the implementation and can avoid futile matching
 attempts.  Other zero-width assertions may also bring benefits by
 causing a match to fail early.
@@ -1971,6 +1971,17 @@ If you run into regexp stack overflow despite following the above
 advice, don't be afraid of performing the matching in multiple
 function calls, each using a simpler regexp where backtracking can
 more easily be contained.
+
+@defun re--describe-compiled regexp &optional raw
+To help diagnose problems in your regexps or in the regexp engine
+itself, this function returns a string describing the compiled
+form of @var{regexp}.  To make sense of it, it can be necessary
+to read at least the description of the @code{re_opcode_t} type in the
+@code{src/regex-emacs.c} file in Emacs's source code.
+
+It is currently able to give a meaningful description only if Emacs
+was compiled with @code{--enable-checking}.
+@end defun
 
 @node Regexp Search
 @section Regular Expression Searching
@@ -2205,7 +2216,11 @@ this regular expression.  However, spaces inside of constructs such as
 
 Since this variable affects all regular expression search and match
 constructs, you should bind it temporarily for as small as possible
-a part of the code.
+a part of the code, and only where the Lisp code affected by the
+binding performs searches whose regexp was produced from interactive
+user input.  In other words, this variable should only be used to tell
+regexp search primitives how to interpret whitespace typed by the
+user.
 @end defvar
 
 @node Longest Match
@@ -2979,7 +2994,7 @@ values of the variables @code{sentence-end-double-space}
 @section Emacs versus POSIX Regular Expressions
 @cindex POSIX regular expressions
 
-Regular expression syntax varies signficantly among computer programs.
+Regular expression syntax varies significantly among computer programs.
 When writing Elisp code that generates regular expressions for use by other
 programs, it is helpful to know how syntax variants differ.
 To give a feel for the variation, this section discusses how

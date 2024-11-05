@@ -1,8 +1,9 @@
 ;;; eudcb-macos-contacts.el --- EUDC - macOS Contacts backend  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Alexander Adolf
+;; Package: eudc
 
 ;; This file is part of GNU Emacs.
 
@@ -20,11 +21,13 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
 ;;    This library provides an interface to the macOS Contacts app as
 ;;    an EUDC data source.  It uses AppleScript to interface with the
 ;;    Contacts app on localhost, so no 3rd party tools are needed.
 
 ;;; Usage:
+
 ;;    To load the library, first `require' it:
 ;;
 ;;      (require 'eudcb-macos-contacts)

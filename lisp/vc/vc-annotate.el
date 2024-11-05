@@ -1,6 +1,6 @@
 ;;; vc-annotate.el --- VC Annotate Support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Martin Lorentzson <emwson@emw.ericsson.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -160,6 +160,11 @@ Default color is used if nil."
   "Menu elements for the mode-specific menu of VC-Annotate mode.
 List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   :type '(repeat number)
+  :group 'vc)
+
+(defcustom vc-annotate-use-short-revision t
+  "If non-nil, \\[vc-annotate] will use short revisions in its buffer name."
+  :type 'boolean
   :group 'vc)
 
 (defvar-keymap vc-annotate-mode-map
@@ -397,7 +402,10 @@ should be applied to the background or to the foreground."
    (save-current-buffer
      (vc-ensure-vc-buffer)
      (list buffer-file-name
-	   (let ((def (vc-working-revision buffer-file-name)))
+	   (let ((def (funcall (if vc-annotate-use-short-revision
+                                   #'vc-short-revision
+                                 #'vc-working-revision)
+                               buffer-file-name)))
 	     (if (null current-prefix-arg) def
 	       (vc-read-revision
 		(format-prompt "Annotate from revision" def)
@@ -718,23 +726,24 @@ The annotations are relative to the current time, unless overridden by OFFSET."
         (let* ((color (or (vc-annotate-compcar difference vc-annotate-color-map)
                           (cons nil vc-annotate-very-old-color)))
                ;; substring from index 1 to remove any leading `#' in the name
-               (face-name (concat "vc-annotate-face-"
-                                  (if (string-equal
-                                       (substring (cdr color) 0 1) "#")
-                                      (substring (cdr color) 1)
-                                    (cdr color))))
+               (face (intern (concat "vc-annotate-face-"
+                                     (if (string-equal
+                                          (substring (cdr color) 0 1) "#")
+                                         (substring (cdr color) 1)
+                                       (cdr color)))))
                ;; Make the face if not done.
-               (face (or (intern-soft face-name)
-                         (let ((tmp-face (make-face (intern face-name))))
-                           (set-face-extend tmp-face t)
-                           (cond
-                            (vc-annotate-background-mode
-                             (set-face-background tmp-face (cdr color)))
-                            (t
-                             (set-face-foreground tmp-face (cdr color))
-                             (when vc-annotate-background
-			       (set-face-background tmp-face vc-annotate-background))))
-                           tmp-face))))	; Return the face
+               (face (if (facep face)
+                         face
+                       (make-face face)
+                       (set-face-extend face t)
+                       (cond
+                        (vc-annotate-background-mode
+                         (set-face-background face (cdr color)))
+                        (t
+                         (set-face-foreground face (cdr color))
+                         (when vc-annotate-background
+			   (set-face-background face vc-annotate-background))))
+                       face)))
           (put-text-property start end 'face face)))))
   ;; Pretend to font-lock there were no matches.
   nil)

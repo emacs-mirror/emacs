@@ -1,6 +1,6 @@
 ;;; esh-io-tests.el --- esh-io test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -31,11 +31,8 @@
 
 (defvar eshell-test-value nil)
 
-(defun eshell-test-file-string (file)
-  "Return the contents of FILE as a string."
-  (with-temp-buffer
-    (insert-file-contents file)
-    (buffer-string)))
+(defvar eshell-test-value-with-fun nil)
+(defun eshell-test-value-with-fun ())
 
 (defun eshell/test-output ()
   "Write some test output separately to stdout and stderr."
@@ -116,6 +113,13 @@
     (with-temp-eshell
      (eshell-insert-command "echo new >> #'eshell-test-value"))
     (should (equal eshell-test-value "oldnew"))))
+
+(ert-deftest esh-io-test/redirect-symbol/with-function-slot ()
+  "Check that redirecting to a symbol with function slot set works."
+  (let ((eshell-test-value-with-fun))
+    (with-temp-eshell
+     (eshell-insert-command "echo hi > #'eshell-test-value-with-fun"))
+    (should (equal eshell-test-value-with-fun "hi"))))
 
 (ert-deftest esh-io-test/redirect-marker ()
   "Check that redirecting to a marker works."
@@ -318,11 +322,22 @@ stdout originally pointed (the terminal)."
                                "tuodts\nrredts\n"))
 
 (ert-deftest esh-io-test/pipeline/subcommands ()
-  "Chek that all commands in a subcommand are properly piped."
+  "Check that all commands in a subcommand are properly piped."
   (skip-unless (executable-find "rev"))
   (with-temp-eshell
    (eshell-match-command-output "{echo foo; echo bar} | rev"
                                 "\\`raboof\n?")))
+
+(ert-deftest esh-io-test/pipeline/stdin-to-head ()
+  "Check that standard input is sent to the head process in a pipeline."
+  (skip-unless (and (executable-find "tr")
+                    (executable-find "rev")))
+  (with-temp-eshell
+   (eshell-insert-command "tr a-z A-Z | rev")
+   (eshell-insert-command "hello")
+   (eshell-send-eof-to-process)
+   (eshell-wait-for-subprocess)
+   (should (eshell-match-output "OLLEH\n"))))
 
 
 ;; Virtual targets
@@ -359,5 +374,20 @@ stdout originally pointed (the terminal)."
    (should (equal (car kill-ring) "two"))
    (eshell-insert-command "echo three >> /dev/kill")
    (should (equal (car kill-ring) "twothree"))))
+
+(ert-deftest esh-io-test/virtual/device-close ()
+  "Check that the close function for `eshell-function-target' works."
+  (let* ((data nil)
+         (status nil)
+         (eshell-virtual-targets
+          `(("/dev/virtual"
+             ,(eshell-function-target-create
+               (lambda (d) (setq data d))
+               (lambda (s) (setq status s)))
+             nil))))
+    (with-temp-eshell
+     (eshell-insert-command "echo hello > /dev/virtual")
+     (should (equal data "hello"))
+     (should (equal status t)))))
 
 ;;; esh-io-tests.el ends here

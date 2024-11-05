@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1994, 1996-2023 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1996-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -74,7 +74,7 @@ INFO_COMMON = auth autotype bovine calc ccmode cl dbus dired-x		\
 	modus-themes newsticker nxml-mode octave-mode org pcl-cvs pgg	\
 	rcirc reftex remember sasl sc semantic ses sieve smtpmail	\
 	speedbar srecode todo-mode tramp transient url use-package	\
-	vhdl-mode vip viper vtable widget wisent woman
+	vhdl-mode viper vtable widget wisent woman
 
 ## Info files to install on current platform.
 INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
@@ -250,6 +250,8 @@ define org_template
  $(1:.org=.texi): $(1) ${top_srcdir}/lisp/org/ox-texinfo.el
 	$${AM_V_GEN}cd "$${srcdir}" && $${emacs} -l ox-texinfo \
 	  --eval '(setq gc-cons-threshold 50000000)' \
+	  --eval '(setq org-confirm-babel-evaluate nil)' \
+	  --eval '(setq org-id-track-globally nil)' \
 	  -f org-texinfo-export-to-texinfo-batch $$(notdir $$<) $$(notdir $$@)
 endef
 

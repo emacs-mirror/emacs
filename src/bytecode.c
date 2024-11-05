@@ -1,5 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985-1988, 1993, 2000-2023 Free Software Foundation,
+   Copyright (C) 1985-1988, 1993, 2000-2024 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -28,11 +28,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "syntax.h"
 #include "window.h"
 #include "puresize.h"
-
-/* Work around GCC bug 54561.  */
-#if GNUC_PREREQ (4, 3, 0)
-# pragma GCC diagnostic ignored "-Wclobbered"
-#endif
 
 /* Define BYTE_CODE_SAFE true to enable some minor sanity checking,
    useful for debugging the byte compiler.  It defaults to false.  */
@@ -479,7 +474,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
   Lisp_Object *top = NULL;
   unsigned char const *pc = NULL;
 
-  Lisp_Object bytestr = AREF (fun, COMPILED_BYTECODE);
+  Lisp_Object bytestr = AREF (fun, CLOSURE_CODE);
 
  setup_frame: ;
   eassert (!STRING_MULTIBYTE (bytestr));
@@ -489,8 +484,8 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
      when returning, to detect unwind imbalances.  This would require adding
      a field to the frame header.  */
 
-  Lisp_Object vector = AREF (fun, COMPILED_CONSTANTS);
-  Lisp_Object maxdepth = AREF (fun, COMPILED_STACK_DEPTH);
+  Lisp_Object vector = AREF (fun, CLOSURE_CONSTANTS);
+  Lisp_Object maxdepth = AREF (fun, CLOSURE_STACK_DEPTH);
   ptrdiff_t const_length = ASIZE (vector);
   ptrdiff_t bytestr_length = SCHARS (bytestr);
   Lisp_Object *vectorp = XVECTOR (vector)->contents;
@@ -535,6 +530,12 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
   else
     for (ptrdiff_t i = nargs - rest; i < nonrest; i++)
       PUSH (Qnil);
+
+  unsigned char volatile saved_quitcounter;
+#if GCC_LINT && __GNUC__ && !__clang__
+  Lisp_Object *volatile saved_vectorp;
+  unsigned char const *volatile saved_bytestr_data;
+#endif
 
   while (true)
     {
@@ -625,9 +626,9 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	varref:
 	  {
 	    Lisp_Object v1 = vectorp[op], v2;
-	    if (!SYMBOLP (v1)
-		|| XSYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
-		|| (v2 = SYMBOL_VAL (XSYMBOL (v1)), BASE_EQ (v2, Qunbound)))
+	    if (XBARE_SYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
+		|| (v2 = XBARE_SYMBOL (v1)->u.s.val.value,
+		    BASE_EQ (v2, Qunbound)))
 	      v2 = Fsymbol_value (v1);
 	    PUSH (v2);
 	    NEXT;
@@ -699,11 +700,10 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object val = POP;
 
 	    /* Inline the most common case.  */
-	    if (SYMBOLP (sym)
-		&& !BASE_EQ (val, Qunbound)
-		&& XSYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL
-		&& !SYMBOL_TRAPPED_WRITE_P (sym))
-	      SET_SYMBOL_VAL (XSYMBOL (sym), val);
+	    if (!BASE_EQ (val, Qunbound)
+		&& XBARE_SYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL
+		&& !XBARE_SYMBOL (sym)->u.s.trapped_write)
+	      SET_SYMBOL_VAL (XBARE_SYMBOL (sym), val);
 	    else
               set_internal (sym, val, Qnil, SET_INTERNAL_SET);
 	  }
@@ -790,28 +790,26 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	      do_debug_on_call (Qlambda, count1);
 
 	    Lisp_Object original_fun = call_fun;
-	    if (SYMBOLP (call_fun))
-	      call_fun = XSYMBOL (call_fun)->u.s.function;
-	    Lisp_Object template;
-	    Lisp_Object bytecode;
-	    if (COMPILEDP (call_fun)
-		/* Lexical binding only.  */
-		&& (template = AREF (call_fun, COMPILED_ARGLIST),
-		    FIXNUMP (template))
-		/* No autoloads.  */
-		&& (bytecode = AREF (call_fun, COMPILED_BYTECODE),
-		    !CONSP (bytecode)))
+	    /* Calls to symbols-with-pos don't need to be on the fast path.  */
+	    if (BARE_SYMBOL_P (call_fun))
+	      call_fun = XBARE_SYMBOL (call_fun)->u.s.function;
+	    if (CLOSUREP (call_fun))
 	      {
-		fun = call_fun;
-		bytestr = bytecode;
-		args_template = XFIXNUM (template);
-		nargs = call_nargs;
-		args = call_args;
-		goto setup_frame;
+		Lisp_Object template = AREF (call_fun, CLOSURE_ARGLIST);
+		if (FIXNUMP (template))
+		  {
+		    /* Fast path for lexbound functions.  */
+		    fun = call_fun;
+		    bytestr = AREF (call_fun, CLOSURE_CODE),
+		    args_template = XFIXNUM (template);
+		    nargs = call_nargs;
+		    args = call_args;
+		    goto setup_frame;
+		  }
 	      }
 
 	    Lisp_Object val;
-	    if (SUBRP (call_fun) && !SUBR_NATIVE_COMPILED_DYNP (call_fun))
+	    if (SUBRP (call_fun) && !NATIVE_COMP_FUNCTION_DYNP (call_fun))
 	      val = funcall_subr (XSUBR (call_fun), call_nargs, call_args);
 	    else
 	      val = funcall_general (original_fun, call_nargs, call_args);
@@ -900,8 +898,8 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		bc->fp = fp;
 
 		Lisp_Object fun = fp->fun;
-		Lisp_Object bytestr = AREF (fun, COMPILED_BYTECODE);
-		Lisp_Object vector = AREF (fun, COMPILED_CONSTANTS);
+		Lisp_Object bytestr = AREF (fun, CLOSURE_CODE);
+		Lisp_Object vector = AREF (fun, CLOSURE_CONSTANTS);
 		bytestr_data = SDATA (bytestr);
 		vectorp = XVECTOR (vector)->contents;
 		if (BYTE_CODE_SAFE)
@@ -970,15 +968,23 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 
 	    if (sys_setjmp (c->jmp))
 	      {
+		quitcounter = saved_quitcounter;
 		struct handler *c = handlerlist;
 		handlerlist = c->next;
 		top = c->bytecode_top;
 		op = c->bytecode_dest;
+		bc = &current_thread->bc;
 		struct bc_frame *fp = bc->fp;
 
 		Lisp_Object fun = fp->fun;
-		Lisp_Object bytestr = AREF (fun, COMPILED_BYTECODE);
-		Lisp_Object vector = AREF (fun, COMPILED_CONSTANTS);
+		Lisp_Object bytestr = AREF (fun, CLOSURE_CODE);
+		Lisp_Object vector = AREF (fun, CLOSURE_CONSTANTS);
+#if GCC_LINT && __GNUC__ && !__clang__
+		/* These useless assignments pacify GCC 14.2.1 x86-64
+		   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=21161>.  */
+		bytestr_data = saved_bytestr_data;
+		vectorp = saved_vectorp;
+#endif
 		bytestr_data = SDATA (bytestr);
 		vectorp = XVECTOR (vector)->contents;
 		if (BYTE_CODE_SAFE)
@@ -992,6 +998,11 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		goto op_branch;
 	      }
 
+	    saved_quitcounter = quitcounter;
+#if GCC_LINT && __GNUC__ && !__clang__
+	    saved_vectorp = vectorp;
+	    saved_bytestr_data = bytestr_data;
+#endif
 	    NEXT;
 	  }
 
@@ -1245,7 +1256,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (FIXNUMP (v1) && FIXNUMP (v2))
 	      TOP = BASE_EQ (v1, v2) ? Qt : Qnil;
 	    else
-	      TOP = arithcompare (v1, v2, ARITH_EQUAL);
+	      TOP = arithcompare (v1, v2) & Cmp_EQ ? Qt : Qnil;
 	    NEXT;
 	  }
 
@@ -1256,7 +1267,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (FIXNUMP (v1) && FIXNUMP (v2))
 	      TOP = XFIXNUM (v1) > XFIXNUM (v2) ? Qt : Qnil;
 	    else
-	      TOP = arithcompare (v1, v2, ARITH_GRTR);
+	      TOP = arithcompare (v1, v2) & Cmp_GT ? Qt : Qnil;
 	    NEXT;
 	  }
 
@@ -1267,7 +1278,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (FIXNUMP (v1) && FIXNUMP (v2))
 	      TOP = XFIXNUM (v1) < XFIXNUM (v2) ? Qt : Qnil;
 	    else
-	      TOP = arithcompare (v1, v2, ARITH_LESS);
+	      TOP = arithcompare (v1, v2) & Cmp_LT ? Qt : Qnil;
 	    NEXT;
 	  }
 
@@ -1278,7 +1289,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (FIXNUMP (v1) && FIXNUMP (v2))
 	      TOP = XFIXNUM (v1) <= XFIXNUM (v2) ? Qt : Qnil;
 	    else
-	      TOP = arithcompare (v1, v2, ARITH_LESS_OR_EQUAL);
+	      TOP = arithcompare (v1, v2) & (Cmp_LT | Cmp_EQ) ? Qt : Qnil;
 	    NEXT;
 	  }
 
@@ -1289,7 +1300,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (FIXNUMP (v1) && FIXNUMP (v2))
 	      TOP = XFIXNUM (v1) >= XFIXNUM (v2) ? Qt : Qnil;
 	    else
-	      TOP = arithcompare (v1, v2, ARITH_GRTR_OR_EQUAL);
+	      TOP = arithcompare (v1, v2) & (Cmp_GT | Cmp_EQ) ? Qt : Qnil;
 	    NEXT;
 	  }
 
@@ -1738,28 +1749,29 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (BYTE_CODE_SAFE && !HASH_TABLE_P (jmp_table))
               emacs_abort ();
             Lisp_Object v1 = POP;
-            ptrdiff_t i;
             struct Lisp_Hash_Table *h = XHASH_TABLE (jmp_table);
-
-            /* h->count is a faster approximation for HASH_TABLE_SIZE (h)
-               here. */
-            if (h->count <= 5 && !h->test.cmpfn)
-              { /* Do a linear search if there are not many cases
-                   FIXME: 5 is arbitrarily chosen.  */
-		for (i = h->count; 0 <= --i; )
-		  if (EQ (v1, HASH_KEY (h, i)))
-		    break;
+	    /* Do a linear search if there are few cases and the test is `eq'.
+	       (The table is assumed to be sized exactly; all entries are
+	       consecutive at the beginning.)
+	       FIXME: 5 is arbitrarily chosen.  */
+            if (h->count <= 5 && !h->test->cmpfn && !symbols_with_pos_enabled)
+              {
+		eassume (h->count >= 2);
+		for (ptrdiff_t i = h->count - 1; i >= 0; i--)
+		  if (BASE_EQ (v1, HASH_KEY (h, i)))
+		    {
+		      op = XFIXNUM (HASH_VALUE (h, i));
+		      goto op_branch;
+		    }
               }
             else
-              i = hash_lookup (h, v1, NULL);
-
-	    if (i >= 0)
 	      {
-		Lisp_Object val = HASH_VALUE (h, i);
-		if (BYTE_CODE_SAFE && !FIXNUMP (val))
-		  emacs_abort ();
-		op = XFIXNUM (val);
-		goto op_branch;
+		ptrdiff_t i = hash_lookup (h, v1);
+		if (i >= 0)
+		  {
+		    op = XFIXNUM (HASH_VALUE (h, i));
+		    goto op_branch;
+		  }
 	      }
           }
           NEXT;

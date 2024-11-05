@@ -1,6 +1,6 @@
 /* Functions for the pure Gtk+-3.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020, 2022-2023 Free
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020, 2022-2024 Free
 Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -38,8 +38,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xsettings.h"
 #include "atimer.h"
 
-static ptrdiff_t image_cache_refcount;
-
 static int x_decode_color (struct frame *f, Lisp_Object color_name,
 			   int mono_color);
 static struct pgtk_display_info *pgtk_display_info_for_name (Lisp_Object);
@@ -73,7 +71,7 @@ pgtk_get_monitor_scale_factor (const char *model)
   else if (FLOATP (cdr))
     return XFLOAT_DATA (cdr);
   else
-    error ("unknown type of scale-factor");
+    error ("Unknown type of scale-factor");
 }
 
 struct pgtk_display_info *
@@ -475,6 +473,11 @@ pgtk_change_tab_bar_height (struct frame *f, int height)
      leading to the tab bar height being incorrectly set upon the next
      call to x_set_font.  (bug#59285) */
   int lines = height / unit;
+
+  /* Even so, HEIGHT might be less than unit if the tab bar face is
+     not so tall as the frame's font height; which if true lines will
+     be set to 0 and the tab bar will thus vanish.  */
+
   if (lines == 0 && height != 0)
     lines = 1;
 
@@ -823,7 +826,7 @@ pgtk_set_scroll_bar_foreground (struct frame *f, Lisp_Object new_value,
       Emacs_Color rgb;
 
       if (!pgtk_parse_color (f, SSDATA (new_value), &rgb))
-	error ("Unknown color.");
+	error ("Unknown color");
 
       char css[64];
       sprintf (css, "scrollbar slider { background-color: #%06x; }",
@@ -833,7 +836,7 @@ pgtk_set_scroll_bar_foreground (struct frame *f, Lisp_Object new_value,
 
     }
   else
-    error ("Invalid scroll-bar-foreground.");
+    error ("Invalid scroll-bar-foreground");
 }
 
 static void
@@ -853,7 +856,7 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value,
       Emacs_Color rgb;
 
       if (!pgtk_parse_color (f, SSDATA (new_value), &rgb))
-	error ("Unknown color.");
+	error ("Unknown color");
 
       /* On pgtk, this frame parameter should be ignored, and honor
 	 gtk theme.  (It honors the GTK theme if not explicitly set, so
@@ -866,7 +869,7 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value,
 
     }
   else
-    error ("Invalid scroll-bar-background.");
+    error ("Invalid scroll-bar-background");
 }
 
 
@@ -901,7 +904,7 @@ unless TYPE is `png'.  */)
 
       XSETFRAME (frame, f);
       if (!FRAME_VISIBLE_P (f))
-	error ("Frames to be exported must be visible.");
+	error ("Frames to be exported must be visible");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);
@@ -915,7 +918,7 @@ unless TYPE is `png'.  */)
   if (EQ (type, Qpng))
     {
       if (!NILP (XCDR (frames)))
-	error ("PNG export cannot handle multiple frames.");
+	error ("PNG export cannot handle multiple frames");
       surface_type = CAIRO_SURFACE_TYPE_IMAGE;
     }
   else
@@ -930,7 +933,7 @@ unless TYPE is `png'.  */)
     {
       /* For now, we stick to SVG 1.1.  */
       if (!NILP (XCDR (frames)))
-	error ("SVG export cannot handle multiple frames.");
+	error ("SVG export cannot handle multiple frames");
       surface_type = CAIRO_SURFACE_TYPE_SVG;
     }
   else
@@ -940,6 +943,7 @@ unless TYPE is `png'.  */)
   return pgtk_cr_export_frames (frames, surface_type);
 }
 
+extern frame_parm_handler pgtk_frame_parm_handlers[];
 frame_parm_handler pgtk_frame_parm_handlers[] =
   {
     gui_set_autoraise,		/* generic OK */
@@ -1013,17 +1017,6 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (NILP (Fmemq (frame, Vframe_list)))
     {
-      /* If the frame's image cache refcount is still the same as our
-         private shadow variable, it means we are unwinding a frame
-         for which we didn't yet call init_frame_faces, where the
-         refcount is incremented.  Therefore, we increment it here, so
-         that free_frame_faces, called in x_free_frame_resources
-         below, will not mistakenly decrement the counter that was not
-         incremented yet to account for this new frame.  */
-      if (FRAME_IMAGE_CACHE (f) != NULL
-	  && FRAME_IMAGE_CACHE (f)->refcount == image_cache_refcount)
-	FRAME_IMAGE_CACHE (f)->refcount++;
-
       pgtk_free_frame_resources (f);
       free_glyphs (f);
       return Qt;
@@ -1160,15 +1153,15 @@ scale factor.  */)
       if (FIXNUMP (scale_factor))
 	{
 	  if (XFIXNUM (scale_factor) <= 0)
-	    error ("scale factor must be > 0.");
+	    error ("Scale factor must be > 0");
 	}
       else if (FLOATP (scale_factor))
 	{
 	  if (XFLOAT_DATA (scale_factor) <= 0.0)
-	    error ("scale factor must be > 0.");
+	    error ("Scale factor must be > 0");
 	}
       else
-	error ("unknown type of scale-factor");
+	error ("Unknown type of scale-factor");
     }
 
   Lisp_Object tem = Fassoc (monitor_model, monitor_scale_factor_alist, Qnil);
@@ -1382,9 +1375,6 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 #ifdef HAVE_HARFBUZZ
   register_font_driver (&ftcrhbfont_driver, f);
 #endif	/* HAVE_HARFBUZZ */
-
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
 
   gui_default_parameter (f, parms, Qfont_backend, Qnil,
 			 "fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -1791,6 +1781,9 @@ Some window managers may refuse to restack windows.  */)
 #define SCHEMA_ID "org.gnu.emacs.defaults"
 #define PATH_FOR_CLASS_TYPE "/org/gnu/emacs/defaults-by-class/"
 #define PATH_PREFIX_FOR_NAME_TYPE "/org/gnu/emacs/defaults-by-name/"
+#define PATH_MAX_LEN \
+  (sizeof PATH_FOR_CLASS_TYPE > sizeof PATH_PREFIX_FOR_NAME_TYPE ? \
+   sizeof PATH_FOR_CLASS_TYPE : sizeof PATH_PREFIX_FOR_NAME_TYPE)
 
 static inline int
 pgtk_is_lower_char (int c)
@@ -1813,7 +1806,7 @@ pgtk_is_numeric_char (int c)
 static GSettings *
 parse_resource_key (const char *res_key, char *setting_key)
 {
-  char path[32 + RESOURCE_KEY_MAX_LEN];
+  char path[PATH_MAX_LEN + RESOURCE_KEY_MAX_LEN];
   const char *sp = res_key;
   char *dp;
 
@@ -1832,7 +1825,7 @@ parse_resource_key (const char *res_key, char *setting_key)
   /* generate path */
   if (pgtk_is_upper_char (*sp))
     {
-      /* First letter is upper case. It should be "Emacs",
+      /* First letter is upper case.  It should be "Emacs",
        * but don't care.
        */
       strcpy (path, PATH_FOR_CLASS_TYPE);
@@ -1863,7 +1856,7 @@ parse_resource_key (const char *res_key, char *setting_key)
 	  *dp++ = c;
 	  sp++;
 	}
-      *dp++ = '/';		/* must ends with '/' */
+      *dp++ = '/';		/* must end with '/' */
       *dp = '\0';
     }
 
@@ -1911,19 +1904,23 @@ parse_resource_key (const char *res_key, char *setting_key)
   return gs;
 }
 
+static void
+pgtk_check_resource_key_length (const char *key)
+{
+  if (strnlen (key, RESOURCE_KEY_MAX_LEN) >= RESOURCE_KEY_MAX_LEN)
+    error ("Resource key too long");
+}
+
 const char *
 pgtk_get_defaults_value (const char *key)
 {
   char skey[(RESOURCE_KEY_MAX_LEN + 1) * 2];
 
-  if (strlen (key) >= RESOURCE_KEY_MAX_LEN)
-    error ("resource key too long.");
+  pgtk_check_resource_key_length (key);
 
   GSettings *gs = parse_resource_key (key, skey);
   if (gs == NULL)
-    {
-      return NULL;
-    }
+    return NULL;
 
   gchar *str = g_settings_get_string (gs, skey);
 
@@ -1946,21 +1943,16 @@ pgtk_set_defaults_value (const char *key, const char *value)
 {
   char skey[(RESOURCE_KEY_MAX_LEN + 1) * 2];
 
-  if (strlen (key) >= RESOURCE_KEY_MAX_LEN)
-    error ("resource key too long.");
+  pgtk_check_resource_key_length (key);
 
   GSettings *gs = parse_resource_key (key, skey);
   if (gs == NULL)
-    error ("unknown resource key.");
+    error ("Unknown resource key");
 
   if (value != NULL)
-    {
-      g_settings_set_string (gs, skey, value);
-    }
+    g_settings_set_string (gs, skey, value);
   else
-    {
-      g_settings_reset (gs, skey);
-    }
+    g_settings_reset (gs, skey);
 
   g_object_unref (gs);
 }
@@ -1969,6 +1961,7 @@ pgtk_set_defaults_value (const char *key, const char *value)
 #undef SCHEMA_ID
 #undef PATH_FOR_CLASS_TYPE
 #undef PATH_PREFIX_FOR_NAME_TYPE
+#undef PATH_MAX_LEN
 
 #else /* not HAVE_GSETTINGS */
 
@@ -1981,7 +1974,7 @@ pgtk_get_defaults_value (const char *key)
 static void
 pgtk_set_defaults_value (const char *key, const char *value)
 {
-  error ("gsettings not supported.");
+  error ("gsettings not supported");
 }
 
 #endif
@@ -2143,7 +2136,7 @@ If omitted or nil, that stands for the selected frame's display.
 On PGTK, always return true-color.  */)
   (Lisp_Object terminal)
 {
-  return intern ("true-color");
+  return Qtrue_color;
 }
 
 
@@ -2614,7 +2607,7 @@ static Lisp_Object tip_frame;
 
 /* The window-system window corresponding to the frame of the
    currently visible tooltip.  */
-GtkWidget *tip_window;
+static GtkWidget *tip_window;
 
 /* A timer that hides or deletes the currently visible tooltip when it
    fires.  */
@@ -2740,9 +2733,6 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
   register_font_driver (&ftcrhbfont_driver, f);
 #endif	/* HAVE_HARFBUZZ */
 
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
-
   gui_default_parameter (f, parms, Qfont_backend, Qnil,
                          "fontBackend", "FontBackend", RES_TYPE_STRING);
 
@@ -2839,7 +2829,7 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
   {
     Lisp_Object disptype;
 
-    disptype = intern ("color");
+    disptype = Qcolor;
 
     if (NILP (Fframe_parameter (frame, Qdisplay_type)))
       {
@@ -3386,8 +3376,7 @@ Text larger than the specified size is clipped.  */)
 
  start_timer:
   /* Let the tip disappear after timeout seconds.  */
-  tip_timer = call3 (intern ("run-at-time"), timeout, Qnil,
-		     intern ("x-hide-tip"));
+  tip_timer = call3 (Qrun_at_time, timeout, Qnil, Qx_hide_tip);
 
   return unbind_to (count, Qnil);
 }
@@ -3673,7 +3662,7 @@ visible.  */)
 
       XSETFRAME (frame, f);
       if (!FRAME_VISIBLE_P (f))
-	error ("Frames to be printed must be visible.");
+	error ("Frames to be printed must be visible");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);
@@ -3962,4 +3951,8 @@ syms_of_pgtkfns (void)
   DEFSYM (Qlandscape, "landscape");
   DEFSYM (Qreverse_portrait, "reverse-portrait");
   DEFSYM (Qreverse_landscape, "reverse-landscape");
+  DEFSYM (Qtrue_color, "true-color");
+  DEFSYM (Qcolor, "color");
+  DEFSYM (Qrun_at_time, "run-at-time");
+  DEFSYM (Qx_hide_tip, "x-hide-tip");
 }

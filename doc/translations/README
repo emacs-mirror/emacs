@@ -1,0 +1,211 @@
+* Translating the Emacs manuals
+
+** Copyright assignment
+
+People who contribute translated documents should provide a copyright
+assignment to the Free Software Foundation.  See the "Copyright
+Assignment" section in the Emacs manual.
+
+
+** Translated documents license
+
+The translated documents are distributed under the same license as the
+original documents: the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation.
+
+See https://www.gnu.org/licenses/fdl-1.3.html for more information.
+
+If you have any questions regarding the use of the FDL license in your
+translation work that do not appear in the FAQ, feel free to contact the
+GNU project.
+
+See https://www.gnu.org/contact/ for more information.
+
+** Location of the translated files
+
+*** Texinfo source files
+
+The source files of the translated manuals are located in the
+doc/translations directory, under the sub-directory corresponding to the
+translated language.
+
+  E.g., French manual sources are found under doc/translations/fr.
+
+The structure of each language's folder should match that of the English
+manuals (i.e. include misc, man, lispref, lispintro, emacs).
+
+*** Built files
+
+Translated deliverables in Info format are built at release time and are
+made available for local installation.
+
+
+** Source files format
+
+The manuals and their translations are written in the Texinfo format
+(with the exception of the org-mode manual, which is written in Org, and
+illustrations for the Introduction to Emacs Lisp Programming, which are
+EPS files).
+
+See https://www.gnu.org/software/Texinfo/ for more information.
+
+You must install the Texinfo package in order to verify the translated
+files, and refer to the Texinfo manual for information on the various
+Texinfo features.
+
+Emacs has a Texinfo mode that highlights the parts of the Texinfo code
+to be translated for easy reference.
+
+
+*** Texinfo specific issues
+
+Until the Emacs/Texinfo projects provide better solutions, here are a
+few rules to follow:
+
+- Under each @node, add an @anchor that has the same content as the
+  original English @node.
+
+- Translate the @node content but leave the @anchor in English.
+
+- Most Emacs manuals are set to include the docstyle.Texi file.  This
+  file adds the "@documentencoding UTF-8" directive to the targeted
+  manual. There is no need to add this directive in a manual that
+  includes docstyle.texi.
+
+- Add a @documentlanguage directive that includes your language.
+
+  E.g., @documentlanguage zh
+
+This directive currently has little effect but will be useful in the
+future.
+
+- The @author directive can be used for the translator's name.
+
+  E.g., @author traduit en français par Achile Talon
+
+
+** Fixing the original document
+
+During the course of the translation, you might encounter passages in
+the original document that need to be updated or otherwise corrected, or
+even run into a bug in Emacs.  If you cannot immediately correct the
+problem, please file a bug report promptly.
+
+See the 'Bugs' section in the Emacs manual.
+
+** Sending your contributions
+
+Send your contributions (files or revisions) for review to the Emacs
+development list at emacs-devel@gnu.org. Subscribing to the list is not
+obligatory.
+
+Always send contributions in the format of the original document.  Most
+of the content in the Emacs manuals is in Texinfo format, so please do
+not send contributions in derivative formats (e.g. info, html, docbook,
+plain text, etc.)
+
+Before sending files for review, please ensure that they have been
+thoroughly checked for spelling/grammar/typography by at least using the
+tools provided by Emacs.
+
+Please also make sure that the Texinfo files build properly on your
+system.
+
+Send your contributions as patches (git diff -p --stat), and prefer the
+git format-patch form, since that format allows for easier review and
+easier installation of the changes by the persons with write access to
+the repository.
+
+The Emacs project has a lot of coding, documentation and commenting
+conventions.  Sending such patches allows the project managers to make
+sure that the contributions comply with the various conventions.
+
+
+** Discussing translation issues
+
+Translation-related discussions are welcome on the emacs development
+list.  Discussions specific to your language do not have to be in
+English.
+
+
+** Translation teams
+
+The number of words in the Emacs manuals is over 2,000,000 words and
+growing.  While one individual could theoretically translate all the
+files, it is more practical to work in language teams.
+
+If you have a small group of translators willing to help, please make
+sure that the files are properly reviewed before sending them to the
+Emacs development list (see above).
+
+Please refer to the translation-related documents maintained by the GNU
+Project, and contact your language translation team to learn the
+practices they have developed over the years.
+
+See https://www.gnu.org/server/standards/README.translations.html for
+more information.
+
+
+** Translation processes
+
+Emacs does not yet provide tools that significantly help the translation
+process.  A few useful functions would be:
+
+- automatic lookup of a list of glossary items when starting to work on
+  a translation "unit" (paragraph or otherwise); such glossary terms
+  should be easily insertable at point,
+
+- automatic lookup of past translations to check for similarity and
+  improve homogeneity over the whole document set; such past translation
+  matches should be easily insertable at point, etc.
+
+
+*** Using the PO format as an intermediate translation format
+
+Although the PO format has not been developed with documentation in
+mind, it is well-known among free software translation teams, and you
+can easily use the po4a utility to convert Texinfo to PO for work in
+translation tools that support the PO format.
+
+See https://po4a.org for more information.
+
+However, regardless of the intermediate file format that you might use,
+you should only send files in the original format (Texinfo, org-mode,
+eps) for review and installation.
+
+
+*** Free tools that you can use in your processes
+
+A number of free software tools are available outside the Emacs project,
+to help translators (both amateur and professional) in the translation
+process.
+
+If they have any features that you think Emacs should implement, you are
+welcome to provide patches to the Emacs project.
+
+Such tools include:
+
+- the GNOME Translation Editor, https://wiki.gnome.org/Apps/Gtranslator/
+- KDE's Lokalize, https://apps.kde.org/lokalize/
+- OmegaT, https://omegat.org
+- the Okapi Framework, https://www.okapiframework.org
+- pootle, https://pootle.translatehouse.org
+
+etc.
+
+
+* License of this document
+
+Copyright (C) 2024 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice
+and this notice are preserved.  This file is offered as-is, without any
+warranty.
+
+
+Local Variables:
+mode: outline
+paragraph-separate: "[  ]*$"
+coding: utf-8
+End:

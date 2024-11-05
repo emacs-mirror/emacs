@@ -1,13 +1,13 @@
 ;;; longlines.el --- automatically wrap long lines   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2001, 2004-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2024 Free Software Foundation, Inc.
 
 ;; Authors:    Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;;             Alex Schroeder <alex@gnu.org>
 ;;             Chong Yidong <cyd@stupidchicken.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Obsolete-since: 24.4
-;; Keywords: convenience, wp
+;; Keywords: convenience, text
 
 ;; This file is part of GNU Emacs.
 
@@ -80,17 +80,11 @@ This is used when `longlines-show-hard-newlines' is on."
 
 ;;; Internal variables
 
-(defvar longlines-wrap-beg nil)
-(defvar longlines-wrap-end nil)
-(defvar longlines-wrap-point nil)
-(defvar longlines-showing nil)
-(defvar longlines-decoded nil)
-
-(make-variable-buffer-local 'longlines-wrap-beg)
-(make-variable-buffer-local 'longlines-wrap-end)
-(make-variable-buffer-local 'longlines-wrap-point)
-(make-variable-buffer-local 'longlines-showing)
-(make-variable-buffer-local 'longlines-decoded)
+(defvar-local longlines-wrap-beg nil)
+(defvar-local longlines-wrap-end nil)
+(defvar-local longlines-wrap-point nil)
+(defvar-local longlines-showing nil)
+(defvar-local longlines-decoded nil)
 
 ;;; Mode
 
@@ -116,17 +110,14 @@ newlines are indicated with a symbol."
       ;; Turn on longlines mode
       (progn
         (use-hard-newlines 1 'never)
-        (set (make-local-variable 'require-final-newline) nil)
+        (setq-local require-final-newline nil)
         (add-to-list 'buffer-file-format 'longlines)
         (add-hook 'change-major-mode-hook #'longlines-mode-off nil t)
 	(add-hook 'before-revert-hook #'longlines-before-revert-hook nil t)
         (make-local-variable 'longlines-auto-wrap)
-	(set (make-local-variable 'isearch-search-fun-function)
-	     #'longlines-search-function)
-	(set (make-local-variable 'replace-search-function)
-	     #'longlines-search-forward)
-	(set (make-local-variable 'replace-re-search-function)
-	     #'longlines-re-search-forward)
+        (setq-local isearch-search-fun-function #'longlines-search-function)
+        (setq-local replace-search-function #'longlines-search-forward)
+        (setq-local replace-re-search-function #'longlines-re-search-forward)
         (add-function :filter-return (local 'filter-buffer-substring-function)
                       #'longlines-encode-string)
         (when longlines-wrap-follows-window-size
@@ -136,8 +127,7 @@ newlines are indicated with a symbol."
 				(window-width)))
 			longlines-wrap-follows-window-size
 		      2)))
-	    (set (make-local-variable 'fill-column)
-		 (- (window-width) dw)))
+            (setq-local fill-column (- (window-width) dw)))
           (add-hook 'window-configuration-change-hook
                     #'longlines-window-change-function nil t))
         (let ((buffer-undo-list t)

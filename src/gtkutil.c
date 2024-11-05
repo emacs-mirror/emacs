@@ -1,6 +1,6 @@
 /* Functions for creating and updating GTK widgets.
 
-Copyright (C) 2003-2023 Free Software Foundation, Inc.
+Copyright (C) 2003-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -117,10 +117,10 @@ static void xg_widget_style_updated (GtkWidget *, gpointer);
 
 #define gtk_box_new(ori, spacing)                                       \
   ((ori) == GTK_ORIENTATION_HORIZONTAL                                  \
-   ? gtk_hbox_new (FALSE, (spacing)) : gtk_vbox_new (FALSE, (spacing)))
+   ? gtk_hbox_new (FALSE, spacing) : gtk_vbox_new (FALSE, spacing))
 #define gtk_scrollbar_new(ori, spacing)                                 \
   ((ori) == GTK_ORIENTATION_HORIZONTAL                                  \
-   ? gtk_hscrollbar_new ((spacing)) : gtk_vscrollbar_new ((spacing)))
+   ? gtk_hscrollbar_new (spacing) : gtk_vscrollbar_new (spacing))
 #endif /* HAVE_GTK3 */
 
 #define XG_BIN_CHILD(x) gtk_bin_get_child (GTK_BIN (x))
@@ -1471,8 +1471,7 @@ style_changed_cb (GObject *go,
   EVENT_INIT (event);
   event.kind = CONFIG_CHANGED_EVENT;
   event.frame_or_window = build_string (display_name);
-  /* Theme doesn't change often, so intern is called seldom.  */
-  event.arg = intern ("theme-name");
+  event.arg = Qtheme_name;
   kbd_buffer_store_event (&event);
 
   update_theme_scrollbar_width ();
@@ -1670,6 +1669,7 @@ xg_create_frame_widgets (struct frame *f)
 #ifdef HAVE_PGTK
                          | GDK_SCROLL_MASK
                          | GDK_SMOOTH_SCROLL_MASK
+			 | GDK_TOUCH_MASK
 #endif
                          | GDK_VISIBILITY_NOTIFY_MASK);
 
@@ -4141,7 +4141,7 @@ xg_update_frame_menubar (struct frame *f)
   g_signal_connect (x->menubar_widget, "map", G_CALLBACK (menubar_map_cb), f);
   gtk_widget_show_all (x->menubar_widget);
   gtk_widget_get_preferred_size (x->menubar_widget, NULL, &req);
-  req.height *= xg_get_scale (f);
+  req.height *= scale;
 
 #if !defined HAVE_PGTK && defined HAVE_GTK3
   if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
@@ -4154,9 +4154,9 @@ xg_update_frame_menubar (struct frame *f)
     }
 #endif
 
-  if (FRAME_MENUBAR_HEIGHT (f) != (req.height * scale))
+  if (FRAME_MENUBAR_HEIGHT (f) != req.height)
     {
-      FRAME_MENUBAR_HEIGHT (f) = req.height * scale;
+      FRAME_MENUBAR_HEIGHT (f) = req.height;
       adjust_frame_size (f, -1, -1, 2, 0, Qmenu_bar_lines);
     }
   unblock_input ();
@@ -5506,8 +5506,8 @@ find_rtl_image (struct frame *f, Lisp_Object image, Lisp_Object rtl)
       Lisp_Object rtl_image = PROP (TOOL_BAR_ITEM_IMAGES);
       if (!NILP (file = file_for_image (rtl_image)))
         {
-          file = call1 (intern ("file-name-sans-extension"),
-                       Ffile_name_nondirectory (file));
+          file = call1 (Qfile_name_sans_extension,
+			Ffile_name_nondirectory (file));
           if (! NILP (Fequal (file, rtl_name)))
             {
               image = rtl_image;

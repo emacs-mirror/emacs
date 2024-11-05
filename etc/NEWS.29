@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2021-2023 Free Software Foundation, Inc.
+Copyright (C) 2021-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -15,45 +15,73 @@ in older Emacs versions.
 You can narrow news to a specific version by calling 'view-emacs-news'
 with a prefix argument or by typing 'C-u C-h C-n'.
 
-Temporary note:
-+++ indicates that all relevant manuals in doc/ have been updated.
---- means no change in the manuals is needed.
-When you add a new item, use the appropriate mark if you are sure it
-applies, and please also update docstrings as needed.
+
+* Changes in Emacs 29.4
+Emacs 29.4 is an emergency bugfix release intended to fix the
+security vulnerability described below.
+
+** Arbitrary shell commands are no longer run when turning on Org mode.
+This is for security reasons, to avoid running malicious commands.
 
 
-* Installation Changes in Emacs 29.2
+* Changes in Emacs 29.3
+Emacs 29.3 is an emergency bugfix release intended to fix several
+security vulnerabilities described below.
+
+** Arbitrary Lisp code is no longer evaluated as part of turning on Org mode.
+This is for security reasons, to avoid evaluating malicious Lisp code.
+
+** New buffer-local variable 'untrusted-content'.
+When this is non-nil, Lisp programs should treat buffer contents with
+extra caution.
+
+** Gnus now treats inline MIME contents as untrusted.
+To get back previous insecure behavior, 'untrusted-content' should be
+reset to nil in the buffer.
+
+** LaTeX preview is now by default disabled for email attachments.
+To get back previous insecure behavior, set the variable
+'org--latex-preview-when-risky' to a non-nil value.
+
+** Org mode now considers contents of remote files to be untrusted.
+Remote files are recognized by calling 'file-remote-p'.
 
 
 * Startup Changes in Emacs 29.2
 
+** On GNU/Linux, Emacs is now the default application for 'org-protocol'.
+Org mode provides a way to quickly capture bookmarks, notes, and links
+using 'emacsclient':
+
+    emacsclient "org-protocol://store-link?url=URL&title=TITLE"
+
+Previously, users had to manually configure their GNU/Linux desktop
+environment to open 'org-protocol' links in Emacs.  These links should
+now open in Emacs automatically, as the "emacsclient.desktop" file now
+arranges for Emacs to be the default application for the 'org-protocol'
+URI scheme.  See the Org mode manual, Info node "(org) Protocols" for
+more details.
+
 
 * Changes in Emacs 29.2
 
-
-* Editing Changes in Emacs 29.2
+This is a bug-fix release with no new features.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.2
 
 ** Tramp
 
-+++
 *** New user option 'tramp-show-ad-hoc-proxies'.
 When non-nil, ad-hoc definitions are kept in remote file names instead
 of showing the shortcuts.
 
 
-* New Modes and Packages in Emacs 29.2
-
-
 * Incompatible Lisp Changes in Emacs 29.2
 
-
-* Lisp Changes in Emacs 29.2
-
-
-* Changes in Emacs 29.2 on Non-Free Operating Systems
+** 'with-sqlite-transaction' rolls back changes if its BODY fails.
+If the BODY of the macro signals an error, or committing the results
+of the transaction fails, the changes will now be rolled back.
 
 
 * Installation Changes in Emacs 29.1
@@ -2004,7 +2032,7 @@ The intention is that this command can be used to access a wide
 variety of version control system-specific functionality from VC
 without complexifying either the VC command set or the backend API.
 
-*** 'C-x v v' in a diffs buffer allows to commit only some of the changes.
+*** 'C-x v v' in a diffs buffer lets you commit only some of the changes.
 This command is intended to allow you to commit only some of the
 changes you have in your working tree.  Begin by creating a buffer
 with the changes against the last commit, e.g. with 'C-x v D'
@@ -3501,8 +3529,8 @@ The variables 'connection-local-profile-alist' and
 make it more convenient to inspect and modify them.
 
 *** New function 'connection-local-update-profile-variables'.
-This function allows to modify the settings of an existing
-connection-local profile.
+You can use this to modify the settings of an existing connection-local
+profile.
 
 *** New macro 'with-connection-local-application-variables'.
 This macro works like 'with-connection-local-variables', but it allows
@@ -4018,8 +4046,8 @@ measured will be counted for the purpose of calculating the text
 dimensions.
 
 ** 'window-text-pixel-size' understands a new meaning of FROM.
-Specifying a cons as the FROM argument allows to start measuring text
-from a specified amount of pixels above or below a position.
+The FROM argument can now be a cons, which means to start measuring text
+from a specified number of pixels above or below a position.
 
 ** 'window-body-width' and 'window-body-height' can use remapped faces.
 Specifying 'remap' as the PIXELWISE argument now checks if the default

@@ -1,6 +1,6 @@
 ;;; erc-scenarios-base-association.el --- base assoc scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -78,7 +78,7 @@
       (with-current-buffer "#chan@foonet"
         (funcall expect 3 "bob")
         (funcall expect 3 "was created on")
-        (funcall expect 3 "prosperous")))
+        (funcall expect 10 "prosperous")))
 
     (ert-info ("All #chan@barnet output consumed")
       (with-current-buffer "#chan@barnet"

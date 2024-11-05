@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Numbers
@@ -476,6 +476,7 @@ This function tests whether its arguments are numerically equal, and
 returns @code{t} if they are not, and @code{nil} if they are.
 @end defun
 
+@anchor{definition of <}
 @defun <  number-or-marker &rest number-or-markers
 This function tests whether each argument is strictly less than the
 following argument.  It returns @code{t} if so, @code{nil} otherwise.

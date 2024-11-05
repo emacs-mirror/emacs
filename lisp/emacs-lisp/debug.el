@@ -1,6 +1,6 @@
 ;;; debug.el --- debuggers and related commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2001-2023 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2001-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -153,11 +153,24 @@ where CAUSE can be:
     (insert (debugger--buffer-state-content state)))
   (goto-char (debugger--buffer-state-pos state)))
 
+(defvar debugger--last-error nil)
+
+(defun debugger--duplicate-p (args)
+  (pcase args
+    (`(error ,err . ,_) (and (consp err) (eq err debugger--last-error)))))
+
 ;;;###autoload
 (setq debugger 'debug)
 ;;;###autoload
 (defun debug (&rest args)
   "Enter debugger.  \\<debugger-mode-map>`\\[debugger-continue]' returns from the debugger.
+
+In interactive sessions, this switches to a backtrace buffer and shows
+the Lisp backtrace of function calls there.  In batch mode (more accurately,
+when `noninteractive' is non-nil), it shows the Lisp backtrace on the
+standard error stream (unless `backtrace-on-error-noninteractive' is nil),
+and then kills Emacs, causing it to exit with a negative exit code.
+
 Arguments are mainly for use when this is called from the internals
 of the evaluator.
 
@@ -168,9 +181,14 @@ first will be printed into the backtrace buffer.
 If `inhibit-redisplay' is non-nil when this function is called,
 the debugger will not be entered."
   (interactive)
-  (if inhibit-redisplay
-      ;; Don't really try to enter debugger within an eval from redisplay.
+  (if (or inhibit-redisplay
+          (debugger--duplicate-p args))
+      ;; Don't really try to enter debugger within an eval from redisplay
+      ;; or if we already popper into the debugger for this error,
+      ;; which can happen when we have several nested `handler-bind's that
+      ;; want to invoke the debugger.
       debugger-value
+    (setq debugger--last-error nil)
     (let ((non-interactive-frame
            (or noninteractive           ;FIXME: Presumably redundant.
                ;; If we're in the initial-frame (where `message' just
@@ -193,7 +211,7 @@ the debugger will not be entered."
       (let (debugger-value
 	    (debugger-previous-state
              (if (get-buffer "*Backtrace*")
-                 (with-current-buffer (get-buffer "*Backtrace*")
+                 (with-current-buffer "*Backtrace*"
                    (debugger--save-buffer-state))))
             (debugger-args args)
 	    (debugger-buffer (get-buffer-create "*Backtrace*"))
@@ -230,12 +248,11 @@ the debugger will not be entered."
 	  (unwind-protect
 	      (save-excursion
 	        (when (eq (car debugger-args) 'debug)
-		  ;; Skip the frames for backtrace-debug, byte-code,
-		  ;; debug--implement-debug-on-entry and the advice's `apply'.
-		  (backtrace-debug 4 t)
-		  ;; Place an extra debug-on-exit for macro's.
-		  (when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
-		    (backtrace-debug 5 t)))
+		  (let ((base (debugger--backtrace-base)))
+		    (backtrace-debug 1 t base) ;FIXME!
+		    ;; Place an extra debug-on-exit for macro's.
+		    (when (eq 'lambda (car-safe (cadr (backtrace-frame 1 base))))
+		      (backtrace-debug 2 t base))))
                 (with-current-buffer debugger-buffer
                   (unless (derived-mode-p 'debugger-mode)
 	            (debugger-mode))
@@ -312,6 +329,12 @@ the debugger will not be entered."
                   (backtrace-mode))))
 	    (with-timeout-unsuspend debugger-with-timeout-suspend)
 	    (set-match-data debugger-outer-match-data)))
+	(when (eq 'error (car-safe debugger-args))
+	  ;; Remember the error we just debugged, to avoid re-entering
+          ;; the debugger if some higher-up `handler-bind' invokes us
+          ;; again, oblivious that the error was already debugged from
+          ;; a more deeply nested `handler-bind'.
+	  (setq debugger--last-error (nth 1 debugger-args)))
         (setq debug-on-next-call debugger-step-after-exit)
         debugger-value))))
 
@@ -336,11 +359,10 @@ Make functions into cross-reference buttons if DO-XREFS is non-nil."
 (defun debugger-setup-buffer (args)
   "Initialize the `*Backtrace*' buffer for entry to the debugger.
 That buffer should be current already and in `debugger-mode'."
-  (setq backtrace-frames (nthcdr
-                          ;; Remove debug--implement-debug-on-entry and the
-                          ;; advice's `apply' frame.
-                          (if (eq (car args) 'debug) 3 1)
-                          (backtrace-get-frames 'debug)))
+  (setq backtrace-frames
+        ;; The `base' frame is the one that gets index 0 and it is the entry to
+        ;; the debugger, so drop it with `cdr'.
+        (cdr (backtrace-get-frames (debugger--backtrace-base))))
   (when (eq (car-safe args) 'exit)
     (setq debugger-value (nth 1 args))
     (setf (cl-getf (backtrace-frame-flags (car backtrace-frames))
@@ -470,26 +492,29 @@ removes itself from that hook."
   (setq debugger-jumping-flag nil)
   (remove-hook 'post-command-hook 'debugger-reenable))
 
-(defun debugger-frame-number (&optional skip-base)
+(defun debugger-frame-number ()
   "Return number of frames in backtrace before the one point points at."
-  (let ((index (backtrace-get-index))
-        (count 0))
+  (let ((index (backtrace-get-index)))
     (unless index
       (error "This line is not a function call"))
-    (unless skip-base
-        (while (not (eq (cadr (backtrace-frame count)) 'debug))
-          (setq count (1+ count)))
-        ;; Skip debug--implement-debug-on-entry frame.
-        (when (eq 'debug--implement-debug-on-entry
-                  (cadr (backtrace-frame (1+ count))))
-          (setq count (+ 2 count))))
-    (+ count index)))
+    ;; We have 3 representations of the backtrace: the real in C in `specpdl',
+    ;; the one stored in `backtrace-frames' and the textual version in
+    ;; the buffer.  Check here that the one from `backtrace-frames' is in sync
+    ;; with the one from `specpdl'.
+    (cl-assert (equal (backtrace-frame-fun (nth index backtrace-frames))
+                      (nth 1 (backtrace-frame (1+ index)
+                                              (debugger--backtrace-base)))))
+    ;; The `base' frame is the one that gets index 0 and it is the entry to
+    ;; the debugger, so the first non-debugger frame is 1.
+    ;; This `+1' skips the same frame as the `cdr' in
+    ;; `debugger-setup-buffer'.
+    (1+ index)))
 
 (defun debugger-frame ()
   "Request entry to debugger when this frame exits.
 Applies to the frame whose line point is on in the backtrace."
   (interactive)
-  (backtrace-debug (debugger-frame-number) t)
+  (backtrace-debug (debugger-frame-number) t (debugger--backtrace-base))
   (setf
    (cl-getf (backtrace-frame-flags (nth (backtrace-get-index) backtrace-frames))
             :debug-on-exit)
@@ -500,7 +525,7 @@ Applies to the frame whose line point is on in the backtrace."
   "Do not enter debugger when this frame exits.
 Applies to the frame whose line point is on in the backtrace."
   (interactive)
-  (backtrace-debug (debugger-frame-number) nil)
+  (backtrace-debug (debugger-frame-number) nil (debugger--backtrace-base))
   (setf
    (cl-getf (backtrace-frame-flags (nth (backtrace-get-index) backtrace-frames))
             :debug-on-exit)
@@ -519,10 +544,8 @@ Applies to the frame whose line point is on in the backtrace."
 (defun debugger--backtrace-base ()
   "Return the function name that marks the top of the backtrace.
 See `backtrace-frame'."
-  (cond ((eq 'debug--implement-debug-on-entry
-	     (cadr (backtrace-frame 1 'debug)))
-	 'debug--implement-debug-on-entry)
-	(t 'debug)))
+  (or (cadr (memq :backtrace-base debugger-args))
+      #'debug))
 
 (defun debugger-eval-expression (exp &optional nframe)
   "Eval an expression, in an environment like that outside the debugger.
@@ -530,7 +553,7 @@ The environment used is the one when entering the activation frame at point."
   (interactive
    (list (read--expression "Eval in stack frame: ")))
   (let ((nframe (or nframe
-                    (condition-case nil (1+ (debugger-frame-number 'skip-base))
+                    (condition-case nil (debugger-frame-number)
                       (error 0)))) ;; If on first line.
 	(base (debugger--backtrace-base)))
     (debugger-env-macro
@@ -645,7 +668,7 @@ Complete list of commands:
     (princ (debugger-eval-expression exp))
     (terpri))
 
-  (with-current-buffer (get-buffer debugger-record-buffer)
+  (with-current-buffer debugger-record-buffer
     (message "%s"
 	     (buffer-substring (line-beginning-position 0)
 			       (line-end-position 0)))))
@@ -663,7 +686,10 @@ functions to break on entry."
   (if (or inhibit-debug-on-entry debugger-jumping-flag)
       nil
     (let ((inhibit-debug-on-entry t))
-      (funcall debugger 'debug))))
+      (funcall debugger 'debug :backtrace-base
+               ;; An offset of 1 because we need to skip the advice
+               ;; OClosure that called us.
+               '(1 . debug--implement-debug-on-entry)))))
 
 ;;;###autoload
 (defun debug-on-entry (function)

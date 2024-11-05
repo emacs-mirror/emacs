@@ -1,6 +1,6 @@
 ;;; gnus-sieve.el --- Utilities to manage sieve scripts for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: NAGY Andras <nagya@inf.elte.hu>,
 ;;	Simon Josefsson <simon@josefsson.org>
@@ -133,8 +133,7 @@ Return nil if no rule could be guessed."
 
 For example:
 \(gnus-sieve-string-list \\='(\"to\" \"cc\"))
-  => \"[\\\"to\\\", \\\"cc\\\"]\"
-"
+  => \"[\\\"to\\\", \\\"cc\\\"]\""
   (concat "[\"" (mapconcat #'identity list "\", \"") "\"]"))
 
 (defun gnus-sieve-test-list (list)

@@ -1,0 +1,25 @@
+default namespace = ""
+
+start =
+  element configuration {
+    element packageRestore { add+ }?,
+    (element config { add }
+     | element packageSourceMapping {
+         element packageSource {
+           attribute key { xsd:NCName },
+           element package {
+             attribute pattern { text }
+           }
+         }+
+       }
+     | element packageSources {
+         element clear { empty },
+         add+
+       })+
+  }
+add =
+  element add {
+    attribute key { xsd:NCName },
+    attribute protocolVersion { xsd:integer }?,
+    attribute value { xsd:anyURI }
+  }

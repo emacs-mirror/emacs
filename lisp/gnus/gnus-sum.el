@@ -1,6 +1,6 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -122,7 +122,7 @@ The server has to support NOV for any of this to work.
 
 This feature can seriously impact performance it ignores all
 locally cached header entries.  Setting it to t for groups for a
-server that doesn't expire articles (such as news.gmane.org),
+server that doesn't expire articles (such as news.gmane.io),
 leads to very slow summary generation."
   :group 'gnus-thread
   :type '(choice (const :tag "off" nil)
@@ -322,7 +322,8 @@ This can either be a regular expression or list of regular expressions
 that will be removed from subject strings if fuzzy subject
 simplification is selected."
   :group 'gnus-thread
-  :type '(repeat regexp))
+  :type '(choice regexp
+                 (repeat regexp)))
 
 (defcustom gnus-show-threads t
   "If non-nil, display threads in summary mode."
@@ -3061,17 +3062,17 @@ the summary mode hooks are run.")
   "Major mode for reading articles.
 \\<gnus-summary-mode-map>
 Each line in this buffer represents one article.  To read an
-article, you can, for instance, type `\\[gnus-summary-next-page]'.  To move forwards
-and backwards while displaying articles, type `\\[gnus-summary-next-unread-article]' and `\\[gnus-summary-prev-unread-article]',
+article, you can, for instance, type \\[gnus-summary-next-page].  To move forwards
+and backwards while displaying articles, type \\[gnus-summary-next-unread-article] and \\[gnus-summary-prev-unread-article],
 respectively.
 
 You can also post articles and send mail from this buffer.  To
-follow up an article, type `\\[gnus-summary-followup]'.  To mail a reply to the author
-of an article, type `\\[gnus-summary-reply]'.
+follow up an article, type \\[gnus-summary-followup].  To mail a reply to the author
+of an article, type \\[gnus-summary-reply].
 
 There are approximately one gazillion commands you can execute in
 this buffer; read the Info manual for more
-information (`\\[gnus-info-find-node]').
+information (\\[gnus-info-find-node]).
 
 The following commands are available:
 
@@ -8331,39 +8332,29 @@ articles."
 
 (defun gnus-summary-limit-to-age (age &optional younger-p)
   "Limit the summary buffer to articles that are older than (or equal) AGE days.
-If YOUNGER-P (the prefix) is non-nil, limit the summary buffer to
-articles that are younger than AGE days."
+Days are counted from midnight to midnight, and now to the
+previous midnight counts as day one.  If YOUNGER-P (the prefix)
+is non-nil, limit the summary buffer to articles that are younger
+than AGE days."
   (interactive
-   (let ((younger current-prefix-arg)
-	 (days-got nil)
-	 days)
-     (while (not days-got)
-       (setq days (if younger
-		      (read-string "Limit to articles younger than (in days, older when negative): ")
-		    (read-string
-		     "Limit to articles older than (in days, younger when negative): ")))
-       (when (> (length days) 0)
-	 (setq days (read days)))
-       (if (numberp days)
-	   (progn
-	     (setq days-got t)
-	     (when (< days 0)
-	       (setq younger (not younger))
-	       (setq days (* days -1))))
-	 (message "Please enter a number.")
-	 (sleep-for 1)))
+   (let* ((younger current-prefix-arg)
+	  (days (read-number
+                 (if younger "Limit to articles younger than days: "
+                   "Limit to articles older than days: "))))
      (list days younger))
    gnus-summary-mode)
   (prog1
-      (let ((data gnus-newsgroup-data)
-	    (cutoff (days-to-time age))
-	    articles d date is-younger)
+      (let* ((data gnus-newsgroup-data)
+             (now (append '(0 0 0) (cdddr (decode-time))))
+             (delta (make-decoded-time :day (* -1 (- age 1))))
+             (cutoff (encode-time (decoded-time-add now delta)))
+	     articles d date is-younger)
 	(while (setq d (pop data))
 	  (when (and (mail-header-p (gnus-data-header d))
 		     (setq date (mail-header-date (gnus-data-header d))))
 	    (setq is-younger (time-less-p
-			      (time-since (gnus-date-get-time date))
-			      cutoff))
+			      cutoff
+			      (gnus-date-get-time date)))
 	    (when (if younger-p
 		      is-younger
 		    (not is-younger))
@@ -8510,7 +8501,7 @@ with MARKS.  MARKS can either be a string of marks or a list of marks.
 Returns how many articles were removed."
   (interactive
    (list
-    (completing-read "Marks:"
+    (completing-read "Marks: "
 		     (let ((mark-list '()))
 		       (mapc (lambda (datum)
 			       (cl-pushnew   (gnus-data-mark datum) mark-list))
@@ -8527,7 +8518,7 @@ list of marks.
 Returns how many articles were removed."
   (interactive
    (list
-    (completing-read "Marks:"
+    (completing-read "Marks: "
 		     (let ((mark-list '()))
 		       (mapc (lambda (datum)
 			       (cl-pushnew   (gnus-data-mark datum) mark-list))
@@ -8948,7 +8939,8 @@ The difference between N and the number of articles fetched is returned."
     (while (and (> n 0)
 		(not error))
       (setq header (gnus-summary-article-header))
-      (if (and (eq (mail-header-number header)
+      (if (and (null gnus-alter-header-function)
+               (eq (mail-header-number header)
 		   (cdr gnus-article-current))
 	       (equal gnus-newsgroup-name
 		      (car gnus-article-current)))
@@ -8956,7 +8948,8 @@ The difference between N and the number of articles fetched is returned."
 	  ;; displayed article, then we take a look at the actual
 	  ;; References header, since this is slightly more
 	  ;; reliable than the References field we got from the
-	  ;; server.
+          ;; server. But if we altered the header, we should prefer
+          ;; the version from the header vector.
 	  (with-current-buffer gnus-original-article-buffer
 	    (nnheader-narrow-to-headers)
 	    (unless (setq ref (message-fetch-field "references"))
@@ -8964,8 +8957,8 @@ The difference between N and the number of articles fetched is returned."
 		(setq ref (gnus-extract-message-id-from-in-reply-to ref))))
 	    (widen))
 	(setq ref
-	      ;; It's not the current article, so we take a bet on
-	      ;; the value we got from the server.
+              ;; It's not the current article, or we altered the header,
+              ;; so we use what's in the header vector.
 	      (mail-header-references header)))
       (if (and ref
 	       (not (equal ref "")))
@@ -9381,9 +9374,9 @@ The 1st element is the button named by `gnus-collect-urls-primary-text'."
   (let ((pt (point)) urls primary)
     (while (forward-button 1 nil nil t)
       (setq pt (point))
-      (when-let ((w (button-at pt))
-                 (u (or (button-get w 'shr-url)
-                        (get-text-property pt 'gnus-string))))
+      (when-let* ((w (button-at pt))
+                  (u (or (button-get w 'shr-url)
+                         (get-text-property pt 'gnus-string))))
 	(when (string-match-p "\\`[[:alpha:]]+://" u)
           (if (and gnus-collect-urls-primary-text (null primary)
                    (string= gnus-collect-urls-primary-text (button-label w)))
@@ -9411,7 +9404,7 @@ See `gnus-collect-urls'."
     (let* ((parsed (url-generic-parse-url url))
            (host (url-host parsed))
            (rest (concat (url-filename parsed)
-                         (when-let ((target (url-target parsed)))
+                         (when-let* ((target (url-target parsed)))
                            (concat "#" target)))))
       (concat host (string-truncate-left rest (- max (length host)))))))
 

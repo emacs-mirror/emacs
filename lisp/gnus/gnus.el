@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2023 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -309,30 +309,47 @@ be set in `.emacs' instead."
   :group 'gnus-start
   :type 'boolean)
 
+(defcustom gnus-mode-line-logo
+  '((:type svg :file "gnus-pointer.svg" :ascent center)
+     (:type xpm :file "gnus-pointer.xpm" :ascent center)
+     (:type xbm :file "gnus-pointer.xbm" :ascent center))
+  "Image spec for the Gnus logo to be displayed in mode-line.
+
+If non-nil, it should be a list of image specifications to be passed
+as the first argument to `find-image', which see.  Then, if the display
+is capable of showing images, the Gnus logo will be displayed as part of
+the buffer-identification in the mode-line of Gnus-buffers.
+
+If nil, there will be no Gnus logo in the mode-line."
+  :group 'gnus-visual
+  :type '(choice
+           (repeat :tag "List of Gnus logo image specifications" (plist))
+           (const :tag "Don't display Gnus logo" nil))
+  :version "30.1")
+
 (defun gnus-mode-line-buffer-identification (line)
   (let* ((str (car-safe line))
          (str (if (stringp str)
                   (car (propertized-buffer-identification str))
                 str)))
-    (if (or (not (fboundp 'find-image))
+    (if (or (not gnus-mode-line-logo)
+            (not (fboundp 'find-image))
 	    (not (display-graphic-p))
 	    (not (stringp str))
 	    (not (string-match "^Gnus:" str)))
 	(list str)
-      (let ((load-path (append (mm-image-load-path) load-path)))
+      (let ((load-path (append (mm-image-load-path) load-path))
+            (gnus-emacs-version (gnus-emacs-version)))
 	;; Add the Gnus logo.
 	(add-text-properties
 	 0 5
 	 (list 'display
-	       (find-image
-		'((:type xpm :file "gnus-pointer.xpm"
-			 :ascent center)
-		  (:type xbm :file "gnus-pointer.xbm"
-			 :ascent center))
-		t)
-	       'help-echo (format
-			   "This is %s, %s."
-			   gnus-version (gnus-emacs-version)))
+	       (find-image gnus-mode-line-logo t)
+	       'help-echo (if gnus-emacs-version
+                              (format
+			       "This is %s, %s."
+			       gnus-version gnus-emacs-version)
+                            (format "This is %s." gnus-version)))
 	 str)
 	(list str)))))
 
@@ -1343,6 +1360,7 @@ slower."
     ("nnimap" post-mail address prompt-address physical-address respool
      server-marks cloud)
     ("nnmaildir" mail respool address server-marks)
+    ("nnatom" none address)
     ("nnnil" none))
   "An alist of valid select methods.
 The first element of each list lists should be a string with the name
@@ -3101,9 +3119,9 @@ g -- Group name."
   "Check whether GROUP supports function FUNC.
 GROUP can either be a string (a group name) or a select method."
   (ignore-errors
-    (when-let ((method (if (stringp group)
-		           (car (gnus-find-method-for-group group))
-		         group)))
+    (when-let* ((method (if (stringp group)
+		            (car (gnus-find-method-for-group group))
+		          group)))
       (unless (featurep method)
 	(require method))
       (fboundp (intern (format "%s-%s" method func))))))

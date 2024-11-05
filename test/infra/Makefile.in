@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2021-2023 Free Software Foundation, Inc.
+# Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -76,6 +76,15 @@ define subdir_template
     define changes
 	@echo '        - lisp/so-long*.el' >>$(FILE)
     endef
+    else ifeq ($(findstring textmodes, $(1)), textmodes)
+    define changes
+	@echo '        - $(1)/*-ts-mode.el' >>$(FILE)
+	@echo '        - test/$(1)/*-ts-mode-resources/**' >>$(FILE)
+	@echo '        - test/$(1)/*-ts-mode-tests.el' >>$(FILE)
+	@echo '      when: never' >>$(FILE)
+	@echo '    - changes:' >>$(FILE)
+	@echo '        - $(1)/*.el' >>$(FILE)
+    endef
     else ifeq ($(findstring misc, $(1)), misc)
     define changes
 	@echo '        - admin/*.el' >>$(FILE)
@@ -103,24 +112,24 @@ define subdir_template
 	@echo '        - test/$(1)/*.el' >>$(FILE)
 	@echo '  variables:' >>$(FILE)
 	@echo '    target: emacs-inotify' >>$(FILE)
-	@echo '    make_params: "-k -C test $(target)"' >>$(FILE)
+	@echo '    make_params: -C test $(target)' >>$(FILE)
 endef
 
 $(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
 
 TREE-SITTER-FILES ?= $(shell cd .. ; \
-  find lisp src \( -name "*-ts-mode-tests.el" -o -name "treesit-tests.el" \) | \
+  find lisp src -name "*-tests.el" | xargs grep -El "treesit.*-p" | \
   sort | sed s/\\.el/.log/)
 
 all: generate-test-jobs
 
-.PHONY: generate-test-jobs $(FILE) $(SUBDIR_TARGETS) tree-sitter-files-template
+.PHONY: generate-test-jobs $(FILE) $(SUBDIR_TARGETS) tree-sitter-files
 
-generate-test-jobs: $(FILE) $(SUBDIR_TARGETS) tree-sitter-files-template
+generate-test-jobs: $(FILE) $(SUBDIR_TARGETS) tree-sitter-files
 
-tree-sitter-files-template:
+tree-sitter-files:
 	@echo >>$(FILE)
-	@echo '.tree-sitter-files-template:' >>$(FILE)
+	@echo '.tree-sitter-files:' >>$(FILE)
 	@echo '  variables:' >>$(FILE)
 	@echo '    tree_sitter_files: >-' >>$(FILE)
 	@for name in $(TREE-SITTER-FILES) ; do echo "      $${name}" >>$(FILE) ; done

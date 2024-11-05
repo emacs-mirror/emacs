@@ -1,6 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2024 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
@@ -28,7 +28,7 @@
 ;; This is based on Sebastian Kremer's excellent dired-x.el (Dired Extra),
 ;; version 1.191, adapted for GNU Emacs.  See the `dired-x' Info manual.
 
-;; At load time dired-x.el will install itself and bind some dired keys.
+;; At load time dired-x.el will install itself and bind some Dired keys.
 ;; Some dired.el and dired-aux.el functions have extra features if
 ;; dired-x is loaded.
 
@@ -77,12 +77,17 @@ files not writable by you are visited read-only."
 		 (other :tag "non-writable only" if-file-read-only))
   :group 'dired-x)
 
-(defcustom dired-omit-size-limit 100000
-  "Maximum size for the \"omitting\" feature.
+(defcustom dired-omit-size-limit 300000
+  "Maximum buffer size for `dired-omit-mode'.
+
+Omitting will be disabled if the directory listing exceeds this size in
+bytes.  This variable is ignored when `dired-omit-mode' is called
+interactively.
+
 If nil, there is no maximum size."
   :type '(choice (const :tag "no maximum" nil) integer)
   :group 'dired-x
-  :version "29.1")
+  :version "30.1")
 
 (defcustom dired-omit-case-fold 'filesystem
   "Determine whether \"omitting\" patterns are case-sensitive.
@@ -213,7 +218,7 @@ toggle between those two."
 
 ;;; Menu bindings
 
-(when-let ((menu (lookup-key dired-mode-map [menu-bar])))
+(when-let* ((menu (lookup-key dired-mode-map [menu-bar])))
   (easy-menu-add-item menu '("Operate")
                       ["Find Files" dired-do-find-marked-files
                        :help "Find current or marked files"]
@@ -299,9 +304,8 @@ Optional MARKER-CHAR is marker to use.
 Interactively, ask for EXTENSION.
 Prefixed with one \\[universal-argument], unmark files instead.
 Prefixed with two \\[universal-argument]'s, prompt for MARKER-CHAR and mark files with it."
-  (interactive (dired--mark-suffix-interactive-spec))
-  (unless (listp extension)
-    (setq extension (list extension)))
+  (interactive (dired--mark-suffix-interactive-spec) dired-mode)
+  (setq extension (ensure-list extension))
   (dired-mark-files-regexp
    (concat ".";; don't match names with nothing but an extension
            "\\("
@@ -324,9 +328,8 @@ Optional MARKER-CHAR is marker to use.
 Interactively, ask for SUFFIX.
 Prefixed with one \\[universal-argument], unmark files instead.
 Prefixed with two \\[universal-argument]'s, prompt for MARKER-CHAR and mark files with it."
-  (interactive (dired--mark-suffix-interactive-spec))
-  (unless (listp suffix)
-    (setq suffix (list suffix)))
+  (interactive (dired--mark-suffix-interactive-spec) dired-mode)
+  (setq suffix (ensure-list suffix))
   (dired-mark-files-regexp
    (concat ".";; don't match names with nothing but an extension
            "\\("
@@ -337,7 +340,7 @@ Prefixed with two \\[universal-argument]'s, prompt for MARKER-CHAR and mark file
 (defun dired-flag-extension (extension)
   "In Dired, flag all files with a certain EXTENSION for deletion.
 A `.' is *not* automatically prepended to the string entered."
-  (interactive "sFlagging extension: ")
+  (interactive "sFlagging extension: " dired-mode)
   (dired-mark-extension extension dired-del-marker))
 
 ;; Define some unpopular file extensions.  Used for cleaning and omitting.
@@ -366,7 +369,7 @@ A `.' is *not* automatically prepended to the string entered."
 (defun dired-clean-patch ()
   "Flag dispensable files created by patch for deletion.
 See variable `dired-patch-unclean-extensions'."
-  (interactive)
+  (interactive nil dired-mode)
   (dired-flag-extension dired-patch-unclean-extensions))
 
 (defun dired-clean-tex ()
@@ -374,7 +377,7 @@ See variable `dired-patch-unclean-extensions'."
 See variables `dired-tex-unclean-extensions',
 `dired-latex-unclean-extensions', `dired-bibtex-unclean-extensions' and
 `dired-texinfo-unclean-extensions'."
-  (interactive)
+  (interactive nil dired-mode)
   (dired-flag-extension (append dired-texinfo-unclean-extensions
                                 dired-latex-unclean-extensions
                                 dired-bibtex-unclean-extensions
@@ -385,7 +388,7 @@ See variables `dired-tex-unclean-extensions',
 See variables `dired-texinfo-unclean-extensions',
 `dired-latex-unclean-extensions', `dired-bibtex-unclean-extensions' and
 `dired-texinfo-unclean-extensions'."
-  (interactive)
+  (interactive nil dired-mode)
   (dired-flag-extension (append dired-texinfo-unclean-extensions
                                 dired-latex-unclean-extensions
                                 dired-bibtex-unclean-extensions
@@ -421,7 +424,7 @@ Should never be used as marker by the user or other packages.")
 
 (defun dired-mark-omitted ()
   "Mark files matching `dired-omit-files' and `dired-omit-extensions'."
-  (interactive)
+  (interactive nil dired-mode)
   (let ((dired-omit-mode nil)) (revert-buffer)) ;; Show omitted files
   (dired-mark-unmarked-files (dired-omit-regexp) nil nil dired-omit-localp
                              (dired-omit-case-fold-p (if (stringp dired-directory)
@@ -457,7 +460,7 @@ if called from Lisp and buffer is bigger than `dired-omit-size-limit'.
 Optional arg INIT-COUNT is an initial count tha'is added to the number
 of lines omitted by this invocation of `dired-omit-expunge', in the
 status message."
-  (interactive "sOmit files (regexp): \nP")
+  (interactive "sOmit files (regexp): \nP" dired-mode)
   ;; Bind `dired-marker-char' to `dired-omit-marker-char',
   ;; then call `dired-do-kill-lines'.
   (if (and dired-omit-mode
@@ -493,7 +496,11 @@ status message."
               (setq count  (+ count
                               (dired-do-kill-lines
                                nil
-                               (if dired-omit-verbose "Omitted %d line%s" "")
+                               (if dired-omit-verbose
+                                   (format "Omitted %%d line%%s in %s"
+                                           (abbreviate-file-name
+                                            dired-directory))
+                                 "")
                                init-count)))
               (force-mode-line-update))))
         ;; Try to preserve modified state, so `%*' doesn't appear in
@@ -504,14 +511,23 @@ status message."
                                       (re-search-forward dired-re-mark nil t))))
         count)))
 
+(defvar dired-omit--extension-regexp-cache
+  nil
+  "A cache of `regexp-opt' applied to `dired-omit-extensions'.
+
+This is a cons whose car is a list of strings and whose cdr is a
+regexp produced by `regexp-opt'.")
+
 (defun dired-omit-regexp ()
+  (unless (equal dired-omit-extensions (car dired-omit--extension-regexp-cache))
+    (setq dired-omit--extension-regexp-cache
+          (cons dired-omit-extensions (regexp-opt dired-omit-extensions))))
   (concat (if dired-omit-files (concat "\\(" dired-omit-files "\\)") "")
           (if (and dired-omit-files dired-omit-extensions) "\\|" "")
           (if dired-omit-extensions
               (concat ".";; a non-extension part should exist
-                      "\\("
-                      (mapconcat 'regexp-quote dired-omit-extensions "\\|")
-                      "\\)$")
+                      (cdr dired-omit--extension-regexp-cache)
+                      "$")
             "")))
 
 ;; Returns t if any work was done, nil otherwise.
@@ -529,7 +545,8 @@ files in the active region if `dired-mark-region' is non-nil."
    (list (read-regexp
           (format-prompt "Mark unmarked files matching regexp" "all")
           nil 'dired-regexp-history)
-	 nil current-prefix-arg nil))
+	 nil current-prefix-arg nil)
+   dired-mode)
   (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))
     (dired-mark-if
      (and
@@ -610,7 +627,8 @@ you can relist single subdirs using \\[dired-do-redisplay]."
       (insert "  "
 	      (directory-file-name (file-name-directory default-directory))
 	      ":\n"))
-  (dired-mode dirname (or switches dired-listing-switches))
+  (dired-mode
+   dirname (or switches (connection-local-value dired-listing-switches)))
   (setq mode-name "Virtual Dired"
         revert-buffer-function 'dired-virtual-revert
         dired-subdir-alist nil)
@@ -734,7 +752,7 @@ displayed this way is restricted by the height of the current window and
 
 To keep Dired buffer displayed, type \\[split-window-below] first.
 To display just marked files, type \\[delete-other-windows] first."
-  (interactive "P")
+  (interactive "P" dired-mode)
   (dired-simultaneous-find-file (dired-get-marked-files nil nil nil nil t)
                                 noselect))
 
@@ -778,7 +796,7 @@ NOSELECT the files are merely found but not selected."
   "Run VM on this file.
 With optional prefix argument, visits the folder read-only.
 Otherwise obeys the value of `dired-vm-read-only-folders'."
-  (interactive "P")
+  (interactive "P" dired-mode)
   (let ((dir (dired-current-directory))
         (fil (dired-get-filename)))
     (vm-visit-folder fil (or read-only
@@ -790,7 +808,7 @@ Otherwise obeys the value of `dired-vm-read-only-folders'."
 
 (defun dired-rmail ()
   "Run RMAIL on this file."
-  (interactive)
+  (interactive nil dired-mode)
   (rmail (dired-get-filename)))
 
 (defun dired-do-run-mail ()
@@ -798,7 +816,7 @@ Otherwise obeys the value of `dired-vm-read-only-folders'."
 Prompt for confirmation first; if the user says yes, call
 `dired-vm' if `dired-bind-vm' is non-nil, `dired-rmail'
 otherwise."
-  (interactive)
+  (interactive nil dired-mode)
   (let ((file (dired-get-filename t)))
     (if dired-bind-vm
 	(if (y-or-n-p (format-message
@@ -840,7 +858,7 @@ sure that a trailing letter in STR is one of BKkMGTPEZYRQ."
   "Mark files for which PREDICATE returns non-nil.
 With a prefix arg, unmark or unflag those files instead.
 
-PREDICATE is a lisp expression that can refer to the following symbols:
+PREDICATE is a Lisp expression that can refer to the following symbols:
 
     inode  [integer] the inode of the file (only for ls -i output)
     s      [integer] the size of the file for ls -s output
@@ -884,7 +902,8 @@ only in the active region if `dired-mark-region' is non-nil."
                   (if current-prefix-arg
                       "UNmark"
                     "Mark")))
-         current-prefix-arg))
+         current-prefix-arg)
+   dired-mode)
   (message "%s" predicate)
   (let ((dired-marker-char (if unflag-p ?\040 dired-marker-char))
         inode s mode nlink uid gid size time name sym)
@@ -1010,7 +1029,7 @@ is loaded then call \\[dired-x-bind-find-file]."
   "Bind `dired-x-find-file' in place of `find-file' (or vice-versa).
 Similarly for `dired-x-find-file-other-window' and `find-file-other-window'.
 Binding direction based on `dired-x-hands-off-my-keys'."
-  (interactive)
+  (interactive nil)
   (if (called-interactively-p 'interactive)
       (setq dired-x-hands-off-my-keys
             (not (y-or-n-p (format-message

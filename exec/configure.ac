@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 2023 Free Software Foundation, Inc.
+dnl Copyright (C) 2023-2024 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -22,10 +22,10 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.65])
-AC_INIT([libexec], [30.0.50], [bug-gnu-emacs@gnu.org], [],
+AC_INIT([libexec], [31.0.50], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
-AH_TOP([/* Copyright (C) 2023 Free Software Foundation, Inc.
+AH_TOP([/* Copyright (C) 2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -41,11 +41,6 @@ General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */])
-
-AC_ARG_WITH([reentrancy],
-  [AS_HELP_STRING([--with-reentrancy],
-    [Generate library which can be used within a signal handler.])],
-  [AC_DEFINE([REENTRANT], [1])])
 
 AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
@@ -74,9 +69,9 @@ AC_CHECK_FUNC([process_vm_readv],
       ]])])])
 AC_CHECK_HEADERS([sys/param.h sys/uio.h])
 AC_CHECK_MEMBERS([siginfo_t.si_syscall], [], [],
-  [[
+[[
 #include <signal.h>
-  ]])
+]])
 
 AH_BOTTOM([
 #ifdef HAVE_STDBOOL_H
@@ -120,8 +115,10 @@ AH_TEMPLATE([SYSCALL_ARG2_REG], [Define to register holding arg2 to system calls
 AH_TEMPLATE([SYSCALL_ARG3_REG], [Define to register holding arg3 to system calls.])
 AH_TEMPLATE([SYSCALL_RET_REG], [Define to register holding value of system calls.])
 AH_TEMPLATE([STACK_POINTER], [Define to register holding the stack pointer.])
+AH_TEMPLATE([PROGRAM_COUNTER], [Define to register holding the program counter.])
 AH_TEMPLATE([EXEC_SYSCALL], [Define to number of the `exec' system call.])
 AH_TEMPLATE([USER_WORD], [Define to word type used by tracees.])
+AH_TEMPLATE([USER_SWORD], [Define to signed word type used by tracees.])
 AH_TEMPLATE([EXEC_64], [Define to 1 if the system utilizes 64-bit ELF.])
 AH_TEMPLATE([STACK_GROWS_DOWNWARDS], [Define to 1 if the stack grows downwards.])
 AH_TEMPLATE([ABI_RED_ZONE], [Define to number of reserved bytes past the stack frame.])
@@ -131,7 +128,10 @@ AH_TEMPLATE([CLONE_SYSCALL], [Define to number of the `clone' system call.])
 AH_TEMPLATE([CLONE3_SYSCALL], [Define to number of the `clone3' system call.])
 AH_TEMPLATE([READLINK_SYSCALL], [Define to number of the `readlink' system call.])
 AH_TEMPLATE([READLINKAT_SYSCALL], [Define to number of the `readlinkat' system call.])
-AH_TEMPLATE([REENTRANT], [Define to 1 if the library is used within a signal handler.])
+AH_TEMPLATE([OPEN_SYSCALL], [Define to number of the `open' system call.])
+AH_TEMPLATE([OPENAT_SYSCALL], [Define to number of the `openat' system call.])
+AH_TEMPLATE([HAVE_SECCOMP], [Define to 1 if secure computing filters are available
+to accelerate interception of system calls.])
 
 AC_CANONICAL_HOST
 
@@ -247,8 +247,10 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_ARG2_REG], [rdx])
      AC_DEFINE([SYSCALL_ARG3_REG], [r10])
      AC_DEFINE([STACK_POINTER], [rsp])
+     AC_DEFINE([PROGRAM_COUNTER], [rip])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
+     AC_DEFINE([USER_SWORD], [intptr_t])
      AC_DEFINE([EXEC_64], [1])
      AC_DEFINE([ABI_RED_ZONE], [128])
      AC_DEFINE([EXECUTABLE_BASE], [0x555555554000])
@@ -257,6 +259,8 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
      AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
      AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
+     AC_DEFINE([OPEN_SYSCALL], [__NR_open])
+     AC_DEFINE([OPENAT_SYSCALL], [__NR_openat])
      exec_CHECK_LINUX_CLONE3
      # Make sure the loader doesn't conflict with other position
      # dependent code.
@@ -277,14 +281,18 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_ARG2_REG], [edx])
      AC_DEFINE([SYSCALL_ARG3_REG], [esi])
      AC_DEFINE([STACK_POINTER], [esp])
+     AC_DEFINE([PROGRAM_COUNTER], [eip])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
+     AC_DEFINE([USER_SWORD], [intptr_t])
      AC_DEFINE([EXECUTABLE_BASE], [0x0f000000])
      AC_DEFINE([INTERPRETER_BASE], [0xaf000000])
      AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
      AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
      AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
      AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
+     AC_DEFINE([OPEN_SYSCALL], [__NR_open])
+     AC_DEFINE([OPENAT_SYSCALL], [__NR_openat])
      exec_CHECK_LINUX_CLONE3
      # Make sure the loader doesn't conflict with other position
      # dependent code.
@@ -305,15 +313,18 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_ARG2_REG], [[regs[2]]])
      AC_DEFINE([SYSCALL_ARG3_REG], [[regs[3]]])
      AC_DEFINE([STACK_POINTER], [sp])
+     AC_DEFINE([PROGRAM_COUNTER], [pc])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
+     AC_DEFINE([USER_SWORD], [intptr_t])
      AC_DEFINE([EXEC_64], [1])
      AC_DEFINE([EXECUTABLE_BASE], [0x3000000000])
      AC_DEFINE([INTERPRETER_BASE], [0x3f00000000])
      AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
      AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
-     # Note that aarch64 has no `readlink'.
+     # Note that aarch64 has neither `readlink' nor `open'.
      AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
+     AC_DEFINE([OPENAT_SYSCALL], [__NR_openat])
      exec_CHECK_LINUX_CLONE3
      # Make sure the loader doesn't conflict with other position
      # dependent code.  ARM places rather significant restrictions on
@@ -335,14 +346,18 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_ARG2_REG], [[uregs[2]]])
      AC_DEFINE([SYSCALL_ARG3_REG], [[uregs[3]]])
      AC_DEFINE([STACK_POINTER], [[uregs[13]]])
+     AC_DEFINE([PROGRAM_COUNTER], [[uregs[15]]])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
+     AC_DEFINE([USER_SWORD], [intptr_t])
      AC_DEFINE([EXECUTABLE_BASE], [0x0f000000])
      AC_DEFINE([INTERPRETER_BASE], [0x1f000000])
      AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
      AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
      AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
      AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
+     AC_DEFINE([OPEN_SYSCALL], [__NR_open])
+     AC_DEFINE([OPENAT_SYSCALL], [__NR_openat])
      exec_CHECK_LINUX_CLONE3
      LOADERFLAGS="$LOADERFLAGS $LDPREFIX-Ttext=0x20000000"
      exec_loader=loader-armeabi.s],
@@ -357,14 +372,18 @@ AS_CASE([$host], [x86_64-*linux*],
        AC_DEFINE([SYSCALL_ARG2_REG], [[uregs[2]]])
        AC_DEFINE([SYSCALL_ARG3_REG], [[uregs[3]]])
        AC_DEFINE([STACK_POINTER], [[uregs[13]]])
+       AC_DEFINE([STACK_POINTER], [[uregs[15]]])
        AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
        AC_DEFINE([USER_WORD], [uintptr_t])
+       AC_DEFINE([USER_SWORD], [intptr_t])
        AC_DEFINE([EXECUTABLE_BASE], [0x0f000000])
        AC_DEFINE([INTERPRETER_BASE], [0x1f000000])
        AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
        AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
        AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
        AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
+       AC_DEFINE([OPEN_SYSCALL], [__NR_open])
+       AC_DEFINE([OPENAT_SYSCALL], [__NR_openat])
        exec_CHECK_LINUX_CLONE3
        LOADERFLAGS="$LOADERFLAGS $LDPREFIX-Ttext=0x20000000"
        exec_loader=loader-armeabi.s],
@@ -385,14 +404,18 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([SYSCALL_ARG2_REG], [[gregs[4]]]) # a2
    AC_DEFINE([SYSCALL_ARG3_REG], [[gregs[5]]]) # a3
    AC_DEFINE([STACK_POINTER], [[gregs[29]]]) # sp
+   AC_DEFINE([PROGRAM_COUNTER], [[cp0_epc]]) # pc
    AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
    AC_DEFINE([USER_WORD], [uintptr_t])
+   AC_DEFINE([USER_SWORD], [intptr_t])
    AC_DEFINE([EXECUTABLE_BASE], [0x0f000000])
    AC_DEFINE([INTERPRETER_BASE], [0x1f000000])
    AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
    AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
    AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
    AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
+   AC_DEFINE([OPEN_SYSCALL], [__NR_open])
+   AC_DEFINE([OPENAT_SYSCALL], [__NR_openat])
    AC_CHECK_DECL([_MIPS_SIM], [exec_CHECK_MIPS_NABI],
      [AC_MSG_ERROR([_MIPS_SIM could not be determined]),
      [[
@@ -412,8 +435,10 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([SYSCALL_ARG2_REG], [[gregs[4]]]) # a2
    AC_DEFINE([SYSCALL_ARG3_REG], [[gregs[5]]]) # a3
    AC_DEFINE([STACK_POINTER], [[gregs[29]]]) # sp
+   AC_DEFINE([PROGRAM_COUNTER], [[cp0_epc]]) # pc
    AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
    AC_DEFINE([USER_WORD], [uintptr_t])
+   AC_DEFINE([USER_SWORD], [intptr_t])
    AC_DEFINE([EXEC_64], [1])
    AC_DEFINE([EXECUTABLE_BASE], [0x400000])
    AC_DEFINE([INTERPRETER_BASE], [0x3f00000000])
@@ -421,6 +446,8 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
    AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
    AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
+   AC_DEFINE([OPEN_SYSCALL], [__NR_open])
+   AC_DEFINE([OPENAT_SYSCALL], [__NR_openat])
    AC_CACHE_CHECK([whether as understands `daddi'],
      [exec_cv_as_daddi],
      [exec_cv_as_daddi=no
@@ -456,6 +483,12 @@ MIPS_N32=$exec_cv_mips_nabi
 AC_ARG_VAR([LOADERFLAGS], [Flags used to link the loader.])
 AC_ARG_VAR([ARFLAGS], [Flags for the archiver.])
 AC_ARG_VAR([ASFLAGS], [Flags for the assembler.])
+
+# Search for seccomp headers and declarations.
+AC_CHECK_HEADERS([linux/seccomp.h linux/filter.h],
+  [AC_CHECK_DECLS([SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC, SECCOMP_RET_TRACE],
+    [AC_DEFINE([HAVE_SECCOMP], [1])], [],
+    [[#include <linux/seccomp.h>]])])
 
 # Make the assembler optimize for code size.  Don't do this on MIPS,
 # as the assembler code manages branch delays manually.
@@ -524,7 +557,9 @@ FIND_DELETE=$exec_cv_find_delete
 AC_SUBST([FIND_DELETE])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile config-mips.m4])
+AC_CONFIG_FILES([Makefile])
+AS_IF([test "x$is_mips" = xyes],
+  [AC_CONFIG_FILES ([config-mips.m4])])
 
 AC_SUBST([AUTO_DEPEND])
 AC_SUBST([LOADERFLAGS])
@@ -533,5 +568,6 @@ AC_SUBST([ASFLAGS])
 AC_SUBST([exec_loader])
 AC_SUBST([MIPS_N32])
 AC_SUBST([OBJS])
+AC_SUBST([is_mips])
 
 AC_OUTPUT

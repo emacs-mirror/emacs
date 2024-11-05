@@ -1,6 +1,6 @@
 /* A GNU-like <limits.h>.
 
-   Copyright 2016-2023 Free Software Foundation, Inc.
+   Copyright 2016-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -130,7 +130,7 @@
 #  define BOOL_WIDTH 1
 #  define BOOL_MAX 1
 # elif ! defined BOOL_MAX
-#  define BOOL_MAX ((((1U << (BOOL_WIDTH - 1)) - 1) << 1) + 1)
+#  define BOOL_MAX 1
 # endif
 #endif
 

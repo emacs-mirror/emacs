@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2023 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2024 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Positions
 @chapter Positions
@@ -450,7 +450,7 @@ in the buffer, or in the region if the region is active.
 @cindex line number
 This function returns the line number in the current buffer
 corresponding to the buffer position @var{pos}.  If @var{pos} is
-@code{nil} or omitted, the current buffer position is used. If
+@code{nil} or omitted, the current buffer position is used.  If
 @var{absolute} is @code{nil}, the default, counting starts at
 @code{(point-min)}, so the value refers to the contents of the
 accessible portion of the (potentially narrowed) buffer.  If
@@ -788,6 +788,14 @@ other kinds, such as words and string constants.
 ---------- Buffer: foo ----------
 @end group
 @end example
+
+@vindex forward-sexp-function
+@code{forward-sexp} calls the function that is the value of the variable
+@code{forward-sexp-function}, if that is non-@code{nil}, to do the
+actual work, passing it the same arguments as those with which the
+command was called.  Major modes can define their own functions for
+moving over balanced expressions as appropriate for the mode, and set
+this variable to that function.
 @end deffn
 
 @deffn Command backward-sexp &optional arg
@@ -872,28 +880,24 @@ defuns.  If the value is @code{nested}, navigation functions recognize
 nested defuns.
 @end defvar
 
-@defvar treesit-sentence-type-regexp
-The value of this variable is a regexp matching the node type of sentence
-nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program Source}.)
-@end defvar
-
 @findex treesit-forward-sentence
 @findex forward-sentence
 @findex backward-sentence
-If Emacs is compiled with tree-sitter, it can use the tree-sitter
-parser information to move across syntax constructs.  Since what
-exactly is considered a sentence varies between languages, a major
-mode should set @code{treesit-sentence-type-regexp} to determine that.
-Then the mode can get navigation-by-sentence functionality for free,
-by using @code{forward-sentence} and
-@code{backward-sentence}(@pxref{Moving by Sentences,,, emacs, The
-extensible self-documenting text editor}).
-
-@defvar treesit-sexp-type-regexp
-The value of this variable is a regexp matching the node type of sexp
-nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program
-Source}.)
-@end defvar
+@vindex forward-sentence-function
+@cindex sentence, in program source files
+The function that is the value of the variable
+@code{forward-sentence-function} determines how to move across syntax
+constructs known as @dfn{sentences}.  Major modes can assign their own
+functions to this variable to customize the behavior of
+@code{forward-sentence} command.  If Emacs is compiled with tree-sitter,
+it can use the tree-sitter parser information to move across syntax
+constructs.  Since what exactly is considered a sentence varies between
+languages, a major mode should set @code{treesit-thing-settings} to
+determine that.  Then @code{forward-sentence-function} will be set to
+@code{treesit-forward-sentence}, and the mode will get
+navigation-by-sentence functionality for free, by using
+@code{forward-sentence} and @code{backward-sentence}(@pxref{Moving by
+Sentences,,, emacs, The extensible self-documenting text editor}).
 
 @findex treesit-forward-sexp
 @findex forward-sexp@r{, and tree-sitter}
@@ -901,10 +905,11 @@ Source}.)
 If Emacs is compiled with tree-sitter, it can use the tree-sitter
 parser information to move across syntax constructs.  Since what
 exactly is considered a sexp varies between languages, a major mode
-should set @code{treesit-sexp-type-regexp} to determine that.  Then
-the mode can get navigation-by-sexp functionality for free, by using
-@code{forward-sexp} and @code{backward-sexp}(@pxref{Moving by
-Sentences,,, emacs, The extensible self-documenting text editor}).
+should set @code{treesit-thing-settings} to determine that.  Then
+@code{forward-sexp-function} will be set to @code{treesit-forward-sexp},
+and the mode can get navigation-by-sexp functionality for free, by using
+@code{forward-sexp} and @code{backward-sexp}(@pxref{Expressions,
+,, emacs, The extensible self-documenting text editor}).
 
 @node Skipping Characters
 @subsection Skipping Characters

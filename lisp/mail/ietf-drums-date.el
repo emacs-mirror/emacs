@@ -1,8 +1,9 @@
 ;;; ietf-drums-date.el --- parse time/date for ietf-drums.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author: Bob Rogers <rogers@rgrjr.com>
+;; Package: ietf-drums
 ;; Keywords: mail, util
 
 ;; This file is part of GNU Emacs.

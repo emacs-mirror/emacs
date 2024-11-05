@@ -1,6 +1,6 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
 
-Copyright (C) 1996-1997, 2001-2023 Free Software Foundation, Inc.
+Copyright (C) 1996-1997, 2001-2024 Free Software Foundation, Inc.
 
 Author: Dale P. Smith <dpsm@en.com>
 
@@ -275,7 +275,7 @@ set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
     {
       clipboard_storage_size = truelen + 100;
       last_clipboard_text =
-	(char *) xrealloc (last_clipboard_text, clipboard_storage_size);
+	xrealloc (last_clipboard_text, clipboard_storage_size);
     }
   if (last_clipboard_text)
     dosmemget (xbuf_addr, truelen, last_clipboard_text);

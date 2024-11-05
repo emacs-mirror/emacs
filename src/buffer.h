@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-2023 Free Software Foundation, Inc.
+Copyright (C) 1985-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -216,7 +216,7 @@ extern ptrdiff_t advance_to_char_boundary (ptrdiff_t byte_pos);
 /* Return the byte at byte position N.
    Do not check that the position is in range.  */
 
-#define FETCH_BYTE(n) *(BYTE_POS_ADDR ((n)))
+#define FETCH_BYTE(n) (*BYTE_POS_ADDR (n))
 
 /* Define the actual buffer data structures.  */
 
@@ -309,6 +309,9 @@ struct buffer
   /* The name of this buffer.  */
   Lisp_Object name_;
 
+  /* The last name of this buffer before it was renamed or killed.  */
+  Lisp_Object last_name_;
+
   /* The name of the file visited in this buffer, or nil.  */
   Lisp_Object filename_;
 
@@ -379,7 +382,6 @@ struct buffer
   /* Values of several buffer-local variables.  */
   /* tab-width is buffer-local so that redisplay can find it
      in buffers that are not current.  */
-  Lisp_Object case_fold_search_;
   Lisp_Object tab_width_;
   Lisp_Object fill_column_;
   Lisp_Object left_margin_;
@@ -656,9 +658,9 @@ struct buffer
   ptrdiff_t last_window_start;
 
   /* If the long line scan cache is enabled (i.e. the buffer-local
-     variable cache-long-line-scans is non-nil), newline_cache
-     points to the newline cache, and width_run_cache points to the
-     width run cache.
+     variable cache-long-scans is non-nil), newline_cache points to
+     the newline cache, and width_run_cache points to the width run
+     cache.
 
      The newline cache records which stretches of the buffer are
      known *not* to contain newlines, so that they can be skipped
@@ -1175,8 +1177,6 @@ extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
 extern void compact_buffer (struct buffer *);
 extern ptrdiff_t overlays_at (ptrdiff_t, bool, Lisp_Object **, ptrdiff_t *, ptrdiff_t *);
-extern ptrdiff_t overlays_in (ptrdiff_t, ptrdiff_t, bool, Lisp_Object **,
-                              ptrdiff_t *,  bool, bool, ptrdiff_t *);
 extern ptrdiff_t previous_overlay_change (ptrdiff_t);
 extern ptrdiff_t next_overlay_change (ptrdiff_t);
 extern ptrdiff_t sort_overlays (Lisp_Object *, ptrdiff_t, struct window *);

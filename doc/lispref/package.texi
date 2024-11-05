@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2010--2023 Free Software Foundation, Inc.
+@c Copyright (C) 2010--2024 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Packaging
 @chapter Preparing Lisp code for distribution
@@ -28,6 +28,7 @@ these archives).
 * Multi-file Packages::     How to package multiple files.
 * Package Archives::        Maintaining package archives.
 * Archive Web Server::      Interfacing to an archive web server.
+* Forwards-Compatibility::  Supporting older versions of Emacs.
 @end menu
 
 @node Packaging Basics
@@ -132,7 +133,7 @@ file (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
 @end defun
 
 @deffn Command package-initialize &optional no-activate
-This function initializes Emacs' internal record of which packages are
+This function initializes Emacs's internal record of which packages are
 installed, and then calls @code{package-activate-all}.
 
 The optional argument @var{no-activate}, if non-@code{nil}, causes
@@ -191,10 +192,11 @@ used as the long description.  (When displaying the description, Emacs
 omits the @samp{;;; Commentary:} line, as well as the leading comment
 characters in the commentary itself.)
 
-  If the file has a @samp{Package-Requires} header, that is used as
-the package dependencies.  In the above example, the package depends
-on the @samp{flange} package, version 1.0 or higher.  @xref{Library
-Headers}, for a description of the @samp{Package-Requires} header.  If
+  If the file has a @samp{Package-Requires} header, that is used as the
+package dependencies.  In the above example, the package depends on the
+@samp{flange} package, version 1.0 or higher.  @xref{Library Headers},
+for a description of the @samp{Package-Requires} header.  To depend on a
+specific version of Emacs, specify @samp{emacs} as the package name.  If
 the header is omitted, the package has no dependencies.
 
   The @samp{Keywords} and @samp{URL} headers are optional, but recommended.
@@ -246,9 +248,10 @@ is the brief description.
 
 @var{requirements} is a list of required packages and their versions.
 Each element in this list should have the form @code{(@var{dep-name}
-@var{dep-version})}, where @var{dep-name} is a symbol whose name is
-the dependency's package name, and @var{dep-version} is the
-dependency's version (a string).
+@var{dep-version})}, where @var{dep-name} is a symbol whose name is the
+dependency's package name, and @var{dep-version} is the dependency's
+version (a string).  The special value @samp{emacs} means that the
+package depends on the given version of Emacs.
 @end defun
 
   If the content directory contains a file named @file{README}, this
@@ -283,6 +286,15 @@ variable @code{load-file-name} (@pxref{Loading}).  Here is an example:
 (defun superfrobnicator-fetch-image (file)
   (expand-file-name file superfrobnicator-base))
 @end smallexample
+
+@cindex @file{.elpaignore} file
+  If your package contains files that you don't wish to distribute to
+users (e.g.@: regression tests), you can add them to an
+@file{.elpaignore} file.  In this file, each line lists a file or a
+wildcard matching files; those files should be ignored when producing
+your package's tarball on ELPA (@pxref{Package Archives}).  (ELPA
+will pass this file to the @command{tar} command via the @option{-X}
+command-line option, when it prepares the package for download.)
 
 @node Package Archives
 @section Creating and Maintaining Package Archives
@@ -375,7 +387,7 @@ following queries:
 
 @table @asis
 @item archive-contents
-Return a lisp form describing the archive contents. The form is a list
+Return a lisp form describing the archive contents.  The form is a list
 of 'package-desc' structures (see @file{package.el}), except the first
 element of the list is the archive version.
 
@@ -386,7 +398,54 @@ Return the long description of the package.
 Return the signature for the file.
 
 @item <file name>
-Return the file. This will be the tarball for a multi-file
+Return the file.  This will be the tarball for a multi-file
 package, or the single file for a simple package.
 
 @end table
+
+@node Forwards-Compatibility
+@section Supporting older versions of Emacs
+@cindex compatibility compat
+
+Packages that wish to support older releases of Emacs, without giving
+up on newer functionality from recent Emacs releases, one can make use
+of the Compat package on GNU ELPA.  By depending on the package, Emacs
+can provide compatibility definitions for missing functionality.
+
+The versioning of Compat follows that of Emacs, so next to the oldest
+version that a package relies on (via the @code{emacs}-package), one
+can also indicate what the newest version of Emacs is, that a package
+wishes to use definitions from:
+
+@example
+;; Package-Requires: ((emacs "27.2") (compat "29.1"))
+@end example
+
+Note that Compat provides replacement functions with extended
+functionality for functions that are already defined (@code{sort},
+@code{assoc}, @dots{}).  These functions may have changed their
+calling convention (additional optional arguments) or may have changed
+their behavior.  These functions must be looked up explicitly with
+@code{compat-function} or called explicitly with @code{compat-call}.
+We call them @dfn{Extended Definitions}.  In contrast, newly @dfn{Added
+Definitions} can be called as usual.
+
+@defmac compat-call fun &rest args
+This macro calls the compatibility function @var{fun} with @var{args}.
+Many functions provided by Compat can be called directly without this
+macro.  However in the case where Compat provides an alternative
+version of an existing function, the function call has to go through
+@code{compat-call}.
+@end defmac
+
+@defmac compat-function fun
+This macro returns the compatibility function symbol for @var{fun}.
+See @code{compat-call} for a more convenient macro to directly call
+compatibility functions.
+@end defmac
+
+For further details on how to make use of the package, see
+@ref{Usage,, Usage, compat, "Compat" Manual}.  In case you don't have
+the manual installed, you can also read the
+@url{https://elpa.gnu.org/packages/doc/compat.html#Usage, Online
+Compat manual}.

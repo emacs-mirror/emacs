@@ -1,7 +1,7 @@
 	  Building and Installing Emacs on 64-bit MS-Windows
 		      using MSYS2 and MinGW-w64
 
-  Copyright (c) 2015-2023 Free Software Foundation, Inc.
+  Copyright (c) 2015-2024 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 This document describes how to compile a 64-bit GNU Emacs using MSYS2
@@ -55,7 +55,6 @@ packages (you can copy and paste it into the shell with Shift + Insert):
   mingw-w64-x86_64-librsvg \
   mingw-w64-x86_64-libwebp \
   mingw-w64-x86_64-lcms2 \
-  mingw-w64-x86_64-jansson \
   mingw-w64-x86_64-libxml2 \
   mingw-w64-x86_64-zlib \
   mingw-w64-x86_64-harfbuzz \
@@ -193,7 +192,7 @@ and if all went well, you will have a new 64-bit version of Emacs.
 
 When running Emacs from outside the mingw64 shell, you will need to
 add c:\msys64\mingw64\bin to your Windows PATH, or copy the needed
-DLLs into Emacs' bin/ directory.  Otherwise features such as TLS which
+DLLs into Emacs's bin/ directory.  Otherwise features such as TLS which
 depend on those DLLs will be missing.
 
 You can do this through Control Panel / System and Security / System /

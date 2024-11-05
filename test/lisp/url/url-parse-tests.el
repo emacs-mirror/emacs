@@ -1,9 +1,8 @@
 ;;; url-parse-tests.el --- Test suite for URI/URL parsing.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
 
 ;; Author: Alain Schneble <a.s@realize.ch>
-;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
 

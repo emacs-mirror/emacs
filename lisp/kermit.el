@@ -1,6 +1,6 @@
 ;;; kermit.el --- additions to shell mode for use with kermit -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Jeff Norden <jeff@colgate.csnet>
 ;; Maintainer: emacs-devel@gnu.org

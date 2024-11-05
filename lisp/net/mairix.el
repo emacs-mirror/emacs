@@ -1,6 +1,6 @@
 ;;; mairix.el --- Mairix interface for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords: mail searching
@@ -60,8 +60,7 @@
 
 ;;; History:
 
-;; 07/28/2008: version 0.2. Added VM interface, written by Ulrich
-;; Mueller.
+;; 07/28/2008: version 0.2. Added VM interface, written by Ulrich Müller.
 
 ;; 07/14/2008: Initial release
 
@@ -288,7 +287,7 @@ Currently there are `threads' and `flags'.")
     (message-field-value field)))
 
 ;;; VM
-;;; written by Ulrich Mueller
+;;; written by Ulrich Müller
 
 (declare-function vm-quit "ext:vm-folder" (&optional no-change))
 (declare-function vm-visit-folder "ext:vm-startup"

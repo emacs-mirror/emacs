@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -504,7 +504,7 @@ public final class EmacsSafThread extends HandlerThread
   cacheDirectoryFromCursor (CacheToplevel toplevel, String documentId,
 			    Cursor cursor)
   {
-    CacheEntry entry, constitutent;
+    CacheEntry entry, constituent;
     int nameColumn, idColumn, typeColumn;
     String id, name, type;
     DocIdEntry idEntry;
@@ -561,8 +561,8 @@ public final class EmacsSafThread extends HandlerThread
 
 	    /* Otherwise, create a new cache entry comprised of its
 	       type.  */
-	    constitutent = new CacheEntry ();
-	    constitutent.type = type;
+	    constituent = new CacheEntry ();
+	    constituent.type = type;
 	    toplevel.idCache.put (documentId, entry);
 	  }
 	catch (Exception e)
@@ -767,7 +767,7 @@ public final class EmacsSafThread extends HandlerThread
 
   private abstract class SafIntFunction
   {
-    /* The ``throws Throwable'' here is a Java idiosyncracy that tells
+    /* The ``throws Throwable'' here is a Java idiosyncrasy that tells
        the compiler to allow arbitrary error objects to be signaled
        from within this function.
 
@@ -782,7 +782,7 @@ public final class EmacsSafThread extends HandlerThread
 
   private abstract class SafObjectFunction
   {
-    /* The ``throws Throwable'' here is a Java idiosyncracy that tells
+    /* The ``throws Throwable'' here is a Java idiosyncrasy that tells
        the compiler to allow arbitrary error objects to be signaled
        from within this function.
 
@@ -1216,7 +1216,7 @@ public final class EmacsSafThread extends HandlerThread
       });
   }
 
-  /* The bulk of `statDocument'.  SIGNAL should be a cancelation
+  /* The bulk of `statDocument'.  SIGNAL should be a cancellation
      signal.  */
 
   private long[]
@@ -1430,9 +1430,6 @@ public final class EmacsSafThread extends HandlerThread
 	    /* If so, don't check for FLAG_SUPPORTS_WRITE.
 	       Check for FLAG_DIR_SUPPORTS_CREATE instead.  */
 
-	    if (!writable)
-	      return 0;
-
 	    index = cursor.getColumnIndex (Document.COLUMN_FLAGS);
 	    if (index < 0)
 	      return -3;
@@ -1626,10 +1623,10 @@ public final class EmacsSafThread extends HandlerThread
        mode is merely w.
 
        This may be ascribed to a mix-up in Android's documentation
-       regardin DocumentsProvider: the `openDocument' function is only
-       documented to accept r or rw, whereas the default
-       implementation of the `openFile' function (which documents rwt)
-       delegates to `openDocument'.  */
+       regarding DocumentsProvider: the `openDocument' function is only
+       documented to accept r or rw, whereas the default implementation
+       of the `openFile' function (which documents rwt) delegates to
+       `openDocument'.  */
 
     if (read && write && truncate && fileDescriptor != null
 	&& !EmacsNative.ftruncate (fileDescriptor.getFd ()))

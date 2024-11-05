@@ -1,11 +1,11 @@
 ;;; tildify.el --- adding hard spaces into texts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2024 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;;             Michal Nazarewicz <mina86@mina86.com>
 ;; Version:    4.6.1
-;; Keywords:   text, TeX, SGML, wp
+;; Keywords:   text, TeX, SGML
 
 ;; This file is part of GNU Emacs.
 

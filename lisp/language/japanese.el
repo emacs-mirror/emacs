@@ -1,6 +1,6 @@
 ;;; japanese.el --- support for Japanese  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2024 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -79,7 +79,7 @@
 	 (#x00A2 . #xFFE0)	; CENT SIGN		FULLWIDTH CENT SIGN
 	 (#x00A3 . #xFFE1)	; POUND SIGN		FULLWIDTH POUND SIGN
 	 (#x00AC . #xFFE2)	; NOT SIGN		FULLWIDTH NOT SIGN
-	 (#x00A6 . #xFFE4)	; BROKEN LINE		FULLWIDTH BROKEN LINE
+	 (#x00A6 . #xFFE4)	; BROKEN BAR		FULLWIDTH BROKEN BAR
 	 )))
   (define-translation-table 'japanese-ucs-jis-to-cp932-map map)
   (setq map (mapcar (lambda (x) (cons (cdr x) (car x))) map))

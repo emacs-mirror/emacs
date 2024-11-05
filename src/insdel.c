@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs. -*- coding: utf-8 -*-
-   Copyright (C) 1985-1986, 1993-1995, 1997-2023 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -284,7 +284,7 @@ adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
    we advance it if either its insertion-type is t
    or BEFORE_MARKERS is true.  */
 
-static void
+void
 adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 			   ptrdiff_t to, ptrdiff_t to_byte, bool before_markers)
 {
@@ -803,7 +803,7 @@ count_combining_before (const unsigned char *string, ptrdiff_t length,
   while (!CHAR_HEAD_P (*p) && p < string + length)
     p++;
 
-  return (combining_bytes < p - string ? combining_bytes : p - string);
+  return min (combining_bytes, p - string);
 }
 
 /* See if the bytes after POS/POS_BYTE combine with bytes
@@ -865,7 +865,7 @@ count_combining_after (const unsigned char *string,
   bufp++, pos_byte++;
   while (!CHAR_HEAD_P (*bufp)) bufp++, pos_byte++;
 
-  return (bytes <= pos_byte - opos_byte ? bytes : pos_byte - opos_byte);
+  return min (bytes, pos_byte - opos_byte);
 }
 
 #endif
@@ -1094,7 +1094,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
    GPT_ADDR (if not text_at_gap_tail).
    Contrary to insert_from_gap, this does not invalidate any cache,
    nor update any markers, nor record any buffer modification information
-   of any sort.  */
+   of any sort, with the single exception of notifying tree-sitter.  */
 void
 insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 {
@@ -1129,10 +1129,14 @@ insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
    starting at GAP_END_ADDR - NBYTES (if text_at_gap_tail) and at
-   GPT_ADDR (if not text_at_gap_tail).  */
+   GPT_ADDR (if not text_at_gap_tail).
+
+  If BEFORE_MARKERS is true, insert before markers.  At the moment only
+  read_and_insert_process_output in process.c sets this to true.  */
 
 void
-insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
+insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail,
+		 bool before_markers)
 {
   ptrdiff_t ins_charpos = GPT, ins_bytepos = GPT_BYTE;
 
@@ -1151,7 +1155,8 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
   insert_from_gap_1 (nchars, nbytes, text_at_gap_tail);
 
   adjust_markers_for_insert (ins_charpos, ins_bytepos,
-			     ins_charpos + nchars, ins_bytepos + nbytes, false);
+			     ins_charpos + nchars, ins_bytepos + nbytes,
+			     before_markers);
 
   if (buffer_intervals (current_buffer))
     {
@@ -1568,9 +1573,8 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   /* Relocate point as if it were a marker.  */
   if (from < PT)
-    adjust_point ((from + inschars - (PT < to ? PT : to)),
-		  (from_byte + outgoing_insbytes
-		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)));
+    adjust_point ((from + inschars - min (PT, to)),
+		  (from_byte + outgoing_insbytes - min (PT_BYTE, to_byte)));
 
   check_markers ();
 
@@ -1919,16 +1923,16 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 
   /* Relocate point as if it were a marker.  */
   if (from < PT)
-    adjust_point (from - (PT < to ? PT : to),
-		  from_byte - (PT_BYTE < to_byte ? PT_BYTE : to_byte));
+    adjust_point (from - min (PT, to),
+		  from_byte - min (PT_BYTE, to_byte));
 
   offset_intervals (current_buffer, from, - nchars_del);
 
   GAP_SIZE += nbytes_del;
-  ZV_BYTE -= nbytes_del;
-  Z_BYTE -= nbytes_del;
   ZV -= nchars_del;
   Z -= nchars_del;
+  ZV_BYTE -= nbytes_del;
+  Z_BYTE -= nbytes_del;
   GPT = from;
   GPT_BYTE = from_byte;
   if (GAP_SIZE > 0 && !current_buffer->text->inhibit_shrinking)

@@ -1,6 +1,6 @@
 ;;; erc-d-tests.el --- tests for erc-d -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -50,7 +50,7 @@
                '(0 ":irc.example.org 422 tester :MOTD File is missing"))))
     (should (equal (car (funcall reap)) '(mode-user 5 "MODE tester +i")))
     (should (equal (funcall reap)
-                   '((mode-chan 1.2 "MODE #chan")
+                   '((mode-chan 3.2 "MODE #chan")
                      (0.1 ":bob!~bob@example.org PRIVMSG #chan :hey"))))
     ;; See `define-error' site for `iter-end-of-sequence'
     (ert-info ("EOB detected") (should-not (erc-d-u--read-dialog exes))))
@@ -74,7 +74,7 @@
 
     (should (equal (funcall user) '(user 0.2 "USER user 0 * :tester")))
     (should (equal (funcall modu) '(mode-user 5 "MODE tester +i")))
-    (should (equal (funcall modc) '(mode-chan 1.2 "MODE #chan")))
+    (should (equal (funcall modc) '(mode-chan 3.2 "MODE #chan")))
 
     (cl-loop repeat 8 do (funcall user)) ; skip a few
     (should (equal (funcall user)
@@ -147,7 +147,7 @@
       (should (equal (car (funcall reap exes))
                      '(mode-user 15 "MODE tester +i")))
       (should (equal (car (funcall reap exes))
-                     '(mode-chan 11.2 "MODE #chan")))
+                     '(mode-chan 13.2 "MODE #chan")))
       (should-not (erc-d-u--read-dialog exes)))
 
     (ert-info ("Rewrite for slowmo bounded")
@@ -176,7 +176,7 @@
       (should (equal (car (funcall reap exes-custom))
                      '(mode-user 10 "MODE tester +i")))
       (should (equal (car (funcall reap exes-custom))
-                     '(mode-chan 2.4 "MODE #chan")))
+                     '(mode-chan 6.4 "MODE #chan")))
       (should-not (erc-d-u--read-dialog exes-custom))))
 
   (should-not (get-buffer "basic.eld"))
@@ -248,8 +248,36 @@
                   'decode))
       (should-not (erc-d-i-message.compat ours))
       (should (equal (erc-d-i-message.command-args ours) '("#chàn")))
-      (should (equal (erc-d-i-message.contents ours) ""))
+      (should (equal (erc-d-i-message.contents ours) "#chàn"))
       (should (equal (erc-d-i-message.tags ours) '((foo . "çedilla")))))))
+
+(ert-deftest erc-d-i--parse-message/privmsg ()
+  (dolist (raw '(":Bob!~bob@gnu.org PRIVMSG #chan :one two"
+                 ":Bob!~bob@gnu.org PRIVMSG #chan one"
+                 ":Bob!~bob@gnu.org PRIVMSG #chan : "
+                 ":Bob!~bob@gnu.org PRIVMSG #chan :"
+                 "@account=bob :Bob!~bob@gnu.org PRIVMSG #chan one"
+                 "@foo=bar;baz :Bob!~bob@gnu.org PRIVMSG #chan :one"))
+    (dolist (slot '(unparsed
+                    sender
+                    command
+                    command-args
+                    contents
+                    tags))
+      (let ((ours (erc-d-i--parse-message raw))
+            (orig (erc-d-tests--parse-message-upstream raw)))
+        (ert-info ((format "slot: `%s', orig: %S, ours: %S"
+                           slot orig ours))
+          (if (eq slot 'tags)
+              (should (equal (erc-response.tags orig)
+                             (mapcar (pcase-lambda (`(,key . ,value))
+                                       (if value
+                                           (list (symbol-name key) value)
+                                         (list (symbol-name key))))
+                                     (reverse (erc-d-i-message.tags ours)))))
+            (should
+             (equal (cl-struct-slot-value 'erc-d-i-message slot ours)
+                    (cl-struct-slot-value 'erc-response slot orig)))))))))
 
 (ert-deftest erc-d-i--unescape-tag-value ()
   (should (equal (erc-d-i--unescape-tag-value
@@ -290,23 +318,23 @@
             m (erc-d-i--parse-message input))
       (ert-info ("Parses tags correctly")
         (setq ours (erc-d-i-message.tags m))
-        (if-let ((tags (assoc-default 'tags atoms)))
+        (if-let* ((tags (assoc-default 'tags atoms)))
             (pcase-dolist (`(,key . ,value) ours)
               (should (string= (cdr (assq key tags)) (or value ""))))
           (should-not ours)))
       (ert-info ("Parses verbs correctly")
         (setq ours (erc-d-i-message.command m))
-        (if-let ((verbs (assoc-default 'verb atoms)))
+        (if-let* ((verbs (assoc-default 'verb atoms)))
             (should (string= (downcase verbs) (downcase ours)))
           (should (string-empty-p ours))))
       (ert-info ("Parses sources correctly")
         (setq ours (erc-d-i-message.sender m))
-        (if-let ((source (assoc-default 'source atoms)))
+        (if-let* ((source (assoc-default 'source atoms)))
             (should (string= source ours))
           (should (string-empty-p ours))))
       (ert-info ("Parses params correctly")
         (setq ours (erc-d-i-message.command-args m))
-        (if-let ((params (assoc-default 'params atoms)))
+        (if-let* ((params (assoc-default 'params atoms)))
             (should (equal ours params))
           (should-not ours))))))
 
@@ -367,8 +395,6 @@
       (should (equal (funcall it) "foo3foo")))
 
     (ert-info ("Exits clean")
-      (when (listp (alist-get 'f (erc-d-dialog-vars dialog))) ; may be compiled
-        (should (eq 'closure (car (alist-get 'f (erc-d-dialog-vars dialog))))))
       (should-not (funcall it))
       (should (equal (erc-d-dialog-vars dialog)
                      `((:a . 1)
@@ -646,7 +672,7 @@ nonzero for this to work."
 (ert-deftest erc-d-run-basic ()
   :tags '(:expensive-test)
   (erc-d-tests-with-server (_ _) basic
-    (with-current-buffer (erc-d-t-wait-for 3 (get-buffer "#chan"))
+    (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
       (erc-d-t-search-for 2 "hey"))
     (when noninteractive
       (kill-buffer "#chan"))))

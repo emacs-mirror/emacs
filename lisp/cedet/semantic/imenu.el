@@ -1,6 +1,6 @@
 ;;; semantic/imenu.el --- Use Semantic as an imenu tag generator  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2005, 2007-2008, 2010-2023 Free Software
+;; Copyright (C) 2000-2005, 2007-2008, 2010-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -32,6 +32,8 @@
 ;;             (setq imenu-create-index-function 'semantic-create-imenu-index)
 ;;             ))
 
+;;; Code:
+
 (require 'semantic)
 (require 'semantic/format)
 (require 'semantic/db)
@@ -58,14 +60,14 @@
 (defcustom semantic-imenu-summary-function 'semantic-format-tag-abbreviate
   "Function to use when creating items in Imenu.
 Some useful functions are found in `semantic-format-tag-functions'."
-  :type semantic-format-tag-custom-list)
-(make-variable-buffer-local 'semantic-imenu-summary-function)
+  :type semantic-format-tag-custom-list
+  :local t)
 
 ;;;###autoload
 (defcustom semantic-imenu-bucketize-file t
   "Non-nil if tags in a file are to be grouped into buckets."
-  :type 'boolean)
-(make-variable-buffer-local 'semantic-imenu-bucketize-file)
+  :type 'boolean
+  :local t)
 
 (defcustom semantic-imenu-adopt-external-members t
   "Non-nil if types in a file should adopt externally defined members.
@@ -76,21 +78,21 @@ definition."
 (defcustom semantic-imenu-buckets-to-submenu t
   "Non-nil if buckets of tags are to be turned into submenus.
 This option is ignored if `semantic-imenu-bucketize-file' is nil."
-  :type 'boolean)
-(make-variable-buffer-local 'semantic-imenu-buckets-to-submenu)
+  :type 'boolean
+  :local t)
 
 ;;;###autoload
 (defcustom semantic-imenu-expand-type-members t
   "Non-nil if types should have submenus with members in them."
-  :type 'boolean)
-(make-variable-buffer-local 'semantic-imenu-expand-type-members)
+  :type 'boolean
+  :local t)
 
 (defcustom semantic-imenu-bucketize-type-members t
   "Non-nil if members of a type should be grouped into buckets.
 A nil value means to keep them in the same order.
 Overridden to nil if `semantic-imenu-bucketize-file' is nil."
-  :type 'boolean)
-(make-variable-buffer-local 'semantic-imenu-bucketize-type-members)
+  :type 'boolean
+  :local t)
 
 (defcustom semantic-imenu-sort-bucket-function nil
   "Function to use when sorting tags in the buckets of functions.
@@ -105,8 +107,8 @@ on this function."
 		(const semantic-sort-tags-by-name-decreasing-ci)
 		(const semantic-sort-tags-by-type-increasing-ci)
 		(const semantic-sort-tags-by-type-decreasing-ci)
-		(function)))
-(make-variable-buffer-local 'semantic-imenu-sort-bucket-function)
+                (function))
+  :local t)
 
 (defcustom semantic-imenu-index-directory nil
   "Non-nil to index the entire directory for tags.
@@ -134,7 +136,6 @@ Tags of those classes will be given submenu with children.
 By default, a `type' has interesting children.  In Texinfo, however, a
 `section' has interesting children.")
 
-;;; Code:
 (defun semantic-imenu-tag-overlay (tag)
   "Return the overlay belonging to tag.
 If TAG doesn't have an overlay, and instead as a vector of positions,
@@ -469,9 +470,8 @@ Clears all imenu menus that may be depending on the database."
 ;; buffer, there is a much more efficient way of doing this.
 ;; Advise `which-function' so that we optionally use semantic tags
 ;; instead, and get better stuff.
-(require 'advice)
 
-(defvar semantic-which-function 'semantic-default-which-function
+(defvar semantic-which-function #'semantic-default-which-function
   "Function to convert semantic tags into `which-function' text.")
 
 (defcustom semantic-which-function-use-color nil

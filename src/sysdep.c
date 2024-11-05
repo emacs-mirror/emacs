@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2023 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1999-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -33,10 +33,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <c-ctype.h>
 #include <close-stream.h>
 #include <pathmax.h>
-#include <utimens.h>
 
 #include "lisp.h"
-#include "sheap.h"
 #include "sysselect.h"
 #include "blockinput.h"
 
@@ -1854,11 +1852,7 @@ init_sigbus (void)
 
 #endif
 
-/* This does not work on Android and interferes with the system
-   tombstone generation.  */
-
-#if defined HAVE_STACK_OVERFLOW_HANDLING && !defined WINDOWSNT	\
-  && (!defined HAVE_ANDROID || defined ANDROID_STUBIFY)
+#if defined HAVE_STACK_OVERFLOW_HANDLING && !defined WINDOWSNT
 
 /* Alternate stack used by SIGSEGV handler below.  */
 
@@ -1922,6 +1916,8 @@ stack_overflow (siginfo_t *siginfo)
     return 0 <= top - addr && top - addr < (bot - top) >> LG_STACK_HEURISTIC;
 }
 
+/* Signal handler for SIGSEGV before our new handler was installed.  */
+static struct sigaction old_sigsegv_handler;
 
 /* Attempt to recover from SIGSEGV caused by C stack overflow.  */
 
@@ -1939,6 +1935,15 @@ handle_sigsegv (int sig, siginfo_t *siginfo, void *arg)
 
   if (!fatal && stack_overflow (siginfo))
     siglongjmp (return_to_command_loop, 1);
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* Tombstones (crash reports with stack traces) won't be generated on
+     Android unless the original SIGSEGV handler is installed and the
+     signal is resent, such as by returning from the first signal
+     handler called.  */
+  sigaction (SIGSEGV, &old_sigsegv_handler, NULL);
+  return;
+#endif /* HAVE_ANDROID && ANDROID_STUBIFY */
 
   /* Otherwise we can't do anything with this.  */
   deliver_fatal_thread_signal (sig);
@@ -1962,7 +1967,7 @@ init_sigsegv (void)
   sigfillset (&sa.sa_mask);
   sa.sa_sigaction = handle_sigsegv;
   sa.sa_flags = SA_SIGINFO | SA_ONSTACK | emacs_sigaction_flags ();
-  if (sigaction (SIGSEGV, &sa, NULL) < 0)
+  if (sigaction (SIGSEGV, &sa, &old_sigsegv_handler) < 0)
     return 0;
 
   return 1;
@@ -1970,15 +1975,11 @@ init_sigsegv (void)
 
 #else /* not HAVE_STACK_OVERFLOW_HANDLING or WINDOWSNT */
 
-#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
-
 static bool
 init_sigsegv (void)
 {
   return 0;
 }
-
-#endif
 
 #endif /* HAVE_STACK_OVERFLOW_HANDLING && !WINDOWSNT */
 
@@ -2035,10 +2036,10 @@ init_signals (void)
   main_thread_id = pthread_self ();
 #endif
 
-  /* Don't alter signal handlers if dumping.  On some machines,
-     changing signal handlers sets static data that would make signals
-     fail to work right when the dumped Emacs is run.  */
-  if (will_dump_p ())
+  /* Don't alter signal handlers if dumping with unexec.  On some
+     machines, changing signal handlers sets static data that would make
+     signals fail to work right when the dumped Emacs is run.  */
+  if (will_dump_with_unexec_p ())
     return;
 
   sigfillset (&process_fatal_action.sa_mask);
@@ -2126,10 +2127,8 @@ init_signals (void)
 #endif
     sigaction (SIGBUS, &thread_fatal_action, 0);
 #endif
-#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
   if (!init_sigsegv ())
     sigaction (SIGSEGV, &thread_fatal_action, 0);
-#endif
 #ifdef SIGSYS
   sigaction (SIGSYS, &thread_fatal_action, 0);
 #endif
@@ -2248,7 +2247,7 @@ init_random (void)
   /* FIXME: Perhaps getrandom can be used here too?  */
   success = w32_init_random (&v, sizeof v) == 0;
 #else
-  verify (sizeof v <= 256);
+  static_assert (sizeof v <= 256);
   success = getrandom (&v, sizeof v, 0) == sizeof v;
 #endif
 
@@ -2742,16 +2741,16 @@ emacs_fchmodat (int fd, const char *path, mode_t mode, int flags)
 #ifndef SSIZE_MAX
 # define SSIZE_MAX TYPE_MAXIMUM (ssize_t)
 #endif
-verify (MAX_RW_COUNT <= PTRDIFF_MAX);
-verify (MAX_RW_COUNT <= SIZE_MAX);
-verify (MAX_RW_COUNT <= SSIZE_MAX);
+static_assert (MAX_RW_COUNT <= PTRDIFF_MAX);
+static_assert (MAX_RW_COUNT <= SIZE_MAX);
+static_assert (MAX_RW_COUNT <= SSIZE_MAX);
 
 #ifdef WINDOWSNT
 /* Verify that Emacs read requests cannot cause trouble, even in
    64-bit builds.  The last argument of 'read' is 'unsigned int', and
    the return value's type (see 'sys_read') is 'int'.  */
-verify (MAX_RW_COUNT <= INT_MAX);
-verify (MAX_RW_COUNT <= UINT_MAX);
+static_assert (MAX_RW_COUNT <= INT_MAX);
+static_assert (MAX_RW_COUNT <= UINT_MAX);
 #endif
 
 /* Read from FD to a buffer BUF with size NBYTE.
@@ -3452,7 +3451,7 @@ make_lisp_timeval (struct timeval t)
 
 #endif
 
-#if defined (GNU_LINUX) || defined (CYGWIN)
+#if defined (GNU_LINUX) || defined (CYGWIN) || defined __ANDROID__
 
 static Lisp_Object
 time_from_jiffies (unsigned long long ticks, Lisp_Object hz, Lisp_Object form)
@@ -3500,7 +3499,7 @@ get_up_time (void)
   return up;
 }
 
-# ifdef GNU_LINUX
+# if defined GNU_LINUX || defined __ANDROID__
 #define MAJOR(d) (((unsigned)(d) >> 8) & 0xfff)
 #define MINOR(d) (((unsigned)(d) & 0xff) | (((unsigned)(d) & 0xfff00000) >> 12))
 
@@ -3546,8 +3545,9 @@ procfs_ttyname (int rdev)
   unblock_input ();
   return build_string (name);
 }
-# endif	/* GNU_LINUX */
+# endif	/* GNU_LINUX || __ANDROID__ */
 
+/* Total usable RAM in KiB.  */
 static uintmax_t
 procfs_get_total_memory (void)
 {
@@ -3695,9 +3695,9 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qppid, INT_TO_INTEGER (ppid)), attrs);
 	  attrs = Fcons (Fcons (Qpgrp, INT_TO_INTEGER (pgrp)), attrs);
 	  attrs = Fcons (Fcons (Qsess, INT_TO_INTEGER (sess)), attrs);
-# ifdef GNU_LINUX
+# if defined GNU_LINUX || defined __ANDROID__
 	  attrs = Fcons (Fcons (Qttname, procfs_ttyname (tty)), attrs);
-# endif
+# endif /* GNU_LINUX || __ANDROID__ */
 	  attrs = Fcons (Fcons (Qtpgid, INT_TO_INTEGER (tpgid)), attrs);
 	  attrs = Fcons (Fcons (Qminflt, INT_TO_INTEGER (minflt)), attrs);
 	  attrs = Fcons (Fcons (Qmajflt, INT_TO_INTEGER (majflt)), attrs);
@@ -3737,8 +3737,13 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qnice, make_fixnum (niceness)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, INT_TO_INTEGER (thcount)), attrs);
 	  attrs = Fcons (Fcons (Qvsize, INT_TO_INTEGER (vsize / 1024)), attrs);
-	  attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (4 * rss)), attrs);
-	  pmem = 4.0 * 100 * rss / procfs_get_total_memory ();
+
+	  /* RSS in KiB.  */
+	  uintmax_t rssk = rss;
+	  rssk *= getpagesize () >> 10;
+
+	  attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (rssk)), attrs);
+	  pmem = 100.0 * rssk / procfs_get_total_memory ();
 	  if (pmem > 100)
 	    pmem = 100;
 	  attrs = Fcons (Fcons (Qpmem, make_float (pmem)), attrs);
@@ -4551,17 +4556,9 @@ does the same thing as `current-time'.  */)
 # include <wchar.h>
 # include <wctype.h>
 
-# if defined HAVE_NEWLOCALE || defined HAVE_SETLOCALE
-#  include <locale.h>
-# endif
-# ifndef LC_COLLATE
-#  define LC_COLLATE 0
-# endif
+# include <locale.h>
 # ifndef LC_COLLATE_MASK
 #  define LC_COLLATE_MASK 0
-# endif
-# ifndef LC_CTYPE
-#  define LC_CTYPE 0
 # endif
 # ifndef LC_CTYPE_MASK
 #  define LC_CTYPE_MASK 0
@@ -4595,15 +4592,11 @@ freelocale (locale_t loc)
 static char *
 emacs_setlocale (int category, char const *locale)
 {
-#  ifdef HAVE_SETLOCALE
   errno = 0;
   char *loc = setlocale (category, locale);
   if (loc || errno)
     return loc;
   errno = EINVAL;
-#  else
-  errno = ENOTSUP;
-#  endif
   return 0;
 }
 

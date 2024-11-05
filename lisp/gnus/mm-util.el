@@ -1,6 +1,6 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -399,9 +399,7 @@ non-nil."
   (set-buffer-multibyte nil))
 
 (defun mm-preferred-coding-system (charset)
-  ;; A typo in some Emacs versions.
-  (or (get-charset-property charset 'preferred-coding-system)
-      (get-charset-property charset 'prefered-coding-system)))
+  (get-charset-property charset 'preferred-coding-system))
 
 ;; Mule charsets shouldn't be used.
 (defsubst mm-guess-charset ()

@@ -1,6 +1,6 @@
 ;;; em-ls.el --- implementation of ls in Lisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -32,7 +32,7 @@
 (require 'esh-proc)
 (require 'esh-cmd)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-ls nil
   "This module implements the \"ls\" utility fully in Lisp.
@@ -229,7 +229,6 @@ scope during the evaluation of TEST-SEXP."
 (defvar dereference-links)
 (defvar dir-literal)
 (defvar error-func)
-(defvar flush-func)
 (defvar human-readable)
 (defvar ignore-pattern)
 (defvar insert-func)
@@ -247,6 +246,17 @@ scope during the evaluation of TEST-SEXP."
 
 (declare-function eshell-extended-glob "em-glob" (glob))
 (defvar eshell-error-if-no-glob)
+(defvar eshell-glob-splice-results)
+
+(defun eshell-ls--expand-wildcards (file)
+  "Expand the shell wildcards in FILE if any."
+  (if (and (atom file)
+           (not (file-exists-p file)))
+      (let ((eshell-error-if-no-glob t)
+            ;; Ensure `eshell-extended-glob' returns a list.
+            (eshell-glob-splice-results t))
+        (mapcar #'file-relative-name (eshell-extended-glob file)))
+    (list (file-relative-name file))))
 
 (defun eshell-ls--insert-directory
   (orig-fun file switches &optional wildcard full-directory-p)
@@ -274,22 +284,11 @@ instead."
           ;; use the fancy highlighting in `eshell-ls' rather than font-lock
           (when eshell-ls-use-colors
             (font-lock-mode -1)
-            (setq font-lock-defaults nil)
-            (if (boundp 'font-lock-buffers)
-                (setq font-lock-buffers
-                      (delq (current-buffer)
-                            (symbol-value 'font-lock-buffers)))))
+            (setq font-lock-defaults nil))
           (require 'em-glob)
           (let* ((insert-func 'insert)
                  (error-func 'insert)
-                 (flush-func 'ignore)
-                 (eshell-error-if-no-glob t)
-                 (target ; Expand the shell wildcards if any.
-                  (if (and (atom file)
-                           (string-match "[[?*]" file)
-                           (not (file-exists-p file)))
-                      (mapcar #'file-relative-name (eshell-extended-glob file))
-                    (file-relative-name file)))
+                 (target (eshell-ls--expand-wildcards file))
                  (switches
                   (append eshell-ls-dired-initial-args
                           (and (or (consp dired-directory) wildcard) (list "-d"))
@@ -297,7 +296,6 @@ instead."
             (eshell-do-ls (nconc switches (list target)))))))))
 
 
-(declare-function eshell-extended-glob "em-glob" (glob))
 (declare-function dired-read-dir-and-switches "dired" (str))
 (declare-function dired-goto-next-file "dired" ())
 
@@ -329,10 +327,10 @@ instead."
 
 (defsubst eshell/ls (&rest args)
   "An alias version of `eshell-do-ls'."
-  (let ((insert-func 'eshell-buffered-print)
-	(error-func 'eshell-error)
-	(flush-func 'eshell-flush))
-    (apply 'eshell-do-ls args)))
+  (eshell-with-buffered-print
+    (let ((insert-func #'eshell-buffered-print)
+          (error-func #'eshell-error))
+      (apply 'eshell-do-ls args))))
 
 (put 'eshell/ls 'eshell-no-numeric-conversions t)
 (put 'eshell/ls 'eshell-filename-arguments t)
@@ -341,7 +339,6 @@ instead."
 
 (defun eshell-do-ls (&rest args)
   "Implementation of \"ls\" in Lisp, passing ARGS."
-  (funcall flush-func -1)
   ;; Process the command arguments, and begin listing files.
   (eshell-eval-using-options
    "ls" (if eshell-ls-initial-args
@@ -427,8 +424,7 @@ Sort entries alphabetically across.")
 		      (eshell-file-attributes
 		       arg (if numeric-uid-gid 'integer 'string))))
 	      args)
-      t (expand-file-name default-directory)))
-   (funcall flush-func)))
+      t (expand-file-name default-directory)))))
 
 (defsubst eshell-ls-printable-size (filesize &optional by-blocksize)
   "Return a printable FILESIZE."
@@ -961,9 +957,4 @@ to use, and each member of which is the width of that column
   (eshell-ls-disable-in-dired))
 
 (provide 'em-ls)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-ls.el ends here

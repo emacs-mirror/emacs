@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2023 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1992, 1994-2024 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -120,7 +120,10 @@ the remaining command-line args are in the variable `command-line-args-left'.")
     "List of command-line args not yet processed.
 This is a convenience alias, so that one can write (pop argv)
 inside of --eval command line arguments in order to access
-following arguments."))
+following arguments.
+
+See also `server-eval-args-left' for a similar variable which
+works for invocations of \"emacsclient --eval\"."))
 (internal-make-var-non-special 'argv)
 
 (defvar command-line-args-left nil
@@ -257,7 +260,7 @@ and VALUE is the value which is given to that frame parameter
     ("--reverse-video" 0 x-handle-switch reverse t)
     ("--font" 1 x-handle-switch font)
     ("--internal-border" 1 x-handle-numeric-switch internal-border-width)
-    ;; ("--geometry" 1 ns-handle-geometry)
+    ("--geometry" 1 x-handle-geometry)
     ("--foreground-color" 1 x-handle-switch foreground-color)
     ("--background-color" 1 x-handle-switch background-color)
     ("--mouse-color" 1 x-handle-switch mouse-color)
@@ -390,7 +393,7 @@ If this is nil, Emacs uses `system-name'."
   "The email address of the current user.
 This defaults to either: the value of EMAIL environment variable; or
 user@host, using `user-login-name' and `mail-host-address' (or `system-name')."
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-delay
   :set-after '(mail-host-address)
   :type 'string
   :group 'mail)
@@ -489,7 +492,7 @@ DIRS are relative."
       (setq tail (cdr tail)))
     ;;Splice the new section in.
     (when tail
-      (setcdr tail (append (mapcar 'expand-file-name dirs) (cdr tail))))))
+      (setcdr tail (append (mapcar #'expand-file-name dirs) (cdr tail))))))
 
 ;; The default location for XDG-convention Emacs init files.
 (defconst startup--xdg-config-default "~/.config/emacs/")
@@ -552,6 +555,17 @@ the updated value."
     (startup-redirect-eln-cache "eln-cache")
     (setq startup--original-eln-load-path
           (copy-sequence native-comp-eln-load-path))))
+
+(defun startup--rescale-elt-match-p (font-pattern font-object)
+  "Test whether FONT-OBJECT matches an element of `face-font-rescale-alist'.
+FONT-OBJECT is a font-object that specifies a font to test.
+FONT-PATTERN is the car of an element of `face-font-rescale-alist',
+which can be either a regexp matching a font name or a font-spec."
+  (if (stringp font-pattern)
+      ;; FONT-PATTERN is a regexp, we need the name of FONT-OBJECT to match.
+      (string-match-p font-pattern (font-xlfd-name font-object))
+    ;; FONT-PATTERN is a font-spec.
+    (font-match-p font-pattern font-object)))
 
 (defvar android-fonts-enumerated nil
   "Whether or not fonts have been enumerated already.
@@ -638,7 +652,24 @@ It is the default value of the variable `top-level'."
       (setq eol-mnemonic-dos  "(DOS)"
 	    eol-mnemonic-mac  "(Mac)")))
 
-    (set-locale-environment nil)
+    (if (and (featurep 'android)
+             (eq system-type 'android)
+             (fboundp 'android-locale-for-system-language)
+             initial-window-system)
+        ;; If Android windowing is enabled, derive a proper locale
+        ;; from the system's language preferences.  On Android, LANG
+        ;; and LC_* must be set to one of the two locales the C
+        ;; library supports, but, by contrast with other systems, the
+        ;; C library locale does not reflect the configured system
+        ;; language.
+        ;;
+        ;; For this reason, the locale from which Emacs derives a
+        ;; default language environment is computed from such
+        ;; preferences, rather than environment variables that the C
+        ;; library refers to.
+        (set-locale-environment
+         (funcall 'android-locale-for-system-language))
+      (set-locale-environment nil))
     ;; Decode all default-directory's (probably, only *scratch* exists
     ;; at this point).  default-directory of *scratch* is the basis
     ;; for many other file-name variables and directory lists, so it
@@ -692,7 +723,7 @@ It is the default value of the variable `top-level'."
             (set 'native-comp-eln-load-path
                  (mapcar (lambda (dir)
                            ;; Call expand-file-name to remove all the
-                           ;; pesky ".." from the directyory names in
+                           ;; pesky ".." from the directory names in
                            ;; native-comp-eln-load-path.
                            (expand-file-name
                             (decode-coding-string dir coding t)))
@@ -796,8 +827,9 @@ It is the default value of the variable `top-level'."
 	  (when (and (display-multi-font-p)
                      (not (eq face-font-rescale-alist
 		              old-face-font-rescale-alist))
-                     (assoc (font-xlfd-name (face-attribute 'default :font))
-                            face-font-rescale-alist #'string-match-p))
+                     (assoc (face-attribute 'default :font)
+                            face-font-rescale-alist
+                            #'startup--rescale-elt-match-p))
 	    (set-face-attribute 'default nil :font (font-spec)))
 
 	  ;; Modify the initial frame based on what .emacs puts into
@@ -822,6 +854,12 @@ It is the default value of the variable `top-level'."
     ;; We are careful to do it late (after term-setup-hook), although the
     ;; new multi-tty code does not use $TERM any more there anyway.
     (setenv "TERM" "dumb")
+    ;; Similarly, a subprocess should not try to invoke a pager, as most
+    ;; pagers will fail in a dumb terminal.  Many programs default to
+    ;; using "less" when PAGER is unset, so set PAGER to "cat"; using cat
+    ;; as a pager is equivalent to not using a pager at all.
+    (when (executable-find "cat")
+      (setenv "PAGER" "cat"))
     ;; Remove DISPLAY from the process-environment as well.  This allows
     ;; `callproc.c' to give it a useful adaptive default which is either
     ;; the value of the `display' frame-parameter or the DISPLAY value
@@ -999,6 +1037,9 @@ If STYLE is nil, display appropriately for the terminal."
           (when standard-display-table
             (aset standard-display-table char nil)))))))
 
+(defun startup--debug (err)
+  (funcall debugger 'error err :backtrace-base #'startup--debug))
+
 (defun startup--load-user-init-file
     (filename-function &optional alternate-filename-function load-defaults)
   "Load a user init-file.
@@ -1012,88 +1053,79 @@ is non-nil.
 
 This function sets `user-init-file' to the name of the loaded
 init-file, or to a default value if loading is not possible."
-  (let ((debug-on-error-from-init-file nil)
-        (debug-on-error-should-be-set nil)
-        (debug-on-error-initial
-         (if (eq init-file-debug t)
-             'startup--witness  ;Dummy but recognizable non-nil value.
-           init-file-debug))
-        (d-i-e-from-init-file nil)
-        (d-i-e-initial
-         ;; Use (startup--witness) instead of nil, so we can detect when the
-         ;; init files set `debug-ignored-errors' to nil.
-         (if init-file-debug '(startup--witness) debug-ignored-errors))
-        (d-i-e-standard debug-ignored-errors)
-        ;; The init file might contain byte-code with embedded NULs,
-        ;; which can cause problems when read back, so disable nul
-        ;; byte detection.  (Bug#52554)
-        (inhibit-null-byte-detection t))
-    (let ((debug-on-error debug-on-error-initial)
-          ;; If they specified --debug-init, enter the debugger
-          ;; on any error whatsoever.
-          (debug-ignored-errors d-i-e-initial))
+  ;; The init file might contain byte-code with embedded NULs,
+  ;; which can cause problems when read back, so disable nul
+  ;; byte detection.  (Bug#52554)
+  (let ((inhibit-null-byte-detection t)
+        (body
+         (lambda ()
+           (when init-file-user
+             (let ((init-file-name (funcall filename-function)))
+
+               ;; If `user-init-file' is t, then `load' will store
+               ;; the name of the file that it loads into
+               ;; `user-init-file'.
+               (setq user-init-file t)
+	       (when init-file-name
+		 (load (if (equal (file-name-extension init-file-name)
+				  "el")
+			   (file-name-sans-extension init-file-name)
+			 init-file-name)
+		       'noerror 'nomessage))
+
+               (when (and (eq user-init-file t) alternate-filename-function)
+                 (let ((alt-file (funcall alternate-filename-function)))
+		   (unless init-file-name
+		     (setq init-file-name alt-file))
+		   (and (equal (file-name-extension alt-file) "el")
+		        (setq alt-file (file-name-sans-extension alt-file)))
+		   (load alt-file 'noerror 'nomessage)))
+
+               ;; If we did not find the user's init file, set
+               ;; user-init-file conclusively.  Don't let it be
+               ;; set from default.el.
+               (when (eq user-init-file t)
+                 (setq user-init-file init-file-name)))
+
+             ;; If we loaded a compiled file, set `user-init-file' to
+             ;; the source version if that exists.
+             (if (equal (file-name-extension user-init-file) "elc")
+                 (let* ((source (file-name-sans-extension user-init-file))
+                        (alt (concat source ".el")))
+                   (setq source (cond ((file-exists-p alt) alt)
+                                      ((file-exists-p source) source)
+                                      (t nil)))
+                   (when source
+                     (when (file-newer-than-file-p source user-init-file)
+                       (message "Warning: %s is newer than %s"
+                                source user-init-file)
+                       (sit-for 1))
+                     (setq user-init-file source)))
+               ;; Else, perhaps the user init file was compiled
+               (when (and (equal (file-name-extension user-init-file) "eln")
+                          ;; The next test is for builds without native
+                          ;; compilation support or builds with unexec.
+                          (boundp 'comp-eln-to-el-h))
+                 (if-let* ((source (gethash (file-name-nondirectory
+                                             user-init-file)
+                                            comp-eln-to-el-h)))
+                     ;; source exists or the .eln file would not load
+                     (setq user-init-file source)
+                   (message "Warning: unknown source file for init file %S"
+                            user-init-file)
+                   (sit-for 1))))
+
+             (when (and load-defaults
+                        (not inhibit-default-init))
+               ;; Prevent default.el from changing the value of
+               ;; `inhibit-startup-screen'.
+               (let ((inhibit-startup-screen nil))
+                 (load "default" 'noerror 'nomessage)))))))
+    (if (eq init-file-debug t)
+        (handler-bind ((error #'startup--debug))
+          (funcall body))
       (condition-case-unless-debug error
-          (when init-file-user
-            (let ((init-file-name (funcall filename-function)))
-
-              ;; If `user-init-file' is t, then `load' will store
-              ;; the name of the file that it loads into
-              ;; `user-init-file'.
-              (setq user-init-file t)
-	      (when init-file-name
-		(load (if (equal (file-name-extension init-file-name)
-				 "el")
-			  (file-name-sans-extension init-file-name)
-			init-file-name)
-		      'noerror 'nomessage))
-
-              (when (and (eq user-init-file t) alternate-filename-function)
-                (let ((alt-file (funcall alternate-filename-function)))
-		  (unless init-file-name
-		    (setq init-file-name alt-file))
-                  (and (equal (file-name-extension alt-file) "el")
-                       (setq alt-file (file-name-sans-extension alt-file)))
-                  (load alt-file 'noerror 'nomessage)))
-
-              ;; If we did not find the user's init file, set
-              ;; user-init-file conclusively.  Don't let it be
-              ;; set from default.el.
-              (when (eq user-init-file t)
-                (setq user-init-file init-file-name)))
-
-            ;; If we loaded a compiled file, set `user-init-file' to
-            ;; the source version if that exists.
-            (if (equal (file-name-extension user-init-file) "elc")
-                (let* ((source (file-name-sans-extension user-init-file))
-                       (alt (concat source ".el")))
-                  (setq source (cond ((file-exists-p alt) alt)
-                                     ((file-exists-p source) source)
-                                     (t nil)))
-                  (when source
-                    (when (file-newer-than-file-p source user-init-file)
-                      (message "Warning: %s is newer than %s"
-                               source user-init-file)
-                      (sit-for 1))
-                    (setq user-init-file source)))
-              ;; Else, perhaps the user init file was compiled
-              (when (and (equal (file-name-extension user-init-file) "eln")
-                         ;; The next test is for builds without native
-                         ;; compilation support or builds with unexec.
-                         (boundp 'comp-eln-to-el-h))
-                (if-let (source (gethash (file-name-nondirectory user-init-file)
-                                         comp-eln-to-el-h))
-                    ;; source exists or the .eln file would not load
-                    (setq user-init-file source)
-                  (message "Warning: unknown source file for init file %S"
-                           user-init-file)
-                  (sit-for 1))))
-
-            (when (and load-defaults
-                       (not inhibit-default-init))
-              ;; Prevent default.el from changing the value of
-              ;; `inhibit-startup-screen'.
-              (let ((inhibit-startup-screen nil))
-                (load "default" 'noerror 'nomessage))))
+          (funcall body)
         (error
          (display-warning
           'initialization
@@ -1108,28 +1140,7 @@ the `--debug-init' option to view a complete error backtrace."
                           (mapconcat (lambda (s) (prin1-to-string s t))
                                      (cdr error) ", "))
           :warning)
-         (setq init-file-had-error t)))
-
-      ;; If we can tell that the init file altered debug-on-error,
-      ;; arrange to preserve the value that it set up.
-      (unless (eq debug-ignored-errors d-i-e-initial)
-        (if (memq 'startup--witness debug-ignored-errors)
-            ;; The init file wants to add errors to the standard
-            ;; value, so we need to emulate that.
-            (setq d-i-e-from-init-file
-                  (list (append d-i-e-standard
-                                (remq 'startup--witness
-                                      debug-ignored-errors))))
-          ;; The init file _replaces_ the standard value.
-          (setq d-i-e-from-init-file (list debug-ignored-errors))))
-      (or (eq debug-on-error debug-on-error-initial)
-          (setq debug-on-error-should-be-set t
-                debug-on-error-from-init-file debug-on-error)))
-
-    (when d-i-e-from-init-file
-      (setq debug-ignored-errors (car d-i-e-from-init-file)))
-    (when debug-on-error-should-be-set
-      (setq debug-on-error debug-on-error-from-init-file))))
+         (setq init-file-had-error t))))))
 
 (defvar lisp-directory nil
   "Directory where Emacs's own *.el and *.elc Lisp files are installed.")
@@ -1425,7 +1436,7 @@ please check its value")
     (error
      (princ
       (if (eq (car error) 'error)
-	  (apply 'concat (cdr error))
+	  (apply #'concat (cdr error))
 	(if (memq 'file-error (get (car error) 'error-conditions))
 	    (format "%s: %s"
                     (nth 1 error)
@@ -1634,7 +1645,9 @@ Consider using a subdirectory instead, e.g.: %s"
   (let ((dn (daemonp)))
     (when dn
       (when (stringp dn) (setq server-name dn))
-      (server-start)
+      (condition-case err
+          (server-start)
+        (error (error "Unable to start daemon: %s; exiting" (error-message-string err))))
       (if server-process
 	  (daemon-initialized)
 	(if (stringp dn)
@@ -1682,7 +1695,7 @@ Changed settings will be marked as \"CHANGED outside of Customize\"."
 
 (defcustom initial-scratch-message (purecopy "\
 ;; This buffer is for text that is not saved, and for Lisp evaluation.
-;; To create a file, visit it with \\[find-file] and enter text in its buffer.
+;; To create a file, visit it with `\\[find-file]' and enter text in its buffer.
 
 ")
   "Initial documentation displayed in *scratch* buffer at startup.
@@ -1765,7 +1778,7 @@ If this is nil, no message will be displayed."
      "\n"))
   "A list of texts to show in the middle part of splash screens.
 Each element in the list should be a list of strings or pairs
-`:face FACE', like `fancy-splash-insert' accepts them.")
+`:KEYWORD VALUE', like what `fancy-splash-insert' accepts.")
 
 (defconst fancy-about-text
   `((:face (variable-pitch font-lock-comment-face)
@@ -1858,7 +1871,7 @@ Each element in the list should be a list of strings or pairs
      "\tDisplay the Emacs manual in Info mode"))
   "A list of texts to show in the middle part of the About screen.
 Each element in the list should be a list of strings or pairs
-`:face FACE', like `fancy-splash-insert' accepts them.")
+`:KEYWORD VALUE', like what `fancy-splash-insert' accepts.")
 
 
 (defgroup fancy-splash-screen ()
@@ -1877,10 +1890,10 @@ Each element in the list should be a list of strings or pairs
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (set-keymap-parent map button-buffer-map)
-    (define-key map "\C-?" 'scroll-down-command)
-    (define-key map [?\S-\ ] 'scroll-down-command)
-    (define-key map " " 'scroll-up-command)
-    (define-key map "q" 'exit-splash-screen)
+    (define-key map "\C-?" #'scroll-down-command)
+    (define-key map [?\S-\ ] #'scroll-down-command)
+    (define-key map " " #'scroll-up-command)
+    (define-key map "q" #'exit-splash-screen)
     map)
   "Keymap for splash screen buffer.")
 
@@ -2033,7 +2046,6 @@ a face or button specification."
 					   (call-interactively
 					    'recover-session)))
 				" to recover the files you were editing."))))
-
   (when concise
     (fancy-splash-insert
      :face 'variable-pitch "\n"
@@ -2086,6 +2098,10 @@ splash screen in another window."
 	(make-local-variable 'startup-screen-inhibit-startup-screen)
 	(if pure-space-overflow
 	    (insert pure-space-overflow-message))
+        ;; Insert the permissions notice if the user has yet to grant Emacs
+        ;; storage permissions.
+        (when (fboundp 'android-before-splash-screen)
+          (funcall 'android-before-splash-screen t))
 	(unless concise
 	  (fancy-splash-head))
 	(dolist (text fancy-startup-text)
@@ -2192,7 +2208,10 @@ splash screen in another window."
 
       (if pure-space-overflow
 	  (insert pure-space-overflow-message))
-
+      ;; Insert the permissions notice if the user has yet to grant
+      ;; Emacs storage permissions.
+      (when (fboundp 'android-before-splash-screen)
+        (funcall 'android-before-splash-screen nil))
       ;; The convention for this piece of code is that
       ;; each piece of output starts with one or two newlines
       ;; and does not end with any newlines.
@@ -2234,7 +2253,6 @@ splash screen in another window."
 	   (insert "\n\nIf an Emacs session crashed recently, "
 		   "type M-x recover-session RET\nto recover"
 		   " the files you were editing.\n"))
-
       (use-local-map splash-screen-keymap)
 
       ;; Display the input that we set up in the buffer.
@@ -2310,7 +2328,7 @@ To quit a partially entered command, type Control-g.\n")
                       ;; If C-h can't be invoked, temporarily disable its
                       ;; binding, so where-is uses alternative bindings.
                       (let ((map (make-sparse-keymap)))
-                        (define-key map [?\C-h] 'undefined)
+                        (define-key map [?\C-h] #'undefined)
                         map))
                 minor-mode-overriding-map-alist)))
 
@@ -2502,8 +2520,8 @@ A fancy display is used on graphic displays, normal otherwise."
       (fancy-about-screen)
     (normal-splash-screen nil)))
 
-(defalias 'about-emacs 'display-about-screen)
-(defalias 'display-splash-screen 'display-startup-screen)
+(defalias 'about-emacs #'display-about-screen)
+(defalias 'display-splash-screen #'display-startup-screen)
 
 ;; This avoids byte-compiler warning in the unexec build.
 (declare-function pdumper-stats "pdumper.c" ())

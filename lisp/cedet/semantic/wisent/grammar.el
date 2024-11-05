@@ -1,6 +1,6 @@
 ;;; semantic/wisent/grammar.el --- Wisent's input grammar mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 26 Aug 2002
@@ -518,7 +518,7 @@ Menu items are appended to the common grammar menu.")
 	  (delete-trailing-whitespace))))))
 
 (defun wisent-make-parsers ()
-  "Generate Emacs' built-in Wisent-based parser files."
+  "Generate Emacs's built-in Wisent-based parser files."
   (interactive)
   (semantic-mode 1)
   ;; Loop through each .wy file in current directory, and run

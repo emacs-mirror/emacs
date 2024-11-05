@@ -15,7 +15,7 @@
 This file describes how to use Info, the menu-driven GNU
 documentation system.
 
-Copyright @copyright{} 1989, 1992, 1996--2023 Free Software Foundation,
+Copyright @copyright{} 1989, 1992, 1996--2024 Free Software Foundation,
 Inc.
 
 @quotation
@@ -473,7 +473,7 @@ depends on the Info reader you use.)  This is because @kbd{n} and
 level}.  The present node is contained in a menu (see next) of the
 node you came from, and hence is considered to be at a lower level.
 It is the only node in the previous node's menu (even though it was
-listed three times). Hence it has no next or previous node that
+listed three times).  Hence it has no next or previous node that
 @kbd{n} or @kbd{p} could move to.
 
 If you systematically move through a manual by typing @kbd{n}, you run
@@ -1148,6 +1148,7 @@ move between menu items.
 @section @kbd{M-n} creates a new independent Info buffer in Emacs
 
 @kindex M-n @r{(Info mode)}
+@kindex C-x x n
 @findex clone-buffer
 @cindex multiple Info buffers
   If you are reading Info in Emacs, you can select a new independent

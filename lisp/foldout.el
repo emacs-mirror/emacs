@@ -1,6 +1,6 @@
 ;;; foldout.el --- folding extensions for outline-mode and outline-minor-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Kevin Broadey <KevinB@bartley.demon.co.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -44,7 +44,7 @@
 ;;
 ;; When zooming in on a heading you might only want to see the child
 ;; subheadings.  You do this by specifying a numeric argument: C-u C-c C-z.
-;; You can specify the number of levels of children too (c.f. show-children):
+;; You can specify the number of levels of children too (cf. `show-children'):
 ;; e.g. M-2 C-c C-z exposes two levels of child subheadings.  Alternatively,
 ;; you might only be interested in the body.  You do this by specifying a
 ;; negative argument: M-- C-c C-z.  You can also cause the whole subtree to be
@@ -239,7 +239,7 @@ An end marker of nil means the fold ends after (point-max).")
 Normally the body and the immediate subheadings are exposed, but
 optional arg EXPOSURE \(interactively with prefix arg) changes this:-
 
-        EXPOSURE > 0	exposes n levels of subheadings (c.f. `show-children')
+        EXPOSURE > 0	exposes n levels of subheadings (cf. `show-children')
 	EXPOSURE < 0	exposes only the body
 	EXPOSURE = 0	exposes the entire subtree"
   (interactive "P")
@@ -488,6 +488,21 @@ Signal an error if the event didn't occur on a heading."
       ;; even though outline-on-heading returns nil.
       (save-excursion (beginning-of-line) (bobp))
       (error "Not a heading line")))
+
+
+(defun foldout-widen-to-current-fold ()
+  "Widen to the current fold level.
+If in a fold, widen to that fold's boundaries.
+If not in a fold, acts like `widen'."
+  (interactive)
+  (if foldout-fold-list
+      (let* ((last-fold (car foldout-fold-list))
+             (start (car last-fold))
+             (end (cdr last-fold)))
+        (widen)
+        (narrow-to-region start
+                          (if end (1- (marker-position end)) (point-max))))
+    (widen)))
 
 
 ;;; Keymaps:

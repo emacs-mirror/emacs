@@ -1,6 +1,6 @@
 ;;; eieio-compat.el --- Compatibility with Older EIEIO versions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1996, 1998-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: OO, lisp
@@ -150,10 +150,9 @@ Summary:
   (lambda (tag &rest _)
     (and (symbolp tag) (setq tag (cl--find-class tag))
          (eieio--class-p tag)
-         (let ((superclasses (eieio--class-precedence-list tag))
+         (let ((superclasses (cl--class-allparents tag))
                (specializers ()))
            (dolist (superclass superclasses)
-             (setq superclass (eieio--class-name superclass))
              (push superclass specializers)
              (push `(eieio--static ,superclass) specializers))
            (nreverse specializers)))))
@@ -240,7 +239,7 @@ Summary:
   (declare (obsolete cl-no-applicable-method "25.1"))
   (apply #'cl-no-applicable-method method object args))
 
-(define-obsolete-function-alias 'call-next-method 'cl-call-next-method "25.1")
+(define-obsolete-function-alias 'call-next-method #'cl-call-next-method "25.1")
 (defun next-method-p ()
   (declare (obsolete cl-next-method-p "25.1"))
   ;; EIEIO's `next-method-p' just returned nil when called in an

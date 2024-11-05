@@ -1,6 +1,6 @@
 ;;; cc-cmds.el --- user level commands for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2024 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -4909,7 +4909,8 @@ If a fill prefix is specified, it overrides all the above."
 	   (setq c-lit-limits (c-literal-limits nil nil t)))
 	 (unless c-lit-type
 	   (setq c-lit-type (c-literal-type c-lit-limits)))
-	 (if (memq (cond ((c-query-and-set-macro-start) 'cpp)
+	 (if (memq (cond ((memq c-lit-type '(c c++ string)) c-lit-type)
+			 ((c-query-and-set-macro-start) 'cpp)
 			 ((null c-lit-type) 'code)
 			 (t c-lit-type))
 		   c-ignore-auto-fill)

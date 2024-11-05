@@ -1,6 +1,6 @@
 ;;; wombat-theme.el --- Custom face theme for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
 ;; Author: Kristoffer Grönlund <krig@koru.se>
 

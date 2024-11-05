@@ -1,6 +1,6 @@
 ;;; holidays.el --- holiday functions for the calendar package  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2023 Free Software
+;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>

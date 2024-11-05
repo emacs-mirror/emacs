@@ -1,6 +1,6 @@
 ;;; sh-script-tests.el --- Tests for sh-script.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +30,7 @@
     (insert "relative-path/to/configure --prefix=$prefix\\
              --with-x")
     (shell-script-mode)
+    (skip-unless sh-indent-supported-here)
     (goto-char (point-min))
     (forward-line 1)
     (indent-for-tab-command)
@@ -42,6 +43,7 @@
   (with-temp-buffer
     (insert "myecho () {\necho foo\n}\n")
     (shell-script-mode)
+    (skip-unless sh-indent-supported-here)
     (indent-region (point-min) (point-max))
     (should (equal (buffer-string)
   "myecho () {
@@ -56,6 +58,7 @@
   (with-temp-buffer
     (insert "for f \\\nin a; do \\\ntoto; \\\ndone\n")
     (shell-script-mode)
+    (skip-unless sh-indent-supported-here)
     (let ((sh-indent-for-continuation '++))
       (let ((sh-indent-after-continuation t))
         (indent-region (point-min) (point-max))
@@ -86,5 +89,16 @@
   (should (test-sh-back "foo"))
   (should-not (test-sh-back "foo;bar"))
   (should (test-sh-back "foo#zot")))
+
+(ert-deftest sh-script-test-do-fontification ()
+  "Test that \"do\" gets fontified correctly, even with no \";\"."
+  (with-temp-buffer
+    (shell-script-mode)
+    (insert "for i do echo 1; done")
+    (font-lock-ensure)
+    (goto-char (point-min))
+    (search-forward "do")
+    (forward-char -1)
+    (should (equal (get-text-property (point) 'face) 'font-lock-keyword-face))))
 
 ;;; sh-script-tests.el ends here

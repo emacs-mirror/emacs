@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the NeXT/Open/GNUstep API.
-   Copyright (C) 1995, 2005, 2008-2023 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2005, 2008-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,8 +29,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define Cursor FooFoo
 #endif  /* NS_IMPL_COCOA */
 
-#undef verify
-
 #import <AppKit/AppKit.h>
 
 #ifdef NS_IMPL_COCOA
@@ -43,10 +41,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif /* NS_IMPL_COCOA */
 
 #endif /* __OBJC__ */
-
-#undef verify
-#undef _GL_VERIFY_H
-#include <verify.h>
 
 /* Emulate XCharStruct.  */
 typedef struct _XCharStruct

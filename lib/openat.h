@@ -1,5 +1,5 @@
 /* provide a replacement openat function
-   Copyright (C) 2004-2006, 2008-2023 Free Software Foundation, Inc.
+   Copyright (C) 2004-2006, 2008-2024 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,6 +32,11 @@
 #include <unistd.h>
 
 _GL_INLINE_HEADER_BEGIN
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #if !HAVE_OPENAT
 
@@ -121,6 +126,11 @@ lstatat (int fd, char const *name, struct stat *st)
    since access rights on symlinks are of limited utility.  Likewise,
    wrappers are not provided for accessat or euidaccessat, so as to
    avoid dragging in -lgen on some platforms.  */
+
+
+#ifdef __cplusplus
+}
+#endif
 
 _GL_INLINE_HEADER_END
 

@@ -1,8 +1,8 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
-;; Keywords: wp, convenience
+;; Keywords: text, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
 
@@ -1456,8 +1456,8 @@ first cell.
     |-!-  |     |     |
     +-----+-----+-----+
 
-Inside a table cell, there are special key bindings. \\<table-cell-map>
-
+Inside a table cell, there are special key bindings.
+\\<table-cell-map>
 M-9 \\[table-widen-cell] (or \\[universal-argument] 9 \\[table-widen-cell]) widens the first cell by 9 character
 width, which results as
 
@@ -1466,7 +1466,7 @@ width, which results as
     +--------------+-----+-----+
 
 Type TAB \\[table-widen-cell] then type TAB M-2 M-7 \\[table-widen-cell] (or \\[universal-argument] 2 7 \\[table-widen-cell]).  Typing
-TAB moves the point forward by a cell. The result now looks like this:
+TAB moves the point forward by a cell.  The result now looks like this:
 
     +--------------+------+--------------------------------+
     |              |      |-!-                             |
@@ -4134,7 +4134,7 @@ cache buffer into the designated cell in the table buffer."
 		 (currentp (equal cell-coord current-cell-coordinate)))
 	    (if currentp (table--goto-coordinate current-coordinate)
 	      (table--goto-coordinate (car cell-coord)))
-	    (table-recognize-cell 'froce)
+	    (table-recognize-cell 'force)
 	    (let ((table-inhibit-update t))
 	      (table-with-cache-buffer
 		(let ((sticky (and currentp
@@ -4147,7 +4147,7 @@ cache buffer into the designated cell in the table buffer."
 	    (table--update-cell 'now)
 	    ))
 	(table--goto-coordinate current-coordinate)
-	(table-recognize-cell 'froce)))))
+	(table-recognize-cell 'force)))))
 
 (defun table--update-cell-heightened (&optional now)
   "Update the contents of the cells that are affected by heightening operation."
@@ -4176,7 +4176,7 @@ cache buffer into the designated cell in the table buffer."
 		 (currentp (equal cell-coord current-cell-coordinate)))
 	    (if currentp (table--goto-coordinate current-coordinate)
 	      (table--goto-coordinate (car cell-coord)))
-	    (table-recognize-cell 'froce)
+	    (table-recognize-cell 'force)
 	    (let ((table-inhibit-update t))
 	      (table-with-cache-buffer
 		(let ((sticky (and currentp
@@ -4189,7 +4189,7 @@ cache buffer into the designated cell in the table buffer."
 	    (table--update-cell 'now)
 	    ))
 	(table--goto-coordinate current-coordinate)
-	(table-recognize-cell 'froce)))))
+	(table-recognize-cell 'force)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -5301,8 +5301,8 @@ Current buffer must already be set to the cache buffer."
 
 (defun table--fill-region-strictly (beg end)
   "Fill region strictly so that no line exceeds `fill-column'.
-When a word exceeds fill-column the word is chopped into pieces.  The
-chopped location is indicated with table-word-continuation-char."
+When a word exceeds `fill-column' the word is chopped into pieces.  The
+chopped location is indicated with `table-word-continuation-char'."
   (or (and (markerp beg) (markerp end))
       (error "markerp"))
   (if (< fill-column 2)

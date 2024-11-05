@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -193,6 +193,11 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
       (list 'function-put (list 'quote f)
             ''speed (list 'quote val))))
 
+(defalias 'byte-run--set-safety
+  #'(lambda (f _args val)
+      (list 'function-put (list 'quote f)
+            ''safety (list 'quote val))))
+
 (defalias 'byte-run--set-completion
   #'(lambda (f _args val)
       (list 'function-put (list 'quote f)
@@ -217,6 +222,30 @@ So far, FUNCTION can only be a symbol, not a lambda expression."
                  (cadr elem)))
               val)))))
 
+(defalias 'byte-run--anonymize-arg-list
+  #'(lambda (arg-list)
+      (mapcar (lambda (x)
+                (if (memq x '(&optional &rest))
+                    x
+                 t))
+              arg-list)))
+
+(defalias 'byte-run--set-function-type
+  #'(lambda (f args val &optional f2)
+      (when (and f2 (not (eq f2 f)))
+        (error
+         "`%s' does not match top level function `%s' inside function type \
+declaration" f2 f))
+      (unless (and  (length= val 3)
+                    (eq (car val) 'function)
+                    (listp (car (cdr val))))
+        (error "Type `%s' is not valid a function type" val))
+      (unless (equal (byte-run--anonymize-arg-list args)
+                     (byte-run--anonymize-arg-list (car (cdr val))))
+        (error "Type `%s' incompatible with function arguments `%s'" val args))
+      (list 'function-put (list 'quote f)
+            ''function-type (list 'quote val))))
+
 ;; Add any new entries to info node `(elisp)Declare Form'.
 (defvar defun-declarations-alist
   (list
@@ -237,9 +266,11 @@ If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
    (list 'doc-string #'byte-run--set-doc-string)
    (list 'indent #'byte-run--set-indent)
    (list 'speed #'byte-run--set-speed)
+   (list 'safety #'byte-run--set-safety)
    (list 'completion #'byte-run--set-completion)
    (list 'modes #'byte-run--set-modes)
-   (list 'interactive-args #'byte-run--set-interactive-args))
+   (list 'interactive-args #'byte-run--set-interactive-args)
+   (list 'ftype #'byte-run--set-function-type))
   "List associating function properties to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is
 a function.  For each (PROP . VALUES) in a function's declaration,
@@ -318,7 +349,7 @@ This is used by `declare'.")
                       (f (apply (car f) name arglist (cdr x)))
                       ;; Yuck!!
                       ((and (featurep 'cl)
-                            (memq (car x)  ;C.f. cl--do-proclaim.
+                            (memq (car x)  ;Cf. cl--do-proclaim.
                                   '(special inline notinline optimize warn)))
                        (push (list 'declare x) cl-decls)
                        nil)
@@ -494,6 +525,11 @@ convention was modified."
 Return t if there isn't any."
   (gethash function advertised-signature-table t))
 
+(defun byte-run--constant-obsolete-warning (obsolete-name)
+  (if (memq obsolete-name '(nil t))
+      (error "Can't make `%s' obsolete; did you forget a quote mark?"
+             obsolete-name)))
+
 (defun make-obsolete (obsolete-name current-name when)
   "Make the byte-compiler warn that function OBSOLETE-NAME is obsolete.
 OBSOLETE-NAME should be a function name or macro name (a symbol).
@@ -503,6 +539,7 @@ If CURRENT-NAME is a string, that is the `use instead' message
 \(it should end with a period, and not start with a capital).
 WHEN should be a string indicating when the function
 was first made obsolete, for example a date or a release number."
+  (byte-run--constant-obsolete-warning obsolete-name)
   (put obsolete-name 'byte-obsolete-info
        ;; The second entry used to hold the `byte-compile' handler, but
        ;; is not used any more nowadays.
@@ -539,6 +576,7 @@ WHEN should be a string indicating when the variable
 was first made obsolete, for example a date or a release number.
 ACCESS-TYPE if non-nil should specify the kind of access that will trigger
   obsolescence warnings; it can be either `get' or `set'."
+  (byte-run--constant-obsolete-warning obsolete-name)
   (put obsolete-name 'byte-obsolete-variable
        (purecopy (list current-name access-type when)))
   obsolete-name)

@@ -1,6 +1,6 @@
 ;;; em-unix.el --- UNIX command aliases  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -38,7 +38,7 @@
 (require 'esh-mode)
 (require 'pcomplete)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-unix nil
   "This module defines many of the more common UNIX utilities as
@@ -92,7 +92,7 @@ Otherwise, `rmdir' is required."
   :group 'eshell-unix)
 
 (define-widget 'eshell-interactive-query 'radio
-  "When to interatively query the user about a particular operation.
+  "When to interactively query the user about a particular operation.
 If t, always query.  If nil, never query.  If `root', query when
 the user is logged in as root (including when `default-directory'
 is remote with a root user)."
@@ -166,9 +166,9 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-host-reference nil t))
   (setq-local eshell-complex-commands
-	      (append '("grep" "egrep" "fgrep" "agrep" "rgrep"
-                        "glimpse" "locate" "cat" "time" "cp" "mv"
-                        "make" "du" "diff")
+	      (append '("compile" "grep" "egrep" "fgrep" "agrep"
+                        "rgrep" "glimpse" "locate" "cat" "time" "cp"
+                        "mv" "make" "du" "diff")
 		      eshell-complex-commands)))
 
 (defalias 'eshell/date     'current-time-string)
@@ -590,7 +590,7 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
      :external "cp"
      :show-usage
      :usage "[OPTION]... SOURCE DEST
-   or:  cp [OPTION]... SOURCE... DIRECTORY
+   or: cp [OPTION]... SOURCE... DIRECTORY
 Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
    (if archive
        (setq preserve t no-dereference t em-recursive t))
@@ -618,11 +618,11 @@ Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
      :preserve-args
      :external "ln"
      :show-usage
-     :usage "[OPTION]... TARGET [LINK_NAME]
-   or:  ln [OPTION]... TARGET... DIRECTORY
-Create a link to the specified TARGET with optional LINK_NAME.  If there is
-more than one TARGET, the last argument must be a directory;  create links
-in DIRECTORY to each TARGET.  Create hard links by default, symbolic links
+     :usage "[OPTION]... TARGET LINK_NAME
+   or: ln [OPTION]... TARGET... DIRECTORY
+Create a link to the specified TARGET with LINK_NAME.  If there is more
+than one TARGET, the last argument must be a directory;  create links in
+DIRECTORY to each TARGET.  Create hard links by default, symbolic links
 with `--symbolic'.  When creating hard links, each TARGET must exist.")
    (let ((no-dereference t))
      (eshell-mvcpln-template "ln" "linking"
@@ -654,12 +654,10 @@ symlink, then revert to the system's definition of cat."
 		(throw 'special t)))))
       (let ((ext-cat (eshell-search-path "cat")))
 	(if ext-cat
-	    (throw 'eshell-replace-command
-		   (eshell-parse-command (eshell-quote-argument ext-cat) args))
+	    (throw 'eshell-external (eshell-external-command ext-cat args))
 	  (if eshell-in-pipeline-p
 	      (error "Eshell's `cat' does not work in pipelines")
 	    (error "Eshell's `cat' cannot display one of the files given"))))
-    (eshell-init-print-buffer)
     (eshell-eval-using-options
      "cat" args
      '((?h "help" nil nil "show this usage screen")
@@ -672,20 +670,18 @@ Concatenate FILE(s), or standard input, to standard output.")
 	   (throw 'eshell-external
 		  (eshell-external-command "cat" args))))
      (let ((curbuf (current-buffer)))
-       (dolist (file args)
-	 (with-temp-buffer
-	   (insert-file-contents file)
-	   (goto-char (point-min))
-	   (while (not (eobp))
-	     (let ((str (buffer-substring
-			 (point) (min (1+ (line-end-position))
-				      (point-max)))))
-	       (with-current-buffer curbuf
-		 (eshell-buffered-print str)))
-	     (forward-line)))))
-     (eshell-flush)
-     ;; if the file does not end in a newline, do not emit one
-     (setq eshell-ensure-newline-p nil))))
+       (eshell-with-buffered-print
+         (dolist (file args)
+	   (with-temp-buffer
+	     (insert-file-contents file)
+	     (goto-char (point-min))
+             (while (not (eobp))
+               (let* ((pos (min (+ (point) eshell-buffered-print-size)
+                                (point-max)))
+                      (str (buffer-substring (point) pos)))
+                 (with-current-buffer curbuf
+                   (eshell-buffered-print str))
+                 (goto-char pos))))))))))
 
 (put 'eshell/cat 'eshell-no-numeric-conversions t)
 (put 'eshell/cat 'eshell-filename-arguments t)
@@ -741,7 +737,7 @@ Fallback to standard make when called synchronously."
   (eshell-compile "make" args
                   ;; Use plain output unless we're executing in the
                   ;; background.
-                  (not eshell-current-subjob-p)))
+                  (unless eshell-current-subjob-p 'plain)))
 
 (put 'eshell/make 'eshell-no-numeric-conversions t)
 
@@ -789,7 +785,7 @@ available..."
 		    (ignore-errors
 		      (occur (car args))))
 		  (if (get-buffer "*Occur*")
-		      (with-current-buffer (get-buffer "*Occur*")
+		      (with-current-buffer "*Occur*"
 			(setq string (buffer-string))
 			(kill-buffer (current-buffer)))))
 		(if string (insert string))
@@ -815,8 +811,8 @@ external command."
   (if (and maybe-use-occur eshell-no-grep-available)
       (eshell-poor-mans-grep args)
     (eshell-compile command (cons "-n" args)
-                    (and eshell-plain-grep-behavior
-                         'interactive)
+                    (when eshell-plain-grep-behavior
+                      'plain)
                      #'grep-mode)))
 
 (defun eshell/grep (&rest args)
@@ -924,8 +920,7 @@ external command."
 		      (if (string-equal
 			   (file-remote-p (expand-file-name arg) 'method) "ftp")
 			  (throw 'have-ange-path t))))))
-	(throw 'eshell-replace-command
-	       (eshell-parse-command (eshell-quote-argument ext-du) args))
+	(throw 'eshell-external (eshell-external-command ext-du args))
       (eshell-eval-using-options
        "du" args
        '((?a "all" nil show-all
@@ -940,7 +935,7 @@ external command."
 	     "display data only this many levels of data")
 	 (?h "human-readable" 1024 human-readable
 	     "print sizes in human readable format")
-	 (?H "is" 1000 human-readable
+	 (?H "si" 1000 human-readable
 	     "likewise, but use powers of 1000 not 1024")
 	 (?k "kilobytes" 1024 block-size
 	     "like --block-size 1024")
@@ -1018,7 +1013,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 				  (eshell-stringify-list
 				   (flatten-tree (cdr time-args))))))))
 
-(defun eshell/whoami (&rest _args)
+(defun eshell/whoami ()
   "Make \"whoami\" Tramp aware."
   (eshell-user-login-name))
 
@@ -1096,9 +1091,4 @@ Show wall-clock time elapsed during execution of COMMAND.")
 (define-obsolete-function-alias 'eshell-diff-quit #'ignore "30.1")
 
 (provide 'em-unix)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-unix.el ends here

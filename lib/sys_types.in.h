@@ -1,6 +1,6 @@
 /* Provide a more complete sys/types.h.
 
-   Copyright (C) 2011-2023 Free Software Foundation, Inc.
+   Copyright (C) 2011-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -58,6 +58,15 @@
 # endif
 /* Indicator, for gnulib internal purposes.  */
 # define _GL_WINDOWS_64_BIT_OFF_T 1
+#endif
+
+/* Define the off64_t type.  */
+#if !@HAVE_OFF64_T@
+# if !GNULIB_defined_off64_t
+/* Define off64_t to int64_t always.  */
+typedef long long off64_t;
+#  define GNULIB_defined_off64_t 1
+# endif
 #endif
 
 /* Override dev_t and ino_t if distinguishable inodes support is requested

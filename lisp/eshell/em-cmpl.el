@@ -1,6 +1,6 @@
 ;;; em-cmpl.el --- completion using the TAB key  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -76,7 +76,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-cmpl nil
   "This module provides a programmable completion function bound to
@@ -147,6 +147,10 @@ to writing a completion function."
 (defcustom eshell-cmpl-dir-ignore "\\`\\(\\.\\.?\\|CVS\\)/\\'"
   (eshell-cmpl--custom-variable-docstring 'pcomplete-dir-ignore)
   :type (get 'pcomplete-dir-ignore 'custom-type))
+
+(defcustom eshell-cmpl-remote-file-ignore nil
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-remote-file-ignore)
+  :type (get 'pcomplete-remote-file-ignore 'custom-type))
 
 (defcustom eshell-cmpl-ignore-case (eshell-under-windows-p)
   (eshell-cmpl--custom-variable-docstring 'completion-ignore-case)
@@ -248,6 +252,8 @@ to writing a completion function."
               eshell-cmpl-file-ignore)
   (setq-local pcomplete-dir-ignore
               eshell-cmpl-dir-ignore)
+  (setq-local pcomplete-remote-file-ignore
+              eshell-cmpl-remote-file-ignore)
   (setq-local completion-ignore-case
               eshell-cmpl-ignore-case)
   (setq-local pcomplete-autolist
@@ -325,10 +331,19 @@ to writing a completion function."
             "Failed to evaluate argument form during completion: %S" arg)
      (propertize "\0" 'eshell-argument-stub 'error))))
 
+;; Code stolen from `eshell-plain-command'.
+(defun eshell-external-command-p (command)
+  "Whether an external command shall be called."
+  (let* ((esym (eshell-find-alias-function command))
+	 (sym (or esym (intern-soft command))))
+    (not (and sym (fboundp sym)
+	      (or esym eshell-prefer-lisp-functions
+		  (not (eshell-search-path command)))))))
+
 (defun eshell-complete-parse-arguments ()
   "Parse the command line arguments for `pcomplete-argument'."
   (when (and eshell-no-completion-during-jobs
-	     (eshell-interactive-process-p))
+             eshell-foreground-command)
     (eshell--pcomplete-insert-tab))
   (let ((end (point-marker))
 	(begin (save-excursion (beginning-of-line) (point)))
@@ -362,7 +377,8 @@ to writing a completion function."
 	         (throw 'pcompleted (elisp-completion-at-point)))
 	        (t
 	         (eshell--pcomplete-insert-tab)))))
-    (when (get-text-property (1- end) 'comment)
+    (when (and (< begin end)
+               (get-text-property (1- end) 'comment))
       (eshell--pcomplete-insert-tab))
     (let ((pos (1- end)))
       (while (>= pos begin)
@@ -406,6 +422,14 @@ to writing a completion function."
        args posns)
       (setq args (nreverse evaled-args)
             posns (nreverse evaled-posns)))
+    ;; Determine, whether remote file names shall be completed.  They
+    ;; shouldn't for external commands, or when in a pipe.  Respect
+    ;; also `eshell-cmpl-remote-file-ignore', which could be set by
+    ;; the user.
+    (setq-local pcomplete-remote-file-ignore
+                (or eshell-cmpl-remote-file-ignore
+                    eshell-in-pipeline-p ; does not work
+                    (eshell-external-command-p (car args))))
     ;; Convert arguments to forms that Pcomplete can understand.
     (cons (mapcar
            (lambda (arg)
@@ -420,7 +444,7 @@ to writing a completion function."
                ('nil
                 (propertize "" 'pcomplete-arg-value arg))
                (_
-                (propertize (eshell-stringify arg)
+                (propertize (eshell-stringify arg t)
                             'pcomplete-arg-value arg))))
 	   args)
 	  posns)))
@@ -494,9 +518,4 @@ to writing a completion function."
 (define-obsolete-function-alias 'eshell-pcomplete #'completion-at-point "27.1")
 
 (provide 'em-cmpl)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-cmpl.el ends here

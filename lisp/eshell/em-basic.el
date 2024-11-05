@@ -1,6 +1,6 @@
 ;;; em-basic.el --- basic shell builtin commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -58,7 +58,7 @@
 (require 'esh-opt)
 (require 'esh-util)
 
-;;;###autoload
+;;;###esh-module-autoload
 (progn
 (defgroup eshell-basic nil
   "The \"basic\" code provides a set of convenience functions which
@@ -160,6 +160,18 @@ or `eshell-printn' for display."
      :preserve-args
      :usage "[-S] [mode]")
    (cond
+    (args
+     (let* ((mask (car args))
+            (modes
+             (if (stringp mask)
+                 (if (string-match (rx bos (+ (any "0-7")) eos) mask)
+                     (- #o777 (string-to-number mask 8))
+                   (file-modes-symbolic-to-number
+                    mask (default-file-modes)))
+               (- #o777 mask))))
+       (set-default-file-modes modes)
+       (eshell-print
+        "Warning: umask changed for all new files created by Emacs.\n")))
     (symbolic-p
      (let ((mode (default-file-modes)))
        (eshell-printn
@@ -173,25 +185,44 @@ or `eshell-printn' for display."
                 (concat (and (= (logand mode 1) 1) "r")
                         (and (= (logand mode 2) 2) "w")
                         (and (= (logand mode 4) 4) "x"))))))
-    ((not args)
-     (eshell-printn (format "%03o" (logand (lognot (default-file-modes))
-                                           #o777))))
     (t
-     (when (stringp (car args))
-       (if (string-match "^[0-7]+$" (car args))
-           (setcar args (string-to-number (car args) 8))
-         (error "Setting umask symbolically is not yet implemented")))
-     (set-default-file-modes (- #o777 (car args)))
-     (eshell-print
-      "Warning: umask changed for all new files created by Emacs.\n")))
+     (eshell-printn (format "%03o" (logand (lognot (default-file-modes))
+                                           #o777)))))
    nil))
 
 (put 'eshell/umask 'eshell-no-numeric-conversions t)
 
+(defun eshell/eshell-debug (&rest args)
+  "A command for toggling certain debug variables."
+  (eshell-eval-using-options
+   "eshell-debug" args
+   '((?h "help" nil nil "display this usage message")
+     :usage "[KIND]...
+This command is used to aid in debugging problems related to Eshell
+itself.  It is not useful for anything else.  The recognized `kinds'
+are:
+
+   error       stops Eshell from trapping errors
+   form        shows command form manipulation in `*eshell last cmd*'
+   process     shows process events in `*eshell last cmd*'")
+   (if args
+       (dolist (kind args)
+         (if (equal kind "error")
+             (setq eshell-handle-errors (not eshell-handle-errors))
+           (let ((kind-sym (intern kind)))
+             (if (memq kind-sym eshell-debug-command)
+                 (setq eshell-debug-command
+                       (delq kind-sym eshell-debug-command))
+               (push kind-sym eshell-debug-command)))))
+     ;; Output the currently-enabled debug kinds.
+     (unless eshell-handle-errors
+       (eshell-print "errors\n"))
+     (dolist (kind eshell-debug-command)
+       (eshell-printn (symbol-name kind))))))
+
+(defun pcomplete/eshell-mode/eshell-debug ()
+  "Completion for the `debug' command."
+  (while (pcomplete-here '("error" "form" "process"))))
+
 (provide 'em-basic)
-
-;; Local Variables:
-;; generated-autoload-file: "esh-groups.el"
-;; End:
-
 ;;; em-basic.el ends here

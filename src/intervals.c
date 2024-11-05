@@ -1,5 +1,5 @@
 /* Code for doing intervals.
-   Copyright (C) 1993-1995, 1997-1998, 2001-2023 Free Software
+   Copyright (C) 1993-1995, 1997-1998, 2001-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -256,7 +256,7 @@ traverse_intervals_noorder (INTERVAL tree, void (*function) (INTERVAL, void *),
 
 void
 traverse_intervals (INTERVAL tree, ptrdiff_t position,
-		    void (*function) (INTERVAL, Lisp_Object), Lisp_Object arg)
+		    void (*function) (INTERVAL, void *), void *arg)
 {
   while (tree)
     {
@@ -2388,17 +2388,18 @@ set_intervals_multibyte_1 (INTERVAL i, bool multi_flag,
      to this interval.  */
   if (LEFT_TOTAL_LENGTH (i) + RIGHT_TOTAL_LENGTH (i) >= TOTAL_LENGTH (i))
     {
-      if ((i)->left)
+      if (i->left)
 	{
 	  set_interval_plist (i, i->left->plist);
-	  (i)->left->total_length = 0;
+	  i->left->total_length = 0;
 	  delete_interval ((i)->left);
 	}
       else
 	{
+	  eassume (i->right);
 	  set_interval_plist (i, i->right->plist);
-	  (i)->right->total_length = 0;
-	  delete_interval ((i)->right);
+	  i->right->total_length = 0;
+	  delete_interval (i->right);
 	}
     }
 }

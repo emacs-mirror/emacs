@@ -1,6 +1,6 @@
 ;;; opascal.el --- major mode for editing Object Pascal source in Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-1999, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2024 Free Software Foundation, Inc.
 
 ;; Authors: Ray Blaak <blaak@infomatch.com>,
 ;;          Simon South <ssouth@member.fsf.org>
@@ -281,7 +281,7 @@ nested routine.")
 
 (eval-when-compile
   (pcase-defmacro opascal--in (set)
-    `(pred (pcase--flip memq ,set))))
+    `(pred (memq _ ,set))))
 
 (defun opascal-string-of (start end)
   ;; Returns the buffer string from start to end.

@@ -1,6 +1,6 @@
 ;;; speedbar.el --- quick access to files and tags in a frame  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -294,6 +294,7 @@ A nil value means don't show the file in the list."
 				       (border-width . 0)
 				       (menu-bar-lines . 0)
 				       (tool-bar-lines . 0)
+				       (tab-bar-lines . 0)
 				       (unsplittable . t)
 				       (left-fringe . 0)
 				       )
@@ -304,7 +305,8 @@ attached to and added to this list before the new frame is initialized."
   :group 'speedbar
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
-		       (sexp :tag "Value"))))
+		       (sexp :tag "Value")))
+  :version "30.1")
 
 (defcustom speedbar-use-imenu-flag t
   "Non-nil means use imenu for file parsing, nil to use etags.
@@ -631,7 +633,7 @@ function `speedbar-extension-list-to-regex'.")
   (append '(".[ch]\\(\\+\\+\\|pp\\|c\\|h\\|xx\\)?" ".tex\\(i\\(nfo\\)?\\)?"
 	    ".el" ".emacs" ".l" ".lsp" ".p" ".java" ".js" ".f\\(90\\|77\\|or\\)?")
 	  (if speedbar-use-imenu-flag
-	      '(".ad[abs]" ".p[lm]" ".tcl" ".m" ".scm" ".pm" ".py" ".g"
+	      '(".ad[abs]" ".p[lm]" ".tcl" ".m" ".scm" ".pm" ".py" ".g" ".lua"
 		;; html is not supported by default, but an imenu tags package
 		;; is available.  Also, html files are nice to be able to see.
 		".s?html"
@@ -662,7 +664,7 @@ the dot should NOT be quoted in with \\.  Other regular expression
 matchers are allowed however.  EXTENSION may be a single string or a
 list of strings."
   (interactive "sExtension: ")
-  (if (not (listp extension)) (setq extension (list extension)))
+  (setq extension (ensure-list extension))
   (while extension
     (if (member (car extension) speedbar-supported-extension-expressions)
 	nil
@@ -677,8 +679,7 @@ list of strings."
 This function will modify `speedbar-ignored-directory-regexp' and add
 DIRECTORY-EXPRESSION to `speedbar-ignored-directory-expressions'."
   (interactive "sDirectory regex: ")
-  (if (not (listp directory-expression))
-      (setq directory-expression (list directory-expression)))
+  (setq directory-expression (ensure-list directory-expression))
   (while directory-expression
     (if (member (car directory-expression) speedbar-ignored-directory-expressions)
 	nil
@@ -3167,25 +3168,32 @@ With universal argument ARG, flush cached data."
 	(speedbar-do-function-pointer))
     (error (speedbar-position-cursor-on-line))))
 
+(defun speedbar--get-line-indent-level ()
+  "Return the indentation level of the current line."
+  (save-excursion
+    (beginning-of-line)
+    (if (looking-at "[0-9]+:")
+        (string-to-number (match-string 0))
+      0)))
+
 (defun speedbar-expand-line-descendants (&optional arg)
   "Expand the line under the cursor and all descendants.
 Optional argument ARG indicates that any cache should be flushed."
   (interactive "P")
-  (save-restriction
-    (narrow-to-region (line-beginning-position)
-                      (line-beginning-position 2))
-    (speedbar-expand-line arg)
-    ;; Now, inside the area expanded here, expand all subnodes of
-    ;; the same descendant type.
-    (save-excursion
-      (speedbar-next 1) ;; Move into the list.
-      (let ((err nil))
-        (while (not err)
-	  (condition-case nil
-	      (progn
-	        (speedbar-expand-line-descendants arg)
-	        (speedbar-restricted-next 1))
-	    (error (setq err t))))))))
+  (dframe-message "Expanding all descendants...")
+  (save-excursion
+    (let ((top-depth (speedbar--get-line-indent-level)))
+      ;; Attempt to expand the top-level item.
+      (speedbar-expand-line arg)
+      ;; Move forwards, either into the newly expanded list, onto an
+      ;; already expanded list, onto a sibling item, or to the end of
+      ;; the buffer.
+      (while (and (zerop (forward-line 1))
+                  (not (eobp))
+                  (> (speedbar--get-line-indent-level) top-depth)
+                  (speedbar-expand-line arg)))))
+  (dframe-message "Expanding all descendants...done")
+  (speedbar-position-cursor-on-line))
 
 (defun speedbar-contract-line-descendants ()
   "Expand the line under the cursor and all descendants."
@@ -3489,7 +3497,7 @@ functions to do caching and flushing if appropriate."
 
     nil
 
-(eval-when-compile (condition-case nil (require 'imenu) (error nil)))
+(eval-when-compile (require 'imenu))
 (declare-function imenu--make-index-alist "imenu" (&optional no-error))
 
 (defun speedbar-fetch-dynamic-imenu (file)

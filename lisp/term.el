@@ -1,6 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2023 Free Software
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -486,7 +486,7 @@ Customize this option to nil if you want the previous behavior."
 
 (defcustom term-scroll-to-bottom-on-output nil
   "Controls whether interpreter output causes window to scroll.
-If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
+If nil, then do not scroll.  If t, scroll all windows showing buffer.
 If `this', scroll only the selected window.
 If `others', scroll only those that are not the selected window.
 
@@ -494,7 +494,12 @@ The default is nil.
 
 See variable `term-scroll-show-maximum-output'.
 This variable is buffer-local."
-  :type 'boolean
+  :type '(choice (const :tag "Don't scroll" nil)
+                 (const :tag "Scroll selected window only" this)
+                 (const :tag "Scroll unselected windows" others)
+                 ;; We also recognize `all', but we don't advertise it
+                 ;; anymore.  (Bug#66071)
+                 (other :tag "Scroll all windows" t))
   :group 'term)
 
 (defcustom term-scroll-snap-to-bottom t
@@ -653,7 +658,8 @@ executed once, when the buffer is created."
         ["Forward Output Group" term-next-prompt t]
         ["Kill Current Output Group" term-kill-output t]))
     map)
-  "Keymap for Term mode.")
+  "Keymap for \"line mode\" in Term mode.
+For custom keybindings purposes please note there is also `term-raw-map'")
 
 (defvar term-escape-char nil
   "Escape character for char sub-mode of term mode.
@@ -726,9 +732,9 @@ Buffer local variable.")
 (defvar term-ansi-current-underline nil)
 (defvar term-ansi-current-slow-blink nil)
 (defvar term-ansi-current-fast-blink nil)
-(defvar term-ansi-current-color 0)
+(defvar term-ansi-current-color nil)
 (defvar term-ansi-face-already-done nil)
-(defvar term-ansi-current-bg-color 0)
+(defvar term-ansi-current-bg-color nil)
 (defvar term-ansi-current-reverse nil)
 (defvar term-ansi-current-invisible nil)
 
@@ -956,7 +962,9 @@ underlying shell."
       (dotimes (key 21)
         (keymap-set map (format "<f%d>" key) #'term-send-function-key)))
     map)
-  "Keyboard map for sending characters directly to the inferior process.")
+  "Keyboard map for sending characters directly to the inferior process.
+For custom keybindings purposes please note there is also
+`term-mode-map'")
 
 (easy-menu-define term-terminal-menu
   (list term-mode-map term-raw-map term-pager-break-map)
@@ -972,12 +980,7 @@ underlying shell."
 (defun term--update-term-menu (&optional force)
   (when (and (lookup-key term-mode-map [menu-bar terminal])
              (or force (frame-or-buffer-changed-p)))
-    (let ((buffer-list
-           (seq-filter
-            (lambda (buffer)
-              (provided-mode-derived-p (buffer-local-value 'major-mode buffer)
-                                       'term-mode))
-            (buffer-list))))
+    (let ((buffer-list (match-buffers '(derived-mode . term-mode))))
       (easy-menu-change
        nil
        "Terminal Buffers"
@@ -1081,9 +1084,11 @@ underlying shell."
   (setq term-ansi-current-slow-blink nil)
   (setq term-ansi-current-fast-blink nil)
   (setq term-ansi-current-reverse nil)
-  (setq term-ansi-current-color 0)
+  (setq term-ansi-current-color nil)
   (setq term-ansi-current-invisible nil)
-  (setq term-ansi-current-bg-color 0))
+  (setq term-ansi-current-bg-color nil))
+
+(defvar touch-screen-display-keyboard)
 
 (define-derived-mode term-mode fundamental-mode "Term"
   "Major mode for interacting with an inferior interpreter.
@@ -1092,7 +1097,7 @@ The interpreter name is same as buffer name, sans the asterisks.
 There are two submodes: line mode and char mode.  By default, you are
 in char mode.  In char sub-mode, each character (except
 `term-escape-char') is sent immediately to the subprocess.
-The escape character is equivalent to the usual meaning of C-x.
+The escape character is equivalent to the usual meaning of \\`C-x'.
 
 In line mode, you send a line of input at a time; use
 \\[term-send-input] to send.
@@ -1107,7 +1112,7 @@ variable `term-input-autoexpand', and addition is controlled by the
 variable `term-input-ignoredups'.
 
 Input to, and output from, the subprocess can cause the window to scroll to
-the end of the buffer.  See variables `term-scroll-to-bottom-on-input',
+the end of the buffer.  See variables `term-scroll-snap-to-bottom',
 and `term-scroll-to-bottom-on-output'.
 
 If you accidentally suspend your process, use \\[term-continue-subjob]
@@ -1119,6 +1124,10 @@ particular subprocesses.  This can be done by setting the hooks
 `term-input-sender' and `term-get-old-input' to appropriate functions,
 and the variable `term-prompt-regexp' to the appropriate regular
 expression.
+
+If you define custom keybindings, make sure to assign them to the
+correct keymap (or to both): use `term-raw-map' in raw mode and
+`term-mode-map' in line mode.
 
 Commands in raw mode:
 
@@ -1391,10 +1400,15 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (interactive)
    (term-send-raw-string (current-kill 0)))
 
-(defun term--xterm-paste ()
+(defun term--xterm-paste (event)
   "Insert the text pasted in an XTerm bracketed paste operation."
-  (interactive)
-  (term-send-raw-string (xterm--pasted-text)))
+  (interactive "e")
+  (unless (eq (car-safe event) 'xterm-paste)
+    (error "term--xterm-paste must be found to xterm-paste event"))
+  (let ((str (nth 1 event)))
+    (unless (stringp str)
+      (error "term--xterm-paste provided event does not contain paste text"))
+    (term-send-raw-string str)))
 
 (declare-function xterm--pasted-text "term/xterm" ())
 
@@ -1445,7 +1459,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 (defun term-char-mode ()
   "Switch to char (\"raw\") sub-mode of term mode.
 Each character you type is sent directly to the inferior without
-intervention from Emacs, except for the escape character (usually C-c)."
+intervention from Emacs, except for the escape character (usually \\`C-c')."
   (interactive)
   ;; FIXME: Emit message? Cfr ilisp-raw-message
   (when (term-in-line-mode)
@@ -1698,6 +1712,30 @@ Nil if unknown.")
                   "case $BASH_VERSION in [0123].*|4.[0123].*) exit 43;; esac")
                (error 0)))))))
 
+(defun term-generate-db-directory ()
+  "Return the name of a directory holding Emacs's terminfo files.
+If `data-directory' is accessible to subprocesses, as on systems besides
+Android, return the same and no more.  Otherwise, copy terminfo files
+from the same directory to a temporary location, and return the latter."
+  (if (not (featurep 'android))
+      data-directory
+    (progn
+      (let* ((dst-directory (expand-file-name "eterm-db/e"
+                                              temporary-file-directory))
+             (parent (directory-file-name
+                      (file-name-directory dst-directory)))
+             (src-directory (expand-file-name "e" data-directory)))
+        (when (file-newer-than-file-p src-directory dst-directory)
+          (message "Generating Terminfo database...")
+          (with-demoted-errors "Generating Terminfo database: %s"
+            (when (file-exists-p dst-directory)
+              ;; Arrange that the directory be writable.
+              (dolist (x (directory-files-recursively parent "" t t))
+                (set-file-modes x #o700))
+              (delete-directory dst-directory t))
+            (copy-directory src-directory dst-directory nil t t)))
+        parent))))
+
 ;; This auxiliary function cranks up the process for term-exec in
 ;; the appropriate environment.
 
@@ -1711,7 +1749,8 @@ Nil if unknown.")
 	 (nconc
 	  (list
 	   (format "TERM=%s" term-term-name)
-	   (format "TERMINFO=%s" data-directory)
+	   (format "TERMINFO=%s"
+                   (term-generate-db-directory))
 	   (format term-termcap-format "TERMCAP="
 		   term-term-name term-height term-width)
 
@@ -3391,19 +3430,21 @@ option is enabled.  See `term-set-goto-process-mark'."
 (defun term--color-as-hex (for-foreground)
   "Return the current ANSI color as a hexadecimal color string.
 Use the current background color if FOR-FOREGROUND is nil,
-otherwise use the current foreground color."
+otherwise use the current foreground color.  Return nil if the
+color is unset in the terminal state."
   (let ((color (if for-foreground term-ansi-current-color
                  term-ansi-current-bg-color)))
-    (or (ansi-color--code-as-hex (1- color))
-        (progn
-          (and ansi-color-bold-is-bright term-ansi-current-bold
-               (<= 1 color 8)
-               (setq color (+ color 8)))
-          (if for-foreground
-              (face-foreground (elt ansi-term-color-vector color)
-                               nil 'default)
-            (face-background (elt ansi-term-color-vector color)
-                             nil 'default))))))
+    (when color
+      (or (ansi-color--code-as-hex (1- color))
+          (progn
+            (and ansi-color-bold-is-bright term-ansi-current-bold
+                 (<= 1 color 8)
+                 (setq color (+ color 8)))
+            (if for-foreground
+                (face-foreground (elt ansi-term-color-vector color)
+                                 nil 'default)
+              (face-background (elt ansi-term-color-vector color)
+                               nil 'default)))))))
 
 ;; New function to deal with ansi colorized output, as you can see you can
 ;; have any bold/underline/fg/bg/reverse combination. -mm
@@ -3460,7 +3501,7 @@ otherwise use the current foreground color."
          (_ (term-ansi-reset))))
 
       ;; Reset foreground (terminfo: op)
-      (39 (setq term-ansi-current-color 0))
+      (39 (setq term-ansi-current-color nil))
 
       ;; Background (terminfo: setab)
       ((and param (guard (<= 40 param 47)))
@@ -3490,7 +3531,7 @@ otherwise use the current foreground color."
          (_ (term-ansi-reset))))
 
       ;; Reset background (terminfo: op)
-      (49 (setq term-ansi-current-bg-color 0))
+      (49 (setq term-ansi-current-bg-color nil))
 
       ;; 0 (Reset) (terminfo: sgr0) or unknown (reset anyway)
       (_ (term-ansi-reset))))
@@ -3502,10 +3543,11 @@ otherwise use the current foreground color."
       (setq fg (term--color-as-hex t)
             bg (term--color-as-hex nil)))
     (setq term-current-face
-          `( :foreground ,fg
-             :background ,bg
-             ,@(unless term-ansi-current-invisible
-                 (list :inverse-video term-ansi-current-reverse)))))
+          `(,@(when fg `(:foreground ,fg))
+            ,@(when bg `(:background ,bg))
+            ,@(when (and term-ansi-current-reverse
+                         (not term-ansi-current-invisible))
+                (list :inverse-video term-ansi-current-reverse)))))
 
   (setq term-current-face
         `(,term-current-face
@@ -4335,7 +4377,7 @@ Typing SPC flushes the help buffer."
       (display-completion-list (sort completions 'string-lessp)))
     (message "Hit space to flush")
     (let (key first)
-      (if (with-current-buffer (get-buffer "*Completions*")
+      (if (with-current-buffer "*Completions*"
 	    (setq key (read-key-sequence nil)
 		  first (aref key 0))
 	    (and (consp first)

@@ -1,6 +1,6 @@
 ;;; hmac-md5.el --- Compute HMAC-MD5.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999, 2001, 2007-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2007-2024 Free Software Foundation, Inc.
 
 ;; Author: Shuhei KOBAYASHI <shuhei@aqua.ocn.ne.jp>
 ;; Keywords: HMAC, RFC2104, HMAC-MD5, MD5, KEYED-MD5, CRAM-MD5
@@ -29,7 +29,6 @@
 
 (eval-when-compile (require 'hmac-def))
 (require 'hex-util)			; (decode-hex-string STRING)
-(require 'md5)				; expects (md5 STRING)
 
 (defun md5-binary (string)
   "Return the MD5 of STRING in binary form."

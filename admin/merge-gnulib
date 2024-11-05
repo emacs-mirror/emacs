@@ -4,7 +4,7 @@
 #
 #	admin/merge-gnulib
 
-# Copyright 2012-2023 Free Software Foundation, Inc.
+# Copyright 2012-2024 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -29,7 +29,6 @@ GNULIB_MODULES='
   alignasof alloca-opt binary-io boot-time byteswap c-ctype c-strcase
   canonicalize-lgpl
   careadlinkat close-stream copy-file-range
-  count-leading-zeros count-one-bits count-trailing-zeros
   crypto/md5 crypto/md5-buffer
   crypto/sha1-buffer crypto/sha256-buffer crypto/sha512-buffer
   d-type diffseq double-slash-root dtoastr dtotimespec dup2
@@ -44,7 +43,9 @@ GNULIB_MODULES='
   nanosleep nproc nstrftime
   pathmax pipe2 pselect pthread_sigmask
   qcopy-acl readlink readlinkat regex
-  sig2str sigdescr_np socklen stat-time std-gnu11 stdbool stdckdint stddef stdio
+  sig2str sigdescr_np socklen stat-time std-gnu11 stdbool
+  stdc_bit_width stdc_count_ones stdc_trailing_zeros
+  stdckdint stddef stdio
   stpcpy strnlen strnlen strtoimax symlink sys_stat sys_time
   tempname time-h time_r time_rz timegm timer-time timespec-add timespec-sub
   update-copyright unlocked-io utimensat
@@ -52,8 +53,9 @@ GNULIB_MODULES='
 '
 
 AVOIDED_MODULES='
-  btowc chmod close crypto/af_alg dup fchdir fstat
-  iswblank iswctype iswdigit iswxdigit langinfo lock
+  access btowc chmod close crypto/af_alg dup fchdir fstat
+  iswblank iswctype iswdigit iswxdigit langinfo libgmp-mpq
+  localename-unsafe-limited lock
   mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h raise
   save-cwd select setenv sigprocmask stat stdarg
@@ -107,9 +109,6 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
 # gnulib-tool has problems with a bare checkout (Bug#32452#65).
 test -f configure || ./autogen.sh || exit
 
-# Old caches can confuse autoconf when some Gnulib-related changes take effect.
-rm -fr autom4te.cache || exit
-
 avoided_flags=
 for module in $AVOIDED_MODULES; do
   avoided_flags="$avoided_flags --avoid=$module"
@@ -127,8 +126,8 @@ rm -- "$src"lib/gl_openssl.h \
       "$src"m4/fcntl-o.m4 \
       "$src"m4/gl-openssl.m4 \
       "$src"m4/gnulib-cache.m4 "$src"m4/gnulib-tool.m4 \
-      "$src"m4/locale-fr.m4 \
       "$src"m4/manywarnings-c++.m4 \
+      "$src"m4/off64_t.m4 \
       "$src"m4/warn-on-use.m4 "$src"m4/wint_t.m4 &&
 cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
 cp -- "$gnulib_srcdir"/build-aux/config.guess \

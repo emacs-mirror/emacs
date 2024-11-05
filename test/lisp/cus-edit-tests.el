@@ -1,6 +1,6 @@
 ;;; cus-edit-tests.el --- Tests for cus-edit.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -31,7 +31,7 @@
   `(save-window-excursion
      (unwind-protect
          (progn ,@body)
-       (when-let ((buf (get-buffer ,buffer)))
+       (when-let* ((buf (get-buffer ,buffer)))
          (kill-buffer buf)))))
 
 
@@ -90,7 +90,49 @@
               (erase-buffer))
             (setopt cus-edit-test-foo1 :foo)
             (buffer-substring-no-properties (point-min) (point-max)))))
-    (should (string-search "Value `:foo' does not match type number"
+    (should (string-search "Value `:foo' for variable `cus-edit-test-foo1' does not match its type \"number\""
                            warn-txt))))
+
+(defcustom cus-edit-test-bug63290-option nil
+  "Choice option for testing Bug#63290."
+  :type '(choice (alist
+                  :key-type (string :tag "key")
+                  :value-type (string :tag "value"))
+                 (const :tag "auto" auto)))
+
+(defcustom cus-edit-test-bug63290-option2 'some
+  "Choice option for testing Bug#63290."
+  :type '(choice
+          (const :tag "some" some)
+          (alist
+           :key-type (string :tag "key")
+           :value-type (string :tag "value"))))
+
+(ert-deftest cus-edit-test-bug63290 ()
+  "Test that changing a choice value back to an alist respects its nil value."
+  (customize-variable 'cus-edit-test-bug63290-option)
+  (search-forward "Value")
+  ;; Simulate changing the value.
+  (let* ((choice (widget-at))
+         (args (widget-get choice :args))
+         (list-opt (car (widget-get choice :children)))
+         (const-opt (nth 1 args)))
+    (widget-put choice :explicit-choice const-opt)
+    (widget-value-set choice (widget-default-get const-opt))
+    (widget-put choice :explicit-choice list-opt)
+    (widget-value-set choice (widget-default-get list-opt)))
+  ;; No empty key/value pairs should show up.
+  (should-not (search-forward "key" nil t))
+  (customize-variable 'cus-edit-test-bug63290-option2)
+  (search-forward "Value")
+  ;; Simulate changing the value.
+  (let* ((choice (widget-at))
+         (args (widget-get choice :args))
+         (list-opt (nth 1 args)))
+    (widget-put choice :explicit-choice list-opt)
+    (widget-value-set choice (widget-default-get list-opt)))
+  ;; No empty key/value pairs should show up.
+  (should-not (search-forward "key" nil t)))
+
 (provide 'cus-edit-tests)
 ;;; cus-edit-tests.el ends here

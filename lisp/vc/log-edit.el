@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -61,12 +61,12 @@
   "C-c C-d" #'log-edit-show-diff
   "C-c C-f" #'log-edit-show-files
   "C-c C-k" #'log-edit-kill-buffer
-  "C-a"     #'log-edit-beginning-of-line
   "M-n"     #'log-edit-next-comment
   "M-p"     #'log-edit-previous-comment
   "M-r"     #'log-edit-comment-search-backward
   "M-s"     #'log-edit-comment-search-forward
-  "C-c ?"   #'log-edit-mode-help)
+  "C-c ?"   #'log-edit-mode-help
+  "<remap> <move-beginning-of-line>" #'log-edit-beginning-of-line)
 
 (easy-menu-define log-edit-menu log-edit-mode-map
   "Menu used for `log-edit-mode'."
@@ -76,6 +76,8 @@
     "--"
     ["Insert ChangeLog" log-edit-insert-changelog
      :help "Insert a log message by looking at the ChangeLog"]
+    ["Generate ChangeLog" log-edit-generate-changelog-from-diff
+     :help "Generate a log message from the diff and insert it into this buffer"]
     ["Add to ChangeLog" log-edit-add-to-changelog
      :help "Insert this log message into the appropriate ChangeLog file"]
     "--"
@@ -92,6 +94,60 @@
      :help "Search forwards through comment history for a substring match of str"]
     ["Search comment backward"	log-edit-comment-search-backward
      :help "Search backwards through comment history for substring match of str"]))
+
+(defvar log-edit-tool-bar-map
+  (let ((map (make-sparse-keymap)))
+    (tool-bar-local-item-from-menu 'find-file "new" map
+                                   nil :label "New File"
+			           :vert-only t)
+    (tool-bar-local-item-from-menu 'menu-find-file-existing "open" map
+                                   nil :label "Open" :vert-only t)
+    (tool-bar-local-item-from-menu 'dired "diropen" map nil :vert-only t)
+    (tool-bar-local-item-from-menu 'kill-this-buffer "close" map nil
+                                   :vert-only t)
+    (define-key-after map [separator-1] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'log-edit-done "commit"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "Exit log buffer and commit the changes")
+    (define-key-after map [separator-2] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'log-edit-insert-changelog
+                                   "load-changelog"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "Produce log message from ChangeLog file")
+    (tool-bar-local-item-from-menu 'log-edit-generate-changelog-from-diff
+                                   "gen-changelog"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "Generate log message skeleton from diffs")
+    (tool-bar-local-item-from-menu 'log-edit-add-to-changelog
+                                   "ins-changelog"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "Insert this log message into ChangeLog file")
+    (define-key-after map [separator-3] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'log-edit-show-diff
+                                   "view-diff"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "View diffs for the files to be committed")
+    (tool-bar-local-item-from-menu 'log-edit-show-files
+                                   "info"
+                                   map log-edit-mode-map :vert-only t
+                                   :help
+                                   "View list of files to be committed")
+    (define-key-after map [separator-4] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'undo "undo" map nil)
+    (define-key-after map [separator-5] menu-bar-separator)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [cut])
+                                   "cut" map nil)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [copy])
+                                   "copy" map nil)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [paste])
+                                   "paste" map nil)
+    map)
+  "Like the default `tool-bar-map', but with additions for Log-Edit mode.")
 
 (defcustom log-edit-confirm 'changed
   "If non-nil, `log-edit-done' will request confirmation.
@@ -190,7 +246,11 @@ when this variable is set to nil.")
 (defvar log-edit-initial-files nil)
 (defvar log-edit-callback nil)
 (defvar log-edit-diff-function
-  (lambda () (error "Diff functionality has not been setup")))
+  (lambda () (error "Diff functionality has not been set up"))
+  "Function to display an appropriate `diff-mode' buffer for the change.
+Called by the `log-edit-show-diff' command.
+Should not leave the `diff-mode' buffer's window selected; that is, the
+Log Edit buffer's window should be selected when the function returns.")
 (defvar log-edit-listfun nil)
 
 (defvar log-edit-parent-buffer nil)
@@ -511,25 +571,90 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
   (setq-local fill-paragraph-function #'log-edit-fill-entry)
   (make-local-variable 'log-edit-comment-ring-index)
   (add-hook 'kill-buffer-hook 'log-edit-remember-comment nil t)
-  (hack-dir-local-variables-non-file-buffer))
+  (hack-dir-local-variables-non-file-buffer)
+  ;; Replace the tool bar map with `log-edit-tool-bar-map'.
+  (setq-local tool-bar-map log-edit-tool-bar-map))
 
 (defun log-edit--insert-filled-defuns (func-names)
   "Insert FUNC-NAMES, following ChangeLog formatting."
   (if (not func-names)
       (insert ":")
+    ;; Insert a space unless this list of defun names is being
+    ;; inserted at the start of a line or after a space character.
     (unless (or (memq (char-before) '(?\n ?\s))
                 (> (current-column) fill-column))
       (insert " "))
-    (cl-loop for first-fun = t then nil
-             for def in func-names do
-             (when (> (+ (current-column) (string-width def)) fill-column)
-               (unless first-fun
-                 (insert ")"))
-               (insert "\n"))
-             (insert (if (memq (char-before) '(?\n ?\s))
-                         "(" ", ")
-                     def))
-    (insert "):")))
+    (let ((inside-paren-pair nil)
+          (first-line        t)
+          name)
+      ;; Now insert the functions names one by one, inserting newlines
+      ;; as appropriate.
+      (while func-names
+        (setq name (car func-names))
+        (setq func-names (cdr func-names))
+        ;; If inserting `name' after preexisting text in the first
+        ;; line would overflow the fill column, place it on its own
+        ;; line.
+        (if (and first-line
+                 (> (current-column) 0)
+                 (> (+ (current-column)
+                       (string-width name)
+                       ;; If this be the last name, the column must be
+                       ;; followed by an extra colon character.
+                       (if func-names 1 2))
+                    fill-column))
+            (progn
+              (insert "\n")
+              ;; Iterate over this function name again.
+              (setq func-names (cons name func-names)))
+          (if inside-paren-pair
+              ;; If `name' is not the first item in a list of defuns
+              ;; and inserting it would overflow the fill column,
+              ;; start a new list of defuns on the next line.
+              (if (> (+ (current-column)
+                        (string-width name)
+                        ;; If this be the last name, the column must
+                        ;; be followed by an extra colon character;
+                        ;; however, there are two separator characters
+                        ;; that will be deleted, so the number of
+                        ;; columns to add to this in the case of
+                        ;; `name' being final and in other cases are 0
+                        ;; and 1 respectively.
+                        (if func-names 0 1))
+                     fill-column)
+                  (progn
+                    (delete-char -2)
+                    (insert ")\n")
+                    (setq inside-paren-pair nil
+                          ;; Iterate over this function name again.
+                          func-names (cons name func-names)))
+                ;; Insert this defun name with a separator attached.
+                (insert name ", "))
+            ;; Otherwise, decide whether to start a list of defuns or
+            ;; to insert `name' on its own line.
+            (if (> (+ (current-column)
+                      (string-width name)
+                      (if func-names 1 2)) ; The column number of
+                                           ; line after inserting
+                                           ; `name'...
+                   fill-column)
+                ;; ...would leave insufficient space for any
+                ;; subsequent defun names so insert it on its own
+                ;; line.
+                (insert (if func-names
+                            (format "(%s)\n" name)
+                          (format "(%s):" name)))
+              ;; Insert a new defun list, unless `name' is the last
+              ;; function name.
+              (insert (if (not func-names)
+                          (format "(%s):" name)
+                        (setq inside-paren-pair t)
+                        (format "(%s, " name))))))
+        (setq first-line nil))
+      ;; Close any open list of defuns.
+      (when inside-paren-pair
+        (delete-char -2)
+        (insert "):")))))
 
 (defun log-edit-fill-entry (&optional justify)
   "Like \\[fill-paragraph], but for filling ChangeLog-formatted entries.
@@ -537,32 +662,78 @@ Consecutive function entries without prose (i.e., lines of the
 form \"(FUNCTION):\") will be combined into \"(FUNC1, FUNC2):\"
 according to `fill-column'."
   (save-excursion
-    (pcase-let ((`(,beg ,end) (log-edit-changelog-paragraph)))
+    (let* ((range (log-edit-changelog-paragraph))
+           (beg (car range))
+           (end (cadr range)))
       (if (= beg end)
           ;; Not a ChangeLog entry, fill as normal.
           nil
-        (cl-callf copy-marker end)
+        (setq end (copy-marker end))
         (goto-char beg)
-        (cl-loop
-         for defuns-beg =
-         (and (< beg end)
-              (re-search-forward
-               (concat "\\(?1:" change-log-unindented-file-names-re
-                       "\\)\\|^\\(?1:\\)[[:blank:]]*(")
-               end t)
-              (copy-marker (match-end 1)))
-         ;; Fill prose between log entries.
-         do (let ((fill-indent-according-to-mode t)
-                  (end (if defuns-beg (match-beginning 0) end))
-                  (beg (progn (goto-char beg) (line-beginning-position))))
-              (when (<= (line-end-position) end)
-                (fill-region beg end justify)))
-         while defuns-beg
-         for defuns = (progn (goto-char defuns-beg)
-                             (change-log-read-defuns end))
-         do (progn (delete-region defuns-beg (point))
-                   (log-edit--insert-filled-defuns defuns)
-                   (setq beg (point))))
+        (let* ((defuns-beg nil)
+               (defuns nil))
+          (while
+              (progn
+                ;; Match a regexp against the next ChangeLog entry.
+                ;; `defuns-beg' will be the end of the file name,
+                ;; which marks the beginning of the list of defuns.
+                (setq defuns-beg
+                      (and (< beg end)
+                           (re-search-forward
+                            (concat "\\(?1:"
+                                    change-log-unindented-file-names-re
+                                    "\\)\\|^\\(?1:\\)[[:blank:]]*(")
+                            end t)
+                           (copy-marker (match-end 1))))
+                ;; Fill the intervening prose between the end of the
+                ;; last match and the beginning of the current match.
+                (let ((fill-indent-according-to-mode t)
+                      (end (if defuns-beg
+                               (match-beginning 0) end))
+                      (beg (progn (goto-char beg)
+                                  (line-beginning-position)))
+                      space-beg space-end)
+                  (when (<= (line-end-position) end)
+                    ;; Replace space characters within parentheses
+                    ;; that resemble ChangeLog defun names between BEG
+                    ;; and END with non-breaking spaces to prevent
+                    ;; them from being considered break points by
+                    ;; `fill-region'.
+                    (save-excursion
+                      (goto-char beg)
+                      (when (re-search-forward
+                             ;; Also replace spaces within defun lists
+                             ;; prefixed by a file name so that
+                             ;; fill-region never attempts to break
+                             ;; them, even if multiple items combine
+                             ;; with symbols to exceed the fill column
+                             ;; by the expressly permitted margin of 1
+                             ;; character.
+                             (concat "^\\([[:blank:]]*\\|\\* .*[[:blank:]]"
+                                     "\\)(.*\\([[:space:]]\\).*):")
+                             end t)
+                        (replace-regexp-in-region "[[:space:]]" " "
+                                                  (setq space-beg
+                                                        (copy-marker
+                                                         (match-beginning 0)))
+                                                  (setq space-end
+                                                        (copy-marker
+                                                         (match-end 0))))))
+                    (fill-region beg end justify))
+                  ;; Restore the spaces replaced by NBSPs.
+                  (when space-beg
+                    (replace-string-in-region " " " "
+                                              space-beg space-end)
+                    (set-marker space-beg nil)
+                    (set-marker space-end nil)))
+                defuns-beg)
+            (goto-char defuns-beg)
+            (setq defuns (change-log-read-defuns end))
+            (progn
+              (delete-region defuns-beg (point))
+              (log-edit--insert-filled-defuns defuns)
+              (setq beg (point))))
+          nil)
         t))))
 
 (defun log-edit-hide-buf (&optional buf where)
@@ -723,6 +894,14 @@ different header separator appropriate for `log-edit-mode'."
                     (zerop (forward-line 1))))
         (eobp))))
 
+(defun log-edit--make-header-line (header &optional value)
+  ;; Make \\`C-a' work like it does in other buffers with header names.
+  (concat (propertize (concat header ": ")
+                      'field 'header
+                      'rear-nonsticky t)
+          value
+          "\n"))
+
 (defun log-edit-insert-message-template ()
   "Insert the default VC commit log template with Summary and Author."
   (interactive)
@@ -730,11 +909,8 @@ different header separator appropriate for `log-edit-mode'."
             (log-edit-empty-buffer-p))
     (dolist (header (append '("Summary") (and log-edit-setup-add-author
                                               '("Author"))))
-      ;; Make `C-a' work like in other buffers with header names.
-      (insert (propertize (concat header ": ")
-                          'field 'header
-                          'rear-nonsticky t)
-              "\n"))
+
+      (insert (log-edit--make-header-line header)))
     (insert "\n")
     (message-position-point)))
 
@@ -1148,7 +1324,7 @@ If TOGGLE is non-nil, and the value of HEADER already is VALUE,
 clear it.  Make sure there is an empty line after the headers.
 Return t if toggled on (or TOGGLE is nil), otherwise nil."
   (let ((val t)
-        (line (concat header ": " value "\n")))
+        (line (log-edit--make-header-line header value)))
     (save-excursion
       (save-restriction
         (rfc822-goto-eoh)
@@ -1219,7 +1395,10 @@ line of MSG."
       (let ((pt (point)))
         (and (zerop (forward-line 1))
              (looking-at "\n\\|\\'")
-             (let ((summary (buffer-substring-no-properties pt (1- (point)))))
+             (let ((summary (buffer-substring-no-properties pt
+                                                            (if (bolp)
+                                                                (1- (point))
+                                                              (point)))))
                (skip-chars-forward " \n")
                (delete-region pt (point))
                (log-edit-set-header "Summary" summary)))))))
@@ -1227,3 +1406,7 @@ line of MSG."
 (provide 'log-edit)
 
 ;;; log-edit.el ends here
+
+;; Local Variables:
+;; coding: utf-8-unix
+;; End:

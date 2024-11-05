@@ -1,6 +1,6 @@
 ;;; ol-irc.el --- Links to IRC Sessions              -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
@@ -103,7 +103,7 @@ attributes that are found."
     parts))
 
 ;;;###autoload
-(defun org-irc-store-link ()
+(defun org-irc-store-link (&optional _interactive?)
   "Dispatch to the appropriate function to store a link to an IRC session."
   (cond
    ((eq major-mode 'erc-mode)

@@ -1,6 +1,6 @@
 ;;; mml-sec.el --- A package with security functions for MML documents  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -151,9 +151,10 @@ you use Bcc headers to encrypt e-mails to yourself."
 ;;; Configuration/helper functions
 
 (defun mml-signencrypt-style (method &optional style)
-  "Function for setting/getting the signencrypt-style used.  Takes two
-arguments, the method (e.g. \"pgp\") and optionally the mode
-\(e.g. combined).  If the mode is omitted, the current value is returned.
+  "Function for setting/getting the signencrypt-style used.
+Takes two arguments, the method (e.g. \"pgp\") and optionally the mode
+\(e.g. combined).  If the mode is omitted, the current value is
+returned.
 
 For example, if you prefer to use combined sign & encrypt with
 smime, putting the following in your Gnus startup file will

@@ -1,6 +1,6 @@
 ;;; glasses.el --- make cantReadThis readable  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Keywords: tools
@@ -232,8 +232,7 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 			 (save-match-data
 			   (re-search-backward "\\<.")
 			   (looking-at glasses-uncapitalize-regexp))))
-	      (overlay-put o 'invisible t)
-	      (overlay-put o 'after-string (downcase (match-string n))))))
+	      (overlay-put o 'display (downcase (match-string n))))))
         ;; Separator change
 	(when (and (not (string= glasses-original-separator glasses-separator))
 		   (not (string= glasses-original-separator "")))

@@ -1,6 +1,6 @@
 ;;; face-remap.el --- Functions for managing `face-remapping-alist'  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: faces, face remapping, display, user commands
@@ -70,21 +70,10 @@
    :foreground :background :stipple :overline :strike-through :box
    :font :inherit :fontset :distant-foreground :extend :vector])
 
-(defun face-remap--copy-face (val)
-  "Return a copy of the `face' property value VAL."
-  ;; A `face' property can be either a face name (a symbol), or a face
-  ;; property list like (:foreground "red" :inherit default),
-  ;; or a list of such things.
-  ;; FIXME: This should probably be shared to some extent with
-  ;; `add-face-text-property'.
-  (if (or (not (listp val)) (keywordp (car val)))
-      val
-    (copy-sequence val)))
-
 (defun face-attrs--make-indirect-safe ()
   "Deep-copy the buffer's `face-remapping-alist' upon cloning the buffer."
   (setq-local face-remapping-alist
-              (mapcar #'face-remap--copy-face face-remapping-alist)))
+              (mapcar #'copy-tree face-remapping-alist)))
 
 (add-hook 'clone-indirect-buffer-hook #'face-attrs--make-indirect-safe)
 
@@ -398,9 +387,10 @@ this are the `default' and `header-line' faces: they will both be
 scaled even if they have an explicit `:height' setting.
 
 See also the related command `global-text-scale-adjust'.  Unlike
-that command, which scales the font size with a increment,
-`text-scale-adjust' scales the font size with a factor,
-`text-scale-mode-step'.  With a small `text-scale-mode-step'
+that command, which scales the font size with a increment (and can
+also optionally resize frames to keep the same number of lines and
+characters per line), `text-scale-adjust' scales the font size with
+a factor, `text-scale-mode-step'.  With a small `text-scale-mode-step'
 factor, the two commands behave similarly."
   (interactive "p")
   (let ((ev last-command-event)

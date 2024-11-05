@@ -1,6 +1,6 @@
 ;;; mwheel-tests.el --- tests for mwheel.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,10 +23,12 @@
 (require 'mwheel)
 
 (ert-deftest mwheel-test-enable/disable ()
-  (mouse-wheel-mode 1)
-  (should (eq (lookup-key (current-global-map) `[,mouse-wheel-up-event]) 'mwheel-scroll))
-  (mouse-wheel-mode -1)
-  (should (eq (lookup-key (current-global-map) `[,mouse-wheel-up-event]) nil)))
+  (with-suppressed-warnings ((obsolete mouse-wheel-up-event))
+    (mouse-wheel-mode 1)
+    (should (eq (lookup-key (current-global-map) `[,mouse-wheel-up-event])
+                'mwheel-scroll))
+    (mouse-wheel-mode -1)
+    (should-not (lookup-key (current-global-map) `[,mouse-wheel-up-event]))))
 
 (ert-deftest mwheel-test--create-scroll-keys ()
   (should (equal (mouse-wheel--create-scroll-keys 10 'mouse-4)

@@ -1,6 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
@@ -229,6 +229,12 @@ Uninteresting lines are those whose responses are listed in
 Used as the first arg to `format-time-string'."
   :type 'string)
 
+(defcustom rcirc-log-time-format "%d-%b %H:%M "
+  "Describes how timestamps are printed in the log files.
+Used as the first arg to `format-time-string'."
+  :version "30.1"
+  :type 'string )
+
 (defcustom rcirc-input-ring-size 1024
   "Size of input history ring."
   :type 'integer)
@@ -392,8 +398,9 @@ and the cdr part is used for encoding."
                                     (cons (coding-system :tag "Decode")
                                           (coding-system :tag "Encode")))))
 
-(defcustom rcirc-multiline-major-mode 'fundamental-mode
+(defcustom rcirc-multiline-major-mode #'text-mode
   "Major-mode function to use in multiline edit buffers."
+  :version "30.1"
   :type 'function)
 
 (defcustom rcirc-nick-completion-format "%s: "
@@ -569,11 +576,11 @@ If ARG is non-nil, instead prompt for connection parameters."
                                      'certfp)
                              (rcirc-get-server-cert (car c))))
               contact)
-          (when-let (((not password))
-                     (auth (auth-source-search :host server
-                                               :user user-name
-                                               :port port))
-                     (pwd (auth-info-password (car auth))))
+          (when-let* (((not password))
+                      (auth (auth-source-search :host server
+                                                :user user-name
+                                                :port port))
+                      (pwd (auth-info-password (car auth))))
             (setq password pwd))
           (when server
             (let (connected)
@@ -702,7 +709,7 @@ that are joined after authentication."
            process)
 
       ;; Ensure any previous process is killed
-      (when-let ((old-process (get-process (or server-alias server))))
+      (when-let* ((old-process (get-process (or server-alias server))))
         (set-process-sentinel old-process #'ignore)
         (delete-process process))
 
@@ -859,6 +866,7 @@ If QUIET is non-nil, no not emit a message."
       (if (rcirc--connection-open-p process)
           (throw 'exit (or quiet (message "Server process is alive")))
         (delete-process process))
+      (setq rcirc-user-authenticated nil)
       (let ((conn-info rcirc-connection-info))
         (setf (nth 5 conn-info)
               (cl-remove-if-not #'rcirc-channel-p
@@ -1150,7 +1158,7 @@ element in PARTS is a list, append it to PARTS."
   (let ((last (car (last parts))))
     (when (listp last)
       (setf parts (append (butlast parts) last))))
-  (when-let (message (memq : parts))
+  (when-let* ((message (memq : parts)))
     (cl-check-type (cadr message) string)
     (setf (cadr message) (concat ":" (cadr message))
           parts (remq : parts)))
@@ -1189,7 +1197,7 @@ With no argument or nil as argument, use the current buffer."
   "Return PROCESS server name, given by the 001 response."
   (with-rcirc-process-buffer process
     (or rcirc-server-name
-        (warn "server name for process %S unknown" process))))
+        (warn "Server name for process %S unknown" process))))
 
 (defun rcirc-nick (process)
   "Return PROCESS nick."
@@ -1622,7 +1630,7 @@ with it."
                rcirc-log-directory)
       (rcirc-log-write))
     (rcirc-clean-up-buffer "Killed buffer")
-    (when-let ((process (get-buffer-process (current-buffer))))
+    (when-let* ((process (get-buffer-process (current-buffer))))
       (delete-process process))
     (when (and rcirc-buffer-alist ;; it's a server buffer
                rcirc-kill-channel-buffers)
@@ -2033,7 +2041,7 @@ connection."
                ;; do not ignore if we sent the message
                (not (string= sender (rcirc-nick process))))
     (let* ((buffer (rcirc-target-buffer process sender response target text))
-           (time (if-let ((time (rcirc-get-tag "time")))
+           (time (if-let* ((time (rcirc-get-tag "time")))
                      (parse-iso8601-time-string time t)
                    (current-time)))
            (inhibit-read-only t))
@@ -2170,7 +2178,7 @@ connection."
 (defun rcirc-when ()
   "Show the time of reception of the message at point."
   (interactive)
-  (if-let (time (get-text-property (point) 'rcirc-time))
+  (if-let* ((time (get-text-property (point) 'rcirc-time)))
       (message (format-time-string "%c" time))
     (message "No time information at point.")))
 
@@ -2207,7 +2215,7 @@ disk.  PROCESS is the process object for the current connection."
                 (parse-iso8601-time-string time t))))
     (unless (null filename)
       (let ((cell (assoc-string filename rcirc-log-alist))
-            (line (concat (format-time-string rcirc-time-format time)
+            (line (concat (format-time-string rcirc-log-time-format time)
                           (substring-no-properties
                            (rcirc-format-response-string process sender
                                                          response target text))
@@ -2529,9 +2537,25 @@ activity.  Only run if the buffer is not visible and
                                       (rcirc-activity-string lopri)
                                       ")"))
                          (and hipri "]")))
+                ;; Consistently don't display anything if there aren't
+                ;; any IRC connections.  Otherwise, whether we display
+                ;; "[]" or not depends on whether or not this function
+                ;; happens to have been called in this session yet.
+                ;;
+                ;; Consistently display nothing, rather than
+                ;; consistently displaying "[]", for the sake of the
+                ;; following sort of case: the user has enabled
+                ;; `rcirc-track-minor-mode' using the customization
+                ;; system, but also starts up Emacs instances that
+                ;; aren't used for IRC.  Due to the use of easy
+                ;; customization, `rcirc-track-minor-mode' will be
+                ;; turned on for every instance of Emacs.  But we don't
+                ;; want to take up valuable mode line space when, say,
+                ;; Emacs is started up as the value of EDITOR/VISUAL.
                 ((not (null (rcirc-process-list)))
                  "[]")
-                (t "[]")))
+                (t
+                 "")))
     (run-hooks 'rcirc-update-activity-string-hook)
     (force-mode-line-update t)))
 
@@ -2972,20 +2996,13 @@ keywords when no KEYWORD is given."
     browse-url-button-regexp)
   "Regexp matching URLs.  Set to nil to disable URL features in rcirc.")
 
-;; cf cl-remove-if-not
-(defun rcirc-condition-filter (condp lst)
-  "Remove all items not satisfying condition CONDP in list LST.
-CONDP is a function that takes a list element as argument and returns
-non-nil if that element should be included.  Returns a new list."
-  (delq nil (mapcar (lambda (x) (and (funcall condp x) x)) lst)))
-
 (defun rcirc-browse-url (&optional arg)
   "Prompt for URL to browse based on URLs in buffer before point.
 
 If ARG is given, opens the URL in a new browser window."
   (interactive "P")
   (let* ((point (point))
-         (filtered (rcirc-condition-filter
+         (filtered (seq-filter
                     (lambda (x) (>= point (cdr x)))
                     rcirc-urls))
          (completions (mapcar (lambda (x) (car x)) filtered))
@@ -3116,13 +3133,13 @@ indicated by RESPONSE)."
               (or #x03 #x0f eol))
           nil t)
     (let (foreground background)
-      (when-let ((fg-raw (match-string 1))
-                 (fg (string-to-number fg-raw))
-                 ((<= 0 fg (1- (length rcirc-color-codes)))))
+      (when-let* ((fg-raw (match-string 1))
+                  (fg (string-to-number fg-raw))
+                  ((<= 0 fg (1- (length rcirc-color-codes)))))
         (setq foreground (aref rcirc-color-codes fg)))
-      (when-let ((bg-raw (match-string 2))
-                 (bg (string-to-number bg-raw))
-                 ((<= 0 bg (1- (length rcirc-color-codes)))))
+      (when-let* ((bg-raw (match-string 2))
+                  (bg (string-to-number bg-raw))
+                  ((<= 0 bg (1- (length rcirc-color-codes)))))
         (setq background (aref rcirc-color-codes bg)))
       (rcirc-add-face (match-beginning 0) (match-end 0)
                       `(face (,@(and foreground (list :foreground foreground))
@@ -3458,7 +3475,7 @@ PROCESS is the process object for the current connection."
     (dolist (target channels)
       (rcirc-print process sender "NICK" target new-nick))
     ;; update chat buffer, if it exists
-    (when-let ((chat-buffer (rcirc-get-buffer process old-nick)))
+    (when-let* ((chat-buffer (rcirc-get-buffer process old-nick)))
       (with-current-buffer chat-buffer
         (rcirc-print process sender "NICK" old-nick new-nick)
         (setq rcirc-target new-nick)
@@ -3693,7 +3710,7 @@ Passwords are stored in `rcirc-authinfo' (which see)."
   "Notify user of an invitation from SENDER.
 ARGS should have the form (TARGET CHANNEL).  PROCESS is the
 process object for the current connection."
-  (let ((self (buffer-local-value 'rcirc-nick rcirc-process))
+  (let ((self (with-rcirc-process-buffer process rcirc-nick))
         (target (car args))
         (chan (cadr args)))
     ;; `rcirc-channel-filter' is not used here because joining
@@ -3782,8 +3799,8 @@ is the process object for the current connection."
   "Handle a empty tag message from SENDER.
 PROCESS is the process object for the current connection."
   (dolist (tag rcirc-message-tags)
-    (when-let ((handler (intern-soft (concat "rcirc-tag-handler-" (car tag))))
-               ((fboundp handler)))
+    (when-let* ((handler (intern-soft (concat "rcirc-tag-handler-" (car tag))))
+                ((fboundp handler)))
       (funcall handler process sender (cdr tag)))))
 
 (defun rcirc-handler-BATCH (process _sender args _text)
@@ -3820,7 +3837,7 @@ object for the current connection."
                         (args (nth 3 message))
                         (text (nth 4 message))
                         (rcirc-message-tags (nth 5 message)))
-                    (if-let (handler (intern-soft (concat "rcirc-handler-" cmd)))
+                    (if-let* ((handler (intern-soft (concat "rcirc-handler-" cmd))))
                         (funcall handler process sender args text)
                       (rcirc-handler-generic process cmd sender args text))))))))
         (setq rcirc-batch-attributes
@@ -4005,6 +4022,8 @@ PROCESS is the process object for the current connection."
 
 (define-obsolete-function-alias 'rcirc-format-strike-trough
   'rcirc-format-strike-through "30.1")
+
+(define-obsolete-function-alias 'rcirc-condition-filter #'seq-filter "30.1")
 
 (provide 'rcirc)
 

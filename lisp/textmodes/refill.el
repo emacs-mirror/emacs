@@ -1,10 +1,10 @@
 ;;; refill.el --- `auto-fill' by refilling paragraphs on changes  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Miles Bader <miles@gnu.org>
-;; Keywords: wp
+;; Keywords: text
 
 ;; This file is part of GNU Emacs.
 
@@ -106,10 +106,10 @@ This is used to optimize refilling.")
     ;; FIXME: forward-paragraph seems to disregard `use-hard-newlines',
     ;; leading to excessive refilling and wrong choice of fill-prefix.
     ;; might be a bug in my paragraphs.el.
-    (forward-paragraph)
+    (fill-forward-paragraph 1)
     (skip-syntax-backward "-")
     (let ((end (point))
-	  (beg (progn (backward-paragraph) (point)))
+	  (beg (progn (fill-forward-paragraph -1) (point)))
 	  (obeg (overlay-start refill-ignorable-overlay))
 	  (oend (overlay-end refill-ignorable-overlay)))
       (unless (> beg pos)      ;Don't fill if point is outside the paragraph.

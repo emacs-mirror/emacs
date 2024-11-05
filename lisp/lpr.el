@@ -1,6 +1,6 @@
 ;;; lpr.el --- print Emacs buffer on line printer  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2023 Free Software
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2024 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

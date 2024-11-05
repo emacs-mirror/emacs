@@ -1,13 +1,12 @@
-# serial 24
+# getgroups.m4
+# serial 25
+dnl Copyright (C) 1996-1997, 1999-2004, 2008-2024 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
 
 dnl From Jim Meyering.
 dnl A wrapper around AC_FUNC_GETGROUPS.
-
-# Copyright (C) 1996-1997, 1999-2004, 2008-2023 Free Software Foundation, Inc.
-#
-# This file is free software; the Free Software Foundation
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.
 
 # This is taken from the following Autoconf patch:
 # https://git.savannah.gnu.org/gitweb/?p=autoconf.git;a=commitdiff;h=7fbb553727ed7e0e689a17594b58559ecf3ea6e9
@@ -20,7 +19,7 @@ AC_DEFUN([AC_FUNC_GETGROUPS],
 
   # If we don't yet have getgroups, see if it's in -lbsd.
   # This is reported to be necessary on an ITOS 3000WS running SEIUX 3.1.
-  ac_save_LIBS=$LIBS
+  gl_saved_LIBS=$LIBS
   if test $ac_cv_func_getgroups = no; then
     AC_CHECK_LIB(bsd, getgroups, [GETGROUPS_LIB=-lbsd])
   fi
@@ -56,7 +55,7 @@ AC_DEFUN([AC_FUNC_GETGROUPS],
         [Define to 1 if your system has a working `getgroups' function.])
       ;;
   esac
-  LIBS=$ac_save_LIBS
+  LIBS=$gl_saved_LIBS
 ])# AC_FUNC_GETGROUPS
 
 AC_DEFUN([gl_FUNC_GETGROUPS],

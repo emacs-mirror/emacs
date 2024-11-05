@@ -1,5 +1,5 @@
 /* Functions related to terminal devices.
-   Copyright (C) 2005-2023 Free Software Foundation, Inc.
+   Copyright (C) 2005-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "frame.h"
 #include "termchar.h"
+#include "blockinput.h"
 #include "termhooks.h"
 #include "keyboard.h"
 
@@ -287,14 +288,12 @@ create_terminal (enum output_method type, struct redisplay_interface *rif)
   /* If default coding systems for the terminal and the keyboard are
      already defined, use them in preference to the defaults.  This is
      needed when Emacs runs in daemon mode.  */
-  keyboard_coding =
-    find_symbol_value (intern ("default-keyboard-coding-system"));
+  keyboard_coding = find_symbol_value (Qdefault_keyboard_coding_system);
   if (NILP (keyboard_coding)
       || BASE_EQ (keyboard_coding, Qunbound)
       || NILP (Fcoding_system_p (keyboard_coding)))
     keyboard_coding = Qno_conversion;
-  terminal_coding =
-    find_symbol_value (intern ("default-terminal-coding-system"));
+  terminal_coding = find_symbol_value (Qdefault_terminal_coding_system);
   if (NILP (terminal_coding)
       || BASE_EQ (terminal_coding, Qunbound)
       || NILP (Fcoding_system_p (terminal_coding)))
@@ -318,6 +317,9 @@ delete_terminal (struct terminal *terminal)
      delete_terminal_hook when we delete our last frame.  */
   if (!terminal->name)
     return;
+
+  /* Protection while we are in inconsistent state.  */
+  block_input ();
   xfree (terminal->name);
   terminal->name = NULL;
 
@@ -333,6 +335,7 @@ delete_terminal (struct terminal *terminal)
     }
 
   delete_terminal_internal (terminal);
+  unblock_input ();
 }
 
 void
@@ -389,7 +392,7 @@ but if the second argument FORCE is non-nil, you may do so. */)
 		      Qdelete_terminal_functions, terminal),
 	       pending_funcalls);
   else
-    safe_call2 (Qrun_hook_with_args, Qdelete_terminal_functions, terminal);
+    safe_calln (Qrun_hook_with_args, Qdelete_terminal_functions, terminal);
 
   if (t->delete_terminal_hook)
     (*t->delete_terminal_hook) (t);
@@ -654,7 +657,6 @@ delete_initial_terminal (struct terminal *terminal)
 void
 syms_of_terminal (void)
 {
-
   DEFVAR_LISP ("ring-bell-function", Vring_bell_function,
     doc: /* Non-nil means call this function to ring the bell.
 The function should accept no arguments.  */);
@@ -681,4 +683,6 @@ or some time later.  */);
   defsubr (&Sset_terminal_parameter);
 
   Fprovide (intern_c_string ("multi-tty"), Qnil);
+  DEFSYM (Qdefault_keyboard_coding_system, "default-keyboard-coding-system");
+  DEFSYM (Qdefault_terminal_coding_system, "default-terminal-coding-system");
 }

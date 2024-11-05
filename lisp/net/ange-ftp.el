@@ -1,6 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1989-2024 Free Software Foundation, Inc.
 
 ;; Author: Andy Norman <ange@hplb.hpl.hp.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -227,14 +227,14 @@
 
 ;; Tips for using ange-ftp:
 ;;
-;; 1. For dired to work on a host which marks symlinks with a trailing @ in
+;; 1. For Dired to work on a host which marks symlinks with a trailing @ in
 ;;    an ls -alF listing, you need to (setq dired-ls-F-marks-symlinks t).
 ;;    Most UNIX systems do not do this, but ULTRIX does.  If you think that
 ;;    there is a chance you might connect to an ULTRIX machine (such as
 ;;    prep.ai.mit.edu), then set this variable accordingly.  This will have
-;;    the side effect that dired will have problems with symlinks whose names
+;;    the side effect that Dired will have problems with symlinks whose names
 ;;    end in an @.  If you get yourself into this situation then editing
-;;    dired's ls-switches to remove "F", will temporarily fix things.
+;;    Dired's ls-switches to remove "F", will temporarily fix things.
 ;;
 ;; 2. If you know that you are connecting to a certain non-UNIX machine
 ;;    frequently, and ange-ftp seems to be unable to guess its host-type,
@@ -257,8 +257,8 @@
 ;;    moving them through the local machine.  Again, be careful when doing
 ;;    this with binary files on non-Unix machines.
 ;;
-;; 5. Beware that dired over ftp will use your setting of dired-no-confirm
-;;    (list of dired commands for which confirmation is not asked).  You
+;; 5. Beware that Dired over ftp will use your setting of dired-no-confirm
+;;    (list of Dired commands for which confirmation is not asked).  You
 ;;    might want to reconsider your setting of this variable, because you
 ;;    might want confirmation for more commands on remote direds than on
 ;;    local direds.  For example, I strongly recommend that you not include
@@ -266,7 +266,7 @@
 ;;    might be a good idea to have an alist ange-ftp-dired-no-confirm of
 ;;    pairs ( TYPE . LIST ), where TYPE is an operating system type and LIST
 ;;    is a list of commands for which confirmation would be suppressed.  Then
-;;    remote dired listings would take their (buffer-local) value of
+;;    remote Dired listings would take their (buffer-local) value of
 ;;    dired-no-confirm from this alist.  Who votes for this?
 
 ;; ---------------------------------------------------------------------
@@ -317,7 +317,7 @@
 ;;    overwrite FILE.TXT;3, but instead will want to create FILE.TXT;4, and
 ;;    attach the buffer to this file.  To get out of this situation, M-x
 ;;    write-file /ymir.claremont.edu:FILE.TXT will attach the buffer to
-;;    latest version of the file.  For this reason, in dired "f"
+;;    latest version of the file.  For this reason, in Dired "f"
 ;;    (dired-find-file), always loads the file sans version, whereas "v",
 ;;    (dired-view-file), always loads the explicit version number.  The
 ;;    reasoning being that it reasonable to view old versions of a file, but
@@ -514,7 +514,7 @@
 ;;     containing spaces, but beware that the remote ftpd may not like them
 ;;     much.
 ;;
-;; 12. The dired support for non-Unix-like systems does not currently work.
+;; 12. The Dired support for non-Unix-like systems does not currently work.
 ;;     It needs to be reimplemented by modifying the parse-...-listing
 ;;	functions to convert the directory listing to ls -l format.
 ;;
@@ -524,8 +524,8 @@
 ;;     parsing a listing with the F switch.  This will cause ange-ftp to
 ;;     incorrectly get the name of a symlink on a non-ULTRIX host if its name
 ;;     ends in an @.  ange-ftp will correct itself if you take F out of the
-;;     dired ls switches (C-u s will allow you to edit the switches).  The
-;;     dired buffer will be automatically reverted, which will allow ange-ftp
+;;     Dired ls switches (C-u s will allow you to edit the switches).  The
+;;     Dired buffer will be automatically reverted, which will allow ange-ftp
 ;;     to fix its files hashtable.  A cookie to anyone who can think of a
 ;;     fast, sure-fire way to recognize ULTRIX over ftp.
 
@@ -611,9 +611,9 @@
 ;; Thanks to Jamie Zawinski for bugfixes and for ideas such as gateways.
 ;;
 ;; Thanks to Ken Laprade for improved .netrc parsing, password reading, and
-;; dired / shell auto-loading.
+;; Dired / shell auto-loading.
 ;;
-;; Thanks to Sebastian Kremer for dired support and for many ideas and
+;; Thanks to Sebastian Kremer for Dired support and for many ideas and
 ;; bugfixes.
 ;;
 ;; Thanks to Joe Wells for bugfixes, the original non-UNIX system support,
@@ -781,7 +781,7 @@ If nil, the value of `ange-ftp-netrc-default-user' is used.
 If that is nil too, then your login name is used.
 
 Once a connection to a given host has been initiated, the user name
-and password information for that host are cached and re-used by
+and password information for that host are cached and reused by
 ange-ftp.  Use \\[ange-ftp-set-user] to change the cached values,
 since setting `ange-ftp-default-user' directly does not affect
 the cached information."
@@ -2164,7 +2164,7 @@ Create a new process if needed."
       proc)))
 
 (defun ange-ftp-passive-mode (proc on-or-off)
-  (if (string-match (concat "Passive mode " on-or-off)
+  (if (string-match (concat "Passive mode:? " on-or-off)
                     (cdr (ange-ftp-raw-send-cmd
                           proc (concat "passive " on-or-off)
                           "Trying passive mode..." nil)))
@@ -2850,7 +2850,8 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 				   (ange-ftp-switches-ok dired-actual-switches))
 			      (and (boundp 'dired-listing-switches)
 				   (ange-ftp-switches-ok
-				    dired-listing-switches))
+				    (connection-local-value
+                                     dired-listing-switches)))
 			      "-al")
 			  t no-error)
 	     (gethash directory ange-ftp-files-hashtable)))))
@@ -4233,7 +4234,7 @@ directory, so that Emacs will know its current contents."
 	 (host (nth 0 parsed))
 	 (user (nth 1 parsed))
 	 (localname (nth 2 parsed)))
-    (and (or (not connected)
+    (and (or (memq connected '(nil never))
 	     (let ((proc (get-process (ange-ftp-ftp-process-buffer host user))))
 	       (and proc (processp proc)
 		    (memq (process-status proc) '(run open)))))
@@ -4402,40 +4403,6 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	      (save-match-data (apply fn args)))
 	  (error (signal (car err) (cdr err))))
       (ange-ftp-run-real-handler operation args))))
-
-;; The following code is commented out because Tramp now deals with
-;; Ange-FTP filenames, too.
-
-;;-;;; This regexp takes care of real ange-ftp file names (with a slash
-;;-;;; and colon).
-;;-;;; Don't allow the host name to end in a period--some systems use /.:
-;;-;;;###autoload
-;;-(or (assoc "^/[^/:]*[^/:.]:" file-name-handler-alist)
-;;-    (setq file-name-handler-alist
-;;-	  (cons '("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
-;;-		file-name-handler-alist)))
-;;-
-;;-;;; This regexp recognizes absolute filenames with only one component,
-;;-;;; for the sake of hostname completion.
-;;-;;;###autoload
-;;-(or (assoc "^/[^/:]*\\'" file-name-handler-alist)
-;;-    (setq file-name-handler-alist
-;;-	  (cons '("^/[^/:]*\\'" . ange-ftp-completion-hook-function)
-;;-		file-name-handler-alist)))
-;;-
-;;-;;; This regexp recognizes absolute filenames with only one component
-;;-;;; on Windows, for the sake of hostname completion.
-;;-;;; NB. Do not mark this as autoload, because it is very common to
-;;-;;; do completions in the root directory of drives on Windows.
-;;-(and (memq system-type '(ms-dos windows-nt))
-;;-     (or (assoc "^[a-zA-Z]:/[^/:]*\\'" file-name-handler-alist)
-;;-	 (setq file-name-handler-alist
-;;-	       (cons '("^[a-zA-Z]:/[^/:]*\\'" .
-;;-		       ange-ftp-completion-hook-function)
-;;-		     file-name-handler-alist))))
-
-;;; The above two forms are sufficient to cause this file to be loaded
-;;; if the user ever uses a file name with a colon in it.
 
 ;;; This sets the mode
 (add-hook 'find-file-hook 'ange-ftp-set-buffer-mode)

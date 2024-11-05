@@ -1,6 +1,6 @@
 ;;; haiku-win.el --- set up windowing on Haiku -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -142,7 +142,7 @@ two markers or an overlay.  Otherwise, it is nil."
 Return a list of the appropriate MIME type, and UTF-8 data of
 VALUE as a unibyte string, or nil if VALUE was not a string."
   (unless (stringp value)
-    (when-let ((bounds (haiku-selection-bounds value)))
+    (when-let* ((bounds (haiku-selection-bounds value)))
       (setq value (ignore-errors
                     (with-current-buffer (nth 2 bounds)
                       (buffer-substring (nth 0 bounds)
@@ -260,7 +260,7 @@ CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or
 VALUE will be encoded as Latin-1 (like on X Windows) and stored
 under the type `text/plain;charset=iso-8859-1'."
   (unless (stringp value)
-    (when-let ((bounds (haiku-selection-bounds value)))
+    (when-let* ((bounds (haiku-selection-bounds value)))
       (setq value (ignore-errors
                     (with-current-buffer (nth 2 bounds)
                       (buffer-substring (nth 0 bounds)
@@ -274,7 +274,7 @@ under the type `text/plain;charset=iso-8859-1'."
 VALUE will be encoded as UTF-8 and stored under the type
 `text/plain'."
   (unless (stringp value)
-    (when-let ((bounds (haiku-selection-bounds value)))
+    (when-let* ((bounds (haiku-selection-bounds value)))
       (setq value (ignore-errors
                     (with-current-buffer (nth 2 bounds)
                       (buffer-substring (nth 0 bounds)
@@ -369,14 +369,15 @@ or a pair of markers) and turns it into a file system reference."
          ((posn-area (event-start event)))
          ((assoc "refs" string)
           (with-selected-window window
-            (dolist (filename (cddr (assoc "refs" string)))
-              (dnd-handle-one-url window action
-                                  (concat "file:" filename)))))
+            (dnd-handle-multiple-urls
+             window (mapcar
+                     (lambda (name) (concat "file:" name))
+                     (cddr (assoc "refs" string)))
+             action)))
          ((assoc "text/uri-list" string)
           (dolist (text (cddr (assoc "text/uri-list" string)))
             (let ((uri-list (split-string text "[\0\r\n]" t)))
-              (dolist (bf uri-list)
-                (dnd-handle-one-url window action bf)))))
+              (dnd-handle-multiple-urls window uri-list action))))
          ((assoc "text/plain" string)
           (with-selected-window window
             (dolist (text (cddr (assoc "text/plain" string)))

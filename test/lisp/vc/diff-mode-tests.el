@@ -1,6 +1,6 @@
 ;;; diff-mode-tests.el --- Tests for diff-mode.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
 
 ;; Author: Dima Kogan <dima@secretsauce.net>
 ;; Maintainer: emacs-devel@gnu.org

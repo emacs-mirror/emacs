@@ -1,6 +1,6 @@
 ;;; cmake-ts-mode.el --- tree-sitter support for CMake  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
 
 ;; Author     : Randy Taylor <dev@rjt.dev>
 ;; Maintainer : Randy Taylor <dev@rjt.dev>
@@ -32,10 +32,8 @@
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-query-capture "treesit.c")
-(declare-function treesit-induce-sparse-tree "treesit.c")
-(declare-function treesit-node-child "treesit.c")
-(declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+(declare-function treesit-search-subtree "treesit.c")
 
 (defcustom cmake-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `cmake-ts-mode'."
@@ -63,12 +61,19 @@
      ((parent-is "foreach_loop") parent-bol cmake-ts-mode-indent-offset)
      ((parent-is "function_def") parent-bol cmake-ts-mode-indent-offset)
      ((parent-is "if_condition") parent-bol cmake-ts-mode-indent-offset)
-     ((parent-is "normal_command") parent-bol cmake-ts-mode-indent-offset)))
+     ((parent-is "normal_command") parent-bol cmake-ts-mode-indent-offset)
+     ;;; Release v0.4.0 wraps arguments in an argument_list node.
+     ,@(ignore-errors
+         (treesit-query-capture 'cmake '((argument_list) @capture))
+         `(((parent-is "argument_list") grand-parent cmake-ts-mode-indent-offset)))
+     ;;; Release v0.3.0 wraps the body of commands into a body node.
+     ,@(ignore-errors
+         (treesit-query-capture 'cmake '((body) @capture))
+         `(((parent-is "body") grand-parent cmake-ts-mode-indent-offset)))))
   "Tree-sitter indent rules for `cmake-ts-mode'.")
 
 (defvar cmake-ts-mode--constants
-  '("1" "ON" "TRUE" "YES" "Y" "0" "OFF" "FALSE" "NO" "N" "IGNORE"
-    "NOTFOUND")
+  '("ON" "TRUE" "YES" "Y" "OFF" "FALSE" "NO" "N" "IGNORE" "NOTFOUND")
   "CMake constants for tree-sitter font-locking.")
 
 (defvar cmake-ts-mode--keywords
@@ -89,8 +94,8 @@
   "CMake if conditions for tree-sitter font-locking.")
 
 (defun cmake-ts-mode--font-lock-compatibility-fe9b5e0 ()
-  "Indent rules helper, to handle different releases of tree-sitter-cmake.
-Check if a node type is available, then return the right indent rules."
+  "Font lock helper, to handle different releases of tree-sitter-cmake.
+Check if a node type is available, then return the right font lock rules."
   ;; handle commit fe9b5e0
   (condition-case nil
       (progn (treesit-query-capture 'cmake '((argument_list) @capture))
@@ -158,7 +163,7 @@ Check if a node type is available, then return the right indent rules."
    :language 'cmake
    :feature 'number
    '(((unquoted_argument) @font-lock-number-face
-      (:match "\\`[[:digit:]]*\\.?[[:digit:]]*\\.?[[:digit:]]+\\'"
+      (:match "\\`-?[[:digit:]]*\\.?[[:digit:]]*\\.?[[:digit:]]+\\'"
               @font-lock-number-face)))
 
    :language 'cmake
@@ -187,37 +192,14 @@ Check if a node type is available, then return the right indent rules."
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `cmake-ts-mode'.")
 
-(defun cmake-ts-mode--imenu ()
-  "Return Imenu alist for the current buffer."
-  (let* ((node (treesit-buffer-root-node))
-         (func-tree (treesit-induce-sparse-tree
-                     node "function_def" nil 1000))
-         (func-index (cmake-ts-mode--imenu-1 func-tree)))
-    (append
-     (when func-index `(("Function" . ,func-index))))))
-
-(defun cmake-ts-mode--imenu-1 (node)
-  "Helper for `cmake-ts-mode--imenu'.
-Find string representation for NODE and set marker, then recurse
-the subtrees."
-  (let* ((ts-node (car node))
-         (children (cdr node))
-         (subtrees (mapcan #'cmake-ts-mode--imenu-1
-                           children))
-         (name (when ts-node
-                 (pcase (treesit-node-type ts-node)
-                   ("function_def"
-                    (treesit-node-text
-                     (treesit-node-child (treesit-node-child ts-node 0) 2) t)))))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((or (null ts-node) (null name)) subtrees)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
+(defun cmake-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ((or "function_def" "macro_def")
+     (treesit-node-text
+      (treesit-search-subtree node "^argument$" nil nil 3)
+      t))))
 
 ;;;###autoload
 (define-derived-mode cmake-ts-mode prog-mode "CMake"
@@ -226,15 +208,22 @@ the subtrees."
   :syntax-table cmake-ts-mode--syntax-table
 
   (when (treesit-ready-p 'cmake)
-    (treesit-parser-create 'cmake)
+    (setq treesit-primary-parser (treesit-parser-create 'cmake))
 
     ;; Comments.
     (setq-local comment-start "# ")
     (setq-local comment-end "")
     (setq-local comment-start-skip (rx "#" (* (syntax whitespace))))
 
+    ;; Defuns.
+    (setq-local treesit-defun-type-regexp (rx (or "function" "macro")
+                                              "_def"))
+    (setq-local treesit-defun-name-function #'cmake-ts-mode--defun-name)
+
     ;; Imenu.
-    (setq-local imenu-create-index-function #'cmake-ts-mode--imenu)
+    (setq-local treesit-simple-imenu-settings
+                `(("Function" "^function_def$")
+                  ("Macro" "^macro_def$")))
     (setq-local which-func-functions nil)
 
     ;; Indent.
@@ -252,6 +241,8 @@ the subtrees."
                   (bracket error misc-punctuation)))
 
     (treesit-major-mode-setup)))
+
+(derived-mode-add-parents 'cmake-ts-mode '(cmake-mode))
 
 (if (treesit-ready-p 'cmake)
     (add-to-list 'auto-mode-alist

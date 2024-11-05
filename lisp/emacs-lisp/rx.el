@@ -1,6 +1,6 @@
 ;;; rx.el --- S-exp notation for regexps           --*- lexical-binding: t -*-
 
-;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -52,7 +52,6 @@
 ;; (repeat N FORM)              (= N FORM)
 ;; (syntax CHARACTER)           (syntax NAME)
 ;; (syntax CHAR-SYM)      [1]   (syntax NAME)
-;; (category chinse-two-byte)   (category chinese-two-byte)
 ;; unibyte                      ascii
 ;; multibyte                    nonascii
 ;; --------------------------------------------------------
@@ -148,6 +147,13 @@ If DEF is a list on the form (FUN MIN-ARGS MAX-ARGS PRED), then
    and returning the translated regexp string.
    If PRED is non-nil, it is a predicate that all actual arguments must
    satisfy.")
+
+(make-obsolete-variable
+ 'rx-constituents
+ "use `rx-let', `rx-let-eval', or `rx-define' instead."
+ ;; Effectively obsolete since Emacs 27 but only formally declared
+ ;; obsolete in Emacs 30.
+ "30.1")
 
 (defvar rx--local-definitions nil
   "Alist of dynamic local rx definitions.
@@ -1004,7 +1010,6 @@ Return (REGEXP . PRECEDENCE)."
     (not-at-beginning-of-line   . ?>)
     (alpha-numeric-two-byte     . ?A)
     (chinese-two-byte           . ?C)
-    (chinse-two-byte            . ?C)   ; A typo in Emacs 21.1-24.3.
     (greek-two-byte             . ?G)
     (japanese-hiragana-two-byte . ?H)
     (indian-two-byte            . ?I)

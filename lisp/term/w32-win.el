@@ -1,6 +1,6 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2024 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -101,6 +101,13 @@
 ;;   (princ event))
 
 (defun w32-handle-dropped-file (window file-name)
+  (dnd-handle-multiple-urls
+   window
+   (list
+    (w32-dropped-file-to-url file-name))
+   'private))
+
+(defun w32-dropped-file-to-url (file-name)
   (let ((f (if (eq system-type 'cygwin)
                (cygwin-convert-file-name-from-windows file-name t)
              (subst-char-in-string ?\\ ?/ file-name)))
@@ -117,35 +124,53 @@
                      (split-string (encode-coding-string f coding)
                                    "/")
                      "/")))
-		(dnd-handle-one-url window 'private
-				    (concat
-				     (if (eq system-type 'cygwin)
-					 "file://"
-				       "file:")
-				     file-name)))
+  (concat
+   (if (eq system-type 'cygwin)
+       "file://"
+     "file:")
+   file-name))
 
 (defun w32-drag-n-drop (event &optional new-frame)
-  "Edit the files listed in the drag-n-drop EVENT.
-Switch to a buffer editing the last file dropped."
+  "Perform drag-n-drop action according to data in EVENT.
+If EVENT is for one or more files, visit those files in corresponding
+buffers, and switch to the buffer that visits the last dropped file.
+If EVENT is for text, insert that text at point into the buffer
+shown in the window that is the target of the drop; if that buffer is
+read-only, add the dropped text to kill-ring.
+If EVENT payload is nil, then this is a drag event.
+If the optional argument NEW-FRAME is non-nil, perform the
+drag-n-drop action in a newly-created frame using its selected-window
+and that window's buffer."
   (interactive "e")
-  (save-excursion
-    ;; Make sure the drop target has positive co-ords
-    ;; before setting the selected frame - otherwise it
-    ;; won't work.  <skx@tardis.ed.ac.uk>
-    (let* ((window (posn-window (event-start event)))
-	   (coords (posn-x-y (event-start event)))
-	   (x (car coords))
-	   (y (cdr coords)))
-      (if (and (> x 0) (> y 0))
-	  (set-frame-selected-window nil window))
+  ;; Make sure the drop target has positive co-ords
+  ;; before setting the selected frame - otherwise it
+  ;; won't work.  <skx@tardis.ed.ac.uk>
+  (let* ((window (posn-window (event-start event)))
+	 (coords (posn-x-y (event-start event)))
+         (arg (car (cdr (cdr event))))
+	 (x (car coords))
+	 (y (cdr coords)))
 
-      (when new-frame
-        (select-frame (make-frame)))
-      (raise-frame)
-      (setq window (selected-window))
+    (if (and (> x 0) (> y 0) (window-live-p window))
+        (set-frame-selected-window nil window))
+    ;; Don't create new frame if we are just dragging
+    (and arg new-frame
+         (select-frame (make-frame)))
+    (raise-frame)
+    (setq window (selected-window))
 
-      (mapc (apply-partially #'w32-handle-dropped-file window)
-            (car (cdr (cdr event)))))))
+    ;; arg (the payload of the event) is a string when the drop is
+    ;; text, and a list of strings when the drop is one or more files.
+    ;; It is nil if the event is a drag event.
+    (if arg
+        (save-excursion
+          (if (stringp arg)
+              (dnd-insert-text window 'copy arg)
+            (dnd-handle-multiple-urls
+             window
+             (mapcar #'w32-dropped-file-to-url arg)
+             'private)))
+      (dnd-handle-movement (event-start event)))))
 
 (defun w32-drag-n-drop-other-frame (event)
   "Edit the files listed in the drag-n-drop EVENT, in other frames.
@@ -286,7 +311,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
        '(libxml2 "libxml2-2.dll" "libxml2.dll")
        '(zlib "zlib1.dll" "libz-1.dll")
        '(lcms2 "liblcms2-2.dll")
-       '(json "libjansson-4.dll")
        '(gccjit "libgccjit-0.dll")
        ;; MSYS2 distributes libtree-sitter.dll, without API version
        ;; number...
@@ -418,15 +442,84 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
       (w32-set-clipboard-data (string-replace "\0" "\\0" value))
     (put 'x-selections (or type 'PRIMARY) value)))
 
-(defun w32--get-selection  (&optional type data-type)
+(defvar w32--selection-target-translations
+  '((PNG . image/png)
+    (DIBV5 . image/png)
+    (HTML\ Format . text/html)))
+
+(defun w32--translate-selection-target (target)
+  (let ((xlat (assoc target w32--selection-target-translations)))
+    (if xlat
+        (cdr xlat)
+      target)))
+
+(defun w32--translate-reverse-selection-target (target)
+  (append
+   (mapcar #'car
+           (seq-filter
+            (lambda (x)
+              (eq target
+                  (w32--translate-selection-target (car x))))
+            w32--selection-target-translations))
+   (list target)))
+
+(defvar w32--textual-mime-types
+  '("application/xml"
+    "application/json"
+    "application/yaml"
+    "application/json-seq"
+    "\\`text/"
+    "+xml\\'"
+    "+json\\'"
+    "+yaml\\'"
+    "+json-seq\\'"))
+
+(defun w32--mime-type-textual-p (mime-type)
+  "Returns t if MIME-TYPE, a symbol, names a textual MIME type.
+
+This function is intended to classify clipboard data.  All MIME subtypes
+of text/ are considered textual.  Also those with suffixes +xml, +json,
++yaml, +json-seq.  And application/xml, application/json,
+application/yaml, application/json-seq.
+
+This classification is not exhaustive.  Some MIME types not listed may
+also be textual."
+  (string-match-p
+   (mapconcat #'identity w32--textual-mime-types "\\|")
+        (symbol-name mime-type)))
+
+(declare-function w32--get-clipboard-data-media "w32select.c")
+
+(defun w32--get-selection (&optional type data-type)
   (cond ((and (eq type 'CLIPBOARD)
               (eq data-type 'STRING))
          (with-demoted-errors "w32-get-clipboard-data:%S"
            (w32-get-clipboard-data)))
         ((eq data-type 'TARGETS)
          (if (eq type 'CLIPBOARD)
-             (w32-selection-targets type)
+             (vconcat
+              (delete-dups
+               (seq-map #'w32--translate-selection-target
+                        (w32-selection-targets type))))
            (if (get 'x-selections (or type 'PRIMARY)) '[STRING])))
+        ((eq type 'CLIPBOARD)
+         (let ((tmp-file (make-temp-file "emacs-clipboard"))
+               (is-textual (w32--mime-type-textual-p data-type)))
+           (unwind-protect
+               (let* ((data-types (w32--translate-reverse-selection-target data-type))
+                      (data (w32--get-clipboard-data-media data-types tmp-file is-textual)))
+                 (cond
+                  ;; data is in the file
+                  ((eq data t)
+                   (with-temp-buffer
+                     (set-buffer-multibyte nil)
+                     (insert-file-contents-literally tmp-file)
+                     (buffer-string)))
+                  ;; data is in data var
+                  ((stringp data) data)
+                  ;; No data
+                  (t nil)))
+             (delete-file tmp-file))))
         (t (get 'x-selections (or type 'PRIMARY)))))
 
 (defun w32--selection-owner-p (selection)

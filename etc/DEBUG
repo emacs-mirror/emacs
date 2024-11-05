@@ -1,6 +1,6 @@
 Debugging GNU Emacs
 
-Copyright (C) 1985, 2000-2023 Free Software Foundation, Inc.
+Copyright (C) 1985, 2000-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 ** Preliminaries
@@ -472,6 +472,16 @@ and, assuming that "xtype" says that args[0] is a symbol:
 
 ** Debugging Emacs redisplay problems
 
+The Emacs display code includes special debugging code, but it is normally
+disabled.  Configuring Emacs with --enable-checking='yes,glyphs' enables it.
+
+Building Emacs like that activates many assertions which scrutinize display
+code operation more than Emacs does normally.  (To see the code which tests
+these assertions, look for calls to the 'eassert' macros.)  Any assertion that
+is reported to fail should be investigated.  Redisplay problems that cause
+aborts or segfaults in production builds of Emacs will many times be caught by
+these assertions before they cause a crash.
+
 If you configured Emacs with --enable-checking='glyphs', you can use redisplay
 tracing facilities from a running Emacs session.
 
@@ -481,21 +491,18 @@ code paths taken by the display engine under various conditions, especially if
 some redisplay optimizations produce wrong results.  (You know that redisplay
 optimizations might be involved if "M-x redraw-display RET", or even just
 typing "M-x", causes Emacs to correct the bad display.)  Since the cursor
-blinking feature triggers periodic redisplay cycles, we recommend disabling
-'blink-cursor-mode' before invoking 'trace-redisplay', so that you have less
-clutter in the trace.  You can also have up to 30 last trace messages dumped to
-standard error by invoking the 'dump-redisplay-history' command.
+blinking feature and ElDoc trigger periodic redisplay cycles, we recommend
+disabling 'blink-cursor-mode' and 'global-eldoc-mode' before invoking
+'trace-redisplay', so that you have less clutter in the trace.  You can also
+have up to 30 last trace messages dumped to standard error by invoking the
+'dump-redisplay-history' command.
 
 To find the code paths which were taken by the display engine, search xdisp.c
 for the trace messages you see.
 
 The command 'dump-glyph-matrix' is useful for producing on standard error
 stream a full dump of the selected window's glyph matrix.  See the function's
-doc string for more details.  If you are debugging redisplay issues in
-text-mode frames, you may find the command 'dump-frame-glyph-matrix' useful.
-
-Other commands useful for debugging redisplay are 'dump-glyph-row' and
-'dump-tool-bar-row'.
+doc string for more details.
 
 If you run Emacs under GDB, you can print the contents of any glyph matrix by
 just calling that function with the matrix as its argument.  For example, the
@@ -507,13 +514,11 @@ whose pointer is in 'w':
 (The second argument 2 tells dump_glyph_matrix to print the glyphs in
 a long form.)
 
-The Emacs display code includes special debugging code, but it is normally
-disabled.  Configuring Emacs with --enable-checking='yes,glyphs' enables it.
+If you are debugging redisplay issues in text-mode frames, you may find the
+command 'dump-frame-glyph-matrix' useful.
 
-Building Emacs like that activates many assertions which scrutinize
-display code operation more than Emacs does normally.  (To see the
-code which tests these assertions, look for calls to the 'eassert'
-macros.)  Any assertion that is reported to fail should be investigated.
+Other commands useful for debugging redisplay are 'dump-glyph-row' and
+'dump-tool-bar-row'.
 
 When you debug display problems running emacs under X, you can use
 the 'ff' command to flush all pending display updates to the screen.
@@ -535,36 +540,40 @@ object of the relevant type as argument.  For example, 'pgrowx' dumps all
 glyphs in its argument, which must be of type 'struct glyph_row'.
 
 Since redisplay is performed by Emacs very frequently, you need to place your
-breakpoints cleverly to avoid hitting them all the time, when the issue you are
-debugging did not (yet) happen.  Here are some useful techniques for that:
+breakpoints cleverly to avoid hitting them all the time, when the issue you
+are debugging did not (yet) happen.  Here are some useful techniques for that:
 
- . Put a breakpoint at 'Fredraw_display' before running Emacs.  Then do
-   whatever is required to reproduce the bad display, and invoke "M-x
-   redraw-display".  The debugger will kick in, and you can set or enable
-   breakpoints in strategic places, knowing that the bad display will be
+ . Put a breakpoint at 'Frecenter' or 'Fredraw_display' before running Emacs.
+   Then do whatever is required to reproduce the bad display, and type C-l or
+   "M-x redraw-display" just before invoking the last action that reproduces
+   the bug.  The debugger will kick in, and you can set or enable breakpoints
+   in strategic places, knowing that the bad display will happen soon.  With a
+   breakpoint at 'Fredraw_display', you can even reproduce the bug and invoke
+   "M-x redraw-display" afterwards, knowing that the bad display will be
    redrawn from scratch.
 
- . For debugging incorrect cursor position, a good place to put a breakpoint is
-   in 'set_cursor_from_row'.  The first time this function is called as part of
-   'redraw-display', Emacs is redrawing the minibuffer window, which is usually
-   not what you want; type "continue" to get to the call you want.  In general,
-   always make sure 'set_cursor_from_row' is called for the right window and
-   buffer by examining the value of w->contents: it should be the buffer whose
-   display you are debugging.
+ . For debugging incorrect cursor position, a good place to put a breakpoint
+   is in 'set_cursor_from_row'.  The first time this function is called as
+   part of 'redraw-display', Emacs is redrawing the minibuffer window, which
+   is usually not what you want; type "continue" to get to the call you want.
+   In general, always make sure 'set_cursor_from_row' is called for the right
+   window and buffer by examining the value of w->contents: it should be the
+   buffer whose display you are debugging.
 
  . 'set_cursor_from_row' is also a good place to look at the contents of a
    screen line (a.k.a. "glyph row"), by means of the 'pgrow' GDB command.  Of
    course, you need first to make sure the cursor is on the screen line which
-   you want to investigate.  If you have set a breakpoint in 'Fredraw_display',
-   as advised above, move cursor to that line before invoking 'redraw-display'.
+   you want to investigate.  If you have set a breakpoint in 'Fredraw_display'
+   or 'Frecenter', as advised above, move cursor to that line before invoking
+   these commands.
 
  . If the problem happens only at some specific buffer position or for some
-   specific rarely-used character, you can make your breakpoints conditional on
-   those values.  The display engine maintains the buffer and string position
-   it is processing in the it->current member; for example, the buffer
-   character position is in it->current.pos.charpos.  Most redisplay functions
-   accept a pointer to a 'struct it' object as their argument, so you can make
-   conditional breakpoints in those functions, like this:
+   specific rarely-used character, you can make your breakpoints conditional
+   on those values.  The display engine maintains the buffer and string
+   position it is processing in the it->current member; for example, the
+   buffer character position is in it->current.pos.charpos.  Most redisplay
+   functions accept a pointer to a 'struct it' object as their argument, so
+   you can make conditional breakpoints in those functions, like this:
 
     (gdb) break x_produce_glyphs if it->current.pos.charpos == 1234
 
@@ -578,6 +587,16 @@ debugging did not (yet) happen.  Here are some useful techniques for that:
    GET_FROM_IMAGE for displaying an image, etc.  See 'enum it_method' in
    dispextern.h for the full list of values.
 
+ . When the display engine is processing a 'display' text property or an
+   overlay string, it pushes on the iterator stack the state variables
+   describing its iteration of buffer text, then reinitializes the iterator
+   object for processing the property or overlay.  The it->sp ("stack
+   pointer") member, if it is greater than zero, means the iterator's stack
+   was pushed at least once.  You can therefore condition your breakpoints on
+   the value of it->sp being positive or being of a certain positive value, to
+   debug display problems that happen only with display properties or
+   overlays.
+
 ** Debugging problems with native-compiled Lisp.
 
 When you encounter problems specific to native-compilation of Lisp, we
@@ -586,7 +605,17 @@ recommend to follow the procedure below to try to identify the cause:
  . Reduce the problematic .el file to the minimum by bisection, and
    try identifying the function that causes the problem.
 
- . Reduce the problematic function to the minimal code that still
+ . Try natively compiling the problematic file with
+   'native-comp-speed' set to 1 or even zero.  If doing that solves
+   the problem, you can use
+
+     (declare (speed 1))
+
+   at the beginning of the body of suspected function(s) to change
+   'native-comp-speed' only for those functions -- this could help you
+   identify the function(s) which cause(s) the problem.
+
+ . Reduce the problematic function(s) to the minimal code that still
    reproduces the problem.
 
  . Study the problem's artifacts, like Lisp or C backtraces, to try
@@ -835,11 +864,6 @@ in your ~/.emacs file.  When the problem happens, exit the Emacs that
 you were running, kill it, and rename the two files.  Then you can start
 another Emacs without clobbering those files, and use it to examine them.
 
-An easy way to see if too much text is being redrawn on a terminal is to
-evaluate '(setq inverse-video t)' before you try the operation you think
-will cause too much redrawing.  This doesn't refresh the screen, so only
-newly drawn text is in inverse video.
-
 ** Debugging LessTif
 
 If you encounter bugs whereby Emacs built with LessTif grabs all mouse
@@ -904,7 +928,10 @@ data that is modified only very rarely.)
 
 It is also useful to look at the corrupted object or data structure in
 a fresh Emacs session and compare its contents with a session that you
-are debugging.
+are debugging.  This might be somewhat harder on modern systems which
+randomize addresses of running executables (the so-called Address
+Space Layout Randomization, or ASLR, feature).  If you have this
+problem, see below under "How to disable ASLR".
 
 ** Debugging the TTY (non-windowed) version
 
@@ -1013,7 +1040,7 @@ When compiled with address sanitization, Emacs will also try to mark
 dead/free lisp objects as poisoned, forbidding them from being
 accessed without being unpoisoned first.  This adds an extra layer
 of checking with objects in internal free lists, which may otherwise
-evade traditional use-after-free checks. To disable this, add
+evade traditional use-after-free checks.  To disable this, add
 'allow_user_poisoning=0' to ASAN_OPTIONS, or build Emacs with
 '-DGC_ASAN_POISON_OBJECTS=0' in CFLAGS.
 
@@ -1055,6 +1082,37 @@ suppresses some Valgrind false alarms during Emacs garbage collection:
 
 Unfortunately Valgrind suppression files tend to be system-dependent,
 so you will need to keep one around that matches your system.
+
+** How to disable ASLR
+
+Modern systems use the so-called Address Space Layout Randomization,
+(ASLR) feature, which randomizes the base address of running programs,
+making it harder for malicious software or hackers to find the address
+of some function or variable in a running program by looking at its
+executable file.  This causes the address of the same symbol to be
+different across rerunning of the same program.  Sometimes, it can be
+useful to disable ASLR, for example, if you want to compare objects in
+two different Emacs sessions.
+
+On GNU/Linux, you can disable ASLR temporarily with the following
+shell command:
+
+  echo 0 > /proc/sys/kernel/randomize_va_space
+
+or by running Emacs in an environment where ASLR is temporarily
+disabled:
+
+  setarch -R emacs [args...]
+
+To disable ASLR in Emacs on MS-Windows, you will have to rebuild Emacs
+while adding '-Wl,-disable-dynamicbase' to LD_SWITCH_SYSTEM_TEMACS
+variable defined in src/Makefile.  Alternatively, use some tool to
+edit the PE header of the Emacs executable file and reset the
+DYNAMIC_BASE (0x40) flag in the DllCharacteristics flags recorded by
+the PE header.
+
+On macOS, there's no official way for disabling ASLR, but there are
+various hacks that can be found by searching the Internet.
 
 ** How to recover buffer contents from an Emacs core dump file
 
@@ -1099,6 +1157,12 @@ Please refer to the LLDB reference on the web for more information
 about LLDB.  If you already know GDB, you will also find a mapping
 from GDB commands to corresponding LLDB commands there.
 
+** Debugging Emacs on OpenBSD
+
+To debug Emacs on OpenBSD, use the 'egdb' command from the 'gdb'
+package.  This reportedly works both if Emacs was compiled with GCC and
+if it was compiled with clang.
+
 ** Debugging Emacs on Android.
 
 A script located in the java/ directory automates the procedures
@@ -1123,7 +1187,7 @@ one to upload, like so:
   ../java/debug.sh --gdbserver /path/to/gdbserver
 
 This Gdbserver should be statically linked or compiled using the
-Android NDK, and must target the same architecture as the debugee
+Android NDK, and must target the same architecture as the debugged
 Emacs binary.  Older versions of the Android NDK (such as r24)
 distribute suitable Gdbserver binaries, usually located within
 
@@ -1224,39 +1288,39 @@ the crash.
 The third form is printed when Emacs misuses the JVM in some fashion
 that is detected by the Android CheckJNI facility.  It looks like:
 
-A/art﹕ art/runtime/check_jni.cc:65] JNI DETECTED ERROR IN APPLICATION: ...
-A/art﹕ art/runtime/check_jni.cc:65]     in call to CallVoidMethodV
-A/art﹕ art/runtime/check_jni.cc:65]     from void android.os.MessageQueue.nativePollOnce(long, int)
-A/art﹕ art/runtime/check_jni.cc:65] "main" prio=5 tid=1 Runnable
-A/art﹕ art/runtime/check_jni.cc:65]   | group="main" sCount=0 dsCount=0 obj=0x87d30ef0 self=0xb4f07800
-A/art﹕ art/runtime/check_jni.cc:65]   | sysTid=18828 nice=-11 cgrp=apps sched=0/0 handle=0xb6fdeec8
-A/art﹕ art/runtime/check_jni.cc:65]   | state=R schedstat=( 2249126546 506089308 3210 ) utm=183 stm=41 core=3 HZ=100
-A/art﹕ art/runtime/check_jni.cc:65]   | stack=0xbe0c8000-0xbe0ca000 stackSize=8MB
-A/art﹕ art/runtime/check_jni.cc:65]   | held mutexes= "mutator lock"(shared held)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #00 pc 00004640  /system/lib/libbacktrace_libc++.so (UnwindCurrent::Unwind(unsigned int, ucontext*)+23)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #01 pc 00002e8d  /system/lib/libbacktrace_libc++.so (Backtrace::Unwind(unsigned int, ucontext*)+8)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #02 pc 00248381  /system/lib/libart.so (art::DumpNativeStack(std::__1::basic_ostream<char, std::__1::char_traits<char> >&, int, char const*, art::mirror::ArtMethod*)+68)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #03 pc 0022cd0b  /system/lib/libart.so (art::Thread::Dump(std::__1::basic_ostream<char, std::__1::char_traits<char> >&) const+146)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #04 pc 000b189b  /system/lib/libart.so (art::JniAbort(char const*, char const*)+582)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #05 pc 000b1fd5  /system/lib/libart.so (art::JniAbortF(char const*, char const*, ...)+60)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #06 pc 000b50e5  /system/lib/libart.so (art::ScopedCheck::ScopedCheck(_JNIEnv*, int, char const*)+1284)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #07 pc 000bc59f  /system/lib/libart.so (art::CheckJNI::CallVoidMethodV(_JNIEnv*, _jobject*, _jmethodID*, std::__va_list)+30)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #08 pc 00063803  /system/lib/libandroid_runtime.so (???)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #09 pc 000776bd  /system/lib/libandroid_runtime.so (android::NativeDisplayEventReceiver::dispatchVsync(long long, int, unsigned int)+40)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #10 pc 00077885  /system/lib/libandroid_runtime.so (android::NativeDisplayEventReceiver::handleEvent(int, int, void*)+80)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #11 pc 00010f6f  /system/lib/libutils.so (android::Looper::pollInner(int)+482)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #12 pc 00011019  /system/lib/libutils.so (android::Looper::pollOnce(int, int*, int*, void**)+92)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #13 pc 000830c1  /system/lib/libandroid_runtime.so (android::NativeMessageQueue::pollOnce(_JNIEnv*, int)+22)
-A/art﹕ art/runtime/check_jni.cc:65]   native: #14 pc 000b22d7  /system/framework/arm/boot.oat (Java_android_os_MessageQueue_nativePollOnce__JI+102)
-A/art﹕ art/runtime/check_jni.cc:65]   at android.os.MessageQueue.nativePollOnce(Native method)
-A/art﹕ art/runtime/check_jni.cc:65]   at android.os.MessageQueue.next(MessageQueue.java:143)
-A/art﹕ art/runtime/check_jni.cc:65]   at android.os.Looper.loop(Looper.java:130)
-A/art﹕ art/runtime/check_jni.cc:65]   at android.app.ActivityThread.main(ActivityThread.java:5832)
-A/art﹕ art/runtime/check_jni.cc:65]   at java.lang.reflect.Method.invoke!(Native method)
-A/art﹕ art/runtime/check_jni.cc:65]   at java.lang.reflect.Method.invoke(Method.java:372)
-A/art﹕ art/runtime/check_jni.cc:65]   at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:1399)
-A/art﹕ art/runtime/check_jni.cc:65]   at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1194)
-A/art﹕ art/runtime/check_jni.cc:65]
+A/art: art/runtime/check_jni.cc:65] JNI DETECTED ERROR IN APPLICATION: ...
+A/art: art/runtime/check_jni.cc:65]     in call to CallVoidMethodV
+A/art: art/runtime/check_jni.cc:65]     from void android.os.MessageQueue.nativePollOnce(long, int)
+A/art: art/runtime/check_jni.cc:65] "main" prio=5 tid=1 Runnable
+A/art: art/runtime/check_jni.cc:65]   | group="main" sCount=0 dsCount=0 obj=0x87d30ef0 self=0xb4f07800
+A/art: art/runtime/check_jni.cc:65]   | sysTid=18828 nice=-11 cgrp=apps sched=0/0 handle=0xb6fdeec8
+A/art: art/runtime/check_jni.cc:65]   | state=R schedstat=( 2249126546 506089308 3210 ) utm=183 stm=41 core=3 HZ=100
+A/art: art/runtime/check_jni.cc:65]   | stack=0xbe0c8000-0xbe0ca000 stackSize=8MB
+A/art: art/runtime/check_jni.cc:65]   | held mutexes= "mutator lock"(shared held)
+A/art: art/runtime/check_jni.cc:65]   native: #00 pc 00004640  /system/lib/libbacktrace_libc++.so (UnwindCurrent::Unwind(unsigned int, ucontext*)+23)
+A/art: art/runtime/check_jni.cc:65]   native: #01 pc 00002e8d  /system/lib/libbacktrace_libc++.so (Backtrace::Unwind(unsigned int, ucontext*)+8)
+A/art: art/runtime/check_jni.cc:65]   native: #02 pc 00248381  /system/lib/libart.so (art::DumpNativeStack(std::__1::basic_ostream<char, std::__1::char_traits<char> >&, int, char const*, art::mirror::ArtMethod*)+68)
+A/art: art/runtime/check_jni.cc:65]   native: #03 pc 0022cd0b  /system/lib/libart.so (art::Thread::Dump(std::__1::basic_ostream<char, std::__1::char_traits<char> >&) const+146)
+A/art: art/runtime/check_jni.cc:65]   native: #04 pc 000b189b  /system/lib/libart.so (art::JniAbort(char const*, char const*)+582)
+A/art: art/runtime/check_jni.cc:65]   native: #05 pc 000b1fd5  /system/lib/libart.so (art::JniAbortF(char const*, char const*, ...)+60)
+A/art: art/runtime/check_jni.cc:65]   native: #06 pc 000b50e5  /system/lib/libart.so (art::ScopedCheck::ScopedCheck(_JNIEnv*, int, char const*)+1284)
+A/art: art/runtime/check_jni.cc:65]   native: #07 pc 000bc59f  /system/lib/libart.so (art::CheckJNI::CallVoidMethodV(_JNIEnv*, _jobject*, _jmethodID*, std::__va_list)+30)
+A/art: art/runtime/check_jni.cc:65]   native: #08 pc 00063803  /system/lib/libandroid_runtime.so (???)
+A/art: art/runtime/check_jni.cc:65]   native: #09 pc 000776bd  /system/lib/libandroid_runtime.so (android::NativeDisplayEventReceiver::dispatchVsync(long long, int, unsigned int)+40)
+A/art: art/runtime/check_jni.cc:65]   native: #10 pc 00077885  /system/lib/libandroid_runtime.so (android::NativeDisplayEventReceiver::handleEvent(int, int, void*)+80)
+A/art: art/runtime/check_jni.cc:65]   native: #11 pc 00010f6f  /system/lib/libutils.so (android::Looper::pollInner(int)+482)
+A/art: art/runtime/check_jni.cc:65]   native: #12 pc 00011019  /system/lib/libutils.so (android::Looper::pollOnce(int, int*, int*, void**)+92)
+A/art: art/runtime/check_jni.cc:65]   native: #13 pc 000830c1  /system/lib/libandroid_runtime.so (android::NativeMessageQueue::pollOnce(_JNIEnv*, int)+22)
+A/art: art/runtime/check_jni.cc:65]   native: #14 pc 000b22d7  /system/framework/arm/boot.oat (Java_android_os_MessageQueue_nativePollOnce__JI+102)
+A/art: art/runtime/check_jni.cc:65]   at android.os.MessageQueue.nativePollOnce(Native method)
+A/art: art/runtime/check_jni.cc:65]   at android.os.MessageQueue.next(MessageQueue.java:143)
+A/art: art/runtime/check_jni.cc:65]   at android.os.Looper.loop(Looper.java:130)
+A/art: art/runtime/check_jni.cc:65]   at android.app.ActivityThread.main(ActivityThread.java:5832)
+A/art: art/runtime/check_jni.cc:65]   at java.lang.reflect.Method.invoke!(Native method)
+A/art: art/runtime/check_jni.cc:65]   at java.lang.reflect.Method.invoke(Method.java:372)
+A/art: art/runtime/check_jni.cc:65]   at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:1399)
+A/art: art/runtime/check_jni.cc:65]   at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1194)
+A/art: art/runtime/check_jni.cc:65]
 
 In such situations, the first line explains what infraction Emacs
 committed, while the ensuing ones print backtraces for each running
@@ -1278,6 +1342,24 @@ Once in a blue moon, it proves necessary to debug Java rather than C
 code.  To this end, the `--jdb' option will attach the Java debugger
 instead of gdbserver.  Lametably, it seems impossible to debug both C
 and Java code in concert.
+
+C code within Emacs rigorously checks for Java exceptions after
+calling any JVM function that may signal an out-of-memory error,
+employing one of the android_exception_check(_N) functions defined
+within android.c for this purpose.  These functions operate presuming
+the preceding Java code does not signal exceptions of its own, and
+report out-of-memory errors upon any type of exception, not just OOM
+errors.
+
+If Emacs protests that it is out of memory, yet you witness a
+substantial amount of free space remaining, search the log buffer for
+a string containing:
+
+  "Possible out of memory error.  The Java exception follows:"
+
+subsequent to which a reproduction of the exception precipitating the
+spurious OOM error should be located.  This exception is invariably
+indicative of a bug within Emacs that should be fixed.
 
 
 This file is part of GNU Emacs.

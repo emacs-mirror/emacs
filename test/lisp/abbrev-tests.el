@@ -1,6 +1,6 @@
 ;;; abbrev-tests.el --- Test suite for abbrevs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 ;; Keywords: abbrevs
@@ -57,12 +57,10 @@
 (ert-deftest abbrev-make-abbrev-table-test ()
   ;; Table without properties:
   (let ((table (make-abbrev-table)))
-    (should (abbrev-table-p table))
-    (should (= (length table) obarray-default-size)))
+    (should (abbrev-table-p table)))
   ;; Table with one property 'foo with value 'bar:
   (let ((table (make-abbrev-table '(foo bar))))
     (should (abbrev-table-p table))
-    (should (= (length table) obarray-default-size))
     (should (eq (abbrev-table-get table 'foo) 'bar))))
 
 (ert-deftest abbrev--table-symbols-test ()

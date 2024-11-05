@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2024 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -549,6 +549,13 @@ you in doing so.  Submitting a bug report starts the process of
 investigating and fixing the bug, where you will receive copies of
 email messages discussing the bug, in which we might ask you to
 provide more information, test possible fixes, etc.
+
+@cindex security, reporting issues
+@item
+If you think you may have found a security issue that needs to be
+communicated privately, please contact the GNU Emacs maintainers
+directly.  See the file @file{admin/MAINTAINERS} in the Emacs
+distribution for their contact details.
 
 @item
 Finally, if you want to propose specific changes to Emacs, whether to
@@ -1488,7 +1495,7 @@ the Emacs Lisp Reference Manual
 @cindex coding standards for Emacs submissions
 
 Contributed code should follow the GNU Coding Standards
-@url{https://www.gnu.org/prep/standards/}. This may also be available
+@url{https://www.gnu.org/prep/standards/}.  This may also be available
 in info on your system.
 
 If it doesn't, we'll need to find someone to fix the code before we
@@ -1514,7 +1521,7 @@ Appendix, elisp, Emacs Lisp Reference}.
 @end ifclear
 
 @item
-Avoid using @code{defadvice} or @code{with-eval-after-load} for Lisp code
+Avoid using @code{advice-add} or @code{with-eval-after-load} for Lisp code
 to be included in Emacs.
 
 @item
@@ -1540,10 +1547,11 @@ to the FSF@.  For the reasons behind this, see
 @url{https://www.gnu.org/licenses/why-assign.html}.
 
 Copyright assignment is a simple process.  Residents of many countries
-can do it entirely electronically.  We can help you get started,
-including sending you the forms you should fill, and answer any
-questions you may have (or point you to the people with the answers),
-at the @email{emacs-devel@@gnu.org} mailing list.
+can do it entirely electronically.  To get started, follow the
+instructions in the file @file{etc/copyright-assign.txt} in the Emacs
+distribution.  We can answer any questions you may have (or point you to
+the people with the answers) at the @email{emacs-devel@@gnu.org} mailing
+list.
 
 (Please note: general discussion about why some GNU projects ask
 for a copyright assignment is off-topic for emacs-devel.

@@ -1,11 +1,11 @@
 ;;; eldoc.el --- Show function arglist or variable docstring in echo area  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.14.0
+;; Version: 1.15.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -65,7 +65,8 @@ If this variable is set to 0, display the documentation without any delay."
 (defcustom eldoc-print-after-edit nil
   "If non-nil, eldoc info is only shown after editing commands.
 Changing the value requires toggling `eldoc-mode'."
-  :type 'boolean)
+  :type 'boolean
+  :version "24.4")
 
 (defcustom eldoc-echo-area-display-truncation-message t
   "If non-nil, provide verbose help when a message has been truncated.
@@ -132,7 +133,10 @@ documentation in the echo area if the dedicated documentation
 buffer (displayed by `eldoc-doc-buffer') is already displayed in
 some window.  If the value is the symbol `maybe', then the echo area
 is only skipped if the documentation needs to be truncated there."
-  :type 'boolean)
+  :type '(choice (const :tag "Prefer ElDoc's documentation buffer" t)
+                 (const :tag "Prefer echo area" nil)
+                 (const :tag "Skip echo area if truncating" maybe))
+  :version "28.1")
 
 (defface eldoc-highlight-function-argument
   '((t (:inherit bold)))
@@ -151,7 +155,7 @@ Remember to keep it a prime number to improve hash performance.")
 
 (defvar eldoc-message-commands
   ;; Don't define as `defconst' since it would then go to (read-only) purespace.
-  (make-vector eldoc-message-commands-table-size 0)
+  (obarray-make eldoc-message-commands-table-size)
   "Commands after which it is appropriate to print in the echo area.
 ElDoc does not try to print function arglists, etc., after just any command,
 because some commands print their own messages in the echo area and these
@@ -187,7 +191,7 @@ It should receive the same arguments as `message'.")
 
 When `eldoc-print-after-edit' is non-nil, ElDoc messages are only
 printed after commands contained in this obarray."
-  (let ((cmds (make-vector 31 0))
+  (let ((cmds (obarray-make 31))
 	(re (regexp-opt '("delete" "insert" "edit" "electric" "newline"))))
     (mapatoms (lambda (s)
 		(and (commandp s)
@@ -308,9 +312,11 @@ Otherwise, it displays the message like `message' would."
                      (not (and (listp mode-line-format)
                                (assq 'eldoc-mode-line-string mode-line-format))))
 	    (setq mode-line-format
-		  (list "" '(eldoc-mode-line-string
-			     (" " eldoc-mode-line-string " "))
-			mode-line-format)))
+                  (funcall
+                   (if (listp mode-line-format) #'append #'list)
+                   (list "" '(eldoc-mode-line-string
+			      (" " eldoc-mode-line-string " ")))
+                   mode-line-format)))
           (setq eldoc-mode-line-string
                 (when (stringp format-string)
                   (apply #'format-message format-string args)))
@@ -456,7 +462,7 @@ documentation-displaying frontends.  For example, KEY can be:
 
 The additional KEY `:origin' is always added by ElDoc, its VALUE
 being the member of `eldoc-documentation-functions' where
-DOCSTRING originated. `eldoc-display-functions' may use this
+DOCSTRING originated.  `eldoc-display-functions' may use this
 information to organize display of multiple docstrings.
 
 Finally, major modes should modify this hook locally, for
@@ -601,25 +607,29 @@ known to be truncated."
                     'maybe)))
        (get-buffer-window eldoc--doc-buffer t)))
 
-(defun eldoc-display-in-echo-area (docs _interactive)
+(defun eldoc-display-in-echo-area (docs interactive)
   "Display DOCS in echo area.
-Honor `eldoc-echo-area-use-multiline-p' and
+INTERACTIVE is non-nil if user explicitly invoked ElDoc.  Honor
+`eldoc-echo-area-use-multiline-p' and
 `eldoc-echo-area-prefer-doc-buffer'."
   (cond
-   (;; Check if we have permission to mess with echo area at all.  For
-    ;; example, if this-command is non-nil while running via an idle
-    ;; timer, we're still in the middle of executing a command, e.g. a
-    ;; query-replace where it would be annoying to overwrite the echo
-    ;; area.
-    (or
-     (not (eldoc-display-message-no-interference-p))
-     this-command
-     (not (eldoc--message-command-p last-command))))
-   (;; If we do but nothing to report, clear the echo area.
+   ((and (not interactive)
+         ;; When called non-interactively, check if we have permission
+         ;; to mess with echo area at all.  For example, if
+         ;; this-command is non-nil while running via an idle timer,
+         ;; we're still in the middle of executing a command, e.g. a
+         ;; query-replace where it would be annoying to overwrite the
+         ;; echo area.
+         (or
+          (not (eldoc-display-message-no-interference-p))
+          this-command
+          (not (eldoc--message-command-p last-command)))))
+   (;; If nothing to report, clear the echo area.
     (null docs)
     (eldoc--message nil))
    (t
-    ;; Otherwise, establish some parameters.
+    ;; Otherwise, proceed to change the echo area.  Start by
+    ;; establishing some parameters.
     (let*
         ((width (1- (window-width (minibuffer-window))))
          (val (if (and (symbolp eldoc-echo-area-use-multiline-p)
@@ -925,7 +935,7 @@ the docstrings eventually produced, using
       (let* ((eldoc--make-callback #'make-callback)
              (res (funcall eldoc-documentation-strategy)))
         ;; Observe the old and the new protocol:
-        (cond (;; Old protocol: got string, e-d-strategy is iself the
+        (cond (;; Old protocol: got string, e-d-strategy is itself the
                ;; origin function, and we output immediately;
                (stringp res)
                (register-doc 0 res nil eldoc-documentation-strategy)

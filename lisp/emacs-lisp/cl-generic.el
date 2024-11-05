@@ -1,6 +1,6 @@
 ;;; cl-generic.el --- CLOS-style generic functions for Elisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.0
@@ -272,7 +272,7 @@ DEFAULT-BODY, if present, is used as the body of a default method.
               (list
                (macroexp-warn-and-return
                 (format "Non-symbol arguments to cl-defgeneric: %s"
-                        (mapconcat #'prin1-to-string nonsymargs ""))
+                        (mapconcat #'prin1-to-string nonsymargs " "))
                 nil nil nil nonsymargs)))))
          next-head)
     (while (progn (setq next-head (car-safe (car options-and-methods)))
@@ -672,7 +672,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
   ;; compiled.  Otherwise the byte-compiler and all the code on
   ;; which it depends needs to be usable before cl-generic is loaded,
   ;; which imposes a significant burden on the bootstrap.
-  (if (consp (lambda (x) (+ x 1)))
+  (if (not (compiled-function-p (lambda (x) (+ x 1))))
       (lambda (exp) (eval exp t))
     ;; But do byte-compile the dispatchers once bootstrap is passed:
     ;; the performance difference is substantial (like a 5x speedup on
@@ -1087,7 +1087,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
      (re-search-forward base-re nil t))))
 
 ;; WORKAROUND: This can't be a defconst due to bug#21237.
-(defvar cl--generic-find-defgeneric-regexp "(\\(?:cl-\\)?defgeneric[ \t]+%s\\>")
+(defvar cl--generic-find-defgeneric-regexp "(\\(?:cl-\\)?defgeneric[ \t]+%s\\_>")
 
 (with-eval-after-load 'find-func
   (defvar find-function-regexp-alist)
@@ -1140,12 +1140,8 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
 
 (add-hook 'help-fns-describe-function-functions #'cl--generic-describe)
 (defun cl--generic-describe (function)
-  ;; Supposedly this is called from help-fns, so help-fns should be loaded at
-  ;; this point.
-  (declare-function help-fns-short-filename "help-fns" (filename))
   (let ((generic (if (symbolp function) (cl--generic function))))
     (when generic
-      (require 'help-mode)              ;Needed for `help-function-def' button!
       (save-excursion
         ;; Ensure that we have two blank lines (but not more).
         (unless (looking-back "\n\n" (- (point) 2))
@@ -1153,33 +1149,49 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
         (insert "This is a generic function.\n\n")
         (insert (propertize "Implementations:\n\n" 'face 'bold))
         ;; Loop over fanciful generics
-        (dolist (method (cl--generic-method-table generic))
-          (pcase-let*
-              ((`(,qualifiers ,args ,doc) (cl--generic-method-info method)))
-            ;; FIXME: Add hyperlinks for the types as well.
-            (let ((print-quoted nil)
-                  (quals (if (length> qualifiers 0)
-                             (concat (substring qualifiers
-                                                0 (string-match " *\\'"
-                                                                qualifiers))
-                                     "\n")
-                           "")))
-              (insert (format "%s%S"
-                              quals
-                              (cons function
-                                    (cl--generic-upcase-formal-args args)))))
-            (let* ((met-name (cl--generic-load-hist-format
-                              function
-                              (cl--generic-method-qualifiers method)
-                              (cl--generic-method-specializers method)))
-                   (file (find-lisp-object-file-name met-name 'cl-defmethod)))
-              (when file
-                (insert (substitute-command-keys " in `"))
-                (help-insert-xref-button (help-fns-short-filename file)
-                                         'help-function-def met-name file
-                                         'cl-defmethod)
-                (insert (substitute-command-keys "'.\n"))))
-            (insert "\n" (or doc "Undocumented") "\n\n")))))))
+        (cl--map-methods-documentation
+         function
+         (lambda (quals signature file doc)
+           (insert (format "%s%S%s\n\n%s\n\n"
+                           quals signature
+                           (if file (format-message " in `%s'." file) "")
+                           (or doc "Undocumented")))))))))
+
+(defun cl--map-methods-documentation (funname metname-printer)
+  "Iterate on FUNNAME's methods documentation at point."
+  ;; Supposedly this is called from help-fns, so help-fns should be loaded at
+  ;; this point.
+  (require 'help-fns)
+  (declare-function help-fns-short-filename "help-fns" (filename))
+  (let ((generic (if (symbolp funname) (cl--generic funname))))
+    (when generic
+      (require 'help-mode)              ;Needed for `help-function-def' button!
+      ;; Loop over fanciful generics
+      (dolist (method (cl--generic-method-table generic))
+        (pcase-let*
+            ((`(,qualifiers ,args ,doc) (cl--generic-method-info method))
+             ;; FIXME: Add hyperlinks for the types as well.
+             (quals (if (length> qualifiers 0)
+                        (concat (substring qualifiers
+                                           0 (string-match " *\\'"
+                                                           qualifiers))
+                                "\n")
+                      ""))
+             (met-name (cl--generic-load-hist-format
+                        funname
+                        (cl--generic-method-qualifiers method)
+                        (cl--generic-method-specializers method)))
+             (file (find-lisp-object-file-name met-name 'cl-defmethod)))
+          (funcall metname-printer
+                   quals
+                   (cons funname
+                         (cl--generic-upcase-formal-args args))
+                   (when file
+                     (make-text-button (help-fns-short-filename file) nil
+                                       'type 'help-function-def
+                                       'help-args
+                                       (list met-name file 'cl-defmethod)))
+                   doc))))))
 
 (defun cl--generic-specializers-apply-to-type-p (specializers type)
   "Return non-nil if a method with SPECIALIZERS applies to TYPE."
@@ -1318,67 +1330,38 @@ These match if the argument is `eql' to VAL."
 (cl--generic-prefill-dispatchers (terminal-parameter nil 'xterm--set-selection)
                                  (eql nil))
 
-;;; Support for cl-defstructs specializers.
+;;; Dispatch on "normal types".
 
-(defun cl--generic-struct-tag (name &rest _)
-  ;; Use exactly the same code as for `typeof'.
-  `(if ,name (type-of ,name) 'null))
-
-(defun cl--generic-struct-specializers (tag &rest _)
+(defun cl--generic-type-specializers (tag &rest _)
   (and (symbolp tag)
-       (let ((class (get tag 'cl--class)))
-         (when (cl-typep class 'cl-structure-class)
+       (let ((class (cl--find-class tag)))
+         (when class
            (cl--class-allparents class)))))
 
-(cl-generic-define-generalizer cl--generic-struct-generalizer
-  50 #'cl--generic-struct-tag
-  #'cl--generic-struct-specializers)
-
-(cl-defmethod cl-generic-generalizers :extra "cl-struct" (type)
-  "Support for dispatch on types defined by `cl-defstruct'."
-  (or
-   (when (symbolp type)
-     ;; Use the "cl--struct-class*" (inlinable) functions/macros rather than
-     ;; the "cl-struct-*" variants which aren't inlined, so that dispatch can
-     ;; take place without requiring cl-lib.
-     (let ((class (cl--find-class type)))
-       (and (cl-typep class 'cl-structure-class)
-            (or (null (cl--struct-class-type class))
-		(error "Can't dispatch on cl-struct %S: type is %S"
-                     type (cl--struct-class-type class)))
-            (progn (cl-assert (null (cl--struct-class-named class))) t)
-            (list cl--generic-struct-generalizer))))
-   (cl-call-next-method)))
-
-(cl--generic-prefill-dispatchers 0 cl--generic-generalizer)
-
-;;; Dispatch on "system types".
-
 (cl-generic-define-generalizer cl--generic-typeof-generalizer
-  ;; FIXME: We could also change `type-of' to return `null' for nil.
-  10 (lambda (name &rest _) `(if ,name (type-of ,name) 'null))
-  (lambda (tag &rest _)
-    (and (symbolp tag) (assq tag cl--typeof-types))))
+  10 (lambda (name &rest _) `(cl-type-of ,name))
+  #'cl--generic-type-specializers)
 
 (cl-defmethod cl-generic-generalizers :extra "typeof" (type)
-  "Support for dispatch on builtin types.
-See the full list and their hierarchy in `cl--typeof-types'."
-  ;; FIXME: Add support for other types accepted by `cl-typep' such
-  ;; as `character', `face', `function', ...
+  "Support for dispatch on types.
+This currently works for built-in types and types built on top of records."
+  ;; FIXME: Add support for other "types" accepted by `cl-typep' such
+  ;; as `character', `face', `keyword', ...?
   (or
-   (and (memq type cl--all-builtin-types)
-        (progn
-          ;; FIXME: While this wrinkle in the semantics can be occasionally
-          ;; problematic, this warning is more often annoying than helpful.
-          ;;(if (memq type '(vector array sequence))
-          ;;    (message "`%S' also matches CL structs and EIEIO classes"
-          ;;             type))
-          (list cl--generic-typeof-generalizer)))
+   (and (symbolp type)
+        (not (eq type t)) ;; Handled by the `t-generalizer'.
+        (let ((class (cl--find-class type)))
+          (memq (type-of class)
+                '(built-in-class cl-structure-class eieio--class)))
+        (list cl--generic-typeof-generalizer))
    (cl-call-next-method)))
 
 (cl--generic-prefill-dispatchers 0 integer)
 (cl--generic-prefill-dispatchers 1 integer)
 (cl--generic-prefill-dispatchers 0 cl--generic-generalizer integer)
+(cl--generic-prefill-dispatchers 0 (eql 'x) integer)
+
+(cl--generic-prefill-dispatchers 0 cl--generic-generalizer)
 
 ;;; Dispatch on major mode.
 
@@ -1391,11 +1374,8 @@ See the full list and their hierarchy in `cl--typeof-types'."
 
 (defun cl--generic-derived-specializers (mode &rest _)
   ;; FIXME: Handle (derived-mode <mode1> ... <modeN>)
-  (let ((specializers ()))
-    (while mode
-      (push `(derived-mode ,mode) specializers)
-      (setq mode (get mode 'derived-mode-parent)))
-    (nreverse specializers)))
+  (mapcar (lambda (mode) `(derived-mode ,mode))
+          (derived-mode-all-parents mode)))
 
 (cl-generic-define-generalizer cl--generic-derived-generalizer
   90 (lambda (name) `(and (symbolp ,name) (functionp ,name) ,name))
@@ -1420,19 +1400,13 @@ Used internally for the (major-mode MODE) context specializers."
 (defun cl--generic-oclosure-tag (name &rest _)
   `(oclosure-type ,name))
 
-(defun cl-generic--oclosure-specializers (tag &rest _)
-  (and (symbolp tag)
-       (let ((class (cl--find-class tag)))
-         (when (cl-typep class 'oclosure--class)
-           (oclosure--class-allparents class)))))
-
 (cl-generic-define-generalizer cl--generic-oclosure-generalizer
   ;; Give slightly higher priority than the struct specializer, so that
   ;; for a generic function with methods dispatching structs and on OClosures,
   ;; we first try `oclosure-type' before `type-of' since `type-of' will return
   ;; non-nil for an OClosure as well.
   51 #'cl--generic-oclosure-tag
-  #'cl-generic--oclosure-specializers)
+  #'cl--generic-type-specializers)
 
 (cl-defmethod cl-generic-generalizers :extra "oclosure-struct" (type)
   "Support for dispatch on types defined by `oclosure-define'."

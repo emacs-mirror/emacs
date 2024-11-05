@@ -1,6 +1,6 @@
 ;;; cperl-mode-tests.el --- Test for cperl-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Harald Jörg <haj@posteo.de>
 ;; Maintainer: Harald Jörg
@@ -25,6 +25,10 @@
 ;;; Commentary:
 
 ;; This is a collection of tests for CPerl-mode.
+;; The maintainer would like to use this test file with cperl-mode.el
+;; also in older Emacs versions (currently: Emacs 26.1): Please don't
+;; use Emacs features which are not available in that version (unless
+;; they're already used in existing tests).
 
 ;;; Code:
 
@@ -107,9 +111,8 @@ end of the statement."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (cperl--run-test-cases
    (ert-resource-file "cperl-indent-styles.pl")
-   (cperl-set-style "PBP")
-   (indent-region (point-min) (point-max)) ; here we go!
-   (cperl-set-style-back)))
+   (cperl-file-style "PBP")
+   (indent-region (point-min) (point-max)))) ; here we go!
 
 ;;; Fontification tests
 
@@ -213,6 +216,39 @@ attributes, prototypes and signatures."
                            'font-lock-variable-name-face)))
           (goto-char end-of-sub))))))
 
+(ert-deftest cperl-test-fontify-builtin-constants ()
+  "Test fontificiation of the floating point constants \"nan\" and \"inf\"."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((constants '("my $min=-builtin::inf;"
+                     "my $unknown = builtin::nan;"
+                     "if ($big == inf) {"
+                     "my $with_ampersand = &inf")))
+    (dolist (code constants)
+      (with-temp-buffer
+        (insert code)
+        (goto-char (point-min))
+        (funcall cperl-test-mode)
+        (font-lock-ensure)
+        (search-forward-regexp "&?\\(builtin::\\)?\\(inf\\|nan\\)")
+        (should (equal (get-text-property (match-beginning 0) 'face)
+                       'font-lock-constant-face)))))
+  ;; Also, test some things that are not these constants
+  (let ((lookalikes '(("sub inf { ... }" . font-lock-function-name-face)
+                      ("my $inf = 1E6;"  . font-lock-variable-name-face)
+                      ("$object->inf;"   . cperl-method-call))))
+    (dolist (doppelganger lookalikes)
+      (let ((code (car doppelganger))
+            (face (cdr doppelganger)))
+        (with-temp-buffer
+          (insert code)
+          (goto-char (point-min))
+          (funcall cperl-test-mode)
+          (font-lock-ensure)
+          (search-forward-regexp "&?\\(builtin::\\)?\\(inf\\|nan\\)")
+          (should (equal (get-text-property (match-beginning 0) 'face)
+                         face)))))))
+
+
 (ert-deftest cperl-test-fontify-class ()
   "Test fontification of the various elements in a Perl class."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
@@ -238,6 +274,24 @@ attributes, prototypes and signatures."
                      'font-lock-variable-name-face))
       (should (equal (get-text-property (match-beginning 1) 'face)
                      'font-lock-variable-name-face))
+      ;; Fields
+      (goto-char (point-min))
+      (search-forward-regexp "\\(field\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-keyword-face))
+      (search-forward-regexp "\\(decorated\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-variable-name-face))
+      (search-forward-regexp "\\(:param\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-constant-face))
+      (search-forward-regexp "\\(get_decoration\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-string-face))
+      ;; Initializers are no attributes
+      (search-forward-regexp "\\(not_an\\)")
+      (should-not (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-constant-face))
 )))
 
 (ert-deftest cperl-test-fontify-special-variables ()
@@ -513,7 +567,7 @@ Also includes valid cases with whitespace in strange places."
                                  valid invalid)))
 
 (ert-deftest cperl-test-attribute-list-rx ()
-  "Test attributes and attribute lists"
+  "Test attributes and attribute lists."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((valid
          '(":" ":foo" ": bar()" ":baz(quux):"
@@ -530,7 +584,26 @@ Also includes valid cases with whitespace in strange places."
     (cperl-test--validate-regexp (rx (eval cperl--attribute-list-rx))
                                  valid invalid)))
 
-(ert-deftest cperl-test-prototype-rx ()
+(ert-deftest cperl-test-field-declaration-rx ()
+  "Test field declarations with and without attributes."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((valid
+         '("field $fold"
+           "field @many"
+           "field %ofStrawberries"
+           "field $required :param"
+           "field $renamed :param(alias)"
+           "field $readable : param reader(get_readable)"))
+        (invalid
+         '("field name"                 ; missing sigil
+           "field $else::where"         ; invalid qualification
+           "field &code")))             ; invalid sigil
+    (cperl-test--validate-regexp (rx (eval cperl--field-declaration-rx))
+                                 valid invalid)))
+
+
+
+         (ert-deftest cperl-test-prototype-rx ()
   "Test subroutine prototypes"
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let ((valid
@@ -558,6 +631,21 @@ Also includes valid cases with whitespace in strange places."
            "{$self}")))          ; wrong type of paren
     (cperl-test--validate-regexp (rx (eval cperl--signature-rx))
                                  valid invalid)))
+
+(ert-deftest cperl-test-autogenerated-reader-rx ()
+  (let ((code-examples '("field $name :reader;"
+                         "field $field :reader(name);"
+                         "field $name :param :reader;"
+                         "field $field :param :reader(name);"
+                         "field $field :reader(name) :param;"
+                         "field $field :reader(name) = 'value';")))
+    (dolist (code code-examples)
+      (with-temp-buffer
+        (insert code)
+        (goto-char (point-min))
+        (search-forward-regexp (rx (eval cperl--sub-name-generated-rx)))
+        (should (string= (match-string 1) "reader"))
+        (should (string= (match-string 2) "name"))))))
 
 ;;; Test unicode identifier in various places
 
@@ -601,7 +689,7 @@ point after the first occurrence of STRING (no regexp!)."
       (goto-char (point-min))
       (search-forward "-34")
       (beginning-of-defun)
-     (should (looking-at "sub")))))
+      (should (looking-at "sub")))))
 
 (ert-deftest cperl-test-unicode-varname ()
   (with-temp-buffer
@@ -824,6 +912,41 @@ perl-mode generally does not stringify bareword hash keys."
         (insert word)
         (should (string= word (cperl-word-at-point-hard)))))))
 
+(ert-deftest cperl-test-extra-delimiters ()
+  "Test whether cperl-mode can process unicode delimiters.
+The minor mode `cperl-extra-paired-delimiters-mode' controls whether we
+have extra paired delimiters."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "extra-delimiters.pl"))
+    (funcall cperl-test-mode)
+    (cperl-extra-paired-delimiters-mode t)
+    (font-lock-ensure)
+    (goto-char (point-min))
+    (search-forward-regexp "\\(label:\\)")
+    (should (equal (get-text-property (match-beginning 1) 'face)
+                   font-lock-constant-face))
+    (search-forward-regexp "\\(comment\\)")
+    (should (equal (get-text-property (match-beginning 1) 'face)
+                   font-lock-comment-face))
+    (search-forward-regexp "\\(sanity\\)")
+    (should (equal (get-text-property (match-beginning 1) 'face)
+                   font-lock-variable-name-face))
+    ;; Now switch off the minor mode and redo
+    (cperl-extra-paired-delimiters-mode -1)
+    (font-lock-ensure)
+    (goto-char (point-min))
+    (search-forward-regexp "\\(label:\\)")
+    (should (equal (get-text-property (match-beginning 1) 'face)
+                   font-lock-string-face))
+    (search-forward-regexp "\\(comment\\)")
+    (should (equal (get-text-property (match-beginning 1) 'face)
+                   font-lock-string-face))
+    (search-forward-regexp "\\(sanity\\)")
+    (should (equal (get-text-property (match-beginning 1) 'face)
+                   font-lock-variable-name-face))))
+
+
 ;;; Function test: Building an index for imenu
 
 (ert-deftest cperl-test-imenu-index ()
@@ -850,9 +973,12 @@ created by CPerl mode, so skip it for Perl mode."
                         "Package::in_package_again"
                         "Erdős::Number::erdős_number"
                         "Class::Class::init"
-                        "Class::Inner::init_again")))
+                        "Class::Inner::init_again"
+                        "With::Readers::auto_reader"
+                        "With::Readers::named")))
         (dolist (sub expected)
-          (should (assoc-string sub index)))))))
+          (should (assoc-string sub index))))
+      (should-not (assoc-string "_false" index)))))
 
 ;;; Tests for issues reported in the Bug Tracker
 
@@ -1139,6 +1265,19 @@ Perl is not Lisp: An open paren in column 0 does not start a function."
      (cperl-indent-command)
      (forward-line 1))))
 
+(ert-deftest cperl-test-bug-35925 ()
+  "Check that indentation is correct after a terminating format declaration."
+  (cperl--run-test-cases
+   (ert-resource-file "cperl-bug-35925.pl")
+   (cperl-file-style "PBP") ; Make cperl-mode use the same settings as perl-mode.
+   (let ((tab-function
+          (if (equal cperl-test-mode 'perl-mode)
+              #'indent-for-tab-command
+            #'cperl-indent-command)))
+     (goto-char (point-max))
+     (forward-line -2)
+     (funcall tab-function))))
+
 (ert-deftest cperl-test-bug-37127 ()
   "Verify that closing a paren in a regex goes without a message.
 Also check that the message is issued if the regex terminator is
@@ -1309,7 +1448,7 @@ as a regex."
 
       ;; Example 3 and 4 can't be directly tested because jit-lock and
       ;; batch tests don't play together well.  But we can approximate
-      ;; the behavior by calling the the fontification for the same
+      ;; the behavior by calling the fontification for the same
       ;; region which would be used by jit-lock.
       ;; Example 3
       (search-forward "sub do_stuff")
@@ -1345,12 +1484,13 @@ as a regex."
 
 (ert-deftest cperl-test-bug-64364 ()
   "Check that multi-line subroutine declarations indent correctly."
-  (cperl-set-style "PBP") ; make cperl-mode use the same settings as perl-mode
   (cperl--run-test-cases
    (ert-resource-file "cperl-bug-64364.pl")
+   (cperl-file-style "PBP") ; make cperl-mode use the same settings as perl-mode
    (indent-region (point-min) (point-max)))
   (cperl--run-test-cases
    (ert-resource-file "cperl-bug-64364.pl")
+   (cperl-file-style "PBP") ; make cperl-mode use the same settings as perl-mode
    (let ((tab-function
           (if (equal cperl-test-mode 'perl-mode)
               #'indent-for-tab-command
@@ -1358,9 +1498,97 @@ as a regex."
      (goto-char (point-min))
      (while (null (eobp))
        (funcall tab-function)
-       (forward-line 1))))
-  (cperl-set-style-back))
+       (forward-line 1)))))
 
+(ert-deftest cperl-test-bug-65834 ()
+  "Verify that CPerl mode identifies a left-shift operator.
+Left-shift and here-documents both use the \"<<\" operator.
+In the code provided by this bug report, it needs to be
+detected as left-shift operator."
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "cperl-bug-65834.pl"))
+    (funcall cperl-test-mode)
+    (font-lock-ensure)
+    (search-forward "retur")             ; leaves point before the "n"
+    (should (equal (get-text-property (point) 'face)
+                   font-lock-keyword-face))
+    (search-forward "# comm")           ; leaves point before "ent"
+    (should (equal (get-text-property (point) 'face)
+                   font-lock-comment-face))))
+
+(ert-deftest cperl-test-bug-66145 ()
+  "Verify that hashes and arrays are only fontified in code.
+In strings, comments and POD the syntaxified faces should
+prevail.  The tests exercise all combinations of sigils $@% and
+parenthesess [{ for comments, POD, strings and HERE-documents.
+Fontification in code for `cperl-mode' is done in the tests
+beginning with `cperl-test-unicode`."
+  (let ((types '("array" "hash" "key"))
+        (faces `(("string"  . font-lock-string-face)
+                 ("comment" . font-lock-comment-face)
+                 ("here"    . ,(if (equal cperl-test-mode 'perl-mode)
+                                   'perl-heredoc
+                                 font-lock-string-face)))))
+    (with-temp-buffer
+      (insert-file-contents (ert-resource-file "cperl-bug-66145.pl"))
+      (funcall cperl-test-mode)
+      (font-lock-ensure)
+      (dolist (type types)
+        (goto-char (point-min))
+        (while (re-search-forward (concat type "_\\([a-z]+\\)") nil t)
+          (should (equal (get-text-property (match-beginning 1) 'face)
+                         (cdr (assoc (match-string-no-properties 1)
+                                     faces)))))))))
+
+(ert-deftest cperl-test-bug-66161 ()
+  "Verify that text after \"__END__\" is fontified as comment.
+For `cperl-mode', this needs the custom variable
+`cperl-fontify-trailer' to be set to `comment'.  Per default,
+cperl-mode fontifies text after the delimiter as Perl code."
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "cperl-bug-66161.pl"))
+    (setq cperl-fontify-trailer 'comment)
+    (funcall cperl-test-mode)
+    (font-lock-ensure)
+    (search-forward "TODO")             ; leaves point before the colon
+    (should (equal (get-text-property (point) 'face)
+                   font-lock-comment-face))))
+
+(ert-deftest cperl-test-bug-69604 ()
+  "Verify that $\" in a double-quoted string does not end the string.
+Both `perl-mode' and `cperl-mode' treat ?$ as a quoting/escaping char to
+avoid issues with punctuation variables.  In a string, however, this is
+not appropriate."
+  (let ((strings
+         '("\"$\\\"      in string ---\"; # \"" ; $ must not quote \
+           "$\"     . \" in string ---\"; # \"" ; $ must quote \
+           "\"\\$\" . \" in string ---\"; # \""))) ; \$ must not quote
+    (dolist (string strings)
+      (with-temp-buffer
+        (insert string)
+        (funcall cperl-test-mode)
+        (font-lock-ensure)
+        (goto-char (point-min))
+        (search-forward "in string")
+        (should (equal (get-text-property (point) 'face)
+                       font-lock-string-face))))))
+
+(ert-deftest cperl-test-bug-72296 ()
+  "Verify that the perl modes correctly handle the flip-flop operator.
+Two successive dots are an operator.  A slash immediately following them
+starts a regular expression, if there's another term between the dots
+and the slash, then we have a division."
+  :tags '(:fontification)
+  ;; Code from the bug report.  The slash is a division.  The following
+  ;; number is not a string.
+  (let ((code "for (2..$n/2) { ...; }"))
+    (should (equal (nth 8 (cperl-test-ppss code "/")) nil)))
+  ;; This is what the test for two successive dots wants to catch: The
+  ;; flip-flop operator.  Here, the number is part of a regexp, seen as
+  ;; a string.
+  (let ((code "for (2../2/) { ...; }"))
+    (should (equal (nth 8 (cperl-test-ppss code "/")) 9)))
+  )
 
 (ert-deftest test-indentation ()
   (ert-test-erts-file (ert-resource-file "cperl-indents.erts")))

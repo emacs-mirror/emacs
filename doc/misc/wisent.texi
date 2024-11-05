@@ -24,7 +24,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1988--1993, 1995, 1998--2004, 2007, 2012--2023
+Copyright @copyright{} 1988--1993, 1995, 1998--2004, 2007, 2012--2024
 Free Software Foundation, Inc.
 
 @c Since we are both GNU manuals, we do not need to ack each other here.
@@ -109,7 +109,7 @@ described in the @ref{Top, Semantic Manual, Semantic Manual, semantic}.
 @chapter Wisent Overview
 
 @dfn{Wisent} (the European Bison) is an implementation in Emacs Lisp
-of the GNU Compiler Compiler Bison. Its code is a port of the C code
+of the GNU Compiler Compiler Bison.  Its code is a port of the C code
 of GNU Bison 1.28 & 1.31.
 
 For more details on the basic concepts for understanding Wisent, it is
@@ -383,7 +383,8 @@ On the other hand, @var{precedence} explicitly assign the precedence
 level of the given terminal to a rule.
 
 @cindex semantic actions
-@item @anchor{action}action
+@anchor{action}
+@item action
 An action is an optional Emacs Lisp function call, like this:
 
 @code{(identity $1)}
@@ -1575,9 +1576,6 @@ To use the Wisent parser with @semantic{} you have to define
 your grammar in @dfn{WY} form, a grammar format very close
 to the one used by Bison.
 
-Please see @ref{top, Semantic Grammar Framework Manual,, grammar-fw},
-for more information on @semantic{} grammars.
-
 @menu
 * Grammar styles::
 * Wisent Lex::
@@ -1794,12 +1792,12 @@ environment.
 @samp{grammar} rule.  The semantic action uses the @code{TAG} macro to
 produce a raw tag, automagically expanded by @semantic{}.
 
-But @samp{rules} part is parsed in Bison style! Why?
+But @samp{rules} part is parsed in Bison style!  Why?
 
 Rule delimiters are the colon (@code{:}), that follows the nonterminal
 name, and a final semicolon (@code{;}).  Unfortunately these
 delimiters are not @code{open-paren}/@code{close-paren} type, and the
-Emacs' syntactic analyzer can't easily isolate data between them to
+Emacs syntactic analyzer can't easily isolate data between them to
 produce a @samp{RULES_PART} parenthesis-block-like lexical token.
 Consequently it is not possible to use @code{EXPANDFULL} to iterate in
 @samp{RULES_PART}, like this:
@@ -1962,8 +1960,7 @@ See implementation of the function @code{wisent-skip-token} in
 
 @findex semantic-lex
 The lexical analysis step of @semantic{} is performed by the general
-function @code{semantic-lex}.  For more information, see @ref{Writing
-Lexers, Semantic Language Development,,semantic-langdev}.
+function @code{semantic-lex}.
 
 @code{semantic-lex} produces lexical tokens of the form:
 

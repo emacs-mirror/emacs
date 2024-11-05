@@ -1,6 +1,6 @@
 ;;; erc-status-sidebar.el --- HexChat-like activity overview for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017, 2020-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2017, 2020-2024 Free Software Foundation, Inc.
 
 ;; Author: Andrew Barbarello
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -102,7 +102,7 @@ Only consulted for certain values of `erc-status-sidebar-style'."
   "Whether to highlight the selected window's buffer in the sidebar.
 ERC uses the same instance across all frames.  May not be
 compatible with all values of `erc-status-sidebar-style'."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type 'boolean)
 
 (defcustom erc-status-sidebar-style 'all-queries-first
@@ -130,12 +130,12 @@ buffers, using the functions
   `erc-status-sidebar-pad-hierarchy'
 
 for the above-mentioned purposes.  ERC also accepts a list of
-functions to preform these roles a la carte.  Since the members
+functions to perform these roles a la carte.  Since the members
 of the above sets aren't really interoperable, we don't offer
 them here as customization choices, but you can still specify
 them manually.  See doc strings for a description of their
 expected arguments and return values."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const channels-only)
                  (const all-mixed)
                  (const all-queries-first)
@@ -150,7 +150,7 @@ expected arguments and return values."
   "How to display a buffer when clicked.
 Values can be anything recognized by `display-buffer' for its
 ACTION parameter."
-  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :package-version '(ERC . "5.6")
   :type '(choice (const :tag "Always use/create other window" t)
                  (const :tag "Let `display-buffer' decide" nil)
                  (const :tag "Same window" (display-buffer-same-window
@@ -192,7 +192,7 @@ If NO-CREATION is non-nil, the window is not created."
       (set-window-parameter sidebar-window 'no-delete-other-windows t)
       ;; Don't cycle to this window with `other-window'.
       (set-window-parameter sidebar-window 'no-other-window t)
-      (internal-show-cursor sidebar-window nil)
+      (setq cursor-type nil)
       (set-window-fringes sidebar-window 0 0)
       ;; Set a custom display table so the window doesn't show a
       ;; truncation symbol when a channel name is too big.
@@ -257,17 +257,18 @@ current frame only."
          " Add `track' to `erc-modules' to silence this message."))
      (erc-track-mode +1))
    (add-hook 'erc--setup-buffer-hook #'erc-status-sidebar--open)
-   (unless erc--updating-modules-p
-     (if (erc-with-server-buffer erc-server-connected)
-         (erc-status-sidebar--open)
-       (when (derived-mode-p 'erc-mode)
-         (erc-error "Not initializing `erc-bufbar-mode' in %s"
-                    (current-buffer))))))
+   ;; Preserve side-window dimensions after `custom-buffer-done'.
+   (when-let* (((not erc--updating-modules-p))
+               (buf (or (and (derived-mode-p 'erc-mode) (current-buffer))
+                        (car (erc-buffer-filter
+                              (lambda () erc-server-connected))))))
+     (with-current-buffer buf
+       (erc-status-sidebar--open))))
   ((remove-hook 'erc--setup-buffer-hook #'erc-status-sidebar--open)
    (erc-status-sidebar-close 'all-frames)
-   (when-let ((arg erc--module-toggle-prefix-arg)
-              ((numberp arg))
-              ((< arg 0)))
+   (when-let* ((arg erc--module-toggle-prefix-arg)
+               ((numberp arg))
+               ((< arg 0)))
      (erc-status-sidebar-kill))))
 
 ;;;###autoload
@@ -307,7 +308,7 @@ even if one already exists in another frame."
 
 (defun erc-status-sidebar-prefer-target-as-name (buffer)
   "Return some name to represent buffer in the sidebar."
-  (if-let ((target (buffer-local-value 'erc--target buffer)))
+  (if-let* ((target (buffer-local-value 'erc--target buffer)))
       (cond ((and erc-status-sidebar--trimpat (erc--target-channel-p target))
              (string-trim-left (erc--target-string target)
                                erc-status-sidebar--trimpat))
@@ -339,8 +340,8 @@ even if one already exists in another frame."
                   (let ((erc-status-sidebar--trimpat
                          (and (eq erc-status-sidebar-style 'all-mixed)
                               (with-current-buffer (process-buffer proc)
-                                (when-let ((ch-pfxs (erc--get-isupport-entry
-                                                     'CHANTYPES 'single)))
+                                (when-let* ((ch-pfxs (erc--get-isupport-entry
+                                                      'CHANTYPES 'single)))
                                   (regexp-quote ch-pfxs)))))
                         (erc-status-sidebar--prechan
                          (and (eq erc-status-sidebar-style
@@ -483,7 +484,7 @@ name stand out."
       (cl-assert (eq major-mode 'erc-status-sidebar-mode))
       (cl-assert (eq (selected-window) window))
       (cl-assert (eq (window-buffer window) (current-buffer)))
-      (when-let ((buf (get-text-property pos 'erc-buf)))
+      (when-let* ((buf (get-text-property pos 'erc-buf)))
         ;; Option operates relative to last selected window
         (select-window (get-mru-window nil nil 'not-selected))
         (pop-to-buffer buf erc-status-sidebar-click-display-action)))))

@@ -1,6 +1,6 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <michael@mauger.com>
@@ -234,10 +234,6 @@
 (require 'thingatpt)
 (require 'view)
 (eval-when-compile (require 'subr-x))   ; string-empty-p
-
-(defvar font-lock-keyword-face)
-(defvar font-lock-set-defaults)
-(defvar font-lock-string-face)
 
 ;;; Allow customization
 
@@ -873,7 +869,13 @@ current input in the SQLi buffer to the process."
   :type '(choice (const :tag "Nothing" nil)
 		 (const :tag "The semicolon `;'" semicolon)
 		 (const :tag "The string `go' by itself" go))
-  :version "20.8")
+  :initialize #'custom-initialize-default
+  :set (lambda (symbol value)
+         (custom-set-default symbol value)
+         (if (eq value 'go)
+             (add-hook 'post-self-insert-hook 'sql-magic-go)
+           (remove-hook 'post-self-insert-hook 'sql-magic-go)))
+  :version "31.1")
 
 (defcustom sql-send-terminator nil
   "When non-nil, add a terminator to text sent to the SQL interpreter.
@@ -1191,12 +1193,11 @@ Starts `sql-interactive-mode' after doing some setup."
 
 (defcustom sql-postgres-options '("-P" "pager=off")
   "List of additional options for `sql-postgres-program'.
-The default setting includes the -P option which breaks older versions
-of the psql client (such as version 6.5.3).  The -P option is equivalent
-to the --pset option.  If you want the psql to prompt you for a user
-name, add the string \"-u\" to the list of options.  If you want to
-provide a user name on the command line (newer versions such as 7.1),
-add your name with a \"-U\" prefix (such as \"-Umark\") to the list."
+The default -P option is equivalent to the --pset option.  If you
+want psql to prompt you for a user name, add the string \"-u\" to
+the list of options.  If you want to provide a user name on the
+command line, add your name with a \"-U\" prefix (such as
+\"-Umark\") to the list."
   :type '(repeat string)
   :version "20.8")
 
@@ -1364,8 +1365,6 @@ Based on `comint-mode-map'."
   :parent comint-mode-map
   "C-j"       #'sql-accumulate-and-indent
   "C-c C-w"   #'sql-copy-column
-  "O"         #'sql-magic-go
-  "o"         #'sql-magic-go
   ";"         #'sql-magic-semicolon
   "C-c C-l a" #'sql-list-all
   "C-c C-l t" #'sql-list-table)
@@ -2671,11 +2670,11 @@ highlighting rules in SQL mode.")
   "Read a valid SQL product."
   (let ((init (or (and initial (symbol-name initial)) "ansi")))
     (intern (completing-read
-             prompt
+             (format-prompt prompt init)
              (mapcar (lambda (info) (symbol-name (car info)))
                      sql-product-alist)
              nil 'require-match
-             init 'sql-product-history init))))
+             nil 'sql-product-history init))))
 
 (defun sql-add-product (product display &rest plist)
   "Add support for a database product in `sql-mode'.
@@ -2917,7 +2916,7 @@ adds a fontification pattern to fontify identifiers ending in
 (defun sql-set-product (product)
   "Set `sql-product' to PRODUCT and enable appropriate highlighting."
   (interactive
-   (list (sql-read-product "SQL product: ")))
+   (list (sql-read-product "SQL product")))
   (if (stringp product) (setq product (intern product)))
   (when (not (assoc product sql-product-alist))
     (user-error "SQL product %s is not supported; treated as ANSI" product)
@@ -3072,16 +3071,16 @@ displayed."
 
 ;;; Small functions
 
-(defun sql-magic-go (arg)
+(defun sql-magic-go ()
   "Insert \"o\" and call `comint-send-input'.
 `sql-electric-stuff' must be the symbol `go'."
-  (interactive "P")
-  (self-insert-command (prefix-numeric-value arg))
-  (if (and (equal sql-electric-stuff 'go)
-	   (save-excursion
-	     (comint-bol nil)
-	     (looking-at "go\\b")))
-      (comint-send-input)))
+  (and (eq major-mode 'sql-interactive-mode)
+       (equal sql-electric-stuff 'go)
+       (or (eq last-command-event ?o) (eq last-command-event ?O))
+       (save-excursion
+	 (comint-bol nil)
+	 (looking-at "go\\b"))
+       (comint-send-input)))
 (put 'sql-magic-go 'delete-selection t)
 
 (defun sql-magic-semicolon (arg)
@@ -3096,9 +3095,7 @@ displayed."
 (defun sql-accumulate-and-indent ()
   "Continue SQL statement on the next line."
   (interactive)
-  (if (fboundp 'comint-accumulate)
-      (comint-accumulate)
-    (newline))
+  (comint-accumulate)
   (indent-according-to-mode))
 
 (defun sql-help-list-products (indent freep)
@@ -3728,6 +3725,8 @@ prompts (`sql-output-newline-count' is positive).  In this case:
 	  (save-excursion
 	    ;; Set product context
 	    (with-current-buffer sql-buffer
+              ;; Make sure point is at EOB before sending input to SQL.
+              (goto-char (point-max))
               (when sql-debug-send
                 (message ">>SQL> %S" s))
               (insert "\n")
@@ -4551,7 +4550,7 @@ the call to \\[sql-product-interactive] with
   (setq product
         (cond
          ((= (prefix-numeric-value product) 4) ; C-u, prompt for product
-          (sql-read-product "SQL product: " sql-product))
+          (sql-read-product "SQL product" sql-product))
          ((assoc product sql-product-alist) ; Product specified
           product)
          (t sql-product)))              ; Default to sql-product

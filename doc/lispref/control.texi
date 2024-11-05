@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
+@c Copyright (C) 1990--2024 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Control Structures
@@ -36,13 +36,14 @@ evaluated sequentially.  You can use macros to define your own control
 structure constructs (@pxref{Macros}).
 
 @menu
-* Sequencing::             Evaluation in textual order.
-* Conditionals::           @code{if}, @code{cond}, @code{when}, @code{unless}.
-* Combining Conditions::   @code{and}, @code{or}, @code{not}, and friends.
+* Sequencing::                  Evaluation in textual order.
+* Conditionals::                @code{if}, @code{cond}, @code{when}, @code{unless}.
+* Combining Conditions::        @code{and}, @code{or}, @code{not}, and friends.
 * Pattern-Matching Conditional::  How to use @code{pcase} and friends.
-* Iteration::              @code{while} loops.
-* Generators::             Generic sequences and coroutines.
-* Nonlocal Exits::         Jumping out of a sequence.
+* Iteration::                   @code{while} loops.
+* Generators::                  Generic sequences and coroutines.
+* Nonlocal Exits::              Jumping out of a sequence.
+* Conditional Compilation::     A facility like C's #if.
 @end menu
 
 @node Sequencing
@@ -312,29 +313,40 @@ to make this easier and more readable.  The above can be written the
 following way instead:
 
 @example
-(when-let ((result1 (do-computation))
-           (result2 (do-more result1)))
+(when-let* ((result1 (do-computation))
+            (result2 (do-more result1)))
   (do-something result2))
 @end example
 
 There's a number of variations on this theme, and they're briefly
 described below.
 
-@defmac if-let spec then-form else-forms...
-Evaluate each binding in @var{spec} in turn, like in @code{let*}
-(@pxref{Local Variables}, stopping if a binding value is @code{nil}.
+@defmac if-let* varlist then-form else-forms...
+Evaluate each binding in @var{varlist} in turn, like in @code{let*}
+(@pxref{Local Variables}), stopping if a binding value is @code{nil}.
 If all are non-@code{nil}, return the value of @var{then-form},
 otherwise the last form in @var{else-forms}.
 @end defmac
 
-@defmac when-let spec then-forms...
-Like @code{if-let}, but without @var{else-forms}.
+@defmac when-let* varlist then-forms...
+Like @code{if-let*}, but without @var{else-forms}.
+@end defmac
+
+@defmac and-let* varlist then-forms...
+Like @code{when-let*}, but in addition, if there are no
+@var{then-forms} and all the bindings evaluate to non-@code{nil}, return
+the value of the last binding.
 @end defmac
 
 @defmac while-let spec then-forms...
-Like @code{when-let}, but repeat until a binding in @var{spec} is
+Like @code{when-let*}, but repeat until a binding in @var{spec} is
 @code{nil}.  The return value is always @code{nil}.
 @end defmac
+
+Some Lisp programmers follow the convention that @code{and} and
+@code{and-let*} are for forms evaluated for return value, and
+@code{when} and @code{when-let*} are for forms evaluated for side-effect
+with returned values ignored.
 
 @node Combining Conditions
 @section Constructs for Combining Conditions
@@ -349,7 +361,8 @@ kinds of multiple conditional constructs.
 This function tests for the falsehood of @var{condition}.  It returns
 @code{t} if @var{condition} is @code{nil}, and @code{nil} otherwise.
 The function @code{not} is identical to @code{null}, and we recommend
-using the name @code{null} if you are testing for an empty list.
+using the name @code{null} if you are testing for an empty list or
+@code{nil} value.
 @end defun
 
 @defspec and conditions@dots{}
@@ -535,6 +548,7 @@ sometimes ``the value matches the pattern'').
 * Extending @code{pcase}: Extending pcase.  Define new kinds of patterns.
 * Backquote-Style Patterns: Backquote Patterns.  Structural patterns matching.
 * Destructuring with pcase Patterns:: Using pcase patterns to extract subfields.
+* The @code{cond*} macro: cond* Macro.  Alternative to @code{pcase}.
 @end menu
 
 @node pcase Macro
@@ -597,6 +611,10 @@ Two symbols to avoid are @code{t}, which behaves like @code{_}
 Likewise, it makes no sense to bind keyword symbols
 (@pxref{Constant Variables}).
 
+@item `@var{qpat}
+A backquote-style pattern.  @xref{Backquote Patterns}, for the
+details.
+
 @item (cl-type @var{type})
 Matches if @var{expval} is of type @var{type}, which is a type
 descriptor as accepted by @code{cl-typep} (@pxref{Type Predicates,,,cl,Common
@@ -633,6 +651,16 @@ with @var{n} arguments (the other elements) and an additional
 Example: @code{(= 42)}@*
 In this example, the function is @code{=}, @var{n} is one, and
 the actual function call becomes: @w{@code{(= 42 @var{expval})}}.
+
+@item function call with an @code{_} arg
+Call the function (the first element of the function call)
+with the specified arguments (the other elements) and replacing
+@code{_} with @var{expval}.
+
+Example: @code{(gethash _ memo-table)}
+In this example, the function is @code{gethash}, and
+the actual function call becomes: @w{@code{(gethash @var{expval}
+memo-table)}}.
 @end table
 
 @item (app @var{function} @var{pattern})
@@ -724,7 +752,7 @@ has over @code{cl-case}
   ;; symbol
   ('success       (message "Done!"))
   ('would-block   (message "Sorry, can't do it now"))
-  ('read-only     (message "The shmliblick is read-only"))
+  ('read-only     (message "The schmilblick is read-only"))
   ('access-denied (message "You do not have the needed rights"))
 @end group
 @group
@@ -1021,11 +1049,11 @@ For example, the following is invalid:
 
 @group
 Enter an integer: 42
-@error{} Symbol’s value as variable is void: o-num
+@error{} Symbol's value as variable is void: o-num
 @end group
 @group
 Enter an integer: 149
-@error{} Symbol’s value as variable is void: e-num
+@error{} Symbol's value as variable is void: e-num
 @end group
 @end example
 
@@ -1235,7 +1263,8 @@ The first three clauses use backquote-style patterns.
 @code{`(add ,x ,y)} is a pattern that checks that @code{form}
 is a three-element list starting with the literal symbol @code{add},
 then extracts the second and third elements and binds them
-to symbols @code{x} and @code{y}, respectively.
+to symbols @code{x} and @code{y}, respectively.  This is known as
+@dfn{destructuring}, see @ref{Destructuring with pcase Patterns}.
 The clause body evaluates @code{x} and @code{y} and adds the results.
 Similarly, the @code{call} clause implements a function call,
 and the @code{fn} clause implements an anonymous function definition.
@@ -1280,11 +1309,11 @@ fail, @code{pcase} will immediately return @code{nil} without calling
 @code{message}.
 
 Extraction of multiple values stored in an object is known as
-@dfn{destructuring}.  Using @code{pcase} patterns allows to perform
-@dfn{destructuring binding}, which is similar to a local binding
-(@pxref{Local Variables}), but gives values to multiple elements of
-a variable by extracting those values from an object of compatible
-structure.
+@dfn{destructuring}.  Using @code{pcase} patterns allows you to
+perform @dfn{destructuring binding}, which is similar to a local
+binding (@pxref{Local Variables}), but gives values to multiple
+elements of a variable by extracting those values from an object of
+compatible structure.
 
 The macros described in this section use @code{pcase} patterns to
 perform destructuring binding.  The condition of the object to be of
@@ -1301,11 +1330,18 @@ example:
 does the same as the previous example, except that it directly tries
 to extract @code{x} and @code{y} from @code{my-list} without first
 verifying if @code{my-list} is a list which has the right number of
-elements and has @code{add} as its first element.  The precise
-behavior when the object does not actually match the pattern is
-undefined, although the body will not be silently skipped: either an
-error is signaled or the body is run with some of the variables
-potentially bound to arbitrary values like @code{nil}.
+elements and has @code{add} as its first element.
+
+The precise behavior when the object does not actually match the pattern
+depends on the types, although the body will not be silently skipped:
+either an error is signaled or the body is run with some of the
+variables bound to arbitrary values like @code{nil}.
+For example, the above pattern will result in @var{x} and @var{y}
+being extracted with operations like @code{car} or @code{nth}, so they
+will get value @code{nil} when @var{my-list} is too short.  In contrast,
+with a pattern like @code{`[add ,x ,y]}, those same variables would
+be extracted using @code{aref} which would signal an error if
+@var{my-list} is not an array or is too short.
 
 The pcase patterns that are useful for destructuring bindings are
 generally those described in @ref{Backquote Patterns}, since they
@@ -1383,6 +1419,152 @@ argument:
 (funcall fun '(foo . 2))
     @result{} [foo 20]
 @end example
+@end defmac
+
+@node cond* Macro
+@subsection The @code{cond*} macro
+@findex cond*@r{, a macro}
+
+  The @code{cond*} macro is an alternative to @code{pcase}, and supports
+the same functionality, but using syntax that some might find less
+cryptic.
+
+@defmac cond* &rest clauses
+The @code{cond*} macro is an extended form of the traditional
+@code{cond}.  A @code{cond*} expression contains a series of
+@var{clauses}, each of which can use @code{bind*} to specify binding
+variables, use @code{match*} to specify matching a pattern as a
+condition, or specify an expression as a condition to evaluate as a
+test.
+
+Each clause normally has the form @w{@code{(@var{condition}
+@var{body}@dots{})}}.
+
+@var{condition} can be a Lisp expression, as in @code{cond}
+(@pxref{Conditionals}).  Or it can be @w{@code{(bind*
+@var{bindings}@dots{})}} or @w{@code{(match* @var{pattern}
+@var{datum})}}.
+
+@findex bind*
+@code{(bind* @var{bindings}@dots{})} means to bind @var{bindings} (like
+the bindings list in @code{let*}, @pxref{Local Variables}) for the body
+of the clause.  As a condition, it counts as true if the first binding's
+value is non-@code{nil}.
+
+@findex match*
+@findex pcase*
+@code{(match* @var{pattern} @var{datum})} means to match @var{datum}
+against the specified @var{pattern}.  The condition counts as true if
+@var{pattern} matches @var{datum}.  The pattern can specify variables to
+bind to the parts of @var{datum} that they match.
+@code{(pcase* @var{pattern} @var{datum})} works in the same way except it
+uses the Pcase syntax for @var{pattern}.
+
+@code{bind*}, @code{match*}, and @code{pcase*} normally bind their bindings over
+the execution of the whole containing clause.  However, if the clause is
+written to specify ``non-exit'', the clause's bindings cover the whole
+rest of the @code{cond*}.
+
+When a clause's condition is true, and it exits the @code{cond*} or is
+the last clause, the value of the last expression in the clause's body
+becomes the return value of the @code{cond*} construct.
+
+@subheading Non-exit clause
+
+If a clause has only one element, or if its first element is @code{t},
+or if it ends with the keyword @code{:non-exit}, then this clause never
+exits the @code{cond*} construct.  Instead, control falls through to the
+next clause (if any).  The bindings made in @var{condition} for the
+@var{body} of the non-exit clause are passed along to the rest of the
+clauses in this @code{cond*} construct.
+
+Note: @code{pcase*} does not support @code{:non-exit}, and when used in
+a non-exit clause, it follows the semantics of @code{pcase-let}, see
+@ref{Destructuring with pcase Patterns}.
+
+@subheading Matching clauses
+
+A matching clause looks like @code{(match* @var{pattern} @var{datum})}.
+It evaluates the expression @var{datum} and matches the pattern
+@var{pattern} (which is not evaluated) against it.
+
+@var{pattern} allows these kinds of patterns, and those that are lists
+often include other patterns within them:
+
+@table @code
+@item _
+Matches any value.
+@item @var{keyword}
+Matches that keyword.
+@item nil
+Matches @code{nil}.
+@item t
+Matches @code{t}.
+@item @var{symbol}
+Matches any value and binds @var{symbol} to that value.  If @var{symbol}
+has been matched and bound earlier in this pattern, it matches here the
+same value that it matched before.
+@item @var{regexp}
+Matches a string if @var{regexp} matches it.  The match must cover the
+entire string from its first char to its last.
+@item @var{atom}
+(Meaning any other kind of non-list not described above.)  Matches
+anything `equal' to it.
+@item (rx @var{regexp})
+Uses a regexp specified in s-expression form, as in the function
+@code{rx} (@pxref{Rx Notation}, and matches the data that way.
+@item (rx @var{regexp} @var{sym0} @var{sym1}@dots{})
+Uses a regexp specified in s-expression form, and binds the symbols
+@var{sym0}, @var{sym1}, and so on to @w{@code{(match-string 0
+@var{datum})}}, @w{@code{(match-string 1 @var{datum})}}, and so on.  You
+can use as many @var{sym}s as regexp matching supports.
+@item `@var{object}
+Matches any value @code{equal} to @var{object}.
+@item (cons @var{carpat} @code{cdrpat})
+Matches a cons cell if @var{carpat} matches its @code{car} and
+@var{cdrpat} matches its @code{cdr}.
+@item (list @var{eltpats}@dots{})
+Matches a list if the @var{eltpats} match its elements.  The first
+@var{eltpat} should match the list's first element.  The second
+@var{eltpat} should match the list's second element.  And so on.
+@item (vector @var{eltpats}@dots{})
+Matches a vector if the @var{eltpats} match its elements.  The first
+@var{eltpat} should match the vector's first element.  The second
+@var{eltpat} should match the vector's second element.  And so on.
+@item (cdr @var{pattern})
+Matches @var{pattern} with strict checking of @code{cdr}s.  That means
+that @code{list} patterns verify that the final @code{cdr} is
+@code{nil}.  Strict checking is the default.
+@item (cdr-safe @var{pattern})
+Matches @var{pattern} with lax checking of @code{cdr}s.  That means that
+@code{list} patterns do not examine the final @code{cdr}.
+@item (and @var{conjuncts}@dots{})
+Matches each of the @var{conjuncts} against the same data.  If all of
+them match, this pattern succeeds.  If one @var{conjunct} fails, this
+pattern fails and does not try more @var{conjuncts}.
+@item (or @var{disjuncts}@dots{})
+Matches each of the @var{disjuncts} against the same data.  If one
+@var{disjunct} succeeds, this pattern succeeds and does not try more
+@var{disjuncts}.  If all of them fail, this pattern fails.
+@item (@var{cond*-expander} @dots{})
+Here the @code{car} is a symbol that has a @code{cond*-expander}
+property which defines how to handle it in a pattern.  The property
+value is a function.  Trying to match such a pattern calls that function
+with one argument, the pattern in question (including its @code{car}).
+The function should return an equivalent pattern to be matched instead.
+@item (@var{predicate} @var{symbol})
+Matches datum if @code{(@var{predicate} @var{datum})} is true, then
+binds @var{symbol} to @var{datum}.
+@item (@var{predicate} @var{SYMBOL} @var{more-args}@dots{})
+Matches datum if @w{@code{(@var{predicate} @var{datum}
+@var{more-args}@dots{})}} is true, then binds @var{symbol} to
+@var{datum}.  @var{more-args}@dots{} can refer to symbols bound earlier
+in the pattern.
+@item (constrain @var{symbol} @var{exp})
+Matches datum if the form @var{exp} is true.  @var{exp} can refer to
+symbols bound earlier in the pattern.
+@end table
+
 @end defmac
 
 @node Iteration
@@ -1864,7 +2046,7 @@ These examples show typical uses of @code{error}:
 
 @group
 (error "Invalid name `%s'" "A%%B")
-     @error{} Invalid name ‘A%%B’
+     @error{} Invalid name `A%%B'
 @end group
 @end example
 
@@ -1882,6 +2064,9 @@ verbatim, don't just write @code{(error @var{string})}.  If @var{string}
 @var{string} contains @samp{%}, @samp{`}, or @samp{'} it may be
 reformatted, with undesirable results.  Instead, use @code{(error "%s"
 @var{string})}.
+
+When @code{noninteractive} is non-@code{nil} (@pxref{Batch Mode}),
+this function kills Emacs if the signaled error has no handler.
 @end defun
 
 @defun signal error-symbol data
@@ -1915,6 +2100,9 @@ variable to a list of the form @code{(@var{error-symbol} .@:
 
 The function @code{signal} never returns.
 @c (though in older Emacs versions it sometimes could).
+If the error @var{error-symbol} has no handler, and
+@code{noninteractive} is non-@code{nil} (@pxref{Batch Mode}),
+this function eventually kills Emacs.
 
 @example
 @group
@@ -1979,11 +2167,14 @@ function which called the primitive that signaled the error.
 @end defvar
 
 @cindex @code{debug-on-error} use
-An error that has no explicit handler may call the Lisp debugger.  The
-debugger is enabled if the variable @code{debug-on-error} (@pxref{Error
-Debugging}) is non-@code{nil}.  Unlike error handlers, the debugger runs
-in the environment of the error, so that you can examine values of
-variables precisely as they were at the time of the error.
+An error that has no explicit handler may call the Lisp debugger
+(@pxref{Invoking the Debugger}).  The debugger is enabled if the
+variable @code{debug-on-error} (@pxref{Error Debugging}) is
+non-@code{nil}.  Unlike error handlers, the debugger runs in the
+environment of the error, so that you can examine values of variables
+precisely as they were at the time of the error.  In batch mode
+(@pxref{Batch Mode}), the Emacs process then normally exits with a
+non-zero exit status.
 
 @node Handling Errors
 @subsubsection Writing Code to Handle Errors
@@ -2278,6 +2469,123 @@ should be robust if one does occur.  Note that this macro uses
 @code{condition-case-unless-debug} rather than @code{condition-case}.
 @end defmac
 
+Occasionally, we want to catch some errors and record some information
+about the conditions in which they occurred, such as the full
+backtrace, or the current buffer.  This kinds of information is sadly
+not available in the handlers of a @code{condition-case} because the
+stack is unwound before running that handler, so the handler is run in
+the dynamic context of the @code{condition-case} rather than that of
+the place where the error was signaled.  For those circumstances, you
+can use the following form:
+
+@defmac handler-bind handlers body@dots{}
+This special form runs @var{body} and if it executes without error,
+the value it returns becomes the value of the @code{handler-bind}
+form.  In this case, the @code{handler-bind} has no effect.
+
+@var{handlers} should be a list of elements of the form
+@code{(@var{conditions} @var{handler})} where @var{conditions} is an
+error condition name to be handled, or a list of condition names, and
+@var{handler} should be a form whose evaluation should return a function.
+As with @code{condition-case}, condition names are symbols.
+
+Before running @var{body}, @code{handler-bind} evaluates all the
+@var{handler} forms and installs those handlers to be active during
+the evaluation of @var{body}.  When an error is signaled,
+Emacs searches all the active @code{condition-case} and
+@code{handler-bind} forms for a handler that
+specifies one or more of these condition names.  When the innermost
+matching handler is one installed by @code{handler-bind}, the
+@var{handler} function is called with a single argument holding the
+error description.
+
+Contrary to what happens with @code{condition-case}, @var{handler} is
+called in the dynamic context where the error happened.  This means it
+is executed without unbinding any variable bindings or running any
+cleanups of @code{unwind-protect}, so that all those dynamic bindings
+are still in effect.  There is one exception: while running the
+@var{handler} function, all the error handlers between the code that
+signaled the error and the @code{handler-bind} are temporarily
+suspended, meaning that when an error is signaled, Emacs will only
+search the active @code{condition-case} and @code{handler-bind} forms
+that are inside the @var{handler} function or outside of the current
+@code{handler-bind}.  Note also that lexically-bound variables
+(@pxref{Lexical Binding}) are not affected, since they do not have
+dynamic extent.
+
+Like any normal function, @var{handler} can exit non-locally,
+typically via @code{throw}, or it can return normally.
+If @var{handler} returns normally, it means the handler
+@emph{declined} to handle the error and the search for an error
+handler is continued where it left off.
+
+For example, if we wanted to keep a log of all the errors that occur
+during the execution of a particular piece of code together with the
+buffer that's current when the error is signaled, but without
+otherwise affecting the behavior of that code, we can do it with:
+
+@example
+@group
+(handler-bind
+    ((error
+      (lambda (err)
+        (push (cons err (current-buffer)) my-log-of-errors))))
+  @var{body-forms}@dots{})
+@end group
+@end example
+
+This will log only those errors that are not caught internally to
+@var{body-forms}@dots{}, in other words errors that ``escape'' from
+@var{body-forms}@dots{}, and it will not prevent those errors from
+being passed on to surrounding @code{condition-case} handlers (or
+@code{handler-bind} handlers for that matter) since the above handler
+returns normally.
+
+We can also use @code{handler-bind} to replace an error with another,
+as in the code below which turns all errors of type @code{user-error}
+that occur during the execution of @var{body-forms}@dots{} into plain
+@code{error}:
+
+@example
+@group
+(handler-bind
+    ((user-error
+      (lambda (err)
+        (signal 'error (cdr err)))))
+  @var{body-forms}@dots{})
+@end group
+@end example
+
+We can get almost the same result with @code{condition-case}:
+
+@example
+@group
+(condition-case err
+    (progn @var{body-forms}@dots{})
+  (user-error (signal 'error (cdr err))))
+@end group
+@end example
+
+@noindent
+but with the difference that when we (re)signal the new error in
+@code{handler-bind}, the dynamic environment from the original error
+is still active, which means for example that if we enter the debugger
+at this point, it will show us a complete backtrace including the
+point where we signaled the original error:
+
+@example
+@group
+Debugger entered--Lisp error: (error "Oops")
+  signal(error ("Oops"))
+  #f(lambda (err) [t] (signal 'error (cdr err)))((user-error "Oops"))
+  user-error("Oops")
+  @dots{}
+  eval((handler-bind ((user-error (lambda (err) @dots{}
+@end group
+@end example
+
+@end defmac
+
 @node Error Symbols
 @subsubsection Error Symbols and Condition Names
 @cindex error symbol
@@ -2467,3 +2775,47 @@ quit, and the quit happens immediately after the function
 @code{ftp-setup-buffer} returns but before the variable @code{process} is
 set, the process will not be killed.  There is no easy way to fix this bug,
 but at least it is very unlikely.
+
+@node Conditional Compilation
+@section Conditional Compilation
+
+  There will be times when you want certain code to be compiled only
+when a certain condition holds.  This is particularly the case when
+maintaining Emacs packages; to keep the package compatible with older
+versions of Emacs you may need to use a function or variable which has
+become obsolete in the current version of Emacs.
+
+  You could just use a conditional form to select the old or new form
+at run time, but this tends to output annoying warning messages about
+the obsolete function/variable.  For such situations, the macro
+@code{static-if} comes in handy.  It is patterned after the special
+form @code{if} (@pxref{Conditionals}).
+
+  To use this facility for an older version of Emacs, copy the source
+for @code{static-if} from the Emacs source file @file{lisp/subr.el}
+into your package.
+
+@defmac static-if condition then-form else-forms...
+Test @var{condition} at macro-expansion time.  If its value is
+non-@code{nil}, expand the macro to @var{then-form}, otherwise expand
+it to @var{else-forms} enclosed in a @code{progn}.  @var{else-forms}
+may be empty.
+
+Here is an example of its use from CC Mode, which prevents a
+@code{defadvice} form being compiled in newer versions of Emacs:
+@example
+@group
+(static-if (boundp 'comment-line-break-function)
+    (progn)
+  (defvar c-inside-line-break-advice nil)
+  (defadvice indent-new-comment-line (around c-line-break-advice
+                                             activate preactivate)
+    "Call `c-indent-new-comment-line' if in CC Mode."
+    (if (or c-inside-line-break-advice
+            (not c-buffer-is-cc-mode))
+        ad-do-it
+      (let ((c-inside-line-break-advice t))
+        (c-indent-new-comment-line (ad-get-arg 0))))))
+@end group
+@end example
+@end defmac

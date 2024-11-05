@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-2023 Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -203,7 +203,7 @@ check_vfs_filename (Lisp_Object encoded, const char *reason)
 #ifdef HAVE_LIBSELINUX
 
 /* Return whether SELinux is enabled and pertinent to FILE.  Provide
-   for cases where FILE is or is a constitutent of a special
+   for cases where FILE is or is a constituent of a special
    directory, such as /assets or /content on Android.  */
 
 static bool
@@ -523,7 +523,7 @@ file_name_directory (Lisp_Object filename)
   else
     {
       dostounix_filename (beg);
-      tem_fn = make_specified_string (beg, -1, p - beg, 0);
+      tem_fn = make_unibyte_string (beg, p - beg);
     }
   SAFE_FREE ();
   return tem_fn;
@@ -847,7 +847,7 @@ Each element in COMPONENTS must be a string or nil.
 DIRECTORY or the non-final elements in COMPONENTS may or may not end
 with a slash -- if they don't end with a slash, a slash will be
 inserted before concatenating.
-usage: (record DIRECTORY &rest COMPONENTS) */)
+usage: (file-name-concat DIRECTORY &rest COMPONENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t chars = 0, bytes = 0, multibytes = 0, eargs = 0;
@@ -2205,7 +2205,7 @@ barf_or_query_if_file_exists (Lisp_Object absname, bool known_to_exist,
       AUTO_STRING (format, "File %s already exists; %s anyway? ");
       tem = CALLN (Fformat, format, absname, build_string (querystring));
       if (quick)
-	tem = call1 (intern ("y-or-n-p"), tem);
+	tem = call1 (Qy_or_n_p, tem);
       else
 	tem = do_yes_or_no_p (tem);
       if (NILP (tem))
@@ -2331,6 +2331,9 @@ permissions.  */)
     {
 #if HAVE_LIBSELINUX
       if (selinux_enabled_p (SSDATA (encoded_file))
+	  /* Eschew copying SELinux contexts if they're inapplicable
+	     to the destination file.  */
+	  && selinux_enabled_p (SSDATA (encoded_newname))
 	  && emacs_fd_to_int (ifd) != -1)
 	{
 	  conlength = fgetfilecon (emacs_fd_to_int (ifd),
@@ -2493,11 +2496,18 @@ permissions.  */)
     {
       /* Set the modified context back to the file.  */
       bool fail = fsetfilecon (ofd, con) != 0;
-      /* See https://debbugs.gnu.org/11245 for ENOTSUP.  */
-      if (fail && errno != ENOTSUP)
-	report_file_error ("Doing fsetfilecon", newname);
-
       freecon (con);
+
+      /* See https://debbugs.gnu.org/11245 for ENOTSUP.  */
+      if (fail
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+	  /* Treat SELinux errors copying files leniently on Android,
+	     since the system usually forbids user programs from
+	     changing file contexts.  */
+	  && errno != EACCES
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+	  && errno != ENOTSUP)
+	report_file_error ("Doing fsetfilecon", newname);
     }
 #endif
 
@@ -2508,8 +2518,8 @@ permissions.  */)
       ts[1] = get_stat_mtime (&st);
       if (futimens (ofd, ts) != 0
 	  /* Various versions of the Android C library are missing
-	     futimens, which leads a gnulib fallback to be installed
-	     that uses fdutimens instead.  However, fdutimens is not
+	     futimens, prompting Gnulib to install a fallback that
+	     uses fdutimens instead.  However, fdutimens is not
 	     supported on many Android kernels, so just silently fail
 	     if errno is ENOTSUP or ENOSYS.  */
 #if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
@@ -3090,15 +3100,29 @@ If there is no error, returns nil.  */)
 
 /* Relative to directory FD, return the symbolic link value of FILENAME.
    On failure, return nil (setting errno).  */
+
 static Lisp_Object
 emacs_readlinkat (int fd, char const *filename)
 {
-  static struct allocator const emacs_norealloc_allocator =
-    { xmalloc, NULL, xfree, memory_full };
+  static struct allocator const emacs_norealloc_allocator = {
+    xmalloc,
+    NULL,
+    xfree,
+    memory_full,
+  };
+
   Lisp_Object val;
   char readlink_buf[1024];
-  char *buf = careadlinkat (fd, filename, readlink_buf, sizeof readlink_buf,
-			    &emacs_norealloc_allocator, readlinkat);
+  char *buf;
+
+  buf = careadlinkat (fd, filename, readlink_buf, sizeof readlink_buf,
+		      &emacs_norealloc_allocator,
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+		      android_readlinkat
+#else /* !HAVE_ANDROID || ANDROID_STUBIFY */
+		      readlinkat
+#endif /* HAVE_ANDROID && !ANDROID_STUBIFY */
+		      );
   if (!buf)
     return Qnil;
 
@@ -3486,12 +3510,12 @@ or if Emacs was not compiled with SELinux support.  */)
 	  fail = (lsetfilecon (SSDATA (encoded_absname),
 			       context_str (parsed_con))
 		  != 0);
+	  context_free (parsed_con);
+	  freecon (con);
+
           /* See https://debbugs.gnu.org/11245 for ENOTSUP.  */
 	  if (fail && errno != ENOTSUP)
 	    report_file_error ("Doing lsetfilecon", absname);
-
-	  context_free (parsed_con);
-	  freecon (con);
 	  return fail ? Qnil : Qt;
 	}
       else
@@ -3593,10 +3617,10 @@ support.  */)
       fail = (acl_set_file (SSDATA (encoded_absname), ACL_TYPE_ACCESS,
 			    acl)
 	      != 0);
+      acl_free (acl);
       if (fail && acl_errno_valid (errno))
 	report_file_error ("Setting ACL", absname);
 
-      acl_free (acl);
       return fail ? Qnil : Qt;
     }
 # endif
@@ -3763,8 +3787,9 @@ DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
 
 DEFUN ("file-newer-than-file-p", Ffile_newer_than_file_p, Sfile_newer_than_file_p, 2, 2, 0,
        doc: /* Return t if file FILE1 is newer than file FILE2.
-If FILE1 does not exist, the answer is nil;
-otherwise, if FILE2 does not exist, the answer is t.  */)
+If FILE1 does not exist, the return value is nil;
+if FILE2 does not exist, the return value is t.
+For existing files, this compares their last-modified times.  */)
   (Lisp_Object file1, Lisp_Object file2)
 {
   struct stat st1, st2;
@@ -3882,7 +3907,7 @@ union read_non_regular
   } s;
   GCALIGNED_UNION_MEMBER
 };
-verify (GCALIGNED (union read_non_regular));
+static_assert (GCALIGNED (union read_non_regular));
 
 static Lisp_Object
 read_non_regular (Lisp_Object state)
@@ -4164,7 +4189,7 @@ by calling `format-decode', which see.  */)
      named pipes, and it's probably just not worth it.  So we should
      at least signal an error.  */
 
-  if (!S_ISREG (st.st_mode))
+  if (!(S_ISREG (st.st_mode) || S_ISDIR (st.st_mode)))
     {
       regular = false;
 
@@ -4526,7 +4551,7 @@ by calling `format-decode', which see.  */)
              current_buffer->modtime earlier, but we could still end up calling
              ask-user-about-supersession-threat if the file is modified while
              we read it, so we bind buffer-file-name instead.  */
-          specbind (intern ("buffer-file-name"), Qnil);
+          specbind (Qbuffer_file_name, Qnil);
 	  del_range_byte (same_at_start, same_at_end);
 	  /* Insert from the file at the proper position.  */
 	  temp = BYTE_TO_CHAR (same_at_start);
@@ -4636,7 +4661,7 @@ by calling `format-decode', which see.  */)
 	  if (same_at_start != same_at_end)
 	    {
               /* See previous specbind for the reason behind this.  */
-              specbind (intern ("buffer-file-name"), Qnil);
+              specbind (Qbuffer_file_name, Qnil);
 	      del_range_byte (same_at_start, same_at_end);
 	    }
 	  inserted = 0;
@@ -4686,7 +4711,7 @@ by calling `format-decode', which see.  */)
       inserted -= (ZV_BYTE - same_at_end) + (same_at_start - BEGV_BYTE);
 
       /* See previous specbind for the reason behind this.  */
-      specbind (intern ("buffer-file-name"), Qnil);
+      specbind (Qbuffer_file_name, Qnil);
       if (same_at_end != same_at_start)
 	{
 	  del_range_byte (same_at_start, same_at_end);
@@ -4754,7 +4779,7 @@ by calling `format-decode', which see.  */)
     make_gap (total - GAP_SIZE + 1);
 
   if (beg_offset != 0 || (!NILP (replace)
-			  && !EQ (replace, Qunbound)))
+			  && !BASE_EQ (replace, Qunbound)))
     {
       if (emacs_fd_lseek (fd, beg_offset, SEEK_SET) < 0)
 	report_file_error ("Setting file position", orig_filename);
@@ -4781,7 +4806,7 @@ by calling `format-decode', which see.  */)
 
 	/* 'try' is reserved in some compilers (Microsoft C).  */
 	ptrdiff_t trytry = min (gap_size, READ_BUF_SIZE);
-	if (!NILP (end))
+	if (seekable || !NILP (end))
 	  trytry = min (trytry, total - inserted);
 
 	if (!seekable && NILP (end))
@@ -5604,7 +5629,15 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
          changed to a call to `stat'.  */
 
       if (emacs_fstatat (AT_FDCWD, fn, &st1, 0) == 0
-	  && st.st_dev == st1.st_dev && st.st_ino == st1.st_ino)
+	  && st.st_dev == st1.st_dev
+	  && (st.st_ino == st1.st_ino
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+	      /* `st1.st_ino' == 0 indicates that the inode number
+		 cannot be extracted from this document file, despite
+		 `st' potentially being backed by a real file.  */
+	      || st1.st_ino == 0
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+	      ))
 	{
 	  /* Use the heuristic if it appears to be valid.  With neither
 	     O_EXCL nor O_TRUNC, if Emacs happened to write nothing to the
@@ -5709,7 +5742,7 @@ DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
   Lisp_Object ca = Fcar (a), cb = Fcar (b);
   if (FIXNUMP (ca) && FIXNUMP (cb))
     return XFIXNUM (ca) < XFIXNUM (cb) ? Qt : Qnil;
-  return arithcompare (ca, cb, ARITH_LESS);
+  return arithcompare (ca, cb) & Cmp_LT ? Qt : Qnil;
 }
 
 /* Build the complete list of annotations appropriate for writing out
@@ -6075,8 +6108,8 @@ auto_save_error (Lisp_Object error_val)
   AUTO_STRING (format, "Auto-saving %s: %s");
   Lisp_Object msg = CALLN (Fformat, format, BVAR (current_buffer, name),
 			   Ferror_message_string (error_val));
-  call3 (intern ("display-warning"),
-         intern ("auto-save"), msg, intern (":error"));
+  call3 (Qdisplay_warning,
+         Qauto_save, msg, QCerror);
 
   return Qnil;
 }
@@ -6191,7 +6224,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   oquit = Vquit_flag;
   Vquit_flag = Qnil;
 
-  hook = intern ("auto-save-hook");
+  hook = Qauto_save_hook;
   safe_run_hooks (hook);
 
   if (STRINGP (Vauto_save_list_file_name))
@@ -6284,7 +6317,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	      continue;
 
 	    enum { growth_factor = 4 };
-	    verify (BUF_BYTES_MAX <= EMACS_INT_MAX / growth_factor);
+	    static_assert (BUF_BYTES_MAX <= EMACS_INT_MAX / growth_factor);
 
 	    set_buffer_internal (b);
 	    if (NILP (Vauto_save_include_big_deletions)
@@ -6499,7 +6532,18 @@ If the underlying system call fails, value is nil.  */)
   || defined STAT_STATFS4 || defined STAT_STATVFS		\
   || defined STAT_STATVFS64
   struct fs_usage u;
-  if (get_fs_usage (SSDATA (ENCODE_FILE (filename)), NULL, &u) != 0)
+  const char *name;
+
+  name = SSDATA (ENCODE_FILE (filename));
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* With special directories, this information is unavailable.  */
+  if (android_is_special_directory (name, "/assets")
+      || android_is_special_directory (name, "/content"))
+    return Qnil;
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
+  if (get_fs_usage (name, NULL, &u) != 0)
     return errno == ENOSYS ? Qnil : file_attribute_errno (filename, errno);
   return list3 (blocks_to_bytes (u.fsu_blocksize, u.fsu_blocks, false),
 		blocks_to_bytes (u.fsu_blocksize, u.fsu_bfree, false),
@@ -6882,4 +6926,8 @@ This includes interactive calls to `delete-file' and
 #endif /* HAVE_SYNC */
 
   DEFSYM (Qif_regular, "if-regular");
+  DEFSYM (Qbuffer_file_name, "buffer-file-name");
+  DEFSYM (Qauto_save, "auto-save");
+  DEFSYM (QCerror, ":error");
+  DEFSYM (Qauto_save_hook, "auto-save-hook");
 }

@@ -1,6 +1,6 @@
 ;;; ob-sql.el --- Babel Functions for SQL            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Maintainer: Daniel Kraus <daniel@kraus.my>
@@ -113,9 +113,7 @@
 Set `sql-product' in Org edit buffer according to the
 corresponding :engine source block header argument."
   (let ((product (cdr (assq :engine (nth 2 info)))))
-    (condition-case nil
-        (sql-set-product product)
-      (user-error "Cannot set `sql-product' in Org Src edit buffer"))))
+    (sql-set-product product)))
 
 (defun org-babel-sql-dbstring-mysql (host port user password database)
   "Make MySQL cmd line args for database connection.  Pass nil to omit that arg."
@@ -210,7 +208,7 @@ Pass nil to omit that arg."
   "Convert FILE to OS standard file name.
 If in Cygwin environment, uses Cygwin specific function to
 convert the file name.  In a Windows-NT environment, do nothing.
-Otherwise, use Emacs' standard conversion function."
+Otherwise, use Emacs's standard conversion function."
   (cond ((fboundp 'cygwin-convert-file-name-to-windows)
 	 (format "%S" (cygwin-convert-file-name-to-windows file)))
 	((string= "windows-nt" system-type) file)
@@ -409,11 +407,11 @@ argument mechanism."
                                val (if sqlite
                                        nil
                                      '(:fmt (lambda (el) (if (stringp el)
-                                                             el
-                                                           (format "%S" el))))))))
+                                                        el
+                                                      (format "%S" el))))))))
                     data-file)
                 (if (stringp val) val (format "%S" val))))
-	    body)))
+	    body t t)))
    vars)
   body)
 

@@ -1,6 +1,6 @@
 ;;; image-mode.el --- support for visiting image files  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
@@ -69,8 +69,8 @@ Its value should be one of the following:
 Resizing will always preserve the aspect ratio of the image."
   :type '(choice (const :tag "No resizing" nil)
                  (const :tag "Fit to window" fit-window)
-                 (other :tag "Scale down to fit window" t)
-                 (number :tag "Scale factor" 1))
+                 (number :tag "Scale factor" 1)
+                 (other :tag "Scale down to fit window" t))
   :version "29.1"
   :group 'image)
 
@@ -89,7 +89,7 @@ This will always keep the image fit to the window.
 When non-nil, the value should be a number of seconds to wait before
 resizing according to the value specified in `image-auto-resize'."
   :type '(choice (const :tag "No auto-resize on window size change" nil)
-                 (integer :tag "Wait for number of seconds before resize" 1))
+                 (number :tag "Wait for number of seconds before resize" 1))
   :version "27.1"
   :group 'image)
 
@@ -248,8 +248,9 @@ Stop if the right edge of the image is reached."
 	 (image-set-window-hscroll (max 0 (+ (window-hscroll) n))))
 	(t
 	 (let* ((image (image-get-display-property))
-		(edges (window-inside-edges))
-		(win-width (- (nth 2 edges) (nth 0 edges)))
+		(edges (window-edges nil t nil t))
+		(win-width (- (/ (nth 2 edges) (frame-char-width))
+                              (/ (nth 0 edges) (frame-char-width))))
 		(img-width (ceiling (car (image-display-size image)))))
 	   (image-set-window-hscroll (min (max 0 (- img-width win-width))
 					  (+ n (window-hscroll))))))))
@@ -558,6 +559,8 @@ image as text, when opening such images in `image-mode'."
      :help "Resize image to match the window height and width"]
     ["Fit Image to Window (Scale down only)" image-transform-fit-both
      :help "Scale image down to match the window height and width"]
+    ["Fill Window with Image" image-transform-fill-window
+     :help "Resize image to fill either width or height of the window"]
     ["Zoom In" image-increase-size
      :help "Enlarge the image"]
     ["Zoom Out" image-decrease-size
@@ -653,8 +656,9 @@ Key bindings:
   (unless (display-images-p)
     (error "Display does not support images"))
 
-  (major-mode-suspend)
-  (setq major-mode 'image-mode)
+  (unless (eq major-mode 'image-mode)
+    (major-mode-suspend)
+    (setq major-mode 'image-mode))
   (setq image-transform-resize image-auto-resize)
 
   ;; Bail out early if we have no image data.
@@ -771,9 +775,8 @@ to switch back to
 
 ;;;###autoload
 (defun image-mode-to-text ()
-  "Set a non-image mode as major mode in combination with image minor mode.
-A non-mage major mode found from `auto-mode-alist' or fundamental mode
-displays an image file as text."
+  "Set current buffer's modes be a non-image major mode, plus `image-minor-mode'.
+A non-image major mode displays an image file as text."
   ;; image-mode-as-text = normal-mode + image-minor-mode
   (let ((previous-image-type image-type)) ; preserve `image-type'
     (major-mode-restore '(image-mode image-mode-as-text))
@@ -784,15 +787,14 @@ displays an image file as text."
       (image-toggle-display-text))))
 
 (defun image-mode-as-hex ()
-  "Set `hexl-mode' as major mode in combination with image minor mode.
-A non-mage major mode found from `auto-mode-alist' or fundamental mode
-displays an image file as hex.  `image-minor-mode' provides the key
-\\<image-mode-map>\\[image-toggle-hex-display] to switch back to `image-mode' \
-to display an image file as
-the actual image.
+  "Set current buffer's modes be `hexl-mode' major mode, plus `image-minor-mode'.
+This will by default display an image file as hex.  `image-minor-mode'
+provides the key sequence \\<image-mode-map>\\[image-toggle-hex-display] to \
+switch back to `image-mode' to display
+an image file's buffer as an image.
 
 You can use `image-mode-as-hex' in `auto-mode-alist' when you want to
-display an image file as hex initially.
+display image files as hex by default.
 
 See commands `image-mode' and `image-minor-mode' for more information
 on these modes."
@@ -864,6 +866,13 @@ The limits are given by the user option
             (size (image-size image t)))
         (or (<= mw (* (car size) scale))
             (<= mh (* (cdr size) scale))))))
+
+(defun image--update-properties (image properties)
+  "Update IMAGE with the new PROPERTIES set."
+  (let (prop)
+    (while (setq prop (pop properties))
+      (plist-put (cdr image) prop (pop properties)))
+    image))
 
 (defun image-toggle-display-image ()
   "Show the image of the image file.
@@ -957,7 +966,7 @@ was inserted."
 
     ;; Discard any stale image data before looking it up again.
     (image-flush image)
-    (setq image (append image (image-transform-properties image)))
+    (setq image (image--update-properties image (image-transform-properties image)))
     (setq props
 	  `(display ,image
 		    ;; intangible ,image
@@ -1590,6 +1599,18 @@ The percentage is in relation to the original size of the image."
   "Fit the current image to the height and width of the current window."
   (interactive nil image-mode)
   (setq image-transform-resize 'fit-window)
+  (image-toggle-display-image))
+
+(defun image-transform-fill-window ()
+  "Fill the window with the image while keeping image proportions.
+This means filling the window with the image as much as possible
+without leaving empty space around image edges.  Then you can use
+either horizontal or vertical scrolling to see the remaining parts
+of the image."
+  (interactive nil image-mode)
+  (let ((size (image-display-size (image-get-display-property) t)))
+    (setq image-transform-resize
+          (if (> (car size) (cdr size)) 'fit-height 'fit-width)))
   (image-toggle-display-image))
 
 (defun image-transform-set-rotation (rotation)

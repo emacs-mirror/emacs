@@ -1,5 +1,5 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2023 Free Software
+   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2024 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -76,7 +76,7 @@ static void set_tty_hooks (struct terminal *terminal);
 static void dissociate_if_controlling_tty (int fd);
 static void delete_tty (struct terminal *);
 
-#endif
+#endif /* !HAVE_ANDROID */
 
 static AVOID maybe_fatal (bool, struct terminal *, const char *, const char *,
 			  ...)
@@ -86,12 +86,12 @@ static AVOID vfatal (const char *, va_list) ATTRIBUTE_FORMAT_PRINTF (1, 0);
 #ifndef HAVE_ANDROID
 
 #define OUTPUT(tty, a)                                          \
-  emacs_tputs ((tty), a,                                        \
+  emacs_tputs (tty, a,                                        \
                FRAME_TOTAL_LINES (XFRAME (selected_frame)) - curY (tty),	\
                cmputc)
 
-#define OUTPUT1(tty, a) emacs_tputs ((tty), a, 1, cmputc)
-#define OUTPUTL(tty, a, lines) emacs_tputs ((tty), a, lines, cmputc)
+#define OUTPUT1(tty, a) emacs_tputs (tty, a, 1, cmputc)
+#define OUTPUTL(tty, a, lines) emacs_tputs (tty, a, lines, cmputc)
 
 #define OUTPUT_IF(tty, a)                                               \
   do {                                                                  \
@@ -99,7 +99,8 @@ static AVOID vfatal (const char *, va_list) ATTRIBUTE_FORMAT_PRINTF (1, 0);
       OUTPUT (tty, a);							\
   } while (0)
 
-#define OUTPUT1_IF(tty, a) do { if (a) emacs_tputs ((tty), a, 1, cmputc); } while (0)
+#define OUTPUT1_IF(tty, a) \
+  do { if (a) emacs_tputs (tty, a, 1, cmputc); } while (0)
 
 #endif
 
@@ -1117,7 +1118,7 @@ per_line_cost (const char *str)
 
 int *char_ins_del_vector;
 
-#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_COLS ((f))])
+#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_COLS (f)])
 
 static void
 calculate_ins_del_char_costs (struct frame *f)
@@ -1415,9 +1416,9 @@ term_get_fkeys_1 (void)
 	  /* Define f0 first, so that f10 takes precedence in case the
 	     key sequences happens to be the same.  */
 	  Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
-		       make_vector (1, intern ("f0")), Qnil);
+		       make_vector (1, Qf0), Qnil);
 	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k_semi),
-		     make_vector (1, intern ("f10")), Qnil);
+		     make_vector (1, Qf10), Qnil);
       }
     else if (k0)
       Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
@@ -1482,11 +1483,15 @@ term_get_fkeys_1 (void)
 
 
 
-#ifndef HAVE_ANDROID
-
 /***********************************************************************
 		       Character Display Information
  ***********************************************************************/
+
+/* Glyph production must be enabled on Android despite there being no
+   TTY frames on that platform, as certain packages (and now, through
+   Org, the bootstrap) require that window text measurements be
+   available from the initial frame as in batch mode.  */
+
 static void append_glyph (struct it *);
 static void append_composite_glyph (struct it *);
 static void produce_composite_glyph (struct it *);
@@ -1560,15 +1565,11 @@ append_glyph (struct it *it)
     }
 }
 
-#endif
-
 /* For external use.  */
 void
 tty_append_glyph (struct it *it)
 {
-#ifndef HAVE_ANDROID
   append_glyph (it);
-#endif
 }
 
 /* Produce glyphs for the display element described by IT.  *IT
@@ -1593,7 +1594,6 @@ tty_append_glyph (struct it *it)
 void
 produce_glyphs (struct it *it)
 {
-#ifndef HAVE_ANDROID
   /* If a hook is installed, let it do the work.  */
 
   /* Nothing but characters are supported on terminal frames.  */
@@ -1630,8 +1630,19 @@ produce_glyphs (struct it *it)
     it->pixel_width = it->nglyphs = 0;
   else if (it->char_to_display == '\t')
     {
+      /* wrap-prefix strings are prepended to continuation lines, so
+	 the width of tab characters inside should be computed from
+	 the start of this screen line rather than as a product of the
+	 total width of the physical line being wrapped.  */
       int absolute_x = (it->current_x
-			+ it->continuation_lines_width);
+			+ (it->string_from_prefix_prop_p
+			   /* Subtract the width of the
+			      prefix from it->current_x if
+			      it exists.  */
+			   ? 0 : (it->continuation_lines_width
+				  ? (it->continuation_lines_width
+				     - it->wrap_prefix_width)
+				  : 0)));
       int x0 = absolute_x;
       /* Adjust for line numbers.  */
       if (!NILP (Vdisplay_line_numbers) && it->line_number_produced_p)
@@ -1703,13 +1714,16 @@ produce_glyphs (struct it *it)
   /* Advance current_x by the pixel width as a convenience for
      the caller.  */
   if (it->area == TEXT_AREA)
-    it->current_x += it->pixel_width;
+    {
+      it->current_x += it->pixel_width;
+
+      if (it->continuation_lines_width
+	  && it->string_from_prefix_prop_p)
+	it->wrap_prefix_width = it->current_x;
+    }
   it->ascent = it->max_ascent = it->phys_ascent = it->max_phys_ascent = 0;
   it->descent = it->max_descent = it->phys_descent = it->max_phys_descent = 1;
-#endif
 }
-
-#ifndef HAVE_ANDROID
 
 /* Append glyphs to IT's glyph_row for the composition IT->cmp_id.
    Called from produce_composite_glyph for terminal frames if
@@ -1948,8 +1962,9 @@ produce_glyphless_glyph (struct it *it, Lisp_Object acronym)
 }
 
 
+#ifndef HAVE_ANDROID
 /***********************************************************************
-				Faces
+				TTY Faces
  ***********************************************************************/
 
 /* Value is non-zero if attribute ATTR may be used.  ATTR should be
@@ -1996,8 +2011,19 @@ turn_on_face (struct frame *f, int face_id)
 	OUTPUT1 (tty, tty->TS_enter_dim_mode);
     }
 
-  if (face->tty_underline_p && MAY_USE_WITH_COLORS_P (tty, NC_UNDERLINE))
-    OUTPUT1_IF (tty, tty->TS_enter_underline_mode);
+  if (face->underline && MAY_USE_WITH_COLORS_P (tty, NC_UNDERLINE))
+    {
+      if (face->underline == FACE_UNDERLINE_SINGLE
+	  || !tty->TF_set_underline_style)
+	OUTPUT1_IF (tty, tty->TS_enter_underline_mode);
+      else if (tty->TF_set_underline_style)
+	{
+	  char *p;
+	  p = tparam (tty->TF_set_underline_style, NULL, 0, face->underline, 0, 0, 0);
+	  OUTPUT (tty, p);
+	  xfree (p);
+	}
+    }
 
   if (face->tty_strike_through_p
       && MAY_USE_WITH_COLORS_P (tty, NC_STRIKE_THROUGH))
@@ -2023,6 +2049,14 @@ turn_on_face (struct frame *f, int face_id)
 	  OUTPUT (tty, p);
 	  xfree (p);
 	}
+
+	ts = tty->TF_set_underline_color;
+	if (ts && face->underline_color)
+	  {
+	    p = tparam (ts, NULL, 0, face->underline_color, 0, 0, 0);
+	    OUTPUT (tty, p);
+	    xfree (p);
+	  }
     }
 }
 
@@ -2043,7 +2077,7 @@ turn_off_face (struct frame *f, int face_id)
       if (face->tty_bold_p
 	  || face->tty_italic_p
 	  || face->tty_reverse_p
-	  || face->tty_underline_p
+	  || face->underline
 	  || face->tty_strike_through_p)
 	{
 	  OUTPUT1_IF (tty, tty->TS_exit_attribute_mode);
@@ -2055,7 +2089,7 @@ turn_off_face (struct frame *f, int face_id)
     {
       /* If we don't have "me" we can only have those appearances
 	 that have exit sequences defined.  */
-      if (face->tty_underline_p)
+      if (face->underline)
 	OUTPUT_IF (tty, tty->TS_exit_underline_mode);
     }
 
@@ -2085,6 +2119,9 @@ tty_capable_p (struct tty_display_info *tty, unsigned int caps)
 		     TTY_CAP_INVERSE,	  tty->TS_standout_mode, NC_REVERSE);
   TTY_CAPABLE_P_TRY (tty,
 		     TTY_CAP_UNDERLINE,	  tty->TS_enter_underline_mode,
+		     NC_UNDERLINE);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_UNDERLINE_STYLED,	  tty->TF_set_underline_style,
 		     NC_UNDERLINE);
   TTY_CAPABLE_P_TRY (tty,
 		     TTY_CAP_BOLD,	  tty->TS_enter_bold_mode, NC_BOLD);
@@ -2235,7 +2272,7 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
       tty->previous_color_mode = mode;
       tty_setup_colors (tty , mode);
       /*  This recomputes all the faces given the new color definitions.  */
-      safe_call (1, intern ("tty-set-up-initial-frame-faces"));
+      safe_calln (Qtty_set_up_initial_frame_faces);
     }
 }
 
@@ -2272,7 +2309,7 @@ TERMINAL is not on a tty device.  */)
 {
   struct terminal *t = decode_tty_terminal (terminal);
 
-  return (t && !strcmp (t->display_info.tty->name, DEV_TTY) ? Qt : Qnil);
+  return (t && !strcmp (t->display_info.tty->name, dev_tty) ? Qt : Qnil);
 }
 
 DEFUN ("tty-no-underline", Ftty_no_underline, Stty_no_underline, 0, 1, 0,
@@ -2347,7 +2384,7 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
 	 the tty state.  */
       Lisp_Object term;
       XSETTERMINAL (term, t);
-      CALLN (Frun_hook_with_args, intern ("suspend-tty-functions"), term);
+      CALLN (Frun_hook_with_args, Qsuspend_tty_functions, term);
 
       reset_sys_modes (t->display_info.tty);
       delete_keyboard_wait_descriptor (fileno (f));
@@ -2356,7 +2393,7 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       if (f != t->display_info.tty->output)
         emacs_fclose (t->display_info.tty->output);
       emacs_fclose (f);
-#endif
+#endif /* !MSDOS */
 
       t->display_info.tty->input = 0;
       t->display_info.tty->output = 0;
@@ -2368,10 +2405,11 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
 
   /* Clear display hooks to prevent further output.  */
   clear_tty_hooks (t);
-#else
-  /* This will always signal on Android.  */
-  decode_tty_terminal (tty);
-#endif
+#else /* HAVE_ANDROID */
+  /* Android doesn't support TTY terminal devices, so unconditionally
+     signal.  */
+  error ("Attempt to suspend a non-text terminal device");
+#endif /* !HAVE_ANDROID */
 
   return Qnil;
 }
@@ -2426,9 +2464,9 @@ frame's terminal). */)
 			     open_errno);
 	}
 
-      if (!O_IGNORE_CTTY && strcmp (t->display_info.tty->name, DEV_TTY) != 0)
+      if (!O_IGNORE_CTTY && strcmp (t->display_info.tty->name, dev_tty) != 0)
         dissociate_if_controlling_tty (fd);
-#endif
+#endif /* MSDOS */
 
       add_keyboard_wait_descriptor (fd);
 
@@ -2453,13 +2491,15 @@ frame's terminal). */)
       /* Run `resume-tty-functions'.  */
       Lisp_Object term;
       XSETTERMINAL (term, t);
-      CALLN (Frun_hook_with_args, intern ("resume-tty-functions"), term);
+      CALLN (Frun_hook_with_args, Qresume_tty_functions, term);
     }
 
   set_tty_hooks (t);
-#else
-  decode_tty_terminal (tty);
-#endif
+#else /* HAVE_ANDROID */
+  /* Android doesn't support TTY terminal devices, so unconditionally
+     signal.  */
+  error ("Attempt to suspend a non-text terminal device");
+#endif /* !HAVE_ANDROID */
 
   return Qnil;
 }
@@ -2504,7 +2544,7 @@ A value of zero means TTY uses the system's default value.  */)
   error ("Not a tty terminal");
 }
 
-#endif
+#endif /* !HAVE_ANDROID */
 
 
 /***********************************************************************
@@ -3234,10 +3274,10 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   SAFE_NALLOCA (state, 1, menu->panecount);
   memset (state, 0, sizeof (*state));
   faces[0]
-    = lookup_derived_face (NULL, sf, intern ("tty-menu-disabled-face"),
+    = lookup_derived_face (NULL, sf, Qtty_menu_disabled_face,
 			   DEFAULT_FACE_ID, 1);
   faces[1]
-    = lookup_derived_face (NULL, sf, intern ("tty-menu-enabled-face"),
+    = lookup_derived_face (NULL, sf, Qtty_menu_enabled_face,
 			   DEFAULT_FACE_ID, 1);
   selectface = intern ("tty-menu-selected-face");
   faces[2] = lookup_derived_face (NULL, sf, selectface,
@@ -4032,7 +4072,7 @@ dissociate_if_controlling_tty (int fd)
 /* Create a termcap display on the tty device with the given name and
    type.
 
-   If NAME is NULL, then use the controlling tty, i.e., DEV_TTY.
+   If NAME is NULL, then use the controlling tty, i.e., dev_tty.
    Otherwise NAME should be a path to the tty device file,
    e.g. "/dev/pts/7".
 
@@ -4071,9 +4111,9 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
                  "Unknown terminal type");
 
   if (name == NULL)
-    name = DEV_TTY;
+    name = dev_tty;
 #ifndef DOS_NT
-  if (!strcmp (name, DEV_TTY))
+  if (!strcmp (name, dev_tty))
     ctty = 1;
 #endif
 
@@ -4338,6 +4378,26 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
   tty->TF_standout_motion = tgetflag ("ms");
   tty->TF_underscore = tgetflag ("ul");
   tty->TF_teleray = tgetflag ("xt");
+
+  /* Styled underlines.  Support for this is provided either by the
+     escape sequence in Smulx or the Su flag.  The latter results in a
+     common default escape sequence and is not recommended.  */
+#ifdef TERMINFO
+  tty->TF_set_underline_style = tigetstr ("Smulx");
+  if (tty->TF_set_underline_style == (char *) (intptr_t) -1)
+    tty->TF_set_underline_style = NULL;
+#else
+  tty->TF_set_underline_style = tgetstr ("Smulx", address);
+#endif
+  if (!tty->TF_set_underline_style && tgetflag ("Su"))
+    /* Default to the kitty escape sequence.  See
+       https://sw.kovidgoyal.net/kitty/underlines/.  */
+    tty->TF_set_underline_style = "\x1b[4:%p1%dm";
+
+  if (tty->TF_set_underline_style)
+    /* Standard escape sequence to set the underline color.
+       Requires a single parameter, the color index.  */
+    tty->TF_set_underline_color = "\x1b[58:2::%p1%{65536}%/%d:%p1%{256}%/%{255}%&%d:%p1%{255}%&%dm";
 
 #else /* DOS_NT */
 #ifdef WINDOWSNT
@@ -4735,4 +4795,12 @@ trigger redisplay.  */);
   DEFSYM (Qtty_menu_mouse_movement, "tty-menu-mouse-movement");
   DEFSYM (Qtty_menu_navigation_map, "tty-menu-navigation-map");
 #endif
+  DEFSYM (Qf0, "f0");
+  DEFSYM (Qf10, "f10");
+  DEFSYM (Qtty_set_up_initial_frame_faces,
+	  "tty-set-up-initial-frame-faces");
+  DEFSYM (Qsuspend_tty_functions, "suspend-tty-functions");
+  DEFSYM (Qresume_tty_functions, "resume-tty-functions");
+  DEFSYM (Qtty_menu_disabled_face, "tty-menu-disabled-face");
+  DEFSYM (Qtty_menu_enabled_face, "tty-menu-enabled-face");
 }

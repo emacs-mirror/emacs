@@ -1,6 +1,6 @@
 ;;; gnus-cite.el --- parse citations in articles for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2024 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 
@@ -1117,42 +1117,22 @@ Returns nil if there is no such line before LIMIT, t otherwise."
 	   (setq count (1+ count)))))) ;;
   "Keywords for highlighting different levels of message citations.")
 
-(defvar font-lock-defaults-computed)
-(defvar font-lock-keywords)
-(defvar font-lock-set-defaults)
-
-(autoload 'font-lock-set-defaults "font-lock")
-
 (define-minor-mode gnus-message-citation-mode
   "Minor mode providing more font-lock support for nested citations.
 When enabled, it automatically turns on `font-lock-mode'."
   :lighter ""
   (when (derived-mode-p 'message-mode)
-    ;; FIXME: Use font-lock-add-keywords!
-    (let ((defaults (car font-lock-defaults))
-	  default) ;; keywords
-      (while defaults
-	(setq default (if (consp defaults)
-			  (pop defaults)
-			(prog1
-			    defaults
-			  (setq defaults nil))))
-	(if gnus-message-citation-mode
-	    ;; `gnus-message-citation-keywords' should be the last
-	    ;; elements of the keywords because the others are unlikely
-	    ;; to have the OVERRIDE flags -- XEmacs applies a keyword
-	    ;; having no OVERRIDE flag to matched text even if it has
-	    ;; already other faces, while Emacs doesn't.
-	    (set (make-local-variable default)
-		 (append (default-value default)
-			 gnus-message-citation-keywords))
-	  (kill-local-variable default))))
-    ;; Force `font-lock-set-defaults' to update `font-lock-keywords'.
-    (setq font-lock-set-defaults nil)
-    (font-lock-set-defaults)
-    (if font-lock-mode
-	(font-lock-flush)
-      (gnus-message-citation-mode (font-lock-mode 1)))))
+    (if (not font-lock-mode)
+        (gnus-message-citation-mode (font-lock-mode 1))
+      (if gnus-message-citation-mode
+	  ;; `gnus-message-citation-keywords' should be the last
+	  ;; elements of the keywords because the others are unlikely
+	  ;; to have the OVERRIDE flags -- XEmacs applies a keyword
+	  ;; having no OVERRIDE flag to matched text even if it has
+	  ;; already other faces, while Emacs doesn't.
+	  (font-lock-add-keywords nil gnus-message-citation-keywords t)
+        (font-lock-remove-keywords nil gnus-message-citation-keywords))
+      (font-lock-flush))))
 
 (defun turn-on-gnus-message-citation-mode ()
   "Turn on `gnus-message-citation-mode'."

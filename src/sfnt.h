@@ -1,6 +1,6 @@
 /* sfnt format font support for GNU Emacs.
 
-Copyright (C) 2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -52,6 +52,8 @@ enum sfnt_table
     SFNT_TABLE_GVAR,
     SFNT_TABLE_CVAR,
     SFNT_TABLE_AVAR,
+    SFNT_TABLE_OS_2,
+    SFNT_TABLE_POST,
   };
 
 #define SFNT_ENDOF(type, field, type1)			\
@@ -121,6 +123,7 @@ typedef int16_t sfnt_fword;
 typedef uint16_t sfnt_ufword;
 
 #define sfnt_coerce_fixed(fixed) ((sfnt_fixed) (fixed) / 65535.0)
+#define sfnt_fixed_float(fixed)  ((sfnt_fixed) (fixed) / 65535.0f)
 
 typedef unsigned int sfnt_glyph;
 typedef unsigned int sfnt_char;
@@ -245,7 +248,7 @@ enum sfnt_macintosh_platform_specific_id
     SFNT_MACINTOSH_GREEK	       = 6,
     SFNT_MACINTOSH_RUSSIAN	       = 7,
     SFNT_MACINTOSH_RSYMBOL	       = 8,
-    SFNT_MACINTOSH_DEVANGARI	       = 9,
+    SFNT_MACINTOSH_DEVANAGARI	       = 9,
     SFNT_MACINTOSH_GURMUKHI	       = 10,
     SFNT_MACINTOSH_GUJARATI	       = 11,
     SFNT_MACINTOSH_ORIYA	       = 12,
@@ -363,6 +366,9 @@ struct sfnt_cmap_format_4
 
   /* log2(searchRange/2) */
   uint16_t entry_selector;
+
+  /* (2 * segCount) - searchRange */
+  uint16_t range_shift;
 
   /* Variable-length data.  */
   uint16_t *end_code;
@@ -688,9 +694,15 @@ typedef void (*sfnt_curve_to_proc) (struct sfnt_point,
 				    struct sfnt_point,
 				    void *);
 
+/* Forward declaration for use in sfnt_get_metrics_proc.  */
+struct sfnt_glyph_metrics;
+
 typedef struct sfnt_glyph *(*sfnt_get_glyph_proc) (sfnt_glyph, void *,
 						   bool *);
 typedef void (*sfnt_free_glyph_proc) (struct sfnt_glyph *, void *);
+typedef int (*sfnt_get_metrics_proc) (sfnt_glyph,
+				      struct sfnt_glyph_metrics *,
+				      void *);
 
 
 
@@ -767,7 +779,7 @@ struct sfnt_edge
   /* X position, top and bottom of edges.  */
   sfnt_fixed x, top, bottom;
 
-  /* Amount to move X by upon each change of Y.  */
+  /* Amount to move X by upon each change of Y, and vice versa.  */
   sfnt_fixed step_x;
 };
 
@@ -1272,7 +1284,7 @@ struct sfnt_gvar_table
   unsigned char *glyph_variation_data;
 };
 
-/* Structure repesenting a set of axis coordinates and their
+/* Structure representing a set of axis coordinates and their
    normalized equivalents.
 
    To use this structure, call
@@ -1324,7 +1336,126 @@ struct sfnt_metrics_distortion
 
 
 
+/* OS/2 font metadata.  */
+
+struct sfnt_OS_2_table
+{
+  /* Table version number.  */
+  uint16_t version;
+
+  /* Average weighted advance width of lower case letters and
+     space.  */
+  int16_t x_avg_char_width;
+
+  /* Wisual weight (degree of blackness or thickness) of stroke in
+     glyphs.  */
+  uint16_t us_weight_class;
+
+  /* Relative change from the normal aspect ratio (width to height
+     ratio) as specified by a font designer for the glyphs in the
+     font.  */
+  uint16_t us_width_class;
+
+  /* Miscellaneous font attributes.  */
+  int16_t fs_type;
+
+  /* Recommended horizontal size in pixels for subscripts.  */
+  int16_t y_subscript_x_size;
+
+  /* Recommended vertical subscript size.  */
+  int16_t y_subscript_y_size;
+
+  /* Recommended horizontal offset for subscripts.  */
+  int16_t y_subscript_x_offset;
+
+  /* Recommended vertical offset from the baseline for subscripts.  */
+  int16_t y_subscript_y_offset;
+
+  /* Recommended horizontal size in pixels for superscripts.  */
+  int16_t y_superscript_x_size;
+
+  /* Recommended vertical superscript size.  */
+  int16_t y_superscript_y_size;
+
+  /* Recommended horizontal offset for superscripts.  */
+  int16_t y_superscript_x_offset;
+
+  /* Recommended vertical offset from the baseline for superscripts.  */
+  int16_t y_superscript_y_offset;
+
+  /* Width of the strikeout stroke.  */
+  int16_t y_strikeout_size;
+
+  /* Position of the strikeout stroke relative to the baseline.  */
+  int16_t y_strikeout_position;
+
+  /* Font family classification.  */
+  int16_t s_family_class;
+
+  /* Microsoft ``panose'' classification.  */
+  unsigned char panose[10];
+
+  /* Alignment boundary! */
+
+  /* Unicode range specification.  */
+  uint32_t ul_unicode_range[4];
+
+  /* Font foundry name.  */
+  char ach_vendor_id[4];
+
+  /* Two byte bitfield providing the nature of font patterns.  */
+  uint16_t fs_selection;
+
+  /* The minimum Unicode codepoint covered.  */
+  uint16_t fs_first_char_index;
+
+  /* The maximum Unicode codepoint covered.  */
+  uint16_t fs_last_char_index;
+};
+
+
+
+/* PostScript metadata.  */
+
+struct sfnt_post_table
+{
+  /* Format of this table.  This is a fixed point number rather than
+     an integer.  */
+  sfnt_fixed format;
+
+  /* Italic angle in degrees.  */
+  sfnt_fixed italic_angle;
+
+  /* Underline position.  */
+  sfnt_fword underline_position;
+
+  /* Underline thickness.  */
+  sfnt_fword underline_thickness;
+
+  /* Whether the font is monospaced.  */
+  uint32_t is_fixed_pitch;
+
+  /* Minimum memory usage (on a PostScript printer) when a TrueType
+     font is downloaded as a Type 42 font.  */
+  uint32_t min_mem_type_42;
+
+  /* Maximum memory usage (on a PostScript printer) when a TrueType
+     font is downloaded as a Type 42 font.  */
+  uint32_t max_mem_type_42;
+
+  /* Minimum memory usage (on a PostScript printer) when a TrueType
+     font is downloaded as a Type 42 font.  */
+  uint32_t min_mem_type_1;
+
+  /* Maximum memory usage (on a PostScript printer) when a TrueType
+     font is downloaded as a Type 42 font.  */
+  uint32_t max_mem_type_1;
+};
+
+
+
 #define SFNT_CEIL_FIXED(fixed)	(((fixed) + 0177777) & 037777600000)
+#define SFNT_ROUND_FIXED(fixed) (((fixed) + 0100000) & 037777600000)
 #define SFNT_FLOOR_FIXED(fixed) ((fixed) & 037777600000)
 
 
@@ -1372,6 +1503,7 @@ extern void sfnt_free_glyph (struct sfnt_glyph *);
   struct sfnt_glyph_metrics *,	\
   sfnt_get_glyph_proc,		\
   sfnt_free_glyph_proc,		\
+  sfnt_get_metrics_proc,	\
   void *
 extern struct sfnt_glyph_outline *sfnt_build_glyph_outline (PROTOTYPE);
 #undef PROTOTYPE
@@ -1381,6 +1513,7 @@ extern void sfnt_prepare_raster (struct sfnt_raster *,
 
 #define PROTOTYPE struct sfnt_glyph_outline *
 extern struct sfnt_raster *sfnt_raster_glyph_outline (PROTOTYPE);
+extern struct sfnt_raster *sfnt_raster_glyph_outline_exact (PROTOTYPE);
 #undef PROTOTYPE
 
 #define PROTOTYPE			\
@@ -1391,11 +1524,10 @@ extern struct sfnt_raster *sfnt_raster_glyph_outline (PROTOTYPE);
 extern struct sfnt_hmtx_table *sfnt_read_hmtx_table (PROTOTYPE);
 #undef PROTOTYPE
 
-extern int sfnt_lookup_glyph_metrics (sfnt_glyph, int,
+extern int sfnt_lookup_glyph_metrics (sfnt_glyph,
 				      struct sfnt_glyph_metrics *,
 				      struct sfnt_hmtx_table *,
 				      struct sfnt_hhea_table *,
-				      struct sfnt_head_table *,
 				      struct sfnt_maxp_table *);
 
 extern void sfnt_scale_metrics (struct sfnt_glyph_metrics *,
@@ -1433,6 +1565,12 @@ extern void sfnt_free_uvs_context (struct sfnt_uvs_context *);
 #define PROTOTYPE struct sfnt_nondefault_uvs_table *, sfnt_char
 
 extern sfnt_glyph sfnt_variation_glyph_for_char (PROTOTYPE);
+
+#undef PROTOTYPE
+
+#define PROTOTYPE struct sfnt_default_uvs_table *, sfnt_char
+
+extern bool sfnt_is_character_default (PROTOTYPE);
 
 #undef PROTOTYPE
 
@@ -1489,6 +1627,22 @@ extern int sfnt_vary_simple_glyph (struct sfnt_blend *, sfnt_glyph,
 extern int sfnt_vary_compound_glyph (struct sfnt_blend *, sfnt_glyph,
 				     struct sfnt_glyph *,
 				     struct sfnt_metrics_distortion *);
+
+
+
+#define PROTOTYPE int, struct sfnt_offset_subtable *
+
+extern struct sfnt_OS_2_table *sfnt_read_OS_2_table (PROTOTYPE);
+
+#undef PROTOTYPE
+
+
+
+#define PROTOTYPE int, struct sfnt_offset_subtable *
+
+extern struct sfnt_post_table *sfnt_read_post_table (PROTOTYPE);
+
+#undef PROTOTYPE
 
 #endif /* TEST */
 
@@ -1605,6 +1759,10 @@ struct sfnt_interpreter_zone
 
   /* Pointer to the flags associated with this data.  */
   unsigned char *flags;
+
+  /* If this structure was produced from a simple glyph, pointer to
+     the simple glyph itself.  NULL otherwise.  */
+  struct sfnt_simple_glyph *simple;
 };
 
 enum
@@ -1948,7 +2106,7 @@ extern const char *sfnt_interpret_control_value_program (PROTOTYPE);
 
 #undef PROTOTYPE
 
-#define PROTOTYPE struct sfnt_instructed_outline *
+#define PROTOTYPE struct sfnt_instructed_outline *, sfnt_fixed *
 
 extern struct sfnt_glyph_outline *sfnt_build_instructed_outline (PROTOTYPE);
 

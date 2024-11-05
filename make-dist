@@ -1,7 +1,7 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2023 Free Software Foundation,
+## Copyright (C) 1995, 1997-1998, 2000-2024 Free Software Foundation,
 ## Inc.
 
 ## This file is part of GNU Emacs.
@@ -356,8 +356,11 @@ possibly_non_vc_files="
   $top_level_ChangeLog
   MANIFEST aclocal.m4 configure
   admin/charsets/jisx2131-filter
-  src/config.in exec/configure
-  exec/config.h.in
+  src/config.in
+  exec/configure exec/config.h.in
+  exec/config.sub exec/config.guess
+  exec/install-sh
+  leim/small-ja-dic-option
 "$(
   find admin doc etc lisp \
    \( -name '*.el' -o -name '*.elc' -o -name '*.map' -o -name '*.stamp' \
@@ -461,7 +464,7 @@ if [ "${newer}" ]; then
   ## up an incremental distribution already has a running Emacs to byte-compile
   ## them with.
   find ${tempdir} \( -name '*.elc' -o ! -newer "${newer}" \) \
-    -exec rm -f {} \; || exit
+    -exec rm -f {} + || exit
 fi
 
 if [ "${make_tar}" = yes ]; then

@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2023 Free Software Foundation, Inc.
+Copyright (C) 2001-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -11,12 +11,16 @@ it best.  Also to check that it hasn't been done already, since we
 don't always remember to update this file!  It is best to consult
 the latest version of this file in the Emacs source code repository.
 
-Since Emacs is an FSF-copyrighted package, please be prepared to sign
-legal papers to transfer the copyright on your work to the FSF.
-Copyright assignment is a simple process.  Residents of some countries
-can do it entirely electronically.  We can help you get started, and
-answer any questions you may have (or point you to the people with the
-answers), at the emacs-devel@gnu.org mailing list.
+Generally speaking, for non-trivial contributions to GNU Emacs and
+packages stored in GNU ELPA, we require that the copyright be assigned
+to the FSF.  For the reasons behind this, see:
+https://www.gnu.org/licenses/why-assign.html
+
+Copyright assignment is a simple process.  Residents of many countries
+can do it entirely electronically.  To get started, follow the
+instructions in the file etc/copyright-assign.txt in the Emacs
+distribution.  We can answer any questions you may have (or point you to
+the people with the answers) at the emacs-devel@gnu.org mailing list.
 
 For more information about getting involved, see the CONTRIBUTE file.
 
@@ -68,10 +72,10 @@ Convert those to use it.
 
 ** Remove unnecessary autoload cookies from defcustoms
 This needs a bit of care, since often people have become used to
-expecting such variables to always be defined, eg when they modify
-things in their .emacs.
+expecting such variables to always be defined, for example when they
+modify things in their .emacs.
 
-** See if other files can use generated-autoload-file (see eg ps-print)
+** See if other files can use generated-autoload-file (see e.g. ps-print)
 
 ** Do interactive mode tagging for commands
 Change "(interactive)" to "(interactive nil foo-mode)" for command
@@ -83,6 +87,15 @@ outside of the mode they were written for.
 ** Convert defvar foo-mode-map to defvar-keymap
 Verify the conversion by comparing the value of the keymap before
 converting it and after (you can see the value in 'C-h v').
+
+** Change documentation examples to use 'setopt' instead of 'setq'
+User options are variables defined with 'defcustom', as opposed to
+'defvar' or 'defconst'.  It is preferable to use 'setopt' to set user
+options instead of 'setq', since it will execute any ‘custom-set’ form
+associated with that variable.  Pick a package and make sure that it
+uses 'setopt' in any examples in its documentation (doc strings, manual,
+Commentary section, etc.).  Note that 'setopt' is new in Emacs 29.1, so
+packages that need support for earlier versions should still use 'setq'.
 
 ** Write more tests
 Pick a fixed bug from the database, write a test case to make sure it
@@ -133,6 +146,20 @@ This should use a heuristic of some kind?
 ** In Emacs Info, examples of using Customize should be clickable
 They should create Custom buffers when clicked.
 
+** Replacements under 'Info-hide-note-references' should be language-sensitive
+Currently, we replace the "*note" cross-reference indicators with a
+hard-coded "see", which is English-centric and doesn't look well in
+manuals written in languages other than English.  To fix this, we need
+a change in the Texinfo's 'makeinfo' program so that it records the
+document's language (specified via the @documentlanguage directive in
+Texinfo) in a variable in the Local Variables section of the produced
+Info file.  Then 'Info-fontify-node' should be modified to look up the
+translation of "see" to that language in a database (which should be
+added), and should use that translation instead of "see".  See this
+discussion on the Texinfo mailing list for more details:
+
+  https://lists.gnu.org/archive/html/help-texinfo/2023-12/msg00011.html
+
 ** Add function to redraw the tool bar
 
 ** Redesign the load-history data structure
@@ -141,6 +168,8 @@ from different files, recording which file the latest definition came
 from.
 
 ** Make back_comment use syntax-ppss or equivalent
+
+** Make play-sound asynchronous and non-blocking
 
 ** Consider improving src/sysdep.c's search for a fqdn
 https://lists.gnu.org/r/emacs-devel/2007-04/msg00782.html
@@ -156,10 +185,6 @@ Change them to use report-emacs-bug.
 **** lm-report-bug
 **** tramp-bug
 **** c-submit-bug-report
-
-** Allow fringe indicators to display a tooltip
-Provide a help-echo property?
-
 ** Add a defcustom that supplies a function to name numeric backup files
 Like 'make-backup-file-name-function' for non-numeric backup files.
 
@@ -419,41 +444,6 @@ modify them.  Also, when properties are looked up during redisplay, we
 generally can't run Elisp code, whereas we generally can do that when
 properties are added.
 
-*** Move overlays to intervals.c
-Currently overlays are implemented as (two) sorted singly linked lists (one
-for overlays_before some position and one for overlay_after that
-position, for some quirky definition of "before" and "after").
-The function 'overlay-recenter' changes the position used for the split
-(and is called internally in various situations).
-
-Each overlay is itself implemented with two markers (which keep track of
-the overlay-start and overlay-end).  Markers are implemented as
-a non-sorted singly linked list of markers.  So every text
-insertion/deletion requires O(N) time, where N is the number of markers
-since we have to go down that list to update those markers that are
-affected by the modification.
-
-You can start in src/buffer.[ch], maybe grepping for overlays_before for
-a starting point.
-
-Text-properties, OTOH, are implemented with a (mostly) balanced binary
-tree.  This is implemented in src/intervals.[ch].
-
-So we'd like to change overlays so that they don't use markers (and we
-don't keep them in two sorted singly-linked lists) any more.  Instead,
-we'll store them inside the balanced binary tree used for
-text-properties.  I think we can use the "augmented tree" approach
-described in https://en.wikipedia.org/wiki/Interval_tree.
-
-To ease up debugging during development, I'd guess the implementation
-would first add the new stuff, keeping the old stuff (i.e. add to
-Lisp_Overlay whichever fields are needed for the new code, while keeping
-the old ones, add needed overlay fields to the intervals tree, but keep
-the old fields, the overlays_before etc...).  This way, you can add
-consistency checks that make sure the new code computes the same results
-as the old code.  And once that works well, we can remove the old code
-and old fields.
-
 ** Implement Unicode-compliant display of "default-ignorable" characters
 See the "Characters Ignored for Display" section of paragraph 5.21 in
 the Unicode Standard for the details.
@@ -473,21 +463,38 @@ wrapping of long lines under 'visual-line-mode'.  The algorithm for
 selecting the wrap point may also need be changed to break at the soft
 hyphen.
 
+** Support external rules for indentation
+This should teach Emacs to read indentation rules from a file and use
+them in preference to the user customizations and the built-in
+defaults.  An example of such rule files is '.clang-format', see
+
+  https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
+As a minimum, there should be a command, a variant of indent-region,
+which could be told to use the rules from such a file, and should then
+reformat the region of source code according to the rules.
+
+The next step is to use these rules during editing of files residing
+in a directory that has such an indentation-rules spec in it.
+
+For some discussion and implementation ideas (including possibly using
+LSP), see the thread starting at
+https://lists.gnu.org/archive/html/emacs-devel/2023-09/msg00609.html
+
+** Add indentation guide support to the display engine
+Support vertical lines that indicate the current level of indentation,
+which is useful when editing source code.  This feature should be
+implemented in the display engine.
+
+See the indent-bars package, which implements this in Emacs Lisp:
+https://github.com/jdtsmith/indent-bars
+
 ** FFI (foreign function interface)
-See eg https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
+See e.g. https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
 
 One way of doing this is to start with fx's dynamic loading, and use it
 to implement things like auto-loaded buffer parsers and database
 access in cases which need more than Lisp.
-
-** Fix portable dumping so that you can redump without using -batch
-
-*** Redumps and native compiler "preloaded" sub-folder.
-In order to depose new .eln files being compiled into the "preloaded"
-sub-folder the native compiler needs to know in advance if this file
-will be preloaded or not.  As .eln files are not moved afterwards
-subsequent redumps might refer to .eln file out of the "preloaded"
-sub-folder.
 
 ** Imenu could be extended into a file-structure browsing mechanism
 This could use code like that of customize-groups.
@@ -613,7 +620,7 @@ Ideally from someone familiar with GNUstep and Objective C.
 ** A more modern printing interface
 A UI that pops up a dialog that lets you choose printer, page style,
 etc.  Integration with the Gtk print dialog is apparently difficult.
-See eg: https://lists.gnu.org/r/emacs-devel/2009-03/msg00501.html
+See e.g.: https://lists.gnu.org/r/emacs-devel/2009-03/msg00501.html
 https://lists.gnu.org/r/emacs-devel/2009-04/msg00034.html
 
 ** Allow frames(terminals) created by emacsclient to inherit their environment
@@ -731,7 +738,8 @@ bar.  In the mean time, it should process other messages.
 *** PSGML, _possibly_ ECB
 https://lists.gnu.org/r/emacs-devel/2007-05/msg01493.html Check the
 assignments file for other packages which might go in and have been
-missed.
+missed.  (Not sure if this is still relevant in 2024.  For example, both
+packages seem to be unmaintained.)
 
 ** Make byte-compiler warnings smarter
 Byte-compiler warnings about functions that might be undefined at run
@@ -747,8 +755,8 @@ them.
 Zlib is required for PNG, so may be linked anyhow.
 
 ** Improve the GC
-Introduce generational or incremental GC.  We may be able to use the
-Boehm collector.)  See the Boehm-GC branch in CVS for work on this.
+Introduce generational or incremental GC.  (We may be able to use the
+Boehm collector.)  See the Boehm-GC branch in Git for work on this.
 
 ** Check what hooks would help Emacspeak
 See the defadvising in W3.
@@ -779,9 +787,6 @@ Currently, a header can contain only single 1-byte charset in addition
 to ASCII.
 
 *** Provide a user friendly interface to specify fonts
-
-** Use the XIE X extension, if available, for image display
-This is obsolete, as XIE itself is now considered obsolete.
 
 ** Make monochrome images honor the face
 Display those images using the foreground and background colors of the
@@ -905,6 +910,42 @@ It would make it easy to add (and remove) mappings like
 
 * Things to be done for specific packages or features
 
+** Native compiler improvements
+
+*** Performance
+
+**** Intra compilation unit call optimization
+
+We could have a mechanism similar to what we use for optimizing calls
+to primitive functions.  IE using a link table for each compilation
+unit (CU) such that calls from functions in a CU targeting functions
+in the same CU don't have to go through funcall.  If one of these
+functions is redefined, a trampoline is compiled and installed to
+restore the redirection through funcall.
+
+**** Better runtime function inlining
+
+Several functions could be open-coded in generated code once exposed to
+libgccjit.  Two simple first candidates are probably 'maybe_quit' and
+'maybe_gc'.
+
+*** Features to be improved or missing
+
+**** Make use of function type declaration
+
+The native compiler should make use of function type declarations (when
+available) to propagate parameter types inside the function for better
+value/type predictions.
+
+**** Fix portable dumping so that you can redump without using -batch
+
+***** Redumps and native compiler "preloaded" sub-folder.
+In order to depose new .eln files being compiled into the "preloaded"
+sub-folder the native compiler needs to know in advance if this file
+will be preloaded or not.  As .eln files are not moved afterwards
+subsequent redumps might refer to .eln file out of the "preloaded"
+sub-folder.
+
 ** NeXTstep port
 
 *** Missing features
@@ -929,25 +970,6 @@ the tool bar is performed.
 
 Unfortunately, the tool bar (and possible other operations) always
 resize the frame.
-
-**** Support 'proced' (implement 'process-attributes')
-Unfortunately, a user-level process like Emacs does not have the
-privileges to get information about other processes under macOS.
-
-There are other ways to do this:
-
- 1) Spawn "ps" and parse the output ("ps" has superuser privileges).
-
- 2) Sign Emacs as part of the distribution process.
-
- 3) Ask the user to self-sign Emacs, if this feature is of interest.
-
-Anders Lindgren <andlind@gmail.com> has implemented
-'process-attributes' for macOS, which currently only work when
-running Emacs as root.
-
-See this article by Bozhidar Batsov for an overview of Proced:
-https://emacsredux.com/blog/2013/05/02/manage-processes-with-proced/
 
 **** Tooltip properties
 Tooltip properties like the background color and font are hard-wired,
@@ -1051,7 +1073,7 @@ Anders Lindgren <andlind@gmail.com> has implemented some (very basic)
 tests for full screen, toolbar, and auto-hiding the menu bar.
 
 **** Make sure all build variants work
-Emacs can be build in a number of different ways.  For each feature,
+Emacs can be built in a number of different ways.  For each feature,
 consider if is really is "NS" specific, or if it should be applied to
 all build versions.
 
@@ -1089,10 +1111,6 @@ There was a special trick to detect mouse press in the lower right
 corner and track mouse movements, but this did not work well, and was
 not scalable to the new Lion "resize on every window edge" behavior.
 [As of trunk r109635, 2012-08-15, the event loop no longer polls.]
-
-**** mouse-avoidance-mode
-(mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back
-up on top of all others (probably fixed in bug#17439).
 
 **** free_frame_resources, face colors
 
@@ -1246,7 +1264,7 @@ Necessary for indirect buffers to work?
 
 *** Locating schemas
 
-**** Should 'rng-validate-mode' allow to specify a schema?
+**** Should 'rng-validate-mode' allow specifying a schema?
 Give the user an opportunity to specify a schema if there is currently
 none?  Or should it at least give a hint to the user how to specify a
 non-vacuous schema?
