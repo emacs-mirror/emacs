@@ -1204,7 +1204,7 @@ boundaries."
             (or (lm-header "package-version") (lm-header "version")))
            (pkg-version (package-strip-rcs-id version-info))
            (keywords (lm-keywords-list))
-           (website (lm-homepage)))
+           (website (lm-website)))
       (unless pkg-version
          (if version-info
              (error "Unrecognized package version: %s" version-info)
