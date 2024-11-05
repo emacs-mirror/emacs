@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include "igc.h"
 
 #ifdef WINDOWSNT
 #define raise(s) w32_raise(s)
@@ -132,7 +133,13 @@ start_atimer (enum atimer_type type, struct timespec timestamp,
       free_atimers = t->next;
     }
   else
-    t = xmalloc (sizeof *t);
+    {
+#ifdef HAVE_MPS
+      t = igc_xzalloc_ambig (sizeof *t);
+#else
+      t = xmalloc (sizeof *t);
+#endif
+    }
 
   /* Fill the atimer structure.  */
   memset (t, 0, sizeof *t);
