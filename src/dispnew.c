@@ -102,6 +102,20 @@ static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
 static void set_window_update_flags (struct window *w, bool on_p);
 
+#if 0 /* Please leave this in as a debugging aid.  */
+static void
+check_rows (struct frame *f)
+{
+  for (int y = 0; y < f->desired_matrix->nrows; ++y)
+    if (MATRIX_ROW_ENABLED_P (f->desired_matrix, y))
+      {
+	struct glyph_row *row = MATRIX_ROW (f->desired_matrix, y);
+	for (int x = 0; x < row->used[TEXT_AREA]; ++x)
+	  eassert (row->glyphs[TEXT_AREA][x].frame != 0);
+      }
+}
+#endif
+
 /* True means last display completed.  False means it was preempted.  */
 
 bool display_completed;
@@ -3702,10 +3716,12 @@ copy_child_glyphs (struct frame *root, struct frame *child)
 	  neutralize_wide_char (root, root_row, r.x + r.w);
 	}
 
-      /* Copy what's visible from the child's current row.  */
+      /* Copy what's visible from the child's current row.  If that row
+	 is not enabled_p, we can't copy anything that makes sense.  */
       struct glyph_row *child_row = MATRIX_ROW (child->current_matrix, child_y);
-      memcpy (root_row->glyphs[0] + r.x, child_row->glyphs[0] + child_x,
-	      r.w * sizeof (struct glyph));
+      if (child_row->enabled_p)
+	memcpy (root_row->glyphs[0] + r.x, child_row->glyphs[0] + child_x,
+		r.w * sizeof (struct glyph));
 
       /* Compute a new hash since we changed glyphs.  */
       root_row->hash = row_hash (root_row);
