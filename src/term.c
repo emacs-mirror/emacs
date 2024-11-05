@@ -3121,9 +3121,7 @@ save_and_enable_current_matrix (struct frame *f)
 static void
 restore_desired_matrix (struct frame *f, struct glyph_matrix *saved)
 {
-  int i;
-
-  for (i = 0; i < saved->nrows; ++i)
+  for (int i = 0; i < saved->nrows; ++i)
     {
       struct glyph_row *from = saved->rows + i;
       struct glyph_row *to = f->desired_matrix->rows + i;
@@ -3133,7 +3131,23 @@ restore_desired_matrix (struct frame *f, struct glyph_matrix *saved)
       memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
       to->enabled_p = from->enabled_p;
-      to->hash = from->hash;
+
+      bool need_new_hash = false;
+      for (int x = 0; x < f->desired_matrix->matrix_w; ++x)
+	{
+	  struct glyph *glyph = to->glyphs[0] + x;
+	  if (!FRAME_LIVE_P (glyph->frame))
+	    {
+	      glyph->frame = f;
+	      glyph->face_id = DEFAULT_FACE_ID;
+	      need_new_hash = true;
+	    }
+	}
+
+      if (need_new_hash)
+	to->hash = row_hash (to);
+      else
+	to->hash = from->hash;
     }
 }
 
