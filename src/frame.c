@@ -1285,7 +1285,7 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
     f = make_frame (true);
   else
     {
-      CHECK_FRAME (parent);
+      CHECK_LIVE_FRAME (parent);
 
       f = NULL;
       Lisp_Object mini = Fassq (Qminibuffer, params);
