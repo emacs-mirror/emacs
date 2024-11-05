@@ -2686,10 +2686,12 @@ If non-@code{nil}, do opportunistic @acronym{STARTTLS} upgrades even if Emacs
 doesn't have built-in @acronym{TLS} support.
 
 @item :warn-unless-encrypted @var{boolean}
-If non-@code{nil}, and @code{:return-value} is also non-@code{nil},
-Emacs will warn if the connection isn't encrypted.  This is useful for
-protocols like @acronym{IMAP} and the like, where most users would
-expect the network traffic to be encrypted.
+If non-@code{nil}, warn the user if the final connection type is not
+encrypted.  This is useful for protocols like @acronym{IMAP} and the
+like, where most users would expect the network traffic to be encrypted.
+This may be due to @acronym{STARTTLS} upgrade failure, specifying
+@code{:return-list} non-@code{nil} allows you to capture any error
+encountered.
 
 @vindex network-stream-use-client-certificates
 @item :client-certificate @var{list-or-t}
@@ -2715,6 +2717,9 @@ If non-@code{nil}, the greeting string returned by the host.
 If non-@code{nil}, the host's capability string.
 @item :type @var{symbol}
 The connection type: @samp{plain} or @samp{tls}.
+@item :error @var{symbol}
+A string describing any error encountered when perfoming
+@acronym{STARTTLS} upgrade.
 @end table
 
 @item :shell-command @var{string-or-nil}
