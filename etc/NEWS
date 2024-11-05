@@ -839,8 +839,9 @@ current buffer, if the major mode supports it.  (Support for
 '--without-native-image-api'.)
 
 ---
-** Images on MS-Windows now support the :transform-smoothing flag.
-Bilinear interpolation with GDI+ is used to smooth images.
+** Images on MS-Windows now support the ':transform-smoothing' flag.
+Transformed images are smoothed using the bilinear interpolation by
+means of the GDI+ library.
 
 
 ----------------------------------------------------------------------
