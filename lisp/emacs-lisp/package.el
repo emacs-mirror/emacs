@@ -4703,7 +4703,9 @@ This function should be added to `after-change-major-mode-hook'."
                   "?")))
     (if (yes-or-no-p prompt)
         (mapc #'package--autosuggest-install-and-enable avail)
-      (setq package--autosuggest-suggested (append avail package--autosuggest-suggested)))))
+      (setq package--autosuggest-suggested (append avail package--autosuggest-suggested))
+      (when (eq package-autosuggest-style 'mode-line)
+        (force-mode-line-update t)))))
 
 (defun package-reset-suggestions ()
   "Forget previous package suggestions.
