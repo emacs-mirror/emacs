@@ -850,32 +850,48 @@ If NEXT, do the next column."
     (error "Invalid spec: %s" spec))))
 
 (defun vtable--compute-widths (table cache)
-  "Compute the display widths for TABLE."
-  (seq-into
-   (seq-map-indexed
-    (lambda (column index)
-      (let ((width
-             (or
-              ;; Explicit widths.
-              (and (vtable-column-width column)
-                   (vtable--compute-width table (vtable-column-width column)))
-              ;; Compute based on the displayed widths of
-              ;; the data.
-              (seq-max (seq-map (lambda (elem)
-                                  (nth 1 (elt (cdr elem) index)))
-                                cache)))))
-        ;; Let min-width/max-width specs have their say.
-        (when-let* ((min-width (and (vtable-column-min-width column)
-                                    (vtable--compute-width
-                                     table (vtable-column-min-width column)))))
-          (setq width (max width min-width)))
-        (when-let* ((max-width (and (vtable-column-max-width column)
-                                    (vtable--compute-width
-                                     table (vtable-column-max-width column)))))
-          (setq width (min width max-width)))
-        width))
-    (vtable-columns table))
-   'vector))
+  "Compute the display widths for TABLE.
+CACHE is TABLE's cache data as returned by `vtable--compute-cache'."
+  (let* ((n-0cols 0) ; Count the number of zero-width columns.
+         (widths (seq-map-indexed
+                  (lambda (column index)
+                    (let ((width
+                           (or
+                            ;; Explicit widths.
+                            (and (vtable-column-width column)
+                                 (vtable--compute-width table (vtable-column-width column)))
+                            ;; If the vtable is empty and no explicit width is given,
+                            ;; set its width to 0 and deal with it below.
+                            (when (null cache)
+                              (setq n-0cols (1+ n-0cols))
+                              0)
+                            ;; Otherwise, compute based on the displayed widths of the
+                            ;; data.
+                            (seq-max (seq-map (lambda (elem)
+                                                (nth 1 (elt (cdr elem) index)))
+                                              cache)))))
+                      ;; Let min-width/max-width specs have their say.
+                      (when-let* ((min-width (and (vtable-column-min-width column)
+                                                 (vtable--compute-width
+                                                  table (vtable-column-min-width column)))))
+                        (setq width (max width min-width)))
+                      (when-let* ((max-width (and (vtable-column-max-width column)
+                                                 (vtable--compute-width
+                                                  table (vtable-column-max-width column)))))
+                        (setq width (min width max-width)))
+                      width))
+                  (vtable-columns table))))
+    ;; If there are any zero-width columns, divide the remaining window
+    ;; width evenly over them.
+    (when (> n-0cols 0)
+      (let* ((combined-width (apply #'+ widths))
+             (default-width (/ (- (window-width nil t) combined-width) n-0cols)))
+        (setq widths (mapcar (lambda (width)
+                               (if (zerop width)
+                                   default-width
+                                 width))
+                             widths))))
+    (seq-into widths 'vector)))
 
 (defun vtable--compute-cache (table)
   (seq-map
