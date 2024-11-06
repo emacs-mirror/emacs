@@ -4683,6 +4683,16 @@ PKG-SUG has the same form as an element of
     (if (yes-or-no-p prompt)
         (mapc #'package--autosuggest-install-and-enable avail)
       (setq package--autosuggest-suggested (append avail package--autosuggest-suggested)))))
+
+(defun package-reset-suggestions ()
+  "Forget previous package suggestions.
+Emacs will remember if you have previously rejected a suggestion during
+a session and won't mention it afterwards.  If you have made a mistake
+or would like to reconsider this, use this command to want to reset the
+suggestions."
+  (interactive)
+  (setq package--autosuggest-suggested nil))
+
 
 ;;;; Quickstart: precompute activation actions for faster start up.
 
