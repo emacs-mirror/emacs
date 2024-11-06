@@ -190,9 +190,12 @@
   "Global minor mode for displaying help in tty child frames."
   :global t :group 'help
   (unless (display-graphic-p)
-    (if tty-tip-mode
-	(setq show-help-function #'tty-tip--show-help)
-      (setq show-help-function nil))))
+    (cond (tty-tip-mode
+	   (setq show-help-function #'tty-tip--show-help)
+           (add-hook 'pre-command-hook #'tty-tip--delete-frame))
+          (t
+           (setq show-help-function nil)
+           (remove-hook 'pre-command-hook #'tty-tip--delete-frame)))))
 
 (provide 'tty-tip)
 
