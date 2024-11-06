@@ -192,10 +192,10 @@
   (unless (display-graphic-p)
     (cond (tty-tip-mode
 	   (setq show-help-function #'tty-tip--show-help)
-           (add-hook 'pre-command-hook #'tty-tip--delete-frame))
+           (add-hook 'pre-command-hook #'tty-tip--hide))
           (t
            (setq show-help-function nil)
-           (remove-hook 'pre-command-hook #'tty-tip--delete-frame)))))
+           (remove-hook 'pre-command-hook #'tty-tip--hide)))))
 
 (provide 'tty-tip)
 
