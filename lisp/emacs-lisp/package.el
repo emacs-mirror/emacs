@@ -4554,24 +4554,22 @@ against TYPE in the intuitive way (e.g. for `auto-mode-alist' DATA is a
 regular expression matching a file name that PACKAGE should be suggested
 for).")
 
-(define-minor-mode package-autosuggest-mode
-  "Enable the automatic suggestion and installation of packages.
-As a user option, you can set this value to `mode-line' (default) to
-indicate the availability of a package suggestion in the minor mode,
-`always' to prompt the user in the minibuffer every time a suggestion is
-available in a `fundamenta-mode' buffer, `once' to do only prompt the
-user once for each suggestion or `message' to just display a message
-hinting at the existence of a suggestion.  If `package-autosuggest-mode'
-is set to nil, the minor mode will be disabled and no suggestions occur."
-  :init-value 'mode-line :global t
+(defcustom package-autosuggest-style 'mode-line
+  "How to draw attention to `package-autosuggest-mode' suggestions.
+You can set this value to `mode-line' (default) to indicate the
+availability of a package suggestion in the minor mode, `always' to
+prompt the user in the minibuffer every time a suggestion is available
+in a `fundamenta-mode' buffer, `once' to do only prompt the user once
+for each suggestion or `message' to just display a message hinting at
+the existence of a suggestion."
   :type '(choice (const :tag "Indicate in mode line" mode-line)
                  (const :tag "Always prompt" always)
                  (const :tag "Prompt only once" once)
-                 (const :tag "Indicate with message" message)
-                 (const :tag "Do not suggest anything" nil))
-  (unless (memq package-autosuggest-mode '(mode-line always once message))
-    (let ((def (custom--standard-value 'package-autosuggest-mode)))
-      (setq package-autosuggest-mode def)))
+                 (const :tag "Indicate with message" message)))
+
+(define-minor-mode package-autosuggest-mode
+  "Enable the automatic suggestion and installation of packages."
+  :init-value t :global t
   (funcall (if package-autosuggest-mode #'add-hook #'remove-hook)
            'after-change-major-mode-hook
            #'package--autosuggest-after-change-mode))
@@ -4580,7 +4578,7 @@ is set to nil, the minor mode will be disabled and no suggestions occur."
   "List of packages that have already been suggested.
 The elements of this list should be a subset of elements from
 `package-autosuggest-database'.  Suggestions found in this list will not
-count as suggestions (e.g. if `package-autosuggest-mode' is set to
+count as suggestions (e.g. if `package-autosuggest-style' is set to
 `mode-line', a suggestion found in here will inhibit
 `package-autosuggest-mode' from displaying a hint in the mode line).")
 
@@ -4588,7 +4586,7 @@ count as suggestions (e.g. if `package-autosuggest-mode' is set to
   "Check if a suggestion SUG is applicable to the current buffer.
 SUG should be an element of `package-autosuggest-database'."
   (pcase sug
-    (`(,(or (pred (assq _ package--autosuggest-suggested))
+    (`(,(or (pred (lambda (e) (assq e package--autosuggest-suggested)))
             (pred package-installed-p))
        . ,_)
      nil)
@@ -4647,7 +4645,8 @@ SUG should be an element of `package-autosuggest-database'."
 
 (defun package--autosugest-line-format ()
   "Generate a mode-line string to indicate a suggested package."
-  `(,@(and-let* (((eq package-autosuggest-mode 'mode-line))
+  `(,@(and-let* (((not (null package-autosuggest-mode)))
+                 ((eq package-autosuggest-style 'mode-line))
                  (avail (package--autosuggest-find-candidates)))
         (propertize
          (format "Install %s?"
@@ -4673,7 +4672,7 @@ This function should be added to `after-change-major-mode-hook'."
               (pkgs (mapconcat #'symbol-name
                                (delete-dups (mapcar #'car avail))
                                ", ")))
-    (pcase package-autosuggest-mode
+    (pcase-exhaustive package-autosuggest-style
       ('mode-line
        (force-mode-line-update t))
       ('always
