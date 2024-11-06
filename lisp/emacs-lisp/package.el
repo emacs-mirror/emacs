@@ -4545,10 +4545,24 @@ the `Version:' header."
       (insert-file-contents
        (expand-file-name "package-autosuggest.eld" data-directory)"/home/phi/Source/emacs/etc/package-autosuggest.eld")
       (read (current-buffer))))
-  "Database of hints for packages to suggest installing.")
+  "List of hints for packages to suggest installing.
+Each hint has the form (PACKAGE TYPE DATA), where PACKAGE is a symbol
+denoting the package the hint applies to, TYPE is one of
+`auto-mode-alist', `magic-mode-alist' or `interpreter-mode-alist'
+indicating the type of check to be made and DATA is the value to check
+against TYPE in the intuitive way (e.g. for `auto-mode-alist' DATA is a
+regular expression matching a file name that PACKAGE should be suggested
+for).")
 
 (define-minor-mode package-autosuggest-mode
-  "Enable the automatic suggestion and installation of packages."
+  "Enable the automatic suggestion and installation of packages.
+As a user option, you can set this value to `mode-line' (default) to
+indicate the availability of a package suggestion in the minor mode,
+`always' to prompt the user in the minibuffer every time a suggestion is
+available in a `fundamenta-mode' buffer, `once' to do only prompt the
+user once for each suggestion or `message' to just display a message
+hinting at the existence of a suggestion.  If `package-autosuggest-mode'
+is set to nil, the minor mode will be disabled and no suggestions occur."
   :init-value 'mode-line :global t
   :type '(choice (const :tag "Indicate in mode line" mode-line)
                  (const :tag "Always prompt" always)
@@ -4560,27 +4574,30 @@ the `Version:' header."
            #'package--autosuggest-after-change-mode))
 
 (defvar package--autosuggest-suggested '()
-  "List of packages that have already been suggested.")
+  "List of packages that have already been suggested.
+The elements of this list should be a subset of elements from
+`package-autosuggest-database'.  Suggestions found in this list will not
+count as suggestions (e.g. if `package-autosuggest-mode' is set to
+`mode-line', a suggestion found in here will inhibit
+`package-autosuggest-mode' from displaying a hint in the mode line).")
 
-(defun package--suggestion-applies-p (pkg-sug)
-  "Check if a suggestion PKG-SUG is applicable to the current buffer."
-  (pcase pkg-sug
+(defun package--suggestion-applies-p (sug)
+  "Check if a suggestion SUG is applicable to the current buffer.
+SUG should be an element of `package-autosuggest-database'."
+  (pcase sug
     (`(,(or (pred (assq _ package--autosuggest-suggested))
             (pred package-installed-p))
        . ,_)
      nil)
-    ((or `(,_ auto-mode-alist ,ext _)
-         `(,_ auto-mode-alist ,ext))
+    (`(,_ auto-mode-alist ,ext)
      (and (string-match-p ext (buffer-name)) t))
-    ((or `(,_ magic-mode-alist ,mag _)
-         `(,_ magic-mode-alist ,mag))
+    (`(,_ magic-mode-alist ,mag)
      (save-restriction
        (widen)
        (save-excursion
          (goto-char (point-min))
          (looking-at-p mag))))
-    ((or `(,_ interpreter-mode-alist ,magic _)
-         `(,_ interpreter-mode-alist ,magic))
+    (`(,_ interpreter-mode-alist ,magic)
      (save-restriction
        (widen)
        (save-excursion
@@ -4591,7 +4608,9 @@ the `Version:' header."
                magic)))))))
 
 (defun package--autosuggest-find-candidates ()
-  "Return a list of packages that might be interesting the current buffer."
+  "Return a list of suggestions that might be interesting the current buffer.
+The elements of the returned list will be a subset of the elements of
+`package--autosuggest-suggested'."
   (and package-autosuggest-mode
        (let (suggetions)
          (dolist (sug package-autosuggest-database)
@@ -4599,21 +4618,20 @@ the `Version:' header."
              (push sug suggetions)))
          suggetions)))
 
-(defun package--autosuggest-install-and-enable (pkg-sug)
+(defun package--autosuggest-install-and-enable (sug)
   "Install and enable a package suggestion PKG-ENT.
-PKG-SUG has the same form as an element of
-`package-autosuggest-database'."
+SUG should be an element of `package-autosuggest-database'."
   (let ((buffers-to-update '()))
     (dolist (buf (buffer-list))
       (with-current-buffer buf
         (when (and (eq major-mode 'fundamental-mode) (buffer-file-name)
-                   (package--suggestion-applies-p pkg-sug))
+                   (package--suggestion-applies-p sug))
           (push buf buffers-to-update))))
-    (package-install (car pkg-sug))
+    (package-install (car sug))
     (dolist (buf buffers-to-update)
       (with-demoted-errors "Failed to enable major mode: %S"
         (with-current-buffer buf
-          (funcall-interactively (or (cadddr pkg-sug) (car pkg-sug))))))))
+          (funcall-interactively (or (cadddr sug) (car sug))))))))
 
 (defvar package--autosugest-line-format
   '(:eval (package--autosugest-line-format)))
@@ -4646,7 +4664,8 @@ PKG-SUG has the same form as an element of
  '(package-autosuggest-mode ("" package--autosugest-line-format)))
 
 (defun package--autosuggest-after-change-mode ()
-  "Hook function to suggest packages for installation."
+  "Display package suggestions for the current buffer.
+This function should be added to `after-change-major-mode-hook'."
   (when-let* ((avail (package--autosuggest-find-candidates))
               (pkgs (mapconcat #'symbol-name
                                (delete-dups (mapcar #'car avail))
@@ -4665,10 +4684,10 @@ PKG-SUG has the same form as an element of
        (message
         (substitute-command-keys
          (format "Found suggested packages: %s.  Install using  \\[package-autosuggest]"
-                 pkgs)))))))
+                 pkgs)))p))))
 
 (defun package-autosuggest ()
-  "Prompt the user for suggested packages."
+  "Prompt the user to install the suggested packages."
   (interactive)
   (let* ((avail (or (package--autosuggest-find-candidates)
                     (user-error "No suggestions found")))
