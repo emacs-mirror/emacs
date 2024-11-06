@@ -1,7 +1,79 @@
-;; Database of suggestions for `package-autosuggest'
+;; The contents of this file are loaded into `package-autosuggest-database'
+;; and were automatically generate by scraping ELPA for auto-loaded
+;; code using the `scrape-elpa' command.  Please avoid updating this
+;; file manually!
 
 (
- (sml-mode auto-mode-alist "\\.sml\\'")
- (ada-mode auto-mode-alist "\\.ada\\'")
- (go-mode auto-mode-alist "\\.go\\'")
+(ada-mode auto-mode-alist "\\.ad[abs]\\'") ;from ~/Source/elpa/packages/ada-mode/ada-mode-autoloads.el
+(arbitools-mode auto-mode-alist "\\.trf?\\'") ;from ~/Source/elpa/packages/arbitools/arbitools-autoloads.el
+(LaTeX-mode auto-mode-alist "\\.hva\\'") ;from ~/Source/elpa/packages/auctex/auctex-autoloads.el
+(bnf-mode auto-mode-alist "\\.bnf\\'") ;from ~/Source/elpa/packages/bnf-mode/bnf-mode-autoloads.el
+(chess-pgn-mode auto-mode-alist "\\.pgn\\'") ;from ~/Source/elpa/packages/chess/chess-autoloads.el
+(cobol-mode auto-mode-alist "\\.c\\(ob\\|bl\\|py\\)\\'") ;from ~/Source/elpa/packages/cobol-mode/cobol-mode-autoloads.el
+(code-cells-convert-ipynb auto-mode-alist "\\.ipynb\\'") ;from ~/Source/elpa/packages/code-cells/code-cells-autoloads.el
+(csharp-mode auto-mode-alist "\\.cs\\'") ;from ~/Source/elpa/packages/csharp-mode/csharp-mode-autoloads.el
+(csv-mode auto-mode-alist "\\.[Cc][Ss][Vv]\\'") ;from ~/Source/elpa/packages/csv-mode/csv-mode-autoloads.el
+(tsv-mode auto-mode-alist "\\.tsv\\'") ;from ~/Source/elpa/packages/csv-mode/csv-mode-autoloads.el
+(dismal-mode auto-mode-alist "\\.dis\\'") ;from ~/Source/elpa/packages/dismal/dismal-autoloads.el
+(djvu-init-mode auto-mode-alist "\\.djvu\\'") ;from ~/Source/elpa/packages/djvu/djvu-autoloads.el
+(dts-mode auto-mode-alist "\\.dtsi?\\'") ;from ~/Source/elpa/packages/dts-mode/dts-mode-autoloads.el
+(ess-bugs-mode auto-mode-alist "\\.[Bb][Uu][Gg]\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(ess-bugs-mode auto-mode-alist "\\.[Bb][Oo][Gg]\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(ess-bugs-mode auto-mode-alist "\\.[Bb][Mm][Dd]\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(ess-jags-mode auto-mode-alist "\\.[Jj][Aa][Gg]\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(ess-r-mode auto-mode-alist "/R/.*\\.q\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(ess-r-mode auto-mode-alist "\\.[rR]\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(ess-r-mode auto-mode-alist "\\.[rR]profile\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(ess-r-mode auto-mode-alist "NAMESPACE\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(ess-r-mode auto-mode-alist "CITATION\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(ess-r-transcript-mode auto-mode-alist "\\.[Rr]out\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(ess-r-mode interpreter-mode-alist "Rscript") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(ess-r-mode interpreter-mode-alist "r") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(makefile-mode auto-mode-alist "/Makevars\\(\\.win\\)?\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(conf-colon-mode auto-mode-alist "DESCRIPTION\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(Rd-mode auto-mode-alist "\\.Rd\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(S-transcript-mode auto-mode-alist "\\.[Ss]t\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(S-transcript-mode auto-mode-alist "\\.Sout\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(SAS-mode auto-mode-alist "\\.[Ss][Aa][Ss]\\'") ;from ~/Source/elpa/packages/ess/lisp/ess-autoloads.el
+(gle-mode auto-mode-alist "\\.gle\\'") ;from ~/Source/elpa/packages/gle-mode/gle-mode-autoloads.el
+(gpr-mode auto-mode-alist "\\.gpr\\'") ;from ~/Source/elpa/packages/gpr-mode/gpr-mode-autoloads.el
+(nxml-mode auto-mode-alist "\\.html?\\'") ;from ~/Source/elpa/packages/html5-schema/html5-schema-autoloads.el
+(jgraph-mode auto-mode-alist "\\.jgr\\'") ;from ~/Source/elpa/packages/jgraph-mode/jgraph-mode-autoloads.el
+(json-mode auto-mode-alist "\\.json\\'") ;from ~/Source/elpa/packages/json-mode/json-mode-autoloads.el
+(lmc-asm-mode auto-mode-alist "\\.elmc\\'") ;from ~/Source/elpa/packages/lmc/lmc-autoloads.el
+(muse-mode-choose-mode auto-mode-alist "\\.muse\\'") ;from ~/Source/elpa/packages/muse/lisp/muse-autoloads.el
+(latex-mode auto-mode-alist "\\.drv\\'") ;from ~/Source/elpa/packages/names/tests/auctex-11.87.7/auctex-autoloads.el
+(doctex-mode auto-mode-alist "\\.dtx\\'") ;from ~/Source/elpa/packages/names/tests/auctex-11.87.7/auctex-autoloads.el
+(nftables-mode auto-mode-alist "\\.nft\\(?:ables\\)?\\'") ;from ~/Source/elpa/packages/nftables-mode/nftables-mode-autoloads.el
+(nftables-mode auto-mode-alist "/etc/nftables.conf") ;from ~/Source/elpa/packages/nftables-mode/nftables-mode-autoloads.el
+(nftables-mode interpreter-mode-alist "nft\\(?:ables\\)?") ;from ~/Source/elpa/packages/nftables-mode/nftables-mode-autoloads.el
+(omn-mode auto-mode-alist "\\.pomn\\'") ;from ~/Source/elpa/packages/omn-mode/omn-mode-autoloads.el
+(omn-mode auto-mode-alist "\\.omn\\'") ;from ~/Source/elpa/packages/omn-mode/omn-mode-autoloads.el
+(poke-mode auto-mode-alist "\\.pk\\'") ;from ~/Source/elpa/packages/poke-mode/poke-mode-autoloads.el
+(pspp-mode auto-mode-alist "\\.sps\\'") ;from ~/Source/elpa/packages/pspp-mode/pspp-mode-autoloads.el
+(conf-mode auto-mode-alist "/\\(?:Pipfile\\|\\.?flake8\\)\\'") ;from ~/Source/elpa/packages/python/python-autoloads.el
+(rec-mode auto-mode-alist "\\.rec\\'") ;from ~/Source/elpa/packages/rec-mode/rec-mode-autoloads.el
+(rnc-mode auto-mode-alist "\\.rnc\\'") ;from ~/Source/elpa/packages/rnc-mode/rnc-mode-autoloads.el
+(sed-mode auto-mode-alist "\\.sed\\'") ;from ~/Source/elpa/packages/sed-mode/sed-mode-autoloads.el
+(sed-mode interpreter-mode-alist "sed") ;from ~/Source/elpa/packages/sed-mode/sed-mode-autoloads.el
+(shen-mode auto-mode-alist "\\.shen\\'") ;from ~/Source/elpa/packages/shen-mode/shen-mode-autoloads.el
+(sisu-mode auto-mode-alist "\\.ss[imt]\\'") ;from ~/Source/elpa/packages/sisu-mode/sisu-mode-autoloads.el
+(smalltalk-mode auto-mode-alist "\\.st\\'") ;from ~/Source/elpa/packages/smalltalk-mode/smalltalk-mode-autoloads.el
+(sml-mode auto-mode-alist "\\.s\\(ml\\|ig\\)\\'") ;from ~/Source/elpa/packages/sml-mode/sml-mode-autoloads.el
+(sml-cm-mode auto-mode-alist "\\.cm\\'") ;from ~/Source/elpa/packages/sml-mode/sml-mode-autoloads.el
+(sml-yacc-mode auto-mode-alist "\\.grm\\'") ;from ~/Source/elpa/packages/sml-mode/sml-mode-autoloads.el
+(sql-mode auto-mode-alist "\\.cql\\'") ;from ~/Source/elpa/packages/sql-cassandra/sql-cassandra-autoloads.el
+(sxhkdrc-mode auto-mode-alist "sxhkdrc\\'") ;from ~/Source/elpa/packages/sxhkdrc-mode/sxhkdrc-mode-autoloads.el
+(systemd-automount-mode auto-mode-alist "\\.automount\\'") ;from ~/Source/elpa/packages/systemd/systemd-autoloads.el
+(systemd-mount-mode auto-mode-alist "\\.mount\\'") ;from ~/Source/elpa/packages/systemd/systemd-autoloads.el
+(systemd-path-mode auto-mode-alist "\\.path\\'") ;from ~/Source/elpa/packages/systemd/systemd-autoloads.el
+(systemd-service-mode auto-mode-alist "\\.service\\'") ;from ~/Source/elpa/packages/systemd/systemd-autoloads.el
+(systemd-socket-mode auto-mode-alist "\\.socket\\'") ;from ~/Source/elpa/packages/systemd/systemd-autoloads.el
+(systemd-swap-mode auto-mode-alist "\\.swap\\'") ;from ~/Source/elpa/packages/systemd/systemd-autoloads.el
+(systemd-timer-mode auto-mode-alist "\\.timer\\'") ;from ~/Source/elpa/packages/systemd/systemd-autoloads.el
+(vcard-mode auto-mode-alist "\\.[Vv][Cc][Ff]\\'") ;from ~/Source/elpa/packages/vcard/vcard-autoloads.el
+(wisitoken-parse_table-mode auto-mode-alist "\\.parse_table.*\\'") ;from ~/Source/elpa/packages/wisi/wisi-autoloads.el
+(simple-indent-mode auto-mode-alist "\\.wy\\'") ;from ~/Source/elpa/packages/wisitoken-grammar-mode/wisitoken-grammar-mode-autoloads.el
+(wisitoken-grammar-mode auto-mode-alist "\\.wy\\'") ;from ~/Source/elpa/packages/wisitoken-grammar-mode/wisitoken-grammar-mode-autoloads.el
+(coq-mode auto-mode-alist "\\.v\\'") ;from ~/Source/nongnu/packages/proof-general/generic/proof-autoloads.el
 )
