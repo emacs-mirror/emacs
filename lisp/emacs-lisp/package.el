@@ -4569,6 +4569,9 @@ is set to nil, the minor mode will be disabled and no suggestions occur."
                  (const :tag "Prompt only once" once)
                  (const :tag "Indicate with message" message)
                  (const :tag "Do not suggest anything" nil))
+  (unless (memq package-autosuggest-mode '(mode-line always once message))
+    (let ((def (custom--standard-value 'package-autosuggest-mode)))
+      (setq package-autosuggest-mode def)))
   (funcall (if package-autosuggest-mode #'add-hook #'remove-hook)
            'after-change-major-mode-hook
            #'package--autosuggest-after-change-mode))
