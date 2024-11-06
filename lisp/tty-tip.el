@@ -3,6 +3,8 @@
 
 ;; Copyright (C) 2024 Free Software Foundation, Inc.
 
+;; This file is part of GNU Emacs.
+
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -141,7 +143,8 @@
              (x (car pos))
              (y (cdr pos)))
 	(set-frame-position tty-tip--frame x y))
-      (make-frame-visible tty-tip--frame))))
+      (make-frame-visible tty-tip--frame)
+      (run-at-time x-show-tooltip-timeout nil #'tty-tip--delete-frame))))
 
 (defvar tty-tip--help-message nil)
 (defvar tty-tip--hide-time nil)
