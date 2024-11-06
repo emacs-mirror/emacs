@@ -4559,10 +4559,16 @@ the `Version:' header."
            'after-change-major-mode-hook
            #'package--autosuggest-after-change-mode))
 
+(defvar package--autosuggest-suggested '()
+  "List of packages that have already been suggested.")
+
 (defun package--suggestion-applies-p (pkg-sug)
   "Check if a suggestion PKG-SUG is applicable to the current buffer."
   (pcase pkg-sug
-    (`(,(pred package-installed-p) . ,_) nil)
+    (`(,(or (pred (assq _ package--autosuggest-suggested))
+            (pred package-installed-p))
+       . ,_)
+     nil)
     ((or `(,_ auto-mode-alist ,ext _)
          `(,_ auto-mode-alist ,ext))
      (and (string-match-p ext (buffer-name)) t))
@@ -4609,9 +4615,6 @@ PKG-SUG has the same form as an element of
         (with-current-buffer buf
           (funcall-interactively (or (cadddr pkg-sug) (car pkg-sug))))))))
 
-(defvar package--autosuggest-suggested '()
-  "List of packages that have already been suggested.")
-
 (defvar package--autosugest-line-format
   '(:eval (package--autosugest-line-format)))
 (put 'package--autosugest-line-format 'risky-local-variable t)
@@ -4624,8 +4627,7 @@ PKG-SUG has the same form as an element of
 (defun package--autosugest-line-format ()
   "Generate a mode-line string to indicate a suggested package."
   `(,@(and-let* (((eq package-autosuggest-mode 'mode-line))
-                 (avail (seq-difference (package--autosuggest-find-candidates)
-                                        package--autosuggest-suggested)))
+                 (avail (package--autosuggest-find-candidates)))
         (propertize
          (format "Install %s?"
                  (mapconcat
@@ -4645,12 +4647,10 @@ PKG-SUG has the same form as an element of
 
 (defun package--autosuggest-after-change-mode ()
   "Hook function to suggest packages for installation."
-  (when-let* ((avail (seq-difference (package--autosuggest-find-candidates)
-                                     package--autosuggest-suggested))
+  (when-let* ((avail (package--autosuggest-find-candidates))
               (pkgs (mapconcat #'symbol-name
                                (delete-dups (mapcar #'car avail))
-                               ", "))
-              (use-dialog-box t))
+                               ", ")))
     (pcase package-autosuggest-mode
       ('mode-line
        (force-mode-line-update t))
@@ -4672,17 +4672,17 @@ PKG-SUG has the same form as an element of
   (interactive)
   (let* ((avail (or (package--autosuggest-find-candidates)
                     (user-error "No suggestions found")))
-         (pkgs (completing-read-multiple
-                "Install suggested packages: " avail
-                nil t
-                (mapconcat #'symbol-name
-                           (delete-dups (mapcar #'car avail))
-                           ",")))
-         (choice (concat "\\`" (regexp-opt pkgs) "\\'")))
-    (dolist (ent avail)
-      (when (string-match-p choice (symbol-name (car ent)))
-        (package--autosuggest-install-and-enable ent)))))
-
+         (use-dialog-box t)
+         (prompt (concat
+                  "Install "
+                  (mapconcat
+                   #'symbol-name
+                   (delete-dups (mapcar #'car avail))
+                   ", ")
+                  "?")))
+    (if (yes-or-no-p prompt)
+        (mapc #'package--autosuggest-install-and-enable avail)
+      (setq package--autosuggest-suggested (append avail package--autosuggest-suggested)))))
 
 ;;;; Quickstart: precompute activation actions for faster start up.
 
