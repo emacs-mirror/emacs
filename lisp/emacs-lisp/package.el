@@ -4543,7 +4543,7 @@ the `Version:' header."
   (eval-when-compile
     (with-temp-buffer
       (insert-file-contents
-       (expand-file-name "package-autosuggest.eld" data-directory)"/home/phi/Source/emacs/etc/package-autosuggest.eld")
+       (expand-file-name "package-autosuggest.eld" data-directory))
       (read (current-buffer))))
   "List of hints for packages to suggest installing.
 Each hint has the form (PACKAGE TYPE DATA), where PACKAGE is a symbol
