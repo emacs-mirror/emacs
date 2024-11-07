@@ -29,7 +29,7 @@
   "Scrape autoload files in DIRECTORIES for package suggestions.
 This file will automatically update \"package-autosuggest.eld\", but not
 save it.  You should invoke this command with built GNU ELPA and NonGNU
-ELPA checkouts (i.e. having run \"make build-all\" in both directories).
+ELPA checkouts (i.e. having run \"make autoloads\" in both directories).
 Please review the results before updating the autosuggest database!"
   (interactive (completing-read-multiple
                 "ELPA directories to scrape: "
@@ -60,17 +60,18 @@ Please review the results before updating the autosuggest database!"
             (insert-file-contents file)
             (condition-case nil
                 (while t
-                  (pcase (read (current-buffer))
-                    (`(add-to-list
-                       ',(and (or 'interpreter-mode-alist
-                                  'magic-mode-alist
-                                  'auto-mode-alist)
-                              variable)
-                       '(,(and (pred stringp) regexp) .
-                         ,(and (pred symbolp) mode)))
-                     (terpri)
-                     (prin1 `(,mode ,variable ,regexp))
-                     (princ (concat " ;from " file)))))
+                  (dolist (exp (macroexp-unprogn (read (current-buffer))))
+                    (pcase exp
+                      (`(add-to-list
+                         ',(and (or 'interpreter-mode-alist
+                                    'magic-mode-alist
+                                    'auto-mode-alist)
+                                variable)
+                         '(,(and (pred stringp) regexp) .
+                           ,(and (pred symbolp) mode)))
+                       (terpri)
+                       (prin1 `(,mode ,variable ,regexp))
+                       (princ (concat " ;from " file))))))
               (end-of-file nil))))))
     (insert "\n)\n")))
 
