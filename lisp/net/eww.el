@@ -2078,8 +2078,9 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
                           (cons "name" name)
                           ;; RFC 2183 declares that recipients should
                           ;; only respect the basename of the filename
-                          ;; parameter, so we only send that portion in
-                          ;; our request.
+                          ;; parameter, and the leading directories
+                          ;; might divulge private information, so we
+                          ;; only send the basename in our request.
                           (cons "filename" (file-name-nondirectory file)))
                     values)))
 	   ((equal (plist-get input :type) "submit")
