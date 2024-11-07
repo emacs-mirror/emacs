@@ -1589,6 +1589,15 @@ and the slash, then we have a division."
     (should (equal (nth 8 (cperl-test-ppss code "/")) 9)))
   )
 
+(ert-deftest cperl-test-bug-74245 ()
+  "Verify that a bare \"$\" can appear at the end of a subroutine signature.
+It must not be mistaken for \"$)\"."
+  (cperl--run-test-cases
+   (ert-resource-file "cperl-bug-74245.pl")
+   (while (null (eobp))
+     (cperl-indent-command)
+     (forward-line 1))))
+
 (ert-deftest test-indentation ()
   (ert-test-erts-file (ert-resource-file "cperl-indents.erts")))
 
